@@ -1,8 +1,16 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import {openSourceArchive,orderSemapTrainingMembers,readPinnedHttpRange,readPinnedSmallFile,readTrainingPartition,selectRealTrainingMembers} from '../../tools/reference-analysis/semap-source.mjs';
 import {zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
+
+test('single-sheet validation stream rejects malformed and incomplete requests',()=>{
+  const run=input=>spawnSync(process.execPath,['tools/reference-analysis/validate-semap.mjs','--sheet-stream'],{input,encoding:'utf8'});
+  const malformed=run('{');assert.notEqual(malformed.status,0);
+  const missing=run(JSON.stringify({root:'.',sheet:{},annotation:{}}));
+  assert.notEqual(missing.status,0);assert.match(missing.stderr,/Semap training source/i);
+});
 
 test('bounded source ranges retry short bodies and join partial stream chunks',async()=>{
   const requests=[];let attempts=0;

@@ -6,7 +6,7 @@ import {join,resolve} from 'node:path';
 import test from 'node:test';
 import {encodeNativeGrayPng,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 import {prepareSemapCorpus} from '../../tools/reference-analysis/prepare-semap.mjs';
-import {validateSemapTrainingCorpus} from '../../tools/reference-analysis/validate-semap.mjs';
+import {validateSemapTrainingCorpus,validateSemapTrainingSheet} from '../../tools/reference-analysis/validate-semap.mjs';
 import {inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 import {verifyCombinedTrainingOrder,writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 import {prepareCombinedTrainingBatch,verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
@@ -33,6 +33,9 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.equal(annotation.origin,'semap-human-mask-export');assert.deepEqual(annotation.observedChannels,['hydro','transport']);
   const verifyEvidence=(name,bytes)=>assert.deepEqual(bytes,evidence[name]);
   assert.equal((await validateSemapTrainingCorpus(manifest,root,{verifyEvidence})).valid,true);
+  assert.deepEqual(await validateSemapTrainingSheet({root,sheet,annotation},{verifyEvidence}),
+    {valid:true,sheets:1,trainingOnly:true,independentEvaluation:false});
+  await assert.rejects(validateSemapTrainingSheet({root,sheet,annotation:{...annotation,authorPartition:'test'}},{verifyEvidence}),/annotation changed/i);
   const dataset=await inspectSemapTrainingDataset(first.manifest,{verifyEvidence});
   assert.deepEqual(dataset.counts,[[0,0],[0,0],[0,0],[108,108],[108,0],[0,0],[0,0]]);
   assert.deepEqual(dataset.tiles,[{sourceId:sheet.id,index:0,x:0,y:0,duplicateGroup:sheet.duplicateGroup}]);

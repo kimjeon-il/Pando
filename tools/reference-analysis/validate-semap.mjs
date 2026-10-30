@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import {basename,dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {parseArgs} from 'node:util';
+import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {convertNativeSemapLabels,countNativeTrainingSupervision,inspectNativeSemapImage,readNativeTrainingMask} from '../map-image/native-resample.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {readTrainingBounded} from './training-evidence.mjs';
@@ -60,10 +60,23 @@ export async function validateSemapTrainingCorpus(corpus,root,{signal,verifyEvid
   }
   return {valid:true,sheets:seen.size,trainingOnly:true,independentEvaluation:false,sources};
 }
+export async function validateSemapTrainingSheet({root,sheet,annotation},options={}){
+  if(typeof root!=='string'||!root||!sheet||!annotation)throw Error('Explicit Semap source and annotation required');
+  const result=await validateSemapTrainingCorpus({schemaVersion:1,trainingOnly:true,sheets:[sheet]},root,options);
+  if(!isDeepStrictEqual(result.sources[0].annotation,annotation))throw Error('Semap annotation changed during validation');
+  return {valid:true,sheets:1,trainingOnly:true,independentEvaluation:false};
+}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
+  try{
+    if(process.argv.length===3&&process.argv[2]==='--sheet-stream'){
+      const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>32*1024*1024)throw Error('Semap validation request exceeds budget');chunks.push(chunk);}
+      const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
+      console.log(JSON.stringify(await validateSemapTrainingSheet(request)));
+    }else{
+    const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
     if(positionals.length||!values.corpus)throw Error('Explicit --corpus required');const path=resolve(values.corpus);
     const {sources,...result}=await validateSemapTrainingCorpus(JSON.parse(readTrainingBounded(path,32*1024*1024)),dirname(path));
     console.log(JSON.stringify(result));
+    }
   }catch(error){console.error('validate-semap: '+error.message);process.exitCode=1;}
 }
