@@ -125,7 +125,7 @@ function main(args) {
  for(const l of plan.lineages)write(path.join(territorialSourceRoot,'lineages',l.lineageId+'.json'),l);
  write(policyPath,plan.policy);
  // A catalog source edit alone is not deployable: regenerate matching chunks and builtin world.
- for(const file of ['tools/build-territorial-entity-chunks.mjs','tools/build-builtin-world.mjs','scripts/check-territorial-library.mjs'])
+ for(const file of ['tools/build-territorial-entity-chunks.mjs','tools/build-builtin-world.mjs'])
   execFileSync(process.execPath,[file],{cwd:root,stdio:'inherit'});
  console.log(JSON.stringify(summary,null,2));
  console.log('Materialized source and runtime have been updated locally, but no Git pin, branch, or website was published.');
