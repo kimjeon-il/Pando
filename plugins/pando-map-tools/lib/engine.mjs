@@ -5,7 +5,7 @@ import { workspace, workspaceModule, requireWorkspace, core, assertRuntimeResour
 import { ensureOcrLanguage,openAnalysisGazetteer,analysisDataConfig } from './runtime.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
-import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob } from './jobs.mjs';
+import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob, selectedJobGeometry } from './jobs.mjs';
 import { selectReferenceImageGeoreference,selectReferenceImageProjection } from './analysis/georef.mjs';
 import { referenceImageTilePlan, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 import { inferReferenceBoundaries } from './analysis/inference.mjs';
@@ -83,8 +83,13 @@ export async function recognize(image,languages,signal,progress=()=>{}) {
   const raw=new Worker(new URL('./ocr-worker.mjs',import.meta.url),{workerData:{workspace}});
   const port={postMessage:message=>raw.postMessage(message),terminate:()=>raw.terminate()};
   raw.on('message',data=>port.onmessage?.({data}));raw.on('error',error=>port.onerror?.(error));
-  const rpc=createWorkerRpcClient({createWorker:()=>port,defaultTimeoutMs:240_000,onEvent:event=>progress(event.payload)});
+  let progressFailure=null;
+  const rpc=createWorkerRpcClient({createWorker:()=>port,defaultTimeoutMs:240_000,onEvent:event=>{
+    try {progress(event.payload);}
+    catch(error){progressFailure={error};rpc.stop('OCR progress callback failed');}
+  }});
   try {return (await rpc.request('map.ocr',{image,languages},{signal})).result;}
+  catch(error){throw progressFailure?progressFailure.error:error;}
   finally {rpc.stop('OCR operation ended');await raw.terminate();}
 }
 export async function recognizeInProcess(image,languages,signal,progress) {
@@ -130,15 +135,20 @@ export async function recognizeInProcess(image,languages,signal,progress) {
   }
   return {rows,orientation:{...orientation,languages:selected}};
 }
-function originalGraph(graph,image) {
+export function originalGraph(graph,image,previousGraph=null) {
   const {rect}=image.mapping, sx=(rect.width-1)/(image.width-1),sy=(rect.height-1)/(image.height-1);
   const point=([x,y])=>[rect.x+x*sx,rect.y+y*sy];
-  const chains=graph.chains.map(chain=>({...chain,points:chain.points.map(point)}));
-  let result={...graph,width:image.originalWidth,height:image.originalHeight,chains,faces:[],unresolved:[]};
-  if(chains.length) result=calculate('editBoundaryGraph',{graph:result,command:{type:'replace',chainId:chains[0].id,points:chains[0].points}});
+  const firstId=previousGraph?previousGraph.nextChainId:0,firstFaceId=previousGraph?previousGraph.nextFaceId:0;
+  if(!Number.isInteger(firstId)||firstId<0||!Number.isInteger(firstFaceId)||firstFaceId<0)throw new Error('Current source graph identity counters required.');
+  const chains=graph.chains.map(chain=>({...chain,id:firstId+chain.id,points:chain.points.map(point)}));
+  let result={...graph,width:image.originalWidth,height:image.originalHeight,chains,faces:[],unresolved:[],
+    nextChainId:chains.reduce((next,chain)=>Math.max(next,chain.id+1),firstId),nextFaceId:firstFaceId};
+  result=calculate('editBoundaryGraph',{graph:result,command:{type:'rebuild'}});
   const edge=([x,y])=>Math.abs(x-rect.x)<1 || Math.abs(y-rect.y)<1 || Math.abs(x-(rect.x+rect.width-1))<1 || Math.abs(y-(rect.y+rect.height-1))<1;
   result.faces=result.faces.map(face=>({...face,touchesImageEdge:face.touchesImageEdge || face.ring.some(edge)}));
   result.unresolved.push(...graph.unresolved.filter(v=>v.reason!=='open-boundary').map(v=>({...v,...(v.point?{point:point(v.point)}:{})})));
+  if(previousGraph)result.changeSet={created:result.chains.map(v=>v.id),removed:previousGraph.chains.map(v=>v.id),modified:[],
+    faces:{created:result.faces.map(v=>v.id),removed:previousGraph.faces.map(v=>v.id),modified:[]}};
   return result;
 }
 export function regionAnalysisOptions(job,command) {
@@ -164,7 +174,9 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
     job.inferenceHistory=[...(previous.inferenceHistory || []),...(previous.segmentation?[{revision:previous.revision,source:previous.source,resources:previous.resources,segmentation:previous.segmentation}]:[])];
     job=sealJob(job);
   }
-  await saveJob(jobPath,job);
+  // Region revisions are candidates until the existing CLI transaction commits
+  // them. A failed/cancelled attempt must not replace its successful predecessor.
+  if(!previous)await saveJob(jobPath,job);
   try {
     const ocrManifestPath=resolve(workspace,'assets/data/reference-analysis/v1/ocr/manifest.json');
     const ocrManifestBytes=await readFile(ocrManifestPath),ocrManifest=JSON.parse(ocrManifestBytes);
@@ -209,7 +221,10 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
       overview:()=>resizeRaster(image,[256,256],signal),tileRaster:tile=>cropRaster(image,tile,512),
       observedChannels:manifest.observedChannels.map(v=>REFERENCE_BOUNDARY_CHANNELS.indexOf(v))});
     check(signal);
-    const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:.75}),image);
+    // Keep the thinned pixel network as the source master. Simplifying each
+    // path independently can collapse two distinct arcs into overlapping lines.
+    const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:0}),image,previous?.graph || null);
+    if(previous)job.history.at(-1).changeSet=structuredClone(graph.changeSet);
     job.graph=graph;job.segmentation={signature:digest({source:job.source,model:manifest.model.sha256}),rawGraph:structuredClone(graph)};
     job.resources.ocrLanguageHashes={};
     for(const language of ['osd',...job.ocr.orientation.languages]) {
@@ -226,17 +241,18 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
       || digest(await readFile(ocrManifestPath))!==job.resources.ocrManifestSha256
       || digest(await readFile(store.manifestPath))!==job.resources.gazetteerManifestSha256
       || digest((await readModel(modelPath)).manifest)!==digest(manifest)) throw new Error('Analysis resource signatures changed during analysis.');
-    job=sealJob(job);await saveJob(jobPath,job);
+    job=sealJob(job);if(!previous)await saveJob(jobPath,job);
     return job;
   } catch(error) {
     job.status=signal?.aborted?'cancelled':'failed';job.diagnostics.push({code:error.code || error.name,message:error.message,stack:error.stack,cause:error.cause?.stack});
-    await saveJob(jobPath,job);throw error;
+    if(!previous)await saveJob(jobPath,job);throw error;
   }
 }
 export async function renderPreview(job,path,signal) {
   assertJob(job);
   if(digest(await readFile(job.source.path))!==job.source.sha256) throw new Error('Original image hash changed.');
-  const result=await raster({action:'preview',path:job.source.path,page:job.source.page,job},null,signal);
+  const selectedGeometry=job.review?selectedJobGeometry(job).map(row=>row.pixelGeometry):null;
+  const result=await raster({action:'preview',path:job.source.path,page:job.source.page,job,selectedGeometry},null,signal);
   await writeFile(path,result.data);
 }
 export async function reviseWithRaster(job,command,signal) {

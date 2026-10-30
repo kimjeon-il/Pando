@@ -45,14 +45,30 @@ function roundedMeters(value){
   const rounded=fraction>.5||(fraction===.5&&whole%2===1)?whole+1:whole;
   return (negative?'-':'')+(rounded>=1e21?BigInt(rounded).toString():String(rounded));
 }
-function commands(job,width,height,originalWidth,originalHeight){
+function commands(job,width,height,originalWidth,originalHeight,selectedGeometry){
   const sx=width/originalWidth,sy=height/originalHeight,result=[];
   const point=(x,y)=>[x*sx,y*sy];
   const circle=(xy,color)=>{const [x,y]=point(...xy);result.push({type:2,color,values:[x-5,y-5,x+5,y+5]});};
-  for(const chain of job.graph?.chains||[]){if(chain.points.length<2)continue;const bits=chain.semanticBits||0;
+  const selected=selectedGeometry!=null,paths=[];
+  if(selected){
+    if(!Array.isArray(selectedGeometry))throw Error('Invalid selected source-pixel geometry');
+    for(const geometry of selectedGeometry){
+      if(geometry?.type==='LineString')paths.push(geometry.coordinates);
+      else if(geometry?.type==='Polygon'&&Array.isArray(geometry.coordinates))paths.push(...geometry.coordinates);
+      else throw Error('Unsupported selected source-pixel geometry');
+    }
+    for(const path of paths){
+      if(!Array.isArray(path)||path.length<2||path.some(p=>!Array.isArray(p)||p.length!==2||p.some(v=>typeof v!=='number'||!Number.isFinite(v))))
+        throw Error('Invalid selected source-pixel geometry');
+      result.push({type:1,color:0x16803c,values:path.flatMap(([x,y])=>point(x,y))});
+    }
+  }else for(const chain of job.graph?.chains||[]){if(chain.points.length<2)continue;const bits=chain.semanticBits||0;
     const color=(bits&3)===3?0xa94ddd:bits&1?0xe85530:bits&2?0x247bed:0x00b6bb;
     result.push({type:1,color,values:chain.points.flatMap(([x,y])=>point(x,y))});}
-  for(const item of job.graph?.unresolved||[])if(item.point)circle(item.point,0xffba00);
+  const onSelection=p=>paths.some(path=>path.slice(1).some((b,i)=>{const a=path[i],dx=b[0]-a[0],dy=b[1]-a[1],squared=dx*dx+dy*dy;
+    if(!squared)return false;const t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/squared));
+    return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy)<=2;}));
+  for(const item of job.graph?.unresolved||[])if(item.point&&(!selected||onSelection(item.point)))circle(item.point,0xffba00);
   const residuals=new Map((job.warp?.diagnostics?.residuals||[]).map(row=>[row.id,row.meters]));
   (job.warp?.controlPoints||[]).forEach((control,index)=>{
     const x=control.image[0]*(originalWidth-1)*sx,y=control.image[1]*(originalHeight-1)*sy;
@@ -62,7 +78,9 @@ function commands(job,width,height,originalWidth,originalHeight){
   });
   const rect=job.source?.mapping?.rect;if(rect)result.push({type:3,color:0x00aaff,
     values:[rect.x*sx,rect.y*sy,(rect.x+rect.width-1)*sx,(rect.y+rect.height-1)*sy]});
-  const banner='PROVISIONAL | orange: border / blue: admin / purple: mixed / yellow: unresolved | georeference: '+(job.quality?.recommended?'recommended':'needs review');
+  const banner=(selected?'REVIEWED SELECTION | green: selected geometry / yellow: unresolved | model provisional':
+    'PROVISIONAL CANDIDATES | orange: border / blue: admin / purple: mixed / yellow: unresolved')+
+    ' | georeference: '+(job.quality?.recommended?'recommended':'needs review');
   result.push({type:4,color:0xffffff,values:[0,0,width,24]},{type:5,color:0,x:5,y:5,stroke:0,text:banner});return result;
 }
 function request(width,height,pixels,typeface,rows){
@@ -102,13 +120,13 @@ export async function drawNativePreviewLabels(image,labels,{signal,workspace=roo
   if(pixels.length!==data.length)throw Error('Native preview output length mismatch');
   return {width,height,data:pixels};
 }
-export async function renderNativePreview(image,job,{signal,workspace=root,sourceIsPdf=false,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
+export async function renderNativePreview(image,job,{signal,workspace=root,selectedGeometry,sourceIsPdf=false,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
   resolve(workspace,'build-native/map-preview',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact')}={}){
   signal?.throwIfAborted();const {binary}=artifact(workspace,directory,process.platform);
   if(process.platform!=='win32'&&!process.env.PANDO_MAP_PREVIEW_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))chmodSync(binary,0o755);
   const [width,height]=targetSize(image.width,image.height);
   const resized=width===image.width&&height===image.height?image:await (sourceIsPdf?resizeNativePdfThumbnail:resizeNativeRgba)(image,[width,height],{signal,workspace});
-  const data=await run(binary,request(width,height,resized.data,font(workspace),commands(job,width,height,image.width,image.height)),width*height*4,signal);
+  const data=await run(binary,request(width,height,resized.data,font(workspace),commands(job,width,height,image.width,image.height,selectedGeometry)),width*height*4,signal);
   if(data.length!==width*height*4)throw Error('Native preview output length mismatch');
   return encodeNativePng({width,height,data},{signal,workspace});
 }

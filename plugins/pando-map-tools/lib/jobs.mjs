@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat, open } from 'node:fs/promises';
 import { resolve, join, dirname, basename } from 'node:path';
 import { workspaceModule, runtimeResources, assertRuntimeResources } from './workspace.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
@@ -12,7 +12,7 @@ export const digest = value => createHash('sha256').update(typeof value === 'str
 export const sealJob = job => { const { signature: _signature, ...body } = job; return { ...body, signature: digest(body) }; };
 export function assertJob(job) {
   const {signature,...body}=job;
-  if(job.schemaVersion!==2)throw new Error('Unsupported job schema; analyze a new job with the current plugin.');
+  if(job.schemaVersion!==3)throw new Error('Unsupported job schema; analyze a new job with the current plugin.');
   if (signature!==digest(body)) throw new Error('Job signature mismatch; use structured revise commands.');
   if (['cancelled','failed','running'].includes(job.status)) throw new Error(`Job is ${job.status}.`);
   assertRuntimeResources(job.resources);
@@ -27,7 +27,7 @@ export function validateCandidateModel(input) {
   return {...structuredClone(input),observedChannels:REFERENCE_BOUNDARY_CHANNELS.filter(v=>!unknown.includes(v))};
 }
 export function createJob(source, resources, options={}) {
-  return sealJob({schemaVersion:2,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:{...runtimeResources(),...structuredClone(resources)},
+  return sealJob({schemaVersion:3,id:randomUUID(),revision:0,status:'running',source:structuredClone(source),resources:{...runtimeResources(),...structuredClone(resources)},
     options:structuredClone(options),calibration:null,warp:null,quality:null,graph:null,segmentation:null,history:[],review:null,diagnostics:[]});
 }
 export function reviseJob(job, command) {
@@ -64,23 +64,16 @@ export function reviseJob(job, command) {
     if (!job.graph) throw new Error('No pixel boundary graph.');
     if (!['add','exclude','replace','cut','join'].includes(command.command?.type)) throw new Error('Unknown graph revision.');
     if(command.command.type==='add') {
-      const {points,semanticBits,reason}=command.command;
-      if(![1,2,4].includes(semanticBits) || typeof reason!=='string' || !reason.trim() || reason.length>2000) throw new Error('A manual boundary addition needs one explicit boundary class and its source-review reason.');
-      const id=job.graph.chains.reduce((largest,chain)=>Math.max(largest,chain.id),-1)+1;
-      const graph={...job.graph,chains:[...job.graph.chains,{id,points,semanticBits,confidence:1}]};
-      // As with panel restoration/exclusion, the existing core validates all
-      // original pixels and rebuilds shared junctions/faces. Replacing the new
-      // path with itself preserves every existing shared endpoint; no topology
-      // algorithm or inference graph is duplicated in the job owner.
-      next.graph=calculate('editBoundaryGraph',{graph,command:{type:'replace',chainId:id,points}});
-    } else next.graph=calculate('editBoundaryGraph',{graph:job.graph,command:command.command});
+      const {semanticBits,reason}=command.command;
+      if(![1,2,4].includes(semanticBits) || typeof reason!=='string' || !reason.trim() || reason.length>2000)throw new Error('A manual boundary addition needs one explicit boundary class and its source-review reason.');
+    }
+    next.graph=calculate('editBoundaryGraph',{graph:job.graph,command:command.command});
     if (!next.graph.ok) throw new Error('Boundary revision failed.');
   } else if(command.type==='exclude-rect') {
     if(!job.graph?.ok || !Array.isArray(command.rect) || command.rect.length!==4 || command.rect.some(v=>!Number.isFinite(v)) || command.rect[2]<=command.rect[0] || command.rect[3]<=command.rect[1]) throw new Error('Expected original-pixel exclusion [x0,y0,x1,y1].');
     const [x0,y0,x1,y1]=command.rect;
-    const chains=job.graph.chains.filter(chain=>!chain.points.some(([x,y])=>x>=x0 && x<=x1 && y>=y0 && y<=y1));
-    next.graph={...job.graph,chains,faces:[],unresolved:[]};
-    if(chains.length) next.graph=calculate('editBoundaryGraph',{graph:next.graph,command:{type:'replace',chainId:chains[0].id,points:chains[0].points}});
+    const chainIds=job.graph.chains.filter(chain=>chain.points.some(([x,y])=>x>=x0 && x<=x1 && y>=y0 && y<=y1)).map(chain=>chain.id);
+    next.graph=calculate('editBoundaryGraph',{graph:job.graph,command:{type:'exclude',chainIds}});
   } else if(command.type==='linear-constraints') {
     if(!job.calibration || !Array.isArray(command.constraints)) throw new Error('Current calibration and structured linear constraints required.');
     next.calibration={...job.calibration,linearConstraints:structuredClone(command.constraints)};
@@ -97,30 +90,86 @@ export function reviseJob(job, command) {
     if (new Set(command.selectedIds).size!==command.selectedIds.length) throw new Error('Duplicate selected candidates.');
     next.review={georeference:true,boundaries:true,selectedIds:[...command.selectedIds],revision:job.revision+1};
   } else throw new Error(`Unknown structured revision: ${command.type}`);
-  next.revision++;next.status=command.type==='review'?'reviewed':next.warp?.ok?'needs-review':'needs-georeference';next.history.push({revision:next.revision,command:structuredClone(command)});
-  return sealJob(next);
+  next.revision++;next.status=command.type==='review'?'reviewed':next.warp?.ok?'needs-review':'needs-georeference';
+  next.history.push({revision:next.revision,command:structuredClone(command),...(['boundary','exclude-rect'].includes(command.type)?{changeSet:structuredClone(next.graph.changeSet)}:{})});
+  const result=sealJob(next);
+  if(command.type==='review')selectedJobGeometry(result);
+  return result;
 }
-export async function saveJob(path,job) {
+export async function saveJob(path,job,{preview=null,signal}={}) {
   const temporary=path+'.part';
-  await writeFile(temporary,JSON.stringify(sealJob(job),null,2)+'\n',{flag:'wx'});await rename(temporary,path);
+  // Reserve the established writer path first. An interrupted save is never
+  // overwritten, and its presence must not change the successful preview.
+  const handle=await open(temporary,'wx');
+  let stage=null,partOwned=true,oldJobMoved=false,oldPreviewMoved=false,jobInstalled=false,previewInstalled=false,committed=false;
+  let failure=null;const recoveryErrors=[],cleanupErrors=[];
+  const previewPath=path+'.preview.png';
+  const moveExisting=async(from,to)=>{
+    try {
+      if(!(await lstat(from)).isFile())throw new Error('Expected a regular job/preview file.');
+      await rename(from,to);return true;
+    }catch(error){if(error.code==='ENOENT')return false;throw error;}
+  };
+  try {
+    try {await handle.writeFile(JSON.stringify(sealJob(job),null,2)+'\n');}finally{await handle.close();}
+    signal?.throwIfAborted();
+    if(preview) {
+      if(typeof preview!=='function')throw new Error('Raster preview renderer required.');
+      stage=await mkdtemp(join(dirname(path),'.'+basename(path)+'.revision-'));
+      await preview(job,join(stage,'preview.png'));signal?.throwIfAborted();assertRuntimeResources(job.resources);
+      // Move, rather than duplicate, the predecessor pair until both new files
+      // are installed. Failed rollback keeps the originals in this directory.
+      oldJobMoved=await moveExisting(path,join(stage,'previous-job.json'));
+      oldPreviewMoved=await moveExisting(previewPath,join(stage,'previous-preview.png'));
+    }
+    await rename(temporary,path);partOwned=false;jobInstalled=true;
+    if(preview){await rename(join(stage,'preview.png'),previewPath);previewInstalled=true;}
+    committed=true;
+  } catch(error) {
+    failure=error;
+    if(stage) {
+      try {if(oldJobMoved)await rename(join(stage,'previous-job.json'),path);else if(jobInstalled)await rm(path);}catch(rollback){recoveryErrors.push(rollback);}
+      try {if(oldPreviewMoved)await rename(join(stage,'previous-preview.png'),previewPath);else if(previewInstalled)await rm(previewPath);}catch(rollback){recoveryErrors.push(rollback);}
+    }
+  }
+  if(!recoveryErrors.length) {
+    if(partOwned)try{await rm(temporary,{force:true});}catch(error){cleanupErrors.push(error);}
+    if(stage)try{await rm(stage,{recursive:true,force:true});}catch(error){cleanupErrors.push(error);}
+  }
+  if(recoveryErrors.length)throw Object.assign(new AggregateError([failure,...recoveryErrors],`Revision failed; preserved recovery files at ${stage}`,{cause:failure}),{code:'PL-MAP-RECOVERY-REQUIRED',recoveryDirectory:stage});
+  if(cleanupErrors.length)throw Object.assign(new AggregateError([...(failure?[failure]:[]),...cleanupErrors],`${committed?'Job saved':'Revision failed'}; cleanup incomplete at ${stage || temporary}`,{cause:failure || cleanupErrors[0]}),{code:'PL-MAP-SAVE-CLEANUP',committed,recoveryDirectory:stage});
+  if(failure)throw failure;
 }
 export async function loadJob(path) { const job=JSON.parse(await readFile(path,'utf8'));assertJob(job);return job; }
-export function jobFeatures(job) {
+export function selectedJobGeometry(job) {
   assertJob(job);
   if (!job.review || job.review.revision!==job.revision) throw new Error('Review current georeference and boundaries before export.');
-  const projected=calculate('projectBoundaryGraph',{graph:job.graph,warp:job.warp});
-  const rows=new Map([...projected.lines.map(v=>['line:'+v.id,v]),...projected.polygons.map(v=>['face:'+v.id,v])]);
+  if(!job.review.georeference || !job.review.boundaries || !job.warp?.ok || job.quality?.folded || job.quality?.invalidDomain || !job.graph?.ok
+    || !Array.isArray(job.review.selectedIds) || !job.review.selectedIds.length || new Set(job.review.selectedIds).size!==job.review.selectedIds.length)throw new Error('Invalid current review selection.');
+  const pixels=new Map([...job.graph.chains.map(v=>['line:'+v.id,{type:'LineString',coordinates:v.points}]),
+    ...job.graph.faces.map(v=>['face:'+v.id,{type:'Polygon',coordinates:[v.ring,...(v.holes || [])]}])]);
   const rect=job.source.mapping?.rect;
   const onCropEdge=point=>rect && (Math.abs(point[0]-rect.x)<1 || Math.abs(point[1]-rect.y)<1 || Math.abs(point[0]-(rect.x+rect.width-1))<1 || Math.abs(point[1]-(rect.y+rect.height-1))<1);
-  const incomplete=new Set(job.graph.faces.filter(v=>v.touchesImageEdge || v.ring.some(onCropEdge)).map(v=>'face:'+v.id));
-  const features=job.review.selectedIds.map(id=>{
-    const row=rows.get(id);if (!row || incomplete.has(id)) throw new Error(`Invalid or incomplete boundary selection: ${id}`);
+  const incomplete=new Set(job.graph.faces.filter(v=>v.touchesImageEdge || [v.ring,...(v.holes || [])].some(ring=>ring.some(onCropEdge))).map(v=>'face:'+v.id));
+  const selected=new Set(job.review.selectedIds);
+  for(const id of selected)if(!pixels.has(id)||incomplete.has(id))throw new Error(`Invalid or incomplete boundary selection: ${id}`);
+  const projected=calculate('projectBoundaryGraph',{graph:{...job.graph,
+    chains:job.graph.chains.filter(v=>selected.has('line:'+v.id)),faces:job.graph.faces.filter(v=>selected.has('face:'+v.id))},warp:job.warp});
+  const rows=new Map([...projected.lines.map(v=>['line:'+v.id,v]),...projected.polygons.map(v=>['face:'+v.id,v])]);
+  return job.review.selectedIds.map(id=>{
+    const row=rows.get(id),pixelGeometry=pixels.get(id);
+    if(!row)throw new Error(`Invalid or incomplete boundary selection: ${id}`);
+    return {id,geometry:row.geometry,pixelGeometry:structuredClone(pixelGeometry)};
+  });
+}
+export function jobFeatures(job) {
+  const features=selectedJobGeometry(job).map(({id,geometry})=>{
     const source=normalizeSourceProvenance({kind:SOURCE_KINDS.PLUGIN,dataset:'pando-map-tools',sourceId:job.source.sha256,sourceFormat:'raster',
       sourceType:id.startsWith('face:')?'boundary-face':'boundary-line',version:job.resources.model?.model.sha256 || '',
         details:{candidateId:id,imageSha256:job.source.sha256,sourceDate:job.options.date || null,sourceDateVerification:'unverified',dataRevision:job.resources.dataRevision,
         model:job.resources.model,mappingSignature:digest(job.warp),reviewStatus:'reviewed-provisional',historicalAccuracy:'unverified',
         jobId:job.id,revision:job.revision,boundaryEdits:job.history,coordinateMapping:job.source.mapping,sourceEvidence:job.options.provenance || null}});
-    return {type:'Feature',id:randomUUID(),geometry:row.geometry,properties:{schemaVersion:GENERIC_FEATURE_SCHEMA_VERSION,name:'',notes:'',color:'#e26a44',locked:false,source}};
+    return {type:'Feature',id:randomUUID(),geometry,properties:{schemaVersion:GENERIC_FEATURE_SCHEMA_VERSION,name:'',notes:'',color:'#e26a44',locked:false,source}};
   });
   return {type:'FeatureCollection',features};
 }
