@@ -53,7 +53,7 @@ static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,in
         const uint32_t w=decoder->jpeg.image_width,h=decoder->jpeg.image_height;
         const uint64_t pixels=(uint64_t)w*h;double ratio;uint32_t bw,bh,scale;
         *original_width=w;*original_height=h;
-        if(result->orientation!=1){strncpy(decoder->error,"Current acquired JPEG orientation required",sizeof(decoder->error)-1);longjmp(decoder->jump,1);}
+        if(inspect_only!=2&&result->orientation!=1){strncpy(decoder->error,"Current acquired JPEG orientation required",sizeof(decoder->error)-1);longjmp(decoder->jump,1);}
         if(inspect_only||pixels<=maximum_pixels){result->width=w;result->height=h;*bound_width=w;*bound_height=h;*output_cmyk=0;
             jpeg_destroy_decompress(&decoder->jpeg);free(decoder);return 1;}
         ratio=sqrt((double)maximum_pixels/(double)pixels);bw=(uint32_t)floor(w*ratio);bh=(uint32_t)floor(h*ratio);
@@ -86,6 +86,11 @@ static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,in
     free(decoder->row);jpeg_destroy_decompress(&decoder->jpeg);free(decoder);return 1;
 }
 int pando_read_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){return read_jpeg(bytes,size,0,0,result,NULL,NULL,NULL,NULL,NULL);}
+int pando_inspect_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){
+    uint32_t ow=0,oh=0,bw=0,bh=0;int cmyk=0;
+    if(!read_jpeg(bytes,size,16777216,2,result,&ow,&oh,&bw,&bh,&cmyk))return 0;
+    if((uint64_t)ow*oh>300000000){strcpy(result->error,"JPEG exceeds the source pixel budget");return 0;}return 1;
+}
 int pando_read_jpeg_draft(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,int inspect_only,PandoImage* result,
     uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* cmyk){
     if(!maximum_pixels){memset(result,0,sizeof(*result));strcpy(result->error,"Positive pixel budget required");return 0;}

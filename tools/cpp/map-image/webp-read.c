@@ -4,6 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+int pando_inspect_webp(const uint8_t* bytes,size_t size,PandoImage* result){
+    WebPData data;WebPDemuxer* demux;WebPChunkIterator exif;uint32_t width,height;
+    memset(result,0,sizeof(*result));result->orientation=1;data.bytes=bytes;data.size=size;demux=WebPDemux(&data);
+    if(!demux){strcpy(result->error,"Invalid or truncated WebP");return 0;}
+    width=WebPDemuxGetI(demux,WEBP_FF_CANVAS_WIDTH);height=WebPDemuxGetI(demux,WEBP_FF_CANVAS_HEIGHT);
+    if(!width||!height||(uint64_t)width*height>300000000){strcpy(result->error,"WebP exceeds the source pixel budget");WebPDemuxDelete(demux);return 0;}
+    if(WebPDemuxGetChunk(demux,"EXIF",1,&exif)){const uint8_t* p=exif.chunk.bytes;size_t n=exif.chunk.size;
+        if(n>=6&&!memcmp(p,"Exif\0\0",6)){p+=6;n-=6;}result->orientation=pando_exif_orientation(p,n);WebPDemuxReleaseChunkIterator(&exif);}
+    result->width=width;result->height=height;WebPDemuxDelete(demux);return 1;
+}
 int pando_read_webp(const uint8_t* bytes,size_t size,PandoImage* result){
     WebPData data;WebPDemuxer* demux=NULL;WebPAnimDecoder* animation=NULL;
     WebPChunkIterator exif;uint8_t* pixels=NULL;uint32_t width,height;size_t length;

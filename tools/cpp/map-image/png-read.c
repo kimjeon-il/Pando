@@ -37,6 +37,20 @@ uint32_t pando_exif_orientation(const uint8_t* data,size_t size){
     }
     return 1;
 }
+int pando_inspect_png(const uint8_t* bytes,size_t size,PandoImage* result){
+    Decoder* decoder;png_structp png;png_infop info;png_uint_32 width,height,exif_size=0;png_bytep exif=NULL;
+    memset(result,0,sizeof(*result));result->orientation=1;
+    decoder=(Decoder*)calloc(1,sizeof(*decoder));if(!decoder){strcpy(result->error,"Out of memory");return 0;}
+    decoder->bytes=bytes;decoder->size=size;png=png_create_read_struct(PNG_LIBPNG_VER_STRING,decoder,failure,warning);
+    if(!png){free(decoder);strcpy(result->error,"PNG decoder unavailable");return 0;}
+    info=png_create_info_struct(png);if(!info){png_destroy_read_struct(&png,NULL,NULL);free(decoder);strcpy(result->error,"PNG metadata unavailable");return 0;}
+    if(setjmp(png_jmpbuf(png))){strncpy(result->error,decoder->error,sizeof(result->error)-1);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;}
+    png_set_read_fn(png,decoder,input);png_set_user_limits(png,300000000,300000000);png_read_info(png,info);
+    png_get_IHDR(png,info,&width,&height,NULL,NULL,NULL,NULL,NULL);
+    if(!width||!height||(uint64_t)width*height>300000000)png_error(png,"PNG exceeds the source pixel budget");
+    if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
+    result->width=width;result->height=height;png_destroy_read_struct(&png,&info,NULL);free(decoder);return 1;
+}
 int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){
     Decoder* decoder;png_structp png;png_infop info;png_uint_32 width,height;int color,depth,interlace,has_alpha;size_t y,x,rowbytes;
     uint8_t* output;png_uint_32 exif_size=0;png_bytep exif=NULL;
