@@ -14,7 +14,7 @@ test('WebP training pixels retain color, first animation frame and EXIF orientat
     const targetBits=Buffer.alloc(512*512),knownBits=Buffer.alloc(512*512,3);targetBits[0]=1;
     const original=await prepareNativeTrainingTile({image,targetBits,knownBits,x:0,y:0,augment:true,epoch:1,index:2});
     const actual=await prepareNativeTrainingTilePieces({image:streamed,targetBits,knownBits,x:0,y:0,augment:true,epoch:1,index:2});
-    for(const field of ['tile','overview','position','target','valid'])assert.deepEqual(actual[field],original[field],name+' '+field);
+    for(const field of ['tile','overview','position','target','valid'])assert.equal(Buffer.compare(actual[field],original[field]),0,name+' '+field);
   }
 });
 
@@ -22,7 +22,7 @@ test('lossless WebP above 16MP matches the original PNG overview and tile',async
   const path='tests/fixtures/map-image/webp-read/training-large.webp',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
   const actual=await readNativeTrainingRaster({path,format:'webp',expectedSha256,x:4000,y:4000});
   const expected=await readNativeImage({path:'tests/fixtures/map-image/png-read/training-large-overview.png',format:'png',maxPixels:16777216});
-  assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.deepEqual(actual.data,expected.data);
+  assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.equal(Buffer.compare(actual.data,expected.data),0,'overview pixels');
   assert.equal(createHash('sha256').update(actual.tile).digest('hex'),'570623f72781109f0c0519d0ecc45771a9ff9210c1e694536cd5aa28044b8406');
   const annotation={width:4097,height:4097,known:{international:[[[4000,4000],[4096,4000],[4096,4096],[4000,4096]]]},lines:[],regions:[],ignore:[]};
   const tile=await prepareReviewedTrainingTile({imagePath:path,sourceSha256:expectedSha256,annotation,x:4000,y:4000});
