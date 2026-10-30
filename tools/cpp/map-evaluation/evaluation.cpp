@@ -41,11 +41,66 @@ std::vector<Byte> dilate(const std::vector<Byte>& input,int w,int h,double radiu
   }
   return result;
 }
+std::vector<Byte> crossProximity(const std::vector<Byte>& source,int sx,int sy,int sw,int sh,int tx,int ty,int tw,int th,double radius){
+  constexpr std::int64_t inf=std::numeric_limits<std::int64_t>::max()/4;
+  std::vector<Byte> result(std::size_t(tw)*th);
+  std::vector<std::int64_t> horizontal(std::size_t(tw)*sh,inf);
+  std::vector<int> points,vertices(sh);
+  std::vector<long double> boundaries(std::size_t(sh)+1);
+  const double radius2=radius*radius;
+  for(int bit=0;bit<3;++bit){
+    std::fill(horizontal.begin(),horizontal.end(),inf);
+    for(int y=0;y<sh;++y){
+      points.clear();for(int x=0;x<sw;++x)if(source[std::size_t(y)*sw+x]&(1<<bit))points.push_back(sx+x);
+      if(points.empty())continue;
+      std::size_t nearest=0;
+      for(int x=0;x<tw;++x){const auto gx=tx+x;
+        while(nearest+1<points.size()&&std::abs(std::int64_t(points[nearest+1])-gx)<std::abs(std::int64_t(points[nearest])-gx))++nearest;
+        const auto dx=std::int64_t(points[nearest])-gx;horizontal[std::size_t(y)*tw+x]=dx*dx;
+      }
+    }
+    for(int x=0;x<tw;++x){
+      int last=-1;
+      for(int y=0;y<sh;++y){const auto f=horizontal[std::size_t(y)*tw+x];if(f==inf)continue;
+        const std::int64_t gy=std::int64_t(sy)+y;long double boundary=-std::numeric_limits<long double>::infinity();
+        while(last>=0){const auto py=vertices[last];const std::int64_t gp=std::int64_t(sy)+py;
+          boundary=static_cast<long double>((f+gy*gy)-(horizontal[std::size_t(py)*tw+x]+gp*gp))/(2*(gy-gp));
+          if(boundary>boundaries[last])break;--last;
+        }
+        ++last;vertices[last]=y;boundaries[last]=last?boundary:-std::numeric_limits<long double>::infinity();
+        boundaries[last+1]=std::numeric_limits<long double>::infinity();
+      }
+      if(last<0)continue;
+      int selected=0;
+      for(int y=0;y<th;++y){const std::int64_t gy=std::int64_t(ty)+y;
+        while(selected<last&&boundaries[selected+1]<gy)++selected;
+        const int py=vertices[selected];const auto dy=gy-(std::int64_t(sy)+py);
+        if(double(horizontal[std::size_t(py)*tw+x]+dy*dy)<=radius2)result[std::size_t(y)*tw+x]|=Byte(1<<bit);
+      }
+    }
+  }
+  return result;
+}
+std::string base64(const std::vector<Byte>& bytes){
+  static const char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  std::string result;result.reserve((bytes.size()+2)/3*4);
+  for(std::size_t i=0;i<bytes.size();i+=3){const auto n=std::uint32_t(bytes[i])<<16|(i+1<bytes.size()?std::uint32_t(bytes[i+1])<<8:0)|(i+2<bytes.size()?bytes[i+2]:0);
+    result.push_back(alphabet[(n>>18)&63]);result.push_back(alphabet[(n>>12)&63]);result.push_back(i+1<bytes.size()?alphabet[(n>>6)&63]:'=');result.push_back(i+2<bytes.size()?alphabet[n&63]:'=');}
+  return result;
+}
 int main(){try{
 #ifdef _WIN32
   if(_setmode(_fileno(stdin),_O_BINARY)==-1)throw std::runtime_error("Cannot set binary input");
 #endif
   Reader r;std::array<char,65536> chunk{};while(std::cin){std::cin.read(chunk.data(),chunk.size());auto n=std::cin.gcount();if(n>0){if(r.data.size()+std::size_t(n)>64ULL*1024*1024)throw std::runtime_error("Evaluation input exceeds budget");r.data.insert(r.data.end(),chunk.data(),chunk.data()+n);}}
+  if(r.data.size()>=8&&std::string(r.data.begin(),r.data.begin()+8)=="PXCOR001"){
+    r.at=8;const auto sx=r.u32(),sy=r.u32(),sw=r.u32(),sh=r.u32(),tx=r.u32(),ty=r.u32(),tw=r.u32(),th=r.u32();const auto radius=r.f64();
+    if(!sw||!sh||!tw||!th||sw>1024||sh>1024||tw>1024||th>1024||sx>65535||sy>65535||tx>65535||ty>65535||
+       sx+sw>65535||sy+sh>65535||tx+tw>65535||ty+th>65535||!std::isfinite(radius)||radius<0)throw std::runtime_error("Invalid proximity windows");
+    auto source=r.plane(std::size_t(sw)*sh);if(r.at!=r.data.size()||std::any_of(source.begin(),source.end(),[](Byte value){return value&~7;}))throw std::runtime_error("Invalid proximity input");
+    std::cout<<"{\"data\":\""<<base64(crossProximity(source,int(sx),int(sy),int(sw),int(sh),int(tx),int(ty),int(tw),int(th),radius))<<"\"}"<<std::endl;
+    if(!std::cout)throw std::runtime_error("Cannot write proximity output");return 0;
+  }
   if(r.data.size()>=8&&std::string(r.data.begin(),r.data.begin()+8)=="PDIAG001"){
     r.at=8;const auto w=r.u32(),h=r.u32();const std::uint64_t pixels=std::uint64_t(w)*h,values=pixels*7;
     if(!w||!h||w>16384||h>16384||values>16000000||r.data.size()!=16+values*6)throw std::runtime_error("Invalid diagnostic tensor dimensions");

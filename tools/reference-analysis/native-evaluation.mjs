@@ -9,17 +9,34 @@ import {assertEvaluationIndependence} from './training-lineage.mjs';
 export const evaluationSourceFiles=Object.freeze(['tools/cpp/map-evaluation/CMakeLists.txt','tools/cpp/map-evaluation/evaluation.cpp',
   'tools/cpp/map-image/raster-draw.h','tools/cpp/map-preview/PILLOW-LICENSE']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
-function invoke(binary,input,signal){return new Promise((accept,reject)=>{
+function invoke(binary,input,signal,maxOutputBytes=65536){return new Promise((accept,reject)=>{
   const child=spawn(binary,[],{stdio:['pipe','pipe','pipe'],windowsHide:true,signal:signal||undefined}),out=[],errors=[];
   let size=0,errorSize=0,done=false;const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);error?reject(error):accept(value);};
   const timer=setTimeout(()=>{child.kill();finish(Error('Boundary evaluation timed out'));},120000);
   child.on('error',error=>finish(error));child.stdin.on('error',()=>{});
-  child.stdout.on('data',chunk=>{size+=chunk.length;if(size>65536){child.kill();finish(Error('Boundary evaluation output exceeds budget'));}else out.push(chunk);});
+  child.stdout.on('data',chunk=>{size+=chunk.length;if(size>maxOutputBytes){child.kill();finish(Error('Boundary evaluation output exceeds budget'));}else out.push(chunk);});
   child.stderr.on('data',chunk=>{errorSize+=chunk.length;if(errorSize<=65536)errors.push(chunk);});
   child.on('close',(code,reason)=>{if(code!==0||reason)return finish(Error('Native boundary evaluation failed: '+Buffer.concat(errors).toString('utf8')));
     try{finish(null,JSON.parse(Buffer.concat(out).toString('utf8')));}catch(error){finish(error);}});
   child.stdin.end(input);
 });}
+export async function proximityWindow(source,target,radius,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact')}={}){
+  signal?.throwIfAborted();
+  const valid=window=>window&&[window.x,window.y,window.width,window.height].every(Number.isSafeInteger)&&window.x>=0&&window.y>=0&&
+    window.width>0&&window.height>0&&window.width<=1024&&window.height<=1024&&window.x+window.width<=65535&&window.y+window.height<=65535;
+  if(!valid(source)||!valid(target)||!Buffer.isBuffer(source.data)||source.data.length!==source.width*source.height||
+    source.data.some(value=>value&~7)||!Number.isFinite(radius)||radius<0)throw Error('Invalid proximity windows');
+  const header=Buffer.alloc(48);header.write('PXCOR001');let at=8;
+  for(const value of [source.x,source.y,source.width,source.height,target.x,target.y,target.width,target.height]){header.writeUInt32BE(value,at);at+=4;}
+  header.writeDoubleBE(radius,at);
+  const executable=process.platform==='win32'?'pando-map-evaluation.exe':'pando-map-evaluation';
+  const {binary}=verifyNativeTool({root:workspace,directory,target:'map-evaluation',executable,sourceFiles:evaluationSourceFiles});
+  const result=await invoke(binary,Buffer.concat([header,source.data]),signal,2*1024*1024);
+  if(typeof result?.data!=='string'||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(result.data))throw Error('Invalid native proximity output');
+  const decoded=Buffer.from(result.data,'base64');
+  if(decoded.length!==target.width*target.height||decoded.some(value=>value&~7))throw Error('Invalid native proximity output');
+  return decoded;
+}
 export async function diagnosticPixelStatistics({width,height,probability,target,known},
   {signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact')}={}){
   signal?.throwIfAborted();const pixels=width*height,values=pixels*7;

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {evaluateBoundaries,evaluateBoundariesTiled,evaluateIndependentSheet,boundaryAdmission,confounderNonregression,summarizeEvaluation} from '../../tools/reference-analysis/native-evaluation.mjs';
+import {evaluateBoundaries,evaluateBoundariesTiled,evaluateIndependentSheet,boundaryAdmission,confounderNonregression,summarizeEvaluation,proximityWindow} from '../../tools/reference-analysis/native-evaluation.mjs';
 import {buildTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
 
 function annotation(kind='international',width=1){
@@ -10,6 +10,27 @@ function annotation(kind='international',width=1){
   return {width:20,height:20,known,lines:[{kind,width,points:[[3,5],[16,5]]}],regions:[{kind:'text',polygon:[[3,3],[16,3],[16,12],[3,12]]}],ignore:[]};
 }
 function prediction(channel,y){const out=Buffer.alloc(400);for(let x=3;x<=16;x++)out[y*20+x]|=1<<channel;return out;}
+test('native proximity combines independent source and destination windows at exact disk distances',async()=>{
+  const source={x:8,y:10,width:4,height:3,data:Buffer.from([1,0,0,0,0,2,0,4,0,0,0,0])};
+  const target={x:4,y:8,width:10,height:8},radius=3.5;
+  const expected=Buffer.alloc(target.width*target.height);
+  for(let y=0;y<target.height;y++)for(let x=0;x<target.width;x++)for(let sy=0;sy<source.height;sy++)for(let sx=0;sx<source.width;sx++){
+    const dx=target.x+x-source.x-sx,dy=target.y+y-source.y-sy;
+    if(dx*dx+dy*dy<=radius*radius)expected[y*target.width+x]|=source.data[sy*source.width+sx];
+  }
+  assert.deepEqual(await proximityWindow(source,target,radius),expected);
+  assert.deepEqual(await proximityWindow({...source,data:Buffer.alloc(source.data.length)},target,radius),Buffer.alloc(expected.length));
+  let seed=413;const random=n=>((seed=(seed*1664525+1013904223)>>>0)%n);
+  for(let example=0;example<8;example++){
+    const src={x:random(20),y:random(20),width:1+random(9),height:1+random(9)},dst={x:random(20),y:random(20),width:1+random(9),height:1+random(9)};
+    const r=random(20)/2;src.data=Buffer.alloc(src.width*src.height);for(let i=0;i<src.data.length;i++)src.data[i]=random(8);
+    const oracle=Buffer.alloc(dst.width*dst.height);
+    for(let y=0;y<dst.height;y++)for(let x=0;x<dst.width;x++)for(let sy=0;sy<src.height;sy++)for(let sx=0;sx<src.width;sx++)
+      if((dst.x+x-src.x-sx)**2+(dst.y+y-src.y-sy)**2<=r*r)oracle[y*dst.width+x]|=src.data[sy*src.width+sx];
+    assert.deepEqual(await proximityWindow(src,dst,r),oracle,`case ${example}`);
+  }
+  await assert.rejects(proximityWindow({...source,data:Buffer.alloc(1)},target,radius),/proximity/i);
+});
 test('native evaluation matches Python oracle for all channels and confounders',async()=>{
   const annotation=JSON.parse(readFileSync('tests/fixtures/reference-review-mask/full.json','utf8')).annotation;
   const oracle=JSON.parse(readFileSync('tests/fixtures/reference-review-mask/evaluation.json','utf8'));
