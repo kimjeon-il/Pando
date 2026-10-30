@@ -69,7 +69,7 @@ async function operateNativeRgba(image,size,action,{signal,workspace=root,direct
   if(!image||!Array.isArray(size)||size.length!==2||!(image.data instanceof Uint8Array))throw Error('RGBA image and output size are required');
   dimensions(image.width,image.height);dimensions(size[0],size[1]);
   if(image.data.length!==image.width*image.height*4)throw Error('RGBA input byte length differs from dimensions');
-  const expected=size[0]*size[1]*4,encoded=['encode-png','encode-webp-lossless'].includes(action[0]),maximum=encoded?expected+size[1]+1048576:expected;
+  const expected=size[0]*size[1]*4,encoded=['encode-png','encode-webp-lossless','encode-jpeg'].includes(action[0]),maximum=encoded?expected+size[1]+1048576:expected;
   const data=await runNative(nativeBinary(workspace,directory),[action[0],String(image.width),String(image.height),...action.slice(1).map(String)],image.data,maximum,signal);
   if((!encoded&&data.length!==expected)||(encoded&&data.length<8))throw Error('Native image output byte length mismatch');
   signal?.throwIfAborted();return {width:size[0],height:size[1],data};
@@ -244,6 +244,12 @@ export function rotateNativeRgba(image,degrees,options){
 }
 export function encodeNativePng(image,options){
   return operateNativeRgba(image,[image?.width,image?.height],['encode-png'],options);
+}
+export async function encodeNativeJpeg(image,options){
+  const result=await operateNativeRgba(image,[image?.width,image?.height],['encode-jpeg'],options);
+  if(result.data.length<4||result.data.readUInt16BE(0)!==0xffd8||result.data.readUInt16BE(result.data.length-2)!==0xffd9)
+    throw Error('Native JPEG output is invalid');
+  return result;
 }
 export async function encodeNativeWebpLossless(image,options){
   const result=await operateNativeRgba(image,[image?.width,image?.height],['encode-webp-lossless'],options);

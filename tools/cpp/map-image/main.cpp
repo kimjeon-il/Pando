@@ -415,8 +415,8 @@ int main(int argc,char** argv){
             if(!std::cout)throw std::runtime_error("Unable to write decoded pixels");
             return 0;
         }
-        if(((action=="resize-rgba"||action=="resize-bilinear"||action=="thumbnail-pdf")&&argc!=6)||(action=="rotate-rgba"&&argc!=5)||((action=="encode-png"||action=="encode-webp-lossless")&&argc!=4)||
-           (action!="resize-rgba"&&action!="resize-bilinear"&&action!="thumbnail-pdf"&&action!="rotate-rgba"&&action!="encode-png"&&action!="encode-webp-lossless"))
+        if(((action=="resize-rgba"||action=="resize-bilinear"||action=="thumbnail-pdf")&&argc!=6)||(action=="rotate-rgba"&&argc!=5)||((action=="encode-png"||action=="encode-webp-lossless"||action=="encode-jpeg")&&argc!=4)||
+           (action!="resize-rgba"&&action!="resize-bilinear"&&action!="thumbnail-pdf"&&action!="rotate-rgba"&&action!="encode-png"&&action!="encode-webp-lossless"&&action!="encode-jpeg"))
             throw std::invalid_argument("Invalid native image operation or arguments");
         const int w=dimension(argv[2]),h=dimension(argv[3]);
         int ow=0,oh=0,degrees=0;
@@ -426,6 +426,14 @@ int main(int argc,char** argv){
         const auto bytes=static_cast<std::size_t>(w)*h*4;std::vector<std::uint8_t> input(bytes);
         if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(bytes))||std::cin.peek()!=std::char_traits<char>::eof())
             throw std::invalid_argument("RGBA input byte length differs from dimensions");
+        if(action=="encode-jpeg"){
+            for(std::size_t i=3;i<input.size();i+=4)if(input[i]!=255)throw std::invalid_argument("JPEG input must be opaque");
+            std::uint8_t* encoded=nullptr;std::size_t length=0;char error[256]{};
+            if(!pando_write_jpeg(input.data(),w,h,&encoded,&length,error,sizeof(error)))throw std::runtime_error(std::string("JPEG encoding: ")+error);
+            std::unique_ptr<std::uint8_t,decltype(&std::free)> output(encoded,&std::free);
+            std::cout.write(reinterpret_cast<const char*>(output.get()),static_cast<std::streamsize>(length));
+            if(!std::cout)throw std::runtime_error("Unable to write JPEG image");return 0;
+        }
         const auto output=action=="resize-rgba"?pando::map_image::resizeRgba(input,w,h,ow,oh):action=="resize-bilinear"?pando::map_image::resizeOpaqueBilinear(input,w,h,ow,oh):action=="thumbnail-pdf"?pando::map_image::resizeOpaqueThumbnail(input,w,h,ow,oh):
             action=="rotate-rgba"?pando::map_image::rotateRgba(input,w,h,degrees):action=="encode-webp-lossless"?encodeWebpLossless(input,w,h):pando::map_image::encodePngRgba(input,w,h);
         std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
