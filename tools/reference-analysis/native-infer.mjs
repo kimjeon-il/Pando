@@ -19,7 +19,7 @@ export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'t
   'tools/cpp/reference-analysis/training-step.h']);
 export const referenceBatchSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/training-step.h',
   'tools/cpp/reference-analysis/training-ordered-step.h','tools/cpp/reference-analysis/training-amp.h','tools/cpp/reference-analysis/training-validation.h',
-  'tools/cpp/reference-analysis/training-sampling.h','tools/cpp/reference-analysis/condition-sampling.h','tools/cpp/reference-analysis/training-batch.cpp',
+  'tools/cpp/reference-analysis/training-sampling.h','tools/cpp/reference-analysis/condition-sampling.h','tools/cpp/reference-analysis/training-supervision.h','tools/cpp/reference-analysis/training-batch.cpp',
   'tools/cpp/reference-analysis/training-step-test/CMakeLists.txt']);
 export const referenceOnnxTestSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-tests.cpp']);
 export const referenceOnnxExportSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-onnx-export.cpp']);

@@ -6,6 +6,7 @@
 #include "training-amp.h"
 #include "training-validation.h"
 #include "training-sampling.h"
+#include "training-supervision.h"
 #include <ATen/Context.h>
 #include <cmath>
 #include <filesystem>
@@ -85,10 +86,11 @@ int validate(const std::vector<fs::path>& args){
 int run(const std::vector<fs::path>& args){
   if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);
   if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);
-  if(args.size()<16||(args.size()-14)%2||args.size()>46)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH INDEX SAMPLE_DIR...");
+  if(args.size()<17||(args.size()-15)%2||args.size()>47)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH UNOBSERVED_MASK INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");
   if(fs::exists(args[4]))throw std::invalid_argument("Checkpoint output exists; preserve it");
-  const auto epoch=integer(args[5]),seed=integer(args[6]),freezeEpochs=integer(args[7]);const auto rate=learningRate(args[8]);
+  const auto epoch=integer(args[5]),seed=integer(args[6]),freezeEpochs=integer(args[7]),unobservedMask=integer(args[14]);const auto rate=learningRate(args[8]);
+  if(unobservedMask>127)throw std::invalid_argument("Invalid unobserved channel mask");
   const auto order=orderFile(args[9]);const auto device=pando::reference::selectDevice(args[1].string());
   at::globalContext().setDeterministicAlgorithms(true,false);
   pando::reference::ReferenceBoundaryModel model;model->to(device);
@@ -99,6 +101,7 @@ int run(const std::vector<fs::path>& args){
     const auto architecture=metadata.find("architecture"),scope=metadata.find("trainingOnly");
     if(architecture==metadata.end()||architecture->second!="mobilenetv3-unet-context-v1"||scope==metadata.end()||scope->second!="true")
       throw std::invalid_argument("A private training-only reference initializer is required");
+    pando::reference::initializeUnobservedChannels(model,static_cast<std::uint32_t>(unobservedMask));
     torch::manual_seed(20261022);if(device.is_cuda()){auto generator=at::globalContext().defaultGenerator(device);generator.set_current_seed(20261022);}
     state={epoch,0,seed,order};configure(model,epoch,freezeEpochs);
   }else{
@@ -122,7 +125,7 @@ int run(const std::vector<fs::path>& args){
     throw std::invalid_argument("Invalid training AMP state");
   pando::reference::TrainingAmpState ampState{static_cast<float>(scaleValue),static_cast<std::int32_t>(growth)};
   std::vector<torch::Tensor> tiles,overviews,positions,targets,valids;std::vector<std::int64_t> indices;
-  for(std::size_t i=14;i<args.size();i+=2){indices.push_back(integer(args[i]));const auto sample=readSample(args[i+1]);
+  for(std::size_t i=15;i<args.size();i+=2){indices.push_back(integer(args[i]));const auto sample=readSample(args[i+1]);
     tiles.push_back(sample.tile);overviews.push_back(sample.overview);positions.push_back(sample.position);targets.push_back(sample.target);valids.push_back(sample.valid);}
   pando::reference::TrainingBatch batch{torch::cat(tiles).to(device),torch::cat(overviews).to(device),torch::cat(positions).to(device),torch::cat(targets).to(device),torch::cat(valids).to(device)};
   checkSupervision(batch);
