@@ -113,7 +113,7 @@ export async function inspectNativeImageHeader(bytes,format,{signal,workspace=ro
   const output=await runNative(nativeBinary(workspace,directory),['header-'+format],bytes,12,signal);
   if(output.length!==12)throw Error('Native image header receipt is invalid');
   const width=output.readUInt32BE(0),height=output.readUInt32BE(4),orientation=output.readUInt32BE(8);
-  if(!width||!height||width*height>300000000)throw Error('Native image header dimensions are invalid');
+  if(!width||!height||width*height>600000000)throw Error('Native image header dimensions are invalid');
   const swap=orientation>=5&&orientation<=8;signal?.throwIfAborted();
   return {format,encodedSize:[width,height],orientation,size:swap?[height,width]:[width,height]};
 }

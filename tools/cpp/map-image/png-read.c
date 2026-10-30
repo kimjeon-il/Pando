@@ -45,9 +45,9 @@ int pando_inspect_png(const uint8_t* bytes,size_t size,PandoImage* result){
     if(!png){free(decoder);strcpy(result->error,"PNG decoder unavailable");return 0;}
     info=png_create_info_struct(png);if(!info){png_destroy_read_struct(&png,NULL,NULL);free(decoder);strcpy(result->error,"PNG metadata unavailable");return 0;}
     if(setjmp(png_jmpbuf(png))){strncpy(result->error,decoder->error,sizeof(result->error)-1);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;}
-    png_set_read_fn(png,decoder,input);png_set_user_limits(png,300000000,300000000);png_read_info(png,info);
+    png_set_read_fn(png,decoder,input);png_set_user_limits(png,600000000,600000000);png_read_info(png,info);
     png_get_IHDR(png,info,&width,&height,NULL,NULL,NULL,NULL,NULL);
-    if(!width||!height||(uint64_t)width*height>300000000)png_error(png,"PNG exceeds the source pixel budget");
+    if(!width||!height||(uint64_t)width*height>600000000)png_error(png,"PNG exceeds the source pixel budget");
     if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
     result->width=width;result->height=height;png_destroy_read_struct(&png,&info,NULL);free(decoder);return 1;
 }

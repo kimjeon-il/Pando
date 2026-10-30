@@ -89,7 +89,7 @@ int pando_read_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){return 
 int pando_inspect_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){
     uint32_t ow=0,oh=0,bw=0,bh=0;int cmyk=0;
     if(!read_jpeg(bytes,size,16777216,2,result,&ow,&oh,&bw,&bh,&cmyk))return 0;
-    if((uint64_t)ow*oh>300000000){strcpy(result->error,"JPEG exceeds the source pixel budget");return 0;}return 1;
+    return 1;
 }
 int pando_read_jpeg_draft(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,int inspect_only,PandoImage* result,
     uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* cmyk){
