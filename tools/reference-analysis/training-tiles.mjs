@@ -130,18 +130,10 @@ export async function prepareReviewedTrainingTile({imagePath,sourceSha256,annota
   signal?.throwIfAborted();
   const format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(imagePath||'').toLowerCase()];
   if(!format||typeof sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(sourceSha256))throw Error('Source-bound PNG, JPEG or WebP training image required');
-  if(format==='jpeg'||format==='png'){
-    const image=await readNativeTrainingRaster({path:imagePath,format,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory});
-    if(annotation?.width!==image.width||annotation.height!==image.height)throw Error('Annotations must use oriented original image dimensions');
-    const masks=await reviewMasks(annotation,{window:[x,y,512,512],signal,workspace,directory:reviewDirectory});
-    return prepareNativeTrainingTilePieces({image,targetBits:masks.targetBits,knownBits:masks.knownBits,x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
-  }
-  const image=await readNativeImage({path:imagePath,format,maxPixels:16777216,expectedSha256:sourceSha256},{signal,workspace,directory:imageDirectory});
-  if(annotation?.width!==image.originalWidth||annotation.height!==image.originalHeight||image.width!==image.originalWidth||image.height!==image.originalHeight)
-    throw Error('Annotations must use oriented original image dimensions');
-  if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height)throw Error('Training tile must start inside original image');
+  const image=await readNativeTrainingRaster({path:imagePath,format,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory});
+  if(annotation?.width!==image.width||annotation.height!==image.height)throw Error('Annotations must use oriented original image dimensions');
   const masks=await reviewMasks(annotation,{window:[x,y,512,512],signal,workspace,directory:reviewDirectory});
-  return prepareNativeTrainingTile({image,targetBits:masks.targetBits,knownBits:masks.knownBits,x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
+  return prepareNativeTrainingTilePieces({image,targetBits:masks.targetBits,knownBits:masks.knownBits,x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
 }
 export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,annotation,x,y,augment=false,epoch=0,index=0},
   {signal,workspace,imageDirectory}={}){

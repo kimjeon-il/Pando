@@ -27,6 +27,8 @@ int pando_write_jpeg(const uint8_t* rgba,uint32_t width,uint32_t height,uint8_t*
 int pando_write_jpeg_quality(const uint8_t* rgba,uint32_t width,uint32_t height,int quality,uint8_t** bytes,size_t* size,char* error,size_t error_size);
 int pando_read_webp(const uint8_t* bytes,size_t size,PandoImage* result);
 int pando_inspect_webp(const uint8_t* bytes,size_t size,PandoImage* result);
+int pando_stream_webp_rows(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context);
 #ifdef __cplusplus
 }
 #endif

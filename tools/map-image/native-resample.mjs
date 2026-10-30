@@ -272,9 +272,9 @@ export async function readNativeImage({path,rect,format,maxPixels=4000000,expect
 }
 export async function readNativeTrainingRaster({path,format,expectedSha256,x=0,y=0},{workspace=root,directory=artifactDirectory(workspace),signal}={}){
   signal?.throwIfAborted();
-  if(typeof path!=='string'||!path||!['jpeg','png'].includes(format)||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||
+  if(typeof path!=='string'||!path||!['jpeg','png','webp'].includes(format)||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||
     ![x,y].every(value=>Number.isInteger(value)&&value>=0&&value<65535))
-    throw Error('Source-bound PNG or JPEG path and SHA-256 required');
+    throw Error('Source-bound PNG, JPEG or WebP path and SHA-256 required');
   const bytes=await readEncodedImage(path,signal);
   if(createHash('sha256').update(bytes).digest('hex')!==expectedSha256)throw Error('Original image hash changed');
   const overviewBytes=256*256*4,tileBytes=512*512*4;
