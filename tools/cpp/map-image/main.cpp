@@ -52,18 +52,18 @@ int main(int argc,char** argv){
             if(!std::cout)throw std::runtime_error("Unable to write decoded pixels");
             return 0;
         }
-        if((action=="resize-rgba"&&argc!=6)||(action=="rotate-rgba"&&argc!=5)||(action=="encode-png"&&argc!=4)||
-           (action!="resize-rgba"&&action!="rotate-rgba"&&action!="encode-png"))
+        if(((action=="resize-rgba"||action=="thumbnail-pdf")&&argc!=6)||(action=="rotate-rgba"&&argc!=5)||(action=="encode-png"&&argc!=4)||
+           (action!="resize-rgba"&&action!="thumbnail-pdf"&&action!="rotate-rgba"&&action!="encode-png"))
             throw std::invalid_argument("Invalid native image operation or arguments");
         const int w=dimension(argv[2]),h=dimension(argv[3]);
         int ow=0,oh=0,degrees=0;
-        if(action=="resize-rgba"){ow=dimension(argv[4]);oh=dimension(argv[5]);}
+        if(action=="resize-rgba"||action=="thumbnail-pdf"){ow=dimension(argv[4]);oh=dimension(argv[5]);}
         else if(action=="rotate-rgba"){const std::string angle=argv[4];if(angle!="0"&&angle!="90"&&angle!="180"&&angle!="270")throw std::invalid_argument("Invalid clockwise rotation");degrees=std::stoi(angle);}
-        if(static_cast<std::int64_t>(w)*h>16777216||(action=="resize-rgba"&&static_cast<std::int64_t>(ow)*oh>16777216))throw std::invalid_argument("Image exceeds 16MP budget");
+        if(static_cast<std::int64_t>(w)*h>16777216||((action=="resize-rgba"||action=="thumbnail-pdf")&&static_cast<std::int64_t>(ow)*oh>16777216))throw std::invalid_argument("Image exceeds 16MP budget");
         const auto bytes=static_cast<std::size_t>(w)*h*4;std::vector<std::uint8_t> input(bytes);
         if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(bytes))||std::cin.peek()!=std::char_traits<char>::eof())
             throw std::invalid_argument("RGBA input byte length differs from dimensions");
-        const auto output=action=="resize-rgba"?pando::map_image::resizeRgba(input,w,h,ow,oh):
+        const auto output=action=="resize-rgba"?pando::map_image::resizeRgba(input,w,h,ow,oh):action=="thumbnail-pdf"?pando::map_image::resizeOpaqueThumbnail(input,w,h,ow,oh):
             action=="rotate-rgba"?pando::map_image::rotateRgba(input,w,h,degrees):pando::map_image::encodePngRgba(input,w,h);
         std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
         if(!std::cout)throw std::runtime_error("Unable to write resized pixels");
