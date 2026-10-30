@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(pando_terrain_dem_fill LANGUAGES CXX)
+find_package(GDAL 3.9 REQUIRED MODULE)
+add_executable(pando-terrain-dem-fill fill.cpp)
+target_compile_features(pando-terrain-dem-fill PRIVATE cxx_std_17)
+target_link_libraries(pando-terrain-dem-fill PRIVATE GDAL::GDAL)

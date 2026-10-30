@@ -17,13 +17,58 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  terrain-dem-fill-windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-fill-windows'
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reuse pinned QGIS SDK archives
+        uses: actions/cache/restore@v4
+        with:
+          path: build-native/qgis-sdk/*.tar.bz2
+          key: qgis-sdk-${{ runner.os }}-qgis-3.44.15-qt-5.15.13-gdal-3.13.3-geos-3.15.0-proj-9.8.1-v1
+      - name: Prepare the pinned GDAL development SDK
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          New-Item -ItemType Directory -Force -Path $sdk | Out-Null
+          $archive = "$sdk/gdal.tar.bz2"
+          $hash = '2475B7AB14A8437B925D1E96908AD5E22B8296ADF01E00B9ECA3EF0816B736C2'
+          if (-not (Test-Path -LiteralPath $archive) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) {
+            curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 180 --max-filesize 30000000 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/gdal/gdal-devel/gdal-devel-3.13.3-3.tar.bz2' --output $archive
+            if ($LASTEXITCODE -ne 0 -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) { throw 'GDAL SDK download or digest failed' }
+          }
+          tar.exe -xf $archive -C $sdk
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL SDK extraction failed' }
+      - name: Build the selected GDAL tint tool
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-encode -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool configuration failed' }
+          cmake --build build-native/terrain-dem-encode --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool build failed' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary build-native/terrain-dem-encode/Release/pando-terrain-dem-fill.exe --directory build-native/terrain-dem-encode/fill-artifact
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool packaging failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-dem-fill-windows-${{ github.sha }}
+          path: build-native/terrain-dem-encode/fill-artifact/
+          if-no-files-found: error
+          retention-days: 7
   terrain-dem-encode:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-encode'
     strategy:
