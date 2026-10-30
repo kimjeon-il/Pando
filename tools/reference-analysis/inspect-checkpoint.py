@@ -11,7 +11,7 @@ import onnx
 import torch
 from PIL import Image, ImageDraw
 
-from corpus import CHANNELS, RASTER_ORIGINS, corpus_fingerprint, validate_corpus, review_masks
+from corpus import CHANNELS, corpus_fingerprint, validate_corpus
 from train import MapTiles, load_model
 from report_paths import report_argument
 from raster import oriented_map_image
@@ -73,19 +73,19 @@ def inspect(args):
             # Choose a real tile with the most labelled international-border
             # pixels (administrative when no international boundary is present).
             annotation = json.loads((root / sheet['annotations']).read_text(encoding='utf-8'))
-            if annotation.get('origin') in RASTER_ORIGINS:
-                with Image.open(root / annotation['raster']['path']) as source:
-                    bits = np.asarray(source, dtype=np.uint8)
-                with Image.open(root / annotation['validRaster']['path']) as source:
-                    valid_bits = np.asarray(source, dtype=np.uint8)
-                positive = np.stack([((bits & valid_bits) & (1 << i)) != 0 for i in range(len(CHANNELS))])
-            else:
-                target, valid = review_masks(annotation)
-                positive = target & valid
-            channel = next((i for i in range(len(CHANNELS)) if positive[i].any()), 3)
-            index = max(range(len(dataset)), key=lambda i: int(np.count_nonzero(
-                positive[channel, dataset.tiles[i][2]:dataset.tiles[i][2] + 512,
-                         dataset.tiles[i][1]:dataset.tiles[i][1] + 512])))
+            selector = pathlib.Path(__file__).with_name('diagnostic-selection.mjs')
+            selected = subprocess.run(['node', str(selector), '--select'],
+                input=json.dumps(dict(root=str(root), annotation=annotation)).encode('utf-8'),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if selected.returncode:
+                raise RuntimeError('Native diagnostic tile selection failed: ' + selected.stderr.decode('utf-8', errors='replace'))
+            choice = json.loads(selected.stdout)
+            if (not isinstance(choice, dict) or not isinstance(choice.get('index'), int)
+                    or not 0 <= choice['index'] < len(dataset)
+                    or list(dataset.tiles[choice['index']][1:]) != [choice.get('x'), choice.get('y')]):
+                raise ValueError('Diagnostic tile selection differs from dataset order')
+            index = choice['index']
             tile, overview, position, target, valid, _ = dataset[index]
             logits = model(tile[None], overview[None], position[None])
             if not torch.isfinite(logits).all():

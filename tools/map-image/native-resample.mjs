@@ -161,7 +161,7 @@ export async function countNativeTrainingSupervision(target,known,{signal,worksp
   if(counts.some(([valid,positive])=>valid>target.data.length||positive>valid))throw Error('Native training supervision counts are invalid');
   return counts;
 }
-export async function countNativeEncodedTrainingSupervision(target,known,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+async function invokeEncodedSupervision(target,known,action,maximum,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   for(const mask of [target,known]){
     if(!(mask?.bytes instanceof Uint8Array)||!mask.bytes.length||mask.bytes.length>300*1024*1024||typeof mask.sha256!=='string'||!/^[a-f0-9]{64}$/.test(mask.sha256))
@@ -169,13 +169,28 @@ export async function countNativeEncodedTrainingSupervision(target,known,{signal
     if(createHash('sha256').update(mask.bytes).digest('hex')!==mask.sha256)throw Error('Training mask hash changed');
   }
   const prefix=Buffer.alloc(4);prefix.writeUInt32BE(target.bytes.length);
-  const output=await runNative(nativeBinary(workspace,directory),['training-supervision-encoded'],[prefix,target.bytes,known.bytes],64,signal);
-  if(output.length!==64)throw Error('Native encoded supervision receipt is invalid');
+  const output=await runNative(nativeBinary(workspace,directory),[action],[prefix,target.bytes,known.bytes],maximum,signal);
+  if(output.length<8)throw Error('Native encoded supervision receipt is invalid');
   const width=output.readUInt32BE(0),height=output.readUInt32BE(4);
   if(!width||!height||width>65535||height>65535||width*height>600000000)throw Error('Invalid encoded supervision dimensions');
+  return {width,height,output};
+}
+export async function countNativeEncodedTrainingSupervision(target,known,options={}){
+  const {width,height,output}=await invokeEncodedSupervision(target,known,'training-supervision-encoded',64,options);
+  if(output.length!==64)throw Error('Native encoded supervision receipt is invalid');
   const counts=Array.from({length:7},(_,i)=>[output.readUInt32BE(8+i*8),output.readUInt32BE(12+i*8)]);
   if(counts.some(([valid,positive])=>valid>width*height||positive>valid))throw Error('Invalid encoded supervision counts');
-  signal?.throwIfAborted();return {width,height,counts};
+  options.signal?.throwIfAborted();return {width,height,counts};
+}
+export async function countNativeDiagnosticTiles(target,known,options={}){
+  const {width,height,output}=await invokeEncodedSupervision(target,known,'training-diagnostic-tile-counts',8+147*147*29,options);
+  const length=Math.ceil(width/448)*Math.ceil(height/448);
+  if(output.length!==8+length*29)throw Error('Native diagnostic tile receipt is invalid');
+  const tiles=Array.from({length},(_,i)=>{const offset=8+i*29,active=output[offset];
+    const counts=Array.from({length:7},(_,c)=>output.readUInt32BE(offset+1+c*4));
+    if(active>1||counts.some(value=>value>512*512)||(!active&&counts.some(Boolean)))throw Error('Invalid diagnostic tile counts');
+    return {active:!!active,counts};});
+  options.signal?.throwIfAborted();return {width,height,tiles};
 }
 export async function convertNativeSemapLabels(labels,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();dimensions(labels?.width,labels?.height);

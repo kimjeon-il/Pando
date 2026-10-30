@@ -10,6 +10,7 @@ import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-tr
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
+export function isRasterTrainingAnnotation(annotation){return rasterOrigins.has(annotation?.origin);}
 // Combine independently verified primary macro and auxiliary Semap training inputs.
 export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,signal,verifyEvidence,workspace,imageDirectory}){
   signal?.throwIfAborted();
@@ -76,7 +77,7 @@ export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDi
   return {trainingOnly:true,releaseApproved:false,corpusSha256,tiles};
 }
 async function encodedTrainingRaster(root,annotation,field,options){
-  if(!rasterOrigins.has(annotation?.origin))throw Error('Explicit raster training supervision required');
+  if(!isRasterTrainingAnnotation(annotation))throw Error('Explicit raster training supervision required');
   const spec=annotation[field];if(!spec||typeof spec.path!=='string')throw Error('Source-bound raster path required');
   options.signal?.throwIfAborted();
   const path=await resolveCorpusPath(root,spec.path),bytes=readTrainingBounded(path,300*1024*1024);
