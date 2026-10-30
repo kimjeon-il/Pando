@@ -1,0 +1,30 @@
+{
+  "request": {
+    "action": "read",
+    "maxPixels": 4096
+  },
+  "expected": {
+    "width": 90,
+    "height": 45,
+    "originalWidth": 400,
+    "originalHeight": 200,
+    "mapping": {
+      "page": 1,
+      "pdfDpi": 144,
+      "georeference": {
+        "diagnostic": "unsupported-geopdf-crs-or-control-layout"
+      },
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 400,
+        "height": 200
+      },
+      "analysisSize": [
+        90,
+        45
+      ],
+      "coordinateSpace": "exif-oriented-original-pixels"
+    }
+  }
+}
