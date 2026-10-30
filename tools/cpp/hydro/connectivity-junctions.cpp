@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -169,6 +170,52 @@ std::map<std::int64_t,Plan> plans(Parts& parts,const Raw& raw) {
     }
     return result;
 }
+Value doAudit(Value request) {
+    auto parts=loadParts(field(request,"parts"));
+    const auto raw=loadRaw(field(request,"raw"));
+    const auto& ordered=elements(field(request,"sourceOrder"));
+    std::vector<std::int64_t> sourceOrder;std::set<std::int64_t> seen;
+    for(const auto& value:ordered){const auto id=integer(value);
+        if(!raw.count(id)||!seen.insert(id).second)throw std::invalid_argument("Invalid Hydro audit source order");sourceOrder.push_back(id);}
+    if(seen.size()!=raw.size())throw std::invalid_argument("Incomplete Hydro audit source order");
+    const std::vector<std::string> regions={"eu","as","si","af","sa","na","ar","au","gr"};
+    std::map<std::string,std::map<std::string,std::int64_t>> stats;
+    for(const auto& region:regions)stats[region]={};
+    Bounds boundaries;for(auto& [source,segments]:parts)boundaries.emplace(source,endpoints(segments));
+    const auto candidates=plans(parts,raw);auto issues=Value::arr();
+    for(const auto source:sourceOrder){const auto& original=raw.at(source);
+        if(!stats.count(original.region))throw std::invalid_argument("Invalid Hydro audit region");
+        auto& counts=stats.at(original.region);++counts["selectedReaches"];
+        const auto downstream=original.next;if(!downstream){++counts["naturalTerminals"];continue;}
+        auto issue=Value::obj();issue.object["region"]=Value::str(original.region);
+        issue.object["source"]=Value::num(static_cast<double>(source));issue.object["downstream"]=Value::num(static_cast<double>(downstream));
+        std::string cause;bool repairable=false;
+        if(!raw.count(downstream))cause="missing-downstream";
+        else {
+            ++counts["expectedConnections"];
+            if(!boundaries.count(source)||!boundaries.count(downstream))throw std::invalid_argument("Missing Hydro source parts");
+            auto* upstream=boundaries.at(source).second;auto* next=boundaries.at(downstream).first;
+            if(!upstream||!next)cause="ambiguous-source-parts";
+            else {
+                const auto a=portPoint({upstream,-1}),b=portPoint({next,0});
+                if(key(a)==key(b)){++counts["connected"];continue;}
+                const auto originalGap=distance(original.end,raw.at(downstream).start),gap=distance(a,b);
+                cause=originalGap>0.5?"original-mismatch":(upstream->aligned||next->aligned?"border-alignment":"chain-connection");
+                repairable=candidates.count(downstream)!=0;
+                issue.object["gapM"]=Value::num(gap);issue.object["originalGapM"]=Value::num(originalGap);
+                issue.object["originalEnd"]=encodedPoint(original.end);issue.object["originalDownstreamStart"]=encodedPoint(raw.at(downstream).start);
+                issue.object["displayEnd"]=encodedPoint(a);issue.object["displayDownstreamStart"]=encodedPoint(b);
+                issue.object["upstream"]=*upstream->value;issue.object["upstream"].object.erase("points");
+                issue.object["downstreamPart"]=*next->value;issue.object["downstreamPart"].object.erase("points");
+            }
+        }
+        issue.object["cause"]=Value::str(cause);issue.object["repairable"]=Value::boolean(repairable);
+        ++counts["issues"];++counts[repairable?"repairable":"unresolved"];++counts[cause];issues.array.push_back(std::move(issue));
+    }
+    auto regionJson=Value::obj();for(const auto& [name,counts]:stats){auto item=Value::obj();
+        for(const auto& [key,count]:counts)item.object[key]=Value::num(static_cast<double>(count));regionJson.object[name]=std::move(item);}
+    auto result=Value::obj();result.object["regions"]=std::move(regionJson);result.object["issues"]=std::move(issues);return result;
+}
 Value doRepair(Value request) {
     auto& jsonParts=field(request,"parts");
     auto parts=loadParts(jsonParts);
@@ -206,7 +253,9 @@ int main() {
     try {
         const std::string input{std::istreambuf_iterator<char>{std::cin},std::istreambuf_iterator<char>{}};
         if(input.size()>512*1024*1024)throw std::invalid_argument("Hydro junction request exceeds 512 MiB");
-        std::cout<<doRepair(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+        auto request=pandoeditor::codecjson::parse(input);const auto mode=request.object.find("mode");
+        if(mode!=request.object.end()&&str(mode->second)!="audit")throw std::invalid_argument("Invalid Hydro operation");
+        std::cout<<(mode==request.object.end()?doRepair(std::move(request)):doAudit(std::move(request))).encode()<<'\n';
         return 0;
     }catch(const std::exception& error) {
         std::cerr<<"hydro-connectivity: "<<error.what()<<'\n';

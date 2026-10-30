@@ -1,6 +1,8 @@
 import copy
 import importlib.util
 import os
+import json
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -30,6 +32,35 @@ def fixture():
 
 
 class HydroConnectivityTests(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('PANDO_HYDRO_CONNECTIVITY_BINARY'), 'C++ native Hydro binary required')
+    def test_native_audit_matches_source_oracle(self):
+        for scenario in ('baseline', 'original-mismatch', 'border-conflict', 'long-gap', 'system-mismatch',
+                         'split-reach', 'missing-downstream', 'connected', 'ambiguous'):
+            with self.subTest(scenario=scenario):
+                parts, raw = fixture()
+                if scenario == 'original-mismatch': raw[1]['end'] = [0.9, 0]
+                if scenario == 'border-conflict': parts[1][0]['aligned'] = True
+                if scenario == 'long-gap': parts[2][0]['points'][0] = [1.5, 0]
+                if scenario == 'system-mismatch': parts[3][0]['system'] = 'other'
+                if scenario == 'split-reach':
+                    parts[2] = [dict(fid=2, part=1, points=[[1.5, 0], [2, 0]], aligned=True, system='10'),
+                                dict(fid=2, part=0, points=[[1.002, 0], [1.5, 0]], aligned=True, system='10')]
+                if scenario == 'missing-downstream': raw[1]['next'] = 999
+                if scenario == 'connected': parts[2][0]['points'][0] = [1, 0]
+                if scenario == 'ambiguous':
+                    parts[2].append(dict(fid=2, part=1, points=[[3, 0], [4, 0]], aligned=False, system='10'))
+                expected = audit_parts(copy.deepcopy(parts), copy.deepcopy(raw))
+                payload = dict(mode='audit', parts=parts, raw=raw, sourceOrder=list(raw))
+                completed = subprocess.run([os.environ['PANDO_HYDRO_CONNECTIVITY_BINARY']], input=json.dumps(payload),
+                                           text=True, capture_output=True, check=True, timeout=30)
+                actual = json.loads(completed.stdout)
+                self.assertEqual(actual['regions'], expected['regions'])
+                self.assertEqual(len(actual['issues']), len(expected['issues']))
+                for a, e in zip(actual['issues'], expected['issues']):
+                    for field in ('gapM', 'originalGapM'):
+                        if field in e: self.assertAlmostEqual(a.pop(field), e.pop(field), places=6)
+                    self.assertEqual(a, e)
+
     def test_multiple_tributaries_share_aligned_downstream_port(self):
         parts, raw = fixture()
         original = copy.deepcopy(raw)
