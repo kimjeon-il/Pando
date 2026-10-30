@@ -191,6 +191,14 @@ class Bridge final:public QObject,public QgisPlugin {
             auto* layer=iface_->activeLayer();
             return {{QStringLiteral("layer"),layer?QJsonValue(layerSummary(layer,true)):QJsonValue(QJsonValue::Null)}};
         }
+        if(command==QStringLiteral("zoom-to-layer")){
+            const auto value=request.value(QStringLiteral("layer"));
+            if(!value.isString()||value.toString().isEmpty())throw QStringLiteral("A valid QGIS layer ID is required");
+            auto* layer=QgsProject::instance()->mapLayer(value.toString());
+            if(!layer||!layer->isValid()||!iface_->setActiveLayer(layer))throw QStringLiteral("Unknown or invalid QGIS layer");
+            iface_->zoomToActiveLayer();
+            return {{QStringLiteral("ok"),true},{QStringLiteral("id"),layer->id()}};
+        }
         if(command==QStringLiteral("transform")){
             const auto source=request.value(QStringLiteral("sourceCrs")),target=request.value(QStringLiteral("targetCrs")),items=request.value(QStringLiteral("points"));
             if(!source.isString()||source.toString().isEmpty()||source.toString().size()>128||

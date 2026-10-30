@@ -16,6 +16,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       const request=JSON.parse(bytes.toString().split('\n')[0]);assert.equal(request.token,'mcp-test-secret');let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
       else if(request.command==='active-layer')result={layer:{id:request.layer||'layer-1',name:'지도'}};
+      else if(request.command==='zoom-to-layer')result={ok:true,id:request.layer};
       else if(request.command==='transform')result={points:request.points,sourceCrs:request.sourceCrs,targetCrs:request.targetCrs};
       else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
       else if(request.command==='layers')result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:request.offset,limit:request.limit};
@@ -70,8 +71,10 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.equal(initialized.result.serverInfo.name,'pando-qgis-native');
   child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   const listed=await request('tools/list',{});
-  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_active_layer','qgis_native_add_feature','qgis_native_add_field','qgis_native_algorithms','qgis_native_begin_edit','qgis_native_buffer','qgis_native_clear_selection','qgis_native_clip','qgis_native_commit_edit','qgis_native_delete_feature','qgis_native_delete_field','qgis_native_export','qgis_native_features','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_open_raster','qgis_native_project','qgis_native_raster_info','qgis_native_raster_sample','qgis_native_redo_edit','qgis_native_remove_layer','qgis_native_rename_field','qgis_native_rollback_edit','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_set_attribute','qgis_native_set_geometry','qgis_native_set_visibility','qgis_native_start','qgis_native_status','qgis_native_transform','qgis_native_undo_edit']);
+  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_active_layer','qgis_native_add_feature','qgis_native_add_field','qgis_native_algorithms','qgis_native_begin_edit','qgis_native_buffer','qgis_native_clear_selection','qgis_native_clip','qgis_native_commit_edit','qgis_native_delete_feature','qgis_native_delete_field','qgis_native_export','qgis_native_features','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_open_raster','qgis_native_project','qgis_native_raster_info','qgis_native_raster_sample','qgis_native_redo_edit','qgis_native_remove_layer','qgis_native_rename_field','qgis_native_rollback_edit','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_set_attribute','qgis_native_set_geometry','qgis_native_set_visibility','qgis_native_start','qgis_native_status','qgis_native_transform','qgis_native_undo_edit','qgis_native_zoom_to_layer']);
   const call=(name,args)=>request('tools/call',{name,arguments:args});
+  const zoom=await call('qgis_native_zoom_to_layer',{layer:'layer-2'});assert.deepEqual(JSON.parse(zoom.result.content[0].text),{ok:true,id:'layer-2'});
+  assert.equal((await call('qgis_native_zoom_to_layer',{})).result.isError,true);
   const status=await call('qgis_native_status',{});assert.equal(JSON.parse(status.result.content[0].text).transport,'pando-native-v1');
   const active=await call('qgis_native_active_layer',{});assert.equal(JSON.parse(active.result.content[0].text).layer.id,'layer-1');
   const selectedLayer=await call('qgis_native_active_layer',{layer:'layer-2'});assert.equal(JSON.parse(selectedLayer.result.content[0].text).layer.id,'layer-2');

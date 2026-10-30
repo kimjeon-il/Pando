@@ -20,6 +20,8 @@ function createServer(){
     async(_args,extra)=>respond([...options,'project'],extra.signal));
   server.registerTool('qgis_native_active_layer',{description:'Read or set the active QGIS layer.',inputSchema:z.strictObject({layer:path.optional()})},
     async({layer},extra)=>respond([...options,'active-layer',...(layer===undefined?[]:[`--layer=${layer}`])],extra.signal));
+  server.registerTool('qgis_native_zoom_to_layer',{description:'Set the active layer and zoom the QGIS canvas to its extent.',inputSchema:z.strictObject({layer:path})},
+    async({layer},extra)=>respond([...options,'zoom-to-layer',`--layer=${layer}`],extra.signal));
   server.registerTool('qgis_native_transform',{description:'Transform a bounded batch of XY coordinates between explicit CRSs.',
     inputSchema:z.strictObject({sourceCrs:z.string().min(1).max(128),targetCrs:z.string().min(1).max(128),
       points:z.array(z.tuple([z.number().finite(),z.number().finite()])).min(1).max(10000)})},
