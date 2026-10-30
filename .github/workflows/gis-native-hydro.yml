@@ -269,6 +269,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
           cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests pando-map-image --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
+          cmake -S tools/cpp/map-review -B build-native/map-review/native
+          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
+          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
       - name: Compare small fixed pixel oracles
         shell: pwsh
         run: |
@@ -283,8 +287,13 @@ jobs:
           else { $binary = 'build-native/map-image/pando-map-image' }
           node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
+          if ($IsWindows) { $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
+          else { $review = 'build-native/map-review/native/pando-map-review' }
+          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-training-image.test.mjs
+          $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
+          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
           $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
           node --test --test-name-pattern='native rotation works|Live-Wire preserves' tests/unit/map-plugin.test.mjs
