@@ -23,7 +23,7 @@ static int read_webp(const uint8_t* bytes,size_t size,PandoImage* result,uint64_
     if(!demux){strcpy(result->error,"Invalid or truncated WebP");goto fail;}
     width=WebPDemuxGetI(demux,WEBP_FF_CANVAS_WIDTH);height=WebPDemuxGetI(demux,WEBP_FF_CANVAS_HEIGHT);
     if(!width||!height||width>16384||height>16384||(uint64_t)width*height>max_pixels){
-        strcpy(result->error,"WebP exceeds the decoder pixel budget");goto fail;
+        strcpy(result->error,max_pixels==16777216?"WebP exceeds the 16MP graph budget":"WebP exceeds the decoder pixel budget");goto fail;
     }
     if(WebPDemuxGetChunk(demux,"EXIF",1,&exif)){
         const uint8_t* payload=exif.chunk.bytes;size_t payload_size=exif.chunk.size;

@@ -73,7 +73,7 @@ int pando_stream_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result,
     return read_gray_mask(bytes,size,result,start,consume,context);
 }
 static int read_png(const uint8_t* bytes,size_t size,PandoImage* result,
-    PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
+    PandoImageRowStart start,PandoImageRowConsumer consume,void* context,uint64_t full_budget){
     Decoder* decoder;png_structp png;png_infop info;png_uint_32 width,height;int color,depth,interlace,has_alpha;size_t y,x,rowbytes;
     png_uint_32 exif_size=0;png_bytep exif=NULL;
     memset(result,0,sizeof(*result));result->orientation=1;
@@ -87,16 +87,16 @@ static int read_png(const uint8_t* bytes,size_t size,PandoImage* result,
         strncpy(result->error,decoder->error,sizeof(result->error)-1);
         free(decoder->pixels);free(decoder->output);free(decoder->rows);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;
     }
-    png_set_read_fn(png,decoder,input);png_set_user_limits(png,consume?65535:16384,consume?65535:16384);png_read_info(png,info);
+    png_set_read_fn(png,decoder,input);png_set_user_limits(png,(consume||full_budget>16777216)?65535:16384,(consume||full_budget>16777216)?65535:16384);png_read_info(png,info);
     png_get_IHDR(png,info,&width,&height,&depth,&color,&interlace,NULL,NULL);
-    if(!width||!height||(uint64_t)width*height>(consume?600000000:16777216))png_error(png,consume?"PNG exceeds the source pixel budget":"PNG exceeds the 16MP graph budget");
+    if(!width||!height||(uint64_t)width*height>(consume?600000000:full_budget))
+        png_error(png,consume?"PNG exceeds the source pixel budget":full_budget==16777216?"PNG exceeds the 16MP graph budget":"PNG exceeds the interlaced decoder pixel budget");
     if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
     if(consume&&(result->orientation<1||result->orientation>8))png_error(png,"Invalid streaming PNG orientation");
     if(consume&&interlace!=PNG_INTERLACE_NONE){
-        /* Preserve the existing bounded decoder for interlaced PNGs until
-           an incremental Adam7 decoder is available. */
+        /* Bound the full Adam7 decoder until incremental pass handling is available. */
         png_destroy_read_struct(&png,&info,NULL);free(decoder);
-        if(!pando_read_png(bytes,size,result))return 0;
+        if(!read_png(bytes,size,result,NULL,NULL,NULL,64000000))return 0;
         if(!start(context,result->width,result->height,result->orientation)){
             free(result->rgba);result->rgba=NULL;strcpy(result->error,"PNG row consumer initialization failed");return 0;
         }
@@ -141,9 +141,9 @@ static int read_png(const uint8_t* bytes,size_t size,PandoImage* result,
     if(consume){free(decoder->output);decoder->output=NULL;}else{result->rgba=decoder->output;decoder->output=NULL;}
     free(decoder->pixels);free(decoder->rows);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 1;
 }
-int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){return read_png(bytes,size,result,NULL,NULL,NULL);}
+int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){return read_png(bytes,size,result,NULL,NULL,NULL,16777216);}
 int pando_stream_png_rows(const uint8_t* bytes,size_t size,PandoImage* result,
     PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
     if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"PNG row callbacks required");return 0;}
-    return read_png(bytes,size,result,start,consume,context);
+    return read_png(bytes,size,result,start,consume,context,16777216);
 }

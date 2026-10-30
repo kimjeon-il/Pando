@@ -34,3 +34,10 @@ test('streamed PNG handles a source above 16MP with alpha and edge padding',asyn
   assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.deepEqual(actual.data,expected.data);
   assert.equal(createHash('sha256').update(actual.tile).digest('hex'),'570623f72781109f0c0519d0ecc45771a9ff9210c1e694536cd5aa28044b8406');
 });
+test('large Adam7 PNG preserves Pillow composite, overview and tile',async()=>{
+  const path='tests/fixtures/map-image/png-read/training-large-adam7.png',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
+  const actual=await readNativeTrainingRaster({path,format:'png',expectedSha256,x:4000,y:4000});
+  const expected=await readNativeImage({path:'tests/fixtures/map-image/png-read/training-large-adam7-overview.png',format:'png',maxPixels:16777216});
+  assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.equal(Buffer.compare(actual.data,expected.data),0);
+  assert.equal(createHash('sha256').update(actual.tile).digest('hex'),'72ad5058355a30ef0477b24d7b97906602b5abb9b8324e6fe6ea6916703a3e28');
+});
