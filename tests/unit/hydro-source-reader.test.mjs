@@ -36,3 +36,7 @@ test('rejects damaged ZIP member bytes without touching the source archive',asyn
   await assert.rejects(readHydroRegion({archive:damaged,specification,selected:new Set([101])}));
   assert.deepEqual(await readFile(archive),original);
 });
+test('rejects nonfinite selected coordinates even when the ZIP and member hash match',async()=>{
+  const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/invalid-shape-spec.json','utf8'));
+  await assert.rejects(readHydroRegion({archive:'tests/fixtures/hydro-source/invalid-shape.zip',specification,selected:new Set([101])}),/coordinate/i);
+});
