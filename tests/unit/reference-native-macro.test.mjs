@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {nativeMacroAdjacency,nativeMacroDilate,nativeMacroPalette,nativeMacroVisible} from '../../tools/map-image/native-resample.mjs';
+import {nativeMacroAdjacency,nativeMacroDilate,nativeMacroPalette,nativeMacroVisible,nativeMacroFinish} from '../../tools/map-image/native-resample.mjs';
 
 test('macro palette labels preserve nearest colour, unknowns and first palette tie',async()=>{
   const image={width:4,height:1,data:Buffer.from([255,0,0, 254,0,0, 0,0,255, 10,10,10])};
@@ -26,6 +26,16 @@ test('macro color stream checks palette and RGB lengths',()=>{
   const result=spawnSync(process.execPath,args,{input});assert.equal(result.status,0,result.stderr.toString());
   assert.deepEqual(result.stdout,Buffer.from([1,2]));
   assert.notEqual(spawnSync(process.execPath,args,{input:input.subarray(0,-1)}).status,0);
+});
+test('macro finishing masks glyphs before rotation and exclusions afterward',async()=>{
+  const image={width:3,height:2,data:Buffer.from([1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6])};
+  const result=await nativeMacroFinish(image,Buffer.from([1,2,3,4,5,6]),Buffer.from([11,12,13,14,15,16]),{
+    rotation:90,glyphs:[[0,0,0,0]],exclusions:[[1,1,2,2]]});
+  assert.deepEqual([result.width,result.height],[2,3]);
+  assert.deepEqual(result.image,Buffer.from([4,4,4,1,1,1,5,5,5,2,2,2,6,6,6,3,3,3]));
+  assert.deepEqual(result.target,Buffer.from([4,0,5,0,6,3]));
+  assert.deepEqual(result.known,Buffer.from([14,0,15,0,16,13]));
+  await assert.rejects(nativeMacroFinish(image,Buffer.alloc(6),Buffer.alloc(6),{rotation:45,glyphs:[],exclusions:[]}),/rotation/i);
 });
 
 test('native macro supervision distinguishes country seams and unknown gaps',async()=>{

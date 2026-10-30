@@ -94,6 +94,25 @@ async function nativeMacroColors(image,colors,action,{signal,workspace=root,dire
 }
 export async function nativeMacroPalette(image,colors,options){return nativeMacroColors(image,colors,'macro-palette',options);}
 export async function nativeMacroVisible(image,colors,options){return nativeMacroColors(image,colors,'macro-visible',options);}
+export async function nativeMacroFinish(image,target,known,{rotation,glyphs,exclusions},
+  {signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(image?.width,image?.height);const pixels=image.width*image.height;
+  if(!(image.data instanceof Uint8Array)||image.data.length!==pixels*3||!(target instanceof Uint8Array)||target.length!==pixels||
+    !(known instanceof Uint8Array)||known.length!==pixels)throw Error('Macro finish plane length differs');
+  if(![0,90,180,270].includes(rotation))throw Error('Macro rotation must be a right angle');
+  const width=rotation===90||rotation===270?image.height:image.width,height=rotation===90||rotation===270?image.width:image.height;
+  const validRect=rect=>Array.isArray(rect)&&rect.length===4&&rect.every(value=>Number.isInteger(value)&&value>=-2147483648&&value<=2147483647);
+  if(!Array.isArray(glyphs)||!Array.isArray(exclusions)||glyphs.length>1000000||exclusions.length>1000000||
+    glyphs.some(r=>!validRect(r)||r[0]>r[2]||r[1]>r[3])||
+    exclusions.some(r=>!validRect(r)||r[0]<0||r[1]<0||r[0]>=r[2]||r[1]>=r[3]||r[2]>width||r[3]>height))
+    throw Error('Invalid macro glyph or exclusion rectangle');
+  const rectangles=Buffer.alloc((glyphs.length+exclusions.length)*16);let at=0;
+  for(const rect of [...glyphs,...exclusions])for(const value of rect){rectangles.writeInt32LE(value,at);at+=4;}
+  const result=await runNative(nativeBinary(workspace,directory),['macro-finish',String(image.width),String(image.height),String(rotation),
+    String(glyphs.length),String(exclusions.length)],[rectangles,image.data,target,known],pixels*5,signal);
+  if(result.length!==pixels*5)throw Error('Invalid native macro finish result');
+  return {width,height,image:result.subarray(0,pixels*3),target:result.subarray(pixels*3,pixels*4),known:result.subarray(pixels*4)};
+}
 async function operateNativeRgba(image,size,action,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(!image||!Array.isArray(size)||size.length!==2||!(image.data instanceof Uint8Array))throw Error('RGBA image and output size are required');
