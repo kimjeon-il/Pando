@@ -9,11 +9,11 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 31개
+### 2026-10-31 현행 기준: 추적 Python 28개
 
-- **QGIS 레이어 출처·편집 상태 이행 중:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가한다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. Windows 네이티브 빌드와 실제 QGIS 검증 전이며 기존 Python 연결을 유지한다.
+- **QGIS 네이티브 연결 전환:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가했다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. [Windows CI 41144046823](https://github.com/kimjeon-il/Pando/actions/runs/41144046823)과 QGIS 3.44.15 한 창에서 출처·편집 상태·롤백을 확인했다. 실제 MCP의 인증 거부·편집·Undo/Redo·롤백·출력 덮어쓰기 거부와 한글·따옴표 파일 경로, EPSG:3857 클립, QGIS→판도 편집기→QGIS의 선·폴리곤 및 출처 왕복이 통과했다. Codex QGIS 연결을 네이티브 MCP로 전환하고 기존 Python 브리지·부트스트랩·대응 테스트를 제거했다. 현재 열려 있는 채팅은 MCP 연결 새로 고침이 필요할 수 있다. 이는 합성 입력의 기능 검증이며 모든 QGIS 좌표계나 처리 알고리즘 검증은 아니다.
 
-- **QGIS 프로젝트 저장 이행 중:** 네이티브 CLI/MCP가 현재 이름이 지정되고 실제 파일이 있는 프로젝트만 명시적으로 저장하는 경로를 추가했다. 다른 출력 경로는 받지 않으며 레이어 편집 버퍼를 커밋하지 않는다. Node 전송·CLI·MCP 검사 19개와 [Windows CI 41086672994](https://github.com/kimjeon-il/Pando/actions/runs/41086672994)가 통과했다. QGIS 3.44.15 한 창에서 이름 없는 프로젝트와 파일이 사라진 프로젝트 저장을 거부하고, 별도 빈 시험 프로젝트의 EPSG:3857 변경을 저장 파일에서 확인했다. 편집 중인 합성 GeoJSON 레이어가 있는 프로젝트를 저장해도 편집 버퍼와 원본이 보존되고 롤백되는 것도 실제 확인했다. 시험에 사용한 복사 원본의 해시도 보존됐다. 기존 Python 연결은 유지한다.
+- **QGIS 프로젝트 저장:** 네이티브 CLI/MCP가 현재 이름이 지정되고 실제 파일이 있는 프로젝트만 명시적으로 저장한다. 다른 출력 경로는 받지 않으며 레이어 편집 버퍼를 커밋하지 않는다. Node 전송·CLI·MCP 검사 19개와 [Windows CI 41086672994](https://github.com/kimjeon-il/Pando/actions/runs/41086672994)가 통과했다. QGIS 3.44.15 한 창에서 이름 없는 프로젝트와 파일이 사라진 프로젝트 저장을 거부하고, 별도 빈 시험 프로젝트의 EPSG:3857 변경을 저장 파일에서 확인했다. 편집 중인 합성 GeoJSON 레이어가 있는 프로젝트를 저장해도 편집 버퍼와 원본이 보존되고 롤백되는 것도 실제 확인했다. 시험에 사용한 복사 원본의 해시도 보존됐다.
 
 - **매크로 경계 감독 마스크:** 서로 다른 국가 색상의 인접 경계와 유효 내부, 경계 확장을 공통 C++ 영상 도구로 옮겼다. 기존 Pillow와 합성 입력 40건이 일치했고 [Windows/Linux CI 41066985654](https://github.com/kimjeon-il/Pando/actions/runs/41066985654)의 네이티브 검사도 통과했다. 보존 지도 한 건의 2560×1463 감독·유효 마스크도 이전 결과의 모든 픽셀과 일치했다(원시 픽셀 SHA-256 각각 `0ef709d6160440d618d58a6f117070015cf5454486343a52aaee9bb313336caa`, `f044933207fb46a376ad31d69d9cf38c43f23e1dea3e96d36deb4ee6eb8c5cdc`). 이는 학습용 지도 한 건의 계산 비교이며 독립 모델 평가가 아니다. 나머지 매크로 생성과 Python 호출자는 계속 전환해야 한다.
 
@@ -91,7 +91,6 @@
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
-| `tools/qgis/bootstrap.py`, `tools/qgis/bridge.py` | 네이티브 QGIS 플러그인과 Node CLI/MCP; QGIS 실행 설정 | 실제 사용 편집·처리, 인증, 좌표·ID·출처, 내보내기 왕복 |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
 | `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
 | `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py`, `tools/verify-lsib-screen-delta.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
@@ -101,7 +100,6 @@
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_build_terrain_dem.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
-| `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
