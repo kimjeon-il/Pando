@@ -45,3 +45,21 @@ test('checkpoint export refuses invalid resume proof and changed checkpoint byte
   await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary:root}),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
 });
+test('checkpoint export accepts a bound private training receipt and refuses altered receipts',{skip:process.platform!=='win32'},async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-batch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const checkpoint=join(root,'checkpoint.pt'),proof=checkpoint+'.receipt.json',output=join(root,'new.onnx');
+  writeFileSync(checkpoint,'checkpoint');
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,
+    initialization:'weights-only-no-optimizer',precision:'amp-fp16',device:'cuda',epoch:0,cursor:2,orderLength:2,
+    checkpointBytes:10,checkpointSha256:createHash('sha256').update('checkpoint').digest('hex')};
+  const request={checkpoint,proof,output,torchLibrary:root,directory:join(root,'missing-tool')};
+  writeFileSync(proof,JSON.stringify(receipt));
+  await assert.rejects(nativeCheckpointOnnxExport(request),/ENOENT/);
+  receipt.checkpointSha256=createHash('sha256').update('different').digest('hex');
+  writeFileSync(proof,JSON.stringify(receipt));
+  await assert.rejects(nativeCheckpointOnnxExport(request),/matching private checkpoint/);
+  receipt.checkpointSha256=createHash('sha256').update('checkpoint').digest('hex');receipt.releaseApproved=true;
+  writeFileSync(proof,JSON.stringify(receipt));
+  await assert.rejects(nativeCheckpointOnnxExport(request),/matching private checkpoint/);
+  assert.equal(existsSync(output),false);
+});
