@@ -80,7 +80,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -103,6 +103,40 @@ jobs:
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
           node --test tests/unit/terrain-dem-encode.test.mjs tests/unit/terrain-dem-tint-native.test.mjs tests/unit/terrain-dem-assets.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoding differs from the Python oracle' }
+      - name: Check space for the focused GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: dem-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build and verify the selected GDAL tint tool
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.dem-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $bin = "$sdk/bin"; $env:PATH = "$bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $bin = "$sdk/bin"; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-encode/fill-build "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool configuration failed' }
+          cmake --build build-native/terrain-dem-encode/fill-build --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool build failed' }
+          if ($IsWindows) { $binary = 'build-native/terrain-dem-encode/fill-build/Release/pando-terrain-dem-fill.exe' }
+          else { $binary = 'build-native/terrain-dem-encode/fill-build/pando-terrain-dem-fill' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary $binary --directory build-native/terrain-dem-encode/fill-artifact
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool packaging failed' }
+          $env:PANDO_TERRAIN_DEM_FILL_BINARY = "$env:GITHUB_WORKSPACE/$binary"
+          $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
+          node --test tests/unit/terrain-dem-fill-native.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/gis-source-launcher.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool differs from its Python oracle' }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_FILL_DIRECTORY=$env:PANDO_TERRAIN_DEM_FILL_DIRECTORY"
+          if ($IsWindows) { Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_GDAL_BIN=$bin" }
+          else { Add-Content -Path $env:GITHUB_ENV -Value "LD_LIBRARY_PATH=$sdk/lib" }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -115,6 +149,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer native encoding calls failed' }
           python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_keeps_white_ice_and_excludes_white_water tests.python.test_build_terrain_dem.TerrainDemTest.test_nearly_white_water_is_not_a_land_donor_but_real_snow_is_kept tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_average_does_not_dilute_a_small_island_with_white_sea tests.python.test_build_terrain_dem.TerrainDemTest.test_asset_summary_uses_shared_node_digest
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer tint masking differs from its source contract' }
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_fill_wraps_longitude_and_preserves_existing_colour tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_fill_matches_frozen_fractional_reference
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint producer differs from its frozen oracle' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-encode-${{ matrix.os }}-${{ github.sha }}
