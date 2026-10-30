@@ -17,9 +17,10 @@ export async function raster(spec, bytes=null, signal=null) {
     try{const bytes=Buffer.alloc(8),{bytesRead}=await file.read(bytes,0,8,0);header=bytes.subarray(0,bytesRead);}
     finally{await file.close();}
     signal?.throwIfAborted();
-    if(header.equals(Buffer.from([137,80,78,71,13,10,26,10]))){
-      const {readNativePng}=await workspaceModule('tools/map-image/native-resample.mjs');
-      return readNativePng(spec,{signal,workspace});
+    const format=header.equals(Buffer.from([137,80,78,71,13,10,26,10]))?'png':header.length>=2&&header[0]===255&&header[1]===216?'jpeg':null;
+    if(format){
+      const {readNativeImage}=await workspaceModule('tools/map-image/native-resample.mjs');
+      return readNativeImage({...spec,format},{signal,workspace});
     }
   }
   const child=spawn(process.env.PANDO_MAP_PYTHON || resolve(workspace,'build-native/python/Scripts/python.exe'),

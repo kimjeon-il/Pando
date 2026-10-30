@@ -34,9 +34,9 @@ function runtimeSnapshot() {
     'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','tools/load-node-core.mjs','scripts/lib/frontend-layout.mjs',
     'tools/map-image/native-resample.mjs','tools/native-tool.mjs','tools/library-content.mjs','tools/cpp/CMakeLists.txt',
     'tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
-    'tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/png-read.h',
-    'tools/cpp/map-image/png-input.cpp','tools/cpp/map-image/png-input.h','tools/cpp/map-image/zlib-LICENSE',
-    'tools/cpp/map-image/libpng-LICENSE']) add('workspace/'+path,resolve(workspace,path));
+    'tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h',
+    'tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE',
+    'tools/cpp/map-image/libpng-LICENSE','tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg']) add('workspace/'+path,resolve(workspace,path));
   const producerInputs=Object.fromEntries(Object.entries(inputs).sort(([a],[b])=>a.localeCompare(b)));
   return {producerSha256:hash(JSON.stringify(producerInputs)),producerInputs,
     coreManifestSha256:hash(readFileSync(resolve(workspace,frontendWasmRoot,'pandoeditor-core.manifest.json')))};
