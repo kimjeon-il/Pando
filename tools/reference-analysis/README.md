@@ -281,7 +281,7 @@ and device checks pass.
 ## Diverse real-map auxiliary training
 
 The user's condition-diversity requirement takes precedence over adding more
-similar US Topo sheets. `semap.py` selects informative distinct originals across
+similar US Topo sheets. `prepare-semap.mjs` selects informative distinct originals across
 twelve permitted institution IDs, including compound French/German IDs, in the
 authors' Semap real-image training partition. It checks labels before downloading
 images, requiring supervised pixels on at least 3% and hydro/transport pixels on
@@ -306,7 +306,7 @@ $auxiliaryCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/semap-diverse'
 $auxiliaryManifest = "$auxiliaryCorpus/corpus.expanded.training.json"
 $previousModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v1'
 $diverseModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v2'
-& $trainingPython tools/reference-analysis/semap.py --output $auxiliaryCorpus --per-institution 12 --maximum-maps 96 --manifest-name corpus.expanded.training.json
+node tools/reference-analysis/prepare-semap.mjs --output $auxiliaryCorpus --per-institution 12 --maximum-maps 96 --manifest-name corpus.expanded.training.json
 & $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --initialize-checkpoint "$previousModel/boundary.pt" --output "$diverseModel/boundary.pt" --epochs 6 --batch 1 --device cuda --balance-sources --learning-rate 0.00003 --freeze-encoder-epochs 0
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$diverseModel/boundary.pt" --output "$diverseModel/boundary.onnx"
 & $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"

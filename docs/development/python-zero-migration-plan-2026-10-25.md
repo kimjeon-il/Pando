@@ -9,7 +9,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 35개
+### 2026-10-30 현행 기준: 추적 Python 33개
+
+- **Semap 수집기 종료:** 기존 Python 학습 코퍼스 검증기의 Semap 출처·원본·저자 분할·라벨 변환 확인을 Node/C++ 정본으로 연결하고 수집기와 대응 Python 테스트를 제거했다. 기존 출처 증거에 남은 생산자 파일명은 기록으로 보존한다. 범위 요청·CRC·권리 문서·라벨·기존 출력·취소·변경된 주석 거부를 Node 동작 검사로 확인했고, 실제 보존 `loc_092763-23_2525_3561` 한 건도 기존 Python과 새 호출 경로가 모두 통과했다. 이는 선택한 학습 원본의 이행이며 독립 평가가 아니다.
 
 - **네이티브 학습 체크포인트 추론:** C++ 학습 체크포인트의 모델을 같은 장치에서 복원하고 세 입력으로 7채널 logits를 계산하는 경로를 추가했다. 원본 확인·비공개 영수증·형상·유한 값·변경 여부를 검사한다. 합성 모델의 저장 전후 추론과 잘못된 입력·영수증 거부, 기존 학습 순서·재개 검사는 [Windows/Linux CI 41048795891](https://github.com/kimjeon-il/Pando/actions/runs/41048795891)에서 통과했다. 보존된 실제 CUDA 체크포인트와 대응 ONNX를 같은 입력으로 비교한 최대 절대오차는 `0.00041103363037109375`로 기준 `0.005` 이내였다. 이는 모델 추론 동등성의 한 사례이지 정확도 평가나 배포 승인이 아니다. Python 진단·학습 실행기의 호출자 전환은 남아 있다.
 
@@ -51,7 +53,7 @@
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 21개, 테스트 14개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 20개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. Python 학습·진단에서 아직 호출하는 EXIF 및 흰색 alpha 합성 함수는 유지하며, 투명 원본을 사용하는 학습 진단 시험을 확인했다.
 
@@ -70,14 +72,13 @@
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/evaluation.py`, `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
-| `tools/reference-analysis/semap.py` | Node ZIP·출처 소유자와 C++ 영상 계층; 자료 준비 명령 | 범위 다운로드·CRC·SHA, 라벨·이미지 동등성, 취소·실패 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_build_terrain_dem.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
 | `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
-| `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py`, `tests/python/test_reference_analysis_semap.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
+| `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
 | `tests/test_lsib_boundary_supplement.py` | CTest/Node LSIB 레시피·화면 차이 검사 | 형상·공유 경계·출처·화면 차이의 고정 사례 |
 
@@ -91,9 +92,9 @@
 
 - **독립 검토 코퍼스 검증:** Node와 C++가 출처·원본 해시, 학습/검증/시험 분리, 리뷰 원본 일치, 알려진 영역과 라벨, OCR 언어를 검증한다. 큰 원본은 한 번에 전체 마스크를 만들지 않고 구간별로 검사한다. [Windows/Linux CI 41004368173](https://github.com/kimjeon-il/Pando/actions/runs/41004368173)과 로컬 구간 경계·실패 사례가 통과했고, 보유 `pakistan-urdu` 원본 한 건의 실제 분류 `color/Arabic/urd`가 Python과 같았다. 독립 검토용 CLI와 해당 Python 테스트는 전환했으며, 학습용 파생 자료 검증을 포함하는 Python 내부 함수는 학습 호출자 전환까지 유지한다.
 
-- **Semap 원본 ZIP 접근:** 기존 공통 ZIP 판독을 확장해 원격 중앙 디렉터리와 선택 항목만 제한된 HTTP 범위로 읽고, 정확한 응답 범위·길이와 ZIP CRC를 확인한다. 짧은 본문 재시도, 초과 응답·잘못된 범위·변경된 캐시 거부 및 허용 기관의 원본별 대체 타일 보존을 합성 사례로 확인했다. 실제 `loc_092763-23_2525_3561` 원본 이미지 97,214바이트(SHA-256 `6936ef8bf7f6eb55a022d83705b499c4a82504f25113703b18ec2b149e93d585`)와 라벨 6,627바이트(SHA-256 `9ec03d82200ba85c46385ab4274f06cab77633a4891d39043e36e3fd18a7fee4`)가 원격 ZIP 항목과 보존 원본에서 바이트 단위로 일치했다. 대형 ZIP 전체는 내려받지 않았다. 코퍼스 생성과 호출자 이전은 남아 있어 Python 수집기와 테스트는 유지한다.
+- **Semap 원본 ZIP 접근:** 기존 공통 ZIP 판독을 확장해 원격 중앙 디렉터리와 선택 항목만 제한된 HTTP 범위로 읽고, 정확한 응답 범위·길이와 ZIP CRC를 확인한다. 짧은 본문 재시도, 초과 응답·잘못된 범위·변경된 캐시 거부 및 허용 기관의 원본별 대체 타일 보존을 합성 사례로 확인했다. 실제 `loc_092763-23_2525_3561` 원본 이미지 97,214바이트(SHA-256 `6936ef8bf7f6eb55a022d83705b499c4a82504f25113703b18ec2b149e93d585`)와 라벨 6,627바이트(SHA-256 `9ec03d82200ba85c46385ab4274f06cab77633a4891d39043e36e3fd18a7fee4`)가 원격 ZIP 항목과 보존 원본에서 바이트 단위로 일치했다. 대형 ZIP 전체는 내려받지 않았다. 후속 호출자 이전과 Python 퇴역은 위의 현행 갱신에 기록했다.
 
-  원본 기관별 결정적 선택 순서와 저자 학습 분할·권리 문서도 기존 기준과 일치하도록 옮겼다. [Windows/Linux CI 41014606086](https://github.com/kimjeon-il/Pando/actions/runs/41014606086)에서는 라벨의 수계·도로 채널 변환, 불명확 영역과 잘못된 클래스 거부, 8비트 회색 PNG 왕복을 확인했다. 같은 실제 원본의 768×768 정답·유효 마스크 픽셀 전체와 기존 보존본이 같았고 유효 581,167픽셀·양성 302,951픽셀이었다. 새 정답 PNG는 2,133바이트, 기존 PNG는 2,132바이트로 압축 바이트는 다르다. 선택·보존·기존 출력 거부를 포함하는 Node 코퍼스 생성기를 합성 사례와 해당 실제 원본 한 건으로 확인했다. Node 검증기는 새 생성본과 기존 Python 생성본의 출처·저자 분할·원본 해시 및 변환 마스크를 확인하며, 실제 원본 한 건씩과 변조된 합성 사례를 검사했다. 학습 호출자 이전은 남아 있으며, 기존 Python 코퍼스 검증기는 새 생성기의 출처 표기를 아직 지원하지 않는다.
+  원본 기관별 결정적 선택 순서와 저자 학습 분할·권리 문서도 기존 기준과 일치하도록 옮겼다. [Windows/Linux CI 41014606086](https://github.com/kimjeon-il/Pando/actions/runs/41014606086)에서는 라벨의 수계·도로 채널 변환, 불명확 영역과 잘못된 클래스 거부, 8비트 회색 PNG 왕복을 확인했다. 같은 실제 원본의 768×768 정답·유효 마스크 픽셀 전체와 기존 보존본이 같았고 유효 581,167픽셀·양성 302,951픽셀이었다. 새 정답 PNG는 2,133바이트, 기존 PNG는 2,132바이트로 압축 바이트는 다르다. 선택·보존·기존 출력 거부를 포함하는 Node 코퍼스 생성기를 합성 사례와 해당 실제 원본 한 건으로 확인했다. Node 검증기는 새 생성본과 기존 Python 생성본의 출처·저자 분할·원본 해시 및 변환 마스크를 확인하며, 실제 원본 한 건씩과 변조된 합성 사례를 검사했다. 남은 Python 학습 호출자도 Semap 검증에서 이 정본을 사용한다.
   학습 준비 계층은 Semap 출처 검증 후 보조 코퍼스의 지도별 타일과 7개 채널의 유효·양성 픽셀을 계산한다. 위 실제 지도 한 건은 4개 타일이며 도로 채널 유효 581,167·양성 302,951픽셀이다. 보존 매크로 지도 한 건과 Semap 지도 한 건을 결합한 결과에서 18개 균형 학습 순서 SHA-256 `8392ed67bb81561edc60947e402cfff93a762dc7a57f3942ec47d2f87cf672b6`과 채널 가중치 SHA-256 `45c934bfc9ff9b856d6e489bd78072d407bf192d149a06a999fee665574915d8`이 기존 Python과 바이트 단위로 일치했다. 중복 ID와 기존 출력은 거부하며 Semap은 매크로 전용 학습에 허용하지 않는다. 이는 검증된 학습 준비 범위이며 독립 평가나 매크로 범위 승인이 아니다. 혼합 코퍼스의 실제 학습 실행·재개 연결은 아직 남았다.
   기존 학습 이력 지문도 Node로 이전했다. 실제 매크로 원본과 Semap 원본을 각각 계산한 결과 및 두 코퍼스를 결합한 결과가 기존 Python 지문과 모두 일치했다(결합 SHA-256 `7f6ec7962ea4422ccd3f0476b19276917c2ecda6416266393343700324a9700f`). 이 지문 계산은 별도의 출처 검증을 대신하지 않는다.
   Semap 학습 표본은 결합 순서의 전역 번호와 개별 코퍼스의 증강 번호를 구분한다. 실제 Semap 타일 한 건에서 증강 유무 각각에 대해 영상·전체보기·위치·정답·유효영역 텐서 5개의 바이트 해시가 기존 Python과 모두 일치했다. 새 표본 영수증은 원본 종류와 증거 해시를 명시하며, 기존 체크포인트와 원본은 수정하지 않았다. 임시 표본을 다시 만들 때 새 영수증 형식을 사용한다.
