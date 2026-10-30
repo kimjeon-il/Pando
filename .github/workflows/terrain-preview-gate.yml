@@ -25,6 +25,8 @@ jobs:
   preview:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      PANDO_TERRAIN_PREVIEW_BINARY: ${{ github.workspace }}/build-native/terrain-preview/pando-terrain-preview
     steps:
       - uses: actions/checkout@v4
       - name: Prepare pinned external library data
@@ -40,6 +42,8 @@ jobs:
           version: '11.19.0'
       - name: Rebuild the fixed DEM preview and verify current terrain assets
         run: |
+          cmake -S tools/cpp -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_TERRAIN_PREVIEW=ON
+          cmake --build build-native/terrain-preview --target pando-terrain-preview
           python -m pip install Pillow==12.3.0 numpy==2.3.5
           python tools/build-terrain-preview.py --rebuild-check
           node tools/check-terrain-preview.mjs --out terrain-preview-evidence.json
