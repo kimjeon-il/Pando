@@ -1,0 +1,26 @@
+[
+  {
+    "augment": false,
+    "epoch": 0,
+    "index": 0,
+    "hashes": [
+      "fd478010f432b681f726a05d4d2058b59d1bbc3a790b37e8e8111a95a2f641a5",
+      "96283f5498c255fbd19dfa9bc69aa47bcde08db3f4195e8a719b19db8647ba0b",
+      "d25b949c65312b91424a3cabd3065dfe18bc73e7cd8893229e9494cd75c16d92",
+      "91db796397b827f1596460bcbda3ebcbfe02f833f07a804c015eb5d5bb45d71d",
+      "7682ec9bf0cbda4bc9c24c1925987b8acd73e88a85031f1d10e6b21c5e34e0da"
+    ]
+  },
+  {
+    "augment": true,
+    "epoch": 1,
+    "index": 0,
+    "hashes": [
+      "34ad0498d8684312c7d8da32576dfca94e493faa112cb95498d29bd2a737c625",
+      "2a99efb76914fe9ec9cc710daf14c154061efafee8d441109d0e7c4a46bae1c7",
+      "d25b949c65312b91424a3cabd3065dfe18bc73e7cd8893229e9494cd75c16d92",
+      "91db796397b827f1596460bcbda3ebcbfe02f833f07a804c015eb5d5bb45d71d",
+      "7682ec9bf0cbda4bc9c24c1925987b8acd73e88a85031f1d10e6b21c5e34e0da"
+    ]
+  }
+]

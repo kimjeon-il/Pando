@@ -293,7 +293,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs
+          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
           $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
           node --test --test-name-pattern='native rotation works|Live-Wire preserves' tests/unit/map-plugin.test.mjs

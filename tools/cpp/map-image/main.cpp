@@ -63,6 +63,16 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="training-mask"){
+            if(argc!=2)throw std::invalid_argument("Training mask takes no extra arguments");
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_read_gray_mask(encoded.data(),encoded.size(),&image))throw std::runtime_error(std::string("Training mask: ")+image.error);
+            std::unique_ptr<std::uint8_t,decltype(&std::free)> rgba(image.rgba,&std::free);
+            std::vector<std::uint8_t> pixels(std::size_t(image.width)*image.height);
+            for(std::size_t i=0;i<pixels.size();++i)pixels[i]=rgba.get()[i*4];
+            number(image.width);number(image.height);std::cout.write(reinterpret_cast<const char*>(pixels.data()),static_cast<std::streamsize>(pixels.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write training mask");return 0;
+        }
         if(action=="training-tile"){
             if(argc!=9)throw std::invalid_argument("Expected training tile WIDTH HEIGHT X Y AUGMENT EPOCH INDEX");
             const int width=dimension(argv[2]),height=dimension(argv[3]),x=bounded(argv[4],16384),y=bounded(argv[5],16384);

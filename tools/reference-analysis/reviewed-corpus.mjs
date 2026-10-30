@@ -2,19 +2,15 @@
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
 import {readFile,realpath} from 'node:fs/promises';
-import {dirname,isAbsolute,relative,resolve,sep} from 'node:path';
+import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
 import {validateReviewedAnnotation} from './review-masks.mjs';
 import {validateSourceLanguage} from './source-language.mjs';
+import {resolveCorpusPath} from './corpus-path.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
-async function corpusPath(root,path){
-  if(typeof path!=='string'||!path||path.startsWith('/')||path.split('/').includes('..'))throw Error('Corpus paths must stay inside corpus root');
-  const result=await realpath(resolve(root,path)),rel=relative(root,result);
-  if(isAbsolute(rel)||rel==='..'||rel.startsWith('..'+sep))throw Error('Corpus symlink escapes root');return result;
-}
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 export function evaluationGroups(sheets){const groups={};for(const sheet of sheets){const key=[sheet.mapKind,sheet.script,sheet.language].join('/');(groups[key]??=[]).push(sheet.id);}return groups;}
 export async function validateReviewedCorpus(value,root,{signal,workspace,reviewDirectory}={}){
@@ -30,7 +26,7 @@ export async function validateReviewedCorpus(value,root,{signal,workspace,review
     if(typeof sheet.sha256!=='string'||!SHA.test(sheet.sha256))throw Error('Original image sha256 required');
     validateSourceLanguage(sheet);if(!['color','monochrome'].includes(sheet.mapKind))throw Error('mapKind must be color or monochrome');
     if(!sheet.source?.url||!sheet.source?.license)throw Error('Source URL and license required');
-    const image=await corpusPath(base,sheet.image),annotationPath=await corpusPath(base,sheet.annotations);
+    const image=await resolveCorpusPath(base,sheet.image),annotationPath=await resolveCorpusPath(base,sheet.annotations);
     if(await hashFile(image,signal)!==sheet.sha256)throw Error('Original image hash changed: '+sheet.id);
     const annotation=JSON.parse(await readFile(annotationPath,{encoding:'utf8',signal}));
     if(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision'].includes(annotation.origin))
