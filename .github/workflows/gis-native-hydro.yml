@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation]
         default: hydro
 
 permissions:
@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   reference-step:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-step'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'reference-step' || inputs.target == 'reference-ordered')
     strategy:
       fail-fast: false
       matrix:
@@ -67,14 +67,18 @@ jobs:
           $torch = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
           cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
           if ($LASTEXITCODE -ne 0) { throw 'Training step configure failed' }
-          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test --parallel 1
+          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Training step build failed' }
           if ($IsWindows) { $binary = 'build-native/reference-analysis/step-test/Release/reference-training-step-test.exe' }
           else { $binary = 'build-native/reference-analysis/step-test/reference-training-step-test' }
           & $binary
           if ($LASTEXITCODE -ne 0) { throw 'Training step differs from original' }
+          if ($IsWindows) { $ordered = 'build-native/reference-analysis/step-test/Release/reference-training-ordered-test.exe' }
+          else { $ordered = 'build-native/reference-analysis/step-test/reference-training-ordered-test' }
+          & $ordered
+          if ($LASTEXITCODE -ne 0) { throw 'Ordered checkpoint resume differs' }
       - name: Build and package the existing Windows resume proof
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && inputs.target == 'reference-step'
         shell: pwsh
         run: |
           cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
@@ -84,7 +88,7 @@ jobs:
           node tools/reference-analysis/package-native-reference.mjs --kind training-proof --binary build-native/reference-analysis/native/Release/pando-reference-training-proof.exe --directory build-native/reference-analysis/artifact-proof
           if ($LASTEXITCODE -ne 0) { throw 'Reference proof packaging failed' }
       - uses: actions/upload-artifact@v4
-        if: runner.os == 'Windows' && always()
+        if: runner.os == 'Windows' && inputs.target == 'reference-step' && always()
         with:
           name: native-reference-training-proof-${{ github.sha }}
           path: build-native/reference-analysis/artifact-proof/
