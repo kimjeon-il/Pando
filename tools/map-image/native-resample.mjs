@@ -116,6 +116,18 @@ export async function prepareNativeTrainingTilePieces({image,targetBits,knownBit
     input,trainingTensorSizes.reduce((a,b)=>a+b,0),signal);
   signal?.throwIfAborted();return trainingTensors(result);
 }
+export async function composeNativeDiagnosticOverlays({width,height,original,known,active},
+  {signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(width,height);const pixels=width*height;
+  if(pixels>1048576||!(original instanceof Uint8Array)||original.length!==pixels*3||
+    !(known instanceof Uint8Array)||known.length!==pixels*7||!Array.isArray(active)||active.length<1||active.length>3||
+    active.some(plane=>!(plane instanceof Uint8Array)||plane.length!==pixels*7))throw Error('Bounded diagnostic image and mask panels required');
+  if([known,...active].some(plane=>plane.some(value=>value>1)))throw Error('Diagnostic masks must be binary');
+  const output=await runNative(nativeBinary(workspace,directory),['diagnostic-overlays',String(width),String(height),String(active.length)],
+    [original,known,...active],pixels*3*active.length,signal);
+  if(output.length!==pixels*3*active.length)throw Error('Invalid diagnostic overlay receipt');
+  signal?.throwIfAborted();return active.map((_,i)=>output.subarray(i*pixels*3,(i+1)*pixels*3));
+}
 export async function readNativeTrainingMask(bytes,sha256,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(!(bytes instanceof Uint8Array)||!bytes.length||bytes.length>300*1024*1024||typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256))

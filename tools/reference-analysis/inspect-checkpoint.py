@@ -63,8 +63,6 @@ def inspect(args):
         raise ValueError('Diagnostic output exists; preserve prior evidence')
     output.mkdir(parents=True)
     rows = []
-    colors = np.array([(240, 20, 20), (180, 0, 220), (0, 200, 200), (0, 100, 255),
-                       (255, 140, 0), (0, 170, 0), (30, 30, 30)], dtype=np.float32)
     with torch.no_grad():
         for sheet in corpus['sheets']:
             dataset = MapTiles(root, [sheet])
@@ -103,13 +101,19 @@ def inspect(args):
             source_tile = Image.new('RGB', (512, 512), 'white')
             source_tile.paste(source.crop((x, y, min(x + 512, source.width), min(y + 512, source.height))), (0, 0))
             original = np.asarray(source_tile).copy()
-            panels = [original]
-            for active in [expected, *([] if prior is None else [prior >= .55]), predicted]:
-                overlay = original.copy()
-                for c in [3, 4, 5, 6, 2, 1, 0]:
-                    mask = active[c] & known[c]
-                    overlay[mask] = (overlay[mask] * .2 + colors[c] * .8).astype(np.uint8)
-                panels.append(overlay)
+            active = [expected, *([] if prior is None else [prior >= .55]), predicted]
+            header = struct.pack('>8sIII', b'PDPREV01', 512, 512, len(active))
+            payload = header + original.tobytes() + np.ascontiguousarray(known, dtype=np.uint8).tobytes()
+            payload += b''.join(np.ascontiguousarray(value, dtype=np.uint8).tobytes() for value in active)
+            preview_tool = pathlib.Path(__file__).with_name('native-diagnostic-preview.mjs')
+            composed = subprocess.run(['node', str(preview_tool), '--overlay-stream'], input=payload,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if composed.returncode:
+                raise RuntimeError('Native diagnostic overlay failed: ' + composed.stderr.decode('utf-8', errors='replace'))
+            if len(composed.stdout) != len(active) * 512 * 512 * 3:
+                raise ValueError('Invalid diagnostic overlay output length')
+            panels = [original, *np.frombuffer(composed.stdout, dtype=np.uint8).reshape(len(active), 512, 512, 3)]
             canvas = Image.new('RGB', (512 * len(panels), 540), 'white')
             for i, panel in enumerate(panels):
                 canvas.paste(Image.fromarray(panel), (512 * i, 28))

@@ -79,6 +79,25 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="diagnostic-overlays"){
+            if(argc!=5)throw std::invalid_argument("Expected diagnostic WIDTH HEIGHT PANELS");
+            const int width=dimension(argv[2]),height=dimension(argv[3]),panels=bounded(argv[4],3);
+            const auto pixels=std::size_t(width)*height;if(pixels>1048576||panels<1)throw std::invalid_argument("Diagnostic overlay exceeds pixel or panel budget");
+            const auto input=encodedInput();const auto plane=pixels*7;
+            if(input.size()!=pixels*3+plane*(1+std::size_t(panels)))throw std::invalid_argument("Invalid diagnostic overlay input length");
+            const auto* original=input.data();const auto* known=original+pixels*3;
+            for(std::size_t i=0;i<plane*(1+std::size_t(panels));++i)if(known[i]>1)throw std::invalid_argument("Diagnostic masks must be binary");
+            static constexpr std::array<std::array<int,3>,7> colors{{{{240,20,20}},{{180,0,220}},{{0,200,200}},{{0,100,255}},{{255,140,0}},{{0,170,0}},{{30,30,30}}}};
+            static constexpr std::array<int,7> order{{3,4,5,6,2,1,0}};
+            std::vector<std::uint8_t> overlay(pixels*3);
+            for(int panel=0;panel<panels;++panel){std::copy_n(original,overlay.size(),overlay.data());const auto* active=known+plane*(1+std::size_t(panel));
+                for(const int c:order)for(std::size_t i=0;i<pixels;++i)if(known[std::size_t(c)*pixels+i]&&active[std::size_t(c)*pixels+i])
+                    for(int k=0;k<3;++k){const auto at=i*3+k;const float tint=static_cast<float>(colors[c][k])*.8f;
+                        overlay[at]=static_cast<std::uint8_t>(static_cast<double>(overlay[at])*.2+static_cast<double>(tint));}
+                std::cout.write(reinterpret_cast<const char*>(overlay.data()),static_cast<std::streamsize>(overlay.size()));
+            }
+            if(!std::cout)throw std::runtime_error("Unable to write diagnostic overlays");return 0;
+        }
         if(action=="training-jpeg-overview"||action=="training-png-overview"||action=="training-webp-overview"){
             if(argc!=4)throw std::invalid_argument("Expected raster training tile X Y");
             struct State {
