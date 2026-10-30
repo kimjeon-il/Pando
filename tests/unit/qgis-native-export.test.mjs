@@ -34,6 +34,21 @@ test('native QGIS export writes normalized output once and removes only its scra
   assert.deepEqual(readFileSync(output),saved);
 });
 
+test('native clip forwards both layers and refuses to overwrite an existing result',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-native-clip-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const server=createServer(socket=>socket.once('data',bytes=>{
+    const request=JSON.parse(bytes.toString().split('\n')[0]);
+    assert.equal(request.command,'clip');assert.equal(request.layer,'roads');assert.equal(request.overlay,'boundary');
+    writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'LineString',coordinates:[[0,0],[1,0]]},properties:{name:'road'}}]}),{flag:'wx'});
+    socket.end(JSON.stringify({ok:true,result:{output:request.output,crs:'EPSG:4326',features:1}})+'\n');
+  }));
+  server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>server.close());
+  const config={host:'127.0.0.1',port:server.address().port,token:'test-only-secret'},output=join(root,'clip.geojson');
+  await exportNativeQgis(config,{layerId:'roads',output,clip:{overlay:'boundary'}});
+  assert.deepEqual(JSON.parse(readFileSync(output)).features[0].geometry.coordinates,[[0,0],[1,0]]);
+  await assert.rejects(exportNativeQgis(config,{layerId:'roads',output,clip:{overlay:'boundary'}}),/exists/i);
+});
+
 test('native QGIS export refuses invalid output without leaving scratch or a final file',async t=>{
   const {root,config}=await setup(t,[300000,400000]),output=join(root,'bad.geojson');
   await assert.rejects(exportNativeQgis(config,{layerId:'layer-1',output}),/coordinate/i);

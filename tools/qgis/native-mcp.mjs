@@ -39,6 +39,9 @@ function createServer(){
   server.registerTool('qgis_native_buffer',{description:'Buffer a vector layer in its CRS units and export a new EPSG:4326 GeoJSON file.',
     inputSchema:z.strictObject({layer:path,output:path,distance:z.number().finite(),segments:z.number().int().min(1).max(100).default(5)})},
     async({layer,output,distance,segments},extra)=>respond([...options,'buffer',`--layer=${layer}`,`--output=${output}`,`--distance=${distance}`,'--segments',String(segments)],extra.signal));
+  server.registerTool('qgis_native_clip',{description:'Clip a vector layer by a polygon layer and export a new EPSG:4326 GeoJSON file.',
+    inputSchema:z.strictObject({layer:path,overlay:path,output:path})},
+    async({layer,overlay,output},extra)=>respond([...options,'clip',`--layer=${layer}`,`--overlay=${overlay}`,`--output=${output}`],extra.signal));
   server.registerTool('qgis_native_features',{description:'Read a bounded page of vector features and exact attribute values.',
     inputSchema:z.strictObject({layer:path,offset:z.number().int().min(0).max(100000000).default(0),limit:z.number().int().min(1).max(100).default(10),
       expression:z.string().min(1).max(10000).optional(),geometry:z.boolean().default(false)})},
