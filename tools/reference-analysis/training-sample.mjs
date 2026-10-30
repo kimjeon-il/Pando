@@ -5,6 +5,7 @@ import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
 import {indexMacroTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
+import {verifyCombinedTrainingOrder} from './training-order.mjs';
 
 export const TRAINING_TENSOR_NAMES=Object.freeze(['tile','overview','position','target','valid']);
 const TRAINING_TENSOR_LIMITS=Object.freeze({tile:3*512*512*4,overview:3*256*256*4,position:4*4,target:7*512*512*4,valid:7*512*512*4});
@@ -73,6 +74,29 @@ export async function writeSemapTrainingSample({corpus,sourceId,tileIndex,localI
   signal?.throwIfAborted();mkdirSync(resolve(output));
   for(const name of TRAINING_TENSOR_NAMES)writeFileSync(join(output,name+'.f32'),tensors[name],{flag:'wx'});
   writeFileSync(join(output,'sample.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
+}
+
+export async function prepareCombinedTrainingBatch({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,cursor,count,augment,output,signal,verifyEvidence}){
+  signal?.throwIfAborted();
+  if(!output||typeof augment!=='boolean'||![cursor,count].every(Number.isSafeInteger)||cursor<0||count<1||count>16)
+    throw Error('Explicit bounded combined training batch inputs required');
+  if(existsSync(output))throw Error('Training batch output exists; preserve it');
+  const checked=await verifyCombinedTrainingOrder({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,signal,verifyEvidence});
+  if(cursor+count>checked.length)throw Error('Training cursor exceeds sample order');
+  const order=readTrainingBounded(join(orderDirectory,'order.u64'),8000000),tiles=checked.datasets.flat(),selected=[];
+  if(order.length!==checked.length*8||trainingSha256(order)!==checked.orderSha256)throw Error('Training order changed during batch preparation');
+  for(let i=0;i<count;i++){const index=Number(order.readBigUInt64LE((cursor+i)*8)),tile=tiles[index];
+    if(!tile||tile.index!==index)throw Error('Combined training order contains an invalid index');selected.push(tile);}
+  signal?.throwIfAborted();mkdirSync(resolve(output));const samples=[];
+  for(let i=0;i<selected.length;i++){const tile=selected[i],directory=resolve(output,'sample-'+String(i).padStart(2,'0'));
+    if(tile.index<checked.datasets[0].length)await writeMacroTrainingSample({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
+    else await writeSemapTrainingSample({corpus:auxiliary,sourceId:tile.sourceId,tileIndex:tile.index,localIndex:tile.localIndex,x:tile.x,y:tile.y,augment,epoch,output:directory,signal,verifyEvidence});
+    samples.push({index:tile.index,directory,augment});
+  }
+  if(await corpusFingerprint(corpus,auxiliary)!==checked.lineageFingerprint||trainingSha256(readTrainingBounded(join(orderDirectory,'order.u64'),8000000))!==checked.orderSha256||
+    trainingSha256(readTrainingBounded(join(orderDirectory,'weights.f32'),28))!==checked.weightsSha256)
+    throw Error('Training sources changed during combined batch preparation; preserve the output');
+  return {trainingOnly:true,releaseApproved:false,lineageFingerprint:checked.lineageFingerprint,orderSha256:checked.orderSha256,cursor,samples};
 }
 
 export async function prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output,signal}){

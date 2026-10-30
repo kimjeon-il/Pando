@@ -33,6 +33,25 @@ export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epo
     epoch,seed,length:result.length,orderSha256:result.sha256,datasetLengths:data.datasets.map(rows=>rows.length),toolRevision:result.toolRevision};
   writeFileSync(join(target,'order.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
 }
+export async function verifyCombinedTrainingOrder({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,signal,verifyEvidence}){
+  signal?.throwIfAborted();
+  if(!corpus||!auxiliary||!orderDirectory||typeof macroOnly!=='boolean'||!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0)
+    throw Error('Explicit combined training order inputs required');
+  const target=resolve(orderDirectory),receipt=JSON.parse(readTrainingBounded(join(target,'order.json'),1024*1024));
+  const order=readTrainingBounded(join(target,'order.u64'),8000000),weights=readTrainingBounded(join(target,'weights.f32'),28);
+  const data=await inspectCombinedTrainingData({corpus,auxiliary,macroOnly,signal,verifyEvidence}),expected=encodedWeights(data.counts);
+  const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+  if(weights.length!==28||!weights.equals(expected.bytes)||receipt.weightsSha256!==digest(weights)||receipt.unobservedMask!==expected.unobservedMask)
+    throw Error('Combined training weights differ');
+  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.independentEvaluation!==false||receipt.macroOnly!==false||
+    receipt.lineageFingerprint!==data.lineageFingerprint||receipt.epoch!==epoch||receipt.seed!==seed||
+    JSON.stringify(receipt.counts)!==JSON.stringify(data.counts)||JSON.stringify(receipt.datasetLengths)!==JSON.stringify(data.datasets.map(rows=>rows.length))||
+    !Number.isSafeInteger(receipt.length)||receipt.length<1||order.length!==receipt.length*8||receipt.orderSha256!==digest(order))
+    throw Error('Combined training order differs from source or receipt');
+  const total=data.datasets.reduce((sum,rows)=>sum+rows.length,0);
+  for(let offset=0;offset<order.length;offset+=8)if(order.readBigUInt64LE(offset)>=BigInt(total))throw Error('Combined training order contains an invalid index');
+  return {...data,orderSha256:receipt.orderSha256,weightsSha256:receipt.weightsSha256,unobservedMask:receipt.unobservedMask,length:receipt.length};
+}
 export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
