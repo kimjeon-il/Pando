@@ -68,7 +68,7 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
         if: github.event_name == 'push' || inputs.verification == 'full'
-        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs
+        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs tests/unit/p2-publication-paths.test.mjs
       - name: Read the declared place-report generation inputs
         run: node tools/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets

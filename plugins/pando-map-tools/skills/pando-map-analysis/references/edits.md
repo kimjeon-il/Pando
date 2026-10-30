@@ -1,6 +1,7 @@
 # Structured revisions
 
-Edits are JSON objects or an array:
+Edits are JSON objects or an array. Current jobs use schema 3; analyze a
+new job after upgrading instead of rewriting an older job's schema/signature.
 
 * `{"type":"control-points","mode":"affine","points":[{"id":"p1","image":[0.1,0.2],"coordinate":[12,45]},...]}`.
   Image values are UVs of the full EXIF-oriented original, not the crop.
@@ -26,7 +27,17 @@ Edits are JSON objects or an array:
 * `{"type":"boundary","command":{"type":"exclude","chainId":1}}`.
   The shared core also accepts `replace` with original-pixel `points`, `cut`
   with a pixel `point`, and `join` with `from`/`to` chainId and start/end.
-  Graph edits rebuild IDs: read current IDs before the next edit.
+  Unrelated chains retain their exact vertices, class, confidence and IDs.
+  A replacement keeps its ID unless intersections split it. New/split/merged
+  paths receive monotonically allocated IDs; retired IDs are never reused.
+  Faces are rebuilt from the current shared vectors. Read the returned
+  `changeSet` and current IDs before the next edit or selection; every edit
+  invalidates the previous review. Chain changes are in `changeSet.created`,
+  `removed` and `modified`; face changes are in `changeSet.faces`.
+  A cut removes a three-source-pixel interval around the nearest path location:
+  an open line leaves two paths, while a closed ring becomes one open path.
+  Joining two free open endpoints merges the paths with a new ID; a junction
+  connection retains the original branches and adds an explicit connector.
 * `{"type":"boundary","command":{"type":"add","semanticBits":1,"points":[[660,280],[662,320]],"reason":"Source-reviewed missing border stroke"}}`
   adds a manually reviewed missing line in original pixels. Select exactly one
   class: 1 international, 2 administrative or 4 coast. A source-review reason
@@ -53,4 +64,10 @@ Edits are JSON objects or an array:
   `{"type":"review","georeference":true,"boundaries":true,"selectedIds":["line:0","face:1"]}`.
   Later edits invalidate review. Open/cropped faces cannot export. Never claim
   extraction of an unobserved model channel.
+
+Before review, the job preview shows diagnostic candidates. After review,
+the preview and export highlight only the selected lines and polygon rings,
+including holes, with control points and applicable diagnostics. They resolve
+the same current selection; a stale/missing ID fails visibly. Re-export may
+generate new Feature UUIDs while preserving geometry, source and review.
 

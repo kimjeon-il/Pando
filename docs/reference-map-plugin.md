@@ -22,11 +22,102 @@ The installation records the immutable code/data revisions and byte identities.
 node tools/reference-analysis/package-private-plugin.mjs --revision <pushed-full-SHA> --directory <private-new-output> --model <existing-private-manifest>
 ```
 
-Upload the private archive with Plugin Creator's guarded update of the existing
-Map Toolkit ID. Remove explicitly listed retired files in that same update.
+Use the completion workflow below to upload the private archive with Plugin
+Creator's guarded update of the existing Map Toolkit ID. Remove explicitly
+listed retired files in that same update.
 Preserve the private audience and store account-specific IDs/links only in
 platform settings. Do not silently publish the model or switch to a server when
 private delivery is unavailable. Version 0.4.1 replaces the 0.4.0 delivery probe.
+
+## Automatic release on Codex completion
+
+After completing a packaged-code/WASM/analysis-resource change, Codex performs
+focused validation, the reviewed work/ui commit/push, packaging, authenticated
+update of the existing private personal Map Toolkit, and remote verification.
+Do not ask the user to repeat the release request. Unrelated changes, file saves,
+training-only edits and ordinary pushes do not trigger this workflow. A new
+trained model still needs the existing explicit default-model admission.
+
+Store `{ "pluginId": "<verified backend ID>", "directory": "<fixed external temporary candidate path>" }`
+in the user's local Codex settings (`~/.codex/map-toolkit-release.json`), never
+app Git. Resolve the selected immutable model through the existing report helper.
+Use the fixed ignored `.library-data/plugin-release/` for small local receipts,
+remote snapshots and command lists, and reuse one external candidate path.
+
+1. Inspect branch/WIP and preserve unrelated changes. Commit the reviewed change
+   after its focused checks. Collect the exact tests/lint commands as JSON rows
+   `{command,args,inputs}` with their explicit tracked input paths. Do not use a
+   full-suite command or whole real-dataset validator. Run:
+
+   ```powershell
+   node tools/reference-analysis/release-private-plugin.mjs verify --revision <full-SHA> --model <pinned-model-manifest> --checks <commands.json> --output <verification.json>
+   ```
+
+   This verifies actual working inputs against that commit before and after
+   checks and binds the result to the packaged content hash. Push the reviewed
+   commit to work/ui; preserve concurrent remote commits and never force-push.
+
+2. Through Plugin Creator, read the actual account plugin and every inventory
+   page, then its root/compatibility manifests and `release.json` if present.
+   Save normalized `{plugin,files,contents,complete:true}` as `remote.json`.
+   Never use the installed plugin cache as the account's release state. Run:
+
+   ```powershell
+   node tools/reference-analysis/release-private-plugin.mjs prepare --revision <pushed-full-SHA> --model <pinned-model-manifest> --target <local-settings.json> --verification <verification.json> --remote <remote.json> --output <plan.json>
+   ```
+
+   `unchanged` requires byte verification bound to that exact account release and
+   skips upload/version growth. `verification-required` is not a successful skip:
+   resume confirmation of the matching uploaded pending plan, or download the
+   exact current release and run `inspect --target <local-settings.json> --remote
+   <remote.json> --archive <current-archive> --archive-release <current-release-ID>`
+   before preparing again. A retained stale release.json cannot prove its bytes.
+   Otherwise the plan contains exact
+   `upload` arguments, including the original ID, expected release ID, archive
+   and retired owned paths. Version increases above the actual account version.
+   The producer packages a small `release.json` and keeps existing host metadata.
+
+3. Call Plugin Creator `update_plugin` with the plan's upload arguments. The
+   upload overlays files: omit unchanged files only when their identity is
+   known; remove retired owned files explicitly. On success, save its normalized
+   result (plugin ID/scope/privacy, status/version/current release ID), then run:
+
+   ```powershell
+   node tools/reference-analysis/release-private-plugin.mjs uploaded --plan <plan.json> --response <upload-result.json> --output <plan.json>
+   ```
+
+   An upload error leaves the prepared candidate retryable. A timeout has an
+   unknown outcome: query the actual release before retrying. On a concurrent
+   release, reconcile the new inventory/source and rebuild; never merely replace
+   the expected ID on the old archive. Identical pending attempts reuse their
+   verified archive. Retire a superseded reproducible candidate before rebuilding
+   in the same fixed path; never accumulate candidate directories.
+
+4. Read back the new account release and full inventory, root/compatibility
+   manifests, release receipt, and changed text files in bounded batches. Obtain
+   that exact release's archive once for binary/hash verification; do not unpack
+   another repository or model environment. Save the normalized remote snapshot:
+
+   ```powershell
+   node tools/reference-analysis/release-private-plugin.mjs confirm --plan <plan.json> --remote <after.json> --archive <downloaded-exact-release.tar.gz-or-zip> --target <local-settings.json> --output <verified.json>
+   ```
+
+   Confirm rejects wrong/concurrent releases, receipt mismatches, retained retired
+   files, missing payloads and changed archive bytes. Do not label an uploaded but
+   unverified release complete, roll it back blindly or republish to hide errors.
+   ZIP payloads are streamed; the account's tar.gz is read to bounded memory via
+   the existing system `tar -xO`, using sizes from the current file inventory.
+   Neither format extracts a second source/model workspace. Root/compatibility
+   manifests are compared semantically in both source read-back and archive.
+
+5. Publish/check only this task's external report scope. Record code/data/model
+   identity, account version/release, checks, actual remote verification and any
+   limits. Remove ended candidate/download/check outputs after checking paths,
+   links and consumers; report logical bytes and free-space changes separately.
+   Keep only one actively retryable candidate after failure. Do not restart the
+   app or claim already-open chats/installed caches have refreshed automatically.
+
+## Analysis and review
 
 The analysis skill accepts an original attachment, URL or map-search request.
 Codex uses existing web tools to select a source when extent, depicted period,
