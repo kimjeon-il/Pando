@@ -17,13 +17,52 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf, map-preview]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf, map-preview, map-review]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  map-review:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-review'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build the reviewed-mask rasterizer
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/map-review -B build-native/map-review/native
+          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
+          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+      - name: Compare reviewed masks and invalid-input behavior
+        shell: pwsh
+        run: |
+          if ($IsWindows) { $binary = 'build-native/map-review/native/Release/pando-map-review.exe' }
+          else { $binary = 'build-native/map-review/native/pando-map-review' }
+          node tools/reference-analysis/package-native-review.mjs --binary $binary --directory build-native/map-review/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
+          $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
+          node --test tests/unit/reference-review-mask.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Reviewed masks differ from original' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-map-review-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-review/artifact/
+          if-no-files-found: ignore
+          retention-days: 7
   map-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-preview'
     strategy:
