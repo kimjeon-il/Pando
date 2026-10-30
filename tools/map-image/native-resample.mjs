@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
 
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
-  'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp',
+  'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/macro-mask.h','tools/cpp/map-image/png.cpp',
   'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h','tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c',
   'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/training-scan.h','tools/cpp/map-image/training-tile.h',
   'tools/cpp/reference-analysis/condition-sampling.h','tools/cpp/reference-analysis/training-photometry.h','tools/cpp/reference-analysis/CPYTHON-LICENSE','tools/cpp/map-preview/PILLOW-LICENSE',
@@ -64,6 +64,21 @@ async function runNative(binary,args,input,maximum,signal){
 }
 function artifactDirectory(workspace){return process.env.PANDO_MAP_IMAGE_ARTIFACT||
   resolve(workspace,'build-native/map-image',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact');}
+async function nativeMacroMask(image,radius,action,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(image?.width,image?.height);
+  if(!(image.data instanceof Uint8Array)||image.data.length!==image.width*image.height)throw Error('Macro mask input length differs');
+  if(!Number.isInteger(radius)||radius<1||radius>(action==='macro-adjacency'?4:32))throw Error('Invalid macro mask radius');
+  if(action==='macro-dilate'&&image.data.some(value=>value>1))throw Error('Macro dilation input must be binary');
+  const pixels=image.width*image.height,expected=pixels*(action==='macro-adjacency'?2:1);
+  const output=await runNative(nativeBinary(workspace,directory),[action,String(image.width),String(image.height),String(radius)],image.data,expected,signal);
+  if(output.length!==expected||output.some(value=>value>1))throw Error('Invalid native macro mask result');
+  return output;
+}
+export async function nativeMacroAdjacency(image,radius,options){
+  const data=await nativeMacroMask(image,radius,'macro-adjacency',options),pixels=image.width*image.height;
+  return {target:data.subarray(0,pixels),known:data.subarray(pixels)};
+}
+export async function nativeMacroDilate(image,radius,options){return nativeMacroMask(image,radius,'macro-dilate',options);}
 async function operateNativeRgba(image,size,action,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(!image||!Array.isArray(size)||size.length!==2||!(image.data instanceof Uint8Array))throw Error('RGBA image and output size are required');

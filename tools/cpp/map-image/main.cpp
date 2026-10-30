@@ -4,6 +4,7 @@
 #include "image-read.h"
 #include "training-scan.h"
 #include "training-tile.h"
+#include "macro-mask.h"
 #include <webp/encode.h>
 #include <algorithm>
 #include <array>
@@ -79,6 +80,22 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="macro-adjacency"||action=="macro-dilate"){
+            if(argc!=5)throw std::invalid_argument("Expected macro mask WIDTH HEIGHT RADIUS");
+            const int width=dimension(argv[2]),height=dimension(argv[3]),radius=bounded(argv[4],action=="macro-adjacency"?4:32);
+            const auto pixels=std::size_t(width)*height;if(!radius||pixels>16777216)throw std::invalid_argument("Invalid macro mask dimensions or radius");
+            std::vector<std::uint8_t> input(pixels);
+            if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(pixels))||std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Macro mask input length differs");
+            if(action=="macro-dilate"){
+                const auto target=pando::map_image::macroDilate(input,width,height,radius);
+                std::cout.write(reinterpret_cast<const char*>(target.data()),static_cast<std::streamsize>(pixels));
+                if(!std::cout)throw std::runtime_error("Unable to write macro mask");return 0;
+            }
+            const auto [target,known]=pando::map_image::macroAdjacency(input,width,height,radius);
+            std::cout.write(reinterpret_cast<const char*>(target.data()),static_cast<std::streamsize>(pixels));
+            std::cout.write(reinterpret_cast<const char*>(known.data()),static_cast<std::streamsize>(pixels));
+            if(!std::cout)throw std::runtime_error("Unable to write macro mask");return 0;
+        }
         if(action=="diagnostic-overlays"){
             if(argc!=5)throw std::invalid_argument("Expected diagnostic WIDTH HEIGHT PANELS");
             const int width=dimension(argv[2]),height=dimension(argv[3]),panels=bounded(argv[4],3);
