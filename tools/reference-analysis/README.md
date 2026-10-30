@@ -42,7 +42,7 @@ original-pixel ratios and keeps source-family identity. Inventory distinguishes
 masters, official downsample candidates and these app derivatives. No training
 labels or accuracy results are inferred from a resized map.
 
-Map Toolkit's RGBA resize uses the source-verified `pando-map-image` executable
+Map Toolkit's RGBA resize and clockwise right-angle rotation use the source-verified `pando-map-image` executable
 in `build-native/map-image/artifact`; build it through the `map-image` GIS native
 workflow and install the artifact for the current platform. A missing or
 source-mismatched binary is an error. PDF and other raster operations still
