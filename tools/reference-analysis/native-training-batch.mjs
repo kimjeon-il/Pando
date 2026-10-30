@@ -48,11 +48,12 @@ async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
       [annotationPath,data.annotationSha256],[imagePath,data.imageSha256],[maskPath,data.maskSha256],[validPath,data.validMaskSha256]]};
 }
 export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,
-  samples,device='cpu',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
+  samples,device='cpu',amp=device==='cuda',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!torchLibrary||!['cpu','cuda'].includes(device)||
     ![epoch,seed,freezeEpochs].every(v=>Number.isSafeInteger(v)&&v>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
-    !Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit native training batch inputs and configuration required');
+    typeof amp!=='boolean'||(amp&&device!=='cuda')||!Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit native training batch inputs and configuration required');
+  const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   let previous=null,cursor=0;
@@ -64,7 +65,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
   }else{
     previous=JSON.parse(readFileSync(inputPath+'.receipt.json','utf8'));
     if(previous.schemaVersion!==1||previous.trainingOnly!==true||previous.releaseApproved!==false||previous.lineageComplete!==false||
-      previous.checkpointSha256!==inputHash||previous.device!==device||previous.seed!==seed||previous.freezeEpochs!==freezeEpochs||
+      previous.checkpointSha256!==inputHash||previous.device!==device||previous.precision!==precision||previous.seed!==seed||previous.freezeEpochs!==freezeEpochs||
       previous.learningRate!==learningRate||previous.positiveWeightSha256!==weights.hash)throw Error('Checkpoint receipt or training configuration differs');
     if(epoch===previous.epoch){if(previous.orderSha256!==orderData.hash||previous.orderLength!==orderData.order.length)throw Error('Training order differs from checkpoint receipt');cursor=previous.cursor;}
     else if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)cursor=0;
@@ -77,23 +78,30 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
   if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const sourceRoot=dirname(corpusPath),evidence=[];for(let i=0;i<samples.length;i++)evidence.push(await verifyEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal}));
+  const ampScale=amp?(previous?previous.ampScale:65536):1,ampGrowth=amp?(previous?previous.ampGrowthTracker:0):0;
+  if(!Number.isFinite(ampScale)||ampScale<=0||!Number.isInteger(ampGrowth)||ampGrowth<0||ampGrowth>=2000)throw Error('Checkpoint AMP state is invalid');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
   const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
-  const library=matchingTorchLibrary(torchLibrary,tool),args=[device,mode,inputPath,target,String(epoch),String(seed),String(freezeEpochs),String(learningRate),resolve(order),weights.argument];
+  const library=matchingTorchLibrary(torchLibrary,tool),args=[device,mode,inputPath,target,String(epoch),String(seed),String(freezeEpochs),String(learningRate),resolve(order),weights.argument,precision,String(ampScale),String(ampGrowth)];
   for(const sample of samples)args.push(String(sample.index),resolve(sample.directory));
   const stdout=await new Promise((ok,fail)=>execFile(binary,args,{encoding:'utf8',windowsHide:true,maxBuffer:1024**2,timeout:300000,signal,
     env:{...process.env,...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
     (error,text,stderr)=>error?fail(new Error('Native training batch failed: '+error.message+' '+stderr,{cause:error})):ok(text)));
   signal?.throwIfAborted();const result=JSON.parse(stdout),info=statSync(target);
-  if(result.trainingOnly!==true||result.releaseApproved!==false||result.precision!=='fp32'||result.epoch!==epoch||result.cursor!==cursor+samples.length||
-    result.batch!==samples.length||!Number.isFinite(result.loss)||result.checkpointBytes!==info.size)throw Error('Native training batch returned an invalid result; preserve its checkpoint');
+  if(result.trainingOnly!==true||result.releaseApproved!==false||result.precision!==precision||result.epoch!==epoch||result.cursor!==cursor+samples.length||
+    result.batch!==samples.length||!Number.isFinite(result.loss)||typeof result.applied!=='boolean'||result.checkpointBytes!==info.size||
+    (amp&&(!Number.isFinite(result.ampScale)||result.ampScale<=0||!Number.isInteger(result.ampGrowthTracker)||result.ampGrowthTracker<0||result.ampGrowthTracker>=2000))||
+    (!amp&&(result.ampScale!==null||result.ampGrowthTracker!==null||result.applied!==true)))throw Error('Native training batch returned an invalid result; preserve its checkpoint');
   if(identity(inputPath)!==inputHash||sha(readFileSync(corpusPath))!==corpusHash||readOrder(resolve(order)).hash!==orderData.hash||positiveWeight(positiveWeights).hash!==weights.hash)
     throw Error('Training inputs changed during execution; preserve its checkpoint');
   for(const sample of samples)verifyTrainingSample(sample.directory);
   for(const item of evidence)for(const [path,expected] of item.checks)if(identity(path)!==expected)throw Error('Training source changed during execution; preserve its checkpoint');
-  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision:'fp32',
+  const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
     initialization:previous?previous.initialization:'weights-only-no-optimizer',device,corpusSha256:corpusHash,epoch,cursor:result.cursor,
     orderSha256:orderData.hash,orderLength:orderData.order.length,seed,freezeEpochs,learningRate,positiveWeightSha256:weights.hash,
+    ampScale:result.ampScale,ampGrowthTracker:result.ampGrowthTracker,attemptedBatches:count('attemptedBatches',1),
+    optimizerUpdates:count('optimizerUpdates',result.applied?1:0),skippedUpdates:count('skippedUpdates',result.applied?0:1),
     checkpointSha256:identity(target),checkpointBytes:info.size,toolRevision:tool.revision,evidence:evidence.map(item=>item.record)};
   writeFileSync(receiptPath,JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return {...result,receiptPath,checkpointSha256:receipt.checkpointSha256,lineageComplete:false};
 }

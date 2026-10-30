@@ -3,6 +3,7 @@
 #include "reference-io.h"
 #include "safetensors.h"
 #include "training-ordered-step.h"
+#include "training-amp.h"
 #include <ATen/Context.h>
 #include <cmath>
 #include <filesystem>
@@ -29,7 +30,7 @@ void configure(pando::reference::ReferenceBoundaryModel& model,std::int64_t epoc
   if(frozen)model->encoder->eval();
 }
 int run(const std::vector<fs::path>& args){
-  if(args.size()<13||(args.size()-11)%2||args.size()>43)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none INDEX SAMPLE_DIR...");
+  if(args.size()<16||(args.size()-14)%2||args.size()>46)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");
   if(fs::exists(args[4]))throw std::invalid_argument("Checkpoint output exists; preserve it");
   const auto epoch=integer(args[5]),seed=integer(args[6]),freezeEpochs=integer(args[7]);const auto rate=learningRate(args[8]);
@@ -59,18 +60,29 @@ int run(const std::vector<fs::path>& args){
   c10::optional<torch::Tensor> positiveWeight=c10::nullopt;
   if(args[10]!=fs::path("none")){auto value=pando::reference::readFloatTensor(args[10],{7});
     if(value.min().item<float>()<1||value.max().item<float>()>64)throw std::invalid_argument("Positive weights must be within 1..64");positiveWeight=value.to(device);}
+  const auto precision=args[11].string();if(precision!="fp32"&&precision!="amp-fp16")throw std::invalid_argument("Invalid training precision");
+  if(precision=="amp-fp16"&&!device.is_cuda())throw std::invalid_argument("AMP training requires CUDA");
+  std::size_t scaleUsed=0;const auto scaleText=args[12].string();const double scaleValue=std::stod(scaleText,&scaleUsed);const auto growth=integer(args[13]);
+  if(scaleUsed!=scaleText.size()||!std::isfinite(scaleValue)||scaleValue<=0||scaleValue>std::numeric_limits<float>::max()||growth>=2000)
+    throw std::invalid_argument("Invalid training AMP state");
+  pando::reference::TrainingAmpState ampState{static_cast<float>(scaleValue),static_cast<std::int32_t>(growth)};
   std::vector<torch::Tensor> tiles,overviews,positions,targets,valids;std::vector<std::int64_t> indices;
-  for(std::size_t i=11;i<args.size();i+=2){indices.push_back(integer(args[i]));const auto& dir=args[i+1];
+  for(std::size_t i=14;i<args.size();i+=2){indices.push_back(integer(args[i]));const auto& dir=args[i+1];
     tiles.push_back(pando::reference::readFloatTensor(dir/"tile.f32",{1,3,512,512}));overviews.push_back(pando::reference::readFloatTensor(dir/"overview.f32",{1,3,256,256}));
     positions.push_back(pando::reference::readFloatTensor(dir/"position.f32",{1,4}));targets.push_back(pando::reference::readFloatTensor(dir/"target.f32",{1,7,512,512}));
     valids.push_back(pando::reference::readFloatTensor(dir/"valid.f32",{1,7,512,512}));}
   pando::reference::TrainingBatch batch{torch::cat(tiles).to(device),torch::cat(overviews).to(device),torch::cat(positions).to(device),torch::cat(targets).to(device),torch::cat(valids).to(device)};
   if(batch.target.min().item<float>()<0||batch.target.max().item<float>()>1||batch.valid.min().item<float>()<0||batch.valid.max().item<float>()>1||batch.valid.sum().item<double>()==0)
     throw std::invalid_argument("Training batch requires valid supervision");
-  const auto loss=pando::reference::orderedTrainingBatchStep(model,optimizer,batch,state,indices,positiveWeight);
+  double loss=0;bool applied=true;
+  if(precision=="amp-fp16"){const auto result=pando::reference::orderedTrainingAmpStep(model,optimizer,batch,state,indices,ampState,positiveWeight);loss=result.loss;applied=result.applied;}
+  else loss=pando::reference::orderedTrainingBatchStep(model,optimizer,batch,state,indices,positiveWeight);
   const auto checkpoint=pando::reference::saveTrainingCheckpoint(*model,optimizer,state,device);pando::reference::writeNewFile(args[4],checkpoint);
-  std::cout<<std::setprecision(17)<<"{\"trainingOnly\":true,\"releaseApproved\":false,\"precision\":\"fp32\",\"epoch\":"<<state.epoch
-    <<",\"cursor\":"<<state.cursor<<",\"batch\":"<<indices.size()<<",\"loss\":"<<loss<<",\"checkpointBytes\":"<<checkpoint.size()<<"}\n";return 0;
+  std::cout<<std::setprecision(17)<<"{\"trainingOnly\":true,\"releaseApproved\":false,\"precision\":\""<<precision<<"\",\"epoch\":"<<state.epoch
+    <<",\"cursor\":"<<state.cursor<<",\"batch\":"<<indices.size()<<",\"loss\":"<<loss<<",\"applied\":"<<(applied?"true":"false")<<",\"ampScale\":";
+  if(precision=="amp-fp16")std::cout<<ampState.scale;else std::cout<<"null";std::cout<<",\"ampGrowthTracker\":";
+  if(precision=="amp-fp16")std::cout<<ampState.growthTracker;else std::cout<<"null";
+  std::cout<<",\"checkpointBytes\":"<<checkpoint.size()<<"}\n";return 0;
 }
 }
 #ifdef _WIN32

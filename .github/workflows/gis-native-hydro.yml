@@ -67,7 +67,7 @@ jobs:
           $torch = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
           cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
           if ($LASTEXITCODE -ne 0) { throw 'Training step configure failed' }
-          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test pando-reference-training-batch --parallel 1
+          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test reference-training-amp-test pando-reference-training-batch --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'Training step build failed' }
           if ($IsWindows) { $binary = 'build-native/reference-analysis/step-test/Release/reference-training-step-test.exe' }
           else { $binary = 'build-native/reference-analysis/step-test/reference-training-step-test' }
@@ -77,6 +77,10 @@ jobs:
           else { $ordered = 'build-native/reference-analysis/step-test/reference-training-ordered-test' }
           & $ordered
           if ($LASTEXITCODE -ne 0) { throw 'Ordered checkpoint resume differs' }
+          if ($IsWindows) { $amp = 'build-native/reference-analysis/step-test/Release/reference-training-amp-test.exe' }
+          else { $amp = 'build-native/reference-analysis/step-test/reference-training-amp-test' }
+          & $amp
+          if ($LASTEXITCODE -ne 0) { throw 'Training AMP scaling differs' }
           if ($IsWindows) { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe" }
           else { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/pando-reference-training-batch" }
           node --test tests/unit/reference-training-batch-refusal.test.mjs tests/unit/reference-training-batch-manager.test.mjs
