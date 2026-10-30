@@ -9,6 +9,7 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
 import { libraryConfig, libraryCheckout, decodeArchiveEntry, libraryReportRoot, libraryMaterializedRoot, prepareLibraryData, withLibraryOutputs } from '../../tools/library-data.mjs';
 import {reportPath} from '../../tools/report-paths.mjs';
+import {contentAddress} from '../../tools/build-world-bundle.mjs';
 
 export const GRAPH_PATH='config/generated-artifacts.json';
 export const RECEIPT_PATH='assets/data/generated-artifacts/p2-manifest.json';
@@ -96,7 +97,7 @@ function provenance(value,items=[]) {
   return items;
 }
 
-export function artifactGraph(root) {
+export function artifactGraph(root,{readGeneratedJson=p=>json(root,p)}={}) {
   const graph=json(root,GRAPH_PATH);
   assert.equal(graph.schema,'pandolab-generated-artifact-graph');assert.equal(graph.schemaVersion,1);
   const families=graph.families.map(input=>{
@@ -105,7 +106,7 @@ export function artifactGraph(root) {
     if(f.resolve?.startsWith('world-')||f.resolve==='shared-boundaries') {
       const seed=json(root,'assets/data/world/build-input.json');
       const manifest='assets/data/'+seed.legacyPreviewManifest;
-      const legacy=json(root,manifest);
+      const legacy=readGeneratedJson(manifest);
       if(f.resolve==='world-mesh') {
         f.outputs.push('assets/data/'+legacy.assets.canonicalMesh.url);
         // The manifest is also written by preview generation. Only its path
@@ -116,7 +117,7 @@ export function artifactGraph(root) {
         f.inputs.push('assets/data/'+legacy.assets.labelAnchors.url);
         f.layout={manifest,assets:Object.fromEntries(Object.entries(legacy.assets).map(([k,v])=>[k,v.url]))};
       } else if(f.resolve==='world-bundle') {
-        const current=json(root,'assets/data/world/current.json');
+        const current=readGeneratedJson('assets/data/world/current.json');
         f.outputs.push(...Object.values(current.assets).map(asset=>'assets/data/'+asset.url));
       } else f.outputs.push(...Object.values(seed.sharedBoundaries).map(p=>'assets/data/'+p));
     }
@@ -275,10 +276,20 @@ export function publishArtifacts(root,{stageDir,expectedSourceSha,expectedRemote
   const stage=safePath(root,stageDir),publication=json(stage,'stage.json'),checkout=resolve(stage,'checkout');
   assert.equal(publication.schema,'pandolab-p2-stage');assert.equal(publication.sourceSha,expectedSourceSha,'P2_STAGE_SOURCE_CHANGED');
   assert.ok(!existsSync(safePath(stage,'publish-journal.json')),'P2_UNFINISHED_PUBLICATION');
-  const graph=artifactGraph(root).filter(f=>publication.families.includes(f.id));
-  for(const p of publication.paths)assert.ok(p===RECEIPT_PATH||graph.some(f=>ownsPath(f,p)),'P2_UNEXPECTED_GENERATED_FILE: '+p);
   assert.deepEqual(hashes(checkout,publication.paths),publication.after,'P2_STAGE_BYTES_CHANGED');
   assert.deepEqual(hashes(root,publication.paths),publication.before,'P2_DESTINATION_CHANGED');
+  const selected=f=>publication.families.includes(f.id),previous=artifactGraph(root).filter(selected);
+  // Keep source definitions/inputs rooted in the destination. Only a selected,
+  // hash-verified manifest that will actually be published may introduce new paths.
+  const graph=artifactGraph(root,{readGeneratedJson:p=>{
+    if(!publication.paths.includes(p))return json(root,p);
+    assert.ok(previous.some(f=>ownsPath(f,p)),'P2_UNEXPECTED_GENERATED_FILE: '+p);
+    const manifest=json(checkout,p);
+    if(p==='assets/data/world/current.json')for(const [role,asset] of Object.entries(manifest.assets))
+      assert.equal(asset.url,contentAddress(role,asset.sha256),'P2_WORLD_ASSET_PATH: '+role);
+    return manifest;
+  }}).filter(selected);
+  for(const p of publication.paths)assert.ok(p===RECEIPT_PATH||graph.some(f=>ownsPath(f,p)),'P2_UNEXPECTED_GENERATED_FILE: '+p);
   guard(root,{expectedSourceSha,expectedRemoteSha,branch});
   // Entry manifests and the graph receipt become visible after their data.
   const paths=[...publication.paths].sort((a,b)=>Number(/(?:manifest|current|index)\.json$/.test(a)||a===RECEIPT_PATH)-Number(/(?:manifest|current|index)\.json$/.test(b)||b===RECEIPT_PATH));
