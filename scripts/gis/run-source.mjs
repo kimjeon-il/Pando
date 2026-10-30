@@ -14,7 +14,7 @@ export const TASK_SOURCES = Object.freeze({
   'terrain-preview':'tools/build-terrain-preview.mjs',
   'hydro-tiles':'tools/build-hydro-tiles.py',
   'hydro-packfile':'tools/build-hydro-packfile.mjs',
-  'hydro-connectivity':'tools/repair-hydro-connectivity.py',
+  'hydro-connectivity':'tools/repair-hydro-connectivity.mjs',
   'physical-data':'tools/build-physical-data.py',
   'place-candidates':'tools/build-place-candidates.mjs',
 });

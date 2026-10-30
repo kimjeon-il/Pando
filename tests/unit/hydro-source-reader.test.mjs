@@ -3,11 +3,19 @@ import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {readHydroRegion,readHydroSources} from '../../tools/gis/hydro-source-reader.mjs';
+import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources} from '../../tools/gis/hydro-source-reader.mjs';
 import {zipMembers,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 
 const archive='tests/fixtures/hydro-source/fixture.zip';
 const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/spec.json','utf8'));
+test('full Hydro source selection requires each region exactly once',()=>{
+  const regions=['eu','as','si','af','sa','na','ar','au','gr'];
+  const manifest={sources:{hydroRivers:regions.map(datasetCode=>({datasetCode,files:[]}))}};
+  const archives=hydroSourceArchivesFromManifest(manifest,'somewhere');
+  assert.deepEqual(archives.map(row=>row.specification.datasetCode),regions);
+  manifest.sources.hydroRivers[8]=manifest.sources.hydroRivers[0];
+  assert.throws(()=>hydroSourceArchivesFromManifest(manifest,'somewhere'),/specification/i);
+});
 test('reads only selected Hydro source endpoints and verifies every pinned archive member',async()=>{
   const rows=await readHydroRegion({archive,specification,selected:new Set([103,101])});
   assert.deepEqual(rows.rows,{'101':{region:'eu',next:102,start:[0,0],end:[1,0]},'103':{region:'eu',next:102,start:[0,1],end:[1,0]}});

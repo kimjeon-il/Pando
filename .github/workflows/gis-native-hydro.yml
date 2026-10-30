@@ -9,7 +9,7 @@ on:
       - 'tests/unit/hydro-connectivity-native.test.mjs'
       - 'tools/hydro_connectivity.py'
       - 'tools/build-hydro-tiles.py'
-      - 'tools/repair-hydro-connectivity.py'
+      - 'tools/repair-hydro-connectivity.mjs'
       - 'tests/test_hydro_connectivity.py'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
@@ -64,7 +64,7 @@ jobs:
           node tools/gis/package-hydro-encoding.mjs --binary $env:PANDO_HYDRO_ENCODING_BINARY --directory build-native/hydro-encoding/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder packaging failed' }
           $env:PANDO_HYDRO_ENCODING_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/artifact"
-          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-pack-layout.test.mjs
+          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-pack-layout.test.mjs tests/unit/hydro-repair-pipeline.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro feature bytes differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
