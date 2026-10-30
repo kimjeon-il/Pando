@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -43,4 +44,7 @@ test('macro diagnostics refuse a checkpoint for a different corpus before execut
   await assert.rejects(diagnoseMacroTrainingSource(request),/does not match/i);
   receipt.corpusSha256=hash('{}');writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
   await assert.rejects(diagnoseMacroTrainingSource(request),/training-only corpus/i);
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--macro-source','--corpus',corpus,
+    '--source','fixture','--checkpoint',checkpoint,'--output',folder,'--device','cpu','--torch-library',folder],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.match(cli.stderr,/output exists/i);
 });

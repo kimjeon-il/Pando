@@ -62,6 +62,18 @@ The executable statically includes zlib 1.3.2, libpng 1.6.57, libjpeg-turbo
 license notices are in `tools/cpp/map-pdf/`; preview font and FreeType notices are
 in `tools/cpp/map-preview/`. Training and corpus tools remain under migration.
 
+A single source-derived macro training sheet can be inspected using its matching
+native C++ checkpoint and the same CPU/CUDA device recorded in its receipt. The
+output directory must not exist, and its parent must already exist. The command
+checks the corpus and source hashes and writes a private diagnostic JSON and
+JPEG; it does not establish independent accuracy or approve a model release.
+It does not yet replace the full Python inspection command or its baseline and
+other corpus modes.
+
+```powershell
+node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/example/corpus.training.json --source SOURCE_ID --checkpoint EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/checkpoint.pt --output EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/diagnostic-source --device cuda --torch-library 'C:/path/to/matching/torch/lib'
+```
+
 Analysis runtime proof uses the plugin CLI with local map/model paths. Native
 application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS
 import, explicit editing, Undo/Redo and actual native save/reopen. Neither check

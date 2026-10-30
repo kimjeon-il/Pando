@@ -1,6 +1,10 @@
 // Binary boundary for native training-diagnostic overlay composition.
 import {dirname,extname,resolve} from 'node:path';
+import {existsSync} from 'node:fs';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
+import {parseArgs} from 'node:util';
+import {reportArgument} from '../report-paths.mjs';
 import {composeNativeDiagnosticOverlays,encodeNativeJpeg,readNativeTrainingRaster} from '../map-image/native-resample.mjs';
 import {drawNativePreviewLabels} from '../map-image/native-preview.mjs';
 import {diagnosticPixelStatistics} from './native-evaluation.mjs';
@@ -97,6 +101,21 @@ export async function diagnoseMacroTrainingSource({corpus,sourceId,checkpoint,de
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
+    if(process.argv[2]==='--macro-source'){
+      const {values,positionals}=parseArgs({args:process.argv.slice(3),allowPositionals:true,options:{corpus:{type:'string'},source:{type:'string'},
+        checkpoint:{type:'string'},output:{type:'string'},device:{type:'string'},'torch-library':{type:'string'}}});
+      if(positionals.length||!values.corpus||!values.source||!values.checkpoint||!values.output||!values.device||!values['torch-library'])
+        throw Error('Expected --macro-source --corpus MANIFEST --source ID --checkpoint PATH --output DIRECTORY --device cpu|cuda --torch-library DIRECTORY');
+      const output=resolve(reportArgument(values.output,{access:'write'}));
+      if(existsSync(output))throw Error('Diagnostic output exists; preserve prior evidence');
+      const result=await diagnoseMacroTrainingSource({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),sourceId:values.source,
+        checkpoint:reportArgument(values.checkpoint,{access:'read'}),device:values.device,torchLibrary:values['torch-library']});
+      const {jpeg,...diagnostic}=result;
+      await mkdir(output);await writeFile(resolve(output,'preview.jpg'),jpeg,{flag:'wx'});
+      await writeFile(resolve(output,'diagnostics.json'),JSON.stringify({...diagnostic,purpose:'training-set-diagnostic-only',previewFile:'preview.jpg'},null,2)+'\n',{flag:'wx'});
+      process.stdout.write(JSON.stringify({output,sourceId:result.sourceId,purpose:'training-set-diagnostic-only',releaseApproved:false})+'\n');
+      process.exitCode=0;
+    }else{
     if(process.argv.length!==3||process.argv[2]!=='--overlay-stream')throw Error('Expected --overlay-stream');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Diagnostic overlay input exceeds budget');chunks.push(chunk);}
     const input=Buffer.concat(chunks,length);
@@ -107,5 +126,6 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     let at=20;const take=length=>{const part=input.subarray(at,at+length);at+=length;return part;};
     const original=take(pixels*3),known=take(pixels*7),active=Array.from({length:panels},()=>take(pixels*7));
     for(const panel of await composeNativeDiagnosticOverlays({width,height,original,known,active}))process.stdout.write(panel);
+    }
   }catch(error){console.error('native-diagnostic-preview: '+error.message);process.exitCode=1;}
 }
