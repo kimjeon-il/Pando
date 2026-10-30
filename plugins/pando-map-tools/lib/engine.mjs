@@ -135,15 +135,20 @@ export async function recognizeInProcess(image,languages,signal,progress) {
   }
   return {rows,orientation:{...orientation,languages:selected}};
 }
-function originalGraph(graph,image) {
+export function originalGraph(graph,image,previousGraph=null) {
   const {rect}=image.mapping, sx=(rect.width-1)/(image.width-1),sy=(rect.height-1)/(image.height-1);
   const point=([x,y])=>[rect.x+x*sx,rect.y+y*sy];
-  const chains=graph.chains.map(chain=>({...chain,points:chain.points.map(point)}));
-  let result={...graph,width:image.originalWidth,height:image.originalHeight,chains,faces:[],unresolved:[]};
+  const firstId=previousGraph?previousGraph.nextChainId:0,firstFaceId=previousGraph?previousGraph.nextFaceId:0;
+  if(!Number.isInteger(firstId)||firstId<0||!Number.isInteger(firstFaceId)||firstFaceId<0)throw new Error('Current source graph identity counters required.');
+  const chains=graph.chains.map(chain=>({...chain,id:firstId+chain.id,points:chain.points.map(point)}));
+  let result={...graph,width:image.originalWidth,height:image.originalHeight,chains,faces:[],unresolved:[],
+    nextChainId:chains.reduce((next,chain)=>Math.max(next,chain.id+1),firstId),nextFaceId:firstFaceId};
   result=calculate('editBoundaryGraph',{graph:result,command:{type:'rebuild'}});
   const edge=([x,y])=>Math.abs(x-rect.x)<1 || Math.abs(y-rect.y)<1 || Math.abs(x-(rect.x+rect.width-1))<1 || Math.abs(y-(rect.y+rect.height-1))<1;
   result.faces=result.faces.map(face=>({...face,touchesImageEdge:face.touchesImageEdge || face.ring.some(edge)}));
   result.unresolved.push(...graph.unresolved.filter(v=>v.reason!=='open-boundary').map(v=>({...v,...(v.point?{point:point(v.point)}:{})})));
+  if(previousGraph)result.changeSet={created:result.chains.map(v=>v.id),removed:previousGraph.chains.map(v=>v.id),modified:[],
+    faces:{created:result.faces.map(v=>v.id),removed:previousGraph.faces.map(v=>v.id),modified:[]}};
   return result;
 }
 export function regionAnalysisOptions(job,command) {
@@ -216,7 +221,8 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
       overview:()=>resizeRaster(image,[256,256],signal),tileRaster:tile=>cropRaster(image,tile,512),
       observedChannels:manifest.observedChannels.map(v=>REFERENCE_BOUNDARY_CHANNELS.indexOf(v))});
     check(signal);
-    const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:.75}),image);
+    const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:.75}),image,previous?.graph || null);
+    if(previous)job.history.at(-1).changeSet=structuredClone(graph.changeSet);
     job.graph=graph;job.segmentation={signature:digest({source:job.source,model:manifest.model.sha256}),rawGraph:structuredClone(graph)};
     job.resources.ocrLanguageHashes={};
     for(const language of ['osd',...job.ocr.orientation.languages]) {

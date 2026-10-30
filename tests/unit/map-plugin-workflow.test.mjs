@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateReferenceImage as calculate} from '../../plugins/pando-map-tools/lib/analysis/core.mjs';
 import * as jobs from '../../plugins/pando-map-tools/lib/jobs.mjs';
+import * as engine from '../../plugins/pando-map-tools/lib/engine.mjs';
 
 const chain=(id,points,semanticBits=1,confidence=.7)=>({id,points,semanticBits,confidence,touchesImageEdge:false});
 const graph=chains=>({ok:true,width:200,height:200,chains,faces:[],unresolved:[],nextChainId:Math.max(-1,...chains.map(c=>c.id))+1,nextFaceId:0});
@@ -105,4 +106,29 @@ test('overlapping source paths are refused without merging semantic evidence',()
   const g=graph([chain(3,[[10,10],[90,10]],1,.31)]);
   assert.throws(()=>edit(g,{type:'add',points:[[30,10],[70,10]],semanticBits:2,reason:'Ambiguous overlap'}),/overlap/i);
   assert.deepEqual(g.chains[0],chain(3,[[10,10],[90,10]],1,.31));
+});
+
+test('a reanalyzed region allocates identities beyond its predecessor and restores exact original pixels',()=>{
+  assert.equal(typeof engine.originalGraph,'function');
+  const raw=graph([chain(0,[[0,0],[60,50]])]);
+  raw.width=61;raw.height=51;
+  const image={width:61,height:51,originalWidth:200,originalHeight:200,mapping:{rect:{x:10,y:20,width:121,height:101}}};
+  const previous={...graph([chain(90,[[20,20],[30,30]])]),nextChainId:100,nextFaceId:200};
+  const restored=engine.originalGraph(raw,image,previous);
+  assert(restored.chains.every(c=>c.id>=100));
+  assert.deepEqual(restored.chains[0].points,[[10,20],[130,120]]);
+  assert.equal(restored.nextFaceId,200);
+  assert.deepEqual(raw.chains[0].points,[[0,0],[60,50]]);
+});
+
+test('an unselected extrapolated line cannot block a valid reviewed crop selection',()=>{
+  const source={path:'map.png',sha256:'a'.repeat(64),width:200,height:200,mapping:{rect:{x:0,y:0,width:100,height:100}}};
+  let job=jobs.sealJob({...jobs.createJob(source,{dataRevision:'test'}),status:'needs-georeference',graph:graph([
+    chain(1,[[10,10],[80,10]]),chain(2,[[10,180],[80,180]])])});
+  job=jobs.reviseJob(job,{type:'control-points',mode:'affine',points:[{id:'a',image:[0,0],coordinate:[0,80]},
+    {id:'b',image:[1,0],coordinate:[20,80]},{id:'c',image:[0,.5],coordinate:[0,-20]}]});
+  assert.equal(job.quality.invalidDomain,false);
+  job=jobs.reviseJob(job,{type:'review',georeference:true,boundaries:true,selectedIds:['line:1']});
+  assert.deepEqual(jobs.selectedJobGeometry(job).map(v=>v.id),['line:1']);
+  assert.equal(jobs.jobFeatures(job).features.length,1);
 });
