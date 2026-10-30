@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
 #include <iostream>
 #include <memory>
@@ -80,6 +81,21 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="macro-palette"||action=="macro-visible"){
+            if(argc!=5)throw std::invalid_argument("Expected macro color WIDTH HEIGHT COLOR_COUNT");
+            const int width=dimension(argv[2]),height=dimension(argv[3]);const bool visible=action=="macro-visible";
+            const int count=bounded(argv[4],visible?1024:16);const auto pixels=std::size_t(width)*height;
+            if(pixels>16777216||count<(visible?1:2))throw std::invalid_argument("Invalid macro color dimensions or palette");
+            const auto input=encodedInput();const auto paletteBytes=std::size_t(count)*24;
+            if(input.size()!=paletteBytes+pixels*3)throw std::invalid_argument("Macro color input length differs");
+            std::vector<std::array<double,3>> colors(static_cast<std::size_t>(count));
+            for(std::size_t i=0;i<colors.size()*3;++i){std::uint64_t bits=0;for(int b=0;b<8;++b)bits|=std::uint64_t(input[i*8+b])<<(b*8);
+                double value;std::memcpy(&value,&bits,sizeof(value));colors[i/3][i%3]=value;}
+            const std::vector<std::uint8_t> rgb(input.begin()+static_cast<std::ptrdiff_t>(paletteBytes),input.end());
+            const auto result=pando::map_image::macroClassify(rgb,width,height,colors,visible);
+            std::cout.write(reinterpret_cast<const char*>(result.data()),static_cast<std::streamsize>(result.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write macro color result");return 0;
+        }
         if(action=="macro-adjacency"||action=="macro-dilate"){
             if(argc!=5)throw std::invalid_argument("Expected macro mask WIDTH HEIGHT RADIUS");
             const int width=dimension(argv[2]),height=dimension(argv[3]),radius=bounded(argv[4],action=="macro-adjacency"?4:32);

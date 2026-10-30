@@ -11,6 +11,7 @@ import pathlib
 import subprocess
 import sys
 import re
+import struct
 
 import numpy as np
 import pymupdf
@@ -53,6 +54,26 @@ def native_macro_mask(action, image, radius):
 def dilate_macro_mask(mask, radius):
     image = np.asarray(mask, dtype=np.uint8)
     return np.frombuffer(native_macro_mask('dilate', image, radius), dtype=np.uint8).copy().reshape(image.shape).astype(bool)
+
+
+def native_macro_colors(action, image, colors):
+    if image.ndim != 3 or image.shape[2] != 3 or image.dtype != np.uint8:
+        raise ValueError('RGB uint8 macro image required')
+    palette = np.asarray(colors, dtype=np.float64)
+    if (palette.ndim != 2 or palette.shape[1] != 3 or not np.isfinite(palette).all()
+            or np.any((palette < 0) | (palette > 1)) or not 1 <= len(palette) <= 1024):
+        raise ValueError('Explicit source color palette required')
+    height, width = image.shape[:2]
+    script = pathlib.Path(__file__).with_name('macro-masks.mjs')
+    payload = struct.pack('<' + 'd' * palette.size, *palette.flat) + image.tobytes()
+    result = subprocess.run(['node', str(script), action, str(width), str(height), str(len(palette))],
+                            input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native macro color classification failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if len(result.stdout) != width * height:
+        raise ValueError('Invalid native macro color length')
+    return np.frombuffer(result.stdout, dtype=np.uint8).copy().reshape(height, width)
 
 
 def stroke_matches(drawing, signature):
@@ -121,13 +142,7 @@ def derive(source, metadata, maximum_dimension):
             colors = np.asarray(specification['countryFillColors'], dtype=np.float32)
             if colors.ndim != 2 or colors.shape[1] != 3 or not 2 <= len(colors) <= 16 or not np.isfinite(colors).all() or np.any((colors < 0) | (colors > 1)):
                 raise ValueError('Explicit source country palette required')
-            labels, nearest = np.zeros(masks.shape, dtype=np.uint8), np.full(masks.shape, np.inf)
-            rgb = image.astype(np.float32) / 255
-            for index, color in enumerate(colors):
-                distance = np.max(np.abs(rgb - color), axis=2)
-                take = (distance < nearest) & (distance <= 2.5 / 255)
-                labels[take] = index + 1
-                nearest[take] = distance[take]
+            labels = native_macro_colors('palette', image, colors)
             masks, valid = fill_adjacency_supervision(labels, specification['radiusPixels'])
         elif specification['strategy'] == 'boundary-stroke-signatures':
             drawings = page.get_drawings()
@@ -140,9 +155,7 @@ def derive(source, metadata, maximum_dimension):
                 pixels = stroke_mask(page, drawings, signatures, matrix)
                 # get_drawings ignores some visibility/clipping rules. Admit
                 # only marks whose source stroke colour is visible in the map.
-                visible = np.zeros(masks.shape, dtype=bool)
-                for signature in signatures:
-                    visible |= np.max(np.abs(image.astype(np.float32) / 255 - signature['color']), axis=2) <= .15
+                visible = native_macro_colors('visible', image, [signature['color'] for signature in signatures]).astype(bool)
                 masks[pixels & visible] |= 1 << CHANNELS.index(channel)
                 known = np.ones(masks.shape, dtype=bool) if band is None else dilate_macro_mask((pixels & visible).astype(np.uint8), band)
                 valid[known] |= 1 << CHANNELS.index(channel)
