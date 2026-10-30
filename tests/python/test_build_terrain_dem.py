@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -69,6 +70,13 @@ class TerrainDemTest(unittest.TestCase):
             self.assertIn(tuple(pixel), [(120, 160, 140), (180, 140, 100)])
         with self.assertRaisesRegex(ValueError, 'no valid land'):
             dem.fill_tint_background(rgb, np.zeros_like(valid))
+
+    def test_tint_fill_matches_frozen_fractional_reference(self):
+        fixture = json.loads((Path(__file__).parents[1] / 'fixtures/terrain-dem-fill-oracle.json').read_text(encoding='utf-8'))
+        width, height = fixture['width'], fixture['height']
+        rgb = np.array([np.nan if value is None else value for value in fixture['rgb']], dtype=np.float32).reshape(3, height, width)
+        valid = np.array(fixture['valid'], dtype=bool).reshape(height, width)
+        np.testing.assert_array_equal(dem.fill_tint_background(rgb, valid).ravel(), fixture['expected'])
 
     def test_tint_average_does_not_dilute_a_small_island_with_white_sea(self):
         transform = rasterio.transform.from_bounds(-180, -90, 180, 90, 8, 4)
