@@ -14,6 +14,9 @@ test('macro visible stroke mask matches any listed signature within threshold',a
   const image={width:3,height:1,data:Buffer.from([255,0,0, 240,4,3, 0,255,0])};
   assert.deepEqual(await nativeMacroVisible(image,[[1,0,0]]),Buffer.from([1,1,0]));
   assert.deepEqual(await nativeMacroVisible(image,[[0,1,0],[1,0,0]]),Buffer.from([1,1,1]));
+  const boundary={width:1,height:1,data:Buffer.from([100,100,100])},base=0.3921568691730499;
+  assert.deepEqual(await nativeMacroVisible(boundary,[[0.5421568691730498,base,base]]),Buffer.from([1]));
+  assert.deepEqual(await nativeMacroVisible(boundary,[[0.54215686917305,base,base]]),Buffer.from([0]));
   await assert.rejects(nativeMacroVisible(image,[]),/palette/i);
 });
 test('macro color stream checks palette and RGB lengths',()=>{
