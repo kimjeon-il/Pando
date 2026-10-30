@@ -6,7 +6,8 @@ import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {resizeNativeRgba} from './native-resample.mjs';
 
-export const mapPdfSourceFiles=Object.freeze(['tools/cpp/map-pdf/CMakeLists.txt','tools/cpp/map-pdf/pdf-read.c','tools/cpp/map-pdf/MUPDF-COPYING']);
+export const mapPdfSourceFiles=Object.freeze(['tools/cpp/map-pdf/CMakeLists.txt','tools/cpp/map-pdf/pdf-read.c',
+  'tools/cpp/map-pdf/MUPDF-COPYING','tools/cpp/map-pdf/MUPDF-AGPL-3.0']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const runtimes={
   win32:{executable:'pando-map-pdf.exe',library:'mupdfcpp64.dll',sha256:'b1ba5816e64d2b321b2a21f89c3a9aa39a493f97519ffbeec3b1e30708a32184'},
@@ -21,7 +22,7 @@ function checkedArtifact(workspace,directory,platform){
 }
 export function collectMapPdfArtifacts({workspace=root,revision,
   linuxDirectory=process.env.PANDO_MAP_PDF_LINUX_ARTIFACT||resolve(workspace,'build-native/map-pdf/linux-x64'),
-  windowsDirectory=process.env.PANDO_MAP_PDF_WINDOWS_ARTIFACT||resolve(workspace,'build-native/map-pdf/win32-x64')}={}){
+  windowsDirectory=process.env.PANDO_MAP_PDF_WINDOWS_ARTIFACT||resolve(workspace,'build-native/map-pdf',process.platform==='win32'?'artifact':'win32-x64')}={}){
   if(revision!==undefined&&!/^[a-f0-9]{40}$/.test(revision))throw Error('A full pinned source revision is required');
   const entries=[];
   for(const [platform,directory] of [['linux',linuxDirectory],['win32',windowsDirectory]]){
