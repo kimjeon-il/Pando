@@ -17,9 +17,14 @@ test('streamed PNG training pixels preserve color, alpha and EXIF orientation',a
     for(const field of ['tile','overview','position','target','valid'])assert.deepEqual(streamed[field],original[field],name+' '+field);
   }
 });
-test('streamed PNG rejects interlace and changed originals until that decoder is ready',async()=>{
+test('training PNG supports interlace within the existing budget and rejects changed originals',async()=>{
   const path='tests/fixtures/map-image/png-read/adam7.png',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
-  await assert.rejects(readNativeTrainingRaster({path,format:'png',expectedSha256}),/interlac/i);
+  const image=await readNativeImage({path,format:'png',maxPixels:16777216,expectedSha256});
+  const streamed=await readNativeTrainingRaster({path,format:'png',expectedSha256});
+  const targetBits=Buffer.alloc(512*512),knownBits=Buffer.alloc(512*512,3);
+  const original=await prepareNativeTrainingTile({image,targetBits,knownBits,x:0,y:0});
+  const actual=await prepareNativeTrainingTilePieces({image:streamed,targetBits,knownBits,x:0,y:0});
+  for(const field of ['tile','overview','position','target','valid'])assert.deepEqual(actual[field],original[field],field);
   await assert.rejects(readNativeTrainingRaster({path,format:'png',expectedSha256:'0'.repeat(64)}),/hash/i);
 });
 test('streamed PNG handles a source above 16MP with alpha and edge padding',async()=>{

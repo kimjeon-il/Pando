@@ -130,7 +130,7 @@ export async function prepareReviewedTrainingTile({imagePath,sourceSha256,annota
   signal?.throwIfAborted();
   const format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(imagePath||'').toLowerCase()];
   if(!format||typeof sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(sourceSha256))throw Error('Source-bound PNG, JPEG or WebP training image required');
-  if(format==='jpeg'){
+  if(format==='jpeg'||format==='png'){
     const image=await readNativeTrainingRaster({path:imagePath,format,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory});
     if(annotation?.width!==image.width||annotation.height!==image.height)throw Error('Annotations must use oriented original image dimensions');
     const masks=await reviewMasks(annotation,{window:[x,y,512,512],signal,workspace,directory:reviewDirectory});

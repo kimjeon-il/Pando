@@ -84,7 +84,19 @@ static int read_png(const uint8_t* bytes,size_t size,PandoImage* result,
     if(!width||!height||(uint64_t)width*height>(consume?600000000:16777216))png_error(png,consume?"PNG exceeds the source pixel budget":"PNG exceeds the 16MP graph budget");
     if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
     if(consume&&(result->orientation<1||result->orientation>8))png_error(png,"Invalid streaming PNG orientation");
-    if(consume&&interlace!=PNG_INTERLACE_NONE)png_error(png,"Streaming interlaced PNG is not available");
+    if(consume&&interlace!=PNG_INTERLACE_NONE){
+        /* Preserve the existing bounded decoder for interlaced PNGs until
+           an incremental Adam7 decoder is available. */
+        png_destroy_read_struct(&png,&info,NULL);free(decoder);
+        if(!pando_read_png(bytes,size,result))return 0;
+        if(!start(context,result->width,result->height,result->orientation)){
+            free(result->rgba);result->rgba=NULL;strcpy(result->error,"PNG row consumer initialization failed");return 0;
+        }
+        for(y=0;y<result->height;y++)if(!consume(context,(uint32_t)y,result->rgba+y*(size_t)result->width*4,(size_t)result->width*4)){
+            free(result->rgba);result->rgba=NULL;strcpy(result->error,"PNG row consumer failed");return 0;
+        }
+        free(result->rgba);result->rgba=NULL;return 1;
+    }
     has_alpha=(color&PNG_COLOR_MASK_ALPHA)!=0||png_get_valid(png,info,PNG_INFO_tRNS);
     if(color==PNG_COLOR_TYPE_PALETTE)png_set_palette_to_rgb(png);
     if(color==PNG_COLOR_TYPE_GRAY&&depth<8)png_set_expand_gray_1_2_4_to_8(png);
