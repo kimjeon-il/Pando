@@ -39,6 +39,8 @@
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
+- **QGIS 활성 레이어:** Node CLI/MCP에 현재 활성 레이어 조회와 변경을 연결했다. 관련 Node 검사 및 [Windows CI 40992016447](https://github.com/kimjeon-il/Pando/actions/runs/40992016447)이 통과했다. 소스 일치 DLL SHA-256 `3aafe4903e49e3161d88620efcb0073bf898332c919161a637cb28b789820c3b`로 실제 QGIS에서 빈 프로젝트의 null, 합성 벡터 레이어 두 개 간 전환과 없는 레이어 거부를, MCP에서 레이어 선택과 재조회를 확인했다. 기존 Python MCP의 다른 기능이 모두 대체된 것은 아니다.
+
 - **QGIS 필드 이름 변경:** 필드 이름 변경을 브리지 소유 편집 세션과 Undo/Redo·롤백에 연결했다. Node 검사와 [Windows CI 40966635975](https://github.com/kimjeon-il/Pando/actions/runs/40966635975)이 통과했고, 소스 일치 바이너리 SHA-256 `4b591fd2036d9f9784c8291bbbac06a44f685eb80ef577ebbb7645a0aa5e3752`로 실제 QGIS와 MCP에서 합성 GeoPackage 필드 이름·속성 값 유지, 기존 이름 충돌·세션 부재 거부, Undo/Redo·롤백과 입력 GeoJSON 원본 보존을 확인했다. GeoPackage 작업 복사본의 내부 바이트는 편집 세션에서 바뀔 수 있다.
 
 - **QGIS 필드 편집:** 필드 추가·삭제를 브리지 소유 편집 세션과 Undo/Redo·롤백에 연결했다. 관련 Node 검사와 [Windows CI 40965908553](https://github.com/kimjeon-il/Pando/actions/runs/40965908553)이 통과했고, 소스 일치 바이너리 SHA-256 `44ee95a9008c80312836fcb8596173d417f7ec9d82b0a4f83550ac7be0e379a8`로 실제 QGIS 및 MCP에서 중복 필드·세션 부재 거부, 추가·속성 설정·삭제·Undo/Redo·롤백을 확인했다. 합성 GeoPackage의 스키마와 피처·형상은 롤백 후 같았고 입력 GeoJSON 원본 해시는 유지됐다. 다만 QGIS는 GeoPackage 편집 시작과 롤백 중 파일 바이트를 바꾸므로 바이트 보존이 필요한 원본은 작업 복사본을 사용해야 한다.
