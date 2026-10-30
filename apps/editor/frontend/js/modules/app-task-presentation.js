@@ -161,7 +161,11 @@ export function createTaskPresentation() {
         rows.push(['남길 객체', labels.get(merge.keeperId)]);
         rows.push(['합쳐질 객체', merge.absorbedIds.map(id => labels.get(id)).join(', ')]);
       } else if (refs.length) {
-        rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
+        const borderScope = state.tool === 'territorial-border'
+          && preview.operation === 'territorial-country-boundary' ? '국경 조정 국가'
+          : state.tool === 'territorial-border'
+            && preview.operation === 'territorial-boundary' ? '경계 조정 객체' : '대상';
+        rows.push([borderScope, refs.map(ref => displayObject(ref).name).join(', ')]);
       }
     }
     const metrics = preview.metrics || {};
@@ -522,7 +526,15 @@ export function createTaskPresentation() {
       const redundantAnnexMethodPrompt = selection?.kind === 'annex' && selection.stage === 'selection'
         && !selection.activeMethod && !selection.requestedMethod && status === 'needs-target'
         && message === '다음 단계로 진행할 영역을 선택하세요.';
-      reasonNode.classList.toggle('hidden', !message || redundantAnnexPrompt || redundantAnnexMethodPrompt);
+      // On mobile, the visible vertex-gesture hint already tells users how to
+      // enable preview. Keep the disabled reason in DOM for aria-describedby.
+      const redundantMobileBorderHint = state.tool === 'territorial-border'
+        && state.boundaryEditPhase === 'editing' && !state.geometryPreview?.session
+        && dependencies.surfaces.isMobile() && status === 'needs-target'
+        && !dependencies.platform.$('modeTaskInput')?.classList.contains('hidden')
+        && message === '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.';
+      reasonNode.classList.toggle('hidden',
+        !message || redundantAnnexPrompt || redundantAnnexMethodPrompt || redundantMobileBorderHint);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -559,12 +571,12 @@ export function createTaskPresentation() {
     const mergeChoosingTargets = !preview
       && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
         || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
-    // A border target-picker also identifies its countries in the existing
-    // role cards. Hide only uncalculated metadata, then restore it in edit/review.
-    const borderChoosingTargets = !preview && state.tool === 'territorial-border'
-      && state.boundaryEditPhase === 'selecting';
+    // The border role cards already identify the edited objects. Neither target
+    // selection nor vertex editing has a calculated change period yet.
+    const borderBeforeReview = !preview && state.tool === 'territorial-border'
+      && ['selecting', 'editing'].includes(state.boundaryEditPhase);
     dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
-      annexBeforeReview || mergeChoosingTargets || borderChoosingTargets);
+      annexBeforeReview || mergeChoosingTargets || borderBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
     taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),

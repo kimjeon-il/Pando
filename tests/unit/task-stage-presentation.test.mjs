@@ -834,3 +834,83 @@ test('country border target picker hides only uncalculated metadata and restores
   f.presentation.syncEditingContext();
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
 });
+
+test('border vertex editing hides uncalculated metadata and review restores real impact', async t => {
+  const feature = (id, name) => ({
+    type: 'Feature', id, properties: { name, entityKind: 'general' },
+    geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[0,0]]] },
+  });
+  const countries = { COUNTRY: feature('COUNTRY', 'Country'), NEIGHBOR: feature('NEIGHBOR', 'Neighbor') };
+  const f = await fixture(t, {
+    tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
+    boundaryEditEntityIds: ['COUNTRY', 'NEIGHBOR'], boundaryEditPhase: 'editing',
+    boundaryPreparation: { status: 'ready' }, geometryPreview: { session: null },
+  }, {
+    countrySourceFeature: id => countries[id] || null,
+    objectDisplayInfo: ref => ({ name: countries[ref.id]?.properties.name || ref.id, type: ref.type }),
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '변경 미리보기');
+
+  const preview = {
+    operation: 'territorial-country-boundary',
+    affectedIds: ['COUNTRY', 'NEIGHBOR'],
+    validation: { blocking: false, issues: [] },
+    metrics: { finalAreaKm2: 42 },
+    temporalImpact: [{ entityId: 'COUNTRY', from: '1950-01', until: '1951-01' }],
+  };
+  f.state.geometryPreview.session = preview;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  const rows = f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+  assert.deepEqual(rows[0], ['국경 조정 국가', 'Country, Neighbor']);
+  assert.ok(rows.some(([name, value]) => name === '결과 면적' && value === '42 km²'));
+  assert.match(f.elements.modeTaskPeriod.textContent, /1950-01/);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '경계 변경 적용');
+  assert.equal(f.elements.modePrimaryBtn.disabled, false);
+
+  preview.validation = { blocking: true, issues: [{ severity: 'error', message: '경계가 겹칩니다.' }] };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '경계가 겹칩니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+});
+
+test('mobile border edit shows one routine hint while retaining processing and accessibility', async t => {
+  const prepare = (isMobile, status = 'ready') => fixture(t, {
+    tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
+    boundaryEditEntityIds: ['COUNTRY'], boundaryEditPhase: 'editing',
+    boundaryPreparation: { status }, geometryPreview: { session: null },
+  }, {
+    isMobile: () => isMobile,
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  const mobile = await prepare(true);
+  mobile.presentation.updateModeButtons();
+  assert.equal(mobile.elements.modeTaskInput.classList.contains('hidden'), false);
+  assert.equal(mobile.elements.modeTaskDisabledReason.textContent,
+    '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.');
+  assert.equal(mobile.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.match(mobile.elements.modePrimaryBtn.attributes.get('aria-describedby') || '',
+    /modeTaskDisabledReason/);
+  mobile.state.boundaryPreparation.status = 'pending';
+  mobile.presentation.updateModeButtons();
+  assert.equal(mobile.elements.modeTaskStatus.dataset.taskState, 'preparing');
+  assert.equal(mobile.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+
+  const desktop = await prepare(false);
+  desktop.presentation.updateModeButtons();
+  assert.equal(desktop.elements.modeTaskInput.classList.contains('hidden'), true);
+  assert.equal(desktop.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+});
