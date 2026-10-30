@@ -54,7 +54,7 @@ fail:
 
 int pando_stream_webp_rows(const uint8_t* bytes,size_t size,PandoImage* result,
     PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
-    WebPData data;WebPDemuxer* demux;uint8_t* pixels=NULL;uint32_t y,row,count,width,height;
+    WebPData data;WebPDemuxer* demux;uint8_t* pixels=NULL;uint32_t y,row,count,width,height,top,bottom;
     if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"WebP row callbacks required");return 0;}
     if(!pando_inspect_webp(bytes,size,result))return 0;
     width=result->width;height=result->height;data.bytes=bytes;data.size=size;
@@ -72,19 +72,21 @@ int pando_stream_webp_rows(const uint8_t* bytes,size_t size,PandoImage* result,
     }
     WebPDemuxDelete(demux);
     if(!start(context,width,height,result->orientation)){strcpy(result->error,"WebP row consumer initialization failed");return 0;}
-    pixels=(uint8_t*)malloc((size_t)width*(height<512?height:512)*4);
+    /* Lossy WebP filtering needs neighboring macroblocks at crop boundaries. */
+    pixels=(uint8_t*)malloc((size_t)width*(height<576?height:576)*4);
     if(!pixels){strcpy(result->error,"WebP row allocation failed");return 0;}
     for(y=0;y<height;y+=count){
         WebPDecoderConfig config;VP8StatusCode status;count=height-y<512?height-y:512;
+        top=y>32?y-32:0;bottom=height-y-count<32?height:y+count+32;
         if(!WebPInitDecoderConfig(&config)){strcpy(result->error,"WebP decoder ABI mismatch");free(pixels);return 0;}
-        config.options.use_cropping=1;config.options.crop_left=0;config.options.crop_top=(int)y;
-        config.options.crop_width=(int)width;config.options.crop_height=(int)count;
+        config.options.use_cropping=1;config.options.crop_left=0;config.options.crop_top=(int)top;
+        config.options.crop_width=(int)width;config.options.crop_height=(int)(bottom-top);
         config.output.colorspace=MODE_RGBA;config.output.is_external_memory=1;
         config.output.u.RGBA.rgba=pixels;config.output.u.RGBA.stride=(int)width*4;
-        config.output.u.RGBA.size=(size_t)width*count*4;
+        config.output.u.RGBA.size=(size_t)width*(bottom-top)*4;
         status=WebPDecode(bytes,size,&config);WebPFreeDecBuffer(&config.output);
         if(status!=VP8_STATUS_OK){strcpy(result->error,"Invalid WebP pixels");free(pixels);return 0;}
-        for(row=0;row<count;row++)if(!consume(context,y+row,pixels+(size_t)row*width*4,(size_t)width*4)){
+        for(row=0;row<count;row++)if(!consume(context,y+row,pixels+(size_t)(y-top+row)*width*4,(size_t)width*4)){
             strcpy(result->error,"WebP row consumer failed");free(pixels);return 0;
         }
     }
