@@ -9,7 +9,9 @@ import {verifyNativeTool} from '../native-tool.mjs';
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
   'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp',
   'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h','tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c',
-  'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE','tools/cpp/map-image/libpng-LICENSE',
+  'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/training-scan.h',
+  'tools/cpp/reference-analysis/condition-sampling.h','tools/cpp/reference-analysis/training-photometry.h','tools/cpp/reference-analysis/CPYTHON-LICENSE','tools/cpp/map-preview/PILLOW-LICENSE',
+  'tools/cpp/map-image/zlib-LICENSE','tools/cpp/map-image/libpng-LICENSE',
   'tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg','tools/cpp/map-image/libwebp-COPYING','tools/cpp/map-image/libwebp-PATENTS']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export function collectMapImageArtifacts({workspace=root,revision,
@@ -76,6 +78,10 @@ export function resizeNativeRgba(image,size,options){
 }
 export function resizeNativeOpaqueBilinear(image,size,options){
   return operateNativeRgba(image,size,['resize-bilinear',...(Array.isArray(size)?size:[])],options);
+}
+export function applyNativeTrainingScan(image,{epoch,index,...options}={}){
+  if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(index)||index<0)return Promise.reject(Error('Nonnegative training epoch and tile index required'));
+  return operateNativeRgba(image,[image?.width,image?.height],['training-scan',epoch,index],options);
 }
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);

@@ -2,6 +2,7 @@
 #include "png.h"
 #include "image-input.h"
 #include "image-read.h"
+#include "training-scan.h"
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -57,6 +58,21 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="training-scan"){
+            if(argc!=6)throw std::invalid_argument("Expected training scan WIDTH HEIGHT EPOCH INDEX");
+            const int width=dimension(argv[2]),height=dimension(argv[3]);
+            if(static_cast<std::int64_t>(width)*height>16777216)throw std::invalid_argument("Image exceeds 16MP budget");
+            const auto number64=[](const char* raw){const std::string text(raw);std::size_t used=0;
+                if(text.empty()||text.find_first_not_of("0123456789")!=std::string::npos)throw std::invalid_argument("Invalid training index");
+                const auto value=std::stoull(text,&used);if(used!=text.size())throw std::invalid_argument("Invalid training index");return value;};
+            const auto epoch=number64(argv[4]),index=number64(argv[5]);
+            std::vector<std::uint8_t> input(std::size_t(width)*height*4);
+            if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()))||std::cin.peek()!=std::char_traits<char>::eof())
+                throw std::invalid_argument("RGBA input byte length differs from dimensions");
+            const auto output=pando::map_image::trainingScan(input,width,height,epoch,index);
+            std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write training scan");return 0;
+        }
         if(action=="header-png"||action=="header-jpeg"||action=="header-webp"){
             if(argc!=2)throw std::invalid_argument("Image header takes no extra arguments");
             const auto encoded=encodedInput();PandoImage image{};
