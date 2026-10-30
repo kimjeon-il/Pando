@@ -81,6 +81,26 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="macro-finish"){
+            if(argc!=7)throw std::invalid_argument("Expected macro finish WIDTH HEIGHT ROTATION GLYPHS EXCLUSIONS");
+            const int width=dimension(argv[2]),height=dimension(argv[3]),rotation=bounded(argv[4],270);
+            const int glyphCount=bounded(argv[5],1000000),exclusionCount=bounded(argv[6],1000000);
+            const auto pixels=std::size_t(width)*height,rectangleCount=std::size_t(glyphCount)+exclusionCount;
+            if(pixels>16777216)throw std::invalid_argument("Macro finish exceeds pixel budget");
+            const auto input=encodedInput();const auto rectangleBytes=rectangleCount*16;
+            if(input.size()!=rectangleBytes+pixels*5)throw std::invalid_argument("Macro finish input length differs");
+            std::vector<std::array<std::int32_t,4>> rectangles(rectangleCount);
+            for(std::size_t i=0;i<rectangleCount*4;++i){std::uint32_t bits=0;for(int b=0;b<4;++b)bits|=std::uint32_t(input[i*4+b])<<(b*8);
+                std::int32_t value;std::memcpy(&value,&bits,sizeof(value));rectangles[i/4][i%4]=value;}
+            const auto first=input.begin()+static_cast<std::ptrdiff_t>(rectangleBytes);
+            const std::vector<std::uint8_t> image(first,first+static_cast<std::ptrdiff_t>(pixels*3));
+            std::vector<std::uint8_t> target(first+static_cast<std::ptrdiff_t>(pixels*3),first+static_cast<std::ptrdiff_t>(pixels*4));
+            std::vector<std::uint8_t> known(first+static_cast<std::ptrdiff_t>(pixels*4),input.end());
+            const std::vector<std::array<std::int32_t,4>> glyphs(rectangles.begin(),rectangles.begin()+glyphCount),exclusions(rectangles.begin()+glyphCount,rectangles.end());
+            const auto output=pando::map_image::macroFinish(image,std::move(target),std::move(known),width,height,rotation,glyphs,exclusions);
+            for(const auto* plane:{&output.image,&output.target,&output.known})std::cout.write(reinterpret_cast<const char*>(plane->data()),static_cast<std::streamsize>(plane->size()));
+            if(!std::cout)throw std::runtime_error("Unable to write finished macro image");return 0;
+        }
         if(action=="macro-palette"||action=="macro-visible"){
             if(argc!=5)throw std::invalid_argument("Expected macro color WIDTH HEIGHT COLOR_COUNT");
             const int width=dimension(argv[2]),height=dimension(argv[3]);const bool visible=action=="macro-visible";

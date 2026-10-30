@@ -9,6 +9,33 @@
 #include <vector>
 
 namespace pando::map_image {
+struct MacroFinished {int width,height;std::vector<std::uint8_t> image,target,known;};
+inline MacroFinished macroFinish(const std::vector<std::uint8_t>& image,std::vector<std::uint8_t> target,
+        std::vector<std::uint8_t> known,int width,int height,int rotation,
+        const std::vector<std::array<std::int32_t,4>>& glyphs,const std::vector<std::array<std::int32_t,4>>& exclusions){
+    const auto pixels=std::size_t(width)*height;
+    if(width<1||height<1||image.size()!=pixels*3||target.size()!=pixels||known.size()!=pixels||
+       (rotation!=0&&rotation!=90&&rotation!=180&&rotation!=270))throw std::invalid_argument("Invalid macro finish dimensions or rotation");
+    for(const auto& r:glyphs){
+        if(r[0]>r[2]||r[1]>r[3])throw std::invalid_argument("Invalid macro glyph rectangle");
+        const int x0=std::max(0,r[0]),y0=std::max(0,r[1]),x1=std::min(width-1,r[2]),y1=std::min(height-1,r[3]);
+        for(int y=y0;y<=y1;++y)for(int x=x0;x<=x1;++x)target[std::size_t(y)*width+x]=known[std::size_t(y)*width+x]=0;
+    }
+    const bool swap=rotation==90||rotation==270;const int outWidth=swap?height:width,outHeight=swap?width:height;
+    MacroFinished out{outWidth,outHeight,std::vector<std::uint8_t>(pixels*3),std::vector<std::uint8_t>(pixels),std::vector<std::uint8_t>(pixels)};
+    for(int y=0;y<height;++y)for(int x=0;x<width;++x){
+        const int ox=rotation==90?height-1-y:rotation==180?width-1-x:rotation==270?y:x;
+        const int oy=rotation==90?x:rotation==180?height-1-y:rotation==270?width-1-x:y;
+        const auto from=std::size_t(y)*width+x,to=std::size_t(oy)*outWidth+ox;
+        std::copy_n(image.data()+from*3,3,out.image.data()+to*3);out.target[to]=target[from];out.known[to]=known[from];
+    }
+    for(const auto& r:exclusions){
+        if(r[0]<0||r[1]<0||r[0]>=r[2]||r[1]>=r[3]||r[2]>outWidth||r[3]>outHeight)
+            throw std::invalid_argument("Invalid macro exclusion rectangle");
+        for(int y=r[1];y<r[3];++y)for(int x=r[0];x<r[2];++x)out.target[std::size_t(y)*outWidth+x]=out.known[std::size_t(y)*outWidth+x]=0;
+    }
+    return out;
+}
 inline std::vector<std::uint8_t> macroClassify(const std::vector<std::uint8_t>& rgb,int width,int height,
         const std::vector<std::array<double,3>>& colors,bool visible){
     if(width<1||height<1||rgb.size()!=std::size_t(width)*height*3||colors.empty()||

@@ -15,7 +15,7 @@ import struct
 
 import numpy as np
 import pymupdf
-from PIL import Image, ImageDraw
+from PIL import Image
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from report_paths import report_argument
@@ -74,6 +74,28 @@ def native_macro_colors(action, image, colors):
     if len(result.stdout) != width * height:
         raise ValueError('Invalid native macro color length')
     return np.frombuffer(result.stdout, dtype=np.uint8).copy().reshape(height, width)
+
+
+def finish_macro_image(image, masks, valid, rotation, glyphs, exclusions):
+    height, width = masks.shape
+    if image.shape != (height, width, 3) or valid.shape != (height, width):
+        raise ValueError('Matching macro image and supervision dimensions required')
+    rectangles = [value for rect in [*glyphs, *exclusions] for value in rect]
+    payload = struct.pack('<' + 'i' * len(rectangles), *rectangles) + image.tobytes() + masks.tobytes() + valid.tobytes()
+    script = pathlib.Path(__file__).with_name('macro-masks.mjs')
+    result = subprocess.run(['node', str(script), 'finish', str(width), str(height), str(rotation), str(len(glyphs)), str(len(exclusions))],
+                            input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native macro finishing failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    pixels = width * height
+    if len(result.stdout) != pixels * 5:
+        raise ValueError('Invalid native macro finishing length')
+    out_width, out_height = (height, width) if rotation in (90, 270) else (width, height)
+    rgb = np.frombuffer(result.stdout, dtype=np.uint8, count=pixels * 3).copy().reshape(out_height, out_width, 3)
+    target = np.frombuffer(result.stdout, dtype=np.uint8, count=pixels, offset=pixels * 3).copy().reshape(out_height, out_width)
+    known = np.frombuffer(result.stdout, dtype=np.uint8, count=pixels, offset=pixels * 4).copy().reshape(out_height, out_width)
+    return rgb, target, known
 
 
 def stroke_matches(drawing, signature):
@@ -166,8 +188,7 @@ def derive(source, metadata, maximum_dimension):
         else:
             raise ValueError('Explicit macro supervision strategy required')
         # Publisher glyph boxes are exclusion areas, not invented text truth.
-        text = Image.new('L', (pix.width, pix.height))
-        draw = ImageDraw.Draw(text)
+        glyphs = []
         for span in page.get_texttrace():
             if span.get('type') == 3 or span.get('opacity', 1) <= 0:
                 continue
@@ -178,23 +199,20 @@ def derive(source, metadata, maximum_dimension):
                 if all(math.isfinite(coordinate) for coordinate in box):
                     x0, y0, x1, y1 = box
                     if x1 > x0 and y1 > y0:
-                        draw.rectangle((math.floor(x0)-1, math.floor(y0)-1, math.ceil(x1)+1, math.ceil(y1)+1), fill=1)
-        obscured = np.asarray(text).astype(bool)
-        masks[obscured] = 0
-        valid[obscured] = 0
-        if rotation:
-            image, masks, valid = (np.rot90(value, -rotation // 90).copy()
-                                   for value in (image, masks, valid))
-        height, width = masks.shape
+                        rect = (max(0, math.floor(x0)-1), max(0, math.floor(y0)-1),
+                                min(pix.width-1, math.ceil(x1)+1), min(pix.height-1, math.ceil(y1)+1))
+                        if rect[0] <= rect[2] and rect[1] <= rect[3]:
+                            glyphs.append(rect)
+        width, height = (pix.height, pix.width) if rotation in (90, 270) else (pix.width, pix.height)
+        exclusions = []
         for region in metadata.get('excludedRegionsNormalized', []):
             if (len(region) != 4 or not all(isinstance(value, (int, float)) and math.isfinite(value) for value in region)
                     or not 0 <= region[0] < region[2] <= 1 or not 0 <= region[1] < region[3] <= 1):
                 raise ValueError('Bounded explicit macro exclusion rectangle required')
             x0, y0, x1, y1 = region
-            ys = slice(math.floor(y0 * height), math.ceil(y1 * height))
-            xs = slice(math.floor(x0 * width), math.ceil(x1 * width))
-            masks[ys, xs] = 0
-            valid[ys, xs] = 0
+            exclusions.append((math.floor(x0 * width), math.floor(y0 * height),
+                               math.ceil(x1 * width), math.ceil(y1 * height)))
+        image, masks, valid = finish_macro_image(image, masks, valid, rotation, glyphs, exclusions)
         # Opaque raster-only maps cannot silently generate empty supervision.
         if np.count_nonzero(masks) < 20 or np.count_nonzero(valid) < 100:
             raise ValueError('Insufficient actual macro boundary supervision')
