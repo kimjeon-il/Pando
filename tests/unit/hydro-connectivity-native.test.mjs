@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import {auditHydroParts,validateHydroAudit} from '../../tools/gis/hydro-connectivity-native.mjs';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
 function fixture() {
@@ -101,4 +102,23 @@ nativeTest('audit classifies source-proven gaps without changing their geometry'
   const mismatch=fixture();mismatch.raw[1].end=[.9,0];
   const changed=run({...mismatch,mode:'audit',sourceOrder:[1,2,3]});
   assert.equal(changed.issues[0].cause,'original-mismatch');assert.equal(changed.issues[0].repairable,false);
+  for(const sourceOrder of [[1,2],[1,2,2],[1,2,3,4]]){
+    const rejected=spawnSync(native,[],{input:JSON.stringify({...input,mode:'audit',sourceOrder}),encoding:'utf8'});
+    assert.equal(rejected.status,1);assert.match(rejected.stderr,/source order/i);assert.equal(rejected.stdout,'');
+  }
+});
+test('audit result validation rejects inconsistent source identities and counts',()=>{
+  const input=fixture(),result={regions:Object.fromEntries(['eu','as','si','af','sa','na','ar','au','gr'].map(id=>[id,{}])),issues:[]};
+  validateHydroAudit(result,{...input,sourceOrder:[1,2,3]});
+  const invalid=structuredClone(result);invalid.issues.push({region:'eu',source:99,downstream:2,cause:'missing-downstream',repairable:false});
+  assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
+  invalid.issues=[];invalid.regions.eu.issues=2;
+  assert.throws(()=>validateHydroAudit(invalid,{...input,sourceOrder:[1,2,3]}),/audit/i);
+});
+test('source-bound Node audit runs the verified native engine',{
+  skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
+},async()=>{
+  const input={...fixture(),sourceOrder:[1,2,3]};
+  const result=await auditHydroParts(input,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+  assert.deepEqual(result.issues.map(row=>row.source),[1,3]);assert.equal(result.regions.eu.repairable,2);
 });
