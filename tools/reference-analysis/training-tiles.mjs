@@ -2,6 +2,17 @@
 import {extname} from 'node:path';
 import {prepareNativeTrainingTile,readNativeImage} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
+import {referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
+
+export async function listReviewedTrainingTiles(annotation,{supervisedOnly=true,signal,workspace,reviewDirectory}={}){
+  signal?.throwIfAborted();if(typeof supervisedOnly!=='boolean')throw Error('Explicit training supervision mode required');
+  const tiles=referenceImageTilePlan(annotation?.width,annotation?.height);if(!supervisedOnly)return tiles;
+  const selected=[];for(const tile of tiles){signal?.throwIfAborted();
+    const masks=await reviewMasks(annotation,{window:[tile.x,tile.y,512,512],signal,workspace,directory:reviewDirectory});
+    if(masks.knownBits.some(value=>value!==0))selected.push(tile);
+  }
+  return selected;
+}
 
 export async function prepareReviewedTrainingTile({imagePath,annotation,x,y,augment=false,epoch=0,index=0},
   {signal,workspace,imageDirectory,reviewDirectory}={}){
