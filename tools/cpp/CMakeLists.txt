@@ -29,20 +29,29 @@ if(PANDO_BUILD_MAP_IMAGE)
     endforeach()
     target_include_directories(pando-map-png PUBLIC "${pando_libpng_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/map-image-include")
     target_link_libraries(pando-map-png PUBLIC zlibstatic)
-    set(ENABLE_SHARED OFF)
-    set(ENABLE_STATIC ON)
-    set(WITH_SIMD OFF)
-    set(WITH_TURBOJPEG OFF)
-    set(WITH_TOOLS OFF)
-    set(WITH_TESTS OFF)
-    FetchContent_Declare(pando_jpeg
+    # libjpeg-turbo requires its own top-level CMake project.
+    include(ExternalProject)
+    set(PANDO_JPEG_INSTALL "${CMAKE_CURRENT_BINARY_DIR}/jpeg-sdk/install")
+    if(MSVC)
+        set(PANDO_JPEG_LIBRARY "${PANDO_JPEG_INSTALL}/lib/jpeg-static.lib")
+    else()
+        set(PANDO_JPEG_LIBRARY "${PANDO_JPEG_INSTALL}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}jpeg${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    endif()
+    ExternalProject_Add(pando_jpeg_external
         URL https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.4.1/libjpeg-turbo-3.1.4.1.tar.gz
-        URL_HASH SHA256=ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022)
-    FetchContent_MakeAvailable(pando_jpeg)
+        URL_HASH SHA256=ecae8008e2cc9ade2f2c1bb9d5e6d4fb73e7c433866a056bd82980741571a022
+        INSTALL_DIR "${PANDO_JPEG_INSTALL}"
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> -DCMAKE_INSTALL_LIBDIR=lib
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_SHARED=OFF -DENABLE_STATIC=ON
+            -DWITH_SIMD=OFF -DWITH_TURBOJPEG=OFF -DWITH_TOOLS=OFF -DWITH_TESTS=OFF
+        BUILD_BYPRODUCTS "${PANDO_JPEG_LIBRARY}")
+    add_library(pando-jpeg STATIC IMPORTED)
+    set_target_properties(pando-jpeg PROPERTIES IMPORTED_LOCATION "${PANDO_JPEG_LIBRARY}")
+    add_dependencies(pando-jpeg pando_jpeg_external)
     add_executable(pando-map-image-resample-tests map-image/resample.cpp map-image/resample-tests.cpp)
     add_executable(pando-map-image map-image/resample.cpp map-image/png.cpp map-image/png-read.c map-image/jpeg-read.c map-image/image-input.cpp map-image/main.cpp)
-    target_include_directories(pando-map-image PRIVATE "${pando_jpeg_SOURCE_DIR}/src" "${pando_jpeg_BINARY_DIR}")
-    target_link_libraries(pando-map-image PRIVATE pando-map-png jpeg-static)
+    target_include_directories(pando-map-image PRIVATE "${PANDO_JPEG_INSTALL}/include")
+    target_link_libraries(pando-map-image PRIVATE pando-map-png pando-jpeg)
 endif()
 option(PANDO_BUILD_REFERENCE_MODEL "Build the optional native reference-map model" OFF)
 if(PANDO_BUILD_REFERENCE_MODEL)
