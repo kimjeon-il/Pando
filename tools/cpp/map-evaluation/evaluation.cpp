@@ -67,8 +67,12 @@ int main(){try{
     }
     std::cout<<'}';if(!std::cout)throw std::runtime_error("Cannot write diagnostic statistics");return 0;
   }
+  const bool scoped=r.data.size()>=8&&std::string(r.data.begin(),r.data.begin()+8)=="PEVAL002";
+  if(scoped)r.at=8;
   const auto w=r.u32(),h=r.u32(),lines=r.u32();const std::size_t n=std::size_t(w)*h;
   if(!w||!h||w>16384||h>16384||n>16777216||lines>1000000)throw std::runtime_error("Invalid evaluation dimensions");
+  const auto coreX=scoped?r.u32():0,coreY=scoped?r.u32():0,coreW=scoped?r.u32():w,coreH=scoped?r.u32():h;
+  if(!coreW||!coreH||coreX>=w||coreY>=h||coreW>w-coreX||coreH>h-coreY)throw std::runtime_error("Invalid evaluation core");
   auto target=r.plane(n),known=r.plane(n),prediction=r.plane(n);
   std::array<std::vector<Byte>,3> truth,tolerance,recalled,allowed,predicted;
   for(int c=0;c<3;++c){truth[c].resize(n);tolerance[c].resize(n);recalled[c].resize(n);allowed[c].resize(n);predicted[c].resize(n);for(std::size_t i=0;i<n;++i)predicted[c][i]=((known[i]&prediction[i])>>c)&1;}
@@ -84,11 +88,12 @@ int main(){try{
   }
   if(r.at!=r.data.size())throw std::runtime_error("Trailing evaluation input");
   std::cout<<"{\"counts\":[";
-  for(int c=0;c<3;++c){std::array<std::uint64_t,4> count{};for(std::size_t i=0;i<n;++i){count[0]+=predicted[c][i]&&tolerance[c][i];count[1]+=predicted[c][i];count[2]+=recalled[c][i];count[3]+=truth[c][i];}
+  for(int c=0;c<3;++c){std::array<std::uint64_t,4> count{};for(std::uint32_t y=coreY;y<coreY+coreH;++y)for(std::uint32_t x=coreX;x<coreX+coreW;++x){const auto i=std::size_t(y)*w+x;count[0]+=predicted[c][i]&&tolerance[c][i];count[1]+=predicted[c][i];count[2]+=recalled[c][i];count[3]+=truth[c][i];}
     if(c)std::cout<<',';std::cout<<'['<<count[0]<<','<<count[1]<<','<<count[2]<<','<<count[3]<<']';}
   std::cout<<"],\"confounderCounts\":[";
   for(int k=3;k<7;++k){if(k>3)std::cout<<',';std::cout<<'[';for(int c=0;c<3;++c){std::uint64_t falsePositive=0,pixels=0;
-      for(std::size_t i=0;i<n;++i)if((target[i]&(1<<k))&&(known[i]&(1<<k))&&(known[i]&(1<<c))&&!allowed[c][i]){++pixels;falsePositive+=(prediction[i]>>c)&1;}
+      for(std::uint32_t y=coreY;y<coreY+coreH;++y)for(std::uint32_t x=coreX;x<coreX+coreW;++x){const auto i=std::size_t(y)*w+x;
+        if((target[i]&(1<<k))&&(known[i]&(1<<k))&&(known[i]&(1<<c))&&!allowed[c][i]){++pixels;falsePositive+=(prediction[i]>>c)&1;}}
       if(c)std::cout<<',';std::cout<<'['<<falsePositive<<','<<pixels<<']';}std::cout<<']';}std::cout<<"]}";
   if(!std::cout)throw std::runtime_error("Cannot write evaluation");return 0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
