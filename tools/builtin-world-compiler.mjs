@@ -265,7 +265,12 @@ export function coalesceCoverageAdjustments(adjustments) {
   return [...groups].sort(([a],[b])=>a.localeCompare(b,'en')).flatMap(([,values])=>{
     values.sort((a,b)=>a.validFrom===null?-1:b.validFrom===null?1:compare(parseTemporal(a.validFrom).startKey,parseTemporal(b.validFrom).startKey));
     const rows=[];
-    for(const row of values)append(rows,row,()=>true);
+    for(const row of values){
+      const previous=rows.at(-1);
+      if(previous && previous.validTo !== null && row.validFrom !== null
+        && date(shiftDay(parseTemporal(previous.validTo).endKey,1)) === row.validFrom) previous.validTo=row.validTo;
+      else rows.push(row);
+    }
     return rows;
   });
 }

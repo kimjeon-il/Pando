@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
-import {compileBuiltinWorldCatalog} from '../../tools/builtin-world-compiler.mjs';
+import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments} from '../../tools/builtin-world-compiler.mjs';
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.mjs';
 import {gzipSync,gunzipSync} from 'node:zlib';
@@ -78,4 +78,18 @@ test('name-only publication decodes only the selected country and rejects hidden
  assert.deepEqual(next.geometries,country.geometries);assert.deepEqual(next.timelineRecords.geometryBindings,country.timelineRecords.geometryBindings);
  assert.equal(files.get('opaque.gz'),opaque);
  assert.throws(()=>buildBuiltinWorldNamePublication({...args,readSource:()=>({...updated,lifetime:{validFrom:'1900',validTo:null}})}),/non-name changes/);
+});
+
+test('coverage adjustments coalesce adjacent intervals without timeline object references',()=>{
+ const rows=[
+  {entityId:'state:test',reason:'clip',validFrom:'1922-01-01',validTo:'1922-01-31'},
+  {entityId:'state:test',reason:'clip',validFrom:'1922-02-01',validTo:'1922-02-28'},
+  {entityId:'state:test',reason:'clip',validFrom:'1922-03-02',validTo:'1922-03-31'},
+  {entityId:'state:other',reason:'clip',validFrom:'1922-03-01',validTo:'1922-03-31'},
+ ];
+ const result=coalesceCoverageAdjustments(rows);
+ assert.equal(result.length,3);
+ assert.ok(result.some(row=>row.entityId==='state:test' && row.validFrom==='1922-01-01' && row.validTo==='1922-02-28'));
+ assert.ok(result.some(row=>row.entityId==='state:test' && row.validFrom==='1922-03-02'));
+ assert.ok(result.some(row=>row.entityId==='state:other'));
 });
