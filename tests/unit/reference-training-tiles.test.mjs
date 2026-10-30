@@ -43,6 +43,11 @@ test('source-bound raster supervision matches original training tensors',async()
   const invalid=structuredClone(annotation);invalid.raster.sha256='0'.repeat(64);
   await assert.rejects(prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256,annotation:invalid,x:0,y:0}),/hash/i);
   await assert.rejects(prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256:'0'.repeat(64),annotation,x:0,y:0}),/hash/i);
+  const edge=await prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256,annotation,x:23,y:15});
+  assert.ok(Math.abs(edge.position.readFloatLE(8)-1/24)<1e-7);
+  assert.ok(Math.abs(edge.position.readFloatLE(12)-1/16)<1e-7);
+  assert.equal(edge.valid.readFloatLE(4),0);
+  await assert.rejects(prepareRasterTrainingTile({root,imagePath:'map.png',sourceSha256,annotation,x:24,y:0}),/outside/i);
 });
 test('training masks use raw grayscale pixels without EXIF rotation and reject RGB',async()=>{
   const root='tests/fixtures/reference-training-raster',hash=bytes=>createHash('sha256').update(bytes).digest('hex');

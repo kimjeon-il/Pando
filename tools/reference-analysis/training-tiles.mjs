@@ -2,7 +2,7 @@
 import {dirname,extname,resolve} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {countNativeTrainingSupervision,prepareNativeTrainingTile,prepareNativeTrainingTilePieces,readNativeImage,readNativeTrainingRaster,readNativeTrainingMask} from '../map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMask} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -140,10 +140,10 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
   signal?.throwIfAborted();const path=await resolveCorpusPath(root,imagePath),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
   if(!format||typeof sourceSha256!=='string'||!/^[a-f0-9]{64}$/.test(sourceSha256))throw Error('Source-bound PNG, JPEG or WebP training image required');
   const options={signal,workspace,imageDirectory},[image,target,known]=await Promise.all([
-    readNativeImage({path,format,maxPixels:16777216,expectedSha256:sourceSha256},{signal,workspace,directory:imageDirectory}),
+    readNativeTrainingRaster({path,format,expectedSha256:sourceSha256,x,y},{signal,workspace,directory:imageDirectory}),
     trainingRaster(root,annotation,'raster',options),trainingRaster(root,annotation,'validRaster',options)]);
-  if(annotation.width!==image.originalWidth||annotation.height!==image.originalHeight||image.width!==image.originalWidth||image.height!==image.originalHeight)
+  if(annotation.width!==image.width||annotation.height!==image.height)
     throw Error('Annotations must use oriented original image dimensions');
   if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height)throw Error('Training tile must start inside original image');
-  return prepareNativeTrainingTile({image,targetBits:maskWindow(target,x,y),knownBits:maskWindow(known,x,y),x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
+  return prepareNativeTrainingTilePieces({image,targetBits:maskWindow(target,x,y),knownBits:maskWindow(known,x,y),x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
 }
