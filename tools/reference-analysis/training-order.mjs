@@ -117,10 +117,13 @@ export async function verifyMacroTrainingOrder({corpus,order,supervision,epoch,s
   return {...checked,length:receipt.length,orderSha256:receipt.orderSha256};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},supervision:{type:'string'},epoch:{type:'string'},seed:{type:'string'},
-    output:{type:'string'},'torch-library':{type:'string'}}});
+  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},epoch:{type:'string'},seed:{type:'string'},
+    output:{type:'string'},'torch-library':{type:'string'},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
     if(positionals.length||!/^\d+$/.test(values.epoch||'')||!/^\d+$/.test(values.seed||''))throw Error('Explicit macro corpus, epoch, seed and output required');
-    console.log(JSON.stringify(await writeMacroTrainingOrder({corpus:values.corpus,supervision:values.supervision,epoch:Number(values.epoch),seed:Number(values.seed),
-      output:values.output,torchLibrary:values['torch-library']})));
+    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.supervision))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and no macro supervision directory');
+    if(!values.auxiliary&&values['allow-nonmacro-auxiliary'])throw Error('Auxiliary corpus required for nonmacro scope');
+    const common={corpus:values.corpus,epoch:Number(values.epoch),seed:Number(values.seed),output:values.output,torchLibrary:values['torch-library']};
+    console.log(JSON.stringify(values.auxiliary?await writeCombinedTrainingOrder({...common,auxiliary:values.auxiliary,macroOnly:false}):
+      await writeMacroTrainingOrder({...common,supervision:values.supervision})));
   }catch(error){console.error('training-order: '+error.message);process.exitCode=1;}
 }

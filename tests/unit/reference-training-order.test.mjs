@@ -11,6 +11,10 @@ test('training order CLI requires explicit corpus and configuration',()=>{
   const result=spawnSync(process.execPath,['tools/reference-analysis/training-order.mjs'],{encoding:'utf8',timeout:10000});
   assert.equal(result.status,1);assert.match(result.stderr,/explicit/i);
 });
+test('combined order CLI requires explicit nonmacro auxiliary scope',()=>{
+  const result=spawnSync(process.execPath,['tools/reference-analysis/training-order.mjs','--auxiliary','semap.json','--epoch','0','--seed','42'],{encoding:'utf8',timeout:10000});
+  assert.equal(result.status,1);assert.match(result.stderr,/explicit nonmacro/i);
+});
 
 test('balanced order refuses invalid groups and preserves existing output',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-order-'));t.after(()=>rmSync(root,{recursive:true}));

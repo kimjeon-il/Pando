@@ -32,7 +32,7 @@ export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,si
     index:tile.index+(corpusIndex?primary.tiles.length:0)})));
   for(const row of primaryManifest.sheets){const {checks}=await verifiedMacroTrainingSource(dirname(primaryPath),primaryManifest,row.id);recheckMacroTrainingSource(checks);}
   if(await corpusFingerprint(primaryPath,auxiliaryPath)!==fingerprint)throw Error('Training sources changed during combined preparation');
-  return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,lineageFingerprint:fingerprint,counts,datasets};
+  return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,lineageFingerprint:fingerprint,counts,datasets,auxiliarySources:extra.sources};
 }
 // Semap is auxiliary training data; it is never promoted to reviewed macro scope.
 export async function inspectSemapTrainingDataset(corpus,{signal,verifyEvidence,workspace,imageDirectory}={}){
