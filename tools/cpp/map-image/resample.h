@@ -12,6 +12,9 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,
 // Pillow's two-stage thumbnail reduction for opaque RGB PDF pages.
 std::vector<std::uint8_t> resizeOpaqueThumbnail(const std::vector<std::uint8_t>& input,
     int width,int height,int outputWidth,int outputHeight);
+// CMYK channels are resized before conversion, matching JPEG analysis preparation.
+std::vector<std::uint8_t> resizeCmykThumbnail(const std::vector<std::uint8_t>& input,
+    int width,int height,int outputWidth,int outputHeight);
 std::vector<std::uint8_t> rotateRgba(const std::vector<std::uint8_t>& input,
     int width,int height,int clockwiseDegrees);
 }

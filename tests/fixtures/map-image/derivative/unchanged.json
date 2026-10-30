@@ -1,0 +1,24 @@
+{
+  "maximumPixels": 1000,
+  "expected": {
+    "sourceId": "map",
+    "familyId": "family",
+    "sourceSha256": "6c8e7e07a399d1bc1a5734921d280f187b385c55be57912fe63d45b93f953b7c",
+    "originalSize": [
+      23,
+      17
+    ],
+    "reviewedLabels": false,
+    "purpose": "app-runtime-input-only",
+    "path": "map.jpg",
+    "size": [
+      23,
+      17
+    ],
+    "originalPixelsPerInputPixel": [
+      1,
+      1
+    ],
+    "sha256": "6c8e7e07a399d1bc1a5734921d280f187b385c55be57912fe63d45b93f953b7c"
+  }
+}

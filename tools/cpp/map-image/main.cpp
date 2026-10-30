@@ -1,9 +1,13 @@
 #include "resample.h"
 #include "png.h"
 #include "image-input.h"
+#include "image-read.h"
 #include <array>
+#include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -26,6 +30,25 @@ void number(std::uint32_t value){
     const std::array<char,4> bytes{static_cast<char>(value>>24),static_cast<char>(value>>16),static_cast<char>(value>>8),static_cast<char>(value)};
     std::cout.write(bytes.data(),bytes.size());
 }
+std::vector<std::uint8_t> encodedInput(){
+    std::vector<std::uint8_t> encoded;std::array<char,65536> buffer{};
+    while(std::cin){std::cin.read(buffer.data(),buffer.size());const auto n=std::cin.gcount();
+        if(n>0){if(encoded.size()+static_cast<std::size_t>(n)>300ULL*1024*1024)throw std::invalid_argument("Image input exceeds encoded byte budget");
+            encoded.insert(encoded.end(),buffer.data(),buffer.data()+n);}}
+    if(!std::cin.eof())throw std::runtime_error("Unable to read image input");return encoded;
+}
+std::pair<int,int> thumbnailSize(int width,int height,int maxWidth,int maxHeight){
+    if(maxWidth>=width&&maxHeight>=height)return {width,height};
+    const double aspect=static_cast<double>(width)/height;
+    if(static_cast<double>(maxWidth)/maxHeight>=aspect){
+        const double n=maxHeight*aspect;const int low=static_cast<int>(std::floor(n)),high=static_cast<int>(std::ceil(n));
+        const int x=std::abs(aspect-static_cast<double>(high)/maxHeight)<std::abs(aspect-static_cast<double>(low)/maxHeight)?high:low;
+        return {std::max(1,x),maxHeight};
+    }
+    const double n=maxWidth/aspect;const int low=static_cast<int>(std::floor(n)),high=static_cast<int>(std::ceil(n));
+    const auto error=[&](int v){return v?std::abs(aspect-static_cast<double>(maxWidth)/v):0;};
+    return {maxWidth,std::max(1,error(high)<error(low)?high:low)};
+}
 }
 int main(int argc,char** argv){
     try{
@@ -34,17 +57,30 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="prepare-jpeg"||action=="inspect-jpeg"){
+            if(argc!=3)throw std::invalid_argument("Expected JPEG preparation with MAX_PIXELS");
+            const auto maximum=static_cast<std::uint32_t>(bounded(argv[2],16777216));const auto encoded=encodedInput();
+            PandoImage image{};std::uint32_t originalWidth=0,originalHeight=0,boundWidth=0,boundHeight=0;int cmyk=0;
+            if(!pando_read_jpeg_draft(encoded.data(),encoded.size(),maximum,action=="inspect-jpeg",&image,&originalWidth,&originalHeight,&boundWidth,&boundHeight,&cmyk))
+                throw std::runtime_error(std::string("JPEG preparation: ")+image.error);
+            std::unique_ptr<std::uint8_t,decltype(&std::free)> decoded(image.rgba,&std::free);
+            number(originalWidth);number(originalHeight);
+            if(!decoded){number(originalWidth);number(originalHeight);number(0);return 0;}
+            const auto [width,height]=thumbnailSize(static_cast<int>(image.width),static_cast<int>(image.height),static_cast<int>(boundWidth),static_cast<int>(boundHeight));
+            const std::vector<std::uint8_t> pixels(decoded.get(),decoded.get()+static_cast<std::size_t>(image.width)*image.height*4);
+            const auto resized=cmyk?pando::map_image::resizeCmykThumbnail(pixels,image.width,image.height,width,height):
+                pando::map_image::resizeOpaqueThumbnail(pixels,image.width,image.height,width,height);
+            std::uint8_t* bytes=nullptr;std::size_t length=0;char error[256]{};
+            if(!pando_write_jpeg(resized.data(),width,height,&bytes,&length,error,sizeof(error)))throw std::runtime_error(std::string("JPEG encoding: ")+error);
+            std::unique_ptr<std::uint8_t,decltype(&std::free)> output(bytes,&std::free);
+            number(width);number(height);number(1);std::cout.write(reinterpret_cast<const char*>(output.get()),static_cast<std::streamsize>(length));
+            if(!std::cout)throw std::runtime_error("Unable to write JPEG derivative");return 0;
+        }
         if(action=="read-png"||action=="read-jpeg"||action=="read-webp"){
             if(argc!=7)throw std::invalid_argument("Expected image read with MAX_PIXELS X Y WIDTH HEIGHT");
             const int maximum=bounded(argv[2],16777216),x=bounded(argv[3],16384),y=bounded(argv[4],16384),
                 width=bounded(argv[5],16384),height=bounded(argv[6],16384);
-            std::vector<std::uint8_t> encoded;std::array<char,65536> buffer{};
-            while(std::cin){
-                std::cin.read(buffer.data(),buffer.size());const auto n=std::cin.gcount();
-                if(n>0){if(encoded.size()+static_cast<std::size_t>(n)>300ULL*1024*1024)throw std::invalid_argument("Image input exceeds encoded byte budget");
-                    encoded.insert(encoded.end(),buffer.data(),buffer.data()+n);}
-            }
-            if(!std::cin.eof())throw std::runtime_error("Unable to read image input");
+            const auto encoded=encodedInput();
             const auto image=pando::map_image::readImage(encoded,action.substr(5),maximum,x,y,width,height);
             for(const auto field:{image.encodedWidth,image.encodedHeight,image.orientation,image.originalWidth,image.originalHeight,
                     image.x,image.y,image.rectWidth,image.rectHeight,image.width,image.height})number(static_cast<std::uint32_t>(field));
