@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
-import {countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,readNativeTrainingMask,readNativeTrainingMaskWindow} from '../../tools/map-image/native-resample.mjs';
+import {countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,readNativeTrainingMask,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../../tools/map-image/native-resample.mjs';
 import {listRasterTrainingTiles,prepareRasterTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('large source-bound mask returns only the selected raw grayscale window',async()=>{
@@ -46,4 +46,15 @@ test('large encoded mask supervision counts only shared known pixels',async()=>{
   const hash=value=>createHash('sha256').update(value).digest('hex'),targetHash=hash(target),knownHash=hash(known);
   const expected=await countNativeTrainingSupervision(await readNativeTrainingMask(target,targetHash),await readNativeTrainingMask(known,knownHash));
   assert.deepEqual((await countNativeEncodedTrainingSupervision({bytes:target,sha256:targetHash},{bytes:known,sha256:knownHash})).counts,expected);
+});
+
+test('large Adam7 grayscale masks keep window, tile coverage and supervision',async()=>{
+  const load=async name=>{const bytes=await readFile(`tests/fixtures/reference-training-raster/${name}.png`);return {bytes,sha256:createHash('sha256').update(bytes).digest('hex')};};
+  const plain=await load('large-valid'),adam7=await load('large-valid-adam7');
+  const [a,b]=await Promise.all([readNativeTrainingMaskWindow(plain.bytes,plain.sha256,{x:4000,y:4000}),readNativeTrainingMaskWindow(adam7.bytes,adam7.sha256,{x:4000,y:4000})]);
+  assert.deepEqual([a.width,a.height],[b.width,b.height]);assert.equal(Buffer.compare(a.data,b.data),0);
+  const [plainTiles,adamTiles]=await Promise.all([scanNativeTrainingMaskTiles(plain.bytes,plain.sha256),scanNativeTrainingMaskTiles(adam7.bytes,adam7.sha256)]);
+  assert.deepEqual(plainTiles,adamTiles);
+  const result=await countNativeEncodedTrainingSupervision(adam7,plain);
+  assert.deepEqual(result.counts,[[9409,9409],[9409,9409],[0,0],[0,0],[0,0],[0,0],[0,0]]);
 });
