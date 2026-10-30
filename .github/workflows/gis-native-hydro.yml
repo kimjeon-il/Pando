@@ -17,13 +17,47 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated]
+        options: [hydro, hydro-encoding, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  hydro-encoding:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-encoding'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and check only the Hydro feature encoder
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/hydro-encoding -B build-native/hydro-encoding -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder configuration failed' }
+          cmake --build build-native/hydro-encoding --config Release --target pando-hydro-encoding
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder build failed' }
+          if ($IsWindows) { $env:PANDO_HYDRO_ENCODING_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/Release/pando-hydro-encoding.exe" }
+          else { $env:PANDO_HYDRO_ENCODING_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/pando-hydro-encoding" }
+          node tools/gis/package-hydro-encoding.mjs --binary $env:PANDO_HYDRO_ENCODING_BINARY --directory build-native/hydro-encoding/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder packaging failed' }
+          $env:PANDO_HYDRO_ENCODING_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/artifact"
+          node --test tests/unit/hydro-encoding-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro feature bytes differ from the Python oracle' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hydro-encoding-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/hydro-encoding/artifact/
+          retention-days: 7
   terrain-preview:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-preview' || inputs.target == 'terrain-preview-integrated')
     strategy:
