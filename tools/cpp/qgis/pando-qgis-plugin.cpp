@@ -173,12 +173,23 @@ QgsGeometry geographicGeometry(QgsVectorLayer* layer,const QJsonValue& wkt,Qgis:
 }
 class Bridge final:public QObject,public QgisPlugin {
     QTcpServer server_;QByteArray token_;int active_=0;
+    QgisInterface* iface_;
     QHash<QString,QPointer<QgsVectorLayer>> editSessions_;
     QHash<QString,QMetaObject::Connection> editConnections_;
     QJsonObject execute(const QJsonObject& request){
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
             {QStringLiteral("pid"),static_cast<double>(QCoreApplication::applicationPid())},{QStringLiteral("transport"),QStringLiteral("pando-native-v1")}};
+        if(command==QStringLiteral("active-layer")){
+            const auto value=request.value(QStringLiteral("layer"));
+            if(!value.isUndefined()){
+                if(!value.isString()||value.toString().isEmpty())throw QStringLiteral("A valid QGIS layer ID is required");
+                auto* layer=QgsProject::instance()->mapLayer(value.toString());
+                if(!layer||!layer->isValid()||!iface_->setActiveLayer(layer))throw QStringLiteral("Unknown or invalid QGIS layer");
+            }
+            auto* layer=iface_->activeLayer();
+            return {{QStringLiteral("layer"),layer?QJsonValue(layerSummary(layer,true)):QJsonValue(QJsonValue::Null)}};
+        }
         if(command==QStringLiteral("algorithms")){
             const auto searchValue=request.value(QStringLiteral("search"));QString search;
             if(!searchValue.isUndefined()){
@@ -483,7 +494,7 @@ class Bridge final:public QObject,public QgisPlugin {
         }
     }
 public:
-    explicit Bridge(QgisInterface*):QgisPlugin(pluginName,pluginDescription,pluginCategory,pluginVersion,QgisPlugin::UI){}
+    explicit Bridge(QgisInterface* iface):QgisPlugin(pluginName,pluginDescription,pluginCategory,pluginVersion,QgisPlugin::UI),iface_(iface){}
     void initGui() override{
         token_=qgetenv("PANDO_QGIS_NATIVE_TOKEN");bool valid=false;const auto port=qgetenv("PANDO_QGIS_NATIVE_PORT").toUShort(&valid);
         if(token_.isEmpty()||token_.size()>4096||!valid||port<1024){qWarning("Pando native QGIS bridge configuration is missing or invalid");return;}
