@@ -5,7 +5,10 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
+#include <limits>
 #include <stdexcept>
+#include <string>
 #include <vector>
 #ifdef _WIN32
 #include <fcntl.h>
@@ -43,6 +46,27 @@ int main(){try{
   if(_setmode(_fileno(stdin),_O_BINARY)==-1)throw std::runtime_error("Cannot set binary input");
 #endif
   Reader r;std::array<char,65536> chunk{};while(std::cin){std::cin.read(chunk.data(),chunk.size());auto n=std::cin.gcount();if(n>0){if(r.data.size()+std::size_t(n)>64ULL*1024*1024)throw std::runtime_error("Evaluation input exceeds budget");r.data.insert(r.data.end(),chunk.data(),chunk.data()+n);}}
+  if(r.data.size()>=8&&std::string(r.data.begin(),r.data.begin()+8)=="PDIAG001"){
+    r.at=8;const auto w=r.u32(),h=r.u32();const std::uint64_t pixels=std::uint64_t(w)*h,values=pixels*7;
+    if(!w||!h||w>16384||h>16384||values>16000000||r.data.size()!=16+values*6)throw std::runtime_error("Invalid diagnostic tensor dimensions");
+    const char* channels[]={"international","administrative","coast","hydro","transport","text","frame"};
+    const auto targetAt=16+values*4,knownAt=targetAt+values;
+    std::cout<<std::setprecision(17)<<'{';
+    for(std::size_t channel=0;channel<7;++channel){std::uint64_t supervised=0,truth=0,predicted=0,overlap=0;
+      float minimum=std::numeric_limits<float>::infinity(),maximum=-minimum;
+      for(std::size_t i=0;i<pixels;++i){const auto index=channel*pixels+i,at=16+index*4;
+        const std::uint32_t bits=std::uint32_t(r.data[at])|(std::uint32_t(r.data[at+1])<<8)|(std::uint32_t(r.data[at+2])<<16)|(std::uint32_t(r.data[at+3])<<24);
+        float value;std::memcpy(&value,&bits,sizeof(value));if(!std::isfinite(value))throw std::runtime_error("Non-finite diagnostic probability");
+        minimum=std::min(minimum,value);maximum=std::max(maximum,value);
+        const bool valid=r.data[knownAt+index],positive=r.data[targetAt+index],selected=value>=0.55f;
+        supervised+=valid;truth+=valid&&positive;predicted+=valid&&selected;overlap+=valid&&positive&&selected;
+      }
+      if(channel)std::cout<<',';
+      std::cout<<'"'<<channels[channel]<<"\":{\"supervisedPixels\":"<<supervised<<",\"targetPixels\":"<<truth
+        <<",\"predictedPixels\":"<<predicted<<",\"overlapPixels\":"<<overlap<<",\"probabilityMin\":"<<double(minimum)<<",\"probabilityMax\":"<<double(maximum)<<'}';
+    }
+    std::cout<<'}';if(!std::cout)throw std::runtime_error("Cannot write diagnostic statistics");return 0;
+  }
   const auto w=r.u32(),h=r.u32(),lines=r.u32();const std::size_t n=std::size_t(w)*h;
   if(!w||!h||w>16384||h>16384||n>16777216||lines>1000000)throw std::runtime_error("Invalid evaluation dimensions");
   auto target=r.plane(n),known=r.plane(n),prediction=r.plane(n);

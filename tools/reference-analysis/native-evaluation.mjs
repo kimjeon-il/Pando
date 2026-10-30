@@ -20,6 +20,22 @@ function invoke(binary,input,signal){return new Promise((accept,reject)=>{
     try{finish(null,JSON.parse(Buffer.concat(out).toString('utf8')));}catch(error){finish(error);}});
   child.stdin.end(input);
 });}
+export async function diagnosticPixelStatistics({width,height,probability,target,known},
+  {signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact')}={}){
+  signal?.throwIfAborted();const pixels=width*height,values=pixels*7;
+  if(![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=16384)||values>11000000||
+    !(probability instanceof Uint8Array)||probability.length!==values*4||
+    ![target,known].every(value=>value instanceof Uint8Array&&value.length===values))
+    throw Error('Explicit diagnostic tensors with matching dimensions are required');
+  const header=Buffer.alloc(16);header.write('PDIAG001');header.writeUInt32BE(width,8);header.writeUInt32BE(height,12);
+  const executable=process.platform==='win32'?'pando-map-evaluation.exe':'pando-map-evaluation';
+  const {binary}=verifyNativeTool({root:workspace,directory,target:'map-evaluation',executable,sourceFiles:evaluationSourceFiles});
+  const result=await invoke(binary,Buffer.concat([header,probability,target,known]),signal);
+  if(!result||typeof result!=='object'||CHANNELS.some(name=>!result[name]||
+    !['supervisedPixels','targetPixels','predictedPixels','overlapPixels','probabilityMin','probabilityMax'].every(key=>Number.isFinite(result[name][key]))))
+    throw Error('Invalid native diagnostic statistics');
+  return result;
+}
 export async function evaluateBoundaries(prediction,annotation,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact'),reviewDirectory}={}){
   signal?.throwIfAborted();const width=annotation?.width,height=annotation?.height,size=width*height;
   if(!Buffer.isBuffer(prediction)||!Number.isSafeInteger(size)||prediction.length!==size||prediction.some(v=>v&~7))throw Error('Prediction must use original sheet pixels and three packed channels');
