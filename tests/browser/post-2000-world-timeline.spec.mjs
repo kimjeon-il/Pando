@@ -4,7 +4,7 @@ import {gotoEditor} from './helpers/editor-entry.mjs';
 test.use({trace:'retain-on-failure',viewport:{width:1440,height:900}});
 
 const scenarios=[
- {month:'2000-12',yes:['state:yugoslavia','state:untaet-east-timor','state:unmik-kosovo'],no:['TLS','KOS','SDS']},
+ {month:'2000-12',yes:['state:yugoslavia','state:untaet-east-timor','state:unmik-kosovo'],no:['TLS','KOS','SDS'],name:{id:'state:yugoslavia',expected:'유고슬라비아'}},
  {month:'2002-12',yes:['state:yugoslavia','TLS','state:unmik-kosovo'],no:['state:untaet-east-timor','KOS']},
  {month:'2003-12',yes:['state:yugoslavia','TLS','state:unmik-kosovo'],no:['state:untaet-east-timor','SRB','MNE'],name:{id:'state:yugoslavia',expected:'세르비아 몬테네그로'}},
  {month:'2006-12',yes:['SRB','MNE','state:unmik-kosovo'],no:['state:yugoslavia','KOS']},
