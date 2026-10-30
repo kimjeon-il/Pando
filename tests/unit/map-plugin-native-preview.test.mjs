@@ -70,3 +70,21 @@ test('reviewed selection preview shows only selected lines, polygon rings and ne
   assert.deepEqual(pixel(50,100),[255,255,255]);
   await assert.rejects(raster({action:'preview',path:original,job,selectedGeometry:[{type:'Point',coordinates:[1,2]}]}),/selected.*geometry/i);
 });
+
+test('preview maps original coordinates and controls correctly after bounded image decoding',async t=>{
+  const temporary=mkdtempSync(join(tmpdir(),'pando-map-resized-preview-'));
+  t.after(()=>rmSync(temporary,{recursive:true,force:true}));
+  const source=join(temporary,'source.png'),output=join(temporary,'output.png');
+  writeFileSync(source,(await encodeNativePng({width:400,height:400,data:Buffer.alloc(400*400*4,255)})).data);
+  const image=await readNativeImage({path:source,format:'png',maxPixels:40000});
+  assert.deepEqual([image.width,image.height,image.originalWidth,image.originalHeight],[200,200,400,400]);
+  const job={source:{width:400,height:400,mapping:{}},graph:{chains:[{points:[[40,300],[320,300]],semanticBits:1}],unresolved:[]},
+    warp:{controlPoints:[{id:'a',image:[.25,.25]}],diagnostics:{residuals:[]}}};
+  const selectedGeometry=[{type:'LineString',coordinates:[[40,300],[320,300]]}];
+  const preview=await renderNativePreview(image,job,{selectedGeometry});writeFileSync(output,preview.data);
+  const decoded=await readNativeImage({path:output,format:'png',maxPixels:16777216});
+  const pixel=(x,y)=>[...decoded.data.subarray((y*200+x)*4,(y*200+x)*4+3)];
+  assert.deepEqual(pixel(40,150),[22,128,60]);
+  assert.deepEqual(pixel(40,100),[255,255,255]);
+  assert.deepEqual(pixel(49,44),[0,170,255]);
+});
