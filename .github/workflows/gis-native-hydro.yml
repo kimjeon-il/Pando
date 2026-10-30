@@ -50,11 +50,10 @@ jobs:
             $url = 'https://files.pythonhosted.org/packages/4f/bf/6e02e3d84b32c137c71a0a3dcdba8f2f6e9950619a3bc272245c7c06a051/pymupdf-1.26.6-cp310-abi3-manylinux_2_28_x86_64.whl'
             $expected = '7777d0b7124c2ebc94849536b6a1fb85d158df3b9d873935e63036559391534c'
           }
-          $wheel = 'build-native/map-pdf/mupdf-sdk.whl'
+          $wheel = 'build-native/map-pdf/mupdf-sdk.zip'
           Invoke-WebRequest -Uri $url -OutFile $wheel
           if ((Get-FileHash -Algorithm SHA256 -LiteralPath $wheel).Hash.ToLowerInvariant() -ne $expected) { throw 'MuPDF SDK hash mismatch' }
-          tar -xf $wheel -C build-native/map-pdf/sdk
-          if ($LASTEXITCODE -ne 0) { throw 'MuPDF SDK extraction failed' }
+          Expand-Archive -LiteralPath $wheel -DestinationPath build-native/map-pdf/sdk
       - name: Build the PDF reader and required image resize tool
         shell: pwsh
         run: |
