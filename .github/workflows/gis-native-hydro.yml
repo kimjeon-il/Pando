@@ -17,13 +17,47 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  terrain-dem-encode:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-encode'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and check only the DEM elevation encoder
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/terrain-dem-encode -B build-native/terrain-dem-encode -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoder configuration failed' }
+          cmake --build build-native/terrain-dem-encode --config Release --target pando-terrain-dem-encode
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoder build failed' }
+          if ($IsWindows) { $binary = 'build-native/terrain-dem-encode/Release/pando-terrain-dem-encode.exe' }
+          else { $binary = 'build-native/terrain-dem-encode/pando-terrain-dem-encode' }
+          node tools/gis/package-terrain-dem-encode.mjs --binary $binary --directory build-native/terrain-dem-encode/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoder packaging failed' }
+          $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
+          node --test tests/unit/terrain-dem-encode.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoding differs from the Python oracle' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-dem-encode-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/terrain-dem-encode/artifact/
+          retention-days: 7
   terrain-dem-check:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-check' || inputs.target == 'terrain-dem-check-integrated')
     strategy:
