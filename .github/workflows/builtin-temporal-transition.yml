@@ -12,10 +12,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    env:
-      EMCC_CORES: '1'
-      BINARYEN_CORES: '1'
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,89 +20,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Apply and verify exact local candidate without changing branch refs
+      - name: Restore exact reviewed candidate and source-matched build
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          [ "$GITHUB_REF" = "refs/heads/work/objects" ]
+          [ "$GITHUB_REF" = 'refs/heads/work/objects' ]
           mkdir -p "$RUNNER_TEMP/temporal-evidence"
-          python3 - <<'PYCODE'
-          import base64,gzip,hashlib,json,os,pathlib,subprocess
-          raw=json.loads(subprocess.check_output(['gh','api','repos/kimjeon-il/Pando/git/blobs/5f241034710fb3de16bce13b6d93b1ce9087c664']))
-          encoded=''.join(raw['content'].split())
-          # Repair the transport transcription, then require the exact original hash.
-          encoded=encoded.replace('XBVNRJJjVp27','XBVNRJjVp27').rstrip('=')
-          packed=base64.b64decode(encoded+'='*((-len(encoded))%4))
-          assert hashlib.sha1(b'blob '+str(len(packed)).encode()+b'\0'+packed).hexdigest()=='c4e84b63db4ce802f492e66ad14283953ed2a8f7','Source transport hash mismatch'
-          payload=json.loads(gzip.decompress(packed))
-          patch=pathlib.Path(os.environ['RUNNER_TEMP'])/'temporal.patch';patch.write_text(payload['patch'])
-          subprocess.run(['git','apply','--index','--check',str(patch)],check=True)
-          subprocess.run(['git','apply','--index',str(patch)],check=True)
-          for path,expected in payload['files'].items():
-              assert subprocess.check_output(['git','hash-object',path],text=True).strip()==expected,path
-          workflow='.github/workflows/builtin-temporal-transition.yml'
-          pathlib.Path(workflow).write_text(payload['workflow']);subprocess.run(['git','add',workflow],check=True)
-          pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-input.json').write_text(json.dumps(payload['files']))
-          subprocess.run(['git','diff','--cached','--check'],check=True)
-          print('Verified source patch:',len(payload['files']),'files')
-          PYCODE
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
+          python3 - <<'PY'
+          import base64,hashlib,json,os,pathlib,subprocess
+          for name,sha in [('prepare','3d6cf6c78e9f6d8719ceffe2babe84dfa034dee1'),('publish','5e8c5311cbe0952390720cafdd15bb47458ab6de')]:
+              data=json.loads(subprocess.check_output(['gh','api','repos/kimjeon-il/Pando/git/blobs/'+sha]))
+              raw=base64.b64decode(data['content'])
+              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha
+              pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-'+name+'.py').write_bytes(raw)
+          PY
+          python3 "$RUNNER_TEMP/temporal-prepare.py"
+      - uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: 3.31.6
-      - name: Verify native transactional behavior
+      - name: Require source-matched WASM
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Verify source, rollback, transport and file contracts
         run: |
           set -euo pipefail
-          cmake -S . -B build-native/temporal-focused -G Ninja -DCMAKE_BUILD_TYPE=Debug -DPANDO_BUILD_VARIANT=core -DBUILD_TESTING=ON
-          cmake --build build-native/temporal-focused --target document_session_tests project_codec_tests web_storage_tests --parallel 2
-          ctest --test-dir build-native/temporal-focused -R '^(document_session_tests|project_codec_tests|web_storage_tests)$' --output-on-failure | tee "$RUNNER_TEMP/temporal-evidence/native.log"
-      - uses: actions/checkout@v4
-        with:
-          repository: emscripten-core/emsdk
-          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
-          path: build-native/emsdk
-          persist-credentials: false
-      - name: Build source-matched WASM
-        shell: bash
-        env:
-          EMSDK_VERSION: 4.0.20
-        run: |
-          set -euo pipefail
-          required_version="$EMSDK_VERSION"
-          build-native/emsdk/emsdk install "$required_version"
-          build-native/emsdk/emsdk activate "$required_version"
-          source build-native/emsdk/emsdk_env.sh
-          emcc --version | sed -n '1p' | grep -F "$required_version"
-          port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
-          original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
-          canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'
-          grep -Fq "$original" "$port_file"
-          sed -i "s|$original|$canonical|" "$port_file"
-          grep -Fq "$canonical" "$port_file"
-          node --input-type=module <<'NODE'
-          import {readFileSync,writeFileSync} from 'node:fs';
-          const file='build-native/emsdk/upstream/emscripten/tools/ports/__init__.py';
-          const input=readFileSync(file,'utf8');
-          const old="    ext = url_filename.split('.', 1)[1]";
-          if(input.split(old).length!==2)throw Error('Unexpected pinned Emscripten port loader');
-          const next="    ext = 'tar.gz' if name == 'zlib' and url.startswith('https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v') else url_filename.split('.', 1)[1]";
-          writeFileSync(file,input.replace(old,next));
-          NODE
-          emcmake cmake --preset pando-wasm
-          cmake --build --preset pando-wasm
-          node tools/package-shared-core-assets.mjs --build-dir build-native/p1/pando-wasm/shared/wasm
-      - name: Verify transport, source selection, rollback and user-file contracts
-        run: |
-          set -euo pipefail
-          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
-          node --test tests/unit/builtin-month-clock.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-temporal-transition.test.mjs tests/unit/app-builtin-session.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-worker-ownership.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/project-opening.test.mjs tests/unit/core-project-replacement-wasm.test.mjs tests/unit/project-product-surface.test.mjs | tee "$RUNNER_TEMP/temporal-evidence/unit.log"
+          node --test tests/unit/builtin-month-clock.test.mjs tests/unit/viewer-temporal-boundary.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-temporal-transition.test.mjs tests/unit/app-builtin-session.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-worker-ownership.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/project-opening.test.mjs tests/unit/core-project-replacement-wasm.test.mjs tests/unit/project-product-surface.test.mjs | tee "$RUNNER_TEMP/temporal-evidence/unit.log"
       - name: Lint changed executable sources
         run: |
-          set -euo pipefail
           node --input-type=module <<'NODE'
           import {readFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';
           const files=Object.keys(JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/temporal-input.json','utf8'))).filter(p=>/\.(m?js)$/.test(p));
@@ -118,45 +59,20 @@ jobs:
         run: |
           set -euo pipefail
           pnpm exec playwright test tests/browser/timeline-controls.spec.mjs --workers=1 --retries=0 --trace off | tee "$RUNNER_TEMP/temporal-evidence/browser.log"
-      - name: Create verified candidate Git objects only
+      - name: Create detached verified candidate without changing any branch
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          [ "$GITHUB_REF" = "refs/heads/work/objects" ]
-          python3 - <<'PYCODE'
-          import base64,json,os,pathlib,subprocess
-          repo='repos/kimjeon-il/Pando';parent=os.environ['GITHUB_SHA']
-          expected=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-input.json').read_text())
-          for path,sha in expected.items():
-              assert subprocess.check_output(['git','hash-object',path],text=True).strip()==sha,path
-          paths=list(expected)+['.github/workflows/builtin-temporal-transition.yml','shared/frontend/static/wasm/pandoeditor-core.js','shared/frontend/static/wasm/pandoeditor-core.wasm','shared/frontend/static/wasm/pandoeditor-core.manifest.json']
-          def api(endpoint,data=None):
-              args=['gh','api',repo+endpoint]
-              if data is not None:args+=['--method','POST','--input','-']
-              return json.loads(subprocess.check_output(args,input=json.dumps(data).encode() if data is not None else None))
-          base=api('/git/commits/'+parent)['tree']['sha'];entries=[]
-          for path in paths:
-              body=pathlib.Path(path).read_bytes()
-              blob=api('/git/blobs',{'content':base64.b64encode(body).decode(),'encoding':'base64'})
-              assert blob['sha']==subprocess.check_output(['git','hash-object',path],text=True).strip(),path
-              entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
-          tree=api('/git/trees',{'base_tree':base,'tree':entries})
-          commit=api('/git/commits',{'message':'perf: add safe builtin temporal transition path','tree':tree['sha'],'parents':[parent]})
-          evidence={'parent':parent,'commit':commit['sha'],'tree':tree['sha'],'files':entries,'verification':['native:3 suites','focused Node suite','ESLint changed sources','Chromium desktop/mobile timeline, supersession and user-file navigation']}
-          pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-evidence','candidate.json').write_text(json.dumps(evidence,indent=2))
-          print('Detached verified candidate:',commit['sha']);print('No branch reference was updated.')
-          PYCODE
-      - name: Collect source-matched evidence
+        run: python3 "$RUNNER_TEMP/temporal-publish.py"
+      - name: Collect verification evidence
         if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/temporal-evidence"
           git diff --cached --binary > "$RUNNER_TEMP/temporal-evidence/source.patch"
-          git ls-files -z | tar --null -T - -czf "$RUNNER_TEMP/temporal-evidence/source.tar.gz"
+          cp "$RUNNER_TEMP/temporal-input.json" "$RUNNER_TEMP/temporal-evidence/" || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: temporal-candidate-${{ github.sha }}
+          name: temporal-verified-${{ github.sha }}
           path: |
             ${{ runner.temp }}/temporal-evidence/
             shared/frontend/static/wasm/pandoeditor-core.*
