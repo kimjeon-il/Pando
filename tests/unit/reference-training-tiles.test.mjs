@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
@@ -15,6 +16,23 @@ test('training tile selection keeps supervised areas and excludes unknown padded
   const annotation={width:600,height:16,known:{international:[[[0,0],[49,0],[49,15],[0,15]]]},lines:[],ignore:[]};
   assert.deepEqual((await listReviewedTrainingTiles(annotation)).map(row=>row.x),[0]);
   assert.deepEqual((await listReviewedTrainingTiles(annotation,{supervisedOnly:false})).map(row=>row.x),[0,448]);
+});
+
+test('Python dataset index uses full-sheet rounding at fractional tile edges',async()=>{
+  const annotation={width:600,height:16,known:{international:[[[447.1,0],[447.9,0],[447.9,10],[447.1,10]]]},lines:[],ignore:[]};
+  assert.deepEqual((await listReviewedTrainingTiles(annotation,{fullSheetCoordinates:true})).map(row=>row.x),[0]);
+  assert.deepEqual((await listReviewedTrainingTiles(annotation)).map(row=>row.x),[0,448]);
+  const run=spawnSync(process.execPath,['tools/reference-analysis/training-tiles.mjs','--index'],
+    {input:JSON.stringify({annotation,width:600,height:16,supervisedOnly:true}),encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);assert.deepEqual(JSON.parse(run.stdout),[{x:0,y:0}]);
+  const invalid=spawnSync(process.execPath,['tools/reference-analysis/training-tiles.mjs','--index'],
+    {input:JSON.stringify({annotation,width:601,height:16,supervisedOnly:true}),encoding:'utf8'});
+  assert.notEqual(invalid.status,0);assert.match(invalid.stderr,/dimensions/i);
+});
+
+test('reviewed training index handles a source wider than a native image window',async()=>{
+  const annotation={width:16385,height:2,known:{international:[[[16380,0],[16384,0],[16384,1],[16380,1]]]},lines:[],ignore:[]};
+  assert.deepEqual((await listReviewedTrainingTiles(annotation,{fullSheetCoordinates:true})).map(({x,y})=>[x,y]),[[16128,0]]);
 });
 
 test('native training tile matches Python tensors, masks, position and augmentation',async()=>{

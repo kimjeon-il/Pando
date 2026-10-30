@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import pathlib
+import subprocess
 import sys
 import random
 import collections
@@ -37,18 +38,28 @@ class MapTiles(torch.utils.data.Dataset):
             with Image.open(self.root / sheet["image"]) as source:
                 width, height = ImageOps.exif_transpose(source).size
             annotation = json.loads(corpus_path(self.root, sheet['annotations']).read_text(encoding='utf-8'))
-            validity = None
-            if annotation.get('origin') in RASTER_ORIGINS:
-                with Image.open(corpus_path(self.root, annotation['validRaster']['path'])) as source:
-                    validity = np.asarray(source).copy()
-            else:
-                _, known = review_masks(annotation)
-                validity = known.any(axis=0)
-            for y in range(0, height, SIZE - OVERLAP):
-                for x in range(0, width, SIZE - OVERLAP):
-                    if supervised_only and validity is not None and not np.any(validity[y:y + SIZE, x:x + SIZE]):
-                        continue
-                    self.tiles.append((index, x, y))
+            script = pathlib.Path(__file__).with_name('training-tiles.mjs')
+            request = json.dumps(dict(root=str(self.root.resolve()), annotation=annotation, width=width, height=height,
+                                      supervisedOnly=supervised_only)).encode('utf-8')
+            result = subprocess.run(['node', str(script), '--index'], input=request, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, timeout=1800, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if result.returncode:
+                raise ValueError('Native training tile index failed: ' + result.stderr.decode('utf-8', errors='replace'))
+            rows = json.loads(result.stdout)
+            if not isinstance(rows, list):
+                raise ValueError('Invalid native training tile index')
+            if not supervised_only and len(rows) != math.ceil(width / (SIZE - OVERLAP)) * math.ceil(height / (SIZE - OVERLAP)):
+                raise ValueError('Native training tile index omitted an image tile')
+            previous = (-1, -1)
+            for row in rows:
+                if (not isinstance(row, dict) or set(row) != {'x', 'y'} or
+                        any(not isinstance(row[key], int) or isinstance(row[key], bool) for key in ('x', 'y'))):
+                    raise ValueError('Invalid native training tile coordinate')
+                x, y = row['x'], row['y']
+                if not (0 <= x < width and 0 <= y < height) or x % (SIZE - OVERLAP) or y % (SIZE - OVERLAP) or (y, x) <= previous:
+                    raise ValueError('Invalid native training tile ordering')
+                previous = (y, x)
+                self.tiles.append((index, x, y))
 
     def __len__(self):
         return len(self.tiles)

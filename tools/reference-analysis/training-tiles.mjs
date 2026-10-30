@@ -1,5 +1,6 @@
 // Prepare one source-coordinate training tile with the shared native owners.
 import {dirname,extname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {countNativeEncodedTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
@@ -122,11 +123,11 @@ export async function listRasterTrainingTiles({root,annotation},{supervisedOnly=
   return tiles.filter((_,index)=>mask.tiles[index]!==0);
 }
 
-export async function listReviewedTrainingTiles(annotation,{supervisedOnly=true,signal,workspace,reviewDirectory}={}){
-  signal?.throwIfAborted();if(typeof supervisedOnly!=='boolean')throw Error('Explicit training supervision mode required');
+export async function listReviewedTrainingTiles(annotation,{supervisedOnly=true,fullSheetCoordinates=false,signal,workspace,reviewDirectory}={}){
+  signal?.throwIfAborted();if(typeof supervisedOnly!=='boolean'||typeof fullSheetCoordinates!=='boolean')throw Error('Explicit training supervision mode required');
   const tiles=referenceImageTilePlan(annotation?.width,annotation?.height);if(!supervisedOnly)return tiles;
   const selected=[];for(const tile of tiles){signal?.throwIfAborted();
-    const masks=await reviewMasks(annotation,{window:[tile.x,tile.y,512,512],signal,workspace,directory:reviewDirectory});
+    const masks=await reviewMasks(annotation,{window:[tile.x,tile.y,512,512],fullSheetCoordinates,signal,workspace,directory:reviewDirectory});
     if(masks.knownBits.some(value=>value!==0))selected.push(tile);
   }
   return selected;
@@ -153,4 +154,16 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
     throw Error('Annotations must use oriented original image dimensions');
   if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height)throw Error('Training tile must start inside original image');
   return prepareNativeTrainingTilePieces({image,targetBits:target.data,knownBits:known.data,x,y,augment,epoch,index},{signal,workspace,directory:imageDirectory});
+}
+
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    if(process.argv.length!==3||process.argv[2]!=='--index')throw Error('Expected --index');
+    const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Training index request exceeds budget');chunks.push(chunk);}
+    const {root,annotation,width,height,supervisedOnly}=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
+    if(annotation?.width!==width||annotation?.height!==height||typeof supervisedOnly!=='boolean')throw Error('Training index dimensions or supervision differ');
+    const tiles=isRasterTrainingAnnotation(annotation)?await listRasterTrainingTiles({root,annotation},{supervisedOnly}):
+      await listReviewedTrainingTiles(annotation,{supervisedOnly,fullSheetCoordinates:true});
+    process.stdout.write(JSON.stringify(tiles.map(({x,y})=>({x,y})))+'\n');
+  }catch(error){console.error('training-tiles: '+error.message);process.exitCode=1;}
 }
