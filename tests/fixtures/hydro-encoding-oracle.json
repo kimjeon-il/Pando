@@ -1,0 +1,229 @@
+[
+  {
+    "feature": {
+      "fid": 1,
+      "logical_fid": 101,
+      "pandolab_id": "fixture:1",
+      "category": "river",
+      "stage": 0,
+      "flags": 1,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "width": 1.25,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -180,
+            0
+          ],
+          [
+            -179.999999,
+            1e-06
+          ],
+          [
+            180,
+            -1e-06
+          ]
+        ]
+      },
+      "bounds": [
+        -180,
+        -1e-06,
+        180,
+        1e-06
+      ],
+      "width_profile": [
+        [
+          0,
+          1.2345,
+          70
+        ]
+      ],
+      "source_id": "100,110,105"
+    },
+    "featureHex": "010000006500000001000101000001000000a03f006b45f5ffffffff0095ba0a010000001400000008000000010380d4d4ab0100fda7a9d70202fea7a9d70203010300a413daec07",
+    "sourceIdsHex": "03641409"
+  },
+  {
+    "feature": {
+      "fid": 2,
+      "logical_fid": 102,
+      "pandolab_id": "fixture:2",
+      "category": "river",
+      "stage": 2,
+      "flags": 0,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "width": 1.25,
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              181,
+              91
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          [
+            [
+              -181,
+              -91
+            ],
+            [
+              -1.25,
+              2.5
+            ]
+          ]
+        ]
+      },
+      "bounds": [
+        -181,
+        -91,
+        181,
+        91
+      ],
+      "width_profile": [
+        [
+          0.001,
+          0.002
+        ],
+        [
+          2.5,
+          2.5
+        ]
+      ],
+      "source_id": "1001,1000"
+    },
+    "featureHex": "020000006600000001020200000001000000a03fc02836f5407393fa40d7c90ac08c6c0527000000080000000202ffcadaaa0180aaea5580cbdaaa01ffa9ea550280cbdaaa01ffa9ea559f96f3ab01c0c09b580202010202c41300",
+    "sourceIdsHex": "02e90701"
+  },
+  {
+    "feature": {
+      "fid": 3,
+      "logical_fid": 103,
+      "pandolab_id": "fixture:3",
+      "category": "lake",
+      "stage": 0,
+      "flags": 0,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "width": 0,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          [
+            [
+              0.25,
+              0.25
+            ],
+            [
+              0.5,
+              0.25
+            ],
+            [
+              0.25,
+              0.25
+            ]
+          ]
+        ]
+      },
+      "bounds": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "width_profile": null,
+      "source_id": ""
+    },
+    "featureHex": "0300000067000000020003000000010000000000000000000000000040420f0040420f002200000000000000010204000080897a000080897aff887aff887a03a0c21ea0c21ea0c21e009fc21e00",
+    "sourceIdsHex": ""
+  },
+  {
+    "feature": {
+      "fid": 4,
+      "logical_fid": 104,
+      "pandolab_id": "fixture:4",
+      "category": "lake",
+      "stage": 3,
+      "flags": 0,
+      "fragment_index": 0,
+      "fragment_count": 1,
+      "width": 0,
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                179,
+                1
+              ],
+              [
+                -179,
+                1
+              ],
+              [
+                -179,
+                2
+              ],
+              [
+                179,
+                1
+              ]
+            ]
+          ],
+          [
+            [
+              [
+                10,
+                -1
+              ],
+              [
+                11,
+                -1
+              ],
+              [
+                10,
+                -1
+              ]
+            ]
+          ]
+        ]
+      },
+      "bounds": [
+        -179,
+        -1,
+        179,
+        2
+      ],
+      "width_profile": null,
+      "source_id": ""
+    },
+    "featureHex": "040000006800000002030400000001000000000040ad54f5c0bdf0ffc052ab0a80841e002e0000000000000002010480cbdaaa0180897aff95b5d502000080897a8096b5d502ff887a010380dac409ff887a80897a00ff887a00",
+    "sourceIdsHex": ""
+  }
+]

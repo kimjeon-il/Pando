@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20)
+project(pando_hydro_encoding LANGUAGES CXX)
+add_executable(pando-hydro-encoding encode.cpp ../../../shared/core/src/losslessjson.cpp)
+target_include_directories(pando-hydro-encoding PRIVATE ../../../shared/core/include)
+target_compile_features(pando-hydro-encoding PRIVATE cxx_std_17)
