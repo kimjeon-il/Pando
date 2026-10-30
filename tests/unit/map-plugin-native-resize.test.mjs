@@ -51,3 +51,13 @@ test('map plugin encodes PNG with exact RGBA pixels without Python',async()=>{
   }
   assert.deepEqual(decoded,pixels);
 });
+
+test('native PNG compresses smooth map pixels without excessive expansion',async()=>{
+  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
+  const width=128,height=96,data=Buffer.alloc(width*height*4);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4;data[i]=(x*3+y)%256;data[i+1]=(x+y*5)%256;data[i+2]=(x*7+y*11)%256;data[i+3]=(x*9+y*13)%256;
+  }
+  const png=await pngRaster({width,height,data});
+  assert.ok(png.length<5000,`Smooth fixture encoded to ${png.length} bytes; the original encoder used 1328`);
+});
