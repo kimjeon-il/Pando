@@ -98,10 +98,10 @@ test('short aligned dashed gaps need matching semantics and avoid text or transp
   assert.equal(obscured.chains.length, 2);
 });
 
-test('editing source-pixel chains rebuilds faces and leaves the original graph unchanged', () => {
+test('vector edits rebuild faces while retaining unrelated chains and the original graph', () => {
   const graph = { ok: true, width: 21, height: 21, chains: [
-    { id: 0, points: [[2, 2], [18, 2], [18, 18]], semanticBits: 1, confidence: .9 },
-    { id: 1, points: [[18, 18], [2, 18], [2, 2]], semanticBits: 1, confidence: .9 },
+    { id: 0, points: [[2, 2], [18, 2], [18, 18]], semanticBits: 1, confidence: .9, touchesImageEdge:false },
+    { id: 1, points: [[18, 18], [2, 18], [2, 2]], semanticBits: 1, confidence: .9, touchesImageEdge:false },
   ], faces: [], unresolved: [] };
   const original = structuredClone(graph);
   const closed = calculate('editBoundaryGraph', { graph, command: { type: 'replace', chainId: 0, points: graph.chains[0].points } });
@@ -111,7 +111,10 @@ test('editing source-pixel chains rebuilds faces and leaves the original graph u
   assert.equal(removed.chains.length, 1);
   const cut = calculate('editBoundaryGraph', { graph, command: { type: 'cut', chainId: 0, point: [10, 2] } });
   assert.equal(cut.faces.length, 0);
-  assert.equal(cut.chains.length, 1);
+  assert.equal(cut.chains.length, 3);
+  assert.deepEqual(cut.chains.find(row=>row.id===1),graph.chains[1]);
+  assert.equal(cut.chains.some(row=>row.id===0),false);
+  assert.deepEqual(cut.changeSet.removed,[0]);
   assert.equal(cut.unresolved.filter(row => row.reason === 'open-boundary').length, 2);
   assert.deepEqual(graph, original);
   assert.throws(() => calculate('editBoundaryGraph', { graph, command: { type: 'replace', chainId: 0, points: [[0, 0], [18, 18]] } }), /endpoint|접점/i);
