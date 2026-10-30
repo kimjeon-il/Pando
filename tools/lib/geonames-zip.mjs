@@ -2,7 +2,7 @@
  * Supports ZIP32/store/deflate with central-directory CRC and size checks; fails closed on ZIP64.
  */
 import { createReadStream, promises as fs } from 'node:fs';
-import { createInflateRaw } from 'node:zlib';
+import { createInflateRaw, inflateRawSync } from 'node:zlib';
 import { Readable } from 'node:stream';
 import { createInterface } from 'node:readline';
 
@@ -31,10 +31,7 @@ const readExact = async (fd, size, at) => {
   }
   return result;
 };
-export async function zipMembers(zipPath) {
-  const fd = await fs.open(zipPath, 'r');
-  try {
-    const { size } = await fd.stat();
+async function readZipMembers(fd, size, {lazy=false,maxCentral=Infinity}={}) {
     const tailSize = Math.min(size, 65557);
     const tail = await readExact(fd, tailSize, size - tailSize);
     let eocd = -1;
@@ -50,6 +47,7 @@ export async function zipMembers(zipPath) {
       throw Error('Split ZIP not supported');
     const count = tail.readUInt16LE(eocd + 10), centralBytes = tail.readUInt32LE(eocd + 12),
       centralStart = tail.readUInt32LE(eocd + 16);
+    if (centralBytes > maxCentral) throw Error('ZIP central directory exceeds byte budget');
     if (count === 65535 || centralBytes === TOO_LARGE || centralStart === TOO_LARGE)
       throw Error('ZIP64 requires an approved ZIP library');
     if (centralStart + centralBytes > size - tailSize + eocd)
@@ -74,12 +72,15 @@ export async function zipMembers(zipPath) {
         throw Error('Unsupported or encrypted ZIP entry: ' + name);
       if (!name || name.startsWith('/') || name.includes('\\') ||
           name.split('/').some(x => x === '..')) throw Error('Unsafe ZIP entry: ' + name);
-      const local = await readExact(fd, 30, offset);
-      if (local.readUInt32LE(0) !== SIG_LOCAL || local.readUInt16LE(8) !== method)
-        throw Error('ZIP local header mismatch: ' + name);
-      const lname = local.readUInt16LE(26), lextra = local.readUInt16LE(28);
-      const dataAt = offset + 30 + lname + lextra;
-      if (dataAt + compressed > centralStart) throw Error('ZIP data outside content region: ' + name);
+      let dataAt;
+      if (!lazy) {
+        const local = await readExact(fd, 30, offset);
+        if (local.readUInt32LE(0) !== SIG_LOCAL || local.readUInt16LE(8) !== method)
+          throw Error('ZIP local header mismatch: ' + name);
+        const lname = local.readUInt16LE(26), lextra = local.readUInt16LE(28);
+        dataAt = offset + 30 + lname + lextra;
+        if (dataAt + compressed > centralStart) throw Error('ZIP data outside content region: ' + name);
+      } else if (offset + 30 > centralStart) throw Error('ZIP local header outside content region: ' + name);
       const timeISO = [
         1980 + ((date >>> 9) & 127),
         String((date >>> 5) & 15).padStart(2, '0'),
@@ -89,12 +90,44 @@ export async function zipMembers(zipPath) {
         String((time >>> 5) & 63).padStart(2, '0'),
         String((time & 31) * 2).padStart(2, '0'),
       ].join(':');
-      members.push({ name, method, compressed, uncompressed, crc32, dataAt, timeISO });
+      members.push({ name, method, compressed, uncompressed, crc32, ...(lazy?{localOffset:offset,centralStart}:{dataAt}), timeISO });
       p += 46 + n + extra + comment;
     }
     if (p !== centralBytes) throw Error('Unexpected ZIP central directory trailing bytes');
     return members;
-  } finally { await fd.close(); }
+}
+export async function zipMembers(zipPath) {
+  const fd = await fs.open(zipPath, 'r');
+  try {const {size}=await fd.stat();return await readZipMembers(fd,size);}
+  finally { await fd.close(); }
+}
+async function exactRange(readRange,start,length){
+  if(!length)return Buffer.alloc(0);
+  const bytes=await readRange(start,start+length-1);
+  if(!(bytes instanceof Uint8Array)||bytes.length!==length)throw Error('Truncated ZIP range at offset '+start);
+  return Buffer.from(bytes);
+}
+export async function zipRangeMembers({size,readRange}){
+  if(!Number.isSafeInteger(size)||size<22||typeof readRange!=='function')throw Error('Invalid bounded ZIP source');
+  const fd={read:async(buffer,offset,length,position)=>{const bytes=await exactRange(readRange,position,length);bytes.copy(buffer,offset);return {bytesRead:length};}};
+  return readZipMembers(fd,size,{lazy:true,maxCentral:8*1024*1024});
+}
+export async function readZipRangeMember({entry,readRange}){
+  if(!entry||typeof entry.name!=='string'||![0,8].includes(entry.method)||typeof readRange!=='function'||
+    ![entry.localOffset,entry.centralStart,entry.compressed,entry.uncompressed,entry.crc32].every(Number.isSafeInteger)||
+    entry.localOffset<0||entry.centralStart<entry.localOffset+30||entry.compressed<0||entry.compressed>8*1024*1024||
+    entry.uncompressed<0||entry.uncompressed>16*1024*1024)throw Error('Invalid bounded ZIP member');
+  const local=await exactRange(readRange,entry.localOffset,30);
+  if(local.readUInt32LE(0)!==SIG_LOCAL||(local.readUInt16LE(6)&1)||local.readUInt16LE(8)!==entry.method)throw Error('ZIP local header mismatch: '+entry.name);
+  const nameLength=local.readUInt16LE(26),extraLength=local.readUInt16LE(28),dataAt=entry.localOffset+30+nameLength+extraLength;
+  if(dataAt+entry.compressed>entry.centralStart)throw Error('ZIP data outside content region: '+entry.name);
+  const name=await exactRange(readRange,entry.localOffset+30,nameLength);
+  if(name.toString('utf8')!==entry.name)throw Error('ZIP local member name mismatch: '+entry.name);
+  const compressed=await exactRange(readRange,dataAt,entry.compressed);
+  const bytes=entry.method===8?inflateRawSync(compressed,{maxOutputLength:Math.max(1,entry.uncompressed)}):compressed;
+  if(bytes.length!==entry.uncompressed||((crcStep(0xffffffff,bytes)^0xffffffff)>>>0)!==entry.crc32)
+    throw Error('ZIP CRC/size mismatch: '+entry.name);
+  return bytes;
 }
 export async function* zipMemberChunks(zipPath, member) {
   let length = 0, crc = 0xffffffff;
