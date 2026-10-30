@@ -64,6 +64,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer test dependencies failed' }
           python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_signed_elevation_and_byte_boundary tests.python.test_build_terrain_dem.TerrainDemTest.test_webp_roundtrip_and_reproducibility tests.python.test_build_terrain_dem.TerrainDemTest.test_shade_quantization_preserves_elevation_and_limits_error tests.python.test_build_terrain_dem.TerrainDemTest.test_coarse_polar_gutter_clamps_adjacent_shade tests.python.test_build_terrain_dem.TerrainDemTest.test_range_and_nodata_are_not_silently_zeroed
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer native encoding calls failed' }
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_keeps_white_ice_and_excludes_white_water tests.python.test_build_terrain_dem.TerrainDemTest.test_nearly_white_water_is_not_a_land_donor_but_real_snow_is_kept tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_average_does_not_dilute_a_small_island_with_white_sea
+          if ($LASTEXITCODE -ne 0) { throw 'DEM producer tint masking differs from its source contract' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-encode-${{ matrix.os }}-${{ github.sha }}

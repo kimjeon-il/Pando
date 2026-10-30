@@ -269,17 +269,23 @@ def asset_summary(output: Path, level_definitions):
 
 
 def tint_validity(rgb, protected_ice, land, land_interior):
-    """HYP_HR white water background is not an elevation NoData value.
-
-    Colours outside canonical land cannot be land-colour donors, even when
-    coastal resampling made the water background slightly less than white.
-    Keep white ice, and nearly white snow inside canonical land.
-    """
-    # Near-white edge samples can still be water blended into a sub-pixel
-    # island. Keep bright interior snow; independent ice protection wins.
-    near_white = np.min(rgb, axis=0) >= 230
-    reliable_colour = np.any(rgb != 255, axis=0) & (~near_white | land_interior)
-    return (land & reliable_colour) | protected_ice
+    """Use the native land, snow and protected-ice donor classification."""
+    if not isinstance(rgb, np.ndarray) or rgb.ndim != 3 or rgb.shape[0] != 3 or rgb.dtype != np.uint8:
+        raise ValueError('Tint colours require a three-channel uint8 grid')
+    rows, columns = rgb.shape[1:]
+    masks = (protected_ice, land, land_interior)
+    if not rows or not columns or any(not isinstance(mask, np.ndarray) or mask.shape != (rows, columns) for mask in masks):
+        raise ValueError('Tint masks must match the colour grid')
+    binary = os.environ.get('PANDO_TERRAIN_DEM_ENCODE_BINARY')
+    if not binary:
+        raise RuntimeError('PANDO_TERRAIN_DEM_ENCODE_BINARY is required for DEM generation')
+    header = struct.pack('<8sII', b'PDEMMSK1', columns, rows)
+    payload = header + np.ascontiguousarray(rgb).tobytes()
+    payload += b''.join(np.ascontiguousarray(mask != 0, dtype=np.uint8).tobytes() for mask in masks)
+    result = subprocess.run([binary], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180).stdout
+    if len(result) != rows * columns:
+        raise ValueError('Invalid native tint mask output length')
+    return np.frombuffer(result, dtype=np.uint8).reshape(rows, columns).astype(bool)
 
 
 def fill_tint_background(rgb, valid):
