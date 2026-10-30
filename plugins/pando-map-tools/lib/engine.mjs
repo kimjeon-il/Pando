@@ -221,7 +221,9 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
       overview:()=>resizeRaster(image,[256,256],signal),tileRaster:tile=>cropRaster(image,tile,512),
       observedChannels:manifest.observedChannels.map(v=>REFERENCE_BOUNDARY_CHANNELS.indexOf(v))});
     check(signal);
-    const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:.75}),image,previous?.graph || null);
+    // Keep the thinned pixel network as the source master. Simplifying each
+    // path independently can collapse two distinct arcs into overlapping lines.
+    const graph=originalGraph(core.referenceBoundaryGraph(image.width,image.height,mask.labels,mask.confidence,{threshold:.55,simplifyTolerance:0}),image,previous?.graph || null);
     if(previous)job.history.at(-1).changeSet=structuredClone(graph.changeSet);
     job.graph=graph;job.segmentation={signature:digest({source:job.source,model:manifest.model.sha256}),rawGraph:structuredClone(graph)};
     job.resources.ocrLanguageHashes={};
