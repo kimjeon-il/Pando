@@ -109,6 +109,48 @@ export async function auditHydroSourceArchives({features,archives},options={}){
   if(!isDeepStrictEqual(Object.keys(parts).sort(),Object.keys(source.rows).sort()))throw Error('Selected Hydro source IDs differ from feature parts');
   return auditHydroParts({parts,raw:source.rows,sourceOrder:source.sourceOrder},options);
 }
+// Plan the same ordered region repairs as the producer without writing a pack.
+export async function planHydroFeatureRepairs({features,raw,sourceOrder},options={}){
+  options.signal?.throwIfAborted();let parts=hydroPartsBySource(features);
+  if(!raw||!Array.isArray(sourceOrder)||!isDeepStrictEqual(Object.keys(parts).sort(),Object.keys(raw).sort()))
+    throw Error('Hydro feature and source identities differ');
+  const byFid=new Map(),output=structuredClone(features);
+  for(const feature of output){const fid=feature?.metadata?.fid;if(!Number.isSafeInteger(fid)||byFid.has(fid))throw Error('Unique Hydro feature identity required');byFid.set(fid,feature);}
+  const audit=()=>auditHydroParts({parts,raw,sourceOrder},options),before=await audit();
+  const pair=item=>JSON.stringify([item.source,item.downstream]),expected=new Set(before.issues.map(pair));
+  const changes=[],regionResults={};let after=before;
+  for(const region of regions){
+    options.signal?.throwIfAborted();const repaired=await repairHydroParts({parts,raw,region},options);
+    parts=repaired.parts;changes.push(...repaired.changes);after=await audit();
+    if(after.issues.some(item=>!expected.has(pair(item))))throw Error('New broken Hydro connection after '+region);
+    regionResults[region]=after.regions[region];
+    if(regionResults[region].repairable)throw Error('Repairable Hydro gaps remain after '+region);
+  }
+  for(const region of regions)if((await repairHydroParts({parts,raw,region},options)).changes.length)
+    throw Error('Hydro repair is not idempotent');
+  const changed=new Set();
+  for(const change of changes){
+    const feature=byFid.get(change.fid),geometry=feature?.geometry;
+    const lines=geometry?.type==='LineString'?[geometry.coordinates]:geometry?.type==='MultiLineString'?geometry.coordinates:null;
+    if(!lines||!Number.isSafeInteger(change.part)||change.part<0||change.part>=lines.length||![0,-1].includes(change.index))
+      throw Error('Invalid Hydro feature repair receipt');
+    const line=lines[change.part],index=change.index===0?0:line.length-1;
+    if(!line.length||!isDeepStrictEqual(line[index],change.before))throw Error('Hydro feature repair differs from input');
+    line[index]=structuredClone(change.after);changed.add(change.fid);
+    if(feature.metadata.terminal&&change.index===-1&&change.part===lines.length-1)
+      feature.metadata.terminal.renderEndpoint=structuredClone(change.after);
+  }
+  const changedFeatureIds=[...changed].sort((a,b)=>a-b);
+  return {features:output,baselineRegions:before.regions,regions:regionResults,changes,remaining:after.issues,changedFeatureIds,
+    unchangedFeatureCount:features.length-changed.size,boundsPendingFor:changedFeatureIds};
+}
+export async function planHydroSourceRepairs({features,archives},options={}){
+  if(!Array.isArray(archives)||!archives.length||archives.some(entry=>entry.selected!==undefined))
+    throw Error('Explicit Hydro archives with a shared feature selection required');
+  const parts=hydroPartsBySource(features),selected=new Set(Object.keys(parts).map(Number));
+  const source=await readHydroSources(archives,{selected,signal:options.signal});
+  return planHydroFeatureRepairs({features,raw:source.rows,sourceOrder:source.sourceOrder},options);
+}
 // Verify a staged pack against its baseline and explicitly recorded endpoint changes.
 export async function verifyHydroStaged({baseline,staged,report,archives},options={}){
   options.signal?.throwIfAborted();

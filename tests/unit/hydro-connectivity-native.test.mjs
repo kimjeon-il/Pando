@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,auditHydroSourceArchives,hydroPartsBySource,repairHydroParts,validateHydroAudit,validateHydroRepair,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {auditHydroParts,auditHydroSourceArchives,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,repairHydroParts,validateHydroAudit,validateHydroRepair,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -140,6 +140,21 @@ test('repair result validation rejects unreported and interior changes',()=>{
   result.parts=structuredClone(input.parts);result.parts['1'][0].system='other';
   assert.throws(()=>validateHydroRepair(result,input),/metadata/i);
 });
+test('regional repair planning preserves inputs and verifies every changed endpoint',{
+  skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
+},async()=>{
+  const input=fixture(),features=Object.values(input.parts).map(([row])=>({
+    metadata:{category:'river',sourceId:String(row.fid),fid:row.fid,flags:row.aligned?1:0,systemId:row.system,
+      ...(row.fid===1?{terminal:{renderEndpoint:row.points.at(-1)}}:{})},
+    geometry:{type:'LineString',coordinates:row.points}}));
+  const original=structuredClone(features),request={features,raw:input.raw,sourceOrder:[1,2,3]};
+  const result=await planHydroFeatureRepairs(request,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+  assert.deepEqual(features,original);assert.deepEqual(result.changedFeatureIds,[1,3]);
+  assert.deepEqual(result.features[0].geometry.coordinates.at(-1),[1.002,0]);
+  assert.deepEqual(result.features[0].metadata.terminal.renderEndpoint,[1.002,0]);
+  assert.equal(result.unchangedFeatureCount,1);assert.equal(result.remaining.length,0);
+  assert.equal(result.baselineRegions.eu.repairable,2);assert.equal(result.regions.eu.issues||0,0);
+});
 test('source-bound Node audit runs the verified native engine',{
   skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
 },async()=>{
@@ -160,6 +175,9 @@ test('source-bound Node audit runs the verified native engine',{
   const request={baseline,staged,report,archives},options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
   const verification=await verifyHydroStaged(request,options);
   assert.equal(verification.features,3);assert.equal(verification.unchangedFeatures,2);assert.equal(verification.remaining,0);
+  const planned=await planHydroSourceRepairs({features:baseline.features,archives:[{archive:archives[0].archive,specification}]},options);
+  assert.deepEqual(planned.changedFeatureIds,[1]);assert.deepEqual(planned.features[0].geometry.coordinates.at(-1),[1,0]);
+  assert.equal((await verifyHydroStaged({baseline,staged:{features:planned.features},report:planned,archives},options)).remaining,0);
   delete staged.features[0].metadata.bounds;await assert.rejects(verifyHydroStaged(request,options),/bounds/i);
   staged.features[0].metadata.bounds=[0,0,1000000,0];
   staged.features[2].geometry.coordinates[0]=[0,2];await assert.rejects(verifyHydroStaged(request,options),/geometry/i);
