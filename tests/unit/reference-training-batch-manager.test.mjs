@@ -35,6 +35,9 @@ test('training batch management rejects changed samples and preserves existing o
   assert.equal(existsSync(sampleOutput),false);
   const changed={...request,output:join(root,'fresh.pt')};writeFileSync(join(sample,'target.f32'),'changed');
   await assert.rejects(nativeTrainingBatch(changed),/tensor changed/i);assert.equal(existsSync(changed.output),false);
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,transfer:'weights-only-no-optimizer',weightsSha256:sha('weights'),sourceCheckpointSha256:'not-a-hash'}));
+  await assert.rejects(nativeTrainingBatch(changed),/initializer source/i);
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,transfer:'weights-only-no-optimizer',weightsSha256:sha('weights')}));
   writeFileSync(join(sample,'target.f32'),'target');
   receipt.tileIndex=1;writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));
   await assert.rejects(nativeTrainingBatch(changed),/sample index/i);assert.equal(existsSync(changed.output),false);

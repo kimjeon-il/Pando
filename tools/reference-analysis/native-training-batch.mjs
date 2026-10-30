@@ -28,18 +28,25 @@ function positiveWeight(path){if(!path)return {argument:'none',hash:null};const 
 function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData}){
   if(mode==='warm'){
     if(epoch!==0)throw Error('A weights-only warm start begins at epoch zero');
-    const transfer=JSON.parse(readBounded(join(dirname(inputPath),'transfer.json'),1024*1024).toString('utf8'));
+    const initializationRecordPath=join(dirname(inputPath),'transfer.json'),recordBytes=readBounded(initializationRecordPath,1024*1024);
+    const transfer=JSON.parse(recordBytes.toString('utf8'));
     if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||transfer.transfer!=='weights-only-no-optimizer'||transfer.weightsSha256!==inputHash)
       throw Error('Verified private weights-only warm start required');
-    return {previous:null,cursor:0};
+    const initializationSourceSha256=transfer.sourceCheckpointSha256??null;
+    if(initializationSourceSha256!==null&&!/^[a-f0-9]{64}$/.test(initializationSourceSha256))throw Error('Invalid initializer source checkpoint identity');
+    return {previous:null,cursor:0,initializationSourceSha256,initializationWeightsSha256:inputHash,
+      initializationRecordPath,initializationRecordHash:sha(recordBytes)};
   }
-  const previous=JSON.parse(readBounded(inputPath+'.receipt.json',1024*1024).toString('utf8'));
+  const initializationRecordPath=inputPath+'.receipt.json',recordBytes=readBounded(initializationRecordPath,1024*1024),previous=JSON.parse(recordBytes.toString('utf8'));
   if(previous.schemaVersion!==1||previous.trainingOnly!==true||previous.releaseApproved!==false||previous.lineageComplete!==false||
     previous.checkpointSha256!==inputHash||previous.device!==device||previous.precision!==precision||previous.seed!==seed||previous.freezeEpochs!==freezeEpochs||
     previous.learningRate!==learningRate||previous.unobservedMask!==unobservedMask||previous.positiveWeightSha256!==weights.hash)throw Error('Checkpoint receipt or training configuration differs');
+  const initializationSourceSha256=previous.initializationSourceSha256??null,initializationWeightsSha256=previous.initializationWeightsSha256??null;
+  if([initializationSourceSha256,initializationWeightsSha256].some(value=>value!==null&&!/^[a-f0-9]{64}$/.test(value)))throw Error('Invalid initializer source or weights identity');
+  const state={previous,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash:sha(recordBytes)};
   if(epoch===previous.epoch){if(previous.orderSha256!==orderData.hash||previous.orderLength!==orderData.order.length)throw Error('Training order differs from checkpoint receipt');
-    return {previous,cursor:previous.cursor};}
-  if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {previous,cursor:0};
+    return {...state,cursor:previous.cursor};}
+  if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {...state,cursor:0};
   throw Error('Checkpoint is not at the requested epoch boundary');
 }
 async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
@@ -84,7 +91,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
-  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
+  const {previous,cursor,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
   if(!Number.isSafeInteger(cursor)||cursor<0||cursor+samples.length>orderData.order.length)throw Error('Training cursor exceeds sample order');
   const checked=samples.map((sample,i)=>{if(!sample||!Number.isSafeInteger(sample.index)||sample.index!==orderData.order[cursor+i]||!sample.directory)
     throw Error('Training samples differ from the saved order');const data=verifyTrainingSample(sample.directory);
@@ -118,7 +125,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     result.batch!==samples.length||!Number.isFinite(result.loss)||typeof result.applied!=='boolean'||result.checkpointBytes!==info.size||
     (amp&&(!Number.isFinite(result.ampScale)||result.ampScale<=0||!Number.isInteger(result.ampGrowthTracker)||result.ampGrowthTracker<0||result.ampGrowthTracker>=2000))||
     (!amp&&(result.ampScale!==null||result.ampGrowthTracker!==null||result.applied!==true)))throw Error('Native training batch returned an invalid result; preserve its checkpoint');
-  if(identity(inputPath)!==inputHash||sha(readBounded(corpusPath,32*1024*1024))!==corpusHash||readOrder(resolve(order)).hash!==orderData.hash||positiveWeight(positiveWeights).hash!==weights.hash)
+  if(identity(inputPath)!==inputHash||sha(readBounded(initializationRecordPath,1024*1024))!==initializationRecordHash||sha(readBounded(corpusPath,32*1024*1024))!==corpusHash||readOrder(resolve(order)).hash!==orderData.hash||positiveWeight(positiveWeights).hash!==weights.hash)
     throw Error('Training inputs changed during execution; preserve its checkpoint');
   if(combined&&(sha(readBounded(resolve(auxiliary),32*1024*1024))!==auxiliaryHash||await corpusFingerprint(corpus,auxiliary)!==combined.lineageFingerprint))
     throw Error('Combined training sources changed during execution; preserve its checkpoint');
@@ -126,7 +133,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   for(const item of evidence)recheckMacroTrainingSource(item.checks);
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
-    initialization:previous?previous.initialization:'weights-only-no-optimizer',device,corpusSha256:corpusHash,
+    initialization:previous?previous.initialization:'weights-only-no-optimizer',initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,
     ...(combined?{auxiliarySha256:auxiliaryHash,lineageFingerprint:combined.lineageFingerprint}:{}),epoch,cursor:result.cursor,
     orderSha256:orderData.hash,orderLength:orderData.order.length,seed,freezeEpochs,learningRate,unobservedMask,positiveWeightSha256:weights.hash,
     ampScale:result.ampScale,ampGrowthTracker:result.ampGrowthTracker,attemptedBatches:count('attemptedBatches',1),
