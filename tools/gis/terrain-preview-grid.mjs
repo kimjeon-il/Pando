@@ -38,6 +38,37 @@ export function extractTerrainPreviewTile(world,level,column,row){
       output.set(world.data.subarray(source,source+4),(y*outWidth+x)*4);}}
   return {width:outWidth,height:outHeight,data:output};
 }
+export function verifyTerrainPreviewTileEdges(level,tiles){
+  const {width,height,columns,rows,tileSize}=validateLevel(level);
+  if(!Array.isArray(tiles)||tiles.length!==columns*rows)throw Error('Missing preview tile');
+  const byPosition=new Map();
+  for(const tile of tiles){
+    const {column,row}=tile||{};
+    if(!Number.isSafeInteger(column)||column<0||column>=columns||!Number.isSafeInteger(row)||row<0||row>=rows||
+      tile.width!==Math.min(tileSize,width-column*tileSize)+2||tile.height!==Math.min(tileSize,height-row*tileSize)+2||
+      !(tile.data instanceof Uint8Array)||tile.data.length!==tile.width*tile.height*4||byPosition.has(`${column},${row}`))
+      throw Error('Invalid preview tile');
+    byPosition.set(`${column},${row}`,tile);
+  }
+  const at=(tile,x,y)=>(y*tile.width+x)*4;
+  const same=(a,x,y,b,u,v)=>{
+    const i=at(a,x,y),j=at(b,u,v);
+    for(let k=0;k<4;k++)if(a.data[i+k]!==b.data[j+k])throw Error('Terrain preview gutter differs');
+  };
+  for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
+    const tile=byPosition.get(`${column},${row}`),next=byPosition.get(`${(column+1)%columns},${row}`);
+    for(let y=0;y<tile.height;y++){
+      same(tile,tile.width-1,y,next,1,y);same(tile,tile.width-2,y,next,0,y);
+    }
+    if(row+1<rows){const south=byPosition.get(`${column},${row+1}`);
+      for(let x=0;x<tile.width;x++){
+        same(tile,x,tile.height-1,south,x,1);same(tile,x,tile.height-2,south,x,0);
+      }
+    }
+    if(row===0)for(let x=0;x<tile.width;x++)same(tile,x,0,tile,x,1);
+    if(row===rows-1)for(let x=0;x<tile.width;x++)same(tile,x,tile.height-1,tile,x,tile.height-2);
+  }
+}
 export async function renderTerrainPreviewLevel({level,tiles,tint,land},{signal,terrainOptions={},imageOptions={}}={}){
   signal?.throwIfAborted();const {width,height,columns,rows}=validateLevel(level);
   if(!Number.isSafeInteger(level.id)||level.id<0||!tint||!(tint.data instanceof Uint8Array)||
@@ -45,14 +76,16 @@ export async function renderTerrainPreviewLevel({level,tiles,tint,land},{signal,
     !(land instanceof Uint8Array)||land.length!==width*height)throw Error('Explicit terrain tint and land pixels required');
   const dem=assembleTerrainDemLevel(level,tiles),pixels=await composeNativeTerrainPreview({dem:dem.data,tint:tint.data,land,
     width,height,tintWidth:tint.width,tintHeight:tint.height,x:0,y:0,levelWidth:width,levelHeight:height},{...terrainOptions,signal});
-  const world={width,height,data:pixels},output=[];let tileBytes=0;
+  const world={width,height,data:pixels},output=[],decodedTiles=[];let tileBytes=0;
   for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
     signal?.throwIfAborted();const tile=extractTerrainPreviewTile(world,level,column,row);
     const encoded=await encodeNativeWebpLossless(tile,{...imageOptions,signal}),decoded=await readNativeRawWebp(encoded.data,{...imageOptions,signal});
     if(decoded.width!==tile.width||decoded.height!==tile.height||!decoded.data.equals(tile.data))throw Error('Terrain preview WebP did not preserve RGBA pixels');
+    decodedTiles.push({column,row,...decoded});
     tileBytes+=encoded.data.length;if(tileBytes>32000000)throw Error('Terrain preview exceeds byte budget');
     output.push({path:`${level.id}/${column}-${row}.webp`,width:tile.width,height:tile.height,data:encoded.data,
       sha256:createHash('sha256').update(encoded.data).digest('hex')});
   }
+  verifyTerrainPreviewTileEdges(level,decodedTiles);
   return {tiles:output,tileBytes};
 }

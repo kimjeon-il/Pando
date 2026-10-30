@@ -2,11 +2,30 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 import {composeNativeTerrainPreview,rasterizeNativeTerrainLand} from '../../tools/gis/terrain-preview-native.mjs';
 
 const binary=process.env.PANDO_TERRAIN_PREVIEW_BINARY;
 const cases=JSON.parse(readFileSync('tests/fixtures/terrain-preview-kernel.json','utf8'));
 const masks=JSON.parse(readFileSync('tests/fixtures/terrain-land-mask.json','utf8'));
+test('frozen preview slopes, coasts and polar rows agree with Canvas DEM conversion',()=>{
+  const context={self:{}};
+  vm.runInNewContext(readFileSync('shared/frontend/js/workers/canvas-terrain-dem-core.js','utf8'),context);
+  const convert=context.self.PandoLabCanvasTerrainDem.convertTile;
+  for(const row of cases.filter(item=>item.name.startsWith('latitude-'))){
+    const tint=[];for(let i=0;i<row.tint.length;i+=3)tint.push(...row.tint.slice(i,i+3),255);
+    const west=-180+(row.x+1)*360/row.levelWidth,north=90-(row.y+1)*180/row.levelHeight;
+    const options={dem:Uint8ClampedArray.from(row.dem),width:row.width,height:row.height,tint:Uint8ClampedArray.from(tint),
+      tintWidth:row.tintWidth,tintHeight:row.tintHeight,bounds:[west,north,west+5*360/row.levelWidth,north-5*180/row.levelHeight],
+      pixelWidth:5,pixelHeight:5,levelWidth:row.levelWidth,levelHeight:row.levelHeight};
+    const actual=convert(options);
+    for(let i=0;i<row.width*row.height;i++){
+      const rgba=row.land[i]?actual.land:actual.ocean;
+      for(let channel=0;channel<3;channel++)assert.ok(Math.abs(row.expected[i*4+channel]-rgba[i*4+channel])<=2,row.name);
+      assert.ok(Math.abs(row.expected[i*4+3]-actual.political[i*4])<=2,row.name);
+    }
+  }
+});
 function encode(row){
   const header=Buffer.alloc(56);header.write('PDTERR01',0,'ascii');
   for(const [i,value] of [row.width,row.height,row.tintWidth,row.tintHeight].entries())header.writeUInt32LE(value,8+i*4);

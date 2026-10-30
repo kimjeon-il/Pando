@@ -4,8 +4,6 @@ import {mkdtempSync,mkdirSync,symlinkSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename,join} from 'node:path';
 import {buildCommand,parseArguments,runSource,ROOT,TASK_SOURCES} from '../../scripts/gis/run-source.mjs';
-import {packageNativeTool} from '../../tools/native-tool.mjs';
-import {terrainPreviewSources} from '../../tools/gis/terrain-preview-native.mjs';
 
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
  const calls=[],logs=[];
@@ -28,6 +26,7 @@ test('native Node tools and not-yet-migrated Python GIS tools use their own inte
  assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
  assert.match(buildCommand('historical-border',[])[1],/build-german-1914-base\.mjs$/);
+ assert.match(buildCommand('terrain-preview',[])[1],/build-terrain-preview\.mjs$/);
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{
  const logs=[],calls=[];
@@ -57,14 +56,11 @@ test('mapped scripts cannot follow linked directories outside an explicit reposi
  symlinkSync(outside,join(root,'tools'),process.platform==='win32'?'junction':'dir');
  assert.throws(()=>buildCommand('terrain-dem',[],{root}),/escaped repository/);
 });
-test('terrain preview execution requires a source-bound native compositor',t=>{
- const root=mkdtempSync(join(tmpdir(),'gis-terrain-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-preview.py',...terrainPreviewSources]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
- const argv=['--task','terrain-preview','--execute'],calls=[];
- assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
- const binary=join(root,process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview');writeFileSync(binary,'fixture binary');
- packageNativeTool({root,binary,directory:join(root,'build-native/terrain-preview/artifact'),target:'terrain-preview',platform:process.platform,
-   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainPreviewSources});
- assert.equal(runSource({root,argv,output:()=>{},spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
- assert.equal(calls[0].env.PANDO_TERRAIN_PREVIEW_BINARY,join(root,'build-native/terrain-preview/artifact',basename(binary)));
+test('terrain preview dispatcher invokes the Node owner with explicit arguments',()=>{
+ const calls=[];
+ assert.equal(runSource({argv:['--task','terrain-preview','--execute','--','--check'],output:()=>{},
+   spawn:(exe,args,options)=>{calls.push({exe,args,options});return {status:0,signal:null};}}),0);
+ assert.equal(calls[0].exe,process.execPath);
+ assert.match(calls[0].args[0],/build-terrain-preview\.mjs$/);
+ assert.deepEqual(calls[0].args.slice(1),['--check']);
 });

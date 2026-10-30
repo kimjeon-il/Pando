@@ -39,9 +39,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Build the image codec needed by the integrated terrain workflow
         if: inputs.target == 'terrain-preview-integrated'
         shell: pwsh
@@ -68,15 +65,8 @@ jobs:
           node tools/gis/package-terrain-preview.mjs --binary $env:PANDO_TERRAIN_PREVIEW_BINARY --directory build-native/terrain-preview/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview packaging failed' }
           $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-          node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs
+          node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
-      - name: Verify the existing preview producer against the native compositor
-        shell: pwsh
-        run: |
-          python -m pip install Pillow==12.3.0 numpy==2.3.5
-          if ($LASTEXITCODE -ne 0) { throw 'Terrain test dependencies failed' }
-          python -m unittest tests.python.test_build_terrain_preview
-          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview producer checks failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-preview-${{ matrix.os }}-${{ github.sha }}
