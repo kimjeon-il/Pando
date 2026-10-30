@@ -158,15 +158,43 @@ def run(spec):
         image.thumbnail((2200, 2200), Image.Resampling.LANCZOS)
         sx, sy = image.width / width, image.height / height
         drawing = ImageDraw.Draw(image)
-        for chain in (job.get('graph') or {}).get('chains', []):
-            points = [(x * sx, y * sy) for x, y in chain['points']]
-            if len(points) >= 2:
-                bits = chain.get('semanticBits', 0)
-                color = '#a94ddd' if bits & 3 == 3 else '#e85530' if bits & 1 else '#247bed' if bits & 2 else '#00b6bb'
-                drawing.line(points, fill=color, width=2)
+        selected = spec.get('selectedGeometry')
+        selected_paths = []
+        if selected is None:
+            for chain in (job.get('graph') or {}).get('chains', []):
+                points = [(x * sx, y * sy) for x, y in chain['points']]
+                if len(points) >= 2:
+                    bits = chain.get('semanticBits', 0)
+                    color = '#a94ddd' if bits & 3 == 3 else '#e85530' if bits & 1 else '#247bed' if bits & 2 else '#00b6bb'
+                    drawing.line(points, fill=color, width=2)
+        else:
+            for geometry in selected:
+                if geometry['type'] == 'LineString':
+                    selected_paths.append(geometry['coordinates'])
+                elif geometry['type'] == 'Polygon':
+                    selected_paths.extend(geometry['coordinates'])
+                else:
+                    raise ValueError('Unsupported selected source-pixel geometry')
+            for path in selected_paths:
+                drawing.line([(x * sx, y * sy) for x, y in path], fill='#16803c', width=2)
+
+        def on_selection(p):
+            if selected is None:
+                return True
+            for path in selected_paths:
+                for a, b in zip(path, path[1:]):
+                    dx, dy = b[0]-a[0], b[1]-a[1]
+                    squared = dx*dx+dy*dy
+                    if squared == 0:
+                        continue
+                    t = max(0, min(1, ((p[0]-a[0])*dx+(p[1]-a[1])*dy)/squared))
+                    if math.hypot(p[0]-a[0]-t*dx, p[1]-a[1]-t*dy) <= 2:
+                        return True
+            return False
+
         for item in (job.get('graph') or {}).get('unresolved', []):
             point = item.get('point')
-            if point:
+            if point and on_selection(point):
                 x, y = point[0] * sx, point[1] * sy
                 drawing.ellipse((x-5, y-5, x+5, y+5), outline='#ffba00', width=2)
         residuals = {row['id']: row['meters'] for row in (job.get('warp') or {}).get('diagnostics', {}).get('residuals', [])}
@@ -181,7 +209,9 @@ def run(spec):
         if region:
             drawing.rectangle((region['x']*sx, region['y']*sy, (region['x']+region['width']-1)*sx, (region['y']+region['height']-1)*sy), outline='#00aaff', width=2)
         quality = job.get('quality') or {}
-        banner = 'PROVISIONAL | orange: border / blue: admin / purple: mixed / yellow: unresolved'
+        banner = ('REVIEWED SELECTION | green: selected geometry / yellow: unresolved | model provisional'
+                  if selected is not None else
+                  'PROVISIONAL CANDIDATES | orange: border / blue: admin / purple: mixed / yellow: unresolved')
         banner += ' | georeference: ' + ('recommended' if quality.get('recommended') else 'needs review')
         drawing.rectangle((0, 0, image.width, 24), fill='white')
         drawing.text((5, 5), banner, fill='black')
