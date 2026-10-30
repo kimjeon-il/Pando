@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {writeBalancedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 import {matchingTorchLibrary} from '../../tools/reference-analysis/native-infer.mjs';
+
+test('training order CLI requires explicit corpus and configuration',()=>{
+  const result=spawnSync(process.execPath,['tools/reference-analysis/training-order.mjs'],{encoding:'utf8',timeout:10000});
+  assert.equal(result.status,1);assert.match(result.stderr,/explicit/i);
+});
 
 test('balanced order refuses invalid groups and preserves existing output',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-order-'));t.after(()=>rmSync(root,{recursive:true}));

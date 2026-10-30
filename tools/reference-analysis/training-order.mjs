@@ -6,8 +6,11 @@ import {delimiter,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
+import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
+import {readTrainingBounded} from './training-evidence.mjs';
+import {indexMacroTrainingDataset} from './training-tiles.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,torchLibrary,root=defaultRoot,
@@ -47,4 +50,21 @@ export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,tor
   for(let offset=0;offset<bytes.length;offset+=8)if(bytes.readBigUInt64LE(offset)>=BigInt(total))throw Error('Native training order contains an invalid index');
   writeFileSync(resolve(output),bytes,{flag:'wx'});
   return {length,sha256:createHash('sha256').update(bytes).digest('hex'),toolRevision:manifest.revision};
+}
+export async function writeMacroTrainingOrder({corpus,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal}){
+  signal?.throwIfAborted();if(!corpus||!output||!torchLibrary)throw Error('Explicit macro corpus and training order inputs required');
+  if(existsSync(output))throw Error('Training order output exists; preserve it');
+  const dataset=await indexMacroTrainingDataset(corpus,{signal});
+  const result=await writeBalancedTrainingOrder({datasets:[dataset.tiles.map(tile=>tile.duplicateGroup)],epoch,seed,output,torchLibrary,root,directory,signal});
+  const corpusHash=createHash('sha256').update(readTrainingBounded(resolve(corpus),32*1024*1024)).digest('hex');
+  if(corpusHash!==dataset.corpusSha256)throw Error('Training corpus changed during order preparation; preserve the output');
+  return {...result,corpusSha256:dataset.corpusSha256,trainingOnly:true,releaseApproved:false};
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},epoch:{type:'string'},seed:{type:'string'},
+    output:{type:'string'},'torch-library':{type:'string'}}});
+    if(positionals.length||!/^\d+$/.test(values.epoch||'')||!/^\d+$/.test(values.seed||''))throw Error('Explicit macro corpus, epoch, seed and output required');
+    console.log(JSON.stringify(await writeMacroTrainingOrder({corpus:values.corpus,epoch:Number(values.epoch),seed:Number(values.seed),
+      output:values.output,torchLibrary:values['torch-library']})));
+  }catch(error){console.error('training-order: '+error.message);process.exitCode=1;}
 }
