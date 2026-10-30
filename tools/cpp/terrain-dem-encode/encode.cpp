@@ -23,7 +23,22 @@ int main(){try{
 #endif
   std::vector<Byte> input;std::array<char,65536> chunk{};while(std::cin){std::cin.read(chunk.data(),chunk.size());const auto size=std::cin.gcount();
     if(size>0){if(input.size()+std::size_t(size)>80ULL*1024*1024)throw std::invalid_argument("DEM encode input exceeds budget");input.insert(input.end(),chunk.data(),chunk.data()+size);}}
-  if(!std::cin.eof()||input.size()<28||std::string(input.begin(),input.begin()+8)!="PDEMENC1")throw std::invalid_argument("Invalid DEM encode input");
+  if(!std::cin.eof()||input.size()<16)throw std::invalid_argument("Invalid DEM encode input");
+  if(std::string(input.begin(),input.begin()+8)=="PDEMMSK1"){
+    const auto width=u32(input,8),height=u32(input,12);const std::uint64_t count=std::uint64_t(width)*height;
+    if(!width||!height||width>30000||height>16384||count>12000000||input.size()!=16+count*6)
+      throw std::invalid_argument("Invalid tint mask dimensions");
+    std::vector<Byte> mask(count);
+    for(std::size_t i=0;i<count;i++){
+      const auto r=input[16+i],g=input[16+count+i],b=input[16+2*count+i];
+      const bool ice=input[16+3*count+i],land=input[16+4*count+i],interior=input[16+5*count+i];
+      const bool nearWhite=std::min({r,g,b})>=230;
+      mask[i]=Byte(ice||(land&&(r!=255||g!=255||b!=255)&&(!nearWhite||interior)));
+    }
+    std::cout.write(reinterpret_cast<const char*>(mask.data()),static_cast<std::streamsize>(mask.size()));
+    if(!std::cout)throw std::runtime_error("Cannot write tint mask");return 0;
+  }
+  if(input.size()<28||std::string(input.begin(),input.begin()+8)!="PDEMENC1")throw std::invalid_argument("Invalid DEM encode input");
   const auto width=u32(input,8),height=u32(input,12),levelWidth=u32(input,16),levelHeight=u32(input,20);
   const auto north=static_cast<std::int32_t>(u32(input,24));const std::uint64_t count=std::uint64_t(width)*height;
   if(!width||!height||width>16384||height>16384||count>16777216||!levelWidth||!levelHeight||levelWidth>1000000||levelHeight>1000000||
