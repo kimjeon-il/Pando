@@ -42,17 +42,17 @@ original-pixel ratios and keeps source-family identity. Inventory distinguishes
 masters, official downsample candidates and these app derivatives. No training
 labels or accuracy results are inferred from a resized map.
 
-Map Toolkit's PNG input, RGBA resize, clockwise right-angle rotation and PNG encoding use the source-verified `pando-map-image` executable
+Map Toolkit's PNG, JPEG and WebP input, RGBA resize, clockwise right-angle rotation and PNG encoding use the source-verified `pando-map-image` executable
 in `build-native/map-image/artifact`; build it through the `map-image` GIS native
 workflow and install the artifact for the current platform. A missing or
-source-mismatched binary is an error. JPEG, WebP, PDF and preview rendering still
+source-mismatched binary is an error. PDF and preview rendering still
 use the existing adapter during migration. For private package or cloud-probe
 creation, set `PANDO_MAP_IMAGE_LINUX_ARTIFACT` and
 `PANDO_MAP_IMAGE_WINDOWS_ARTIFACT` to the matching CI artifact directories.
 Both artifacts must match the selected source revision; they are included in
 the private runtime, and no model or public data is changed by this setup.
-The executable statically includes zlib 1.3.2 and libpng 1.6.57; their notices
-are at `tools/cpp/map-image/zlib-LICENSE` and `tools/cpp/map-image/libpng-LICENSE`.
+The executable statically includes zlib 1.3.2, libpng 1.6.57, libjpeg-turbo
+3.1.4.1 and libwebp 1.6.0. Their notices are in `tools/cpp/map-image/`.
 
 Analysis runtime proof uses the plugin CLI with local map/model paths. Native
 application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS
