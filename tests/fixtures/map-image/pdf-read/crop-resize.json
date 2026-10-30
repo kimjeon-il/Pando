@@ -1,0 +1,34 @@
+{
+  "request": {
+    "action": "read",
+    "maxPixels": 4096,
+    "rect": {
+      "x": 20,
+      "y": 15,
+      "width": 250,
+      "height": 150
+    }
+  },
+  "expected": {
+    "width": 82,
+    "height": 49,
+    "originalWidth": 400,
+    "originalHeight": 200,
+    "mapping": {
+      "page": 1,
+      "pdfDpi": 144,
+      "georeference": null,
+      "rect": {
+        "x": 20,
+        "y": 15,
+        "width": 250,
+        "height": 150
+      },
+      "analysisSize": [
+        82,
+        49
+      ],
+      "coordinateSpace": "exif-oriented-original-pixels"
+    }
+  }
+}

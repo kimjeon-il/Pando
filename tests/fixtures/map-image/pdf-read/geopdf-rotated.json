@@ -1,0 +1,87 @@
+{
+  "request": {
+    "action": "read",
+    "maxPixels": 4096
+  },
+  "expected": {
+    "width": 45,
+    "height": 90,
+    "originalWidth": 200,
+    "originalHeight": 400,
+    "mapping": {
+      "page": 1,
+      "pdfDpi": 144,
+      "georeference": {
+        "projection": {
+          "kind": "lcc",
+          "ellipsoid": "GRS80",
+          "lon0": -95.0,
+          "lat0": 49.0,
+          "lat1": 49.0,
+          "lat2": 77.0
+        },
+        "controlPoints": [
+          {
+            "id": "geopdf-0",
+            "image": [
+              0.0,
+              0.0
+            ],
+            "coordinate": [
+              -120.0,
+              40.0
+            ]
+          },
+          {
+            "id": "geopdf-1",
+            "image": [
+              1.0,
+              0.0
+            ],
+            "coordinate": [
+              -120.0,
+              70.0
+            ]
+          },
+          {
+            "id": "geopdf-2",
+            "image": [
+              1.0,
+              1.0
+            ],
+            "coordinate": [
+              -60.0,
+              70.0
+            ]
+          },
+          {
+            "id": "geopdf-3",
+            "image": [
+              0.0,
+              1.0
+            ],
+            "coordinate": [
+              -60.0,
+              40.0
+            ]
+          }
+        ],
+        "wkt": "PROJCS[\"fixture\",GEOGCS[\"NAD83\",DATUM[\"NAD83\",SPHEROID[\"GRS_1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Lambert_Conformal_Conic\"],PARAMETER[\"Central_Meridian\",-95],PARAMETER[\"Latitude_Of_Origin\",49],PARAMETER[\"Standard_Parallel_1\",49],PARAMETER[\"Standard_Parallel_2\",77],UNIT[\"Meter\",1]]",
+        "independentChecks": false,
+        "coordinateEvidence": "embedded-publisher-metadata",
+        "datumTransformation": "not-performed"
+      },
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 200,
+        "height": 400
+      },
+      "analysisSize": [
+        45,
+        90
+      ],
+      "coordinateSpace": "exif-oriented-original-pixels"
+    }
+  }
+}

@@ -17,13 +17,80 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  map-pdf:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-pdf'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Obtain the pinned MuPDF SDK
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path build-native/map-pdf/sdk | Out-Null
+          if ($IsWindows) {
+            $url = 'https://files.pythonhosted.org/packages/f9/e8/989f4eaa369c7166dc24f0eaa3023f13788c40ff1b96701f7047421554a8/pymupdf-1.26.6-cp310-abi3-win_amd64.whl'
+            $expected = 'ce02ca96ed0d1acfd00331a4d41a34c98584d034155b06fd4ec0f051718de7ba'
+          } else {
+            $url = 'https://files.pythonhosted.org/packages/4f/bf/6e02e3d84b32c137c71a0a3dcdba8f2f6e9950619a3bc272245c7c06a051/pymupdf-1.26.6-cp310-abi3-manylinux_2_28_x86_64.whl'
+            $expected = '7777d0b7124c2ebc94849536b6a1fb85d158df3b9d873935e63036559391534c'
+          }
+          $wheel = 'build-native/map-pdf/mupdf-sdk.whl'
+          Invoke-WebRequest -Uri $url -OutFile $wheel
+          if ((Get-FileHash -Algorithm SHA256 -LiteralPath $wheel).Hash.ToLowerInvariant() -ne $expected) { throw 'MuPDF SDK hash mismatch' }
+          tar -xf $wheel -C build-native/map-pdf/sdk
+          if ($LASTEXITCODE -ne 0) { throw 'MuPDF SDK extraction failed' }
+      - name: Build the PDF reader and required image resize tool
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/map-pdf/sdk/pymupdf"
+          cmake -S tools/cpp/map-pdf -B build-native/map-pdf/native "-DPANDO_MUPDF_SDK_ROOT=$sdk"
+          if ($LASTEXITCODE -ne 0) { throw 'PDF reader configure failed' }
+          cmake --build build-native/map-pdf/native --config Release --target pando-map-pdf --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'PDF reader build failed' }
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Image resize configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Image resize build failed' }
+      - name: Compare PDF pages, georeference and rejection paths
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            $pdf = 'build-native/map-pdf/native/Release/pando-map-pdf.exe'
+            $image = 'build-native/map-image/Release/pando-map-image.exe'
+          } else {
+            $pdf = 'build-native/map-pdf/native/pando-map-pdf'
+            $image = 'build-native/map-image/pando-map-image'
+          }
+          node tools/map-image/package-pdf.mjs --binary $pdf --directory build-native/map-pdf/artifact --sdk build-native/map-pdf/sdk/pymupdf
+          if ($LASTEXITCODE -ne 0) { throw 'PDF reader packaging failed' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Image resize packaging failed' }
+          $env:PANDO_MAP_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/artifact"
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/map-plugin-native-pdf-read.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Native PDF input differs from original' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-map-pdf-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-pdf/artifact/
+          if-no-files-found: error
+          retention-days: 7
   map-image:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-image'
     strategy:

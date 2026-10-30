@@ -6,6 +6,10 @@ import { workspace, workspaceModule } from './workspace.mjs';
 
 export async function raster(spec, bytes=null, signal=null) {
   signal?.throwIfAborted();
+  if(spec.action==='read'&&typeof spec.path==='string'&&spec.path.toLowerCase().endsWith('.pdf')){
+    const {readNativePdf}=await workspaceModule('tools/map-image/native-pdf.mjs');
+    return readNativePdf(spec,{signal,workspace});
+  }
   if(spec.action==='resize'||spec.action==='rotate'||spec.action==='encode'){
     const {resizeNativeRgba,rotateNativeRgba,encodeNativePng}=await workspaceModule('tools/map-image/native-resample.mjs');
     const image={width:spec.width,height:spec.height,data:bytes};
