@@ -21,7 +21,7 @@ test('training proof rejects modified input tensors or private warm-start weight
   const sample=join(root,'sample'),weights=join(root,'weights.safetensors'),checkpoint=join(root,'new.pt');mkdirSync(sample);
   const hash=value=>createHash('sha256').update(value).digest('hex'),names=['tile','overview','position','target','valid'];
   const receipt={trainingOnly:true,releaseApproved:false,sourceId:'synthetic',tileIndex:1,positiveInternationalPixels:1,knownInternationalPixels:1,
-    sourcePdfSha256:'a'.repeat(64),imageSha256:'b'.repeat(64),annotationSha256:'c'.repeat(64),maskSha256:'d'.repeat(64),validMaskSha256:'e'.repeat(64),tensorSha256:{}};
+    sourceKind:'macro-pdf',augmentationIndex:1,sourceEvidenceSha256:'a'.repeat(64),imageSha256:'b'.repeat(64),annotationSha256:'c'.repeat(64),maskSha256:'d'.repeat(64),validMaskSha256:'e'.repeat(64),tensorSha256:{}};
   for(const name of names){writeFileSync(join(sample,name+'.f32'),name);receipt.tensorSha256[name]=hash(name);}
   writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));writeFileSync(weights,'weights');
   writeFileSync(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,transfer:'weights-only-no-optimizer',weightsSha256:hash('weights')}));

@@ -16,7 +16,7 @@ test('training batch management rejects changed samples and preserves existing o
   const root=mkdtempSync(join(tmpdir(),'pando-training-batch-'));t.after(()=>rmSync(root,{recursive:true}));
   const sample=join(root,'sample'),weights=join(root,'weights.safetensors'),output=join(root,'new.pt'),order=join(root,'order.u64'),corpus=join(root,'corpus.json');mkdirSync(sample);
   const sha=value=>createHash('sha256').update(value).digest('hex'),names=['tile','overview','position','target','valid'];
-  const receipt={trainingOnly:true,releaseApproved:false,sourceId:'synthetic',tileIndex:0,sourcePdfSha256:'a'.repeat(64),imageSha256:'b'.repeat(64),
+  const receipt={trainingOnly:true,releaseApproved:false,sourceId:'synthetic',sourceKind:'macro-pdf',tileIndex:0,augmentationIndex:0,sourceEvidenceSha256:'a'.repeat(64),imageSha256:'b'.repeat(64),
     annotationSha256:'c'.repeat(64),maskSha256:'d'.repeat(64),validMaskSha256:'e'.repeat(64),tensorSha256:{}};
   for(const name of names){writeFileSync(join(sample,name+'.f32'),name);receipt.tensorSha256[name]=sha(name);}
   writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));writeFileSync(weights,'weights');
@@ -36,11 +36,11 @@ test('training batch management rejects changed samples and preserves existing o
   await assert.rejects(nativeTrainingBatch(changed),/sample index/i);assert.equal(existsSync(changed.output),false);
   receipt.tileIndex=0;writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));
   const source={id:'synthetic',familyId:'family',editionId:'edition',duplicateGroup:'group',geographicScope:'world',scopeEvidence:'fixture',
-    rightsReviewed:true,license:'CC0',materialKind:'published-macro-pdf',sha256:receipt.sourcePdfSha256,url:'https://example.org/map.pdf',
+    rightsReviewed:true,license:'CC0',materialKind:'published-macro-pdf',sha256:receipt.sourceEvidenceSha256,url:'https://example.org/map.pdf',
     language:'eng',script:'Latin',mapKind:'color'};
   const sourceBytes=Buffer.from(JSON.stringify(source));writeFileSync(join(root,'source.json'),sourceBytes);writeFileSync(join(root,'source.pdf'),'changed source');
   const annotation={origin:'macro-vector-supervision',reviewed:false,supervisionQuality:'source-derived-weak',sourcePdf:'source.pdf',
-    sourceSha256:receipt.sourcePdfSha256,sourceMetadata:'source.json',sourceMetadataSha256:sha(sourceBytes),raster:{sha256:receipt.maskSha256},validRaster:{sha256:receipt.validMaskSha256}};
+    sourceSha256:receipt.sourceEvidenceSha256,sourceMetadata:'source.json',sourceMetadataSha256:sha(sourceBytes),raster:{sha256:receipt.maskSha256},validRaster:{sha256:receipt.validMaskSha256}};
   const annotationBytes=Buffer.from(JSON.stringify(annotation));writeFileSync(join(root,'annotation.json'),annotationBytes);receipt.annotationSha256=sha(annotationBytes);
   writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));
   writeFileSync(corpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[{...source,split:'train',sha256:receipt.imageSha256,

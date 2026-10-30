@@ -9,6 +9,7 @@ import {prepareSemapCorpus} from '../../tools/reference-analysis/prepare-semap.m
 import {validateSemapTrainingCorpus} from '../../tools/reference-analysis/validate-semap.mjs';
 import {inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 import {writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
+import {verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
 
 test('Semap importer preserves real originals, rejects changed outputs and never creates review truth',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-semap-import-'));t.after(()=>rm(root,{recursive:true}));
@@ -35,6 +36,13 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.deepEqual(dataset.counts,[[0,0],[0,0],[0,0],[108,108],[108,0],[0,0],[0,0]]);
   assert.deepEqual(dataset.tiles,[{sourceId:sheet.id,index:0,x:0,y:0,duplicateGroup:sheet.duplicateGroup}]);
   assert.equal(dataset.trainingOnly,true);assert.equal(dataset.releaseApproved,false);
+  const samplePath=join(root,'semap-sample');
+  const sample=await writeSemapTrainingSample({corpus:first.manifest,sourceId:sheet.id,tileIndex:14,localIndex:0,x:0,y:0,
+    augment:false,epoch:0,output:samplePath,verifyEvidence});
+  assert.equal(sample.sourceKind,'semap-label');assert.equal(sample.tileIndex,14);assert.equal(sample.augmentationIndex,0);
+  assert.equal(verifyTrainingSample(samplePath).sourceEvidenceSha256,sample.sourceEvidenceSha256);
+  await assert.rejects(writeSemapTrainingSample({corpus:first.manifest,sourceId:sheet.id,tileIndex:14,localIndex:1,x:0,y:0,
+    augment:false,epoch:0,output:join(root,'invalid-sample'),verifyEvidence}),/index/i);
   const macroRoot=join(root,'macro');await mkdir(macroRoot);
   for(const name of ['map.png','raster.png','valid.png'])await copyFile('tests/fixtures/reference-training-raster/'+name,join(macroRoot,name));
   const sha=bytes=>createHash('sha256').update(bytes).digest('hex'),pdf=Buffer.from('fixture PDF');await writeFile(join(macroRoot,'source.pdf'),pdf);
