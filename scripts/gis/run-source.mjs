@@ -5,6 +5,8 @@ import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {verifyNativeTool} from '../../tools/native-tool.mjs';
+import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
@@ -54,7 +56,14 @@ export function runSource({argv=process.argv.slice(2),root=ROOT,spawn=spawnSync,
     task,source:TASK_SOURCES[task],argv:args,requiresExternalOriginals:execute};
   output(JSON.stringify(receipt,null,2));
   if(!execute)return 0;
-  const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false,env:process.env});
+  let env=process.env;
+  if(task==='terrain-dem'){
+    const executable=process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode';
+    const {binary}=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-encode/artifact'),
+      target:'terrain-dem-encode',executable,sourceFiles:terrainDemEncodeSources});
+    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary};
+  }
+  const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false,env});
   if(result.error)throw result.error;
   if(result.signal||!Number.isInteger(result.status))throw Error('GIS source subprocess interrupted');
   return result.status;

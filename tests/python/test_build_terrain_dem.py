@@ -2,7 +2,6 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
@@ -105,13 +104,11 @@ class TerrainDemTest(unittest.TestCase):
             np.testing.assert_array_equal(np.asarray(Image.open(first).convert('RGBA')), rgba)
 
     def test_shade_quantization_preserves_elevation_and_limits_error(self):
-        self.assertTrue(hasattr(dem, 'quantize_shade'))
-        shades = np.array([[0, 1, 2, 3, 4, 253, 254, 255]], dtype=np.uint8)
-        np.testing.assert_array_equal(dem.quantize_shade(shades),
-                                      [[0, 0, 4, 4, 4, 252, 255, 255]])
         values = np.array([[0, 120, -100, 300], [600, -500, 2200, -3500]], dtype=np.float32)
         rgba = dem.encode(values, 4, 2, 0)
         exact_shade = dem.shade(values, 4, 2, 0)
+        expected = np.minimum(((exact_shade.astype(np.uint16) + 2) // 4) * 4, 255).astype(np.uint8)
+        np.testing.assert_array_equal(rgba[:, :, 2], expected)
         decoded = rgba[:, :, 0].astype(np.int32)*256 + rgba[:, :, 1].astype(np.int32)-12000
         np.testing.assert_array_equal(decoded, values.astype(np.int32))
         self.assertLessEqual(np.abs(rgba[:, :, 2].astype(np.int16) - exact_shade.astype(np.int16)).max(), 2)
@@ -120,12 +117,9 @@ class TerrainDemTest(unittest.TestCase):
     def test_coarse_polar_gutter_clamps_adjacent_shade(self):
         values = np.array([[100, 200, 300, 400], [200, 300, 400, 500],
                            [300, 400, 500, 600], [400, 500, 600, 700]], dtype=np.float32)
-        exact = np.full(values.shape, 213, dtype=np.uint8)
-        with patch.object(dem, 'shade', return_value=exact):
-            rgba = dem.encode(values, 4, 2, -1)
+        rgba = dem.encode(values, 4, 2, -1)
         np.testing.assert_array_equal(rgba[0, :, 2], rgba[1, :, 2])
         np.testing.assert_array_equal(rgba[-1, :, 2], rgba[-2, :, 2])
-        self.assertFalse(np.array_equal(rgba[0, :, 2], exact[0, :]))
         np.testing.assert_array_equal(rgba[1:-1, :, 2] % 4, 0)
 
     def test_area_average_and_wrapped_gutter(self):

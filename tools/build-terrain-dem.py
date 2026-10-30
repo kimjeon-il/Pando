@@ -1,7 +1,7 @@
 """Build the optional ETOPO 2022 Ice Surface terrain tiles outside the repository.
 
-Example (rasterio, numpy and Pillow required):
-  python tools/build-terrain-dem.py --etopo ETOPO_2022_v1_30s_N90W180_surface.tif \
+Example (rasterio, numpy, Pillow and the native DEM encoder required):
+  node scripts/gis/run-source.mjs --task terrain-dem --execute -- --etopo ETOPO_2022_v1_30s_N90W180_surface.tif \
       --tint-zip HYP_HR.zip --glaciated-areas ne_10m_glaciated_areas.geojson \
       --countries assets/data/countries-ne-5.1.1.geojson \
       --output F:/map-editor-dem-0.13.0/terrain/v0.13.3
@@ -18,6 +18,8 @@ import json
 import math
 import os
 import shutil
+import struct
+import subprocess
 from pathlib import Path
 import tempfile
 import time
@@ -41,7 +43,6 @@ TILE_SIZE = 1024
 BIAS = 12000
 SOURCE_WIDTH = 43200
 SOURCE_HEIGHT = 21600
-RADIUS_METERS = 6371008.8
 LIGHT_AZIMUTH = 315.0
 LIGHT_ALTITUDE = 45.0
 AMBIENT = 0.42
@@ -118,62 +119,31 @@ def read_vrt_pixels(vrt, width, height, x0, y0, x1, y1):
     return output
 
 
+def _native_dem(elevation, level_width, level_height, north_pixel_row):
+    if not isinstance(elevation, np.ndarray) or elevation.ndim != 2 or elevation.dtype != np.dtype('float32') or not elevation.size:
+        raise ValueError('A nonempty float32 DEM elevation grid is required')
+    if not np.isfinite(elevation).all() or elevation.min() < -BIAS or elevation.max() > 65535-BIAS:
+        raise ValueError('Elevation outside valid encoding range')
+    binary = os.environ.get('PANDO_TERRAIN_DEM_ENCODE_BINARY')
+    if not binary:
+        raise RuntimeError('PANDO_TERRAIN_DEM_ENCODE_BINARY is required for DEM generation')
+    rows, columns = elevation.shape
+    header = struct.pack('<8sIIIIi', b'PDEMENC1', columns, rows, level_width, level_height, north_pixel_row)
+    payload = header + np.ascontiguousarray(elevation, dtype='<f4').tobytes()
+    result = subprocess.run([binary], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180).stdout
+    pixels = rows * columns
+    if len(result) != pixels * 5:
+        raise ValueError('Invalid native DEM encoding output length')
+    return (np.frombuffer(result, dtype=np.uint8, count=pixels).reshape(rows, columns).copy(),
+            np.frombuffer(result, dtype=np.uint8, offset=pixels).reshape(rows, columns, 4).copy())
+
+
 def shade(elevation, level_width, level_height, north_pixel_row):
-    # Elevation includes a one-cell gutter; shade the entire encoded tile.
-    h_west = np.concatenate((elevation[:, :1], elevation[:, :-1]), axis=1)
-    h_east = np.concatenate((elevation[:, 1:], elevation[:, -1:]), axis=1)
-    h_north = np.concatenate((elevation[:1, :], elevation[:-1, :]), axis=0)
-    h_south = np.concatenate((elevation[1:, :], elevation[-1:, :]), axis=0)
-    row = np.arange(elevation.shape[0], dtype=np.float64) + north_pixel_row
-    latitude = 90.0 - (row + 0.5) * 180.0 / level_height
-    latitude = np.clip(latitude, -89.95, 89.95)
-    meters_east = 2 * math.pi * RADIUS_METERS * np.cos(np.deg2rad(latitude)) / level_width
-    meters_north = math.pi * RADIUS_METERS / level_height
-    dz_east = (h_east-h_west) / (2 * meters_east[:, None])
-    dz_north = (h_north-h_south) / (2 * meters_north)
-    norm = np.sqrt(dz_east**2 + dz_north**2 + 1)
-    azimuth = math.radians(LIGHT_AZIMUTH)
-    altitude = math.radians(LIGHT_ALTITUDE)
-    lx = math.sin(azimuth) * math.cos(altitude)
-    ly = math.cos(azimuth) * math.cos(altitude)
-    lz = math.sin(altitude)
-    diffuse = np.maximum(0, (-dz_east*lx-dz_north*ly+lz) / norm)
-    return np.rint(np.clip(AMBIENT + DIFFUSE * diffuse, 0, 1) * 255).astype(np.uint8)
-
-
-def quantize_shade(values):
-    # Preserve the full elevation channels; only the motion-phase shade may
-    # differ by at most two of 255 display steps.
-    rounded = ((values.astype(np.uint16) + SHADE_QUANTIZATION_STEP // 2)
-               // SHADE_QUANTIZATION_STEP) * SHADE_QUANTIZATION_STEP
-    return np.minimum(rounded, 255).astype(np.uint8)
+    return _native_dem(elevation, level_width, level_height, north_pixel_row)[0]
 
 
 def encode(elevation, level_width, level_height, north_pixel_row):
-    if not np.isfinite(elevation).all() or elevation.min() < -BIAS or elevation.max() > 65535-BIAS:
-        raise ValueError('Elevation outside valid encoding range')
-    packed = np.rint(elevation).astype(np.int32) + BIAS
-    rgba = np.empty((*packed.shape, 4), dtype=np.uint8)
-    rgba[:, :, 0] = (packed >> 8).astype(np.uint8)
-    rgba[:, :, 1] = (packed & 255).astype(np.uint8)
-    original_shade = shade(elevation, level_width, level_height, north_pixel_row)
-    compact_shade = quantize_shade(original_shade)
-    # Polar gutters lie outside the world grid. Coarse LODs clamp to the
-    # adjacent real row; at finer LODs retain the computed polar shade.
-    world_rows = north_pixel_row + np.arange(original_shade.shape[0])
-    north_gutters = world_rows < 0
-    south_gutters = world_rows >= level_height
-    if level_height <= 1350:
-        if np.any(north_gutters):
-            compact_shade[north_gutters] = compact_shade[np.flatnonzero(world_rows == 0)[0]]
-        if np.any(south_gutters):
-            compact_shade[south_gutters] = compact_shade[np.flatnonzero(world_rows == level_height-1)[0]]
-    else:
-        polar_gutters = north_gutters | south_gutters
-        compact_shade[polar_gutters] = original_shade[polar_gutters]
-    rgba[:, :, 2] = compact_shade
-    rgba[:, :, 3] = 255
-    return rgba
+    return _native_dem(elevation, level_width, level_height, north_pixel_row)[1]
 
 
 def save_and_verify_webp(rgba, path):

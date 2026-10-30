@@ -77,6 +77,11 @@ jobs:
         run: |
           python -m pip install -r tools/requirements-hydro-tiles.txt \
             -r tools/requirements-historical-library.txt "numpy>=2,<3" "rasterio>=1.4,<2"
+      - name: Prepare the native DEM encoder required by the remaining producer
+        run: |
+          cmake -S tools/cpp/terrain-dem-encode -B build-native/terrain-dem-encode -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/terrain-dem-encode --target pando-terrain-dem-encode
+          echo "PANDO_TERRAIN_DEM_ENCODE_BINARY=$GITHUB_WORKSPACE/build-native/terrain-dem-encode/pando-terrain-dem-encode" >> "$GITHUB_ENV"
       - name: Check legacy policy, terrain, historical and hydro Python contracts
         shell: bash
         run: |
