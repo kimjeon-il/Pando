@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {evaluateBoundaries,evaluateBoundariesTiled,evaluateIndependentSheet,boundaryAdmission,confounderNonregression,summarizeEvaluation,proximityWindow} from '../../tools/reference-analysis/native-evaluation.mjs';
+import {evaluateBoundaries,evaluateBoundariesTiled,evaluateBoundariesSharded,evaluateIndependentSheet,boundaryAdmission,confounderNonregression,summarizeEvaluation,proximityWindow} from '../../tools/reference-analysis/native-evaluation.mjs';
 import {buildTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
 
 function annotation(kind='international',width=1){
@@ -67,6 +67,13 @@ test('bounded evaluation windows preserve line tolerance and confounders at thei
   const prediction=Buffer.alloc(width*height);for(let x=0;x<width;x++){prediction[4*width+x]=1;if(x>=1015&&x<=1035)prediction[x]=1;}
   assert.deepEqual(await evaluateBoundariesTiled(prediction,annotation),await evaluateBoundaries(prediction,annotation));
 });
+test('sharded evaluation combines different line widths and known regions across windows',async()=>{
+  const label={width:24,height:20,known:{international:[[[0,0],[23,0],[23,19],[0,19]]],text:[[[0,0],[23,0],[23,19],[0,19]]]},
+    lines:[{kind:'international',width:11,points:[[3.5,6],[20,6]]},{kind:'international',width:3,points:[[8,13],[19,13]]}],
+    regions:[{kind:'text',polygon:[[2,2],[21,2],[21,18],[2,18]]}],ignore:[[[9,8],[12,8],[12,10],[9,10]]]};
+  const packed=Buffer.alloc(24*20);for(const [x,y] of [[0,6],[7,9],[10,9],[15,14],[22,19]])packed[y*24+x]=1;
+  assert.deepEqual(await evaluateBoundariesSharded(packed,label,{shardSize:8}),await evaluateBoundaries(packed,label));
+});
 test('bounded evaluation supports sources wider than one native window',async()=>{
   const width=16385,height=2,annotation={width,height,known:{international:[[[0,0],[16384,0],[16384,1],[0,1]]]},
     lines:[{kind:'international',width:1,points:[[0,1],[16384,1]]}],regions:[],ignore:[]};
@@ -78,6 +85,17 @@ test('bounded evaluation supports sources wider than one native window',async()=
   assert.equal(run.status,0,run.stderr);assert.deepEqual(JSON.parse(run.stdout),result);
   annotation.lines[0].width=5000;
   assert.deepEqual((await evaluateBoundariesTiled(prediction,annotation)).counts[0],[width,width,width,width]);
+});
+test('large tolerance crosses the native width limit without losing distant pixels',async()=>{
+  const width=16385,height=2,label={width,height,known:{international:[[[0,0],[width-1,0],[width-1,1],[0,1]]]},
+    lines:[{kind:'international',width:20000,points:[[8192,0],[8193,0]]}],regions:[],ignore:[]};
+  const packed=Buffer.alloc(width*height);packed[0]=1;packed[width-1]=1;
+  const result=await evaluateBoundaries(packed,label);
+  assert.deepEqual(result.counts[0],[2,2,2,2]);
+});
+test('boundary tolerance can exceed the native review stroke width',async()=>{
+  const label=annotation('international',100000),packed=prediction(0,19);
+  assert.deepEqual((await evaluateBoundaries(packed,label)).counts[0],[14,14,14,14]);
 });
 test('native original-pixel evaluation keeps tolerance, known masks, and confounder scope',async()=>{
   const near=await evaluateBoundaries(prediction(0,7),annotation());

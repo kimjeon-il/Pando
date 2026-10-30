@@ -9,11 +9,11 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 32개
+### 2026-10-30 현행 기준: 추적 Python 31개
 
 - **QGIS 레이어 확대:** 네이티브 플러그인의 레이어 활성화·확대를 Node CLI와 MCP에 연결했다. [Windows CI 41058486015](https://github.com/kimjeon-il/Pando/actions/runs/41058486015)에서 빌드와 연결 검사를 통과했다. QGIS 3.44.15 한 창에서 합성 피처 두 개를 가진 레이어로 1:100,000,000에서 1:992,042로 확대되는 것과 알 수 없는 ID 거부를 확인했다. 기존 시험 프로젝트는 저장 후 정상 종료하고 같은 전용 프로필을 재사용했다. 나머지 실제 사용 기능과 Python 연결 제거는 미완료다.
 
-- **원본 픽셀 평가 호출 전환 중:** 학습 평가 호출자의 원본 픽셀 경계·공변량 계산을 C++에, 그룹 집계·기준 비교·승인 판정을 Node 정본에 연결해 확인하고 있다. 합성 예측의 음성·양성·기준 보고서와 실제 보존 `pakistan-urdu` 주석 한 건의 합성 예측 보고서는 기존 Python과 바이트가 같았다. 실제 주석 비교 SHA-256은 `6dd3baa9ff5cb9bfd72ad7a124b8467c35bb9ed2b3a3e66e1b67fe9ee2664c63`이며 모델 정확도나 독립 평가가 아니다. 대형 입력과 큰 선폭의 동등성 확인을 마치기 전까지 기존 평가 모듈은 퇴역 완료로 간주하지 않는다.
+- **원본 픽셀 평가 모듈 전환:** 학습 평가 호출자의 원본 픽셀 경계·공변량 계산을 C++에, 그룹 집계·기준 비교·승인 판정을 Node 정본에 연결하고 `evaluation.py`를 제거했다. 서로 떨어진 창의 원형 거리 결과를 합쳐 큰 반경도 처리한다. 서로 다른 선폭·검토 영역·공변량의 조각별 결과를 전체 화면 평가와 비교했고, 16,385×2 입력과 선폭 20,000 및 작은 입력과 선폭 100,000도 확인했다. 거리 연산은 합성 60건에서 직접 계산과 같았고 Windows/Linux 빌드도 통과했다([CI 41062374332](https://github.com/kimjeon-il/Pando/actions/runs/41062374332)). 합성 예측의 보고서와 실제 보존 `pakistan-urdu` 주석 한 건의 합성 예측 보고서는 기존 Python과 바이트가 같았다. 실제 주석 비교 SHA-256은 `6dd3baa9ff5cb9bfd72ad7a124b8467c35bb9ed2b3a3e66e1b67fe9ee2664c63`이며 모델 정확도나 독립 평가가 아니다. 전체 학습·평가 실행기의 Python 전환은 남아 있다.
 
 - **Python 래스터 어댑터 종료:** 학습 표본과 체크포인트 진단의 마지막 EXIF 방향·흰색 투명 합성 호출을 공통 C++ 영상 경로로 옮기고 `plugins/pando-map-tools/lib/raster.py`를 제거했다. 합성 입력과 보존 검토 지도·매크로 지도 각 한 타일의 RGB 바이트가 이전 Pillow 처리와 같았다. 기존 Python 진단 시험과 런타임 소스 범위 검사, [Windows/Linux CI 41055430706](https://github.com/kimjeon-il/Pando/actions/runs/41055430706)도 통과했다. 이는 영상 입력 처리의 이행이며 전체 학습·진단 실행기 종료는 아니다.
 
@@ -59,7 +59,7 @@
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 19개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 18개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
@@ -75,7 +75,7 @@
 | `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py`, `tools/verify-lsib-screen-delta.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
-| `tools/reference-analysis/evaluation.py`, `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
+| `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_build_terrain_dem.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
@@ -91,7 +91,7 @@
 
 - **학습 검토 마스크 기반:** `pando-map-review`가 공통 래스터화 코드를 사용해 채널별 정답·known·ignore와 원본 밖 패딩을 생성한다. [Windows/Linux CI 41002593503](https://github.com/kimjeon-il/Pando/actions/runs/41002593503)에서 Python 고정 결과 및 오류를 비교했고, 실제 보유 `smithsonian-china-1892` 주석의 512×512 선택 창은 Python과 C++ 모두 524,288바이트, SHA-256 `6f0d8c8a7e11c03b346463a88e606b62733886a7f3f71051b3c9b3e50cb20e46`으로 일치했다. 해당 주석 원본은 변경하지 않았다. 학습·검증 호출자 이전은 남아 있으므로 기존 Python 코퍼스는 유지한다.
 
-- **원본 픽셀 경계 평가 기반:** `pando-map-evaluation`과 Node 집계는 채널별 원본 픽셀 거리 허용, 알려진 영역·제외 영역, 공변량 오탐과 기존 맵별·거시 승인 문턱을 유지한다. [Windows/Linux CI 41002929483](https://github.com/kimjeon-il/Pando/actions/runs/41002929483)에서 기존 Python 고정 결과와 오류 조건을 비교했다. 보유 `pakistan-urdu` 주석의 724×600 원본 좌표에 고정 예측을 적용한 평가에서 세 채널 계수, 정밀도·재현율과 네 공변량의 전체 결과가 Python과 같았다. 이는 합성 예측에 대한 코드 동등성일 뿐 모델 정확도나 독립 평가 승인이 아니다. 대형 입력과 큰 선폭을 확인한 뒤 기존 Python 평가 모듈을 제거한다.
+- **원본 픽셀 경계 평가 기반:** `pando-map-evaluation`과 Node 집계는 채널별 원본 픽셀 거리 허용, 알려진 영역·제외 영역, 공변량 오탐과 기존 맵별·거시 승인 문턱을 유지한다. [Windows/Linux CI 41002929483](https://github.com/kimjeon-il/Pando/actions/runs/41002929483)에서 기존 Python 고정 결과와 오류 조건을 비교했다. 보유 `pakistan-urdu` 주석의 724×600 원본 좌표에 고정 예측을 적용한 평가에서 세 채널 계수, 정밀도·재현율과 네 공변량의 전체 결과가 Python과 같았다. 이는 합성 예측에 대한 코드 동등성일 뿐 모델 정확도나 독립 평가 승인이 아니다. 후속 대형 입력·선폭 검사와 호출자 전환은 위에 기록했다.
 
 - **검토용 코퍼스 준비:** 원본 JPEG·PNG·WebP의 크기와 EXIF 방향은 픽셀을 풀지 않는 공통 C++ 영상 헤더 기능으로 읽고, Node가 출처·권리·원본 해시, 경로 이탈과 기존 라벨·초안 보존을 처리한다. [Windows/Linux CI 41003579738](https://github.com/kimjeon-il/Pando/actions/runs/41003579738)에서 방향·거부·기존 작업 보존 사례를 확인했다. 보유 우르두 지도 원본 17,180×14,414(SHA-256 `cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3`)의 별도 검증 공간에서 Python과 Node가 동일한 라벨·초안 데이터를 생성했다. 원본 지도는 수정하지 않았다. Python 준비 명령과 대응 테스트는 제거했지만 코퍼스 검증과 학습의 다른 Python 호출은 남아 있다.
 

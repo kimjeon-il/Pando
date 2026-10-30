@@ -16,7 +16,6 @@ from report_paths import report_argument
 from corpus import (CHANNELS, validate_corpus, evaluation_groups, corpus_path,
                     corpus_fingerprint, review_masks, build_training_lineage, assert_evaluation_independence)
 from model import ReferenceBoundaryModel, boundary_loss
-from evaluation import boundary_counts, metrics, boundary_admission, confounder_counts, confounder_nonregression
 
 SIZE, OVERLAP = 512, 64
 
@@ -285,6 +284,23 @@ def load_model(path, device):
     return model, checkpoint
 
 
+def native_evaluation(operation, payload):
+    script = pathlib.Path(__file__).with_name('native-evaluation.mjs')
+    result = subprocess.run(['node', str(script), operation], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native evaluation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    value = json.loads(result.stdout)
+    def preserve_metric_types(item):
+        if isinstance(item, list):
+            return [preserve_metric_types(entry) for entry in item]
+        if isinstance(item, dict):
+            return {key: (float(entry) if key in {'precision', 'recall', 'rate'} and entry is not None
+                          else preserve_metric_types(entry)) for key, entry in item.items()}
+        return item
+    return preserve_metric_types(value)
+
+
 def evaluate(args, corpus, root):
     if pathlib.Path(args.output).exists():
         raise ValueError('Evaluation output already exists; preserve the frozen evidence')
@@ -302,7 +318,7 @@ def evaluate(args, corpus, root):
             raise
         independence = dict(passed=False, reason=str(error))
     groups = evaluation_groups(sheets)
-    counts = {key: np.zeros((3, 4), dtype=np.int64) for key in groups}
+    counts = {key: [] for key in groups}
     per_sheet, confounders, coverage, review_scopes = {}, {}, {}, {}
     with torch.no_grad():
         for sheet in sheets:
@@ -325,21 +341,28 @@ def evaluate(args, corpus, root):
             if not np.all(weights > 0):
                 raise ValueError('Evaluation left uncovered source pixels')
             prediction = probability / weights >= .55
-            value = boundary_counts(prediction, annotation)
-            confounders[sheet['id']] = confounder_counts(prediction, annotation)
+            header = json.dumps(annotation).encode('utf-8')
+            packed = prediction[0].astype(np.uint8) | (prediction[1].astype(np.uint8) << 1) | (prediction[2].astype(np.uint8) << 2)
+            payload = len(header).to_bytes(4, 'big') + header + packed.tobytes()
+            sheet_result = native_evaluation('--sheet-stream', payload)
+            if not isinstance(sheet_result, dict) or set(sheet_result) != {'counts', 'metrics', 'confounders'}:
+                raise ValueError('Invalid native sheet evaluation receipt')
+            confounders[sheet['id']] = sheet_result['confounders']
             _, known = review_masks(annotation)
             coverage[sheet['id']] = {kind: dict(knownPixels=int(known[index].sum()), originalPixels=width*height)
                                     for index, kind in enumerate(CHANNELS)}
             key = '/'.join(sheet[k] for k in ['mapKind', 'script', 'language'])
-            counts[key] += value
-            per_sheet[sheet['id']] = metrics(value)
-    group_metrics = {key: metrics(value) for key, value in counts.items()}
+            counts[key].append(sheet_result['counts'])
+            per_sheet[sheet['id']] = sheet_result['metrics']
     baseline_path = getattr(args, 'baseline_report', None)
     baseline = json.loads(pathlib.Path(baseline_path).read_text(encoding='utf-8')) if baseline_path else None
     if baseline and (baseline.get('corpusSha256') != digest or baseline.get('threshold') != .55 or baseline.get('coverage') != coverage):
         raise ValueError('Baseline must use the exact frozen corpus, threshold and known-pixel scope')
-    nonregression = confounder_nonregression(confounders, baseline.get('confounders') if baseline else None)
-    admission = boundary_admission(per_sheet, required_channels=[kind for kind in CHANNELS[:3] if kind not in checkpoint['unobservedChannels']])
+    summary = native_evaluation('--summary-stream', json.dumps(dict(groups=counts, perSheet=per_sheet, confounders=confounders,
+        baseline=baseline, requiredChannels=[kind for kind in CHANNELS[:3] if kind not in checkpoint['unobservedChannels']])).encode('utf-8'))
+    if not isinstance(summary, dict) or set(summary) != {'groups', 'nonregression', 'admission'}:
+        raise ValueError('Invalid native evaluation summary receipt')
+    group_metrics, nonregression, admission = summary['groups'], summary['nonregression'], summary['admission']
     complete_review = all(scope == 'whole-readable-map' for scope in review_scopes.values())
     admission['passed'] = admission['passed'] and nonregression['passed'] and independence['passed'] and not diagnostic and complete_review
     if not complete_review:
