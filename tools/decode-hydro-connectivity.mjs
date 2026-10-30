@@ -1,12 +1,10 @@
 // Offline audit adapter: use the production decoder, never a second binary codec.
 import fs from 'node:fs';
 import path from 'node:path';
-import vm from 'node:vm';
-import { TextDecoder } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { buildFrontendIndex, frontendAsset } from '../scripts/lib/frontend-layout.mjs';
+import { createHydroWorkerDecoder } from './gis/hydro-pack-decoder.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const [input, output] = process.argv.slice(2);
@@ -29,17 +27,7 @@ function verified(spec) {
   }
   return bytes;
 }
-const context = vm.createContext({ TextDecoder, URL, performance, structuredClone, inputManifest: manifest });
-context.self = context;
-context.onmessage = null;
-context.importScripts = () => {};
-const frontend = buildFrontendIndex(root);
-for (const file of ['vendor/earcut.min.js', 'workers/geographic-boundary-core.js', 'workers/hydro-tile-worker.js']) {
-  const asset = frontendAsset(root, 'assets/js/' + file, { index: frontend });
-  vm.runInContext(asset.bytes.toString('utf8'), context, { filename: asset.sourcePath });
-}
-vm.runInContext('manifest = inputManifest', context);
-const decoder = vm.runInContext('({ readGlobalIndex, readFeatureMetadata, readPack, packSpecs, featureMetadata })', context);
+const decoder = createHydroWorkerDecoder(manifest, {root});
 decoder.readGlobalIndex(gunzipSync(verified(manifest.index)));
 decoder.readFeatureMetadata(gunzipSync(verified(manifest.metadata.core)));
 for (const row of JSON.parse(gunzipSync(verified(manifest.metadata.detail))).features) {
