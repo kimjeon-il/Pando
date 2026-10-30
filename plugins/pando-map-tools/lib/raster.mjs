@@ -1,10 +1,14 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { workspace } from './workspace.mjs';
+import { workspace, workspaceModule } from './workspace.mjs';
 
 export async function raster(spec, bytes=null, signal=null) {
   signal?.throwIfAborted();
+  if(spec.action==='resize'){
+    const {resizeNativeRgba}=await workspaceModule('tools/map-image/native-resample.mjs');
+    return resizeNativeRgba({width:spec.width,height:spec.height,data:bytes},spec.size,{signal,workspace});
+  }
   const child=spawn(process.env.PANDO_MAP_PYTHON || resolve(workspace,'build-native/python/Scripts/python.exe'),
     [fileURLToPath(new URL('./raster.py',import.meta.url))],{windowsHide:true,signal:signal || undefined,stdio:['pipe','pipe','pipe']});
   const chunks=[],errors=[];let size=0;

@@ -127,15 +127,12 @@ def source(spec):
 
 def run(spec):
     action = spec['action']
-    if action in ('encode', 'resize', 'rotate'):
+    if action in ('encode', 'rotate'):
         image = Image.frombytes('RGBA', (spec['width'], spec['height']), sys.stdin.buffer.read())
-        if action in ('resize', 'rotate'):
-            if action == 'rotate':
-                if spec['degrees'] not in (0, 90, 180, 270):
-                    raise ValueError('Invalid clockwise rotation')
-                image = image.rotate(-spec['degrees'], expand=True)
-            else:
-                image = image.resize(tuple(spec['size']), Image.Resampling.LANCZOS)
+        if action == 'rotate':
+            if spec['degrees'] not in (0, 90, 180, 270):
+                raise ValueError('Invalid clockwise rotation')
+            image = image.rotate(-spec['degrees'], expand=True)
             return {'width': image.width, 'height': image.height}, image.tobytes()
     else:
         image, metadata = source(spec)

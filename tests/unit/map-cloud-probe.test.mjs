@@ -33,6 +33,7 @@ test('bundle verification rejects changed bytes, traversal, and missing files',a
 test('diagnostic source closure includes dynamic numerical owners but excludes product build outputs',async()=>{
   const files=await collectSourceFiles(undefined,{diagnostics:true});
   for(const name of ['plugins/pando-map-tools/lib/engine.mjs','shared/frontend/js/modules/temporal.js','scripts/lib/frontend-layout.mjs','tools/load-node-core.mjs','tools/reference-analysis/verify-trained-onnx.mjs'])assert(files.includes(name),name);
+  for(const name of ['tools/map-image/native-resample.mjs','tools/native-tool.mjs','tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h'])assert(files.includes(name),name);
   assert(files.some(name=>name.startsWith('shared/core/src/')));
   assert(!files.some(name=>name.startsWith('build-native/')||name.startsWith('.git/')||name.startsWith('node_modules/')));
   assert.equal(files.length,new Set(files).size);
