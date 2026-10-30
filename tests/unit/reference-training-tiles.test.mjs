@@ -26,6 +26,11 @@ test('native training tile matches Python tensors, masks, position and augmentat
     const hashes=['tile','overview','position','target','valid'].map(name=>createHash('sha256').update(result[name]).digest('hex'));
     assert.deepEqual(hashes,row.hashes,`augment ${row.augment}, epoch ${row.epoch}`);
   }
+  const repeat=await prepareReviewedTrainingTile({imagePath:root+'/map.png',sourceSha256,annotation,x:0,y:0,augment:true,epoch:0,index:0});
+  for(const [i,name] of ['tile','overview','position','target','valid'].entries())
+    assert.equal(createHash('sha256').update(repeat[name]).digest('hex'),expected[1].hashes[i]);
+  for(const name of ['tile','overview'])for(let offset=0;offset<repeat[name].length;offset+=4)
+    assert(Number.isFinite(repeat[name].readFloatLE(offset)),'Augmented training inputs must be finite');
 });
 test('source-bound raster supervision matches original training tensors',async()=>{
   const root='tests/fixtures/reference-training-raster',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));
