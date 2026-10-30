@@ -83,6 +83,8 @@
 
 학습 진단의 7채널 확률·정답·known 픽셀 집계는 네이티브 평가 도구와 소스 확인된 Node 호출로 이전했다. [Windows/Linux CI 41034281059](https://github.com/kimjeon-il/Pando/actions/runs/41034281059)의 고정 값과 [41034766087](https://github.com/kimjeon-il/Pando/actions/runs/41034766087)의 연결·거부 사례를 확인했다. 보존된 비공개 모델 출력의 7×512×512 확률과 합성 known·정답 마스크에서 기존 Python 집계와 모든 값이 일치했고, 정렬된 결과 SHA-256은 `fa2e3cc52ac1e30330423ea629482b5dacae566a232aaeedc2488f745e04872a`이다. 이는 계산 동등성으로, 실자료 라벨 평가나 모델 정확도 승인이 아니다. 진단 실행기와 학습 호출자의 나머지 Python은 유지한다.
 
+선택한 검토 지도 한 건도 Node 진단 명령에서 출처·주석·체크포인트 영수증을 확인한 뒤 C++ 추론과 미리보기로 연결했다. Windows CUDA에서 `pakistan-urdu`의 원본 타일 `(0, 0)`을 확인했으며 administrative 채널의 유효 468픽셀 중 정답 82픽셀이었다. 이 실행은 단일 지도 진단이며 독립 평가나 모델 승인이 아니다. 기존 Python 진단기의 전체 코퍼스·ONNX 경로는 아직 제거하지 않았다.
+
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
 | `tools/qgis/bootstrap.py`, `tools/qgis/bridge.py` | 네이티브 QGIS 플러그인과 Node CLI/MCP; QGIS 실행 설정 | 실제 사용 편집·처리, 인증, 좌표·ID·출처, 내보내기 왕복 |

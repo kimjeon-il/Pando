@@ -5,7 +5,7 @@ import {existsSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {diagnoseMacroTrainingSource,summarizeDiagnosticTile} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
+import {diagnoseMacroTrainingSource,diagnoseReviewedSource,summarizeDiagnosticTile} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
 
 test('diagnostic tile joins native probabilities, known masks, statistics and overlays',async()=>{
   const width=4,height=1,values=width*height*7,original=Buffer.alloc(width*height*3,255);
@@ -55,4 +55,25 @@ test('macro diagnostics refuse a checkpoint for a different corpus before execut
   const wrongBaseline=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--macro-source','--corpus',corpus,
     '--source','fixture','--checkpoint',checkpoint,'--baseline-weights',weights,'--output',output,'--device','cpu','--torch-library',folder],{encoding:'utf8'});
   assert.notEqual(wrongBaseline.status,0);assert.match(wrongBaseline.stderr,/checkpoint initializer/i);assert.equal(existsSync(output),false);
+});
+
+test('reviewed diagnostics refuse mismatched checkpoint and missing source without outputs',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-reviewed-diagnostic-'));t.after(()=>rmSync(root,{recursive:true}));
+  const corpus=join(root,'training.json'),reviewCorpus=join(root,'review.json'),checkpoint=join(root,'checkpoint.pt');
+  writeFileSync(corpus,'{}');writeFileSync(reviewCorpus,JSON.stringify({schemaVersion:1,sheets:[]}));writeFileSync(checkpoint,'fixture');
+  const sha=value=>createHash('sha256').update(value).digest('hex');
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256:sha('fixture'),corpusSha256:'0'.repeat(64)};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
+  const request={corpus,reviewCorpus,checkpoint,sourceId:'missing',device:'cpu',torchLibrary:root};
+  await assert.rejects(diagnoseReviewedSource(request),/does not match/i);
+  receipt.corpusSha256=sha('{}');writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
+  await assert.rejects(diagnoseReviewedSource(request),/unique.*source/i);
+  writeFileSync(reviewCorpus,JSON.stringify({schemaVersion:1,sheets:[{id:'missing'},{id:'missing'}]}));
+  await assert.rejects(diagnoseReviewedSource(request),/unique.*source/i);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(diagnoseReviewedSource(request,{signal:controller.signal}),{name:'AbortError'});
+  const output=join(root,'new-output');
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--reviewed-source','--corpus',corpus,
+    '--review-corpus',reviewCorpus,'--source','missing','--checkpoint',checkpoint,'--output',output,'--device','cpu','--torch-library',root],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.equal(existsSync(output),false);
 });
