@@ -239,14 +239,30 @@ export async function decodeNativeImageBytes({bytes,rect,format,maxPixels=400000
   return {width:outWidth,height:outHeight,originalWidth,originalHeight,mapping:{exifOrientation,encodedSize:[encodedWidth,encodedHeight],
     rect:{x,y,width,height},analysisSize:[outWidth,outHeight],coordinateSpace:'exif-oriented-original-pixels'},data:data.subarray(44)};
 }
+async function readEncodedImage(path,signal){
+  const chunks=[];let length=0;
+  for await(const chunk of createReadStream(path,{signal:signal||undefined})){
+    length+=chunk.length;if(length>300*1024*1024)throw Error('Image input exceeds encoded byte budget');chunks.push(chunk);
+  }
+  signal?.throwIfAborted();return Buffer.concat(chunks,length);
+}
 export async function readNativeImage({path,rect,format,maxPixels=4000000,expectedSha256},options={}){
   options.signal?.throwIfAborted();
   if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');
   imageReadCoordinates(rect,format,maxPixels);
-  const chunks=[];let length=0;
-  for await(const chunk of createReadStream(path,{signal:options.signal||undefined})){
-    length+=chunk.length;if(length>300*1024*1024)throw Error('Image input exceeds encoded byte budget');chunks.push(chunk);
-  }
-  options.signal?.throwIfAborted();
-  return decodeNativeImageBytes({bytes:Buffer.concat(chunks,length),rect,format,maxPixels,expectedSha256},options);
+  const bytes=await readEncodedImage(path,options.signal);
+  return decodeNativeImageBytes({bytes,rect,format,maxPixels,expectedSha256},options);
+}
+export async function readNativeTrainingJpegOverview({path,expectedSha256},{workspace=root,directory=artifactDirectory(workspace),signal}={}){
+  signal?.throwIfAborted();
+  if(typeof path!=='string'||!path||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256))
+    throw Error('Source-bound JPEG path and SHA-256 required');
+  const bytes=await readEncodedImage(path,signal);
+  if(createHash('sha256').update(bytes).digest('hex')!==expectedSha256)throw Error('Original image hash changed');
+  const output=await runNative(nativeBinary(workspace,directory),['training-jpeg-overview'],bytes,12+256*256*4,signal);
+  if(output.length!==12+256*256*4)throw Error('Invalid JPEG training overview receipt');
+  const width=output.readUInt32BE(0),height=output.readUInt32BE(4),orientation=output.readUInt32BE(8);
+  if(!width||!height||width>65535||height>65535||width*height>600000000||orientation<1||orientation>4)
+    throw Error('Invalid JPEG training overview dimensions or orientation');
+  return {width,height,orientation,data:output.subarray(12)};
 }
