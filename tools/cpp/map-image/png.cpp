@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdlib>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -22,8 +24,31 @@ std::vector<std::uint8_t> encodePngRgba(const std::vector<std::uint8_t>& input,i
         throw std::invalid_argument("Image dimensions exceed the 16MP graph budget");
     const auto stride=static_cast<std::size_t>(width)*4;
     if(input.size()!=stride*height)throw std::invalid_argument("RGBA input byte length differs from dimensions");
-    std::vector<std::uint8_t> scanlines((stride+1)*height);
-    for(int y=0;y<height;++y)std::copy_n(input.begin()+static_cast<std::size_t>(y)*stride,stride,scanlines.begin()+static_cast<std::size_t>(y)*(stride+1)+1);
+    std::vector<std::uint8_t> scanlines((stride+1)*height),candidate(stride),best(stride);
+    for(int y=0;y<height;++y){
+        const auto source=static_cast<std::size_t>(y)*stride,target=static_cast<std::size_t>(y)*(stride+1);
+        std::uint64_t bestScore=std::numeric_limits<std::uint64_t>::max();int bestFilter=0;
+        for(int filter=0;filter<5;++filter){
+            std::uint64_t score=0;
+            for(std::size_t x=0;x<stride;++x){
+                const int left=x>=4?input[source+x-4]:0,up=y?input[source-stride+x]:0,
+                    upperLeft=y&&x>=4?input[source-stride+x-4]:0;
+                int predictor=0;
+                if(filter==1)predictor=left;
+                else if(filter==2)predictor=up;
+                else if(filter==3)predictor=(left+up)/2;
+                else if(filter==4){
+                    const int p=left+up-upperLeft,da=std::abs(p-left),db=std::abs(p-up),dc=std::abs(p-upperLeft);
+                    predictor=da<=db&&da<=dc?left:db<=dc?up:upperLeft;
+                }
+                const int value=(static_cast<int>(input[source+x])-predictor)&255;
+                candidate[x]=static_cast<std::uint8_t>(value);score+=value<128?value:256-value;
+            }
+            if(score<bestScore){bestScore=score;bestFilter=filter;best=candidate;}
+        }
+        scanlines[target]=static_cast<std::uint8_t>(bestFilter);
+        std::copy(best.begin(),best.end(),scanlines.begin()+target+1);
+    }
     uLongf length=compressBound(static_cast<uLong>(scanlines.size()));std::vector<std::uint8_t> compressed(length);
     if(compress2(compressed.data(),&length,scanlines.data(),static_cast<uLong>(scanlines.size()),6)!=Z_OK)
         throw std::runtime_error("PNG compression failed");
