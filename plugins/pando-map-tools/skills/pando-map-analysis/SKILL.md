@@ -91,7 +91,9 @@ conversion is not a datum transformation or independent historical validation.
 
 Read [the structured revision contract](references/edits.md) before editing.
 Registration-only edits reproject the saved pixel graph without OCR/inference.
-Inspect each revised preview and current graph IDs before selecting results.
+Inspect each revised preview, returned changeSet and current graph IDs before
+selecting results. Unrelated vectors keep their original coordinates and IDs;
+intersected/split paths receive new IDs. Read them instead of guessing an index.
 For a missing source-reviewed stroke, use the explicit manual boundary `add`
 command with its class and reason; then refine its new chain. Never repurpose an
 unrelated chain, relax shared endpoints, patch a signed job or present a separate
@@ -113,6 +115,13 @@ checks and remaining uncertainty. A private filesystem path alone is not file
 delivery. Failed/cancelled jobs cannot export. Repeated commands must preserve
 earlier successful outputs. Pando uses ordinary generic object import,
 edit, Undo/Redo and save/reopen; no custom bridge or analysis screen.
+
+The unreviewed preview contains diagnostic candidates. Once reviewed, preview
+and export show the same selected lines and face rings/holes only, alongside
+control points and relevant diagnostics. Check this preview before returning
+files. A fresh export can change generated Feature UUIDs; report actual
+differences without normalizing them away. Version 0.6.0 jobs use schema 3;
+start a new analysis for older jobs and never restamp their signatures.
 
 In the next turn of the same active Work environment, reload the saved job and
 revise/export it. Do not promise recovery after environment expiry; analysis
