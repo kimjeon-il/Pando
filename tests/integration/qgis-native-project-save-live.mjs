@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {existsSync,readFileSync,unlinkSync,writeFileSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {basename,resolve} from 'node:path';
 import {runNativeBridge} from '../../tools/qgis/native-bridge.mjs';
 
 const root=resolve('build-native/qgis/migration-current');
-const project=resolve(root,'project-save-proof-20261031.qgz');
+if(!process.env.PANDO_QGIS_TEST_PROJECT)throw Error('Explicit dedicated test project path required');
+const project=resolve(process.env.PANDO_QGIS_TEST_PROJECT);
+if(project!==resolve(root,basename(project))||!/^project-save-proof-[a-z0-9-]+\.qgz$/i.test(basename(project)))
+  throw Error('Test project must be a dedicated project-save-proof QGZ in the fixed QGIS test directory');
 const input=resolve(root,'project-save-proof-20261031.geojson');
 const config=resolve(root,'qgis-config.json');
 const command=(...args)=>runNativeBridge(['--config',config,...args]);
