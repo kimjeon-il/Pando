@@ -90,3 +90,15 @@ nativeTest('reject malformed source geometry instead of emitting partial output'
   assert.match(result.stderr, /Invalid Hydro coordinate/);
   assert.equal(result.stdout, '');
 });
+nativeTest('audit classifies source-proven gaps without changing their geometry', () => {
+  const input=fixture(),before=structuredClone(input),result=run({...input,mode:'audit',sourceOrder:[1,2,3]});
+  assert.deepEqual(input,before);
+  assert.deepEqual(result.issues.map(row=>[row.source,row.downstream,row.cause,row.repairable]),
+    [[1,2,'border-alignment',true],[3,2,'border-alignment',true]]);
+  assert.equal(result.regions.eu.selectedReaches,3);assert.equal(result.regions.eu.expectedConnections,2);
+  assert.equal(result.regions.eu.naturalTerminals,1);assert.equal(result.regions.eu.repairable,2);
+  assert.deepEqual(result.regions.as,{});
+  const mismatch=fixture();mismatch.raw[1].end=[.9,0];
+  const changed=run({...mismatch,mode:'audit',sourceOrder:[1,2,3]});
+  assert.equal(changed.issues[0].cause,'original-mismatch');assert.equal(changed.issues[0].repairable,false);
+});
