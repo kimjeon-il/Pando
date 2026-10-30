@@ -33,7 +33,7 @@ node --test tests/reference-analysis/onnx-interface.test.mjs
 
 ```powershell
 node tools/reference-analysis/acquire-sources.mjs --output EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
-& build-native/python/Scripts/python.exe tools/reference-analysis/prepare-analysis-images.py --sources EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
+node tools/reference-analysis/prepare-analysis-images.mjs --sources EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
 ```
 
 The second command preserves the master and makes an 8MP app input only when
