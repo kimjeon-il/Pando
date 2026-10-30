@@ -1,0 +1,30 @@
+{
+  "request": {
+    "action": "read",
+    "maxPixels": 256
+  },
+  "expected": {
+    "width": 12,
+    "height": 9,
+    "originalWidth": 12,
+    "originalHeight": 9,
+    "mapping": {
+      "exifOrientation": 2,
+      "encodedSize": [
+        12,
+        9
+      ],
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 9
+      },
+      "analysisSize": [
+        12,
+        9
+      ],
+      "coordinateSpace": "exif-oriented-original-pixels"
+    }
+  }
+}
