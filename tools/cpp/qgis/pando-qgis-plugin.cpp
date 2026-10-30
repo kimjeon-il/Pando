@@ -190,6 +190,29 @@ class Bridge final:public QObject,public QgisPlugin {
             auto* layer=iface_->activeLayer();
             return {{QStringLiteral("layer"),layer?QJsonValue(layerSummary(layer,true)):QJsonValue(QJsonValue::Null)}};
         }
+        if(command==QStringLiteral("transform")){
+            const auto source=request.value(QStringLiteral("sourceCrs")),target=request.value(QStringLiteral("targetCrs")),items=request.value(QStringLiteral("points"));
+            if(!source.isString()||source.toString().isEmpty()||source.toString().size()>128||
+               !target.isString()||target.toString().isEmpty()||target.toString().size()>128||!items.isArray())
+                throw QStringLiteral("Two explicit CRSs and a bounded coordinate array are required");
+            const auto points=items.toArray();if(points.isEmpty()||points.size()>10000)throw QStringLiteral("Coordinate batch must contain 1 to 10000 points");
+            const QgsCoordinateReferenceSystem from(source.toString()),to(target.toString());
+            if(!from.isValid()||!to.isValid())throw QStringLiteral("Invalid coordinate reference system");
+            QgsCoordinateTransform transform(from,to,QgsProject::instance());
+            transform.setAllowFallbackTransforms(false);transform.setBallparkTransformsAreAppropriate(false);
+            if(!transform.isValid())throw QStringLiteral("Invalid coordinate transformation");
+            QJsonArray output;
+            for(const auto& item:points){
+                if(!item.isArray())throw QStringLiteral("Each coordinate must contain two finite numbers");
+                const auto pair=item.toArray();
+                if(pair.size()!=2||!pair[0].isDouble()||!pair[1].isDouble()||!std::isfinite(pair[0].toDouble())||!std::isfinite(pair[1].toDouble()))
+                    throw QStringLiteral("Each coordinate must contain two finite numbers");
+                const auto converted=transform.transform(QgsPointXY(pair[0].toDouble(),pair[1].toDouble()));
+                if(transform.fallbackOperationOccurred()||!std::isfinite(converted.x())||!std::isfinite(converted.y()))throw QStringLiteral("Coordinate transformation failed");
+                output.append(QJsonArray{converted.x(),converted.y()});
+            }
+            return {{QStringLiteral("sourceCrs"),from.authid()},{QStringLiteral("targetCrs"),to.authid()},{QStringLiteral("points"),output}};
+        }
         if(command==QStringLiteral("algorithms")){
             const auto searchValue=request.value(QStringLiteral("search"));QString search;
             if(!searchValue.isUndefined()){

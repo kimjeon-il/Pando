@@ -15,6 +15,7 @@ node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs active-layer
 node tools/qgis/native-bridge.mjs active-layer --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs transform --source-crs EPSG:4326 --target-crs EPSG:3857 --points '[[127,37]]'
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
 node tools/qgis/native-bridge.mjs algorithms --search buffer --offset 0 --limit 50
 node tools/qgis/native-bridge.mjs buffer --layer QGIS_LAYER_ID --distance 50 --output 'D:/path/to/new-buffer.geojson'
@@ -58,6 +59,8 @@ replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
 Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 64-bit values, or a QGIS expression validated against the layer before use.
+Coordinate transformation accepts one to 10,000 XY pairs, requires explicit
+source and target CRSs, and refuses fallback datum transformations.
 Feature reads return a bounded page with exact JSON attributes, optional WKT in
 the layer CRS and string QGIS FIDs. Filtered pages report `hasMore` without a
 whole-layer filtered count.
