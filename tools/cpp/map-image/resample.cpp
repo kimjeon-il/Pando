@@ -10,6 +10,8 @@ namespace {
 constexpr int precision=22;
 constexpr std::int64_t unit=std::int64_t{1}<<precision;
 constexpr double pi=3.141592653589793238462643383279502884;
+// Fixed-point Lanczos semantics match Pillow 12.3's 8-bit resampler:
+// https://github.com/python-pillow/Pillow/blob/12.3.0/src/libImaging/Resample.c
 struct Row {int start;std::vector<std::int32_t> weights;};
 double sinc(double x){return x==0?1:std::sin(pi*x)/(pi*x);}
 std::vector<Row> coefficients(int input,int output){
@@ -46,27 +48,34 @@ std::vector<std::uint8_t> resizeRgb(const std::vector<std::uint8_t>& input,int w
     validate(width,height);validate(outputWidth,outputHeight);
     if(input.size()!=static_cast<std::size_t>(width)*height*3)throw std::invalid_argument("RGB input byte length differs from dimensions");
     if(width==outputWidth&&height==outputHeight)return input;
-    std::vector<std::uint8_t> horizontal;
-    const std::vector<std::uint8_t>* intermediate=&input;
-    if(width!=outputWidth){
-        const auto weights=coefficients(width,outputWidth);
-        horizontal.resize(static_cast<std::size_t>(outputWidth)*height*3);
-        for(int y=0;y<height;++y)for(int x=0;x<outputWidth;++x)for(int c=0;c<3;++c){
-            std::int64_t sum=0;const auto& row=weights[x];
-            for(std::size_t j=0;j<row.weights.size();++j)
-                sum+=static_cast<std::int64_t>(input[(static_cast<std::size_t>(y)*width+row.start+j)*3+c])*row.weights[j];
-            horizontal[(static_cast<std::size_t>(y)*outputWidth+x)*3+c]=rounded(sum);
-        }
-        intermediate=&horizontal;
-    }
-    if(height==outputHeight)return *intermediate;
-    const auto weights=coefficients(height,outputHeight);
+    const auto horizontalWeights=width==outputWidth?std::vector<Row>{}:coefficients(width,outputWidth);
+    const auto verticalWeights=height==outputHeight?std::vector<Row>{}:coefficients(height,outputHeight);
     std::vector<std::uint8_t> output(static_cast<std::size_t>(outputWidth)*outputHeight*3);
-    for(int y=0;y<outputHeight;++y)for(int x=0;x<outputWidth;++x)for(int c=0;c<3;++c){
-        std::int64_t sum=0;const auto& row=weights[y];
-        for(std::size_t j=0;j<row.weights.size();++j)
-            sum+=static_cast<std::int64_t>((*intermediate)[((static_cast<std::size_t>(row.start)+j)*outputWidth+x)*3+c])*row.weights[j];
-        output[(static_cast<std::size_t>(y)*outputWidth+x)*3+c]=rounded(sum);
+    // Process bounded vertical stripes; an extremely narrow input enlarged in X
+    // must not allocate outputWidth * inputHeight pixels as an intermediate.
+    for(int first=0;first<outputWidth;first+=64){
+        const int count=std::min(64,outputWidth-first);
+        std::vector<std::uint8_t> horizontal;
+        if(width!=outputWidth){
+            horizontal.resize(static_cast<std::size_t>(count)*height*3);
+            for(int y=0;y<height;++y)for(int x=0;x<count;++x)for(int c=0;c<3;++c){
+                std::int64_t sum=0;const auto& row=horizontalWeights[first+x];
+                for(std::size_t j=0;j<row.weights.size();++j)
+                    sum+=static_cast<std::int64_t>(input[(static_cast<std::size_t>(y)*width+row.start+j)*3+c])*row.weights[j];
+                horizontal[(static_cast<std::size_t>(y)*count+x)*3+c]=rounded(sum);
+            }
+        }
+        for(int y=0;y<outputHeight;++y)for(int x=0;x<count;++x)for(int c=0;c<3;++c){
+            const auto sample=[&](int iy){return width==outputWidth?
+                input[(static_cast<std::size_t>(iy)*width+first+x)*3+c]:horizontal[(static_cast<std::size_t>(iy)*count+x)*3+c];};
+            auto& pixel=output[(static_cast<std::size_t>(y)*outputWidth+first+x)*3+c];
+            if(height==outputHeight)pixel=sample(y);
+            else{
+                std::int64_t sum=0;const auto& row=verticalWeights[y];
+                for(std::size_t j=0;j<row.weights.size();++j)sum+=static_cast<std::int64_t>(sample(row.start+static_cast<int>(j)))*row.weights[j];
+                pixel=rounded(sum);
+            }
+        }
     }
     return output;
 }
