@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {REFERENCE_BOUNDARY_CHANNELS as CHANNELS} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {reviewMasks} from './review-masks.mjs';
+import {assertEvaluationIndependence} from './training-lineage.mjs';
 
 export const evaluationSourceFiles=Object.freeze(['tools/cpp/map-evaluation/CMakeLists.txt','tools/cpp/map-evaluation/evaluation.cpp',
   'tools/cpp/map-image/raster-draw.h','tools/cpp/map-preview/PILLOW-LICENSE']);
@@ -38,6 +39,11 @@ export async function evaluateBoundaries(prediction,annotation,{signal,workspace
   const confounders={};for(let k=3;k<7;k++){const group={};for(let c=0;c<3;c++){
     const [falsePositive,pixels]=result.confounderCounts[k-3][c];group[CHANNELS[c]]={falsePositive,pixels,rate:pixels?falsePositive/pixels:null};}confounders[CHANNELS[k]]=group;}
   return {counts:result.counts,metrics,confounders};
+}
+export async function evaluateIndependentSheet(prediction,annotation,{sheet,lineage,split='test',...options}={}){
+  if(!sheet)throw Error('Independent evaluation requires source identity');
+  assertEvaluationIndependence(lineage,[sheet],{split});
+  return evaluateBoundaries(prediction,annotation,options);
 }
 export function boundaryAdmission(perSheet,{requiredChannels=[]}={}){
   const macro={},failures=[];

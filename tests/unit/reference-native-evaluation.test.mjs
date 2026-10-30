@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {evaluateBoundaries,boundaryAdmission,confounderNonregression} from '../../tools/reference-analysis/native-evaluation.mjs';
+import {evaluateBoundaries,evaluateIndependentSheet,boundaryAdmission,confounderNonregression} from '../../tools/reference-analysis/native-evaluation.mjs';
+import {buildTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
 
 function annotation(kind='international',width=1){
   const known={};for(const k of ['international','administrative','coast','text'])known[k]=[[[0,0],[19,0],[19,19],[0,19]]];
@@ -49,4 +50,13 @@ test('admission retains per-map, macro and independent-evidence gates',async()=>
   assert.equal(confounderNonregression({map:measured},{map:zero}).passed,false);
   assert.equal(confounderNonregression({map:measured},{map:{}}).passed,false);
   await assert.rejects(evaluateBoundaries(Buffer.alloc(1),annotation()),/prediction/i);
+});
+test('independent native evaluation refuses exposure to training ancestry',async()=>{
+  const sheet={id:'train',sha256:'a'.repeat(64),familyId:'family',editionId:'edition',duplicateGroup:'group',split:'train'};
+  const lineage=buildTrainingLineage([sheet]);
+  const leaked={...sheet,id:'different',sha256:'b'.repeat(64),split:'test'};
+  await assert.rejects(evaluateIndependentSheet(prediction(0,5),annotation(),{sheet:leaked,lineage}),/familyId/);
+  const independent={id:'test',sha256:'c'.repeat(64),familyId:'other',editionId:'other',duplicateGroup:'other',split:'test'};
+  const result=await evaluateIndependentSheet(prediction(0,5),annotation(),{sheet:independent,lineage});
+  assert.deepEqual(result.counts[0],[14,14,14,14]);
 });

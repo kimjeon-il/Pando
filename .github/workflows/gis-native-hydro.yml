@@ -64,7 +64,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
           node tools/reference-analysis/package-native-evaluation.mjs --binary $evaluation --directory build-native/map-evaluation/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Evaluation packaging failed' }
-          node --test tests/unit/reference-native-evaluation.test.mjs
+          node --test tests/unit/reference-native-evaluation.test.mjs tests/unit/reference-training-lineage.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Evaluation differs from original' }
       - uses: actions/upload-artifact@v4
         if: always()
