@@ -12,6 +12,7 @@
 #include <qgsprocessingregistry.h>
 #include <qgscoordinatereferencesystem.h>
 #include <qgscoordinatetransform.h>
+#include <qgscoordinatetransformcontext.h>
 #include <qgsfield.h>
 #include <qgsfields.h>
 #include <qgsfeature.h>
@@ -237,16 +238,24 @@ class Bridge final:public QObject,public QgisPlugin {
             if(id.isEmpty()||overlayId.isEmpty()||!input||!overlay||!input->isValid()||!overlay->isValid()||!input->crs().isValid()||!overlay->crs().isValid())
                 throw QStringLiteral("Valid input and overlay vector layers and CRSs are required");
             if(overlay->geometryType()!=Qgis::GeometryType::Polygon)throw QStringLiteral("Clip overlay must be polygonal");
-            if(input->crs()!=overlay->crs())throw QStringLiteral("Clip input and overlay must use the same CRS");
             const QFileInfo destination(request.value(QStringLiteral("output")).toString());
             if(!destination.isAbsolute()||!destination.dir().exists()||destination.exists()||destination.isSymLink())throw QStringLiteral("A new absolute output path in an existing directory is required");
             auto* registry=QgsApplication::processingRegistry();const auto* algorithm=registry?registry->algorithmById(QStringLiteral("native:clip")):nullptr;
             if(!algorithm)throw QStringLiteral("QGIS native clip algorithm is unavailable");
             QgsProcessingContext context;context.setProject(QgsProject::instance());QgsProcessingFeedback feedback;
+            bool transformFailed=false;context.setTransformErrorCallback([&transformFailed](const QgsFeature&){transformFailed=true;});
+            if(input->crs()!=overlay->crs()){
+                auto transformContext=context.transformContext();
+                const bool reverse=transformContext.mustReverseCoordinateOperation(overlay->crs(),input->crs());
+                const auto operation=transformContext.calculateCoordinateOperation(overlay->crs(),input->crs());
+                if(!transformContext.addCoordinateOperation(reverse?input->crs():overlay->crs(),reverse?overlay->crs():input->crs(),operation,false))
+                    throw QStringLiteral("Cannot configure clip coordinate transform");
+                context.setTransformContext(transformContext);
+            }
             const QVariantMap params{{QStringLiteral("INPUT"),id},{QStringLiteral("OVERLAY"),overlayId},{QStringLiteral("OUTPUT"),QStringLiteral("memory:")}};
             QString error;if(!algorithm->checkParameterValues(params,context,&error))throw QStringLiteral("Invalid QGIS clip parameters: ")+error;
             bool ok=false;const auto result=algorithm->run(params,context,&feedback,&ok);
-            if(!ok)throw QStringLiteral("QGIS clip processing failed");
+            if(!ok||transformFailed)throw QStringLiteral("QGIS clip processing or coordinate transform failed");
             std::unique_ptr<QgsMapLayer> output(context.takeResultLayer(result.value(QStringLiteral("OUTPUT")).toString()));
             auto* vector=qobject_cast<QgsVectorLayer*>(output.get());if(!vector||!vector->isValid())throw QStringLiteral("QGIS clip did not produce a vector layer");
             return exportQgisVector(vector,destination.absoluteFilePath());
