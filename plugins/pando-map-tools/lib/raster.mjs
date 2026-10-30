@@ -14,10 +14,11 @@ export async function raster(spec, bytes=null, signal=null) {
   }
   if(spec.action==='read'&&typeof spec.path==='string'&&!spec.path.toLowerCase().endsWith('.pdf')){
     const file=await open(spec.path,'r');let header;
-    try{const bytes=Buffer.alloc(8),{bytesRead}=await file.read(bytes,0,8,0);header=bytes.subarray(0,bytesRead);}
+    try{const bytes=Buffer.alloc(12),{bytesRead}=await file.read(bytes,0,12,0);header=bytes.subarray(0,bytesRead);}
     finally{await file.close();}
     signal?.throwIfAborted();
-    const format=header.equals(Buffer.from([137,80,78,71,13,10,26,10]))?'png':header.length>=2&&header[0]===255&&header[1]===216?'jpeg':null;
+    const format=header.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))?'png':header.length>=2&&header[0]===255&&header[1]===216?'jpeg':
+      header.length>=12&&header.toString('ascii',0,4)==='RIFF'&&header.toString('ascii',8,12)==='WEBP'?'webp':null;
     if(format){
       const {readNativeImage}=await workspaceModule('tools/map-image/native-resample.mjs');
       return readNativeImage({...spec,format},{signal,workspace});

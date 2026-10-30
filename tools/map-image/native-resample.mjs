@@ -8,9 +8,9 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
   'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp',
-  'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h','tools/cpp/map-image/jpeg-read.c',
+  'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h','tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c',
   'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE','tools/cpp/map-image/libpng-LICENSE',
-  'tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg']);
+  'tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg','tools/cpp/map-image/libwebp-COPYING','tools/cpp/map-image/libwebp-PATENTS']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export function collectMapImageArtifacts({workspace=root,revision,
   linuxDirectory=process.env.PANDO_MAP_IMAGE_LINUX_ARTIFACT||resolve(workspace,'build-native/map-image/linux-x64'),
@@ -84,7 +84,7 @@ export function encodeNativePng(image,options){
 }
 export async function readNativeImage({path,rect,format,maxPixels=4000000},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
-  if(typeof path!=='string'||!path||!['png','jpeg'].includes(format))throw Error('Image path and supported format are required');
+  if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');
   if(!Number.isInteger(maxPixels)||maxPixels<256||maxPixels>16777216)throw Error('Pixel budget must be 256..16777216');
   let coordinates=[0,0,0,0];
   if(rect!=null){
