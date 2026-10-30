@@ -123,7 +123,7 @@ The unreviewed preview contains diagnostic candidates. Once reviewed, preview
 and export show the same selected lines and face rings/holes only, alongside
 control points and relevant diagnostics. Check this preview before returning
 files. A fresh export can change generated Feature UUIDs; report actual
-differences without normalizing them away. Version 0.6.0 jobs use schema 3;
+differences without normalizing them away. Current jobs use schema 3;
 start a new analysis for older jobs and never restamp their signatures.
 
 In the next turn of the same active Work environment, reload the saved job and
