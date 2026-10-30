@@ -5,11 +5,12 @@ import {createHash} from 'node:crypto';
 import {existsSync,statSync,writeFileSync} from 'node:fs';
 import {delimiter,dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {prepareRasterTrainingTile} from './training-tiles.mjs';
-import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample} from './training-sample.mjs';
+import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
 import {readTrainingBounded as readBounded,trainingFileIdentity as identity} from './training-evidence.mjs';
 
@@ -21,6 +22,23 @@ function readOrder(path){const bytes=readBounded(path,8000000);if(!bytes.length|
 function positiveWeight(path){if(!path)return {argument:'none',hash:null};const bytes=readBounded(path,28);
   if(bytes.length!==28||Array.from({length:7},(_,i)=>bytes.readFloatLE(i*4)).some(v=>!Number.isFinite(v)||v<1||v>64))throw Error('Positive weights must contain seven values in 1..64');
   return {argument:resolve(path),hash:sha(bytes)};
+}
+function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,weights,orderData}){
+  if(mode==='warm'){
+    if(epoch!==0)throw Error('A weights-only warm start begins at epoch zero');
+    const transfer=JSON.parse(readBounded(join(dirname(inputPath),'transfer.json'),1024*1024).toString('utf8'));
+    if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||transfer.transfer!=='weights-only-no-optimizer'||transfer.weightsSha256!==inputHash)
+      throw Error('Verified private weights-only warm start required');
+    return {previous:null,cursor:0};
+  }
+  const previous=JSON.parse(readBounded(inputPath+'.receipt.json',1024*1024).toString('utf8'));
+  if(previous.schemaVersion!==1||previous.trainingOnly!==true||previous.releaseApproved!==false||previous.lineageComplete!==false||
+    previous.checkpointSha256!==inputHash||previous.device!==device||previous.precision!==precision||previous.seed!==seed||previous.freezeEpochs!==freezeEpochs||
+    previous.learningRate!==learningRate||previous.positiveWeightSha256!==weights.hash)throw Error('Checkpoint receipt or training configuration differs');
+  if(epoch===previous.epoch){if(previous.orderSha256!==orderData.hash||previous.orderLength!==orderData.order.length)throw Error('Training order differs from checkpoint receipt');
+    return {previous,cursor:previous.cursor};}
+  if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {previous,cursor:0};
+  throw Error('Checkpoint is not at the requested epoch boundary');
 }
 async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
   const {sheet,annotation,annotationSha256,checks}=await verifiedMacroTrainingSource(root,corpus,data.sourceId);
@@ -44,24 +62,11 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
   const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
-  let previous=null,cursor=0;
-  if(mode==='warm'){
-    if(epoch!==0)throw Error('A weights-only warm start begins at epoch zero');
-    const transfer=JSON.parse(readBounded(join(dirname(inputPath),'transfer.json'),1024*1024).toString('utf8'));
-    if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||transfer.transfer!=='weights-only-no-optimizer'||transfer.weightsSha256!==inputHash)
-      throw Error('Verified private weights-only warm start required');
-  }else{
-    previous=JSON.parse(readBounded(inputPath+'.receipt.json',1024*1024).toString('utf8'));
-    if(previous.schemaVersion!==1||previous.trainingOnly!==true||previous.releaseApproved!==false||previous.lineageComplete!==false||
-      previous.checkpointSha256!==inputHash||previous.device!==device||previous.precision!==precision||previous.seed!==seed||previous.freezeEpochs!==freezeEpochs||
-      previous.learningRate!==learningRate||previous.positiveWeightSha256!==weights.hash)throw Error('Checkpoint receipt or training configuration differs');
-    if(epoch===previous.epoch){if(previous.orderSha256!==orderData.hash||previous.orderLength!==orderData.order.length)throw Error('Training order differs from checkpoint receipt');cursor=previous.cursor;}
-    else if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)cursor=0;
-    else throw Error('Checkpoint is not at the requested epoch boundary');
-  }
+  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,weights,orderData});
   if(!Number.isSafeInteger(cursor)||cursor<0||cursor+samples.length>orderData.order.length)throw Error('Training cursor exceeds sample order');
   const checked=samples.map((sample,i)=>{if(!sample||!Number.isSafeInteger(sample.index)||sample.index!==orderData.order[cursor+i]||!sample.directory)
-    throw Error('Training samples differ from the saved order');return verifyTrainingSample(sample.directory);});
+    throw Error('Training samples differ from the saved order');const data=verifyTrainingSample(sample.directory);
+    if(data.tileIndex!==sample.index)throw Error('Training sample index differs from its tensor receipt');return data;});
   const corpusPath=resolve(corpus),corpusBytes=readBounded(corpusPath,32*1024*1024),corpusHash=sha(corpusBytes),manifest=JSON.parse(corpusBytes);
   if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
@@ -92,4 +97,38 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
     optimizerUpdates:count('optimizerUpdates',result.applied?1:0),skippedUpdates:count('skippedUpdates',result.applied?0:1),
     ...accumulateEpochLoss(previous,epoch,result.loss),checkpointSha256:identity(target),checkpointBytes:info.size,toolRevision:tool.revision,evidence:evidence.map(item=>item.record)};
   writeFileSync(receiptPath,JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return {...result,receiptPath,checkpointSha256:receipt.checkpointSha256,lineageComplete:false};
+}
+
+// Select and reconstruct one batch directly from its validated source corpus.
+export async function runMacroTrainingBatch({count,sampleOutput,augment,...options}){
+  const {mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,device='cpu',amp=device==='cuda',signal}=options;
+  signal?.throwIfAborted();
+  if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!sampleOutput||!options.torchLibrary||typeof augment!=='boolean'||
+    !['cpu','cuda'].includes(device)||typeof amp!=='boolean'||(amp&&device!=='cuda')||
+    ![epoch,seed,freezeEpochs].every(value=>Number.isSafeInteger(value)&&value>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
+    !Number.isSafeInteger(count)||count<1||count>16)throw Error('Explicit native macro batch configuration required');
+  if(existsSync(output)||existsSync(resolve(output)+'.receipt.json')||existsSync(sampleOutput))throw Error('Checkpoint, receipt or sample output exists; preserve it');
+  const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
+  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',weights,orderData});
+  const corpusHash=sha(readBounded(resolve(corpus),32*1024*1024));
+  if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
+  const prepared=await prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output:sampleOutput,signal});
+  if(prepared.orderSha256!==orderData.hash||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)throw Error('Training inputs changed before batch execution');
+  return nativeTrainingBatch({...options,device,amp,samples:prepared.samples});
+}
+
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    const {values,positionals}=parseArgs({allowPositionals:true,options:{mode:{type:'string'},input:{type:'string'},output:{type:'string'},
+      corpus:{type:'string'},order:{type:'string'},epoch:{type:'string'},seed:{type:'string'},'freeze-epochs':{type:'string'},
+      'learning-rate':{type:'string'},'positive-weights':{type:'string'},device:{type:'string'},precision:{type:'string'},
+      'torch-library':{type:'string'},count:{type:'string'},'sample-output':{type:'string'},augment:{type:'boolean',default:false}}});
+    const integer=name=>{const value=values[name];if(!/^\d+$/.test(value||''))throw Error('Explicit integer '+name+' required');return Number(value);};
+    if(positionals.length||!['cpu','cuda'].includes(values.device)||!['fp32','amp-fp16'].includes(values.precision))throw Error('Explicit macro batch configuration required');
+    const result=await runMacroTrainingBatch({mode:values.mode,input:values.input,output:values.output,corpus:values.corpus,order:values.order,
+      epoch:integer('epoch'),seed:integer('seed'),freezeEpochs:integer('freeze-epochs'),learningRate:Number(values['learning-rate']),
+      positiveWeights:values['positive-weights'],device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
+      count:integer('count'),sampleOutput:values['sample-output'],augment:values.augment});
+    console.log(JSON.stringify(result));
+  }catch(error){console.error('native-training-batch: '+error.message);process.exitCode=1;}
 }

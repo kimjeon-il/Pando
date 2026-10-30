@@ -4,7 +4,7 @@ import {copyFileSync,existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} f
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {writeMacroTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
+import {writeMacroTrainingSample,prepareMacroTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
 import {indexMacroTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('source-bound macro sample is generated from original pixels without overwriting',async t=>{
@@ -28,6 +28,14 @@ test('source-bound macro sample is generated from original pixels without overwr
   const result=await writeMacroTrainingSample(request),expected=JSON.parse(readFileSync(join(fixture,'expected.json'),'utf8'))[0];
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
   await assert.rejects(writeMacroTrainingSample(request),/exists/);
+  const order=join(root,'order.u64');writeFileSync(order,Buffer.alloc(8));
+  const batch=await prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')});
+  assert.equal(batch.samples.length,1);assert.equal(batch.samples[0].index,0);
+  assert.equal(JSON.parse(readFileSync(join(batch.samples[0].directory,'sample.json'))).tensorSha256.tile,expected.hashes[0]);
+  await assert.rejects(prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')}),/exists/);
+  writeFileSync(order,Buffer.from([1,0,0,0,0,0,0,0]));
+  await assert.rejects(prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'invalid')}),/index/);
+  assert.equal(existsSync(join(root,'invalid')),false);
   writeFileSync(join(root,'source.pdf'),'changed');
   await assert.rejects(writeMacroTrainingSample({...request,output:join(root,'next')}),/PDF hash changed/);
   await assert.rejects(indexMacroTrainingDataset(corpus),/PDF hash changed/);
