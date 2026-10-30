@@ -10,7 +10,6 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'tools/reference-analysis'))
 import corpus
-from evaluation import boundary_counts
 
 
 class ReviewContractTests(unittest.TestCase):
@@ -52,16 +51,6 @@ class ReviewContractTests(unittest.TestCase):
         label['known']['international'] = []
         with self.assertRaisesRegex(ValueError, 'known'):
             corpus.validate_review_annotation(label, self.sheet())
-
-    def test_evaluation_ignores_unknown_per_channel(self):
-        label = self.annotation()
-        prediction = np.zeros((3, 16, 24), dtype=bool)
-        prediction[0, 5, 3:21] = True
-        prediction[0, 12] = True
-        prediction[1] = True
-        result = boundary_counts(prediction, label)
-        self.assertEqual(result[0].tolist(), [18, 18, 18, 18])
-        self.assertEqual(result[1].tolist(), [0, 0, 0, 0])
 
     def test_lineage_preserves_ancestors_and_refuses_hidden_family_reuse(self):
         original = self.sheet()

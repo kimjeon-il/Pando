@@ -81,17 +81,21 @@ function checkPrediction(prediction,annotation){const width=annotation?.width,he
     size>600000000||prediction.length!==size||prediction.some(v=>v&~7))throw Error('Prediction must use original sheet pixels and three packed channels');}
 export async function evaluateBoundaries(prediction,annotation,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact'),reviewDirectory}={}){
   signal?.throwIfAborted();checkPrediction(prediction,annotation);
+  if((annotation.lines||[]).some(line=>CHANNELS.slice(0,3).includes(line.kind)&&line.width>65535))
+    return evaluateBoundariesSharded(prediction,annotation,{signal,workspace,directory,reviewDirectory});
   if(annotation.width>16384||annotation.height>16384||annotation.width*annotation.height>16777216)
     return evaluateBoundariesTiled(prediction,annotation,{signal,workspace,directory,reviewDirectory});
   return evaluationResult(await evaluateWindow(prediction,annotation,{signal,workspace,directory,reviewDirectory}));
 }
 export async function evaluateBoundariesTiled(prediction,annotation,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact'),reviewDirectory}={}){
   signal?.throwIfAborted();checkPrediction(prediction,annotation);const {width,height}=annotation;
+  if((annotation.lines||[]).some(line=>CHANNELS.slice(0,3).includes(line.kind)&&line.width>65535))
+    return evaluateBoundariesSharded(prediction,annotation,{signal,workspace,directory,reviewDirectory});
   const radii=(annotation.lines||[]).filter(line=>CHANNELS.indexOf(line.kind)>=0&&CHANNELS.indexOf(line.kind)<3).map(line=>Math.max(2,line.width/2));
   if(radii.some(radius=>!Number.isFinite(radius)||radius<2))throw Error('Invalid evaluation tolerance');
   const halo=Math.ceil(radii.reduce((maximum,value)=>Math.max(maximum,value),2));
   const fits=core=>{const w=Math.min(width,core+2*halo),h=Math.min(height,core+2*halo);return w<=16384&&h<=16384&&w*h<=16777216;};
-  if(!fits(1))throw Error('Evaluation tolerance exceeds bounded-window limit');
+  if(!fits(1))return evaluateBoundariesSharded(prediction,annotation,{signal,workspace,directory,reviewDirectory});
   let low=1,high=1024;while(low<high){const mid=Math.ceil((low+high)/2);if(fits(mid))low=mid;else high=mid-1;}
   const step=low,counts=Array.from({length:3},()=>[0,0,0,0]),confounderCounts=Array.from({length:4},()=>Array.from({length:3},()=>[0,0]));
   for(let y=0;y<height;y+=step)for(let x=0;x<width;x+=step){
@@ -100,6 +104,62 @@ export async function evaluateBoundariesTiled(prediction,annotation,{signal,work
     const part=await evaluateWindow(prediction,annotation,{signal,workspace,directory,reviewDirectory,window:[left,top,right-left,bottom-top],core:[x-left,y-top,cw,ch]});
     for(let c=0;c<3;c++)for(let i=0;i<4;i++)counts[c][i]+=part.counts[c][i];
     for(let k=0;k<4;k++)for(let c=0;c<3;c++)for(let i=0;i<2;i++)confounderCounts[k][c][i]+=part.confounderCounts[k][c][i];
+  }
+  return evaluationResult({counts,confounderCounts});
+}
+export async function evaluateBoundariesSharded(prediction,annotation,{signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact'),reviewDirectory,shardSize=1024}={}){
+  signal?.throwIfAborted();checkPrediction(prediction,annotation);
+  if(!Number.isInteger(shardSize)||shardSize<1||shardSize>1024)throw Error('Invalid evaluation shard size');
+  const {width,height}=annotation,lines=annotation.lines||[];
+  if(!Array.isArray(lines)||lines.some(line=>!CHANNELS.includes(line.kind)||typeof line.width!=='number'||!Number.isFinite(line.width)||
+    (CHANNELS.indexOf(line.kind)>=3&&Math.max(1,Math.round(line.width))>65535)))
+    throw Error('Invalid evaluation line');
+  const boundary=lines.filter(line=>CHANNELS.indexOf(line.kind)<3);
+  const base={...annotation,lines:lines.filter(line=>CHANNELS.indexOf(line.kind)>=3)};
+  const counts=Array.from({length:3},()=>[0,0,0,0]),confounderCounts=Array.from({length:4},()=>Array.from({length:3},()=>[0,0]));
+  const windowAt=(x,y)=>({x,y,width:Math.min(shardSize,width-x),height:Math.min(shardSize,height-y)});
+  const cache=new Map();let cachedBytes=0;
+  const getMasks=async(label,window,key)=>{
+    const id=`${key}:${window.x}:${window.y}`,existing=cache.get(id);
+    if(existing){cache.delete(id);cache.set(id,existing);return existing;}
+    const value=await reviewMasks(label,{window:[window.x,window.y,window.width,window.height],fullSheetCoordinates:true,signal,workspace,directory:reviewDirectory});
+    const bytes=value.targetBits.length+value.knownBits.length;
+    while(cache.size&&cachedBytes+bytes>64*1024*1024){const first=cache.keys().next().value,old=cache.get(first);cachedBytes-=old.targetBits.length+old.knownBits.length;cache.delete(first);}
+    if(bytes<=64*1024*1024){cache.set(id,value);cachedBytes+=bytes;}return value;
+  };
+  for(let y=0;y<height;y+=shardSize)for(let x=0;x<width;x+=shardSize){
+    signal?.throwIfAborted();const target=windowAt(x,y),n=target.width*target.height,masks=await getMasks(base,target,'base');
+    const predicted=Buffer.alloc(n),truth=Buffer.alloc(n),tolerance=Buffer.alloc(n),recalled=Buffer.alloc(n),allowed=Buffer.alloc(n);
+    for(let j=0;j<target.height;j++)prediction.copy(predicted,j*target.width,(y+j)*width+x,(y+j)*width+x+target.width);
+    for(const [lineIndex,line] of boundary.entries()){
+      const channel=CHANNELS.indexOf(line.kind),bit=1<<channel,radius=Math.max(2,line.width/2);
+      const centerLabel={width,height,known:{},lines:[{...line,width:1}],regions:[],ignore:[]};
+      const center=(await getMasks(centerLabel,target,`line${lineIndex}`)).targetBits,nearPrediction=Buffer.alloc(n);
+      for(let i=0;i<n;i++)if((center[i]&bit)&&(masks.knownBits[i]&bit))truth[i]|=bit;
+      for(let sy=0;sy<height;sy+=shardSize)for(let sx=0;sx<width;sx+=shardSize){
+        signal?.throwIfAborted();const source=windowAt(sx,sy);
+        const dx=Math.max(0,target.x-(source.x+source.width-1),source.x-(target.x+target.width-1));
+        const dy=Math.max(0,target.y-(source.y+source.height-1),source.y-(target.y+target.height-1));
+        if(dx*dx+dy*dy>radius*radius)continue;
+        const known=(await getMasks(base,source,'base')).knownBits,raw=(await getMasks(centerLabel,source,`line${lineIndex}`)).targetBits;
+        const bits=Buffer.alloc(source.width*source.height);let any=0;
+        for(let j=0;j<source.height;j++)for(let i=0;i<source.width;i++){
+          const index=j*source.width+i,valid=Boolean(known[index]&bit),linePixel=Boolean(raw[index]&bit);
+          bits[index]=(linePixel?1:0)|(linePixel&&valid?2:0)|((prediction[(sy+j)*width+sx+i]&bit)&&valid?4:0);any|=bits[index];
+        }
+        if(!any)continue;
+        const near=await proximityWindow({...source,data:bits},target,radius,{signal,workspace,directory});
+        for(let i=0;i<n;i++){if(near[i]&1)allowed[i]|=bit;if(near[i]&2)tolerance[i]|=bit;if(near[i]&4)nearPrediction[i]=1;}
+      }
+      for(let i=0;i<n;i++)if((center[i]&bit)&&(masks.knownBits[i]&bit)&&nearPrediction[i])recalled[i]|=bit;
+    }
+    for(let i=0;i<n;i++)for(let c=0;c<3;c++){
+      const bit=1<<c,valid=Boolean(masks.knownBits[i]&bit),selected=Boolean(predicted[i]&bit)&&valid;
+      counts[c][0]+=selected&&Boolean(tolerance[i]&bit);counts[c][1]+=selected;counts[c][2]+=Boolean(recalled[i]&bit);counts[c][3]+=Boolean(truth[i]&bit);
+      for(let k=3;k<7;k++)if((masks.targetBits[i]&(1<<k))&&(masks.knownBits[i]&(1<<k))&&valid&&!(allowed[i]&bit)){
+        confounderCounts[k-3][c][1]++;confounderCounts[k-3][c][0]+=Boolean(predicted[i]&bit);
+      }
+    }
   }
   return evaluationResult({counts,confounderCounts});
 }
