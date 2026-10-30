@@ -176,7 +176,7 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--index','--sample','--source-rgb','--supervision'].includes(process.argv[2]))throw Error('Expected a training input operation');
+    if(process.argv.length!==3||!['--index','--sample','--source-rgb','--supervision','--coverage'].includes(process.argv[2]))throw Error('Expected a training input operation');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Training index request exceeds budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
     const {root,annotation}=request;
@@ -186,6 +186,11 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const tiles=isRasterTrainingAnnotation(annotation)?await listRasterTrainingTiles({root,annotation},{supervisedOnly}):
         await listReviewedTrainingTiles(annotation,{supervisedOnly,fullSheetCoordinates:true});
       process.stdout.write(JSON.stringify(tiles.map(({x,y})=>({x,y})))+'\n');
+    }else if(process.argv[2]==='--coverage'){
+      if(!annotation||typeof annotation!=='object'||Array.isArray(annotation))throw Error('Explicit reviewed annotation required');
+      const {origin,...review}=annotation;
+      const counts=await countAnnotationTrainingSupervision({annotation:{...review,lines:[],regions:[]}});
+      process.stdout.write(JSON.stringify(counts.map(row=>row[0]))+'\n');
     }else if(process.argv[2]==='--supervision'){
       if(typeof root!=='string'||!root||!Array.isArray(request.sheets)||request.sheets.length>1000000)throw Error('Explicit training supervision sources required');
       const counts=Array.from({length:7},()=>[0,0]);

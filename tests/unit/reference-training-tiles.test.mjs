@@ -24,6 +24,16 @@ test('training supervision stream returns channel counts for selected sources',(
   const invalid=spawnSync(process.execPath,args,{input:JSON.stringify({root:'tests/fixtures/reference-training-tile',sheets:[{annotations:'missing.json'}]}),encoding:'utf8'});
   assert.notEqual(invalid.status,0);
 });
+test('evaluation coverage stream counts known original pixels per channel',async()=>{
+  const annotation=JSON.parse(await readFile('tests/fixtures/reference-training-tile/label.json','utf8'));
+  const run=spawnSync(process.execPath,['tools/reference-analysis/training-tiles.mjs','--coverage'],{input:JSON.stringify({annotation}),encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);
+  assert.deepEqual(JSON.parse(run.stdout),[228,0,160,178,0,228,0]);
+  const seam={width:4100,height:8,known:{international:[[[4094.5,0],[4098.8,0],[4098.8,7],[4094.5,7]]]},
+    lines:[],ignore:[[[4096,0],[4096,7],[4096,7],[4096,0]]]};
+  const bounded=spawnSync(process.execPath,['tools/reference-analysis/training-tiles.mjs','--coverage'],{input:JSON.stringify({annotation:seam}),encoding:'utf8'});
+  assert.equal(bounded.status,0,bounded.stderr);assert.deepEqual(JSON.parse(bounded.stdout),[32,0,0,0,0,0,0]);
+});
 
 test('training tile selection keeps supervised areas and excludes unknown padded tiles',async()=>{
   const annotation={width:600,height:16,known:{international:[[[0,0],[49,0],[49,15],[0,15]]]},lines:[],ignore:[]};
