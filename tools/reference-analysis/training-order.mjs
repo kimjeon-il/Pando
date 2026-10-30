@@ -1,19 +1,38 @@
 // Produce the original group-balanced tile order using the source-bound native engine.
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync,writeFileSync} from 'node:fs';
-import {delimiter,resolve} from 'node:path';
+import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
+import {delimiter,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
-import {readTrainingBounded} from './training-evidence.mjs';
-import {indexMacroTrainingDataset} from './training-tiles.mjs';
-import {verifyMacroTrainingSupervision} from './training-supervision.mjs';
+import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
+import {indexMacroTrainingDataset,inspectCombinedTrainingData} from './training-tiles.mjs';
+import {encodedWeights,verifyMacroTrainingSupervision} from './training-supervision.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
+// Prepare a source-bound mixed-corpus sampling order and weights; no training or model admission.
+export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal,verifyEvidence}){
+  signal?.throwIfAborted();
+  if(!corpus||!auxiliary||!output||!torchLibrary||typeof macroOnly!=='boolean'||
+    !Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0||!Number.isSafeInteger(epoch+seed))
+    throw Error('Explicit combined training order inputs required');
+  if(existsSync(output))throw Error('Training order output exists; preserve it');
+  const data=await inspectCombinedTrainingData({corpus,auxiliary,macroOnly,signal,verifyEvidence});
+  const {bytes,unobservedMask}=encodedWeights(data.counts),target=resolve(output),order=join(target,'order.u64');
+  signal?.throwIfAborted();mkdirSync(target);
+  const result=await writeBalancedTrainingOrder({datasets:data.datasets.map(rows=>rows.map(row=>row.duplicateGroup)),epoch,seed,
+    output:order,torchLibrary,root,directory,signal});
+  if(await corpusFingerprint(corpus,auxiliary)!==data.lineageFingerprint)throw Error('Training sources changed during order preparation; preserve the output');
+  writeFileSync(join(target,'weights.f32'),bytes,{flag:'wx'});
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,independentEvaluation:false,macroOnly:false,
+    lineageFingerprint:data.lineageFingerprint,counts:data.counts,unobservedMask,weightsSha256:createHash('sha256').update(bytes).digest('hex'),
+    epoch,seed,length:result.length,orderSha256:result.sha256,datasetLengths:data.datasets.map(rows=>rows.length),toolRevision:result.toolRevision};
+  writeFileSync(join(target,'order.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
+}
 export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
