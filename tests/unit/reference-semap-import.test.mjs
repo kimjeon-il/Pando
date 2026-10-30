@@ -77,6 +77,14 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     const weights=await readFile(join(output,'weights.f32'));assert.equal(sha(weights),plan.weightsSha256);
     const request={corpus:macroPath,auxiliary:first.manifest,orderDirectory:output,macroOnly:false,epoch:0,seed:42,verifyEvidence};
     assert.equal((await verifyCombinedTrainingOrder(request)).lineageFingerprint,plan.lineageFingerprint);
+    const previous=join(root,'previous.pt');await writeFile(previous,'checkpoint');
+    await writeFile(previous+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,
+      checkpointSha256:sha('checkpoint'),device:'cpu',precision:'fp32',seed:42,freezeEpochs:2,learningRate:.0001,
+      unobservedMask:plan.unobservedMask,positiveWeightSha256:plan.weightsSha256,epoch:0,cursor:0,orderLength:plan.length,orderSha256:plan.orderSha256,
+      corpusSha256:sha(await readFile(macroPath)),auxiliarySha256:'0'.repeat(64),lineageFingerprint:plan.lineageFingerprint}));
+    await assert.rejects(runCombinedTrainingBatch({...request,mode:'resume',input:previous,output:join(root,'wrong-corpus.pt'),
+      sampleOutput:join(root,'wrong-corpus-samples'),count:1,augment:false,freezeEpochs:2,learningRate:.0001,device:'cpu',torchLibrary:root}),/corpus differs/i);
+    await assert.rejects(access(join(root,'wrong-corpus-samples')),{code:'ENOENT'});
     const batch=await prepareCombinedTrainingBatch({...request,cursor:0,count:2,augment:false,output:join(root,'mixed-batch')});
     assert.deepEqual(batch.samples.map(row=>row.index),[0,1]);
     assert.deepEqual(batch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['macro-pdf','semap-label']);
