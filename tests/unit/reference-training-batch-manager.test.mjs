@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
+import {nativeTrainingBatch,runMacroTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
+
+test('macro batch CLI refuses incomplete configuration without creating outputs',()=>{
+  const result=spawnSync(process.execPath,['tools/reference-analysis/native-training-batch.mjs'],{encoding:'utf8',timeout:10000});
+  assert.equal(result.status,1);assert.match(result.stderr,/explicit/i);
+});
 
 test('training batch management rejects changed samples and preserves existing outputs',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-training-batch-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -20,9 +26,14 @@ test('training batch management rejects changed samples and preserves existing o
     device:'cpu',torchLibrary:root,samples:[{index:0,directory:sample}]};
   await assert.rejects(nativeTrainingBatch({...request,amp:true}),/configuration/i);
   writeFileSync(output,'preserve');await assert.rejects(nativeTrainingBatch(request),/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
+  const sampleOutput=join(root,'prepared');await assert.rejects(runMacroTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false}),/exists/i);
+  assert.equal(existsSync(sampleOutput),false);
   const changed={...request,output:join(root,'fresh.pt')};writeFileSync(join(sample,'target.f32'),'changed');
   await assert.rejects(nativeTrainingBatch(changed),/tensor changed/i);assert.equal(existsSync(changed.output),false);
   writeFileSync(join(sample,'target.f32'),'target');
+  receipt.tileIndex=1;writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));
+  await assert.rejects(nativeTrainingBatch(changed),/sample index/i);assert.equal(existsSync(changed.output),false);
+  receipt.tileIndex=0;writeFileSync(join(sample,'sample.json'),JSON.stringify(receipt));
   const source={id:'synthetic',familyId:'family',editionId:'edition',duplicateGroup:'group',geographicScope:'world',scopeEvidence:'fixture',
     rightsReviewed:true,license:'CC0',materialKind:'published-macro-pdf',sha256:receipt.sourcePdfSha256,url:'https://example.org/map.pdf',
     language:'eng',script:'Latin',mapKind:'color'};

@@ -3,7 +3,7 @@ import {existsSync,mkdirSync,readFileSync,statSync,writeFileSync} from 'node:fs'
 import {dirname,join,resolve} from 'node:path';
 import {readTrainingBounded} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
-import {listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
+import {indexMacroTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
 
 export const TRAINING_TENSOR_NAMES=Object.freeze(['tile','overview','position','target','valid']);
 const TRAINING_TENSOR_LIMITS=Object.freeze({tile:3*512*512*4,overview:3*256*256*4,position:4*4,target:7*512*512*4,valid:7*512*512*4});
@@ -46,4 +46,24 @@ export async function writeMacroTrainingSample({corpus,sourceId,tileIndex,x,y,au
   signal?.throwIfAborted();mkdirSync(resolve(output));
   for(const name of TRAINING_TENSOR_NAMES)writeFileSync(join(output,name+'.f32'),tensors[name],{flag:'wx'});
   writeFileSync(join(output,'sample.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
+}
+
+export async function prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output,signal}){
+  signal?.throwIfAborted();
+  if(!corpus||!order||!output||typeof augment!=='boolean'||![cursor,count,epoch].every(Number.isSafeInteger)||cursor<0||count<1||count>16||epoch<0)
+    throw Error('Explicit bounded macro training batch inputs required');
+  if(existsSync(output))throw Error('Training batch output exists; preserve it');
+  const orderPath=resolve(order),orderBytes=readTrainingBounded(orderPath,8000000),orderSha256=trainingSha256(orderBytes);
+  if(!orderBytes.length||orderBytes.length%8||cursor+count>orderBytes.length/8)throw Error('Invalid training order or cursor');
+  const dataset=await indexMacroTrainingDataset(corpus,{signal}),selected=[];
+  for(let i=0;i<count;i++){const index=orderBytes.readBigUInt64LE((cursor+i)*8);
+    if(index>=BigInt(dataset.tiles.length))throw Error('Training order contains an invalid sample index');selected.push(dataset.tiles[Number(index)]);}
+  if(trainingSha256(readTrainingBounded(orderPath,8000000))!==orderSha256)throw Error('Training order changed during sample preparation');
+  signal?.throwIfAborted();mkdirSync(resolve(output));const samples=[];
+  for(let i=0;i<selected.length;i++){const tile=selected[i],directory=resolve(output,'sample-'+String(i).padStart(2,'0'));
+    await writeMacroTrainingSample({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
+    samples.push({index:tile.index,directory,augment});}
+  if(trainingSha256(readTrainingBounded(orderPath,8000000))!==orderSha256)throw Error('Training order changed during sample preparation');
+  if(trainingSha256(readTrainingBounded(resolve(corpus),32*1024*1024))!==dataset.corpusSha256)throw Error('Training corpus changed during sample preparation');
+  return {trainingOnly:true,releaseApproved:false,corpusSha256:dataset.corpusSha256,orderSha256,cursor,samples};
 }
