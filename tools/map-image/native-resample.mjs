@@ -166,6 +166,18 @@ export async function encodeNativeWebpLossless(image,options){
     throw Error('Native lossless WebP output is invalid');
   return result;
 }
+export async function readNativeRawWebp(bytes,{expectedSha256,signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||!bytes.length||bytes.length>300*1024*1024)throw Error('Bounded WebP source required');
+  const input=Buffer.from(bytes);
+  if(expectedSha256!==undefined&&(typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||createHash('sha256').update(input).digest('hex')!==expectedSha256))
+    throw Error('Original WebP image hash changed');
+  const result=await runNative(nativeBinary(workspace,directory),['read-webp-raw'],input,8+16777216*4,signal);
+  if(result.length<8)throw Error('Native raw WebP receipt is truncated');
+  const width=result.readUInt32BE(0),height=result.readUInt32BE(4);dimensions(width,height);
+  if(result.length!==8+width*height*4)throw Error('Native raw WebP pixel length differs');
+  signal?.throwIfAborted();return {width,height,data:result.subarray(8)};
+}
 export async function prepareNativeJpeg(bytes,maximumPixels=8000000,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(!(bytes instanceof Uint8Array)||bytes.length<2||bytes.length>300*1024*1024||bytes[0]!==255||bytes[1]!==216)throw Error('Expected bounded JPEG source');
@@ -198,9 +210,8 @@ export async function inspectNativeImageHeader(bytes,format,{signal,workspace=ro
   const swap=orientation>=5&&orientation<=8;signal?.throwIfAborted();
   return {format,encodedSize:[width,height],orientation,size:swap?[height,width]:[width,height]};
 }
-export async function readNativeImage({path,rect,format,maxPixels=4000000,expectedSha256},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
-  signal?.throwIfAborted();
-  if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');
+function imageReadCoordinates(rect,format,maxPixels){
+  if(!['png','jpeg','webp'].includes(format))throw Error('Supported image format required');
   if(!Number.isInteger(maxPixels)||maxPixels<256||maxPixels>16777216)throw Error('Pixel budget must be 256..16777216');
   let coordinates=[0,0,0,0];
   if(rect!=null){
@@ -208,11 +219,13 @@ export async function readNativeImage({path,rect,format,maxPixels=4000000,expect
     if(coordinates.some(value=>!Number.isInteger(value)||value<0||value>16384)||rect.width<2||rect.height<2)
       throw Error('Source rectangle exceeds original pixel bounds');
   }
-  const chunks=[];let bytes=0;
-  for await(const chunk of createReadStream(path,{signal:signal||undefined})){
-    bytes+=chunk.length;if(bytes>300*1024*1024)throw Error('Image input exceeds encoded byte budget');chunks.push(chunk);
-  }
-  signal?.throwIfAborted();const encoded=Buffer.concat(chunks,bytes);
+  return coordinates;
+}
+export async function decodeNativeImageBytes({bytes,rect,format,maxPixels=4000000,expectedSha256},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||!bytes.length||bytes.length>300*1024*1024)throw Error('Bounded image source required');
+  const coordinates=imageReadCoordinates(rect,format,maxPixels);
+  const encoded=Buffer.from(bytes);
   if(expectedSha256!==undefined&&(typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||createHash('sha256').update(encoded).digest('hex')!==expectedSha256))
     throw Error('Original image hash changed');
   const data=await runNative(nativeBinary(workspace,directory),['read-'+format,String(maxPixels),...coordinates.map(String)],encoded,44+16777216*4,signal);
@@ -225,4 +238,15 @@ export async function readNativeImage({path,rect,format,maxPixels=4000000,expect
   signal?.throwIfAborted();
   return {width:outWidth,height:outHeight,originalWidth,originalHeight,mapping:{exifOrientation,encodedSize:[encodedWidth,encodedHeight],
     rect:{x,y,width,height},analysisSize:[outWidth,outHeight],coordinateSpace:'exif-oriented-original-pixels'},data:data.subarray(44)};
+}
+export async function readNativeImage({path,rect,format,maxPixels=4000000,expectedSha256},options={}){
+  options.signal?.throwIfAborted();
+  if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');
+  imageReadCoordinates(rect,format,maxPixels);
+  const chunks=[];let length=0;
+  for await(const chunk of createReadStream(path,{signal:options.signal||undefined})){
+    length+=chunk.length;if(length>300*1024*1024)throw Error('Image input exceeds encoded byte budget');chunks.push(chunk);
+  }
+  options.signal?.throwIfAborted();
+  return decodeNativeImageBytes({bytes:Buffer.concat(chunks,length),rect,format,maxPixels,expectedSha256},options);
 }

@@ -78,6 +78,15 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="read-webp-raw"){
+            if(argc!=2)throw std::invalid_argument("Raw WebP takes no extra arguments");
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_read_webp(encoded.data(),encoded.size(),&image))throw std::runtime_error(std::string("Raw WebP: ")+image.error);
+            std::unique_ptr<std::uint8_t,decltype(&std::free)> pixels(image.rgba,&std::free);
+            number(image.width);number(image.height);const auto bytes=std::size_t(image.width)*image.height*4;
+            std::cout.write(reinterpret_cast<const char*>(pixels.get()),static_cast<std::streamsize>(bytes));
+            if(!std::cout)throw std::runtime_error("Unable to write raw WebP pixels");return 0;
+        }
         if(action=="semap-image"){
             if(argc!=2)throw std::invalid_argument("Semap image takes no extra arguments");
             const auto encoded=encodedInput();PandoImage image{};
