@@ -74,6 +74,16 @@ test('sharded evaluation combines different line widths and known regions across
   const packed=Buffer.alloc(24*20);for(const [x,y] of [[0,6],[7,9],[10,9],[15,14],[22,19]])packed[y*24+x]=1;
   assert.deepEqual(await evaluateBoundariesSharded(packed,label,{shardSize:8}),await evaluateBoundaries(packed,label));
 });
+test('sharded evaluation preserves diagonal centerlines and confounder strokes across channels',async()=>{
+  const known={};for(const kind of ['international','administrative','coast','hydro','text'])known[kind]=[[[0,0],[11,0],[11,9],[0,9]]];
+  const label={width:12,height:10,known,lines:[
+    {kind:'international',width:5,points:[[0.8,0.4],[11,9]]},
+    {kind:'administrative',width:3,points:[[0,9],[11,1]]},
+    {kind:'hydro',width:4,points:[[0,4],[11,4]]},
+  ],regions:[{kind:'text',polygon:[[2,1],[9,1],[9,8],[2,8]]}],ignore:[[[5,3],[7,3],[7,6],[5,6]]]};
+  const packed=Buffer.alloc(120);for(let y=0;y<10;y++)for(let x=0;x<12;x++)packed[y*12+x]=((x+y)%5===0?1:0)|((x*2+y)%7===0?2:0)|((x+y)%11===0?4:0);
+  assert.deepEqual(await evaluateBoundariesSharded(packed,label,{shardSize:6}),await evaluateBoundaries(packed,label));
+});
 test('bounded evaluation supports sources wider than one native window',async()=>{
   const width=16385,height=2,annotation={width,height,known:{international:[[[0,0],[16384,0],[16384,1],[0,1]]]},
     lines:[{kind:'international',width:1,points:[[0,1],[16384,1]]}],regions:[],ignore:[]};
