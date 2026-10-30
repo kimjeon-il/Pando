@@ -1,5 +1,7 @@
 // Source-bound standalone C++ image primitive. No runtime compilation or fallback.
-import {spawn} from 'node:child_process';
+import {execFileSync,spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {chmodSync,existsSync,readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
@@ -7,21 +9,42 @@ import {verifyNativeTool} from '../native-tool.mjs';
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
   'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
+export function collectMapImageArtifacts({workspace=root,revision,
+  linuxDirectory=process.env.PANDO_MAP_IMAGE_LINUX_ARTIFACT||resolve(workspace,'build-native/map-image/linux-x64'),
+  windowsDirectory=process.env.PANDO_MAP_IMAGE_WINDOWS_ARTIFACT||resolve(workspace,'build-native/map-image',process.platform==='win32'?'artifact':'win32-x64')}={}){
+  if(revision!==undefined&&!/^[a-f0-9]{40}$/.test(revision))throw Error('A full pinned source revision is required');
+  const entries=[];
+  for(const [platform,directory,executable] of [['linux',linuxDirectory,'pando-map-image'],['win32',windowsDirectory,'pando-map-image.exe']]){
+    const {binary,manifest}=verifyNativeTool({root:workspace,directory,target:'map-image',executable,sourceFiles:mapImageSourceFiles,platform,architecture:'x64'});
+    if(revision)for(const file of manifest.sourceFiles){
+      const source=execFileSync('git',['show',revision+':'+file.path],{cwd:workspace,encoding:'utf8',maxBuffer:16*1024*1024});
+      if(createHash('sha256').update(source.replaceAll('\r\n','\n')).digest('hex')!==file.sha256)
+        throw Error('Native image artifact differs from pinned source: '+file.path);
+    }
+    const prefix=`build-native/map-image/${platform}-x64/`;
+    entries.push({path:prefix+'native-tool.manifest.json',data:readFileSync(resolve(directory,'native-tool.manifest.json'))},
+      {path:prefix+executable,data:readFileSync(binary)});
+  }
+  return entries;
+}
 function dimensions(width,height){
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>16384||height>16384||width*height>16777216)
     throw Error('Image dimensions exceed the 16MP graph budget');
 }
-export async function resizeNativeRgba(image,size,{signal,workspace=root,directory=process.env.PANDO_MAP_IMAGE_ARTIFACT||resolve(workspace,'build-native/map-image/artifact')}={}){
+export async function resizeNativeRgba(image,size,{signal,workspace=root,directory=process.env.PANDO_MAP_IMAGE_ARTIFACT||
+  resolve(workspace,'build-native/map-image',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact')}={}){
   signal?.throwIfAborted();
-  if(!image||!Array.isArray(size)||size.length!==2||!Buffer.isBuffer(image.data))throw Error('RGBA image and output size are required');
+  if(!image||!Array.isArray(size)||size.length!==2||!(image.data instanceof Uint8Array))throw Error('RGBA image and output size are required');
   dimensions(image.width,image.height);dimensions(size[0],size[1]);
   if(image.data.length!==image.width*image.height*4)throw Error('RGBA input byte length differs from dimensions');
   const executable=process.platform==='win32'?'pando-map-image.exe':'pando-map-image';
   const {binary}=verifyNativeTool({root:workspace,directory,target:'map-image',executable,sourceFiles:mapImageSourceFiles});
+  if(process.platform!=='win32'&&!process.env.PANDO_MAP_IMAGE_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))
+    chmodSync(binary,0o755);
   const expected=size[0]*size[1]*4;
   const data=await new Promise((accept,reject)=>{
     const child=spawn(binary,['resize-rgba',String(image.width),String(image.height),String(size[0]),String(size[1])],
-      {stdio:['pipe','pipe','pipe'],windowsHide:true,signal});
+      {stdio:['pipe','pipe','pipe'],windowsHide:true,signal:signal||undefined});
     const output=[],errors=[];let length=0,errorBytes=0,overflow=false,settled=false;
     const finish=(error,value)=>{if(settled)return;settled=true;clearTimeout(timer);if(error)reject(error);else accept(value);};
     const timer=setTimeout(()=>{child.kill();finish(Error('Native image resize timed out'));},120000);
