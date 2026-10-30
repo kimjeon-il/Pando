@@ -16,6 +16,8 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       const request=JSON.parse(bytes.toString().split('\n')[0]);assert.equal(request.token,'mcp-test-secret');let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
       else if(request.command==='canvas')result={extent:[10,20,30,40],crs:'EPSG:4326',width:800,height:600,scale:1000,rotation:0,magnification:1};
+      else if(request.command==='project-crs')result={crs:request.crs};
+      else if(request.command==='canvas-screenshot')result={mimeType:'image/png',data:'iVBORw0KGgo='};
       else if(request.command==='canvas-scale')result={ok:true,scale:request.scale,rotation:request.rotation};
       else if(request.command==='canvas-extent')result={extent:request.bounds,crs:request.sourceCrs||'EPSG:4326'};
       else if(request.command==='edit-status')result={id:request.layer,editable:true,modified:true,owned:true,canUndo:true,canRedo:false,undoSteps:1,pending:{added:1,deleted:0,changedAttributes:0,changedGeometries:0}};
@@ -75,7 +77,7 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.equal(initialized.result.serverInfo.name,'pando-qgis-native');
   child.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   const listed=await request('tools/list',{});
-  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_active_layer','qgis_native_add_feature','qgis_native_add_field','qgis_native_algorithms','qgis_native_begin_edit','qgis_native_buffer','qgis_native_canvas','qgis_native_canvas_extent','qgis_native_canvas_scale','qgis_native_clear_selection','qgis_native_clip','qgis_native_commit_edit','qgis_native_delete_feature','qgis_native_delete_field','qgis_native_edit_status','qgis_native_export','qgis_native_features','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_open_raster','qgis_native_project','qgis_native_raster_info','qgis_native_raster_sample','qgis_native_redo_edit','qgis_native_remove_layer','qgis_native_rename_field','qgis_native_rollback_edit','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_set_attribute','qgis_native_set_geometry','qgis_native_set_visibility','qgis_native_start','qgis_native_status','qgis_native_transform','qgis_native_undo_edit','qgis_native_zoom_to_layer']);
+  assert.deepEqual(listed.result.tools.map(tool=>tool.name).sort(),['qgis_native_active_layer','qgis_native_add_feature','qgis_native_add_field','qgis_native_algorithms','qgis_native_begin_edit','qgis_native_buffer','qgis_native_canvas','qgis_native_canvas_extent','qgis_native_canvas_scale','qgis_native_canvas_screenshot','qgis_native_clear_selection','qgis_native_clip','qgis_native_commit_edit','qgis_native_delete_feature','qgis_native_delete_field','qgis_native_edit_status','qgis_native_export','qgis_native_features','qgis_native_layers','qgis_native_normalize','qgis_native_open','qgis_native_open_raster','qgis_native_project','qgis_native_project_crs','qgis_native_raster_info','qgis_native_raster_sample','qgis_native_redo_edit','qgis_native_remove_layer','qgis_native_rename_field','qgis_native_rollback_edit','qgis_native_schema','qgis_native_select','qgis_native_selection','qgis_native_set_attribute','qgis_native_set_geometry','qgis_native_set_visibility','qgis_native_start','qgis_native_status','qgis_native_transform','qgis_native_undo_edit','qgis_native_zoom_to_layer']);
   const call=(name,args)=>request('tools/call',{name,arguments:args});
   const canvas=await call('qgis_native_canvas',{});assert.deepEqual(JSON.parse(canvas.result.content[0].text).extent,[10,20,30,40]);
   const scale=await call('qgis_native_canvas_scale',{scale:2000,rotation:15});assert.equal(JSON.parse(scale.result.content[0].text).rotation,15);
@@ -92,6 +94,9 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.deepEqual(JSON.parse(transformed.result.content[0].text).points,[[1,2],[-1,3]]);
   const badTransform=await call('qgis_native_transform',{sourceCrs:'EPSG:4326',targetCrs:'EPSG:3857',points:[[1]]});assert.equal(badTransform.result.isError,true);
   const project=await call('qgis_native_project',{});assert.equal(JSON.parse(project.result.content[0].text).layer_count,1);
+  const crs=await call('qgis_native_project_crs',{crs:'EPSG:3857'});assert.equal(JSON.parse(crs.result.content[0].text).crs,'EPSG:3857');
+  assert.equal((await call('qgis_native_project_crs',{crs:''})).result.isError,true);
+  const screenshot=await call('qgis_native_canvas_screenshot',{});assert.deepEqual(screenshot.result.content[0],{type:'image',mimeType:'image/png',data:'iVBORw0KGgo='});
   const layers=await call('qgis_native_layers',{offset:0,limit:10});assert.equal(JSON.parse(layers.result.content[0].text).layers[0].id,'layer-1');
   const schema=await call('qgis_native_schema',{layer:'layer-1'});assert.equal(JSON.parse(schema.result.content[0].text).fields[0].name,'source');
   const hidden=await call('qgis_native_set_visibility',{layer:'layer-1',visible:false});assert.equal(JSON.parse(hidden.result.content[0].text).visible,false);

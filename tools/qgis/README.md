@@ -13,7 +13,9 @@ source and QGIS 3.44.15 / Qt 5.15.13. Keep the token in the ignored config.
 node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
+node tools/qgis/native-bridge.mjs project-crs --target-crs EPSG:3857
 node tools/qgis/native-bridge.mjs canvas
+node tools/qgis/native-bridge.mjs canvas-screenshot
 node tools/qgis/native-bridge.mjs canvas-extent --bounds '[125,35,130,40]' --source-crs EPSG:4326
 node tools/qgis/native-bridge.mjs canvas-scale --scale 10000000 --rotation 0
 node tools/qgis/native-bridge.mjs active-layer
@@ -68,6 +70,9 @@ Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 64-bit values, or a QGIS expression validated against the layer before use.
 Coordinate transformation accepts one to 10,000 XY pairs, requires explicit
 source and target CRSs, and refuses fallback datum transformations.
+Project CRS changes affect the current QGIS project, not the layer source data.
+Canvas screenshots return PNG image content through MCP; CLI output contains
+base64 PNG, limited to 1,400,000 encoded image bytes.
 Clip requires an existing polygon overlay with a valid CRS. QGIS transforms it
 into the input layer's CRS using the project's chosen coordinate operation,
 with fallback transforms disabled; transformation errors reject the operation.
