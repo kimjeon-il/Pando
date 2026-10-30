@@ -63,8 +63,10 @@ Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 64-bit values, or a QGIS expression validated against the layer before use.
 Coordinate transformation accepts one to 10,000 XY pairs, requires explicit
 source and target CRSs, and refuses fallback datum transformations.
-Clip requires an existing polygon overlay in the same CRS as its input. It
-writes only a new EPSG:4326 GeoJSON and leaves both source layers unchanged.
+Clip requires an existing polygon overlay with a valid CRS. QGIS transforms it
+into the input layer's CRS using the project's chosen coordinate operation,
+with fallback transforms disabled; transformation errors reject the operation.
+It writes only a new EPSG:4326 GeoJSON and leaves both source layers unchanged.
 Feature reads return a bounded page with exact JSON attributes, optional WKT in
 the layer CRS and string QGIS FIDs. Filtered pages report `hasMore` without a
 whole-layer filtered count.
@@ -154,6 +156,12 @@ Focused verification:
 node --test tests/unit/qgis-normalize.test.mjs tests/unit/qgis-pando-exchange.test.mjs
 pnpm.cmd exec playwright test tests/browser/qgis-pando-exchange.spec.mjs
 ```
+
+For a dedicated native test profile with an empty project, the actual
+cross-CRS clip can also be checked with
+`node tests/integration/qgis-native-clip-live.mjs`. It creates only synthetic
+files in `build-native/qgis/migration-current/` and refuses a nonempty or
+saved project. Reuse the existing QGIS instance; do not close user work.
 
 Set `PANDOLAB_QGIS_EXCHANGE_FILE` to an actual bridge export to run the editor
 test against real QGIS output. The default synthetic fixture tests application
