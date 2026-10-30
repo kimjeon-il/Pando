@@ -1,10 +1,15 @@
 // Binary boundary for native training-diagnostic overlay composition.
-import {resolve} from 'node:path';
+import {dirname,extname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {composeNativeDiagnosticOverlays,encodeNativeJpeg} from '../map-image/native-resample.mjs';
+import {composeNativeDiagnosticOverlays,encodeNativeJpeg,readNativeTrainingRaster} from '../map-image/native-resample.mjs';
 import {drawNativePreviewLabels} from '../map-image/native-preview.mjs';
 import {diagnosticPixelStatistics} from './native-evaluation.mjs';
 import {nativeTrainingCheckpointInfer} from './native-training-validation.mjs';
+import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {selectDiagnosticTile} from './diagnostic-selection.mjs';
+import {prepareRasterTrainingTile} from './training-tiles.mjs';
+import {resolveCorpusPath} from './corpus-path.mjs';
 
 // The native model supplies probabilities; original RGB and the training
 // tensors use the same channel-major ordering as the existing diagnostic.
@@ -58,6 +63,36 @@ export async function renderDiagnosticJpeg({original,panels},{signal,workspace,i
   const labelled=await drawNativePreviewLabels({width,height,data},titles.map((text,i)=>({x:i*512+8,y:8,text})),
     {signal,workspace,directory:previewDirectory});
   return encodeNativeJpeg(labelled,{signal,workspace,directory:imageDirectory});
+}
+
+// Inspect one explicitly selected macro source; the result is training-only.
+export async function diagnoseMacroTrainingSource({corpus,sourceId,checkpoint,device,torchLibrary},
+  {signal,workspace,imageDirectory,previewDirectory,evaluationDirectory,batchDirectory}={}){
+  signal?.throwIfAborted();
+  if(!corpus||!checkpoint||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
+    throw Error('Explicit macro source, checkpoint and device required');
+  const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json';
+  const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath);
+  const manifest=JSON.parse(readTrainingBounded(corpusPath,32*1024*1024)),receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||
+    receipt.checkpointSha256!==checkpointHash||receipt.corpusSha256!==corpusHash)throw Error('Checkpoint does not match this training corpus');
+  const {sheet,annotation,checks}=await verifiedMacroTrainingSource(root,manifest,sourceId);recheckMacroTrainingSource(checks);
+  const selected=await selectDiagnosticTile({root,annotation},{signal,workspace,imageDirectory});
+  if(!selected)throw Error('Training source has no supervised diagnostic tile');
+  const {x,y,index}=selected,path=await resolveCorpusPath(root,sheet.image),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
+  if(!format)throw Error('Supported training image required');
+  const [tensors,image]=await Promise.all([
+    prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory}),
+    readNativeTrainingRaster({path,format,expectedSha256:sheet.sha256,x,y},{signal,workspace,directory:imageDirectory})]);
+  const original=Buffer.alloc(512*512*3);for(let i=0;i<512*512;i++){original[i*3]=image.tile[i*4];original[i*3+1]=image.tile[i*4+1];original[i*3+2]=image.tile[i*4+2];}
+  const diagnostic=await diagnoseNativeTrainingTile({checkpoint:checkpointPath,...tensors,original,device,torchLibrary},
+    {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory});
+  const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels},{signal,workspace,imageDirectory,previewDirectory});
+  recheckMacroTrainingSource(checks);
+  if(trainingFileIdentity(corpusPath)!==corpusHash||trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
+    throw Error('Training inputs changed during diagnostic');
+  return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,jpeg:preview.data,checkpointSha256:checkpointHash,corpusSha256:corpusHash,
+    trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'node:test';
-import {summarizeDiagnosticTile} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
+import {diagnoseMacroTrainingSource,summarizeDiagnosticTile} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
 
 test('diagnostic tile joins native probabilities, known masks, statistics and overlays',async()=>{
   const width=4,height=1,values=width*height*7,original=Buffer.alloc(width*height*3,255);
@@ -26,4 +30,17 @@ test('diagnostic tile joins native probabilities, known masks, statistics and ov
   await assert.rejects(summarizeDiagnosticTile({...options,baseline:null}),/dimensions/i);
   const controller=new AbortController();controller.abort();
   await assert.rejects(summarizeDiagnosticTile(options,{signal:controller.signal}),{name:'AbortError'});
+});
+
+test('macro diagnostics refuse a checkpoint for a different corpus before execution',async t=>{
+  const folder=mkdtempSync(join(tmpdir(),'pando-diagnostic-scope-'));t.after(()=>rmSync(folder,{recursive:true}));
+  const corpus=join(folder,'corpus.json'),checkpoint=join(folder,'checkpoint.pt');
+  writeFileSync(corpus,'{}');writeFileSync(checkpoint,'fixture');
+  const hash=value=>createHash('sha256').update(value).digest('hex');
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256:hash('fixture'),corpusSha256:'0'.repeat(64)};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
+  const request={corpus,checkpoint,sourceId:'fixture',device:'cpu',torchLibrary:folder};
+  await assert.rejects(diagnoseMacroTrainingSource(request),/does not match/i);
+  receipt.corpusSha256=hash('{}');writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
+  await assert.rejects(diagnoseMacroTrainingSource(request),/training-only corpus/i);
 });
