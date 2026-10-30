@@ -4,6 +4,8 @@ import {mkdtempSync,mkdirSync,symlinkSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename,join} from 'node:path';
 import {buildCommand,parseArguments,runSource,ROOT,TASK_SOURCES} from '../../scripts/gis/run-source.mjs';
+import {packageNativeTool} from '../../tools/native-tool.mjs';
+import {terrainPreviewSources} from '../../tools/gis/terrain-preview-native.mjs';
 
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
  const calls=[],logs=[];
@@ -54,4 +56,15 @@ test('mapped scripts cannot follow linked directories outside an explicit reposi
  t.after(()=>rmSync(outside,{recursive:true,force:true}));
  symlinkSync(outside,join(root,'tools'),process.platform==='win32'?'junction':'dir');
  assert.throws(()=>buildCommand('terrain-dem',[],{root}),/escaped repository/);
+});
+test('terrain preview execution requires a source-bound native compositor',t=>{
+ const root=mkdtempSync(join(tmpdir(),'gis-terrain-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ for(const file of ['tools/build-terrain-preview.py',...terrainPreviewSources]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
+ const argv=['--task','terrain-preview','--execute'],calls=[];
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const binary=join(root,process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview');writeFileSync(binary,'fixture binary');
+ packageNativeTool({root,binary,directory:join(root,'build-native/terrain-preview/artifact'),target:'terrain-preview',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainPreviewSources});
+ assert.equal(runSource({root,argv,output:()=>{},spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
+ assert.equal(calls[0].env.PANDO_TERRAIN_PREVIEW_BINARY,join(root,'build-native/terrain-preview/artifact',basename(binary)));
 });

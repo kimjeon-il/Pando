@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
+import {composeNativeTerrainPreview} from '../../tools/gis/terrain-preview-native.mjs';
 
 const binary=process.env.PANDO_TERRAIN_PREVIEW_BINARY;
 const cases=JSON.parse(readFileSync('tests/fixtures/terrain-preview-kernel.json','utf8'));
@@ -21,4 +22,13 @@ test('native terrain preview rejects truncated input, invalid dimensions and non
     (()=>{const copy=Buffer.from(input);copy[56+3]=0;return copy;})()]){
     const result=spawnSync(binary,[],{input:bad});assert.equal(result.status,1);assert.equal(result.stdout.length,0);assert(result.stderr.length>0);
   }
+});
+test('terrain preview interface validates pixel buffers before starting the native tool',async()=>{
+  const row=cases[0];await assert.rejects(composeNativeTerrainPreview({...row,dem:Buffer.alloc(1),tint:Buffer.from(row.tint),land:Buffer.from(row.land)}),/buffer/i);
+});
+test('source-bound terrain preview interface preserves all frozen pixel cases',{
+  skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY,
+},async()=>{
+  for(const row of cases){const output=await composeNativeTerrainPreview({...row,dem:Buffer.from(row.dem),tint:Buffer.from(row.tint),land:Buffer.from(row.land)},
+    {directory:process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY});assert.deepEqual(output,Buffer.from(row.expected),row.name);}
 });

@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -19,6 +20,12 @@ spec.loader.exec_module(preview)
 
 
 class TerrainPreviewTests(unittest.TestCase):
+    def test_preview_requires_native_compositor(self):
+        dem = np.full((1, 1, 4), 255, dtype=np.uint8)
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(RuntimeError, 'PANDO_TERRAIN_PREVIEW_BINARY'):
+                preview.compose_preview_rgba(dem, np.zeros((1,1,3), dtype=np.uint8), np.ones((1,1), dtype=bool), 0, 0, 1, 1)
+
     def test_selected_elevation_colors_and_gray_match_the_display_contract(self):
         contract = json.loads((SCRIPT.parents[1] / 'tests/fixtures/terrain-presentation.json').read_text())
         tint = np.array([[contract['tint']]], dtype=np.uint8)

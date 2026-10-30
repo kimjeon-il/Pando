@@ -10,7 +10,9 @@ import argparse
 import hashlib
 import io
 import json
-import math
+import os
+import struct
+import subprocess
 import tempfile
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -96,77 +98,24 @@ def rasterize_land_mask(countries: dict, x_origin: int, y_origin: int,
     return np.asarray(mask) > 0
 
 
-def _sample_tint(tint: np.ndarray, x_origin: int, y_origin: int,
-                 tile_width: int, tile_height: int, level_width: int, level_height: int) -> np.ndarray:
-    tint_height, tint_width = tint.shape[:2]
-    x = np.clip(((np.arange(tile_width, dtype=np.float64) + x_origin + 0.5) % level_width) * tint_width / level_width - 0.5, 0, tint_width-1)
-    y = np.clip((np.arange(tile_height, dtype=np.float64) + y_origin + 0.5) * tint_height / level_height - 0.5, 0, tint_height-1)
-    x0 = np.floor(x).astype(np.int64)
-    y0 = np.floor(y).astype(np.int64)
-    fx = (x - x0)[None, :, None]
-    fy = (y - y0)[:, None, None]
-    x0 %= tint_width
-    x1 = (x0 + 1) % tint_width
-    y0 = np.clip(y0, 0, tint_height - 1)
-    y1 = np.clip(y0 + 1, 0, tint_height - 1)
-    north = tint[y0[:, None], x0[None, :], :3] * (1 - fx) + tint[y0[:, None], x1[None, :], :3] * fx
-    south = tint[y1[:, None], x0[None, :], :3] * (1 - fx) + tint[y1[:, None], x1[None, :], :3] * fx
-    return north * (1 - fy) + south * fy
-
-
 def compose_preview_rgba(dem: np.ndarray, tint: np.ndarray, land: np.ndarray,
                          x_origin: int, y_origin: int,
                          level_width: int, level_height: int) -> np.ndarray:
-    if dem.ndim != 3 or dem.shape[2] != 4 or not np.all(dem[:, :, 3] == 255):
+    if dem.ndim != 3 or dem.shape[2] != 4 or dem.dtype != np.uint8 or not np.all(dem[:, :, 3] == 255):
         raise ValueError("Invalid DEM RGBA tile")
-    if land.shape != dem.shape[:2] or tint.ndim != 3 or tint.shape[2] < 3:
+    if land.shape != dem.shape[:2] or tint.ndim != 3 or tint.shape[2] < 3 or tint.dtype != np.uint8:
         raise ValueError("Invalid tint or land mask")
-    height = dem[:, :, 0].astype(np.int32) * 256 + dem[:, :, 1].astype(np.int32) - 12000
-    heights = height.astype(np.float64)
-    rows, columns = height.shape
-    latitude = 90 - (np.arange(rows) + y_origin + 0.5) * 180 / level_height
-    east_meters = 40030228.884 * np.maximum(0.0001, np.cos(np.deg2rad(latitude))) / level_width
-    north_meters = 20015114.442 / level_height
-    # Full-LOD generation wraps longitude before shading, so both tile gutters
-    # and the antimeridian reuse exactly the same displayed pixels.
-    if x_origin == 0 and columns == level_width:
-        east_difference = np.roll(heights, -1, axis=1) - np.roll(heights, 1, axis=1)
-    else:
-        east_difference = heights[:, np.minimum(np.arange(columns)+1, columns-1)] - heights[:, np.maximum(np.arange(columns)-1, 0)]
-    south_difference = heights[np.minimum(np.arange(rows)+1, rows-1), :] - heights[np.maximum(np.arange(rows)-1, 0), :]
-    nx = -east_difference / east_meters[:, None]
-    ny = south_difference / north_meters
-    normal_length = np.sqrt(nx*nx + ny*ny + 1)
-    root_half = math.sqrt(0.5)
-    illumination = (0.55*np.maximum(0, (-nx*0.5+ny*0.5+root_half)/normal_length)
-                    + 0.20*np.maximum(0, (-nx*root_half+root_half)/normal_length)
-                    + 0.15*np.maximum(0, (ny*root_half+root_half)/normal_length)
-                    + 0.10*np.maximum(0, (-nx*0.5-ny*0.5+root_half)/normal_length))
-    polar_illumination = np.maximum(0, (dem[:, :, 2].astype(np.float64)/255 - 0.42)/0.58)
-    illumination = np.where((np.abs(latitude) < 89.5)[:, None], illumination, polar_illumination)
-    neutral = 0.27 + 0.73*root_half
-    shade = np.clip(neutral + ((0.27+0.73*illumination)-neutral)*1.3, 0.16, 1)
-    ratio = np.clip(shade / neutral, 0.38, 1.3)
-    color = _sample_tint(tint, x_origin, y_origin, dem.shape[1], dem.shape[0], level_width, level_height)
-    def smooth(low, high):
-        t = np.clip((np.maximum(0, heights)-low)/(high-low), 0, 1)
-        return t*t*(3-2*t)
-    def blend(first, second, amount):
-        return first*(1-amount[:, :, None]) + np.asarray(second)*amount[:, :, None]
-    elevation_color = blend(np.array([0.43,0.62,0.39]), [0.68,0.72,0.44], smooth(0,1000))
-    elevation_color = blend(elevation_color, [0.72,0.57,0.39], smooth(1000,2500))
-    elevation_color = blend(elevation_color, [0.72,0.68,0.62], smooth(2500,4500))
-    elevation_color = blend(elevation_color, [0.96,0.95,0.90], smooth(4500,6500))
-    color = color*0.4 + elevation_color*(0.6*255)
-    depth = np.power(np.clip(-height.astype(np.float64) / 8000, 0, 1), 0.6)
-    ocean = np.stack((0.42 + (0.10 - 0.42) * depth,
-                      0.66 + (0.24 - 0.66) * depth,
-                      0.82 + (0.39 - 0.82) * depth), axis=2) * 255
-    color = np.where(land[:, :, None], color, ocean)
-    result = np.empty_like(dem)
-    result[:, :, :3] = np.rint(np.clip(color * ratio[:, :, None], 0, 255)).astype(np.uint8)
-    result[:, :, 3] = np.rint(np.clip((0.58+0.3*smooth(0,6000))*ratio*255, 0, 255)).astype(np.uint8)
-    return result
+    rows, columns = dem.shape[:2]
+    binary = os.environ.get('PANDO_TERRAIN_PREVIEW_BINARY')
+    if not binary:
+        raise RuntimeError('PANDO_TERRAIN_PREVIEW_BINARY is required for terrain preview generation')
+    header = struct.pack('<8sIIII4d', b'PDTERR01', columns, rows, tint.shape[1], tint.shape[0],
+                         x_origin, y_origin, level_width, level_height)
+    payload = header + np.ascontiguousarray(dem).tobytes() + np.ascontiguousarray(tint[:, :, :3]).tobytes() + np.ascontiguousarray(land != 0, dtype=np.uint8).tobytes()
+    result = subprocess.run([binary], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180).stdout
+    if len(result) != rows * columns * 4:
+        raise ValueError('Invalid native terrain preview output length')
+    return np.frombuffer(result, dtype=np.uint8).reshape(rows, columns, 4).copy()
 
 
 def _source_bytes(path: str, url: str, expected: dict, cache: Path) -> bytes:

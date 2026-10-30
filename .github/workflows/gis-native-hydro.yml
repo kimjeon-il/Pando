@@ -39,6 +39,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Build and verify only the terrain preview compositor
         shell: pwsh
         run: |
@@ -48,8 +51,24 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview build failed' }
           if ($IsWindows) { $env:PANDO_TERRAIN_PREVIEW_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/Release/pando-terrain-preview.exe" }
           else { $env:PANDO_TERRAIN_PREVIEW_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/pando-terrain-preview" }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_PREVIEW_BINARY=$env:PANDO_TERRAIN_PREVIEW_BINARY"
+          node tools/gis/package-terrain-preview.mjs --binary $env:PANDO_TERRAIN_PREVIEW_BINARY --directory build-native/terrain-preview/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview packaging failed' }
+          $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
           node --test tests/unit/terrain-preview-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
+      - name: Verify the existing preview producer against the native compositor
+        shell: pwsh
+        run: |
+          python -m pip install Pillow==12.3.0 numpy==2.3.5
+          if ($LASTEXITCODE -ne 0) { throw 'Terrain test dependencies failed' }
+          python -m unittest tests.python.test_build_terrain_preview
+          if ($LASTEXITCODE -ne 0) { throw 'Terrain preview producer checks failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-preview-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/terrain-preview/artifact/
+          retention-days: 7
   reference-step:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'reference-step' || inputs.target == 'reference-ordered')
     strategy:

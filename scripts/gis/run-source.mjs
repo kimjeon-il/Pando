@@ -5,6 +5,8 @@ import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {verifyNativeTool} from '../../tools/native-tool.mjs';
+import {terrainPreviewSources} from '../../tools/gis/terrain-preview-native.mjs';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
@@ -54,7 +56,13 @@ export function runSource({argv=process.argv.slice(2),root=ROOT,spawn=spawnSync,
     task,source:TASK_SOURCES[task],argv:args,requiresExternalOriginals:execute};
   output(JSON.stringify(receipt,null,2));
   if(!execute)return 0;
-  const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false});
+  let env=process.env;
+  if(task==='terrain-preview'){
+    const executable=process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview';
+    const {binary}=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-preview/artifact'),target:'terrain-preview',executable,sourceFiles:terrainPreviewSources});
+    env={...process.env,PANDO_TERRAIN_PREVIEW_BINARY:binary};
+  }
+  const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false,env});
   if(result.error)throw result.error;
   if(result.signal||!Number.isInteger(result.status))throw Error('GIS source subprocess interrupted');
   return result.status;
