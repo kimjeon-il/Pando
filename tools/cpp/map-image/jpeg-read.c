@@ -52,8 +52,8 @@ static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,in
                 result->orientation=pando_exif_orientation(marker->data+6,marker->data_length-6);break;
             }
     }
-    if(consume&&(result->orientation<1||result->orientation>4)){
-        strncpy(decoder->error,"Streaming JPEG orientation 5-8 is not available",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
+    if(consume&&(result->orientation<1||result->orientation>8)){
+        strncpy(decoder->error,"Invalid streaming JPEG orientation",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
     }
     if(maximum_pixels){
         const uint32_t w=decoder->jpeg.image_width,h=decoder->jpeg.image_height;

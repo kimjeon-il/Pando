@@ -84,13 +84,15 @@ int main(int argc,char** argv){
             struct State {
                 std::uint32_t width=0,height=0,orientation=0;
                 std::unique_ptr<pando::map_image::OpaqueBilinearAccumulator> accumulator;
+                std::unique_ptr<pando::map_image::OpaqueBilinearColumnAccumulator> columns;
                 std::vector<std::uint8_t> mirrored;std::exception_ptr error;
             } state;
             const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t orientation)->int{
                 auto& s=*static_cast<State*>(context);try{
                     s.width=width;s.height=height;s.orientation=orientation;
-                    s.accumulator=std::make_unique<pando::map_image::OpaqueBilinearAccumulator>(width,height,256,256);
-                    if(orientation==2||orientation==3)s.mirrored.resize(std::size_t(width)*4);
+                    if(orientation>=5)s.columns=std::make_unique<pando::map_image::OpaqueBilinearColumnAccumulator>(height,width,256,256);
+                    else s.accumulator=std::make_unique<pando::map_image::OpaqueBilinearAccumulator>(width,height,256,256);
+                    if(orientation==2||orientation==3||orientation==7||orientation==8)s.mirrored.resize(std::size_t(width)*4);
                     return 1;
                 }catch(...){s.error=std::current_exception();return 0;}
             };
@@ -100,8 +102,14 @@ int main(int argc,char** argv){
                         for(std::size_t x=0;x<s.width;++x)std::copy_n(pixels+x*4,4,s.mirrored.data()+(s.width-1-x)*4);
                         pixels=s.mirrored.data();
                     }
-                    const auto orientedY=(s.orientation==3||s.orientation==4)?s.height-1-y:y;
-                    s.accumulator->addRow(static_cast<int>(orientedY),pixels,length);return 1;
+                    if(s.orientation>=5){
+                        const auto orientedX=(s.orientation==6||s.orientation==7)?s.height-1-y:y;
+                        s.columns->addColumn(static_cast<int>(orientedX),pixels,length);
+                    }else{
+                        const auto orientedY=(s.orientation==3||s.orientation==4)?s.height-1-y:y;
+                        s.accumulator->addRow(static_cast<int>(orientedY),pixels,length);
+                    }
+                    return 1;
                 }catch(...){s.error=std::current_exception();return 0;}
             };
             const auto encoded=encodedInput();PandoImage image{};
@@ -109,7 +117,8 @@ int main(int argc,char** argv){
                 if(state.error)std::rethrow_exception(state.error);
                 throw std::runtime_error(std::string("Training JPEG: ")+image.error);
             }
-            const auto output=state.accumulator->finish();number(image.width);number(image.height);number(image.orientation);
+            const auto output=state.orientation>=5?state.columns->finish():state.accumulator->finish();
+            number(state.orientation>=5?image.height:image.width);number(state.orientation>=5?image.width:image.height);number(image.orientation);
             std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
             if(!std::cout)throw std::runtime_error("Unable to write JPEG training overview");return 0;
         }

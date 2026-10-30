@@ -61,6 +61,14 @@ int main(int argc,char** argv){
               "Out-of-order source rows differ from Pillow");
         pando::map_image::OpaqueBilinearAccumulator incomplete(3,2,2,2);
         rejects([&]{incomplete.finish();});
+        pando::map_image::OpaqueBilinearColumnAccumulator columns(3,2,2,2);
+        const std::vector<std::uint8_t> col0={10,20,30,255,20,30,40,255},col1={50,60,70,255,60,70,80,255},
+            col2={90,100,110,255,100,110,120,255};
+        columns.addColumn(2,col2.data(),col2.size());columns.addColumn(0,col0.data(),col0.size());
+        rejects([&]{columns.addColumn(2,col2.data(),col2.size());});
+        columns.addColumn(1,col1.data(),col1.size());
+        check(columns.finish()==std::vector<std::uint8_t>({25,35,45,255,75,85,95,255,35,45,55,255,85,95,105,255}),
+              "Column-streamed source differs from Pillow");
         std::cout<<"RGB and RGBA resampling match Pillow pixel oracles\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }
