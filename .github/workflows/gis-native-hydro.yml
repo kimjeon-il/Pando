@@ -826,6 +826,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - name: Install locked MCP test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Download and verify the matching OSGeo4W development packages
         shell: pwsh
         run: |
