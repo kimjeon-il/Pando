@@ -96,4 +96,19 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int 
     }
     return output;
 }
+std::vector<std::uint8_t> rotateRgba(const std::vector<std::uint8_t>& input,int width,int height,int degrees){
+    validate(width,height);
+    if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");
+    if(degrees!=0&&degrees!=90&&degrees!=180&&degrees!=270)throw std::invalid_argument("Invalid clockwise rotation");
+    if(degrees==0)return input;
+    const int outputWidth=degrees==180?width:height;
+    std::vector<std::uint8_t> output(input.size());
+    for(int y=0;y<height;++y)for(int x=0;x<width;++x){
+        const int ox=degrees==90?height-1-y:degrees==180?width-1-x:y;
+        const int oy=degrees==90?x:degrees==180?height-1-y:width-1-x;
+        const auto source=(static_cast<std::size_t>(y)*width+x)*4,destination=(static_cast<std::size_t>(oy)*outputWidth+ox)*4;
+        std::copy_n(input.begin()+source,4,output.begin()+destination);
+    }
+    return output;
+}
 }
