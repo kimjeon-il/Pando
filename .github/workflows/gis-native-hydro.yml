@@ -887,7 +887,7 @@ jobs:
           cmake --build build-native/qgis/native --config Release --target pando-qgis-bridge --parallel 1
           if ($LASTEXITCODE -ne 0) { throw 'QGIS native bridge build failed' }
       - name: Test authenticated client transport
-        run: node --test tests/unit/qgis-native-client.test.mjs tests/unit/qgis-native-export.test.mjs
+        run: node --test tests/unit/qgis-native-client.test.mjs tests/unit/qgis-native-export.test.mjs tests/unit/qgis-native-bridge.test.mjs tests/unit/qgis-native-mcp.test.mjs
       - name: Package the source-bound bridge
         shell: pwsh
         run: |

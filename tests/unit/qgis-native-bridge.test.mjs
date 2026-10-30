@@ -70,6 +70,10 @@ async function fixture(t){
         assert.equal(request.layer,'layer-1');assert.equal(request.distance,50);assert.equal(request.segments,5);
         writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[{type:'Feature',geometry:{type:'Polygon',coordinates:[[[127,37],[128,37],[128,38],[127,37]]]},properties:{name:'buffer'}}]}),{flag:'wx'});
         result={output:request.output,features:1,crs:'EPSG:4326'};
+      }else if(request.command==='clip'){
+        assert.equal(request.layer,'layer-1');assert.equal(request.overlay,'overlay-1');
+        writeFileSync(request.output,JSON.stringify({type:'FeatureCollection',features:[]}),{flag:'wx'});
+        result={output:request.output,features:0,crs:'EPSG:4326'};
       }else throw Error('Unexpected command');
       socket.end(JSON.stringify({ok:true,result})+'\n');
     });
@@ -148,6 +152,9 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   assert.equal(buffer.code,0,buffer.stderr);assert.equal(JSON.parse(readFileSync(buffered)).features[0].geometry.type,'Polygon');
   const existingBuffer=readFileSync(buffered);const repeatBuffer=await run(['--config',config,'buffer','--layer','layer-1','--distance','50','--output',buffered]);
   assert.notEqual(repeatBuffer.code,0);assert.deepEqual(readFileSync(buffered),existingBuffer);
+  const clipped=join(root,'clip.geojson');const clip=await run(['--config',config,'clip','--layer','layer-1','--overlay','overlay-1','--output',clipped]);
+  assert.equal(clip.code,0,clip.stderr);assert.deepEqual(JSON.parse(readFileSync(clipped)).features,[]);
+  assert.notEqual((await run(['--config',config,'clip','--layer','layer-1','--output',join(root,'missing.geojson')])).code,0);
   for(const value of ['NaN','1e999','0x10']){
     const invalid=await run(['--config',config,'buffer','--layer','layer-1','--distance',value,'--output',join(root,'invalid.geojson')]);
     assert.notEqual(invalid.code,0);

@@ -230,6 +230,27 @@ class Bridge final:public QObject,public QgisPlugin {
             }
             return {{QStringLiteral("algorithms"),page},{QStringLiteral("offset"),offset},{QStringLiteral("limit"),limit},{QStringLiteral("hasMore"),hasMore}};
         }
+        if(command==QStringLiteral("clip")){
+            const auto id=request.value(QStringLiteral("layer")).toString(),overlayId=request.value(QStringLiteral("overlay")).toString();
+            auto* input=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
+            auto* overlay=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(overlayId));
+            if(id.isEmpty()||overlayId.isEmpty()||!input||!overlay||!input->isValid()||!overlay->isValid()||!input->crs().isValid()||!overlay->crs().isValid())
+                throw QStringLiteral("Valid input and overlay vector layers and CRSs are required");
+            if(overlay->geometryType()!=Qgis::GeometryType::Polygon)throw QStringLiteral("Clip overlay must be polygonal");
+            if(input->crs()!=overlay->crs())throw QStringLiteral("Clip input and overlay must use the same CRS");
+            const QFileInfo destination(request.value(QStringLiteral("output")).toString());
+            if(!destination.isAbsolute()||!destination.dir().exists()||destination.exists()||destination.isSymLink())throw QStringLiteral("A new absolute output path in an existing directory is required");
+            auto* registry=QgsApplication::processingRegistry();const auto* algorithm=registry?registry->algorithmById(QStringLiteral("native:clip")):nullptr;
+            if(!algorithm)throw QStringLiteral("QGIS native clip algorithm is unavailable");
+            QgsProcessingContext context;context.setProject(QgsProject::instance());QgsProcessingFeedback feedback;
+            const QVariantMap params{{QStringLiteral("INPUT"),id},{QStringLiteral("OVERLAY"),overlayId},{QStringLiteral("OUTPUT"),QStringLiteral("memory:")}};
+            QString error;if(!algorithm->checkParameterValues(params,context,&error))throw QStringLiteral("Invalid QGIS clip parameters: ")+error;
+            bool ok=false;const auto result=algorithm->run(params,context,&feedback,&ok);
+            if(!ok)throw QStringLiteral("QGIS clip processing failed");
+            std::unique_ptr<QgsMapLayer> output(context.takeResultLayer(result.value(QStringLiteral("OUTPUT")).toString()));
+            auto* vector=qobject_cast<QgsVectorLayer*>(output.get());if(!vector||!vector->isValid())throw QStringLiteral("QGIS clip did not produce a vector layer");
+            return exportQgisVector(vector,destination.absoluteFilePath());
+        }
         if(command==QStringLiteral("buffer")){
             const auto id=request.value(QStringLiteral("layer")).toString();const auto distance=request.value(QStringLiteral("distance"));
             auto* input=qobject_cast<QgsVectorLayer*>(QgsProject::instance()->mapLayer(id));
