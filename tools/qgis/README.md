@@ -13,6 +13,7 @@ source and QGIS 3.44.15 / Qt 5.15.13. Keep the token in the ignored config.
 node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
+node tools/qgis/native-bridge.mjs save-project
 node tools/qgis/native-bridge.mjs project-crs --target-crs EPSG:3857
 node tools/qgis/native-bridge.mjs canvas
 node tools/qgis/native-bridge.mjs canvas-screenshot
@@ -71,6 +72,9 @@ Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 Coordinate transformation accepts one to 10,000 XY pairs, requires explicit
 source and target CRSs, and refuses fallback datum transformations.
 Project CRS changes affect the current QGIS project, not the layer source data.
+The explicit save-project command saves only the current, existing named project;
+it refuses unnamed projects and missing project files. It does not commit layer
+edit buffers or accept a different output path.
 Canvas screenshots return PNG image content through MCP; CLI output contains
 base64 PNG, limited to 1,400,000 encoded image bytes.
 Clip requires an existing polygon overlay with a valid CRS. QGIS transforms it
