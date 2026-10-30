@@ -44,31 +44,31 @@ void validate(int width,int height){
         throw std::invalid_argument("Image dimensions exceed the 16MP graph budget");
 }
 }
-std::vector<std::uint8_t> resizeRgb(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+static std::vector<std::uint8_t> resizeChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels){
     validate(width,height);validate(outputWidth,outputHeight);
-    if(input.size()!=static_cast<std::size_t>(width)*height*3)throw std::invalid_argument("RGB input byte length differs from dimensions");
+    if(input.size()!=static_cast<std::size_t>(width)*height*channels)throw std::invalid_argument("Input byte length differs from dimensions");
     if(width==outputWidth&&height==outputHeight)return input;
     const auto horizontalWeights=width==outputWidth?std::vector<Row>{}:coefficients(width,outputWidth);
     const auto verticalWeights=height==outputHeight?std::vector<Row>{}:coefficients(height,outputHeight);
-    std::vector<std::uint8_t> output(static_cast<std::size_t>(outputWidth)*outputHeight*3);
+    std::vector<std::uint8_t> output(static_cast<std::size_t>(outputWidth)*outputHeight*channels);
     // Process bounded vertical stripes; an extremely narrow input enlarged in X
     // must not allocate outputWidth * inputHeight pixels as an intermediate.
     for(int first=0;first<outputWidth;first+=64){
         const int count=std::min(64,outputWidth-first);
         std::vector<std::uint8_t> horizontal;
         if(width!=outputWidth){
-            horizontal.resize(static_cast<std::size_t>(count)*height*3);
-            for(int y=0;y<height;++y)for(int x=0;x<count;++x)for(int c=0;c<3;++c){
+            horizontal.resize(static_cast<std::size_t>(count)*height*channels);
+            for(int y=0;y<height;++y)for(int x=0;x<count;++x)for(int c=0;c<channels;++c){
                 std::int64_t sum=0;const auto& row=horizontalWeights[first+x];
                 for(std::size_t j=0;j<row.weights.size();++j)
-                    sum+=static_cast<std::int64_t>(input[(static_cast<std::size_t>(y)*width+row.start+j)*3+c])*row.weights[j];
-                horizontal[(static_cast<std::size_t>(y)*count+x)*3+c]=rounded(sum);
+                    sum+=static_cast<std::int64_t>(input[(static_cast<std::size_t>(y)*width+row.start+j)*channels+c])*row.weights[j];
+                horizontal[(static_cast<std::size_t>(y)*count+x)*channels+c]=rounded(sum);
             }
         }
-        for(int y=0;y<outputHeight;++y)for(int x=0;x<count;++x)for(int c=0;c<3;++c){
+        for(int y=0;y<outputHeight;++y)for(int x=0;x<count;++x)for(int c=0;c<channels;++c){
             const auto sample=[&](int iy){return width==outputWidth?
-                input[(static_cast<std::size_t>(iy)*width+first+x)*3+c]:horizontal[(static_cast<std::size_t>(iy)*count+x)*3+c];};
-            auto& pixel=output[(static_cast<std::size_t>(y)*outputWidth+first+x)*3+c];
+                input[(static_cast<std::size_t>(iy)*width+first+x)*channels+c]:horizontal[(static_cast<std::size_t>(iy)*count+x)*channels+c];};
+            auto& pixel=output[(static_cast<std::size_t>(y)*outputWidth+first+x)*channels+c];
             if(height==outputHeight)pixel=sample(y);
             else{
                 std::int64_t sum=0;const auto& row=verticalWeights[y];
@@ -76,6 +76,23 @@ std::vector<std::uint8_t> resizeRgb(const std::vector<std::uint8_t>& input,int w
                 pixel=rounded(sum);
             }
         }
+    }
+    return output;
+}
+std::vector<std::uint8_t> resizeRgb(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+    return resizeChannels(input,width,height,outputWidth,outputHeight,3);
+}
+std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+    validate(width,height);validate(outputWidth,outputHeight);
+    if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");
+    if(width==outputWidth&&height==outputHeight)return input;
+    auto premultiplied=input;
+    for(std::size_t i=0;i<premultiplied.size();i+=4)
+        for(int c=0;c<3;++c)premultiplied[i+c]=static_cast<std::uint8_t>((static_cast<int>(input[i+c])*input[i+3]+127)/255);
+    auto output=resizeChannels(premultiplied,width,height,outputWidth,outputHeight,4);
+    for(std::size_t i=0;i<output.size();i+=4){
+        const int alpha=output[i+3];
+        if(alpha!=0&&alpha!=255)for(int c=0;c<3;++c)output[i+c]=static_cast<std::uint8_t>(std::min(255,255*output[i+c]/alpha));
     }
     return output;
 }
