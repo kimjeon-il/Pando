@@ -11,6 +11,10 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     if (!sessionPromise) sessionPromise = Promise.resolve().then(loadModule).then(module => {
       if (typeof module.DocumentSession !== 'function') fail('PL-CORE-DOCUMENT-ABI', 'The required whole-document C++ session export is missing.');
       return new module.DocumentSession({ validateFlagDataUrl });
+    }).catch(error => {
+      // Release only a failed admission; command errors never discard a live session.
+      sessionPromise = null;
+      throw error;
     });
     return sessionPromise;
   }
