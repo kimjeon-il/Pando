@@ -98,6 +98,16 @@ export async function prepareNativeTrainingTile({image,targetBits,knownBits,x,y,
     fields[name]=result.subarray(offset,offset+sizes[i]);offset+=sizes[i];}
   signal?.throwIfAborted();return fields;
 }
+export async function readNativeTrainingMask(bytes,sha256,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||!bytes.length||bytes.length>300*1024*1024||typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256))
+    throw Error('Bounded source-bound training mask required');
+  if(createHash('sha256').update(bytes).digest('hex')!==sha256)throw Error('Training mask hash changed');
+  const data=await runNative(nativeBinary(workspace,directory),['training-mask'],bytes,8+16777216,signal);
+  if(data.length<8)throw Error('Native training mask receipt is invalid');const width=data.readUInt32BE(0),height=data.readUInt32BE(4);
+  dimensions(width,height);if(data.length!==8+width*height)throw Error('Native training mask byte length mismatch');
+  signal?.throwIfAborted();return {width,height,data:data.subarray(8)};
+}
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);
 }

@@ -51,6 +51,19 @@ int pando_inspect_png(const uint8_t* bytes,size_t size,PandoImage* result){
     if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
     result->width=width;result->height=height;png_destroy_read_struct(&png,&info,NULL);free(decoder);return 1;
 }
+int pando_read_gray_mask(const uint8_t* bytes,size_t size,PandoImage* result){
+    Decoder* decoder;png_structp png;png_infop info;int depth,color;
+    memset(result,0,sizeof(*result));decoder=(Decoder*)calloc(1,sizeof(*decoder));
+    if(!decoder){strcpy(result->error,"Out of memory");return 0;}decoder->bytes=bytes;decoder->size=size;
+    png=png_create_read_struct(PNG_LIBPNG_VER_STRING,decoder,failure,warning);
+    if(!png){free(decoder);strcpy(result->error,"PNG decoder unavailable");return 0;}
+    info=png_create_info_struct(png);if(!info){png_destroy_read_struct(&png,NULL,NULL);free(decoder);strcpy(result->error,"PNG metadata unavailable");return 0;}
+    if(setjmp(png_jmpbuf(png))){strncpy(result->error,decoder->error,sizeof(result->error)-1);png_destroy_read_struct(&png,&info,NULL);free(decoder);return 0;}
+    png_set_read_fn(png,decoder,input);png_set_user_limits(png,16384,16384);png_read_info(png,info);
+    depth=png_get_bit_depth(png,info);color=png_get_color_type(png,info);
+    if(depth!=8||color!=PNG_COLOR_TYPE_GRAY)png_error(png,"Training mask must be 8-bit grayscale");
+    png_destroy_read_struct(&png,&info,NULL);free(decoder);return pando_read_png(bytes,size,result);
+}
 int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){
     Decoder* decoder;png_structp png;png_infop info;png_uint_32 width,height;int color,depth,interlace,has_alpha;size_t y,x,rowbytes;
     uint8_t* output;png_uint_32 exif_size=0;png_bytep exif=NULL;

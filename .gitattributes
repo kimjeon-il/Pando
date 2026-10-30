@@ -36,3 +36,4 @@ tests/fixtures/map-image/**/*.rgba binary
 tests/fixtures/reference-review-mask/*.bin binary
 tests/fixtures/reference-training-photometry/*.rgb binary
 tests/fixtures/reference-training-tile/*.png binary
+tests/fixtures/reference-training-raster/*.png binary

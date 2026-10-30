@@ -1,0 +1,13 @@
+{
+  "origin": "macro-vector-supervision",
+  "width": 24,
+  "height": 16,
+  "raster": {
+    "path": "raster.png",
+    "sha256": "d27d2d422a9b59aca7367cc569a6bf1cf92d7f199bdefac76f6de4fec8f38558"
+  },
+  "validRaster": {
+    "path": "valid.png",
+    "sha256": "72074c9849e4748adda2a33ebebb20c76b117edea7efe93de295f299d739217d"
+  }
+}
