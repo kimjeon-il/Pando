@@ -2,7 +2,7 @@
 import {dirname,extname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {countNativeEncodedTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
+import {countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -85,6 +85,27 @@ async function encodedTrainingRaster(root,annotation,field,options){
   options.signal?.throwIfAborted();
   return {bytes,sha256:spec.sha256};
 }
+export async function countAnnotationTrainingSupervision({root,annotation},{signal,workspace,imageDirectory,reviewDirectory}={}){
+  signal?.throwIfAborted();const {width,height}=annotation||{};
+  if(![width,height].every(value=>Number.isInteger(value)&&value>0&&value<=65535)||width*height>600000000)
+    throw Error('Bounded original supervision dimensions required');
+  if(isRasterTrainingAnnotation(annotation)){
+    if(!root)throw Error('Source-bound raster supervision root required');
+    const options={signal,workspace,imageDirectory},[target,known]=await Promise.all([
+      encodedTrainingRaster(root,annotation,'raster',options),encodedTrainingRaster(root,annotation,'validRaster',options)]);
+    const result=await countNativeEncodedTrainingSupervision(target,known,{signal,workspace,directory:imageDirectory});
+    if(result.width!==width||result.height!==height)throw Error('Training raster dimensions differ from original');return result.counts;
+  }
+  const counts=Array.from({length:7},()=>[0,0]);
+  for(let y=0;y<height;y+=4096)for(let x=0;x<width;x+=4096){
+    signal?.throwIfAborted();const w=Math.min(4096,width-x),h=Math.min(4096,height-y);
+    const masks=await reviewMasks(annotation,{window:[x,y,w,h],fullSheetCoordinates:true,signal,workspace,directory:reviewDirectory});
+    const part=await countNativeTrainingSupervision({width:w,height:h,data:masks.targetBits},{width:w,height:h,data:masks.knownBits},
+      {signal,workspace,directory:imageDirectory});
+    for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=part[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
+  }
+  return counts;
+}
 async function trainingRaster(root,annotation,field,options){
   const {bytes,sha256}=await encodedTrainingRaster(root,annotation,field,options);
   const nativeOptions={signal:options.signal,workspace:options.workspace,directory:options.imageDirectory};
@@ -103,10 +124,7 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
     const {annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
-    const [target,known]=await Promise.all([encodedTrainingRaster(root,annotation,'raster',options),encodedTrainingRaster(root,annotation,'validRaster',options)]);
-    const supervision=await countNativeEncodedTrainingSupervision(target,known,{signal,workspace,directory:imageDirectory});
-    if(supervision.width!==annotation.width||supervision.height!==annotation.height)throw Error('Training raster dimensions differ from original');
-    const sheetCounts=supervision.counts;
+    const sheetCounts=await countAnnotationTrainingSupervision({root,annotation},options);
     for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
     recheckMacroTrainingSource(checks);
     sources.push({id:row.id,hashes:checks.map(([,expected])=>expected)});
@@ -158,7 +176,7 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--index','--sample','--source-rgb'].includes(process.argv[2]))throw Error('Expected --index, --sample or --source-rgb');
+    if(process.argv.length!==3||!['--index','--sample','--source-rgb','--supervision'].includes(process.argv[2]))throw Error('Expected a training input operation');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Training index request exceeds budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
     const {root,annotation}=request;
@@ -168,6 +186,16 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const tiles=isRasterTrainingAnnotation(annotation)?await listRasterTrainingTiles({root,annotation},{supervisedOnly}):
         await listReviewedTrainingTiles(annotation,{supervisedOnly,fullSheetCoordinates:true});
       process.stdout.write(JSON.stringify(tiles.map(({x,y})=>({x,y})))+'\n');
+    }else if(process.argv[2]==='--supervision'){
+      if(typeof root!=='string'||!root||!Array.isArray(request.sheets)||request.sheets.length>1000000)throw Error('Explicit training supervision sources required');
+      const counts=Array.from({length:7},()=>[0,0]);
+      for(const sheet of request.sheets){
+        const path=await resolveCorpusPath(root,sheet?.annotations),bytes=readTrainingBounded(path,64*1024*1024),hash=createHash('sha256').update(bytes).digest('hex');
+        const annotation=JSON.parse(bytes),part=await countAnnotationTrainingSupervision({root,annotation});
+        if(createHash('sha256').update(readTrainingBounded(path,64*1024*1024)).digest('hex')!==hash)throw Error('Training annotation changed during supervision');
+        for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=part[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
+      }
+      process.stdout.write(JSON.stringify(counts)+'\n');
     }else if(process.argv[2]==='--sample'){
       const {sheet,x,y,augment,epoch,index}=request;
       if(typeof root!=='string'||!root||!sheet||typeof sheet.image!=='string')throw Error('Source-bound training image required');

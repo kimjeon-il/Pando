@@ -13,7 +13,7 @@ import torch
 from PIL import Image, ImageOps
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from report_paths import report_argument
-from corpus import (CHANNELS, RASTER_ORIGINS, validate_corpus, evaluation_groups, corpus_path,
+from corpus import (CHANNELS, validate_corpus, evaluation_groups, corpus_path,
                     corpus_fingerprint, review_masks, build_training_lineage, assert_evaluation_independence)
 from model import ReferenceBoundaryModel, boundary_loss
 from evaluation import boundary_counts, metrics, boundary_admission, confounder_counts, confounder_nonregression
@@ -93,21 +93,19 @@ def optimizer_update(scaler, optimizer):
 
 
 def raster_supervision(root, sheets):
-    counts = np.zeros((len(CHANNELS), 2), dtype=np.int64)
-    for sheet in sheets:
-        annotation = json.loads(corpus_path(root, sheet['annotations']).read_text(encoding='utf-8'))
-        if annotation.get('origin') in RASTER_ORIGINS:
-            with Image.open(corpus_path(root, annotation['raster']['path'])) as image:
-                bits = np.asarray(image, dtype=np.uint8)
-            with Image.open(corpus_path(root, annotation['validRaster']['path'])) as image:
-                known = np.asarray(image, dtype=np.uint8)
-            target, valid = [np.stack([(value & (1 << channel)) != 0 for channel in range(len(CHANNELS))])
-                             for value in [bits, known]]
-        else:
-            target, valid = review_masks(annotation)
-        for channel in range(len(CHANNELS)):
-            counts[channel] += [np.count_nonzero(valid[channel]), np.count_nonzero(valid[channel] & target[channel])]
-    return counts
+    script = pathlib.Path(__file__).with_name('training-tiles.mjs')
+    payload = json.dumps(dict(root=str(pathlib.Path(root).resolve()), sheets=sheets)).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--supervision'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=1800, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native training supervision failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    counts = json.loads(result.stdout)
+    if (not isinstance(counts, list) or len(counts) != len(CHANNELS) or
+            any(not isinstance(row, list) or len(row) != 2 or
+                any(not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in row) or row[1] > row[0]
+                for row in counts)):
+        raise ValueError('Invalid native training supervision counts')
+    return np.asarray(counts, dtype=np.int64)
 
 
 def balanced_tile_indices(datasets, epoch, seed):
