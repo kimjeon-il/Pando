@@ -63,6 +63,25 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="semap-labels"||action=="encode-gray"){
+            if(argc!=4)throw std::invalid_argument("Expected grayscale WIDTH HEIGHT");
+            const int width=dimension(argv[2]),height=dimension(argv[3]);const auto pixels=std::size_t(width)*height;
+            if(pixels>16777216)throw std::invalid_argument("Grayscale image exceeds 16MP budget");
+            std::vector<std::uint8_t> input(pixels);
+            if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(pixels))||std::cin.peek()!=std::char_traits<char>::eof())
+                throw std::invalid_argument("Grayscale input byte length differs");
+            if(action=="encode-gray"){
+                const auto output=pando::map_image::encodePngGray(input,width,height);
+                std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+            }else{
+                std::vector<std::uint8_t> target(pixels),known(pixels);std::uint32_t knownCount=0,positiveCount=0;
+                for(std::size_t i=0;i<pixels;++i){const auto value=input[i];if(value>5)throw std::invalid_argument("Unknown Semap semantic class");
+                    if(value>=2){known[i]=24;++knownCount;}if(value==4){target[i]=8;++positiveCount;}else if(value==5){target[i]=16;++positiveCount;}}
+                number(knownCount);number(positiveCount);std::cout.write(reinterpret_cast<const char*>(target.data()),static_cast<std::streamsize>(pixels));
+                std::cout.write(reinterpret_cast<const char*>(known.data()),static_cast<std::streamsize>(pixels));
+            }
+            if(!std::cout)throw std::runtime_error("Unable to write grayscale result");return 0;
+        }
         if(action=="training-supervision"){
             if(argc!=4)throw std::invalid_argument("Expected training supervision WIDTH HEIGHT");
             const int width=dimension(argv[2]),height=dimension(argv[3]);const auto pixels=std::size_t(width)*height;

@@ -119,6 +119,25 @@ export async function countNativeTrainingSupervision(target,known,{signal,worksp
   if(counts.some(([valid,positive])=>valid>target.data.length||positive>valid))throw Error('Native training supervision counts are invalid');
   return counts;
 }
+export async function convertNativeSemapLabels(labels,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(labels?.width,labels?.height);
+  const pixels=labels.width*labels.height;
+  if(!(labels.data instanceof Uint8Array)||labels.data.length!==pixels)throw Error('Source-coordinate Semap label pixels required');
+  const result=await runNative(nativeBinary(workspace,directory),['semap-labels',String(labels.width),String(labels.height)],labels.data,8+pixels*2,signal);
+  if(result.length!==8+pixels*2)throw Error('Native Semap label output length differs');
+  const knownCount=result.readUInt32BE(0),positiveCount=result.readUInt32BE(4);
+  if(knownCount>pixels||positiveCount>knownCount)throw Error('Native Semap label counts are invalid');
+  return {target:{width:labels.width,height:labels.height,data:result.subarray(8,8+pixels)},
+    known:{width:labels.width,height:labels.height,data:result.subarray(8+pixels)},knownCount,positiveCount,
+    informative:knownCount>=pixels*.03&&positiveCount>=pixels*.005};
+}
+export async function encodeNativeGrayPng(image,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(image?.width,image?.height);
+  if(!(image.data instanceof Uint8Array)||image.data.length!==image.width*image.height)throw Error('Grayscale image pixels required');
+  const result=await runNative(nativeBinary(workspace,directory),['encode-gray',String(image.width),String(image.height)],image.data,
+    image.data.length+image.height+1048576,signal);
+  if(result.length<8)throw Error('Native grayscale PNG is truncated');return result;
+}
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);
 }
