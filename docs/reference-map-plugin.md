@@ -70,7 +70,7 @@ remote snapshots and command lists, and reuse one external candidate path.
    skips upload/version growth. `verification-required` is not a successful skip:
    resume confirmation of the matching uploaded pending plan, or download the
    exact current release and run `inspect --target <local-settings.json> --remote
-   <remote.json> --archive <current.zip> --archive-release <current-release-ID>`
+   <remote.json> --archive <current-archive> --archive-release <current-release-ID>`
    before preparing again. A retained stale release.json cannot prove its bytes.
    Otherwise the plan contains exact
    `upload` arguments, including the original ID, expected release ID, archive
@@ -99,12 +99,16 @@ remote snapshots and command lists, and reuse one external candidate path.
    another repository or model environment. Save the normalized remote snapshot:
 
    ```powershell
-   node tools/reference-analysis/release-private-plugin.mjs confirm --plan <plan.json> --remote <after.json> --archive <downloaded-exact-release.zip> --target <local-settings.json> --output <verified.json>
+   node tools/reference-analysis/release-private-plugin.mjs confirm --plan <plan.json> --remote <after.json> --archive <downloaded-exact-release.tar.gz-or-zip> --target <local-settings.json> --output <verified.json>
    ```
 
    Confirm rejects wrong/concurrent releases, receipt mismatches, retained retired
    files, missing payloads and changed archive bytes. Do not label an uploaded but
    unverified release complete, roll it back blindly or republish to hide errors.
+   ZIP payloads are streamed; the account's tar.gz is read to bounded memory via
+   the existing system `tar -xO`, using sizes from the current file inventory.
+   Neither format extracts a second source/model workspace. Root/compatibility
+   manifests are compared semantically in both source read-back and archive.
 
 5. Publish/check only this task's external report scope. Record code/data/model
    identity, account version/release, checks, actual remote verification and any
