@@ -34,6 +34,8 @@
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. Python 학습·진단에서 아직 호출하는 EXIF 및 흰색 alpha 합성 함수는 유지하며, 투명 원본을 사용하는 학습 진단 시험을 확인했다.
 
+검토된 JPEG 학습 타일은 원본 전체 픽셀 배열 없이 행 단위로 읽어 방향 1–8의 256×256 개요와 선택한 512×512 타일을 만든다. 합성 4,097×4,097 JPEG의 일반·90도 회전과 가장자리 패딩, 작은 JPEG의 각 EXIF 방향 및 학습 텐서를 Pillow와 비교했다. 보유 `zenodo-urdu-punjab-undated` 원본 17,180×14,414의 개요 SHA-256 `dceda9c69007e4a4111894a3186a2bbfea382dc24115193c160b248f2167b7e5`과 선택 타일 SHA-256 `5a8f75f6e7ada1416e7f346ee9cbcbf4d8c6e33b01c908ea8f8d2d85c5a43c39`도 이전 Pillow 계산과 일치했다. 이는 한 원본의 입력 처리 검증이며 학습 실행·모델 정확도 승인이 아니다. 대형 PNG·WebP와 래스터 정답 마스크의 학습 경로는 아직 16MP 제한이 남아 있다.
+
 학습 진단의 7채널 확률·정답·known 픽셀 집계는 네이티브 평가 도구와 소스 확인된 Node 호출로 이전했다. [Windows/Linux CI 41034281059](https://github.com/kimjeon-il/Pando/actions/runs/41034281059)의 고정 값과 [41034766087](https://github.com/kimjeon-il/Pando/actions/runs/41034766087)의 연결·거부 사례를 확인했다. 보존된 비공개 모델 출력의 7×512×512 확률과 합성 known·정답 마스크에서 기존 Python 집계와 모든 값이 일치했고, 정렬된 결과 SHA-256은 `fa2e3cc52ac1e30330423ea629482b5dacae566a232aaeedc2488f745e04872a`이다. 이는 계산 동등성으로, 실자료 라벨 평가나 모델 정확도 승인이 아니다. 진단 실행기와 학습 호출자의 나머지 Python은 유지한다.
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
