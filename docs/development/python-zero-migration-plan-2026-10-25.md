@@ -9,9 +9,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 44개
+### 2026-10-30 현행 기준: 추적 Python 42개
 
-`work/gis` 현행 기준: 도구 25개, 테스트 19개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 25개, 테스트 17개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
@@ -28,7 +28,6 @@
 | `tools/reference-analysis/semap.py` | Node ZIP·출처 소유자와 C++ 영상 계층; 자료 준비 명령 | 범위 다운로드·CRC·SHA, 라벨·이미지 동등성, 취소·실패 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_build_terrain_dem.py`, `tests/python/test_build_terrain_preview.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
-| `tests/python/test_map_plugin_geopdf.py`, `tests/test_map_plugin_raster.py` | CTest와 Node 지도 영상·GeoPDF 검사 | EXIF·PDF·투영 좌표·크기 제한 및 잘못된 입력 |
 | `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_corpus.py`, `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
@@ -40,6 +39,8 @@
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
 - **학습용 JPEG 입력 준비:** `prepare-analysis-images.mjs`와 고정 libjpeg-turbo C++ 도구로 기존 축소·출처 확인을 옮겼다. [Windows/Linux CI 41001388685](https://github.com/kimjeon-il/Pando/actions/runs/41001388685)의 RGB·흑백·CMYK와 2·4배 draft 합성 사례에서 메타데이터와 JPEG 출력 바이트가 Python과 같았다. EXIF 방향·출처 불일치·기존 출력·취소 거부와 원본 보존도 로컬에서 확인했다. 보존 원본 17,180×14,414(26,226,792바이트, SHA-256 `cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3`)의 별도 검증 복사본으로 만든 3,087×2,590 파생본은 기존 3,677,675바이트 보존본과 바이트가 완전히 같았고 SHA-256은 `103806f1b4390e8d74c47c7595422d0beed33c1d818540ea332481018468aa19`이다. 원본과 기존 파생본은 그대로 두었다. 대응 Python 도구와 테스트를 제거하며 검증 복사본은 전체 전환 종료 후 정리한다.
+
+- **지도 래스터·GeoPDF 테스트 이전:** 원래 Python 테스트의 단일·다중 페이지 선택, 원본 좌표·투명도·EXIF, 16MP 초과 거부, 내장 제어점과 지원되지 않는 투영·본초자오선·단위의 거부를 실제 Node→C++ 경로의 고정 사례로 옮기고 Python 테스트 두 개를 제거했다. 레거시 `raster.py`는 학습과 체크포인트 점검의 공통 영상 함수로 아직 필요하므로 유지한다.
 
 - **지도 미리보기·실행 경로:** FreeType 2.14.3과 고정 글꼴 기반 C++로 선·표식·글자·범례를 옮겼다. [Windows/Linux CI 41000080703](https://github.com/kimjeon-il/Pando/actions/runs/41000080703)에서 다양한 색상·좌표·반투명 글자와 긴 PDF의 두 단계 축소, 짝수·홀수 입력 픽셀이 Python과 일치했다. 실제 보존 캐나다 JPEG 작업의 304개 선과 6개 제어점을 2,200×1,701 미리보기로 렌더링했을 때 모든 픽셀이 같았고 양쪽 픽셀 SHA-256은 `68fcbeaefcd273a7d673e6ad97cb137eb296f3f4c153219c04465c3299809099`였다. PNG 인코딩 바이트는 네이티브 1,948,468바이트, Python 1,939,180바이트로 달랐으며 지도 원본 SHA는 유지됐다. 서명된 작업·원본 변경 거부와 Python 없이 도구 시작 및 출처 검사를 로컬에서 확인했다. 지도 플러그인에서 Python 실행과 패키지 내 해당 소스를 제거하되, 학습·점검 호출자가 아직 가져오는 `raster.py`는 보존한다. 실제 클라우드 패키지 실행은 미검증이다.
 
