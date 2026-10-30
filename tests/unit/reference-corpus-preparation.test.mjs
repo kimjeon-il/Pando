@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {mkdtemp,mkdir,readFile,writeFile,symlink,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,readFile,realpath,writeFile,symlink,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -20,7 +20,7 @@ async function fixture(t){
 test('CLI prepares only an external source directory',async t=>{
   const {root,sources}=await fixture(t);
   const output=execFileSync(process.execPath,['tools/reference-analysis/prepare-review.mjs','--sources',sources],{encoding:'utf8'}).trim();
-  assert.equal(output,join(root,'corpus.draft.json'));
+  assert.equal(await realpath(output),await realpath(join(root,'corpus.draft.json')));
   assert.equal(JSON.parse(await readFile(output,'utf8')).trainingReady,false);
   assert.throws(()=>execFileSync(process.execPath,['tools/reference-analysis/prepare-review.mjs','--sources',process.cwd()],{stdio:'pipe'}));
 });
