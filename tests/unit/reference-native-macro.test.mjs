@@ -37,6 +37,11 @@ test('macro finishing masks glyphs before rotation and exclusions afterward',asy
   assert.deepEqual(result.known,Buffer.from([14,0,15,0,16,13]));
   await assert.rejects(nativeMacroFinish(image,Buffer.alloc(6),Buffer.alloc(6),{rotation:45,glyphs:[],exclusions:[]}),/rotation/i);
 });
+test('macro finish stream preserves RGB and supervision, rejects truncation',()=>{
+  const args=['tools/reference-analysis/macro-masks.mjs','finish','1','1','0','0','0'],input=Buffer.from([1,2,3,1,1]);
+  const result=spawnSync(process.execPath,args,{input});assert.equal(result.status,0,result.stderr.toString());assert.deepEqual(result.stdout,input);
+  assert.notEqual(spawnSync(process.execPath,args,{input:input.subarray(0,-1)}).status,0);
+});
 
 test('native macro supervision distinguishes country seams and unknown gaps',async()=>{
   const width=50,height=30,labels=Buffer.alloc(width*height);

@@ -15,6 +15,8 @@
 
   국가 팔레트의 가장 가까운 색과 선 색상 가시성 판정도 C++로 연결했다. 48개 합성 색상 사례와 경계값, [Windows/Linux CI 41071109415](https://github.com/kimjeon-il/Pando/actions/runs/41071109415)가 통과했다. 기존 세계 지도와 선형 서명을 사용하는 보존 캐나다 지도 한 건의 감독·유효 마스크는 각각 이전의 모든 픽셀과 일치했다. 캐나다의 원시 픽셀 SHA-256은 `d3fb417f2e1e236b8c7d737424e80bacceae8a44857e6967e7a04b8949c31329`, `bcd768502306c4d8299af42acb2a717c43afbd3603f70a07ba479488da9330b8`이다. 이는 두 학습 원본의 기능 비교이며 모델의 정확도 승인이나 독립 평가가 아니다.
 
+  글자 가림·90도 단위 회전·명시적 제외 영역도 C++ 영상 경로로 합쳤다. 합성 96건과 [Windows/Linux CI 41071763731](https://github.com/kimjeon-il/Pando/actions/runs/41071763731)이 통과했고 위 두 원본 지도에서 RGB와 두 마스크의 모든 픽셀이 이전과 일치했다. Python 실행기와 PDF 경로 전체는 여전히 남아 있다.
+
 - **QGIS 레이어 확대:** 네이티브 플러그인의 레이어 활성화·확대를 Node CLI와 MCP에 연결했다. [Windows CI 41058486015](https://github.com/kimjeon-il/Pando/actions/runs/41058486015)에서 빌드와 연결 검사를 통과했다. QGIS 3.44.15 한 창에서 합성 피처 두 개를 가진 레이어로 1:100,000,000에서 1:992,042로 확대되는 것과 알 수 없는 ID 거부를 확인했다. 기존 시험 프로젝트는 저장 후 정상 종료하고 같은 전용 프로필을 재사용했다. 나머지 실제 사용 기능과 Python 연결 제거는 미완료다.
 
   후속으로 캔버스 조회·범위 설정·축척과 회전 변경, 편집 상태 조회를 연결했다. [Windows CI 41063654661](https://github.com/kimjeon-il/Pando/actions/runs/41063654661), [41065999033](https://github.com/kimjeon-il/Pando/actions/runs/41065999033)과 실제 QGIS 한 창에서 합성 레이어의 EPSG:3857→4326 범위 변환, 축척 1:2,000,000·회전 15도, 편집 상태·실행 취소·되돌리기를 확인했다. 원본 GeoJSON SHA-256 `bec657b708a2dbb377379f78b79d4675d395ca2c0f8d06bb0381b8a7beefb48f`는 유지됐다. 나머지 미전환 MCP 기능과 Python 연결 제거는 계속 남아 있다.
