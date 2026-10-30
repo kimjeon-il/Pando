@@ -69,6 +69,8 @@ replacement: the upstream editing and processing tools remain active until
 their used capabilities have been migrated and tested.
 Native selection accepts QGIS feature IDs as decimal strings, preserving signed
 64-bit values, or a QGIS expression validated against the layer before use.
+Project and layer listings include each layer's public source and edit state.
+QGIS removes recognized credentials from the public source.
 Coordinate transformation accepts one to 10,000 XY pairs, requires explicit
 source and target CRSs, and refuses fallback datum transformations.
 Project CRS changes affect the current QGIS project, not the layer source data.
