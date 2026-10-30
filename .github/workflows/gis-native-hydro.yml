@@ -48,11 +48,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoder build failed' }
           if ($IsWindows) { $binary = 'build-native/terrain-dem-encode/Release/pando-terrain-dem-encode.exe' }
           else { $binary = 'build-native/terrain-dem-encode/pando-terrain-dem-encode' }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_ENCODE_BINARY=$env:GITHUB_WORKSPACE/$binary"
           node tools/gis/package-terrain-dem-encode.mjs --binary $binary --directory build-native/terrain-dem-encode/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoder packaging failed' }
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
           node --test tests/unit/terrain-dem-encode.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoding differs from the Python oracle' }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check only the DEM producer's native encoding calls
+        shell: pwsh
+        run: |
+          python -m pip install Pillow==12.3.0 numpy==2.3.5 'rasterio>=1.4,<2'
+          if ($LASTEXITCODE -ne 0) { throw 'DEM producer test dependencies failed' }
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_signed_elevation_and_byte_boundary tests.python.test_build_terrain_dem.TerrainDemTest.test_webp_roundtrip_and_reproducibility tests.python.test_build_terrain_dem.TerrainDemTest.test_shade_quantization_preserves_elevation_and_limits_error tests.python.test_build_terrain_dem.TerrainDemTest.test_coarse_polar_gutter_clamps_adjacent_shade tests.python.test_build_terrain_dem.TerrainDemTest.test_range_and_nodata_are_not_silently_zeroed
+          if ($LASTEXITCODE -ne 0) { throw 'DEM producer native encoding calls failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-encode-${{ matrix.os }}-${{ github.sha }}
