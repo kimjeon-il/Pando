@@ -1,10 +1,13 @@
 // Bounded access to immutable source archive byte ranges.
 import {setTimeout as delay} from 'node:timers/promises';
+import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
 import {readZipRangeMember,zipRangeMembers} from '../lib/geonames-zip.mjs';
 
 const record='https://zenodo.org/api/records/19048095';
 const archiveSizes=Object.freeze({'images.zip':2007189820,'labels.zip':258666716});
+const smallFiles=Object.freeze({'partitions.zip':[101670,'d58bb534f2373726c9f3e21d898d831d'],
+  'license_images.md':[5543,'7faf85fac21dc139c150310ac0bdec94'],'README.md':[6620,'5338bb3558738de63187ff523a0ddba0']});
 const institutions=new Set(['loc','bostonleventhal','nypl','erara','princeton','unileiden','wwu_munster','berkeleylib',
   'bordeaux_montaigne','emanuscripta','illinois','uva']);
 export function semapMemberIdentity(name){
@@ -17,6 +20,16 @@ export function selectRealTrainingMembers(names,training){
   return names.filter(name=>{const identity=semapMemberIdentity(name);return identity&&institutions.has(identity.institution)&&
     training.has(name.slice(name.lastIndexOf('/')+1,-4));}).sort();
 }
+export function orderSemapTrainingMembers(names,training){
+  const groups=new Map();for(const name of selectRealTrainingMembers(names,training)){
+    const {institution}=semapMemberIdentity(name);if(!groups.has(institution))groups.set(institution,[]);
+    groups.get(institution).push({name,hash:createHash('sha256').update('diversity-v2:'+name).digest('hex')});
+  }
+  const keys=[...groups.keys()].sort();let maximum=0;
+  for(const rows of groups.values()){rows.sort((a,b)=>a.hash<b.hash?-1:a.hash>b.hash?1:0);maximum=Math.max(maximum,rows.length);}
+  const result=[];for(let rank=0;rank<maximum;rank++)for(const key of keys){const row=groups.get(key)[rank];if(row)result.push(row.name);}
+  return result;
+}
 export async function openSourceArchive({size,readRange,signal}){
   signal?.throwIfAborted();const members=await zipRangeMembers({size,readRange}),byName=new Map();
   for(const member of members){if(byName.has(member.name))throw Error('Duplicate ZIP member: '+member.name);byName.set(member.name,member);}
@@ -27,10 +40,39 @@ export async function openSourceArchive({size,readRange,signal}){
     const value=await readZipRangeMember({entry,readRange});signal?.throwIfAborted();return value;
   }};
 }
+export async function readTrainingPartition(bytes,{signal}={}){
+  signal?.throwIfAborted();if(!(bytes instanceof Uint8Array)||bytes.length<22||bytes.length>8*1024*1024)
+    throw Error('Bounded author partition archive required');
+  const archive=await openSourceArchive({size:bytes.length,readRange:async(start,end)=>bytes.subarray(start,end+1),signal});
+  const names=archive.members.filter(item=>item.name==='train.txt'||item.name.endsWith('/train.txt'));
+  if(names.length!==1)throw Error('Unique author training partition required');
+  const body=await archive.readMember(names[0].name),text=new TextDecoder('utf-8',{fatal:true}).decode(body);
+  return new Set(text.split(/\s+/u).filter(Boolean));
+}
 export async function openSemapArchive(name,{fetcher=fetch,signal}={}){
   if(!Object.hasOwn(archiveSizes,name))throw Error('Pinned Semap archive required');const size=archiveSizes[name];
   const readRange=(start,end)=>readPinnedHttpRange({url:`${record}/files/${name}/content`,total:size,start,end,fetcher,signal});
   return openSourceArchive({size,readRange,signal});
+}
+export async function readPinnedSmallFile({url,size,md5,fetcher=fetch,signal}){
+  signal?.throwIfAborted();
+  if(typeof url!=='string'||!url.startsWith('https://')||!Number.isSafeInteger(size)||size<1||size>8*1024*1024||
+    typeof md5!=='string'||!/^[a-f0-9]{32}$/.test(md5)||typeof fetcher!=='function')throw Error('Explicit bounded source identity required');
+  const timeout=AbortSignal.timeout(45000),requestSignal=signal?AbortSignal.any([signal,timeout]):timeout;
+  const response=await fetcher(url,{headers:{'Accept-Encoding':'identity','User-Agent':'PandoLab-reference-import/1.0'},signal:requestSignal,redirect:'follow'});
+  if(response.status!==200||(response.headers.get('content-encoding')&&!['identity'].includes(response.headers.get('content-encoding').toLowerCase()))){
+    await response.body?.cancel();throw Error('Unexpected source response');}
+  if(!response.body)throw Error('Source response has no body');
+  const reader=response.body.getReader(),chunks=[];let length=0;
+  try{while(true){const part=await reader.read();if(part.done)break;length+=part.value.length;
+    if(length>size){await reader.cancel();throw Error('Source evidence exceeds pinned size');}chunks.push(part.value);}}
+  finally{reader.releaseLock();}
+  signal?.throwIfAborted();const bytes=Buffer.concat(chunks,length);
+  if(length!==size||createHash('md5').update(bytes).digest('hex')!==md5)throw Error('Pinned source evidence identity mismatch');return bytes;
+}
+export async function readSemapEvidence(name,{fetcher=fetch,signal}={}){
+  if(!Object.hasOwn(smallFiles,name))throw Error('Pinned Semap evidence filename required');
+  const [size,md5]=smallFiles[name];return readPinnedSmallFile({url:`${record}/files/${name}/content`,size,md5,fetcher,signal});
 }
 
 export async function readPinnedHttpRange({url,total,start,end,fetcher=fetch,signal}){
