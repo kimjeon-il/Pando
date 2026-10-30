@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {writeMacroTrainingSample,prepareMacroTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
 import {indexMacroTrainingDataset,macroTrainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
+import {writeMacroTrainingSupervision,verifyMacroTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
 
 test('source-bound macro sample is generated from original pixels without overwriting',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-macro-sample-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -28,6 +29,13 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.deepEqual(supervision.counts,[[288,144],[288,144],[288,144],[288,144],[288,143],[288,147],[384,209]]);
   assert.deepEqual(supervision.unobservedChannels,[]);
   assert.deepEqual(supervision.positiveWeights.slice(0,4),[1,1,1,1]);
+  const supervisionOutput=join(root,'supervision');
+  const stored=await writeMacroTrainingSupervision({corpus,output:supervisionOutput});
+  assert.equal(stored.unobservedMask,0);
+  assert.equal((await verifyMacroTrainingSupervision({corpus,directory:supervisionOutput})).unobservedMask,0);
+  await assert.rejects(writeMacroTrainingSupervision({corpus,output:supervisionOutput}),/exists/);
+  const weightsPath=join(supervisionOutput,'weights.f32'),weights=readFileSync(weightsPath);writeFileSync(weightsPath,Buffer.alloc(28));
+  await assert.rejects(verifyMacroTrainingSupervision({corpus,directory:supervisionOutput}),/weights/i);writeFileSync(weightsPath,weights);
   const output=join(root,'sample'),request={corpus,sourceId:'fixture',tileIndex:0,x:0,y:0,augment:false,epoch:0,output};
   const result=await writeMacroTrainingSample(request),expected=JSON.parse(readFileSync(join(fixture,'expected.json'),'utf8'))[0];
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
@@ -43,5 +51,6 @@ test('source-bound macro sample is generated from original pixels without overwr
   writeFileSync(join(root,'source.pdf'),'changed');
   await assert.rejects(writeMacroTrainingSample({...request,output:join(root,'next')}),/PDF hash changed/);
   await assert.rejects(indexMacroTrainingDataset(corpus),/PDF hash changed/);
+  await assert.rejects(verifyMacroTrainingSupervision({corpus,directory:supervisionOutput}),/PDF hash changed/);
   assert.equal(existsSync(join(root,'next')),false);
 });

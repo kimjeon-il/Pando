@@ -42,7 +42,7 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
   const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
   if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets)||!manifest.sheets.length)
     throw Error('Explicit private training-only corpus required');
-  const counts=Array.from({length:7},()=>[0,0]),seen=new Set(),options={signal,workspace,imageDirectory};
+  const counts=Array.from({length:7},()=>[0,0]),seen=new Set(),sources=[],options={signal,workspace,imageDirectory};
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
     const {annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
@@ -50,11 +50,12 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
     const sheetCounts=await countNativeTrainingSupervision(target,known,{signal,workspace,directory:imageDirectory});
     for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
     recheckMacroTrainingSource(checks);
+    sources.push({id:row.id,hashes:checks.map(([,expected])=>expected)});
   }
   if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during supervision');
   const positiveWeights=counts.map(([known,positive])=>Math.max(1,Math.min(64,(known-positive)/Math.max(positive,1))));
   const unobservedChannels=REFERENCE_BOUNDARY_CHANNELS.filter((_,i)=>counts[i][1]===0||counts[i][1]===counts[i][0]);
-  return {trainingOnly:true,releaseApproved:false,corpusSha256,counts,positiveWeights,unobservedChannels};
+  return {trainingOnly:true,releaseApproved:false,corpusSha256,counts,positiveWeights,unobservedChannels,sources};
 }
 function maskWindow(mask,x,y){
   const result=Buffer.alloc(512*512),width=Math.min(512,mask.width-x),height=Math.min(512,mask.height-y);

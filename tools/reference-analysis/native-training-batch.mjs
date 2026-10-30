@@ -12,6 +12,7 @@ import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs
 import {prepareRasterTrainingTile} from './training-tiles.mjs';
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
+import {verifyMacroTrainingSupervision} from './training-supervision.mjs';
 import {readTrainingBounded as readBounded,trainingFileIdentity as identity} from './training-evidence.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -101,34 +102,36 @@ export async function nativeTrainingBatch({mode,input,output,corpus,order,epoch,
 }
 
 // Select and reconstruct one batch directly from its validated source corpus.
-export async function runMacroTrainingBatch({count,sampleOutput,augment,...options}){
-  const {mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,device='cpu',amp=device==='cuda',signal}=options;
+export async function runMacroTrainingBatch({count,sampleOutput,augment,supervision,...options}){
+  const {mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,device='cpu',amp=device==='cuda',signal}=options;
   signal?.throwIfAborted();
-  if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!sampleOutput||!options.torchLibrary||typeof augment!=='boolean'||
-    !['cpu','cuda'].includes(device)||typeof amp!=='boolean'||(amp&&device!=='cuda')||!Number.isInteger(unobservedMask)||unobservedMask<0||unobservedMask>127||
+  if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!sampleOutput||!supervision||!options.torchLibrary||typeof augment!=='boolean'||
+    !['cpu','cuda'].includes(device)||typeof amp!=='boolean'||(amp&&device!=='cuda')||
     ![epoch,seed,freezeEpochs].every(value=>Number.isSafeInteger(value)&&value>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
     !Number.isSafeInteger(count)||count<1||count>16)throw Error('Explicit native macro batch configuration required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json')||existsSync(sampleOutput))throw Error('Checkpoint, receipt or sample output exists; preserve it');
+  const checkedSupervision=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
+  const positiveWeights=checkedSupervision.weightsPath,unobservedMask=checkedSupervision.unobservedMask;
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData});
   const corpusHash=sha(readBounded(resolve(corpus),32*1024*1024));
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const prepared=await prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output:sampleOutput,signal});
   if(prepared.orderSha256!==orderData.hash||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)throw Error('Training inputs changed before batch execution');
-  return nativeTrainingBatch({...options,device,amp,samples:prepared.samples});
+  return nativeTrainingBatch({...options,device,amp,positiveWeights,unobservedMask,samples:prepared.samples});
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     const {values,positionals}=parseArgs({allowPositionals:true,options:{mode:{type:'string'},input:{type:'string'},output:{type:'string'},
       corpus:{type:'string'},order:{type:'string'},epoch:{type:'string'},seed:{type:'string'},'freeze-epochs':{type:'string'},
-      'learning-rate':{type:'string'},'positive-weights':{type:'string'},'unobserved-mask':{type:'string'},device:{type:'string'},precision:{type:'string'},
+      'learning-rate':{type:'string'},supervision:{type:'string'},device:{type:'string'},precision:{type:'string'},
       'torch-library':{type:'string'},count:{type:'string'},'sample-output':{type:'string'},augment:{type:'boolean',default:false}}});
     const integer=name=>{const value=values[name];if(!/^\d+$/.test(value||''))throw Error('Explicit integer '+name+' required');return Number(value);};
     if(positionals.length||!['cpu','cuda'].includes(values.device)||!['fp32','amp-fp16'].includes(values.precision))throw Error('Explicit macro batch configuration required');
     const result=await runMacroTrainingBatch({mode:values.mode,input:values.input,output:values.output,corpus:values.corpus,order:values.order,
       epoch:integer('epoch'),seed:integer('seed'),freezeEpochs:integer('freeze-epochs'),learningRate:Number(values['learning-rate']),
-      positiveWeights:values['positive-weights'],unobservedMask:integer('unobserved-mask'),device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
+      supervision:values.supervision,device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
       count:integer('count'),sampleOutput:values['sample-output'],augment:values.augment});
     console.log(JSON.stringify(result));
   }catch(error){console.error('native-training-batch: '+error.message);process.exitCode=1;}
