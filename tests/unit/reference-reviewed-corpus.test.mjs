@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {mkdir,mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,writeFile,symlink,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -41,6 +41,12 @@ test('reviewed corpus rejects training-only and unavailable OCR packs',async t=>
   const {root,sheet}=await fixture(t);
   await assert.rejects(validateReviewedCorpus({schemaVersion:1,trainingOnly:true,sheets:[sheet]},root),/training.only/i);
   await assert.rejects(validateReviewedCorpus({schemaVersion:1,sheets:[{...sheet,ocrLanguages:['missing']}]},root),/OCR/i);
+});
+test('reviewed corpus refuses a path through a directory link outside its root',async t=>{
+  const {root,sheet}=await fixture(t),outside=await mkdtemp(join(tmpdir(),'pando-corpus-outside-'));t.after(()=>rm(outside,{recursive:true}));
+  await writeFile(join(outside,'map.png'),await readFile(join(root,'sources/map.png')));
+  await symlink(outside,join(root,'escape'),process.platform==='win32'?'junction':'dir');
+  await assert.rejects(validateReviewedCorpus({schemaVersion:1,sheets:[{...sheet,image:'escape/map.png'}]},root),/escape/i);
 });
 test('source language remains distinct from the installed OCR pack catalog',async t=>{
   const {root,sheet}=await fixture(t);
