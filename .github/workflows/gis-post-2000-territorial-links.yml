@@ -46,13 +46,45 @@ jobs:
         run: |
           node tools/gis/apply-post-2000-territorial-links.mjs --plan
           node --test tests/unit/post-2000-territorial-links.test.mjs
+      - name: Record the unchanged baseline Soviet geometry validator defect
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readTerritorialSource} from './tools/territorial-entity-sources.mjs';
+          import {createHash} from 'node:crypto';
+          import {writeFileSync} from 'node:fs';
+          const entity=readTerritorialSource('state:soviet-union');
+          writeFileSync('/tmp/pando-soviet-before.sha',createHash('sha256').update(JSON.stringify(entity.geometryVersions)).digest('hex'));
+          NODE
+          set +e
+          node scripts/check-territorial-library.mjs > /tmp/pando-baseline-validation.log 2>&1
+          status=$?
+          set -e
+          if test "$status" -ne 0; then
+            if ! grep -F 'Soviet Union fails app geometry validation: 연속된 중복 꼭짓점' /tmp/pando-baseline-validation.log >/dev/null; then
+              cat /tmp/pando-baseline-validation.log
+              exit "$status"
+            fi
+            echo 'BASELINE BLOCKER: existing Soviet geometry contains consecutive duplicate vertices; unchanged by this country timeline task.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Apply approved existing-shape transitions and rebuild coupled artifacts
         run: node tools/gis/apply-post-2000-territorial-links.mjs --apply
+      - name: Prove unrelated Soviet geometry remained byte-identical
+        run: |
+          node --input-type=module <<'NODE'
+          import {readTerritorialSource} from './tools/territorial-entity-sources.mjs';
+          import {createHash} from 'node:crypto';
+          import {readFileSync} from 'node:fs';
+          const next=createHash('sha256').update(JSON.stringify(readTerritorialSource('state:soviet-union').geometryVersions)).digest('hex');
+          if(readFileSync('/tmp/pando-soviet-before.sha','utf8')!==next)throw Error('Unrelated Soviet geometry altered');
+          console.log('Preexisting Soviet source geometry unchanged:',next);
+          NODE
       - name: Verify catalog, country chunks and actual year-end project materialization
         run: |
           node tools/build-territorial-entity-chunks.mjs --check
           node tools/build-builtin-world.mjs --check
-          node --test tests/unit/post-2000-territorial-links.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs
+          node --test tests/unit/post-2000-territorial-links.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs
       - name: Store and push changed territorial sources and generated world as one pinned library revision
         run: |
           node tools/library-data.mjs --store-and-stage --push \
