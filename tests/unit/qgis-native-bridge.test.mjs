@@ -23,6 +23,7 @@ async function fixture(t){
       let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
       else if(request.command==='canvas')result={extent:[10,20,30,40],crs:'EPSG:4326',width:800,height:600,scale:1000,rotation:0,magnification:1};
+      else if(request.command==='canvas-scale'){assert.equal(request.scale,2000);assert.equal(request.rotation,15);result={ok:true,scale:request.scale,rotation:request.rotation};}
       else if(request.command==='zoom-to-layer'){assert.equal(request.layer,'layer-1');result={ok:true,id:request.layer};}
       else if(request.command==='transform'){
         assert.equal(request.sourceCrs,'EPSG:4326');assert.equal(request.targetCrs,'EPSG:3857');
@@ -89,6 +90,10 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const status=await run(['--config',config,'status']);assert.equal(status.code,0,status.stderr);
   assert.equal(JSON.parse(status.stdout).transport,'pando-native-v1');
   const canvas=await run(['--config',config,'canvas']);assert.equal(canvas.code,0,canvas.stderr);assert.deepEqual(JSON.parse(canvas.stdout).extent,[10,20,30,40]);
+  const scale=await run(['--config',config,'canvas-scale','--scale','2000','--rotation','15']);assert.equal(scale.code,0,scale.stderr);assert.equal(JSON.parse(scale.stdout).scale,2000);
+  assert.notEqual((await run(['--config',config,'canvas-scale','--scale','0'])).code,0);
+  assert.notEqual((await run(['--config',config,'canvas','--scale','1000'])).code,0);
+  assert.notEqual((await run(['normalize',input,'--output',join(root,'invalid.geojson'),'--rotation','15'])).code,0);
   const project=await run(['--config',config,'project']);assert.equal(project.code,0,project.stderr);assert.equal(JSON.parse(project.stdout).layer_count,1);
   const zoom=await run(['--config',config,'zoom-to-layer','--layer','layer-1']);assert.equal(zoom.code,0,zoom.stderr);assert.equal(JSON.parse(zoom.stdout).id,'layer-1');
   assert.notEqual((await run(['--config',config,'zoom-to-layer'])).code,0);

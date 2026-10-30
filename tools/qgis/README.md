@@ -14,6 +14,7 @@ node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs canvas
+node tools/qgis/native-bridge.mjs canvas-scale --scale 10000000 --rotation 0
 node tools/qgis/native-bridge.mjs active-layer
 node tools/qgis/native-bridge.mjs active-layer --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs zoom-to-layer --layer QGIS_LAYER_ID
