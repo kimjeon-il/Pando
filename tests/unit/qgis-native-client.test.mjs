@@ -59,3 +59,12 @@ test('native QGIS can inspect project and paginated layers without executing cod
   assert.equal((await requestNativeQgis(config,{command:'project'})).layer_count,1);
   assert.equal((await requestNativeQgis(config,{command:'layers',offset:0,limit:10})).layers[0].id,'layer-1');
 });
+
+test('native QGIS reads and selects the active layer without changing the project data',async t=>{
+  const config=await fixture(t,(socket,request)=>{
+    assert.equal(request.command,'active-layer');
+    socket.end(JSON.stringify({ok:true,result:{layer:{id:request.layer||'layer-1',name:'지도'}}})+'\n');
+  });
+  assert.equal((await requestNativeQgis(config,{command:'active-layer'})).layer.id,'layer-1');
+  assert.equal((await requestNativeQgis(config,{command:'active-layer',layer:'layer-2'})).layer.id,'layer-2');
+});
