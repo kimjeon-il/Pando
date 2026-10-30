@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 import { readNativeImage, readNativeTrainingJpegOverview, resizeNativeOpaqueBilinear } from '../../tools/map-image/native-resample.mjs';
 
 test('streamed JPEG training overview preserves orientation and original Pillow pixels', async () => {
-  for(const name of ['rgb','progressive','orientation-2','orientation-3','orientation-4','gray','cmyk']){
+  for(const name of ['rgb','progressive','orientation-2','orientation-3','orientation-4','orientation-5','orientation-6','orientation-7','orientation-8','gray','cmyk']){
     const path=`tests/fixtures/map-image/jpeg-read/${name}.jpg`,bytes=await readFile(path);
     const expectedSha256=createHash('sha256').update(bytes).digest('hex');
     const image=await readNativeImage({path,format:'jpeg',maxPixels:16777216,expectedSha256});
@@ -16,10 +18,10 @@ test('streamed JPEG training overview preserves orientation and original Pillow 
   }
 });
 
-test('streamed JPEG explicitly rejects unimplemented rotation and changed originals', async () => {
+test('streamed JPEG rejects changed originals', async () => {
   const path='tests/fixtures/map-image/jpeg-read/orientation-6.jpg',bytes=await readFile(path);
   const expectedSha256=createHash('sha256').update(bytes).digest('hex');
-  await assert.rejects(readNativeTrainingJpegOverview({path,expectedSha256}),/orientation/i);
+  assert.equal((await readNativeTrainingJpegOverview({path,expectedSha256})).orientation,6);
   await assert.rejects(readNativeTrainingJpegOverview({path,expectedSha256:'0'.repeat(64)}),/hash/i);
 });
 
@@ -30,4 +32,17 @@ test('streamed JPEG reads a source above 16MP without changing its bytes', async
   assert.equal(result.width,4097);assert.equal(result.height,4097);
   assert.deepEqual(result.data,await readFile('tests/fixtures/map-image/jpeg-read/training-large-overview.rgba'));
   assert.deepEqual(await readFile(path),before);
+});
+
+test('streamed JPEG rotates a source above 16MP before computing its overview', async t => {
+  const directory=await mkdtemp(join(tmpdir(),'pando-large-rotated-'));t.after(()=>rm(directory,{recursive:true}));
+  const original=await readFile('tests/fixtures/map-image/jpeg-read/training-large.jpg');
+  const exif=Buffer.from('45786966000049492a0008000000010012010300010000000600000000000000','hex');
+  const marker=Buffer.alloc(4);marker[0]=255;marker[1]=225;marker.writeUInt16BE(exif.length+2,2);
+  const bytes=Buffer.concat([original.subarray(0,2),marker,exif,original.subarray(2)]),path=join(directory,'rotated.jpg');
+  await writeFile(path,bytes);const expectedSha256=createHash('sha256').update(bytes).digest('hex');
+  const result=await readNativeTrainingJpegOverview({path,expectedSha256});
+  assert.equal(result.orientation,6);assert.equal(result.width,4097);assert.equal(result.height,4097);
+  assert.deepEqual(result.data,await readFile('tests/fixtures/map-image/jpeg-read/training-large-rotated-overview.rgba'));
+  assert.deepEqual(await readFile(path),bytes);
 });

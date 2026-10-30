@@ -29,6 +29,18 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
+class OpaqueBilinearColumnAccumulator {
+public:
+    OpaqueBilinearColumnAccumulator(int width,int height,int outputWidth,int outputHeight);
+    ~OpaqueBilinearColumnAccumulator();
+    OpaqueBilinearColumnAccumulator(const OpaqueBilinearColumnAccumulator&)=delete;
+    OpaqueBilinearColumnAccumulator& operator=(const OpaqueBilinearColumnAccumulator&)=delete;
+    void addColumn(int x,const std::uint8_t* column,std::size_t length);
+    std::vector<std::uint8_t> finish();
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+};
 std::vector<std::uint8_t> resizeOpaqueBilinearRows(int width,int height,int outputWidth,int outputHeight,
     const OpaqueRgbaRowReader& readRow);
 std::vector<std::uint8_t> resizeOpaqueBicubic(const std::vector<std::uint8_t>& input,

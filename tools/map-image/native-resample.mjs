@@ -262,7 +262,7 @@ export async function readNativeTrainingJpegOverview({path,expectedSha256},{work
   const output=await runNative(nativeBinary(workspace,directory),['training-jpeg-overview'],bytes,12+256*256*4,signal);
   if(output.length!==12+256*256*4)throw Error('Invalid JPEG training overview receipt');
   const width=output.readUInt32BE(0),height=output.readUInt32BE(4),orientation=output.readUInt32BE(8);
-  if(!width||!height||width>65535||height>65535||width*height>600000000||orientation<1||orientation>4)
+  if(!width||!height||width>65535||height>65535||width*height>600000000||orientation<1||orientation>8)
     throw Error('Invalid JPEG training overview dimensions or orientation');
   return {width,height,orientation,data:output.subarray(12)};
 }

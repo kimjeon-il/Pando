@@ -142,6 +142,53 @@ std::vector<std::uint8_t> OpaqueBilinearAccumulator::finish(){
     for(std::size_t i=0;i<state.sums.size();++i)output[i]=rounded(state.sums[i]);
     return output;
 }
+struct OpaqueBilinearColumnAccumulator::Impl {
+    using Contribution=std::pair<int,std::int32_t>;
+    int width,height,outputWidth,outputHeight,columnsReceived=0;bool finished=false;
+    std::vector<std::vector<Contribution>> bySourceColumn;
+    std::vector<std::uint8_t> seen;
+    std::vector<std::int32_t> sums;
+    Impl(int w,int h,int ow,int oh):width(w),height(h),outputWidth(ow),outputHeight(oh),
+      bySourceColumn(w),seen(w),sums(std::size_t(h)*ow*4){
+        const auto horizontal=coefficients(w,ow,w,Filter::bilinear);
+        for(int x=0;x<ow;++x)for(std::size_t j=0;j<horizontal[x].weights.size();++j)
+            if(horizontal[x].weights[j])bySourceColumn[horizontal[x].start+j].emplace_back(x,horizontal[x].weights[j]);
+    }
+};
+OpaqueBilinearColumnAccumulator::OpaqueBilinearColumnAccumulator(int width,int height,int outputWidth,int outputHeight){
+    if(width<=0||height<=0||width>65535||height>65535||std::int64_t(width)*height>600000000)
+        throw std::invalid_argument("Invalid streaming training image dimensions");
+    validate(outputWidth,outputHeight);impl_=std::make_unique<Impl>(width,height,outputWidth,outputHeight);
+}
+OpaqueBilinearColumnAccumulator::~OpaqueBilinearColumnAccumulator()=default;
+void OpaqueBilinearColumnAccumulator::addColumn(int x,const std::uint8_t* column,std::size_t length){
+    auto& state=*impl_;
+    if(state.finished||x<0||x>=state.width||state.seen[x]||!column||length!=std::size_t(state.height)*4)
+        throw std::invalid_argument("Invalid or repeated streaming training column");
+    for(std::size_t i=3;i<length;i+=4)if(column[i]!=255)throw std::invalid_argument("Training bilinear input must be opaque");
+    // Bilinear coefficients are nonnegative and total at most 2^22+32768;
+    // multiplying their sum by 255 remains safely within signed 32 bits.
+    for(const auto& [outputColumn,weight]:state.bySourceColumn[x])for(int y=0;y<state.height;++y)for(int c=0;c<4;++c)
+        state.sums[(std::size_t(y)*state.outputWidth+outputColumn)*4+c]+=std::int32_t(column[std::size_t(y)*4+c])*weight;
+    state.seen[x]=1;++state.columnsReceived;
+}
+std::vector<std::uint8_t> OpaqueBilinearColumnAccumulator::finish(){
+    auto& state=*impl_;
+    if(state.finished||state.columnsReceived!=state.width)throw std::invalid_argument("Incomplete streaming training image");
+    state.finished=true;
+    std::vector<std::uint8_t> horizontal(state.sums.size());
+    for(std::size_t i=0;i<horizontal.size();++i)horizontal[i]=rounded(state.sums[i]);
+    const auto vertical=coefficients(state.height,state.outputHeight,state.height,Filter::bilinear);
+    const auto stride=std::size_t(state.outputWidth)*4;
+    std::vector<std::uint8_t> output(stride*state.outputHeight);
+    for(int y=0;y<state.outputHeight;++y)for(std::size_t i=0;i<stride;++i){
+        std::int64_t sum=0;
+        for(std::size_t j=0;j<vertical[y].weights.size();++j)
+            sum+=std::int64_t(horizontal[(std::size_t(vertical[y].start)+j)*stride+i])*vertical[y].weights[j];
+        output[std::size_t(y)*stride+i]=rounded(sum);
+    }
+    return output;
+}
 std::vector<std::uint8_t> resizeOpaqueBilinearRows(int width,int height,int outputWidth,int outputHeight,
     const OpaqueRgbaRowReader& readRow){
     if(!readRow)throw std::invalid_argument("Missing streaming training row reader");
