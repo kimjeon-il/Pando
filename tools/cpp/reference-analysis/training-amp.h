@@ -35,6 +35,12 @@ inline bool unscaleAndUpdateTrainingAmp(std::vector<torch::Tensor>& gradients,Tr
     at::_amp_update_scale_(scale,tracker,found,2.0,.5,2000);
     state.scale=scale.item<float>();state.growthTracker=tracker.item<std::int32_t>();return applied;
 }
+inline bool applyTrainingAmpGradients(const std::vector<torch::Tensor>& parameters,torch::optim::Optimizer& optimizer,
+    TrainingAmpState& state,const torch::Device& device){
+    std::vector<torch::Tensor> gradients;for(const auto& parameter:parameters)if(parameter.grad().defined())gradients.push_back(parameter.grad());
+    const bool applied=unscaleAndUpdateTrainingAmp(gradients,state,device);
+    torch::nn::utils::clip_grad_norm_(parameters,1.0,2.0,false);if(applied)optimizer.step();return applied;
+}
 inline TrainingAmpResult orderedTrainingAmpStep(ReferenceBoundaryModel& model,torch::optim::AdamW& optimizer,const TrainingBatch& batch,
     SamplingState& sampling,const std::vector<std::int64_t>& indices,TrainingAmpState& state,
     const c10::optional<torch::Tensor>& positiveWeight=c10::nullopt){
@@ -42,10 +48,7 @@ inline TrainingAmpResult orderedTrainingAmpStep(ReferenceBoundaryModel& model,to
     if(!batch.tile.device().is_cuda())throw std::invalid_argument("AMP training requires CUDA");optimizer.zero_grad(true);
     torch::Tensor loss;{TrainingCudaAutocast autocast;loss=boundaryLoss(model->forward(batch.tile,batch.overview,batch.position),batch.target,batch.valid,positiveWeight);}
     if(!torch::isfinite(loss).item<bool>())throw std::runtime_error("Nonfinite training loss");
-    (loss*state.scale).backward();std::vector<torch::Tensor> gradients;
-    for(const auto& parameter:model->parameters())if(parameter.grad().defined())gradients.push_back(parameter.grad());
-    const bool applied=unscaleAndUpdateTrainingAmp(gradients,state,batch.tile.device());
-    torch::nn::utils::clip_grad_norm_(model->parameters(),1.0,2.0,false);if(applied)optimizer.step();
+    (loss*state.scale).backward();const bool applied=applyTrainingAmpGradients(model->parameters(),optimizer,state,batch.tile.device());
     sampling.cursor+=static_cast<std::int64_t>(indices.size());return {loss.item<double>(),applied};
 }
 }
