@@ -1,7 +1,7 @@
 // Validate independently reviewed originals; derived training labels are not truth.
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {readFile,realpath} from 'node:fs/promises';
+import {readFile,realpath,stat} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
@@ -13,9 +13,10 @@ import {resolveCorpusPath} from './corpus-path.mjs';
 const SHA=/^[a-f0-9]{64}$/;
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 export function evaluationGroups(sheets){const groups={};for(const sheet of sheets){const key=[sheet.mapKind,sheet.script,sheet.language].join('/');(groups[key]??=[]).push(sheet.id);}return groups;}
-export async function validateReviewedCorpus(value,root,{signal,workspace,reviewDirectory}={}){
+export async function validateReviewedCorpus(value,root,{signal,workspace,reviewDirectory,onVerified}={}){
   if(!value||value.schemaVersion!==1||!Array.isArray(value.sheets))throw Error('Corpus schemaVersion=1 and sheets are required');
   if(value.trainingOnly)throw Error('Source-reviewed independent corpus required; supplied corpus is training-only');
+  if(onVerified!==undefined&&typeof onVerified!=='function')throw Error('Invalid verified source consumer');
   const base=await realpath(resolve(root)),seen=new Set(),splits=new Map();
   for(const sheet of value.sheets){
     signal?.throwIfAborted();if(!sheet?.id||seen.has(sheet.id))throw Error('Unique sheet id required');seen.add(sheet.id);
@@ -28,10 +29,13 @@ export async function validateReviewedCorpus(value,root,{signal,workspace,review
     if(!sheet.source?.url||!sheet.source?.license)throw Error('Source URL and license required');
     const image=await resolveCorpusPath(base,sheet.image),annotationPath=await resolveCorpusPath(base,sheet.annotations);
     if(await hashFile(image,signal)!==sheet.sha256)throw Error('Original image hash changed: '+sheet.id);
-    const annotation=JSON.parse(await readFile(annotationPath,{encoding:'utf8',signal}));
+    const info=await stat(annotationPath);if(!info.isFile()||info.size>64*1024*1024)throw Error('Annotation exceeds its byte budget');
+    const annotationBytes=await readFile(annotationPath,{signal});if(annotationBytes.length>64*1024*1024)throw Error('Annotation exceeds its byte budget');
+    const annotation=JSON.parse(annotationBytes.toString('utf8'));
     if(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision'].includes(annotation.origin))
       throw Error('Derived training labels cannot become independent review truth');
     await validateReviewedAnnotation(annotation,sheet,{signal,workspace,directory:reviewDirectory});
+    if(onVerified)await onVerified({sheet,annotation,annotationPath,annotationSha256:createHash('sha256').update(annotationBytes).digest('hex'),imagePath:image});
   }
   return value;
 }

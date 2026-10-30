@@ -4,6 +4,7 @@
 #include "safetensors.h"
 #include "training-ordered-step.h"
 #include "training-amp.h"
+#include "training-validation.h"
 #include <ATen/Context.h>
 #include <cmath>
 #include <filesystem>
@@ -13,6 +14,10 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 namespace fs=std::filesystem;
 namespace {
@@ -29,7 +34,35 @@ void configure(pando::reference::ReferenceBoundaryModel& model,std::int64_t epoc
   model->train();const bool frozen=epoch<freezeEpochs;for(auto& parameter:model->encoder->parameters())parameter.requires_grad_(!frozen);
   if(frozen)model->encoder->eval();
 }
+pando::reference::TrainingBatch readSample(const fs::path& dir){
+  return {pando::reference::readFloatTensor(dir/"tile.f32",{1,3,512,512}),pando::reference::readFloatTensor(dir/"overview.f32",{1,3,256,256}),
+    pando::reference::readFloatTensor(dir/"position.f32",{1,4}),pando::reference::readFloatTensor(dir/"target.f32",{1,7,512,512}),
+    pando::reference::readFloatTensor(dir/"valid.f32",{1,7,512,512})};
+}
+void checkSupervision(const pando::reference::TrainingBatch& batch){
+  if(batch.target.min().item<float>()<0||batch.target.max().item<float>()>1||batch.valid.min().item<float>()<0||batch.valid.max().item<float>()>1||batch.valid.sum().item<double>()==0)
+    throw std::invalid_argument("Training batch requires valid supervision");
+}
+int validate(const std::vector<fs::path>& args){
+  if(args.size()!=5)throw std::invalid_argument("Expected validate DEVICE CHECKPOINT SAMPLE_COUNT");
+  const auto count=integer(args[4]);if(count<1||count>100000)throw std::invalid_argument("Invalid validation sample count");
+  const auto device=pando::reference::selectDevice(args[2].string());const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
+  pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+  pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
+  const auto readTensor=[](const std::vector<std::int64_t>& shape){std::int64_t elements=1;for(const auto size:shape)elements*=size;
+    auto tensor=torch::empty(shape,torch::kFloat32);const auto length=elements*static_cast<std::int64_t>(sizeof(float));
+    if(!std::cin.read(static_cast<char*>(tensor.data_ptr()),static_cast<std::streamsize>(length)))throw std::runtime_error("Truncated validation tensor stream");
+    if(!torch::isfinite(tensor).all().item<bool>())throw std::runtime_error("Validation tensor contains nonfinite values");return tensor;};
+  double sum=0;for(std::int64_t i=0;i<count;++i){pando::reference::TrainingBatch batch{readTensor({1,3,512,512}),readTensor({1,3,256,256}),
+      readTensor({1,4}),readTensor({1,7,512,512}),readTensor({1,7,512,512})};checkSupervision(batch);
+    batch={batch.tile.to(device),batch.overview.to(device),batch.position.to(device),batch.target.to(device),batch.valid.to(device)};
+    sum+=pando::reference::validationBatchLoss(model,batch);}
+  if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Trailing validation tensor bytes");
+  std::cout<<std::setprecision(17)<<"{\"trainingOnly\":true,\"releaseApproved\":false,\"independentEvaluation\":false,\"samples\":"
+    <<count<<",\"loss\":"<<sum/double(count)<<"}\n";return 0;
+}
 int run(const std::vector<fs::path>& args){
+  if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);
   if(args.size()<16||(args.size()-14)%2||args.size()>46)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");
   if(fs::exists(args[4]))throw std::invalid_argument("Checkpoint output exists; preserve it");
@@ -67,13 +100,10 @@ int run(const std::vector<fs::path>& args){
     throw std::invalid_argument("Invalid training AMP state");
   pando::reference::TrainingAmpState ampState{static_cast<float>(scaleValue),static_cast<std::int32_t>(growth)};
   std::vector<torch::Tensor> tiles,overviews,positions,targets,valids;std::vector<std::int64_t> indices;
-  for(std::size_t i=14;i<args.size();i+=2){indices.push_back(integer(args[i]));const auto& dir=args[i+1];
-    tiles.push_back(pando::reference::readFloatTensor(dir/"tile.f32",{1,3,512,512}));overviews.push_back(pando::reference::readFloatTensor(dir/"overview.f32",{1,3,256,256}));
-    positions.push_back(pando::reference::readFloatTensor(dir/"position.f32",{1,4}));targets.push_back(pando::reference::readFloatTensor(dir/"target.f32",{1,7,512,512}));
-    valids.push_back(pando::reference::readFloatTensor(dir/"valid.f32",{1,7,512,512}));}
+  for(std::size_t i=14;i<args.size();i+=2){indices.push_back(integer(args[i]));const auto sample=readSample(args[i+1]);
+    tiles.push_back(sample.tile);overviews.push_back(sample.overview);positions.push_back(sample.position);targets.push_back(sample.target);valids.push_back(sample.valid);}
   pando::reference::TrainingBatch batch{torch::cat(tiles).to(device),torch::cat(overviews).to(device),torch::cat(positions).to(device),torch::cat(targets).to(device),torch::cat(valids).to(device)};
-  if(batch.target.min().item<float>()<0||batch.target.max().item<float>()>1||batch.valid.min().item<float>()<0||batch.valid.max().item<float>()>1||batch.valid.sum().item<double>()==0)
-    throw std::invalid_argument("Training batch requires valid supervision");
+  checkSupervision(batch);
   double loss=0;bool applied=true;
   if(precision=="amp-fp16"){const auto result=pando::reference::orderedTrainingAmpStep(model,optimizer,batch,state,indices,ampState,positiveWeight);loss=result.loss;applied=result.applied;}
   else loss=pando::reference::orderedTrainingBatchStep(model,optimizer,batch,state,indices,positiveWeight);
@@ -90,6 +120,10 @@ int wmain(int argc,wchar_t** argv){
 #else
 int main(int argc,char** argv){
 #endif
-  try{std::vector<fs::path> args;for(int i=0;i<argc;++i)args.emplace_back(argv[i]);return run(args);}
+  try{
+#ifdef _WIN32
+    if(_setmode(_fileno(stdin),_O_BINARY)==-1)throw std::runtime_error("Cannot set validation stream binary mode");
+#endif
+    std::vector<fs::path> args;for(int i=0;i<argc;++i)args.emplace_back(argv[i]);return run(args);}
   catch(const std::exception& error){std::cerr<<"reference-training-batch: "<<error.what()<<'\n';return 1;}
 }
