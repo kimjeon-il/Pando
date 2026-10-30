@@ -31,7 +31,15 @@ public:
         auto y=state[at++];y^=y>>11;y^=(y<<7)&0x9d2c5680U;y^=(y<<15)&0xefc60000U;y^=y>>18;return y;
     }
     double uniform01(){const auto a=next()>>5,b=next()>>6;return (double(a)*67108864.0+double(b))/9007199254740992.0;}
-    unsigned choice3(){unsigned result;do{result=next()>>30;}while(result>=3);return result;}
+    std::uint64_t below(std::uint64_t limit){
+        if(!limit)throw std::invalid_argument("Random choice requires a nonempty range");
+        unsigned bits=0;for(auto value=limit;value;value>>=1)++bits;
+        std::uint64_t result;
+        do{if(bits<=32)result=next()>>(32-bits);
+           else{result=next();result|=std::uint64_t(next()>>(64-bits))<<32;}}
+        while(result>=limit);return result;
+    }
+    unsigned choice3(){return static_cast<unsigned>(below(3));}
 };
 struct ScanConditions {bool grayscale;double contrast,brightness,saturation,resolution,blur;int quality;};
 inline ScanConditions trainingScanConditions(std::uint64_t epoch,std::uint64_t index){
