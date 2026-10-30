@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {assembleTerrainDemLevel,extractTerrainPreviewTile,renderTerrainPreviewLevel} from '../../tools/gis/terrain-preview-grid.mjs';
+import {assembleTerrainDemLevel,extractTerrainPreviewTile,renderTerrainPreviewLevel,verifyTerrainPreviewTileEdges} from '../../tools/gis/terrain-preview-grid.mjs';
 import {readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
 
 test('terrain level assembly ignores source gutters and preview tiles wrap and clamp edges',()=>{
@@ -20,6 +20,18 @@ test('terrain level assembly rejects missing, duplicate or incorrectly sized til
   assert.throws(()=>assembleTerrainDemLevel(level,[]),/tile/i);
   assert.throws(()=>assembleTerrainDemLevel(level,[tile,tile]),/tile/i);
   assert.throws(()=>assembleTerrainDemLevel(level,[{...tile,width:3}]),/tile/i);
+});
+test('preview verification checks adjoining, antimeridian and polar gutter pixels',()=>{
+  const level={id:0,width:3,height:3,columns:2,rows:2,tileSize:2};
+  const data=Buffer.from(Array.from({length:9},(_,i)=>[i,0,0,255]).flat());
+  const world={width:3,height:3,data},tiles=[];
+  for(let row=0;row<2;row++)for(let column=0;column<2;column++)
+    tiles.push({row,column,...extractTerrainPreviewTile(world,level,column,row)});
+  assert.doesNotThrow(()=>verifyTerrainPreviewTileEdges(level,tiles));
+  const damaged=tiles.map(tile=>({...tile,data:Buffer.from(tile.data)}));
+  damaged[0].data[0]^=1;
+  assert.throws(()=>verifyTerrainPreviewTileEdges(level,damaged),/gutter/i);
+  assert.throws(()=>verifyTerrainPreviewTileEdges(level,tiles.slice(1)),/tile/i);
 });
 test('terrain level rendering composes and round-trips a small source-bound preview',{
   skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY||!process.env.PANDO_MAP_IMAGE_ARTIFACT,

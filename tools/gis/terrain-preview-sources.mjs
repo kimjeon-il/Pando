@@ -21,7 +21,7 @@ export function validateTerrainPreviewSources({dem,inventory,countryBytes,landMa
       throw Error('Preview DEM source pins are incomplete or invalid');assets.set(item.path,item);}
   if(assets.size!==required.size)throw Error('Preview DEM source pins are incomplete');
   if(dem.tint?.sha256!==assets.get('terrain/v0.13.3/tint.webp').sha256)throw Error('DEM tint pin changed');
-  return {dem,assets,countries:JSON.parse(Buffer.from(countryBytes).toString('utf8'))};
+  return {dem,assets,countries:JSON.parse(Buffer.from(countryBytes).toString('utf8')),landMaskSha256};
 }
 export async function readPinnedTerrainAsset({cache,path,url,spec,fetcher=fetch,signal}){
   signal?.throwIfAborted();

@@ -50,12 +50,12 @@ WebGL의 화면 내 sampling과 Canvas의 생성 타일 sampling은
 
 ## 재실행
 
-Python에 Pillow 12.3.0과 NumPy 2.3.5를 설치한 뒤 저장소 루트에서 실행한다.
+소스가 확인된 `terrain-preview`와 `map-image` 네이티브 실행 파일을 준비한 뒤 저장소 루트에서 실행한다.
 
 ```text
-python tools/build-terrain-preview.py --check
-python tools/build-terrain-preview.py --rebuild-check
-python -m unittest tests.python.test_build_terrain_preview
+node tools/build-terrain-preview.mjs --check
+node tools/build-terrain-preview.mjs --rebuild-check
+node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
 node tools/check-terrain-preview.mjs --out terrain-preview-evidence.json
 node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-manifest.test.mjs tests/unit/canvas-terrain-dem-core.test.mjs tests/unit/physical-layer-service.test.mjs
 pnpm exec playwright test tests/browser/terrain-preview.spec.mjs
