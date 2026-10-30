@@ -4,6 +4,7 @@
 #include "image-read.h"
 #include "training-scan.h"
 #include "training-tile.h"
+#include <webp/encode.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -55,6 +56,19 @@ std::pair<int,int> thumbnailSize(int width,int height,int maxWidth,int maxHeight
     const double n=maxWidth/aspect;const int low=static_cast<int>(std::floor(n)),high=static_cast<int>(std::ceil(n));
     const auto error=[&](int v){return v?std::abs(aspect-static_cast<double>(maxWidth)/v):0;};
     return {maxWidth,std::max(1,error(high)<error(low)?high:low)};
+}
+std::vector<std::uint8_t> encodeWebpLossless(const std::vector<std::uint8_t>& pixels,int width,int height){
+    WebPConfig config;if(!WebPConfigInit(&config))throw std::runtime_error("WebP encoder version mismatch");
+    config.lossless=1;config.quality=80;config.method=6;config.exact=1;
+    if(!WebPValidateConfig(&config))throw std::runtime_error("Invalid lossless WebP configuration");
+    struct Encoder {WebPPicture picture{};WebPMemoryWriter writer{};
+        Encoder(){if(!WebPPictureInit(&picture))throw std::runtime_error("WebP picture version mismatch");WebPMemoryWriterInit(&writer);}
+        ~Encoder(){WebPPictureFree(&picture);WebPMemoryWriterClear(&writer);}} encoder;
+    encoder.picture.width=width;encoder.picture.height=height;encoder.picture.use_argb=1;
+    encoder.picture.writer=WebPMemoryWrite;encoder.picture.custom_ptr=&encoder.writer;
+    if(!WebPPictureImportRGBA(&encoder.picture,pixels.data(),width*4)||!WebPEncode(&config,&encoder.picture))
+        throw std::runtime_error("Unable to encode lossless WebP");
+    return {encoder.writer.mem,encoder.writer.mem+encoder.writer.size};
 }
 }
 int main(int argc,char** argv){
@@ -185,8 +199,8 @@ int main(int argc,char** argv){
             if(!std::cout)throw std::runtime_error("Unable to write decoded pixels");
             return 0;
         }
-        if(((action=="resize-rgba"||action=="resize-bilinear"||action=="thumbnail-pdf")&&argc!=6)||(action=="rotate-rgba"&&argc!=5)||(action=="encode-png"&&argc!=4)||
-           (action!="resize-rgba"&&action!="resize-bilinear"&&action!="thumbnail-pdf"&&action!="rotate-rgba"&&action!="encode-png"))
+        if(((action=="resize-rgba"||action=="resize-bilinear"||action=="thumbnail-pdf")&&argc!=6)||(action=="rotate-rgba"&&argc!=5)||((action=="encode-png"||action=="encode-webp-lossless")&&argc!=4)||
+           (action!="resize-rgba"&&action!="resize-bilinear"&&action!="thumbnail-pdf"&&action!="rotate-rgba"&&action!="encode-png"&&action!="encode-webp-lossless"))
             throw std::invalid_argument("Invalid native image operation or arguments");
         const int w=dimension(argv[2]),h=dimension(argv[3]);
         int ow=0,oh=0,degrees=0;
@@ -197,7 +211,7 @@ int main(int argc,char** argv){
         if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(bytes))||std::cin.peek()!=std::char_traits<char>::eof())
             throw std::invalid_argument("RGBA input byte length differs from dimensions");
         const auto output=action=="resize-rgba"?pando::map_image::resizeRgba(input,w,h,ow,oh):action=="resize-bilinear"?pando::map_image::resizeOpaqueBilinear(input,w,h,ow,oh):action=="thumbnail-pdf"?pando::map_image::resizeOpaqueThumbnail(input,w,h,ow,oh):
-            action=="rotate-rgba"?pando::map_image::rotateRgba(input,w,h,degrees):pando::map_image::encodePngRgba(input,w,h);
+            action=="rotate-rgba"?pando::map_image::rotateRgba(input,w,h,degrees):action=="encode-webp-lossless"?encodeWebpLossless(input,w,h):pando::map_image::encodePngRgba(input,w,h);
         std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
         if(!std::cout)throw std::runtime_error("Unable to write resized pixels");
         return 0;
