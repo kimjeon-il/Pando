@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceOnnxExportSourceFiles} from './native-infer.mjs';
+import {trainingFileIdentity} from './training-evidence.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -46,12 +47,19 @@ export async function nativeCheckpointOnnxExport({checkpoint,proof,output,torchL
   if(existsSync(output))throw Error('ONNX output exists; preserve the existing file');
   const receipt=JSON.parse(readFileSync(resolve(proof),'utf8'));
   if(statSync(resolve(checkpoint)).size>1024**3)throw Error('Training checkpoint exceeds its size limit');
-  const bytes=readFileSync(resolve(checkpoint));
-  if(receipt.purpose!=='real-input-resume-proof'||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.independentEvaluation!==false||
-    receipt.preprocessing!=='rgb-brightness-then-imagenet-normalization'||receipt.exactModelResume!==true||!['cpu','cuda'].includes(receipt.device)||
-    receipt.checkpointBytes!==bytes.length||receipt.checkpointSha256!==sha256(bytes))
+  const checkpointHash=trainingFileIdentity(resolve(checkpoint));
+  const proofReceipt=receipt.purpose==='real-input-resume-proof'&&receipt.independentEvaluation===false&&
+    receipt.preprocessing==='rgb-brightness-then-imagenet-normalization'&&receipt.exactModelResume===true;
+  const trainingReceipt=receipt.schemaVersion===1&&receipt.lineageComplete===false&&receipt.sourceReplayVerified===false&&
+    receipt.initialization==='weights-only-no-optimizer'&&['fp32','amp-fp16'].includes(receipt.precision)&&
+    (receipt.precision!=='amp-fp16'||receipt.device==='cuda')&&Number.isSafeInteger(receipt.epoch)&&receipt.epoch>=0&&
+    Number.isSafeInteger(receipt.cursor)&&receipt.cursor>=0&&Number.isSafeInteger(receipt.orderLength)&&receipt.cursor<=receipt.orderLength;
+  if((!proofReceipt&&!trainingReceipt)||receipt.trainingOnly!==true||receipt.releaseApproved!==false||!['cpu','cuda'].includes(receipt.device)||
+    receipt.checkpointBytes!==statSync(resolve(checkpoint)).size||receipt.checkpointSha256!==checkpointHash)
     throw Error('A matching private checkpoint and resume proof are required');
-  return runExport({args:['--checkpoint',receipt.device,resolve(checkpoint)],output,torchLibrary,root,directory,signal,diagnostic:false,checkpoint:true});
+  const result=await runExport({args:['--checkpoint',receipt.device,resolve(checkpoint)],output,torchLibrary,root,directory,signal,diagnostic:false,checkpoint:true});
+  if(trainingFileIdentity(resolve(checkpoint))!==checkpointHash)throw Error('Checkpoint changed during ONNX export; preserve the output');
+  return result;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
