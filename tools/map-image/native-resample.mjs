@@ -83,6 +83,13 @@ export function applyNativeTrainingScan(image,{epoch,index,...options}={}){
   if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(index)||index<0)return Promise.reject(Error('Nonnegative training epoch and tile index required'));
   return operateNativeRgba(image,[image?.width,image?.height],['training-scan',epoch,index],options);
 }
+const trainingTensorSizes=[3*512*512*4,3*256*256*4,4*4,7*512*512*4,7*512*512*4];
+function trainingTensors(result){
+  if(result.length!==trainingTensorSizes.reduce((a,b)=>a+b,0))throw Error('Native training tensor byte length mismatch');
+  let offset=0;const fields={};for(const [i,name] of ['tile','overview','position','target','valid'].entries()){
+    fields[name]=result.subarray(offset,offset+trainingTensorSizes[i]);offset+=trainingTensorSizes[i];}
+  return fields;
+}
 export async function prepareNativeTrainingTile({image,targetBits,knownBits,x,y,augment=false,epoch=0,index=0},
   {signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();dimensions(image?.width,image?.height);
@@ -90,13 +97,23 @@ export async function prepareNativeTrainingTile({image,targetBits,knownBits,x,y,
     !(targetBits instanceof Uint8Array)||targetBits.length!==512*512||!(knownBits instanceof Uint8Array)||knownBits.length!==512*512||
     !Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height||typeof augment!=='boolean'||
     !Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(index)||index<0)throw Error('Invalid native training tile input');
-  const sizes=[3*512*512*4,3*256*256*4,4*4,7*512*512*4,7*512*512*4],expected=sizes.reduce((a,b)=>a+b,0);
+  const expected=trainingTensorSizes.reduce((a,b)=>a+b,0);
   const input=Buffer.concat([image.data,targetBits,knownBits]);
   const result=await runNative(nativeBinary(workspace,directory),['training-tile',String(image.width),String(image.height),String(x),String(y),augment?'1':'0',String(epoch),String(index)],input,expected,signal);
-  if(result.length!==expected)throw Error('Native training tensor byte length mismatch');
-  let offset=0;const fields={};for(const [i,name] of ['tile','overview','position','target','valid'].entries()){
-    fields[name]=result.subarray(offset,offset+sizes[i]);offset+=sizes[i];}
-  signal?.throwIfAborted();return fields;
+  signal?.throwIfAborted();return trainingTensors(result);
+}
+export async function prepareNativeTrainingTilePieces({image,targetBits,knownBits,x,y,augment=false,epoch=0,index=0},
+  {signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!image||![image.width,image.height].every(value=>Number.isInteger(value)&&value>=2&&value<=65535)||image.width*image.height>600000000||
+    !(image.tile instanceof Uint8Array)||image.tile.length!==512*512*4||!(image.data instanceof Uint8Array)||image.data.length!==256*256*4||
+    ![targetBits,knownBits].every(value=>value instanceof Uint8Array&&value.length===512*512)||
+    !Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height||image.x!==x||image.y!==y||typeof augment!=='boolean'||
+    !Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(index)||index<0)throw Error('Invalid source-bound training tile pieces');
+  const input=Buffer.concat([image.tile,image.data,targetBits,knownBits]);
+  const result=await runNative(nativeBinary(workspace,directory),['training-pieces',String(image.width),String(image.height),String(x),String(y),augment?'1':'0',String(epoch),String(index)],
+    input,trainingTensorSizes.reduce((a,b)=>a+b,0),signal);
+  signal?.throwIfAborted();return trainingTensors(result);
 }
 export async function readNativeTrainingMask(bytes,sha256,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
@@ -253,16 +270,18 @@ export async function readNativeImage({path,rect,format,maxPixels=4000000,expect
   const bytes=await readEncodedImage(path,options.signal);
   return decodeNativeImageBytes({bytes,rect,format,maxPixels,expectedSha256},options);
 }
-export async function readNativeTrainingJpegOverview({path,expectedSha256},{workspace=root,directory=artifactDirectory(workspace),signal}={}){
+export async function readNativeTrainingJpegOverview({path,expectedSha256,x=0,y=0},{workspace=root,directory=artifactDirectory(workspace),signal}={}){
   signal?.throwIfAborted();
-  if(typeof path!=='string'||!path||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256))
+  if(typeof path!=='string'||!path||typeof expectedSha256!=='string'||!/^[a-f0-9]{64}$/.test(expectedSha256)||
+    ![x,y].every(value=>Number.isInteger(value)&&value>=0&&value<65535))
     throw Error('Source-bound JPEG path and SHA-256 required');
   const bytes=await readEncodedImage(path,signal);
   if(createHash('sha256').update(bytes).digest('hex')!==expectedSha256)throw Error('Original image hash changed');
-  const output=await runNative(nativeBinary(workspace,directory),['training-jpeg-overview'],bytes,12+256*256*4,signal);
-  if(output.length!==12+256*256*4)throw Error('Invalid JPEG training overview receipt');
+  const overviewBytes=256*256*4,tileBytes=512*512*4;
+  const output=await runNative(nativeBinary(workspace,directory),['training-jpeg-overview',String(x),String(y)],bytes,12+overviewBytes+tileBytes,signal);
+  if(output.length!==12+overviewBytes+tileBytes)throw Error('Invalid JPEG training overview receipt');
   const width=output.readUInt32BE(0),height=output.readUInt32BE(4),orientation=output.readUInt32BE(8);
   if(!width||!height||width>65535||height>65535||width*height>600000000||orientation<1||orientation>8)
     throw Error('Invalid JPEG training overview dimensions or orientation');
-  return {width,height,orientation,data:output.subarray(12)};
+  return {width,height,orientation,x,y,data:output.subarray(12,12+overviewBytes),tile:output.subarray(12+overviewBytes)};
 }
