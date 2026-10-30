@@ -35,6 +35,7 @@
 #include <qgsvectorlayer.h>
 #include <qgsvectorlayereditbuffer.h>
 #include <QCoreApplication>
+#include <QBuffer>
 #include <QDir>
 #include <QFileInfo>
 #include <QHostAddress>
@@ -43,6 +44,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QPointer>
+#include <QPixmap>
 #include <QRegularExpression>
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -184,6 +186,23 @@ class Bridge final:public QObject,public QgisPlugin {
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
             {QStringLiteral("pid"),static_cast<double>(QCoreApplication::applicationPid())},{QStringLiteral("transport"),QStringLiteral("pando-native-v1")}};
+        if(command==QStringLiteral("project-crs")){
+            const auto input=request.value(QStringLiteral("crs"));
+            if(!input.isString()||input.toString().trimmed().isEmpty()||input.toString().size()>128)throw QStringLiteral("A bounded project CRS is required");
+            const QgsCoordinateReferenceSystem crs(input.toString());
+            if(!crs.isValid())throw QStringLiteral("Project CRS is invalid");
+            QgsProject::instance()->setCrs(crs);if(iface_->mapCanvas())iface_->mapCanvas()->refresh();
+            return {{QStringLiteral("crs"),QgsProject::instance()->crs().authid()}};
+        }
+        if(command==QStringLiteral("canvas-screenshot")){
+            auto* canvas=iface_->mapCanvas();if(!canvas)throw QStringLiteral("QGIS map canvas is unavailable");
+            if(canvas->width()<1||canvas->height()<1||static_cast<qint64>(canvas->width())*canvas->height()>16777216)
+                throw QStringLiteral("QGIS canvas dimensions exceed the image budget");
+            QByteArray png;QBuffer buffer(&png);if(!buffer.open(QIODevice::WriteOnly)||!canvas->grab().save(&buffer,"PNG"))
+                throw QStringLiteral("Unable to encode the QGIS canvas");
+            if(png.size()>1400000)throw QStringLiteral("QGIS canvas screenshot exceeds the response budget");
+            return {{QStringLiteral("mimeType"),QStringLiteral("image/png")},{QStringLiteral("data"),QString::fromLatin1(png.toBase64())}};
+        }
         if(command==QStringLiteral("canvas")){
             auto* canvas=iface_->mapCanvas();if(!canvas)throw QStringLiteral("QGIS map canvas is unavailable");
             const auto extent=canvas->extent();

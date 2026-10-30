@@ -23,6 +23,8 @@ async function fixture(t){
       let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
       else if(request.command==='canvas')result={extent:[10,20,30,40],crs:'EPSG:4326',width:800,height:600,scale:1000,rotation:0,magnification:1};
+      else if(request.command==='project-crs'){assert.equal(request.crs,'EPSG:3857');result={crs:request.crs};}
+      else if(request.command==='canvas-screenshot')result={mimeType:'image/png',data:'iVBORw0KGgo='};
       else if(request.command==='canvas-scale'){assert.equal(request.scale,2000);assert.equal(request.rotation,15);result={ok:true,scale:request.scale,rotation:request.rotation};}
       else if(request.command==='canvas-extent'){assert.deepEqual(request.bounds,[10,20,30,40]);assert.equal(request.sourceCrs,'EPSG:4326');result={extent:request.bounds,crs:'EPSG:4326'};}
       else if(request.command==='edit-status'){assert.equal(request.layer,'layer-1');result={id:request.layer,editable:true,modified:true,owned:true,canUndo:true,canRedo:false,undoSteps:1,pending:{added:1,deleted:0,changedAttributes:0,changedGeometries:0}};}
@@ -92,6 +94,9 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const status=await run(['--config',config,'status']);assert.equal(status.code,0,status.stderr);
   assert.equal(JSON.parse(status.stdout).transport,'pando-native-v1');
   const canvas=await run(['--config',config,'canvas']);assert.equal(canvas.code,0,canvas.stderr);assert.deepEqual(JSON.parse(canvas.stdout).extent,[10,20,30,40]);
+  const crs=await run(['--config',config,'project-crs','--target-crs','EPSG:3857']);assert.equal(crs.code,0,crs.stderr);assert.equal(JSON.parse(crs.stdout).crs,'EPSG:3857');
+  assert.notEqual((await run(['--config',config,'project-crs'])).code,0);
+  const screenshot=await run(['--config',config,'canvas-screenshot']);assert.equal(screenshot.code,0,screenshot.stderr);assert.equal(JSON.parse(screenshot.stdout).mimeType,'image/png');
   const scale=await run(['--config',config,'canvas-scale','--scale','2000','--rotation','15']);assert.equal(scale.code,0,scale.stderr);assert.equal(JSON.parse(scale.stdout).scale,2000);
   const extent=await run(['--config',config,'canvas-extent','--bounds','[10,20,30,40]','--source-crs','EPSG:4326']);assert.equal(extent.code,0,extent.stderr);assert.deepEqual(JSON.parse(extent.stdout).extent,[10,20,30,40]);
   assert.notEqual((await run(['--config',config,'canvas-extent','--bounds','[30,20,10,40]'])).code,0);
