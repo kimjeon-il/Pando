@@ -8,7 +8,7 @@ export const reviewMaskSourceFiles=Object.freeze(['tools/cpp/map-review/CMakeLis
   'tools/cpp/map-image/raster-draw.h','tools/cpp/map-preview/PILLOW-LICENSE']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 function evenRound(value){const low=Math.floor(value),fraction=value-low;return fraction===.5?(low%2===0?low:low+1):Math.round(value);}
-function encode(annotation,window){
+function encode(annotation,window,fullSheetCoordinates){
   if(!annotation||!Number.isInteger(annotation.width)||!Number.isInteger(annotation.height)||annotation.width<1||annotation.height<1||annotation.width>65535||annotation.height>65535)
     throw Error('Original image dimensions required');
   if(!annotation.known||typeof annotation.known!=='object'||Array.isArray(annotation.known))throw Error('Explicit per-channel known regions required');
@@ -23,7 +23,8 @@ function encode(annotation,window){
     pointsCount+=points.length;if(pointsCount>1000000)throw Error('Review geometry exceeds point budget');
     const normalized=points.map(point=>{
       if(!Array.isArray(point)||point.length!==2||point.some(v=>typeof v!=='number'||!Number.isFinite(v)))throw Error('Invalid review coordinate');
-      const px=Math.trunc(point[0]-x),py=Math.trunc(point[1]-y);
+      const px=fullSheetCoordinates?Math.trunc(point[0])-x:Math.trunc(point[0]-x);
+      const py=fullSheetCoordinates?Math.trunc(point[1])-y:Math.trunc(point[1]-y);
       if(Math.abs(px)>1000000||Math.abs(py)>1000000)throw Error('Review coordinate exceeds budget');return [px,py];
     });
     rows.push({type,channel,width:lineWidth,points:normalized});
@@ -57,8 +58,9 @@ function invoke(binary,input,expected,signal){return new Promise((accept,reject)
   child.on('close',(code,reason)=>code!==0||reason||overflow?finish(Error('Native review masks failed: '+Buffer.concat(errors).toString('utf8'))):finish(null,Buffer.concat(chunks,size)));
   child.stdin.end(input);
 });}
-export async function reviewMasks(annotation,{window=null,signal,workspace=root,directory=process.env.PANDO_MAP_REVIEW_ARTIFACT||resolve(workspace,'build-native/map-review/artifact')}={}){
-  signal?.throwIfAborted();const {width,height,input}=encode(annotation,window);
+export async function reviewMasks(annotation,{window=null,fullSheetCoordinates=false,signal,workspace=root,directory=process.env.PANDO_MAP_REVIEW_ARTIFACT||resolve(workspace,'build-native/map-review/artifact')}={}){
+  signal?.throwIfAborted();if(typeof fullSheetCoordinates!=='boolean')throw Error('Explicit review coordinate mode required');
+  const {width,height,input}=encode(annotation,window,fullSheetCoordinates);
   const executable=process.platform==='win32'?'pando-map-review.exe':'pando-map-review';
   const {binary}=verifyNativeTool({root:workspace,directory,target:'map-review',executable,sourceFiles:reviewMaskSourceFiles});
   const data=await invoke(binary,input,width*height*2,signal);if(data.length!==width*height*2)throw Error('Native review mask byte length mismatch');
