@@ -1,5 +1,6 @@
 import {createStoredAssetLoader} from './stored-asset-loader.js';
 import {parseTemporal,temporalContains,temporalMonthEnd} from './temporal.js';
+import {projectTimelineIdentity} from './timeline-resolver.js';
 
 const contains=(rows,month)=>rows.some(row=>temporalContains(row,temporalMonthEnd(month)));
 export function selectBuiltinCountries(index,month){
@@ -16,10 +17,18 @@ export function assembleBuiltinWorld(index,countries,month){
  for(const entry of expected){
   const country=byId.get(entry.entityId);
   if(country?.schemaVersion!==2||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
-  const identity=structuredClone(country.identity);
+  let identity=structuredClone(country.identity);
   const bindings=country.sourceBindings;
   if(identity.properties.metadata?.historicalTimeline)identity.properties.metadata.historicalTimeline.geometryBindings=bindings;
   identity.properties.sourceGeometryVersion=bindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.sourceVersionId||'';
+  // This loader materializes a single dated country snapshot. Apply the
+  // selected name edition to its initial identity as well as retaining the
+  // existing timeline binding, so the editor's static first frame uses the
+  // correct historical name before explicit month-edit mode is activated.
+  const names=country.timelineRecords.propertyBindings.filter(row=>row.property==='name'
+   && temporalContains(row,temporalMonthEnd(month)));
+  if(names.length>1)throw new Error('Conflicting dated country names: '+entry.entityId);
+  if(names.length)identity=projectTimelineIdentity(identity,{name:names[0].value});
   project.territorialEntities.push(identity);
   // A loaded scene contains the selected interval only. Other historical
   // intervals may refer to countries intentionally not downloaded this query.
