@@ -39,13 +39,13 @@ std::uint8_t rounded(std::int64_t value){
     if(value>=255*unit)return 255;
     return static_cast<std::uint8_t>(value/unit);
 }
-void validate(int width,int height){
-    if(width<=0||height<=0||width>65535||height>65535||static_cast<std::int64_t>(width)*height>16777216)
+void validate(int width,int height,int maxDimension=16384){
+    if(width<=0||height<=0||width>maxDimension||height>maxDimension||static_cast<std::int64_t>(width)*height>16777216)
         throw std::invalid_argument("Image dimensions exceed the 16MP graph budget");
 }
 }
-static std::vector<std::uint8_t> resizeChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels,double endX,double endY){
-    validate(width,height);validate(outputWidth,outputHeight);
+static std::vector<std::uint8_t> resizeChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels,double endX,double endY,int maxDimension=16384){
+    validate(width,height,maxDimension);validate(outputWidth,outputHeight,maxDimension);
     if(!(endX>0&&endX<=width&&endY>0&&endY<=height))throw std::invalid_argument("Invalid resize region");
     if(input.size()!=static_cast<std::size_t>(width)*height*channels)throw std::invalid_argument("Input byte length differs from dimensions");
     const bool horizontalResize=width!=outputWidth||endX!=width,verticalResize=height!=outputHeight||endY!=height;
@@ -99,7 +99,7 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int 
     return output;
 }
 static std::vector<std::uint8_t> resizeThumbnailChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels){
-    validate(width,height);validate(outputWidth,outputHeight);
+    validate(width,height,65535);validate(outputWidth,outputHeight,65535);
     if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");
     const int fx=std::max(1,static_cast<int>(static_cast<double>(width)/outputWidth/2));
     const int fy=std::max(1,static_cast<int>(static_cast<double>(height)/outputHeight/2));
@@ -115,7 +115,7 @@ static std::vector<std::uint8_t> resizeThumbnailChannels(const std::vector<std::
         for(int c=0;c<channels;++c)reduced[dest+c]=static_cast<std::uint8_t>((sums[c]*multiplier)>>24);
     }
     return resizeChannels(reduced,rw,rh,outputWidth,outputHeight,channels,
-        static_cast<float>(static_cast<double>(width)/fx),static_cast<float>(static_cast<double>(height)/fy));
+        static_cast<float>(static_cast<double>(width)/fx),static_cast<float>(static_cast<double>(height)/fy),65535);
 }
 std::vector<std::uint8_t> resizeOpaqueThumbnail(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
     for(std::size_t i=3;i<input.size();i+=4)if(input[i]!=255)throw std::invalid_argument("PDF thumbnail input must be opaque");
