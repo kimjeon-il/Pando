@@ -3,10 +3,23 @@ import assert from 'node:assert/strict';
 import {calculateReferenceImage as calculate} from '../../plugins/pando-map-tools/lib/analysis/core.mjs';
 import * as jobs from '../../plugins/pando-map-tools/lib/jobs.mjs';
 import * as engine from '../../plugins/pando-map-tools/lib/engine.mjs';
+import {core} from '../../plugins/pando-map-tools/lib/workspace.mjs';
 
 const chain=(id,points,semanticBits=1,confidence=.7)=>({id,points,semanticBits,confidence,touchesImageEdge:false});
 const graph=chains=>({ok:true,width:200,height:200,chains,faces:[],unresolved:[],nextChainId:Math.max(-1,...chains.map(c=>c.id))+1,nextFaceId:0});
 const edit=(g,command)=>calculate('editBoundaryGraph',{graph:g,command});
+
+test('initial extraction retains a small closed pixel ring instead of overlapping out-and-back segments',()=>{
+  const width=12,height=12,labels=new Uint8Array(width*height),confidence=new Float32Array(width*height).fill(1);
+  for(const [x,y] of [[2,3],[3,3],[4,4],[4,5],[3,5],[2,4]])labels[y*width+x]=1;
+  const extracted=core.referenceBoundaryGraph(width,height,labels,confidence,{threshold:.55,simplifyTolerance:.75});
+  const restored=engine.originalGraph(extracted,{width,height,originalWidth:20,originalHeight:20,mapping:{rect:{x:0,y:0,width:20,height:20}}});
+  assert.equal(restored.chains.length,1);
+  assert.equal(restored.faces.length,1);
+  assert(restored.chains[0].points.length>=4);
+  assert.deepEqual(restored.chains[0].points[0],restored.chains[0].points.at(-1));
+  assert.equal(restored.unresolved.length,0);
+});
 
 test('vector replacement preserves unrelated fractional geometry, semantics, confidence and identity',()=>{
   const untouched=chain(90,[[110.25,110.75],[125.125,130.625],[150.5,150.25]],2,.372);
