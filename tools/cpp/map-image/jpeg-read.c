@@ -103,7 +103,7 @@ typedef struct Encoder {
 } Encoder;
 static void encoder_failure(j_common_ptr common){Encoder* encoder=(Encoder*)common->client_data;
     (*common->err->format_message)(common,encoder->error);longjmp(encoder->jump,1);}
-int pando_write_jpeg(const uint8_t* rgba,uint32_t width,uint32_t height,uint8_t** bytes,size_t* size,char* error,size_t error_size){
+int pando_write_jpeg_quality(const uint8_t* rgba,uint32_t width,uint32_t height,int quality,uint8_t** bytes,size_t* size,char* error,size_t error_size){
     Encoder* encoder=(Encoder*)calloc(1,sizeof(*encoder));uint32_t x;
     if(!encoder){snprintf(error,error_size,"JPEG allocation failed");return 0;}
     encoder->jpeg.err=jpeg_std_error(&encoder->errors);encoder->errors.error_exit=encoder_failure;encoder->jpeg.client_data=encoder;
@@ -111,7 +111,7 @@ int pando_write_jpeg(const uint8_t* rgba,uint32_t width,uint32_t height,uint8_t*
         jpeg_destroy_compress(&encoder->jpeg);free(encoder);return 0;}
     jpeg_create_compress(&encoder->jpeg);encoder->jpeg.client_data=encoder;jpeg_mem_dest(&encoder->jpeg,&encoder->output,&encoder->size);
     encoder->jpeg.image_width=width;encoder->jpeg.image_height=height;encoder->jpeg.input_components=3;encoder->jpeg.in_color_space=JCS_RGB;
-    jpeg_set_defaults(&encoder->jpeg);jpeg_set_quality(&encoder->jpeg,95,TRUE);jpeg_start_compress(&encoder->jpeg,TRUE);
+    jpeg_set_defaults(&encoder->jpeg);jpeg_set_quality(&encoder->jpeg,quality,TRUE);jpeg_start_compress(&encoder->jpeg,TRUE);
     encoder->row=(uint8_t*)malloc((size_t)width*3);if(!encoder->row){snprintf(encoder->error,sizeof(encoder->error),"JPEG allocation failed");longjmp(encoder->jump,1);}
     while(encoder->jpeg.next_scanline<height){JSAMPROW rows[1]={encoder->row};const size_t y=encoder->jpeg.next_scanline;
         for(x=0;x<width;x++){const uint8_t* src=rgba+(y*width+x)*4;uint8_t* dst=encoder->row+(size_t)x*3;dst[0]=src[0];dst[1]=src[1];dst[2]=src[2];}
@@ -119,4 +119,7 @@ int pando_write_jpeg(const uint8_t* rgba,uint32_t width,uint32_t height,uint8_t*
     }
     jpeg_finish_compress(&encoder->jpeg);*bytes=encoder->output;*size=encoder->size;encoder->output=NULL;
     free(encoder->row);jpeg_destroy_compress(&encoder->jpeg);free(encoder);return 1;
+}
+int pando_write_jpeg(const uint8_t* rgba,uint32_t width,uint32_t height,uint8_t** bytes,size_t* size,char* error,size_t error_size){
+    return pando_write_jpeg_quality(rgba,width,height,95,bytes,size,error,error_size);
 }
