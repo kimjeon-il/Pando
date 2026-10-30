@@ -200,6 +200,41 @@ int main(int argc,char** argv){
             for(unsigned channel=0;channel<7;++channel){number(validCount[channel]);number(positiveCount[channel]);}
             if(!std::cout)throw std::runtime_error("Unable to write training supervision counts");return 0;
         }
+        if(action=="training-supervision-encoded"){
+            if(argc!=2)throw std::invalid_argument("Encoded training supervision takes no extra arguments");
+            std::array<unsigned char,4> prefix{};
+            if(!std::cin.read(reinterpret_cast<char*>(prefix.data()),4))throw std::invalid_argument("Missing encoded target length");
+            const std::uint32_t length=(std::uint32_t(prefix[0])<<24)|(std::uint32_t(prefix[1])<<16)|(std::uint32_t(prefix[2])<<8)|prefix[3];
+            if(!length||length>300u*1024*1024)throw std::invalid_argument("Encoded target exceeds byte budget");
+            struct Supervision {std::uint32_t width=0,height=0;bool known=false;std::vector<std::uint8_t> target;
+                std::array<std::uint32_t,7> valid{},positive{};std::exception_ptr error;} state;
+            const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t)->int{
+                auto& s=*static_cast<Supervision*>(context);try{
+                    if(!s.known){s.width=width;s.height=height;s.target.resize(std::size_t(width)*height);}
+                    else if(width!=s.width||height!=s.height)throw std::invalid_argument("Matching source-coordinate training masks required");
+                    return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto row=[](void* context,std::uint32_t y,const std::uint8_t* rgba,std::size_t count)->int{
+                auto& s=*static_cast<Supervision*>(context);try{
+                    if(count!=std::size_t(s.width)*4)throw std::invalid_argument("Invalid training mask row");
+                    for(std::uint32_t x=0;x<s.width;++x){const auto value=rgba[std::size_t(x)*4];const auto index=std::size_t(y)*s.width+x;
+                        if(!s.known)s.target[index]=value;
+                        else if(value)for(unsigned c=0;c<7;++c){const auto bit=std::uint8_t(1u<<c);if(value&bit){++s.valid[c];if(s.target[index]&bit)++s.positive[c];}}
+                    }
+                    return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            PandoImage image{};
+            {std::vector<std::uint8_t> encoded(length);if(!std::cin.read(reinterpret_cast<char*>(encoded.data()),length))throw std::invalid_argument("Truncated encoded target");
+                if(!pando_stream_gray_mask(encoded.data(),encoded.size(),&image,start,row,&state)){
+                    if(state.error)std::rethrow_exception(state.error);throw std::runtime_error(std::string("Training mask: ")+image.error);}}
+            state.known=true;const auto encoded=encodedInput();
+            if(!pando_stream_gray_mask(encoded.data(),encoded.size(),&image,start,row,&state)){
+                if(state.error)std::rethrow_exception(state.error);throw std::runtime_error(std::string("Training mask: ")+image.error);}
+            number(state.width);number(state.height);for(unsigned c=0;c<7;++c){number(state.valid[c]);number(state.positive[c]);}
+            if(!std::cout)throw std::runtime_error("Unable to write encoded supervision counts");return 0;
+        }
         if(action=="training-mask-tiles"){
             if(argc!=2)throw std::invalid_argument("Training mask tiles takes no extra arguments");
             struct MaskTiles {std::uint32_t width=0,height=0,columns=0;std::vector<std::uint8_t> tiles;std::exception_ptr error;} state;

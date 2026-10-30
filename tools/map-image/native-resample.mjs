@@ -58,7 +58,8 @@ async function runNative(binary,args,input,maximum,signal){
       if(code!==0||reason||overflow)return finish(Error('Native image operation failed: '+Buffer.concat(errors).toString('utf8')));
       finish(null,Buffer.concat(output,length));
     });
-    child.stdin.end(input);
+    if(Array.isArray(input)){for(const part of input)child.stdin.write(part);child.stdin.end();}
+    else child.stdin.end(input);
   });
 }
 function artifactDirectory(workspace){return process.env.PANDO_MAP_IMAGE_ARTIFACT||
@@ -159,6 +160,22 @@ export async function countNativeTrainingSupervision(target,known,{signal,worksp
   const counts=Array.from({length:7},(_,i)=>[output.readUInt32BE(i*8),output.readUInt32BE(i*8+4)]);
   if(counts.some(([valid,positive])=>valid>target.data.length||positive>valid))throw Error('Native training supervision counts are invalid');
   return counts;
+}
+export async function countNativeEncodedTrainingSupervision(target,known,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  for(const mask of [target,known]){
+    if(!(mask?.bytes instanceof Uint8Array)||!mask.bytes.length||mask.bytes.length>300*1024*1024||typeof mask.sha256!=='string'||!/^[a-f0-9]{64}$/.test(mask.sha256))
+      throw Error('Bounded source-bound training masks required');
+    if(createHash('sha256').update(mask.bytes).digest('hex')!==mask.sha256)throw Error('Training mask hash changed');
+  }
+  const prefix=Buffer.alloc(4);prefix.writeUInt32BE(target.bytes.length);
+  const output=await runNative(nativeBinary(workspace,directory),['training-supervision-encoded'],[prefix,target.bytes,known.bytes],64,signal);
+  if(output.length!==64)throw Error('Native encoded supervision receipt is invalid');
+  const width=output.readUInt32BE(0),height=output.readUInt32BE(4);
+  if(!width||!height||width>65535||height>65535||width*height>600000000)throw Error('Invalid encoded supervision dimensions');
+  const counts=Array.from({length:7},(_,i)=>[output.readUInt32BE(8+i*8),output.readUInt32BE(12+i*8)]);
+  if(counts.some(([valid,positive])=>valid>width*height||positive>valid))throw Error('Invalid encoded supervision counts');
+  signal?.throwIfAborted();return {width,height,counts};
 }
 export async function convertNativeSemapLabels(labels,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();dimensions(labels?.width,labels?.height);

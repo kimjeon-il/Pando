@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
-import {readNativeTrainingMaskWindow} from '../../tools/map-image/native-resample.mjs';
+import {countNativeEncodedTrainingSupervision,readNativeTrainingMaskWindow} from '../../tools/map-image/native-resample.mjs';
 import {listRasterTrainingTiles,prepareRasterTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('large source-bound mask returns only the selected raw grayscale window',async()=>{
@@ -32,4 +32,14 @@ test('large raster supervision and source image share original coordinates',asyn
   const tiles=await listRasterTrainingTiles({root,annotation});
   assert.deepEqual(tiles.map(({x,y})=>[x,y]),[[3584,3584],[4032,3584],[3584,4032],[4032,4032]]);
   assert.equal((await listRasterTrainingTiles({root,annotation},{supervisedOnly:false})).length,100);
+});
+
+test('large encoded mask supervision counts only shared known pixels',async()=>{
+  const bytes=await readFile('tests/fixtures/reference-training-raster/large-valid.png'),sha256=createHash('sha256').update(bytes).digest('hex');
+  const result=await countNativeEncodedTrainingSupervision({bytes,sha256},{bytes,sha256});
+  assert.deepEqual([result.width,result.height],[4097,4097]);
+  assert.deepEqual(result.counts,[[9409,9409],[9409,9409],[0,0],[0,0],[0,0],[0,0],[0,0]]);
+  await assert.rejects(countNativeEncodedTrainingSupervision({bytes,sha256:'0'.repeat(64)},{bytes,sha256}),/hash/i);
+  const small=await readFile('tests/fixtures/reference-training-raster/oriented-mask.png'),smallHash=createHash('sha256').update(small).digest('hex');
+  await assert.rejects(countNativeEncodedTrainingSupervision({bytes,sha256},{bytes:small,sha256:smallHash}),/matching/i);
 });
