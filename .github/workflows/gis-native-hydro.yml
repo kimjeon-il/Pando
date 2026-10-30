@@ -17,13 +17,63 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf, map-preview]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  map-preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-preview'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build preview and its image input and output tool
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/map-preview -B build-native/map-preview/native
+          if ($LASTEXITCODE -ne 0) { throw 'Preview configure failed' }
+          cmake --build build-native/map-preview/native --config Release --target pando-map-preview --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Preview build failed' }
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Image configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Image build failed' }
+      - name: Compare review overlays with the original pixels
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            $preview = 'build-native/map-preview/native/Release/pando-map-preview.exe'
+            $image = 'build-native/map-image/Release/pando-map-image.exe'
+          } else {
+            $preview = 'build-native/map-preview/native/pando-map-preview'
+            $image = 'build-native/map-image/pando-map-image'
+          }
+          node tools/map-image/package-preview.mjs --binary $preview --directory build-native/map-preview/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Preview packaging failed' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Image packaging failed' }
+          $env:PANDO_MAP_PREVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-preview/artifact"
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/map-plugin-native-preview.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Native preview differs from original' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-map-preview-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-preview/artifact/
+          if-no-files-found: error
+          retention-days: 7
   map-pdf:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-pdf'
     strategy:

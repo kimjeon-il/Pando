@@ -11,6 +11,7 @@ import { bundlePath, verifyRuntimeFiles } from '../../plugins/pando-map-tools/li
 import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 import { collectMapImageArtifacts } from '../map-image/native-resample.mjs';
 import { collectMapPdfArtifacts } from '../map-image/native-pdf.mjs';
+import { collectMapPreviewArtifacts } from '../map-image/native-preview.mjs';
 
 const run=promisify(execFile),root=fileURLToPath(new URL('../../',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -42,6 +43,7 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
   }
   for(const entry of collectMapImageArtifacts({workspace,revision}))addSeed(entry.path,entry.data);
   for(const entry of collectMapPdfArtifacts({workspace,revision}))addSeed(entry.path,entry.data);
+  for(const entry of collectMapPreviewArtifacts({workspace,revision}))addSeed(entry.path,entry.data);
   addSeed('package.json',json(npm));
   addSeed('docs/historical-border-reconstruction-policy.md',await read('docs/historical-border-reconstruction-policy.md'));
   for(const name of ['pandoeditor-core.manifest.json','pandoeditor-core.js','pandoeditor-core.wasm'])addSeed(frontendWasmRoot+'/'+name,await read(frontendWasmRoot+'/'+name));
