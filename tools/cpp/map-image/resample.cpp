@@ -14,8 +14,8 @@ constexpr double pi=3.141592653589793238462643383279502884;
 // https://github.com/python-pillow/Pillow/blob/12.3.0/src/libImaging/Resample.c
 struct Row {int start;std::vector<std::int32_t> weights;};
 double sinc(double x){return x==0?1:std::sin(pi*x)/(pi*x);}
-std::vector<Row> coefficients(int input,int output,double end){
-    const double scale=end/output,filterScale=std::max(1.0,scale),radius=3*filterScale;
+std::vector<Row> coefficients(int input,int output,double end,bool bilinear){
+    const double scale=end/output,filterScale=std::max(1.0,scale),radius=(bilinear?1:3)*filterScale;
     std::vector<Row> rows;rows.reserve(output);
     for(int i=0;i<output;++i){
         const double center=(i+.5)*scale;
@@ -24,7 +24,7 @@ std::vector<Row> coefficients(int input,int output,double end){
         std::vector<double> values;values.reserve(end-begin);double total=0;
         for(int j=begin;j<end;++j){
             const double x=(j-center+.5)/filterScale;
-            const double value=(x>=-3&&x<3)?sinc(x)*sinc(x/3):0;
+            const double value=bilinear?std::max(0.0,1-std::abs(x)):(x>=-3&&x<3)?sinc(x)*sinc(x/3):0;
             values.push_back(value);total+=value;
         }
         Row row{begin,{}};row.weights.reserve(values.size());
@@ -44,14 +44,14 @@ void validate(int width,int height,int maxDimension=16384){
         throw std::invalid_argument("Image dimensions exceed the 16MP graph budget");
 }
 }
-static std::vector<std::uint8_t> resizeChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels,double endX,double endY,int maxDimension=16384){
+static std::vector<std::uint8_t> resizeChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels,double endX,double endY,int maxDimension=16384,bool bilinear=false){
     validate(width,height,maxDimension);validate(outputWidth,outputHeight,maxDimension);
     if(!(endX>0&&endX<=width&&endY>0&&endY<=height))throw std::invalid_argument("Invalid resize region");
     if(input.size()!=static_cast<std::size_t>(width)*height*channels)throw std::invalid_argument("Input byte length differs from dimensions");
     const bool horizontalResize=width!=outputWidth||endX!=width,verticalResize=height!=outputHeight||endY!=height;
     if(!horizontalResize&&!verticalResize)return input;
-    const auto horizontalWeights=horizontalResize?coefficients(width,outputWidth,endX):std::vector<Row>{};
-    const auto verticalWeights=verticalResize?coefficients(height,outputHeight,endY):std::vector<Row>{};
+    const auto horizontalWeights=horizontalResize?coefficients(width,outputWidth,endX,bilinear):std::vector<Row>{};
+    const auto verticalWeights=verticalResize?coefficients(height,outputHeight,endY,bilinear):std::vector<Row>{};
     std::vector<std::uint8_t> output(static_cast<std::size_t>(outputWidth)*outputHeight*channels);
     // Process bounded vertical stripes; an extremely narrow input enlarged in X
     // must not allocate outputWidth * inputHeight pixels as an intermediate.
@@ -97,6 +97,12 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int 
         if(alpha!=0&&alpha!=255)for(int c=0;c<3;++c)output[i+c]=static_cast<std::uint8_t>(std::min(255,255*output[i+c]/alpha));
     }
     return output;
+}
+std::vector<std::uint8_t> resizeOpaqueBilinear(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+    validate(width,height);validate(outputWidth,outputHeight);
+    if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");
+    for(std::size_t i=3;i<input.size();i+=4)if(input[i]!=255)throw std::invalid_argument("Training bilinear input must be opaque");
+    return resizeChannels(input,width,height,outputWidth,outputHeight,4,width,height,16384,true);
 }
 static std::vector<std::uint8_t> resizeThumbnailChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels){
     validate(width,height,65535);validate(outputWidth,outputHeight,65535);

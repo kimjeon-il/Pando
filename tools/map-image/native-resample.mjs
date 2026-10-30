@@ -74,6 +74,9 @@ async function operateNativeRgba(image,size,action,{signal,workspace=root,direct
 export function resizeNativeRgba(image,size,options){
   return operateNativeRgba(image,size,['resize-rgba',...(Array.isArray(size)?size:[])],options);
 }
+export function resizeNativeOpaqueBilinear(image,size,options){
+  return operateNativeRgba(image,size,['resize-bilinear',...(Array.isArray(size)?size:[])],options);
+}
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);
 }
