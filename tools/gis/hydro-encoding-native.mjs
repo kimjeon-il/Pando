@@ -1,6 +1,7 @@
 import {execFile} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {gunzipSync} from 'node:zlib';
 import {verifyNativeTool} from '../native-tool.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
@@ -34,9 +35,8 @@ export function prepareHydroEncodingFeatures(features,changedFeatureIds){
   if([...changed].some(id=>!seen.has(id)))throw Error('Changed Hydro feature identity is missing');
   return prepared;
 }
-export async function encodeHydroFeatures(features,{root=rootDefault,directory=resolve(root,'build-native/hydro-encoding/artifact'),signal}={}){
-  signal?.throwIfAborted();if(!Array.isArray(features)||!features.length||features.length>10000)throw Error('Explicit bounded Hydro features required');
-  const input=JSON.stringify({features});if(Buffer.byteLength(input)>256*1024*1024)throw Error('Hydro encoding exceeds input budget');
+async function runEncoder(payload,{root=rootDefault,directory=resolve(root,'build-native/hydro-encoding/artifact'),signal}={}){
+  signal?.throwIfAborted();const input=JSON.stringify(payload);if(Buffer.byteLength(input)>256*1024*1024)throw Error('Hydro encoding exceeds input budget');
   const executable=process.platform==='win32'?'pando-hydro-encoding.exe':'pando-hydro-encoding';
   const {binary}=verifyNativeTool({root,directory,target:'hydro-encoding',executable,sourceFiles:hydroEncodingSources});
   const output=await new Promise((accept,reject)=>{
@@ -44,12 +44,28 @@ export async function encodeHydroFeatures(features,{root=rootDefault,directory=r
       (error,stdout,stderr)=>error?reject(new Error('Native Hydro encoding failed: '+error.message+' '+stderr,{cause:error})):accept(stdout));
     child.stdin.on('error',error=>{if(error.code!=='EPIPE')child.kill();});child.stdin.end(input);
   });
-  signal?.throwIfAborted();const result=JSON.parse(output);
+  signal?.throwIfAborted();return JSON.parse(output);
+}
+export async function encodeHydroFeatures(features,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(features)||!features.length||features.length>10000)throw Error('Explicit bounded Hydro features required');
+  const result=await runEncoder({features},options);
   if(!Array.isArray(result?.features)||result.features.length!==features.length)throw Error('Invalid Hydro encoding result');
   return result.features.map(row=>{
     if(!row||typeof row.featureHex!=='string'||typeof row.sourceIdsHex!=='string'||
       !/^(?:[a-f0-9]{2})+$/.test(row.featureHex)||!/^(?:[a-f0-9]{2})*$/.test(row.sourceIdsHex))throw Error('Invalid Hydro encoded bytes');
     return {feature:Buffer.from(row.featureHex,'hex'),sourceIds:Buffer.from(row.sourceIdsHex,'hex')};
+  });
+}
+export async function encodeHydroGzip(payloads,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(payloads)||!payloads.length||payloads.length>128||payloads.some(data=>!(data instanceof Uint8Array)||data.length>32*1024*1024))
+    throw Error('Explicit bounded Hydro gzip payloads required');
+  const input=payloads.map(data=>Buffer.from(data)),result=await runEncoder({mode:'gzip',payloads:input.map(data=>data.toString('hex'))},options);
+  if(!Array.isArray(result?.payloads)||result.payloads.length!==input.length)throw Error('Invalid Hydro gzip result');
+  return result.payloads.map((hex,index)=>{
+    if(typeof hex!=='string'||!/^(?:[a-f0-9]{2})+$/.test(hex))throw Error('Invalid Hydro gzip bytes');
+    const bytes=Buffer.from(hex,'hex'),decoded=gunzipSync(bytes,{maxOutputLength:Math.max(1,input[index].length)});
+    if(!decoded.equals(input[index]))throw Error('Hydro gzip round-trip differs');return bytes;
   });
 }
 export async function encodeHydroRepairPlan(plan,options={}){

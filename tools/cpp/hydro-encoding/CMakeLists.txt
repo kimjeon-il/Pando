@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
-project(pando_hydro_encoding LANGUAGES CXX)
+project(pando_hydro_encoding LANGUAGES C CXX)
+include(FetchContent)
+set(ZLIB_BUILD_SHARED OFF)
+set(ZLIB_BUILD_STATIC ON)
+set(ZLIB_BUILD_TESTING OFF)
+set(ZLIB_INSTALL OFF)
+FetchContent_Declare(pando_zlib
+  URL https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.gz
+  URL_HASH SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16)
+FetchContent_MakeAvailable(pando_zlib)
 add_executable(pando-hydro-encoding encode.cpp ../../../shared/core/src/losslessjson.cpp)
 target_include_directories(pando-hydro-encoding PRIVATE ../../../shared/core/include)
 target_compile_features(pando-hydro-encoding PRIVATE cxx_std_17)
+target_link_libraries(pando-hydro-encoding PRIVATE zlibstatic)

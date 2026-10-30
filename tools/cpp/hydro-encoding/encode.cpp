@@ -1,5 +1,6 @@
 // Standalone encoder for the existing Hydro v4 feature payload contract.
 #include <pandoeditor/losslessjson.h>
+#include <zlib.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -73,9 +74,21 @@ Bytes encode(const Value& feature){const auto& shape=field(feature,"geometry");c
   out.insert(out.end(),payload.begin(),payload.end());out.insert(out.end(),profile.begin(),profile.end());return out;
 }
 std::string hex(const Bytes& bytes){static const char* digits="0123456789abcdef";std::string out;out.reserve(bytes.size()*2);for(auto b:bytes){out.push_back(digits[b>>4]);out.push_back(digits[b&15]);}return out;}
+Bytes unhex(const std::string& text){if(text.size()%2||text.size()>64*1024*1024)throw std::invalid_argument("Invalid Hydro gzip input");Bytes out;out.reserve(text.size()/2);
+  auto digit=[](char c)->int{if(c>='0'&&c<='9')return c-'0';if(c>='a'&&c<='f')return c-'a'+10;throw std::invalid_argument("Invalid Hydro gzip hex");};
+  for(std::size_t i=0;i<text.size();i+=2)out.push_back(std::uint8_t((digit(text[i])<<4)|digit(text[i+1])));return out;}
+Bytes gzip(const Bytes& input){z_stream stream{};if(deflateInit2(&stream,9,Z_DEFLATED,MAX_WBITS+16,8,Z_DEFAULT_STRATEGY)!=Z_OK)throw std::runtime_error("Hydro gzip initialization failed");
+  const auto bound=deflateBound(&stream,static_cast<uLong>(input.size()));Bytes output(bound);stream.next_in=const_cast<Bytef*>(input.data());
+  stream.avail_in=static_cast<uInt>(input.size());stream.next_out=output.data();stream.avail_out=static_cast<uInt>(output.size());
+  const auto status=deflate(&stream,Z_FINISH);const auto length=stream.total_out;const auto finish=deflateEnd(&stream);
+  if(status!=Z_STREAM_END||finish!=Z_OK)throw std::runtime_error("Hydro gzip compression failed");output.resize(length);return output;}
 }
 int main(){try{const std::string input{std::istreambuf_iterator<char>(std::cin),std::istreambuf_iterator<char>()};
   if(input.size()>512*1024*1024)throw std::invalid_argument("Hydro encoding request exceeds budget");const auto request=pandoeditor::codecjson::parse(input);
+  const auto mode=request.object.find("mode");if(mode!=request.object.end()){
+    if(string(mode->second)!="gzip")throw std::invalid_argument("Invalid Hydro encoding mode");auto result=Value::obj(),items=Value::arr();
+    for(const auto& value:array(field(request,"payloads")))items.array.push_back(Value::str(hex(gzip(unhex(string(value))))));
+    result.object["payloads"]=std::move(items);std::cout<<result.encode()<<'\n';return 0;}
   auto result=Value::obj(),items=Value::arr();for(const auto& feature:array(field(request,"features"))){auto row=Value::obj();
     row.object["featureHex"]=Value::str(hex(encode(feature)));row.object["sourceIdsHex"]=Value::str(hex(sourceIds(feature)));items.array.push_back(std::move(row));}
   result.object["features"]=std::move(items);std::cout<<result.encode()<<'\n';return 0;
