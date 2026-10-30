@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,hydroPartsBySource,validateHydroAudit} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {auditHydroParts,hydroPartsBySource,repairHydroParts,validateHydroAudit,validateHydroRepair} from '../../tools/gis/hydro-connectivity-native.mjs';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
 function fixture() {
@@ -125,10 +125,23 @@ test('feature source mapping retains split reaches and does not mutate original 
   assert.deepEqual(features,original);
   features[0].metadata.sourceId='1';assert.throws(()=>hydroPartsBySource(features),/mapping/i);
 });
+test('repair result validation rejects unreported and interior changes',()=>{
+  const input=fixture(),result={parts:structuredClone(input.parts),changes:[]};
+  validateHydroRepair(result,input);
+  result.parts['1'][0].points[1]=[1.001,0];assert.throws(()=>validateHydroRepair(result,input),/receipt/i);
+  result.parts['1'][0].points=[[0,0],[.5,0],[1,0]];
+  assert.throws(()=>validateHydroRepair(result,input),/geometry/i);
+  input.parts['1'][0].points=[[0,0],[.5,0],[1,0]];result.parts=structuredClone(input.parts);
+  result.parts['1'][0].points[1]=[.6,0];assert.throws(()=>validateHydroRepair(result,input),/interior/i);
+  result.parts=structuredClone(input.parts);result.parts['1'][0].system='other';
+  assert.throws(()=>validateHydroRepair(result,input),/metadata/i);
+});
 test('source-bound Node audit runs the verified native engine',{
   skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY,
 },async()=>{
   const input={...fixture(),sourceOrder:[1,2,3]};
   const result=await auditHydroParts(input,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
   assert.deepEqual(result.issues.map(row=>row.source),[1,3]);assert.equal(result.regions.eu.repairable,2);
+  const before=structuredClone(input),repair=await repairHydroParts(input,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+  assert.deepEqual(repair.parts['1'][0].points.at(-1),[1.002,0]);assert.equal(repair.changes.length,2);assert.deepEqual(input,before);
 });
