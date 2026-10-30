@@ -5,7 +5,7 @@ import { workspace, workspaceModule, requireWorkspace, core, assertRuntimeResour
 import { ensureOcrLanguage,openAnalysisGazetteer,analysisDataConfig } from './runtime.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
 import { raster, cropRaster, resizeRaster, pngRaster } from './raster.mjs';
-import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob } from './jobs.mjs';
+import { createJob, sealJob, saveJob, digest, validateCandidateModel, reviseJob, assertJob, selectedJobGeometry } from './jobs.mjs';
 import { selectReferenceImageGeoreference,selectReferenceImageProjection } from './analysis/georef.mjs';
 import { referenceImageTilePlan, REFERENCE_BOUNDARY_CHANNELS } from './analysis/tiles.mjs';
 import { inferReferenceBoundaries } from './analysis/inference.mjs';
@@ -135,7 +135,7 @@ function originalGraph(graph,image) {
   const point=([x,y])=>[rect.x+x*sx,rect.y+y*sy];
   const chains=graph.chains.map(chain=>({...chain,points:chain.points.map(point)}));
   let result={...graph,width:image.originalWidth,height:image.originalHeight,chains,faces:[],unresolved:[]};
-  if(chains.length) result=calculate('editBoundaryGraph',{graph:result,command:{type:'replace',chainId:chains[0].id,points:chains[0].points}});
+  result=calculate('editBoundaryGraph',{graph:result,command:{type:'rebuild'}});
   const edge=([x,y])=>Math.abs(x-rect.x)<1 || Math.abs(y-rect.y)<1 || Math.abs(x-(rect.x+rect.width-1))<1 || Math.abs(y-(rect.y+rect.height-1))<1;
   result.faces=result.faces.map(face=>({...face,touchesImageEdge:face.touchesImageEdge || face.ring.some(edge)}));
   result.unresolved.push(...graph.unresolved.filter(v=>v.reason!=='open-boundary').map(v=>({...v,...(v.point?{point:point(v.point)}:{})})));
@@ -236,7 +236,8 @@ export async function analyze({input,jobPath,modelPath,languages=null,page=null,
 export async function renderPreview(job,path,signal) {
   assertJob(job);
   if(digest(await readFile(job.source.path))!==job.source.sha256) throw new Error('Original image hash changed.');
-  const result=await raster({action:'preview',path:job.source.path,page:job.source.page,job},null,signal);
+  const selectedGeometry=job.review?selectedJobGeometry(job).map(row=>row.pixelGeometry):null;
+  const result=await raster({action:'preview',path:job.source.path,page:job.source.page,job,selectedGeometry},null,signal);
   await writeFile(path,result.data);
 }
 export async function reviseWithRaster(job,command,signal) {
