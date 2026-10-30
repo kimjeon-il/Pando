@@ -12,7 +12,7 @@ import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs
 import {prepareRasterTrainingTile} from './training-tiles.mjs';
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
-import {verifyMacroTrainingSupervision} from './training-supervision.mjs';
+import {verifyMacroTrainingOrder} from './training-order.mjs';
 import {readTrainingBounded as readBounded,trainingFileIdentity as identity} from './training-evidence.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -110,14 +110,15 @@ export async function runMacroTrainingBatch({count,sampleOutput,augment,supervis
     ![epoch,seed,freezeEpochs].every(value=>Number.isSafeInteger(value)&&value>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
     !Number.isSafeInteger(count)||count<1||count>16)throw Error('Explicit native macro batch configuration required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json')||existsSync(sampleOutput))throw Error('Checkpoint, receipt or sample output exists; preserve it');
-  const checkedSupervision=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
-  const positiveWeights=checkedSupervision.weightsPath,unobservedMask=checkedSupervision.unobservedMask;
+  const checkedOrder=await verifyMacroTrainingOrder({corpus,order,supervision,epoch,seed,signal});
+  const positiveWeights=checkedOrder.weightsPath,unobservedMask=checkedOrder.unobservedMask;
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData});
   const corpusHash=sha(readBounded(resolve(corpus),32*1024*1024));
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const prepared=await prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output:sampleOutput,signal});
-  if(prepared.orderSha256!==orderData.hash||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)throw Error('Training inputs changed before batch execution');
+  if(prepared.orderSha256!==orderData.hash||orderData.hash!==checkedOrder.orderSha256||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)
+    throw Error('Training inputs changed before batch execution');
   return nativeTrainingBatch({...options,device,amp,positiveWeights,unobservedMask,samples:prepared.samples});
 }
 

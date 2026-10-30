@@ -45,7 +45,7 @@ export async function verifyMacroTrainingSupervision({corpus,directory,signal}){
     recheckMacroTrainingSource(checks);
   }
   if(sha(readTrainingBounded(corpusPath,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during supervision verification');
-  return {weightsPath,unobservedMask,corpusSha256,weightsSha256:receipt.weightsSha256};
+  return {weightsPath,unobservedMask,corpusSha256,weightsSha256:receipt.weightsSha256,sourcesSha256:sha(JSON.stringify(receipt.sources))};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},output:{type:'string'}}});

@@ -7,6 +7,7 @@ import test from 'node:test';
 import {writeMacroTrainingSample,prepareMacroTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
 import {indexMacroTrainingDataset,macroTrainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
 import {writeMacroTrainingSupervision,verifyMacroTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
+import {verifyMacroTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 
 test('source-bound macro sample is generated from original pixels without overwriting',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-macro-sample-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -41,11 +42,16 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
   await assert.rejects(writeMacroTrainingSample(request),/exists/);
   const order=join(root,'order.u64');writeFileSync(order,Buffer.alloc(8));
+  const orderReceipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:stored.corpusSha256,
+    sourcesSha256:sha(JSON.stringify(stored.sources)),weightsSha256:stored.weightsSha256,epoch:0,seed:42,length:1,orderSha256:sha(Buffer.alloc(8))};
+  writeFileSync(order+'.receipt.json',JSON.stringify(orderReceipt));
+  assert.equal((await verifyMacroTrainingOrder({corpus,order,supervision:supervisionOutput,epoch:0,seed:42})).length,1);
   const batch=await prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')});
   assert.equal(batch.samples.length,1);assert.equal(batch.samples[0].index,0);
   assert.equal(JSON.parse(readFileSync(join(batch.samples[0].directory,'sample.json'))).tensorSha256.tile,expected.hashes[0]);
   await assert.rejects(prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')}),/exists/);
   writeFileSync(order,Buffer.from([1,0,0,0,0,0,0,0]));
+  await assert.rejects(verifyMacroTrainingOrder({corpus,order,supervision:supervisionOutput,epoch:0,seed:42}),/order/i);
   await assert.rejects(prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'invalid')}),/index/);
   assert.equal(existsSync(join(root,'invalid')),false);
   writeFileSync(join(root,'source.pdf'),'changed');
