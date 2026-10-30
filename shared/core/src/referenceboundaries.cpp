@@ -176,7 +176,16 @@ codecjson::Value editReferenceBoundaryGraph(const V& graph,const V& command){
     }else if(kind=="join"){
         const auto endpoint=[&](const V& ref){const auto& c=find(integerId(member(ref,"chainId")));const auto end=member(ref,"end").string;if(end!="start"&&end!="end")throw std::invalid_argument("Select a source boundary endpoint.");return std::make_pair(end=="start"?c.path.front():c.path.back(),int(number(c.value,"semanticBits")));};
         const auto a=endpoint(member(command,"from")),b=endpoint(member(command,"to"));if(distance(a.first,b.first)<1e-9)throw std::invalid_argument("Boundary endpoints already meet.");
-        make({a.first,b.first},a.second|b.second,"Explicit reviewed endpoint connection");
+        const int fromId=integerId(member(member(command,"from"),"chainId")),toId=integerId(member(member(command,"to"),"chainId"));
+        const auto from=find(fromId),to=find(toId);
+        const auto degree=[&](Pixel p){int result=0;for(const auto& c:chains){result+=c.path.front()==p;result+=c.path.back()==p;}return result;};
+        if(degree(a.first)==1&&degree(b.first)==1){
+            auto path=from.path;if(member(member(command,"from"),"end").string=="start")std::reverse(path.begin(),path.end());
+            if(fromId==toId)path.push_back(path.front());
+            else {auto tail=to.path;if(member(member(command,"to"),"end").string=="end")std::reverse(tail.begin(),tail.end());path.insert(path.end(),tail.begin(),tail.end());}
+            chains.erase(std::remove_if(chains.begin(),chains.end(),[&](const auto& c){return c.id==fromId||c.id==toId;}),chains.end());
+            make(std::move(path),a.second|b.second,"Explicit reviewed path merge");
+        }else make({a.first,b.first},a.second|b.second,"Explicit reviewed endpoint connection");
     }else if(kind=="exclude"){
         std::set<int> removed;if(member(command,"chainIds").kind==V::Array)for(const auto& id:member(command,"chainIds").array)removed.insert(integerId(id));else removed.insert(integerId(member(command,"chainId")));
         for(int id:removed)find(id);chains.erase(std::remove_if(chains.begin(),chains.end(),[&](const auto& c){return removed.count(c.id);}),chains.end());
@@ -188,11 +197,18 @@ codecjson::Value editReferenceBoundaryGraph(const V& graph,const V& command){
         double best=INFINITY,at=0,length=0;std::vector<double> cumulative{0};
         for(std::size_t i=1;i<c.path.size();++i){const auto a=c.path[i-1],b=c.path[i],d=subtract(b,a);const double n=d[0]*d[0]+d[1]*d[1],t=std::clamp(((requested[0]-a[0])*d[0]+(requested[1]-a[1])*d[1])/n,0.,1.);const Pixel p{a[0]+t*d[0],a[1]+t*d[1]};
             if(distance(requested,p)<best){best=distance(requested,p);at=length+t*std::sqrt(n);}length+=std::sqrt(n);cumulative.push_back(length);}
-        const double lo=at-1.5,hi=at+1.5;if(lo<=0||hi>=length)throw std::invalid_argument("Cut must leave two nonempty source paths.");
+        const bool closed=c.path.front()==c.path.back();
+        if(length<=3)throw std::invalid_argument("Cut interval exceeds source path.");
+        double lo=at-1.5,hi=at+1.5;
+        if(closed){lo=std::fmod(lo+length,length);hi=std::fmod(hi,length);}
+        else if(lo<=0||hi>=length)throw std::invalid_argument("Cut must leave two nonempty source paths.");
         const auto slice=[&](double begin,double end){std::vector<Pixel> out;for(std::size_t i=1;i<c.path.size();++i){const double a=cumulative[i-1],b=cumulative[i];if(b<begin||a>end)continue;const auto p=c.path[i-1],q=c.path[i];
             const double t=std::max(0.,(begin-a)/(b-a)),u=std::min(1.,(end-a)/(b-a));const Pixel x{p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t},y{p[0]+(q[0]-p[0])*u,p[1]+(q[1]-p[1])*u};if(out.empty()||out.back()!=x)out.push_back(x);if(out.back()!=y)out.push_back(y);}return out;};
         chains.erase(std::remove_if(chains.begin(),chains.end(),[&](const auto& v){return v.id==target;}),chains.end());
-        for(const auto& part:{slice(0,lo),slice(hi,length)}){auto value=c.value;const int id=allocate();value.object["id"]=V::num(id);value.object["points"]=points(part);chains.push_back({value,id,part});}
+        std::vector<std::vector<Pixel>> parts;
+        if(closed){auto path=hi<lo?slice(hi,lo):slice(hi,length);if(hi>=lo){auto tail=slice(0,lo);if(!tail.empty()&&path.back()==tail.front())tail.erase(tail.begin());path.insert(path.end(),tail.begin(),tail.end());}parts.push_back(std::move(path));}
+        else parts={slice(0,lo),slice(hi,length)};
+        for(const auto& part:parts){auto value=c.value;const int id=allocate();value.object["id"]=V::num(id);value.object["points"]=points(part);value.object["touchesImageEdge"]=V::boolean(imageEdge(part,w,h));chains.push_back({value,id,part});}
     }else if(kind!="rebuild")throw std::invalid_argument("Unknown boundary graph edit.");
 
     // Planar source pixels are not longitude: do not call wrapped GIS cut
@@ -231,10 +247,13 @@ codecjson::Value editReferenceBoundaryGraph(const V& graph,const V& command){
     for(const auto& [id,value]:before)if(!retained.count(id))removed.insert(id);
     for(const auto& [p,count]:degree)if(count==1)unresolved.array.push_back(object({{"point",point(p.first,p.second)},{"reason",V::str("open-boundary")}}));
     for(const auto& row:member(graph,"unresolved").array)if(member(row,"reason").string!="open-boundary")unresolved.array.push_back(row);
-    auto faces=vectorFaces(noded,w,h);
+    auto faces=vectorFaces(noded,w,h);std::set<int> oldFaces,newFaces,createdFaces,removedFaces;
+    for(const auto& face:member(graph,"faces").array)oldFaces.insert(integerId(member(face,"id")));
     for(auto& face:faces.array){int id=-1;for(const auto& previous:member(graph,"faces").array){auto old=previous;old.object.erase("id");if(old.encode()==face.encode()){id=integerId(member(previous,"id"));break;}}
-        if(id<0){if(nextFace>=1000000000)throw std::invalid_argument("Face id budget exceeded.");id=nextFace++;}face.object["id"]=V::num(id);}
+        if(id<0){if(nextFace>=1000000000)throw std::invalid_argument("Face id budget exceeded.");id=nextFace++;}face.object["id"]=V::num(id);newFaces.insert(id);}
+    for(int id:newFaces)if(!oldFaces.count(id))createdFaces.insert(id);
+    for(int id:oldFaces)if(!newFaces.count(id))removedFaces.insert(id);
     return object({{"ok",V::boolean(true)},{"width",V::num(w)},{"height",V::num(h)},{"chains",chainValues},{"faces",faces},{"unresolved",unresolved},
-        {"nextChainId",V::num(nextId)},{"nextFaceId",V::num(nextFace)},{"changeSet",object({{"created",idValues(created)},{"removed",idValues(removed)},{"modified",idValues(modified)}})}});
+        {"nextChainId",V::num(nextId)},{"nextFaceId",V::num(nextFace)},{"changeSet",object({{"created",idValues(created)},{"removed",idValues(removed)},{"modified",idValues(modified)},{"faces",object({{"created",idValues(createdFaces)},{"removed",idValues(removedFaces)},{"modified",V::arr()}})}})}});
 }
 }

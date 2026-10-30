@@ -51,3 +51,58 @@ test('current schema and one selection resolver reject stale or invalid reviewed
   job=jobs.sealJob({...job,status:'needs-review',graph:graph([chain(1,[[10,10],[90,10]])])});
   assert.throws(()=>jobs.selectedJobGeometry(job),/review/i);
 });
+
+test('one current selection resolves line and hole-bearing face for both previews and GeoJSON',()=>{
+  let job=jobs.createJob({path:'map.png',sha256:'a'.repeat(64),width:200,height:200},{dataRevision:'test'});
+  const ring=[[10,30],[90,30],[90,90],[10,90],[10,30]],hole=[[40,45],[60,45],[60,60],[40,60],[40,45]];
+  job=jobs.sealJob({...job,status:'needs-georeference',graph:{...graph([chain(2,ring),chain(3,hole),chain(17,[[110,30],[150,90]]),chain(42,[[110,100],[150,150]])]),
+    faces:[{id:5,ring,holes:[hole],chainIds:[2,3],touchesImageEdge:false}]}});
+  job=jobs.reviseJob(job,{type:'control-points',mode:'affine',points:[{id:'a',image:[0,0],coordinate:[0,20]},{id:'b',image:[1,0],coordinate:[20,20]},{id:'c',image:[0,1],coordinate:[0,0]}]});
+  assert.throws(()=>jobs.reviseJob(job,{type:'review',georeference:true,boundaries:true,selectedIds:['line:999']}),/selection/i);
+  job=jobs.reviseJob(job,{type:'review',georeference:true,boundaries:true,selectedIds:['face:5','line:17']});
+  const selection=jobs.selectedJobGeometry(job),features=jobs.jobFeatures(job).features;
+  assert.deepEqual(selection.map(v=>v.id),['face:5','line:17']);
+  assert.deepEqual(selection[0].pixelGeometry.coordinates,[ring,hole]);
+  assert.equal(features[0].geometry.coordinates.length,2);
+  assert.deepEqual(features.map(v=>v.geometry),selection.map(v=>v.geometry));
+  selection[0].pixelGeometry.coordinates[0][0][0]=123;
+  assert.equal(job.graph.faces[0].ring[0][0],10);
+  assert.throws(()=>jobs.selectedJobGeometry(jobs.sealJob({...job,revision:job.revision+1})),/review/i);
+});
+
+test('joining two open paths allocates one merged identity and preserves unrelated decimal vertices',()=>{
+  const untouched=chain(88,[[100.1,100.2],[110.3,120.4]],2,.372);
+  const joined=edit(graph([chain(5,[[10,10],[20,10]]),chain(7,[[30,10],[40,10]]),untouched]),
+    {type:'join',from:{chainId:5,end:'end'},to:{chainId:7,end:'start'}});
+  assert.equal(joined.chains.length,2);
+  assert.deepEqual(joined.chains.find(c=>c.id===88),untouched);
+  assert.deepEqual(joined.changeSet.removed,[5,7]);
+  assert.equal(joined.changeSet.created.length,1);
+  assert.deepEqual(joined.chains.find(c=>c.id!==88).points,[[10,10],[20,10],[30,10],[40,10]]);
+});
+
+test('cutting at the closing vertex opens a ring without moving any surviving source vertex',()=>{
+  const ring=[[10.25,10.5],[50.25,10.5],[50.25,60.5],[10.25,60.5],[10.25,10.5]];
+  const cut=edit(graph([chain(4,ring)]),{type:'cut',chainId:4,point:ring[0]});
+  assert.equal(cut.faces.length,0);
+  assert.equal(cut.chains.length,1);
+  assert.deepEqual(cut.chains[0].points,[[11.75,10.5],[50.25,10.5],[50.25,60.5],[10.25,60.5],[10.25,12]]);
+  assert.deepEqual(cut.changeSet.removed,[4]);
+});
+
+test('face change sets retire disappeared faces and never reuse their identities',()=>{
+  const ring=[[10,10],[90,10],[90,90],[10,90],[10,10]];
+  const first=edit(graph([]),{type:'add',points:ring,semanticBits:1,reason:'Reviewed closed source boundary'});
+  assert.equal(first.changeSet.faces.created.length,1);
+  const id=first.faces[0].id;
+  const empty=edit(first,{type:'exclude',chainId:first.chains[0].id});
+  assert.deepEqual(empty.changeSet.faces.removed,[id]);
+  const again=edit(empty,{type:'add',points:ring,semanticBits:1,reason:'Explicitly restored source boundary'});
+  assert(again.faces[0].id>id);
+});
+
+test('overlapping source paths are refused without merging semantic evidence',()=>{
+  const g=graph([chain(3,[[10,10],[90,10]],1,.31)]);
+  assert.throws(()=>edit(g,{type:'add',points:[[30,10],[70,10]],semanticBits:2,reason:'Ambiguous overlap'}),/overlap/i);
+  assert.deepEqual(g.chains[0],chain(3,[[10,10],[90,10]],1,.31));
+});
