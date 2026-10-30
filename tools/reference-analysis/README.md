@@ -255,6 +255,8 @@ encoder's upstream URL, hash and terms with the training evidence.
 
 The inspection command checks ONNX structure and writes actual-map prediction
 overlays plus float32 inputs/PyTorch logits for a real ORT WASM parity check.
+Channel diagnostics use the source-verified native `map-evaluation` artifact in
+`build-native/map-evaluation/artifact`; Node.js must be available on PATH.
 Those selected training-tile diagnostics measure execution and fitting only;
 they do not measure held-out accuracy, generalization or historical correctness.
 Keep pending trained weights in the external model directory. Do not place them

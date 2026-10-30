@@ -3,6 +3,8 @@ import argparse
 import hashlib
 import json
 import pathlib
+import struct
+import subprocess
 
 import numpy as np
 import onnx
@@ -16,12 +18,21 @@ from raster import oriented_map_image
 
 
 def prediction_statistics(probability, expected, known):
-    predicted = probability >= .55
-    return {name: dict(supervisedPixels=int(known[c].sum()), targetPixels=int((expected[c] & known[c]).sum()),
-                       predictedPixels=int((predicted[c] & known[c]).sum()),
-                       overlapPixels=int((expected[c] & predicted[c] & known[c]).sum()),
-                       probabilityMin=float(probability[c].min()), probabilityMax=float(probability[c].max()))
-            for c, name in enumerate(CHANNELS)}
+    if not isinstance(probability, np.ndarray) or probability.dtype != np.float32 or probability.ndim != 3 or probability.shape[0] != len(CHANNELS):
+        raise ValueError('Diagnostic probability must be a seven-channel float32 tensor')
+    if expected.shape != probability.shape or known.shape != probability.shape:
+        raise ValueError('Diagnostic tensors must have matching dimensions')
+    _, height, width = probability.shape
+    header = struct.pack('>8sII', b'PDIAG001', width, height)
+    payload = header + np.ascontiguousarray(probability, dtype='<f4').tobytes()
+    payload += np.ascontiguousarray(expected != 0, dtype=np.uint8).tobytes()
+    payload += np.ascontiguousarray(known != 0, dtype=np.uint8).tobytes()
+    script = pathlib.Path(__file__).with_name('native-evaluation.mjs')
+    result = subprocess.run(['node', str(script), '--diagnostic-stream'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native diagnostic statistics failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    return json.loads(result.stdout)
 
 
 def inspect(args):

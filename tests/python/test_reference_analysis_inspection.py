@@ -21,6 +21,13 @@ spec.loader.exec_module(inspection)
 
 
 class InspectionTests(unittest.TestCase):
+    def test_diagnostic_statistics_validate_tensor_dimensions(self):
+        import numpy as np
+        probabilities = np.zeros((7, 2, 2), dtype=np.float32)
+        known = np.ones((7, 2, 2), dtype=bool)
+        with self.assertRaisesRegex(ValueError, 'matching dimensions'):
+            inspection.prediction_statistics(probabilities, known[:, :1], known)
+
     def fixture(self, root):
         image = root / 'source.png'
         Image.new('RGBA', (1024, 512), (0, 0, 0, 0)).save(image)
