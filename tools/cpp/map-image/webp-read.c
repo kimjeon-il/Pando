@@ -14,7 +14,7 @@ int pando_inspect_webp(const uint8_t* bytes,size_t size,PandoImage* result){
         if(n>=6&&!memcmp(p,"Exif\0\0",6)){p+=6;n-=6;}result->orientation=pando_exif_orientation(p,n);WebPDemuxReleaseChunkIterator(&exif);}
     result->width=width;result->height=height;WebPDemuxDelete(demux);return 1;
 }
-int pando_read_webp(const uint8_t* bytes,size_t size,PandoImage* result){
+static int read_webp(const uint8_t* bytes,size_t size,PandoImage* result,uint64_t max_pixels){
     WebPData data;WebPDemuxer* demux=NULL;WebPAnimDecoder* animation=NULL;
     WebPChunkIterator exif;uint8_t* pixels=NULL;uint32_t width,height;size_t length;
     memset(result,0,sizeof(*result));result->orientation=1;
@@ -22,8 +22,8 @@ int pando_read_webp(const uint8_t* bytes,size_t size,PandoImage* result){
     demux=WebPDemux(&data);
     if(!demux){strcpy(result->error,"Invalid or truncated WebP");goto fail;}
     width=WebPDemuxGetI(demux,WEBP_FF_CANVAS_WIDTH);height=WebPDemuxGetI(demux,WEBP_FF_CANVAS_HEIGHT);
-    if(!width||!height||width>16384||height>16384||(uint64_t)width*height>16777216){
-        strcpy(result->error,"WebP exceeds the 16MP graph budget");goto fail;
+    if(!width||!height||width>16384||height>16384||(uint64_t)width*height>max_pixels){
+        strcpy(result->error,"WebP exceeds the decoder pixel budget");goto fail;
     }
     if(WebPDemuxGetChunk(demux,"EXIF",1,&exif)){
         const uint8_t* payload=exif.chunk.bytes;size_t payload_size=exif.chunk.size;
@@ -51,17 +51,22 @@ int pando_read_webp(const uint8_t* bytes,size_t size,PandoImage* result){
 fail:
     free(pixels);if(animation)WebPAnimDecoderDelete(animation);if(demux)WebPDemuxDelete(demux);return 0;
 }
+int pando_read_webp(const uint8_t* bytes,size_t size,PandoImage* result){return read_webp(bytes,size,result,16777216);}
 
 int pando_stream_webp_rows(const uint8_t* bytes,size_t size,PandoImage* result,
     PandoImageRowStart start,PandoImageRowConsumer consume,void* context){
-    WebPData data;WebPDemuxer* demux;uint8_t* pixels=NULL;uint32_t y,row,count,width,height,top,bottom;
+    WebPData data;WebPDemuxer* demux;WebPBitstreamFeatures features;uint8_t* pixels=NULL;uint32_t y,row,count,width,height,top,bottom;
     if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"WebP row callbacks required");return 0;}
     if(!pando_inspect_webp(bytes,size,result))return 0;
     width=result->width;height=result->height;data.bytes=bytes;data.size=size;
     demux=WebPDemux(&data);if(!demux){strcpy(result->error,"Invalid or truncated WebP");return 0;}
-    if(WebPDemuxGetI(demux,WEBP_FF_FORMAT_FLAGS)&ANIMATION_FLAG){
+    if(WebPGetFeatures(bytes,size,&features)!=VP8_STATUS_OK){WebPDemuxDelete(demux);strcpy(result->error,"Invalid WebP features");return 0;}
+    /* Cropping lossy alpha can shift the decoded alpha rows. Use one bounded
+       full decode for that format and for the first frame of animations. */
+    if((WebPDemuxGetI(demux,WEBP_FF_FORMAT_FLAGS)&ANIMATION_FLAG)||(features.format==1&&features.has_alpha)){
+        const uint64_t budget=(WebPDemuxGetI(demux,WEBP_FF_FORMAT_FLAGS)&ANIMATION_FLAG)?16777216:64000000;
         WebPDemuxDelete(demux);
-        if(!pando_read_webp(bytes,size,result))return 0;
+        if(!read_webp(bytes,size,result,budget))return 0;
         if(!start(context,width,height,result->orientation)){
             free(result->rgba);result->rgba=NULL;strcpy(result->error,"WebP row consumer initialization failed");return 0;
         }
