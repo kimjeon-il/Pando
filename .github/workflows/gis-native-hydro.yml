@@ -592,9 +592,11 @@ jobs:
           node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs tests/unit/reference-training-webp-overview.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Training image or tile pixels differ' }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: native-map-training-overview-${{ matrix.os }}-${{ github.sha }}
           path: build-native/map-image/artifact/
+          if-no-files-found: ignore
           retention-days: 7
   map-image:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-image'

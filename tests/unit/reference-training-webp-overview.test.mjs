@@ -18,6 +18,18 @@ test('WebP training pixels retain color, first animation frame and EXIF orientat
   }
 });
 
+test('lossy WebP stripe boundaries preserve original source pixels',async()=>{
+  const path='tests/fixtures/map-image/webp-read/training-stripes.webp',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
+  const image=await readNativeImage({path,format:'webp',maxPixels:16777216,expectedSha256});
+  const streamed=await readNativeTrainingRaster({path,format:'webp',expectedSha256,x:0,y:448});
+  let count=0,first;
+  for(let y=0;y<512;y++)for(let x=0;x<512;x++)for(let c=0;c<3;c++){
+    const actual=streamed.tile[(y*512+x)*4+c],expected=image.data[((y+448)*image.width+x)*4+c];
+    if(actual!==expected){count++;first??={x,y:y+448,channel:c,actual,expected};}
+  }
+  assert.equal(count,0,JSON.stringify(first));
+});
+
 test('lossless WebP above 16MP matches the original PNG overview and tile',async()=>{
   const path='tests/fixtures/map-image/webp-read/training-large.webp',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
   const actual=await readNativeTrainingRaster({path,format:'webp',expectedSha256,x:4000,y:4000});
