@@ -9,9 +9,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 재개 기준: 추적 Python 46개
+### 2026-10-30 현행 기준: 추적 Python 44개
 
-`work/gis` 통합 기준 `2c41bf5f`: 도구 26개, 테스트 20개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 25개, 테스트 19개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
@@ -25,19 +25,21 @@
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/evaluation.py`, `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
-| `tools/reference-analysis/semap.py`, `tools/reference-analysis/prepare-analysis-images.py` | Node ZIP·출처 소유자와 C++ 영상 계층; 자료 준비 명령 | 범위 다운로드·CRC·SHA, 라벨·이미지 동등성, 취소·실패 |
+| `tools/reference-analysis/semap.py` | Node ZIP·출처 소유자와 C++ 영상 계층; 자료 준비 명령 | 범위 다운로드·CRC·SHA, 라벨·이미지 동등성, 취소·실패 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_build_terrain_dem.py`, `tests/python/test_build_terrain_preview.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
 | `tests/python/test_map_plugin_geopdf.py`, `tests/test_map_plugin_raster.py` | CTest와 Node 지도 영상·GeoPDF 검사 | EXIF·PDF·투영 좌표·크기 제한 및 잘못된 입력 |
 | `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
-| `tests/python/test_reference_analysis_corpus.py`, `tests/python/test_reference_analysis_review.py`, `tests/python/test_reference_analysis_sources.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
+| `tests/python/test_reference_analysis_corpus.py`, `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_evaluation.py`, `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
 | `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py`, `tests/python/test_reference_analysis_semap.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
 | `tests/test_lsib_boundary_supplement.py` | CTest/Node LSIB 레시피·화면 차이 검사 | 형상·공유 경계·출처·화면 차이의 고정 사례 |
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
+
+- **학습용 JPEG 입력 준비:** `prepare-analysis-images.mjs`와 고정 libjpeg-turbo C++ 도구로 기존 축소·출처 확인을 옮겼다. [Windows/Linux CI 41001388685](https://github.com/kimjeon-il/Pando/actions/runs/41001388685)의 RGB·흑백·CMYK와 2·4배 draft 합성 사례에서 메타데이터와 JPEG 출력 바이트가 Python과 같았다. EXIF 방향·출처 불일치·기존 출력·취소 거부와 원본 보존도 로컬에서 확인했다. 보존 원본 17,180×14,414(26,226,792바이트, SHA-256 `cfdf4de3992c84ae3d45dc84e187c536298908b0712e74ce326d3ea775c57fc3`)의 별도 검증 복사본으로 만든 3,087×2,590 파생본은 기존 3,677,675바이트 보존본과 바이트가 완전히 같았고 SHA-256은 `103806f1b4390e8d74c47c7595422d0beed33c1d818540ea332481018468aa19`이다. 원본과 기존 파생본은 그대로 두었다. 대응 Python 도구와 테스트를 제거하며 검증 복사본은 전체 전환 종료 후 정리한다.
 
 - **지도 미리보기·실행 경로:** FreeType 2.14.3과 고정 글꼴 기반 C++로 선·표식·글자·범례를 옮겼다. [Windows/Linux CI 41000080703](https://github.com/kimjeon-il/Pando/actions/runs/41000080703)에서 다양한 색상·좌표·반투명 글자와 긴 PDF의 두 단계 축소, 짝수·홀수 입력 픽셀이 Python과 일치했다. 실제 보존 캐나다 JPEG 작업의 304개 선과 6개 제어점을 2,200×1,701 미리보기로 렌더링했을 때 모든 픽셀이 같았고 양쪽 픽셀 SHA-256은 `68fcbeaefcd273a7d673e6ad97cb137eb296f3f4c153219c04465c3299809099`였다. PNG 인코딩 바이트는 네이티브 1,948,468바이트, Python 1,939,180바이트로 달랐으며 지도 원본 SHA는 유지됐다. 서명된 작업·원본 변경 거부와 Python 없이 도구 시작 및 출처 검사를 로컬에서 확인했다. 지도 플러그인에서 Python 실행과 패키지 내 해당 소스를 제거하되, 학습·점검 호출자가 아직 가져오는 `raster.py`는 보존한다. 실제 클라우드 패키지 실행은 미검증이다.
 
@@ -49,7 +51,7 @@
 
 - **지도 영상 PNG 입력:** libpng 1.6.57 기반 네이티브 PNG 판독을 Node 지도 플러그인에 연결했다. [Windows/Linux CI 40996105907](https://github.com/kimjeon-il/Pando/actions/runs/40996105907)에서 팔레트·투명색·8/16비트·Adam7·일곱 EXIF 방향·원본 좌표·잘라내기와 축소의 21개 고정 입력이 기존 Python 픽셀·메타데이터와 일치했다. 범위·예산·손상 파일 거부와 Python 없는 Live-Wire 경로도 확인했다. 보존된 실제 지도 미리보기 PNG 1개(3,122,047바이트, SHA-256 `25b667b8926ff6008fb14d8c01b3b19d373a7ca6511af5e4404c4a74cfb46da8`)를 1,701×2,200에서 225×291로 읽은 픽셀 SHA-256 `a7613e66c00db38b96c0782b0832295e311c8dab0c57706f16ba6fe338dcc394`과 매핑이 기존 Python과 일치했고 원본 해시는 유지됐다. 이는 지도 정확도 승인이 아니다.
 
-- **지도 영상 PNG 출력:** 고정 zlib 1.3.2와 C++ PNG 인코더를 연결해 RGBA 인코딩 호출에서 Python을 제거했다. [Windows/Linux CI 40994988289](https://github.com/kimjeon-il/Pando/actions/runs/40994988289)에서 PNG CRC와 투명 픽셀, 압축 크기, 기존 축소·회전 및 실제 Node 연결이 통과했다. 로컬 128×96 합성 입력의 전 픽셀은 기존 Python과 동일했고 결과는 C++ 1,313바이트(SHA-256 `4868c6b760d1a74bb8705a62f0e0c8a6ad3f1dcb27f44fe67b295bc83828bb82`), Python 1,328바이트(SHA-256 `268c647e48240455f2f7b74b3a65369a9bb602d158783071f04639249ee7ba83`)로 인코딩 바이트는 달랐다. 실제 클라우드 패키지 실행과 PDF 렌더링은 아직 네이티브 검증하지 않았다.
+- **지도 영상 PNG 출력:** 고정 zlib 1.3.2와 C++ PNG 인코더를 연결해 RGBA 인코딩 호출에서 Python을 제거했다. [Windows/Linux CI 40994988289](https://github.com/kimjeon-il/Pando/actions/runs/40994988289)에서 PNG CRC와 투명 픽셀, 압축 크기, 기존 축소·회전 및 실제 Node 연결이 통과했다. 로컬 128×96 합성 입력의 전 픽셀은 기존 Python과 동일했고 결과는 C++ 1,313바이트(SHA-256 `4868c6b760d1a74bb8705a62f0e0c8a6ad3f1dcb27f44fe67b295bc83828bb82`), Python 1,328바이트(SHA-256 `268c647e48240455f2f7b74b3a65369a9bb602d158783071f04639249ee7ba83`)로 인코딩 바이트는 달랐다. 실제 클라우드 패키지 실행은 아직 검증하지 않았다.
 
 - **지도 영상 축소·회전:** Pillow 12.3.0의 합성 RGB·RGBA 고정 입력 각 6개와 C++ Lanczos 픽셀이 일치했고 투명도를 포함한 0·90·180·270도 회전을 확인했다. [Windows/Linux CI 40994250558](https://github.com/kimjeon-il/Pando/actions/runs/40994250558)과 로컬 Windows의 실제 지도 플러그인·Live-Wire 경로가 통과했다. 두 호출에서 Python을 제거하고 소스 일치 바이너리를 로컬 및 비공개 패키지에 연결했다. 패키지의 실제 클라우드 실행은 미완료다. JPEG 축소 대안 GDAL은 합성 기준의 채널별 픽셀 차이가 최대 14–20이어서 동등하다고 판정하지 않았다.
 
