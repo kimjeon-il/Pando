@@ -112,7 +112,8 @@ export async function collectSourceFiles(workspace=root,{diagnostics=false,revis
     'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','shared/third_party/proj-robinson-LICENSE',
     'tools/load-node-core.mjs','tools/package-shared-core-assets.mjs','tools/library-archive.mjs',
     'tools/map-image/native-resample.mjs','tools/native-tool.mjs','tools/cpp/CMakeLists.txt',
-    'tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h'];
+    'tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
+    'tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/zlib-LICENSE'];
   if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs');
   if(revision) {
     if(!/^[a-f0-9]{40}$/.test(revision))throw Error('A full commit revision is required');

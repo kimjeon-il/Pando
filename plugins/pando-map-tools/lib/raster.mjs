@@ -5,10 +5,11 @@ import { workspace, workspaceModule } from './workspace.mjs';
 
 export async function raster(spec, bytes=null, signal=null) {
   signal?.throwIfAborted();
-  if(spec.action==='resize'||spec.action==='rotate'){
-    const {resizeNativeRgba,rotateNativeRgba}=await workspaceModule('tools/map-image/native-resample.mjs');
+  if(spec.action==='resize'||spec.action==='rotate'||spec.action==='encode'){
+    const {resizeNativeRgba,rotateNativeRgba,encodeNativePng}=await workspaceModule('tools/map-image/native-resample.mjs');
     const image={width:spec.width,height:spec.height,data:bytes};
-    return spec.action==='resize'?resizeNativeRgba(image,spec.size,{signal,workspace}):rotateNativeRgba(image,spec.degrees,{signal,workspace});
+    return spec.action==='resize'?resizeNativeRgba(image,spec.size,{signal,workspace}):spec.action==='rotate'?
+      rotateNativeRgba(image,spec.degrees,{signal,workspace}):encodeNativePng(image,{signal,workspace});
   }
   const child=spawn(process.env.PANDO_MAP_PYTHON || resolve(workspace,'build-native/python/Scripts/python.exe'),
     [fileURLToPath(new URL('./raster.py',import.meta.url))],{windowsHide:true,signal:signal || undefined,stdio:['pipe','pipe','pipe']});

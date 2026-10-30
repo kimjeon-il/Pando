@@ -7,7 +7,8 @@ import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
 
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
-  'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h']);
+  'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp',
+  'tools/cpp/map-image/png.h','tools/cpp/map-image/zlib-LICENSE']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export function collectMapImageArtifacts({workspace=root,revision,
   linuxDirectory=process.env.PANDO_MAP_IMAGE_LINUX_ARTIFACT||resolve(workspace,'build-native/map-image/linux-x64'),
@@ -41,7 +42,7 @@ async function operateNativeRgba(image,size,action,{signal,workspace=root,direct
   const {binary}=verifyNativeTool({root:workspace,directory,target:'map-image',executable,sourceFiles:mapImageSourceFiles});
   if(process.platform!=='win32'&&!process.env.PANDO_MAP_IMAGE_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))
     chmodSync(binary,0o755);
-  const expected=size[0]*size[1]*4;
+  const expected=size[0]*size[1]*4,encoded=action[0]==='encode-png',maximum=encoded?expected+size[1]+1048576:expected;
   const data=await new Promise((accept,reject)=>{
     const child=spawn(binary,[action[0],String(image.width),String(image.height),...action.slice(1).map(String)],
       {stdio:['pipe','pipe','pipe'],windowsHide:true,signal:signal||undefined});
@@ -50,11 +51,11 @@ async function operateNativeRgba(image,size,action,{signal,workspace=root,direct
     const timer=setTimeout(()=>{child.kill();finish(Error('Native image operation timed out'));},120000);
     child.on('error',error=>finish(error));
     child.stdin.on('error',()=>{});
-    child.stdout.on('data',chunk=>{length+=chunk.length;if(length>expected){overflow=true;child.kill();}else output.push(chunk);});
+    child.stdout.on('data',chunk=>{length+=chunk.length;if(length>maximum){overflow=true;child.kill();}else output.push(chunk);});
     child.stderr.on('data',chunk=>{errorBytes+=chunk.length;if(errorBytes<=65536)errors.push(chunk);});
     child.on('close',(code,reason)=>{
       if(code!==0||reason||overflow)return finish(Error('Native image operation failed: '+Buffer.concat(errors).toString('utf8')));
-      if(length!==expected)return finish(Error('Native image output byte length mismatch'));
+      if((!encoded&&length!==expected)||(encoded&&length<8))return finish(Error('Native image output byte length mismatch'));
       finish(null,Buffer.concat(output,length));
     });
     child.stdin.end(image.data);
@@ -68,4 +69,7 @@ export function rotateNativeRgba(image,degrees,options){
   if(![0,90,180,270].includes(degrees))return Promise.reject(Error('Invalid clockwise rotation'));
   const width=image?.width,height=image?.height,size=degrees===90||degrees===270?[height,width]:[width,height];
   return operateNativeRgba(image,size,['rotate-rgba',degrees],options);
+}
+export function encodeNativePng(image,options){
+  return operateNativeRgba(image,[image?.width,image?.height],['encode-png'],options);
 }
