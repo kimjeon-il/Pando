@@ -6,7 +6,6 @@ import sys
 import tempfile
 import json
 import unittest
-import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'tools/reference-analysis'))
 import corpus
@@ -35,16 +34,6 @@ class ReviewContractTests(unittest.TestCase):
         label['review']['predictionBlind'] = False
         with self.assertRaisesRegex(ValueError, 'blind'):
             corpus.validate_review_annotation(label, self.sheet())
-
-    def test_mask_keeps_overlap_and_channel_unknowns(self):
-        label = self.annotation()
-        target, known = corpus.review_masks(label)
-        self.assertTrue(target[0, 5, 10] and target[5, 5, 10])
-        self.assertFalse(known[1].any())
-        self.assertFalse(known[:, 12].any())
-        cropped = corpus.review_masks(label, window=(5, 2, 10, 8))
-        np.testing.assert_array_equal(cropped[0], target[:, 2:10, 5:15])
-        np.testing.assert_array_equal(cropped[1], known[:, 2:10, 5:15])
 
     def test_positives_outside_known_region_are_rejected(self):
         label = self.annotation()

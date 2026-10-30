@@ -37,13 +37,13 @@ int main(){
         if(!std::cin.eof())throw std::runtime_error("Cannot read review input");Reader r{input};
         const auto originalW=r.u32(),originalH=r.u32();const int originX=r.i32(),originY=r.i32();
         const auto width=r.u32(),height=r.u32(),count=r.u32();
-        if(!originalW||!originalH||originalW>65535||originalH>65535||!width||!height||width>16384||height>16384||
+        if(!originalW||!originalH||originalW>1000000||originalH>1000000||!width||!height||width>16384||height>16384||
            std::uint64_t(width)*height>16777216||count>1000000||std::abs(std::int64_t(originX))>1000000||std::abs(std::int64_t(originY))>1000000)
             throw std::runtime_error("Invalid review dimensions or commands");
         std::vector<Byte> target(std::size_t(width)*height),known(target.size());
         for(std::uint32_t command=0;command<count;++command){
             const auto type=r.u32(),channel=r.u32(),lineWidth=r.u32(),n=r.u32();
-            if(type<1||type>4||(type!=4&&channel>=7)||(type==2&&(!lineWidth||lineWidth>65535))||n>1000000||n<(type==2?2u:3u))
+            if(type<1||type>4||(type!=4&&channel>=7)||(type==2&&(!lineWidth||lineWidth>2145483647u))||n>1000000||n<(type==2?2u:3u))
                 throw std::runtime_error("Invalid review shape");
             std::vector<std::pair<int,int>> points;points.reserve(n);
             for(std::uint32_t i=0;i<n;++i){const int x=r.i32(),y=r.i32();
