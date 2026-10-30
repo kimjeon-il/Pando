@@ -35,8 +35,18 @@ test('admission retains per-map, macro and independent-evidence gates',async()=>
   const strong=structuredClone(result.metrics);strong.international={precision:.99,recall:.9,matchedPrediction:99,predicted:100,matchedReference:90,reference:100};
   const weak=structuredClone(strong);weak.international.precision=.8;
   assert.equal(boundaryAdmission({one:strong,two:strong}).passed,true);
+  assert.equal(boundaryAdmission({one:strong,two:strong}).macro.coast.precision,null);
   assert.equal(boundaryAdmission({one:strong,two:weak}).passed,false);
   assert.equal(boundaryAdmission({}, {requiredChannels:['international']}).passed,false);
+  const noTruth=structuredClone(strong);noTruth.international={precision:null,recall:null,matchedPrediction:0,predicted:0,matchedReference:0,reference:0};
+  assert.equal(boundaryAdmission({empty:noTruth}).passed,false);
+  noTruth.international.predicted=1;
+  assert.ok(boundaryAdmission({empty:noTruth}).failures.some(row=>row.reason==='false-positive-in-known-negative-area'));
   assert.equal(confounderNonregression({map:result.confounders},null).passed,false);
+  const zero={text:{international:{falsePositive:0,pixels:0,rate:null}}};
+  const measured={text:{international:{falsePositive:0,pixels:10,rate:0}}};
+  assert.equal(confounderNonregression({map:zero},{map:zero}).passed,false);
+  assert.equal(confounderNonregression({map:measured},{map:zero}).passed,false);
+  assert.equal(confounderNonregression({map:measured},{map:{}}).passed,false);
   await assert.rejects(evaluateBoundaries(Buffer.alloc(1),annotation()),/prediction/i);
 });

@@ -24,8 +24,8 @@ test('Python files only decrease within the reviewed inventory and two integrate
   // do not use the exception to allow any other added Python file.
   const integrated = new Set(['tests/python/test_reference_analysis_review.py', 'tests/python/test_reference_analysis_inspection.py']);
   const originalRemaining = remaining.filter(path => !integrated.has(path));
-  assert.ok(originalRemaining.length <= 40, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
-  assert.ok(remaining.length <= 42, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
+  assert.ok(originalRemaining.length <= 39, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
+  assert.ok(remaining.length <= 41, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
   for (const path of originalRemaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 
