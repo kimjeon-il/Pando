@@ -132,7 +132,16 @@ codecjson::Value referenceBoundaryGraph(int w,int h,const std::vector<std::uint8
             next=step.first;e=step.second;
         }c.end=current;
         for(const auto p:c.points){const auto i=std::size_t(p[1])*w+std::size_t(p[0]);c.bits|=labels[i]&7;c.confidence+=confidence[i];c.touches|=p[0]<=0||p[0]>=w-1||p[1]<=0||p[1]>=h-1;}
-        c.confidence/=c.points.size();c.points=simplifyReferenceTrace(c.points,tolerance);
+        c.confidence/=c.points.size();auto simplified=simplifyReferenceTrace(c.points,tolerance);
+        // A subpixel-tolerance simplification can collapse a small closed
+        // skeleton into an out-and-back segment. Retain that source ring;
+        // the vector editor must continue rejecting actual overlapping input.
+        bool collapsed=false;
+        if(c.points.front()==c.points.back()){
+            double twiceArea=0;for(std::size_t i=1;i<simplified.size();++i)twiceArea+=cross(simplified[i-1],simplified[i]);
+            collapsed=simplified.size()<4||std::abs(twiceArea)<1e-9;
+        }
+        if(!collapsed)c.points=std::move(simplified);
         const auto id=int(chains.size());for(auto i:c.edges)edgeChain[i]=id;chains.push_back(std::move(c));
     };
     for(std::size_t i=0;i<pixels.size();++i)if(adjacency[i].size()!=2)for(auto [to,e]:adjacency[i])if(!visited[e])walk(int(i),to,e);
