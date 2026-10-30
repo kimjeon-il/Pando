@@ -25,6 +25,8 @@ export function buildTrainingLineage(sheets,{parent=null,parentSha256=null}={}){
 export function assertEvaluationIndependence(lineage,sheets,{split='test'}={}){
   validateTrainingLineage(lineage);
   for(const sheet of sheets){if(!['test','validation'].includes(split)||sheet.split!==split)throw Error('Independent final-test split required');
+    for(const key of KEYS)if(typeof sheet[key]!=='string'||!sheet[key]||(key==='sha256'&&!SHA.test(sheet[key])))
+      throw Error('Not independent: ancestral '+key+' overlap or missing identity');
     for(const previous of lineage.sheets)for(const key of KEYS)if(!sheet[key]||sheet[key]===previous[key])throw Error('Not independent: ancestral '+key+' overlap or missing identity');
   }
 }
