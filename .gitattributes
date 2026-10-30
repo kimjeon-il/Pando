@@ -29,3 +29,6 @@ tools/reference-fixtures/*.mjs text eol=lf
 
 # Historical comparison corpus has a byte-exact source pin.
 tests/fixtures/geographic-predicate-comparison/** text eol=lf
+
+# PDF cross-reference offsets require byte-exact fixtures on every platform.
+tests/fixtures/map-image/pdf-read/*.pdf binary
