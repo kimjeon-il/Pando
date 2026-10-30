@@ -1,12 +1,34 @@
 // Prepare one source-coordinate training tile with the shared native owners.
-import {extname} from 'node:path';
+import {dirname,extname,resolve} from 'node:path';
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {prepareNativeTrainingTile,readNativeImage,readNativeTrainingMask} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
+import {readTrainingBounded} from './training-evidence.mjs';
+import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
+export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDirectory}={}){
+  signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
+  const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');
+  const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
+  if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
+  const tiles=[],seen=new Set();
+  for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
+    if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
+    const {sheet,annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
+    for(const tile of await listRasterTrainingTiles({root,annotation},{signal,workspace,imageDirectory})){
+      if(tiles.length>=1000000)throw Error('Training tile count exceeds budget');
+      tiles.push({sourceId:sheet.id,index:tiles.length,x:tile.x,y:tile.y,duplicateGroup:sheet.duplicateGroup});
+    }
+    recheckMacroTrainingSource(checks);
+  }
+  if(!tiles.length)throw Error('Corpus has no supervised macro training tiles');
+  if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during indexing');
+  return {trainingOnly:true,releaseApproved:false,corpusSha256,tiles};
+}
 async function trainingRaster(root,annotation,field,options){
   if(!rasterOrigins.has(annotation?.origin))throw Error('Explicit raster training supervision required');
   const spec=annotation[field];if(!spec||typeof spec.path!=='string')throw Error('Source-bound raster path required');
