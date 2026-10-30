@@ -1,0 +1,21 @@
+{
+  "datasetCode": "eu",
+  "files": [
+    {
+      "file": "HydroRIVERS_v10_eu.dbf",
+      "sha256": "d535e0329e04fcbd9f5dffd52a0e77c3adf03a26e1c83c3f5bb6951b7fcbc44e"
+    },
+    {
+      "file": "HydroRIVERS_v10_eu.shp",
+      "sha256": "ee587942318acd988eb9e9b7aa2144a46929c42dbb88c4e9d12ae452bbb19ede"
+    },
+    {
+      "file": "HydroRIVERS_v10_eu.shx",
+      "sha256": "fc2a181f7ab0c2cabfe645df8358ea207526a21c5218fcf4a87e0891bd4d47ff"
+    },
+    {
+      "file": "HydroRIVERS_v10_eu.prj",
+      "sha256": "c0e9f6c3f9c213a8442ebdb64891e554caa466fe07acdb593177438d0d982fa8"
+    }
+  ]
+}

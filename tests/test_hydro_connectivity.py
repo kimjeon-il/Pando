@@ -1,10 +1,12 @@
 import copy
 import importlib.util
+import io
 import os
 import json
 import subprocess
 import sys
 import unittest
+import zipfile
 from unittest.mock import patch
 from pathlib import Path
 
@@ -33,6 +35,22 @@ def fixture():
 
 
 class HydroConnectivityTests(unittest.TestCase):
+    def test_small_source_archive_fixture_matches_original_shapefile_reader(self):
+        import shapefile
+        path = TOOLS.parent / 'tests/fixtures/hydro-source/fixture.zip'
+        with zipfile.ZipFile(path) as archive:
+            with shapefile.Reader(shp=io.BytesIO(archive.read('nested/HydroRIVERS_v10_eu.shp')),
+                                  dbf=io.BytesIO(archive.read('nested/HydroRIVERS_v10_eu.dbf'))) as reader:
+                rows = {}
+                for record in reader.iterRecords(fields=['HYRIV_ID', 'NEXT_DOWN']):
+                    if int(record['HYRIV_ID']) not in {101, 103}:
+                        continue
+                    points = reader.shape(record.oid).points
+                    rows[int(record['HYRIV_ID'])] = dict(region='eu', next=int(record['NEXT_DOWN']),
+                                                         start=list(points[0]), end=list(points[-1]))
+        self.assertEqual(rows, {101: dict(region='eu', next=102, start=[0,0], end=[1,0]),
+                                103: dict(region='eu', next=102, start=[0,1], end=[1,0])})
+
     def test_audit_requires_native_engine_and_rejects_invalid_results(self):
         parts, raw = fixture()
         with patch.dict(os.environ, {}, clear=True):
