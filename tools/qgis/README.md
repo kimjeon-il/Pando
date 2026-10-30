@@ -75,6 +75,11 @@ Project CRS changes affect the current QGIS project, not the layer source data.
 The explicit save-project command saves only the current, existing named project;
 it refuses unnamed projects and missing project files. It does not commit layer
 edit buffers or accept a different output path.
+To verify this against a real QGIS instance, open an empty disposable QGZ named
+`project-save-proof-*.qgz` in `build-native/qgis/migration-current/`, set
+`PANDO_QGIS_TEST_PROJECT` to its absolute path, and run
+`node tests/integration/qgis-native-project-save-live.mjs`. The test edits and
+rolls back a new synthetic layer, saves the project, and refuses any other project.
 Canvas screenshots return PNG image content through MCP; CLI output contains
 base64 PNG, limited to 1,400,000 encoded image bytes.
 Clip requires an existing polygon overlay with a valid CRS. QGIS transforms it
