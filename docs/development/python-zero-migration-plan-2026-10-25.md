@@ -11,7 +11,7 @@
 
 ### 2026-10-30 현행 기준: 추적 Python 35개
 
-- **QGIS 네이티브 클립:** 동일 좌표계 벡터와 폴리곤 오버레이의 클립을 인증된 Node CLI/MCP에서 네이티브 QGIS 처리로 연결했다. [Windows CI 41039530681](https://github.com/kimjeon-il/Pando/actions/runs/41039530681)과 QGIS 3.44.15 실제 시험에서 선이 `[-1,0]`부터 `[1,0]`까지 잘리는 결과, 중첩 속성과 원본 파일 보존, 잘못된 오버레이와 기존 출력 거부를 확인했다. 서로 다른 좌표계 간 클립과 나머지 실제 사용 기능은 아직 전환이 필요하므로 Python 연결은 유지한다.
+- **QGIS 네이티브 클립:** 벡터와 폴리곤 오버레이의 클립을 인증된 Node CLI/MCP에서 네이티브 QGIS 처리로 연결했다. [Windows CI 41039530681](https://github.com/kimjeon-il/Pando/actions/runs/41039530681)과 QGIS 3.44.15 실제 시험에서 동일 좌표계 클립, 중첩 속성과 원본 파일 보존, 잘못된 오버레이와 기존 출력 거부를 확인했다. 후속 [Windows CI 41045360878](https://github.com/kimjeon-il/Pando/actions/runs/41045360878) 바이너리로 EPSG:3857 오버레이를 EPSG:4326 입력에 적용해 결과 선 `[-1,0]`부터 `[1,0]`, 중첩 속성·원본 및 기존 출력 보존도 확인했다. 선택된 좌표 변환의 fallback을 끄고 변환 오류 시 내보내지 않는다. 다른 datum·격자 자료의 실제 검증과 나머지 실제 사용 기능은 아직 남아 있어 Python 연결은 유지한다.
 
 - **PNG 학습 입력:** 16MP를 초과하는 비인터레이스 PNG를 원본 SHA 확인 후 행별로 처리해 방향·흰색 alpha 합성·256개요·512타일을 만든다. 4097×4097 합성 원본과 작은 색상·16비트·방향·인터레이스 사례 및 검토 주석을 [Windows/Linux CI 41040774707](https://github.com/kimjeon-il/Pando/actions/runs/41040774707)과 Windows 소스 일치 실행 파일로 확인했다. 후속으로 인터레이스 PNG는 전체 디코딩 한도를 64MP로 높였고, 4097×4097 합성 영상과 회색 마스크의 개요·타일·집계가 기존 결과와 일치했다([Windows/Linux CI 41044655815](https://github.com/kimjeon-il/Pando/actions/runs/41044655815)). 대형 영상의 90도 방향도 Windows에서 확인했다. 64MP 초과 인터레이스 PNG의 제한은 남아 있다.
 
