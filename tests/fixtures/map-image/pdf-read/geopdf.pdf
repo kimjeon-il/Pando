@@ -1,0 +1,82 @@
+%PDF-1.7
+%µ¶
+
+1 0 obj
+<</Type/Catalog/Pages 2 0 R>>
+endobj
+
+2 0 obj
+<</Type/Pages/Count 1/Kids[4 0 R]>>
+endobj
+
+3 0 obj
+<</Font<</helv 7 0 R>>>>
+endobj
+
+4 0 obj
+<</Type/Page/MediaBox[0 0 200 100]/Rotate 0/Resources 3 0 R/Parent 2 0 R/Contents[5 0 R 6 0 R 8 0 R]/VP[<</Type/Viewport/BBox[0 0 200 100]/Measure<</Type/Measure/Subtype/GEO/LPTS[0 0 0 1 1 1 1 0]/GPTS[40 -120 70 -120 70 -60 40 -60]/GCS<</Type/PROJCS/WKT(PROJCS["fixture",GEOGCS["NAD83",DATUM["NAD83",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["Central_Meridian",-95],PARAMETER["Latitude_Of_Origin",49],PARAMETER["Standard_Parallel_1",49],PARAMETER["Standard_Parallel_2",77],UNIT["Meter",1]])>>>>>>]>>
+endobj
+
+5 0 obj
+<</Length 52>>
+stream
+
+q
+5 17 105 76 re
+3 w
+h
+.1 .3 .8 RG .9 .7 .4 rg B
+Q
+
+endstream
+endobj
+
+6 0 obj
+<</Length 39>>
+stream
+
+q
+12 92 m
+170 9 l
+2 w
+.8 .1 .2 RG S
+Q
+
+endstream
+endobj
+
+7 0 obj
+<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>
+endobj
+
+8 0 obj
+<</Length 79>>
+stream
+
+q
+BT
+1 0 0 1 20 70 Tm
+/helv 10 Tf [<53796e746865746963206d6170203432>]TJ
+ET
+Q
+
+endstream
+endobj
+
+xref
+0 9
+0000000000 65535 f 
+0000000016 00000 n 
+0000000062 00000 n 
+0000000114 00000 n 
+0000000155 00000 n 
+0000000778 00000 n 
+0000000879 00000 n 
+0000000967 00000 n 
+0000001056 00000 n 
+
+trailer
+<</Size 9/Root 1 0 R/ID[<C29C4FC2A2C2BE6556C3A6C3B4C2BDC3><80C77EA46F3C4202A8459F7AAA8FAEB3>]>>
+startxref
+1184
+%%EOF
