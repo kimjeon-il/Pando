@@ -2,7 +2,7 @@
 // this owner binds checked source, upload arguments and read-back evidence.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {readFile,writeFile,mkdir,lstat} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,lstat,open} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {resolve,dirname,join,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -139,6 +139,15 @@ export async function preparePrivateRelease({revision,modelPath,verification,rem
   await save(pendingPath,pending);return pending;
 }
 export async function verifyReleaseArchive(plan,path){
+  if(await isGzipArchive(path)){
+    const files=await readTarFiles(path,plan.archiveFiles||plan.files.map(row=>({path:row.path,size_bytes:row.bytes})));
+    for(const row of plan.files){
+      const bytes=files.get(row.path);check(bytes,'Remote archive file missing: '+row.path);
+      if(plan.manifests?.[row.path])assert.deepEqual(JSON.parse(bytes.toString('utf8')),plan.manifests[row.path],'Archive manifest configuration mismatch');
+      else check(bytes.length===row.bytes&&hash(bytes)===row.sha256,'Remote archive hash mismatch: '+row.path);
+    }
+    return {checkedFiles:plan.files.length};
+  }
   const {byName,prefix}=await archiveIndex(path);
   let checked=0;
   for(const row of plan.files){
@@ -158,8 +167,36 @@ async function archiveIndex(path){
   check(prefix!==undefined,'Remote archive root manifest missing');
   return {byName,prefix};
 }
+async function isGzipArchive(path){
+  const file=await open(path,'r');try{const magic=Buffer.alloc(2);await file.read(magic,0,2,0);return magic[0]===0x1f&&magic[1]===0x8b;}finally{await file.close();}
+}
+async function readTarFiles(path,inventory){
+  // The host returns tar.gz even for a ZIP upload. Use the existing system tar
+  // as a read-only decoder; -O never extracts paths into the filesystem.
+  const listing=await exec('tar',['-tf',path],{encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
+  const names=listing.stdout.split(/\r?\n/).filter(Boolean),prefix=names.includes('plugin.json')?'':
+    names.filter(name=>name.split('/').length===2&&name.endsWith('/plugin.json')).map(name=>name.slice(0,-11))[0];
+  check(prefix!==undefined,'Account archive root manifest missing');
+  const sizes=new Map(inventory.map(row=>[prefix+safePath(row.path),row.size_bytes])),seen=new Set(),selected=[];
+  for(const name of names){
+    safePath(name.endsWith('/')?name.slice(0,-1):name);
+    check(!seen.has(name),'Duplicate account archive path');seen.add(name);
+    if(sizes.has(name))selected.push(name);
+  }
+  for(const name of sizes.keys())check(seen.has(name),'Account archive file missing: '+name);
+  let total=0;for(const bytes of sizes.values()){check(Number.isSafeInteger(bytes)&&bytes>=0&&bytes<=64*1024*1024,'Invalid account archive file size');total+=bytes;}
+  check(total<=128*1024*1024,'Account archive exceeds bounded verification size');
+  const {stdout}=await exec('tar',['-xOf',path,'--',...selected],{encoding:null,windowsHide:true,maxBuffer:total+1024*1024});
+  check(stdout.length===total,'Account archive size mismatch');
+  const result=new Map();let at=0;for(const name of selected){const bytes=sizes.get(name);result.set(name.slice(prefix.length),stdout.subarray(at,at+bytes));at+=bytes;}
+  return result;
+}
 export async function inspectPrivateRelease({target,remote,archivePath,archiveReleaseId}){
   checkIdentity(target,remote);check(archiveReleaseId===remote.plugin.current_release_id,'Download the exact current release before inspecting');
+  if(await isGzipArchive(archivePath)){
+    const files=await readTarFiles(archivePath,remote.files);
+    return {releaseId:remote.plugin.current_release_id,contentSha256:privatePluginFingerprint([...files].filter(([path])=>owned(path)).map(([path,data])=>({path,data})))};
+  }
   const {byName,prefix}=await archiveIndex(archivePath),entries=[];
   for(const row of remote.files){
     if(!owned(row.path)||row.path==='release.json')continue;
@@ -173,7 +210,7 @@ export async function inspectPrivateRelease({target,remote,archivePath,archiveRe
 export async function completePrivateRelease({plan,remote,archivePath}){
   const result=verifyPrivateRelease({plan,remote});
   check(archivePath,'Downloaded exact-release archive required for byte verification');
-  return {...result,...await verifyReleaseArchive(plan,archivePath)};
+  return {...result,...await verifyReleaseArchive({...plan,archiveFiles:remote.files},archivePath)};
 }
 async function save(path,value){await mkdir(dirname(resolve(path)),{recursive:true});await writeFile(path,json(value));}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
@@ -198,6 +235,10 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       await save(values.target,{...target,verifiedRelease:{releaseId:result.releaseId,contentSha256:result.contentSha256}});
     }
     else throw Error('Use verify, prepare, uploaded, inspect or confirm with explicit scoped inputs');
-    if(values.output)await save(values.output,result);console.log(json(result));
-  }catch(error){console.error(error);process.exitCode=1;}
+    if(values.output)await save(values.output,result);
+    console.log(json(values.output?Object.fromEntries(['status','codeRevision','version','contentSha256','archiveBytes','checkedFiles'].filter(key=>result[key]!==undefined).map(key=>[key,result[key]])):result));
+  }catch(error){
+    if(positionals[0]==='verify'&&values.output)await save(values.output,{schema:'map-toolkit-verification',status:'failed',codeRevision:values.revision,checks:[{exitCode:1}],error:error.message});
+    console.error(error);process.exitCode=1;
+  }
 }

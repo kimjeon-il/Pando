@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFile} from 'node:child_process';
@@ -8,6 +8,7 @@ import {promisify} from 'node:util';
 import {createHash} from 'node:crypto';
 import {planPrivateRelease,recordPrivateUpload,verifyPrivateRelease,nextReleaseVersion,assertPushedRevision,verifyReleaseArchive,runVerifiedCommands,releaseInputPaths} from '../../tools/reference-analysis/release-private-plugin.mjs';
 import {frontendWasmRoot} from '../../scripts/lib/frontend-layout.mjs';
+import {fileURLToPath} from 'node:url';
 import {privatePluginFingerprint} from '../../tools/reference-analysis/package-private-plugin.mjs';
 import {archiveDirectory} from '../../tools/reference-analysis/runtime-assets.mjs';
 
@@ -117,4 +118,27 @@ test('verification binds the actual loaded WASM pair and policy as well as JavaS
   const paths=await releaseInputPaths(undefined,undefined,[]);
   for(const name of ['pandoeditor-core.js','pandoeditor-core.wasm','pandoeditor-core.manifest.json'])assert(paths.includes(frontendWasmRoot+'/'+name),name);
   assert(paths.includes('docs/historical-border-reconstruction-policy.md'));
+});
+
+test('the account tar.gz archive is verified without extracting a second workspace',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'map-release-tar-')),archive=dir+'.tar.gz';
+  try{
+    const bytes=Buffer.from([4,5,6]);await writeFile(join(dir,'plugin.json'),'{}');await writeFile(join(dir,'core.wasm'),bytes);
+    await promisify(execFile)('tar',['-czf',archive,'-C',dir,'plugin.json','core.wasm']);
+    const file={path:'core.wasm',bytes:3,sha256:createHash('sha256').update(bytes).digest('hex')};
+    const plan={files:[file],archiveFiles:[{path:'core.wasm',size_bytes:3}]};
+    assert.deepEqual(await verifyReleaseArchive(plan,archive),{checkedFiles:1});
+    await assert.rejects(verifyReleaseArchive({...plan,files:[{...file,sha256:sha}]},archive),/hash mismatch/i);
+  }finally{await rm(archive,{force:true});await rm(dir,{recursive:true,force:true});}
+});
+
+test('a failed verify invocation cannot leave an older passing completion receipt active',async()=>{
+  const dir=await mkdtemp(join(tmpdir(),'map-release-failure-'));
+  try{
+    const output=join(dir,'verification.json'),commands=join(dir,'checks.json');
+    await writeFile(output,JSON.stringify(checks));await writeFile(commands,'[]');
+    const script=fileURLToPath(new URL('../../tools/reference-analysis/release-private-plugin.mjs',import.meta.url));
+    await assert.rejects(promisify(execFile)(process.execPath,[script,'verify','--revision','invalid','--model','unused','--checks',commands,'--output',output]));
+    const failed=JSON.parse(await readFile(output,'utf8'));assert.equal(failed.status,'failed');assert.equal(failed.checks[0].exitCode,1);
+  }finally{await rm(dir,{recursive:true,force:true});}
 });
