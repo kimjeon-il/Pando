@@ -82,6 +82,8 @@
 
 - **지도 영상 축소·회전:** Pillow 12.3.0의 합성 RGB·RGBA 고정 입력 각 6개와 C++ Lanczos 픽셀이 일치했고 투명도를 포함한 0·90·180·270도 회전을 확인했다. [Windows/Linux CI 40994250558](https://github.com/kimjeon-il/Pando/actions/runs/40994250558)과 로컬 Windows의 실제 지도 플러그인·Live-Wire 경로가 통과했다. 두 호출에서 Python을 제거하고 소스 일치 바이너리를 로컬 및 비공개 패키지에 연결했다. 패키지의 실제 클라우드 실행은 미완료다. JPEG 축소 대안 GDAL은 합성 기준의 채널별 픽셀 차이가 최대 14–20이어서 동등하다고 판정하지 않았다.
 
+- **QGIS 레이어 제거:** 네이티브 CLI/MCP가 벡터와 래스터를 프로젝트에서 제거하되 편집 중·수정됨·임시 레이어는 거부한다. [Windows CI 41012900113](https://github.com/kimjeon-il/Pando/actions/runs/41012900113)의 소스 일치 DLL SHA-256 `deda76aa741a45986466c7f53c1ad5b8133219bed124f88c3c93d4b686c97a52`을 빈 시험 프로젝트에 적용해 실제 QGIS 한 창에서 편집 중 제거 거부, 롤백 후 벡터 제거, 래스터 제거, 없는 ID 거부 및 MCP 제거를 확인했다. 시험 벡터·래스터 원본 해시는 각각 `812628b9d44b7c326b3041792f49f4f8b1f0403626fe4edbc11d8fea0d42e879`, `b8c1878efc7988903b533c3889c834a49a8b4f973159d1b2b2b47d239f1cee11`로 유지됐다. 실제 임시 레이어 거부는 별도로 검증하지 않았다.
+
 - **QGIS 좌표 변환:** 명시적 원본·대상 CRS의 1–10,000개 XY 좌표 변환을 Node CLI/MCP와 연결하고 대체 datum 변환은 허용하지 않는다. [Windows CI 40992470443](https://github.com/kimjeon-il/Pando/actions/runs/40992470443)의 소스 일치 DLL SHA-256 `408442d1bfe39f6567c8662399aeb515feebad252a6fe8f3f95a71298f441ca2`로 실제 QGIS에서 EPSG:4326 ↔ EPSG:3857 왕복, 동일 CRS, 잘못된 CRS·빈 배열 거부를 확인했고 MCP를 통해 동일 투영 결과를 읽었다. 기타 datum과 좌표 변환의 실제 격자 자료는 이번에 검증하지 않았다.
 
 - **QGIS 활성 레이어:** Node CLI/MCP에 현재 활성 레이어 조회와 변경을 연결했다. 관련 Node 검사 및 [Windows CI 40992016447](https://github.com/kimjeon-il/Pando/actions/runs/40992016447)이 통과했다. 소스 일치 DLL SHA-256 `3aafe4903e49e3161d88620efcb0073bf898332c919161a637cb28b789820c3b`로 실제 QGIS에서 빈 프로젝트의 null, 합성 벡터 레이어 두 개 간 전환과 없는 레이어 거부를, MCP에서 레이어 선택과 재조회를 확인했다. 기존 Python MCP의 다른 기능이 모두 대체된 것은 아니다.
