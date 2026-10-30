@@ -22,6 +22,7 @@ async function fixture(t){
       const request=JSON.parse(text.slice(0,text.indexOf('\n')));assert.equal(request.token,'cli-test-token');
       let result;
       if(request.command==='status')result={transport:'pando-native-v1',qgis_version:'3.44.15'};
+      else if(request.command==='zoom-to-layer'){assert.equal(request.layer,'layer-1');result={ok:true,id:request.layer};}
       else if(request.command==='transform'){
         assert.equal(request.sourceCrs,'EPSG:4326');assert.equal(request.targetCrs,'EPSG:3857');
         assert.deepEqual(request.points,[[-1,2]]);result={points:[[1,2]]};}
@@ -87,6 +88,8 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   const status=await run(['--config',config,'status']);assert.equal(status.code,0,status.stderr);
   assert.equal(JSON.parse(status.stdout).transport,'pando-native-v1');
   const project=await run(['--config',config,'project']);assert.equal(project.code,0,project.stderr);assert.equal(JSON.parse(project.stdout).layer_count,1);
+  const zoom=await run(['--config',config,'zoom-to-layer','--layer','layer-1']);assert.equal(zoom.code,0,zoom.stderr);assert.equal(JSON.parse(zoom.stdout).id,'layer-1');
+  assert.notEqual((await run(['--config',config,'zoom-to-layer'])).code,0);
   const layers=await run(['--config',config,'layers','--offset','0','--limit','10']);assert.equal(layers.code,0,layers.stderr);
   assert.equal(JSON.parse(layers.stdout).layers[0].id,'layer-1');
   const invalidPage=await run(['--config',config,'layers','--limit','101']);assert.notEqual(invalidPage.code,0);

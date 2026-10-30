@@ -15,6 +15,7 @@ node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
 node tools/qgis/native-bridge.mjs active-layer
 node tools/qgis/native-bridge.mjs active-layer --layer QGIS_LAYER_ID
+node tools/qgis/native-bridge.mjs zoom-to-layer --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs transform --source-crs EPSG:4326 --target-crs EPSG:3857 --points '[[127,37]]'
 node tools/qgis/native-bridge.mjs layers --offset 0 --limit 50
 node tools/qgis/native-bridge.mjs algorithms --search buffer --offset 0 --limit 50
