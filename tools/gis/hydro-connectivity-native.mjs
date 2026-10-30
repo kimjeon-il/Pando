@@ -107,3 +107,37 @@ export async function auditHydroSourceArchives({features,archives},options={}){
   if(!isDeepStrictEqual(Object.keys(parts).sort(),Object.keys(source.rows).sort()))throw Error('Selected Hydro source IDs differ from feature parts');
   return auditHydroParts({parts,raw:source.rows,sourceOrder:source.sourceOrder},options);
 }
+// Verify a staged pack against its baseline and explicitly recorded endpoint changes.
+export async function verifyHydroStaged({baseline,staged,report,archives},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(baseline?.features)||!Array.isArray(staged?.features)||!Array.isArray(report?.changes)||
+    !Array.isArray(report.changedFeatureIds)||!Array.isArray(report.remaining)||baseline.features.length!==staged.features.length)
+    throw Error('Explicit matching Hydro baseline, staged features and repair report required');
+  const expected=structuredClone(baseline.features),byFid=new Map(),changed=new Set();
+  for(const feature of expected){const fid=feature?.metadata?.fid;if(!Number.isSafeInteger(fid)||byFid.has(fid))throw Error('Unique Hydro feature identity required');byFid.set(fid,feature);}
+  for(const change of report.changes){const feature=byFid.get(change?.fid),geometry=feature?.geometry;
+    const lines=geometry?.type==='LineString'?[geometry.coordinates]:geometry?.type==='MultiLineString'?geometry.coordinates:null;
+    if(!lines||!Number.isSafeInteger(change.part)||change.part<0||change.part>=lines.length||![0,-1].includes(change.index)||
+      !Array.isArray(change.before)||!Array.isArray(change.after)||change.after.length!==2||change.after.some(value=>!Number.isFinite(value)))
+      throw Error('Invalid Hydro endpoint change');
+    const line=lines[change.part],index=change.index===0?0:line.length-1;
+    if(!line.length||!isDeepStrictEqual(line[index],change.before))throw Error('Hydro endpoint change differs from baseline');
+    line[index]=structuredClone(change.after);changed.add(change.fid);
+    if(feature.metadata.terminal&&change.index===-1&&change.part===lines.length-1)
+      feature.metadata.terminal.renderEndpoint=structuredClone(change.after);
+  }
+  const reported=[...report.changedFeatureIds].sort((a,b)=>a-b),actual=[...changed].sort((a,b)=>a-b);
+  if(!isDeepStrictEqual(reported,actual)||report.unchangedFeatureCount!==expected.length-changed.size)throw Error('Hydro changed feature receipt differs');
+  for(let i=0;i<expected.length;i++){
+    const before=expected[i],after=staged.features[i];
+    if(!isDeepStrictEqual(before.geometry,after?.geometry))throw Error('Unexpected Hydro geometry change: '+before.metadata.fid);
+    if(!isDeepStrictEqual(before.widths,after?.widths))throw Error('Unexpected Hydro width change: '+before.metadata.fid);
+    const a={...before.metadata},b={...after.metadata};if(changed.has(a.fid)){delete a.bounds;delete b.bounds;}
+    if(!isDeepStrictEqual(a,b))throw Error('Unexpected Hydro metadata change: '+before.metadata.fid);
+  }
+  const audit=await auditHydroSourceArchives({features:staged.features,archives},options);
+  if(audit.issues.some(issue=>issue.repairable))throw Error('Repairable Hydro gaps remain');
+  const pairs=rows=>[...new Set(rows.map(row=>JSON.stringify([row.source,row.downstream])))].sort();
+  if(!isDeepStrictEqual(pairs(audit.issues),pairs(report.remaining)))throw Error('Remaining Hydro connectivity differs from report');
+  return {features:expected.length,unchangedFeatures:report.unchangedFeatureCount,repairableGaps:0,remaining:audit.issues.length,regions:audit.regions};
+}
