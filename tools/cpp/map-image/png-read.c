@@ -1,4 +1,4 @@
-#include "png-read.h"
+#include "image-read.h"
 #include <png.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +22,7 @@ static void input(png_structp png,png_bytep target,png_size_t length){
 static uint16_t short_at(const uint8_t* p,int little){return little?(uint16_t)(p[0]|p[1]<<8):(uint16_t)(p[0]<<8|p[1]);}
 static uint32_t long_at(const uint8_t* p,int little){return little?(uint32_t)p[0]|(uint32_t)p[1]<<8|(uint32_t)p[2]<<16|(uint32_t)p[3]<<24:
     (uint32_t)p[0]<<24|(uint32_t)p[1]<<16|(uint32_t)p[2]<<8|(uint32_t)p[3];}
-static uint32_t exif_orientation(const uint8_t* data,size_t size){
+uint32_t pando_exif_orientation(const uint8_t* data,size_t size){
     int little;uint32_t offset;uint16_t entries;size_t i;
     if(size<8)return 1;
     if(data[0]=='I'&&data[1]=='I')little=1;else if(data[0]=='M'&&data[1]=='M')little=0;else return 1;
@@ -37,7 +37,7 @@ static uint32_t exif_orientation(const uint8_t* data,size_t size){
     }
     return 1;
 }
-int pando_read_png(const uint8_t* bytes,size_t size,PandoPngImage* result){
+int pando_read_png(const uint8_t* bytes,size_t size,PandoImage* result){
     Decoder* decoder;png_structp png;png_infop info;png_uint_32 width,height;int color,depth,interlace,has_alpha;size_t y,x,rowbytes;
     uint8_t* output;png_uint_32 exif_size=0;png_bytep exif=NULL;
     memset(result,0,sizeof(*result));result->orientation=1;
@@ -54,7 +54,7 @@ int pando_read_png(const uint8_t* bytes,size_t size,PandoPngImage* result){
     png_set_read_fn(png,decoder,input);png_set_user_limits(png,16384,16384);png_read_info(png,info);
     png_get_IHDR(png,info,&width,&height,&depth,&color,&interlace,NULL,NULL);
     if(!width||!height||(uint64_t)width*height>16777216)png_error(png,"PNG exceeds the 16MP graph budget");
-    if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=exif_orientation(exif,exif_size);
+    if(png_get_eXIf_1(png,info,&exif_size,&exif)&&exif)result->orientation=pando_exif_orientation(exif,exif_size);
     has_alpha=(color&PNG_COLOR_MASK_ALPHA)!=0||png_get_valid(png,info,PNG_INFO_tRNS);
     if(color==PNG_COLOR_TYPE_PALETTE)png_set_palette_to_rgb(png);
     if(color==PNG_COLOR_TYPE_GRAY&&depth<8)png_set_expand_gray_1_2_4_to_8(png);

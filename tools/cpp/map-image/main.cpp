@@ -1,6 +1,6 @@
 #include "resample.h"
 #include "png.h"
-#include "png-input.h"
+#include "image-input.h"
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -34,18 +34,18 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
-        if(action=="read-png"){
-            if(argc!=7)throw std::invalid_argument("Expected read-png MAX_PIXELS X Y WIDTH HEIGHT");
+        if(action=="read-png"||action=="read-jpeg"){
+            if(argc!=7)throw std::invalid_argument("Expected image read with MAX_PIXELS X Y WIDTH HEIGHT");
             const int maximum=bounded(argv[2],16777216),x=bounded(argv[3],16384),y=bounded(argv[4],16384),
                 width=bounded(argv[5],16384),height=bounded(argv[6],16384);
             std::vector<std::uint8_t> encoded;std::array<char,65536> buffer{};
             while(std::cin){
                 std::cin.read(buffer.data(),buffer.size());const auto n=std::cin.gcount();
-                if(n>0){if(encoded.size()+static_cast<std::size_t>(n)>300ULL*1024*1024)throw std::invalid_argument("PNG input exceeds encoded byte budget");
+                if(n>0){if(encoded.size()+static_cast<std::size_t>(n)>300ULL*1024*1024)throw std::invalid_argument("Image input exceeds encoded byte budget");
                     encoded.insert(encoded.end(),buffer.data(),buffer.data()+n);}
             }
-            if(!std::cin.eof())throw std::runtime_error("Unable to read PNG input");
-            const auto image=pando::map_image::readPng(encoded,maximum,x,y,width,height);
+            if(!std::cin.eof())throw std::runtime_error("Unable to read image input");
+            const auto image=pando::map_image::readImage(encoded,action=="read-jpeg",maximum,x,y,width,height);
             for(const auto field:{image.encodedWidth,image.encodedHeight,image.orientation,image.originalWidth,image.originalHeight,
                     image.x,image.y,image.rectWidth,image.rectHeight,image.width,image.height})number(static_cast<std::uint32_t>(field));
             std::cout.write(reinterpret_cast<const char*>(image.data.data()),static_cast<std::streamsize>(image.data.size()));

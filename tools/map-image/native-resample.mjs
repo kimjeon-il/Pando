@@ -8,8 +8,9 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
   'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp',
-  'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/png-read.h',
-  'tools/cpp/map-image/png-input.cpp','tools/cpp/map-image/png-input.h','tools/cpp/map-image/zlib-LICENSE','tools/cpp/map-image/libpng-LICENSE']);
+  'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h','tools/cpp/map-image/jpeg-read.c',
+  'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE','tools/cpp/map-image/libpng-LICENSE',
+  'tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg']);
 const root=fileURLToPath(new URL('../../',import.meta.url));
 export function collectMapImageArtifacts({workspace=root,revision,
   linuxDirectory=process.env.PANDO_MAP_IMAGE_LINUX_ARTIFACT||resolve(workspace,'build-native/map-image/linux-x64'),
@@ -81,9 +82,9 @@ export function rotateNativeRgba(image,degrees,options){
 export function encodeNativePng(image,options){
   return operateNativeRgba(image,[image?.width,image?.height],['encode-png'],options);
 }
-export async function readNativePng({path,rect,maxPixels=4000000},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+export async function readNativeImage({path,rect,format,maxPixels=4000000},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
-  if(typeof path!=='string'||!path)throw Error('PNG input path is required');
+  if(typeof path!=='string'||!path||!['png','jpeg'].includes(format))throw Error('Image path and supported format are required');
   if(!Number.isInteger(maxPixels)||maxPixels<256||maxPixels>16777216)throw Error('Pixel budget must be 256..16777216');
   let coordinates=[0,0,0,0];
   if(rect!=null){
@@ -93,16 +94,16 @@ export async function readNativePng({path,rect,maxPixels=4000000},{signal,worksp
   }
   const chunks=[];let bytes=0;
   for await(const chunk of createReadStream(path,{signal:signal||undefined})){
-    bytes+=chunk.length;if(bytes>300*1024*1024)throw Error('PNG input exceeds encoded byte budget');chunks.push(chunk);
+    bytes+=chunk.length;if(bytes>300*1024*1024)throw Error('Image input exceeds encoded byte budget');chunks.push(chunk);
   }
   signal?.throwIfAborted();
-  const data=await runNative(nativeBinary(workspace,directory),['read-png',String(maxPixels),...coordinates.map(String)],Buffer.concat(chunks,bytes),44+16777216*4,signal);
-  if(data.length<44)throw Error('Native PNG receipt is truncated');
+  const data=await runNative(nativeBinary(workspace,directory),['read-'+format,String(maxPixels),...coordinates.map(String)],Buffer.concat(chunks,bytes),44+16777216*4,signal);
+  if(data.length<44)throw Error('Native image receipt is truncated');
   const fields=Array.from({length:11},(_,i)=>data.readUInt32BE(i*4));
   const [encodedWidth,encodedHeight,exifOrientation,originalWidth,originalHeight,x,y,width,height,outWidth,outHeight]=fields;
   dimensions(encodedWidth,encodedHeight);dimensions(originalWidth,originalHeight);dimensions(outWidth,outHeight);
   if(width<2||height<2||x+width>originalWidth||y+height>originalHeight||data.length!==44+outWidth*outHeight*4)
-    throw Error('Native PNG receipt is invalid');
+    throw Error('Native image receipt is invalid');
   signal?.throwIfAborted();
   return {width:outWidth,height:outHeight,originalWidth,originalHeight,mapping:{exifOrientation,encodedSize:[encodedWidth,encodedHeight],
     rect:{x,y,width,height},analysisSize:[outWidth,outHeight],coordinateSpace:'exif-oriented-original-pixels'},data:data.subarray(44)};
