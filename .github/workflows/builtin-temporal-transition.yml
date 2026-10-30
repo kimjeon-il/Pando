@@ -1,0 +1,35 @@
+name: Builtin temporal transition
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - '.github/workflows/builtin-temporal-transition.yml'
+      - 'shared/frontend/js/modules/builtin-*.js'
+      - 'shared/frontend/js/modules/project-domain.js'
+      - 'apps/viewer/js/modules/viewer-composition.js'
+      - 'tests/unit/builtin-*.test.mjs'
+      - 'tests/unit/project-domain*.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: builtin-temporal-transition-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Preserve exact tracked source for isolated verification
+        run: git archive --format=tar.gz --output="$RUNNER_TEMP/pando-source.tar.gz" HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: builtin-temporal-source-${{ github.sha }}
+          path: ${{ runner.temp }}/pando-source.tar.gz
+          retention-days: 1
+      - name: Existing timeline request regression
+        run: node --test tests/unit/builtin-month-clock.test.mjs
