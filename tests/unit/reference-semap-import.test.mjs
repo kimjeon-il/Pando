@@ -8,8 +8,8 @@ import {encodeNativeGrayPng,readNativeTrainingMask} from '../../tools/map-image/
 import {prepareSemapCorpus} from '../../tools/reference-analysis/prepare-semap.mjs';
 import {validateSemapTrainingCorpus} from '../../tools/reference-analysis/validate-semap.mjs';
 import {inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
-import {writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
-import {verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
+import {verifyCombinedTrainingOrder,writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
+import {prepareCombinedTrainingBatch,verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
 
 test('Semap importer preserves real originals, rejects changed outputs and never creates review truth',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-semap-import-'));t.after(()=>rm(root,{recursive:true}));
@@ -70,6 +70,14 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     assert.deepEqual(plan.datasetLengths,[1,1]);assert.equal(plan.length,2);
     const order=await readFile(join(output,'order.u64'));assert.deepEqual([Number(order.readBigUInt64LE(0)),Number(order.readBigUInt64LE(8))],[0,1]);
     const weights=await readFile(join(output,'weights.f32'));assert.equal(sha(weights),plan.weightsSha256);
+    const request={corpus:macroPath,auxiliary:first.manifest,orderDirectory:output,macroOnly:false,epoch:0,seed:42,verifyEvidence};
+    assert.equal((await verifyCombinedTrainingOrder(request)).lineageFingerprint,plan.lineageFingerprint);
+    const batch=await prepareCombinedTrainingBatch({...request,cursor:0,count:2,augment:false,output:join(root,'mixed-batch')});
+    assert.deepEqual(batch.samples.map(row=>row.index),[0,1]);
+    assert.deepEqual(batch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['macro-pdf','semap-label']);
+    await writeFile(join(output,'weights.f32'),Buffer.alloc(28));
+    await assert.rejects(verifyCombinedTrainingOrder(request),/weight/i);
+    await assert.rejects(prepareCombinedTrainingBatch({...request,cursor:0,count:1,augment:false,output:join(root,'changed-batch')}),/weight/i);
   }
   const target=await readFile(join(root,annotation.raster.path));const mask=await readNativeTrainingMask(target,annotation.raster.sha256);
   assert(mask.data.every(value=>value===8));
