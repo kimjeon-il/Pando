@@ -24,7 +24,8 @@ static void message(j_common_ptr common,int level){
     if(level<0&&common->err->msg_code==JWRN_JPEG_EOF)failure(common);
 }
 static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,int inspect_only,PandoImage* result,
-    uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* output_cmyk){
+    uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* output_cmyk,
+    PandoJpegRowStart start,PandoJpegRowConsumer consume,void* context){
     Decoder* decoder;unsigned int y,x;int cmyk;
     memset(result,0,sizeof(*result));result->orientation=1;
     decoder=(Decoder*)calloc(1,sizeof(*decoder));if(!decoder){strcpy(result->error,"Out of memory");return 0;}
@@ -37,10 +38,12 @@ static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,in
     jpeg_create_decompress(&decoder->jpeg);decoder->jpeg.client_data=decoder;jpeg_mem_src(&decoder->jpeg,bytes,(unsigned long)size);
     jpeg_save_markers(&decoder->jpeg,JPEG_APP0+1,0xffff);jpeg_read_header(&decoder->jpeg,TRUE);
     if(!decoder->jpeg.image_width||!decoder->jpeg.image_height||
-       (!maximum_pixels&&(decoder->jpeg.image_width>16384||decoder->jpeg.image_height>16384||
+       (!maximum_pixels&&!consume&&(decoder->jpeg.image_width>16384||decoder->jpeg.image_height>16384||
           (uint64_t)decoder->jpeg.image_width*decoder->jpeg.image_height>16777216))||
+       (consume&&(decoder->jpeg.image_width>65535||decoder->jpeg.image_height>65535||
+          (uint64_t)decoder->jpeg.image_width*decoder->jpeg.image_height>600000000))||
        (maximum_pixels&&(uint64_t)decoder->jpeg.image_width*decoder->jpeg.image_height>600000000)){
-        strncpy(decoder->error,maximum_pixels?"JPEG exceeds the source pixel budget":"JPEG exceeds the 16MP graph budget",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
+        strncpy(decoder->error,(maximum_pixels||consume)?"JPEG exceeds the source pixel budget":"JPEG exceeds the 16MP graph budget",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
     }
     {
         jpeg_saved_marker_ptr marker;
@@ -48,6 +51,9 @@ static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,in
             if(marker->marker==JPEG_APP0+1&&marker->data_length>=6&&!memcmp(marker->data,"Exif\0\0",6)){
                 result->orientation=pando_exif_orientation(marker->data+6,marker->data_length-6);break;
             }
+    }
+    if(consume&&(result->orientation<1||result->orientation>4)){
+        strncpy(decoder->error,"Streaming JPEG orientation 5-8 is not available",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
     }
     if(maximum_pixels){
         const uint32_t w=decoder->jpeg.image_width,h=decoder->jpeg.image_height;
@@ -70,31 +76,43 @@ static int read_jpeg(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,in
         strncpy(decoder->error,"Unexpected JPEG pixel layout",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
     }
     decoder->row=(JSAMPLE*)malloc((size_t)decoder->jpeg.output_width*decoder->jpeg.output_components);
-    decoder->pixels=(uint8_t*)malloc((size_t)decoder->jpeg.output_width*decoder->jpeg.output_height*4);
+    decoder->pixels=(uint8_t*)malloc((size_t)decoder->jpeg.output_width*(consume?1:decoder->jpeg.output_height)*4);
     if(!decoder->row||!decoder->pixels){strncpy(decoder->error,"JPEG allocation failed",sizeof(decoder->error)-1);longjmp(decoder->jump,1);}
+    if(consume&&!start(context,decoder->jpeg.output_width,decoder->jpeg.output_height,result->orientation)){
+        strncpy(decoder->error,"JPEG row consumer initialization failed",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
+    }
     for(y=0;y<decoder->jpeg.output_height;y++){
         JSAMPROW rows[1]={decoder->row};
         if(jpeg_read_scanlines(&decoder->jpeg,rows,1)!=1){strncpy(decoder->error,"Truncated JPEG input",sizeof(decoder->error)-1);longjmp(decoder->jump,1);}
         for(x=0;x<decoder->jpeg.output_width;x++){
-            const JSAMPLE* source=decoder->row+x*(cmyk?4:3);uint8_t* dest=decoder->pixels+((size_t)y*decoder->jpeg.output_width+x)*4;int c;
+            const JSAMPLE* source=decoder->row+x*(cmyk?4:3);uint8_t* dest=decoder->pixels+((size_t)(consume?0:y)*decoder->jpeg.output_width+x)*4;int c;
             for(c=0;c<3;c++)dest[c]=cmyk?(maximum_pixels?(uint8_t)(255-source[c]):(uint8_t)(source[3]-((255-source[c])*source[3]+127)/255)):source[c];
             dest[3]=cmyk&&maximum_pixels?(uint8_t)(255-source[3]):255;
         }
+        if(consume&&!consume(context,y,decoder->pixels,(size_t)decoder->jpeg.output_width*4)){
+            strncpy(decoder->error,"JPEG row consumer failed",sizeof(decoder->error)-1);longjmp(decoder->jump,1);
+        }
     }
     jpeg_finish_decompress(&decoder->jpeg);
-    result->width=decoder->jpeg.output_width;result->height=decoder->jpeg.output_height;result->rgba=decoder->pixels;decoder->pixels=NULL;
+    result->width=decoder->jpeg.output_width;result->height=decoder->jpeg.output_height;
+    if(consume){free(decoder->pixels);decoder->pixels=NULL;}else{result->rgba=decoder->pixels;decoder->pixels=NULL;}
     free(decoder->row);jpeg_destroy_decompress(&decoder->jpeg);free(decoder);return 1;
 }
-int pando_read_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){return read_jpeg(bytes,size,0,0,result,NULL,NULL,NULL,NULL,NULL);}
+int pando_read_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){return read_jpeg(bytes,size,0,0,result,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);}
 int pando_inspect_jpeg(const uint8_t* bytes,size_t size,PandoImage* result){
     uint32_t ow=0,oh=0,bw=0,bh=0;int cmyk=0;
-    if(!read_jpeg(bytes,size,16777216,2,result,&ow,&oh,&bw,&bh,&cmyk))return 0;
+    if(!read_jpeg(bytes,size,16777216,2,result,&ow,&oh,&bw,&bh,&cmyk,NULL,NULL,NULL))return 0;
     return 1;
 }
 int pando_read_jpeg_draft(const uint8_t* bytes,size_t size,uint32_t maximum_pixels,int inspect_only,PandoImage* result,
     uint32_t* original_width,uint32_t* original_height,uint32_t* bound_width,uint32_t* bound_height,int* cmyk){
     if(!maximum_pixels){memset(result,0,sizeof(*result));strcpy(result->error,"Positive pixel budget required");return 0;}
-    return read_jpeg(bytes,size,maximum_pixels,inspect_only,result,original_width,original_height,bound_width,bound_height,cmyk);
+    return read_jpeg(bytes,size,maximum_pixels,inspect_only,result,original_width,original_height,bound_width,bound_height,cmyk,NULL,NULL,NULL);
+}
+int pando_stream_jpeg_rows(const uint8_t* bytes,size_t size,PandoImage* result,
+    PandoJpegRowStart start,PandoJpegRowConsumer consume,void* context){
+    if(!start||!consume){memset(result,0,sizeof(*result));strcpy(result->error,"JPEG row callbacks required");return 0;}
+    return read_jpeg(bytes,size,0,0,result,NULL,NULL,NULL,NULL,NULL,start,consume,context);
 }
 
 typedef struct Encoder {

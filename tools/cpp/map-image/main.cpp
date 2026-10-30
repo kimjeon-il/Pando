@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -78,6 +79,40 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="training-jpeg-overview"){
+            if(argc!=2)throw std::invalid_argument("JPEG training overview takes no extra arguments");
+            struct State {
+                std::uint32_t width=0,height=0,orientation=0;
+                std::unique_ptr<pando::map_image::OpaqueBilinearAccumulator> accumulator;
+                std::vector<std::uint8_t> mirrored;std::exception_ptr error;
+            } state;
+            const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t orientation)->int{
+                auto& s=*static_cast<State*>(context);try{
+                    s.width=width;s.height=height;s.orientation=orientation;
+                    s.accumulator=std::make_unique<pando::map_image::OpaqueBilinearAccumulator>(width,height,256,256);
+                    if(orientation==2||orientation==3)s.mirrored.resize(std::size_t(width)*4);
+                    return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto row=[](void* context,std::uint32_t y,const std::uint8_t* pixels,std::size_t length)->int{
+                auto& s=*static_cast<State*>(context);try{
+                    if(!s.mirrored.empty()){
+                        for(std::size_t x=0;x<s.width;++x)std::copy_n(pixels+x*4,4,s.mirrored.data()+(s.width-1-x)*4);
+                        pixels=s.mirrored.data();
+                    }
+                    const auto orientedY=(s.orientation==3||s.orientation==4)?s.height-1-y:y;
+                    s.accumulator->addRow(static_cast<int>(orientedY),pixels,length);return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_stream_jpeg_rows(encoded.data(),encoded.size(),&image,start,row,&state)){
+                if(state.error)std::rethrow_exception(state.error);
+                throw std::runtime_error(std::string("Training JPEG: ")+image.error);
+            }
+            const auto output=state.accumulator->finish();number(image.width);number(image.height);number(image.orientation);
+            std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write JPEG training overview");return 0;
+        }
         if(action=="read-webp-raw"){
             if(argc!=2)throw std::invalid_argument("Raw WebP takes no extra arguments");
             const auto encoded=encodedInput();PandoImage image{};
