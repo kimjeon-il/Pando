@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {nativeTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
 
-test('training batch management rejects changed samples and preserves existing outputs',{skip:process.platform!=='win32'},async t=>{
+test('training batch management rejects changed samples and preserves existing outputs',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-training-batch-'));t.after(()=>rmSync(root,{recursive:true}));
   const sample=join(root,'sample'),weights=join(root,'weights.safetensors'),output=join(root,'new.pt'),order=join(root,'order.u64'),corpus=join(root,'corpus.json');mkdirSync(sample);
   const sha=value=>createHash('sha256').update(value).digest('hex'),names=['tile','overview','position','target','valid'];
