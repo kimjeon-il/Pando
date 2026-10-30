@@ -8,6 +8,9 @@ test('DEM tint filling rejects invalid grids and missing valid land before start
   const fill=source.fillGdalDemTint;
   await assert.rejects(fill({width:2,height:1,rgb:new Float32Array(6),valid:Buffer.alloc(2)}),/valid land/i);
   await assert.rejects(fill({width:2,height:1,rgb:new Float32Array(5),valid:Buffer.from([1,0])}),/grid/i);
+  await assert.rejects(fill({width:1,height:1,rgb:Float32Array.from([NaN,1,2]),valid:Buffer.from([1])}),/non-finite/i);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(fill({width:1,height:1,rgb:new Float32Array(3),valid:Buffer.from([1])},{signal:controller.signal}),{name:'AbortError'});
 });
 
 test('tint stream rejects a truncated or invalid request before invoking the native tool',()=>{
