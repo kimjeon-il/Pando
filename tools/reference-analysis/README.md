@@ -448,7 +448,7 @@ execution. The ZIP is a temporary transfer artifact, not an archival report.
 In that same Work conversation, extract the verified ZIP, install the exact
 dependencies from its generated `workspace/package.json` using
 `npm install --ignore-scripts --no-audit --no-fund --package-lock=false`, and use
-`run --bundle <bundle> --output <results outside bundle> --python <python>
+`run --bundle <bundle> --output <results outside bundle>
 --stage components --surface chatgpt-work-cloud`. Continue with `map` only after
 components pass. Review the actual map overlay and supply a JSON array of current
 candidate IDs with `--selection` for `export`, then `resume` on the next turn.

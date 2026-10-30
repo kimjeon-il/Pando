@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {encodeNativePng,resizeNativeRgba,resizeNativePdfThumbnail} from './native-resample.mjs';
 
-export const mapPreviewSourceFiles=Object.freeze(['tools/cpp/map-preview/CMakeLists.txt','tools/cpp/map-preview/preview.cpp',
+export const mapPreviewSourceFiles=Object.freeze(['tools/cpp/map-preview/CMakeLists.txt','tools/cpp/map-preview/preview.cpp','tools/cpp/map-image/raster-draw.h',
   'tools/cpp/map-preview/PILLOW-LICENSE','tools/cpp/map-preview/FREETYPE-LICENSE']);
 const root=fileURLToPath(new URL('../../',import.meta.url)),fontPath='tools/cpp/map-preview/aileron-subset.ttf';
 const fontHash='69853909b940023570964e29cffe30da95aea8de3627736b5cd15ab30143169f';
