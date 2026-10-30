@@ -19,6 +19,8 @@
 #include <qgsfeatureiterator.h>
 #include <qgsfeaturerequest.h>
 #include <qgsgeometry.h>
+#include <qgsmapcanvas.h>
+#include <qgsmapsettings.h>
 #include <qgswkbtypes.h>
 #include <qgsexpression.h>
 #include <qgsexception.h>
@@ -181,6 +183,15 @@ class Bridge final:public QObject,public QgisPlugin {
         const auto command=request.value(QStringLiteral("command")).toString();
         if(command==QStringLiteral("status"))return {{QStringLiteral("qgis_version"),Qgis::version()},
             {QStringLiteral("pid"),static_cast<double>(QCoreApplication::applicationPid())},{QStringLiteral("transport"),QStringLiteral("pando-native-v1")}};
+        if(command==QStringLiteral("canvas")){
+            auto* canvas=iface_->mapCanvas();if(!canvas)throw QStringLiteral("QGIS map canvas is unavailable");
+            const auto extent=canvas->extent();
+            return {{QStringLiteral("extent"),QJsonArray{extent.xMinimum(),extent.yMinimum(),extent.xMaximum(),extent.yMaximum()}},
+                {QStringLiteral("crs"),canvas->mapSettings().destinationCrs().authid()},
+                {QStringLiteral("width"),canvas->width()},{QStringLiteral("height"),canvas->height()},
+                {QStringLiteral("scale"),canvas->scale()},{QStringLiteral("rotation"),canvas->rotation()},
+                {QStringLiteral("magnification"),canvas->magnificationFactor()}};
+        }
         if(command==QStringLiteral("active-layer")){
             const auto value=request.value(QStringLiteral("layer"));
             if(!value.isUndefined()){

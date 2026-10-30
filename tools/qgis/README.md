@@ -13,6 +13,7 @@ source and QGIS 3.44.15 / Qt 5.15.13. Keep the token in the ignored config.
 node tools/qgis/native-bridge.mjs start
 node tools/qgis/native-bridge.mjs status
 node tools/qgis/native-bridge.mjs project
+node tools/qgis/native-bridge.mjs canvas
 node tools/qgis/native-bridge.mjs active-layer
 node tools/qgis/native-bridge.mjs active-layer --layer QGIS_LAYER_ID
 node tools/qgis/native-bridge.mjs zoom-to-layer --layer QGIS_LAYER_ID
