@@ -54,6 +54,18 @@ test('fractional shared endpoints preserve unrelated chain IDs across exclusion 
   }
 });
 
+test('a distinct junction near an endpoint still splits the affected line',()=>{
+  const near=[49.999999,20];
+  const input=graph([chain(20,[[10,20],[50,20]]),chain(90,[near,[49.999999,30]])]);
+  const result=edit(input,{type:'rebuild'});
+  assert.deepEqual(result.chains.find(c=>c.id===90),input.chains[1]);
+  assert.deepEqual(result.changeSet.removed,[20]);
+  assert.equal(result.changeSet.created.length,2);
+  assert.equal(result.chains.length,3);
+  assert.equal(result.chains.filter(c=>c.points.some(p=>p[0]===near[0]&&p[1]===near[1])).length,3);
+  assert(result.chains.some(c=>c.points[0][0]===near[0]&&c.points.at(-1)[0]===50));
+});
+
 test('manual add nodes only intersected paths and retired chain identities never return',()=>{
   const untouched=chain(90,[[110.25,110.75],[150.5,150.25]],2,.372);
   const input=graph([chain(20,[[10.25,20.5],[50.25,20.5]]),untouched]);
