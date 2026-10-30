@@ -1,9 +1,16 @@
 // Read only selected HydroRIVERS topology from pinned ZIP members, without extracting originals.
 import {createHash} from 'node:crypto';
-import {posix} from 'node:path';
+import {posix,resolve} from 'node:path';
 import {zipMemberChunks,zipMembers} from '../lib/geonames-zip.mjs';
 
 const regions=['eu','as','si','af','sa','na','ar','au','gr'];
+export function hydroSourceArchivesFromManifest(manifest,directory){
+  const specs=manifest?.sources?.hydroRivers;
+  if(typeof directory!=='string'||!directory||!Array.isArray(specs)||specs.length!==regions.length||
+    new Set(specs.map(spec=>spec?.datasetCode)).size!==regions.length||regions.some(region=>!specs.some(spec=>spec?.datasetCode===region)))
+    throw Error('Complete Hydro source specifications and directory required');
+  return regions.map(code=>({archive:resolve(directory,`HydroRIVERS_v10_${code}_shp.zip`),specification:specs.find(spec=>spec.datasetCode===code)}));
+}
 async function* verifiedChunks(archive,member,expected,signal){
   const hash=createHash('sha256');for await(const chunk of zipMemberChunks(archive,member)){
     signal?.throwIfAborted();hash.update(chunk);yield chunk;
