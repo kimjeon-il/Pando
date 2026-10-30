@@ -40,12 +40,17 @@ function covers(interval, start) {
   if (start === null) return interval.start === null;
   return (!interval.start || compare(interval.start, start) <= 0) && (!interval.end || compare(interval.end, start) >= 0);
 }
-function append(rows, row, sameValue) {
+// Interval adjacency is shared; each caller supplies its own record-identity contract.
+function appendAdjacentInterval(rows, row, sameValue) {
   const previous = rows.at(-1);
-  if (previous && previous.objectRef.domain===row.objectRef.domain && previous.objectRef.id===row.objectRef.id && previous.validTo !== null && row.validFrom !== null
+  if (previous && previous.validTo !== null && row.validFrom !== null
       && date(shiftDay(parseTemporal(previous.validTo).endKey, 1)) === row.validFrom && sameValue(previous, row)) {
     previous.validTo = row.validTo;
   } else rows.push(row);
+}
+function append(rows, row, sameValue) {
+  appendAdjacentInterval(rows, row, (a, b) => a.objectRef.domain === b.objectRef.domain
+    && a.objectRef.id === b.objectRef.id && sameValue(a, b));
 }
 const identity = feature => ({ type: 'Feature', id: feature.id, geometry: null,
   properties: Object.fromEntries(TERRITORIAL_IDENTITY_FIELDS.map(key => [key, structuredClone(feature.properties[key])])) });
@@ -265,7 +270,9 @@ export function coalesceCoverageAdjustments(adjustments) {
   return [...groups].sort(([a],[b])=>a.localeCompare(b,'en')).flatMap(([,values])=>{
     values.sort((a,b)=>a.validFrom===null?-1:b.validFrom===null?1:compare(parseTemporal(a.validFrom).startKey,parseTemporal(b.validFrom).startKey));
     const rows=[];
-    for(const row of values)append(rows,row,()=>true);
+    // Grouping above already fixes entityId, kind, relatedIds and all evidence fields.
+    // Coverage evidence is not a timeline record and must not require objectRef.
+    for(const row of values)appendAdjacentInterval(rows,row,()=>true);
     return rows;
   });
 }
