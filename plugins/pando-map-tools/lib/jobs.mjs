@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile, readFile, rename, rm, lstat, open } from 'node:fs/promises';
 import { resolve, join, dirname, basename } from 'node:path';
 import { workspaceModule, runtimeResources, assertRuntimeResources } from './workspace.mjs';
 import { calculateReferenceImage as calculate } from './analysis/core.mjs';
@@ -96,9 +96,49 @@ export function reviseJob(job, command) {
   if(command.type==='review')selectedJobGeometry(result);
   return result;
 }
-export async function saveJob(path,job) {
+export async function saveJob(path,job,{preview=null,signal}={}) {
   const temporary=path+'.part';
-  await writeFile(temporary,JSON.stringify(sealJob(job),null,2)+'\n',{flag:'wx'});await rename(temporary,path);
+  // Reserve the established writer path first. An interrupted save is never
+  // overwritten, and its presence must not change the successful preview.
+  const handle=await open(temporary,'wx');
+  let stage=null,partOwned=true,oldJobMoved=false,oldPreviewMoved=false,jobInstalled=false,previewInstalled=false,committed=false;
+  let failure=null;const recoveryErrors=[],cleanupErrors=[];
+  const previewPath=path+'.preview.png';
+  const moveExisting=async(from,to)=>{
+    try {
+      if(!(await lstat(from)).isFile())throw new Error('Expected a regular job/preview file.');
+      await rename(from,to);return true;
+    }catch(error){if(error.code==='ENOENT')return false;throw error;}
+  };
+  try {
+    try {await handle.writeFile(JSON.stringify(sealJob(job),null,2)+'\n');}finally{await handle.close();}
+    signal?.throwIfAborted();
+    if(preview) {
+      if(typeof preview!=='function')throw new Error('Raster preview renderer required.');
+      stage=await mkdtemp(join(dirname(path),'.'+basename(path)+'.revision-'));
+      await preview(job,join(stage,'preview.png'));signal?.throwIfAborted();assertRuntimeResources(job.resources);
+      // Move, rather than duplicate, the predecessor pair until both new files
+      // are installed. Failed rollback keeps the originals in this directory.
+      oldJobMoved=await moveExisting(path,join(stage,'previous-job.json'));
+      oldPreviewMoved=await moveExisting(previewPath,join(stage,'previous-preview.png'));
+    }
+    await rename(temporary,path);partOwned=false;jobInstalled=true;
+    if(preview){await rename(join(stage,'preview.png'),previewPath);previewInstalled=true;}
+    committed=true;
+  } catch(error) {
+    failure=error;
+    if(stage) {
+      try {if(oldJobMoved)await rename(join(stage,'previous-job.json'),path);else if(jobInstalled)await rm(path);}catch(rollback){recoveryErrors.push(rollback);}
+      try {if(oldPreviewMoved)await rename(join(stage,'previous-preview.png'),previewPath);else if(previewInstalled)await rm(previewPath);}catch(rollback){recoveryErrors.push(rollback);}
+    }
+  }
+  if(!recoveryErrors.length) {
+    if(partOwned)try{await rm(temporary,{force:true});}catch(error){cleanupErrors.push(error);}
+    if(stage)try{await rm(stage,{recursive:true,force:true});}catch(error){cleanupErrors.push(error);}
+  }
+  if(recoveryErrors.length)throw Object.assign(new AggregateError([failure,...recoveryErrors],`Revision failed; preserved recovery files at ${stage}`,{cause:failure}),{code:'PL-MAP-RECOVERY-REQUIRED',recoveryDirectory:stage});
+  if(cleanupErrors.length)throw Object.assign(new AggregateError([...(failure?[failure]:[]),...cleanupErrors],`${committed?'Job saved':'Revision failed'}; cleanup incomplete at ${stage || temporary}`,{cause:failure || cleanupErrors[0]}),{code:'PL-MAP-SAVE-CLEANUP',committed,recoveryDirectory:stage});
+  if(failure)throw failure;
 }
 export async function loadJob(path) { const job=JSON.parse(await readFile(path,'utf8'));assertJob(job);return job; }
 export function selectedJobGeometry(job) {
@@ -106,16 +146,19 @@ export function selectedJobGeometry(job) {
   if (!job.review || job.review.revision!==job.revision) throw new Error('Review current georeference and boundaries before export.');
   if(!job.review.georeference || !job.review.boundaries || !job.warp?.ok || job.quality?.folded || job.quality?.invalidDomain || !job.graph?.ok
     || !Array.isArray(job.review.selectedIds) || !job.review.selectedIds.length || new Set(job.review.selectedIds).size!==job.review.selectedIds.length)throw new Error('Invalid current review selection.');
-  const projected=calculate('projectBoundaryGraph',{graph:job.graph,warp:job.warp});
-  const rows=new Map([...projected.lines.map(v=>['line:'+v.id,v]),...projected.polygons.map(v=>['face:'+v.id,v])]);
   const pixels=new Map([...job.graph.chains.map(v=>['line:'+v.id,{type:'LineString',coordinates:v.points}]),
     ...job.graph.faces.map(v=>['face:'+v.id,{type:'Polygon',coordinates:[v.ring,...(v.holes || [])]}])]);
   const rect=job.source.mapping?.rect;
   const onCropEdge=point=>rect && (Math.abs(point[0]-rect.x)<1 || Math.abs(point[1]-rect.y)<1 || Math.abs(point[0]-(rect.x+rect.width-1))<1 || Math.abs(point[1]-(rect.y+rect.height-1))<1);
   const incomplete=new Set(job.graph.faces.filter(v=>v.touchesImageEdge || [v.ring,...(v.holes || [])].some(ring=>ring.some(onCropEdge))).map(v=>'face:'+v.id));
+  const selected=new Set(job.review.selectedIds);
+  for(const id of selected)if(!pixels.has(id)||incomplete.has(id))throw new Error(`Invalid or incomplete boundary selection: ${id}`);
+  const projected=calculate('projectBoundaryGraph',{graph:{...job.graph,
+    chains:job.graph.chains.filter(v=>selected.has('line:'+v.id)),faces:job.graph.faces.filter(v=>selected.has('face:'+v.id))},warp:job.warp});
+  const rows=new Map([...projected.lines.map(v=>['line:'+v.id,v]),...projected.polygons.map(v=>['face:'+v.id,v])]);
   return job.review.selectedIds.map(id=>{
     const row=rows.get(id),pixelGeometry=pixels.get(id);
-    if(!row || !pixelGeometry || incomplete.has(id))throw new Error(`Invalid or incomplete boundary selection: ${id}`);
+    if(!row)throw new Error(`Invalid or incomplete boundary selection: ${id}`);
     return {id,geometry:row.geometry,pixelGeometry:structuredClone(pixelGeometry)};
   });
 }

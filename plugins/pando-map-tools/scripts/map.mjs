@@ -54,7 +54,7 @@ try {
       controller.signal.throwIfAborted();
       job=change.type==='region'?await analyze({...regionAnalysisOptions(job,change),jobPath,signal:controller.signal,progress}):await reviseWithRaster(job,change,controller.signal);
     }
-    await renderPreview(job,jobPath+'.preview.png',controller.signal);await saveJob(jobPath,job);
+    await saveJob(jobPath,job,{preview:(current,path)=>renderPreview(current,path,controller.signal),signal:controller.signal});
     process.stdout.write(JSON.stringify({job:jobPath,revision:job.revision,status:job.status,reason:job.warp?.reason,review:job.review,preview:jobPath+'.preview.png'})+'\n');
   } else {
     if(!options.output)throw new Error('--output new private directory is required.');
@@ -62,5 +62,5 @@ try {
     process.stdout.write(JSON.stringify(result)+'\n');
   }
 } catch(error) {
-  process.stderr.write(JSON.stringify({status:controller.signal.aborted?'cancelled':'failed',code:error.code||error.name,message:error.message,stack:error.stack,cause:error.cause?.stack,stderr:error.stderr})+'\n');process.exitCode=1;
+  process.stderr.write(JSON.stringify({status:error.committed?'committed-cleanup-pending':controller.signal.aborted?'cancelled':'failed',code:error.code||error.name,message:error.message,stack:error.stack,cause:error.cause?.stack,stderr:error.stderr,recoveryDirectory:error.recoveryDirectory})+'\n');process.exitCode=1;
 } finally {process.removeListener('SIGINT',abort);if(lock){await lock.close();await unlink(jobPath+'.lock');}}

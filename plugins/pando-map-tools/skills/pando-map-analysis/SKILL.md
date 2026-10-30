@@ -101,6 +101,9 @@ unapplied candidate as an exported feature.
 Only mark the current georeference and selected candidates reviewed after
 comparison; unresolved uncertainty stays in the output. Never close cropped or
 open boundaries artificially. Preserve source geometry and edit history.
+When adding an adjacent region, reuse its existing shared boundary and add only
+the missing source-reviewed outer paths. Do not draw a second overlapping copy
+of the shared edge; overlapping paths fail instead of combining class evidence.
 
 For historical borders, first read the canonical policy at
 <skill_root>/runtime/workspace/docs/historical-border-reconstruction-policy.md
