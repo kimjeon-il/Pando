@@ -106,6 +106,17 @@ export async function inspectNativeJpeg(bytes,{signal,workspace=root,directory=a
   if(!width||!height||width>65535||height>65535||outWidth!==width||outHeight!==height||changed!==0)throw Error('Native JPEG inspection receipt is invalid');
   signal?.throwIfAborted();return [width,height];
 }
+export async function inspectNativeImageHeader(bytes,format,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!['png','jpeg','webp'].includes(format))throw Error('Expected a supported image format');
+  if(!(bytes instanceof Uint8Array)||!bytes.length||bytes.length>300*1024*1024)throw Error('Expected a bounded image source');
+  const output=await runNative(nativeBinary(workspace,directory),['header-'+format],bytes,12,signal);
+  if(output.length!==12)throw Error('Native image header receipt is invalid');
+  const width=output.readUInt32BE(0),height=output.readUInt32BE(4),orientation=output.readUInt32BE(8);
+  if(!width||!height||width*height>300000000)throw Error('Native image header dimensions are invalid');
+  const swap=orientation>=5&&orientation<=8;signal?.throwIfAborted();
+  return {format,encodedSize:[width,height],orientation,size:swap?[height,width]:[width,height]};
+}
 export async function readNativeImage({path,rect,format,maxPixels=4000000},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');

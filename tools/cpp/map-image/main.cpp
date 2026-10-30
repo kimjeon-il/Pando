@@ -57,6 +57,14 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="header-png"||action=="header-jpeg"||action=="header-webp"){
+            if(argc!=2)throw std::invalid_argument("Image header takes no extra arguments");
+            const auto encoded=encodedInput();PandoImage image{};
+            const bool ok=action=="header-png"?pando_inspect_png(encoded.data(),encoded.size(),&image):
+                action=="header-jpeg"?pando_inspect_jpeg(encoded.data(),encoded.size(),&image):pando_inspect_webp(encoded.data(),encoded.size(),&image);
+            if(!ok)throw std::runtime_error(std::string("Image header: ")+image.error);
+            number(image.width);number(image.height);number(image.orientation);return 0;
+        }
         if(action=="prepare-jpeg"||action=="inspect-jpeg"){
             if(argc!=3)throw std::invalid_argument("Expected JPEG preparation with MAX_PIXELS");
             const auto maximum=static_cast<std::uint32_t>(bounded(argv[2],16777216));const auto encoded=encodedInput();
