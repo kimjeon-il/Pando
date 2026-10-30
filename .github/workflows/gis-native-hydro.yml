@@ -840,7 +840,8 @@ jobs:
       - name: Install locked MCP test dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Reuse pinned QGIS SDK archives
-        uses: actions/cache@v4
+        id: qgis-sdk-cache
+        uses: actions/cache/restore@v4
         with:
           path: build-native/qgis-sdk/*.tar.bz2
           key: qgis-sdk-${{ runner.os }}-qgis-3.44.15-qt-5.15.13-gdal-3.13.3-geos-3.15.0-proj-9.8.1-v1
@@ -869,6 +870,12 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "SDK download failed: $($package.name)" }
             if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $package.sha) { throw "SDK digest mismatch: $($package.name)" }
           }
+      - name: Cache verified QGIS SDK archives
+        if: steps.qgis-sdk-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build-native/qgis-sdk/*.tar.bz2
+          key: ${{ steps.qgis-sdk-cache.outputs.cache-primary-key }}
       - name: Extract QGIS headers and import libraries
         timeout-minutes: 4
         shell: pwsh

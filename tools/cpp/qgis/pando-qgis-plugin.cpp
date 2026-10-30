@@ -35,7 +35,7 @@
 #include <qgsvectorlayer.h>
 #include <qgsvectorlayereditbuffer.h>
 #include <QCoreApplication>
-#include <QBuffer>
+#include <QtCore/QBuffer>
 #include <QDir>
 #include <QFileInfo>
 #include <QHostAddress>
