@@ -63,6 +63,9 @@ jobs:
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
+          $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
+          node --test --test-name-pattern='native rotation works|Live-Wire preserves' tests/unit/map-plugin.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Map image workflow failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: native-map-image-${{ matrix.os }}-${{ github.sha }}
