@@ -2,9 +2,9 @@
 import {dirname,extname,resolve} from 'node:path';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {prepareNativeTrainingTile,readNativeImage,readNativeTrainingMask} from '../map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,prepareNativeTrainingTile,readNativeImage,readNativeTrainingMask} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
-import {referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
+import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {readTrainingBounded} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
@@ -35,6 +35,26 @@ async function trainingRaster(root,annotation,field,options){
   const path=await resolveCorpusPath(root,spec.path),bytes=await readFile(path,{signal:options.signal});
   const mask=await readNativeTrainingMask(bytes,spec.sha256,{signal:options.signal,workspace:options.workspace,directory:options.imageDirectory});
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
+}
+export async function macroTrainingSupervision(corpus,{signal,workspace,imageDirectory}={}){
+  signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
+  const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');
+  const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
+  if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets)||!manifest.sheets.length)
+    throw Error('Explicit private training-only corpus required');
+  const counts=Array.from({length:7},()=>[0,0]),seen=new Set(),options={signal,workspace,imageDirectory};
+  for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
+    if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
+    const {annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
+    const [target,known]=await Promise.all([trainingRaster(root,annotation,'raster',options),trainingRaster(root,annotation,'validRaster',options)]);
+    const sheetCounts=await countNativeTrainingSupervision(target,known,{signal,workspace,directory:imageDirectory});
+    for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
+    recheckMacroTrainingSource(checks);
+  }
+  if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during supervision');
+  const positiveWeights=counts.map(([known,positive])=>Math.max(1,Math.min(64,(known-positive)/Math.max(positive,1))));
+  const unobservedChannels=REFERENCE_BOUNDARY_CHANNELS.filter((_,i)=>counts[i][1]===0||counts[i][1]===counts[i][0]);
+  return {trainingOnly:true,releaseApproved:false,corpusSha256,counts,positiveWeights,unobservedChannels};
 }
 function maskWindow(mask,x,y){
   const result=Buffer.alloc(512*512),width=Math.min(512,mask.width-x),height=Math.min(512,mask.height-y);

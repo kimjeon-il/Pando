@@ -63,6 +63,20 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="training-supervision"){
+            if(argc!=4)throw std::invalid_argument("Expected training supervision WIDTH HEIGHT");
+            const int width=dimension(argv[2]),height=dimension(argv[3]);const auto pixels=std::size_t(width)*height;
+            if(pixels>16777216)throw std::invalid_argument("Training supervision exceeds 16MP budget");
+            std::vector<std::uint8_t> target(pixels),known(pixels);
+            if(!std::cin.read(reinterpret_cast<char*>(target.data()),static_cast<std::streamsize>(pixels))||
+               !std::cin.read(reinterpret_cast<char*>(known.data()),static_cast<std::streamsize>(pixels))||std::cin.peek()!=std::char_traits<char>::eof())
+                throw std::invalid_argument("Training supervision input length differs");
+            std::array<std::uint32_t,7> validCount{},positiveCount{};
+            for(std::size_t i=0;i<pixels;++i)for(unsigned channel=0;channel<7;++channel){const auto bit=std::uint8_t(1u<<channel);
+                if(known[i]&bit){++validCount[channel];if(target[i]&bit)++positiveCount[channel];}}
+            for(unsigned channel=0;channel<7;++channel){number(validCount[channel]);number(positiveCount[channel]);}
+            if(!std::cout)throw std::runtime_error("Unable to write training supervision counts");return 0;
+        }
         if(action=="training-mask"){
             if(argc!=2)throw std::invalid_argument("Training mask takes no extra arguments");
             const auto encoded=encodedInput();PandoImage image{};

@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {writeMacroTrainingSample,prepareMacroTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
-import {indexMacroTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
+import {indexMacroTrainingDataset,macroTrainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('source-bound macro sample is generated from original pixels without overwriting',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-macro-sample-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -24,6 +24,10 @@ test('source-bound macro sample is generated from original pixels without overwr
   const indexed=await indexMacroTrainingDataset(corpus);
   assert.deepEqual(indexed.tiles.map(({sourceId,index,x,y,duplicateGroup})=>({sourceId,index,x,y,duplicateGroup})),
     [{sourceId:'fixture',index:0,x:0,y:0,duplicateGroup:'group'}]);
+  const supervision=await macroTrainingSupervision(corpus);
+  assert.deepEqual(supervision.counts,[[288,144],[288,144],[288,144],[288,144],[288,143],[288,147],[384,209]]);
+  assert.deepEqual(supervision.unobservedChannels,[]);
+  assert.deepEqual(supervision.positiveWeights.slice(0,4),[1,1,1,1]);
   const output=join(root,'sample'),request={corpus,sourceId:'fixture',tileIndex:0,x:0,y:0,augment:false,epoch:0,output};
   const result=await writeMacroTrainingSample(request),expected=JSON.parse(readFileSync(join(fixture,'expected.json'),'utf8'))[0];
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
