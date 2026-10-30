@@ -43,6 +43,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QMainWindow>
 #include <QPointer>
 #include <QPixmap>
 #include <QRegularExpression>
@@ -656,7 +657,13 @@ public:
         token_=qgetenv("PANDO_QGIS_NATIVE_TOKEN");bool valid=false;const auto port=qgetenv("PANDO_QGIS_NATIVE_PORT").toUShort(&valid);
         if(token_.isEmpty()||token_.size()>4096||!valid||port<1024){qWarning("Pando native QGIS bridge configuration is missing or invalid");return;}
         QObject::connect(&server_,&QTcpServer::newConnection,this,[this]{acceptConnection();});
-        if(!server_.listen(QHostAddress::LocalHost,port))qWarning("Pando native QGIS bridge could not listen on its local port");
+        const auto listen=[this,port]{if(!server_.isListening()&&!server_.listen(QHostAddress::LocalHost,port))
+            qWarning("Pando native QGIS bridge could not listen on its local port");};
+        // During startup QGIS loads plugins before restoring project/window state,
+        // while processEvents can otherwise service requests too early. For a
+        // plugin enabled later, initialization has already happened.
+        if(iface_->mainWindow()->isVisible())listen();
+        else QObject::connect(iface_,&QgisInterface::initializationCompleted,this,listen,Qt::QueuedConnection);
     }
     void unload() override{server_.close();for(auto* socket:server_.findChildren<QTcpSocket*>())socket->abort();token_.fill('\0');token_.clear();}
 };
