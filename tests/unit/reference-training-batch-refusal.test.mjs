@@ -11,7 +11,7 @@ test('native training batch rejects invalid requests and preserves an existing c
   const output=join(root,'checkpoint.pt');writeFileSync(output,'preserve unique checkpoint');
   assert.throws(()=>execFileSync(binary,[],{stdio:'pipe'}));
   assert.throws(()=>execFileSync(binary,['validate','cpu',join(root,'missing.pt'),join(root,'sample')],{stdio:'pipe'}));
-  const common=['cpu','warm',join(root,'weights.safetensors'),output,'0','20261023','2','0.0001',join(root,'order.bin'),'none','fp32','1','0','0',join(root,'sample')];
+  const common=['cpu','warm',join(root,'weights.safetensors'),output,'0','20261023','2','0.0001',join(root,'order.bin'),'none','fp32','1','0','0','0',join(root,'sample')];
   assert.throws(()=>execFileSync(binary,common,{stdio:'pipe'}));
   assert.equal(readFileSync(output,'utf8'),'preserve unique checkpoint');
   const bad=[...common];bad[1]='unknown';bad[3]=join(root,'new.pt');

@@ -23,7 +23,8 @@ test('training batch management rejects changed samples and preserves existing o
   writeFileSync(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,transfer:'weights-only-no-optimizer',weightsSha256:sha('weights')}));
   writeFileSync(order,Buffer.alloc(8));writeFileSync(corpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));
   const request={mode:'warm',input:weights,output,corpus,order,epoch:0,seed:20261023,freezeEpochs:2,learningRate:.0001,
-    device:'cpu',torchLibrary:root,samples:[{index:0,directory:sample}]};
+    device:'cpu',unobservedMask:0,torchLibrary:root,samples:[{index:0,directory:sample}]};
+  await assert.rejects(nativeTrainingBatch({...request,unobservedMask:undefined}),/configuration/i);
   await assert.rejects(nativeTrainingBatch({...request,amp:true}),/configuration/i);
   writeFileSync(output,'preserve');await assert.rejects(nativeTrainingBatch(request),/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
   const sampleOutput=join(root,'prepared');await assert.rejects(runMacroTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false}),/exists/i);
@@ -48,7 +49,8 @@ test('training batch management rejects changed samples and preserves existing o
   const checkpoint=join(root,'previous.pt');writeFileSync(checkpoint,'previous checkpoint');
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,
     checkpointSha256:sha('previous checkpoint'),device:'cuda',precision:'fp32',seed:request.seed,freezeEpochs:request.freezeEpochs,
-    learningRate:request.learningRate,positiveWeightSha256:null,epoch:0,cursor:0,orderLength:1,orderSha256:sha(Buffer.alloc(8))}));
+    learningRate:request.learningRate,unobservedMask:0,positiveWeightSha256:null,epoch:0,cursor:0,orderLength:1,orderSha256:sha(Buffer.alloc(8))}));
   const mismatch={...request,mode:'resume',device:'cuda',amp:true,input:checkpoint,output:join(root,'mismatch.pt')};
   await assert.rejects(nativeTrainingBatch(mismatch),/configuration differs/i);assert.equal(existsSync(mismatch.output),false);
+  await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,unobservedMask:1}),/configuration differs/i);
 });

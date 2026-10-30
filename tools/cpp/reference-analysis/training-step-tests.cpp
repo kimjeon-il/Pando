@@ -1,5 +1,6 @@
 #include "training-step.h"
 #include "training-validation.h"
+#include "training-supervision.h"
 #include <ATen/Context.h>
 #include <cmath>
 #include <iostream>
@@ -8,6 +9,14 @@
 
 int main(){try{
   torch::set_num_threads(2);at::globalContext().setDeterministicAlgorithms(true,false);
+  {pando::reference::ReferenceBoundaryModel probe;{torch::NoGradGuard guard;probe->head->weight.fill_(3);probe->head->bias.fill_(2);}
+    pando::reference::initializeUnobservedChannels(probe,5);
+    if(probe->head->weight[0].abs().sum().item<double>()!=0||probe->head->bias[0].item<double>()!=-20||
+       probe->head->weight[2].abs().sum().item<double>()!=0||probe->head->bias[2].item<double>()!=-20||
+       probe->head->weight[1].min().item<double>()!=3||probe->head->bias[1].item<double>()!=2)
+      throw std::runtime_error("Unobserved channel initialization differs from Python");
+    bool rejected=false;try{pando::reference::initializeUnobservedChannels(probe,128);}catch(const std::invalid_argument&){rejected=true;}
+    if(!rejected)throw std::runtime_error("Invalid unobserved mask accepted");}
   pando::reference::ReferenceBoundaryModel model;
   {torch::NoGradGuard guard;for(auto& item:model->named_parameters(true)){auto value=item.value();
     if(value.dim()>1){std::int64_t fan=1;for(std::int64_t axis=1;axis<value.dim();++axis)fan*=value.size(axis);
