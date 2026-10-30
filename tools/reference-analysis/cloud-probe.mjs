@@ -13,6 +13,7 @@ import { bundlePath, verifyRuntimeFiles } from '../../plugins/pando-map-tools/li
 import { frontendWasmRoot } from '../../scripts/lib/frontend-layout.mjs';
 import { collectMapImageArtifacts } from '../map-image/native-resample.mjs';
 import { collectMapPdfArtifacts } from '../map-image/native-pdf.mjs';
+import { collectMapPreviewArtifacts } from '../map-image/native-preview.mjs';
 
 const exec=promisify(execFile),root=fileURLToPath(new URL('../../',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -44,6 +45,7 @@ export async function packProbe({directory,environment,workspace=root}) {
   const inline=dataset.files.map(file=>({path:'workspace/'+file.path,data:file.data}));
   inline.push(...collectMapImageArtifacts({workspace}).map(entry=>({path:'workspace/'+entry.path,data:entry.data})));
   inline.push(...collectMapPdfArtifacts({workspace}).map(entry=>({path:'workspace/'+entry.path,data:entry.data})));
+  inline.push(...collectMapPreviewArtifacts({workspace}).map(entry=>({path:'workspace/'+entry.path,data:entry.data})));
   inline.push({path:'workspace/.map-runtime.json',data:JSON.stringify({schemaVersion:2,ocrResources:dataset.ocrResources,gazetteerResources:dataset.gazetteerResources})});
   add(old.source.path,'inputs/map.jpg');add(modelPath,'model/boundary.manifest.json');add(bundlePath(dirname(modelPath),model.model.url),'model/'+model.model.url);
   for(const name of ['tile.f32','overview.f32','position.f32','expected-logits.f32'])add(join(dirname(modelPath),'diagnostics',name),'diagnostics/'+name);

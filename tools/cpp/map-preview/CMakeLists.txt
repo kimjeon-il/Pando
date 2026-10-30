@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.21)
+project(pando_map_preview LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(BUILD_SHARED_LIBS OFF)
+set(FT_DISABLE_ZLIB ON)
+set(FT_DISABLE_BZIP2 ON)
+set(FT_DISABLE_PNG ON)
+set(FT_DISABLE_HARFBUZZ ON)
+set(FT_DISABLE_BROTLI ON)
+include(FetchContent)
+FetchContent_Declare(pando_freetype
+    URL https://codeload.github.com/freetype/freetype/tar.gz/refs/tags/VER-2-14-3
+    URL_HASH SHA256=dc49de6b01a266eef4876a4dd34d9842c475d3e28ff2eff63bd2fb760ab56261)
+FetchContent_MakeAvailable(pando_freetype)
+add_executable(pando-map-preview preview.cpp)
+target_link_libraries(pando-map-preview PRIVATE freetype)

@@ -1,0 +1,121 @@
+{
+  "job": {
+    "source": {
+      "mapping": {
+        "rect": {
+          "x": 12,
+          "y": 30,
+          "width": 380,
+          "height": 125
+        }
+      }
+    },
+    "graph": {
+      "chains": [
+        {
+          "points": [
+            [
+              10,
+              40
+            ],
+            [
+              80,
+              65
+            ],
+            [
+              130,
+              30
+            ]
+          ],
+          "semanticBits": 1
+        },
+        {
+          "points": [
+            [
+              20,
+              100
+            ],
+            [
+              180,
+              100
+            ]
+          ],
+          "semanticBits": 2
+        },
+        {
+          "points": [
+            [
+              90,
+              130
+            ],
+            [
+              300,
+              150
+            ]
+          ],
+          "semanticBits": 3
+        },
+        {
+          "points": [
+            [
+              0,
+              170
+            ],
+            [
+              200,
+              45
+            ]
+          ],
+          "semanticBits": 0
+        }
+      ],
+      "unresolved": [
+        {
+          "point": [
+            40,
+            60
+          ]
+        },
+        {
+          "point": [
+            100,
+            120
+          ]
+        }
+      ]
+    },
+    "warp": {
+      "controlPoints": [
+        {
+          "id": "one",
+          "image": [
+            0.25,
+            0.4
+          ]
+        },
+        {
+          "id": "two",
+          "image": [
+            0.7,
+            0.8
+          ]
+        }
+      ],
+      "diagnostics": {
+        "residuals": [
+          {
+            "id": "one",
+            "meters": 123.4
+          }
+        ]
+      }
+    },
+    "quality": {
+      "recommended": true
+    }
+  },
+  "expected": {
+    "width": 420,
+    "height": 180
+  }
+}
