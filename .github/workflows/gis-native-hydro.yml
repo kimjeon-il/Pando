@@ -92,6 +92,10 @@ jobs:
           else { $batch = 'build-native/reference-analysis/step-test/pando-reference-training-batch' }
           node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary $batch --directory build-native/reference-analysis/artifact-batch
           if ($LASTEXITCODE -ne 0) { throw 'Training batch packaging failed' }
+          $env:PANDO_REFERENCE_BATCH_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/artifact-batch"
+          $env:PANDO_REFERENCE_TORCH_LIBRARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
+          node --test tests/unit/reference-training-order.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Source-bound balanced training order failed' }
           if (-not $IsWindows) {
             node --input-type=module -e "import {matchingTorchLibrary} from './tools/reference-analysis/native-infer.mjs'; matchingTorchLibrary(process.env.GITHUB_WORKSPACE+'/build-native/reference-analysis/libtorch/lib',{runtimeVersion:'2.7.1'})"
             if ($LASTEXITCODE -ne 0) { throw 'Linux LibTorch runtime identity failed' }

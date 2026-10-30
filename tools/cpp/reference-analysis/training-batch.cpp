@@ -5,12 +5,14 @@
 #include "training-ordered-step.h"
 #include "training-amp.h"
 #include "training-validation.h"
+#include "training-sampling.h"
 #include <ATen/Context.h>
 #include <cmath>
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -43,6 +45,25 @@ void checkSupervision(const pando::reference::TrainingBatch& batch){
   if(batch.target.min().item<float>()<0||batch.target.max().item<float>()>1||batch.valid.min().item<float>()<0||batch.valid.max().item<float>()>1||batch.valid.sum().item<double>()==0)
     throw std::invalid_argument("Training batch requires valid supervision");
 }
+int balancedOrder(const std::vector<fs::path>& args){
+  if(args.size()!=4)throw std::invalid_argument("Expected order EPOCH SEED");
+  const auto epoch=integer(args[2]),seed=integer(args[3]);
+  const auto readNumber=[](){unsigned char bytes[4];if(!std::cin.read(reinterpret_cast<char*>(bytes),4))throw std::runtime_error("Truncated training order input");
+    return std::uint32_t(bytes[0])|(std::uint32_t(bytes[1])<<8)|(std::uint32_t(bytes[2])<<16)|(std::uint32_t(bytes[3])<<24);};
+  const auto count=readNumber();if(count<1||count>64)throw std::invalid_argument("Invalid training corpus count");
+  std::vector<std::vector<std::string>> datasets;datasets.reserve(count);std::size_t total=0,largest=0,bytesRead=0;
+  for(std::uint32_t i=0;i<count;++i){const auto size=readNumber();if(!size||size>1000000-total)throw std::invalid_argument("Invalid training tile count");
+    total+=size;std::vector<std::string> rows;rows.reserve(size);std::set<std::string> groups;
+    for(std::uint32_t j=0;j<size;++j){const auto length=readNumber();if(!length||length>1024||length>64*1024*1024-bytesRead)throw std::invalid_argument("Invalid training group length");
+      bytesRead+=length;std::string value(length,'\0');if(!std::cin.read(value.data(),length))throw std::runtime_error("Truncated training group");
+      if(value.find('\0')!=std::string::npos)throw std::invalid_argument("Invalid training group");groups.insert(value);rows.push_back(std::move(value));}
+    largest=std::max(largest,groups.size());datasets.push_back(std::move(rows));}
+  if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Trailing training order bytes");
+  const auto quota=std::max((total+count-1)/count,largest);if(quota>1000000/count)throw std::invalid_argument("Training order exceeds budget");
+  const auto order=pando::reference::balancedTrainingOrder(datasets,epoch,seed);
+  for(const auto value:order)for(unsigned shift=0;shift<64;shift+=8)std::cout.put(static_cast<char>((value>>shift)&255));
+  if(!std::cout)throw std::runtime_error("Unable to write training order");return 0;
+}
 int validate(const std::vector<fs::path>& args){
   if(args.size()!=5)throw std::invalid_argument("Expected validate DEVICE CHECKPOINT SAMPLE_COUNT");
   const auto count=integer(args[4]);if(count<1||count>100000)throw std::invalid_argument("Invalid validation sample count");
@@ -62,6 +83,7 @@ int validate(const std::vector<fs::path>& args){
     <<count<<",\"loss\":"<<sum/double(count)<<"}\n";return 0;
 }
 int run(const std::vector<fs::path>& args){
+  if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);
   if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);
   if(args.size()<16||(args.size()-14)%2||args.size()>46)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");
@@ -122,7 +144,7 @@ int main(int argc,char** argv){
 #endif
   try{
 #ifdef _WIN32
-    if(_setmode(_fileno(stdin),_O_BINARY)==-1)throw std::runtime_error("Cannot set validation stream binary mode");
+    if(_setmode(_fileno(stdin),_O_BINARY)==-1||_setmode(_fileno(stdout),_O_BINARY)==-1)throw std::runtime_error("Cannot set training stream binary mode");
 #endif
     std::vector<fs::path> args;for(int i=0;i<argc;++i)args.emplace_back(argv[i]);return run(args);}
   catch(const std::exception& error){std::cerr<<"reference-training-batch: "<<error.what()<<'\n';return 1;}
