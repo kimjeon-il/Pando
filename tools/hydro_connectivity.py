@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 import os
 import subprocess
 import zipfile
@@ -14,16 +13,6 @@ from pathlib import Path
 import shapefile
 
 ORDER = ('eu', 'as', 'si', 'af', 'sa', 'na', 'ar', 'au', 'gr')
-
-
-def key(point):
-    return (round(point[0] * 1_000_000), round(point[1] * 1_000_000))
-
-
-def distance(a, b):
-    lon = (b[0] - a[0] + 180) % 360 - 180
-    return math.hypot(lon * 111195.08 * math.cos(math.radians((a[1] + b[1]) / 2)),
-                      (b[1] - a[1]) * 111195.08)
 
 
 def parts_by_source(features):
@@ -41,16 +30,6 @@ def parts_by_source(features):
             parts[source].append({'fid': meta['fid'], 'part': index, 'points': line,
                                   'aligned': bool(meta['flags'] & 1), 'system': meta['systemId']})
     return parts
-
-
-def endpoints(parts):
-    if len(parts) == 1:
-        return parts[0], parts[0]
-    starts = Counter(key(p['points'][0]) for p in parts)
-    ends = Counter(key(p['points'][-1]) for p in parts)
-    first = [p for p in parts if starts[key(p['points'][0])] > ends[key(p['points'][0])]]
-    last = [p for p in parts if ends[key(p['points'][-1])] > starts[key(p['points'][-1])]]
-    return (first[0], last[0]) if len(first) == len(last) == 1 else (None, None)
 
 
 def load_sources(baseline, directory, selected):
@@ -94,113 +73,45 @@ def load_sources(baseline, directory, selected):
     return rows
 
 
-def junction_plans(parts, raw):
-    """Choose only topology-proven junctions, preserving aligned anchors."""
-    boundaries = {source: endpoints(value) for source, value in parts.items()}
-    upstreams = defaultdict(list)
-    for source, original in raw.items():
-        if original['next'] in parts:
-            upstreams[original['next']].append(source)
-    plans = {}
-    for downstream, sources in upstreams.items():
-        start = boundaries[downstream][0]
-        tails = [(source, boundaries[source][1]) for source in sorted(sources)]
-        if start is None or any(tail is None for _, tail in tails):
-            continue
-        ports = [(start, 0)] + [(tail, -1) for _, tail in tails]
-        if len({part['system'] for part, _ in ports}) != 1:
-            continue
-        if any(distance(raw[source]['end'], raw[downstream]['start']) > 0.5 for source in sources):
-            continue
-        anchors = [part['points'][index] for part, index in ports if part['aligned']]
-        chosen = anchors[0] if anchors else start['points'][0]
-        if any(distance(chosen, point) > 0.5 for point in anchors):
-            continue
-        if any(distance(chosen, part['points'][index]) > 25000 for part, index in ports):
-            continue
-        shared = [value / 1_000_000 for value in key(chosen)]
-        plans[downstream] = {'ports': ports, 'point': shared, 'sources': sorted(sources)}
-    return plans
+def run_native(payload):
+    binary = os.environ.get('PANDO_HYDRO_CONNECTIVITY_BINARY')
+    if not binary:
+        raise RuntimeError('PANDO_HYDRO_CONNECTIVITY_BINARY is required for Hydro generation')
+    completed = subprocess.run([binary], input=json.dumps(payload, ensure_ascii=False, separators=(',', ':')),
+                               text=True, encoding='utf-8', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               check=True, timeout=180)
+    return json.loads(completed.stdout)
 
 
 def audit_parts(parts, raw):
-    boundaries = {source: endpoints(value) for source, value in parts.items()}
-    plans = junction_plans(parts, raw)
-    issues, stats = [], {code: Counter() for code in ORDER}
-    for source, original in raw.items():
-        counts = stats[original['region']]
-        counts['selectedReaches'] += 1
-        downstream = original['next']
-        if not downstream:
-            counts['naturalTerminals'] += 1
-            continue
-        if downstream not in raw:
-            issues.append({'region': original['region'], 'source': source, 'downstream': downstream,
-                           'cause': 'missing-downstream', 'repairable': False})
-            continue
-        counts['expectedConnections'] += 1
-        upstream_end = boundaries[source][1]
-        downstream_start = boundaries[downstream][0]
-        if upstream_end is None or downstream_start is None:
-            issues.append({'region': original['region'], 'source': source, 'downstream': downstream,
-                           'cause': 'ambiguous-source-parts', 'repairable': False})
-            continue
-        a, b = upstream_end['points'][-1], downstream_start['points'][0]
-        if key(a) == key(b):
-            counts['connected'] += 1
-            continue
-        original_gap = distance(original['end'], raw[downstream]['start'])
-        gap = distance(a, b)
-        aligned = upstream_end['aligned'] or downstream_start['aligned']
-        cause = ('original-mismatch' if original_gap > 0.5 else
-                 'border-alignment' if aligned else 'chain-connection')
-        repairable = downstream in plans
-        issues.append({'region': original['region'], 'source': source, 'downstream': downstream,
-                       'cause': cause, 'repairable': repairable, 'gapM': gap, 'originalGapM': original_gap,
-                       'originalEnd': original['end'], 'originalDownstreamStart': raw[downstream]['start'],
-                       'displayEnd': a, 'displayDownstreamStart': b,
-                       'upstream': {k: v for k, v in upstream_end.items() if k != 'points'},
-                       'downstreamPart': {k: v for k, v in downstream_start.items() if k != 'points'}})
-    for issue in issues:
-        stats[issue['region']]['issues'] += 1
-        stats[issue['region']]['repairable' if issue['repairable'] else 'unresolved'] += 1
-        stats[issue['region']][issue['cause']] += 1
-    return {'regions': stats, 'issues': issues}
+    """Audit through the native connectivity owner without mutating the source."""
+    result = run_native({'mode': 'audit', 'parts': {str(source): rows for source, rows in parts.items()},
+                         'raw': raw, 'sourceOrder': list(raw)})
+    if not isinstance(result, dict) or not isinstance(result.get('regions'), dict) or set(result['regions']) != set(ORDER) or not isinstance(result.get('issues'), list):
+        raise ValueError('Invalid native Hydro audit result')
+    seen, counts = set(), Counter()
+    for issue in result['issues']:
+        source = issue.get('source') if isinstance(issue, dict) else None
+        if source not in raw or source in seen or issue.get('region') != raw[source]['region'] or issue.get('downstream') != raw[source]['next'] or not isinstance(issue.get('repairable'), bool):
+            raise ValueError('Invalid native Hydro audit issue')
+        seen.add(source)
+        counts[issue['region']] += 1
+    for region in ORDER:
+        row = result['regions'][region]
+        if not isinstance(row, dict) or any(not isinstance(n, int) or isinstance(n, bool) or n < 0 for n in row.values()) or row.get('issues', 0) != counts[region]:
+            raise ValueError('Invalid native Hydro audit counts')
+    return {'regions': {region: result['regions'][region] for region in ORDER}, 'issues': result['issues']}
 
 
 def audit(features, raw):
     return audit_parts(parts_by_source(features), raw)
 
 
-def repair_connections(parts, raw, region):
-    """Plan before mutating, so converging tributaries share one deterministic point."""
-    changes = []
-    for downstream, plan in sorted(junction_plans(parts, raw).items()):
-        if raw[downstream]['region'] != region:
-            continue
-        for part, index in plan['ports']:
-            if key(part['points'][index]) == key(plan['point']):
-                continue
-            changes.append({'region': region, 'downstream': downstream, 'sources': plan['sources'],
-                            'fid': part['fid'], 'part': part['part'], 'index': index,
-                            'before': list(part['points'][index]), 'after': list(plan['point'])})
-            part['points'][index] = list(plan['point'])
-    return changes
-
-
-
 def repair_connections_native(parts, raw, region):
     """Use the C++ junction owner; validate every result before mutating feature coordinates."""
-    binary = os.environ.get('PANDO_HYDRO_CONNECTIVITY_BINARY')
-    if not binary:
-        raise RuntimeError('PANDO_HYDRO_CONNECTIVITY_BINARY is required for Hydro generation')
     payload = {'parts': {str(source): rows for source, rows in parts.items()},
                'raw': raw, 'region': region}
-    completed = subprocess.run(
-        [binary], input=json.dumps(payload, ensure_ascii=False, separators=(',', ':')),
-        text=True, encoding='utf-8', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        check=True, timeout=180)
-    result = json.loads(completed.stdout)
+    result = run_native(payload)
     if not isinstance(result, dict) or not isinstance(result.get('parts'), dict) or not isinstance(result.get('changes'), list):
         raise ValueError('Invalid native Hydro junction result')
     if set(result['parts']) != set(payload['parts']):
