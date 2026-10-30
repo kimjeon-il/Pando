@@ -3,6 +3,7 @@
 #include "image-input.h"
 #include "image-read.h"
 #include "training-scan.h"
+#include "training-tile.h"
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -26,6 +27,10 @@ int bounded(const char* value,int maximum){
     const std::string text(value);std::size_t used=0;const int number=std::stoi(text,&used);
     if(used!=text.size()||number<0||number>maximum)throw std::invalid_argument("Invalid bounded image argument");
     return number;
+}
+std::uint64_t index64(const char* raw){const std::string text(raw);std::size_t used=0;
+    if(text.empty()||text.find_first_not_of("0123456789")!=std::string::npos)throw std::invalid_argument("Invalid training index");
+    const auto value=std::stoull(text,&used);if(used!=text.size())throw std::invalid_argument("Invalid training index");return value;
 }
 void number(std::uint32_t value){
     const std::array<char,4> bytes{static_cast<char>(value>>24),static_cast<char>(value>>16),static_cast<char>(value>>8),static_cast<char>(value)};
@@ -58,14 +63,26 @@ int main(int argc,char** argv){
 #endif
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
+        if(action=="training-tile"){
+            if(argc!=9)throw std::invalid_argument("Expected training tile WIDTH HEIGHT X Y AUGMENT EPOCH INDEX");
+            const int width=dimension(argv[2]),height=dimension(argv[3]),x=bounded(argv[4],16384),y=bounded(argv[5],16384);
+            const std::string augment=argv[6];if(augment!="0"&&augment!="1")throw std::invalid_argument("Invalid training augmentation flag");
+            const auto epoch=index64(argv[7]),index=index64(argv[8]);constexpr std::size_t pixels=512*512;
+            if(static_cast<std::int64_t>(width)*height>16777216)throw std::invalid_argument("Image exceeds 16MP budget");
+            std::vector<std::uint8_t> input(std::size_t(width)*height*4),target(pixels),known(pixels);
+            if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()))||
+               !std::cin.read(reinterpret_cast<char*>(target.data()),static_cast<std::streamsize>(target.size()))||
+               !std::cin.read(reinterpret_cast<char*>(known.data()),static_cast<std::streamsize>(known.size()))||std::cin.peek()!=std::char_traits<char>::eof())
+                throw std::invalid_argument("Training tile input byte length differs");
+            const auto output=pando::map_image::trainingTile(input,width,height,x,y,target,known,augment=="1",epoch,index);
+            std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write training tile");return 0;
+        }
         if(action=="training-scan"){
             if(argc!=6)throw std::invalid_argument("Expected training scan WIDTH HEIGHT EPOCH INDEX");
             const int width=dimension(argv[2]),height=dimension(argv[3]);
             if(static_cast<std::int64_t>(width)*height>16777216)throw std::invalid_argument("Image exceeds 16MP budget");
-            const auto number64=[](const char* raw){const std::string text(raw);std::size_t used=0;
-                if(text.empty()||text.find_first_not_of("0123456789")!=std::string::npos)throw std::invalid_argument("Invalid training index");
-                const auto value=std::stoull(text,&used);if(used!=text.size())throw std::invalid_argument("Invalid training index");return value;};
-            const auto epoch=number64(argv[4]),index=number64(argv[5]);
+            const auto epoch=index64(argv[4]),index=index64(argv[5]);
             std::vector<std::uint8_t> input(std::size_t(width)*height*4);
             if(!std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()))||std::cin.peek()!=std::char_traits<char>::eof())
                 throw std::invalid_argument("RGBA input byte length differs from dimensions");

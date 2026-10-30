@@ -9,7 +9,7 @@ import {verifyNativeTool} from '../native-tool.mjs';
 export const mapImageSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp',
   'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp',
   'tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h','tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c',
-  'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/training-scan.h',
+  'tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/training-scan.h','tools/cpp/map-image/training-tile.h',
   'tools/cpp/reference-analysis/condition-sampling.h','tools/cpp/reference-analysis/training-photometry.h','tools/cpp/reference-analysis/CPYTHON-LICENSE','tools/cpp/map-preview/PILLOW-LICENSE',
   'tools/cpp/map-image/zlib-LICENSE','tools/cpp/map-image/libpng-LICENSE',
   'tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg','tools/cpp/map-image/libwebp-COPYING','tools/cpp/map-image/libwebp-PATENTS']);
@@ -82,6 +82,21 @@ export function resizeNativeOpaqueBilinear(image,size,options){
 export function applyNativeTrainingScan(image,{epoch,index,...options}={}){
   if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(index)||index<0)return Promise.reject(Error('Nonnegative training epoch and tile index required'));
   return operateNativeRgba(image,[image?.width,image?.height],['training-scan',epoch,index],options);
+}
+export async function prepareNativeTrainingTile({image,targetBits,knownBits,x,y,augment=false,epoch=0,index=0},
+  {signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();dimensions(image?.width,image?.height);
+  if(!(image.data instanceof Uint8Array)||image.data.length!==image.width*image.height*4||
+    !(targetBits instanceof Uint8Array)||targetBits.length!==512*512||!(knownBits instanceof Uint8Array)||knownBits.length!==512*512||
+    !Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=image.width||y>=image.height||typeof augment!=='boolean'||
+    !Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(index)||index<0)throw Error('Invalid native training tile input');
+  const sizes=[3*512*512*4,3*256*256*4,4*4,7*512*512*4,7*512*512*4],expected=sizes.reduce((a,b)=>a+b,0);
+  const input=Buffer.concat([image.data,targetBits,knownBits]);
+  const result=await runNative(nativeBinary(workspace,directory),['training-tile',String(image.width),String(image.height),String(x),String(y),augment?'1':'0',String(epoch),String(index)],input,expected,signal);
+  if(result.length!==expected)throw Error('Native training tensor byte length mismatch');
+  let offset=0;const fields={};for(const [i,name] of ['tile','overview','position','target','valid'].entries()){
+    fields[name]=result.subarray(offset,offset+sizes[i]);offset+=sizes[i];}
+  signal?.throwIfAborted();return fields;
 }
 export function resizeNativePdfThumbnail(image,size,options){
   return operateNativeRgba(image,size,['thumbnail-pdf',...(Array.isArray(size)?size:[])],options);

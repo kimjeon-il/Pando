@@ -1,0 +1,56 @@
+[
+  {
+    "augment": false,
+    "epoch": 0,
+    "index": 0,
+    "hashes": [
+      "fd478010f432b681f726a05d4d2058b59d1bbc3a790b37e8e8111a95a2f641a5",
+      "96283f5498c255fbd19dfa9bc69aa47bcde08db3f4195e8a719b19db8647ba0b",
+      "d25b949c65312b91424a3cabd3065dfe18bc73e7cd8893229e9494cd75c16d92",
+      "354d57bb42ab3c75c3414a661fc6174015e2092c34ec4003b97ecf06cb18ae02",
+      "c38a0e598537f5494e46b10a77191c3f3e618fc2e9d94bde2d12111bdf0054b4"
+    ],
+    "position": [
+      0.0,
+      0.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "augment": true,
+    "epoch": 0,
+    "index": 0,
+    "hashes": [
+      "3d84c7585e004db1056842702004c43a01ac80f5c12ea27b89dc807684edb48a",
+      "267bd6e2bd60ac67b017e77e060390b2ebd5429e1dd960795fccff4d781b54b1",
+      "d25b949c65312b91424a3cabd3065dfe18bc73e7cd8893229e9494cd75c16d92",
+      "354d57bb42ab3c75c3414a661fc6174015e2092c34ec4003b97ecf06cb18ae02",
+      "c38a0e598537f5494e46b10a77191c3f3e618fc2e9d94bde2d12111bdf0054b4"
+    ],
+    "position": [
+      0.0,
+      0.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "augment": true,
+    "epoch": 1,
+    "index": 0,
+    "hashes": [
+      "34ad0498d8684312c7d8da32576dfca94e493faa112cb95498d29bd2a737c625",
+      "2a99efb76914fe9ec9cc710daf14c154061efafee8d441109d0e7c4a46bae1c7",
+      "d25b949c65312b91424a3cabd3065dfe18bc73e7cd8893229e9494cd75c16d92",
+      "354d57bb42ab3c75c3414a661fc6174015e2092c34ec4003b97ecf06cb18ae02",
+      "c38a0e598537f5494e46b10a77191c3f3e618fc2e9d94bde2d12111bdf0054b4"
+    ],
+    "position": [
+      0.0,
+      0.0,
+      1.0,
+      1.0
+    ]
+  }
+]
