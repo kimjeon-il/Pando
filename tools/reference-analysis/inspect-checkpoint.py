@@ -5,7 +5,6 @@ import json
 import pathlib
 import struct
 import subprocess
-import sys
 
 import numpy as np
 import onnx
@@ -15,8 +14,6 @@ from PIL import Image, ImageDraw
 from corpus import CHANNELS, corpus_fingerprint, validate_corpus
 from train import MapTiles, load_model
 from report_paths import report_argument
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'plugins/pando-map-tools/lib'))
-from raster import oriented_map_image
 
 
 def prediction_statistics(probability, expected, known):
@@ -98,11 +95,15 @@ def inspect(args):
             known = valid.numpy() > .5
             predicted = probability >= .55
             _, x, y = dataset.tiles[index]
-            with Image.open(root / sheet['image']) as opened:
-                source = oriented_map_image(opened).convert('RGB')
-            source_tile = Image.new('RGB', (512, 512), 'white')
-            source_tile.paste(source.crop((x, y, min(x + 512, source.width), min(y + 512, source.height))), (0, 0))
-            original = np.asarray(source_tile).copy()
+            source_tool = pathlib.Path(__file__).with_name('training-tiles.mjs')
+            request = json.dumps(dict(root=str(root.resolve()), sheet=sheet, annotation=annotation, x=x, y=y)).encode('utf-8')
+            source = subprocess.run(['node', str(source_tool), '--source-rgb'], input=request, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if source.returncode:
+                raise RuntimeError('Native diagnostic source failed: ' + source.stderr.decode('utf-8', errors='replace'))
+            if len(source.stdout) != 512 * 512 * 3:
+                raise ValueError('Invalid native diagnostic source length')
+            original = np.frombuffer(source.stdout, dtype=np.uint8).reshape(512, 512, 3).copy()
             active = [expected, *([] if prior is None else [prior >= .55]), predicted]
             header = struct.pack('>8sIII', b'PDPREV01', 512, 512, len(active))
             payload = header + original.tobytes() + np.ascontiguousarray(known, dtype=np.uint8).tobytes()

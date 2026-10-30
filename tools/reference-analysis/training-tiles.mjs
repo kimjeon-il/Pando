@@ -158,7 +158,7 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--index','--sample'].includes(process.argv[2]))throw Error('Expected --index or --sample');
+    if(process.argv.length!==3||!['--index','--sample','--source-rgb'].includes(process.argv[2]))throw Error('Expected --index, --sample or --source-rgb');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Training index request exceeds budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
     const {root,annotation}=request;
@@ -168,13 +168,21 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const tiles=isRasterTrainingAnnotation(annotation)?await listRasterTrainingTiles({root,annotation},{supervisedOnly}):
         await listReviewedTrainingTiles(annotation,{supervisedOnly,fullSheetCoordinates:true});
       process.stdout.write(JSON.stringify(tiles.map(({x,y})=>({x,y})))+'\n');
-    }else{
+    }else if(process.argv[2]==='--sample'){
       const {sheet,x,y,augment,epoch,index}=request;
       if(typeof root!=='string'||!root||!sheet||typeof sheet.image!=='string')throw Error('Source-bound training image required');
       const inputs={sourceSha256:sheet.sha256,annotation,x,y,augment,epoch,index};
       const tensors=isRasterTrainingAnnotation(annotation)?await prepareRasterTrainingTile({...inputs,root,imagePath:sheet.image}):
         await prepareReviewedTrainingTile({...inputs,imagePath:await resolveCorpusPath(root,sheet.image)});
       for(const name of ['tile','overview','position','target','valid'])process.stdout.write(tensors[name]);
+    }else{
+      const {sheet,x,y}=request;
+      if(typeof root!=='string'||!root||!sheet||typeof sheet.image!=='string')throw Error('Source-bound diagnostic image required');
+      const path=await resolveCorpusPath(root,sheet.image),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
+      const image=await readNativeTrainingRaster({path,format,expectedSha256:sheet.sha256,x,y});
+      if(annotation?.width!==image.width||annotation?.height!==image.height)throw Error('Annotations must use oriented original image dimensions');
+      const rgb=Buffer.alloc(512*512*3);for(let i=0;i<512*512;i++)for(let channel=0;channel<3;channel++)rgb[i*3+channel]=image.tile[i*4+channel];
+      process.stdout.write(rgb);
     }
   }catch(error){console.error('training-tiles: '+error.message);process.exitCode=1;}
 }
