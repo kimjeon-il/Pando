@@ -200,6 +200,32 @@ int main(int argc,char** argv){
             for(unsigned channel=0;channel<7;++channel){number(validCount[channel]);number(positiveCount[channel]);}
             if(!std::cout)throw std::runtime_error("Unable to write training supervision counts");return 0;
         }
+        if(action=="training-mask-window"){
+            if(argc!=4)throw std::invalid_argument("Expected training mask window X Y");
+            struct MaskWindow {std::uint32_t x,y,width=0,height=0;std::vector<std::uint8_t> pixels;std::exception_ptr error;} state{
+                static_cast<std::uint32_t>(bounded(argv[2],65534)),static_cast<std::uint32_t>(bounded(argv[3],65534)),0,0,std::vector<std::uint8_t>(512*512),{}};
+            const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t)->int{
+                auto& s=*static_cast<MaskWindow*>(context);try{
+                    if(s.x>=width||s.y>=height)throw std::invalid_argument("Training mask window starts outside image");
+                    s.width=width;s.height=height;return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto row=[](void* context,std::uint32_t y,const std::uint8_t* rgba,std::size_t length)->int{
+                auto& s=*static_cast<MaskWindow*>(context);try{
+                    if(length!=std::size_t(s.width)*4)throw std::invalid_argument("Invalid training mask row");
+                    if(y>=s.y&&y-s.y<512)for(std::uint32_t x=s.x;x<s.width&&x-s.x<512;++x)
+                        s.pixels[std::size_t(y-s.y)*512+x-s.x]=rgba[std::size_t(x)*4];
+                    return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_stream_gray_mask(encoded.data(),encoded.size(),&image,start,row,&state)){
+                if(state.error)std::rethrow_exception(state.error);
+                throw std::runtime_error(std::string("Training mask: ")+image.error);
+            }
+            number(state.width);number(state.height);std::cout.write(reinterpret_cast<const char*>(state.pixels.data()),static_cast<std::streamsize>(state.pixels.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write training mask window");return 0;
+        }
         if(action=="training-mask"){
             if(argc!=2)throw std::invalid_argument("Training mask takes no extra arguments");
             const auto encoded=encodedInput();PandoImage image{};
