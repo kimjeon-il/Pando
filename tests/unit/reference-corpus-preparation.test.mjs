@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {mkdtemp,mkdir,readFile,writeFile,symlink,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -16,6 +17,13 @@ async function fixture(t){
   await writeFile(join(sources,'sheet.jpg'),image);await writeFile(join(sources,'sheet.source.json'),JSON.stringify(source));
   return {root,sources,image,source};
 }
+test('CLI prepares only an external source directory',async t=>{
+  const {root,sources}=await fixture(t);
+  const output=execFileSync(process.execPath,['tools/reference-analysis/prepare-review.mjs','--sources',sources],{encoding:'utf8'}).trim();
+  assert.equal(output,join(root,'corpus.draft.json'));
+  assert.equal(JSON.parse(await readFile(output,'utf8')).trainingReady,false);
+  assert.throws(()=>execFileSync(process.execPath,['tools/reference-analysis/prepare-review.mjs','--sources',process.cwd()],{stdio:'pipe'}));
+});
 test('preparation preserves originals and independent edits and requires review',async t=>{
   const {root,sources,image}=await fixture(t),manifest=await prepareReviewCorpus(sources);
   const first=JSON.parse(await readFile(manifest,'utf8')),labels=join(root,'labels/sheet.json');
@@ -28,7 +36,7 @@ test('preparation preserves originals and independent edits and requires review'
 });
 test('invalid source identities and later failures create no draft output',async t=>{
   const {root,sources,source,image}=await fixture(t);
-  for(const delta of [{id:'../outside'},{rightsReviewed:false},{sha256:'0'.repeat(64)},{ocrLanguages:['unknown']}]){
+  for(const delta of [{id:'../outside'},{rightsReviewed:false},{sha256:'0'.repeat(64)},{ocrLanguages:['unknown']},{ocrLanguages:null},{format:null}]){
     await writeFile(join(sources,'sheet.source.json'),JSON.stringify({...source,...delta}));
     await assert.rejects(prepareReviewCorpus(sources));await assert.rejects(readFile(join(root,'corpus.draft.json')),{code:'ENOENT'});
   }

@@ -17,7 +17,7 @@ async function contained(root,path){const target=await resolvedWithMissing(path)
 async function optionalJson(path){try{return JSON.parse(await readFile(path,'utf8'));}catch(error){if(error.code==='ENOENT')return null;throw error;}}
 function sourceLanguage(source){
   if(!/^[a-z]{3}(?:_[a-z0-9]+)*$/.test(source.language||'')||!source.script)throw Error('Explicit source language and script required');
-  const packs=source.ocrLanguages??[];if(!Array.isArray(packs)||new Set(packs).size!==packs.length||packs.some(pack=>!REFERENCE_OCR_LANGUAGES.includes(pack)))
+  const packs=Object.hasOwn(source,'ocrLanguages')?source.ocrLanguages:[];if(!Array.isArray(packs)||new Set(packs).size!==packs.length||packs.some(pack=>!REFERENCE_OCR_LANGUAGES.includes(pack)))
     throw Error('OCR languages must refer to the installed runtime catalog');
 }
 async function writeNew(path,value,signal){const handle=await open(path,'wx');try{await handle.writeFile(JSON.stringify(value,null,2)+'\n',{encoding:'utf8',signal});}finally{await handle.close();}}
@@ -28,7 +28,7 @@ export async function prepareReviewCorpus(sourceDirectory,{signal,workspace,dire
   for(const name of names){
     signal?.throwIfAborted();const metadata=await contained(root,join(sources,name)),source=JSON.parse(await readFile(metadata,{encoding:'utf8',signal})),key=source.id||'';
     if(!/^[a-z0-9][a-z0-9_-]*$/.test(key)||seen.has(key))throw Error('Unique safe source id required');seen.add(key);
-    const format=source.format??'jpeg',suffix=({jpeg:'.jpg',png:'.png',webp:'.webp'})[format];
+    const format=Object.hasOwn(source,'format')?source.format:'jpeg',suffix=({jpeg:'.jpg',png:'.png',webp:'.webp'})[format];
     if(!suffix)throw Error('Prepare an explicit bounded raster page for PDF corpus review');
     if(source.rightsReviewed!==true||!source.license||!source.url||!source.familyId)throw Error('Verified acquired source and provenance required');
     sourceLanguage(source);const image=await contained(root,join(sources,key+suffix)),bytes=await readFile(image,{signal});

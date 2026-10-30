@@ -166,7 +166,7 @@ Prepare a draft directly from verified acquired PNG, JPEG or WebP sources, witho
 another image copy:
 
 ```powershell
-& build-native/python/Scripts/python.exe tools/reference-analysis/corpus.py --prepare-review EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
+node tools/reference-analysis/prepare-review.mjs --sources EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/sources
 ```
 
 This writes `labels/<source-id>.json` and `corpus.draft.json` beside `sources/`.
