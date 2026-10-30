@@ -5,6 +5,7 @@ import json
 import pathlib
 import struct
 import subprocess
+import sys
 
 import numpy as np
 import onnx
@@ -14,6 +15,7 @@ from PIL import Image, ImageDraw
 from corpus import CHANNELS, corpus_fingerprint, validate_corpus
 from train import MapTiles, load_model
 from report_paths import report_argument
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'plugins/pando-map-tools/lib'))
 from raster import oriented_map_image
 
 

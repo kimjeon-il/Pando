@@ -50,6 +50,19 @@ test('native training tile matches Python tensors, masks, position and augmentat
   for(const name of ['tile','overview'])for(let offset=0;offset<repeat[name].length;offset+=4)
     assert(Number.isFinite(repeat[name].readFloatLE(offset)),'Augmented training inputs must be finite');
 });
+test('training sample stream returns the source-bound native tensors',async()=>{
+  const root='tests/fixtures/reference-training-tile',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));
+  const expected=JSON.parse(await readFile(root+'/expected.json','utf8'))[0],sha256=createHash('sha256').update(await readFile(root+'/map.png')).digest('hex');
+  const args=['tools/reference-analysis/training-tiles.mjs','--sample'];
+  const request={root,sheet:{image:'map.png',sha256},annotation,x:0,y:0,augment:false,epoch:0,index:0};
+  const run=spawnSync(process.execPath,args,{input:JSON.stringify(request),maxBuffer:32*1024*1024});
+  assert.equal(run.status,0,run.stderr.toString());
+  const sizes=[3*512*512*4,3*256*256*4,4*4,7*512*512*4,7*512*512*4];let offset=0;
+  const hashes=sizes.map(size=>{const result=createHash('sha256').update(run.stdout.subarray(offset,offset+size)).digest('hex');offset+=size;return result;});
+  assert.equal(run.stdout.length,offset);assert.deepEqual(hashes,expected.hashes);
+  const invalid=spawnSync(process.execPath,args,{input:JSON.stringify({...request,sheet:{...request.sheet,sha256:'0'.repeat(64)}}),maxBuffer:32*1024*1024});
+  assert.notEqual(invalid.status,0);assert.match(invalid.stderr.toString(),/hash/i);
+});
 test('source-bound raster supervision matches original training tensors',async()=>{
   const root='tests/fixtures/reference-training-raster',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));
   const expected=JSON.parse(await readFile(root+'/expected.json','utf8'));

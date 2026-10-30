@@ -1,7 +1,6 @@
 """Train/evaluate/export real reviewed maps. Run from the application checkout."""
 import argparse
 import hashlib
-import io
 import json
 import pathlib
 import subprocess
@@ -11,23 +10,15 @@ import collections
 import math
 import numpy as np
 import torch
-from PIL import Image, ImageOps, ImageEnhance, ImageFilter
+from PIL import Image, ImageOps
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from report_paths import report_argument
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / 'plugins/pando-map-tools/lib'))
-from raster import oriented_map_image
-
 from corpus import (CHANNELS, RASTER_ORIGINS, validate_corpus, evaluation_groups, corpus_path,
                     corpus_fingerprint, review_masks, build_training_lineage, assert_evaluation_independence)
 from model import ReferenceBoundaryModel, boundary_loss
 from evaluation import boundary_counts, metrics, boundary_admission, confounder_counts, confounder_nonregression
 
 SIZE, OVERLAP = 512, 64
-
-
-def tensor(image):
-    value = torch.from_numpy(np.asarray(image, dtype=np.float32).copy()).permute(2, 0, 1) / 255
-    return (value - torch.tensor([.485, .456, .406])[:, None, None]) / torch.tensor([.229, .224, .225])[:, None, None]
 
 
 class MapTiles(torch.utils.data.Dataset):
@@ -67,52 +58,24 @@ class MapTiles(torch.utils.data.Dataset):
     def __getitem__(self, index):
         sheet_index, x, y = self.tiles[index]
         sheet = self.sheets[sheet_index]
-        with Image.open(self.root / sheet["image"]) as source:
-            image = oriented_map_image(source).convert("RGB")
-        width, height = image.size
-        annotation = json.loads((self.root / sheet["annotations"]).read_text(encoding="utf-8"))
-        if annotation.get("width") != width or annotation.get("height") != height:
-            raise ValueError("Annotations must use oriented original image dimensions")
-        if annotation.get('origin') in RASTER_ORIGINS:
-            arrays = []
-            for field in ['raster', 'validRaster']:
-                with Image.open(corpus_path(self.root, annotation[field]['path'])) as raster:
-                    bits = np.asarray(raster.crop((x, y, x + SIZE, y + SIZE)), dtype=np.uint8)
-                arrays.append(torch.from_numpy(np.stack([((bits & (1 << channel)) != 0).astype(np.float32)
-                                                        for channel in range(len(CHANNELS))])))
-            target, validity = arrays
-        else:
-            target, validity = [torch.from_numpy(value.astype(np.float32))
-                                for value in review_masks(annotation, window=(x, y, SIZE, SIZE))]
-        tile = Image.new("RGB", (SIZE, SIZE), (255, 255, 255))
-        tile.paste(image.crop((x, y, min(x + SIZE, width), min(y + SIZE, height))), (0, 0))
-        overview = image.resize((256, 256), Image.Resampling.BILINEAR)
-        if self.augment_conditions:
-            rng = random.Random(20261024 + self.epoch * 1000003 + index)
-            gray = rng.random() < .25
-            contrast, brightness, saturation = rng.uniform(.75, 1.25), rng.uniform(.85, 1.1), rng.uniform(.5, 1.3)
-            resolution, blur, quality = rng.choice([.5, .75, 1]), rng.choice([0, .25, .5]), rng.choice([55, 75, 95])
-
-            def scan_conditions(value):
-                if gray:
-                    value = ImageOps.grayscale(value).convert('RGB')
-                value = ImageEnhance.Color(value).enhance(saturation)
-                value = ImageEnhance.Contrast(value).enhance(contrast)
-                value = ImageEnhance.Brightness(value).enhance(brightness)
-                if resolution != 1:
-                    size = value.size
-                    value = value.resize(tuple(round(n * resolution) for n in size), Image.Resampling.BILINEAR)
-                    value = value.resize(size, Image.Resampling.BILINEAR)
-                if blur:
-                    value = value.filter(ImageFilter.GaussianBlur(blur))
-                buffer = io.BytesIO()
-                value.save(buffer, format='JPEG', quality=quality)
-                buffer.seek(0)
-                with Image.open(buffer) as encoded:
-                    return encoded.convert('RGB')
-
-            tile, overview = scan_conditions(tile), scan_conditions(overview)
-        return tensor(tile), tensor(overview), torch.tensor([x / width, y / height, min(SIZE, width - x) / width, min(SIZE, height - y) / height]), target, validity, sheet_index
+        annotation = json.loads(corpus_path(self.root, sheet['annotations']).read_text(encoding='utf-8'))
+        script = pathlib.Path(__file__).with_name('training-tiles.mjs')
+        payload = json.dumps(dict(root=str(self.root.resolve()), sheet=sheet, annotation=annotation, x=x, y=y,
+                                  augment=self.augment_conditions, epoch=self.epoch, index=index)).encode('utf-8')
+        result = subprocess.run(['node', str(script), '--sample'], input=payload, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        if result.returncode:
+            raise ValueError('Native training sample failed: ' + result.stderr.decode('utf-8', errors='replace'))
+        shapes = [(3, 512, 512), (3, 256, 256), (4,), (7, 512, 512), (7, 512, 512)]
+        expected = sum(math.prod(shape) * 4 for shape in shapes)
+        if len(result.stdout) != expected:
+            raise ValueError('Invalid native training sample length')
+        values, offset = [], 0
+        for shape in shapes:
+            count = math.prod(shape)
+            values.append(torch.from_numpy(np.frombuffer(result.stdout, dtype='<f4', count=count, offset=offset).copy().reshape(shape)))
+            offset += count * 4
+        return (*values, sheet_index)
 
 
 def batch_loss(model, batch, device, positive_weight=None):
