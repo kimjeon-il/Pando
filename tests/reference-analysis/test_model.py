@@ -35,6 +35,26 @@ class ModelInterfaceTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'macro'):
                     require_macro_scope([row], root)
 
+    def test_balanced_training_sees_every_original_without_large_sheets_dominating(self):
+        from train import balanced_tile_indices
+        first = SimpleNamespace(tiles=[(0, i, 0) for i in range(90)] + [(1, 0, 0)],
+                                sheets=[{'duplicateGroup': 'a'}, {'duplicateGroup': 'b'}])
+        second = SimpleNamespace(tiles=[(i, 0, 0) for i in range(9)],
+                                 sheets=[{'duplicateGroup': str(i)} for i in range(9)])
+        indices = balanced_tile_indices([first, second], epoch=0, seed=123)
+        self.assertEqual(indices, balanced_tile_indices([first, second], epoch=0, seed=123))
+        self.assertNotEqual(indices, balanced_tile_indices([first, second], epoch=1, seed=123))
+        self.assertEqual(sum(i < 91 for i in indices), 50)
+        self.assertEqual(sum(i >= 91 for i in indices), 50)
+        self.assertTrue(set(range(90, 100)).issubset(indices), 'Every original must be visited each epoch')
+        self.assertGreater(indices.count(90), 10, 'A one-tile original is not drowned by a 90-tile sheet')
+        small = SimpleNamespace(tiles=[(0, 0, 0)], sheets=[{'duplicateGroup': 'one'}])
+        diverse = SimpleNamespace(tiles=[(i, 0, 0) for i in range(99)],
+                                  sheets=[{'duplicateGroup': str(i)} for i in range(99)])
+        extreme = balanced_tile_indices([small, diverse], epoch=0, seed=123)
+        self.assertEqual(extreme.count(0), len(extreme) - extreme.count(0),
+                         'Coverage of many originals must not silently unbalance corpus contribution')
+
     def test_training_only_initialization_cannot_be_promoted_into_independent_evaluation(self):
         with self.assertRaisesRegex(ValueError, 'initialization requires training-only'):
             train(SimpleNamespace(training_only=False, initialize_checkpoint='prior.pt'), {'sheets': []}, pathlib.Path('.'))
