@@ -80,16 +80,20 @@ int main(int argc,char** argv){
         if(argc<2)throw std::invalid_argument("Expected resize-rgba, rotate-rgba or encode-png");
         const std::string action=argv[1];
         if(action=="training-jpeg-overview"){
-            if(argc!=2)throw std::invalid_argument("JPEG training overview takes no extra arguments");
+            if(argc!=4)throw std::invalid_argument("Expected JPEG training tile X Y");
             struct State {
-                std::uint32_t width=0,height=0,orientation=0;
+                std::uint32_t width=0,height=0,orientation=0,tileX=0,tileY=0;
                 std::unique_ptr<pando::map_image::OpaqueBilinearAccumulator> accumulator;
                 std::unique_ptr<pando::map_image::OpaqueBilinearColumnAccumulator> columns;
-                std::vector<std::uint8_t> mirrored;std::exception_ptr error;
+                std::vector<std::uint8_t> mirrored,tile;std::exception_ptr error;
             } state;
+            state.tileX=static_cast<std::uint32_t>(bounded(argv[2],65534));state.tileY=static_cast<std::uint32_t>(bounded(argv[3],65534));
             const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t orientation)->int{
                 auto& s=*static_cast<State*>(context);try{
                     s.width=width;s.height=height;s.orientation=orientation;
+                    const auto orientedWidth=orientation>=5?height:width,orientedHeight=orientation>=5?width:height;
+                    if(s.tileX>=orientedWidth||s.tileY>=orientedHeight)throw std::invalid_argument("Training tile starts outside JPEG");
+                    s.tile.assign(std::size_t(512)*512*4,255);
                     if(orientation>=5)s.columns=std::make_unique<pando::map_image::OpaqueBilinearColumnAccumulator>(height,width,256,256);
                     else s.accumulator=std::make_unique<pando::map_image::OpaqueBilinearAccumulator>(width,height,256,256);
                     if(orientation==2||orientation==3||orientation==7||orientation==8)s.mirrored.resize(std::size_t(width)*4);
@@ -105,9 +109,19 @@ int main(int argc,char** argv){
                     if(s.orientation>=5){
                         const auto orientedX=(s.orientation==6||s.orientation==7)?s.height-1-y:y;
                         s.columns->addColumn(static_cast<int>(orientedX),pixels,length);
+                        if(orientedX>=s.tileX&&orientedX-s.tileX<512){
+                            const auto end=std::min(s.width,s.tileY+512);
+                            for(auto yy=s.tileY;yy<end;++yy)
+                                std::copy_n(pixels+std::size_t(yy)*4,4,s.tile.data()+(std::size_t(yy-s.tileY)*512+orientedX-s.tileX)*4);
+                        }
                     }else{
                         const auto orientedY=(s.orientation==3||s.orientation==4)?s.height-1-y:y;
                         s.accumulator->addRow(static_cast<int>(orientedY),pixels,length);
+                        if(orientedY>=s.tileY&&orientedY-s.tileY<512){
+                            const auto count=std::min<std::uint32_t>(512,s.width-s.tileX);
+                            std::copy_n(pixels+std::size_t(s.tileX)*4,std::size_t(count)*4,
+                                        s.tile.data()+std::size_t(orientedY-s.tileY)*512*4);
+                        }
                     }
                     return 1;
                 }catch(...){s.error=std::current_exception();return 0;}
@@ -120,6 +134,7 @@ int main(int argc,char** argv){
             const auto output=state.orientation>=5?state.columns->finish():state.accumulator->finish();
             number(state.orientation>=5?image.height:image.width);number(state.orientation>=5?image.width:image.height);number(image.orientation);
             std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+            std::cout.write(reinterpret_cast<const char*>(state.tile.data()),static_cast<std::streamsize>(state.tile.size()));
             if(!std::cout)throw std::runtime_error("Unable to write JPEG training overview");return 0;
         }
         if(action=="read-webp-raw"){
@@ -185,6 +200,21 @@ int main(int argc,char** argv){
             for(std::size_t i=0;i<pixels.size();++i)pixels[i]=rgba.get()[i*4];
             number(image.width);number(image.height);std::cout.write(reinterpret_cast<const char*>(pixels.data()),static_cast<std::streamsize>(pixels.size()));
             if(!std::cout)throw std::runtime_error("Unable to write training mask");return 0;
+        }
+        if(action=="training-pieces"){
+            if(argc!=9)throw std::invalid_argument("Expected training pieces WIDTH HEIGHT X Y AUGMENT EPOCH INDEX");
+            const int width=bounded(argv[2],65535),height=bounded(argv[3],65535),x=bounded(argv[4],65534),y=bounded(argv[5],65534);
+            const std::string augment=argv[6];if(augment!="0"&&augment!="1")throw std::invalid_argument("Invalid training augmentation flag");
+            const auto epoch=index64(argv[7]),index=index64(argv[8]);
+            std::vector<std::uint8_t> tile(std::size_t(512)*512*4),overview(std::size_t(256)*256*4),
+                target(std::size_t(512)*512),known(std::size_t(512)*512);
+            for(auto* plane:{&tile,&overview,&target,&known})
+                if(!std::cin.read(reinterpret_cast<char*>(plane->data()),static_cast<std::streamsize>(plane->size())))
+                    throw std::invalid_argument("Training pieces input is truncated");
+            if(std::cin.peek()!=std::char_traits<char>::eof())throw std::invalid_argument("Training pieces have trailing bytes");
+            const auto output=pando::map_image::trainingTilePieces(std::move(tile),std::move(overview),width,height,x,y,target,known,augment=="1",epoch,index);
+            std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+            if(!std::cout)throw std::runtime_error("Unable to write training tensors");return 0;
         }
         if(action=="training-tile"){
             if(argc!=9)throw std::invalid_argument("Expected training tile WIDTH HEIGHT X Y AUGMENT EPOCH INDEX");
