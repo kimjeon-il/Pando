@@ -8,6 +8,7 @@ import {parseArgs} from 'node:util';
 import {readNativeRawWebp} from './map-image/native-resample.mjs';
 import {verifyTerrainDemLevel} from './gis/terrain-dem-check.mjs';
 import {sampleGdalDem} from './gis/terrain-dem-source.mjs';
+import {terrainAssetDigest} from './gis/terrain-dem-assets.mjs';
 
 const digest=data=>createHash('sha256').update(data).digest();
 async function digestFile(path,signal){const hash=createHash('sha256'),stream=createReadStream(path,{highWaterMark:4*1024*1024,signal});
@@ -25,7 +26,7 @@ export async function verifyTerrainDem({output,etopo,referenceOutput,gdalBinary,
     throw Error('Unexpected DEM manifest or source pins');
   if(await digestFile(source,signal)!==manifest.sources[0].sha256)throw Error('DEM source checksum mismatch');
   const options={...(demDirectory?{directory:demDirectory}:{}),signal},imageOptions={...(imageDirectory?{directory:imageDirectory}:{}),signal};
-  const levelIds=new Set(),aggregate=createHash('sha256'),reports=[];
+  const levelIds=new Set(),aggregate=terrainAssetDigest(),reports=[];
   for(const level of manifest.levels){
     if(levelIds.has(level.id))throw Error('Duplicate DEM level');levelIds.add(level.id);
     const readTile=async(column,row)=>{const path=resolve(root,String(level.id),`${column}-${row}.webp`),encoded=await readBounded(path,32*1024*1024,signal);
@@ -35,14 +36,14 @@ export async function verifyTerrainDem({output,etopo,referenceOutput,gdalBinary,
     }:undefined;
     const result=await verifyTerrainDemLevel({level,readTile,readReference,shadeStep:4,
       sourceSample:(x,y)=>sampleGdalDem({source,x,y,...(gdalBinary?{binary:gdalBinary}:{}),signal})},options);
-    for(const asset of result.assets)aggregate.update(asset.path,'utf8').update(Buffer.from(asset.sha256,'hex'));
+    for(const asset of result.assets)aggregate.add(asset.path,asset.sha256);
     reports.push({level:result.level,tiles:result.tiles,bytes:result.bytes,maxTileBytes:result.maxTileBytes});
   }
   const tint=await readBounded(resolve(root,'tint.webp'),32*1024*1024,signal);
   if(digest(tint).toString('hex')!==manifest.tint.sha256)throw Error('DEM tint checksum mismatch');
   const tintImage=await readNativeRawWebp(tint,imageOptions);
   if(tintImage.width!==4096||tintImage.height!==2048)throw Error('Wrong DEM tint size');
-  aggregate.update(digest(tint));if(aggregate.digest('hex')!==manifest.assetsSha256)throw Error('DEM asset checksum mismatch');
+  if(aggregate.finish(digest(tint).toString('hex'))!==manifest.assetsSha256)throw Error('DEM asset checksum mismatch');
   const totalBytes=reports.reduce((sum,row)=>sum+row.bytes,0)+tint.length+manifestBytes.length;
   if(totalBytes>900*1024*1024)throw Error('DEM exceeds 900 MiB publication budget');
   const after=await stat(source);if(sourceInfo.size!==after.size||sourceInfo.mtimeMs!==after.mtimeMs)throw Error('DEM source changed during verification');

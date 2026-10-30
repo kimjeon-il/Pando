@@ -251,21 +251,14 @@ def restore_polar_gutter_shade(output: Path, etopo_path: Path, min_level=0, max_
 
 
 def asset_summary(output: Path, level_definitions):
-    asset_digest = hashlib.sha256()
-    reports = []
-    for level in level_definitions:
-        sizes = []
-        for row in range(level['rows']):
-            for column in range(level['columns']):
-                path = output/str(level['id'])/f'{column}-{row}.webp'
-                sizes.append(path.stat().st_size)
-                asset_digest.update(path.relative_to(output).as_posix().encode())
-                asset_digest.update(bytes.fromhex(sha256(path)))
-        reports.append({'level': level['id'], 'tileCount': len(sizes),
-                        'bytes': sum(sizes), 'maxTileBytes': max(sizes)})
-    tint_path = output/'tint.webp'
-    asset_digest.update(bytes.fromhex(sha256(tint_path)))
-    return asset_digest.hexdigest(), reports
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-assets.mjs'
+    result = subprocess.run(['node', str(script), '--output', str(output), '--levels', json.dumps(level_definitions)],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('DEM asset summary failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    summary = json.loads(result.stdout)
+    return summary['assetsSha256'], summary['reports']
 
 
 def tint_validity(rgb, protected_ice, land, land_interior):
