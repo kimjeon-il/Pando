@@ -74,7 +74,7 @@ class PublisherLabelsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             sheet = prepare_sheet(self.source(folder), folder, maximum_dimension=160)
             value = dict(schemaVersion=1, trainingOnly=True, sheets=[sheet])
-            with self.assertRaisesRegex(ValueError, 'Human-reviewed'):
+            with self.assertRaisesRegex(ValueError, 'Source-reviewed independent corpus required; supplied corpus is training-only'):
                 validate_corpus(value, folder)
             validate_corpus(value, folder, training_only=True)
             value['sheets'][0]['split'] = 'test'

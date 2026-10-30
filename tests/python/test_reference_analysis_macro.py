@@ -191,7 +191,7 @@ class MacroSupervisionTests(unittest.TestCase):
             sheet = prepare(source, root, 160)
             corpus = dict(schemaVersion=1, trainingOnly=True, sheets=[sheet])
             validate_corpus(corpus, root, training_only=True)
-            with self.assertRaisesRegex(ValueError, 'Human-reviewed'):
+            with self.assertRaisesRegex(ValueError, 'Source-reviewed independent corpus required; supplied corpus is training-only'):
                 validate_corpus(corpus, root)
             annotation_path = root / sheet['annotations']
             annotation = json.loads(annotation_path.read_text())

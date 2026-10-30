@@ -839,6 +839,11 @@ jobs:
       - uses: pnpm/action-setup@v4
       - name: Install locked MCP test dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Reuse pinned QGIS SDK archives
+        uses: actions/cache@v4
+        with:
+          path: build-native/qgis-sdk/*.tar.bz2
+          key: qgis-sdk-${{ runner.os }}-qgis-3.44.15-qt-5.15.13-gdal-3.13.3-geos-3.15.0-proj-9.8.1-v1
       - name: Download and verify the matching OSGeo4W development packages
         shell: pwsh
         run: |
@@ -853,8 +858,12 @@ jobs:
             @{name='proj'; path='proj/proj-devel/proj-devel-9.8.1-1.tar.bz2'; sha='B8A6F4DBB800F019BE4F4C45849B53818F2074213B850DFC38681CC99D0E3889'}
           )
           foreach ($package in $packages) {
-            Write-Output "Downloading $($package.name) SDK"
             $archive = Join-Path $sdk ($package.name + '.tar.bz2')
+            if ((Test-Path -LiteralPath $archive -PathType Leaf) -and (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -eq $package.sha) {
+              Write-Output "Reusing verified $($package.name) SDK archive"
+              continue
+            }
+            Write-Output "Downloading $($package.name) SDK"
             $url = 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/' + $package.path
             curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 180 --max-filesize 30000000 $url --output $archive
             if ($LASTEXITCODE -ne 0) { throw "SDK download failed: $($package.name)" }
