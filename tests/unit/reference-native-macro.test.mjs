@@ -22,6 +22,8 @@ test('native macro dilation preserves square Pillow neighbourhood and edges',asy
     const sx=x+dx,sy=y+dy;if(sx>=0&&sx<width&&sy>=0&&sy<height&&source[sy*width+sx])expected[y*width+x]=1;
   }
   assert.deepEqual(output,expected);
+  assert.deepEqual(await nativeMacroDilate({width:3,height:2,data:Buffer.from([0,0,0,0,0,1])},32),Buffer.alloc(6,1));
+  assert.deepEqual(await nativeMacroDilate({width:1,height:1,data:Buffer.from([0])},1),Buffer.from([0]));
   await assert.rejects(nativeMacroDilate({width,height,data:Buffer.alloc(1)},2),/length/i);
 });
 test('macro mask stream returns both supervision planes and rejects truncated input',()=>{
