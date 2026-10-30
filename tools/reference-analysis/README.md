@@ -77,6 +77,12 @@ does not yet replace the full Python inspection command or its other corpus mode
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/example/corpus.training.json --source SOURCE_ID --checkpoint EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/checkpoint.pt --output EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/diagnostic-source --device cuda --torch-library 'C:/path/to/matching/torch/lib'
 ```
 
+For one source-reviewed sheet, use `--reviewed-source` and add
+`--review-corpus` pointing to its manifest. `--corpus` remains the training
+manifest recorded by the checkpoint. The selected sheet's source and annotation
+are verified, but the result is a diagnostic, not an independence or accuracy
+claim. The same output protection and optional baseline rules apply.
+
 Analysis runtime proof uses the plugin CLI with local map/model paths. Native
 application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS
 import, explicit editing, Undo/Redo and actual native save/reopen. Neither check
