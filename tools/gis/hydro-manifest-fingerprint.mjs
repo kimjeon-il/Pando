@@ -16,11 +16,12 @@ function floatText(value){
   if(point>=digits.length)return sign+digits+'0'.repeat(point-digits.length)+'.0';
   return sign+digits.slice(0,point)+'.'+digits.slice(point);
 }
-function encode(value){
+function encode(value,compact=true){
   if(value instanceof NumberToken)return /[.eE]/.test(value.source)?floatText(Number(value.source)):BigInt(value.source).toString();
   if(value===null)return 'null';if(value===true)return 'true';if(value===false)return 'false';if(typeof value==='string')return quote(value);
-  if(Array.isArray(value))return '['+value.map(encode).join(',')+']';
-  if(value&&typeof value==='object')return '{'+Object.keys(value).sort(compareCodePoints).map(key=>quote(key)+':'+encode(value[key])).join(',')+'}';
+  if(Array.isArray(value))return '['+value.map(item=>encode(item,compact)).join(compact?',':', ')+']';
+  if(value&&typeof value==='object')return '{'+Object.keys(value).sort(compareCodePoints)
+    .map(key=>quote(key)+(compact?':':': ')+encode(value[key],compact)).join(compact?',':', ')+'}';
   throw Error('Unsupported Hydro manifest value');
 }
 function parse(source){
@@ -29,7 +30,7 @@ function parse(source){
 }
 export function canonicalHydroManifest(source){return encode(parse(source));}
 export function hydroBaselineFingerprint(source){return createHash('sha256').update(canonicalHydroManifest(source),'utf8').digest('hex');}
-export function hydroBaselineFingerprintFromDocument(source){
+function manifestFromDocument(source){
   if(typeof source!=='string')throw Error('Hydro baseline JSON text required');let position=0,manifest=null;
   const whitespace=()=>{while(/[\x20\t\r\n]/.test(source[position]||'\0'))position++;};
   function stringEnd(){if(source[position++]!=='"')throw Error('Invalid Hydro baseline JSON');
@@ -51,5 +52,8 @@ export function hydroBaselineFingerprintFromDocument(source){
     if(source[position]===','){position++;whitespace();continue;}if(source[position]!=='}')throw Error('Invalid Hydro baseline JSON');
   }
   position++;whitespace();if(position!==source.length)throw Error('Invalid Hydro baseline JSON');
-  if(!manifest||!manifest.startsWith('{'))throw Error('Hydro baseline manifest required');return hydroBaselineFingerprint(manifest);
+  if(!manifest||!manifest.startsWith('{'))throw Error('Hydro baseline manifest required');return manifest;
 }
+export function hydroBaselineFingerprintFromDocument(source){return hydroBaselineFingerprint(manifestFromDocument(source));}
+export function hydroBaselineAuditFingerprintFromDocument(source){const manifest=manifestFromDocument(source);
+  return createHash('sha256').update(encode(parse(manifest),false),'utf8').digest('hex');}
