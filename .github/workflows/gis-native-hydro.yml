@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated]
         default: hydro
 
 permissions:
@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   terrain-dem-check:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-check'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-check' || inputs.target == 'terrain-dem-check-integrated')
     strategy:
       fail-fast: false
       matrix:
@@ -39,6 +39,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Install native GDAL for the selected synthetic source
+        if: inputs.target == 'terrain-dem-check-integrated' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq gdal-bin
+          echo 'PANDO_GDAL_LOCATIONINFO=gdallocationinfo' >> "$GITHUB_ENV"
+      - name: Build the image codec used by the integrated verifier
+        if: inputs.target == 'terrain-dem-check-integrated'
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Image codec configuration failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Image codec build failed' }
+          if ($IsWindows) { $image = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $image = 'build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Image codec packaging failed' }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_MAP_IMAGE_ARTIFACT=$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
       - name: Build and check only the DEM tile verifier
         shell: pwsh
         run: |
@@ -51,7 +70,7 @@ jobs:
           node tools/gis/package-terrain-dem-check.mjs --binary $binary --directory build-native/terrain-dem-check/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM verifier packaging failed' }
           $env:PANDO_TERRAIN_DEM_CHECK_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-check/artifact"
-          node --test tests/unit/terrain-dem-check.test.mjs
+          node --test tests/unit/terrain-dem-check.test.mjs tests/unit/terrain-dem-level.test.mjs tests/unit/terrain-dem-source.test.mjs tests/unit/terrain-dem-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM tile checks differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
