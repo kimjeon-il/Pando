@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import test from 'node:test';
-import yazl from 'yazl';
 import {openSourceArchive,orderSemapTrainingMembers,readPinnedHttpRange,readPinnedSmallFile,readTrainingPartition,selectRealTrainingMembers} from '../../tools/reference-analysis/semap-source.mjs';
 import {zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 
@@ -23,11 +23,7 @@ test('large logical reads use individually bounded exact HTTP ranges',async()=>{
   assert.deepEqual(requests,[[0,131071],[131072,131072]]);
 });
 test('range ZIP reads only selected source members and validates CRC',async()=>{
-  const zip=new yazl.ZipFile(),chunks=[];zip.outputStream.on('data',chunk=>chunks.push(chunk));
-  const complete=new Promise((ok,fail)=>{zip.outputStream.on('end',ok);zip.outputStream.on('error',fail);});
-  zip.addBuffer(Buffer.alloc(200000,37),'images/real/unused.jpg',{compress:false});
-  zip.addBuffer(Buffer.from('original source'),'images/real/selected.jpg',{compress:true});zip.end();await complete;
-  const bytes=Buffer.concat(chunks),calls=[];
+  const bytes=await readFile('tests/fixtures/reference-semap/range.zip'),calls=[];
   const readRange=async(start,end)=>{calls.push([start,end]);return bytes.subarray(start,end+1);};
   const entries=await zipRangeMembers({size:bytes.length,readRange});
   const selected=entries.find(entry=>entry.name==='images/real/selected.jpg');assert(selected);
@@ -69,9 +65,6 @@ test('small partition and rights evidence must match its pinned length and diges
   await assert.rejects(readPinnedSmallFile({...options,fetcher:async()=>new Response('abcdefg')}),/exceeds/i);
 });
 test('author partition requires one CRC-verified training list',async()=>{
-  const build=async names=>{const zip=new yazl.ZipFile(),chunks=[];zip.outputStream.on('data',part=>chunks.push(part));
-    const done=new Promise((ok,fail)=>{zip.outputStream.on('end',ok);zip.outputStream.on('error',fail);});
-    for(const name of names)zip.addBuffer(Buffer.from('loc_000001-1_0_0\nloc_000002-0_0_0\n'),name);zip.end();await done;return Buffer.concat(chunks);};
-  assert.deepEqual([...await readTrainingPartition(await build(['partitions/train.txt']))],['loc_000001-1_0_0','loc_000002-0_0_0']);
-  await assert.rejects(readTrainingPartition(await build(['one/train.txt','two/train.txt'])),/unique/i);
+  assert.deepEqual([...await readTrainingPartition(await readFile('tests/fixtures/reference-semap/partition.zip'))],['loc_000001-1_0_0','loc_000001-0_0_0']);
+  await assert.rejects(readTrainingPartition(await readFile('tests/fixtures/reference-semap/partition-duplicate.zip')),/unique/i);
 });
