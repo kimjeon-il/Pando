@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated]
         default: hydro
 
 permissions:
@@ -25,13 +25,13 @@ permissions:
 
 jobs:
   terrain-preview:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-preview'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-preview' || inputs.target == 'terrain-preview-integrated')
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,6 +42,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Build the image codec needed by the integrated terrain workflow
+        if: inputs.target == 'terrain-preview-integrated'
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Image codec configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Image codec build failed' }
+          if ($IsWindows) { $image = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $image = 'build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Image codec packaging failed' }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_MAP_IMAGE_ARTIFACT=$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
       - name: Build and verify only the terrain preview compositor
         shell: pwsh
         run: |
@@ -55,7 +68,7 @@ jobs:
           node tools/gis/package-terrain-preview.mjs --binary $env:PANDO_TERRAIN_PREVIEW_BINARY --directory build-native/terrain-preview/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview packaging failed' }
           $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
-          node --test tests/unit/terrain-preview-native.test.mjs
+          node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
       - name: Verify the existing preview producer against the native compositor
         shell: pwsh
