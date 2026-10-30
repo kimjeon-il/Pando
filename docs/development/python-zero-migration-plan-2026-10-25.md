@@ -27,13 +27,13 @@
   DEM 생성기의 고도 인코딩·음영·극지 gutter 계산은 소스 확인된 C++ 도구로 연결하고 기존 Python 수치 계산을 제거했다. [Windows/Linux CI 41030025755](https://github.com/kimjeon-il/Pando/actions/runs/41030025755)에서 고정 입력 9종이 기존 Python과 일치했고, 고정 DEM 타일에서 복원한 정수 고도 128×128의 음영·RGBA도 각각 SHA-256 `4bf5e9ed284cccdd14c4f6165b101cdb418c648a229f0ed10f3b6cbaa6fa4795`, `2f114dc1a290e5bf55f950cf0a43d00f3d279774a5df7d538f8710f74e5c9a83`으로 일치했다. 이는 기존 타일에서 추출한 고도의 비교이며 원본 ETOPO 실자료 전체 검증은 아니다. GDAL 원본 창·tint·생성 관리의 Python 이전은 남아 있다.
 
   DEM tint의 육지·눈·빙하 색상 기증 판정도 네이티브 계산에 연결했다. [Windows/Linux CI 41032868914](https://github.com/kimjeon-il/Pando/actions/runs/41032868914)의 고정 사례와 소스 일치 실행 파일을 확인했고, [41033249980](https://github.com/kimjeon-il/Pando/actions/runs/41033249980)에서 생성기 연결을 확인했다. 보유 tint에서 선택한 128×128 색상과 합성 육지·빙하 마스크를 적용한 판정 16,384개는 기존 Python과 같았으며 SHA-256은 `8161e7b2d1b1155ecfdc8c1896a82eac5fffa60824f19dd81f4548d84466049c`이다. 이 비교는 전체 원본 재생성이나 실제 육지·빙하 마스크 검증이 아니다. 원본 창 판독, 배경 채우기 및 생성 관리는 아직 Python이다.
-  생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. 운영 자료 전체를 재해시하지 않았다.
+  생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
 
 `work/gis` 현행 기준: 도구 21개, 테스트 14개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. Python 학습·진단에서 아직 호출하는 EXIF 및 흰색 alpha 합성 함수는 유지하며, 투명 원본을 사용하는 학습 진단 시험을 확인했다.
 
-학습 진단의 7채널 확률·정답·known 픽셀 집계는 네이티브 평가 도구와 소스 확인된 Node 호출로 이전했다. [Windows/Linux CI 41034281059](https://github.com/kimjeon-il/Pando/actions/runs/41034281059)의 고정 값과 거부 사례를 확인했다. 보존된 비공개 모델 출력의 7×512×512 확률과 합성 known·정답 마스크에서 기존 Python 집계와 모든 값이 일치했고, 정렬된 결과 SHA-256은 `fa2e3cc52ac1e30330423ea629482b5dacae566a232aaeedc2488f745e04872a`이다. 이는 계산 동등성으로, 실자료 라벨 평가나 모델 정확도 승인이 아니다. 진단 실행기와 학습 호출자의 나머지 Python은 유지한다.
+학습 진단의 7채널 확률·정답·known 픽셀 집계는 네이티브 평가 도구와 소스 확인된 Node 호출로 이전했다. [Windows/Linux CI 41034281059](https://github.com/kimjeon-il/Pando/actions/runs/41034281059)의 고정 값과 [41034766087](https://github.com/kimjeon-il/Pando/actions/runs/41034766087)의 연결·거부 사례를 확인했다. 보존된 비공개 모델 출력의 7×512×512 확률과 합성 known·정답 마스크에서 기존 Python 집계와 모든 값이 일치했고, 정렬된 결과 SHA-256은 `fa2e3cc52ac1e30330423ea629482b5dacae566a232aaeedc2488f745e04872a`이다. 이는 계산 동등성으로, 실자료 라벨 평가나 모델 정확도 승인이 아니다. 진단 실행기와 학습 호출자의 나머지 Python은 유지한다.
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
