@@ -74,6 +74,11 @@ export async function readSemapEvidence(name,{fetcher=fetch,signal}={}){
   if(!Object.hasOwn(smallFiles,name))throw Error('Pinned Semap evidence filename required');
   const [size,md5]=smallFiles[name];return readPinnedSmallFile({url:`${record}/files/${name}/content`,size,md5,fetcher,signal});
 }
+export function verifySemapEvidence(name,bytes){
+  if(!Object.hasOwn(smallFiles,name)||!(bytes instanceof Uint8Array))throw Error('Pinned Semap evidence required');
+  const [size,md5]=smallFiles[name];if(bytes.length!==size||createHash('md5').update(bytes).digest('hex')!==md5)
+    throw Error('Pinned Semap partition or rights evidence differs');
+}
 
 export async function readPinnedHttpRange({url,total,start,end,fetcher=fetch,signal}){
   signal?.throwIfAborted();
