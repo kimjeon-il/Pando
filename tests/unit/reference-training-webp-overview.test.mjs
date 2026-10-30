@@ -6,7 +6,7 @@ import {prepareNativeTrainingTile,prepareNativeTrainingTilePieces,readNativeImag
 import {prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
 
 test('WebP training pixels retain color, first animation frame and EXIF orientation',async()=>{
-  for(const name of ['rgb','rgba','lossy-alpha','animated','training-stripes','orientation-2','orientation-3','orientation-4','orientation-5','orientation-6','orientation-7','orientation-8']){
+  for(const name of ['rgb','rgba','lossy-alpha','animated','training-stripes','training-stripes-opaque','orientation-2','orientation-3','orientation-4','orientation-5','orientation-6','orientation-7','orientation-8']){
     const path=`tests/fixtures/map-image/webp-read/${name}.webp`,bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
     const image=await readNativeImage({path,format:'webp',maxPixels:16777216,expectedSha256});
     const streamed=await readNativeTrainingRaster({path,format:'webp',expectedSha256});
@@ -18,8 +18,8 @@ test('WebP training pixels retain color, first animation frame and EXIF orientat
   }
 });
 
-test('lossy WebP stripe boundaries preserve original source pixels',async()=>{
-  const path='tests/fixtures/map-image/webp-read/training-stripes.webp',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
+for(const name of ['training-stripes','training-stripes-opaque'])test(`${name} preserves original pixels across stripe boundaries`,async()=>{
+  const path=`tests/fixtures/map-image/webp-read/${name}.webp`,bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
   const image=await readNativeImage({path,format:'webp',maxPixels:16777216,expectedSha256});
   const streamed=await readNativeTrainingRaster({path,format:'webp',expectedSha256,x:0,y:448});
   let count=0,first;
@@ -41,4 +41,12 @@ test('lossless WebP above 16MP matches the original PNG overview and tile',async
   assert.ok(Math.abs(tile.position.readFloatLE(0)-4000/4097)<1e-7);
   assert.equal(tile.valid.readFloatLE(0),1);assert.equal(tile.valid.readFloatLE((100*512+100)*4),0);
   await assert.rejects(readNativeTrainingRaster({path,format:'webp',expectedSha256:'0'.repeat(64)}),/hash/i);
+});
+
+test('lossy transparent WebP above 16MP matches Pillow composite and tile',async()=>{
+  const path='tests/fixtures/map-image/webp-read/training-large-lossy.webp',bytes=await readFile(path),expectedSha256=createHash('sha256').update(bytes).digest('hex');
+  const actual=await readNativeTrainingRaster({path,format:'webp',expectedSha256,x:4000,y:4000});
+  const expected=await readNativeImage({path:'tests/fixtures/map-image/webp-read/training-large-lossy-overview.png',format:'png',maxPixels:16777216});
+  assert.equal(actual.width,4097);assert.equal(actual.height,4097);assert.equal(Buffer.compare(actual.data,expected.data),0,'overview pixels');
+  assert.equal(createHash('sha256').update(actual.tile).digest('hex'),'730637158f966d419a02ebdd11bb0d826e309914bbee719670e6ac8917099cb9');
 });
