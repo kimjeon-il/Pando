@@ -37,9 +37,13 @@ test('actual generated country records assemble the expected territory and offic
   const result=assembleBuiltinWorld(partial,entries.map(read),month);
   assert.deepEqual(new Set(result.territorialEntities.map(e=>e.id)),new Set(entries.map(e=>e.entityId)),month+' project objects');
   assert.ok(result.geometries.length>=entries.length-1,month+' loaded geometry references');
-  if(month==='2003-12'){
+  if(month==='2000-12'||month==='2003-12'){
+   const expected=month==='2003-12'?'세르비아 몬테네그로':'유고슬라비아';
+   const yugo=result.territorialEntities.find(e=>e.id==='state:yugoslavia');
+   assert.equal(yugo?.properties.name,expected,month+' must project the name into the initial country identity');
+   assert.equal(yugo?.properties.metadata?.nameDetails?.ko?.common,expected);
    const name=result.timelineRecords.propertyBindings.find(e=>e.objectRef.id==='state:yugoslavia'&&e.property==='name');
-   assert.equal(name?.value?.name,'세르비아 몬테네그로');
+   assert.equal(name?.value?.name,expected,month+' must retain its timeline name binding');
   }
  }
 });
