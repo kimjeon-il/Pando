@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { open } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { workspace, workspaceModule } from './workspace.mjs';
@@ -10,6 +11,16 @@ export async function raster(spec, bytes=null, signal=null) {
     const image={width:spec.width,height:spec.height,data:bytes};
     return spec.action==='resize'?resizeNativeRgba(image,spec.size,{signal,workspace}):spec.action==='rotate'?
       rotateNativeRgba(image,spec.degrees,{signal,workspace}):encodeNativePng(image,{signal,workspace});
+  }
+  if(spec.action==='read'&&typeof spec.path==='string'&&!spec.path.toLowerCase().endsWith('.pdf')){
+    const file=await open(spec.path,'r');let header;
+    try{const bytes=Buffer.alloc(8),{bytesRead}=await file.read(bytes,0,8,0);header=bytes.subarray(0,bytesRead);}
+    finally{await file.close();}
+    signal?.throwIfAborted();
+    if(header.equals(Buffer.from([137,80,78,71,13,10,26,10]))){
+      const {readNativePng}=await workspaceModule('tools/map-image/native-resample.mjs');
+      return readNativePng(spec,{signal,workspace});
+    }
   }
   const child=spawn(process.env.PANDO_MAP_PYTHON || resolve(workspace,'build-native/python/Scripts/python.exe'),
     [fileURLToPath(new URL('./raster.py',import.meta.url))],{windowsHide:true,signal:signal || undefined,stdio:['pipe','pipe','pipe']});
