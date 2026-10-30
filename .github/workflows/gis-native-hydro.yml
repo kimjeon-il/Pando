@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
         default: hydro
 
 permissions:
@@ -377,7 +377,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
   map-review:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-review'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'map-review' || inputs.target == 'map-review-validation')
     strategy:
       fail-fast: false
       matrix:
@@ -399,6 +399,7 @@ jobs:
           cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
       - name: Verify original training scan-condition sampling
+        if: inputs.target == 'map-review'
         shell: pwsh
         run: |
           cmake -S tools/cpp/reference-analysis/conditions-test -B build-native/reference-analysis/conditions-test

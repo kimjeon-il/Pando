@@ -9,7 +9,7 @@ export const reviewMaskSourceFiles=Object.freeze(['tools/cpp/map-review/CMakeLis
 const root=fileURLToPath(new URL('../../',import.meta.url));
 function evenRound(value){const low=Math.floor(value),fraction=value-low;return fraction===.5?(low%2===0?low:low+1):Math.round(value);}
 function encode(annotation,window,fullSheetCoordinates){
-  if(!annotation||!Number.isInteger(annotation.width)||!Number.isInteger(annotation.height)||annotation.width<1||annotation.height<1||annotation.width>65535||annotation.height>65535)
+  if(!annotation||!Number.isInteger(annotation.width)||!Number.isInteger(annotation.height)||annotation.width<1||annotation.height<1||annotation.width>1000000||annotation.height>1000000)
     throw Error('Original image dimensions required');
   if(!annotation.known||typeof annotation.known!=='object'||Array.isArray(annotation.known))throw Error('Explicit per-channel known regions required');
   const [x,y,width,height]=window??[0,0,annotation.width,annotation.height];
@@ -35,7 +35,7 @@ function encode(annotation,window,fullSheetCoordinates){
   }
   for(const line of annotation.lines||[]){
     if(typeof line.width!=='number'||!Number.isFinite(line.width))throw Error('Invalid line width');
-    const lineWidth=Math.max(1,evenRound(line.width));if(lineWidth>65535)throw Error('Line width exceeds budget');
+    const lineWidth=Math.max(1,evenRound(line.width));if(lineWidth>2145483647)throw Error('Line width exceeds budget');
     shape(2,line.kind,line.points,lineWidth);
   }
   for(const region of annotation.regions||[])shape(3,region.kind,region.polygon);
@@ -99,4 +99,15 @@ export async function validateReviewedAnnotation(annotation,sheet,options={}){
     const {targetBits,knownBits}=await reviewMasks({...annotation,ignore:[]},{...options,window});
     for(let i=0;i<targetBits.length;i++)if(targetBits[i]&~knownBits[i])throw Error('Positive labels extend outside explicitly known regions');
   }
+}
+
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    if(process.argv.length!==3||process.argv[2]!=='--validate-stream')throw Error('Expected --validate-stream');
+    const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;
+      if(length>64*1024*1024)throw Error('Review validation input exceeds byte budget');chunks.push(chunk);}
+    const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
+    if(!request||typeof request!=='object'||Array.isArray(request)||!request.annotation||!request.sheet)throw Error('Review annotation and sheet required');
+    await validateReviewedAnnotation(request.annotation,request.sheet);process.stdout.write('{"valid":true}\n');
+  }catch(error){console.error('review-masks: '+error.message);process.exitCode=1;}
 }

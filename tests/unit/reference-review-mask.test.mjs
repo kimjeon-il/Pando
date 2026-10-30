@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import test from 'node:test';
@@ -31,4 +32,25 @@ test('large original dimensions validate in bounded windows across tile boundari
   await assert.doesNotReject(validateReviewedAnnotation(annotation,{sha256:hash}));
   annotation.known.international=[[[0,0],[16383,0],[16383,1],[0,1]]];
   await assert.rejects(validateReviewedAnnotation(annotation,{sha256:hash}),/outside explicitly known/i);
+});
+test('review validation retains wide lines and source dimensions beyond 65535',async()=>{
+  const hash='a'.repeat(64),annotation={schemaVersion:1,reviewed:true,width:65536,height:2,
+    review:{kind:'agent',reviewer:'fixture',reviewedAt:'2026-10-30T00:00:00Z',sourceSha256:hash,predictionBlind:true},
+    known:{international:[[[0,0],[65535,0],[65535,1],[0,1]]]},lines:[{kind:'international',width:100000,points:[[0,0],[65535,0]]}]};
+  for(const x of [0,32768,65532]){
+    const masks=await reviewMasks(annotation,{window:[x,0,4,2]});
+    assert.deepEqual(masks.targetBits,Buffer.alloc(8,1));assert.deepEqual(masks.knownBits,Buffer.alloc(8,1));
+  }
+  await assert.doesNotReject(validateReviewedAnnotation(annotation,{sha256:hash}));
+  annotation.known.international=[];
+  await assert.rejects(validateReviewedAnnotation(annotation,{sha256:hash}),/outside explicitly known/i);
+});
+test('review validation stream enforces source identity, blind review and known coverage',()=>{
+  const hash='a'.repeat(64),annotation={schemaVersion:1,reviewed:true,width:24,height:16,
+    review:{kind:'agent',reviewer:'fixture',reviewedAt:'2026-10-30T00:00:00Z',sourceSha256:hash,predictionBlind:true},
+    known:{international:[[[0,0],[23,0],[23,9],[0,9]]]},lines:[{kind:'international',width:1,points:[[3,5],[20,5]]}]};
+  const args=['tools/reference-analysis/review-masks.mjs','--validate-stream'],run=()=>spawnSync(process.execPath,args,{input:JSON.stringify({annotation,sheet:{sha256:hash}}),encoding:'utf8'});
+  let result=run();assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout),{valid:true});
+  annotation.review.predictionBlind=false;result=run();assert.notEqual(result.status,0);assert.match(result.stderr,/blind/i);
+  annotation.review.predictionBlind=true;annotation.known.international=[];result=run();assert.notEqual(result.status,0);assert.match(result.stderr,/known/i);
 });
