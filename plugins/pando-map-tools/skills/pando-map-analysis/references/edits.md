@@ -1,6 +1,6 @@
 # Structured revisions
 
-Edits are JSON objects or an array. Version 0.6.0 uses job schema 3; analyze a
+Edits are JSON objects or an array. Current jobs use schema 3; analyze a
 new job after upgrading instead of rewriting an older job's schema/signature.
 
 * `{"type":"control-points","mode":"affine","points":[{"id":"p1","image":[0.1,0.2],"coordinate":[12,45]},...]}`.
