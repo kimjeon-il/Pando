@@ -9,7 +9,7 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 36개
+### 2026-10-30 현행 기준: 추적 Python 35개
 
 - **수계 연결 감사:** 기존 C++ 합류점 계산을 재사용해 원본 단절·경계 정렬·분할 구간의 연결 상태와 수정 가능성을 감사한다. [Windows/Linux CI 41019558880](https://github.com/kimjeon-il/Pando/actions/runs/41019558880)에서 생성기 연결과 고정 사례를 확인했다. Windows의 소스 일치 실행 파일 SHA-256은 `562f3eef4cb9192ad1e3ae91ee545efba3c4a3a5291c4f5b292bbf5af37cb79c`이며 로컬에서 감사 9개·보정 10개 동결 사례와 재적용 결과가 일치했다. 기존 Python 생성기의 감사 호출을 C++로 연결하고 중복 Python 감사·보정 계산을 제거했다. Node 계층은 원본 피처를 건드리지 않고 소스별 구간으로 매핑하고, 보정 결과의 끝점 변경과 영수증을 대조하며 중간 좌표·속성 변경을 거부한다. 원본 ZIP 수집과 생성기 전체 전환은 남아 있다.
   Node 원본 판독은 지정된 HydroRIVERS ZIP에서 DBF·SHP를 스트리밍해 선택 ID의 시작점·끝점과 `NEXT_DOWN`을 읽고, DBF·SHP·SHX·PRJ의 압축 CRC와 고정 SHA-256을 확인한다. 압축 원본을 추출하거나 덮어쓰지 않는다. 합성 원본 및 압축 스트림 경계·변조·누락 사례와 Node→C++ 감사 연결을 확인했으며, 실제 HydroRIVERS 원본과의 비교는 아직 미완료다. 판독기는 단일 볼륨 ZIP32·ZIP64와 2D PolyLine 원본을 대상으로 한다. ZIP64 디렉터리·항목과 손상된 메타데이터 거부를 작은 합성 원본에서 확인했다.
@@ -23,15 +23,16 @@
   독립 수계 감사 명령도 같은 9개 합성 지역에서 기존 Python 보고서와 동일하게 Node/C++로 전환했다. 기존 Python 모듈에서는 더 이상 호출하지 않는 ZIP 추출·캐시·감사 명령을 제거하고, 아직 Python 전체 생성기가 쓰는 네이티브 계산 호출만 유지한다.
 - **지형 미리보기 합성:** 고도·경사·극지 조명·육지 색상·해양 깊이와 회색 alpha 합성을 C++로 이전하고 기존 Python 생성기와 검증된 Node 실행 경로를 연결했다. [Windows/Linux CI 41022382881](https://github.com/kimjeon-il/Pando/actions/runs/41022382881)에서 기존 Python의 고정 픽셀 10개 입력과 생성기 검사를 통과했다. 실제 고정 DEM 타일과 tint의 SHA-256을 확인하고 육지 원본의 한 피처만 사용한 128×128 영역에서 기존 Python과 새 C++의 16,384픽셀 전체가 일치했다(픽셀 SHA-256 `44ee5570d3303874a3e1b6060d1b314578fd1ef789f5ec01cc17f022f917bd2c`). 날짜변경선·구멍·중첩을 보존하는 육지 마스크도 C++로 옮겼으며 같은 실자료 범위의 16,384픽셀이 기존 Python과 같았다(마스크 SHA-256 `a8d7eed8d7f705f9e84271f27bbd096a8fd94fffc9c8b0145781f444b042d1d4`). 검증한 Windows 실행 파일 SHA-256은 `71ce2e72721dfc4a7539c88cac3a47f2077ddb3d0b6e38ea5787c6e932f2cd61`이다. 무손실 WebP 인코더와 alpha를 보존하는 원본 판독도 [Windows/Linux CI 41022954476](https://github.com/kimjeon-il/Pando/actions/runs/41022954476)에서 확인했으며, 이 실제 영역의 WebP는 기존 Pillow와 픽셀뿐 아니라 13,480바이트 전체가 같았다(SHA-256 `e17b8d699bf9bbac04232060e7ddfdf8a1a6ec13aae93479ec840f497e882d4f`). 이 한 건의 바이트 일치는 모든 타일의 일치를 보장하지 않으므로 아래의 별도 전체 미리보기 재현 결과와 구분한다. DEM 전체 생성기는 아직 미완료다. 운영 지형은 수정하지 않았다.
   Node에서 고정 원본 pin·캐시 확인, 타일 조립·마스크·합성·WebP 인코딩, manifest 생성·검증과 독립 출력 저장을 처리한다. 기존 파일 덮어쓰기와 변조된 캐시를 거부한다. 고정 원본으로 기존 미리보기 8개를 한 번 재현해 총 타일 4,454,932바이트와 manifest SHA-256 `def32b86bebf84a24ceecaf68caac7a8d711b4bb355115f983d5d98e3d87a870`이 기존 Python 산출물과 일치했다. 실제 운영 자료는 수정하지 않았다. 기존 생성기·대응 Python 테스트와 해당 Python 실행 호출을 제거하며 DEM 전체 생성기는 여전히 미완료다.
+  DEM 완성본 검증은 Node 실행 관리, C++ 픽셀·gutter 검사와 GDAL 원본 표본 판독으로 전환했다. [Windows/Linux native CI 41028995341](https://github.com/kimjeon-il/Pando/actions/runs/41028995341)에서 기존 Python의 채널·양자화 사례와 실패를 확인했고, 고정 실 DEM 타일 694,602픽셀의 불투명도·음영 검사가 기존 Python과 일치했다. 합성 GeoTIFF·타일·tint·참조로 전체 검증 명령의 결과를 Python과 비교했다. 운영 DEM 전체 검사나 재생성은 실행하지 않았다.
 
-`work/gis` 현행 기준: 도구 22개, 테스트 14개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 21개, 테스트 14개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
 | `plugins/pando-map-tools/lib/raster.py` | 공통 C++ 이미지/PDF 도구; 지도 분석 플러그인 | EXIF, 페이지, crop, 투명도, GeoPDF 좌표와 원본 출력 비교 |
 | `tools/qgis/bootstrap.py`, `tools/qgis/bridge.py` | 네이티브 QGIS 플러그인과 Node CLI/MCP; QGIS 실행 설정 | 실제 사용 편집·처리, 인증, 좌표·ID·출처, 내보내기 왕복 |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
-| `tools/build-physical-data.py`, `tools/build-terrain-dem.py`, `tools/verify-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
+| `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
 | `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py`, `tools/verify-lsib-screen-delta.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |

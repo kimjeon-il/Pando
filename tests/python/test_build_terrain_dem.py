@@ -16,10 +16,6 @@ SPEC = importlib.util.spec_from_file_location(
     'build_terrain_dem', Path(__file__).parents[2] / 'tools' / 'build-terrain-dem.py')
 dem = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(dem)
-VERIFY_SPEC = importlib.util.spec_from_file_location(
-    'verify_terrain_dem', Path(__file__).parents[2] / 'tools' / 'verify-terrain-dem.py')
-verifier = importlib.util.module_from_spec(VERIFY_SPEC)
-VERIFY_SPEC.loader.exec_module(verifier)
 
 
 class TerrainDemTest(unittest.TestCase):
@@ -131,28 +127,6 @@ class TerrainDemTest(unittest.TestCase):
         np.testing.assert_array_equal(rgba[-1, :, 2], rgba[-2, :, 2])
         self.assertFalse(np.array_equal(rgba[0, :, 2], exact[0, :]))
         np.testing.assert_array_equal(rgba[1:-1, :, 2] % 4, 0)
-
-    def test_verifier_rejects_off_grid_published_shade(self):
-        self.assertTrue(hasattr(verifier, 'validate_shade_values'))
-        verifier.validate_shade_values(np.array([[0, 4, 252, 255]], dtype=np.uint8), 4)
-        with self.assertRaises(ValueError):
-            verifier.validate_shade_values(np.array([[0, 3, 252]], dtype=np.uint8), 4)
-        verifier.validate_shade_values(np.array([[3, 3, 3], [0, 4, 252]], dtype=np.uint8), 4,
-                                       excluded_rows=(0,))
-
-    def test_verifier_compares_every_channel_to_reference(self):
-        self.assertTrue(hasattr(verifier, 'compare_reference_tile'))
-        reference = np.array([[[12, 255, 127, 255]]], dtype=np.uint8)
-        optimized = np.array([[[12, 255, 128, 255]]], dtype=np.uint8)
-        verifier.compare_reference_tile(optimized, reference, 'tile')
-        altered_elevation = optimized.copy()
-        altered_elevation[0, 0, 1] = 254
-        with self.assertRaises(ValueError):
-            verifier.compare_reference_tile(altered_elevation, reference, 'tile')
-        altered_shade = optimized.copy()
-        altered_shade[0, 0, 2] = 132
-        with self.assertRaises(ValueError):
-            verifier.compare_reference_tile(altered_shade, reference, 'tile')
 
     def test_area_average_and_wrapped_gutter(self):
         values = np.array([[0, 2, 4, 6], [8, 10, 12, 14]], dtype=np.float32)
