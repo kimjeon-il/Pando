@@ -17,13 +17,27 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  map-image:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-image'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build the isolated map image resampling test
+        run: |
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          cmake --build build-native/map-image --target pando-map-image-resample-tests --parallel 2
+      - name: Compare small fixed pixel oracles
+        run: build-native/map-image/pando-map-image-resample-tests tests/fixtures/map-image
   hydro-point-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-point-windows'
     runs-on: windows-2022
