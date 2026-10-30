@@ -149,7 +149,7 @@ test('source-bound Node audit runs the verified native engine',{
   const before=structuredClone(input),repair=await repairHydroParts(input,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
   assert.deepEqual(repair.parts['1'][0].points.at(-1),[1.002,0]);assert.equal(repair.changes.length,2);assert.deepEqual(input,before);
   const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/spec.json','utf8'));
-  const features=[{metadata:{category:'river',sourceId:'101',fid:1,flags:0,systemId:'s'},geometry:{type:'LineString',coordinates:[[0,0],[1,0]]}},
+  const features=[{metadata:{category:'river',sourceId:'101',fid:1,flags:0,systemId:'s',bounds:[0,0,1000000,0]},geometry:{type:'LineString',coordinates:[[0,0],[1,0]]}},
     {metadata:{category:'river',sourceId:'102',fid:2,flags:0,systemId:'s'},geometry:{type:'LineString',coordinates:[[1,0],[2,0]]}},
     {metadata:{category:'river',sourceId:'103',fid:3,flags:0,systemId:'s'},geometry:{type:'LineString',coordinates:[[0,1],[1,0]]}}];
   const frozen=structuredClone(features),archives=[{archive:'tests/fixtures/hydro-source/fixture.zip',specification,selected:new Set([103,101,102])}];
@@ -160,6 +160,8 @@ test('source-bound Node audit runs the verified native engine',{
   const request={baseline,staged,report,archives},options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
   const verification=await verifyHydroStaged(request,options);
   assert.equal(verification.features,3);assert.equal(verification.unchangedFeatures,2);assert.equal(verification.remaining,0);
+  delete staged.features[0].metadata.bounds;await assert.rejects(verifyHydroStaged(request,options),/bounds/i);
+  staged.features[0].metadata.bounds=[0,0,1000000,0];
   staged.features[2].geometry.coordinates[0]=[0,2];await assert.rejects(verifyHydroStaged(request,options),/geometry/i);
   staged.features[2].geometry.coordinates[0]=[0,1];staged.features[1].widths=[2];await assert.rejects(verifyHydroStaged(request,options),/width/i);
 });

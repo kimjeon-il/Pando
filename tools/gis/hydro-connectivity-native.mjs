@@ -103,7 +103,9 @@ export async function auditHydroFeatures({features,raw,sourceOrder},options){
   return auditHydroParts({parts:hydroPartsBySource(features),raw,sourceOrder},options);
 }
 export async function auditHydroSourceArchives({features,archives},options={}){
-  const parts=hydroPartsBySource(features),source=await readHydroSources(archives,{signal:options.signal});
+  if(!Array.isArray(archives)||!archives.length)throw Error('Explicit Hydro source archives required');
+  const parts=hydroPartsBySource(features),useGlobal=archives.every(entry=>entry.selected===undefined);
+  const source=await readHydroSources(archives,{signal:options.signal,...(useGlobal?{selected:new Set(Object.keys(parts).map(Number))}:{})});
   if(!isDeepStrictEqual(Object.keys(parts).sort(),Object.keys(source.rows).sort()))throw Error('Selected Hydro source IDs differ from feature parts');
   return auditHydroParts({parts,raw:source.rows,sourceOrder:source.sourceOrder},options);
 }
@@ -132,7 +134,10 @@ export async function verifyHydroStaged({baseline,staged,report,archives},option
     const before=expected[i],after=staged.features[i];
     if(!isDeepStrictEqual(before.geometry,after?.geometry))throw Error('Unexpected Hydro geometry change: '+before.metadata.fid);
     if(!isDeepStrictEqual(before.widths,after?.widths))throw Error('Unexpected Hydro width change: '+before.metadata.fid);
-    const a={...before.metadata},b={...after.metadata};if(changed.has(a.fid)){delete a.bounds;delete b.bounds;}
+    const a={...before.metadata},b={...after.metadata};if(changed.has(a.fid)){
+      if(!Object.hasOwn(a,'bounds')||!Object.hasOwn(b,'bounds'))throw Error('Changed Hydro feature bounds are missing: '+a.fid);
+      delete a.bounds;delete b.bounds;
+    }
     if(!isDeepStrictEqual(a,b))throw Error('Unexpected Hydro metadata change: '+before.metadata.fid);
   }
   const audit=await auditHydroSourceArchives({features:staged.features,archives},options);
