@@ -40,7 +40,7 @@ std::uint8_t rounded(std::int64_t value){
     return static_cast<std::uint8_t>(value/unit);
 }
 void validate(int width,int height){
-    if(width<=0||height<=0||width>16384||height>16384||static_cast<std::int64_t>(width)*height>16777216)
+    if(width<=0||height<=0||width>65535||height>65535||static_cast<std::int64_t>(width)*height>16777216)
         throw std::invalid_argument("Image dimensions exceed the 16MP graph budget");
 }
 }
@@ -98,28 +98,37 @@ std::vector<std::uint8_t> resizeRgba(const std::vector<std::uint8_t>& input,int 
     }
     return output;
 }
-std::vector<std::uint8_t> resizeOpaqueThumbnail(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+static std::vector<std::uint8_t> resizeThumbnailChannels(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight,int channels){
     validate(width,height);validate(outputWidth,outputHeight);
     if(input.size()!=static_cast<std::size_t>(width)*height*4)throw std::invalid_argument("RGBA input byte length differs from dimensions");
-    for(std::size_t i=3;i<input.size();i+=4)if(input[i]!=255)throw std::invalid_argument("PDF thumbnail input must be opaque");
     const int fx=std::max(1,static_cast<int>(static_cast<double>(width)/outputWidth/2));
     const int fy=std::max(1,static_cast<int>(static_cast<double>(height)/outputHeight/2));
-    if(fx==1&&fy==1)return resizeRgba(input,width,height,outputWidth,outputHeight);
     const int rw=(width+fx-1)/fx,rh=(height+fy-1)/fy;
-    std::vector<std::uint8_t> reduced(static_cast<std::size_t>(rw)*rh*3);
+    std::vector<std::uint8_t> reduced(static_cast<std::size_t>(rw)*rh*channels);
     for(int y=0;y<rh;++y)for(int x=0;x<rw;++x){
         const int x0=x*fx,y0=y*fy,x1=std::min(width,x0+fx),y1=std::min(height,y0+fy),count=(x1-x0)*(y1-y0);
-        std::uint64_t sums[3]={static_cast<unsigned>(count/2),static_cast<unsigned>(count/2),static_cast<unsigned>(count/2)};
+        std::uint64_t sums[4]={static_cast<unsigned>(count/2),static_cast<unsigned>(count/2),static_cast<unsigned>(count/2),static_cast<unsigned>(count/2)};
         for(int sy=y0;sy<y1;++sy)for(int sx=x0;sx<x1;++sx){const auto i=(static_cast<std::size_t>(sy)*width+sx)*4;
-            for(int c=0;c<3;++c)sums[c]+=input[i+c];}
+            for(int c=0;c<channels;++c)sums[c]+=input[i+c];}
         const auto multiplier=static_cast<std::uint32_t>(16777216u/static_cast<unsigned>(count));
-        const auto dest=(static_cast<std::size_t>(y)*rw+x)*3;
-        for(int c=0;c<3;++c)reduced[dest+c]=static_cast<std::uint8_t>((sums[c]*multiplier)>>24);
+        const auto dest=(static_cast<std::size_t>(y)*rw+x)*channels;
+        for(int c=0;c<channels;++c)reduced[dest+c]=static_cast<std::uint8_t>((sums[c]*multiplier)>>24);
     }
-    const auto rgb=resizeChannels(reduced,rw,rh,outputWidth,outputHeight,3,
+    return resizeChannels(reduced,rw,rh,outputWidth,outputHeight,channels,
         static_cast<float>(static_cast<double>(width)/fx),static_cast<float>(static_cast<double>(height)/fy));
+}
+std::vector<std::uint8_t> resizeOpaqueThumbnail(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+    for(std::size_t i=3;i<input.size();i+=4)if(input[i]!=255)throw std::invalid_argument("PDF thumbnail input must be opaque");
+    const auto rgb=resizeThumbnailChannels(input,width,height,outputWidth,outputHeight,3);
     std::vector<std::uint8_t> output(static_cast<std::size_t>(outputWidth)*outputHeight*4,255);
     for(std::size_t p=0;p<rgb.size()/3;++p)std::copy_n(rgb.begin()+p*3,3,output.begin()+p*4);
+    return output;
+}
+std::vector<std::uint8_t> resizeCmykThumbnail(const std::vector<std::uint8_t>& input,int width,int height,int outputWidth,int outputHeight){
+    auto output=resizeThumbnailChannels(input,width,height,outputWidth,outputHeight,4);
+    for(std::size_t i=0;i<output.size();i+=4){const int nk=255-output[i+3];
+        for(int c=0;c<3;++c){const int value=output[i+c]*nk+128;output[i+c]=static_cast<std::uint8_t>(nk-((value+(value>>8))>>8));}
+        output[i+3]=255;}
     return output;
 }
 std::vector<std::uint8_t> rotateRgba(const std::vector<std::uint8_t>& input,int width,int height,int degrees){

@@ -85,6 +85,27 @@ export function rotateNativeRgba(image,degrees,options){
 export function encodeNativePng(image,options){
   return operateNativeRgba(image,[image?.width,image?.height],['encode-png'],options);
 }
+export async function prepareNativeJpeg(bytes,maximumPixels=8000000,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||bytes.length<2||bytes.length>300*1024*1024||bytes[0]!==255||bytes[1]!==216)throw Error('Expected bounded JPEG source');
+  if(!Number.isInteger(maximumPixels)||maximumPixels<1||maximumPixels>16777216)throw Error('Pixel budget must be 1..16777216');
+  const output=await runNative(nativeBinary(workspace,directory),['prepare-jpeg',String(maximumPixels)],bytes,20+maximumPixels*4+1048576,signal);
+  if(output.length<20)throw Error('Native JPEG preparation receipt is truncated');
+  const [originalWidth,originalHeight,width,height,changed]=Array.from({length:5},(_,i)=>output.readUInt32BE(i*4));
+  if(!originalWidth||!originalHeight||originalWidth>65535||originalHeight>65535||!width||!height||
+     width*height>maximumPixels||![0,1].includes(changed)||(changed===0&&output.length!==20)||
+     (changed===1&&(output.length<22||output[20]!==255||output[21]!==216)))throw Error('Native JPEG preparation receipt is invalid');
+  signal?.throwIfAborted();return {originalSize:[originalWidth,originalHeight],size:[width,height],changed:changed===1,data:output.subarray(20)};
+}
+export async function inspectNativeJpeg(bytes,{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
+  signal?.throwIfAborted();
+  if(!(bytes instanceof Uint8Array)||bytes.length<2||bytes.length>300*1024*1024||bytes[0]!==255||bytes[1]!==216)throw Error('Expected bounded JPEG source');
+  const output=await runNative(nativeBinary(workspace,directory),['inspect-jpeg','16777216'],bytes,20,signal);
+  if(output.length!==20)throw Error('Native JPEG inspection receipt is invalid');
+  const [width,height,outWidth,outHeight,changed]=Array.from({length:5},(_,i)=>output.readUInt32BE(i*4));
+  if(!width||!height||width>65535||height>65535||outWidth!==width||outHeight!==height||changed!==0)throw Error('Native JPEG inspection receipt is invalid');
+  signal?.throwIfAborted();return [width,height];
+}
 export async function readNativeImage({path,rect,format,maxPixels=4000000},{signal,workspace=root,directory=artifactDirectory(workspace)}={}){
   signal?.throwIfAborted();
   if(typeof path!=='string'||!path||!['png','jpeg','webp'].includes(format))throw Error('Image path and supported format are required');
