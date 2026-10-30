@@ -1,0 +1,119 @@
+{
+  "predictionBase64": "AAcGBQQDAgEABwYFBAMCAQAHBgUEAwIBAwIBAAcGBQQDAgEABwYFBAMCAQAHBgUEBgUEAwIBAAcGBQQDAgEABwYFBAMCAQAHAQAHBgUEAwIBAAcGBQQDAgEABwYFBAMCBAMCAQAHBgUEAwIBAAcGBQQDAgEABwYFBwYFBAMCAQAHBgUEAwIBAAcGBQQDAgEAAgEABwYFBAMCAQAHBgUEAwIBAAcGBQQDBQQDAgEABwYFBAMCAQAHBgUEAwIBAAcGAAcGBQQDAgEABwYFBAMCAQAHBgUEAwIBAwIBAAcGBQQDAgEABwYFBAMCAQAHBgUEBgUEAwIBAAcGBQQDAgEABwYFBAMCAQAHAQAHBgUEAwIBAAcGBQQDAgEABwYFBAMCBAMCAQAHBgUEAwIBAAcGBQQDAgEABwYFBwYFBAMCAQAHBgUEAwIBAAcGBQQDAgEAAgEABwYFBAMCAQAHBgUEAwIBAAcGBQQDBQQDAgEABwYFBAMCAQAHBgUEAwIBAAcG",
+  "counts": [
+    [
+      45,
+      114,
+      18,
+      18
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      32,
+      81,
+      13,
+      13
+    ]
+  ],
+  "metrics": {
+    "international": {
+      "precision": 0.39473684210526316,
+      "recall": 1.0,
+      "matchedPrediction": 45,
+      "predicted": 114,
+      "matchedReference": 18,
+      "reference": 18
+    },
+    "administrative": {
+      "precision": null,
+      "recall": null,
+      "matchedPrediction": 0,
+      "predicted": 0,
+      "matchedReference": 0,
+      "reference": 0
+    },
+    "coast": {
+      "precision": 0.3950617283950617,
+      "recall": 1.0,
+      "matchedPrediction": 32,
+      "predicted": 81,
+      "matchedReference": 13,
+      "reference": 13
+    }
+  },
+  "confounders": {
+    "hydro": {
+      "international": {
+        "falsePositive": 1,
+        "pixels": 1,
+        "rate": 1.0
+      },
+      "administrative": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "coast": {
+        "falsePositive": 3,
+        "pixels": 10,
+        "rate": 0.3
+      }
+    },
+    "transport": {
+      "international": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "administrative": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "coast": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      }
+    },
+    "text": {
+      "international": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "administrative": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "coast": {
+        "falsePositive": 3,
+        "pixels": 6,
+        "rate": 0.5
+      }
+    },
+    "frame": {
+      "international": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "administrative": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      },
+      "coast": {
+        "falsePositive": 0,
+        "pixels": 0,
+        "rate": null
+      }
+    }
+  }
+}

@@ -17,13 +17,62 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf, map-preview, map-review]
+        options: [hydro, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, qgis-windows, map-image, map-pdf, map-preview, map-review, map-evaluation]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  map-evaluation:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-evaluation'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build evaluation and reviewed-mask tools
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/map-review -B build-native/map-review/native
+          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
+          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+          cmake -S tools/cpp/map-evaluation -B build-native/map-evaluation/native
+          if ($LASTEXITCODE -ne 0) { throw 'Evaluation configure failed' }
+          cmake --build build-native/map-evaluation/native --config Release --target pando-map-evaluation --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Evaluation build failed' }
+      - name: Compare evaluation with the original Python results
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            $review = 'build-native/map-review/native/Release/pando-map-review.exe'
+            $evaluation = 'build-native/map-evaluation/native/Release/pando-map-evaluation.exe'
+          } else {
+            $review = 'build-native/map-review/native/pando-map-review'
+            $evaluation = 'build-native/map-evaluation/native/pando-map-evaluation'
+          }
+          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
+          node tools/reference-analysis/package-native-evaluation.mjs --binary $evaluation --directory build-native/map-evaluation/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Evaluation packaging failed' }
+          node --test tests/unit/reference-native-evaluation.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Evaluation differs from original' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-map-evaluation-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-evaluation/artifact/
+          if-no-files-found: ignore
+          retention-days: 7
   map-review:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-review'
     strategy:
