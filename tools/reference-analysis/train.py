@@ -14,7 +14,7 @@ from PIL import Image, ImageOps
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from report_paths import report_argument
 from corpus import (CHANNELS, validate_corpus, evaluation_groups, corpus_path,
-                    corpus_fingerprint, review_masks, build_training_lineage, assert_evaluation_independence)
+                    corpus_fingerprint, build_training_lineage, assert_evaluation_independence)
 from model import ReferenceBoundaryModel, boundary_loss
 
 SIZE, OVERLAP = 512, 64
@@ -348,8 +348,17 @@ def evaluate(args, corpus, root):
             if not isinstance(sheet_result, dict) or set(sheet_result) != {'counts', 'metrics', 'confounders'}:
                 raise ValueError('Invalid native sheet evaluation receipt')
             confounders[sheet['id']] = sheet_result['confounders']
-            _, known = review_masks(annotation)
-            coverage[sheet['id']] = {kind: dict(knownPixels=int(known[index].sum()), originalPixels=width*height)
+            coverage_request = json.dumps(dict(annotation=annotation)).encode('utf-8')
+            coverage_result = subprocess.run(['node', str(pathlib.Path(__file__).with_name('training-tiles.mjs')), '--coverage'],
+                input=coverage_request, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if coverage_result.returncode:
+                raise ValueError('Native evaluation coverage failed: ' + coverage_result.stderr.decode('utf-8', errors='replace'))
+            known_counts = json.loads(coverage_result.stdout)
+            if (not isinstance(known_counts, list) or len(known_counts) != len(CHANNELS) or
+                    any(not isinstance(count, int) or isinstance(count, bool) or count < 0 or count > width*height for count in known_counts)):
+                raise ValueError('Invalid native evaluation coverage receipt')
+            coverage[sheet['id']] = {kind: dict(knownPixels=known_counts[index], originalPixels=width*height)
                                     for index, kind in enumerate(CHANNELS)}
             key = '/'.join(sheet[k] for k in ['mapKind', 'script', 'language'])
             counts[key].append(sheet_result['counts'])
