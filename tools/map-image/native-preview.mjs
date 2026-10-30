@@ -88,6 +88,20 @@ function run(binary,input,expected,signal){return new Promise((accept,reject)=>{
   child.on('close',(code,reason)=>code!==0||reason||overflow?finish(Error('Native preview failed: '+Buffer.concat(errors).toString('utf8'))):finish(null,Buffer.concat(chunks,size)));
   child.stdin.end(input);
 });}
+export async function drawNativePreviewLabels(image,labels,{signal,workspace=root,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
+  resolve(workspace,'build-native/map-preview',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact')}={}){
+  signal?.throwIfAborted();const {width,height,data}=image||{};
+  if(![width,height].every(value=>Number.isInteger(value)&&value>0&&value<=2200)||!(data instanceof Uint8Array)||data.length!==width*height*4||
+    !Array.isArray(labels)||labels.length>32||labels.some(row=>!row||!Number.isFinite(row.x)||!Number.isFinite(row.y)||
+      typeof row.text!=='string'||!row.text.length||row.text.length>512||!/^[\x20-\x7e]+$/.test(row.text)))
+    throw Error('Bounded image and ASCII preview labels required');
+  const {binary}=artifact(workspace,directory,process.platform);
+  if(process.platform!=='win32'&&!process.env.PANDO_MAP_PREVIEW_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))chmodSync(binary,0o755);
+  const commands=labels.map(({x,y,text})=>({type:5,color:0,x,y,stroke:0,text}));
+  const pixels=await run(binary,request(width,height,data,font(workspace),commands),width*height*4,signal);
+  if(pixels.length!==data.length)throw Error('Native preview output length mismatch');
+  return {width,height,data:pixels};
+}
 export async function renderNativePreview(image,job,{signal,workspace=root,sourceIsPdf=false,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
   resolve(workspace,'build-native/map-preview',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact')}={}){
   signal?.throwIfAborted();const {binary}=artifact(workspace,directory,process.platform);
