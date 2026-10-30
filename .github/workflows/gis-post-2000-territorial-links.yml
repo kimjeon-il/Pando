@@ -1,0 +1,96 @@
+name: Apply 2000–2026 territorial reuse to GIS working data
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-post-2000-territorial-links.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gis-post-2000-territorial-links
+  cancel-in-progress: false
+
+jobs:
+  apply-and-verify:
+    if: github.ref == 'refs/heads/work/gis' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Verify the data publication credential before mutating anything
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${PANDOLAB_LIBRARY_WRITE_TOKEN}" || { echo 'External library write token is unavailable'; exit 1; }
+          test "$(git branch --show-current)" = 'work/gis'
+      - name: Install pinned test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Mount the exact work/gis library data pin using the existing writer
+        uses: ./.github/actions/library-data
+      - name: Validate existing geometry and planned source edits
+        run: |
+          node tools/gis/apply-post-2000-territorial-links.mjs --plan
+          node --test tests/unit/post-2000-territorial-links.test.mjs
+      - name: Apply approved existing-shape transitions and rebuild coupled artifacts
+        run: node tools/gis/apply-post-2000-territorial-links.mjs --apply
+      - name: Verify catalog, country chunks and actual year-end project materialization
+        run: |
+          node tools/build-territorial-entity-chunks.mjs --check
+          node tools/build-builtin-world.mjs --check
+          node --test tests/unit/post-2000-territorial-links.test.mjs tests/unit/territorial-chunks.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs
+      - name: Store and push changed territorial sources and generated world as one pinned library revision
+        run: |
+          node tools/library-data.mjs --store-and-stage --push \
+            --include-prefix=assets/data/territorial-entities \
+            --include-prefix=assets/data/historical-world \
+            --include-prefix=assets/data/builtin-world \
+            -- config/library-data.json
+          git diff --cached --check
+          git diff --cached --name-only
+      - name: Prepare and verify the newly pinned browser assets
+        run: |
+          node tools/library-data.mjs
+          node scripts/generate-build-metadata.mjs
+          node scripts/check-version.mjs
+      - name: Install the test Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Check actual year-end geographic display in the editor
+        run: pnpm exec playwright test tests/browser/post-2000-world-timeline.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Publish the reviewed work/gis data pin without touching main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A -- config/library-data.json
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then echo 'No work/gis pin update required'; exit 0; fi
+          actual="$(git ls-remote origin refs/heads/work/gis | cut -f1)"
+          test "$actual" = "$GITHUB_SHA" || { echo 'work/gis changed during validation; preserving pin for manual reconciliation'; exit 1; }
+          git commit -m 'data(gis): pin verified 2000–2026 reused territorial phases [skip ci]'
+          git push origin HEAD:refs/heads/work/gis
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-post-2000-browser-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 7
