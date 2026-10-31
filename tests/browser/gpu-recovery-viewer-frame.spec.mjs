@@ -10,13 +10,13 @@ const traceSource=`
     function traceViewerRecovery(where, extra = {}) {
       const recovery = gpuRecovery.snapshot();
       if (!recovery.recoveryId) return;
-      const log = globalThis.__viewerRecoveryTrace ||= {rows:[], counts:{}, lastAt:0};
+      const log = globalThis.__viewerRecoveryTrace ||= {rows:[], counts:{}, lastAt:0, latest:{}, signatures:{}};
       log.counts[where] = (log.counts[where] || 0) + 1;
       const at = performance.now();
       if (where === 'renderWebGl' && at - log.lastAt < 200) return;
       log.lastAt = at;
       const ticket = gpuRecovery.currentTicket(), identity = ticket?.identity;
-      const physical = getPhysicalContextState();
+      const physical = getPhysicalContextState(),polygonStats=polygonOverlayPass.stats(),strokeStats=strokeRenderer.stats();
       const row = {at,where,extra,recovery,rendererMode,webglContextLost,context:renderDeviceContextRevision,
         projectGeneration,projectRenderBlocked,sharedReady:sharedGpuPassesReady(),activeMeshQuality,canonicalMeshReady,
         hasMesh:!!mesh,hasOverride:!!overrideMesh,surfacePresentation,backgroundPresentedKey,countriesPublishedGeneration,
@@ -27,8 +27,13 @@ const traceSource=`
           context:identity.context,project:identity.project}:null,
         pending:geometryRevisionTracker.pendingIds(),frame:lastVisualFrame?{id:lastVisualFrame.frameId,project:lastVisualFrame.projectGeneration}:null,
         evidence:gpuRecoveryFrameEvidence?{frame:gpuRecoveryFrameEvidence.frame?.frameId,fallback:!!gpuRecoveryFrameEvidence.fallback}:null,
-        polygons:(renderScene?.polygons||[]).filter(p=>p.role==='physical-land'||p.role==='physical-water').map(p=>({role:p.role,key:p.key,prepared:polygonOverlayPass.hasPreparedResource(p)})),
+        polygons:(renderScene?.polygons||[]).filter(p=>p.role==='physical-land'||p.role==='physical-water').map(p=>({role:p.role,key:p.key,prepared:polygonOverlayPass.hasPreparedResource(p),bytes:p.byteLength})),
+        uploads:{polygon:polygonStats.uploadBytes,polygonCount:polygonStats.resourceCount,stroke:strokeStats.uploadBytes,strokeCount:strokeStats.resourceCount},
         base:lastBaseSceneResult?{surface:lastBaseSceneResult.surface,missing:lastBaseSceneResult.overlayMissingKeys,failures:lastBaseSceneResult.overlayFailures,countryStroke:lastBaseSceneResult.countryStrokeResult}:null};
+      log.latest[where]=row;
+      const signature=JSON.stringify([recovery.phase,extra,row.identity,row.surfacePresentation,row.polygons,row.uploads,row.terrain.terrainReady,row.base]);
+      if(log.signatures[where]===signature)return;
+      log.signatures[where]=signature;
       if(log.rows.length<150)log.rows.push(row);
     }
 `;
@@ -46,6 +51,8 @@ async function observe(page){
   source=source.replace(entry,'function observedGpuMapRenderer(');
   const anchor='    function recordMapPresentation(frame, resourcesDrawn = true) {';
   expect(source.split(anchor).length).toBe(2);source=source.replace(anchor,traceSource+'\n'+anchor);
+  const rejected='      if (result.strokePresentationFailed) return false;';expect(source.split(rejected).length).toBe(2);
+  source=source.replace(rejected,"      traceViewerRecovery('base-result',{failed:result.strokePresentationFailed,missing:result.overlayMissingKeys,failures:result.overlayFailures,countryStroke:result.countryStrokeResult});\n"+rejected);
   for(const [before,extra] of [
    ['    function recordMapPresentation(frame, resourcesDrawn = true) {','{resourcesDrawn}'],
    ['    function recordGpuRecoveryFrame(frame, resourcesDrawn) {','{resourcesDrawn}'],
