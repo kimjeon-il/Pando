@@ -74,17 +74,18 @@ void physicalCompositeStream(){
     while(true){
         Bytes header(16);std::cin.read(reinterpret_cast<char*>(header.data()),16);const auto count=std::cin.gcount();
         if(count==0&&std::cin.eof())return;
-        if(count!=16||std::memcmp(header.data(),"PDPCMP01",8)!=0)throw std::invalid_argument("Invalid physical composite header");
+        if(count!=16||std::memcmp(header.data(),"PDPCMP02",8)!=0)throw std::invalid_argument("Invalid physical composite header");
         const auto width=u32(header,8),height=u32(header,12);const std::uint64_t pixels=std::uint64_t(width)*height;
         if(!width||!height||width>4098||height>4098||pixels>16777216)throw std::invalid_argument("Invalid physical composite dimensions");
-        Bytes input(static_cast<std::size_t>(pixels*7));
+        Bytes input(static_cast<std::size_t>(pixels*8));
         std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()));
         if(static_cast<std::size_t>(std::cin.gcount())!=input.size())throw std::invalid_argument("Truncated physical composite input");
-        Bytes output(static_cast<std::size_t>(pixels*3));const auto ocean=pixels*3,mask=pixels*6;
+        Bytes output(static_cast<std::size_t>(pixels*4));const auto ocean=pixels*3,mask=pixels*6,relief=pixels*7;
         for(std::uint64_t i=0;i<pixels;++i){const unsigned alpha=input[mask+i];
             for(unsigned channel=0;channel<3;++channel){const auto at=i*3+channel;
                 const unsigned value=unsigned(input[at])*alpha+unsigned(input[ocean+at])*(255-alpha)+128;
-                output[at]=static_cast<unsigned char>((value+(value>>8))>>8);}}
+                output[i*4+channel]=static_cast<unsigned char>((value+(value>>8))>>8);}
+            output[i*4+3]=input[relief+i];}
         std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));std::cout.flush();
         if(!std::cout)throw std::runtime_error("Unable to write physical composite");
     }
