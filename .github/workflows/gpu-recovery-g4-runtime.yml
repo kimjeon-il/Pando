@@ -1,30 +1,27 @@
-name: GPU G4 actual browser verification (no deployment)
+name: GPU G4 residual editor and Canvas browser verification (no deployment)
 on:
   push:
     branches: [work/ui]
     paths:
       - .github/workflows/gpu-recovery-g4-runtime.yml
-      - tests/fixtures/gpu-recovery/**
-      - tests/helpers/prepare-gpu-recovery-candidate.mjs
-      - tests/helpers/gpu-recovery-source-harness.mjs
-      - tests/browser/gpu-recovery-g4.spec.mjs
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/gpu-context-recovery.js
+      - tests/browser/renderer-responsiveness.spec.mjs
+      - tests/browser/editor-status-timeline.spec.mjs
+      - tests/browser/viewer-canvas.spec.mjs
+      - apps/editor/tests/android-policy-sync.test.mjs
   workflow_dispatch:
+
 permissions:
   contents: read
 concurrency:
   group: gpu-g4-runtime-${{ github.ref }}
   cancel-in-progress: false
+
 jobs:
-  browser:
+  residual-browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        product: [viewer, editor]
-    env:
-      G4_EVIDENCE: gpu-g4-evidence
-      G4_PRODUCT: ${{ matrix.product }}
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,48 +33,27 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Apply guarded candidate in CI only
-        run: node tests/helpers/prepare-gpu-recovery-candidate.mjs
-      - name: Required shared-pass source regression
-        id: unit
-        continue-on-error: true
-        run: node --test tests/unit/gpu-shared-pass-initialization.test.mjs > gpu-g4-evidence/shared-pass.tap 2>&1
-      - name: Lint candidate sources
-        id: lint
-        continue-on-error: true
-        run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js > gpu-g4-evidence/lint.txt 2>&1
-      - name: Install the repository-pinned browser
+      - name: Validate Android policy wiring without generating APK
+        run: node --test apps/editor/tests/android-policy-sync.test.mjs
+      - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Actual full product screen regression
-        id: screen
-        continue-on-error: true
-        env:
-          PLAYWRIGHT_JSON_OUTPUT_FILE: gpu-g4-evidence/playwright.json
-        run: pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs --workers=1 --retries=0 --grep "${G4_PRODUCT} " --reporter=list,json
-      - name: Preserve exact validation outcomes
-        if: always()
-        env:
-          UNIT_RESULT: ${{ steps.unit.outcome }}
-          LINT_RESULT: ${{ steps.lint.outcome }}
-          SCREEN_RESULT: ${{ steps.screen.outcome }}
-        run: |
-          mkdir -p gpu-g4-evidence
-          node --input-type=module -e 'import{writeFileSync}from"node:fs";writeFileSync("gpu-g4-evidence/outcomes.json",JSON.stringify({sourceCommit:process.env.GITHUB_SHA,product:process.env.G4_PRODUCT,unit:process.env.UNIT_RESULT,lint:process.env.LINT_RESULT,screen:process.env.SCREEN_RESULT,nativeVerified:false,hardwareGpuVerified:false,phoneVerified:false,productionIntegrated:false,deploy:false},null,2));'
+      - name: Editor Canvas Worker and Canvas2D real-frame checks
+        run: >-
+          pnpm exec playwright test tests/browser/renderer-responsiveness.spec.mjs
+          --grep 'Canvas pan and zoom|Canvas2D fallback'
+          --workers=1 --retries=0 --reporter=list
+      - name: Editor Canvas timeline and stable document state
+        run: >-
+          pnpm exec playwright test tests/browser/editor-status-timeline.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Viewer Canvas Worker selection and unchanged saved document
+        run: >-
+          pnpm exec playwright test tests/browser/viewer-canvas.spec.mjs
+          --workers=1 --retries=0 --reporter=list
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
-          name: gpu-g4-${{ matrix.product }}-${{ github.sha }}
-          path: |
-            gpu-g4-evidence
-            test-results
-          retention-days: 7
-          compression-level: 6
-          include-hidden-files: true
-          if-no-files-found: error
-      - name: Fail unless all executed verification gates passed
-        if: always()
-        env:
-          UNIT_RESULT: ${{ steps.unit.outcome }}
-          LINT_RESULT: ${{ steps.lint.outcome }}
-          SCREEN_RESULT: ${{ steps.screen.outcome }}
-        run: test "$UNIT_RESULT" = success && test "$LINT_RESULT" = success && test "$SCREEN_RESULT" = success
+          name: gpu-g4-residual-${{ github.sha }}
+          path: test-results
+          retention-days: 3
+          if-no-files-found: ignore
