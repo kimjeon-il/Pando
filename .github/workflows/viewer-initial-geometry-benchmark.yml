@@ -1,0 +1,36 @@
+name: Viewer P1-4b geometry cost benchmark
+on:
+  push:
+    branches: [work/ui]
+    paths: [tests/browser/viewer-initial-geometry-benchmark.spec.mjs, .github/workflows/viewer-initial-geometry-benchmark.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p1-4b-geometry-work-ui
+  cancel-in-progress: true
+jobs:
+  compare-svg-canvas:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Measure existing SVG and detached Canvas path
+        run: pnpm exec playwright test tests/browser/viewer-initial-geometry-benchmark.spec.mjs --workers=1
+      - name: Preserve geometry report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-initial-geometry-review
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
