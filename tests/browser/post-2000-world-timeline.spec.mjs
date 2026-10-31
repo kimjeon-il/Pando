@@ -9,7 +9,9 @@ const scenarios=[
  {month:'2003-12',yes:['state:yugoslavia','TLS','state:unmik-kosovo'],no:['state:untaet-east-timor','SRB','MNE'],name:{id:'state:yugoslavia',expected:'세르비아 몬테네그로'}},
  {month:'2006-12',yes:['SRB','MNE','state:unmik-kosovo'],no:['state:yugoslavia','KOS']},
  {month:'2008-12',yes:['SRB','MNE','KOS'],no:['state:unmik-kosovo']},
- {month:'2011-12',yes:['SDN','SDS','TLS'],no:['state:yugoslavia']}
+ {month:'2011-12',yes:['SDN','SDS','TLS'],no:['state:yugoslavia']},
+ {month:'2026-09',yes:['IDN','UKR','SDN','SDS','TLS'],no:['state:yugoslavia','state:unmik-kosovo']},
+ {month:'2026-10',yes:['IDN','UKR','SDN','SDS','TLS'],no:['state:yugoslavia','state:unmik-kosovo']}
 ];
 
 // Each reference year starts from a fresh editor document and browser context.
