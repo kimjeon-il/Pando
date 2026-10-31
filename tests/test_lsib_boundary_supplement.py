@@ -209,6 +209,9 @@ class SupplementTests(unittest.TestCase):
         self.assertEqual(len(shape(final['VAT']).exterior.coords), len(precise.coords))
         self.assertTrue(sections[0]['closedRing'])
         self.assertEqual(sections[0]['simplification_bound_px'], 0)
+        with patch.dict(os.environ, {'PANDO_TERRITORIAL_RECIPE_BINARY': str(Path('missing-lsib-native').resolve())}):
+            with self.assertRaisesRegex(RuntimeError, 'enclave repair failed'):
+                module.repair_enclave_boundary({code: geometries[code] for code in ('ITA', 'SMR')}, reference, ('ITA', 'SMR'), 'SMR')
 
     def test_enclave_rejects_missing_host_hole_and_open_reference(self):
         geometries = self.enclave_fixture()
