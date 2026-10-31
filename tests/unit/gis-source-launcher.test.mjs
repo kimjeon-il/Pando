@@ -108,6 +108,22 @@ test('DEM generation requires source-bound native elevation reading, encoding an
  assert.equal(calls[0].env.PANDO_MAP_IMAGE_ARTIFACT,join(root,'build-native/map-image/artifact'));
 });
 
+test('tint-only DEM reuse does not require unrelated DEM reader or gutter binaries',t=>{
+ const root=mkdtempSync(join(tmpdir(),'gis-dem-tint-only-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources]){
+   mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');
+ }
+ for(const [target,sources,directory] of [['terrain-dem-encode',terrainDemEncodeSources,'artifact'],['terrain-dem-fill',terrainDemFillSources,'fill-artifact']]){
+   const binary=join(root,`pando-${target}${process.platform==='win32'?'.exe':''}`);writeFileSync(binary,'fixture binary');
+   packageNativeTool({root,binary,directory:join(root,'build-native/terrain-dem-encode',directory),target,platform:process.platform,
+     architecture:process.arch,revision:'a'.repeat(40),sourceFiles:sources});
+ }
+ const calls=[];
+ assert.equal(runSource({root,argv:['--task','terrain-dem','--execute','--','--reuse-dem=old'],output:()=>{},
+   spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
+ assert.equal(calls.length,1);
+});
+
 test('historical-border dispatches the migrated Node recipe owner without restoring Python',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-native-recipe-'));
  t.after(()=>rmSync(root,{recursive:true,force:true}));

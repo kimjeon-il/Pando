@@ -68,18 +68,24 @@ export function runSource({argv=process.argv.slice(2),root=ROOT,spawn=spawnSync,
     const fillDirectory=resolve(root,'build-native/terrain-dem-encode/fill-artifact');
     const fillExecutable=process.platform==='win32'?'pando-terrain-dem-fill.exe':'pando-terrain-dem-fill';
     verifyNativeTool({root,directory:fillDirectory,target:'terrain-dem-fill',executable:fillExecutable,sourceFiles:terrainDemFillSources});
-    const rasterExecutable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
-    const raster=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-raster/artifact'),
-      target:'terrain-dem-raster',executable:rasterExecutable,sourceFiles:terrainDemRasterSources});
-    const gutterDirectory=resolve(root,'build-native/terrain-dem-gutters/artifact');
-    const gutterExecutable=process.platform==='win32'?'pando-terrain-dem-gutters.exe':'pando-terrain-dem-gutters';
-    verifyNativeTool({root,directory:gutterDirectory,target:'terrain-dem-gutters',executable:gutterExecutable,sourceFiles:terrainDemGutterSources});
-    const imageDirectory=resolve(root,'build-native/map-image/artifact');
-    const imageExecutable=process.platform==='win32'?'pando-map-image.exe':'pando-map-image';
-    verifyNativeTool({root,directory:imageDirectory,target:'map-image',executable:imageExecutable,sourceFiles:mapImageSourceFiles});
-    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory,
-      PANDO_TERRAIN_DEM_RASTER_BINARY:raster.binary,PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY:gutterDirectory,
-      PANDO_MAP_IMAGE_ARTIFACT:imageDirectory};
+    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory};
+    const hasOption=name=>args.some(value=>value===name||value.startsWith(name+'='));
+    const reuse=hasOption('--reuse-dem'),repair=hasOption('--repair-output');
+    if(!reuse&&(!repair||hasOption('--etopo'))){
+      const executable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
+      const raster=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-raster/artifact'),
+        target:'terrain-dem-raster',executable,sourceFiles:terrainDemRasterSources});
+      env.PANDO_TERRAIN_DEM_RASTER_BINARY=raster.binary;
+    }
+    if(!reuse){
+      const gutterDirectory=resolve(root,'build-native/terrain-dem-gutters/artifact');
+      const gutterExecutable=process.platform==='win32'?'pando-terrain-dem-gutters.exe':'pando-terrain-dem-gutters';
+      verifyNativeTool({root,directory:gutterDirectory,target:'terrain-dem-gutters',executable:gutterExecutable,sourceFiles:terrainDemGutterSources});
+      const imageDirectory=resolve(root,'build-native/map-image/artifact');
+      const imageExecutable=process.platform==='win32'?'pando-map-image.exe':'pando-map-image';
+      verifyNativeTool({root,directory:imageDirectory,target:'map-image',executable:imageExecutable,sourceFiles:mapImageSourceFiles});
+      env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY=gutterDirectory;env.PANDO_MAP_IMAGE_ARTIFACT=imageDirectory;
+    }
   }
   const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false,env});
   if(result.error)throw result.error;
