@@ -29,6 +29,18 @@ export function assembleBuiltinWorld(index,countries,month){
    && temporalContains(row,temporalMonthEnd(month)));
   if(names.length>1)throw new Error('Conflicting dated country names: '+entry.entityId);
   if(names.length)identity=projectTimelineIdentity(identity,{name:names[0].value});
+  const flags=country.timelineRecords.propertyBindings.filter(row=>row.property==='flag'
+   && temporalContains(row,temporalMonthEnd(month)));
+  if(flags.length>1)throw new Error('Conflicting dated country flags: '+entry.entityId);
+  if(flags.length) {
+   const {policy,embeddedDataUrl}=flags[0].value;
+   const meta=identity.properties.metadata||{};
+   if(policy==='embedded')meta.flagDataUrl=embeddedDataUrl;
+   else if(policy==='none')meta.flagDataUrl=null;
+   else if(meta.defaultFlagDataUrl)meta.flagDataUrl=meta.defaultFlagDataUrl;
+   else delete meta.flagDataUrl;
+   identity.properties.metadata=meta;
+  }
   project.territorialEntities.push(identity);
   // A loaded scene contains the selected interval only. Other historical
   // intervals may refer to countries intentionally not downloaded this query.
