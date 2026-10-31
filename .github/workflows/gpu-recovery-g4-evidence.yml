@@ -1,0 +1,65 @@
+name: GPU G4 compact evidence (no rerun or deployment)
+on:
+  push:
+    branches: [work/ui]
+    paths: [.github/workflows/gpu-recovery-g4-evidence.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify extraction headroom
+        run: test "$(df --output=avail -B1 "$RUNNER_TEMP" | tail -1)" -gt 8589934592
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 41160919383
+          pattern: gpu-g4-*-1335d9dc91871dbf6ef8d19ddb79931a176805ac
+          path: ${{ runner.temp }}/g4-raw
+      - name: Summarize exact failures and retain only JSON PNG and text evidence
+        env:
+          RAW: ${{ runner.temp }}/g4-raw
+          OUT: ${{ runner.temp }}/g4-compact
+        run: |
+          node --input-type=module <<'NODE'
+          import {readdirSync,readFileSync,writeFileSync,mkdirSync,copyFileSync,statSync,realpathSync} from 'node:fs';
+          import {join,relative,dirname,resolve,sep} from 'node:path';
+          import {createHash} from 'node:crypto';
+          const raw=resolve(process.env.RAW),out=resolve(process.env.OUT);mkdirSync(out,{recursive:true});
+          const rows=[],files=[];
+          const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+          function walk(dir){for(const entry of readdirSync(dir,{withFileTypes:true})){
+            if(entry.isSymbolicLink())throw Error('Unexpected evidence link');
+            const file=join(dir,entry.name);
+            if(entry.isDirectory()){walk(file);continue;}
+            const path=relative(raw,file);
+            if(!path.includes('/gpu-g4-evidence/')||! /\.(json|png|tap|txt)$/.test(path))continue;
+            if(statSync(file).size>8*1024*1024&&entry.name!=='playwright.json')throw Error('Unexpected large compact evidence: '+path);
+            const target=join(out,path);mkdirSync(dirname(target),{recursive:true});copyFileSync(file,target);
+            files.push({path,bytes:statSync(file).size,sha256:hash(readFileSync(file))});
+            if(entry.name==='result.json'){
+              const r=JSON.parse(readFileSync(file,'utf8'));
+              const slim=s=>s?{runtime:s.runtime,recovery:s.stats?.gpuRecovery,documentState:s.documentState,documentSha256:s.documentSha256,world:s.world?{month:s.world.month,epoch:s.world.epoch,count:s.world.count}:null,selection:s.selection,camera:s.camera,rendering:s.rendering,date:s.date,status:s.status,events:s.events,lifecycle:s.lifecycle}:null;
+              const row={product:r.product,backend:r.backend,status:r.status,steps:r.steps,error:r.error,pageErrors:r.pageErrors,consoleErrors:r.consoleErrors,failedRequests:r.failedRequests,initial:slim(r.initial),selected:slim(r.selected),lost:slim(r.lost),final:slim(r.final),recoveryDiff:r.recovery?.diff,resumeDiff:r.resume?.diff};
+              rows.push(row);console.log('G4_RESULT '+JSON.stringify(row));
+            }
+            if(entry.name==='outcomes.json')console.log('G4_GATES '+readFileSync(file,'utf8'));
+          }}
+          walk(raw);
+          if(rows.length!==8)throw Error('Expected eight product/backend results, got '+rows.length);
+          writeFileSync(join(out,'summary.json'),JSON.stringify({sourceRun:41160919383,testCommit:'1335d9dc91871dbf6ef8d19ddb79931a176805ac',passed:rows.filter(r=>r.status==='passed').length,rows},null,2)+'\n');
+          writeFileSync(join(out,'files.json'),JSON.stringify(files,null,2)+'\n');
+          console.log('G4_COMPACT_FILES '+JSON.stringify({count:files.length,bytes:files.reduce((n,f)=>n+f.bytes,0)}));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gpu-g4-compact-evidence-41160919383
+          path: ${{ runner.temp }}/g4-compact
+          retention-days: 7
+          if-no-files-found: error
+          compression-level: 6
