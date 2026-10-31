@@ -53,6 +53,14 @@ export async function mergeLSIBLines(geometries,options={}){
   }
   await flush();return merged;
 }
+export async function prepareLSIBReference({geometries,anchors,merge,closedRing},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(geometries)||!geometries.length||!Array.isArray(anchors)||typeof merge!=='boolean'||typeof closedRing!=='boolean')
+    throw Error('Explicit LSIB reference sources and selection required');
+  if(!closedRing)validateLine(anchors);
+  const result=await nativeRequest('--prepare-lsib-reference',{geometries,anchors,merge,closedRing},options);
+  validateLine(result?.coordinates);return result.coordinates;
+}
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{

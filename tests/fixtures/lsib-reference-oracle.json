@@ -1,0 +1,329 @@
+{
+  "cases": [
+    {
+      "name": "partial",
+      "anchors": [
+        [
+          0.25,
+          0.2
+        ],
+        [
+          2.75,
+          -0.1
+        ]
+      ],
+      "merge": true,
+      "closedRing": false,
+      "geometries": [
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              3.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "expected": [
+        [
+          0.25,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ],
+        [
+          2.0,
+          0.0
+        ],
+        [
+          2.75,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "reverse",
+      "anchors": [
+        [
+          2.75,
+          -0.1
+        ],
+        [
+          0.25,
+          0.2
+        ]
+      ],
+      "merge": true,
+      "closedRing": false,
+      "geometries": [
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              3.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "expected": [
+        [
+          2.75,
+          0.0
+        ],
+        [
+          2.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ],
+        [
+          0.25,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "connected",
+      "anchors": [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "merge": true,
+      "closedRing": false,
+      "geometries": [
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              2.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "expected": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ],
+        [
+          2.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "nearest-part",
+      "anchors": [
+        [
+          5,
+          0.1
+        ],
+        [
+          7,
+          0.1
+        ]
+      ],
+      "merge": true,
+      "closedRing": false,
+      "geometries": [
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ]
+        },
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              7.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "expected": [
+        [
+          5.0,
+          0.0
+        ],
+        [
+          7.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "closed",
+      "anchors": [],
+      "merge": true,
+      "closedRing": true,
+      "geometries": [
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "expected": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ],
+        [
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "reviewed-line",
+      "anchors": [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "merge": false,
+      "closedRing": false,
+      "geometries": [
+        {
+          "type": "LineString",
+          "coordinates": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              2.0,
+              1.0
+            ]
+          ]
+        }
+      ],
+      "expected": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ],
+        [
+          2.0,
+          1.0
+        ]
+      ]
+    }
+  ]
+}
