@@ -39,4 +39,12 @@ test('Node physical terrain candidate matches frozen Python tiles and preserves 
   }
   const manifestPath=join(output,'terrain','v0.12.6','manifest.json'),before=readFileSync(manifestPath);
   assert.deepEqual(JSON.parse(before),manifest);await assert.rejects(buildPhysicalTerrain(args),/exists/i);assert.deepEqual(readFileSync(manifestPath),before);
+  const gray=JSON.parse(readFileSync('tests/fixtures/physical-build-mini-gray-oracle.json','utf8'));
+  writeFileSync(join(source,names.gray),Buffer.from(gray.tiff,'base64'));
+  const grayOutput=join(root,'gray-candidate');await buildPhysicalTerrain({...args,outputRoot:grayOutput});
+  for(const tile of gray.tiles){
+    const bytes=readFileSync(join(grayOutput,'terrain','v0.12.6',String(tile.level),`${tile.column}-0.webp`));
+    const image=await readNativeRawWebp(bytes);assert.equal(image.width,tile.width);assert.equal(image.height,tile.height);
+    assert.deepEqual(image.data,Buffer.from(tile.rgba,'base64'));
+  }
 });
