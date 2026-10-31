@@ -9,7 +9,7 @@ test('P2-1 read-only source preparation cannot change the visible month, camera 
   const anchor='const initialPreview=createViewerInitialPreview(';
   if(source.split(anchor).length!==2)throw Error('P2-1 builtin owner insertion anchor changed');
   await route.fulfill({response,body:source.replace(anchor,
-    "globalThis.__P2_1_PREPARE__=month=>builtinSession.prepareProjectSource(month);\n  "+anchor)});
+    "globalThis.__P2_1_PREPARE__=month=>builtinSession.prepareProjectSource(month);globalThis.__P2_2_STATS__=()=>builtinSession.sourceCacheStats();\n  "+anchor)});
  });
  await page.clock.setFixedTime(new Date('2026-10-31T00:00:00+09:00'));
  await page.goto('/?debug=1');
@@ -33,6 +33,13 @@ test('P2-1 read-only source preparation cannot change the visible month, camera 
  expect(candidate.sourceMonth).toBe('2025-12');
  expect(candidate.bytes).toBeGreaterThan(0);
  expect(candidate.baselineId).toBe(null);
+ expect(await state()).toEqual(before);
+ const statsBefore=await page.evaluate(()=>window.__P2_2_STATS__());
+ await page.evaluate(()=>window.__P2_1_PREPARE__('2025-12'));
+ const statsAfter=await page.evaluate(()=>window.__P2_2_STATS__());
+ expect(statsAfter.hits).toBe(statsBefore.hits+1);
+ expect(statsAfter.entries).toBeGreaterThan(0);
+ expect(statsAfter.bytes).toBeLessThanOrEqual(statsAfter.maxBytes);
  expect(await state()).toEqual(before);
  await expect(page.locator('#viewerInitialPreview')).toBeHidden();
  await page.locator('#timelinePreviousYear').click();
