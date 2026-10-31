@@ -155,6 +155,11 @@ class SupplementTests(unittest.TestCase):
                 module.targeted_candidates(root, output, ['FRA/MCO'])
             module.targeted_candidates(root, output, ['FRA/MCO'], coast_manifest=file)
             candidate = json.loads(output.read_text(encoding='utf-8'))
+            candidate_bytes = output.read_bytes()
+            with patch.dict(os.environ, {'PANDO_TERRITORIAL_RECIPE_BINARY': str(Path('missing-lsib-native').resolve())}):
+                with self.assertRaisesRegex(RuntimeError, 'targeted candidate failed'):
+                    module.targeted_candidates(root, output, ['FRA/MCO'], coast_manifest=file)
+            self.assertEqual(output.read_bytes(), candidate_bytes)
             self.assertEqual(len(candidate['changes']), 2)
             self.assertEqual(len(candidate['boundaries']), 4)
             for change in candidate['changes']:

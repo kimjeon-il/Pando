@@ -303,154 +303,24 @@ def repair_enclave_boundary(geometries, reference, pair, enclave, simplify=True)
 
 
 def targeted_candidates(root, output, targets, reference_manifest=None, coast_manifest=None):
-    """Accumulate explicitly reviewed targets; emit each country only once."""
-    targets = list(dict.fromkeys(targets))
-    if not targets or any(target not in REVIEWED_TARGETS for target in targets):
-        raise ValueError('An explicitly reviewed boundary target is required')
-    plans = [REVIEWED_TARGETS[target] for target in targets]
-    codes = set()
-    required_pairs = set()
-    for plan in plans:
-        pair = plan['pair']
-        codes.update(pair)
-        required_pairs.add(pair)
-        if 'junctionCountry' in plan:
-            third = plan['junctionCountry']
-            codes.add(third)
-            required_pairs.update(tuple(sorted((code, third))) for code in pair)
-    source = root / 'assets/data/territorial-entities/source'
-    evidence = root / 'tools/historical-library/sources/lsib-11.4'
-    provenance = json.loads((evidence / 'provenance.json').read_text(encoding='utf-8'))
-    raw = (evidence / 'boundaries.geojson.gz').read_bytes()
-    if hashlib.sha256(raw).hexdigest() != provenance['masterSha256']:
-        raise ValueError('LSIB master differs from pinned evidence')
-    records = json.loads(gzip.decompress(raw))['features']
-    view = json.loads((source / 'views/world.json').read_text(encoding='utf-8'))
-    selections = {row['entityId']: row['geometryVersionId'] for row in view['selections']}
-    entities, versions, geometries, hashes = {}, {}, {}, {}
-    for code in sorted(codes):
-        raw_entity = (source / 'countries' / f'state-{code}.json').read_bytes()
-        entity = json.loads(raw_entity)
-        version = next(v for v in entity['geometryVersions'] if v['versionId'] == selections[entity['entityId']])
-        if entity['sourceInfo']['featureId'] != code or version.get('validTo') is not None:
-            raise ValueError(f'Historical or mismatched source must not be overwritten: {code}')
-        entities[code], versions[code], geometries[code] = entity, version, version['geometry']
-        hashes[code] = hashlib.sha256(raw_entity).hexdigest()
-    references, ids = {}, {}
-    selected_by_pair = {pair: [record for record in records if tuple(sorted((record['properties']['CC1_GENC3'],
-                         record['properties']['CC2_GENC3']))) == pair] for pair in sorted(required_pairs)}
-    exclusions = exclusion_reasons([record for selected in selected_by_pair.values() for record in selected])
-    for pair, selected in selected_by_pair.items():
-        if not selected or any(exclusions[id(record)][0] for record in selected):
-            raise ValueError(f'Missing or protected reference: {pair}')
-        references[pair] = shapely.line_merge(shapely.union_all([shape(record['geometry']) for record in selected]))
-        ids[pair] = [record['properties']['ID'] for record in selected]
-    overrides = {}
-    if reference_manifest is not None:
-        reference, metadata = reviewed_reference(root, reference_manifest)
-        pair = tuple(metadata['countries'])
-        if '/'.join(pair) not in targets:
-            raise ValueError('Reviewed reference target was not explicitly selected')
-        references[pair], ids[pair], overrides[pair] = reference, [metadata['featureGlobalId']], metadata
-    coasts, coast_metadata = None, None
-    if coast_manifest is not None:
-        if 'FRA/MCO' not in targets:
-            raise ValueError('Reviewed coast target was not explicitly selected')
-        coasts, coast_metadata = reviewed_coast_reference(root, coast_manifest)
-    elif any('coastal' in plan for plan in plans):
-        raise ValueError('FRA/MCO requires a pinned reviewed coast manifest')
-    updated, sections, coast_reviews = copy.deepcopy(geometries), [], {}
-    for target, plan in zip(targets, plans):
-        pair = plan['pair']
-        if 'coastal' in plan:
-            changed, current_sections, review = repair_coastal_boundary(
-                {code: updated[code] for code in pair}, references[pair], coasts)
-            coast_reviews[target] = review
-            status = 'supplemented-with-reviewed-coast'
-        elif 'junctionCountry' in plan:
-            third = plan['junctionCountry']
-            changed, current_sections = repair_tripoint_boundary(
-                {code: updated[code] for code in (*pair, third)}, references, pair, third)
-            status = 'supplemented-with-reviewed-tripoints'
-        else:
-            changed, current_sections = repair_enclave_boundary(
-                {code: updated[code] for code in pair}, references[pair], pair,
-                plan['enclave'], False if pair in overrides else plan.get('simplify', True))
-            status = 'supplemented-with-reviewed-enclave'
-        updated.update(changed)
-        sections.extend({**section, 'target': target, 'status': status} for section in current_sections)
-    boundaries = [{'countries': list(section['countries']),
-        'sourceLineIds': [coast_metadata['features'][section['referenceRole']]]
-            if section.get('kind') == 'coastline' else ids[section['countries']],
-        'status': section['status'], 'segments': [{k: v for k, v in section.items() if k != 'countries'}]}
-        for section in sections]
-    for entry in boundaries:
-        if entry['segments'][0].get('kind') == 'coastline':
-            entry.update({'kind': 'coastline', 'referenceRole': entry['segments'][0]['referenceRole'],
-                          'sourceId': coast_metadata['sourceId'],
-                          'referenceManifest': coast_metadata['referenceManifest']})
-            continue
-        pair = tuple(entry['countries'])
-        metadata = overrides.get(pair)
-        entry['sourceId'] = metadata['sourceId'] if metadata else SOURCE_ID
-        if metadata:
-            entry['referenceManifest'] = metadata['referenceManifest']
-    changes = []
-    for code in sorted(updated):
-        relevant_plans = [(target, plan) for target, plan in zip(targets, plans)
-                          if code in (*plan['pair'], plan.get('junctionCountry'))]
-        tolerance = SIMPLIFY_DEGREES if any(plan.get('simplify', True) and plan['pair'] not in overrides
-                                           for _, plan in relevant_plans) else 0
-        supplement = {**source_supplement(provenance['published'], tolerance),
-                      **copy.deepcopy(versions[code].get('modernBoundarySupplement', {}))}
-        full_pairs = {plan['pair'] for _, plan in relevant_plans}
-        supplement['boundaries'] = [entry for entry in supplement.get('boundaries', [])
-                                    if tuple(entry['countries']) not in full_pairs]
-        supplement['boundaries'].extend(entry for entry in boundaries if code in entry['countries'])
-        for target, plan in relevant_plans:
-            if 'junctionCountry' in plan:
-                supplement['reviewedTripointRepair'] = {'target': list(plan['pair']),
-                    'junctionCountry': plan['junctionCountry'], 'historicalAccuracyVerified': False,
-                    'effectiveDateEstablished': False}
-        supplement['reviewedBoundaryRepairs'] = supplement.get('reviewedBoundaryRepairs', []) + [
-            {'target': target, 'historicalAccuracyVerified': False, 'effectiveDateEstablished': False}
-            for target, _ in relevant_plans]
-        source_ids = dict.fromkeys(versions[code]['sourceId'].split('+'))
-        for entry in boundaries:
-            if code in entry['countries']:
-                source_ids[entry['sourceId']] = None
-        attributions = []
-        for pair, metadata in overrides.items():
-            if code in pair:
-                attributions.append({key: metadata[key] for key in
-                    ('sourceId', 'title', 'published', 'url', 'license', 'licenseUrl', 'attribution', 'sourceFile')})
-        if attributions:
-            supplement['sourceId'] = '+'.join(key for key in source_ids if key != 'natural-earth-5.1.1')
-            supplement['published'] = max([supplement['published'], *(a['published'] for a in attributions)])
-            supplement['additionalSources'] = supplement.get('additionalSources', []) + attributions
-            if not versions[code].get('modernBoundarySupplement'):
-                supplement['sourceFile'] = attributions[0]['sourceFile']
-        if coast_metadata and code in ('FRA', 'MCO'):
-            attribution = {key: coast_metadata[key] for key in
-                ('sourceId', 'title', 'published', 'url', 'license', 'licenseUrl', 'attribution', 'sourceFile',
-                 'retrieved', 'lastModified', 'confirmed')}
-            attributions.append(attribution)
-            supplement.update({'coastline': 'reviewed-ign-replacement',
-                               'coastlineReview': {'referenceManifest': coast_metadata['referenceManifest'],
-                                   'sourceId': coast_metadata['sourceId'], 'effectiveDateEstablished': False,
-                                   'historicalAccuracyVerified': False},
-                               'sourceId': '+'.join(key for key in source_ids if key != 'natural-earth-5.1.1')})
-            supplement['additionalSources'] = supplement.get('additionalSources', []) + [attribution]
-        changes.append({'entityId': entities[code]['entityId'], 'geometryVersionId': versions[code]['versionId'],
-            'inputFileSha256': hashes[code], 'sourceId': '+'.join(source_ids), 'sourceAttributions': attributions,
-            'geometry': updated[code], 'supplement': supplement})
-    result = {'schemaVersion': 1, 'sourceId': SOURCE_ID, 'sourcePublished': provenance['published'],
-        'sourceRevision': json.loads((root / 'config/library-data.json').read_text(encoding='utf-8'))['revision'],
-        'changes': changes, 'boundaries': boundaries}
-    if coast_reviews:
-        result['coastReviews'] = coast_reviews
+    script = Path(__file__).with_name('gis') / 'lsib-targeted.mjs'
+    request = {'root': str(root), 'targets': list(targets),
+               'referenceManifest': str(reference_manifest) if reference_manifest is not None else None,
+               'coastManifest': str(coast_manifest) if coast_manifest is not None else None}
+    response = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=600,
+                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if response.returncode:
+        message = response.stderr.decode('utf-8', errors='replace')
+        if 'Native LSIB screen operation failed' in message or 'PANDO_TERRITORIAL_RECIPE_BINARY must locate' in message:
+            raise RuntimeError('LSIB targeted candidate failed: ' + message)
+        raise ValueError('LSIB targeted candidate failed: ' + message)
+    result = json.loads(response.stdout)
+    if not isinstance(result, dict) or not isinstance(result.get('changes'), list) or not isinstance(result.get('boundaries'), list):
+        raise RuntimeError('Invalid LSIB targeted candidate receipt')
     json_write(output, result)
-    print(json.dumps({'targets': targets, 'changedCountries': len(changes), 'sections': len(sections), 'output': str(output)}))
+    print(json.dumps({'targets': list(dict.fromkeys(targets)), 'changedCountries': len(result['changes']),
+                      'sections': len(result['boundaries']), 'output': str(output)}))
 
 
 def main():
