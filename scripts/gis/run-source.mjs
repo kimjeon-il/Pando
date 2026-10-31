@@ -18,7 +18,7 @@ export const TASK_SOURCES = Object.freeze({
   'hydro-tiles':'tools/build-hydro-tiles.py',
   'hydro-packfile':'tools/build-hydro-packfile.mjs',
   'hydro-connectivity':'tools/repair-hydro-connectivity.mjs',
-  'physical-data':'tools/build-physical-data.py',
+  'physical-data':'tools/build-physical-data.mjs',
   'place-candidates':'tools/build-place-candidates.mjs',
 });
 const pythonExecutable=()=>process.env.PANDOLAB_PYTHON_EXECUTABLE||(process.platform==='win32'?'python':'python3');

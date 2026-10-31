@@ -191,12 +191,10 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 
 수계 metadata는 표시용 core와 상세 출처용 detail로 분리합니다. 긴 원본 reach 목록이 들은 detail은 수계를 선택하거나 `편집용 복사`를 실행할 때만 지연 로드하며, WebGL 메인 스레드에는 GeoJSON 대신 GPU `TypedArray`와 고정 크기 descriptor만 전달합니다. Canvas 대체 경로는 Hydro Worker와 Canvas Worker를 `MessageChannel`로 직접 연결해, 메인 스레드에는 좌표 대신 완성된 `ImageBitmap`과 선택 ID만 보냅니다.
 
-기존 물리 지형 생성기는 공식 ZIP의 원본을 읽어 별도의 새 후보 폴더에 생성합니다. Pillow, GDAL `ogr2ogr`, 소스가 일치하는 C++ 지형 도구가 필요합니다. 수계 원본은 GDAL·Node가, 외곽 육지 마스크는 C++이 처리하며 나머지 지형 타일 경로는 아직 Python입니다. 기존 산출물은 덮어쓰지 않습니다.
-
-Node/C++ 지형 생성 후보는 `node tools/gis/build-physical-terrain.mjs --source <원본-폴더> --output <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson`으로 실행합니다. 소스와 일치하는 `physical-raster`, `terrain-preview`, `map-image` 네이티브 도구가 필요하며 Windows에서 GDAL DLL이 PATH에 없다면 `PANDO_PHYSICAL_RASTER_GDAL_BIN`으로 해당 절대 폴더를 지정합니다. 작은 고정 사례만 비교했고 실제 TIFF 전체와 대형 입력 성능은 아직 확인하지 않았으므로 후보 결과는 별도로 검토합니다.
+물리 자료 생성기는 Natural Earth 원본을 읽어 별도의 새 후보 폴더에 생성합니다. 수계는 GDAL `ogr2ogr`와 Node가, 지형은 Node와 소스가 일치하는 `physical-raster`, `terrain-preview`, `map-image` C++ 도구가 처리합니다. Windows에서 GDAL DLL이 PATH에 없다면 `PANDO_PHYSICAL_RASTER_GDAL_BIN`으로 해당 절대 폴더를 지정합니다. 기존 산출물과 원본은 덮어쓰지 않습니다. 작은 고정 사례는 비교했으나 실제 TIFF 전체와 대형 입력 성능은 아직 확인하지 않았으므로 후보 결과는 별도로 검토합니다.
 
 ```powershell
-python tools/build-physical-data.py <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
+node tools/build-physical-data.mjs <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
 ```
 
 ### Hydro 전 세계 보충 자료 캘리브레이션
