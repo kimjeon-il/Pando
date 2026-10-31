@@ -4,34 +4,30 @@ import importlib.util
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
+import subprocess
 import zipfile
 import numpy as np
 import shapely
 from shapely.geometry import LineString, Point
 from shapely.ops import substring
-from shapely.strtree import STRtree
 
 SCALE = 2560 * 64 / 360
 STEP = .001  # Any position on a segment lies <= STEP/2 from a sampled point.
 
 
-def samples(line):
-    xy = np.asarray(line.coords)
-    delta = xy[1:] - xy[:-1]
-    steps = np.maximum(1, np.ceil(np.linalg.norm(delta, axis=1) / STEP).astype(int))
-    indices = np.repeat(np.arange(len(steps)), steps)
-    starts = np.r_[0, np.cumsum(steps)[:-1]]
-    fraction = (np.arange(steps.sum()) - np.repeat(starts, steps)) / np.repeat(steps, steps)
-    return shapely.points(np.vstack((xy[indices] + delta[indices] * fraction[:, None], xy[-1])))
-
-
 def sampled_distance(source, target):
-    xy = np.asarray(target.coords)
-    tree = STRtree(shapely.linestrings(np.stack((xy[:-1], xy[1:]), axis=1)))
-    points = samples(source)
-    _, distances = tree.query_nearest(points, return_distance=True, all_matches=False)
-    return float(distances.max() * SCALE), len(points)
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    payload = json.dumps(dict(source=list(source.coords), target=list(target.coords)), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--sampled-stream'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native LSIB screen sampling failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    if not isinstance(receipt.get('samples'), int) or receipt['samples'] < 2:
+        raise ValueError('Invalid native LSIB sample count')
+    return float(receipt['sampledMaximumCssPx']), receipt['samples']
 
 
 def display_section(geometry, anchors, reference):
@@ -70,6 +66,8 @@ def main():
     parser.add_argument('--output', required=True)
     parser.add_argument('--pair', help='Restrict a diagnostic run to one CODE/CODE pair')
     args = parser.parse_args()
+    if not os.environ.get('PANDO_TERRITORIAL_RECIPE_BINARY'):
+        parser.error('PANDO_TERRITORIAL_RECIPE_BINARY must locate the native GEOS engine')
     root = Path(__file__).resolve().parents[1]
     spec = importlib.util.spec_from_file_location('lsib_source', root / 'tools/supplement-lsib-boundaries.py')
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)

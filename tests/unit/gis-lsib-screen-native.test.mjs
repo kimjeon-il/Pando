@@ -32,3 +32,8 @@ test('Node LSIB adapter preserves sampled distance and sample count',{skip:!bina
   assert.equal(result.samples,row.forwardSamples);
   assert.ok(Math.abs(result.sampledMaximumCssPx-row.forward)<1e-10);
 });
+test('Python LSIB caller preserves the frozen distance contract',{skip:!process.env.PANDO_PYTHON_ORACLE},()=>{
+  const script=`import importlib.util,json,sys\nfrom shapely.geometry import LineString\nspec=importlib.util.spec_from_file_location('screen','tools/verify-lsib-screen-delta.py')\nscreen=importlib.util.module_from_spec(spec);spec.loader.exec_module(screen)\nfor row in json.load(sys.stdin)['cases']:\n d,n=screen.sampled_distance(LineString(row['source']),LineString(row['target']))\n assert n==row['forwardSamples'] and abs(d-row['forward'])<1e-10,row['name']\nprint('ok')`;
+  const result=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{input:JSON.stringify(oracle),encoding:'utf8',windowsHide:true});
+  assert.equal(result.status,0,result.stderr);assert.equal(result.stdout.trim(),'ok');
+});
