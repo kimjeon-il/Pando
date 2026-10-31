@@ -30,11 +30,19 @@ for(const {month,names,flag} of cases){
   await page.locator('#projectSetupSubmit').click();
   if(await page.locator('#confirmModal').isVisible())await page.locator('#confirmModalOkBtn').click();
   await expect(page.locator('#projectSetupDialog')).not.toBeVisible({timeout:90000});
+  // The dialog can close before the C++ document's dated snapshot replaces
+  // the earlier default world. A stable common name is not a load barrier.
+  await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline?.month()||''),
+   {timeout:90000,message:'Project did not adopt requested historical month'}).toBe(month);
+  await page.waitForFunction(()=>window.__testEditorTimeline
+   && !window.__testEditorTimeline.state().projectReplacing
+   && !window.__testEditorTimeline.state().modeProcessing,null,{timeout:90000});
   for(const {id,common,formal} of names){
    await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties?.name||'',id),{timeout:90000})
     .toBe(common);
    const details=await page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties.metadata?.nameDetails?.ko||{},id);
-   if(formal!==undefined)expect(details.formal,month+' wrong formal name: '+id).toBe(formal);
+   if(formal!==undefined)await expect.poll(()=>page.evaluate(id=>window.PANDOLAB_TERRITORIAL.get(id)?.properties?.metadata?.nameDetails?.ko?.formal||'',id),
+    {timeout:30000,message:month+' wrong formal name: '+id}).toBe(formal);
    console.log('VERIFIED_NAME_EDITION='+JSON.stringify({month,id,common,formal:details.formal||null}));
   }
   if(flag){
