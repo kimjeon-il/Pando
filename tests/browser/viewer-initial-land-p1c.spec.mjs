@@ -67,6 +67,8 @@ for(const profile of [
       differingPixels:changed,unionPixels:union,changedOverLand:changed/Math.max(1,refPixels),
       intersectionOverUnion:overlap/Math.max(1,union)}};
   });
+  console.log('P1_4C_SCREEN '+JSON.stringify({profile:profile.name,...proof}));
+  writeFileSync(info.outputPath('coast-pixel-comparison.json'),JSON.stringify({profile,proof,errors},null,2));
   expect(proof.sourceSha).toBe(proof.derivativeSourceSha);
   expect(proof.previewPolygonCount).toBe(proof.polygonCount);
   expect(proof.sameHoleCounts).toBe(true);
@@ -79,8 +81,6 @@ for(const profile of [
   await page.evaluate(()=>{window.__p1cHold=false;window.__p1cRelease();});
   await expect(page.locator('#viewerInitialPreview')).toBeHidden({timeout:100000});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
-  console.log('P1_4C_SCREEN '+JSON.stringify({profile:profile.name,...proof}));
-  writeFileSync(info.outputPath('coast-pixel-comparison.json'),JSON.stringify({profile,proof,errors},null,2));
   expect(errors).toEqual([]);
  });
 }
