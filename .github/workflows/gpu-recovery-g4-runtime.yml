@@ -38,18 +38,33 @@ jobs:
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Editor Canvas Worker and Canvas2D real-frame checks
+        id: canvas
+        continue-on-error: true
         run: >-
           pnpm exec playwright test tests/browser/renderer-responsiveness.spec.mjs
           --grep 'Canvas pan and zoom|Canvas2D fallback'
           --workers=1 --retries=0 --reporter=list
       - name: Editor Canvas timeline and stable document state
+        id: editor
+        continue-on-error: true
         run: >-
           pnpm exec playwright test tests/browser/editor-status-timeline.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Viewer Canvas Worker selection and unchanged saved document
+        id: viewer
+        continue-on-error: true
         run: >-
           pnpm exec playwright test tests/browser/viewer-canvas.spec.mjs
           --workers=1 --retries=0 --reporter=list
+      - name: Enforce each independent G4 residual gate
+        if: always()
+        env:
+          CANVAS: ${{ steps.canvas.outcome }}
+          EDITOR: ${{ steps.editor.outcome }}
+          VIEWER: ${{ steps.viewer.outcome }}
+        run: |
+          echo "G4 canvas=$CANVAS editor=$EDITOR viewer=$VIEWER"
+          test "$CANVAS" = success && test "$EDITOR" = success && test "$VIEWER" = success
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
