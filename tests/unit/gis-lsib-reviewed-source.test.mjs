@@ -48,3 +48,14 @@ test('selected reviewed coastline retains the original Python source metadata',{
   const {lines,...metadata}=await loadLSIBReviewedSource({root:process.cwd(),manifestPath,binary});
   assert.deepEqual(metadata,expected.metadata);assert.deepEqual(lines,expected.lines);
 });
+test('selected IGM reference retains its original transformation metadata',{
+  skip:!binary||!process.env.PANDO_PYTHON_ORACLE||!process.env.PANDO_LSIB_REVIEWED_ORACLE
+},async()=>{
+  const manifestPath='tools/historical-library/sources/reviewed-boundaries-2026-10-22/smr-igm-reference.json';
+  const script=`import importlib.util,json,pathlib\nspec=importlib.util.spec_from_file_location('lsib','tools/supplement-lsib-boundaries.py')\nm=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nline,metadata=m.reviewed_reference(pathlib.Path.cwd(),${JSON.stringify(manifestPath)})\nprint(json.dumps({'metadata':metadata,'coordinates':list(line.coords)}))`;
+  const original=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
+  assert.equal(original.status,0,original.stderr);const expected=JSON.parse(original.stdout);
+  const {lines,...metadata}=await loadLSIBReviewedSource({root:process.cwd(),manifestPath,binary});
+  assert.deepEqual(metadata,expected.metadata);assert.equal(lines.igm.length,expected.coordinates.length);
+  for(let i=0;i<lines.igm.length;i++)for(let j=0;j<2;j++)assert.ok(Math.abs(lines.igm[i][j]-expected.coordinates[i][j])<1e-12);
+});
