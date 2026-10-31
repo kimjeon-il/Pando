@@ -129,7 +129,13 @@ class PhysicalWebpEncoder(NativeTileProcess):
             stream.write(encoded)
 
 
-def build_terrain(source_root: Path, output_root: Path, countries_path: Path) -> dict[str, Any]:
+def build_terrain(source_root: Path, output_root: Path, countries_path: Path, *, source_size=(21600, 10800),
+                  level_widths=LEVEL_WIDTHS, tile_size=TILE_SIZE) -> dict[str, Any]:
+    if (not isinstance(source_size, tuple) or len(source_size) != 2 or any(not isinstance(v, int) or v <= 0 for v in source_size)
+            or source_size[0] != source_size[1] * 2
+            or not isinstance(tile_size, int) or not 1 <= tile_size <= 4096 or not level_widths
+            or any(not isinstance(width, int) or width <= 0 or width % 2 or width > source_size[0] for width in level_widths)):
+        raise ValueError('Invalid bounded physical terrain level configuration')
     terrain_dir = output_root / "terrain" / f"v{VERSION}"
     if terrain_dir.exists():
         raise FileExistsError(f"Physical terrain output exists; preserve prior evidence: {terrain_dir}")
@@ -140,12 +146,12 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
     source_gray = Image.open(gray_path)
     source_land = Image.open(land_path)
     source_ocean = Image.open(ocean_path)
-    if source_gray.size != (21600, 10800) or source_land.size != source_gray.size or source_ocean.size != source_gray.size:
+    if source_gray.size != source_size or source_land.size != source_gray.size or source_ocean.size != source_gray.size:
         raise RuntimeError(f"Unexpected raster dimensions: {source_gray.size}, {source_land.size}, {source_ocean.size}")
     lakes_path = countries_path.parent / "hydro" / "lakes_base.geojson"
     source_land_mask = build_outer_land_mask(countries_path, lakes_path, source_gray.size)
     levels = []
-    for level_index, width in enumerate(LEVEL_WIDTHS):
+    for level_index, width in enumerate(level_widths):
         height = width // 2
         if width == source_land.width:
             land = source_land
@@ -159,16 +165,16 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
             land_mask = source_land_mask.resize((width, height), Image.Resampling.NEAREST)
         level_dir = terrain_dir / str(level_index)
         level_dir.mkdir(exist_ok=True)
-        columns = math.ceil(width / TILE_SIZE)
-        rows = math.ceil(height / TILE_SIZE)
+        columns = math.ceil(width / tile_size)
+        rows = math.ceil(height / tile_size)
         with PhysicalCompositor() as compositor, PhysicalWebpEncoder() as encoder:
             for row in range(rows):
                 for column in range(columns):
                     box = (
-                        column * TILE_SIZE,
-                        row * TILE_SIZE,
-                        min(width, (column + 1) * TILE_SIZE),
-                        min(height, (row + 1) * TILE_SIZE),
+                        column * tile_size,
+                        row * tile_size,
+                        min(width, (column + 1) * tile_size),
+                        min(height, (row + 1) * tile_size),
                     )
                     packed = compositor.combine(land, ocean, land_mask, gray, box)
                     encoder.save(packed, level_dir / f"{column}-{row}.webp")
@@ -179,7 +185,7 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
             "height": height,
             "columns": columns,
             "rows": rows,
-            "tileSize": TILE_SIZE,
+            "tileSize": tile_size,
         })
         print(f"terrain level {level_index}: {width}x{height}, {columns * rows} tiles")
         if land is not source_land:
