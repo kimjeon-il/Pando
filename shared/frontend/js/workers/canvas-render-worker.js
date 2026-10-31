@@ -1017,9 +1017,19 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
         updateTerrainFrameStats(terrainPlan);
       }
+      // A frame can be rendered while a newer scene is already staged on the
+      // main thread. Echo the exact physical packets and country quality that
+      // were painted; no main-thread snapshot may substitute for this evidence.
+      const landPainted = (message.scenePolygons || []).filter(packet => packet.role === 'physical-land');
+      const waterPainted = (message.scenePolygons || []).filter(packet => packet.role === 'physical-water');
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
+        physicalLandCount: landPainted.length,
+        physicalLandRevision: landPainted.length === 1 ? landPainted[0].geometryRevision : null,
+        physicalWaterCount: waterPainted.length,
+        physicalWaterRevision: waterPainted.length === 1 ? waterPainted[0].geometryRevision : null,
+        surfaceQuality: message.surfacePresentation?.quality || 'pending',
         presentationKey: message.presentationKey,
         styleRevision,
         // Background redraws reuse visual state, but never acknowledge a submission.

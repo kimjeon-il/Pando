@@ -25,3 +25,14 @@ export function canAdmitCanvasWorkerPartialBackground({ rendererMode, committedB
   return rendererMode === 'canvas-worker' && committedBitmap === true
     && physicalSceneMatched === true && temporalPending === false;
 }
+
+/** Certifies the physical geometry inside the *bitmap actually drawn* by the
+ * Canvas Worker. The renderer's latest scene alone does not prove that an old
+ * Worker bitmap contains that scene. */
+export function canvasWorkerFrameMatchesPhysical(frame, context) {
+  if (!context?.ready || !frame || Number(frame.physicalLandCount) !== 1
+    || frame.physicalLandRevision !== context.landRevision) return false;
+  return context.waterRevision == null
+    ? Number(frame.physicalWaterCount) === 0
+    : Number(frame.physicalWaterCount) === 1 && frame.physicalWaterRevision === context.waterRevision;
+}
