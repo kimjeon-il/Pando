@@ -73,7 +73,7 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
     'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage', 'modeTaskStep',
     'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
     'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskResults', 'modeTaskResultsList',
-    'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime', 'modeTaskPeriod',
     'modeTaskAffectedSummary', 'modeTaskAffectedList',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
@@ -822,7 +822,7 @@ test('non-merge preview retains the original general target label', async t => {
   assert.ok(!labels.includes('합쳐질 객체'));
 });
 
-test('country border target picker hides only uncalculated metadata and restores it for editing', async t => {
+test('country border target picker and editing hide uncalculated metadata until review', async t => {
   const f = await fixture(t, {
     tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
     boundaryEditEntityIds: ['COUNTRY'], boundaryEditPhase: 'selecting',
@@ -832,7 +832,7 @@ test('country border target picker hides only uncalculated metadata and restores
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
   f.state.boundaryEditPhase = 'editing';
   f.presentation.syncEditingContext();
-  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
 });
 
 test('border vertex editing hides uncalculated metadata and review restores real impact', async t => {
