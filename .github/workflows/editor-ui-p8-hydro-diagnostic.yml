@@ -37,7 +37,7 @@ jobs:
           const old = readFileSync(file, 'utf8');
           const needle = "}, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');";
           if (old.split(needle).length !== 2) throw new Error('Exact P8 hydro probe anchor changed');
-          const replacement = \`}, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon').catch(async error => {
+          const replacement = `}, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon').catch(async error => {
           const diag = await page.evaluate(async displayId => {
           const state = window.__testEditorTimeline?.state();
           const memory = (state?.hydroEdits || []).map(row => ({
@@ -73,7 +73,7 @@ jobs:
           }, id.trim());
           console.log('P8_HYDRO_ID_DIAGNOSTIC ' + JSON.stringify(diag));
           throw error;
-          });\`;
+          });`;
           writeFileSync(file, old.replace(needle, replacement));
           NODE
       - name: Run isolated river and lake persistence comparison
