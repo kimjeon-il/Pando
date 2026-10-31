@@ -407,6 +407,8 @@ class SupplementTests(unittest.TestCase):
                 module.replace_chain(a, old, new)
             with self.assertRaisesRegex(RuntimeError, 'country validation failed'):
                 module.validate_country_repair({'A': a, 'B': b}, {'A': aa, 'B': bb})
+            with self.assertRaisesRegex(RuntimeError, 'shared-chain extraction failed'):
+                module.extract_shared_chains({'A': a, 'B': b})
 
 
 if __name__ == '__main__':

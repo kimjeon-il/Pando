@@ -308,20 +308,17 @@ def repair_coastal_boundary(geometries, reference, coasts):
 
 
 def extract_shared_chains(geometries):
-    owners = defaultdict(set)
-    for code, geometry in geometries.items():
-        polygons = [geometry['coordinates']] if geometry['type'] == 'Polygon' else geometry['coordinates']
-        for polygon in polygons:
-            for ring in polygon:
-                for a, b in zip(ring[:-1], ring[1:]):
-                    a, b = tuple(a), tuple(b)
-                    if a != b:
-                        owners[tuple(sorted((a, b)))].add(code)
-    pairs = defaultdict(list)
-    for edge, codes in owners.items():
-        if len(codes) == 2:
-            pairs[tuple(sorted(codes))].append(edge)
-    return {pair: shapely.line_merge(MultiLineString(edges)) for pair, edges in pairs.items()}
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'geometries': geometries}
+    result = subprocess.run(['node', str(script), '--shared-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('LSIB shared-chain extraction failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    rows = json.loads(result.stdout).get('chains')
+    if not isinstance(rows, list):
+        raise RuntimeError('Invalid LSIB shared-chain receipt')
+    return {tuple(row['countries']): shape(row['geometry']) for row in rows}
 
 
 def line_parts(line):
