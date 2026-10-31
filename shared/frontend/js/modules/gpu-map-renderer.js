@@ -947,6 +947,26 @@ export function createGpuMapRenderer(deps) {
       } catch (_) { return ''; }
     })();
 
+    function observeGpuRecoveryUploads(scheduler) {
+      if (!scheduler) return null;
+      return Object.freeze({ ...scheduler,
+        enqueueUpload(input) {
+          const ticket = gpuRecovery.currentTicket();
+          if (!ticket || !gpuRecovery.isCurrent(ticket)) return scheduler.enqueueUpload(input);
+          return scheduler.enqueueUpload({ ...input, allowDuringInteraction: true,
+            step(budget) {
+              const result = input.step(budget);
+              // Genuine scene-upload bytes, not scheduling or allocation, keep
+              // a restoring GPU alive within the same bounded foreground budget.
+              if (Number.isFinite(result?.bytes) && result.bytes > 0 && gpuRecovery.isCurrent(ticket))
+                gpuRecovery.noteProgress(ticket, { bytes: result.bytes });
+              return result;
+            },
+          });
+        },
+      });
+    }
+
     function invalidateGpuFrame(reason = 'gpu-frame') {
       if (disposed) return;
       // A recovery redraw must be admitted by the coordinator's actual
@@ -5824,10 +5844,11 @@ export function createGpuMapRenderer(deps) {
         terrainUploadScheduler?.cancelAll();
         hydroUploadScheduler?.cancelAll();
         uploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
-        terrainUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
-        hydroUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
-        strokeRenderer.setUploadScheduler(uploadScheduler);
-        polygonOverlayPass.setUploadScheduler(uploadScheduler);
+        terrainUploadScheduler = scheduler ? observeGpuRecoveryUploads(createGpuUploadScope(scheduler)) : null;
+        hydroUploadScheduler = scheduler ? observeGpuRecoveryUploads(createGpuUploadScope(scheduler)) : null;
+        const sceneUploads = observeGpuRecoveryUploads(uploadScheduler);
+        strokeRenderer.setUploadScheduler(sceneUploads);
+        polygonOverlayPass.setUploadScheduler(sceneUploads);
         if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: hydroUploadScheduler });
         if (renderDevice && gl && !gl.isContextLost()) initializeSharedGpuPasses();
       },
