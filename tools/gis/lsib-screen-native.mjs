@@ -118,6 +118,22 @@ export async function extractLSIBSharedChains(geometries,options={}){
   }
   return result.chains;
 }
+export async function prepareLSIBCoast(request,options={}){
+  options.signal?.throwIfAborted();
+  if(!request||!request.geometries||typeof request.geometries!=='object'||Array.isArray(request.geometries)||
+    !request.coasts||typeof request.coasts!=='object'||Array.isArray(request.coasts))throw Error('Explicit LSIB coast inputs required');
+  validateLine(request.reference);
+  for(const role of ['monaco','west','east'])validateLine(request.coasts[role]);
+  const result=await nativeRequest('--prepare-lsib-coast',{geometries:request.geometries,reference:request.reference,
+    coasts:request.coasts,order:Object.keys(request.geometries)},options);
+  if(typeof result?.error==='string'&&result.error&&Object.keys(result).length===1){
+    const error=Error(result.error);error.code='LSIB_COAST_REJECTED';throw error;
+  }
+  if(!result?.geometries||!Object.hasOwn(result.geometries,'FRA')||!Object.hasOwn(result.geometries,'MCO')||
+    Object.keys(result.geometries).length!==2||!Array.isArray(result.sections)||result.sections.length!==4||
+    !result.review||typeof result.review!=='object')throw Error('Invalid LSIB coast receipt');
+  return result;
+}
 export async function prepareLSIBTripoint(request,options={}){
   options.signal?.throwIfAborted();
   if(!request||!request.geometries||typeof request.geometries!=='object'||Array.isArray(request.geometries)||
@@ -180,7 +196,7 @@ export async function analyzeLSIBSection(request,options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream','--tripoint-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
+    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream','--tripoint-stream','--coast-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
@@ -194,6 +210,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     }else if(process.argv[2]==='--repair-stream'){
       try{result=await validateLSIBCountryRepair(request);}
       catch(error){if(error.code!=='LSIB_REPAIR_REJECTED')throw error;result={error:error.message};}
+    }else if(process.argv[2]==='--coast-stream'){
+      try{result=await prepareLSIBCoast(request);}
+      catch(error){if(error.code!=='LSIB_COAST_REJECTED')throw error;result={error:error.message};}
     }else if(process.argv[2]==='--tripoint-stream'){
       try{result=await prepareLSIBTripoint(request);}
       catch(error){if(error.code!=='LSIB_TRIPOINT_REJECTED')throw error;result={error:error.message};}

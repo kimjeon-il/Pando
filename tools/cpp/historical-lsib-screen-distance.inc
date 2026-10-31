@@ -403,6 +403,110 @@ V prepareLSIBTripoint(const V& request){
         auto receipt=V::obj();receipt.object["geometries"]=result;receipt.object["sections"]=std::move(sections);return receipt;
     }catch(const LSIBTripointRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
 }
+V lsibPolygonJSON(GeometryEngine& geos,const GeometryEngine::Shape& geometry){
+    const auto context=geos.context();const auto kind=geos.type(geometry.get());auto result=V::obj();
+    if(kind!=GEOS_POLYGON&&kind!=GEOS_MULTIPOLYGON)throw std::runtime_error("Expected polygonal LSIB geometry");
+    const auto rings=[&](const GeometryEngine::Shape& polygon){auto out=V::arr();const auto* exterior=GEOSGetExteriorRing_r(context,polygon.get());
+        if(!exterior)throw std::runtime_error("Missing LSIB exterior ring");out.array.push_back(geos.coordinates(exterior));
+        const auto count=GEOSGetNumInteriorRings_r(context,polygon.get());if(count<0)throw std::runtime_error("Cannot inspect LSIB interior rings");
+        for(int i=0;i<count;++i)out.array.push_back(geos.coordinates(GEOSGetInteriorRingN_r(context,polygon.get(),i)));return out;};
+    result.object["type"]=V::str(kind==GEOS_POLYGON?"Polygon":"MultiPolygon");
+    if(kind==GEOS_POLYGON)result.object["coordinates"]=rings(geometry);
+    else {auto parts=V::arr();for(const auto& polygon:geos.parts(geometry))parts.array.push_back(rings(polygon));result.object["coordinates"]=std::move(parts);}
+    return result;
+}
+struct LSIBCoastRejected:std::runtime_error{using std::runtime_error::runtime_error;};
+V prepareLSIBCoast(const V& request){
+    try{
+        const auto& geometries=field(request,"geometries"),&order=field(request,"order"),&coasts=field(request,"coasts");
+        if(geometries.kind!=V::Object||geometries.object.size()!=2||!geometries.object.count("FRA")||!geometries.object.count("MCO")||
+           coasts.kind!=V::Object||coasts.object.size()!=3||!coasts.object.count("monaco")||!coasts.object.count("west")||!coasts.object.count("east"))
+            throw LSIBCoastRejected("Coast correction is restricted to FRA/MCO and three reviewed coasts");
+        GeometryEngine geos;const auto context=geos.context();constexpr double scale=2560.0*64.0/360.0;
+        const auto distance=[](const LSIBPoint& a,const LSIBPoint& b){return std::hypot(a[0]-b[0],a[1]-b[1]);};
+        const auto pointsJSON=[](const std::vector<LSIBPoint>& points){auto out=V::arr();for(const auto& p:points){auto v=V::arr();v.array={V::num(p[0]),V::num(p[1])};out.array.push_back(std::move(v));}return out;};
+        const auto reversed=[](std::vector<LSIBPoint> points){std::reverse(points.begin(),points.end());return points;};
+        const auto join=[](std::vector<std::vector<LSIBPoint>> paths){std::vector<LSIBPoint> result;for(const auto& path:paths){
+            if(path.empty()||(!result.empty()&&result.back()!=path.front()))throw LSIBCoastRejected("Boundary paths do not share the same junction coordinate");
+            for(const auto& p:path)if(result.empty()||result.back()!=p)result.push_back(p);}return result;};
+        const auto validOpen=[&](const std::vector<LSIBPoint>& points,const std::string& message){
+            auto line=lsibScreenLine(geos,points);const auto ring=GEOSisRing_r(context,line.get()),simple=GEOSisSimple_r(context,line.get());
+            if(ring==2||simple==2)throw std::runtime_error("Cannot inspect reviewed coast");if(ring==1||simple!=1)throw LSIBCoastRejected(message);};
+        auto border=lsibScreenPoints(field(request,"reference"));validOpen(border,"Coastal land reference must be one simple open line");
+        std::map<std::string,std::vector<LSIBPoint>> coastPoints;
+        for(const auto& role:{"monaco","west","east"}){coastPoints[role]=lsibScreenPoints(coasts.object.at(role));
+            validOpen(coastPoints[role],"Reviewed coasts must be simple open lines");}
+        if(border.front()[0]>border.back()[0])std::reverse(border.begin(),border.end());
+        auto coast=coastPoints.at("monaco");if(distance(coast.front(),border.back())>distance(coast.back(),border.back()))std::reverse(coast.begin(),coast.end());
+        const std::array<LSIBPoint,2> junctions{coast.back(),coast.front()};
+        const std::array<double,2> offsets{distance(border.front(),junctions[0])*scale,distance(border.back(),junctions[1])*scale};
+        if(std::max(offsets[0],offsets[1])>.5)throw LSIBCoastRejected("Coastal land endpoint move exceeds 0.5px");border.front()=junctions[0];border.back()=junctions[1];
+        std::vector<GeometryEngine::Shape> input;for(const auto& item:array(order))input.push_back(geos.parse(geometries.object.at(str(item))));
+        auto before=geos.unaryUnion(input),boundary=geos.boundary(before);std::map<std::string,std::vector<LSIBPoint>> branches;std::vector<LSIBPoint> anchors;
+        for(std::size_t i=0;i<2;++i){const std::string role=i==0?"west":"east";auto points=coastPoints.at(role);
+            if(distance(points.front(),junctions[i])>distance(points.back(),junctions[i]))std::reverse(points.begin(),points.end());
+            if(distance(points.front(),junctions[i])*scale>.5)throw LSIBCoastRejected("Reviewed coast endpoint does not meet the national boundary");
+            auto branch=lsibScreenLine(geos,points),intersection=geos.intersection(branch,boundary);std::vector<GeometryEngine::Shape> candidates;
+            std::function<void(const GEOSGeometry*)> collect=[&](const GEOSGeometry* value){if(geos.empty(value))return;const auto kind=geos.type(value);
+                if(kind==GEOS_POINT){candidates.push_back(geos.clone(value));return;}
+                if(kind==GEOS_LINESTRING){candidates.push_back(geos.own(GEOSGeomGetStartPoint_r(context,value),"coast anchor start"));
+                    candidates.push_back(geos.own(GEOSGeomGetEndPoint_r(context,value),"coast anchor end"));return;}
+                const auto n=GEOSGetNumGeometries_r(context,value);if(n<0)throw std::runtime_error("Invalid coast intersection");
+                for(int j=0;j<n;++j)collect(GEOSGetGeometryN_r(context,value,j));};collect(intersection.get());
+            GeometryEngine::Shape selected;double projection=0;
+            for(const auto& candidate:candidates){const auto value=GEOSProject_r(context,branch.get(),candidate.get());
+                if(value<0||!std::isfinite(value))throw std::runtime_error("Cannot project coast anchor");
+                if(value>1e-11&&(!selected||value<projection)){selected=candidate;projection=value;}}
+            if(!selected)throw LSIBCoastRejected("No safe outer coast anchor for "+role);
+            LSIBPoint endpoint{};if(!GEOSGeomGetX_r(context,selected.get(),&endpoint[0])||!GEOSGeomGetY_r(context,selected.get(),&endpoint[1]))
+                throw std::runtime_error("Cannot read coast anchor");
+            auto detail=lsibChainSlice(geos,branch,points,0,projection);detail.front()=junctions[i];detail.back()=endpoint;
+            branches[role]=std::move(detail);anchors.push_back(endpoint);}
+        std::vector<GeometryEngine::Shape> rings;
+        for(const auto& part:geos.parts(before)){const auto* exterior=GEOSGetExteriorRing_r(context,part.get());
+            if(!exterior)throw std::runtime_error("Missing coast exterior");auto ring=geos.clone(exterior);bool match=true;
+            for(const auto& anchor:anchors){auto p=geos.point(anchor[0],anchor[1]);double d=0;
+                if(!GEOSDistance_r(context,ring.get(),p.get(),&d))throw std::runtime_error("Cannot measure coast anchor");if(d>=1e-11)match=false;}
+            if(match)rings.push_back(std::move(ring));}
+        if(rings.size()!=1)throw LSIBCoastRejected("Outer coast anchors do not identify one land component");
+        auto ring=rings[0];const auto ringPoints=lsibScreenPoints(geos.coordinates(ring.get()));std::array<double,2> projection{};
+        for(std::size_t i=0;i<2;++i){auto p=geos.point(anchors[i][0],anchors[i][1]);projection[i]=GEOSProject_r(context,ring.get(),p.get());
+            if(projection[i]<0||!std::isfinite(projection[i]))throw std::runtime_error("Cannot project coast anchor");}
+        const auto lo=std::min(projection[0],projection[1]),hi=std::max(projection[0],projection[1]);
+        auto direct=lsibChainSlice(geos,ring,ringPoints,lo,hi),other=join({lsibChainSlice(geos,ring,ringPoints,hi,geos.length(ring)),lsibChainSlice(geos,ring,ringPoints,0,lo)});
+        auto directLine=lsibScreenLine(geos,direct),otherLine=lsibScreenLine(geos,other);
+        auto old=geos.length(directLine)<=geos.length(otherLine)?direct:other;if(distance(old.front(),anchors[0])>distance(old.back(),anchors[0]))std::reverse(old.begin(),old.end());
+        old.front()=anchors[0];old.back()=anchors[1];const auto replacement=join({reversed(branches.at("west")),reversed(coast),branches.at("east")});
+        V expectedValue;try{expectedValue=replaceLSIBRing(geos,lsibPolygonJSON(geos,before),old,replacement);}
+        catch(const LSIBRingRejected& error){throw LSIBCoastRejected(error.what());}
+        auto expected=geos.parse(expectedValue);auto monacoPoints=join({border,coast});auto monacoValue=V::obj(),monacoRings=V::arr();
+        monacoValue.object["type"]=V::str("Polygon");monacoRings.array.push_back(pointsJSON(monacoPoints));monacoValue.object["coordinates"]=std::move(monacoRings);
+        auto monaco=geos.parse(monacoValue),outside=geos.difference(monaco,expected);
+        const auto expectedValid=GEOSisValid_r(context,expected.get()),monacoValid=GEOSisValid_r(context,monaco.get()),holes=GEOSGetNumInteriorRings_r(context,monaco.get());
+        if(expectedValid==2||monacoValid==2||holes<0)throw std::runtime_error("Cannot inspect coastal polygon validity");
+        if(expectedValid!=1||monacoValid!=1||holes||geos.area(outside.get())>1e-10)
+            throw LSIBCoastRejected("Reviewed coastline and border do not bound one Monaco polygon");
+        auto france=geos.difference(expected,monaco);auto result=V::obj();result.object["MCO"]=lsibPolygonJSON(geos,monaco);result.object["FRA"]=lsibPolygonJSON(geos,france);
+        auto validation=V::obj();validation.object["before"]=geometries;validation.object["after"]=result;validation.object["beforeOrder"]=order;
+        auto afterOrder=V::arr();afterOrder.array={V::str("MCO"),V::str("FRA")};validation.object["afterOrder"]=std::move(afterOrder);
+        validation.object["expectedUnion"]=expectedValue;validation.object["correctedCountry"]=V::str("MCO");
+        const auto validated=validateLSIBCountryRepair(validation);if(const auto* error=optional(validated,"error"))throw LSIBCoastRejected(str(*error));
+        auto franceBoundary=geos.boundary(france),monacoBoundary=geos.boundary(monaco),shared=geos.intersection(franceBoundary,monacoBoundary),borderLine=lsibScreenLine(geos,border);
+        const auto equals=GEOSEquals_r(context,shared.get(),borderLine.get());if(equals==2)throw std::runtime_error("Cannot compare coastal boundary");
+        if(equals!=1)throw LSIBCoastRejected("Coastal counterparts do not share exactly the national boundary");
+        auto sections=V::arr(),first=V::obj(),countries=V::arr();countries.array={V::str("FRA"),V::str("MCO")};first.object["countries"]=std::move(countries);
+        first.object["anchors"]=pointsJSON({junctions[0],junctions[1]});first.object["master_vertices"]=V::num(static_cast<double>(array(field(request,"reference")).size()));
+        first.object["derived_vertices"]=V::num(static_cast<double>(border.size()));first.object["simplification_bound_px"]=V::num(0);sections.array.push_back(std::move(first));
+        for(const auto& role:{"monaco","west","east"}){const auto& points=std::string(role)=="monaco"?coast:branches.at(role);
+            auto section=V::obj(),codes=V::arr();codes.array.push_back(V::str(std::string(role)=="monaco"?"MCO":"FRA"));section.object["countries"]=std::move(codes);
+            section.object["kind"]=V::str("coastline");section.object["referenceRole"]=V::str(role);section.object["anchors"]=pointsJSON({points.front(),points.back()});
+            section.object["master_vertices"]=V::num(static_cast<double>(coastPoints.at(role).size()));section.object["derived_vertices"]=V::num(static_cast<double>(points.size()));
+            section.object["simplification_bound_px"]=V::num(0);sections.array.push_back(std::move(section));}
+        auto review=V::obj(),offsetValues=V::arr();offsetValues.array={V::num(offsets[0]),V::num(offsets[1])};review.object["oldChain"]=pointsJSON(old);
+        review.object["replacementChain"]=pointsJSON(replacement);review.object["outerAnchors"]=pointsJSON(anchors);review.object["endpointOffsetsCssPx"]=std::move(offsetValues);
+        auto receipt=V::obj();receipt.object["geometries"]=std::move(result);receipt.object["sections"]=std::move(sections);receipt.object["review"]=std::move(review);return receipt;
+    }catch(const LSIBCoastRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
