@@ -53,6 +53,22 @@ export async function mergeLSIBLines(geometries,options={}){
   }
   await flush();return merged;
 }
+export async function prepareLSIBReplacements(old,references,options={}){
+  options.signal?.throwIfAborted();validateLine(old);
+  if(!Array.isArray(references)||!references.length||references.length>10000)throw Error('Explicit bounded LSIB reference lines required');
+  for(const line of references)validateLine(line);
+  const result=await nativeRequest('--replace-lsib-chains',{old,references},options);
+  if(!Array.isArray(result?.results)||result.results.length!==references.length)throw Error('Invalid LSIB replacement receipt');
+  for(const row of result.results){
+    if(typeof row?.error==='string'&&row.error&&Object.keys(row).length===1)continue;
+    if(!row?.value||Object.keys(row).length!==1)throw Error('Invalid LSIB replacement result');
+    const value=row.value;validateLine(value.coordinates);validateLine(value.anchors);
+    if(value.anchors.length!==2||!['retained_length_degrees','source_length_degrees','replaced_length_degrees','simplification_bound_px']
+      .every(key=>typeof value[key]==='number'&&Number.isFinite(value[key])&&value[key]>=0)||
+      !['master_vertices','derived_vertices'].every(key=>Number.isSafeInteger(value[key])&&value[key]>=2))throw Error('Invalid LSIB replacement metrics');
+  }
+  return result.results;
+}
 export async function prepareLSIBReference({geometries,anchors,merge,closedRing},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||!Array.isArray(anchors)||typeof merge!=='boolean'||typeof closedRing!=='boolean')

@@ -711,6 +711,10 @@ public:
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--replace-lsib-chains") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<replaceLSIBChains(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--sampled-lsib-screen") {
             const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
             std::cout<<sampledLSIBScreenDistance(pandoeditor::codecjson::parse(input)).encode()<<'\n';
