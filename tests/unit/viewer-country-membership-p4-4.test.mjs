@@ -72,8 +72,15 @@ test('P4-4 a C++ membership transition reports new and extinct country IDs for d
       subscribeTransitions:callback=>{notify=callback;return ()=>{};}},
     onEntitiesReplaced:(_rows,change)=>updates.push(change),
   });
+  const previous=rows;
   rows=[country('REMAIN'),country('NEW')];notify();
-  assert.deepEqual([...updates[0].changedIds].sort(),['NEW','OLD']);
+  // The accepted Core projection may rematerialize an unchanged row wrapper.
+  // changedIds is a conservative render invalidation; membership is the
+  // actual set difference and must not misclassify that surviving country.
+  assert.ok(updates[0].changedIds.has('OLD'));
+  assert.ok(updates[0].changedIds.has('NEW'));
+  assert.deepEqual(territorialMembershipDelta(previous,rows),
+    {addedIds:['NEW'],removedIds:['OLD'],changed:true});
   assert.equal(updates[0].rootGeometryChanged,true);
   assert.equal(updates[0].propertyOnly,false);
   assert.deepEqual(owner.snapshot().map(feature=>feature.id),['REMAIN','NEW']);
