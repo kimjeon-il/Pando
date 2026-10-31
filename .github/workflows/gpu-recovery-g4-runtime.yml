@@ -6,6 +6,7 @@ on:
       - .github/workflows/gpu-recovery-g4-runtime.yml
       - tests/fixtures/gpu-recovery/**
       - tests/helpers/prepare-gpu-recovery-candidate.mjs
+      - tests/helpers/gpu-recovery-source-harness.mjs
       - tests/browser/gpu-recovery-g4.spec.mjs
   workflow_dispatch:
 permissions:
@@ -52,7 +53,7 @@ jobs:
         continue-on-error: true
         env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: gpu-g4-evidence/playwright.json
-        run: pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs --workers=1 --retries=0 --grep "^${G4_PRODUCT} " --reporter=list,json
+        run: pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs --workers=1 --retries=0 --grep "${G4_PRODUCT} " --reporter=list,json
       - name: Preserve exact validation outcomes
         if: always()
         env:
