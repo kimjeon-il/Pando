@@ -37,7 +37,16 @@ test('P2-1 read-only source preparation cannot change the visible month, camera 
  const statsBefore=await page.evaluate(()=>window.__P2_2_STATS__());
  await page.evaluate(()=>window.__P2_1_PREPARE__('2025-12'));
  const statsAfter=await page.evaluate(()=>window.__P2_2_STATS__());
- expect(statsAfter.hits).toBe(statsBefore.hits+1);
+ // P4-2 protects the visible year's bytes. On a tight device budget
+ // the requested year may be deliberately uncached instead of evicting
+ // that active source; a second read must either hit or record that
+ // explicit bounded-memory decision.
+ const hit=statsAfter.hits===statsBefore.hits+1;
+ const boundedMiss=statsAfter.hits===statsBefore.hits
+   && (statsAfter.protectedSkipped>statsBefore.protectedSkipped
+     || statsAfter.oversized>statsBefore.oversized);
+ expect(hit||boundedMiss,
+   'Repeated source reads must reuse a verified entry or record an explicit memory-limit rejection').toBe(true);
  expect(statsAfter.entries).toBeGreaterThan(0);
  expect(statsAfter.bytes).toBeLessThanOrEqual(statsAfter.maxBytes);
  expect(await state()).toEqual(before);

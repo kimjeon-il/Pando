@@ -228,3 +228,29 @@ test('P4-2 cache byte cap and revision invalidation leave Core unchanged',async(
  assert.equal(f.session.sourceCacheStats().bytes,0);
  assert.equal(f.admissions.length,0);
 });
+
+test('P4-2 byte pressure cannot displace the displayed source even with free entry slots',async()=>{
+ const probe=fixture();
+ await probe.session.prepareProjectSource('1953-12');
+ const oneSourceBytes=probe.session.sourceCacheStats().bytes;
+ probe.session.dispose();
+ const f=fixture({sourceCacheLimits:{maxEntries:3,maxBytes:oneSourceBytes}});
+ await f.session.prepareProjectSource('1953-12');
+ f.session.setPresentedSourceMonth('1953-12');
+ await f.session.prepareProjectSource('1954-12',{background:true,waitForIdle:async()=>{}});
+ let stats=f.session.sourceCacheStats();
+ assert.equal(stats.entries,1);
+ assert.equal(stats.protectedEntries,1);
+ assert.equal(stats.backgroundSkipped,1);
+ assert.equal(stats.bytes,oneSourceBytes);
+ await f.session.prepareProjectSource('1954-12');
+ stats=f.session.sourceCacheStats();
+ assert.equal(stats.protectedSkipped,1);
+ assert.equal(stats.entries,1);
+ assert.ok(stats.bytes<=stats.maxBytes);
+ const before=f.reads();
+ await f.session.prepareProjectSource('1953-12');
+ assert.equal(f.reads(),before,'active source remains reusable under a strict byte budget');
+ assert.deepEqual(f.admissions,[]);
+ f.session.dispose();
+});
