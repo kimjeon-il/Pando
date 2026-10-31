@@ -103,6 +103,14 @@ test('P4-3 spatial records keep exact bounds and IDs after an attribute-only sou
   assert.ok(upserts>initial.upserts);
 });
 
+test('P4-3 a mass snapshot clone preserves the existing full validation path',()=>{
+  const before=Array.from({length:25},(_,i)=>country(String(i),i*3));
+  const after=clone(before);
+  for(const feature of after)feature.properties.name='renamed '+feature.id;
+  assert.equal(classifyTerritorialPropertyOnly(before,after),null,
+    'a mass clone must never add a second unbounded geometry scan before canonical digest');
+});
+
 test('P4-3 skipped property-only contract never includes unsupported fields',()=>{
   const before=[country('A')],after=clone(before);
   after[0].properties.notes='not a paint property';

@@ -3,15 +3,16 @@ import { geometryRevisionKey } from './geometry-versions.js';
 import { geometryReferenceFor } from './geometry-version-store.js';
 // A fast path is allowed only for *verified* presentation-only differences.
 // The full Core and renderer path stays authoritative for any uncertainty.
-function sameValue(left,right){
+function sameValue(left,right,budget){
   if(Object.is(left,right))return true;
+  if(--budget.remaining<0)return false;
   if(!left||!right||typeof left!=='object'||typeof right!=='object'
     ||Array.isArray(left)!==Array.isArray(right))return false;
   const keys=Object.keys(left),other=Object.keys(right);
   if(keys.length!==other.length||keys.some(key=>!Object.hasOwn(right,key)))return false;
-  return keys.every(key=>sameValue(left[key],right[key]));
+  return keys.every(key=>sameValue(left[key],right[key],budget));
 }
-function sameGeometry(left,right){
+function sameGeometry(left,right,budget){
   // Only the canonical geometry registry proves deep immutability when both
   // features retain the exact same object. A shallow Object.freeze is unsafe.
   if(left===right)return left==null||!!geometryReferenceFor(left);
@@ -20,20 +21,21 @@ function sameGeometry(left,right){
   // Identical coordinates with a changed canonical version are not a
   // presentation-only transition. Likewise never cross the provenance gate.
   if(!!a!==!!b||(a&&(a.id!==b.id||a.version!==b.version)))return false;
-  return sameValue(left,right);
+  return sameValue(left,right,budget);
 }
 const presentationField=(owner,key)=>owner===''&&key==='name'
   ||owner==='style'&&key==='color'
   ||owner==='metadata'&&key==='flagDataUrl';
-function sameOtherProperties(left,right,owner=''){
+function sameOtherProperties(left,right,owner='',budget){
   if(Object.is(left,right))return true;
+  if(--budget.remaining<0)return false;
   if(!left||!right||typeof left!=='object'||typeof right!=='object'
     ||Array.isArray(left)!==Array.isArray(right))return false;
   const keys=new Set([...Object.keys(left),...Object.keys(right)]);
   for(const key of keys){
     if(presentationField(owner,key))continue;
     if(!Object.hasOwn(left,key)||!Object.hasOwn(right,key)
-      ||!sameOtherProperties(left[key],right[key],owner?owner+'.'+key:key))return false;
+      ||!sameOtherProperties(left[key],right[key],owner?owner+'.'+key:key,budget))return false;
   }
   return true;
 }
@@ -46,15 +48,21 @@ function sameOtherProperties(left,right,owner=''){
 export function classifyTerritorialPropertyOnly(previous,next){
   if(!Array.isArray(previous)||!Array.isArray(next)||previous.length!==next.length)return null;
   const paintChangedIds=[],labelChangedIds=[];
+  // Avoid doubling the full-country coordinate scan on a large historical
+  // replacement. The existing exact GPU digest remains the fallback.
+  const budget={remaining:50000};
+  let changedRows=0;
   for(let index=0;index<previous.length;index++){
     const before=previous[index],after=next[index];
     if(!before||!after||before.id!==after.id||before.id==null)return null;
+    if(before===after)continue;
+    if(++changedRows>12)return null;
     const beforeKeys=Object.keys(before).filter(key=>key!=='geometry'&&key!=='properties');
     const afterKeys=Object.keys(after).filter(key=>key!=='geometry'&&key!=='properties');
     if(beforeKeys.length!==afterKeys.length
-      ||beforeKeys.some(key=>!Object.hasOwn(after,key)||!sameValue(before[key],after[key]))
-      ||!sameGeometry(before.geometry,after.geometry)
-      ||!sameOtherProperties(before.properties,after.properties))return null;
+      ||beforeKeys.some(key=>!Object.hasOwn(after,key)||!sameValue(before[key],after[key],budget))
+      ||!sameGeometry(before.geometry,after.geometry,budget)
+      ||!sameOtherProperties(before.properties,after.properties,'',budget))return null;
     const left=before.properties||{},right=after.properties||{};
     if(!Object.is(left.style?.color,right.style?.color))paintChangedIds.push(String(after.id));
     if(!Object.is(left.name,right.name)
