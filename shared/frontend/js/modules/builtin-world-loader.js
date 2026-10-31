@@ -98,12 +98,20 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    .finally(()=>pending.delete(entry.entityId)));
   return pending.get(entry.entityId);
  }
- async function loadProject(month,{isCurrent=()=>true}={}){
+ async function loadProject(month,{isCurrent=()=>true,concurrency=6,waitForIdle=null}={}){
+  if(!Number.isInteger(concurrency)||concurrency<1||concurrency>6)throw new RangeError('Builtin country read concurrency must be 1-6.');
+  const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});};
   const index=await loadIndex(),selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
   let next=0;
-  await Promise.all(Array.from({length:Math.min(6,selected.length)},async()=>{
-   while(next<selected.length){if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});const i=next++;loaded[i]=await loadCountry(selected[i],index);}
+  await Promise.all(Array.from({length:Math.min(concurrency,selected.length)},async()=>{
+   while(next<selected.length){
+    assertCurrent();
+    if(waitForIdle){await waitForIdle();assertCurrent();}
+    const i=next++;loaded[i]=await loadCountry(selected[i],index);
+   }
   }));
+  if(waitForIdle)await waitForIdle();
+  assertCurrent();
   return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:${month}`};
  }
  return Object.freeze({loadIndex,loadProject});

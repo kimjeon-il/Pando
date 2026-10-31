@@ -1,0 +1,33 @@
+name: Viewer P4-1 adjacent year source preparation
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - apps/viewer/js/modules/viewer-adjacent-prefetch.js
+      - apps/viewer/js/modules/viewer-composition.js
+      - shared/frontend/js/modules/builtin-session.js
+      - shared/frontend/js/modules/builtin-world-loader.js
+      - tests/unit/viewer-adjacent-prefetch.test.mjs
+      - .github/workflows/viewer-adjacent-prefetch-p4-1.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p4-1-work-ui
+  cancel-in-progress: true
+jobs:
+  read-only-prefetch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Adjacent idle, source isolation, and loader unit contracts
+        run: node --test tests/unit/viewer-adjacent-prefetch.test.mjs tests/unit/builtin-source-preparation.test.mjs tests/unit/builtin-world-loader.test.mjs

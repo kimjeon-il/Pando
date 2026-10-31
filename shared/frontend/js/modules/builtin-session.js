@@ -100,7 +100,9 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     pristineCountriesFallback = null;
   }
 
-  async function prepareProjectSource(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
+  async function prepareProjectSource(month=deviceCurrentMonth(),{isCurrent=()=>true,background=false,waitForIdle=null}={}) {
+    if(background&&typeof waitForIdle!=='function')
+      throw new TypeError('Background source preparation requires idle yield.');
     const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
     if(disposed||!isCurrent())throw staleBuiltin();
     const identity=refreshSourceIdentity(),epoch=cacheEpoch;
@@ -111,8 +113,15 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
         builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
           manifestSpec:spec,dataRevision:meta.dataRevision});
       }
-      const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
+      const {project}=await builtinWorldLoader.loadProject(month,{isCurrent,
+        concurrency:background?1:6,waitForIdle:background?waitForIdle:null});
+      if(background)await waitForIdle();
+      if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
+        ||currentSourceIdentity()!==identity)throw staleBuiltin();
       const bytes=new TextEncoder().encode(JSON.stringify(project));
+      if(background)await waitForIdle();
+      if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
+        ||currentSourceIdentity()!==identity)throw staleBuiltin();
       const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
         .map(value=>value.toString(16).padStart(2,'0')).join('');
       if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
