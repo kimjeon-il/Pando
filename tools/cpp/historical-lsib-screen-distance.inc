@@ -20,6 +20,66 @@ GeometryEngine::Shape lsibScreenLine(GeometryEngine& geos,const std::vector<LSIB
         }
     return geos.own(GEOSGeom_createLineString_r(context,coordinates),"LSIB line");
 }
+std::vector<LSIBPoint> lsibChainSlice(GeometryEngine& geos,const GeometryEngine::Shape& line,
+    const std::vector<LSIBPoint>& points,double from,double to) {
+    const auto context=geos.context();const bool reverse=from>to;
+    const auto position=[&](double distance){auto point=geos.own(GEOSInterpolate_r(context,line.get(),distance),"LSIB chain interpolation");
+        LSIBPoint result{};if(!GEOSGeomGetX_r(context,point.get(),&result[0])||!GEOSGeomGetY_r(context,point.get(),&result[1]))
+            throw std::runtime_error("Cannot read LSIB chain interpolation");return result;};
+    if(from==to)return {position(from)};
+    const double start=std::min(from,to),end=std::max(from,to);std::vector<LSIBPoint> result{position(start)};
+    double distance=0;
+    for(std::size_t i=0;i+1<points.size();++i){
+        if(start<distance&&distance<end)result.push_back(points[i]);else if(distance>=end)break;
+        distance+=std::hypot(points[i+1][0]-points[i][0],points[i+1][1]-points[i][1]);
+    }
+    result.push_back(position(end));if(reverse)std::reverse(result.begin(),result.end());return result;
+}
+V replaceLSIBChain(GeometryEngine& geos,const std::vector<LSIBPoint>& oldPoints,const std::vector<LSIBPoint>& sourcePoints){
+    constexpr double tolerance=.0004,scale=2560.0*64.0/360.0;const auto context=geos.context();
+    auto old=lsibScreenLine(geos,oldPoints),source=lsibScreenLine(geos,sourcePoints),intersection=geos.intersection(old,source);
+    std::vector<GeometryEngine::Shape> anchors;
+    std::function<void(const GEOSGeometry*)> collect=[&](const GEOSGeometry* geometry){
+        if(geos.empty(geometry))return;const auto kind=geos.type(geometry);
+        if(kind==GEOS_POINT){anchors.push_back(geos.clone(geometry));return;}
+        if(kind==GEOS_LINESTRING){auto first=geos.own(GEOSGeomGetStartPoint_r(context,geometry),"LSIB intersection start");
+            auto last=geos.own(GEOSGeomGetEndPoint_r(context,geometry),"LSIB intersection end");anchors.push_back(std::move(first));anchors.push_back(std::move(last));return;}
+        const int count=GEOSGetNumGeometries_r(context,geometry);if(count<0)throw std::runtime_error("Invalid LSIB intersection geometry");
+        for(int i=0;i<count;++i)collect(GEOSGetGeometryN_r(context,geometry,i));
+    };collect(intersection.get());
+    if(anchors.size()<2)throw std::runtime_error("No independent intersection anchors; old endpoint arcs retained");
+    const auto project=[&](const GeometryEngine::Shape& line,const GeometryEngine::Shape& point){const double value=GEOSProject_r(context,line.get(),point.get());
+        if(!std::isfinite(value)||value<0)throw std::runtime_error("Cannot project LSIB intersection anchor");return value;};
+    std::stable_sort(anchors.begin(),anchors.end(),[&](const auto& a,const auto& b){return project(old,a)<project(old,b);});
+    const auto& start=anchors.front();const auto& end=anchors.back();const double a=project(old,start),b=project(old,end);
+    if(b-a<.002)throw std::runtime_error("Intersection anchor coverage too short");
+    const double first=project(source,start),last=project(source,end);
+    if(std::abs(first-last)<.002)throw std::runtime_error("Ambiguous intersection anchor correspondence");
+    auto masterPoints=lsibChainSlice(geos,source,sourcePoints,first,last);auto master=lsibScreenLine(geos,masterPoints);
+    auto derivative=geos.own(GEOSSimplify_r(context,master.get(),tolerance),"LSIB reference simplification");
+    if(GEOSisSimple_r(context,derivative.get())!=1)throw std::runtime_error("Reference section self-intersects");
+    auto middle=lsibScreenPoints(geos.coordinates(derivative.get()));LSIBPoint startXY{},endXY{};
+    if(!GEOSGeomGetX_r(context,start.get(),&startXY[0])||!GEOSGeomGetY_r(context,start.get(),&startXY[1])||
+       !GEOSGeomGetX_r(context,end.get(),&endXY[0])||!GEOSGeomGetY_r(context,end.get(),&endXY[1]))throw std::runtime_error("Cannot read LSIB intersection anchor");
+    middle.front()=startXY;middle.back()=endXY;
+    const double oldLength=geos.length(old);auto prefix=lsibChainSlice(geos,old,oldPoints,0,a),suffix=lsibChainSlice(geos,old,oldPoints,b,oldLength);
+    prefix.back()=startXY;suffix.front()=endXY;std::vector<LSIBPoint> points;
+    for(const auto* part:{&prefix,&middle,&suffix})for(const auto& point:*part)if(points.empty()||points.back()!=point)points.push_back(point);
+    auto combined=lsibScreenLine(geos,points);if(GEOSisSimple_r(context,combined.get())!=1)throw std::runtime_error("Combined boundary crosses its retained old ending");
+    const auto jsonPoints=[](const std::vector<LSIBPoint>& values){auto out=V::arr();for(const auto& point:values){auto pair=V::arr();pair.array={V::num(point[0]),V::num(point[1])};out.array.push_back(std::move(pair));}return out;};
+    auto result=V::obj();result.object["coordinates"]=jsonPoints(points);result.object["anchors"]=jsonPoints({startXY,endXY});
+    result.object["retained_length_degrees"]=V::num(a+oldLength-b);result.object["source_length_degrees"]=V::num(geos.length(master));
+    result.object["replaced_length_degrees"]=V::num(b-a);result.object["master_vertices"]=V::num(static_cast<double>(masterPoints.size()));
+    result.object["derived_vertices"]=V::num(static_cast<double>(middle.size()));result.object["simplification_bound_px"]=V::num(tolerance*scale);return result;
+}
+V replaceLSIBChains(const V& request){
+    const auto old=lsibScreenPoints(field(request,"old"));const auto& references=array(field(request,"references"));
+    if(references.empty()||references.size()>10000)throw std::runtime_error("Explicit bounded LSIB reference lines required");
+    GeometryEngine geos;auto rows=V::arr();
+    for(const auto& reference:references){auto item=V::obj();try{item.object["value"]=replaceLSIBChain(geos,old,lsibScreenPoints(reference));}
+        catch(const std::exception& error){item.object["error"]=V::str(error.what());}rows.array.push_back(std::move(item));}
+    auto result=V::obj();result.object["results"]=std::move(rows);return result;
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
