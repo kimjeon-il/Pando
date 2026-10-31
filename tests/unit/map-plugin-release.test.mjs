@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {createHash} from 'node:crypto';
-import {planPrivateRelease,recordPrivateUpload,verifyPrivateRelease,nextReleaseVersion,assertPushedRevision,verifyReleaseArchive,runVerifiedCommands,releaseInputPaths} from '../../tools/reference-analysis/release-private-plugin.mjs';
+import {planPrivateRelease,recordPrivateUpload,verifyPrivateRelease,nextReleaseVersion,assertPushedRevision,assertReleaseAncestor,verifyReleaseArchive,runVerifiedCommands,releaseInputPaths} from '../../tools/reference-analysis/release-private-plugin.mjs';
 import {frontendWasmRoot} from '../../scripts/lib/frontend-layout.mjs';
 import {fileURLToPath} from 'node:url';
 import {privatePluginFingerprint} from '../../tools/reference-analysis/package-private-plugin.mjs';
@@ -73,8 +73,17 @@ test('publication refuses unpushed commits without requiring a real repository d
     await git('init','-q');await writeFile(join(dir,'one'),'original');await git('add','one');await git('commit','-qm','first');
     const first=(await git('rev-parse','HEAD')).stdout.trim();await git('update-ref','refs/remotes/origin/work/ui',first);
     await assertPushedRevision(dir,first);
+    await assert.rejects(assertPushedRevision(dir,first,{branch:'work/gis'}));
+    await git('update-ref','refs/remotes/origin/work/gis',first);
+    await assertPushedRevision(dir,first,{branch:'work/gis'});
+    await assertReleaseAncestor(dir,first,first);
+    await assert.rejects(assertPushedRevision(dir,first,{branch:'main'}),/branch/i);
     await writeFile(join(dir,'one'),'new');await git('commit','-qam','unpublished');
-    await assert.rejects(assertPushedRevision(dir,(await git('rev-parse','HEAD')).stdout.trim()));
+    const second=(await git('rev-parse','HEAD')).stdout.trim();
+    await assert.rejects(assertPushedRevision(dir,second));
+    await assert.rejects(assertPushedRevision(dir,second,{branch:'work/gis'}));
+    await assertReleaseAncestor(dir,first,second);
+    await assert.rejects(assertReleaseAncestor(dir,second,first));
   }finally{await rm(dir,{recursive:true,force:true});}
 });
 

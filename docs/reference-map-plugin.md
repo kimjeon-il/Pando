@@ -76,6 +76,11 @@ remote snapshots and command lists, and reuse one external candidate path.
    `upload` arguments, including the original ID, expected release ID, archive
    and retired owned paths. Version increases above the actual account version.
    The producer packages a small `release.json` and keeps existing host metadata.
+   When the user explicitly assigns a packaged change to `work/gis` and authorizes
+   the private plugin update, pass `--branch work/gis` to `prepare`. Verify that
+   the current remote plugin's `codeRevision` is an ancestor of the proposed
+   revision before preparing, so the update retains prior packaged work. The
+   default remains `work/ui`; neither mode integrates or pushes another branch.
 
 3. Call Plugin Creator `update_plugin` with the plan's upload arguments. The
    upload overlays files: omit unchanged files only when their identity is
