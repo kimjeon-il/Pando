@@ -53,6 +53,8 @@ test('selection domain drives country editing, multi-selection, and independent 
   await expect(page.locator('#multiProperties')).toBeVisible();
   await expect(page.locator('#propertyTitle')).toHaveText('2개 선택');
   await expect(page.locator('#multiPropertiesColorLabel')).toHaveText('색상');
+  await expect(page.locator('#multiCountryActions')).toBeVisible();
+  await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#multiBorderEditBtn')).toBeVisible();
   await expect(page.locator('#multiBorderEditBtn')).toHaveText('국경 조정');
