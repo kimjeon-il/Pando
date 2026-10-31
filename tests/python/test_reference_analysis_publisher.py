@@ -81,6 +81,12 @@ class PublisherLabelsTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'training-only'):
                 validate_corpus(value, folder, training_only=True)
             value['sheets'][0]['split'] = 'train'
+            image = pathlib.Path(folder) / sheet['image']
+            original = image.read_bytes()
+            image.write_bytes(b'tampered image')
+            with self.assertRaisesRegex(ValueError, 'image hash changed'):
+                validate_corpus(value, folder, training_only=True)
+            image.write_bytes(original)
             annotation = json.loads((pathlib.Path(folder) / sheet['annotations']).read_text(encoding='utf-8'))
             (pathlib.Path(folder) / annotation['raster']['path']).write_bytes(b'tampered')
             with self.assertRaisesRegex(ValueError, 'hash'):

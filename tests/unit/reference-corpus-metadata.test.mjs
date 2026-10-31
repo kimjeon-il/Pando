@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdtemp,writeFile,unlink,rmdir} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'node:test';
 import {validateCorpusMetadata} from '../../tools/reference-analysis/reviewed-corpus.mjs';
 
@@ -35,6 +39,18 @@ test('corpus metadata stream reports success and errors without accepting malfor
     assert.equal(result.status===0,ok);
     if(ok)assert.deepEqual(JSON.parse(result.stdout),{valid:true});else assert.ok(result.stderr);
   }
+});
+
+test('materialized corpus metadata verifies original source bytes',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-corpus-original-')),image=join(root,'source.png');
+  t.after(async()=>{await unlink(image);await rmdir(root);});
+  const bytes=Buffer.from('selected synthetic original'),sha256=createHash('sha256').update(bytes).digest('hex');
+  await writeFile(image,bytes);
+  const request={value:{schemaVersion:1,trainingOnly:true,sheets:[{...sheet,image:'source.png',sha256}]},trainingOnly:true,root};
+  const invoke=()=>spawnSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--metadata-stream'],{
+    input:JSON.stringify(request),encoding:'utf8',windowsHide:true});
+  const good=invoke();assert.equal(good.status,0,good.stderr);
+  await writeFile(image,'changed source');const changed=invoke();assert.notEqual(changed.status,0);assert.match(changed.stderr,/image hash changed/i);
 });
 
 test('corpus grouping stream preserves distinct language, script and map-kind groups',()=>{
