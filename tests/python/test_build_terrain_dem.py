@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
+import zipfile
 
 import numpy as np
 from PIL import Image
@@ -63,6 +65,44 @@ class TerrainDemTest(unittest.TestCase):
                 dem.build(missing, missing, root, missing, missing)
             with self.assertRaises(FileExistsError):
                 dem.rebuild_tint_release(missing, missing, missing, missing, root)
+
+    def test_tint_zip_extraction_preserves_neighbor_and_rejects_traversal(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            tiff = root / 'input.tif'
+            with rasterio.open(tiff, 'w', driver='GTiff', width=4, height=2, count=3, dtype='uint8',
+                               crs='EPSG:4326', transform=rasterio.transform.from_bounds(-180, -90, 180, 90, 4, 2)) as image:
+                image.write(np.ones((3, 2, 4), dtype=np.uint8))
+            original = tiff.read_bytes()
+            archive = root / 'tint.zip'
+            with zipfile.ZipFile(archive, 'w') as zip_file:
+                zip_file.write(tiff, 'input.tif')
+            tiff.write_bytes(b'protected neighbor')
+            polygon = {'type': 'Polygon', 'coordinates': [[[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]]]}
+            ice = root / 'ice.json'; ice.write_text(json.dumps({'features': [{'geometry': polygon}]}))
+            land = root / 'land.json'; land.write_text(json.dumps({'type': 'FeatureCollection', 'features': [{'id': 'x', 'geometry': polygon}]}))
+            def render(source, _ice, _land, output):
+                self.assertNotEqual(Path(source.name).resolve(), tiff.resolve())
+                self.assertEqual(Path(source.name).read_bytes(), original)
+                output.write_bytes(b'rendered')
+                return {'algorithm': 'fixture', 'validCells': 1, 'regionalFillCells': 0}
+            with mock.patch.object(dem, 'TINT_WIDTH', 4), mock.patch.object(dem, 'TINT_HEIGHT', 2), mock.patch.object(dem, 'resample_tint', render):
+                dem.build_tint(archive, root / 'output.webp', ice, land)
+            self.assertEqual(tiff.read_bytes(), b'protected neighbor')
+            with zipfile.ZipFile(archive, 'w') as zip_file:
+                zip_file.writestr('../input.tif', original)
+            with self.assertRaisesRegex(ValueError, 'ZIP|entry|path'):
+                dem.build_tint(archive, root / 'other.webp', ice, land)
+            with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_STORED) as zip_file:
+                zip_file.writestr('input.tif', original)
+            with zipfile.ZipFile(archive) as zip_file:
+                info = zip_file.getinfo('input.tif')
+                offset = info.header_offset + 30 + len(info.filename.encode('utf-8')) + len(info.extra)
+            corrupted = bytearray(archive.read_bytes()); corrupted[offset] ^= 1; archive.write_bytes(corrupted)
+            with self.assertRaises(zipfile.BadZipFile):
+                dem.build_tint(archive, root / 'other.webp', ice, land)
+            self.assertEqual(tiff.read_bytes(), b'protected neighbor')
+            self.assertFalse(list(root.glob('pando-tint-*')))
 
     def test_tint_keeps_white_ice_and_excludes_white_water(self):
         rgb = np.array([[[255, 255, 180]], [[255, 255, 190]], [[255, 255, 170]]], dtype=np.uint8)

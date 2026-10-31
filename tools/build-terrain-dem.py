@@ -378,12 +378,33 @@ def resample_tint(source, ice_geometries, land_geometries, output, width=TINT_WI
 
 def build_tint(tint_zip: Path, output: Path, ice_path: Path, countries_path: Path):
     # HYP_HR is the Natural Earth tint without pre-rendered relief shading.
+    if output.exists() or output.is_symlink():
+        raise FileExistsError(f'Refusing to overwrite tint output: {output}')
     with zipfile.ZipFile(tint_zip) as archive:
-        tiffs = [name for name in archive.namelist() if name.lower().endswith((".tif", ".tiff"))]
+        tiffs = [item for item in archive.infolist() if item.filename.lower().endswith((".tif", ".tiff"))]
         if len(tiffs) != 1:
             raise ValueError(f"Expected one HYP_HR TIFF in ZIP, got {tiffs}")
-        # Extraction is disk-backed; do not hold the 700 MB source TIFF in RAM.
-        tiff_path = Path(archive.extract(tiffs[0], tint_zip.parent))
+        info = tiffs[0]
+        entry = info.filename
+        parts = Path(entry.replace('\\', '/')).parts
+        if (not entry or '\\' in entry or entry.startswith('/') or '..' in parts or
+                ':' in entry or info.file_size < 1 or info.file_size > 64 * 1024**3):
+            raise ValueError('Invalid tint ZIP entry path or size')
+        # Include a preliminary masked-raster estimate before extraction; the
+        # actual raster dimensions are checked again before that raster exists.
+        estimate = 2 * info.file_size + 128 * 1024**2
+        if estimate >= 1024**3 and shutil.disk_usage(output.parent).free < estimate + 5 * 1024**3:
+            raise OSError('Insufficient free space for the tint ZIP source and required headroom')
+        with tempfile.TemporaryDirectory(prefix='pando-tint-', dir=output.parent) as temporary:
+            tiff_path = Path(temporary) / 'source.tif'
+            with archive.open(info, 'r') as source, tiff_path.open('xb') as target:
+                shutil.copyfileobj(source, target, length=1024 * 1024)
+            report = _build_tint_from_tiff(tiff_path, output, ice_path, countries_path)
+    return dict(report, sourceEntry=entry, iceSourceSha256=sha256(ice_path),
+                landMaskSourceSha256=sha256(countries_path))
+
+
+def _build_tint_from_tiff(tiff_path: Path, output: Path, ice_path: Path, countries_path: Path):
     ice_source = json.loads(ice_path.read_text(encoding='utf-8'))
     ice_geometries = [(feature['geometry'], bounds(feature['geometry']))
                       for feature in ice_source['features']]
@@ -410,9 +431,11 @@ def build_tint(tint_zip: Path, output: Path, ice_path: Path, countries_path: Pat
         if source.crs is None or source.crs.to_epsg() != 4326 or any(
                 abs(a-b) > 1e-7 for a, b in zip(source.bounds, [-180, -90, 180, 90])):
             raise ValueError('Tint source grid is not global EPSG:4326')
+        remaining = source.width * source.height * 4 + 128 * 1024**2
+        if tiff_path.stat().st_size + remaining >= 1024**3 and shutil.disk_usage(output.parent).free < remaining + 5 * 1024**3:
+            raise OSError('Insufficient free space for the masked tint and required headroom')
         report = resample_tint(source, ice_geometries, land_geometries, output)
-    return dict(report, sourceEntry=tiffs[0], iceSourceSha256=sha256(ice_path),
-                landMaskSourceSha256=sha256(countries_path))
+    return report
 
 
 def rebuild_tint_release(source_output: Path, tint_zip: Path, ice_path: Path, countries_path: Path, output: Path):
