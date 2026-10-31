@@ -26,7 +26,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
   let territorialLabelFeatureById;
   let builtinPaletteKey;
   let builtinPaletteVisibility;
-  let projectBaseline = null;
+  let projectBaseline = null,projectBaselineGeneration=null;
   const injectedWorldLoader=builtinWorldLoader!==null;
   // Only verified, immutable source bytes can be retained: never a Core handle,
   // active document, world object graph, or mutable candidate.
@@ -54,7 +54,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     const identity=currentSourceIdentity();
     if(cacheIdentity!==identity){
       clearPreparedSourceCache();cacheIdentity=identity;
-      projectBaseline=null;
+      projectBaseline=null;projectBaselineGeneration=null;
       if(!injectedWorldLoader)builtinWorldLoader=null; // Rebind after a data revision.
     }
     return identity;
@@ -81,7 +81,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
   function dispose(){
     if(disposed)return;
     disposed=true;clearPreparedSourceCache();
-    projectBaseline=null;
+    projectBaseline=null;projectBaselineGeneration=null;
   }
   function connect(ports) {
     if (dependencies) throw new Error('builtin-session already connected');
@@ -139,6 +139,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
       ||candidateIdentities.get(prepared)!==refreshSourceIdentity())throw staleBuiltin();
     if(projectBaseline?.queryKey===prepared.sourceMonth
+      && projectBaselineGeneration===expectedGeneration
       && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
     const facts={kind:prepared.kind,sourceBytes:prepared.sourceBytes,encoding:prepared.encoding,
       compressedBytes:prepared.compressedBytes,decodedBytes:prepared.decodedBytes,
@@ -148,6 +149,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
       ||candidateIdentities.get(prepared)!==refreshSourceIdentity())throw staleBuiltin();
     if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)
       throw new Error('Core rejected the assembled builtin source');
+    projectBaselineGeneration=expectedGeneration;
     projectBaseline=Object.freeze({kind:facts.kind,encoding:facts.encoding,
       compressedBytes:facts.compressedBytes,decodedBytes:facts.decodedBytes,
       sourceMonth:facts.sourceMonth,baseDataset:facts.baseDataset,fingerprint:facts.fingerprint,
@@ -159,6 +161,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     const domain=dependencies.domains.projectDomain;
     refreshSourceIdentity();
     if(projectBaseline?.queryKey===month
+      && projectBaselineGeneration===domain.getGeneration()
       && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
     const prepared=await prepareProjectSource(month,{isCurrent});
     return admitPreparedProjectSource(prepared,{isCurrent});
