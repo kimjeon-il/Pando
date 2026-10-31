@@ -365,7 +365,7 @@ export function createDomainAssembly() {
         },
         multiple: (selection, detail) => {
           territorialPropertyController.clear();
-          return objectPropertyController.show('multi', '공통 속성', {
+          return objectPropertyController.show('multi', `${selection.items.length}개 선택`, {
             resetScroll: false,
             typeLabel: detail.typeLabel,
           });

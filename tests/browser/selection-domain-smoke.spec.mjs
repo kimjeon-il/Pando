@@ -32,5 +32,20 @@ test('selection domain drives country editing, multi-selection, and independent 
 
   await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);
   await expect(page.locator('#multiProperties')).toBeVisible();
+  await expect(page.locator('#propertyTitle')).toHaveText('2개 선택');
+  await expect(page.locator('#multiPropertiesColorLabel')).toHaveText('색상');
+  await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#multiBorderEditBtn')).toBeVisible();
+  await expect(page.locator('#multiBorderEditBtn')).toHaveText('국경 조정');
+  await expect(page.locator('#multiBorderEditBtn small')).toBeEmpty();
+  await expect(page.locator('#multiSubunitMergeBtn')).toBeHidden();
+  if (await page.locator('#multiBorderEditBtn').isEnabled()) {
+    await expect(page.locator('#multiBorderEditHelp')).toBeHidden();
+    await expect(page.locator('#multiBorderEditBtn')).toHaveAttribute('data-tooltip', '국경 조정');
+  } else {
+    await expect(page.locator('#multiBorderEditHelp')).toBeVisible();
+    await expect(page.locator('#multiBorderEditHelp')).not.toBeEmpty();
+    await expect(page.locator('#multiBorderEditBtn')).toHaveAttribute('aria-describedby', 'multiBorderEditHelp');
+  }
   expect(errors).toEqual([]);
 });
