@@ -36,6 +36,7 @@ async function observe(page,profile,info,label){
       map:[a.x,a.y,a.width,a.height],preview:[b.x,b.y,b.width,b.height]};
   });
   expect(state.ready).toBe('false');expect(state.landLength).toBeGreaterThan(100);
+  expect(state.landLength,'The preview should no longer contain the full 10m coastline path').toBeLessThan(3000000);
   expect(state.oceanLength).toBeGreaterThan(0);expect(state.theme).toBe(profile.theme);
   expect(state.color).toBe(profile.theme==='light'?'#cccccc':'#63758a');
   expect(state.reduced).toBe(profile.reduced);expect(state.animation).toBe('none');

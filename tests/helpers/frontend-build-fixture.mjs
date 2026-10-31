@@ -1,5 +1,7 @@
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import {join,dirname} from 'node:path';
 import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 
@@ -12,16 +14,21 @@ export function frontendFixture(t){
  put('apps/viewer/js/viewer.js','export const viewer=true;');put('apps/editor/frontend/js/bootstrap.js','globalThis.editor=true;');
  const html=entry=>'<html data-app-version="1.0.0"><link rel="stylesheet" href="assets/css/ui.bundle.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/'+entry+'"></script></html>';
  put('apps/viewer/templates/index.html',html('viewer.js'));put('apps/editor/templates/index.html',html('bootstrap.js'));
+ const physicalLand=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
+ const storedPhysicalLand=gzipSync(physicalLand,{level:9,mtime:0});
+ const physicalAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
+   compressedBytes:storedPhysicalLand.length,decodedBytes:physicalLand.length,
+   sha256:createHash('sha256').update(storedPhysicalLand).digest('hex')};
  const metadata={
   'assets/data/world/current.json':{assets:{}},
   'assets/data/terrain-preview/v0.13.3-p2/manifest.json':{sourceDem:{landMaskSha256:'land'},tiles:{}},
-  'assets/data/physical-land/v1/manifest.json':{sourceSha256:'land',asset:{url:'assets/data/physical-land/land.bin'}},
+  'assets/data/physical-land/v1/manifest.json':{sourceSha256:'land',asset:physicalAsset},
   'assets/data/hydro/v0.13.2/manifest.json':{container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
   'assets/data/territorial-entities/generated/v2/index.json':{entities:[]},
   'assets/data/builtin-world/generated/v1/index.json':{entities:[],transport:{url:'packed.bin'}},
   'assets/data/prepared-polygons/generated/v2/manifest.json':{meshes:{},algorithmSourceSha256:'mesh'},
-  'assets/data/physical-land/land.bin':null,'assets/data/hydro/v0.13.2/data.bin':null,'assets/data/builtin-world/generated/v1/packed.bin':null,
+  'assets/data/physical-land/land.bin':storedPhysicalLand,'assets/data/hydro/v0.13.2/data.bin':null,'assets/data/builtin-world/generated/v1/packed.bin':null,
  };
- return{root,put,metadata,options:{root,sourceCommit:'a'.repeat(40),dataPaths:Object.keys(metadata),readPinnedData:path=>Buffer.from(JSON.stringify(metadata[path]))}};
+ return{root,put,metadata,options:{root,sourceCommit:'a'.repeat(40),dataPaths:Object.keys(metadata),readPinnedData:path=>Buffer.isBuffer(metadata[path])?metadata[path]:Buffer.from(JSON.stringify(metadata[path]))}};
 }

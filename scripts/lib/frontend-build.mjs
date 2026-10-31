@@ -10,6 +10,7 @@ import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {buildWorkerAsset} from './worker-assets.mjs';
 import {collectViewerAssets} from './product-assets.mjs';
 import {decodeArchiveEntry,libraryCheckout,libraryConfig} from '../../tools/library-data.mjs';
+import {createInitialLandPreviewAsset} from './initial-land-preview.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function selectFrontendProduct(snapshot,product,{readRuntimeAsset}={}){
@@ -88,9 +89,11 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  const land=metadata[metadataPaths[2]],terrain=metadata[metadataPaths[1]];
  assert.equal(land.sourceSha256,terrain.sourceDem.landMaskSha256,'Land derivative must match pinned terrain');
  const dataRevision='data-'+hash(metadataPaths.map(path=>path+'\0'+stable(metadata[path])+'\0').join('')).slice(0,32);
+ const initialLandPreview=createInitialLandPreviewAsset(readPinnedData(land.asset.url),land.asset);
+ generated(initialLandPreview.spec.url,initialLandPreview.bytes,'viewer');
  const dataIdentity=path=>{const bytes=readPinnedData(path);return{encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:hash(bytes)};};
  const builtinPath=metadataPaths[6],preparedPath=metadataPaths[7];
- const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},worldBundle:{url:metadataPaths[0],...dataIdentity(metadataPaths[0])},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,physicalWaterObjects:land.waterObjects||{identities:[],geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}}};
+ const buildMeta={appVersion,buildId,assetRevision,dataRevision,sourceCommit,dataCommit:pinned?.revision||null,...resourceProfile?{resourceProfile}:{},worldBundle:{url:metadataPaths[0],...dataIdentity(metadataPaths[0])},territorialIndex:dataIdentity(metadataPaths[5]),builtinWorld:{url:builtinPath,...dataIdentity(builtinPath)},preparedPolygonMeshes:{url:preparedPath,...dataIdentity(preparedPath),algorithmSourceSha256:metadata[preparedPath].algorithmSourceSha256},workerAssets,physicalLand:land.asset,initialLandPreview:initialLandPreview.spec,physicalWaterObjects:land.waterObjects||{identities:[],geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}}};
  generated('assets/js/build-meta.js','// Generated product identity.\nglobalThis.PANDOLAB_BUILD_META = Object.freeze('+JSON.stringify(buildMeta,null,2)+');\n');
  const templates=renderProductHtml(sourceText),moduleImports=Object.fromEntries([...assets.keys()].filter(p=>p.startsWith('assets/js/')&&p.endsWith('.js')).map(p=>['./'+p,'./'+p+'?v='+encodeURIComponent(assetRevision)]));
  const render=(template,imports)=>{

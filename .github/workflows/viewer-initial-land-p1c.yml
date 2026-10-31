@@ -1,0 +1,46 @@
+name: Viewer P1-4c derived land preview acceptance
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - scripts/lib/initial-land-preview.mjs
+      - scripts/lib/frontend-build.mjs
+      - scripts/lib/product-assets.mjs
+      - shared/frontend/js/modules/physical-resources.js
+      - apps/viewer/js/modules/viewer-map.js
+      - tests/browser/viewer-initial-p1.spec.mjs
+      - tests/unit/initial-land-preview.test.mjs
+      - .github/workflows/viewer-initial-land-p1c.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p1-4c-viewer-land-preview
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Verify source, builder and presentation contracts
+        run: node --test tests/unit/initial-land-preview.test.mjs tests/unit/frontend-build.test.mjs tests/unit/viewer-initial-preview.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Confirm actual first-map preview and reload
+        run: pnpm exec playwright test tests/browser/viewer-initial-p1.spec.mjs --workers=1
+      - name: Evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p1-4c-derived-land
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14

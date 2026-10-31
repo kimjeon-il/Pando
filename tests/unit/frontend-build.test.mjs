@@ -11,6 +11,10 @@ test('one source build produces distinct products and generated assets without w
  assert.ok(snapshot.html.editor.includes('assets/js/bootstrap.js'));
  assert.ok(snapshot.assets.has('assets/js/build-meta.js'));
  assert.equal(snapshot.buildMeta.worldBundle.url,'assets/data/world/current.json');
+ assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
+ assert.equal(snapshot.buildMeta.initialLandPreview.sourceSha256,snapshot.buildMeta.physicalLand.sha256);
+ assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
+ assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.initialLandPreview.url));
  assert.match(snapshot.buildMeta.worldBundle.sha256,/^[a-f0-9]{64}$/);
  assert.ok(snapshot.assets.has('assets/css/ui.bundle.css'));
  assert.ok(snapshot.viewerPaths.has('assets/js/viewer.js'));
