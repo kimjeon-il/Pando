@@ -34,19 +34,23 @@ jobs:
           import assert from 'node:assert/strict';
           const file='shared/frontend/js/modules/map-content-presentation.js';
           const source=readFileSync(file,'utf8');
-          const before=`    countries.replaceGpuSceneDomain?.('country-overlays', {
-      polygons: pendingPolygons,
-      strokes: pendingStrokes,
-    });
-    countries.syncGpuRenderScene?.();`;
+          const before=[
+            "    countries.replaceGpuSceneDomain?.('country-overlays', {",
+            "      polygons: pendingPolygons,",
+            "      strokes: pendingStrokes,",
+            "    });",
+            "    countries.syncGpuRenderScene?.();",
+          ].join('\n');
+          const after=[
+            "    if (!presentationOnly) {",
+            "      countries.replaceGpuSceneDomain?.('country-overlays', {",
+            "        polygons: pendingPolygons,",
+            "        strokes: pendingStrokes,",
+            "      });",
+            "      countries.syncGpuRenderScene?.();",
+            "    }",
+          ].join('\n');
           assert.equal(source.split(before).length,2,'Review source before changing scene presentation boundary');
-          const after=`    if (!presentationOnly) {
-      countries.replaceGpuSceneDomain?.('country-overlays', {
-        polygons: pendingPolygons,
-        strokes: pendingStrokes,
-      });
-      countries.syncGpuRenderScene?.();
-    }`;
           writeFileSync(file,source.replace(before,after));
           NODE
       - name: Verify scene safety and existing rendering regression
