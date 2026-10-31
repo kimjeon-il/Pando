@@ -21,6 +21,7 @@ test('German modern coast matches the frozen Python geometry and diagnostics',()
   assert.deepEqual(result.controls,expected.controls);
   assert.equal(result.valid,true);
   assert.equal(result.geographicValid,true);
+  assert.equal(result.geographicRepaired,false);
   const dir=mkdtempSync(join(tmpdir(),'pando-coast-'));
   try{
     const path=join(dir,'comparison.json');
@@ -39,12 +40,14 @@ test('German modern coast rejects a failed control point and unsafe inland chang
   inland.helgoland={type:'Polygon',coordinates:[[[10,54],[10.01,54],[10.01,54.01],[10,54.01],[10,54]]]};
   assert.throws(()=>native(inland),/inland geometry changed/i);
 });
-test('selected original modern coast exposes invalid geographic topology',
+test('selected original modern coast repairs geographic topology within one centimetre',
   {skip:!process.env.PANDO_GERMAN_COAST_SELECTED_ORACLE},()=>{
     const selected=JSON.parse(readFileSync(process.env.PANDO_GERMAN_COAST_SELECTED_ORACLE,'utf8'));
     const actual=native(selected.input);
     assert.equal(actual.valid,true);
-    assert.equal(actual.geographicValid,false);
+    assert.equal(actual.geographicValid,true);
+    assert.equal(actual.geographicRepaired,true);
+    assert.ok(actual.repairBoundaryDistanceMetres<0.01);
     assert.deepEqual(actual.controls,selected.expected.controls);
     assert.ok(Math.abs(actual.areaKm2-selected.expected.areaKm2)<0.0001);
     assert.ok(Math.abs(actual.changedKm2-selected.expected.changedKm2)<0.0001);
