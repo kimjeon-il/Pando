@@ -38,34 +38,63 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     pristineCountriesFallback = null;
   }
 
-  async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
-    const key=month;
+  // Prepared source bytes are private to this session. Merely constructing a
+  // source must never enter the Core command queue or touch active state.
+  const preparedSources = new WeakSet();
+  const staleBuiltin = () => Object.assign(new Error('Builtin source request was superseded'),
+    {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
+
+  async function prepareProjectSource(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
     const domain=dependencies.domains.projectDomain;
-    if(projectBaseline?.queryKey===key&&domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
-    const stale=()=>Object.assign(new Error('Builtin source request was superseded'),{name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
-    const promise=(async()=>{
-      if(!builtinWorldLoader){
-        const meta=buildMeta;
-        const spec=meta.builtinWorld;
-        builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
-          manifestSpec:spec,dataRevision:meta.dataRevision});
-      }
-      const expectedGeneration=domain.getGeneration();
-      const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
-      const decoded=new TextEncoder().encode(JSON.stringify(project));
-      const sourceBytes=decoded;
-      const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))].map(value=>value.toString(16).padStart(2,'0')).join('');
-      if(!isCurrent())throw stale();
-      const facts={kind:'stored-asset',sourceBytes,encoding:'identity',compressedBytes:sourceBytes.length,decodedBytes:decoded.length,
-        sourceMonth:month,baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint};
-      const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});
-      if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw stale();
-      if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)throw new Error('Core rejected the assembled builtin source');
-      const receipt={...facts};delete receipt.sourceBytes;
-      projectBaseline=Object.freeze({...receipt,baselineId:accepted.storageBaselineId,queryKey:key});
-      return projectBaseline;
-    })();
-    return promise;
+    const expectedGeneration=domain.getGeneration();
+    if(!isCurrent())throw staleBuiltin();
+    if(!builtinWorldLoader){
+      const meta=buildMeta;
+      const spec=meta.builtinWorld;
+      builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
+        manifestSpec:spec,dataRevision:meta.dataRevision});
+    }
+    const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
+    const sourceBytes=new TextEncoder().encode(JSON.stringify(project));
+    const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))]
+      .map(value=>value.toString(16).padStart(2,'0')).join('');
+    if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw staleBuiltin();
+    // Each read of sourceBytes returns a detached copy. Nothing outside the
+    // candidate can corrupt the verified immutable bytes before Core admission.
+    const prepared=Object.freeze({kind:'stored-asset',encoding:'identity',
+      compressedBytes:sourceBytes.length,decodedBytes:sourceBytes.length,sourceMonth:month,
+      baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint,expectedGeneration,
+      get sourceBytes(){return sourceBytes.slice();}});
+    preparedSources.add(prepared);
+    return prepared;
+  }
+
+  async function admitPreparedProjectSource(prepared,{isCurrent=()=>true}={}) {
+    if(!preparedSources.has(prepared))throw new TypeError('A prepared builtin source candidate from this session is required.');
+    const domain=dependencies.domains.projectDomain,expectedGeneration=prepared.expectedGeneration;
+    if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw staleBuiltin();
+    if(projectBaseline?.queryKey===prepared.sourceMonth
+      && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
+    const facts={kind:prepared.kind,sourceBytes:prepared.sourceBytes,encoding:prepared.encoding,
+      compressedBytes:prepared.compressedBytes,decodedBytes:prepared.decodedBytes,
+      sourceMonth:prepared.sourceMonth,baseDataset:prepared.baseDataset,fingerprint:prepared.fingerprint};
+    const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});
+    if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw staleBuiltin();
+    if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)
+      throw new Error('Core rejected the assembled builtin source');
+    projectBaseline=Object.freeze({kind:facts.kind,encoding:facts.encoding,
+      compressedBytes:facts.compressedBytes,decodedBytes:facts.decodedBytes,
+      sourceMonth:facts.sourceMonth,baseDataset:facts.baseDataset,fingerprint:facts.fingerprint,
+      baselineId:accepted.storageBaselineId,queryKey:prepared.sourceMonth});
+    return projectBaseline;
+  }
+
+  async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
+    const domain=dependencies.domains.projectDomain;
+    if(projectBaseline?.queryKey===month
+      && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
+    const prepared=await prepareProjectSource(month,{isCurrent});
+    return admitPreparedProjectSource(prepared,{isCurrent});
   }
 
   function materializePristineCountriesSync() {
@@ -215,6 +244,8 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     get renderCountryBoundaryStyle() { return renderCountryBoundaryStyle; },
     get materializePristineCountries() { return materializePristineCountries; },
     get materializePristineCountriesSync() { return materializePristineCountriesSync; },
+    get prepareProjectSource() { return prepareProjectSource; },
+    get admitPreparedProjectSource() { return admitPreparedProjectSource; },
     get prepareProjectBaseline() { return prepareProjectBaseline; },
     get projectBaseline() { return projectBaseline; },
     get pristineCountriesFallback() { return pristineCountriesFallback; },
