@@ -77,14 +77,21 @@ def coordinates(geometry):
 def replacement_chains(old, references):
     script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
     request = {'old': coordinates(old), 'references': [coordinates(line) for line in references]}
-    result = subprocess.run(['node', str(script), '--replacement-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+    result = subprocess.run(['node', str(script), '--nearest-replacement-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
         raise RuntimeError('LSIB replacement failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    rows = json.loads(result.stdout).get('results')
-    if not isinstance(rows, list) or len(rows) != len(references):
+    receipt = json.loads(result.stdout)
+    rows = receipt.get('results')
+    if not isinstance(rows, list) or type(receipt.get('isRing')) is not bool or type(receipt.get('nearbyCount')) is not int:
         raise RuntimeError('Invalid LSIB replacement receipt')
+    if receipt['isRing']:
+        raise ValueError('Closed enclave chain requires separate ownership review')
+    if receipt['nearbyCount'] == 0:
+        raise ValueError('No spatially corresponding source section')
+    if len(rows) != receipt['nearbyCount']:
+        raise RuntimeError('Invalid LSIB replacement count')
     return [row['value'] for row in rows if 'value' in row]
 
 
@@ -144,9 +151,11 @@ def extract_shared_chains(geometries):
 def disputed_source_flags(disputes, records):
     """Classify selected source lines in bounded native batches."""
     script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
-    disputed = [mapping(record['line']) for record in disputes]
-    base = {'disputes': disputed, 'sources': [], 'chains': [], 'references': []}
-    base_bytes = len(json.dumps(base, allow_nan=False, separators=(',', ':')).encode('utf-8'))
+    disputed = json.dumps([mapping(record['line']) for record in disputes], allow_nan=False,
+                          separators=(',', ':')).encode('utf-8')
+    prefix = b'{"disputes":' + disputed + b',"chains":[],"references":[],"sources":['
+    suffix = b']}'
+    base_bytes = len(prefix) + len(suffix)
     maximum = 24 * 1024 * 1024
     if base_bytes >= maximum:
         raise ValueError('LSIB disputed source exceeds native batch budget')
@@ -156,9 +165,8 @@ def disputed_source_flags(disputes, records):
         nonlocal batch, sources, size
         if not batch:
             return
-        request = {**base, 'sources': sources}
         response = subprocess.run(['node', str(script), '--spatial-stream'],
-                                  input=json.dumps(request, allow_nan=False, separators=(',', ':')).encode('utf-8'),
+                                  input=prefix + b','.join(sources) + suffix,
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
                                   creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
         if response.returncode:
@@ -171,8 +179,8 @@ def disputed_source_flags(disputes, records):
         batch, sources, size = [], [], base_bytes
 
     for record in records:
-        geometry = mapping(record['line'])
-        current = len(json.dumps(geometry, allow_nan=False, separators=(',', ':')).encode('utf-8')) + 1
+        geometry = json.dumps(mapping(record['line']), allow_nan=False, separators=(',', ':')).encode('utf-8')
+        current = len(geometry) + 1
         if current + base_bytes >= maximum:
             raise ValueError('LSIB source line exceeds native batch budget')
         if size + current >= maximum:
@@ -271,12 +279,7 @@ def main():
         for chain in chains:
             segment = {'old_length_degrees': chain.length}
             try:
-                if chain.is_ring:
-                    raise ValueError('Closed enclave chain requires separate ownership review')
-                candidate_refs = [line for line in reference_parts if line.distance(chain) < .25]
-                if not candidate_refs:
-                    raise ValueError('No spatially corresponding source section')
-                candidates = replacement_chains(chain, candidate_refs)
+                candidates = replacement_chains(chain, reference_parts)
                 if not candidates:
                     raise ValueError('No safe intersection anchors; old chain retained')
                 proposal = max(candidates, key=lambda v: v['replaced_length_degrees'])

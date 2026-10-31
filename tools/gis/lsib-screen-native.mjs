@@ -242,6 +242,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     else if(process.argv[2]==='--shared-stream')result={chains:await extractLSIBSharedChains(request.geometries)};
     else if(process.argv[2]==='--replacement-stream')result={results:await prepareLSIBReplacements(request.old,request.references)};
     else if(process.argv[2]==='--nearest-replacement-stream')result=await prepareLSIBNearestReplacements(request.old,request.references);
+    else if(process.argv[2]==='--nearest-replacement-stream')result=await prepareLSIBNearestReplacements(request.old,request.references);
     else if(['--rings-stream','--patches-stream'].includes(process.argv[2])){
       try{result={geometries:await (process.argv[2]==='--rings-stream'?replaceLSIBRings(request):applyLSIBCountryPatches(request))};}
       catch(error){if(!['LSIB_RING_REJECTED','LSIB_REPAIR_REJECTED'].includes(error.code))throw error;result={error:error.message};}
