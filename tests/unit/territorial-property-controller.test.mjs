@@ -350,3 +350,53 @@ test('name metadata disclosure stays open on refresh and resets when selection c
   assert.equal(disclosure.open, false, 'returning to the named entity starts compact');
   assert.equal(names.children.length, 4);
 });
+
+test('relation tab shows compact empty states without duplicating them beside open pickers', () => {
+  const state = setup();
+  const candidate = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'B' });
+  const feature = createTerritorialFeature({ id: 'B', entityKind: 'general', geometry: square(1) });
+  state.views.set(candidate.key, { ref: candidate, displayName: 'B', feature });
+  state.controller.present(state.a);
+  state.controller.bind();
+
+  const parentRows = state.fields.get('entityParentRows');
+  const childRows = state.fields.get('entityChildRows');
+  const parentPicker = state.fields.get('entityParentRow');
+  const childPicker = state.fields.get('entityChildRow');
+  const changeParent = state.fields.get('entityChangeParentBtn');
+  const addChild = state.fields.get('entityAddChildBtn');
+
+  assert.equal(parentRows.children[0].textContent, '없음');
+  assert.equal(childRows.children[0].textContent, '없음');
+  assert.equal(parentRows.dataset.empty, 'true');
+  assert.equal(childRows.dataset.empty, 'true');
+  assert.equal(parentRows.hidden, false);
+  assert.equal(childRows.hidden, false);
+  assert.equal(addChild.disabled, false);
+
+  changeParent.click();
+  assert.equal(parentPicker.hidden, false);
+  assert.equal(parentRows.hidden, true, 'do not repeat an empty parent beside its picker');
+  assert.equal(childRows.hidden, false);
+  addChild.click();
+  assert.equal(parentPicker.hidden, true);
+  assert.equal(parentRows.hidden, false, 'the old empty state returns when changing pickers');
+  assert.equal(childPicker.hidden, false);
+  assert.equal(childRows.hidden, true, 'do not repeat an empty child beside its picker');
+
+  const childFeature = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', geometry: square(1) });
+  state.views.set(candidate.key, { ref: candidate, displayName: 'B', feature: childFeature });
+  const other = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'C' });
+  const otherFeature = createTerritorialFeature({ id: 'C', entityKind: 'general', geometry: square(1) });
+  state.views.set(other.key, { ref: other, displayName: 'C', feature: otherFeature });
+  state.controller.present(state.a, { refreshOnly: true });
+  assert.equal(childPicker.hidden, false, 'valid open picker remains open on refresh');
+  assert.equal(childRows.dataset.empty, 'false');
+  assert.equal(childRows.hidden, false, 'an existing child must remain visible while adding');
+  assert.equal(childRows.children.length, 1);
+
+  addChild.click();
+  assert.equal(childPicker.hidden, true);
+  assert.equal(childRows.hidden, false);
+  assert.deepEqual(state.relations, [], 'UI visibility changes do not mutate relations');
+});
