@@ -12,7 +12,9 @@ function sameValue(left,right){
   return keys.every(key=>sameValue(left[key],right[key]));
 }
 function sameGeometry(left,right){
-  if(left===right)return left==null||(typeof left==='object'&&Object.isFrozen(left));
+  // Only the canonical geometry registry proves deep immutability when both
+  // features retain the exact same object. A shallow Object.freeze is unsafe.
+  if(left===right)return left==null||!!geometryReferenceFor(left);
   if(!left||!right||typeof left!=='object'||typeof right!=='object')return false;
   const a=geometryReferenceFor(left),b=geometryReferenceFor(right);
   // Identical coordinates with a changed canonical version are not a
