@@ -77,16 +77,18 @@ class SupplementTests(unittest.TestCase):
     def test_reviewed_coast_manifest_pins_features_level_and_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            source = root / 'coast.json'
+            folder = root / 'tools/historical-library/sources/fixture'
+            folder.mkdir(parents=True)
+            source = folder / 'coast.json'
             _, _, coasts = self.coastal_fixture()
             features = [{'type': 'Feature', 'properties': {'cleabs': role, 'niveau': 'Plus hautes eaux'},
                          'geometry': mapping(line)} for role, line in coasts.items()]
             source.write_text(json.dumps({'type': 'FeatureCollection', 'features': features}), encoding='utf-8')
             manifest = {'schemaVersion': 1, 'countries': ['FRA', 'MCO'],
                         'sourceId': 'ign-bdtopo-v3-monaco-coast', 'sourceCrs': 'EPSG:4326',
-                        'sourceFile': 'coast.json', 'sourceFileSha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+                        'sourceFile': source.relative_to(root).as_posix(), 'sourceFileSha256': hashlib.sha256(source.read_bytes()).hexdigest(),
                         'features': {role: role for role in coasts}}
-            file = root / 'manifest.json'
+            file = folder / 'manifest.json'
             file.write_text(json.dumps(manifest), encoding='utf-8')
             loaded, _ = module.reviewed_coast_reference(root, file)
             self.assertTrue(loaded['monaco'].equals(coasts['monaco']))
@@ -131,13 +133,14 @@ class SupplementTests(unittest.TestCase):
             (root / 'config/library-data.json').write_text(json.dumps({'revision': 'test-data-revision'}), encoding='utf-8')
             raw_coast = json.dumps({'features': [{'properties': {'cleabs': role, 'niveau': 'Plus hautes eaux'},
                 'geometry': mapping(line)} for role, line in coasts.items()]}).encode()
-            (root / 'coast.json').write_bytes(raw_coast)
+            coast_path = evidence / 'coast.json'
+            coast_path.write_bytes(raw_coast)
             manifest = {'schemaVersion': 1, 'countries': ['FRA', 'MCO'], 'sourceId': 'ign-bdtopo-v3-monaco-coast',
-                'sourceCrs': 'EPSG:4326', 'sourceFile': 'coast.json', 'sourceFileSha256': hashlib.sha256(raw_coast).hexdigest(),
+                'sourceCrs': 'EPSG:4326', 'sourceFile': coast_path.relative_to(root).as_posix(), 'sourceFileSha256': hashlib.sha256(raw_coast).hexdigest(),
                 'features': {role: role for role in coasts}, 'title': 'Reviewed coast', 'published': None,
                 'url': 'https://example.invalid/coast', 'license': 'Open Licence 2.0', 'licenseUrl': 'https://example.invalid/license',
                 'attribution': 'IGN', 'retrieved': '2026-10-22', 'lastModified': '2024-09-23', 'confirmed': '2021-11-01'}
-            file = root / 'manifest.json'
+            file = evidence / 'coast-manifest.json'
             file.write_text(json.dumps(manifest), encoding='utf-8')
             output = root / 'candidate.json'
             with self.assertRaisesRegex(ValueError, 'pinned reviewed coast'):

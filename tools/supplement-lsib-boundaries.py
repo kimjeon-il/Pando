@@ -77,27 +77,18 @@ def json_write(path, value):
 
 def reviewed_coast_reference(root, manifest_path):
     """The approved Monaco high-water coastline, never a general source override."""
-    path = Path(manifest_path)
-    path = path if path.is_absolute() else root / path
-    metadata = json.loads(path.read_text(encoding='utf-8'))
-    if (metadata['schemaVersion'] != 1 or metadata['countries'] != ['FRA', 'MCO']
-            or metadata['sourceId'] != 'ign-bdtopo-v3-monaco-coast' or metadata['sourceCrs'] != 'EPSG:4326'
-            or set(metadata['features']) != {'monaco', 'west', 'east'}):
-        raise ValueError('Not the explicitly reviewed Monaco coast manifest')
-    raw = (root / metadata['sourceFile']).read_bytes()
-    if hashlib.sha256(raw).hexdigest() != metadata['sourceFileSha256']:
-        raise ValueError('Reviewed coast differs from pinned evidence')
-    features = json.loads(raw)['features']
-    coasts = {}
-    for role, identifier in metadata['features'].items():
-        matches = [f for f in features if f['properties']['cleabs'] == identifier]
-        if len(matches) != 1 or matches[0]['properties']['niveau'] != 'Plus hautes eaux':
-            raise ValueError('Reviewed coast must identify exactly one high-water feature per role')
-        line = shape(matches[0]['geometry'])
-        if line.geom_type != 'LineString' or not line.is_simple or line.is_ring:
-            raise ValueError('Reviewed high-water coast must be a simple open line')
-        coasts[role] = line
-    return coasts, {**metadata, 'referenceManifest': path.relative_to(root).as_posix()}
+    script = Path(__file__).with_name('gis') / 'lsib-reviewed-source.mjs'
+    request = {'root': str(root), 'manifestPath': str(manifest_path)}
+    result = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Reviewed coast validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    metadata = json.loads(result.stdout)
+    lines = metadata.pop('lines', None)
+    if metadata.get('sourceId') != 'ign-bdtopo-v3-monaco-coast' or not isinstance(lines, dict) or set(lines) != {'monaco', 'west', 'east'}:
+        raise ValueError('Invalid reviewed coast validation receipt')
+    return {role: LineString(coordinates) for role, coordinates in lines.items()}, metadata
 
 
 def read_shapefile(dbf, shp):
