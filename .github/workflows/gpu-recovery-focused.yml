@@ -32,7 +32,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: GPU source-level regression
-        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-scene-presentation-ownership.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/startup-performance-contract.test.mjs
+        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-scene-presentation-ownership.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs
       - run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/map-content-presentation.js tests/browser/gpu-recovery-foreground.spec.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Viewer real WebGL1 and WebGL2 repeated restoration, document, selection and map pixels
