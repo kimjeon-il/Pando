@@ -37,4 +37,15 @@ test('generated WebP gutters are repaired losslessly and a second pass is stable
     for(const expected of fixture.output){const bytes=await readFile(join(root,'0',`${expected.column}-${expected.row}.webp`));
       const decoded=await readNativeRawWebp(bytes);assert.deepEqual([...decoded.data],expected.rgba);}
     assert.equal(await reconcileDemGutterFiles(root,level),0);
+    const preserved=await readFile(join(root,'0','0-0.webp'));
+    await writeFile(join(root,'0','1-1.webp'),Buffer.from('not a webp'));
+    await assert.rejects(reconcileDemGutterFiles(root,level),/webp|image|native/i);
+    assert.deepEqual(await readFile(join(root,'0','0-0.webp')),preserved);
   });
+
+test('gutter reconciliation rejects invalid inputs and cancellation',async()=>{
+  assert.throws(()=>demTileEdges({width:2,height:2,data:Buffer.alloc(16)}),/bounded RGBA/);
+  await assert.rejects(reconcileDemGutterFiles('.',{id:0,columns:0,rows:1}),/bounded DEM/);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(reconcileDemGutterFiles('.',{id:0,columns:1,rows:1},{signal:controller.signal}),{name:'AbortError'});
+});

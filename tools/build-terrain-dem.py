@@ -203,48 +203,17 @@ def save_and_verify_webp(rgba, path):
 
 
 def reconcile_gutters(output: Path, level):
-    """Use the *published* neighboring interior texel for every gutter.
-
-    GDAL may round the same averaged output pixel differently when it is read
-    through two overlapping source windows. This pass makes the encoded gutter
-    bit-identical to its owner tile, including the dateline and corners.
-    """
-    columns, rows = level['columns'], level['rows']
-    edges = {}
-    for row in range(rows):
-        for column in range(columns):
-            path = output/str(level['id'])/f'{column}-{row}.webp'
-            with Image.open(path) as image:
-                pixels = np.asarray(image.convert('RGBA'))
-            edges[column, row] = {
-                'left': pixels[:, 1, :].copy(), 'right': pixels[:, -2, :].copy(),
-                'top': pixels[1, :, :].copy(), 'bottom': pixels[-2, :, :].copy(),
-                'topGutter': pixels[0, 1:-1, :].copy(),
-                'bottomGutter': pixels[-1, 1:-1, :].copy(),
-            }
-    modified = 0
-    for row in range(rows):
-        north, south = max(0, row-1), min(rows-1, row+1)
-        for column in range(columns):
-            west, east = (column-1) % columns, (column+1) % columns
-            path = output/str(level['id'])/f'{column}-{row}.webp'
-            with Image.open(path) as image:
-                pixels = np.array(image.convert('RGBA'))
-            prior = pixels.copy()
-            pixels[1:-1, 0] = edges[west, row]['right'][1:-1]
-            pixels[1:-1, -1] = edges[east, row]['left'][1:-1]
-            if row:
-                pixels[0, 1:-1] = edges[column, north]['bottom'][1:-1]
-            if row < rows-1:
-                pixels[-1, 1:-1] = edges[column, south]['top'][1:-1]
-            pixels[0, 0] = edges[west, north]['bottom'][-2] if row else edges[west, row]['topGutter'][-1]
-            pixels[0, -1] = edges[east, north]['bottom'][1] if row else edges[east, row]['topGutter'][0]
-            pixels[-1, 0] = edges[west, south]['top'][-2] if row < rows-1 else edges[west, row]['bottomGutter'][-1]
-            pixels[-1, -1] = edges[east, south]['top'][1] if row < rows-1 else edges[east, row]['bottomGutter'][0]
-            if not np.array_equal(prior, pixels):
-                save_and_verify_webp(pixels, path)
-                modified += 1
-    return modified
+    """Use the published neighboring interior texels for every gutter."""
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-gutters.mjs'
+    result = subprocess.run(['node', str(script), str(output), json.dumps(level)], stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=7200,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('DEM gutter reconciliation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    if set(receipt) != {'modified'} or not isinstance(receipt['modified'], int) or receipt['modified'] < 0:
+        raise ValueError('Invalid DEM gutter reconciliation receipt')
+    return receipt['modified']
 
 
 def restore_polar_gutter_shade(output: Path, etopo_path: Path, min_level=0, max_level=5):
