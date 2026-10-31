@@ -37,7 +37,7 @@ jobs:
               found++;
               const f=r.final||{},t=f.runtime||{},s=f.stats||{},v=f.rendering||{};
               console.log('M2_G4_EVIDENCE '+JSON.stringify({
-                status:r.status,steps:r.steps,error:r.error,
+                status:r.status,steps:r.steps,error:r.error,documentVisibility:f.visible,
                 pageErrors:r.pageErrors?.slice(0,5),consoleErrors:r.consoleErrors?.slice(0,5),
                 failedRequests:r.failedRequests?.length,
                 runtime:{renderer:t.renderer,mapReadiness:t.mapReadiness,surfacePresentation:t.surfacePresentation,
@@ -54,7 +54,7 @@ jobs:
                 rendering:{lastReason:v.lastReason,renderRevision:v.renderRevision,
                   visualFramePreparedCount:v.visualFramePreparedCount,visualFrameCommittedCount:v.visualFrameCommittedCount,
                   lastPreparedVisualFrameId:v.lastPreparedVisualFrameId,lastCommittedVisualFrameId:v.lastCommittedVisualFrameId,
-                  pendingMask:v.pendingMask,pendingMode:v.pendingMode,projectGeneration:v.projectGeneration,
+                  pendingMask:v.pendingMask,pendingMode:v.pendingMode,frameQueued:v.frameQueued,projectGeneration:v.projectGeneration,
                   recentFrames:v.recentFrames?.slice(-5)},
                 documentState:{month:f.documentState?.timelineCursor,epoch:f.documentState?.epoch,revision:f.documentState?.revision},
                 world:f.world,selected:f.selection,events:f.events?.slice(-10)
