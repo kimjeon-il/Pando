@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 import subprocess
 import zipfile
-import numpy as np
 import shapely
 from shapely.geometry import LineString, Point
 from shapely.ops import substring
@@ -17,46 +16,31 @@ SCALE = 2560 * 64 / 360
 STEP = .001  # Any position on a segment lies <= STEP/2 from a sampled point.
 
 
-def sampled_distance(source, target):
+def native_screen(operation, request):
     script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
-    payload = json.dumps(dict(source=list(source.coords), target=list(target.coords)), allow_nan=False).encode('utf-8')
-    result = subprocess.run(['node', str(script), '--sampled-stream'], input=payload, stdout=subprocess.PIPE,
+    payload = json.dumps(request, allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), operation], input=payload, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
-        raise RuntimeError('Native LSIB screen sampling failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    receipt = json.loads(result.stdout)
+        raise RuntimeError('Native LSIB screen operation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    return json.loads(result.stdout)
+
+
+def sampled_distance(source, target):
+    receipt = native_screen('--sampled-stream', dict(source=list(source.coords), target=list(target.coords)))
     if not isinstance(receipt.get('samples'), int) or receipt['samples'] < 2:
         raise ValueError('Invalid native LSIB sample count')
     return float(receipt['sampledMaximumCssPx']), receipt['samples']
 
 
 def display_section(geometry, anchors, reference):
-    polygons = [geometry['coordinates']] if geometry['type'] == 'Polygon' else geometry['coordinates']
-    if reference.is_ring:
-        if geometry['type'] != 'Polygon' or len(polygons[0]) != 1:
-            raise ValueError('Closed boundary review requires the selected enclave exterior')
-        return LineString(polygons[0][0])
-    options = []
-    for polygon in polygons:
-        for ring in polygon:
-            points = [tuple(p) for p in ring[:-1]]
-            matches = [[i for i, p in enumerate(points) if np.linalg.norm(np.subtract(p, anchor)) < 1e-11] for anchor in anchors]
-            if not all(len(v) == 1 for v in matches):
-                continue
-            a, b = matches[0][0], matches[1][0]
-            rotated = points[a:] + points[:a]
-            at = (b - a) % len(points)
-            for sequence in (rotated[:at + 1], list(reversed(rotated[at:] + rotated[:1]))):
-                if len(sequence) > 1:
-                    line = LineString(sequence)
-                    options.append(line)
-    if not options:
-        raise ValueError('Supplement anchor not found in final normalized country geometry')
-    # Detailed river linework can be much longer than its simplified derivative.
-    # Match interior source positions, not total length (which can select the
-    # opposite side of an entire country polygon).
-    witnesses = [reference.interpolate(fraction, normalized=True) for fraction in (.2, .4, .6, .8)]
-    return min(options, key=lambda line: sum(line.distance(point) for point in witnesses))
+    try:
+        receipt = native_screen('--display-stream', dict(geometry=geometry, anchors=anchors, reference=list(reference.coords)))
+    except RuntimeError as error:
+        if 'Closed boundary review requires' in str(error) or 'Supplement anchor not found' in str(error):
+            raise ValueError(str(error)) from error
+        raise
+    return LineString(receipt['coordinates'])
 
 
 def main():

@@ -251,6 +251,6 @@ Run `node tools/gis/verify-historical-linework.mjs --input FILE.geojson --expect
 
 The remaining `tools/verify-lsib-screen-delta.py` workflow also requires
 `PANDO_TERRITORIAL_RECIPE_BINARY` and its matching GEOS/PROJ runtime. Its
-selected-line sampling is performed by the native engine; the Python script
+display-section selection and line sampling are performed by the native engine; the Python script
 still owns source selection and report assembly. A screen-distance comparison
 does not establish historical ownership or approve a boundary.
