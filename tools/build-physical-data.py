@@ -84,11 +84,13 @@ def combine_land_without_drainages(land: Image.Image, ocean: Image.Image, land_m
 
 
 def build_terrain(source_root: Path, output_root: Path, countries_path: Path) -> dict[str, Any]:
+    terrain_dir = output_root / "terrain" / f"v{VERSION}"
+    if terrain_dir.exists():
+        raise FileExistsError(f"Physical terrain output exists; preserve prior evidence: {terrain_dir}")
     gray_path = find_file(source_root, "GRAY_HR_SR_OB.tif")
     land_path = find_file(source_root, "HYP_HR_SR.tif")
     ocean_path = find_file(source_root, "HYP_HR_SR_OB_DR.tif")
-    terrain_dir = output_root / "terrain" / f"v{VERSION}"
-    terrain_dir.mkdir(parents=True, exist_ok=True)
+    terrain_dir.mkdir(parents=True, exist_ok=False)
     source_gray = Image.open(gray_path)
     source_land = Image.open(land_path)
     source_ocean = Image.open(ocean_path)
