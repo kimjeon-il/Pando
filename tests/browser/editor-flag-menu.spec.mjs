@@ -56,6 +56,9 @@ test('territorial selection enters the editor directly and preserves its flag me
     await expect(page.locator('#flagMenuBtn')).toBeVisible();
     await page.locator('#flagMenuBtn').click();
     await expect(page.locator('#flagMenu')).toBeVisible();
+    await expect(page.locator('#flagMenu')).toHaveAttribute('aria-label', '국기 관리');
+    await expect(page.locator('#flagDefaultBtn')).toHaveText('기본값 복원');
+    await expect(page.locator('#flagRemoveBtn')).toHaveText('국기 제거');
     await expect(page.locator('#flagLibraryBtn')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page.locator('#flagMenu')).toBeHidden();
@@ -92,6 +95,33 @@ test('object deletion remains in its shared action footer and is destructive onl
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#actionsTabBtn').click();
   const deletion = page.locator('#objectDeleteBtn');
+  const visibility = page.locator('#objectVisibilityBtn');
+  const lock = page.locator('#objectLockBtn');
+  await expect(deletion.locator('small')).toBeEmpty();
+  await expect(deletion).toHaveAttribute('data-action-reason', 'false');
+  await expect(visibility).toHaveAttribute('aria-label', '객체 숨기기');
+  await expect(lock).toHaveAttribute('aria-label', '잠금');
+  await lock.click();
+  await expect(lock).toHaveAttribute('aria-pressed', 'true');
+  await expect(lock).toHaveAttribute('aria-label', '잠금 해제');
+  await expect(page.locator('#editorObjectStatus')).toContainText('잠김');
+  await expect(page.locator('#flagMenuBtn')).toBeDisabled();
+  await expect(deletion).toBeDisabled();
+  await expect(deletion.locator('small')).toHaveText('잠금 해제 후 삭제');
+  await expect(deletion).toHaveAttribute('data-action-reason', 'true');
+  await lock.click();
+  await expect(lock).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#flagMenuBtn')).toBeEnabled();
+  await expect(deletion).toBeEnabled();
+  await expect(deletion.locator('small')).toBeEmpty();
+  await expect(deletion).toHaveAttribute('data-action-reason', 'false');
+  await visibility.click();
+  await expect(visibility).toHaveAttribute('aria-label', '객체 표시');
+  await expect(visibility).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#editorObjectStatus')).toContainText('숨김');
+  await visibility.click();
+  await expect(visibility).toHaveAttribute('aria-label', '객체 숨기기');
+  await expect(visibility).toHaveAttribute('aria-pressed', 'true');
   const readAppearance = selector => page.locator(selector).evaluate(row => ({
     icon: getComputedStyle(row.querySelector('.command-row-icon')).color,
     title: getComputedStyle(row.querySelector('strong')).color,
@@ -149,6 +179,8 @@ test('object deletion remains in its shared action footer and is destructive onl
   await expect(page.locator('#confirmModal')).toBeVisible();
   await expect(page.locator('#confirmModalOkBtn')).toHaveClass(/danger-confirm/);
   await expect(page.locator('#confirmModalOkBtn')).toHaveText('선택 객체 삭제');
+  await expect(page.locator('#confirmModal')).toContainText('직접 연결된 데이터도 삭제됩니다.');
+  await expect(page.locator('#confirmModal')).toContainText('실행취소로 복구할 수 있습니다.');
   await page.locator('#confirmModalCancelBtn').click();
   await expect(page.locator('#confirmModal')).toBeHidden();
   await expect(page.locator('#propertyTitle')).toHaveText('독일');

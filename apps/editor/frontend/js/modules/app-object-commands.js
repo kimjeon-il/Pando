@@ -254,7 +254,14 @@ export function createObjectCommands() {
     const deleteButton = (0, dependencies.platform.$)('objectDeleteBtn');
     if (deleteButton) {
       deleteButton.disabled = deleteDisabled;
-      deleteButton.dataset.tooltip = builtinPlaceDelete ? '내장 지명은 삭제할 수 없습니다.' : deleteDisabled && canDelete ? '잠금 해제 후 삭제' : '삭제';
+      // Keep the ordinary row compact, but retain the reason for disabled actions.
+      const deleteReason = builtinPlaceDelete ? '내장 지명은 삭제할 수 없습니다.'
+        : deleteDisabled && canDelete ? '잠금 해제 후 삭제'
+          : deleteDisabled && refs.length ? '삭제할 수 없는 객체입니다.' : '';
+      const help = deleteButton.querySelector('small');
+      if (help) help.textContent = deleteReason;
+      deleteButton.dataset.actionReason = String(Boolean(deleteReason));
+      deleteButton.dataset.tooltip = deleteReason || '삭제';
       deleteButton.setAttribute('aria-label', deleteButton.dataset.tooltip);
     }
     const deleteSection = (0, dependencies.platform.$)('editorDeleteSection');
@@ -380,7 +387,7 @@ export function createObjectCommands() {
     }
     (0, dependencies.projectRestore.openConfirmModal)({
       title: `${refs.length}개 객체 삭제`,
-      message: '선택한 객체와 직접 연결된 데이터가 함께 삭제됩니다. 한 번의 실행취소로 복구할 수 있습니다.',
+      message: '직접 연결된 데이터도 삭제됩니다. 실행취소로 복구할 수 있습니다.',
       impacts: [...typeCounts].map(([type, count]) => `${type} ${count}개 삭제`),
       confirmText: '선택 객체 삭제',
       danger: true,
