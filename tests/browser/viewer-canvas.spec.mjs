@@ -49,6 +49,12 @@ test('Canvas viewer selects a saved country polygon body without changing projec
     return stats.renderer === 'canvas-worker' && !stats.canvasWorkerBusy
       && stats.displayedRevision > previous && stats.displayedRevision >= stats.requestedRevision;
   }, priorDisplayedRevision), { timeout: 45_000 }).toBe(true);
+  // A displayed Canvas frame is not by itself an admitted country-picking surface.
+  // The renderer writes countryVisualPhase from surfacePresentation.quality.
+  await expect.poll(() => page.evaluate(() => {
+    const stats = window.__PANDOLAB_VIEWER__.rendererStats();
+    return stats.projectRenderBlocked ? 'blocked' : stats.surfacePresentation?.quality || 'unknown';
+  }), { timeout: 45_000, message: 'Country surface must leave pending before Canvas picking' }).toMatch(/^(preview|canonical)$/);
   const bounds = await page.locator('#map').boundingBox();
   // Bring the known body coordinate into the viewport and use the real projection.
   const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([8,8]));
