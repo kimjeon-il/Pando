@@ -1,0 +1,858 @@
+[
+  {
+    "name": "success",
+    "geometries": {
+      "AUT": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              6
+            ],
+            [
+              3,
+              6
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              0
+            ]
+          ]
+        ]
+      },
+      "LIE": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        ]
+      },
+      "CHE": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              6
+            ],
+            [
+              0,
+              6
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "references": [
+      {
+        "countries": [
+          "AUT",
+          "LIE"
+        ],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              3.2,
+              1.8
+            ],
+            [
+              3.3,
+              3.0
+            ],
+            [
+              3.2,
+              4.2
+            ]
+          ]
+        }
+      },
+      {
+        "countries": [
+          "AUT",
+          "CHE"
+        ],
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [
+                3.0,
+                0.0
+              ],
+              [
+                3.0,
+                1.0
+              ],
+              [
+                3.2,
+                1.8
+              ]
+            ],
+            [
+              [
+                3.2,
+                4.2
+              ],
+              [
+                3.0,
+                5.0
+              ],
+              [
+                3.0,
+                6.0
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "countries": [
+          "CHE",
+          "LIE"
+        ],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              3.2,
+              4.2
+            ],
+            [
+              2.0,
+              4.0
+            ],
+            [
+              2.0,
+              2.0
+            ],
+            [
+              3.2,
+              1.8
+            ]
+          ]
+        }
+      }
+    ],
+    "pair": [
+      "AUT",
+      "LIE"
+    ],
+    "third": "CHE",
+    "expected": {
+      "geometries": {
+        "AUT": {
+          "coordinates": [
+            [
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                6,
+                6
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                3,
+                5
+              ],
+              [
+                3.2,
+                4.2
+              ],
+              [
+                3.3,
+                3
+              ],
+              [
+                3.2,
+                1.8
+              ],
+              [
+                3,
+                1
+              ]
+            ]
+          ],
+          "type": "Polygon"
+        },
+        "LIE": {
+          "coordinates": [
+            [
+              [
+                2,
+                2
+              ],
+              [
+                3.2,
+                1.8
+              ],
+              [
+                3.3,
+                3
+              ],
+              [
+                3.2,
+                4.2
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                2,
+                2
+              ]
+            ]
+          ],
+          "type": "Polygon"
+        },
+        "CHE": {
+          "coordinates": [
+            [
+              [
+                3,
+                5
+              ],
+              [
+                3,
+                6
+              ],
+              [
+                0,
+                6
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3.2,
+                1.8
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                3.2,
+                4.2
+              ],
+              [
+                3,
+                5
+              ]
+            ]
+          ],
+          "type": "Polygon"
+        }
+      },
+      "sections": [
+        {
+          "countries": [
+            "AUT",
+            "LIE"
+          ],
+          "old_length_degrees": 2.0,
+          "source_length_degrees": 2.4083189157584592,
+          "master_vertices": 3,
+          "derived_vertices": 3,
+          "anchors": [
+            [
+              3.2,
+              1.8
+            ],
+            [
+              3.2,
+              4.2
+            ]
+          ],
+          "simplification_bound_px": 0.18204444444444445
+        },
+        {
+          "countries": [
+            "AUT",
+            "CHE"
+          ],
+          "junction": 0,
+          "old_length_degrees": 1.0,
+          "source_length_degrees": 0.8246211251235323,
+          "master_vertices": 2,
+          "derived_vertices": 2,
+          "anchors": [
+            [
+              3.2,
+              1.8
+            ],
+            [
+              3.0,
+              1.0
+            ]
+          ],
+          "simplification_bound_px": 0.18204444444444445
+        },
+        {
+          "countries": [
+            "CHE",
+            "LIE"
+          ],
+          "junction": 0,
+          "old_length_degrees": 1.0,
+          "source_length_degrees": 1.216552506059644,
+          "master_vertices": 2,
+          "derived_vertices": 2,
+          "anchors": [
+            [
+              3.2,
+              1.8
+            ],
+            [
+              2.0,
+              2.0
+            ]
+          ],
+          "simplification_bound_px": 0.18204444444444445
+        },
+        {
+          "countries": [
+            "AUT",
+            "CHE"
+          ],
+          "junction": 1,
+          "old_length_degrees": 1.0,
+          "source_length_degrees": 0.8246211251235319,
+          "master_vertices": 2,
+          "derived_vertices": 2,
+          "anchors": [
+            [
+              3.2,
+              4.2
+            ],
+            [
+              3.0,
+              5.0
+            ]
+          ],
+          "simplification_bound_px": 0.18204444444444445
+        },
+        {
+          "countries": [
+            "CHE",
+            "LIE"
+          ],
+          "junction": 1,
+          "old_length_degrees": 1.0,
+          "source_length_degrees": 1.216552506059644,
+          "master_vertices": 2,
+          "derived_vertices": 2,
+          "anchors": [
+            [
+              3.2,
+              4.2
+            ],
+            [
+              2.0,
+              4.0
+            ]
+          ],
+          "simplification_bound_px": 0.18204444444444445
+        }
+      ]
+    }
+  },
+  {
+    "name": "missing-anchor",
+    "geometries": {
+      "AUT": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              6
+            ],
+            [
+              3,
+              6
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              0
+            ]
+          ]
+        ]
+      },
+      "LIE": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        ]
+      },
+      "CHE": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              6
+            ],
+            [
+              0,
+              6
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "references": [
+      {
+        "countries": [
+          "AUT",
+          "LIE"
+        ],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              3.2,
+              1.8
+            ],
+            [
+              3.3,
+              3.0
+            ],
+            [
+              3.2,
+              4.2
+            ]
+          ]
+        }
+      },
+      {
+        "countries": [
+          "AUT",
+          "CHE"
+        ],
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [
+                3.2,
+                0.0
+              ],
+              [
+                3.2,
+                1.8
+              ]
+            ],
+            [
+              [
+                3.2,
+                4.2
+              ],
+              [
+                3.2,
+                6.0
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "countries": [
+          "CHE",
+          "LIE"
+        ],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              3.2,
+              4.2
+            ],
+            [
+              2.0,
+              4.0
+            ],
+            [
+              2.0,
+              2.0
+            ],
+            [
+              3.2,
+              1.8
+            ]
+          ]
+        }
+      }
+    ],
+    "pair": [
+      "AUT",
+      "LIE"
+    ],
+    "third": "CHE",
+    "error": "No safe outer anchor for ('AUT', 'CHE') junction 0"
+  },
+  {
+    "name": "disconnected-junction",
+    "geometries": {
+      "AUT": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              3,
+              0
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              6
+            ],
+            [
+              3,
+              6
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              0
+            ]
+          ]
+        ]
+      },
+      "LIE": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        ]
+      },
+      "CHE": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              3,
+              0
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              6
+            ],
+            [
+              0,
+              6
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "references": [
+      {
+        "countries": [
+          "AUT",
+          "LIE"
+        ],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              3.2,
+              1.8
+            ],
+            [
+              3.3,
+              3.0
+            ],
+            [
+              3.2,
+              4.2
+            ]
+          ]
+        }
+      },
+      {
+        "countries": [
+          "AUT",
+          "CHE"
+        ],
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [
+                3.0,
+                0.0
+              ],
+              [
+                3.0,
+                1.0
+              ],
+              [
+                3.2,
+                1.8
+              ]
+            ],
+            [
+              [
+                3.2,
+                4.2
+              ],
+              [
+                3.0,
+                5.0
+              ],
+              [
+                3.0,
+                6.0
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "countries": [
+          "CHE",
+          "LIE"
+        ],
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              3.1,
+              4.2
+            ],
+            [
+              2.0,
+              4.0
+            ],
+            [
+              2.0,
+              2.0
+            ],
+            [
+              3.2,
+              1.8
+            ]
+          ]
+        }
+      }
+    ],
+    "pair": [
+      "AUT",
+      "LIE"
+    ],
+    "third": "CHE",
+    "error": "Expected one boundary branch at the reviewed junction"
+  }
+]

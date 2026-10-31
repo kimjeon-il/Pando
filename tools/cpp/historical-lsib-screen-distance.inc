@@ -296,6 +296,113 @@ V prepareLSIBEnclave(const V& request){
         auto sections=V::arr();sections.array.push_back(std::move(section));auto receipt=V::obj();receipt.object["geometries"]=result;receipt.object["sections"]=std::move(sections);return receipt;
     }catch(const LSIBEnclaveRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
 }
+struct LSIBTripointRejected:std::runtime_error{using std::runtime_error::runtime_error;};
+V prepareLSIBTripoint(const V& request){
+    try{
+        const auto& geometries=field(request,"geometries"),&order=field(request,"order");
+        const auto& pairRows=array(field(request,"pair"));const auto third=str(field(request,"third"));
+        if(geometries.kind!=V::Object||geometries.object.size()!=3||pairRows.size()!=2)
+            throw LSIBTripointRejected("A reviewed tripoint repair requires exactly three countries");
+        std::vector<std::string> pair{str(pairRows[0]),str(pairRows[1])};std::sort(pair.begin(),pair.end());
+        if(pair[0]==pair[1]||third==pair[0]||third==pair[1]||!geometries.object.count(pair[0])||
+           !geometries.object.count(pair[1])||!geometries.object.count(third))
+            throw LSIBTripointRejected("A reviewed tripoint repair requires exactly three countries");
+        using Pair=std::pair<std::string,std::string>;
+        const auto key=[](std::string a,std::string b)->Pair{if(b<a)std::swap(a,b);return {a,b};};
+        GeometryEngine geos;const auto context=geos.context();std::map<Pair,GeometryEngine::Shape> references,shared;
+        for(const auto& row:array(field(request,"references"))){const auto& codes=array(field(row,"countries"));
+            if(codes.size()!=2)throw std::runtime_error("Invalid LSIB reference country pair");
+            if(!references.emplace(key(str(codes[0]),str(codes[1])),geos.parse(field(row,"geometry"))).second)
+                throw std::runtime_error("Duplicate LSIB reference country pair");}
+        auto sharedRequest=V::obj();sharedRequest.object["geometries"]=geometries;sharedRequest.object["order"]=order;
+        const auto chains=extractLSIBSharedChains(sharedRequest);
+        for(const auto& row:array(field(chains,"chains"))){const auto& codes=array(field(row,"countries"));
+            shared.emplace(key(str(codes[0]),str(codes[1])),geos.parse(field(row,"geometry")));}
+        const auto require=[&](const auto& values,const Pair& k)->GeometryEngine::Shape{
+            const auto it=values.find(k);if(it==values.end())throw LSIBTripointRejected("Missing reviewed tripoint boundary");return it->second;};
+        auto old=require(shared,key(pair[0],pair[1])),reference=require(references,key(pair[0],pair[1]));
+        if(geos.type(old.get())!=GEOS_LINESTRING||geos.type(reference.get())!=GEOS_LINESTRING||
+           GEOSisRing_r(context,old.get())==1)throw LSIBTripointRejected("Reviewed target must be one open boundary chain");
+        const auto simple=GEOSisSimple_r(context,reference.get());if(simple==2)throw std::runtime_error("Cannot inspect reference simplicity");
+        if(simple!=1)throw LSIBTripointRejected("Reference section self-intersects");
+        auto oldPoints=lsibScreenPoints(geos.coordinates(old.get())),master=lsibScreenPoints(geos.coordinates(reference.get()));
+        const auto distance=[](const LSIBPoint& a,const LSIBPoint& b){return std::hypot(a[0]-b[0],a[1]-b[1]);};
+        const double direct=distance(oldPoints.front(),master.front())+distance(oldPoints.back(),master.back());
+        const double reverse=distance(oldPoints.front(),master.back())+distance(oldPoints.back(),master.front());
+        if(direct==reverse)throw LSIBTripointRejected("Ambiguous reviewed junction correspondence");if(reverse<direct)std::reverse(master.begin(),master.end());
+        auto masterLine=lsibScreenLine(geos,master);
+        auto simplified=geos.own(GEOSTopologyPreserveSimplify_r(context,masterLine.get(),.0004),"LSIB tripoint simplification");
+        const auto derivative=lsibScreenPoints(geos.coordinates(simplified.get()));
+        const std::array<LSIBPoint,2> oldJunctions{oldPoints.front(),oldPoints.back()},junctions{master.front(),master.back()};
+        const auto jsonPoints=[](const std::vector<LSIBPoint>& points){auto out=V::arr();for(const auto& p:points){auto v=V::arr();v.array={V::num(p[0]),V::num(p[1])};out.array.push_back(std::move(v));}return out;};
+        const auto countries=[](const Pair& p){auto v=V::arr();v.array={V::str(p.first),V::str(p.second)};return v;};
+        auto sections=V::arr(),first=V::obj();first.object["countries"]=countries(key(pair[0],pair[1]));
+        first.object["old_length_degrees"]=V::num(geos.length(old));first.object["source_length_degrees"]=V::num(geos.length(reference));
+        first.object["master_vertices"]=V::num(static_cast<double>(master.size()));first.object["derived_vertices"]=V::num(static_cast<double>(derivative.size()));
+        first.object["anchors"]=jsonPoints({junctions[0],junctions[1]});first.object["simplification_bound_px"]=V::num(.0004*(2560.0*64.0/360.0));sections.array.push_back(std::move(first));
+        struct Branch{std::vector<LSIBPoint> retained,replacement;};std::array<std::array<Branch,2>,2> adjacent;
+        const auto fromJunction=[&](const GeometryEngine::Shape& line,const LSIBPoint& junction){
+            std::vector<std::vector<LSIBPoint>> matches;
+            for(const auto& part:geos.parts(line)){if(geos.type(part.get())!=GEOS_LINESTRING)throw std::runtime_error("Invalid LSIB boundary branch");
+                auto points=lsibScreenPoints(geos.coordinates(part.get()));
+                if(distance(points.front(),junction)<1e-11)matches.push_back(std::move(points));
+                else if(distance(points.back(),junction)<1e-11){std::reverse(points.begin(),points.end());matches.push_back(std::move(points));}}
+            if(matches.size()!=1)throw LSIBTripointRejected("Expected one boundary branch at the reviewed junction");return matches[0];};
+        for(std::size_t i=0;i<2;++i)for(std::size_t j=0;j<2;++j){
+            const auto other=key(pair[j],third);auto oldBranchPoints=fromJunction(require(shared,other),oldJunctions[i]);
+            auto sourceBranchPoints=fromJunction(require(references,other),junctions[i]);
+            auto oldBranch=lsibScreenLine(geos,oldBranchPoints),sourceBranch=lsibScreenLine(geos,sourceBranchPoints);
+            auto intersection=geos.intersection(oldBranch,sourceBranch);std::vector<GeometryEngine::Shape> anchors;
+            std::function<void(const GEOSGeometry*)> collect=[&](const GEOSGeometry* geometry){
+                if(geos.empty(geometry))return;const auto kind=geos.type(geometry);
+                if(kind==GEOS_POINT){anchors.push_back(geos.clone(geometry));return;}
+                if(kind==GEOS_LINESTRING){anchors.push_back(geos.own(GEOSGeomGetStartPoint_r(context,geometry),"anchor start"));
+                    anchors.push_back(geos.own(GEOSGeomGetEndPoint_r(context,geometry),"anchor end"));return;}
+                const auto n=GEOSGetNumGeometries_r(context,geometry);if(n<0)throw std::runtime_error("Invalid LSIB intersection");
+                for(int k=0;k<n;++k)collect(GEOSGetGeometryN_r(context,geometry,k));};collect(intersection.get());
+            GeometryEngine::Shape best;double oldProjection=0,sourceProjection=0;
+            for(const auto& anchor:anchors){const auto a=GEOSProject_r(context,oldBranch.get(),anchor.get()),b=GEOSProject_r(context,sourceBranch.get(),anchor.get());
+                if(a<0||b<0||!std::isfinite(a)||!std::isfinite(b))throw std::runtime_error("Cannot project LSIB tripoint anchor");
+                if(a>1e-11&&b>1e-11&&(!best||a<oldProjection)){best=anchor;oldProjection=a;sourceProjection=b;}}
+            if(!best)throw LSIBTripointRejected("No safe outer anchor for ('"+other.first+"', '"+other.second+"') junction "+std::to_string(i));
+            LSIBPoint endpoint{};if(!GEOSGeomGetX_r(context,best.get(),&endpoint[0])||!GEOSGeomGetY_r(context,best.get(),&endpoint[1]))
+                throw std::runtime_error("Cannot read LSIB tripoint anchor");
+            auto retained=lsibChainSlice(geos,oldBranch,oldBranchPoints,0,oldProjection),detailedPoints=lsibChainSlice(geos,sourceBranch,sourceBranchPoints,0,sourceProjection);
+            auto detailed=lsibScreenLine(geos,detailedPoints),reduced=geos.own(GEOSTopologyPreserveSimplify_r(context,detailed.get(),.0004),"LSIB junction simplification");
+            auto replacement=lsibScreenPoints(geos.coordinates(reduced.get()));retained.front()=oldJunctions[i];retained.back()=endpoint;
+            replacement.front()=junctions[i];replacement.back()=endpoint;auto check=lsibScreenLine(geos,replacement);const auto valid=GEOSisSimple_r(context,check.get());
+            if(valid==2)throw std::runtime_error("Cannot inspect reference junction simplicity");if(valid!=1)throw LSIBTripointRejected("Reference junction branch self-intersects");
+            adjacent[i][j]={retained,replacement};auto section=V::obj();section.object["countries"]=countries(other);section.object["junction"]=V::num(static_cast<double>(i));
+            section.object["old_length_degrees"]=V::num(oldProjection);section.object["source_length_degrees"]=V::num(geos.length(detailed));
+            section.object["master_vertices"]=V::num(static_cast<double>(detailedPoints.size()));section.object["derived_vertices"]=V::num(static_cast<double>(replacement.size()));
+            section.object["anchors"]=jsonPoints({junctions[i],endpoint});section.object["simplification_bound_px"]=V::num(.0004*(2560.0*64.0/360.0));sections.array.push_back(std::move(section));}
+        const auto reversed=[](std::vector<LSIBPoint> points){std::reverse(points.begin(),points.end());return points;};
+        const auto join=[](std::vector<std::vector<LSIBPoint>> paths){std::vector<LSIBPoint> result;
+            for(const auto& path:paths){if(path.empty()||(!result.empty()&&result.back()!=path.front()))throw LSIBTripointRejected("Boundary paths do not share the same junction coordinate");
+                for(const auto& p:path)if(result.empty()||result.back()!=p)result.push_back(p);}return result;};
+        auto patches=V::obj();for(const auto& code:pair)patches.object[code]=V::arr();patches.object[third]=V::arr();
+        const auto addPatch=[&](const std::string& code,const std::vector<LSIBPoint>& oldPath,const std::vector<LSIBPoint>& newPath){
+            auto p=V::obj();p.object["old"]=jsonPoints(oldPath);p.object["replacement"]=jsonPoints(newPath);patches.object.at(code).array.push_back(std::move(p));};
+        for(std::size_t j=0;j<2;++j)addPatch(pair[j],join({reversed(adjacent[0][j].retained),oldPoints,adjacent[1][j].retained}),
+            join({reversed(adjacent[0][j].replacement),derivative,adjacent[1][j].replacement}));
+        for(std::size_t i=0;i<2;++i)addPatch(third,join({reversed(adjacent[i][0].retained),adjacent[i][1].retained}),
+            join({reversed(adjacent[i][0].replacement),adjacent[i][1].replacement}));
+        auto replaceRequest=V::obj();replaceRequest.object["geometries"]=geometries;replaceRequest.object["patches"]=std::move(patches);
+        const auto replaced=replaceLSIBRings(replaceRequest);if(const auto* error=optional(replaced,"error"))throw LSIBTripointRejected(str(*error));
+        const auto& result=field(replaced,"geometries");auto validation=V::obj();validation.object["before"]=geometries;validation.object["after"]=result;
+        validation.object["beforeOrder"]=order;validation.object["afterOrder"]=order;
+        const auto validated=validateLSIBCountryRepair(validation);if(const auto* error=optional(validated,"error"))throw LSIBTripointRejected(str(*error));
+        auto a=geos.parse(result.object.at(pair[0])),b=geos.parse(result.object.at(pair[1]));
+        auto ab=geos.boundary(a),bb=geos.boundary(b),target=geos.intersection(ab,bb),derived=lsibScreenLine(geos,derivative);
+        const auto equals=GEOSEquals_r(context,target.get(),derived.get());if(equals==2)throw std::runtime_error("Cannot compare tripoint boundary");
+        if(equals!=1)throw LSIBTripointRejected("Repaired countries do not share exactly the reviewed target boundary");
+        for(const auto& junction:junctions){auto p=geos.own(GEOSGeom_createPointFromXY_r(context,junction[0],junction[1]),"tripoint");
+            for(const auto& code:{pair[0],pair[1],third}){auto country=geos.parse(result.object.at(code)),boundary=geos.boundary(country);
+                const auto covers=GEOSCovers_r(context,boundary.get(),p.get());if(covers==2)throw std::runtime_error("Cannot inspect tripoint junction");
+                if(covers!=1)throw LSIBTripointRejected("Repaired countries disagree on the tripoint junction");}}
+        auto receipt=V::obj();receipt.object["geometries"]=result;receipt.object["sections"]=std::move(sections);return receipt;
+    }catch(const LSIBTripointRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
