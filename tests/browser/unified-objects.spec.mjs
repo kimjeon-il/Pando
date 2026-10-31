@@ -129,6 +129,20 @@ test('one object flow creates a root, child and independent region; annex across
   expect(child.properties.entityKind).toBe('general');
   expect(child.properties.parentId).toBe(root.id);
 
+  // Subunit annex keeps its 3-stage action; fixed object identity is not an editable input.
+  await select(page, child.id);
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#annexEntityBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('영역 편입');
+  await expect(page.locator('#modeTaskStage')).toHaveText('가져올 영역');
+  await expect(page.locator('#modeTaskStep')).toHaveText('1 / 3');
+  await expect(page.locator('#modeTaskObjects [aria-label="넘겨받는 객체"]')).toContainText('하위 객체');
+  await expect(page.locator('#territorialCreateKindRow')).toBeHidden();
+  await expect(page.locator('#territorialCreateParentRow')).toBeHidden();
+  await expect(page.locator('#territorialCreateSourceRow')).toBeVisible();
+  await expect(page.locator('#modeTaskViewTime')).toBeHidden();
+  await page.locator('#modeCancelBtn').click();
+
   const beforeRegion = await generalGeometries(page);
   await page.locator('#createMenuBtn').click();
   await page.locator('#addEntityBtn').click();
@@ -189,6 +203,7 @@ test('one object flow creates a root, child and independent region; annex across
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.setLocked(id, true), root.id);
   await page.locator('#actionsTabBtn').click();
   await expect(page.locator('#copyEntityRegionBtn')).toBeEnabled();
+  await expect(page.locator('#copyEntityRegionBtn small')).toHaveText('원본 유지 · 같은 형상으로 복사');
   await page.locator('#copyEntityRegionBtn').click();
   const copy = await page.evaluate(rootId => window.PANDOLAB_TERRITORIAL.list({ kind: 'regional' }).find(f => f.properties.name === '일반 객체' && f.id !== rootId), root.id);
   expect(copy.id).not.toBe(root.id);

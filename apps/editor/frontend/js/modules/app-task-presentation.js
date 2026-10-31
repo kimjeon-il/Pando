@@ -147,6 +147,8 @@ export function createTaskPresentation() {
     const names = ids => ids.map(id => countryDisplay(id)?.name || territorialUnitDisplay(id)).filter(Boolean).join(', ');
     if (selection) {
       if (selection.kind === 'annex') rows.push(['넘겨받는 국가', names([selection.targetCountryId])]);
+      else if (selection.kind === 'entity' && selection.editOperation === 'annex')
+        rows.push(['넘겨받는 객체', names([selection.editTargetId]) || selection.name]);
       else rows.push(['이름', selection.name]);
       if (selection.parentId) rows.push(['상위 객체', names([selection.parentId])]);
       if (selection.sourceCountryIds.length) rows.push([selection.kind === 'annex' ? '넘겨주는 국가' : '원소속 국가', names(selection.sourceCountryIds)]);
@@ -289,6 +291,10 @@ export function createTaskPresentation() {
       const name = dependencies.platform.$('territorialCreateNameInput');
       if (name.value !== selection.name) name.value = selection.name;
       name.closest('.field-group').classList.toggle('hidden', !!selection.editOperation);
+      // An existing subunit's kind and parent cannot change during an annex.
+      const subunitAnnex = selection.kind === 'entity' && selection.editOperation === 'annex';
+      dependencies.platform.$('territorialCreateKindRow')?.classList.toggle('hidden', subunitAnnex);
+      dependencies.platform.$('territorialCreateParentRow')?.classList.toggle('hidden', subunitAnnex);
       const setupModel = dependencies.territorialEditingB.territorialCreateSetupModel();
       const regional = dependencies.platform.$('territorialCreateRegionalInput');
       regional.checked = selection.entityKind === 'regional';
@@ -299,7 +305,9 @@ export function createTaskPresentation() {
       const source = dependencies.platform.$('territorialCreateSourceInput');
       const choice = dependencies.propertyEditingB.replaceSelectOptions(source, setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
       source.disabled = !!setupModel.session.setupSourceCache?.pending;
-      dependencies.platform.$('territorialCreateSourceRow').classList.toggle('hidden', !selection.parentId || choice.single);
+      // Show the resolved source even if only one source is eligible.
+      dependencies.platform.$('territorialCreateSourceRow').classList.toggle('hidden',
+        !selection.parentId || (choice.single && !subunitAnnex));
     }
     const reference = (0, dependencies.platform.$)('territorialCreateReference');
     reference?.classList.toggle('hidden', !model?.showReference);

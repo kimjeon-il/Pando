@@ -38,7 +38,7 @@ export const OBJECT_ACTIONS = Object.freeze({
     id: 'copy-region',
     command: 'territorial.copy-region',
     label: '독립 권역으로 복사',
-    help: '원본을 유지하고 같은 형상의 독립 권역을 만듭니다.',
+    help: '원본 유지 · 같은 형상으로 복사',
     icon: 'icon-chevron-right',
     capability: 'copy-region',
     domains: ['territorial'],
