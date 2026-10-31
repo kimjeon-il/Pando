@@ -102,18 +102,39 @@ void physicalCompositeStream(){
         if(!std::cout)throw std::runtime_error("Unable to write physical composite");
     }
 }
-void physicalResize(){
+void physicalResize(bool mask){
     Bytes header(24);std::cin.read(reinterpret_cast<char*>(header.data()),24);
-    if(std::cin.gcount()!=24||std::memcmp(header.data(),"PDPRES01",8)!=0)throw std::invalid_argument("Invalid physical resize header");
+    if(std::cin.gcount()!=24||std::memcmp(header.data(),mask?"PDPMSK01":"PDPRES01",8)!=0)throw std::invalid_argument("Invalid physical resize header");
     const auto width=u32(header,8),height=u32(header,12),outWidth=u32(header,16),outHeight=u32(header,20);
     if(!width||!height||!outWidth||!outHeight||width>30000||height>30000||outWidth>width||outHeight>height||
        std::uint64_t(width)*height>240000000)throw std::invalid_argument("Invalid physical resize dimensions");
-    Bytes input(std::size_t(width)*height*3);
+    Bytes input(std::size_t(width)*height*(mask?1:3));
     std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()));
     if(static_cast<std::size_t>(std::cin.gcount())!=input.size())throw std::invalid_argument("Truncated physical resize input");
-    const auto output=pando::map_image::resizePhysicalRgb(input,width,height,outWidth,outHeight);
+    Bytes output;
+    if(mask){
+        if(std::any_of(input.begin(),input.end(),[](auto value){return value!=0&&value!=255;}))throw std::invalid_argument("Invalid physical land mask");
+        output.resize(std::size_t(outWidth)*outHeight);
+        for(std::uint32_t y=0;y<outHeight;y++)for(std::uint32_t x=0;x<outWidth;x++){
+            const auto sx=(std::uint64_t(2)*x+1)*width/(std::uint64_t(2)*outWidth);
+            const auto sy=(std::uint64_t(2)*y+1)*height/(std::uint64_t(2)*outHeight);
+            output[std::size_t(y)*outWidth+x]=input[std::size_t(sy)*width+sx];
+        }
+    }else output=pando::map_image::resizePhysicalRgb(input,width,height,outWidth,outHeight);
     std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
     if(!std::cout)throw std::runtime_error("Unable to write physical resize");
+}
+void physicalLuminance(){
+    Bytes header(16);std::cin.read(reinterpret_cast<char*>(header.data()),16);
+    if(std::cin.gcount()!=16||std::memcmp(header.data(),"PDPLUM01",8)!=0)throw std::invalid_argument("Invalid luminance header");
+    const auto width=u32(header,8),height=u32(header,12);const auto pixels=std::uint64_t(width)*height;
+    if(!width||!height||width>30000||height>16384||pixels>240000000)throw std::invalid_argument("Invalid luminance dimensions");
+    Bytes input(static_cast<std::size_t>(pixels*3)),output(static_cast<std::size_t>(pixels));
+    std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()));
+    if(static_cast<std::size_t>(std::cin.gcount())!=input.size())throw std::invalid_argument("Truncated luminance input");
+    for(std::size_t i=0;i<output.size();i++)output[i]=static_cast<unsigned char>((19595u*input[i*3]+38470u*input[i*3+1]+7471u*input[i*3+2]+32768u)>>16);
+    std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+    if(!std::cout)throw std::runtime_error("Unable to write luminance");
 }
 }
 int main(int argc,char** argv){
@@ -121,7 +142,9 @@ int main(int argc,char** argv){
     _setmode(_fileno(stdin),_O_BINARY);_setmode(_fileno(stdout),_O_BINARY);
 #endif
     try{if(argc==2&&std::string(argv[1])=="physical-composite-stream"){physicalCompositeStream();return 0;}
-        if(argc==2&&std::string(argv[1])=="physical-resize"){physicalResize();return 0;}
+        if(argc==2&&std::string(argv[1])=="physical-resize"){physicalResize(false);return 0;}
+        if(argc==2&&std::string(argv[1])=="physical-resize-mask"){physicalResize(true);return 0;}
+        if(argc==2&&std::string(argv[1])=="physical-luminance"){physicalLuminance();return 0;}
         const bool mask=argc==2&&std::string(argv[1])=="mask";
         if(argc!=1&&!mask)throw std::invalid_argument("Invalid terrain preview operation");
         Bytes input;std::array<char,65536> buffer{};
