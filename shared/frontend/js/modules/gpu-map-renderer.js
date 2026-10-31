@@ -859,7 +859,7 @@ export function createGpuMapRenderer(deps) {
       now: () => performance.now(),
       schedule: (callback, delay) => lifecycle.timeout(callback, delay),
       clearSchedule: timer => lifecycle.cancelTimeout(timer),
-      isSuspended: () => document.hidden || document.visibilityState === 'hidden' || gpuRecoveryFrozen || gpuRecoveryCached,
+      isSuspended: () => (typeof document !== 'undefined' && (document.hidden || document.visibilityState === 'hidden')) || gpuRecoveryFrozen || gpuRecoveryCached,
       onFallbackFailure: failGpuFallback,
       onFailure: (error, recoveryTicket) => {
         console.error('[PL-GPU-002]', error);
