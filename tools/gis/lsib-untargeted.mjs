@@ -1,12 +1,18 @@
 // Assemble the existing untargeted LSIB supplement from explicit in-memory inputs.
 import {classifyLSIBExclusion} from './lsib-exclusion.mjs';
+import {lsibLineBounds,readLSIBArchiveEvidence,readLSIBDisputedShape,readLSIBLines} from './lsib-source-native.mjs';
 import {lsibSourceSupplement} from './lsib-targeted.mjs';
-import {resolve} from 'node:path';
+import {lstat,mkdir,readFile} from 'node:fs/promises';
+import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
+import {writeLibraryOutput} from '../library-data.mjs';
 import {applyLSIBCountryPatches,classifyLSIBSpatial,extractLSIBSharedChains,mergeLSIBUnion,
   prepareLSIBNearestReplacements} from './lsib-screen-native.mjs';
 
 const sourceId='dos-lsib-11.4';
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const key=(a,b)=>[a,b].sort().join('/');
 const protectedPairs=new Set([
   ['RUS','UKR'],['CHN','IND'],['CHN','BTN'],['IND','PAK'],['CHN','PAK'],
@@ -14,13 +20,30 @@ const protectedPairs=new Set([
   ['MAR','SAH'],['SDN','SSD'],['SDN','SDS'],['DEU','LUX'],['SRB','XKX'],
   ['CHN','HKG'],['CHN','MAC'],['PRK','KOR'],
 ].map(pair=>key(...pair)));
-function bounds(geometry){
-  const points=geometry.type==='LineString'?geometry.coordinates:geometry.coordinates.flat();
-  if(!points.length)throw Error('Empty LSIB shared boundary');
-  const result=[Infinity,Infinity,-Infinity,-Infinity];
-  for(const [x,y] of points){result[0]=Math.min(result[0],x);result[1]=Math.min(result[1],y);
-    result[2]=Math.max(result[2],x);result[3]=Math.max(result[3],y);}
-  return result;
+const jsonBytes=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
+
+export function prepareLSIBEvidence({archiveEvidence,records,disputes,disputeShp,disputeDbf}){
+  if(!archiveEvidence||!Buffer.isBuffer(archiveEvidence.checksum)||!Buffer.isBuffer(archiveEvidence.readme)||
+    !Array.isArray(records)||!Array.isArray(disputes)||!Buffer.isBuffer(disputeShp)||!Buffer.isBuffer(disputeDbf)||
+    !['archiveSha256','innerArchiveSha256','shpSha256','dbfSha256'].every(key=>/^[a-f0-9]{64}$/.test(archiveEvidence[key]||'')))
+    throw Error('Explicit LSIB evidence inputs required');
+  const features=records.map(record=>({type:'Feature',properties:record.properties,geometry:record.geometry}));
+  const masterText=JSON.stringify({type:'FeatureCollection',features})+'\n';
+  if(Buffer.byteLength(masterText)>512*1024*1024)throw Error('LSIB master exceeds byte budget');
+  const master=gzipSync(Buffer.from(masterText),{level:6});
+  const provenance={sourceId,published:'2025-02-24',url:'https://data.geodata.state.gov/LSIB.zip',
+    license:'US Government public release; see upstream metadata',archiveSha256:archiveEvidence.archiveSha256,
+    innerArchiveSha256:archiveEvidence.innerArchiveSha256,shpSha256:archiveEvidence.shpSha256,dbfSha256:archiveEvidence.dbfSha256,
+    masterSha256:sha(master),naturalEarthDisputes:{release:'v5.1.1',
+      url:'https://github.com/nvkelso/natural-earth-vector/tree/v5.1.1/10m_cultural',shpSha256:sha(disputeShp),dbfSha256:sha(disputeDbf)},
+    policy:'Existing attribution retained; special/disputed/joint/historical lines withheld; no guessed connectors.'};
+  return new Map([
+    ['upstream-checksums.txt',archiveEvidence.checksum],
+    ['line-index.json',jsonBytes(records.map(record=>({properties:record.properties,bbox:lsibLineBounds(record.geometry)})))],
+    ['upstream-readme.txt',archiveEvidence.readme],['boundaries.geojson.gz',master],
+    ['ne-disputed-v5.1.1.geojson',jsonBytes({type:'FeatureCollection',features:disputes.map(row=>({type:'Feature',properties:row.properties,geometry:row.geometry}))})],
+    ['provenance.json',jsonBytes(provenance)],
+  ]);
 }
 async function classifySources(disputes,records,options){
   const flags=new Map(),limit=24*1024*1024,base=Buffer.byteLength(JSON.stringify({disputes,sources:[],chains:[],references:[]}));
@@ -56,7 +79,7 @@ export async function buildLSIBUntargetedCandidate(request,options={}){
   for(const row of [...shared].sort((a,b)=>a.countries.join('/').localeCompare(b.countries.join('/'),'en'))){
     options.signal?.throwIfAborted();
     const countries=row.countries,pair=countries.join('/'),matches=byPair.get(pair)||[];
-    const entry={countries,bbox:bounds(row.geometry),status:'withheld',segments:[],sourceLineIds:matches.map(item=>item.properties.ID)};
+    const entry={countries,bbox:lsibLineBounds(row.geometry),status:'withheld',segments:[],sourceLineIds:matches.map(item=>item.properties.ID)};
     if(!matches.length){entry.reason='no-matching-LSIB-country-pair';report.push(entry);continue;}
     for(const match of matches)reviewed.add(match.properties.ID);
     const disputed=protectedPairs.has(pair)||matches.some(match=>flags.get(match));
@@ -107,11 +130,60 @@ export async function buildLSIBUntargetedCandidate(request,options={}){
   return {schemaVersion:1,sourceId,sourcePublished:'2025-02-24',sourceRevision,changes,boundaries:report};
 }
 
+export async function runLSIBUntargeted(request,options={}){
+  const {root,archive,disputedDirectory,evidenceDirectory,output,binary,gdal}=request||{};
+  if([root,archive,disputedDirectory,evidenceDirectory,output].some(value=>typeof value!=='string'||!value))
+    throw Error('Explicit LSIB source and new output paths required');
+  options.signal?.throwIfAborted();
+  const rootPath=resolve(root),evidence=resolve(evidenceDirectory),outputPath=resolve(output);
+  const names=['upstream-checksums.txt','line-index.json','upstream-readme.txt','boundaries.geojson.gz','ne-disputed-v5.1.1.geojson','provenance.json'];
+  const paths=[outputPath,...names.map(name=>join(evidence,name))];
+  if(new Set(paths).size!==paths.length)throw Error('LSIB output paths overlap');
+  for(const path of paths){
+    try{await lstat(path);const error=Error('EEXIST: LSIB output already exists: '+path);error.code='EEXIST';throw error;}
+    catch(error){if(error.code!=='ENOENT')throw error;}
+  }
+  const readArchive=options.readArchiveEvidence||readLSIBArchiveEvidence,readLines=options.readLines||readLSIBLines;
+  const readDisputed=options.readDisputedShape||readLSIBDisputedShape,common={binary,signal:options.signal};
+  const archiveEvidence=await readArchive({archive,requirePinned:true},{signal:options.signal});
+  const records=await readLines({archive,all:true,...(gdal?{binary:gdal}:{})},common);
+  const disputeShp=await readFile(join(disputedDirectory,'ne-disputed.shp')),disputeDbf=await readFile(join(disputedDirectory,'ne-disputed.dbf'));
+  const disputes=await readDisputed({shp:disputeShp,dbf:disputeDbf},common);
+  const source=join(rootPath,'assets/data/territorial-entities/source');
+  const view=JSON.parse(await readFile(join(source,'views/world.json'),'utf8'));
+  if(!Array.isArray(view.selections))throw Error('Explicit current world selections required');
+  const entities={},versions={},geometries={},inputHashes={};
+  for(const selection of view.selections){
+    options.signal?.throwIfAborted();
+    if(typeof selection.entityId!=='string'||!/^state:[A-Z]{3}$/.test(selection.entityId))
+      throw Error('Invalid current country identity');
+    const bytes=await readFile(join(source,'countries',selection.entityId.replaceAll(':','-')+'.json'));
+    const entity=JSON.parse(bytes),version=entity.geometryVersions.find(value=>value.versionId===selection.geometryVersionId);
+    if(entity.entityId!==selection.entityId||!version||version.validTo!=null)throw Error('Historical display geometry is protected: '+selection.entityId);
+    const code=entity.sourceInfo?.featureId;
+    if(typeof code!=='string'||!code||Object.hasOwn(entities,code))throw Error('Duplicate or missing LSIB country identity');
+    entities[code]={entityId:entity.entityId};versions[code]={versionId:version.versionId,sourceId:version.sourceId};
+    geometries[code]=version.geometry;inputHashes[code]=sha(bytes);
+  }
+  const sourceRevision=JSON.parse(await readFile(join(rootPath,'config/library-data.json'),'utf8')).revision;
+  const candidate=await buildLSIBUntargetedCandidate({records,disputes:disputes.map(row=>row.geometry),
+    entities,versions,geometries,inputHashes,sourceRevision},common);
+  const files=prepareLSIBEvidence({archiveEvidence,records,disputes,disputeShp,disputeDbf});
+  options.signal?.throwIfAborted();await mkdir(evidence,{recursive:true});await mkdir(dirname(outputPath),{recursive:true});
+  for(const [name,bytes] of files){options.signal?.throwIfAborted();writeLibraryOutput(join(evidence,name),bytes,{flag:'wx'});}
+  options.signal?.throwIfAborted();writeLibraryOutput(outputPath,jsonBytes(candidate),{flag:'wx'});
+  return {changedCountries:candidate.changes.length,supplementedPairs:candidate.boundaries.filter(row=>row.status!=='withheld').length,
+    withheldEntries:candidate.boundaries.filter(row=>row.status==='withheld').length,output:outputPath};
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||process.argv[2]!=='--stream')throw Error('Expected --stream');
-    const chunks=[];let size=0;
-    for await(const chunk of process.stdin){size+=chunk.length;if(size>512*1024*1024)throw Error('LSIB candidate request exceeds byte budget');chunks.push(chunk);}
-    process.stdout.write(JSON.stringify(await buildLSIBUntargetedCandidate(JSON.parse(Buffer.concat(chunks,size).toString('utf8'))))+'\n');
+    const request={root:resolve(dirname(fileURLToPath(import.meta.url)),'../..'),output:'build-native/lsib-supplement/candidates.json'};
+    const names={'--archive':'archive','--disputed-directory':'disputedDirectory','--evidence-directory':'evidenceDirectory','--output':'output'};
+    for(let i=2;i<process.argv.length;i++){
+      const name=names[process.argv[i]],value=process.argv[++i];if(!name||!value||value.startsWith('--'))throw Error('Expected LSIB source option and value');
+      request[name]=value;
+    }
+    process.stdout.write(JSON.stringify(await runLSIBUntargeted(request))+'\n');
   }catch(error){process.stderr.write('lsib-untargeted: '+String(error.message)+'\n');process.exitCode=1;}
 }

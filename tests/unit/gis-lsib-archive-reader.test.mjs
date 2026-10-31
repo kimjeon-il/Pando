@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {parseLSIBGeoJSON,readLSIBRaw} from '../../tools/gis/lsib-source-native.mjs';
 import {mergeLSIBLines} from '../../tools/gis/lsib-screen-native.mjs';
@@ -48,13 +47,4 @@ test('GDAL reads the exact selected LSIB source coordinates and attributes',{
   const index=JSON.parse(await readFile('tools/historical-library/sources/lsib-11.4/line-index.json','utf8'));
   assert.deepEqual(rows[0].properties,index.find(row=>row.properties.ID===id).properties);
   assert.equal(rows[0].geometry.type,'LineString');assert.deepEqual(rows[0].geometry.coordinates,old.reference);
-});
-test('LSIB supplement caller receives a selected original without coordinate changes',{
-  skip:!process.env.PANDO_PYTHON_ORACLE||!process.env.PANDO_LSIB_ARCHIVE||!process.env.PANDO_GDAL_OGR2OGR||
-    !process.env.PANDO_LSIB_DISPLAY_ORACLE||!process.env.PANDO_TERRITORIAL_RECIPE_BINARY
-},async()=>{
-  const old=JSON.parse(await readFile(process.env.PANDO_LSIB_DISPLAY_ORACLE,'utf8'));
-  const script=`import importlib.util,json,os,sys\nspec=importlib.util.spec_from_file_location('lsib','tools/supplement-lsib-boundaries.py')\nm=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nx=json.load(sys.stdin)\nrows=m.load_lsib_archive(os.environ['PANDO_LSIB_ARCHIVE'],[x['sourceId']])\nassert rows[0]['properties']['ID']==x['sourceId']\nassert [list(p) for p in rows[0]['line'].coords]==x['reference']\nprint('ok')`;
-  const result=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{input:JSON.stringify(old),encoding:'utf8',windowsHide:true,timeout:300000});
-  assert.equal(result.status,0,result.stderr);assert.equal(result.stdout.trim(),'ok');
 });
