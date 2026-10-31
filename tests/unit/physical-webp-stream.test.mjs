@@ -58,9 +58,9 @@ countries=inputs/'countries.geojson'; countries.write_text(json.dumps(oracle['co
 before={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in source.iterdir()}
 spec=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-arguments=dict(source_size=(4,2),level_widths=(4,),tile_size=2)
+arguments=dict(source_size=(4,2),level_widths=(2,4),tile_size=2)
 manifest=module.build_terrain(source,root/'output',countries,**arguments)
-assert manifest['levels']==[dict(id=0,width=4,height=2,columns=2,rows=1,tileSize=2)]
+assert manifest['levels']==[dict(id=0,width=2,height=1,columns=1,rows=1,tileSize=2),dict(id=1,width=4,height=2,columns=2,rows=1,tileSize=2)]
 output=root/'output'/'terrain'/'v0.12.6'/'0'/'0-0.webp'; saved=output.read_bytes()
 try:
     module.build_terrain(source,root/'output',countries,**arguments)
@@ -73,8 +73,8 @@ assert before=={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sourc
     const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script,root],{timeout:60000});
     assert.equal(p.status,0,String(p.stderr));
     for(const tile of oracle.tiles){
-      const decoded=await readNativeRawWebp(readFileSync(join(root,'output','terrain','v0.12.6','0',`${tile.column}-0.webp`)));
-      assert.equal(decoded.width,4);assert.equal(decoded.height,4);
+      const decoded=await readNativeRawWebp(readFileSync(join(root,'output','terrain','v0.12.6',String(tile.level),`${tile.column}-0.webp`)));
+      assert.equal(decoded.width,tile.width);assert.equal(decoded.height,tile.height);
       assert.deepEqual(decoded.data,Buffer.from(tile.rgba,'base64'));
     }
   });
