@@ -70,6 +70,10 @@ jobs:
           fi
       - name: Apply approved existing-shape transitions and rebuild coupled artifacts
         run: node tools/gis/apply-post-2000-territorial-links.mjs --apply
+      - name: Verify five candidate source cut removals without changing geometry
+        run: node tools/gis/normalize-2026-source-reference.mjs --plan
+      - name: Remove artificial 2026 source-date splits and rebuild the complete world catalog
+        run: node tools/gis/normalize-2026-source-reference.mjs --apply
       - name: Prove unrelated Soviet geometry remained byte-identical
         run: |
           node --input-type=module <<'NODE'
@@ -84,7 +88,7 @@ jobs:
         run: |
           node tools/build-territorial-entity-chunks.mjs --check
           node tools/build-builtin-world.mjs --check
-          node --test tests/unit/post-2000-territorial-links.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs
+          node --test tests/unit/post-2000-territorial-links.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/post-2000-generated-world-display.test.mjs tests/unit/source-date-cut-normalization.test.mjs
       - name: Store and push changed territorial sources and generated world as one pinned library revision
         run: |
           node tools/library-data.mjs --store-and-stage --push \
