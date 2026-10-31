@@ -17,13 +17,55 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  terrain-dem-raster:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-raster'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the existing GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: dem-raster-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build and compare selected DEM windows
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.dem-raster-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $env:PATH = "$sdk/bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/terrain-dem-raster -B build-native/terrain-dem-raster "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM window reader configuration failed' }
+          cmake --build build-native/terrain-dem-raster --config Release --target pando-terrain-dem-raster
+          if ($LASTEXITCODE -ne 0) { throw 'DEM window reader build failed' }
+          if ($IsWindows) { $env:PANDO_TERRAIN_DEM_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/Release/pando-terrain-dem-raster.exe" }
+          else { $env:PANDO_TERRAIN_DEM_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/pando-terrain-dem-raster" }
+          node --test tests/unit/terrain-dem-raster-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
   reference-sequence:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence'
     strategy:
