@@ -98,9 +98,10 @@ export function instrumentMapBaselineSource(source, name) {
     next = replaceExactlyOnce(next, 'setMonth:async month=>{', 'setMonth:async month=>{globalThis.__PANDO_P0__.begin(month);');
     next = replaceExactlyOnce(next, "onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
       "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
-    around('await searchController.completeHydration();', 'search-hydration');
-    // Completion is independent of the live region's visual treatment.
-    const done = "search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';";
+    // Search is now after map readiness. Record its own optional phase without
+    // changing the meaning of the original renderer onPresented callback.
+    around('await searchController.completeHydration({isCurrent});', 'search-hydration');
+    const done = "status.dataset.ready='true';";
     next = replaceExactlyOnce(next, done, done + 'globalThis.__PANDO_P0__.settled();');
     next = replaceExactlyOnce(next, 'productMode,documentState:',
       'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),p0BuildMeta:()=>runtimeContext.meta,productMode,documentState:');

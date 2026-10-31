@@ -25,6 +25,7 @@ import { createProjectDomain } from "../../../../shared/frontend/js/modules/proj
 import { createInitialDocument } from "../../../../shared/frontend/js/modules/initial-document.js";
 import { createViewerMap } from './viewer-map.js';
 import {createViewerInitialPresentation} from './viewer-initial-presentation.js';
+import {createViewerPostPresentation} from './viewer-post-presentation.js';
 import { createFileController } from "../../../../shared/frontend/js/modules/file-controller.js";
 import { readProjectFile } from "../../../../shared/frontend/js/modules/project-file-reader.js";
 import { createMapSettings } from "../../../../shared/frontend/js/modules/app-map-settings.js";
@@ -57,7 +58,7 @@ export async function composeViewer({ productMode, meta }) {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
-    onProjectReset:async event=>{previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
+    onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
     replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
       const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
       if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
@@ -113,6 +114,19 @@ export async function composeViewer({ productMode, meta }) {
   map.loadPhysicalResources({includeHydro:false});
   syncStatus=()=>{if(map&&!projectDomain.isOpening())selectionUiController.syncNow(null,{force:true});};
   const search=()=>{map.objectCatalog.invalidateObjectPresentation();searchController.render();};
+  // Accepted map frames are published independently of optional search/overlay
+  // hydration. Each post task is generation-scoped and may never roll a map back.
+  const postPresentation=createViewerPostPresentation({
+    hydrate:async isCurrent=>{await searchController.completeHydration({isCurrent});},
+    refresh:search,
+    afterMap:[()=>map.loadPhysicalResources(),()=>surfaces.syncOverlayState(),()=>syncStatus()],
+    onError:(error,stage)=>{
+      diagnostics.push({category:'viewer-post-presentation',errorCode:'PL-VIEWER-POST-001',
+        stage,technicalMessage:error?.message||String(error),stack:error?.stack||''});
+      report(error,stage==='hydrate'?'검색 준비를 완료하지 못했습니다.':'지도 보조 정보를 갱신하지 못했습니다.','PL-VIEWER-POST-001');
+    },
+  });
+  disposables.push(postPresentation);
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>builtinActive&&builtinClock?.month() ? builtinClock.month() : activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
       if(builtinActive)return builtinClock.selectMonth(month);
@@ -123,6 +137,7 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push({dispose:disposeTimeline});
   const open=async (reader,options)=>{
+    postPresentation.invalidate();
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
@@ -133,16 +148,19 @@ export async function composeViewer({ productMode, meta }) {
     try {
     if(!await projectDomain.open(reader,options)){firstMap.cancel();return false;}
     if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
-    firstMap.accept(projectDomain.getGeneration());
+    const presentedGeneration=projectDomain.getGeneration();
+    firstMap.accept(presentedGeneration);
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     await map.update();
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
-    await searchController.completeHydration();
-    if(request!==projectDomain.getOpenRevision())return false;
-    map.loadPhysicalResources();
-    search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';
+    if(request!==projectDomain.getOpenRevision()||(options?.isCurrent?.()===false)
+      ||projectDomain.getGeneration()!==presentedGeneration)return false;
+    // This status reflects the accepted map, not search hydration or extras.
+    status.dataset.ready='true';
     presentViewerLoadStatus(status,'지도 준비 완료.');
+    postPresentation.schedule(()=>request===projectDomain.getOpenRevision()
+      &&projectDomain.getGeneration()===presentedGeneration&&(options?.isCurrent?.()??true));
     return true;
     } catch(error){firstMap.cancel();if(request===projectDomain.getOpenRevision()){
       status.dataset.ready=String(initialPresentation.hasPresented());
