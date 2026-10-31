@@ -285,16 +285,28 @@ export function createObjectPropertyController(runtime = {}) {
     $('labelNameInput').readOnly = builtin;
     $('labelKindInput').disabled = builtin;
     $('labelNotesInput').readOnly = builtin;
-    $('labelBuiltinInfo').hidden = !builtin;
-    $('labelBuiltinSource').textContent = builtin ? label.source : '';
+    const builtinInfo = $('labelBuiltinInfo');
+    builtinInfo.hidden = !builtin;
+    const sourceDetails = builtinInfo.querySelector('details');
+    if (sourceDetails) {
+      // Keep expanded provenance during refresh; reset after changing the selected label.
+      if (sourceDetails.dataset.labelId !== String(label.id)) sourceDetails.open = false;
+      sourceDetails.dataset.labelId = String(label.id);
+    }
+    let uncertainHistoricalName = false;
     if (builtin && /^\d{4}-\d{2}$/u.test(state.timelineCursor || '')) {
       const rows = resolvePlaceLabelRows(label, { ko: true, en: true, native: true }, temporalMonthEnd(state.timelineCursor).canonical);
-      if (rows.some(row => row.modernName)) $('labelBuiltinSource').textContent += ' · (현)은 현대 명칭입니다. 해당 시점의 명칭은 미확인입니다.';
+      uncertainHistoricalName = rows.some(row => row.modernName);
     }
+    const notice = builtinInfo.querySelector('.ui-help-text');
+    if (notice) notice.textContent = uncertainHistoricalName
+      ? '내장 지명 · 원본 수정 불가 · (현)은 현대 명칭입니다. 해당 시점의 명칭은 미확인입니다.'
+      : '내장 지명 · 원본 수정 불가';
+    $('labelBuiltinSource').textContent = builtin ? label.source : '';
     $('labelBuiltinId').textContent = builtin ? label.sourceId : '';
     $('copyPlaceSection').hidden = !builtin;
     const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
-    $('labelPositionValue').textContent = settings.pinned ? '사용자 위치에 고정됨' : '종류별 정책으로 자동 배치';
+    $('labelPositionValue').textContent = settings.pinned ? '사용자 지정 위치' : '자동 배치';
     $('selectionStatus').textContent = label.name;
     syncActionTab('label');
     syncStatusBar();

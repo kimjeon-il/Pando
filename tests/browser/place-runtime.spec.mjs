@@ -40,7 +40,17 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','');
   await expect(page.locator('#labelKindInput')).toBeDisabled();
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeDisabled();
+  const provenance = page.locator('#labelBuiltinInfo details');
+  await expect(page.locator('#labelBuiltinInfo .ui-help-text')).toContainText('원본 수정 불가');
+  await expect(provenance).toBeVisible();
+  await expect(provenance).not.toHaveAttribute('open');
   await expect(page.locator('#labelBuiltinSource')).toHaveText('synthetic');
+  await expect(page.locator('#labelBuiltinSource')).toBeHidden();
+  await provenance.locator('summary').click();
+  await expect(page.locator('#labelBuiltinSource')).toBeVisible();
+  await expect(page.locator('#labelBuiltinId')).toHaveText('seoul');
+  await expect(page.locator('label[for="labelNotesInput"]')).toHaveClass(/ui-visually-hidden/);
+  await expect(page.locator('#labelPositionValue')).toHaveText(/^(자동 배치|사용자 지정 위치)$/);
   await expect(page.locator('#objectDeleteBtn')).toBeDisabled();
   await expect(page.locator('#objectDeleteBtn')).toHaveAttribute('data-tooltip','내장 지명은 삭제할 수 없습니다.');
   await page.locator('#actionsTabBtn').click();
@@ -49,6 +59,8 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelNameInput')).toBeVisible();
   await expect(page.locator('#labelKindInput')).toBeEnabled();
   await expect(page.locator('#labelKindInput').locator('..').locator('.ui-select-control')).toBeEnabled();
+  await expect(page.locator('#labelBuiltinInfo')).toBeHidden();
+  await expect(page.locator('#labelNotesInput')).not.toHaveAttribute('readonly', '');
   await page.locator('#objectSearchBtn').evaluate(button => button.click());
   await page.locator('#objectSearchInput').fill('서울');
   await expect(result).toHaveCount(0);
@@ -58,6 +70,7 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(result).toBeVisible({timeout:30_000});await result.click();
   await expect(page.locator('#labelNameInput')).toHaveValue('서울 Synthetic');
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','',{timeout:30_000});
+  await expect(page.locator('#labelBuiltinInfo details')).not.toHaveAttribute('open');
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   expect(await page.locator('.user-label').count()).toBeLessThanOrEqual(2048);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).labels.place.languages)).toEqual({ko:true,en:true,native:true});
