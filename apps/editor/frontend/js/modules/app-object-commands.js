@@ -79,42 +79,58 @@ export function createObjectCommands() {
     const subunitPolicy = subunitOnly ? subunitSelectionPolicy(refs.map(ref => dependencies.territorialModel.entityRepository.get(ref.id))) : null;
     (0, dependencies.platform.$)('multiCountryActions')?.classList.toggle('hidden', !countryOnly && !subunitOnly);
     const mergeButton = (0, dependencies.platform.$)('multiSubunitMergeBtn');
-    if (mergeButton) { mergeButton.hidden = !subunitOnly; mergeButton.disabled = !subunitPolicy?.valid; }
+    if (mergeButton) {
+      mergeButton.hidden = !subunitOnly;
+      mergeButton.disabled = !subunitPolicy?.valid;
+      mergeButton.dataset.tooltip = subunitOnly && !subunitPolicy.valid ? subunitPolicy.message : '하위단위 합병';
+      if (subunitOnly && !subunitPolicy.valid) mergeButton.setAttribute('aria-describedby', 'multiBorderEditHelp');
+      else mergeButton.removeAttribute('aria-describedby');
+    }
     const title = (0, dependencies.platform.$)('multiBorderEditBtn')?.querySelector('strong');
     if (title) title.textContent = subunitOnly ? '경계 조정' : '국경 조정';
     const detail = (0, dependencies.platform.$)('multiBorderEditBtn')?.querySelector('small');
-    if (detail) detail.textContent = subunitOnly ? '선택 하위단위 사이의 공유 경계 편집' : '선택 국가 사이의 공유국경 편집';
+    // The action name identifies the operation; leave only actionable reasons.
+    if (detail) detail.textContent = '';
     const borderButton = (0, dependencies.platform.$)('multiBorderEditBtn');
     const borderHelp = (0, dependencies.platform.$)('multiBorderEditHelp');
     if (countryOnly) {
       const analysis = (0, dependencies.geometryOperations.boundaryEditSelectionAnalysis)(refs.map(ref => ref.id));
       const lockedIds = refs.filter(objectRefLocked).map(ref => ref.id);
+      const reason = lockedIds.length
+        ? `잠긴 국가 ${lockedIds.length}개를 해제해야 국경을 조정할 수 있습니다.`
+        : analysis.valid ? '' : analysis.message || '선택한 국가의 공유국경을 확인하세요.';
       if (borderButton) {
         borderButton.disabled = lockedIds.length > 0 || !analysis.valid;
-        borderButton.dataset.tooltip = lockedIds.length
-          ? '잠긴 국가를 해제한 뒤 국경을 조정하세요.'
-          : (analysis.message || '선택 후 공유국경을 확인합니다.');
+        borderButton.dataset.tooltip = reason || '국경 조정';
+        if (reason) borderButton.setAttribute('aria-describedby', 'multiBorderEditHelp');
+        else borderButton.removeAttribute('aria-describedby');
       }
       if (borderHelp) {
-        const message = lockedIds.length
-          ? `잠긴 국가 ${lockedIds.length}개를 해제해야 국경을 조정할 수 있습니다.`
-          : (analysis.message || '국경 조정 시작 시 공유국경을 확인합니다.');
-        borderHelp.textContent = message;
-        borderHelp.classList.toggle('hidden', !message);
+        borderHelp.textContent = reason;
+        borderHelp.classList.toggle('hidden', !reason);
+      }
+    } else if (subunitOnly) {
+      const reason = subunitPolicy.valid ? '' : subunitPolicy.message;
+      if (borderButton) {
+        borderButton.disabled = !subunitPolicy.valid;
+        borderButton.dataset.tooltip = reason || '경계 조정';
+        if (reason) borderButton.setAttribute('aria-describedby', 'multiBorderEditHelp');
+        else borderButton.removeAttribute('aria-describedby');
+      }
+      if (borderHelp) {
+        borderHelp.textContent = reason;
+        borderHelp.classList.toggle('hidden', !reason);
       }
     } else {
       if (borderButton) {
         borderButton.disabled = true;
         delete borderButton.dataset.tooltip;
+        borderButton.removeAttribute('aria-describedby');
       }
       if (borderHelp) {
         borderHelp.textContent = '';
         borderHelp.classList.add('hidden');
       }
-    }
-    if (subunitOnly) {
-      if (borderButton) borderButton.disabled = !subunitPolicy.valid;
-      if (borderHelp) { borderHelp.textContent = subunitPolicy.message; borderHelp.classList.remove('hidden'); }
     }
     syncObjectActionsMenu();
   }
