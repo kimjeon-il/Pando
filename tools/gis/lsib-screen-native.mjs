@@ -65,7 +65,10 @@ export async function prepareLSIBReviewed(mode,geometry,options={}){
   options.signal?.throwIfAborted();
   if(!['igm','coast'].includes(mode)||!geometry||typeof geometry!=='object')throw Error('Explicit reviewed LSIB source required');
   const result=await nativeRequest('--prepare-lsib-reviewed',{mode,geometry},options);
-  validateLine(result?.coordinates);return result.coordinates;
+  validateLine(result?.coordinates);
+  if(mode==='igm'&&(typeof result.transformation?.description!=='string'||!result.transformation.description||
+    !Number.isFinite(result.transformation.accuracyMetres)))throw Error('Invalid reviewed LSIB transformation metadata');
+  return result;
 }
 export async function analyzeLSIBSection(request,options={}){
   options.signal?.throwIfAborted();

@@ -26,21 +26,21 @@ export async function loadLSIBReviewedSource({root,manifestPath,binary},{signal}
   const source=await readSource(root,metadata.sourceFile);
   if(createHash('sha256').update(source.bytes).digest('hex')!==metadata.sourceFileSha256)throw Error('Reviewed LSIB source differs from pinned evidence');
   const data=JSON.parse(source.bytes.toString('utf8'));if(!Array.isArray(data.features))throw Error('Reviewed LSIB source features required');
-  const lines={};
+  const lines={};let transformation;
   if(kind==='igm'){
     const matches=data.features.filter(feature=>feature?.properties?.globalid===metadata.featureGlobalId);
     if(matches.length!==1||matches[0].properties.comune_ist!=='san_mar_com')throw Error('Reviewed reference must identify the San Marino feature');
-    lines.igm=await prepareLSIBReviewed('igm',matches[0].geometry,{binary,signal});
+    const result=await prepareLSIBReviewed('igm',matches[0].geometry,{binary,signal});lines.igm=result.coordinates;transformation=result.transformation;
   }else{
     if(!metadata.features||JSON.stringify(Object.keys(metadata.features).sort())!==JSON.stringify(['east','monaco','west']))
       throw Error('Reviewed coast must identify its three roles');
     for(const role of ['monaco','west','east']){
       const matches=data.features.filter(feature=>feature?.properties?.cleabs===metadata.features[role]);
       if(matches.length!==1||matches[0].properties.niveau!=='Plus hautes eaux')throw Error('Reviewed coast must identify one high-water feature per role');
-      lines[role]=await prepareLSIBReviewed('coast',matches[0].geometry,{binary,signal});
+      lines[role]=(await prepareLSIBReviewed('coast',matches[0].geometry,{binary,signal})).coordinates;
     }
   }
-  return {...metadata,referenceManifest,lines};
+  return {...metadata,referenceManifest,...(transformation?{transformation}:{}),lines};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{

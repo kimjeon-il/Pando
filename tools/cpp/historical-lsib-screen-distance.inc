@@ -215,10 +215,11 @@ V prepareLSIBReviewedSource(const V& request) {
     if(mode=="igm") {
         if(geos.type(geometry.get())!=GEOS_POLYGON||GEOSGetNumInteriorRings_r(context,geometry.get())!=0||GEOSisValid_r(context,geometry.get())!=1)
             throw std::runtime_error("Reviewed San Marino source must be one valid polygon without holes");
-        auto transformed=geos.project(geometry,"EPSG:4258","EPSG:4326");
+        auto metadata=V::obj();auto transformed=geos.project(geometry,"EPSG:4258","EPSG:4326",&metadata);
         const auto* ring=GEOSGetExteriorRing_r(context,transformed.get());
         if(!ring)throw std::runtime_error("Reviewed San Marino source has no exterior");
         output.object["coordinates"]=geos.coordinates(ring);
+        output.object["transformation"]=std::move(metadata);
     } else if(mode=="coast") {
         if(geos.type(geometry.get())!=GEOS_LINESTRING||GEOSisSimple_r(context,geometry.get())!=1||GEOSisRing_r(context,geometry.get())!=0)
             throw std::runtime_error("Reviewed high-water coast must be a simple open line");
