@@ -1,0 +1,101 @@
+name: P8-2 hydro persistence ID diagnostic
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/editor-ui-p8-hydro-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p8-hydro-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check Node renderer without document
+        id: gpu
+        continue-on-error: true
+        run: node --test --test-concurrency=1 tests/unit/hydro-metadata-edit.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Instrument only the temporary checked-out hydro test
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const file = 'tests/browser/workflow-v17.spec.mjs';
+          const old = readFileSync(file, 'utf8');
+          const needle = "}, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');";
+          if (old.split(needle).length !== 2) throw new Error('Exact P8 hydro probe anchor changed');
+          const replacement = \`}, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon').catch(async error => {
+          const diag = await page.evaluate(async displayId => {
+          const state = window.__testEditorTimeline?.state();
+          const memory = (state?.hydroEdits || []).map(row => ({
+          id: row.id, category: row.properties?.category,
+          pandolabId: row.properties?.pandolab_id,
+          systemId: row.properties?.system_id,
+          shape: row.geometry?.type,
+          }));
+          const db = await new Promise((resolve, reject) => {
+          const request = indexedDB.open('pandolab-editor', 2);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+          });
+          const stored = await new Promise((resolve, reject) => {
+          const request = db.transaction('projects', 'readonly').objectStore('projects').get('active-project');
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+          });
+          db.close();
+          const fallback = (() => {
+          try { return JSON.parse(localStorage.getItem('pandolab-editor-project') || 'null'); }
+          catch { return null; }
+          })();
+          return {
+          requestedDisplayId: displayId,
+          selectedRef: state?.selected,
+          memory,
+          stored: (stored?.hydroEdits || []).map(row => ({ id: row.id, shape: row.geometry?.type })),
+          storedAt: stored?.savedAt || '',
+          fallback: (fallback?.hydroEdits || []).map(row => ({ id: row.id, shape: row.geometry?.type })),
+          saveStatus: document.querySelector('#projectSaveStatusText')?.textContent,
+          };
+          }, id.trim());
+          console.log('P8_HYDRO_ID_DIAGNOSTIC ' + JSON.stringify(diag));
+          throw error;
+          });\`;
+          writeFileSync(file, old.replace(needle, replacement));
+          NODE
+      - name: Run isolated river and lake persistence comparison
+        id: hydro
+        continue-on-error: true
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/workflow-v17.spec.mjs --grep 'hydro lists preserve' --workers=1 --retries=0 --trace off --output=test-results/p8-hydro-diagnostic
+      - name: Report independent outcomes
+        if: always()
+        env:
+          GPU_RESULT: ${{ steps.gpu.outcome }}
+          HYDRO_RESULT: ${{ steps.hydro.outcome }}
+        run: |
+          echo "GPU DOM-free: $GPU_RESULT"
+          echo "Hydro persistence: $HYDRO_RESULT"
+      - name: Archive failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-hydro-diagnostic-${{ github.sha }}
+          path: test-results/p8-hydro-diagnostic/
+          if-no-files-found: warn
+          retention-days: 7
+
