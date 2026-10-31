@@ -400,6 +400,11 @@ class SupplementTests(unittest.TestCase):
         self.assertTrue(shape(aa).union(shape(bb)).equals(shape(a).union(shape(b))))
         self.assertEqual(shape(aa).intersection(shape(bb)).area, 0)
         self.assertTrue(shape(aa).boundary.intersection(shape(bb).boundary).equals(LineString(new)))
+        with self.assertRaisesRegex(ValueError, 'owning ring|endpoints'):
+            module.replace_chain(a, [(9, 9), (10, 10)], [(9, 9), (10, 11)])
+        with patch.dict(os.environ, {'PANDO_TERRITORIAL_RECIPE_BINARY': str(Path('missing-lsib-native').resolve())}):
+            with self.assertRaisesRegex(RuntimeError, 'ring replacement failed'):
+                module.replace_chain(a, old, new)
 
 
 if __name__ == '__main__':

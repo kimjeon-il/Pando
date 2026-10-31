@@ -165,73 +165,25 @@ def replacement_chains(old, references):
     return [row['value'] for row in rows if 'value' in row]
 
 
+def replace_chains(geometries, patches):
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'geometries': geometries, 'patches': patches}
+    result = subprocess.run(['node', str(script), '--rings-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('LSIB ring replacement failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    if isinstance(receipt.get('error'), str):
+        raise ValueError(receipt['error'])
+    output = receipt.get('geometries')
+    if not isinstance(output, dict) or set(output) != set(geometries):
+        raise RuntimeError('Invalid LSIB ring replacement receipt')
+    return output
+
+
 def replace_chain(geometry, old, replacement):
-    result = json.loads(json.dumps(geometry))
-    polygons = [result['coordinates']] if result['type'] == 'Polygon' else result['coordinates']
-    start, end = tuple(old[0]), tuple(old[-1])
-    if start == end:
-        old_line, new_line = LineString(old), LineString(replacement)
-        if not old_line.is_ring or not new_line.is_ring or not Polygon(new_line).is_valid:
-            raise ValueError('Reviewed enclave boundary must be a simple closed ring')
-        matches = [ring for polygon in polygons for ring in polygon
-                   if LineString(ring).equals(old_line)]
-        if len(matches) != 1:
-            raise ValueError('Closed boundary does not identify exactly one owning ring')
-        # Each owner retains its ring role and winding; cyclic starts and opposite
-        # traversal must not prevent matching the same complete shared boundary.
-        points = coordinates(new_line)
-        if shapely.is_ccw(LineString(matches[0])) != shapely.is_ccw(new_line):
-            points.reverse()
-        matches[0][:] = [list(point) for point in points]
-        return result
-    matches = []
-    for polygon in polygons:
-        for ring in polygon:
-            points = [tuple(p) for p in ring]
-            border = LineString(points)
-            if all(border.distance(Point(p)) < 1e-11 for p in (start, end)):
-                matches.append(ring)
-    if len(matches) != 1:
-        raise ValueError('Shared endpoints do not identify exactly one owning ring')
-    ring = matches[0]
-    # Reviewed outer anchors can fall inside a retained edge. Insert the exact
-    # common coordinate before selecting the owning arc in either ring direction.
-    points = [tuple(point) for point in ring[:-1]]
-    for endpoint in (start, end):
-        nearest = min(range(len(points)), key=lambda i: Point(points[i]).distance(Point(endpoint)))
-        if Point(points[nearest]).distance(Point(endpoint)) < 1e-11:
-            points[nearest] = endpoint
-    ring[:] = points + points[:1]
-    vertices = set(points)
-    inserted = []
-    for a, b in zip(ring[:-1], ring[1:]):
-        a, b = tuple(a), tuple(b)
-        inserted.append(a)
-        edge = LineString([a, b])
-        interior = [p for p in (start, end) if p not in vertices
-                    and edge.distance(Point(p)) < 1e-11]
-        inserted.extend(sorted(interior, key=lambda p: edge.project(Point(p))))
-    ring[:] = deduplicate(inserted + inserted[:1])
-    points = [tuple(p) for p in ring[:-1]]
-    at = points.index(start)
-    rotated = points[at:] + points[:at]
-    last = rotated.index(end)
-    direct = rotated[:last + 1]
-    other = list(reversed(rotated[last:] + rotated[:1]))
-    old_line = LineString(old)
-    matches = [abs(LineString(arc).length - old_line.length) < 1e-10
-               and LineString(arc).hausdorff_distance(old_line) < 1e-10 for arc in (direct, other)]
-    if sum(matches) != 1:
-        raise ValueError('Old chain does not identify exactly one owning arc')
-    if matches[0]:
-        new = list(replacement) + rotated[last + 1:]
-    else:
-        new = direct[:-1] + list(reversed(replacement))
-    new = deduplicate(new)
-    if new[0] != new[-1]:
-        new.append(new[0])
-    ring[:] = [list(p) for p in new]
-    return result
+    return replace_chains({'owner': geometry}, {'owner': [{'old': old, 'replacement': replacement}]})['owner']
 
 
 def exclusion_reasons(records):
@@ -257,10 +209,7 @@ def component_points(geometry):
 
 
 def apply_country_patches(geometries, patches):
-    result = copy.deepcopy(geometries)
-    for code, entries in patches.items():
-        for entry in entries:
-            result[code] = replace_chain(result[code], entry['old'], entry['replacement'])
+    result = replace_chains(geometries, patches)
     validate_country_repair(geometries, result)
     return result
 
