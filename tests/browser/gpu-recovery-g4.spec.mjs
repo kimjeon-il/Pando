@@ -56,7 +56,15 @@ async function ready(page,renderer=null){
  if(renderer)expect((await state(page)).runtime.renderer).toBe(renderer);
  await page.waitForTimeout(500);
 }
-async function image(page,file){const bytes=await page.locator('#map').screenshot({path:file,animations:'disabled'});return bytes.toString('base64');}
+async function image(page,file){
+ const rect=await page.locator('#map').boundingBox();
+ expect(rect,'Current map region must exist').not.toBeNull();
+ // Page clip captures the map pixels directly without Playwright waiting for an
+ // ever-moving map element to become geometrically "stable" after GPU restore.
+ const bytes=await page.screenshot({path:file,animations:'disabled',timeout:30000,
+  clip:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}});
+ return bytes.toString('base64');
+}
 async function pixels(page,first,second){
  return page.evaluate(async({first,second})=>{
   async function decode(encoded){const img=new Image();img.src='data:image/png;base64,'+encoded;await img.decode();const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);return {width:c.width,height:c.height,data:ctx.getImageData(0,0,c.width,c.height).data};}
