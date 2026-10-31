@@ -101,11 +101,12 @@ export async function analyzeLSIBSection(request,options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
+    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
     const result=process.argv[2]==='--sampled-stream'?await sampledLSIBDistance(request.source,request.target):
+      process.argv[2]==='--replacement-stream'?{results:await prepareLSIBReplacements(request.old,request.references)}:
       {coordinates:await selectLSIBDisplay(request.geometry,request.anchors,request.reference)};
     process.stdout.write(JSON.stringify(result)+'\n');
   }catch(error){process.stderr.write('lsib-screen: '+String(error.message)+'\n');process.exitCode=1;}
