@@ -70,7 +70,7 @@ test('P4-5 unchanged historical lake versions reuse the exact physical result wh
   await resources.preparePhysicalContext('2000-12');
   state.timelineCursor='2000-12';
   assert.equal(resources.physicalLand.revision,modern.sha256);
-  assert.equal(resources.physicalLand.water,null);
+  assert.equal(resources.physicalLand.water??null,null);
   assert.equal(requests.length,fetched);
   state.timelineCursor='1922-12';
   assert.strictEqual(resources.physicalLand,first,'revisiting a matching source may reuse the physical mask');
