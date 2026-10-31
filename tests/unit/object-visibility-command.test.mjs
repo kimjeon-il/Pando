@@ -50,7 +50,8 @@ async function harness(t,refs,{ builtin=false }={}) {
   selection=createSelectionDomain({ commandOwner: owner.client,projectDomain: owner.project,
     refAdapter: { fromCore: coreSelectionRefToWeb,toCore: ref => webSelectionRefToCore(ref,{ isStoredHydro: id => !!owner.documentModel.get({ domain: 'hydro',id }) }) } });
   await selection.setMany(refs);await owner.client.markSaved(owner.client.state().epoch);
-  const state={ projectReplacing: false };
+  // Live object visibility consults the accepted timeline month.
+  const state={ projectReplacing: false, timelineCursor: '2026-10' };
   for(const field of ['layerVisibility','itemVisibility','physicalSettings','territorialEntities','genericFeatures','labels','distributionEntries'])
     Object.defineProperty(state,field,{ get: () => ['layerVisibility','itemVisibility','physicalSettings'].includes(field)
       ? viewing.session.state[field] : owner.documentModel.snapshot()[field] });
