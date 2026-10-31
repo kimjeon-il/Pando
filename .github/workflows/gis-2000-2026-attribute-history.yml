@@ -1,4 +1,4 @@
-name: Apply dated country names and flags from existing source attributes
+name: Apply verified dated country names and flags with preserved historical polygons
 # Follow-up: use the already published name/flag library revision; assert the dated editor snapshot has committed before checking formal names.
 
 on:
