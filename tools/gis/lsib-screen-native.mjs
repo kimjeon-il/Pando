@@ -33,6 +33,19 @@ export async function selectLSIBDisplay(geometry,anchors,reference,options={}){
   const result=await nativeRequest('--select-lsib-display',{geometry,anchors,reference},options);
   validateLine(result?.coordinates);return result.coordinates;
 }
+export async function classifyLSIBSpatial(request,options={}){
+  options.signal?.throwIfAborted();
+  if(!request||!['disputes','sources','chains','references'].every(key=>Array.isArray(request[key])&&request[key].length<=10000))
+    throw Error('Explicit bounded LSIB spatial inputs required');
+  for(const line of [...request.chains,...request.references])validateLine(line);
+  const result=await nativeRequest('--classify-lsib-spatial',{
+    disputes:request.disputes,sources:request.sources,chains:request.chains,references:request.references},options);
+  if(!Array.isArray(result?.disputed)||result.disputed.length!==request.sources.length||result.disputed.some(value=>typeof value!=='boolean')||
+    !Array.isArray(result.chains)||result.chains.length!==request.chains.length||result.chains.some(row=>
+      typeof row?.length!=='number'||!Number.isFinite(row.length)||row.length<0||typeof row.isRing!=='boolean'||!Array.isArray(row.nearby)||
+      row.nearby.some(index=>!Number.isSafeInteger(index)||index<0||index>=request.references.length)))throw Error('Invalid LSIB spatial receipt');
+  return result;
+}
 export async function mergeLSIBUnion(geometries,options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||geometries.length>10000||
