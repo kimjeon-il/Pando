@@ -19,8 +19,7 @@ import zipfile
 from collections import defaultdict
 
 import numpy as np
-from shapely.geometry import LineString, MultiLineString, Point, Polygon, shape, mapping
-from shapely.ops import substring
+from shapely.geometry import LineString, MultiLineString, shape, mapping
 import shapely
 
 SCALE = 2560 * 64 / 360
@@ -126,29 +125,10 @@ def load_lsib_archive(archive, ids=None):
     return [{'properties': feature['properties'], 'line': shape(feature['geometry'])} for feature in features]
 
 
-def intersection_anchors(geometry):
-    if geometry.is_empty:
-        return []
-    if geometry.geom_type == 'Point':
-        return [geometry]
-    if geometry.geom_type == 'LineString':
-        return [Point(geometry.coords[0]), Point(geometry.coords[-1])]
-    return [point for part in geometry.geoms for point in intersection_anchors(part)]
-
-
 def coordinates(geometry):
     if geometry.geom_type == 'Point':
         return [tuple(geometry.coords[0])]
     return [tuple(p) for p in geometry.coords]
-
-
-def deduplicate(points):
-    result = []
-    for point in points:
-        point = tuple(point)
-        if not result or point != result[-1]:
-            result.append(point)
-    return result
 
 
 def replacement_chains(old, references):
@@ -235,76 +215,33 @@ def validate_coastal_repair(geometries, result, review):
 
 
 def repair_coastal_boundary(geometries, reference, coasts):
-    """Replace only the approved FRA/MCO shore arc, then assign its two owners."""
     if set(geometries) != {'FRA', 'MCO'} or set(coasts) != {'monaco', 'west', 'east'}:
         raise ValueError('Coast correction is restricted to FRA/MCO and three reviewed coasts')
-    if reference.geom_type != 'LineString' or reference.is_ring or not reference.is_simple:
+    if reference.geom_type != 'LineString':
         raise ValueError('Coastal land reference must be one simple open line')
-    if any(line.geom_type != 'LineString' or line.is_ring or not line.is_simple for line in coasts.values()):
+    if any(line.geom_type != 'LineString' for line in coasts.values()):
         raise ValueError('Reviewed coasts must be simple open lines')
-    border = coordinates(reference)
-    if border[0][0] > border[-1][0]:
-        border.reverse()
-    coast = coordinates(coasts['monaco'])
-    if Point(coast[0]).distance(Point(border[-1])) > Point(coast[-1]).distance(Point(border[-1])):
-        coast.reverse()
-    junctions = [coast[-1], coast[0]]
-    endpoint_offsets = [Point(a).distance(Point(b)) * SCALE for a, b in zip((border[0], border[-1]), junctions)]
-    if max(endpoint_offsets) > .5:
-        raise ValueError('Coastal land endpoint move exceeds 0.5px')
-    border[0], border[-1] = junctions
-    before_union = shapely.union_all([shape(g) for g in geometries.values()])
-    branches, anchors = {}, []
-    for role, junction in zip(('west', 'east'), junctions):
-        points = coordinates(coasts[role])
-        if Point(points[0]).distance(Point(junction)) > Point(points[-1]).distance(Point(junction)):
-            points.reverse()
-        if Point(points[0]).distance(Point(junction)) * SCALE > .5:
-            raise ValueError('Reviewed coast endpoint does not meet the national boundary')
-        branch = LineString(points)
-        candidates = [p for p in intersection_anchors(branch.intersection(before_union.boundary))
-                      if branch.project(p) > 1e-11]
-        if not candidates:
-            raise ValueError(f'No safe outer coast anchor for {role}')
-        anchor = min(candidates, key=branch.project)
-        detail = coordinates(substring(branch, 0, branch.project(anchor)))
-        detail[0], detail[-1] = junction, tuple(anchor.coords[0])
-        branches[role] = detail
-        anchors.append(tuple(anchor.coords[0]))
-    polygons = list(before_union.geoms) if before_union.geom_type == 'MultiPolygon' else [before_union]
-    rings = [LineString(p.exterior.coords) for p in polygons
-             if all(p.exterior.distance(Point(a)) < 1e-11 for a in anchors)]
-    if len(rings) != 1:
-        raise ValueError('Outer coast anchors do not identify one land component')
-    ring = rings[0]
-    a, b = [ring.project(Point(p)) for p in anchors]
-    lo, hi = sorted((a, b))
-    direct = coordinates(substring(ring, lo, hi))
-    other = join_paths(coordinates(substring(ring, hi, ring.length)), coordinates(substring(ring, 0, lo)))
-    old = min((direct, other), key=lambda points: LineString(points).length)
-    if Point(old[0]).distance(Point(anchors[0])) > Point(old[-1]).distance(Point(anchors[0])):
-        old.reverse()
-    old[0], old[-1] = anchors
-    replacement = join_paths(list(reversed(branches['west'])), list(reversed(coast)), branches['east'])
-    review = {'oldChain': old, 'replacementChain': replacement, 'outerAnchors': anchors,
-              'endpointOffsetsCssPx': endpoint_offsets}
-    expected = shape(replace_chain(mapping(before_union), old, replacement))
-    monaco = Polygon(join_paths(border, coast))
-    if (not expected.is_valid or not monaco.is_valid or monaco.interiors
-            or monaco.difference(expected).area > 1e-10):
-        raise ValueError('Reviewed coastline and border do not bound one Monaco polygon')
-    result = {'MCO': mapping(monaco), 'FRA': mapping(expected.difference(monaco))}
-    validate_coastal_repair(geometries, result, review)
-    if not shape(result['FRA']).boundary.intersection(monaco.boundary).equals(LineString(border)):
-        raise ValueError('Coastal counterparts do not share exactly the national boundary')
-    sections = [{'countries': ('FRA', 'MCO'), 'anchors': junctions,
-                 'master_vertices': len(reference.coords), 'derived_vertices': len(border),
-                 'simplification_bound_px': 0}]
-    for role, points, code in [('monaco', coast, 'MCO'), ('west', branches['west'], 'FRA'), ('east', branches['east'], 'FRA')]:
-        sections.append({'countries': (code,), 'kind': 'coastline', 'referenceRole': role,
-                         'anchors': [points[0], points[-1]], 'master_vertices': len(coasts[role].coords),
-                         'derived_vertices': len(points), 'simplification_bound_px': 0})
-    return result, sections, review
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'geometries': geometries, 'reference': coordinates(reference),
+               'coasts': {role: coordinates(line) for role, line in coasts.items()}}
+    response = subprocess.run(['node', str(script), '--coast-stream'],
+                              input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if response.returncode:
+        raise RuntimeError('LSIB coastal repair failed: ' + response.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(response.stdout)
+    if isinstance(receipt.get('error'), str):
+        raise ValueError(receipt['error'])
+    result, sections, review = receipt.get('geometries'), receipt.get('sections'), receipt.get('review')
+    if not isinstance(result, dict) or set(result) != set(geometries) or not isinstance(sections, list) or len(sections) != 4 or not isinstance(review, dict):
+        raise RuntimeError('Invalid LSIB coastal repair receipt')
+    for section in sections:
+        section['countries'] = tuple(section['countries'])
+        section['anchors'] = [tuple(point) for point in section['anchors']]
+    for key in ['oldChain', 'replacementChain', 'outerAnchors']:
+        review[key] = [tuple(point) for point in review[key]]
+    return {'MCO': result['MCO'], 'FRA': result['FRA']}, sections, review
 
 
 def extract_shared_chains(geometries):
@@ -319,19 +256,6 @@ def extract_shared_chains(geometries):
     if not isinstance(rows, list):
         raise RuntimeError('Invalid LSIB shared-chain receipt')
     return {tuple(row['countries']): shape(row['geometry']) for row in rows}
-
-
-def line_parts(line):
-    return list(line.geoms) if line.geom_type == 'MultiLineString' else [line]
-
-
-def join_paths(*paths):
-    result = list(paths[0])
-    for points in paths[1:]:
-        if tuple(result[-1]) != tuple(points[0]):
-            raise ValueError('Boundary paths do not share the same junction coordinate')
-        result.extend(points[1:])
-    return deduplicate(result)
 
 
 def repair_tripoint_boundary(geometries, references, pair, third):
