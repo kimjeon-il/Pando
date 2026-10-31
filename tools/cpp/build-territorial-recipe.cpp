@@ -711,6 +711,10 @@ public:
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--extract-lsib-shared") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<extractLSIBSharedChains(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--validate-lsib-country-repair") {
             const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
             std::cout<<validateLSIBCountryRepair(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;

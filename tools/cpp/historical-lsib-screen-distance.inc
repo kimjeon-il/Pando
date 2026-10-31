@@ -199,6 +199,46 @@ V validateLSIBCountryRepair(const V& request){
         auto result=V::obj();result.object["valid"]=V::boolean(true);return result;
     }catch(const LSIBRepairRejected& error){auto result=V::obj();result.object["error"]=V::str(error.what());return result;}
 }
+V extractLSIBSharedChains(const V& request){
+    const auto& geometries=field(request,"geometries"),&order=array(field(request,"order"));
+    if(geometries.kind!=V::Object||order.size()!=geometries.object.size())throw std::runtime_error("Explicit ordered LSIB countries required");
+    using Edge=std::pair<LSIBPoint,LSIBPoint>;struct OwnedEdge{Edge edge;std::set<std::string> owners;};
+    std::map<Edge,std::size_t> edgeIndex;std::vector<OwnedEdge> edges;std::set<std::string> seen;
+    for(const auto& item:order){const auto code=str(item);const auto found=geometries.object.find(code);
+        if(found==geometries.object.end()||!seen.insert(code).second)throw std::runtime_error("Invalid ordered LSIB country");
+        const auto type=str(field(found->second,"type"));const auto& coordinates=field(found->second,"coordinates");
+        if(type!="Polygon"&&type!="MultiPolygon")throw std::runtime_error("LSIB shared chains require country polygons");
+        const auto polygon=[&](const V& value){for(const auto& ring:array(value)){
+            const auto points=lsibScreenPoints(ring);for(std::size_t i=1;i<points.size();++i){
+                if(points[i-1]==points[i])continue;const Edge edge=std::minmax(points[i-1],points[i]);
+                auto existing=edgeIndex.find(edge);if(existing==edgeIndex.end()){
+                    if(edges.size()>=5000000)throw std::runtime_error("LSIB shared edges exceed budget");
+                    const auto index=edges.size();edges.push_back({edge,{}});existing=edgeIndex.emplace(edge,index).first;}
+                edges[existing->second].owners.insert(code);
+            }
+        }};
+        if(type=="Polygon")polygon(coordinates);else for(const auto& part:array(coordinates))polygon(part);
+    }
+    using Pair=std::pair<std::string,std::string>;struct Group{Pair pair;std::vector<Edge> edges;};
+    std::map<Pair,std::size_t> groupIndex;std::vector<Group> groups;
+    for(const auto& edge:edges)if(edge.owners.size()==2){auto owner=edge.owners.begin();const auto first=*owner++,second=*owner;const Pair pair{first,second};
+        auto found=groupIndex.find(pair);if(found==groupIndex.end()){const auto index=groups.size();groups.push_back({pair,{}});found=groupIndex.emplace(pair,index).first;}
+        groups[found->second].edges.push_back(edge.edge);
+    }
+    GeometryEngine geos;auto rows=V::arr();
+    for(const auto& group:groups){std::vector<GeometryEngine::Shape> parts;parts.reserve(group.edges.size());
+        for(const auto& edge:group.edges)parts.push_back(lsibScreenLine(geos,{edge.first,edge.second}));
+        auto input=geos.collection(parts,GEOS_MULTILINESTRING),merged=geos.own(GEOSLineMerge_r(geos.context(),input.get()),"LSIB shared line merge");
+        const auto kind=geos.type(merged.get());auto geometry=V::obj();
+        if(kind==GEOS_LINESTRING){geometry.object["type"]=V::str("LineString");geometry.object["coordinates"]=geos.coordinates(merged.get());}
+        else if(kind==GEOS_MULTILINESTRING){geometry.object["type"]=V::str("MultiLineString");auto coordinates=V::arr();
+            for(const auto& line:geos.parts(merged))coordinates.array.push_back(geos.coordinates(line.get()));geometry.object["coordinates"]=std::move(coordinates);}
+        else throw std::runtime_error("Invalid LSIB shared line result");
+        auto countries=V::arr();countries.array={V::str(group.pair.first),V::str(group.pair.second)};
+        auto row=V::obj();row.object["countries"]=std::move(countries);row.object["geometry"]=std::move(geometry);rows.array.push_back(std::move(row));
+    }
+    auto result=V::obj();result.object["chains"]=std::move(rows);return result;
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
