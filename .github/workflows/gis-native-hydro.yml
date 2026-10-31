@@ -511,7 +511,7 @@ jobs:
           node tools/reference-analysis/package-native-review.mjs --binary $binary --directory build-native/map-review/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
           $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          node --test tests/unit/reference-review-mask.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-corpus-metadata.test.mjs tests/unit/reference-publisher-provenance.test.mjs
+          node --test tests/unit/reference-review-mask.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-corpus-metadata.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-macro-provenance.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Reviewed masks differ from original' }
       - uses: actions/upload-artifact@v4
         if: always()

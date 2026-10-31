@@ -70,18 +70,22 @@ def corpus_fingerprint(manifest, auxiliary=None):
     return fingerprint
 
 
-def validate_publisher_annotation(annotation, sheet, root):
+def validate_training_provenance(action, annotation, sheet, root):
     script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
     request = dict(annotation=annotation, sheet=sheet, root=str(pathlib.Path(root).resolve()),
                    rendererVersion=importlib.metadata.version('PyMuPDF'))
-    result = subprocess.run(['node', str(script), '--publisher-provenance-stream'],
+    result = subprocess.run(['node', str(script), f'--{action}-provenance-stream'],
                             input=json.dumps(request, allow_nan=False).encode('utf-8'),
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
-        raise ValueError('Publisher provenance validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+        raise ValueError(f'{action} provenance validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
     if json.loads(result.stdout) != {'valid': True}:
-        raise ValueError('Invalid publisher provenance validation receipt')
+        raise ValueError('Invalid training provenance validation receipt')
+
+
+def validate_publisher_annotation(annotation, sheet, root):
+    validate_training_provenance('publisher', annotation, sheet, root)
     validate_training_rasters(annotation, sheet, root)
 
 
@@ -120,23 +124,9 @@ def validate_training_rasters(annotation, sheet, root):
 def validate_macro_annotation(annotation, sheet, root):
     import numpy as np
     from macro import derive, image_bytes
-    producer = annotation.get('producer', {})
-    if (annotation.get('schemaVersion') != 1 or annotation.get('reviewed') is not False
-            or annotation.get('supervisionQuality') != 'source-derived-weak'
-            or producer.get('script') != 'tools/reference-analysis/macro.py'
-            or not re.fullmatch('[a-f0-9]{64}', producer.get('sha256', ''))
-            or producer.get('renderer') != 'PyMuPDF'
-            or producer.get('rendererVersion') != importlib.metadata.version('PyMuPDF')):
-        raise ValueError('Explicit source-derived macro provenance required')
+    validate_training_provenance('macro', annotation, sheet, root)
     source, metadata_path = [corpus_path(root, annotation.get(field)) for field in ['sourcePdf', 'sourceMetadata']]
-    if (hashlib.sha256(source.read_bytes()).hexdigest() != annotation.get('sourceSha256')
-            or hashlib.sha256(metadata_path.read_bytes()).hexdigest() != annotation.get('sourceMetadataSha256')):
-        raise ValueError('Macro source evidence hash changed')
     metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
-    if (metadata.get('sha256') != annotation['sourceSha256']
-            or any(metadata.get(key) != sheet.get(key) for key in ['id', 'familyId', 'editionId', 'duplicateGroup', 'geographicScope', 'scopeEvidence'])
-            or metadata.get('url') != sheet['source']['url'] or metadata.get('license') != sheet['source']['license']):
-        raise ValueError('Verified macro source and geographic scope required')
     validate_training_rasters(annotation, sheet, root)
     image, target, valid, _ = derive(source, metadata, annotation['maximumDimension'])
     for field, expected in [('raster', target), ('validRaster', valid)]:
