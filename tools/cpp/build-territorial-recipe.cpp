@@ -707,10 +707,15 @@ public:
 #include "historical-ussr-partition-audit.inc"
 #include "historical-lsib-source-audit.inc"
 #include "historical-lsib-screen-distance.inc"
+#include "historical-german-modern-coast.inc"
 }
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--german-1914-modern-coast") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<germanModernCoast(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--select-lsib-nearest-replacements") {
             const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
             std::cout<<selectLSIBNearestReplacements(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;

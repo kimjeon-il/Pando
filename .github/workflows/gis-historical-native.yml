@@ -50,13 +50,62 @@ on:
       target:
         description: Native verification scope
         type: choice
-        options: [all, german-base, german-windows, lsib-screen]
+        options: [all, german-base, german-windows, german-coast, lsib-screen]
         default: all
 
 permissions:
   contents: read
 
 jobs:
+  german-coast:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'german-coast'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check CI storage for the existing GIS toolchain
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 9GB) { throw 'Need estimated 4 GiB GIS SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+          cache-environment: true
+          cache-downloads: true
+      - name: Build and compare the selected German modern-coast cases
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
+          export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
+          node --test tests/unit/gis-german-modern-coast-native.test.mjs
+      - name: Collect the matching Windows compiler runtime
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p build-native/territorial-recipe/ci-runtime
+          runtime="$(dirname "$(command -v c++)")"
+          for file in libstdc++-6.dll libgcc_s_seh-1.dll libwinpthread-1.dll; do
+            cp "$runtime/$file" build-native/territorial-recipe/ci-runtime/
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: territorial-german-coast-${{ matrix.os }}-${{ github.sha }}
+          path: |
+            build-native/territorial-recipe/pando-territorial-recipe*
+            build-native/territorial-recipe/ci-runtime/*.dll
+          if-no-files-found: error
+          retention-days: 7
   lsib-screen:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'lsib-screen'
     strategy:
