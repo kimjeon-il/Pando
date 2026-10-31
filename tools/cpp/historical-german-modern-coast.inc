@@ -63,6 +63,8 @@ V germanModernCoast(const V& request) {
         controls.array.push_back(V::boolean(covered));
     }
     auto output=V::obj();output.object["geometry"]=polygonGeometryJSON(geos,world);
+    output.object["geosVersion"]=V::str(GEOSversion());
+    output.object["projVersion"]=V::str(proj_info().version);
     output.object["valid"]=V::boolean(true);output.object["controls"]=std::move(controls);
     output.object["geographicValid"]=V::boolean(geographicValid==1);
     output.object["geographicRepaired"]=V::boolean(repaired);

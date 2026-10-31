@@ -43,6 +43,18 @@ export function selectModernCoastCountries(document){
   if(found.size!==Object.keys(coastAliases).length)throw Error('Target current-country geometries incomplete: '+[...found].sort().join(','));
   return selected;
 }
+function coastBounds(geometry){
+  const extent=[Infinity,Infinity,-Infinity,-Infinity];
+  function visit(value){
+    if(!Array.isArray(value))throw Error('Invalid modern coast coordinates');
+    if(value.length===2&&value.every(n=>typeof n==='number'&&Number.isFinite(n))){
+      extent[0]=Math.min(extent[0],value[0]);extent[1]=Math.min(extent[1],value[1]);
+      extent[2]=Math.max(extent[2],value[0]);extent[3]=Math.max(extent[3],value[1]);
+    }else for(const child of value)visit(child);
+  }
+  visit(geometry.coordinates);if(extent.some(value=>!Number.isFinite(value)))throw Error('Empty modern coast geometry');
+  return bounds(extent);
+}
 export function buildGermanModernCoast({root=defaultRoot,output,diagnostics,binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY}){
   if(!binary)throw Error('PANDO_TERRITORIAL_RECIPE_BINARY must locate the native GEOS/PROJ tool');
   const paths=[scoped(root,output),scoped(root,diagnostics)];
@@ -67,6 +79,7 @@ export function buildGermanModernCoast({root=defaultRoot,output,diagnostics,bina
     !['outsideKm2','areaKm2','historicalAreaKm2','changedKm2','helgolandKm2','duneKm2'].every(key=>typeof native[key]==='number'&&Number.isFinite(native[key])&&native[key]>=0)||native.outsideKm2>0.01)
     throw Error('Invalid native modern coast receipt');
   if(native.geographicValid!==true||typeof native.geographicRepaired!=='boolean'||
+    typeof native.geosVersion!=='string'||!native.geosVersion||typeof native.projVersion!=='string'||!native.projVersion||
     !Number.isFinite(native.repairBoundaryDistanceMetres)||native.repairBoundaryDistanceMetres<0||native.repairBoundaryDistanceMetres>0.01||
     !Number.isFinite(native.repairAreaDifferenceKm2)||native.repairAreaDifferenceKm2<0)
     throw Error('Invalid geographic topology repair receipt; refusing candidate output');
@@ -76,10 +89,10 @@ export function buildGermanModernCoast({root=defaultRoot,output,diagnostics,bina
     coastlineNote:'Intermediate geometry only. Modern coastline will later be replaced by a reconstructed 1914 coastline.',
     heligoland:'High-resolution modern Helgoland/Düne geometry retained.'},geometry:native.geometry};
   const collection={type:'FeatureCollection',name:'pandolab-german-empire-1914-modern-coast-r1',features:[feature]};
-  const receipt={referenceDate:'1914-07-31',historicalGeometryApproved:false,inputs:{websiteCountries:Object.keys(coastAliases).sort(),
+  const receipt={referenceDate:'1914-07-31',historicalGeometryApproved:false,geosVersion:native.geosVersion,projVersion:native.projVersion,inputs:{websiteCountries:Object.keys(coastAliases).sort(),
     coastBufferMeters:12000,historicalMatchBufferMeters:12000,sources:Object.fromEntries(Object.entries(inputs).map(([key,value])=>[key,{path:value.path,sha256:value.sha256}]))},
     validation:{valid:true,geographicRepaired:native.geographicRepaired,repairBoundaryDistanceMetres:native.repairBoundaryDistanceMetres,
-      repairAreaDifferenceKm2:native.repairAreaDifferenceKm2,geometryType:native.geometry.type,componentCount:native.geometry.coordinates.length,
+      repairAreaDifferenceKm2:native.repairAreaDifferenceKm2,geometryType:native.geometry.type,componentCount:native.geometry.coordinates.length,boundsWGS84:coastBounds(native.geometry),
       historicalAreaKm2:round(native.historicalAreaKm2,3),modernCoastAreaKm2:round(native.areaKm2,3),symmetricDifferenceKm2:round(native.changedKm2,3),
       differenceOutsideCoastZoneKm2:round(native.outsideKm2,6),helgolandAreaKm2:round(native.helgolandKm2,6),duneAreaKm2:round(native.duneKm2,6),
       controlPoints:coastControls.map(([name,,,expected],index)=>({name,expected,actual:native.controls[index]}))},
