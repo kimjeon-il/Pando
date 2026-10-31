@@ -64,8 +64,17 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DEM window reader build failed' }
           if ($IsWindows) { $env:PANDO_TERRAIN_DEM_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/Release/pando-terrain-dem-raster.exe" }
           else { $env:PANDO_TERRAIN_DEM_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/pando-terrain-dem-raster" }
+          node tools/gis/package-terrain-dem-raster.mjs --binary $env:PANDO_TERRAIN_DEM_RASTER_BINARY --directory build-native/terrain-dem-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM window reader packaging failed' }
+          $env:PANDO_TERRAIN_DEM_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/artifact"
           node --test tests/unit/terrain-dem-raster-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-dem-raster-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/terrain-dem-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
   reference-sequence:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence'
     strategy:
@@ -189,7 +198,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   terrain-dem-fill-windows:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-fill-windows' || inputs.target == 'physical-raster')
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-fill-windows' || inputs.target == 'physical-raster' || inputs.target == 'terrain-dem-raster')
     runs-on: windows-2022
     timeout-minutes: 12
     steps:
@@ -255,6 +264,24 @@ jobs:
         with:
           name: physical-raster-osgeo-windows-${{ github.sha }}
           path: build-native/physical-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build the DEM window reader against the OSGeo4W runtime ABI
+        if: inputs.target == 'terrain-dem-raster'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/terrain-dem-raster -B build-native/terrain-dem-raster -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'DEM reader SDK configuration failed' }
+          cmake --build build-native/terrain-dem-raster --config Release --target pando-terrain-dem-raster
+          if ($LASTEXITCODE -ne 0) { throw 'DEM reader SDK build failed' }
+          node tools/gis/package-terrain-dem-raster.mjs --binary build-native/terrain-dem-raster/Release/pando-terrain-dem-raster.exe --directory build-native/terrain-dem-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM reader SDK packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-dem-raster'
+        with:
+          name: terrain-dem-raster-osgeo-windows-${{ github.sha }}
+          path: build-native/terrain-dem-raster/artifact/
           if-no-files-found: error
           retention-days: 7
   terrain-dem-encode:
