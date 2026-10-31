@@ -1,0 +1,79 @@
+{
+  "dbfBase64": "AwAAAAQAAABhABUAAAAAAAAAAAAAAAAAAAAAAAAAAABOQU1FAAAAAAAAAEMAAAAACgAAAAAAAAAAAAAAAAAAAFNUQVRVUwAAAAAAQwAAAAAKAAAAAAAAAAAAAAAAAAAADSAgYWxwaGEgICAgcmV2aWV3ICAgICBza2lwICAgICAgbnVsbCAgICAgICDtlZzqsJUgICAga2VlcCAgICAgICBvbWVnYSAgICAgZWRnZSAgICAgIA==",
+  "shpBase64": "AAAnCgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4OgDAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA6AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAgAAAAQAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwPwAAAAAAAAAAAAAAAAAA8D8AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAACAAAAAgAAAAAAAAADAAAAKA0AAAAAAAAAAAAAQAAAAAAAAPA/AAAAAAAACEAAAAAAAADwPwEAAAACAAAAAAAAAAAAAAAAAABAAAAAAAAA8D8AAAAAAAAIQAAAAAAAAPA/AAAABAAAADoXAAAAAAAAAAAA8L8AAAAAAAAAQAAAAAAAABhAAAAAAAAAAEACAAAABAAAAAAAAAACAAAAAAAAAAAA8L8AAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAUQAAAAAAAAABAAAAAAAAAGEAAAAAAAAAAQA==",
+  "expected": [
+    {
+      "properties": {
+        "NAME": "alpha",
+        "STATUS": "review"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.0
+          ]
+        ]
+      }
+    },
+    {
+      "properties": {
+        "NAME": "한강",
+        "STATUS": "keep"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            2.0,
+            1.0
+          ],
+          [
+            3.0,
+            1.0
+          ]
+        ]
+      }
+    },
+    {
+      "properties": {
+        "NAME": "omega",
+        "STATUS": "edge"
+      },
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              -1.0,
+              2.0
+            ],
+            [
+              0.0,
+              2.0
+            ]
+          ],
+          [
+            [
+              5.0,
+              2.0
+            ],
+            [
+              6.0,
+              2.0
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -18,7 +18,7 @@ import zipfile
 from collections import defaultdict
 
 import numpy as np
-from shapely.geometry import MultiLineString, shape, mapping
+from shapely.geometry import shape, mapping
 import shapely
 
 SCALE = 2560 * 64 / 360
@@ -39,35 +39,18 @@ def json_write(path, value):
     write_library_text(path,json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
 
-def read_shapefile(dbf, shp):
-    count = struct.unpack_from('<I', dbf, 4)[0]
-    header, width = struct.unpack_from('<HH', dbf, 8)
-    fields, at = [], 32
-    while dbf[at] != 13:
-        fields.append((dbf[at:at + 11].split(b'\0')[0].decode(), dbf[at + 16]))
-        at += 32
-    records, offset = [], 100
-    for row in range(count):
-        at = header + row * width + 1
-        props = {}
-        for name, length in fields:
-            props[name] = dbf[at:at + length].decode('utf-8', errors='strict').strip()
-            at += length
-        _, words = struct.unpack_from('>II', shp, offset)
-        offset += 8
-        data = memoryview(shp)[offset:offset + words * 2]
-        offset += words * 2
-        kind = struct.unpack_from('<I', data, 0)[0]
-        if kind == 0:
-            continue
-        if kind not in (3, 13, 23):
-            raise ValueError(f'Expected polyline SHP record, got {kind}')
-        parts, points = struct.unpack_from('<II', data, 36)
-        starts = list(struct.unpack_from('<' + 'I' * parts, data, 44)) + [points]
-        xy = np.frombuffer(data, dtype='<f8', count=points * 2, offset=44 + 4 * parts).reshape(-1, 2)
-        line = shapely.line_merge(MultiLineString([xy[a:b] for a, b in zip(starts[:-1], starts[1:])]))
-        records.append({'properties': props, 'line': line})
-    return records
+def read_disputed_shapes(directory):
+    script = Path(__file__).with_name('gis') / 'lsib-source-native.mjs'
+    request = {'dbfPath': str(directory / 'ne-disputed.dbf'), 'shpPath': str(directory / 'ne-disputed.shp')}
+    result = subprocess.run(['node', str(script), '--disputed-stream'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=300,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Disputed source read failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    features = json.loads(result.stdout).get('features')
+    if not isinstance(features, list):
+        raise RuntimeError('Invalid disputed source receipt')
+    return [{'properties': feature['properties'], 'line': shape(feature['geometry'])} for feature in features]
 
 
 def load_lsib_archive(archive, ids=None):
@@ -196,7 +179,7 @@ def main():
                     stream.write(json.dumps(feature, separators=(',', ':')).encode())
                 stream.write(b']}\n')
     dispute_root = Path(args.disputed_directory)
-    disputes = read_shapefile((dispute_root / 'ne-disputed.dbf').read_bytes(), (dispute_root / 'ne-disputed.shp').read_bytes())
+    disputes = read_disputed_shapes(dispute_root)
     json_write(evidence / 'ne-disputed-v5.1.1.geojson', {'type':'FeatureCollection','features':[
         {'type':'Feature','properties':r['properties'],'geometry':mapping(r['line'])} for r in disputes]})
     disputed_geometry = shapely.union_all([record['line'] for record in disputes]).buffer(.15)
