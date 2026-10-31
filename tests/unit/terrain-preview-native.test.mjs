@@ -68,6 +68,23 @@ test('native physical mask discards a subpixel polygon copy outside the date lin
   assert.equal(createHash('sha256').update(result.stdout).digest('hex'),row.expectedSha256);
   assert.equal(result.stdout[75*720],0);
 });
+test('native physical composite streams multiple Pillow-exact alpha blends',{skip:!binary},()=>{
+  const row=JSON.parse(readFileSync('tests/fixtures/physical-composite-oracle.json','utf8'));
+  const header=Buffer.alloc(16);header.write('PDPCMP01');header.writeUInt32LE(row.width,8);header.writeUInt32LE(row.height,12);
+  const frame=Buffer.concat([header,Buffer.from(row.land,'base64'),Buffer.from(row.ocean,'base64'),Buffer.from(row.mask,'base64')]);
+  const result=spawnSync(binary,['physical-composite-stream'],{input:Buffer.concat([frame,frame]),maxBuffer:1024*1024});
+  assert.equal(result.status,0,String(result.stderr));
+  assert.deepEqual(result.stdout,Buffer.concat([Buffer.from(row.expected,'base64'),Buffer.from(row.expected,'base64')]));
+  const truncated=spawnSync(binary,['physical-composite-stream'],{input:frame.subarray(0,frame.length-1)});
+  assert.notEqual(truncated.status,0);assert.equal(truncated.stdout.length,0);
+});
+test('physical generator reuses the verified native compositor across tiles',
+  {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},()=>{
+    const script="import base64,importlib.util,json,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);r=json.load(open('tests/fixtures/physical-composite-oracle.json'));im=lambda k,mode:Image.frombytes(mode,(r['width'],r['height']),base64.b64decode(r[k]));a=im('land','RGB');b=im('ocean','RGB');mask=im('mask','L');c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask).tobytes();y=c.combine(a,b,mask).tobytes();c.__exit__(None,None,None);sys.stdout.buffer.write(x+y)";
+    const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{maxBuffer:1024*1024});
+    assert.equal(p.status,0,String(p.stderr));const row=JSON.parse(readFileSync('tests/fixtures/physical-composite-oracle.json','utf8'));
+    assert.deepEqual(p.stdout,Buffer.concat([Buffer.from(row.expected,'base64'),Buffer.from(row.expected,'base64')]));
+  });
 test('physical generator delegates land mask to the source-bound native owner',
   {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},t=>{
     const root=mkdtempSync(join(tmpdir(),'pando-physical-mask-'));t.after(()=>rmSync(root,{recursive:true}));

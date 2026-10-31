@@ -1,5 +1,5 @@
 // Source-bound optional C++ terrain compositor; inputs and existing assets remain untouched.
-import {execFile} from 'node:child_process';
+import {execFile,spawn} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
@@ -7,9 +7,12 @@ import {verifyNativeTool} from '../native-tool.mjs';
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainPreviewSources=Object.freeze(['tools/cpp/terrain/CMakeLists.txt','tools/cpp/terrain/preview.cpp','tools/cpp/terrain/land-mask.cpp',
   'tools/cpp/terrain/land-mask.h','tools/cpp/map-image/raster-draw.h','shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
-async function runTerrainPreview(args,input,outputBytes,{root=defaultRoot,directory=process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY||resolve(root,'build-native/terrain-preview/artifact'),signal}={}){
-  signal?.throwIfAborted();const executable=process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview';
-  const {binary}=verifyNativeTool({root,directory,target:'terrain-preview',executable,sourceFiles:terrainPreviewSources});
+function terrainBinary({root=defaultRoot,directory=process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY||resolve(root,'build-native/terrain-preview/artifact')}={}){
+  const executable=process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview';
+  return verifyNativeTool({root,directory,target:'terrain-preview',executable,sourceFiles:terrainPreviewSources}).binary;
+}
+async function runTerrainPreview(args,input,outputBytes,{signal,...options}={}){
+  signal?.throwIfAborted();const binary=terrainBinary(options);
   const output=await new Promise((accept,reject)=>{
     const child=execFile(binary,args,{encoding:'buffer',windowsHide:true,timeout:180000,maxBuffer:outputBytes+65536,signal},
       (error,stdout,stderr)=>error?reject(new Error('Native terrain preview failed: '+error.message+' '+String(stderr||''),{cause:error})):accept(stdout));
@@ -43,10 +46,17 @@ export async function rasterizeNativeTerrainLand({countries,x,y,width,height,lev
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
+    if(process.argv.length===3&&process.argv[2]==='--physical-composite-stream'){
+      const child=spawn(terrainBinary(),['physical-composite-stream'],{stdio:['pipe','pipe','inherit'],windowsHide:true});
+      child.stdin.on('error',error=>{if(error.code!=='EPIPE')child.kill();});
+      child.stdout.pipe(process.stdout,{end:false});process.stdin.pipe(child.stdin);
+      await new Promise((accept,reject)=>{child.once('error',reject);child.once('close',(code,signal)=>code===0&&!signal?accept():reject(Error('Native physical composite failed')));});
+    }else{
     if(process.argv.length!==3||process.argv[2]!=='--physical-mask')throw Error('Expected --physical-mask');
     const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>256*1024*1024)throw Error('Terrain land mask exceeds input budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
     if(request.fillHoles!==true)throw Error('Explicit physical land mask required');
     process.stdout.write(await rasterizeNativeTerrainLand(request));
+    }
   }catch(error){console.error('terrain-preview-native: '+error.message);process.exitCode=1;}
 }
