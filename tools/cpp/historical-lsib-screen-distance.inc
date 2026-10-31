@@ -226,3 +226,16 @@ V prepareLSIBReviewedSource(const V& request) {
     } else throw std::runtime_error("Unknown reviewed LSIB source mode");
     return output;
 }
+
+V analyzeLSIBScreenSection(const V& request) {
+    const auto reference=field(prepareLSIBScreenReference(request),"coordinates");
+    auto displayRequest=V::obj();displayRequest.object["geometry"]=field(request,"geometry");
+    displayRequest.object["anchors"]=field(request,"anchors");displayRequest.object["reference"]=reference;
+    const auto display=field(selectLSIBScreenDisplay(displayRequest),"coordinates");
+    auto distanceRequest=V::obj();distanceRequest.object["source"]=reference;distanceRequest.object["target"]=display;
+    const auto forward=sampledLSIBScreenDistance(distanceRequest);
+    distanceRequest.object["source"]=display;distanceRequest.object["target"]=reference;
+    const auto reverse=sampledLSIBScreenDistance(distanceRequest);
+    auto result=V::obj();result.object["reference"]=reference;result.object["display"]=display;
+    result.object["forward"]=forward;result.object["reverse"]=reverse;return result;
+}

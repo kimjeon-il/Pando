@@ -67,6 +67,18 @@ export async function prepareLSIBReviewed(mode,geometry,options={}){
   const result=await nativeRequest('--prepare-lsib-reviewed',{mode,geometry},options);
   validateLine(result?.coordinates);return result.coordinates;
 }
+export async function analyzeLSIBSection(request,options={}){
+  options.signal?.throwIfAborted();
+  if(!request||!request.geometry||!Array.isArray(request.geometries)||!request.geometries.length||!Array.isArray(request.anchors)||
+    typeof request.merge!=='boolean'||typeof request.closedRing!=='boolean')throw Error('Explicit LSIB section inputs required');
+  if(!request.closedRing)validateLine(request.anchors);
+  const result=await nativeRequest('--analyze-lsib-section',request,options);
+  validateLine(result?.reference);validateLine(result?.display);
+  for(const value of [result.forward,result.reverse])if(!Number.isSafeInteger(value?.samples)||value.samples<2||
+    typeof value.sampledMaximumCssPx!=='number'||!Number.isFinite(value.sampledMaximumCssPx)||value.sampledMaximumCssPx<0)
+    throw Error('Invalid native LSIB section distance');
+  return result;
+}
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
