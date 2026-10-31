@@ -14,7 +14,7 @@ permissions:
   contents: read
 concurrency:
   group: map-transition-p0-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   baseline:
     runs-on: ubuntu-24.04

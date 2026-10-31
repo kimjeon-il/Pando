@@ -97,3 +97,16 @@ test('instrumentation preserves Core admission statement and refuses unsupported
   assert.ok(output.includes(statement)); assert.ok(output.includes('core-load:start')); assert.ok(output.includes('core-load:end'));
   assert.throws(() => instrumentMapBaselineSource('', 'unknown.js'), /Unknown probe/);
 });
+
+test('diagnostic observation has a deadline when a browser stops replying', async () => {
+  const {observeWithDeadline} = await import('../helpers/map-transition-baseline.mjs');
+  const result = await observeWithDeadline(() => new Promise(() => {}), 5);
+  assert.equal(result.status, 'timeout'); assert.equal(result.value, null);
+});
+test('diagnostic observation distinguishes a real null, thrown error and data', async () => {
+  const {observeWithDeadline} = await import('../helpers/map-transition-baseline.mjs');
+  assert.deepEqual(await observeWithDeadline(() => null), {status: 'ok', value: null});
+  assert.deepEqual(await observeWithDeadline(() => ({count: 4})), {status: 'ok', value: {count: 4}});
+  const failed = await observeWithDeadline(() => {throw new Error('closed page');});
+  assert.equal(failed.status, 'failed'); assert.match(failed.error, /closed page/);
+});

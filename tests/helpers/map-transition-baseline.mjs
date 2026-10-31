@@ -113,3 +113,16 @@ export function instrumentMapBaselineSource(source, name) {
   } else throw new TypeError(`Unknown probe source: ${name}`);
   return next;
 }
+
+// Node-side test teardown only: an unresponsive page must not prevent a failure report.
+export async function observeWithDeadline(observe, timeoutMs = 5000) {
+  if (typeof observe !== 'function' || !Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new TypeError('Invalid observation deadline');
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(observe).then(value => ({status: 'ok', value}),
+        error => ({status: 'failed', error: String(error?.stack || error)})),
+      new Promise(resolve => {timer = setTimeout(() => resolve({status: 'timeout', value: null}), timeoutMs);}),
+    ]);
+  } finally { clearTimeout(timer); }
+}

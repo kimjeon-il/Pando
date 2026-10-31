@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { writeFile, readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { semanticSnapshot, summarizeLatency, installMapBaselineCollector, instrumentMapBaselineSource } from '../helpers/map-transition-baseline.mjs';
+import { semanticSnapshot, summarizeLatency, installMapBaselineCollector, instrumentMapBaselineSource, observeWithDeadline } from '../helpers/map-transition-baseline.mjs';
 
 test.use({ timezoneId: 'Asia/Seoul', locale: 'ko-KR', trace: 'off' });
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -100,7 +100,11 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
       expect(pageErrors).toEqual([]);
     } catch (error) { failure = String(error?.stack || error); throw error; }
     finally {
-      const probe = await page.evaluate(() => globalThis.__PANDO_P0__?.snapshot() ?? null).catch(() => null);
+      const previouslyFailed = !!failure;
+      const observation = await observeWithDeadline(() => page.evaluate(() => globalThis.__PANDO_P0__?.snapshot() ?? null));
+      const probe = observation.status === 'ok' ? observation.value : null;
+      if (observation.status !== 'ok' && !failure) failure = 'Final diagnostic observation ' + observation.status;
+      const cdpDetach = await observeWithDeadline(() => cdp.detach());
       if (failure && probe?.active && !samples.some(row => row.id === probe.active.id)) {
         samples.push({id: probe.active.id, month: probe.active.month, classification: 'failed-attempt',
           outcome: 'failed', ms: null, failure});
@@ -116,12 +120,14 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
           'CDP JS heap is not total process, WASM or GPU memory.', 'Narrow viewport is not a physical mobile device.',
           'Initial ready observation is not first-map presentation latency.', 'No performance threshold is enforced at P0.'],
         startup, initialCamera, initialState, snapshots, samples, resourceSamples, pageErrors, probe,
+        diagnosticObservation: {status: observation.status, error: observation.error ?? null},
+        cdpDetach: {status: cdpDetach.status, error: cdpDetach.error ?? null},
         summary: {all: summarizeLatency(samples), repeatPairs: summarizeLatency(samples.filter(row => row.classification === 'repeat-pair'))}};
       const file = testInfo.outputPath('p0-baseline.json'); await writeFile(file, JSON.stringify(report, null, 2));
       await testInfo.attach('p0-baseline', {path: file, contentType: 'application/json'});
       console.log('P0_BASELINE_SUMMARY ' + JSON.stringify({profile: profile.name, outcome: report.outcome,
         codeRevision: report.codeRevision, summary: report.summary, failure}));
-      await cdp.detach();
+      if (!previouslyFailed && failure) throw new Error(failure);
     }
   });
 }
