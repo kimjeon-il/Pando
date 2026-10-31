@@ -46,8 +46,11 @@ V germanModernCoast(const V& request) {
         if(covered!=(expected.raw=="true"))throw std::runtime_error("control point failed: "+str(field(item,"name")));
         controls.array.push_back(V::boolean(covered));
     }
+    const auto geographicValid=GEOSisValid_r(context,world.get());
+    if(geographicValid==2)throw std::runtime_error("Cannot validate geographic coast result");
     auto output=V::obj();output.object["geometry"]=polygonGeometryJSON(geos,world);
     output.object["valid"]=V::boolean(true);output.object["controls"]=std::move(controls);
+    output.object["geographicValid"]=V::boolean(geographicValid==1);
     output.object["outsideKm2"]=V::num(outside);output.object["areaKm2"]=V::num(geos.area(result.get())/1e6);
     output.object["historicalAreaKm2"]=V::num(geos.area(H.get())/1e6);
     output.object["changedKm2"]=V::num(geos.area(changed.get())/1e6);
