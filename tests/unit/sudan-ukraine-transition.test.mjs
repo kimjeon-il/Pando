@@ -29,9 +29,13 @@ test('monthly end and exact day selection keep Sudan, South Sudan and Ukraine as
  assert.equal(selectGeometryVersion(ukr,'2014-03-18')?.versionId,'state:UKR:2014-03-18-post-crimea-r1');
  assert.equal(selectGeometryVersion(ukr,'2014-02')?.versionId,'state:ukraine:1991-2014-r1');
  assert.equal(selectGeometryVersion(ukr,'2014-03')?.versionId,'state:UKR:2014-03-18-post-crimea-r1');
- for(const [entity,modernId] of [[sdn,'state:SDN:natural-earth-5.1.1'],[sds,'state:SDS:natural-earth-5.1.1'],[ukr,'state:UKR:natural-earth-5.1.1']]){
-  assert.equal(selectGeometryVersion(entity,'2026-10-05')?.certainty,'low');
-  assert.equal(selectGeometryVersion(entity,'2026-10-06')?.versionId,modernId);
+ for(const [entity,continuousId] of [[sdn,'state:SDN:2011-07-09-post-secession-r1'],
+  [sds,'state:SDS:2011-07-09-independence-r1'],[ukr,'state:UKR:2014-03-18-post-crimea-r1']]){
+  assert.equal(selectGeometryVersion(entity,'2026-10-05')?.versionId,continuousId);
+  assert.equal(selectGeometryVersion(entity,'2026-10-06')?.versionId,continuousId);
+  assert.equal(selectGeometryVersion(entity,'2026-10-31')?.versionId,continuousId);
+  assert.equal(selectGeometryVersion(entity,'2026-10-06')?.certainty,'low');
+  assert.equal(entity.metadata.sourceOutlineReferenceDate,'2026-10-06');
  }
  const khartoum=[32.56,15.5],juba=[31.58,4.85],kyiv=[30.52,50.45],crimea=[34.1,44.95];
  assert.ok(covers(selectGeometryVersion(sdn,'2011-06').geometry,juba));
