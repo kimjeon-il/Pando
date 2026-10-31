@@ -127,7 +127,8 @@ void capsuleRollbackAndInvalidRequests(const std::string& seed) {
 }
 void discardedStaleAndAccepted(const std::string& seed) {
     DocumentSession owner(ports);owner.documentLoad(seed,"2026-10");
-    const auto original=owner.projectState(),stored=owner.storageSnapshot();
+    const auto original=owner.projectState();
+    const auto stored=owner.storageSnapshot();
     const auto first=bytesFor(owner.project(),"2025-12"),second=bytesFor(owner.project(),"2026-10");
     const auto a=owner.temporalSourcePrepare(first,"p5-4-data",pin,original.epoch);
     const auto b=owner.temporalSourcePrepare(second,"p5-4-data",pin,original.epoch);
