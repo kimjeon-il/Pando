@@ -46,6 +46,11 @@ async function harness(t,refs,{ builtin=false }={}) {
   const nodes=new Map(['objectVisibilityBtn','objectVisibilityIcon','editorObjectStatus'].map(id => [id,{
     attrs: {},dataset: {},classList: { toggle() {} },setAttribute(key,value) { this.attrs[key]=value; },
   }]));
+  nodes.set('objectDeleteBtn', {
+    attrs: {},dataset: {},help: { textContent: '' },
+    setAttribute(key,value) { this.attrs[key]=value; },
+    querySelector(selector) { return selector === 'small' ? this.help : null; },
+  });
   const commands=createObjectCommands();
   const ports={ state,$: id => nodes.get(id),normalizeObjectRef,selectionDomain: selection,entityRepository: repository,
     territorialApplicationService: { canDelete: () => ({ ok: false,code: 'locked' }) },
@@ -104,4 +109,16 @@ test('mixed visibility, no-op and replacement guards use the same canonical comm
   await f.commands.batchSetVisibility();assert.equal(f.state.itemVisibility.labels.a,undefined);assert.equal(f.effects.saved,1);
   await f.commands.batchSetVisibility(true);assert.equal(f.effects.saved,1);f.state.projectReplacing=true;
   await f.commands.batchSetVisibility(false);assert.equal(f.effects.saved,1);
+});
+
+test('locked delete action shows a compact, accessible disabled reason', async t => {
+  const f=await harness(t,[{ domain: 'territorial',type: 'entity',id: 'a' }]);
+  f.commands.syncObjectActionsMenu();
+  const button=f.nodes.get('objectDeleteBtn');
+  assert.equal(button.disabled,true);
+  assert.equal(button.help.textContent,'잠금 해제 후 삭제');
+  assert.equal(button.dataset.actionReason,'true');
+  assert.equal(button.dataset.tooltip,'잠금 해제 후 삭제');
+  assert.equal(button.attrs['aria-label'],'잠금 해제 후 삭제');
+  assert.equal(f.commands.objectRefLocked({ domain: 'territorial',type: 'entity',id: 'a' }),true);
 });
