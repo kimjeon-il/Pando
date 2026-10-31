@@ -248,3 +248,9 @@ target geometry version while preserving curated catalog identity and metadata.
 ### Historical boundary linework (GEOS/PROJ)
 
 Run `node tools/gis/verify-historical-linework.mjs --input FILE.geojson --expected-sha256 SHA256` with `PANDO_TERRITORIAL_RECIPE_BINARY` pointing at the standalone native recipe engine. Inputs are SHA-pinned and read-only. Shared endpoints are permitted; interior crossings, overlaps, T-junctions and self-intersections fail. The geometry and source evidence are neither rewritten nor promoted to a new national border.
+
+The remaining `tools/verify-lsib-screen-delta.py` workflow also requires
+`PANDO_TERRITORIAL_RECIPE_BINARY` and its matching GEOS/PROJ runtime. Its
+selected-line sampling is performed by the native engine; the Python script
+still owns source selection and report assembly. A screen-distance comparison
+does not establish historical ownership or approve a boundary.

@@ -83,7 +83,18 @@ jobs:
           init-shell: bash
           cache-environment: true
           cache-downloads: true
+      - uses: actions/setup-python@v5
+        id: lsib-python
+        with:
+          python-version: '3.12'
+      - name: Install only the frozen LSIB comparison dependencies
+        shell: pwsh
+        run: |
+          & '${{ steps.lsib-python.outputs.python-path }}' -m pip install numpy==2.3.5 shapely==2.1.2
+          if ($LASTEXITCODE -ne 0) { throw 'LSIB comparison dependencies failed' }
       - name: Build and compare only LSIB screen distance
+        env:
+          PANDO_PYTHON_ORACLE: ${{ steps.lsib-python.outputs.python-path }}
         run: |
           cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
           cmake --build build-native/territorial-recipe --target pando-territorial-recipe
