@@ -47,6 +47,9 @@ test('parent changes replace type conversion while preserving entity ID, kind, g
   await page.locator('#undoBtn').click();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
   await page.locator('#undoBtn').click();
+  // Core Undo acknowledges asynchronously; wait for the original parent.
+  await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL')?.properties.parentId),
+    { timeout: 30_000 }).toBe('');
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'))).toEqual(before);
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('IRL'));
   await page.locator('#actionsTabBtn').click();

@@ -326,7 +326,10 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   expect(after[2].geometry).toEqual(units[2].geometry);
   expect(after[3]).toBeNull();
   await page.locator('#undoBtn').click();
-  expect(await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), units.map(unit => unit.id))).toEqual(units.map(unit => unit.geometry));
+  // Restored donors are absent until the asynchronous Core Undo is accepted.
+  await expect.poll(() => page.evaluate(ids =>
+    ids.map(id => window.PANDOLAB_TERRITORIAL.get(id)?.geometry ?? null),
+  units.map(unit => unit.id)), { timeout: 30_000 }).toEqual(units.map(unit => unit.geometry));
   expect(errors).toEqual([]);
 });
 
@@ -451,9 +454,41 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
     await page.locator('#multiDrawnUndoBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(0);
-    await draw(page, 0, tool === 'lake');
+    try {
+      await draw(page, 0, tool === 'lake');
+    } catch (error) {
+      const diagnosis = await page.evaluate(() => {
+        const state = window.__testEditorTimeline?.state();
+        const multi = state?.multiDraft;
+        return {
+          tool: state?.tool, processing: state?.modeProcessing,
+          parts: multi?.parts?.length, current: !!multi?.current,
+          pending: multi?.previewPending, issues: multi?.previewIssues,
+          previewGeometry: multi?.previewGeometry?.type,
+          vertexHandles: document.querySelectorAll('g.draft-vertex').length,
+          doneDisabled: document.querySelector('#modeDraftDoneBtn')?.disabled,
+          reason: document.querySelector('#modeTaskDisabledReason')?.textContent,
+          taskInput: document.querySelector('#modeTaskInput')?.textContent,
+          status: document.querySelector('#modeTaskResultsSummary')?.textContent,
+        };
+      });
+      console.log('P8_HYDRO_DRAFT_DIAG ' + JSON.stringify(diagnosis));
+      throw error;
+    }
     await page.locator('#modeDraftDoneBtn').click();
     if (tool === 'river') {
+      const diagnosis = await page.evaluate(() => {
+        const state = window.__testEditorTimeline?.state();
+        const multi = state?.multiDraft;
+        return {
+          tool: state?.tool, pending: multi?.previewPending,
+          issues: multi?.previewIssues, previewGeometry: multi?.previewGeometry?.type,
+          primaryDisabled: document.querySelector('#modePrimaryBtn')?.disabled,
+          reason: document.querySelector('#modeTaskDisabledReason')?.textContent,
+          status: document.querySelector('#modeTaskResultsSummary')?.textContent,
+        };
+      });
+      console.log('P8_HYDRO_REVIEW_DIAG ' + JSON.stringify(diagnosis));
       // Existing geometry validation rejects the line-only multi-draft preview.
       // UI-only work must expose that error and must not bypass it to create a river.
       await expect(page.locator('#modeTaskDisabledReason')).toBeVisible();
