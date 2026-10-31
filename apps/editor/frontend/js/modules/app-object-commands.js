@@ -256,7 +256,7 @@ export function createObjectCommands() {
       deleteButton.disabled = deleteDisabled;
       // Keep the ordinary row compact, but retain the reason for disabled actions.
       const deleteReason = builtinPlaceDelete ? '내장 지명은 삭제할 수 없습니다.'
-        : deleteDisabled && canDelete ? '잠금 해제 후 삭제'
+        : primary && objectRefLocked(primary) ? '잠금 해제 후 삭제'
           : deleteDisabled && refs.length ? '삭제할 수 없는 객체입니다.' : '';
       const help = deleteButton.querySelector('small');
       if (help) help.textContent = deleteReason;
