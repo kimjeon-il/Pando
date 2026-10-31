@@ -17,13 +17,65 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  terrain-dem-tint:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-tint'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the focused GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: tint-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build tint sampler and fill tool; compare frozen pixels
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.tint-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $env:PATH = "$sdk/bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/terrain-dem-tint -B build-native/terrain-dem-tint "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampling configuration failed' }
+          cmake --build build-native/terrain-dem-tint --config Release --target pando-terrain-dem-tint
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler build failed' }
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-encode "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Tint fill configuration failed' }
+          cmake --build build-native/terrain-dem-encode --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'Tint fill build failed' }
+          if ($IsWindows) { $tint='build-native/terrain-dem-tint/Release/pando-terrain-dem-tint.exe'; $fill='build-native/terrain-dem-encode/Release/pando-terrain-dem-fill.exe' }
+          else { $tint='build-native/terrain-dem-tint/pando-terrain-dem-tint'; $fill='build-native/terrain-dem-encode/pando-terrain-dem-fill' }
+          node tools/gis/package-terrain-dem-tint.mjs --binary $tint --directory build-native/terrain-dem-tint/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler packaging failed' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary $fill --directory build-native/terrain-dem-encode/fill-artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint fill packaging failed' }
+          $env:PANDO_TERRAIN_DEM_TINT_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-tint/artifact"
+          $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
+          node --test tests/unit/terrain-dem-tint.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Tint pixels differ from the frozen Python oracle' }
   terrain-dem-gutters:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-gutters' || inputs.target == 'terrain-dem-gutters-integrated')
     strategy:
@@ -249,7 +301,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   terrain-dem-fill-windows:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-fill-windows' || inputs.target == 'physical-raster' || inputs.target == 'terrain-dem-raster')
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-fill-windows' || inputs.target == 'physical-raster' || inputs.target == 'terrain-dem-raster' || inputs.target == 'terrain-dem-tint')
     runs-on: windows-2022
     timeout-minutes: 12
     steps:
@@ -333,6 +385,24 @@ jobs:
         with:
           name: terrain-dem-raster-osgeo-windows-${{ github.sha }}
           path: build-native/terrain-dem-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build the tint sampler with the pinned OSGeo SDK
+        if: inputs.target == 'terrain-dem-tint'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/terrain-dem-tint -B build-native/terrain-dem-tint -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler SDK configuration failed' }
+          cmake --build build-native/terrain-dem-tint --config Release --target pando-terrain-dem-tint
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler SDK build failed' }
+          node tools/gis/package-terrain-dem-tint.mjs --binary build-native/terrain-dem-tint/Release/pando-terrain-dem-tint.exe --directory build-native/terrain-dem-tint/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler SDK packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-dem-tint'
+        with:
+          name: terrain-dem-tint-osgeo-windows-${{ github.sha }}
+          path: build-native/terrain-dem-tint/artifact/
           if-no-files-found: error
           retention-days: 7
   terrain-dem-encode:
