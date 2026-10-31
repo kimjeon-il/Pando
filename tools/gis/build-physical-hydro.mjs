@@ -49,12 +49,16 @@ export function physicalHydroCollection(document,layer,category){
   }
   return {collection:{type:'FeatureCollection',features},coordinateCount,skippedNullShapes};
 }
-function findUnique(root,name){
-  const found=[],pending=[root];
+function findSources(root,names){
+  const found=new Map(),wanted=new Set(names),pending=[root];
   while(pending.length){const directory=pending.pop();for(const row of readdirSync(directory,{withFileTypes:true})){
-    const path=resolve(directory,row.name);if(row.isDirectory())pending.push(path);else if(row.isFile()&&row.name===name)found.push(path);
+    const path=resolve(directory,row.name);if(row.isDirectory())pending.push(path);
+    else if(row.isFile()&&wanted.has(row.name)){
+      if(found.has(row.name))throw Error('Expected exactly one '+row.name+', found more than one');found.set(row.name,path);
+    }
   }}
-  if(found.length!==1)throw Error(`Expected exactly one ${name}, found ${found.length}`);return found[0];
+  for(const name of names)if(!found.has(name))throw Error(`Expected exactly one ${name}, found 0`);
+  return names.map(name=>found.get(name));
 }
 function futureRealpath(path){
   const tail=[];let current=path;
@@ -69,23 +73,26 @@ export function buildPhysicalHydro({sourceRoot,outputRoot,gdal=process.env.PANDO
   sourceRoot=resolve(sourceRoot);outputRoot=resolve(outputRoot);const hydro=resolve(outputRoot,'hydro');
   const paths=[...sources.map(([layer])=>resolve(hydro,layer+'.geojson')),resolve(hydro,'manifest.json')];
   if(paths.some(existsSync))throw Error('Physical hydro output exists; preserve the prior evidence');
-  const inputs=sources.map(([,,stem])=>findUnique(sourceRoot,stem+'.shp'));
   const rel=relative(realpathSync(sourceRoot),futureRealpath(outputRoot));
   if(!rel||(!rel.startsWith('..'+sep)&&rel!=='..'&&!isAbsolute(rel)))throw Error('Candidate output must be outside the source root');
+  const inputs=findSources(sourceRoot,sources.map(([,,stem])=>stem+'.shp'));
   const manifest={version:'0.12.6',dataset:'Natural Earth 5.0.0 1:10m physical vectors',crs:'EPSG:4326',
     coordinatePolicy:'source coordinates retained without simplification',layers:[]};
   const outputs=[];
   for(let i=0;i<sources.length;i++){
     const [layer,category]=sources[i],source=inputs[i];
+    const sourceFiles=[source,source.slice(0,-4)+'.dbf',source.slice(0,-4)+'.shx'];
+    const sourceHashes=sourceFiles.map(path=>sha(readFileSync(path)));
     const env={...process.env,SHAPE_ENCODING:'UTF-8'};if(isAbsolute(gdal))env.PATH=dirname(gdal)+(process.platform==='win32'?';':':')+(env.PATH||'');
     const processResult=spawnSync(gdal,['-f','GeoJSON','/vsistdout/',source,'-lco','RFC7946=NO','-lco','COORDINATE_PRECISION=17'],
       {encoding:'utf8',windowsHide:true,timeout:180000,maxBuffer:256*1024*1024,env});
     if(processResult.error)throw processResult.error;
     if(processResult.status!==0)throw Error('GDAL physical hydro read failed: '+processResult.stderr.trim());
+    if(sourceFiles.some((path,index)=>sha(readFileSync(path))!==sourceHashes[index]))throw Error('Physical hydro source changed while reading');
     const result=physicalHydroCollection(JSON.parse(processResult.stdout),layer,category),bytes=Buffer.from(JSON.stringify(result.collection));
     manifest.layers.push({id:layer,category,url:`hydro/${layer}.geojson`,featureCount:result.collection.features.length,
       coordinateCount:result.coordinateCount,skippedNullShapes:result.skippedNullShapes,sourceFile:basename(source),
-      sourceSha256:sha(readFileSync(source)),outputSha256:sha(bytes)});outputs.push(bytes);
+      sourceSha256:sourceHashes[0],outputSha256:sha(bytes)});outputs.push(bytes);
   }
   outputs.push(Buffer.from(JSON.stringify(manifest,null,2)));
   withLibraryOutputs({root,paths},()=>{
