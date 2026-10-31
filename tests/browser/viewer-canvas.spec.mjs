@@ -68,7 +68,8 @@ test('Canvas viewer selects a saved country polygon body without changing projec
     return selected.some(item => item.domain === 'territorial' && item.id === 'A') || await chooser.isVisible();
   }, { timeout: 15_000 }).toBe(true);
   if (await chooser.isVisible()) {
-    const target = page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'});
+    // B has the same text in its parent detail; match A's full accessible name.
+    const target = page.locator('#objectChooserList').getByRole('option', {name:'Canvas 본문 선택 객체',exact:true});
     await expect(target).toHaveCount(1);
     await target.click();
   }
