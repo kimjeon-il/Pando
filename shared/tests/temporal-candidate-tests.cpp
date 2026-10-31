@@ -95,7 +95,8 @@ void exercise(const std::string& seed){
     DocumentSession owner(ports);owner.documentLoad(seed,"2026-10");
     owner.selection().replace({"territorial","entity","A"},"native");
     const auto original=owner.projectState();
-    const auto bytes=owner.storageSnapshot(),selected=owner.selection().primary();
+    const auto bytes=owner.storageSnapshot();
+    const auto selected=owner.selection().primary();
     Project worldSource=historical(owner.project().document());
     auto october=sourceFor(worldSource,"2026-10"),september=sourceFor(worldSource,"2026-09");
     // P5-2 source validation is still required and unchanged.
