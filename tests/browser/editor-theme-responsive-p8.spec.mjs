@@ -1,5 +1,6 @@
 import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
+import { mkdir, writeFile } from 'node:fs/promises';
 
 const sizes = [
   { width: 1440, height: 900, layout: 'wide' },
@@ -77,11 +78,13 @@ function expectLayout(measure, title) {
 
 async function attachScreen(page, info, title, testInfo) {
   if (![320, 768, 1440].includes(info.width)) return;
-  await testInfo.attach(title + '-' + info.width + '.png', {
-    body: await page.locator(title.startsWith('task') ? '#modeEditingHud' : '#editorSurface')
-      .screenshot({ animations: 'disabled' }),
-    contentType: 'image/png',
-  });
+  const filename = title + '-' + info.width + '.png';
+  const body = await page.locator(title.startsWith('task') ? '#modeEditingHud' : '#editorSurface')
+    .screenshot({ animations: 'disabled' });
+  await testInfo.attach(filename, { body, contentType: 'image/png' });
+  // Playwright clears successful test output; this evidence folder is separate.
+  await mkdir('test-results-p8', { recursive: true });
+  await writeFile('test-results-p8/' + filename, body);
 }
 
 test('P8-1 explicitly checks editor information, actions, and task at five widths in both themes', async ({ page }, testInfo) => {
