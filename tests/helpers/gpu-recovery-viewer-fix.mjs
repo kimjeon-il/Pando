@@ -34,6 +34,13 @@ const edits=[
  ['        terrainUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;','        terrainUploadScheduler = scheduler ? observeGpuRecoveryUploads(createGpuUploadScope(scheduler)) : null;'],
  ['        hydroUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;','        hydroUploadScheduler = scheduler ? observeGpuRecoveryUploads(createGpuUploadScope(scheduler)) : null;'],
  ['        strokeRenderer.setUploadScheduler(uploadScheduler);\n        polygonOverlayPass.setUploadScheduler(uploadScheduler);','        const sceneUploads = observeGpuRecoveryUploads(uploadScheduler);\n        strokeRenderer.setUploadScheduler(sceneUploads);\n        polygonOverlayPass.setUploadScheduler(sceneUploads);'],
+ ["      if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);",`      // A GPU-only dirty bit draws pixels but skips the coordinator's shared
+      // presentation commit. Restoration must traverse that existing commit.
+      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket()) && typeof renderViewFrame === 'function')
+        return renderViewFrame(reason);
+      if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);`],
+ ["      if (typeof scheduleGpuInteractionFrame === 'function') return scheduleGpuInteractionFrame(reason);",`      if (gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket()) return invalidateGpuFrame(reason);
+      if (typeof scheduleGpuInteractionFrame === 'function') return scheduleGpuInteractionFrame(reason);`],
 ];
 for(const [before,after]of edits){assert.equal(source.split(before).length,2,'Ambiguous fix anchor: '+before);source=source.replace(before,after);}
 writeFileSync(file,source);execFileSync(process.execPath,['--check',file],{stdio:'inherit'});
