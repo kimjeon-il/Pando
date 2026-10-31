@@ -49,10 +49,25 @@ async function state(page){
 }
 function small(s){const {document,...rest}=s;return {...rest,documentSha256:document?sha(document):null};}
 async function ready(page,renderer=null){
- await expect.poll(async()=>page.evaluate(()=>{
-  const o=globalThis.__g4,r=o?.renderer?.getRuntimeState();
-  return !!(o?.session&&o?.selection&&r?.canonicalMeshReady&&!r.projectRenderBlocked&&!r.temporalPresentationPending&&r.firstCountryPublishedMs!==null&&r.countriesPublishedGeneration===r.projectGeneration&&o.rendering?.getStats().lastCommittedVisualFrameId>0);
- }),{timeout:105000,message:'Real map reaches canonical presented frame'}).toBe(true);
+ try {
+  await expect.poll(async()=>page.evaluate(()=>{
+   const o=globalThis.__g4,r=o?.renderer?.getRuntimeState();
+   return !!(o?.session&&o?.selection&&r?.canonicalMeshReady&&!r.projectRenderBlocked&&!r.temporalPresentationPending&&r.firstCountryPublishedMs!==null&&r.countriesPublishedGeneration===r.projectGeneration&&o.rendering?.getStats().lastCommittedVisualFrameId>0);
+  }),{timeout:105000,message:'Real map reaches canonical presented frame'}).toBe(true);
+ } catch(error) {
+  const state=await page.evaluate(()=>{
+   const o=globalThis.__g4||{},r=o.renderer?.getRuntimeState(),s=o.renderer?.getStats({detailed:false});
+   return {renderer:r?.renderer,quality:r?.surfacePresentation,firstCountry:r?.firstCountryPublishedMs,
+    generation:r?.projectGeneration,publishedGeneration:r?.countriesPublishedGeneration,
+    backgroundPresented:!!r?.backgroundPresentedKey,temporalPending:r?.temporalPresentationPending,
+    canvasWorkerBusy:s?.canvasWorkerBusy,canvasWorkerPending:s?.canvasWorkerHasPendingFrame,
+    canvasWorkerViews:s?.canvasWorkerViewMessageCount,staleFrames:s?.canvasWorkerStaleFrameCount,
+    frameId:o.rendering?.getStats()?.lastCommittedVisualFrameId,lastReason:o.rendering?.getStats()?.lastReason,
+    uploads:s?.uploads,workerMessages:s?.canvasWorkerMessageCount};
+  }).catch(e=>({diagnosticError:String(e)}));
+  console.log('G4_PENDING_FRAME '+JSON.stringify(state));
+  throw error;
+ }
  if(renderer)expect((await state(page)).runtime.renderer).toBe(renderer);
  await page.waitForTimeout(500);
 }
