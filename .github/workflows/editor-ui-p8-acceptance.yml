@@ -5,6 +5,7 @@ on:
     branches: [work/ui]
     paths:
       - tests/browser/editor-theme-responsive-p8.spec.mjs
+      - playwright.p8.config.js
       - .github/workflows/editor-ui-p8-acceptance.yml
   workflow_dispatch:
 
@@ -32,13 +33,13 @@ jobs:
       - name: Install pinned browser dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Lint P8 browser checks
-        run: pnpm exec eslint tests/browser/editor-theme-responsive-p8.spec.mjs
+        run: pnpm exec eslint tests/browser/editor-theme-responsive-p8.spec.mjs playwright.p8.config.js
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify five widths and both themes
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/editor-theme-responsive-p8.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/editor-theme-responsive-p8.spec.mjs --config playwright.p8.config.js --workers=1 --retries=0 --trace off
       - name: Preserve layout screenshots and failure details
         if: always()
         uses: actions/upload-artifact@v4
