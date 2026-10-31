@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
 import {composeNativeTerrainPreview,rasterizeNativeTerrainLand} from '../../tools/gis/terrain-preview-native.mjs';
@@ -8,6 +10,7 @@ import {composeNativeTerrainPreview,rasterizeNativeTerrainLand} from '../../tool
 const binary=process.env.PANDO_TERRAIN_PREVIEW_BINARY;
 const cases=JSON.parse(readFileSync('tests/fixtures/terrain-preview-kernel.json','utf8'));
 const masks=JSON.parse(readFileSync('tests/fixtures/terrain-land-mask.json','utf8'));
+const physicalMasks=JSON.parse(readFileSync('tests/fixtures/physical-land-mask-oracle.json','utf8'));
 test('frozen preview slopes, coasts and polar rows agree with Canvas DEM conversion',()=>{
   const context={self:{}};
   vm.runInNewContext(readFileSync('shared/frontend/js/workers/canvas-terrain-dem-core.js','utf8'),context);
@@ -53,6 +56,19 @@ test('native land mask rejects invalid geometry and dimensions without partial o
   for(const input of [invalid,empty]){const result=spawnSync(binary,['mask'],{input:JSON.stringify(input)});
     assert.equal(result.status,1);assert.equal(result.stdout.length,0);assert(result.stderr.length>0);}
 });
+test('native physical land mask fills holes and matches Python at the dateline',{skip:!binary},()=>{
+  for(const row of physicalMasks){const result=spawnSync(binary,['mask'],{input:JSON.stringify(row),maxBuffer:2*1024*1024});
+    assert.equal(result.status,0,`${row.name}: ${result.stderr}`);assert.deepEqual(result.stdout,Buffer.from(row.expectedBase64,'base64'),row.name);}
+});
+test('physical generator delegates land mask to the source-bound native owner',
+  {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},t=>{
+    const root=mkdtempSync(join(tmpdir(),'pando-physical-mask-'));t.after(()=>rmSync(root,{recursive:true}));
+    const script="import importlib.util,sys;from pathlib import Path;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);sys.stdout.buffer.write(m.build_outer_land_mask(Path(sys.argv[1]),Path(sys.argv[2]),(int(sys.argv[3]),int(sys.argv[4]))).tobytes())";
+    for(const row of physicalMasks){const countries=join(root,'countries.json'),lakes=join(root,'lakes.json');
+      writeFileSync(countries,JSON.stringify(row.countries));writeFileSync(lakes,JSON.stringify({type:'FeatureCollection',features:[]}));
+      const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script,countries,lakes,String(row.width),String(row.height)],{maxBuffer:2*1024*1024,windowsHide:true});
+      assert.equal(p.status,0,String(p.stderr));assert.deepEqual(p.stdout,Buffer.from(row.expectedBase64,'base64'),row.name);}
+  });
 test('terrain preview interface validates pixel buffers before starting the native tool',async()=>{
   const row=cases[0];await assert.rejects(composeNativeTerrainPreview({...row,dem:Buffer.alloc(1),tint:Buffer.from(row.tint),land:Buffer.from(row.land)}),/buffer/i);
   await assert.rejects(rasterizeNativeTerrainLand({...masks[0],width:0}),/inputs/i);

@@ -18,7 +18,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 
 Image.MAX_IMAGE_PIXELS = None
@@ -63,35 +63,16 @@ def crop_with_gutter(image: Image.Image, box: tuple[int, int, int, int]) -> Imag
 def build_outer_land_mask(countries_path: Path, lakes_path: Path, size: tuple[int, int]) -> Image.Image:
     """Rasterize country outer rings while deliberately filling inland-water holes."""
     width, height = size
-    mask = Image.new("L", size, 0)
-    draw = ImageDraw.Draw(mask)
     countries = json.loads(countries_path.read_text(encoding="utf-8"))
     lakes = json.loads(lakes_path.read_text(encoding="utf-8"))
-    for feature in [*countries.get("features", []), *lakes.get("features", [])]:
-        geometry = feature.get("geometry") or {}
-        polygons = [geometry.get("coordinates") or []] if geometry.get("type") == "Polygon" else geometry.get("coordinates") or []
-        for polygon in polygons:
-            if not polygon or len(polygon[0]) < 3:
-                continue
-            unwrapped: list[tuple[float, float]] = []
-            for raw_lon, raw_lat, *_ in polygon[0]:
-                lon = float(raw_lon)
-                if unwrapped:
-                    while lon - unwrapped[-1][0] > 180:
-                        lon -= 360
-                    while lon - unwrapped[-1][0] < -180:
-                        lon += 360
-                unwrapped.append((lon, float(raw_lat)))
-            pixels = [((lon + 180) / 360 * width, (90 - lat) / 180 * height) for lon, lat in unwrapped]
-            min_x = min(point[0] for point in pixels)
-            max_x = max(point[0] for point in pixels)
-            first_shift = math.floor((-max_x) / width)
-            last_shift = math.ceil((width - min_x) / width)
-            for shift in range(first_shift, last_shift + 1):
-                shifted = [(x + shift * width, y) for x, y in pixels]
-                if max(x for x, _ in shifted) >= 0 and min(x for x, _ in shifted) <= width:
-                    draw.polygon(shifted, fill=255)
-    return mask
+    request = dict(countries=dict(type='FeatureCollection', features=[*countries.get('features', []), *lakes.get('features', [])]),
+                   x=0, y=0, width=width, height=height, levelWidth=width, levelHeight=height, fillHoles=True)
+    result = subprocess.run(['node', str(Path(__file__).resolve().parent / 'gis' / 'terrain-preview-native.mjs'), '--physical-mask'],
+                            input=json.dumps(request, ensure_ascii=False, separators=(',', ':')).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=240)
+    if len(result.stdout) != width * height:
+        raise ValueError('Native physical land mask dimensions differ')
+    return Image.frombytes('L', size, result.stdout)
 
 
 def combine_land_without_drainages(land: Image.Image, ocean: Image.Image, land_mask: Image.Image) -> Image.Image:
