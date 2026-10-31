@@ -57,5 +57,6 @@ test('selected IGM reference retains its original transformation metadata',{
   assert.equal(original.status,0,original.stderr);const expected=JSON.parse(original.stdout);
   const {lines,...metadata}=await loadLSIBReviewedSource({root:process.cwd(),manifestPath,binary});
   assert.deepEqual(metadata,expected.metadata);assert.equal(lines.igm.length,expected.coordinates.length);
+  assert.deepEqual(metadata.transformation,{description:'axis order change (2D) + ETRS89 to WGS 84 (1) + axis order change (2D)',accuracyMetres:1});
   for(let i=0;i<lines.igm.length;i++)for(let j=0;j<2;j++)assert.ok(Math.abs(lines.igm[i][j]-expected.coordinates[i][j])<1e-12);
 });

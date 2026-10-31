@@ -20,7 +20,7 @@ from collections import defaultdict
 
 import numpy as np
 from shapely.geometry import LineString, MultiLineString, Point, Polygon, shape, mapping
-from shapely.ops import substring, transform
+from shapely.ops import substring
 import shapely
 
 SCALE = 2560 * 64 / 360
@@ -44,30 +44,27 @@ def source_supplement(published='2025-02-24', tolerance=SIMPLIFY_DEGREES):
         'screenBaseline': {'widthCssPx': 2560, 'flatZoom': 64}, 'historicalAccuracyVerified': False}
 
 
+def load_reviewed_reference(root, manifest_path):
+    script = Path(__file__).with_name('gis') / 'lsib-reviewed-source.mjs'
+    request = {'root': str(root), 'manifestPath': str(manifest_path)}
+    result = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Reviewed source validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    metadata = json.loads(result.stdout)
+    lines = metadata.pop('lines', None)
+    if not isinstance(lines, dict):
+        raise ValueError('Invalid reviewed source validation receipt')
+    return lines, metadata
+
+
 def reviewed_reference(root, manifest_path):
     """Load the explicitly reviewed IGM San Marino exception, with pinned bytes."""
-    from pyproj import Transformer
-    manifest_path = Path(manifest_path)
-    manifest_path = manifest_path if manifest_path.is_absolute() else root / manifest_path
-    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-    if (manifest['schemaVersion'] != 1 or manifest['countries'] != ['ITA', 'SMR']
-            or manifest['sourceId'] != 'igm-dbsn-2025-06-27' or manifest['sourceCrs'] != 'EPSG:4258'):
-        raise ValueError('Reference override is not the reviewed IGM San Marino source')
-    raw = (root / manifest['sourceFile']).read_bytes()
-    if hashlib.sha256(raw).hexdigest() != manifest['sourceFileSha256']:
-        raise ValueError('Reviewed reference differs from pinned evidence')
-    matches = [feature for feature in json.loads(raw)['features']
-               if feature['properties']['globalid'] == manifest['featureGlobalId']]
-    if len(matches) != 1 or matches[0]['properties']['comune_ist'] != 'san_mar_com':
-        raise ValueError('Reviewed reference does not identify exactly the San Marino feature')
-    polygon = shape(matches[0]['geometry'])
-    if polygon.geom_type != 'Polygon' or len(polygon.interiors) or not polygon.is_valid:
-        raise ValueError('Reviewed San Marino source must be one valid polygon without holes')
-    operation = Transformer.from_crs(4258, 4326, always_xy=True)
-    polygon = transform(operation.transform, polygon)
-    return LineString(polygon.exterior.coords), {**manifest,
-        'referenceManifest': manifest_path.relative_to(root).as_posix(),
-        'transformation': {'description': operation.description, 'accuracyMetres': operation.accuracy}}
+    lines, metadata = load_reviewed_reference(root, manifest_path)
+    if metadata.get('sourceId') != 'igm-dbsn-2025-06-27' or set(lines) != {'igm'} or not isinstance(metadata.get('transformation'), dict):
+        raise ValueError('Invalid reviewed IGM validation receipt')
+    return LineString(lines['igm']), metadata
 
 
 def json_write(path, value):
@@ -77,15 +74,7 @@ def json_write(path, value):
 
 def reviewed_coast_reference(root, manifest_path):
     """The approved Monaco high-water coastline, never a general source override."""
-    script = Path(__file__).with_name('gis') / 'lsib-reviewed-source.mjs'
-    request = {'root': str(root), 'manifestPath': str(manifest_path)}
-    result = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request).encode('utf-8'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError('Reviewed coast validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    metadata = json.loads(result.stdout)
-    lines = metadata.pop('lines', None)
+    lines, metadata = load_reviewed_reference(root, manifest_path)
     if metadata.get('sourceId') != 'ign-bdtopo-v3-monaco-coast' or not isinstance(lines, dict) or set(lines) != {'monaco', 'west', 'east'}:
         raise ValueError('Invalid reviewed coast validation receipt')
     return {role: LineString(coordinates) for role, coordinates in lines.items()}, metadata
