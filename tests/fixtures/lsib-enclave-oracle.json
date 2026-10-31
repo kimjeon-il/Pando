@@ -1,0 +1,730 @@
+{
+  "cases": [
+    {
+      "name": "simplified",
+      "geometries": {
+        "ITA": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8,
+                8
+              ],
+              [
+                0,
+                8
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                4
+              ],
+              [
+                4,
+                5
+              ],
+              [
+                5,
+                5
+              ],
+              [
+                5,
+                4
+              ],
+              [
+                4,
+                4
+              ]
+            ]
+          ]
+        },
+        "SMR": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          ]
+        }
+      },
+      "reference": [
+        [
+          1,
+          1
+        ],
+        [
+          2.2,
+          1
+        ],
+        [
+          2.2,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "pair": [
+        "ITA",
+        "SMR"
+      ],
+      "enclave": "SMR",
+      "simplify": true,
+      "expected": {
+        "geometries": {
+          "ITA": {
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2.2,
+                  2
+                ],
+                [
+                  2.2,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                [
+                  4,
+                  4
+                ],
+                [
+                  4,
+                  5
+                ],
+                [
+                  5,
+                  5
+                ],
+                [
+                  5,
+                  4
+                ],
+                [
+                  4,
+                  4
+                ]
+              ]
+            ],
+            "type": "Polygon"
+          },
+          "SMR": {
+            "coordinates": [
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2.2,
+                  1
+                ],
+                [
+                  2.2,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            ],
+            "type": "Polygon"
+          }
+        },
+        "sections": [
+          {
+            "countries": [
+              "ITA",
+              "SMR"
+            ],
+            "closedRing": true,
+            "enclave": "SMR",
+            "old_length_degrees": 4.0,
+            "source_length_degrees": 4.4,
+            "master_vertices": 5,
+            "derived_vertices": 5,
+            "simplification_bound_px": 0.18204444444444445
+          }
+        ]
+      }
+    },
+    {
+      "name": "precise",
+      "geometries": {
+        "ITA": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8,
+                8
+              ],
+              [
+                0,
+                8
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                4
+              ],
+              [
+                4,
+                5
+              ],
+              [
+                5,
+                5
+              ],
+              [
+                5,
+                4
+              ],
+              [
+                4,
+                4
+              ]
+            ]
+          ]
+        },
+        "SMR": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          ]
+        }
+      },
+      "reference": [
+        [
+          1,
+          1
+        ],
+        [
+          2.2,
+          1
+        ],
+        [
+          2.2,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "pair": [
+        "ITA",
+        "SMR"
+      ],
+      "enclave": "SMR",
+      "simplify": false,
+      "expected": {
+        "geometries": {
+          "ITA": {
+            "coordinates": [
+              [
+                [
+                  0,
+                  0
+                ],
+                [
+                  8,
+                  0
+                ],
+                [
+                  8,
+                  8
+                ],
+                [
+                  0,
+                  8
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  2.2,
+                  2
+                ],
+                [
+                  2.2,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ],
+              [
+                [
+                  4,
+                  4
+                ],
+                [
+                  4,
+                  5
+                ],
+                [
+                  5,
+                  5
+                ],
+                [
+                  5,
+                  4
+                ],
+                [
+                  4,
+                  4
+                ]
+              ]
+            ],
+            "type": "Polygon"
+          },
+          "SMR": {
+            "coordinates": [
+              [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2.2,
+                  1
+                ],
+                [
+                  2.2,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            ],
+            "type": "Polygon"
+          }
+        },
+        "sections": [
+          {
+            "countries": [
+              "ITA",
+              "SMR"
+            ],
+            "closedRing": true,
+            "enclave": "SMR",
+            "old_length_degrees": 4.0,
+            "source_length_degrees": 4.4,
+            "master_vertices": 5,
+            "derived_vertices": 5,
+            "simplification_bound_px": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "open-reference",
+      "geometries": {
+        "ITA": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8,
+                8
+              ],
+              [
+                0,
+                8
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                4
+              ],
+              [
+                4,
+                5
+              ],
+              [
+                5,
+                5
+              ],
+              [
+                5,
+                4
+              ],
+              [
+                4,
+                4
+              ]
+            ]
+          ]
+        },
+        "SMR": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          ]
+        }
+      },
+      "reference": [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "pair": [
+        "ITA",
+        "SMR"
+      ],
+      "enclave": "SMR",
+      "simplify": true,
+      "error": "Enclave reference must be one simple closed ring"
+    },
+    {
+      "name": "missing-hole",
+      "geometries": {
+        "ITA": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                8,
+                0
+              ],
+              [
+                8,
+                8
+              ],
+              [
+                0,
+                8
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            [
+              [
+                4,
+                4
+              ],
+              [
+                4,
+                5
+              ],
+              [
+                5,
+                5
+              ],
+              [
+                5,
+                4
+              ],
+              [
+                4,
+                4
+              ]
+            ]
+          ]
+        },
+        "SMR": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          ]
+        }
+      },
+      "reference": [
+        [
+          1,
+          1
+        ],
+        [
+          2.2,
+          1
+        ],
+        [
+          2.2,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "pair": [
+        "ITA",
+        "SMR"
+      ],
+      "enclave": "SMR",
+      "simplify": false,
+      "error": "Enclave must own exactly one complete shared exterior ring"
+    }
+  ]
+}
