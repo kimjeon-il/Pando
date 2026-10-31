@@ -177,13 +177,18 @@ public:
             result.push_back(clone(GEOSGetGeometryN_r(context_,value.get(),index)));
         return result;
     }
-    Shape project(const Shape& value,const std::string& from,const std::string& to) {
+    Shape project(const Shape& value,const std::string& from,const std::string& to,V* metadata=nullptr) {
         if(from==to)return value;
         PJ* raw=proj_create_crs_to_crs(proj_,from.c_str(),to.c_str(),nullptr);
         if(!raw)throw std::runtime_error("PROJ failed: "+from+" to "+to);
         PJ* operation=proj_normalize_for_visualization(proj_,raw);
         proj_destroy(raw);
         if(!operation)throw std::runtime_error("PROJ failed: traditional GIS axis order");
+        if(metadata){
+            const char* name=proj_get_name(operation);const double accuracy=proj_coordoperation_get_accuracy(proj_,operation);
+            if(!name||!std::isfinite(accuracy)){proj_destroy(operation);throw std::runtime_error("PROJ transformation metadata unavailable");}
+            *metadata=V::obj();metadata->object["description"]=V::str(name);metadata->object["accuracyMetres"]=V::num(accuracy);
+        }
         const auto transform=[](double* x,double* y,void* user)->int {
             auto* projection=static_cast<PJ*>(user);
             const auto result=proj_trans(projection,PJ_FWD,proj_coord(*x,*y,0,0));
