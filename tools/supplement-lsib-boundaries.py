@@ -6,15 +6,14 @@ Raw LSIB evidence is retained separately from the <=0.5px presentation derivativ
 """
 from library_data import library_output
 import argparse
+import base64
 import copy
 import gzip
 import hashlib
-import io
 import json
 import os
 from pathlib import Path
 import subprocess
-import zipfile
 
 from shapely.geometry import shape, mapping
 
@@ -53,6 +52,22 @@ def read_disputed_shapes(directory):
     if not isinstance(features, list):
         raise RuntimeError('Invalid disputed source receipt')
     return [{'properties': feature['properties'], 'line': shape(feature['geometry'])} for feature in features]
+
+
+def read_archive_evidence(archive):
+    script = Path(__file__).with_name('gis') / 'lsib-source-native.mjs'
+    response = subprocess.run(['node', str(script), '--evidence-stream'], input=json.dumps({'archive': str(archive), 'requirePinned': True}).encode('utf-8'),
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=300,
+                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if response.returncode:
+        raise RuntimeError('LSIB archive evidence read failed: ' + response.stderr.decode('utf-8', errors='replace'))
+    result = json.loads(response.stdout)
+    if not isinstance(result, dict) or any(not isinstance(result.get(key), str) or len(result[key]) != 64
+            for key in ('archiveSha256', 'innerArchiveSha256', 'shpSha256', 'dbfSha256')):
+        raise RuntimeError('Invalid LSIB archive evidence receipt')
+    result['checksum'] = base64.b64decode(result['checksum'], validate=True)
+    result['readme'] = base64.b64decode(result['readme'], validate=True)
+    return result
 
 
 def load_lsib_archive(archive, ids=None):
@@ -107,17 +122,11 @@ def main():
         'ne-disputed-v5.1.1.geojson', 'provenance.json'))])
     evidence.mkdir(parents=True, exist_ok=True)
     archive = Path(args.archive)
-    outer = zipfile.ZipFile(archive)
-    checksum = next(n for n in outer.namelist() if n.endswith('.txt'))
-    write_new_bytes(evidence / 'upstream-checksums.txt', outer.read(checksum))
-    inner_bytes = outer.read(next(n for n in outer.namelist() if n.endswith('.zip')))
-    inner = zipfile.ZipFile(io.BytesIO(inner_bytes))
-    shp = inner.read(next(n for n in inner.namelist() if n.endswith('.shp')))
-    dbf = inner.read(next(n for n in inner.namelist() if n.endswith('.dbf')))
+    archive_evidence = read_archive_evidence(archive)
+    write_new_bytes(evidence / 'upstream-checksums.txt', archive_evidence['checksum'])
     records = load_lsib_archive(archive)
     json_write(evidence / 'line-index.json', [{'properties':r['properties'],'bbox':r['line'].bounds} for r in records])
-    readme = next(n for n in inner.namelist() if 'ReadMe' in n)
-    write_new_bytes(evidence / 'upstream-readme.txt', inner.read(readme))
+    write_new_bytes(evidence / 'upstream-readme.txt', archive_evidence['readme'])
     # Exact raw vectors are preserved independently of product simplification.
     master_path = evidence / 'boundaries.geojson.gz'
     with library_output([master_path]), master_path.open('xb') as target:
@@ -151,9 +160,9 @@ def main():
     json_write(Path(args.output), result)
     json_write(evidence / 'provenance.json', {'sourceId': SOURCE_ID, 'published': '2025-02-24',
         'url': 'https://data.geodata.state.gov/LSIB.zip', 'license': 'US Government public release; see upstream metadata',
-        'archiveSha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
-        'innerArchiveSha256': hashlib.sha256(inner_bytes).hexdigest(),
-        'shpSha256': hashlib.sha256(shp).hexdigest(), 'dbfSha256': hashlib.sha256(dbf).hexdigest(),
+        'archiveSha256': archive_evidence['archiveSha256'],
+        'innerArchiveSha256': archive_evidence['innerArchiveSha256'],
+        'shpSha256': archive_evidence['shpSha256'], 'dbfSha256': archive_evidence['dbfSha256'],
         'masterSha256': hashlib.sha256(master_path.read_bytes()).hexdigest(),
         'naturalEarthDisputes': {'release': 'v5.1.1', 'url': 'https://github.com/nvkelso/natural-earth-vector/tree/v5.1.1/10m_cultural',
             'shpSha256': hashlib.sha256((dispute_root / 'ne-disputed.shp').read_bytes()).hexdigest(),

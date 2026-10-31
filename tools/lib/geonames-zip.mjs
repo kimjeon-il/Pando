@@ -140,11 +140,13 @@ export async function zipRangeMembers({size,readRange}){
   const fd={read:async(buffer,offset,length,position)=>{const bytes=await exactRange(readRange,position,length);bytes.copy(buffer,offset);return {bytesRead:length};}};
   return readZipMembers(fd,size,{lazy:true,maxCentral:8*1024*1024});
 }
-export async function readZipRangeMember({entry,readRange}){
+export async function readZipRangeMember({entry,readRange,maxCompressed=8*1024*1024,maxUncompressed=16*1024*1024}){
   if(!entry||typeof entry.name!=='string'||![0,8].includes(entry.method)||typeof readRange!=='function'||
+    !Number.isSafeInteger(maxCompressed)||maxCompressed<0||maxCompressed>256*1024*1024||
+    !Number.isSafeInteger(maxUncompressed)||maxUncompressed<0||maxUncompressed>256*1024*1024||
     ![entry.localOffset,entry.centralStart,entry.compressed,entry.uncompressed,entry.crc32].every(Number.isSafeInteger)||
-    entry.localOffset<0||entry.centralStart<entry.localOffset+30||entry.compressed<0||entry.compressed>8*1024*1024||
-    entry.uncompressed<0||entry.uncompressed>16*1024*1024)throw Error('Invalid bounded ZIP member');
+    entry.localOffset<0||entry.centralStart<entry.localOffset+30||entry.compressed<0||entry.compressed>maxCompressed||
+    entry.uncompressed<0||entry.uncompressed>maxUncompressed)throw Error('Invalid bounded ZIP member');
   const local=await exactRange(readRange,entry.localOffset,30);
   if(local.readUInt32LE(0)!==SIG_LOCAL||(local.readUInt16LE(6)&1)||local.readUInt16LE(8)!==entry.method)throw Error('ZIP local header mismatch: '+entry.name);
   const nameLength=local.readUInt16LE(26),extraLength=local.readUInt16LE(28),dataAt=entry.localOffset+30+nameLength+extraLength;
