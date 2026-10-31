@@ -1,5 +1,5 @@
 name: Apply dated country names and flags from existing source attributes
-# Runtime pin rebased onto a report-only data commit so the existing non-forced writer can fast-forward without losing reports.
+# Follow-up: use the already published name/flag library revision; assert the dated editor snapshot has committed before checking formal names.
 
 on:
   push:

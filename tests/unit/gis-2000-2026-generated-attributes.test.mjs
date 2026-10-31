@@ -47,6 +47,9 @@ test('generated world preserves dated historical flag media on actual saved snap
   const selected=selectBuiltinCountries(index,month).filter(row=>row.entityId===id);
   assert.equal(selected.length,1,month+' flag source '+id);
   const project=assembleBuiltinWorld({...index,entities:selected},selected.map(read),month);
+  if(month==='2000-12'&&id==='BHR')
+   assert.equal(project.territorialEntities.find(e=>e.id==='BHR').properties.metadata.nameDetails.ko.formal,
+    '바레인국','Historical selected identity must not keep the future formal name');
   const row=project.timelineRecords.propertyBindings.find(e=>e.property==='flag');
   assert.equal(row?.value?.policy,policy,month+' flag policy '+id);
   const entity=project.territorialEntities.find(e=>e.id===id);
