@@ -17,13 +17,29 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-sequence:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs
   physical-hydro:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-hydro'
     strategy:
