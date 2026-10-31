@@ -1,4 +1,5 @@
 name: Apply dated country names and flags from existing source attributes
+# Retry after freezing-safe historical flag initialization was added to the loader.
 
 on:
   push:
