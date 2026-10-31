@@ -4,7 +4,6 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createGpuUploadScope} from '../../shared/frontend/js/modules/gpu-resource-lifecycle.js';
 
-// Execute the actual renderer's scheduler admission, not a copied implementation.
 const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
 const start=source.indexOf('      setUploadScheduler: scheduler => {');
 const end=source.indexOf('      commitVisualFrame:',start);
@@ -16,12 +15,11 @@ function fixture(active=true){
  const raw={enqueueUpload:input=>{jobs.push(input);return new Promise(()=>{});},cancelKey:key=>cancelled.push(key),defer(){}};
  const owners={};
  const context=vm.createContext({Object,createGpuUploadScope,
-  uploadScheduler:null,terrainUploadScheduler:null,hydroUploadScheduler:null,gl:null,
+  uploadScheduler:null,terrainUploadScheduler:null,hydroUploadScheduler:null,gl:null,renderDevice:null,
+  cancelSharedGpuInitialization(){},
   strokeRenderer:{setUploadScheduler:s=>owners.stroke=s},polygonOverlayPass:{setUploadScheduler:s=>owners.polygon=s},
   gpuRecovery:{currentTicket:()=>current,isCurrent:t=>t===current&&current!==null,noteProgress:(t,value)=>{assert.equal(t,current);progress.push(value);}},
  });
- vm.runInContext(observer+'\nconst api={'+source.slice(start,end)+'};api.setUploadScheduler(inputScheduler);',vm.createContext({...context,inputScheduler:raw}));
- // Use one context so assignments to scoped owner references remain observable.
  context.inputScheduler=raw;
  vm.runInContext(observer+'\nconst api={'+source.slice(start,end)+'};api.setUploadScheduler(inputScheduler);',context);
  return{jobs,progress,cancelled,context,owners,ticket,supersede:()=>{current={};},dispose:()=>{current=null;}};

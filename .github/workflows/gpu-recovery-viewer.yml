@@ -6,6 +6,7 @@ on:
       - .github/workflows/gpu-recovery-viewer.yml
       - tests/helpers/gpu-recovery-viewer-*.mjs
       - tests/browser/gpu-recovery-viewer-*.spec.mjs
+      - tests/browser/viewer-recovery-acceptance.spec.mjs
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,43 +32,43 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Apply reviewed G1-G3 candidate only to verification checkout
         run: node tests/helpers/prepare-gpu-recovery-candidate.mjs
-      - name: Reproduce missing scene upload progress before fix
+      - name: Reproduce progress and frame approval failures before fix
         run: |
           set +e
-          node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs > gpu-viewer-evidence/progress-before.tap 2>&1
+          node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs > gpu-viewer-evidence/before.tap 2>&1
           code=$?
           set -e
-          tail -45 gpu-viewer-evidence/progress-before.tap
+          tail -70 gpu-viewer-evidence/before.tap
           test "$code" -ne 0
-          grep -q 'restored polygon, stroke, terrain and hydro' gpu-viewer-evidence/progress-before.tap
-      - name: Apply foreground progress fix without changing deadlines or frame approval
+          grep -q ERR_ASSERTION gpu-viewer-evidence/before.tap
+          ! grep -E 'ReferenceError|SyntaxError' gpu-viewer-evidence/before.tap
+      - name: Apply progress and existing-frame-approval correction
         run: node tests/helpers/gpu-recovery-viewer-fix.mjs
-      - name: Verify upload ownership and shared pass regressions
+      - name: Verify current renderer and coordinator regressions
         id: unit
         continue-on-error: true
-        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs > gpu-viewer-evidence/unit.tap 2>&1
-      - name: Lint changed renderer and recovery controller
+        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs > gpu-viewer-evidence/unit.tap 2>&1
+      - name: Lint corrected application sources
         id: lint
         continue-on-error: true
         run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js > gpu-viewer-evidence/lint.txt 2>&1
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
-      - name: Check real WebGL2 and WebGL1 restoration
+      - name: Verify real viewer pixels and document across repeated context loss
         id: screen
         continue-on-error: true
-        run: pnpm exec playwright test tests/browser/gpu-recovery-viewer-frame.spec.mjs --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
+        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
       - name: Summarize actual results
         if: always()
         run: |
           node --input-type=module <<'NODE'
           import {readFileSync,existsSync} from 'node:fs';
           for(const backend of ['webgl2','webgl1']){
-            const file=`gpu-viewer-evidence/${backend}/result.json`;if(!existsSync(file))continue;
-            const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({backend,passed:r.passed,error:r.error,errors:r.errors,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
-            for(const t of Object.values(r.final?.trace?.latest||{}))console.log('LATEST '+JSON.stringify({where:t.where,extra:t.extra,phase:t.recovery.phase,uploads:t.uploads,shared:t.sharedReady,surface:t.surfacePresentation,terrain:t.terrain,polygons:t.polygons,identity:t.identity,evidence:t.evidence}));
+            const file=`gpu-viewer-evidence/acceptance-${backend}/result.json`;if(!existsSync(file))continue;
+            const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({backend,passed:r.passed,error:r.error,errors:r.errors,rounds:r.rounds,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
           }
-          for(const path of ['unit.tap','lint.txt'])if(existsSync('gpu-viewer-evidence/'+path))console.log(path+'\n'+readFileSync('gpu-viewer-evidence/'+path,'utf8').slice(-8000));
-          if(existsSync('gpu-viewer-evidence/browser.log'))console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-4000));
+          for(const path of ['unit.tap','lint.txt'])if(existsSync('gpu-viewer-evidence/'+path))console.log(path+'\n'+readFileSync('gpu-viewer-evidence/'+path,'utf8').slice(-18000));
+          if(existsSync('gpu-viewer-evidence/browser.log'))console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-4500));
           NODE
       - uses: actions/upload-artifact@v4
         if: always()
