@@ -50,7 +50,9 @@ void preparationAndPinValidation(const std::string& seed) {
     const SelectionRef selected{"territorial","entity","A"};
     // A live selection and a dirty history remain intact across prefetch.
     session.selection().replace(selected,"test");
-    const auto before=session.projectState(),serialized=session.storageSnapshot(),primary=session.selection().primary();
+    const auto before=session.projectState();
+    const auto serialized=session.storageSnapshot();
+    const auto primary=session.selection().primary();
     const auto input=source(session);
     auto first=session.temporalSourcePrepare(input,"2026-10-library",pin,before.epoch);
     assert(first.sourceId>0&&!first.reused&&first.fingerprint==input.fingerprint&&first.sourceMonth=="2026-10");
@@ -104,7 +106,8 @@ void preparationAndPinValidation(const std::string& seed) {
 }
 void sessionInvalidation(const std::string& seed) {
     DocumentSession session(ports);session.documentLoad(seed,"2026-10");
-    auto before=session.projectState(),one=session.temporalSourcePrepare(source(session),"revision",pin,before.epoch);
+    const auto before=session.projectState();
+    const auto one=session.temporalSourcePrepare(source(session),"revision",pin,before.epoch);
     assert(session.temporalSourceStats().entries==1);
     session.documentLoad(seed,"2026-10");
     assert(session.temporalSourceStats().entries==0);
