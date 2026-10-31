@@ -209,7 +209,7 @@ export function taskStagePresentation({
     else if (hydroInvalid) reason = firstIssueMessage(state.multiDraft.previewIssues, '그린 영역의 문제를 확인하세요.');
     else if (draftInvalid) reason = firstIssueMessage(draft.issues, '그린 경로의 문제를 확인하세요.');
     else if (cutInvalid) reason = draft.cutAssessment.message || '선택 영역을 가로지르는 유효한 경계를 그리세요.';
-  } else if (primaryDisabled || draftDisabled || preparing) {
+  } else if (primaryDisabled || (draftDisabled && !hydroReview) || preparing) {
     if (state.modeProcessing || selection?.applying) reason = '작업을 처리하는 중입니다.';
     else if (boundaryPending) reason = '경계를 준비하는 중입니다.';
     else if (selection?.previewPending || selection?.computationPending || selection?.activePhase === 'preparing') reason = '선택 영역을 계산하는 중입니다.';
