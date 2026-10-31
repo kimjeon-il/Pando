@@ -57,7 +57,7 @@ const flagRows=[
   ['2000-01-01','2017-11-27','Flag_of_Mauritania_(1959–2017).svg'],
   ['2017-11-28',null,'default']],
   sources:['https://www.chathamhouse.org/sites/default/files/2019-04-10-Mauritania.pdf'],
-  caveat:'Referendum and constitutional adoption occurred earlier in August; changed flag's public display is effective by 2017-11-28.'},
+  caveat:"Referendum and constitutional adoption occurred earlier in August; changed flag's public display is effective by 2017-11-28."},
  {id:'KGZ',phases:[
   ['2000-01-01','2023-12-25','Flag_of_Kyrgyzstan_(1992–2023).svg'],
   ['2023-12-26',null,'default']],
