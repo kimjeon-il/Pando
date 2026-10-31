@@ -4,7 +4,8 @@ import {execFile} from 'node:child_process';
 import {lstat,open,readFile,realpath,rename,unlink} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {encodeNativeWebpLossless,readNativeRawWebp} from '../map-image/native-resample.mjs';
+import {readNativeRawWebp} from '../map-image/native-resample.mjs';
+import {encodeDemWebp} from './terrain-dem-webp.mjs';
 import {verifyNativeTool} from '../native-tool.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
@@ -77,12 +78,11 @@ export async function reconcileDemGutterFiles(output,level,{signal,workspace,dir
       northWest:get(c-1,r-1),northEast:get(c+1,r-1),southWest:get(c-1,r+1),southEast:get(c+1,r+1),hasNorth:r>0,hasSouth:r<level.rows-1},
       {signal,...(workspace?{workspace}:{})});
     if(!result.modified)continue;
-    const encoded=await encodeNativeWebpLossless(result,options),decoded=await readNativeRawWebp(encoded.data,options);
-    if(decoded.width!==result.width||decoded.height!==result.height||!decoded.data.equals(result.data))throw Error('DEM WebP round-trip changed pixels');
+    const encoded=await encodeDemWebp(result,options);
     const p=path(c,r),temporary=p+'.'+randomUUID()+'.tmp';let created=false;
     try{
       const handle=await open(temporary,'wx');created=true;
-      try{await handle.writeFile(encoded.data,{signal});}finally{await handle.close();}
+      try{await handle.writeFile(encoded,{signal});}finally{await handle.close();}
       const current=await readFile(p,{signal});
       if(createHash('sha256').update(current).digest('hex')!==item.sha)throw Error('DEM tile changed before replacement');
       await rename(temporary,p);created=false;modified++;

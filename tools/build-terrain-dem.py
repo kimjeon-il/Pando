@@ -194,12 +194,30 @@ def encode(elevation, level_width, level_height, north_pixel_row):
 
 
 def save_and_verify_webp(rgba, path):
-    image = Image.fromarray(rgba, "RGBA")
-    image.save(path, "WEBP", lossless=True, exact=True, method=6)
-    with Image.open(path) as decoded:
-        if not np.array_equal(np.asarray(decoded.convert("RGBA")), rgba):
-            path.unlink(missing_ok=True)
-            raise ValueError(f"WebP channel round-trip changed bytes: {path}")
+    if not isinstance(rgba, np.ndarray) or rgba.dtype != np.uint8 or rgba.ndim != 3 or rgba.shape[2] != 4:
+        raise ValueError('A uint8 RGBA DEM tile is required')
+    height, width = rgba.shape[:2]
+    if not width or not height or width > 16384 or height > 16384 or width*height > 16777216:
+        raise ValueError('DEM tile dimensions exceed bounds')
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-webp.mjs'
+    payload = struct.pack('<8sII', b'PDWEBP01', width, height) + np.ascontiguousarray(rgba).tobytes()
+    result = subprocess.run(['node', str(script), '--stream'], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native DEM WebP encoding failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if len(result.stdout) < 12 or result.stdout[:4] != b'RIFF' or result.stdout[8:12] != b'WEBP':
+        raise ValueError('Invalid native DEM WebP output')
+    path = Path(path)
+    if path.is_symlink():
+        raise ValueError('DEM tile output cannot be a symbolic link')
+    fd, temporary = tempfile.mkstemp(prefix=path.name+'.', suffix='.tmp', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(result.stdout)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
 
 
 def reconcile_gutters(output: Path, level):

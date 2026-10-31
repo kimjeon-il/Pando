@@ -187,6 +187,16 @@ class TerrainDemTest(unittest.TestCase):
             self.assertEqual(first.read_bytes(), second.read_bytes())
             np.testing.assert_array_equal(np.asarray(Image.open(first).convert('RGBA')), rgba)
 
+    def test_failed_native_webp_encoding_preserves_existing_tile(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'tile.webp'; path.write_bytes(b'prior tile')
+            failed = mock.Mock(returncode=1, stderr=b'encoder failure', stdout=b'')
+            with mock.patch.object(dem.subprocess, 'run', return_value=failed):
+                with self.assertRaisesRegex(RuntimeError, 'encoder failure'):
+                    dem.save_and_verify_webp(np.zeros((2, 2, 4), dtype=np.uint8), path)
+            self.assertEqual(path.read_bytes(), b'prior tile')
+            self.assertEqual([item.name for item in Path(folder).iterdir()], ['tile.webp'])
+
     def test_shade_quantization_preserves_elevation_and_limits_error(self):
         values = np.array([[0, 120, -100, 300], [600, -500, 2200, -3500]], dtype=np.float32)
         rgba = dem.encode(values, 4, 2, 0)
