@@ -67,6 +67,10 @@
         <div id="map" class="map-stage" aria-label="지도" tabindex="0">
           <canvas id="viewerCanvas" class="gpu-map-canvas"></canvas>
           <svg id="viewerLabels" class="map-overlay-svg labels-layer country-label" aria-hidden="true"></svg>
+          <svg id="viewerInitialPreview" class="viewer-initial-preview" aria-hidden="true" focusable="false" hidden>
+            <path class="viewer-initial-preview-ocean"></path>
+            <path class="viewer-initial-preview-land"></path>
+          </svg>
         </div>
         <div class="viewer-map-tools">
         <div class="ui-toolbar ui-floating-surface ui-floating-toolbar map-command-toolbar" aria-label="지도 명령">
