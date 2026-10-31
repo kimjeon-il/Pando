@@ -1,7 +1,5 @@
 // Selected-line screen comparison uses the existing GEOS territorial engine.
 import {execFile} from 'node:child_process';
-import {resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
 
 function validateLine(line){
   if(!Array.isArray(line)||line.length<2||line.length>1000000||
@@ -229,38 +227,4 @@ export async function analyzeLSIBSection(request,options={}){
     typeof value.sampledMaximumCssPx!=='number'||!Number.isFinite(value.sampledMaximumCssPx)||value.sampledMaximumCssPx<0)
     throw Error('Invalid native LSIB section distance');
   return result;
-}
-
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--nearest-replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream','--tripoint-stream','--coast-stream','--spatial-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
-    const chunks=[];let size=0;
-    const byteLimit=process.argv[2]==='--shared-stream'?256*1024*1024:32*1024*1024;
-    for await(const chunk of process.stdin){size+=chunk.length;if(size>byteLimit)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
-    const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    let result;
-    if(process.argv[2]==='--sampled-stream')result=await sampledLSIBDistance(request.source,request.target);
-    else if(process.argv[2]==='--spatial-stream')result=await classifyLSIBSpatial(request);
-    else if(process.argv[2]==='--shared-stream')result={chains:await extractLSIBSharedChains(request.geometries)};
-    else if(process.argv[2]==='--replacement-stream')result={results:await prepareLSIBReplacements(request.old,request.references)};
-    else if(process.argv[2]==='--nearest-replacement-stream')result=await prepareLSIBNearestReplacements(request.old,request.references);
-    else if(process.argv[2]==='--nearest-replacement-stream')result=await prepareLSIBNearestReplacements(request.old,request.references);
-    else if(['--rings-stream','--patches-stream'].includes(process.argv[2])){
-      try{result={geometries:await (process.argv[2]==='--rings-stream'?replaceLSIBRings(request):applyLSIBCountryPatches(request))};}
-      catch(error){if(!['LSIB_RING_REJECTED','LSIB_REPAIR_REJECTED'].includes(error.code))throw error;result={error:error.message};}
-    }else if(process.argv[2]==='--repair-stream'){
-      try{result=await validateLSIBCountryRepair(request);}
-      catch(error){if(error.code!=='LSIB_REPAIR_REJECTED')throw error;result={error:error.message};}
-    }else if(process.argv[2]==='--coast-stream'){
-      try{result=await prepareLSIBCoast(request);}
-      catch(error){if(error.code!=='LSIB_COAST_REJECTED')throw error;result={error:error.message};}
-    }else if(process.argv[2]==='--tripoint-stream'){
-      try{result=await prepareLSIBTripoint(request);}
-      catch(error){if(error.code!=='LSIB_TRIPOINT_REJECTED')throw error;result={error:error.message};}
-    }else if(process.argv[2]==='--enclave-stream'){
-      try{result=await prepareLSIBEnclave(request);}
-      catch(error){if(error.code!=='LSIB_ENCLAVE_REJECTED')throw error;result={error:error.message};}
-    }else result={coordinates:await selectLSIBDisplay(request.geometry,request.anchors,request.reference)};
-    process.stdout.write(JSON.stringify(result)+'\n');
-  }catch(error){process.stderr.write('lsib-screen: '+String(error.message)+'\n');process.exitCode=1;}
 }

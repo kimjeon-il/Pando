@@ -2,15 +2,31 @@
 import {execFile} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {readFile,stat} from 'node:fs/promises';
+import {stat} from 'node:fs/promises';
 import {delimiter,dirname,isAbsolute,resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
 import {mergeLSIBLines} from './lsib-screen-native.mjs';
 import {readZipRangeMember,zipMemberChunks,zipMembers,zipRangeMembers} from '../lib/geonames-zip.mjs';
 
 const archiveHash='1eb5af7e80fce60e48d27eba80ae81fd2b25c9cf59f4f4e2efc89c06ad57490a';
 const archiveBytes=124239650,inner='DoS_LSIB_v11_4_24Feb2025.zip',shapefile='data/DoS_LSIB_v11_4_24Feb2025.shp';
 const validId=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+
+export function lsibLineBounds(geometry){
+  if(!geometry||!['LineString','MultiLineString'].includes(geometry.type)||!Array.isArray(geometry.coordinates))
+    throw Error('Explicit LSIB line geometry required');
+  const lines=geometry.type==='LineString'?[geometry.coordinates]:geometry.coordinates;
+  const bounds=[Infinity,Infinity,-Infinity,-Infinity];let count=0;
+  for(const line of lines){
+    if(!Array.isArray(line))throw Error('Invalid LSIB line');
+    for(const point of line){
+      if(!Array.isArray(point)||point.length!==2||point.some(value=>typeof value!=='number'||!Number.isFinite(value)))
+        throw Error('Invalid LSIB line coordinate');
+      const [x,y]=point;bounds[0]=Math.min(bounds[0],x);bounds[1]=Math.min(bounds[1],y);
+      bounds[2]=Math.max(bounds[2],x);bounds[3]=Math.max(bounds[3],y);count++;
+    }
+  }
+  if(!count)throw Error('Empty LSIB line');return bounds;
+}
 
 export async function readLSIBArchiveEvidence({archive,requirePinned=false},{signal}={}){
   signal?.throwIfAborted();
@@ -153,27 +169,4 @@ export async function readLSIBDisputedShape({dbf,shp},options={}){
   if(!rows.length)return [];
   const merged=await mergeLSIBLines(geometries,options);
   return rows.map((row,index)=>({...row,geometry:merged[index]}));
-}
-
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{
-    if(process.argv.length!==3||!['--stream','--disputed-stream','--evidence-stream'].includes(process.argv[2]))throw Error('Expected an LSIB source operation');
-    const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>1024*1024)throw Error('LSIB source request exceeds byte budget');chunks.push(chunk);}
-    const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    if(process.argv[2]==='--evidence-stream'){
-      const {checksum,readme,...metadata}=await readLSIBArchiveEvidence(request);
-      process.stdout.write(JSON.stringify({...metadata,checksum:checksum.toString('base64'),readme:readme.toString('base64')})+'\n');
-    }else{
-      let features;
-      if(process.argv[2]==='--disputed-stream'){
-        if(typeof request.dbfPath!=='string'||typeof request.shpPath!=='string')throw Error('Explicit disputed SHP and DBF paths required');
-        const [dbfInfo,shpInfo]=await Promise.all([stat(request.dbfPath),stat(request.shpPath)]);
-        if(!dbfInfo.isFile()||!shpInfo.isFile()||dbfInfo.size>256*1024*1024||shpInfo.size>256*1024*1024)
-          throw Error('Invalid disputed SHP or DBF source');
-        const [dbf,shp]=await Promise.all([readFile(request.dbfPath),readFile(request.shpPath)]);
-        features=await readLSIBDisputedShape({dbf,shp});
-      }else features=await readLSIBLines(request);
-      process.stdout.write(JSON.stringify({features})+'\n');
-    }
-  }catch(error){process.stderr.write('lsib-source: '+String(error.message)+'\n');process.exitCode=1;}
 }
