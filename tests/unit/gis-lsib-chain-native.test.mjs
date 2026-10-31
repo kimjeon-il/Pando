@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {prepareLSIBReplacements} from '../../tools/gis/lsib-screen-native.mjs';
+import {prepareLSIBNearestReplacements,prepareLSIBReplacements} from '../../tools/gis/lsib-screen-native.mjs';
 
 const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 const oracle=JSON.parse(await readFile(new URL('../fixtures/lsib-chain-oracle.json',import.meta.url),'utf8'));
@@ -34,6 +34,16 @@ test('selected AUT-LIE replacement matches its frozen Python result',{
   const input=JSON.parse(await readFile(process.env.PANDO_LSIB_CHAIN_ORACLE,'utf8'));
   const [result]=await prepareLSIBReplacements(input.expected,[input.reference],{binary});
   equivalent(result.value,input.replacementExpected);
+});
+test('nearest replacements retain only references within 0.25 degrees and reject closed rings',{skip:!binary},async()=>{
+  const first=oracle.cases[0],far=[[20,20],[21,20]];
+  const result=await prepareLSIBNearestReplacements(first.old,[first.reference,far],{binary});
+  assert.equal(result.isRing,false);assert.equal(result.nearbyCount,1);assert.equal(result.results.length,1);
+  equivalent(result.results[0].value,first.expected);
+  const absent=await prepareLSIBNearestReplacements(first.old,[far],{binary});
+  assert.equal(absent.nearbyCount,0);assert.deepEqual(absent.results,[]);
+  const ring=await prepareLSIBNearestReplacements([[0,0],[1,0],[1,1],[0,0]],[first.reference],{binary});
+  assert.equal(ring.isRing,true);assert.deepEqual(ring.results,[]);
 });
 test('remaining untargeted Python caller surfaces native failure and withholds missing anchors',{
   skip:!binary||!process.env.PANDO_PYTHON_ORACLE

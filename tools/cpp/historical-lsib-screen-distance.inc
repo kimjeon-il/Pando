@@ -84,6 +84,21 @@ V replaceLSIBChains(const V& request){
         catch(const LSIBChainRejected& error){item.object["error"]=V::str(error.what());}rows.array.push_back(std::move(item));}
     auto result=V::obj();result.object["results"]=std::move(rows);return result;
 }
+V classifyLSIBSpatial(const V& request);
+V selectLSIBNearestReplacements(const V& request){
+    const auto& old=field(request,"old"),&references=field(request,"references");
+    auto spatialRequest=V::obj(),chains=V::arr();chains.array.push_back(old);spatialRequest.object["chains"]=std::move(chains);
+    spatialRequest.object["references"]=references;spatialRequest.object["disputes"]=V::arr();spatialRequest.object["sources"]=V::arr();
+    const auto spatial=classifyLSIBSpatial(spatialRequest);const auto& assessment=array(field(spatial,"chains")).at(0);
+    const bool ring=field(assessment,"isRing").raw=="true";auto rows=V::arr();GeometryEngine geos;
+    const auto oldPoints=lsibScreenPoints(old);
+    if(!ring)for(const auto& index:array(field(assessment,"nearby"))){
+        const auto position=static_cast<std::size_t>(number(index));const auto& reference=array(references).at(position);auto row=V::obj();
+        try{row.object["value"]=replaceLSIBChain(geos,oldPoints,lsibScreenPoints(reference));}
+        catch(const LSIBChainRejected& error){row.object["error"]=V::str(error.what());}rows.array.push_back(std::move(row));}
+    auto result=V::obj();result.object["isRing"]=V::boolean(ring);result.object["oldLength"]=field(assessment,"length");
+    result.object["nearbyCount"]=V::num(static_cast<double>(array(field(assessment,"nearby")).size()));result.object["results"]=std::move(rows);return result;
+}
 struct LSIBRingRejected:std::runtime_error{using std::runtime_error::runtime_error;};
 V replaceLSIBRing(GeometryEngine& geos,const V& original,const std::vector<LSIBPoint>& oldPoints,const std::vector<LSIBPoint>& replacement){
     const auto context=geos.context();V result=original;const auto type=str(field(result,"type"));

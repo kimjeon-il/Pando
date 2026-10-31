@@ -1,6 +1,6 @@
 // Assemble explicitly reviewed LSIB candidates without modifying source data.
 import {createHash} from 'node:crypto';
-import {mkdir,readFile} from 'node:fs/promises';
+import {lstat,mkdir,readFile} from 'node:fs/promises';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync} from 'node:zlib';
@@ -148,7 +148,10 @@ export async function buildLSIBTargetedCandidate({root,targets,referenceManifest
 
 export async function writeLSIBTargetedCandidate(request,options={}){
   if(typeof request.output!=='string'||!request.output)throw Error('Explicit LSIB candidate output required');
-  const candidate=await buildLSIBTargetedCandidate(request,options),output=resolve(request.output);
+  const output=resolve(request.output);
+  try{await lstat(output);const error=Error('EEXIST: LSIB candidate output already exists: '+output);error.code='EEXIST';throw error;}
+  catch(error){if(error.code!=='ENOENT')throw error;}
+  const candidate=await buildLSIBTargetedCandidate(request,options);
   options.signal?.throwIfAborted();
   await mkdir(dirname(output),{recursive:true});
   options.signal?.throwIfAborted();
