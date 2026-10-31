@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-gutters, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   terrain-dem-gutters:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-gutters'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-gutters' || inputs.target == 'terrain-dem-gutters-integrated')
     strategy:
       fail-fast: false
       matrix:
@@ -53,6 +53,22 @@ jobs:
           $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
           node --test --test-name-pattern 'gutter pixels' tests/unit/terrain-dem-gutters.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM gutter pixels differ from the Python oracle' }
+      - name: Build and verify DEM lossless WebP integration
+        if: inputs.target == 'terrain-dem-gutters-integrated'
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image configuration failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image build failed' }
+          if ($IsWindows) { $binary = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $binary = 'build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image packaging failed' }
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
+          node --test tests/unit/terrain-dem-webp.test.mjs tests/unit/terrain-dem-gutters.test.mjs tests/unit/gis-source-launcher.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'DEM WebP or launcher integration failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-gutters-${{ matrix.os }}-${{ github.sha }}
