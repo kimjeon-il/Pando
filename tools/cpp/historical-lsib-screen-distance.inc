@@ -200,7 +200,7 @@ V validateLSIBCountryRepair(const V& request){
     }catch(const LSIBRepairRejected& error){auto result=V::obj();result.object["error"]=V::str(error.what());return result;}
 }
 V extractLSIBSharedChains(const V& request){
-    const auto& geometries=field(request,"geometries"),&order=array(field(request,"order"));
+    const auto& geometries=field(request,"geometries");const auto& order=array(field(request,"order"));
     if(geometries.kind!=V::Object||order.size()!=geometries.object.size())throw std::runtime_error("Explicit ordered LSIB countries required");
     using Edge=std::pair<LSIBPoint,LSIBPoint>;struct OwnedEdge{Edge edge;std::set<std::string> owners;};
     std::map<Edge,std::size_t> edgeIndex;std::vector<OwnedEdge> edges;std::set<std::string> seen;
