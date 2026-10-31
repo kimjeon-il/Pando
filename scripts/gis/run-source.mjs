@@ -12,7 +12,7 @@ import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
   'historical-border':'tools/gis/build-german-1914-base.mjs',
-  'historical-coast':'tools/build_german_empire_1914_modern_coast.py',
+  'historical-coast':'tools/gis/build-german-1914-base.mjs',
   'terrain-dem':'tools/build-terrain-dem.py',
   'terrain-preview':'tools/build-terrain-preview.mjs',
   'hydro-tiles':'tools/build-hydro-tiles.py',
@@ -31,7 +31,7 @@ export function buildCommand(task,args=[],{root=ROOT}={}){
     throw Error('GIS source path escaped repository');
   const executable=extname(source)==='.mjs'?process.execPath:pythonExecutable();
   const passthrough=args[0]==='--'?args.slice(1):args;
-  return [executable,source,...passthrough];
+  return [executable,source,...(task==='historical-coast'?['--modern-coast']:[]),...passthrough];
 }
 export function parseArguments(args=process.argv.slice(2)){
   let task=null,execute=false,raw=[];

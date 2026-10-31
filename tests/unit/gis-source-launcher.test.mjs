@@ -29,6 +29,10 @@ test('native Node tools and not-yet-migrated Python GIS tools use their own inte
  assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
  assert.match(buildCommand('historical-border',[])[1],/build-german-1914-base\.mjs$/);
+ const coast=buildCommand('historical-coast',['--output','candidate.json','--diagnostics','diagnostics.json']);
+ assert.equal(coast[0],process.execPath);
+ assert.match(coast[1],/build-german-1914-base\.mjs$/);
+ assert.deepEqual(coast.slice(2),['--modern-coast','--output','candidate.json','--diagnostics','diagnostics.json']);
  assert.match(buildCommand('terrain-preview',[])[1],/build-terrain-preview\.mjs$/);
  assert.match(buildCommand('hydro-connectivity',[])[1],/repair-hydro-connectivity\.mjs$/);
 });
