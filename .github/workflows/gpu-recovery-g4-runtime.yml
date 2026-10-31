@@ -37,8 +37,15 @@ jobs:
         run: node --test apps/editor/tests/android-policy-sync.test.mjs
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Viewer Canvas Worker selection and unchanged saved document
+        id: viewer
+        continue-on-error: true
+        run: >-
+          pnpm exec playwright test tests/browser/viewer-canvas.spec.mjs
+          --workers=1 --retries=0 --reporter=list
       - name: Editor Canvas Worker and Canvas2D real-frame checks
         id: canvas
+        if: steps.viewer.outcome == 'success'
         continue-on-error: true
         run: >-
           pnpm exec playwright test tests/browser/renderer-responsiveness.spec.mjs
@@ -46,15 +53,10 @@ jobs:
           --workers=1 --retries=0 --reporter=list
       - name: Editor Canvas timeline and stable document state
         id: editor
+        if: steps.viewer.outcome == 'success'
         continue-on-error: true
         run: >-
           pnpm exec playwright test tests/browser/editor-status-timeline.spec.mjs
-          --workers=1 --retries=0 --reporter=list
-      - name: Viewer Canvas Worker selection and unchanged saved document
-        id: viewer
-        continue-on-error: true
-        run: >-
-          pnpm exec playwright test tests/browser/viewer-canvas.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Enforce each independent G4 residual gate
         if: always()
