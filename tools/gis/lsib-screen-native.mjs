@@ -61,6 +61,12 @@ export async function prepareLSIBReference({geometries,anchors,merge,closedRing}
   const result=await nativeRequest('--prepare-lsib-reference',{geometries,anchors,merge,closedRing},options);
   validateLine(result?.coordinates);return result.coordinates;
 }
+export async function prepareLSIBReviewed(mode,geometry,options={}){
+  options.signal?.throwIfAborted();
+  if(!['igm','coast'].includes(mode)||!geometry||typeof geometry!=='object')throw Error('Explicit reviewed LSIB source required');
+  const result=await nativeRequest('--prepare-lsib-reviewed',{mode,geometry},options);
+  validateLine(result?.coordinates);return result.coordinates;
+}
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{

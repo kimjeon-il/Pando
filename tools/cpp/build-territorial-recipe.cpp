@@ -721,6 +721,11 @@ int main(int argc,char** argv) {
             std::cout<<prepareLSIBScreenReference(pandoeditor::codecjson::parse(input)).encode()<<'\n';
             return 0;
         }
+        if(argc==3 && std::string(argv[1])=="--prepare-lsib-reviewed") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<prepareLSIBReviewedSource(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
         if(argc==4 && std::string(argv[1])=="--german-1914-base") {
             const std::string specification=std::string(argv[3])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[3]));
             Recipe recipe(fs::absolute(argv[2]),pandoeditor::codecjson::parse(specification));
