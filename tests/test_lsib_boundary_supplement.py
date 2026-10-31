@@ -76,6 +76,12 @@ class SupplementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'No safe outer coast anchor'):
             module.repair_coastal_boundary(geometries, border, coasts)
 
+    def test_coastal_repair_surfaces_missing_native_tool(self):
+        geometries, border, coasts = self.coastal_fixture()
+        with patch.dict(os.environ, {'PANDO_TERRITORIAL_RECIPE_BINARY': str(Path('missing-lsib-native').resolve())}):
+            with self.assertRaisesRegex(RuntimeError, 'coastal repair failed'):
+                module.repair_coastal_boundary(geometries, border, coasts)
+
     def test_reviewed_coast_manifest_pins_features_level_and_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
