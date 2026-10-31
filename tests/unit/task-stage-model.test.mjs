@@ -5,6 +5,7 @@ import {
   taskTargetRefs,
   taskWorkflowPresentation,
   editingContextPresentation,
+  shouldShowTaskInputInstruction,
 } from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
 
 const country = id => ({ id, properties: { entityKind: 'general', name: id } });
