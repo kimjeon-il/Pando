@@ -19,7 +19,7 @@ const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
 const prefix='plugins/pando-map-tools/',skill='skills/pando-map-analysis/';
 
 export async function privatePluginEntries({revision,modelPath,workspace=root,version,release,legacyManifest}) {
-  if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('A full pushed work/ui source commit is required');
+  if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('A full source commit is required');
   const read=name=>readPinnedSource(workspace,revision,name);
   const dataset=await analysisAssetCatalog(workspace,{revision});
   const {config,ocrResources,gazetteerResources,gazetteer}=dataset;
@@ -94,7 +94,7 @@ export async function packagePrivatePlugin({revision,directory,modelPath,workspa
     directory,fileCount:files.length,uncompressedBytes:total,...await archiveDirectory(directory)};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const {values}=parseArgs({options:{revision:{type:'string'},directory:{type:'string'},model:{type:'string'}}});
-  try{console.log(JSON.stringify(await packagePrivatePlugin({revision:values.revision,directory:values.directory,modelPath:values.model}),null,2));}
+  const {values}=parseArgs({options:{revision:{type:'string'},branch:{type:'string'},directory:{type:'string'},model:{type:'string'}}});
+  try{console.log(JSON.stringify(await packagePrivatePlugin({revision:values.revision,directory:values.directory,modelPath:values.model,branch:values.branch}),null,2));}
   catch(error){console.error(error);process.exitCode=1;}
 }

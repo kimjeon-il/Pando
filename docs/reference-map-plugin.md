@@ -9,7 +9,8 @@ analysis distribution excludes training code and environments.
 ## Private Work distribution
 
 `tools/reference-analysis/package-private-plugin.mjs` builds from a full source
-SHA already pushed to `origin/work/ui`, paired with its pinned library revision.
+SHA already pushed to `origin/work/ui`, or to an explicitly authorized source
+branch as described below, paired with its pinned library revision.
 It collects the same source/dependency closure as `cloud-probe.mjs`, packages
 verified common source/WASM, English/OSD OCR and place seeds, and lazily fetches
 other requested OCR languages from pinned public library blobs. The pending
