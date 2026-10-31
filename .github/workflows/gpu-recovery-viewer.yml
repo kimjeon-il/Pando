@@ -31,12 +31,24 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Apply unchanged G1-G3 candidate only to verification checkout
         run: node tests/helpers/prepare-gpu-recovery-candidate.mjs
-      - name: Print draw preparation boundaries
+      - name: Inspect recovery admission and physical mask progress without changing application behavior
         run: |
           node --input-type=module <<'NODE'
-          import {readFileSync} from 'node:fs';
-          const lines=readFileSync('shared/frontend/js/modules/gpu-map-renderer.js','utf8').split('\n');
-          for(const [a,b]of [[2335,2364],[3956,3997],[4064,4214],[4815,4901]])console.log('SOURCE '+a+'-'+b+'\n'+lines.slice(a-1,b).join('\n'));
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const source=readFileSync('shared/frontend/js/modules/gpu-map-renderer.js','utf8');
+          for(const name of ['finishRecoveryResources','recordGpuRecoveryFrame','commitGpuRecoveryFrame','recoveryIdentityCurrent']) {
+            const start=source.indexOf('    function '+name+'(');
+            assert.ok(start>=0,name);
+            const rest=source.slice(start+1),end=rest.search(/\n    (?:async )?function /);
+            console.log('SOURCE '+name+'\n'+source.slice(start,end<0?start+6000:start+1+end));
+          }
+          const path='tests/browser/gpu-recovery-viewer-frame.spec.mjs';
+          let test=readFileSync(path,'utf8');
+          const before='prepared:polygonOverlayPass.hasPreparedResource(p)';
+          assert.equal(test.split(before).length,2);
+          test=test.replace(before,before+',positionBytes:p.positions?.byteLength,indexBytes:p.indices?.byteLength,sourceKey:p.sourceKey,passStats:polygonOverlayPass.stats()');
+          writeFileSync(path,test);
           NODE
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
@@ -50,12 +62,11 @@ jobs:
           node --input-type=module <<'NODE'
           import {readFileSync,existsSync} from 'node:fs';
           const file='gpu-viewer-evidence/webgl2/result.json';
-          if(!existsSync(file)){console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-16000));process.exit(0);}
-          const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({passed:r.passed,errors:r.errors,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
+          if(!existsSync(file)){if(existsSync('gpu-viewer-evidence/browser.log'))console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-10000));process.exit(0);}
+          const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({passed:r.passed,error:r.error,errors:r.errors,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
           let previous='';let count=0;
           for(const t of r.final?.trace?.rows||[]){const row={where:t.where,extra:t.extra,phase:t.recovery.phase,lastReason:t.recovery.lastReason,uploaded:t.recovery.uploadedBytes,mode:t.rendererMode,lost:t.webglContextLost,shared:t.sharedReady,surface:t.surfacePresentation,identity:t.identity,physicalMatches:t.physicalMatches,terrainReady:t.terrain.terrainReady,terrainFailed:t.terrain.terrainFailed,pending:t.pending,evidence:t.evidence,polygons:t.polygons,base:t.base};const text=JSON.stringify(row);if(text!==previous&&count++<45)console.log('TRACE '+text);previous=text;}
           console.log('CALLS '+JSON.stringify(r.final?.trace?.counts));
-          console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-5000));
           NODE
       - uses: actions/upload-artifact@v4
         if: always()
