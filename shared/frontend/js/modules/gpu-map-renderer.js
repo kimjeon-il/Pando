@@ -22,7 +22,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -483,12 +483,19 @@ export function createGpuMapRenderer(deps) {
       return presentation;
     }
 
-    function recordMapPresentation(frame, resourcesDrawn = true) {
+    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false } = {}) {
       const terrain = currentTerrainReadiness();
       resourcesDrawn = resourcesDrawn && physicalSceneMatchesContext(renderScene,getPhysicalContextState());
       recordGpuRecoveryFrame(frame, resourcesDrawn);
       if (temporalPending() && !temporalFrameReady(resourcesDrawn, terrain)) { presentedMapKey='';publishMapReadiness();return; }
-      const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady;
+      // The first real Worker bitmap has already painted the physical substrate.
+      // It may promote an initial country frame before terrain tiles finish;
+      // never apply this shortcut to a pending temporal/project replacement.
+      const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady
+        || canAdmitCanvasWorkerPartialBackground({
+          rendererMode, committedBitmap: committedWorkerBitmap,
+          physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
+        });
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
       if (temporalPending() && temporalFrameReady(resourcesDrawn, terrain)) temporalPresentation.frameId = frame.frameId;
       if (resourcesDrawn && (terrainDrawn || terrain.terrainFailed)) {
@@ -4915,7 +4922,7 @@ export function createGpuMapRenderer(deps) {
         canvasTerrainStats = message.terrainStats || {};
         Object.assign(window.__PANDOLAB_GPU_METRICS__ ||= {}, canvasTerrainStats);
         displayedRenderRevision = revision;
-        recordMapPresentation(lastVisualFrame);
+        recordMapPresentation(lastVisualFrame, true, { committedWorkerBitmap: true });
         markPreviewFramePresented();
         framePresentationListener?.({
           frameId: Number(message.frameId || revision || 0),
