@@ -77,6 +77,26 @@ export function compileBuiltinWorldNameBindings(entity,id) {
   });
 }
 
+// Historical flag editions compile to the existing C++ flag property binding.
+// This is source metadata, not a new application field or a second flag layer.
+export function compileBuiltinWorldFlagBindings(entity,id) {
+ const history=entity.metadata?.flagHistory||[];
+ if(!Array.isArray(history))throw new Error('Invalid flag history: '+entity.entityId);
+ return history.flatMap((version,i)=>{
+  if(!['default','embedded','none'].includes(version.policy))
+   throw new Error('Unsupported dated flag policy: '+entity.entityId);
+  if(version.policy==='embedded'&&!/^data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+$/.test(version.flagDataUrl||''))
+   throw new Error('Missing historical SVG flag: '+entity.entityId);
+  const period=intersection(bounds(version),bounds(entity.lifetime));
+  if(!period)return [];
+  return [{id:`historical-world:flags:${id}:${i}`,objectRef:{domain:'territorial',id},
+   validFrom:period.start&&date(period.start),validTo:period.end&&date(period.end),
+   property:'flag',value:{policy:version.policy,
+    embeddedDataUrl:version.policy==='embedded'?version.flagDataUrl:'',
+    defaultCountryId:'',defaultFlagDataUrl:null}}];
+ });
+}
+
 export function replaceBuiltinWorldCountryNames(country,entity) {
   const result=structuredClone(country);
   applyNameBaseline(result.identity,entity);
@@ -136,7 +156,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     const feature = createTerritorialFeature({ id: entity.entityId, entityKind: entity.entityKind,
       name: '', geometry: first.geometry,
       color: entity.metadata?.defaultColor || '',
-      notes: entity.metadata?.notes || '', metadata: { ...structuredClone(entity.metadata),
+      notes: entity.metadata?.notes || '', metadata: { ...Object.fromEntries(Object.entries(structuredClone(entity.metadata || {})).filter(([key])=>key!=='flagHistory')),
         ...(entity.entityKind === 'general' && !entity.parentEntityId && entity.metadata?.defaultFlagDataUrl
           ? { flagDataUrl: entity.metadata.defaultFlagDataUrl } : {}),
         historicalTimeline: { entityId: entity.entityId, lifetime: structuredClone(entity.lifetime),
@@ -226,6 +246,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
       ...structuredClone(definitions.get(id).identity.properties.metadata.historicalTimeline.lifetime) });
     for (const name of ['geometryBindings', 'parentRelations']) rows[name].forEach((row, i) => records[name].push({ id: `historical-world:${name}:${id}:${i}`, ...row }));
     records.propertyBindings.push(...compileBuiltinWorldNameBindings(definitions.get(id).nameSource,id));
+    records.propertyBindings.push(...compileBuiltinWorldFlagBindings(definitions.get(id).nameSource,id));
   }
   const normalized = normalizeTimelineRecords(records, { entities: identities.map(row => ({ objectRef: {domain:"territorial",id:row.id}, entityKind: row.properties.entityKind })), geometryExists: ref => archive.get(ref) !== null });
   const availability=new Map([...rowsByEntity].map(([id,rows])=>[id,rows.availability]));
