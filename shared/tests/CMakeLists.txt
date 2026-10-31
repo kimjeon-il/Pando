@@ -91,6 +91,18 @@ else()
 endif()
 add_test(NAME temporal_source_tests COMMAND temporal_source_tests)
 set_tests_properties(temporal_source_tests PROPERTIES TIMEOUT 15)
+# P5-3: detached date candidate uses the same compiled C++ temporal resolver.
+add_executable(temporal_candidate_tests temporal-candidate-tests.cpp)
+target_link_libraries(temporal_candidate_tests PRIVATE Pandoeditor::Core)
+target_compile_definitions(temporal_candidate_tests PRIVATE
+    TEMPORAL_CANDIDATE_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-document-seed.json")
+if(MSVC)
+    target_compile_options(temporal_candidate_tests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(temporal_candidate_tests PRIVATE -UNDEBUG)
+endif()
+add_test(NAME temporal_candidate_tests COMMAND temporal_candidate_tests)
+set_tests_properties(temporal_candidate_tests PROPERTIES TIMEOUT 15)
 
 add_executable(source_admission_tests source-admission-tests.cpp)
 target_link_libraries(source_admission_tests PRIVATE Pandoeditor::Core)

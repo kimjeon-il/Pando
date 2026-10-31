@@ -6,6 +6,7 @@
 #include <pandoeditor/webstorage.h>
 #include <array>
 #include <map>
+#include <memory>
 
 namespace pandoeditor {
 struct SelectionCatalogEntry {SelectionRef ref;std::optional<std::string> logicalId;std::vector<std::string> sourceIds;};
@@ -38,6 +39,20 @@ struct TemporalSourceStats {
     std::size_t entries=0;
     std::uint64_t declaredDecodedBytes=0,hits=0,evictions=0;
 };
+// Read-only world candidate is separate from the editable CommandPreview and
+// from the active storageBaselineId. It cannot be committed in P5-3.
+struct TemporalCandidateReceipt {
+    std::uint32_t candidateId=0,sourceId=0,expectedEpoch=0;
+    std::string targetMonth,sourceFingerprint,worldSha256;
+    std::size_t resolvedEntityCount=0;
+    bool reused=false;
+};
+struct TemporalCandidateInspection {
+    // Generated only for explicit verification; never held as a second
+    // mutable document or returned by the public RPC in this phase.
+    std::string projectedJson;
+    ResolvedWorld world;
+};
 // The budget measures declared decoded bytes; it is not native heap usage.
 constexpr std::size_t TEMPORAL_SOURCE_MAX_ENTRIES=2;
 constexpr std::uint64_t TEMPORAL_SOURCE_MAX_DECODED_BYTES=64ull*1024*1024;
@@ -66,6 +81,11 @@ public:
         std::uint32_t expectedEpoch) const;
     bool temporalSourceRelease(std::uint32_t sourceId,std::uint32_t expectedEpoch);
     TemporalSourceStats temporalSourceStats() const noexcept;
+    TemporalCandidateReceipt temporalCandidatePrepare(std::uint32_t sourceId,
+        const std::string& targetMonth,const std::string& sourceFingerprint,
+        std::uint32_t expectedEpoch);
+    std::optional<TemporalCandidateInspection> temporalCandidateInspect(std::uint32_t candidateId,
+        std::uint32_t expectedEpoch) const;
     DocumentSessionState admitExternalBaseline(std::uint32_t expectedEpoch);
     std::string validateImport(const std::string&,std::optional<std::uint32_t> baselineId={}) const;
     ImportInspection inspectImport(const std::string&,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const;
@@ -118,6 +138,7 @@ private:
     void requireLoaded() const;
     void clearPreview();
     void clearTemporalSources() noexcept;
+    void clearTemporalCandidate() noexcept;
     DocumentSessionOutcome retainPreview(PrepareResult&&);
     DocumentSessionOutcome history(bool forward,std::uint32_t expectedEpoch);
     Project project_;
@@ -137,6 +158,13 @@ private:
     std::uint32_t temporalSourceSequence_=0;
     std::uint64_t temporalSourceBytes_=0,temporalSourceAccess_=0;
     std::uint64_t temporalSourceHits_=0,temporalSourceEvictions_=0;
+    struct TemporalCandidateEntry {
+        TemporalCandidateReceipt receipt;
+        Project project;
+        ResolvedWorld world;
+    };
+    std::unique_ptr<TemporalCandidateEntry> temporalCandidate_;
+    std::uint32_t temporalCandidateSequence_=0;
     projectcodec::PlatformPorts ports_;
     std::optional<CommandPreview> preview_;
     std::uint32_t epoch_=0,stateRevision_=0,candidateSequence_=0,candidateId_=0,candidateEpoch_=0,sourceEpoch_=0;
