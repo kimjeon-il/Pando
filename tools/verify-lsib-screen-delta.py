@@ -52,6 +52,9 @@ def main():
     args = parser.parse_args()
     if not os.environ.get('PANDO_TERRITORIAL_RECIPE_BINARY'):
         parser.error('PANDO_TERRITORIAL_RECIPE_BINARY must locate the native GEOS engine')
+    target = Path(args.output)
+    if target.exists():
+        raise FileExistsError('LSIB screen output already exists; preserve prior evidence')
     root = Path(__file__).resolve().parents[1]
     spec = importlib.util.spec_from_file_location('lsib_source', root / 'tools/supplement-lsib-boundaries.py')
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
@@ -106,7 +109,12 @@ def main():
                 diagnostic={'entry':entry,'segment':segment,'reference':list(reference.coords),'display':list(display.coords),
                             'referenceBounds':reference.bounds,'displayBounds':display.bounds,
                             'forward':forward,'reverse':reverse}
-                (root/'build-native/lsib-supplement/screen-failure.json').write_text(json.dumps(diagnostic),encoding='utf-8')
+                failure_path = root/'build-native/lsib-supplement/screen-failure.json'
+                try:
+                    with failure_path.open('x', encoding='utf-8') as output:
+                        output.write(json.dumps(diagnostic))
+                except FileExistsError:
+                    print(json.dumps({'preservedExistingDiagnostic': str(failure_path)}), flush=True)
                 print(json.dumps({k:v for k,v in diagnostic.items() if k not in ('reference','display','entry','segment')}),flush=True)
                 raise AssertionError(f'Source/display screen deviation exceeds tolerance: {entry["countries"]}: {upper}')
             results.append({**provenance, 'countries': entry['countries'], 'anchors': anchors, 'samples': n1 + n2,
@@ -117,8 +125,9 @@ def main():
               'sections': len(results), 'samples': sum(r['samples'] for r in results),
               'sampledMaximumCssPx': max(r['sampledMaximumCssPx'] for r in results),
               'continuousUpperBoundCssPx': max(r['continuousUpperBoundCssPx'] for r in results), 'results': results}
-    target = Path(args.output); target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open('x', encoding='utf-8') as output:
+        output.write(json.dumps(report, indent=2) + '\n')
     print(json.dumps({k: v for k, v in report.items() if k != 'results'}))
 
 
