@@ -57,8 +57,15 @@ async function ready(page,renderer=null){
  await page.waitForTimeout(500);
 }
 async function image(page,file){
- const rect=await page.locator('#map').boundingBox();
- expect(rect,'Current map region must exist').not.toBeNull();
+ const rect=await page.evaluate(()=>{
+  // Editor can replace the inner map node after selecting an object while
+  // keeping the accessible map workspace and its rendered pixels alive.
+  const host=document.querySelector('#map')||document.querySelector('[aria-label="지도 편집 영역"]')
+    ||document.querySelector('[aria-label="지도 영역"]');
+  const box=host?.getBoundingClientRect();
+  return box&&box.width>0&&box.height>0 ? {x:box.x,y:box.y,width:box.width,height:box.height}:null;
+ });
+ expect(rect,'Visible map workspace must exist with nonzero dimensions').not.toBeNull();
  // Page clip captures the map pixels directly without Playwright waiting for an
  // ever-moving map element to become geometrically "stable" after GPU restore.
  const bytes=await page.screenshot({path:file,animations:'disabled',timeout:30000,
