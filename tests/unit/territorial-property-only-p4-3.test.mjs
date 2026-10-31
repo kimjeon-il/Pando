@@ -75,7 +75,7 @@ test('P4-3 Core projection event distinguishes property-only from spatial change
 
 test('P4-3 spatial records keep exact bounds and IDs after an attribute-only source retarget',()=>{
   let rows=[country('A')],upserts=0,clears=0;
-  const spatialRecords=new Map();
+  const spatialRecords=new Map(),distributionRows=[];
   const index={clearDomain:domain=>{clears++;for(const [key,entry] of spatialRecords)if(entry.domain===domain)spatialRecords.delete(key);},
     upsert:item=>{upserts++;spatialRecords.set(item.key,item);}};
   const state={labels:[],genericFeatures:[],hydroEdits:[],size:{width:800,height:600},projection:'globe'};
@@ -83,7 +83,7 @@ test('P4-3 spatial records keep exact bounds and IDs after an attribute-only sou
   spatial.connect({
     spatialFactories:{createMapObjectSpatialIndex:()=>index},
     projectState:{state},territorialModel:{entityRepository:{list:()=>rows}},
-    domains:{renderingDomain:{getDistributionRenderRows:()=>[]}},
+    domains:{renderingDomain:{getDistributionRenderRows:()=>distributionRows}},
     cutGeometry:{coordinateBounds:()=>[0,0,2,2]},
   });
   spatial.initializeGeometryBoundsCache();
@@ -111,5 +111,7 @@ test('P4-3 skipped property-only contract never includes unsupported fields',()=
   assert.deepEqual(classifyTerritorialPropertyOnly(before,same)?.paintChangedIds,[]);
   same[0].geometry=before[0].geometry;
   // A borrowed mutable geometry cannot prove unchanged coordinates.
+  assert.equal(classifyTerritorialPropertyOnly(before,same),null);
+  Object.freeze(before[0].geometry); // Shallow freezing is not provenance.
   assert.equal(classifyTerritorialPropertyOnly(before,same),null);
 });

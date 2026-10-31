@@ -31,4 +31,4 @@ jobs:
       - name: Lint property-only source and focused tests
         run: pnpm exec eslint shared/frontend/js/modules/territorial-entity-store.js shared/frontend/js/modules/spatial-index.js apps/viewer/js/modules/viewer-map.js tests/unit/territorial-property-only-p4-3.test.mjs
       - name: Exact property-only and existing mesh/label regressions
-        run: node --test tests/unit/territorial-property-only-p4-3.test.mjs tests/unit/country-mesh-content-key.test.mjs tests/unit/map-object-spatial-index.test.mjs tests/unit/territorial-entity-store.test.mjs tests/unit/country-label-input-contract.test.mjs
+        run: node --test tests/unit/territorial-property-only-p4-3.test.mjs tests/unit/country-mesh-content-key.test.mjs tests/unit/map-object-spatial-index.test.mjs tests/unit/country-label-flags.test.mjs tests/unit/territorial-label-position.test.mjs
