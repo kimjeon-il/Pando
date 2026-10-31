@@ -112,7 +112,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
   terrain-dem-fill-windows:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-fill-windows'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-fill-windows' || inputs.target == 'physical-raster')
     runs-on: windows-2022
     timeout-minutes: 12
     steps:
@@ -145,6 +145,7 @@ jobs:
           & $zip x -y "$sdk/packed/gdal.tar" "-o$sdk" | Out-Null
           if ($LASTEXITCODE -ne 0) { throw 'GDAL SDK extraction failed' }
       - name: Build the selected GDAL tint tool
+        if: inputs.target == 'terrain-dem-fill-windows'
         shell: pwsh
         run: |
           $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
@@ -155,9 +156,28 @@ jobs:
           node tools/gis/package-terrain-dem-fill.mjs --binary build-native/terrain-dem-encode/Release/pando-terrain-dem-fill.exe --directory build-native/terrain-dem-encode/fill-artifact
           if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool packaging failed' }
       - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-dem-fill-windows'
         with:
           name: terrain-dem-fill-windows-${{ github.sha }}
           path: build-native/terrain-dem-encode/fill-artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build the physical TIFF reader against the OSGeo4W runtime ABI
+        if: inputs.target == 'physical-raster'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/physical-raster -B build-native/physical-raster -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF reader SDK configuration failed' }
+          cmake --build build-native/physical-raster --config Release --target pando-physical-raster
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF reader SDK build failed' }
+          node tools/gis/package-physical-raster.mjs --binary build-native/physical-raster/Release/pando-physical-raster.exe --directory build-native/physical-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF reader SDK packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'physical-raster'
+        with:
+          name: physical-raster-osgeo-windows-${{ github.sha }}
+          path: build-native/physical-raster/artifact/
           if-no-files-found: error
           retention-days: 7
   terrain-dem-encode:
