@@ -30,6 +30,14 @@ jobs:
       - name: Prepare the branch-pinned runtime without changing data
         uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
+      - name: Lint only P0 test instrumentation
+        run: >-
+          pnpm exec eslint
+          tests/helpers/map-transition-baseline.mjs
+          tests/unit/map-transition-baseline.test.mjs
+          tests/unit/map-transition-clock-contract.test.mjs
+          tests/browser/map-transition-baseline.benchmark.mjs
+          tests/browser/map-transition-baseline.config.mjs
       - id: browsers
         run: pnpm exec playwright install --with-deps chromium
       - name: Fixed data, clock and lifecycle contracts
