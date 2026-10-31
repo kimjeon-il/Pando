@@ -13,7 +13,7 @@ const validId=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
 export async function readLSIBRaw({archive,ids,binary=process.env.PANDO_GDAL_OGR2OGR||'ogr2ogr'},{signal}={}){
   signal?.throwIfAborted();
-  if(typeof archive!=='string'||!archive||typeof binary!=='string'||!binary||!Array.isArray(ids)||!ids.length||ids.length>10000||
+  if(typeof archive!=='string'||!archive||typeof binary!=='string'||!binary||!Array.isArray(ids)||ids.length>10000||
     ids.some(id=>typeof id!=='string'||!validId.test(id))||new Set(ids).size!==ids.length)
     throw Error('Explicit LSIB archive and unique source identifiers required');
   const path=resolve(archive),normal=path.replaceAll('\\','/');
@@ -21,13 +21,20 @@ export async function readLSIBRaw({archive,ids,binary=process.env.PANDO_GDAL_OGR
   const info=await stat(path);if(!info.isFile()||info.size!==archiveBytes)throw Error('Pinned LSIB archive size differs');
   const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal})){signal?.throwIfAborted();hash.update(chunk);}
   if(hash.digest('hex')!==archiveHash)throw Error('Pinned LSIB archive hash differs');
+  if(!ids.length)return [];
   const source=`/vsizip/{/vsizip/${normal}/${inner}}/${shapefile}`;
   const where='ID IN ('+ids.map(id=>"'"+id+"'").join(',')+')',env={...process.env};
   if(isAbsolute(binary))env.PATH=dirname(binary)+delimiter+(env.PATH||'');
   const output=await new Promise((accept,reject)=>execFile(binary,['-f','GeoJSONSeq','/vsistdout/',source,'-where',where,
     '-lco','RS=NO','-lco','COORDINATE_PRECISION=17'],{encoding:'utf8',windowsHide:true,timeout:180000,maxBuffer:256*1024*1024,signal,env},
     (error,stdout,stderr)=>error?reject(new Error('GDAL LSIB source read failed: '+error.message+' '+stderr,{cause:error})):accept(stdout)));
-  signal?.throwIfAborted();const seen=new Set(),wanted=new Set(ids),rows=[];
+  signal?.throwIfAborted();return parseLSIBGeoJSON(output,ids);
+}
+
+export function parseLSIBGeoJSON(output,ids){
+  if(typeof output!=='string'||!Array.isArray(ids)||ids.some(id=>typeof id!=='string'||!validId.test(id))||new Set(ids).size!==ids.length)
+    throw Error('Explicit LSIB source identifiers and output required');
+  const seen=new Set(),wanted=new Set(ids),rows=[];
   for(const line of output.split(/\r?\n/)){
     if(!line.trim())continue;
     const feature=JSON.parse(line);if(feature?.type!=='Feature'||!feature.properties||
@@ -48,6 +55,7 @@ export async function readLSIBRaw({archive,ids,binary=process.env.PANDO_GDAL_OGR
 
 export async function readLSIBLines(request,options={}){
   const rows=await readLSIBRaw(request,options);
+  if(!rows.length)return [];
   const geometries=await mergeLSIBLines(rows.map(row=>row.geometry),options);
   return rows.map((row,index)=>({...row,geometry:geometries[index]}));
 }
