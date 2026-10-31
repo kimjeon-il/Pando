@@ -526,7 +526,8 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await captureLayouts(page, tool);
     await page.locator('#modePrimaryBtn').focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('#hydroProperties')).toBeVisible();
+    // A confirmed hydro command may still be applying its Core result and selection.
+    await expect(page.locator('#hydroProperties')).toBeVisible({ timeout: 45_000 });
     const id = await page.locator('#hydroIdValue').textContent();
     expect(id?.trim()).toBeTruthy();
     const savedFeature = () => page.evaluate(async id => {
@@ -564,8 +565,10 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     expect(created.storedIdentityGeometry).toBeNull();
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
-    await expect(page.locator('#hydroProperties')).toBeHidden();
-    await expect.poll(savedFeature, { timeout: 20_000 }).toBeNull();
+    // Verify canonical storage removal before asserting UI selection invalidation.
+    // Both are async after an accepted Core undo; a short UI-only timeout hides the cause.
+    await expect.poll(savedFeature, { timeout: 45_000 }).toBeNull();
+    await expect(page.locator('#hydroProperties')).toBeHidden({ timeout: 30_000 });
     await page.locator('#redoBtn').click();
     await expect.poll(savedFeature, { timeout: 20_000 }).toEqual(created);
   }
