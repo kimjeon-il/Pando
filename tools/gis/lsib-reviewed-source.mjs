@@ -2,6 +2,7 @@
 import {createHash} from 'node:crypto';
 import {readFile,realpath,stat} from 'node:fs/promises';
 import {isAbsolute,relative,resolve,sep} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {prepareLSIBReviewed} from './lsib-screen-native.mjs';
 
 const inScope=(base,path)=>{const value=relative(base,path);return !!value&&value!=='..'&&!value.startsWith('..'+sep)&&!isAbsolute(value);};
@@ -39,5 +40,12 @@ export async function loadLSIBReviewedSource({root,manifestPath,binary},{signal}
       lines[role]=await prepareLSIBReviewed('coast',matches[0].geometry,{binary,signal});
     }
   }
-  return {sourceId:metadata.sourceId,referenceManifest,lines};
+  return {...metadata,referenceManifest,lines};
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    if(process.argv.length!==3||process.argv[2]!=='--stream')throw Error('Expected --stream');
+    const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>1024*1024)throw Error('Reviewed LSIB request exceeds byte budget');chunks.push(chunk);}
+    process.stdout.write(JSON.stringify(await loadLSIBReviewedSource(JSON.parse(Buffer.concat(chunks,size).toString('utf8'))))+'\n');
+  }catch(error){process.stderr.write('lsib-reviewed-source: '+String(error.message)+'\n');process.exitCode=1;}
 }
