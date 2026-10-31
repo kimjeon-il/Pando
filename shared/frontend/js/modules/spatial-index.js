@@ -65,6 +65,18 @@ export function createSpatialIndex() {
     return true;
   }
 
+  // Caller must first prove exact same IDs, ordering, geometry and hierarchy.
+  // Spatial records contain IDs and bounds, not feature property snapshots.
+  // Retargeting the source array prevents a pointless coordinate reindex while
+  // queries keep using the current accepted C++ projection.
+  function retainTerritorialSpatialIndex(entities){
+    const previous=mapObjectSpatialIndexSources?.get('territorial');
+    if(!previous||!Array.isArray(entities)
+      ||previous[1]!==mapObjectGeometryRevisions.territorial)return false;
+    mapObjectSpatialIndexSources.set('territorial',[entities,previous[1]]);
+    return true;
+  }
+
   function visibleFlatGeographicBounds(overscan = 64) {
     const width = Math.max(1, Number(dependencies.projectState.state.size.width || 1));
     const height = Math.max(1, Number(dependencies.projectState.state.size.height || 1));
@@ -297,6 +309,7 @@ export function createSpatialIndex() {
     get mapObjectSpatialIndex() { return mapObjectSpatialIndex; },
     get markCountryGeometriesChanged() { return markCountryGeometriesChanged; },
     get rebuildMapObjectSpatialIndex() { return rebuildMapObjectSpatialIndex; },
+    get retainTerritorialSpatialIndex() { return retainTerritorialSpatialIndex; },
     get rebuildSpatialIndex() { return rebuildSpatialIndex; },
     get scheduleMapObjectSpatialIndexRebuild() { return scheduleMapObjectSpatialIndexRebuild; },
     get spatialFeatures() { return spatialFeatures; },
