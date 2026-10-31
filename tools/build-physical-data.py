@@ -57,12 +57,29 @@ def build_outer_land_mask(countries_path: Path, lakes_path: Path, size: tuple[in
     return Image.frombytes('L', size, result.stdout)
 
 
-class PhysicalCompositor:
-    """Reuse one source-verified native process for all tiles in a level."""
+class NativeTileProcess:
+    """Reuse a source-verified native process for all tiles in a level."""
+    def __init__(self, script: Path, *arguments: str):
+        self.command = ['node', str(script), *arguments]
+
     def __enter__(self):
-        self.process = subprocess.Popen(['node', str(Path(__file__).resolve().parent / 'gis' / 'terrain-preview-native.mjs'),
-                                         '--physical-composite-stream'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.process = subprocess.Popen(self.command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return self
+
+    def __exit__(self, kind, value, traceback):
+        try:
+            self.process.stdin.close()
+        except BrokenPipeError:
+            pass
+        self.process.stdout.close()
+        status = self.process.wait(timeout=180)
+        if status and kind is None:
+            raise RuntimeError(f'Native physical tile process failed: {status}')
+
+
+class PhysicalCompositor(NativeTileProcess):
+    def __init__(self):
+        super().__init__(Path(__file__).resolve().parent / 'gis' / 'terrain-preview-native.mjs', '--physical-composite-stream')
 
     def combine(self, land: Image.Image, ocean: Image.Image, land_mask: Image.Image, relief: Image.Image, box: tuple[int, int, int, int]) -> Image.Image:
         if land.size != ocean.size or land.size != land_mask.size or land.size != relief.size:
@@ -86,15 +103,30 @@ class PhysicalCompositor:
             raise RuntimeError('Native physical composite returned incomplete pixels')
         return Image.frombytes('RGBA', (width + 2, height + 2), result)
 
-    def __exit__(self, kind, value, traceback):
-        try:
-            self.process.stdin.close()
-        except BrokenPipeError:
-            pass
-        self.process.stdout.close()
-        status = self.process.wait(timeout=180)
-        if status and kind is None:
-            raise RuntimeError(f'Native physical composite failed: {status}')
+class PhysicalWebpEncoder(NativeTileProcess):
+    def __init__(self):
+        super().__init__(Path(__file__).resolve().parent / 'gis' / 'physical-webp-encoder.mjs')
+
+    def save(self, image: Image.Image, path: Path) -> None:
+        if path.exists():
+            raise FileExistsError(f'Physical WebP output exists: {path}')
+        width, height = image.size
+        if image.mode != 'RGBA' or not 1 <= width <= 4098 or not 1 <= height <= 4098 or width * height > 16777216:
+            raise ValueError('Bounded physical RGBA tile required')
+        self.process.stdin.write(struct.pack('<8sII', b'PWEBP001', width, height))
+        self.process.stdin.write(image.tobytes())
+        self.process.stdin.flush()
+        header = self.process.stdout.read(4)
+        if len(header) != 4:
+            raise RuntimeError('Native physical WebP encoder returned no size')
+        length = struct.unpack('<I', header)[0]
+        if not 12 <= length <= width * height * 5 + 1048576:
+            raise ValueError('Invalid native physical WebP output size')
+        encoded = self.process.stdout.read(length)
+        if len(encoded) != length or encoded[:4] != b'RIFF' or encoded[8:12] != b'WEBP':
+            raise ValueError('Invalid native physical WebP output')
+        with path.open('xb') as stream:
+            stream.write(encoded)
 
 
 def build_terrain(source_root: Path, output_root: Path, countries_path: Path) -> dict[str, Any]:
@@ -129,7 +161,7 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
         level_dir.mkdir(exist_ok=True)
         columns = math.ceil(width / TILE_SIZE)
         rows = math.ceil(height / TILE_SIZE)
-        with PhysicalCompositor() as compositor:
+        with PhysicalCompositor() as compositor, PhysicalWebpEncoder() as encoder:
             for row in range(rows):
                 for column in range(columns):
                     box = (
@@ -139,7 +171,7 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
                         min(height, (row + 1) * TILE_SIZE),
                     )
                     packed = compositor.combine(land, ocean, land_mask, gray, box)
-                    packed.save(level_dir / f"{column}-{row}.webp", "WEBP", lossless=True, method=4, exact=True)
+                    encoder.save(packed, level_dir / f"{column}-{row}.webp")
                     packed.close()
         levels.append({
             "id": level_index,

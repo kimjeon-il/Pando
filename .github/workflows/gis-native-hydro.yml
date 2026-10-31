@@ -341,6 +341,10 @@ jobs:
           $env:PANDO_PHYSICAL_PYTHON = (Get-Command python).Source
           node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
+          if ('${{ inputs.target }}' -eq 'terrain-preview-integrated') {
+            node --test tests/unit/physical-webp-stream.test.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'Physical WebP encoding differs from source pixels' }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-preview-${{ matrix.os }}-${{ github.sha }}
