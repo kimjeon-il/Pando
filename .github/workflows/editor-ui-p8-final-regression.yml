@@ -31,8 +31,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  hydro-focused:
+    name: Hydro create, storage and undo/redo twice without retries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Check two genuine hydro drafts, history and storage without reruns
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: >-
+          pnpm exec playwright test tests/browser/workflow-v17.spec.mjs
+          --grep 'hydro lists preserve add, undo and validation'
+          --workers=1 --repeat-each=2 --retries=0 --max-failures=1 --trace off
+          --output=test-results/m2-hydro-focused
+      - name: Retain failed hydro case only
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-hydro-focused-${{ github.sha }}
+          path: test-results/m2-hydro-focused/
+          if-no-files-found: ignore
+          retention-days: 3
+
   ui-contracts:
-    name: UI contracts and command regressions
+      name: UI contracts and command regressions
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -90,6 +123,7 @@ jobs:
           [ "$UI_GATE" = success ] && [ "$UNIT_GATE" = success ]
 
   editor-browser:
+    needs: hydro-focused
     name: Editor, selection, metadata and undo (Chromium)
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -146,6 +180,7 @@ jobs:
           retention-days: 7
 
   workflow-browser:
+    needs: hydro-focused
     name: Annex, creation, merge, border, hydro and distribution (Chromium)
     runs-on: ubuntu-24.04
     timeout-minutes: 40
