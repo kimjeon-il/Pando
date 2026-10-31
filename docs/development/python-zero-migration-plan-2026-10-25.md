@@ -9,7 +9,7 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-31 현행 기준: 추적 Python 27개
+### 2026-10-31 현행 기준: 추적 Python 26개
 
 - **QGIS 네이티브 연결 전환:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가했다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. [Windows CI 41144046823](https://github.com/kimjeon-il/Pando/actions/runs/41144046823)과 QGIS 3.44.15 한 창에서 출처·편집 상태·롤백을 확인했다. 실제 MCP의 인증 거부·편집·Undo/Redo·롤백·출력 덮어쓰기 거부와 한글·따옴표 파일 경로, EPSG:3857 클립, QGIS→판도 편집기→QGIS의 선·폴리곤 및 출처 왕복이 통과했다. Codex QGIS 연결을 네이티브 MCP로 전환하고 기존 Python 브리지·부트스트랩·대응 테스트를 제거했다. 현재 열려 있는 채팅은 MCP 연결 새로 고침이 필요할 수 있다. 이는 합성 입력의 기능 검증이며 모든 QGIS 좌표계나 처리 알고리즘 검증은 아니다.
 
@@ -96,13 +96,13 @@
   내륙국의 전체 공유 경계 교체도 기존 네이티브 공유선·링 교체·귀속 검증을 하나로 묶었다. 합성 정상·거부 사례와 선택한 산마리노 IGM 원본 2,233점에 대해 두 국가 형상과 결과 메타데이터가 기존 Python과 일치했으며, 기존 Python 호출에서도 확인했다.
   삼국 접점의 다섯 구간 선택·교체 및 공유 위상 검증을 한 번의 네이티브 호출로 묶었다. 기준점 부재와 접점 단절 거부를 포함한 합성 사례, 선택한 AUT·LIE·CHE 세 국가와 세 원본 경계선의 출력 형상 및 다섯 구간 메타데이터가 기존 Python과 일치했다. [Windows/Linux CI 41157767833](https://github.com/kimjeon-il/Pando/actions/runs/41157767833)은 합성 사례를 확인했으며 실자료 비교는 Windows에서 수행했다. 전체 생성 실행기의 Python은 남아 있고, 이 비교는 역사 형상 승인이 아니다.
   FRA–MCO 해안 보충의 기준점 선택, 해안선 교체, 육지·귀속·공유 경계 검증도 네이티브 처리로 묶었다. 기준점 부재, 과도한 접점 이동과 존재하지 않는 교차점의 거부 및 원본 불변을 합성 사례로 확인했고, 선택한 FRA·MCO 국가 형상과 LSIB 선 1개·IGN 해안선 3개의 출력 좌표, 위상과 네 구간 영수증은 기존 Python 결과와 같았다. GEOS 버전에 따라 폴리곤·링 순서가 달라지는 부분은 좌표를 유지한 채 비교했다. [Windows/Linux CI 41158466945](https://github.com/kimjeon-il/Pando/actions/runs/41158466945)는 합성 사례를, 실제 자료는 Windows에서 확인했다. 원본 비교에 사용한 자료 핀은 `139941d8056418547c796068304ba8db3696fe69`이며 이후 마운트는 새 핀으로 갱신했다. 운영 자료 변경이나 역사 형상 승인은 수행하지 않았다.
-  명시적으로 선택한 검토 후보의 원본·해시·귀속·출처 조립을 Node로 옮겼다. 선 합집합·병합은 GEOS가 담당하며 연결·겹침·분기·분리 합성 사례와 [Windows/Linux CI 41158943977](https://github.com/kimjeon-il/Pando/actions/runs/41158943977)을 확인했다. 여러 내륙국·삼국 접점·모나코를 묶는 합성 후보 및 실제 AUT–LIE–CHE 후보의 국가 세 개와 다섯 구간은 이전 Python 결과와 일치했다. 실제 후보 비교에 사용한 자료 핀은 `c73d3f562d35f92d749458c9890bec02875ff605`이며 운영 자료는 변경하지 않았다. 미선택 전체 국가 보충과 원본 보관 실행은 여전히 Python이다.
+  명시적으로 선택한 검토 후보의 원본·해시·귀속·출처 조립을 Node로 옮겼다. 실행은 `node tools/gis/lsib-targeted.mjs --target AUT/LIE --output <새 후보 파일>`처럼 대상과 새 출력 파일을 지정하며, 기존 출력을 덮어쓰지 않는다. 선 합집합·병합은 GEOS가 담당하며 연결·겹침·분기·분리 합성 사례와 [Windows/Linux CI 41158943977](https://github.com/kimjeon-il/Pando/actions/runs/41158943977)을 확인했다. 여러 내륙국·삼국 접점·모나코를 묶는 합성 후보 및 실제 AUT–LIE–CHE 후보의 국가 세 개와 다섯 구간은 이전 Python 결과와 일치했다. 실제 후보 비교에 사용한 자료 핀은 `c73d3f562d35f92d749458c9890bec02875ff605`이며 운영 자료는 변경하지 않았다. 미선택 전체 국가 보충과 원본 보관 실행은 여전히 Python이다.
 
   DEM tint의 육지·눈·빙하 색상 기증 판정도 네이티브 계산에 연결했다. [Windows/Linux CI 41032868914](https://github.com/kimjeon-il/Pando/actions/runs/41032868914)의 고정 사례와 소스 일치 실행 파일을 확인했고, [41033249980](https://github.com/kimjeon-il/Pando/actions/runs/41033249980)에서 생성기 연결을 확인했다. 보유 tint에서 선택한 128×128 색상과 합성 육지·빙하 마스크를 적용한 판정 16,384개는 기존 Python과 같았으며 SHA-256은 `8161e7b2d1b1155ecfdc8c1896a82eac5fffa60824f19dd81f4548d84466049c`이다. 이 비교는 전체 원본 재생성이나 실제 육지·빙하 마스크 검증이 아니다. 원본 창 판독, 배경 채우기 및 생성 관리는 아직 Python이다.
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 15개, 테스트 12개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 15개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
@@ -128,7 +128,6 @@
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
 | `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
-| `tests/test_lsib_boundary_supplement.py` | CTest/Node LSIB 레시피·화면 차이 검사 | 형상·공유 경계·출처·화면 차이의 고정 사례 |
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 
