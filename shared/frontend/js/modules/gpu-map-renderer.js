@@ -949,12 +949,20 @@ export function createGpuMapRenderer(deps) {
 
     function invalidateGpuFrame(reason = 'gpu-frame') {
       if (disposed) return;
+      // A recovery redraw must be admitted by the coordinator's actual
+      // view-presentation path. GPU_FRAME alone never calls commitVisualFrame.
+      // Keep ordinary resource uploads on the cheaper GPU-only path.
+      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket())
+        && typeof renderViewFrame === 'function') return renderViewFrame(reason);
       if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);
       return renderViewFrame?.(reason);
     }
 
     function invalidateGpuInteraction(reason = 'gpu-interaction') {
       if (disposed) return;
+      // Selection and stroke completion during recovery must share its frame
+      // approval. Normal interaction retains the lightweight dirty mask.
+      if (gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket()) return invalidateGpuFrame(reason);
       if (typeof scheduleGpuInteractionFrame === 'function') return scheduleGpuInteractionFrame(reason);
       return invalidateGpuFrame(reason);
     }
