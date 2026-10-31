@@ -1,83 +1,89 @@
-# P5-1 — 남은 병목과 Core 시점 후보 준비 계약
+# P5-1 — 연도 전환 잔여 병목 및 C++ 읽기 전용 후보 계약
 
-작성: 2026-10-31 (Asia/Seoul) · 개발 브랜치 work/ui  
-기준 코드: 938054bc4581015110d4367a5da1ee922fbe8a83  
-자료 고정: kimjeon-il/PandoLab-library-data @ 139941d8056418547c796068304ba8db3696fe69  
-측정 증거: https://github.com/kimjeon-il/Pando/actions/runs/41204726143
+- 날짜: 2026-10-31 (KST)
+- 계측 대상 `work/ui`: `938054bc4581015110d4367a5da1ee922fbe8a83`
+- 자료 pin: `kimjeon-il/PandoLab-library-data@139941d8056418547c796068304ba8db3696fe69`
+- CI: https://github.com/kimjeon-il/Pando/actions/runs/41204726143
+- 단계 판정: **P5-1 계측·계약 확정.** 새 C++ API 구현, 앱 경로 전환, 최종 성능 달성은 포함하지 않는다.
 
-## 1. P4-5 이후 실제 계측 (기능 코드는 변경하지 않음)
+## 1. 실제 CI 재측정
 
-Playwright/Chromium WebGL2, 1280×800, Asia/Seoul 2026-10-31 고정, 동일 페이지에서 네 번의 연도 이동. 시작은 실제 DOM 클릭, 지도 완료는 기존 temporal onPresented, 후속 완료는 viewerStatus의 ready 공개 지점이다.
+최초 화면이 승인된 다음 DOM 연도 조작에서 기존 temporal `onPresented`까지 측정했다. 기존 화면 공개·Core 규칙을 교체하지 않았으며, Playwright 응답 라우팅에만 임시 계측 코드를 삽입했다. 페이지 출력(scanout) 완료·실제 모바일 기기 측정이 아니다. 현재 달력은 `2026-10`, 다른 연도는 12월로 조회하는 기존 의미를 유지한다.
 
-| 이동 | 첫 방문/재방문 | 소스 캐시 | 지도 표시(ms) | ready(ms) | source read(ms) | JSON 직렬화(ms) | SHA(ms) | Core baseline admit(ms) | Core loadBaseline(ms) | replaceSnapshot(ms) |
-|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 2026-10 → 2025-12 | 인접 최초 | miss | 2946 | 5643 | 88 | 384 | 17 | 472 | 1671 | 269 |
-| 2025-12 → 2026-10 | 현재 재방문 | hit | 2445 | 5063 | — | — | — | 465 | 1677 | 261 |
-| 2026-10 → 2016-12 | 먼 시점 최초 | miss | 12281 | 14974 | 89 | 391 | 16 | 461 | 1695 | 9579 |
-| 2016-12 → 2026-10 | 먼 시점 복귀 | hit | 11721 | 14386 | — | — | — | 468 | 1675 | 9534 |
+| 전환 | 종류 | 지도 공개 ms | 후속 ready ms | 조회·조립 ms | JSON 인코딩 ms | SHA-256 ms | Core baseline 승인 ms | Core loadBaseline ms | replaceSnapshot ms | 소스 캐시 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 2026-10 → 2025-12 | 첫 인접 | 2946 | 5643 | 88 | 384 | 17 | 472 | 1671 | 269 | miss |
+| 2025-12 → 2026-10 | 현재 복귀 | 2445 | 5063 | — | — | — | 465 | 1677 | 261 | hit |
+| 2026-10 → 2016-12 | 첫 먼 이동 | 12281 | 14974 | 89 | 391 | 16 | 461 | 1695 | 9579 | miss |
+| 2016-12 → 2026-10 | 먼 이동 복귀 | 11721 | 14386 | — | — | — | 468 | 1675 | 9534 | hit |
 
-- source cache hit에서도 **Core baseline 승인·적재 ~0.47초 + Core 문서 적재 ~1.68초**가 반복된다. P5-2~P5-5에서 줄일 직접 대상이다.
-- 먼 시점의 replaceSnapshot wall-time ~9.5초는 더 큰 병목이다. 이 구간은 비동기 지도·물리 지형·렌더 준비까지 포함하며 순수 C++ CPU나 GPU 시간이라고 단정할 수 없다. P5-6의 별도 세부 프로파일/표시 검증이 필요하다.
-- 4개 표본만으로 p95 개선이나 일반 모바일 성능을 선언하지 않는다. 단계별 시간은 큐/왕복 포함 wall-time이며 중첩 구간을 더하지 않는다.
-- JS heap 표본은 편차가 컸고 Worker는 측정 시 7개였다. GC·WASM·GPU 메모리 누수 여부는 이 측정만으로 판정하지 않는다.
-- 계측 파일은 tests/helpers/map-transition-p5-1.mjs, tests/browser/map-transition-p5-1.benchmark.mjs, tests/browser/map-transition-p5-1.config.mjs. 테스트 라우팅을 통한 일시적 관찰만 했으며 생산 코드의 API·문서·형상·렌더 경로는 수정하지 않았다.
+소스 캐시 hit는 **해당 브라우저 세션 내의 불변 소스 바이트 캐시** hit이고, Core의 기준 자료 등록을 건너뛴 의미가 아니다. 위 단계들은 비동기 큐·대기·중첩을 포함한 경과 시간이며 순수 C++ CPU 프로파일이나 합산 가능한 독립 구간이 아니다.
 
-## 2. 현재 소스 경로와 금지된 지름길
+4회 모두 결과 확인 성공, 페이지 오류 0, 같은 시점 재방문의 전체 의미론적 자료 해시 일치, 카메라 보존 및 dirty/Undo/Redo 불변 검사 통과. 초기 테스트 전용 앵커 4개 검사도 성공했다. 네 번의 측정으로 p95 신뢰도나 모바일 성능·누수 부재를 주장하지 않는다.
 
-현행 경로는 builtin-month-clock.selectMonth → viewer-composition.open → builtin-session.prepareProjectSource(최대 3항목/24MiB 소스 캐시) → admitPreparedProjectSource → project-domain.open/replaceAccepted → C++ storageBaselineLoad → C++ documentLoadBaseline → 렌더러 정상 프레임 공개다.
+마지막 기록의 Worker 수는 모든 전환에서 7개. CDP JS heap used는 순서대로 약 137.2 / 280.0 / 120.7 / 120.9 MiB로 변동했다. 힙 외의 WASM·GPU 할당량은 포함하지 않으므로 리소스 누수 판정에 사용하지 않는다.
 
-DocumentSession은 활성 Project와 SelectionState, Draft, Undo/Redo, sourceEpoch 및 epoch를 단일 소유한다. storageBaseline_ 및 storageBaselineId_는 **현재 최신 baseline을 보관하는 한 슬롯**이며 storageBaselineLoad는 이미 epoch를 변경한다. project-domain은 하나의 replacement 캡슐을 획득해 rollback/release를 책임진다. 따라서 미리 준비하기 위해 storageBaselineLoad를 호출하면 안 된다. CommandPreview의 편집 candidateId도 시점 전환 후보로 재사용하면 안 된다.
+**병목 판정:** 인접 이동은 Core 적재 1.67–1.68초와 기준 자료 승인 0.46–0.47초의 반복 비용이 크다. 2016년 왕복은 `replaceSnapshot` 9.53–9.58초가 주된 비용이다. 따라서 P5-2~P5-5에서 Core 적재를 줄이더라도 먼 연도 이동의 9초대 화면 준비는 별도 계측·최적화 없이는 남을 수 있다. 성능 목표로 정확성 검증·물리 지형 일치 검사를 생략하지 않는다.
 
-내장 세계지도는 시점별 국가를 선택해서 만든 스냅샷이므로 현재 프로젝트에 setTimelineCursor만 호출해도 다른 시점 국가·형상이 생기지는 않는다. JS로 별도 역사 resolver를 만들거나 기간을 연도로 내림 처리하는 것도 금지한다.
+## 2. 현행 소유권·위험
 
-C++ Project/ProjectCodec의 원자적 문서 교체, 현행 월말 기준 역사 조회, 유효기간의 정확한 날짜와 형상 버전, 단일 Core state/read projection, 기존 selection/presentation catalog 및 복구 계약을 유지한다.
+1. `BuiltinSession.prepareProjectSource`는 월별 나라 목록·시점 스냅샷을 조립하고 JSON 직렬화 후 SHA-256을 계산한다. JS 캐시는 현재 3개 항목·24MiB 상한이며, **Core 핸들이 아닌 불변 sourceBytes만** 보존한다.
+2. `DocumentSession::storageBaselineLoad(WebStorageAssetSource)`는 소스 해시·크기·codec을 검증하고 새로운 `storageBaseline_` 슬롯과 `storageBaselineId_`를 설정하면서 **epoch를 증가**시킨다. 이 슬롯은 현재 하나다. 이 경로를 예측 로딩에 그대로 호출하면 활성 Core 상태가 변한다.
+3. `DocumentSession::documentLoadBaseline`은 보관된 typed source 문서를 복사해 `Project` 후보를 만들고 원본 C++ 검증·시점 조회 후 활성 `project_`에 채택한다. 확인된 핸들이 아니면 거부한다.
+4. `ProjectDomain.replaceAccepted`는 기존 Core replacement capsule을 획득하고 generation을 전진시키며 Core 적재 → 선택·표시 catalog 재승인 → 화면 교체 후 성공을 공개한다. 실패 시 capsule로 문서·선택·draft·이력·저장 checkpoint를 복원한다. 캡슐을 대체하거나 두 번째 영속 이력 소유자를 만드는 것은 허용하지 않는다.
+5. `core.document-prepare`의 기존 `candidateId`는 **편집 명령의 단일 미리보기 슬롯**이다. 새로운 날짜 조회 후보의 등록·폐기에 이 슬롯을 재사용하면 편집 대기 상태와 충돌할 수 있으므로 금지한다.
+6. `core-document-client`는 단일 순서 보장 큐를 사용한다. 동기 C++ 커밋이 Worker에 전달된 뒤 취소해도 acknowledgement는 소비해야 한다. C++·WASM ABI와 pinned JS/WASM 쌍 검증을 유지한다.
 
-## 3. 확정할 신규 C++ API 계약 (구현은 P5-2 이후)
+관련 소스: `shared/core/src/document-session.cpp`, `shared/core/src/webstorage.cpp`, `shared/core/include/pandoeditor/document-session.h`, `shared/frontend/js/modules/builtin-session.js`, `shared/frontend/js/modules/project-domain.js`, `shared/frontend/js/modules/core-document-client.js`.
 
-### 3.1 읽기 전용 불변 원본 준비 — P5-2
+## 3. P5 단계의 후보 준비 계약 (구현 전 확정)
 
-- 예정 RPC: core.document-temporal-source-prepare (C++ temporalSourcePrepare). 입력은 기존 WebStorageAssetSource의 sourceBytes, encoding, compressedBytes, decodedBytes, sourceMonth, baseDataset, fingerprint 및 expectedEpoch; 데이터 개정/매니페스트 SHA는 상위 호출자의 출처 계약에 포함한다.
-- C++ 안에서 SHA-256, 입력 인코딩/길이(압축 최대 256MiB, 압축 해제 최대 64MiB), 원본 월, schema, geometry provenance, 국기 등 기존 검증을 반드시 통과시킨다. 같은 불변 객체에 한해서만 검증된 값을 재사용한다.
-- 출력은 별도 세션 전용 sourceId, source fingerprint와 sourceMonth. storageBaselineId와 이름공간을 분리한다. **이 동작 중 활성 Project·storageBaseline_·activeBaseline_·epoch·selection·Undo/Redo·저장 상태는 불변**이다.
-- 소유자는 C++ DocumentSession 내부의 유한한 불변 source registry. 실제 바이트 단위 한도는 P5-2에서 소스 크기 계측 후 설정하며 무제한 캐시/영구 원본을 만들지 않는다. 데이터 개정, 세션 종료 및 핸들 해제에 따라 무효화한다. 읽기 전용 사전 준비가 사용자 요청을 가로막지 않는다.
+**핵심 불변식:** 후보 준비는 활성 C++ `project_`, `storageBaseline_`, `activeBaseline_`, `selection_`, `draft_`, 현재 월, history/dirty/checkpoint, source/epoch, 저장·UI·GPU에 **아무 변경도 일으키지 않는다**. 검증과 조회의 단일 정본은 계속 C++ Core다. 새 JS 역사 판정기를 두지 않는다.
 
-### 3.2 시점 후보 작성 — P5-3
+### 자료 입력과 식별자
 
-- 예정 RPC: core.document-temporal-candidate-prepare (C++ temporalCandidatePrepare).
-- 입력: sourceId, targetMonth, sourceFingerprint, expectedEpoch. 출력: candidateId, sourceId, targetMonth, sourceFingerprint, expectedEpoch, 검증 가능한 semantic receipt.
-- Core의 Project/Timeline resolver로 **목표 월의 완결된 스냅샷**을 구성·검증한다. sourceMonth와 targetMonth의 자료 범위가 맞지 않으면 즉시 거부한다. 원본 개별 국가의 존속·소멸, 관계, 형상 버전, 기간 끝점에 대한 기존 의미를 그대로 유지한다.
-- 별도 편집 후보·Undo ledger나 JS writable project를 만들지 않는다. 단일 후보 슬롯(새 요청이 옛 후보의 채택 권한을 무효화)과 명시적 소유권/바이트 상한을 갖는다. 준비 단계는 활성 문서/화면을 수정하지 않는다.
-- 후보는 세션·원본·epoch·월에 묶인 단기 핸들이다. 다른 세션/문서 세대의 핸들 사용, 누락된 핸들, 오래된 월과 불일치하는 receipt는 거부한다.
+- 준비 입력에는 명시적인 `sourceMonth`(정규화된 월), `baseDataset`, `dataRevision`, 고정된 manifest SHA-256, 실제 저장 바이트 SHA-256, `encoding`, 원본/해제 크기가 필요하다. 기존 Core의 SHA-256·codec·크기 제한·프로젝트 schema 검증을 그대로 통과해야 한다.
+- 새 불변 원본의 identity는 `[baseDataset, dataRevision, manifestSha256, sourceMonth, sourceBytesSha256, codec/ABI]`의 정확한 결합이다. 연도만으로 동일성을 판단하지 않으며 국가의 유효기간은 원본의 연월일 정밀도를 유지한다.
+- 연도 이동의 목표 month와 snapshot의 sourceMonth는 기존 내장 지도 계약에 맞게 일치해야 한다. 현재 연도는 현재 월, 다른 연도는 12월인 현행 규칙을 바꾸지 않는다.
+- 형상 보관은 검증된 C++ GeometryStore의 불변 객체를 공유할 수 있지만, 내용·geometry ref/version·소유권이 다른 경우 절대로 버퍼·기하를 재사용하지 않는다. 임의의 정수 핸들은 복원·Worker 재시작·세대 변경 후 유효하다고 가정하지 않는다.
 
-### 3.3 후보 채택과 기존 트랜잭션 — P5-4
+### 읽기 전용 API 의미 계약 (아직 구현된 API 명칭이 아님)
 
-- 예정 RPC: core.document-temporal-candidate-adopt (C++ temporalCandidateAdopt). 입력 candidateId, sourceId, targetMonth, expectedEpoch, fingerprint; 바깥쪽 JS는 open request ticket, projectGeneration, 현재 자료 개정도 검증한다.
-- **채택 직전** 기존 project-domain의 captureReplacement를 실행하고 단 한 캡슐 안에서 C++ 문서 교체를 수행한다. 채택 응답은 그 연산에 해당하는 state + document projection + world + selection + draft를 단일 Core epoch로 반환해 기존 읽기 모델에서 일관되게 공개한다.
-- Core 채택은 기존 documentLoadBaseline과 동등한 선택 초기화·저장/dirty·epoch 변화의 의미를 지켜야 한다. 기존 기능과 결과가 다른 경우 새 경로를 사용하지 않는다.
-- 새 국경·메쉬·물리 지형과 라벨·클릭 판정이 같은 targetMonth 및 렌더 세대에 해당하고 준비가 완료됐을 때만 프레임을 공개한다. 렌더/선택/Worker 오류 시 동일 캡슐로 rollback, 마지막 확정 시점 및 카메라를 복구한다.
-- 새 RPC가 C++에서 이미 시작된 뒤 브라우저가 취소하더라도 계산이 중단됐다고 추정하지 않는다. 응답을 회수한 후 최신 요청 여부를 검사하고 옛 후보를 폐기한다.
+| 개념적 동작 | 입력 | 허용 효과 | 거부/실패 동작 |
+| --- | --- | --- | --- |
+| **Source prepare** | 검증할 bytes·dataset·manifest·월·ABI | 분리된 불변 typed source 및 소유된 opaque token을 보관. 같은 pin은 재사용 가능 | 원본·해시·크기·schema 오류면 토큰 발행 금지; 활성 상태 변경 금지 |
+| **Candidate prepare** | source token·정확한 월·대상 프로젝트 generation·예상 Core epoch·요청 ticket | 기존 C++ 검증·resolver로 분리된 목표 `Project`/world 후보 생성. 원본 참조와 준비 비용 관찰 | epoch·pin·월·세대·ticket 불일치면 폐기. 활성 문서·history·선택 변경 금지 |
+| **Candidate adopt** | 후보 token·최신 ticket·expected epoch/generation | **기존 `replaceAccepted`의 단일 승인·복구 경계 아래서만** 활성 프로젝트 전환. 선택/catalog·Core read-model·렌더 장면은 같은 generation으로 처리 | 무효 token·중복 채택·오래된 epoch 거부. 채택 실패면 기존 capsule로 복원 |
+| **Candidate discard** | 미채택 후보 token | 원본 참조·후보 메모리 해제(재호출 안전). Core mutation 없음 | 미존재/이미 해제된 token은 안전한 no-op 또는 명시적 재사용 오류로 계약 고정; 화면 영향 없음 |
 
-### 3.4 후보 해제·실패 의미
+토큰은 Core Worker 세션 소유이며 외부 JS에는 불투명하다. Core 문서에 대한 포인터, 임시 JSON 문서, 편집 후보 `candidateId`를 UI에 전달하지 않는다. 단일 실행의 speculative 준비는 최대 1개만 활성으로 유지하고, 사용자 요청이 오면 최신 요청을 먼저 처리한다. 기존 24MiB JS cache 정책과 별개로 Core source/candidate 할당량을 계측해 상한을 두며, 초기에는 무제한 native cache를 허용하지 않는다.
 
-- 예정 RPC: core.document-temporal-candidate-discard. 세션 소유의 미채택 후보만 해제한다. 중복 폐기는 무해하고, 다른 후보·현재 원본·활성 문서/선택/저장·GPU에는 영향이 없다.
-- 사용자 파일 열기·자료 개정 변경·최신 연도 요청·종료·에러 시 후보 폐기. 준비 실패는 활성 상태 불변; 채택 실패는 기존 rollback; GPU/물리 컨텍스트 불일치는 공개 차단. 오류를 조용한 성공으로 처리하지 않는다.
-- 최적화로 인해 조건이 불명확해지면 **기존 검증된 전체 준비/채택 경로로 되돌린다.** 삭제·선택 해제·검색 새 시점 갱신 규칙은 P4-3/P4-4 계약을 그대로 사용한다.
+### 채택 순서·취소·복구
 
-## 4. 실제 파일 소유자와 다음 실행 단위
+1. 사용자 요청을 받을 때 최신 ticket을 갱신한다. 현재 완성된 지도·연도·라벨·클릭 판정은 유지하고 예측 후보는 무효화한다.
+2. 준비 후보는 C++에 분리돼 존재한다. Worker 응답이 늦게 도착해도 source pin, 예상 Core epoch, 프로젝트 generation, 최신 ticket을 **채택 직전 다시 검증**한다. 실패하면 폐기하고 상태를 건드리지 않는다.
+3. 채택 전에 기존 `ProjectDomain`의 command/open queue와 replacement capsule을 보존한다. Core 채택은 중단 불가능한 구간이므로 RPC acknowledge를 처리한 다음 성공 화면을 공개하거나 오류를 복원한다. 최종 승인 전에는 낡은 검색·클릭을 재실행하지 않는다.
+4. 새 시점의 Core read model, 선택, 검색, 공유 국경, 물리 지형, GPU 장면은 같은 generation으로 확인한 후 기존 `onPresented`에서 연도 표시를 확정한다. **Core 승인만으로 화면 전환 성공을 선언하지 않는다**.
+5. 준비·채택·GPU 업로드·화면 공개·사용자 파일 열기 중 어느 단계든 실패하면 마지막 성공 문서 및 화면을 복원한다. 오류를 무시하거나 날짜만 바꾸거나 잘못된 완성 프레임을 공개하지 않는다.
+6. 자료 pin 변경, 파일 전환, 새 Worker/ABI, 유효기간·버전 변경, 프로젝트 generation 이동, epoch 변경 시 구 후보를 무효화한다. GPU context가 바뀌면 기존 GPU 리소스를 폐기하지만 C++ 검증 완료 사실만으로 GPU 버퍼를 유효하다고 간주하지 않는다.
 
-| 단계 | 파일 소유자 | 범위 및 종료 조건 |
-|---|---|---|
-| P5-2 | shared/core/include/pandoeditor/document-session.h, shared/core/src/document-session.cpp, shared/core/src/webstorage.cpp | 불변 source 등록/검증/해제, C++ 활성 상태 불변, 용량 상한. 기존 storageBaselineLoad의 쓰기 동작은 바꾸지 않음 |
-| P5-3 | 동일 C++ owner, 기존 Project 및 timeline resolver | 후보 작성·세대 검증·국가/형상/속성/기간 동일성. 준비 중 저장·선택·Undo 상태 불변 |
-| P5-4 | DocumentSession과 project-domain의 기존 rollback 경계 | 후보 채택/폐기·오류 주입, 단일 Core 교체 캡슐 사용. 출처/세대 불일치 거부 |
-| P5-5 | shared/wasm/session-bindings.cpp 및 shared/frontend/js/modules/core-document-runtime.js, core-worker-runtime.js, core-document-client.js, product-mode-policy.js | typed ABI·Worker/JS 소유권·viewer 허용 연산·native/WASM 동일 오류 계약 |
-| P5-6 | builtin-session.js, project-domain.js, viewer-composition.js, 물리 지형·렌더러 소유자 | 실제 웹 전환 채택, 새 요청 우선, 캐시·데이터개정 무효화. 2016년 전환의 9.5초 replaceSnapshot은 따로 세분화 계측 후 필요한 범위만 개선 |
-| P5-7 | 실제 C++ native/WASM 및 브라우저 집중 회귀 | 새 경로와 기존 경로의 국가 ID 집합, 이름·깃발·색, 좌표/버전/공유 경계, 부모, 유효기간, 월, 선택·검색·저장 상태 일치 |
+## 4. 다음 P5-2~P5-7 게이트와 우선순위
 
-P5-2~P5-7은 사용자가 지시하는 **한 단계씩** 실행한다. 새로운 C++ API는 P5-1에서는 추가하지 않는다. 기존의 긴 P0 회귀 타임아웃 2건은 사용자가 승인한 유예로 유지하되 새 정확성 회귀는 유예 대상이 아니다.
+- **P5-2**: Core 불변 source 재사용 구현. 단순 `storageBaselineLoad` 선행 호출 금지. 현행 source 검증·단일 정본·active epoch/checkpoint 불변성을 fixture로 먼저 증명한다. 데이터 pin·월별 distinctness·복구 중 재사용 금지 검증.
+- **P5-3**: C++ 읽기 전용 날짜 후보 생성. 동일 국명·국기·국체·존속기간·상하위 관계·기하 참조·정확한 날짜/월 조회를 현행 전체 계산과 대조.
+- **P5-4**: 후보 채택·폐기를 기존 Core capsule에 연결. 중복 채택, 실패 주입, 빠른 A→B→A, 사용자 파일 열기, 선택·저장·Undo/Redo 불변성 계약을 확인.
+- **P5-5**: WASM/Worker 연결. pinned ABI, 명시적 버퍼 소유권, 취소 후 늦은 acknowledge, 세대 변화, 메모리 해제 확인.
+- **P5-6**: 실제 Viewer 시점 전환 적용. 기존 전체 경로와 같은 world/snapshot/선택·공유 경계·물리 지형으로 화면 공개. 먼 연도 `replaceSnapshot` 병목의 원인별 계측을 별도 유지.
+- **P5-7**: 네이티브 C++과 WASM 같은 소스의 날짜·형상·관계·이력·실패 처리 동등성 확인.
 
-## 5. 검증 및 배포 경계
+**필수 중단 기준:** 새 경로가 기존과 의미론적으로 다르거나, 오래된 후보를 공개하거나, source pin·기간·좌표를 누락하거나, Core epoch/dirty/Undo/Redo를 준비 과정에서 바꾸는 경우 병합 차단. 전체 지도 계산 범위가 안전하게 좁혀졌다는 근거가 없으면 그 작업만 기존 전체 갱신으로 대체한다.
 
-P5-1: test-only 계측 단위 4개 통과, CI 실제 브라우저 계측 1개 통과. 데이터 정합성, 돌아오기 SHA, 카메라, dirty/Undo/Redo 상태 동일성 확인. 측정 표본은 CI artifact에 보관하며 전역 P0 20회 벤치마크나 기타 장시간 회귀 검사는 반복하지 않는다.
+**현재 남은 우선순위:** P5-2에서 약 0.46초 승인 및 약 1.68초 Core 적재의 중복을 줄일 후보 기반을 만들되, 먼 이동의 약 9.5초 `replaceSnapshot` 비용은 P5-6에서 별도 병목으로 취급한다. 4개 표본을 속도 목표 달성 증거로 사용하지 않는다.
 
-이번 단계에서 실제 엔진·WASM·뷰어 구현·역사 자료는 변경하지 않는다. main 병합 및 실제 사이트 배포는 하지 않는다.
+## 5. 검증 및 작업 경계
+
+- 이번 P5-1 변경은 읽기 전용 테스트/계측과 이 계약 문서에 한정된다. 런타임 Core·WASM·GPU/화면 코드는 수정하지 않는다.
+- 실행: `node --test tests/unit/map-transition-p5-1.test.mjs`; `pnpm exec playwright test --config tests/browser/map-transition-p5-1.config.mjs`. 이 CI 실행의 개별 표본·계측된 단계와 오류는 Actions artifact `map-p5-1-938054bc4581015110d4367a5da1ee922fbe8a83`에 있다.
+- 계측 브라우저는 CI Chromium 데스크톱 1280×800 한 환경이고, 앱 WebGL1·2 전체 플랫폼 검증이나 실제 Android 검증이 아니다.
+- P0에서 사용자 지시로 유예한 기존 장시간 타임아웃 2건은 '기존 보류' 상태이며 성공으로 바꾸지 않는다. **새 정확성 실패는 유예 대상이 아니다.**
+- `main` 병합·실제 사이트 배포·C++ API 수정은 아직 지시되지 않았다. 다음 실행 단위는 P5-2 하나이다.
