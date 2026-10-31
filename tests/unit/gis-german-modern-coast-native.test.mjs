@@ -40,7 +40,7 @@ test('German modern coast rejects a failed control point and unsafe inland chang
   inland.helgoland={type:'Polygon',coordinates:[[[10,54],[10.01,54],[10.01,54.01],[10,54.01],[10,54]]]};
   assert.throws(()=>native(inland),/inland geometry changed/i);
 });
-test('selected original modern coast repairs geographic topology within one centimetre',
+test('selected original modern coast repairs geographic topology with sampled boundary distance below one centimetre',
   {skip:!process.env.PANDO_GERMAN_COAST_SELECTED_ORACLE},()=>{
     const selected=JSON.parse(readFileSync(process.env.PANDO_GERMAN_COAST_SELECTED_ORACLE,'utf8'));
     const actual=native(selected.input);
