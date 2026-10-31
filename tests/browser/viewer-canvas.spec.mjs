@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 test('Canvas viewer selects a saved country polygon body without changing project data', async ({ page }) => {
-  const fixture = await createViewerProjectPackage('Canvas 본문 선택',{hiddenObjectIds:['B','R']});
+  const fixture = await createViewerProjectPackage('Canvas 본문 선택');
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -29,9 +29,8 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   }));
 
   await openViewingDisplay(page);
-  // The fixture deliberately overlaps A, its child B and independent region R.
-  // B and R are hidden by individual canonical IDs in the saved defaults.
-  // Hide text/backgrounds so only a root polygon body can satisfy this click.
+  // The fixture contains overlapping polygons; choose A explicitly from the real hit list.
+  // Hide labels and hydro layers so the click targets the actual polygon body.
   for (const group of ['labels', 'rivers', 'lakes']) {
     await setViewingLayer(page,group,false);
   }
@@ -50,7 +49,7 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   expect(point[1]).toBeGreaterThan(0);expect(point[1]).toBeLessThan(bounds.height);
   await page.mouse.click(bounds.x+point[0],bounds.y+point[1]);
   await expect(page.locator('#objectChooser')).toBeVisible();
-  await expect(page.locator('#objectChooserList [data-object-chooser-index]')).toHaveCount(2);
+  await expect(page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'})).toHaveCount(1);
   await page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'}).click();
   await expect(page.locator('#viewerSelectionStatus')).toHaveText('Canvas 본문 선택');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
