@@ -10,7 +10,7 @@ const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composi
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const noop = () => {};
 function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
-  const nodes = new Map(), ports = {}, errors = [];
+  const nodes = new Map(), ports = {previewFinishes: 0}, errors = [];
   const get = id => {
     if (!nodes.has(id)) nodes.set(id, {dataset: {}, hidden: false, textContent: '', addEventListener: noop, appendChild: noop});
     return nodes.get(id);
@@ -35,7 +35,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
       } finally { opening = false; }
     },
   };
-  const map = {viewState: {}, objectPresentation: {}, objectQuery: {},
+  const map = {finishInitialPreview: () => { ports.previewFinishes++; }, viewState: {}, objectPresentation: {}, objectQuery: {},
     objectCatalog: {invalidateObjectPresentation: noop, pruneLayerItemVisibility: async () => {}},
     navigation: {}, capturePresentation: () => ({}), loadPhysicalResources: noop,
     loadPhysicalLandMask: async () => {}, update: async () => {},
@@ -92,6 +92,8 @@ test('composition ends only initial presentation while search hydration is still
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');
   assert.equal(run.get('viewerStatus').dataset.ready, 'false');
+  assert.equal(run.ports.previewFinishes, 1);
+  assert.equal(run.ports.map.isInitialPresentation(), false);
   release(); await run.started;
 });
 
@@ -99,6 +101,8 @@ test('completed loading without a ready renderer frame remains initial', async (
   const run = fixture({autoReady: false}); await run.started;
   assert.equal(run.get('viewerStatus').dataset.ready, 'true');
   assert.equal(run.debug().initialMapPresented(), false);
+  assert.equal(run.ports.previewFinishes, 0);
+  assert.equal(run.ports.map.isInitialPresentation(), true);
   run.publish('loading'); assert.equal(run.debug().initialMapPresented(), false);
   run.publish('ready'); assert.equal(run.debug().initialMapPresented(), true);
 });
@@ -113,6 +117,8 @@ test('normal year change and later source failure never restore initial mode', a
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');
   await run.ports.lifecycle.startup(); // Same entry used by lifecycle recovery.
   assert.equal(run.debug().initialMapPresented(), true);
+  assert.equal(run.ports.previewFinishes, 1);
+  assert.equal(run.ports.map.isInitialPresentation(), false);
 });
 
 test('failed first open and lifecycle retry keep one page-scoped presentation owner', async () => {
