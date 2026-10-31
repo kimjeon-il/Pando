@@ -1064,3 +1064,32 @@ test('region redraw reuses the current target card, hides pre-review metadata an
   assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
 });
+
+test('hydro vertex editing names the real object and removes redundant pre-review metadata', async t => {
+  const target = { domain: 'hydro', type: 'river', id: 'RIVER-1' };
+  const f = await fixture(t, {
+    tool: 'select', selected: target, boundaryEditPhase: '', boundaryPreparation: null,
+  }, {
+    describeTool: () => ({ name: '객체 선택', stage: '대상 선택' }),
+    objectDisplayInfo: ref => ({ name: ref.id === 'RIVER-1' ? '테스트 강' : 'Other', type: '강' }),
+    editingDomain: {
+      snapshot: () => ({ objectVertexEditing: target }),
+      draftInputActive: () => false,
+    },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskName.textContent, '수계 좌표 편집');
+  assert.equal(f.elements.modeTaskStage.textContent, '정점 이동');
+  assert.equal(f.elements.modeTaskTargetSummary.textContent, '테스트 강');
+  assert.equal(f.elements.modeTaskEditingStage.textContent, '좌표 편집');
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, true);
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), true);
+  assert.deepEqual(f.focusCalls, [], 'editing context must not reposition the map');
+  assert.equal(f.state.selected.id, 'RIVER-1');
+  f.state.modeTaskMinimized = true;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskEditingStage.classList.contains('hidden'), false);
+});
