@@ -580,6 +580,7 @@ export function createTaskPresentation() {
     const annexBeforeReview = annex?.kind === 'annex' && annex.stage !== 'review';
     const entityBeforeReview = annex?.kind === 'entity' && annex.stage !== 'review';
     const splitBeforeReview = !preview && ['split-territorial-unit', 'split-generic-feature'].includes(state.tool);
+    const redrawBeforeReview = !preview && state.tool === 'redraw-territorial-unit';
     const mergeChoosingTargets = !preview
       && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
         || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
@@ -589,7 +590,7 @@ export function createTaskPresentation() {
       && ['selecting', 'editing'].includes(state.boundaryEditPhase);
     const coastBeforeReview = !preview && state.tool === 'country-coast';
     dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
-      annexBeforeReview || entityBeforeReview || splitBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview);
+      annexBeforeReview || entityBeforeReview || splitBeforeReview || redrawBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
     const showInput = shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
