@@ -110,6 +110,8 @@
 
   독일 1914 현대 해안 생성은 `tools/gis/build-german-1914-base.mjs --modern-coast`와 기존 GEOS/PROJ 엔진으로 전환했다. 합성 사례는 [Windows/Linux CI 41163860279](https://github.com/kimjeon-il/Pando/actions/runs/41163860279)에서 검증했다. 보유 HGIS 원본과 현재 국가 5개, 보존된 Helgoland·Düne 원본에서는 GEOS 3.13.1 기준 Python과 투영 면적·기준점이 일치했다. 기존 Python의 WGS84 역변환 결과에 자기 교차가 있어 GEOS 위상 복구를 적용하며, 복구된 결과는 같은 버전에서 Python 결과를 복구한 다각형과 공간적으로 일치한다. 미터 좌표로 되돌려 측정한 GEOS 꼭짓점 이산 Hausdorff 거리는 약 0.001712m, 면적 차이는 약 0.098552km²이며, 이는 모든 선분의 최대 거리나 역사 형상 승인을 뜻하지 않는다. 이산 경계 거리가 0.01m를 초과하거나 복구가 유효하지 않으면 후보를 거부한다. 후보 출력과 진단은 별도 경로에만 생성하며 운영 자료와 원본을 자동 변경하지 않는다. GEOS 3.11.4와 3.13.1의 해당 원본 결과는 서로 다르므로 라이브러리 버전별 결과를 같은 바이트나 같은 형상으로 취급하지 않는다.
 
+  동일 원본의 Linux 후보도 [CI 41164063983](https://github.com/kimjeon-il/Pando/actions/runs/41164063983)에서 생성했다. Windows·Linux 후보는 유효하지만 해시가 다르며, 두 형상의 대칭 차이는 약 `4.79e-9` 제곱도이고 꼭짓점 이산 Hausdorff 거리는 약 `0.01474`도다. 차이는 덴마크 인근의 폭이 매우 좁은 형상에 위치한다. 플랫폼 간 바이트·위상 완전 일치나 역사 승인으로 간주하지 않으며 운영 핀에 반영하지 않았다.
+
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
 검토된 JPEG 학습 타일은 원본 전체 픽셀 배열 없이 행 단위로 읽어 방향 1–8의 256×256 개요와 선택한 512×512 타일을 만든다. 합성 4,097×4,097 JPEG의 일반·90도 회전과 가장자리 패딩, 작은 JPEG의 각 EXIF 방향 및 학습 텐서를 Pillow와 비교했으며 [Windows/Linux CI 41038797590](https://github.com/kimjeon-il/Pando/actions/runs/41038797590)이 통과했다. 보유 `zenodo-urdu-punjab-undated` 원본 17,180×14,414의 개요 SHA-256 `dceda9c69007e4a4111894a3186a2bbfea382dc24115193c160b248f2167b7e5`과 선택 타일 SHA-256 `5a8f75f6e7ada1416e7f346ee9cbcbf4d8c6e33b01c908ea8f8d2d85c5a43c39`도 이전 Pillow 계산과 일치했다. 이는 한 원본의 입력 처리 검증이며 학습 실행·모델 정확도 승인이 아니다. PNG·WebP 및 래스터 마스크의 후속 전환과 남은 제한은 위의 대형 학습 영상·마스크 항목에 기록한다.
