@@ -26,6 +26,7 @@ import { createInitialDocument } from "../../../../shared/frontend/js/modules/in
 import { createViewerMap } from './viewer-map.js';
 import {createViewerInitialPresentation} from './viewer-initial-presentation.js';
 import {createViewerPostPresentation} from './viewer-post-presentation.js';
+import {createViewerAdjacentPrefetch} from './viewer-adjacent-prefetch.js';
 import { createFileController } from "../../../../shared/frontend/js/modules/file-controller.js";
 import { readProjectFile } from "../../../../shared/frontend/js/modules/project-file-reader.js";
 import { createMapSettings } from "../../../../shared/frontend/js/modules/app-map-settings.js";
@@ -97,6 +98,23 @@ export async function composeViewer({ productMode, meta }) {
   map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report,
     onMapPreparationStatus:initialPresentation.observe,isInitialPresentation:()=>!initialPresentation.hasPresented()});
   disposables.push(map);
+  const adjacentPrefetch=createViewerAdjacentPrefetch({
+    prepareSource:(month,options)=>owners.builtinSession.prepareProjectSource(month,options),
+    requestIdle:callback=>typeof window.requestIdleCallback==='function'
+      ?window.requestIdleCallback(callback):window.setTimeout(callback,250),
+    cancelIdle:id=>typeof window.cancelIdleCallback==='function'
+      ?window.cancelIdleCallback(id):window.clearTimeout(id),
+    isEligible:()=>builtinActive&&initialPresentation.hasPresented()
+      &&status.dataset.ready==='true'&&!projectDomain.isOpening()
+      &&document.visibilityState!=='hidden',
+    onError:(error,month)=>diagnostics.push({category:'viewer-adjacent-prefetch',
+      errorCode:'PL-VIEWER-PREFETCH-001',stage:month,
+      technicalMessage:error?.message||String(error)}),
+  });
+  disposables.push(adjacentPrefetch);
+  const onPrefetchVisibility=()=>{if(document.visibilityState==='hidden')adjacentPrefetch.interrupt();};
+  document.addEventListener('visibilitychange',onPrefetchVisibility);
+  disposables.push({dispose:()=>document.removeEventListener('visibilitychange',onPrefetchVisibility)});
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
     layerItemObjectRef:map.objectQuery.layerItemObjectRef,selectionDomain,
@@ -130,6 +148,7 @@ export async function composeViewer({ productMode, meta }) {
   disposables.push(postPresentation);
   const disposeTimeline=installTimelineControls({document,window,getMonth:()=>builtinActive&&builtinClock?.month() ? builtinClock.month() : activeSession?.commandOwner.state().timelineCursor,
     setMonth:async month=>{
+      adjacentPrefetch.interrupt();
       if(builtinActive)return builtinClock.selectMonth(month);
       const current=activeSession;if(projectDomain.isOpening()||!current)throw new Error('지도를 여는 중입니다.');
       try {await current.commandOwner.setTimelineCursor(month);await map.update();search();syncStatus();}
@@ -138,6 +157,7 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push({dispose:disposeTimeline});
   const open=async (reader,options)=>{
+    adjacentPrefetch.interrupt();
     postPresentation.invalidate();
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
@@ -169,9 +189,19 @@ export async function composeViewer({ productMode, meta }) {
     }return false;}
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
-  builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:(month,{isCurrent,commit})=>open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',preserveView:builtinClock.month()!==null}),onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
+  builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:async(month,{isCurrent,commit})=>{
+    adjacentPrefetch.interrupt();
+    const accepted=await open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,
+      onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},
+      presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',
+      preserveView:builtinClock.month()!==null});
+    if(accepted&&isCurrent()&&initialPresentation.hasPresented())
+      adjacentPrefetch.afterPresented(month,{mode:get('timelineViewUnit')?.value==='month'?'month':'year'});
+    return accepted;
+  },onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
+    adjacentPrefetch.interrupt();
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
     try {const result=await open(reader,options);if(!result&&resume())builtinActive=previous;return result;}
     catch(error){if(resume())builtinActive=previous;throw error;}
@@ -180,7 +210,7 @@ export async function composeViewer({ productMode, meta }) {
   const files=createFileController({productMode,elements:fileElements,fileAccess:createBrowserFileAccess({productMode,elements:fileElements,window,document}),projectDomain,openProject:openUserProject,reportOperationError:report,window,document});
   disposables.push(files);
   files.bind();action(get('openProjectBtn'),'click',()=>files.openProjectPicker());
-  action(get('builtinMapBtn'),'click',()=>builtinClock.followNow());
+  action(get('builtinMapBtn'),'click',()=>{adjacentPrefetch.interrupt();return builtinClock.followNow();});
   display=createMapSettings({capabilities:owners.capabilities,viewPresentation:map});
   display.connect({
     layerResources:{loadHydroData:owners.physicalResources.loadHydroData,preparePlaces:owners.territorialLabels.preparePlaces},
