@@ -19,6 +19,7 @@ const modules = coreReady.then(core => {
   return Promise.all([
     import(`../modules/country-shared-boundary-packet.js?v=${encodeURIComponent(revision)}`),
     import(`../modules/country-shared-boundary-cache.js?v=${encodeURIComponent(revision)}`),
+    import(`../modules/prepared-polygon-mesh.js?v=${encodeURIComponent(revision)}`),
   ]);
 });
 let boundaryState = null;
@@ -69,11 +70,27 @@ async function prepareMessage(message) {
   let applied = false;
   try {
     const [{ prepareCountrySharedBoundaryPacket, createCountrySharedBoundaryState },
-      { changedCountryGeometryIds }] = await modules;
+      { changedCountryGeometryIds }, { polygonGeometryDigest }] = await modules;
     if (deferUnapplied(message)) return;
     if (!boundaryState) boundaryState = createCountrySharedBoundaryState();
-    const features = (message.features || []).map(feature => ({ ...feature,
-      boundaryRootId: feature.boundaryRootId || (!feature.properties?.parentId ? String(feature.id) : '') }));
+    // Every replace still carries the entire authoritative country snapshot.
+    // A new Core project may rematerialize identical coordinates as new JS
+    // objects, so identity/version-only keys cause needless full topology work.
+    // Exact SHA-256 over the actual geometry, not a short display checksum,
+    // allows the existing prepared store to reuse only truly identical edges.
+    // Hash in this Worker, never on the input/UI thread. The full snapshot
+    // also makes late/superseded requests safe without patch-base guesses.
+    const features = [];
+    for (const [index, feature] of (message.features || []).entries()) {
+      if (deferUnapplied(message)) return;
+      const digest = feature.geometry == null
+        ? 'empty' : await polygonGeometryDigest(feature.geometry);
+      features.push({ ...feature,
+        boundaryRootId: feature.boundaryRootId || (!feature.properties?.parentId ? String(feature.id) : ''),
+        boundaryGeometryRevision: `sha256:${digest}` });
+      if ((index & 31) === 31) await yieldToMessages();
+    }
+    if (deferUnapplied(message)) return;
     if (message.type === 'replace') {
       let cached = message.cacheUrl === loadedCacheUrl && message.quality === loadedCacheQuality ? pendingCache : null;
       if (message.cacheUrl && (message.cacheUrl !== loadedCacheUrl || message.quality !== loadedCacheQuality)) {

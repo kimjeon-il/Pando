@@ -1,0 +1,32 @@
+name: Viewer P4-5 exact border and physical scope
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/workers/country-shared-boundary-worker.js
+      - shared/frontend/js/modules/physical-resources.js
+      - tests/unit/country-shared-boundary-state.test.mjs
+      - tests/unit/physical-water-context-p4-5.test.mjs
+      - .github/workflows/viewer-boundary-physical-p4-5.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p4-5-work-ui
+  cancel-in-progress: true
+jobs:
+  boundary-physical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Exact border-worker, physical-scope and historical regressions
+        run: node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/physical-water-context-p4-5.test.mjs tests/unit/historical-physical-water.test.mjs
