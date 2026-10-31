@@ -405,6 +405,8 @@ class SupplementTests(unittest.TestCase):
         with patch.dict(os.environ, {'PANDO_TERRITORIAL_RECIPE_BINARY': str(Path('missing-lsib-native').resolve())}):
             with self.assertRaisesRegex(RuntimeError, 'ring replacement failed'):
                 module.replace_chain(a, old, new)
+            with self.assertRaisesRegex(RuntimeError, 'country validation failed'):
+                module.validate_country_repair({'A': a, 'B': b}, {'A': aa, 'B': bb})
 
 
 if __name__ == '__main__':
