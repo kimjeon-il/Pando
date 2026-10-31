@@ -25,7 +25,7 @@ const required=(object,keys)=>Object.fromEntries(keys.map(name=>{
   if(!Object.hasOwn(object,name))throw Error('Missing reviewed source metadata: '+name);
   return [name,object[name]];
 }));
-const supplement=(published,t)=>({sourceId,published,effectiveDateEstablished:false,status:'provisional-modern-source-supplement',
+export const lsibSourceSupplement=(published,t)=>({sourceId,published,effectiveDateEstablished:false,status:'provisional-modern-source-supplement',
   coastline:'unchanged',sourceFile:'tools/historical-library/sources/lsib-11.4/boundaries.geojson.gz',
   simplificationToleranceDegrees:t,simplificationMaximumPx:t*scale,screenBaseline:{widthCssPx:2560,flatZoom:64},historicalAccuracyVerified:false});
 
@@ -111,7 +111,7 @@ export async function buildLSIBTargetedCandidate({root,targets,referenceManifest
     const relevant=selected.map((plan,i)=>[targets[i],plan]).filter(([,plan])=>plan.pair.includes(code)||plan.junctionCountry===code);
     const t=relevant.some(([target,plan])=>plan.simplify!==false&&!overrides.has(target))?tolerance:0;
     const existing=versions[code].modernBoundarySupplement||{};
-    const info={...supplement(provenance.published,t),...structuredClone(existing)};
+    const info={...lsibSourceSupplement(provenance.published,t),...structuredClone(existing)};
     const fullPairs=new Set(relevant.map(([,plan])=>plan.pair.join('/')));
     info.boundaries=(info.boundaries||[]).filter(entry=>!fullPairs.has(entry.countries.join('/')));
     info.boundaries.push(...boundaries.filter(entry=>entry.countries.includes(code)));

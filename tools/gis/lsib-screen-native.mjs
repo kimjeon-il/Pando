@@ -11,9 +11,10 @@ function validateLine(line){
 async function nativeRequest(action,request,{binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY,signal}={}){
   signal?.throwIfAborted();
   if(typeof binary!=='string'||!binary)throw Error('PANDO_TERRITORIAL_RECIPE_BINARY must locate the native GEOS engine');
-  const input=JSON.stringify(request);if(Buffer.byteLength(input)>32*1024*1024)throw Error('LSIB line request exceeds byte budget');
+  const byteLimit=action==='--extract-lsib-shared'?256*1024*1024:32*1024*1024;
+  const input=JSON.stringify(request);if(Buffer.byteLength(input)>byteLimit)throw Error('LSIB line request exceeds byte budget');
   const output=await new Promise((accept,reject)=>{
-    const child=execFile(binary,[action,'-'],{encoding:'utf8',windowsHide:true,timeout:180000,maxBuffer:32*1024*1024,signal},
+    const child=execFile(binary,[action,'-'],{encoding:'utf8',windowsHide:true,timeout:180000,maxBuffer:byteLimit,signal},
       (error,stdout,stderr)=>error?reject(new Error('Native LSIB screen operation failed: '+error.message+' '+stderr,{cause:error})):accept(stdout));
     child.stdin.on('error',error=>{if(error.code!=='EPIPE')child.kill();});child.stdin.end(input);
   });
@@ -234,7 +235,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--nearest-replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream','--tripoint-stream','--coast-stream','--spatial-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
-    for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
+    const byteLimit=process.argv[2]==='--shared-stream'?256*1024*1024:32*1024*1024;
+    for await(const chunk of process.stdin){size+=chunk.length;if(size>byteLimit)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
     let result;
     if(process.argv[2]==='--sampled-stream')result=await sampledLSIBDistance(request.source,request.target);
