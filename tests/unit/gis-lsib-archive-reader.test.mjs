@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {parseLSIBGeoJSON,readLSIBRaw} from '../../tools/gis/lsib-source-native.mjs';
 import {mergeLSIBLines} from '../../tools/gis/lsib-screen-native.mjs';
@@ -22,7 +21,6 @@ test('LSIB source parsing preserves exact coordinates and rejects missing or dup
   assert.throws(()=>parseLSIBGeoJSON(JSON.stringify(row)+'\n'+JSON.stringify(row),[id]),/duplicate/i);
   assert.throws(()=>parseLSIBGeoJSON(JSON.stringify({...row,properties:{...row.properties,RANK:1}}),[id]),/attribute type/i);
 });
-
 test('GEOS merges LSIB line parts exactly as the frozen Python reference',
   {skip:!process.env.PANDO_TERRITORIAL_RECIPE_BINARY},async()=>{
     const input=mergeOracle.cases.map(row=>row.geometry);
@@ -41,30 +39,4 @@ test('GDAL reads the exact selected LSIB source coordinates and attributes',{
   const index=JSON.parse(await readFile('tools/historical-library/sources/lsib-11.4/line-index.json','utf8'));
   assert.deepEqual(rows[0].properties,index.find(row=>row.properties.ID===id).properties);
   assert.equal(rows[0].geometry.type,'LineString');assert.deepEqual(rows[0].geometry.coordinates,old.reference);
-});
-
-test('Python LSIB reader receives the selected pinned line without coordinate changes',{
-  skip:!process.env.PANDO_PYTHON_ORACLE||!process.env.PANDO_LSIB_ARCHIVE||!process.env.PANDO_GDAL_OGR2OGR||
-    !process.env.PANDO_LSIB_DISPLAY_ORACLE||!process.env.PANDO_TERRITORIAL_RECIPE_BINARY
-},async()=>{
-  const expected=JSON.parse(await readFile(process.env.PANDO_LSIB_DISPLAY_ORACLE,'utf8'));
-  const script=`import importlib.util,json,os,sys\nspec=importlib.util.spec_from_file_location('screen','tools/verify-lsib-screen-delta.py')\nscreen=importlib.util.module_from_spec(spec);spec.loader.exec_module(screen)\nx=json.load(sys.stdin)\nlines=screen.load_lsib_sources(os.environ['PANDO_LSIB_ARCHIVE'],[x['sourceId']])\nassert [list(p) for p in lines[x['sourceId']].coords]==x['reference']\nprint('ok')`;
-  const result=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{input:JSON.stringify(expected),encoding:'utf8',windowsHide:true,timeout:240000});
-  assert.equal(result.status,0,result.stderr);assert.equal(result.stdout.trim(),'ok');
-});
-
-test('LSIB source selection honors pair, withheld and separately reviewed references',{
-  skip:!process.env.PANDO_PYTHON_ORACLE
-},()=>{
-  const one='c133c4d6-bf4f-489d-b51e-abf2be55d369',two='4990410a-4158-4932-8445-90397c840a87';
-  const candidate={boundaries:[
-    {countries:['AUT','LIE'],status:'supplemented',sourceLineIds:[one,one]},
-    {countries:['AUT','LIE'],status:'withheld',sourceLineIds:[two]},
-    {countries:['AUT','LIE'],status:'supplemented',referenceManifest:'reviewed.json',sourceLineIds:[two]},
-    {countries:['AUT','LIE'],status:'supplemented',kind:'coastline',sourceLineIds:[two]},
-    {countries:['AFG','CHN'],status:'supplemented',sourceLineIds:[two]}
-  ]};
-  const script=`import importlib.util,json,sys\nspec=importlib.util.spec_from_file_location('screen','tools/verify-lsib-screen-delta.py')\nscreen=importlib.util.module_from_spec(spec);spec.loader.exec_module(screen)\nx=json.load(sys.stdin)\nprint(json.dumps(screen.selected_source_ids(x,'AUT/LIE')))\nprint(json.dumps(screen.selected_source_ids(x,None)))`;
-  const result=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{input:JSON.stringify(candidate),encoding:'utf8',windowsHide:true});
-  assert.equal(result.status,0,result.stderr);assert.deepEqual(result.stdout.trim().split(/\r?\n/).map(JSON.parse),[[one],[one,two]]);
 });

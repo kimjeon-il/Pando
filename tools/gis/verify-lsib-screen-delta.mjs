@@ -69,15 +69,15 @@ async function readJSON(path,maximum=64*1024*1024){const info=await lstat(path);
 async function rejectExisting(path){try{await lstat(path);}catch(error){if(error.code==='ENOENT')return;throw error;}throw Error('LSIB screen output already exists; preserve prior evidence');}
 async function writeNew(path,text){await mkdir(dirname(path),{recursive:true});const file=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL,0o666);
   try{await file.writeFile(text,'utf8');}finally{await file.close();}}
-async function main(){
-  const {values,positionals}=parseArgs({allowPositionals:true,options:{candidate:{type:'string'},archive:{type:'string'},output:{type:'string'},pair:{type:'string'}}});
-  if(positionals.length||!values.candidate||!values.archive||!values.output)throw Error('Required: --candidate FILE --archive ZIP --output NEW_FILE [--pair CODE/CODE]');
-  const root=defaultRoot,output=resolve(reportArgument(values.output,{root,access:'write',siblings:true}));await rejectExisting(output);
+export async function runLSIBScreen(values,{root=defaultRoot,binary,ogrBinary,signal}={}){
+  signal?.throwIfAborted();
+  if(!values.candidate||!values.archive||!values.output)throw Error('Required: --candidate FILE --archive ZIP --output NEW_FILE [--pair CODE/CODE]');
+  const output=resolve(reportArgument(values.output,{root,access:'write',siblings:true}));await rejectExisting(output);
   const candidate=await readJSON(resolve(reportArgument(values.candidate,{root,access:'read',siblings:true})));
   const provenance=await readJSON(resolve(root,'tools/historical-library/sources/lsib-11.4/provenance.json'),1024*1024);
   if(provenance.archiveSha256!=='1eb5af7e80fce60e48d27eba80ae81fd2b25c9cf59f4f4e2efc89c06ad57490a')throw Error('LSIB source provenance differs from the pinned reader');
   const entries=selectedEntries(candidate,values.pair),ids=selectedLSIBSourceIds(candidate,values.pair);
-  const rows=await readLSIBLines({archive:values.archive,ids}),sourceById=Object.fromEntries(rows.map(row=>[row.properties.ID,row.geometry]));
+  const rows=await readLSIBLines({archive:values.archive,ids,binary:ogrBinary},{binary,signal}),sourceById=Object.fromEntries(rows.map(row=>[row.properties.ID,row.geometry]));
   const entities={},reviewedByManifest={};
   for(const entry of entries){
     if(!Array.isArray(entry.segments)||!entry.segments.length||!Array.isArray(entry.countries))throw Error('Invalid LSIB boundary section');
@@ -89,14 +89,19 @@ async function main(){
       if(!version?.geometry)throw Error('LSIB display geometry version missing: '+code);entities[code]=version.geometry;
     }
     if(entry.referenceManifest&&!Object.hasOwn(reviewedByManifest,entry.referenceManifest))
-      reviewedByManifest[entry.referenceManifest]=await loadLSIBReviewedSource({root,manifestPath:entry.referenceManifest});
+      reviewedByManifest[entry.referenceManifest]=await loadLSIBReviewedSource({root,manifestPath:entry.referenceManifest,binary},{signal});
   }
-  let report;try{report=await evaluateLSIBScreens({candidate,entities,sourceById,reviewedByManifest,pair:values.pair});}
+  let report;try{report=await evaluateLSIBScreens({candidate,entities,sourceById,reviewedByManifest,pair:values.pair},{binary,signal});}
   catch(error){if(error.diagnostic){const failure=resolve(root,'build-native/lsib-supplement/screen-failure.json');
       try{await writeNew(failure,JSON.stringify(error.diagnostic));}catch(writeError){if(writeError.code!=='EEXIST')throw writeError;process.stderr.write('Preserved existing LSIB failure diagnostic: '+failure+'\n');}}
     throw error;}
   await writeNew(output,JSON.stringify(report,null,2)+'\n');
-  const {results,...summary}=report;process.stdout.write(JSON.stringify(summary)+'\n');
+  return report;
+}
+async function main(){
+  const {values,positionals}=parseArgs({allowPositionals:true,options:{candidate:{type:'string'},archive:{type:'string'},output:{type:'string'},pair:{type:'string'}}});
+  if(positionals.length)throw Error('Required: --candidate FILE --archive ZIP --output NEW_FILE [--pair CODE/CODE]');
+  const {results,...summary}=await runLSIBScreen(values);process.stdout.write(JSON.stringify(summary)+'\n');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))
   main().catch(error=>{process.stderr.write('lsib-screen: '+String(error.stack||error)+'\n');process.exitCode=1;});

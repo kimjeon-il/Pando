@@ -12,9 +12,6 @@ import shapely
 spec = importlib.util.spec_from_file_location('supplement', Path(__file__).parents[1] / 'tools/supplement-lsib-boundaries.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
-screen_spec = importlib.util.spec_from_file_location('screen', Path(__file__).parents[1] / 'tools/verify-lsib-screen-delta.py')
-screen = importlib.util.module_from_spec(screen_spec)
-screen_spec.loader.exec_module(screen)
 
 
 class SupplementTests(unittest.TestCase):
@@ -164,15 +161,6 @@ class SupplementTests(unittest.TestCase):
             (source / 'countries/state-MCO.json').write_text(json.dumps(entity), encoding='utf-8')
             with self.assertRaisesRegex(ValueError, 'Historical'):
                 module.targeted_candidates(root, output, ['FRA/MCO'], coast_manifest=file)
-
-    def test_closed_screen_section_uses_complete_enclave_ring(self):
-        geometry = {'type': 'Polygon', 'coordinates': [[(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)]]}
-        reference = LineString([(2, 2), (2, 1), (1, 1), (1, 2), (2, 2)])
-        display = screen.display_section(geometry, [], reference)
-        self.assertTrue(display.equals(reference))
-        self.assertTrue(display.is_ring)
-        with self.assertRaisesRegex(ValueError, 'enclave exterior'):
-            screen.display_section(self.enclave_fixture()['ITA'], [], reference)
 
     def enclave_fixture(self):
         first = [(1, 1), (2, 1), (2, 2), (1, 2), (1, 1)]

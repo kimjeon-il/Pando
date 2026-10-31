@@ -9,7 +9,7 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-31 현행 기준: 추적 Python 28개
+### 2026-10-31 현행 기준: 추적 Python 27개
 
 - **QGIS 네이티브 연결 전환:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가했다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. [Windows CI 41144046823](https://github.com/kimjeon-il/Pando/actions/runs/41144046823)과 QGIS 3.44.15 한 창에서 출처·편집 상태·롤백을 확인했다. 실제 MCP의 인증 거부·편집·Undo/Redo·롤백·출력 덮어쓰기 거부와 한글·따옴표 파일 경로, EPSG:3857 클립, QGIS→판도 편집기→QGIS의 선·폴리곤 및 출처 왕복이 통과했다. Codex QGIS 연결을 네이티브 MCP로 전환하고 기존 Python 브리지·부트스트랩·대응 테스트를 제거했다. 현재 열려 있는 채팅은 MCP 연결 새로 고침이 필요할 수 있다. 이는 합성 입력의 기능 검증이며 모든 QGIS 좌표계나 처리 알고리즘 검증은 아니다.
 
@@ -80,11 +80,13 @@
   화면 검사의 구간 선택도 GEOS로 옮겨 Python의 NumPy 의존 계산을 제거했다. [Windows/Linux CI 41149470663](https://github.com/kimjeon-il/Pando/actions/runs/41149470663)의 폴리곤·다중 폴리곤·구멍·폐곡선 고정 사례와 보존 AUT–LIE 원본 `c133c4d6-bf4f-489d-b51e-abf2be55d369`의 참조 2,464점·기존 표시 구간 92점이 기존 Python 선택과 일치했다. 기존 출력 보고서와 실패 진단은 덮어쓰지 않는다. 이는 기존 자료에 대한 기능 비교이며 역사 경계 승인이나 형상 변경이 아니다. 보고서 조립 등 실행기의 Python은 남아 있다.
   같은 화면 검사의 ZIP·SHP 출처 읽기는 원본 SHA-256을 확인하는 Node/GDAL 경로와 GEOS 선 병합으로 옮겼다. 원본 ZIP `1eb5af7e80fce60e48d27eba80ae81fd2b25c9cf59f4f4e2efc89c06ad57490a`에서 AUT–LIE 한 선을 선택해 기존 17개 속성과 2,464개 좌표가 일치함을 확인했고, 해당 구간의 선택과 양방향 거리·표본 수도 기존 Python과 같았다. ZIP 전체를 추출하거나 운영 형상을 갱신하지 않았다. 실제 ZIP 판독은 Windows에서 확인했으며 Linux 실제 ZIP 판독과 전체 보고서 조립 전환은 남아 있다.
 
+  후속으로 보고서 조립과 실행 명령을 Node로 전환하고 Python 실행기를 제거했다. 고정 사례의 구멍·폐곡선·참조 출처·허용 한도 초과 및 기존 출력 보호와 보존된 IGM·모나코 참조선의 좌표를 비교했다. AUT–LIE 원본 한 구간의 전체 실행에서 표본 2,887개와 최대 차이 `0.18131739355200677` CSS 픽셀이 기존 결과와 같았다. 이는 기능 동등성 확인이며 역사 경계 승인이나 운영 자료 변경이 아니다. 실제 ZIP 판독은 Windows에서만 확인했으며 Linux 실자료 검증은 남아 있다.
+
   DEM tint의 육지·눈·빙하 색상 기증 판정도 네이티브 계산에 연결했다. [Windows/Linux CI 41032868914](https://github.com/kimjeon-il/Pando/actions/runs/41032868914)의 고정 사례와 소스 일치 실행 파일을 확인했고, [41033249980](https://github.com/kimjeon-il/Pando/actions/runs/41033249980)에서 생성기 연결을 확인했다. 보유 tint에서 선택한 128×128 색상과 합성 육지·빙하 마스크를 적용한 판정 16,384개는 기존 Python과 같았으며 SHA-256은 `8161e7b2d1b1155ecfdc8c1896a82eac5fffa60824f19dd81f4548d84466049c`이다. 이 비교는 전체 원본 재생성이나 실제 육지·빙하 마스크 검증이 아니다. 원본 창 판독, 배경 채우기 및 생성 관리는 아직 Python이다.
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 18개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 15개, 테스트 12개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
@@ -98,7 +100,7 @@
 | --- | --- | --- |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
 | `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
-| `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py`, `tools/verify-lsib-screen-delta.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
+| `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
