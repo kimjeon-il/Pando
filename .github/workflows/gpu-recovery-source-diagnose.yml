@@ -1,0 +1,56 @@
+name: G4 GPU recovery source diagnosis (read-only)
+on:
+  push:
+    branches: [work/ui]
+    paths: [.github/workflows/gpu-recovery-source-diagnose.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Inspect exact G1-G3 candidate after reviewed substitutions without modifying files
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          import {join} from 'node:path';
+          const dir='tests/fixtures/gpu-recovery';
+          const buffer=Buffer.concat([1,2,3].map(n=>readFileSync(join(dir,'candidate-source.gz.part'+n))));
+          const archive=JSON.parse(gunzipSync(buffer)),config=JSON.parse(archive['renderer-edits.json']);
+          let code=readFileSync(config.path,'utf8');
+          for(const {before,after} of config.operations){
+            if(code.split(before).length!==2)throw Error('candidate anchor mismatch');
+            code=code.replace(before,()=>after);
+          }
+          console.log('CANDIDATE',JSON.stringify({ops:config.operations.length,rendererLines:code.split('\n').length,newFiles:Object.keys(config.newFiles)}));
+          const owner=archive['payload/shared/frontend/js/modules/gpu-context-recovery.js'];
+          console.log('=== RECOVERY OWNER BEGIN ===');
+          console.log(owner);
+          console.log('=== RECOVERY OWNER END ===');
+          const lines=code.split('\n');
+          function excerpt(label,keyword,above=5,after=110){
+            let i=lines.findIndex(row=>row.includes(keyword));
+            if(i<0){console.log('NOT_FOUND',label,keyword);return;}
+            const from=Math.max(0,i-above),to=Math.min(lines.length,i+after);
+            console.log('=== '+label+' '+(from+1)+'-'+to+' ===');
+            console.log(lines.slice(from,to).map((row,k)=>String(from+k+1).padStart(5)+': '+row).join('\n'));
+          }
+          excerpt('OWNER SETUP','createGpuContextRecovery(',12,105);
+          excerpt('RECORD PRESENTATION','function recordMapPresentation(',4,85);
+          excerpt('SHARED PASSES','function initializeSharedGpuPasses(',4,95);
+          excerpt('RESTORED','async function handleWebGlContextRestored(',8,115);
+          excerpt('CANVAS FRAME','function receiveCanvasWorkerMessage(',5,100);
+          excerpt('CANVAS FALLBACK','function activateCanvasFallback(',5,100);
+          excerpt('CANVAS DRAW','function drawCanvasFallback(',4,95);
+          excerpt('WEBGL DRAW','function renderWebGl(',5,75);
+          NODE
