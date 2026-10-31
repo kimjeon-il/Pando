@@ -32,6 +32,12 @@ test('GDAL physical hydro matches the Python shapefile oracle and refuses overwr
     const link=join(root,'linked-source');symlinkSync(source,link,'junction');
     assert.throws(()=>buildPhysicalHydro({sourceRoot:source,outputRoot:join(link,'nested'),gdal:process.env.PANDO_GDAL_OGR2OGR,root}),/outside/i);
     assert.equal(existsSync(join(source,'nested')),false);
+    const duplicate=join(source,'duplicate');mkdirSync(duplicate);
+    const duplicateName=Object.keys(fixture.files).find(name=>name.endsWith('.shp'));
+    writeFileSync(join(duplicate,duplicateName),Buffer.from(fixture.files[duplicateName],'base64'));
+    const otherOutput=join(root,'duplicate-output');
+    assert.throws(()=>buildPhysicalHydro({sourceRoot:source,outputRoot:otherOutput,gdal:process.env.PANDO_GDAL_OGR2OGR,root}),/more than one/i);
+    assert.equal(existsSync(otherOutput),false);
   });
 test('physical hydro retains source feature order, coordinates and null-shape counts',()=>{
   const geometry={type:'MultiLineString',coordinates:[[[0,0],[1,0]],[[2,1],[3,1],[4,1]]]};
