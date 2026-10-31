@@ -18,3 +18,10 @@ export function resolveMapSurfacePresentation({ canonicalReady = false, previewR
     ? 'preview' : canonicalReady ? 'canonical' : 'pending';
   return Object.freeze({ targetQuality, geometryQuality, quality: backgroundPresented ? geometryQuality : 'pending' });
 }
+
+/** Only a transferred, current Worker bitmap may unblock initial country paint
+ * before optional terrain data completes. Temporal replacement remains strict. */
+export function canAdmitCanvasWorkerPartialBackground({ rendererMode, committedBitmap, physicalSceneMatched, temporalPending } = {}) {
+  return rendererMode === 'canvas-worker' && committedBitmap === true
+    && physicalSceneMatched === true && temporalPending === false;
+}
