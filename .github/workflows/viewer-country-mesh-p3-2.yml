@@ -1,0 +1,43 @@
+name: Viewer P3-2 exact-country-mesh reuse
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/modules/country-mesh-content-key.js
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - tests/unit/country-mesh-content-key.test.mjs
+      - tests/browser/viewer-country-mesh-p3-2.spec.mjs
+      - .github/workflows/viewer-country-mesh-p3-2.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p3-2-work-ui
+  cancel-in-progress: true
+jobs:
+  exact-mesh-reuse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Content identity, GPU-context and existing runtime contracts
+        run: node --test tests/unit/country-mesh-content-key.test.mjs tests/unit/country-mesh-zoom-runtime.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Renderer and viewer evidence with cloned canonical polygons
+        run: pnpm exec playwright test tests/browser/viewer-country-mesh-p3-2.spec.mjs --workers=1
+      - name: Keep scoped results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p3-2-exact-mesh
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
