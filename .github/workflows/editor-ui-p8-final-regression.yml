@@ -12,6 +12,7 @@ on:
       - tests/unit/object-visibility-command.test.mjs
       - tests/unit/project-session-viewing.test.mjs
       - tests/browser/hydro-metadata-edit.spec.mjs
+      - tests/browser/territorial-parent-edit.spec.mjs
       - apps/editor/frontend/js/modules/territorial-property-controller.js
       - shared/frontend/js/modules/project-session.js
       - shared/frontend/js/modules/project-domain.js

@@ -29,15 +29,20 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
     properties: { pandolab_domain: 'hydro', pandolab_id: hydroId,
       pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강',
       editorColor: '#3b82c4', notes: '', locked: false } });
-  saved.geometries.push({ id: 'p8-hydro-shape', version: 1,
-    geojson: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] } });
-  saved.timelineRecords.lifetimes.push({
-    id: 'p8-hydro-life', objectRef: hydroRef, validFrom: null, validTo: null,
-  });
-  saved.timelineRecords.geometryBindings.push({
-    id: 'p8-hydro-binding', objectRef: hydroRef, validFrom: null, validTo: null,
-    geometryRef: { id: 'p8-hydro-shape', version: 1 },
-  });
+  // Static serializer pools can freeze the canonical geometry array. Extend
+  // the detached serialized document by replacement, not mutation in-place.
+  saved.geometries = [...saved.geometries, { id: 'p8-hydro-shape', version: 1,
+    geojson: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] } }];
+  saved.timelineRecords = {
+    ...saved.timelineRecords,
+    lifetimes: [...saved.timelineRecords.lifetimes, {
+      id: 'p8-hydro-life', objectRef: hydroRef, validFrom: null, validTo: null,
+    }],
+    geometryBindings: [...saved.timelineRecords.geometryBindings, {
+      id: 'p8-hydro-binding', objectRef: hydroRef, validFrom: null, validTo: null,
+      geometryRef: { id: 'p8-hydro-shape', version: 1 },
+    }],
+  };
   const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = false;
   await page.evaluate(({ saved, preferences, key }) => {
     localStorage.setItem('pandolab-editor-project', JSON.stringify(saved));

@@ -282,6 +282,15 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await page.locator('#actionsTabBtn').click();
   await page.locator('#mergeEntityBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline.state().tool)).toBe('merge-territorial-unit');
+  // Imported subunits are less than a degree wide. A full-world viewport
+  // cannot reliably pick their actual polygons by geographic center.
+  await page.evaluate(() => {
+    const host = window.__PANDOLAB_MAP_HOST__;
+    host.setViewState({ projection: 'flat', view: {
+      ...host.getViewState(), flatCenter: [9.5, 50.25], flatZoom: 16,
+    } });
+    host.requestRepaint('p8-subunit-merge-map-picking');
+  });
   await page.addStyleTag({content:'#map .territorial-label-item {pointer-events:none !important;}'});
   for (const target of units.slice(1)) {
     const point = await territorialCenter(page, target.id);
@@ -412,6 +421,9 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
     await draw(page, 0, tool === 'lake');
     const vertices = page.locator('g.draft-vertex');
+    // Stroke sampling and DOM handle rendering are asynchronous. Count only
+    // after the expected draft handles have been admitted.
+    await expect.poll(() => vertices.count(), { timeout: 30_000 }).toBeGreaterThanOrEqual(3);
     const vertexCount = await vertices.count();
     await vertices.nth(1).click();
     await expect(page.locator('#modeDraftDeleteBtn')).toBeVisible();
