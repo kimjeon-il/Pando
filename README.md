@@ -193,6 +193,8 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 
 기존 물리 지형 생성기는 공식 ZIP의 원본을 읽어 별도의 새 후보 폴더에 생성합니다. Pillow, GDAL `ogr2ogr`, 소스가 일치하는 C++ 지형 도구가 필요합니다. 수계 원본은 GDAL·Node가, 외곽 육지 마스크는 C++이 처리하며 나머지 지형 타일 경로는 아직 Python입니다. 기존 산출물은 덮어쓰지 않습니다.
 
+Node/C++ 지형 생성 후보는 `node tools/gis/build-physical-terrain.mjs --source <원본-폴더> --output <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson`으로 실행합니다. 소스와 일치하는 `physical-raster`, `terrain-preview`, `map-image` 네이티브 도구가 필요하며 Windows에서 GDAL DLL이 PATH에 없다면 `PANDO_PHYSICAL_RASTER_GDAL_BIN`으로 해당 절대 폴더를 지정합니다. 작은 고정 사례만 비교했고 실제 TIFF 전체와 대형 입력 성능은 아직 확인하지 않았으므로 후보 결과는 별도로 검토합니다.
+
 ```powershell
 python tools/build-physical-data.py <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
 ```
