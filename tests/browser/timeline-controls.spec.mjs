@@ -10,6 +10,13 @@ async function observeBuiltinCamera(page) {
     const debug = 'productMode,documentState:', reader = '()=>map.prepareBuiltinProject(month,{isCurrent})';
     if (!source.includes(debug) || !source.includes(reader)) throw new Error('Viewer observation boundary is missing.');
     await route.fulfill({ contentType: 'text/javascript', body: source
+      .replace('  await documentSession.commandOwner.load(', `  window.__testTemporalPackets=[];
+  documentSession.commandOwner.subscribeTransitions((packet,operation)=>{
+    if(operation==='core.document-load-baseline'||operation==='core.document-transition-baseline')
+      window.__testTemporalPackets.push({operation,fullProject:Object.hasOwn(packet,'project'),
+        geometryCount:packet.delta?.geometries?.length??null,month:packet.state?.timelineCursor});
+  });
+  await documentSession.commandOwner.load(`)
       .replace(debug, 'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),cameraMoving:()=>map.viewState.mapMoving,' + debug)
       .replace(reader, 'async()=>{if(window.__testBuiltinRead)await window.__testBuiltinRead(month);return map.prepareBuiltinProject(month,{isCurrent});}') });
   });
@@ -55,6 +62,11 @@ test('builtin date changes retain the camera across controls and automatic month
     await page.locator('#builtinMapBtn').click(); await builtinMonthReady(page, '2026-10');
     expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
   }
+  const packets=await page.evaluate(()=>window.__testTemporalPackets);
+  expect(packets.filter(row=>row.operation==='core.document-load-baseline')).toHaveLength(1);
+  const transitions=packets.filter(row=>row.operation==='core.document-transition-baseline');
+  expect(transitions.length).toBeGreaterThan(5);
+  expect(transitions.every(row=>row.fullProject===false&&Number.isInteger(row.geometryCount))).toBe(true);
   const camera = await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot());
   await page.clock.setFixedTime(new Date(2026, 10, 1, 12));
   await page.evaluate(() => window.dispatchEvent(new window.Event('focus'))); await builtinMonthReady(page, '2026-11');

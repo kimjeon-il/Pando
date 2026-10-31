@@ -25,6 +25,11 @@ function fixture({ onTransition } = {}) {
         assert.equal(message.payload.baselineId,7);assert.equal(message.payload.expectedEpoch,epoch);
         epoch+=1;result={ state: state(),project: { complete: 'retained-source' } };
       }
+      else if (message.operation === 'core.document-transition-baseline') {
+        assert.equal(message.payload.baselineId,7);assert.equal(message.payload.expectedEpoch,epoch);
+        timelineCursor=message.payload.setup.initialMonth;epoch++;
+        result={ok:true,changed:true,state:state(),delta:{objects:[],geometries:[],timelineRecords:null}};
+      }
       else if (message.operation === 'core.document-replacement-capture') { assert.equal(message.payload.expectedEpoch,epoch);result=7; }
       else if (message.operation === 'core.document-replacement-release') result=true;
       else if (message.operation === 'core.document-replacement-rollback') {
@@ -300,4 +305,16 @@ test('a failed accepted read-model publication stops subsequent mutations until 
   assert.equal(f.sent.length,sent);
   await f.client.load('{}'); assert.equal(f.client.state().epoch,3);
   f.client.dispose();
+});
+
+
+test('builtin temporal client operation is epoch-pinned and publishes a delta rather than a whole load',async()=>{
+ const transitions=[],f=fixture({onTransition:(result,operation)=>transitions.push({result,operation})});
+ await f.client.load('{}');const before=f.client.state().epoch;
+ const setup={initialMonth:'1951-12',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
+ const result=await f.client.transitionBaseline(7,setup);
+ assert.equal(f.sent.filter(row=>row.type==='request').at(-1).operation,'core.document-transition-baseline');
+ assert.equal(f.sent.filter(row=>row.type==='request').at(-1).payload.expectedEpoch,before);
+ assert.equal(f.client.state().timelineCursor,'1951-12');assert.equal(Object.hasOwn(result,'project'),false);
+ assert.equal(transitions.at(-1).operation,'core.document-transition-baseline');f.client.dispose();
 });

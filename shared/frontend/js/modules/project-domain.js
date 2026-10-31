@@ -370,9 +370,10 @@ export function createProjectDomain({
       await onReplacementState(true, reason);
       persistence?.cancelPending?.();
       const nextGeneration = await bumpGeneration(`project-${reason}`, presentation === 'temporal' ? {presentation,isCurrent,onPresented} : null);
-      if(reason==='new'||reason==='builtin') {
+      if(reason==='new'||reason==='builtin'||reason==='builtin-temporal') {
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
-        await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
+        if(reason==='builtin-temporal')await commandOwner.transitionBaseline(prepared.baselineId,prepared.setup);
+        else await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
       } else await commandOwner.load(JSON.stringify(prepared));
       await readmitBuiltinSelectionCatalogs();
       if (readPresentationCatalog) {
@@ -432,14 +433,14 @@ export function createProjectDomain({
       // Pure preparation does not claim the bounded Core rollback capsule.
       // The complete replacement shares its lifetime with accepted commands.
       const coreProject = currentProject(serializedProject);
-      const prepared=reason==='new'?{...await prepareNewProject(coreProject),setup:coreProject}:reason==='builtin'?coreProject:
+      const prepared=reason==='new'?{...await prepareNewProject(coreProject),setup:coreProject}:(reason==='builtin'||reason==='builtin-temporal')?coreProject:
         await commandOwner.validateImport(JSON.stringify(coreProject),{ baselineId: null });
       const operation=commandQueue.then(() => replaceAccepted(prepared,reason,options));
       commandQueue=operation.catch(() => {});return await operation;
     } catch(error) { replacing=false;throw error; }
   };
   const load = (project,options) => replace(project, 'load',options);
-  const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
+  const openSource = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented,transition=false}={}) => {
     assertActive();
     if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
     if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
@@ -455,7 +456,7 @@ export function createProjectDomain({
         if(source==='builtin') {
           const baseline=await read();
           if(!baseline||!isCurrent())return false;
-          await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
+          await replace(baseline,transition?'builtin-temporal':'builtin',{isCurrent,presentation,onPresented});
         }
         else await load(project,{isCurrent});
         return isCurrent();
@@ -466,6 +467,11 @@ export function createProjectDomain({
       if(!isCurrent()&&!error.restoreError)return false;
       throw error;
     } finally {if(isCurrent())opening=false;}
+  };
+  const open=(read,{source='project',presentation='default',isCurrent,onPresented}={})=>openSource(read,{source,presentation,isCurrent,onPresented});
+  const transitionBuiltin=(read,{isCurrent,onPresented}={})=>{
+    if(productMode!=='viewer')throw new TypeError('Builtin temporal transitions require the read-only viewer.');
+    return openSource(read,{source:'builtin',presentation:'temporal',isCurrent,onPresented,transition:true});
   };
   const createProject = async options => replace(normalizeProjectSetup(options), 'new');
   const travelHistory = (direction, metadata) => {
@@ -542,7 +548,7 @@ export function createProjectDomain({
     admitSelectionCatalog,
     admitStorageBaseline,
     inspectImport,
-    load,open,
+    load,open,transitionBuiltin,
     getOpenRevision:()=>openRequest,
     isOpening:()=>opening,
     baselineCoverage:(baselineId,month)=>commandOwner.baselineCoverage(baselineId,month),

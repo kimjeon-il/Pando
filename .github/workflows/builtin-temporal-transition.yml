@@ -1,14 +1,34 @@
-name: Preserve temporal implementation pending browser acceptance
+name: Builtin temporal transition
 on:
   push:
     branches: [work/objects]
-    paths: ['.github/workflows/builtin-temporal-transition.yml']
+    paths:
+      - '.github/workflows/builtin-temporal-transition.yml'
+      - 'shared/core/**'
+      - 'shared/wasm/session-bindings.cpp'
+      - 'shared/frontend/static/wasm/**'
+      - 'shared/frontend/js/modules/builtin-*.js'
+      - 'shared/frontend/js/modules/core-document-*.js'
+      - 'shared/frontend/js/modules/core-worker-runtime.js'
+      - 'shared/frontend/js/modules/product-mode-policy.js'
+      - 'shared/frontend/js/modules/project-domain.js'
+      - 'apps/viewer/js/modules/viewer-*.js'
+      - 'tests/unit/builtin-*.test.mjs'
+      - 'tests/unit/viewer-temporal-boundary.test.mjs'
+      - 'tests/unit/app-builtin-session.test.mjs'
+      - 'tests/unit/core-document-*.test.mjs'
+      - 'tests/browser/timeline-controls.spec.mjs'
+      - 'tests/browser/builtin-temporal-transition.spec.mjs'
+  workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
+concurrency:
+  group: builtin-temporal-transition-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  preserve:
+  focused:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -16,49 +36,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Restore exact reviewed implementation and verification record
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Require source-matched WASM
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Verify temporal source, transaction, transport and user-file contracts
+        run: >-
+          node --test tests/unit/builtin-month-clock.test.mjs tests/unit/viewer-temporal-boundary.test.mjs
+          tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-temporal-transition.test.mjs
+          tests/unit/app-builtin-session.test.mjs tests/unit/core-document-runtime.test.mjs
+          tests/unit/core-document-client.test.mjs tests/unit/core-worker-ownership.test.mjs
+          tests/unit/core-document-read-model.test.mjs tests/unit/project-opening.test.mjs
+          tests/unit/core-project-replacement-wasm.test.mjs tests/unit/project-product-surface.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify dedicated desktop/mobile WebGL and Canvas transitions
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          [ "$GITHUB_REF" = 'refs/heads/work/objects' ]
-          mkdir -p "$RUNNER_TEMP/temporal-evidence"
-          python3 - <<'PY'
-          import base64,hashlib,json,os,pathlib,subprocess
-          for name,sha in [('prepare','3d6cf6c78e9f6d8719ceffe2babe84dfa034dee1'),('publish','5e8c5311cbe0952390720cafdd15bb47458ab6de')]:
-              data=json.loads(subprocess.check_output(['gh','api','repos/kimjeon-il/Pando/git/blobs/'+sha]))
-              raw=base64.b64decode(data['content'])
-              assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha
-              pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-'+name+'.py').write_bytes(raw)
-          PY
-          python3 "$RUNNER_TEMP/temporal-prepare.py"
-          python3 - <<'PY'
-          import json,os,pathlib,subprocess
-          path='tests/browser/builtin-temporal-transition.spec.mjs';expected='ba31a86d3fff99d8419b6c8673115f3b8c751204'
-          assert subprocess.check_output(['git','hash-object',path],text=True).strip()==expected
-          manifest=pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-input.json');data=json.loads(manifest.read_text());data[path]=expected;manifest.write_text(json.dumps(data))
-          p=pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-publish.py');s=p.read_text()
-          old="'perf: add safe builtin temporal transition path'"
-          assert s.count(old)==1;s=s.replace(old,"'wip: preserve builtin temporal path pending Canvas and wider UI acceptance'")
-          old='Chromium desktop/mobile timeline, supersession and user-file navigation'
-          assert s.count(old)==1;s=s.replace(old,'Browser NOT accepted: WebGL desktop/mobile passed, Canvas 3 failed; broader candidate UI 3 failed and original baseline UI 2 failed/1 passed')
-          s=s.replace("print('Verified detached candidate:'","print('WIP detached implementation; browser acceptance blocked:'")
-          p.write_text(s)
-          record={'acceptance':'blocked','mainMerged':False,'runWithWebGl2PassedCanvas3Failed':41148872501,'originalUiBaseline2Failed1Passed':41148440127,'originalCandidateUi3Failed':41147093101,'knownBlockers':['Canvas native click/tap acknowledgement timeouts','Candidate user-file readiness timeout not yet cleared'],'notClaimed':['All tests pass','No bugs','Measured temporal latency target']}
-          pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-evidence','acceptance-blockers.json').write_text(json.dumps(record,indent=2))
-          PY
-      - name: Verify stored implementation and source-matched WASM
-        run: |
-          set -euo pipefail
-          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
-          node --test tests/unit/builtin-month-clock.test.mjs tests/unit/viewer-temporal-boundary.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-temporal-transition.test.mjs tests/unit/app-builtin-session.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-worker-ownership.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/project-opening.test.mjs tests/unit/core-project-replacement-wasm.test.mjs tests/unit/project-product-surface.test.mjs | tee "$RUNNER_TEMP/temporal-evidence/unit.log"
-      - name: Store WIP Git objects only without moving a branch
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 "$RUNNER_TEMP/temporal-publish.py"
-      - uses: actions/upload-artifact@v4
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve the existing wider UI regression gate
         if: always()
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/timeline-controls.spec.mjs --workers=1 --retries=0 --trace off
+      - uses: actions/upload-artifact@v4
+        if: failure()
         with:
-          name: temporal-wip-${{ github.sha }}
-          path: ${{ runner.temp }}/temporal-evidence/
-          retention-days: 2
+          name: builtin-temporal-failure-${{ github.sha }}
+          path: test-results/
+          retention-days: 3

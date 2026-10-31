@@ -38,9 +38,10 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     pristineCountriesFallback = null;
   }
 
-  async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
+  async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true,reuseSelectedSource=false}={}) {
     const key=month;
     const domain=dependencies.domains.projectDomain;
+    if(!isCurrent())throw Object.assign(new Error('Builtin source request was superseded'),{name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
     if(projectBaseline?.queryKey===key&&domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
     const stale=()=>Object.assign(new Error('Builtin source request was superseded'),{name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
     const promise=(async()=>{
@@ -51,7 +52,16 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
           manifestSpec:spec,dataRevision:meta.dataRevision});
       }
       const expectedGeneration=domain.getGeneration();
-      const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
+      const reusable=reuseSelectedSource&&projectBaseline&&domain.state().storageBaselineId===projectBaseline.baselineId?projectBaseline:null;
+      const {project,selectionKey}=await builtinWorldLoader.loadProject(month,{isCurrent,reuseSelectionKey:reusable?.selectionKey??null});
+      if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw stale();
+      if(project===null){
+        if(!reusable||typeof selectionKey!=='string'||selectionKey!==reusable.selectionKey
+          ||domain.state().storageBaselineId!==reusable.baselineId)throw stale();
+        // Preserve the actual admitted source month/fingerprint. The query month
+        // belongs to the next setup; a native handle is only valid in its live slot.
+        projectBaseline=Object.freeze({...reusable,queryKey:key});return projectBaseline;
+      }
       const decoded=new TextEncoder().encode(JSON.stringify(project));
       const sourceBytes=decoded;
       const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))].map(value=>value.toString(16).padStart(2,'0')).join('');
@@ -62,7 +72,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
       if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw stale();
       if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)throw new Error('Core rejected the assembled builtin source');
       const receipt={...facts};delete receipt.sourceBytes;
-      projectBaseline=Object.freeze({...receipt,baselineId:accepted.storageBaselineId,queryKey:key});
+      projectBaseline=Object.freeze({...receipt,baselineId:accepted.storageBaselineId,queryKey:key,selectionKey});
       return projectBaseline;
     })();
     return promise;

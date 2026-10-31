@@ -111,14 +111,18 @@ export async function composeViewer({ productMode, meta }) {
     },
   });
   const open=async (reader,options)=>{
+    const temporal=options?.source==='builtin'&&options?.presentation==='temporal';
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
     status.textContent=options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…';status.hidden=false;
     status.dataset.ready='false';
     try {
-    if(!await projectDomain.open(reader,options))return false;
+    const accepted=await (temporal?projectDomain.transitionBuiltin(reader,options):projectDomain.open(reader,options));
+    if(!accepted)return false;
     if(request!==projectDomain.getOpenRevision())return false;
+    // Catalog admission shares the document queue. Keep it after replacement
+    // settles, never await it from inside replaceSnapshot.
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     await map.update();

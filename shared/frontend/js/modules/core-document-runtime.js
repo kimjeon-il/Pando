@@ -45,6 +45,11 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     load: (payload, context) => call('documentLoad', () => [payload.storageJson, currentMonth()], context,loadedResult),
     baselineCoverage:(payload,context)=>call('baselineCoverage',[payload.baselineId,payload.month],context),
     loadBaseline: (payload,context) => call('documentLoadBaseline',() => [payload.baselineId,payload.setup],context,loadedResult),
+    transitionBaseline: (payload,context) => call('documentTransitionBaseline',[payload.baselineId,payload.setup,payload.expectedEpoch],context,
+      (result,core) => {
+        if(!result?.ok || !result.delta)fail('PL-CORE-DOCUMENT-ABI','A builtin transition must return its accepted canonical delta.');
+        return {...result,world:resolvedWorld(core,result.state),draft:core.draftSnapshot()};
+      }),
     initialize: (payload,context) => call('documentInitialize',() => [{ ...payload,currentMonth: currentMonth() }],context,loadedResult),
     captureReplacement: (payload,context) => call('captureReplacement',[payload.expectedEpoch],context),
     rollbackReplacement: (payload,context) => call('rollbackReplacement',[payload.replacementId,payload.expectedEpoch],context,loadedResult),

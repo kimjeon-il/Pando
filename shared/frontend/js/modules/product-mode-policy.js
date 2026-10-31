@@ -2,7 +2,7 @@
 // remain unavailable to the viewer until their effects have been reviewed.
 const viewerOperations = new Set([
   'core.document-load', 'core.document-initialize',
-  'core.document-baseline-coverage', 'core.document-load-baseline',
+  'core.document-baseline-coverage', 'core.document-load-baseline', 'core.document-transition-baseline',
   'core.storage-baseline-load', 'core.document-validate-import', 'core.document-inspect-import',
   'core.document-replacement-capture', 'core.document-replacement-rollback', 'core.document-replacement-release',
   'core.document-state', 'core.document-resolve-world', 'core.document-timeline-cursor',

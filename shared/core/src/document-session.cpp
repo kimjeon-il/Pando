@@ -90,7 +90,7 @@ ResolvedWorld DocumentSession::baselineWorld(std::uint32_t id,const std::string&
     if(!storageBaseline_||id!=storageBaselineId_||!storageBaseline_->sourceDocument())throw TimelineError("PL-SCHEMA-BASE","Baseline source is absent or replaced.");
     Project staged;staged.replace(*storageBaseline_->sourceDocument());return staged.resolveWorld(month);
 }
-DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,const codecjson::Value& options,const std::string& documentId) {
+Project DocumentSession::prepareBaselineProject(std::uint32_t id,const codecjson::Value& options,const std::string& documentId) const {
     if(!storageBaseline_||id!=storageBaselineId_||!storageBaseline_->sourceDocument())throw TimelineError("PL-SCHEMA-BASE","The full accepted baseline source is absent or replaced.");
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto document=*storageBaseline_->sourceDocument();document.dirtyTerritorialIds.clear();
@@ -104,8 +104,33 @@ DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,cons
     if(setup.object.at("sourceMode").string=="builtin")GeometryProvenanceCodecAccess::admitProjectSetupMetadata(before,document);
     if(documentId.empty())throw TimelineError("INVALID_DOCUMENT_ID","New document ID is required.");document.documentId=documentId;
     const auto month=setup.object.at("initialMonth").string;Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,true);
-    project_=std::move(candidate);activeBaseline_=storageBaseline_;loaded_=true;stateRevision_=0;clearPreview();
-    selection_.resetProject();externalSelectionRefs_.clear();draft_=GeometryDraft{};draftActive_=false;sourceEpoch_=++epoch_;return projectState();
+    return candidate;
+}
+DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,const codecjson::Value& options,const std::string& documentId) {
+    auto candidate=prepareBaselineProject(id,options,documentId);
+    const auto result=adoptPreparedProject(std::move(candidate));activeBaseline_=storageBaseline_;return result;
+}
+DocumentSessionOutcome DocumentSession::documentTransitionBaseline(std::uint32_t id,const codecjson::Value& options,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);
+    const auto setup=projectcodec::validateProjectSetup(options);
+    const auto header=codecjson::parse(project_.document().exchangeMetadata);
+    if(!activeBaseline_||activeBaseline_->kind()!=projectcodec::WebStorageBaselineKind::Builtin
+       ||setup.object.at("sourceMode").string!="builtin"||header.object.at("projectSetup").object.at("sourceMode").string!="builtin"
+       ||project_.dirty()||project_.canUndo()||project_.canRedo())
+        throw TimelineError("CORE_BUILTIN_TRANSITION","A clean active builtin viewer source is required.");
+    // The accepted source is still selected and validated for the requested date.
+    // Keep its viewer identity and emit a delta, not a full storage projection.
+    auto candidate=prepareBaselineProject(id,setup,project_.document().documentId);
+    for(const auto& [ref,shape]:candidate.document().geometries.versions()) {
+        const auto previous=project_.document().geometries.get(ref);
+        if(previous&&previous!=shape&&!sameGeometryValue(*previous,*shape))
+            throw TimelineError("CORE_BUILTIN_GEOMETRY_VERSION","A temporal source cannot replace an immutable geometry version.");
+    }
+    const auto impact=calculateChangeImpact(project_.document(),candidate.document(),{},setup.object.at("initialMonth").string);
+    DocumentSessionOutcome outcome;outcome.result.status=CommandStatus::Applied;outcome.result.impact=impact;
+    outcome.delta=projectcodec::encodeWebDelta(project_.document(),candidate.document(),impact);
+    // All validation and delta allocation finish before the active owner changes.
+    adoptPreparedProject(std::move(candidate));activeBaseline_=storageBaseline_;return outcome;
 }
 DocumentSessionState DocumentSession::documentInitialize(const std::string& input,const std::string& currentMonth,bool preserveCursor,
         const std::optional<codecjson::Value>& features,const std::optional<std::string>& territorialSource,std::uint32_t expectedEpoch,std::optional<std::uint32_t> baselineId) {
