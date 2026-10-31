@@ -92,7 +92,8 @@ test('composition ends only initial presentation while search hydration is still
   await tick();
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');
-  assert.equal(run.get('viewerStatus').dataset.ready, 'false');
+  assert.equal(run.get('viewerStatus').dataset.ready, 'true',
+    'map readiness must not wait for deferred search hydration');
   assert.equal(run.ports.previewFinishes, 1);
   assert.equal(run.ports.map.isInitialPresentation(), false);
   try {
@@ -138,4 +139,17 @@ test('failed first open and lifecycle retry keep one page-scoped presentation ow
   await run.ports.lifecycle.startup();
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');
+});
+
+
+test('P2-3 failed search hydration cannot reject an accepted map or reset readiness', async () => {
+  const run = fixture({hydration: Promise.reject(new Error('post-search unavailable'))});
+  await run.started;
+  await tick();
+  assert.equal(run.get('viewerStatus').dataset.ready, 'true');
+  assert.equal(run.get('viewer').dataset.initialLoading, 'false');
+  assert.equal(run.debug().initialMapPresented(), true);
+  assert.equal(run.ports.previewFinishes, 1);
+  assert.equal(run.errors.length, 1);
+  assert.match(run.errors[0].message, /post-search unavailable/);
 });
