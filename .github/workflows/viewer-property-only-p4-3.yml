@@ -1,0 +1,34 @@
+name: Viewer P4-3 property-only presentation with retained geometry
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/modules/territorial-entity-store.js
+      - shared/frontend/js/modules/spatial-index.js
+      - apps/viewer/js/modules/viewer-map.js
+      - tests/unit/territorial-property-only-p4-3.test.mjs
+      - .github/workflows/viewer-property-only-p4-3.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p4-3-work-ui
+  cancel-in-progress: true
+jobs:
+  attribute-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Lint property-only source and focused tests
+        run: pnpm exec eslint shared/frontend/js/modules/territorial-entity-store.js shared/frontend/js/modules/spatial-index.js apps/viewer/js/modules/viewer-map.js tests/unit/territorial-property-only-p4-3.test.mjs
+      - name: Exact property-only and existing mesh/label regressions
+        run: node --test tests/unit/territorial-property-only-p4-3.test.mjs tests/unit/country-mesh-content-key.test.mjs tests/unit/map-object-spatial-index.test.mjs tests/unit/territorial-entity-store.test.mjs tests/unit/country-label-input-contract.test.mjs

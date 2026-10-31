@@ -59,6 +59,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   let updateGeneration = 0;
   const hitTester=createRingHitTester(globalThis.PandoLabPolygonGeometry.ensureClosedRing);
   let rootGeometryDirty=true;
+  let pendingPropertyPaint=false;
   let lastFrame=null;
 
   const {builtinSession,projectSession,renderQuality,pointerTargets,cameraNavigation:navigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings:physicalSettings,objectCatalog,territorialLabels:labelOwner,physicalResources,gpuScene,mapHost,objectPicking}=owners;
@@ -70,9 +71,14 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   projectSession.initializeMapWorkScheduler();
   const state=projectSession.state,mapWorkScheduler=projectSession.mapWorkScheduler;
   const entityStore=createTerritorialEntityStore({documentModel:documentSession.documentModel,commandOwner:documentSession.commandOwner,
-    onEntitiesReplaced:(_entities,{rootGeometryChanged})=>{
-      spatialIndex.mapObjectGeometryRevisions.territorial++;
+    onEntitiesReplaced:(entities,{rootGeometryChanged,propertyOnly=false,paintChangedIds=[]})=>{
+      // Property-only Core snapshots may have fresh Feature wrappers. Retain
+      // proven identical spatial bounds; never retain them on a geometry,
+      // membership or hierarchy change, or when no index was initialized.
+      if(!propertyOnly||!spatialIndex.retainTerritorialSpatialIndex(entities))
+        spatialIndex.mapObjectGeometryRevisions.territorial++;
       if(rootGeometryChanged){rootGeometryDirty=true;countryIndex.countryLandRevision++;}
+      if(propertyOnly&&paintChangedIds.length)pendingPropertyPaint=true;
     }});
   projectSession.installDocumentProjection({documentModel:documentSession.documentModel,commandOwner:documentSession.commandOwner,entityStore});
   state.countryVisualPhase='canonical';
@@ -238,7 +244,13 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     const rootFeatures=builtinSession.builtinTerritorialScene().collection.features;
     state.objectPresentationRevision++;
     await initialized;if(generation!==updateGeneration)return;
-    buildScene();
+    buildScene(); // PROJECT includes label layout: renamed labels reflow around neighbors.
+    if(pendingPropertyPaint){
+      // A recolor with no geometry update has no mesh rebuild to dirty the
+      // palette. Only the base palette needs its new authoritative Core colors.
+      renderer.invalidateCountryPalette({base:true},'territorial-attribute-color');
+      pendingPropertyPaint=false;
+    }
     if(rootGeometryDirty||renderer.getRuntimeState().projectRenderBlocked){
       rootGeometryDirty=false;
       try {
