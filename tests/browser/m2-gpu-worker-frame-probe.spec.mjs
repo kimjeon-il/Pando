@@ -109,5 +109,7 @@ test('diagnose actual first Canvas Worker frame gate without altering runtime be
  writeFileSync(join(out,'diagnostic.json'),JSON.stringify(result,null,2));
  console.log('CANVAS_GATE_DIAGNOSTIC '+JSON.stringify({admissions:report.admissions.slice(-3),messages:report.messages.slice(-3),sceneUpdates:report.sceneUpdates.slice(-8),stale:report.stale.slice(-8),renderRequests:report.renderRequests.slice(-8),snapshots:result.snapshots,errors}));
  expect(report.messages.length,'Must observe actual Worker frames').toBeGreaterThan(0);
+ expect(result.snapshots.some(s=>s.generation===s.publishedGeneration&&s.firstCountry!==null),
+   'A prepared current physical scene must reach the true Canvas Worker country-frame admission').toBe(true);
  await info.attach('canvas-gate-diagnostic',{path:join(out,'diagnostic.json'),contentType:'application/json'});
 });

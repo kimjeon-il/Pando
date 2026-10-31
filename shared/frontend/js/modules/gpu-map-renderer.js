@@ -4784,6 +4784,19 @@ export function createGpuMapRenderer(deps) {
       canvasWorker.queueFrame(canvasWorkerViewMessage(visualFrame));
     }
 
+    // Reconnect an asynchronously prepared physical scene to the real Canvas
+    // Worker presentation channel. The coordinator may still have a deferred
+    // animation frame while optional terrain is loading; do not treat that
+    // scheduled frame as an admitted bitmap or block the Worker handoff.
+    function requestPreparedCanvasFrame() {
+      if (disposed || rendererMode !== 'canvas-worker' || projectRenderBlocked
+        || !canvasWorker?.ready || !lastVisualFrame
+        || Number(lastVisualFrame.projectGeneration) !== projectGeneration
+        || !physicalSceneMatchesContext(renderScene, getPhysicalContextState())) return false;
+      renderCanvasWorker(lastVisualFrame);
+      return true;
+    }
+
     function renderLatestVisualFrame() {
       return lastVisualFrame ? renderFrame(lastVisualFrame) : null;
     }
@@ -5878,7 +5891,7 @@ export function createGpuMapRenderer(deps) {
       mapReadiness, retryMapPreparation,
       failMapPreparation: error => { canonicalPromotionError = String(error?.message || error);
         failTemporalPresentation(error instanceof Error ? error : new Error(canonicalPromotionError)); publishMapReadiness(); },
-      initialize, replaceBuiltInMesh, renderFrame, renderInteraction, renderPreservedProjectFrame,
+      initialize, replaceBuiltInMesh, renderFrame, requestPreparedCanvasFrame, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
