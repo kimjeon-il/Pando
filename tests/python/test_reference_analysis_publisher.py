@@ -96,6 +96,25 @@ class PublisherLabelsTests(unittest.TestCase):
                 prepare_sheet(source, folder, maximum_dimension=320)
             self.assertTrue(all(p.read_bytes() == body for p, body in before.items()))
 
+    def test_publisher_provenance_rejects_forged_generator_and_unreviewed_rights(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            sheet = prepare_sheet(self.source(root), root, maximum_dimension=160)
+            annotation = json.loads((root / sheet['annotations']).read_text(encoding='utf-8'))
+            corpus.validate_publisher_annotation(annotation, sheet, root)
+            forged = json.loads(json.dumps(annotation))
+            forged['producer']['sha256'] = '0' * 64
+            with self.assertRaisesRegex(ValueError, 'identity'):
+                corpus.validate_publisher_annotation(forged, sheet, root)
+            metadata_path = root / annotation['sourceMetadata']
+            metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+            metadata['rightsReviewed'] = False
+            metadata_path.write_text(json.dumps(metadata), encoding='utf-8')
+            forged = json.loads(json.dumps(annotation))
+            forged['sourceMetadataSha256'] = hashlib.sha256(metadata_path.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(ValueError, 'provenance'):
+                corpus.validate_publisher_annotation(forged, sheet, root)
+
     def test_missing_international_layer_fails_before_creating_false_empty_border_labels(self):
         with tempfile.TemporaryDirectory() as folder:
             source = self.source(folder, international=False)

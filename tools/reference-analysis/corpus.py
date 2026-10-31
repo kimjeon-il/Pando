@@ -71,25 +71,17 @@ def corpus_fingerprint(manifest, auxiliary=None):
 
 
 def validate_publisher_annotation(annotation, sheet, root):
-    if annotation.get('reviewed') is not False or annotation.get('schemaVersion') != 1:
-        raise ValueError('Publisher-derived training labels cannot claim human review')
-    producer = annotation.get('producer', {})
-    script_hash = hashlib.sha256(pathlib.Path(__file__).with_name('publisher.py').read_bytes().replace(b'\r\n', b'\n')).hexdigest()
-    if producer != dict(script='tools/reference-analysis/publisher.py', sha256=script_hash,
-                        renderer='PyMuPDF', rendererVersion=importlib.metadata.version('PyMuPDF')):
-        raise ValueError('Publisher label generator identity differs')
-    source = corpus_path(root, annotation.get('sourcePdf'))
-    metadata_path = corpus_path(root, annotation.get('sourceMetadata'))
-    if hashlib.sha256(source.read_bytes()).hexdigest() != annotation.get('sourceSha256'):
-        raise ValueError('Publisher source hash changed')
-    if hashlib.sha256(metadata_path.read_bytes()).hexdigest() != annotation.get('sourceMetadataSha256'):
-        raise ValueError('Publisher source metadata hash changed')
-    metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
-    if (metadata.get('sha256') != annotation['sourceSha256'] or metadata.get('rightsReviewed') is not True
-            or metadata.get('materialKind') != 'publisher-layered-pdf' or not metadata.get('license')
-            or metadata.get('id') != sheet['id'] or metadata.get('familyId') != sheet['familyId']
-            or metadata.get('url') != sheet['source']['url']):
-        raise ValueError('Verified publisher source provenance required')
+    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
+    request = dict(annotation=annotation, sheet=sheet, root=str(pathlib.Path(root).resolve()),
+                   rendererVersion=importlib.metadata.version('PyMuPDF'))
+    result = subprocess.run(['node', str(script), '--publisher-provenance-stream'],
+                            input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Publisher provenance validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != {'valid': True}:
+        raise ValueError('Invalid publisher provenance validation receipt')
     validate_training_rasters(annotation, sheet, root)
 
 
