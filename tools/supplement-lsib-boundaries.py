@@ -151,37 +151,18 @@ def deduplicate(points):
     return result
 
 
-def replacement_chain(old, reference):
-    anchors = intersection_anchors(old.intersection(reference))
-    if len(anchors) < 2:
-        raise ValueError('No independent intersection anchors; old endpoint arcs retained')
-    anchors.sort(key=old.project)
-    start, end = anchors[0], anchors[-1]
-    a, b = old.project(start), old.project(end)
-    if b - a < 0.002:
-        raise ValueError('Intersection anchor coverage too short')
-    first, last = reference.project(start), reference.project(end)
-    if abs(first - last) < 0.002:
-        raise ValueError('Ambiguous intersection anchor correspondence')
-    master = substring(reference, first, last)
-    derivative = master.simplify(SIMPLIFY_DEGREES, preserve_topology=False)
-    if not derivative.is_simple:
-        raise ValueError('Reference section self-intersects')
-    middle = coordinates(derivative)
-    middle[0], middle[-1] = (start.x, start.y), (end.x, end.y)
-    prefix, suffix = coordinates(substring(old, 0, a)), coordinates(substring(old, b, old.length))
-    # substring interpolation differs by a few ULPs from the intersection point.
-    # Use the shared anchor exactly, otherwise opposite ring traversal can make
-    # the C++ duplicate remover retain different sides of that microscopic edge.
-    prefix[-1], suffix[0] = middle[0], middle[-1]
-    points = deduplicate(prefix + middle + suffix)
-    if not LineString(points).is_simple:
-        raise ValueError('Combined boundary crosses its retained old ending')
-    return {'coordinates': points, 'retained_length_degrees': a + old.length - b,
-            'source_length_degrees': master.length, 'replaced_length_degrees': b - a,
-            'master_vertices': len(master.coords), 'derived_vertices': len(middle),
-            'simplification_bound_px': SIMPLIFY_DEGREES * SCALE,
-            'anchors': [(start.x, start.y), (end.x, end.y)]}
+def replacement_chains(old, references):
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'old': coordinates(old), 'references': [coordinates(line) for line in references]}
+    result = subprocess.run(['node', str(script), '--replacement-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('LSIB replacement failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    rows = json.loads(result.stdout).get('results')
+    if not isinstance(rows, list) or len(rows) != len(references):
+        raise RuntimeError('Invalid LSIB replacement receipt')
+    return [row['value'] for row in rows if 'value' in row]
 
 
 def replace_chain(geometry, old, replacement):
@@ -787,12 +768,7 @@ def main():
                 candidate_refs = [line for line in reference_parts if line.distance(chain) < .25]
                 if not candidate_refs:
                     raise ValueError('No spatially corresponding source section')
-                candidates = []
-                for line in candidate_refs:
-                    try:
-                        candidates.append(replacement_chain(chain, line))
-                    except ValueError:
-                        continue
+                candidates = replacement_chains(chain, candidate_refs)
                 if not candidates:
                     raise ValueError('No safe intersection anchors; old chain retained')
                 proposal = max(candidates, key=lambda v: v['replaced_length_degrees'])
