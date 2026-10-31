@@ -18,8 +18,8 @@ const entities=()=>new Map(readTerritorialSources().filter(e=>e.entityId==='stat
 
 test('Indonesia has exact 1963 Papua inclusion and 1975/1999 East Timor control transitions',()=>{
  const entitiesById=entities(),idn=entitiesById.get('state:IDN'),tls=entitiesById.get('state:TLS');
- assert.equal(idn.geometryVersions.length,5);
- assert.equal(tls.geometryVersions.length,2);
+ assert.equal(idn.geometryVersions.length,4);
+ assert.equal(tls.geometryVersions.length,1);
  const source=idn.geometryVersions;
  const epochs=[
   ['1963-04-30',source[0].versionId],
@@ -29,7 +29,8 @@ test('Indonesia has exact 1963 Papua inclusion and 1975/1999 East Timor control 
   ['1999-10-24',source[2].versionId],
   ['1999-10-25',source[3].versionId],
   ['2026-10-05',source[3].versionId],
-  ['2026-10-06',source[4].versionId]
+  ['2026-10-06',source[3].versionId],
+  ['2026-10-31',source[3].versionId]
  ];
  for(const [date,expected] of epochs) assert.equal(selectGeometryVersion(idn,date)?.versionId,expected,date);
  assert.equal(selectGeometryVersion(idn,'1963-04')?.versionId,source[0].versionId);
@@ -45,7 +46,9 @@ test('Indonesia has exact 1963 Papua inclusion and 1975/1999 East Timor control 
  assert.equal(pointInside(source[1].geometry,timor),false);
  assert.ok(pointInside(source[2].geometry,timor));
  assert.equal(pointInside(source[3].geometry,timor),false);
- assert.equal(pointInside(source[4].geometry,timor),false);
+ assert.equal(source[3].validTo,null);
+ assert.equal(idn.metadata.sourceOutlineReferenceDate,'2026-10-06');
+ assert.equal(pointInside(selectGeometryVersion(idn,'2026-10-31').geometry,timor),false);
  assert.equal(territorialEntityExistsAt(tls,'2002-05-19'),false);
  assert.equal(selectGeometryVersion(tls,'2002-05-19'),null);
  assert.ok(territorialEntityExistsAt(tls,'2002-05-20'));
