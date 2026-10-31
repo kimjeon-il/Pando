@@ -119,7 +119,8 @@ export async function composeViewer({ productMode, meta }) {
   const postPresentation=createViewerPostPresentation({
     hydrate:async isCurrent=>{await searchController.completeHydration({isCurrent});},
     refresh:search,
-    afterMap:[()=>map.loadPhysicalResources(),()=>surfaces.syncOverlayState(),()=>syncStatus()],
+    // replaceSnapshot.prepareView already launched physical background loading.
+    afterMap:[()=>surfaces.syncOverlayState(),()=>syncStatus()],
     onError:(error,stage)=>{
       diagnostics.push({category:'viewer-post-presentation',errorCode:'PL-VIEWER-POST-001',
         stage,technicalMessage:error?.message||String(error),stack:error?.stack||''});
@@ -150,7 +151,7 @@ export async function composeViewer({ productMode, meta }) {
     if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
     const presentedGeneration=projectDomain.getGeneration();
     firstMap.accept(presentedGeneration);
-    await map.loadPhysicalLandMask();
+    // replaceSnapshot.setSession already awaited the physical land asset.
     await map.objectCatalog.pruneLayerItemVisibility();
     await map.update();
     window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
