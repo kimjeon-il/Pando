@@ -1,0 +1,76 @@
+name: P8-2 isolated failing cases
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/editor-ui-p8-isolated-repro.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p8-isolated-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  reproduce:
+    name: Independent date, creation, relation and place checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Date and relation unit tests
+        id: dates
+        continue-on-error: true
+        run: node --test --test-concurrency=1 tests/unit/territorial-property-controller.test.mjs tests/unit/task-stage-model.test.mjs tests/unit/project-session-viewing.test.mjs
+      - name: General entity creation alone
+        id: general
+        continue-on-error: true
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/workflow-v17.spec.mjs --grep 'general creation retains' --workers=1 --retries=0 --trace off --output=test-results/p8-iso-general
+      - name: Regional entity creation alone
+        id: regional
+        continue-on-error: true
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/workflow-v17.spec.mjs --grep 'regional creation retains' --workers=1 --retries=0 --trace off --output=test-results/p8-iso-regional
+      - name: Parent relation and undo alone
+        id: relation
+        continue-on-error: true
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/territorial-parent-edit.spec.mjs --workers=1 --retries=0 --trace off --output=test-results/p8-iso-relation
+      - name: Builtin place copy and undo alone
+        id: place
+        continue-on-error: true
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/place-runtime.spec.mjs --workers=1 --retries=0 --trace off --output=test-results/p8-iso-place
+      - name: Summarize reproducibility independently
+        if: always()
+        env:
+          DATE_RESULT: ${{ steps.dates.outcome }}
+          GENERAL_RESULT: ${{ steps.general.outcome }}
+          REGIONAL_RESULT: ${{ steps.regional.outcome }}
+          RELATION_RESULT: ${{ steps.relation.outcome }}
+          PLACE_RESULT: ${{ steps.place.outcome }}
+        run: |
+          printf 'Date: %s\nGeneral: %s\nRegional: %s\nRelation: %s\nPlace: %s\n' "$DATE_RESULT" "$GENERAL_RESULT" "$REGIONAL_RESULT" "$RELATION_RESULT" "$PLACE_RESULT"
+          test "$DATE_RESULT" = success && test "$GENERAL_RESULT" = success && test "$REGIONAL_RESULT" = success && test "$RELATION_RESULT" = success && test "$PLACE_RESULT" = success
+      - name: Retain isolated browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-isolated-${{ github.sha }}
+          path: test-results/p8-iso-*/
+          if-no-files-found: warn
+          retention-days: 7
