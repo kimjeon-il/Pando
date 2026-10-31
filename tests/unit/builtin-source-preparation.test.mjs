@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
 
-const setup=({loader=null,buildMeta=null,sourceCacheMaxBytes=undefined,sourceCacheMaxEntries=undefined}={})=>{
+const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256:'a'.repeat(64)}},sourceCacheMaxBytes=undefined,sourceCacheMaxEntries=undefined}={})=>{
  const document={documentId:'active',projectSetup:{initialMonth:'2026-10'},territorialEntities:[{id:'active'}]};
  const core={timelineCursor:'2026-10',storageBaselineId:7,checkpoint:11,presentationCheckpoint:4,
   canUndo:true,canRedo:false,dirty:true,documentDirty:true,presentationDirty:false};
@@ -20,7 +20,9 @@ const setup=({loader=null,buildMeta=null,sourceCacheMaxBytes=undefined,sourceCac
   projectSetup:{initialMonth:month},territorialEntities:[{id:'dated',properties:{name:month}}],
   geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}
  }})};
- const session=createBuiltinSession({builtinWorldLoader:world,buildMeta,sourceCacheMaxBytes,sourceCacheMaxEntries});
+ const sourceCacheLimits=(sourceCacheMaxBytes!==undefined||sourceCacheMaxEntries!==undefined)
+  ? {maxBytes:sourceCacheMaxBytes??24*1024*1024,maxEntries:sourceCacheMaxEntries??2}:null;
+ const session=createBuiltinSession({builtinWorldLoader:world,buildMeta,sourceCacheLimits});
  session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixed-source'}});
  return {session,core,document,calls,generation:()=>generation,advance:()=>{generation++;}};
 };
@@ -104,7 +106,7 @@ test('P2-2 identical prepared source reuses only private dated bytes, not mutabl
  assert.notEqual(second.sourceBytes[0],0,'returned source bytes must be separate copies');
  assert.deepEqual(f.core,coreBefore);
  assert.equal(f.calls.length,0);
- const stats=f.session.preparedSourceCacheStats();
+ const stats=f.session.sourceCacheStats();
  assert.equal(stats.entries,1);assert.equal(stats.hits,1);assert.equal(stats.misses,1);
  assert.ok(stats.bytes>0&&stats.bytes<=stats.maxBytes);
  assert.equal(Object.hasOwn(stats,'baselineId'),false);
@@ -132,19 +134,19 @@ test('P2-2 LRU evicts the least recently reused month within entry limit',async(
  for(const month of ['2025-12','2024-12','2025-12','2023-12','2024-12'])
    await f.session.prepareProjectSource(month);
  assert.deepEqual(months,['2025-12','2024-12','2023-12','2024-12']);
- const stats=f.session.preparedSourceCacheStats();
+ const stats=f.session.sourceCacheStats();
  assert.equal(stats.entries,2);assert.equal(stats.evictions,2);
  assert.ok(stats.bytes<=stats.maxBytes);
 });
 
 test('P2-2 oversized worlds bypass cache without any unbounded retained bytes',async()=>{
  let loads=0;
- const f=setup({sourceCacheMaxBytes:1,sourceCacheMaxEntries:3,
+ const f=setup({sourceCacheMaxBytes:1,sourceCacheMaxEntries:2,
   loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
  await f.session.prepareProjectSource('2025-12');
  await f.session.prepareProjectSource('2025-12');
  assert.equal(loads,2);
- const stats=f.session.preparedSourceCacheStats();
+ const stats=f.session.sourceCacheStats();
  assert.equal(stats.entries,0);assert.equal(stats.bytes,0);assert.equal(stats.oversized,2);
 });
 
@@ -158,7 +160,7 @@ test('P2-2 stale and failed source preparations never populate reusable entries'
  current=false;release();
  await assert.rejects(early,{name:'AbortError',cancelled:true});
  await assert.rejects(f.session.prepareProjectSource('2025-12'),/unavailable/);
- assert.equal(f.session.preparedSourceCacheStats().entries,0);
+ assert.equal(f.session.sourceCacheStats().entries,0);
  await f.session.prepareProjectSource('2025-12');
  await f.session.prepareProjectSource('2025-12');
  assert.equal(loads,3,'recovery can be reused after an actually successful completion');
@@ -170,27 +172,23 @@ test('P2-2 changed dataset identity cannot silently reuse a prior month or old l
  const f=setup({buildMeta:meta,loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
  await f.session.prepareProjectSource('2025-12');
  meta.dataRevision='rev-two';
- await assert.rejects(f.session.prepareProjectSource('2025-12'),/revision|dataset|identity|restart/i);
- assert.equal(loads,1);
+ await f.session.prepareProjectSource('2025-12');
+ assert.equal(loads,2);
 });
 
 test('P2-2 explicit cache release drops all retained bytes and forces regeneration',async()=>{
  let loads=0;
  const f=setup({loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
  const first=await f.session.prepareProjectSource('2025-12');
- assert.equal(f.session.preparedSourceCacheStats().entries,1);
+ assert.equal(f.session.sourceCacheStats().entries,1);
  f.session.clearPreparedSourceCache();
- assert.equal(f.session.preparedSourceCacheStats().entries,0);
- assert.equal(f.session.preparedSourceCacheStats().bytes,0);
+ assert.equal(f.session.sourceCacheStats().entries,0);
+ assert.equal(f.session.sourceCacheStats().bytes,0);
  assert.equal(first.sourceMonth,'2025-12','detached candidate is not invalidated by byte-cache eviction');
  await f.session.prepareProjectSource('2025-12');
  assert.equal(loads,2);
 });
 
-test('P2-2 source cache can be disabled by zero entry limit',async()=>{
- let loads=0;
- const f=setup({sourceCacheMaxEntries:0,loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
- await f.session.prepareProjectSource('2025-12');
- await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,2);assert.equal(f.session.preparedSourceCacheStats().bytes,0);
+test('P2-2 invalid zero entry limit is rejected before attempting any load',()=>{
+ assert.throws(()=>setup({sourceCacheMaxEntries:0}),/cache|budget|limit/i);
 });
