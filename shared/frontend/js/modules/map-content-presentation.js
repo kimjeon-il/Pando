@@ -18,6 +18,10 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const state = countries.getState?.() || {};
     const renderViewState = requireFrame(frame);
     countries.renderPendingCountryOverlays?.(renderViewState);
+    // The preceding SVG overlay repositioning is presentation-owned.
+    // GPU scene assembly belongs to preparation, before the GPU draw: changing
+    // it here would invalidate the identity of the just-rendered visual frame.
+    if (!presentationOnly) {
     const pending = state.layerVisibility?.objects && state.pendingCountryRenderIds?.size
       ? [...state.pendingCountryRenderIds].map(countries.getEntity).filter(Boolean)
       : [];
@@ -41,6 +45,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       strokes: pendingStrokes,
     });
     countries.syncGpuRenderScene?.();
+    }
     const frameResult = !presentationOnly && renderViewState?.__mapVisualFrame
       ? countries.gpuMapRenderer?.renderFrame?.(renderViewState)
       : gpuResult;
