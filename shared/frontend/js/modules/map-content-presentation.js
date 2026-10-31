@@ -36,11 +36,13 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         style: resolveFill(feature) });
       pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: Object.freeze({ ...theme.strokes.country, alpha: theme.borderAlpha }) });
     }
-    countries.replaceGpuSceneDomain?.('country-overlays', {
-      polygons: pendingPolygons,
-      strokes: pendingStrokes,
-    });
-    countries.syncGpuRenderScene?.();
+    if (!presentationOnly) {
+      countries.replaceGpuSceneDomain?.('country-overlays', {
+        polygons: pendingPolygons,
+        strokes: pendingStrokes,
+      });
+      countries.syncGpuRenderScene?.();
+    }
     const frameResult = !presentationOnly && renderViewState?.__mapVisualFrame
       ? countries.gpuMapRenderer?.renderFrame?.(renderViewState)
       : gpuResult;
