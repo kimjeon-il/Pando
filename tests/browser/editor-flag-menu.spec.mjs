@@ -34,6 +34,11 @@ test('territorial selection enters the editor directly and preserves its flag me
   await expect(page.locator('#relationTabBtn')).toBeVisible();
   await expect(page.locator('#editorSurface')).not.toHaveAttribute('data-editor-inline-relation', 'true');
   await expect(page.locator('#entityProperties > .editor-info-section')).toHaveAttribute('aria-label', '정보');
+  await expect(page.locator('#entityNameDetailsDisclosure summary')).toHaveText('명칭 상세');
+  await expect(page.locator('#entityNameDetailsDisclosure #entityNameDetails')).toHaveAttribute('aria-label', '시점별 명칭');
+  await expect(page.locator('#entityPeriodInput')).toHaveAttribute('placeholder', '시작일 ~ 종료일');
+  await expect(page.locator('#entityColorTrigger')).toBeVisible();
+  await expect(page.locator('#entityNotesInput')).toBeVisible();
   await expect(page.locator('#entityProperties > .editor-action-section:not(.editor-relation-section)')).toHaveAttribute('aria-label', '편집');
   await expect(page.locator('#entityProperties > .editor-relation-section')).toHaveAttribute('aria-label', '관계');
   await expect(page.locator('#entityProperties > .editor-section > .editor-section-title')).toHaveCount(0);

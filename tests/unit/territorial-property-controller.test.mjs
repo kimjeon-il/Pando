@@ -75,7 +75,10 @@ test('name details present current formal names, native languages and aliases wi
   state.views.get(state.a.key).feature.properties.metadata.nameDetails={ko:{common:'A',formal:'정식명',aliases:['별칭']},native:[{language:'hy',common:'Արցախ'}]};
   state.controller.present(state.a);
   const panel=state.fields.get('entityNameDetails');
+  const disclosure=state.fields.get('entityNameDetailsDisclosure');
   assert.equal(panel.hidden,false);
+  assert.equal(disclosure.hidden,false);
+  assert.equal(disclosure.open,false);
   assert.deepEqual(panel.children.map(row=>row.children.map(node=>node.textContent)),[
     ['한국어 통칭','A'],['한국어 정식명','정식명'],['한국어 별칭','별칭'],['원어 (hy) 통칭','Արցախ']]);
   assert.equal(state.relations.length,0);
@@ -313,4 +316,37 @@ test('action rows distinguish routine help from a locked-object reason', () => {
   assert.equal(merge.disabled, true);
   assert.equal(merge.dataset.actionReason, 'true');
   assert.equal(state.fields.get('copyEntityRegionBtn').dataset.actionReason, 'false');
+});
+
+test('name metadata disclosure stays open on refresh and resets when selection changes', () => {
+  const state = setup();
+  const first = state.views.get(state.a.key);
+  first.feature.properties.metadata.nameDetails = {
+    ko: { common: 'A', formal: '정식명', aliases: ['별칭'] },
+    native: [{ language: 'hy', common: 'Արցախ' }],
+  };
+  state.controller.present(state.a);
+  const disclosure = state.fields.get('entityNameDetailsDisclosure');
+  const names = state.fields.get('entityNameDetails');
+  assert.equal(disclosure.hidden, false);
+  assert.equal(disclosure.open, false, 'long name metadata starts collapsed');
+  assert.equal(names.children.length, 4, 'all original name rows remain available');
+  disclosure.open = true;
+  state.controller.present(state.a, { refreshOnly: true });
+  assert.equal(disclosure.open, true, 'refresh does not close an actively inspected name list');
+
+  const other = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'B' });
+  const feature = createTerritorialFeature({ id: 'B', entityKind: 'general', name: 'B', geometry: square(1) });
+  state.views.set(other.key, { ref: other, displayName: 'B', feature, properties: feature.properties });
+  state.setPrimary(other);
+  state.controller.present(other);
+  assert.equal(disclosure.hidden, true, 'do not show an empty name section');
+  assert.equal(disclosure.open, false, 'a different entity clears the expanded state');
+  assert.equal(names.children.length, 0, 'stale historical names do not remain');
+
+  state.setPrimary(state.a);
+  state.controller.present(state.a);
+  assert.equal(disclosure.hidden, false);
+  assert.equal(disclosure.open, false, 'returning to the named entity starts compact');
+  assert.equal(names.children.length, 4);
 });
