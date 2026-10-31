@@ -58,7 +58,7 @@ void seedUserWork(DocumentSession& owner) {
     assert(owner.executeCommand("territorial.field",edit,{territorialRef("A")},owner.projectState().epoch).result.changed());
     assert(owner.applyPresentation(WebControlVisibility{"labels",false},owner.projectState().epoch).result.changed());
     owner.selection().replace({"territorial","entity","A"},"test");
-    owner.selection().setHover({"territorial","entity","B"},"map");
+    owner.selection().setHover(SelectionRef{"territorial","entity","B"},"map");
     owner.startDraft("line",{{1,2},{3,4}},"refine");
     owner.draft().append({5,6});
 }
