@@ -103,6 +103,18 @@ else()
 endif()
 add_test(NAME temporal_candidate_tests COMMAND temporal_candidate_tests)
 set_tests_properties(temporal_candidate_tests PROPERTIES TIMEOUT 15)
+# P5-4: native commit/discard/recovery under the existing replacement capsule.
+add_executable(temporal_adopt_tests temporal-adopt-tests.cpp)
+target_link_libraries(temporal_adopt_tests PRIVATE Pandoeditor::Core)
+target_compile_definitions(temporal_adopt_tests PRIVATE
+    TEMPORAL_ADOPT_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-document-seed.json")
+if(MSVC)
+    target_compile_options(temporal_adopt_tests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(temporal_adopt_tests PRIVATE -UNDEBUG)
+endif()
+add_test(NAME temporal_adopt_tests COMMAND temporal_adopt_tests)
+set_tests_properties(temporal_adopt_tests PROPERTIES TIMEOUT 15)
 
 add_executable(source_admission_tests source-admission-tests.cpp)
 target_link_libraries(source_admission_tests PRIVATE Pandoeditor::Core)

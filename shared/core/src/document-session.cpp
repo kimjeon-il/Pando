@@ -140,7 +140,8 @@ bool DocumentSession::temporalSourceRelease(std::uint32_t id,std::uint32_t expec
 }
 TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
     std::uint32_t sourceId,const std::string& targetMonth,
-    const std::string& sourceFingerprint,std::uint32_t expectedEpoch) {
+    const std::string& sourceFingerprint,std::uint32_t expectedEpoch,
+    std::optional<codecjson::Value> setup,const std::string& documentId) {
     requireEpoch(expectedEpoch);
     const auto found=temporalSources_.find(sourceId);
     if(found==temporalSources_.end()||!found->second.baseline.sourceDocument())
@@ -151,10 +152,23 @@ TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
     const auto date=parseTemporal(targetMonth);
     if(date.precision!="month"||date.canonical!=targetMonth||source.sourceMonth()!=targetMonth)
         throw TimelineError("CORE_TEMPORAL_CANDIDATE_MONTH","Candidate month must match its exact stored source month.");
+    if(setup.has_value()!=!documentId.empty())
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_SETUP","A prepared builtin setup and document ID must be supplied together.");
+    codecjson::Value verifiedSetup;
+    std::string setupKey;
+    if(setup) {
+        verifiedSetup=projectcodec::validateProjectSetup(*setup);
+        if(verifiedSetup.object.at("sourceMode").string!="builtin"
+            ||verifiedSetup.object.at("initialMonth").string!=targetMonth)
+            throw TimelineError("CORE_TEMPORAL_CANDIDATE_SETUP","The builtin project setup must match the exact candidate month.");
+        setupKey=verifiedSetup.encode();
+    }
     if(temporalCandidate_&&temporalCandidate_->receipt.sourceId==sourceId
         &&temporalCandidate_->receipt.expectedEpoch==expectedEpoch
         &&temporalCandidate_->receipt.sourceFingerprint==sourceFingerprint
-        &&temporalCandidate_->receipt.targetMonth==targetMonth) {
+        &&temporalCandidate_->receipt.targetMonth==targetMonth
+        &&temporalCandidate_->preparedSetupKey==setupKey
+        &&temporalCandidate_->preparedDocumentId==documentId) {
         auto receipt=temporalCandidate_->receipt;
         receipt.reused=true;
         return receipt;
@@ -165,11 +179,25 @@ TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
     if(temporalCandidateSequence_==std::numeric_limits<std::uint32_t>::max())
         throw std::overflow_error("CORE_TEMPORAL_CANDIDATE_OVERFLOW");
     auto staged=std::make_unique<TemporalCandidateEntry>();
-    // Only the existing typed Project/Timeline Core owns validity, geometry
-    // selection, country hierarchy, names, flags, colors and display world.
-    staged->project.replace(*source.sourceDocument());
+    // Prepare the *final* document and all expensive Core projections before
+    // the replacement capsule is acquired. The old full baseline loader's
+    // setup, provenance and new-document semantics remain authoritative.
+    auto document=*source.sourceDocument();
+    if(setup) {
+        document.dirtyTerritorialIds.clear();
+        const auto before=document;
+        auto header=codecjson::parse(document.exchangeMetadata);
+        header.object["projectSetup"]=verifiedSetup;
+        document.exchangeMetadata=header.encode();
+        GeometryProvenanceCodecAccess::admitProjectSetupMetadata(before,document);
+        document.documentId=documentId;
+    }
+    staged->project.replace(std::move(document));
     staged->world=staged->project.resolveWorld(targetMonth);
     staged->project.setTimelineCursor(targetMonth,true,&staged->world);
+    staged->preparedSetupKey=setupKey;
+    staged->preparedDocumentId=documentId;
+    staged->adoptionReady=setup.has_value();
     const auto sha=temporalWorldSha256(staged->world);
     const auto candidateId=temporalCandidateSequence_+1;
     staged->receipt={candidateId,sourceId,expectedEpoch,targetMonth,
@@ -191,6 +219,61 @@ std::optional<TemporalCandidateInspection> DocumentSession::temporalCandidateIns
     return TemporalCandidateInspection{
         projectcodec::webSnapshot(temporalCandidate_->project.snapshotForView()),
         temporalCandidate_->world};
+}
+bool DocumentSession::temporalCandidateDiscard(std::uint32_t candidateId,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);
+    if(!temporalCandidate_||temporalCandidate_->receipt.candidateId!=candidateId)return false;
+    clearTemporalCandidate();
+    return true;
+}
+DocumentSessionState DocumentSession::temporalCandidateAdopt(
+    std::uint32_t candidateId,std::uint32_t sourceId,const std::string& targetMonth,
+    const std::string& sourceFingerprint,const std::string& worldSha256,
+    std::uint32_t replacementId,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);
+    // Validate the *same* capsule that ProjectDomain already owns, before
+    // changing any state. A missing or superseded capsule never commits.
+    if(!replacement_||replacementId==0||replacementId!=replacementId_)
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_CAPSULE","The current Core replacement checkpoint is required.");
+    if(!temporalCandidate_||!temporalCandidate_->adoptionReady
+        ||candidateId==0||candidateId!=temporalCandidate_->receipt.candidateId
+        ||expectedEpoch!=temporalCandidate_->receipt.expectedEpoch)
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_STALE","A prepared builtin temporal candidate is required.");
+    const auto& receipt=temporalCandidate_->receipt;
+    if(sourceId!=receipt.sourceId||targetMonth!=receipt.targetMonth
+        ||sourceFingerprint!=receipt.sourceFingerprint||worldSha256!=receipt.worldSha256)
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_PIN","The requested temporal candidate receipt differs from its prepared Core source.");
+    const auto found=temporalSources_.find(sourceId);
+    if(found==temporalSources_.end()||!found->second.baseline.sourceDocument()
+        ||found->second.baseline.fingerprint()!=receipt.sourceFingerprint
+        ||found->second.baseline.sourceMonth()!=receipt.targetMonth)
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_SOURCE","The source was released or replaced before adoption.");
+    if(temporalCandidate_->project.timelineCursor()!=targetMonth
+        ||temporalCandidate_->project.document().documentId!=temporalCandidate_->preparedDocumentId
+        ||temporalWorldSha256(temporalCandidate_->world)!=worldSha256
+        ||temporalCandidate_->world.entities.size()!=receipt.resolvedEntityCount)
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_STALE","The prepared world no longer matches its verified receipt.");
+    if(epoch_==std::numeric_limits<std::uint32_t>::max()
+        ||storageBaselineSequence_==std::numeric_limits<std::uint32_t>::max())
+        throw std::overflow_error("CORE_TEMPORAL_ADOPT_OVERFLOW");
+    // Both handles share validated, immutable typed source data. All checks
+    // and allocations above happen before this non-interruptible Core commit.
+    // The old Project/selection/draft/baseline/history remain in replacement_.
+    auto admittedSource=found->second.baseline;
+    project_=std::move(temporalCandidate_->project);
+    storageBaseline_=admittedSource;
+    activeBaseline_=std::move(admittedSource);
+    storageBaselineId_=++storageBaselineSequence_;
+    loaded_=true;
+    stateRevision_=0;
+    clearPreview();
+    clearTemporalSources(); // Prevent cross-generation source/candidate reuse.
+    selection_.resetProject();
+    externalSelectionRefs_.clear();
+    draft_=GeometryDraft{};
+    draftActive_=false;
+    sourceEpoch_=++epoch_;
+    return projectState();
 }
 DocumentSessionState DocumentSession::documentLoad(const std::string& input,const std::string& currentMonth) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");

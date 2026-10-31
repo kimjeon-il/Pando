@@ -83,9 +83,17 @@ public:
     TemporalSourceStats temporalSourceStats() const noexcept;
     TemporalCandidateReceipt temporalCandidatePrepare(std::uint32_t sourceId,
         const std::string& targetMonth,const std::string& sourceFingerprint,
-        std::uint32_t expectedEpoch);
+        std::uint32_t expectedEpoch,
+        std::optional<codecjson::Value> setup=std::nullopt,const std::string& documentId={});
     std::optional<TemporalCandidateInspection> temporalCandidateInspect(std::uint32_t candidateId,
         std::uint32_t expectedEpoch) const;
+    // P5-4: use exactly the existing replacement capsule; this method never
+    // allocates a second rollback owner or commits a CommandPreview.
+    DocumentSessionState temporalCandidateAdopt(std::uint32_t candidateId,
+        std::uint32_t sourceId,const std::string& targetMonth,
+        const std::string& sourceFingerprint,const std::string& worldSha256,
+        std::uint32_t replacementId,std::uint32_t expectedEpoch);
+    bool temporalCandidateDiscard(std::uint32_t candidateId,std::uint32_t expectedEpoch);
     DocumentSessionState admitExternalBaseline(std::uint32_t expectedEpoch);
     std::string validateImport(const std::string&,std::optional<std::uint32_t> baselineId={}) const;
     ImportInspection inspectImport(const std::string&,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const;
@@ -162,6 +170,8 @@ private:
         TemporalCandidateReceipt receipt;
         Project project;
         ResolvedWorld world;
+        std::string preparedSetupKey,preparedDocumentId;
+        bool adoptionReady=false;
     };
     std::unique_ptr<TemporalCandidateEntry> temporalCandidate_;
     std::uint32_t temporalCandidateSequence_=0;

@@ -6,6 +6,7 @@ on:
       - shared/core/include/pandoeditor/document-session.h
       - shared/core/src/document-session.cpp
       - shared/tests/temporal-candidate-tests.cpp
+      - shared/tests/temporal-adopt-tests.cpp
       - shared/tests/CMakeLists.txt
       - .github/workflows/core-temporal-candidate-p5-3.yml
   workflow_dispatch:
@@ -24,7 +25,8 @@ jobs:
           persist-credentials: false
       - name: Configure existing native Core
         run: cmake -S shared -B build-native/p5-3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-      - name: Compile candidate and source-session contracts
-        run: cmake --build build-native/p5-3 --target temporal_candidate_tests temporal_source_tests document_session_tests --parallel 2
-      - name: Verify detached candidate and existing active-session state
-        run: ctest --test-dir build-native/p5-3 --output-on-failure -R '^(temporal_candidate_tests|temporal_source_tests|document_session_tests)$'
+      - name: Compile candidate, adoption, source and existing Core contracts
+        run: cmake --build build-native/p5-3 --target temporal_adopt_tests temporal_candidate_tests temporal_source_tests document_session_tests --parallel 2
+      - name: Verify existing replacement capsule, stale requests and state recovery
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R '^(temporal_adopt_tests|temporal_candidate_tests|temporal_source_tests|document_session_tests)
+
