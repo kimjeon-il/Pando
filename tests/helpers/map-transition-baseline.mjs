@@ -48,6 +48,7 @@ export function replaceExactlyOnce(source, anchor, replacement) {
 // Runs in the page before application startup. No request, timer, date, Core, GPU,
 // Worker, or application-state APIs are replaced by the collector.
 export function installMapBaselineCollector() {
+  const {document, performance, PerformanceObserver} = globalThis;
   const events = [], longTasks = [], resources = [], errors = [];
   let active = null, input = null, sequence = 0;
   const event = (kind, detail = {}) => {
