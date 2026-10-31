@@ -389,7 +389,12 @@ export function createDomainAssembly() {
             if (dependencies.workspaceUiB.surfaceState.editorOpen) (0, dependencies.workspaceUiA.closeSurface)('editor');
           }
         },
-        syncBatchActions: dependencies.objectOperationsB.syncBatchActionAvailability,
+        syncBatchActions: selection => {
+          dependencies.objectOperationsB.syncBatchActionAvailability(selection);
+          // Batch action visibility changes after the multiple form is shown.
+          // Reconcile its tabs after those action sections have been toggled.
+          if (selection.items?.length > 1) objectPropertyController.syncActionTab('multi');
+        },
         syncMapSurfaces: dependencies.taskPresentation.syncMapContextSurfaces,
         syncLayerRows: selection => objectSearchController?.syncSelection(selection, { reveal: true }),
         closeChooser: dependencies.objectPicking.closeObjectChooser,

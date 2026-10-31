@@ -514,9 +514,15 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
         });
       } finally { database.close(); }
     }, id.trim());
-    await expect.poll(savedFeature, { timeout: 20_000 }).not.toBeNull();
-    const created = await savedFeature();
-    expect(created.geometry.type).toBe(tool === 'river' ? 'LineString' : 'Polygon');
+    // Capture the same accepted persisted snapshot we verified. A second
+    // independent IndexedDB read may race the following save checkpoint.
+    let created = null;
+    await expect.poll(async () => {
+      const feature = await savedFeature();
+      if (feature?.geometry?.type && feature.geometry.coordinates?.length) created = feature;
+      return feature?.geometry?.type ?? null;
+    }, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');
+    expect(created).not.toBeNull();
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
     await expect(page.locator('#hydroProperties')).toBeHidden();
