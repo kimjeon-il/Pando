@@ -8,6 +8,8 @@ on:
       - shared/frontend/js/modules/object-search-controller.js
       - tests/unit/viewer-initial-composition.test.mjs
       - tests/unit/viewer-post-presentation.test.mjs
+      - tests/unit/viewer-composition-recovery.test.mjs
+      - tests/unit/viewer-load-status.test.mjs
       - tests/browser/viewer-post-presentation-p2.spec.mjs
       - tests/helpers/map-transition-baseline.mjs
       - .github/workflows/viewer-post-presentation-p2-3.yml
@@ -32,7 +34,7 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - name: Focused map/search and P0 observer contract tests
-        run: node --test tests/unit/viewer-initial-composition.test.mjs tests/unit/viewer-composition-recovery.test.mjs tests/unit/viewer-load-status.test.mjs tests/unit/map-transition-baseline.test.mjs tests/unit/object-search-controller.test.mjs
+        run: node --test tests/unit/viewer-initial-composition.test.mjs tests/unit/viewer-composition-recovery.test.mjs tests/unit/viewer-load-status.test.mjs tests/unit/viewer-post-presentation.test.mjs tests/unit/map-transition-baseline.test.mjs tests/unit/object-search-controller.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Check real map publication ahead of delayed search
         run: pnpm exec playwright test tests/browser/viewer-post-presentation-p2.spec.mjs --workers=1

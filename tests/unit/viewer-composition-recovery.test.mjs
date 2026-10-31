@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createViewerInitialPresentation} from '../../apps/viewer/js/modules/viewer-initial-presentation.js';
+import {createViewerPostPresentation} from '../../apps/viewer/js/modules/viewer-post-presentation.js';
 import {createApplicationLifecycle} from '../../shared/frontend/js/modules/application-lifecycle.js';
 import {isRecoverableLoadError} from '../../shared/frontend/js/modules/reliability-core.js';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -36,6 +37,7 @@ async function fixture({engineFailure=false,mapFailure=false}={}){
     prepareBuiltinProject:async()=>{reads++;if(mapFailure&&reads===1)throw network();return {};},loadPhysicalLandMask:async()=>{},
     update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
   const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
+    createViewerPostPresentation,
     createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,

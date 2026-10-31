@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {createViewerInitialPresentation} from '../../apps/viewer/js/modules/viewer-initial-presentation.js';
+import {createViewerPostPresentation} from '../../apps/viewer/js/modules/viewer-post-presentation.js';
 
 const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url), 'utf8')
   .replace(/^import .*\n/gm, '').replace('export async function ', 'async function ')
@@ -42,6 +43,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     loadPhysicalLandMask: async () => {}, update: async () => {},
     prepareBuiltinProject: async () => ({}), refreshAppearance: noop};
   const context = {presentViewerLoadStatus, document, window, URL, URLSearchParams, structuredClone, console,
+    createViewerPostPresentation,
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
     createRuntimeContext: ({meta}) => ({meta, platform: {}}),
     createPreferencePresentation: () => ({current: {}, apply: noop}),
@@ -100,7 +102,8 @@ test('composition ends only initial presentation while search hydration is still
     assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
     assert.equal(run.get('viewerStatus').hidden, false);
     assert.equal(run.get('viewerStatus').role, 'status');
-  } finally { release(); await run.started; }
+    await run.started; // Startup is allowed to resolve while search is withheld.
+  } finally { release(); }
   assert.equal(run.get('viewerStatus').textContent, '지도 준비 완료.');
   assert.equal(run.get('viewerStatus').hidden, false);
 });

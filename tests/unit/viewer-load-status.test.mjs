@@ -20,7 +20,10 @@ test('P0 observes the actual presentation callback and successful completion, no
   assert.equal(instrumented.split('globalThis.__PANDO_P0__.presented(month);').length - 1, 1);
   assert.equal(instrumented.split('globalThis.__PANDO_P0__.settled();').length - 1, 1);
   assert.match(instrumented, /commit\(\);globalThis\.__PANDO_P0__\.presented\(month\);/);
-  assert.ok(instrumented.indexOf('await searchController.completeHydration();') < instrumented.indexOf('globalThis.__PANDO_P0__.settled();'));
+  assert.match(instrumented, /status\.dataset\.ready='true';globalThis\.__PANDO_P0__\.settled\(\);/);
+  assert.ok(instrumented.includes('search-hydration:start'));
+  assert.ok(instrumented.includes('await searchController.completeHydration({isCurrent});'));
+  // A search phase may finish after the accepted map is already ready.
 });
 
 test('quiet completion stays accessible and does not invent readiness or retain retry controls', async () => {

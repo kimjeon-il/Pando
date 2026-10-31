@@ -185,8 +185,8 @@ export function createObjectSearchController({
     commands.beginHydration?.();
   }
 
-  async function completeHydration() {
-    if (hydrated) return;
+  async function completeHydration({isCurrent=()=>true}={}) {
+    if (disposed||!isCurrent()||hydrated) return false;
     elements.section?.classList.remove('is-hydrating');
     elements.section?.setAttribute('aria-busy', 'false');
     if (elements.search) elements.search.disabled = false;
@@ -195,6 +195,7 @@ export function createObjectSearchController({
     commands.layerReady?.();
     hydrated = true;
     window.dispatchEvent(new window.CustomEvent('pandolab:layer-ready'));
+    return true;
   }
 
   function selectResult(target, event) {
