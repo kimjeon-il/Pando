@@ -84,6 +84,75 @@ V replaceLSIBChains(const V& request){
         catch(const LSIBChainRejected& error){item.object["error"]=V::str(error.what());}rows.array.push_back(std::move(item));}
     auto result=V::obj();result.object["results"]=std::move(rows);return result;
 }
+V replaceLSIBRing(GeometryEngine& geos,const V& original,const std::vector<LSIBPoint>& oldPoints,const std::vector<LSIBPoint>& replacement){
+    const auto context=geos.context();V result=original;const auto type=str(field(result,"type"));
+    if(type!="Polygon"&&type!="MultiPolygon")throw std::runtime_error("Expected LSIB country polygon");
+    auto& coordinates=result.object.at("coordinates");if(coordinates.kind!=V::Array)throw std::runtime_error("Invalid LSIB polygon coordinates");
+    std::vector<V*> rings;
+    const auto appendRings=[&](V& polygon){if(polygon.kind!=V::Array)throw std::runtime_error("Invalid LSIB polygon rings");
+        for(auto& ring:polygon.array)rings.push_back(&ring);};
+    if(type=="Polygon")appendRings(coordinates);else for(auto& polygon:coordinates.array)appendRings(polygon);
+    const auto jsonPoints=[](const std::vector<LSIBPoint>& points){auto out=V::arr();for(const auto& point:points){auto pair=V::arr();pair.array={V::num(point[0]),V::num(point[1])};out.array.push_back(std::move(pair));}return out;};
+    auto oldLine=lsibScreenLine(geos,oldPoints),newLine=lsibScreenLine(geos,replacement);
+    if(oldPoints.front()==oldPoints.back()){
+        if(GEOSisRing_r(context,oldLine.get())!=1||GEOSisRing_r(context,newLine.get())!=1)
+            throw std::runtime_error("Reviewed enclave boundary must be a simple closed ring");
+        auto polygon=V::obj(),outer=V::arr();polygon.object["type"]=V::str("Polygon");outer.array.push_back(jsonPoints(replacement));polygon.object["coordinates"]=std::move(outer);
+        auto replacementPolygon=geos.parse(polygon);
+        if(GEOSisValid_r(context,replacementPolygon.get())!=1)throw std::runtime_error("Reviewed enclave boundary must be a simple closed ring");
+        std::vector<V*> matches;for(auto* ring:rings){auto line=lsibScreenLine(geos,lsibScreenPoints(*ring));
+            const auto equal=GEOSEquals_r(context,line.get(),oldLine.get());if(equal==2)throw std::runtime_error("Cannot compare LSIB rings");if(equal==1)matches.push_back(ring);}
+        if(matches.size()!=1)throw std::runtime_error("Closed boundary does not identify exactly one owning ring");
+        auto existing=lsibScreenLine(geos,lsibScreenPoints(*matches[0]));char existingCCW=0,newCCW=0;
+        if(!GEOSCoordSeq_isCCW_r(context,GEOSGeom_getCoordSeq_r(context,existing.get()),&existingCCW)||
+           !GEOSCoordSeq_isCCW_r(context,GEOSGeom_getCoordSeq_r(context,newLine.get()),&newCCW))throw std::runtime_error("Cannot read LSIB ring winding");
+        auto points=replacement;if(existingCCW!=newCCW)std::reverse(points.begin(),points.end());*matches[0]=jsonPoints(points);return result;
+    }
+    const auto start=oldPoints.front(),end=oldPoints.back();auto startShape=geos.point(start[0],start[1]),endShape=geos.point(end[0],end[1]);
+    const auto distance=[&](const GEOSGeometry* a,const GEOSGeometry* b){double value=0;if(!GEOSDistance_r(context,a,b,&value)||!std::isfinite(value))
+        throw std::runtime_error("Cannot measure LSIB ring distance");return value;};
+    std::vector<V*> matches;for(auto* ring:rings){auto line=lsibScreenLine(geos,lsibScreenPoints(*ring));
+        if(distance(line.get(),startShape.get())<1e-11&&distance(line.get(),endShape.get())<1e-11)matches.push_back(ring);}
+    if(matches.size()!=1)throw std::runtime_error("Shared endpoints do not identify exactly one owning ring");
+    auto points=lsibScreenPoints(*matches[0]);if(points.front()!=points.back())throw std::runtime_error("LSIB owning ring must be closed");points.pop_back();
+    for(const auto& endpoint:{start,end}){
+        auto nearest=std::min_element(points.begin(),points.end(),[&](const auto& a,const auto& b){return std::hypot(a[0]-endpoint[0],a[1]-endpoint[1])<std::hypot(b[0]-endpoint[0],b[1]-endpoint[1]);});
+        if(std::hypot((*nearest)[0]-endpoint[0],(*nearest)[1]-endpoint[1])<1e-11)*nearest=endpoint;
+    }
+    const std::set<LSIBPoint> vertices(points.begin(),points.end());std::vector<LSIBPoint> inserted;
+    for(std::size_t i=0;i<points.size();++i){const auto a=points[i],b=points[(i+1)%points.size()];inserted.push_back(a);
+        auto edge=lsibScreenLine(geos,{a,b});std::vector<std::pair<double,LSIBPoint>> additions;
+        for(const auto& endpoint:{start,end})if(!vertices.count(endpoint)){auto point=geos.point(endpoint[0],endpoint[1]);
+            if(distance(edge.get(),point.get())<1e-11)additions.push_back({GEOSProject_r(context,edge.get(),point.get()),endpoint});}
+        std::stable_sort(additions.begin(),additions.end(),[](const auto& x,const auto& y){return x.first<y.first;});
+        for(const auto& addition:additions)inserted.push_back(addition.second);
+    }
+    if(inserted.empty())throw std::runtime_error("Empty LSIB owning ring");inserted.push_back(inserted.front());points.clear();
+    for(const auto& point:inserted)if(points.empty()||points.back()!=point)points.push_back(point);points.pop_back();
+    const auto first=std::find(points.begin(),points.end(),start);if(first==points.end())throw std::runtime_error("LSIB start anchor missing");
+    std::rotate(points.begin(),first,points.end());const auto last=std::find(points.begin(),points.end(),end);
+    if(last==points.end())throw std::runtime_error("LSIB end anchor missing");const auto index=static_cast<std::size_t>(last-points.begin());
+    std::vector<LSIBPoint> direct(points.begin(),points.begin()+index+1),other(points.begin()+index,points.end());other.push_back(points.front());std::reverse(other.begin(),other.end());
+    const auto sameArc=[&](const std::vector<LSIBPoint>& arc){auto line=lsibScreenLine(geos,arc);double hausdorff=0;
+        if(!GEOSHausdorffDistance_r(context,line.get(),oldLine.get(),&hausdorff))throw std::runtime_error("Cannot compare LSIB boundary arcs");
+        return std::abs(geos.length(line)-geos.length(oldLine))<1e-10&&hausdorff<1e-10;};
+    const bool firstMatches=sameArc(direct),secondMatches=sameArc(other);
+    if(firstMatches==secondMatches)throw std::runtime_error("Old chain does not identify exactly one owning arc");
+    std::vector<LSIBPoint> updated;
+    if(firstMatches){updated=replacement;updated.insert(updated.end(),points.begin()+index+1,points.end());}
+    else{updated.assign(direct.begin(),direct.end()-1);updated.insert(updated.end(),replacement.rbegin(),replacement.rend());}
+    std::vector<LSIBPoint> deduplicated;for(const auto& point:updated)if(deduplicated.empty()||deduplicated.back()!=point)deduplicated.push_back(point);
+    if(deduplicated.empty())throw std::runtime_error("Empty updated LSIB ring");if(deduplicated.front()!=deduplicated.back())deduplicated.push_back(deduplicated.front());
+    *matches[0]=jsonPoints(deduplicated);return result;
+}
+V replaceLSIBRings(const V& request){
+    const auto& geometries=field(request,"geometries"),&patches=field(request,"patches");
+    if(geometries.kind!=V::Object||patches.kind!=V::Object)throw std::runtime_error("Explicit LSIB geometries and patches required");
+    V result=geometries;GeometryEngine geos;
+    for(const auto& entry:patches.object){auto found=result.object.find(entry.first);if(found==result.object.end())throw std::runtime_error("LSIB patch owner missing");
+        for(const auto& patch:array(entry.second))found->second=replaceLSIBRing(geos,found->second,lsibScreenPoints(field(patch,"old")),lsibScreenPoints(field(patch,"replacement")));}
+    auto receipt=V::obj();receipt.object["geometries"]=std::move(result);return receipt;
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
