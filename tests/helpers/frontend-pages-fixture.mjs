@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
 
@@ -56,8 +57,13 @@ export async function pagesRepositoryFixture(t) {
   } }) + ');');
   put(root,'assets/data/world/current.json','{"assets":{}}');
   put(root,'assets/data/terrain-preview/v0.13.3-p2/manifest.json','{"sourceDem":{"landMaskSha256":"land"},"tiles":{}}');
-  put(root,'assets/data/physical-land/v1/manifest.json','{"sourceSha256":"land","asset":{"url":"assets/data/physical-land/land.bin"}}');
-  put(root,'assets/data/physical-land/land.bin','land');
+  const landSource=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
+  const landCompressed=gzipSync(landSource,{level:9,mtime:0});
+  const landAsset={url:'assets/data/physical-land/land.bin',encoding:'gzip',
+    compressedBytes:landCompressed.length,decodedBytes:landSource.length,
+    sha256:createHash('sha256').update(landCompressed).digest('hex')};
+  put(root,'assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'land',asset:landAsset}));
+  put(root,'assets/data/physical-land/land.bin',landCompressed);
   put(root,'assets/data/places/manifest.json','{"shards":{}}');
   put(root,'assets/data/territorial-entities/generated/v2/index.json','{"entities":[]}');
   put(root,'assets/data/builtin-world/generated/v1/index.json','{"entities":[],"transport":{"url":"data.bin"}}');
