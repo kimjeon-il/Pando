@@ -131,6 +131,21 @@ def read_shapefile(dbf, shp):
     return records
 
 
+def load_lsib_archive(archive, ids=None):
+    """Read the pinned LSIB source via GDAL and the shared native line merger."""
+    script = Path(__file__).with_name('gis') / 'lsib-source-native.mjs'
+    request = {'archive': str(archive), **({'all': True} if ids is None else {'ids': ids})}
+    result = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=300,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('LSIB source read failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    features = json.loads(result.stdout).get('features')
+    if not isinstance(features, list) or (ids is not None and len(features) != len(ids)):
+        raise ValueError('Invalid LSIB source receipt')
+    return [{'properties': feature['properties'], 'line': shape(feature['geometry'])} for feature in features]
+
+
 def intersection_anchors(geometry):
     if geometry.is_empty:
         return []
@@ -722,7 +737,7 @@ def main():
     inner = zipfile.ZipFile(io.BytesIO(inner_bytes))
     shp = inner.read(next(n for n in inner.namelist() if n.endswith('.shp')))
     dbf = inner.read(next(n for n in inner.namelist() if n.endswith('.dbf')))
-    records = read_shapefile(dbf, shp)
+    records = load_lsib_archive(archive)
     exclusions = exclusion_reasons(records)
     json_write(evidence / 'line-index.json', [{'properties':r['properties'],'bbox':r['line'].bounds} for r in records])
     readme = next(n for n in inner.namelist() if 'ReadMe' in n)
