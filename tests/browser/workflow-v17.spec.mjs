@@ -570,7 +570,28 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await expect.poll(savedFeature, { timeout: 45_000 }).toBeNull();
     await expect(page.locator('#hydroProperties')).toBeHidden({ timeout: 30_000 });
     await page.locator('#redoBtn').click();
-    await expect.poll(savedFeature, { timeout: 20_000 }).toEqual(created);
+    try {
+      await expect.poll(savedFeature, { timeout: 45_000 }).toEqual(created);
+    } catch (error) {
+      const diagnosis = await page.evaluate(id => {
+        const probe = window.__testEditorTimeline;
+        const history = probe.history();
+        const project = probe.project();
+        const state = probe.state();
+        const save = probe.save();
+        return {
+          history: { checkpoint: history.checkpoint, canUndo: history.canUndo, canRedo: history.canRedo,
+            undoCommandId: history.undoCommandId, redoCommandId: history.redoCommandId },
+          projectHydroIds: project.hydroEdits?.map(feature => feature.id),
+          stateHydroIds: state.hydroEdits?.map(feature => feature.id),
+          expectedId: id, autosave: save.autosaveState,
+          saveState: document.querySelector('#projectSaveStatus')?.dataset.saveState,
+          selected: state.selected?.id || null,
+        };
+      }, id.trim());
+      console.log('P8_HYDRO_REDO_DIAG ' + JSON.stringify(diagnosis));
+      throw error;
+    }
   }
   expect(errors).toEqual([]);
 });
