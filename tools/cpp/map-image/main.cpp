@@ -320,6 +320,26 @@ int main(int argc,char** argv){
             else for(unsigned c=0;c<7;++c){number(state.valid[c]);number(state.positive[c]);}
             if(!std::cout)throw std::runtime_error("Unable to write encoded supervision counts");return 0;
         }
+        if(action=="training-mask-audit"){
+            if(argc!=2)throw std::invalid_argument("Training mask audit takes no extra arguments");
+            struct MaskAudit {std::uint32_t width=0,height=0;std::uint8_t bits=0;std::exception_ptr error;} state;
+            const auto start=[](void* context,std::uint32_t width,std::uint32_t height,std::uint32_t)->int{
+                auto& s=*static_cast<MaskAudit*>(context);s.width=width;s.height=height;return 1;
+            };
+            const auto row=[](void* context,std::uint32_t,const std::uint8_t* rgba,std::size_t length)->int{
+                auto& s=*static_cast<MaskAudit*>(context);try{
+                    if(length!=std::size_t(s.width)*4)throw std::invalid_argument("Invalid training mask row");
+                    for(std::uint32_t x=0;x<s.width;++x)s.bits|=rgba[std::size_t(x)*4];return 1;
+                }catch(...){s.error=std::current_exception();return 0;}
+            };
+            const auto encoded=encodedInput();PandoImage image{};
+            if(!pando_stream_gray_mask(encoded.data(),encoded.size(),&image,start,row,&state)){
+                if(state.error)std::rethrow_exception(state.error);
+                throw std::runtime_error(std::string("Training mask: ")+image.error);
+            }
+            number(state.width);number(state.height);std::cout.put(static_cast<char>(state.bits));
+            if(!std::cout)throw std::runtime_error("Unable to write training mask audit");return 0;
+        }
         if(action=="training-mask-tiles"){
             if(argc!=2)throw std::invalid_argument("Training mask tiles takes no extra arguments");
             struct MaskTiles {std::uint32_t width=0,height=0,columns=0;std::vector<std::uint8_t> tiles;std::exception_ptr error;} state;

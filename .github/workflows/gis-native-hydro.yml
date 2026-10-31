@@ -684,7 +684,7 @@ jobs:
           if ('${{ inputs.target }}' -eq 'map-macro') {
             node --test tests/unit/reference-native-macro.test.mjs
           } else {
-            node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs tests/unit/reference-training-webp-overview.test.mjs tests/unit/reference-training-mask-window.test.mjs tests/unit/reference-diagnostic-selection.test.mjs tests/unit/reference-diagnostic-overlay.test.mjs
+            node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs tests/unit/reference-training-webp-overview.test.mjs tests/unit/reference-training-mask-window.test.mjs tests/unit/reference-training-mask-audit.test.mjs tests/unit/reference-diagnostic-selection.test.mjs tests/unit/reference-diagnostic-overlay.test.mjs
           }
           if ($LASTEXITCODE -ne 0) { throw 'Training image or tile pixels differ' }
       - uses: actions/upload-artifact@v4
