@@ -53,11 +53,16 @@ export async function validateReviewedCorpus(value,root,{signal,workspace,review
   return value;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{if(process.argv.length===3&&process.argv[2]==='--metadata-stream'){
+  try{if(process.argv.length===3&&['--metadata-stream','--groups-stream'].includes(process.argv[2])){
       const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('Corpus metadata exceeds byte budget');chunks.push(chunk);}
       const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-      if(!request||typeof request.trainingOnly!=='boolean')throw Error('Explicit corpus training scope required');
-      validateCorpusMetadata(request.value,{trainingOnly:request.trainingOnly});console.log(JSON.stringify({valid:true}));
+      if(process.argv[2]==='--groups-stream'){
+        if(!Array.isArray(request)||request.some(sheet=>!sheet||!['id','mapKind','script','language'].every(key=>typeof sheet[key]==='string'&&sheet[key])))throw Error('Explicit evaluation group fields required');
+        console.log(JSON.stringify(evaluationGroups(request)));
+      }else{
+        if(!request||typeof request.trainingOnly!=='boolean')throw Error('Explicit corpus training scope required');
+        validateCorpusMetadata(request.value,{trainingOnly:request.trainingOnly});console.log(JSON.stringify({valid:true}));
+      }
     }else{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
     if(positionals.length||!values.corpus)throw Error('Usage: node tools/reference-analysis/reviewed-corpus.mjs --corpus MANIFEST');
     const path=resolve(reportArgument(values.corpus,{access:'read',siblings:true})),value=JSON.parse(await readFile(path,'utf8'));
