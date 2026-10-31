@@ -1,6 +1,7 @@
 import { geometryReferenceFor } from './geometry-version-store.js';
 import { mapVisualOrder } from './layer-presentation.js';
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
+import { createGpuContextRecovery } from './gpu-context-recovery.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
 import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
@@ -485,6 +486,7 @@ export function createGpuMapRenderer(deps) {
     function recordMapPresentation(frame, resourcesDrawn = true) {
       const terrain = currentTerrainReadiness();
       resourcesDrawn = resourcesDrawn && physicalSceneMatchesContext(renderScene,getPhysicalContextState());
+      recordGpuRecoveryFrame(frame, resourcesDrawn);
       if (temporalPending() && !temporalFrameReady(resourcesDrawn, terrain)) { presentedMapKey='';publishMapReadiness();return; }
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady;
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
@@ -845,8 +847,30 @@ export function createGpuMapRenderer(deps) {
     let layoutMismatchCount = 0;
     let lastLayoutMismatchCssPx = 0;
     let layoutVerificationFrame = 0;
-    let webglRecoveryTimer = 0;
     let webglContextLost = false;
+    let gpuRecoveryFrozen = false, gpuRecoveryCached = false, gpuRecoveryLifecycleInstalled = false;
+    const gpuRecovery = createGpuContextRecovery({
+      capture: recoveryIdentity,
+      isTargetCurrent: recoveryIdentityCurrent,
+      prepare: prepareRecoveryResources,
+      commit: commitRecoveryResources,
+      discard: discardRecoveryResources,
+      onCommitted: finishRecoveryResources,
+      now: () => performance.now(),
+      schedule: (callback, delay) => lifecycle.timeout(callback, delay),
+      clearSchedule: timer => lifecycle.cancelTimeout(timer),
+      isSuspended: () => document.hidden || document.visibilityState === 'hidden' || gpuRecoveryFrozen || gpuRecoveryCached,
+      onFallbackFailure: failGpuFallback,
+      onFailure: (error, recoveryTicket) => {
+        console.error('[PL-GPU-002]', error);
+        activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.', { recoveryTicket });
+      },
+    });
+    let gpuRecoveryInputRevision = 0;
+    let sharedGpuInitialization = null, sharedGpuInitializationSequence = 0;
+    let gpuRecoveryFrameEvidence = null;
+    installGpuRecoveryLifecycle();
+    // End G1 recovery state.
     let currentRenderRevision = 0;
     let displayedRenderRevision = 0;
     let previewFramePresented = false;
@@ -923,14 +947,42 @@ export function createGpuMapRenderer(deps) {
       } catch (_) { return ''; }
     })();
 
+    function observeGpuRecoveryUploads(scheduler) {
+      if (!scheduler) return null;
+      return Object.freeze({ ...scheduler,
+        enqueueUpload(input) {
+          const ticket = gpuRecovery.currentTicket();
+          if (!ticket || !gpuRecovery.isCurrent(ticket)) return scheduler.enqueueUpload(input);
+          return scheduler.enqueueUpload({ ...input, allowDuringInteraction: true,
+            step(budget) {
+              const result = input.step(budget);
+              // Genuine scene-upload bytes, not scheduling or allocation, keep
+              // a restoring GPU alive within the same bounded foreground budget.
+              if (Number.isFinite(result?.bytes) && result.bytes > 0 && gpuRecovery.isCurrent(ticket))
+                gpuRecovery.noteProgress(ticket, { bytes: result.bytes });
+              return result;
+            },
+          });
+        },
+      });
+    }
+
     function invalidateGpuFrame(reason = 'gpu-frame') {
       if (disposed) return;
+      // A recovery redraw must be admitted by the coordinator's actual
+      // view-presentation path. GPU_FRAME alone never calls commitVisualFrame.
+      // Keep ordinary resource uploads on the cheaper GPU-only path.
+      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket())
+        && typeof renderViewFrame === 'function') return renderViewFrame(reason);
       if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);
       return renderViewFrame?.(reason);
     }
 
     function invalidateGpuInteraction(reason = 'gpu-interaction') {
       if (disposed) return;
+      // Selection and stroke completion during recovery must share its frame
+      // approval. Normal interaction retains the lightweight dirty mask.
+      if (gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket()) return invalidateGpuFrame(reason);
       if (typeof scheduleGpuInteractionFrame === 'function') return scheduleGpuInteractionFrame(reason);
       return invalidateGpuFrame(reason);
     }
@@ -1503,7 +1555,9 @@ export function createGpuMapRenderer(deps) {
       layoutMismatchCount = 0;
     }
 
-    function replaceCanvas() {
+    function replaceCanvas({ preserveRecovery = false } = {}) {
+      if (!preserveRecovery) gpuRecovery.cancel('canvas-replaced');
+      cancelGpuRecoveryPresentation();
       lifecycle.unlisten(canvas);
       releaseGpuContext();
       if (renderDevice || gl) handleSharedGpuContextLost();
@@ -1637,57 +1691,141 @@ export function createGpuMapRenderer(deps) {
       hydroVisibilityDirty = true;
     }
 
+    function cancelSharedGpuInitialization(reason, { preserveReady = false } = {}) {
+      const entry = sharedGpuInitialization;
+      if (!entry || entry.state === 'cancelled' || (preserveReady && entry.state === 'ready')) return;
+      entry.state = 'cancelled';
+      const error = Object.assign(new Error(reason), { name: 'AbortError' });
+      entry.controller.abort(error);
+      for (const frame of entry.frames) lifecycle.cancelFrame(frame);
+      entry.frames.clear();
+      for (const key of entry.keys) entry.scheduler?.cancelKey(key);
+      entry.keys.clear();
+      entry.reject(error);
+    }
+
+    function sharedGpuPassesReady() {
+      const entry = sharedGpuInitialization;
+      return !disposed && !!entry && entry.state === 'ready' && entry.device === renderDevice
+        && entry.context === renderDeviceContextRevision && entry.selection === selectionPass
+        && !!gl && !gl.isContextLost();
+    }
+
     function initializeSharedGpuPasses() {
-      if (!renderDevice) return false;
-      const sceneCacheReady = sceneColorCache.initialize(renderDevice);
-      interactionFillCache.initialize(renderDevice);
-      interactionStrokeCache.initialize(renderDevice);
-      const device = renderDevice, revision = renderDeviceContextRevision, generation = projectGeneration;
-      const current = () => !disposed && revision === renderDeviceContextRevision && device === renderDevice && generation === projectGeneration;
+      if (disposed || !renderDevice || !gl || gl.isContextLost()) return false;
+      const previous = sharedGpuInitialization;
+      const sameDevice = previous?.device === renderDevice && previous.context === renderDeviceContextRevision;
+      if (sameDevice && previous.selection === selectionPass
+        && (previous.state === 'ready' || previous.generation === projectGeneration
+          && ['queued', 'running'].includes(previous.state))) return previous.cacheReady;
+      cancelSharedGpuInitialization('Shared GPU initialization superseded');
+      const cacheReady = sameDevice ? previous.cacheReady : sceneColorCache.initialize(renderDevice);
+      if (!sameDevice) {
+        interactionFillCache.initialize(renderDevice);
+        interactionStrokeCache.initialize(renderDevice);
+      }
+      const entry = { id: ++sharedGpuInitializationSequence, device: renderDevice,
+        context: renderDeviceContextRevision, generation: projectGeneration, selection: selectionPass,
+        state: 'queued', cacheReady, controller: new AbortController(), frames: new Set(), keys: new Set(),
+        scheduler: null, resolve: null, reject: null, promise: null };
+      entry.promise = new Promise((resolve, reject) => { entry.resolve = resolve; entry.reject = reject; });
+      sharedGpuInitialization = entry;
+      const current = () => !disposed && sharedGpuInitialization === entry && !entry.controller.signal.aborted
+        && entry.device === renderDevice && entry.context === renderDeviceContextRevision
+        && entry.selection === selectionPass && entry.generation === projectGeneration;
       const assertCurrent = () => {
         if (!current()) throw Object.assign(new Error('Stale shader initialization'), { name: 'AbortError' });
       };
-      const enqueue = (name, run) => uploadScheduler.enqueueUpload({
-        key: 'shader:' + revision + ':' + name, contextGeneration: revision, projectGeneration: generation, priority: 20,
-        step: () => {
-          assertCurrent();
-          const start = performance.now(), value = run();
-          performanceMetrics.shaderInitializationMs = (performanceMetrics.shaderInitializationMs || 0) + performance.now() - start;
-          return { done: true, value };
-        },
-      });
+      const enqueue = (name, run) => {
+        assertCurrent();
+        const key = `shader:${entry.context}:${entry.id}:${name}`;
+        entry.keys.add(key);
+        const pending = entry.scheduler.enqueueUpload({
+          key, contextGeneration: entry.context, projectGeneration: entry.generation, priority: 20,
+          allowDuringInteraction: gpuRecovery.snapshot().active,
+          step: () => {
+            assertCurrent();
+            const start = performance.now(), value = run();
+            if (value !== false) {
+              const ticket = gpuRecovery.currentTicket();
+              if (ticket?.identity.context === entry.context) gpuRecovery.noteProgress(ticket, { stage: `shader:${entry.context}:${name}` });
+            }
+            performanceMetrics.shaderInitializationMs = (performanceMetrics.shaderInitializationMs || 0) + performance.now() - start;
+            return { done: true, value };
+          },
+        });
+        return pending.finally(() => entry.keys.delete(key));
+      };
       const initialize = async () => {
-        if (!uploadScheduler) return;
         assertCurrent();
-        if (await enqueue('polygon', () => polygonOverlayPass.initialize(device)) !== true) throw new Error('Required polygon renderer initialization failed');
+        entry.state = 'running';
+        if (!uploadScheduler) throw new Error('GPU upload scheduler is not connected');
+        entry.scheduler = uploadScheduler;
+        if (await enqueue('polygon', () => polygonOverlayPass.initialize(entry.device)) !== true)
+          throw new Error('Required polygon renderer initialization failed');
         assertCurrent();
-        if (await strokeRenderer.initializeProgressively(device, enqueue) !== true) throw new Error('Required stroke renderer initialization failed');
+        if (await strokeRenderer.initializeProgressively(entry.device, enqueue) !== true)
+          throw new Error('Required stroke renderer initialization failed');
         assertCurrent();
-        if (selectionPass) await enqueue('selection', () => selectionPass.initialize(device, { strokeRenderer, polygonPass: polygonOverlayPass }));
+        if (entry.selection && await enqueue('selection', () => entry.selection.initialize(entry.device,
+          { strokeRenderer, polygonPass: polygonOverlayPass })) !== true)
+          throw new Error('Required selection renderer initialization failed');
         assertCurrent();
-        // Re-admit completed boundary CPU results against this device. Their
-        // upload completion must publish a fresh frame after context recovery.
+        // Preparation only. Project replacement/canonical presentation never waits on this callback.
         prepareCountrySharedBoundary({ replace: true });
         prewarmCountryStrokeResources();
         sceneColorCache.invalidate('shared-pass-ready');
         invalidateGpuFrame('shared-pass-ready');
+        entry.state = 'ready';
+        entry.resolve(true);
       };
-      // Allow the first paint before compiling the required scene passes.
-      lifecycle.frame(() => lifecycle.frame(() => { void initialize().catch(error => {
-        if (!current()) {
-          if (!disposed && device === renderDevice && revision === renderDeviceContextRevision
-            && generation !== projectGeneration && !strokeRenderer.isAvailable()) initializeSharedGpuPasses();
-          return;
-        }
-        if (error.name === 'AbortError') return;
+      const schedule = callback => {
+        const frame = lifecycle.frame(() => {
+          entry.frames.delete(frame);
+          if (current()) callback();
+          else if (entry.state !== 'cancelled') {
+            entry.state = 'cancelled';
+            entry.reject(Object.assign(new Error('Stale shader initialization'), { name: 'AbortError' }));
+          }
+        });
+        entry.frames.add(frame);
+      };
+      // Initial startup still yields two animation frames. Every exit settles the receipt.
+      schedule(() => schedule(() => {
+        initialize().catch(error => {
+          if (entry.state !== 'cancelled') entry.state = 'failed';
+          entry.reject(error);
+        });
+      }));
+      entry.promise.catch(error => {
+        // A recovery attempt awaits this same promise and owns its failure/fallback.
+        if (!current() || gpuRecovery.snapshot().active) return;
         console.error('[PL-GPU-005] Required scene renderer initialization failed', error);
         activateCanvasFallback(error.message);
-      }); }));
+      });
       lastSelectionRenderResult = null;
-      return sceneCacheReady;
+      return cacheReady;
+    }
+
+    async function ensureSharedGpuPassesReady(ticket) {
+      ticket.signal.throwIfAborted();
+      initializeSharedGpuPasses();
+      const entry = sharedGpuInitialization;
+      if (!entry) throw new Error('Required GPU initialization is unavailable');
+      // Abort the waiter, not another consumer's shared device initialization.
+      await new Promise((resolve, reject) => {
+        const abort = () => { cleanup(); reject(ticket.signal.reason); };
+        const cleanup = () => ticket.signal.removeEventListener('abort', abort);
+        ticket.signal.addEventListener('abort', abort, { once: true });
+        entry.promise.then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });
+        if (ticket.signal.aborted) abort();
+      });
+      ticket.signal.throwIfAborted();
+      if (!sharedGpuPassesReady()) throw Object.assign(new Error('Shared GPU device changed'), { name: 'AbortError' });
     }
 
     function handleSharedGpuContextLost() {
+      cancelSharedGpuInitialization('context-lost');
       renderDeviceContextRevision += 1;
       backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
       terrainPreparation?.setContext({ gl: null, ready: false, scheduler: terrainUploadScheduler,
@@ -1711,72 +1849,278 @@ export function createGpuMapRenderer(deps) {
     }
 
     function handleWebGlContextLost(event) {
-      if (disposed || event.currentTarget !== canvas) return;
+      if (disposed || event.currentTarget !== canvas || !['webgl1', 'webgl2', 'webgl-recovering'].includes(rendererMode)) return;
       event.preventDefault();
+      cancelGpuRecoveryPresentation();
+      cancelSharedGpuInitialization('context-lost');
+      gpuRecovery.beginLoss();
       handleSharedGpuContextLost();
       webglContextLost = true;
       renderDevice = null;
       rendererMode = 'webgl-recovering';
-      lifecycle.cancelTimeout(webglRecoveryTimer);
+      syncGpuRecoveryAvailability();
       updateRendererStatus(`${rendererName()} · GPU를 복구하는 중입니다.`);
       setActionStatus('지도 GPU를 복구하는 중입니다.', 'working', 0);
       rendererUi.onContextStateChange?.('lost');
-      webglRecoveryTimer = lifecycle.timeout(() => {
-        if (webglContextLost && rendererMode === 'webgl-recovering') {
-          activateCanvasFallback('WebGL 컨텍스트 복구 시간 초과');
+    }
+
+    function recoveryIdentity() {
+      if (disposed || !renderDevice || !gl || gl.isContextLost() || (!isWebGlRenderer() && rendererMode !== 'webgl-recovering')) return null;
+      return Object.freeze({ canvas, gl, context: renderDeviceContextRevision, project: projectGeneration,
+        inputRevision: gpuRecoveryInputRevision, geometryRevision: geometryRevisionTracker.committedRevision(),
+        mesh, quality: activeMeshQuality, override: overrideMesh,
+        entries: Object.freeze([...meshVariants].map(([quality, entry]) => Object.freeze({ quality, entry, mesh: entry.mesh }))) });
+    }
+
+    function recoveryIdentityCurrent(identity) {
+      return !disposed && canvas === identity.canvas && gl === identity.gl && !gl.isContextLost()
+        && renderDeviceContextRevision === identity.context && projectGeneration === identity.project
+        && gpuRecoveryInputRevision === identity.inputRevision
+        && geometryRevisionTracker.committedRevision() === identity.geometryRevision
+        && mesh === identity.mesh && activeMeshQuality === identity.quality && overrideMesh === identity.override
+        && meshVariants.size === identity.entries.length
+        && identity.entries.every(row => meshVariants.get(row.quality) === row.entry && row.entry.mesh === row.mesh);
+    }
+
+    function discardRecoveryResources(candidate) {
+      if (!candidate || candidate.transferred) return;
+      for (const row of candidate.base) disposeMeshResources(row.resources);
+      disposeMeshResources(candidate.override);
+      candidate.base.length = 0;
+      candidate.override = null;
+    }
+
+    async function prepareRecoveryResources(ticket) {
+      const target = ticket.identity;
+      const candidate = { base: [], override: null, transferred: false };
+      const requireCurrent = () => {
+        if (!gpuRecovery.isCurrent(ticket)) throw Object.assign(new Error('Superseded GPU restoration'), { name: 'AbortError' });
+      };
+      const options = { projectGeneration: target.project, contextGeneration: target.context, signal: ticket.signal,
+        allowDuringInteraction: true, onProgress: bytes => gpuRecovery.noteProgress(ticket, { bytes }) };
+      try {
+        requireCurrent();
+        await ensureSharedGpuPassesReady(ticket);
+        requireCurrent();
+        for (const row of target.entries) {
+          const resources = await stageMeshResources(row.mesh, options);
+          candidate.base.push({ ...row, resources });
+          requireCurrent();
         }
-      }, 5000);
+        if (target.override) {
+          candidate.override = await stageMeshResources(target.override, options);
+          requireCurrent();
+        }
+        return candidate;
+      } catch (error) {
+        discardRecoveryResources(candidate);
+        throw error;
+      }
+    }
+
+    // This changes GPU bindings only; it must never resurrect an old override.
+    function bindOverrideGpuResources(expectedMesh, resources) {
+      if (overrideMesh !== expectedMesh) return false;
+      overridePositionBuffer = resources?.positionBuffer || null;
+      overrideCountryBuffer = resources?.countryBuffer || null;
+      overrideFillIndexBuffer = resources?.fillIndexBuffer || null;
+      overrideFillVao = resources?.fillVao || null;
+      return true;
+    }
+
+    function commitRecoveryResources(ticket, candidate) {
+      if (!gpuRecovery.isCurrent(ticket)) return false;
+      const target = ticket.identity;
+      const active = candidate.base.find(row => row.quality === target.quality && row.mesh === target.mesh);
+      if (target.mesh && !active) throw new Error('The admitted active mesh is missing during GPU recovery.');
+      const oldResources = candidate.base.map(row => row.entry.resources);
+      oldResources.push({ positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer,
+        fillIndexBuffer: overrideFillIndexBuffer, fillVao: overrideFillVao });
+      // No await or callbacks between validation and ownership transfer.
+      if (!bindOverrideGpuResources(target.override, candidate.override)) return false;
+      for (const row of candidate.base) {
+        row.entry.resources = row.resources;
+        if (row.entry.dependencies) row.entry.dependencies = { ...row.entry.dependencies, context: [target.gl, target.context] };
+        if (builtinMeshBaseline?.mesh === row.mesh) builtinMeshBaseline.resources = row.resources;
+      }
+      positionBuffer = active?.resources.positionBuffer || null;
+      countryBuffer = active?.resources.countryBuffer || null;
+      fillIndexBuffer = active?.resources.fillIndexBuffer || null;
+      fillVao = active?.resources.fillVao || null;
+      // Do not activate a retained CPU cache after reset cleared the live mesh.
+      candidate.transferred = true;
+      for (const resources of oldResources) disposeMeshResources(resources);
+      return true;
+    }
+
+    function finishRecoveryResources(ticket) {
+      if (!gpuRecovery.isCurrent(ticket) || !sharedGpuPassesReady()) return;
+      // Usable GPU and successful presentation are deliberately different states.
+      // Never await a project open/rollback or a canonical frame from this drain.
+      webglContextLost = false;
+      rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
+      gpuRecovery.noteProgress(ticket, { stage: `resources:${ticket.identity.context}` });
+      syncGpuRecoveryAvailability();
+      updatePalette();
+      prewarmCountryStrokeResources();
+      invalidateGpuFrame('gpu-recovery-resources-ready');
+    }
+
+    function cancelGpuRecoveryPresentation() {
+      gpuRecoveryFrameEvidence = null;
+    }
+
+    function installGpuRecoveryLifecycle() {
+      if (gpuRecoveryLifecycleInstalled) return;
+      gpuRecoveryLifecycleInstalled = true;
+      lifecycle.listen(document, 'visibilitychange', syncGpuRecoveryAvailability);
+      lifecycle.listen(document, 'freeze', () => { gpuRecoveryFrozen = true; syncGpuRecoveryAvailability(); });
+      lifecycle.listen(document, 'resume', () => { gpuRecoveryFrozen = false; syncGpuRecoveryAvailability(); });
+      lifecycle.listen(window, 'pagehide', event => {
+        if (!event.persisted) { dispose(); return; }
+        gpuRecoveryCached = true; syncGpuRecoveryAvailability();
+      });
+      lifecycle.listen(window, 'pageshow', () => {
+        gpuRecoveryCached = false; gpuRecoveryFrozen = false; syncGpuRecoveryAvailability();
+      });
+    }
+
+    function syncGpuRecoveryAvailability() {
+      if (disposed) return;
+      gpuRecovery.setSuspended(document.hidden || document.visibilityState === 'hidden' || gpuRecoveryFrozen || gpuRecoveryCached);
+      if (!gpuRecovery.snapshot().active && !gpuRecovery.fallbackTicket()) return;
+      // Only explicit external-source waits may pause frame monitoring. GPU
+      // preparation itself remains timed, even during a project replacement.
+      const physical = getPhysicalContextState();
+      // Known source failures remain owned/reported by the loader, not GPU timeouts.
+      gpuRecovery.setDataWaiting(projectRenderBlocked || physical.ready === false);
+    }
+
+    function failGpuFallback(error) {
+      if (disposed) return;
+      cancelSharedGpuInitialization('canvas-failed');
+      cancelGpuRecoveryPresentation();
+      uploadScheduler?.cancelAll();
+      canvasWorker?.terminate(); canvasWorker = null;
+      canvasWorkerNeedsRestart = false;
+      webglContextLost = false;
+      rendererMode = 'failed';
+      failTemporalPresentation(error);
+      reportOperationError(error, 'GPU와 Canvas에서 지도를 표시하지 못했습니다.', 'PL-GPU-FALLBACK-001', 0);
+    }
+
+    function claimCanvasRecoveryFrame(frame, resourcesDrawn) {
+      const ticket = gpuRecovery.fallbackTicket();
+      if (!ticket || !['canvas-worker', 'canvas2d'].includes(rendererMode) || projectRenderBlocked
+        || !resourcesDrawn || frame !== lastVisualFrame || frame.projectGeneration !== projectGeneration
+        || !renderScene || geometryRevisionTracker.pendingIds().length) return false;
+      const emptyDocument = canonicalMeshReady && canonicalCountryFeatures().length === 0;
+      if ((!canonicalMeshReady || surfacePresentation.quality === 'pending') && !emptyDocument) return false;
+      gpuRecoveryFrameEvidence = { ticket, fallback: true, canvas, frame, scene: renderScene,
+        sceneRevision: lastRenderSceneRevision, context: renderDeviceContextRevision,
+        target: mapTargetKey(frame, { terrainTargetKey: '' }) };
+      return true;
+    }
+
+    function commitCanvasRecoveryFrame(frame) {
+      const evidence = gpuRecoveryFrameEvidence;
+      if (!evidence?.fallback || evidence.frame !== frame || frame !== lastVisualFrame || evidence.canvas !== canvas
+        || !['canvas-worker', 'canvas2d'].includes(rendererMode) || projectRenderBlocked
+        || evidence.context !== renderDeviceContextRevision || frame.projectGeneration !== projectGeneration
+        || evidence.scene !== renderScene || evidence.sceneRevision !== lastRenderSceneRevision
+        || evidence.target !== mapTargetKey(frame, { terrainTargetKey: '' })
+        || !gpuRecovery.completeFallback(evidence.ticket)) return false;
+      cancelGpuRecoveryPresentation();
+      setActionStatus('Canvas 대체 지도를 표시했습니다.', 'success', 2200);
+      rendererUi.onContextStateChange?.('fallback');
+      return true;
+    }
+
+    function recordGpuRecoveryFrame(frame, resourcesDrawn) {
+      gpuRecoveryFrameEvidence = null;
+      syncGpuRecoveryAvailability();
+      if (gpuRecovery.fallbackTicket()) return claimCanvasRecoveryFrame(frame, resourcesDrawn);
+      const ticket = gpuRecovery.preparedTicket();
+      if (!ticket) return false;
+      if (!gpuRecovery.isCurrent(ticket)) { requestGpuRecovery(); return false; }
+      if (!isWebGlRenderer() || webglContextLost || !sharedGpuPassesReady() || projectRenderBlocked
+        || !resourcesDrawn || frame !== lastVisualFrame || frame.projectGeneration !== projectGeneration
+        || !renderScene || geometryRevisionTracker.pendingIds().length) return false;
+      const emptyDocument = canonicalMeshReady && canonicalCountryFeatures().length === 0;
+      if ((!mesh || surfacePresentation.quality === 'pending') && !emptyDocument) return false;
+      gpuRecoveryFrameEvidence = { ticket, frame, scene: renderScene, sceneRevision: lastRenderSceneRevision,
+        context: renderDeviceContextRevision, target: mapTargetKey(frame, { terrainTargetKey: '' }) };
+      return true;
+    }
+
+    function commitGpuRecoveryFrame(frame) {
+      if (disposed) return false;
+      if (gpuRecoveryFrameEvidence?.fallback) return commitCanvasRecoveryFrame(frame);
+      const evidence = gpuRecoveryFrameEvidence;
+      if (!evidence || evidence.frame !== frame || frame !== lastVisualFrame || !isWebGlRenderer()
+        || webglContextLost || projectRenderBlocked || !sharedGpuPassesReady()
+        || evidence.context !== renderDeviceContextRevision || frame.projectGeneration !== projectGeneration
+        || evidence.scene !== renderScene || evidence.sceneRevision !== lastRenderSceneRevision
+        || evidence.target !== mapTargetKey(frame, { terrainTargetKey: '' })
+        || !gpuRecovery.complete(evidence.ticket)) return false;
+      cancelGpuRecoveryPresentation();
+      updateRendererStatus(`${rendererName()} · GPU 실시간`);
+      setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
+      rendererUi.onContextStateChange?.('restored');
+      return true;
+    }
+
+    async function waitForGpuDevice(generation) {
+      // Source/mesh preparation may wait for a usable device, never for first pixels.
+      // Completion/fallback settles this waiter independently of the document queue.
+      if (rendererMode === 'webgl-recovering') {
+        try { await gpuRecovery.waitForDevice(); }
+        catch (error) { if (disposed) return false; throw error; }
+      }
+      return !disposed && Number(generation) === projectGeneration && !['webgl-recovering', 'failed'].includes(rendererMode);
+    }
+
+    function requestGpuRecovery() {
+      const pending = gpuRecovery.request();
+      pending.catch(error => {
+        if (!disposed && gpuRecovery.snapshot().active) reportOperationError(error, '지도 GPU 복구를 완료하지 못했습니다.', 'PL-GPU-002', 0);
+      });
+      return pending;
+    }
+
+    function invalidateGpuRecoveryInputs(reason) {
+      gpuRecoveryInputRevision++;
+      gpuRecoveryFrameEvidence = null;
+      const pending = gpuRecovery.supersede(reason);
+      pending.catch(error => {
+        if (!disposed && gpuRecovery.snapshot().active) reportOperationError(error, '지도 GPU 복구를 완료하지 못했습니다.', 'PL-GPU-002', 0);
+      });
     }
 
     async function handleWebGlContextRestored(event) {
-      if (disposed || event.currentTarget !== canvas || !webglContextLost) return;
-      const restoringCanvas = canvas, restoringGeneration = projectGeneration;
-      lifecycle.cancelTimeout(webglRecoveryTimer);
-      try {
-        gl = canvas.getContext(webGlContextKind);
-        if (!gl) throw new Error(`복구된 ${rendererName()} 컨텍스트를 가져올 수 없습니다.`);
-        if (glVersion === 1) {
-          uintIndexExtension = gl.getExtension('OES_element_index_uint');
-          if (!uintIndexExtension) throw new Error('WebGL1 32비트 인덱스를 지원하지 않습니다.');
-          instancedExtension = gl.getExtension('ANGLE_instanced_arrays');
-          if (!instancedExtension) throw new Error('WebGL1 인스턴스 강·호수 렌더링을 지원하지 않습니다.');
-        }
-        renderDeviceContextRevision += 1;
-        createWebGlResources();
-        renderDevice = createRenderDevice({
-          gl,
-          canvas,
-          version: glVersion,
-          contextRevision: renderDeviceContextRevision,
-        });
-        initializeSharedGpuPasses();
-        const restoringContext = renderDeviceContextRevision;
-        for (const [quality, entry] of meshVariants) {
-          const resources = await stageMeshResources(entry.mesh);
-          if (disposed || canvas !== restoringCanvas || projectGeneration !== restoringGeneration
-            || renderDeviceContextRevision !== restoringContext || meshVariants.get(quality) !== entry) {
-            disposeMeshResources(resources);
-            return;
+      if (disposed || event.currentTarget !== canvas || !webglContextLost || rendererMode !== 'webgl-recovering') return;
+      // A duplicate restore event must not replace the in-flight device.
+      if (!renderDevice) {
+        try {
+          gl = canvas.getContext(webGlContextKind);
+          if (!gl || gl.isContextLost()) throw new Error(`복구된 ${rendererName()} 컨텍스트를 가져올 수 없습니다.`);
+          if (glVersion === 1) {
+            uintIndexExtension = gl.getExtension('OES_element_index_uint');
+            if (!uintIndexExtension) throw new Error('WebGL1 32비트 인덱스를 지원하지 않습니다.');
+            instancedExtension = gl.getExtension('ANGLE_instanced_arrays');
+            if (!instancedExtension) throw new Error('WebGL1 인스턴스 강·호수 렌더링을 지원하지 않습니다.');
           }
-          disposeMeshResources(entry.resources);
-          entry.resources = resources;
-          if (entry.dependencies) entry.dependencies = { ...entry.dependencies, context: [gl, restoringContext] };
+          renderDeviceContextRevision++;
+          createWebGlResources();
+          renderDevice = createRenderDevice({ gl, canvas, version: glVersion, contextRevision: renderDeviceContextRevision });
+          initializeSharedGpuPasses();
+        } catch (error) {
+          console.error('[PL-GPU-002]', error);
+          activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.');
+          return;
         }
-        if (disposed || canvas !== restoringCanvas || projectGeneration !== restoringGeneration) return;
-        activateMeshVariant(activeMeshQuality, { renderFrame: false });
-        webglContextLost = false;
-        rendererMode = glVersion === 2 ? 'webgl2' : 'webgl1';
-        if (overrideMesh) setOverrideMesh(overrideMesh, { stagedResources: await stageMeshResources(overrideMesh) });
-        else renderLatestVisualFrame();
-        updateRendererStatus(`${rendererName()} · GPU 실시간`);
-        setActionStatus('지도 GPU를 복구했습니다.', 'success', 2200);
-        rendererUi.onContextStateChange?.('restored');
-      } catch (error) {
-        if (disposed || canvas !== restoringCanvas || projectGeneration !== restoringGeneration || error.name === 'AbortError') return;
-        webglContextLost = false;
-        console.error('[PL-GPU-002]', error);
-        activateCanvasFallback('WebGL 컨텍스트를 복구하지 못했습니다.');
       }
+      await requestGpuRecovery();
     }
 
     function initWebGl(version) {
@@ -1818,12 +2162,11 @@ export function createGpuMapRenderer(deps) {
     }
 
     function disposeMeshResources(resources) {
-      if (!gl || !resources) return;
-      if (glVersion === 2) {
-        if (resources.fillVao) lifecycle.release(resources.fillVao);
-      }
-      for (const buffer of [resources.positionBuffer, resources.countryBuffer, resources.fillIndexBuffer]) {
-        if (buffer) lifecycle.release(buffer);
+      if (!resources) return;
+      // lifecycle retains the creating GL context for every handle. The current
+      // renderer may already be Canvas or a newer WebGL generation.
+      for (const key of ['fillVao', 'positionBuffer', 'countryBuffer', 'fillIndexBuffer']) {
+        if (resources[key]) lifecycle.release(resources[key]);
       }
     }
 
@@ -1876,6 +2219,7 @@ export function createGpuMapRenderer(deps) {
 
     async function activateBuiltinMeshBaseline({ projectGeneration: requestedGeneration = projectGeneration, onStaged = null } = {}) {
       if (Number(requestedGeneration) !== projectGeneration || !builtinMeshBaseline?.mesh) return false;
+      if (rendererMode === 'webgl-recovering' && !await waitForGpuDevice(requestedGeneration)) return false;
       projectRenderBlocked = false;
       invalidateGpuFrame('accepted-project-background');
       if (!isWebGlRenderer()) {
@@ -1962,7 +2306,9 @@ export function createGpuMapRenderer(deps) {
       return resources;
     }
 
-    async function stageMeshResources(nextMesh, { projectGeneration: generation = projectGeneration, contextGeneration = renderDeviceContextRevision, signal } = {}) {
+    async function stageMeshResources(nextMesh, { projectGeneration: generation = projectGeneration, contextGeneration = renderDeviceContextRevision,
+      signal, allowDuringInteraction = gpuRecovery.snapshot().active, onProgress = null } = {}) {
+      signal?.throwIfAborted();
       if (!gl) return null;
       if (!uploadScheduler) throw new Error('GPU upload scheduler is not connected');
       const uploadGl = gl;
@@ -1972,9 +2318,10 @@ export function createGpuMapRenderer(deps) {
         ['countryBuffer', nextMesh.countryIndices, gl.ARRAY_BUFFER, glVersion !== 2],
         ['fillIndexBuffer', nextMesh.triangleIndices, gl.ELEMENT_ARRAY_BUFFER, false],
       ].map(([key, data, target, convert]) => ({ key, data, target, convert, offset: 0 }));
-      return uploadScheduler.enqueueUpload({
-        key: `mesh:${++stagingSequence}`, projectGeneration: generation, contextGeneration, priority: 100,
-        dispose: () => { for (const task of tasks) if (resources[task.key]) lifecycle.release(resources[task.key]); },
+      const scheduler = uploadScheduler, key = `mesh:${++stagingSequence}`;
+      const pending = scheduler.enqueueUpload({
+        key, projectGeneration: generation, contextGeneration, priority: 100, allowDuringInteraction,
+        dispose: () => disposeMeshResources(resources),
         step: ({ byteBudget }) => {
           if (signal?.aborted || generation !== projectGeneration || contextGeneration !== renderDeviceContextRevision || gl !== uploadGl || gl.isContextLost()) throw Object.assign(new Error('Stale mesh staging'), { name: 'AbortError' });
           const task = tasks.find(item => !item.done);
@@ -1993,12 +2340,24 @@ export function createGpuMapRenderer(deps) {
             gl.bindBuffer(task.target, resources[task.key]);
             const bytes = Math.min(length - task.offset, Math.floor(byteBudget / 4) * 4);
             const chunk = task.convert ? Float32Array.from(task.data.subarray(task.offset / 4, (task.offset + bytes) / 4)) : new Uint8Array(task.data.buffer, task.data.byteOffset + task.offset, bytes);
-            if (bytes) gl.bufferSubData(task.target, task.offset, chunk);
+            if (bytes) {
+              gl.bufferSubData(task.target, task.offset, chunk);
+              if (onProgress) onProgress(bytes);
+              else {
+                const ticket = gpuRecovery.currentTicket();
+                if (ticket?.identity.context === contextGeneration) gpuRecovery.noteProgress(ticket, { bytes });
+              }
+            }
             task.offset += bytes; task.done = task.offset === length;
             return { bytes };
           } finally { gl.bindBuffer(gl.ARRAY_BUFFER, oldArray); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, oldElement); }
         },
       });
+      const abort = () => scheduler.cancelKey(key);
+      signal?.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted) abort();
+      try { return await pending; }
+      finally { signal?.removeEventListener('abort', abort); }
     }
 
     function activateMeshVariant(quality, { renderFrame = true } = {}) {
@@ -2044,6 +2403,7 @@ export function createGpuMapRenderer(deps) {
         previewActivationAfterCanonical += 1;
         return false;
       }
+      invalidateGpuRecoveryInputs('base-mesh-replaced');
       if (!preserveOtherVariants) {
         for (const entry of meshVariants.values()) disposeMeshEntry(entry);
         meshVariants.clear();
@@ -2066,6 +2426,7 @@ export function createGpuMapRenderer(deps) {
       prewarmCountryStrokeResources();
       projectRenderBlocked = false;
       sceneColorCache.invalidate('mesh-ready');
+      syncGpuRecoveryAvailability();
     }
 
     function promoteCanonicalMesh({ frameId = 0 } = {}) {
@@ -2085,6 +2446,7 @@ export function createGpuMapRenderer(deps) {
           nextMesh.metadataCountryIds || meshCountryIds,
         );
       }
+      if (overrideMesh !== nextMesh) invalidateGpuRecoveryInputs('override-mesh-replaced');
       overrideMesh = nextMesh;
       // An override changes the pixels owned by the base scene.  Invalidate
       // the scene cache before uploading (and also when the override is
@@ -2095,6 +2457,11 @@ export function createGpuMapRenderer(deps) {
       countryStrokePacketCache.override.mesh = null;
       countryStrokePacketCache.override.resource = null;
       if (!gl || !isWebGlRenderer() || !nextMesh) {
+        const previous = { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer,
+          fillIndexBuffer: overrideFillIndexBuffer, fillVao: overrideFillVao };
+        bindOverrideGpuResources(nextMesh, null);
+        disposeMeshResources(previous);
+        disposeMeshResources(stagedResources);
         if (renderFrame) renderLatestVisualFrame();
         return;
       }
@@ -2105,11 +2472,10 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.countryPatchUploadBytes += uploadBytes;
       performanceMetrics.lastCountryPatchUploadBytes = uploadBytes;
       if (!stagedResources) throw new Error('Override mesh requires staged GPU resources');
-      for (const buffer of [overridePositionBuffer, overrideCountryBuffer, overrideFillIndexBuffer]) if (buffer) lifecycle.release(buffer);
-      if (glVersion === 2) { if (overrideFillVao) lifecycle.release(overrideFillVao); }
-      overridePositionBuffer = stagedResources.positionBuffer; overrideCountryBuffer = stagedResources.countryBuffer;
-      overrideFillIndexBuffer = stagedResources.fillIndexBuffer;
-      overrideFillVao = stagedResources.fillVao;
+      const previous = { positionBuffer: overridePositionBuffer, countryBuffer: overrideCountryBuffer,
+        fillIndexBuffer: overrideFillIndexBuffer, fillVao: overrideFillVao };
+      bindOverrideGpuResources(nextMesh, stagedResources);
+      disposeMeshResources(previous);
       updatePalette();
       prewarmCountryStrokeResources();
       if (renderFrame) renderLatestVisualFrame();
@@ -2209,6 +2575,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     function applyCountryPatch(rawRequest, { presentation = 'replace-scene' } = {}) {
+      if (rendererMode === 'webgl-recovering') {
+        const generation = projectGeneration;
+        return waitForGpuDevice(generation).then(ready => ready ? applyCountryPatch(rawRequest, { presentation }) : false);
+      }
       const { ids, features, removedIds } = normalizeCountryPatchRequest(rawRequest);
       if (!ids.length) return Promise.resolve(true);
       const qualityGate = decideCountryPatchPresentation({
@@ -2363,6 +2733,7 @@ export function createGpuMapRenderer(deps) {
       countryOverrideIds.clear();
       deferredCountryPatchIds.clear();
       overrideFeatureSnapshots.clear();
+      if (overrideMesh) invalidateGpuRecoveryInputs('override-cleared');
       overrideMesh = null;
       // Clearing an override removes geometry from the base scene as well as
       // from the interaction state.  Drop the cached scene before the next
@@ -2397,6 +2768,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function resetProjectRenderState({ generation = null, presentation = 'default', isCurrent = () => true, onPresented = () => {} } = {}) {
+      cancelSharedGpuInitialization('project-reset', { preserveReady: true });
+      invalidateGpuRecoveryInputs('project-reset');
       canonicalPromotionError = '';
       backgroundPresentedKey = ''; countriesPublishedGeneration = -1;
       previewSurfaceFeatures = null; previewDisplayCertificate = null; previewCertificateRevision = ''; previewLandPackets.clear();
@@ -2465,6 +2838,8 @@ export function createGpuMapRenderer(deps) {
       // Terrain belongs to its data/context identity, not the document generation.
       // Keep the previously committed pixels in place while a new project is
       // prepared.  They are replaced only by the prepared canonical frame.
+      if (renderDevice && gl && !gl.isContextLost()) initializeSharedGpuPasses();
+      syncGpuRecoveryAvailability();
       return projectGeneration;
     }
 
@@ -2512,6 +2887,7 @@ export function createGpuMapRenderer(deps) {
       projectGeneration: taskProjectGeneration = projectGeneration,
     } = {}) {
       if (Number(taskProjectGeneration) !== projectGeneration) return Promise.resolve(false);
+      if (rendererMode === 'webgl-recovering' && !await waitForGpuDevice(taskProjectGeneration)) return false;
       // Every accepted request supersedes earlier deliveries, including a
       // synchronous cache hit after a different shape began preparing.
       const task = geometryRevisionTracker.beginTask(geometryRevision);
@@ -4397,6 +4773,7 @@ export function createGpuMapRenderer(deps) {
 
     function renderFrame(visualFrame, { interactionOnly = false } = {}) {
       if (disposed) return null;
+      syncGpuRecoveryAvailability();
       if (canvasWorkerNeedsRestart && !projectRenderBlocked) activateCanvasFallback(fallbackReason, { scheduleFrame: false });
       if (!isMapVisualFrame(visualFrame)) throw new TypeError('renderFrame() requires a MapVisualFrame.');
       currentRenderRevision = Math.max(currentRenderRevision, Number(visualFrame.viewRevision || 0));
@@ -4435,6 +4812,9 @@ export function createGpuMapRenderer(deps) {
     }
 
     function failCanvasWorker(message) {
+      if (disposed || rendererMode !== 'canvas-worker') return;
+      const ticket = gpuRecovery.fallbackTicket();
+      try {
       const preserveCanvas = temporalPending();
       failTemporalPresentation(new Error(`Canvas temporal presentation failed: ${message}`));
       console.warn('Canvas worker failed', message);
@@ -4442,7 +4822,7 @@ export function createGpuMapRenderer(deps) {
       canvasWorker = null;
       rendererMode = 'canvas2d';
       if (!preserveCanvas) {
-        replaceCanvas();
+        replaceCanvas({ preserveRecovery: true });
         resize();
         ctx2d = canvas.getContext('2d', { alpha: true });
         if (!ctx2d) throw new Error('Canvas 대체 렌더러도 사용할 수 없습니다.');
@@ -4453,10 +4833,16 @@ export function createGpuMapRenderer(deps) {
       // The first fallback paint must share the domain's presentation boundary
       // so it also retires recovery SVG emphasis, even without pending geometry.
       if (lastVisualFrame) invalidateGpuFrame('canvas-fallback-ready');
+      if (ticket) gpuRecovery.fallbackUsable(ticket);
+      syncGpuRecoveryAvailability();
+      } catch (error) {
+        if (!ticket || !gpuRecovery.failFallback(ticket, error)) failGpuFallback(error);
+      }
     }
 
     function receiveCanvasWorkerMessage(event) {
       const message = event.data || {};
+      if (disposed || rendererMode !== 'canvas-worker') { message.bitmap?.close?.(); return; }
       if (message.projectGeneration != null && Number(message.projectGeneration) !== projectGeneration) { message.bitmap?.close?.(); return; }
       if (message.type === 'ready') {
         postCanvasWorkerMessage({ type: 'hydro-edits', revision: hydroPreparation.editRevision, features: state.hydroEdits || [] });
@@ -4541,22 +4927,32 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
-    function activateCanvasFallback(reason, { scheduleFrame = true } = {}) {
-      if (disposed) return;
+    function activateCanvasFallback(reason, { scheduleFrame = true, recoveryTicket = null } = {}) {
+      if (disposed) return false;
+      if (canvasWorkerNeedsRestart && rendererMode === 'canvas-worker') {
+        canvasWorkerNeedsRestart = false;
+        failCanvasWorker(reason);
+        return true;
+      }
+      const ticket = gpuRecovery.beginFallback(reason, recoveryTicket);
+      if (!ticket) return false;
+      try {
+      cancelGpuRecoveryPresentation();
+      cancelSharedGpuInitialization('canvas-fallback');
       canvasWorkerNeedsRestart = false;
       canvasSentGeometry.clear();
       canvasLastCountryDependencies = null;
       const rawReason = String(reason || '');
       if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[PL-GPU-005]', rawReason);
       fallbackReason = isSafeKoreanErrorMessage({ message: rawReason }) ? rawReason : 'GPU 렌더러를 사용할 수 없습니다.';
-      lifecycle.cancelTimeout(webglRecoveryTimer);
+      uploadScheduler?.cancelAll();
       webglContextLost = false;
       canvasWorker?.terminate();
       canvasWorker = null;
       if (!countryBoundaryWorker && !countrySharedBoundary) prepareCountrySharedBoundary({ replace: true });
       if (canvasWorkerUrl) URL.revokeObjectURL(canvasWorkerUrl);
       canvasWorkerUrl = null;
-      if (canvas) replaceCanvas();
+      if (canvas) replaceCanvas({ preserveRecovery: true });
       if (typeof Worker === 'function' && typeof OffscreenCanvas === 'function') {
         try {
           rendererMode = 'canvas-worker';
@@ -4576,20 +4972,28 @@ export function createGpuMapRenderer(deps) {
           if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
           const initMessage = canvasWorkerInitMessage();
           initMessage.features = canvasCountryInputs();
-          canvasWorker.onmessage = receiveCanvasWorkerMessage;
-          canvasWorker.onerror = event => failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
+          const sourceWorker = canvasWorker;
+          canvasWorker.onmessage = event => {
+            if (disposed || canvasWorker !== sourceWorker) { event.data?.bitmap?.close?.(); return; }
+            receiveCanvasWorkerMessage(event);
+          };
+          canvasWorker.onerror = event => {
+            if (!disposed && canvasWorker === sourceWorker) failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
+          };
           postCanvasWorkerMessage(initMessage);
           if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
           else connectHydroCanvasWorkers();
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
           setActionStatus(`${meshQualityLabel()} Canvas Worker로 전환했습니다.`, 'working', 4200);
           window.__PANDOLAB_GPU_METRICS__ = getStats();
-          return;
+          gpuRecovery.fallbackUsable(ticket);
+          syncGpuRecoveryAvailability();
+          return true;
         } catch (error) {
           console.warn('Canvas worker unavailable', error);
           canvasWorker?.terminate();
           canvasWorker = null;
-          replaceCanvas();
+          replaceCanvas({ preserveRecovery: true });
         }
       }
       rendererMode = 'canvas2d';
@@ -4598,8 +5002,15 @@ export function createGpuMapRenderer(deps) {
       updateRendererStatus(`Canvas · ${meshQualityLabel()} 대체`, fallbackReason);
       setActionStatus(`${meshQualityLabel()} Canvas로 전환했습니다.`, 'working', 4200);
       if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
+      gpuRecovery.fallbackUsable(ticket);
+      syncGpuRecoveryAvailability();
       if (lastVisualFrame && scheduleFrame) invalidateGpuFrame('canvas-fallback-ready');
       window.__PANDOLAB_GPU_METRICS__ = getStats();
+      return true;
+      } catch (error) {
+        gpuRecovery.failFallback(ticket, error);
+        return false;
+      }
     }
 
     function ensurePickTarget() {
@@ -4785,6 +5196,7 @@ export function createGpuMapRenderer(deps) {
 
     async function replaceBuiltInMesh({ meshBuffer, preparedStroke, spatialBlocks, features, countryPatchIds = [], onStaged = null, quality = 'canonical', builtinIdentity = null, projectGeneration: requestedGeneration = projectGeneration }) {
       if (disposed || Number(requestedGeneration) !== projectGeneration) return false;
+      if (rendererMode === 'webgl-recovering' && !await waitForGpuDevice(requestedGeneration)) return false;
       projectRenderBlocked = false;
       invalidateGpuFrame('accepted-project-background');
       const startupPatch = normalizeCountryPatchRequest(countryPatchIds);
@@ -4942,12 +5354,12 @@ export function createGpuMapRenderer(deps) {
 
     function setSelectionPass(nextPass) {
       if (selectionPass === nextPass) return !!selectionPass;
+      cancelSharedGpuInitialization('selection-pass-replaced');
+      invalidateGpuRecoveryInputs('selection-pass-replaced');
       selectionPass?.dispose?.();
       selectionPass = nextPass || null;
       lastSelectionRenderResult = null;
-      if (selectionPass && renderDevice && isWebGlRenderer()) {
-        selectionPass.initialize?.(renderDevice, { strokeRenderer, polygonPass: polygonOverlayPass });
-      }
+      if (renderDevice && gl && !gl.isContextLost()) initializeSharedGpuPasses();
       invalidateGpuInteraction('selection-pass');
       return !!selectionPass;
     }
@@ -5031,6 +5443,7 @@ export function createGpuMapRenderer(deps) {
         renderScene.physical?.hydroStyleRevision,
       ].join(':') : '';
       renderScene = nextScene || null;
+      syncGpuRecoveryAvailability();
       renderInteractionState = renderScene?.interaction || Object.freeze({ selectionPacket: null, genericFillItems: Object.freeze([]) });
       lastRenderSceneRevision = Number(renderScene?.revision || 0);
       const nextBaseSignature = renderScene ? [
@@ -5335,6 +5748,7 @@ export function createGpuMapRenderer(deps) {
         canvasStyleRevision, canvasDisplayedStyleRevision,
         canvasWorkerHasPendingFrame: !!canvasWorker?.hasPendingFrame,
         webglContextLost,
+        gpuRecovery: gpuRecovery.snapshot(),
         webGlVersion: glVersion || null,
         forcedRenderer: forcedRenderer || null,
         fallbackReason,
@@ -5353,6 +5767,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function releaseGpuContext() {
+      cancelSharedGpuInitialization('context-released');
       hydroPreparation.resetGpu();
       terrainPreparation?.reset();
       sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
@@ -5364,6 +5779,9 @@ export function createGpuMapRenderer(deps) {
       presentedStrokeDomains.clear();
       if (disposed) return;
       disposed = true;
+      gpuRecovery.dispose();
+      cancelGpuRecoveryPresentation();
+      cancelSharedGpuInitialization('renderer-disposed');
       projectGeneration += 1; renderDeviceContextRevision += 1;
       temporalCanvas = null;
       temporalPresentation = null;
@@ -5421,15 +5839,18 @@ export function createGpuMapRenderer(deps) {
       getRenderDevice: () => renderDevice,
       getUploadByteBudget: () => renderQuality.uploadBudgetBytes,
       setUploadScheduler: scheduler => {
+        cancelSharedGpuInitialization('upload-scheduler-replaced', { preserveReady: true });
         uploadScheduler?.cancelAll();
         terrainUploadScheduler?.cancelAll();
         hydroUploadScheduler?.cancelAll();
         uploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
-        terrainUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
-        hydroUploadScheduler = scheduler ? createGpuUploadScope(scheduler) : null;
-        strokeRenderer.setUploadScheduler(uploadScheduler);
-        polygonOverlayPass.setUploadScheduler(uploadScheduler);
+        terrainUploadScheduler = scheduler ? observeGpuRecoveryUploads(createGpuUploadScope(scheduler)) : null;
+        hydroUploadScheduler = scheduler ? observeGpuRecoveryUploads(createGpuUploadScope(scheduler)) : null;
+        const sceneUploads = observeGpuRecoveryUploads(uploadScheduler);
+        strokeRenderer.setUploadScheduler(sceneUploads);
+        polygonOverlayPass.setUploadScheduler(sceneUploads);
         if (gl) hydroPreparation.setContext({ gl, version: glVersion, projectGeneration, contextGeneration: renderDeviceContextRevision, scheduler: hydroUploadScheduler });
+        if (renderDevice && gl && !gl.isContextLost()) initializeSharedGpuPasses();
       },
       commitVisualFrame: frame => {
         if (!canPresentVisualFrame(frame)) return;
@@ -5438,6 +5859,7 @@ export function createGpuMapRenderer(deps) {
           temporalCanvas = null;
           temporalPresentation.onPresented();
         }
+        commitGpuRecoveryFrame(frame);
         // Focus owns a camera session. Only explicit navigation, projection
         // change or project replacement releases it; publishing frames does not.
         if (pendingCanonicalCommit?.generation !== projectGeneration || !pendingCanonicalCommit) return;

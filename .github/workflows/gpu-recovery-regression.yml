@@ -1,0 +1,49 @@
+name: Viewer GPU context restoration regression (no deployment)
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/gpu-recovery-regression.yml
+      - tests/browser/gpu-recovery-foreground.spec.mjs
+      - tests/browser/viewer-recovery-acceptance.spec.mjs
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/map-content-presentation.js
+      - tests/unit/gpu-scene-presentation-ownership.test.mjs
+      - shared/frontend/js/modules/gpu-context-recovery.js
+      - tests/unit/gpu-shared-pass-initialization.test.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpu-recovery-focused-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  viewer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: GPU source-level regression
+        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-scene-presentation-ownership.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs
+      - run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/map-content-presentation.js tests/browser/gpu-recovery-foreground.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Viewer real WebGL1 and WebGL2 repeated restoration, document, selection and map pixels
+        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --workers=1 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-recovery-focused-${{ github.sha }}
+          path: |
+            test-results/gpu-foreground-evidence
+            test-results/gpu-recovery-foreground*
+            gpu-viewer-evidence
+          if-no-files-found: warn
+          retention-days: 3
