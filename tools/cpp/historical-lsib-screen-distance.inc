@@ -150,3 +150,61 @@ V mergeLSIBSourceLines(const V& request) {
     }
     auto result=V::obj();result.object["geometries"]=std::move(output);return result;
 }
+
+V prepareLSIBScreenReference(const V& request) {
+    const auto flag=[](const V& value){if(value.kind!=V::Bool)throw std::runtime_error("Explicit LSIB reference mode required");return value.raw=="true";};
+    const bool merge=flag(field(request,"merge")),closed=flag(field(request,"closedRing"));
+    GeometryEngine geos;const auto context=geos.context();std::vector<GeometryEngine::Shape> inputs;
+    for(const auto& item:array(field(request,"geometries"))) {
+        auto line=geos.parse(item);const int type=geos.type(line.get());
+        if(type!=GEOS_LINESTRING&&type!=GEOS_MULTILINESTRING)throw std::runtime_error("LSIB reference source must contain lines");
+        inputs.push_back(std::move(line));
+    }
+    if(inputs.empty()||(!merge&&inputs.size()!=1))throw std::runtime_error("Explicit LSIB reference sources required");
+    GeometryEngine::Shape source;
+    if(merge) {auto united=geos.unaryUnion(inputs);source=geos.own(GEOSLineMerge_r(context,united.get()),"LSIB reference merge");}
+    else source=inputs.front();
+    const int sourceKind=geos.type(source.get());
+    if(sourceKind!=GEOS_LINESTRING&&sourceKind!=GEOS_MULTILINESTRING)throw std::runtime_error("LSIB reference is not linework");
+    const auto parts=geos.parts(source);if(parts.empty())throw std::runtime_error("LSIB reference has no line parts");
+    std::vector<LSIBPoint> result;
+    if(closed) {
+        if(parts.size()!=1||GEOSisRing_r(context,parts.front().get())!=1)
+            throw std::runtime_error("Expected one complete closed reference boundary");
+        result=lsibScreenPoints(geos.coordinates(parts.front().get()));
+    } else {
+        const auto anchors=lsibScreenPoints(field(request,"anchors"));
+        if(anchors.size()!=2)throw std::runtime_error("Two LSIB reference anchors required");
+        std::array<GeometryEngine::Shape,2> anchorPoints={geos.point(anchors[0][0],anchors[0][1]),geos.point(anchors[1][0],anchors[1][1])};
+        std::size_t best=0;double bestScore=0;bool found=false;
+        for(std::size_t i=0;i<parts.size();++i) {
+            double score=0;
+            for(const auto& anchor:anchorPoints){double distance=0;
+                if(!GEOSDistance_r(context,parts[i].get(),anchor.get(),&distance)||!std::isfinite(distance))
+                    throw std::runtime_error("Cannot compare LSIB reference anchors");
+                score+=distance;}
+            if(!found||score<bestScore){found=true;bestScore=score;best=i;}
+        }
+        const auto line=parts[best];
+        const double from=GEOSProject_r(context,line.get(),anchorPoints[0].get()),to=GEOSProject_r(context,line.get(),anchorPoints[1].get());
+        if(!std::isfinite(from)||!std::isfinite(to)||from<0||to<0||from==to)throw std::runtime_error("LSIB reference anchors select no line");
+        const auto pointAt=[&](double distance){
+            auto p=geos.own(GEOSInterpolate_r(context,line.get(),distance),"LSIB reference interpolation");
+            LSIBPoint point{};if(!GEOSGeomGetX_r(context,p.get(),&point[0])||!GEOSGeomGetY_r(context,p.get(),&point[1]))
+                throw std::runtime_error("Cannot read LSIB reference interpolation");return point;
+        };
+        const auto fromPoint=pointAt(from),toPoint=pointAt(to);
+        const bool reverse=from>to;const double start=std::min(from,to),end=std::max(from,to);
+        result.push_back(reverse?toPoint:fromPoint);const auto points=lsibScreenPoints(geos.coordinates(line.get()));
+        double current=0;
+        for(std::size_t i=0;i+1<points.size();++i) {
+            if(start<current&&current<end)result.push_back(points[i]);
+            else if(current>=end)break;
+            const double dx=points[i+1][0]-points[i][0],dy=points[i+1][1]-points[i][1];
+            current+=std::sqrt(dx*dx+dy*dy);
+        }
+        result.push_back(reverse?fromPoint:toPoint);if(reverse)std::reverse(result.begin(),result.end());
+    }
+    auto output=V::arr();for(const auto& point:result){auto row=V::arr();row.array={V::num(point[0]),V::num(point[1])};output.array.push_back(std::move(row));}
+    auto receipt=V::obj();receipt.object["coordinates"]=std::move(output);return receipt;
+}
