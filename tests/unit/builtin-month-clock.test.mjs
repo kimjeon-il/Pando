@@ -74,8 +74,12 @@ test('P3-1 latest request wins even if an older Core-bound operation is suspende
  const old=clock.selectMonth('2025-12');await Promise.resolve();
  assert.deepEqual(started,['2025-12']);
  const middle=clock.selectMonth('2024-12'),latest=clock.selectMonth('2023-12');
+ await Promise.resolve();
+ // In the RED phase the older implementation starts the middle request;
+ // settle it explicitly so the regression fails promptly rather than hanging.
+ pending.get('2024-12')?.finish();
  assert.equal(await middle,false);
- await Promise.resolve();assert.deepEqual(started,['2025-12','2023-12']);
+ assert.deepEqual(started,['2025-12','2023-12']);
  pending.get('2023-12').finish();assert.equal(await latest,true);
  pending.get('2025-12').finish();assert.equal(await old,false);
  assert.deepEqual(commits,['2023-12']);assert.equal(clock.month(),'2023-12');
