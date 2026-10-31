@@ -80,6 +80,7 @@ export async function verifyMapPluginFlow(page,collection,{openGis,saveReopen,to
   // Imported generic lines use the current semantic conversion workflow before
   // their coordinates can be edited through the hydro editor.
   await expect(page.locator('#genericFeatureConvertType')).toHaveValue('river');
+  await expect(page.locator('#convertGenericFeatureBtn')).toHaveText('강으로 변경');
   await clickControl(page,page.locator('#convertGenericFeatureBtn'),touch,touchInput);
   await expect.poll(async()=>(await read()).length,{timeout:stateTimeout}).toBe(collection.features.length-1);
   const readEdited=()=>page.evaluate(()=>window.__pluginReadModel().list('hydro')[0]);

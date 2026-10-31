@@ -1,3 +1,5 @@
+import { genericConversionButtonLabel } from './object-property-presentation.js';
+
 export function createPropertyEditorBindings({
   getElement: $,
   document,
@@ -115,6 +117,7 @@ export function createPropertyEditorBindings({
 
     const syncGenericFeatureConversionFields = () => {
       const target = $('genericFeatureConvertType').value;
+      $('convertGenericFeatureBtn').textContent = genericConversionButtonLabel(target);
       const countryField = $('genericFeatureConvertParentField');
       const distributionField = $('genericFeatureConvertDistributionField');
       const distributionValueField = $('genericFeatureConvertDistributionValueField');
