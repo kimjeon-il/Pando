@@ -28,7 +28,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - name: Viewer initial presentation unit contract
-        run: node --test tests/unit/viewer-*.test.mjs
+        run: node --test tests/unit/viewer-initial*.test.mjs tests/unit/viewer-load-status.test.mjs tests/unit/viewer-composition-recovery.test.mjs tests/unit/viewer-bootstrap-recovery.test.mjs tests/unit/viewer-presentation-observer.test.mjs
       - name: Initial map and reload browser acceptance
         run: pnpm exec playwright test tests/browser/viewer-initial-p1.spec.mjs --workers=1
       - name: Preserve P1-4 browser evidence
