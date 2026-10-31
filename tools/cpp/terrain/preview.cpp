@@ -72,20 +72,31 @@ Bytes compose(const Bytes& in){
 }
 void physicalCompositeStream(){
     while(true){
-        Bytes header(16);std::cin.read(reinterpret_cast<char*>(header.data()),16);const auto count=std::cin.gcount();
+        Bytes header(24);std::cin.read(reinterpret_cast<char*>(header.data()),24);const auto count=std::cin.gcount();
         if(count==0&&std::cin.eof())return;
-        if(count!=16||std::memcmp(header.data(),"PDPCMP02",8)!=0)throw std::invalid_argument("Invalid physical composite header");
-        const auto width=u32(header,8),height=u32(header,12);const std::uint64_t pixels=std::uint64_t(width)*height;
-        if(!width||!height||width>4098||height>4098||pixels>16777216)throw std::invalid_argument("Invalid physical composite dimensions");
-        Bytes input(static_cast<std::size_t>(pixels*8));
+        if(count!=24||std::memcmp(header.data(),"PDPCMP03",8)!=0)throw std::invalid_argument("Invalid physical composite header");
+        const auto width=u32(header,8),height=u32(header,12),north=u32(header,16),south=u32(header,20);
+        const std::uint64_t outWidth=std::uint64_t(width)+2,outHeight=std::uint64_t(height)+2,pixels=outWidth*outHeight;
+        if(!width||!height||width>4096||height>4096||north>1||south>1||pixels>16777216)throw std::invalid_argument("Invalid physical composite dimensions");
+        const std::uint64_t bandHeight=std::uint64_t(height)+north+south,plane=(std::uint64_t(width)+2)*bandHeight;
+        Bytes input(static_cast<std::size_t>(plane*8));
         std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()));
         if(static_cast<std::size_t>(std::cin.gcount())!=input.size())throw std::invalid_argument("Truncated physical composite input");
-        Bytes output(static_cast<std::size_t>(pixels*4));const auto ocean=pixels*3,mask=pixels*6,relief=pixels*7;
-        for(std::uint64_t i=0;i<pixels;++i){const unsigned alpha=input[mask+i];
-            for(unsigned channel=0;channel<3;++channel){const auto at=i*3+channel;
-                const unsigned value=unsigned(input[at])*alpha+unsigned(input[ocean+at])*(255-alpha)+128;
+        Bytes output(static_cast<std::size_t>(pixels*4));
+        const auto sample=[&](std::uint64_t offset,unsigned channels,std::uint64_t x,std::uint64_t y,unsigned channel){
+            const auto sy=std::min<std::uint64_t>(bandHeight-1,y==0?0:std::uint64_t(y-1)+north);
+            const bool borderRow=y==0||y==outHeight-1;
+            if(x==0&&!borderRow)return input[offset+std::uint64_t(width)*bandHeight*channels+sy*channels+channel];
+            if(x==outWidth-1&&!borderRow)return input[offset+(std::uint64_t(width)+1)*bandHeight*channels+sy*channels+channel];
+            const auto sx=std::min<std::uint64_t>(width-1,x==0?0:x-1);
+            return input[offset+(sy*width+sx)*channels+channel];
+        };
+        for(std::uint64_t y=0;y<outHeight;++y)for(std::uint64_t x=0;x<outWidth;++x){const auto i=y*outWidth+x;
+            const unsigned alpha=sample(plane*6,1,x,y,0);
+            for(unsigned channel=0;channel<3;++channel){
+                const unsigned value=unsigned(sample(0,3,x,y,channel))*alpha+unsigned(sample(plane*3,3,x,y,channel))*(255-alpha)+128;
                 output[i*4+channel]=static_cast<unsigned char>((value+(value>>8))>>8);}
-            output[i*4+3]=input[relief+i];}
+            output[i*4+3]=sample(plane*7,1,x,y,0);}
         std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));std::cout.flush();
         if(!std::cout)throw std::runtime_error("Unable to write physical composite");
     }
