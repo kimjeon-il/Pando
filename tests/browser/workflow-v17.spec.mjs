@@ -272,7 +272,10 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), units[0].id);
   // GIS units can have no visible map label/card. Use the existing editor entry.
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.locator('#mobileEditBtn').click();
+  // Selection can open the mobile editor already; the same button toggles it
+  // closed. Enter only when the surface is not currently visible.
+  if (!await page.locator('#editorSurface').isVisible()) await page.locator('#mobileEditBtn').click();
+  await expect(page.locator('#editorSurface')).toBeVisible();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
@@ -380,7 +383,11 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   await expect(page.locator('#modeTaskResults')).toBeHidden();
   await captureLayouts(page, 'merge-review');
   await page.locator('#modeCancelBtn').click();
-  await page.locator('#modeCancelBtn').click();
+  // Cancel asks whether to discard an unapplied merge. The backdrop blocks
+  // the task buttons until the user explicitly resolves this confirmation.
+  await expect(page.locator('#confirmModal')).toBeVisible({ timeout: 10_000 });
+  await page.getByRole('button', { name: '초안 버리기' }).click();
+  await expect(page.locator('#confirmModal')).toBeHidden();
   for (const [button, role] of [['editEntityBorderBtn', '기준 국가'], ['editEntityCoastBtn', '대상 객체']]) {
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#actionsTabBtn').click();

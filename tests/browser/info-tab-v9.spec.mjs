@@ -146,10 +146,15 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await expect(page.locator('#redoBtn')).toBeEnabled();
   await page.locator('#entityNotesInput').fill('비고 변경');
   await page.locator('#entityNotesInput').dispatchEvent('change');
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B').properties.notes)).toBe('비고 변경');
-  await page.locator('#undoBtn').click(); await select('B'); await page.locator('#editorTabBtn').click();
+  const currentNotes = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B')?.properties.notes);
+  await expect.poll(currentNotes, { timeout: 30_000 }).toBe('비고 변경');
+  await page.locator('#undoBtn').click();
+  await expect.poll(currentNotes, { timeout: 30_000 }).toBe('원본 메타데이터 보존');
+  await select('B'); await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNotesInput')).toHaveValue('원본 메타데이터 보존');
-  await page.locator('#redoBtn').click(); await select('B'); await page.locator('#editorTabBtn').click();
+  await page.locator('#redoBtn').click();
+  await expect.poll(currentNotes, { timeout: 30_000 }).toBe('비고 변경');
+  await select('B'); await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNotesInput')).toHaveValue('비고 변경');
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-desktop.png') });
   await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });

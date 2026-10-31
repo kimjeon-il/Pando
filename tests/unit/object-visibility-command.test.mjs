@@ -90,7 +90,7 @@ test('river and lake display info uses only the object kind without built-in sou
 });
 
 test('per-object visibility preserves every master, selection, document checkpoint and whole-project history',async t => {
-  for(const [domain,type,group] of [['territorial','entity','countries'],['hydro','river','hydro'],['hydro','lake','hydro'],
+  for(const [domain,type,group] of [['territorial','entity','objects'],['hydro','river','hydro'],['hydro','lake','hydro'],
     ['distribution','distribution','distributions'],['label','label','labels'],['generic','feature','genericFeatures']]) {
     const refs=[{ domain,type,id: 'a' }],f=await harness(t,refs),masters=structuredClone(f.state.layerVisibility),checkpoint=f.client.state().checkpoint;
     await f.commands.batchSetVisibility();
