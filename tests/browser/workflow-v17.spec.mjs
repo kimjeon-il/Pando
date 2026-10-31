@@ -432,7 +432,30 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await expect(page.locator('#modeTaskName')).toHaveText(title);
     await expect(page.locator('#modeTaskResultsSummary')).toContainText(label + ' 0개');
     await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
+    // An enabled Done button can refer to an earlier completed part. Wait for
+    // the current stroke's C++ draft acknowledgement before clicking it.
+    const editingRevision = () => page.evaluate(() => window.__testEditorTimeline.editing().revision);
+    const awaitFreshHydroDraft = async (previousRevision, partCount) => {
+      await expect.poll(() => page.evaluate(({ previousRevision, partCount }) => {
+        const editing = window.__testEditorTimeline.editing();
+        const multi = window.__testEditorTimeline.state().multiDraft;
+        return editing.revision > previousRevision
+          && editing.reason === 'draft-start'
+          && editing.draft.inputPhase === 'draw'
+          && editing.draft.coords.length === 0
+          && !editing.draft.strokeActive
+          && multi?.parts.length === partCount
+          && !multi.current;
+      }, { previousRevision, partCount }), { timeout: 30_000 }).toBe(true);
+    };
+    const awaitAcceptedHydroStroke = async () => {
+      await expect.poll(() => page.evaluate(() => {
+        const draft = window.__testEditorTimeline.editing().draft;
+        return draft.inputPhase === 'refine' && !draft.strokeActive ? draft.coords.length : 0;
+      }), { timeout: 30_000 }).toBeGreaterThanOrEqual(3);
+    };
     await draw(page, 0, tool === 'lake');
+    await awaitAcceptedHydroStroke();
     const vertices = page.locator('g.draft-vertex');
     // Stroke sampling and DOM handle rendering are asynchronous. Count only
     // after the expected draft handles have been admitted.
@@ -447,15 +470,21 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(1);
     await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled();
+    const beforeAddRevision = await editingRevision();
     await page.locator('#multiDrawnAddBtn').click();
+    await awaitFreshHydroDraft(beforeAddRevision, 1);
     await draw(page, 0.05, tool === 'lake', true);
+    await awaitAcceptedHydroStroke();
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(2);
     await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
+    const beforeUndoRevision = await editingRevision();
     await page.locator('#multiDrawnUndoBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(0);
+    await awaitFreshHydroDraft(beforeUndoRevision, 0);
     try {
       await draw(page, 0, tool === 'lake');
+      await awaitAcceptedHydroStroke();
     } catch (error) {
       const diagnosis = await page.evaluate(() => {
         const state = window.__testEditorTimeline?.state();

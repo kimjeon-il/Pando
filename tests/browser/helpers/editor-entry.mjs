@@ -20,7 +20,7 @@ export async function gotoEditor(page, url, options) {
       const anchor = 'if (onComposed) await onComposed(';
       if (!source.includes(anchor)) throw new Error('Editor composition test boundary is missing.');
       await route.fulfill({ contentType: 'text/javascript', body: source.replace(anchor,
-        'window.__testEditorTimeline=Object.freeze({month:()=>domainAssembly.timelineMonth,setMonth:month=>domainAssembly.setTimelineMonth(month),state:()=>projectSession.state});' + anchor) });
+        'window.__testEditorTimeline=Object.freeze({month:()=>domainAssembly.timelineMonth,setMonth:month=>domainAssembly.setTimelineMonth(month),state:()=>projectSession.state,editing:()=>domainAssembly.editingDomain.snapshot()});' + anchor) });
     });
     timelinePages.add(page);
   }
