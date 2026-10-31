@@ -325,19 +325,6 @@ def line_parts(line):
     return list(line.geoms) if line.geom_type == 'MultiLineString' else [line]
 
 
-def line_from_junction(line, junction):
-    matches = []
-    for part in line_parts(line):
-        points = coordinates(part)
-        if Point(points[0]).distance(Point(junction)) < 1e-11:
-            matches.append(LineString(points))
-        elif Point(points[-1]).distance(Point(junction)) < 1e-11:
-            matches.append(LineString(list(reversed(points))))
-    if len(matches) != 1:
-        raise ValueError('Expected one boundary branch at the reviewed junction')
-    return matches[0]
-
-
 def join_paths(*paths):
     result = list(paths[0])
     for points in paths[1:]:
@@ -348,70 +335,24 @@ def join_paths(*paths):
 
 
 def repair_tripoint_boundary(geometries, references, pair, third):
-    pair = tuple(sorted(pair))
-    if set(geometries) != {*pair, third}:
-        raise ValueError('A reviewed tripoint repair requires exactly three countries')
-    shared = extract_shared_chains(geometries)
-    old = shared[pair]
-    reference = references[pair]
-    if old.geom_type != 'LineString' or reference.geom_type != 'LineString' or old.is_ring:
-        raise ValueError('Reviewed target must be one open boundary chain')
-    if not reference.is_simple:
-        raise ValueError('Reference section self-intersects')
-    old_points, master = coordinates(old), coordinates(reference)
-    direct = sum(Point(old_points[i]).distance(Point(master[i])) for i in (0, -1))
-    reverse = sum(Point(old_points[i]).distance(Point(master[-1-i])) for i in (0, -1))
-    if direct == reverse:
-        raise ValueError('Ambiguous reviewed junction correspondence')
-    if reverse < direct:
-        master.reverse()
-    derivative = coordinates(LineString(master).simplify(SIMPLIFY_DEGREES))
-    old_junctions, junctions = [old_points[0], old_points[-1]], [master[0], master[-1]]
-    adjacent, sections = {}, [{'countries': pair, 'old_length_degrees': old.length,
-        'source_length_degrees': reference.length, 'master_vertices': len(master),
-        'derived_vertices': len(derivative), 'anchors': junctions,
-        'simplification_bound_px': SIMPLIFY_DEGREES * SCALE}]
-    for index, (old_junction, junction) in enumerate(zip(old_junctions, junctions)):
-        for code in pair:
-            other_pair = tuple(sorted((code, third)))
-            old_branch = line_from_junction(shared[other_pair], old_junction)
-            source_branch = line_from_junction(references[other_pair], junction)
-            anchors = [point for point in intersection_anchors(old_branch.intersection(source_branch))
-                       if old_branch.project(point) > 1e-11 and source_branch.project(point) > 1e-11]
-            if not anchors:
-                raise ValueError(f'No safe outer anchor for {other_pair} junction {index}')
-            anchor = min(anchors, key=old_branch.project)
-            endpoint = (anchor.x, anchor.y)
-            retained = coordinates(substring(old_branch, 0, old_branch.project(anchor)))
-            detailed = substring(source_branch, 0, source_branch.project(anchor))
-            replacement = coordinates(detailed.simplify(SIMPLIFY_DEGREES))
-            retained[0], retained[-1] = old_junction, endpoint
-            replacement[0], replacement[-1] = junction, endpoint
-            if not LineString(replacement).is_simple:
-                raise ValueError('Reference junction branch self-intersects')
-            adjacent[index, code] = (retained, replacement)
-            sections.append({'countries': other_pair, 'junction': index,
-                'old_length_degrees': old_branch.project(anchor), 'source_length_degrees': detailed.length,
-                'master_vertices': len(detailed.coords), 'derived_vertices': len(replacement),
-                'anchors': [junction, endpoint], 'simplification_bound_px': SIMPLIFY_DEGREES * SCALE})
-    patches = {code: [] for code in geometries}
-    for code in pair:
-        first_old, first_new = adjacent[0, code]
-        last_old, last_new = adjacent[1, code]
-        patches[code].append({'old': join_paths(list(reversed(first_old)), old_points, last_old),
-            'replacement': join_paths(list(reversed(first_new)), derivative, last_new)})
-    for index in (0, 1):
-        a_old, a_new = adjacent[index, pair[0]]
-        b_old, b_new = adjacent[index, pair[1]]
-        patches[third].append({'old': join_paths(list(reversed(a_old)), b_old),
-            'replacement': join_paths(list(reversed(a_new)), b_new)})
-    result = apply_country_patches(geometries, patches)
-    a, b = (shape(result[code]) for code in pair)
-    if not a.boundary.intersection(b.boundary).equals(LineString(derivative)):
-        raise ValueError('Repaired countries do not share exactly the reviewed target boundary')
-    for junction in junctions:
-        if any(not shape(geometry).boundary.covers(Point(junction)) for geometry in result.values()):
-            raise ValueError('Repaired countries disagree on the tripoint junction')
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'geometries': geometries, 'references': [
+        {'countries': codes, 'geometry': mapping(line)} for codes, line in references.items()],
+        'pair': pair, 'third': third}
+    result = subprocess.run(['node', str(script), '--tripoint-stream'],
+                            input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('LSIB tripoint repair failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    if isinstance(receipt.get('error'), str):
+        raise ValueError(receipt['error'])
+    result, sections = receipt.get('geometries'), receipt.get('sections')
+    if not isinstance(result, dict) or set(result) != set(geometries) or not isinstance(sections, list) or len(sections) != 5:
+        raise RuntimeError('Invalid LSIB tripoint repair receipt')
+    for section in sections:
+        section['countries'] = tuple(section['countries'])
     return result, sections
 
 
