@@ -508,6 +508,19 @@ V prepareLSIBCoast(const V& request){
         auto receipt=V::obj();receipt.object["geometries"]=std::move(result);receipt.object["sections"]=std::move(sections);receipt.object["review"]=std::move(review);return receipt;
     }catch(const LSIBCoastRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
 }
+V unionLSIBLines(const V& request){
+    const auto& input=array(field(request,"geometries"));if(input.empty()||input.size()>10000)throw std::runtime_error("Explicit LSIB source lines required");
+    GeometryEngine geos;std::vector<GeometryEngine::Shape> lines;lines.reserve(input.size());
+    for(const auto& value:input){auto line=geos.parse(value);const auto kind=geos.type(line.get());
+        if(kind!=GEOS_LINESTRING&&kind!=GEOS_MULTILINESTRING)throw std::runtime_error("LSIB source must be lineal");lines.push_back(std::move(line));}
+    auto combined=geos.unaryUnion(lines),merged=geos.own(GEOSLineMerge_r(geos.context(),combined.get()),"LSIB union line merge");
+    const auto kind=geos.type(merged.get());auto geometry=V::obj();
+    if(kind==GEOS_LINESTRING){geometry.object["type"]=V::str("LineString");geometry.object["coordinates"]=geos.coordinates(merged.get());}
+    else if(kind==GEOS_MULTILINESTRING){geometry.object["type"]=V::str("MultiLineString");auto coordinates=V::arr();
+        for(const auto& line:geos.parts(merged))coordinates.array.push_back(geos.coordinates(line.get()));geometry.object["coordinates"]=std::move(coordinates);}
+    else throw std::runtime_error("Invalid LSIB merged source line");
+    auto result=V::obj();result.object["geometry"]=std::move(geometry);return result;
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;

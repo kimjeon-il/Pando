@@ -33,6 +33,16 @@ export async function selectLSIBDisplay(geometry,anchors,reference,options={}){
   const result=await nativeRequest('--select-lsib-display',{geometry,anchors,reference},options);
   validateLine(result?.coordinates);return result.coordinates;
 }
+export async function mergeLSIBUnion(geometries,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(geometries)||!geometries.length||geometries.length>10000||
+    geometries.some(g=>!g||!['LineString','MultiLineString'].includes(g.type)||!Array.isArray(g.coordinates)))
+    throw Error('Explicit LSIB source lines required');
+  const result=await nativeRequest('--union-lsib-lines',{geometries},options),geometry=result?.geometry;
+  if(!geometry||!['LineString','MultiLineString'].includes(geometry.type)||!Array.isArray(geometry.coordinates))
+    throw Error('Invalid LSIB source union receipt');
+  return geometry;
+}
 export async function mergeLSIBLines(geometries,options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||geometries.length>10000)throw Error('Explicit LSIB line geometries required');

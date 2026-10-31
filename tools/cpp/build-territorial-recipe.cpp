@@ -711,6 +711,10 @@ public:
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--union-lsib-lines") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<unionLSIBLines(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
         if(argc==3 && std::string(argv[1])=="--prepare-lsib-coast") {
             const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
             std::cout<<prepareLSIBCoast(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
