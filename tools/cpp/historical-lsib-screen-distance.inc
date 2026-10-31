@@ -175,8 +175,14 @@ V validateLSIBCountryRepair(const V& request){
         for(auto a=after.begin();a!=after.end();++a)for(auto b=std::next(a);b!=after.end();++b){
             auto overlap=geos.intersection(a->second,b->second);if(geos.area(overlap.get())>1e-10)
                 throw LSIBRepairRejected("Candidate counterpart ownership overlaps");}
+        std::vector<std::string> beforeOrder,afterOrder;
+        for(const auto& value:array(field(request,"beforeOrder")))beforeOrder.push_back(str(value));
+        for(const auto& value:array(field(request,"afterOrder")))afterOrder.push_back(str(value));
+        if(beforeOrder.size()!=before.size()||afterOrder.size()!=after.size()||
+           std::set<std::string>(beforeOrder.begin(),beforeOrder.end()).size()!=before.size()||
+           std::set<std::string>(afterOrder.begin(),afterOrder.end()).size()!=after.size())throw std::runtime_error("Invalid LSIB country order");
         std::vector<GeometryEngine::Shape> beforeParts,afterParts;
-        for(const auto& entry:before)beforeParts.push_back(entry.second);for(const auto& entry:after)afterParts.push_back(entry.second);
+        for(const auto& code:beforeOrder)beforeParts.push_back(before.at(code));for(const auto& code:afterOrder)afterParts.push_back(after.at(code));
         auto beforeUnion=geos.unaryUnion(beforeParts),afterUnion=geos.unaryUnion(afterParts),expected=beforeUnion;
         if(const auto* value=optional(request,"expectedUnion");value&&value->kind!=V::Null)expected=geos.parse(*value);
         auto difference=geos.own(GEOSSymDifference_r(context,expected.get(),afterUnion.get()),"LSIB repair union difference");
@@ -185,11 +191,11 @@ V validateLSIBCountryRepair(const V& request){
         const auto holes=[&](const std::vector<GeometryEngine::Shape>& parts){int total=0;for(const auto& part:parts){
             if(geos.type(part.get())!=GEOS_POLYGON)throw std::runtime_error("LSIB repair requires polygonal countries");
             const int count=GEOSGetNumInteriorRings_r(context,part.get());if(count<0)throw std::runtime_error("Cannot count LSIB polygon holes");total+=count;}return total;};
-        for(const auto& entry:before){const auto oldParts=geos.parts(entry.second),newParts=geos.parts(after.at(entry.first));
+        for(const auto& code:beforeOrder){const auto oldParts=geos.parts(before.at(code)),newParts=geos.parts(after.at(code));
             if(oldParts.size()!=newParts.size())throw LSIBRepairRejected("Island/enclave component count changed");
             if(holes(oldParts)!=holes(newParts))throw LSIBRepairRejected("Enclave hole count changed");
-            if(entry.first!=corrected)for(const auto& part:oldParts){auto representative=geos.pointOnSurface(part.get());
-                if(!geos.covers(after.at(entry.first).get(),representative.get()))throw LSIBRepairRejected("Existing component attribution changed");}}
+            if(code!=corrected)for(const auto& part:oldParts){auto representative=geos.pointOnSurface(part.get());
+                if(!geos.covers(after.at(code).get(),representative.get()))throw LSIBRepairRejected("Existing component attribution changed");}}
         auto result=V::obj();result.object["valid"]=V::boolean(true);return result;
     }catch(const LSIBRepairRejected& error){auto result=V::obj();result.object["error"]=V::str(error.what());return result;}
 }

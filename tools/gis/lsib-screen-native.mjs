@@ -91,7 +91,8 @@ export async function validateLSIBCountryRepair(request,options={}){
   if(!request||!request.before||typeof request.before!=='object'||Array.isArray(request.before)||
     !request.after||typeof request.after!=='object'||Array.isArray(request.after)||
     request.correctedCountry!=null&&typeof request.correctedCountry!=='string')throw Error('Explicit LSIB country repair inputs required');
-  const result=await nativeRequest('--validate-lsib-country-repair',request,options);
+  const result=await nativeRequest('--validate-lsib-country-repair',{...request,
+    beforeOrder:Object.keys(request.before),afterOrder:Object.keys(request.after)},options);
   if(typeof result?.error==='string'&&result.error&&Object.keys(result).length===1){
     const error=Error(result.error);error.code='LSIB_REPAIR_REJECTED';throw error;
   }
