@@ -364,6 +364,12 @@ class SupplementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'junction'):
             module.repair_tripoint_boundary(geometries, references, ('AUT', 'LIE'), 'CHE')
 
+    def test_tripoint_replacement_surfaces_missing_native_tool(self):
+        geometries, references = self.tripoint_fixture()
+        with patch.dict(os.environ, {'PANDO_TERRITORIAL_RECIPE_BINARY': str(Path('missing-lsib-native').resolve())}):
+            with self.assertRaisesRegex(RuntimeError, 'tripoint repair failed'):
+                module.repair_tripoint_boundary(geometries, references, ('AUT', 'LIE'), 'CHE')
+
     def test_intersection_within_roundoff_of_vertex_does_not_insert_a_tiny_backtrack(self):
         polygon = {'type': 'Polygon', 'coordinates': [[
             (0, 0), (3, 0), (3, 1), (3, 2), (3, 4), (3, 5), (3, 6), (0, 6), (0, 0),
