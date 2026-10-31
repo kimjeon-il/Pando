@@ -1,0 +1,47 @@
+name: M2 Canvas Worker latest-country-frame acceptance
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/m2-canvas-worker-real-frame.yml
+      - shared/frontend/js/workers/canvas-render-worker.js
+      - shared/frontend/js/modules/gpu-canvas-worker.js
+      - tests/browser/gpu-recovery-g4.spec.mjs
+permissions:
+  contents: read
+concurrency:
+  group: m2-canvas-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-canvas:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Existing Canvas Worker ownership regressions
+        run: node --test tests/unit/gpu-canvas-worker.test.mjs tests/unit/canvas-worker-background-admission.test.mjs tests/unit/gpu-scene-worker-presentation.test.mjs
+      - name: Lint modified Worker
+        run: pnpm exec eslint shared/frontend/js/workers/canvas-render-worker.js
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Actual viewer Canvas Worker G4 date, selection and frame acceptance
+        env:
+          G4_EVIDENCE: test-results/m2-canvas-worker-evidence
+        run: >-
+          pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs
+          --grep 'viewer canvas-worker:'
+          --workers=1 --retries=0 --reporter=list --trace off
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m2-canvas-real-${{ github.sha }}
+          path: test-results/
+          retention-days: 3
+          if-no-files-found: ignore
