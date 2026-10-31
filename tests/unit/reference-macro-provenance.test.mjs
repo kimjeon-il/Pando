@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {validateMacroProvenance} from '../../tools/reference-analysis/reviewed-corpus.mjs';
+import {assertMacroMetadata} from '../../tools/reference-analysis/macro-training-source.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 test('macro training provenance binds source, scope, edition and renderer',async t=>{
@@ -14,13 +15,17 @@ test('macro training provenance binds source, scope, edition and renderer',async
   const source=Buffer.from('synthetic source');await writeFile(pdf,source);
   const sheet={id:'fixture',familyId:'family',editionId:'edition',duplicateGroup:'group',geographicScope:'country',scopeEvidence:'fixture',
     source:{url:'https://example.test/map',license:'fixture only'}};
-  const metadata={...sheet,sha256:sha(source),url:sheet.source.url,license:sheet.source.license};
+  const metadata={...sheet,sha256:sha(source),url:sheet.source.url,license:sheet.source.license,
+    rightsReviewed:true,materialKind:'published-macro-pdf'};
   const metadataBytes=Buffer.from(JSON.stringify(metadata));await writeFile(metadataPath,metadataBytes);
   const annotation={schemaVersion:1,reviewed:false,supervisionQuality:'source-derived-weak',sourcePdf:'source.pdf',sourceMetadata:'source.json',
     sourceSha256:sha(source),sourceMetadataSha256:sha(metadataBytes),
     producer:{script:'tools/reference-analysis/macro.py',sha256:'a'.repeat(64),renderer:'PyMuPDF',rendererVersion:'fixture'}};
   const check=(changes={})=>validateMacroProvenance({...annotation,...changes},sheet,root,{rendererVersion:'fixture'});
   await check();
+  assertMacroMetadata(metadata,annotation,sheet,{requireTraining:true});
+  assert.throws(()=>assertMacroMetadata({...metadata,rightsReviewed:false},annotation,sheet,{requireTraining:true}),/provenance/i);
+  assert.throws(()=>assertMacroMetadata({...metadata,materialKind:'other'},annotation,sheet,{requireTraining:true}),/provenance/i);
   await assert.rejects(check({reviewed:true}),/provenance/i);
   await assert.rejects(check({producer:{...annotation.producer,sha256:'invalid'}}),/provenance/i);
   await assert.rejects(check({sourcePdf:'../outside.pdf'}),/corpus root/i);

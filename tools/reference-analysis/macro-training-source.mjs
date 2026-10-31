@@ -1,10 +1,17 @@
 // Resolve and verify a source-derived macro sheet without admitting it as review truth.
 import {createHash} from 'node:crypto';
+import {isDeepStrictEqual} from 'node:util';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {validateSourceLanguage} from './source-language.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+export function assertMacroMetadata(metadata,annotation,sheet,{requireTraining=false}={}){
+  if(metadata.sha256!==annotation.sourceSha256||['id','familyId','editionId','duplicateGroup','geographicScope','scopeEvidence']
+    .some(key=>!isDeepStrictEqual(metadata[key],sheet[key]))||metadata.url!==sheet.source?.url||metadata.license!==sheet.source?.license||
+    requireTraining&&(metadata.rightsReviewed!==true||!metadata.license||metadata.materialKind!=='published-macro-pdf'))
+    throw Error(requireTraining?'Verified macro source provenance required':'Verified macro source and geographic scope required');
+}
 export async function verifiedMacroTrainingSource(root,corpus,sourceId){
   if(corpus?.schemaVersion!==1||corpus.trainingOnly!==true||!Array.isArray(corpus.sheets))throw Error('Explicit private training-only corpus required');
   const rows=corpus.sheets.filter(row=>row.id===sourceId);if(rows.length!==1)throw Error('Unique training source identity required');const sheet=rows[0];
@@ -19,9 +26,7 @@ export async function verifiedMacroTrainingSource(root,corpus,sourceId){
     throw Error('Source-derived macro training evidence differs');
   const metadataPath=await resolveCorpusPath(root,annotation.sourceMetadata),metadataBytes=readTrainingBounded(metadataPath,1024*1024);
   if(sha(metadataBytes)!==annotation.sourceMetadataSha256)throw Error('Training source metadata hash changed');const metadata=JSON.parse(metadataBytes);
-  if(metadata.rightsReviewed!==true||!metadata.license||metadata.materialKind!=='published-macro-pdf'||metadata.sha256!==annotation.sourceSha256||
-    ['id','familyId','editionId','duplicateGroup','geographicScope','scopeEvidence'].some(key=>metadata[key]!==sheet[key])||
-    metadata.url!==sheet.source?.url||metadata.license!==sheet.source?.license)throw Error('Verified macro source provenance required');
+  assertMacroMetadata(metadata,annotation,sheet,{requireTraining:true});
   const sourcePdf=await resolveCorpusPath(root,annotation.sourcePdf);if(trainingFileIdentity(sourcePdf)!==annotation.sourceSha256)throw Error('Training source PDF hash changed');
   const imagePath=await resolveCorpusPath(root,sheet.image),maskPath=await resolveCorpusPath(root,annotation.raster.path),validPath=await resolveCorpusPath(root,annotation.validRaster.path);
   return {sheet,annotation,annotationSha256,checks:[[sourcePdf,annotation.sourceSha256],[metadataPath,annotation.sourceMetadataSha256],

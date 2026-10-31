@@ -4,11 +4,12 @@ import {createReadStream} from 'node:fs';
 import {readFile,realpath,stat} from 'node:fs/promises';
 import {dirname,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {isDeepStrictEqual,parseArgs} from 'node:util';
+import {parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
 import {validateReviewedAnnotation} from './review-masks.mjs';
 import {validateSourceLanguage} from './source-language.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
+import {assertMacroMetadata} from './macro-training-source.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
@@ -41,9 +42,7 @@ export async function validateMacroProvenance(annotation,sheet,root,{rendererVer
     producer.renderer!=='PyMuPDF'||typeof rendererVersion!=='string'||!rendererVersion||producer.rendererVersion!==rendererVersion)
     throw Error('Explicit source-derived macro provenance required');
   const metadata=await trainingProvenanceInputs(annotation,root,'Macro',signal);
-  if(metadata.sha256!==annotation.sourceSha256||['id','familyId','editionId','duplicateGroup','geographicScope','scopeEvidence']
-    .some(key=>!isDeepStrictEqual(metadata[key],sheet[key]))||metadata.url!==sheet.source.url||metadata.license!==sheet.source.license)
-    throw Error('Verified macro source and geographic scope required');
+  assertMacroMetadata(metadata,annotation,sheet);
 }
 // Shared metadata validation for reviewed corpora and explicitly private training corpora.
 export function validateCorpusMetadata(value,{trainingOnly=false}={}){
