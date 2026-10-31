@@ -4,8 +4,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createGpuUploadScope} from '../../shared/frontend/js/modules/gpu-resource-lifecycle.js';
 
-// Exercise the actual scheduler admission. Shared-pass cancellation is outside
-// this fixture, whose GL is deliberately unavailable; it has its own suite.
+// Exercise actual scheduler admission. No GL device is active in this fixture.
 const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
 const start=source.indexOf('      setUploadScheduler: scheduler => {');
 const end=source.indexOf('      commitVisualFrame:',start);
@@ -17,7 +16,7 @@ function fixture(active=true){
  const raw={enqueueUpload:input=>{jobs.push(input);return new Promise(()=>{});},cancelKey:key=>cancelled.push(key),defer(){}};
  const owners={};
  const context=vm.createContext({Object,createGpuUploadScope,inputScheduler:raw,
-  uploadScheduler:null,terrainUploadScheduler:null,hydroUploadScheduler:null,gl:null,
+  uploadScheduler:null,terrainUploadScheduler:null,hydroUploadScheduler:null,gl:null,renderDevice:null,
   cancelSharedGpuInitialization(){},
   strokeRenderer:{setUploadScheduler:s=>owners.stroke=s},polygonOverlayPass:{setUploadScheduler:s=>owners.polygon=s},
   gpuRecovery:{currentTicket:()=>current,isCurrent:t=>t===current&&current!==null,noteProgress:(t,value)=>{assert.equal(t,current);progress.push(value);}},
