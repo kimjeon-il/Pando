@@ -66,7 +66,10 @@ export function buildGermanModernCoast({root=defaultRoot,output,diagnostics,bina
     !Array.isArray(native.controls)||native.controls.length!==coastControls.length||native.controls.some((value,index)=>value!==coastControls[index][3])||
     !['outsideKm2','areaKm2','historicalAreaKm2','changedKm2','helgolandKm2','duneKm2'].every(key=>typeof native[key]==='number'&&Number.isFinite(native[key])&&native[key]>=0)||native.outsideKm2>0.01)
     throw Error('Invalid native modern coast receipt');
-  if(native.geographicValid!==true)throw Error('Modern coast is invalid after WGS84 transformation; refusing candidate output');
+  if(native.geographicValid!==true||typeof native.geographicRepaired!=='boolean'||
+    !Number.isFinite(native.repairBoundaryDistanceMetres)||native.repairBoundaryDistanceMetres<0||native.repairBoundaryDistanceMetres>0.01||
+    !Number.isFinite(native.repairAreaDifferenceKm2)||native.repairAreaDifferenceKm2<0)
+    throw Error('Invalid geographic topology repair receipt; refusing candidate output');
   const feature={type:'Feature',id:'historical-country:deutsches-reich:1914-modern-coast-r1',properties:{name:'Deutsches Reich',englishName:'German Empire',
     referenceDate:'1914-07-31',status:'working-base-modern-coastline',
     coastlineBasis:'Current website DEU/DNK/POL/RUS/LTU coastline; historical land borders retained outside coastal surgery zone',
@@ -75,7 +78,8 @@ export function buildGermanModernCoast({root=defaultRoot,output,diagnostics,bina
   const collection={type:'FeatureCollection',name:'pandolab-german-empire-1914-modern-coast-r1',features:[feature]};
   const receipt={referenceDate:'1914-07-31',historicalGeometryApproved:false,inputs:{websiteCountries:Object.keys(coastAliases).sort(),
     coastBufferMeters:12000,historicalMatchBufferMeters:12000,sources:Object.fromEntries(Object.entries(inputs).map(([key,value])=>[key,{path:value.path,sha256:value.sha256}]))},
-    validation:{valid:true,geometryType:native.geometry.type,componentCount:native.geometry.coordinates.length,
+    validation:{valid:true,geographicRepaired:native.geographicRepaired,repairBoundaryDistanceMetres:native.repairBoundaryDistanceMetres,
+      repairAreaDifferenceKm2:native.repairAreaDifferenceKm2,geometryType:native.geometry.type,componentCount:native.geometry.coordinates.length,
       historicalAreaKm2:round(native.historicalAreaKm2,3),modernCoastAreaKm2:round(native.areaKm2,3),symmetricDifferenceKm2:round(native.changedKm2,3),
       differenceOutsideCoastZoneKm2:round(native.outsideKm2,6),helgolandAreaKm2:round(native.helgolandKm2,6),duneAreaKm2:round(native.duneKm2,6),
       controlPoints:coastControls.map(([name,,,expected],index)=>({name,expected,actual:native.controls[index]}))},
