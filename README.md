@@ -191,10 +191,10 @@ v0.10.0에서는 QGIS 벡터 파일과 GeoPackage를 가져오고 저장하는 G
 
 수계 metadata는 표시용 core와 상세 출처용 detail로 분리합니다. 긴 원본 reach 목록이 들은 detail은 수계를 선택하거나 `편집용 복사`를 실행할 때만 지연 로드하며, WebGL 메인 스레드에는 GeoJSON 대신 GPU `TypedArray`와 고정 크기 descriptor만 전달합니다. Canvas 대체 경로는 Hydro Worker와 Canvas Worker를 `MessageChannel`로 직접 연결해, 메인 스레드에는 좌표 대신 완성된 `ImageBitmap`과 선택 ID만 보냅니다.
 
-지형 배포 자산을 다시 만들 때는 공식 ZIP을 작업용 폴더에 풀고 다음 명령을 실행합니다. `pyshp`와 Pillow가 필요하며 생성된 manifest에는 원본 파일 SHA-256과 변환 방식을 기록합니다.
+기존 물리 지형 생성기는 공식 ZIP의 원본을 읽어 별도의 새 후보 폴더에 생성합니다. Pillow, GDAL `ogr2ogr`, 소스가 일치하는 C++ 지형 도구가 필요합니다. 수계 원본은 GDAL·Node가, 외곽 육지 마스크는 C++이 처리하며 나머지 지형 타일 경로는 아직 Python입니다. 기존 산출물은 덮어쓰지 않습니다.
 
 ```powershell
-python tools/build-physical-data.py <Natural-Earth-원본-폴더> assets/data --countries assets/data/countries-ne-5.1.1.geojson
+python tools/build-physical-data.py <Natural-Earth-원본-폴더> <새-후보-폴더> --countries assets/data/countries-ne-5.1.1.geojson
 ```
 
 ### Hydro 전 세계 보충 자료 캘리브레이션

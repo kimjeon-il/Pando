@@ -63,3 +63,12 @@ test('existing physical generator delegates hydro to the same Node/GDAL owner',
     for(const [id,expected] of Object.entries(fixture.layers))
       assert.deepEqual(JSON.parse(readFileSync(join(output,'hydro',id+'.geojson'))),expected);
   });
+test('existing physical terrain output is rejected before source reads',
+  {skip:!process.env.PANDO_PHYSICAL_PYTHON},t=>{
+    const root=mkdtempSync(join(tmpdir(),'pando-physical-preserve-'));t.after(()=>rmSync(root,{recursive:true}));
+    const target=join(root,'output','terrain','v0.12.6');mkdirSync(target,{recursive:true});
+    const marker=join(target,'keep');writeFileSync(marker,'preserve');
+    const script="import importlib.util,sys;from pathlib import Path;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.build_terrain(Path(sys.argv[1]),Path(sys.argv[2]),Path(sys.argv[3]))";
+    const result=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script,join(root,'missing-sources'),join(root,'output'),join(root,'countries.json')],{encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.match(result.stderr,/output exists/i);assert.equal(readFileSync(marker,'utf8'),'preserve');
+  });
