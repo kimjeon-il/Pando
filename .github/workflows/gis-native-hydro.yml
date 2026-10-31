@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
@@ -60,6 +60,57 @@ jobs:
           PANDO_GDAL_OGR2OGR: ogr2ogr
           PANDO_PHYSICAL_PYTHON: python
         run: node --test tests/unit/physical-hydro-native.test.mjs
+  physical-raster:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-raster'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the existing GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: physical-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build and verify only the physical source reader
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.physical-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $env:PATH = "$sdk/bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/physical-raster -B build-native/physical-raster "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Physical source reader configuration failed' }
+          cmake --build build-native/physical-raster --config Release --target pando-physical-raster
+          if ($LASTEXITCODE -ne 0) { throw 'Physical source reader build failed' }
+          if ($IsWindows) { $env:PANDO_PHYSICAL_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/Release/pando-physical-raster.exe" }
+          else { $env:PANDO_PHYSICAL_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/pando-physical-raster" }
+          node tools/gis/package-physical-raster.mjs --binary $env:PANDO_PHYSICAL_RASTER_BINARY --directory build-native/physical-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Physical source reader packaging failed' }
+          $env:PANDO_PHYSICAL_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/artifact"
+          node --test tests/unit/physical-raster-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF source pixels differ' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: physical-raster-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/physical-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
   terrain-dem-fill-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-fill-windows'
     runs-on: windows-2022
