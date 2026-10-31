@@ -136,7 +136,8 @@ export function createObjectPropertyController(runtime = {}) {
     const container = $('distributionEntryList');
     const entries = distributionEntriesForLayer(state.distributionEntries, layer.id);
     if (!entries.length) {
-      container.replaceChildren(createEmptyState('아직 분포가 없습니다.', '기준 영역을 선택하거나 자유 영역을 그리세요.', { compact: true }));
+      // The two add actions already explain how to create an entry.
+      container.replaceChildren(createEmptyState('분포 없음', '', { compact: true }));
       return;
     }
     const fragment = document.createDocumentFragment();
@@ -194,10 +195,11 @@ export function createObjectPropertyController(runtime = {}) {
     parentField?.classList.toggle('hidden', parentChoice.single);
     parentField?.closest('details')?.classList.toggle('hidden', parentChoice.single);
     const territorialInput = $('distributionTerritorialUnitInput');
-    const territorialChoice = replaceSelectOptions(territorialInput, unitOptions.length
+    replaceSelectOptions(territorialInput, unitOptions.length
       ? unitOptions
       : [{ value: '', label: '선택 가능한 기준 영역 없음', placeholder: true }], territorialInput.value, { autoSelectSingle: true });
-    territorialInput.closest('.field-group')?.classList.toggle('hidden', territorialChoice.single);
+    // The applied target stays visible even when it was automatically selected.
+    territorialInput.closest('.field-group')?.classList.remove('hidden');
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
     for (const idValue of ['distributionNameInput', 'distributionUnitInput', 'distributionValueScaleInput', 'distributionValueMinInput', 'distributionValueMaxInput', 'distributionColorTrigger', 'distributionParentInput', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
     $('addTerritorialDistributionBtn').disabled = layer.locked || !territorialInput.value;
