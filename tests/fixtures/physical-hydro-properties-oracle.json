@@ -1,0 +1,146 @@
+[
+  {
+    "record": {},
+    "layer": "rivers_base",
+    "category": "river",
+    "index": 0,
+    "expected": {
+      "pandolab_id": "rivers_base:0",
+      "layer_id": "rivers_base",
+      "category": "river",
+      "name": "river-1",
+      "name_ko": "",
+      "name_en": "",
+      "name_original": "",
+      "feature_class": "",
+      "scale_rank": 10,
+      "min_zoom": 10.0,
+      "stroke_width": 0.9000000000000004,
+      "source_id": 0,
+      "wikidata_id": "",
+      "note": "",
+      "source": "Natural Earth 5.0.0 1:10m"
+    }
+  },
+  {
+    "record": {
+      "ne_id": 123,
+      "name_ko": "한강",
+      "name_en": "Han River",
+      "scalerank": 2,
+      "min_zoom": 3.5,
+      "strokeweig": 1.2,
+      "wikidataid": "Q1"
+    },
+    "layer": "rivers_base",
+    "category": "river",
+    "index": 1,
+    "expected": {
+      "pandolab_id": "rivers_base:123",
+      "layer_id": "rivers_base",
+      "category": "river",
+      "name": "한강",
+      "name_ko": "한강",
+      "name_en": "Han River",
+      "name_original": "",
+      "feature_class": "",
+      "scale_rank": 2,
+      "min_zoom": 3.5,
+      "stroke_width": 1.2,
+      "source_id": 123,
+      "wikidata_id": "Q1",
+      "note": "",
+      "source": "Natural Earth 5.0.0 1:10m"
+    }
+  },
+  {
+    "record": {
+      "ne_id": 0,
+      "id": "name-17",
+      "name": "Example",
+      "scalerank": "4",
+      "min_zoom": "bad",
+      "strokeweig": null
+    },
+    "layer": "rivers_base",
+    "category": "river",
+    "index": 2,
+    "expected": {
+      "pandolab_id": "rivers_base:name-17",
+      "layer_id": "rivers_base",
+      "category": "river",
+      "name": "Example",
+      "name_ko": "",
+      "name_en": "Example",
+      "name_original": "Example",
+      "feature_class": "",
+      "scale_rank": 4,
+      "min_zoom": 4.0,
+      "stroke_width": 1.9800000000000002,
+      "source_id": "name-17",
+      "wikidata_id": "",
+      "note": "",
+      "source": "Natural Earth 5.0.0 1:10m"
+    }
+  },
+  {
+    "record": {
+      "objectid": 42,
+      "name_ko": "",
+      "name_en": "",
+      "name": "Lake",
+      "scalerank": null,
+      "min_zoom": -1.25,
+      "strokeweig": "3.125"
+    },
+    "layer": "rivers_base",
+    "category": "river",
+    "index": 3,
+    "expected": {
+      "pandolab_id": "rivers_base:42",
+      "layer_id": "rivers_base",
+      "category": "river",
+      "name": "Lake",
+      "name_ko": "",
+      "name_en": "Lake",
+      "name_original": "Lake",
+      "feature_class": "",
+      "scale_rank": 10,
+      "min_zoom": -1.25,
+      "stroke_width": 3.125,
+      "source_id": 42,
+      "wikidata_id": "",
+      "note": "",
+      "source": "Natural Earth 5.0.0 1:10m"
+    }
+  },
+  {
+    "record": {
+      "id": -2,
+      "name": "No rank",
+      "scalerank": 20,
+      "min_zoom": null,
+      "strokeweig": "bad"
+    },
+    "layer": "rivers_base",
+    "category": "river",
+    "index": 4,
+    "expected": {
+      "pandolab_id": "rivers_base:-2",
+      "layer_id": "rivers_base",
+      "category": "river",
+      "name": "No rank",
+      "name_ko": "",
+      "name_en": "No rank",
+      "name_original": "No rank",
+      "feature_class": "",
+      "scale_rank": 20,
+      "min_zoom": 12.0,
+      "stroke_width": 0.35,
+      "source_id": -2,
+      "wikidata_id": "",
+      "note": "",
+      "source": "Natural Earth 5.0.0 1:10m"
+    }
+  }
+]
