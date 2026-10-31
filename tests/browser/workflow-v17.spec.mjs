@@ -222,7 +222,11 @@ for (const kind of ['general', 'regional']) test(`${kind} creation retains candi
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modeTaskStage')).toHaveText('생성 확인');
     await expect(page.locator('#geometryPreviewSummary')).toContainText(name);
-    await page.locator('#modeCancelBtn').click();
+    // "편집 취소" intentionally asks to discard the workflow. The return
+    // action is the reversible review-to-selection transition under test.
+    await expect(page.locator('#modeReturnBtn')).toBeVisible();
+    await page.locator('#modeReturnBtn').click();
+    await expect(page.locator('#confirmModal')).toBeHidden();
     await expect(page.locator('#territorySelectionStackList li')).toHaveCount(1);
     await page.locator('#modePrimaryBtn').click();
     await page.locator('#modePrimaryBtn').click();
