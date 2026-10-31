@@ -3,7 +3,7 @@ import { mapVisualOrder } from './layer-presentation.js';
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
 import { createGpuContextRecovery } from './gpu-context-recovery.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
-import { createGpuResourceLifecycle, createGpuUploadScope } from './gpu-resource-lifecycle.js';
+import { createGpuResourceLifecycle, createGpuResourceLease, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
 import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
@@ -5262,37 +5262,50 @@ export function createGpuMapRenderer(deps) {
       decoded.mesh.spatialBlocks = spatialBlocks;
       if (quality === 'canonical' && builtinIdentity) rememberBuiltinMesh(decoded.mesh, decoded.ids, builtinIdentity);
       if (Number(requestedGeneration) !== projectGeneration) return false;
-      const stagedResources = await stageMeshResources(decoded.mesh, { projectGeneration: requestedGeneration });
-      if (Number(requestedGeneration) !== projectGeneration) { disposeMeshResources(stagedResources); return false; }
+      const gpuLease = createGpuResourceLease(disposeMeshResources);
+      let stagedResources = null;
       let stagedPatch = null;
-      if (patchMesh) {
-        const globalIds = [...decoded.ids];
-        const remapped = remapOverrideMesh(patchMesh, patchMesh.countryIds || [], globalIds);
-        const resources = await stageMeshResources(remapped, { projectGeneration: requestedGeneration });
-        if (Number(requestedGeneration) !== projectGeneration) {
-          disposeMeshResources(stagedResources); disposeMeshResources(resources); return false;
+      try {
+        stagedResources = gpuLease.own(await stageMeshResources(decoded.mesh, { projectGeneration: requestedGeneration }));
+        if (Number(requestedGeneration) !== projectGeneration) return false;
+        if (patchMesh) {
+          const globalIds = [...decoded.ids];
+          const remapped = remapOverrideMesh(patchMesh, patchMesh.countryIds || [], globalIds);
+          const resources = gpuLease.own(await stageMeshResources(remapped, { projectGeneration: requestedGeneration }));
+          if (Number(requestedGeneration) !== projectGeneration) return false;
+          stagedPatch = { mesh: remapped, resources, globalIds };
         }
-        stagedPatch = { mesh: remapped, resources, globalIds };
-      }
-      setMesh(decoded.mesh, decoded.ids, {
-        stagedResources,
-        renderFrame: false,
-        activate: quality !== 'canonical' || !meshVariants.has('preview'),
-        quality,
-        boundaryCacheKind: 'built-in',
-        preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
-      });
-      if (quality === 'canonical') canonicalMeshReady = true;
-      syncCountryMeshQuality();
-      if (startupPatch.ids.length) {
-        prepareCountrySharedBoundary({ features: startupPatch.features, removedIds: startupPatch.removedIds });
-        for (const id of startupPatch.ids) countryOverrideIds.add(id);
-        for (const feature of startupPatch.features) overrideFeatureSnapshots.set(String(feature.id), deepClone(feature));
-        for (const id of startupPatch.removedIds) overrideFeatureSnapshots.delete(id);
-        if (stagedPatch) {
-          for (const id of stagedPatch.globalIds) if (!meshCountryIds.includes(id)) meshCountryIds.push(id);
-          setOverrideMesh(stagedPatch.mesh, { renderFrame: false, stagedResources: stagedPatch.resources });
+        setMesh(decoded.mesh, decoded.ids, {
+          stagedResources,
+          renderFrame: false,
+          activate: quality !== 'canonical' || !meshVariants.has('preview'),
+          quality,
+          boundaryCacheKind: 'built-in',
+          preserveOtherVariants: quality === 'canonical' && meshVariants.has('preview'),
+        });
+        if (quality === 'canonical') canonicalMeshReady = true;
+        syncCountryMeshQuality();
+        if (startupPatch.ids.length) {
+          prepareCountrySharedBoundary({ features: startupPatch.features, removedIds: startupPatch.removedIds });
+          for (const id of startupPatch.ids) countryOverrideIds.add(id);
+          for (const feature of startupPatch.features) overrideFeatureSnapshots.set(String(feature.id), deepClone(feature));
+          for (const id of startupPatch.removedIds) overrideFeatureSnapshots.delete(id);
+          if (stagedPatch) {
+            for (const id of stagedPatch.globalIds) if (!meshCountryIds.includes(id)) meshCountryIds.push(id);
+            setOverrideMesh(stagedPatch.mesh, { renderFrame: false, stagedResources: stagedPatch.resources });
+          }
         }
+      } finally {
+        // A failed second upload must not strand the first one. A handle is
+        // transferred only if the live mesh/override actually adopted it.
+        const admitted = meshVariants.get(quality === 'preview' ? 'preview' : 'canonical');
+        if (stagedResources && admitted?.resources === stagedResources) gpuLease.transfer(stagedResources);
+        if (stagedPatch?.resources
+          && overridePositionBuffer === stagedPatch.resources.positionBuffer
+          && overrideCountryBuffer === stagedPatch.resources.countryBuffer
+          && overrideFillIndexBuffer === stagedPatch.resources.fillIndexBuffer
+          && overrideFillVao === stagedPatch.resources.fillVao) gpuLease.transfer(stagedPatch.resources);
+        gpuLease.releaseAll();
       }
       if (canvasWorkerNeedsRestart) activateCanvasFallback(fallbackReason);
       if (rendererMode === 'canvas-worker' && canvasWorker) {
