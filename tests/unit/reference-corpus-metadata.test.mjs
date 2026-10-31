@@ -37,6 +37,22 @@ test('corpus metadata stream reports success and errors without accepting malfor
   }
 });
 
+test('corpus grouping stream preserves distinct language, script and map-kind groups',()=>{
+  const rows=[sheet,{...sheet,id:'two',language:'urd',script:'Arabic'}, {...sheet,id:'three',language:'eng'}];
+  const result=spawnSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--groups-stream'],{
+    input:JSON.stringify(rows),encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout),{'color/Latin/eng':['one','three'],'color/Arabic/urd':['two']});
+});
+
+test('Python evaluation caller uses the same groups', {skip:!process.env.PANDO_PYTHON_ORACLE},()=>{
+  const script="import json,sys;sys.path.insert(0,'tools/reference-analysis');from corpus import evaluation_groups;print(json.dumps(evaluation_groups(json.load(sys.stdin))))";
+  const rows=[sheet,{...sheet,id:'two',language:'urd',script:'Arabic'}, {...sheet,id:'three'}];
+  const result=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{input:JSON.stringify(rows),encoding:'utf8',windowsHide:true});
+  assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout),{'color/Latin/eng':['one','three'],'color/Arabic/urd':['two']});
+});
+
 test('Python corpus caller preserves metadata acceptance and split rejection',
   {skip:!process.env.PANDO_PYTHON_ORACLE},()=>{
     const script=`import json,sys\nsys.path.insert(0,'tools/reference-analysis')\nfrom corpus import validate_corpus\ndata=json.load(sys.stdin)\ntry:\n validate_corpus(data)\n print('valid')\nexcept ValueError as e:\n print('error:'+str(e))`;

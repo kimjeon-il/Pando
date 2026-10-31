@@ -192,8 +192,13 @@ def validate_corpus(value, root=None, *, training_only=False):
 
 
 def evaluation_groups(sheets):
-    groups = {}
-    for sheet in sheets:
-        key = "/".join(sheet[k] for k in ["mapKind", "script", "language"])
-        groups.setdefault(key, []).append(sheet["id"])
+    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
+    result = subprocess.run(['node', str(script), '--groups-stream'], input=json.dumps(sheets, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Corpus evaluation grouping failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    groups = json.loads(result.stdout)
+    if not isinstance(groups, dict) or any(not isinstance(ids, list) for ids in groups.values()):
+        raise ValueError('Invalid corpus evaluation grouping response')
     return groups
