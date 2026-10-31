@@ -1,5 +1,11 @@
 import {expect,test} from '@playwright/test';
 
+// Worker-scoped launch settings belong at file scope. The Canvas cases still
+// select the supported Canvas renderer explicitly through the page query.
+test.use({trace:'off',actionTimeout:15000,launchOptions:{args:[
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
+]}});
+
 async function start(page,renderer){
   await page.clock.setFixedTime(new Date(2026,9,24,12));
   await page.route('**/modules/viewer-composition.js*',async route=>{
@@ -26,8 +32,7 @@ async function ready(page,month){
     ready:document.querySelector('#viewerStatus')?.dataset.ready})),{timeout:90000}).toEqual({month,cursor:month,ready:'true'});
 }
 for(const renderer of ['webgl','canvas'])for(const width of [1280,390])test.describe(`${renderer} ${width}px`,()=>{
-  test.use({viewport:{width,height:844},hasTouch:width===390,trace:'off',actionTimeout:15000,
-    launchOptions:{args:renderer==='webgl'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox']:[]}});
+  test.use({viewport:{width,height:844},hasTouch:width===390});
   test('dedicated temporal path presents dated frames without another whole-document load',async({page},testInfo)=>{
     test.setTimeout(150000);
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
