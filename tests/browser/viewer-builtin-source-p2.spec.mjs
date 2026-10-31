@@ -9,7 +9,7 @@ test('P2-1 read-only source preparation cannot change the visible month, camera 
   const anchor='const initialPreview=createViewerInitialPreview(';
   if(source.split(anchor).length!==2)throw Error('P2-1 builtin owner insertion anchor changed');
   await route.fulfill({response,body:source.replace(anchor,
-    "globalThis.__P2_1_PREPARE__=month=>builtinSession.prepareProjectSource(month);\\n  "+anchor)});
+    "globalThis.__P2_1_PREPARE__=month=>builtinSession.prepareProjectSource(month);\n  "+anchor)});
  });
  await page.clock.setFixedTime(new Date('2026-10-31T00:00:00+09:00'));
  await page.goto('/?debug=1');
