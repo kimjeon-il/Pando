@@ -24,10 +24,28 @@ test('selection domain drives country editing, multi-selection, and independent 
   await expect(page.locator('#editEntityBorderBtn')).toHaveCount(1);
 
   const search = page.locator('#objectSearchInput');
-  if (!await search.isVisible()) await page.locator('#objectSearchBtn').click();
-  await search.fill('프랑스');
+  const surface = page.locator('#objectSearchSurface');
+  if (!await surface.isVisible()) await page.locator('#objectSearchBtn').click();
+  await expect(surface).toBeVisible();
+  // Query the actual current-time display name, not a fixed translation.
+  await expect.poll(() => page.evaluate(() =>
+    window.PANDOLAB_TERRITORIAL.get('FRA')?.properties?.name || ''), { timeout: 30_000 }).not.toBe('');
+  const franceName = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('FRA').properties.name);
+  await search.fill(franceName);
   const franceRow = page.locator('#objectSearchResults [data-object-search-select="countries"][data-item-id="FRA"]');
-  await expect(franceRow).toHaveCount(1);
+  try {
+    await expect(franceRow).toHaveCount(1, { timeout: 30_000 });
+  } catch (error) {
+    const diagnosis = await page.evaluate(() => ({
+      search: document.querySelector('#objectSearchInput')?.value,
+      searchedEntity: window.PANDOLAB_TERRITORIAL.get('FRA')?.properties?.name,
+      results: [...document.querySelectorAll('#objectSearchResults [data-object-search-select]')]
+        .slice(0, 12).map(row => [row.dataset.objectSearchSelect, row.dataset.itemId, row.textContent]),
+      resultText: document.querySelector('#objectSearchResults')?.textContent?.slice(0, 300),
+    }));
+    console.log('P8_COUNTRY_SEARCH_DIAG ' + JSON.stringify(diagnosis));
+    throw error;
+  }
   await franceRow.click({ modifiers: ['Control'] });
 
   await expect(page.locator('#multiSelectionBar, #multiSelectionModeBtn, #clearMultiSelectionBtn')).toHaveCount(0);

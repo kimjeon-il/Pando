@@ -477,26 +477,20 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     }
     await page.locator('#modeDraftDoneBtn').click();
     if (tool === 'river') {
-      const diagnosis = await page.evaluate(() => {
-        const state = window.__testEditorTimeline?.state();
-        const multi = state?.multiDraft;
+      // The single retained route is a valid LineString. Preview calculation
+      // is asynchronous; '계산 중' is not an invalid geometry verdict.
+      await expect.poll(() => page.evaluate(() => {
+        const multi = window.__testEditorTimeline?.state().multiDraft;
         return {
-          tool: state?.tool, pending: multi?.previewPending,
-          issues: multi?.previewIssues, previewGeometry: multi?.previewGeometry?.type,
-          primaryDisabled: document.querySelector('#modePrimaryBtn')?.disabled,
-          reason: document.querySelector('#modeTaskDisabledReason')?.textContent,
-          status: document.querySelector('#modeTaskResultsSummary')?.textContent,
+          pending: !!multi?.previewPending,
+          issues: multi?.previewIssues?.length ?? 0,
+          geometry: multi?.previewGeometry?.type || null,
         };
+      }), { timeout: 45_000 }).toEqual({
+        pending: false, issues: 0, geometry: 'LineString',
       });
-      console.log('P8_HYDRO_REVIEW_DIAG ' + JSON.stringify(diagnosis));
-      // Existing geometry validation rejects the line-only multi-draft preview.
-      // UI-only work must expose that error and must not bypass it to create a river.
-      await expect(page.locator('#modeTaskDisabledReason')).toBeVisible();
-      await expect(page.locator('#modeTaskResultsSummary')).toContainText('검증 필요');
-      await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-      await captureLayouts(page, tool);
-      await page.locator('#modeCancelBtn').click();
-      continue;
+      await expect(page.locator('#modeTaskResultsSummary')).toContainText('경로 1개');
+      await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();
     }
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await expect(page.locator('#modeTaskResultsSummary')).not.toContainText('계산 중');
@@ -559,7 +553,10 @@ test('free distribution shows real name and signed value and applies immediately
   expect(result[0]).toMatchObject({ mode: 'geometry', value: -4.25 });
   expect(result[0].geometry.type).toBe('Polygon');
   await page.locator('#undoBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listEntries(window.PANDOLAB_DISTRIBUTIONS.listLayers()[0].id).length)).toBe(0);
+  // Indexed project and UI projections update after the accepted Core undo.
+  await expect.poll(() => page.evaluate(() =>
+    window.PANDOLAB_DISTRIBUTIONS.listEntries(window.PANDOLAB_DISTRIBUTIONS.listLayers()[0].id).length),
+  { timeout: 30_000 }).toBe(0);
   expect(errors).toEqual([]);
 });
 
