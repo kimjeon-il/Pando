@@ -108,8 +108,11 @@ export function createTerritorialPropertyController({
       return row;
     };
     const empty = text => { const node = document.createElement('p'); node.className = 'editor-help'; node.textContent = text; return node; };
-    $('entityParentRows').replaceChildren(...(parent ? [rowFor(parent)] : [empty('소속 없음')]));
-    $('entityChildRows').replaceChildren(...(children.length ? children.map(feature => rowFor(feature, true)) : [empty('산하 객체 없음')]));
+    const parentRows = $('entityParentRows'), childRows = $('entityChildRows');
+    parentRows.replaceChildren(...(parent ? [rowFor(parent)] : [empty('없음')]));
+    childRows.replaceChildren(...(children.length ? children.map(feature => rowFor(feature, true)) : [empty('없음')]));
+    parentRows.dataset.empty = String(!parent);
+    childRows.dataset.empty = String(!children.length);
     $('entityRelations').hidden = !general;
     const excluded = new Set([view.ref.id, ...entityRepository.ancestors(view.ref.id).map(feature => String(feature.id))]);
     const candidates = general ? entityRepository.list().filter(candidate => candidate.properties.entityKind === 'general'
@@ -121,6 +124,7 @@ export function createTerritorialPropertyController({
     $('entityChildInput').disabled = blocked || !candidates.length;
     $('entityAddChildBtn').disabled = blocked || !candidates.length;
     if (!general || (relationPicker === 'child' && !candidates.length)) closeRelationPicker();
+    else syncRelationPicker();
   }
   function presentFields(view) {
     const properties = view.feature.properties;
@@ -226,13 +230,15 @@ export function createTerritorialPropertyController({
   let activeRef = null, flagReadRevision = 0, pendingUpload = null, wasMutationBlocked = false;
   let relationPicker = null;
   function syncRelationPicker() {
-    for (const [kind, panel, button] of [
-      ['parent', 'entityParentRow', 'entityChangeParentBtn'],
-      ['child', 'entityChildRow', 'entityAddChildBtn'],
+    for (const [kind, panel, button, list] of [
+      ['parent', 'entityParentRow', 'entityChangeParentBtn', 'entityParentRows'],
+      ['child', 'entityChildRow', 'entityAddChildBtn', 'entityChildRows'],
     ]) {
       const open = relationPicker === kind;
       $(panel).hidden = !open;
       $(button).setAttribute('aria-expanded', String(open));
+      // The picker replaces an empty state, not a real parent/child row.
+      $(list).hidden = open && $(list).dataset.empty === 'true';
     }
   }
   function closeRelationPicker({ restoreFocus = false } = {}) {

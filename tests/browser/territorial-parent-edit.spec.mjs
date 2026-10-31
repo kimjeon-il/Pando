@@ -13,10 +13,17 @@ test('parent changes replace type conversion while preserving entity ID, kind, g
   const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('IRL'));
   await page.locator('#relationTabBtn').click();
+  await expect(page.locator('label[for="entityParentInput"]')).toHaveClass(/ui-visually-hidden/);
+  await expect(page.locator('label[for="entityChildInput"]')).toHaveClass(/ui-visually-hidden/);
+  await expect(page.locator('#entityParentRows')).toBeVisible();
+  await expect(page.locator('#entityParentRows')).toHaveText('없음');
   await expect(page.locator('#entityParentInput')).toHaveValue('');
   await expect(page.locator('#territorialTypeModal, #changeCountryTypeBtn, #promoteSubunitBtn')).toHaveCount(0);
   await page.locator('#entityChangeParentBtn').click();
+  await expect(page.locator('#entityParentRows')).toBeHidden();
+  await expect(page.locator('#entityParentInputControl')).toBeVisible();
   await selectUiOption(page, '#entityParentInput', 'GBR');
+  await expect(page.locator('#entityParentRows')).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.entityKind)).toBe('general');
