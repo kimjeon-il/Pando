@@ -7,6 +7,7 @@ on:
       - shared/frontend/js/modules/physical-resources.js
       - tests/unit/country-shared-boundary-state.test.mjs
       - tests/unit/physical-water-context-p4-5.test.mjs
+      - tests/browser/viewer-boundary-p4-5.spec.mjs
       - .github/workflows/viewer-boundary-physical-p4-5.yml
   workflow_dispatch:
 permissions:
@@ -32,4 +33,4 @@ jobs:
         run: node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/physical-water-context-p4-5.test.mjs tests/unit/historical-physical-water.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Actual WebGL country boundary Worker smoke
-        run: pnpm exec playwright test tests/browser/country-shared-boundary.spec.mjs --grep 'physical terrain prepares shared country borders in webgl2' --workers=1
+        run: pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs --workers=1
