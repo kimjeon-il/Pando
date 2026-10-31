@@ -5,7 +5,38 @@ test.use({viewport:{width:1280,height:900},trace:'off',launchOptions:{args:['--u
 test.setTimeout(130000);
 test('diagnose actual first Canvas Worker frame gate without altering runtime behavior',async({page},info)=>{
  const out=resolve('gpu-canvas-first-frame-evidence');mkdirSync(out,{recursive:true});
- await page.addInitScript(()=>{globalThis.__workerGateProbe={messages:[],admissions:[],errors:[]};});
+ await page.addInitScript(()=>{globalThis.__workerGateProbe={messages:[],admissions:[],errors:[],sceneUpdates:[]};});
+ await page.route(/\/modules\/gpu-scene\.js(?:\?|$)/,async route=>{
+   const response=await route.fetch();let source=await response.text();
+   const anchor="    const land = getPhysicalLand();";
+   expect(source.split(anchor).length).toBe(2);
+   source=source.replace(anchor,anchor+`
+     globalThis.__workerGateProbe.sceneUpdates.push({at:performance.now(),phase:'sync',hasLand:!!land,
+       landRevision:land?.revision,waterRevision:land?.waterRevision,hasGeometry:!!land?.geometry,
+       lastScene:(currentRenderScene?.polygons||[]).map(x=>x.role),
+       dirty:[...gpuSceneDirtyDomains],pending:pendingPreparation?.signature?.slice(0,140)});
+   `);
+   const miss='    const missing = renderSceneBuilder.missingPolygons(requiredPolygons, sceneInput);';
+   expect(source.split(miss).length).toBe(2);
+   source=source.replace(miss,miss+`
+     globalThis.__workerGateProbe.sceneUpdates.push({at:performance.now(),phase:'missing',missing:missing.length,
+       required:requiredPolygons.length,landRevision:land?.revision,
+       domains:[...gpuSceneDomains].map(([key,value])=>({key,polygons:value.polygons.length,strokes:value.strokes.length})),
+       active:(currentRenderScene?.polygons||[]).map(x=>x.role),
+       dirty:[...gpuSceneDirtyDomains],pending:pendingPreparation?.signature?.slice(0,140)});
+   `);
+   const done='          pendingPreparation = null;\n          syncGpuRenderScene();';
+   expect(source.split(done).length).toBe(2);
+   source=source.replace(done,`
+          globalThis.__workerGateProbe.sceneUpdates.push({at:performance.now(),phase:'prepared',sign:pending.signature.slice(0,140)});
+   `+done);
+   const failed='          pending.failed = true;';
+   expect(source.split(failed).length).toBe(2);
+   source=source.replace(failed,failed+`
+          globalThis.__workerGateProbe.sceneUpdates.push({at:performance.now(),phase:'prepare-failed',error:String(error),sign:pending.signature?.slice(0,140)});
+   `);
+   await route.fulfill({response,body:source});
+ });
  await page.route(/\/modules\/gpu-map-renderer\.js(?:\?|$)/,async route=>{
   const response=await route.fetch();let s=await response.text();
   function replace(before,after){expect(s.split(before).length, 'Source instrumentation anchor').toBe(2);s=s.replace(before,after);}
@@ -49,8 +80,8 @@ test('diagnose actual first Canvas Worker frame gate without altering runtime be
     stats:r?.getStats({detailed:false})};
   }));
  }
- const report=await page.evaluate(()=>{const p=globalThis.__workerGateProbe;return{admissions:p.admissions,messages:p.messages};});
- const result={source:info.project.name,admissions:report.admissions,messages:report.messages,snapshots:snapshots.map(s=>({seconds:s.seconds,
+ const report=await page.evaluate(()=>{const p=globalThis.__workerGateProbe;return{admissions:p.admissions,messages:p.messages,sceneUpdates:p.sceneUpdates};});
+ const result={source:info.project.name,admissions:report.admissions,messages:report.messages,sceneUpdates:report.sceneUpdates,snapshots:snapshots.map(s=>({seconds:s.seconds,
   mode:s.runtime?.renderer,meshReady:s.runtime?.canonicalMeshReady,quality:s.runtime?.surfacePresentation,
   physicalLand:s.runtime?.backgroundPresentedKey,firstCountry:s.runtime?.firstCountryPublishedMs,
   generation:s.runtime?.projectGeneration,publishedGeneration:s.runtime?.countriesPublishedGeneration,
@@ -58,7 +89,7 @@ test('diagnose actual first Canvas Worker frame gate without altering runtime be
   workerMessages:s.stats?.canvasWorkerMessageCount,frameCount:s.stats?.canvasWorkerViewMessageCount,
   pending:s.stats?.canvasWorkerHasPendingFrame})) ,errors};
  writeFileSync(join(out,'diagnostic.json'),JSON.stringify(result,null,2));
- console.log('CANVAS_GATE_DIAGNOSTIC '+JSON.stringify({admissions:report.admissions.slice(-5),messages:report.messages.slice(-5),snapshots:result.snapshots,errors}));
+ console.log('CANVAS_GATE_DIAGNOSTIC '+JSON.stringify({admissions:report.admissions.slice(-3),messages:report.messages.slice(-3),sceneUpdates:report.sceneUpdates.slice(-15),snapshots:result.snapshots,errors}));
  expect(report.messages.length,'Must observe actual Worker frames').toBeGreaterThan(0);
  await info.attach('canvas-gate-diagnostic',{path:join(out,'diagnostic.json'),contentType:'application/json'});
 });
