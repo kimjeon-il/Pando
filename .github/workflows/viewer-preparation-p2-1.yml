@@ -5,6 +5,7 @@ on:
     paths:
       - shared/frontend/js/modules/builtin-session.js
       - tests/unit/builtin-source-preparation.test.mjs
+      - tests/unit/builtin-source-cache.test.mjs
       - tests/browser/viewer-builtin-source-p2.spec.mjs
       - .github/workflows/viewer-preparation-p2-1.yml
   workflow_dispatch:
@@ -28,7 +29,7 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - name: Read-only candidate and Core admission contracts
-        run: node --test tests/unit/builtin-source-preparation.test.mjs tests/unit/builtin-world-loader.test.mjs
+        run: node --test tests/unit/builtin-source-preparation.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/builtin-world-loader.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Visible map unchanged by detached source preparation
         run: pnpm exec playwright test tests/browser/viewer-builtin-source-p2.spec.mjs --workers=1
