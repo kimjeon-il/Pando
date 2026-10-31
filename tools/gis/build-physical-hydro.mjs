@@ -49,7 +49,7 @@ export function physicalHydroCollection(document,layer,category){
   }
   return {collection:{type:'FeatureCollection',features},coordinateCount,skippedNullShapes};
 }
-function findSources(root,names){
+export function findSources(root,names){
   const found=new Map(),wanted=new Set(names),pending=[root];
   while(pending.length){const directory=pending.pop();for(const row of readdirSync(directory,{withFileTypes:true})){
     const path=resolve(directory,row.name);if(row.isDirectory())pending.push(path);
@@ -60,7 +60,7 @@ function findSources(root,names){
   for(const name of names)if(!found.has(name))throw Error(`Expected exactly one ${name}, found 0`);
   return names.map(name=>found.get(name));
 }
-function futureRealpath(path){
+export function futureRealpath(path){
   const tail=[];let current=path;
   while(!existsSync(current)){
     const parent=dirname(current);if(parent===current)throw Error('Cannot resolve physical hydro output');

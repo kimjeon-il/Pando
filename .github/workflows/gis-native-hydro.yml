@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
@@ -61,7 +61,7 @@ jobs:
           PANDO_PHYSICAL_PYTHON: python
         run: node --test tests/unit/physical-hydro-native.test.mjs
   physical-raster:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-raster'
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'physical-raster' || inputs.target == 'physical-raster-integrated')
     strategy:
       fail-fast: false
       matrix:
@@ -105,6 +105,28 @@ jobs:
           $env:PANDO_PHYSICAL_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/artifact"
           node --test tests/unit/physical-raster-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF source pixels differ' }
+          if ('${{ inputs.target }}' -eq 'physical-raster-integrated') {
+            cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+            if ($LASTEXITCODE -ne 0) { throw 'Image codec configuration failed' }
+            cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+            if ($LASTEXITCODE -ne 0) { throw 'Image codec build failed' }
+            if ($IsWindows) { $image = 'build-native/map-image/Release/pando-map-image.exe' }
+            else { $image = 'build-native/map-image/pando-map-image' }
+            node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+            if ($LASTEXITCODE -ne 0) { throw 'Image codec packaging failed' }
+            $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+            cmake -S tools/cpp/terrain -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release
+            if ($LASTEXITCODE -ne 0) { throw 'Terrain configuration failed' }
+            cmake --build build-native/terrain-preview --config Release --target pando-terrain-preview
+            if ($LASTEXITCODE -ne 0) { throw 'Terrain build failed' }
+            if ($IsWindows) { $terrain = 'build-native/terrain-preview/Release/pando-terrain-preview.exe' }
+            else { $terrain = 'build-native/terrain-preview/pando-terrain-preview' }
+            node tools/gis/package-terrain-preview.mjs --binary $terrain --directory build-native/terrain-preview/artifact
+            if ($LASTEXITCODE -ne 0) { throw 'Terrain packaging failed' }
+            $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
+            node --test tests/unit/physical-terrain-builder.test.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'Physical terrain pipeline differs from frozen source pixels' }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: physical-raster-${{ matrix.os }}-${{ github.sha }}
