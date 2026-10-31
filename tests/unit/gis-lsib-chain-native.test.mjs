@@ -18,7 +18,10 @@ test('batched LSIB replacement retains frozen Python geometry and refusal cases'
   for(const row of oracle.cases){
     const [result]=await prepareLSIBReplacements(row.old,[row.reference],{binary});
     if(row.error)assert.match(result.error,/anchor|coverage|correspondence/i,row.name);
-    else equivalent(result.value,row.expected);
+    else {
+      equivalent(result.value,row.expected);
+      for(const anchor of result.value.anchors)assert.equal(result.value.coordinates.filter(point=>Math.hypot(point[0]-anchor[0],point[1]-anchor[1])<1e-12).length,1,row.name);
+    }
   }
   const first=oracle.cases[0],failed=oracle.cases[3];
   const rows=await prepareLSIBReplacements(first.old,[first.reference,failed.reference],{binary});

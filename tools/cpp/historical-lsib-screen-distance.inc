@@ -20,6 +20,7 @@ GeometryEngine::Shape lsibScreenLine(GeometryEngine& geos,const std::vector<LSIB
         }
     return geos.own(GEOSGeom_createLineString_r(context,coordinates),"LSIB line");
 }
+struct LSIBChainRejected:std::runtime_error{using std::runtime_error::runtime_error;};
 std::vector<LSIBPoint> lsibChainSlice(GeometryEngine& geos,const GeometryEngine::Shape& line,
     const std::vector<LSIBPoint>& points,double from,double to) {
     const auto context=geos.context();const bool reverse=from>to;
@@ -47,17 +48,18 @@ V replaceLSIBChain(GeometryEngine& geos,const std::vector<LSIBPoint>& oldPoints,
         const int count=GEOSGetNumGeometries_r(context,geometry);if(count<0)throw std::runtime_error("Invalid LSIB intersection geometry");
         for(int i=0;i<count;++i)collect(GEOSGetGeometryN_r(context,geometry,i));
     };collect(intersection.get());
-    if(anchors.size()<2)throw std::runtime_error("No independent intersection anchors; old endpoint arcs retained");
+    if(anchors.size()<2)throw LSIBChainRejected("No independent intersection anchors; old endpoint arcs retained");
     const auto project=[&](const GeometryEngine::Shape& line,const GeometryEngine::Shape& point){const double value=GEOSProject_r(context,line.get(),point.get());
         if(!std::isfinite(value)||value<0)throw std::runtime_error("Cannot project LSIB intersection anchor");return value;};
     std::stable_sort(anchors.begin(),anchors.end(),[&](const auto& a,const auto& b){return project(old,a)<project(old,b);});
     const auto& start=anchors.front();const auto& end=anchors.back();const double a=project(old,start),b=project(old,end);
-    if(b-a<.002)throw std::runtime_error("Intersection anchor coverage too short");
+    if(b-a<.002)throw LSIBChainRejected("Intersection anchor coverage too short");
     const double first=project(source,start),last=project(source,end);
-    if(std::abs(first-last)<.002)throw std::runtime_error("Ambiguous intersection anchor correspondence");
+    if(std::abs(first-last)<.002)throw LSIBChainRejected("Ambiguous intersection anchor correspondence");
     auto masterPoints=lsibChainSlice(geos,source,sourcePoints,first,last);auto master=lsibScreenLine(geos,masterPoints);
     auto derivative=geos.own(GEOSSimplify_r(context,master.get(),tolerance),"LSIB reference simplification");
-    if(GEOSisSimple_r(context,derivative.get())!=1)throw std::runtime_error("Reference section self-intersects");
+    const auto simple=GEOSisSimple_r(context,derivative.get());if(simple==2)throw std::runtime_error("Cannot inspect LSIB reference simplicity");
+    if(simple!=1)throw LSIBChainRejected("Reference section self-intersects");
     auto middle=lsibScreenPoints(geos.coordinates(derivative.get()));LSIBPoint startXY{},endXY{};
     if(!GEOSGeomGetX_r(context,start.get(),&startXY[0])||!GEOSGeomGetY_r(context,start.get(),&startXY[1])||
        !GEOSGeomGetX_r(context,end.get(),&endXY[0])||!GEOSGeomGetY_r(context,end.get(),&endXY[1]))throw std::runtime_error("Cannot read LSIB intersection anchor");
@@ -65,7 +67,9 @@ V replaceLSIBChain(GeometryEngine& geos,const std::vector<LSIBPoint>& oldPoints,
     const double oldLength=geos.length(old);auto prefix=lsibChainSlice(geos,old,oldPoints,0,a),suffix=lsibChainSlice(geos,old,oldPoints,b,oldLength);
     prefix.back()=startXY;suffix.front()=endXY;std::vector<LSIBPoint> points;
     for(const auto* part:{&prefix,&middle,&suffix})for(const auto& point:*part)if(points.empty()||points.back()!=point)points.push_back(point);
-    auto combined=lsibScreenLine(geos,points);if(GEOSisSimple_r(context,combined.get())!=1)throw std::runtime_error("Combined boundary crosses its retained old ending");
+    auto combined=lsibScreenLine(geos,points);const auto combinedSimple=GEOSisSimple_r(context,combined.get());
+    if(combinedSimple==2)throw std::runtime_error("Cannot inspect LSIB combined simplicity");
+    if(combinedSimple!=1)throw LSIBChainRejected("Combined boundary crosses its retained old ending");
     const auto jsonPoints=[](const std::vector<LSIBPoint>& values){auto out=V::arr();for(const auto& point:values){auto pair=V::arr();pair.array={V::num(point[0]),V::num(point[1])};out.array.push_back(std::move(pair));}return out;};
     auto result=V::obj();result.object["coordinates"]=jsonPoints(points);result.object["anchors"]=jsonPoints({startXY,endXY});
     result.object["retained_length_degrees"]=V::num(a+oldLength-b);result.object["source_length_degrees"]=V::num(geos.length(master));
@@ -77,7 +81,7 @@ V replaceLSIBChains(const V& request){
     if(references.empty()||references.size()>10000)throw std::runtime_error("Explicit bounded LSIB reference lines required");
     GeometryEngine geos;auto rows=V::arr();
     for(const auto& reference:references){auto item=V::obj();try{item.object["value"]=replaceLSIBChain(geos,old,lsibScreenPoints(reference));}
-        catch(const std::exception& error){item.object["error"]=V::str(error.what());}rows.array.push_back(std::move(item));}
+        catch(const LSIBChainRejected& error){item.object["error"]=V::str(error.what());}rows.array.push_back(std::move(item));}
     auto result=V::obj();result.object["results"]=std::move(rows);return result;
 }
 V sampledLSIBScreenDistance(const V& request) {
