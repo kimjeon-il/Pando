@@ -36,10 +36,16 @@ async function captureLayouts(page, name) {
   await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
 }
 
-async function draw(page, offset = 0, polygon = false) {
+async function draw(page, offset = 0, polygon = false, connected = false) {
   const map = await page.locator('#map').boundingBox();
-  const points = [[0.38 + offset, 0.38], [0.46 + offset, 0.39], [0.45 + offset, 0.48], ...(polygon ? [[0.38 + offset, 0.38]] : [])]
-    .map(([x, y]) => [map.x + map.width * x, map.y + map.height * y]);
+  const path = connected
+    ? (polygon
+      // Overlap the first polygon: the second piece must be unionable.
+      ? [[0.42, 0.40], [0.49, 0.41], [0.48, 0.47], [0.42, 0.40]]
+      // Continue the first river from its exact last screen coordinate.
+      : [[0.45, 0.48], [0.51, 0.52], [0.54, 0.57]])
+    : [[0.38 + offset, 0.38], [0.46 + offset, 0.39], [0.45 + offset, 0.48], ...(polygon ? [[0.38 + offset, 0.38]] : [])];
+  const points = path.map(([x, y]) => [map.x + map.width * x, map.y + map.height * y]);
   await page.mouse.move(...points[0]);
   await page.mouse.down();
   for (const point of points.slice(1)) await page.mouse.move(...point, { steps: 5 });
@@ -310,6 +316,10 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#confirmModal')).toBeVisible();
   await page.locator('#confirmModalOkBtn').click();
+  // Confirming a prepared merge queues an asynchronous Core commit. Wait for
+  // the removed donor to disappear before reading the merged keeper geometry.
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), units[1].id),
+    { timeout: 60_000 }).toBeNull();
   const after = await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id)), units.map(unit => unit.id));
   expect(after[0].geometry).not.toEqual(units[0].geometry);
   expect(after[1]).toBeNull();
@@ -435,7 +445,7 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(1);
     await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled();
     await page.locator('#multiDrawnAddBtn').click();
-    await draw(page, 0.05, tool === 'lake');
+    await draw(page, 0.05, tool === 'lake', true);
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(2);
     await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
