@@ -1,0 +1,212 @@
+name: P8-2 annex fix gate and final regression
+on:
+  push:
+    branches: [work/p8-annex-focused]
+    paths:
+      - .github/workflows/p8-annex-focused.yml
+      - tests/browser/workflow-v17.spec.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: p8-annex-focused-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  annex-focused:
+    name: Only failed annex source-picking case
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Isolated annex without retries
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          pnpm exec playwright test tests/browser/workflow-v17.spec.mjs \
+            --grep 'annex discard confirmation preserves the exact draft' \
+            --workers=1 --retries=0 --trace off \
+            --output=test-results/p8-annex-focused
+      - name: Preserve annex failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-annex-focused-${{ github.sha }}
+          path: test-results/p8-annex-focused/
+          retention-days: 3
+          if-no-files-found: ignore
+  ui-contracts:
+    needs: annex-focused
+    name: UI contracts and command regressions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Lint changed UI regression sources
+        run: >-
+          pnpm exec eslint
+          tests/browser/info-tab-v9.spec.mjs
+          tests/browser/workflow-v17.spec.mjs
+          tests/unit/object-visibility-command.test.mjs
+          tests/unit/territorial-property-controller.test.mjs
+          tests/unit/task-stage-model.test.mjs
+          tests/unit/task-stage-presentation.test.mjs
+      - name: Check shared UI tokens, components, architecture and surface state
+        id: ui_gate
+        continue-on-error: true
+        run: pnpm check:ui
+      - name: Validate editor unit, command guards, preview stages and history
+        id: unit_gate
+        continue-on-error: true
+        run: >
+          node --test --test-concurrency=1
+          tests/unit/task-stage-model.test.mjs
+          tests/unit/task-stage-presentation.test.mjs
+          tests/unit/territorial-property-controller.test.mjs
+          tests/unit/object-property-controller.test.mjs
+          tests/unit/object-action-availability.test.mjs
+          tests/unit/object-visibility-command.test.mjs
+          tests/unit/project-session-viewing.test.mjs
+          tests/unit/app-ui-boundaries.test.mjs
+          tests/unit/property-editor-async-boundary.test.mjs
+          tests/unit/territory-selection-workflow.test.mjs
+          tests/unit/label-metadata-edit.test.mjs
+          tests/unit/hydro-metadata-edit.test.mjs
+          tests/unit/hydro-source-notes.test.mjs
+          tests/unit/surface-tabs-controller.test.mjs
+          tests/unit/workflow-layout.test.mjs
+          tests/unit/selection-ui-ack.test.mjs
+          tests/unit/project-ui-async-history.test.mjs
+      - name: Require both static and unit gates to succeed
+        if: always()
+        env:
+          UI_GATE: ${{ steps.ui_gate.outcome }}
+          UNIT_GATE: ${{ steps.unit_gate.outcome }}
+        run: |
+          [ "$UI_GATE" = success ] && [ "$UNIT_GATE" = success ]
+
+  editor-browser:
+    needs: annex-focused
+    name: Editor, selection, metadata and undo (Chromium)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise editor, object state, locks, metadata, copy and undo
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/p8-final-editor
+          pnpm exec playwright test \
+            tests/browser/editor-flag-menu.spec.mjs \
+            tests/browser/editor-workspace.spec.mjs \
+            tests/browser/selection-domain-smoke.spec.mjs \
+            tests/browser/info-tab-v9.spec.mjs \
+            tests/browser/label-metadata-edit.spec.mjs \
+            tests/browser/place-runtime.spec.mjs \
+            tests/browser/hydro-metadata-edit.spec.mjs \
+            tests/browser/territorial-parent-edit.spec.mjs \
+            --workers=1 --retries=0 --max-failures=2 --trace off \
+            --output=test-results/p8-final-editor \
+            2>&1 | tee test-results/p8-final-editor.log
+      - name: Recheck P8-1 responsive layouts after shared token fixes
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          pnpm exec playwright test tests/browser/editor-theme-responsive-p8.spec.mjs \
+            --config playwright.p8.config.js --workers=1 --retries=0 --trace off \
+            --output=test-results/p8-final-responsive \
+            2>&1 | tee test-results/p8-final-responsive.log
+      - name: Save browser failure context
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-final-editor-${{ github.sha }}
+          path: |
+            test-results/p8-final-editor/
+            test-results/p8-final-editor.log
+            test-results/p8-final-responsive/
+            test-results/p8-final-responsive.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  workflow-browser:
+    needs: annex-focused
+    name: Annex, creation, merge, border, hydro and distribution (Chromium)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise actual multi-stage workflows and history
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/p8-final-workflows
+          pnpm exec playwright test tests/browser/workflow-v17.spec.mjs \
+            --grep 'annex discard confirmation|general creation retains|regional creation retains|subunit merge removes|merge removal, boundary and coast|hydro lists preserve|free distribution shows|annex selection starts' \
+            --workers=1 --retries=0 --max-failures=2 --trace off \
+            --output=test-results/p8-final-workflows \
+            2>&1 | tee test-results/p8-final-workflows.log
+      - name: Exercise distribution values, reload, undo and redo
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          pnpm exec playwright test tests/browser/distribution.spec.mjs \
+            --grep 'a numeric distribution stores signed values|overlap and single display preserve independent values' \
+            --workers=1 --retries=0 --max-failures=2 --trace off \
+            --output=test-results/p8-final-distribution \
+            2>&1 | tee test-results/p8-final-distribution.log
+      - name: Save workflow failure context
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-final-workflows-${{ github.sha }}
+          path: |
+            test-results/p8-final-workflows/
+            test-results/p8-final-distribution/
+            test-results/p8-final-workflows.log
+            test-results/p8-final-distribution.log
+          if-no-files-found: warn
+          retention-days: 7
