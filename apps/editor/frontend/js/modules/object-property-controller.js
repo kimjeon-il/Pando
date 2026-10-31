@@ -351,7 +351,8 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroSystemValue').previousElementSibling.textContent = '대표 수계';
     $('hydroTributaryValue').textContent = categoryKey === 'river' ? '본류·표시 지류' : '호수';
     $('hydroSourceValue').textContent = properties.source || `판도연구소 내장 ${category}`;
-    $('hydroBuiltinHelp').lastChild.textContent = ` 기반 내장 ${category}입니다. 직접 수정하려면 복사본을 만드세요.`;
+    // The source remains visible. The edit tab owns the copy action.
+    $('hydroBuiltinHelp').lastChild.textContent = ` · 내장 ${category} · 복사본에서 편집`;
     $('selectionStatus').textContent = displayName;
     syncStatusBar();
     objectSearchController()?.syncSelection();

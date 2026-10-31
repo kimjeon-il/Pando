@@ -39,6 +39,13 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
     await page.locator('#objectSearchResults .object-search-result').click();
   });
   await expect(page.locator('#hydroProperties')).toBeVisible();
+  await expect(page.locator('#hydroEditFields')).toBeVisible();
+  await expect(page.locator('#hydroBuiltinHelp')).toBeHidden();
+  await expect(page.locator('#hydroBuiltinNotes')).toBeHidden();
+  await expect(page.locator('details[data-od-id="hydro-details"] summary')).toHaveText('비고');
+  await expect(page.locator('label[for="hydroNotesInput"]')).toHaveClass(/ui-visually-hidden/);
+  await page.locator('details[data-od-id="hydro-details"] summary').click();
+  await expect(page.locator('#hydroNotesInput')).toBeVisible();
   await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.locator('#focusSelectedObjectBtn').click();
   await page.addStyleTag({ content: '#map .map-selection-outline, #map .map-selection-fill, #map .object-edit-outline { visibility: hidden !important; }' });
