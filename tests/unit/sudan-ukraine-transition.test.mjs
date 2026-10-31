@@ -50,7 +50,20 @@ test('monthly end and exact day selection keep Sudan, South Sudan and Ukraine as
 });
 
 test('built Web/native historical-project input has the same post-transition geographical ownership',()=>{
- const at=(month,id)=>{const project=builtinProject(month);return resolvedTimelineViews(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month).find(e=>e.id===id);};
+ const historicalFrames=new Map();
+ const focus=new Set(['SDN','SDS','UKR','RUS']);
+ const at=(month,id)=>{
+  if(!historicalFrames.has(month)){
+   // One fully resolved source snapshot per reference month, rather than
+   // repeatedly assembling 250+ countries and all their geometry allocations
+   // for each individual assertion. Retain only the 4 inspected identities.
+   const project=builtinProject(month);
+   const result=resolvedTimelineViews(project.territorialEntities,project.timelineRecords,
+    createGeometryVersionStore(project.geometries),month);
+   historicalFrames.set(month,new Map(result.filter(row=>focus.has(row.id)).map(row=>[row.id,row])));
+  }
+  return historicalFrames.get(month).get(id);
+ };
  const khartoum=[32.56,15.5],juba=[31.58,4.85],kyiv=[30.52,50.45],crimea=[34.1,44.95];
  assert.ok(covers(at('2011-06','SDN')?.geometry,juba));
  assert.equal(at('2011-06','SDS'),undefined);
