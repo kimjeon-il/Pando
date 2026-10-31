@@ -253,6 +253,7 @@ test('accepted hydro preview avoids inactive draft warning while pending and inv
   assert.equal(invalid.status, 'invalid');
   assert.equal(invalid.reason, '유효하지 않은 경로');
 
+  multi.previewIssues = [];
   const ordinary = taskStagePresentation({ ...options, hydroReview: false });
   assert.equal(ordinary.status, 'needs-target', 'other draft workflows still require completion');
   assert.notEqual(ordinary.reason, '');
