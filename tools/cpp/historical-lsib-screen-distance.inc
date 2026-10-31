@@ -239,6 +239,63 @@ V extractLSIBSharedChains(const V& request){
     }
     auto result=V::obj();result.object["chains"]=std::move(rows);return result;
 }
+struct LSIBEnclaveRejected:std::runtime_error{using std::runtime_error::runtime_error;};
+V prepareLSIBEnclave(const V& request){
+    try{
+        const auto& geometries=field(request,"geometries"),&order=field(request,"order"),&pairValue=field(request,"pair");
+        const auto& pairRows=array(pairValue);const auto enclave=str(field(request,"enclave"));const auto& simplifyValue=field(request,"simplify");
+        if(geometries.kind!=V::Object||geometries.object.size()!=2||pairRows.size()!=2||simplifyValue.kind!=V::Bool)
+            throw LSIBEnclaveRejected("Reviewed enclave requires exactly its two owning countries");
+        std::vector<std::string> pair{str(pairRows[0]),str(pairRows[1])};std::sort(pair.begin(),pair.end());
+        if(pair[0]==pair[1]||!geometries.object.count(pair[0])||!geometries.object.count(pair[1])||(enclave!=pair[0]&&enclave!=pair[1]))
+            throw LSIBEnclaveRejected("Reviewed enclave requires exactly its two owning countries");
+        const auto host=enclave==pair[0]?pair[1]:pair[0];GeometryEngine geos;const auto context=geos.context();
+        auto inner=geos.parse(geometries.object.at(enclave)),outer=geos.parse(geometries.object.at(host));
+        if(geos.type(inner.get())!=GEOS_POLYGON||GEOSGetNumInteriorRings_r(context,inner.get())!=0)
+            throw LSIBEnclaveRejected("Enclave must own exactly one complete shared exterior ring");
+        auto sharedRequest=V::obj();sharedRequest.object["geometries"]=geometries;sharedRequest.object["order"]=order;
+        const auto shared=extractLSIBSharedChains(sharedRequest);GeometryEngine::Shape old;
+        for(const auto& row:array(field(shared,"chains"))){const auto& codes=array(field(row,"countries"));
+            if(codes.size()==2&&str(codes[0])==pair[0]&&str(codes[1])==pair[1]){old=geos.parse(field(row,"geometry"));break;}}
+        const auto* exterior=GEOSGetExteriorRing_r(context,inner.get());
+        if(!old||!exterior||geos.type(old.get())!=GEOS_LINESTRING)
+            throw LSIBEnclaveRejected("Enclave must own exactly one complete shared exterior ring");
+        const auto oldRing=GEOSisRing_r(context,old.get()),oldEquals=GEOSEquals_r(context,old.get(),exterior);
+        if(oldRing==2||oldEquals==2)throw std::runtime_error("Cannot inspect enclave shared boundary");
+        if(oldRing!=1||oldEquals!=1)throw LSIBEnclaveRejected("Enclave must own exactly one complete shared exterior ring");
+        unsigned holes=0;for(const auto& part:geos.parts(outer)){
+            if(geos.type(part.get())!=GEOS_POLYGON)throw std::runtime_error("Enclave host must be polygonal");
+            const auto count=GEOSGetNumInteriorRings_r(context,part.get());if(count<0)throw std::runtime_error("Cannot read enclave host holes");
+            for(int i=0;i<count;++i){const auto* hole=GEOSGetInteriorRingN_r(context,part.get(),i);const auto equals=GEOSEquals_r(context,hole,old.get());
+                if(equals==2)throw std::runtime_error("Cannot compare enclave host hole");if(equals==1)++holes;}}
+        if(holes!=1)throw LSIBEnclaveRejected("Enclave boundary must match exactly one host hole");
+        const auto referencePoints=lsibScreenPoints(field(request,"reference"));auto reference=lsibScreenLine(geos,referencePoints);
+        const auto validRing=[&](const GeometryEngine::Shape& line){const auto ring=GEOSisRing_r(context,line.get());
+            if(ring==2)throw std::runtime_error("Cannot inspect enclave reference");if(ring!=1)return false;
+            auto geometry=V::obj(),rings=V::arr();geometry.object["type"]=V::str("Polygon");rings.array.push_back(geos.coordinates(line.get()));geometry.object["coordinates"]=std::move(rings);
+            auto polygon=geos.parse(geometry);const auto valid=GEOSisValid_r(context,polygon.get());if(valid==2)throw std::runtime_error("Cannot validate enclave reference");return valid==1;};
+        if(!validRing(reference))throw LSIBEnclaveRejected("Enclave reference must be one simple closed ring");
+        const bool simplify=simplifyValue.raw=="true";auto derivative=simplify?geos.own(GEOSTopologyPreserveSimplify_r(context,reference.get(),.0004),"enclave simplification"):reference;
+        if(!validRing(derivative))throw LSIBEnclaveRejected("Derived enclave boundary is not a valid closed ring");
+        const auto oldCoordinates=geos.coordinates(old.get()),replacement=geos.coordinates(derivative.get());auto patches=V::obj();
+        for(const auto& code:pair){auto patch=V::obj(),list=V::arr();patch.object["old"]=oldCoordinates;patch.object["replacement"]=replacement;list.array.push_back(std::move(patch));patches.object[code]=std::move(list);}
+        auto replaceRequest=V::obj();replaceRequest.object["geometries"]=geometries;replaceRequest.object["patches"]=std::move(patches);
+        const auto replaced=replaceLSIBRings(replaceRequest);if(const auto* error=optional(replaced,"error"))throw LSIBEnclaveRejected(str(*error));
+        const auto& result=field(replaced,"geometries");auto validateRequest=V::obj();validateRequest.object["before"]=geometries;validateRequest.object["after"]=result;
+        validateRequest.object["beforeOrder"]=order;validateRequest.object["afterOrder"]=order;
+        const auto validated=validateLSIBCountryRepair(validateRequest);if(const auto* error=optional(validated,"error"))throw LSIBEnclaveRejected(str(*error));
+        auto newHost=geos.parse(result.object.at(host)),newInner=geos.parse(result.object.at(enclave));
+        auto hostBoundary=geos.boundary(newHost),innerBoundary=geos.boundary(newInner),newShared=geos.intersection(hostBoundary,innerBoundary);
+        const auto equals=GEOSEquals_r(context,newShared.get(),derivative.get());if(equals==2)throw std::runtime_error("Cannot compare enclave shared boundary");
+        if(equals!=1)throw LSIBEnclaveRejected("Enclave and host do not share the complete replacement ring");
+        auto countries=V::arr();countries.array={V::str(pair[0]),V::str(pair[1])};auto section=V::obj();
+        section.object["countries"]=std::move(countries);section.object["closedRing"]=V::boolean(true);section.object["enclave"]=V::str(enclave);
+        section.object["old_length_degrees"]=V::num(geos.length(old));section.object["source_length_degrees"]=V::num(geos.length(reference));
+        section.object["master_vertices"]=V::num(static_cast<double>(referencePoints.size()));section.object["derived_vertices"]=V::num(static_cast<double>(array(replacement).size()));
+        section.object["simplification_bound_px"]=V::num(simplify?.0004*(2560.0*64.0/360.0):0);
+        auto sections=V::arr();sections.array.push_back(std::move(section));auto receipt=V::obj();receipt.object["geometries"]=result;receipt.object["sections"]=std::move(sections);return receipt;
+    }catch(const LSIBEnclaveRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;

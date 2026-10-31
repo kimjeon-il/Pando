@@ -118,6 +118,21 @@ export async function extractLSIBSharedChains(geometries,options={}){
   }
   return result.chains;
 }
+export async function prepareLSIBEnclave(request,options={}){
+  options.signal?.throwIfAborted();
+  if(!request||!request.geometries||typeof request.geometries!=='object'||Array.isArray(request.geometries)||
+    !Array.isArray(request.pair)||request.pair.length!==2||request.pair.some(code=>typeof code!=='string')||
+    typeof request.enclave!=='string'||typeof request.simplify!=='boolean')throw Error('Explicit LSIB enclave inputs required');
+  validateLine(request.reference);
+  const result=await nativeRequest('--prepare-lsib-enclave',{...request,order:Object.keys(request.geometries)},options);
+  if(typeof result?.error==='string'&&result.error&&Object.keys(result).length===1){
+    const error=Error(result.error);error.code='LSIB_ENCLAVE_REJECTED';throw error;
+  }
+  if(!result?.geometries||typeof result.geometries!=='object'||!Array.isArray(result.sections)||result.sections.length!==1||
+    Object.keys(result.geometries).length!==Object.keys(request.geometries).length||
+    Object.keys(request.geometries).some(code=>!Object.hasOwn(result.geometries,code)))throw Error('Invalid LSIB enclave receipt');
+  return {geometries:Object.fromEntries(Object.keys(request.geometries).map(code=>[code,result.geometries[code]])),sections:result.sections};
+}
 export async function prepareLSIBReference({geometries,anchors,merge,closedRing},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||!Array.isArray(anchors)||typeof merge!=='boolean'||typeof closedRing!=='boolean')
@@ -150,7 +165,7 @@ export async function analyzeLSIBSection(request,options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
+    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
@@ -164,6 +179,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     }else if(process.argv[2]==='--repair-stream'){
       try{result=await validateLSIBCountryRepair(request);}
       catch(error){if(error.code!=='LSIB_REPAIR_REJECTED')throw error;result={error:error.message};}
+    }else if(process.argv[2]==='--enclave-stream'){
+      try{result=await prepareLSIBEnclave(request);}
+      catch(error){if(error.code!=='LSIB_ENCLAVE_REJECTED')throw error;result={error:error.message};}
     }else result={coordinates:await selectLSIBDisplay(request.geometry,request.anchors,request.reference)};
     process.stdout.write(JSON.stringify(result)+'\n');
   }catch(error){process.stderr.write('lsib-screen: '+String(error.message)+'\n');process.exitCode=1;}
