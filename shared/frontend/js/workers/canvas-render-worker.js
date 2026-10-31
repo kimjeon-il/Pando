@@ -985,7 +985,9 @@ function canvasFallbackWorkerMain() {
         self.PandoLabCanvasSceneComposition.drawOverlays(context, geoPath, message.scenePolygons || [], message.sceneStrokes || [], dpr, protection);
         };
         for (const role of message.visualOrder.base) {
-          if (reuseSubstrate && (role === 'substrate' || role === 'terrain')) continue;
+          // A provisional bitmap has no terrain yet. Reuse its substrate,
+          // but never mistake that incomplete terrain for a finished paint.
+          if (reuseSubstrate && (role === 'substrate' || (role === 'terrain' && substrateState?.complete))) continue;
           if (Object.hasOwn(paint, role)) paint[role]();
           else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
         }
