@@ -2,7 +2,7 @@
 import {execFile} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {stat} from 'node:fs/promises';
+import {readFile,stat} from 'node:fs/promises';
 import {delimiter,dirname,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {mergeLSIBLines} from './lsib-screen-native.mjs';
@@ -64,11 +64,74 @@ export async function readLSIBLines(request,options={}){
   return rows.map((row,index)=>({...row,geometry:geometries[index]}));
 }
 
+// Preserve DBF strings and feature order while using the shared native line merger.
+export async function readLSIBDisputedShape({dbf,shp},options={}){
+  options.signal?.throwIfAborted();
+  if(!Buffer.isBuffer(dbf)||!Buffer.isBuffer(shp)||dbf.length<33||shp.length<100||
+    dbf.length>256*1024*1024||shp.length>256*1024*1024)throw Error('Invalid or truncated disputed SHP/DBF');
+  const count=dbf.readUInt32LE(4),header=dbf.readUInt16LE(8),width=dbf.readUInt16LE(10);
+  if(count>100000||header<33||header>dbf.length||width<1||header+count*width>dbf.length)
+    throw Error('Invalid or truncated disputed DBF');
+  const fields=[];let fieldOffset=32,fieldBytes=0;const decode=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
+  const text=bytes=>{try{return decode.decode(bytes);}catch{throw Error('Invalid UTF-8 in disputed DBF');}};
+  const strip=value=>value.replace(/^[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/gu,'');
+  while(fieldOffset<header&&dbf[fieldOffset]!==13){
+    if(fieldOffset+32>header)throw Error('Truncated disputed DBF field');
+    const nameBytes=dbf.subarray(fieldOffset,fieldOffset+11),zero=nameBytes.indexOf(0);
+      const name=text(zero<0?nameBytes:nameBytes.subarray(0,zero)),length=dbf[fieldOffset+16];
+    if(!name||!length||fields.some(field=>field.name===name))throw Error('Invalid disputed DBF field');
+    fields.push({name,length});fieldBytes+=length;fieldOffset+=32;
+  }
+  if(fieldOffset>=header||dbf[fieldOffset]!==13||fieldBytes+1>width)throw Error('Invalid disputed DBF header');
+  const rows=[],geometries=[];let offset=100;
+  for(let row=0;row<count;row++){
+    options.signal?.throwIfAborted();let at=header+row*width+1;const properties={};
+    for(const field of fields){properties[field.name]=strip(text(dbf.subarray(at,at+field.length)));at+=field.length;}
+    if(offset+8>shp.length)throw Error('Truncated disputed SHP record');
+    const bytes=shp.readUInt32BE(offset+4)*2;offset+=8;
+    if(bytes<4||offset+bytes>shp.length)throw Error('Truncated disputed SHP record');
+    const kind=shp.readUInt32LE(offset);
+    if(kind!==0){
+      if(![3,13,23].includes(kind))throw Error('Expected polyline SHP record, got '+kind);
+      if(bytes<44)throw Error('Truncated disputed SHP polyline');
+      const countParts=shp.readUInt32LE(offset+36),countPoints=shp.readUInt32LE(offset+40);
+      if(!countParts||!countPoints||44+countParts*4+countPoints*16>bytes)throw Error('Invalid disputed SHP polyline');
+      const starts=Array.from({length:countParts},(_,i)=>shp.readUInt32LE(offset+44+i*4));starts.push(countPoints);
+      if(starts[0]!==0||starts.some((value,i)=>i>0&&value<=starts[i-1]))throw Error('Invalid disputed SHP parts');
+      const pointsOffset=offset+44+countParts*4,parts=[];
+      for(let i=0;i<countParts;i++){
+        if(starts[i+1]-starts[i]<2)throw Error('Invalid disputed SHP line part');
+        const points=[];
+        for(let j=starts[i];j<starts[i+1];j++){
+          const x=shp.readDoubleLE(pointsOffset+j*16),y=shp.readDoubleLE(pointsOffset+j*16+8);
+          if(!Number.isFinite(x)||!Number.isFinite(y))throw Error('Invalid disputed SHP coordinate');
+          points.push([x,y]);
+        }
+        parts.push(points);
+      }
+      rows.push({properties});geometries.push({type:'MultiLineString',coordinates:parts});
+    }
+    offset+=bytes;
+  }
+  if(!rows.length)return [];
+  const merged=await mergeLSIBLines(geometries,options);
+  return rows.map((row,index)=>({...row,geometry:merged[index]}));
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||process.argv[2]!=='--stream')throw Error('Expected --stream');
+    if(process.argv.length!==3||!['--stream','--disputed-stream'].includes(process.argv[2]))throw Error('Expected an LSIB source operation');
     const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>1024*1024)throw Error('LSIB source request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    process.stdout.write(JSON.stringify({features:await readLSIBLines(request)})+'\n');
+    let features;
+    if(process.argv[2]==='--disputed-stream'){
+      if(typeof request.dbfPath!=='string'||typeof request.shpPath!=='string')throw Error('Explicit disputed SHP and DBF paths required');
+      const [dbfInfo,shpInfo]=await Promise.all([stat(request.dbfPath),stat(request.shpPath)]);
+      if(!dbfInfo.isFile()||!shpInfo.isFile()||dbfInfo.size>256*1024*1024||shpInfo.size>256*1024*1024)
+        throw Error('Invalid disputed SHP or DBF source');
+      const [dbf,shp]=await Promise.all([readFile(request.dbfPath),readFile(request.shpPath)]);
+      features=await readLSIBDisputedShape({dbf,shp});
+    }else features=await readLSIBLines(request);
+    process.stdout.write(JSON.stringify({features})+'\n');
   }catch(error){process.stderr.write('lsib-source: '+String(error.message)+'\n');process.exitCode=1;}
 }
