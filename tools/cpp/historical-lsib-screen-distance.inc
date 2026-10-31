@@ -482,7 +482,8 @@ V prepareLSIBCoast(const V& request){
         auto expected=geos.parse(expectedValue);auto monacoPoints=join({border,coast});auto monacoValue=V::obj(),monacoRings=V::arr();
         monacoValue.object["type"]=V::str("Polygon");monacoRings.array.push_back(pointsJSON(monacoPoints));monacoValue.object["coordinates"]=std::move(monacoRings);
         auto monaco=geos.parse(monacoValue),outside=geos.difference(monaco,expected);
-        const auto expectedValid=GEOSisValid_r(context,expected.get()),monacoValid=GEOSisValid_r(context,monaco.get()),holes=GEOSGetNumInteriorRings_r(context,monaco.get());
+        const auto expectedValid=GEOSisValid_r(context,expected.get()),monacoValid=GEOSisValid_r(context,monaco.get());
+        const auto holes=GEOSGetNumInteriorRings_r(context,monaco.get());
         if(expectedValid==2||monacoValid==2||holes<0)throw std::runtime_error("Cannot inspect coastal polygon validity");
         if(expectedValid!=1||monacoValid!=1||holes||geos.area(outside.get())>1e-10)
             throw LSIBCoastRejected("Reviewed coastline and border do not bound one Monaco polygon");
