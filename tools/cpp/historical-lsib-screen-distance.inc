@@ -418,9 +418,9 @@ V prepareLSIBTripoint(const V& request){
         auto receipt=V::obj();receipt.object["geometries"]=result;receipt.object["sections"]=std::move(sections);return receipt;
     }catch(const LSIBTripointRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
 }
-V lsibPolygonJSON(GeometryEngine& geos,const GeometryEngine::Shape& geometry){
+V polygonGeometryJSON(GeometryEngine& geos,const GeometryEngine::Shape& geometry){
     const auto context=geos.context();const auto kind=geos.type(geometry.get());auto result=V::obj();
-    if(kind!=GEOS_POLYGON&&kind!=GEOS_MULTIPOLYGON)throw std::runtime_error("Expected polygonal LSIB geometry");
+    if(kind!=GEOS_POLYGON&&kind!=GEOS_MULTIPOLYGON)throw std::runtime_error("Expected polygonal geometry");
     const auto rings=[&](const GeometryEngine::Shape& polygon){auto out=V::arr();const auto* exterior=GEOSGetExteriorRing_r(context,polygon.get());
         if(!exterior)throw std::runtime_error("Missing LSIB exterior ring");out.array.push_back(geos.coordinates(exterior));
         const auto count=GEOSGetNumInteriorRings_r(context,polygon.get());if(count<0)throw std::runtime_error("Cannot inspect LSIB interior rings");
@@ -492,7 +492,7 @@ V prepareLSIBCoast(const V& request){
         auto directLine=lsibScreenLine(geos,direct),otherLine=lsibScreenLine(geos,other);
         auto old=geos.length(directLine)<=geos.length(otherLine)?direct:other;if(distance(old.front(),anchors[0])>distance(old.back(),anchors[0]))std::reverse(old.begin(),old.end());
         old.front()=anchors[0];old.back()=anchors[1];const auto replacement=join({reversed(branches.at("west")),reversed(coast),branches.at("east")});
-        V expectedValue;try{expectedValue=replaceLSIBRing(geos,lsibPolygonJSON(geos,before),old,replacement);}
+        V expectedValue;try{expectedValue=replaceLSIBRing(geos,polygonGeometryJSON(geos,before),old,replacement);}
         catch(const LSIBRingRejected& error){throw LSIBCoastRejected(error.what());}
         auto expected=geos.parse(expectedValue);auto monacoPoints=join({border,coast});auto monacoValue=V::obj(),monacoRings=V::arr();
         monacoValue.object["type"]=V::str("Polygon");monacoRings.array.push_back(pointsJSON(monacoPoints));monacoValue.object["coordinates"]=std::move(monacoRings);
@@ -502,7 +502,7 @@ V prepareLSIBCoast(const V& request){
         if(expectedValid==2||monacoValid==2||holes<0)throw std::runtime_error("Cannot inspect coastal polygon validity");
         if(expectedValid!=1||monacoValid!=1||holes||geos.area(outside.get())>1e-10)
             throw LSIBCoastRejected("Reviewed coastline and border do not bound one Monaco polygon");
-        auto france=geos.difference(expected,monaco);auto result=V::obj();result.object["MCO"]=lsibPolygonJSON(geos,monaco);result.object["FRA"]=lsibPolygonJSON(geos,france);
+        auto france=geos.difference(expected,monaco);auto result=V::obj();result.object["MCO"]=polygonGeometryJSON(geos,monaco);result.object["FRA"]=polygonGeometryJSON(geos,france);
         auto validation=V::obj();validation.object["before"]=geometries;validation.object["after"]=result;validation.object["beforeOrder"]=order;
         auto afterOrder=V::arr();afterOrder.array={V::str("MCO"),V::str("FRA")};validation.object["afterOrder"]=std::move(afterOrder);
         validation.object["expectedUnion"]=expectedValue;validation.object["correctedCountry"]=V::str("MCO");
