@@ -528,6 +528,13 @@ function canvasFallbackWorkerMain() {
 
     function renderTerrain(message, projection, width, height, dpr, visibleLand, plan) {
       if (!plan) return true;
+      // A 'pending' country surface cannot be admitted even after expensive
+      // DEM/raster reprojection. Paint its current physical substrate first,
+      // acknowledge that real Worker bitmap, then let the renderer submit the
+      // latest canonical frame through 'background-presented'.
+      // Otherwise a single optional globe terrain pass holds the Worker busy
+      // and prevents both the first country frame and newer views from running.
+      if (message.surfacePresentation?.quality === 'pending') return false;
       const { targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs } = plan;
       terrainProtectedKeys.clear();
       for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
