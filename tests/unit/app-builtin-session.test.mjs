@@ -25,3 +25,26 @@ test('baseline sends uncompressed bytes once and retains only the admitted Core 
  assert.deepEqual(calls[0].options,{expectedGeneration:4});assert.equal(calls[0].facts.fingerprint,baseline.fingerprint);
  for(const field of ['project','projectJson','baseEntities'])assert.equal(Object.hasOwn(baseline,field),false);
 });
+
+
+test('same active source reuses its live baseline, but a replaced handle must be readmitted',async()=>{
+ let handle=0,selection='same',reads=0,admissions=0,generation=0;
+ const project={schemaVersion:10,test:'fixture'};
+ const owner=createBuiltinSession({builtinWorldLoader:{loadProject:async(_month,{reuseSelectionKey})=>{
+  reads++;return {project:reuseSelectionKey===selection?null:project,selectionKey:selection};
+ }}});
+ owner.connect({platformConfigurationA:{BASE_DATASET:'fixture'},domains:{projectDomain:{
+  getGeneration:()=>generation,state:()=>({storageBaselineId:handle}),
+  admitStorageBaseline:async()=>{admissions++;return {storageBaselineId:++handle};},
+ }}});
+ const first=await owner.prepareProjectBaseline('1950-12');
+ const second=await owner.prepareProjectBaseline('1951-12',{reuseSelectedSource:true});
+ assert.equal(admissions,1);assert.equal(reads,2);assert.equal(second.baselineId,first.baselineId);
+ assert.equal(second.queryKey,'1951-12');assert.equal(second.sourceMonth,'1950-12');
+ assert.equal(second.fingerprint,first.fingerprint,'retargeting must not forge the admitted source hash/month');
+ selection='new';const changed=await owner.prepareProjectBaseline('1952-12',{reuseSelectedSource:true});assert.equal(admissions,2);
+ assert.notEqual(changed.baselineId,first.baselineId);
+ handle=99;await owner.prepareProjectBaseline('1953-12',{reuseSelectedSource:true});assert.equal(admissions,3);
+ await assert.rejects(owner.prepareProjectBaseline('1953-12',{isCurrent:()=>false}),{name:'AbortError'});
+ assert.equal(admissions,3);
+});

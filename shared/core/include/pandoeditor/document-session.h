@@ -36,6 +36,7 @@ public:
     const CommandPreview* candidatePreview(std::uint32_t candidateId) const;
     DocumentSessionState documentLoad(const std::string& currentWebJson,const std::string& currentMonth);
     DocumentSessionState documentLoadBaseline(std::uint32_t baselineId,const codecjson::Value& setup,const std::string& documentId);
+    DocumentSessionOutcome documentTransitionBaseline(std::uint32_t baselineId,const codecjson::Value& setup,std::uint32_t expectedEpoch);
     DocumentSessionState documentInitialize(const std::string& currentWebJson,const std::string& currentMonth,bool preserveCursor,
         const std::optional<codecjson::Value>& features,const std::optional<std::string>& territorialSource,std::uint32_t expectedEpoch,
         std::optional<std::uint32_t> baselineId={});
@@ -92,6 +93,7 @@ private:
         std::uint32_t stateRevision;
     };
     DocumentSessionOutcome rejected(CommandError,const std::string&) const;
+    Project prepareBaselineProject(std::uint32_t,const codecjson::Value&,const std::string&) const;
     void requireLoaded() const;
     void clearPreview();
     DocumentSessionOutcome retainPreview(PrepareResult&&);

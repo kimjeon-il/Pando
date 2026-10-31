@@ -48,7 +48,13 @@ export function assembleBuiltinWorld(index,countries,month){
 }
 export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){
  if(!manifestUrl||!manifestSpec?.sha256||!dataRevision)throw new Error('Builtin country catalog integrity metadata is required');
- const base=new URL(manifestUrl,globalThis.location?.href),parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
+ const immutable=value=>{
+  if(value&&typeof value==='object'&&!Object.isFrozen(value)){
+   for(const child of Object.values(value))immutable(child);Object.freeze(value);
+  }
+  return value;
+ };
+ const base=new URL(manifestUrl,globalThis.location?.href),parse=bytes=>immutable(JSON.parse(new TextDecoder().decode(bytes)));
  const assets=createStoredAssetLoader({dataRevision,fetchFn,cacheStorage,resolveUrl:spec=>new URL(spec.url,base).href});
  let indexPromise,transportPromise;
  const countries=new Map(),pending=new Map();
@@ -98,13 +104,22 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    .finally(()=>pending.delete(entry.entityId)));
   return pending.get(entry.entityId);
  }
- async function loadProject(month,{isCurrent=()=>true}={}){
+ async function loadProject(month,{isCurrent=()=>true,reuseSelectionKey=null}={}){
   const index=await loadIndex(),selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
   let next=0;
   await Promise.all(Array.from({length:Math.min(6,selected.length)},async()=>{
    while(next<selected.length){if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});const i=next++;loaded[i]=await loadCountry(selected[i],index);}
   }));
-  return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:${month}`};
+  if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});
+  // The catalog and country hashes pin all immutable identities/coordinates.
+  // Re-evaluate every temporal dependency; equality is never inferred from the year.
+  const at=temporalMonthEnd(month),active=rows=>rows.flatMap((row,i)=>temporalContains(row,at)?[i]:[]);
+  const selectionKey=JSON.stringify([manifestSpec.sha256,selected.map((entry,i)=>[
+   entry.entityId,entry.sha256,loaded[i].sourceBindings.findIndex(row=>temporalContains(row,at)),
+   ...['lifetimes','geometryBindings','parentRelations','propertyBindings'].map(name=>active(loaded[i].timelineRecords[name])),
+  ])]);
+  return {project:selectionKey===reuseSelectionKey?null:assembleBuiltinWorld(index,loaded,month),
+   selectionKey,fingerprint:`${manifestSpec.sha256}:${month}`};
  }
  return Object.freeze({loadIndex,loadProject});
 }

@@ -6,6 +6,7 @@ const documentMethods = Object.freeze({
   'core.document-load': 'load','core.document-initialize': 'initialize', 'core.document-execute': 'execute', 'core.document-prepare': 'prepare',
   'core.document-baseline-coverage':'baselineCoverage',
   'core.document-load-baseline': 'loadBaseline',
+  'core.document-transition-baseline': 'transitionBaseline',
   'core.document-confirm': 'confirm', 'core.document-cancel': 'cancel', 'core.document-undo': 'undo',
   'core.document-redo': 'redo', 'core.storage-snapshot': 'storageSnapshot', 'core.document-state': 'state',
   'core.document-resolve-world': 'resolveWorld', 'core.document-timeline-cursor': 'setTimelineCursor',

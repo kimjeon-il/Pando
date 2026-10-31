@@ -11,6 +11,11 @@ function fixture() {
     constructor(ports) { calls.push(['ports', ports]); }
     documentLoad(json, currentMonth) { calls.push(['load', json, currentMonth]); epoch += 1; return { epoch, stateRevision: 0, canUndo: false, canRedo: false,timelineCursor: currentMonth }; }
     documentLoadBaseline(baselineId,setup) { calls.push(['loadBaseline',baselineId,setup]);return { epoch: ++epoch,timelineCursor: setup.initialMonth }; }
+    documentTransitionBaseline(baselineId,setup,expectedEpoch) {
+      calls.push(['transitionBaseline',baselineId,setup,expectedEpoch]);month=setup.initialMonth;
+      return {ok:true,changed:true,state:{epoch:++epoch,timelineCursor:month},
+        selection:this.selectionSnapshot(),delta:{objects:[],geometries:[],timelineRecords:null}};
+    }
     documentInitialize(payload) { calls.push(['initialize',payload]); return this.documentLoad(JSON.stringify(payload.project),payload.currentMonth); }
     executeCommand(command) { calls.push(['execute', command]); return { ok: true, changed: true, state: { epoch: ++epoch, stateRevision: 1,timelineCursor: month }, delta: { objects: [],timelineRecords: null } }; }
     undo(value) { calls.push(['undo', value]); return { ok: true, changed: true, state: { epoch: ++epoch, stateRevision: 1,timelineCursor: month }, delta: { objects: [],timelineRecords: {} } }; }
@@ -193,4 +198,17 @@ test('cursor transition rejects missing, stale or malformed Core world without a
     assert.equal(secondaryQueries, 0);
     await runtime.dispose();
   }
+});
+
+// Temporal admission must not call documentSnapshot and copy the whole geometry archive.
+test('builtin temporal transition publishes a native delta and its current world without a full document snapshot',async()=>{
+  const f=fixture();await f.runtime.load({storageJson:'{}'},context());f.calls.length=0;
+  const setup={initialMonth:'1951-12',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
+  const result=await f.runtime.transitionBaseline({baselineId:7,setup,expectedEpoch:1},context());
+  assert.equal(result.state.timelineCursor,'1951-12');assert.equal(result.world.month,'1951-12');
+  assert.equal(result.world.sourceEpoch,result.state.epoch);assert.deepEqual(result.delta.geometries,[]);
+  assert.equal(Object.hasOwn(result,'project'),false);
+  assert.deepEqual(f.calls.filter(row=>row[0]==='transitionBaseline'),[['transitionBaseline',7,setup,1]]);
+  assert.equal(f.calls.some(row=>row[0]==='documentSnapshot'||row[0]==='loadBaseline'),false);
+  await f.runtime.dispose();
 });

@@ -78,3 +78,73 @@ test('latest builtin reader admits its baseline after a superseded replacement f
  assert.equal(await earlier,false);assert.equal(await latest,true);
  assert.equal(owner.client.state().timelineCursor,'2014-01');
 });
+
+
+test('complete active selection proof permits reuse only for the same country records',async()=>{
+ const f=fixture(),first=await f.loader.loadProject('2014-01');
+ assert.equal(typeof first.selectionKey,'string');assert.ok(first.selectionKey.length>0);
+ const same=await f.loader.loadProject('2014-02',{reuseSelectionKey:first.selectionKey});
+ assert.equal(same.project,null);assert.equal(same.selectionKey,first.selectionKey);
+ const changed=await f.loader.loadProject('2014-03',{reuseSelectionKey:first.selectionKey});
+ assert.notEqual(changed.selectionKey,first.selectionKey);assert.ok(changed.project);
+ assert.equal(changed.project.territorialEntities.some(row=>row.id==='state:test-ukraine'),false);
+ const before=await f.loader.loadProject('2020-10');
+ const after=await f.loader.loadProject('2020-11',{reuseSelectionKey:before.selectionKey});
+ assert.notEqual(after.selectionKey,before.selectionKey);assert.ok(after.project);
+});
+
+test('cancelled selections never return reusable evidence or materialize a stale world',async()=>{
+ const f=fixture();await f.loader.loadProject('2014-01');
+ await assert.rejects(f.loader.loadProject('2014-02',{isCurrent:()=>false}),{name:'AbortError'});
+ await assert.rejects(f.loader.loadProject('1801-01',{isCurrent:()=>false}),{name:'AbortError'});
+});
+
+
+test('real viewer temporal delta matches full admission while retaining identical JS geometry allocations',async t=>{
+ const owner=await createNodeCoreProject(startupDocument([]),{productMode:'viewer',replaceSnapshot:async()=>true,restoreReplacement:async()=>{}});
+ t.after(()=>owner.dispose());
+ const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
+ session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:owner.project}});
+ const read=month=>async()=>({...await session.prepareProjectBaseline(month,{reuseSelectedSource:true}),
+  setup:{initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}});
+ const received=[];owner.client.subscribeTransitions((packet,operation)=>received.push({packet,operation}));
+ await owner.project.open(read('2014-01'),{source:'builtin'});
+ const first=owner.documentModel.snapshot(),geometry=first.geometries,identity=first.documentId;
+ await owner.project.transitionBuiltin(read('2014-02'));
+ const next=owner.documentModel.snapshot();assert.equal(next.documentId,identity);assert.equal(next.geometries,geometry);
+ assert.equal(next.projectSetup.initialMonth,'2014-02');assert.equal(owner.client.state().timelineCursor,'2014-02');
+ assert.equal(received.filter(row=>row.operation==='core.storage-baseline-load').length,1);
+ assert.equal(received.filter(row=>row.operation==='core.document-load-baseline').length,1);
+ const packet=received.find(row=>row.operation==='core.document-transition-baseline').packet;
+ assert.equal(Object.hasOwn(packet,'project'),false);assert.deepEqual(packet.delta.geometries,[]);
+ assert.equal(owner.client.state().dirty,false);assert.equal(owner.client.state().canUndo,false);
+ // Country removal and a version change must use fresh, dated source selection.
+ for(const month of ['2014-03','2020-10','2020-11','2014-02']){
+  await owner.project.transitionBuiltin(read(month));
+  const reference=await createNodeCoreProject(startupDocument([]),{productMode:'viewer'});
+  try {
+   const expected=(await fixture().loader.loadProject(month)).project;
+   await reference.client.load(JSON.stringify({...expected,documentId:identity}));
+   assert.deepEqual(owner.documentModel.snapshot().territorialEntities,reference.documentModel.snapshot().territorialEntities);
+   assert.deepEqual(owner.documentModel.snapshot().geometries,reference.documentModel.snapshot().geometries);
+   assert.deepEqual(owner.documentModel.territorialViews(),reference.documentModel.territorialViews());
+   assert.equal(owner.client.state().timelineCursor,month);
+  }finally{reference.dispose();}
+ }
+ assert.equal(received.filter(row=>row.operation==='core.document-load-baseline').length,1);
+ assert.equal(received.filter(row=>row.operation==='core.document-transition-baseline').length,5);
+});
+
+
+test('unchanged geometry never permits reuse across a historical name edition',async()=>{
+ const input=withExplicitView(historicalWorldCases());
+ const source=input.entities.find(row=>row.sourceInfo?.featureId==='RUS');
+ source.nameVersions=[{validFrom:null,validTo:'1999',names:{ko:{common:'Old'}}},
+  {validFrom:'2000',validTo:null,names:{ko:{common:'New'}}}];
+ const f=fixture({assets:buildBuiltinWorldPublication({input})});
+ const before=await f.loader.loadProject('1999-12');
+ const after=await f.loader.loadProject('2000-12',{reuseSelectionKey:before.selectionKey});
+ assert.notEqual(after.selectionKey,before.selectionKey);
+ assert.equal(before.project.territorialEntities.find(row=>row.id==='RUS').properties.name,'Old');
+ assert.equal(after.project.territorialEntities.find(row=>row.id==='RUS').properties.name,'New');
+});

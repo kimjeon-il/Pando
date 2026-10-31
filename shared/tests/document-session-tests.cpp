@@ -138,6 +138,53 @@ void pureTimelineContracts() {
     assert(resolveWorld(edited,context,"1914-07").find(territorialRef("child"))->geometryRef.version==2);
     assert(resolveWorld(records,context,"1914-07").find(territorialRef("child"))->geometryRef.version==1);
 }
+void builtinTemporalTransition(const std::string& seed) {
+    using V=codecjson::Value;
+    const projectcodec::PlatformPorts ports{[](const std::string&){},true,codecjson::ParsedTextPolicy::PreserveUtf16};
+    auto raw=codecjson::parse(seed);raw.object.at("projectSetup").object["sourceMode"]=V::str("builtin");
+    const auto setup=raw.object.at("projectSetup");
+    const auto source=[&](const V& value){
+        const auto bytes=value.encode();projectcodec::WebStorageAssetSource result;
+        result.sourceBytes.assign(bytes.begin(),bytes.end());result.encoding="identity";
+        result.compressedBytes=result.decodedBytes=bytes.size();result.fingerprint=projectcodec::sha256Bytes(bytes);
+        result.baseDataset=value.object.at("baseDataset").string;result.sourceMonth="2026-10";return result;
+    };
+    DocumentSession session(ports),reference(ports);
+    session.documentLoad(raw.encode(),"2026-10");reference.documentLoad(raw.encode(),"2026-10");
+    auto baseline=session.storageBaselineLoad(source(raw),session.projectState().epoch).storageBaselineId;
+    auto referenceBaseline=reference.storageBaselineLoad(source(raw),reference.projectState().epoch).storageBaselineId;
+    session.documentLoadBaseline(baseline,setup,"temporal-viewer");
+    const auto before=session.documentSnapshot();const auto capsule=session.captureReplacement(session.projectState().epoch);
+    auto next=setup;next.object["initialMonth"]=V::str("2025-12");
+    const auto transitioned=session.documentTransitionBaseline(baseline,next,session.projectState().epoch);
+    assert(transitioned.result.changed());const auto delta=codecjson::parse(transitioned.delta);
+    assert(delta.object.at("geometries").array.empty());
+    assert(delta.object.at("objects").array.empty());
+    assert(delta.object.at("header").object.at("set").object.at("projectSetup").object.at("initialMonth").string=="2025-12");
+    reference.documentLoadBaseline(referenceBaseline,next,"temporal-viewer");
+    assert(session.documentSnapshot()==reference.documentSnapshot());
+    assert(session.projectState().timelineCursor=="2025-12"&&!session.projectState().dirty&&!session.projectState().canUndo);
+    assert(session.project().document().documentId=="temporal-viewer");
+    const auto accepted=session.documentSnapshot();const auto epoch=session.projectState().epoch;
+    try { session.documentTransitionBaseline(baseline,next,epoch-1);assert(false); } catch(const std::invalid_argument&) {}
+    auto invalid=next;invalid.object["sourceMode"]=V::str("empty");
+    try { session.documentTransitionBaseline(baseline,invalid,epoch);assert(false); } catch(const std::exception&) {}
+    assert(session.documentSnapshot()==accepted&&session.projectState().epoch==epoch);
+    // A changed identity must be included even when geometry content is identical.
+    raw.object.at("territorialEntities").array.at(0).object.at("properties").object["name"]=V::str("Dated name");
+    baseline=session.storageBaselineLoad(source(raw),session.projectState().epoch).storageBaselineId;
+    referenceBaseline=reference.storageBaselineLoad(source(raw),reference.projectState().epoch).storageBaselineId;
+    next.object["initialMonth"]=V::str("2024-12");
+    const auto changed=session.documentTransitionBaseline(baseline,next,session.projectState().epoch);
+    const auto changedDelta=codecjson::parse(changed.delta);
+    assert(!changedDelta.object.at("objects").array.empty());
+    assert(changedDelta.object.at("geometries").array.empty());
+    reference.documentLoadBaseline(referenceBaseline,next,"temporal-viewer");
+    assert(session.documentSnapshot()==reference.documentSnapshot());
+    session.rollbackReplacement(capsule,session.projectState().epoch);
+    assert(session.documentSnapshot()==before&&session.projectState().timelineCursor=="2026-10");
+    std::cout<<"Builtin temporal delta: identical to full load, no unchanged geometry payload, rollback/stale/invalid setup passed\n";
+}
 int main() {
     pureTimelineContracts();
     std::ifstream file(DOCUMENT_SESSION_FIXTURE,std::ios::binary);assert(file);
@@ -150,6 +197,7 @@ int main() {
     });
     const auto seed=canonicalSeed.encode();
     ownedCommandBoundaries(seed);
+    builtinTemporalTransition(seed);
     auto blank=codecjson::parse(seed);for(auto& row:blank.object.at("territorialEntities").array) {
         auto& properties=row.object.at("properties");properties.object["name"]=codecjson::Value::str("");
         properties.object["metadata"]=codecjson::Value::obj();
