@@ -1,5 +1,6 @@
 #include <gdal.h>
 #include <gdal_utils.h>
+#include <ogr_srs_api.h>
 #include <cpl_conv.h>
 #include <cpl_string.h>
 #include <cpl_vsi.h>
@@ -12,6 +13,7 @@
 #include <string>
 #include <vector>
 #ifdef _WIN32
+#define NOMINMAX
 #include <fcntl.h>
 #include <io.h>
 #include <windows.h>
@@ -22,7 +24,7 @@ int run(int argc,char** argv){
 #ifdef _WIN32
     _setmode(_fileno(stdout),_O_BINARY);
 #endif
-    if(argc!=8)throw std::invalid_argument("Expected TIFF, level width/height and x0 y0 x1 y1");
+    if(argc!=8&&!(argc==9&&std::string(argv[8])=="--strict-etopo"))throw std::invalid_argument("Expected TIFF, level width/height and x0 y0 x1 y1");
     const auto number=[](const char* text){std::size_t at=0;const auto value=std::stoll(text,&at);if(at!=std::string(text).size())throw std::invalid_argument("Invalid DEM window integer");return value;};
     const auto width=number(argv[2]),height=number(argv[3]),x0=number(argv[4]),y0=number(argv[5]),x1=number(argv[6]),y1=number(argv[7]);
     const auto outWidth=x1-x0,outHeight=y1-y0;
@@ -37,6 +39,13 @@ int run(int argc,char** argv){
     if(sw<1||sh<1||GDALGetGeoTransform(source.get(),transform)!=CE_None||std::abs(transform[0]+180)>1e-8||
       std::abs(transform[1]-360.0/sw)>1e-8||std::abs(transform[2])>1e-8||std::abs(transform[3]-90)>1e-8||
       std::abs(transform[4])>1e-8||std::abs(transform[5]+180.0/sh)>1e-8)throw std::invalid_argument("DEM source grid differs");
+    if(argc==9){
+      std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> actual(OSRNewSpatialReference(GDALGetProjectionRef(source.get())),OSRDestroySpatialReference);
+      std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> expected(OSRNewSpatialReference(nullptr),OSRDestroySpatialReference);
+      const char* registration=GDALGetMetadataItem(source.get(),"AREA_OR_POINT",nullptr);
+      if(sw!=43200||sh!=21600||!actual||!expected||OSRImportFromEPSG(expected.get(),9518)!=OGRERR_NONE||!OSRIsSame(actual.get(),expected.get())||
+        !registration||std::string(registration)!="Area")throw std::invalid_argument("Expected cell-registered EPSG:9518 ETOPO 30s source");
+    }
     int hasNoData=0;const auto noData=GDALGetRasterNoDataValue(GDALGetRasterBand(source.get(),1),&hasNoData);
     if(!hasNoData||!std::isfinite(noData))throw std::invalid_argument("DEM source NoData required");
     std::vector<std::string> arguments={"-of","VRT","-r","average","-te","-180","-90","180","90","-ts",std::to_string(width),std::to_string(height),"-t_srs",GDALGetProjectionRef(source.get())};
