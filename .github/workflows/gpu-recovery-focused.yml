@@ -1,0 +1,45 @@
+name: Viewer GPU recovery focused diagnostic
+on:
+  push:
+    branches: [gpu-recovery-fix]
+    paths:
+      - .github/workflows/gpu-recovery-focused.yml
+      - tests/browser/gpu-recovery-foreground.spec.mjs
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/gpu-context-recovery.js
+      - tests/unit/gpu-shared-pass-initialization.test.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpu-recovery-focused-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  viewer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: GPU source-level regression
+        run: node --test tests/unit/gpu-shared-pass-initialization.test.mjs
+      - run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js tests/browser/gpu-recovery-foreground.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Viewer actual WebGL2 loss and restoration
+        run: pnpm exec playwright test tests/browser/gpu-recovery-foreground.spec.mjs --workers=1 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-recovery-focused-${{ github.sha }}
+          path: |
+            test-results/gpu-foreground-evidence
+            test-results/gpu-recovery-foreground*
+          if-no-files-found: warn
+          retention-days: 3
