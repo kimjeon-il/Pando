@@ -48,9 +48,17 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   expect(point[0]).toBeGreaterThan(0);expect(point[0]).toBeLessThan(bounds.width);
   expect(point[1]).toBeGreaterThan(0);expect(point[1]).toBeLessThan(bounds.height);
   await page.mouse.click(bounds.x+point[0],bounds.y+point[1]);
-  await expect(page.locator('#objectChooser')).toBeVisible();
-  await expect(page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'})).toHaveCount(1);
-  await page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'}).click();
+  const chooser = page.locator('#objectChooser');
+  // A sole hit selects immediately; overlapping hits open the chooser.
+  await expect.poll(async () => {
+    const selected = await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot().items);
+    return selected.some(item => item.domain === 'territorial' && item.id === 'A') || await chooser.isVisible();
+  }, { timeout: 15_000 }).toBe(true);
+  if (await chooser.isVisible()) {
+    const target = page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'});
+    await expect(target).toHaveCount(1);
+    await target.click();
+  }
   await expect(page.locator('#viewerSelectionStatus')).toHaveText('Canvas 본문 선택');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items)
