@@ -69,6 +69,20 @@ export async function prepareLSIBReplacements(old,references,options={}){
   }
   return result.results;
 }
+export async function replaceLSIBRings({geometries,patches},options={}){
+  options.signal?.throwIfAborted();
+  if(!geometries||typeof geometries!=='object'||Array.isArray(geometries)||!patches||typeof patches!=='object'||Array.isArray(patches))
+    throw Error('Explicit LSIB geometries and patches required');
+  for(const [code,entries] of Object.entries(patches)){
+    if(!Object.hasOwn(geometries,code)||!Array.isArray(entries)||entries.length>10000)throw Error('Invalid LSIB patch owner');
+    for(const entry of entries){validateLine(entry?.old);validateLine(entry?.replacement);}
+  }
+  const result=await nativeRequest('--replace-lsib-rings',{geometries,patches},options);
+  if(!result?.geometries||typeof result.geometries!=='object'||Array.isArray(result.geometries)||
+    Object.keys(result.geometries).length!==Object.keys(geometries).length||
+    Object.keys(geometries).some(code=>!Object.hasOwn(result.geometries,code)))throw Error('Invalid LSIB ring replacement receipt');
+  return result.geometries;
+}
 export async function prepareLSIBReference({geometries,anchors,merge,closedRing},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||!Array.isArray(anchors)||typeof merge!=='boolean'||typeof closedRing!=='boolean')
