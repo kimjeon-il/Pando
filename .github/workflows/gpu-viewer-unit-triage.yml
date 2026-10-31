@@ -22,6 +22,7 @@ jobs:
           node tests/helpers/prepare-gpu-recovery-candidate.mjs
           node tests/helpers/gpu-recovery-viewer-fix.mjs
           node tests/helpers/gpu-recovery-viewer-admission-fix.mjs
+          node tests/helpers/fix-viewer-recovery-environment.mjs
       - name: Reproduce exactly which focused regressions remain red
         run: |
           set +e
