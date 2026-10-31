@@ -1,3 +1,4 @@
+import {presentViewerLoadStatus} from './viewer-load-status.js';
 import {createRuntimeContext} from '../../../../shared/frontend/js/modules/runtime-context.js';
 import {createBrowserFileAccess} from '../../../../shared/frontend/js/modules/browser-file-access.js';
 import {connectMapOwner} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
@@ -127,7 +128,7 @@ export async function composeViewer({ productMode, meta }) {
     const request=projectDomain.getOpenRevision()+1;
     const firstMap=initialPresentation.track(()=>request===projectDomain.getOpenRevision()&&(options?.isCurrent?.()??true));
     status.dataset.loadingKind=initialPresentation.hasPresented()?(options?.presentation==='temporal'?'temporal':'project'):'initial';
-    status.textContent=options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…';status.hidden=false;
+    presentViewerLoadStatus(status,options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…');
     status.dataset.ready='false';
     try {
     if(!await projectDomain.open(reader,options)){firstMap.cancel();return false;}
@@ -140,10 +141,12 @@ export async function composeViewer({ productMode, meta }) {
     await searchController.completeHydration();
     if(request!==projectDomain.getOpenRevision())return false;
     map.loadPhysicalResources();
-    search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';status.hidden=true;
+    search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';
+    presentViewerLoadStatus(status,'지도 준비 완료.');
     return true;
     } catch(error){firstMap.cancel();if(request===projectDomain.getOpenRevision()){
-      status.dataset.ready='true';status.hidden=true;throw error;
+      status.dataset.ready=String(initialPresentation.hasPresented());
+      presentViewerLoadStatus(status,'지도를 불러오지 못했습니다.');throw error;
     }return false;}
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
@@ -194,11 +197,11 @@ export async function composeViewer({ productMode, meta }) {
     getDisposables:()=>[...disposables].reverse(),
     onRecoverableError:(error,{retry})=>{
       console.warn('[PL-MAP-START-RETRY]',error);
-      status.hidden=false;status.dataset.ready='false';
-      status.textContent='연결이 복구되면 지도를 다시 불러옵니다. ';
+      status.dataset.ready='false';
+      presentViewerLoadStatus(status,'연결이 복구되면 지도를 다시 불러옵니다. ',{error:true});
       const button=document.createElement('button');button.type='button';button.className='ui-button btn';button.textContent='다시 시도';
       button.addEventListener('click',()=>{retry().catch(report);});status.appendChild(button);
     },
-    onError:error=>{status.hidden=true;report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
+    onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
 }

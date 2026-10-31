@@ -1,3 +1,4 @@
+import {presentViewerLoadStatus} from '../../apps/viewer/js/modules/viewer-load-status.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -13,6 +14,7 @@ class Element extends EventTarget {
   set textContent(value){this.text=value;this.children=[];}
   get textContent(){return this.text;}
   appendChild(value){this.children.push(value);}
+  setAttribute(name,value){this[name]=value;}
 }
 async function fixture({engineFailure=false,mapFailure=false}={}){
   const elements=new Map(),document=new EventTarget(),window=new EventTarget();
@@ -33,7 +35,7 @@ async function fixture({engineFailure=false,mapFailure=false}={}){
     renderer:{},refreshAppearance:noop,loadPhysicalResources:noop,capturePresentation:()=>({zoom:7}),refreshSelection:noop,
     prepareBuiltinProject:async()=>{reads++;if(mapFailure&&reads===1)throw network();return {};},loadPhysicalLandMask:async()=>{},
     update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
-  const bindings={window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
+  const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
     createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
@@ -80,5 +82,17 @@ test('focus, visibility and BFCache restore never replay initial presentation af
   f.window.document.visibilityState='visible';f.window.document.dispatchEvent(new Event('visibilitychange'));
   f.window.dispatchEvent(Object.assign(new Event('pageshow'),{persisted:true}));f.wake();
   await tick();assert.equal(f.initialLoading(),'false');assert.deepEqual(f.stats(),before);
+  f.window.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:false}));
+});
+
+test('recoverable startup errors remain visible with retry; recovery returns to an accessible quiet status',async()=>{
+  const f=await fixture({mapFailure:true});
+  assert.equal(f.status.className,'ui-floating-surface viewer-map-error');
+  assert.equal(f.status.role,'alert');assert.equal(f.status.hidden,false);
+  assert.equal(f.status.children[0].textContent,'다시 시도');
+  f.status.children[0].dispatchEvent(new Event('click'));await tick();
+  assert.equal(f.status.className,'ui-visually-hidden');
+  assert.equal(f.status.role,'status');assert.equal(f.status.hidden,false);
+  assert.equal(f.status.dataset.ready,'true');assert.equal(f.status.children.length,0);
   f.window.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:false}));
 });

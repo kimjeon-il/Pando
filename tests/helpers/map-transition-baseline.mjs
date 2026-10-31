@@ -99,7 +99,8 @@ export function instrumentMapBaselineSource(source, name) {
     next = replaceExactlyOnce(next, "onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
       "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
     around('await searchController.completeHydration();', 'search-hydration');
-    const done = "search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';status.hidden=true;";
+    // Completion is independent of the live region's visual treatment.
+    const done = "search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';";
     next = replaceExactlyOnce(next, done, done + 'globalThis.__PANDO_P0__.settled();');
     next = replaceExactlyOnce(next, 'productMode,documentState:',
       'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),p0BuildMeta:()=>runtimeContext.meta,productMode,documentState:');

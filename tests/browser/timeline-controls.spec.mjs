@@ -93,7 +93,8 @@ test('floating date controls preserve navigation and document state across deskt
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true');
   await expect(page.locator('#mapBottomStatus')).toHaveCount(0);
-  await expect(page.locator('#viewerStatus')).toBeHidden();
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
   const button = page.locator('#timelineDateButton'), year = page.locator('#timelineYearInput');
   const month = page.locator('#timelineMonthInput'), popup = page.locator('#timelinePopover');
   const before = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot());

@@ -82,12 +82,14 @@
         </div>
         <!-- include:timeline -->
         </div>
-        <span id="viewerStatus" class="viewer-loading" role="status" aria-live="polite">지도 불러오는 중…</span>
-        <span id="viewerSelectionStatus" class="ui-visually-hidden" role="status" aria-live="polite"></span>
-        <div id="mapPreparationNotice" class="ui-floating-surface viewer-map-error" role="alert" hidden>
-          <span id="mapPreparationStatus"></span>
-          <button id="mapPreparationRetry" class="ui-button btn" type="button" hidden>다시 시도</button>
+        <div class="viewer-map-notices">
+          <span id="viewerStatus" class="ui-visually-hidden" role="status" aria-live="polite" aria-atomic="true">지도 불러오는 중…</span>
+          <div id="mapPreparationNotice" class="ui-floating-surface viewer-map-error" role="alert" hidden>
+            <span id="mapPreparationStatus"></span>
+            <button id="mapPreparationRetry" class="ui-button btn" type="button" hidden>다시 시도</button>
+          </div>
         </div>
+        <span id="viewerSelectionStatus" class="ui-visually-hidden" role="status" aria-live="polite"></span>
       </main>
 
       <!-- include:object-search -->

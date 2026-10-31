@@ -1,3 +1,4 @@
+import { presentViewerLoadStatus } from './modules/viewer-load-status.js';
 import { loadVerifiedCore } from '../../../shared/frontend/js/modules/core-wasm-loader.js';
 import { isRecoverableLoadError } from '../../../shared/frontend/js/modules/reliability-core.js';
 
@@ -23,10 +24,8 @@ function detach() {
 function start() {
   if (pending || handedOff || controller.signal.aborted) return pending;
   retryPending = false;
-  status.hidden = false;
   status.dataset.ready = 'false';
-  status.setAttribute('role', 'status');
-  status.textContent = '지도 불러오는 중…';
+  presentViewerLoadStatus(status, '지도 불러오는 중…');
   const attemptWakeRevision = wakeRevision;
   let importing = false;
   pending = Promise.resolve().then(async () => {
@@ -49,9 +48,7 @@ function start() {
     const importTransportError = importing && error?.name === 'TypeError'
       && /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed/i.test(error.message);
     retryPending = !handedOff && (isRecoverableLoadError(error) || importTransportError);
-    status.hidden = false;
-    status.setAttribute('role', 'alert');
-    status.textContent = retryPending ? '연결이 복구되면 지도를 다시 불러옵니다. ' : '지도를 열지 못했습니다. 새로고침해 다시 시도하세요.';
+    presentViewerLoadStatus(status, retryPending ? '연결이 복구되면 지도를 다시 불러옵니다. ' : '지도를 열지 못했습니다. 새로고침해 다시 시도하세요.', {error: true});
     if (retryPending) {
       const button = document.createElement('button');
       button.type = 'button'; button.className = 'ui-button btn'; button.textContent = '다시 시도';

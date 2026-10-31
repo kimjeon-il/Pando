@@ -1,3 +1,4 @@
+import {presentViewerLoadStatus} from '../../apps/viewer/js/modules/viewer-load-status.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -17,7 +18,7 @@ function fixture({failures=0,hold=false,fatal=false}={}){
   window.navigator={onLine:true};window.document=document;
   let reads=0,imports=0,compositions=0,release,signal;
   const core={verified:true},errors=[];
-  const context=vm.createContext({window,document,navigator:window.navigator,AbortController,URL,
+  const context=vm.createContext({presentViewerLoadStatus,window,document,navigator:window.navigator,AbortController,URL,
     console:{error:(...args)=>errors.push(args),warn:(...args)=>errors.push(args)},
     PANDOLAB_BUILD_META:{appVersion:'fixture'},isRecoverableLoadError,
     loadVerifiedCore:async options=>{reads++;signal=options.signal;
@@ -57,4 +58,23 @@ test('actual page exit cancels preflight and rejects late completion; BFCache do
   f.window.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:true}));assert.equal(f.signal().aborted,false);
   f.window.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:false}));assert.equal(f.signal().aborted,true);
   f.release();await tick();assert.equal(f.stats().compositions,0);assert.equal(f.stats().imports,0);
+});
+
+test('preflight has no visual waiting panel but keeps an accessible loading status',async()=>{
+  const f=fixture({hold:true});await tick();
+  try {
+    assert.equal(f.status.className,'ui-visually-hidden');
+    assert.equal(f.status.hidden,false);assert.equal(f.status.role,'status');
+    assert.equal(f.status.dataset.ready,'false');
+  } finally { f.release();await tick(); }
+});
+test('preflight error and retry never leave a visible loading panel behind',async()=>{
+  const f=fixture({failures:1,hold:true});await tick();
+  assert.equal(f.status.className,'ui-floating-surface viewer-map-error');
+  assert.equal(f.status.hidden,false);assert.equal(f.status.role,'alert');
+  f.status.children[0].dispatchEvent(new Event('click'));await tick();
+  try {
+    assert.equal(f.status.className,'ui-visually-hidden');
+    assert.equal(f.status.children.length,0);assert.equal(f.status.dataset.ready,'false');
+  } finally { f.release();await tick(); }
 });
