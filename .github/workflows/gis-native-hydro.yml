@@ -395,6 +395,8 @@ jobs:
           if ('${{ inputs.target }}' -eq 'terrain-preview-integrated') {
             node --test tests/unit/physical-webp-stream.test.mjs
             if ($LASTEXITCODE -ne 0) { throw 'Physical WebP encoding differs from source pixels' }
+            node --test tests/unit/physical-terrain-native.test.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'Physical terrain operations differ from source pixels' }
           }
       - uses: actions/upload-artifact@v4
         with:
