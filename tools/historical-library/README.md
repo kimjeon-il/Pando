@@ -249,11 +249,11 @@ target geometry version while preserving curated catalog identity and metadata.
 
 Run `node tools/gis/verify-historical-linework.mjs --input FILE.geojson --expected-sha256 SHA256` with `PANDO_TERRITORIAL_RECIPE_BINARY` pointing at the standalone native recipe engine. Inputs are SHA-pinned and read-only. Shared endpoints are permitted; interior crossings, overlaps, T-junctions and self-intersections fail. The geometry and source evidence are neither rewritten nor promoted to a new national border.
 
-The remaining `tools/verify-lsib-screen-delta.py` workflow also requires
+The `node tools/gis/verify-lsib-screen-delta.mjs` workflow also requires
 `PANDO_TERRITORIAL_RECIPE_BINARY` and its matching GEOS/PROJ runtime. It also
 requires GDAL `ogr2ogr` on PATH, or its executable path in `PANDO_GDAL_OGR2OGR`.
 The pinned ZIP source is read by GDAL; display-section selection and line
-sampling are performed by the native GEOS engine. Python still owns orchestration
+sampling are performed by the native GEOS engine. Node owns orchestration
 and report assembly, and refuses to overwrite an existing output or failure
 diagnostic. A screen-distance comparison does not establish historical ownership
 or approve a boundary.
