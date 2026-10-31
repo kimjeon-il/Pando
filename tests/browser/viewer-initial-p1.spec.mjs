@@ -27,6 +27,7 @@ async function observe(page,profile,info,label){
     const a=map.getBoundingClientRect(),b=svg.getBoundingClientRect();
     return {ready:document.getElementById('viewerStatus').dataset.ready,
       landLength:land.getAttribute('d')?.length||0,oceanLength:ocean.getAttribute('d')?.length||0,
+      initialGlobeDiameter:ocean.getBoundingClientRect().width,
       color:land.getAttribute('fill'),theme:document.documentElement.dataset.theme,
       reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,
       animation:getComputedStyle(svg).animationName,
@@ -49,6 +50,8 @@ async function finish(page){
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.initialMapPresented())).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.visibleTerritorialCount())).toBeGreaterThan(0);
+  return await page.evaluate(()=>({scale:window.__PANDOLAB_VIEWER__.rendererStats().screenScale,
+    camera:window.__PANDOLAB_MAP_HOST__?.getViewState?.()||null}));
 }
 for(const profile of profiles){
   test('P1-4 startup/reload and tab: '+profile.name,async({page},info)=>{
@@ -62,7 +65,11 @@ for(const profile of profiles){
     await gated(page);
     await page.goto('/?debug=1');
     const first=await observe(page,profile,info,'initial');
-    await finish(page);
+    const finalMap=await finish(page);
+    expect(first.initialGlobeDiameter,{message:'Preview globe must use final canonical camera scale, not initial zoom=1'}).toBeGreaterThan(0);
+    expect(finalMap.scale).toBeGreaterThan(0);
+    expect(Math.abs(first.initialGlobeDiameter/(2*finalMap.scale)-1),
+      `Initial preview diameter ${first.initialGlobeDiameter} vs final ${2*finalMap.scale}`).toBeLessThan(0.025);
     await page.screenshot({path:info.outputPath('complete.png')});
     await page.locator('#timelinePreviousYear').click();
     await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.builtinMonth().month),
