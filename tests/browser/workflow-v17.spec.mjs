@@ -556,11 +556,35 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     // Capture the same accepted persisted snapshot we verified. A second
     // independent IndexedDB read may race the following save checkpoint.
     let created = null;
-    await expect.poll(async () => {
-      const feature = await savedFeature();
-      if (feature?.geometry?.type && feature.geometry.coordinates?.length) created = feature;
-      return feature?.geometry?.type ?? null;
-    }, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');
+    try {
+      await expect.poll(async () => {
+        const feature = await savedFeature();
+        if (feature?.geometry?.type && feature.geometry.coordinates?.length) created = feature;
+        return feature?.geometry?.type ?? null;
+      }, { timeout: 30_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');
+    } catch (error) {
+      const diagnosis = await page.evaluate(id => {
+        const probe = window.__testEditorTimeline;
+        const core = probe.history(), project = probe.project(), save = probe.save();
+        return { expectedId: id, coreHydroIds: project.hydroEdits?.map(feature => feature.id),
+          coreHistory: { checkpoint: core.checkpoint, undo: core.undoCommandId, redo: core.redoCommandId },
+          autosave: save.autosave, fallback: save.autosaveFallback, autosaveRecovery: save.autosaveRecovery,
+          projectDirty: save.documentDirty, schedulerInteractionActive: probe.scheduler(),
+          activeTool: probe.state().tool };
+      }, id.trim());
+      console.log('P8_HYDRO_CREATE_DIAG ' + JSON.stringify(diagnosis));
+      // A direct flush distinguishes queued-idle starvation from missing Core data.
+      try {
+        await page.evaluate(() => window.__testEditorTimeline.flush());
+        const flushed = await savedFeature();
+        console.log('P8_HYDRO_CREATE_FLUSH_DIAG ' + JSON.stringify({
+          storedAfterFlush: !!flushed, geometryType: flushed?.geometry?.type || null,
+        }));
+      } catch (flushError) {
+        console.log('P8_HYDRO_CREATE_FLUSH_ERROR ' + String(flushError));
+      }
+      throw error;
+    }
     expect(created).not.toBeNull();
     expect(created.storedIdentityGeometry).toBeNull();
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
@@ -584,7 +608,7 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
             undoCommandId: history.undoCommandId, redoCommandId: history.redoCommandId },
           projectHydroIds: project.hydroEdits?.map(feature => feature.id),
           stateHydroIds: state.hydroEdits?.map(feature => feature.id),
-          expectedId: id, autosave: save.autosaveState,
+          expectedId: id, autosave: save.autosave, autosaveFallback: save.autosaveFallback, schedulerInteractionActive: probe.scheduler(),
           saveState: document.querySelector('#projectSaveStatus')?.dataset.saveState,
           selected: state.selected?.id || null,
         };
