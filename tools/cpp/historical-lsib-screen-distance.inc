@@ -208,3 +208,21 @@ V prepareLSIBScreenReference(const V& request) {
     auto output=V::arr();for(const auto& point:result){auto row=V::arr();row.array={V::num(point[0]),V::num(point[1])};output.array.push_back(std::move(row));}
     auto receipt=V::obj();receipt.object["coordinates"]=std::move(output);return receipt;
 }
+
+V prepareLSIBReviewedSource(const V& request) {
+    const auto mode=str(field(request,"mode"));GeometryEngine geos;const auto context=geos.context();
+    auto geometry=geos.parse(field(request,"geometry"));auto output=V::obj();
+    if(mode=="igm") {
+        if(geos.type(geometry.get())!=GEOS_POLYGON||GEOSGetNumInteriorRings_r(context,geometry.get())!=0||GEOSisValid_r(context,geometry.get())!=1)
+            throw std::runtime_error("Reviewed San Marino source must be one valid polygon without holes");
+        auto transformed=geos.project(geometry,"EPSG:4258","EPSG:4326");
+        const auto* ring=GEOSGetExteriorRing_r(context,transformed.get());
+        if(!ring)throw std::runtime_error("Reviewed San Marino source has no exterior");
+        output.object["coordinates"]=geos.coordinates(ring);
+    } else if(mode=="coast") {
+        if(geos.type(geometry.get())!=GEOS_LINESTRING||GEOSisSimple_r(context,geometry.get())!=1||GEOSisRing_r(context,geometry.get())!=0)
+            throw std::runtime_error("Reviewed high-water coast must be a simple open line");
+        output.object["coordinates"]=geos.coordinates(geometry.get());
+    } else throw std::runtime_error("Unknown reviewed LSIB source mode");
+    return output;
+}
