@@ -106,9 +106,9 @@
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 14개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 13개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
-  독일 1914 현대 해안 생성의 투영·완충·내륙 변경 및 기준점 계산은 기존 GEOS/PROJ 엔진으로 옮겨 합성 사례를 Windows/Linux에서 비교했다. 보유 HGIS 원본과 현재 국가 5개, 보존된 Helgoland·Düne 원본으로 비교한 결과 GEOS 3.13.1 기준 C++와 Python의 면적 및 기준점은 일치했다. 그러나 양쪽 모두 투영 결과는 유효해도 WGS84 변환 결과에 자기 교차가 있다. 새 Node 후보 실행기는 이 경우 파일을 만들지 않고 거부한다. 원인 수정과 실자료 재검증이 필요하므로 기존 Python 생성기와 호출자는 아직 유지하며 역사 형상 승인이나 운영 자료 갱신은 하지 않았다. GEOS 3.11.4와 3.13.1의 해당 원본 결과는 서로 다르므로 라이브러리 버전별 결과를 같은 바이트나 같은 형상으로 취급하지 않는다.
+  독일 1914 현대 해안 생성은 `tools/gis/build-german-1914-base.mjs --modern-coast`와 기존 GEOS/PROJ 엔진으로 전환했다. 합성 사례는 [Windows/Linux CI 41163860279](https://github.com/kimjeon-il/Pando/actions/runs/41163860279)에서 검증했다. 보유 HGIS 원본과 현재 국가 5개, 보존된 Helgoland·Düne 원본에서는 GEOS 3.13.1 기준 Python과 투영 면적·기준점이 일치했다. 기존 Python의 WGS84 역변환 결과에 자기 교차가 있어 GEOS 위상 복구를 적용하며, 복구된 결과는 같은 버전에서 Python 결과를 복구한 다각형과 공간적으로 일치한다. 미터 좌표로 되돌려 측정한 GEOS 꼭짓점 이산 Hausdorff 거리는 약 0.001712m, 면적 차이는 약 0.098552km²이며, 이는 모든 선분의 최대 거리나 역사 형상 승인을 뜻하지 않는다. 이산 경계 거리가 0.01m를 초과하거나 복구가 유효하지 않으면 후보를 거부한다. 후보 출력과 진단은 별도 경로에만 생성하며 운영 자료와 원본을 자동 변경하지 않는다. GEOS 3.11.4와 3.13.1의 해당 원본 결과는 서로 다르므로 라이브러리 버전별 결과를 같은 바이트나 같은 형상으로 취급하지 않는다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
@@ -122,7 +122,6 @@
 | --- | --- | --- |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
 | `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
-| `tools/build_german_empire_1914_modern_coast.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |

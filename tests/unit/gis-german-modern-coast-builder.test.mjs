@@ -24,6 +24,7 @@ test('preserved original inputs produce a protected, explicitly repaired candida
     const result=buildGermanModernCoast({root,output,diagnostics});
     t.after(()=>{for(const path of [output,diagnostics])rmSync(resolve(root,path));});
     assert.equal(result.validation.geographicRepaired,true);
+    assert.equal(result.validation.repairBoundaryDistanceMethod,'GEOS discrete Hausdorff at vertices');
     assert.ok(result.validation.repairBoundaryDistanceMetres<0.01);
     assert.equal(result.historicalGeometryApproved,false);
     assert.equal(JSON.parse(readFileSync(resolve(root,output))).features[0].geometry.type,'MultiPolygon');

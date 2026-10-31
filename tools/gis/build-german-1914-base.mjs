@@ -91,7 +91,7 @@ export function buildGermanModernCoast({root=defaultRoot,output,diagnostics,bina
   const collection={type:'FeatureCollection',name:'pandolab-german-empire-1914-modern-coast-r1',features:[feature]};
   const receipt={referenceDate:'1914-07-31',historicalGeometryApproved:false,geosVersion:native.geosVersion,projVersion:native.projVersion,inputs:{websiteCountries:Object.keys(coastAliases).sort(),
     coastBufferMeters:12000,historicalMatchBufferMeters:12000,sources:Object.fromEntries(Object.entries(inputs).map(([key,value])=>[key,{path:value.path,sha256:value.sha256}]))},
-    validation:{valid:true,geographicRepaired:native.geographicRepaired,repairBoundaryDistanceMetres:native.repairBoundaryDistanceMetres,
+    validation:{valid:true,geographicRepaired:native.geographicRepaired,repairBoundaryDistanceMethod:'GEOS discrete Hausdorff at vertices',repairBoundaryDistanceMetres:native.repairBoundaryDistanceMetres,
       repairAreaDifferenceKm2:native.repairAreaDifferenceKm2,geometryType:native.geometry.type,componentCount:native.geometry.coordinates.length,boundsWGS84:coastBounds(native.geometry),
       historicalAreaKm2:round(native.historicalAreaKm2,3),modernCoastAreaKm2:round(native.areaKm2,3),symmetricDifferenceKm2:round(native.changedKm2,3),
       differenceOutsideCoastZoneKm2:round(native.outsideKm2,6),helgolandAreaKm2:round(native.helgolandKm2,6),duneAreaKm2:round(native.duneKm2,6),
