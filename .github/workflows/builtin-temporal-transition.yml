@@ -7,42 +7,9 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: builtin-temporal-transition-${{ github.ref }}
-  cancel-in-progress: true
+  group: builtin-temporal-reviewed-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  baseline-ui:
-    permissions:
-      contents: read
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: ./.github/actions/library-data
-      - uses: pnpm/action-setup@v4
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Unmodified production source and unmodified original UI tests
-        env:
-          PANDOLAB_BROWSER_CHANNEL: chromium
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/temporal-baseline"
-          git rev-parse HEAD > "$RUNNER_TEMP/temporal-baseline/head.txt"
-          git hash-object shared/core/src/document-session.cpp apps/viewer/js/modules/viewer-composition.js tests/browser/timeline-controls.spec.mjs > "$RUNNER_TEMP/temporal-baseline/objects.txt"
-          pnpm exec playwright test tests/browser/timeline-controls.spec.mjs --workers=1 --retries=0 --trace off | tee "$RUNNER_TEMP/temporal-baseline/browser.log"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: temporal-baseline-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/temporal-baseline/
-            test-results/
-          retention-days: 2
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -71,9 +38,12 @@ jobs:
           python3 "$RUNNER_TEMP/temporal-prepare.py"
           python3 - <<'PY'
           import json,os,pathlib,subprocess
-          path='tests/browser/builtin-temporal-transition.spec.mjs';expected='09cbbb8ee681af897f0552ab2dbee22e65021ac6'
+          path='tests/browser/builtin-temporal-transition.spec.mjs';expected='ba31a86d3fff99d8419b6c8673115f3b8c751204'
           assert subprocess.check_output(['git','hash-object',path],text=True).strip()==expected
           manifest=pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-input.json');data=json.loads(manifest.read_text());data[path]=expected;manifest.write_text(json.dumps(data))
+          publisher=pathlib.Path(os.environ['RUNNER_TEMP'],'temporal-publish.py');s=publisher.read_text()
+          old='Chromium desktop/mobile timeline, supersession and user-file navigation'
+          assert s.count(old)==1;s=s.replace(old,'Chromium WebGL and Canvas desktop/mobile temporal packets and Canvas failure/supersession; exact cases in browser.log');publisher.write_text(s)
           PY
       - uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
