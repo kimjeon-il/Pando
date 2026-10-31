@@ -1,4 +1,4 @@
-name: Verify published 2000–2011 GIS historical year display
+name: Verify published 2000–2026 GIS historical year display
 
 on:
   push:
@@ -37,7 +37,11 @@ jobs:
         run: |
           node scripts/generate-build-metadata.mjs
           node scripts/check-version.mjs
-          node --test tests/unit/post-2000-generated-world-display.test.mjs
+          node --test tests/unit/post-2000-generated-world-display.test.mjs \
+            tests/unit/source-date-cut-normalization.test.mjs \
+            tests/unit/indonesia-territory-timeline.test.mjs \
+            tests/unit/sudan-ukraine-transition.test.mjs \
+            tests/unit/builtin-world-baseline.test.mjs
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify year-specific new world in the actual editor
