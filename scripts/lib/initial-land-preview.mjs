@@ -6,7 +6,7 @@ import {presimplify,quantile,simplify} from 'topojson-simplify';
 
 // Derived output only. Neither the source coast nor any Core state is changed.
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
-const ALGORITHM='physical-land-preview-v1-topo90';
+const ALGORITHM='physical-land-preview-v1-topo10';
 const previewCache=new Map();
 function inspectLand(geometry) {
  if(geometry?.type!=='MultiPolygon'||!Array.isArray(geometry.coordinates)||!geometry.coordinates.length)
@@ -43,7 +43,8 @@ function admissibleRing(candidate,original){
  if(Math.abs(sourceArea)>1&&Math.abs(outputArea-sourceArea)/Math.abs(sourceArea)>0.12)return false;
  return true;
 }
-export function simplifyInitialLandGeometry(source,{quantileFraction=0.90}={}){
+// topojson.quantile orders weights descending; 0.10 keeps roughly the top 10%, not 90%.
+export function simplifyInitialLandGeometry(source,{quantileFraction=0.10}={}){
  const sourceCoordinateCount=inspectLand(source);
  if(!(quantileFraction>=0&&quantileFraction<1))throw new RangeError('Invalid preview simplification quantile.');
  const prepared=presimplify(topology({land:source}));
