@@ -5180,7 +5180,40 @@ export function createGpuMapRenderer(deps) {
           }
           if ((!previewAllowed || canonicalMeshReady) && meshVariants.has('canonical')) {
             qualityPhase = 'canonical-loading';
-            if (meshVariants.has('canonical')) activateMeshVariant('canonical', { renderFrame: false });
+            const entry = meshVariants.get('canonical');
+            const expectedGl = gl, expectedContext = renderDeviceContextRevision;
+            const expectedGeneration = projectGeneration;
+            const ownedContext = entry.dependencies?.context;
+            // CPU mesh reuse is independent of GPU buffer lifetime. Replacing
+            // the canvas released the old GL handles; they must never be bound
+            // to this newly initialized device, even when the mesh is identical.
+            const resourcesCurrent = !!entry.resources
+              && ownedContext?.[0] === expectedGl && ownedContext[1] === expectedContext;
+            if (!resourcesCurrent) {
+              const staged = await stageMeshResources(entry.mesh, {
+                projectGeneration: expectedGeneration, contextGeneration: expectedContext,
+              });
+              if (!staged || disposed || gl !== expectedGl || gl?.isContextLost?.()
+                || renderDeviceContextRevision !== expectedContext || projectGeneration !== expectedGeneration
+                || meshVariants.get('canonical') !== entry || !isWebGlRenderer()) {
+                disposeMeshResources(staged);
+                return false;
+              }
+              // Transfer ownership only after the complete upload was verified.
+              // Previous handles were released by their original GL context;
+              // lifecycle.release is idempotent if they were already deleted.
+              const oldResources = entry.resources;
+              entry.resources = staged;
+              if (entry.dependencies) entry.dependencies = {
+                ...entry.dependencies, context: [expectedGl, expectedContext],
+              };
+              if (builtinMeshBaseline?.mesh === entry.mesh) builtinMeshBaseline.resources = staged;
+              disposeMeshResources(oldResources);
+              performanceMetrics.countryMeshContextReuploadCount =
+                (performanceMetrics.countryMeshContextReuploadCount || 0) + 1;
+            }
+            activateMeshVariant('canonical', { renderFrame: false });
+            invalidateGpuFrame('canonical-mesh-context-restaged');
             return true;
           }
           if (!previewAllowed || canonicalMeshReady) throw new Error('canonical mesh unavailable after startup preview');
