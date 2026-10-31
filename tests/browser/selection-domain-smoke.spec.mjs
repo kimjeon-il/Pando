@@ -32,7 +32,8 @@ test('selection domain drives country editing, multi-selection, and independent 
     window.PANDOLAB_TERRITORIAL.get('FRA')?.properties?.name || ''), { timeout: 30_000 }).not.toBe('');
   const franceName = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('FRA').properties.name);
   await search.fill(franceName);
-  const franceRow = page.locator('#objectSearchResults [data-object-search-select="countries"][data-item-id="FRA"]');
+  // Territorial entries use the canonical objects search group.
+  const franceRow = page.locator('#objectSearchResults [data-object-search-select="objects"][data-item-id="FRA"]');
   try {
     await expect(franceRow).toHaveCount(1, { timeout: 30_000 });
   } catch (error) {

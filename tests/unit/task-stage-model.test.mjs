@@ -6,6 +6,7 @@ import {
   taskWorkflowPresentation,
   editingContextPresentation,
   shouldShowTaskInputInstruction,
+  taskStagePresentation,
 } from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
 
 const country = id => ({ id, properties: { entityKind: 'general', name: id } });
@@ -220,4 +221,39 @@ test('hydro vertex editing shows its own stage and selected target without mutat
   assert.deepEqual({ state, editing }, before);
   assert.equal(editingContextPresentation({ state, targets: [{ name: '실제 강' }] }).stage, '초안',
     'other tool workflows retain their stage');
+});
+
+test('accepted hydro preview avoids inactive draft warning while pending and invalid stay visible', () => {
+  const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+  const multi = { kind: 'hydro', parts: [], current: { geometry },
+    previewPending: false, previewIssues: [], previewGeometry: geometry };
+  const state = { tool: 'river', multiDraft: multi, geometryPreview: { session: null } };
+  const options = {
+    state, selection: null, selectionModel: null,
+    draft: { coords: [], issues: [], strokeActive: false },
+    toolbar: { complete: false, editable: false },
+    primaryDisabled: false, draftDisabled: true,
+    boundaryAnalysis: null, boundaryPending: false, boundaryFailed: false,
+    calculating: false, busy: false, cutLineMode: false, cutLineReady: true,
+    mergeTargetMode: false, genericMergeMode: false, unitMergeMode: false,
+    unitRedrawMode: false, hydroReview: true, hydroCount: 1,
+  };
+  const accepted = taskStagePresentation(options);
+  assert.equal(accepted.status, 'editable');
+  assert.equal(accepted.reason, '');
+
+  multi.previewPending = true;
+  const pending = taskStagePresentation({ ...options, primaryDisabled: true });
+  assert.equal(pending.status, 'preparing');
+  assert.equal(pending.reason, '그린 영역을 확인하는 중입니다.');
+
+  multi.previewPending = false;
+  multi.previewIssues = [{ severity: 'error', message: '유효하지 않은 경로' }];
+  const invalid = taskStagePresentation({ ...options, primaryDisabled: true });
+  assert.equal(invalid.status, 'invalid');
+  assert.equal(invalid.reason, '유효하지 않은 경로');
+
+  const ordinary = taskStagePresentation({ ...options, hydroReview: false });
+  assert.equal(ordinary.status, 'needs-target', 'other draft workflows still require completion');
+  assert.notEqual(ordinary.reason, '');
 });
