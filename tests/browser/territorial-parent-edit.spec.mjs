@@ -23,8 +23,11 @@ test('parent changes replace type conversion while preserving entity ID, kind, g
   await expect(page.locator('#entityParentRows')).toBeHidden();
   await expect(page.locator('#entityParentInputControl')).toBeVisible();
   await selectUiOption(page, '#entityParentInput', 'GBR');
-  await expect(page.locator('#entityParentRows')).toBeVisible();
+  // The current relation picker is intentionally kept open until the Core
+  // command ACK. Confirm the document change before checking closed-picker UI.
   await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
+  await expect(page.locator('#entityParentRows')).toBeVisible();
+  await expect(page.locator('#entityParentRow')).toBeHidden();
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').geometry)).toEqual(before.geometry);
   expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.entityKind)).toBe('general');
   await page.locator('#entityChangeParentBtn').click();
