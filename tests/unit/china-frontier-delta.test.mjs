@@ -25,3 +25,14 @@ test('splits only selected window and updates paired refs preserving outside geo
  assert.equal(result.sourceBindings[1].sourceVersionId,'selected');assert.equal(result.sourceBindings[0].sourceVersionId,'source');
  assert.deepEqual(c.geometries,[{...ref,geojson:geo}]);
 });
+test('open-ended selected window splits at effective date and preserves earlier geometry',()=>{
+ const geo=box(0,0,4,4),ref={id:'old',version:1},row={id:'r',validFrom:'1995-09-25',validTo:null,geometryRef:ref};
+ const c={geometries:[{...ref,geojson:geo}],timelineRecords:{geometryBindings:[row]},sourceBindings:[{...row,sourceVersionId:'old-source'}]};
+ const result=patchCountryWindow(c,{from:'2006-01-12',to:null,transform:()=>box(0,0,3,4),sourceVersionId:'treaty-source'});
+ assert.deepEqual(result.timelineRecords.geometryBindings.map(x=>[x.validFrom,x.validTo]),[['1995-09-25','2006-01-11'],['2006-01-12',null]]);
+ assert.deepEqual(result.timelineRecords.geometryBindings[0].geometryRef,ref);
+ assert.notDeepEqual(result.timelineRecords.geometryBindings[1].geometryRef,ref);
+ assert.equal(result.sourceBindings[0].sourceVersionId,'old-source');
+ assert.equal(result.sourceBindings[1].sourceVersionId,'treaty-source');
+ assert.deepEqual(c.sourceBindings,[{...row,sourceVersionId:'old-source'}]);
+});

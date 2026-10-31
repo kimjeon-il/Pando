@@ -18,7 +18,7 @@ const day=(s,end=false)=>s==null?(end?Infinity:-Infinity):Date.parse(s.length===
 const date=n=>Number.isFinite(n)?new Date(n*86400000).toISOString().slice(0,10):null;
 /** Split existing binding coverage only, preserving all outside-window references. */
 export function patchCountryWindow(country,{from,to,transform,sourceVersionId}){
- const result=structuredClone(country),low=day(from),high=day(to),oldGeometry=new Map(country.geometries.map(g=>[g.id,g.geojson]));
+ const result=structuredClone(country),low=day(from),high=day(to,true),oldGeometry=new Map(country.geometries.map(g=>[g.id,g.geojson]));
  const generated=new Map();
  const rows=input=>input.flatMap(row=>{
   const a=day(row.validFrom),b=day(row.validTo,true);if(b<low||a>high)return [structuredClone(row)];
