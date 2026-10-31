@@ -1,3 +1,4 @@
+import {presentViewerLoadStatus} from '../../apps/viewer/js/modules/viewer-load-status.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -12,7 +13,7 @@ const noop = () => {};
 function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
   const nodes = new Map(), ports = {previewFinishes: 0}, errors = [];
   const get = id => {
-    if (!nodes.has(id)) nodes.set(id, {dataset: {}, hidden: false, textContent: '', addEventListener: noop, appendChild: noop});
+    if (!nodes.has(id)) nodes.set(id, {dataset: {}, hidden: false, textContent: '', addEventListener: noop, appendChild: noop, setAttribute(name, value) { this[name] = value; }});
     return nodes.get(id);
   };
   const document = {getElementById: get, createElement: () => ({addEventListener: noop})};
@@ -40,7 +41,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     navigation: {}, capturePresentation: () => ({}), loadPhysicalResources: noop,
     loadPhysicalLandMask: async () => {}, update: async () => {},
     prepareBuiltinProject: async () => ({}), refreshAppearance: noop};
-  const context = {document, window, URL, URLSearchParams, structuredClone, console,
+  const context = {presentViewerLoadStatus, document, window, URL, URLSearchParams, structuredClone, console,
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
     createRuntimeContext: ({meta}) => ({meta, platform: {}}),
     createPreferencePresentation: () => ({current: {}, apply: noop}),
@@ -94,7 +95,13 @@ test('composition ends only initial presentation while search hydration is still
   assert.equal(run.get('viewerStatus').dataset.ready, 'false');
   assert.equal(run.ports.previewFinishes, 1);
   assert.equal(run.ports.map.isInitialPresentation(), false);
-  release(); await run.started;
+  try {
+    assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
+    assert.equal(run.get('viewerStatus').hidden, false);
+    assert.equal(run.get('viewerStatus').role, 'status');
+  } finally { release(); await run.started; }
+  assert.equal(run.get('viewerStatus').textContent, '지도 준비 완료.');
+  assert.equal(run.get('viewerStatus').hidden, false);
 });
 
 test('completed loading without a ready renderer frame remains initial', async () => {
@@ -111,6 +118,7 @@ test('normal year change and later source failure never restore initial mode', a
   const run = fixture(); await run.started;
   await run.ports.timeline.setMonth('2025-12');
   assert.equal(run.get('viewerStatus').dataset.loadingKind, 'temporal');
+  assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
   run.failNext();
   await assert.rejects(run.ports.timeline.setMonth('2024-12'), /source unavailable/);
   assert.equal(run.debug().initialMapPresented(), true);
@@ -126,6 +134,7 @@ test('failed first open and lifecycle retry keep one page-scoped presentation ow
   await assert.rejects(run.started, /source unavailable/);
   assert.equal(run.debug().initialMapPresented(), false);
   assert.equal(run.get('viewer').dataset.initialLoading, 'true');
+  assert.equal(run.get('viewerStatus').dataset.ready, 'false');
   await run.ports.lifecycle.startup();
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');

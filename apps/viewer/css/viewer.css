@@ -7,8 +7,8 @@
 .app-root.viewer-root .map-command-toolbar { z-index: 18; bottom: 0; left: 50%; right: auto; transform: translateX(-50%); pointer-events: auto; }
 .viewer-root .timeline-controls { position: absolute; z-index: 20; right: 0; bottom: 0; width: min(23rem, 100%); pointer-events: auto; overflow: visible; }
 .viewer-root .timeline-popover { position: absolute; right: 0; bottom: calc(100% + var(--ui-space-2)); width: min(20rem, calc(100vw - var(--ui-space-8))); max-height: calc(100dvh - 7.5rem); overflow-y: auto; }
-.viewer-root .viewer-loading { position: absolute; z-index: 19; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: calc(100% - var(--ui-space-8)); }
-.viewer-root .viewer-map-error { position: absolute; z-index: 19; top: var(--ui-space-4); left: 50%; transform: translateX(-50%); max-width: calc(100% - var(--ui-space-8)); }
+.viewer-root .viewer-map-notices { position: absolute; z-index: 19; top: var(--ui-space-4); left: 50%; transform: translateX(-50%); max-width: calc(100% - var(--ui-space-8)); display: flex; flex-direction: column; gap: var(--ui-space-2); pointer-events: none; }
+.viewer-root .viewer-map-error { pointer-events: auto; overflow-wrap: anywhere; }
 .viewer-root:is([data-layout="mobile"], [data-layout="phone-landscape"]) .map-command-toolbar .map-command-search { display: block; }
 @media (min-width: 900px) and (max-width: 1279px) {
   .viewer-root .viewer-map-tools:has(.map-command-search.is-expanded) .map-command-toolbar { bottom: calc(100% + var(--ui-space-3)); }
