@@ -7,6 +7,7 @@ on:
       - tests/helpers/gpu-recovery-viewer-*.mjs
       - tests/browser/gpu-recovery-viewer-*.spec.mjs
       - tests/browser/viewer-recovery-acceptance.spec.mjs
+      - tests/helpers/fix-viewer-recovery-environment.mjs
       - shared/frontend/js/modules/map-content-presentation.js
   workflow_dispatch:
 permissions:
@@ -46,6 +47,8 @@ jobs:
         run: node tests/helpers/gpu-recovery-viewer-fix.mjs
       - name: Reproduce and correct the missing frame approval request
         run: node tests/helpers/gpu-recovery-viewer-admission-fix.mjs
+      - name: Preserve renderer lifecycle regression in Node without DOM
+        run: node tests/helpers/fix-viewer-recovery-environment.mjs
       - name: Verify focused existing and new regressions
         id: unit
         continue-on-error: true
@@ -58,16 +61,16 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
       - name: Observe actual approval rejection conditions without weakening them
         run: node tests/helpers/inspect-viewer-recovery.mjs
-      - name: Diagnose one actual WebGL2 viewer recovery
+      - name: Verify one actual WebGL1 viewer recovery
         id: screen
         continue-on-error: true
-        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --grep webgl2 --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
+        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --grep webgl1 --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
       - name: Summarize exact approval predicates
         if: always()
         run: |
           node --input-type=module <<'NODE'
           import {readFileSync,existsSync} from 'node:fs';
-          const file='gpu-viewer-evidence/acceptance-webgl2/result.json';
+          const file='gpu-viewer-evidence/acceptance-webgl1/result.json';
           if(existsSync(file)){
             const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({passed:r.passed,error:r.error,rounds:r.rounds,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
             console.log('APPROVAL_COUNTS '+JSON.stringify(r.final?.approvalTrace?.counts));
