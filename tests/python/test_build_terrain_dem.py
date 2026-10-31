@@ -1,5 +1,7 @@
 import importlib.util
+import base64
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -7,9 +9,7 @@ import unittest
 import numpy as np
 from PIL import Image
 import rasterio
-from rasterio.enums import Resampling
 from rasterio.io import MemoryFile
-from rasterio.vrt import WarpedVRT
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -19,6 +19,31 @@ SPEC.loader.exec_module(dem)
 
 
 class TerrainDemTest(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
+    def test_native_stream_reuses_reader_and_rejects_invalid_source(self):
+        fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-etopo-sparse.tif'
+        with dem.NativeDemWindowReader(fixture, 43200, 21600) as reader:
+            expected = np.array([[100, -20], [350, 25]], dtype=np.float32)
+            np.testing.assert_array_equal(reader.read(0, 0, 2, 2), expected)
+            np.testing.assert_array_equal(reader.read(0, 0, 2, 2), expected)
+        oracle = json.loads((Path(__file__).parents[1] / 'fixtures/terrain-dem-raster-oracle.json').read_text(encoding='utf-8'))
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'valid.tif'
+            source.write_bytes(base64.b64decode(oracle['sources']['valid']))
+            with self.assertRaisesRegex(RuntimeError, 'ETOPO|EPSG'):
+                with dem.NativeDemWindowReader(source, 8, 4) as reader:
+                    reader.read(0, 0, 2, 2)
+            for case in oracle['cases']:
+                source.write_bytes(base64.b64decode(oracle['sources'][case['source']]))
+                with self.subTest(case=case):
+                    if 'error' in case:
+                        with self.assertRaisesRegex(RuntimeError, 'NoData|range'):
+                            with dem.NativeDemWindowReader(source, case['width'], case['height'], strict=False) as reader:
+                                reader.read(*case['box'])
+                    else:
+                        with dem.NativeDemWindowReader(source, case['width'], case['height'], strict=False) as reader:
+                            self.assertEqual(reader.read(*case['box']).tobytes(), base64.b64decode(case['expected']))
+
     def test_asset_summary_uses_shared_node_digest(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
@@ -141,20 +166,20 @@ class TerrainDemTest(unittest.TestCase):
         np.testing.assert_array_equal(rgba[-1, :, 2], rgba[-2, :, 2])
         np.testing.assert_array_equal(rgba[1:-1, :, 2] % 4, 0)
 
+    @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
     def test_area_average_and_wrapped_gutter(self):
         values = np.array([[0, 2, 4, 6], [8, 10, 12, 14]], dtype=np.float32)
         transform = rasterio.transform.from_bounds(-180, -90, 180, 90, 4, 2)
-        with MemoryFile() as memory:
-            with memory.open(driver='GTiff', width=4, height=2, count=1, dtype='float32',
-                             crs='EPSG:4326', transform=transform, nodata=-99999) as source:
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'source.tif'
+            with rasterio.open(path, 'w', driver='GTiff', width=4, height=2, count=1, dtype='float32',
+                               crs='EPSG:4326', transform=transform, nodata=-99999) as source:
                 source.write(values, 1)
-                with WarpedVRT(source, crs=source.crs,
-                               transform=rasterio.transform.from_bounds(-180, -90, 180, 90, 2, 1),
-                               width=2, height=1, resampling=Resampling.average) as vrt:
-                    result = dem.read_vrt_pixels(vrt, 2, 1, -1, -1, 3, 2)
-                    np.testing.assert_allclose(result[1], [9, 5, 9, 5])
-                    np.testing.assert_allclose(result[0], result[1])
-                    np.testing.assert_allclose(result[2], result[1])
+            with dem.NativeDemWindowReader(path, 2, 1, strict=False) as reader:
+                result = reader.read(-1, -1, 3, 2)
+                np.testing.assert_allclose(result[1], [9, 5, 9, 5])
+                np.testing.assert_allclose(result[0], result[1])
+                np.testing.assert_allclose(result[2], result[1])
 
     def test_range_and_nodata_are_not_silently_zeroed(self):
         with self.assertRaises(ValueError):

@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import {verifyNativeTool} from '../../tools/native-tool.mjs';
 import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
 import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
+import {terrainDemRasterSources} from '../../tools/gis/terrain-dem-raster.mjs';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
@@ -65,7 +66,11 @@ export function runSource({argv=process.argv.slice(2),root=ROOT,spawn=spawnSync,
     const fillDirectory=resolve(root,'build-native/terrain-dem-encode/fill-artifact');
     const fillExecutable=process.platform==='win32'?'pando-terrain-dem-fill.exe':'pando-terrain-dem-fill';
     verifyNativeTool({root,directory:fillDirectory,target:'terrain-dem-fill',executable:fillExecutable,sourceFiles:terrainDemFillSources});
-    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory};
+    const rasterExecutable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
+    const raster=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-raster/artifact'),
+      target:'terrain-dem-raster',executable:rasterExecutable,sourceFiles:terrainDemRasterSources});
+    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory,
+      PANDO_TERRAIN_DEM_RASTER_BINARY:raster.binary};
   }
   const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false,env});
   if(result.error)throw result.error;

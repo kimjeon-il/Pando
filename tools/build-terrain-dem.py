@@ -13,6 +13,7 @@ The manifest is published only after every tile has been encoded and verified.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 import json
 import math
 import os
@@ -29,7 +30,6 @@ from PIL import Image
 import rasterio
 from rasterio.enums import Resampling
 from rasterio.features import bounds, geometry_mask
-from rasterio.vrt import WarpedVRT
 from rasterio.windows import Window
 
 
@@ -89,33 +89,81 @@ def validate_source(source):
         raise ValueError('Expected cell-registered ETOPO GeoTIFF')
 
 
-def read_vrt_pixels(vrt, width, height, x0, y0, x1, y1):
-    """Read target LOD pixels, wrapping longitude and clamping pole rows.
+class NativeDemWindowReader:
+    """Reuse the source-bound GDAL reader for one level of DEM windows."""
+    def __init__(self, source, width, height, strict=True):
+        binary = os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY')
+        if not binary:
+            raise RuntimeError('PANDO_TERRAIN_DEM_RASTER_BINARY is required for DEM generation')
+        if not Path(binary).is_absolute():
+            raise RuntimeError('An absolute PANDO_TERRAIN_DEM_RASTER_BINARY is required')
+        self.width, self.height = width, height
+        env = os.environ.copy()
+        if env.get('PANDO_TERRAIN_DEM_GDAL_BIN'):
+            if not Path(env['PANDO_TERRAIN_DEM_GDAL_BIN']).is_absolute():
+                raise ValueError('GDAL runtime directory must be absolute')
+            env['PATH'] = env['PANDO_TERRAIN_DEM_GDAL_BIN'] + os.pathsep + env.get('PATH', '')
+        self.errors = tempfile.TemporaryFile()
+        try:
+            self.process = subprocess.Popen([binary, '--stream', str(source), str(width), str(height),
+                                             *(['--strict-etopo'] if strict else [])],
+                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.errors,
+                                            env=env, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        except BaseException:
+            self.errors.close()
+            raise
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
-    A rasterio VRT performs area averaging in source elevation units before
-    the integer packing step. At the source LOD this is a direct pixel read.
-    """
-    target_width, target_height = x1 - x0, y1 - y0
-    output = np.empty((target_height, target_width), dtype=np.float32)
-    start_y, end_y = max(0, y0), min(height, y1)
-    start_x = 0
-    while start_x < target_width:
-        source_x = (x0 + start_x) % width
-        count = min(target_width - start_x, width - source_x)
-        part = vrt.read(1, window=Window(source_x, start_y, count, end_y-start_y), masked=True)
-        if np.any(np.ma.getmaskarray(part)):
-            raise ValueError(f"ETOPO NoData at level pixel {source_x},{start_y}")
-        output[start_y-y0:end_y-y0, start_x:start_x+count] = np.asarray(part, dtype=np.float32)
-        start_x += count
-    if y0 < 0:
-        output[:start_y-y0, :] = output[start_y-y0, :]
-    if y1 > height:
-        output[end_y-y0:, :] = output[end_y-y0-1, :]
-    if not np.isfinite(output).all():
-        raise ValueError(f"Non-finite elevation at {x0},{y0}")
-    if output.min() < -BIAS or output.max() > 65535-BIAS:
-        raise ValueError(f"Elevation outside 16-bit encoding range at {x0},{y0}: {output.min()}..{output.max()}")
-    return output
+    def __enter__(self):
+        return self
+
+    def _error(self):
+        self.errors.seek(0)
+        return self.errors.read().decode('utf-8', errors='replace').strip()
+
+    def read(self, x0, y0, x1, y1):
+        w, h = x1-x0, y1-y0
+        if (any(not isinstance(v, int) or abs(v) > 1000000 for v in (x0, y0, x1, y1)) or
+                w < 1 or h < 1 or w > 5000 or h > 5000 or w*h > 16777216 or y0 >= self.height or y1 <= 0):
+            raise ValueError('DEM window exceeds bounds')
+        try:
+            self.process.stdin.write(struct.pack('<8siiii', b'PDEMWIN1', x0, y0, x1, y1))
+            self.process.stdin.flush()
+            output = self.executor.submit(self.process.stdout.read, w*h*4).result(timeout=180)
+        except (BrokenPipeError, FutureTimeout) as error:
+            if self.process.poll() is None:
+                self.process.kill()
+            self.process.wait()
+            raise RuntimeError('Native DEM window failed: ' + self._error()) from error
+        if len(output) != w*h*4:
+            self.process.wait(timeout=180)
+            raise RuntimeError('Native DEM window failed: ' + self._error())
+        return np.frombuffer(output, dtype='<f4').reshape(h, w).copy()
+
+    def __exit__(self, exception_type, exception, traceback):
+        if exception_type and self.process.poll() is None:
+            self.process.kill()
+        try:
+            self.process.stdin.close()
+        except BrokenPipeError:
+            pass
+        timed_out = False
+        try:
+            code = self.process.wait(timeout=180)
+        except subprocess.TimeoutExpired:
+            self.process.kill()
+            self.process.wait()
+            timed_out = True
+            code = self.process.returncode
+        finally:
+            self.process.stdout.close()
+            self.executor.shutdown(wait=True)
+        message = self._error()
+        self.errors.close()
+        if timed_out and not exception_type:
+            raise RuntimeError('Native DEM reader did not stop: ' + message)
+        if code and not exception_type:
+            raise RuntimeError('Native DEM reader failed: ' + message)
 
 
 def _native_dem(elevation, level_width, level_height, north_pixel_row):
@@ -224,14 +272,12 @@ def restore_polar_gutter_shade(output: Path, etopo_path: Path, min_level=0, max_
                             modified += 1
                 print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
                 continue
-            with WarpedVRT(source, crs=source.crs,
-                           transform=rasterio.transform.from_bounds(-180, -90, 180, 90, width, height),
-                           width=width, height=height, resampling=Resampling.average) as vrt:
+            with NativeDemWindowReader(etopo_path, width, height) as reader:
                 for row in sorted({0, level['rows']-1}):
                     for column in range(level['columns']):
                         x0, y0 = column*TILE_SIZE, row*TILE_SIZE
                         x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
-                        elevation = read_vrt_pixels(vrt, width, height, x0-2, y0-2, x1+2, y1+2)
+                        elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
                         original_shade = shade(elevation, width, height, y0-2)[1:-1, 1:-1]
                         path = output/str(level['id'])/f'{column}-{row}.webp'
                         with Image.open(path) as image:
@@ -462,12 +508,8 @@ def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path, countr
             width, height = level["width"], level["height"]
             level_dir = output / str(level["id"])
             level_dir.mkdir(exist_ok=True)
-            # VRT maps to the same global bounds. Its average resampling uses
-            # source elevations; no packed RG image is ever resized.
-            with WarpedVRT(source, crs=source.crs,
-                           transform=rasterio.transform.from_bounds(-180, -90, 180, 90, width, height),
-                           width=width, height=height,
-                           resampling=Resampling.average) as vrt:
+            # The native warped view averages source elevations before encoding.
+            with NativeDemWindowReader(etopo_path, width, height) as reader:
                 sizes = []
                 for row in range(level["rows"]):
                     for column in range(level["columns"]):
@@ -476,7 +518,7 @@ def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path, countr
                         # The second temporary neighbor lets the encoded B
                         # value of the delivered 1px gutter equal the actual
                         # neighboring tile's own hillshade, not an edge copy.
-                        elevation = read_vrt_pixels(vrt, width, height, x0-2, y0-2, x1+2, y1+2)
+                        elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
                         rgba = encode(elevation, width, height, y0-2)[1:-1, 1:-1]
                         path = level_dir / f"{column}-{row}.webp"
                         save_and_verify_webp(rgba, path)
