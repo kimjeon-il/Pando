@@ -6,6 +6,36 @@
 #include <cmath>
 
 namespace pandoeditor {
+namespace {
+// Domain-separated, length-delimited checksum of the actual C++ resolver
+// result. Source SHA-256 independently pins every full geometry and property
+// record; this small receipt never substitutes for the canonical resolver.
+std::string temporalWorldSha256(const ResolvedWorld& world) {
+    std::string bytes;
+    bytes.reserve(world.entities.size()*180);
+    const auto append=[&](const std::string& value) {
+        bytes+=std::to_string(value.size());bytes+=':';bytes+=value;
+    };
+    const auto opt=[&](const std::optional<std::string>& value) {
+        append(value?"1":"0");if(value)append(*value);
+    };
+    append("pando-core-temporal-world-v1");
+    append(world.month);
+    append(std::to_string(world.entities.size()));
+    for(const auto& row:world.entities) {
+        append(row.objectRef.domain);append(row.objectRef.id);
+        append(row.geometryRef.id);append(std::to_string(row.geometryRef.version));
+        append(row.rendering);append(row.parentId);append(row.coverageMode);append(row.rootId);
+        append(std::to_string(row.ancestors.size()));
+        for(const auto& parent:row.ancestors)append(parent);
+        opt(row.validity.from);opt(row.validity.to);
+        append(std::to_string(row.properties.size()));
+        for(const auto& [key,value]:row.properties){append(key);append(value);}
+    }
+    return projectcodec::sha256Bytes(bytes);
+}
+} // namespace
+
 DocumentSession::DocumentSession(projectcodec::PlatformPorts ports):ports_(std::move(ports)) {
     if(!ports_.validateFlagDataUrl)throw std::invalid_argument("CODEC_PLATFORM_REQUIRED: flag validator");
 }
@@ -30,7 +60,9 @@ void DocumentSession::requireLoaded() const {
     if(!loaded_)throw std::invalid_argument("CORE_SESSION_UNLOADED: Load a document first.");
 }
 void DocumentSession::clearPreview() { preview_.reset();candidateId_=0;candidateEpoch_=0;labelGesture_.reset(); }
+void DocumentSession::clearTemporalCandidate() noexcept { temporalCandidate_.reset(); }
 void DocumentSession::clearTemporalSources() noexcept {
+    clearTemporalCandidate();
     temporalSources_.clear();
     temporalSourceBytes_=0;
 }
@@ -76,6 +108,8 @@ TemporalSourceReceipt DocumentSession::temporalSourcePrepare(const projectcodec:
         auto oldest=std::min_element(temporalSources_.begin(),temporalSources_.end(),
             [](const auto& left,const auto& right){return left.second.access<right.second.access;});
         temporalSourceBytes_-=oldest->second.declaredDecodedBytes;
+        if(temporalCandidate_&&temporalCandidate_->receipt.sourceId==oldest->first)
+            clearTemporalCandidate();
         temporalSources_.erase(oldest);
         ++temporalSourceEvictions_;
     }
@@ -100,8 +134,63 @@ bool DocumentSession::temporalSourceRelease(std::uint32_t id,std::uint32_t expec
     const auto found=temporalSources_.find(id);
     if(found==temporalSources_.end())return false;
     temporalSourceBytes_-=found->second.declaredDecodedBytes;
+    if(temporalCandidate_&&temporalCandidate_->receipt.sourceId==id)clearTemporalCandidate();
     temporalSources_.erase(found);
     return true;
+}
+TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
+    std::uint32_t sourceId,const std::string& targetMonth,
+    const std::string& sourceFingerprint,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);
+    const auto found=temporalSources_.find(sourceId);
+    if(found==temporalSources_.end()||!found->second.baseline.sourceDocument())
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_SOURCE","The verified immutable temporal source is absent.");
+    const auto& source=found->second.baseline;
+    if(sourceFingerprint!=source.fingerprint())
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_PIN","The temporal candidate source fingerprint changed.");
+    const auto date=parseTemporal(targetMonth);
+    if(date.precision!="month"||date.canonical!=targetMonth||source.sourceMonth()!=targetMonth)
+        throw TimelineError("CORE_TEMPORAL_CANDIDATE_MONTH","Candidate month must match its exact stored source month.");
+    if(temporalCandidate_&&temporalCandidate_->receipt.sourceId==sourceId
+        &&temporalCandidate_->receipt.expectedEpoch==expectedEpoch
+        &&temporalCandidate_->receipt.sourceFingerprint==sourceFingerprint
+        &&temporalCandidate_->receipt.targetMonth==targetMonth) {
+        auto receipt=temporalCandidate_->receipt;
+        receipt.reused=true;
+        return receipt;
+    }
+    // A newer request invalidates an earlier candidate even if its C++
+    // validation or world projection subsequently fails.
+    clearTemporalCandidate();
+    if(temporalCandidateSequence_==std::numeric_limits<std::uint32_t>::max())
+        throw std::overflow_error("CORE_TEMPORAL_CANDIDATE_OVERFLOW");
+    auto staged=std::make_unique<TemporalCandidateEntry>();
+    // Only the existing typed Project/Timeline Core owns validity, geometry
+    // selection, country hierarchy, names, flags, colors and display world.
+    staged->project.replace(*source.sourceDocument());
+    staged->world=staged->project.resolveWorld(targetMonth);
+    staged->project.setTimelineCursor(targetMonth,true,&staged->world);
+    const auto sha=temporalWorldSha256(staged->world);
+    const auto candidateId=temporalCandidateSequence_+1;
+    staged->receipt={candidateId,sourceId,expectedEpoch,targetMonth,
+        sourceFingerprint,sha,staged->world.entities.size(),false};
+    temporalCandidate_=std::move(staged);
+    temporalCandidateSequence_=candidateId;
+    return temporalCandidate_->receipt;
+}
+std::optional<TemporalCandidateInspection> DocumentSession::temporalCandidateInspect(
+    std::uint32_t candidateId,std::uint32_t expectedEpoch) const {
+    requireEpoch(expectedEpoch);
+    if(!temporalCandidate_||temporalCandidate_->receipt.candidateId!=candidateId
+        ||temporalCandidate_->receipt.expectedEpoch!=expectedEpoch)return std::nullopt;
+    const auto found=temporalSources_.find(temporalCandidate_->receipt.sourceId);
+    if(found==temporalSources_.end()
+        ||found->second.baseline.fingerprint()!=temporalCandidate_->receipt.sourceFingerprint
+        ||found->second.baseline.sourceMonth()!=temporalCandidate_->receipt.targetMonth)
+        return std::nullopt;
+    return TemporalCandidateInspection{
+        projectcodec::webSnapshot(temporalCandidate_->project.snapshotForView()),
+        temporalCandidate_->world};
 }
 DocumentSessionState DocumentSession::documentLoad(const std::string& input,const std::string& currentMonth) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
@@ -179,6 +268,7 @@ DocumentSessionState DocumentSession::documentLoadBaseline(std::uint32_t id,cons
     if(documentId.empty())throw TimelineError("INVALID_DOCUMENT_ID","New document ID is required.");document.documentId=documentId;
     const auto month=setup.object.at("initialMonth").string;Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,true);
     project_=std::move(candidate);activeBaseline_=storageBaseline_;loaded_=true;stateRevision_=0;clearPreview();
+    clearTemporalCandidate(); // A full accepted replacement supersedes this read-only candidate.
     selection_.resetProject();externalSelectionRefs_.clear();draft_=GeometryDraft{};draftActive_=false;sourceEpoch_=++epoch_;return projectState();
 }
 DocumentSessionState DocumentSession::documentInitialize(const std::string& input,const std::string& currentMonth,bool preserveCursor,
