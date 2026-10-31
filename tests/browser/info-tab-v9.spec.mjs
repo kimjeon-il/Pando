@@ -21,18 +21,18 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   extra.id = 'D'; extra.properties.name = '아주 긴 객체 이름으로 표시하는 산하 객체 ' + '긴 이름 '.repeat(12).trim();
   project.territorialEntities.push(extra);
   for (const collection of ['lifetimes', 'geometryBindings', 'parentRelations']) {
-    const record = structuredClone(project.timelineRecords[collection].find(row => row.entityId === 'C'));
-    record.id += ':D'; record.entityId = 'D';
+    const record = structuredClone(project.timelineRecords[collection].find(row => row.objectRef?.id === 'C'));
+    record.id += ':D'; record.objectRef.id = 'D';
     project.timelineRecords[collection].push(record);
   }
   for (const relation of project.timelineRecords.parentRelations) {
-    relation.parentId = ['C', 'D'].includes(relation.entityId) ? 'B' : relation.parentId;
+    relation.parentId = ['C', 'D'].includes(relation.objectRef.id) ? 'B' : relation.parentId;
     relation.coverageMode = 'explicit';
   }
   for (const [id, x, y, size] of [['A', 0, 0, 12], ['B', 1, 1, 10], ['C', 2, 2, 3], ['D', 7, 7, 3]]) {
     const geometry = { type: 'Polygon', coordinates: [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]] };
     project.geometries.push({ id: `info-shape:${id}`, version: 1, geojson: geometry });
-    project.timelineRecords.geometryBindings.find(record => record.entityId === id).geometryRef = { id: `info-shape:${id}`, version: 1 };
+    project.timelineRecords.geometryBindings.find(record => record.objectRef?.id === id).geometryRef = { id: `info-shape:${id}`, version: 1 };
   }
   const flag = currentCountryFlagUrl('DEU');
   for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag.slice(flag.indexOf('/assets/'));
