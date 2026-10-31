@@ -14,10 +14,10 @@ import argparse
 import hashlib
 import json
 import math
+import subprocess
 from pathlib import Path
 from typing import Any
 
-import shapefile
 from PIL import Image, ImageDraw
 
 
@@ -25,18 +25,6 @@ Image.MAX_IMAGE_PIXELS = None
 VERSION = "0.12.6"
 TILE_SIZE = 1024
 LEVEL_WIDTHS = (1350, 2700, 5400, 10800, 21600)
-
-HYDRO_SOURCES = (
-    ("rivers_base", "river", "ne_10m_rivers_lake_centerlines_scale_rank"),
-    ("rivers_australia", "river", "ne_10m_rivers_australia"),
-    ("rivers_europe", "river", "ne_10m_rivers_europe"),
-    ("rivers_north_america", "river", "ne_10m_rivers_north_america"),
-    ("lakes_base", "lake", "ne_10m_lakes"),
-    ("lakes_australia", "lake", "ne_10m_lakes_australia"),
-    ("lakes_europe", "lake", "ne_10m_lakes_europe"),
-    ("lakes_north_america", "lake", "ne_10m_lakes_north_america"),
-)
-
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -51,104 +39,6 @@ def find_file(root: Path, filename: str) -> Path:
     if len(matches) != 1:
         raise RuntimeError(f"Expected exactly one {filename}, found {len(matches)}")
     return matches[0]
-
-
-def scalar(value: Any) -> Any:
-    if isinstance(value, (str, int, float, bool)) or value is None:
-        return value
-    return str(value)
-
-
-def hydro_properties(record: dict[str, Any], layer_id: str, category: str, index: int) -> dict[str, Any]:
-    source_id = record.get("ne_id") or record.get("id") or record.get("objectid") or index
-    name_ko = record.get("name_ko") or ""
-    name_en = record.get("name_en") or record.get("name") or ""
-    display_name = name_ko or name_en or record.get("name") or f"{category}-{index + 1}"
-    scale_rank = record.get("scalerank")
-    try:
-        scale_rank = int(scale_rank)
-    except (TypeError, ValueError):
-        scale_rank = 10
-    min_zoom = record.get("min_zoom")
-    try:
-        min_zoom = float(min_zoom)
-    except (TypeError, ValueError):
-        min_zoom = max(0.0, min(12.0, float(scale_rank)))
-    stroke_width = record.get("strokeweig")
-    try:
-        stroke_width = float(stroke_width)
-    except (TypeError, ValueError):
-        stroke_width = max(0.35, 2.7 - scale_rank * 0.18)
-    return {
-        "pandolab_id": f"{layer_id}:{source_id}",
-        "layer_id": layer_id,
-        "category": category,
-        "name": display_name,
-        "name_ko": name_ko,
-        "name_en": name_en,
-        "name_original": record.get("name") or "",
-        "feature_class": record.get("featurecla") or "",
-        "scale_rank": scale_rank,
-        "min_zoom": min_zoom,
-        "stroke_width": stroke_width,
-        "source_id": scalar(source_id),
-        "wikidata_id": record.get("wikidataid") or "",
-        "note": record.get("note") or "",
-        "source": "Natural Earth 5.0.0 1:10m",
-    }
-
-
-def build_hydro(source_root: Path, output_root: Path) -> dict[str, Any]:
-    hydro_dir = output_root / "hydro"
-    hydro_dir.mkdir(parents=True, exist_ok=True)
-    manifest: dict[str, Any] = {
-        "version": VERSION,
-        "dataset": "Natural Earth 5.0.0 1:10m physical vectors",
-        "crs": "EPSG:4326",
-        "coordinatePolicy": "source coordinates retained without simplification",
-        "layers": [],
-    }
-    for layer_id, category, stem in HYDRO_SOURCES:
-        shp_path = find_file(source_root, f"{stem}.shp")
-        reader = shapefile.Reader(str(shp_path), encoding="utf-8")
-        fields = [field[0] for field in reader.fields[1:]]
-        features = []
-        coordinate_count = 0
-        skipped_null_shapes = 0
-        for index, shape_record in enumerate(reader.iterShapeRecords()):
-            record = {name: value for name, value in zip(fields, shape_record.record)}
-            if shape_record.shape.shapeType == shapefile.NULL:
-                skipped_null_shapes += 1
-                continue
-            geometry = dict(shape_record.shape.__geo_interface__)
-            coordinate_count += len(shape_record.shape.points)
-            features.append({
-                "type": "Feature",
-                "id": f"{layer_id}:{record.get('ne_id') or record.get('id') or record.get('objectid') or index}",
-                "properties": hydro_properties(record, layer_id, category, index),
-                "geometry": geometry,
-            })
-        output_path = hydro_dir / f"{layer_id}.geojson"
-        output_path.write_text(
-            json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8",
-        )
-        entry = {
-            "id": layer_id,
-            "category": category,
-            "url": f"hydro/{layer_id}.geojson",
-            "featureCount": len(features),
-            "coordinateCount": coordinate_count,
-            "skippedNullShapes": skipped_null_shapes,
-            "sourceFile": shp_path.name,
-            "sourceSha256": sha256(shp_path),
-            "outputSha256": sha256(output_path),
-        }
-        manifest["layers"].append(entry)
-        print(f"hydro {layer_id}: {len(features):,} features, {coordinate_count:,} coordinates")
-    manifest_path = hydro_dir / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    return manifest
 
 
 def crop_with_gutter(image: Image.Image, box: tuple[int, int, int, int]) -> Image.Image:
@@ -311,7 +201,8 @@ def main() -> None:
     args = parser.parse_args()
     args.output_root.mkdir(parents=True, exist_ok=True)
     if not args.terrain_only:
-        build_hydro(args.source_root, args.output_root)
+        subprocess.run(['node', str(Path(__file__).resolve().parent / 'gis' / 'build-physical-hydro.mjs'),
+                        '--source', str(args.source_root), '--output', str(args.output_root)], check=True)
     if not args.hydro_only:
         countries_path = (args.countries or (args.output_root / "territorial-entities/generated/current-world.geojson")).resolve()
         build_terrain(args.source_root, args.output_root, countries_path)

@@ -17,13 +17,49 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  physical-hydro:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-hydro'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check space for the selected GIS runtime
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 9GB) { throw 'Need estimated 4 GiB GIS runtime space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-name: pando-physical-hydro
+          create-args: >-
+            gdal=3.10.3
+            pillow
+            python=3.12
+            nodejs=22
+          cache-environment: true
+          cache-downloads: true
+          init-shell: bash
+      - name: Compare selected physical hydro shapefiles
+        env:
+          PANDO_GDAL_OGR2OGR: ogr2ogr
+          PANDO_PHYSICAL_PYTHON: python
+        run: node --test tests/unit/physical-hydro-native.test.mjs
   terrain-dem-fill-windows:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-fill-windows'
     runs-on: windows-2022
