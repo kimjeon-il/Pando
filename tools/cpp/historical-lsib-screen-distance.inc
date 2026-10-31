@@ -521,6 +521,26 @@ V unionLSIBLines(const V& request){
     else throw std::runtime_error("Invalid LSIB merged source line");
     auto result=V::obj();result.object["geometry"]=std::move(geometry);return result;
 }
+V classifyLSIBSpatial(const V& request){
+    const auto& disputedValues=array(field(request,"disputes")),&sources=array(field(request,"sources")),
+        &chains=array(field(request,"chains")),&references=array(field(request,"references"));
+    if(disputedValues.size()>10000||sources.size()>10000||chains.size()>10000||references.size()>10000)
+        throw std::runtime_error("LSIB spatial inputs exceed budget");
+    GeometryEngine geos;const auto context=geos.context();std::vector<GeometryEngine::Shape> disputes,referenceLines;
+    for(const auto& value:disputedValues)disputes.push_back(geos.parse(value));
+    for(const auto& value:references)referenceLines.push_back(lsibScreenLine(geos,lsibScreenPoints(value)));
+    auto united=geos.unaryUnion(disputes),buffer=geos.own(GEOSBuffer_r(context,united.get(),.15,16),"LSIB disputed buffer");
+    auto disputed=V::arr();for(const auto& value:sources){auto source=geos.parse(value);const auto hit=GEOSIntersects_r(context,source.get(),buffer.get());
+        if(hit==2)throw std::runtime_error("Cannot inspect LSIB disputed intersection");disputed.array.push_back(V::boolean(hit==1));}
+    auto chainResults=V::arr();for(const auto& value:chains){auto chain=lsibScreenLine(geos,lsibScreenPoints(value));
+        const auto ring=GEOSisRing_r(context,chain.get());if(ring==2)throw std::runtime_error("Cannot inspect LSIB ring");
+        auto nearby=V::arr();for(std::size_t i=0;i<referenceLines.size();++i){double distance=0;
+            if(!GEOSDistance_r(context,chain.get(),referenceLines[i].get(),&distance))throw std::runtime_error("Cannot measure LSIB reference distance");
+            if(distance<.25)nearby.array.push_back(V::num(static_cast<double>(i)));}
+        auto row=V::obj();row.object["length"]=V::num(geos.length(chain));row.object["isRing"]=V::boolean(ring==1);
+        row.object["nearby"]=std::move(nearby);chainResults.array.push_back(std::move(row));}
+    auto result=V::obj();result.object["disputed"]=std::move(disputed);result.object["chains"]=std::move(chainResults);return result;
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
