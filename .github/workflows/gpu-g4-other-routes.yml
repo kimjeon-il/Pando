@@ -1,0 +1,56 @@
+name: GPU G4 remaining Canvas and editor screen routes (no deployment)
+on:
+  push:
+    branches: [work/gpu-g4-validation]
+    paths:
+      - .github/workflows/gpu-g4-other-routes.yml
+      - tests/browser/gpu-recovery-g4.spec.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpu-g4-other-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - product: viewer
+            backend: canvas2d
+          - product: editor
+            backend: webgl1
+          - product: editor
+            backend: canvas-worker
+          - product: editor
+            backend: canvas2d
+    env:
+      G4_EVIDENCE: gpu-g4-other-evidence
+      G4_PRODUCT: ${{ matrix.product }}
+      G4_BACKEND: ${{ matrix.backend }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec eslint tests/browser/gpu-recovery-g4.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real screen regression, document, selected entity and browser background
+        run: pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs --workers=1 --retries=0 --grep "${G4_PRODUCT} ${G4_BACKEND}:" --reporter=list
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-g4-other-${{ matrix.product }}-${{ matrix.backend }}-${{ github.sha }}
+          path: |
+            gpu-g4-other-evidence
+            test-results
+          if-no-files-found: warn
+          retention-days: 3
