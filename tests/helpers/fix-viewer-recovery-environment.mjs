@@ -9,6 +9,10 @@ function verify(name){const r=spawnSync(process.execPath,['--test','--test-repor
 const red=verify('lifecycle-before');assert.equal(red.status,1);assert.match(red.text,/document is not defined/);
 const source=readFileSync(path,'utf8'),before="document.hidden || document.visibilityState === 'hidden'";
 assert.equal(source.split(before).length,3,'Expected only the initial and update recovery visibility reads');
-writeFileSync(path,source.replaceAll(before,"globalThis.document?.hidden === true || globalThis.document?.visibilityState === 'hidden'"));
+const visibilitySafe=source.replaceAll(before,"globalThis.document?.hidden === true || globalThis.document?.visibilityState === 'hidden'");
+const lifecycle="    function installGpuRecoveryLifecycle() {";
+assert.equal(visibilitySafe.split(lifecycle).length,2,"Expected one renderer-owned lifecycle entry");
+const safe=visibilitySafe.replace(lifecycle,lifecycle+"\n      if (typeof document === 'undefined') return;");
+writeFileSync(path,safe);
 assert.equal(spawnSync(process.execPath,['--check',path],{encoding:'utf8'}).status,0);
 const green=verify('lifecycle-after');assert.equal(green.status,0,'Do not waive existing renderer lifecycle regressions');

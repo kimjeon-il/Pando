@@ -2,7 +2,9 @@ name: GPU viewer source regression triage (no deployment)
 on:
   push:
     branches: [work/ui]
-    paths: [.github/workflows/gpu-viewer-unit-triage.yml]
+    paths:
+      - .github/workflows/gpu-viewer-unit-triage.yml
+      - tests/helpers/fix-viewer-recovery-environment.mjs
   workflow_dispatch:
 permissions:
   contents: read
