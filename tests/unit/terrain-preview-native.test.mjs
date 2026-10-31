@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {spawnSync} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -84,6 +84,23 @@ test('physical generator reuses the verified native compositor across tiles',
     const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{maxBuffer:1024*1024});
     assert.equal(p.status,0,String(p.stderr));const row=JSON.parse(readFileSync('tests/fixtures/physical-composite-oracle.json','utf8'));
     assert.deepEqual(p.stdout,Buffer.concat([Buffer.from(row.expected,'base64'),Buffer.from(row.expected,'base64')]));
+  });
+test('physical compositor streams tiles larger than the operating-system pipe buffer',
+  {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},()=>{
+    const script="import importlib.util,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);a=Image.new('RGB',(512,512),(10,120,240));b=Image.new('RGB',(512,512),(230,30,5));mask=Image.new('L',(512,512),128);expected=Image.composite(a,b,mask).tobytes();c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask).tobytes();y=c.combine(a,b,mask).tobytes();c.__exit__(None,None,None);assert x==expected and y==expected;print('ok')";
+    const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{encoding:'utf8',timeout:15000});
+    assert.equal(p.status,0,p.stderr);assert.equal(p.stdout.trim(),'ok');
+  });
+test('physical composite relay exits when native input is invalid even if stdin stays open',
+  {skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},async()=>{
+    const child=spawn(process.execPath,['tools/gis/terrain-preview-native.mjs','--physical-composite-stream'],{stdio:['pipe','ignore','pipe'],windowsHide:true});
+    const done=new Promise((accept,reject)=>{child.once('error',reject);child.once('close',(code)=>accept(code));});
+    child.stdin.on('error',()=>{});child.stdin.write(Buffer.alloc(16));
+    let timer;const timeout=new Promise(accept=>{timer=setTimeout(()=>accept(null),3000);});
+    const code=await Promise.race([done,timeout]);clearTimeout(timer);
+    if(code===null)child.kill();
+    assert.notEqual(code,null,'relay must stop after the native engine rejects its input');
+    assert.notEqual(code,0);
   });
 test('physical generator delegates land mask to the source-bound native owner',
   {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},t=>{
