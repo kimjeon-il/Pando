@@ -70,7 +70,7 @@
   z-index: 100;
   top: auto;
   right: 0;
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
   left: 0;
   width: 100%;
   height: var(--sheet-height, var(--design-sheet-snap-half));
@@ -170,7 +170,7 @@
   position: fixed;
   z-index: 100;
   right: 0;
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
   left: 0;
   width: 100%;
   height: var(--sheet-height, var(--design-sheet-snap-half));
@@ -257,7 +257,7 @@
   flex-direction: column;
   position: fixed;
   z-index: 100;
-  top: calc(var(--workspace-visible-top, 0px) + env(safe-area-inset-top));
+  top: calc(var(--workspace-visible-top, var(--ui-space-0)) + env(safe-area-inset-top));
   right: var(--phone-dock-width);
   bottom: auto;
   left: auto;
@@ -306,7 +306,6 @@
   inset: var(--workspace-visible-top, 0) 0 auto auto;
   width: var(--phone-dock-width);
   height: var(--workspace-visible-height, 100dvh);
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
 }
 .app-root[data-layout="phone-landscape"] .mobile-bottom-bar {
   position: static;
@@ -335,7 +334,7 @@ body .app-root.viewer-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
 .app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   position: fixed;
   z-index: 210;
-  top: calc(var(--workspace-visible-top, 0px) + env(safe-area-inset-top));
+  top: calc(var(--workspace-visible-top, var(--ui-space-0)) + env(safe-area-inset-top));
   left: auto;
   right: var(--phone-dock-width);
   width: var(--phone-panel-width);

@@ -96,7 +96,7 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
 }
 
 .app-root[data-layout="mobile"] .map-bottom-status {
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
   min-height: var(--ui-statusbar-height);
 }
 
