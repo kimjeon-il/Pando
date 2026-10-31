@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -59,6 +60,13 @@ test('native land mask rejects invalid geometry and dimensions without partial o
 test('native physical land mask fills holes and matches Python at the dateline',{skip:!binary},()=>{
   for(const row of physicalMasks){const result=spawnSync(binary,['mask'],{input:JSON.stringify(row),maxBuffer:2*1024*1024});
     assert.equal(result.status,0,`${row.name}: ${result.stderr}`);assert.deepEqual(result.stdout,Buffer.from(row.expectedBase64,'base64'),row.name);}
+});
+test('native physical mask discards a subpixel polygon copy outside the date line',{skip:!binary},()=>{
+  const row=JSON.parse(readFileSync('tests/fixtures/physical-land-mask-edge-oracle.json','utf8'));
+  const result=spawnSync(binary,['mask'],{input:JSON.stringify(row),maxBuffer:2*1024*1024});
+  assert.equal(result.status,0,String(result.stderr));
+  assert.equal(createHash('sha256').update(result.stdout).digest('hex'),row.expectedSha256);
+  assert.equal(result.stdout[75*720],0);
 });
 test('physical generator delegates land mask to the source-bound native owner',
   {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},t=>{
