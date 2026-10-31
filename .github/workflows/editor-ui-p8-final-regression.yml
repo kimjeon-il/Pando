@@ -5,6 +5,7 @@ on:
     branches: [work/ui]
     paths:
       - .github/workflows/editor-ui-p8-final-regression.yml
+      - .github/workflows/editor-ui-p8-isolated-repro.yml
       - tests/unit/territorial-property-controller.test.mjs
       - tests/browser/info-tab-v9.spec.mjs
       - tests/browser/place-runtime.spec.mjs
