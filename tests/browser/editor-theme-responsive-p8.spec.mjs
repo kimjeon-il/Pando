@@ -19,10 +19,18 @@ async function ensureEditor(page) {
 }
 
 async function setTheme(page, theme) {
-  // The saved theme must remain effective even with the opposite OS preference.
+  // The stored preference owner (not a raw HTML attribute) must win over the OS.
   await page.emulateMedia({ colorScheme: theme === 'dark' ? 'light' : 'dark' });
-  await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+  // The desktop preference entry is hidden in the mobile menu. Invoke its
+  // existing event owner and exercise the same visible dialog controls.
+  await page.locator('#preferencesBtn').evaluate(button => button.click());
+  const modal = page.locator('#preferencesModal');
+  await expect(modal).toBeVisible();
+  await modal.locator('[data-preference-theme="' + theme + '"]').click();
+  await page.locator('#preferencesApplyBtn').click();
+  await expect(modal).toBeHidden();
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+  await expect(page.locator('#preferencesThemeInput')).toHaveValue(theme);
 }
 
 async function readLayout(page, phase) {
