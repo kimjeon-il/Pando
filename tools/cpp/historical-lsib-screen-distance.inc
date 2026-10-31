@@ -130,3 +130,23 @@ V selectLSIBScreenDisplay(const V& request) {
     for(const auto& point:selected){auto row=V::arr();row.array.push_back(V::num(point[0]));row.array.push_back(V::num(point[1]));output.array.push_back(std::move(row));}
     result.object["coordinates"]=std::move(output);return result;
 }
+
+V mergeLSIBSourceLines(const V& request) {
+    GeometryEngine geos;auto output=V::arr();
+    for(const auto& item:array(field(request,"geometries"))) {
+        auto geometry=geos.parse(item);const int kind=geos.type(geometry.get());
+        if(kind==GEOS_LINESTRING)geometry=geos.collection({geometry},GEOS_MULTILINESTRING);
+        else if(kind!=GEOS_MULTILINESTRING)throw std::runtime_error("LSIB source must contain lines");
+        auto merged=geos.own(GEOSLineMerge_r(geos.context(),geometry.get()),"LSIB line merge");
+        const int resultKind=geos.type(merged.get());auto result=V::obj();
+        if(resultKind==GEOS_LINESTRING) {
+            result.object["type"]=V::str("LineString");result.object["coordinates"]=geos.coordinates(merged.get());
+        } else if(resultKind==GEOS_MULTILINESTRING) {
+            result.object["type"]=V::str("MultiLineString");auto coordinates=V::arr();
+            for(const auto& line:geos.parts(merged))coordinates.array.push_back(geos.coordinates(line.get()));
+            result.object["coordinates"]=std::move(coordinates);
+        } else throw std::runtime_error("GEOS LSIB merge returned a non-line result");
+        output.array.push_back(std::move(result));
+    }
+    auto result=V::obj();result.object["geometries"]=std::move(output);return result;
+}

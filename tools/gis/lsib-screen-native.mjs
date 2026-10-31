@@ -33,6 +33,26 @@ export async function selectLSIBDisplay(geometry,anchors,reference,options={}){
   const result=await nativeRequest('--select-lsib-display',{geometry,anchors,reference},options);
   validateLine(result?.coordinates);return result.coordinates;
 }
+export async function mergeLSIBLines(geometries,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(geometries)||!geometries.length||geometries.length>10000)throw Error('Explicit LSIB line geometries required');
+  const merged=[];let batch=[],size=0;
+  async function flush(){
+    if(!batch.length)return;
+    const result=await nativeRequest('--merge-lsib-lines',{geometries:batch},options);
+    if(!Array.isArray(result?.geometries)||result.geometries.length!==batch.length||
+      result.geometries.some(g=>!g||!['LineString','MultiLineString'].includes(g.type)||!Array.isArray(g.coordinates)))
+      throw Error('Invalid native LSIB line merge result');
+    merged.push(...result.geometries);batch=[];size=0;
+  }
+  for(const geometry of geometries){
+    if(!geometry||!['LineString','MultiLineString'].includes(geometry.type)||!Array.isArray(geometry.coordinates))throw Error('Explicit LSIB line geometries required');
+    const bytes=Buffer.byteLength(JSON.stringify(geometry))+1;
+    if(bytes>16*1024*1024)throw Error('LSIB line geometry exceeds byte budget');
+    if(size+bytes>16*1024*1024)await flush();batch.push(geometry);size+=bytes;
+  }
+  await flush();return merged;
+}
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
