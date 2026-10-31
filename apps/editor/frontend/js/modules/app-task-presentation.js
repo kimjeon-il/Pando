@@ -161,11 +161,13 @@ export function createTaskPresentation() {
         rows.push(['남길 객체', labels.get(merge.keeperId)]);
         rows.push(['합쳐질 객체', merge.absorbedIds.map(id => labels.get(id)).join(', ')]);
       } else if (refs.length) {
-        const borderScope = state.tool === 'territorial-border'
-          && preview.operation === 'territorial-country-boundary' ? '국경 조정 국가'
-          : state.tool === 'territorial-border'
-            && preview.operation === 'territorial-boundary' ? '경계 조정 객체' : '대상';
-        rows.push([borderScope, refs.map(ref => displayObject(ref).name).join(', ')]);
+        const reviewScope = state.tool === 'country-coast' && preview.operation === 'territorial-coast'
+          ? (state.coastEditScopeGenericFeatureId ? '해안선 조정 대상' : '해안선 조정 국가')
+          : state.tool === 'territorial-border' && preview.operation === 'territorial-country-boundary'
+            ? '국경 조정 국가'
+            : state.tool === 'territorial-border' && preview.operation === 'territorial-boundary'
+              ? '경계 조정 객체' : '대상';
+        rows.push([reviewScope, refs.map(ref => displayObject(ref).name).join(', ')]);
       }
     }
     const metrics = preview.metrics || {};
@@ -528,13 +530,14 @@ export function createTaskPresentation() {
         && message === '다음 단계로 진행할 영역을 선택하세요.';
       // On mobile, the visible vertex-gesture hint already tells users how to
       // enable preview. Keep the disabled reason in DOM for aria-describedby.
-      const redundantMobileBorderHint = state.tool === 'territorial-border'
-        && state.boundaryEditPhase === 'editing' && !state.geometryPreview?.session
-        && dependencies.surfaces.isMobile() && status === 'needs-target'
+      const redundantMobileBoundaryHint = ['territorial-border', 'country-coast'].includes(state.tool)
+        && (state.tool === 'country-coast' || state.boundaryEditPhase === 'editing')
+        && !state.geometryPreview?.session && dependencies.surfaces.isMobile()
+        && status === 'needs-target'
         && !dependencies.platform.$('modeTaskInput')?.classList.contains('hidden')
         && message === '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.';
       reasonNode.classList.toggle('hidden',
-        !message || redundantAnnexPrompt || redundantAnnexMethodPrompt || redundantMobileBorderHint);
+        !message || redundantAnnexPrompt || redundantAnnexMethodPrompt || redundantMobileBoundaryHint);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -575,12 +578,25 @@ export function createTaskPresentation() {
     // selection nor vertex editing has a calculated change period yet.
     const borderBeforeReview = !preview && state.tool === 'territorial-border'
       && ['selecting', 'editing'].includes(state.boundaryEditPhase);
+    const coastBeforeReview = !preview && state.tool === 'country-coast';
     dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
-      annexBeforeReview || mergeChoosingTargets || borderBeforeReview);
+      annexBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
-    taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
+    const showInput = shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
-    }));
+    });
+    // Show the actual topology constraint once, without hiding map-pan,
+    // vertex-placement or recovery instructions. The source geometry is unchanged.
+    const coastTopologyNote = coastBeforeReview && state.boundaryPreparation?.status === 'ready'
+      && !state.modeProcessing && !state.spacePanActive && !editing.vertexPlacement
+      && !draft.vertexInsertMode
+      ? state.coastEditScopeGenericFeatureId ? '연결 영역도 함께 변경됩니다.' : '국경 접점은 고정됩니다.'
+      : '';
+    if (taskInput && coastTopologyNote) {
+      const instruction = showInput ? `${context.instruction} · ${coastTopologyNote}` : coastTopologyNote;
+      if (taskInput.textContent !== instruction) taskInput.textContent = instruction;
+    }
+    taskInput?.classList.toggle('hidden', !showInput && !coastTopologyNote);
     const placement=dependencies.platform.$('vertexPlacementBtn');if(placement){placement.hidden=!editing.selectedVertex||!!preview;placement.disabled=editing.gestureActive||state.modeProcessing;placement.textContent=editing.vertexPlacement?'위치 지정 취소':'선택 정점 위치 지정';}
     const mapSummary=dependencies.platform.$('modeMapSummary');
     if(mapSummary)mapSummary.textContent=[dependencies.platform.$('modeTaskName')?.textContent,context.targetSummary,context.stage].filter(Boolean).join(' · ');

@@ -914,3 +914,96 @@ test('mobile border edit shows one routine hint while retaining processing and a
   assert.equal(desktop.elements.modeTaskInput.classList.contains('hidden'), true);
   assert.equal(desktop.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
 });
+
+test('coast editing keeps topology constraints while hiding uncalculated metadata', async t => {
+  const f = await fixture(t, {
+    tool: 'country-coast', coastEditCountryId: 'COUNTRY',
+    boundaryEditPhase: '', boundaryPreparation: { status: 'ready' },
+    geometryPreview: { session: null },
+  }, {
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskInput.textContent, '국경 접점은 고정됩니다.');
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '변경 미리보기');
+
+  f.state.coastEditScopeGenericFeatureId = 'GEN-1';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskInput.textContent, '연결 영역도 함께 변경됩니다.');
+
+  f.state.spacePanActive = true;
+  f.presentation.syncEditingContext();
+  assert.match(f.elements.modeTaskInput.textContent, /지도 이동 중/);
+  assert.doesNotMatch(f.elements.modeTaskInput.textContent, /연결 영역/);
+  f.state.spacePanActive = false;
+
+  f.state.boundaryPreparation.status = 'error';
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), true,
+    'topology note should not compete with an actual preparation error');
+});
+
+test('coast preview restores dates and shows the edited scope without hiding validation', async t => {
+  const f = await fixture(t, {
+    tool: 'country-coast', coastEditCountryId: 'COUNTRY',
+    boundaryEditPhase: '', boundaryPreparation: { status: 'ready' },
+    geometryPreview: { session: null },
+  }, {
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 1 } }) },
+  });
+  const preview = {
+    operation: 'territorial-coast', affectedIds: ['COUNTRY'],
+    metrics: { finalAreaKm2: 52 },
+    temporalImpact: [{ entityId: 'COUNTRY', from: '1950-01', until: '1951-01' }],
+    validation: { blocking: false, issues: [] },
+  };
+  f.state.geometryPreview.session = preview;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), true);
+  const rows = () => f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+  assert.deepEqual(rows()[0], ['해안선 조정 국가', 'Country']);
+  assert.ok(rows().some(([label, value]) => label === '결과 면적' && value === '52 km²'));
+  assert.match(f.elements.modeTaskPeriod.textContent, /1950-01/);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '경계 변경 적용');
+
+  f.state.coastEditScopeGenericFeatureId = 'GEN-1';
+  f.presentation.updateModeButtons();
+  assert.equal(rows()[0][0], '해안선 조정 대상');
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, false);
+
+  preview.validation = { blocking: true, issues: [{ severity: 'error', message: '해안 위상 검증 실패' }] };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '해안 위상 검증 실패');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  f.state.geometryPreview.session = null;
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+});
+
+test('coast mobile gesture hint is not repeated while progress remains visible', async t => {
+  const f = await fixture(t, {
+    tool: 'country-coast', coastEditCountryId: 'COUNTRY',
+    boundaryEditPhase: '', boundaryPreparation: { status: 'ready' },
+    geometryPreview: { session: null },
+  }, {
+    isMobile: () => true,
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+  assert.match(f.elements.modeTaskInput.textContent, /국경 접점은 고정됩니다/);
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.');
+  assert.match(f.elements.modePrimaryBtn.attributes.get('aria-describedby') || '', /modeTaskDisabledReason/);
+  f.state.boundaryPreparation.status = 'pending';
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskStatus.dataset.taskState, 'preparing');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+});
