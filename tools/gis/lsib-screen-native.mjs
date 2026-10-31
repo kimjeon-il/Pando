@@ -86,6 +86,17 @@ export async function replaceLSIBRings({geometries,patches},options={}){
     Object.keys(geometries).some(code=>!Object.hasOwn(result.geometries,code)))throw Error('Invalid LSIB ring replacement receipt');
   return result.geometries;
 }
+export async function validateLSIBCountryRepair(request,options={}){
+  options.signal?.throwIfAborted();
+  if(!request||!request.before||typeof request.before!=='object'||Array.isArray(request.before)||
+    !request.after||typeof request.after!=='object'||Array.isArray(request.after)||
+    request.correctedCountry!=null&&typeof request.correctedCountry!=='string')throw Error('Explicit LSIB country repair inputs required');
+  const result=await nativeRequest('--validate-lsib-country-repair',request,options);
+  if(typeof result?.error==='string'&&result.error&&Object.keys(result).length===1){
+    const error=Error(result.error);error.code='LSIB_REPAIR_REJECTED';throw error;
+  }
+  if(result?.valid!==true||Object.keys(result).length!==1)throw Error('Invalid LSIB country repair receipt');return result;
+}
 export async function prepareLSIBReference({geometries,anchors,merge,closedRing},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||!Array.isArray(anchors)||typeof merge!=='boolean'||typeof closedRing!=='boolean')
@@ -118,7 +129,7 @@ export async function analyzeLSIBSection(request,options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
+    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream','--repair-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
@@ -128,6 +139,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     else if(process.argv[2]==='--rings-stream'){
       try{result={geometries:await replaceLSIBRings(request)};}
       catch(error){if(error.code!=='LSIB_RING_REJECTED')throw error;result={error:error.message};}
+    }else if(process.argv[2]==='--repair-stream'){
+      try{result=await validateLSIBCountryRepair(request);}
+      catch(error){if(error.code!=='LSIB_REPAIR_REJECTED')throw error;result={error:error.message};}
     }else result={coordinates:await selectLSIBDisplay(request.geometry,request.anchors,request.reference)};
     process.stdout.write(JSON.stringify(result)+'\n');
   }catch(error){process.stderr.write('lsib-screen: '+String(error.message)+'\n');process.exitCode=1;}
