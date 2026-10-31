@@ -1,0 +1,41 @@
+name: Viewer P1-4 initial presentation acceptance
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/viewer-initial-p1.yml
+      - tests/browser/viewer-initial-p1.spec.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-initial-p1-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  initial-map:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 17
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare pinned map data
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Viewer initial presentation unit contract
+        run: node --test tests/unit/viewer-*.test.mjs
+      - name: Initial map and reload browser acceptance
+        run: pnpm exec playwright test tests/browser/viewer-initial-p1.spec.mjs --workers=1
+      - name: Preserve P1-4 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-initial-p1-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
