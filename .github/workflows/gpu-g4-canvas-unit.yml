@@ -1,0 +1,24 @@
+name: G4 Canvas Worker initial physical frame gate
+on:
+  push:
+    branches: [work/gpu-g4-validation]
+    paths:
+      - .github/workflows/gpu-g4-canvas-unit.yml
+      - tests/unit/canvas-worker-background-admission.test.mjs
+      - shared/frontend/js/modules/country-mesh-zoom-policy.js
+      - shared/frontend/js/modules/gpu-map-renderer.js
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Verify original and new country paint policy
+        run: node --test tests/unit/country-mesh-zoom-policy.test.mjs tests/unit/canvas-worker-background-admission.test.mjs
