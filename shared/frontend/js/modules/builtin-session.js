@@ -9,9 +9,9 @@ import {deviceCurrentMonth} from './builtin-month-clock.js';
  * Mutable bindings stay local; exported accessors retain live identity.
  */
 export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourceCacheLimits=null } = {}) {
-  const maxEntries=sourceCacheLimits?.maxEntries ?? 2;
+  const maxEntries=sourceCacheLimits?.maxEntries ?? 3;
   const maxBytes=sourceCacheLimits?.maxBytes ?? (24 * 1024 * 1024);
-  if(!Number.isSafeInteger(maxEntries)||maxEntries<1||maxEntries>2
+  if(!Number.isSafeInteger(maxEntries)||maxEntries<1||maxEntries>3
     ||!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>32*1024*1024)
     throw new RangeError('Prepared source cache limits exceed bounded session budget.');
   let dependencies;
@@ -33,6 +33,32 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
   const sourceCache=new Map();
   let cacheBytes=0,cacheEpoch=0,cacheIdentity=null,disposed=false;
   let cacheHits=0,cacheMisses=0,cacheEvictions=0,cacheOversize=0;
+  let backgroundSkipped=0,protectedSkipped=0,presentedSourceMonth=null;
+  const pendingSourceMonths=new Map();
+  const protectPendingSource=month=>{
+    pendingSourceMonths.set(month,(pendingSourceMonths.get(month)||0)+1);
+    let released=false;
+    return ()=>{
+      if(released)return;
+      released=true;
+      const count=pendingSourceMonths.get(month)||0;
+      if(count<=1)pendingSourceMonths.delete(month);
+      else pendingSourceMonths.set(month,count-1);
+    };
+  };
+  const isProtectedSource=month=>month===presentedSourceMonth||pendingSourceMonths.has(month);
+  function setPresentedSourceMonth(month=null){
+    if(disposed)return false;
+    if(month!==null&&(typeof month!=='string'||!month))
+      throw new TypeError('A committed source month or null is required.');
+    presentedSourceMonth=month;
+    if(month!==null&&sourceCache.has(month)){
+      const record=sourceCache.get(month);
+      record.background=false;
+      sourceCache.delete(month);sourceCache.set(month,record);
+    }
+    return true;
+  }
   const staleBuiltin=()=>Object.assign(new Error('Builtin source request was superseded'),
     {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
   const preparedSources=new WeakSet();
@@ -42,7 +68,10 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
   }
   function sourceCacheStats(){
     return Object.freeze({entries:sourceCache.size,bytes:cacheBytes,maxEntries,maxBytes,
-      hits:cacheHits,misses:cacheMisses,evictions:cacheEvictions,oversized:cacheOversize});
+      hits:cacheHits,misses:cacheMisses,evictions:cacheEvictions,oversized:cacheOversize,
+      backgroundEntries:[...sourceCache.values()].filter(record=>record.background).length,
+      protectedEntries:[...sourceCache.keys()].filter(isProtectedSource).length,
+      backgroundSkipped,protectedSkipped});
   }
   function currentSourceIdentity(){
     const meta=buildMeta;
@@ -55,33 +84,61 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     const identity=currentSourceIdentity();
     if(cacheIdentity!==identity){
       clearPreparedSourceCache();cacheIdentity=identity;
+      // The old displayed source cannot pin data from a different revision.
+      presentedSourceMonth=null;
       projectBaseline=null;projectBaselineGeneration=null;
       if(!injectedWorldLoader)builtinWorldLoader=null; // Rebind after a data revision.
     }
     return identity;
   }
-  function cachedBytesFor(month,identity){
+  function cachedBytesFor(month,identity,{background=false}={}){
     if(!identity){cacheMisses++;return null;}
     const record=sourceCache.get(month);
     if(!record){cacheMisses++;return null;}
-    sourceCache.delete(month);sourceCache.set(month,record);
+    // Speculative hits must not outrank a real visit. Real visits promote a
+    // prior background entry and keep ordinary LRU semantics.
+    if(!background){
+      record.background=false;
+      sourceCache.delete(month);sourceCache.set(month,record);
+    }
     cacheHits++;return record;
   }
-  function rememberSource(month,identity,record,epoch){
-    if(!identity||epoch!==cacheEpoch||disposed)return;
+  function rememberSource(month,identity,record,epoch,{background=false}={}){
+    if(!identity||epoch!==cacheEpoch||disposed)return false;
     const size=record.bytes.byteLength;
-    if(size>maxBytes){cacheOversize++;return;}
+    if(size>maxBytes){cacheOversize++;return false;}
     const prior=sourceCache.get(month);
-    if(prior){sourceCache.delete(month);cacheBytes-=prior.bytes.byteLength;}
-    while(sourceCache.size&&(sourceCache.size>=maxEntries||cacheBytes+size>maxBytes)){
-      const oldest=sourceCache.keys().next().value,evicted=sourceCache.get(oldest);
-      sourceCache.delete(oldest);cacheBytes-=evicted.bytes.byteLength;cacheEvictions++;
+    let bytes=cacheBytes-(prior?.bytes.byteLength||0)+size;
+    let entries=sourceCache.size-(prior?1:0)+1;
+    // Prefer evicting speculative entries first; a speculative write may not
+    // replace a real user's recent visit. The visible month and outstanding
+    // Core candidates cannot be evicted by either kind of write.
+    const victims=[...sourceCache.entries()]
+      .filter(([key,entry])=>key!==month&&!isProtectedSource(key)
+        &&(!background||entry.background))
+      .sort((left,right)=>Number(right[1].background)-Number(left[1].background));
+    const evict=[];
+    for(const [key,candidate] of victims){
+      if(entries<=maxEntries&&bytes<=maxBytes)break;
+      evict.push(key);entries--;bytes-=candidate.bytes.byteLength;
     }
-    sourceCache.set(month,record);cacheBytes+=size;
+    if(entries>maxEntries||bytes>maxBytes){
+      if(background)backgroundSkipped++;else protectedSkipped++;
+      return false;
+    }
+    if(prior){sourceCache.delete(month);cacheBytes-=prior.bytes.byteLength;}
+    for(const key of evict){
+      const old=sourceCache.get(key);
+      sourceCache.delete(key);cacheBytes-=old.bytes.byteLength;cacheEvictions++;
+    }
+    sourceCache.set(month,{...record,background:background&&prior?.background!==false});
+    cacheBytes+=size;
+    return true;
   }
   function dispose(){
     if(disposed)return;
     disposed=true;clearPreparedSourceCache();
+    presentedSourceMonth=null;pendingSourceMonths.clear();
     projectBaseline=null;projectBaselineGeneration=null;
   }
   function connect(ports) {
@@ -106,7 +163,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
     if(disposed||!isCurrent())throw staleBuiltin();
     const identity=refreshSourceIdentity(),epoch=cacheEpoch;
-    let record=cachedBytesFor(month,identity);
+    let record=cachedBytesFor(month,identity,{background});
     if(!record){
       if(!builtinWorldLoader){
         const meta=buildMeta,spec=meta.builtinWorld;
@@ -127,7 +184,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
       if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
         ||currentSourceIdentity()!==identity)throw staleBuiltin();
       record={bytes,fingerprint};
-      rememberSource(month,identity,record,epoch);
+      rememberSource(month,identity,record,epoch,{background});
     }
     if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
       ||currentSourceIdentity()!==identity)throw staleBuiltin();
@@ -145,6 +202,8 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
 
   async function admitPreparedProjectSource(prepared,{isCurrent=()=>true}={}) {
     if(!preparedSources.has(prepared))throw new TypeError('A prepared builtin source candidate from this session is required.');
+    const releasePending=protectPendingSource(prepared.sourceMonth);
+    try {
     const domain=dependencies.domains.projectDomain,expectedGeneration=prepared.expectedGeneration;
     if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
       ||candidateIdentities.get(prepared)!==refreshSourceIdentity())throw staleBuiltin();
@@ -165,16 +224,20 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
       sourceMonth:facts.sourceMonth,baseDataset:facts.baseDataset,fingerprint:facts.fingerprint,
       baselineId:accepted.storageBaselineId,queryKey:prepared.sourceMonth});
     return projectBaseline;
+    } finally { releasePending(); }
   }
 
   async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
-    const domain=dependencies.domains.projectDomain;
-    refreshSourceIdentity();
-    if(projectBaseline?.queryKey===month
-      && projectBaselineGeneration===domain.getGeneration()
-      && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
-    const prepared=await prepareProjectSource(month,{isCurrent});
-    return admitPreparedProjectSource(prepared,{isCurrent});
+    const releasePending=protectPendingSource(month);
+    try {
+      const domain=dependencies.domains.projectDomain;
+      refreshSourceIdentity();
+      if(projectBaseline?.queryKey===month
+        && projectBaselineGeneration===domain.getGeneration()
+        && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
+      const prepared=await prepareProjectSource(month,{isCurrent});
+      return await admitPreparedProjectSource(prepared,{isCurrent});
+    } finally { releasePending(); }
   }
 
   function materializePristineCountriesSync() {
@@ -326,6 +389,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     get materializePristineCountriesSync() { return materializePristineCountriesSync; },
     get sourceCacheStats() { return sourceCacheStats; },
     get clearPreparedSourceCache() { return clearPreparedSourceCache; },
+    get setPresentedSourceMonth() { return setPresentedSourceMonth; },
     dispose,
     get prepareProjectSource() { return prepareProjectSource; },
     get admitPreparedProjectSource() { return admitPreparedProjectSource; },

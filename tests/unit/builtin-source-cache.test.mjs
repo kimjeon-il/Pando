@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
 
-function fixture({sourceCacheLimits, pinned=true, loader=null}={}) {
+function fixture({sourceCacheLimits, pinned=true, loader=null, admit=null}={}) {
  const buildMeta=pinned?{dataRevision:'data-revision-A',builtinWorld:{
   sha256:'a'.repeat(64),url:'assets/data/builtin-world/generated/v1/index.json'}}:undefined;
  const core={timelineCursor:'2026-10',checkpoint:9,presentationCheckpoint:7,storageBaselineId:0,
@@ -24,6 +24,7 @@ function fixture({sourceCacheLimits, pinned=true, loader=null}={}) {
   state:()=>({...core}),
   admitStorageBaseline:async(facts,options)=>{
    admissions.push({facts,options});
+   if(admit)await admit();
    core.storageBaselineId=++baselineId;
    return {storageBaselineId:baselineId};
   },
@@ -146,7 +147,84 @@ test('P2-2 external byte mutation, dispose and late results cannot corrupt retai
 });
 
 test('P2-2 invalid memory budgets are rejected instead of disabling the bound',()=>{
- for(const policy of [{maxEntries:3,maxBytes:4096},{maxEntries:2,maxBytes:33554433},
+ for(const policy of [{maxEntries:4,maxBytes:4096},{maxEntries:2,maxBytes:33554433},
   {maxEntries:0,maxBytes:4096},{maxEntries:2,maxBytes:0},{maxEntries:1.5,maxBytes:4}])
   assert.throws(()=>fixture({sourceCacheLimits:policy}),/cache|limit|budget/i);
+});
+
+test('P4-2 visible source and recent foreground visits outrank speculative neighbors',async()=>{
+ const f=fixture({sourceCacheLimits:{maxEntries:3,maxBytes:4096}});
+ await f.session.prepareProjectSource('1953-12');
+ f.session.setPresentedSourceMonth('1953-12');
+ await f.session.prepareProjectSource('1952-12');
+ const background={background:true,waitForIdle:async()=>{}};
+ await f.session.prepareProjectSource('1954-12',background);
+ assert.equal(f.session.sourceCacheStats().entries,3);
+ assert.equal(f.session.sourceCacheStats().backgroundEntries,1);
+ assert.equal(f.session.sourceCacheStats().protectedEntries,1);
+ await f.session.prepareProjectSource('1955-12',background);
+ assert.equal(f.session.sourceCacheStats().entries,3);
+ assert.equal(f.session.sourceCacheStats().backgroundEntries,1);
+ const before=f.reads();
+ await f.session.prepareProjectSource('1953-12');
+ await f.session.prepareProjectSource('1952-12');
+ assert.equal(f.reads(),before,'background updates cannot evict the active map or a recent real visit');
+ await f.session.prepareProjectSource('1954-12');
+ assert.equal(f.reads(),before+1,'the earlier background-only source was evicted');
+ assert.equal(f.admissions.length,0);
+ assert.ok(f.session.sourceCacheStats().bytes<=4096);
+});
+
+test('P4-2 background writes skip full protected cache without evicting active/candidate bytes',async()=>{
+ let finishAdmission;
+ const admission=new Promise(resolve=>{finishAdmission=resolve;});
+ const f=fixture({sourceCacheLimits:{maxEntries:2,maxBytes:4096},admit:()=>admission});
+ await f.session.prepareProjectSource('1953-12');
+ f.session.setPresentedSourceMonth('1953-12');
+ const pending=f.session.prepareProjectBaseline('1954-12');
+ // The admitted Core operation starts asynchronously after hashing and source preparation.
+ while(f.admissions.length===0)await new Promise(resolve=>setImmediate(resolve));
+ const before=f.session.sourceCacheStats();
+ assert.equal(before.protectedEntries,2);
+ await f.session.prepareProjectSource('1955-12',{background:true,waitForIdle:async()=>{}});
+ const after=f.session.sourceCacheStats();
+ assert.equal(after.entries,2);assert.equal(after.protectedEntries,2);
+ assert.equal(after.backgroundSkipped,1);
+ assert.ok(after.bytes<=after.maxBytes);
+ finishAdmission();
+ await pending;
+ const loads=f.reads();
+ await f.session.prepareProjectSource('1953-12');
+ await f.session.prepareProjectSource('1954-12');
+ assert.equal(f.reads(),loads);
+ f.session.dispose();
+});
+
+test('P4-2 speculative writes do not evict multiple real visits when no free budget exists',async()=>{
+ const f=fixture({sourceCacheLimits:{maxEntries:3,maxBytes:4096}});
+ for(const month of ['1953-12','1952-12','1951-12'])await f.session.prepareProjectSource(month);
+ f.session.setPresentedSourceMonth('1953-12');
+ const before=f.reads();
+ await f.session.prepareProjectSource('1954-12',{background:true,waitForIdle:async()=>{}});
+ assert.equal(f.session.sourceCacheStats().backgroundSkipped,1);
+ assert.equal(f.session.sourceCacheStats().entries,3);
+ for(const month of ['1953-12','1952-12','1951-12'])await f.session.prepareProjectSource(month);
+ assert.equal(f.reads(),before+1);
+});
+
+test('P4-2 cache byte cap and revision invalidation leave Core unchanged',async()=>{
+ const f=fixture({sourceCacheLimits:{maxEntries:3,maxBytes:4096}});
+ const coreBefore=structuredClone(f.core);
+ await f.session.prepareProjectSource('1953-12');f.session.setPresentedSourceMonth('1953-12');
+ const protectedBefore=f.session.sourceCacheStats();
+ assert.equal(protectedBefore.protectedEntries,1);
+ f.buildMeta.dataRevision='data-revision-next';
+ await f.session.prepareProjectSource('1954-12');
+ assert.equal(f.session.sourceCacheStats().protectedEntries,0);
+ assert.ok(f.session.sourceCacheStats().bytes<=f.session.sourceCacheStats().maxBytes);
+ assert.deepEqual(f.core,coreBefore);
+ f.session.setPresentedSourceMonth(null);f.session.clearPreparedSourceCache();
+ assert.equal(f.session.sourceCacheStats().entries,0);
+ assert.equal(f.session.sourceCacheStats().bytes,0);
+ assert.equal(f.admissions.length,0);
 });

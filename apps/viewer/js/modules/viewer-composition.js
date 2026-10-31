@@ -198,12 +198,17 @@ export async function composeViewer({ productMode, meta }) {
     if(accepted&&isCurrent()&&initialPresentation.hasPresented())
       adjacentPrefetch.afterPresented(month,{mode:get('timelineViewUnit')?.value==='month'?'month':'year'});
     return accepted;
-  },onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
+  },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     adjacentPrefetch.interrupt();
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
-    try {const result=await open(reader,options);if(!result&&resume())builtinActive=previous;return result;}
+    try {const result=await open(reader,options);
+      if(result){
+        owners.builtinSession.setPresentedSourceMonth(null);
+        owners.builtinSession.clearPreparedSourceCache();
+      }
+      if(!result&&resume())builtinActive=previous;return result;}
     catch(error){if(resume())builtinActive=previous;throw error;}
   };
   const fileElements={projectOpen:get('openProjectBtn'),projectInput:get('projectFileInput')};

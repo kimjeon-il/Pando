@@ -8,6 +8,7 @@ on:
       - shared/frontend/js/modules/builtin-session.js
       - shared/frontend/js/modules/builtin-world-loader.js
       - tests/unit/viewer-adjacent-prefetch.test.mjs
+      - tests/unit/builtin-source-cache.test.mjs
       - tests/unit/viewer-initial-composition.test.mjs
       - tests/unit/viewer-composition-recovery.test.mjs
       - .github/workflows/viewer-adjacent-prefetch-p4-1.yml
@@ -32,4 +33,4 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - name: Adjacent idle, source isolation, and loader unit contracts
-        run: node --test tests/unit/viewer-adjacent-prefetch.test.mjs tests/unit/builtin-source-preparation.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/viewer-initial-composition.test.mjs tests/unit/viewer-composition-recovery.test.mjs
+        run: node --test tests/unit/viewer-adjacent-prefetch.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/builtin-source-preparation.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/viewer-initial-composition.test.mjs tests/unit/viewer-composition-recovery.test.mjs
