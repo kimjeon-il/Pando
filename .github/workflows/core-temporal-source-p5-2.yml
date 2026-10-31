@@ -1,0 +1,30 @@
+name: Core P5-2 immutable temporal source
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/core/include/pandoeditor/document-session.h
+      - shared/core/src/document-session.cpp
+      - shared/tests/temporal-source-tests.cpp
+      - shared/tests/CMakeLists.txt
+      - .github/workflows/core-temporal-source-p5-2.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: core-p5-2-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure only the native Core and tests
+        run: cmake -S shared -B build-native/p5-2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - name: Compile immutable source and existing document admission tests
+        run: cmake --build build-native/p5-2 --target temporal_source_tests source_admission_tests document_session_tests --parallel 2
+      - name: Verify bounded registry and existing Core state contracts
+        run: ctest --test-dir build-native/p5-2 --output-on-failure -R '^(temporal_source_tests|source_admission_tests|document_session_tests)$'

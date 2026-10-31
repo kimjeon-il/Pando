@@ -1,5 +1,6 @@
 #include <pandoeditor/document-session.h>
 #include <limits>
+#include <algorithm>
 #include <pandoeditor/webterritorialcommands.h>
 #include <pandoeditor/objectproperties.h>
 #include <cmath>
@@ -10,7 +11,7 @@ DocumentSession::DocumentSession(projectcodec::PlatformPorts ports):ports_(std::
 }
 DocumentSessionState DocumentSession::adoptPreparedProject(Project&& project) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
-    project_=std::move(project);clearPreview();selection_.resetProject();draft_=GeometryDraft{};draftActive_=false;
+    project_=std::move(project);clearPreview();clearTemporalSources();selection_.resetProject();draft_=GeometryDraft{};draftActive_=false;
     externalSelectionRefs_.clear();loaded_=true;stateRevision_=0;sourceEpoch_=++epoch_;return projectState();
 }
 DocumentSessionOutcome DocumentSession::adoptPreparedCommand(PrepareResult&& prepared,std::uint32_t expectedEpoch) {
@@ -29,6 +30,79 @@ void DocumentSession::requireLoaded() const {
     if(!loaded_)throw std::invalid_argument("CORE_SESSION_UNLOADED: Load a document first.");
 }
 void DocumentSession::clearPreview() { preview_.reset();candidateId_=0;candidateEpoch_=0;labelGesture_.reset(); }
+void DocumentSession::clearTemporalSources() noexcept {
+    temporalSources_.clear();
+    temporalSourceBytes_=0;
+}
+TemporalSourceStats DocumentSession::temporalSourceStats() const noexcept {
+    return {temporalSources_.size(),temporalSourceBytes_,temporalSourceHits_,temporalSourceEvictions_};
+}
+TemporalSourceReceipt DocumentSession::temporalSourcePrepare(const projectcodec::WebStorageAssetSource& source,
+    const std::string& dataRevision,const std::string& manifestSha256,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);
+    const bool validSha=manifestSha256.size()==64&&
+        manifestSha256.find_first_not_of("0123456789abcdef")==std::string::npos;
+    if(dataRevision.empty()||dataRevision.size()>128||!validSha)
+        throw TimelineError("CORE_TEMPORAL_SOURCE_PIN","A pinned data revision and 64-digit manifest SHA-256 are required.");
+    if(source.decodedBytes==0||source.decodedBytes>TEMPORAL_SOURCE_MAX_DECODED_BYTES)
+        throw TimelineError("CORE_TEMPORAL_SOURCE_BUDGET","Immutable source exceeds the bounded decoded-byte budget.");
+    if(source.compressedBytes==0||source.compressedBytes>256ull*1024*1024
+        ||source.sourceBytes.size()!=source.compressedBytes)
+        throw TimelineError("PL-SCHEMA-BASE","Immutable source byte counts are invalid.");
+    const std::array<std::string,8> identity{source.baseDataset,dataRevision,manifestSha256,
+        source.sourceMonth,source.fingerprint,source.encoding,
+        std::to_string(source.compressedBytes),std::to_string(source.decodedBytes)};
+    for(auto& [id,entry]:temporalSources_)if(entry.identity==identity) {
+        // Never trust metadata alone on a cache hit: a caller can reuse a pin
+        // while passing corrupt bytes. Re-hashing avoids a second typed parse.
+        const std::string actual(reinterpret_cast<const char*>(source.sourceBytes.data()),source.sourceBytes.size());
+        if(projectcodec::sha256Bytes(actual)!=source.fingerprint)
+            throw TimelineError("PL-SCHEMA-BASE","Immutable source bytes do not match the claimed fingerprint.");
+        entry.access=++temporalSourceAccess_;
+        ++temporalSourceHits_;
+        return {id,entry.baseline.sourceMonth(),entry.baseline.fingerprint(),true};
+    }
+    if(temporalSourceSequence_==std::numeric_limits<std::uint32_t>::max())
+        throw std::overflow_error("CORE_TEMPORAL_SOURCE_OVERFLOW");
+    // Validates exact compressed bytes, hash, codec, source month, typed
+    // document, geometry and provenance using the current C++ source codec.
+    // Unlike storageBaselineLoad, this NEVER modifies the active Project,
+    // storageBaseline_, activeBaseline_, epoch, selection, edit or history.
+    auto baseline=projectcodec::admitWebStorageAssetBaseline(project_.snapshot(),source,ports_);
+    const auto newId=temporalSourceSequence_+1;
+    while(!temporalSources_.empty() &&
+        (temporalSources_.size()>=TEMPORAL_SOURCE_MAX_ENTRIES ||
+          temporalSourceBytes_>TEMPORAL_SOURCE_MAX_DECODED_BYTES-source.decodedBytes)) {
+        auto oldest=std::min_element(temporalSources_.begin(),temporalSources_.end(),
+            [](const auto& left,const auto& right){return left.second.access<right.second.access;});
+        temporalSourceBytes_-=oldest->second.declaredDecodedBytes;
+        temporalSources_.erase(oldest);
+        ++temporalSourceEvictions_;
+    }
+    temporalSources_.emplace(newId,TemporalSourceEntry{identity,std::move(baseline),
+        source.decodedBytes,++temporalSourceAccess_});
+    temporalSourceSequence_=newId;
+    temporalSourceBytes_+=source.decodedBytes;
+    const auto& admitted=temporalSources_.at(newId).baseline;
+    return {newId,admitted.sourceMonth(),admitted.fingerprint(),false};
+}
+std::optional<projectcodec::WebStorageBaseline> DocumentSession::temporalSourceLookup(
+    std::uint32_t id,std::uint32_t expectedEpoch) const {
+    requireEpoch(expectedEpoch);
+    const auto found=temporalSources_.find(id);
+    if(found==temporalSources_.end())return std::nullopt;
+    // Return the existing shared immutable source, not a borrowed pointer
+    // that would dangle if a future request evicts its registry slot.
+    return found->second.baseline;
+}
+bool DocumentSession::temporalSourceRelease(std::uint32_t id,std::uint32_t expectedEpoch) {
+    requireEpoch(expectedEpoch);
+    const auto found=temporalSources_.find(id);
+    if(found==temporalSources_.end())return false;
+    temporalSourceBytes_-=found->second.declaredDecodedBytes;
+    temporalSources_.erase(found);
+    return true;
+}
 DocumentSessionState DocumentSession::documentLoad(const std::string& input,const std::string& currentMonth) {
     if(epoch_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_SESSION_EPOCH_OVERFLOW");
     auto document=projectcodec::decodeWebStorage(input,ports_,storageBaseline_?&*storageBaseline_:nullptr);
@@ -42,7 +116,7 @@ DocumentSessionState DocumentSession::documentLoad(const std::string& input,cons
         std::optional<projectcodec::WebStorageBaseline>{projectcodec::admitWebStorageDocumentBaseline(candidate.snapshot(),ports_)};
     candidate.admitTerritorialDirtyIds([&](const ProjectDocument& d){return projectcodec::initialDirtyTerritorialIds(d,*active);});
     project_=std::move(candidate);activeBaseline_=std::move(active);
-    clearPreview();selection_.resetProject();externalSelectionRefs_.clear();draft_=GeometryDraft{};draftActive_=false;
+    clearPreview();clearTemporalSources();selection_.resetProject();externalSelectionRefs_.clear();draft_=GeometryDraft{};draftActive_=false;
     loaded_=true;sourceEpoch_=++epoch_;stateRevision_=0;
     return projectState();
 }
@@ -139,7 +213,7 @@ DocumentSessionState DocumentSession::documentInitialize(const std::string& inpu
     // User content/view checkpoints survive; it is not a user history action.
     if(loaded_)project_.admitTerritorialSource(std::move(document),rebase,month,activated);
     else {Project candidate;candidate.replace(std::move(document));candidate.setTimelineCursor(month,activated);project_=std::move(candidate);loaded_=true;}
-    activeBaseline_=active;clearPreview();selection_.prune([&](const SelectionRef& ref){return selectionRefExists(ref);});sourceEpoch_=++epoch_;return projectState();
+    activeBaseline_=active;clearPreview();clearTemporalSources();selection_.prune([&](const SelectionRef& ref){return selectionRefExists(ref);});sourceEpoch_=++epoch_;return projectState();
 }
 std::uint32_t DocumentSession::captureReplacement(std::uint32_t expectedEpoch) {
     requireEpoch(expectedEpoch);if(replacementSequence_==std::numeric_limits<std::uint32_t>::max())throw std::overflow_error("CORE_REPLACEMENT_OVERFLOW");
@@ -154,7 +228,7 @@ DocumentSessionState DocumentSession::rollbackReplacement(std::uint32_t id,std::
     storageBaseline_=std::move(replacement_->storageBaseline);
     activeBaseline_=std::move(replacement_->activeBaseline);storageBaselineId_=replacement_->storageBaselineId;
     stateRevision_=replacement_->stateRevision;
-    replacement_.reset();replacementId_=0;clearPreview();sourceEpoch_=++epoch_;return projectState();
+    replacement_.reset();replacementId_=0;clearPreview();clearTemporalSources();sourceEpoch_=++epoch_;return projectState();
 }
 bool DocumentSession::releaseReplacement(std::uint32_t id) {if(!replacement_||id!=replacementId_)return false;replacement_.reset();replacementId_=0;return true;}
 std::string DocumentSession::exportSnapshot(const projectcodec::WebStorageContext& context,std::uint32_t expectedEpoch) const {
