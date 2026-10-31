@@ -950,7 +950,12 @@ function canvasFallbackWorkerMain() {
         const substrateContext = substrate.getContext('2d');
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
         substrateContext.drawImage(canvas, 0, 0);
-        substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete };
+        substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete,
+          // A provisional pending-country frame did not paint terrain at all.
+          // Once any real terrain pass has painted, reuse it until its ready-tile
+          // or view dependency key changes; an incomplete DEM is not a reason
+          // to redo the same expensive globe tessellation on every redraw.
+          terrainPainted: message.surfacePresentation?.quality !== 'pending' };
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.lineJoin = 'round';
         context.lineWidth = theme.strokes.country.width;
@@ -987,7 +992,7 @@ function canvasFallbackWorkerMain() {
         for (const role of message.visualOrder.base) {
           // A provisional bitmap has no terrain yet. Reuse its substrate,
           // but never mistake that incomplete terrain for a finished paint.
-          if (reuseSubstrate && (role === 'substrate' || (role === 'terrain' && substrateState?.complete))) continue;
+          if (reuseSubstrate && (role === 'substrate' || (role === 'terrain' && substrateState?.terrainPainted))) continue;
           if (Object.hasOwn(paint, role)) paint[role]();
           else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
         }
