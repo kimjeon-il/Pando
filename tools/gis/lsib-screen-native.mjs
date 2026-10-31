@@ -103,6 +103,21 @@ export async function applyLSIBCountryPatches(request,options={}){
   await validateLSIBCountryRepair({before:request.geometries,after,expectedUnion:null,correctedCountry:null},options);
   return after;
 }
+export async function extractLSIBSharedChains(geometries,options={}){
+  options.signal?.throwIfAborted();
+  if(!geometries||typeof geometries!=='object'||Array.isArray(geometries))throw Error('Explicit LSIB country geometries required');
+  const result=await nativeRequest('--extract-lsib-shared',{geometries,order:Object.keys(geometries)},options);
+  if(!Array.isArray(result?.chains))throw Error('Invalid LSIB shared chain receipt');
+  const seen=new Set();for(const row of result.chains){
+    if(!Array.isArray(row?.countries)||row.countries.length!==2||row.countries.some(code=>typeof code!=='string'||!Object.hasOwn(geometries,code))||
+      row.countries[0]>=row.countries[1]||!row.geometry||!['LineString','MultiLineString'].includes(row.geometry.type))throw Error('Invalid LSIB shared chain');
+    const id=JSON.stringify(row.countries);if(seen.has(id))throw Error('Duplicate LSIB shared pair');seen.add(id);
+    if(row.geometry.type==='LineString')validateLine(row.geometry.coordinates);
+    else {if(!Array.isArray(row.geometry.coordinates)||!row.geometry.coordinates.length)throw Error('Invalid LSIB shared line parts');
+      for(const line of row.geometry.coordinates)validateLine(line);}
+  }
+  return result.chains;
+}
 export async function prepareLSIBReference({geometries,anchors,merge,closedRing},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(geometries)||!geometries.length||!Array.isArray(anchors)||typeof merge!=='boolean'||typeof closedRing!=='boolean')
