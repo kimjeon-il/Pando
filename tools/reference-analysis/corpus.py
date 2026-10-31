@@ -145,7 +145,7 @@ def validate_corpus(value, root=None, *, training_only=False):
     if training_only and root is None:
         raise ValueError('Explicit materialized training-only corpus required')
     script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
-    payload = json.dumps(dict(value=value, trainingOnly=training_only), allow_nan=False).encode('utf-8')
+    payload = json.dumps(dict(value=value, trainingOnly=training_only, root=str(pathlib.Path(root).resolve()) if root else None), allow_nan=False).encode('utf-8')
     result = subprocess.run(['node', str(script), '--metadata-stream'], input=payload, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, timeout=120, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
@@ -156,8 +156,6 @@ def validate_corpus(value, root=None, *, training_only=False):
         for key in ["image", "annotations"]:
             if root:
                 absolute = corpus_path(root, sheet[key])
-                if key == "image" and hashlib.sha256(absolute.read_bytes()).hexdigest() != sheet["sha256"]:
-                    raise ValueError("Original image hash changed: " + sheet["id"])
                 if key == "annotations":
                     annotations = json.loads(absolute.read_text(encoding="utf-8"))
                     if annotations.get('origin') == 'publisher-layer-export' and training_only:

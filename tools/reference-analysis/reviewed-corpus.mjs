@@ -13,6 +13,11 @@ import {assertMacroMetadata} from './macro-training-source.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
+async function verifyOriginalImage(sheet,root,signal){
+  const image=await resolveCorpusPath(root,sheet.image);
+  if(await hashFile(image,signal)!==sheet.sha256)throw Error('Original image hash changed: '+sheet.id);
+  return image;
+}
 async function trainingProvenanceInputs(annotation,root,kind,signal){
   const source=await resolveCorpusPath(root,annotation.sourcePdf),metadataPath=await resolveCorpusPath(root,annotation.sourceMetadata);
   if(await hashFile(source,signal)!==annotation.sourceSha256)throw Error(kind+' source hash changed');
@@ -71,8 +76,7 @@ export async function validateReviewedCorpus(value,root,{signal,workspace,review
   const base=await realpath(resolve(root));
   for(const sheet of value.sheets){
     signal?.throwIfAborted();
-    const image=await resolveCorpusPath(base,sheet.image),annotationPath=await resolveCorpusPath(base,sheet.annotations);
-    if(await hashFile(image,signal)!==sheet.sha256)throw Error('Original image hash changed: '+sheet.id);
+    const image=await verifyOriginalImage(sheet,base,signal),annotationPath=await resolveCorpusPath(base,sheet.annotations);
     const info=await stat(annotationPath);if(!info.isFile()||info.size>64*1024*1024)throw Error('Annotation exceeds its byte budget');
     const annotationBytes=await readFile(annotationPath,{signal});if(annotationBytes.length>64*1024*1024)throw Error('Annotation exceeds its byte budget');
     const annotation=JSON.parse(annotationBytes.toString('utf8'));
@@ -96,7 +100,10 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
         await validateMacroProvenance(request.annotation,request.sheet,request.root,{rendererVersion:request.rendererVersion});console.log(JSON.stringify({valid:true}));
       }else{
         if(!request||typeof request.trainingOnly!=='boolean')throw Error('Explicit corpus training scope required');
-        validateCorpusMetadata(request.value,{trainingOnly:request.trainingOnly});console.log(JSON.stringify({valid:true}));
+        validateCorpusMetadata(request.value,{trainingOnly:request.trainingOnly});
+        if(request.root){if(typeof request.root!=='string')throw Error('Explicit corpus root path required');
+          for(const sheet of request.value.sheets)await verifyOriginalImage(sheet,request.root);}
+        console.log(JSON.stringify({valid:true}));
       }
     }else{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
     if(positionals.length||!values.corpus)throw Error('Usage: node tools/reference-analysis/reviewed-corpus.mjs --corpus MANIFEST');
