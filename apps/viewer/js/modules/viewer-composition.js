@@ -169,7 +169,7 @@ export async function composeViewer({ productMode, meta }) {
     }return false;}
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
-  builtinClock=createBuiltinMonthClock({window,document,applyMonth:(month,{isCurrent,commit})=>open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',preserveView:builtinClock.month()!==null}),onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
+  builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:(month,{isCurrent,commit})=>open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',preserveView:builtinClock.month()!==null}),onCommitted:()=>{builtinActive=true;syncStatus();},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;

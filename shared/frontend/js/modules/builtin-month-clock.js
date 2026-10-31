@@ -2,8 +2,9 @@ import {parseTemporal} from './temporal.js';
 export const deviceCurrentMonth=(now=new Date())=>`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 
 // Owns builtin query mode only. It never schedules changes to a user document.
-export function createBuiltinMonthClock({applyMonth,now=()=>new Date(),window=null,document=null,onCommitted=()=>{},onError=()=>{}}){
+export function createBuiltinMonthClock({applyMonth,now=()=>new Date(),window=null,document=null,onCommitted=()=>{},onError=()=>{},coalesceRequests=false}){
  if(typeof applyMonth!=='function')throw new TypeError('Builtin month application is required');
+ if(typeof coalesceRequests!=='boolean')throw new TypeError('Builtin request coalescing requires a boolean.');
  let automatic=true,committed=null,pendingMonth=null,pendingResult=null,request=0,disposed=false,timer;
  async function change(month){
   if(parseTemporal(month,{nullable:false}).precision!=='month')throw new Error('A query month is required');
@@ -11,7 +12,16 @@ export function createBuiltinMonthClock({applyMonth,now=()=>new Date(),window=nu
   let presented=false;
   const commit=()=>{if(!isCurrent()||presented)return false;presented=true;committed=month;onCommitted(month);return true;};
   let applied;
-  try{applied=applyMonth(month,{isCurrent,commit});}catch(error){applied=Promise.reject(error);}
+  try{
+   // Viewer-only fast-burst merging: in the same JavaScript turn only the
+   // newest date starts the asynchronous source/Core pipeline. This is a
+   // microtask (no timer, animation-frame delay, or minimum display time).
+   // Once a read has started, existing isCurrent and Core rollback guards
+   // still own cancellation and preserve the last accepted frame.
+   applied=coalesceRequests
+    ? Promise.resolve().then(()=>isCurrent()?applyMonth(month,{isCurrent,commit}):false)
+    : applyMonth(month,{isCurrent,commit});
+  }catch(error){applied=Promise.reject(error);}
   const result=Promise.resolve(applied).then(accepted=>{
    if(!isCurrent()||accepted===false)return false;
    if(!presented)commit();return true;
