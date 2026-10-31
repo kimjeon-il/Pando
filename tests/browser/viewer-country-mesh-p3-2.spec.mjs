@@ -49,3 +49,24 @@ for(const mode of ['webgl','canvas']){
   expect(errors).toEqual([]);
  });
 }
+
+
+test('P3-2 shared GPU renderer starts in editor without changing its document',async({page})=>{
+  test.setTimeout(130000);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const {gotoEditor}=await import('./helpers/editor-entry.mjs');
+  await gotoEditor(page,'/?debug=1&renderer=webgl2');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:110000});
+  await expect(page.locator('#map')).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_GPU_METRICS__?.renderer||null),
+    {timeout:60000}).toMatch(/webgl|canvas/);
+  const editor=await page.evaluate(()=>({
+    readiness:document.querySelector('#app').dataset.readiness,
+    renderer:window.__PANDOLAB_GPU_METRICS__?.renderer,
+    month:window.__testEditorTimeline?.month(),
+    geometryCount:window.__testEditorTimeline?.project()?.geometries?.length,
+  }));
+  expect(editor.readiness).toBe('enhanced');
+  expect(errors).toEqual([]);
+  console.log('P3_2_EDITOR_SMOKE '+JSON.stringify(editor));
+});
