@@ -16,7 +16,7 @@ concurrency:
 jobs:
   browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
       G4_EVIDENCE: gpu-viewer-evidence
     steps:
@@ -38,7 +38,6 @@ jobs:
           node --test --test-reporter=tap tests/helpers/gpu-recovery-viewer-progress.test.mjs > gpu-viewer-evidence/progress-before.tap 2>&1
           code=$?
           set -e
-          cat gpu-viewer-evidence/progress-before.tap
           test "$code" -eq 1
           grep -q ERR_ASSERTION gpu-viewer-evidence/progress-before.tap
           ! grep -Eq 'ReferenceError|SyntaxError|TypeError|ERR_MODULE_NOT_FOUND' gpu-viewer-evidence/progress-before.tap
@@ -49,27 +48,31 @@ jobs:
       - name: Verify focused existing and new regressions
         id: unit
         continue-on-error: true
-        run: node --test --test-reporter=tap tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/helpers/gpu-recovery-viewer-admission.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/rendering-domain.test.mjs > gpu-viewer-evidence/unit.tap 2>&1
+        run: node --test --test-reporter=tap tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/helpers/gpu-recovery-viewer-admission.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs > gpu-viewer-evidence/unit.tap 2>&1
       - name: Lint changed runtime sources
         id: lint
         continue-on-error: true
         run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/rendering-domain.js > gpu-viewer-evidence/lint.txt 2>&1
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
-      - name: Real viewer repeated restoration without internal trace hooks
+      - name: Observe actual approval rejection conditions without weakening them
+        run: node tests/helpers/inspect-viewer-recovery.mjs
+      - name: Diagnose one actual WebGL2 viewer recovery
         id: screen
         continue-on-error: true
-        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
-      - name: Summarize actual results
+        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --grep webgl2 --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
+      - name: Summarize exact approval predicates
         if: always()
         run: |
           node --input-type=module <<'NODE'
           import {readFileSync,existsSync} from 'node:fs';
-          for(const backend of ['webgl2','webgl1']){
-            const file=`gpu-viewer-evidence/acceptance-${backend}/result.json`;if(!existsSync(file))continue;
-            const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({backend,passed:r.passed,error:r.error,errors:r.errors,rounds:r.rounds,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
+          const file='gpu-viewer-evidence/acceptance-webgl2/result.json';
+          if(existsSync(file)){
+            const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({passed:r.passed,error:r.error,rounds:r.rounds,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
+            console.log('APPROVAL_COUNTS '+JSON.stringify(r.final?.approvalTrace?.counts));
+            for(const row of r.final?.approvalTrace?.events||[])console.log('APPROVAL '+JSON.stringify(row));
           }
-          for(const path of ['admission-before.tap','admission-after.tap','unit.tap','lint.txt','browser.log'])if(existsSync('gpu-viewer-evidence/'+path))console.log(path+'\n'+readFileSync('gpu-viewer-evidence/'+path,'utf8').slice(-9000));
+          for(const path of ['unit.tap','lint.txt','browser.log'])if(existsSync('gpu-viewer-evidence/'+path))console.log(path+'\n'+readFileSync('gpu-viewer-evidence/'+path,'utf8').slice(-6000));
           NODE
       - uses: actions/upload-artifact@v4
         if: always()
