@@ -37,7 +37,7 @@ jobs:
         run: |
           node scripts/generate-build-metadata.mjs
           node scripts/check-version.mjs
-          node --test tests/unit/post-2000-generated-world-display.test.mjs \
+          node --test --test-concurrency=1 tests/unit/post-2000-generated-world-display.test.mjs \
             tests/unit/source-date-cut-normalization.test.mjs \
             tests/unit/indonesia-territory-timeline.test.mjs \
             tests/unit/sudan-ukraine-transition.test.mjs \
