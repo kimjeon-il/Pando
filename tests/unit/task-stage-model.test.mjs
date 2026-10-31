@@ -164,3 +164,42 @@ test('generic and virtual split sources preserve identity without fictitious sel
   assert.equal(editingContextPresentation({ state: virtual, targets: [] }).targetSummary, '현재 영역');
   assert.equal(taskWorkflowPresentation({ tool: 'split-territorial-unit', geometryPreview: { session: null } }), null);
 });
+
+test('subunit annex keeps its setup/selection/review steps and avoids repeating target information', () => {
+  const get = resolver([country('ROOT'), unit('RECEIVER','subunit','ROOT'), unit('DONOR','subunit','ROOT')]);
+  const selection = {
+    tool: 'draw-territorial-unit', kind: 'entity', editOperation: 'annex',
+    editTargetId: 'RECEIVER', taskLabel: '영역 편입', name: '받는 하위단위',
+    parentId: 'ROOT', sourceKey: 'DONOR', sourceCountryIds: [], stage: 'setup',
+  };
+  const state = {tool: selection.tool, territorySelectionSession: selection, geometryPreview: {session:null}};
+  const snapshot = structuredClone(state);
+  const model = {current:selection,step:1,stageLabel:'객체 정보'};
+  const setup = taskWorkflowPresentation(state,model,{}, {territorialEntityById:get});
+  assert.deepEqual([setup.name,setup.stage,setup.step,setup.total],['영역 편입','가져올 영역',1,3]);
+  assert.deepEqual(setup.cards.map(card=>[card.role,card.refs.map(ref=>ref.id)]),
+    [['넘겨받는 객체',['RECEIVER']]]);
+  assert.deepEqual(taskTargetRefs(state,{territorialEntityById:get}).map(ref=>ref.id),
+    ['RECEIVER','ROOT','DONOR']);
+  assert.deepEqual(state,snapshot);
+  selection.stage='selection';model.step=2;model.stageLabel='영역 선택';
+  const drawing=taskWorkflowPresentation(state,model,{}, {territorialEntityById:get});
+  assert.deepEqual([drawing.stage,drawing.step,drawing.total],['영역 선택',2,3]);
+  assert.deepEqual(drawing.cards,[]);
+  assert.equal(editingContextPresentation({state,targets:[
+    {name:'받는 하위단위'},{name:'상위 객체'},{name:'주는 하위단위'}]}).targetSummary,'받는 하위단위');
+  selection.stage='review';model.step=3;model.stageLabel='생성 확인';
+  state.geometryPreview.session={validation:{blocking:false}};
+  const review=taskWorkflowPresentation(state,model,{}, {territorialEntityById:get});
+  assert.deepEqual([review.name,review.stage,review.step,review.total],
+    ['영역 편입','편입 확인',3,3]);
+  assert.deepEqual(review.cards,[]);
+});
+
+test('ordinary creation retains its existing setup label and no annex card',()=>{
+  const selection={kind:'entity',tool:'draw-territorial-unit',stage:'setup',name:'새 객체',
+    parentId:'ROOT',sourceKey:'DONOR',sourceCountryIds:[]};
+  const model={current:selection,step:1,stageLabel:'객체 정보'};
+  const view=taskWorkflowPresentation({tool:selection.tool,territorySelectionSession:selection,geometryPreview:{session:null}},model);
+  assert.deepEqual([view.stage,view.step,view.total,view.cards.length],['객체 정보',1,3,0]);
+});

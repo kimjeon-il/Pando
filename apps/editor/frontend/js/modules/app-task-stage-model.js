@@ -73,6 +73,11 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     if (current.kind === 'annex' && current.stage === 'setup') {
       cards.push(card('넘겨받는 객체', [current.targetCountryId]), card('넘겨주는 객체', current.sourceCountryIds, '객체 선택'));
       relation = '←';
+    } else if (current.kind === 'entity' && current.editOperation === 'annex') {
+      // Keep the existing 3-step subunit annex; the source chooser remains in the setup form.
+      stage = current.stage === 'setup' ? '가져올 영역'
+        : current.stage === 'review' ? '편입 확인' : stage;
+      if (current.stage === 'setup') cards.push(card('넘겨받는 객체', [current.editTargetId]));
     }
   } else if (state.tool === 'merge-country' || state.tool === 'merge-territorial-unit') {
     const country = state.tool === 'merge-country';
@@ -238,7 +243,10 @@ export function editingContextPresentation({state,draft={},month='',targets=[],m
   const names=targets.map(target=>target.name).filter(Boolean);
   const fallbackTarget = state.tool === 'split-territorial-unit' && state.territorialUnitSplitVirtualSource
     ? '현재 영역' : selection?.name;
-  const targetSummary=names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||fallbackTarget||'새 객체';
+  const subunitAnnex = selection?.tool === state.tool && selection.kind === 'entity'
+    && selection.editOperation === 'annex';
+  const targetSummary=subunitAnnex ? names[0]||selection.name||'새 객체'
+    : names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||fallbackTarget||'새 객체';
   const view=month?month.replace(/^(-?)([0-9]+)-([0-9]{2})$/,(_,sign,year,m)=>(sign?'기원전 ':'')+Number(year)+'년 '+Number(m)+'월 말 상태'):'시점 확인 중';
   const periods=preview?.temporalImpact;
   const labels=periods?.map(row=>!row.from&&!row.until?'모든 시점':(row.from?row.from+'부터':'과거 전체')+' · '+(row.until?row.until+' 전까지':'종료 제한 없음'));
