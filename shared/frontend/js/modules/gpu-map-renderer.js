@@ -29,6 +29,7 @@ import { validateGeometry } from './geometry-validation.js';
 import { mapPresentationReadiness } from './startup-readiness.js';
 import { shouldShowSharedCountryBorders } from './country-shared-boundary-packet.js';
 import { geometryRevisionKey } from './geometry-versions.js';
+import { countryMeshContentKey } from './country-mesh-content-key.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 
 export function physicalSceneMatchesContext(scene,context) {
@@ -2899,8 +2900,17 @@ export function createGpuMapRenderer(deps) {
       // Let the new physical background render while its country mesh builds.
       projectRenderBlocked = false;
       invalidateGpuFrame('accepted-project-background');
+      // Re-materialized country coordinates may be identical even though their
+      // JavaScript object references differ. Retain GPU mesh resources only
+      // after matching the complete ordered country IDs and polygon content.
+      const content = isWebGlRenderer()
+        ? await countryMeshContentKey(features,{isCurrent:()=>taskProjectGeneration===projectGeneration
+            && geometryRevisionTracker.isCurrent(task.token,task.revision) && isWebGlRenderer()})
+        : resourceKey(features.map(feature => [String(feature.id), geometryRevisionKey(feature.geometry)]));
+      if(content===null || taskProjectGeneration!==projectGeneration
+        || !geometryRevisionTracker.isCurrent(task.token,task.revision))return false;
       const nextDependencies = { source: 'country-mesh',
-        content: resourceKey(features.map(feature => [String(feature.id), geometryRevisionKey(feature.geometry)])),
+        content,
         preparation: resourceKey(['country-mesh', globalThis.PandoLabGpuMeshCore.MESH_ALGORITHM_REVISION, globalThis.PandoLabGpuMeshCore.MAX_RENDER_EDGE_DEGREES]),
         context: gl ? [gl, renderDeviceContextRevision] : null, presentation: 'countries' };
       const entry = meshVariants.get('canonical');
