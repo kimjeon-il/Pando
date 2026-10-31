@@ -53,7 +53,7 @@ void drawPolygon(Canvas& canvas,const Value& raw,double x,double y,double levelW
             for(const auto& point:ring)out.emplace_back((point.first+worldShift+180)*levelW/360-x,(90-point.second)*levelH/180-y);return out;};
         const auto outer=project(rings.front());double minX=std::numeric_limits<double>::infinity(),maxX=-minX,minY=minX,maxY=-minX;
         for(const auto& point:outer){minX=std::min(minX,point.first);maxX=std::max(maxX,point.first);minY=std::min(minY,point.second);maxY=std::max(maxY,point.second);}
-        if(maxX< -1||minX>canvas.w||maxY< -1||minY>canvas.h)continue;
+        if((physical?maxX<0:maxX< -1)||minX>canvas.w||maxY< -1||minY>canvas.h)continue;
         auto draw=[&](const std::vector<Point>& ring,std::uint32_t color){std::vector<std::pair<int,int>> points;points.reserve(ring.size());
             for(const auto& point:ring){if(std::abs(point.first)>10000000||std::abs(point.second)>10000000)throw std::invalid_argument("Terrain pixel coordinate exceeds budget");
                 points.emplace_back(static_cast<int>(point.first),static_cast<int>(point.second));}
