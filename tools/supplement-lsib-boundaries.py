@@ -1,7 +1,6 @@
 """Curated offline boundary reconstruction; production normalization remains C++ owned.
 
-Ordinary replacements use old/new intersections. Explicitly reviewed tripoint
-targets move all three countries together. The unchanged outer land mask,
+Ordinary replacements use old/new intersections. The unchanged outer land mask,
 island components and special/disputed boundaries remain authoritative exclusions.
 Raw LSIB evidence is retained separately from the <=0.5px presentation derivative.
 """
@@ -19,20 +18,12 @@ import zipfile
 from collections import defaultdict
 
 import numpy as np
-from shapely.geometry import LineString, MultiLineString, shape, mapping
+from shapely.geometry import MultiLineString, shape, mapping
 import shapely
 
 SCALE = 2560 * 64 / 360
 SIMPLIFY_DEGREES = 0.0004  # <= 0.182045 CSS px symmetric displacement.
 SOURCE_ID = 'dos-lsib-11.4'
-REVIEWED_TARGETS = {
-    'AUT/LIE': {'pair': ('AUT', 'LIE'), 'junctionCountry': 'CHE'},
-    'AND/FRA': {'pair': ('AND', 'FRA'), 'junctionCountry': 'ESP'},
-    'ITA/SMR': {'pair': ('ITA', 'SMR'), 'enclave': 'SMR'},
-    'ITA/VAT': {'pair': ('ITA', 'VAT'), 'enclave': 'VAT', 'simplify': False},
-    'LSO/ZAF': {'pair': ('LSO', 'ZAF'), 'enclave': 'LSO'},
-    'FRA/MCO': {'pair': ('FRA', 'MCO'), 'coastal': 'MCO', 'simplify': False},
-}
 
 
 def source_supplement(published='2025-02-24', tolerance=SIMPLIFY_DEGREES):
@@ -43,40 +34,9 @@ def source_supplement(published='2025-02-24', tolerance=SIMPLIFY_DEGREES):
         'screenBaseline': {'widthCssPx': 2560, 'flatZoom': 64}, 'historicalAccuracyVerified': False}
 
 
-def load_reviewed_reference(root, manifest_path):
-    script = Path(__file__).with_name('gis') / 'lsib-reviewed-source.mjs'
-    request = {'root': str(root), 'manifestPath': str(manifest_path)}
-    result = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request).encode('utf-8'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError('Reviewed source validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    metadata = json.loads(result.stdout)
-    lines = metadata.pop('lines', None)
-    if not isinstance(lines, dict):
-        raise ValueError('Invalid reviewed source validation receipt')
-    return lines, metadata
-
-
-def reviewed_reference(root, manifest_path):
-    """Load the explicitly reviewed IGM San Marino exception, with pinned bytes."""
-    lines, metadata = load_reviewed_reference(root, manifest_path)
-    if metadata.get('sourceId') != 'igm-dbsn-2025-06-27' or set(lines) != {'igm'} or not isinstance(metadata.get('transformation'), dict):
-        raise ValueError('Invalid reviewed IGM validation receipt')
-    return LineString(lines['igm']), metadata
-
-
 def json_write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
     write_library_text(path,json.dumps(value, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-
-
-def reviewed_coast_reference(root, manifest_path):
-    """The approved Monaco high-water coastline, never a general source override."""
-    lines, metadata = load_reviewed_reference(root, manifest_path)
-    if metadata.get('sourceId') != 'ign-bdtopo-v3-monaco-coast' or not isinstance(lines, dict) or set(lines) != {'monaco', 'west', 'east'}:
-        raise ValueError('Invalid reviewed coast validation receipt')
-    return {role: LineString(coordinates) for role, coordinates in lines.items()}, metadata
 
 
 def read_shapefile(dbf, shp):
@@ -163,10 +123,6 @@ def replace_chains(geometries, patches, *, validate=False):
     return output
 
 
-def replace_chain(geometry, old, replacement):
-    return replace_chains({'owner': geometry}, {'owner': [{'old': old, 'replacement': replacement}]})['owner']
-
-
 def exclusion_reasons(records):
     """Classify the selected source set once; geometry and records remain unchanged."""
     script = Path(__file__).with_name('gis') / 'lsib-exclusion.mjs'
@@ -188,62 +144,6 @@ def apply_country_patches(geometries, patches):
     return replace_chains(geometries, patches, validate=True)
 
 
-def validate_country_repair(geometries, result, expected_union=None, corrected_country=None):
-    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
-    request = {'before': geometries, 'after': result,
-               'expectedUnion': None if expected_union is None else mapping(expected_union), 'correctedCountry': corrected_country}
-    checked = subprocess.run(['node', str(script), '--repair-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
-                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if checked.returncode:
-        raise RuntimeError('LSIB country validation failed: ' + checked.stderr.decode('utf-8', errors='replace'))
-    receipt = json.loads(checked.stdout)
-    if isinstance(receipt.get('error'), str):
-        raise ValueError(receipt['error'])
-    if receipt != {'valid': True}:
-        raise RuntimeError('Invalid LSIB country validation receipt')
-
-
-def validate_coastal_repair(geometries, result, review):
-    if set(geometries) != {'FRA', 'MCO'}:
-        raise ValueError('Coast correction is restricted to FRA/MCO')
-    before_union = shapely.union_all([shape(g) for g in geometries.values()])
-    expected = shape(replace_chain(mapping(before_union), review['oldChain'], review['replacementChain']))
-    if not expected.is_valid:
-        raise ValueError('Reviewed coast does not form a valid land mask')
-    validate_country_repair(geometries, result, expected, corrected_country='MCO')
-
-
-def repair_coastal_boundary(geometries, reference, coasts):
-    if set(geometries) != {'FRA', 'MCO'} or set(coasts) != {'monaco', 'west', 'east'}:
-        raise ValueError('Coast correction is restricted to FRA/MCO and three reviewed coasts')
-    if reference.geom_type != 'LineString':
-        raise ValueError('Coastal land reference must be one simple open line')
-    if any(line.geom_type != 'LineString' for line in coasts.values()):
-        raise ValueError('Reviewed coasts must be simple open lines')
-    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
-    request = {'geometries': geometries, 'reference': coordinates(reference),
-               'coasts': {role: coordinates(line) for role, line in coasts.items()}}
-    response = subprocess.run(['node', str(script), '--coast-stream'],
-                              input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
-                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if response.returncode:
-        raise RuntimeError('LSIB coastal repair failed: ' + response.stderr.decode('utf-8', errors='replace'))
-    receipt = json.loads(response.stdout)
-    if isinstance(receipt.get('error'), str):
-        raise ValueError(receipt['error'])
-    result, sections, review = receipt.get('geometries'), receipt.get('sections'), receipt.get('review')
-    if not isinstance(result, dict) or set(result) != set(geometries) or not isinstance(sections, list) or len(sections) != 4 or not isinstance(review, dict):
-        raise RuntimeError('Invalid LSIB coastal repair receipt')
-    for section in sections:
-        section['countries'] = tuple(section['countries'])
-        section['anchors'] = [tuple(point) for point in section['anchors']]
-    for key in ['oldChain', 'replacementChain', 'outerAnchors']:
-        review[key] = [tuple(point) for point in review[key]]
-    return {'MCO': result['MCO'], 'FRA': result['FRA']}, sections, review
-
-
 def extract_shared_chains(geometries):
     script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
     request = {'geometries': geometries}
@@ -258,87 +158,13 @@ def extract_shared_chains(geometries):
     return {tuple(row['countries']): shape(row['geometry']) for row in rows}
 
 
-def repair_tripoint_boundary(geometries, references, pair, third):
-    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
-    request = {'geometries': geometries, 'references': [
-        {'countries': codes, 'geometry': mapping(line)} for codes, line in references.items()],
-        'pair': pair, 'third': third}
-    result = subprocess.run(['node', str(script), '--tripoint-stream'],
-                            input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise RuntimeError('LSIB tripoint repair failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    receipt = json.loads(result.stdout)
-    if isinstance(receipt.get('error'), str):
-        raise ValueError(receipt['error'])
-    result, sections = receipt.get('geometries'), receipt.get('sections')
-    if not isinstance(result, dict) or set(result) != set(geometries) or not isinstance(sections, list) or len(sections) != 5:
-        raise RuntimeError('Invalid LSIB tripoint repair receipt')
-    for section in sections:
-        section['countries'] = tuple(section['countries'])
-    return result, sections
-
-
-def repair_enclave_boundary(geometries, reference, pair, enclave, simplify=True):
-    if reference.geom_type != 'LineString' or len(reference.coords) < 2:
-        raise ValueError('Enclave reference must be one simple closed ring')
-    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
-    request = {'geometries': geometries, 'reference': coordinates(reference), 'pair': pair,
-               'enclave': enclave, 'simplify': simplify}
-    result = subprocess.run(['node', str(script), '--enclave-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise RuntimeError('LSIB enclave repair failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    receipt = json.loads(result.stdout)
-    if isinstance(receipt.get('error'), str):
-        raise ValueError(receipt['error'])
-    result, sections = receipt.get('geometries'), receipt.get('sections')
-    if not isinstance(result, dict) or set(result) != set(geometries) or not isinstance(sections, list) or len(sections) != 1:
-        raise RuntimeError('Invalid LSIB enclave repair receipt')
-    for section in sections:
-        section['countries'] = tuple(section['countries'])
-    return result, sections
-
-
-def targeted_candidates(root, output, targets, reference_manifest=None, coast_manifest=None):
-    script = Path(__file__).with_name('gis') / 'lsib-targeted.mjs'
-    request = {'root': str(root), 'targets': list(targets),
-               'referenceManifest': str(reference_manifest) if reference_manifest is not None else None,
-               'coastManifest': str(coast_manifest) if coast_manifest is not None else None}
-    response = subprocess.run(['node', str(script), '--stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=600,
-                              creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if response.returncode:
-        message = response.stderr.decode('utf-8', errors='replace')
-        if 'Native LSIB screen operation failed' in message or 'PANDO_TERRITORIAL_RECIPE_BINARY must locate' in message:
-            raise RuntimeError('LSIB targeted candidate failed: ' + message)
-        raise ValueError('LSIB targeted candidate failed: ' + message)
-    result = json.loads(response.stdout)
-    if not isinstance(result, dict) or not isinstance(result.get('changes'), list) or not isinstance(result.get('boundaries'), list):
-        raise RuntimeError('Invalid LSIB targeted candidate receipt')
-    json_write(output, result)
-    print(json.dumps({'targets': list(dict.fromkeys(targets)), 'changedCountries': len(result['changes']),
-                      'sections': len(result['boundaries']), 'output': str(output)}))
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive')
     parser.add_argument('--disputed-directory')
-    parser.add_argument('--target', action='append', choices=REVIEWED_TARGETS,
-                        help='Explicitly reviewed target; repeat to accumulate countries in one candidate')
-    parser.add_argument('--reviewed-reference', help='Pinned manifest for the reviewed IGM San Marino exception')
-    parser.add_argument('--reviewed-coast', help='Pinned high-water coast manifest; requires --target FRA/MCO')
     parser.add_argument('--output', default='build-native/lsib-supplement/candidates.json')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
-    if args.target:
-        targeted_candidates(root, Path(args.output), args.target, args.reviewed_reference, args.reviewed_coast)
-        return
-    if args.reviewed_reference or args.reviewed_coast:
-        parser.error('Reviewed source manifests require an explicitly selected --target')
     if not args.archive or not args.disputed_directory:
         parser.error('--archive and --disputed-directory are required for an untargeted supplement')
     source_root = root / 'assets/data/territorial-entities/source'

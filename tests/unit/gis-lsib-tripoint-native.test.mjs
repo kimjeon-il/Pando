@@ -24,6 +24,9 @@ for (const fixture of fixtures) test(`tripoint: ${fixture.name}`, async () => {
   else assertEquivalent(await prepareLSIBTripoint(input), fixture.expected);
   assert.deepEqual(input, fixture);
 });
+test('tripoint exposes an unavailable native binary', async () => {
+  await assert.rejects(prepareLSIBTripoint(fixtures[0],{binary:'missing-lsib-native'}),/native.*failed/i);
+});
 
 test('tripoint: selected AUT/LIE/CHE source matches the Python result', { skip: !process.env.PANDO_LSIB_TRIPOINT_ORACLE }, async () => {
   const fixture = JSON.parse(await readFile(process.env.PANDO_LSIB_TRIPOINT_ORACLE, 'utf8'));

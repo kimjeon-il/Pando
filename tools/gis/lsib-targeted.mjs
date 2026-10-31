@@ -1,12 +1,13 @@
 // Assemble explicitly reviewed LSIB candidates without modifying source data.
 import {createHash} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {mkdir,readFile} from 'node:fs/promises';
+import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {gunzipSync} from 'node:zlib';
 import {classifyLSIBExclusion} from './lsib-exclusion.mjs';
 import {loadLSIBReviewedSource} from './lsib-reviewed-source.mjs';
 import {mergeLSIBUnion,prepareLSIBCoast,prepareLSIBEnclave,prepareLSIBTripoint} from './lsib-screen-native.mjs';
+import {writeLibraryOutput} from '../library-data.mjs';
 
 const sourceId='dos-lsib-11.4', tolerance=.0004, scale=2560*64/360;
 const plans={
@@ -145,10 +146,24 @@ export async function buildLSIBTargetedCandidate({root,targets,referenceManifest
   return result;
 }
 
+export async function writeLSIBTargetedCandidate(request,options={}){
+  if(typeof request.output!=='string'||!request.output)throw Error('Explicit LSIB candidate output required');
+  const candidate=await buildLSIBTargetedCandidate(request,options),output=resolve(request.output);
+  options.signal?.throwIfAborted();
+  await mkdir(dirname(output),{recursive:true});
+  options.signal?.throwIfAborted();
+  writeLibraryOutput(output,JSON.stringify(candidate,null,2)+'\n',{flag:'wx'});
+  return {targets:[...new Set(request.targets)],changedCountries:candidate.changes.length,sections:candidate.boundaries.length,output};
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||process.argv[2]!=='--stream')throw Error('Expected --stream');
-    const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>1024*1024)throw Error('LSIB candidate request exceeds byte budget');chunks.push(chunk);}
-    process.stdout.write(JSON.stringify(await buildLSIBTargetedCandidate(JSON.parse(Buffer.concat(chunks,size).toString('utf8'))))+'\n');
+    const request={root:resolve(dirname(fileURLToPath(import.meta.url)),'../..'),targets:[],output:'build-native/lsib-supplement/candidates.json'};
+    const names={'--target':'targets','--reviewed-reference':'referenceManifest','--reviewed-coast':'coastManifest','--output':'output'};
+    for(let i=2;i<process.argv.length;i++){
+      const name=names[process.argv[i]],value=process.argv[++i];if(!name||!value||value.startsWith('--'))throw Error('Expected LSIB target option and value');
+      if(name==='targets')request.targets.push(value);else request[name]=value;
+    }
+    process.stdout.write(JSON.stringify(await writeLSIBTargetedCandidate(request))+'\n');
   }catch(error){process.stderr.write('lsib-targeted: '+String(error.message)+'\n');process.exitCode=1;}
 }

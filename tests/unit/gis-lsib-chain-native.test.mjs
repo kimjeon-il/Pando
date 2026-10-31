@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {prepareLSIBReplacements} from '../../tools/gis/lsib-screen-native.mjs';
 
@@ -33,4 +34,11 @@ test('selected AUT-LIE replacement matches its frozen Python result',{
   const input=JSON.parse(await readFile(process.env.PANDO_LSIB_CHAIN_ORACLE,'utf8'));
   const [result]=await prepareLSIBReplacements(input.expected,[input.reference],{binary});
   equivalent(result.value,input.replacementExpected);
+});
+test('remaining untargeted Python caller surfaces native failure and withholds missing anchors',{
+  skip:!binary||!process.env.PANDO_PYTHON_ORACLE
+},()=>{
+  const script=`import importlib.util,os\nfrom pathlib import Path\nfrom unittest.mock import patch\nfrom shapely.geometry import LineString\ns=importlib.util.spec_from_file_location('lsib','tools/supplement-lsib-boundaries.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nold=LineString([(0,0),(1,0),(2,0),(3,0),(4,0)])\nreference=LineString([(0,.2),(1,0),(2,.2),(3,0),(4,.2)])\nrows=m.replacement_chains(old,[reference,LineString([(0,.1),(4,.1)])])\nassert len(rows)==1 and rows[0]['coordinates'][0]==[0.,0.] and rows[0]['coordinates'][-1]==[4.,0.]\nassert abs(rows[0]['retained_length_degrees']-2.)<1e-10\nwith patch.dict(os.environ,{'PANDO_TERRITORIAL_RECIPE_BINARY':str(Path('missing-lsib-native').resolve())}):\n try: m.replacement_chains(old,[reference])\n except RuntimeError as error: assert 'replacement failed' in str(error)\n else: raise AssertionError('missing native executable was accepted')\nprint('ok')`;
+  const result=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{encoding:'utf8',windowsHide:true,timeout:180000});
+  assert.equal(result.status,0,result.stderr);assert.equal(result.stdout.trim(),'ok');
 });

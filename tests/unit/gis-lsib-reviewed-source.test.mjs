@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {spawnSync} from 'node:child_process';
 import {mkdir,mkdtemp,readFile,rmdir,unlink,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -33,30 +32,12 @@ test('reviewed IGM and Monaco lines match existing Python and PROJ',{skip:!binar
   assert.equal(igm.sourceId,'igm-dbsn-2025-06-27');assert.equal(coast.sourceId,'ign-bdtopo-v3-monaco-coast');
   const {lines,referenceManifest,...metadata}=coast;
   assert.deepEqual(metadata,JSON.parse(await readFile(referenceManifest,'utf8')));
+  const {lines:igmLines,referenceManifest:igmManifest,transformation,...igmMetadata}=igm;
+  assert.deepEqual(igmMetadata,JSON.parse(await readFile(igmManifest,'utf8')));
+  assert.deepEqual(transformation,{description:'axis order change (2D) + ETRS89 to WGS 84 (1) + axis order change (2D)',accuracyMetres:1});
+  assert.equal(igmLines.igm.length,items.find(row=>row.name==='igm').expected.length);
   for(const row of items){const actual=row.name==='igm'?igm.lines.igm:coast.lines[row.name];
     assert.equal(actual.length,row.expected.length,row.name);
     for(let i=0;i<actual.length;i++)for(let c=0;c<2;c++)assert.ok(Math.abs(actual[i][c]-row.expected[i][c])<1e-12,`${row.name} ${i}/${c}`);
   }
-});
-test('selected reviewed coastline retains the original Python source metadata',{
-  skip:!binary||!process.env.PANDO_PYTHON_ORACLE||!process.env.PANDO_LSIB_REVIEWED_ORACLE
-},async()=>{
-  const manifestPath='tools/historical-library/sources/monaco-reviewed-2026-10-22/coast-reference.json';
-  const script=`import importlib.util,json,pathlib\nspec=importlib.util.spec_from_file_location('lsib','tools/supplement-lsib-boundaries.py')\nm=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nlines,metadata=m.reviewed_coast_reference(pathlib.Path.cwd(),${JSON.stringify(manifestPath)})\nprint(json.dumps({'metadata':metadata,'lines':{k:list(v.coords) for k,v in lines.items()}}))`;
-  const original=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
-  assert.equal(original.status,0,original.stderr);const expected=JSON.parse(original.stdout);
-  const {lines,...metadata}=await loadLSIBReviewedSource({root:process.cwd(),manifestPath,binary});
-  assert.deepEqual(metadata,expected.metadata);assert.deepEqual(lines,expected.lines);
-});
-test('selected IGM reference retains its original transformation metadata',{
-  skip:!binary||!process.env.PANDO_PYTHON_ORACLE||!process.env.PANDO_LSIB_REVIEWED_ORACLE
-},async()=>{
-  const manifestPath='tools/historical-library/sources/reviewed-boundaries-2026-10-22/smr-igm-reference.json';
-  const script=`import importlib.util,json,pathlib\nspec=importlib.util.spec_from_file_location('lsib','tools/supplement-lsib-boundaries.py')\nm=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)\nline,metadata=m.reviewed_reference(pathlib.Path.cwd(),${JSON.stringify(manifestPath)})\nprint(json.dumps({'metadata':metadata,'coordinates':list(line.coords)}))`;
-  const original=spawnSync(process.env.PANDO_PYTHON_ORACLE,['-c',script],{encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
-  assert.equal(original.status,0,original.stderr);const expected=JSON.parse(original.stdout);
-  const {lines,...metadata}=await loadLSIBReviewedSource({root:process.cwd(),manifestPath,binary});
-  assert.deepEqual(metadata,expected.metadata);assert.equal(lines.igm.length,expected.coordinates.length);
-  assert.deepEqual(metadata.transformation,{description:'axis order change (2D) + ETRS89 to WGS 84 (1) + axis order change (2D)',accuracyMetres:1});
-  for(let i=0;i<lines.igm.length;i++)for(let j=0;j<2;j++)assert.ok(Math.abs(lines.igm[i][j]-expected.coordinates[i][j])<1e-12);
 });

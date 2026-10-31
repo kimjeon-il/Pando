@@ -48,6 +48,9 @@ for (const fixture of cases) test(`coast: ${fixture.name}`, async () => {
   else assertEquivalent(await prepareLSIBCoast(input), fixture.expected);
   assert.deepEqual(input, fixture);
 });
+test('coast exposes an unavailable native binary', async () => {
+  await assert.rejects(prepareLSIBCoast(cases[0],{binary:'missing-lsib-native'}),/native.*failed/i);
+});
 
 test('coast: selected FRA/MCO source matches the Python result', { skip: !process.env.PANDO_LSIB_COAST_ORACLE }, async () => {
   const fixture = JSON.parse(await readFile(process.env.PANDO_LSIB_COAST_ORACLE, 'utf8'));
