@@ -18,17 +18,20 @@ jobs:
           run-id: 41165813606
           name: gpu-viewer-followup-ea3d4f993e32a8bc098d9b16fd3f68281302acf1
           path: evidence
-      - name: Print approval inputs and exact recovery rendering code
+      - name: Print final approval records and publication entrypoints
         run: |
           node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           for(const backend of ['webgl2','webgl1']){
-            const r=JSON.parse(readFileSync(`evidence/${backend}/result.json`));console.log('BACKEND '+backend+' COUNTS '+JSON.stringify(r.final.trace.counts));
-            for(const t of r.final.trace.rows.filter(t=>!['renderWebGl','base-result'].includes(t.where)))console.log('APPROVAL '+JSON.stringify(t));
-            console.log('LAST_ROWS '+JSON.stringify(r.final.trace.rows.slice(-5)));
+            const r=JSON.parse(readFileSync(`evidence/${backend}/result.json`));console.log('COUNTS '+backend+' '+JSON.stringify(r.final.trace.counts));
+            for(const [name,row]of Object.entries(r.final.trace.latest))console.log('LATEST '+backend+' '+name+' '+JSON.stringify(row));
           }
-          const source=readFileSync('evidence/viewer-fixed-renderer.js','utf8'),lines=source.split('\n');
-          for(const [a,b]of [['    function renderWebGl(','    function renderCanvasHydro('],['    function renderFrame(','    function prioritizeLatest('],['    function canPresentVisualFrame(','    function failTemporalPresentation(']]){
-            const start=source.indexOf(a),end=source.indexOf(b,start);console.log('SOURCE '+a+'\n'+source.slice(start,end));
+          const source=readFileSync('evidence/viewer-fixed-renderer.js','utf8');
+          for(const name of ['recordMapPresentation','recordGpuRecoveryFrame','claimCanvasRecoveryFrame','syncGpuRecoveryAvailability','markPreviewFramePresented','commitGpuRecoveryFrame']){
+            const start=source.indexOf('    function '+name+'(');assert.ok(start>=0,name);
+            const next=source.slice(start+1).search(/\n    (?:async )?function /);
+            console.log('SOURCE '+name+'\n'+source.slice(start,next<0?start+12000:start+1+next));
           }
+          const start=source.indexOf('      commitVisualFrame:');console.log('COMMIT_PORT '+source.slice(start,start+1900));
           NODE
