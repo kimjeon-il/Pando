@@ -90,10 +90,21 @@ jobs:
           if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; else suffix=''; fi
           export PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe$suffix"
           node --test tests/unit/gis-lsib-screen-native.test.mjs
+      - name: Collect the matching Windows compiler runtime
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p build-native/territorial-recipe/ci-runtime
+          for file in libstdc++-6.dll libgcc_s_seh-1.dll libwinpthread-1.dll; do
+            source="$CONDA_PREFIX/Library/bin/$file"
+            if [[ ! -f "$source" ]]; then echo "Missing compiler runtime: $file" >&2; exit 1; fi
+            cp "$source" build-native/territorial-recipe/ci-runtime/
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: territorial-lsib-screen-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/territorial-recipe/pando-territorial-recipe*
+          path: |
+            build-native/territorial-recipe/pando-territorial-recipe*
+            build-native/territorial-recipe/ci-runtime/*.dll
           if-no-files-found: error
           retention-days: 7
   german-base-windows:
