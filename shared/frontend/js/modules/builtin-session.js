@@ -35,6 +35,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
   let cacheHits=0,cacheMisses=0,cacheEvictions=0,cacheOversize=0;
   const staleBuiltin=()=>Object.assign(new Error('Builtin source request was superseded'),
     {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
+  const preparedSources=new WeakSet();
   const candidateIdentities=new WeakMap();
   function clearPreparedSourceCache(){
     sourceCache.clear();cacheBytes=0;cacheEpoch++;
