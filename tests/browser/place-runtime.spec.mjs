@@ -71,6 +71,11 @@ test('builtin selection is readonly, copy edits separately, and undo restores bu
   await expect(page.locator('#labelNameInput')).toHaveValue('서울 Synthetic');
   await expect(page.locator('#labelNameInput')).toHaveAttribute('readonly','',{timeout:30_000});
   await expect(page.locator('#labelBuiltinInfo details')).not.toHaveAttribute('open');
+  // Selecting a search hit closes/clears the result list. Reopen to verify
+  // the original indexed place is again the only result after undo.
+  await page.locator('#objectSearchBtn').evaluate(button => button.click());
+  await page.locator('#objectSearchInput').fill('서울');
+  await expect(result).toBeVisible();
   await expect(page.locator('[data-object-search-select="labels"]')).toHaveCount(1);
   expect(await page.locator('.user-label').count()).toBeLessThanOrEqual(2048);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pandolab-user-preferences')).labels.place.languages)).toEqual({ko:true,en:true,native:true});

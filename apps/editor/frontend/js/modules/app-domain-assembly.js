@@ -311,6 +311,7 @@ export function createDomainAssembly() {
       createIcon: (name, className) => dependencies.applicationFactories.createSemanticIcon(document, name, className),
       getPrimaryRef: () => selectionDomain.primary(),
       showPropertyForm: (...args) => objectPropertyController.show(...args),
+      syncActionTab: type => objectPropertyController.syncActionTab(type),
       resolveColor: resolveTerritorialEditorColor,
       defaultColor: defaultTerritorialColor,
       syncColorPicker: dependencies.colorPicker.syncColorPicker,

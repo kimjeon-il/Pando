@@ -39,6 +39,7 @@ export function createTerritorialPropertyController({
   formatArea,
   syncActions = () => {},
   syncStatus = () => {},
+  syncActionTab = () => {},
   commitField = () => false,
   commitFlag = () => false,
   openFlagLibrary = () => false,
@@ -205,6 +206,9 @@ export function createTerritorialPropertyController({
     showPropertyForm('entity', view.displayName, { resetScroll: !refreshOnly });
     const fieldsStartedAt = globalThis.performance?.now?.() || Date.now();
     presentFields(view);
+    // A previous regional object can leave Relations hidden when show() checks
+    // the form. Recompute tabs after presentRelations() sets current visibility.
+    syncActionTab('entity');
     const geometry = view.feature.geometry;
     const cached = geometry && areaCache.has(geometry);
     const area = cached ? areaCache.get(geometry) : null;
