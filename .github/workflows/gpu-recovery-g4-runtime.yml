@@ -69,7 +69,7 @@ jobs:
           G4_EVIDENCE: test-results/g4-m2-viewer-worker
         run: >-
           pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs
-          --grep '^viewer canvas-worker:' --workers=1 --retries=0 --reporter=list --trace off
+          --grep 'viewer canvas-worker:' --workers=1 --retries=0 --reporter=list --trace off
       - name: Enforce each independent G4 residual gate
         if: always()
         env:
