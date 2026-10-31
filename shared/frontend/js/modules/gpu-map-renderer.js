@@ -4764,6 +4764,10 @@ export function createGpuMapRenderer(deps) {
         canvasLastStyleSignature = '';
       }
       const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.objects, getSystemTheme(),
+        // Country paint is suppressed on an unpresented background. Once the
+        // first actual physical bitmap is admitted, this quality transition
+        // must issue a new Worker style even when geometry IDs are unchanged.
+        surfacePresentation.quality, surfacePresentation.geometryQuality, surfacePresentation.targetQuality,
         renderScene?.revisions?.geometry, renderScene?.revisions?.style, renderScene?.revisions?.overlayOrder].join(':');
       if (styleSignature !== canvasLastStyleSignature) {
         canvasLastStyleSignature = styleSignature;

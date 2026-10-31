@@ -5,6 +5,8 @@ on:
     paths:
       - .github/workflows/m2-canvas-worker-real-frame.yml
       - shared/frontend/js/workers/canvas-render-worker.js
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/country-mesh-zoom-policy.js
       - shared/frontend/js/modules/gpu-canvas-worker.js
       - tests/browser/gpu-recovery-g4.spec.mjs
 permissions:
