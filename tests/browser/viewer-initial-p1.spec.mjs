@@ -28,6 +28,7 @@ async function observe(page,profile,info,label){
     return {ready:document.getElementById('viewerStatus').dataset.ready,
       landLength:land.getAttribute('d')?.length||0,oceanLength:ocean.getAttribute('d')?.length||0,
       initialGlobeDiameter:ocean.getBoundingClientRect().width,
+      globeTransform:ocean.getAttribute('transform'),
       color:land.getAttribute('fill'),theme:document.documentElement.dataset.theme,
       reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,
       animation:getComputedStyle(svg).animationName,
@@ -86,9 +87,11 @@ for(const profile of profiles){
       await page.reload();
       const afterReload=await observe(page,profile,info,'reload');
       expect(afterReload.color).toBe(first.color);
-      await finish(page);
+      const afterReloadFinal=await finish(page);
+      expect(Math.abs(afterReload.initialGlobeDiameter/(2*afterReloadFinal.scale)-1),
+        'Reloaded initial preview diameter must match the canonical map').toBeLessThan(0.025);
     }
-    writeFileSync(info.outputPath('p1-4.json'),JSON.stringify({profile,first,errors},null,2));
+    writeFileSync(info.outputPath('p1-4.json'),JSON.stringify({profile,first,finalMap,scaleError:Math.abs(first.initialGlobeDiameter/(2*finalMap.scale)-1),errors},null,2));
     expect(errors).toEqual([]);
   });
 }

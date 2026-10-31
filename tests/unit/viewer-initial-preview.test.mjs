@@ -109,3 +109,21 @@ test('an empty clipped path may be undefined without making preview preparation 
   assert.equal(f.preview.render(view, palette), true); assert.equal(f.land.getAttribute('d'), '');
   assert.deepEqual(f.errors, []);
 });
+
+test('startup globe preview fits the canonical minimum world fit without changing the map frame', async () => {
+  const f = fixture();
+  const view = {...frame(), projection: 'globe', globeZoom: 1, cssTranslate: [320, 240]};
+  await f.preview.start();
+  f.preview.render(view, palette);
+  assert.equal(f.ocean.getAttribute('transform'), 'translate(320 240) scale(1.25) translate(-320 -240)');
+  assert.equal(f.land.getAttribute('transform'), f.ocean.getAttribute('transform'));
+  assert.equal(view.globeZoom, 1);
+});
+
+test('already zoomed globe and flat maps do not receive a second preview zoom', async () => {
+  const f = fixture(); await f.preview.start();
+  f.preview.render({...frame(), projection: 'globe', globeZoom: 1.25, cssTranslate: [320, 240]}, palette);
+  assert.equal(f.land.getAttribute('transform'), null);
+  f.preview.render({...frame(), projection: 'flat', globeZoom: 1, cssTranslate: [320, 240]}, palette);
+  assert.equal(f.land.getAttribute('transform'), null);
+});

@@ -14,6 +14,8 @@ export function createViewerInitialPreview({element, loadLand, isInitial, onErro
     element.setAttribute('hidden', '');
     oceanPath.removeAttribute('d');
     landPath.removeAttribute('d');
+    oceanPath.removeAttribute('transform');
+    landPath.removeAttribute('transform');
   }
   function fail(error) {
     if (!disposed && isInitial()) {
@@ -46,6 +48,22 @@ export function createViewerInitialPreview({element, loadLand, isInitial, onErro
         element.setAttribute('viewBox', `0 0 ${width} ${height}`);
         oceanPath.setAttribute('d', ocean || ''); landPath.setAttribute('d', land || '');
         pathKey = nextKey;
+      }
+      // The first built-in world is fitted at a minimum globe zoom of 1.25
+      // (camera-navigation.fitMapToFeature). Project the temporary ornament
+      // at that scale without changing the canonical camera or its frame.
+      const zoom = Number(frame.globeZoom);
+      const scale = frame.projection === 'globe' && Number.isFinite(zoom) && zoom > 0
+        ? Math.max(1, 1.25 / zoom) : 1;
+      if (scale > 1 + 1e-9) {
+        const [x, y] = frame.cssTranslate;
+        if (![x, y].every(Number.isFinite)) throw new TypeError('Initial globe preview requires its projection center.');
+        const transform = `translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y})`;
+        oceanPath.setAttribute('transform', transform);
+        landPath.setAttribute('transform', transform);
+      } else {
+        oceanPath.removeAttribute('transform');
+        landPath.removeAttribute('transform');
       }
       oceanPath.setAttribute('fill', theme.ocean);
       landPath.setAttribute('fill', theme.defaultLand);
