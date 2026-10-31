@@ -74,8 +74,12 @@ export function privatePluginFingerprint(entries) {
   return hash(JSON.stringify(rows));
 }
 
-export async function packagePrivatePlugin({revision,directory,modelPath,workspace=root,version,release,legacyManifest}) {
-  await run('git',['merge-base','--is-ancestor',revision,'origin/work/ui'],{cwd:workspace});
+export async function assertPushedPluginRevision(workspace,revision,{branch='work/ui'}={}){
+  if(!/^[a-f0-9]{40}$/.test(revision)||!['work/ui','work/gis'].includes(branch))throw Error('Full revision and supported plugin source branch required');
+  await run('git',['merge-base','--is-ancestor',revision,'refs/remotes/origin/'+branch],{cwd:workspace});
+}
+export async function packagePrivatePlugin({revision,directory,modelPath,workspace=root,version,release,legacyManifest,branch}) {
+  await assertPushedPluginRevision(workspace,revision,{branch});
   directory=resolve(directory);const rel=relative(workspace,directory);
   if(!rel||(!rel.startsWith('..')&&!isAbsolute(rel)))throw Error('Private package must be outside application Git');
   const candidate=await privatePluginEntries({revision,modelPath,workspace,version,release,legacyManifest}),{entries}=candidate;

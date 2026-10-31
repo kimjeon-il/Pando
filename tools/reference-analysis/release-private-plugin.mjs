@@ -8,7 +8,7 @@ import {resolve,dirname,join,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFile} from 'node:child_process';
 import {promisify,parseArgs} from 'node:util';
-import {privatePluginEntries,privatePluginFingerprint,packagePrivatePlugin} from './package-private-plugin.mjs';
+import {privatePluginEntries,privatePluginFingerprint,packagePrivatePlugin,assertPushedPluginRevision} from './package-private-plugin.mjs';
 import {readPinnedSource,collectSourceFiles} from './runtime-assets.mjs';
 import {frontendWasmRoot} from '../../scripts/lib/frontend-layout.mjs';
 import {zipMembers,zipMemberChunks} from '../lib/geonames-zip.mjs';
@@ -76,11 +76,7 @@ export function recordPrivateUpload({plan,response}){
   return {...plan,status:'uploaded-unverified',uploadedReleaseId:response.current_release_id};
 }
 
-export async function assertPushedRevision(workspace,revision,{branch='work/ui'}={}){
-  check(/^[a-f0-9]{40}$/.test(revision),'A full verified commit is required');
-  check(['work/ui','work/gis'].includes(branch),'Explicit supported plugin source branch required');
-  await exec('git',['merge-base','--is-ancestor',revision,'refs/remotes/origin/'+branch],{cwd:workspace});
-}
+export const assertPushedRevision=assertPushedPluginRevision;
 export async function assertReleaseAncestor(workspace,currentRevision,revision){
   check(/^[a-f0-9]{40}$/.test(currentRevision)&&/^[a-f0-9]{40}$/.test(revision),'Full plugin revisions are required');
   await exec('git',['merge-base','--is-ancestor',currentRevision,revision],{cwd:workspace});
@@ -139,7 +135,7 @@ export async function preparePrivateRelease({revision,modelPath,verification,rem
   }
   const legacyManifest=JSON.parse(remote.contents['.codex-plugin/plugin.json']||'null');
   check(legacyManifest?.name==='map-toolkit','Read the existing compatibility manifest before update');
-  const result=await packagePrivatePlugin({revision,modelPath,workspace,directory:target.directory,version:plan.version,legacyManifest,release:{
+  const result=await packagePrivatePlugin({revision,modelPath,workspace,directory:target.directory,version:plan.version,legacyManifest,branch,release:{
     schema:'map-toolkit-release',codeRevision:revision,dataRevision:candidate.dataRevision,modelSha256:candidate.modelSha256,
     contentSha256:candidate.contentSha256,verificationSha256:plan.verificationSha256}});
   const manifests=Object.fromEntries(await Promise.all(['plugin.json','.codex-plugin/plugin.json'].map(async path=>[path,await readJSON(join(result.directory,path))])));
