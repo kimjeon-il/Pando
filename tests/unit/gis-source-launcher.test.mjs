@@ -34,6 +34,7 @@ test('native Node tools and not-yet-migrated Python GIS tools use their own inte
  assert.match(coast[1],/build-german-1914-base\.mjs$/);
  assert.deepEqual(coast.slice(2),['--modern-coast','--output','candidate.json','--diagnostics','diagnostics.json']);
  assert.match(buildCommand('terrain-preview',[])[1],/build-terrain-preview\.mjs$/);
+ assert.match(buildCommand('physical-data',[])[1],/build-physical-data\.mjs$/);
  assert.match(buildCommand('hydro-connectivity',[])[1],/repair-hydro-connectivity\.mjs$/);
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{

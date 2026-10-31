@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
-import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 import {composeNativeTerrainPreview,rasterizeNativeTerrainLand} from '../../tools/gis/terrain-preview-native.mjs';
@@ -78,19 +76,6 @@ test('native physical composite matches Pillow gutters and all alpha values',{sk
   const frame=frames[0],truncated=spawnSync(binary,['physical-composite-stream'],{input:frame.subarray(0,frame.length-1)});
   assert.notEqual(truncated.status,0);assert.equal(truncated.stdout.length,0);
 });
-test('physical generator reuses the verified native compositor across tiles',
-  {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},()=>{
-    const script="import base64,importlib.util,json,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);r=json.load(open('tests/fixtures/physical-gutter-composite-oracle.json'));im=lambda k,mode:Image.frombytes(mode,(r['width'],r['height']),base64.b64decode(r[k]));a=im('land','RGB');b=im('ocean','RGB');mask=im('mask','L');shade=im('relief','L');c=m.PhysicalCompositor();c.__enter__();out=[c.combine(a,b,mask,shade,tuple(v['box'])).tobytes() for v in r['cases']];c.__exit__(None,None,None);sys.stdout.buffer.write(b''.join(out))";
-    const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{maxBuffer:1024*1024});
-    assert.equal(p.status,0,String(p.stderr));const row=JSON.parse(readFileSync('tests/fixtures/physical-gutter-composite-oracle.json','utf8'));
-    assert.deepEqual(p.stdout,Buffer.concat(row.cases.map(value=>Buffer.from(value.expected,'base64'))));
-  });
-test('physical compositor streams tiles larger than the operating-system pipe buffer',
-  {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},()=>{
-    const script="import importlib.util,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);a=Image.new('RGB',(512,512),(10,120,240));b=Image.new('RGB',(512,512),(230,30,5));mask=Image.new('L',(512,512),128);shade=Image.new('L',(512,512),17);r,g,bl=Image.composite(a,b,mask).split();expected=Image.merge('RGBA',(r,g,bl,shade)).tobytes();c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask,shade,(0,0,510,510));y=c.combine(a,b,mask,shade,(0,0,510,510));c.__exit__(None,None,None);assert x.tobytes()==expected and y.tobytes()==expected;print('ok')";
-    const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{encoding:'utf8',timeout:15000});
-    assert.equal(p.status,0,p.stderr);assert.equal(p.stdout.trim(),'ok');
-  });
 test('physical composite relay exits when native input is invalid even if stdin stays open',
   {skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},async()=>{
     const child=spawn(process.execPath,['tools/gis/terrain-preview-native.mjs','--physical-composite-stream'],{stdio:['pipe','ignore','pipe'],windowsHide:true});
@@ -101,15 +86,6 @@ test('physical composite relay exits when native input is invalid even if stdin 
     if(code===null)child.kill();
     assert.notEqual(code,null,'relay must stop after the native engine rejects its input');
     assert.notEqual(code,0);
-  });
-test('physical generator delegates land mask to the source-bound native owner',
-  {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},t=>{
-    const root=mkdtempSync(join(tmpdir(),'pando-physical-mask-'));t.after(()=>rmSync(root,{recursive:true}));
-    const script="import importlib.util,sys;from pathlib import Path;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);sys.stdout.buffer.write(m.build_outer_land_mask(Path(sys.argv[1]),Path(sys.argv[2]),(int(sys.argv[3]),int(sys.argv[4]))).tobytes())";
-    for(const row of physicalMasks){const countries=join(root,'countries.json'),lakes=join(root,'lakes.json');
-      writeFileSync(countries,JSON.stringify(row.countries));writeFileSync(lakes,JSON.stringify({type:'FeatureCollection',features:[]}));
-      const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script,countries,lakes,String(row.width),String(row.height)],{maxBuffer:2*1024*1024,windowsHide:true});
-      assert.equal(p.status,0,String(p.stderr));assert.deepEqual(p.stdout,Buffer.from(row.expectedBase64,'base64'),row.name);}
   });
 test('terrain preview interface validates pixel buffers before starting the native tool',async()=>{
   const row=cases[0];await assert.rejects(composeNativeTerrainPreview({...row,dem:Buffer.alloc(1),tint:Buffer.from(row.tint),land:Buffer.from(row.land)}),/buffer/i);

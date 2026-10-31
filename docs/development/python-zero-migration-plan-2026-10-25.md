@@ -110,13 +110,15 @@
 
   물리 타일의 육지·해저 마스크 합성, RGBA 조립과 1픽셀 gutter는 같은 네이티브 지형 도구에 묶고, 한 단계의 타일에서 검증된 프로세스 하나를 재사용한다. 알파 0–255, 극지·날짜변경선·타일 모서리의 Pillow 고정 픽셀, 연속 요청·잘린 입력·기존 생성기 호출은 [Windows/Linux CI 41166268426](https://github.com/kimjeon-il/Pando/actions/runs/41166268426)에서 확인했다.
 
-  WebP 저장은 기존 공통 C++ 인코더로 전환하고 RGB·L 래스터의 Lanczos 크기 조정은 같은 공통 계산을 재사용하도록 연결했다. 다른 모드는 명시적으로 거부한다. 작은 2단계 전체 생성과 투명 픽셀·원본 및 기존 출력 보존, RGB/L 고정 리샘플링은 [Windows/Linux CI 41167139738](https://github.com/kimjeon-il/Pando/actions/runs/41167139738)에서 기존 Python 픽셀과 대조했다. WebP 인코더 설정이 달라 인코딩 파일의 전체 바이트 일치는 보장하지 않는다. 실제 21,600×10,800 TIFF의 색상 모드와 타일 비교, 대형 입력 성능, 전체 생성기의 Python 제거는 아직 확인하지 않았다.
+  WebP 저장은 기존 공통 C++ 인코더로 전환하고 RGB·L 래스터의 Lanczos 크기 조정은 같은 공통 계산을 재사용하도록 연결했다. 다른 모드는 명시적으로 거부한다. 작은 2단계 전체 생성과 투명 픽셀·원본 및 기존 출력 보존, RGB/L 고정 리샘플링은 [Windows/Linux CI 41167139738](https://github.com/kimjeon-il/Pando/actions/runs/41167139738)에서 기존 Python 픽셀과 대조했다. WebP 인코더 설정이 달라 인코딩 파일의 전체 바이트 일치는 보장하지 않는다. 실제 21,600×10,800 TIFF의 색상 모드와 타일 비교, 대형 입력 성능은 아직 확인하지 않았다.
+
+  물리 래스터 TIFF 판독과 후보 타일 생성·manifest 실행기 및 호출자를 Node/C++로 교체하고 해당 Python 생성기를 제거했다. RGB·회색조 TIFF의 한글 경로, 원본 해시·덮어쓰기 거부와 두 단계의 작은 고정 픽셀은 [Windows/Linux CI 41168557109](https://github.com/kimjeon-il/Pando/actions/runs/41168557109)에서 검증했다. 로컬 OSGeo4W와 CI GDAL은 DLL ABI가 달라 각각 맞는 빌드를 사용한다. 이 검증은 전체 원본 TIFF나 운영 자료의 승인이 아니다.
 
   공통 영상 소스 변경에 따라 기존 비공개 Map Toolkit `0.6.5`를 코드 `545b529fd00da4ccbefa532d71582657664ae317`으로 갱신하고 계정의 릴리스 파일 257개를 실제 다운로드와 해시로 검증했다. 세부 범위와 남은 원본 검증은 독립 보고서 `reports/development/integrations/python-zero-remaining-2026-10-28/physical-terrain-resize-plugin.md`에 기록했다.
 
-  기존 물리 자료 생성기의 Natural Earth 수계 벡터 판독·속성·manifest 생성은 Node와 GDAL로 이전했다. 8개 합성 SHP에서 분리 선, 폴리곤 구멍, 다중 외곽, 한글 DBF, 빈 형상, 좌표 순서와 기존 Python 결과의 의미가 일치했고 기존 출력 덮어쓰기 및 원본 폴더 내부 출력은 거부한다. JSON 숫자 인코딩 차이로 출력 해시는 이전 Python과 다를 수 있다. [Windows/Linux CI 41164659641](https://github.com/kimjeon-il/Pando/actions/runs/41164659641)에서 해당 합성 자료와 기존 생성기의 호출을 확인했다. 실제 Natural Earth SHP 비교와 물리 지형 타일 생성기 전환은 아직 미완료이며 기존 Python 실행 경로는 지형 생성에 남는다.
+  기존 물리 자료 생성기의 Natural Earth 수계 벡터 판독·속성·manifest 생성은 Node와 GDAL로 이전했다. 8개 합성 SHP에서 분리 선, 폴리곤 구멍, 다중 외곽, 한글 DBF, 빈 형상, 좌표 순서와 기존 Python 결과의 의미가 일치했고 기존 출력 덮어쓰기 및 원본 폴더 내부 출력은 거부한다. JSON 숫자 인코딩 차이로 출력 해시는 이전 Python과 다를 수 있다. [Windows/Linux CI 41164659641](https://github.com/kimjeon-il/Pando/actions/runs/41164659641)에서 해당 합성 자료와 기존 생성기의 호출을 확인했다. 실제 Natural Earth SHP 전체 비교는 아직 미완료다.
 
-`work/gis` 현행 기준: 도구 13개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 12개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
   독일 1914 현대 해안 생성은 `tools/gis/build-german-1914-base.mjs --modern-coast`와 기존 GEOS/PROJ 엔진으로 전환했다. 합성 사례는 [Windows/Linux CI 41163860279](https://github.com/kimjeon-il/Pando/actions/runs/41163860279)에서 검증했다. 보유 HGIS 원본과 현재 국가 5개, 보존된 Helgoland·Düne 원본에서는 GEOS 3.13.1 기준 Python과 투영 면적·기준점이 일치했다. 기존 Python의 WGS84 역변환 결과에 자기 교차가 있어 GEOS 위상 복구를 적용하며, 복구된 결과는 같은 버전에서 Python 결과를 복구한 다각형과 공간적으로 일치한다. 미터 좌표로 되돌려 측정한 GEOS 꼭짓점 이산 Hausdorff 거리는 약 0.001712m, 면적 차이는 약 0.098552km²이며, 이는 모든 선분의 최대 거리나 역사 형상 승인을 뜻하지 않는다. 이산 경계 거리가 0.01m를 초과하거나 복구가 유효하지 않으면 후보를 거부한다. 후보 출력과 진단은 별도 경로에만 생성하며 운영 자료와 원본을 자동 변경하지 않는다. GEOS 3.11.4와 3.13.1의 해당 원본 결과는 서로 다르므로 라이브러리 버전별 결과를 같은 바이트나 같은 형상으로 취급하지 않는다.
 
@@ -133,7 +135,7 @@
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
-| `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
+| `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
