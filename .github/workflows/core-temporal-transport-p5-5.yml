@@ -33,6 +33,8 @@ jobs:
           node-version: '24'
       - name: Ordered Worker transport, late acknowledgement and existing client contracts
         run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-worker-ownership.test.mjs
+      - name: Prepare exact pinned builtin-world comparison data
+        uses: ./.github/actions/library-data
       - name: Checkout exact pinned Emscripten SDK
         uses: actions/checkout@v4
         with:
