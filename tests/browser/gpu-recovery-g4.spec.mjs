@@ -68,9 +68,16 @@ async function image(page,file){
  expect(rect,'Visible map workspace must exist with nonzero dimensions').not.toBeNull();
  // Page clip captures the map pixels directly without Playwright waiting for an
  // ever-moving map element to become geometrically "stable" after GPU restore.
- const bytes=await page.screenshot({path:file,animations:'disabled',timeout:30000,
-  clip:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}});
- return bytes.toString('base64');
+ // Capture compositor pixels using the repository's established CDP path.
+ // Playwright's high-level screenshot can time out under slow Canvas2D terrain
+ // paints even after the document and visible map have settled.
+ const session=await page.context().newCDPSession(page);
+ try {
+  const {data}=await session.send('Page.captureScreenshot',{format:'png',
+   clip:{x:rect.x,y:rect.y,width:rect.width,height:rect.height,scale:1}});
+  writeFileSync(file,Buffer.from(data,'base64'));
+  return data;
+ } finally {await session.detach();}
 }
 async function pixels(page,first,second){
  return page.evaluate(async({first,second})=>{
