@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
+import {sampledLSIBDistance} from '../../tools/gis/lsib-screen-native.mjs';
 
 const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 const oracle=JSON.parse(await readFile(new URL('../fixtures/lsib-screen-distance-oracle.json',import.meta.url),'utf8'));
@@ -19,4 +20,15 @@ test('native LSIB screen sampling rejects malformed coordinates',{skip:!binary},
   for(const [source,target] of [[[],[[0,0],[1,1]]],[[[0,0],[1,1]],[[0,0]]],[[[0,0],[1,'bad']],[[0,0],[1,1]]]]){
     const result=invoke(source,target);assert.notEqual(result.status,0);assert.ok(result.stderr);
   }
+});
+test('Node LSIB adapter rejects invalid input before launching native code',async()=>{
+  await assert.rejects(sampledLSIBDistance([[0,0]],[[0,0],[1,1]]),/coordinates/i);
+  await assert.rejects(sampledLSIBDistance([[0,0],[1,NaN]],[[0,0],[1,1]]),/coordinates/i);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(sampledLSIBDistance([[0,0],[1,1]],[[0,0],[1,1]],{signal:controller.signal}),{name:'AbortError'});
+});
+test('Node LSIB adapter preserves sampled distance and sample count',{skip:!binary},async()=>{
+  const row=oracle.cases[0],result=await sampledLSIBDistance(row.source,row.target,{binary});
+  assert.equal(result.samples,row.forwardSamples);
+  assert.ok(Math.abs(result.sampledMaximumCssPx-row.forward)<1e-10);
 });
