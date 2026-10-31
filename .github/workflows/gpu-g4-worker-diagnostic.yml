@@ -1,0 +1,32 @@
+name: G4 diagnose first Canvas Worker painted frame (no deployment)
+on:
+  push:
+    branches: [work/gpu-g4-validation]
+    paths:
+      - .github/workflows/gpu-g4-worker-diagnostic.yml
+      - tests/browser/gpu-worker-background-diagnostic.spec.mjs
+permissions:
+  contents: read
+jobs:
+  worker-probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright test tests/browser/gpu-worker-background-diagnostic.spec.mjs --workers=1 --retries=0 --reporter=list
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canvas-worker-gate-diagnostic-${{ github.sha }}
+          path: gpu-canvas-first-frame-evidence
+          retention-days: 3
+          if-no-files-found: warn
