@@ -78,6 +78,9 @@ export async function replaceLSIBRings({geometries,patches},options={}){
     for(const entry of entries){validateLine(entry?.old);validateLine(entry?.replacement);}
   }
   const result=await nativeRequest('--replace-lsib-rings',{geometries,patches},options);
+  if(typeof result?.error==='string'&&result.error&&Object.keys(result).length===1){
+    const error=Error(result.error);error.code='LSIB_RING_REJECTED';throw error;
+  }
   if(!result?.geometries||typeof result.geometries!=='object'||Array.isArray(result.geometries)||
     Object.keys(result.geometries).length!==Object.keys(geometries).length||
     Object.keys(geometries).some(code=>!Object.hasOwn(result.geometries,code)))throw Error('Invalid LSIB ring replacement receipt');
@@ -115,13 +118,17 @@ export async function analyzeLSIBSection(request,options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
+    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    const result=process.argv[2]==='--sampled-stream'?await sampledLSIBDistance(request.source,request.target):
-      process.argv[2]==='--replacement-stream'?{results:await prepareLSIBReplacements(request.old,request.references)}:
-      {coordinates:await selectLSIBDisplay(request.geometry,request.anchors,request.reference)};
+    let result;
+    if(process.argv[2]==='--sampled-stream')result=await sampledLSIBDistance(request.source,request.target);
+    else if(process.argv[2]==='--replacement-stream')result={results:await prepareLSIBReplacements(request.old,request.references)};
+    else if(process.argv[2]==='--rings-stream'){
+      try{result={geometries:await replaceLSIBRings(request)};}
+      catch(error){if(error.code!=='LSIB_RING_REJECTED')throw error;result={error:error.message};}
+    }else result={coordinates:await selectLSIBDisplay(request.geometry,request.anchors,request.reference)};
     process.stdout.write(JSON.stringify(result)+'\n');
   }catch(error){process.stderr.write('lsib-screen: '+String(error.message)+'\n');process.exitCode=1;}
 }

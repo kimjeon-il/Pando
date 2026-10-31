@@ -5,11 +5,15 @@ import {replaceLSIBRings} from '../../tools/gis/lsib-screen-native.mjs';
 
 const binary=process.env.PANDO_TERRITORIAL_RECIPE_BINARY;
 const oracle=JSON.parse(await readFile(new URL('../fixtures/lsib-ring-oracle.json',import.meta.url),'utf8'));
+test('ring batch rejects a missing owner and malformed coordinates before native execution',async()=>{
+  await assert.rejects(replaceLSIBRings({geometries:{},patches:{missing:[]}}),/owner/i);
+  await assert.rejects(replaceLSIBRings({geometries:{one:{}},patches:{one:[{old:[[0,0]],replacement:[[0,0],[1,1]]}]}}),/coordinates/i);
+});
 test('native shared-ring replacement preserves frozen Python geometry and refusals',{skip:!binary},async()=>{
   for(const row of oracle.cases){
     const geometries={one:row.geometry},patches={one:[{old:row.old,replacement:row.replacement}]};
     const before=structuredClone(geometries);
-    if(row.error)await assert.rejects(replaceLSIBRings({geometries,patches},{binary}),/ring|owning|endpoint/i,row.name);
+    if(row.error)await assert.rejects(replaceLSIBRings({geometries,patches},{binary}),error=>error.code==='LSIB_RING_REJECTED'&&/ring|owning|endpoint/i.test(error.message),row.name);
     else assert.deepEqual((await replaceLSIBRings({geometries,patches},{binary})).one,row.expected,row.name);
     assert.deepEqual(geometries,before,row.name);
   }
