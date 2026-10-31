@@ -31,8 +31,12 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Check shared UI tokens, components, architecture and surface state
+        id: ui_gate
+        continue-on-error: true
         run: pnpm check:ui
       - name: Validate editor unit, command guards, preview stages and history
+        id: unit_gate
+        continue-on-error: true
         run: >
           node --test --test-concurrency=1
           tests/unit/task-stage-model.test.mjs
@@ -51,6 +55,13 @@ jobs:
           tests/unit/workflow-layout.test.mjs
           tests/unit/selection-ui-ack.test.mjs
           tests/unit/project-ui-async-history.test.mjs
+      - name: Require both static and unit gates to succeed
+        if: always()
+        env:
+          UI_GATE: ${{ steps.ui_gate.outcome }}
+          UNIT_GATE: ${{ steps.unit_gate.outcome }}
+        run: |
+          [ "$UI_GATE" = success ] && [ "$UNIT_GATE" = success ]
 
   editor-browser:
     name: Editor, selection, metadata and undo (Chromium)
@@ -86,6 +97,15 @@ jobs:
             --workers=1 --retries=0 --max-failures=1 --trace off \
             --output=test-results/p8-final-editor \
             2>&1 | tee test-results/p8-final-editor.log
+      - name: Recheck P8-1 responsive layouts after shared token fixes
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: |
+          set -euo pipefail
+          pnpm exec playwright test tests/browser/editor-theme-responsive-p8.spec.mjs \
+            --config playwright.p8.config.js --workers=1 --retries=0 --trace off \
+            --output=test-results/p8-final-responsive \
+            2>&1 | tee test-results/p8-final-responsive.log
       - name: Save browser failure context
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,6 +114,8 @@ jobs:
           path: |
             test-results/p8-final-editor/
             test-results/p8-final-editor.log
+            test-results/p8-final-responsive/
+            test-results/p8-final-responsive.log
           if-no-files-found: warn
           retention-days: 7
 
