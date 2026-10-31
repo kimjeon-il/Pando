@@ -111,6 +111,16 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
         placeholder: virtualSource ? '현재 영역' : '대상 선택',
       });
     }
+  } else if (state.tool === 'redraw-territorial-unit') {
+    // The selected region is already the redraw source. Reuse the existing task
+    // card instead of introducing another target-selection step.
+    const source = state.territorialUnitRedrawSourceId;
+    if (!text(source)) return null;
+    name = '영역 다시 지정';
+    stage = preview ? '변경 확인' : '영역 그리기';
+    step = preview ? 2 : 1;
+    total = 2;
+    if (!preview) cards.push(card('대상 영역', [source]));
   } else if (state.tool === 'territorial-border') {
     const ids = [...new Set((state.boundaryEditEntityIds || []).map(text))];
     const source = state.boundaryEditSeedEntityId || ids[0];

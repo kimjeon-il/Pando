@@ -70,7 +70,7 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   });
   const document = createFakeDocument();
   const ids = [
-    'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage',
+    'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage', 'modeTaskStep',
     'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
     'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskResults', 'modeTaskResultsList',
     'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime',
@@ -1006,4 +1006,61 @@ test('coast mobile gesture hint is not repeated while progress remains visible',
   f.presentation.updateModeButtons();
   assert.equal(f.elements.modeTaskStatus.dataset.taskState, 'preparing');
   assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+});
+
+test('region redraw reuses the current target card, hides pre-review metadata and preserves review', async t => {
+  const f = await fixture(t, {
+    tool: 'redraw-territorial-unit',
+    boundaryEditPhase: '',
+    boundaryPreparation: null,
+    territorialUnitRedrawSourceId: 'REG',
+    territorialEntities: [{
+      type: 'Feature', id: 'REG', properties: { name: '독립 권역', entityKind: 'regional' },
+      geometry: { type: 'Polygon', coordinates: [] },
+    }],
+  }, {
+    describeTool: () => ({ name: '영역 다시 지정', stage: '영역 그리기' }),
+    objectDisplayInfo: ref => ({ name: ref.id === 'REG' ? '독립 권역' : 'Country', type: ref.type }),
+    isGenericFeatureDraftTool: () => true,
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskName.textContent, '영역 다시 지정');
+  assert.equal(f.elements.modeTaskStage.textContent, '영역 그리기');
+  assert.equal(f.elements.modeTaskStep.textContent, '1 / 2');
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskObjects.children[0].children[0].textContent, '대상 영역');
+  assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, '독립 권역');
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+
+  f.state.modeTaskMinimized = true;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+  f.state.modeTaskMinimized = false;
+  f.state.geometryPreview.session = {
+    operation: 'redraw-region', validation: { blocking: false },
+    metrics: { finalAreaKm2: 42 }, affectedIds: ['REG'],
+  };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskStage.textContent, '변경 확인');
+  assert.equal(f.elements.modeTaskStep.textContent, '2 / 2');
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.geometryPreviewSummary.children.at(-1).children[1].textContent, '42 km²');
+
+  f.state.geometryPreview.session.validation = {
+    blocking: true, issues: [{ severity: 'error', message: '영역이 유효하지 않습니다.' }],
+  };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '영역이 유효하지 않습니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskStage.textContent, '영역 그리기');
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
 });
