@@ -73,7 +73,9 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await expect(page.locator('#modeTaskTargetSummary')).toHaveText('메타데이터 검증 강');
   await expect(page.locator('#modeTaskViewTime')).toBeHidden();
   await expect(page.locator('#modeTaskAffectedSummary')).toBeHidden();
-  await expect(page.locator('#modePrimaryBtn')).toHaveText('좌표 편집 완료');
+  // The busy-label node is always in the DOM, but only the accessible
+  // label is the displayed action when the button is not processing.
+  await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label', '좌표 편집 완료');
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeActionBar')).toBeHidden();
   await page.locator('#editorTabBtn').click();
