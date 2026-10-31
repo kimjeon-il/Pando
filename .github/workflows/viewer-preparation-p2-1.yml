@@ -1,0 +1,42 @@
+name: Viewer P2-1 read-only preparation boundary
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/modules/builtin-session.js
+      - tests/unit/builtin-source-preparation.test.mjs
+      - tests/browser/viewer-builtin-source-p2.spec.mjs
+      - .github/workflows/viewer-preparation-p2-1.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p2-1-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Read-only candidate and Core admission contracts
+        run: node --test tests/unit/builtin-source-preparation.test.mjs tests/unit/builtin-world-loader.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Visible map unchanged by detached source preparation
+        run: pnpm exec playwright test tests/browser/viewer-builtin-source-p2.spec.mjs --workers=1
+      - name: Archive bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p2-1-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
