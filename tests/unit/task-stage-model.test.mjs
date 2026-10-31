@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   taskTargetRefs,
   taskWorkflowPresentation,
+  editingContextPresentation,
 } from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
 
 const country = id => ({ id, properties: { entityKind: 'general', name: id } });
@@ -130,4 +131,36 @@ test('country border selection uses country roles while subunit boundary retains
   assert.deepEqual([subunitView.name, subunitView.stage, subunitView.step, subunitView.total],
     ['경계 조정', '경계 편집', 1, 2]);
   assert.equal(subunitView.cards[0].role, '기준 객체');
+});
+
+test('split target is presented in the original card and preview, not a new picking step', () => {
+  const get = resolver([country('DEU'), unit('SUB-1')]);
+  const state = { tool: 'split-territorial-unit', territorialUnitSplitSourceId: 'SUB-1',
+    geometryPreview: { session: null } };
+  const before = structuredClone(state);
+  const view = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([view.name, view.stage, view.step, view.total],
+    ['영역 나누기', '경계 그리기', 1, 2]);
+  assert.deepEqual(view.cards.map(card => [card.role, card.refs.map(ref => ref.id)]),
+    [['나눌 영역', ['SUB-1']]]);
+  assert.deepEqual(taskTargetRefs(state, { territorialEntityById: get }).map(ref => ref.id), ['SUB-1']);
+  assert.deepEqual(state, before);
+  state.geometryPreview.session = { validation: { blocking: false } };
+  const review = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([review.stage, review.step, review.total], ['분할 확인', 2, 2]);
+  assert.deepEqual(review.cards, []);
+});
+
+test('generic and virtual split sources preserve identity without fictitious selection', () => {
+  const generic = { tool: 'split-generic-feature', genericFeatureSplitSourceId: 'G',
+    genericFeatures: [{ id: 'G' }], geometryPreview: { session: null } };
+  assert.deepEqual(taskWorkflowPresentation(generic).cards[0].refs.map(ref => [ref.domain, ref.type, ref.id]),
+    [['generic', 'feature', 'G']]);
+  assert.deepEqual(taskTargetRefs(generic).map(ref => ref.type), ['feature']);
+  const virtual = { tool: 'split-territorial-unit', territorialUnitSplitVirtualSource: { geometry: {} },
+    geometryPreview: { session: null } };
+  assert.deepEqual(taskWorkflowPresentation(virtual).cards[0].refs, []);
+  assert.equal(taskWorkflowPresentation(virtual).cards[0].placeholder, '현재 영역');
+  assert.equal(editingContextPresentation({ state: virtual, targets: [] }).targetSummary, '현재 영역');
+  assert.equal(taskWorkflowPresentation({ tool: 'split-territorial-unit', geometryPreview: { session: null } }), null);
 });

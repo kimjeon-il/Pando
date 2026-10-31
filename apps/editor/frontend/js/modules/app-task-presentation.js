@@ -249,7 +249,10 @@ export function createTaskPresentation() {
     const previewSummary = dependencies.platform.$('geometryPreviewSummary');
     const targetDetailed = (roleCards && !roleCards.classList.contains('hidden'))
       || (previewSummary && !previewSummary.classList.contains('hidden'));
-    targetSummary?.parentElement?.classList.toggle('hidden', !minimized && !!targetDetailed);
+    // Setup fields identify the new object; the summary returns when minimized.
+    const entitySetup = dependencies.projectState.state.territorySelectionSession?.kind === 'entity'
+      && dependencies.projectState.state.territorySelectionSession.stage === 'setup';
+    targetSummary?.parentElement?.classList.toggle('hidden', !minimized && (!!targetDetailed || entitySetup));
     const genericStage = dependencies.platform.$('modeTaskEditingStage');
     genericStage?.classList.toggle('hidden', !minimized);
     genericStage?.setAttribute('aria-live', minimized ? 'polite' : 'off');
@@ -528,6 +531,10 @@ export function createTaskPresentation() {
       const redundantAnnexMethodPrompt = selection?.kind === 'annex' && selection.stage === 'selection'
         && !selection.activeMethod && !selection.requestedMethod && status === 'needs-target'
         && message === '다음 단계로 진행할 영역을 선택하세요.';
+      // Keep generic disabled text for aria-describedby; the fields already explain the task.
+      const redundantEntitySetupPrompt = selection?.kind === 'entity' && selection.stage === 'setup'
+        && selectionModel?.showSetup && status === 'needs-target'
+        && message === '대상을 선택하고 필요한 설정을 완료하세요.';
       // On mobile, the visible vertex-gesture hint already tells users how to
       // enable preview. Keep the disabled reason in DOM for aria-describedby.
       const redundantMobileBoundaryHint = ['territorial-border', 'country-coast'].includes(state.tool)
@@ -537,7 +544,7 @@ export function createTaskPresentation() {
         && !dependencies.platform.$('modeTaskInput')?.classList.contains('hidden')
         && message === '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.';
       reasonNode.classList.toggle('hidden',
-        !message || redundantAnnexPrompt || redundantAnnexMethodPrompt || redundantMobileBoundaryHint);
+        !message || redundantAnnexPrompt || redundantAnnexMethodPrompt || redundantEntitySetupPrompt || redundantMobileBoundaryHint);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -571,6 +578,8 @@ export function createTaskPresentation() {
     // Do not repeat uncalculated time/impact metadata before the review stage.
     const annex = state.territorySelectionSession;
     const annexBeforeReview = annex?.kind === 'annex' && annex.stage !== 'review';
+    const entityBeforeReview = annex?.kind === 'entity' && annex.stage !== 'review';
+    const splitBeforeReview = !preview && ['split-territorial-unit', 'split-generic-feature'].includes(state.tool);
     const mergeChoosingTargets = !preview
       && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
         || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
@@ -580,7 +589,7 @@ export function createTaskPresentation() {
       && ['selecting', 'editing'].includes(state.boundaryEditPhase);
     const coastBeforeReview = !preview && state.tool === 'country-coast';
     dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
-      annexBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview);
+      annexBeforeReview || entityBeforeReview || splitBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
     const showInput = shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),

@@ -90,6 +90,27 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     if (!preview) cards.push(card(`남길 ${type}`, [source]));
     resultLabel = `합칠 ${type}`;
     resultRefs = (ids || []).map(ref).filter(Boolean);
+  } else if (state.tool === 'split-territorial-unit' || state.tool === 'split-generic-feature') {
+    // Split sources are selected before drawing; there is no additional picking stage.
+    const territorial = state.tool === 'split-territorial-unit';
+    const sourceId = territorial ? state.territorialUnitSplitSourceId : state.genericFeatureSplitSourceId;
+    const virtualSource = territorial && !!state.territorialUnitSplitVirtualSource;
+    if (!text(sourceId) && !virtualSource) return null;
+    name = '영역 나누기';
+    stage = preview ? '분할 확인' : '경계 그리기';
+    step = preview ? 2 : 1;
+    total = 2;
+    if (!preview) {
+      const sourceRef = text(sourceId) ? normalizeObjectRef({
+        domain: territorial ? 'territorial' : 'generic',
+        type: territorial ? 'entity' : 'feature',
+        id: text(sourceId),
+      }) : null;
+      cards.push({
+        role: '나눌 영역', refs: sourceRef ? [sourceRef] : [],
+        placeholder: virtualSource ? '현재 영역' : '대상 선택',
+      });
+    }
   } else if (state.tool === 'territorial-border') {
     const ids = [...new Set((state.boundaryEditEntityIds || []).map(text))];
     const source = state.boundaryEditSeedEntityId || ids[0];
@@ -205,7 +226,9 @@ export function editingContextPresentation({state,draft={},month='',targets=[],m
   const setup=selection?.stage==='setup'||(['territorial-border','country-coast'].includes(state.tool)&&state.boundaryEditPhase==='selecting');
   const stage=applying?'적용 중':calculating?'계산 중':review?'미리보기':setup?'대상 선택':'초안';
   const names=targets.map(target=>target.name).filter(Boolean);
-  const targetSummary=names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||selection?.name||'새 객체';
+  const fallbackTarget = state.tool === 'split-territorial-unit' && state.territorialUnitSplitVirtualSource
+    ? '현재 영역' : selection?.name;
+  const targetSummary=names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||fallbackTarget||'새 객체';
   const view=month?month.replace(/^(-?)([0-9]+)-([0-9]{2})$/,(_,sign,year,m)=>(sign?'기원전 ':'')+Number(year)+'년 '+Number(m)+'월 말 상태'):'시점 확인 중';
   const periods=preview?.temporalImpact;
   const labels=periods?.map(row=>!row.from&&!row.until?'모든 시점':(row.from?row.from+'부터':'과거 전체')+' · '+(row.until?row.until+' 전까지':'종료 제한 없음'));
