@@ -102,20 +102,15 @@ def validate_semap_annotation(annotation, sheet, root):
 
 
 def validate_training_rasters(annotation, sheet, root):
-    observed = annotation.get('observedChannels', [])
-    if not observed or len(set(observed)) != len(observed) or any(channel not in CHANNELS for channel in observed):
-        raise ValueError('Explicit observed publisher channels required')
-    allowed = sum(1 << CHANNELS.index(channel) for channel in observed)
-    for name in ['raster', 'validRaster']:
-        spec = annotation.get(name, {})
-        path = corpus_path(root, spec.get('path'))
-        if hashlib.sha256(path.read_bytes()).hexdigest() != spec.get('sha256'):
-            raise ValueError('Publisher raster hash changed')
-        with Image.open(path) as image:
-            if image.mode != 'L' or list(image.size) != [annotation.get('width'), annotation.get('height')]:
-                raise ValueError('Publisher raster dimensions or mode differ')
-            if any(value and value & ~allowed for value, count in enumerate(image.histogram()) if count):
-                raise ValueError('Publisher raster contains unobserved channels')
+    script = pathlib.Path(__file__).with_name('training-tiles.mjs')
+    request = dict(root=str(pathlib.Path(root).resolve()), annotation=annotation)
+    result = subprocess.run(['node', str(script), '--audit-rasters'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Training raster validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != {'valid': True}:
+        raise ValueError('Invalid training raster validation receipt')
     with Image.open(corpus_path(root, sheet['image'])) as image:
         if list(image.size) != [annotation['width'], annotation['height']]:
             raise ValueError('Publisher raster/image dimensions differ')

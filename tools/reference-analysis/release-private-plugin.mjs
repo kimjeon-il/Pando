@@ -76,12 +76,17 @@ export function recordPrivateUpload({plan,response}){
   return {...plan,status:'uploaded-unverified',uploadedReleaseId:response.current_release_id};
 }
 
-export async function assertPushedRevision(workspace,revision){
+export async function assertPushedRevision(workspace,revision,{branch='work/ui'}={}){
   check(/^[a-f0-9]{40}$/.test(revision),'A full verified commit is required');
-  await exec('git',['merge-base','--is-ancestor',revision,'origin/work/ui'],{cwd:workspace});
+  check(['work/ui','work/gis'].includes(branch),'Explicit supported plugin source branch required');
+  await exec('git',['merge-base','--is-ancestor',revision,'refs/remotes/origin/'+branch],{cwd:workspace});
 }
-async function candidateFor({revision,modelPath,workspace=root,pushed=true}){
-  if(pushed)await assertPushedRevision(workspace,revision);
+export async function assertReleaseAncestor(workspace,currentRevision,revision){
+  check(/^[a-f0-9]{40}$/.test(currentRevision)&&/^[a-f0-9]{40}$/.test(revision),'Full plugin revisions are required');
+  await exec('git',['merge-base','--is-ancestor',currentRevision,revision],{cwd:workspace});
+}
+async function candidateFor({revision,modelPath,workspace=root,pushed=true,branch}){
+  if(pushed)await assertPushedRevision(workspace,revision,{branch});
   const candidate=await privatePluginEntries({revision,modelPath,workspace});
   return {...candidate,contentSha256:privatePluginFingerprint(candidate.entries),files:candidate.entries.map(row=>({path:row.path,bytes:row.data.length,sha256:hash(row.data)}))};
 }
@@ -117,9 +122,13 @@ export async function runVerifiedCommands({workspace,revision,paths,commands,run
   await assertWorkingInputs(workspace,revision,paths);
   return checks;
 }
-export async function preparePrivateRelease({revision,modelPath,verification,remote,target,workspace=root}){
-  const candidate=await candidateFor({revision,modelPath,workspace});
+export async function preparePrivateRelease({revision,modelPath,verification,remote,target,workspace=root,branch}){
+  const candidate=await candidateFor({revision,modelPath,workspace,branch});
   const plan=planPrivateRelease({target,remote,candidate,verification});if(['unchanged','verification-required'].includes(plan.status))return plan;
+  if(remote.contents?.['release.json']){
+    const previous=JSON.parse(remote.contents['release.json']);
+    await assertReleaseAncestor(workspace,previous.codeRevision,revision);
+  }
   const pendingPath=target.directory+'.release.json';
   if(existsSync(pendingPath)){
     const pending=await readJSON(pendingPath);
@@ -214,11 +223,11 @@ export async function completePrivateRelease({plan,remote,archivePath}){
 }
 async function save(path,value){await mkdir(dirname(resolve(path)),{recursive:true});await writeFile(path,json(value));}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  const {values,positionals}=parseArgs({allowPositionals:true,options:{revision:{type:'string'},target:{type:'string'},model:{type:'string'},checks:{type:'string'},verification:{type:'string'},remote:{type:'string'},plan:{type:'string'},response:{type:'string'},archive:{type:'string'},'archive-release':{type:'string'},output:{type:'string'}}});
+  const {values,positionals}=parseArgs({allowPositionals:true,options:{revision:{type:'string'},branch:{type:'string'},target:{type:'string'},model:{type:'string'},checks:{type:'string'},verification:{type:'string'},remote:{type:'string'},plan:{type:'string'},response:{type:'string'},archive:{type:'string'},'archive-release':{type:'string'},output:{type:'string'}}});
   try{
     let result;const mode=positionals[0];
     if(mode==='verify')result=await verifyReleaseChecks({revision:values.revision,modelPath:values.model,commands:await readJSON(values.checks)});
-    else if(mode==='prepare')result=await preparePrivateRelease({revision:values.revision,modelPath:values.model,verification:await readJSON(values.verification),remote:await readJSON(values.remote),target:await readJSON(values.target)});
+    else if(mode==='prepare')result=await preparePrivateRelease({revision:values.revision,modelPath:values.model,verification:await readJSON(values.verification),remote:await readJSON(values.remote),target:await readJSON(values.target),branch:values.branch});
     else if(mode==='uploaded'){
       result=recordPrivateUpload({plan:await readJSON(values.plan),response:await readJSON(values.response)});
       await save(result.archive.replace(/\.zip$/,'')+'.release.json',result);

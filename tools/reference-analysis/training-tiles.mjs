@@ -2,7 +2,7 @@
 import {dirname,extname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
+import {auditNativeTrainingMask,countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -84,6 +84,18 @@ async function encodedTrainingRaster(root,annotation,field,options){
   const path=await resolveCorpusPath(root,spec.path),bytes=readTrainingBounded(path,300*1024*1024);
   options.signal?.throwIfAborted();
   return {bytes,sha256:spec.sha256};
+}
+export async function auditTrainingRasters({root,annotation},{signal,workspace,imageDirectory}={}){
+  signal?.throwIfAborted();const observed=annotation?.observedChannels;
+  if(!Array.isArray(observed)||!observed.length||new Set(observed).size!==observed.length||
+    observed.some(channel=>!REFERENCE_BOUNDARY_CHANNELS.includes(channel)))throw Error('Explicit observed publisher channels required');
+  const allowed=observed.reduce((bits,channel)=>bits|(1<<REFERENCE_BOUNDARY_CHANNELS.indexOf(channel)),0);
+  for(const field of ['raster','validRaster']){
+    const mask=await encodedTrainingRaster(root,annotation,field,{signal});
+    const result=await auditNativeTrainingMask(mask,{signal,workspace,directory:imageDirectory});
+    if(result.width!==annotation.width||result.height!==annotation.height)throw Error('Publisher raster dimensions or mode differ');
+    if(result.observedBits&~allowed)throw Error('Publisher raster contains unobserved channels');
+  }
 }
 export async function countAnnotationTrainingSupervision({root,annotation},{signal,workspace,imageDirectory,reviewDirectory}={}){
   signal?.throwIfAborted();const {width,height}=annotation||{};
@@ -176,11 +188,14 @@ export async function prepareRasterTrainingTile({root,imagePath,sourceSha256,ann
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--index','--sample','--source-rgb','--supervision','--coverage'].includes(process.argv[2]))throw Error('Expected a training input operation');
+    if(process.argv.length!==3||!['--index','--sample','--source-rgb','--supervision','--coverage','--audit-rasters'].includes(process.argv[2]))throw Error('Expected a training input operation');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Training index request exceeds budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
     const {root,annotation}=request;
-    if(process.argv[2]==='--index'){
+    if(process.argv[2]==='--audit-rasters'){
+      if(typeof root!=='string'||!root)throw Error('Explicit training raster root required');
+      await auditTrainingRasters({root,annotation});process.stdout.write(JSON.stringify({valid:true})+'\n');
+    }else if(process.argv[2]==='--index'){
       const {width,height,supervisedOnly}=request;
       if(annotation?.width!==width||annotation?.height!==height||typeof supervisedOnly!=='boolean')throw Error('Training index dimensions or supervision differ');
       const tiles=isRasterTrainingAnnotation(annotation)?await listRasterTrainingTiles({root,annotation},{supervisedOnly}):

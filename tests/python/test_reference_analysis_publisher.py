@@ -87,7 +87,22 @@ class PublisherLabelsTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'image hash changed'):
                 validate_corpus(value, folder, training_only=True)
             image.write_bytes(original)
-            annotation = json.loads((pathlib.Path(folder) / sheet['annotations']).read_text(encoding='utf-8'))
+            annotation_path = pathlib.Path(folder) / sheet['annotations']
+            annotation_bytes = annotation_path.read_bytes()
+            annotation = json.loads(annotation_bytes)
+            mask_path = pathlib.Path(folder) / annotation['raster']['path']
+            mask_bytes = mask_path.read_bytes()
+            with Image.open(mask_path) as mask:
+                pixels = np.array(mask)
+            pixels[0, 0] |= 128
+            Image.fromarray(pixels).save(mask_path)
+            annotation['raster']['sha256'] = hashlib.sha256(mask_path.read_bytes()).hexdigest()
+            annotation_path.write_text(json.dumps(annotation), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'unobserved channels'):
+                validate_corpus(value, folder, training_only=True)
+            mask_path.write_bytes(mask_bytes)
+            annotation_path.write_bytes(annotation_bytes)
+            annotation = json.loads(annotation_bytes)
             (pathlib.Path(folder) / annotation['raster']['path']).write_bytes(b'tampered')
             with self.assertRaisesRegex(ValueError, 'hash'):
                 validate_corpus(value, folder, training_only=True)
