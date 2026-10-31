@@ -1,0 +1,87 @@
+name: GPU G4 verification runtime (no deployment)
+on:
+  push:
+    branches: [work/ui]
+    paths: [.github/workflows/gpu-recovery-g4-runtime.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpu-g4-runtime-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Mount the unchanged paired library revision
+        uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Export the real browser test runtime and exact source inputs
+        env:
+          G4_OUTPUT: ${{ runner.temp }}/gpu-g4-runtime
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync,mkdirSync,realpathSync,statSync,statfsSync,copyFileSync} from 'node:fs';
+          import {resolve,join,dirname,sep} from 'node:path';
+          import {createHash} from 'node:crypto';
+          import {buildFrontendSnapshot} from './scripts/lib/frontend-build.mjs';
+          import {developmentAssets} from './scripts/frontend-dev-server.mjs';
+          import {prepareLibraryData} from './tools/library-data.mjs';
+          import {loadFullWorldAssetPlan} from './apps/editor/world-data-plan.mjs';
+          const root=process.cwd(),out=resolve(process.env.G4_OUTPUT);
+          const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+          const prepared=prepareLibraryData({root});
+          const snapshot=await buildFrontendSnapshot({root});
+          const {assets}=await developmentAssets({repository:root,product:'viewer',prepared,snapshot});
+          for(const [path,entry] of snapshot.assets)assets.set(path,{bytes:entry.bytes});
+          const editor=snapshot.html.editor.replace('href="../../" data-product-base="editor"','href="/" data-product-base="editor"');
+          if(editor===snapshot.html.editor)throw Error('Missing browser editor base boundary');
+          assets.set('__editor/index.html',{bytes:Buffer.from(editor)});
+          const {plan}=await loadFullWorldAssetPlan(async path=>snapshot.assets.has(path)?snapshot.assets.get(path).bytes.toString('utf8'):readFileSync(join(root,path),'utf8'));
+          const dataRoot=realpathSync(join(root,'assets/data'));
+          for(const item of plan.entries){
+            const file=realpathSync(resolve(root,item.path));
+            if(!file.startsWith(dataRoot+sep)||!statSync(file).isFile())throw Error('Unowned data input: '+item.path);
+            const bytes=readFileSync(file);
+            if((item.bytes!=null&&item.bytes!==bytes.length)||(item.sha256!=null&&item.sha256!==hash(bytes)))throw Error('Pinned input changed: '+item.path);
+            if(!assets.has(item.path))assets.set(item.path,{file});
+          }
+          const total=[...assets.values()].reduce((n,a)=>n+(a.bytes?.length??statSync(a.file).size),0);
+          const disk=statfsSync(dirname(out));
+          if(total>1536*1024*1024)throw Error('Runtime exceeds the scoped 1.5 GiB export limit: '+total);
+          if(disk.bavail*disk.bsize<2*total+5*1024**3)throw Error('Insufficient runtime export headroom');
+          const files=[];
+          for(const [path,asset] of assets){
+            const target=resolve(out,'runtime',path);
+            if(!target.startsWith(join(out,'runtime')+sep))throw Error('Unsafe runtime path');
+            mkdirSync(dirname(target),{recursive:true});
+            if(asset.bytes)writeFileSync(target,asset.bytes);else copyFileSync(asset.file,target);
+            const bytes=readFileSync(target);files.push({path,bytes:bytes.length,sha256:hash(bytes)});
+          }
+          const sources=['shared/frontend/js/modules/gpu-map-renderer.js','shared/frontend/js/modules/rendering-domain.js','shared/frontend/js/modules/gpu-upload-scheduler.js','shared/frontend/js/modules/gpu-resource-lifecycle.js','shared/frontend/js/modules/selection-pass.js','tests/unit/gpu-shared-pass-initialization.test.mjs'];
+          const sourceFiles=[];
+          for(const path of sources){
+            const bytes=readFileSync(join(root,path)),target=join(out,'source',path);
+            mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes);
+            sourceFiles.push({path,bytes:bytes.length,sha256:hash(bytes),blob:createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')});
+          }
+          writeFileSync(join(out,'runtime-manifest.json'),JSON.stringify({schema:'pando-gpu-g4-runtime-v1',sourceCommit:snapshot.sourceCommit,frontendInputSha256:snapshot.sourceSha256,dataCommit:prepared.revision,dataRevision:snapshot.dataRevision,generatedByRun:process.env.GITHUB_RUN_ID,candidateApplied:false,products:['viewer','editor-browser-frontend'],nativeVerified:false,bytes:total,files,sourceFiles},null,2)+'\n');
+          console.log(JSON.stringify({sourceCommit:snapshot.sourceCommit,dataCommit:prepared.revision,files:files.length,bytes:total,candidateApplied:false}));
+          NODE
+      - name: Upload verification inputs only (not test success or deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-g4-runtime-${{ github.sha }}
+          path: ${{ runner.temp }}/gpu-g4-runtime
+          retention-days: 3
+          compression-level: 6
+          include-hidden-files: true
+          if-no-files-found: error
