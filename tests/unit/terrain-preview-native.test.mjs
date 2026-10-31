@@ -95,7 +95,7 @@ test('physical composite relay exits when native input is invalid even if stdin 
   {skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},async()=>{
     const child=spawn(process.execPath,['tools/gis/terrain-preview-native.mjs','--physical-composite-stream'],{stdio:['pipe','ignore','pipe'],windowsHide:true});
     const done=new Promise((accept,reject)=>{child.once('error',reject);child.once('close',(code)=>accept(code));});
-    child.stdin.on('error',()=>{});child.stdin.write(Buffer.alloc(16));
+    child.stdin.on('error',()=>{});child.stdin.write(Buffer.alloc(24));
     let timer;const timeout=new Promise(accept=>{timer=setTimeout(()=>accept(null),3000);});
     const code=await Promise.race([done,timeout]);clearTimeout(timer);
     if(code===null)child.kill();
