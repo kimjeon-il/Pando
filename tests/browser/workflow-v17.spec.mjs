@@ -507,11 +507,20 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
         request.onerror = () => reject(request.error);
       });
       try {
-        return await new Promise((resolve, reject) => {
+        const project = await new Promise((resolve, reject) => {
           const request = database.transaction('projects', 'readonly').objectStore('projects').get('active-project');
-          request.onsuccess = () => resolve(request.result?.hydroEdits?.find(feature => feature.id === id) || null);
+          request.onsuccess = () => resolve(request.result || null);
           request.onerror = () => reject(request.error);
         });
+        const identity = project?.hydroEdits?.find(feature => feature.id === id);
+        if (!identity) return null;
+        // The canonical web storage format stores water identities with null
+        // geometry; shapes belong to the dated geometry binding and archive.
+        const binding = project.timelineRecords?.geometryBindings?.find(row =>
+          row.objectRef?.domain === 'hydro' && row.objectRef?.id === id && row.geometryRef);
+        const geometry = project.geometries?.find(row =>
+          row.id === binding?.geometryRef?.id && row.version === binding?.geometryRef?.version)?.geojson || null;
+        return { ...identity, geometry, storedIdentityGeometry: identity.geometry };
       } finally { database.close(); }
     }, id.trim());
     // Capture the same accepted persisted snapshot we verified. A second
@@ -523,6 +532,7 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
       return feature?.geometry?.type ?? null;
     }, { timeout: 20_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');
     expect(created).not.toBeNull();
+    expect(created.storedIdentityGeometry).toBeNull();
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
     await expect(page.locator('#hydroProperties')).toBeHidden();
