@@ -1,0 +1,55 @@
+name: Map transition P0 baseline
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tests/helpers/map-transition-baseline.mjs
+      - tests/unit/map-transition-baseline.test.mjs
+      - tests/unit/map-transition-clock-contract.test.mjs
+      - tests/browser/map-transition-baseline.benchmark.mjs
+      - tests/browser/map-transition-baseline.config.mjs
+      - .github/workflows/map-transition-p0.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: map-transition-p0-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  baseline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare the branch-pinned runtime without changing data
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - id: browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Fixed data, clock and lifecycle contracts
+        run: >-
+          node --test --test-concurrency=1
+          tests/unit/map-transition-baseline.test.mjs
+          tests/unit/map-transition-clock-contract.test.mjs
+          tests/unit/builtin-month-clock.test.mjs
+          tests/unit/builtin-world-loader.test.mjs
+          tests/unit/gpu-renderer-lifecycle.test.mjs
+      - name: Existing timeline and camera behaviour
+        run: pnpm exec playwright test tests/browser/timeline-controls.spec.mjs --workers=1
+      - name: Measure unchanged application with the test-only observer
+        if: ${{ !cancelled() && steps.browsers.outcome == 'success' }}
+        run: pnpm exec playwright test --config tests/browser/map-transition-baseline.config.mjs
+      - name: Keep exact samples and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-transition-p0-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
