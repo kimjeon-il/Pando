@@ -40,8 +40,15 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   await page.locator('#resetViewBtn').click();
   await expect(page.locator('#map text')).toHaveCount(0);
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
+  const priorDisplayedRevision = await page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision);
   await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'globe',view:{...host.getViewState(),globeRotation:[-5,-5,0],globeZoom:4}});host.requestRepaint('canvas-body-selection');});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeRotation)).toEqual([-5,-5,0]);
+  // Wait for the asynchronous Canvas Worker to present the new camera before picking.
+  await expect.poll(() => page.evaluate(previous => {
+    const stats = window.__PANDOLAB_VIEWER__.rendererStats();
+    return stats.renderer === 'canvas-worker' && !stats.canvasWorkerBusy
+      && stats.displayedRevision > previous && stats.displayedRevision >= stats.requestedRevision;
+  }, priorDisplayedRevision), { timeout: 45_000 }).toBe(true);
   const bounds = await page.locator('#map').boundingBox();
   // Bring the known body coordinate into the viewport and use the real projection.
   const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([8,8]));
