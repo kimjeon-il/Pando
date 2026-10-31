@@ -76,13 +76,8 @@ export async function mergeLSIBLines(geometries,options={}){
   }
   await flush();return merged;
 }
-export async function prepareLSIBReplacements(old,references,options={}){
-  options.signal?.throwIfAborted();validateLine(old);
-  if(!Array.isArray(references)||!references.length||references.length>10000)throw Error('Explicit bounded LSIB reference lines required');
-  for(const line of references)validateLine(line);
-  const result=await nativeRequest('--replace-lsib-chains',{old,references},options);
-  if(!Array.isArray(result?.results)||result.results.length!==references.length)throw Error('Invalid LSIB replacement receipt');
-  for(const row of result.results){
+function validateReplacementRows(rows){
+  for(const row of rows){
     if(typeof row?.error==='string'&&row.error&&Object.keys(row).length===1)continue;
     if(!row?.value||Object.keys(row).length!==1)throw Error('Invalid LSIB replacement result');
     const value=row.value;validateLine(value.coordinates);validateLine(value.anchors);
@@ -90,7 +85,25 @@ export async function prepareLSIBReplacements(old,references,options={}){
       .every(key=>typeof value[key]==='number'&&Number.isFinite(value[key]))||
       !['master_vertices','derived_vertices'].every(key=>Number.isSafeInteger(value[key])&&value[key]>=2))throw Error('Invalid LSIB replacement metrics');
   }
+}
+export async function prepareLSIBReplacements(old,references,options={}){
+  options.signal?.throwIfAborted();validateLine(old);
+  if(!Array.isArray(references)||!references.length||references.length>10000)throw Error('Explicit bounded LSIB reference lines required');
+  for(const line of references)validateLine(line);
+  const result=await nativeRequest('--replace-lsib-chains',{old,references},options);
+  if(!Array.isArray(result?.results)||result.results.length!==references.length)throw Error('Invalid LSIB replacement receipt');
+  validateReplacementRows(result.results);
   return result.results;
+}
+export async function prepareLSIBNearestReplacements(old,references,options={}){
+  options.signal?.throwIfAborted();validateLine(old);
+  if(!Array.isArray(references)||!references.length||references.length>10000)throw Error('Explicit bounded LSIB reference lines required');
+  for(const line of references)validateLine(line);
+  const result=await nativeRequest('--select-lsib-nearest-replacements',{old,references},options);
+  if(typeof result?.isRing!=='boolean'||typeof result.oldLength!=='number'||!Number.isFinite(result.oldLength)||result.oldLength<0||
+    !Number.isSafeInteger(result.nearbyCount)||result.nearbyCount<0||result.nearbyCount>references.length||!Array.isArray(result.results)||
+    result.results.length!==(result.isRing?0:result.nearbyCount))throw Error('Invalid LSIB nearest replacement receipt');
+  validateReplacementRows(result.results);return result;
 }
 export async function replaceLSIBRings({geometries,patches},options={}){
   options.signal?.throwIfAborted();
@@ -219,14 +232,16 @@ export async function analyzeLSIBSection(request,options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream','--tripoint-stream','--coast-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
+    if(process.argv.length!==3||!['--sampled-stream','--display-stream','--replacement-stream','--nearest-replacement-stream','--rings-stream','--patches-stream','--repair-stream','--shared-stream','--enclave-stream','--tripoint-stream','--coast-stream','--spatial-stream'].includes(process.argv[2]))throw Error('Expected an LSIB screen operation');
     const chunks=[];let size=0;
     for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('LSIB line request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
     let result;
     if(process.argv[2]==='--sampled-stream')result=await sampledLSIBDistance(request.source,request.target);
+    else if(process.argv[2]==='--spatial-stream')result=await classifyLSIBSpatial(request);
     else if(process.argv[2]==='--shared-stream')result={chains:await extractLSIBSharedChains(request.geometries)};
     else if(process.argv[2]==='--replacement-stream')result={results:await prepareLSIBReplacements(request.old,request.references)};
+    else if(process.argv[2]==='--nearest-replacement-stream')result=await prepareLSIBNearestReplacements(request.old,request.references);
     else if(['--rings-stream','--patches-stream'].includes(process.argv[2])){
       try{result={geometries:await (process.argv[2]==='--rings-stream'?replaceLSIBRings(request):applyLSIBCountryPatches(request))};}
       catch(error){if(!['LSIB_RING_REJECTED','LSIB_REPAIR_REJECTED'].includes(error.code))throw error;result={error:error.message};}

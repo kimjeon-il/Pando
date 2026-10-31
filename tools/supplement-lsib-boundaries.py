@@ -141,6 +141,49 @@ def extract_shared_chains(geometries):
     return {tuple(row['countries']): shape(row['geometry']) for row in rows}
 
 
+def disputed_source_flags(disputes, records):
+    """Classify selected source lines in bounded native batches."""
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    disputed = [mapping(record['line']) for record in disputes]
+    base = {'disputes': disputed, 'sources': [], 'chains': [], 'references': []}
+    base_bytes = len(json.dumps(base, allow_nan=False, separators=(',', ':')).encode('utf-8'))
+    maximum = 24 * 1024 * 1024
+    if base_bytes >= maximum:
+        raise ValueError('LSIB disputed source exceeds native batch budget')
+    flags, batch, sources, size = {}, [], [], base_bytes
+
+    def flush():
+        nonlocal batch, sources, size
+        if not batch:
+            return
+        request = {**base, 'sources': sources}
+        response = subprocess.run(['node', str(script), '--spatial-stream'],
+                                  input=json.dumps(request, allow_nan=False, separators=(',', ':')).encode('utf-8'),
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                                  creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        if response.returncode:
+            raise RuntimeError('LSIB disputed classification failed: ' + response.stderr.decode('utf-8', errors='replace'))
+        receipt = json.loads(response.stdout)
+        values = receipt.get('disputed')
+        if not isinstance(values, list) or len(values) != len(batch) or any(type(value) is not bool for value in values):
+            raise RuntimeError('Invalid LSIB disputed classification receipt')
+        flags.update((id(record), value) for record, value in zip(batch, values))
+        batch, sources, size = [], [], base_bytes
+
+    for record in records:
+        geometry = mapping(record['line'])
+        current = len(json.dumps(geometry, allow_nan=False, separators=(',', ':')).encode('utf-8')) + 1
+        if current + base_bytes >= maximum:
+            raise ValueError('LSIB source line exceeds native batch budget')
+        if size + current >= maximum:
+            flush()
+        batch.append(record)
+        sources.append(geometry)
+        size += current
+    flush()
+    return flags
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive')
@@ -182,7 +225,6 @@ def main():
     disputes = read_disputed_shapes(dispute_root)
     json_write(evidence / 'ne-disputed-v5.1.1.geojson', {'type':'FeatureCollection','features':[
         {'type':'Feature','properties':r['properties'],'geometry':mapping(r['line'])} for r in disputes]})
-    disputed_geometry = shapely.union_all([record['line'] for record in disputes]).buffer(.15)
     protected_pairs = {tuple(sorted(pair)) for pair in [
         ('RUS', 'UKR'), ('CHN', 'IND'), ('CHN', 'BTN'), ('IND', 'PAK'), ('CHN', 'PAK'),
         ('ARM', 'AZE'), ('ISR', 'SYR'), ('ISR', 'LBN'), ('ISR', 'PSE'), ('ISR', 'PSX'),
@@ -207,6 +249,9 @@ def main():
         props = record['properties']
         pair = tuple(sorted((props['CC1_GENC3'], props['CC2_GENC3'])))
         lines_by_pair[pair].append(record)
+    selected_records = [record for pair in shared if pair not in protected_pairs
+                        for record in lines_by_pair.get(pair, [])]
+    dispute_flags = disputed_source_flags(disputes, selected_records)
     report, applied, changed, reviewed = [], defaultdict(list), set(), set()
     for pair, border in sorted(shared.items()):
         entry = {'countries': pair, 'bbox':border.bounds, 'status': 'withheld', 'segments': []}
@@ -215,7 +260,7 @@ def main():
         if not matches:
             entry['reason'] = 'no-matching-LSIB-country-pair'; report.append(entry); continue
         reviewed.update(r['properties']['ID'] for r in matches)
-        disputed = pair in protected_pairs or any(r['line'].intersects(disputed_geometry) for r in matches)
+        disputed = pair in protected_pairs or any(dispute_flags[id(r)] for r in matches)
         reasons = [exclusions[id(r)][int(disputed)] for r in matches]
         if any(reasons):
             entry['reason'] = next(r for r in reasons if r); report.append(entry); continue
