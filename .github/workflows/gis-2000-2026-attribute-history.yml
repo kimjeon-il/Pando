@@ -1,0 +1,94 @@
+name: Apply dated country names and flags from existing source attributes
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-2000-2026-attribute-history.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gis-2000-2026-attribute-history
+  cancel-in-progress: false
+
+jobs:
+  apply-names-flags:
+    if: github.ref == 'refs/heads/work/gis' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Check source owner, scoped permissions and data writer
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || { echo 'Library writing credential unavailable'; exit 1; }
+          test "$(git branch --show-current)" = 'work/gis'
+      - name: Install pinned test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Mount the exact work/gis library data pin using the existing owner
+        uses: ./.github/actions/library-data
+      - name: Verify requested name and flag edits without changing geometry or parents
+        run: |
+          node tools/gis/apply-2000-2026-name-flag-history.mjs --plan
+          node --test tests/unit/gis-2000-2026-attribute-history.test.mjs
+      - name: Apply approved name and flag records; regenerate coupled index and world
+        run: node tools/gis/apply-2000-2026-name-flag-history.mjs --apply
+      - name: Verify generated chunks and real dated world snapshot properties
+        run: |
+          node tools/build-territorial-entity-chunks.mjs --check
+          node --test tests/unit/gis-2000-2026-attribute-history.test.mjs tests/unit/gis-2000-2026-generated-attributes.test.mjs
+      - name: Store and push changed source, chunk and world bytes with the library owner
+        run: |
+          node tools/library-data.mjs --store-and-stage --push \
+            --include-prefix=assets/data/territorial-entities \
+            --include-prefix=assets/data/builtin-world \
+            -- config/library-data.json
+          git diff --cached --check
+          git diff --cached --name-only
+      - name: Prepare verified browser assets from the exact stored pin
+        run: |
+          node tools/library-data.mjs
+          node scripts/generate-build-metadata.mjs
+          node scripts/check-version.mjs
+      - name: Install focused browser runtime
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify historical flags and names in the actual editor
+        run: pnpm exec playwright test tests/browser/gis-2000-2026-attribute-history.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Pin verified data on work/gis only; never merge main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- config/library-data.json
+          git diff --cached --check
+          if git diff --cached --quiet; then echo 'No new pin required'; exit 0; fi
+          actual="$(git ls-remote origin refs/heads/work/gis | cut -f1)"
+          test "$actual" = "$GITHUB_SHA" || { echo 'work/gis moved during verification; leave new data preserved for reviewed pin reconciliation'; exit 1; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m 'data(gis): pin verified historical name and flag editions [skip ci]'
+          git push origin HEAD:refs/heads/work/gis
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-name-flag-attributes-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 7
