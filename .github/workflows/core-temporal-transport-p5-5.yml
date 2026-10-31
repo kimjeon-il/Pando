@@ -1,0 +1,54 @@
+name: Core P5-5 temporal WASM and Worker ownership
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/wasm/session-bindings.cpp
+      - shared/frontend/js/modules/core-document-runtime.js
+      - shared/frontend/js/modules/core-worker-runtime.js
+      - shared/frontend/js/modules/core-document-client.js
+      - shared/frontend/js/modules/product-mode-policy.js
+      - shared/tests/temporal-transport-p5-5.test.mjs
+      - tests/unit/core-temporal-transport-p5-5.test.mjs
+      - .github/workflows/core-temporal-transport-p5-5.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: core-p5-5-work-ui
+  cancel-in-progress: true
+jobs:
+  temporal-transport:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Ordered Worker transport, late acknowledgement and existing client contracts
+        run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-worker-ownership.test.mjs
+      - name: Checkout exact pinned Emscripten SDK
+        uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build exact same C++ Core as WASM ABI
+        shell: bash
+        run: |
+          build-native/emsdk/emsdk install 4.0.20
+          build-native/emsdk/emsdk activate 4.0.20
+          source build-native/emsdk/emsdk_env.sh
+          emcmake cmake -S shared -B build-native/p5-5 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/p5-5 --target pandoeditor_wasm --parallel 1
+      - name: Actual native-backed WASM source, candidate, discard, rollback and buffer isolation
+        env:
+          PANDOEDITOR_WASM_MODULE: build-native/p5-5/wasm/pandoeditor-core.js
+        run: node --test shared/tests/temporal-transport-p5-5.test.mjs
