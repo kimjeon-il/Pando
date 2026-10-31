@@ -1,15 +1,12 @@
 """Independently bound source/display Hausdorff distance on supplemented sections."""
 import argparse
 import importlib.util
-import hashlib
-import io
 import json
 import os
 from pathlib import Path
 import subprocess
-import zipfile
 import shapely
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString, Point, shape
 from shapely.ops import substring
 
 SCALE = 2560 * 64 / 360
@@ -43,6 +40,39 @@ def display_section(geometry, anchors, reference):
     return LineString(receipt['coordinates'])
 
 
+def load_lsib_sources(archive, ids):
+    script = Path(__file__).with_name('gis') / 'lsib-source-native.mjs'
+    request = json.dumps(dict(archive=str(archive), ids=ids), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--stream'], input=request, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=240, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native LSIB source read failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    records = receipt.get('features')
+    if not isinstance(records, list) or len(records) != len(ids):
+        raise ValueError('Invalid native LSIB source receipt')
+    by_id = {}
+    for record in records:
+        source_id = record.get('properties', {}).get('ID')
+        if source_id not in ids or source_id in by_id:
+            raise ValueError('Invalid native LSIB source identity')
+        by_id[source_id] = shape(record['geometry'])
+    return by_id
+
+
+def selected_source_ids(candidate, pair):
+    ids = []
+    for entry in candidate['boundaries']:
+        if pair and '/'.join(entry['countries']) != pair:
+            continue
+        if entry['status'] == 'withheld' or entry.get('kind') == 'coastline' or 'referenceManifest' in entry:
+            continue
+        for source_id in entry['sourceLineIds']:
+            if source_id not in ids:
+                ids.append(source_id)
+    return ids
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--candidate', required=True)
@@ -58,15 +88,11 @@ def main():
     root = Path(__file__).resolve().parents[1]
     spec = importlib.util.spec_from_file_location('lsib_source', root / 'tools/supplement-lsib-boundaries.py')
     module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
-    archive_bytes = Path(args.archive).read_bytes()
     provenance = json.loads((root / 'tools/historical-library/sources/lsib-11.4/provenance.json').read_text(encoding='utf-8'))
-    if hashlib.sha256(archive_bytes).hexdigest() != provenance['archiveSha256']:
-        raise ValueError('LSIB archive does not match the pinned evidence revision')
-    outer = zipfile.ZipFile(io.BytesIO(archive_bytes))
-    inner = zipfile.ZipFile(io.BytesIO(outer.read(next(n for n in outer.namelist() if n.endswith('.zip')))))
-    records = module.read_shapefile(inner.read(next(n for n in inner.namelist() if n.endswith('.dbf'))), inner.read(next(n for n in inner.namelist() if n.endswith('.shp'))))
-    by_id = {r['properties']['ID']: r['line'] for r in records}
     candidate = json.loads(Path(args.candidate).read_text(encoding='utf-8'))
+    if provenance.get('archiveSha256') != '1eb5af7e80fce60e48d27eba80ae81fd2b25c9cf59f4f4e2efc89c06ad57490a':
+        raise ValueError('LSIB source provenance differs from the pinned reader')
+    by_id = load_lsib_sources(args.archive, selected_source_ids(candidate, args.pair))
     entities = {}
     results = []
     for entry in candidate['boundaries']:
