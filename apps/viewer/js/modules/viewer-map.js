@@ -45,7 +45,7 @@ import { createRingHitTester } from "../../../../shared/frontend/js/modules/ring
 import { layoutTerritorialFlags } from "../../../../shared/frontend/js/modules/territorial-label-flags.js";
 
 /** Viewer presentation adapter to the same GPU/Canvas renderer used by the editor. */
-export function createViewerMap({ runtimeContext,owners,element, canvas, labelLayer, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile,diagnostics,getInteractionStyle }) {
+export function createViewerMap({ runtimeContext,owners,element, canvas, labelLayer, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile,diagnostics,getInteractionStyle,onMapPreparationStatus=null }) {
   const meta=runtimeContext.meta;
   const d3 = globalThis.d3;
   if (!d3) throw new Error('지도 투영 라이브러리를 불러오지 못했습니다.');
@@ -133,7 +133,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     readinessUi:{isSafeKoreanErrorMessage},mapHostViewB:{queueMapResize:()=>mapHost.queueMapResize()},
     mapView:{get mapHost(){return mapHost.mapHost;}},domains:{get renderingDomain(){return renderingDomain;}},
     renderQuality,renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
-    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{productMode:'viewer'});
+    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{productMode:'viewer',onMapPreparationStatus});
   let initialized;
   physicalResources.initializeTerrainService();
 
