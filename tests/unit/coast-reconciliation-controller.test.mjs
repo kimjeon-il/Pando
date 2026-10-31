@@ -65,6 +65,8 @@ test('untrusted coastline disables automatic choices but keeps independent impor
   assert.equal(elements.country.disabled, true);
   assert.equal(elements.subject.disabled, true);
   assert.match(elements.message.textContent, /독립 유지/u);
+  assert.match(elements.message.textContent, /해안과 육상 국경을/);
+  assert.doesNotMatch(elements.message.textContent, /topology/i);
   elements.independent.click();
   assert.deepEqual(await pending, { direction: 'independent' });
 });
