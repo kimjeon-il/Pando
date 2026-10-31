@@ -17,7 +17,8 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     if (!nodes.has(id)) nodes.set(id, {dataset: {}, hidden: false, textContent: '', addEventListener: noop, appendChild: noop, setAttribute(name, value) { this[name] = value; }});
     return nodes.get(id);
   };
-  const document = {getElementById: get, createElement: () => ({addEventListener: noop})};
+  const document = {getElementById: get, createElement: () => ({addEventListener: noop}),
+    addEventListener: noop,removeEventListener: noop,visibilityState: 'visible'};
   const window = {location: {search: '?debug=1'}, dispatchEvent: noop};
   const surfaces = {isMobile: () => false, initializeWorkspaceSurfaces: noop, closeMobileSheets: noop,
     closeSurface: noop, applyLayoutMode: noop, syncOverlayState: noop, closeFileMenu: noop,
@@ -44,6 +45,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     prepareBuiltinProject: async () => ({}), refreshAppearance: noop};
   const context = {presentViewerLoadStatus, document, window, URL, URLSearchParams, structuredClone, console,
     createViewerPostPresentation,
+    createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
     createRuntimeContext: ({meta}) => ({meta, platform: {}}),
     createPreferencePresentation: () => ({current: {}, apply: noop}),

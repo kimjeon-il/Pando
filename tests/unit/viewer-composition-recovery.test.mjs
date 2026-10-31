@@ -38,6 +38,7 @@ async function fixture({engineFailure=false,mapFailure=false}={}){
     update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
   const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
     createViewerPostPresentation,
+    createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     createRuntimeContext:({meta})=>({meta,platform:{}}),createBrowserFileAccess:()=>({}),connectMapOwner:noop,
     createBrowserProjectStorage:()=>({}),initialBoundsView:noop,
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
