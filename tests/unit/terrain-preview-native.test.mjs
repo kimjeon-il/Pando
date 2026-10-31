@@ -70,8 +70,8 @@ test('native physical mask discards a subpixel polygon copy outside the date lin
 });
 test('native physical composite streams multiple Pillow-exact alpha blends',{skip:!binary},()=>{
   const row=JSON.parse(readFileSync('tests/fixtures/physical-composite-oracle.json','utf8'));
-  const header=Buffer.alloc(16);header.write('PDPCMP01');header.writeUInt32LE(row.width,8);header.writeUInt32LE(row.height,12);
-  const frame=Buffer.concat([header,Buffer.from(row.land,'base64'),Buffer.from(row.ocean,'base64'),Buffer.from(row.mask,'base64')]);
+  const header=Buffer.alloc(16);header.write('PDPCMP02');header.writeUInt32LE(row.width,8);header.writeUInt32LE(row.height,12);
+  const frame=Buffer.concat([header,Buffer.from(row.land,'base64'),Buffer.from(row.ocean,'base64'),Buffer.from(row.mask,'base64'),Buffer.from(row.relief,'base64')]);
   const result=spawnSync(binary,['physical-composite-stream'],{input:Buffer.concat([frame,frame]),maxBuffer:1024*1024});
   assert.equal(result.status,0,String(result.stderr));
   assert.deepEqual(result.stdout,Buffer.concat([Buffer.from(row.expected,'base64'),Buffer.from(row.expected,'base64')]));
@@ -80,14 +80,14 @@ test('native physical composite streams multiple Pillow-exact alpha blends',{ski
 });
 test('physical generator reuses the verified native compositor across tiles',
   {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},()=>{
-    const script="import base64,importlib.util,json,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);r=json.load(open('tests/fixtures/physical-composite-oracle.json'));im=lambda k,mode:Image.frombytes(mode,(r['width'],r['height']),base64.b64decode(r[k]));a=im('land','RGB');b=im('ocean','RGB');mask=im('mask','L');c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask).tobytes();y=c.combine(a,b,mask).tobytes();c.__exit__(None,None,None);sys.stdout.buffer.write(x+y)";
+    const script="import base64,importlib.util,json,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);r=json.load(open('tests/fixtures/physical-composite-oracle.json'));im=lambda k,mode:Image.frombytes(mode,(r['width'],r['height']),base64.b64decode(r[k]));a=im('land','RGB');b=im('ocean','RGB');mask=im('mask','L');shade=im('relief','L');c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask,shade).tobytes();y=c.combine(a,b,mask,shade).tobytes();c.__exit__(None,None,None);sys.stdout.buffer.write(x+y)";
     const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{maxBuffer:1024*1024});
     assert.equal(p.status,0,String(p.stderr));const row=JSON.parse(readFileSync('tests/fixtures/physical-composite-oracle.json','utf8'));
     assert.deepEqual(p.stdout,Buffer.concat([Buffer.from(row.expected,'base64'),Buffer.from(row.expected,'base64')]));
   });
 test('physical compositor streams tiles larger than the operating-system pipe buffer',
   {skip:!process.env.PANDO_PHYSICAL_PYTHON||!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},()=>{
-    const script="import importlib.util,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);a=Image.new('RGB',(512,512),(10,120,240));b=Image.new('RGB',(512,512),(230,30,5));mask=Image.new('L',(512,512),128);expected=Image.composite(a,b,mask).tobytes();c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask).tobytes();y=c.combine(a,b,mask).tobytes();c.__exit__(None,None,None);assert x==expected and y==expected;print('ok')";
+    const script="import importlib.util,sys;from PIL import Image;s=importlib.util.spec_from_file_location('physical','tools/build-physical-data.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);a=Image.new('RGB',(512,512),(10,120,240));b=Image.new('RGB',(512,512),(230,30,5));mask=Image.new('L',(512,512),128);shade=Image.new('L',(512,512),17);r,g,bl=Image.composite(a,b,mask).split();expected=Image.merge('RGBA',(r,g,bl,shade)).tobytes();c=m.PhysicalCompositor();c.__enter__();x=c.combine(a,b,mask,shade).tobytes();y=c.combine(a,b,mask,shade).tobytes();c.__exit__(None,None,None);assert x==expected and y==expected;print('ok')";
     const p=spawnSync(process.env.PANDO_PHYSICAL_PYTHON,['-c',script],{encoding:'utf8',timeout:15000});
     assert.equal(p.status,0,p.stderr);assert.equal(p.stdout.trim(),'ok');
   });
