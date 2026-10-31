@@ -165,10 +165,11 @@ def replacement_chains(old, references):
     return [row['value'] for row in rows if 'value' in row]
 
 
-def replace_chains(geometries, patches):
+def replace_chains(geometries, patches, *, validate=False):
     script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
     request = {'geometries': geometries, 'patches': patches}
-    result = subprocess.run(['node', str(script), '--rings-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+    operation = '--patches-stream' if validate else '--rings-stream'
+    result = subprocess.run(['node', str(script), operation], input=json.dumps(request, allow_nan=False).encode('utf-8'),
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
@@ -203,43 +204,24 @@ def exclusion_reasons(records):
     return {id(record): reasons for record, reasons in zip(records, rows)}
 
 
-def component_points(geometry):
-    parts = list(geometry.geoms) if geometry.geom_type == 'MultiPolygon' else [geometry]
-    return [part.representative_point() for part in parts]
-
-
 def apply_country_patches(geometries, patches):
-    result = replace_chains(geometries, patches)
-    validate_country_repair(geometries, result)
-    return result
+    return replace_chains(geometries, patches, validate=True)
 
 
 def validate_country_repair(geometries, result, expected_union=None, corrected_country=None):
-    if set(geometries) != set(result):
-        raise ValueError('Candidate country set changed')
-    before = {code: shape(geometry) for code, geometry in geometries.items()}
-    after = {code: shape(geometry) for code, geometry in result.items()}
-    invalid = {code: shapely.is_valid_reason(geometry) for code, geometry in after.items() if not geometry.is_valid}
-    if invalid:
-        raise ValueError(f'Candidate country polygon invalid: {invalid}')
-    codes = sorted(after)
-    if any(after[a].intersection(after[b]).area > 1e-10
-           for i, a in enumerate(codes) for b in codes[i + 1:]):
-        raise ValueError('Candidate counterpart ownership overlaps')
-    before_union, after_union = shapely.union_all(list(before.values())), shapely.union_all(list(after.values()))
-    if expected_union is None:
-        expected_union = before_union
-    if expected_union.symmetric_difference(after_union).area > 1e-9:
-        raise ValueError('Land/coastline union changed outside reviewed coast')
-    for code, previous in before.items():
-        current = after[code]
-        if len(component_points(previous)) != len(component_points(current)):
-            raise ValueError('Island/enclave component count changed')
-        parts = lambda g: list(g.geoms) if g.geom_type == 'MultiPolygon' else [g]
-        if sum(len(p.interiors) for p in parts(previous)) != sum(len(p.interiors) for p in parts(current)):
-            raise ValueError('Enclave hole count changed')
-        if code != corrected_country and any(not current.covers(point) for point in component_points(previous)):
-            raise ValueError('Existing component attribution changed')
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'before': geometries, 'after': result,
+               'expectedUnion': None if expected_union is None else mapping(expected_union), 'correctedCountry': corrected_country}
+    checked = subprocess.run(['node', str(script), '--repair-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if checked.returncode:
+        raise RuntimeError('LSIB country validation failed: ' + checked.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(checked.stdout)
+    if isinstance(receipt.get('error'), str):
+        raise ValueError(receipt['error'])
+    if receipt != {'valid': True}:
+        raise RuntimeError('Invalid LSIB country validation receipt')
 
 
 def validate_coastal_repair(geometries, result, review):

@@ -21,6 +21,8 @@ test('native shared-ring replacement preserves frozen Python geometry and refusa
   const result=await replaceLSIBRings({geometries:{left:left.geometry,right:right.geometry},patches:{
     left:[{old:left.old,replacement:left.replacement}],right:[{old:right.old,replacement:right.replacement}]}},{binary});
   assert.deepEqual(result,{left:left.expected,right:right.expected});
+  const reversed=await replaceLSIBRings({geometries:{right:right.geometry,left:left.geometry},patches:{}},{binary});
+  assert.deepEqual(Object.keys(reversed),['right','left']);
 });
 test('selected AUT-LIE ring replacement matches frozen Python geometry',{
   skip:!binary||!process.env.PANDO_LSIB_RING_ORACLE
