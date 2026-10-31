@@ -27,8 +27,11 @@ jobs:
         run: cmake -S shared -B build-native/p5-3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Compile candidate, adoption, source and existing Core contracts
         run: cmake --build build-native/p5-3 --target temporal_adopt_tests temporal_candidate_tests temporal_source_tests document_session_tests --parallel 2
-      - name: Verify existing replacement capsule, stale requests and state recovery
-        run: ctest --test-dir build-native/p5-3 --output-on-failure -R '^(temporal_adopt_tests|temporal_candidate_tests|temporal_source_tests|document_session_tests)
-
-
-
+      - name: Verify P5-4 adoption and rollback
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_adopt_tests
+      - name: Verify P5-3 prepared candidate
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_candidate_tests
+      - name: Verify P5-2 source cache
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_source_tests
+      - name: Verify existing document session
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R document_session_tests
