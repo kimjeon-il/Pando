@@ -21,7 +21,7 @@ test('presentation-only country pass cannot replace scene after GPU draw but ret
   const f=fixture(), result={succeeded:true,frameId:9};
   const outcome=f.content.renderCountries(f.frame,{presentationOnly:true,gpuResult:result});
   assert.equal(outcome,result);
-  assert.equal(f.actions.pending,0,'pending geometry belongs to preparation, not frame approval');
+  assert.equal(f.actions.pending,1,'SVG pending-country outlines still update on the approved frame');
   assert.equal(f.actions.replace,0,'presentation must not overwrite drawn GPU scene');
   assert.equal(f.actions.sync,0,'presentation must not advance rendered scene identity');
   assert.equal(f.actions.draw,0,'presentation must not draw a second GPU frame');
