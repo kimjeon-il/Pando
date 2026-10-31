@@ -78,3 +78,24 @@ test('latest builtin reader admits its baseline after a superseded replacement f
  assert.equal(await earlier,false);assert.equal(await latest,true);
  assert.equal(owner.client.state().timelineCursor,'2014-01');
 });
+
+
+test('P2-1 a detached dated builtin source never mutates an actual C++ Core document',async t=>{
+ const owner=await createNodeCoreProject(startupDocument([]),{productMode:'viewer',replaceSnapshot:async()=>true});
+ t.after(()=>owner.dispose());
+ const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
+ session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:owner.project}});
+ const beforeCore=structuredClone(owner.client.state());
+ const beforeDoc=structuredClone(owner.documentModel.snapshot());
+ const prepared=await session.prepareProjectSource('2014-02');
+ assert.equal(prepared.sourceMonth,'2014-02');
+ assert.equal(prepared.sourceBytes.length,prepared.compressedBytes);
+ assert.deepEqual(owner.client.state(),beforeCore);
+ assert.deepEqual(owner.documentModel.snapshot(),beforeDoc);
+ assert.equal(session.projectBaseline,null);
+ const receipt=await session.admitPreparedProjectSource(prepared);
+ assert.ok(receipt.baselineId>0);
+ assert.equal(owner.client.state().storageBaselineId,receipt.baselineId);
+ assert.deepEqual(owner.documentModel.snapshot(),beforeDoc,
+   'Explicit Core source admission is not document activation.');
+});
