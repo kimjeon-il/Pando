@@ -9,6 +9,10 @@ on:
       - tests/browser/info-tab-v9.spec.mjs
       - tests/browser/place-runtime.spec.mjs
       - tests/browser/workflow-v17.spec.mjs
+      - tests/browser/selection-domain-smoke.spec.mjs
+      - tests/browser/label-metadata-edit.spec.mjs
+      - tests/unit/task-stage-model.test.mjs
+      - apps/editor/frontend/js/modules/app-task-stage-model.js
       - tests/unit/object-visibility-command.test.mjs
       - tests/unit/project-session-viewing.test.mjs
       - tests/browser/hydro-metadata-edit.spec.mjs
