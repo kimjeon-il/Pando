@@ -42,25 +42,6 @@ def find_file(root: Path, filename: str) -> Path:
     return matches[0]
 
 
-def crop_with_gutter(image: Image.Image, box: tuple[int, int, int, int]) -> Image.Image:
-    left, top, right, bottom = box
-    width = right - left
-    height = bottom - top
-    tile = Image.new(image.mode, (width + 2, height + 2))
-    tile.paste(image.crop((left, top, right, bottom)), (1, 1))
-    tile.paste(image.crop(((left - 1) % image.width, top, (left - 1) % image.width + 1, bottom)), (0, 1))
-    tile.paste(image.crop((right % image.width, top, right % image.width + 1, bottom)), (width + 1, 1))
-    top_source = max(0, top - 1)
-    bottom_source = min(image.height - 1, bottom)
-    tile.paste(image.crop((left, top_source, right, top_source + 1)), (1, 0))
-    tile.paste(image.crop((left, bottom_source, right, bottom_source + 1)), (1, height + 1))
-    tile.putpixel((0, 0), tile.getpixel((1, 0)))
-    tile.putpixel((width + 1, 0), tile.getpixel((width, 0)))
-    tile.putpixel((0, height + 1), tile.getpixel((1, height + 1)))
-    tile.putpixel((width + 1, height + 1), tile.getpixel((width, height + 1)))
-    return tile
-
-
 def build_outer_land_mask(countries_path: Path, lakes_path: Path, size: tuple[int, int]) -> Image.Image:
     """Rasterize country outer rings while deliberately filling inland-water holes."""
     width, height = size
@@ -83,19 +64,27 @@ class PhysicalCompositor:
                                          '--physical-composite-stream'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         return self
 
-    def combine(self, land: Image.Image, ocean: Image.Image, land_mask: Image.Image, relief: Image.Image) -> Image.Image:
+    def combine(self, land: Image.Image, ocean: Image.Image, land_mask: Image.Image, relief: Image.Image, box: tuple[int, int, int, int]) -> Image.Image:
         if land.size != ocean.size or land.size != land_mask.size or land.size != relief.size:
             raise ValueError('Physical composite image dimensions differ')
-        width, height = land.size
-        with land.convert('RGB') as land_rgb, ocean.convert('RGB') as ocean_rgb, land_mask.convert('L') as mask, relief.convert('L') as shade:
-            self.process.stdin.write(struct.pack('<8sII', b'PDPCMP02', width, height))
-            for image in (land_rgb, ocean_rgb, mask, shade):
-                self.process.stdin.write(image.tobytes())
-            self.process.stdin.flush()
-        result = self.process.stdout.read(width * height * 4)
-        if len(result) != width * height * 4:
+        left, top, right, bottom = box
+        if not (0 <= left < right <= land.width and 0 <= top < bottom <= land.height):
+            raise ValueError('Invalid physical tile bounds')
+        width, height = right - left, bottom - top
+        y0, y1 = max(0, top - 1), min(land.height, bottom + 1)
+        regions = ((left, y0, right, y1), ((left - 1) % land.width, y0, (left - 1) % land.width + 1, y1),
+                   (right % land.width, y0, right % land.width + 1, y1))
+        self.process.stdin.write(struct.pack('<8sIIII', b'PDPCMP03', width, height, int(top > 0), int(bottom < land.height)))
+        for image, mode in ((land, 'RGB'), (ocean, 'RGB'), (land_mask, 'L'), (relief, 'L')):
+            for region in regions:
+                with image.crop(region) as cropped, cropped.convert(mode) as converted:
+                    self.process.stdin.write(converted.tobytes())
+        self.process.stdin.flush()
+        output_size = (width + 2) * (height + 2) * 4
+        result = self.process.stdout.read(output_size)
+        if len(result) != output_size:
             raise RuntimeError('Native physical composite returned incomplete pixels')
-        return Image.frombytes('RGBA', (width, height), result)
+        return Image.frombytes('RGBA', (width + 2, height + 2), result)
 
     def __exit__(self, kind, value, traceback):
         try:
@@ -149,13 +138,9 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
                         min(width, (column + 1) * TILE_SIZE),
                         min(height, (row + 1) * TILE_SIZE),
                     )
-                    land_tile = crop_with_gutter(land, box)
-                    ocean_tile = crop_with_gutter(ocean, box)
-                    land_mask_tile = crop_with_gutter(land_mask, box)
-                    relief = crop_with_gutter(gray, box).convert("L")
-                    packed = compositor.combine(land_tile, ocean_tile, land_mask_tile, relief)
+                    packed = compositor.combine(land, ocean, land_mask, gray, box)
                     packed.save(level_dir / f"{column}-{row}.webp", "WEBP", lossless=True, method=4, exact=True)
-                    land_tile.close(); ocean_tile.close(); land_mask_tile.close(); relief.close(); packed.close()
+                    packed.close()
         levels.append({
             "id": level_index,
             "width": width,
