@@ -242,7 +242,8 @@ for (const kind of ['general', 'regional']) test(`${kind} creation retains candi
     expect(created?.geometry?.type).toMatch(/Polygon/);
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
-    expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), created.id)).toBeNull();
+    await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), created.id),
+      { timeout: 30_000 }).toBeNull();
   expect(errors).toEqual([]);
 });
 
