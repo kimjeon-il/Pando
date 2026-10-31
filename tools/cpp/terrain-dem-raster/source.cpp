@@ -5,8 +5,10 @@
 #include <cpl_string.h>
 #include <cpl_vsi.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -22,24 +24,24 @@
 int run(int argc,char** argv){
   try{
 #ifdef _WIN32
+    _setmode(_fileno(stdin),_O_BINARY);
     _setmode(_fileno(stdout),_O_BINARY);
 #endif
-    if(argc!=8&&!(argc==9&&std::string(argv[8])=="--strict-etopo"))throw std::invalid_argument("Expected TIFF, level width/height and x0 y0 x1 y1");
+    const bool streaming=argc>1&&std::string(argv[1])=="--stream";
+    if(streaming?!(argc==5||(argc==6&&std::string(argv[5])=="--strict-etopo")):
+      !(argc==8||(argc==9&&std::string(argv[8])=="--strict-etopo")))throw std::invalid_argument("Expected TIFF, level width/height and DEM windows");
     const auto number=[](const char* text){std::size_t at=0;const auto value=std::stoll(text,&at);if(at!=std::string(text).size())throw std::invalid_argument("Invalid DEM window integer");return value;};
-    const auto width=number(argv[2]),height=number(argv[3]),x0=number(argv[4]),y0=number(argv[5]),x1=number(argv[6]),y1=number(argv[7]);
-    const auto outWidth=x1-x0,outHeight=y1-y0;
-    if(width<1||width>50000||height<1||height>25000||outWidth<1||outHeight<1||outWidth>5000||outHeight>5000||
-      outWidth*outHeight>16777216||x0< -1000000||x1>1000000||y0< -1000000||y1>1000000||y0>=height||y1<=0)
-      throw std::invalid_argument("DEM window exceeds bounds");
+    const auto width=number(argv[streaming?3:2]),height=number(argv[streaming?4:3]);
+    if(width<1||width>50000||height<1||height>25000)throw std::invalid_argument("DEM level exceeds bounds");
     CPLSetConfigOption("GDAL_PAM_ENABLED","NO");GDALAllRegister();const char* drivers[]={"GTiff",nullptr};
-    std::unique_ptr<void,decltype(&GDALClose)> source(GDALOpenEx(argv[1],GDAL_OF_RASTER|GDAL_OF_READONLY,drivers,nullptr,nullptr),GDALClose);
+    std::unique_ptr<void,decltype(&GDALClose)> source(GDALOpenEx(argv[streaming?2:1],GDAL_OF_RASTER|GDAL_OF_READONLY,drivers,nullptr,nullptr),GDALClose);
     if(!source||GDALGetRasterCount(source.get())!=1||!GDALGetProjectionRef(source.get())||!*GDALGetProjectionRef(source.get()))
       throw std::invalid_argument("Single-band georeferenced DEM TIFF required");
     double transform[6];const int sw=GDALGetRasterXSize(source.get()),sh=GDALGetRasterYSize(source.get());
     if(sw<1||sh<1||GDALGetGeoTransform(source.get(),transform)!=CE_None||std::abs(transform[0]+180)>1e-8||
       std::abs(transform[1]-360.0/sw)>1e-8||std::abs(transform[2])>1e-8||std::abs(transform[3]-90)>1e-8||
       std::abs(transform[4])>1e-8||std::abs(transform[5]+180.0/sh)>1e-8)throw std::invalid_argument("DEM source grid differs");
-    if(argc==9){
+    if((streaming&&argc==6)||(!streaming&&argc==9)){
       std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> actual(OSRNewSpatialReference(GDALGetProjectionRef(source.get())),OSRDestroySpatialReference);
       std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> expected(OSRNewSpatialReference(nullptr),OSRDestroySpatialReference);
       const char* registration=GDALGetMetadataItem(source.get(),"AREA_OR_POINT",nullptr);
@@ -56,6 +58,13 @@ int run(int argc,char** argv){
     std::unique_ptr<void,decltype(&GDALClose)> vrt(GDALWarp("/vsimem/pando-dem-read.vrt",nullptr,1,&raw,options.get(),&usage),GDALClose);
     if(!vrt||usage)throw std::runtime_error("DEM warped view failed");
     auto band=GDALGetRasterBand(vrt.get(),1);auto mask=GDALGetMaskBand(band);
+    const auto readWindow=[&](std::int64_t x0,std::int64_t y0,std::int64_t x1,std::int64_t y1){
+    if(x0< -1000000||x0>1000000||x1< -1000000||x1>1000000||y0< -1000000||y0>1000000||y1< -1000000||y1>1000000)
+      throw std::invalid_argument("DEM window exceeds bounds");
+    const auto outWidth=x1-x0,outHeight=y1-y0;
+    if(outWidth<1||outHeight<1||outWidth>5000||outHeight>5000||outWidth*outHeight>16777216||
+      x0< -1000000||x1>1000000||y0< -1000000||y1>1000000||y0>=height||y1<=0)
+      throw std::invalid_argument("DEM window exceeds bounds");
     const auto startY=std::max<std::int64_t>(0,y0),endY=std::min<std::int64_t>(height,y1),readHeight=endY-startY;
     std::vector<float> output(static_cast<std::size_t>(outWidth*outHeight));
     for(std::int64_t at=0;at<outWidth;){
@@ -74,9 +83,17 @@ int run(int argc,char** argv){
     }
     for(std::int64_t y=0;y<startY-y0;y++)std::copy_n(output.data()+(startY-y0)*outWidth,outWidth,output.data()+y*outWidth);
     for(std::int64_t y=endY-y0;y<outHeight;y++)std::copy_n(output.data()+(endY-y0-1)*outWidth,outWidth,output.data()+y*outWidth);
-    vrt.reset();VSIUnlink("/vsimem/pando-dem-read.vrt");
     std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()*sizeof(float)));
-    if(!std::cout)throw std::runtime_error("DEM output write failed");return 0;
+    std::cout.flush();if(!std::cout)throw std::runtime_error("DEM output write failed");
+    };
+    if(streaming){
+      for(;;){std::array<unsigned char,24> header{};std::cin.read(reinterpret_cast<char*>(header.data()),header.size());const auto count=std::cin.gcount();
+        if(count==0&&std::cin.eof())break;if(count!=24||std::memcmp(header.data(),"PDEMWIN1",8)!=0)throw std::invalid_argument("Invalid DEM stream header");
+        const auto field=[&](int at){const auto n=std::uint32_t(header[at])|(std::uint32_t(header[at+1])<<8)|(std::uint32_t(header[at+2])<<16)|(std::uint32_t(header[at+3])<<24);return std::int64_t(static_cast<std::int32_t>(n));};
+        readWindow(field(8),field(12),field(16),field(20));
+      }
+    }else readWindow(number(argv[4]),number(argv[5]),number(argv[6]),number(argv[7]));
+    vrt.reset();VSIUnlink("/vsimem/pando-dem-read.vrt");return 0;
   }catch(const std::exception& error){std::cerr<<"terrain-dem-raster: "<<error.what()<<'\n';return 1;}
 }
 #ifdef _WIN32

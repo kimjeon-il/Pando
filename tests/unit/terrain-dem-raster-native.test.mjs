@@ -4,11 +4,11 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {readNativeDemWindow} from '../../tools/gis/terrain-dem-raster.mjs';
+import {createNativeDemWindowReader,readNativeDemWindow} from '../../tools/gis/terrain-dem-raster.mjs';
 
 const binary=process.env.PANDO_TERRAIN_DEM_RASTER_BINARY;
+const fixture=JSON.parse(readFileSync('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
 test('GDAL DEM windows preserve area averaging, wrap, polar clamp and NoData',{skip:!binary},t=>{
-  const fixture=JSON.parse(readFileSync('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
   const root=mkdtempSync(join(tmpdir(),'pando-dem-raster-'));t.after(()=>rmSync(root,{recursive:true}));
   for(const [name,base64] of Object.entries(fixture.sources))writeFileSync(join(root,name+'.tif'),Buffer.from(base64,'base64'));
   for(const row of fixture.cases){
@@ -31,6 +31,9 @@ test('DEM window manager verifies the native artifact and requires explicit sour
     const bytes=await readNativeDemWindow({source,width:row.width,height:row.height,box:row.box,strict:false});
     const expected=Buffer.from(row.expected,'base64');assert.equal(bytes.length,expected.length);
     for(let at=0;at<bytes.length;at+=4)assert.ok(Math.abs(bytes.readFloatLE(at)-expected.readFloatLE(at))<1e-5);
+    const reader=await createNativeDemWindowReader({source,width:row.width,height:row.height,strict:false});
+    try{for(let i=0;i<2;i++)assert.deepEqual(await reader.read(row.box),bytes);}finally{await reader.close();}
+    await assert.rejects(reader.read(row.box),/closed/i);
     await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box}),/EPSG|ETOPO/i);
     const controller=new AbortController();controller.abort();
     await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box},{signal:controller.signal}),{name:'AbortError'});
