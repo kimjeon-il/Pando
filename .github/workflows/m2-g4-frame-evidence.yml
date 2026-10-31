@@ -1,0 +1,66 @@
+name: M2 G4 saved-frame evidence only (no product rerun)
+on:
+  push:
+    branches: [work/ui]
+    paths: [.github/workflows/m2-g4-frame-evidence.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 41192629656
+          name: gpu-g4-residual-f4e9be7fa87d65f3192e43324fae533d8131da26
+          path: ${{ runner.temp }}/m2-g4
+      - name: Summarize the already captured failed frame and document state
+        env:
+          EVIDENCE: ${{ runner.temp }}/m2-g4
+        run: |
+          node --input-type=module <<'NODE'
+          import {readdirSync,readFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          let found=0;
+          function walk(dir){
+            for(const e of readdirSync(dir,{withFileTypes:true})){
+              if(e.isSymbolicLink())throw Error('Unexpected artifact symlink');
+              const p=join(dir,e.name);
+              if(e.isDirectory()){walk(p);continue;}
+              if(e.name!=='result.json')continue;
+              const r=JSON.parse(readFileSync(p,'utf8'));
+              if(r.backend!=='canvas-worker'||r.product!=='viewer')continue;
+              found++;
+              const f=r.final||{},t=f.runtime||{},s=f.stats||{},v=f.rendering||{};
+              console.log('M2_G4_EVIDENCE '+JSON.stringify({
+                status:r.status,steps:r.steps,error:r.error,
+                pageErrors:r.pageErrors?.slice(0,5),consoleErrors:r.consoleErrors?.slice(0,5),
+                failedRequests:r.failedRequests?.length,
+                runtime:{renderer:t.renderer,mapReadiness:t.mapReadiness,surfacePresentation:t.surfacePresentation,
+                  projectGeneration:t.projectGeneration,countriesPublishedGeneration:t.countriesPublishedGeneration,
+                  firstCountryPublishedMs:t.firstCountryPublishedMs,firstBackgroundFrameMs:t.firstBackgroundFrameMs,
+                  canonicalMeshReady:t.canonicalMeshReady,activeMeshQuality:t.activeMeshQuality,
+                  temporalPresentationPending:t.temporalPresentationPending,projectRenderBlocked:t.projectRenderBlocked,
+                  backgroundPresentedKey:t.backgroundPresentedKey,terrainReady:t.terrainReady,terrainFailed:t.terrainFailed,
+                  terrainSource:t.terrainSource,terrainTargetKey:t.terrainTargetKey,sceneCacheValid:t.sceneCacheValid},
+                stats:{canvasWorkerBusy:s.canvasWorkerBusy,canvasWorkerStaleFrameCount:s.canvasWorkerStaleFrameCount,
+                  canvasWorkerMessageCount:s.canvasWorkerMessageCount,canvasWorkerViewMessageCount:s.canvasWorkerViewMessageCount,
+                  canvasWorkerHasPendingFrame:s.canvasWorkerHasPendingFrame,
+                  canvasWorkerRequests:s.canvasWorkerRequests,uploads:s.uploads,gpuRecovery:s.gpuRecovery},
+                rendering:{lastReason:v.lastReason,renderRevision:v.renderRevision,
+                  visualFramePreparedCount:v.visualFramePreparedCount,visualFrameCommittedCount:v.visualFrameCommittedCount,
+                  lastPreparedVisualFrameId:v.lastPreparedVisualFrameId,lastCommittedVisualFrameId:v.lastCommittedVisualFrameId,
+                  pendingMask:v.pendingMask,pendingMode:v.pendingMode,projectGeneration:v.projectGeneration,
+                  recentFrames:v.recentFrames?.slice(-5)},
+                documentState:{month:f.documentState?.timelineCursor,epoch:f.documentState?.epoch,revision:f.documentState?.revision},
+                world:f.world,selected:f.selection,events:f.events?.slice(-10)
+              }));
+            }
+          }
+          walk(process.env.EVIDENCE);
+          if(found!==1)throw Error('Expected one viewer Canvas Worker result, got '+found);
+          NODE
