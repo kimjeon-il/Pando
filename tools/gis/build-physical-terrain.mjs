@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,realpathSync,writeFileSync} from 'node:fs';
 import {basename,dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {parseArgs} from 'node:util';
 import {withLibraryOutputs} from '../library-data.mjs';
 import {encodeNativeWebpLossless} from '../map-image/native-resample.mjs';
 import {findSources,futureRealpath} from './build-physical-hydro.mjs';
@@ -72,4 +73,12 @@ export async function buildPhysicalTerrain({sourceRoot,outputRoot,countriesPath,
         ...[gray,land,ocean].map((item,i)=>({file:names[i],version:'3.2.0',sha256:item.sha256}))]};
     writeFileSync(resolve(terrainDir,'manifest.json'),JSON.stringify(manifest,null,2),{flag:'wx'});return manifest;
   });
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{
+    const {values}=parseArgs({options:{source:{type:'string'},output:{type:'string'},countries:{type:'string'}}});
+    if(!values.source||!values.output||!values.countries)throw Error('Explicit --source, --output and --countries required');
+    const manifest=await buildPhysicalTerrain({sourceRoot:values.source,outputRoot:values.output,countriesPath:values.countries});
+    console.log(JSON.stringify({output:resolve(values.output),levels:manifest.levels.length}));
+  }catch(error){console.error('build-physical-terrain: '+error.message);process.exitCode=1;}
 }

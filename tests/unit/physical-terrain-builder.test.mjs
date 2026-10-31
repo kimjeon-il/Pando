@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {mkdtempSync,mkdirSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -7,6 +8,10 @@ import test from 'node:test';
 import {buildPhysicalTerrain} from '../../tools/gis/build-physical-terrain.mjs';
 import {readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
 
+test('physical terrain candidate CLI requires explicit input and output',()=>{
+  const result=spawnSync(process.execPath,['tools/gis/build-physical-terrain.mjs'],{encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.match(result.stderr,/explicit/i);
+});
 const enabled=Boolean(process.env.PANDO_PHYSICAL_RASTER_DIRECTORY&&process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY&&process.env.PANDO_MAP_IMAGE_ARTIFACT);
 test('Node physical terrain candidate matches frozen Python tiles and preserves originals',{skip:!enabled},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-physical-builder-'));t.after(()=>rmSync(root,{recursive:true}));

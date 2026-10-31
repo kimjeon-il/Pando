@@ -31,3 +31,13 @@ test('physical compositor reuses its process for frozen tile requests',{skip:!en
     }
   }finally{await compositor.close();}
 });
+test('physical compositor handles consecutive tiles larger than pipe buffers',{skip:!enabled},async()=>{
+  const width=512,height=512,count=width*height,land=Buffer.alloc(count*3),ocean=Buffer.alloc(count*3);
+  for(let i=0;i<count;i++){land.set([10,120,240],i*3);ocean.set([230,30,5],i*3);}
+  const expected=Buffer.alloc(count*4);for(let i=0;i<count;i++)expected.set([120,75,123,17],i*4);
+  const request={width,height,box:[0,0,510,510],land,ocean,mask:Buffer.alloc(count,128),relief:Buffer.alloc(count,17)};
+  const compositor=createNativePhysicalCompositor();
+  try{for(let i=0;i<2;i++){
+    const result=await compositor.combine(request);assert.deepEqual(result,expected);
+  }}finally{await compositor.close();}
+});
