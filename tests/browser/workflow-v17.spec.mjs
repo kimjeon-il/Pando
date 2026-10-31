@@ -228,8 +228,14 @@ for (const kind of ['general', 'regional']) test(`${kind} creation retains candi
     await page.locator('#modeReturnBtn').click();
     await expect(page.locator('#confirmModal')).toBeHidden();
     await expect(page.locator('#territorySelectionStackList li')).toHaveCount(1);
+    await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
     await page.locator('#modePrimaryBtn').click();
+    await expect(page.locator('#modeTaskStage')).toHaveText('생성 확인', { timeout: 60_000 });
+    await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
     await page.locator('#modePrimaryBtn').click();
+    await expect.poll(() => page.evaluate(({ kind, name }) =>
+      !!window.PANDOLAB_TERRITORIAL.list({ kind }).find(unit => unit.properties.name === name),
+    { kind, name }), { timeout: 60_000 }).toBe(true);
     const created = await page.evaluate(({ kind, name }) => window.PANDOLAB_TERRITORIAL.list({ kind }).find(unit => unit.properties.name === name), { kind, name });
     expect(created.properties.entityKind).toBe(kind);
     expect(created.properties.parentId).toBe(kind === 'general' ? 'DEU' : '');

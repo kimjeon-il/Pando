@@ -2,7 +2,6 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
-import { currentCountryFlagUrl } from "../../shared/frontend/js/modules/country-flags.js";
 import { selectUiOption } from './helpers/ui-select.mjs';
 
 test('editor derives live hierarchy in Relations, focuses only via GPS and preserves metadata validation and history', async ({ page }, testInfo) => {
@@ -34,8 +33,10 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
     project.geometries.push({ id: `info-shape:${id}`, version: 1, geojson: geometry });
     project.timelineRecords.geometryBindings.find(record => record.objectRef?.id === id).geometryRef = { id: `info-shape:${id}`, version: 1 };
   }
-  const flag = currentCountryFlagUrl('DEU');
-  for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag.slice(flag.indexOf('/assets/'));
+  // Test a real embedded flag asset; Node file:// URLs have no /assets/ prefix.
+  const flag = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="12"><rect width="16" height="12" fill="#216eaa"/></svg>');
+  for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag;
   const receipt=await coreFileProjection(project);
   const file = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
   const filePath = testInfo.outputPath('info-project.gpkg');
