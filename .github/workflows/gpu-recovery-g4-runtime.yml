@@ -5,6 +5,9 @@ on:
     paths:
       - .github/workflows/gpu-recovery-g4-runtime.yml
       - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/gpu-scene.js
+      - shared/frontend/js/modules/country-mesh-zoom-policy.js
+      - tests/browser/gpu-recovery-g4.spec.mjs
       - shared/frontend/js/modules/gpu-context-recovery.js
       - tests/browser/renderer-responsiveness.spec.mjs
       - tests/browser/editor-status-timeline.spec.mjs
@@ -58,15 +61,25 @@ jobs:
         run: >-
           pnpm exec playwright test tests/browser/editor-status-timeline.spec.mjs
           --workers=1 --retries=0 --reporter=list
+      - name: Exercise current Canvas Worker first-frame, year, selection and resume contract
+        id: worker_g4
+        if: steps.viewer.outcome == 'success' && steps.canvas.outcome == 'success' && steps.editor.outcome == 'success'
+        continue-on-error: true
+        env:
+          G4_EVIDENCE: test-results/g4-m2-viewer-worker
+        run: >-
+          pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs
+          --grep '^viewer canvas-worker:' --workers=1 --retries=0 --reporter=list --trace off
       - name: Enforce each independent G4 residual gate
         if: always()
         env:
           CANVAS: ${{ steps.canvas.outcome }}
           EDITOR: ${{ steps.editor.outcome }}
           VIEWER: ${{ steps.viewer.outcome }}
+          WORKER_G4: ${{ steps.worker_g4.outcome }}
         run: |
-          echo "G4 canvas=$CANVAS editor=$EDITOR viewer=$VIEWER"
-          test "$CANVAS" = success && test "$EDITOR" = success && test "$VIEWER" = success
+          echo "G4 canvas=$CANVAS editor=$EDITOR viewer=$VIEWER worker-g4=$WORKER_G4"
+          test "$CANVAS" = success && test "$EDITOR" = success && test "$VIEWER" = success && test "$WORKER_G4" = success
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
