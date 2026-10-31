@@ -62,6 +62,8 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
       return selected && await page.locator('#entityProperties').isVisible();
     }, { timeout: 30_000 }).toBe(true);
     await expect(page.locator('#entityNameInput')).toHaveValue(project.territorialEntities.find(feature => feature.id === id).properties.name);
+    // An unavailable Relations tab must fail promptly, not hang for 8 minutes.
+    await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });
     await page.locator('#relationTabBtn').click();
   };
   for (const [id, parent, children] of [['R', false, false], ['C', true, false], ['A', false, true], ['B', true, true]]) {
@@ -150,6 +152,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await page.locator('#redoBtn').click(); await select('B'); await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNotesInput')).toHaveValue('비고 변경');
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-desktop.png') });
+  await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });
   await page.locator('#relationTabBtn').click();
   const beforeChild = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C'));
   const selectionRevision = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);

@@ -400,3 +400,34 @@ test('relation tab shows compact empty states without duplicating them beside op
   assert.equal(childRows.hidden, false);
   assert.deepEqual(state.relations, [], 'UI visibility changes do not mutate relations');
 });
+
+
+test('relation tab availability is refreshed after switching regional and general entities', () => {
+  const events = [];
+  const state = setup({
+    showPropertyForm: () => {
+      events.push(['show', state.fields.get('entityRelations')?.hidden ?? null]);
+    },
+    syncActionTab: () => {
+      events.push(['tabs', state.fields.get('entityRelations')?.hidden]);
+    },
+  });
+  const regional = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'REG' });
+  const feature = createTerritorialFeature({
+    id: 'REG', entityKind: 'regional', name: '독립 권역', geometry: square(2),
+  });
+  state.views.set(regional.key, { ref: regional, displayName: '독립 권역', feature, properties: feature.properties });
+  state.setPrimary(regional);
+  state.controller.present(regional);
+  assert.deepEqual(events.slice(-2), [['show', null], ['tabs', true]]);
+
+  state.setPrimary(state.a);
+  state.controller.present(state.a);
+  assert.deepEqual(events.slice(-2), [
+    ['show', true], ['tabs', false],
+  ], 'the relation tab must be recalculated after the current general entity becomes visible');
+
+  state.setPrimary(regional);
+  state.controller.present(regional, { refreshOnly: true });
+  assert.deepEqual(events.slice(-2), [['show', false], ['tabs', true]]);
+});
