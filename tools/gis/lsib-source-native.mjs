@@ -6,10 +6,47 @@ import {readFile,stat} from 'node:fs/promises';
 import {delimiter,dirname,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {mergeLSIBLines} from './lsib-screen-native.mjs';
+import {readZipRangeMember,zipMemberChunks,zipMembers,zipRangeMembers} from '../lib/geonames-zip.mjs';
 
 const archiveHash='1eb5af7e80fce60e48d27eba80ae81fd2b25c9cf59f4f4e2efc89c06ad57490a';
 const archiveBytes=124239650,inner='DoS_LSIB_v11_4_24Feb2025.zip',shapefile='data/DoS_LSIB_v11_4_24Feb2025.shp';
 const validId=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+
+export async function readLSIBArchiveEvidence({archive,requirePinned=false},{signal}={}){
+  signal?.throwIfAborted();
+  if(typeof archive!=='string'||!archive||typeof requirePinned!=='boolean')throw Error('Explicit LSIB archive required');
+  const path=resolve(archive),info=await stat(path);
+  if(!info.isFile()||info.size>512*1024*1024)throw Error('Invalid LSIB evidence archive');
+  if(requirePinned&&info.size!==archiveBytes)throw Error('Pinned LSIB archive size differs');
+  const one=(items,predicate,label)=>{const found=items.filter(predicate);
+    if(found.length!==1)throw Error('Expected one LSIB '+label);return found[0];};
+  const entries=await zipMembers(path),innerEntry=one(entries,row=>row.name.endsWith('.zip'),'inner archive'),
+    checksumEntry=one(entries,row=>row.name.endsWith('.txt'),'checksum file');
+  async function outerBytes(entry){
+    if(entry.uncompressed>256*1024*1024)throw Error('LSIB archive member exceeds budget');
+    const parts=[];for await(const chunk of zipMemberChunks(path,entry)){signal?.throwIfAborted();parts.push(chunk);}
+    return Buffer.concat(parts,entry.uncompressed);
+  }
+  const [inner,checksum]=await Promise.all([outerBytes(innerEntry),outerBytes(checksumEntry)]);
+  const readRange=async(start,end)=>{signal?.throwIfAborted();return inner.subarray(start,end+1);};
+  const contents=await zipRangeMembers({size:inner.length,readRange});
+  const selected=[
+    one(contents,row=>row.name.endsWith('.shp'),'SHP'),
+    one(contents,row=>row.name.endsWith('.dbf'),'DBF'),
+    one(contents,row=>row.name.includes('ReadMe'),'readme'),
+  ];
+  if(selected.some(row=>row.uncompressed>256*1024*1024))throw Error('LSIB evidence member exceeds budget');
+  const [shp,dbf,readme]=await Promise.all(selected.map(entry=>readZipRangeMember({entry,readRange,
+    maxCompressed:128*1024*1024,maxUncompressed:128*1024*1024})));
+  const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal})){signal?.throwIfAborted();hash.update(chunk);}
+  const after=await stat(path);
+  if(after.size!==info.size||after.mtimeMs!==info.mtimeMs||after.ino!==info.ino||after.dev!==info.dev)
+    throw Error('LSIB evidence archive changed while reading');
+  const archiveSha256=hash.digest('hex');
+  if(requirePinned&&archiveSha256!==archiveHash)throw Error('Pinned LSIB archive hash differs');
+  return {archiveSha256,innerArchiveSha256:createHash('sha256').update(inner).digest('hex'),
+    shpSha256:createHash('sha256').update(shp).digest('hex'),dbfSha256:createHash('sha256').update(dbf).digest('hex'),checksum,readme};
+}
 
 export async function readLSIBRaw({archive,ids,all=false,binary=process.env.PANDO_GDAL_OGR2OGR||'ogr2ogr'},{signal}={}){
   signal?.throwIfAborted();
@@ -120,18 +157,23 @@ export async function readLSIBDisputedShape({dbf,shp},options={}){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||!['--stream','--disputed-stream'].includes(process.argv[2]))throw Error('Expected an LSIB source operation');
+    if(process.argv.length!==3||!['--stream','--disputed-stream','--evidence-stream'].includes(process.argv[2]))throw Error('Expected an LSIB source operation');
     const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>1024*1024)throw Error('LSIB source request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    let features;
-    if(process.argv[2]==='--disputed-stream'){
-      if(typeof request.dbfPath!=='string'||typeof request.shpPath!=='string')throw Error('Explicit disputed SHP and DBF paths required');
-      const [dbfInfo,shpInfo]=await Promise.all([stat(request.dbfPath),stat(request.shpPath)]);
-      if(!dbfInfo.isFile()||!shpInfo.isFile()||dbfInfo.size>256*1024*1024||shpInfo.size>256*1024*1024)
-        throw Error('Invalid disputed SHP or DBF source');
-      const [dbf,shp]=await Promise.all([readFile(request.dbfPath),readFile(request.shpPath)]);
-      features=await readLSIBDisputedShape({dbf,shp});
-    }else features=await readLSIBLines(request);
-    process.stdout.write(JSON.stringify({features})+'\n');
+    if(process.argv[2]==='--evidence-stream'){
+      const {checksum,readme,...metadata}=await readLSIBArchiveEvidence(request);
+      process.stdout.write(JSON.stringify({...metadata,checksum:checksum.toString('base64'),readme:readme.toString('base64')})+'\n');
+    }else{
+      let features;
+      if(process.argv[2]==='--disputed-stream'){
+        if(typeof request.dbfPath!=='string'||typeof request.shpPath!=='string')throw Error('Explicit disputed SHP and DBF paths required');
+        const [dbfInfo,shpInfo]=await Promise.all([stat(request.dbfPath),stat(request.shpPath)]);
+        if(!dbfInfo.isFile()||!shpInfo.isFile()||dbfInfo.size>256*1024*1024||shpInfo.size>256*1024*1024)
+          throw Error('Invalid disputed SHP or DBF source');
+        const [dbf,shp]=await Promise.all([readFile(request.dbfPath),readFile(request.shpPath)]);
+        features=await readLSIBDisputedShape({dbf,shp});
+      }else features=await readLSIBLines(request);
+      process.stdout.write(JSON.stringify({features})+'\n');
+    }
   }catch(error){process.stderr.write('lsib-source: '+String(error.message)+'\n');process.exitCode=1;}
 }
