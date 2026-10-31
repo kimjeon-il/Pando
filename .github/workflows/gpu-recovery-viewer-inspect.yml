@@ -1,0 +1,34 @@
+name: Inspect viewer recovery evidence (no browser rerun)
+on:
+  push:
+    branches: [work/ui]
+    paths: [.github/workflows/gpu-recovery-viewer-inspect.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: kimjeon-il/Pando
+          run-id: 41165813606
+          name: gpu-viewer-followup-ea3d4f993e32a8bc098d9b16fd3f68281302acf1
+          path: evidence
+      - name: Print approval inputs and exact recovery rendering code
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          for(const backend of ['webgl2','webgl1']){
+            const r=JSON.parse(readFileSync(`evidence/${backend}/result.json`));console.log('BACKEND '+backend+' COUNTS '+JSON.stringify(r.final.trace.counts));
+            for(const t of r.final.trace.rows.filter(t=>!['renderWebGl','base-result'].includes(t.where)))console.log('APPROVAL '+JSON.stringify(t));
+            console.log('LAST_ROWS '+JSON.stringify(r.final.trace.rows.slice(-5)));
+          }
+          const source=readFileSync('evidence/viewer-fixed-renderer.js','utf8'),lines=source.split('\n');
+          for(const [a,b]of [['    function renderWebGl(','    function renderCanvasHydro('],['    function renderFrame(','    function prioritizeLatest('],['    function canPresentVisualFrame(','    function failTemporalPresentation(']]){
+            const start=source.indexOf(a),end=source.indexOf(b,start);console.log('SOURCE '+a+'\n'+source.slice(start,end));
+          }
+          NODE
