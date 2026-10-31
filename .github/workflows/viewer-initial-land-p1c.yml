@@ -9,6 +9,7 @@ on:
       - shared/frontend/js/modules/physical-resources.js
       - apps/viewer/js/modules/viewer-map.js
       - tests/browser/viewer-initial-p1.spec.mjs
+      - tests/browser/viewer-initial-land-p1c.spec.mjs
       - tests/unit/initial-land-preview.test.mjs
       - .github/workflows/viewer-initial-land-p1c.yml
   workflow_dispatch:
@@ -36,6 +37,8 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Confirm actual first-map preview and reload
         run: pnpm exec playwright test tests/browser/viewer-initial-p1.spec.mjs --workers=1
+      - name: Compare source and preview coast pixels on actual map
+        run: pnpm exec playwright test tests/browser/viewer-initial-land-p1c.spec.mjs --workers=1
       - name: Evidence
         if: always()
         uses: actions/upload-artifact@v4
