@@ -1971,7 +1971,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function installGpuRecoveryLifecycle() {
-      if (gpuRecoveryLifecycleInstalled) return;
+      // DOM-free paint tests do not have browser visibility/page lifecycle events.
+      if (gpuRecoveryLifecycleInstalled || typeof document === 'undefined' || typeof window === 'undefined') return;
       gpuRecoveryLifecycleInstalled = true;
       lifecycle.listen(document, 'visibilitychange', syncGpuRecoveryAvailability);
       lifecycle.listen(document, 'freeze', () => { gpuRecoveryFrozen = true; syncGpuRecoveryAvailability(); });
@@ -1987,7 +1988,9 @@ export function createGpuMapRenderer(deps) {
 
     function syncGpuRecoveryAvailability() {
       if (disposed) return;
-      gpuRecovery.setSuspended(document.hidden || document.visibilityState === 'hidden' || gpuRecoveryFrozen || gpuRecoveryCached);
+      gpuRecovery.setSuspended(
+        (typeof document !== 'undefined' && (document.hidden || document.visibilityState === 'hidden'))
+        || gpuRecoveryFrozen || gpuRecoveryCached);
       if (!gpuRecovery.snapshot().active && !gpuRecovery.fallbackTicket()) return;
       // Only explicit external-source waits may pause frame monitoring. GPU
       // preparation itself remains timed, even during a project replacement.
