@@ -57,6 +57,37 @@ def build_outer_land_mask(countries_path: Path, lakes_path: Path, size: tuple[in
     return Image.frombytes('L', size, result.stdout)
 
 
+def resize_physical(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """Apply the shared Pillow-compatible Lanczos filter to physical RGB or L sources."""
+    if image.mode not in ('RGB', 'L'):
+        raise ValueError(f'Unsupported physical source mode: {image.mode}')
+    header = struct.pack('<8sIIII', b'PDPRES01', *image.size, *size)
+    process = subprocess.Popen(['node', str(Path(__file__).resolve().parent / 'gis' / 'terrain-preview-native.mjs'), '--physical-resize'],
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    try:
+        process.stdin.write(header)
+        for y in range(image.height):
+            with image.crop((0, y, image.width, y + 1)) as row, row.convert('RGB') as rgb:
+                process.stdin.write(rgb.tobytes())
+        process.stdin.close()
+        pixels = process.stdout.read()
+        process.stdout.close()
+        if process.wait(timeout=1800):
+            raise RuntimeError('Native physical resize failed')
+    except BaseException:
+        process.kill()
+        process.wait()
+        raise
+    if len(pixels) != size[0] * size[1] * 3:
+        raise ValueError('Native physical resize dimensions differ')
+    output = Image.frombytes('RGB', size, pixels)
+    if image.mode == 'L':
+        gray = output.getchannel(0)
+        output.close()
+        return gray
+    return output
+
+
 class NativeTileProcess:
     """Reuse a source-verified native process for all tiles in a level."""
     def __init__(self, script: Path, *arguments: str):
@@ -159,9 +190,9 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path, *,
             gray = source_gray
             land_mask = source_land_mask
         else:
-            land = source_land.resize((width, height), Image.Resampling.LANCZOS)
-            ocean = source_ocean.resize((width, height), Image.Resampling.LANCZOS)
-            gray = source_gray.resize((width, height), Image.Resampling.LANCZOS)
+            land = resize_physical(source_land, (width, height))
+            ocean = resize_physical(source_ocean, (width, height))
+            gray = resize_physical(source_gray, (width, height))
             land_mask = source_land_mask.resize((width, height), Image.Resampling.NEAREST)
         level_dir = terrain_dir / str(level_index)
         level_dir.mkdir(exist_ok=True)

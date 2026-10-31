@@ -1,5 +1,6 @@
 // DEM-derived preview pixels; no source files or map assets are modified.
 #include "land-mask.h"
+#include "../map-image/resample.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -101,12 +102,26 @@ void physicalCompositeStream(){
         if(!std::cout)throw std::runtime_error("Unable to write physical composite");
     }
 }
+void physicalResize(){
+    Bytes header(24);std::cin.read(reinterpret_cast<char*>(header.data()),24);
+    if(std::cin.gcount()!=24||std::memcmp(header.data(),"PDPRES01",8)!=0)throw std::invalid_argument("Invalid physical resize header");
+    const auto width=u32(header,8),height=u32(header,12),outWidth=u32(header,16),outHeight=u32(header,20);
+    if(!width||!height||!outWidth||!outHeight||width>30000||height>30000||outWidth>width||outHeight>height||
+       std::uint64_t(width)*height>240000000)throw std::invalid_argument("Invalid physical resize dimensions");
+    Bytes input(std::size_t(width)*height*3);
+    std::cin.read(reinterpret_cast<char*>(input.data()),static_cast<std::streamsize>(input.size()));
+    if(static_cast<std::size_t>(std::cin.gcount())!=input.size())throw std::invalid_argument("Truncated physical resize input");
+    const auto output=pando::map_image::resizePhysicalRgb(input,width,height,outWidth,outHeight);
+    std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+    if(!std::cout)throw std::runtime_error("Unable to write physical resize");
+}
 }
 int main(int argc,char** argv){
 #ifdef _WIN32
     _setmode(_fileno(stdin),_O_BINARY);_setmode(_fileno(stdout),_O_BINARY);
 #endif
     try{if(argc==2&&std::string(argv[1])=="physical-composite-stream"){physicalCompositeStream();return 0;}
+        if(argc==2&&std::string(argv[1])=="physical-resize"){physicalResize();return 0;}
         const bool mask=argc==2&&std::string(argv[1])=="mask";
         if(argc!=1&&!mask)throw std::invalid_argument("Invalid terrain preview operation");
         Bytes input;std::array<char,65536> buffer{};

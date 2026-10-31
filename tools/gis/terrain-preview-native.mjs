@@ -6,6 +6,7 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainPreviewSources=Object.freeze(['tools/cpp/terrain/CMakeLists.txt','tools/cpp/terrain/preview.cpp','tools/cpp/terrain/land-mask.cpp',
+  'tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
   'tools/cpp/terrain/land-mask.h','tools/cpp/map-image/raster-draw.h','shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
 function terrainBinary({root=defaultRoot,directory=process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY||resolve(root,'build-native/terrain-preview/artifact')}={}){
   const executable=process.platform==='win32'?'pando-terrain-preview.exe':'pando-terrain-preview';
@@ -46,8 +47,8 @@ export async function rasterizeNativeTerrainLand({countries,x,y,width,height,lev
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length===3&&process.argv[2]==='--physical-composite-stream'){
-      const child=spawn(terrainBinary(),['physical-composite-stream'],{stdio:['pipe','pipe','inherit'],windowsHide:true});
+    if(process.argv.length===3&&['--physical-composite-stream','--physical-resize'].includes(process.argv[2])){
+      const child=spawn(terrainBinary(),[process.argv[2].slice(2)],{stdio:['pipe','pipe','inherit'],windowsHide:true});
       child.stdin.on('error',error=>{if(error.code!=='EPIPE')child.kill();});
       child.stdout.pipe(process.stdout,{end:false});process.stdin.pipe(child.stdin);
       await new Promise((accept,reject)=>{child.once('error',reject);child.once('close',(code,signal)=>code===0&&!signal?accept():reject(Error('Native physical composite failed')));});
