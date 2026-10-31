@@ -47,7 +47,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
     createRuntimeContext: ({meta}) => ({meta, platform: {}}),
     createPreferencePresentation: () => ({current: {}, apply: noop}),
-    createDiagnosticLog: () => ({snapshot: () => []}),
+    createDiagnosticLog: () => ({snapshot: () => [],push: noop}),
     createTooltipController: () => ({bind: noop}), createBrowserProjectStorage: () => ({}),
     createMapOwners: () => ({workspaceSurfaces: surfaces, physicalResources: {}, territorialLabels: {}}),
     createSelectController: () => ({enhanceAll: noop}),
