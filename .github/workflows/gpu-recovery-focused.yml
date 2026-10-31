@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/gpu-recovery-focused.yml
       - tests/browser/gpu-recovery-foreground.spec.mjs
+      - tests/browser/viewer-recovery-acceptance.spec.mjs
       - shared/frontend/js/modules/gpu-map-renderer.js
       - shared/frontend/js/modules/map-content-presentation.js
       - tests/unit/gpu-scene-presentation-ownership.test.mjs
@@ -19,7 +20,7 @@ concurrency:
 jobs:
   viewer:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,11 +32,11 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: GPU source-level regression
-        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-scene-presentation-ownership.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs
+        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-scene-presentation-ownership.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/startup-performance-contract.test.mjs
       - run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/map-content-presentation.js tests/browser/gpu-recovery-foreground.spec.mjs
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Viewer actual WebGL2 loss and restoration
-        run: pnpm exec playwright test tests/browser/gpu-recovery-foreground.spec.mjs --workers=1 --retries=0
+      - name: Viewer real WebGL1 and WebGL2 repeated restoration, document, selection and map pixels
+        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --workers=1 --retries=0
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -43,5 +44,6 @@ jobs:
           path: |
             test-results/gpu-foreground-evidence
             test-results/gpu-recovery-foreground*
+            gpu-viewer-evidence
           if-no-files-found: warn
           retention-days: 3
