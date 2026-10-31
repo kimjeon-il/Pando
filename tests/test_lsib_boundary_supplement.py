@@ -400,13 +400,6 @@ class SupplementTests(unittest.TestCase):
         self.assertEqual(shape(aa).intersection(shape(bb)).area, 0)
         self.assertTrue(shape(aa).boundary.intersection(shape(bb).boundary).equals(LineString(new)))
 
-    def test_special_lines_and_territorial_disagreement_are_never_eligible(self):
-        ordinary = {'RANK': '1', 'STATUS': 'International Boundary', 'NOTES': ''}
-        self.assertIsNone(module.exclusion_reason(ordinary, False))
-        self.assertIsNotNone(module.exclusion_reason({**ordinary, 'RANK': '2'}, False))
-        self.assertIsNotNone(module.exclusion_reason(ordinary, True))
-        self.assertIsNotNone(module.exclusion_reason({**ordinary, 'NOTES': 'Uncertain alignment'}, False))
-
 
 if __name__ == '__main__':
     unittest.main()

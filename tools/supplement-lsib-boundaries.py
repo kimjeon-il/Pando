@@ -14,6 +14,7 @@ import io
 import json
 from pathlib import Path
 import struct
+import subprocess
 import zipfile
 from collections import defaultdict
 
@@ -257,17 +258,21 @@ def replace_chain(geometry, old, replacement):
     return result
 
 
-def exclusion_reason(properties, disputed):
-    if properties.get('RANK') != '1' or properties.get('STATUS') != 'International Boundary':
-        return 'special-or-separation-line'
-    if disputed:
-        return 'existing-disputed-territory-or-protected-country-pair'
-    note = properties.get('NOTES', '').lower()
-    if any(word in note for word in ('uncertain', 'condominium', 'neutral zone', 'invernada')):
-        return 'uncertain-or-joint-sovereignty'
-    if 'island sovereignty' in note:
-        return 'river-island-sovereignty-needs-independent-review'
-    return None
+def exclusion_reasons(records):
+    """Classify the selected source set once; geometry and records remain unchanged."""
+    script = Path(__file__).with_name('gis') / 'lsib-exclusion.mjs'
+    request = json.dumps([record['properties'] for record in records], allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--stream'], input=request, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('LSIB exclusion classification failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    rows = json.loads(result.stdout)
+    allowed = {None, 'special-or-separation-line', 'existing-disputed-territory-or-protected-country-pair',
+               'uncertain-or-joint-sovereignty', 'river-island-sovereignty-needs-independent-review'}
+    if not isinstance(rows, list) or len(rows) != len(records) or any(
+            not isinstance(row, list) or len(row) != 2 or any(value not in allowed for value in row) for row in rows):
+        raise ValueError('Invalid LSIB exclusion classification receipt')
+    return {id(record): reasons for record, reasons in zip(records, rows)}
 
 
 def component_points(geometry):
@@ -572,9 +577,11 @@ def targeted_candidates(root, output, targets, reference_manifest=None, coast_ma
         entities[code], versions[code], geometries[code] = entity, version, version['geometry']
         hashes[code] = hashlib.sha256(raw_entity).hexdigest()
     references, ids = {}, {}
-    for pair in sorted(required_pairs):
-        selected = [record for record in records if tuple(sorted((record['properties']['CC1_GENC3'], record['properties']['CC2_GENC3']))) == pair]
-        if not selected or any(exclusion_reason(record['properties'], False) for record in selected):
+    selected_by_pair = {pair: [record for record in records if tuple(sorted((record['properties']['CC1_GENC3'],
+                         record['properties']['CC2_GENC3']))) == pair] for pair in sorted(required_pairs)}
+    exclusions = exclusion_reasons([record for selected in selected_by_pair.values() for record in selected])
+    for pair, selected in selected_by_pair.items():
+        if not selected or any(exclusions[id(record)][0] for record in selected):
             raise ValueError(f'Missing or protected reference: {pair}')
         references[pair] = shapely.line_merge(shapely.union_all([shape(record['geometry']) for record in selected]))
         ids[pair] = [record['properties']['ID'] for record in selected]
@@ -716,6 +723,7 @@ def main():
     shp = inner.read(next(n for n in inner.namelist() if n.endswith('.shp')))
     dbf = inner.read(next(n for n in inner.namelist() if n.endswith('.dbf')))
     records = read_shapefile(dbf, shp)
+    exclusions = exclusion_reasons(records)
     json_write(evidence / 'line-index.json', [{'properties':r['properties'],'bbox':r['line'].bounds} for r in records])
     readme = next(n for n in inner.namelist() if 'ReadMe' in n)
     write_library_bytes(evidence / 'upstream-readme.txt',inner.read(readme))
@@ -769,7 +777,7 @@ def main():
             entry['reason'] = 'no-matching-LSIB-country-pair'; report.append(entry); continue
         reviewed.update(r['properties']['ID'] for r in matches)
         disputed = pair in protected_pairs or any(r['line'].intersects(disputed_geometry) for r in matches)
-        reasons = [exclusion_reason(r['properties'], disputed) for r in matches]
+        reasons = [exclusions[id(r)][int(disputed)] for r in matches]
         if any(reasons):
             entry['reason'] = next(r for r in reasons if r); report.append(entry); continue
         reference = shapely.line_merge(shapely.union_all([r['line'] for r in matches]))
@@ -819,7 +827,7 @@ def main():
         props = record['properties']
         if props['ID'] not in reviewed:
             report.append({'countries': sorted((props['CC1_GENC3'], props['CC2_GENC3'])), 'status': 'withheld',
-                           'reason': exclusion_reason(props, False) or 'no-existing-shared-country-chain',
+                           'reason': exclusions[id(record)][0] or 'no-existing-shared-country-chain',
                            'label': props['LABEL'], 'notes': props['NOTES'], 'sourceLineIds': [props['ID']]})
     changes = []
     for code in sorted(changed):
