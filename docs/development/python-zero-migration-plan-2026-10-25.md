@@ -108,7 +108,11 @@
 
   물리 지형의 외곽 육지 마스크는 기존 C++ 지형 마스크 정본으로 옮겨 국가·호수 외곽을 채우고 내부 구멍을 채우는 기존 동작을 유지했다. 날짜변경선 밖의 부분 픽셀을 제외하는 회귀 사례와 기존 생성기 호출은 [Windows/Linux CI 41165232582](https://github.com/kimjeon-il/Pando/actions/runs/41165232582)에서 통과했다. 선택한 실제 국가 3개와 호수 2개의 720×360 마스크 259,200픽셀은 Python과 일치하며 SHA-256은 `cc6046314e28b654e07e53e38acf5116ea7b9578e59ab5e5116b34fc078f5d31`이다. 전체 국가·호수 재생성 및 물리 지형 타일 전환을 검증한 것은 아니다.
 
-  물리 타일의 육지·해저 마스크 합성, RGBA 조립과 1픽셀 gutter는 같은 네이티브 지형 도구에 묶고, 한 단계의 타일에서 검증된 프로세스 하나를 재사용한다. 알파 0–255, 극지·날짜변경선·타일 모서리의 Pillow 고정 픽셀, 연속 요청·잘린 입력·기존 생성기 호출은 [Windows/Linux CI 41166268426](https://github.com/kimjeon-il/Pando/actions/runs/41166268426)에서 확인했다. 실제 21,600×10,800 원본과 전체 타일의 비교, 리샘플링·WebP 출력 및 전체 생성기 전환은 아직 하지 않았다.
+  물리 타일의 육지·해저 마스크 합성, RGBA 조립과 1픽셀 gutter는 같은 네이티브 지형 도구에 묶고, 한 단계의 타일에서 검증된 프로세스 하나를 재사용한다. 알파 0–255, 극지·날짜변경선·타일 모서리의 Pillow 고정 픽셀, 연속 요청·잘린 입력·기존 생성기 호출은 [Windows/Linux CI 41166268426](https://github.com/kimjeon-il/Pando/actions/runs/41166268426)에서 확인했다.
+
+  WebP 저장은 기존 공통 C++ 인코더로 전환하고 RGB·L 래스터의 Lanczos 크기 조정은 같은 공통 계산을 재사용하도록 연결했다. 다른 모드는 명시적으로 거부한다. 작은 2단계 전체 생성과 투명 픽셀·원본 및 기존 출력 보존, RGB/L 고정 리샘플링은 [Windows/Linux CI 41167139738](https://github.com/kimjeon-il/Pando/actions/runs/41167139738)에서 기존 Python 픽셀과 대조했다. WebP 인코더 설정이 달라 인코딩 파일의 전체 바이트 일치는 보장하지 않는다. 실제 21,600×10,800 TIFF의 색상 모드와 타일 비교, 대형 입력 성능, 전체 생성기의 Python 제거는 아직 확인하지 않았다.
+
+  공통 영상 소스 변경에 따라 기존 비공개 Map Toolkit `0.6.5`를 코드 `545b529fd00da4ccbefa532d71582657664ae317`으로 갱신하고 계정의 릴리스 파일 257개를 실제 다운로드와 해시로 검증했다. 세부 범위와 남은 원본 검증은 독립 보고서 `reports/development/integrations/python-zero-remaining-2026-10-28/physical-terrain-resize-plugin.md`에 기록했다.
 
   기존 물리 자료 생성기의 Natural Earth 수계 벡터 판독·속성·manifest 생성은 Node와 GDAL로 이전했다. 8개 합성 SHP에서 분리 선, 폴리곤 구멍, 다중 외곽, 한글 DBF, 빈 형상, 좌표 순서와 기존 Python 결과의 의미가 일치했고 기존 출력 덮어쓰기 및 원본 폴더 내부 출력은 거부한다. JSON 숫자 인코딩 차이로 출력 해시는 이전 Python과 다를 수 있다. [Windows/Linux CI 41164659641](https://github.com/kimjeon-il/Pando/actions/runs/41164659641)에서 해당 합성 자료와 기존 생성기의 호출을 확인했다. 실제 Natural Earth SHP 비교와 물리 지형 타일 생성기 전환은 아직 미완료이며 기존 Python 실행 경로는 지형 생성에 남는다.
 
