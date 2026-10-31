@@ -49,3 +49,60 @@ test('a presented frame commits its month once before background opening work fi
  assert.equal(clock.month(),'1953-06');
  commit();release(true);await latest;assert.equal(clock.month(),'1953-08');
 });
+
+
+test('P3-1 a same-task burst dispatches only its final month and commits once',async()=>{
+ const reads=[],commits=[];
+ const clock=createBuiltinMonthClock({coalesceRequests:true,
+  onCommitted:month=>commits.push(month),applyMonth:async(month,{isCurrent,commit})=>{
+   reads.push(month);if(isCurrent())commit();return true;
+  }});
+ const first=clock.selectMonth('2025-12'),second=clock.selectMonth('2024-12'),last=clock.selectMonth('2023-12');
+ assert.deepEqual(reads,[],'same-task earlier intents must not start I/O or Core work');
+ assert.equal(await first,false);assert.equal(await second,false);assert.equal(await last,true);
+ assert.deepEqual(reads,['2023-12']);assert.deepEqual(commits,['2023-12']);
+ assert.equal(clock.month(),'2023-12');clock.dispose();
+});
+
+test('P3-1 latest request wins even if an older Core-bound operation is suspended',async()=>{
+ const started=[],commits=[],pending=new Map();
+ const clock=createBuiltinMonthClock({coalesceRequests:true,
+  onCommitted:month=>commits.push(month),applyMonth:(month,{isCurrent,commit})=>{
+   started.push(month);
+   return new Promise((resolve,reject)=>pending.set(month,{finish:()=>{if(isCurrent())commit();resolve(isCurrent());},reject}));
+  }});
+ const old=clock.selectMonth('2025-12');await Promise.resolve();
+ assert.deepEqual(started,['2025-12']);
+ const middle=clock.selectMonth('2024-12'),latest=clock.selectMonth('2023-12');
+ assert.equal(await middle,false);
+ await Promise.resolve();assert.deepEqual(started,['2025-12','2023-12']);
+ pending.get('2023-12').finish();assert.equal(await latest,true);
+ pending.get('2025-12').finish();assert.equal(await old,false);
+ assert.deepEqual(commits,['2023-12']);assert.equal(clock.month(),'2023-12');
+ const fail=clock.selectMonth('2022-12');await Promise.resolve();
+ pending.get('2022-12').reject(new Error('offline'));
+ await assert.rejects(fail,/offline/);assert.equal(clock.month(),'2023-12');
+ clock.dispose();
+});
+
+test('P3-1 a suspended or disposed viewer cannot start an unflushed source request',async()=>{
+ const requests=[];
+ const clock=createBuiltinMonthClock({coalesceRequests:true,now:()=>new Date(2026,9,31),
+  applyMonth:async month=>{requests.push(month);return true;}});
+ const inFlight=clock.followNow(),resume=clock.suspend();
+ assert.equal(await inFlight,false);assert.deepEqual(requests,[]);
+ assert.equal(resume(),true);const fresh=clock.followNow();
+ assert.equal(await fresh,true);assert.deepEqual(requests,['2026-10']);
+ const late=clock.selectMonth('2025-12');clock.dispose();
+ assert.equal(await late,false);assert.deepEqual(requests,['2026-10']);
+});
+
+test('P3-1 automatic same-month refresh shares the pending request without extra source loads',async()=>{
+ let release;const reads=[];
+ const clock=createBuiltinMonthClock({coalesceRequests:true,now:()=>new Date(2026,9,31),
+  applyMonth:month=>{reads.push(month);return new Promise(resolve=>{release=resolve;});}});
+ const a=clock.refresh(),b=clock.refresh();
+ await Promise.resolve();assert.deepEqual(reads,['2026-10']);
+ release(true);assert.deepEqual([await a,await b],[true,true]);
+ assert.equal(clock.month(),'2026-10');clock.dispose();
+});
