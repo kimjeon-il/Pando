@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import math
+import struct
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -75,12 +76,36 @@ def build_outer_land_mask(countries_path: Path, lakes_path: Path, size: tuple[in
     return Image.frombytes('L', size, result.stdout)
 
 
-def combine_land_without_drainages(land: Image.Image, ocean: Image.Image, land_mask: Image.Image) -> Image.Image:
-    """Keep no-drainage land colours and restore bathymetry over the white water background."""
-    land_rgb = land.convert("RGB")
-    combined = Image.composite(land_rgb, ocean.convert("RGB"), land_mask)
-    land_rgb.close()
-    return combined
+class PhysicalCompositor:
+    """Reuse one source-verified native process for all tiles in a level."""
+    def __enter__(self):
+        self.process = subprocess.Popen(['node', str(Path(__file__).resolve().parent / 'gis' / 'terrain-preview-native.mjs'),
+                                         '--physical-composite-stream'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        return self
+
+    def combine(self, land: Image.Image, ocean: Image.Image, land_mask: Image.Image) -> Image.Image:
+        if land.size != ocean.size or land.size != land_mask.size:
+            raise ValueError('Physical composite image dimensions differ')
+        width, height = land.size
+        with land.convert('RGB') as land_rgb, ocean.convert('RGB') as ocean_rgb, land_mask.convert('L') as mask:
+            self.process.stdin.write(struct.pack('<8sII', b'PDPCMP01', width, height))
+            for image in (land_rgb, ocean_rgb, mask):
+                self.process.stdin.write(image.tobytes())
+            self.process.stdin.flush()
+        result = self.process.stdout.read(width * height * 3)
+        if len(result) != width * height * 3:
+            raise RuntimeError('Native physical composite returned incomplete pixels')
+        return Image.frombytes('RGB', (width, height), result)
+
+    def __exit__(self, kind, value, traceback):
+        try:
+            self.process.stdin.close()
+        except BrokenPipeError:
+            pass
+        self.process.stdout.close()
+        status = self.process.wait(timeout=180)
+        if status and kind is None:
+            raise RuntimeError(f'Native physical composite failed: {status}')
 
 
 def build_terrain(source_root: Path, output_root: Path, countries_path: Path) -> dict[str, Any]:
@@ -115,23 +140,24 @@ def build_terrain(source_root: Path, output_root: Path, countries_path: Path) ->
         level_dir.mkdir(exist_ok=True)
         columns = math.ceil(width / TILE_SIZE)
         rows = math.ceil(height / TILE_SIZE)
-        for row in range(rows):
-            for column in range(columns):
-                box = (
-                    column * TILE_SIZE,
-                    row * TILE_SIZE,
-                    min(width, (column + 1) * TILE_SIZE),
-                    min(height, (row + 1) * TILE_SIZE),
-                )
-                land_tile = crop_with_gutter(land, box)
-                ocean_tile = crop_with_gutter(ocean, box)
-                land_mask_tile = crop_with_gutter(land_mask, box)
-                rgb = combine_land_without_drainages(land_tile, ocean_tile, land_mask_tile)
-                relief = crop_with_gutter(gray, box).convert("L")
-                red, green, blue = rgb.split()
-                packed = Image.merge("RGBA", (red, green, blue, relief))
-                packed.save(level_dir / f"{column}-{row}.webp", "WEBP", lossless=True, method=4, exact=True)
-                land_tile.close(); ocean_tile.close(); land_mask_tile.close(); rgb.close(); relief.close(); red.close(); green.close(); blue.close(); packed.close()
+        with PhysicalCompositor() as compositor:
+            for row in range(rows):
+                for column in range(columns):
+                    box = (
+                        column * TILE_SIZE,
+                        row * TILE_SIZE,
+                        min(width, (column + 1) * TILE_SIZE),
+                        min(height, (row + 1) * TILE_SIZE),
+                    )
+                    land_tile = crop_with_gutter(land, box)
+                    ocean_tile = crop_with_gutter(ocean, box)
+                    land_mask_tile = crop_with_gutter(land_mask, box)
+                    rgb = compositor.combine(land_tile, ocean_tile, land_mask_tile)
+                    relief = crop_with_gutter(gray, box).convert("L")
+                    red, green, blue = rgb.split()
+                    packed = Image.merge("RGBA", (red, green, blue, relief))
+                    packed.save(level_dir / f"{column}-{row}.webp", "WEBP", lossless=True, method=4, exact=True)
+                    land_tile.close(); ocean_tile.close(); land_mask_tile.close(); rgb.close(); relief.close(); red.close(); green.close(); blue.close(); packed.close()
         levels.append({
             "id": level_index,
             "width": width,
