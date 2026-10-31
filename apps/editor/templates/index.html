@@ -315,7 +315,12 @@
             <div class="editor-country-area" aria-hidden="true" hidden><strong id="entityAreaValue">—</strong></div>
             <section class="editor-section editor-info-section editor-section-primary" aria-label="정보">
               <div class="ui-field field-group editor-field"><label for="entityNameInput">이름</label><input id="entityNameInput" type="text" autocomplete="off" /></div>
-              <dl id="entityNameDetails" class="editor-name-details" aria-label="시점별 명칭" hidden></dl>
+              <details id="entityNameDetailsDisclosure" class="ui-disclosure editor-disclosure" hidden>
+                <summary><span>명칭 상세</span><svg class="ui-icon disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-down"/></svg></summary>
+                <div class="editor-disclosure-body">
+                  <dl id="entityNameDetails" class="editor-name-details" aria-label="시점별 명칭" hidden></dl>
+                </div>
+              </details>
               <div class="ui-field field-group editor-field ui-color-picker" data-color-picker="entity">
                 <label id="entityColorLabel">색상</label>
                 <button id="entityColorTrigger" class="ui-button ui-color-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="entityColorPopover" aria-labelledby="entityColorLabel entityColorValue">
@@ -328,7 +333,7 @@
                   <button class="ui-button btn ghost ui-color-custom" type="button" data-color-custom>사용자 지정</button>
                 </div>
               </div>
-              <div class="ui-field field-group editor-field"><label for="entityPeriodInput">존속기간</label><input id="entityPeriodInput" type="text" autocomplete="off" /></div>
+              <div class="ui-field field-group editor-field"><label for="entityPeriodInput">존속기간</label><input id="entityPeriodInput" type="text" autocomplete="off" placeholder="시작일 ~ 종료일" /></div>
               <div class="ui-field field-group editor-field"><label for="entityNotesInput">비고</label><textarea id="entityNotesInput" rows="5"></textarea></div>
             </section>
             <section class="editor-section editor-action-section" aria-label="편집"><div class="editor-action-list">

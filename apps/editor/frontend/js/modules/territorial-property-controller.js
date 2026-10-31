@@ -126,7 +126,15 @@ export function createTerritorialPropertyController({
     const properties = view.feature.properties;
     const general = properties.entityKind === 'general', nested = general && !!properties.parentId;
     elements.name.value = view.displayName;
-    presentTerritorialNames(document,$('entityNameDetails'),properties.metadata.nameDetails);
+    const nameDetails = $('entityNameDetails');
+    const nameDisclosure = $('entityNameDetailsDisclosure');
+    presentTerritorialNames(document, nameDetails, properties.metadata.nameDetails);
+    if (nameDisclosure) {
+      // Preserve an opened disclosure on a refresh; reset it for another entity
+      // or when there are no names to disclose.
+      if (activeRef?.key !== view.ref.key || nameDetails.hidden) nameDisclosure.open = false;
+      nameDisclosure.hidden = nameDetails.hidden;
+    }
     elements.notes.value = properties.notes;
     $('entityPeriodInput').value = formatTerritorialPeriodInput(properties);
     clearPeriodError();
