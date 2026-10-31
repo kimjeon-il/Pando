@@ -99,6 +99,12 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
       for(const key of Object.keys(manifest.tiles))dataAsset(key,base);
     }
   }
+  const previewMetadataSource=readSource('assets/js/build-meta.js');
+  const previewMetadata=/Object\.freeze\(([\s\S]*)\);\s*$/.exec(previewMetadataSource);
+  if(!previewMetadata)throw Error('Viewer build metadata must be immutable.');
+  const previewSpec=JSON.parse(previewMetadata[1]).initialLandPreview;
+  if(!previewSpec?.url)throw Error('Missing immutable first-map land preview.');
+  dataAsset(previewSpec.url,'assets/data/');
   const html = readSource('index.html');
   for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
     const path = stripQuery(match[1]).replace(/^\.\//, '');

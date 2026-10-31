@@ -200,7 +200,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const selectAt=(point,options={})=>objectPicking.handleObjectSelectionAt(point,{...options,sourceEvent:d3.event}).catch(onError);
 
   const initialPreview=createViewerInitialPreview({element:document.getElementById('viewerInitialPreview'),
-    loadLand:()=>physicalResources.loadPhysicalLandMask(),isInitial:isInitialPresentation,
+    loadLand:()=>physicalResources.loadInitialLandPreview(),isInitial:isInitialPresentation,
     onError:error=>diagnostics.push({category:'initial-preview',errorCode:'PL-MAP-INITIAL-PREVIEW',
       technicalMessage:error.message||String(error),stack:error.stack||''})});
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});

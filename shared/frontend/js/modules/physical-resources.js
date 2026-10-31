@@ -70,6 +70,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   let terrainService;
   let hydroService;
   let physicalLand = null, landLoading = null,physicalAssetLoader=null;
+  let initialPreviewLoading=null;
   function storedPhysicalAssets() {
     if(!physicalAssetLoader)physicalAssetLoader=createStoredAssetLoader({dataRevision:buildMeta.dataRevision,
       resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href});
@@ -212,6 +213,21 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       builtinTimelineView={revision,date,readyKey,active};
     }
     return builtinTimelineView.active.has(timelineObjectKey({domain:'hydroBuiltin',id:String(feature.properties?.pandolab_id||feature.id)}));
+  }
+  function loadInitialLandPreview(){
+    if(!initialPreviewLoading){
+      const source=buildMeta.physicalLand,spec=buildMeta.initialLandPreview;
+      if(!spec?.url||spec.sourceSha256!==source?.sha256)
+        return Promise.reject(new Error('Initial land preview does not match the pinned physical source.'));
+      initialPreviewLoading=storedPhysicalAssets().loadAsset(spec,'background','initial-land-preview','초기 지도 윤곽',buffer=>{
+        const geometry=JSON.parse(new TextDecoder().decode(buffer));
+        if(geometry?.type!=='MultiPolygon'||!Array.isArray(geometry.coordinates)
+          ||geometry.coordinates.length!==spec.polygonCount)throw new Error('Invalid initial land preview geometry.');
+        return geometry;
+      }).then(result=>Object.freeze({geometry:result.value,revision:spec.sha256}));
+      initialPreviewLoading=initialPreviewLoading.catch(error=>{initialPreviewLoading=null;throw error;});
+    }
+    return initialPreviewLoading;
   }
   function loadPhysicalLandMask({notify=true}={}) {
     if (physicalLand) return Promise.resolve(physicalLand);
@@ -449,6 +465,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     connect,
     initializeTerrainService,
     loadPhysicalLandMask,
+    loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
     get physicalContextState() {
