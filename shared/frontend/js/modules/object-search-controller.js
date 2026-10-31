@@ -31,6 +31,9 @@ export function createObjectSearchController({
   let builtinQuery = null;
   let builtinRows = [];
   let builtinTruncated = false;
+  let rowRevision = 0, projectTransition = 0, projectSuspended = false;
+  const currentRow = target => !disposed && !projectSuspended
+    && target?.dataset?.searchRowRevision === String(rowRevision);
 
   const selection = () => model.selectionSnapshot?.().selection || { primaryKey: null, items: [] };
 
@@ -65,6 +68,7 @@ export function createObjectSearchController({
     const row = document.createElement('div');
     row.className = 'object-search-result ui-selectable-row';
     row.dataset.objectKey = item.key;
+    row.dataset.searchRowRevision = String(rowRevision);
     row.setAttribute('role', 'option');
     row.setAttribute('aria-selected', String(selected));
     row.classList.toggle('is-selected', selected);
@@ -75,6 +79,7 @@ export function createObjectSearchController({
     select.className = 'ui-button object-search-result-select';
     select.dataset.objectSearchSelect = item.layerGroup;
     select.dataset.itemId = item.id;
+    select.dataset.searchRowRevision = String(rowRevision);
     select.setAttribute('aria-label', item.name);
     const name = document.createElement('strong');
     name.textContent = item.name;
@@ -87,6 +92,7 @@ export function createObjectSearchController({
     focus.className = 'ui-button icon-btn object-search-focus-action';
     focus.dataset.objectSearchFocus = item.layerGroup;
     focus.dataset.itemId = item.id;
+    focus.dataset.searchRowRevision = String(rowRevision);
     focus.dataset.tooltip = '선택 객체로 이동';
     focus.setAttribute('aria-label', `${item.name} 선택 객체로 이동`);
     const focusIcon = createIcon?.('focus', 'ui-icon');
@@ -112,6 +118,7 @@ export function createObjectSearchController({
       preparation: 'search-rows-v1', context: null, presentation: resourceKey([query, builtinTruncated]) };
     if (!resourceUpdate(renderedDependencies, next).present) { syncSelection(); return false; }
     const results = elements.searchResults;
+    rowRevision++;
     results.replaceChildren();
     renderedSearchRefs = rows.map(item => item.ref).filter(Boolean);
     if (query && rows.length) { results.append(...rows.map(rowFor)); if (builtinTruncated) results.append(createEmptyState('검색 결과를 일부 표시했습니다.', '이름의 앞부분을 더 입력해 범위를 좁히세요.')); }
@@ -155,7 +162,7 @@ export function createObjectSearchController({
   }
 
   function render() {
-    if (disposed) return false;
+    if (disposed || projectSuspended) return false;
     const snapshot = model.snapshot();
     const query = String(snapshot.search || '').trim();
     const results = elements.searchResults;
@@ -199,6 +206,7 @@ export function createObjectSearchController({
   }
 
   function selectResult(target, event) {
+    if (!currentRow(target)) return;
     const group = target.dataset.objectSearchSelect;
     const id = target.dataset.itemId;
     if (!group || !id) return;
@@ -215,6 +223,7 @@ export function createObjectSearchController({
   }
 
   function focusResult(target) {
+    if (!currentRow(target)) return;
     const group = target.dataset.objectSearchFocus;
     const id = target.dataset.itemId;
     if (!group || !id) return;
@@ -227,11 +236,13 @@ export function createObjectSearchController({
     elements.searchResults?.addEventListener('pointerover', event => {
       if (event.pointerType === 'touch') return;
       const row = hoverRow(event);
-      if (row && !row.contains(event.relatedTarget)) commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, true);
+      if (currentRow(row) && !row.contains(event.relatedTarget))
+        commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, true);
     });
     elements.searchResults?.addEventListener('pointerout', event => {
       const row = hoverRow(event);
-      if (row && !row.contains(event.relatedTarget)) commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, false);
+      if (currentRow(row) && !row.contains(event.relatedTarget))
+        commands.hoverItem?.(row.dataset.objectSearchSelect, row.dataset.itemId, false);
     });
     elements.search?.addEventListener('input', event => {
       searchGeneration += 1;
@@ -274,8 +285,47 @@ export function createObjectSearchController({
     if (model.snapshot().searchSurfaceOpen === false) commands.clearSearchHover();
   }
 
+  // The old map remains visible while a new C++ snapshot is prepared. Keep
+  // its search rows visible but inert; they cannot select a disappearing ID
+  // after Core admission or act on a superseded project generation.
+  function beginProjectTransition() {
+    if (disposed) return null;
+    const ticket = ++projectTransition;
+    projectSuspended = true;
+    rowRevision++;
+    cancelSearch();
+    if (elements.searchResults) {
+      elements.searchResults.inert = true;
+      elements.searchResults.setAttribute('aria-busy', 'true');
+    }
+    return ticket;
+  }
+
+  function endProjectTransition(ticket) {
+    if (disposed || !projectSuspended || ticket !== projectTransition) return false;
+    projectSuspended = false;
+    if (elements.searchResults) {
+      elements.searchResults.inert = false;
+      elements.searchResults.setAttribute('aria-busy', 'false');
+    }
+    renderedDependencies = null;
+    renderedSearchRefs = [];
+    builtinQuery = null;
+    builtinRows = [];
+    builtinTruncated = false;
+    // Reconcile a visible query immediately after accepted map publication.
+    // Post-hydration may still be pending, but no retired country can remain.
+    return String(model.snapshot().search || '').trim() ? render() : true;
+  }
+
   function dispose() {
     disposed = true;
+    projectSuspended = false;
+    projectTransition++;
+    if (elements.searchResults) {
+      elements.searchResults.inert = false;
+      elements.searchResults.setAttribute('aria-busy', 'false');
+    }
     searchGeneration += 1;
     cancelBuiltinSearch();
     builtinRows = [];
@@ -283,7 +333,8 @@ export function createObjectSearchController({
     window.clearTimeout(searchTimer);
   }
 
-  return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration, cancelSearch, dispose });
+  return Object.freeze({ bind, render, syncSelection, syncLocks, beginHydration, completeHydration,
+    cancelSearch, beginProjectTransition, endProjectTransition, dispose });
 }
 
 const searchNameCollator=new Intl.Collator('ko',{numeric:true,sensitivity:'base'});

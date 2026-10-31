@@ -1,0 +1,46 @@
+name: Viewer P4-4 country membership consistency
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/modules/object-search-controller.js
+      - shared/frontend/js/modules/territorial-entity-store.js
+      - apps/viewer/js/modules/viewer-composition.js
+      - tests/unit/viewer-country-membership-p4-4.test.mjs
+      - tests/browser/viewer-country-membership-p4-4.spec.mjs
+      - .github/workflows/viewer-membership-p4-4.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p4-4-work-ui
+  cancel-in-progress: true
+jobs:
+  membership:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Lint affected ownership and tests
+        run: pnpm exec eslint shared/frontend/js/modules/object-search-controller.js shared/frontend/js/modules/territorial-entity-store.js apps/viewer/js/modules/viewer-composition.js tests/unit/viewer-country-membership-p4-4.test.mjs tests/browser/viewer-country-membership-p4-4.spec.mjs
+      - name: Membership, search and prior property-only contracts
+        run: node --test tests/unit/viewer-country-membership-p4-4.test.mjs tests/unit/object-search-controller.test.mjs tests/unit/territorial-property-only-p4-3.test.mjs tests/unit/viewer-initial-composition.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Born and dissolved country browser acceptance
+        run: pnpm exec playwright test tests/browser/viewer-country-membership-p4-4.spec.mjs --workers=1
+      - name: Keep failure trace only
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p4-4-country-membership-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

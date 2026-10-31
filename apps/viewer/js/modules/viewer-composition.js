@@ -35,6 +35,7 @@ import { DISTRIBUTION_RENDER_MODES } from "../../../../shared/frontend/js/module
 import { createSurfaceController } from "../../../../shared/frontend/js/modules/surface-controller.js";
 import { createPreferencesDialog } from "../../../../shared/frontend/js/modules/preferences-dialog.js";
 import {createBuiltinMonthClock} from "../../../../shared/frontend/js/modules/builtin-month-clock.js";
+import {territorialMembershipDelta} from "../../../../shared/frontend/js/modules/territorial-entity-store.js";
 
 export async function composeViewer({ productMode, meta }) {
   const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url)});
@@ -151,7 +152,16 @@ export async function composeViewer({ productMode, meta }) {
       adjacentPrefetch.interrupt();
       if(builtinActive)return builtinClock.selectMonth(month);
       const current=activeSession;if(projectDomain.isOpening()||!current)throw new Error('지도를 여는 중입니다.');
-      try {await current.commandOwner.setTimelineCursor(month);await map.update();search();syncStatus();}
+      try {
+        const previous=map.features();
+        await current.commandOwner.setTimelineCursor(month);
+        if(territorialMembershipDelta(previous,map.features()).changed){
+          // C++ owns the selected refs; prune before publishing a changed
+          // membership so extinct IDs cannot remain selected or in view prefs.
+          await map.objectCatalog.pruneLayerItemVisibility();
+        }
+        await map.update();search();syncStatus();
+      }
       catch(error){if(current===activeSession&&!projectDomain.isOpening())throw error;}
     },
   });
@@ -159,6 +169,7 @@ export async function composeViewer({ productMode, meta }) {
   const open=async (reader,options)=>{
     adjacentPrefetch.interrupt();
     postPresentation.invalidate();
+    const searchTicket=searchController.beginProjectTransition?.();
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
@@ -187,6 +198,16 @@ export async function composeViewer({ productMode, meta }) {
       status.dataset.ready=String(initialPresentation.hasPresented());
       presentViewerLoadStatus(status,'지도를 불러오지 못했습니다.');throw error;
     }return false;}
+    finally {
+      // Search never owns map readiness: a failed optional refresh cannot
+      // roll back an accepted frame. Tickets prevent an older read from
+      // releasing another request's disabled result rows.
+      if(searchTicket!=null)try{searchController.endProjectTransition?.(searchTicket);}
+      catch(error){
+        diagnostics.push({category:'viewer-membership-search',errorCode:'PL-VIEWER-MEMBERSHIP-001',
+          technicalMessage:error?.message||String(error)});
+      }
+    }
   };
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
   builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:async(month,{isCurrent,commit})=>{
