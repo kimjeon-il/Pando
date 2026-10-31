@@ -48,6 +48,18 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   await expect(page.locator('#hydroNotesInput')).toBeVisible();
   await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.locator('#focusSelectedObjectBtn').click();
+  await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#hydroVerticesBtn')).toBeVisible();
+  await page.locator('#hydroVerticesBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('수계 좌표 편집');
+  await expect(page.locator('#modeTaskStage')).toHaveText('정점 이동');
+  await expect(page.locator('#modeTaskTargetSummary')).toHaveText('메타데이터 검증 강');
+  await expect(page.locator('#modeTaskViewTime')).toBeHidden();
+  await expect(page.locator('#modeTaskAffectedSummary')).toBeHidden();
+  await expect(page.locator('#modePrimaryBtn')).toHaveText('좌표 편집 완료');
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeActionBar')).toBeHidden();
+  await page.locator('#editorTabBtn').click();
   await page.addStyleTag({ content: '#map .map-selection-outline, #map .map-selection-fill, #map .object-edit-outline { visibility: hidden !important; }' });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditBatchCount)).toBe(1);
   const originalColor = await page.locator('#hydroColorInput').inputValue();

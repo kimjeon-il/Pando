@@ -203,3 +203,20 @@ test('ordinary creation retains its existing setup label and no annex card',()=>
   const view=taskWorkflowPresentation({tool:selection.tool,territorySelectionSession:selection,geometryPreview:{session:null}},model);
   assert.deepEqual([view.stage,view.step,view.total,view.cards.length],['객체 정보',1,3,0]);
 });
+
+test('hydro vertex editing shows its own stage and selected target without mutating geometry state', () => {
+  const state = { tool: 'select', geometryPreview: { session: null } };
+  const editing = { objectVertexEditing: { domain: 'hydro', type: 'river', id: 'river-1' } };
+  const before = structuredClone({ state, editing });
+  const context = editingContextPresentation({
+    state, editing, month: '2026-10', targets: [{ name: '실제 강' }], mobile: true,
+  });
+  assert.equal(context.stage, '좌표 편집');
+  assert.equal(context.targetSummary, '실제 강');
+  assert.equal(context.period, '변경 기간 계산 전', 'do not fabricate an impact period');
+  assert.equal(shouldShowTaskInputInstruction({ state, editing, mobile: true }), true);
+  assert.equal(shouldShowTaskInputInstruction({ state, editing, mobile: false }), false);
+  assert.deepEqual({ state, editing }, before);
+  assert.equal(editingContextPresentation({ state, targets: [{ name: '실제 강' }] }).stage, '초안',
+    'other tool workflows retain their stage');
+});

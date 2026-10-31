@@ -571,10 +571,12 @@ export function createTaskPresentation() {
   function syncEditingContext() {
     const state = dependencies.projectState.state;
     const targetRefs = currentTaskTargets();
+    const editing=dependencies.domains.editingDomain.snapshot();
+    const hydroVertexEditing = editing.objectVertexEditing?.domain === 'hydro';
     const targets = targetRefs.map(displayObject);
+    if (hydroVertexEditing && !targets.length) targets.push(displayObject(editing.objectVertexEditing));
     const preview = state.geometryPreview.session;
     const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
-    const editing=dependencies.domains.editingDomain.snapshot();
     const month = dependencies.domains.projectDomain.state()?.timelineCursor;
     const draft = dependencies.draftPresentation.editingDraftSnapshot();
     const mobile = dependencies.surfaces.isMobile();
@@ -597,8 +599,9 @@ export function createTaskPresentation() {
     const borderBeforeReview = !preview && state.tool === 'territorial-border'
       && ['selecting', 'editing'].includes(state.boundaryEditPhase);
     const coastBeforeReview = !preview && state.tool === 'country-coast';
+    const hydroVertexBeforeReview = !preview && hydroVertexEditing;
     dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
-      annexBeforeReview || entityBeforeReview || splitBeforeReview || redrawBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview);
+      annexBeforeReview || entityBeforeReview || splitBeforeReview || redrawBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview || hydroVertexBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
     const showInput = shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
@@ -654,7 +657,7 @@ export function createTaskPresentation() {
         && removedIds.every(id => merge.absorbedIds.includes(id))
         && (preview.temporalImpact || []).every(row => row?.entityId && mergeSet.has(String(row.entityId)))
         && (preview.delta?.objects || []).every(row => row?.ref?.domain === 'territorial' && mergeSet.has(String(row.ref.id)));
-      if (summary.parentElement) summary.parentElement.hidden = !!(duplicateImpact || duplicateMergeImpact);
+      if (summary.parentElement) summary.parentElement.hidden = !!(duplicateImpact || duplicateMergeImpact || hydroVertexBeforeReview);
     }
   }
 
@@ -793,8 +796,9 @@ export function createTaskPresentation() {
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     const taskStep = (0, dependencies.platform.$)('modeTaskStep');
     const taskRoot = (0, dependencies.platform.$)('modeEditingHud');
-    if (taskName) taskName.textContent = dependencies.domains.editingDomain.snapshot().objectVertexEditing?'수계 좌표 편집':view?.name || task.name;
-    if (taskStage) taskStage.textContent = view?.stage || task.stage;
+    const vertexEditing = !!dependencies.domains.editingDomain.snapshot().objectVertexEditing;
+    if (taskName) taskName.textContent = vertexEditing ? '수계 좌표 편집' : view?.name || task.name;
+    if (taskStage) taskStage.textContent = vertexEditing ? '정점 이동' : view?.stage || task.stage;
     const taskSeparator = taskRoot?.querySelector('.mode-task-separator');
     if (taskSeparator) taskSeparator.textContent = '·';
     if (taskStep) {

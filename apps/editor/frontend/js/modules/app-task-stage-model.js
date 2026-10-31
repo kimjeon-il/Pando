@@ -239,7 +239,7 @@ export function editingContextPresentation({state,draft={},month='',targets=[],m
   const calculating=!applying && (state.modeProcessing||selection?.previewPending||selection?.computationPending||state.multiDraft?.previewPending);
   const review=selection?selection.stage==='review':!!preview;
   const setup=selection?.stage==='setup'||(['territorial-border','country-coast'].includes(state.tool)&&state.boundaryEditPhase==='selecting');
-  const stage=applying?'적용 중':calculating?'계산 중':review?'미리보기':setup?'대상 선택':'초안';
+  const stage=applying?'적용 중':calculating?'계산 중':review?'미리보기':setup?'대상 선택':editing.objectVertexEditing?'좌표 편집':'초안';
   const names=targets.map(target=>target.name).filter(Boolean);
   const fallbackTarget = state.tool === 'split-territorial-unit' && state.territorialUnitSplitVirtualSource
     ? '현재 영역' : selection?.name;
