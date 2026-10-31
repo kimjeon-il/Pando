@@ -109,7 +109,9 @@ export function createProjectDomain({
     if(replacing)return Promise.reject(Object.assign(new Error('A project replacement is already requested.'),{ code: 'PL-CORE-STALE' }));
     if(applyAccepted!==undefined && typeof applyAccepted!=='function')return Promise.reject(new TypeError('An accepted platform effect must be a function.'));
     if(viewingPresentation && envelope.commandId==='presentation.apply' && ['visibility','objectVisibility','distributionLayerVisibility','terrainMode','distributionRenderMode','distributionActiveLayer','distributionBoundaryVisible'].includes(envelope.payload.action)) {
-      const result=viewingPresentation(envelope.payload);persistence.queueView();return Promise.resolve(result);
+      const result=viewingPresentation(envelope.payload);
+      if(result?.changed!==false)persistence.queueView();
+      return Promise.resolve(result);
     }
     const expectedGeneration = generation;
     const operation=commandQueue.then(async () => {
