@@ -1,4 +1,4 @@
-import { presentObjectHeading, builtinHydroSourceNotes } from './object-property-presentation.js';
+import { presentObjectHeading, builtinHydroSourceNotes, genericConversionButtonLabel } from './object-property-presentation.js';
 import { isBuiltinPlaceId } from "../../../../../shared/frontend/js/modules/place-contract.js";
 import { resolvePlaceLabelRows } from "../../../../../shared/frontend/js/modules/place-name-display.js";
 import { temporalMonthEnd } from "../../../../../shared/frontend/js/modules/temporal.js";
@@ -227,6 +227,7 @@ export function createObjectPropertyController(runtime = {}) {
     const typeChoice = replaceSelectOptions(typeInput, options, typeInput.value || options[0]?.value, { autoSelectSingle: true });
     typeInput.closest('.field-group')?.classList.toggle('hidden', typeChoice.single);
     const target = $('genericFeatureConvertType').value;
+    $('convertGenericFeatureBtn').textContent = genericConversionButtonLabel(target);
     const countryField = $('genericFeatureConvertParentField');
     const countryOptions = [{ value: '', label: '상위 객체 없음' }, ...territorialEntityRepository.list({ kind: 'general' }).map(country => ({
       value: String(country.id), label: String(country.properties?.name || country.id),
