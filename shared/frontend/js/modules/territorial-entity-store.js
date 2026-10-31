@@ -73,6 +73,17 @@ export function classifyTerritorialPropertyOnly(previous,next){
     labelChangedIds:Object.freeze(labelChangedIds)});
 }
 
+/** Canonical membership changes; derived metadata never substitutes for the C++ projection. */
+export function territorialMembershipDelta(previous,next){
+  if(!Array.isArray(previous)||!Array.isArray(next))
+    throw new TypeError('Accepted territorial projections are required.');
+  const oldIds=new Set(previous.map(row=>String(row.id)));
+  const newIds=new Set(next.map(row=>String(row.id)));
+  const addedIds=Object.freeze([...newIds].filter(id=>!oldIds.has(id)));
+  const removedIds=Object.freeze([...oldIds].filter(id=>!newIds.has(id)));
+  return Object.freeze({addedIds,removedIds,changed:addedIds.length>0||removedIds.length>0});
+}
+
 /** Empty detached startup input; C++ admits it before editable data is loaded. */
 export function createEmptyTerritorialState() {
   const geometries=Object.freeze([]);
