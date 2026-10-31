@@ -22,6 +22,9 @@ test('GDAL DEM windows preserve area averaging, wrap, polar clamp and NoData',{s
   }
   const strict=spawnSync(binary,[join(root,'valid.tif'),'4','2','0','0','2','1','--strict-etopo'],{timeout:20000});
   assert.notEqual(strict.status,0);assert.equal(strict.stdout.length,0);
+  const expected=spawnSync(binary,['tests/fixtures/terrain-dem-etopo-sparse.tif','43200','21600','0','0','2','2','--strict-etopo'],{timeout:20000});
+  assert.equal(expected.status,0,String(expected.stderr));assert.equal(expected.stdout.length,16);
+  assert.deepEqual(Array.from({length:4},(_,index)=>expected.stdout.readFloatLE(index*4)),[100,-20,350,25]);
 });
 test('DEM window manager verifies the native artifact and requires explicit source bounds',
   {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY},async t=>{
@@ -34,6 +37,8 @@ test('DEM window manager verifies the native artifact and requires explicit sour
     const reader=await createNativeDemWindowReader({source,width:row.width,height:row.height,strict:false});
     try{for(let i=0;i<2;i++)assert.deepEqual(await reader.read(row.box),bytes);}finally{await reader.close();}
     await assert.rejects(reader.read(row.box),/closed/i);
+    const strictBytes=await readNativeDemWindow({source:'tests/fixtures/terrain-dem-etopo-sparse.tif',width:43200,height:21600,box:[0,0,2,2]});
+    assert.deepEqual(Array.from({length:4},(_,index)=>strictBytes.readFloatLE(index*4)),[100,-20,350,25]);
     await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box}),/EPSG|ETOPO/i);
     const controller=new AbortController();controller.abort();
     await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box},{signal:controller.signal}),{name:'AbortError'});

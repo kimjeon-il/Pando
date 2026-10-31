@@ -68,7 +68,8 @@ int run(int argc,char** argv){
     const auto startY=std::max<std::int64_t>(0,y0),endY=std::min<std::int64_t>(height,y1),readHeight=endY-startY;
     std::vector<float> output(static_cast<std::size_t>(outWidth*outHeight));
     for(std::int64_t at=0;at<outWidth;){
-      const auto sourceX=((x0+at)%width+width)%width,count=std::min(outWidth-at,width-sourceX),pixels=count*readHeight;
+      const std::int64_t sourceX=((x0+at)%width+width)%width;
+      const std::int64_t count=std::min<std::int64_t>(outWidth-at,width-sourceX),pixels=count*readHeight;
       std::vector<float> values(static_cast<std::size_t>(pixels));std::vector<unsigned char> valid(static_cast<std::size_t>(pixels));
       if(GDALRasterIO(band,GF_Read,int(sourceX),int(startY),int(count),int(readHeight),values.data(),int(count),int(readHeight),GDT_Float32,0,0)!=CE_None||
         GDALRasterIO(mask,GF_Read,int(sourceX),int(startY),int(count),int(readHeight),valid.data(),int(count),int(readHeight),GDT_Byte,0,0)!=CE_None)
