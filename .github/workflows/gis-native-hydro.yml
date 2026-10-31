@@ -350,6 +350,12 @@ jobs:
           name: terrain-preview-${{ matrix.os }}-${{ github.sha }}
           path: build-native/terrain-preview/artifact/
           retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-preview-integrated'
+        with:
+          name: terrain-image-codec-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-image/artifact/
+          retention-days: 7
   reference-step:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'reference-step' || inputs.target == 'reference-ordered')
     strategy:
