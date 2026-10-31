@@ -13,9 +13,11 @@ concurrency:
   group: gpu-viewer-followup-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  inspect:
+  browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 8
+    env:
+      G4_EVIDENCE: gpu-viewer-evidence
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,14 +25,47 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: Inspect unchanged candidate without deploying or committing sources
+      - name: Prepare fixed library data without regeneration
+        uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Apply unchanged G1-G3 candidate only to verification checkout
+        run: node tests/helpers/prepare-gpu-recovery-candidate.mjs
+      - name: Print draw preparation boundaries
         run: |
-          git worktree list --porcelain
-          git status --short --branch
-          node tests/helpers/prepare-gpu-recovery-candidate.mjs > /tmp/gpu-viewer-candidate-identity.json
           node --input-type=module <<'NODE'
           import {readFileSync} from 'node:fs';
-          const s=readFileSync('shared/frontend/js/modules/gpu-map-renderer.js','utf8'),lines=s.split('\n');
-          for(const [a,b]of [[390,526],[845,880],[1790,2085],[4215,4250],[5810,5850]])console.log('SOURCE '+a+'-'+b+'\n'+lines.slice(a-1,b).join('\n'));
-          console.log('FUNCTION_INDEX\n'+lines.map((l,i)=>/^    (async )?function /.test(l)?(i+1)+':'+l:'').filter(Boolean).join('\n'));
+          const lines=readFileSync('shared/frontend/js/modules/gpu-map-renderer.js','utf8').split('\n');
+          for(const [a,b]of [[2335,2364],[3956,3997],[4064,4214],[4815,4901]])console.log('SOURCE '+a+'-'+b+'\n'+lines.slice(a-1,b).join('\n'));
           NODE
+      - name: Install pinned Chromium
+        run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
+      - name: Reproduce real viewer frame stall
+        id: screen
+        continue-on-error: true
+        run: pnpm exec playwright test tests/browser/gpu-recovery-viewer-frame.spec.mjs --grep 'viewer webgl2' --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
+      - name: Summarize exact observed gate values
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync} from 'node:fs';
+          const file='gpu-viewer-evidence/webgl2/result.json';
+          if(!existsSync(file)){console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-16000));process.exit(0);}
+          const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({passed:r.passed,errors:r.errors,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
+          let previous='';let count=0;
+          for(const t of r.final?.trace?.rows||[]){const row={where:t.where,extra:t.extra,phase:t.recovery.phase,lastReason:t.recovery.lastReason,uploaded:t.recovery.uploadedBytes,mode:t.rendererMode,lost:t.webglContextLost,shared:t.sharedReady,surface:t.surfacePresentation,identity:t.identity,physicalMatches:t.physicalMatches,terrainReady:t.terrain.terrainReady,terrainFailed:t.terrain.terrainFailed,pending:t.pending,evidence:t.evidence,polygons:t.polygons,base:t.base};const text=JSON.stringify(row);if(text!==previous&&count++<45)console.log('TRACE '+text);previous=text;}
+          console.log('CALLS '+JSON.stringify(r.final?.trace?.counts));
+          console.log(readFileSync('gpu-viewer-evidence/browser.log','utf8').slice(-5000));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-viewer-followup-${{ github.sha }}
+          path: gpu-viewer-evidence
+          retention-days: 7
+          if-no-files-found: error
+      - name: Enforce actual browser outcome
+        if: always()
+        env:
+          SCREEN_RESULT: ${{ steps.screen.outcome }}
+        run: test "$SCREEN_RESULT" = success
