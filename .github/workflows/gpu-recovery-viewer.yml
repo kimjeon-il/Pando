@@ -1,0 +1,45 @@
+name: GPU viewer recovery follow-up (no deployment)
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/gpu-recovery-viewer.yml
+      - tests/helpers/gpu-recovery-viewer-*.mjs
+      - tests/browser/gpu-recovery-viewer-*.spec.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gpu-viewer-followup-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Inspect unchanged candidate without deploying or committing sources
+        run: |
+          git worktree list --porcelain
+          git status --short --branch
+          node tests/helpers/prepare-gpu-recovery-candidate.mjs > /tmp/gpu-viewer-candidate-identity.json
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const file='shared/frontend/js/modules/gpu-map-renderer.js',s=readFileSync(file,'utf8'),lines=s.split('\n');
+          const names=/Recovery|Recover|Presentation|VisualFrame|initializeSharedGpuPasses|ContextRestored|ContextLost|Fallback/;
+          const functions=[...s.matchAll(/^( *)((?:async )?function) (\w+)\(/gm)];
+          console.log('CANDIDATE_IDENTITY '+readFileSync('/tmp/gpu-viewer-candidate-identity.json','utf8'));
+          for(let i=0;i<functions.length;i++){
+            const m=functions[i];if(m[1].length!==2||!names.test(m[3]))continue;
+            const next=functions.slice(i+1).find(n=>n[1].length<=m[1].length);
+            const end=next?.index||s.length,startLine=s.slice(0,m.index).split('\n').length;
+            const body=s.slice(m.index,end);console.log('FUNCTION '+m[3]+' LINE '+startLine+'\n'+body.slice(0,16000));
+          }
+          console.log('RECOVERY_MODULE\n'+readFileSync('shared/frontend/js/modules/gpu-context-recovery.js','utf8'));
+          console.log('RENDERER_INDEX\n'+lines.map((l,i)=>/recordMapPresentation|commitVisualFrame|gpuRecovery|recoveryController|isFrameReady|backgroundPresentedKey/.test(l)?(i+1)+':'+l:'').filter(Boolean).join('\n'));
+          NODE
