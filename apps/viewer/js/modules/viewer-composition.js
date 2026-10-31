@@ -23,6 +23,7 @@ import { createDocumentSession } from "../../../../shared/frontend/js/modules/do
 import { createProjectDomain } from "../../../../shared/frontend/js/modules/project-domain.js";
 import { createInitialDocument } from "../../../../shared/frontend/js/modules/initial-document.js";
 import { createViewerMap } from './viewer-map.js';
+import {createViewerInitialPresentation} from './viewer-initial-presentation.js';
 import { createFileController } from "../../../../shared/frontend/js/modules/file-controller.js";
 import { readProjectFile } from "../../../../shared/frontend/js/modules/project-file-reader.js";
 import { createMapSettings } from "../../../../shared/frontend/js/modules/app-map-settings.js";
@@ -37,6 +38,8 @@ export async function composeViewer({ productMode, meta }) {
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
+  const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';}});
+  get('viewer').dataset.initialLoading='true';
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
   const diagnostics=createDiagnosticLog({limit:250});
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
@@ -48,7 +51,7 @@ export async function composeViewer({ productMode, meta }) {
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile()});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,initialProject:createInitialDocument({appVersion:meta.appVersion})});
-  const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner];
+  const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
@@ -89,7 +92,8 @@ export async function composeViewer({ productMode, meta }) {
     mapHostViewB:{queueMapResize:()=>{owners.mapHost.queueMapResize('panel-layout');}},
     platformConfigurationB:{selectController},get mapNavigation(){return map.navigation;}});
   surfaces.initializeWorkspaceSurfaces();
-  map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report});
+  map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report,
+    onMapPreparationStatus:initialPresentation.observe});
   disposables.push(map);
   const searchController=createAppObjectSearchController({window,document,getElement:get,state:map.viewState,
     objectSearchGroupKeys:map.objectPresentation.LAYER_SEARCH_GROUP_KEYS,listObjectSearchItems:map.objectCatalog.listObjectSearchItems,
@@ -121,11 +125,14 @@ export async function composeViewer({ productMode, meta }) {
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
+    const firstMap=initialPresentation.track(()=>request===projectDomain.getOpenRevision()&&(options?.isCurrent?.()??true));
+    status.dataset.loadingKind=initialPresentation.hasPresented()?(options?.presentation==='temporal'?'temporal':'project'):'initial';
     status.textContent=options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…';status.hidden=false;
     status.dataset.ready='false';
     try {
-    if(!await projectDomain.open(reader,options))return false;
-    if(request!==projectDomain.getOpenRevision())return false;
+    if(!await projectDomain.open(reader,options)){firstMap.cancel();return false;}
+    if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
+    firstMap.accept(projectDomain.getGeneration());
     await map.loadPhysicalLandMask();
     await map.objectCatalog.pruneLayerItemVisibility();
     await map.update();
@@ -135,7 +142,7 @@ export async function composeViewer({ productMode, meta }) {
     map.loadPhysicalResources();
     search();surfaces.syncOverlayState();syncStatus();status.dataset.ready='true';status.hidden=true;
     return true;
-    } catch(error){if(request===projectDomain.getOpenRevision()){
+    } catch(error){firstMap.cancel();if(request===projectDomain.getOpenRevision()){
       status.dataset.ready='true';status.hidden=true;throw error;
     }return false;}
   };
@@ -173,7 +180,7 @@ export async function composeViewer({ productMode, meta }) {
   for(const id of ['openProjectBtn','builtinMapBtn'])get(id).addEventListener('click',()=>surfaces.closeFileMenu());
   createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
     applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
-  if(new URLSearchParams(window.location.search).get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({productMode,documentState:()=>activeSession?.commandOwner.state(),
+  if(new URLSearchParams(window.location.search).get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({month:builtinClock.month(),automatic:builtinClock.isAutomatic()})});

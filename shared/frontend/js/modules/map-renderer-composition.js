@@ -8,9 +8,11 @@ import {geometryRevisionKey} from './geometry-versions.js';
 import {buildGraticuleStrokeGeometryPacket} from './graticule-geometry.js';
 import {createGpuMapRenderer} from './gpu-map-renderer.js';
 import {createTerritorialFillResolver} from './territorial-fill-style.js';
-export function createMapRenderer(dependencies, { productMode }) {
+export function createMapRenderer(dependencies, { productMode, onMapPreparationStatus = null }) {
+    if (onMapPreparationStatus !== null && typeof onMapPreparationStatus !== 'function') throw new TypeError('Map preparation observer must be a function.');
     if (!['viewer', 'editor'].includes(productMode)) throw new TypeError('Renderer presentation product mode is required.');
-    const gpuMapRenderer=createGpuMapRenderer({
+    let gpuMapRenderer=null;
+    gpuMapRenderer=createGpuMapRenderer({
       APP_VERSION: dependencies.platformConfigurationA.APP_VERSION,
       ASSET_REVISION: dependencies.layerPresentation.ASSET_REVISION,
       DATA_REVISION: dependencies.physicalConfig.DATA_REVISION,
@@ -65,6 +67,7 @@ export function createMapRenderer(dependencies, { productMode }) {
           if (label && label.textContent !== text) label.textContent = text;
           if (productMode === 'viewer') dependencies.platform.$('mapPreparationNotice').hidden = presentation.status !== 'error';
           if (retry) retry.hidden = !presentation.retry;
+          if (gpuMapRenderer && onMapPreparationStatus) onMapPreparationStatus(presentation,gpuMapRenderer.getProjectGeneration());
         },
         onContextStateChange: phase => dependencies.domains.renderingDomain?.invalidateGpuContext?.(phase) || false,
         requestHostRepaint: reason => dependencies.mapView.mapHost?.requestRepaint?.(reason) || false,
