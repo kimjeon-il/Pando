@@ -4,6 +4,8 @@
 #include <pandoeditor/geometrydraft.h>
 #include <pandoeditor/presentationcommands.h>
 #include <pandoeditor/webstorage.h>
+#include <array>
+#include <map>
 
 namespace pandoeditor {
 struct SelectionCatalogEntry {SelectionRef ref;std::optional<std::string> logicalId;std::vector<std::string> sourceIds;};
@@ -25,6 +27,20 @@ struct DocumentSessionOutcome {
     std::string domainErrorCode;
 };
 struct ImportInspection {std::string project;ResolvedWorld world;};
+// An immutable Core-owned source is not an accepted storage baseline or a
+// mutable CommandPreview. IDs are session-local and never reused after release.
+struct TemporalSourceReceipt {
+    std::uint32_t sourceId=0;
+    std::string sourceMonth,fingerprint;
+    bool reused=false;
+};
+struct TemporalSourceStats {
+    std::size_t entries=0;
+    std::uint64_t declaredDecodedBytes=0,hits=0,evictions=0;
+};
+// The budget measures declared decoded bytes; it is not native heap usage.
+constexpr std::size_t TEMPORAL_SOURCE_MAX_ENTRIES=2;
+constexpr std::uint64_t TEMPORAL_SOURCE_MAX_DECODED_BYTES=64ull*1024*1024;
 // The WASM document owner uses the canonical Project and CommandProcessor.
 // Snapshots returned by Project remain immutable; this boundary never owns a
 // second JSON document, a JS-computed candidate, or another undo ledger.
@@ -43,6 +59,13 @@ public:
     std::string documentSnapshot() const;
     DocumentSessionState storageBaselineLoad(const codecjson::Value&,std::uint32_t expectedEpoch);
     DocumentSessionState storageBaselineLoad(const projectcodec::WebStorageAssetSource&,std::uint32_t expectedEpoch);
+    // P5-2: private immutable source registry. No Core RPC/WASM exposure yet.
+    TemporalSourceReceipt temporalSourcePrepare(const projectcodec::WebStorageAssetSource&,
+        const std::string& dataRevision,const std::string& manifestSha256,std::uint32_t expectedEpoch);
+    std::optional<projectcodec::WebStorageBaseline> temporalSourceLookup(std::uint32_t sourceId,
+        std::uint32_t expectedEpoch) const;
+    bool temporalSourceRelease(std::uint32_t sourceId,std::uint32_t expectedEpoch);
+    TemporalSourceStats temporalSourceStats() const noexcept;
     DocumentSessionState admitExternalBaseline(std::uint32_t expectedEpoch);
     std::string validateImport(const std::string&,std::optional<std::uint32_t> baselineId={}) const;
     ImportInspection inspectImport(const std::string&,std::optional<std::uint32_t> baselineId,const std::string& currentMonth) const;
@@ -94,6 +117,7 @@ private:
     DocumentSessionOutcome rejected(CommandError,const std::string&) const;
     void requireLoaded() const;
     void clearPreview();
+    void clearTemporalSources() noexcept;
     DocumentSessionOutcome retainPreview(PrepareResult&&);
     DocumentSessionOutcome history(bool forward,std::uint32_t expectedEpoch);
     Project project_;
@@ -104,6 +128,15 @@ private:
     std::optional<projectcodec::WebStorageBaseline> storageBaseline_;
     std::optional<projectcodec::WebStorageBaseline> activeBaseline_;
     std::uint32_t storageBaselineSequence_=0,storageBaselineId_=0;
+    struct TemporalSourceEntry {
+        std::array<std::string,8> identity;
+        projectcodec::WebStorageBaseline baseline;
+        std::uint64_t declaredDecodedBytes=0,access=0;
+    };
+    std::map<std::uint32_t,TemporalSourceEntry> temporalSources_;
+    std::uint32_t temporalSourceSequence_=0;
+    std::uint64_t temporalSourceBytes_=0,temporalSourceAccess_=0;
+    std::uint64_t temporalSourceHits_=0,temporalSourceEvictions_=0;
     projectcodec::PlatformPorts ports_;
     std::optional<CommandPreview> preview_;
     std::uint32_t epoch_=0,stateRevision_=0,candidateSequence_=0,candidateId_=0,candidateEpoch_=0,sourceEpoch_=0;
