@@ -8,7 +8,12 @@ import {deviceCurrentMonth} from './builtin-month-clock.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {}) {
+export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourceCacheLimits=null } = {}) {
+  const maxEntries=sourceCacheLimits?.maxEntries ?? 2;
+  const maxBytes=sourceCacheLimits?.maxBytes ?? (24 * 1024 * 1024);
+  if(!Number.isSafeInteger(maxEntries)||maxEntries<1||maxEntries>2
+    ||!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>32*1024*1024)
+    throw new RangeError('Prepared source cache limits exceed bounded session budget.');
   let dependencies;
   let pristineCountriesFallback;
   let canonicalCountryStore;
@@ -22,6 +27,62 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
   let builtinPaletteKey;
   let builtinPaletteVisibility;
   let projectBaseline = null;
+  const injectedWorldLoader=builtinWorldLoader!==null;
+  // Only verified, immutable source bytes can be retained: never a Core handle,
+  // active document, world object graph, or mutable candidate.
+  const sourceCache=new Map();
+  let cacheBytes=0,cacheEpoch=0,cacheIdentity=null,disposed=false;
+  let cacheHits=0,cacheMisses=0,cacheEvictions=0,cacheOversize=0;
+  const staleBuiltin=()=>Object.assign(new Error('Builtin source request was superseded'),
+    {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
+  const candidateIdentities=new WeakMap();
+  function clearPreparedSourceCache(){
+    sourceCache.clear();cacheBytes=0;cacheEpoch++;
+  }
+  function sourceCacheStats(){
+    return Object.freeze({entries:sourceCache.size,bytes:cacheBytes,maxEntries,maxBytes,
+      hits:cacheHits,misses:cacheMisses,evictions:cacheEvictions,oversized:cacheOversize});
+  }
+  function currentSourceIdentity(){
+    const meta=buildMeta;
+    if(!meta?.dataRevision || !/^[a-f0-9]{64}$/.test(meta?.builtinWorld?.sha256||''))return null;
+    return JSON.stringify([meta.dataRevision,meta.builtinWorld.sha256,
+      dependencies.platformConfigurationA.BASE_DATASET]);
+  }
+  function refreshSourceIdentity(){
+    if(disposed)throw staleBuiltin();
+    const identity=currentSourceIdentity();
+    if(cacheIdentity!==identity){
+      clearPreparedSourceCache();cacheIdentity=identity;
+      projectBaseline=null;
+      if(!injectedWorldLoader)builtinWorldLoader=null; // Rebind after a data revision.
+    }
+    return identity;
+  }
+  function cachedBytesFor(month,identity){
+    if(!identity){cacheMisses++;return null;}
+    const record=sourceCache.get(month);
+    if(!record){cacheMisses++;return null;}
+    sourceCache.delete(month);sourceCache.set(month,record);
+    cacheHits++;return record;
+  }
+  function rememberSource(month,identity,record,epoch){
+    if(!identity||epoch!==cacheEpoch||disposed)return;
+    const size=record.bytes.byteLength;
+    if(size>maxBytes){cacheOversize++;return;}
+    const prior=sourceCache.get(month);
+    if(prior){sourceCache.delete(month);cacheBytes-=prior.bytes.byteLength;}
+    while(sourceCache.size&&(sourceCache.size>=maxEntries||cacheBytes+size>maxBytes)){
+      const oldest=sourceCache.keys().next().value,evicted=sourceCache.get(oldest);
+      sourceCache.delete(oldest);cacheBytes-=evicted.bytes.byteLength;cacheEvictions++;
+    }
+    sourceCache.set(month,record);cacheBytes+=size;
+  }
+  function dispose(){
+    if(disposed)return;
+    disposed=true;clearPreparedSourceCache();
+    projectBaseline=null;
+  }
   function connect(ports) {
     if (dependencies) throw new Error('builtin-session already connected');
     dependencies = ports;
@@ -38,33 +99,36 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     pristineCountriesFallback = null;
   }
 
-  // Prepared source bytes are private to this session. Merely constructing a
-  // source must never enter the Core command queue or touch active state.
-  const preparedSources = new WeakSet();
-  const staleBuiltin = () => Object.assign(new Error('Builtin source request was superseded'),
-    {name:'AbortError',cancelled:true,code:'PL-CORE-STALE'});
-
   async function prepareProjectSource(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
-    const domain=dependencies.domains.projectDomain;
-    const expectedGeneration=domain.getGeneration();
-    if(!isCurrent())throw staleBuiltin();
-    if(!builtinWorldLoader){
-      const meta=buildMeta;
-      const spec=meta.builtinWorld;
-      builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
-        manifestSpec:spec,dataRevision:meta.dataRevision});
+    const domain=dependencies.domains.projectDomain,expectedGeneration=domain.getGeneration();
+    if(disposed||!isCurrent())throw staleBuiltin();
+    const identity=refreshSourceIdentity(),epoch=cacheEpoch;
+    let record=cachedBytesFor(month,identity);
+    if(!record){
+      if(!builtinWorldLoader){
+        const meta=buildMeta,spec=meta.builtinWorld;
+        builtinWorldLoader=createBuiltinWorldLoader({manifestUrl:new URL(spec.url,new URL('../../../',import.meta.url)).href,
+          manifestSpec:spec,dataRevision:meta.dataRevision});
+      }
+      const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
+      const bytes=new TextEncoder().encode(JSON.stringify(project));
+      const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
+        .map(value=>value.toString(16).padStart(2,'0')).join('');
+      if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
+        ||currentSourceIdentity()!==identity)throw staleBuiltin();
+      record={bytes,fingerprint};
+      rememberSource(month,identity,record,epoch);
     }
-    const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});
-    const sourceBytes=new TextEncoder().encode(JSON.stringify(project));
-    const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))]
-      .map(value=>value.toString(16).padStart(2,'0')).join('');
-    if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw staleBuiltin();
-    // Each read of sourceBytes returns a detached copy. Nothing outside the
-    // candidate can corrupt the verified immutable bytes before Core admission.
+    if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
+      ||currentSourceIdentity()!==identity)throw staleBuiltin();
+    // A hit always returns a fresh Core-generation-scoped candidate. Its bytes
+    // are copied on every external access; cache entries are not exposed.
     const prepared=Object.freeze({kind:'stored-asset',encoding:'identity',
-      compressedBytes:sourceBytes.length,decodedBytes:sourceBytes.length,sourceMonth:month,
-      baseDataset:dependencies.platformConfigurationA.BASE_DATASET,fingerprint,expectedGeneration,
-      get sourceBytes(){return sourceBytes.slice();}});
+      compressedBytes:record.bytes.byteLength,decodedBytes:record.bytes.byteLength,
+      sourceMonth:month,baseDataset:dependencies.platformConfigurationA.BASE_DATASET,
+      fingerprint:record.fingerprint,expectedGeneration,
+      get sourceBytes(){return record.bytes.slice();}});
+    candidateIdentities.set(prepared,identity);
     preparedSources.add(prepared);
     return prepared;
   }
@@ -72,14 +136,16 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
   async function admitPreparedProjectSource(prepared,{isCurrent=()=>true}={}) {
     if(!preparedSources.has(prepared))throw new TypeError('A prepared builtin source candidate from this session is required.');
     const domain=dependencies.domains.projectDomain,expectedGeneration=prepared.expectedGeneration;
-    if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw staleBuiltin();
+    if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
+      ||candidateIdentities.get(prepared)!==refreshSourceIdentity())throw staleBuiltin();
     if(projectBaseline?.queryKey===prepared.sourceMonth
       && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
     const facts={kind:prepared.kind,sourceBytes:prepared.sourceBytes,encoding:prepared.encoding,
       compressedBytes:prepared.compressedBytes,decodedBytes:prepared.decodedBytes,
       sourceMonth:prepared.sourceMonth,baseDataset:prepared.baseDataset,fingerprint:prepared.fingerprint};
     const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});
-    if(!isCurrent()||domain.getGeneration()!==expectedGeneration)throw staleBuiltin();
+    if(disposed||!isCurrent()||domain.getGeneration()!==expectedGeneration
+      ||candidateIdentities.get(prepared)!==refreshSourceIdentity())throw staleBuiltin();
     if(!Number.isSafeInteger(accepted.storageBaselineId)||accepted.storageBaselineId<=0)
       throw new Error('Core rejected the assembled builtin source');
     projectBaseline=Object.freeze({kind:facts.kind,encoding:facts.encoding,
@@ -91,6 +157,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
 
   async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
     const domain=dependencies.domains.projectDomain;
+    refreshSourceIdentity();
     if(projectBaseline?.queryKey===month
       && domain.state().storageBaselineId===projectBaseline.baselineId)return projectBaseline;
     const prepared=await prepareProjectSource(month,{isCurrent});
@@ -244,6 +311,9 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta } = {
     get renderCountryBoundaryStyle() { return renderCountryBoundaryStyle; },
     get materializePristineCountries() { return materializePristineCountries; },
     get materializePristineCountriesSync() { return materializePristineCountriesSync; },
+    get sourceCacheStats() { return sourceCacheStats; },
+    get clearPreparedSourceCache() { return clearPreparedSourceCache; },
+    dispose,
     get prepareProjectSource() { return prepareProjectSource; },
     get admitPreparedProjectSource() { return admitPreparedProjectSource; },
     get prepareProjectBaseline() { return prepareProjectBaseline; },
