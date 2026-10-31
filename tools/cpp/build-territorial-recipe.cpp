@@ -696,10 +696,16 @@ public:
 #include "historical-source-geometry-compare.inc"
 #include "historical-ussr-partition-audit.inc"
 #include "historical-lsib-source-audit.inc"
+#include "historical-lsib-screen-distance.inc"
 }
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--sampled-lsib-screen") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<sampledLSIBScreenDistance(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
         if(argc==4 && std::string(argv[1])=="--german-1914-base") {
             const std::string specification=std::string(argv[3])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[3]));
             Recipe recipe(fs::absolute(argv[2]),pandoeditor::codecjson::parse(specification));
