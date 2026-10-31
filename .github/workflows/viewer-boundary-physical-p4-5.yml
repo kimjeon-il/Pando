@@ -30,3 +30,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Exact border-worker, physical-scope and historical regressions
         run: node --test tests/unit/country-shared-boundary-state.test.mjs tests/unit/physical-water-context-p4-5.test.mjs tests/unit/historical-physical-water.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Actual WebGL country boundary Worker smoke
+        run: pnpm exec playwright test tests/browser/country-shared-boundary.spec.mjs --grep 'physical terrain prepares shared country borders in webgl2' --workers=1
