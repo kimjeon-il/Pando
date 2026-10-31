@@ -70,7 +70,31 @@ test('annex discard confirmation preserves the exact draft when continuing', asy
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
+  // The async tool-start click is not a Core ACK. Wait until the source-country
+  // picking stage is installed before sending a map click.
+  await expect.poll(() => page.evaluate(() => {
+    const state = window.__testEditorTimeline.state();
+    const session = state.territorySelectionSession;
+    return state.tool === 'annex-territory' && session?.stage === 'setup'
+      && session?.setupCountryPicking === true;
+  }), { timeout: 30_000 }).toBe(true);
   await pickCountry(page, 'POL');
+  try {
+    await expect.poll(() => page.evaluate(() =>
+      window.__testEditorTimeline.state().territorySelectionSession?.sourceCountryIds?.includes('POL') === true
+    ), { timeout: 20_000 }).toBe(true);
+  } catch (error) {
+    const diagnosis = await page.evaluate(() => {
+      const state = window.__testEditorTimeline.state();
+      return { tool: state.tool, stage: state.territorySelectionSession?.stage,
+        picking: state.territorySelectionSession?.setupCountryPicking,
+        sources: state.territorySelectionSession?.sourceCountryIds,
+        selected: state.selected?.id, nextDisabled: document.querySelector('#modePrimaryBtn')?.disabled };
+    });
+    console.log('P8_ANNEX_SOURCE_DIAG ' + JSON.stringify(diagnosis));
+    throw error;
+  }
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
   await page.locator('#modeDirectLineMethodInput').check();
