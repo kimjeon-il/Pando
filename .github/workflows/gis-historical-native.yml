@@ -94,8 +94,9 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir -p build-native/territorial-recipe/ci-runtime
+          runtime="$(dirname "$(command -v c++)")"
           for file in libstdc++-6.dll libgcc_s_seh-1.dll libwinpthread-1.dll; do
-            source="$CONDA_PREFIX/Library/bin/$file"
+            source="$runtime/$file"
             if [[ ! -f "$source" ]]; then echo "Missing compiler runtime: $file" >&2; exit 1; fi
             cp "$source" build-native/territorial-recipe/ci-runtime/
           done
