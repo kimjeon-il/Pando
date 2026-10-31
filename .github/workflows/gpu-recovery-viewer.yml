@@ -7,6 +7,7 @@ on:
       - tests/helpers/gpu-recovery-viewer-*.mjs
       - tests/browser/gpu-recovery-viewer-*.spec.mjs
       - tests/browser/viewer-recovery-acceptance.spec.mjs
+      - shared/frontend/js/modules/map-content-presentation.js
   workflow_dispatch:
 permissions:
   contents: read
@@ -48,11 +49,11 @@ jobs:
       - name: Verify focused existing and new regressions
         id: unit
         continue-on-error: true
-        run: node --test --test-reporter=tap tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/helpers/gpu-recovery-viewer-admission.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs > gpu-viewer-evidence/unit.tap 2>&1
+        run: node --test --test-reporter=tap tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/helpers/gpu-recovery-viewer-admission.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs tests/unit/map-content-presentation.test.mjs > gpu-viewer-evidence/unit.tap 2>&1
       - name: Lint changed runtime sources
         id: lint
         continue-on-error: true
-        run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/rendering-domain.js > gpu-viewer-evidence/lint.txt 2>&1
+        run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/rendering-domain.js shared/frontend/js/modules/map-content-presentation.js > gpu-viewer-evidence/lint.txt 2>&1
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
       - name: Observe actual approval rejection conditions without weakening them
