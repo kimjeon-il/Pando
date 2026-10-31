@@ -416,34 +416,25 @@ def repair_tripoint_boundary(geometries, references, pair, third):
 
 
 def repair_enclave_boundary(geometries, reference, pair, enclave, simplify=True):
-    pair = tuple(sorted(pair))
-    if set(geometries) != set(pair) or enclave not in pair:
-        raise ValueError('Reviewed enclave requires exactly its two owning countries')
-    host = next(code for code in pair if code != enclave)
-    inner, outer = shape(geometries[enclave]), shape(geometries[host])
-    old = extract_shared_chains(geometries).get(pair)
-    if (inner.geom_type != 'Polygon' or len(inner.interiors) or old is None
-            or not old.is_ring or not old.equals(LineString(inner.exterior.coords))):
-        raise ValueError('Enclave must own exactly one complete shared exterior ring')
-    host_parts = list(outer.geoms) if outer.geom_type == 'MultiPolygon' else [outer]
-    holes = [ring for part in host_parts for ring in part.interiors
-             if LineString(ring.coords).equals(old)]
-    if len(holes) != 1:
-        raise ValueError('Enclave boundary must match exactly one host hole')
-    if reference.geom_type != 'LineString' or not reference.is_ring or not Polygon(reference).is_valid:
+    if reference.geom_type != 'LineString' or len(reference.coords) < 2:
         raise ValueError('Enclave reference must be one simple closed ring')
-    derivative = reference.simplify(SIMPLIFY_DEGREES) if simplify else reference
-    if not derivative.is_ring or not Polygon(derivative).is_valid:
-        raise ValueError('Derived enclave boundary is not a valid closed ring')
-    patches = {code: [{'old': coordinates(old), 'replacement': coordinates(derivative)}] for code in pair}
-    result = apply_country_patches(geometries, patches)
-    shared = shape(result[host]).boundary.intersection(shape(result[enclave]).boundary)
-    if not shared.equals(derivative):
-        raise ValueError('Enclave and host do not share the complete replacement ring')
-    return result, [{'countries': pair, 'closedRing': True, 'enclave': enclave,
-        'old_length_degrees': old.length, 'source_length_degrees': reference.length,
-        'master_vertices': len(reference.coords), 'derived_vertices': len(derivative.coords),
-        'simplification_bound_px': SIMPLIFY_DEGREES * SCALE if simplify else 0}]
+    script = Path(__file__).with_name('gis') / 'lsib-screen-native.mjs'
+    request = {'geometries': geometries, 'reference': coordinates(reference), 'pair': pair,
+               'enclave': enclave, 'simplify': simplify}
+    result = subprocess.run(['node', str(script), '--enclave-stream'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('LSIB enclave repair failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    if isinstance(receipt.get('error'), str):
+        raise ValueError(receipt['error'])
+    result, sections = receipt.get('geometries'), receipt.get('sections')
+    if not isinstance(result, dict) or set(result) != set(geometries) or not isinstance(sections, list) or len(sections) != 1:
+        raise RuntimeError('Invalid LSIB enclave repair receipt')
+    for section in sections:
+        section['countries'] = tuple(section['countries'])
+    return result, sections
 
 
 def targeted_candidates(root, output, targets, reference_manifest=None, coast_manifest=None):
