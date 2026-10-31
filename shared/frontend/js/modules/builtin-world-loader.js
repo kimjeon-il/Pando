@@ -34,12 +34,15 @@ export function assembleBuiltinWorld(index,countries,month){
   if(flags.length>1)throw new Error('Conflicting dated country flags: '+entry.entityId);
   if(flags.length) {
    const {policy,embeddedDataUrl}=flags[0].value;
-   const meta=identity.properties.metadata||{};
+   // The name projection may have frozen the identity and its nested metadata.
+   // Always materialize a fresh immutable historical flag edition instead
+   // of mutating an earlier C++ timeline projection.
+   const meta={...identity.properties.metadata};
    if(policy==='embedded')meta.flagDataUrl=embeddedDataUrl;
    else if(policy==='none')meta.flagDataUrl=null;
    else if(meta.defaultFlagDataUrl)meta.flagDataUrl=meta.defaultFlagDataUrl;
    else delete meta.flagDataUrl;
-   identity.properties.metadata=meta;
+   identity={...identity,properties:{...identity.properties,metadata:meta}};
   }
   project.territorialEntities.push(identity);
   // A loaded scene contains the selected interval only. Other historical
