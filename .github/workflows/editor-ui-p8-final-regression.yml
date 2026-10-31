@@ -10,7 +10,11 @@ on:
       - tests/browser/place-runtime.spec.mjs
       - tests/browser/workflow-v17.spec.mjs
       - tests/unit/object-visibility-command.test.mjs
+      - tests/unit/project-session-viewing.test.mjs
+      - tests/browser/hydro-metadata-edit.spec.mjs
       - apps/editor/frontend/js/modules/territorial-property-controller.js
+      - shared/frontend/js/modules/project-session.js
+      - shared/frontend/js/modules/project-domain.js
   workflow_dispatch:
 
 permissions:
@@ -60,6 +64,7 @@ jobs:
           tests/unit/object-property-controller.test.mjs
           tests/unit/object-action-availability.test.mjs
           tests/unit/object-visibility-command.test.mjs
+          tests/unit/project-session-viewing.test.mjs
           tests/unit/app-ui-boundaries.test.mjs
           tests/unit/property-editor-async-boundary.test.mjs
           tests/unit/territory-selection-workflow.test.mjs

@@ -20,11 +20,23 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await gotoEditor(page, '/assets/css/app.css');
-  const saved = staticAutosaveProject({
-      hydroEdits: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
-        geometry: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] },
-        properties: { pandolab_domain: 'hydro', pandolab_id: '00000000-0000-4000-8000-000000000005',
-          pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강', editorColor: '#3b82c4', notes: '', locked: false } }],
+  // The canonical timeline requires a lifetime and geometry binding for each
+  // stored hydro identity. Extend an already serialized fixture with both.
+  const hydroId = '00000000-0000-4000-8000-000000000005';
+  const hydroRef = { domain: 'hydro', id: hydroId };
+  const saved = staticAutosaveProject();
+  saved.hydroEdits.push({ type: 'Feature', id: hydroId, geometry: null,
+    properties: { pandolab_domain: 'hydro', pandolab_id: hydroId,
+      pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강',
+      editorColor: '#3b82c4', notes: '', locked: false } });
+  saved.geometries.push({ id: 'p8-hydro-shape', version: 1,
+    geojson: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] } });
+  saved.timelineRecords.lifetimes.push({
+    id: 'p8-hydro-life', objectRef: hydroRef, validFrom: null, validTo: null,
+  });
+  saved.timelineRecords.geometryBindings.push({
+    id: 'p8-hydro-binding', objectRef: hydroRef, validFrom: null, validTo: null,
+    geometryRef: { id: 'p8-hydro-shape', version: 1 },
   });
   const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = false;
   await page.evaluate(({ saved, preferences, key }) => {
