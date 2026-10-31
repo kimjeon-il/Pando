@@ -158,6 +158,41 @@ V replaceLSIBRings(const V& request){
     catch(const LSIBRingRejected& error){auto receipt=V::obj();receipt.object["error"]=V::str(error.what());return receipt;}
     auto receipt=V::obj();receipt.object["geometries"]=std::move(result);return receipt;
 }
+struct LSIBRepairRejected:std::runtime_error{using std::runtime_error::runtime_error;};
+V validateLSIBCountryRepair(const V& request){
+    const auto& beforeValue=field(request,"before"),&afterValue=field(request,"after");
+    if(beforeValue.kind!=V::Object||afterValue.kind!=V::Object)throw std::runtime_error("Explicit LSIB country geometries required");
+    try{
+        if(beforeValue.object.size()!=afterValue.object.size())throw LSIBRepairRejected("Candidate country set changed");
+        GeometryEngine geos;const auto context=geos.context();std::map<std::string,GeometryEngine::Shape> before,after;
+        for(const auto& entry:beforeValue.object){const auto found=afterValue.object.find(entry.first);
+            if(found==afterValue.object.end())throw LSIBRepairRejected("Candidate country set changed");
+            before.emplace(entry.first,geos.parse(entry.second));after.emplace(entry.first,geos.parse(found->second));}
+        if(before.empty())throw std::runtime_error("LSIB country set must not be empty");
+        for(const auto& entry:after){const auto valid=GEOSisValid_r(context,entry.second.get());
+            if(valid==2)throw std::runtime_error("Cannot validate LSIB country polygon");
+            if(valid!=1)throw LSIBRepairRejected("Candidate country polygon invalid: "+entry.first);}
+        for(auto a=after.begin();a!=after.end();++a)for(auto b=std::next(a);b!=after.end();++b){
+            auto overlap=geos.intersection(a->second,b->second);if(geos.area(overlap.get())>1e-10)
+                throw LSIBRepairRejected("Candidate counterpart ownership overlaps");}
+        std::vector<GeometryEngine::Shape> beforeParts,afterParts;
+        for(const auto& entry:before)beforeParts.push_back(entry.second);for(const auto& entry:after)afterParts.push_back(entry.second);
+        auto beforeUnion=geos.unaryUnion(beforeParts),afterUnion=geos.unaryUnion(afterParts),expected=beforeUnion;
+        if(const auto* value=optional(request,"expectedUnion");value&&value->kind!=V::Null)expected=geos.parse(*value);
+        auto difference=geos.own(GEOSSymDifference_r(context,expected.get(),afterUnion.get()),"LSIB repair union difference");
+        if(geos.area(difference.get())>1e-9)throw LSIBRepairRejected("Land/coastline union changed outside reviewed coast");
+        std::string corrected;if(const auto* value=optional(request,"correctedCountry");value&&value->kind!=V::Null)corrected=str(*value);
+        const auto holes=[&](const std::vector<GeometryEngine::Shape>& parts){int total=0;for(const auto& part:parts){
+            if(geos.type(part.get())!=GEOS_POLYGON)throw std::runtime_error("LSIB repair requires polygonal countries");
+            const int count=GEOSGetNumInteriorRings_r(context,part.get());if(count<0)throw std::runtime_error("Cannot count LSIB polygon holes");total+=count;}return total;};
+        for(const auto& entry:before){const auto oldParts=geos.parts(entry.second),newParts=geos.parts(after.at(entry.first));
+            if(oldParts.size()!=newParts.size())throw LSIBRepairRejected("Island/enclave component count changed");
+            if(holes(oldParts)!=holes(newParts))throw LSIBRepairRejected("Enclave hole count changed");
+            if(entry.first!=corrected)for(const auto& part:oldParts){auto representative=geos.pointOnSurface(part.get());
+                if(!geos.covers(after.at(entry.first).get(),representative.get()))throw LSIBRepairRejected("Existing component attribution changed");}}
+        auto result=V::obj();result.object["valid"]=V::boolean(true);return result;
+    }catch(const LSIBRepairRejected& error){auto result=V::obj();result.object["error"]=V::str(error.what());return result;}
+}
 V sampledLSIBScreenDistance(const V& request) {
     constexpr double step=0.001;
     constexpr double scale=2560.0*64.0/360.0;
