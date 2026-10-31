@@ -22,7 +22,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canvasWorkerFrameMatchesPhysical } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -839,6 +839,8 @@ export function createGpuMapRenderer(deps) {
     let pickTexture = null;
     let lastSceneFrameContext = null;
     let canvasWorker = null;
+    let canvasWorkerResubmitScheduled = false;
+    let canvasWorkerResubmitKey = '', canvasWorkerResubmitAttempts = 0;
     let canvasWorkerUrl = null;
     let canvasWorkerBitmapContext = null;
     let canvasWorker2dContext = null;
@@ -4942,7 +4944,12 @@ export function createGpuMapRenderer(deps) {
         canvasTerrainStats = message.terrainStats || {};
         Object.assign(window.__PANDOLAB_GPU_METRICS__ ||= {}, canvasTerrainStats);
         displayedRenderRevision = revision;
-        recordMapPresentation(lastVisualFrame, true, { committedWorkerBitmap: true });
+        // Actual Worker bitmap provenance, not the renderer's newest scene,
+        // is the resource certificate for a displayed frame.
+        recordMapPresentation(lastVisualFrame, canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+          { committedWorkerBitmap: true });
+        canvasWorkerResubmitAttempts = 0;
+        canvasWorkerResubmitKey = '';
         markPreviewFramePresented();
         framePresentationListener?.({
           frameId: Number(message.frameId || revision || 0),
@@ -4993,8 +5000,39 @@ export function createGpuMapRenderer(deps) {
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
             acceptFrame: message => Number(message.geometryRevision || 0) >= geometryRevisionTracker.committedRevision()
-              && Number(message.styleRevision || 0) === canvasStyleRevision,
-            onStale: () => { performanceMetrics.canvasWorkerStaleFrameCount += 1; },
+              && Number(message.styleRevision || 0) === canvasStyleRevision
+              && message.surfaceQuality === surfacePresentation.quality
+              && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+            onStale: message => {
+              performanceMetrics.canvasWorkerStaleFrameCount += 1;
+              // A valid submission can finish with an old scene bitmap after
+              // newer physical packets were prepared. The bitmap is discarded
+              // by the transport; requeue only the current scene/view, never
+              // acknowledge old pixels or submit into a retired generation.
+              if (disposed || rendererMode !== 'canvas-worker' || message.renderRequestId == null
+                || Number(message.projectGeneration) !== projectGeneration
+                || !lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration
+                || !physicalSceneMatchesContext(renderScene, getPhysicalContextState())
+                || canvasWorkerResubmitScheduled || canvasWorker?.hasPendingFrame) return;
+              const key = [projectGeneration, lastVisualFrame.frameId, canvasStyleRevision,
+                geometryRevisionTracker.committedRevision()].join(':');
+              if (key !== canvasWorkerResubmitKey) {
+                canvasWorkerResubmitKey = key;
+                canvasWorkerResubmitAttempts = 0;
+              }
+              if (++canvasWorkerResubmitAttempts > 4) {
+                failCanvasWorker('Canvas Worker가 최신 지도를 반복해서 표시하지 못했습니다.');
+                return;
+              }
+              canvasWorkerResubmitScheduled = true;
+              queueMicrotask(() => {
+                canvasWorkerResubmitScheduled = false;
+                if (!disposed && rendererMode === 'canvas-worker' && !projectRenderBlocked
+                  && lastVisualFrame?.projectGeneration === projectGeneration
+                  && physicalSceneMatchesContext(renderScene, getPhysicalContextState()))
+                  renderCanvasWorker(lastVisualFrame);
+              });
+            },
           });
           if (lastVisualFrame) canvasWorker.queueFrame(canvasWorkerViewMessage());
           canvasWorkerBitmapContext = canvas.getContext('bitmaprenderer');
