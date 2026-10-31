@@ -100,7 +100,6 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
       expect(pageErrors).toEqual([]);
     } catch (error) { failure = String(error?.stack || error); throw error; }
     finally {
-      const previouslyFailed = !!failure;
       const observation = await observeWithDeadline(() => page.evaluate(() => globalThis.__PANDO_P0__?.snapshot() ?? null));
       const probe = observation.status === 'ok' ? observation.value : null;
       if (observation.status !== 'ok' && !failure) failure = 'Final diagnostic observation ' + observation.status;
@@ -127,7 +126,7 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
       await testInfo.attach('p0-baseline', {path: file, contentType: 'application/json'});
       console.log('P0_BASELINE_SUMMARY ' + JSON.stringify({profile: profile.name, outcome: report.outcome,
         codeRevision: report.codeRevision, summary: report.summary, failure}));
-      if (!previouslyFailed && failure) throw new Error(failure);
     }
+    if (failure) throw new Error(failure);
   });
 }
