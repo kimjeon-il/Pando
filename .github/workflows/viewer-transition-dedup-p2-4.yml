@@ -1,0 +1,41 @@
+name: Viewer P2-4 transition duplicate work
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - apps/viewer/js/modules/viewer-composition.js
+      - tests/browser/viewer-transition-dedup-p2-4.spec.mjs
+      - .github/workflows/viewer-transition-dedup-p2-4.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p2-4-work-ui
+  cancel-in-progress: true
+jobs:
+  transition:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Viewer post-publication contract
+        run: node --test tests/unit/viewer-post-presentation.test.mjs tests/unit/viewer-initial-composition.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Prove one-time resource calls and usable map across a year pair
+        run: pnpm exec playwright test tests/browser/viewer-transition-dedup-p2-4.spec.mjs --workers=1
+      - name: Upload failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p2-4-transition-dedup
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
