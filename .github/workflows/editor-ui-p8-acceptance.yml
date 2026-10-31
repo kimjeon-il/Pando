@@ -1,0 +1,49 @@
+name: P8 editor theme and responsive acceptance
+
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tests/browser/editor-theme-responsive-p8.spec.mjs
+      - .github/workflows/editor-ui-p8-acceptance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p8-editor-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  responsive-editor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install pinned browser dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Lint P8 browser checks
+        run: pnpm exec eslint tests/browser/editor-theme-responsive-p8.spec.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify five widths and both themes
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+        run: pnpm exec playwright test tests/browser/editor-theme-responsive-p8.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Preserve layout screenshots and failure details
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-editor-layout-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
