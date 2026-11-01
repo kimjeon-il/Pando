@@ -48,6 +48,12 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.doesNotThrow(()=>verifyTrainingSample(output));
   assert.throws(()=>recheckTrainingSample(output,snapshot),/receipt changed/i);
   writeFileSync(sampleReceipt,JSON.stringify(snapshot));
+  const tilePath=join(output,'tile.f32'),originalTile=readFileSync(tilePath),changedTile=Buffer.from(originalTile);
+  changedTile[0]^=1;writeFileSync(tilePath,changedTile);
+  writeFileSync(sampleReceipt,JSON.stringify({...snapshot,tensorSha256:{...snapshot.tensorSha256,tile:sha(changedTile)}}));
+  assert.doesNotThrow(()=>verifyTrainingSample(output));
+  assert.throws(()=>recheckTrainingSample(output,snapshot),/receipt changed/i);
+  writeFileSync(tilePath,originalTile);writeFileSync(sampleReceipt,JSON.stringify(snapshot));
   await assert.rejects(writeMacroTrainingSample(request),/exists/);
   const order=join(root,'order.u64');writeFileSync(order,Buffer.alloc(8));
   const orderReceipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:stored.corpusSha256,
