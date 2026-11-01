@@ -1,5 +1,6 @@
 #include <mupdf/fitz.h>
 #include <mupdf/pdf.h>
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,9 +80,35 @@ static void fill_text(fz_context *ctx,fz_device *device,const fz_text *text,fz_m
 static void stroke_text(fz_context *ctx,fz_device *device,const fz_text *text,const fz_stroke_state *stroke,fz_matrix ctm,fz_colorspace *space,const float *color,float alpha,fz_color_params params){
     (void)stroke;(void)space;(void)color;(void)params;trace_text(ctx,(publisher_text_device*)device,text,ctm,alpha);
 }
+static fz_rect credit_character_bounds(fz_context *ctx,const fz_stext_line *line,const fz_stext_char *ch){
+    fz_quad quad=ch->quad;float asc=fz_font_ascender(ctx,ch->font),desc=fz_font_descender(ctx,ch->font),range=asc-desc+FLT_EPSILON;
+    if(!line->wmode&&range<1){
+        float c=line->dir.x,s=line->dir.y,size=ch->size;fz_matrix undo=fz_make_matrix(c,-s,s,c,0,0),redo=fz_make_matrix(c,s,-s,c,0,0);
+        if(asc<1e-3f){asc=.9f;desc=-.1f;range=1;}asc/=range;desc/=range;range=asc-desc;asc=asc*size/range;desc=desc*size/range;
+        if(c==-1){undo.d=1;redo.d=1;}
+        quad=fz_transform_quad(quad,fz_translate(-ch->origin.x,-ch->origin.y));quad=fz_transform_quad(quad,undo);
+        if(c==1&&quad.ul.y>0){quad.ul.y=quad.ur.y=asc;quad.ll.y=quad.lr.y=desc;}
+        else{quad.ul.y=quad.ur.y=-asc;quad.ll.y=quad.lr.y=-desc;}
+        if(quad.ll.x<0)quad.ll.x=quad.ul.x=0;
+        if(quad.lr.x-quad.ll.x<FLT_EPSILON){int glyph=fz_encode_character(ctx,ch->font,ch->c);
+            if(glyph){quad.lr.x=quad.ll.x+fz_advance_glyph(ctx,ch->font,glyph,line->wmode)*size;quad.ur.x=quad.lr.x;}}
+        quad=fz_transform_quad(quad,redo);quad=fz_transform_quad(quad,fz_translate(ch->origin.x,ch->origin.y));
+    }
+    {fz_rect box=fz_rect_from_quad(quad);if(line->wmode&&box.y1<box.y0+ch->size)box.y0=box.y1-ch->size;return box;}
+}
+static void append_credits(fz_context *ctx,fz_buffer *buffer,const fz_stext_page *page){
+    const fz_stext_block *block;size_t count=0;
+    for(block=page->first_block;block;block=block->next)if(block->type==FZ_STEXT_BLOCK_TEXT){const fz_stext_line *line;
+        for(line=block->u.t.first_line;line;line=line->next){const fz_stext_char *ch;int last=0;
+            for(ch=line->first_char;ch;ch=ch->next){fz_rect r=credit_character_bounds(ctx,line,ch),page_rect=page->mediabox;
+                if(fz_is_infinite_rect(page_rect)||(page_rect.x0<r.x1&&page_rect.y0<r.y1&&page_rect.x1>r.x0&&page_rect.y1>r.y0)){
+                    last=ch->c;fz_append_rune(ctx,buffer,last);if((++count&4095)==0){unsigned char *data=NULL;
+                        if(fz_buffer_storage(ctx,buffer,&data)>8u*1024u*1024u)fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher credits exceed budget");}}}
+            if(last!=10&&last>0)fz_append_byte(ctx,buffer,'\n');}}
+}
 int main(int argc,char **argv){
     fz_context *ctx=NULL;fz_stream *stream=NULL;fz_document *document=NULL;fz_page *page=NULL;fz_pixmap *pixmap=NULL;
-    fz_device *text_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;fz_output *credit_output=NULL;
+    fz_device *text_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;
     unsigned char *input=NULL,*mask=NULL;size_t input_size=0;int status=1,render=0,maximum=0;
 #ifdef _WIN32
     if(_setmode(_fileno(stdin),_O_BINARY)==-1||_setmode(_fileno(stdout),_O_BINARY)==-1)return 1;
@@ -93,7 +120,7 @@ int main(int argc,char **argv){
     else{fprintf(stderr,"Expected inspect, text MAX_DIMENSION or render MAX_DIMENSION LAYER_BITS\n");return 1;}
     input=read_input(&input_size);if(!input){fprintf(stderr,"Unable to read PDF or input exceeds budget\n");return 1;}
     ctx=fz_new_context(NULL,NULL,FZ_STORE_DEFAULT);if(!ctx){free(input);fprintf(stderr,"MuPDF context unavailable\n");return 1;}
-    fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(credit_output);fz_var(mask);fz_var(status);
+    fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
     fz_try(ctx){
         pdf_document *pdf;pdf_obj *object;int count,rotation,layers,i;
         fz_register_document_handlers(ctx);stream=fz_open_memory(ctx,input,input_size);
@@ -132,9 +159,8 @@ int main(int argc,char **argv){
                 trace=fz_new_derived_device(ctx,publisher_text_device);text_device=&trace->base;
                 trace->mask=mask;trace->width=width;trace->height=height;trace->scale=factor;trace->characters=0;trace->layer[0]='\0';
                 trace->base.fill_text=fill_text;trace->base.stroke_text=stroke_text;trace->base.begin_layer=begin_text_layer;trace->base.end_layer=end_text_layer;
-                fz_run_page(ctx,page,text_device,fz_identity,NULL);fz_close_device(ctx,text_device);
-                text_page=fz_new_stext_page_from_page(ctx,page,NULL);credits=fz_new_buffer(ctx,1024);credit_output=fz_new_output_with_buffer(ctx,credits);
-                fz_print_stext_page_as_text(ctx,credit_output,text_page);fz_close_output(ctx,credit_output);
+                fz_run_page(ctx,page,text_device,fz_make_matrix(1,0,0,1,0,0),NULL);fz_close_device(ctx,text_device);
+                text_page=fz_new_stext_page_from_page(ctx,page,NULL);credits=fz_new_buffer(ctx,1024);append_credits(ctx,credits,text_page);
                 credit_size=fz_buffer_storage(ctx,credits,&credit_bytes);if(credit_size>8u*1024u*1024u)fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher credits exceed budget");
                 printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"creditBytes\":%zu,\"characters\":%zu}\n",width,height,factor,credit_size,trace->characters);
                 if(fwrite(credit_bytes,1,credit_size,stdout)!=credit_size||fwrite(mask,1,(size_t)width*height,stdout)!=(size_t)width*height)
@@ -143,7 +169,7 @@ int main(int argc,char **argv){
         }
         status=0;
     }
-    fz_always(ctx){fz_drop_output(ctx,credit_output);fz_drop_buffer(ctx,credits);fz_drop_stext_page(ctx,text_page);fz_drop_device(ctx,text_device);free(mask);
+    fz_always(ctx){fz_drop_buffer(ctx,credits);fz_drop_stext_page(ctx,text_page);fz_drop_device(ctx,text_device);free(mask);
         fz_drop_pixmap(ctx,pixmap);fz_drop_page(ctx,page);fz_drop_document(ctx,document);fz_drop_stream(ctx,stream);}
     fz_catch(ctx){fprintf(stderr,"Publisher PDF: %s\n",fz_caught_message(ctx));}
     fz_drop_context(ctx);free(input);return status;
