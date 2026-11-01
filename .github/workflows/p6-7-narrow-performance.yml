@@ -1,0 +1,46 @@
+name: P6-7 narrow viewport transition performance
+
+on:
+  push:
+    branches: [p6-7-narrow-performance]
+    paths:
+      - tests/browser/p6-7-narrow-performance.spec.mjs
+      - .github/workflows/p6-7-narrow-performance.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p6-7-narrow-performance
+  cancel-in-progress: true
+
+jobs:
+  narrow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check only the P6-7 probe
+        run: |
+          node --check tests/browser/p6-7-narrow-performance.spec.mjs
+          pnpm exec eslint tests/browser/p6-7-narrow-performance.spec.mjs
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Measure narrow viewport first, distant, and twenty repeated adjacent transitions
+        run: pnpm exec playwright test tests/browser/p6-7-narrow-performance.spec.mjs --workers=1 --retries=0 --trace=off --reporter=list
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p6-7-narrow-${{ github.sha }}
+          path: test-results/p6-7-narrow/
+          if-no-files-found: warn
+          retention-days: 7
