@@ -227,6 +227,34 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     } finally { releasePending(); }
   }
 
+  async function prepareProjectCandidate(month=deviceCurrentMonth(),{isCurrent=()=>true,setup}={}) {
+    const releasePending=protectPendingSource(month);
+    try {
+      const domain=dependencies.domains.projectDomain;
+      const prepared=await prepareProjectSource(month,{isCurrent});
+      const facts={kind:prepared.kind,sourceBytes:prepared.sourceBytes,
+        encoding:prepared.encoding,compressedBytes:prepared.compressedBytes,
+        decodedBytes:prepared.decodedBytes,sourceMonth:prepared.sourceMonth,
+        baseDataset:prepared.baseDataset,fingerprint:prepared.fingerprint};
+      if(!isCurrent())throw staleBuiltin();
+      let candidate;
+      try {
+        candidate=await domain.prepareTemporalBuiltin(facts,setup,{
+          dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
+          expectedGeneration:prepared.expectedGeneration,isCurrent});
+      } catch(error) {
+        // Old published WASM pairs may not yet expose P5-5. Retain the
+        // established baseline path until an exactly matching pair is staged.
+        // All other Core validation failures remain fatal, never soft-fail.
+        if(error?.code!=='PL-CORE-DOCUMENT-ABI'
+          ||!String(error.message).includes('temporalSourcePrepare'))throw error;
+        return {...await admitPreparedProjectSource(prepared,{isCurrent}),setup};
+      }
+      if(!candidate||!isCurrent())throw staleBuiltin();
+      return candidate;
+    } finally {releasePending();}
+  }
+
   async function prepareProjectBaseline(month=deviceCurrentMonth(),{isCurrent=()=>true}={}) {
     const releasePending=protectPendingSource(month);
     try {
@@ -392,6 +420,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     get setPresentedSourceMonth() { return setPresentedSourceMonth; },
     dispose,
     get prepareProjectSource() { return prepareProjectSource; },
+    get prepareProjectCandidate() { return prepareProjectCandidate; },
     get admitPreparedProjectSource() { return admitPreparedProjectSource; },
     get prepareProjectBaseline() { return prepareProjectBaseline; },
     get projectBaseline() { return projectBaseline; },

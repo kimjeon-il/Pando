@@ -124,9 +124,9 @@ export function createCoreDocumentClient({
         {sourceId,targetMonth,sourceFingerprint,setup,documentId},options),
     temporalCandidateInspect:(candidateId,options)=>ordered('core.document-temporal-candidate-inspect',{candidateId},options),
     temporalCandidateDiscard:(candidateId,options)=>ordered('core.document-temporal-candidate-discard',{candidateId},options,true,true),
-    temporalCandidateAdopt:({candidateId,sourceId,targetMonth,sourceFingerprint,worldSha256,replacementId},options)=>
+    temporalCandidateAdopt:({candidateId,sourceId,targetMonth,sourceFingerprint,worldSha256,replacementId,expectedEpoch},options)=>
       ordered('core.document-temporal-candidate-adopt',
-        {candidateId,sourceId,targetMonth,sourceFingerprint,worldSha256,replacementId},options,true,true),
+        {candidateId,sourceId,targetMonth,sourceFingerprint,worldSha256,replacementId,expectedEpoch},options,true,true),
     validateImport: (storageJson,options = {}) => ordered('core.document-validate-import',
       { storageJson,baselineId: options.baselineId ?? null },options),
     inspectImport: (storageJson,options = {}) => ordered('core.document-inspect-import',
