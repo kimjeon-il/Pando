@@ -118,20 +118,21 @@ export async function prepareCombinedTrainingBatch({corpus,auxiliary,orderDirect
   return {trainingOnly:true,releaseApproved:false,lineageFingerprint:checked.lineageFingerprint,orderSha256:checked.orderSha256,cursor,samples};
 }
 
-export async function prepareTrainingBatch({corpus,order,cursor,count,epoch,augment,reviewed=false,output,signal}){
+export async function prepareTrainingBatch({corpus,order,cursor,count,epoch,augment,reviewed=false,publisher=false,output,signal}){
   signal?.throwIfAborted();
-  if(!corpus||!order||!output||typeof augment!=='boolean'||![cursor,count,epoch].every(Number.isSafeInteger)||cursor<0||count<1||count>16||epoch<0)
+  if(!corpus||!order||!output||typeof augment!=='boolean'||typeof reviewed!=='boolean'||typeof publisher!=='boolean'||(reviewed&&publisher)||
+    ![cursor,count,epoch].every(Number.isSafeInteger)||cursor<0||count<1||count>16||epoch<0)
     throw Error('Explicit bounded macro training batch inputs required');
   if(existsSync(output))throw Error('Training batch output exists; preserve it');
   const orderPath=resolve(order),orderBytes=readTrainingBounded(orderPath,8000000),orderSha256=trainingSha256(orderBytes);
   if(!orderBytes.length||orderBytes.length%8||cursor+count>orderBytes.length/8)throw Error('Invalid training order or cursor');
-  const dataset=await indexTrainingDataset(corpus,{allowReviewed:reviewed,signal}),selected=[];
+  const dataset=await indexTrainingDataset(corpus,{allowReviewed:reviewed,allowPublisher:publisher,signal}),selected=[];
   for(let i=0;i<count;i++){const index=orderBytes.readBigUInt64LE((cursor+i)*8);
     if(index>=BigInt(dataset.tiles.length))throw Error('Training order contains an invalid sample index');selected.push(dataset.tiles[Number(index)]);}
   if(trainingSha256(readTrainingBounded(orderPath,8000000))!==orderSha256)throw Error('Training order changed during sample preparation');
   signal?.throwIfAborted();mkdirSync(resolve(output));const samples=[];
   for(let i=0;i<selected.length;i++){const tile=selected[i],directory=resolve(output,'sample-'+String(i).padStart(2,'0'));
-    const write=reviewed?writeReviewedTrainingSample:writeMacroTrainingSample;
+    const write=reviewed?writeReviewedTrainingSample:publisher?writePublisherTrainingSample:writeMacroTrainingSample;
     await write({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
     samples.push({index:tile.index,directory,augment});}
   if(trainingSha256(readTrainingBounded(orderPath,8000000))!==orderSha256)throw Error('Training order changed during sample preparation');

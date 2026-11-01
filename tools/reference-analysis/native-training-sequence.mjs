@@ -17,12 +17,12 @@ import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 import {assertEvaluationIndependence,buildTrainingLineage} from './training-lineage.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
-function validateScope({auxiliary,macroOnly,supervision,reviewed=false}){
-  if(typeof reviewed!=='boolean'||(reviewed&&(auxiliary||macroOnly===true))||
+function validateScope({auxiliary,macroOnly,supervision,reviewed=false,publisher=false}){
+  if(typeof reviewed!=='boolean'||typeof publisher!=='boolean'||(reviewed&&publisher)||((reviewed||publisher)&&(auxiliary||macroOnly===true))||
     (auxiliary ? macroOnly!==false||supervision!=null : !supervision||macroOnly===false))
     throw Error('Explicit training corpus scope and matching supervision required');
 }
-export async function runTrainingSequence({mode,input,output,corpus,auxiliary,macroOnly,supervision,reviewed=false,epoch,seed,freezeEpochs,learningRate,
+export async function runTrainingSequence({mode,input,output,corpus,auxiliary,macroOnly,supervision,reviewed=false,publisher=false,epoch,seed,freezeEpochs,learningRate,
   device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,onBatch,root=rootDefault,signal}={}){
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!torchLibrary||!['cpu','cuda'].includes(device)||
@@ -31,12 +31,12 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
     !Number.isSafeInteger(batchSize)||batchSize<1||batchSize>16||!Number.isSafeInteger(maxBatches)||maxBatches<1||maxBatches>1000000||
     (onBatch!==undefined&&typeof onBatch!=='function'))
     throw Error('Explicit bounded macro training configuration required');
-  validateScope({auxiliary,macroOnly,supervision,reviewed});
+  validateScope({auxiliary,macroOnly,supervision,reviewed,publisher});
   const target=resolve(output),initial=resolve(input);if(existsSync(target))throw Error('Training sequence output exists; preserve it');
   const inputHash=trainingFileIdentity(initial);if(auxiliary){assertTrainingCorpusScope(corpus);assertTrainingCorpusScope(auxiliary);}
   const checked=auxiliary?
     {corpusSha256:trainingFileIdentity(resolve(corpus)),auxiliarySha256:trainingFileIdentity(resolve(auxiliary)),lineageFingerprint:await corpusFingerprint(corpus,auxiliary)}:
-    await verifyTrainingSupervision({corpus,directory:supervision,reviewed,signal});
+    await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
   let cursor=0;
   if(mode==='warm'){
     if(epoch!==0)throw Error('Weights-only initialization starts at epoch zero');
@@ -56,7 +56,7 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
     signal?.throwIfAborted();mkdirSync(target);
     const orderDirectory=join(target,'order'),order=auxiliary?join(orderDirectory,'order.u64'):join(target,'order.u64');
     const plan=auxiliary?await writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epoch,seed,output:orderDirectory,torchLibrary,root,signal}):
-      await writeTrainingOrder({corpus,supervision,reviewed,epoch,seed,output:order,torchLibrary,root,signal});
+      await writeTrainingOrder({corpus,supervision,reviewed,publisher,epoch,seed,output:order,torchLibrary,root,signal});
     if(auxiliary&&plan.lineageFingerprint!==checked.lineageFingerprint)throw Error('Combined training sources changed before sequence');
     if(cursor>=plan.length)throw Error('Training epoch is already complete; preserve its order');
     const batches=Math.min(maxBatches,Math.ceil((plan.length-cursor)/batchSize));
@@ -70,7 +70,7 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
       const common={mode:completed===0?mode:'resume',input:current,output:checkpoint,corpus,epoch,seed,
         freezeEpochs,learningRate,device,amp,torchLibrary,count,sampleOutput,augment,root,signal};
       last=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly,orderDirectory}):
-        await runTrainingBatch({...common,supervision,order,reviewed});
+        await runTrainingBatch({...common,supervision,order,reviewed,publisher});
       const receipt=JSON.parse(readTrainingBounded(checkpoint+'.receipt.json',1024*1024));
       if(receipt.cursor!==cursor+count||receipt.orderSha256!==plan.orderSha256||receipt.orderLength!==plan.length)
         throw Error('Training checkpoint cursor differs from the prepared order; preserve outputs');
@@ -86,7 +86,7 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
 }
 
 // Multiple epochs remain provisional; training loss is not independent validation.
-export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,macroOnly,supervision,reviewed=false,validationCorpus,diagnosticOnly,patience,previousCampaign,epoch,seed,freezeEpochs,learningRate,
+export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,macroOnly,supervision,reviewed=false,publisher=false,validationCorpus,diagnosticOnly,patience,previousCampaign,epoch,seed,freezeEpochs,learningRate,
   device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,epochs,onProgress,root=rootDefault,signal}={}){
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!torchLibrary||!['cpu','cuda'].includes(device)||
@@ -96,7 +96,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
     !Number.isSafeInteger(epochs)||epochs<1||epochs>1000||epoch+epochs>Number.MAX_SAFE_INTEGER||
     (onProgress!==undefined&&typeof onProgress!=='function'))
     throw Error('Explicit bounded training campaign configuration required');
-  validateScope({auxiliary,macroOnly,supervision,reviewed});
+  validateScope({auxiliary,macroOnly,supervision,reviewed,publisher});
   if(validationCorpus?(diagnosticOnly!==true||!Number.isSafeInteger(patience)||patience<1):
     (diagnosticOnly!==undefined||patience!==undefined))throw Error('Explicit diagnostic validation scope and positive patience required');
   const target=resolve(output);if(existsSync(target))throw Error('Training campaign output exists; preserve it');
@@ -118,7 +118,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   }
   const selectionMetric=validationCorpus?'validationLoss':'trainingLoss';
   const configuration={seed,freezeEpochs,learningRate,device,amp,augment,batchSize,
-    ...(reviewed?{sourceScope:'reviewed'}:{}),
+    ...(reviewed?{sourceScope:'reviewed'}:publisher?{sourceScope:'publisher'}:{}),
     ...(validationCorpus?{validationSha256:validationHash,validationFingerprint,diagnosticOnly,patience}:{})};let previous=null;
   if(previousCampaign!==undefined&&previousCampaign!==null){
     if(mode!=='resume'||typeof previousCampaign!=='string'||!previousCampaign)throw Error('Previous campaign requires explicit resume mode');
@@ -184,7 +184,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   while(completed<epochs&&remaining>0&&!stop){
     signal?.throwIfAborted();const activeEpoch=currentEpoch,directory=join(target,`epoch-${String(activeEpoch).padStart(4,'0')}`);
     const progressPath=join(directory,'campaign.json');let written=null,segmentBatches=0;
-    const result=await runTrainingSequence({mode:results.length?'resume':mode,input:current,output:directory,corpus,auxiliary,macroOnly,supervision,reviewed,
+    const result=await runTrainingSequence({mode:results.length?'resume':mode,input:current,output:directory,corpus,auxiliary,macroOnly,supervision,reviewed,publisher,
       epoch:activeEpoch,seed,freezeEpochs,learningRate,device,amp,torchLibrary,augment,batchSize,maxBatches:remaining,root,signal,
       onBatch:async event=>{
         if(event.epoch!==activeEpoch||event.batches!==segmentBatches+1||remaining<1)throw Error('Training campaign batch order differs');
@@ -241,7 +241,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     const {values,positionals}=parseArgs({allowPositionals:true,options:{mode:{type:'string'},input:{type:'string'},output:{type:'string'},
-      corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},reviewed:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false},epoch:{type:'string'},seed:{type:'string'},'freeze-epochs':{type:'string'},
+      corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false},epoch:{type:'string'},seed:{type:'string'},'freeze-epochs':{type:'string'},
       'learning-rate':{type:'string'},device:{type:'string'},precision:{type:'string'},'torch-library':{type:'string'},
       'batch-size':{type:'string'},'max-batches':{type:'string'},augment:{type:'boolean',default:false},
       campaign:{type:'boolean',default:false},epochs:{type:'string'},'previous-campaign':{type:'string'},
@@ -253,7 +253,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
     try{const request={mode:values.mode,input:reportArgument(values.input,{access:'read'}),
       output:reportArgument(values.output,{access:'write'}),corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
-      auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),macroOnly:values['allow-nonmacro-auxiliary']?false:undefined,reviewed:values.reviewed,
+      auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),macroOnly:values['allow-nonmacro-auxiliary']?false:undefined,reviewed:values.reviewed,publisher:values.publisher,
       supervision:reportArgument(values.supervision,{access:'read'}),epoch:integer('epoch'),seed:integer('seed'),freezeEpochs:integer('freeze-epochs'),
       learningRate:Number(values['learning-rate']),device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
       batchSize:integer('batch-size'),maxBatches:integer('max-batches'),augment:values.augment,signal:controller.signal};

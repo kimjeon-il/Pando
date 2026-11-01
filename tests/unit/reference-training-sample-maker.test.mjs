@@ -32,6 +32,8 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.deepEqual(supervision.positiveWeights.slice(0,4),[1,1,1,1]);
   const supervisionOutput=join(root,'supervision');
   const stored=await writeTrainingSupervision({corpus,output:supervisionOutput});
+  await assert.rejects(writeTrainingSupervision({corpus,output:join(root,'wrong-scope'),publisher:true}),/publisher training source/i);
+  await assert.rejects(writeTrainingSupervision({corpus,output:join(root,'wrong-scope'),publisher:true,reviewed:true}),/source scope/i);
   assert.equal(stored.unobservedMask,0);
   assert.equal((await verifyTrainingSupervision({corpus,directory:supervisionOutput})).unobservedMask,0);
   await assert.rejects(writeTrainingSupervision({corpus,output:supervisionOutput}),/exists/);

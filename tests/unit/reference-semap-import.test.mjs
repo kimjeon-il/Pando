@@ -9,8 +9,10 @@ import {prepareSemapCorpus} from '../../tools/reference-analysis/prepare-semap.m
 import {validateSemapTrainingCorpus,validateSemapTrainingSheet} from '../../tools/reference-analysis/validate-semap.mjs';
 import {indexTrainingDataset,inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 import {verifyCombinedTrainingOrder,writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
-import {prepareCombinedTrainingBatch,verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
+import {prepareCombinedTrainingBatch,prepareTrainingBatch,verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
 import {nativeTrainingBatch,runCombinedTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
+import {writeTrainingSupervision,verifyTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
+import {writeTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 
 test('Semap importer preserves real originals, rejects changed outputs and never creates review truth',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-semap-import-'));t.after(()=>rm(root,{recursive:true}));
@@ -86,6 +88,10 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.equal(publisherCombined.trainingOnly,true);assert.equal(publisherCombined.releaseApproved,false);
   await assert.rejects(indexTrainingDataset(publisherPath),/macro/i);
   await assert.rejects(indexTrainingDataset(publisherPath,{allowPublisher:'yes'}),/scope/i);
+  const publisherSupervision=join(root,'publisher-supervision');
+  await writeTrainingSupervision({corpus:publisherPath,output:publisherSupervision,publisher:true});
+  assert.equal((await verifyTrainingSupervision({corpus:publisherPath,directory:publisherSupervision,publisher:true})).corpusSha256,sha(await readFile(publisherPath)));
+  await assert.rejects(verifyTrainingSupervision({corpus:publisherPath,directory:publisherSupervision}),/supervision|source/i);
   const reviewedRoot=join(root,'reviewed');await mkdir(reviewedRoot);
   const reviewedImage=await readFile('tests/fixtures/map-image/png-read/orientation-6.png');
   await writeFile(join(reviewedRoot,'map.png'),reviewedImage);
@@ -134,6 +140,11 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     const publisherRequest={...request,corpus:publisherPath,orderDirectory:publisherOrder};
     const publisherBatch=await prepareCombinedTrainingBatch({...publisherRequest,cursor:0,count:2,augment:false,output:join(root,'publisher-batch')});
     assert.deepEqual(publisherBatch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['publisher-pdf','semap-label']);
+    const publisherSingleOrder=join(root,'publisher-single.u64');
+    await writeTrainingOrder({corpus:publisherPath,supervision:publisherSupervision,publisher:true,epoch:0,seed:42,output:publisherSingleOrder,
+      torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY});
+    const publisherSingle=await prepareTrainingBatch({corpus:publisherPath,order:publisherSingleOrder,publisher:true,cursor:0,count:1,epoch:0,augment:false,output:join(root,'publisher-single')});
+    assert.equal(verifyTrainingSample(publisherSingle.samples[0].directory).sourceKind,'publisher-pdf');
     const reviewedOrder=join(root,'reviewed-order');
     const reviewedPlan=await writeCombinedTrainingOrder({corpus:reviewedPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence,
       epoch:0,seed:42,output:reviewedOrder,torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY});

@@ -95,26 +95,26 @@ export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,tor
   writeFileSync(resolve(output),bytes,{flag:'wx'});
   return {length,sha256:createHash('sha256').update(bytes).digest('hex'),toolRevision:manifest.revision};
 }
-export async function writeTrainingOrder({corpus,supervision,reviewed=false,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal}){
+export async function writeTrainingOrder({corpus,supervision,reviewed=false,publisher=false,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal}){
   signal?.throwIfAborted();if(!corpus||!supervision||!output||!torchLibrary)throw Error('Explicit macro corpus, supervision and training order inputs required');
   if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0||!Number.isSafeInteger(epoch+seed))throw Error('Valid training epoch and seed required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json'))throw Error('Training order output exists; preserve it');
-  const checked=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,signal});
-  const dataset=await indexTrainingDataset(corpus,{allowReviewed:reviewed,signal});
+  const checked=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
+  const dataset=await indexTrainingDataset(corpus,{allowReviewed:reviewed,allowPublisher:publisher,signal});
   const result=await writeBalancedTrainingOrder({datasets:[dataset.tiles.map(tile=>tile.duplicateGroup)],epoch,seed,output,torchLibrary,root,directory,signal});
   const corpusHash=createHash('sha256').update(readTrainingBounded(resolve(corpus),32*1024*1024)).digest('hex');
-  const after=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,signal});
+  const after=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
   if(corpusHash!==dataset.corpusSha256||corpusHash!==checked.corpusSha256||after.sourcesSha256!==checked.sourcesSha256||after.weightsSha256!==checked.weightsSha256)
     throw Error('Training source changed during order preparation; preserve the output');
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:dataset.corpusSha256,sourcesSha256:checked.sourcesSha256,
     weightsSha256:checked.weightsSha256,epoch,seed,length:result.length,orderSha256:result.sha256,toolRevision:result.toolRevision};
   writeFileSync(resolve(output)+'.receipt.json',JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
 }
-export async function verifyTrainingOrder({corpus,order,supervision,reviewed=false,epoch,seed,signal}){
+export async function verifyTrainingOrder({corpus,order,supervision,reviewed=false,publisher=false,epoch,seed,signal}){
   signal?.throwIfAborted();if(!corpus||!order||!supervision||!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0)
     throw Error('Explicit bound training order inputs required');
   const receipt=JSON.parse(readTrainingBounded(resolve(order)+'.receipt.json',1024*1024)),bytes=readTrainingBounded(resolve(order),8000000);
-  const checked=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,signal});
+  const checked=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
   if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.corpusSha256!==checked.corpusSha256||
     receipt.sourcesSha256!==checked.sourcesSha256||receipt.weightsSha256!==checked.weightsSha256||receipt.epoch!==epoch||receipt.seed!==seed||
     !Number.isSafeInteger(receipt.length)||receipt.length<1||bytes.length!==receipt.length*8||
@@ -123,12 +123,12 @@ export async function verifyTrainingOrder({corpus,order,supervision,reviewed=fal
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},epoch:{type:'string'},seed:{type:'string'},
-    output:{type:'string'},'torch-library':{type:'string'},reviewed:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
+    output:{type:'string'},'torch-library':{type:'string'},reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
     if(positionals.length||!/^\d+$/.test(values.epoch||'')||!/^\d+$/.test(values.seed||''))throw Error('Explicit macro corpus, epoch, seed and output required');
-    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.supervision||values.reviewed))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and no macro supervision directory');
+    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.supervision||values.reviewed||values.publisher))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and no macro supervision directory');
     if(!values.auxiliary&&values['allow-nonmacro-auxiliary'])throw Error('Auxiliary corpus required for nonmacro scope');
     const common={corpus:values.corpus,epoch:Number(values.epoch),seed:Number(values.seed),output:values.output,torchLibrary:values['torch-library']};
     console.log(JSON.stringify(values.auxiliary?await writeCombinedTrainingOrder({...common,auxiliary:values.auxiliary,macroOnly:false}):
-      await writeTrainingOrder({...common,supervision:values.supervision,reviewed:values.reviewed})));
+      await writeTrainingOrder({...common,supervision:values.supervision,reviewed:values.reviewed,publisher:values.publisher})));
   }catch(error){console.error('training-order: '+error.message);process.exitCode=1;}
 }

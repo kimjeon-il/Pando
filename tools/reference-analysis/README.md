@@ -106,6 +106,9 @@ Reviewed-only training uses the same source-bound supervision, order and campaig
 owners. Pass `--reviewed` to `training-supervision.mjs` and
 `native-training-sequence.mjs`; omit the auxiliary arguments. Existing reviewed
 source files and output checkpoints are never overwritten.
+For publisher-only source-derived training, use `--publisher` in the same two
+commands. This scope verifies the publisher provenance and cannot be combined
+with `--reviewed` or used to claim reviewed validation truth.
 
 For a checkpoint trained with an auxiliary Semap corpus, provide the original
 `--auxiliary-corpus` together with `--corpus`. Both manifests and their combined
