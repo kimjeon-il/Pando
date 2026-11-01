@@ -10,47 +10,15 @@ import {normalizeTerritorialLibraryEntity} from '../apps/editor/frontend/js/modu
 import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from './builtin-world-compiler.mjs';
 import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.js";
+import {finalizeBuiltinWorldFiles,readBuiltinCountryStoredBytes} from './builtin-country-bytes.mjs';
+export {finalizeBuiltinWorldFiles};
 
 const output=fileURLToPath(new URL('../assets/data/builtin-world/generated/v1/',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const storedFields=['entityId','file','encoding','sha256','compressedBytes','decodedBytes'];
 export function recordBuiltinWorldInputs(index,sourceRevisions,view,policy){
  const ordered=Object.fromEntries(Object.entries(sourceRevisions).sort(([a],[b])=>a.localeCompare(b,'en')));
  index.inputHashes={entities:sha(JSON.stringify(ordered)),sourceRevisions:ordered,view:sha(JSON.stringify(view)),policy:sha(JSON.stringify(policy))};
  return index;
-}
-
-/** Finalize a full publication or a delta over a previously verified index.
- * Unchanged countries remain references: no aggregate allocation or payload read. */
-export function finalizeBuiltinWorldFiles(index,files,{previousIndex=null}={}) {
- if(index?.schema!=='pandolab-builtin-world'||index.schemaVersion!==2||!Array.isArray(index.entities)||!(files instanceof Map))throw Error('Invalid builtin publication');
- if(previousIndex&&(previousIndex.schema!==index.schema||previousIndex.schemaVersion!==2||!Array.isArray(previousIndex.entities)))throw Error('Invalid previous builtin publication');
- const previous=new Map((previousIndex?.entities||[]).map(entry=>[entry.entityId,entry]));
- if(previousIndex&&previous.size!==previousIndex.entities.length)throw Error('Duplicate previous builtin country');
- const ids=new Set(),paths=new Set();
- for(const entry of index.entities){
-  if(typeof entry.entityId!=='string'||!entry.entityId||ids.has(entry.entityId)
-   ||!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(entry.file)
-   ||!/^[a-f0-9]{64}$/.test(entry.sha256)||entry.file!==`countries/${entry.entityId.replaceAll(':','-')}-sha256-${entry.sha256}.json.gz`
-   ||paths.has(entry.file)||entry.encoding!=='gzip'
-   ||!Number.isSafeInteger(entry.compressedBytes)||entry.compressedBytes<=0
-   ||!Number.isSafeInteger(entry.decodedBytes)||entry.decodedBytes<=0)throw Error(`Invalid builtin country descriptor: ${entry.entityId}`);
-  ids.add(entry.entityId);paths.add(entry.file);
- }
- for(const file of files.keys())if(file!=='index.json'&&file!=='coverage-report.json'&&!paths.has(file))throw Error(`Unexpected builtin output: ${file}`);
- for(const entry of index.entities){
-  const prior=previous.get(entry.entityId),unchanged=prior&&storedFields.every(key=>prior[key]===entry[key]);
-  if(files.has(entry.file)){
-   const bytes=files.get(entry.file);
-   if(!Buffer.isBuffer(bytes)||bytes.length!==entry.compressedBytes||sha(bytes)!==entry.sha256)throw Error(`Invalid country bytes: ${entry.entityId}`);
-   if(unchanged)files.delete(entry.file);
-  }else if(!unchanged)throw Error(`Missing exact country bytes: ${entry.entityId}`);
-  delete entry.offset;
- }
- delete index.transport;
- index.storageLayout='country-files-v1';
- files.set('index.json',Buffer.from(JSON.stringify(index)+'\n'));
- return files;
 }
 export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../assets/data/historical-world/policy.json',import.meta.url)}={}){
  const policy=input?.policy||JSON.parse(fs.readFileSync(policyFile));
@@ -86,8 +54,7 @@ export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previous
   if(mapping.length!==1||mapping[0].sourceEntityIds.length!==1)throw Error(`Name-only update requires one source identity: ${id}`);
   const entry=index.entities.find(row=>row.entityId===mapping[0].projectEntityId),source=sourceIndex.entities.find(row=>row.entityId===id);
   if(!entry||!source)throw Error(`Missing named country: ${id}`);
-  const stored=readCountry(entry.file);
-  if(stored.length!==entry.compressedBytes||sha(stored)!==entry.sha256)throw Error(`Changed country bytes: ${id}`);
+  const stored=readBuiltinCountryStoredBytes(entry,readCountry);
   const country=JSON.parse(gunzipSync(stored)),entity=readSource(id),prior=readPreviousSource(id);
   if(country.entityId!==entry.entityId||entity.entityId!==id)throw Error('Name scope identity mismatch');
   const unnamed=({names,alternateNames,nameVersions,...rest})=>rest;
@@ -223,5 +190,5 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   }
  }else files=buildBuiltinWorldPublication({input:{sourceIndex}});
  writeBuiltinWorldPublication(files,output,{check:process.argv.includes('--check')});
- console.log(`Builtin world: ${JSON.parse(files.get('index.json')).entities.length} country references; ${[...files.keys()].filter(file=>file.startsWith('countries/')).length} country files emitted; ${[...files.values()].reduce((n,b)=>n+b.length,0)} output bytes; no aggregate transport`);
+ console.log(`Builtin world: ${JSON.parse(files.get('index.json')).entities.length} country references; ${[...files.keys()].filter(file=>file.startsWith('countries/')||file.startsWith('country-parts/')).length} bounded files emitted; ${[...files.values()].reduce((n,b)=>n+b.length,0)} output bytes; no aggregate transport`);
 }

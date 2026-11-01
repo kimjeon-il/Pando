@@ -1,5 +1,6 @@
 // The packaged map data closure is derived only from the Web manifests.
 // Keep current world, local physical map and place shard resources together.
+import {builtinCountryAssets} from '../../shared/frontend/js/modules/builtin-country-files.js';
 const HEX = /^[a-f0-9]{64}$/;
 const PREFIX = 'assets/data/';
 const LIBRARY_ROOT = 'assets/data/territorial-entities/generated/v2/';
@@ -14,9 +15,7 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
       || world.source?.countryCount !== 258 || !world.assets) {
     throw new Error('Current world manifest is not a 258-country world bundle.');
   }
-  if (historical?.schema !== 'pandolab-builtin-world' || historical.schemaVersion !== 2 || !Array.isArray(historical.entities)) {
-    throw new Error('Builtin world country index is unavailable.');
-  }
+  const countryAssets=builtinCountryAssets(historical);
   if (library?.schemaVersion !== 2 || !Array.isArray(library.entities) || !library.entities.length
       || prepared?.schemaVersion !== 2 || !prepared.meshes) {
     throw new Error('World library or prepared polygon manifest is unavailable.');
@@ -64,18 +63,7 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
     add('assets/data/' + name);
   }
   add('assets/data/builtin-world/generated/v1/index.json', meta.builtinWorld);
-  const transport = historical.transport;
-  if (transport?.schemaVersion !== 1 || transport.encoding !== 'identity'
-      || !/^transport\/countries-sha256-[a-f0-9]{64}\.bin$/.test(transport.url)
-      || !HEX.test(transport.sha256) || !transport.url.includes(transport.sha256)
-      || !Number.isSafeInteger(transport.compressedBytes) || transport.compressedBytes <= 0
-      || transport.decodedBytes !== transport.compressedBytes) {
-    throw new Error('Invalid builtin country transport.');
-  }
-  add('assets/data/builtin-world/generated/v1/' + transport.url, transport);
-  for(const entry of historical.entities){
-    if(!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(entry.file)||!entry.file.includes(entry.sha256))throw new Error('Invalid builtin country file');
-  }
+  for(const entry of countryAssets)add('assets/data/builtin-world/generated/v1/'+entry.file,entry);
   add(LIBRARY_ROOT + 'index.json', meta.territorialIndex);
   for (const item of library.entities) {
     if (!/^(?:state|waterbody)-[A-Za-z0-9_-]+\.json\.gz$/.test(item.file || '')) {

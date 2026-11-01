@@ -1,6 +1,7 @@
 import {createStoredAssetLoader} from './stored-asset-loader.js';
 import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval} from './temporal.js';
 import {projectTimelineIdentity} from './timeline-resolver.js';
+import {builtinCountryAssets,builtinCountryFileSpecs} from './builtin-country-files.js';
 
 const contains=(rows,month)=>rows.some(row=>temporalContains(row,temporalMonthEnd(month)));
 export function selectBuiltinCountries(index,month){
@@ -78,23 +79,14 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   try{return await operation();}finally{if(readQueue.length)readQueue.shift()();else activeReads--;}
  }
  function parseIndex(bytes){
-  const value=parse(bytes);
-  if(value?.schema!=='pandolab-builtin-world'||value.schemaVersion!==2||value.storageLayout!=='country-files-v1'
-   ||Object.hasOwn(value,'transport')||!Array.isArray(value.entities)
-   ||!value.template||typeof value.template!=='object'||Array.isArray(value.template))throw new Error('Invalid builtin world index');
-  const ids=new Set(),paths=new Set();
+  const value=parse(bytes);builtinCountryAssets(value);
+  if(!value.template||typeof value.template!=='object'||Array.isArray(value.template))throw new Error('Invalid builtin world index');
   for(const row of value.entities){
-   if(!row||typeof row.entityId!=='string'||!row.entityId||ids.has(row.entityId)
-    ||!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(row.file)
-    ||!/^[a-f0-9]{64}$/.test(row.sha256)||row.file!==`countries/${row.entityId.replaceAll(':','-')}-sha256-${row.sha256}.json.gz`
-    ||paths.has(row.file)||row.encoding!=='gzip'||Object.hasOwn(row,'offset')||!Array.isArray(row.coverage)
-    ||!Number.isSafeInteger(row.compressedBytes)||row.compressedBytes<=0
-    ||!Number.isSafeInteger(row.decodedBytes)||row.decodedBytes<=0)throw new Error('Invalid builtin country descriptor');
+   if(!Array.isArray(row.coverage))throw new Error('Invalid builtin country coverage descriptor');
    for(const interval of row.coverage){
     if(!interval||!['validFrom','validTo'].every(key=>interval[key]===null||typeof interval[key]==='string'&&interval[key].trim()))throw new Error('Invalid builtin country coverage descriptor');
     normalizeTemporalInterval(interval.validFrom,interval.validTo);
    }
-   ids.add(row.entityId);paths.add(row.file);
   }
   return value;
  }
@@ -111,12 +103,22 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    .then(({value})=>value).catch(error=>{indexPromise=null;throw error;});
   return indexPromise;
  }
+ async function readCountry(entry){
+  if(!entry.parts)return assets.loadAsset({...entry,url:entry.file},'builtin-world',entry.entityId,entry.entityId,bytes=>parseCountry(bytes,entry));
+  // Reassemble only this country's original compressed stream. Parts are read
+  // sequentially within one slot, so total network concurrency stays at six.
+  const bytes=new Uint8Array(entry.compressedBytes);let position=0;
+  for(const part of builtinCountryFileSpecs(entry)){
+   const result=await assets.loadStoredAsset({...part,url:part.file},'builtin-world',part.sha256,entry.entityId,stored=>stored);
+   bytes.set(new Uint8Array(result.value),position);position+=part.compressedBytes;
+  }
+  return assets.decodeStoredAsset(bytes.buffer,entry,'builtin-world',entry.entityId,entry.entityId,stored=>parseCountry(stored,entry));
+ }
  async function loadCountry(entry){
   const key=entry.file;
   if(countries.has(key))return countries.get(key);
   // A shared file request is independent of any one month query's cancellation.
-  if(!pending.has(key))pending.set(key,limitedRead(()=>assets.loadAsset({...entry,url:entry.file},
-   'builtin-world',entry.entityId,entry.entityId,bytes=>parseCountry(bytes,entry)))
+  if(!pending.has(key))pending.set(key,limitedRead(()=>readCountry(entry))
    .then(({value})=>{countries.set(key,value);return value;})
    .finally(()=>pending.delete(key)));
   return pending.get(key);
