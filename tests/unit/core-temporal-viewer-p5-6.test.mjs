@@ -110,14 +110,14 @@ test('P5-6 new C++ native adoption replaces the readonly model only after an acc
 });
 test('P5-6 unpaired WASM fallback remains exclusive to missing source export',async()=>{
   const buildMeta={dataRevision:'revision',builtinWorld:{sha256:'a'.repeat(64)}};
-  let loads=0,admissions=0;
+  let loads=0,admissions=0,baselineId=0;
   const domain={
     getGeneration:()=>0,
-    state:()=>({storageBaselineId:0}),
+    state:()=>({storageBaselineId:baselineId}),
     prepareTemporalBuiltin:async()=>{throw Object.assign(new Error('DocumentSession.temporalSourcePrepare is required.'),
       {code:'PL-CORE-DOCUMENT-ABI'});},
     admitStorageBaseline:async()=>{
-      admissions++;return {storageBaselineId:2};
+      admissions++;baselineId=2;return {storageBaselineId:baselineId};
     },
   };
   const session=createBuiltinSession({buildMeta,builtinWorldLoader:{loadProject:async month=>{
