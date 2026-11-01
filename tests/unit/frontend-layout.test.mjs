@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
-import {buildFrontendIndex,frontendAsset,emitFrontendModule} from '../../scripts/lib/frontend-layout.mjs';
+import {buildFrontendIndex,frontendAsset,emitFrontendModule,frontendSourceClosure} from '../../scripts/lib/frontend-layout.mjs';
 
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-frontend-layout-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='export const value=1;'){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);return file;}
@@ -59,4 +59,20 @@ test('native Worker URL literals resolve in their published shell namespace',t=>
  const root=fixture(t);put(root,'apps/editor/diagnostics.js');put(root,'apps/editor/frontend/js/workers/gis-gpkg-worker.js');const index=buildFrontendIndex(root);
  const emitted=emitFrontendModule(`const worker=new URL('../assets/js/workers/gis-gpkg-worker.js',import.meta.url);`,'apps/editor/diagnostics.js',index);
  assert.ok(emitted.includes('../assets/js/workers/gis-gpkg-worker.js'));
+});
+
+
+test('frontend source closure follows static imports and catalogued runtime edges',t=>{
+ const root=fixture(t);
+ put(root,'shared/frontend/js/modules/entry.js',"import './static.js';\nexport const entry=1;");
+ put(root,'shared/frontend/js/modules/static.js','export const stat=1;');
+ put(root,'shared/frontend/js/modules/runtime.js','export const runtime=1;');
+ const closure=frontendSourceClosure(root,['assets/js/modules/entry.js'],{runtimeDependencies:{
+   'assets/js/modules/entry.js':['shared/frontend/js/modules/runtime.js'],
+ }});
+ assert.deepEqual(closure.map(row=>row.publicPath),[
+   'assets/js/modules/entry.js',
+   'assets/js/modules/runtime.js',
+   'assets/js/modules/static.js',
+ ]);
 });
