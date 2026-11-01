@@ -75,13 +75,16 @@ accepts the initializer, original corpus and every checkpoint in order. For a
 single corpus, provide its supervision directory; for a mixed corpus, provide
 the auxiliary corpus and explicitly allow its nonmacro scope. The verifier
 checks parent receipts, recorded order, source identities and reconstructed
-training tensors. Its result states explicitly that optimizer updates were not
-replayed and lineage is incomplete. Omitting an earlier checkpoint or changing
-either source is rejected; it does not admit a model for independent evaluation.
+training tensors. With `--replay-updates`, an explicit new scratch directory and
+the matching LibTorch runtime, it also re-executes up to 16 recorded batches on
+the recorded device and compares every resulting checkpoint state. Existing
+outputs and changed sources are rejected. This does not establish complete
+training lineage or admit a model for independent evaluation.
 
 ```powershell
 node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory $firstCheckpoint $secondCheckpoint
 node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --auxiliary $auxiliaryCorpus --allow-nonmacro-auxiliary $firstCheckpoint $secondCheckpoint
+node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory --replay-updates --scratch $newScratchDirectory --torch-library $torchLibrary $firstCheckpoint $secondCheckpoint
 ```
 
 To compare two native checkpoints from equivalent training runs, the validation

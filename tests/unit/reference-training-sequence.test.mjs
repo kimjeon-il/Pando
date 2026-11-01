@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import test from 'node:test';
 import * as training from '../../tools/reference-analysis/native-training-sequence.mjs';
 import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
-import {validateReplayReceiptChain,verifyTrainingSourceReplay} from '../../tools/reference-analysis/native-training-replay.mjs';
+import {validateReplayReceiptChain,verifyTrainingSourceReplay,verifyTrainingUpdateReplay} from '../../tools/reference-analysis/native-training-replay.mjs';
 const {runTrainingSequence}=training;
 
 test('mixed sequence requires an explicit auxiliary scope and rejects mismatched settings',async t=>{
@@ -165,6 +165,16 @@ test('source replay requires a complete linked chain and exact batch evidence',(
 test('source replay rejects missing and repeated checkpoint paths',async()=>{
   await assert.rejects(verifyTrainingSourceReplay({checkpoints:[],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
   await assert.rejects(verifyTrainingSourceReplay({checkpoints:['same','same'],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
+});
+test('update replay refuses unbounded input and an existing scratch directory',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-update-replay-'));t.after(()=>rmSync(root,{recursive:true}));
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:[],scratch:join(root,'new'),torchLibrary:root}),/at most 16/i);
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:Array(17).fill('x'),scratch:join(root,'new'),torchLibrary:root}),/at most 16/i);
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:['x'],scratch:root,torchLibrary:root}),/output exists/i);
+  assert.equal(existsSync(join(root,'new')),false);
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-training-replay.mjs','--weights','x','--corpus','x','--supervision','x',
+    '--replay-updates','x'],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.match(cli.stderr,/explicit weights/i);
 });
 test('mixed source replay binds the auxiliary corpus and local augmentation index',()=>{
   const entries=fixture(),auxiliarySha256=hash('1'),lineageFingerprint=hash('2'),scope={weightsSha256,corpusSha256,auxiliarySha256,lineageFingerprint};

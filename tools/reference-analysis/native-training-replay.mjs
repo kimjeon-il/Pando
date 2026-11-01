@@ -1,15 +1,17 @@
 // Verify recorded source tensors and checkpoint links for selected corpora.
 // This does not replay optimizer updates or establish independent evaluation.
 import {createHash} from 'node:crypto';
-import {statSync} from 'node:fs';
+import {existsSync,mkdirSync,statfsSync,statSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
+import {withLibraryOutputs} from '../library-data.mjs';
 import {assertPublicEncoderIdentity,corpusFingerprint,readTrainingBounded,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {indexTrainingDataset} from './training-tiles.mjs';
 import {verifyCombinedTrainingOrder,verifyTrainingOrder} from './training-order.mjs';
-import {verifyCombinedTrainingEvidence,verifyTrainingEvidence} from './native-training-batch.mjs';
+import {runCombinedTrainingBatch,runTrainingBatch,verifyCombinedTrainingEvidence,verifyTrainingEvidence} from './native-training-batch.mjs';
+import {compareNativeTrainingCheckpoints} from './native-training-validation.mjs';
 import {recheckTrainingSources} from './macro-training-source.mjs';
 
 const SHA=/^[a-f0-9]{64}$/,sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -130,15 +132,62 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
     ...(auxiliaryPath?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint}:{}),checkpointSha256:entries.at(-1).checkpointSha256};
 }
 
+// Re-run only an explicitly bounded sequence in a new, caller-owned directory.
+// Equal checkpoints prove this execution, not independent model accuracy.
+export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed=false,publisher=false,scratch,torchLibrary},{signal}={}){
+  signal?.throwIfAborted();
+  if(!Array.isArray(checkpoints)||!checkpoints.length||checkpoints.length>16||!scratch||!torchLibrary)
+    throw Error('Explicit scratch directory, LibTorch and at most 16 ordered checkpoints required');
+  const target=resolve(scratch);if(existsSync(target))throw Error('Training replay output exists; preserve prior evidence');
+  const source=await verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed,publisher},{signal});
+  const paths=checkpoints.map(value=>resolve(value)),receipts=paths.map(path=>JSON.parse(readTrainingBounded(path+'.receipt.json',1024*1024)));
+  const sourceHashes=paths.map(path=>[trainingFileIdentity(path),trainingFileIdentity(path+'.receipt.json')]);
+  const initializer=verifyTrainingInitializer({path:weights});
+  validateReplayReceiptChain(paths.map((path,i)=>({path,receipt:receipts[i],checkpointSha256:sourceHashes[i][0],receiptSha256:sourceHashes[i][1]})),
+    {weightsSha256:initializer.weightsSha256,corpusSha256:source.corpusSha256,auxiliarySha256:source.auxiliaryCorpusSha256??null,
+      lineageFingerprint:source.lineageFingerprint??null});
+  if(sourceHashes.at(-1)[0]!==source.checkpointSha256)throw Error('Original checkpoint chain changed before update replay');
+  const peak=receipts.reduce((sum,row)=>sum+(256+32*row.evidence.length)*1024*1024,0);
+  if(peak>=1024**3){const space=statfsSync(dirname(target));if(Number(space.bavail)*Number(space.bsize)<peak+5*1024**3)
+    throw Error('Insufficient space for replay checkpoints and 5 GiB headroom');}
+  return withLibraryOutputs({paths:[target]},async()=>{
+    signal?.throwIfAborted();mkdirSync(target);let current=resolve(weights);
+    for(let i=0;i<paths.length;i++){
+      signal?.throwIfAborted();const r=receipts[i],folder=join(target,`batch-${String(i+1).padStart(6,'0')}`);mkdirSync(folder);
+      const orderDirectory=auxiliary?join(dirname(paths[i]),'order'):dirname(paths[i]),order=join(orderDirectory,'order.u64');
+      const common={mode:i?'resume':'warm',input:current,output:join(folder,'checkpoint.pt'),sampleOutput:join(folder,'samples'),
+        corpus,epoch:r.epoch,seed:r.seed,freezeEpochs:r.freezeEpochs,learningRate:r.learningRate,device:r.device,
+        amp:r.precision==='amp-fp16',torchLibrary,count:r.evidence.length,augment:r.evidence[0].augment,signal};
+      const result=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly:false,orderDirectory}):
+        await runTrainingBatch({...common,order,supervision,reviewed,publisher});
+      const comparison=await compareNativeTrainingCheckpoints({first:paths[i],second:common.output,device:r.device,torchLibrary,signal});
+      if(comparison.equal!==true||result.checkpointSha256!==comparison.secondSha256)throw Error('Replayed checkpoint state differs');
+      current=common.output;
+    }
+    if(paths.some((path,i)=>trainingFileIdentity(path)!==sourceHashes[i][0]||trainingFileIdentity(path+'.receipt.json')!==sourceHashes[i][1]))
+      throw Error('Original checkpoints changed during update replay');
+    const after=await verifyTrainingSourceReplay({checkpoints:paths,weights,corpus,auxiliary,supervision,reviewed,publisher},{signal});
+    if(!isDeepStrictEqual(after,source))throw Error('Training sources changed during update replay');
+    return {...source,optimizerUpdatesReplayed:true,replayedCheckpoints:paths.length,independentEvaluation:false,lineageComplete:false,releaseApproved:false};
+  });
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{weights:{type:'string'},corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},
-      reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
+      reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false},
+      'replay-updates':{type:'boolean',default:false},scratch:{type:'string'},'torch-library':{type:'string'}}});
     if(!values.weights||!values.corpus||!positionals.length||Boolean(values.auxiliary)!==Boolean(values['allow-nonmacro-auxiliary'])||
-      (values.auxiliary?Boolean(values.supervision)||values.reviewed||values.publisher:!values.supervision))
+      (values.auxiliary?Boolean(values.supervision)||values.reviewed||values.publisher:!values.supervision)||
+      (values['replay-updates']?!values.scratch||!values['torch-library']:Boolean(values.scratch||values['torch-library'])))
       throw Error('Explicit weights, matching corpus scope and ordered checkpoints required');
-    console.log(JSON.stringify(await verifyTrainingSourceReplay({weights:reportArgument(values.weights,{access:'read',siblings:true}),
+    const request={weights:reportArgument(values.weights,{access:'read',siblings:true}),
       corpus:reportArgument(values.corpus,{access:'read',siblings:true}),auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),
       supervision:reportArgument(values.supervision,{access:'read',siblings:true}),
-      reviewed:values.reviewed,publisher:values.publisher,checkpoints:positionals.map(path=>reportArgument(path,{access:'read',siblings:true}))})));
+      reviewed:values.reviewed,publisher:values.publisher,checkpoints:positionals.map(path=>reportArgument(path,{access:'read',siblings:true}))};
+    const result=values['replay-updates']?await verifyTrainingUpdateReplay({...request,scratch:reportArgument(values.scratch,{access:'write'}),
+      torchLibrary:values['torch-library']},{signal:controller.signal}):await verifyTrainingSourceReplay(request,{signal:controller.signal});
+    console.log(JSON.stringify(result));
   }catch(error){console.error('native-training-replay: '+error.message);process.exitCode=1;}
+  finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }
