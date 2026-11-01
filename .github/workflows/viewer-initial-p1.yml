@@ -4,6 +4,14 @@ on:
     branches: [work/ui]
     paths:
       - .github/workflows/viewer-initial-p1.yml
+      - apps/viewer/js/modules/viewer-initial-preview.js
+      - apps/viewer/js/modules/viewer-initial-presentation.js
+      - apps/viewer/js/modules/viewer-composition.js
+      - apps/viewer/js/modules/viewer-map.js
+      - apps/viewer/css/viewer.css
+      - tests/unit/viewer-initial-preview.test.mjs
+      - tests/unit/viewer-initial-composition.test.mjs
+      - tests/unit/viewer-composition-recovery.test.mjs
       - tests/browser/viewer-initial-p1.spec.mjs
   workflow_dispatch:
 permissions:
