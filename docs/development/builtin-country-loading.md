@@ -41,6 +41,10 @@ Do not interpret this intermediate source commit as a deployable code/data pair.
   Successful country bytes may remain cached, but no stale scene may publish.
 - Any missing/corrupt required country fails the entire query. A subsequent
   retry reuses successful countries instead of redownloading them all.
+- A non-cancellation failure stops scheduling countries and drains its current
+  workers before returning the original error. Otherwise an immediate retry
+  can join a different country's not-yet-settled failed request. Cancellation
+  remains prompt and leaves shared requests usable by another active query.
 
 ## Execution ledger
 
@@ -53,5 +57,23 @@ Do not interpret this intermediate source commit as a deployable code/data pair.
   remain packed. Keep activation in phase 3, do not add a packed fallback.
 - Review focus: cross-revision cache reuse; failure isolation; pending-query
   deduplication; last-read/empty-query supersession; strict descriptor checks.
-- Verification command: the existing builtin-country-publication workflow,
-  now including builtin-world-loader and builtin-country-loading tests.
+- RED: c7811de, run 41258499389: the old packed reader failed 15 of 36 focused
+  tests; 19 generation/catalog checks remained green.
+- Initial GREEN: 20ab785, run 41258630548: all 36 focused tests passed, including
+  actual Core-session autosave restoration and superseded baseline rollback.
+- Final review: self-review (no subagent tool). Reader/assembly diff and cache
+  owner reviewed separately. Found the immediate-retry pending-failure race.
+- Regression RED: f36aacd, run 41258776888: 36 passed, only the deterministic
+  pending-failure drain test failed (true !== false at line 30). The slow
+  country's final 404 was deliberately held after the fast country failed.
+- Ruling: drain active workers only on non-AbortError failures; preserve
+  cancellation responsiveness and cross-query request sharing. No cache-owner
+  rewrite, whole-world download fallback or retry of successful files.
+- Final gate: the same read-only workflow runs all 37 focused tests with a
+  15-second per-test timeout. Its conclusion, not this document, determines
+  completion of the amended source. No live Web/App deployment claim.
+
+Deferred to phase 3: pinned independent catalog activation; Web/App asset plans
+and shell fixtures; deployed-network/browser/native packaging verification.
+Deferred to phase 4: archived transport removal after confirming no active pins
+or other consumers, and residual full integration cleanup.

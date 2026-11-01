@@ -127,13 +127,20 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   const index=await loadIndex();assertCurrent();
   const selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
   let next=0,failed=false;
-  await Promise.all(Array.from({length:Math.min(6,selected.length)},async()=>{
+  const workers=Array.from({length:Math.min(6,selected.length)},async()=>{
    try{
     while(!failed&&next<selected.length){
      assertCurrent();const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();
     }
    }catch(error){failed=true;throw error;}
-  }));
+  });
+  try{await Promise.all(workers);}
+  catch(error){
+   // An immediate retry must not join another worker's still-pending failure.
+   // Superseded queries do not wait: their shared reads may serve the next query.
+   if(error?.name!=='AbortError')await Promise.allSettled(workers);
+   throw error;
+  }
   assertCurrent();
   return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:${month}`};
  }
