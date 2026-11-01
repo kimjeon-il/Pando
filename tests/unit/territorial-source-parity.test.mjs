@@ -17,7 +17,7 @@ const documentedHistoricalGeometryCorrections=new Map([
     legacy:'54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237',
     geometry:'285e75670217a29020bf0dd7de323311f3cdc1e42e3efbb7c462be0ce09d2307',
   }],
-  ['deutsche-demokratische-republik:1989-04-25-r1',{
+  ['historical-country:deutsche-demokratische-republik:1989-04-25-r1',{
     legacy:'91be70ef0d0952b91983831a271a6a143079667ae138acbeab77038fb2fec662',
     geometry:'215ffb125884abfa9e9c96b2db72309171866b2657f12fffb80cd9f8c2ce63bd',
   }],
