@@ -113,8 +113,6 @@
         </div>
 
         <nav class="ui-nav adaptive-nav mobile-bottom-bar" aria-label="작업 공간" data-od-id="workspace-navigation">
-            <button id="mobileUndoBtn" class="ui-button ui-nav-item mobile-command-item" type="button" aria-label="실행취소" data-tooltip="실행취소"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg></span><strong>실행취소</strong></button>
-            <button id="mobileRedoBtn" class="ui-button ui-nav-item mobile-command-item" type="button" aria-label="다시실행" data-tooltip="다시실행"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg></span><strong>다시실행</strong></button>
             <button id="mobileCreateBtn" class="ui-button ui-nav-item" type="button" aria-controls="createMenu" aria-label="추가" data-tooltip="추가" aria-haspopup="dialog" aria-expanded="false" data-od-id="workspace-create"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-plus"/></svg></span><strong>추가</strong></button>
             <button id="mobileSearchBtn" class="ui-button ui-nav-item" type="button" aria-controls="objectSearchSurface" aria-label="검색" data-tooltip="검색" aria-expanded="false" data-od-id="workspace-search"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-search"/></svg></span><strong>검색</strong></button>
             <button id="mobileEditBtn" class="ui-button ui-nav-item" type="button" aria-controls="editorSurface" aria-expanded="false" data-od-id="workspace-edit"><span><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-panel"/></svg></span><strong>편집</strong></button>
@@ -159,6 +157,9 @@
       </main>
 
       <aside id="editorSurface" class="sidebar editor-drawer editor-panel workspace-surface surface-editor ui-sheet" aria-labelledby="editSheetTitle" data-od-id="editor-panel" data-editor-content="properties">
+        <header class="surface-header">
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="editorSurface" aria-label="편집창 높이 조절" data-tooltip="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+        </header>
         <div id="editorTaskSlot" class="editor-task-slot" hidden>
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
@@ -248,9 +249,6 @@
             </section>
           </div>
         </div>
-        <header class="surface-header">
-          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="editorSurface" aria-label="편집창 높이 조절" data-tooltip="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
-        </header>
         <strong id="editSheetTitle" hidden>편집</strong>
 
         <span id="editorTimelineContext" class="editor-timeline-context" aria-live="polite"></span>
@@ -481,6 +479,9 @@
     </div>
     <div class="overlay-root">
       <nav id="mobileGlobalMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-list mobile-global-menu" role="menu" aria-label="모바일 메뉴" hidden>
+        <button id="mobileUndoBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-undo"/></svg><span>실행취소</span></button>
+        <button id="mobileRedoBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-redo"/></svg><span>다시실행</span></button>
+        <span class="ui-menu-separator" role="separator"></span>
         <button id="mobileMenuFileBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-haspopup="menu"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-folder-open"/></svg><span>파일</span><svg class="ui-icon ui-menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron-right"/></svg></button>
         <button id="mobileDisplayBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-controls="mapDisplaySurface" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-tune"/></svg><span>보기</span></button>
         <button id="mobilePreferencesBtn" class="ui-button ui-menu-item" type="button" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-gear"/></svg><span>설정</span></button>
