@@ -236,9 +236,12 @@ test('mobile global menu opens the display sheet without restoring desktop navig
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
 
-  await expect(page.locator('.mobile-bottom-bar #mobileDisplayBtn')).toHaveCount(0);
+  await expect(page.locator('.mobile-bottom-bar .ui-nav-item')).toHaveCount(3);
+  await expect(page.locator('.mobile-bottom-bar #mobileUndoBtn, .mobile-bottom-bar #mobileRedoBtn, .mobile-bottom-bar #mobileDisplayBtn')).toHaveCount(0);
   await page.locator('#mobileMenuBtn').click();
   await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  await expect(page.locator('#mobileUndoBtn')).toBeVisible();
+  await expect(page.locator('#mobileRedoBtn')).toBeVisible();
   await expect(page.locator('#mobileDisplayBtn')).toBeVisible();
   await expect(page.locator('#mapDisplayBtn')).toBeHidden();
   await expect(page.locator('#objectSearchBtn')).toBeHidden();
