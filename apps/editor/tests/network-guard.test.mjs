@@ -1,7 +1,20 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { installNetworkGuard } from '../network-guard.js';
+import {runInNewContext} from 'node:vm';
+import { guardWorkerSource,installNetworkGuard } from '../network-guard.js';
 import {DOCUMENT_TRANSFER_COMMANDS} from '../document-transfer-contract.js';
+
+test('serialized Worker guard receives the canonical IPC command perimeter',async()=>{
+  const source=guardWorkerSource("'use strict';\\nglobalThis.__workerGuardSmoke=true;",{allowBundledData:true});
+  for(const command of Object.values(DOCUMENT_TRANSFER_COMMANDS))assert.match(source,new RegExp(command));
+  const fetched=[];
+  const context={URL,location:new URL('https://tauri.localhost/'),fetch:async input=>{fetched.push(String(input));return {ok:true};}};
+  runInNewContext(source,context);
+  assert.equal(context.__workerGuardSmoke,true);
+  await context.fetch('http://ipc.localhost/'+DOCUMENT_TRANSFER_COMMANDS.beginRead);
+  await assert.rejects(context.fetch('http://ipc.localhost/arbitrary_file_access'),/blocked/i);
+  assert.equal(fetched.length,1);
+});
 
 test('allows the local verified engine but records and blocks world and remote requests', async () => {
   const fetched = [];
