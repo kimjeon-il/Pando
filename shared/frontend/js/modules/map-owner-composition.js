@@ -36,7 +36,12 @@ export function createMapOwners({productMode,platform=null,buildMeta,editing=nul
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
   if(productMode==='viewer'&&editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform);
-  const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta});
+  // A normal month source is ~13 MiB. The Viewer's previous 24 MiB budget
+  // could not retain two adjacent months, forcing repeated JSON/SHA work even
+  // for A-B-A navigation. This is immutable source bytes only, not a second
+  // Core document or retained GPU mesh; the editor keeps its original budget.
+  const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta,
+    sourceCacheLimits:productMode==='viewer'?{maxEntries:3,maxBytes:32*1024*1024}:null});
   const workspaceSurfaces=createWorkspaceSurfaces({productMode});
   const projectSession=createProjectSession({productMode,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});

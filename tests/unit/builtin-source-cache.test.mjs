@@ -254,3 +254,34 @@ test('P4-2 byte pressure cannot displace the displayed source even with free ent
  assert.deepEqual(f.admissions,[]);
  f.session.dispose();
 });
+
+
+test('two real-sized immutable month sources coexist under 32 MiB without recomputing or touching Core', async () => {
+  const body='C'.repeat(13*1024*1024);
+  let reads=0;
+  const f=fixture({sourceCacheLimits:{maxEntries:3,maxBytes:32*1024*1024},loader:{
+    async loadProject(month) {
+      reads++;
+      return {project:{projectSetup:{initialMonth:month,sourceMode:'builtin'},
+        territorialEntities:[{id:month,properties:{payload:body}}]}};
+    },
+  }});
+  const coreBefore=structuredClone(f.core);
+  const first=await f.session.prepareProjectSource('2026-10');
+  f.session.setPresentedSourceMonth('2026-10');
+  await f.session.prepareProjectSource('2025-12');
+  f.session.setPresentedSourceMonth('2025-12');
+  const revisited=await f.session.prepareProjectSource('2026-10');
+  const stats=f.session.sourceCacheStats();
+  assert.equal(reads,2,'A-B-A source preparation must be A and B only');
+  assert.equal(stats.entries,2);
+  assert.equal(stats.hits,1);
+  assert.ok(stats.bytes>24*1024*1024,'two sources would not have fit the old Viewer budget');
+  assert.ok(stats.bytes<=32*1024*1024);
+  assert.equal(first.fingerprint,revisited.fingerprint);
+  assert.deepEqual([...first.sourceBytes.subarray(0,160)],[...revisited.sourceBytes.subarray(0,160)]);
+  assert.deepEqual(f.core,coreBefore);
+  assert.equal(f.admissions.length,0);
+  f.session.dispose();
+  assert.equal(f.session.sourceCacheStats().bytes,0);
+});
