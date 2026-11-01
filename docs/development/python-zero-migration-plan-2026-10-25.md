@@ -15,7 +15,7 @@
 
 ### 2026-11-01 현행 기준: 추적 Python 21개
 
-- **DEM 생성기 전환:** ETOPO 격자·좌표계·NoData 확인, 타일별 고도·음영·WebP 생성, tint ZIP 및 육지·빙하 마스크, 극지 보정과 gutter 재조정, 생성·재사용·보정 실행기를 Node/C++ 소유자로 통합했다. 기존 Python 생성기와 대응 테스트를 제거하고 `scripts/gis/run-source.mjs --task terrain-dem`이 Node 실행기를 호출한다. 고정 소형 자료의 여섯 타일 픽셀, 원본·자료 해시, ZIP 경로·CRC, 출력 덮어쓰기 거부와 보정 재실행을 비교했다. [Windows/Linux 통합 CI 41288514066](https://github.com/kimjeon-il/Pando/actions/runs/41288514066)이 통과했다. 합성 원본의 기능 비교이며, 보존 ETOPO 원본·LOD 0–5 전체 재생성과 운영 자료 승인은 아니다.
+- **DEM 생성기 전환:** ETOPO 격자·좌표계·NoData 확인, 타일별 고도·음영·WebP 생성, tint ZIP 및 육지·빙하 마스크, 극지 보정과 gutter 재조정, 생성·재사용·보정 실행기를 Node/C++ 소유자로 통합했다. 기존 Python 생성기와 대응 테스트를 제거하고 `scripts/gis/run-source.mjs --task terrain-dem`이 Node 실행기를 호출한다. 고정 소형 자료의 여섯 타일 픽셀, 원본·자료 해시, ZIP 경로·CRC, 출력 덮어쓰기 거부와 보정 재실행을 비교했다. Windows 8.3 경로와 긴 경로가 섞인 junction 우회는 실제 경로를 정규화해 수정했으며 [Windows 경로 CI 41289355212](https://github.com/kimjeon-il/Pando/actions/runs/41289355212)에서 확인했다. [Windows/Linux 통합 CI 41288514066](https://github.com/kimjeon-il/Pando/actions/runs/41288514066)이 통과했다. 합성 원본의 기능 비교이며, 보존 ETOPO 원본·LOD 0–5 전체 재생성과 운영 자료 승인은 아니다.
 
 - **QGIS 네이티브 연결 전환:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가했다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. [Windows CI 41144046823](https://github.com/kimjeon-il/Pando/actions/runs/41144046823)과 QGIS 3.44.15 한 창에서 출처·편집 상태·롤백을 확인했다. 실제 MCP의 인증 거부·편집·Undo/Redo·롤백·출력 덮어쓰기 거부와 한글·따옴표 파일 경로, EPSG:3857 클립, QGIS→판도 편집기→QGIS의 선·폴리곤 및 출처 왕복이 통과했다. Codex QGIS 연결을 네이티브 MCP로 전환하고 기존 Python 브리지·부트스트랩·대응 테스트를 제거했다. 현재 열려 있는 채팅은 MCP 연결 새로 고침이 필요할 수 있다. 이는 합성 입력의 기능 검증이며 모든 QGIS 좌표계나 처리 알고리즘 검증은 아니다.
 
