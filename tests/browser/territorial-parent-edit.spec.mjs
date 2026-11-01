@@ -23,7 +23,7 @@ test('parent changes replace type conversion while preserving entity ID, kind, g
   await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 60000 });
   const before = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL'));
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('IRL'));
-  await page.locator('#relationTabBtn').click();
+  await page.locator('#editorTabBtn').click(); if (!await page.locator('#entityRelationsDisclosure').evaluate(node => node.open)) await page.locator('#entityRelationsDisclosure summary').click();
   await expect(page.locator('label[for="entityParentInput"]')).toHaveClass(/ui-visually-hidden/);
   await expect(page.locator('label[for="entityChildInput"]')).toHaveClass(/ui-visually-hidden/);
   await expect(page.locator('#entityParentRows')).toBeVisible();
