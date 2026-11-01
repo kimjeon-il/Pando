@@ -1,0 +1,33 @@
+name: Objects main integration
+on:
+  push:
+    branches: [work/objects]
+    paths: [.github/workflows/objects-main-integration.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export only missing source objects against the retained stage-1 bundle
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 3abe5b0c547b16f6371c0a916da239d0c099178d
+          test "$(git rev-parse origin/main)" = 502cc3014db2657c430819a249b9a724f3cb5880
+          git update-ref refs/pando/stage2/main 502cc3014db2657c430819a249b9a724f3cb5880
+          git update-ref refs/pando/stage2/objects HEAD
+          mkdir -p build-native/objects-integration
+          git bundle create build-native/objects-integration/source-delta.bundle refs/pando/stage2/main refs/pando/stage2/objects ^733e3d6b0acdcf7252a234dd4d7d37b4ee278efc ^fa2ba8084453396bfde385d311c668dc4381b6c7
+          git rev-parse HEAD > build-native/objects-integration/source.txt
+          sha256sum build-native/objects-integration/source-delta.bundle > build-native/objects-integration/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: objects-stage2-source-delta
+          path: build-native/objects-integration/
+          if-no-files-found: error
+          retention-days: 1
