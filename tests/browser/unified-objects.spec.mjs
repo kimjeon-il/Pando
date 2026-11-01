@@ -187,7 +187,7 @@ test('one object flow creates a root, child and independent region; annex across
     .toEqual(beforeAnnex.map(f => f.geometry));
   console.log('Cross-region annex geometry and Undo verified');
   await select(page, region.id);
-  await page.locator('#relationTabBtn').click();
+  await page.locator('#editorTabBtn').click(); if (!await page.locator('#entityRelationsDisclosure').evaluate(node => node.open)) await page.locator('#entityRelationsDisclosure summary').click();
   await expect(page.locator('#entityRegionalStatus')).toBeVisible();
   await expect(page.locator('#entityParentRow')).toBeHidden();
 
