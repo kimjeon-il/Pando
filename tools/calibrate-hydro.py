@@ -7,7 +7,8 @@ optimization measured here is topology-aware chaining of consecutive river
 reaches after selection.
 
 Required packages: pyshp >= 3.0 and shapely >= 2.0. Node.js and the
-source-matched native Hydro calibration artifact are also required.
+source-matched native Hydro calibration artifact are also required. Use
+build-native/hydro-calibration/artifact or PANDO_HYDRO_CALIBRATION_ARTIFACT.
 """
 
 from __future__ import annotations
