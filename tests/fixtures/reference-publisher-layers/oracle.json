@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "sourceSha256": "414d9ef54ea998b02621e3476543bbc31d2ae0b7afdbaa79fdb0dc0fb3694dc2",
+  "layers": [
+    "Map Frame",
+    "State or Territory",
+    "Hydrography",
+    "Road Features",
+    "Geographic Names",
+    "Projection and Grids",
+    "International"
+  ],
+  "renders": [
+    {
+      "enabled": [],
+      "width": 160,
+      "height": 120,
+      "sha256": "6364066cdff89acf5c8439baf90b282fdec7ae7be50b93c3dd4151162a5d0b98"
+    },
+    {
+      "enabled": [
+        "International"
+      ],
+      "width": 160,
+      "height": 120,
+      "sha256": "c0ce0ba9cd85ee689c08079aff6723252d82a0edc79ed80a39e59bdb3e8605e1"
+    },
+    {
+      "enabled": [
+        "Hydrography"
+      ],
+      "width": 160,
+      "height": 120,
+      "sha256": "032703fb49aceb0259d619c53d25ce08817a43b5b89da6a6aa4ba1aa0d239bbc"
+    },
+    {
+      "enabled": [
+        "Map Frame",
+        "State or Territory",
+        "Hydrography",
+        "Road Features",
+        "Geographic Names",
+        "Projection and Grids",
+        "International"
+      ],
+      "width": 160,
+      "height": 120,
+      "sha256": "5ceeda390332238cfda3866bf49a10c81dcf751a57bc9ee53ddd1654ffc04788"
+    }
+  ]
+}
