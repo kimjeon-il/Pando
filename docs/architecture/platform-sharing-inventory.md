@@ -61,9 +61,9 @@ The native path is:
 
 ```text
 Tauri/Rust shell
-  -> apps/editor/startup.js
-  -> native profile / file / library capabilities
-  -> globalThis.__PANDOLAB_SHELL_PLATFORM__
+  -> apps/editor/native-platform-adapter.js
+  -> apps/editor/startup.js composition root
+  -> shared platform-runtime module registry
   -> apps/editor/frontend/js/app.js
   -> composeApplication(...)
   -> shared runtime-context + shared map owners
@@ -173,11 +173,7 @@ Application modules consume the validated port only. They must not infer Windows
 
 ### T2 — Isolate raw native globals in the native shell adapter
 
-`apps/editor/startup.js` currently reads `__TAURI_INTERNALS__`, `PANDOLAB_NATIVE_LIBRARY_AVAILABLE` and builds `__PANDOLAB_SHELL_PLATFORM__`.
-
-Create/extend one native platform adapter so raw shell globals are interpreted once. `startup.js` becomes a composition root; editor application code receives the resulting immutable ports.
-
-The current `app.js` global handoff is part of this target.
+Implemented. `apps/editor/native-platform-adapter.js` is the sole frontend runtime owner of raw Tauri and shell-injected capability/verification globals. It binds native IPC once, creates native file/library ports, and installs the validated platform contract into the module-scoped `platform-runtime.js` registry. `startup.js` now only composes profile, network policy, adapter output and bootstrap; `app.js` resolves the registered platform without a global platform handoff.
 
 ### T3 — Contract-level file-access consolidation, not transport merging
 

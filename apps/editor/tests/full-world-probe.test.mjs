@@ -23,7 +23,6 @@ function runtime({ renderer = 'webgl2', blocked = [] } = {}) {
       length: Object.hasOwn(options, 'parentId') ? 207 : 254,
     }, (_, id) => ({ id })) },
     PandoLabSphericalCore: { verified: true },
-    __PANDOLAB_SHELL_AUTO__: true,
     addEventListener(name, fn) { handlers.set(name, fn); },
     emit(name, detail = {}) { handlers.get(name)?.(detail); },
     setTimeout, clearTimeout, console,
@@ -51,7 +50,7 @@ test('map-data probe fails canvas fallback and any blocked remote request', () =
 test('map-data probe records actual ready event and writes a result once', async () => {
   const scope = runtime(), reports = [];
   const finished = new Promise(resolve => {
-    installFullWorldProbe({ scope, timeoutMs: 300, readyDelayMs: 0,
+    installFullWorldProbe({ scope, timeoutMs: 300, readyDelayMs: 0, auto: true,
       reportFn: value => { reports.push(value); resolve(value); },
     });
   });
@@ -62,7 +61,7 @@ test('map-data probe records actual ready event and writes a result once', async
 });
 test('map-data probe records errors rather than claiming ready', async () => {
   const scope = runtime(), output = new Promise(resolve => {
-    installFullWorldProbe({ scope, timeoutMs: 300, reportFn: resolve });
+    installFullWorldProbe({ scope, timeoutMs: 300, auto: true, reportFn: resolve });
   });
   scope.emit('pandolab:geometry-error', { detail: 'bad geometry' });
   const report = await output;

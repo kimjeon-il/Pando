@@ -92,7 +92,7 @@ try {
   if(values['reuse-session']) {
     await page.evaluate(()=>{
       if(typeof window.__pluginDocument!=='function'||!Array.isArray(window.__nativeCommands)
-        ||!window.__PANDOLAB_SHELL_PLATFORM__?.storage?.namespace?.startsWith('pando-map-plugin-validation-'))throw new Error('Reuse requires this test\'s isolated instrumented session');
+        ||!window.__nativePlatformNamespace?.startsWith('pando-map-plugin-validation-'))throw new Error('Reuse requires this test\'s isolated instrumented session');
       const snapshot=window.__pluginDocument().snapshot();
       if(snapshot.genericFeatures.length||snapshot.hydroEdits.length)throw new Error('Reuse requires an empty test document; rerun without --reuse-session');
     });
@@ -102,16 +102,17 @@ try {
   // Keep one loaded application revision while another chat updates the shared
   // checkout. Only the development reloader is paused, never application I/O.
   await page.route('**/__frontend/reload.js*',route=>route.fulfill({contentType:'application/javascript',body:'export {};'}));
-  await page.route('**/shell/native-storage.js*',async route=>{
+  await page.route('**/shell/native-platform-adapter.js*',async route=>{
     const source=await moduleSource(route);
-    const call='return globalThis.__TAURI_INTERNALS__.invoke(command, payload);';
+    const call='const invoke = (command, payload) => bridge.invoke(command, payload);';
     if(!source.includes(call))throw new Error('Native transport observation point changed');
-    const observed="(window.__nativeCommands ||= []).push(command); const pending=globalThis.__TAURI_INTERNALS__.invoke(command,payload); return command==='finish_document_write'?pending.then(result=>{window.__nativeWriteResult=result;return result;}):pending;";
+    const observed="const invoke = (command,payload) => { (window.__nativeCommands ||= []).push(command); const pending=bridge.invoke(command,payload); return command==='finish_document_write'?pending.then(result=>{window.__nativeWriteResult=result;return result;}):pending; };";
     await route.fulfill({contentType:'application/javascript',body:source.replace(call,observed)});
   });
   await page.route('**/shell/runtime-profile.js*',async route=>{
-    const source=await moduleSource(route);
-    await route.fulfill({contentType:'application/javascript',body:source.replace('pandoeditor-web-shell-world-v1','pando-map-plugin-validation-'+Date.now())});
+    const source=await moduleSource(route),namespace='pando-map-plugin-validation-'+Date.now();
+    const body=source.replace('pandoeditor-web-shell-world-v1',namespace).replace('/** Ordinary app runtime:',`globalThis.__nativePlatformNamespace=${JSON.stringify(namespace)};\n/** Ordinary app runtime:`);
+    await route.fulfill({contentType:'application/javascript',body});
   });
   await page.reload({waitUntil:'domcontentloaded',timeout:readyTimeout});await expect(page.locator('#app')).toHaveAttribute('data-readiness','enhanced',{timeout:readyTimeout});
   }

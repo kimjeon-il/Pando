@@ -104,6 +104,7 @@ export async function worldFixture(t) {
   await put('package.json','{"version":"0.36.0"}');
   await put('shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
   await put('shared/frontend/js/modules/platform-ports.js',readFileSync(new URL('../../../../shared/frontend/js/modules/platform-ports.js',import.meta.url)));
+  await put('shared/frontend/js/modules/platform-runtime.js',readFileSync(new URL('../../../../shared/frontend/js/modules/platform-runtime.js',import.meta.url)));
   await put('shared/frontend/js/modules/runtime-context.js',readFileSync(new URL('../../../../shared/frontend/js/modules/runtime-context.js',import.meta.url)));
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};
