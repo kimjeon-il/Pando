@@ -1,13 +1,17 @@
 import {readFileSync,readdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../../../scripts/lib/ui-source-catalog.mjs';
+import {frontendSourceClosure} from '../../../../scripts/lib/frontend-layout.mjs';
+import {runtimeDependencies} from '../../../../scripts/lib/product-assets.mjs';
 import { createHash } from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const sourceRoot=fileURLToPath(new URL('../../../../',import.meta.url));
 export async function worldFixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'pandolab-full-world-stage-'));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -103,9 +107,10 @@ export async function worldFixture(t) {
   await put('apps/editor/src-tauri/tauri.conf.json',JSON.stringify({app:{security:{csp:"script-src 'self'"}}}));
   await put('package.json','{"version":"0.36.0"}');
   await put('shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
-  await put('shared/frontend/js/modules/platform-ports.js',readFileSync(new URL('../../../../shared/frontend/js/modules/platform-ports.js',import.meta.url)));
-  await put('shared/frontend/js/modules/platform-runtime.js',readFileSync(new URL('../../../../shared/frontend/js/modules/platform-runtime.js',import.meta.url)));
-  await put('shared/frontend/js/modules/runtime-context.js',readFileSync(new URL('../../../../shared/frontend/js/modules/runtime-context.js',import.meta.url)));
+  for(const entry of frontendSourceClosure(sourceRoot,[
+    'assets/js/modules/runtime-context.js',
+    'assets/js/modules/platform-runtime.js',
+  ],{runtimeDependencies}))await put(entry.sourcePath,readFileSync(join(sourceRoot,entry.sourcePath)));
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};
   await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify(terrain));
