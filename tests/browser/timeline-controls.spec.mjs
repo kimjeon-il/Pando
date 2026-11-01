@@ -32,7 +32,6 @@ test('floating date controls preserve navigation and document state across deskt
     await expect(button).toContainText(timelineMonthLabel(current).replace(/ \d+월$/, ''));
     await expect(page.locator('#timelineDateBasis')).toHaveText('연말 기준');
   }
-  await page.locator('#topbarOverflowBtn').click();
   await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesStatusBarVisibleInput')).toHaveCount(0);
   await page.locator('#preferencesCancelBtn').click();
