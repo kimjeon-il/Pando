@@ -60,13 +60,13 @@ export function findSources(root,names){
   for(const name of names)if(!found.has(name))throw Error(`Expected exactly one ${name}, found 0`);
   return names.map(name=>found.get(name));
 }
-export function futureRealpath(path){
+export function futureRealpath(path,{native=false}={}){
   const tail=[];let current=path;
   while(!existsSync(current)){
     const parent=dirname(current);if(parent===current)throw Error('Cannot resolve physical hydro output');
     tail.unshift(basename(current));current=parent;
   }
-  return resolve(realpathSync(current),...tail);
+  return resolve((native?realpathSync.native:realpathSync)(current),...tail);
 }
 export function buildPhysicalHydro({sourceRoot,outputRoot,gdal=process.env.PANDO_GDAL_OGR2OGR||'ogr2ogr',root=rootDefault}){
   if(!sourceRoot||!outputRoot||typeof gdal!=='string'||!gdal)throw Error('Explicit source and candidate output roots required');

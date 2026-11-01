@@ -1,6 +1,6 @@
 // Generate one immutable DEM level using the existing native raster and image owners.
 import {randomUUID} from 'node:crypto';
-import {constants} from 'node:fs';
+import {constants,realpathSync} from 'node:fs';
 import {copyFile,lstat,mkdir,open,readFile,realpath,rename,stat,statfs,unlink} from 'node:fs/promises';
 import {basename,dirname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -103,8 +103,8 @@ export async function rebuildTerrainDemTint({sourceOutput,tintZip,ice,countries,
   {profile=defaultProfile,signal,workspace=root}={}){
   signal?.throwIfAborted();
   if(![sourceOutput,tintZip,ice,countries,output].every(value=>typeof value==='string'&&value))throw Error('Explicit DEM reuse inputs and output required');
-  const sourceRoot=await realpath(sourceOutput);output=resolve(output);
-  const rel=relative(sourceRoot,futureRealpath(output));
+  const sourceRoot=realpathSync.native(sourceOutput);output=resolve(output);
+  const rel=relative(sourceRoot,futureRealpath(output,{native:true}));
   if(!rel||(!rel.startsWith('..'+sep)&&rel!=='..'&&!isAbsolute(rel)))throw Error('DEM reuse output cannot be inside the source dataset');
   const [archiveHash,iceHash,landHash]=await Promise.all([tintZip,ice,countries].map(path=>hashTerrainFile(path,{signal})));
   if(archiveHash.sha256!==profile.tintSha256||iceHash.sha256!==profile.iceSha256)throw Error('Tint source checksum mismatch');
