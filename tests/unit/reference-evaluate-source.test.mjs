@@ -4,9 +4,19 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {evaluateReviewedCheckpointCorpus,evaluateReviewedCheckpointSource} from '../../tools/reference-analysis/native-evaluate-source.mjs';
+import {evaluateReviewedCheckpointCorpus,evaluateReviewedCheckpointSource,finalizeReviewedEvaluation} from '../../tools/reference-analysis/native-evaluate-source.mjs';
+import {metricsFromCounts} from '../../tools/reference-analysis/native-evaluation.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('diagnostic and partial review cannot claim independent admission',()=>{
+  const counts=[[4,4,4,4],[0,0,0,0],[0,0,0,0]],perSheet={fixture:metricsFromCounts(counts)};
+  const confounders={fixture:{text:{international:{falsePositive:0,pixels:4}}}};
+  const result=finalizeReviewedEvaluation({groups:{'monochrome/Latin/eng':[counts]},perSheet,confounders,baseline:{confounders},requiredChannels:['international'],
+    reviewScopes:{fixture:'partial'},independenceRows:[{passed:false,reason:'incomplete-training-ancestry'}],diagnosticOnly:true});
+  assert.equal(result.independence.passed,false);assert.equal(result.admission.passed,false);assert.equal(result.reviewCoverage.complete,false);
+  assert.ok(result.admission.failures.some(row=>row.reason==='incomplete-source-map-review'));
+  assert.ok(result.admission.failures.some(row=>row.reason==='diagnostic-baseline-is-not-qualification'));
+});
 test('source evaluation protects test scope and incomplete training ancestry',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-evaluate-source-'));t.after(()=>rmSync(root,{recursive:true}));
   const image=readFileSync('tests/fixtures/map-image/png-read/orientation-6.png'),imageSha=sha(image),checkpoint=join(root,'checkpoint.pt'),corpus=join(root,'corpus.json');

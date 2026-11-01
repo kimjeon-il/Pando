@@ -73,6 +73,14 @@ test('native training tile matches Python tensors, masks, position and augmentat
   for(const name of ['tile','overview'])for(let offset=0;offset<repeat[name].length;offset+=4)
     assert(Number.isFinite(repeat[name].readFloatLE(offset)),'Augmented training inputs must be finite');
 });
+test('transparent training pixels composite onto white before normalization',async()=>{
+  const imagePath='tests/fixtures/map-image/png-read/rgba.png',sourceSha256=createHash('sha256').update(await readFile(imagePath)).digest('hex');
+  const annotation={width:12,height:9,known:{},lines:[],regions:[],ignore:[]};
+  const result=await prepareReviewedTrainingTile({imagePath,sourceSha256,annotation,x:0,y:0});
+  assert.ok(Math.abs(result.tile.readFloatLE(0)-(1-.485)/.229)<1e-6);
+  assert.ok(Math.abs(result.tile.readFloatLE(6*4)-(222/255-.485)/.229)<1e-6);
+  assert.ok(Math.abs(result.tile.readFloatLE((512*512+6)*4)-(0-.456)/.224)<1e-6);
+});
 test('training sample stream returns the source-bound native tensors',async()=>{
   const root='tests/fixtures/reference-training-tile',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));
   const expected=JSON.parse(await readFile(root+'/expected.json','utf8'))[0],sha256=createHash('sha256').update(await readFile(root+'/map.png')).digest('hex');

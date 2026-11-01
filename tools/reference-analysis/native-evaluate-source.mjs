@@ -15,6 +15,19 @@ import {countAnnotationTrainingSupervision,prepareReviewedTrainingTile} from './
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const channels=['international','administrative','coast','hydro','transport','text','frame'];
+export function finalizeReviewedEvaluation({groups,perSheet,confounders,baseline,requiredChannels,reviewScopes,independenceRows,diagnosticOnly}){
+  if(!reviewScopes||typeof reviewScopes!=='object'||Array.isArray(reviewScopes)||!Object.keys(reviewScopes).length||
+    !Array.isArray(independenceRows)||!independenceRows.length||independenceRows.some(row=>typeof row?.passed!=='boolean')||typeof diagnosticOnly!=='boolean')
+    throw Error('Explicit reviewed evaluation scope and independence required');
+  const summary=summarizeEvaluation({groups,perSheet,confounders,baseline,requiredChannels});
+  const independence=independenceRows.every(row=>row.passed)?{passed:true}:{passed:false,reason:independenceRows.find(row=>!row.passed).reason};
+  const complete=Object.values(reviewScopes).every(scope=>scope==='whole-readable-map'),admission=summary.admission;
+  admission.passed=admission.passed&&summary.nonregression.passed&&independence.passed&&!diagnosticOnly&&complete;
+  if(!complete)admission.failures.push({reason:'incomplete-source-map-review'});
+  if(diagnosticOnly)admission.failures.push({reason:'diagnostic-baseline-is-not-qualification'});
+  if(!summary.nonregression.passed)admission.failures.push({reason:'confounder-nonregression-not-passed'});
+  return {...summary,admission,independence,reviewCoverage:{complete,sheets:reviewScopes}};
+}
 function evaluationModel({checkpoint,weights,device,diagnosticOnly}){
   if(Boolean(checkpoint)===Boolean(weights))throw Error('Choose one native checkpoint or transferred weights');
   const mode=weights?'weights-only':'checkpoint',path=resolve(weights||checkpoint),hash=trainingFileIdentity(path);
@@ -89,22 +102,16 @@ export async function evaluateReviewedCheckpointCorpus({checkpoint,weights,corpu
   }
   if(baseline&&(baseline.corpusSha256!==corpusSha256||baseline.threshold!==.55||!isDeepStrictEqual(baseline.coverage,coverage)))
     throw Error('Baseline must use the exact frozen corpus, threshold and known-pixel scope');
-  const summary=summarizeEvaluation({groups,perSheet,confounders,baseline,
+  const summary=finalizeReviewedEvaluation({groups,perSheet,confounders,baseline,reviewScopes,independenceRows,diagnosticOnly,
     requiredChannels:channels.slice(0,3).filter((_,index)=>model.mode==='weights-only'||!(receipt.unobservedMask&(1<<index)))});
-  const independence=independenceRows.every(row=>row.passed)?{passed:true}:{passed:false,reason:independenceRows.find(row=>!row.passed).reason};
-  const complete=Object.values(reviewScopes).every(scope=>scope==='whole-readable-map'),admission=summary.admission;
-  admission.passed=admission.passed&&summary.nonregression.passed&&independence.passed&&!diagnosticOnly&&complete;
-  if(!complete)admission.failures.push({reason:'incomplete-source-map-review'});
-  if(diagnosticOnly)admission.failures.push({reason:'diagnostic-baseline-is-not-qualification'});
-  if(!summary.nonregression.passed)admission.failures.push({reason:'confounder-nonregression-not-passed'});
   if(trainingFileIdentity(model.path)!==model.hash||trainingFileIdentity(model.receiptPath)!==model.receiptHash||trainingFileIdentity(corpusPath)!==corpusManifestSha256||
     await corpusFingerprint(corpusPath)!==corpusSha256||
     baselinePath&&trainingFileIdentity(baselinePath)!==baselineSha256)throw Error('Evaluation inputs changed during execution');
   const report={schemaVersion:1,metric:'full-sheet-source-pixel-euclidean-tolerance',tolerance:'max(2px, half annotated original stroke width)',
     corpusSha256,corpusManifestSha256,trainingCorpusSha256:receipt.lineageFingerprint??receipt.corpusSha256??null,trainingLineageFingerprint:receipt.lineageFingerprint??null,
     checkpointSha256:model.sourceCheckpointSha256,modelSha256:model.hash,modelKind:model.mode,unobservedChannelsKnown:model.mode==='checkpoint',
-    reviewKinds:[...reviewKinds].sort(),trainingOnly:true,evaluationStatus:'pending',groups:summary.groups,sheets:perSheet,threshold:.55,diagnosticOnly,independence,
-    confounders,coverage,nonregression:summary.nonregression,reviewCoverage:{complete,sheets:reviewScopes},baselineReportSha256:baselineSha256,admission,
+    reviewKinds:[...reviewKinds].sort(),trainingOnly:true,evaluationStatus:'pending',groups:summary.groups,sheets:perSheet,threshold:.55,diagnosticOnly,independence:summary.independence,
+    confounders,coverage,nonregression:summary.nonregression,reviewCoverage:summary.reviewCoverage,baselineReportSha256:baselineSha256,admission:summary.admission,
     releaseApproved:false,pending:['independent georeference region evaluation','all script/map-family coverage','Windows WebView2 and Android offline performance']};
   signal?.throwIfAborted();writeFileSync(target,JSON.stringify(report,null,2),{flag:'wx'});return report;
 }

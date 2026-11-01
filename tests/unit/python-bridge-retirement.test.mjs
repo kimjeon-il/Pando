@@ -18,20 +18,15 @@ test('QGIS exchange has no project-owned Python bridge or bridge test', () => {
   }
 });
 
-test('Python files only decrease within the reviewed inventory and integrated review test', () => {
+test('Python files only decrease within the reviewed inventory', () => {
   const plan = read('docs/development/python-zero-migration-plan-2026-10-25.md');
   const inventory = plan.split('## 2026-10-29 잔여 기준 목록')[1]?.split('\n## ')[0];
   assert.ok(inventory, 'Python migration inventory must remain available');
   const reviewed = [...inventory.matchAll(/^- `([^`]+\.(?:py|pyi|ipynb))`\r?$/gm)].map(match => match[1]);
   assert.equal(reviewed.length, 55, 'the reviewed migration inventory must cover 55 files');
   assert.equal(new Set(reviewed).size, 55, 'the reviewed inventory must not contain duplicates');
-  // This test arrived after the 55-file inventory was frozen. Preserve its
-  // behavior and do not use the exception to allow other added Python files.
-  const integrated = new Set(['tests/python/test_reference_analysis_review.py']);
-  const originalRemaining = remaining.filter(path => !integrated.has(path));
-  assert.ok(originalRemaining.length <= 13, `Original Python inventory exceeded its current ceiling: ${originalRemaining.length}`);
-  assert.ok(remaining.length <= 14, `Python file count exceeded the integrated ceiling: ${remaining.length}`);
-  for (const path of originalRemaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
+  assert.ok(remaining.length <= 13, `Python file count exceeded its current ceiling: ${remaining.length}`);
+  for (const path of remaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
 });
 
 test('temporary Python bridge modules have real consumers and leave no orphaned adapters', t => {
