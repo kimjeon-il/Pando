@@ -125,9 +125,13 @@ test('normal year change and later source failure never restore initial mode', a
   const run = fixture(); await run.started;
   await run.ports.timeline.setMonth('2025-12');
   assert.equal(run.get('viewerStatus').dataset.loadingKind, 'temporal');
+  assert.equal(run.get('viewerStatus').dataset.ready, 'true',
+    'the existing accepted map must remain usable during date navigation');
   assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
   run.failNext();
   await assert.rejects(run.ports.timeline.setMonth('2024-12'), /source unavailable/);
+  assert.equal(run.get('viewerStatus').dataset.ready, 'true',
+    'a failed next-month read must restore the previous accepted map readiness');
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');
   await run.ports.lifecycle.startup(); // Same entry used by lifecycle recovery.

@@ -179,10 +179,14 @@ export async function composeViewer({ productMode, meta }) {
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
+    // A temporal request retains the previous accepted map until the new
+    // generation is actually presented. Do not mark that still-usable map as
+    // unready merely because the new source is being prepared.
+    const retainingDatedFrame=options?.presentation==='temporal' && builtinClock.month()!==null;
     const firstMap=initialPresentation.track(()=>request===projectDomain.getOpenRevision()&&(options?.isCurrent?.()??true));
     status.dataset.loadingKind=initialPresentation.hasPresented()?(options?.presentation==='temporal'?'temporal':'project'):'initial';
     presentViewerLoadStatus(status,options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…');
-    status.dataset.ready='false';
+    if(!retainingDatedFrame)status.dataset.ready='false';
     try {
     if(!await projectDomain.open(reader,options)){firstMap.cancel();return false;}
     if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
@@ -201,7 +205,10 @@ export async function composeViewer({ productMode, meta }) {
       &&projectDomain.getGeneration()===presentedGeneration&&(options?.isCurrent?.()??true));
     return true;
     } catch(error){firstMap.cancel();if(request===projectDomain.getOpenRevision()){
-      status.dataset.ready=String(initialPresentation.hasPresented());
+      // A rejected source read or successfully rolled-back candidate still
+      // leaves the previous dated map active. A failed restoration does not.
+      status.dataset.ready=error.restoreError?'false'
+        :String(retainingDatedFrame||initialPresentation.hasPresented());
       presentViewerLoadStatus(status,'지도를 불러오지 못했습니다.');throw error;
     }return false;}
     finally {

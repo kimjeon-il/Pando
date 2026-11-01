@@ -11,6 +11,8 @@ on:
       - shared/frontend/js/workers/canvas-render-worker.js
       - scripts/contracts/application-checks.json
       - scripts/lib/product-assets.mjs
+      - apps/viewer/js/modules/viewer-composition.js
+      - tests/unit/viewer-initial-composition.test.mjs
       - apps/viewer/js/modules/viewer-initial-presentation.js
       - tests/unit/viewer-initial-presentation.test.mjs
       - shared/frontend/js/modules/map-owner-composition.js
@@ -38,7 +40,7 @@ jobs:
       - name: Verify Viewer browser registration and dependency planner
         run: |
           node scripts/run-application-checks.mjs --list --base HEAD --group viewer > /tmp/viewer-catalog.json
-          node --test tests/unit/check-automation.test.mjs tests/unit/viewer-initial-presentation.test.mjs tests/unit/viewer-presentation-observer.test.mjs
+          node --test tests/unit/check-automation.test.mjs tests/unit/viewer-initial-presentation.test.mjs tests/unit/viewer-presentation-observer.test.mjs tests/unit/viewer-initial-composition.test.mjs
   browser:
     needs: catalog
     strategy:
