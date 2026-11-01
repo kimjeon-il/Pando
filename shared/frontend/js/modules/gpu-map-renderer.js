@@ -4582,6 +4582,7 @@ export function createGpuMapRenderer(deps) {
       const pendingIds = geometryRevisionTracker.pendingIds();
       if (pendingIds.length) completeGeometryDisplay(pendingIds,
         geometryRevisionTracker.committedRevision(), { renderFrame: false });
+      return { succeeded: true, frameId: frame.frameId, viewRevision: frame.viewRevision };
     }
 
     function canvasInteractionPolygons() {

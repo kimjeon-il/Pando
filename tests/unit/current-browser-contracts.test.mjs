@@ -54,6 +54,21 @@ test('CSS selects relevant UI checks without C++/GIS build or data generation co
     assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
 });
 
+test('native Core external checks retain every compiled input and exclude shared frontend resources', () => {
+  const repository = { catalog, files: [], tests: [], owners: new Map(), dependencies: () => [] };
+  const nativeCheck = catalog.externalChecks.find(check => check.id === 'native-core');
+  const manifest = JSON.parse(readFileSync(new URL('../../shared/frontend/static/wasm/pandoeditor-core.manifest.json', import.meta.url), 'utf8'));
+  assert.ok(manifest.inputs.length > 0);
+  for (const path of [...manifest.inputs.map(input => input.path), 'CMakeLists.txt', 'CMakePresets.json']) {
+    const plan = planApplicationChecks({ repository, changedFiles: [path] });
+    assert.deepEqual(plan.externalChecks, [nativeCheck], path);
+  }
+  for (const path of ['shared/frontend/css/features/map-rendering.css', 'shared/frontend/js/workers/canvas-render-worker.js']) {
+    const plan = planApplicationChecks({ repository, changedFiles: [path] });
+    assert.deepEqual(plan.externalChecks, [], path);
+  }
+});
+
 test('prepared asset changes retain the real fixed-land unit and browser regressions', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   const plan = planApplicationChecks({ repository, changedFiles: ['assets/data/prepared-polygons/generated/v2/manifest.json'] });

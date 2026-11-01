@@ -9,7 +9,7 @@ test('toolchain has one pinned source for Node, pnpm, Python and C++ compilers',
   assert.equal(versions.node,'24');
   assert.equal(versions.pnpm,'11.19.0');
   assert.equal(Object.hasOwn(versions,'qt'),false);
-  assert.equal(versions.emscripten,'4.0.20');
+  assert.equal(versions.emscripten,'6.0.2');
   assert.equal(versions.cmake,'3.31.6');
 });
 test('CSS edits do not start C++/WASM or GIS tools', () => {

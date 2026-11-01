@@ -1,4 +1,4 @@
-import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('publishes a bounded runtime performance report after the app becomes interactive', async ({ page }, testInfo) => {
@@ -61,7 +61,22 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer),
     { timeout: 30_000 }).toBe('webgl2');
 
-  await setEditorMonth(page, '1989-06');
+  // The editor owns a dated source snapshot. Create the historical project
+  // through its real UI; changing a document cursor cannot load missing sources.
+  await page.locator('#mobileFileBtn').click();
+  await page.locator('#newProjectBtn').click();
+  await expect(page.locator('#projectSetupDialog')).toBeVisible();
+  await page.locator('#projectSetupMonth').fill('1989-06');
+  await page.locator('#projectSetupSource').selectOption('builtin');
+  await page.locator('#projectSetupSubmit').click();
+  if (await page.locator('#confirmModal').isVisible()) await page.locator('#confirmModalOkBtn').click();
+  await expect(page.locator('#projectSetupDialog')).not.toBeVisible({ timeout: 90_000 });
+  await expect.poll(() => page.evaluate(() => {
+    const timeline = window.__testEditorTimeline;
+    const setup = timeline.project().projectSetup;
+    return timeline.month() === '1989-06' && setup.initialMonth === '1989-06'
+      && setup.sourceMode === 'builtin' && !timeline.state().projectReplacing && !timeline.state().modeProcessing;
+  }), { timeout: 60_000 }).toBe(true);
   await expect.poll(() => page.evaluate(() => {
     const country = window.PANDOLAB_TERRITORIAL?.get('state:soviet-union');
     return country?.geometry?.coordinates?.length || 0;

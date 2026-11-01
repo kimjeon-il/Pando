@@ -37,17 +37,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: emscripten-core/emsdk
-          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          ref: ca38f487f28b7c3c16f8f70cd0e012099ac4b7e2
           path: build-native/emsdk
           persist-credentials: false
       - name: Build changed actual C++ WASM only in this runner, do not commit generated source
         shell: bash
         run: |
           set -euo pipefail
-          build-native/emsdk/emsdk install 4.0.20
-          build-native/emsdk/emsdk activate 4.0.20
+          build-native/emsdk/emsdk install 6.0.2
+          build-native/emsdk/emsdk activate 6.0.2
           source build-native/emsdk/emsdk_env.sh
-          emcc --version | sed -n '1p' | grep -F 4.0.20
+          emcc --version | sed -n '1p' | grep -F 6.0.2
           port_file=build-native/emsdk/upstream/emscripten/tools/ports/zlib.py
           original='https://github.com/madler/zlib/archive/refs/tags/v{VERSION}.tar.gz'
           canonical='https://codeload.github.com/madler/zlib/tar.gz/refs/tags/v{VERSION}'

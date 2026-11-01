@@ -59,6 +59,16 @@ on:
       - tests/unit/startup-performance-contract.test.mjs
       - tests/unit/territorial-editor-lifecycle.test.mjs
       - tests/unit/place-million.test.mjs
+      - tests/unit/place-label-workflow.test.mjs
+      - tests/unit/project-autosave-receipt.test.mjs
+      - tests/unit/project-preview-policy.test.mjs
+      - tests/unit/renderer-responsiveness-source.test.mjs
+      - tests/unit/selection-fill-handoff.test.mjs
+      - tests/unit/selection-ui-reset-regression.test.mjs
+      - tests/unit/shared-view-policy.test.mjs
+      - tests/unit/territorial-interaction-policy.test.mjs
+      - tests/unit/ui-state-controllers.test.mjs
+      - scripts/contracts/application-checks.json
       - scripts/run-boundary-revision-comparison.mjs
       - scripts/frontend-dev-server.mjs
       - scripts/lib/library-preparation-wait.mjs
@@ -330,6 +340,26 @@ jobs:
           set -e
           tail -n 18 test-results/p6-preflight/additional-contracts.tap
           exit "$result"
+      - name: Recheck nine additional Architecture and downstream Core contract files
+        id: architecture_followups
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.data.outcome == 'success' && steps.node_deps.outcome == 'success' }}
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-timeout=120000 --test-reporter=tap \
+            tests/unit/place-label-workflow.test.mjs \
+            tests/unit/project-autosave-receipt.test.mjs \
+            tests/unit/project-preview-policy.test.mjs \
+            tests/unit/renderer-responsiveness-source.test.mjs \
+            tests/unit/selection-fill-handoff.test.mjs \
+            tests/unit/selection-ui-reset-regression.test.mjs \
+            tests/unit/shared-view-policy.test.mjs \
+            tests/unit/territorial-interaction-policy.test.mjs \
+            tests/unit/ui-state-controllers.test.mjs > test-results/p6-preflight/architecture-followups.tap 2>&1
+          result=$?
+          set -e
+          tail -n 18 test-results/p6-preflight/architecture-followups.tap
+          exit "$result"
       - name: Complete the previously stalled actual place Worker case once
         id: place_worker
         if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.node_deps.outcome == 'success' }}
@@ -373,6 +403,7 @@ jobs:
           PANDO_PREFLIGHT_LINT: ${{ steps.lint.outcome }}
           PANDO_PREFLIGHT_CONTRACTS: ${{ steps.original_contracts.outcome }}
           PANDO_PREFLIGHT_ADDITIONAL: ${{ steps.additional_contracts.outcome }}
+          PANDO_PREFLIGHT_ARCHITECTURE_FOLLOWUPS: ${{ steps.architecture_followups.outcome }}
           PANDO_PREFLIGHT_PLACE: ${{ steps.place_worker.outcome }}
           PANDO_PREFLIGHT_PARITY: ${{ steps.parity.outcome }}
           PANDO_PREFLIGHT_WORKER: ${{ steps.worker.outcome }}
@@ -410,6 +441,7 @@ jobs:
               tests: nativeAttribute('tests'), failures: nativeAttribute('failures'), skipped: nativeAttribute('skipped') },
             originalContracts: { outcome: process.env.PANDO_PREFLIGHT_CONTRACTS, selectedFiles: 52, counts: tap('original-contracts.tap') },
             additionalContracts: { outcome: process.env.PANDO_PREFLIGHT_ADDITIONAL, selectedFiles: 45, observedFailureFiles: 44, addedRegressionFiles: 1, counts: tap('additional-contracts.tap') },
+            architectureFollowups: { outcome: process.env.PANDO_PREFLIGHT_ARCHITECTURE_FOLLOWUPS, selectedFiles: 9, counts: tap('architecture-followups.tap') },
             placeWorker: { outcome: process.env.PANDO_PREFLIGHT_PLACE, counts: tap('place-worker.tap') },
             temporalParity: { outcome: process.env.PANDO_PREFLIGHT_PARITY, counts: tap('temporal-parity.tap'), evidence: json('temporal-parity.json') },
             workerTemporal: { outcome: process.env.PANDO_PREFLIGHT_WORKER, counts: tap('worker-temporal.tap') },
@@ -420,6 +452,7 @@ jobs:
           for (const [name, batch, expected] of [
             ['originalContracts', summary.originalContracts, null],
             ['additionalContracts', summary.additionalContracts, null],
+            ['architectureFollowups', summary.architectureFollowups, null],
             ['placeWorker', summary.placeWorker, 1],
             ['temporalParity', summary.temporalParity, 5],
             ['workerTemporal', summary.workerTemporal, 6],
@@ -437,13 +470,14 @@ jobs:
           summary.evidenceErrors = failures;
           summary.passed = failures.length === 0
             && Object.values(summary.gates).every(value => value === 'success')
-            && [summary.native, summary.originalContracts, summary.additionalContracts, summary.placeWorker, summary.temporalParity, summary.workerTemporal].every(batch => batch.outcome === 'success');
+            && [summary.native, summary.originalContracts, summary.additionalContracts, summary.architectureFollowups, summary.placeWorker, summary.temporalParity, summary.workerTemporal].every(batch => batch.outcome === 'success');
           writeFileSync(root + 'summary.json', JSON.stringify(summary, null, 2) + '\n');
           const rows = [
             ['Changed/previously failing lint', summary.gates.lint, null, null, null],
             ['Native CTest', summary.native.outcome, summary.native.tests, summary.native.failures, summary.native.skipped],
             ['Original shared-core files (52)', summary.originalContracts.outcome, summary.originalContracts.counts?.tests, summary.originalContracts.counts?.fail, summary.originalContracts.counts?.skipped],
             ['Remaining failed files (44) and concurrency regression (1)', summary.additionalContracts.outcome, summary.additionalContracts.counts?.tests, summary.additionalContracts.counts?.fail, summary.additionalContracts.counts?.skipped],
+            ['Additional Architecture and downstream Core files (9)', summary.architectureFollowups.outcome, summary.architectureFollowups.counts?.tests, summary.architectureFollowups.counts?.fail, summary.architectureFollowups.counts?.skipped],
             ['Previously stalled place Worker', summary.placeWorker.outcome, summary.placeWorker.counts?.tests, summary.placeWorker.counts?.fail, summary.placeWorker.counts?.skipped],
             ['Native/WASM temporal parity', summary.temporalParity.outcome, summary.temporalParity.counts?.tests, summary.temporalParity.counts?.fail, summary.temporalParity.counts?.skipped],
             ['Worker cancellation / late acknowledgement', summary.workerTemporal.outcome, summary.workerTemporal.counts?.tests, summary.workerTemporal.counts?.fail, summary.workerTemporal.counts?.skipped],

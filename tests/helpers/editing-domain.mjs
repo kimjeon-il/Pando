@@ -7,7 +7,7 @@ import { validateWebFlagDataUrl } from "../../shared/frontend/js/modules/country
 const modulePath=resolve(process.env.PANDOEDITOR_WASM_MODULE || fileURLToPath(new URL("../../shared/frontend/static/wasm/pandoeditor-core.js",import.meta.url)));
 const { default: createCore }=await import(pathToFileURL(modulePath));
 const core=await createCore({ wasmBinary: await readFile(modulePath.replace(/\.js$/,'.wasm')) });
-if (core.coreAbiVersion!==1 || core.coreCompilerVersion!=='4.0.20' || !/^[a-f0-9]{64}$/.test(core.coreSourceSha256))
+if (core.coreAbiVersion!==1 || core.coreCompilerVersion!=='6.0.2' || !/^[a-f0-9]{64}$/.test(core.coreSourceSha256))
   throw new Error('The required actual draft Core ABI is unavailable.');
 const seed=JSON.parse(await readFile(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
 

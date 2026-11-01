@@ -1236,7 +1236,20 @@
     {
       "id": "native-core",
       "inputs": [
-        "shared/**",
+        "shared/*.cpp",
+        "shared/**/*.cpp",
+        "shared/*.h",
+        "shared/**/*.h",
+        "shared/*.hpp",
+        "shared/**/*.hpp",
+        "shared/*.cpp.in",
+        "shared/**/*.cpp.in",
+        "shared/*.h.in",
+        "shared/**/*.h.in",
+        "shared/*.cmake",
+        "shared/**/*.cmake",
+        "shared/CMakeLists.txt",
+        "shared/**/CMakeLists.txt",
         "CMakeLists.txt",
         "CMakePresets.json"
       ],

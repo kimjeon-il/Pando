@@ -111,6 +111,7 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/frontend-dev-server.mjs',
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'shared/frontend/js/modules/map-input-presentation.js',
+    'shared/frontend/js/modules/gpu-map-renderer.js',
     'apps/editor/frontend/js/modules/editing-domain.js'
   ]);
   const inputMatches=(selector,path)=>typeof selector==='string'

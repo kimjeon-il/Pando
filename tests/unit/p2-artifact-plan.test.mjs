@@ -33,7 +33,7 @@ function fixture(t) {
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const put=(p,b)=>{const file=join(root,p);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,b);};
   const get=p=>readFileSync(join(root,p));
-  put('config/toolchain-versions.json',JSON.stringify({emscripten:'4.0.20'}));
+  put('config/toolchain-versions.json',JSON.stringify({emscripten:'6.0.2'}));
   put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families:[]}));
   put('shared/CMakeLists.txt','project(Shared)\n');
   put('shared/core/src/calc.cpp','int calc=1;\n');
@@ -42,7 +42,7 @@ function fixture(t) {
   put('shared/frontend/static/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
   put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify({
     schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
-    compiler:{name:'emscripten',version:'4.0.20'},inputs:identity.inputs,
+    compiler:{name:'emscripten',version:'6.0.2'},inputs:identity.inputs,
     assets:{
       js:{file:'pandoeditor-core.js',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.js'))},
       wasm:{file:'pandoeditor-core.wasm',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.wasm'))}
@@ -121,6 +121,7 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
 
 const integrationPresentationChanges=[
   'shared/frontend/js/modules/map-input-presentation.js',
+  'shared/frontend/js/modules/gpu-map-renderer.js',
   'apps/editor/frontend/js/modules/editing-domain.js',
   'tests/unit/map-input-controller.test.mjs',
   '.github/workflows/viewer-functional-p6-2.yml',

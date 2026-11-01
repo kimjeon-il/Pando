@@ -7,7 +7,7 @@ media validation, source catalogs and geometry engines at explicit boundaries.
 
 ## Build and bounded checks
 
-Use Emscripten **4.0.20** in an ignored local SDK/build directory. With that SDK
+Use Emscripten **6.0.2** in an ignored local SDK/build directory. With that SDK
 active only in the current process:
 
 ```sh
