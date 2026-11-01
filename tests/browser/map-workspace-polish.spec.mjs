@@ -26,7 +26,10 @@ async function setStatusBarVisible(page, visible) {
   if (await page.locator('#mobileMenuBtn').isVisible()) {
     await page.locator('#mobileMenuBtn').click();
     await page.locator('#mobilePreferencesBtn').click();
-  } else await page.locator('#preferencesBtn').click();
+  } else {
+    await page.locator('#topbarOverflowBtn').click();
+    await page.locator('#preferencesBtn').click();
+  }
   await expect(page.locator('#preferencesModal')).toBeVisible();
   await page.locator('#preferencesStatusBarVisibleInput').setChecked(visible);
   await page.locator('#preferencesApplyBtn').click();
@@ -99,12 +102,15 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
       const geometry = await page.evaluate(() => {
         const bar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
         const input = document.querySelector('#objectSearchInput').getBoundingClientRect();
-        const status = document.querySelector('#mapBottomStatus').getBoundingClientRect();
-        return { barTop: bar.top, barBottom: bar.bottom, inputTop: input.top, inputBottom: input.bottom, statusTop: status.top };
+        const status = document.querySelector('#mapBottomStatus');
+        const statusTop = status.getClientRects().length ? status.getBoundingClientRect().top : null;
+        const mapBottom = document.querySelector('.map-wrap').getBoundingClientRect().bottom;
+        return { barTop: bar.top, barBottom: bar.bottom, inputTop: input.top, inputBottom: input.bottom,
+          lowerBoundary: statusTop ?? mapBottom };
       });
       expect(geometry.inputTop).toBeGreaterThanOrEqual(geometry.barTop);
       expect(geometry.inputBottom).toBeLessThanOrEqual(geometry.barBottom);
-      expect(geometry.barBottom).toBeLessThan(geometry.statusTop);
+      expect(geometry.barBottom).toBeLessThan(geometry.lowerBoundary);
     }
     await page.locator('#objectSearchInput').fill('독일');
     const germany = page.locator('#objectSearchResults .object-search-result-select[data-item-id="DEU"]');
@@ -251,9 +257,14 @@ test('mobile global menu opens the display sheet without restoring desktop navig
   expect(errors).toEqual([]);
 });
 
-test('bottom floating controls clear the status bar only while it is visible', async ({ page }) => {
+test('bottom floating controls use the status strip only when it has active content', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 1440, height: 900 });
+
+  await expect(page.locator('#mapBottomStatus')).toBeHidden();
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
 
   for (const viewport of [
     { width: 1440, height: 900 },
