@@ -5,7 +5,10 @@ on:
     paths:
       - '.github/workflows/builtin-country-residuals.yml'
       - 'tests/unit/builtin-country-residuals.test.mjs'
+      - 'tests/unit/builtin-country-materialization.test.mjs'
       - 'tools/gis/prepare-water-object-history.mjs'
+      - 'tools/library-runtime-index.mjs'
+      - 'tools/library-data.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,19 +27,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Inventory only builtin-related residual references
-        run: |
-          node --input-type=module <<'JS'
-          import {execFileSync} from 'node:child_process';
-          import {readFileSync} from 'node:fs';
-          const paths=execFileSync('git',['ls-files','-z'],{encoding:'utf8'}).split('\0').filter(path=>/\.(?:m?js|json|ya?ml|md)$/.test(path)&&/^(?:tools|scripts|shared\/frontend|apps\/editor|tests|config|docs|\.github)\//.test(path));
-          for(const path of paths){
-           if(/(?:vendor|node_modules|docs\/superpowers)\//.test(path))continue;
-           const text=readFileSync(path,'utf8');
-           if(!/builtin.world|builtin.country|prepareCommonCountryTargets/.test(text))continue;
-           const lines=text.split('\n');
-           for(let i=0;i<lines.length;i++)if(/transport|pack-existing|prepareCommonCountryTargets|readFileSync\(.*\.file|readFile\(.*\.file|readCountry\(.*\.file|files\.get\(.*\.file/.test(lines[i]))console.log(`${path}:${i+1}: ${lines[i].trim().slice(0,300)}`);
-          }
-          JS
-      - name: Verify residual architecture contracts only
-        run: node --test tests/unit/builtin-country-residuals.test.mjs
+      - name: Verify residual architecture and archive preparation without network data
+        run: node --test tests/unit/builtin-country-residuals.test.mjs tests/unit/builtin-country-materialization.test.mjs
