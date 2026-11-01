@@ -13,7 +13,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-11-02 현행 기준: 추적 Python 15개
+### 2026-11-02 현행 기준: 추적 Python 14개
+
+- **진단 검사:** 원본 지도에서 알려진 양성 픽셀이 가장 많은 타일과 93개 해안 픽셀, 불일치 텐서 거부, 원본·검토·예측 패널, 실제 초기화 가중치가 아닌 기준 거부를 Node/C++ 검사로 확인해 Python 진단 테스트를 제거했다. Python 진단 실행기는 별도 전환 대상이다.
 
 - **학습 조건 검사:** 희소 선의 유효 영역은 네이티브 매크로 PDF 검사에서, 학습 이미지의 재현 가능한 증강과 위치·마스크 보존은 Python 기준 텐서 다섯 개의 고정 해시를 비교하는 Node/C++ 검사에서 각각 확인해 중복 Python 테스트를 제거했다. Python 학습 실행기 자체는 계속 전환 대상이다.
 
@@ -177,7 +179,6 @@
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
-| `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
