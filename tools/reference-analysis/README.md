@@ -281,7 +281,7 @@ attribution and historical screen-space geometry accuracy are separate evaluatio
 
 `usgs-source-catalog.json` pins five actual US Topo GeoPDFs with download hashes,
 publication dates and reuse conditions. Keep original PDFs and generated
-`notices/` together: map-specific third-party credits still apply. `publisher.py`
+`notices/` together: map-specific third-party credits still apply. `prepare-publisher.mjs`
 uses their optional-content layers, with imagery and shaded relief switched off,
 to create source-derived multi-label training masks. International and state/
 county boundaries, hydrography, transport, glyph boxes and map frame are distinct
@@ -292,7 +292,7 @@ water polygons are not silently relabelled as coastline.
 $publisherCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/usgs-publisher'
 $firstModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/usgs-publisher-v1'
 node tools/reference-analysis/acquire-sources.mjs --catalog tools/reference-analysis/usgs-source-catalog.json --output "$publisherCorpus/sources"
-& $trainingPython tools/reference-analysis/publisher.py --sources "$publisherCorpus/sources"
+node tools/reference-analysis/prepare-publisher.mjs --sources "$publisherCorpus/sources"
 $env:TORCH_HOME = "$firstModel/encoder"
 & $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --output "$firstModel/boundary.pt" --epochs 12 --batch 1 --device cuda
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$firstModel/boundary.pt" --output "$firstModel/boundary.onnx"
