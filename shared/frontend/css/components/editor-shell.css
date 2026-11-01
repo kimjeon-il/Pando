@@ -172,7 +172,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-6);
+  gap: var(--ui-space-4);
   padding-block: 0 var(--ui-surface-content-padding-bottom);
   padding-inline-end: var(--ui-surface-content-rail-x);
   padding-inline-start: var(--ui-surface-content-rail-x);
@@ -472,7 +472,7 @@
 }
 
 .editor-object-form {
-  gap: var(--ui-space-5);
+  gap: var(--ui-space-4);
 }
 
 .editor-object-form > .editor-section {
@@ -1467,4 +1467,55 @@
 
 #hydroProperties .editor-action-section + .editor-action-section {
   padding-top: var(--ui-space-2);
+}
+
+
+/* P2 inspector visual pass: use spacing and rules, not nested cards. */
+.editor-object-form > .editor-info-section + .editor-info-section.editor-compact-disclosure {
+  padding-top: 0;
+}
+
+.editor-panel :is(.editor-object-form, .multi-properties) :is(
+  .editor-field > label,
+  .editor-relation-label,
+  .editor-action-group-title
+) {
+  overflow-wrap: anywhere;
+}
+
+.editor-compact-disclosure > summary > span:first-child {
+  flex: 0 0 auto;
+}
+
+.editor-compact-disclosure > summary .disclosure-icon {
+  flex: 0 0 auto;
+}
+
+.editor-panel[data-editor-view="actions"] .editor-action-list {
+  gap: var(--ui-space-0-5);
+}
+
+@media (max-width: 799px) {
+  .editor-field-grid-color {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-view,
+  .editor-object-form {
+    gap: var(--ui-space-3);
+  }
+
+  .editor-compact-disclosure > summary {
+    min-height: var(--ui-touch-height);
+  }
+
+  .editor-disclosure-preview {
+    max-width: 55%;
+  }
+}
+
+@media (min-width: 800px) {
+  .editor-disclosure-preview {
+    max-width: 62%;
+  }
 }
