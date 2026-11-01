@@ -5,7 +5,6 @@ use std::path::PathBuf;
 #[derive(Debug, Default)]
 pub struct RuntimeOptions {
     pub auto: bool,
-    pub physical_immediate: bool,
     pub probe_hold_ms: u64,
     pub profile_id: Option<String>,
     pub diagnostic_output: Option<PathBuf>,
@@ -19,8 +18,6 @@ pub fn parse(args: impl IntoIterator<Item = std::ffi::OsString>) -> Result<Runti
         while let Some(arg) = args.next() {
             if arg == "--probe-auto" {
                 options.auto = true;
-            } else if arg == "--probe-physical-immediate" {
-                options.physical_immediate = true;
             } else if arg == "--probe-hold-ms" {
                 let requested = args.next().ok_or("--probe-hold-ms requires milliseconds")?;
                 let duration = requested.to_string_lossy().parse::<u64>()
@@ -50,8 +47,7 @@ pub fn parse(args: impl IntoIterator<Item = std::ffi::OsString>) -> Result<Runti
                 return Err(format!("Unsupported verification option: {}", arg.to_string_lossy()));
             }
         }
-        if !options.auto && (options.physical_immediate
-            || options.probe_hold_ms > 0 || options.profile_id.is_some()) {
+        if !options.auto && (options.probe_hold_ms > 0 || options.profile_id.is_some()) {
             return Err("Performance flags require --probe-auto".into());
         }
     }
@@ -90,6 +86,7 @@ mod tests {
     #[test]
     fn verification_options_retain_validation() {
         assert!(parse(args(&["--probe-auto", "--probe-retired"])).is_err());
+        assert!(parse(args(&["--probe-auto", "--probe-physical-immediate"])).unwrap_err().contains("Unsupported verification option"));
         assert!(parse(args(&["--probe-hold-ms", "1000"])).is_err());
         assert!(parse(args(&["--probe-auto", "--probe-hold-ms", "999"])).is_err());
         let value = parse(args(&["--probe-auto", "--probe-hold-ms", "1000"])).unwrap();
