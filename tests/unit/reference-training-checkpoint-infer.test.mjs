@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync,spawnSync} from 'node:child_process';
-import {mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -64,6 +64,15 @@ test('native checkpoint inference matches the source model output', {skip:!avail
   const baseline=await nativeTrainingWeightsInfer({...options,weights,output:'probabilities'});
   maximum=0;for(let i=0;i<expectedProbability.length;i+=4)maximum=Math.max(maximum,Math.abs(expectedProbability.readFloatLE(i)-baseline.probabilities.readFloatLE(i)));
   assert.ok(maximum<=1e-6,`initializer probability error ${maximum}`);assert.equal(baseline.weightsSha256,weightsSha256);
+  const invalidDirectory=join(folder,'invalid-weights');mkdirSync(invalidDirectory);
+  const invalidPath=join(invalidDirectory,'weights.safetensors'),raw=readFileSync(weights),headerLength=Number(raw.readBigUInt64LE());
+  const header=JSON.parse(raw.subarray(8,8+headerLength));delete header.__metadata__;
+  const encoded=Buffer.from(JSON.stringify(header)),padding=Buffer.alloc((8-encoded.length%8)%8,32),length=Buffer.alloc(8);
+  length.writeBigUInt64LE(BigInt(encoded.length+padding.length));
+  const invalid=Buffer.concat([length,encoded,padding,raw.subarray(8+headerLength)]);writeFileSync(invalidPath,invalid);
+  writeFileSync(join(invalidDirectory,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
+    transfer:'weights-only-no-optimizer',weightsSha256:createHash('sha256').update(invalid).digest('hex')}));
+  await assert.rejects(nativeTrainingWeightsInfer({...options,weights:invalidPath}),/private training-only reference initializer/i);
   writeFileSync(join(folder,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
     transfer:'weights-only-no-optimizer',weightsSha256:'0'.repeat(64)}));
   await assert.rejects(nativeTrainingWeightsInfer({...options,weights}),/initializer/i);
