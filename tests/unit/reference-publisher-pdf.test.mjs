@@ -11,7 +11,10 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
   const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
   assert.equal(sha(input),oracle.sourceSha256);
   const info=await inspectPublisherPdf({path});
-  assert.deepEqual(info.layers.map(layer=>layer.name),oracle.layers);
+  // MuPDF enumerates OCGs in a different order from the PDF layer UI.
+  // Selection is by name, while the UI order preserves parent relationships.
+  assert.deepEqual(info.layers.map(layer=>layer.name).sort(),[...oracle.layers].sort());
+  assert.deepEqual(info.ui.map(layer=>layer.text),oracle.layers);
   assert.equal(info.pageCount,1);assert.equal(info.rotation,0);
   for(const row of oracle.renders){
     const rendered=await renderPublisherPdfLayers({path,enabled:row.enabled,maximumDimension:160});
