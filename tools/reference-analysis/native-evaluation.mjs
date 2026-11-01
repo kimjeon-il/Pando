@@ -37,6 +37,12 @@ export async function proximityWindow(source,target,radius,{signal,workspace=roo
   if(decoded.length!==target.width*target.height||decoded.some(value=>value&~7))throw Error('Invalid native proximity output');
   return decoded;
 }
+function evaluationTileOrigins(width,height,window){
+  const expected=[],first=value=>Math.max(0,Math.ceil((value-511)/448))*448;
+  for(let y=first(window.y);y<Math.min(height,window.y+window.height);y+=448)
+    for(let x=first(window.x);x<Math.min(width,window.x+window.width);x+=448)expected.push({x,y});
+  return expected;
+}
 // Blend the first three probability channels in original sheet coordinates.
 // Windowing bounds memory; supplied tiles retain the training dataset's order.
 export async function blendEvaluationWindow({width,height,window,tiles},
@@ -46,9 +52,7 @@ export async function blendEvaluationWindow({width,height,window,tiles},
     ![window.x,window.y,window.width,window.height].every(Number.isSafeInteger)||window.x<0||window.y<0||
     window.width<1||window.height<1||window.width>1024||window.height>1024||window.x+window.width>width||window.y+window.height>height||
     !Array.isArray(tiles)||tiles.length<1||tiles.length>16)throw Error('Explicit bounded evaluation blend window and tiles required');
-  const expected=[],first=value=>Math.max(0,Math.ceil((value-511)/448))*448;
-  for(let y=first(window.y);y<Math.min(height,window.y+window.height);y+=448)
-    for(let x=first(window.x);x<Math.min(width,window.x+window.width);x+=448)expected.push({x,y});
+  const expected=evaluationTileOrigins(width,height,window);
   if(tiles.length!==expected.length||tiles.some((tile,index)=>tile?.x!==expected[index].x||tile?.y!==expected[index].y))
     throw Error('Evaluation blend requires every intersecting tile in dataset order');
   const header=Buffer.alloc(36);header.write('PBLEND01');let offset=8;
@@ -64,6 +68,29 @@ export async function blendEvaluationWindow({width,height,window,tiles},
   if(typeof result?.data!=='string'||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(result.data))throw Error('Invalid native blend output');
   const bytes=Buffer.from(result.data,'base64');if(bytes.length!==window.width*window.height||bytes.some(value=>value&~7))throw Error('Invalid native blend output');
   return bytes;
+}
+// Assemble a packed full-sheet prediction using bounded windows and an LRU of
+// model outputs. This alone does not establish independent evaluation.
+export async function assembleEvaluationPrediction({width,height,predictTile,windowSize=512,maxCachedTiles=16},options={}){
+  const {signal}=options;signal?.throwIfAborted();
+  if(![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=65535)||width*height>600000000||
+    typeof predictTile!=='function'||!Number.isInteger(windowSize)||windowSize<1||windowSize>1024||
+    !Number.isInteger(maxCachedTiles)||maxCachedTiles<1||maxCachedTiles>32)throw Error('Explicit bounded evaluation prediction inputs required');
+  const prediction=Buffer.alloc(width*height),cache=new Map();
+  for(let y=0;y<height;y+=windowSize)for(let x=0;x<width;x+=windowSize){
+    signal?.throwIfAborted();const window={x,y,width:Math.min(windowSize,width-x),height:Math.min(windowSize,height-y)},tiles=[];
+    for(const origin of evaluationTileOrigins(width,height,window)){
+      const key=`${origin.x},${origin.y}`;let probabilities=cache.get(key);
+      if(probabilities){cache.delete(key);cache.set(key,probabilities);}
+      else{const value=await predictTile({...origin,signal});signal?.throwIfAborted();
+        if(!(value instanceof Uint8Array)||value.byteLength!==3*512*512*4)throw Error('Evaluation tile probabilities differ');
+        probabilities=Buffer.from(value);cache.set(key,probabilities);if(cache.size>maxCachedTiles)cache.delete(cache.keys().next().value);}
+      tiles.push({...origin,probabilities});
+    }
+    const result=await blendEvaluationWindow({width,height,window,tiles},options);
+    for(let row=0;row<window.height;row++)result.copy(prediction,(y+row)*width+x,row*window.width,(row+1)*window.width);
+  }
+  return prediction;
 }
 export async function diagnosticPixelStatistics({width,height,probability,target,known},
   {signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact')}={}){
