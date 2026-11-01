@@ -10,7 +10,7 @@ import {assembleEvaluationPrediction,evaluateBoundaries,summarizeEvaluation} fro
 import {nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from './native-training-validation.mjs';
 import {validateCorpusMetadata,validateReviewedCorpus} from './reviewed-corpus.mjs';
 import {assertEvaluationIndependence} from './training-lineage.mjs';
-import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {corpusFingerprint,readTrainingBounded,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {countAnnotationTrainingSupervision,prepareReviewedTrainingTile} from './training-tiles.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -39,11 +39,13 @@ function evaluationModel({checkpoint,weights,device,diagnosticOnly}){
       throw Error('Private checkpoint receipt differs from its file');
   }else{
     if(!diagnosticOnly)throw Error('Transferred weights require diagnostic-only evaluation');
-    if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.evaluationStatus!=='pending'||receipt.releaseApproved!==false||
-      receipt.transfer!=='weights-only-no-optimizer'||receipt.weightsSha256!==hash||!/^[a-f0-9]{64}$/.test(receipt.sourceCheckpointSha256||''))
+    let verified;try{verified=verifyTrainingInitializer({path,expectedSha256:hash});}
+    catch(error){throw Error('Transferred weights receipt differs from its file',{cause:error});}
+    if(receipt.schemaVersion!==1||verified.recordHash!==receiptHash||
+      (verified.initialization==='weights-only-no-optimizer'&&!/^[a-f0-9]{64}$/.test(verified.sourceCheckpointSha256||'')))
       throw Error('Transferred weights receipt differs from its file');
   }
-  return {mode,path,hash,receiptPath,receiptHash,receipt,sourceCheckpointSha256:mode==='checkpoint'?hash:receipt.sourceCheckpointSha256};
+  return {mode,path,hash,receiptPath,receiptHash,receipt,sourceCheckpointSha256:mode==='checkpoint'?hash:receipt.sourceCheckpointSha256??null};
 }
 export async function evaluateReviewedCheckpointSource({checkpoint,weights,corpus,sourceId,device,torchLibrary,diagnosticOnly=false},
   {signal,workspace,imageDirectory,reviewDirectory,evaluationDirectory,batchDirectory}={}){
@@ -76,6 +78,7 @@ export async function evaluateReviewedCheckpointSource({checkpoint,weights,corpu
   const coverage=Object.fromEntries(channels.map((name,index)=>[name,{knownPixels:counts[index][0],originalPixels:annotation.width*annotation.height}]));
   return {sheetId:sheet.id,...result,coverage,reviewCoverage:annotation.review?.coverage??'unspecified',reviewKind:annotation.review?.kind??null,independence,diagnosticOnly,
     checkpointSha256:model.sourceCheckpointSha256,modelSha256:model.hash,modelKind:model.mode,corpusManifestSha256:corpusHash,
+    ...(model.mode==='weights-only'?{initialization:receipt.transfer}:{}),
     trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
@@ -110,6 +113,7 @@ export async function evaluateReviewedCheckpointCorpus({checkpoint,weights,corpu
   const report={schemaVersion:1,metric:'full-sheet-source-pixel-euclidean-tolerance',tolerance:'max(2px, half annotated original stroke width)',
     corpusSha256,corpusManifestSha256,trainingCorpusSha256:receipt.lineageFingerprint??receipt.corpusSha256??null,trainingLineageFingerprint:receipt.lineageFingerprint??null,
     checkpointSha256:model.sourceCheckpointSha256,modelSha256:model.hash,modelKind:model.mode,unobservedChannelsKnown:model.mode==='checkpoint',
+    ...(model.mode==='weights-only'?{initialization:receipt.transfer}:{}),
     reviewKinds:[...reviewKinds].sort(),trainingOnly:true,evaluationStatus:'pending',groups:summary.groups,sheets:perSheet,threshold:.55,diagnosticOnly,independence:summary.independence,
     confounders,coverage,nonregression:summary.nonregression,reviewCoverage:summary.reviewCoverage,baselineReportSha256:baselineSha256,admission:summary.admission,
     releaseApproved:false,pending:['independent georeference region evaluation','all script/map-family coverage','Windows WebView2 and Android offline performance']};

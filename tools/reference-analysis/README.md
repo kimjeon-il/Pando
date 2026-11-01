@@ -273,8 +273,11 @@ node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath
 ```
 
 The native evaluation path accepts a newly trained native checkpoint, or
-transferred Safetensors weights for diagnostic-only use. Transferred weights do
-not contain optimizer state or establish training ancestry:
+verified Safetensors initializers for diagnostic-only use. An initializer may
+be transferred private weights or the verified public encoder start. Neither
+contains optimizer state or establishes map-training ancestry. To compare the
+same frozen corpus before and after training, pass the initializer evaluation
+report as `--baseline-report` when evaluating the checkpoint:
 
 ```powershell
 node tools/reference-analysis/native-evaluate-source.mjs --checkpoint $nativeCheckpoint --corpus $corpusPath --output $nativeEvaluationPath --device cuda --torch-library $torchLibrary --diagnostic-only

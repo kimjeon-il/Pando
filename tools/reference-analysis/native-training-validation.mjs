@@ -10,7 +10,7 @@ import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 import {assertEvaluationIndependence} from './training-lineage.mjs';
-import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {readTrainingBounded,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {listReviewedTrainingTiles,prepareReviewedTrainingTile} from './training-tiles.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -58,12 +58,13 @@ export async function nativeTrainingCheckpointInfer({checkpoint,tile,overview,po
 }
 export async function nativeTrainingWeightsInfer({weights,tile,overview,position,device='cpu',output='logits',torchLibrary,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
-  signal?.throwIfAborted();if(!weights)throw Error('Explicit private initializer required');
-  const path=resolve(weights),receiptPath=join(dirname(path),'transfer.json'),weightsHash=trainingFileIdentity(path),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
-  if(receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.evaluationStatus!=='pending'||
-    receipt.transfer!=='weights-only-no-optimizer'||receipt.weightsSha256!==weightsHash)throw Error('Private initializer transfer differs from its weights');
+  signal?.throwIfAborted();if(!weights)throw Error('Explicit training initializer required');
+  const path=resolve(weights),weightsHash=trainingFileIdentity(path);
+  let verified;try{verified=verifyTrainingInitializer({path,expectedSha256:weightsHash});}
+  catch(error){throw Error('Training initializer receipt differs from its weights',{cause:error});}
   const result=await inferPrivateModel({path,mode:'infer-weights',tile,overview,position,device,output,torchLibrary,root,directory,signal});
-  if(trainingFileIdentity(path)!==weightsHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash)throw Error('Initializer changed during execution');
+  const after=verifyTrainingInitializer({path,expectedSha256:weightsHash});
+  if(after.recordHash!==verified.recordHash)throw Error('Initializer changed during execution');
   return {...result,weightsSha256:weightsHash};
 }
 export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',diagnosticOnly=false,torchLibrary,

@@ -48,6 +48,11 @@ test('source evaluation protects test scope and incomplete training ancestry',as
     transfer:'weights-only-no-optimizer',weightsSha256:sha('transferred fixture'),sourceCheckpointSha256:'b'.repeat(64)}));
   await assert.rejects(evaluateReviewedCheckpointSource({...request,checkpoint:undefined,weights}),/diagnostic-only/i);
   await assert.rejects(evaluateReviewedCheckpointSource({...request,weights,diagnosticOnly:true}),/choose one/i);
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({schemaVersion:1,trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
+    transfer:'public-encoder-no-optimizer',weightsSha256:sha('transferred fixture'),tensorCount:340,randomSeed:20261022,
+    encoderSourcePath:weights,encoderInitialization:{kind:'public-pretrained-image-classification',
+      url:'https://download.pytorch.org/models/fake-00000000.pth',sha256:'0'.repeat(64),bytes:19}}));
+  await assert.rejects(evaluateReviewedCheckpointSource({...request,checkpoint:undefined,weights,diagnosticOnly:true}),/weights receipt/i);
   writeFileSync(weights,'changed');
   await assert.rejects(evaluateReviewedCheckpointSource({...request,checkpoint:undefined,weights,diagnosticOnly:true}),/weights receipt/i);
   const controller=new AbortController();controller.abort();
