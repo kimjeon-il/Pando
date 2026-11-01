@@ -41,7 +41,7 @@ test(`temporal country names edit, undo, save and reopen in ${appShell?'app shel
   });
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const unexpectedWorldReads=[];
-  await page.route('**/assets/data/builtin-world/generated/v1/transport/**',async route=>{
+  await page.route('**/assets/data/builtin-world/generated/v1/**',async route=>{
     unexpectedWorldReads.push(route.request().url());await route.abort('blockedbyclient');
   });
   await page.goto(appShell?'/?renderer=canvas':'/__editor/index.html?renderer=canvas');

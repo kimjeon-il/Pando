@@ -195,6 +195,18 @@ class MacroSupervisionTests(unittest.TestCase):
                 validate_corpus(corpus, root)
             annotation_path = root / sheet['annotations']
             annotation = json.loads(annotation_path.read_text())
+            metadata_path = root / annotation['sourceMetadata']
+            metadata_bytes = metadata_path.read_bytes()
+            changed_metadata = json.loads(metadata_bytes)
+            changed_metadata['geographicScope'] = 'unverified'
+            metadata_path.write_text(json.dumps(changed_metadata), encoding='utf-8')
+            forged = json.loads(json.dumps(annotation))
+            forged['sourceMetadataSha256'] = hashlib.sha256(metadata_path.read_bytes()).hexdigest()
+            annotation_path.write_text(json.dumps(forged), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'geographic scope'):
+                validate_corpus(corpus, root, training_only=True)
+            metadata_path.write_bytes(metadata_bytes)
+            annotation_path.write_text(json.dumps(annotation), encoding='utf-8')
             valid = np.asarray(Image.open(root / annotation['validRaster']['path']))
             self.assertFalse(valid[55:61, 78:82].any(), 'Publisher glyphs obscure border truth')
             self.assertFalse(valid[95:110, 78:82].any(), 'Explicit legend exclusions are not boundary truth')

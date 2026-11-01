@@ -26,9 +26,9 @@ export function frontendFixture(t){
   'assets/data/hydro/v0.13.2/manifest.json':{container:{url:'data.bin'},shards:[]},
   'assets/data/places/manifest.json':{shards:{}},
   'assets/data/territorial-entities/generated/v2/index.json':{entities:[]},
-  'assets/data/builtin-world/generated/v1/index.json':{entities:[],transport:{url:'packed.bin'}},
+  'assets/data/builtin-world/generated/v1/index.json':{schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',entities:[],template:{}},
   'assets/data/prepared-polygons/generated/v2/manifest.json':{meshes:{},algorithmSourceSha256:'mesh'},
-  'assets/data/physical-land/land.bin':storedPhysicalLand,'assets/data/hydro/v0.13.2/data.bin':null,'assets/data/builtin-world/generated/v1/packed.bin':null,
+  'assets/data/physical-land/land.bin':storedPhysicalLand,'assets/data/hydro/v0.13.2/data.bin':null,
  };
  return{root,put,metadata,options:{root,sourceCommit:'a'.repeat(40),dataPaths:Object.keys(metadata),readPinnedData:path=>Buffer.isBuffer(metadata[path])?metadata[path]:Buffer.from(JSON.stringify(metadata[path]))}};
 }

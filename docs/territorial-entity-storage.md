@@ -1,5 +1,11 @@
 # Country object storage — current contract
 
+The 2026-11-01 builtin publication uses country-files-v1 throughout generation,
+loading, caching, Web/App packaging and runtime preparation. Countries exceeding
+512 KiB use bounded country-owned parts; no all-country transport is required.
+Historical archive entries remain preserved but are not runtime dependencies.
+See development/builtin-country-residuals.md for the phase-4 boundary and tests.
+
 2026-10-21 country-object contract supersedes the embedded-lineage and flat-source
 descriptions in the dated execution record below. Work is on permanent `work/gis`;
 this change does not merge main or deploy.

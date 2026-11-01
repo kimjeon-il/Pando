@@ -6,7 +6,7 @@ import { stagePrototype } from '../stage.mjs';
 import { worldFixture as fixture } from './helpers/world-fixture.mjs';
 
 test('map-data stage selects manifest-pinned Web resources and keeps the canonical bootstrap intact', async t => {
-  const { root, transport } = await fixture(t);
+  const { root, country } = await fixture(t);
   const staged = await stagePrototype({ root, profile: 'map-data' });
   assert.equal(staged.profile, 'map-data');
   assert.equal(staged.worldData.countryCount, 258);
@@ -26,8 +26,9 @@ test('map-data stage selects manifest-pinned Web resources and keeps the canonic
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
   assert.ok(staged.files.some(file => file.path.endsWith('/places-v1.bin')));
   assert.equal(staged.files.some(file=>file.path.includes('terrain-preview')),false);
-  assert.equal(await readFile(join(staged.directory, transport.url), 'utf8'), 'COUNTRY');
-  assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/countries/')), false);
+  assert.equal(await readFile(join(staged.directory, country.url), 'utf8'), 'COUNTRY');
+  assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/countries/')), true);
+  assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/transport/')), false);
 });
 test('map-data stage refuses tampered pinned immutable data', async t => {
   const { root, put, mesh } = await fixture(t);
@@ -35,8 +36,8 @@ test('map-data stage refuses tampered pinned immutable data', async t => {
   await assert.rejects(stagePrototype({ root, profile: 'map-data' }), /Pinned world resource mismatch/);
 });
 
-test('map-data stage rejects a corrupted builtin country transport before packaging', async t => {
-  const { root, put, transport } = await fixture(t);
-  await put(transport.url, 'TAMPERED');
+test('map-data stage rejects a corrupted individual builtin country before packaging', async t => {
+  const { root, put, country } = await fixture(t);
+  await put(country.url, 'TAMPERED');
   await assert.rejects(stagePrototype({ root, profile: 'map-data' }), /Pinned world resource mismatch/);
 });

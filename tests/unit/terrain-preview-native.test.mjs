@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {spawn,spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
@@ -8,6 +9,7 @@ import {composeNativeTerrainPreview,rasterizeNativeTerrainLand} from '../../tool
 const binary=process.env.PANDO_TERRAIN_PREVIEW_BINARY;
 const cases=JSON.parse(readFileSync('tests/fixtures/terrain-preview-kernel.json','utf8'));
 const masks=JSON.parse(readFileSync('tests/fixtures/terrain-land-mask.json','utf8'));
+const physicalMasks=JSON.parse(readFileSync('tests/fixtures/physical-land-mask-oracle.json','utf8'));
 test('frozen preview slopes, coasts and polar rows agree with Canvas DEM conversion',()=>{
   const context={self:{}};
   vm.runInNewContext(readFileSync('shared/frontend/js/workers/canvas-terrain-dem-core.js','utf8'),context);
@@ -53,6 +55,38 @@ test('native land mask rejects invalid geometry and dimensions without partial o
   for(const input of [invalid,empty]){const result=spawnSync(binary,['mask'],{input:JSON.stringify(input)});
     assert.equal(result.status,1);assert.equal(result.stdout.length,0);assert(result.stderr.length>0);}
 });
+test('native physical land mask fills holes and matches Python at the dateline',{skip:!binary},()=>{
+  for(const row of physicalMasks){const result=spawnSync(binary,['mask'],{input:JSON.stringify(row),maxBuffer:2*1024*1024});
+    assert.equal(result.status,0,`${row.name}: ${result.stderr}`);assert.deepEqual(result.stdout,Buffer.from(row.expectedBase64,'base64'),row.name);}
+});
+test('native physical mask discards a subpixel polygon copy outside the date line',{skip:!binary},()=>{
+  const row=JSON.parse(readFileSync('tests/fixtures/physical-land-mask-edge-oracle.json','utf8'));
+  const result=spawnSync(binary,['mask'],{input:JSON.stringify(row),maxBuffer:2*1024*1024});
+  assert.equal(result.status,0,String(result.stderr));
+  assert.equal(createHash('sha256').update(result.stdout).digest('hex'),row.expectedSha256);
+  assert.equal(result.stdout[75*720],0);
+});
+test('native physical composite matches Pillow gutters and all alpha values',{skip:!binary},()=>{
+  const row=JSON.parse(readFileSync('tests/fixtures/physical-gutter-composite-oracle.json','utf8'));
+  const alpha=JSON.parse(readFileSync('tests/fixtures/physical-gutter-alpha-oracle.json','utf8'));
+  const cases=[...row.cases,alpha],frames=cases.map(value=>Buffer.from(value.frame,'base64'));
+  const result=spawnSync(binary,['physical-composite-stream'],{input:Buffer.concat(frames),maxBuffer:1024*1024});
+  assert.equal(result.status,0,String(result.stderr));
+  assert.deepEqual(result.stdout,Buffer.concat(cases.map(value=>Buffer.from(value.expected,'base64'))));
+  const frame=frames[0],truncated=spawnSync(binary,['physical-composite-stream'],{input:frame.subarray(0,frame.length-1)});
+  assert.notEqual(truncated.status,0);assert.equal(truncated.stdout.length,0);
+});
+test('physical composite relay exits when native input is invalid even if stdin stays open',
+  {skip:!process.env.PANDO_TERRAIN_PREVIEW_DIRECTORY},async()=>{
+    const child=spawn(process.execPath,['tools/gis/terrain-preview-native.mjs','--physical-composite-stream'],{stdio:['pipe','ignore','pipe'],windowsHide:true});
+    const done=new Promise((accept,reject)=>{child.once('error',reject);child.once('close',(code)=>accept(code));});
+    child.stdin.on('error',()=>{});child.stdin.write(Buffer.alloc(24));
+    let timer;const timeout=new Promise(accept=>{timer=setTimeout(()=>accept(null),3000);});
+    const code=await Promise.race([done,timeout]);clearTimeout(timer);
+    if(code===null)child.kill();
+    assert.notEqual(code,null,'relay must stop after the native engine rejects its input');
+    assert.notEqual(code,0);
+  });
 test('terrain preview interface validates pixel buffers before starting the native tool',async()=>{
   const row=cases[0];await assert.rejects(composeNativeTerrainPreview({...row,dem:Buffer.alloc(1),tint:Buffer.from(row.tint),land:Buffer.from(row.land)}),/buffer/i);
   await assert.rejects(rasterizeNativeTerrainLand({...masks[0],width:0}),/inputs/i);

@@ -74,7 +74,8 @@ QJsonObject layerSummary(QgsMapLayer* layer,bool detail){
     const auto type=vector?QStringLiteral("vector_%1").arg(static_cast<int>(vector->geometryType())):
         raster?QStringLiteral("raster"):QString::number(static_cast<int>(layer->type()));
     QJsonObject result{{QStringLiteral("id"),layer->id()},{QStringLiteral("name"),layer->name()},
-        {QStringLiteral("type"),type},{QStringLiteral("visible"),node&&node->isVisible()}};
+        {QStringLiteral("type"),type},{QStringLiteral("visible"),node&&node->isVisible()},
+        {QStringLiteral("source"),layer->publicSource()},{QStringLiteral("editable"),vector&&vector->isEditable()}};
     if(detail&&vector){result.insert(QStringLiteral("feature_count"),static_cast<double>(vector->featureCount()));
         result.insert(QStringLiteral("geometry_type"),static_cast<int>(vector->geometryType()));}
     if(detail&&raster){result.insert(QStringLiteral("width"),raster->width());result.insert(QStringLiteral("height"),raster->height());}
