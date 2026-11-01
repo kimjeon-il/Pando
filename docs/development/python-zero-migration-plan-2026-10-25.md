@@ -13,7 +13,15 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-31 현행 기준: 추적 Python 25개
+### 2026-11-01 현행 기준: 추적 Python 21개
+
+- **학습 코퍼스 진단:** 기존 네이티브 단일 지도 진단을 코퍼스의 각 지도에 순서대로 적용하는 Node 실행 경로를 추가했다. 모든 지도에서 같은 체크포인트·코퍼스와 영수증을 확인하고, 기존 출력과 취소를 보호하며, 진단 보고서에 학습 전용·독립 평가 아님·ONNX 일치 미검증을 명시한다. 보존된 CIA 지도 한 장과 CPU 체크포인트로 새 코퍼스 진단의 채널 결과와 JPEG가 기존 단일 지도 경로와 일치함을 확인했다. 같은 입력으로 C++ 체크포인트를 opset 17 ONNX로 내보내 Node 및 헤드리스 브라우저 WASM에서 비교한 최대 절대오차는 각각 0.0001888275로 기준 0.005 이내였다. 이 검사는 해당 체크포인트의 단일 타일 실행 동등성이며 모델 정확도 승인이 아니다. CIA 세계 지도와 캐나다 국가 지도의 2개 실제 코퍼스도 보존된 CUDA 체크포인트로 순차 처리해 동일 입력 계보와 미리보기 1개 제한을 확인했다. 기존 Python 진단기의 전체 입출력과 호출자 전환, 독립 평가는 아직 남아 있다.
+
+  네이티브 ONNX 내보내기는 명시적 요청 시 일치하는 이름의 후보 manifest를 함께 만든다. 체크포인트·영수증과 관측되지 않은 채널을 기록하고, 가중치만 이행되어 기존 optimizer 이력이 없고 계보가 미완료인 상태를 그대로 표시한다. 기존 모델·manifest 덮어쓰기와 위조된 영수증을 거부하며 자동으로 승인하거나 공개하지 않는다.
+
+  매크로 네이티브 학습은 명시된 배치 예산 안에서 여러 epoch를 이어갈 수 있다. 완료한 배치마다 캠페인 진행 상태를 기록하며, 중단 후 이전 캠페인과 체크포인트·코퍼스·설정·손실 영수증을 확인하고 최고 후보를 보존한다. 선택한 실제 지도 한 장의 CPU 학습에서 14개 타일 epoch 완료, 다음 epoch 전환 및 중단 재개를 확인했다. 두 배치 뒤 취소한 후 기록된 지점에서 재개한 결과도 연속 실행과 모델 텐서 340개, optimizer 상태 32개, 난수·샘플 순서·상태 플래그가 일치했다. CUDA 재개 비교의 AMP 배율과 업데이트·건너뛰기 횟수도 동일했다. 선택 기준은 학습 손실이며 독립 검증이나 검증 손실 조기 중단은 구현하지 않았고, 기존 Python 학습기의 전체 대체도 아니다.
+
+- **DEM 생성기 전환:** ETOPO 격자·좌표계·NoData 확인, 타일별 고도·음영·WebP 생성, tint ZIP 및 육지·빙하 마스크, 극지 보정과 gutter 재조정, 생성·재사용·보정 실행기를 Node/C++ 소유자로 통합했다. 기존 Python 생성기와 대응 테스트를 제거하고 `scripts/gis/run-source.mjs --task terrain-dem`이 Node 실행기를 호출한다. 고정 소형 자료의 여섯 타일 픽셀, 원본·자료 해시, ZIP 경로·CRC, 출력 덮어쓰기 거부와 보정 재실행을 비교했다. Windows 8.3 경로와 긴 경로가 섞인 junction 우회는 실제 경로를 정규화해 수정했으며 [Windows 경로 CI 41289355212](https://github.com/kimjeon-il/Pando/actions/runs/41289355212)에서 확인했다. [Windows/Linux 통합 CI 41288514066](https://github.com/kimjeon-il/Pando/actions/runs/41288514066)이 통과했다. 합성 원본의 기능 비교이며, 보존 ETOPO 원본·LOD 0–5 전체 재생성과 운영 자료 승인은 아니다.
 
 - **QGIS 네이티브 연결 전환:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가했다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. [Windows CI 41144046823](https://github.com/kimjeon-il/Pando/actions/runs/41144046823)과 QGIS 3.44.15 한 창에서 출처·편집 상태·롤백을 확인했다. 실제 MCP의 인증 거부·편집·Undo/Redo·롤백·출력 덮어쓰기 거부와 한글·따옴표 파일 경로, EPSG:3857 클립, QGIS→판도 편집기→QGIS의 선·폴리곤 및 출처 왕복이 통과했다. Codex QGIS 연결을 네이티브 MCP로 전환하고 기존 Python 브리지·부트스트랩·대응 테스트를 제거했다. 현재 열려 있는 채팅은 MCP 연결 새로 고침이 필요할 수 있다. 이는 합성 입력의 기능 검증이며 모든 QGIS 좌표계나 처리 알고리즘 검증은 아니다.
 
@@ -124,7 +132,7 @@
 
   기존 물리 자료 생성기의 Natural Earth 수계 벡터 판독·속성·manifest 생성은 Node와 GDAL로 이전했다. 8개 합성 SHP에서 분리 선, 폴리곤 구멍, 다중 외곽, 한글 DBF, 빈 형상, 좌표 순서와 기존 Python 결과의 의미가 일치했고 기존 출력 덮어쓰기 및 원본 폴더 내부 출력은 거부한다. JSON 숫자 인코딩 차이로 출력 해시는 이전 Python과 다를 수 있다. [Windows/Linux CI 41164659641](https://github.com/kimjeon-il/Pando/actions/runs/41164659641)에서 해당 합성 자료와 기존 생성기의 호출을 확인했다. 실제 Natural Earth SHP 전체 비교는 아직 미완료다.
 
-`work/gis` 현행 기준: 도구 12개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+`work/gis` 현행 기준: 도구 11개, 테스트 10개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
 
   독일 1914 현대 해안 생성은 `tools/gis/build-german-1914-base.mjs --modern-coast`와 기존 GEOS/PROJ 엔진으로 전환했다. 합성 사례는 [Windows/Linux CI 41163860279](https://github.com/kimjeon-il/Pando/actions/runs/41163860279)에서 검증했다. 보유 HGIS 원본과 현재 국가 5개, 보존된 Helgoland·Düne 원본에서는 GEOS 3.13.1 기준 Python과 투영 면적·기준점이 일치했다. 기존 Python의 WGS84 역변환 결과에 자기 교차가 있어 GEOS 위상 복구를 적용하며, 복구된 결과는 같은 버전에서 Python 결과를 복구한 다각형과 공간적으로 일치한다. 미터 좌표로 되돌려 측정한 GEOS 꼭짓점 이산 Hausdorff 거리는 약 0.001712m, 면적 차이는 약 0.098552km²이며, 이는 모든 선분의 최대 거리나 역사 형상 승인을 뜻하지 않는다. 이산 경계 거리가 0.01m를 초과하거나 복구가 유효하지 않으면 후보를 거부한다. 후보 출력과 진단은 별도 경로에만 생성하며 운영 자료와 원본을 자동 변경하지 않는다. GEOS 3.11.4와 3.13.1의 해당 원본 결과는 서로 다르므로 라이브러리 버전별 결과를 같은 바이트나 같은 형상으로 취급하지 않는다.
 
@@ -141,13 +149,11 @@
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
-| `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
-| `tests/python/test_build_terrain_dem.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |

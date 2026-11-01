@@ -2,8 +2,6 @@ import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
 import {stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {parseArgs} from 'node:util';
 
 export function terrainAssetDigest(){
   const hash=createHash('sha256');
@@ -40,12 +38,4 @@ export async function summarizeTerrainAssets(output,levels,{signal}={}){
   }
   const tint=await hashTerrainFile(resolve(root,'tint.webp'),{signal});
   return {assetsSha256:digest.finish(tint.sha256),reports};
-}
-
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{const {values}=parseArgs({options:{output:{type:'string'},levels:{type:'string'},file:{type:'string'}}});
-    if(values.file&&!values.output&&!values.levels)console.log(JSON.stringify(await hashTerrainFile(values.file)));
-    else if(values.output&&values.levels&&!values.file)console.log(JSON.stringify(await summarizeTerrainAssets(values.output,JSON.parse(values.levels))));
-    else throw Error('Expected --file or --output and --levels');
-  }catch(error){console.error('terrain-dem-assets: '+error.message);process.exitCode=1;}
 }

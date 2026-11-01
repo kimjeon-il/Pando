@@ -9,6 +9,8 @@ function canvasFallbackWorkerMain() {
     let context = null;
     let substrate = null;
     let substrateState = null;
+    let terrainBase = null;
+    let terrainBaseKey = null;
     let features = [];
     let geometryRevision = 0;
     let projectGeneration = 0;
@@ -55,6 +57,20 @@ function canvasFallbackWorkerMain() {
     const hydroProfileWidths = new WeakMap();
     let projectedPathDependencies = null;
     let projectedPaths = new WeakMap();
+    let retainedPhysicalLandPacket = null;
+    let softwareCanvas = true;
+
+    function preferSoftwareCanvas() {
+      try {
+        const probe = new OffscreenCanvas(1, 1);
+        const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+        if (!gl || typeof gl.getParameter !== 'function') return true;
+        const info = gl.getExtension('WEBGL_debug_renderer_info');
+        const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || '') : '';
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        return !renderer || /swiftshader|llvmpipe|software/i.test(renderer);
+      } catch (_) { return true; }
+    }
 
     function createCanvasPath(projection, target) {
       // Presentation-only cache of exact D3 output. Keep only the current view;
@@ -102,7 +118,9 @@ function canvasFallbackWorkerMain() {
         if (!Array.isArray(message[channel])) continue;
         const previous = new Map((lastRenderMessage?.[channel] || []).map(packet => [packet.key, packet]));
         updated[channel] = message[channel].map(packet => {
-          const prior=previous.get(packet.key);
+          const prior=previous.get(packet.key) || (channel === 'scenePolygons'
+            && packet.role === 'physical-land' && retainedPhysicalLandPacket?.key === packet.key
+            ? retainedPhysicalLandPacket : null);
           const merged=packet.ringCoordinates || packet.startsEnds ? packet : {...prior,...packet};
           if(prior && typeof packet.sourceKey==='string') {
             const dependency=row=>({source:'canvas-packet',content:row.sourceKey,preparation:'packet-geometry-v1',context:null,presentation:'geometry'});
@@ -111,6 +129,9 @@ function canvasFallbackWorkerMain() {
           }
           return merged;
         });
+        if (channel === 'scenePolygons') {
+          retainedPhysicalLandPacket = updated[channel].find(packet => packet.role === 'physical-land') || retainedPhysicalLandPacket;
+        }
       }
       lastRenderMessage = { ...(lastRenderMessage || {}), ...updated, type: 'render' };
       return lastRenderMessage;
@@ -187,7 +208,7 @@ function canvasFallbackWorkerMain() {
       const political = new OffscreenCanvas(source.width, source.height);
       physical.getContext('2d').putImageData(new ImageData(physicalPixels, source.width, source.height), 0, 0);
       political.getContext('2d').putImageData(new ImageData(politicalPixels, source.width, source.height), 0, 0);
-      return { physical, political };
+      return { physical: physical.transferToImageBitmap(), political: political.transferToImageBitmap() };
     }
 
     async function readRgba(blob) {
@@ -214,7 +235,7 @@ function canvasFallbackWorkerMain() {
       const result = layers.map(data => {
         const canvas = new OffscreenCanvas(pixels.width, pixels.height);
         canvas.getContext('2d').putImageData(new ImageData(data, pixels.width, pixels.height), 0, 0);
-        return canvas;
+        return canvas.transferToImageBitmap();
       });
       return { land: result[0], ocean: result[1], political: result[2], bytes: pixels.width * pixels.height * 12 };
     }
@@ -240,7 +261,10 @@ function canvasFallbackWorkerMain() {
           .then(response => { if (!response.ok) throw new Error(`DEM 타일 HTTP ${response.status}`); return response.blob(); })
           .then(blob => prepareDemBitmap(blob, spec))
           .then(tile => {
-            if (controller.signal.aborted) return;
+            if (controller.signal.aborted) {
+              tile.land.close(); tile.ocean.close(); tile.political.close();
+              return;
+            }
             demFailures.delete(spec.key);
             demTiles.set(spec.key, { ...tile, lastUsed: performance.now() });
             demCacheBytes += tile.bytes;
@@ -249,6 +273,7 @@ function canvasFallbackWorkerMain() {
                 .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
               if (!oldest) break;
               demCacheBytes -= oldest[1].bytes;
+              oldest[1].land.close(); oldest[1].ocean.close(); oldest[1].political.close();
               demTiles.delete(oldest[0]);
             }
             self.postMessage({ type: 'terrain-ready', count: demTiles.size, key: `dem:${spec.key}` });
@@ -335,6 +360,7 @@ function canvasFallbackWorkerMain() {
               .filter(([key]) => !terrainProtectedKeys.has(key))
               .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
             if (!oldest || oldest[0] === spec.key) break;
+            oldest[1].physical.close(); oldest[1].political.close();
             terrainTiles.delete(oldest[0]);
           }
           self.postMessage({ type: 'terrain-ready', count: terrainTiles.size, key: spec.key });
@@ -526,7 +552,7 @@ function canvasFallbackWorkerMain() {
         resolutionLimited: sourceLevel.width < desiredWidth };
     }
 
-    function renderTerrain(message, projection, width, height, dpr, visibleLand, plan) {
+    function renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
       if (!plan) return true;
       // A 'pending' country surface cannot be admitted even after expensive
       // DEM/raster reprojection. Paint its current physical substrate first,
@@ -562,54 +588,96 @@ function canvasFallbackWorkerMain() {
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
       for (const spec of demNeighbours) requestDemTile(spec, 120);
+      // A temporal transition keeps the previous complete bitmap on screen.
+      // Reprojecting partial terrain cannot produce an admissible successor and
+      // blocks this Worker from finishing the remaining tile requests.
+      if (message.deferIncompleteTerrain && (!terrainComplete
+          || (terrainDemManifestUrl && (!terrainDemManifest || !terrainTint))
+          || demSpecs.some(spec => !demTiles.has(spec.key)))) return false;
       const style = message.physicalSettings.terrainStyle === 'physical' ? 'physical' : 'political';
-      context.save();
-      context.globalAlpha = 1;
-      context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
-      if (style === 'political') {
-        context.setTransform(dpr, 0, 0, dpr, 0, 0);
-        context.beginPath();
-        // Use the same adopted country geometry as the Canvas substrate
-        // and country fills, including country visibility and edit patches.
-        const landPath = createCanvasPath(projection, context);
-        for (const geometry of self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || [])) landPath(geometry);
-        context.clip();
-      }
-      if (message.projection === 'globe') {
+      const clipGlobe = () => {
+        if (message.projection !== 'globe') return;
         const center = projection.translate();
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.beginPath();
         context.arc(center[0], center[1], projection.scale(), 0, Math.PI * 2);
         context.clip();
         context.setTransform(1, 0, 0, 1, 0, 0);
+      };
+      const clipLand = () => {
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        context.beginPath();
+        const landPath = createCanvasPath(projection, context);
+        for (const geometry of self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || [])) landPath(geometry);
+        context.clip();
+      };
+      const drawRaster = () => {
+        for (const spec of drawSpecs) {
+          const tile = terrainTiles.get(spec.key);
+          if (!tile) continue;
+          tile.lastUsed = performance.now();
+          if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[style], projection, dpr);
+          else drawGlobeTerrainTile(spec, tile[style], projection, message, dpr, spec.level === baseLevel.id);
+        }
+      };
+      const drawDem = channel => {
+        for (const spec of demSpecs) {
+          const tile = demTiles.get(spec.key);
+          if (!tile) continue;
+          tile.lastUsed = performance.now();
+          if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
+          else drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
+        }
+      };
+      const completeBase = style === 'physical' && terrainComplete
+        && (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint)
+        && demSpecs.every(spec => demTiles.has(spec.key));
+      if (completeBase) {
+        if (!terrainBase || terrainBaseKey !== baseKey) {
+          const target = context;
+          const base = new OffscreenCanvas(canvas.width, canvas.height);
+          try {
+            context = base.getContext('2d', { willReadFrequently: softwareCanvas });
+            context.save();
+            context.globalAlpha = 1;
+            context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+            clipGlobe();
+            drawRaster();
+            if (demLevel) drawDem('ocean');
+            context.restore();
+          } finally { context = target; }
+          terrainBase = base;
+          terrainBaseKey = baseKey;
+        }
+        context.save();
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.globalAlpha = 1;
+        context.filter = 'none';
+        context.drawImage(terrainBase, 0, 0);
+        context.restore();
+        if (demLevel) {
+          context.save();
+          context.globalAlpha = 1;
+          context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+          clipGlobe();
+          clipLand();
+          drawDem('land');
+          context.restore();
+        }
+        return true;
       }
-      for (const spec of drawSpecs) {
-        const tile = terrainTiles.get(spec.key);
-        if (!tile) continue;
-        tile.lastUsed = performance.now();
-        const image = tile[style];
-        if (message.projection === 'flat') drawFlatTerrainTile(spec, image, projection, dpr);
-        else drawGlobeTerrainTile(spec, image, projection, message, dpr, spec.level === baseLevel.id);
-      }
+      context.save();
+      context.globalAlpha = 1;
+      context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+      if (style === 'political') clipLand();
+      clipGlobe();
+      drawRaster();
       if (demLevel) {
-        const drawDem = channel => {
-          for (const spec of demSpecs) {
-            const tile = demTiles.get(spec.key);
-            if (!tile) continue; // The preview remains visible until this detailed tile is ready.
-            tile.lastUsed = performance.now();
-            if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
-            else drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
-          }
-        };
         if (style === 'political') drawDem('political');
         else {
           drawDem('ocean');
           context.save();
-          context.setTransform(dpr, 0, 0, dpr, 0, 0);
-          context.beginPath();
-          const landPath = createCanvasPath(projection, context);
-          for (const geometry of self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || [])) landPath(geometry);
-          context.clip();
+          clipLand();
           drawDem('land');
           context.restore();
         }
@@ -905,7 +973,10 @@ function canvasFallbackWorkerMain() {
       let terrainComplete;
       if (!canvas) {
         canvas = new OffscreenCanvas(pixelWidth, pixelHeight);
-        context = canvas.getContext('2d', { alpha: true });
+        // Software GL can accumulate an unbounded command queue for clipped
+        // terrain triangles. Real GPU-backed Canvas remains faster for drags.
+        softwareCanvas = preferSoftwareCanvas();
+        context = canvas.getContext('2d', { alpha: true, willReadFrequently: softwareCanvas });
       } else if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
         canvas.width = pixelWidth;
         canvas.height = pixelHeight;
@@ -945,9 +1016,16 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
           },
           terrain: () => {
-        terrainComplete = renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan);
+        // A temporal frame with no physical land cannot pass the main-thread
+        // provenance gate. Keep the last complete substrate for the matching
+        // physical scene instead of replacing it with this provisional frame.
+        if (message.deferIncompleteTerrain && !landShapes.length) {
+          terrainComplete = false;
+          return;
+        }
+        terrainComplete = renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan, substrateKey);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
-        const substrateContext = substrate.getContext('2d');
+        const substrateContext = substrate.getContext('2d', { willReadFrequently: softwareCanvas });
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
         substrateContext.drawImage(canvas, 0, 0);
         substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete,
@@ -955,7 +1033,8 @@ function canvasFallbackWorkerMain() {
           // Once any real terrain pass has painted, reuse it until its ready-tile
           // or view dependency key changes; an incomplete DEM is not a reason
           // to redo the same expensive globe tessellation on every redraw.
-          terrainPainted: message.surfacePresentation?.quality !== 'pending' };
+          terrainPainted: message.surfacePresentation?.quality !== 'pending'
+            && (!message.deferIncompleteTerrain || terrainComplete) };
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.lineJoin = 'round';
         context.lineWidth = theme.strokes.country.width;

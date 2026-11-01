@@ -337,10 +337,16 @@ V dispatch(DocumentSession& session, const std::string& op, const V& args) {
     }
     if (op == "temporalCandidateDiscard") return V::boolean(session.temporalCandidateDiscard(
         handle(args, "candidateId"), handle(args, "expectedEpoch")));
-    if (op == "temporalCandidateAdopt") return state(session.temporalCandidateAdopt(
-        handle(args, "candidateId"), handle(args, "sourceId"), string(args, "targetMonth"),
-        string(args, "sourceFingerprint"), string(args, "worldSha256"), handle(args, "replacementId"),
-        handle(args, "expectedEpoch")));
+    if (op == "temporalCandidateAdopt") {
+        std::string delta;
+        const auto adopted=session.temporalCandidateAdopt(
+            handle(args, "candidateId"), handle(args, "sourceId"), string(args, "targetMonth"),
+            string(args, "sourceFingerprint"), string(args, "worldSha256"), handle(args, "replacementId"),
+            handle(args, "expectedEpoch"),&delta);
+        auto value=V::obj();value.object["state"]=state(adopted);
+        value.object["delta"]=delta.empty()?V{}:codecjson::parse(delta);
+        return value;
+    }
     if (op == "captureReplacement") return number(session.captureReplacement(handle(args, "expectedEpoch")));
     if (op == "rollbackReplacement") return state(session.rollbackReplacement(handle(args, "id"), handle(args, "expectedEpoch")));
     if (op == "releaseReplacement") return V::boolean(session.releaseReplacement(handle(args, "id")));

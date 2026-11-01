@@ -1,8 +1,8 @@
 // Export a verified private warm-start; this does not approve or publish a model.
 import {execFile} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync,readFileSync,statSync} from 'node:fs';
-import {delimiter,dirname,resolve} from 'node:path';
+import {lstatSync,readFileSync,statSync,writeFileSync} from 'node:fs';
+import {basename,delimiter,dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
@@ -11,6 +11,26 @@ import {trainingFileIdentity} from './training-evidence.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+const classes=Object.freeze(['international','administrative','coast','hydro','transport','text','frame']);
+function occupied(path){try{lstatSync(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}}
+export function checkpointOnnxManifest({receipt,model}={}){
+  if(!receipt||receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||
+    receipt.lineageComplete!==false||receipt.sourceReplayVerified!==false||receipt.initialization!=='weights-only-no-optimizer'||
+    !/^[a-f0-9]{64}$/.test(receipt.corpusSha256||'')||!/^[a-f0-9]{64}$/.test(receipt.checkpointSha256||'')||
+    !Number.isSafeInteger(receipt.attemptedBatches)||receipt.attemptedBatches<1||
+    !Number.isSafeInteger(receipt.optimizerUpdates)||receipt.optimizerUpdates<1||receipt.optimizerUpdates>receipt.attemptedBatches||
+    !Number.isSafeInteger(receipt.unobservedMask)||receipt.unobservedMask<0||receipt.unobservedMask>127)
+    throw Error('Complete private training receipt required for an ONNX manifest');
+  if(!model||typeof model.file!=='string'||!/^[\w.-]+\.onnx$/.test(model.file)||basename(model.file)!==model.file||
+    !Number.isSafeInteger(model.bytes)||model.bytes<1||model.bytes>64*1024*1024||!/^[a-f0-9]{64}$/.test(model.sha256||''))
+    throw Error('Valid local ONNX model identity required');
+  return {schemaVersion:1,architecture:'mobilenetv3-unet-context-v1',classes:[...classes],tileSize:512,overlap:64,overviewSize:256,
+    model:{url:model.file,sha256:model.sha256,bytes:model.bytes},corpusSha256:receipt.corpusSha256,
+    evaluationStatus:'pending',releaseApproved:false,trainingOnly:true,checkpointSha256:receipt.checkpointSha256,
+    lineageComplete:false,sourceReplayVerified:false,initialization:'weights-only-no-optimizer',trainingBatches:receipt.attemptedBatches,
+    optimizerUpdates:receipt.optimizerUpdates,stepCountKind:'attempted-batches',
+    unobservedChannels:classes.filter((_,index)=>(receipt.unobservedMask&(1<<index))!==0)};
+}
 async function runExport({args,output,torchLibrary,root,directory,signal,diagnostic,checkpoint=false}){
   const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-onnx-export',executable:'pando-reference-onnx-export.exe',sourceFiles:referenceOnnxExportSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,manifest);
@@ -26,7 +46,7 @@ export async function nativeOnnxExport({weights,output,torchLibrary,root=default
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
   if(process.platform!=='win32'||!weights||!output||!torchLibrary)throw Error('Windows ONNX export requires weights, a new output and a matching LibTorch runtime');
-  if(existsSync(output))throw Error('ONNX output exists; preserve the existing file');
+  if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
   const transfer=JSON.parse(readFileSync(resolve(dirname(weights),'transfer.json'),'utf8'));
   if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||
     transfer.transfer!=='weights-only-no-optimizer'||sha256(readFileSync(resolve(weights)))!==transfer.weightsSha256)
@@ -37,15 +57,16 @@ export async function nativeOnnxDiagnostic({output,torchLibrary,root=defaultRoot
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
   if(process.platform!=='win32'||!output||!torchLibrary)throw Error('Windows ONNX diagnostic requires a new output and a matching LibTorch runtime');
-  if(existsSync(output))throw Error('ONNX output exists; preserve the existing file');
+  if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
   return runExport({args:['--diagnostic'],output,torchLibrary,root,directory,signal,diagnostic:true});
 }
-export async function nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary,root=defaultRoot,
+export async function nativeCheckpointOnnxExport({checkpoint,proof,output,manifestOutput,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
   if(process.platform!=='win32'||!checkpoint||!proof||!output||!torchLibrary)throw Error('Checkpoint ONNX export requires a checkpoint, its proof, a new output and a matching LibTorch runtime');
-  if(existsSync(output))throw Error('ONNX output exists; preserve the existing file');
-  const receipt=JSON.parse(readFileSync(resolve(proof),'utf8'));
+  if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
+  const proofPath=resolve(proof);if(statSync(proofPath).size>1024**2)throw Error('Training proof exceeds its size limit');
+  const proofBytes=readFileSync(proofPath),proofHash=sha256(proofBytes),receipt=JSON.parse(proofBytes.toString('utf8'));
   if(statSync(resolve(checkpoint)).size>1024**3)throw Error('Training checkpoint exceeds its size limit');
   const checkpointHash=trainingFileIdentity(resolve(checkpoint));
   const proofReceipt=receipt.purpose==='real-input-resume-proof'&&receipt.independentEvaluation===false&&
@@ -57,15 +78,28 @@ export async function nativeCheckpointOnnxExport({checkpoint,proof,output,torchL
   if((!proofReceipt&&!trainingReceipt)||receipt.trainingOnly!==true||receipt.releaseApproved!==false||!['cpu','cuda'].includes(receipt.device)||
     receipt.checkpointBytes!==statSync(resolve(checkpoint)).size||receipt.checkpointSha256!==checkpointHash)
     throw Error('A matching private checkpoint and resume proof are required');
+  if(manifestOutput!==undefined){
+    if(typeof manifestOutput!=='string'||!output.endsWith('.onnx')||resolve(manifestOutput)!==resolve(output.slice(0,-5)+'.manifest.json'))
+      throw Error('ONNX manifest must use the matching model filename');
+    if(occupied(manifestOutput))throw Error('ONNX manifest output exists; preserve the existing file');
+    checkpointOnnxManifest({receipt,model:{file:basename(output),bytes:1,sha256:'0'.repeat(64)}});
+  }
   const result=await runExport({args:['--checkpoint',receipt.device,resolve(checkpoint)],output,torchLibrary,root,directory,signal,diagnostic:false,checkpoint:true});
-  if(trainingFileIdentity(resolve(checkpoint))!==checkpointHash)throw Error('Checkpoint changed during ONNX export; preserve the output');
+  if(trainingFileIdentity(resolve(checkpoint))!==checkpointHash||sha256(readFileSync(proofPath))!==proofHash)
+    throw Error('Checkpoint or proof changed during ONNX export; preserve the output');
+  if(manifestOutput!==undefined){
+    const manifest=checkpointOnnxManifest({receipt,model:{file:basename(output),bytes:result.bytes,sha256:result.modelSha256}});
+    writeFileSync(manifestOutput,JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
+  }
   return result;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    const {values}=parseArgs({options:{weights:{type:'string'},checkpoint:{type:'string'},proof:{type:'string'},output:{type:'string'},diagnostic:{type:'boolean',default:false},'torch-library':{type:'string'}}});
+    const {values}=parseArgs({options:{weights:{type:'string'},checkpoint:{type:'string'},proof:{type:'string'},output:{type:'string'},
+      manifest:{type:'string'},diagnostic:{type:'boolean',default:false},'torch-library':{type:'string'}}});
     if(Number(values.diagnostic)+Number(Boolean(values.weights))+Number(Boolean(values.checkpoint))!==1)throw Error('Choose exactly one of diagnostic, weights or checkpoint');
-    const request={...values,torchLibrary:values['torch-library']};
+    if(values.manifest&&!values.checkpoint)throw Error('A checkpoint is required for its ONNX manifest');
+    const request={...values,manifestOutput:values.manifest,torchLibrary:values['torch-library']};
     console.log(JSON.stringify(await (values.diagnostic?nativeOnnxDiagnostic(request):values.checkpoint?nativeCheckpointOnnxExport(request):nativeOnnxExport(request))));
   }catch(error){console.error('native-onnx-export: '+error.message);process.exitCode=1;}
 }

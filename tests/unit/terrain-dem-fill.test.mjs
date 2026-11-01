@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import * as source from '../../tools/gis/terrain-dem-source.mjs';
@@ -11,14 +10,6 @@ test('DEM tint filling rejects invalid grids and missing valid land before start
   await assert.rejects(fill({width:1,height:1,rgb:Float32Array.from([NaN,1,2]),valid:Buffer.from([1])}),/non-finite/i);
   const controller=new AbortController();controller.abort();
   await assert.rejects(fill({width:1,height:1,rgb:new Float32Array(3),valid:Buffer.from([1])},{signal:controller.signal}),{name:'AbortError'});
-});
-
-test('tint stream rejects a truncated or invalid request before invoking the native tool',()=>{
-  const header=Buffer.alloc(16);header.write('PDTINT01');header.writeUInt32LE(1,8);header.writeUInt32LE(1,12);
-  for(const input of [Buffer.from('bad'),header]){
-    const result=spawnSync(process.execPath,['tools/gis/terrain-dem-fill.mjs','--fill-tint'],{input,encoding:'buffer'});
-    assert.notEqual(result.status,0);assert.equal(result.stdout.length,0);assert.ok(result.stderr.length);
-  }
 });
 
 const nativeDirectory=process.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY;

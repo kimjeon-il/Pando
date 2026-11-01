@@ -77,3 +77,14 @@ Git 다운로드가 이미 있는 델타 기준 객체를 새 pack에 다시 포
 원문과 비공개 편집본의 전체 대응표는 로컬 private evidence에, 공개 원문 대응표는
 `reports/development/storage/library-organization-2026-10-25`에 남긴다. 앱 main 통합·배포나
 비공개 이력 푸시는 포함하지 않는다. 반복 적용은 추가 이동·커밋을 만들지 않는다.
+
+
+## 비활성 자동 자료 수신 계약
+
+`library-data-auto-sync.yml`은 고정된 두 저장소의 같은 `main` 또는 `work/gis` 브랜치만 연결한다. 자료 저장소의 `notify-library-data.yml`은 `library.json`, `objects/**`, `archive/index.json` 변경 SHA를 고정 앱 workflow로 알릴 뿐, checkout·검사·생성은 하지 않는다. `PANDO_AUTO_DATA_NOTIFY_TOKEN`이 없으면 명시적으로 실패한다. 새 토큰 생성·등록은 이 준비 작업에 포함되지 않는다.
+
+앱 `work/gis` push는 작은 계약 테스트만 실행한다. 명시적인 같은 브랜치 수신 호출만 `work/gis` 자료 생성·저장·핀 연결을 허용하며 Pages를 배포하지 않는다. `main` 수신·시간별 복구·Pages 완료 후 복구는 커밋된 `config/library-auto-sync.json`의 `productionEnabled: true`와 실행 환경의 production 허용이 모두 있어야 한다. 현재 production 설정은 **false**다. workflow를 기본 브랜치에 설치하고 기존 전용 notifier 토큰 및 자료 쓰기 권한을 활성화하는 일과 production 허용은 별도의 명시적 승인 대상이다.
+
+수신 작업은 현재의 고정 브랜치 전체 Git 조상과 정확한 자료 SHA를 읽고, 내용 주소가 검증된 정규 입력만 기존 countries·worldview 소유자로 재생성한다. 다른 family는 보존하거나 지원하지 않는 변경으로 거절한다. 오래된 알림은 최신 head와 의미 지문으로 재조정하며 생성 커밋의 재알림도 일괄 actor 제외로 숨기지 않는다. 저장된 완성 자료와 앱 핀을 독립적으로 확인하므로 중간 실패는 다음 복구에서 이어갈 수 있다. 실행 로그 artifact는 진단일 뿐 완료 증거가 아니며 pending/incomplete를 배포 완료로 해석하지 않는다. GitHub 대기·job·생성 시간 때문에 즉시 반영이나 무지연을 보장하지 않는다.
+
+앱 쓰기는 해당 sync job의 기존 ephemeral `GITHUB_TOKEN`, 자료 쓰기는 기존 `PANDOLAB_LIBRARY_WRITE_TOKEN`만 사용한다. checkout의 표준 자격 증명 정리 외에 새로운 영구 자격 증명 저장소는 만들지 않는다. 기존 P2 및 `web-pages.yml` 경로·권한·배포 정책은 변경하지 않는다.

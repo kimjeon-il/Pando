@@ -18,25 +18,28 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const state = countries.getState?.() || {};
     const renderViewState = requireFrame(frame);
     countries.renderPendingCountryOverlays?.(renderViewState);
-    const pending = state.layerVisibility?.objects && state.pendingCountryRenderIds?.size
-      ? [...state.pendingCountryRenderIds].map(countries.getEntity).filter(Boolean)
-      : [];
-    const pendingPolygons = [];
-    const pendingStrokes = [];
-    const theme = pending.length ? countries.mapTheme() : null;
-    const resolveFill = pending.length ? createTerritorialFillResolver({ state, entityRepository: territorial.entityRepository,
-      terrainAlpha: theme.countryColorAlpha,
-      mapSubstrate: state.physicalSettings.terrainVisible ? null
-        : { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha } }) : null;
-    for (const feature of pending) {
-      const id = String(feature.id || '');
-      const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'pending-country', feature);
-      pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300,
-        role: 'territorial-fill', ownerId: id, territoryDepth: 0,
-        style: resolveFill(feature) });
-      pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: Object.freeze({ ...theme.strokes.country, alpha: theme.borderAlpha }) });
-    }
+    // The preceding SVG overlay repositioning is presentation-owned.
+    // GPU scene assembly belongs to preparation, before the GPU draw: changing
+    // it here would invalidate the identity of the just-rendered visual frame.
     if (!presentationOnly) {
+      const pending = state.layerVisibility?.objects && state.pendingCountryRenderIds?.size
+        ? [...state.pendingCountryRenderIds].map(countries.getEntity).filter(Boolean)
+        : [];
+      const pendingPolygons = [];
+      const pendingStrokes = [];
+      const theme = pending.length ? countries.mapTheme() : null;
+      const resolveFill = pending.length ? createTerritorialFillResolver({ state, entityRepository: territorial.entityRepository,
+        terrainAlpha: theme.countryColorAlpha,
+        mapSubstrate: state.physicalSettings.terrainVisible ? null
+          : { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha } }) : null;
+      for (const feature of pending) {
+        const id = String(feature.id || '');
+        const geometryRevision = countries.selectionGeometryRevision?.(`country:${id}`, 'pending-country', feature);
+        pendingPolygons.push({ key: `pending-country-fill:${id}`, geometryRevision, geometry: feature.geometry, order: -300,
+          role: 'territorial-fill', ownerId: id, territoryDepth: 0,
+          style: resolveFill(feature) });
+        pendingStrokes.push({ key: `pending-country-outline:${id}`, geometryRevision, geometry: countries.countryOutlineFeature?.(feature).geometry, order: -290, style: Object.freeze({ ...theme.strokes.country, alpha: theme.borderAlpha }) });
+      }
       countries.replaceGpuSceneDomain?.('country-overlays', {
         polygons: pendingPolygons,
         strokes: pendingStrokes,

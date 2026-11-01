@@ -227,7 +227,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     } finally { releasePending(); }
   }
 
-  async function prepareProjectCandidate(month=deviceCurrentMonth(),{isCurrent=()=>true,setup}={}) {
+  async function prepareProjectCandidate(month=deviceCurrentMonth(),{isCurrent=()=>true,setup,transition=false}={}) {
     const releasePending=protectPendingSource(month);
     try {
       const domain=dependencies.domains.projectDomain;
@@ -241,7 +241,7 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
       try {
         candidate=await domain.prepareTemporalBuiltin(facts,setup,{
           dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
-          expectedGeneration:prepared.expectedGeneration,isCurrent});
+          expectedGeneration:prepared.expectedGeneration,isCurrent,transition});
       } catch(error) {
         // Old published WASM pairs may not yet expose P5-5. Retain the
         // established baseline path until an exactly matching pair is staged.

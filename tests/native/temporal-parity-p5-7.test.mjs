@@ -105,7 +105,7 @@ async function capture(p) {
     snapshot[op] = await p.step(op);
   return snapshot;
 }
-async function prepare(p, month, documentId = fixture.documentId) {
+async function prepare(p, month, documentId = 'stage2-replacement-document') {
   const state = await p.step('projectState');
   const source = fixture.sourceFor(month);
   const admitted = await p.step('temporalSourcePrepare', {
@@ -155,7 +155,8 @@ scenario('P5-7 same-source native/WASM month endpoints, geometry, attributes and
     assertFixtureWorld(inspected.world, month);
     assert.deepEqual(await capture(candidate), before, 'source/candidate preparation is read-only');
     const capsule = await candidate.step('captureReplacement', { expectedEpoch: receipt.expectedEpoch });
-    const adopted = await candidate.step('temporalCandidateAdopt', adoptArgs(receipt, capsule));
+    const {state:adopted,delta} = await candidate.step('temporalCandidateAdopt', adoptArgs(receipt, capsule));
+    assert.equal(delta,null,'a fresh document identity uses complete adoption');
     assert.equal(adopted.timelineCursor, month);
     assert.equal(adopted.dirty, false); assert.equal(adopted.canUndo, false); assert.equal(adopted.canRedo, false);
     const projected = await candidate.step('documentSnapshot');
@@ -178,7 +179,7 @@ scenario('P5-7 invalid bytes, schema, source pins and candidate requests preserv
   const admitted = await p.step('temporalSourcePrepare', sourceArgs);
   const receipt = await p.step('temporalCandidatePrepare', { sourceId: admitted.sourceId,
     targetMonth: '2026-10', sourceFingerprint: source.fingerprint, expectedEpoch: epoch,
-    setup: fixture.setupFor('2026-10'), documentId: fixture.documentId });
+    setup: fixture.setupFor('2026-10'), documentId: 'stage2-replacement-document' });
   const badBytes = new Uint8Array(source.sourceBytes); badBytes[0] ^= 1;
   const invalidSchema = JSON.parse(fixture.sourceJson); invalidSchema.schemaVersion = 999;
   const invalidSchemaBytes = new Uint8Array(Buffer.from(JSON.stringify(invalidSchema)));
@@ -198,7 +199,7 @@ scenario('P5-7 invalid bytes, schema, source pins and candidate requests preserv
   }
   const candidateArgs = { sourceId: admitted.sourceId, targetMonth: '2026-10',
     sourceFingerprint: source.fingerprint, expectedEpoch: epoch,
-    setup: fixture.setupFor('2026-10'), documentId: fixture.documentId };
+    setup: fixture.setupFor('2026-10'), documentId: 'stage2-replacement-document' };
   for (const [changes, code] of [
     [{ sourceId: 123456 }, 'CORE_TEMPORAL_CANDIDATE_SOURCE'],
     [{ sourceFingerprint: '0'.repeat(64) }, 'CORE_TEMPORAL_CANDIDATE_PIN'],
@@ -271,7 +272,8 @@ scenario('P5-7 adoption receipt failures and post-adopt rollback restore edits, 
     await p.step('temporalCandidateAdopt', { ...args, ...changes }, code);
     assert.deepEqual(await capture(p), before, `${code}: rejected adoption is atomic`);
   }
-  const adopted = await p.step('temporalCandidateAdopt', args);
+  const {state:adopted,delta} = await p.step('temporalCandidateAdopt', args);
+  assert.equal(delta,null,'file replacement remains a complete adoption');
   assert.equal(adopted.dirty, false);
   assert.equal((await p.step('selectionSnapshot')).primary, null);
   assert.equal((await p.step('draftSnapshot')).active, false);
@@ -291,7 +293,7 @@ scenario('P5-7 adoption receipt failures and post-adopt rollback restore edits, 
   assert.deepEqual(await p.step('storageSnapshot'), before.storageSnapshot, 'restored undo/redo remains operational');
   const retry = await prepare(p, '2026-11');
   const retryCapsule = await p.step('captureReplacement', { expectedEpoch: retry.expectedEpoch });
-  assert.equal((await p.step('temporalCandidateAdopt', adoptArgs(retry, retryCapsule))).timelineCursor, '2026-11');
+  assert.equal((await p.step('temporalCandidateAdopt', adoptArgs(retry, retryCapsule))).state.timelineCursor, '2026-11');
   assert.equal(await p.step('releaseReplacement', { id: retryCapsule }), true);
 });
 
@@ -305,7 +307,7 @@ scenario('P5-7 source cache identity, bounded eviction and owned-byte isolation'
   assert.equal(repeat.sourceId, first.sourceId); assert.equal(repeat.reused, true);
   const pinned = await p.step('temporalCandidatePrepare', { sourceId: first.sourceId, targetMonth: '2026-10',
     sourceFingerprint: fixture.fingerprint, expectedEpoch: epoch,
-    setup: fixture.setupFor('2026-10'), documentId: fixture.documentId });
+    setup: fixture.setupFor('2026-10'), documentId: 'stage2-replacement-document' });
   const inspected = await p.step('temporalCandidateInspect', { candidateId: pinned.candidateId, expectedEpoch: epoch });
   source.sourceBytes.fill(0); // Both APIs must have detached ownership of admitted source bytes.
   assert.deepEqual(await p.step('temporalCandidateInspect', { candidateId: pinned.candidateId, expectedEpoch: epoch }), inspected);
@@ -325,10 +327,31 @@ scenario('P5-7 source cache identity, bounded eviction and owned-byte isolation'
   assert.deepEqual(await capture(p), before);
 });
 
+scenario('Stage 2 native/WASM builtin delta keeps identity and rollback without coordinate retransmission', async t => {
+  const p = await pair(t);
+  const documentId = await p.baseline(fixture.sourceFor('2026-10'),fixture.setupFor('2026-10'));
+  const before = await capture(p);
+  const receipt = await prepare(p,'2026-11',documentId);
+  const capsule = await p.step('captureReplacement',{expectedEpoch:receipt.expectedEpoch});
+  const adopted = await p.step('temporalCandidateAdopt',adoptArgs(receipt,capsule));
+  assert.equal(adopted.state.timelineCursor,'2026-11');
+  assert.equal(adopted.state.dirty,false);
+  assert.ok(adopted.delta,'an active builtin date transition uses the authoritative delta');
+  assert.deepEqual(adopted.delta.geometries,[],'the same source geometry archive is not retransmitted');
+  const projected = await p.step('documentSnapshot');
+  assert.equal(projected.documentId,documentId);
+  assert.deepEqual(projected.geometries,before.documentSnapshot.geometries);
+  assertFixtureWorld(await p.step('resolveWorld',{month:'2026-11',expectedEpoch:adopted.state.epoch}),'2026-11');
+  const restored = await p.step('rollbackReplacement',{id:capsule,expectedEpoch:adopted.state.epoch});
+  assert.ok(restored.epoch>adopted.state.epoch);
+  const after = await capture(p);
+  assert.deepEqual(after,{...before,projectState:{...before.projectState,epoch:restored.epoch}});
+});
+
 after(async () => {
   const target = resolve(process.env.PANDO_P5_7_EVIDENCE || 'test-results/temporal-p5-7/summary.json');
   await mkdir(resolve(target, '..'), { recursive: true });
-  evidence.passed = evidence.cases.length === 5 && evidence.cases.every(row => row.status === 'passed')
+  evidence.passed = evidence.cases.length === 6 && evidence.cases.every(row => row.status === 'passed')
     && evidence.teardownFailures.length === 0;
   await writeFile(target, JSON.stringify(evidence, null, 2) + '\n');
   console.log('P5_7_SUMMARY=' + JSON.stringify(evidence));

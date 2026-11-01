@@ -5,6 +5,8 @@ import {lstat,open,readFile,realpath,rename,unlink} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {readNativeRawWebp} from '../map-image/native-resample.mjs';
+import {encodeNativeDemElevation} from './terrain-dem-encode.mjs';
+import {createNativeDemWindowReader,inspectNativeDemSource} from './terrain-dem-raster.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
 import {verifyNativeTool} from '../native-tool.mjs';
 
@@ -22,6 +24,28 @@ export function demTileEdges(image){
   const column=x=>{const result=Buffer.alloc(height*4);for(let y=0;y<height;y++)bytes.copy(result,y*4,(y*width+x)*4,(y*width+x+1)*4);return result;};
   const topGutter=row(0),bottomGutter=row(height-1);
   return {width,height,left:column(1),right:column(width-2),top:row(1),bottom:row(height-2),topGutter,bottomGutter};
+}
+async function invokeGutterTool(image,parts,{signal,workspace=defaultRoot,directory=process.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY||resolve(workspace,'build-native/terrain-dem-gutters/artifact')}={}){
+  const {width,height}=image,executable=process.platform==='win32'?'pando-terrain-dem-gutters.exe':'pando-terrain-dem-gutters';
+  const {binary}=verifyNativeTool({root:workspace,directory,target:'terrain-dem-gutters',executable,sourceFiles:terrainDemGutterSources});
+  const data=await new Promise((accept,reject)=>{
+    const child=execFile(binary,[],{encoding:'buffer',windowsHide:true,timeout:180000,maxBuffer:width*height*4+65536,signal},
+      (error,stdout,stderr)=>error?reject(new Error('Native DEM gutter operation failed: '+error.message+' '+String(stderr||''),{cause:error})):accept(stdout));
+    child.stdin.on('error',()=>{});for(const part of parts)child.stdin.write(part);child.stdin.end();
+  });
+  if(data.length!==width*height*4)throw Error('Invalid native DEM gutter output');
+  return {width,height,data,modified:!data.equals(Buffer.from(image.data.buffer,image.data.byteOffset,image.data.byteLength))};
+}
+export async function restoreDemPolarShadePixels(image,{north,south,top,bottom}={},options={}){
+  options.signal?.throwIfAborted();validateImage(image);
+  if(typeof north!=='boolean'||typeof south!=='boolean'||(!north&&!south)||
+    (top!==undefined&&(!north||!(top instanceof Uint8Array)||top.length!==image.width))||
+    (bottom!==undefined&&(!south||!(bottom instanceof Uint8Array)||bottom.length!==image.width)))
+    throw Error('Valid polar shade rows and edges required');
+  const header=Buffer.alloc(20);header.write('PDEMPOL1');header.writeUInt32LE(image.width,8);header.writeUInt32LE(image.height,12);
+  header.writeUInt32LE(Number(north)+2*Number(south)+4*Number(top!==undefined)+8*Number(bottom!==undefined),16);
+  return invokeGutterTool(image,[header,Buffer.from(image.data.buffer,image.data.byteOffset,image.data.byteLength),
+    ...(top===undefined?[]:[top]),...(bottom===undefined?[]:[bottom])],options);
 }
 export async function reconcileDemGutterPixels(image,neighbors,{signal,workspace=defaultRoot,directory=process.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY||resolve(workspace,'build-native/terrain-dem-gutters/artifact')}={}){
   signal?.throwIfAborted();
@@ -41,15 +65,7 @@ export async function reconcileDemGutterPixels(image,neighbors,{signal,workspace
     parts.push(dimensions,edge.left,edge.right,edge.top,edge.bottom,edge.topGutter,edge.bottomGutter);
   }
   parts.push(Buffer.from(image.data.buffer,image.data.byteOffset,image.data.byteLength));
-  const executable=process.platform==='win32'?'pando-terrain-dem-gutters.exe':'pando-terrain-dem-gutters';
-  const {binary}=verifyNativeTool({root:workspace,directory,target:'terrain-dem-gutters',executable,sourceFiles:terrainDemGutterSources});
-  const data=await new Promise((accept,reject)=>{
-    const child=execFile(binary,[],{encoding:'buffer',windowsHide:true,timeout:180000,maxBuffer:width*height*4+65536,signal},
-      (error,stdout,stderr)=>error?reject(new Error('Native DEM gutter reconciliation failed: '+error.message+' '+String(stderr||''),{cause:error})):accept(stdout));
-    child.stdin.on('error',()=>{});for(const part of parts)child.stdin.write(part);child.stdin.end();
-  });
-  if(data.length!==width*height*4)throw Error('Invalid native DEM gutter output');
-  return {width,height,data,modified:!data.equals(Buffer.from(image.data.buffer,image.data.byteOffset,image.data.byteLength))};
+  return invokeGutterTool(image,parts,{signal,workspace,directory});
 }
 
 export async function reconcileDemGutterFiles(output,level,{signal,workspace,directory}={}){
@@ -91,8 +107,46 @@ export async function reconcileDemGutterFiles(output,level,{signal,workspace,dir
   return modified;
 }
 
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{if(process.argv.length!==4)throw Error('Expected output directory and JSON level');
-    console.log(JSON.stringify({modified:await reconcileDemGutterFiles(process.argv[2],JSON.parse(process.argv[3]))}));
-  }catch(error){console.error('terrain-dem-gutters: '+error.message);process.exitCode=1;}
+export async function restoreDemPolarGutterShade({output,source,levels,minLevel=0,maxLevel=5,strict=true},{signal}={}){
+  signal?.throwIfAborted();
+  if(typeof output!=='string'||!output||typeof source!=='string'||!source||!Array.isArray(levels)||!levels.length||
+    !Number.isSafeInteger(minLevel)||!Number.isSafeInteger(maxLevel)||minLevel<0||maxLevel<minLevel||typeof strict!=='boolean')
+    throw Error('Explicit DEM polar repair inputs are required');
+  const root=await realpath(output);await inspectNativeDemSource({source,strict},{signal});let modified=0;
+  for(const level of levels){
+    const {id,width,height,tileSize,columns,rows}=level||{};
+    if(![id,width,height,tileSize,columns,rows].every(Number.isSafeInteger)||id<0||width<1||width>50000||height<1||height>25000||
+      tileSize<1||tileSize>4092||columns!==Math.ceil(width/tileSize)||rows!==Math.ceil(height/tileSize))throw Error('Invalid DEM polar level');
+    if(id<minLevel||id>maxLevel)continue;
+    const folder=join(root,String(id)),folderInfo=await lstat(folder);
+    if(!folderInfo.isDirectory()||folderInfo.isSymbolicLink())throw Error('DEM level must be a regular directory');
+    const reader=height>1350?await createNativeDemWindowReader({source,width,height,strict},{signal}):null;let failure;
+    try{
+      for(const row of [...new Set([0,rows-1])])for(let column=0;column<columns;column++){
+        signal?.throwIfAborted();const path=join(folder,`${column}-${row}.webp`),info=await lstat(path);
+        if(!info.isFile()||info.isSymbolicLink())throw Error('DEM tile must be a regular file');
+        const original=await readFile(path,{signal}),hash=createHash('sha256').update(original).digest('hex');
+        const image=await readNativeRawWebp(original,{signal}),x=column*tileSize,y=row*tileSize;
+        const x1=Math.min(width,x+tileSize),y1=Math.min(height,y+tileSize);
+        if(image.width!==x1-x+2||image.height!==y1-y+2)throw Error('DEM polar tile dimensions differ');
+        const north=row===0,south=row===rows-1;let top,bottom;
+        if(reader){
+          const windowWidth=x1-x+4,windowHeight=y1-y+4,elevation=await reader.read([x-2,y-2,x1+2,y1+2]);
+          const encoded=await encodeNativeDemElevation({width:windowWidth,height:windowHeight,levelWidth:width,levelHeight:height,north:y-2,elevation},
+            {directory:process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||resolve(defaultRoot,'build-native/terrain-dem-encode/artifact'),signal});
+          if(north)top=encoded.shade.subarray(windowWidth+1,windowWidth+1+image.width);
+          if(south)bottom=encoded.shade.subarray((windowHeight-2)*windowWidth+1,(windowHeight-2)*windowWidth+1+image.width);
+        }
+        const result=await restoreDemPolarShadePixels(image,{north,south,top,bottom},{signal});if(!result.modified)continue;
+        const encoded=await encodeDemWebp(result,{signal}),temporary=path+'.'+randomUUID()+'.tmp';let created=false;
+        try{
+          const handle=await open(temporary,'wx');created=true;
+          try{await handle.writeFile(encoded,{signal});}finally{await handle.close();}
+          if(createHash('sha256').update(await readFile(path,{signal})).digest('hex')!==hash)throw Error('DEM tile changed before polar repair');
+          await rename(temporary,path);created=false;modified++;
+        }finally{if(created)await unlink(temporary);}
+      }
+    }catch(error){failure=error;throw error;}finally{if(reader)try{await reader.close();}catch(error){if(!failure)throw error;}}
+  }
+  return modified;
 }

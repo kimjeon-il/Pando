@@ -1,0 +1,152 @@
+name: Automatic library data reconciliation
+on:
+  push:
+    branches: ['work/gis']
+    paths:
+      - 'scripts/library-auto-*.mjs'
+      - 'scripts/lib/library-auto-*.mjs'
+      - 'tests/unit/library-auto-*.test.mjs'
+      - 'tools/library-data.mjs'
+      - 'config/library-auto-sync.json'
+      - '.github/workflows/library-data-auto-sync.yml'
+  workflow_dispatch:
+    inputs:
+      data_revision:
+        description: Exact notified data commit
+        type: string
+        required: true
+      data_branch:
+        description: Matching fixed app/data branch
+        type: choice
+        options: [main, work/gis]
+        required: true
+  schedule:
+    - cron: '17 * * * *'
+  workflow_run:
+    workflows: ['Web-only GitHub Pages']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: library-data-auto-${{ inputs.data_branch || 'main' }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github,workflows}.test.mjs tests/unit/library-data-expected-revision.test.mjs
+  gate:
+    if: github.event_name != 'push' && github.repository == 'kimjeon-il/Pando'
+    runs-on: ubuntu-24.04
+    outputs:
+      allowed: ${{ steps.policy.outputs.allowed }}
+      branch: ${{ steps.policy.outputs.branch }}
+      production: ${{ steps.policy.outputs.production }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.data_branch || 'main' }}
+          persist-credentials: false
+      - name: Gate before secrets and dependencies
+        id: policy
+        uses: actions/github-script@v7
+        env:
+          DATA_BRANCH: ${{ inputs.data_branch }}
+          DATA_REVISION: ${{ inputs.data_revision }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const branch = context.eventName === 'workflow_dispatch' ? process.env.DATA_BRANCH : 'main';
+            if (!['main', 'work/gis'].includes(branch)) throw new Error('Invalid branch');
+            if (context.eventName === 'workflow_dispatch') {
+              if (context.ref !== `refs/heads/${branch}`) throw new Error('App/data branch mismatch');
+              if (!/^(?!0{40}$)[a-f0-9]{40}$/.test(process.env.DATA_REVISION || '')) throw new Error('Invalid data revision');
+            }
+            if (context.eventName === 'workflow_run' && context.payload.workflow_run.head_branch !== 'main') throw new Error('Invalid recovery branch');
+            const policy = JSON.parse(fs.readFileSync('config/library-auto-sync.json', 'utf8'));
+            if (Object.keys(policy).length !== 1 || typeof policy.productionEnabled !== 'boolean') throw new Error('Invalid policy');
+            const enabled = policy.productionEnabled === true;
+            core.setOutput('branch', branch);
+            core.setOutput('production', String(enabled));
+            core.setOutput('allowed', String(!(branch === 'main' && !enabled)));
+  sync:
+    needs: gate
+    if: needs.gate.outputs.allowed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      actions: write
+    env:
+      LIBRARY_AUTO_BRANCH: ${{ needs.gate.outputs.branch }}
+      LIBRARY_AUTO_PRODUCTION_ENABLED: ${{ needs.gate.outputs.production }}
+      PANDOLAB_LIBRARY_DATA_ROOT: ${{ github.workspace }}/.library-data/repository
+    steps:
+      # Standard checkout credentials are cleaned by the checkout post action.
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: ${{ needs.gate.outputs.branch }}
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ needs.gate.outputs.branch }}
+          path: .library-data/repository
+          fetch-depth: 0
+          token: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '11.19.0'
+          run_install: false
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - name: Resolve exact notification or recovery revision
+        env:
+          NOTIFIED_SHA: ${{ inputs.data_revision }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync} from 'node:fs';
+          const sha = process.env.NOTIFIED_SHA || execFileSync('git', ['rev-parse', 'HEAD'], {cwd: process.env.PANDOLAB_LIBRARY_DATA_ROOT, encoding: 'utf8'}).trim();
+          if (!/^(?!0{40}$)[a-f0-9]{40}$/.test(sha)) throw new Error('Invalid exact revision');
+          appendFileSync(process.env.GITHUB_ENV, `LIBRARY_AUTO_DATA_SHA=${sha}\n`);
+          NODE
+      - name: Reconcile bounded canonical inputs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/library-auto-result"
+          node scripts/library-auto-sync.mjs 2>&1 | tee "$RUNNER_TEMP/library-auto-result/result.txt"
+      - name: Record run outcome even before executor startup
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/library-auto-result"
+          printf 'job=%s\n' "$JOB_STATUS" >> "$RUNNER_TEMP/library-auto-result/result.txt"
+      - name: Preserve small diagnostics, not a completion journal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-auto-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/library-auto-result/result.txt
+          if-no-files-found: warn
+          retention-days: 7

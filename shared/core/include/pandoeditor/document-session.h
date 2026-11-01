@@ -92,7 +92,7 @@ public:
     DocumentSessionState temporalCandidateAdopt(std::uint32_t candidateId,
         std::uint32_t sourceId,const std::string& targetMonth,
         const std::string& sourceFingerprint,const std::string& worldSha256,
-        std::uint32_t replacementId,std::uint32_t expectedEpoch);
+        std::uint32_t replacementId,std::uint32_t expectedEpoch,std::string* acceptedDelta=nullptr);
     bool temporalCandidateDiscard(std::uint32_t candidateId,std::uint32_t expectedEpoch);
     DocumentSessionState admitExternalBaseline(std::uint32_t expectedEpoch);
     std::string validateImport(const std::string&,std::optional<std::uint32_t> baselineId={}) const;
@@ -170,7 +170,7 @@ private:
         TemporalCandidateReceipt receipt;
         Project project;
         ResolvedWorld world;
-        std::string preparedSetupKey,preparedDocumentId;
+        std::string preparedSetupKey,preparedDocumentId,preparedDelta;
         bool adoptionReady=false;
     };
     std::unique_ptr<TemporalCandidateEntry> temporalCandidate_;

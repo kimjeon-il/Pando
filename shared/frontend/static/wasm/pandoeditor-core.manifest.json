@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "17df15fda70bc793cfdad80c7344b7b88bf61506e45c5cf54fc275ac3e00ce30",
+  "sourceSha256": "9225ebc3704f4b7cdf2a3119609e3a7170fffaedc7369dceed61eeb76a32eff6",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -53,7 +53,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/document-session.h",
-      "sha256": "ccbff5fe12f71088fd69f0e42123da9e8bc51414ce5c23147ea02f365cc833c3"
+      "sha256": "4ce7d9eb120ae2c559fcd570542cc8219cce58d85d71bc66f77f1c5feccaafa2"
     },
     {
       "path": "shared/core/include/pandoeditor/document.h",
@@ -289,7 +289,7 @@
     },
     {
       "path": "shared/core/src/document-session.cpp",
-      "sha256": "e01109e5faf9ac16070c3f60e3f44213173dcd31839a87ea146443d61cdf9bfa"
+      "sha256": "140697f06fad78f8f5103de6c0209bff401a38e3887cc2358435702a80532af5"
     },
     {
       "path": "shared/core/src/document.cpp",
@@ -549,7 +549,7 @@
     },
     {
       "path": "shared/tests/temporal-adopt-tests.cpp",
-      "sha256": "79672e9c767e6d20d9b81a43105b86a3926e8d98248cf97016b203852088154d"
+      "sha256": "64c7f3349041e054e202e576e2a919e1299183af8ff2f2d07b4360b73e770d61"
     },
     {
       "path": "shared/tests/temporal-candidate-tests.cpp",
@@ -625,7 +625,7 @@
     },
     {
       "path": "shared/wasm/session-bindings.cpp",
-      "sha256": "efca188ccb4cad23a94968e30f93a55a251419f2c9813c27b028a2a67b11ed6f"
+      "sha256": "dc1e47d38d83880a76d555867dabf61f63ae9e168c2cb7c0067563a469b77c80"
     },
     {
       "path": "shared/wasm/timeline-bindings.cpp",
@@ -639,7 +639,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "491b498da3d843201bfcc81d5d47fbded8235c5432e9919746a353a1467821d3"
+      "sha256": "d1a22762fdeb8cfb03163da22ba3cb4850a0fd9c93291f50fde6d5f3b839e135"
     }
   }
 }

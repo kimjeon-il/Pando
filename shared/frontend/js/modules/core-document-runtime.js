@@ -72,7 +72,15 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     temporalCandidatePrepare:(payload,context)=>call('temporalCandidatePrepare',[payload],context),
     temporalCandidateInspect:(payload,context)=>call('temporalCandidateInspect',[payload],context),
     temporalCandidateDiscard:(payload,context)=>call('temporalCandidateDiscard',[payload],context),
-    temporalCandidateAdopt:(payload,context)=>call('temporalCandidateAdopt',[payload],context,loadedResult),
+    temporalCandidateAdopt:(payload,context)=>call('temporalCandidateAdopt',[payload],context,(result,core)=>{
+      if(!result?.state||!Object.hasOwn(result,'delta'))
+        fail('PL-CORE-DOCUMENT-ABI','Core adoption must identify its complete or delta projection.');
+      if(result.delta===null)return loadedResult(result.state,core);
+      if(typeof result.delta!=='object'||!Array.isArray(result.delta.geometries))
+        fail('PL-CORE-DOCUMENT-ABI','Core temporal adoption requires its authoritative delta.');
+      return {...result,selection:core.selectionSnapshot(),draft:core.draftSnapshot(),
+        world:resolvedWorld(core,result.state)};
+    }),
     validateImport: (payload,context) => call('validateImport',[payload.storageJson,payload.baselineId],context),
     inspectImport: (payload,context) => call('inspectImport',() => [payload.storageJson,payload.baselineId,currentMonth()],context),
     resolveWorld: (payload, context) => call('resolveWorld', [payload.month, payload.expectedEpoch], context),

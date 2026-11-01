@@ -7,11 +7,11 @@ test.use({ trace: 'off', hasTouch: true, actionTimeout: 15000 });
 async function observeBuiltinCamera(page) {
   await page.route('**/modules/viewer-composition.js*', async route => {
     const source = await (await route.fetch()).text();
-    const debug = 'productMode,documentState:', reader = '()=>map.prepareBuiltinProject(month,{isCurrent})';
+    const debug = 'productMode,documentState:', reader = '()=>map.prepareBuiltinProject(month,{isCurrent,transition})';
     if (!source.includes(debug) || !source.includes(reader)) throw new Error('Viewer observation boundary is missing.');
     await route.fulfill({ contentType: 'text/javascript', body: source
       .replace(debug, 'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),cameraMoving:()=>map.viewState.mapMoving,' + debug)
-      .replace(reader, 'async()=>{if(window.__testBuiltinRead)await window.__testBuiltinRead(month);return map.prepareBuiltinProject(month,{isCurrent});}') });
+      .replace(reader, 'async()=>{if(window.__testBuiltinRead)await window.__testBuiltinRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}') });
   });
   await page.clock.setFixedTime(new Date(2026, 9, 24, 12));
   await page.goto('/?debug=1');

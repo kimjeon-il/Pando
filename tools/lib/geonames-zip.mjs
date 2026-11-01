@@ -124,9 +124,10 @@ async function readZipMembers(fd, size, {lazy=false,maxCentral=Infinity}={}) {
     if (p !== centralBytes) throw Error('Unexpected ZIP central directory trailing bytes');
     return members;
 }
-export async function zipMembers(zipPath) {
+export async function zipMembers(zipPath,{maxCentral=Infinity}={}) {
+  if(maxCentral!==Infinity&&(!Number.isSafeInteger(maxCentral)||maxCentral<0))throw Error('Invalid ZIP central directory budget');
   const fd = await fs.open(zipPath, 'r');
-  try {const {size}=await fd.stat();return await readZipMembers(fd,size);}
+  try {const {size}=await fd.stat();return await readZipMembers(fd,size,{maxCentral});}
   finally { await fd.close(); }
 }
 async function exactRange(readRange,start,length){

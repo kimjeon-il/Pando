@@ -11,7 +11,7 @@ const setup={initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sou
 const receipt={candidateId:7,sourceId:5,targetMonth:'2026-10',expectedEpoch:1,
   sourceFingerprint:'a'.repeat(64),worldSha256:'b'.repeat(64),resolvedEntityCount:1,reused:false};
 const dispatchContext={throwIfCancelled() {}};
-const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const tick=()=>new Promise(resolve=>globalThis.setImmediate(resolve));
 async function waitUntil(predicate){
   for(let i=0;i<50;i++){if(predicate())return;await tick();}
   throw Error('Expected a pending Worker RPC request');
@@ -41,7 +41,7 @@ function transport(){
         : message.operation==='core.document-replacement-rollback'
           ? {state:state(++currentEpoch),project:{ready:true},selection:{items:[],primary:null,hover:null},draft:{active:false}}
         : null;
-      queueMicrotask(()=>worker.onmessage?.({data:{...message,type:'result',ok:true,result}}));
+      globalThis.queueMicrotask(()=>worker.onmessage?.({data:{...message,type:'result',ok:true,result}}));
     },
   };
   const client=createCoreDocumentClient({createWorker:()=>worker,productMode:'viewer',
@@ -51,14 +51,14 @@ function transport(){
     assert.ok(index>=0,'missing held '+operation);
     const message=held.splice(index,1)[0];
     if(operation==='core.document-temporal-candidate-adopt')currentEpoch=result.state.epoch;
-    queueMicrotask(()=>worker.onmessage?.({data:{...message,type:'result',ok:true,result}}));
+    globalThis.queueMicrotask(()=>worker.onmessage?.({data:{...message,type:'result',ok:true,result}}));
   }
   return {client,worker,sent,held,publications,acknowledge};
 }
 
 test('P5-5 client recovers a cancelled source-preparation acknowledgement and frees its handle',async()=>{
   const t=transport();await t.client.load('{}');
-  const before=t.client.state(),controller=new AbortController();
+  const before=t.client.state(),controller=new globalThis.AbortController();
   const task=t.client.temporalSourcePrepare(sourceFacts,
     {dataRevision:'fixture',manifestSha256:'c'.repeat(64),signal:controller.signal});
   await waitUntil(()=>t.held.length===1);
@@ -94,7 +94,7 @@ test('P5-5 superseded candidate is discarded even if C++ finished before caller 
 });
 test('P5-5 commit acknowledgement is published despite an abort after non-interruptible Core dispatch',async()=>{
   const t=transport();await t.client.load('{}');
-  const controller=new AbortController();
+  const controller=new globalThis.AbortController();
   const task=t.client.temporalCandidateAdopt({...receipt,replacementId:9},{signal:controller.signal});
   await waitUntil(()=>t.held.some(row=>row.operation==='core.document-temporal-candidate-adopt'));
   controller.abort(); // Cannot cancel an already-dispatched synchronous C++ commit.
@@ -109,7 +109,7 @@ test('P5-5 commit acknowledgement is published despite an abort after non-interr
 });
 test('P5-5 pre-dispatch abort rejects without allocating native source or candidate',async()=>{
   const t=transport();await t.client.load('{}');
-  const controller=new AbortController();controller.abort();
+  const controller=new globalThis.AbortController();controller.abort();
   await assert.rejects(t.client.temporalSourcePrepare(sourceFacts,
     {dataRevision:'fixture',manifestSha256:'c'.repeat(64),signal:controller.signal}),
     {code:'PL-CORE-CANCELLED'});
@@ -140,7 +140,7 @@ test('P5-5 Worker dispatch only exposes reviewed viewer operations in one Core o
     temporalCandidatePrepare(){calls.push('candidate');return receipt;}
     temporalCandidateInspect(){return null;}
     temporalCandidateDiscard(){calls.push('discard');return true;}
-    temporalCandidateAdopt(){calls.push('adopt');return state(2);}
+    temporalCandidateAdopt(){calls.push('adopt');return {state:state(2),delta:null};}
     delete(){calls.push('delete');}
   }
   const runtime=createCoreWorkerRuntime({

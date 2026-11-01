@@ -1,0 +1,89 @@
+name: GPU stage 4 G4 main validation
+
+on:
+  push:
+    branches: [work/gpu-stage4]
+    paths:
+      - .github/workflows/gpu-stage4-g4-validation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gpu-stage4-g4-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Current Canvas Worker/G4 contracts only
+        run: >
+          node --test
+          tests/unit/country-mesh-zoom-policy.test.mjs
+          tests/unit/canvas-worker-background-admission.test.mjs
+          tests/unit/gpu-scene-worker-presentation.test.mjs
+      - name: Current G4 browser lint only
+        run: pnpm exec eslint tests/browser/gpu-recovery-g4.spec.mjs
+
+  browser:
+    needs: unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - product: viewer
+            backend: canvas-worker
+          - product: viewer
+            backend: canvas2d
+          - product: editor
+            backend: webgl2
+          - product: editor
+            backend: webgl1
+          - product: editor
+            backend: canvas-worker
+          - product: editor
+            backend: canvas2d
+    env:
+      G4_EVIDENCE: gpu-stage4-evidence
+      G4_PRODUCT: ${{ matrix.product }}
+      G4_BACKEND: ${{ matrix.backend }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Current main G4 route only
+        run: >
+          pnpm exec playwright test
+          tests/browser/gpu-recovery-g4.spec.mjs
+          --workers=1 --retries=0 --trace=off
+          --grep "${G4_PRODUCT} ${G4_BACKEND}:"
+          --reporter=list
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-stage4-${{ matrix.product }}-${{ matrix.backend }}-${{ github.sha }}
+          path: |
+            gpu-stage4-evidence
+            test-results
+          if-no-files-found: warn
+          retention-days: 3

@@ -214,7 +214,7 @@ export function createProjectDomain({
   // command queue but do not mutate the active document or generation.
   // No baseline admission occurs until the existing replacement transaction
   // has captured a reversible Core capsule.
-  const prepareTemporalBuiltin = (facts,setup,{dataRevision,manifestSha256,
+  const prepareTemporalBuiltin = (facts,setup,{dataRevision,manifestSha256,transition=false,
     expectedGeneration = generation,isCurrent = () => true} = {}) => {
     const operation=commandQueue.then(async()=>{
       assertActive();
@@ -230,7 +230,13 @@ export function createProjectDomain({
       try {
         source=await commandOwner.temporalSourcePrepare(facts,{dataRevision,manifestSha256,isCurrent:current});
         if(!current())throw stale();
-        const documentId=globalThis.crypto.randomUUID();
+        // Only an explicit builtin Viewer date change retains the document ID.
+        // Native preparation validates the clean builtin owner and immutable
+        // geometry versions before constructing its delta; file/editor loads
+        // keep their existing independent-document admission.
+        if(transition&&(productMode!=='viewer'||snapshot().projectSetup?.sourceMode!=='builtin'))
+          throw new TypeError('Temporal identity reuse requires the active builtin Viewer.');
+        const documentId=transition?snapshot().documentId:globalThis.crypto.randomUUID();
         const candidate=await commandOwner.temporalCandidatePrepare({
           sourceId:source.sourceId,targetMonth:facts.sourceMonth,
           sourceFingerprint:source.fingerprint,setup,documentId,
