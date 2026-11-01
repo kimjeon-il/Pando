@@ -220,75 +220,18 @@ def rebuild_tint_release(source_output: Path, tint_zip: Path, ice_path: Path, co
 
 
 def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path, countries_path: Path):
-    started = time.monotonic()
-    if output.exists():
+    """Generate an immutable candidate through the Node and native owners."""
+    if output.exists() or output.is_symlink():
         raise FileExistsError(f'Refusing to overwrite dataset: {output}')
-    if not etopo_path.is_file() or not tint_zip.is_file():
-        raise FileNotFoundError("ETOPO GeoTIFF and Natural Earth HYP_HR.zip are required")
-    output.mkdir(parents=True, exist_ok=True)
-    source_sha = sha256(etopo_path)
-    tint_sha = sha256(tint_zip)
-    if source_sha != ETOPO_SHA256 or tint_sha != TINT_SHA256 or sha256(ice_path) != ICE_SHA256:
-        raise ValueError(f'Source checksum mismatch: ETOPO={source_sha}, tint={tint_sha}')
-    level_reports = []
-    peak_working_set = 0
-    source_metadata = inspect_source(etopo_path)
-    source_nodata, source_dtype = source_metadata['nodata'], source_metadata['dtype']
-    for level in levels():
-        report = generate_level(etopo_path, output, level)
-        peak_working_set = max(peak_working_set, current_working_set())
-        level_reports.append(report)
-        print(json.dumps(report), flush=True)
-    tint_path = output / "tint.webp"
-    tint_report = build_tint(tint_zip, tint_path, ice_path, countries_path)
-    peak_working_set = max(peak_working_set, current_working_set())
-    for level in levels():
-        changed = reconcile_gutters(output, level)
-        level_reports[level['id']]['reconciledTiles'] = changed
-    assets_sha, final_reports = asset_summary(output, levels())
-    for report, final in zip(level_reports, final_reports):
-        report['bytes'] = final['bytes']
-        report['maxTileBytes'] = final['maxTileBytes']
-    manifest = {
-        "version": VERSION, "representation": FORMAT,
-        "dataset": "ETOPO 2022 30 arc-second Ice Surface",
-        "crs": "EPSG:4326", "heightDatum": "EGM2008 (EPSG:3855)",
-        "sourceCrs": "EPSG:9518", "extent": [-180, -90, 180, 90],
-        "registration": "cell-center", "sourceGridOrigin": [-180, 90],
-        "sourceResolutionDegrees": [1/120, 1/120],
-        "tileFormat": "lossless WebP RGBA", "channels": {"r": "encoded elevation high byte",
-            "g": "encoded elevation low byte", "b": "precomputed hillshade", "a": "255"},
-        "elevation": {"encode": "round(meters)+12000", "decode": "R*256+G-12000",
-                      "biasMeters": BIAS, "spacingMeters": 1, "validEncodedRange": [0, 65535]},
-        "shade": {"azimuthDegrees": LIGHT_AZIMUTH, "altitudeDegrees": LIGHT_ALTITUDE,
-                  "ambient": AMBIENT, "diffuse": DIFFUSE, "polarFallbackDegrees": 89.5,
-                  "quantizationStep": SHADE_QUANTIZATION_STEP},
-        "gutter": 1, "tileSize": TILE_SIZE, "levels": levels(),
-        "urlTemplate": f"terrain/v{VERSION}/{{level}}/{{column}}-{{row}}.webp",
-        "tint": {"url": f"terrain/v{VERSION}/tint.webp", "width": TINT_WIDTH, "height": TINT_HEIGHT,
-                 "sha256": sha256(tint_path), **tint_report},
-        "sources": [
-            {"url": "https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif",
-             "sha256": source_sha, "bytes": etopo_path.stat().st_size, "nodata": source_nodata,
-             "dtype": source_dtype, "width": SOURCE_WIDTH, "height": SOURCE_HEIGHT},
-            {"url": "https://naturalearth.s3.amazonaws.com/10m_raster/HYP_HR.zip",
-             "sha256": tint_sha, "bytes": tint_zip.stat().st_size},
-            {"url": ICE_URL,
-             "sha256": sha256(ice_path), "bytes": ice_path.stat().st_size},
-            {"role": "canonical-country-land-mask", "path": countries_path.name,
-             "sha256": sha256(countries_path), "bytes": countries_path.stat().st_size},
-        ],
-        "assetsSha256": assets_sha,
-    }
-    temporary = output / "manifest.json.tmp"
-    temporary.write_bytes((json.dumps(manifest, ensure_ascii=False, indent=2)+"\n").encode("utf-8"))
-    temporary.replace(output / "manifest.json")
-    report = {"completed": True, "totalBytes": sum(item["bytes"] for item in level_reports)
-              + tint_path.stat().st_size, "seconds": round(time.monotonic()-started, 3),
-              "peakWorkingSetBytes": peak_working_set, "levelReports": level_reports,
-              "manifestSha256": sha256(output / "manifest.json")}
-    (output / "build-report.json").write_bytes((json.dumps(report, indent=2)+"\n").encode("utf-8"))
-    print(json.dumps(report), flush=True)
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-build.mjs'
+    request = dict(etopo=str(etopo_path), tintZip=str(tint_zip), ice=str(ice_path),
+                   countries=str(countries_path), output=str(output))
+    result = subprocess.run(['node', str(script), '--build'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('DEM candidate generation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    print(result.stdout.decode('utf-8').strip(), flush=True)
 
 
 def current_working_set():
@@ -327,6 +270,11 @@ def main():
     parser.add_argument("--repair-polar-min-level", type=int, default=0)
     parser.add_argument("--repair-polar-max-level", type=int, default=5)
     args = parser.parse_args()
+    if not args.reuse_dem and not args.repair_output:
+        if not args.etopo or not args.tint_zip or not args.glaciated_areas or not args.countries:
+            parser.error('--etopo, --tint-zip, --glaciated-areas and --countries are required for generation')
+        build(args.etopo, args.tint_zip, args.output, args.glaciated_areas, args.countries)
+        return
     from library_data import library_output
     with library_output([args.output]):
         if args.reuse_dem:
@@ -355,10 +303,6 @@ def main():
                       'manifestSha256': sha256(manifest_path)}
             (args.output/'build-report.json').write_bytes((json.dumps(report, indent=2)+'\n').encode('utf-8'))
             print(json.dumps(report), flush=True)
-        else:
-            if not args.etopo or not args.tint_zip or not args.glaciated_areas or not args.countries:
-                parser.error('--etopo, --tint-zip, --glaciated-areas and --countries are required for generation')
-            build(args.etopo, args.tint_zip, args.output, args.glaciated_areas, args.countries)
 
 
 if __name__ == "__main__":

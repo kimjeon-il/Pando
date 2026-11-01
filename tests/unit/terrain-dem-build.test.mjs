@@ -7,6 +7,7 @@ import test from 'node:test';
 import {readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
 import {encodeDemWebp} from '../../tools/gis/terrain-dem-webp.mjs';
 import {restoreDemPolarGutterShade} from '../../tools/gis/terrain-dem-gutters.mjs';
+import {hashTerrainFile,summarizeTerrainAssets} from '../../tools/gis/terrain-dem-assets.mjs';
 
 const expected=[
   '9fb8614b0d2037f720fea17cc998f5e5251e70a4b8f4d8abf5aff524ba310738',
@@ -21,6 +22,36 @@ test('DEM level builder exists and refuses an invalid level',async()=>{
   const module=await import('../../tools/gis/terrain-dem-build.mjs').catch(()=>({}));
   assert.equal(typeof module.generateTerrainDemLevel,'function');
   await assert.rejects(module.generateTerrainDemLevel({source:'x',output:'x',level:{id:0,width:8,height:4,tileSize:0}}),/level/i);
+});
+
+test('DEM dataset manager requires an explicit protected output',async()=>{
+  const module=await import('../../tools/gis/terrain-dem-build.mjs');
+  assert.equal(typeof module.buildTerrainDemCandidate,'function');
+  await assert.rejects(module.buildTerrainDemCandidate({}),/inputs|output/i);
+});
+
+test('small DEM candidate keeps source and output hashes and refuses existing results',
+  {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY||!process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||
+        !process.env.PANDO_MAP_IMAGE_ARTIFACT||!process.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY||
+        !process.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY||!process.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY},async()=>{
+  const {buildTerrainDemCandidate}=await import('../../tools/gis/terrain-dem-build.mjs');
+  const root=await mkdtemp(join(tmpdir(),'pando-dem-candidate-'));
+  try{
+    const fixture=JSON.parse(await readFile('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
+    const source=join(root,'source.tif');await writeFile(source,Buffer.from(fixture.sources.valid,'base64'));
+    const archive='tests/fixtures/terrain-dem-tint/source.zip',ice='tests/fixtures/terrain-dem-tint/ice.geojson',land='tests/fixtures/terrain-dem-tint/land.geojson';
+    const inputs={etopo:source,tintZip:archive,ice,countries:land,output:join(root,'output')};
+    const profile={strict:false,levels:[{id:0,width:8,height:4,tileSize:3,columns:3,rows:2}],tintWidth:4,tintHeight:2,
+      etopoSha256:(await hashTerrainFile(source)).sha256,tintSha256:(await hashTerrainFile(archive)).sha256,iceSha256:(await hashTerrainFile(ice)).sha256};
+    const manifest=await buildTerrainDemCandidate(inputs,{profile});
+    assert.equal(manifest.sources[0].sha256,profile.etopoSha256);assert.equal(manifest.sources[0].nodata,-32768);
+    assert.equal(manifest.levels[0].columns,3);assert.equal(manifest.tint.width,4);
+    assert.equal(manifest.assetsSha256,(await summarizeTerrainAssets(inputs.output,profile.levels)).assetsSha256);
+    const previous=await readFile(join(inputs.output,'manifest.json'));
+    await assert.rejects(buildTerrainDemCandidate(inputs,{profile}),/exist/i);
+    assert.deepEqual(await readFile(join(inputs.output,'manifest.json')),previous);
+    await assert.rejects(buildTerrainDemCandidate({...inputs,output:join(root,'bad')},{profile:{...profile,etopoSha256:'0'.repeat(64)}}),/checksum/i);
+  }finally{await rm(root,{recursive:true,force:true});}
 });
 
 test('native level generation preserves Python tile pixels and protects existing output',

@@ -213,9 +213,25 @@ jobs:
           else { $gutter='build-native/terrain-dem-gutters/pando-terrain-dem-gutters' }
           node tools/gis/package-terrain-dem-gutters.mjs --binary $gutter --directory build-native/terrain-dem-gutters/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM gutter packaging failed' }
+          cmake -S tools/cpp/terrain-dem-tint -B build-native/terrain-dem-tint "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint configuration failed' }
+          cmake --build build-native/terrain-dem-tint --config Release --target pando-terrain-dem-tint
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint build failed' }
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-fill "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint fill configuration failed' }
+          cmake --build build-native/terrain-dem-fill --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint fill build failed' }
+          if ($IsWindows) { $tint='build-native/terrain-dem-tint/Release/pando-terrain-dem-tint.exe'; $fill='build-native/terrain-dem-fill/Release/pando-terrain-dem-fill.exe' }
+          else { $tint='build-native/terrain-dem-tint/pando-terrain-dem-tint'; $fill='build-native/terrain-dem-fill/pando-terrain-dem-fill' }
+          node tools/gis/package-terrain-dem-tint.mjs --binary $tint --directory build-native/terrain-dem-tint/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint packaging failed' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary $fill --directory build-native/terrain-dem-fill/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint fill packaging failed' }
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
+          $env:PANDO_TERRAIN_DEM_TINT_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-tint/artifact"
+          $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-fill/artifact"
           node --test tests/unit/terrain-dem-raster-native.test.mjs tests/unit/terrain-dem-build.test.mjs tests/unit/terrain-dem-gutters.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
           python -m pip install Pillow==12.3.0 numpy==2.3.5
