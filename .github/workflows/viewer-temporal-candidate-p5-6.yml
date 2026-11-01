@@ -15,7 +15,7 @@ on:
       - .github/workflows/viewer-temporal-candidate-p5-6.yml
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: viewer-p5-6-work-ui
   cancel-in-progress: true
@@ -60,6 +60,20 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Real Viewer year transition, exact A-B-A consistency and timing
         run: pnpm exec playwright test --config tests/browser/map-transition-p5-6.config.mjs
+      - name: Promote only the tested Core JS/WASM pair on work/ui
+        if: github.event_name == 'push' && github.ref == 'refs/heads/work/ui'
+        shell: bash
+        env:
+          PANDO_PUSH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git add shared/frontend/static/wasm/pandoeditor-core.js shared/frontend/static/wasm/pandoeditor-core.wasm shared/frontend/static/wasm/pandoeditor-core.manifest.json
+          if git diff --cached --quiet; then
+            echo 'P5-6 source-matched artifacts already committed'
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'build(core): stage verified P5-6 temporal WASM pair on work/ui'
+          git push "https://x-access-token:${PANDO_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/work/ui
       - name: Save bounded browser results
         if: always()
         uses: actions/upload-artifact@v4
