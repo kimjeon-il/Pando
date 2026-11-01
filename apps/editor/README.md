@@ -100,7 +100,7 @@ storage is separate from normal browser sessions.
 
 ## Narrow native bridge
 
-The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`.
+`native-platform-adapter.js` is the only frontend runtime module that reads the raw Tauri bridge and shell-injected native flags. It binds `window.__TAURI_INTERNALS__.invoke` once, then supplies explicit file/library/platform ports to the shared application runtime.
 `write_probe_file`, `read_probe_file`, and `finish_probe` exist only in explicit
 verification builds; `write_diagnostic_report` remains available in ordinary builds:
 
@@ -142,9 +142,7 @@ The dialog plugin's Rust API returns `None` for a dismissed picker; on mobile it
 upstream API also maps picker errors to `None`, so this prototype cannot distinguish
 those picker failures from user dismissal. Read/write errors remain explicit.
 
-`--probe-auto` sets immutable `window.__PANDOLAB_SHELL_AUTO__ = true` at document
-initialization. Only that mode permits `finish_probe` to exit after the report has
-been flushed. `--diagnostic-output <absolute filename>` additionally writes a report
+`--probe-auto` sets an immutable shell verification flag at document initialization. The native adapter consumes that raw flag and passes a typed verification runtime onward; only that mode permits `finish_probe` to exit after the report has been flushed. `--diagnostic-output <absolute filename>` additionally writes a report
 to a host-selected Windows path; no frontend command accepts an output path.
 
 The CSP permits only packaged assets, native IPC, local/blob workers, and the WASM

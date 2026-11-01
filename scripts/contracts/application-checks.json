@@ -1489,7 +1489,8 @@
   "runtimeBases": {
     "apps/editor/startup.js": "assets/js",
     "apps/editor/verification.js": "assets/js",
-    "apps/editor/frontend/js/modules/app-runtime-dependencies.js": "assets/js"
+    "apps/editor/frontend/js/modules/app-runtime-dependencies.js": "assets/js",
+    "apps/editor/native-platform-adapter.js": "assets/js"
   },
   "runtimeHelperBases": {
     "versionedModuleUrl": "assets/js"

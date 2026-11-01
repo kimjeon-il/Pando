@@ -1,5 +1,3 @@
-import { finishDiagnostics } from './probe-storage.js';
-
 export function inspectFullWorldRuntime(scope = globalThis, {
   expectedSourceCount = 258, expectedModelCount = 254, expectedRootCount = 207,
 } = {}) {
@@ -69,9 +67,10 @@ export function installFullWorldProbe({
   scope = globalThis,
   expectedSourceCount = 258, expectedModelCount = 254, expectedRootCount = 207,
   timeoutMs = 240_000,
-  readyDelayMs = 500, reportFn = finishDiagnostics,
+  readyDelayMs = 500, auto = false, reportFn = null,
 } = {}) {
-  if (scope.__PANDOLAB_SHELL_AUTO__ !== true) return false;
+  if (auto !== true) return false;
+  if (typeof reportFn !== 'function') throw new TypeError('Automatic full-world probe requires an explicit report transport.');
   let finished = false;
   const finish = (phase, error = '') => {
     if (finished) return;

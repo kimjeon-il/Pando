@@ -1,5 +1,3 @@
-import { prepareProjectSave, openProjectFile, writeDiagnosticReport } from './native-storage.js';
-import { writeProbeFile, readProbeFile, finishDiagnostics } from './probe-storage.js';
 import { assertSmallProject } from './fixture-limits.js';
 
 const COUNTRY = 'shell-country-a';
@@ -169,7 +167,10 @@ async function readPackage(blob) {
 }
 
 /** Diagnostics consume canonical application APIs; they own no editor state. */
-export function installDiagnostics(runtime) {
+export function installDiagnostics(runtime, { nativeStorage, probeStorage } = {}) {
+  if (!nativeStorage || !probeStorage) throw new TypeError('Verification diagnostics require explicit native and probe storage ports.');
+  const { prepareProjectSave, openProjectFile, writeDiagnosticReport } = nativeStorage;
+  const { writeProbeFile, readProbeFile, finishDiagnostics } = probeStorage;
   const { projectDomain, entityRepository, gpuMapRenderer, navigation } = runtime;
   const sheet = document.createElement('link');
   sheet.rel = 'stylesheet';

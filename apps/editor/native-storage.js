@@ -1,12 +1,5 @@
 const CHUNK_BYTES = 256 * 1024;
 const DOCUMENT_LIMIT = 256 * 1024 * 1024;
-export const invokeNative = (command, payload) => {
-  if (typeof globalThis.__TAURI_INTERNALS__?.invoke !== 'function') {
-    throw new Error('Native shell bridge is unavailable; browser execution cannot pass native checks.');
-  }
-  return globalThis.__TAURI_INTERNALS__.invoke(command, payload);
-};
-
 export function encodeBytes(bytes) {
   let binary = '';
   for (let index = 0; index < bytes.length; index += 8192) {
@@ -39,7 +32,8 @@ function verifyDocumentBlob(blob) {
   }
 }
 
-export function createNativeStorage(invoke = invokeNative) {
+export function createNativeStorage(invoke) {
+  if (typeof invoke !== 'function') throw new TypeError('Native storage requires an explicit invoke transport.');
   const acceptWrite=result=>{
     if(result?.cancelled)throw Object.assign(new Error('파일 저장 취소'),{name:'AbortError'});
     if(typeof result?.path!=='string'||!result.path)throw new Error('네이티브 파일 저장 대상이 확정되지 않았습니다.');
@@ -132,6 +126,3 @@ export function createNativeStorage(invoke = invokeNative) {
     writeDiagnosticReport: report => invoke('write_diagnostic_report', { report }),
   });
 }
-const native = createNativeStorage();
-export const { prepareProjectSave, saveExportFile, openProjectFile, openGisFiles,
-  writeDiagnosticReport } = native;
