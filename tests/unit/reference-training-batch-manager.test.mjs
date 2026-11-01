@@ -60,4 +60,8 @@ test('training batch management rejects changed samples and preserves existing o
   const mismatch={...request,mode:'resume',device:'cuda',amp:true,input:checkpoint,output:join(root,'mismatch.pt')};
   await assert.rejects(nativeTrainingBatch(mismatch),/configuration differs/i);assert.equal(existsSync(mismatch.output),false);
   await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,unobservedMask:1}),/configuration differs/i);
+  const prior=JSON.parse(readFileSync(checkpoint+'.receipt.json','utf8'));
+  prior.evidence=[{augment:false}];writeFileSync(checkpoint+'.receipt.json',JSON.stringify(prior));
+  await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,samples:[{index:0,directory:sample,augment:true}]}),/augmentation.*resume/i);
+  assert.equal(existsSync(mismatch.output),false);
 });

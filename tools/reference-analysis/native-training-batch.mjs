@@ -94,6 +94,10 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   const {previous,cursor,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
+  if(previous&&(!Array.isArray(previous.evidence)||!previous.evidence.length||
+    previous.evidence.some(row=>typeof row?.augment!=='boolean'||row.augment!==previous.evidence[0].augment)||
+    samples.some(row=>row?.augment!==previous.evidence[0].augment)))
+    throw Error('Training augmentation differs from the resume checkpoint');
   if(!Number.isSafeInteger(cursor)||cursor<0||cursor+samples.length>orderData.order.length)throw Error('Training cursor exceeds sample order');
   const checked=samples.map((sample,i)=>{if(!sample||!Number.isSafeInteger(sample.index)||sample.index!==orderData.order[cursor+i]||!sample.directory)
     throw Error('Training samples differ from the saved order');const data=verifyTrainingSample(sample.directory);
