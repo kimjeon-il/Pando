@@ -21,6 +21,13 @@ test('checkpoint ONNX manifest preserves pending training lineage and channel vi
   assert.equal(manifest.lineageComplete,false);assert.equal(manifest.checkpointSha256,receipt.checkpointSha256);
   assert.deepEqual(validateCandidateModel(manifest).observedChannels,['international']);
   assert.deepEqual(manifest.unobservedChannels,['administrative','coast','hydro','transport','text','frame']);
+  const combined={...receipt,auxiliarySha256:'d'.repeat(64),lineageFingerprint:'e'.repeat(64)};
+  const combinedManifest=exporter.checkpointOnnxManifest({receipt:combined,model});
+  assert.equal(combinedManifest.auxiliaryCorpusSha256,combined.auxiliarySha256);
+  assert.equal(combinedManifest.lineageFingerprint,combined.lineageFingerprint);
+  assert.equal(validateCandidateModel(combinedManifest).auxiliaryCorpusSha256,combined.auxiliarySha256);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,auxiliarySha256:'d'.repeat(64)},model}),/auxiliary/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,lineageFingerprint:'e'.repeat(64)},model}),/auxiliary/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,releaseApproved:true},model}),/receipt/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,optimizerUpdates:3},model}),/receipt/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt,model:{...model,file:'../unsafe.onnx'}}),/model/i);

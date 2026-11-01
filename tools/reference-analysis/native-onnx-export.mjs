@@ -21,11 +21,15 @@ export function checkpointOnnxManifest({receipt,model}={}){
     !Number.isSafeInteger(receipt.optimizerUpdates)||receipt.optimizerUpdates<1||receipt.optimizerUpdates>receipt.attemptedBatches||
     !Number.isSafeInteger(receipt.unobservedMask)||receipt.unobservedMask<0||receipt.unobservedMask>127)
     throw Error('Complete private training receipt required for an ONNX manifest');
+  const combined=Object.hasOwn(receipt,'auxiliarySha256')||Object.hasOwn(receipt,'lineageFingerprint');
+  if(combined&&(!/^[a-f0-9]{64}$/.test(receipt.auxiliarySha256||'')||!/^[a-f0-9]{64}$/.test(receipt.lineageFingerprint||'')))
+    throw Error('Complete auxiliary corpus identity required for an ONNX manifest');
   if(!model||typeof model.file!=='string'||!/^[\w.-]+\.onnx$/.test(model.file)||basename(model.file)!==model.file||
     !Number.isSafeInteger(model.bytes)||model.bytes<1||model.bytes>64*1024*1024||!/^[a-f0-9]{64}$/.test(model.sha256||''))
     throw Error('Valid local ONNX model identity required');
   return {schemaVersion:1,architecture:'mobilenetv3-unet-context-v1',classes:[...classes],tileSize:512,overlap:64,overviewSize:256,
     model:{url:model.file,sha256:model.sha256,bytes:model.bytes},corpusSha256:receipt.corpusSha256,
+    ...(combined?{auxiliaryCorpusSha256:receipt.auxiliarySha256,lineageFingerprint:receipt.lineageFingerprint}:{}),
     evaluationStatus:'pending',releaseApproved:false,trainingOnly:true,checkpointSha256:receipt.checkpointSha256,
     lineageComplete:false,sourceReplayVerified:false,initialization:'weights-only-no-optimizer',trainingBatches:receipt.attemptedBatches,
     optimizerUpdates:receipt.optimizerUpdates,stepCountKind:'attempted-batches',
