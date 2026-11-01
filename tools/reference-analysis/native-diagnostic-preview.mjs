@@ -78,7 +78,7 @@ export async function renderDiagnosticJpeg({original,panels,reviewed=false},{sig
 }
 
 // Inspect one explicitly selected macro source; the result is training-only.
-async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,sourceId,checkpoint,baselineWeights,device,torchLibrary,captureParity=false},
+async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,sourceId,checkpoint,baselineWeights,device,torchLibrary,captureParity=false,skipUnsupervised=false},
   {signal,workspace,imageDirectory,previewDirectory,evaluationDirectory,batchDirectory,reviewDirectory}={},internalScope=null){
   signal?.throwIfAborted();
   if(!corpus||!checkpoint||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
@@ -102,8 +102,9 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
       manifest.sheets.some(sheet=>sheet?.split!=='train')||auxiliaryManifest.sheets.some(sheet=>sheet?.split!=='train'))
       throw Error('Training diagnostics require training-only source scope');
   }
-  const lineageFingerprint=combined?(internalScope?.corpusPath===corpusPath&&internalScope?.auxiliaryPath===auxiliaryPath&&
-    internalScope.corpusHash===corpusHash&&internalScope.auxiliaryHash===auxiliaryHash?internalScope.lineageFingerprint:
+  const scopeMatches=combined&&internalScope?.corpusPath===corpusPath&&internalScope?.auxiliaryPath===auxiliaryPath&&
+    internalScope.corpusHash===corpusHash&&internalScope.auxiliaryHash===auxiliaryHash;
+  const lineageFingerprint=combined?(scopeMatches?internalScope.lineageFingerprint:
     await corpusFingerprint(corpusPath,auxiliaryPath)):null;
   if(combined&&receipt.lineageFingerprint!==lineageFingerprint)throw Error('Combined corpus fingerprint differs from the checkpoint');
   let baselinePath=null,baselineHash=null,transferPath=null,transferHash=null;
@@ -138,9 +139,21 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     recheckTrainingSources(checks);
   }
   const sourceRoot=reviewed?dirname(reviewPath):auxiliaryView?dirname(auxiliaryPath):root;
+  const path=reviewed||primaryReviewed?verified.imagePath:await resolveCorpusPath(sourceRoot,sheet.image);
+  const verifyInputs=async()=>{
+    if(reviewed){
+      if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||
+        trainingFileIdentity(path,{maxBytes:Number.MAX_SAFE_INTEGER})!==sheet.sha256)throw Error('Reviewed inputs changed during diagnostic');
+    }else recheckTrainingSources(checks);
+    if(trainingFileIdentity(corpusPath)!==corpusHash||trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
+      throw Error('Training inputs changed during diagnostic');
+    if(combined&&(trainingFileIdentity(auxiliaryPath)!==auxiliaryHash||(!scopeMatches&&await corpusFingerprint(corpusPath,auxiliaryPath)!==lineageFingerprint)))
+      throw Error('Combined training inputs changed during diagnostic');
+    if(baselinePath&&(trainingFileIdentity(baselinePath)!==baselineHash||trainingFileIdentity(transferPath)!==transferHash))throw Error('Baseline changed during diagnostic');
+  };
   const selected=await selectDiagnosticTile({root:sourceRoot,annotation},{signal,workspace,imageDirectory,reviewDirectory});
-  if(!selected)throw Error('Source has no supervised diagnostic tile');
-  const {x,y,index}=selected,path=reviewed||primaryReviewed?verified.imagePath:await resolveCorpusPath(sourceRoot,sheet.image),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
+  if(!selected){if(skipUnsupervised){await verifyInputs();return null;}throw Error('Source has no supervised diagnostic tile');}
+  const {x,y,index}=selected,format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
   if(!format)throw Error('Supported training image required');
   const [tensors,image]=await Promise.all([
     reviewed||primaryReviewed?prepareReviewedTrainingTile({imagePath:path,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory,reviewDirectory}):
@@ -157,16 +170,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     parity={tile:tensors.tile,overview:tensors.overview,position:tensors.position,expectedLogits:inference.logits};
   }
   const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed:reviewed||primaryReviewed},{signal,workspace,imageDirectory,previewDirectory});
-  if(reviewed){
-    if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||
-      trainingFileIdentity(path,{maxBytes:Number.MAX_SAFE_INTEGER})!==sheet.sha256)
-      throw Error('Reviewed inputs changed during diagnostic');
-  }else recheckTrainingSources(checks);
-  if(trainingFileIdentity(corpusPath)!==corpusHash||trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
-    throw Error('Training inputs changed during diagnostic');
-  if(combined&&(trainingFileIdentity(auxiliaryPath)!==auxiliaryHash||(!internalScope&&await corpusFingerprint(corpusPath,auxiliaryPath)!==lineageFingerprint)))
-    throw Error('Combined training inputs changed during diagnostic');
-  if(baselinePath&&(trainingFileIdentity(baselinePath)!==baselineHash||trainingFileIdentity(transferPath)!==transferHash))throw Error('Baseline changed during diagnostic');
+  await verifyInputs();
   return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,baselineChannels:diagnostic.baselineChannels,
     baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?(receipt.initializationSourceSha256??null):null,
     jpeg:preview.data,checkpointSha256:checkpointHash,corpusSha256:corpusHash,...(combined?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint,viewCorpus}:{}),
@@ -203,7 +207,8 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   for(const sourceId of ids){
     signal?.throwIfAborted();
     const result=await diagnoseSource({corpus,auxiliaryCorpus,viewCorpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,baselineWeights,sourceId,device,torchLibrary,
-      captureParity:rows.length===0},options,internalScope||(auxiliaryCorpus?{}:null));
+      captureParity:rows.length===0,skipUnsupervised:true},options,internalScope||(auxiliaryCorpus?{}:null));
+    if(!result)continue;
     if(result.checkpointSha256!==checkpointHash||result.corpusSha256!==corpusHash||
       (reviewCorpus&&result.reviewCorpusSha256!==viewHash))throw Error('Diagnostic inputs differ across sources');
     if(auxiliaryCorpus&&!internalScope)internalScope={corpusPath,auxiliaryPath:resolve(auxiliaryCorpus),corpusHash,
@@ -221,9 +226,14 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(internalScope&&(trainingFileIdentity(internalScope.auxiliaryPath)!==internalScope.auxiliaryHash||
     await corpusFingerprint(corpusPath,internalScope.auxiliaryPath)!==internalScope.lineageFingerprint))
     throw Error('Combined training inputs changed during diagnostic');
+  if(auxiliaryCorpus&&!internalScope){const auxiliaryPath=resolve(auxiliaryCorpus),auxiliaryHash=trainingFileIdentity(auxiliaryPath);
+    const fingerprint=await corpusFingerprint(corpusPath,auxiliaryPath),receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+    if(receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==fingerprint)throw Error('Combined training inputs changed during diagnostic');
+    internalScope={corpusPath,auxiliaryPath,corpusHash,auxiliaryHash,lineageFingerprint:fingerprint};}
+  if(!created)await mkdir(target);
   const report={schemaVersion:1,purpose:reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
     trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:false,
-    checkpointSha256:rows[0].checkpointSha256,corpusSha256:rows[0].corpusSha256,
+    checkpointSha256:checkpointHash,corpusSha256:corpusHash,
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),
     ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
   await writeFile(join(target,'diagnostics.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx',signal});return report;

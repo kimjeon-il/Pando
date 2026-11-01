@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -59,6 +59,34 @@ test('corpus diagnostics reject unsafe or duplicate sources and existing output'
   const controller=new AbortController();controller.abort();
   await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output:join(root,'new')},{signal:controller.signal}),{name:'AbortError'});
   assert.equal(existsSync(join(root,'new')),false);
+});
+
+test('corpus diagnostics skip reviewed sources with no supervised pixels',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-empty-'));t.after(()=>rmSync(root,{recursive:true}));
+  mkdirSync(join(root,'sources'));mkdirSync(join(root,'labels'));
+  const image=readFileSync('tests/fixtures/map-image/png-read/orientation-6.png'),hash=value=>createHash('sha256').update(value).digest('hex');
+  writeFileSync(join(root,'sources/map.png'),image);
+  const annotation={schemaVersion:1,reviewed:true,width:9,height:12,known:{international:[]},lines:[],ignore:[],
+    review:{kind:'agent',reviewer:'fixture',reviewedAt:'2026-10-30T00:00:00Z',sourceSha256:hash(image),predictionBlind:true}};
+  writeFileSync(join(root,'labels/map.json'),JSON.stringify(annotation));
+  const sheet={id:'empty',familyId:'family',editionId:'edition',duplicateGroup:'group',split:'train',image:'sources/map.png',
+    annotations:'labels/map.json',sha256:hash(image),language:'fas',script:'Arabic',mapKind:'monochrome',source:{url:'https://example.org',license:'fixture'}};
+  const corpus=join(root,'corpus.json'),checkpoint=join(root,'checkpoint.pt'),output=join(root,'output');
+  writeFileSync(corpus,JSON.stringify({schemaVersion:1,sheets:[sheet]}));writeFileSync(checkpoint,'checkpoint');
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
+    checkpointSha256:hash('checkpoint'),corpusSha256:hash(readFileSync(corpus))}));
+  const request={corpus,checkpoint,sourceId:'empty',device:'cpu',torchLibrary:root};
+  await assert.rejects(diagnoseMacroTrainingSource(request),/no supervised/i);
+  const result=await diagnostic.diagnoseTrainingCorpus({...request,output});
+  assert.deepEqual(result.sheets,[]);assert.equal(result.independentEvaluation,false);assert.equal(result.onnxParityVerified,false);
+  assert.deepEqual(JSON.parse(readFileSync(join(output,'diagnostics.json'),'utf8')).sheets,[]);
+  assert.equal(existsSync(join(output,'tile.f32')),false);
+  const auxiliaryCorpus=join(root,'auxiliary.json');writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));
+  const lineageFingerprint=await corpusFingerprint(corpus,auxiliaryCorpus);
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
+    checkpointSha256:hash('checkpoint'),corpusSha256:hash(readFileSync(corpus)),auxiliarySha256:hash(readFileSync(auxiliaryCorpus)),lineageFingerprint}));
+  const combined=await diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,output:join(root,'combined')});
+  assert.deepEqual(combined.sheets,[]);assert.equal(combined.lineageFingerprint,lineageFingerprint);
 });
 
 test('diagnostic tile joins native probabilities, known masks, statistics and overlays',async()=>{
