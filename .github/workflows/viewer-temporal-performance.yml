@@ -36,7 +36,8 @@ jobs:
       - run: node --test tests/unit/builtin-source-cache.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Baseline-matched 20 adjacent transitions plus distant transitions
-        run: pnpm exec playwright test --config tests/browser/map-transition-baseline.config.mjs --grep "P0 unchanged map result, presentation latency and resources: ${{ matrix.profile }}" --workers=1 --retries=0 --reporter=list
+        run: |
+          pnpm exec playwright test --config tests/browser/map-transition-baseline.config.mjs --grep "P0 unchanged map result, presentation latency and resources: ${{ matrix.profile }}" --workers=1 --retries=0 --reporter=list
       - name: Preserve verified measurements
         if: always()
         uses: actions/upload-artifact@v4

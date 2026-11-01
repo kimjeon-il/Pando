@@ -32,7 +32,7 @@ jobs:
       - uses: ./.github/actions/library-data
       - name: Verify Viewer browser registration and dependency planner
         run: |
-          node scripts/run-application-checks.mjs --list --group viewer > /tmp/viewer-catalog.json
+          node scripts/run-application-checks.mjs --list --base HEAD --group viewer > /tmp/viewer-catalog.json
           node --test tests/unit/check-automation.test.mjs
   browser:
     needs: catalog
