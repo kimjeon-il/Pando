@@ -99,6 +99,12 @@ export function assertArtifactsCurrent(statuses,selected=Object.keys(statuses)) 
 
 function validationOrPresentationOnly(changes,graph) {
   const validationPaths=new Set([
+    '.github/actions/native-test-prerequisites/action.yml',
+    '.github/workflows/application-architecture.yml',
+    '.github/workflows/ui-architecture.yml',
+    '.github/workflows/place-runtime.yml',
+    '.github/workflows/remote-development-p1.yml',
+    '.github/workflows/viewer-functional-p6-1.yml',
     '.github/workflows/viewer-functional-p6-2.yml',
     '.github/workflows/integration-read-model-p6.yml',
     '.github/workflows/p6-preflight.yml',
@@ -107,6 +113,8 @@ function validationOrPresentationOnly(changes,graph) {
     'eslint.config.js',
     '.github/workflows/remote-preview-p3.yml',
     'scripts/run-boundary-revision-comparison.mjs',
+    'scripts/lib/native-test-prerequisites.mjs',
+    'scripts/prepare-native-test-tools.mjs',
     'scripts/lib/library-preparation-wait.mjs',
     'scripts/frontend-dev-server.mjs',
     'scripts/check-renderer-v2.mjs','scripts/lib/renderer-v2-architecture.mjs',

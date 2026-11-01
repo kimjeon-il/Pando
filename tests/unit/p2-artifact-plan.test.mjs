@@ -145,6 +145,61 @@ const integrationPresentationChanges=[
 ];
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
+const nativeValidationChanges=[
+  '.github/actions/native-test-prerequisites/action.yml',
+  'scripts/lib/native-test-prerequisites.mjs',
+  'scripts/prepare-native-test-tools.mjs',
+  '.github/workflows/viewer-functional-p6-1.yml',
+  '.github/workflows/application-architecture.yml',
+  '.github/workflows/ui-architecture.yml',
+  '.github/workflows/place-runtime.yml',
+  '.github/workflows/remote-development-p1.yml',
+];
+function nativeValidationFixture(t) {
+  const f=fixture(t);
+  f.put('tools/generate.mjs','export const generator=1;\n');
+  f.put('tools/check.mjs','export const validator=1;\n');
+  f.put('input/data.json','original');
+  const families=staleDataFamilyIds.map(id=>({id,dependencies:[],inputs:['input/data.json'],outputs:['out/'+id+'.txt'],
+    tools:[],generate:[['node','tools/generate.mjs']],validate:[['node','tools/check.mjs']]}));
+  const config=()=>f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families}));
+  config();for(const id of staleDataFamilyIds)f.put('out/'+id+'.txt','existing generated output');
+  artifactOwners.recordArtifactReceipts(f.root,{families:staleDataFamilyIds,sourceSha:'a'.repeat(40)});
+  f.put('input/data.json','previously changed data');
+  return {...f,families,config};
+}
+
+test('native CI-only pushes leave existing stale data diagnostics without scheduling generation',t=>{
+  const f=nativeValidationFixture(t),before=graphStatus(f.root);
+  assert.deepEqual(before.selectedFamilies,staleDataFamilyIds);
+  for(const path of nativeValidationChanges){
+    const result=plan(f.root,{changes:[path],event:'push'});
+    assert.equal(result.dataGenerationDeferred,true,path);
+    assert.deepEqual(result.selectedFamilies,[],path);assert.equal(result.wasm,false,path);
+    for(const id of staleDataFamilyIds){
+      assert.equal(result.statuses[id].needed,true,id);
+      assert.deepEqual(result.statuses[id].reasons,before.statuses[id].reasons,id);
+      assert.equal(result.statuses[id].inputFingerprint,before.statuses[id].inputFingerprint,id);
+    }
+  }
+});
+
+test('native CI-only exemptions never override declared generation ownership',t=>{
+  const f=nativeValidationFixture(t),path='scripts/lib/native-test-prerequisites.mjs';
+  f.put(path,'export const tool=1;\n');
+  for(const kind of ['input','generator','output']){
+    f.families[0].inputs=['input/data.json'];f.families[0].outputs=['out/territorial.txt'];
+    f.put('tools/generate.mjs','export const generator=1;\n');
+    if(kind==='input')f.families[0].inputs.push(path);
+    if(kind==='output')f.families[0].outputs.push(path);
+    if(kind==='generator')f.put('tools/generate.mjs','import "../'+path+'";\n');
+    f.config();
+    const result=plan(f.root,{changes:[path],event:'push'});
+    assert.equal(result.dataGenerationDeferred,false,kind);
+    assert.deepEqual(result.selectedFamilies,staleDataFamilyIds,kind);
+  }
+});
+
 function staleDataFixture(t) {
   const f=graphFixture(t),template=f.families[0];
   f.families.splice(0,f.families.length,...staleDataFamilyIds.map(id=>({
