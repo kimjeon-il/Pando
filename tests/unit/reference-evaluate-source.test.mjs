@@ -4,7 +4,7 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {evaluateReviewedCheckpointSource} from '../../tools/reference-analysis/native-evaluate-source.mjs';
+import {evaluateReviewedCheckpointCorpus,evaluateReviewedCheckpointSource} from '../../tools/reference-analysis/native-evaluate-source.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 test('source evaluation protects test scope and incomplete training ancestry',async t=>{
@@ -18,12 +18,20 @@ test('source evaluation protects test scope and incomplete training ancestry',as
   const sheet={id:'fixture',familyId:'family',editionId:'edition',duplicateGroup:'group',split:'test',image:'image.png',annotations:'labels.json',
     sha256:imageSha,language:'eng',script:'Latin',mapKind:'monochrome',source:{url:'https://example.test',license:'fixture'}};
   const manifest={schemaVersion:1,sheets:[sheet]};writeFileSync(corpus,JSON.stringify(manifest));
-  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,device:'cpu',checkpointSha256:sha('fixture checkpoint'),optimizerUpdates:1};
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,device:'cpu',checkpointSha256:sha('fixture checkpoint'),
+    corpusSha256:'a'.repeat(64),optimizerUpdates:1};
   const save=()=>writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));save();
   const request={checkpoint,corpus,sourceId:'fixture',device:'cpu',torchLibrary:root};
   await assert.rejects(evaluateReviewedCheckpointSource(request),/ancestry/i);
+  const protectedOutput=join(root,'protected.json');writeFileSync(protectedOutput,'keep');
+  await assert.rejects(evaluateReviewedCheckpointCorpus({...request,output:protectedOutput}),/output already exists/i);
+  assert.equal(readFileSync(protectedOutput,'utf8'),'keep');
+  await assert.rejects(evaluateReviewedCheckpointCorpus({...request,output:join(root,'new.json')}),/supervision channels/i);
+  receipt.unobservedMask=0;save();const baseline=join(root,'baseline.json');writeFileSync(baseline,'null');
+  await assert.rejects(evaluateReviewedCheckpointCorpus({...request,output:join(root,'new.json'),baselineReport:baseline}),/baseline report object/i);
   manifest.sheets[0].split='train';writeFileSync(corpus,JSON.stringify(manifest));
   await assert.rejects(evaluateReviewedCheckpointSource({...request,diagnosticOnly:true}),/final-test/i);
+  await assert.rejects(evaluateReviewedCheckpointCorpus({...request,output:join(root,'new.json')}),/final-test/i);
   receipt.optimizerUpdates=0;save();await assert.rejects(evaluateReviewedCheckpointSource(request),/checkpoint receipt/i);
   const controller=new AbortController();controller.abort();
   await assert.rejects(evaluateReviewedCheckpointSource(request,{signal:controller.signal}),{name:'AbortError'});
