@@ -112,6 +112,21 @@ export async function renderMacroPdf({path,maximumDimension},{signal,workspace=r
     throw Error('Macro PDF text and raster identity differs');
   return {...raster,rotation,textMask:text.mask,credits:text.credits};
 }
+export async function renderMacroStrokes({path,maximumDimension,signatures},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
+  signal?.throwIfAborted();
+  if(typeof path!=='string'||!path||!Number.isSafeInteger(maximumDimension)||maximumDimension<64||maximumDimension>4096||
+    !Array.isArray(signatures)||!signatures.length||signatures.length>64||signatures.some(row=>!row||!Array.isArray(row.color)||row.color.length!==3||
+      row.color.some(value=>typeof value!=='number'||!Number.isFinite(value)||value<0||value>1)||typeof row.width!=='number'||!Number.isFinite(row.width)||row.width<0||
+      !Array.isArray(row.dashes)||row.dashes.length>32||row.dashes.some(value=>typeof value!=='number'||!Number.isFinite(value)||value<0)))
+    throw Error('Explicit bounded macro stroke signatures required');
+  const encoded=signatures.map(row=>[...row.color,row.width,row.dashes.length,...row.dashes].join(',')).join(';');
+  const result=await operation({path,args:['macro-stroke',String(maximumDimension),encoded],signal,workspace,directory});
+  const {width,height,scale,rotation,selected}=result.header;
+  if(![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||!Number.isFinite(scale)||scale<=0||
+    ![0,90,180,270].includes(rotation)||!Number.isSafeInteger(selected)||selected<1||result.data.length!==width*height||result.data.some(value=>value>1))
+    throw Error('Macro stroke raster dimensions differ');
+  return {width,height,scale,rotation,mask:result.data,sourceSha256:result.sourceSha256};
+}
 export async function derivePublisherPdfTrainingLayers({path,maximumDimension},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
   signal?.throwIfAborted();
   if(typeof path!=='string'||!path||!Number.isSafeInteger(maximumDimension)||maximumDimension<32||maximumDimension>4096)

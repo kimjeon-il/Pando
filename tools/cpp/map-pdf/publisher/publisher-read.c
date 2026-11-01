@@ -113,6 +113,29 @@ static void fill_text(fz_context *ctx,fz_device *device,const fz_text *text,fz_m
 static void stroke_text(fz_context *ctx,fz_device *device,const fz_text *text,const fz_stroke_state *stroke,fz_matrix ctm,fz_colorspace *space,const float *color,float alpha,fz_color_params params){
     (void)stroke;(void)space;(void)color;(void)params;trace_text(ctx,(publisher_text_device*)device,text,ctm,alpha);
 }
+typedef struct {double color[3],width,dash[32];int dash_len;} macro_signature;
+typedef struct {fz_device base;fz_device *draw;macro_signature signatures[64];int count,selected;} macro_stroke_device;
+static int macro_number(const char **cursor,double *result){char *end;double number=strtod(*cursor,&end);
+    if(end==*cursor||!isfinite(number))return 0;*cursor=end;*result=number;return 1;}
+static int macro_signatures(macro_stroke_device *dev,const char *value){
+    while(*value){macro_signature *s;double n;int i;if(dev->count>=64)return 0;s=&dev->signatures[dev->count++];
+        for(i=0;i<3;i++){if(!macro_number(&value,&s->color[i])||s->color[i]<0||s->color[i]>1||*value++!=',')return 0;}
+        if(!macro_number(&value,&s->width)||s->width<0||*value++!=','||!macro_number(&value,&n)||n<0||n>32||floor(n)!=n)return 0;
+        s->dash_len=(int)n;for(i=0;i<s->dash_len;i++){if(*value++!=','||!macro_number(&value,&s->dash[i])||s->dash[i]<0)return 0;}
+        if(*value==';')value++;else if(*value)return 0;
+    }return dev->count>0;
+}
+static void macro_stroke_path(fz_context *ctx,fz_device *device,const fz_path *path,const fz_stroke_state *stroke,fz_matrix ctm,
+                             fz_colorspace *space,const float *color,float alpha,fz_color_params params){
+    macro_stroke_device *self=(macro_stroke_device*)device;float rgb[3],black[1]={0};int i,j;
+    (void)alpha;if(!space||!color)return;fz_convert_color(ctx,space,color,fz_device_rgb(ctx),rgb,NULL,params);
+    for(i=0;i<self->count;i++){const macro_signature *s=&self->signatures[i];
+        if(stroke->dash_len!=s->dash_len||fabs(stroke->linewidth-s->width)>.001)continue;
+        for(j=0;j<3;j++)if(fabs(rgb[j]-s->color[j])>.0001)break;if(j!=3)continue;
+        for(j=0;j<s->dash_len;j++)if(fabs(stroke->dash_list[j]-s->dash[j])>.001)break;if(j!=s->dash_len)continue;
+        self->selected++;fz_stroke_path(ctx,self->draw,path,stroke,ctm,fz_device_gray(ctx),black,1,params);return;
+    }
+}
 static fz_rect credit_character_bounds(fz_context *ctx,const fz_stext_line *line,const fz_stext_char *ch){
     fz_quad quad=ch->quad;float asc=fz_font_ascender(ctx,ch->font),desc=fz_font_descender(ctx,ch->font),range=asc-desc+FLT_EPSILON;
     if(!line->wmode&&range<1){
@@ -143,23 +166,23 @@ int main(int argc,char **argv){
     fz_context *ctx=NULL;fz_stream *stream=NULL;fz_document *document=NULL;fz_page *page=NULL;fz_pixmap *pixmap=NULL;
     fz_display_list *display_list=NULL;fz_device *draw_device=NULL;
     fz_buffer *configured=NULL;fz_output *configured_output=NULL;fz_stream *configured_stream=NULL;fz_document *configured_document=NULL;
-    fz_device *text_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;
+    fz_device *text_device=NULL,*stroke_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;
     unsigned char *input=NULL,*mask=NULL;size_t input_size=0;int status=1,render=0,maximum=0,mask_mode=0;
 #ifdef _WIN32
     if(_setmode(_fileno(stdin),_O_BINARY)==-1||_setmode(_fileno(stdout),_O_BINARY)==-1)return 1;
 #endif
     if(argc==5&&(!strcmp(argv[1],"compare")||!strcmp(argv[1],"finish")||!strcmp(argv[1],"rgba")))mask_mode=1;
     else if(argc==2&&!strcmp(argv[1],"inspect"))render=0;
-    else if((argc==4&&!strcmp(argv[1],"render"))||(argc==3&&(!strcmp(argv[1],"text")||!strcmp(argv[1],"macro-render")||!strcmp(argv[1],"macro-text")))){char *end=NULL;long value=strtol(argv[2],&end,10);
+    else if((argc==4&&(!strcmp(argv[1],"render")||!strcmp(argv[1],"macro-stroke")))||(argc==3&&(!strcmp(argv[1],"text")||!strcmp(argv[1],"macro-render")||!strcmp(argv[1],"macro-text")))){char *end=NULL;long value=strtol(argv[2],&end,10);
         if(!end||*end||value<32||value>4096){fprintf(stderr,"Invalid maximum dimension\n");return 1;}
-        render=argc==4?1:!strcmp(argv[1],"macro-render")?3:!strcmp(argv[1],"macro-text")?4:2;maximum=(int)value;}
+        render=!strcmp(argv[1],"macro-stroke")?5:argc==4?1:!strcmp(argv[1],"macro-render")?3:!strcmp(argv[1],"macro-text")?4:2;maximum=(int)value;}
     else{fprintf(stderr,"Expected inspect, text MAX_DIMENSION or render MAX_DIMENSION LAYER_BITS\n");return 1;}
     input=read_input(&input_size);if(!input){fprintf(stderr,"Unable to read PDF or input exceeds budget\n");return 1;}
     if(mask_mode){status=mask_operation(argv[1],argv[2],argv[3],argv[4],input,input_size);free(input);
         if(status)fprintf(stderr,"Invalid publisher mask input\n");return status;}
     ctx=fz_new_context(NULL,NULL,FZ_STORE_DEFAULT);if(!ctx){free(input);fprintf(stderr,"MuPDF context unavailable\n");return 1;}
     fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(display_list);fz_var(draw_device);fz_var(configured);fz_var(configured_output);fz_var(configured_stream);fz_var(configured_document);
-    fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
+    fz_var(text_device);fz_var(stroke_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
     fz_try(ctx){
         pdf_document *pdf;pdf_obj *object;int count,rotation,layers,i;
         fz_register_document_handlers(ctx);stream=fz_open_memory(ctx,input,input_size);
@@ -214,6 +237,17 @@ int main(int argc,char **argv){
                 printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"rotation\":%d}\n",width,height,factor,rotation);
                 for(y=0;y<height;y++)if(fwrite(samples+(size_t)y*stride,1,(size_t)width*3,stdout)!=(size_t)width*3)
                     fz_throw(ctx,FZ_ERROR_GENERIC,"Cannot write publisher raster");
+            }else if(render==5){macro_stroke_device *trace;int x;
+                pixmap=fz_new_pixmap_with_bbox(ctx,fz_device_gray(ctx),pixel_bounds,NULL,0);fz_clear_pixmap_with_value(ctx,pixmap,255);
+                draw_device=fz_new_draw_device(ctx,scale,pixmap);trace=fz_new_derived_device(ctx,macro_stroke_device);stroke_device=&trace->base;
+                trace->draw=draw_device;trace->count=0;trace->selected=0;trace->base.stroke_path=macro_stroke_path;
+                if(strlen(argv[3])>65536||!macro_signatures(trace,argv[3]))fz_throw(ctx,FZ_ERROR_ARGUMENT,"Invalid macro stroke signatures");
+                fz_run_page(ctx,page,stroke_device,fz_make_matrix(1,0,0,1,0,0),NULL);fz_close_device(ctx,stroke_device);fz_close_device(ctx,draw_device);
+                if(!trace->selected)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Catalogued macro boundary stroke is absent");
+                stride=fz_pixmap_stride(ctx,pixmap);samples=fz_pixmap_samples(ctx,pixmap);
+                printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"rotation\":%d,\"selected\":%d}\n",width,height,factor,rotation,trace->selected);
+                for(y=0;y<height;y++)for(x=0;x<width;x++)if(putchar(samples[(size_t)y*stride+x]<247?1:0)==EOF)
+                    fz_throw(ctx,FZ_ERROR_GENERIC,"Cannot write macro stroke mask");
             }else{publisher_text_device *trace;unsigned char *credit_bytes=NULL;size_t credit_size;fz_stext_options text_options={0};
                 mask=(unsigned char*)calloc((size_t)width*height,1);if(!mask)fz_throw(ctx,FZ_ERROR_SYSTEM,"Publisher text allocation failed");
                 trace=fz_new_derived_device(ctx,publisher_text_device);text_device=&trace->base;
@@ -230,7 +264,7 @@ int main(int argc,char **argv){
         }
         status=0;
     }
-    fz_always(ctx){fz_drop_buffer(ctx,credits);fz_drop_stext_page(ctx,text_page);fz_drop_device(ctx,text_device);free(mask);
+    fz_always(ctx){fz_drop_buffer(ctx,credits);fz_drop_stext_page(ctx,text_page);fz_drop_device(ctx,text_device);fz_drop_device(ctx,stroke_device);free(mask);
         fz_drop_device(ctx,draw_device);fz_drop_pixmap(ctx,pixmap);fz_drop_display_list(ctx,display_list);fz_drop_page(ctx,page);fz_drop_document(ctx,configured_document);fz_drop_stream(ctx,configured_stream);
         fz_drop_output(ctx,configured_output);fz_drop_buffer(ctx,configured);fz_drop_document(ctx,document);fz_drop_stream(ctx,stream);}
     fz_catch(ctx){fprintf(stderr,"Publisher PDF: %s\n",fz_caught_message(ctx));}

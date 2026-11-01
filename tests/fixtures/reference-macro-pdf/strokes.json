@@ -1,0 +1,37 @@
+{
+  "width": 160,
+  "height": 120,
+  "rows": [
+    {
+      "signatures": [
+        {
+          "color": [
+            0,
+            0,
+            0
+          ],
+          "width": 2,
+          "dashes": []
+        }
+      ],
+      "sha256": "362877c676312834f2768fc49b2915a53f5990f57632130e3fd3ab1319468866"
+    },
+    {
+      "signatures": [
+        {
+          "color": [
+            1,
+            0,
+            0
+          ],
+          "width": 2,
+          "dashes": [
+            5,
+            3
+          ]
+        }
+      ],
+      "sha256": "e7a5d4b4473e923fc26e98c507d44f423f00f70e35e51fa10d958ca84880bf6c"
+    }
+  ]
+}

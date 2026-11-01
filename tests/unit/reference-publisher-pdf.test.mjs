@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import test from 'node:test';
-import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg,extractPublisherPdfText,inspectPublisherPdf,renderMacroPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
+import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg,extractPublisherPdfText,inspectPublisherPdf,renderMacroPdf,renderMacroStrokes,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
 import {inspectNativeJpeg} from '../../tools/map-image/native-resample.mjs';
 import {deriveMacroFill} from '../../tools/reference-analysis/native-macro-fill.mjs';
 
@@ -39,6 +39,16 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
   await assert.rejects(renderPublisherPdfLayers({path,enabled:[],maximumDimension:16}),/dimension/i);
   assert.deepEqual(readFileSync(path),input);
   }
+});
+
+test('macro stroke signatures match original solid and dashed masks',async()=>{
+  const root=resolve('tests/fixtures/reference-macro-pdf'),path=resolve(root,'strokes.pdf');
+  const original=readFileSync(path),oracle=JSON.parse(readFileSync(resolve(root,'strokes.json'),'utf8'));
+  for(const row of oracle.rows){const actual=await renderMacroStrokes({path,maximumDimension:160,signatures:row.signatures});
+    assert.deepEqual([actual.width,actual.height],[oracle.width,oracle.height]);
+    assert.equal(createHash('sha256').update(actual.mask).digest('hex'),row.sha256);}
+  await assert.rejects(renderMacroStrokes({path,maximumDimension:160,signatures:[{color:[0,0,0],width:9,dashes:[]}]}),/absent/i);
+  assert.deepEqual(readFileSync(path),original);
 });
 
 test('macro PDF image and glyph masks match the original unrotated coordinate system',async()=>{
