@@ -5,7 +5,7 @@ import {existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeTrainingBatch,runMacroTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
+import {nativeTrainingBatch,runTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
 
 test('macro batch CLI refuses incomplete configuration without creating outputs',()=>{
   const result=spawnSync(process.execPath,['tools/reference-analysis/native-training-batch.mjs'],{encoding:'utf8',timeout:10000});
@@ -31,7 +31,7 @@ test('training batch management rejects changed samples and preserves existing o
   await assert.rejects(nativeTrainingBatch({...request,unobservedMask:undefined}),/configuration/i);
   await assert.rejects(nativeTrainingBatch({...request,amp:true}),/configuration/i);
   writeFileSync(output,'preserve');await assert.rejects(nativeTrainingBatch(request),/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
-  const sampleOutput=join(root,'prepared');await assert.rejects(runMacroTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false,supervision:join(root,'supervision')}),/exists/i);
+  const sampleOutput=join(root,'prepared');await assert.rejects(runTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false,supervision:join(root,'supervision')}),/exists/i);
   assert.equal(existsSync(sampleOutput),false);
   const changed={...request,output:join(root,'fresh.pt')};writeFileSync(join(sample,'target.f32'),'changed');
   await assert.rejects(nativeTrainingBatch(changed),/tensor changed/i);assert.equal(existsSync(changed.output),false);

@@ -10,9 +10,9 @@ import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
-import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
+import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
-import {verifyCombinedTrainingOrder,verifyMacroTrainingOrder} from './training-order.mjs';
+import {verifyCombinedTrainingOrder,verifyTrainingOrder} from './training-order.mjs';
 import {corpusFingerprint,readTrainingBounded as readBounded,trainingFileIdentity as identity} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 
@@ -49,9 +49,9 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
   if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {...state,cursor:0};
   throw Error('Checkpoint is not at the requested epoch boundary');
 }
-async function verifyEvidence(root,corpus,sample,data,{epoch,signal,allowPublisher=false}){
-  const {sheet,annotation,annotationSha256,imagePath,checks}=allowPublisher?
-    await verifiedPrimaryTrainingSource(root,corpus,data.sourceId,{allowPublisher:true,allowReviewed:true,signal}):await verifiedMacroTrainingSource(root,corpus,data.sourceId);
+async function verifyEvidence(root,corpus,sample,data,{epoch,signal,allowPublisher=false,allowReviewed=false}){
+  const {sheet,annotation,annotationSha256,imagePath,checks}=allowPublisher||allowReviewed?
+    await verifiedPrimaryTrainingSource(root,corpus,data.sourceId,{allowPublisher,allowReviewed,signal}):await verifiedMacroTrainingSource(root,corpus,data.sourceId);
   const sourceKind=annotation.origin==='publisher-layer-export'?'publisher-pdf':annotation.origin==='macro-vector-supervision'?'macro-pdf':'reviewed';
   if(data.sourceKind!==sourceKind||data.augmentationIndex!==data.tileIndex||sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||
     (sourceKind==='reviewed'?sheet.sha256!==data.sourceEvidenceSha256:annotation.sourceSha256!==data.sourceEvidenceSha256||
@@ -71,7 +71,7 @@ async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sa
   if(!tile||tile.index!==sample.index||data.sourceId!==tile.sourceId||data.augmentationIndex!==tile.localIndex||
     !Array.isArray(data.pixelOrigin)||data.pixelOrigin[0]!==tile.x||data.pixelOrigin[1]!==tile.y)
     throw Error('Combined source sample differs from its indexed tile');
-  if(tile.index<plan.datasets[0].length)return verifyEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true});
+  if(tile.index<plan.datasets[0].length)return verifyEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true,allowReviewed:true});
   const source=plan.auxiliarySources.find(row=>row.sheet.id===tile.sourceId);
   if(!source||data.sourceKind!=='semap-label'||typeof sample.augment!=='boolean')throw Error('Verified Semap sample required');
   const {sheet,annotation,checks}=source,labelName=basename(annotation.originalImageMember,'.jpg')+'.png';
@@ -85,12 +85,12 @@ async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sa
   return {record:{sourceId:data.sourceId,sourceKind:data.sourceKind,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,
     sourceEvidenceSha256:data.sourceEvidenceSha256,tileIndex:data.tileIndex,augmentationIndex:data.augmentationIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks};
 }
-export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,verifyEvidence:verifySourceEvidence,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
+export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,reviewed=false,verifyEvidence:verifySourceEvidence,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
   samples,device='cpu',amp=device==='cuda',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!torchLibrary||!['cpu','cuda'].includes(device)||
     ![epoch,seed,freezeEpochs].every(v=>Number.isSafeInteger(v)&&v>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
-    typeof amp!=='boolean'||(amp&&device!=='cuda')||!Number.isInteger(unobservedMask)||unobservedMask<0||unobservedMask>127||
+    typeof reviewed!=='boolean'||(reviewed&&auxiliary)||typeof amp!=='boolean'||(amp&&device!=='cuda')||!Number.isInteger(unobservedMask)||unobservedMask<0||unobservedMask>127||
     !Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit native training batch inputs and configuration required');
   const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
@@ -106,7 +106,8 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     if(data.tileIndex!==sample.index)throw Error('Training sample index differs from its tensor receipt');return data;});
   const corpusPath=resolve(corpus),corpusBytes=readBounded(corpusPath,32*1024*1024),corpusHash=sha(corpusBytes),manifest=JSON.parse(corpusBytes);
   if(manifest.schemaVersion!==1||!Array.isArray(manifest.sheets)||
-    (manifest.trainingOnly!==true&&(!auxiliary||macroOnly!==false)))throw Error('Explicit private training-only corpus required');
+    (manifest.trainingOnly!==true&&(!reviewed&&(!auxiliary||macroOnly!==false)))||
+    (reviewed&&manifest.trainingOnly===true))throw Error('Explicit private training-only corpus required');
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const combined=auxiliary?await verifyCombinedTrainingOrder({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,signal,verifyEvidence:verifySourceEvidence}):null;
   if(!auxiliary&&orderDirectory)throw Error('Auxiliary corpus required for combined training order');
@@ -119,7 +120,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const sourceRoot=dirname(corpusPath),evidence=[];
   for(let i=0;i<samples.length;i++)evidence.push(combined?
     await verifyCombinedEvidence(sourceRoot,manifest,dirname(resolve(auxiliary)),combined,samples[i],checked[i],{epoch,signal}):
-    await verifyEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal}));
+    await verifyEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal,allowReviewed:reviewed}));
   const ampScale=amp?(previous?previous.ampScale:65536):1,ampGrowth=amp?(previous?previous.ampGrowthTracker:0):0;
   if(!Number.isFinite(ampScale)||ampScale<=0||!Number.isInteger(ampGrowth)||ampGrowth<0||ampGrowth>=2000)throw Error('Checkpoint AMP state is invalid');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
@@ -175,7 +176,7 @@ export async function runCombinedTrainingBatch({count,sampleOutput,augment,...op
 }
 
 // Select and reconstruct one batch directly from its validated source corpus.
-export async function runMacroTrainingBatch({count,sampleOutput,augment,supervision,...options}){
+export async function runTrainingBatch({count,sampleOutput,augment,supervision,reviewed=false,...options}){
   const {mode,input,output,corpus,order,epoch,seed,freezeEpochs,learningRate,device='cpu',amp=device==='cuda',signal}=options;
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!sampleOutput||!supervision||!options.torchLibrary||typeof augment!=='boolean'||
@@ -183,19 +184,19 @@ export async function runMacroTrainingBatch({count,sampleOutput,augment,supervis
     ![epoch,seed,freezeEpochs].every(value=>Number.isSafeInteger(value)&&value>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
     !Number.isSafeInteger(count)||count<1||count>16)throw Error('Explicit native macro batch configuration required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json')||existsSync(sampleOutput))throw Error('Checkpoint, receipt or sample output exists; preserve it');
-  const checkedOrder=await verifyMacroTrainingOrder({corpus,order,supervision,epoch,seed,signal});
+  const checkedOrder=await verifyTrainingOrder({corpus,order,supervision,reviewed,epoch,seed,signal});
   const positiveWeights=checkedOrder.weightsPath,unobservedMask=checkedOrder.unobservedMask;
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData});
   const corpusHash=sha(readBounded(resolve(corpus),32*1024*1024));
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
-  const prepared=await prepareMacroTrainingBatch({corpus,order,cursor,count,epoch,augment,output:sampleOutput,signal});
-  const afterPreparation=await verifyMacroTrainingOrder({corpus,order,supervision,epoch,seed,signal});
+  const prepared=await prepareTrainingBatch({corpus,order,cursor,count,epoch,augment,reviewed,output:sampleOutput,signal});
+  const afterPreparation=await verifyTrainingOrder({corpus,order,supervision,reviewed,epoch,seed,signal});
   if(prepared.orderSha256!==orderData.hash||orderData.hash!==checkedOrder.orderSha256||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)
     throw Error('Training inputs changed before batch execution');
   if(afterPreparation.sourcesSha256!==checkedOrder.sourcesSha256||afterPreparation.weightsSha256!==checkedOrder.weightsSha256||afterPreparation.orderSha256!==checkedOrder.orderSha256)
     throw Error('Training source changed during batch preparation');
-  return nativeTrainingBatch({...options,device,amp,positiveWeights,unobservedMask,samples:prepared.samples});
+  return nativeTrainingBatch({...options,device,amp,reviewed,positiveWeights,unobservedMask,samples:prepared.samples});
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
@@ -204,17 +205,17 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       corpus:{type:'string'},auxiliary:{type:'string'},order:{type:'string'},'order-directory':{type:'string'},epoch:{type:'string'},seed:{type:'string'},'freeze-epochs':{type:'string'},
       'learning-rate':{type:'string'},supervision:{type:'string'},device:{type:'string'},precision:{type:'string'},
       'torch-library':{type:'string'},count:{type:'string'},'sample-output':{type:'string'},augment:{type:'boolean',default:false},
-      'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
+      reviewed:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
     const integer=name=>{const value=values[name];if(!/^\d+$/.test(value||''))throw Error('Explicit integer '+name+' required');return Number(value);};
     if(positionals.length||!['cpu','cuda'].includes(values.device)||!['fp32','amp-fp16'].includes(values.precision))throw Error('Explicit macro batch configuration required');
-    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.order||values.supervision))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and an order directory');
+    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.order||values.supervision||values.reviewed))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and an order directory');
     if(!values.auxiliary&&(values['allow-nonmacro-auxiliary']||values['order-directory']))throw Error('Auxiliary corpus required for combined scope');
     const common={mode:values.mode,input:values.input,output:values.output,corpus:values.corpus,
       epoch:integer('epoch'),seed:integer('seed'),freezeEpochs:integer('freeze-epochs'),learningRate:Number(values['learning-rate']),
       device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
       count:integer('count'),sampleOutput:values['sample-output'],augment:values.augment};
     const result=values.auxiliary?await runCombinedTrainingBatch({...common,auxiliary:values.auxiliary,orderDirectory:values['order-directory'],macroOnly:false}):
-      await runMacroTrainingBatch({...common,order:values.order,supervision:values.supervision});
+      await runTrainingBatch({...common,order:values.order,supervision:values.supervision,reviewed:values.reviewed});
     console.log(JSON.stringify(result));
   }catch(error){console.error('native-training-batch: '+error.message);process.exitCode=1;}
 }

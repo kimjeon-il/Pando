@@ -4,10 +4,10 @@ import {copyFileSync,existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} f
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {writeMacroTrainingSample,prepareMacroTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
+import {writeMacroTrainingSample,prepareTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
 import {indexTrainingDataset,trainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
-import {writeMacroTrainingSupervision,verifyMacroTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
-import {verifyMacroTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
+import {writeTrainingSupervision,verifyTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
+import {verifyTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 
 test('source-bound macro sample is generated from original pixels without overwriting',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-macro-sample-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -31,12 +31,12 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.deepEqual(supervision.unobservedChannels,[]);
   assert.deepEqual(supervision.positiveWeights.slice(0,4),[1,1,1,1]);
   const supervisionOutput=join(root,'supervision');
-  const stored=await writeMacroTrainingSupervision({corpus,output:supervisionOutput});
+  const stored=await writeTrainingSupervision({corpus,output:supervisionOutput});
   assert.equal(stored.unobservedMask,0);
-  assert.equal((await verifyMacroTrainingSupervision({corpus,directory:supervisionOutput})).unobservedMask,0);
-  await assert.rejects(writeMacroTrainingSupervision({corpus,output:supervisionOutput}),/exists/);
+  assert.equal((await verifyTrainingSupervision({corpus,directory:supervisionOutput})).unobservedMask,0);
+  await assert.rejects(writeTrainingSupervision({corpus,output:supervisionOutput}),/exists/);
   const weightsPath=join(supervisionOutput,'weights.f32'),weights=readFileSync(weightsPath);writeFileSync(weightsPath,Buffer.alloc(28));
-  await assert.rejects(verifyMacroTrainingSupervision({corpus,directory:supervisionOutput}),/weights/i);writeFileSync(weightsPath,weights);
+  await assert.rejects(verifyTrainingSupervision({corpus,directory:supervisionOutput}),/weights/i);writeFileSync(weightsPath,weights);
   const output=join(root,'sample'),request={corpus,sourceId:'fixture',tileIndex:0,x:0,y:0,augment:false,epoch:0,output};
   const result=await writeMacroTrainingSample(request),expected=JSON.parse(readFileSync(join(fixture,'expected.json'),'utf8'))[0];
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
@@ -45,18 +45,18 @@ test('source-bound macro sample is generated from original pixels without overwr
   const orderReceipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:stored.corpusSha256,
     sourcesSha256:sha(JSON.stringify(stored.sources)),weightsSha256:stored.weightsSha256,epoch:0,seed:42,length:1,orderSha256:sha(Buffer.alloc(8))};
   writeFileSync(order+'.receipt.json',JSON.stringify(orderReceipt));
-  assert.equal((await verifyMacroTrainingOrder({corpus,order,supervision:supervisionOutput,epoch:0,seed:42})).length,1);
-  const batch=await prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')});
+  assert.equal((await verifyTrainingOrder({corpus,order,supervision:supervisionOutput,epoch:0,seed:42})).length,1);
+  const batch=await prepareTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')});
   assert.equal(batch.samples.length,1);assert.equal(batch.samples[0].index,0);
   assert.equal(JSON.parse(readFileSync(join(batch.samples[0].directory,'sample.json'))).tensorSha256.tile,expected.hashes[0]);
-  await assert.rejects(prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')}),/exists/);
+  await assert.rejects(prepareTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'batch')}),/exists/);
   writeFileSync(order,Buffer.from([1,0,0,0,0,0,0,0]));
-  await assert.rejects(verifyMacroTrainingOrder({corpus,order,supervision:supervisionOutput,epoch:0,seed:42}),/order/i);
-  await assert.rejects(prepareMacroTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'invalid')}),/index/);
+  await assert.rejects(verifyTrainingOrder({corpus,order,supervision:supervisionOutput,epoch:0,seed:42}),/order/i);
+  await assert.rejects(prepareTrainingBatch({corpus,order,cursor:0,count:1,epoch:0,augment:false,output:join(root,'invalid')}),/index/);
   assert.equal(existsSync(join(root,'invalid')),false);
   writeFileSync(join(root,'source.pdf'),'changed');
   await assert.rejects(writeMacroTrainingSample({...request,output:join(root,'next')}),/PDF hash changed/);
   await assert.rejects(indexTrainingDataset(corpus),/PDF hash changed/);
-  await assert.rejects(verifyMacroTrainingSupervision({corpus,directory:supervisionOutput}),/PDF hash changed/);
+  await assert.rejects(verifyTrainingSupervision({corpus,directory:supervisionOutput}),/PDF hash changed/);
   assert.equal(existsSync(join(root,'next')),false);
 });

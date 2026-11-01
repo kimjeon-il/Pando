@@ -133,7 +133,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     const validated=await validateSemapTrainingCorpus({...auxiliaryManifest,sheets:matches},dirname(auxiliaryPath),{signal});
     ({sheet,annotation,checks}=validated.sources[0]);
   }else{
-    verified=await verifiedPrimaryTrainingSource(root,manifest,sourceId,{allowPublisher:true,allowReviewed:combined,signal,workspace,imageDirectory,reviewDirectory});
+    verified=await verifiedPrimaryTrainingSource(root,manifest,sourceId,{allowPublisher:true,allowReviewed:true,signal,workspace,imageDirectory,reviewDirectory});
     ({sheet,annotation,checks}=verified);primaryReviewed=manifest.trainingOnly!==true;
     recheckTrainingSources(checks);
   }
@@ -192,7 +192,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   const viewPath=resolve(reviewCorpus||(viewCorpus==='auxiliary'?auxiliaryCorpus:corpus)),viewBytes=readTrainingBounded(viewPath,32*1024*1024);
   const viewHash=createHash('sha256').update(viewBytes).digest('hex'),view=JSON.parse(viewBytes);
   if(!Array.isArray(view.sheets)||!view.sheets.length||view.sheets.length>100000)throw Error('Nonempty bounded diagnostic sources required');
-  if(!reviewCorpus&&view.trainingOnly!==true&&(!auxiliaryCorpus||view.sheets.some(sheet=>sheet.split!=='train')))throw Error('Training-only corpus required');
+  if(!reviewCorpus&&view.trainingOnly!==true&&view.sheets.some(sheet=>sheet.split!=='train'))throw Error('Training-only corpus required');
   const ids=view.sheets.map(sheet=>sheet?.id);
   if(ids.some(id=>typeof id!=='string'||!id||id.length>512||id==='.'||id==='..'||/[\\/\u0000-\u001f]/u.test(id)))
     throw Error('Safe diagnostic source identifiers required');

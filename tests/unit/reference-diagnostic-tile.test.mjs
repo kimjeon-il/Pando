@@ -101,7 +101,7 @@ test('macro diagnostics refuse a checkpoint for a different corpus before execut
   await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/checkpoint initializer/i);
   receipt.initializationWeightsSha256='0'.repeat(64);writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
   await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/checkpoint initializer/i);
-  await assert.rejects(diagnoseMacroTrainingSource(request),/training-only corpus/i);
+  await assert.rejects(diagnoseMacroTrainingSource(request),/schemaVersion|training-only corpus/i);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--macro-source','--corpus',corpus,
     '--source','fixture','--checkpoint',checkpoint,'--output',folder,'--device','cpu','--torch-library',folder],{encoding:'utf8'});
   assert.notEqual(cli.status,0);assert.match(cli.stderr,/output exists/i);

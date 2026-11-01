@@ -102,6 +102,11 @@ tested initializer and mixed inputs, CUDA FP16 overflowed
 in both the Python and native models; explicitly choose FP32 for this case.
 This is a provisional training path, not a model release or accuracy claim.
 
+Reviewed-only training uses the same source-bound supervision, order and campaign
+owners. Pass `--reviewed` to `training-supervision.mjs` and
+`native-training-sequence.mjs`; omit the auxiliary arguments. Existing reviewed
+source files and output checkpoints are never overwritten.
+
 For a checkpoint trained with an auxiliary Semap corpus, provide the original
 `--auxiliary-corpus` together with `--corpus`. Both manifests and their combined
 source fingerprint must match its checkpoint receipt. `--view-corpus auxiliary`
