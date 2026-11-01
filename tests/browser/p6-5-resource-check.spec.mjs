@@ -12,6 +12,7 @@ const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('h
 async function ready(page,month){
   await expect.poll(()=>page.evaluate(()=> {
     const viewer=globalThis.__PANDOLAB_VIEWER__,renderer=viewer?.rendererStats?.();
+    const runtime=viewer?.p65RendererRuntime?.(),rendering=viewer?.p65RenderingStats?.();
     return {
       month:viewer?.builtinMonth?.().month??null,
       cursor:viewer?.documentState?.().timelineCursor??null,
@@ -19,9 +20,9 @@ async function ready(page,month){
       renderer:renderer?.renderer??null,
       canonical:renderer?.canonicalMeshReady??false,
       pendingBoundary:renderer?.countrySharedBoundaryReplacementPending??null,
-      pendingTemporal:renderer?.temporalPresentationPending??null,
-      uploadPending:renderer?.uploads?.pending??null,
-      uploadActive:renderer?.uploads?.active??null,
+      pendingTemporal:runtime?.temporalPresentationPending??null,
+      uploadPending:rendering?.uploads?.pending??null,
+      uploadActive:rendering?.uploads?.active??null,
     };
   }),{timeout:90000,intervals:[250,500,1000]}).toEqual({
     month,cursor:month,ready:'true',renderer:'webgl2',canonical:true,
@@ -41,6 +42,7 @@ async function sample(page,cdp,probe,label){
   const main=await cdp.send('Runtime.getHeapUsage');
   const app=await page.evaluate(()=> {
     const renderer=globalThis.__PANDOLAB_VIEWER__.rendererStats();
+    const rendering=globalThis.__PANDOLAB_VIEWER__.p65RenderingStats();
     const sourceCache=globalThis.__PANDOLAB_VIEWER__.p65SourceCacheStats();
     const meshVariantBytes=renderer.meshVariantBytes||{};
     return {
@@ -48,7 +50,7 @@ async function sample(page,cdp,probe,label){
       visible:globalThis.__PANDOLAB_VIEWER__.visibleTerritorialCount(),
       renderer:renderer.renderer,
       activeWebGlContextCount:renderer.activeWebGlContextCount,
-      uploads:{pending:renderer.uploads?.pending??null,active:renderer.uploads?.active??null},
+      uploads:{pending:rendering.uploads?.pending??null,active:rendering.uploads?.active??null},
       meshVariantCount:Object.keys(meshVariantBytes).length,
       meshVariantBytes:Object.values(meshVariantBytes).reduce((sum,value)=>sum+(Number(value)||0),0),
       polygonResourceCount:renderer.polygonOverlay?.resourceCount??null,
@@ -98,7 +100,7 @@ test('P6-5 six adjacent year round trips keep active resources bounded across th
     const anchor='diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:';
     if(source.split(anchor).length!==2)throw Error('P6-5 Viewer cache observation anchor changed');
     source=source.replace(anchor,
-      'diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),p65SourceCacheStats:()=>owners.builtinSession.sourceCacheStats(),visibleTerritorialCount:');
+      'diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),p65RendererRuntime:()=>map.renderer.getRuntimeState(),p65RenderingStats:()=>map.renderingDomain.getStats(),p65SourceCacheStats:()=>owners.builtinSession.sourceCacheStats(),visibleTerritorialCount:');
     await route.fulfill({response,body:source});
   });
   let cdp,probe,failure=null;
