@@ -115,3 +115,27 @@ test('polar repair updates only changed shade and remains stable',
     assert.equal(await restoreDemPolarGutterShade({output:root,source,levels:[level],strict:false}),0);
   }finally{await rm(root,{recursive:true,force:true});}
 });
+
+test('high-resolution polar repair matches frozen Python shade rows',
+  {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY||!process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||
+        !process.env.PANDO_MAP_IMAGE_ARTIFACT||!process.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY},async()=>{
+  const {generateTerrainDemLevel}=await import('../../tools/gis/terrain-dem-build.mjs');
+  const root=await mkdtemp(join(tmpdir(),'pando-dem-polar-high-'));
+  try{
+    const fixture=JSON.parse(await readFile('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
+    const source=join(root,'source.tif');await writeFile(source,Buffer.from(fixture.sources.valid,'base64'));
+    const level={id:0,width:8,height:1351,tileSize:1351,columns:1,rows:1};
+    await generateTerrainDemLevel({source,output:root,level,strict:false});
+    const path=join(root,'0','0-0.webp'),before=await readNativeRawWebp(await readFile(path));
+    await restoreDemPolarGutterShade({output:root,source,levels:[level],strict:false});
+    const after=await readNativeRawWebp(await readFile(path)),expected=Buffer.from('09PU1NTU1NTT0w==','base64');
+    assert.equal(after.width,10);assert.equal(after.height,1353);
+    for(let x=0;x<after.width;x++){
+      assert.equal(after.data[x*4+2],expected[x]);
+      assert.equal(after.data[((after.height-1)*after.width+x)*4+2],expected[x]);
+    }
+    for(let i=0;i<after.data.length;i++)if(i%4!==2||Math.floor(i/4/after.width)>0&&Math.floor(i/4/after.width)<after.height-1)
+      assert.equal(after.data[i],before.data[i]);
+    assert.equal(await restoreDemPolarGutterShade({output:root,source,levels:[level],strict:false}),0);
+  }finally{await rm(root,{recursive:true,force:true});}
+});
