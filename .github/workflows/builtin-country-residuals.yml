@@ -6,9 +6,12 @@ on:
       - '.github/workflows/builtin-country-residuals.yml'
       - 'tests/unit/builtin-country-residuals.test.mjs'
       - 'tests/unit/builtin-country-materialization.test.mjs'
+      - 'tests/unit/prepared-input-verification.test.mjs'
       - 'tools/gis/prepare-water-object-history.mjs'
       - 'tools/library-runtime-index.mjs'
       - 'tools/library-data.mjs'
+      - 'scripts/lib/prepared-input-verification.mjs'
+      - 'scripts/p2-validate-artifacts.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,5 +30,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify residual architecture and archive preparation without network data
-        run: node --test tests/unit/builtin-country-residuals.test.mjs tests/unit/builtin-country-materialization.test.mjs
+      - name: Verify residual architecture, archive preparation and prepared input reads without network data
+        run: |
+          node --check scripts/p2-validate-artifacts.mjs
+          node --test tests/unit/builtin-country-residuals.test.mjs tests/unit/builtin-country-materialization.test.mjs tests/unit/prepared-input-verification.test.mjs

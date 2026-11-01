@@ -36,4 +36,28 @@ self-review; no independent reviewer or native execution is claimed.
 Red evidence: af0fd323 reproduces the water migration dependency. At 3499cee5,
 preparation fails when the archived aggregate is unavailable even though all
 current country parts exist. The historical-pin restore case still passes.
-Final execution results are recorded by the branch CI and completion response.
+
+## Verified cleanup
+
+Workflow run 41262762156 applied the exact reviewed patch and committed 9be5c6d.
+It passed 18 focused Node tests (6 residual/materialization, 3 archive storage,
+7 real country readers with retired-file reads forbidden, 1 Pages staging and
+1 App fixture loading), plus the actual Chromium editor name-edit/Undo/save/reopen
+scenario with every builtin country request blocked. The actual data pin stayed
+2b5c0617f80a9571fde06fe331b8d0022c8932cf. All 291 active country files were present;
+335 unreferenced historical builtin files were absent from the runtime view while
+the complete archive stayed preserved. The one-shot apply workflow and script
+were removed by that verified commit, not retained as another production path.
+
+## Prepared-input verifier
+
+A final residual was the P2 prepared-mesh input hash loop reading logical original
+country paths directly. scripts/lib/prepared-input-verification.mjs now resolves
+those identities through the current catalog and the shared country-parts reader.
+It verifies both physical parts and the complete original hash. Retired aggregate
+and unreferenced country paths are rejected; ordinary input and stale-hash checks
+remain exact. This does not regenerate meshes, update their pins or bless stale
+source evidence. The full P2 workflow is not a phase-4 completion claim.
+Five isolated tests failed before the helper existed and passed with the exact
+production country reader and file-contract blobs. The read-only residual workflow
+also includes these tests; unchanged browser/geometry checks are not repeated.
