@@ -106,9 +106,11 @@ export function instrumentMapBaselineSource(source, name) {
     next = replaceExactlyOnce(next, 'productMode,documentState:',
       'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),p0BuildMeta:()=>runtimeContext.meta,productMode,documentState:');
   } else if (name === 'builtin-session.js') {
-    around('const {project}=await builtinWorldLoader.loadProject(month,{isCurrent});', 'country-read-assemble');
-    around('const decoded=new TextEncoder().encode(JSON.stringify(project));', 'serialize');
-    around("const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',sourceBytes))].map(value=>value.toString(16).padStart(2,'0')).join('');", 'source-hash');
+    around(`const {project}=await builtinWorldLoader.loadProject(month,{isCurrent,
+        concurrency:background?1:6,waitForIdle:background?waitForIdle:null});`, 'country-read-assemble');
+    around('const bytes=new TextEncoder().encode(JSON.stringify(project));', 'serialize');
+    around(`const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
+        .map(value=>value.toString(16).padStart(2,'0')).join('');`, 'source-hash');
     around('const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});', 'core-baseline');
   } else if (name === 'project-domain.js') {
     around('await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);', 'core-load');
