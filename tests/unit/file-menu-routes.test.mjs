@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
 import { createFileController } from "../../shared/frontend/js/modules/file-controller.js";
 import {renderProductHtml} from '../../scripts/lib/product-html.mjs';
+import {createBrowserFileAccessFixture} from '../helpers/file-transport-fixtures.mjs';
 const {File}=globalThis;
 
 test('topbar separates history, file, view, settings and help commands', () => {
@@ -34,12 +34,12 @@ test('topbar separates history, file, view, settings and help commands', () => {
 });
 
 test('file inputs pass explicit source intent without changing the import target', async () => {
-  const input=()=>({listeners:{},files:[new File(['project'],'test.gpkg')],value:'',click(){},addEventListener(name,fn){this.listeners[name]=fn;},removeEventListener(name){delete this.listeners[name];}});
-  const elements = { input: input(), projectInput: input(), projectOpen: { id: 'openProjectBtn', focus() {} } };
+  const file=new File(['project'],'test.gpkg');
+  const fixture=createBrowserFileAccessFixture({productMode:'editor',autoPick:false,projectFiles:()=>[file],gisFiles:()=>[file]}),elements=fixture.elements;
   const intents = [];
-  const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message), elements,fileAccess:createBrowserFileAccess({productMode:'editor',elements}),readProject:async file=>file,projectDomain:{open:async read=>{intents.push('project');return read();}},onFiles:async(_files,options)=>intents.push(options.sourceKind) });
+  const controller = createFileController({productMode:'editor',reportOperationError:error=>assert.fail(error.message), elements,fileAccess:fixture.access,readProject:async file=>file,projectDomain:{open:async read=>{intents.push('project');return read();}},onFiles:async(_files,options)=>intents.push(options.sourceKind) });
   controller.bind();
-  const project=controller.openProjectPicker();elements.projectInput.listeners.change();await project;
-  const gis=controller.openPicker();elements.input.listeners.change();await gis;
+  const project=controller.openProjectPicker();fixture.fire('project','success',[file]);await project;
+  const gis=controller.openPicker();fixture.fire('gis','success',[file]);await gis;
   assert.deepEqual(intents, ['project', 'vector']);
 });
