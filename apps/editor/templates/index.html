@@ -157,9 +157,6 @@
       </main>
 
       <aside id="editorSurface" class="sidebar editor-drawer editor-panel workspace-surface surface-editor ui-sheet" aria-labelledby="editSheetTitle" data-od-id="editor-panel" data-editor-content="properties">
-        <header class="surface-header">
-          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="editorSurface" aria-label="편집창 높이 조절" data-tooltip="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
-        </header>
         <div id="editorTaskSlot" class="editor-task-slot" hidden>
           <div id="modeEditingContext" class="mode-editing-context hidden">
             <section id="modeEditingHud" class="ui-workflow-shell workflow-map-session mode-task-window" role="region" aria-label="지도 편집 작업">
@@ -249,6 +246,9 @@
             </section>
           </div>
         </div>
+        <header class="surface-header">
+          <button class="ui-button sheet-drag-handle" type="button" role="slider" data-sheet-handle="editorSurface" aria-label="편집창 높이 조절" data-tooltip="편집창 높이 조절" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1" aria-valuetext="중간 높이"><span aria-hidden="true"></span></button>
+        </header>
         <strong id="editSheetTitle" hidden>편집</strong>
 
         <span id="editorTimelineContext" class="editor-timeline-context" aria-live="polite"></span>
