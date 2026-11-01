@@ -27,3 +27,23 @@ test('prepared Canvas Worker frames are requested only for a live current projec
     /renderCanvasWorker\(lastVisualFrame\)/])assert.match(handoff,contract);
   assert.doesNotMatch(handoff,/commitVisualFrame\(|recordMapPresentation\(|countriesPublishedGeneration\s*=/);
 });
+
+test('Canvas Worker submits the latest view when a drag finishes',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
+  const renderStart=source.indexOf('    function renderCanvasWorker(visualFrame) {');
+  const renderEnd=source.indexOf('\n    // Reconnect an asynchronously prepared physical scene',renderStart);
+  const latestStart=source.indexOf('    function prioritizeLatest() {');
+  const latestEnd=source.indexOf('\n    function ',latestStart+1);
+  assert.ok(renderStart>=0&&renderEnd>renderStart&&latestStart>=0&&latestEnd>latestStart);
+  const create=new Function(`
+    let interactionActive=false, rendererMode='canvas-worker', lastVisualFrame=null;
+    const sent=[], canvasWorker={queueFrame:frame=>sent.push(frame)};
+    const resize=()=>{}, syncCanvasWorkerState=()=>{}, canvasWorkerViewMessage=frame=>frame||lastVisualFrame;
+    ${source.slice(renderStart,renderEnd)}
+    ${source.slice(latestStart,latestEnd)}
+    return {sent, move:frame=>{lastVisualFrame=frame;renderCanvasWorker(frame);},
+      begin:()=>{interactionActive=true;}, finish:()=>{interactionActive=false;prioritizeLatest();}};
+  `);
+  const h=create();h.move({id:0});h.begin();h.move({id:1});h.move({id:2});h.finish();
+  assert.deepEqual(h.sent.map(frame=>frame.id),[0,2]);
+});

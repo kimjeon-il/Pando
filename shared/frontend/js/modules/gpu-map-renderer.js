@@ -632,6 +632,7 @@ export function createGpuMapRenderer(deps) {
     let terrainFallbackReason = null;
     let terrainFallbackPending = false;
     let canvasTerrainStats = {};
+    let canvasTerrainEverReady = false;
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
       tileUrl: spec => {
@@ -4697,6 +4698,9 @@ export function createGpuMapRenderer(deps) {
       const view = frame.viewState;
       return {
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
+        // The initial physical background can remain visible while the first
+        // complete terrain loads. Later view changes keep progressive terrain.
+        deferIncompleteTerrain: temporalPending() || !canvasTerrainEverReady,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),
         projection: frame.projection,
@@ -4788,7 +4792,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     function renderCanvasWorker(visualFrame) {
-      if (!canvasWorker) return;
+      // A synchronous terrain paint cannot be interrupted by newer Worker
+      // messages. Keep the current bitmap during a drag and let the existing
+      // movement-end handoff submit the latest camera, not an intermediate one.
+      if (!canvasWorker || interactionActive) return;
       resize(visualFrame);
       syncCanvasWorkerState();
       canvasWorker.queueFrame(canvasWorkerViewMessage(visualFrame));
@@ -4950,6 +4957,7 @@ export function createGpuMapRenderer(deps) {
         }
         canvasDisplayedStyleRevision = Number(message.styleRevision || 0);
         canvasTerrainStats = message.terrainStats || {};
+        if (canvasTerrainStats.terrainReady) canvasTerrainEverReady = true;
         Object.assign(window.__PANDOLAB_GPU_METRICS__ ||= {}, canvasTerrainStats);
         displayedRenderRevision = revision;
         // Actual Worker bitmap provenance, not the renderer's newest scene,
@@ -4985,6 +4993,7 @@ export function createGpuMapRenderer(deps) {
       cancelGpuRecoveryPresentation();
       cancelSharedGpuInitialization('canvas-fallback');
       canvasWorkerNeedsRestart = false;
+      canvasTerrainEverReady = false;
       canvasSentGeometry.clear();
       canvasLastCountryDependencies = null;
       const rawReason = String(reason || '');

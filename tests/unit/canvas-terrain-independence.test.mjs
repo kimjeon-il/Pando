@@ -13,6 +13,24 @@ const manifest = { gutter: 1, urlTemplate: 'terrain/v0.12.6/{level}/{column}-{ro
 ] };
 const settle = async () => { for (let i = 0; i < 24; i++) await Promise.resolve(); };
 
+test('Canvas chooses software backing only when hardware acceleration is unavailable', () => {
+  const source=workerSource.replaceAll('\r\n','\n');
+  const start=source.indexOf('    function preferSoftwareCanvas() {');
+  const end=source.indexOf('\n    function createCanvasPath(',start);
+  assert.ok(start>=0&&end>start);
+  const evaluate=new Function('OffscreenCanvas',source.slice(start,end)+'\nreturn preferSoftwareCanvas();');
+  const probe=renderer=>class {getContext(){return {getExtension(name){
+    if(name==='WEBGL_debug_renderer_info')return {UNMASKED_RENDERER_WEBGL:1};
+    if(name==='WEBGL_lose_context')return {loseContext(){}};
+    return null;
+  },getParameter(){return renderer;}};}};
+  assert.equal(evaluate(probe('ANGLE (NVIDIA, GeForce GTX 1650, Direct3D11)')),false);
+  assert.equal(evaluate(probe('ANGLE (Google, Vulkan SwiftShader)')),true);
+  assert.equal(evaluate(probe('llvmpipe')),true);
+  assert.equal(evaluate(class {getContext(){return null;}}),true);
+  assert.equal(evaluate(class {getContext(){throw Error('unavailable');}}),true);
+});
+
 function canvasTerrainRuntime({ expectDem = false } = {}) {
   const messages = [], requests = [], drawn = [], paths = [], substrates = [], triangleCopies = [];
   class Canvas {
@@ -30,7 +48,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
       }
       return this.ctx;
     }
-    transferToImageBitmap() { return { close() {} }; }
+    transferToImageBitmap() { return { bitmap: true, width: this.width, height: this.height, close() {} }; }
   }
   function projection() {
     let scale = 350, translate = [500, 300], center = [0, 0];
@@ -149,6 +167,10 @@ test('Canvas Worker echoes the revisions of the physical packets it actually pai
   const copied=scene.map(value=>({...value,ringCoordinates:new Float64Array(value.ringCoordinates)}));
   h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
   assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,'unchanged source retains its Worker geometry');
+  h.render({scenePolygons:delta([],'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,
+    'a temporarily absent physical scene does not discard unchanged land geometry');
   copied[0]={...copied[0],sourceKey:'source:physical-land:land-v3',geometryRevision:'land-v3',
     ringCoordinates:new Float64Array([0,0,2,0,2,1,0,0])};
   h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
@@ -174,6 +196,17 @@ test('Canvas terrain skips wholly offscreen triangles while keeping crossing and
   h.drawTriangle([[-100, 300], [1100, 300], [500, -100]]);
   h.drawTriangle([[-.5, 0], [-.2, 10], [-.5, 20]]);
   assert.equal(h.triangleCopies.length, 3, 'viewport crossings and the existing 0.75px clip overlap remain visible');
+});
+
+test('Canvas reuses immutable terrain images for repeated projection', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  const view = { terrainDpr: 1, renderProjection: {scale: 100, translate: [500, 300]} };
+  h.render(view);
+  await h.deliver(h.find('/0/0-0.webp'));
+  h.drawn.length = 0;
+  h.render(view);
+  assert.ok(h.drawn.length > 0);
+  assert.ok(h.drawn.every(args => args[0].bitmap), 'projected tiles use immutable image bitmaps');
 });
 
 test('Canvas terrain demand ignores country preview and backing DPR, but follows source DPR', async () => {
@@ -215,6 +248,58 @@ test('Canvas retains ready world tiles across zoom thresholds while target detai
   h.drawn.length = 0;
   h.render({ physicalSettings: { terrainVisible: false, terrainStyle: 'political' } });
   assert.equal(h.drawn.length, 0, 'explicit terrain visibility still controls painting');
+});
+
+test('temporal Canvas transitions request missing tiles without painting discarded incomplete terrain', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  const view = { deferIncompleteTerrain: true, terrainDpr: 1,
+    renderProjection: { scale: 503, translate: [500, 300] } };
+  h.render(view);
+  await h.deliver(h.requests.find(request => !request.completed));
+  h.drawn.length = 0;
+  h.render(view);
+  assert.equal(h.drawn.length, 0, 'partial terrain cannot be presented during a temporal transition');
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
+  for (let round = 0; round < 30 && !h.messages.at(-1).terrainStats.terrainReady; round++) {
+    const request = h.requests.find(item => !item.completed);
+    assert.ok(request, 'missing tiles must continue loading');
+    await h.deliver(request);
+    h.render(view);
+  }
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, true);
+  assert.ok(h.drawn.length > 0, 'the complete terrain is painted before its frame is admitted');
+});
+
+test('temporal frames without physical land retain the completed terrain for the next frame', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  const view = { terrainDpr: 1, renderProjection: {scale: 100, translate: [500, 300]} };
+  h.render(view);
+  await h.deliver(h.find('/0/0-0.webp'));
+  await h.deliver(h.find('/0/1-0.webp'));
+  h.render(view);
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, true);
+  h.drawn.length = 0;
+  h.render({...view, deferIncompleteTerrain: true, scenePolygons: []});
+  assert.equal(h.drawn.length, 0, 'a frame without physical land cannot repaint terrain');
+  h.render({...view, deferIncompleteTerrain: true, scenePolygons: [h.land]});
+  assert.equal(h.drawn.length, 0, 'the matching complete terrain remains reusable');
+});
+
+test('physical terrain reuses its projected base when only the land mask changes', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  const view = { terrainDpr: 1, physicalSettings: {terrainVisible: true, terrainStyle: 'physical'},
+    renderProjection: {scale: 100, translate: [500, 300]} };
+  h.render(view);
+  await h.deliver(h.find('/0/0-0.webp'));
+  await h.deliver(h.find('/0/1-0.webp'));
+  h.render(view);
+  assert.equal(h.messages.at(-1).terrainStats.terrainReady, true);
+  h.drawn.length = 0;
+  const changedLand = {...h.land, geometry: {type: 'Polygon', coordinates: [[[0,0],[3,0],[3,1],[0,0]]]}};
+  h.render({...view, scenePolygons: [changedLand]});
+  assert.equal(h.drawn.length, 0, 'a new land mask must not reproject unchanged base tiles');
+  h.render({...view, renderProjection: {scale: 110, translate: [500, 300]}, scenePolygons: [changedLand]});
+  assert.ok(h.drawn.length > 0, 'camera changes must invalidate the projected base');
 });
 
 test('Canvas acknowledges the physical substrate before resuming terrain in the canonical submission', async () => {
