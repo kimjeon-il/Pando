@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'node:test';
 import {countAnnotationTrainingSupervision,listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
-import {countNativeTrainingSupervision,prepareNativeTrainingTile,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,encodeNativeGrayPng,prepareNativeTrainingTile,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 
 test('native supervision counts only target pixels inside known regions',async()=>{
   const target={width:3,height:1,data:Buffer.from([1,2,127])},known={width:3,height:1,data:Buffer.from([1,3,0])};
@@ -52,6 +54,15 @@ test('training tile selection keeps supervised areas and excludes unknown padded
   const annotation={width:600,height:16,known:{international:[[[0,0],[49,0],[49,15],[0,15]]]},lines:[],ignore:[]};
   assert.deepEqual((await listReviewedTrainingTiles(annotation)).map(row=>row.x),[0]);
   assert.deepEqual((await listReviewedTrainingTiles(annotation,{supervisedOnly:false})).map(row=>row.x),[0,448]);
+});
+
+test('raster training excludes a tile without any known channel',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-training-unknown-'));t.after(()=>rm(root,{recursive:true}));
+  const bytes=await encodeNativeGrayPng({width:32,height:24,data:Buffer.alloc(32*24)});
+  await writeFile(join(root,'known.png'),bytes);
+  const annotation={origin:'publisher-layer-export',width:32,height:24,validRaster:{path:'known.png',sha256:createHash('sha256').update(bytes).digest('hex')}};
+  assert.deepEqual(await listRasterTrainingTiles({root,annotation}),[]);
+  assert.deepEqual((await listRasterTrainingTiles({root,annotation},{supervisedOnly:false})).map(({x,y})=>[x,y]),[[0,0]]);
 });
 
 test('Python dataset index uses full-sheet rounding at fractional tile edges',async()=>{
