@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {randomUUID} from 'node:crypto';
 import { createProbeStorage } from '../probe-storage.js';
 import { createNativeStorage, encodeBytes, decodeBytes } from '../native-storage.js';
+import {DOCUMENT_TRANSFER_COMMANDS,DOCUMENT_TRANSFER_LIMITS} from '../document-transfer-contract.js';
 const writeProject=async(storage,blob)=>(await storage.prepareProjectSave()).write(blob);
 
 function simulatedNative(files = [], path = 'C:/picked.gpkg') {
@@ -11,19 +12,19 @@ function simulatedNative(files = [], path = 'C:/picked.gpkg') {
   let next = 0;
   const invoke = async (command, args = {}) => {
     events.push(command);
-    if (command === 'begin_document_write') { writing.set(++next,[]);return { token: next }; }
-    if (command === 'append_document_chunk') {
+    if (command === DOCUMENT_TRANSFER_COMMANDS.beginWrite) { writing.set(++next,[]);return { token: next }; }
+    if (command === DOCUMENT_TRANSFER_COMMANDS.appendWrite) {
       const bytes = decodeBytes(args.contents);
-      assert.ok(bytes.length <= 256 * 1024);
+      assert.ok(bytes.length <= DOCUMENT_TRANSFER_LIMITS.chunkBytes);
       chunks.push(bytes);
       writing.get(args.token).push(bytes);
       return {};
     }
-    if (command === 'finish_document_write') {
+    if (command === DOCUMENT_TRANSFER_COMMANDS.finishWrite) {
       writes.push(Buffer.concat(writing.get(args.token).map(c => Buffer.from(c))));writing.delete(args.token);
       return { cancelled: false, path };
     }
-    if (command === 'begin_document_read') {
+    if (command === DOCUMENT_TRANSFER_COMMANDS.beginRead) {
       const selected = files.map(row => {
         const token = ++next;
         reading.set(token, { bytes: row.bytes, cursor: 0 });
@@ -31,16 +32,16 @@ function simulatedNative(files = [], path = 'C:/picked.gpkg') {
       });
       return selected.length ? { cancelled: false, files: selected } : { cancelled: true, files: [] };
     }
-    if (command === 'read_document_chunk') {
+    if (command === DOCUMENT_TRANSFER_COMMANDS.readChunk) {
       const row = reading.get(args.token);
       if (!row) throw new Error('Invalid transfer token.');
-      const part = row.bytes.slice(row.cursor, row.cursor + 256 * 1024);
+      const part = row.bytes.slice(row.cursor, row.cursor + DOCUMENT_TRANSFER_LIMITS.chunkBytes);
       row.cursor += part.length;
       const done = row.cursor === row.bytes.length;
       if (done) reading.delete(args.token);
       return { contents: encodeBytes(part), done };
     }
-    if (command === 'abort_document_transfer') { writing.delete(args.token);reading.delete(args.token);return true; }
+    if (command === DOCUMENT_TRANSFER_COMMANDS.abort) { writing.delete(args.token);reading.delete(args.token);return true; }
     throw new Error('Unexpected command ' + command);
   };
   return { invoke, writes, chunks, events };
@@ -79,7 +80,7 @@ test('oversized document is blocked before IPC while tiny probe remains bounded'
   let invoked = false;
   const storage = createNativeStorage(async () => { invoked = true; });
   const largeBlob = Object.create(Blob.prototype);
-  Object.defineProperty(largeBlob, 'size', { value: 256 * 1024 * 1024 + 1 });
+  Object.defineProperty(largeBlob, 'size', { value: DOCUMENT_TRANSFER_LIMITS.maxDocumentBytes + 1 });
   await assert.rejects(writeProject(storage,largeBlob), /256 MiB/);
   assert.equal(invoked, false);
   assert.throws(() => createProbeStorage(async () => { invoked = true; }).writeProbeFile('a'.repeat(1024 * 1024 + 1)), /1 MiB/);
@@ -87,10 +88,10 @@ test('oversized document is blocked before IPC while tiny probe remains bounded'
 });
 test('cancelled user selection is not counted as saved project', async () => {
   const storage = createNativeStorage(async command => {
-    if (command === 'begin_document_write') return { token: 1 };
-    if (command === 'append_document_chunk') return {};
-    if (command === 'finish_document_write') return { cancelled: true, path: null };
-    if (command === 'begin_document_read') return { cancelled: true, files: [] };
+    if (command === DOCUMENT_TRANSFER_COMMANDS.beginWrite) return { token: 1 };
+    if (command === DOCUMENT_TRANSFER_COMMANDS.appendWrite) return {};
+    if (command === DOCUMENT_TRANSFER_COMMANDS.finishWrite) return { cancelled: true, path: null };
+    if (command === DOCUMENT_TRANSFER_COMMANDS.beginRead) return { cancelled: true, files: [] };
     throw new Error('Unexpected command ' + command);
   });
   await assert.rejects(writeProject(storage,new Blob(['project'])),{name:'AbortError'});
@@ -112,13 +113,13 @@ test('native errors abort the transfer and leave the owning file state unchanged
   const calls = [];
   const storage = createNativeStorage(async (command) => {
     calls.push(command);
-    if (command === 'begin_document_write') return { token: 100 };
-    if (command === 'append_document_chunk') throw new Error('disk full');
-    if (command === 'abort_document_transfer') return true;
+    if (command === DOCUMENT_TRANSFER_COMMANDS.beginWrite) return { token: 100 };
+    if (command === DOCUMENT_TRANSFER_COMMANDS.appendWrite) throw new Error('disk full');
+    if (command === DOCUMENT_TRANSFER_COMMANDS.abort) return true;
     throw new Error('Unexpected command ' + command);
   });
   await assert.rejects(writeProject(storage,new Blob(['data'])), /disk full/);
-  assert.deepEqual(calls, ['begin_document_write','append_document_chunk','abort_document_transfer']);
+  assert.deepEqual(calls, [DOCUMENT_TRANSFER_COMMANDS.beginWrite,DOCUMENT_TRANSFER_COMMANDS.appendWrite,DOCUMENT_TRANSFER_COMMANDS.abort]);
 });
 
 for(const [platform,path] of [['windows','C:/maps/판도.gpkg'],['android','content://documents/primary%3ADownload%2F%ED%8C%90%EB%8F%84.gpkg']]){
@@ -130,11 +131,11 @@ for(const [platform,path] of [['windows','C:/maps/판도.gpkg'],['android','cont
   let mode='',release,entered;
   const failure=new Error('native transfer failed');
   const storage=createNativeStorage(async(command,args)=>{
-   if(mode==='hold'&&command==='finish_document_write'){entered();await new Promise(resolve=>{release=resolve;});}
-   if(mode==='write-failure'&&command==='append_document_chunk')throw failure;
-   if(mode==='read-failure'&&command==='read_document_chunk')throw failure;
-   if(mode==='cancel-save'&&command==='finish_document_write')return {cancelled:true};
-   if(mode==='cancel-open'&&command==='begin_document_read')return {cancelled:true};
+   if(mode==='hold'&&command===DOCUMENT_TRANSFER_COMMANDS.finishWrite){entered();await new Promise(resolve=>{release=resolve;});}
+   if(mode==='write-failure'&&command===DOCUMENT_TRANSFER_COMMANDS.appendWrite)throw failure;
+   if(mode==='read-failure'&&command===DOCUMENT_TRANSFER_COMMANDS.readChunk)throw failure;
+   if(mode==='cancel-save'&&command===DOCUMENT_TRANSFER_COMMANDS.finishWrite)return {cancelled:true};
+   if(mode==='cancel-open'&&command===DOCUMENT_TRANSFER_COMMANDS.beginRead)return {cancelled:true};
    return native.invoke(command,args);
   });
   const owner=await createNodeCoreProject(createInitialDocument({appVersion:'0.36.0'}),{appVersion:'0.36.0',replaceSnapshot:()=>true,
@@ -164,7 +165,7 @@ for(const [platform,path] of [['windows','C:/maps/판도.gpkg'],['android','cont
    assert.equal(await controller.saveProject(),false);assert.equal(owner.project.state().dirty,true);
    assert.equal(statuses.filter(row=>row[1]==='success').length,successes);assert.deepEqual(owner.documentModel.snapshot(),before);
   }
-  assert.ok(errors.some(args=>args.includes(failure)));assert.ok(native.events.includes('abort_document_transfer'));
+  assert.ok(errors.some(args=>args.includes(failure)));assert.ok(native.events.includes(DOCUMENT_TRANSFER_COMMANDS.abort));
   mode='';await controller.openProjectPicker();
   assert.deepEqual(owner.documentModel.snapshot().genericFeatures.map(row=>row.properties.name),['saved']);assert.equal(owner.project.state().dirty,false);
  });

@@ -7,6 +7,7 @@ import { parseArgs,promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { instrumentMapPlugin,verifyMapPluginFlow,moduleSource,openFileMenu } from './helpers/map-plugin-flow.mjs';
+import {DOCUMENT_TRANSFER_COMMANDS} from '../../apps/editor/document-transfer-contract.js';
 const run=promisify(execFile);
 const {values}=parseArgs({options:{platform:{type:'string'},port:{type:'string'},pid:{type:'string'},fixture:{type:'string'},output:{type:'string'},serial:{type:'string'},'windows-dialog-policy':{type:'string'},'reuse-session':{type:'boolean',default:false}}});
 if(!['windows','android'].includes(values.platform)||!values.port||!values.fixture||!values.output)throw new Error('--platform windows|android --port --fixture --output required');
@@ -106,7 +107,8 @@ try {
     const source=await moduleSource(route);
     const call='const invoke = (command, payload) => bridge.invoke(command, payload);';
     if(!source.includes(call))throw new Error('Native transport observation point changed');
-    const observed="const invoke = (command,payload) => { (window.__nativeCommands ||= []).push(command); const pending=bridge.invoke(command,payload); return command==='finish_document_write'?pending.then(result=>{window.__nativeWriteResult=result;return result;}):pending; };";
+    const finishWrite=JSON.stringify(DOCUMENT_TRANSFER_COMMANDS.finishWrite);
+    const observed=`const invoke = (command,payload) => { (window.__nativeCommands ||= []).push(command); const pending=bridge.invoke(command,payload); return command===${finishWrite}?pending.then(result=>{window.__nativeWriteResult=result;return result;}):pending; };`;
     await route.fulfill({contentType:'application/javascript',body:source.replace(call,observed)});
   });
   await page.route('**/shell/runtime-profile.js*',async route=>{
@@ -170,7 +172,7 @@ try {
     },
   });
   const commands=await page.evaluate(()=>window.__nativeCommands);
-  for(const required of ['begin_document_read','read_document_chunk','begin_document_write','append_document_chunk','finish_document_write'])expect(commands).toContain(required);
+  for(const required of [DOCUMENT_TRANSFER_COMMANDS.beginRead,DOCUMENT_TRANSFER_COMMANDS.readChunk,DOCUMENT_TRANSFER_COMMANDS.beginWrite,DOCUMENT_TRANSFER_COMMANDS.appendWrite,DOCUMENT_TRANSFER_COMMANDS.finishWrite])expect(commands).toContain(required);
   await writeFile(join(output,'native-'+values.platform+'.json'),JSON.stringify({platform,...result,nativeCommands:commands,consoleErrors:events},null,2));
   await page.screenshot({path:join(output,'native-'+values.platform+'.png'),timeout:15000});
   console.log(JSON.stringify({platform:values.platform,...result}));

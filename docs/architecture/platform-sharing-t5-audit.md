@@ -10,11 +10,11 @@ Baseline: work/ui @ 34be2fbd7c34eda460be0569941d8195f580ae13 (2026-11-02 KST).
 - No new Windows-only or Android-only frontend business-logic fork found.
 - Raw native globals remain isolated behind native-platform-adapter.js.
 
-## T6 — P0 protocol perimeter
+## T6 — P0 protocol perimeter — implemented
 
 T4 synchronized the main document-transfer pair, but production command names remain duplicated in apps/editor/network-guard.js and apps/editor/src-tauri/build.rs. Tests also hardcode protocol commands in native-storage.test.mjs, native-map-plugin.mjs and territorial-names.spec.mjs.
 
-Action: make network-guard consume DOCUMENT_TRANSFER_COMMANDS, extend the JS/Rust contract test to inspect build.rs, and make JS transport fixtures use contract constants.
+Implemented: network-guard derives transfer commands from DOCUMENT_TRANSFER_COMMANDS and serializes the same list into Worker guards; the JS/Rust contract test also checks build.rs. Native storage/network/browser test probes consume contract constants instead of duplicating command strings.
 
 ## T7 — P1 stale native verification globals
 
@@ -42,4 +42,4 @@ Action: later inject product presentation/input hooks. Keep workspace-surfaces.j
 
 ## Order
 
-T6 -> T7 -> T8 -> T9 -> T10.
+T6 complete. Next: T7 -> T8 -> T9 -> T10.

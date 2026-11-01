@@ -13,7 +13,9 @@ const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root),'utf8');
 const rust=read('apps/editor/src-tauri/src/document_transfer.rs');
 const nativeLib=read('apps/editor/src-tauri/src/lib.rs');
+const nativeBuild=read('apps/editor/src-tauri/build.rs');
 const storage=read('apps/editor/native-storage.js');
+const networkGuard=read('apps/editor/network-guard.js');
 
 function numericRustConstant(name){
   const match=rust.match(new RegExp(`const\\s+${name}:\\s*[^=]+?=\\s*([^;]+);`));
@@ -63,6 +65,24 @@ test('every JavaScript transfer command exists in Rust and is registered with Ta
   assert.ok(handler,'Tauri generate_handler registration is missing');
   const registered=sorted([...handler.matchAll(/document_transfer::([a-z_][a-z0-9_]*)/g)].map(match=>match[1]));
   assert.deepEqual(registered,jsCommands);
+});
+
+test('Rust build manifest exposes the same document-transfer command perimeter',()=>{
+  const manifest=nativeBuild.match(/AppManifest::new\(\)\.commands\(&\[([\s\S]*?)\]\)/)?.[1];
+  assert.ok(manifest,'Rust build manifest command list is missing');
+  const transfer=quotedValues(manifest).filter(name=>jsCommands.includes(name)||/document_(?:write|read|chunk|transfer)/.test(name));
+  assert.deepEqual(sorted(transfer),jsCommands);
+});
+
+test('network guard and JS transport probes consume the protocol owner instead of raw transfer literals',()=>{
+  assert.match(networkGuard,/from '.\/document-transfer-contract\.js'/);
+  assert.match(networkGuard,/Object\.values\(DOCUMENT_TRANSFER_COMMANDS\)/);
+  const consumers=['apps/editor/tests/network-guard.test.mjs','apps/editor/tests/native-storage.test.mjs','tests/browser/native-map-plugin.mjs','tests/browser/territorial-names.spec.mjs'];
+  for(const path of consumers){
+    const source=read(path);
+    assert.match(source,/DOCUMENT_TRANSFER_COMMANDS/,`${path} must consume the protocol owner`);
+    for(const command of jsCommands)assert.equal(source.includes(command),false,`${path} duplicates raw transfer command ${command}`);
+  }
 });
 
 test('native-storage consumes the protocol owner instead of duplicating commands or numeric limits',()=>{

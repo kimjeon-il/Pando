@@ -1,10 +1,15 @@
+import {DOCUMENT_TRANSFER_COMMANDS} from './document-transfer-contract.js';
+const DOCUMENT_TRANSFER_COMMAND_NAMES=Object.freeze(Object.values(DOCUMENT_TRANSFER_COMMANDS));
+const SHELL_DIAGNOSTIC_COMMAND_NAMES=Object.freeze(['write_probe_file','read_probe_file','write_diagnostic_report','finish_probe']);
+const SHELL_IPC_COMMAND_NAMES=Object.freeze([...SHELL_DIAGNOSTIC_COMMAND_NAMES,...DOCUMENT_TRANSFER_COMMAND_NAMES]);
 /** Serialized before Worker closure hashing so URLs identify the actual bytes. */
 export function guardWorkerSource(source,{allowBundledData=false}={}){
-  const guard='/* Native request boundary. */\n('+installNetworkGuard.toString()+')(globalThis,{allowBundledData:'+String(allowBundledData)+'});\n';
+  const guard='/* Native request boundary. */\n('+installNetworkGuard.toString()+')(globalThis,{allowBundledData:'+String(allowBundledData)+',ipcCommandNames:'+JSON.stringify(SHELL_IPC_COMMAND_NAMES)+'});\n';
   const directive=/^((?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*(['"])use strict\2\s*;)/;
   return directive.test(source)?source.replace(directive,match=>match+'\n'+guard):guard+source;
 }
-export function installNetworkGuard(scope = globalThis, { allowBundledData = false, physicalAssets = [] } = {}) {
+export function installNetworkGuard(scope = globalThis, { allowBundledData = false, physicalAssets = [], ipcCommandNames = SHELL_IPC_COMMAND_NAMES } = {}) {
+  if (!Array.isArray(ipcCommandNames) || ipcCommandNames.some(name => typeof name !== 'string' || !name)) throw new TypeError('Native IPC command names are required.');
   if (scope.__PANDOLAB_SHELL_NETWORK__) return scope.__PANDOLAB_SHELL_NETWORK__;
   const state = { requests: [], blocked: [], workers: [] };
   scope.__PANDOLAB_SHELL_NETWORK__ = state;
@@ -23,7 +28,7 @@ export function installNetworkGuard(scope = globalThis, { allowBundledData = fal
     const url = new URL(typeof input === 'object' && input?.url ? input.url : String(input), scope.location.href);
     const row = { url: url.href, context: scope.document ? 'window' : 'worker' };
     record('requests', row);
-    const command = /^\/(write_probe_file|read_probe_file|write_diagnostic_report|finish_probe|begin_document_write|append_document_chunk|finish_document_write|begin_document_read|read_document_chunk|abort_document_transfer)$/.test(url.pathname);
+    const command = url.pathname.startsWith('/') && ipcCommandNames.includes(url.pathname.slice(1));
     const ipc = command && (['http://ipc.localhost', 'https://ipc.localhost'].includes(url.origin)
       || (url.protocol === 'ipc:' && url.hostname === 'localhost'));
     const dataPath = decodeURIComponent(url.pathname);
