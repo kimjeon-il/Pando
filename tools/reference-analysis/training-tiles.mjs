@@ -15,7 +15,7 @@ const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export',
 export function isRasterTrainingAnnotation(annotation){return rasterOrigins.has(annotation?.origin);}
 
 // Validate one historical publisher source; its derived masks are not review truth.
-export async function validatePublisherTrainingSource({root,corpus,sourceId},{signal,workspace,imageDirectory}={}){
+export async function validatePublisherTrainingSource({root,corpus,sourceId},{signal,workspace,imageDirectory,rendererVersion='1.26.6'}={}){
   signal?.throwIfAborted();
   if(typeof root!=='string'||!root||typeof sourceId!=='string'||!sourceId)throw Error('Explicit publisher source and corpus root required');
   validateCorpusMetadata(corpus,{trainingOnly:true});
@@ -24,7 +24,7 @@ export async function validatePublisherTrainingSource({root,corpus,sourceId},{si
   const sheet=matches[0],annotationPath=await resolveCorpusPath(root,sheet.annotations),bytes=readTrainingBounded(annotationPath,64*1024*1024);
   const annotation=JSON.parse(bytes.toString('utf8')),annotationSha256=createHash('sha256').update(bytes).digest('hex');
   if(annotation.origin!=='publisher-layer-export')throw Error('Publisher training annotation required');
-  await validatePublisherProvenance(annotation,sheet,root,{rendererVersion:'1.26.6',signal});
+  await validatePublisherProvenance(annotation,sheet,root,{rendererVersion,signal});
   const imagePath=await resolveCorpusPath(root,sheet.image);
   if(trainingFileIdentity(imagePath)!==sheet.sha256)throw Error('Original image hash changed: '+sheet.id);
   const format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(imagePath).toLowerCase()];

@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {encodeNativeGrayPng} from '../../tools/map-image/native-resample.mjs';
 import * as corpus from '../../tools/reference-analysis/training-tiles.mjs';
+import {validateMaterializedCorpus} from '../../tools/reference-analysis/materialized-corpus.mjs';
 import {diagnoseMacroTrainingSource} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
 import * as trainingSample from '../../tools/reference-analysis/training-sample.mjs';
 
@@ -28,6 +29,7 @@ test('publisher training source binds metadata, source image and observed masks'
   const manifest={schemaVersion:1,trainingOnly:true,sheets:[sheet]},request={root,corpus:manifest,sourceId:'fixture'};
   const verified=await corpus.validatePublisherTrainingSource(request);
   assert.equal(verified.sheet.id,'fixture');assert.equal(verified.annotation.width,2);
+  assert.equal(await validateMaterializedCorpus(manifest,root,{trainingOnly:true}),manifest);
   const corpusPath=join(root,'corpus.json'),checkpoint=join(root,'checkpoint.pt');
   writeFileSync(corpusPath,JSON.stringify(manifest));writeFileSync(checkpoint,'fixture checkpoint');
   assert.equal(typeof trainingSample.writePublisherTrainingSample,'function');
@@ -43,6 +45,7 @@ test('publisher training source binds metadata, source image and observed masks'
     checkpointSha256:hash(readFileSync(checkpoint)),corpusSha256:hash(readFileSync(corpusPath))}));
   await assert.rejects(diagnoseMacroTrainingSource({corpus:corpusPath,checkpoint,sourceId:'fixture',device:'cpu',torchLibrary:root}),{code:'ENOENT'});
   writeFileSync(join(root,'map.png'),'tampered');await assert.rejects(corpus.validatePublisherTrainingSource(request),/image.*hash/i);
+  await assert.rejects(validateMaterializedCorpus(manifest,root,{trainingOnly:true}),/image.*hash/i);
   writeFileSync(join(root,'map.png'),image);annotation.sourceMetadataSha256=saveMetadata({...metadata,rightsReviewed:false});saveAnnotation();
   await assert.rejects(corpus.validatePublisherTrainingSource(request),/provenance/i);
   annotation.sourceMetadataSha256=saveMetadata(metadata);annotation.raster.sha256='0'.repeat(64);saveAnnotation();

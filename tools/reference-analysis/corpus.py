@@ -1,26 +1,11 @@
 """Application-owned reference-map corpus contracts. Data stays in the library."""
-import hashlib
 import json
 import pathlib
 import subprocess
 import re
 import importlib.metadata
 
-from PIL import Image
-
 CHANNELS = ["international", "administrative", "coast", "hydro", "transport", "text", "frame"]
-RASTER_ORIGINS = {'publisher-layer-export', 'semap-human-mask-export', 'macro-vector-supervision'}
-def validate_review_annotation(annotation, sheet):
-    script = pathlib.Path(__file__).with_name('review-masks.mjs')
-    payload = json.dumps(dict(annotation=annotation, sheet=sheet), allow_nan=False).encode('utf-8')
-    result = subprocess.run(['node', str(script), '--validate-stream'], input=payload,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError('Native review validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    if json.loads(result.stdout) != {'valid': True}:
-        raise ValueError('Invalid native review validation response')
-
 
 def lineage_operation(action, **values):
     script = pathlib.Path(__file__).with_name('training-lineage.mjs')
@@ -70,90 +55,22 @@ def corpus_fingerprint(manifest, auxiliary=None):
     return fingerprint
 
 
-def validate_training_provenance(action, annotation, sheet, root):
-    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
-    request = dict(annotation=annotation, sheet=sheet, root=str(pathlib.Path(root).resolve()),
-                   rendererVersion=importlib.metadata.version('PyMuPDF'))
-    result = subprocess.run(['node', str(script), f'--{action}-provenance-stream'],
-                            input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError(f'{action} provenance validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    if json.loads(result.stdout) != {'valid': True}:
-        raise ValueError('Invalid training provenance validation receipt')
-
-
-def validate_publisher_annotation(annotation, sheet, root):
-    validate_training_provenance('publisher', annotation, sheet, root)
-    validate_training_rasters(annotation, sheet, root)
-
-
-def validate_semap_annotation(annotation, sheet, root):
-    script = pathlib.Path(__file__).with_name('validate-semap.mjs')
-    request = json.dumps(dict(root=str(pathlib.Path(root).resolve()), sheet=sheet, annotation=annotation)).encode('utf-8')
-    result = subprocess.run(['node', str(script), '--sheet-stream'], input=request, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError('Semap validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    receipt = json.loads(result.stdout)
-    if receipt != dict(valid=True, sheets=1, trainingOnly=True, independentEvaluation=False):
-        raise ValueError('Invalid native Semap validation receipt')
-
-
-def validate_training_rasters(annotation, sheet, root):
-    script = pathlib.Path(__file__).with_name('training-tiles.mjs')
-    request = dict(root=str(pathlib.Path(root).resolve()), annotation=annotation)
-    result = subprocess.run(['node', str(script), '--audit-rasters'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
-                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError('Training raster validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    if json.loads(result.stdout) != {'valid': True}:
-        raise ValueError('Invalid training raster validation receipt')
-    with Image.open(corpus_path(root, sheet['image'])) as image:
-        if list(image.size) != [annotation['width'], annotation['height']]:
-            raise ValueError('Publisher raster/image dimensions differ')
-
-
-def validate_macro_annotation(annotation, sheet, root):
-    script = pathlib.Path(__file__).with_name('validate-macro.mjs')
-    request = json.dumps(dict(root=str(pathlib.Path(root).resolve()), sheet=sheet, annotation=annotation), allow_nan=False).encode('utf-8')
-    result = subprocess.run(['node', str(script), '--sheet-stream'], input=request, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, timeout=1800, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise ValueError('Macro validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    if json.loads(result.stdout) != dict(valid=True, sheets=1, trainingOnly=True, independentEvaluation=False):
-        raise ValueError('Invalid native macro validation receipt')
-
-
 def validate_corpus(value, root=None, *, training_only=False):
     if training_only and root is None:
         raise ValueError('Explicit materialized training-only corpus required')
-    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
-    payload = json.dumps(dict(value=value, trainingOnly=training_only, root=str(pathlib.Path(root).resolve()) if root else None), allow_nan=False).encode('utf-8')
-    result = subprocess.run(['node', str(script), '--metadata-stream'], input=payload, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, timeout=120, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    script = pathlib.Path(__file__).with_name('materialized-corpus.mjs')
+    try:
+        renderer_version = importlib.metadata.version('PyMuPDF')
+    except importlib.metadata.PackageNotFoundError:
+        renderer_version = None
+    payload = json.dumps(dict(value=value, trainingOnly=training_only, root=str(pathlib.Path(root).resolve()) if root else None,
+                              rendererVersion=renderer_version), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--stream'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=1800, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
         raise ValueError('Corpus metadata validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
     if json.loads(result.stdout) != {'valid': True}:
         raise ValueError('Invalid corpus metadata validation response')
-    for sheet in value["sheets"]:
-        for key in ["image", "annotations"]:
-            if root:
-                absolute = corpus_path(root, sheet[key])
-                if key == "annotations":
-                    annotations = json.loads(absolute.read_text(encoding="utf-8"))
-                    if annotations.get('origin') == 'publisher-layer-export' and training_only:
-                        validate_publisher_annotation(annotations, sheet, root)
-                    elif annotations.get('origin') == 'semap-human-mask-export' and training_only:
-                        validate_semap_annotation(annotations, sheet, root)
-                    elif annotations.get('origin') == 'macro-vector-supervision' and training_only:
-                        validate_macro_annotation(annotations, sheet, root)
-                    elif annotations.get('origin') in RASTER_ORIGINS:
-                        raise ValueError('Derived training labels cannot become independent review truth')
-                    else:
-                        validate_review_annotation(annotations, sheet)
     return value
 
 

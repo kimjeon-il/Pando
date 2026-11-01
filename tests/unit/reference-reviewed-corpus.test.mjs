@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 import {mkdir,mkdtemp,readFile,writeFile,symlink,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {validateReviewedCorpus,evaluationGroups} from '../../tools/reference-analysis/reviewed-corpus.mjs';
+import {validateMaterializedCorpus} from '../../tools/reference-analysis/materialized-corpus.mjs';
 
 async function fixture(t){
   const root=await mkdtemp(join(tmpdir(),'pando-validated-'));t.after(()=>rm(root,{recursive:true}));
@@ -30,6 +31,19 @@ test('reviewed corpus validates materialized source and keeps language groups di
   const manifest=join(root,'review.json');await writeFile(manifest,JSON.stringify(input));
   const result=JSON.parse(execFileSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--corpus',manifest],{encoding:'utf8'}));
   assert.deepEqual(result,{valid:true,groups:{'monochrome/Arabic/fas':['map']}});
+});
+test('materialized corpus shares reviewed checks in training and independent scopes',async t=>{
+  const {root,sheet,annotation}=await fixture(t),reviewed={schemaVersion:1,sheets:[sheet]},training={...reviewed,trainingOnly:true};
+  assert.equal(await validateMaterializedCorpus(reviewed,root),reviewed);
+  assert.equal(await validateMaterializedCorpus(training,root,{trainingOnly:true}),training);
+  assert.equal(await validateMaterializedCorpus(reviewed,null),reviewed);
+  await assert.rejects(validateMaterializedCorpus(training,null,{trainingOnly:true}),/materialized/i);
+  const run=spawnSync(process.execPath,['tools/reference-analysis/materialized-corpus.mjs','--stream'],{
+    input:JSON.stringify({value:training,root,trainingOnly:true,rendererVersion:'1.26.6'}),encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);assert.deepEqual(JSON.parse(run.stdout),{valid:true});
+  await writeFile(join(root,'labels/map.json'),JSON.stringify({...annotation,reviewed:false}));
+  await assert.rejects(validateMaterializedCorpus(training,root,{trainingOnly:true}),/source.reviewed/i);
+  await assert.rejects(validateMaterializedCorpus(reviewed,root),/source.reviewed/i);
 });
 test('reviewed corpus rejects split leakage, paths, source and unreviewed labels',async t=>{
   const {root,sheet,annotation}=await fixture(t);const check=rows=>validateReviewedCorpus({schemaVersion:1,sheets:rows},root);
