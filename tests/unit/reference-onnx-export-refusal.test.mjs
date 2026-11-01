@@ -5,7 +5,28 @@ import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs'
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeCheckpointOnnxExport,nativeOnnxDiagnostic,nativeOnnxExport} from '../../tools/reference-analysis/native-onnx-export.mjs';
+import * as exporter from '../../tools/reference-analysis/native-onnx-export.mjs';
+import {validateCandidateModel} from '../../plugins/pando-map-tools/lib/jobs.mjs';
+const {nativeCheckpointOnnxExport,nativeOnnxDiagnostic,nativeOnnxExport}=exporter;
+
+test('checkpoint ONNX manifest preserves pending training lineage and channel visibility',()=>{
+  assert.equal(typeof exporter.checkpointOnnxManifest,'function');
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:'a'.repeat(64),
+    checkpointSha256:'b'.repeat(64),lineageComplete:false,sourceReplayVerified:false,initialization:'weights-only-no-optimizer',
+    attemptedBatches:2,optimizerUpdates:2,unobservedMask:126};
+  const model={file:'boundary.onnx',bytes:123,sha256:'c'.repeat(64)};
+  const manifest=exporter.checkpointOnnxManifest({receipt,model});
+  assert.deepEqual(manifest.model,{url:'boundary.onnx',bytes:123,sha256:'c'.repeat(64)});
+  assert.equal(manifest.evaluationStatus,'pending');assert.equal(manifest.releaseApproved,false);assert.equal(manifest.trainingOnly,true);
+  assert.equal(manifest.lineageComplete,false);assert.equal(manifest.checkpointSha256,receipt.checkpointSha256);
+  assert.deepEqual(validateCandidateModel(manifest).observedChannels,['international']);
+  assert.deepEqual(manifest.unobservedChannels,['administrative','coast','hydro','transport','text','frame']);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,releaseApproved:true},model}),/receipt/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,optimizerUpdates:3},model}),/receipt/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt,model:{...model,file:'../unsafe.onnx'}}),/model/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt,model:{...model,file:'bad name.onnx'}}),/model/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt,model:{...model,bytes:64*1024*1024+1}}),/model/i);
+});
 
 test('native exporter refuses missing arguments and existing output',{skip:!process.env.PANDO_REFERENCE_ONNX_EXPORT_BINARY},t=>{
   const directory=mkdtempSync(join(tmpdir(),'pando-onnx-cli-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
@@ -62,4 +83,16 @@ test('checkpoint export accepts a bound private training receipt and refuses alt
   writeFileSync(proof,JSON.stringify(receipt));
   await assert.rejects(nativeCheckpointOnnxExport(request),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
+});
+test('checkpoint export protects an existing matching manifest before generating a model',{skip:process.platform!=='win32'},async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-manifest-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const checkpoint=join(root,'checkpoint.pt'),proof=checkpoint+'.receipt.json',output=join(root,'new.onnx'),manifestOutput=join(root,'new.manifest.json');
+  writeFileSync(checkpoint,'checkpoint');writeFileSync(manifestOutput,'protected');
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,
+    initialization:'weights-only-no-optimizer',precision:'fp32',device:'cpu',epoch:0,cursor:1,orderLength:2,
+    attemptedBatches:1,optimizerUpdates:1,unobservedMask:126,corpusSha256:'a'.repeat(64),checkpointBytes:10,
+    checkpointSha256:createHash('sha256').update('checkpoint').digest('hex')};
+  writeFileSync(proof,JSON.stringify(receipt));
+  await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,manifestOutput,torchLibrary:root}),/manifest output exists/i);
+  assert.equal(readFileSync(manifestOutput,'utf8'),'protected');assert.equal(existsSync(output),false);
 });
