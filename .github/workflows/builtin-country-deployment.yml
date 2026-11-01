@@ -7,12 +7,21 @@ on:
       - '.github/workflows/builtin-country-deployment.yml'
       - 'tests/unit/builtin-country-deployment.test.mjs'
       - 'tests/unit/builtin-country-parts.test.mjs'
+      - 'tests/integration/builtin-country-deployment.mjs'
+      - 'tests/browser/builtin-country-loading.spec.mjs'
       - 'tools/builtin-country-storage.mjs'
+      - 'tools/builtin-country-bytes.mjs'
       - 'shared/frontend/js/modules/builtin-country-files.js'
       - 'scripts/lib/product-assets.mjs'
       - 'apps/editor/world-data-plan.mjs'
       - 'apps/editor/stage.mjs'
+      - 'docs/development/builtin-country-deployment.md'
   workflow_dispatch:
+    inputs:
+      activate:
+        description: Store and push verified country files and the paired work/gis pin; never deploy main
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,22 +30,90 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deployment:
-    if: github.ref == 'refs/heads/work/gis'
+    if: github.ref == 'refs/heads/work/gis' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      COUNTRY_PUBLICATION_PLAN: ${{ runner.temp }}/builtin-country-publication.json
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          persist-credentials: false
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
+      - name: Check storage before pinned dependencies and focused browser setup
+        run: test "$(df -Pk . | awk 'NR==2 {print $4}')" -ge 10485760
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Prepare exact pinned inputs; no regeneration or data publication
+      - name: Prepare exact paired inputs without GIS regeneration
         uses: ./.github/actions/library-data
-      - name: Verify independent deployment, bounded files and scoped storage contracts
-        run: node --test --test-timeout=15000 tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs
+      - name: Verify affected generation, loader, deployment and App file contracts
+        run: |
+          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs apps/editor/tests/world-data-plan.test.mjs apps/editor/tests/stage-world.test.mjs
+          node --test --test-timeout=30000 --test-name-pattern='stages the real frontend|verification assets are opt-in|the verification fixture loads' apps/editor/tests/stage.test.mjs
+      - name: Prepare independent files and a locally verified paired pin; preserve every country hash
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {libraryConfig} from './tools/library-data.mjs';
+          import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/builtin-country-storage.mjs';
+          const beforeRevision=libraryConfig().revision;
+          const prepared=prepareBuiltinCountryFiles({apply:true});
+          const verified=verifyBuiltinCountryFiles();
+          const stored=storeBuiltinCountryDelta();
+          writeFileSync(process.env.COUNTRY_PUBLICATION_PLAN,JSON.stringify({beforeRevision,revision:stored.revision,prefixes:prepared.prefixes}));
+          console.log(JSON.stringify({preparedCountries:prepared.countryCount,changedStoragePaths:prepared.prefixes.length,preservedCountryHashes:prepared.preservedCountryHashes,...verified,localDataCommit:stored.revision}));
+          JS
+          node tools/library-data.mjs
+      - name: Verify real Web/App closures, dated loading and preservation of unrelated archived data
+        run: |
+          node tests/integration/builtin-country-deployment.mjs
+          node --test --test-timeout=30000 tests/unit/product-assets.test.mjs
+      - name: Prepare one real Chromium loading regression
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify current month, historical selection and no aggregate network request
+        run: pnpm exec playwright test tests/browser/builtin-country-loading.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
+      - name: Publish only verified country files to the data work/gis branch
+        if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || { echo 'Library writing credential unavailable'; exit 1; }
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {storeLibraryData,libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/library-data.mjs';
+          import {createHash} from 'node:crypto';
+          const plan=JSON.parse(readFileSync(process.env.COUNTRY_PUBLICATION_PLAN));
+          assert.equal(execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim(),'work/gis');
+          assert.equal(libraryConfig().revision,plan.revision);
+          if(plan.prefixes.length){
+           const expected=new Map(plan.prefixes.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
+           const revision=storeLibraryData({prefixes:plan.prefixes,push:true});
+           const checkout=libraryCheckout();
+           const archive=JSON.parse(execFileSync('git',['show',revision+':archive/index.json'],{cwd:checkout,maxBuffer:16*1024*1024}));
+           for(const [path,digest] of expected)assert.equal(createHash('sha256').update(decodeArchiveEntry(checkout,archive.files[path],revision)).digest('hex'),digest,path);
+           console.log(JSON.stringify({remoteDataCommit:revision,verifiedStoredPaths:expected.size}));
+          }else console.log('No new country data publication needed');
+          JS
+      - name: Commit verified data pin to work/gis only
+        if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff --quiet -- config/library-data.json; then echo 'Pin already current'; exit 0; fi
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$GITHUB_SHA" || { echo 'work/gis advanced; preserve published data without overwriting newer code'; exit 1; }
+          git add -- config/library-data.json
+          test "$(git diff --cached --name-only)" = 'config/library-data.json'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data(gis): pin verified independent country publication [skip ci]'
+          git push origin HEAD:refs/heads/work/gis
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$(git rev-parse HEAD)"

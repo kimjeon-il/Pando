@@ -50,17 +50,18 @@ test('viewer publication excludes offline reference OCR and AI runtime assets', 
 });
 
 test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
- const f=fixture();
- f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({entities:[{file:'countries/A.json.gz'}],transport:{url:'transport/packed.bin'}}));
+ const f=fixture(),sha256='a'.repeat(64),country='countries/A-sha256-'+sha256+'.json.gz';
+ f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',
+  entities:[{entityId:'A',file:country,encoding:'gzip',sha256,compressedBytes:3,decodedBytes:8}]}));
  f.put('assets/data/builtin-world/generated/v1/transport/packed.bin');
- f.put('assets/data/builtin-world/generated/v1/countries/A.json.gz');
+ f.put('assets/data/builtin-world/generated/v1/'+country);
  f.put('assets/data/builtin-world/generated/v1/countries/orphan.json.gz');
  f.put('assets/data/historical-world/generated/v1/world-project.json.gz');
  for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])f.put(path);
  const paths=await f.collect();
  assert.ok(paths.has('assets/data/world/a.bin'));
- assert.ok(paths.has('assets/data/builtin-world/generated/v1/countries/A.json.gz'));
- assert.ok(paths.has('assets/data/builtin-world/generated/v1/transport/packed.bin'));
+ assert.ok(paths.has('assets/data/builtin-world/generated/v1/'+country));
+ assert.equal(paths.has('assets/data/builtin-world/generated/v1/transport/packed.bin'),false);
  assert.equal(paths.has('assets/data/builtin-world/generated/v1/countries/orphan.json.gz'),false);
  assert.equal(paths.has('assets/data/historical-world/generated/v1/world-project.json.gz'),false);
  for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])assert.equal(paths.has(path),false,path);
