@@ -62,7 +62,8 @@ export function createObjectPropertyController(runtime = {}) {
     const form = activeForm(type);
     const sections = form ? [...form.children].filter(element => !element.hidden && !element.classList.contains('hidden')) : [];
     const infoAvailable = sections.some(element => element.matches?.('.editor-info-section'));
-    const hasActions = sections.some(element => element.matches?.('.editor-action-section'));
+    const deleteAvailable = !!type && !$('editorDeleteSection')?.classList.contains('hidden');
+    const hasActions = sections.some(element => element.matches?.('.editor-action-section')) || deleteAvailable;
     const editorSurface = $('editorSurface');
     editorSurface?.removeAttribute('data-editor-inline-relation');
     $('editorTabBtn').hidden = !type || !infoAvailable;
