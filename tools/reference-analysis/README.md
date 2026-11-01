@@ -111,6 +111,17 @@ does not yet replace the full Python inspection command or its other corpus mode
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/example/corpus.training.json --source SOURCE_ID --checkpoint EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/checkpoint.pt --output EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/diagnostic-source --device cuda --torch-library 'C:/path/to/matching/torch/lib'
 ```
 
+For an existing model that was transferred once to Safetensors, a single source
+can also be inspected with `--weights` in place of `--checkpoint`. Its adjacent
+`transfer.json` must bind the weights and the original checkpoint. The report
+marks training-corpus ancestry and optimizer transfer as unverified; it does not
+claim the selected source trained the model. This mode does not accept a baseline,
+an auxiliary corpus or ONNX parity, and does not replace the full Python command.
+
+```powershell
+node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus $corpusPath --source SOURCE_ID --weights $transferredWeights --output $newDiagnosticDirectory --device cuda --torch-library $torchLibrary
+```
+
 For one source-reviewed sheet, use `--reviewed-source` and add
 `--review-corpus` pointing to its manifest. `--corpus` remains the training
 manifest recorded by the checkpoint. The selected sheet's source and annotation

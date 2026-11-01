@@ -113,6 +113,7 @@ jobs:
           node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
       - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-encoder-identity.test.mjs
+      - run: node --test --test-name-pattern='transferred weights diagnostics' tests/unit/reference-diagnostic-tile.test.mjs
   reference-onnx-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-contracts'
     strategy:

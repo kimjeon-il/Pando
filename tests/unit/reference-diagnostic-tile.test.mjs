@@ -9,6 +9,27 @@ import * as diagnostic from '../../tools/reference-analysis/native-diagnostic-pr
 import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
 const {diagnoseMacroTrainingSource,diagnoseReviewedSource,summarizeDiagnosticTile}=diagnostic;
 
+test('transferred weights diagnostics refuse unverified source, mixed modes and baselines',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-transfer-'));t.after(()=>rmSync(root,{recursive:true}));
+  const corpus=join(root,'corpus.json'),weights=join(root,'weights.safetensors'),output=join(root,'output');
+  writeFileSync(corpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));writeFileSync(weights,'fixture');
+  const hash=createHash('sha256').update('fixture').digest('hex'),receipt={schemaVersion:1,trainingOnly:true,evaluationStatus:'pending',
+    releaseApproved:false,transfer:'weights-only-no-optimizer',weightsSha256:hash,sourceCheckpointSha256:'1'.repeat(64)};
+  const save=()=>writeFileSync(join(root,'transfer.json'),JSON.stringify(receipt));save();
+  const request={corpus,weights,sourceId:'missing',device:'cpu',torchLibrary:root};
+  await assert.rejects(diagnoseMacroTrainingSource({...request,checkpoint:'also.pt'}),/one checkpoint/i);
+  await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/single-source/i);
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus:'aux.json'}),/single-source/i);
+  await assert.rejects(diagnoseMacroTrainingSource(request),/unique.*source/i);
+  receipt.sourceCheckpointSha256=null;save();
+  await assert.rejects(diagnoseMacroTrainingSource(request),/verified transferred/i);
+  receipt.sourceCheckpointSha256='1'.repeat(64);receipt.weightsSha256='0'.repeat(64);save();
+  await assert.rejects(diagnoseMacroTrainingSource(request),/initializer/i);
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--corpus-sources','--corpus',corpus,
+    '--weights',weights,'--output',output,'--device','cpu','--torch-library',root],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.equal(existsSync(output),false);
+});
+
 test('combined checkpoint diagnostics require the original auxiliary corpus and lineage fingerprint',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-combined-'));t.after(()=>rmSync(root,{recursive:true}));
   const corpus=join(root,'primary.json'),auxiliaryCorpus=join(root,'auxiliary.json'),checkpoint=join(root,'checkpoint.pt');

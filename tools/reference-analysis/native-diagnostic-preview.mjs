@@ -10,7 +10,7 @@ import {composeNativeDiagnosticOverlays,encodeNativeJpeg,readNativeTrainingRaste
 import {drawNativePreviewLabels} from '../map-image/native-preview.mjs';
 import {diagnosticPixelStatistics} from './native-evaluation.mjs';
 import {nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from './native-training-validation.mjs';
-import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {corpusFingerprint,readTrainingBounded,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {recheckTrainingSources} from './macro-training-source.mjs';
 import {selectDiagnosticTile} from './diagnostic-selection.mjs';
 import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
@@ -47,17 +47,19 @@ export async function summarizeDiagnosticTile({width,height,original,probability
   return {channels,baselineChannels,panels,trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
-export async function diagnoseNativeTrainingTile({checkpoint,baselineWeights,tile,overview,position,target,valid,original,device,torchLibrary},
+export async function diagnoseNativeTrainingTile({checkpoint,weights,baselineWeights,tile,overview,position,target,valid,original,device,torchLibrary},
   {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory}={}){
+  if(Boolean(checkpoint)===Boolean(weights))throw Error('Choose one native checkpoint or transferred weights');
   if(baselineWeights!=null&&(typeof baselineWeights!=='string'||!baselineWeights))throw Error('Explicit baseline weights path required');
-  const inference=await nativeTrainingCheckpointInfer({checkpoint,tile,overview,position,device,torchLibrary,output:'probabilities',
-    signal,root:workspace,directory:batchDirectory});
+  const inferenceArgs={tile,overview,position,device,torchLibrary,output:'probabilities',signal,root:workspace,directory:batchDirectory};
+  const inference=weights?await nativeTrainingWeightsInfer({weights,...inferenceArgs}):await nativeTrainingCheckpointInfer({checkpoint,...inferenceArgs});
   const baseline=baselineWeights!=null?await nativeTrainingWeightsInfer({weights:baselineWeights,tile,overview,position,device,torchLibrary,output:'probabilities',
     signal,root:workspace,directory:batchDirectory}):null;
   const diagnostic=await summarizeDiagnosticTile({width:512,height:512,original,probability:inference.probabilities,target,valid,
     ...(baseline?{baseline:baseline.probabilities}:{})},
     {signal,workspace,imageDirectory,evaluationDirectory});
-  return {...diagnostic,probabilities:inference.probabilities,checkpointSha256:inference.checkpointSha256,
+  return {...diagnostic,probabilities:inference.probabilities,checkpointSha256:inference.checkpointSha256??null,
+    ...(weights?{weightsSha256:inference.weightsSha256}:{}),
     baselineWeightsSha256:baseline?.weightsSha256??null,toolRevision:inference.toolRevision};
 }
 
@@ -78,15 +80,22 @@ export async function renderDiagnosticJpeg({original,panels,reviewed=false},{sig
 }
 
 // Inspect one explicitly selected macro source; the result is training-only.
-async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,sourceId,checkpoint,baselineWeights,device,torchLibrary,captureParity=false,skipUnsupervised=false},
+async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,sourceId,checkpoint,weights,baselineWeights,device,torchLibrary,captureParity=false,skipUnsupervised=false},
   {signal,workspace,imageDirectory,previewDirectory,evaluationDirectory,batchDirectory,reviewDirectory}={},internalScope=null){
   signal?.throwIfAborted();
-  if(!corpus||!checkpoint||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
-    throw Error('Explicit macro source, checkpoint and device required');
-  const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json';
+  if(!corpus||Boolean(checkpoint)===Boolean(weights)||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
+    throw Error('Explicit source, one checkpoint or transferred weights, and device required');
+  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null||captureParity))
+    throw Error('Transferred weights require a single-source diagnostic without a baseline or ONNX parity');
+  const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(weights||checkpoint),
+    receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json';
   const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024);
   const receiptHash=createHash('sha256').update(receiptBytes).digest('hex'),manifest=JSON.parse(readTrainingBounded(corpusPath,32*1024*1024)),receipt=JSON.parse(receiptBytes);
-  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||
+  let transferred=null;
+  if(weights){transferred=verifyTrainingInitializer({path:checkpointPath,expectedSha256:checkpointHash});
+    if(receipt.schemaVersion!==1||transferred.initialization!=='weights-only-no-optimizer'||transferred.recordHash!==receiptHash||
+      !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');
+  }else if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||
     receipt.checkpointSha256!==checkpointHash||receipt.corpusSha256!==corpusHash)throw Error('Checkpoint does not match this training corpus');
   const combined=Object.hasOwn(receipt,'auxiliarySha256')||Object.hasOwn(receipt,'lineageFingerprint');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
@@ -160,8 +169,9 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
       prepareRasterTrainingTile({root:sourceRoot,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory}),
     readNativeTrainingRaster({path,format,expectedSha256:sheet.sha256,x,y},{signal,workspace,directory:imageDirectory})]);
   const original=Buffer.alloc(512*512*3);for(let i=0;i<512*512;i++){original[i*3]=image.tile[i*4];original[i*3+1]=image.tile[i*4+1];original[i*3+2]=image.tile[i*4+2];}
-  const diagnostic=await diagnoseNativeTrainingTile({checkpoint:checkpointPath,baselineWeights:baselinePath,...tensors,original,device,torchLibrary},
+  const diagnostic=await diagnoseNativeTrainingTile({...(weights?{weights:checkpointPath}:{checkpoint:checkpointPath}),baselineWeights:baselinePath,...tensors,original,device,torchLibrary},
     {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory});
+  if(weights&&diagnostic.weightsSha256!==checkpointHash)throw Error('Transferred weights changed during diagnostic');
   let parity;
   if(captureParity){
     const inference=await nativeTrainingCheckpointInfer({checkpoint:checkpointPath,tile:tensors.tile,overview:tensors.overview,position:tensors.position,
@@ -173,7 +183,10 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   await verifyInputs();
   return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,baselineChannels:diagnostic.baselineChannels,
     baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?(receipt.initializationSourceSha256??null):null,
-    jpeg:preview.data,checkpointSha256:checkpointHash,corpusSha256:corpusHash,...(combined?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint,viewCorpus}:{}),
+    jpeg:preview.data,checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
+    ...(weights?{weightsSha256:diagnostic.weightsSha256,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
+      trainingCorpusVerified:false,optimizerStateTransferred:false,lineageComplete:false}:{}),
+    ...(combined?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint,viewCorpus}:{}),
     ...(reviewed?{reviewCorpusSha256:reviewHash,sourceSplit:sheet.split,diagnosticOnly:true}:{}),
     ...(parity?{parity}:{}),trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
@@ -270,11 +283,12 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const batch=process.argv[2]==='--corpus-sources',reviewed=process.argv[2]==='--reviewed-source';
       const {values,positionals}=parseArgs({args:process.argv.slice(3),allowPositionals:true,options:{corpus:{type:'string'},source:{type:'string'},
         'auxiliary-corpus':{type:'string'},'view-corpus':{type:'string'},
-        'review-corpus':{type:'string'},checkpoint:{type:'string'},'baseline-weights':{type:'string'},onnx:{type:'string'},output:{type:'string'},device:{type:'string'},
+        'review-corpus':{type:'string'},checkpoint:{type:'string'},weights:{type:'string'},'baseline-weights':{type:'string'},onnx:{type:'string'},output:{type:'string'},device:{type:'string'},
         'torch-library':{type:'string'},'maximum-previews':{type:'string'}}});
-      if(positionals.length||!values.corpus||(!batch&&!values.source)||(batch&&values.source)||!values.checkpoint||!values.output||!values.device||!values['torch-library']||
+      if(positionals.length||!values.corpus||(!batch&&!values.source)||(batch&&values.source)||Boolean(values.checkpoint)===Boolean(values.weights)||
+        (batch&&values.weights)||!values.output||!values.device||!values['torch-library']||
         (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&(values['maximum-previews']!==undefined||values.onnx)))
-        throw Error('Expected --macro-source, --reviewed-source or --corpus-sources with explicit corpus, checkpoint, output, device and LibTorch; single-source modes require --source');
+        throw Error('Expected an explicit corpus, checkpoint or transferred weights, output, device and LibTorch; single-source modes require --source');
       const output=resolve(reportArgument(values.output,{access:'write'}));
       if(existsSync(output))throw Error('Diagnostic output exists; preserve prior evidence');
       if(batch){
@@ -289,11 +303,12 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const result=await diagnoseSource({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
         auxiliaryCorpus:reportArgument(values['auxiliary-corpus'],{access:'read',siblings:true}),viewCorpus:values['view-corpus']||'primary',
         ...(reviewed?{reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true})}:{}),sourceId:values.source,
-        checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),
+        checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),weights:reportArgument(values.weights,{access:'read',siblings:true}),
+        baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),
         device:values.device,torchLibrary:values['torch-library']},{signal:controller.signal});
       const {jpeg,...diagnostic}=result;
       await mkdir(output);await writeFile(resolve(output,'preview.jpg'),jpeg,{flag:'wx'});
-      const purpose=reviewed?'source-reviewed-diagnostic':'training-set-diagnostic-only';
+      const purpose=values.weights?'transferred-weights-source-diagnostic':reviewed?'source-reviewed-diagnostic':'training-set-diagnostic-only';
       await writeFile(resolve(output,'diagnostics.json'),JSON.stringify({...diagnostic,purpose,previewFile:'preview.jpg'},null,2)+'\n',{flag:'wx'});
       process.stdout.write(JSON.stringify({output,sourceId:result.sourceId,purpose,releaseApproved:false})+'\n');
       process.exitCode=0;
