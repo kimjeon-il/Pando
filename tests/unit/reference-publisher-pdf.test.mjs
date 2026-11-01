@@ -5,6 +5,7 @@ import {resolve} from 'node:path';
 import test from 'node:test';
 import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg,extractPublisherPdfText,inspectPublisherPdf,renderMacroPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
 import {inspectNativeJpeg} from '../../tools/map-image/native-resample.mjs';
+import {deriveMacroFill} from '../../tools/reference-analysis/native-macro-fill.mjs';
 
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
   const root=resolve('tests/fixtures/reference-publisher-layers');
@@ -44,10 +45,18 @@ test('macro PDF image and glyph masks match the original unrotated coordinate sy
   const root=resolve('tests/fixtures/reference-macro-pdf'),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
   for(const name of ['base','rotation-90','rotation-180','rotation-270']){
     const path=resolve(root,name+'.pdf'),original=readFileSync(path),oracle=JSON.parse(readFileSync(resolve(root,name+'.json'),'utf8'));
-    const actual=await renderMacroPdf({path,maximumDimension:159});
+    const actual=await renderMacroPdf({path,maximumDimension:160});
     assert.deepEqual([actual.width,actual.height,actual.rotation],[oracle.width,oracle.height,oracle.rotation]);
     assert.equal(sha(actual.rgb),oracle.rgbSha256);assert.equal(sha(actual.textMask),oracle.textSha256);
     assert.equal(sha(actual.credits),oracle.creditsSha256);assert.deepEqual(readFileSync(path),original);
+    const metadata={geographicScope:'country',scopeEvidence:'test fixture',materialKind:'published-macro-pdf',rightsReviewed:true,
+      license:'fixture only',supervision:{strategy:'country-fill-adjacency',radiusPixels:3,countryFillColors:[[.7,.5,.3],[.3,.5,.7]]},
+      excludedRegionsNormalized:[[.45,.75,.55,.95]]};
+    const fill=await deriveMacroFill({path,metadata,maximumDimension:160});
+    assert.deepEqual([fill.width,fill.height],[oracle.fill.width,oracle.fill.height]);
+    assert.equal(sha(fill.image),oracle.fill.rgbSha256);assert.equal(sha(fill.target),oracle.fill.targetSha256);
+    assert.equal(sha(fill.known),oracle.fill.knownSha256);assert.equal(sha(fill.credits),oracle.fill.creditsSha256);
+    await assert.rejects(deriveMacroFill({path,metadata:{...metadata,rightsReviewed:false},maximumDimension:160}),/rights/i);
   }
   await assert.rejects(renderMacroPdf({path:resolve(root,'base.pdf'),maximumDimension:63}),/dimension/i);
 });
