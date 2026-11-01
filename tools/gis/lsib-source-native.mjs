@@ -127,7 +127,14 @@ export async function readLSIBDisputedShape({dbf,shp},options={}){
     throw Error('Invalid or truncated disputed DBF');
   const fields=[];let fieldOffset=32,fieldBytes=0;const decode=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
   const text=bytes=>{try{return decode.decode(bytes);}catch{throw Error('Invalid UTF-8 in disputed DBF');}};
-  const strip=value=>value.replace(/^[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/gu,'');
+  const isSpace=code=>(code>=0x09&&code<=0x0d)||(code>=0x1c&&code<=0x20)||code===0x85||code===0xa0||code===0x1680||
+    (code>=0x2000&&code<=0x200a)||code===0x2028||code===0x2029||code===0x202f||code===0x205f||code===0x3000;
+  const strip=value=>{
+    let start=0,end=value.length;
+    while(start<end&&isSpace(value.charCodeAt(start)))start++;
+    while(end>start&&isSpace(value.charCodeAt(end-1)))end--;
+    return value.slice(start,end);
+  };
   while(fieldOffset<header&&dbf[fieldOffset]!==13){
     if(fieldOffset+32>header)throw Error('Truncated disputed DBF field');
     const nameBytes=dbf.subarray(fieldOffset,fieldOffset+11),zero=nameBytes.indexOf(0);

@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BOUNDARY_REVISION_STAGES } from '../tests/browser/helpers/boundary-revision-timings.mjs';
+import {frontendWasmRoot} from './lib/frontend-layout.mjs';
+import {sharedSourceManifest} from '../tools/package-shared-core-assets.mjs';
 
 const baselineRevision = '9fe9e91c2894c23a646b38ce5c792299dc102f99';
 const prProduct = { assets: '710ae68872869f8a63145fc7d190d4c2ea34dcf2', index: '12c97886e4018a3c88ee454557b3feee97cb3055' };
@@ -15,33 +17,96 @@ const cliPath = fileURLToPath(import.meta.resolve('@playwright/test/cli'));
 const { parse } = createRequire(import.meta.resolve('eslint'))('espree');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 20_000 }).trim();
 
-function fixtureDependencies(root) {
-  const files = new Set();
-  const parseFile = path => parse(readFileSync(join(root, path), 'utf8'), { ecmaVersion: 'latest', sourceType: 'module' });
+// These computed ports load a hash-verified runtime graph. Catalog their exact
+// expressions and include that graph's bytes; every other computed read/import fails closed.
+const fixtureRuntimePorts = {
+  'tests/helpers/web-oracle.mjs': {
+    imports: ['newURL(path,root)'],
+    reads: ["newURL('manifest.json',root)", 'newURL(row.path,root)'],
+  },
+  'tools/load-node-core.mjs': {
+    imports: ['url'],
+    reads: ["resolve(assets,'pandoeditor-core.manifest.json')", 'compiledPath', "compiledPath.slice(0,-3)+'.wasm'"],
+  },
+  'shared/frontend/js/modules/core-wasm-loader.js': { imports: ['url'] },
+  'tools/package-shared-core-assets.mjs': {
+    imports: ['url.href'],
+    reads: ['join(root,path)', "join(build,'pandoeditor-core.js')", "join(build,'pandoeditor-core.wasm')",
+      'join(destination,manifest.assets.js.file)', 'join(destination,manifest.assets.wasm.file)',
+      "join(destination,'pandoeditor-core.manifest.json')"],
+  },
+  // The Node loader imports the canonical WASM root constant from this owner.
+  'scripts/lib/frontend-layout.mjs': { reads: ['resolve(root,entry.sourcePath)'] },
+};
+
+export function boundaryFixtureFiles(root) {
+  const files = new Set(), runtimeInputs = new Set();
+  const parseFile = path => parse(readFileSync(join(root, path), 'utf8'), { ecmaVersion: 'latest', sourceType: 'module', range: true });
   const local = (owner, source) => {
-    const path = relative(root, resolve(root, dirname(owner), source));
-    if (path.startsWith('..') || isAbsolute(path)) throw new Error(`Fixture dependency escapes product root: ${owner}`);
+    const path = relative(root, resolve(root, dirname(owner), source)).replaceAll('\\', '/');
+    if (path.startsWith('..') || isAbsolute(path)) throw new Error('Fixture dependency escapes product root: ' + owner);
     return path;
+  };
+  const addRuntimeInputs = kind => {
+    if (runtimeInputs.has(kind)) return;
+    runtimeInputs.add(kind);
+    if (kind === 'oracle') {
+      const base = 'tests/fixtures/portability/web-9300609-oracle/';
+      const manifestPath = base + 'manifest.json', manifest = JSON.parse(readFileSync(join(root, manifestPath), 'utf8'));
+      if (manifest.schema !== 'pandoeditor-web-test-oracle' || !Array.isArray(manifest.files))
+        throw new Error('Unverified fixture oracle manifest');
+      files.add(manifestPath);
+      for (const row of manifest.files) {
+        if (!/^[\w./-]+$/.test(row.path) || row.path.split('/').includes('..'))
+          throw new Error('Unverified fixture oracle path');
+        files.add(base + row.path);
+      }
+    } else {
+      const manifestPath = frontendWasmRoot + '/pandoeditor-core.manifest.json';
+      const manifest = JSON.parse(readFileSync(join(root, manifestPath), 'utf8'));
+      if (manifest.schema !== 'pandoeditor-core-wasm') throw new Error('Unverified fixture Core manifest');
+      files.add(manifestPath);
+      for (const kind of ['js', 'wasm']) {
+        if (manifest.assets?.[kind]?.file !== 'pandoeditor-core.' + kind) throw new Error('Unverified fixture Core asset');
+        files.add(frontendWasmRoot + '/' + manifest.assets[kind].file);
+      }
+      for (const input of sharedSourceManifest(root).inputs) files.add(input.path);
+    }
   };
   const visit = path => {
     if (files.has(path)) return;
     files.add(path);
     if (path.endsWith('.json')) return;
+    if (path === 'tests/helpers/web-oracle.mjs') addRuntimeInputs('oracle');
+    if (['tools/load-node-core.mjs', 'shared/frontend/js/modules/core-wasm-loader.js',
+      'tools/package-shared-core-assets.mjs'].includes(path)) addRuntimeInputs('core');
+    const sourceText = readFileSync(join(root, path), 'utf8');
+    const expression = node => sourceText.slice(node.range[0], node.range[1]).replace(/\s+/g, '');
+    const literalUrl = node => node?.type === 'NewExpression' && node.callee.name === 'URL'
+      && typeof node.arguments[0]?.value === 'string'
+      && node.arguments[1]?.object?.type === 'MetaProperty' && node.arguments[1]?.property?.name === 'url';
     const walk = node => {
       if (!node || typeof node !== 'object') return;
       if (['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) && node.source) {
         const source = node.source.value;
         if (source.startsWith('.')) visit(local(path, source));
-        else if (!source.startsWith('node:')) throw new Error(`Unverified fixture package import: ${path}: ${source}`);
+        else if (!source.startsWith('node:')) throw new Error('Unverified fixture package import: ' + path + ': ' + source);
       }
-      if (node.type === 'ImportExpression') throw new Error(`Unverified dynamic fixture import: ${path}`);
-      if (node.type === 'CallExpression' && node.callee.name === 'readFileSync') {
-        const url = node.arguments[0];
-        if (url?.type !== 'NewExpression' || url.callee.name !== 'URL' || typeof url.arguments[0]?.value !== 'string'
-          || url.arguments[1]?.object?.type !== 'MetaProperty' || url.arguments[1]?.property?.name !== 'url') {
-          throw new Error(`Unverified fixture file read: ${path}`);
+      if (node.type === 'ImportExpression') {
+        if (node.source.type === 'Literal' && typeof node.source.value === 'string' && node.source.value.startsWith('.')) {
+          const target = local(path, node.source.value);
+          if (!existsSync(join(root, target))) throw new Error('Unverified dynamic fixture import: ' + path);
+          visit(target);
+        } else if (!fixtureRuntimePorts[path]?.imports?.includes(expression(node.source))) {
+          throw new Error('Unverified dynamic fixture import: ' + path);
         }
-        visit(local(path, url.arguments[0].value));
+      }
+      if (node.type === 'NewExpression' && node.callee.name === 'Worker' && literalUrl(node.arguments[0]))
+        visit(local(path, node.arguments[0].arguments[0].value));
+      if (node.type === 'CallExpression' && ['readFileSync', 'readFile'].includes(node.callee.name)) {
+        const url = node.arguments[0];
+        if (literalUrl(url)) visit(local(path, url.arguments[0].value));
+        else if (!fixtureRuntimePorts[path]?.reads?.includes(expression(url))) throw new Error('Unverified fixture file read: ' + path);
       }
       for (const value of Object.values(node)) {
         if (Array.isArray(value)) value.forEach(walk);
@@ -50,14 +115,13 @@ function fixtureDependencies(root) {
     };
     walk(parseFile(path));
   };
-  // Derive the real Node fixture imports from the canonical scenario, excluding
-  // browser-only diagnostic helpers. Traverse every transitive module and the
-  // literal corpus read. Unknown import/read forms fail closed.
+  // Follow the actual Node fixture and source imports from the canonical scenario.
+  // Browser diagnostics are measured separately and never become fixture owners.
   for (const node of parseFile(spec).body) if (node.type === 'ImportDeclaration' && node.source.value.startsWith('.')) {
     const path = local(spec, node.source.value);
-    if (/^(assets\/|tests\/(helpers|fixtures)\/)/.test(path)) visit(path);
+    if (/^(shared\/frontend\/|apps\/editor\/frontend\/|tests\/(helpers|fixtures)\/)/.test(path)) visit(path);
   }
-  if (!files.has('tests/helpers/timeline-project.mjs') || !files.has('assets/js/modules/territorial-units.js')) {
+  if (!files.has('tests/helpers/timeline-project.mjs') || !files.has('shared/frontend/js/modules/territorial-units.js')) {
     throw new Error('Canonical boundary fixture imports are missing');
   }
   return [...files].sort();
@@ -74,10 +138,10 @@ export function verifyBoundaryProductBytes(root, tree) {
 }
 
 export function checkBoundaryFixtureEquivalence(cwd, baselineRoot) {
-  const fixtureFiles = fixtureDependencies(cwd);
+  const fixtureFiles = boundaryFixtureFiles(cwd);
   // Main has no new helpers, but its existing functional spec imports the same
   // canonical factories. A closure difference or byte difference is fatal.
-  const mainFiles = fixtureDependencies(baselineRoot);
+  const mainFiles = boundaryFixtureFiles(baselineRoot);
   const common = ['package.json', 'pnpm-lock.yaml', 'tests/browser/server.mjs', ...new Set([...fixtureFiles, ...mainFiles])];
   const differences = common.filter(path => !existsSync(join(cwd, path)) || !existsSync(join(baselineRoot, path))
     || !readFileSync(join(cwd, path)).equals(readFileSync(join(baselineRoot, path))));
@@ -157,7 +221,11 @@ export function runBoundaryRevisionComparison({
     inputs: null, runs: [], exitCode: null };
   const save = () => writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
   save();
-  try { summary.inputs = preflight(); }
+  try {
+    if (Object.hasOwn(env, 'PANDOEDITOR_WASM_MODULE'))
+      throw new Error('PANDOEDITOR_WASM_MODULE is unsupported for this comparison; canonical committed Core assets are required.');
+    summary.inputs = preflight();
+  }
   catch (error) {
     summary.status = 'preflight-failed'; summary.preflightError = String(error.message).slice(0, 4000); summary.exitCode = 1;
     save(); return { exitCode: 1, summaryPath };

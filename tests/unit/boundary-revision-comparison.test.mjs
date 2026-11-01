@@ -41,6 +41,25 @@ test('revision runner and workflow pin the approved latest main architecture', (
   assert.ok(workflow.includes(`ref: ${baseline}`));
 });
 
+test('revision runner rejects inherited WASM overrides before fixture preflight or launch', async t => {
+  const { runBoundaryRevisionComparison } = await runner();
+  for (const value of ['', '/unverified/private-core.js']) {
+    const env = { PANDOEDITOR_WASM_MODULE: value };
+    let preflights = 0, launches = 0;
+    const result = runBoundaryRevisionComparison({ cwd: root, outputRoot: directory(t), env,
+      preflight() { preflights++; return inputs(); },
+      execute(...args) { launches++; return launchSuccess(...args); } });
+    const summary = JSON.parse(readFileSync(result.summaryPath));
+    assert.equal(result.exitCode, 1);
+    assert.equal(summary.status, 'preflight-failed');
+    assert.match(summary.preflightError, /PANDOEDITOR_WASM_MODULE.*canonical committed Core assets/);
+    assert.equal(preflights, 0); assert.equal(launches, 0);
+    assert.equal(summary.inputs, null); assert.deepEqual(summary.runs, []);
+    assert.doesNotMatch(readFileSync(result.summaryPath, 'utf8'), /private-core/);
+    assert.equal(env.PANDOEDITOR_WASM_MODULE, value, 'the caller environment is preserved');
+  }
+});
+
 test('revision runner fixes PR/main/main/PR order and the exact desktop selection', async t => {
   const { runBoundaryRevisionComparison } = await runner();
   const outputRoot = directory(t), calls = [];
@@ -258,10 +277,9 @@ test('four actual non-browser child processes keep independent identities, logs 
   assert.equal(new Set(pids).size, 4);
 });
 
-function matchingFixtureRoot(t) {
+function matchingFixtureRoot(t, fixtureFiles) {
   const path = directory(t);
-  for (const file of ['tests/helpers/timeline-project.mjs', 'tests/fixtures/timeline-storage-cases.mjs',
-    'tests/fixtures/timeline-storage.json', 'assets/js/modules', 'tests/browser/boundary-cut-snapping.spec.mjs',
+  for (const file of [...fixtureFiles, 'tests/browser/boundary-cut-snapping.spec.mjs',
     'tests/browser/server.mjs', 'package.json', 'pnpm-lock.yaml']) {
     mkdirSync(dirname(join(path, file)), { recursive: true });
     cpSync(join(root, file), join(path, file), { recursive: true });
@@ -270,27 +288,50 @@ function matchingFixtureRoot(t) {
 }
 
 test('fixture gate validates the complete current canonical Node module closure', async t => {
-  const { checkBoundaryFixtureEquivalence } = await runner();
-  const baselineRoot = matchingFixtureRoot(t);
+  const { checkBoundaryFixtureEquivalence, boundaryFixtureFiles } = await runner();
+  const baselineRoot = matchingFixtureRoot(t, boundaryFixtureFiles(root));
   const { fixtureFiles } = checkBoundaryFixtureEquivalence(root, baselineRoot);
-  assert.ok(fixtureFiles.includes('assets/js/modules/project-state.js'));
-  assert.ok(fixtureFiles.includes('assets/js/modules/color-adapter.js'));
-  assert.ok(fixtureFiles.includes('tests/fixtures/timeline-storage.json'));
-  assert.equal(fixtureFiles.length, 22);
-  const changed = 'assets/js/modules/color-adapter.js';
-  writeFileSync(join(baselineRoot, changed), `${readFileSync(join(baselineRoot, changed), 'utf8')}\n// changed fixture dependency\n`);
-  assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot),
-    /Fixture dependencies differ: assets\/js\/modules\/color-adapter.js/);
+  for (const path of ['shared/frontend/js/modules/project-state.js', 'shared/frontend/js/modules/polygon-geometry.js',
+    'apps/editor/frontend/js/modules/project-serializer.js', 'tests/fixtures/timeline-storage.json',
+    'tests/helpers/core-session-node-worker.mjs', 'shared/frontend/js/modules/core-document-runtime.js',
+    'shared/frontend/static/wasm/pandoeditor-core.wasm', 'shared/core/src/webobjectcommands.cpp',
+    'tests/fixtures/portability/web-9300609-oracle/manifest.json',
+    'tests/fixtures/portability/web-9300609-oracle/assets/js/modules/territorial-entity-store.js'])
+    assert.ok(fixtureFiles.includes(path), path);
+  assert.equal(fixtureFiles.length, 276);
+  assert.equal(fixtureFiles.some(path => path.startsWith('assets/js/')), false);
+  for (const changed of ['shared/frontend/js/modules/project-state.js',
+    'shared/frontend/static/wasm/pandoeditor-core.wasm', 'shared/core/src/webobjectcommands.cpp']) {
+    const path = join(baselineRoot, changed), original = readFileSync(path);
+    writeFileSync(path, Buffer.concat([original, Buffer.from('\n// changed fixture dependency\n')]));
+    assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), error =>
+      error.message.startsWith('Fixture dependencies differ: ') && error.message.includes(changed));
+    writeFileSync(path, original);
+  }
 });
 
 test('fixture gate follows side-effect imports, re-exports and corpus bytes and rejects unknown dynamic imports', async t => {
-  const { checkBoundaryFixtureEquivalence } = await runner();
-  const baselineRoot = matchingFixtureRoot(t);
+  const { checkBoundaryFixtureEquivalence, boundaryFixtureFiles } = await runner();
+  const baselineRoot = matchingFixtureRoot(t, boundaryFixtureFiles(root));
   const file = join(baselineRoot, 'shared/frontend/js/modules/territorial-units.js');
   const original = readFileSync(file, 'utf8');
   writeFileSync(file, `${original}\nimport('./unverified.js');\n`);
   assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), /Unverified dynamic fixture import/);
   writeFileSync(file, original);
+  for (const [name, statement] of [['side-effect', "import './fixture-side-effect.js';"],
+    ['re-export', "export { value } from './fixture-re-export.js';"]]) {
+    const dependency = 'shared/frontend/js/modules/fixture-' + name + '.js';
+    writeFileSync(join(baselineRoot, dependency), 'export const value = 1;\n');
+    writeFileSync(file, original + '\n' + statement + '\n');
+    assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), error => error.message.includes(dependency));
+    writeFileSync(file, original);
+  }
+  const loader = join(baselineRoot, 'tools/load-node-core.mjs'), loaderSource = readFileSync(loader, 'utf8');
+  writeFileSync(loader, loaderSource + '\nimport(globalThis.unknownFixtureModule);\n');
+  assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), /Unverified dynamic fixture import/);
+  writeFileSync(loader, loaderSource + '\nreadFile(globalThis.unknownFixtureFile);\n');
+  assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), /Unverified fixture file read/);
+  writeFileSync(loader, loaderSource);
   writeFileSync(join(baselineRoot, 'tests/fixtures/timeline-storage.json'), '{}');
   assert.throws(() => checkBoundaryFixtureEquivalence(root, baselineRoot), /tests\/fixtures\/timeline-storage.json/);
 });

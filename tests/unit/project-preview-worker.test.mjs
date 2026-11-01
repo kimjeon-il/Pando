@@ -5,18 +5,23 @@ import { Worker } from 'node:worker_threads';
 test('preview Worker preserves canonical validator coordinates for topology repair', async t => {
   const script = new URL("../../apps/editor/frontend/js/workers/project-preview-worker.js", import.meta.url).href;
   const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
+  const transportModule = new URL('../helpers/source-worker-transport.mjs', import.meta.url).href;
   const worker = new Worker(`
     const { parentPort } = require('node:worker_threads');
     const fs = require('node:fs'), vm = require('node:vm');
+    (async () => {
+    const { sourceWorkerTransport } = await import(${JSON.stringify(transportModule)});
+    const transport = sourceWorkerTransport('assets/js/workers/project-preview-worker.js');
+    const sourceLocation = new URL(${JSON.stringify(script)});
     global.self = global;
-    self.location = new URL(${JSON.stringify(script)});
+    self.location = transport.location;
     global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext(
-      '(function(module,exports){' + fs.readFileSync(new URL(url, self.location), 'utf8') + '\\n}).call(globalThis,undefined,undefined)'));
+      '(function(module,exports){' + transport.read(url) + '\\n}).call(globalThis,undefined,undefined)'));
     self.postMessage = data => parentPort.postMessage({ result: data });
-    vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
-      filename: self.location.href,
+    vm.runInThisContext(fs.readFileSync(sourceLocation, 'utf8'), {
+      filename: sourceLocation.href,
       importModuleDynamically: async specifier => {
-        const url = new URL(specifier, self.location);
+        const url = new URL(specifier, sourceLocation);
         if (url.pathname.endsWith('/core-wasm-loader.js')) return import(${JSON.stringify(coreAdapter)});
         if (url.pathname.endsWith('/project-preview-topology.js')) {
           const shared = await import(url.href);
@@ -37,6 +42,7 @@ test('preview Worker preserves canonical validator coordinates for topology repa
       },
     });
     parentPort.on('message', data => self.onmessage({ data }));
+    })().catch(error => { throw error; });
   `, { eval: true, execArgv: ['--experimental-vm-modules'] });
   t.after(() => worker.terminate());
   const inspected = new Promise((resolve, reject) => {

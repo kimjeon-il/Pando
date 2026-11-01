@@ -2,13 +2,21 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createFileController as createController } from "../../shared/frontend/js/modules/file-controller.js";
 import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
-const createFileController=options=>createController({...options,fileAccess:options.fileAccess||createBrowserFileAccess(options)});
+const fileAccessFixture=overrides=>({
+  openProjectFile:()=>assert.fail('Unexpected project picker'),
+  openGisFiles:()=>assert.fail('Unexpected GIS picker'),
+  prepareProjectSave:()=>assert.fail('Unexpected project save'),
+  saveExportFile:()=>assert.fail('Unexpected export save'),
+  ...overrides,
+});
+const createFileController=options=>createController({...options,
+  fileAccess:options.fileAccess?fileAccessFixture(options.fileAccess):createBrowserFileAccess(options)});
 const { Blob,File } = globalThis;
 
 test('prepared file writer aborts when encoding fails before any write',async()=>{
  const events=[];
  const controller=createController({productMode:'editor',reportOperationError(){},elements:{save:{}},
-  fileAccess:{prepareProjectSave(){events.push('prepare');return {write(){assert.fail('must not write');},abort(){events.push('abort');}};}},
+  fileAccess:fileAccessFixture({prepareProjectSave(){events.push('prepare');return {write(){assert.fail('must not write');},abort(){events.push('abort');}};}}),
   projectDomain:{save(){throw new Error('encode failed');}}});
  const original=console.error;console.error=()=>{};
  try{assert.equal(await controller.saveProject(),false);}finally{console.error=original;}

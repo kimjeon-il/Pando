@@ -182,11 +182,13 @@ test('staged loader separates editable geometry from the high-quality mesh and s
   assert.match(workerSource, /countryPacketBuffer/);
   assert.match(workerSource, /canonicalCountryPacketTransferables\(countryPacketBuffer\)/);
   const networkLoadSource = storedAssetSource.slice(
-    storedAssetSource.indexOf("const response = await fetchFn(url"),
-    storedAssetSource.indexOf('validateAssetLength(result', storedAssetSource.indexOf("const response = await fetchFn(url")),
+    storedAssetSource.indexOf("const read = await fetchWithRetry(url"),
+    storedAssetSource.indexOf('validateAssetLength(result', storedAssetSource.indexOf("const read = await fetchWithRetry(url")),
   );
+  assert.match(networkLoadSource, /const read = await fetchWithRetry\(url/);
+  assert.ok(networkLoadSource.indexOf('validateStoredAsset') >= 0);
   assert.ok(networkLoadSource.indexOf('validateStoredAsset') < networkLoadSource.indexOf('cacheStoredBuffer'));
-  assert.ok(networkLoadSource.indexOf('cacheStoredBuffer') < networkLoadSource.indexOf('decodeStoredBuffer'));
+  assert.ok(networkLoadSource.indexOf('cacheStoredBuffer') < networkLoadSource.indexOf('await decode(read.storedBuffer)'));
   const cacheWriteSource = storedAssetSource.slice(
     storedAssetSource.indexOf('async function cacheStoredBuffer'),
     storedAssetSource.indexOf('function countedStream'),

@@ -5,6 +5,7 @@ import {createMapHost} from "../../shared/frontend/js/modules/map-workspace-host
 import assert from 'node:assert/strict';
 import {createRenderQuality} from "../../shared/frontend/js/modules/render-quality.js";
 import {createTerritorialEntityStore} from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
 import {createHydroSettings} from "../../shared/frontend/js/modules/physical-settings.js";
 
 test('terrain intents retain the last enabled mode and reject unknown modes',()=>{
@@ -33,16 +34,17 @@ test('the render quality owner applies preference style to every render consumer
 
 test('the entity projection reports actual root shape changes separately from metadata and child changes',()=>{
  const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]};
- let rows=[{id:'A',geometry,properties:{entityKind:'general',parentId:'',name:'A'}}],transition,version=1;
+ const admittedGeometry=version=>createGeometryVersionStore([{id:'shape:A',version,geojson:geometry}]).get({id:'shape:A',version});
+ let rows=[{id:'A',geometry:admittedGeometry(1),properties:{entityKind:'general',parentId:'',name:'A'}}],transition;
  const changes=[];
- const store=createTerritorialEntityStore({documentModel:{territorialViews:()=>rows,list:()=>[],world:()=>({entities:rows.map(row=>({id:row.id,geometryRef:{id:`shape:${row.id}`,version}}))}),projectWorld:()=>({})},
+ const store=createTerritorialEntityStore({documentModel:{territorialViews:()=>rows,list:()=>[],world:()=>({}),projectWorld:()=>({})},
   commandOwner:{state:()=>({}),subscribeTransitions:listener=>{transition=listener;return ()=>{};},resolveWorld(){},setTimelineCursor(){}},
   onEntitiesReplaced:(_rows,change)=>changes.push(change)});
  rows=[{...rows[0],properties:{...rows[0].properties,name:'renamed'}}];transition();
  assert.equal(changes.at(-1).rootGeometryChanged,false);
- rows=[{...rows[0],geometry:structuredClone(geometry)}];transition();
+ rows=[{...rows[0],geometry:admittedGeometry(1)}];transition();
  assert.equal(changes.at(-1).rootGeometryChanged,false,'the same canonical geometry version must not rebuild because its allocation changed');
- version++;rows=[{...rows[0],geometry:structuredClone(geometry)}];transition();
+ rows=[{...rows[0],geometry:admittedGeometry(2)}];transition();
  assert.equal(changes.at(-1).rootGeometryChanged,true);
  rows=[...rows,{id:'B',geometry,properties:{entityKind:'general',parentId:'A'}}];transition();
  assert.equal(changes.at(-1).rootGeometryChanged,false);
@@ -54,15 +56,19 @@ test('the entity projection reports actual root shape changes separately from me
 
 test('replacing a document invalidates roots even when archive-local geometry references collide',()=>{
  const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
- const model=createCoreDocumentReadModel(seed),binding=seed.timelineRecords.geometryBindings.find(row=>row.entityId==='A');
- const world={month:'2026-10',sourceEpoch:1,entities:[{id:'A',geometryRef:binding.geometryRef,parentId:'',coverageMode:'explicit',validFrom:null,validTo:null,rootId:'A',ancestors:[],properties:seed.territorialEntities.find(row=>row.id==='A').properties}]};
+ const model=createCoreDocumentReadModel(seed),binding=seed.timelineRecords.geometryBindings.find(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='A');
+ const world={month:'2026-10',sourceEpoch:1,entities:[{objectRef:{domain:'territorial',id:'A'},geometryRef:binding.geometryRef,parentId:'',coverageMode:'explicit',validFrom:null,validTo:null,rootId:'A',ancestors:[],properties:seed.territorialEntities.find(row=>row.id==='A').properties}]};
  model.acceptWorld(world,1);
  let transition;const changes=[];
  const store=createTerritorialEntityStore({documentModel:model,commandOwner:{state:()=>({}),subscribeTransitions:listener=>{transition=listener;return ()=>{};},resolveWorld(){},setTimelineCursor(){}},onEntitiesReplaced:(_rows,change)=>changes.push(change)});
- const before=store.snapshot()[0].geometry,next=structuredClone(seed);
- next.geometries.find(row=>row.id===binding.geometryRef.id&&row.version===binding.geometryRef.version).geojson={type:'Polygon',coordinates:[[[30,0],[30,10],[40,10],[40,0],[30,0]]]};
+ const before=store.snapshot()[0].geometry;
+ let offset=30,epoch=1;
  for(const operation of ['core.document-load','core.document-load-baseline','core.document-initialize','core.document-replacement-rollback']){
-  model.acceptLoadedProject(next);model.acceptWorld({...world,sourceEpoch:2},2);transition({},operation);
+  const next=structuredClone(seed);
+  // Every replacement has different bytes under the same archive-local ref.
+  next.geometries.find(row=>row.id===binding.geometryRef.id&&row.version===binding.geometryRef.version).geojson={type:'Polygon',coordinates:[[[offset,0],[offset,10],[offset+10,10],[offset+10,0],[offset,0]]]};
+  offset++;epoch++;
+  model.acceptLoadedProject(next);model.acceptWorld({...world,sourceEpoch:epoch},epoch);transition({},operation);
   assert.equal(changes.at(-1).rootGeometryChanged,true,operation);
  }
  assert.notDeepEqual(store.snapshot()[0].geometry,before);store.dispose();

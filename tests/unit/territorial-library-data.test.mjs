@@ -3,6 +3,7 @@ import test from 'node:test';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {LIBRARY_ENTITY_TYPES} from '../../apps/editor/frontend/js/modules/territorial-library.js';
 const historicalData={entities:readTerritorialSources().filter(e=>e.sourceInfo.importProvenance)};
 test('East Prussia r3 library preserves the reviewed geometry and reports its limitations', () => {
   const entity = historicalData.entities.find(item => item.entityId === 'state:east-prussia');
@@ -83,12 +84,19 @@ test('historical library maintains one dated identity and independently scoped s
     ids.add(e.entityId);
     assert.equal(e.schemaVersion,2);
     assert.ok(Array.isArray(e.geometryVersions)&&e.geometryVersions.length>0,e.entityId);
-    assert.equal(e.entityKind,'general');
+    assert.ok(Object.values(LIBRARY_ENTITY_TYPES).includes(e.entityKind),e.entityId+': unsupported entity kind');
+    const water=e.entityKind===LIBRARY_ENTITY_TYPES.RIVER||e.entityKind===LIBRARY_ENTITY_TYPES.LAKE;
+    if(water){
+      assert.equal(e.parentEntityId,'',e.entityId+': water objects have no territorial parent');
+      assert.equal(e.instantiation.mode,'independent',e.entityId);
+      assert.deepEqual(e.instantiation.countryUpdates,{},e.entityId+': water objects cannot replace countries');
+    }
     for(const version of e.geometryVersions){
       for(const property of ['validFrom','validTo','certainty','sourceId'])
         assert.ok(Object.hasOwn(version,property),e.entityId+'/'+version.versionId+': '+property);
-      assert.ok(['Polygon','MultiPolygon'].includes(version.geometry?.type),
-        e.entityId+'/'+version.versionId+' missing polygon source');
+      const geometryTypes=e.entityKind===LIBRARY_ENTITY_TYPES.RIVER?['LineString','MultiLineString']:['Polygon','MultiPolygon'];
+      assert.ok(geometryTypes.includes(version.geometry?.type),
+        e.entityId+'/'+version.versionId+' geometry differs from its entity kind');
     }
   }
   assert.ok(ids.has('state:deutsche-demokratische-republik'));

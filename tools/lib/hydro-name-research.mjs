@@ -323,3 +323,116 @@ function decodeXml(value) {
     .replaceAll('&gt;', '>')
     .replaceAll('&amp;', '&');
 }
+
+export function renderEuropeanReviewMarkdown(document) {
+  const counts = Object.fromEntries(['accepted-candidate', 'ambiguous', 'unresolved', 'out-of-scope']
+    .map(status => [status, document.entries.filter(entry => entry.status === status).length]));
+  const lines = [
+    '# 유럽 주요 미명명 강 검증표',
+    '',
+    `- 기준 데이터: HydroRIVERS ${document.datasetVersion}`,
+    `- 조사일: ${document.researchedAt}`,
+    `- 원시 후보: ${document.entries.length}개 (accepted-candidate ${counts['accepted-candidate']}, ambiguous ${counts.ambiguous}, unresolved ${counts.unresolved}, out-of-scope ${counts['out-of-scope']})`,
+    '- `accepted-candidate` 23개는 사용자 승인 후 hydronym override와 v0.13.1 메타데이터에 반영했다.',
+    '- 지도 대조: [GeoJSON 오버레이](./europe-major-rivers.geojson)',
+    '',
+    '## 판정 요약',
+    '',
+    '| systemId | 단계 | 범위 | 상태 | 현지어 원명 | 추천 한글명 | 지오메트리 |',
+    '|---|---:|---|---|---|---|---|',
+  ];
+  for (const entry of document.entries) {
+    const scope = entry.scope.inScope ? entry.scope.matchedCountries.join('·') : `제외: ${entry.scope.reason}`;
+    const geometry = entry.geometryMatch
+      ? `중첩 ${formatNumber(entry.geometryMatch.coverage)}, 중앙 ${formatNumber(entry.geometryMatch.medianDistanceKm)} km, 끝점 ${entry.geometryMatch.endpointMatches}`
+      : '-';
+    lines.push(`| ${entry.systemId} | ${entry.stage} | ${scope} | ${entry.status} | ${escapeCell(entry.localName || '-')} | ${escapeCell(entry.recommendedNameKo || '-')} | ${geometry} |`);
+  }
+  lines.push('', '## 상세 근거', '');
+  for (const entry of document.entries) {
+    lines.push(`### ${entry.systemId} · ${entry.recommendedNameKo || entry.localName || '미확정'}`, '');
+    lines.push(`- 판정: **${entry.status}** — ${entry.rationale}`);
+    lines.push(`- 경계: ${entry.bounds.join(', ')}`);
+    if (entry.aliases?.length) lines.push(`- 별칭: ${entry.aliases.join(', ')}`);
+    if (entry.geometryMatch) {
+      const gap = entry.geometryMatch.scoreGap == null ? '단일 유효 후보' : entry.geometryMatch.scoreGap;
+      lines.push(`- 대조: 중첩률 ${formatNumber(entry.geometryMatch.coverage)}, 평균 ${formatNumber(entry.geometryMatch.meanDistanceKm)} km, 중앙 ${formatNumber(entry.geometryMatch.medianDistanceKm)} km, 하구/끝점 ${entry.geometryMatch.endpointMatches}, 차순위 차이 ${gap}`);
+    }
+    if (entry.officialSystemMatch) {
+      lines.push(`- 공식 수계 대조: ${entry.officialSystemMatch.authority} ${entry.officialSystemMatch.identifier} — ${entry.officialSystemMatch.rationale}`);
+    }
+    if (entry.hangulize) {
+      lines.push(`- 한글라이즈: \`${entry.hangulize.language}\` / \`${entry.hangulize.input}\` → \`${entry.hangulize.output}\` ([재현 URL](${entry.hangulize.url}))`);
+    }
+    for (const source of entry.sources || []) lines.push(`- ${source.kind}: [${source.label || source.url}](${source.url})${source.id ? ` (ID ${source.id})` : ''}`);
+    lines.push('');
+  }
+  return `${lines.join('\n').trimEnd()}\n`;
+}
+
+function formatNumber(value) {
+  return value == null || !Number.isFinite(Number(value)) ? '-' : String(value);
+}
+
+function escapeCell(value) {
+  return String(value).replaceAll('|', '\\|');
+}
+
+export function validateEuropeanReviewMarkdown(markdown, document) {
+  const text = String(markdown).replaceAll('\r\n', '\n');
+  const requireFact = (valid, label) => {
+    if (!valid) throw new Error(`europe-major-rivers.md has stale or missing ${label}`);
+  };
+  const title = text.split('\n').find(line => line.trim());
+  // A detailed report must match its generator. Appending a summary cannot make
+  // changed detailed evidence pass through a different validation path.
+  if (title === '# 유럽 주요 미명명 강 검증표') {
+    requireFact(text === renderEuropeanReviewMarkdown(document), 'exact detailed report');
+    return;
+  }
+  requireFact(title === `# 유럽 주요 미명명 강 — ${document.researchedAt} 검토 요약`, 'summary title or research date');
+  requireFact([...text.matchAll(/^# /gm)].length === 1, 'unique summary title');
+  requireFact(!/<!--|-->|<\/?[A-Za-z][^>]*>|^[ \t]*(?:`{3,}|~{3,})/m.test(text), 'visible Markdown summary');
+  const headings = [...text.matchAll(/^## ([^\n]+)$/gm)];
+  const section = name => {
+    const matches = headings.filter(heading => heading[1] === name);
+    requireFact(matches.length === 1, `unique ${name} section`);
+    const heading = matches[0], next = headings[headings.indexOf(heading) + 1];
+    return { start: heading.index + heading[0].length, end: next?.index ?? text.length };
+  };
+  const facts = section('당시 판정'), references = section('정본 자료 및 재현');
+  requireFact(facts.start < references.start, 'summary section order');
+  const linePrefix = index => text.slice(text.lastIndexOf('\n', index) + 1, index);
+  const dataset = [...text.matchAll(/HydroRIVERS\s+\*\*([^*\n]+)\*\*/g)];
+  requireFact(dataset.length === 1 && dataset[0][1] === document.datasetVersion
+    && dataset[0].index < facts.start && linePrefix(dataset[0].index) === '> 과거 ', 'unique dataset version');
+  const count = status => document.entries.filter(entry => entry.status === status).length;
+  // Count field labels before parsing their values. A malformed second value
+  // must not disappear from the uniqueness check because its number is invalid.
+  for (const [labelPattern, pattern, expected, label] of [
+    [/검토 대상:/g, /검토 대상:[^\n]*?\*\*([^*\n]+)개\*\*/g, document.entries.length, 'candidate count'],
+    [/`?accepted-candidate`?(?=\s|[:,=]|$)/g, /`?accepted-candidate`?\s+\*{0,2}(\d+)\s*개/g, count('accepted-candidate'), 'accepted count'],
+    [/`?out-of-scope`?(?=\s|[:,=]|$)/g, /`?out-of-scope`?\s+\*{0,2}(\d+)\s*개/g, count('out-of-scope'), 'out-of-scope count'],
+    [/ambiguous\s*·\s*unresolved(?=\s|[:,=]|$)/g, /ambiguous\s*·\s*unresolved\s+\*{0,2}(\d+)\s*개/g, count('ambiguous') + count('unresolved'), 'undecided count'],
+  ]) {
+    const labels = [...text.matchAll(labelPattern)], matches = [...text.matchAll(pattern)], match = matches[0];
+    requireFact(labels.length === 1 && matches.length === 1 && labels[0].index === match.index
+      && /^(0|[1-9]\d*)$/.test(match[1]) && Number(match[1]) === expected
+      && match.index >= facts.start && match.index < facts.end
+      && linePrefix(match.index).startsWith('- '), `unique ${label} in summary`);
+  }
+  const links = [...text.matchAll(/\[([^\]\n]+)\]\(([^\s)]+)\)/g)].map(match => ({
+    label: match[1].trim().replace(/\s+/g, ' '), target: match[2].replace(/^\.\//, ''), index: match.index,
+  }));
+  requireFact(new Set(links.map(link => link.label)).size === links.length, 'unique report link labels');
+  requireFact(links.every(link => !/(^|[\\/])\.variants([\\/]|$)/.test(link.target)), 'logical report links');
+  // This identity is the approved pre-compaction report, not any 40-hex URL.
+  const original = 'https://github.com/kimjeon-il/Pando/blob/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/reports/hydro-names/europe-major-rivers.md';
+  for (const target of ['europe-major-rivers.json', 'europe-major-rivers.geojson', original]) {
+    const name = target.split('/').at(-1);
+    const matches = links.filter(link => link.target.split(/[?#]/)[0].split('/').at(-1) === name), link = matches[0];
+    requireFact(matches.length === 1 && link.target === target
+      && link.index >= references.start && link.index < references.end
+      && linePrefix(link.index) === '- ', `unique ${name} approved link in references`);
+  }
+}

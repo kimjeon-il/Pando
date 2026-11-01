@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
@@ -162,7 +163,7 @@ test('wrapping is idempotent when strip clipping creates a long planar edge', as
   assert.deepEqual(pc.xor(polygons(first), polygons(second)), []);
 });
 
-test('Soviet Union geometry preserves its 231 land components under D3 spherical winding', () => {
+test('Soviet Union 1930–1991 reference geometry preserves its 231 land components under D3 spherical winding', () => {
   const source = JSON.parse(fs.readFileSync(
     path.join(root, 'assets/data/territorial-entities/source/countries/state-soviet-union.json'),
     'utf8',
@@ -170,9 +171,13 @@ test('Soviet Union geometry preserves its 231 land components under D3 spherical
   const entity = [source].find(item => item.entityId === 'state:soviet-union');
   assert.ok(entity, 'the USSR catalog identity must exist');
   const version = entity.geometryVersions.find(item =>
-    item.versionId === 'state:soviet-union:1922-1991-baikonur-r1');
-  assert.ok(version, 'the 1922–1991 reference shape must exist');
+    item.versionId === 'state:soviet-union:1922-1991-baikonur-r1-after-reviewed-day');
+  assert.ok(version, 'the 1930–1991 reference shape must exist after the approved coverage split');
+  assert.deepEqual({validFrom:version.validFrom,validTo:version.validTo},{validFrom:'1930-01-01',validTo:'1991'});
   const geometry = version.geometry;
+  assert.equal(createHash('sha256').update(JSON.stringify(geometry)).digest('hex'),
+    'a7cc592b231c947797a557dc3aff6a58489f797e86590aba3b3d9bf7fd278fe2',
+    'the pinned reference retains every source coordinate');
   assert.equal(geometry.type, 'MultiPolygon');
   assert.equal(geometry.coordinates.length, 231);
   assert.equal(geometry.coordinates.reduce((sum, polygon) =>

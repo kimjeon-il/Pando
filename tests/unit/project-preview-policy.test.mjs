@@ -52,7 +52,9 @@ async function fixture(t) {
     kind: 'stored-asset', sourceBytes, encoding: 'gzip', compressedBytes: sourceBytes.length,
     decodedBytes: decoded.length, baseDataset: dataset, sourceMonth: '2026-10', fingerprint: sourceSha256,
   });
-  await owner.client.loadBaseline(storageBaselineId);
+  // Admit the static source for the delta-preview policy without starting a
+  // dated new project, which intentionally activates temporal edits.
+  await owner.client.initialize({ baselineId: storageBaselineId, preserveCursor: false });
   await command(owner,'territorial.patch',{ features: classified(), removedIds: ['HKG'] },['CHN',subunit.id,'HKG']);
   const baseline = { sourceSha256, defaultClassification: {
     countries: { CHN: fingerprints.CHN, GBR: fingerprints.GBR }, changed: { CHN: fingerprints.CHN },
@@ -106,7 +108,7 @@ test('accepted border, parent, removal and creation edits cannot use shipped geo
   const owner = await fixture(t);
   const edits = [
     ['territorial.geometry',{ id: 'CHN', geometry: rectangle(0,4.1) },['CHN']],
-    ['territorial.parent',{ id: subunit.id, parentId: 'GBR' },[subunit.id]],
+    ['territorial.parent',{ id: subunit.id, parentId: '' },[subunit.id]],
     ['territorial.remove',{ ids: ['GBR'] },['GBR']],
     ['territorial.create',{ feature: feature('NEW',rectangle(20,21)) },['NEW']],
   ];
@@ -116,6 +118,19 @@ test('accepted border, parent, removal and creation edits cannot use shipped geo
     assert.equal(await owner.project.undo(),true);
     assert.equal(matchesDefaultPreview(await previewSource(owner),owner.baseline),true,`${commandId} Undo`);
   }
+});
+
+test('a parent outside the child geometry is rejected without changing preview, document or history',async t => {
+  const owner = await fixture(t), before = owner.documentModel.snapshot(), state = owner.client.state();
+  const source = await previewSource(owner);
+  const result = await owner.project.executeCommand({ commandId: 'territorial.parent',
+    targets: [{ domain: 'territorial', id: subunit.id }], payload: { id: subunit.id, parentId: 'GBR' } });
+  assert.equal(result.ok,false);
+  assert.equal(result.changed,false);
+  assert.match(result.error.message,/GEOMETRY_OUTSIDE_PARENT/);
+  assert.deepEqual(owner.documentModel.snapshot(),before);
+  assert.deepEqual(owner.client.state(),state);
+  assert.deepEqual(await previewSource(owner),source);
 });
 
 test('full saved geometry uses all Core views and requires the complete default classification',async t => {
@@ -147,9 +162,9 @@ test('display key rows ignore presentation and names but change with accepted ge
   const owner = await fixture(t), original = JSON.stringify(projectPreviewGeometryRows(await previewSource(owner)));
   await command(owner,'territorial.metadata',{ id: 'CHN', field: 'name', valuePresent: true, value: 'Display only' },['CHN']);
   await command(owner,'territorial.metadata',{ id: subunit.id, field: 'color', valuePresent: true, value: '#123456' },[subunit.id]);
-  await command(owner,'presentation.apply',{ action: 'groupStyle', group: 'countries', patch: { opacity: 0.5 } });
+  await command(owner,'presentation.apply',{ action: 'groupStyle', group: 'objects', patch: { opacity: 0.5 } });
   assert.equal(JSON.stringify(projectPreviewGeometryRows(await previewSource(owner))),original);
-  await command(owner,'territorial.parent',{ id: subunit.id, parentId: 'GBR' },[subunit.id]);
+  await command(owner,'territorial.parent',{ id: subunit.id, parentId: '' },[subunit.id]);
   assert.notEqual(JSON.stringify(projectPreviewGeometryRows(await previewSource(owner))),original);
   assert.equal(await owner.project.undo(),true);
   assert.equal(JSON.stringify(projectPreviewGeometryRows(await previewSource(owner))),original);

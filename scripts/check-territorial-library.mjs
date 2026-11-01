@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { validateGeometry } from "../shared/frontend/js/modules/geometry-validation.js";
 import {readTerritorialSources} from '../tools/territorial-entity-sources.mjs';
 import {buildCurrentWorld} from '../tools/territorial-current-world.mjs';
+import { selectLateSovietCheckPartition } from './lib/late-soviet-check.mjs';
 import '../tools/load-spherical-core.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -145,8 +146,12 @@ for (const versionId of ['state:nagorno-karabakh:1991-2020-r1', 'state:nagorno-k
   const issues = validateGeometry(feature);
   if (issues.length) throw new Error(`${versionId} fails app geometry validation: ${issues[0].message}`);
 }
-const sovietEntity = library.entities.find(item => item.entityId === 'state:soviet-union');
-const sovietGeometry = sovietEntity?.geometryVersions?.[0]?.geometry;
+// Fixed geometry-version partition; not a simultaneous date snapshot.
+// Preserve the fifteen-republic/Crimea/Baikonur coordinate contract without
+// depending on version array order or extending any source validity period.
+const sovietPartition = selectLateSovietCheckPartition(library.entities);
+const sovietEntity = sovietPartition.parent;
+const sovietGeometry = sovietPartition.parentVersion?.geometry;
 if (!sovietGeometry) throw new Error('Soviet Union must have an inline geometry for the Baikonur lease area');
 const sovietIssues = validateGeometry({ type: 'Feature', id: 'state:soviet-union', properties: { name: '소련' }, geometry: sovietGeometry });
 if (sovietIssues.length) throw new Error(`Soviet Union fails app geometry validation: ${sovietIssues[0].message}`);
@@ -154,10 +159,10 @@ if (!geometryCovers([63.3, 45.92], sovietGeometry)) throw new Error('Soviet Unio
 if (!String(sovietEntity.metadata?.defaultFlagDataUrl || '').startsWith('data:image/svg+xml;base64,')) {
   throw new Error('Soviet Union flag asset is missing');
 }
-const sovietChildren = library.entities.filter(item => item.parentEntityId === 'state:soviet-union');
+const sovietChildren = sovietPartition.children;
 if (sovietChildren.length !== 15) throw new Error(`Soviet Union must have 15 constituent republics, found ${sovietChildren.length}`);
 const sovietChildGeometries = [];
-for (const child of sovietChildren) {
+for (const { entity: child, version } of sovietChildren) {
   if (child.entityKind !== 'general' || child.parentEntityId !== 'state:soviet-union' || Object.hasOwn(child, 'adminLevel')) {
     throw new Error(`${child.entityId} has an invalid Soviet constituent hierarchy`);
   }
@@ -165,12 +170,11 @@ for (const child of sovietChildren) {
   if (!flag.startsWith('data:image/svg+xml;base64,') || !Buffer.from(flag.slice(flag.indexOf(',') + 1), 'base64').toString('utf8').includes('<svg')) {
     throw new Error(`${child.entityId} flag asset is missing or invalid`);
   }
-  const materialized = materializedById.get(child.entityId);
-  if (!materialized?.geometryVersions?.[0]?.geometry) throw new Error(`${child.entityId} could not be materialized`);
-  sovietChildGeometries.push([child.entityId, materialized.geometryVersions[0].geometry]);
+  if (!version?.geometry) throw new Error(`${child.entityId} could not be materialized`);
+  sovietChildGeometries.push([child.entityId, version.geometry]);
   const issues = validateGeometry({
     type: 'Feature', id: child.entityId, properties: { name: child.names.ko || child.names.en },
-    geometry: materialized.geometryVersions[0].geometry,
+    geometry: version.geometry,
   });
   if (issues.length) throw new Error(`${child.entityId} fails app geometry validation: ${issues[0].message}`);
 }
@@ -191,9 +195,10 @@ const outsideParent = subtractGeometries(sovietChildrenUnion, sovietGeometry);
 if (geometryArea(missingFromChildren) > 1e-10 || geometryArea(outsideParent) > 1e-10) {
   throw new Error('Soviet republic children do not form the same territory as the Soviet Union parent');
 }
-const russianRepublic = materializedById.get('state:soviet-union-russian-sfsr').geometryVersions[0].geometry;
-const ukrainianRepublic = materializedById.get('state:soviet-union-ukrainian-ssr').geometryVersions[0].geometry;
-const kazakhRepublic = materializedById.get('state:soviet-union-kazakh-ssr').geometryVersions[0].geometry;
+const sovietChildGeometryById = new Map(sovietChildGeometries);
+const russianRepublic = sovietChildGeometryById.get('state:soviet-union-russian-sfsr');
+const ukrainianRepublic = sovietChildGeometryById.get('state:soviet-union-ukrainian-ssr');
+const kazakhRepublic = sovietChildGeometryById.get('state:soviet-union-kazakh-ssr');
 if (!geometryCovers([34.1, 44.95], ukrainianRepublic) || geometryCovers([34.1, 44.95], russianRepublic)) {
   throw new Error('Crimea must belong to the Ukrainian SSR and be excluded from the Russian SFSR');
 }
@@ -222,4 +227,4 @@ if (entity.instantiation?.mode !== 'territory-replacement'
   throw new Error('East Germany territory-replacement instantiation policy is missing');
 }
 
-console.log(`Territorial catalog OK: ${library.entities.length} entries; 15 Soviet republics, flags, Crimea/Baikonur adjustments, East Germany, Nagorno-Karabakh, and DEU remainder pass app validation.`);
+console.log(`Territorial catalog OK: ${library.entities.length} entries; 15 Soviet republics (fixed geometry-version partition; not a simultaneous date snapshot), flags, Crimea/Baikonur adjustments, East Germany, Nagorno-Karabakh, and DEU remainder pass app validation.`);

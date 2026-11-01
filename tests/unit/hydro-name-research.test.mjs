@@ -8,6 +8,8 @@ import {
   classifyEuropeanGeometry,
   collectMajorUnnamedEuropeanCandidates,
   rankGeometryCandidates,
+  renderEuropeanReviewMarkdown,
+  validateEuropeanReviewMarkdown,
   osmXmlToGeometry,
   selectResearchMainstemFeatures,
   scoreGeometryCandidate,
@@ -148,6 +150,83 @@ test('official system identity is valid evidence when one river relation cannot 
   assert.doesNotThrow(() => validateReviewEntries([row], { expectedCount: 1 }));
 });
 
+test('review Markdown preserves the logical overlay filename', () => {
+  const markdown = renderEuropeanReviewMarkdown(summaryFixture().review);
+  assert.match(markdown, /\[GeoJSON 오버레이\]\(\.\/europe-major-rivers\.geojson\)/);
+  assert.doesNotMatch(markdown, /\.variants|a{64}/);
+});
+
+test('review checks accept the edited historical summary without recreating the full report', () => {
+  const { review, markdown } = summaryFixture();
+  assert.doesNotThrow(() => validateEuropeanReviewMarkdown(markdown, review));
+  assert.doesNotThrow(() => validateEuropeanReviewMarkdown(
+    markdown.replace('## 당시 판정', '## 당시 판정\n\n편집 설명을 추가해도 연구 값과 정본 링크는 유지한다.'), review,
+  ));
+  assert.doesNotThrow(() => validateEuropeanReviewMarkdown(renderEuropeanReviewMarkdown(review), review));
+});
+
+test('review checks reject stale summary facts and missing canonical provenance', () => {
+  const { review, markdown } = summaryFixture();
+  for (const [from, to] of [
+    ['2001-02-03', '2001-02-04'], ['fixture-v1', 'fixture-v2'],
+    ['**2개**', '**3개**'], ['`accepted-candidate` **1개**', '`accepted-candidate` **2개**'],
+    ['`out-of-scope` **1개**', '`out-of-scope` **0개**'], ['ambiguous·unresolved **0개**', 'ambiguous·unresolved **1개**'],
+    ['(europe-major-rivers.json)', '(.variants/' + 'a'.repeat(64) + ')'],
+    ['(europe-major-rivers.geojson)', '(.variants/' + 'a'.repeat(64) + ')'],
+    ['/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/', '/main/'],
+  ]) {
+    assert.throws(() => validateEuropeanReviewMarkdown(markdown.replace(from, to), review),
+      /europe-major-rivers\.md/, from);
+  }
+  assert.throws(() => validateEuropeanReviewMarkdown(
+    markdown.replace('2001-02-03', '2001-02-04') + '\n원문 참고 날짜: 2001-02-03\n', review,
+  ), /research date/);
+  assert.throws(() => validateEuropeanReviewMarkdown(
+    renderEuropeanReviewMarkdown(review).replace('Fixture evidence.', 'Changed evidence.'), review,
+  ), /europe-major-rivers\.md/);
+});
+
+for (const [label, mutate] of [
+  ['a changed detailed report followed by a valid summary', (markdown, review) =>
+    renderEuropeanReviewMarkdown(review).replace('Fixture evidence.', 'Changed evidence.') + '\n' + markdown],
+  ['a valid summary hidden in an HTML comment', markdown => '<!--\n' + markdown + '-->\nA different visible report.\n'],
+  ['a conflicting count appended to the summary', markdown => markdown + '\n- `accepted-candidate` **99개**.\n'],
+  ['a canonical attachment label duplicated with a cache path', markdown =>
+    markdown + '\n- [ID별 정본 연구 값](.variants/' + 'a'.repeat(64) + ').\n'],
+  ['a fabricated immutable original revision', markdown =>
+    markdown.replace('6b0c501dd09029ef237e90c1ef55fdb82bdf315f', '0'.repeat(40))],
+  ['summary facts hidden in a fenced code block', markdown => markdown.replace('## 당시 판정', '```\n## 당시 판정') + '\n```\n'],
+  ['summary facts hidden by an HTML element', markdown => markdown.replace('## 당시 판정', '<div hidden>\n## 당시 판정') + '\n</div>\n'],
+  ['a conflicting dataset version appended to the summary', markdown => markdown + '\nHydroRIVERS **fixture-v2**\n'],
+  ['a canonical attachment duplicated with another label', markdown => markdown + '\n- [다른 JSON 링크](europe-major-rivers.json).\n'],
+]) {
+  test('review checks reject ' + label, () => {
+    const { review, markdown } = summaryFixture();
+    assert.throws(() => validateEuropeanReviewMarkdown(mutate(markdown, review), review), /europe-major-rivers\.md/);
+  });
+}
+
+for (const count of ['-2', '2.2']) {
+  test('review checks reject the entire invalid candidate count ' + count, () => {
+    const { review, markdown } = summaryFixture();
+    assert.throws(() => validateEuropeanReviewMarkdown(markdown.replace('**2개**', `**${count}개**`), review),
+      /candidate count/);
+  });
+}
+
+for (const [label, duplicate] of [
+  ['candidate', '- 검토 대상: 주요 미명명 강 시스템 3개 (중요도 단계 0~1).'],
+  ['accepted', '- `accepted-candidate` **-2개**.'],
+  ['out-of-scope', '- `out-of-scope` **1.1개**.'],
+  ['undecided', '- ambiguous·unresolved **unknown개**.'],
+]) {
+  test('review checks reject a malformed duplicate ' + label + ' count independently of number parsing', () => {
+    const { review, markdown } = summaryFixture();
+    const changed = markdown.replace('## 정본 자료 및 재현', `${duplicate}\n\n## 정본 자료 및 재현`);
+    assert.throws(() => validateEuropeanReviewMarkdown(changed, review), /count/);
+  });
+}
+
 test('checked-in European major river review matches all 33 current candidates', () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
   const result = spawnSync(process.execPath, ['tools/research-hydro-names.mjs', '--check'], {
@@ -157,6 +236,32 @@ test('checked-in European major river review matches all 33 current candidates',
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /Validated 33 European HydroRIVERS name candidates/);
 });
+
+function summaryFixture() {
+  const review = {
+    datasetVersion: 'fixture-v1', researchedAt: '2001-02-03',
+    entries: ['accepted-candidate', 'out-of-scope'].map((status, index) => ({
+      ...reviewRow(String(2001 + index)), status, bounds: [0, 0, 1, 1],
+      scope: { inScope: true, matchedCountries: ['노르웨이'] }, rationale: 'Fixture evidence.',
+    })),
+  };
+  const markdown = `# 유럽 주요 미명명 강 — 2001-02-03 검토 요약
+
+> 과거 HydroRIVERS **fixture-v1** 기준 조사.
+
+## 당시 판정
+
+- 검토 대상: 주요 미명명 강 시스템 **2개** (중요도 단계 0~1).
+- \`accepted-candidate\` **1개**, \`out-of-scope\` **1개**, ambiguous·unresolved **0개**.
+
+## 정본 자료 및 재현
+
+- [ID별 정본 연구 값](europe-major-rivers.json).
+- [검토 당시 지리적 오버레이](europe-major-rivers.geojson).
+- [축약 이전 상세 근거](https://github.com/kimjeon-il/Pando/blob/6b0c501dd09029ef237e90c1ef55fdb82bdf315f/reports/hydro-names/europe-major-rivers.md).
+`;
+  return { review, markdown };
+}
 
 function line(coordinates) {
   return { type: 'LineString', coordinates };

@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCoreDocumentClient} from '../../shared/frontend/js/modules/core-document-client.js';
 import {createCoreWorkerRuntime} from '../../shared/frontend/js/modules/core-worker-runtime.js';
-import {createProductModePolicy} from '../../shared/frontend/js/modules/product-mode-policy.js';
 
 const state=epoch=>({epoch,stateRevision:0,revision:0,checkpoint:0,canUndo:false,canRedo:false,
   dirty:false,timelineCursor:'2026-10',storageBaselineId:0});

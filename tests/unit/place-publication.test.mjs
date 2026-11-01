@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { reportPath } from '../../tools/report-paths.mjs';
 import { canonicalPlaceTextBytes, generatePlaceRelease, validateRuntimeApproval } from '../../tools/build-place-runtime.mjs';
 import { decodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
 import { normalizePlace } from "../../shared/frontend/js/modules/place-contract.js";
@@ -12,7 +13,7 @@ const assets = new URL('../../assets/data/places/', import.meta.url);
 const read = name => readFileSync(new URL(name, assets));
 const catalog = JSON.parse(read('reviewed-records-v1.json').toString('utf8'));
 const manifest = JSON.parse(read('manifest.json').toString('utf8'));
-const approvals = JSON.parse(readFileSync(new URL('../../reports/places/runtime-release-approvals-v1.json', import.meta.url), 'utf8'));
+const approvals = JSON.parse(readFileSync(reportPath('reports/places/runtime-release-approvals-v1.json', { access: 'read' }), 'utf8'));
 const publishedBytes = read('places-v1.bin');
 const triple = { ko: true, en: true, native: true };
 const record = id => catalog.records.find(row => row.sourceId === String(id));
@@ -26,7 +27,7 @@ test('release provenance uses Git LF bytes for either checkout line ending', () 
 
 test('only approved source-verified cities in current review batches are reproducibly published', () => {
   const generated = generatePlaceRelease();
-  const reviewFiles = readdirSync(new URL('../../reports/places/', import.meta.url))
+  const reviewFiles = readdirSync(reportPath('reports/places', { access: 'read' }))
     .filter(name => /^tier1-major-cities-batch\d{2}[-a-z0-9]*\.json$/u.test(name))
     .sort()
     .map(name => 'reports/places/' + name);

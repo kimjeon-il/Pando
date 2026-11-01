@@ -4,11 +4,19 @@ import path from 'node:path';
 import test from 'node:test';
 import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 import { buildRenderableStrokeFeature, hasAreaGeometry } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const countries = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data/countries-preview-v0.36.0.geojson.gz'))));
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world/current.json'), 'utf8'));
+const preview = manifest.assets.previewCountries;
+const stored = fs.readFileSync(path.join(root, 'assets/data', preview.url));
+assert.equal(stored.length, preview.compressedBytes);
+assert.equal(createHash('sha256').update(stored).digest('hex'), preview.sha256);
+const decoded = zlib.gunzipSync(stored);
+assert.equal(decoded.length, preview.decodedBytes);
+const countries = JSON.parse(decoded);
 
 function featureById(id) {
   return countries.features.find(feature => [

@@ -7,7 +7,7 @@ import {createTerritorialFeature,TERRITORIAL_COVERAGE_MODES} from "../../shared/
 import {createLibraryAssembly} from "../../apps/editor/frontend/js/modules/app-library-assembly.js";
 import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
 import {TERRITORIAL_LIBRARY_SCHEMA_VERSION,normalizeTerritorialLibraryEntity} from "../../apps/editor/frontend/js/modules/territorial-library.js";
-import {createTerritorialEntityLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
+import {openTerritorialLibraryAccess} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
 import * as libraryOwnership from "../../apps/editor/frontend/js/modules/library-ownership.js";
 
 const noop=()=>{};
@@ -95,7 +95,8 @@ test('post-confirm platform failure rolls back actual document, selection, draft
 
 async function libraryAssemblyHarness(t,finite,{impacts=false,entities,water=false}={}) {
   const h=await harness(t,{entities}),previousDocument=globalThis.document;
-  globalThis.document={querySelector:()=>null};t.after(()=>{globalThis.document=previousDocument;});
+  globalThis.document=Object.assign(new EventTarget(),{visibilityState:'visible',querySelector:()=>null});
+  t.after(()=>{globalThis.document=previousDocument;});
   const entityId='state:fixture',sourceGeometry={type:'Polygon',coordinates:[[[2,0],[2,1],[3,1],[3,0],[2,0]]]};
   const entity=normalizeTerritorialLibraryEntity({entityId,lineageId:'fixture',entityKind:water?'lake':'general',names:{en:'Fixture'},schemaVersion:2,
     lifetime:{validFrom:finite?'1900':null,validTo:finite?'1991-12':null},metadata:{defaultFlagDataUrl:'data:image/svg+xml;base64,ZmxhZw==',fixtureProvenance:'immutable-source'},
@@ -111,10 +112,13 @@ async function libraryAssemblyHarness(t,finite,{impacts=false,entities,water=fal
     decodedBytes:index.length,sha256:createHash('sha256').update(index).digest('hex')}};
   t.mock.method(globalThis,'fetch',async url=>new Response(String(url).includes('state-fixture.json.gz')?stored:index));
   let allocated=0,controllerOptions;const operations=[],fakeElement={querySelector:()=>null};
-  const assembly=createLibraryAssembly();assembly.connect({projectState:{state:h.state},countries:{get countryLandRevision(){return h.client.state().revision;}},
+  const assembly=createLibraryAssembly({openLibrary:()=>openTerritorialLibraryAccess({source:{
+    indexUrl:'https://fixture/index.json',indexSpec:globalThis.window.PANDOLAB_BUILD_META.territorialIndex,
+    dataRevision:'unit-test',cacheStorage:null,
+  }})});assembly.connect({projectState:{state:h.state},countries:{get countryLandRevision(){return h.client.state().revision;}},
     domains:{projectDomain:h.project,renderingDomain:{invalidateProject:()=>operations.push('render')}},
     territorialModel:{entityRepository:h.repository,TERRITORIAL_COVERAGE_MODES},
-    libraryServices:{...libraryOwnership,ensureTerritorialLibraryRuntime:noop,territorialEntityLoaderModule:{createTerritorialEntityLoader},
+    libraryServices:{...libraryOwnership,ensureTerritorialLibraryRuntime:noop,
       territorialLibraryServiceModule:{createTerritorialLibraryService},territorialLibraryControllerModule:{createTerritorialLibraryController:options=>{controllerOptions=options;return {connect:noop};}}},
     gisRuntime:{gisWorkflow:{ensure:noop},getGisImportCommitter:async()=>h.committer},applicationServicesA:{ensureModalRuntime:noop},
     platform:{$:()=>fakeElement},platformConfigurationA:{TERRITORIAL_LIBRARY_INDEX_URL:'https://fixture/index.json'},platformConfigurationB:{},propertyEditingB:{},

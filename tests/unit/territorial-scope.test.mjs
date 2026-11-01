@@ -31,6 +31,17 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
   assert.strictEqual(region.extent, repo.get('R'));
   assert.deepEqual(region.members, []);
   assert.deepEqual(state.territorialEntities, before);
+  const owner=testCoreProject(state),documentBefore=owner.project.snapshot(),clockBefore=owner.client.state();
+  await assert.rejects(()=>executeTerritorialTestCommand(state,'territorial.patch',{
+    features:[{...repo.get('B'),properties:{...repo.get('B').properties,parentId:'D'}}],
+  }),{code:'GEOMETRY_OUTSIDE_PARENT'});
+  assert.strictEqual(owner.project.snapshot(),documentBefore);assert.deepEqual(owner.client.state(),clockBefore);
+  assert.strictEqual(scope.scope('A'),first);assert.equal(repo.root('C').id,'A');
+  // Preserve the display-extent scenario while making the new spatial parent
+  // contain B. The original disjoint D component and C extension stay intact.
+  await executeTerritorialTestCommand(state,'territorial.geometry',{id:'D',geometry:{
+    type:'MultiPolygon',coordinates:[square(1,3).coordinates,square(5,7).coordinates],
+  }});
   await executeTerritorialTestCommand(state,'territorial.patch',{ features: [{ ...repo.get('B'), properties: { ...repo.get('B').properties, parentId: 'D' } }] });
   assert.equal(area(scope.scope('A').extent.geometry), 4);
   assert.notStrictEqual(scope.scope('A'), first);

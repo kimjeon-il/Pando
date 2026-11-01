@@ -3,11 +3,28 @@ target_link_libraries(pandoeditor_wasm PRIVATE Pandoeditor::Core)
 target_compile_options(pandoeditor_wasm PRIVATE -fwasm-exceptions)
 target_compile_definitions(pandoeditor_wasm PRIVATE
     PANDOEDITOR_CORE_SOURCE_SHA256="${PANDOEDITOR_CORE_SOURCE_SHA256}")
+# Preserve the existing factory inputs, including the integrity-verified wasmBinary.
+# Emscripten 6 removes wasmBinary from its default incoming API list.
+set(PANDOEDITOR_WASM_INCOMING_MODULE_JS_API
+    ENVIRONMENT GL_MAX_TEXTURE_IMAGE_UNITS SDL_canPlayWithWebAudio SDL_numSimultaneouslyQueuedBuffers INITIAL_MEMORY
+    wasmMemory arguments buffer canvas doNotCaptureKeyboard
+    dynamicLibraries elementPointerLock extraStackTrace forcedAspectRatio instantiateWasm
+    keyboardListeningElement freePreloadedMediaOnUse loadSplitModule locateFile logReadFiles
+    mainScriptUrlOrBlob mem monitorRunDependencies noExitRuntime noInitialRun
+    onAbort onCustomMessage onExit onFree onFullScreen
+    onMalloc onRealloc onRuntimeInitialized postMainLoop postRun
+    preInit preMainLoop preRun preinitializedWebGLContext preloadPlugins
+    print printErr setStatus statusMessage stderr
+    stdin stdout thisProgram wasm wasmBinary
+    websocket
+)
+list(JOIN PANDOEDITOR_WASM_INCOMING_MODULE_JS_API "," PANDOEDITOR_WASM_INCOMING_MODULE_JS_API)
 target_link_options(pandoeditor_wasm PRIVATE
     --bind --no-entry -fwasm-exceptions
     "-sMODULARIZE=1" "-sEXPORT_ES6=1"
     "-sEXPORT_NAME=createPandoeditorCore"
     "-sENVIRONMENT=web,worker,node"
+    "-sINCOMING_MODULE_JS_API=${PANDOEDITOR_WASM_INCOMING_MODULE_JS_API}"
     "-sALLOW_MEMORY_GROWTH=1"
     "-sINITIAL_MEMORY=16777216" "-sMAXIMUM_MEMORY=536870912"
     "-sFILESYSTEM=0")

@@ -6,20 +6,75 @@ import { pathToFileURL } from 'node:url';
 import { collectChanges } from './lib/check-changes.mjs';
 import { loadRepository, planApplicationChecks } from './plan-application-checks.mjs';
 
-export function executePlan(plan, { repository, run = (argv, options) => spawnSync(
+function executionOptions({ phase = 'all', shard = null } = {}) {
+  if (!['all', 'non-browser', 'browser'].includes(phase)) throw Error('Invalid execution phase: ' + phase);
+  if (shard !== null) {
+    if (phase !== 'browser') throw Error('A shard requires the browser phase');
+    const match = typeof shard === 'string' && /^([1-9]\d*)\/([1-9]\d*)$/.exec(shard);
+    const current = Number(match?.[1]), total = Number(match?.[2]);
+    if (!match || !Number.isSafeInteger(current) || !Number.isSafeInteger(total) || current > total || total > 8)
+      throw Error('Invalid browser shard: ' + shard);
+  }
+  return { phase, shard };
+}
+
+function phasePrerequisites(plan, phase) {
+  if (phase === 'browser') {
+    if (!plan.browserSpecs.length) return [];
+    if (!Array.isArray(plan.browserPrerequisites)) throw Error('Missing browser prerequisites in the canonical plan');
+    return plan.browserPrerequisites;
+  }
+  if (phase === 'non-browser' && !plan.unitTests.length && !plan.commands.length) return [];
+  return plan.prerequisites;
+}
+
+export function executionOutputs(plan, { repository, ...options } = {}) {
+  const { phase } = executionOptions(options), required = new Set();
+  const include = id => {
+    if (required.has(id)) return;
+    required.add(id);
+    const entry = repository.catalog.prerequisites[id] || repository.catalog.groups.find(group => group.id === id);
+    (entry?.requires || []).forEach(include);
+  };
+  phasePrerequisites(plan, phase).forEach(include);
+  const nonBrowser = Boolean(plan.unitTests.length || plan.commands.length), count = plan.browserSpecs.length;
+  const total = Math.min(8, count);
+  return {
+    checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
+    browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
+    gis_native: phase !== 'browser' && plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative),
+    native_requirements: [...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort(),
+  };
+}
+
+export function executePlan(plan, { repository, phase = 'all', shard = null, run = (argv, options) => spawnSync(
   argv[0] === 'node' ? process.execPath : argv[0], argv.slice(1), { ...options, stdio: 'inherit', shell: false }) } = {}) {
+  const execution = executionOptions({ phase, shard });
+  const prerequisites = phasePrerequisites(plan, phase);
   const results = [], completed = new Map(), states = new Map(), visiting = new Set();
   const catalog = repository.catalog;
   let scratch;
   const expanded = argv => argv.map(arg => arg.includes('{scratch}') ? arg.replaceAll('{scratch}', scratch ||= mkdtempSync(join(tmpdir(), 'pando-checks-'))) : arg);
   const definition = id => catalog.prerequisites[id] || catalog.groups.find(group => group.id === id);
-  function command(id, argv, context = []) {
+  function environment(ids, seen = new Set()) {
+    const result = {};
+    for (const id of ids) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const entry = definition(id);
+      Object.assign(result, environment(entry.requires || [], seen));
+      for (const [name, value] of Object.entries(entry.env || {}))
+        result[name] = value.replaceAll('{root}', repository.root);
+    }
+    return result;
+  }
+  function command(id, argv, context = [], env = {}) {
     argv = expanded(argv);
-    const key = JSON.stringify({ argv, context });
+    const key = JSON.stringify({ argv, context, env });
     if (completed.has(key)) return completed.get(key);
     let result;
     try {
-      const response = run(argv, { cwd: repository.root, env: process.env });
+      const response = run(argv, { cwd: repository.root, env: { ...process.env, ...env } });
       result = { id, argv, status: response.status === 0 && !response.error ? 'passed' : 'failed',
         exitCode: response.status, error: response.error?.message };
     } catch (error) { result = { id, argv, status: 'failed', error: error.message }; }
@@ -40,23 +95,37 @@ export function executePlan(plan, { repository, run = (argv, options) => spawnSy
       const extra = entry.appendChanged ? plan.changedFiles.filter(file => /\.[cm]?js$/.test(file)
         && repository.exists(file) && !/\/(?:vendor|worker-runtime|fixtures)\//.test(file)) : [];
       if (entry.appendChanged && !extra.length) continue;
-      if (command(id, [...argv, ...extra], entry.requires || []).status !== 'passed') { ok = false; break; }
+      if (command(id, [...argv, ...extra], entry.requires || [], environment([id])).status !== 'passed') { ok = false; break; }
     }
     states.set(id, ok); return ok;
   }
-  for (const id of plan.prerequisites) prerequisite(id);
-  for (const id of plan.commands) prerequisite(id);
+  for (const id of prerequisites) prerequisite(id);
+  if (phase !== 'browser') for (const id of plan.commands) prerequisite(id);
   // Unit failures stay visible even if a separate browser/asset prerequisite failed.
-  if (plan.unitTests.length) {
+  if (phase !== 'browser' && plan.unitTests.length) {
     if (states.get('core') === false) results.push({ id: 'unit', status: 'blocked', reason: 'core prerequisite failed' });
-    else for (let at = 0; at < plan.unitTests.length; at += 30)
-      command('unit', ['node', '--test', '--test-concurrency=2', ...plan.unitTests.slice(at, at + 30)]);
+    else {
+      const batches = new Map();
+      for (const file of plan.unitTests) {
+        const required = plan.unitTestPrerequisites?.[file] || [];
+        const failed = required.filter(id => !prerequisite(id));
+        if (failed.length) {
+          results.push({ id: 'unit', files: [file], status: 'blocked', reason: 'prerequisite failed', prerequisites: failed });
+          continue;
+        }
+        const key = JSON.stringify(required);
+        if (!batches.has(key)) batches.set(key, { required, files: [] });
+        batches.get(key).files.push(file);
+      }
+      for (const { required, files } of batches.values()) for (let at = 0; at < files.length; at += 30)
+        command('unit', ['node', '--test', '--test-concurrency=2', ...files.slice(at, at + 30)], required, environment(required));
+    }
   }
-  if (plan.browserSpecs.length) {
-    if (plan.prerequisites.some(id => states.get(id) === false)) results.push({ id: 'browser', status: 'blocked', reason: 'prerequisite failed' });
-    else command('browser', ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1']);
+  if (phase !== 'non-browser' && plan.browserSpecs.length) {
+    if ((plan.browserPrerequisites || plan.prerequisites).some(id => states.get(id) === false)) results.push({ id: 'browser', status: 'blocked', reason: 'prerequisite failed' });
+    else command('browser', ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1', ...(shard ? ['--shard', shard] : [])]);
   }
-  return { ok: results.every(result => result.status === 'passed'), results, externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
+  return { execution, ok: results.every(result => result.status === 'passed'), results, externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
 }
 
 export function selectionRequest(catalog, env, groups = []) {
@@ -80,11 +149,12 @@ export function selectionRequest(catalog, env, groups = []) {
 
 export function main(args = process.argv.slice(2), env = process.env) {
   const value = name => { const at = args.indexOf(name); return at < 0 ? undefined : args[at + 1]; };
-  const known = new Set(['--list', '--base', '--group', '--github-output', '--output']);
+  const known = new Set(['--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
   for (let at = 0; at < args.length; at++) {
     if (!known.has(args[at])) throw Error('Unknown check option: ' + args[at]);
-    if (['--base', '--group', '--output'].includes(args[at]) && (!args[++at] || args[at].startsWith('--'))) throw Error('Missing check option value');
+    if (['--base', '--group', '--output', '--phase', '--shard'].includes(args[at]) && (!args[++at] || args[at].startsWith('--'))) throw Error('Missing check option value');
   }
+  const execution = executionOptions({ phase: value('--phase'), shard: value('--shard') });
   const repository = loadRepository();
   const request = selectionRequest(repository.catalog, env, value('--group')?.split(',') || []);
   const comparison = request.diff === false ? collectChanges({ base: env.HEAD_SHA || 'HEAD', head: env.HEAD_SHA || 'HEAD', event: 'push' }) : collectChanges({ base: value('--base') || env.BASE_SHA || 'origin/main',
@@ -93,17 +163,22 @@ export function main(args = process.argv.slice(2), env = process.env) {
   if (request.specs) {
     const specs = request.specs;
     for (const spec of specs) if (!repository.owners.has(spec)) throw Error('Missing focused browser spec: ' + spec);
-    plan.unitTests = []; plan.commands = []; plan.browserSpecs = [...specs]; plan.prerequisites = ['core', 'generated'];
+    plan.unitTests = []; plan.commands = []; plan.browserSpecs = [...specs]; plan.prerequisites = ['core', 'generated']; plan.browserPrerequisites = [...plan.prerequisites];
     plan.reasons = Object.fromEntries(specs.map(spec => [spec, ['manual scope: ' + env.BROWSER_SCOPE]]));
   }
   console.log(JSON.stringify(plan, null, 2));
   if (args.includes('--github-output')) {
     if (!env.GITHUB_OUTPUT) throw Error('GITHUB_OUTPUT is required');
-    appendFileSync(env.GITHUB_OUTPUT, `browser=${Boolean(plan.browserSpecs.length)}\nchecks=${Boolean(plan.unitTests.length || plan.browserSpecs.length || plan.commands.length)}\ngis_native=${plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)}\n`);
+    const outputs = executionOutputs(plan, { repository, ...execution });
+    appendFileSync(env.GITHUB_OUTPUT, Object.entries(outputs).map(([key, value]) => `${key}=${JSON.stringify(value)}\n`).join(''));
   }
-  const result = args.includes('--list') ? { status: 'planned', plan } : { status: 'executed', plan, ...executePlan(plan, { repository }) };
+  const result = args.includes('--list') ? { status: 'planned', plan, execution } : { status: 'executed', plan, ...executePlan(plan, { repository, ...execution }) };
   if (value('--output')) writeFileSync(value('--output'), JSON.stringify(result, null, 2) + '\n');
-  if (result.status === 'executed') { console.log(JSON.stringify({ applicationChecksPassed: result.ok, results: result.results, externalChecks: result.externalChecks }, null, 2)); if (!result.ok) process.exitCode = 1; }
+  if (result.status === 'executed') {
+    console.log(JSON.stringify({ [execution.phase === 'all' ? 'applicationChecksPassed' : 'applicationPhasePassed']: result.ok,
+      execution, results: result.results, externalChecks: result.externalChecks }, null, 2));
+    if (!result.ok) process.exitCode = 1;
+  }
   return result;
 }
 

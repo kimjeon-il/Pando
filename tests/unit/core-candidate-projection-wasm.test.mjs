@@ -26,7 +26,7 @@ test('accepted preview platform failure restores the C++ document, whole history
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   const events=[],autosaves=[];
   const owner=await createNodeCoreProject(seed,{ onProjectChanged: event => events.push(event),
-    persistence: { queueProject: (...args) => autosaves.push(args) } });
+    persistence: { queueProject: (...args) => autosaves.push(args), cancelPending() {} } });
   t.after(() => owner.dispose());
   await owner.client.selectionApply({ action: 'replace',ref: { domain: 'territorial',type: 'entity',id: 'A' } });
   await owner.client.draftApply({ action: 'start',shape: 'line',coords: [[1,2],[3,4]],phase: 'refine' });

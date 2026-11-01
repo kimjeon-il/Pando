@@ -1,0 +1,58 @@
+name: Selected native test prerequisites
+description: Prepare the existing native toolchain only for selected source-bound unit checks
+inputs:
+  requirements:
+    description: JSON array emitted by the application check planner
+    required: false
+    default: '[]'
+runs:
+  using: composite
+  steps:
+    - name: Check only additional native SDK and environment capacity
+      id: capacity
+      shell: bash
+      env:
+        REQUIRED_NATIVE_TOOLS: ${{ inputs.requirements }}
+      run: node scripts/prepare-native-test-tools.mjs --capacity "$REQUIRED_NATIVE_TOOLS" --github-output
+    - name: Install build tools only for selected native unit prerequisites
+      if: steps.capacity.outputs.tools == 'true'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ make unzip pkg-config
+    - name: Prepare the existing pinned GEOS and PROJ recipe environment
+      if: steps.capacity.outputs.recipe_environment == 'true'
+      uses: mamba-org/setup-micromamba@v3
+      with:
+        environment-file: tools/cpp/territorial-recipe-environment.yml
+        init-shell: bash
+    - name: Prepare the existing pinned DEM GDAL environment
+      if: steps.capacity.outputs.gdal_environment == 'true'
+      id: dem-gdal
+      uses: mamba-org/setup-micromamba@v3
+      with:
+        environment-name: pando-dem-gdal
+        create-args: libgdal-core=3.13.3
+        cache-environment: true
+        cache-downloads: true
+        init-shell: none
+        generate-run-shell: false
+    - name: Locate the selected GDAL SDK without changing other test environments
+      if: steps.capacity.outputs.gdal_environment == 'true'
+      shell: bash
+      env:
+        GDAL_ENVIRONMENT_PATH: ${{ steps.dem-gdal.outputs.environment-path }}
+      run: |
+        destination="$GITHUB_WORKSPACE/build-native/terrain-dem-gdal/sdk"
+        mkdir -p "$(dirname "$destination")"
+        if [[ -e "$destination" || -L "$destination" ]]; then
+          if [[ ! -L "$destination" || "$(readlink -f "$destination")" != "$(readlink -f "$GDAL_ENVIRONMENT_PATH")" ]]; then
+            echo "Existing GDAL SDK alias differs: $destination" >&2
+            exit 1
+          fi
+        else
+          ln -s "$GDAL_ENVIRONMENT_PATH" "$destination"
+        fi
+        version=$("$destination/bin/gdal-config" --version)
+        if [[ "$version" != '3.13.3' ]]; then
+          echo "Selected GDAL SDK version differs: $version" >&2
+          exit 1
+        fi

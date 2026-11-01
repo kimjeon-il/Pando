@@ -12,10 +12,12 @@ import { testCoreProject, initializeTestTerritorialState } from '../helpers/time
 
 const rectangle = (west, south, east, north) => ({ type: 'Polygon',
   coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] });
+// General hierarchy boundaries have the shared country boundary owner. This
+// asynchronous overlay owner prepares independent regional boundaries.
 const features = (east = 2) => [
   createTerritorialFeature({ id: 'ROOT', entityKind: 'general', geometry: rectangle(0, 0, 4, 4) }),
-  createTerritorialFeature({ id: 'LEFT', entityKind: 'general', parentId: 'ROOT', geometry: rectangle(1, 1, east, 3) }),
-  createTerritorialFeature({ id: 'RIGHT', entityKind: 'general', parentId: 'ROOT', geometry: rectangle(2, 1, 3, 3) }),
+  createTerritorialFeature({ id: 'LEFT', entityKind: 'regional', parentId: '', coverageMode: 'explicit', geometry: rectangle(1, 1, east, 3) }),
+  createTerritorialFeature({ id: 'RIGHT', entityKind: 'regional', parentId: '', coverageMode: 'explicit', geometry: rectangle(2, 1, 3, 3) }),
 ];
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 
@@ -42,7 +44,8 @@ async function harness(t) {
       const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
       const rows = repo.list();
       const segments = buildTerritorialInternalBoundarySegments(
-        rows.filter(row => !row.properties.parentId), rows.filter(row => row.properties.parentId));
+        rows.filter(row => row.properties.entityKind === 'general' && !row.properties.parentId),
+        rows.filter(row => row.properties.entityKind === 'regional'));
       requests.push({ payload, options, resolve, reject, segments });
       return promise;
     },
@@ -194,7 +197,7 @@ test('project reset clears previously presented topology before starting a fresh
   await h.resolve(2); h.render(); assert.ok(h.last().length > 0);
 });
 
-test('removing all polygon children clears the boundary and invalidates pending topology', async t => {
+test('removing all regional polygons clears the boundary and invalidates pending topology', async t => {
   const h = await harness(t); await present(h);
   await h.change(features(1.8)); h.render();
   await h.change(features().slice(0, 1)); h.render();

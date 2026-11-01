@@ -10,12 +10,12 @@ async function fixture() {
   const wasm = bytes('wasm fixture bytes');
   const sourceSha256 = 'a'.repeat(64);
   const manifest = { schema: 'pandoeditor-core-wasm', abiVersion: 1, sourceSha256,
-    compiler: { name: 'emscripten', version: '4.0.20' }, inputs: [], assets: {
+    compiler: { name: 'emscripten', version: '6.0.3' }, inputs: [], assets: {
       js: { file: 'pandoeditor-core.js', sha256: await hash(js) },
       wasm: { file: 'pandoeditor-core.wasm', sha256: await hash(wasm) },
     } };
   const fetched = [], imported = [], factories = [], admitted = [], revoked = [];
-  let module = { coreAbiVersion: 1, coreSourceSha256: sourceSha256, coreCompilerVersion: '4.0.20', DocumentSession: class {} };
+  let module = { coreAbiVersion: 1, coreSourceSha256: sourceSha256, coreCompilerVersion: '6.0.3', DocumentSession: class {} };
   let corrupt = false;
   const options = { baseUrl: new URL('https://example.test/assets/wasm/'), subtle: webcrypto.subtle,
     createModuleUrl: value => { admitted.push(new Uint8Array(value)); return 'blob:verified-js-bytes'; },
@@ -73,9 +73,9 @@ test('malformed manifest or mismatched compiled ABI/source digest fails visibly'
   const malformed = await fixture(); malformed.manifest.assets.js.file = '../other.js';
   await assert.rejects(loadVerifiedCore(malformed.options), { code: 'PL-CORE-WASM-MANIFEST' });
   assert.equal(malformed.fetched.length, 1);
-  for (const module of [{ coreAbiVersion: 2, coreSourceSha256: 'a'.repeat(64), coreCompilerVersion: '4.0.20' },
-    { coreAbiVersion: 1, coreSourceSha256: 'b'.repeat(64), coreCompilerVersion: '4.0.20' },
-    { coreAbiVersion: 1, coreSourceSha256: 'a'.repeat(64), coreCompilerVersion: '4.0.21' }]) {
+  for (const module of [{ coreAbiVersion: 2, coreSourceSha256: 'a'.repeat(64), coreCompilerVersion: '6.0.3' },
+    { coreAbiVersion: 1, coreSourceSha256: 'b'.repeat(64), coreCompilerVersion: '6.0.3' },
+    { coreAbiVersion: 1, coreSourceSha256: 'a'.repeat(64), coreCompilerVersion: '4.0.20' }]) {
     const f = await fixture(); f.setModule(module);
     await assert.rejects(loadVerifiedCore(f.options), { code: 'PL-CORE-WASM-ABI' });
   }
@@ -94,4 +94,15 @@ test('missing required exact-byte loader dependencies fail before fetching asset
   const f = await fixture(); f.options.createModuleUrl = null;
   await assert.rejects(loadVerifiedCore(f.options), { code: 'PL-CORE-WASM-DEPENDENCY' });
   assert.deepEqual(f.fetched, []);
+});
+
+test('a manifest from the superseded SDK fails before JavaScript import or factory execution', async () => {
+  for (const version of ['4.0.20', '6.0.2']) {
+    const f = await fixture();
+    f.manifest.compiler.version = version;
+    await assert.rejects(loadVerifiedCore(f.options), { code: 'PL-CORE-WASM-MANIFEST' });
+    assert.equal(f.fetched.length, 1);
+    assert.deepEqual(f.imported, []);
+    assert.deepEqual(f.factories, []);
+  }
 });

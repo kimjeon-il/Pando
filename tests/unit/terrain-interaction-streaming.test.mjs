@@ -82,17 +82,30 @@ test('same terrain and graphics context survive project replacement without relo
   assert.ok(drawn.every(tile=>tile.spec.level===after.terrainLevel));
 });
 
-test('high-scale target delays cannot expose a magnified world-base tile',async t=>{
+test('high-scale target delays preserve uploaded coverage without claiming detail readiness',async t=>{
   const f=terrain(t),low={...f.frame,scale:100};f.owner.prepare(low,f.view);
   for(let round=0;round<8;round++){
     const pending=f.requests.splice(0);
     for(const request of pending){if(request.url.includes('/0/'))request.resolve({ok:true,blob:async()=>({})});else f.requests.push(request);}
     await settle();f.c.tick();await settle();f.owner.prepare(low,f.view);
   }
-  f.owner.prepare(f.frame,f.view);
+  const coarse=f.owner.prepare(low,f.view);
+  assert.deepEqual(coarse.map(tile=>tile.spec.key),['0/0-0','0/1-0']);
+  const uploads=f.owner.stats().terrainUploadCount;
+  const waiting=f.owner.prepare(f.frame,f.view);
   assert.ok(f.owner.stats().terrainTilesLoaded>0);
   assert.equal(f.owner.stats().terrainReady,false);
-  assert.deepEqual(f.owner.prepare(f.frame,f.view),[],'sharp target coverage must be complete before either terrain pass appears');
+  assert.equal(f.owner.stats().terrainTargetTilesLoaded,0);
+  assert.deepEqual(waiting.map(tile=>tile.texture),coarse.map(tile=>tile.texture),'already uploaded coverage remains visible while detail is pending');
+  assert.equal(f.owner.stats().terrainUploadCount,uploads,'reusing coverage must not upload it again');
+  for(let round=0;round<16&&!f.owner.stats().terrainReady;round++){
+    for(const request of f.requests.splice(0))request.resolve({ok:true,blob:async()=>({})});
+    await settle();f.c.tick();await settle();f.owner.prepare(f.frame,f.view);
+  }
+  assert.equal(f.owner.stats().terrainReady,true);
+  const detailed=f.owner.prepare(f.frame,f.view);
+  assert.equal(detailed.length,f.owner.stats().terrainTargetTileCount);
+  assert.ok(detailed.every(tile=>tile.spec.level===1),'complete uploaded detail replaces coarse coverage');
 });
 
 test('document cancellation cannot discard already decoded terrain uploads',async t=>{

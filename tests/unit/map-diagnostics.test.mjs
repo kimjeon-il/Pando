@@ -665,7 +665,7 @@ function specScope(path, extras = {}) {
   return { source, scope: { test: browserTest, withPollTimingDiagnostics: (page, info, options, action) => withPollTimingDiagnostics(page, info, { ...options, write: () => {} }, action), ...extras } };
 }
 
-test('real Russia gate keeps its 30000 ms secondary predicate and modifier click unchanged', async () => {
+test('real Russia gate keeps its 90000 ms secondary predicate and modifier click unchanged', async () => {
   const f = pollTimingFixture();
   f.scope.window.__PANDOLAB_RENDER_DEBUG__ = { snapshot: () => ({ gpuSelection: { drawCoverage: { secondary: { drawSucceeded: true } } } }) };
   const actions = [], pollOptions = [];
@@ -679,7 +679,7 @@ test('real Russia gate keeps its 30000 ms secondary predicate and modifier click
   await vm.runInNewContext(`(async () => { ${source.slice(begin, end)} })()`, scope);
   assert.equal(actions.length, 1);
   assert.deepEqual(Array.from(actions[0].options.modifiers), ['Control']);
-  assert.equal(pollOptions[0].timeout, 30000);
+  assert.equal(pollOptions[0].timeout, 90000);
   assert.equal(pollOptions.length, 1);
   const report = JSON.parse(await readFile(join(f.directory, 'russia-secondary-webgl1-poll-timing-observed.json'), 'utf8'));
   assert.equal(report.callCount, 1);

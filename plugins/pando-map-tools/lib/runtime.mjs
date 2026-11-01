@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFile, mkdir, lstat, rename, unlink, open } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { resolve, join, dirname, relative, isAbsolute } from 'node:path';
+import { resolve, join, dirname, basename, relative, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -129,18 +129,22 @@ export async function openAnalysisGazetteer(workspace,{signal,fetchAsset=fetch}=
   const prefix='assets/data/reference-analysis/v1/gazetteer/';
   const {config}=await analysisDataConfig(),catalogPath=join(workspace,'.map-runtime.json');
   const catalog=existsSync(catalogPath)?await readJSON(catalogPath):null;
-  let root=join(workspace,prefix);
+  const root=join(workspace,prefix);
+  let resourcePath=name=>regularResourcePath(root,name);
   if(!catalog){
     const {reportPath}=await import(pathToFileURL(join(workspace,'tools/report-paths.mjs')));
-    root=dirname(reportPath(config.gazetteer.root+'/manifest.json',{root:workspace,access:'read'}));
+    resourcePath=async name=>{
+      const path=reportPath(config.gazetteer.root+'/'+name,{root:workspace,access:'read'});
+      return regularResourcePath(dirname(path),basename(path));
+    };
   }
-  const manifestPath=await regularResourcePath(root,'manifest.json'),manifestBytes=await readFile(manifestPath);
+  const manifestPath=await resourcePath('manifest.json'),manifestBytes=await readFile(manifestPath);
   if(hash(manifestBytes)!==config.gazetteer.manifestSha256)throw fail('Analysis gazetteer manifest differs from fixed data pairing');
   const manifest=JSON.parse(manifestBytes);
   const store=createGazetteer({manifest,fetchBytes:async(spec,options)=>{
     const path=prefix+spec.path;
     if(catalog&&!existsSync(bundlePath(workspace,path)))await ensureRuntimeAsset(workspace,path,catalog.gazetteerResources?.[path],{signal:options.signal||signal,fetchAsset});
-    return readFile(await regularResourcePath(root,spec.path));
+    return readFile(await resourcePath(spec.path));
   }});
   return {...store,manifest,manifestSha256:hash(manifestBytes),manifestPath};
 }

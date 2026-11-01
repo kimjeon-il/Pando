@@ -1,7 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
-import {gunzipSync} from 'node:zlib';
 import {createHistoryAssembly} from "../../apps/editor/frontend/js/modules/app-history-assembly.js";
 import {resolveStartupSource} from "../../apps/editor/frontend/js/modules/app-progressive-startup.js";
 import {saveBoundDocument} from "../../apps/editor/frontend/js/modules/app-file-bindings.js";
@@ -11,6 +9,8 @@ import {prepareLibraryGeometryWorkspace, collectLibraryGeometryChanges,
   parseNativeLibraryGeometryRequest, createLibraryGeometryContext} from "../../apps/editor/frontend/js/modules/library-geometry-context.js";
 import {createRepositoryTerritorialLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
 import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
+import {normalizeTerritorialLibraryEntity} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {encodeTerritorialIndexEntry} from "../../apps/editor/frontend/js/modules/territorial-index-entry.js";
 import {markEditedLibrarySource} from "../../apps/editor/frontend/js/modules/territorial-library-provenance.js";
 import {sharedCalculationCore} from "../../shared/frontend/js/modules/temporal.js";
 import {confirmLibraryGeometryBeforeUnload} from "../../apps/editor/frontend/js/modules/app-global-input-bindings.js";
@@ -45,12 +45,12 @@ test('selected source and touching neighbor become one static scratch document',
   assert.equal(workspace.referenceDate,'1900-01-01');
   assert.doesNotThrow(()=>assertCurrentProjectSchema(workspace.project));
   assert.doesNotThrow(()=>restoreTimelineStorage({schemaVersion:1,records:workspace.project.timelineRecords,
-    geometries:workspace.project.geometries},workspace.project.territorialEntities.map(row=>({id:row.id,entityKind:row.properties.entityKind}))));
+    geometries:workspace.project.geometries},workspace.project.territorialEntities.map(row=>({objectRef:{domain:'territorial',id:row.id},entityKind:row.properties.entityKind}))));
   const session=new sharedCalculationCore.DocumentSession({validateFlagDataUrl:()=>true});
   const state=session.documentLoad(JSON.stringify(workspace.project),workspace.project.projectSetup.initialMonth);
   assert.equal(state.timelineEditsEnabled,false);
-  assert.deepEqual(session.resolveWorld(state.timelineCursor,state.epoch).entities.map(row=>row.id),
-    ['state:A','state:B']);
+  assert.deepEqual(session.resolveWorld(state.timelineCursor,state.epoch).entities.map(row=>row.objectRef),
+    [{domain:'territorial',id:'state:A'},{domain:'territorial',id:'state:B'}]);
 });
 
 test('save projection changes only matching source versions and preserves exact dates',async()=>{
@@ -121,8 +121,8 @@ test('regional sources use peer scratch countries and keep original kind and par
   assert.deepEqual(workspace.byProjectId.get('region:B'),{entityId:'region:B',versionId:'region:B-v1'});
   const session=new sharedCalculationCore.DocumentSession({validateFlagDataUrl:()=>true});
   const state=session.documentLoad(JSON.stringify(workspace.project),workspace.project.projectSetup.initialMonth);
-  assert.deepEqual(session.resolveWorld(state.timelineCursor,state.epoch).entities.map(row=>row.id),
-    ['region:A','region:B']);
+  assert.deepEqual(session.resolveWorld(state.timelineCursor,state.epoch).entities.map(row=>row.objectRef),
+    [{domain:'territorial',id:'region:A'},{domain:'territorial',id:'region:B'}]);
   const accepted=workspace.initialFeatures.map(row=>row.id==='region:B'
     ? {...row,geometry:polygon(1.1,2)}:row);
   const changed=collectLibraryGeometryChanges(workspace,accepted);
@@ -188,24 +188,26 @@ test('shared Save boundary reports committed source with pending working-file re
 });
 
 test('accepted geometry commits through the existing library editor with its source interval intact',async()=>{
-  const base=new URL('../../assets/data/territorial-entities/generated/v2/',import.meta.url);
-  const currentIndex=JSON.parse(readFileSync(new URL('index.json',base),'utf8'));
+  const source=normalizeTerritorialLibraryEntity({...entity('state:fixture',polygon(126,128)),
+    lineageId:'fixture',names:{ko:'테스트 국가'}});
+  const sourceBefore=structuredClone(source);
+  const currentIndex={schemaVersion:2,snapshots:[],entities:[await encodeTerritorialIndexEntry(source)],
+    lineages:[{lineageId:'fixture',names:{ko:'테스트 국가'},entityRefs:['state:fixture'],relations:[]}]};
   const receipts=[];
   let revision='r0';
   const repository={
     open:async()=>({revision,index:currentIndex}),
     snapshot:()=>({revision,index:currentIndex}),
-    readEntity:async id=>JSON.parse(gunzipSync(readFileSync(new URL(
-      currentIndex.entities.find(row=>row.entityId===id).file,base)))),
+    readEntity:async id=>{assert.equal(id,'state:fixture');return structuredClone(source);},
     commit:async request=>{
       receipts.push(request);revision='r1';return {revision,index:request.index};
     },
   };
   const service=createTerritorialLibraryService({loader:createRepositoryTerritorialLoader(repository)});
-  const context=createLibraryGeometryContext({repository,service,entityId:'state:KOR',
-    versionId:'state:KOR:natural-earth-5.1.1',appVersion:'test'});
+  const context=createLibraryGeometryContext({repository,service,entityId:'state:fixture',
+    versionId:'state:fixture-v1',appVersion:'test'});
   const workspace=await context.prepare();
-  assert.equal(context.title,'라이브러리 경계 편집 · 대한민국');
+  assert.equal(context.title,'라이브러리 경계 편집 · 테스트 국가');
   let accepted=workspace.initialFeatures;
   let draft={boundaryDraft:null};
   let appState={geometryPreview:{session:null}};
@@ -218,7 +220,7 @@ test('accepted geometry commits through the existing library editor with its sou
   draft={boundaryDraft:{moveCount:1}};
   assert.equal(context.hasUnsavedChanges(),true);
   draft={boundaryDraft:null};
-  accepted=workspace.initialFeatures.map(row=>row.id==='state:KOR'
+  accepted=workspace.initialFeatures.map(row=>row.id==='state:fixture'
     ? {...row,geometry:polygon(126,127)}:row);
   assert.equal(context.hasUnsavedChanges(),true);
   const saved=await context.save();
@@ -226,12 +228,13 @@ test('accepted geometry commits through the existing library editor with its sou
   assert.equal(context.hasUnsavedChanges(),false);
   assert.equal(receipts.length,1);
   assert.equal(receipts[0].expectedRevision,'r0');
-  assert.deepEqual(receipts[0].entities.map(row=>row.entityId),['state:KOR']);
-  assert.equal(receipts[0].entities[0].geometryVersions[0].validFrom,null);
-  assert.equal(receipts[0].entities[0].geometryVersions[0].validTo,null);
+  assert.deepEqual(receipts[0].entities.map(row=>row.entityId),['state:fixture']);
+  assert.equal(receipts[0].entities[0].geometryVersions[0].validFrom,'1900-01-01');
+  assert.equal(receipts[0].entities[0].geometryVersions[0].validTo,'1900-12-31');
   assert.deepEqual(receipts[0].entities[0].geometryVersions[0].geometry,polygon(126,127));
   assert.equal(receipts[0].entities[0].geometryVersions[0].historicalProvenance.evidenceStatus,'provisional');
   assert.equal(receipts[0].entities[0].geometryVersions[0].historicalProvenance.editMethod,'user-map-editor');
+  assert.deepEqual(source,sourceBefore);
 });
 
 test('beforeunload prompts only for unsaved native library geometry',()=>{

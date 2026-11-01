@@ -91,9 +91,42 @@ jobs:
       - name: Verify the actual public code and pinned data bytes
         if: steps.current.outputs.deploy == 'true'
         run: node tools/verify-pages-deployment.mjs --url '${{ steps.deployment.outputs.page_url }}' --manifest "$RUNNER_TEMP/pages-verification/pages-evidence.json" --output "$RUNNER_TEMP/pages-verification/live.json"
+      - uses: pnpm/action-setup@v4
+        if: steps.current.outputs.deploy == 'true'
+      - name: Check browser verification capacity
+        if: steps.current.outputs.deploy == 'true'
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { statfsSync } from 'node:fs';
+          const disk = statfsSync(process.cwd(), { bigint: true });
+          const reserve = 2n * 1024n ** 3n, headroom = 5n * 1024n ** 3n;
+          assert.ok(disk.bavail * disk.bsize >= reserve + headroom, 'Browser verification needs dependency reserve plus 5 GiB headroom');
+          NODE
+      - name: Install the locked browser test dependencies
+        if: steps.current.outputs.deploy == 'true'
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+      - name: Verify actual public Viewer startup and year navigation
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          PANDO_PUBLIC_URL: ${{ steps.deployment.outputs.page_url }}
+          PANDO_PUBLIC_SOURCE: ${{ github.sha }}
+        run: |
+          export PANDO_PUBLIC_DATA="$(node --input-type=module -e "import { readFileSync } from 'node:fs'; console.log(JSON.parse(readFileSync('config/library-data.json', 'utf8')).revision)")"
+          pnpm exec playwright test --config tests/integration/public-viewer-boot.config.mjs
+      - name: Retain public browser proof
+        if: always() && steps.current.outputs.deploy == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-live-ui-${{ github.sha }}
+          path: test-results/public-viewer/
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always() && steps.current.outputs.deploy == 'true'
         with:
           name: pages-live-${{ github.sha }}
           path: ${{ runner.temp }}/pages-verification
           if-no-files-found: error
+

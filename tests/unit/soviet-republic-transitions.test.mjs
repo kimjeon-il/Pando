@@ -33,7 +33,10 @@ test('all fifteen transitions select the republic before and the independent pha
   }
   assert.equal(republic.parentEntityId,'state:soviet-union');assert.equal(independent.parentEntityId,'');
  }
- assert.deepEqual(read('state:soviet-union').lifetime,{validFrom:'1922',validTo:'1991'});
+ const union=read('state:soviet-union');
+ assert.deepEqual(union.lifetime,{validFrom:'1922-12-30',validTo:'1991'});
+ assert.equal(territorialEntityExistsAt(union,'1922-12-29'),false,'the union must not exist before its approved formation day');
+ assert.equal(territorialEntityExistsAt(union,'1922-12-30'),true);
 });
 
 test('published intervals and month-end selection preserve all fifteen political transitions',()=>{
@@ -64,13 +67,34 @@ test('published intervals and month-end selection preserve all fifteen political
 });
 
 test('existing Russian and Kazakh outlines bridge only the researched display transitions',()=>{
- for(const [code,suffix,event] of [['RUS','russian-sfsr','2014-03-18'],['KAZ','kazakh-ssr','1995-09-25']]){
+ const sources=new Map();
+ // The pinned library splits both outlines again at the approved 2006 treaty
+ // date. Only the earlier reuse window must equal the 1991 republic geometry.
+ for(const [code,suffix,reusedThrough,representativeFrom] of [
+  ['RUS','russian-sfsr','2006-01-11','2014-03-18'],
+  ['KAZ','kazakh-ssr','1995-09-24','2006-01-12'],
+ ]){
   const source=read('state:'+code),republic=read('state:soviet-union-'+suffix);
+  sources.set(code,source);
+  const reused=selectGeometryVersion(source,reusedThrough);
+  assert.equal(reused.versionId,'state:'+code+':post-soviet-existing-coordinates');
+  assert.deepEqual(reused.geometry,republic.geometryVersions.find(row=>row.versionId.endsWith(':1991-r1')).geometry);
+  assert.equal(selectGeometryVersion(source,representativeFrom).versionId,source.metadata.representativeGeometryVersionId);
+  assert.equal(selectGeometryVersion(source,'2006-01-12').historicalProvenance.rusKazTreaty2006ABC.effective,'2006-01-12');
+ }
+ for(const [code,event,beforeId,afterId] of [
+  ['RUS','2006-01-12','state:RUS:post-soviet-existing-coordinates','state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1'],
+  ['RUS','2014-03-18','state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1','state:RUS:natural-earth-5.1.1'],
+  ['KAZ','1995-09-25','state:KAZ:post-soviet-existing-coordinates','state:KAZ:natural-earth-5.1.1:pre-2006-treaty-r1'],
+  ['KAZ','2006-01-12','state:KAZ:natural-earth-5.1.1:pre-2006-treaty-r1','state:KAZ:natural-earth-5.1.1'],
+ ]){
+  const source=sources.get(code);
   const previous=new Date(event+'T00:00:00Z');previous.setUTCDate(previous.getUTCDate()-1);
   const before=selectGeometryVersion(source,previous.toISOString().slice(0,10)),after=selectGeometryVersion(source,event);
-  assert.equal(before.versionId,'state:'+code+':post-soviet-existing-coordinates');
-  assert.equal(after.versionId,source.metadata.representativeGeometryVersionId);
-  assert.deepEqual(before.geometry,republic.geometryVersions.find(row=>row.versionId.endsWith(':1991-r1')).geometry);
+  assert.equal(before.versionId,beforeId);
+  assert.equal(after.versionId,afterId);
+  assert.equal(before.validTo,previous.toISOString().slice(0,10));
+  assert.equal(after.validFrom,event);
  }
  const lease=read('state:KAB');assert.equal(selectGeometryVersion(lease,'1995-09-24'),null);assert.ok(selectGeometryVersion(lease,'1995-09-25'));
 });

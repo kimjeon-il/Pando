@@ -125,7 +125,9 @@ test('country deletion uses the same territorial cleanup surface and removes dan
   assert.equal(state.territorialEntities.find(entity => entity.id === 'B').properties.notes, 'keep');
   assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.associatedCountryId, undefined);
   assert.equal(state.territorialEntities.find(entity => entity.id === 'r').properties.parentId, '');
-  assert.deepEqual(state.timelineRecords.parentRelations.map(record => record.entityId), ['B', 'r']);
+  assert.deepEqual(state.timelineRecords.parentRelations.map(record => record.objectRef), [
+    { domain: 'territorial', id: 'B' }, { domain: 'territorial', id: 'r' },
+  ]);
   assert.deepEqual(state.distributionEntries.map(entry=>entry.id),['22000000-0000-4000-8000-000000000009']);
   assert.equal(state.labels[0].territorialUnitId,'A','original current Web stores this non-owning label reference after territory deletion');
   assert.deepEqual(state.genericFeatures[0].properties.source.details.provenance,{ownerId:'A',topologyGroup:'land:A'});

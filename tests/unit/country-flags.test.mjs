@@ -4,11 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import {
-  currentCountryFlagCode,
-  currentCountryFlagUrl,
-  effectiveTerritorialFlagUrl,
-  } from "../../shared/frontend/js/modules/country-flags.js";
+import { buildFrontendIndex, emitFrontendModule, frontendAsset } from '../../scripts/lib/frontend-layout.mjs';
 import {
   EXPECTED_COUNTRY_FLAG_EXCLUDED_IDS,
   EXPECTED_COUNTRY_FLAG_LEGACY_4X3_CODES,
@@ -20,9 +16,17 @@ import {
 } from '../fixtures/country-flag-expectations.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
+const frontendIndex = buildFrontendIndex(root);
+const flagEntry = frontendAsset(root, 'assets/js/modules/country-flags.js', { index: frontendIndex });
+const publicModuleUrl = new URL(flagEntry.publicPath, 'https://flags.test/').href;
+// Execute the emitted module at its public identity; repository owners do not
+// share the deployed modules/vendor directory layout.
+const emittedFlags = emitFrontendModule(flagEntry.bytes.toString('utf8'), flagEntry.sourcePath, frontendIndex);
+const { currentCountryFlagCode, currentCountryFlagUrl, effectiveTerritorialFlagUrl } = await import(
+  'data:text/javascript;base64,' + Buffer.from(emittedFlags.replaceAll('import.meta.url', JSON.stringify(publicModuleUrl))).toString('base64'));
 const countries = JSON.parse(readFileSync(path.join(root, 'assets/data/countries-ne-5.1.1.geojson'), 'utf8'));
-const flagRoot = path.join(root, 'assets/vendor/flag-icons/7.5.0/flags/4x3');
-const nativeFlagRoot = path.join(root, `assets/vendor/country-flags/${EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE.revision}/svg`);
+const flagRoot = path.join(root, 'shared/frontend/static/vendor/flag-icons/7.5.0/flags/4x3');
+const nativeFlagRoot = path.join(root, `shared/frontend/static/vendor/country-flags/${EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE.revision}/svg`);
 
 function viewBoxDimensions(source) {
   const match = source.match(/viewBox="([^"]+)"/);
@@ -43,6 +47,14 @@ test('canonical-source flag coverage includes 239 mapped codes and two special f
   assert.equal(new Set([...supportedIds, ...excludedIds]).size, 258);
   assert.deepEqual(new Set([...supportedIds, ...excludedIds]), countryIds);
   assert.equal(supportedIds.some(id => excludedIds.includes(id)), false);
+  for (const id of supportedIds) {
+    const url = new URL(currentCountryFlagUrl(id));
+    assert.equal(url.origin, new URL(publicModuleUrl).origin);
+    assert.match(url.pathname, /^\/assets\/vendor\//);
+    const asset = frontendAsset(root, url.pathname.slice(1), { index: frontendIndex });
+    assert.match(asset.sourcePath, /^shared\/frontend\/static\/vendor\//);
+    assert.match(asset.bytes.toString('utf8'), /^(?:<\?xml[^?]*\?>\s*)?<svg\b/);
+  }
 });
 
 test('every mapped country uses its original-ratio or legacy 4x3 bundled SVG', () => {
@@ -63,7 +75,7 @@ test('every mapped country uses its original-ratio or legacy 4x3 bundled SVG', (
     if (isNative) assert.notEqual(width / height, 4 / 3);
     else assert.equal(width / height, 4 / 3);
   }
-  assert.equal(existsSync(path.join(root, 'assets/vendor/flag-icons/7.5.0/LICENSE')), true);
+  assert.equal(existsSync(path.join(root, 'shared/frontend/static/vendor/flag-icons/7.5.0/LICENSE')), true);
   assert.equal(existsSync(path.join(nativeFlagRoot, '..', 'NOTICE')), true);
   assert.equal(EXPECTED_COUNTRY_FLAG_SOURCE.license, 'MIT');
   assert.equal(EXPECTED_COUNTRY_FLAG_NATIVE_SOURCE.license, 'Public Domain');

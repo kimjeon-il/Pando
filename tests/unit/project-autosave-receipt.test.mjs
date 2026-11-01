@@ -33,10 +33,12 @@ test('actual autosave composition uses one receipt and acknowledgement retains f
     epoch: core.epoch,content: core.checkpoint,presentation: core.presentationCheckpoint } };
   const owner = createHistoryAssembly();
   owner.connect({ projectState: { state }, projectSession: { saveState }, platformConfigurationA: {}, platformConfigurationB: {},
+    platform: { runtimeAssetUrl: path => new URL(path, 'https://fixture.invalid/assets/js/').href },
     projectServices: { createBrowserProjectStorage: () => ({}),createPersistenceService: value => { options = value;return {}; } },
     domains: { projectDomain: { buildAutosave: async () => receipt,getGeneration: () => generation,state: () => core } },
   });
   owner.initializeBrowserProjectStorage();
+  assert.equal(options.previewWorkerUrl, 'https://fixture.invalid/assets/js/workers/project-preview-worker.js');
   assert.equal(await options.buildAutosave(), receipt);
   assert.equal(options.onSaved('first', receipt), true);
   assert.equal(state.lastSavedAt, 'first'); assert.equal(saveState.snapshot().documentDirty, true);
@@ -65,11 +67,13 @@ test('cold autosave validation and preview need no date-dependent builtin baseli
   globalThis.window={indexedDB:{},localStorage:{}};
   const assembly=createHistoryAssembly();
   assembly.connect({projectState:{state:consumer.state},projectSession:{saveState:consumer.saveState},
+    platform:{runtimeAssetUrl:path=>new URL(path,'https://fixture.invalid/assets/js/').href},
     platformConfigurationA:{},platformConfigurationB:{},domains:{projectDomain:consumer.project},
     projectServices:{createBrowserProjectStorage:()=>({}),createPersistenceService:value=>{options=value;return{};}},
     builtinBaseline:{prepareProjectBaseline:async()=>{++preparations;return receipt ||= await startupBaseline(source,consumer.project,'2026-10',{kind:'static-features'});}},
   });
   assembly.initializeBrowserProjectStorage();
+  assert.equal(options.previewWorkerUrl,'https://fixture.invalid/assets/js/workers/project-preview-worker.js');
   const restored=await options.validateProject(delta);
   assert.equal(restored.territorialEntities[0].properties.notes,'Recovered notes');
   const sourceId=consumer.client.state().storageBaselineId;

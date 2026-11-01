@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import * as library from '../../tools/library-data.mjs';
@@ -69,6 +69,7 @@ test('report path access preserves an independent pending Git maintenance operat
 test('failed push remains a failure with originals intact and retries the same report-only commit', t => {
   const f = fixture(t); assert.equal(typeof library.publishLibraryReports, 'function');
   put(f.remote, 'hooks/pre-receive', '#!/bin/sh\nexit 1\n');
+  chmodSync(join(f.remote, 'hooks/pre-receive'), 0o755);
   assert.throws(() => library.publishLibraryReports({ root: f.root, prefixes: ['reports/development/task'] }), /push|reject|failed/i);
   const saved = git(f.shared, 'rev-parse', 'HEAD');
   assert.equal(git(f.remote, 'rev-parse', 'main'), f.revision);

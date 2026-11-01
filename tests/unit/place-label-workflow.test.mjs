@@ -12,6 +12,7 @@ import {initializeTestTerritorialState,testCoreProject,executeTerritorialTestCom
 import {loadWebOracle} from '../helpers/web-oracle.mjs';
 import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
 import {BUILTIN_SUBUNITS} from "../../shared/frontend/js/modules/builtin-subunits.js";
+import {defaultUserPreferences} from "../../shared/frontend/js/modules/user-preferences.js";
 const {fingerprintProjectBaseline}=await loadWebOracle('assets/js/modules/project-serializer.js');
 const source=normalizePlace({source:'synthetic',sourceId:'1',name:'서울',kind:'capital',coordinates:[127,37]});
 const polygon=(east=1)=>({type:'Polygon',coordinates:[[[0,0],[0,1],[east,1],[0,0]]]});
@@ -131,7 +132,7 @@ for(const removedId of ['removed','__proto__'])test(`Core history restores ${rem
   assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:kept'],survivor);
 });
 test('canonical object lookup resolves builtin labels in the existing domain with readonly capabilities',()=>{
-  const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},propertyEditingA:{distributionLayerById:()=>null},labelPresentation:{labelById:id=>id===source.id?source:null}});
+  const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},preferences:{userPreferences:defaultUserPreferences()},propertyEditingA:{distributionLayerById:()=>null},labelPresentation:{labelById:id=>id===source.id?source:null}});
   const ref=owner.layerItemObjectRef('labels',source.id);
   assert.equal(ref.domain,'label');assert.equal(ref.type,'capital');assert.equal(owner.objectRefExists(ref),true);assert.ok(Object.isFrozen(source));
   assert.equal(owner.objectDisplayInfo(ref).name,'서울');

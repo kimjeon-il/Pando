@@ -1,4 +1,4 @@
-import { gotoEditor, setEditorMonth } from './helpers/editor-entry.mjs';
+import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 
 test('publishes a bounded runtime performance report after the app becomes interactive', async ({ page }, testInfo) => {
@@ -61,7 +61,22 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__?.snapshot().gpu.renderer),
     { timeout: 30_000 }).toBe('webgl2');
 
-  await setEditorMonth(page, '1989-06');
+  // The editor owns a dated source snapshot. Create the historical project
+  // through its real UI; changing a document cursor cannot load missing sources.
+  await page.locator('#mobileFileBtn').click();
+  await page.locator('#newProjectBtn').click();
+  await expect(page.locator('#projectSetupDialog')).toBeVisible();
+  await page.locator('#projectSetupMonth').fill('1989-06');
+  await page.locator('#projectSetupSource').selectOption('builtin');
+  await page.locator('#projectSetupSubmit').click();
+  if (await page.locator('#confirmModal').isVisible()) await page.locator('#confirmModalOkBtn').click();
+  await expect(page.locator('#projectSetupDialog')).not.toBeVisible({ timeout: 90_000 });
+  await expect.poll(() => page.evaluate(() => {
+    const timeline = window.__testEditorTimeline;
+    const setup = timeline.project().projectSetup;
+    return timeline.month() === '1989-06' && setup.initialMonth === '1989-06'
+      && setup.sourceMode === 'builtin' && !timeline.state().projectReplacing && !timeline.state().modeProcessing;
+  }), { timeout: 60_000 }).toBe(true);
   await expect.poll(() => page.evaluate(() => {
     const country = window.PANDOLAB_TERRITORIAL?.get('state:soviet-union');
     return country?.geometry?.coordinates?.length || 0;
@@ -75,7 +90,10 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   await expect.poll(() => page.evaluate(() => {
     const { gpu } = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return gpu.renderer === 'webgl2' && gpu.canonicalMeshReady === true
-      && !gpu.countrySharedBoundaryReplacementPending && gpu.patchWorkerJobs?.queueDepth === 0;
+      // No pending upload alone is also true while the boundary Worker has
+      // not returned. Publication proves its complete stroke upload is ready.
+      && gpu.countrySharedBoundaryReady === true
+      && gpu.countrySharedBoundaryReplacementPending === false && gpu.patchWorkerJobs?.queueDepth === 0;
   }), { timeout: 90_000 }).toBe(true);
 
   const pan = async (distanceX, distanceY) => {
@@ -88,6 +106,7 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   };
   // Historical outline is a separately uploaded GPU stroke. Complete its
   // one-time creation before the camera-only reuse interval is sampled.
+  const selectionReadyDeadline = Date.now() + 90_000;
   await expect.poll(() => page.evaluate(() => {
     const snapshot = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return snapshot.gpu.selection?.segmentCount > 0
@@ -106,6 +125,9 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
       meshSwitchCount: gpu.meshSwitchCount,
       countryPatchUploadBytes: gpu.countryPatchUploadBytes,
       countryBoundaryRequestId: gpu.countrySharedBoundaryRequestId,
+      countryBoundaryReady: gpu.countrySharedBoundaryReady,
+      countryBoundaryReplacementPending: gpu.countrySharedBoundaryReplacementPending,
+      countryBoundaryLastMessage: gpu.countrySharedBoundaryLastMessage,
       paletteUploadCount: gpu.paletteUploadCount,
       polygonCacheMisses: renderScene.polygonCacheMisses,
       strokeCacheMisses: renderScene.strokeCacheMisses,
@@ -115,10 +137,37 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
       strokeGpuBuildCount: gpu.stroke.buildCount,
       strokeGpuUploadBytes: gpu.stroke.uploadBytes,
       meshVariantBytes: gpu.meshVariantBytes,
+      uploads: snapshot.uploads,
+      readiness: {
+        canonicalMeshReady: gpu.canonicalMeshReady,
+        patchWorkerQueueDepth: gpu.patchWorkerJobs?.queueDepth,
+        selectedOutlineReady: gpu.selection?.segmentCount > 0
+          && gpu.selection?.channels?.primary?.drawSucceeded === true && snapshot.selection.fallbackCount === 0,
+        pendingMask: snapshot.pendingMask,
+        frameQueued: snapshot.frameQueued,
+        interactionActive: snapshot.interactionActive,
+      },
       lastReasons: snapshot.lastReasons,
     };
   });
-  const before = await measurement();
+  // Warmup hover can enqueue another stroke upload; completed boundary and
+  // primary selection alone do not prove that the shared queue has drained.
+  // A queued render can enqueue more work. Keep the exact settled sample as
+  // the baseline, within the existing selection-readiness time allowance.
+  let before;
+  await expect.poll(async () => {
+    before = await measurement();
+    return before;
+  }, { timeout: Math.max(1, selectionReadyDeadline - Date.now()), intervals: [350, 900, 1500] }).toMatchObject({
+    renderer: 'webgl2', countryBoundaryReady: true, countryBoundaryReplacementPending: false,
+    uploads: { pending: 0, active: false },
+    readiness: {
+      canonicalMeshReady: true, patchWorkerQueueDepth: 0, selectedOutlineReady: true,
+      pendingMask: 0, frameQueued: false, interactionActive: false,
+    },
+  });
+  expect(before.countryBoundaryReady).toBe(true);
+  expect(before.countryBoundaryReplacementPending).toBe(false);
   for (const [dx, dy] of [[30, 12], [-28, -8], [22, 10]]) await pan(dx, dy);
   await page.waitForTimeout(600);
   const after = await measurement();
@@ -129,6 +178,9 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   console.log('SOVIET_1989_PAN_GPU_REUSE', JSON.stringify(evidence));
   expect(after.renderer).toBe('webgl2');
   expect(after.contextCount).toBe(1);
+  expect(after.countryBoundaryReady).toBe(true);
+  expect(after.countryBoundaryReplacementPending).toBe(false);
+  expect(after.uploads.pending).toBe(0);
   expect(after.viewRenderCount).toBeGreaterThan(before.viewRenderCount);
   for (const key of [
     'meshSwitchCount', 'countryPatchUploadBytes', 'countryBoundaryRequestId',

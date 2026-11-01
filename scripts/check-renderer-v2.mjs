@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {
+  auditSharedGpuPassInitialization,
   PROJECT_RENDERER_SEQUENCE,
   REQUIRED_STROKE_SOURCE_MARKERS,
 } from './lib/renderer-v2-architecture.mjs';
@@ -23,7 +24,7 @@ const css = read('shared/frontend/css/app.css');
 
 expect(renderer.includes('createRenderDevice({'), 'main GPU renderer must own the RenderDevice');
 expect(renderer.includes('createGpuStrokeRenderer({'), 'main GPU renderer must own the shared stroke renderer');
-expect(renderer.includes('selectionPass.initialize?.(renderDevice, { strokeRenderer, polygonPass: polygonOverlayPass })'), 'selection pass must use the main renderer shared GPU resources');
+failures.push(...auditSharedGpuPassInitialization(renderer));
 expect(!selection.includes('getContext('), 'selection pass may not create a second WebGL context');
 expect(!app.includes('gpu-selection-canvas') && !css.includes('gpu-selection-canvas'), 'selection-only WebGL canvas must stay removed');
 

@@ -37,7 +37,7 @@ test('viewer closure includes static and query-versioned dynamic imports but exc
   f.put('assets/js/modules/read.js', "export { value } from './value.js'; const next = import(`./lazy.js?v=${Date.now()}`); export { next };");
   f.put('assets/js/modules/value.js', 'export const value = 1;'); f.put('assets/js/modules/lazy.js', 'export const lazy = true;');
   const paths = await f.collect();
-  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css']) assert.ok(paths.has(path), path);
+  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css', 'assets/data/physical-land/preview/v1/fixture.json.gz']) assert.ok(paths.has(path), path);
   for (const path of ['assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
 });
 

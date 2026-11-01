@@ -8,7 +8,7 @@ const { normalizeLayerPresentation,layerStyle }=await loadWebOracle('assets/js/m
 export function captureWebMapPresentationContract() {
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   seed.layerPresentation.objectStyles['territorial:entity:B']={ opacity: 0.75,colorVisible: true };
-  const state={ ...structuredClone(seed),projection: 'flat' },save=createSaveStateController();
+  const state={ ...structuredClone(seed),projection: 'flat',layerVisibility: {} },save=createSaveStateController();
   save.markOpenedFile('initial');
   const settings=createMapSettings(),rows=[],events=[];
   const previous=Object.getOwnPropertyDescriptor(globalThis,'document');

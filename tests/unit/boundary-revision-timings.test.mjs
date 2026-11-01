@@ -75,21 +75,22 @@ test('normal fixture neither collects nor writes and explicit off mode requires 
   assert.equal(calls, 1);
 });
 
-test('canonical scenario retains every original browser call and assertion, with helpers off only in isolated mode', () => {
+test('canonical scenario preserves the frozen control and audited current editor migrations', () => {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const path = 'tests/browser/boundary-cut-snapping.spec.mjs';
-  // Frozen multiset from the original bd7ccd67 spec: preserve the control
-  // without requiring that historical object in ordinary depth-one CI.
+  // The original control is also present at immutable 350e5ae8cf348e8244b355b688741831339ab519.
+  // Keep its exact multiset hash; explicitly account for subsequent editor migrations
+  // instead of replacing the historical oracle with the current result.
   const originalCallCount = 452;
   const originalCallsHash = 'f632fc786bd828305b6bb235c2b2f03957cd9ff2f71a2b32ce18da0d3a7ffe93';
   const current = readFileSync(join(root, path), 'utf8');
   const { parse } = createRequire(import.meta.resolve('eslint'))('espree');
-  function calls(source) {
+  function calls(source, roots = ['page', 'expect']) {
     const results = [];
     const rootName = node => !node ? null : node.type === 'Identifier' ? node.name : rootName(node.object || node.callee);
     const walk = node => {
       if (!node || typeof node !== 'object') return;
-      if (node.type === 'CallExpression' && ['page', 'expect'].includes(rootName(node.callee))) {
+      if (node.type === 'CallExpression' && roots.includes(rootName(node.callee))) {
         results.push(source.slice(...node.range).replace(/\s+/g, ' '));
       }
       for (const value of Object.values(node)) {
@@ -101,11 +102,58 @@ test('canonical scenario retains every original browser call and assertion, with
     return results.sort();
   }
   const currentCalls = calls(current);
-  assert.equal(currentCalls.length, originalCallCount);
-  assert.equal(createHash('sha256').update(JSON.stringify(currentCalls)).digest('hex'), originalCallsHash,
-    'measurement may only wrap the original operations');
-  assert.match(current, /comparison \? null : await import\('\.\/helpers\/long-animation-frame-diagnostics\.mjs'\)/);
-  assert.match(current, /comparison \? null : await import\('\.\/helpers\/native-action-diagnostics\.mjs'\)/);
-  assert.match(current, /comparison \? null : await import\('\.\/helpers\/native-action-timeline\.mjs'\)/);
-  assert.match(current, /if \(!comparison\) await page\.addInitScript\(installLongAnimationFrameProbe\)/);
+  // e3133093: child-action helper; 22511064: ready Undo with a bounded native click;
+  // 443c6ca3: explicit editor entry; 4590469a: flat-only UI;
+  // ff50a41b: current discard wording and the real terrain fixture.
+  const addedCalls = [
+    "expect(page.locator('#confirmModalCancelBtn')).toHaveText('편집 계속')",
+    "expect(page.locator('#confirmModalMessage')).toContainText('미적용 입력을 모두 버립니다')",
+    "expect(page.locator('#undoBtn'))",
+    "expect(page.locator('#undoBtn')).toBeEnabled({ timeout: 30_000 })",
+    "page.addInitScript(project => localStorage.setItem('pandolab-editor-project', JSON.stringify(project)), staticAutosaveProject({}, [parent]))",
+    "page.locator('#undoBtn')",
+    "page.locator('#undoBtn').click({ timeout: 30_000, noWaitAfter: true })",
+    "page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat')"
+  ];
+  const retiredCalls = [
+    "expect(page.locator('#confirmModalCancelBtn')).toHaveText('계속 그리기')",
+    "expect(page.locator('#confirmModalMessage')).toContainText('점 3개')",
+    "expect(page.locator('#mapDisplaySurface'))",
+    "expect(page.locator('#mapDisplaySurface')).toBeHidden()",
+    "page.addInitScript(project => localStorage.setItem('pandolab-editor-project', JSON.stringify(project)), staticAutosaveProject({ physicalSettings: { terrainVisible: false } }, [parent]))",
+    "page.goto('/?debug=1&demTerrain=raster')",
+    "page.keyboard.press('Escape')",
+    "page.locator('#addEntityChildBtn')",
+    "page.locator('#addEntityChildBtn').click()",
+    "page.locator('#flatBtn')",
+    "page.locator('#flatBtn').click()",
+    "page.locator('#mapDisplayBtn')",
+    "page.locator('#mapDisplayBtn').click()",
+    "page.locator('#mapDisplaySurface')",
+    "page.locator('#mapDisplaySurface')",
+    "page.locator('#mapDisplaySurface').isVisible()",
+    "page.locator('#mapProjectionMenuTrigger')",
+    "page.locator('#mapProjectionMenuTrigger').click()",
+    "page.locator('#undoBtn').click()"
+  ];
+  assert.deepEqual(calls(current, ['gotoEditor', 'startChildCreation']), [
+    "gotoEditor(page, '/?debug=1&demTerrain=raster')",
+    'startChildCreation(page, parentId)',
+  ]);
+  const reconstructed = [...currentCalls];
+  for (const call of addedCalls) {
+    const index = reconstructed.indexOf(call);
+    assert.notEqual(index, -1, `Missing audited editor operation: ${call}`);
+    reconstructed.splice(index, 1);
+  }
+  reconstructed.push(...retiredCalls);
+  reconstructed.sort();
+  assert.equal(reconstructed.length, originalCallCount);
+  assert.equal(createHash('sha256').update(JSON.stringify(reconstructed)).digest('hex'), originalCallsHash,
+    'all browser calls and assertions outside the audited migrations must remain unchanged');
+  assert.match(current, /const profiling = !comparison && process\.env\.PANDOLAB_TEST_PROFILING !== 'off';/);
+  assert.match(current, /!profiling \? null : await import\('\.\/helpers\/long-animation-frame-diagnostics\.mjs'\)/);
+  assert.match(current, /!profiling \? null : await import\('\.\/helpers\/native-action-diagnostics\.mjs'\)/);
+  assert.match(current, /!profiling \? null : await import\('\.\/helpers\/native-action-timeline\.mjs'\)/);
+  assert.match(current, /if \(profiling\) await page\.addInitScript\(installLongAnimationFrameProbe\)/);
 });

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 
 test('unknown external layers require a type; current generic sources are explicitly selectable', () => {
   const window = { PandoLabGisAdapters: {} };
@@ -17,7 +18,7 @@ test('unknown external layers require a type; current generic sources are explic
   assert.throws(() => window.testApi.importMappingFromUi(), /가져올 종류를 선택/);
   document.getElementById = () => ({ value: 'generic' });
   assert.equal(window.testApi.importMappingFromUi().targetType, 'generic');
-  const html = fs.readFileSync(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
+  const html = renderProductHtml(path => fs.readFileSync(new URL('../../' + path, import.meta.url), 'utf8')).editor;
   const select = html.match(/<select id="gisTargetType">([\s\S]*?)<\/select>/)[1];
   assert.match(select, /value="generic"/);
   assert.doesNotMatch(select, /value="(?:country|subunit|region)"/);

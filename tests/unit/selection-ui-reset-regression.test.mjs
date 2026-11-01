@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { parseJavaScript, walkJavaScript } from '../../scripts/lib/source-analysis.mjs';
 
 import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
@@ -139,9 +140,18 @@ test('application reset and lifecycle disposal wire the selection UI controller 
 
   assert.match(domainSource, /await selectionDomain\.resetProject\(event\.generation\);\s*selectionUiController\.resetProject\(\);/);
 
-  const disposalList = lifecycleSource.match(/getDisposables:\s*\(\)\s*=>\s*\[([^\]]+)\]/)?.[1] || '';
-  const uiIndex = disposalList.indexOf('dependencies.domains.selectionUiController');
-  const domainIndex = disposalList.indexOf('dependencies.domains.selectionDomain');
+  const parsed = parseJavaScript(lifecycleSource);
+  const disposalLists = [];
+  walkJavaScript(parsed, node => {
+    if (node.type === 'Property' && node.key.name === 'getDisposables') {
+      assert.equal(node.value.type, 'ArrowFunctionExpression');
+      assert.equal(node.value.body.type, 'ArrayExpression');
+      disposalLists.push(node.value.body.elements.map(entry => parsed.getText(entry)));
+    }
+  });
+  assert.equal(disposalLists.length, 1, 'the lifecycle must have one explicit disposal list');
+  const uiIndex = disposalLists[0].indexOf('dependencies.domains.selectionUiController');
+  const domainIndex = disposalLists[0].indexOf('dependencies.domains.selectionDomain');
   assert.ok(uiIndex >= 0, 'selection UI controller must participate in application disposal');
   assert.ok(domainIndex > uiIndex, 'selection UI must cancel pending frames before the selection domain is disposed');
 });

@@ -178,17 +178,28 @@ test('Canvas retains ready world tiles across zoom thresholds while target detai
   assert.equal(h.drawn.length, 0, 'explicit terrain visibility still controls painting');
 });
 
-test('Canvas retains ready terrain before political objects can be published', async () => {
+test('Canvas acknowledges the physical substrate before resuming terrain in the canonical submission', async () => {
   const h = canvasTerrainRuntime(); await settle();
   h.render({terrainDpr: 1, renderProjection: {scale: 100, translate: [500, 300]}});
   await h.deliver(h.find('/0/0-0.webp'));
   await h.deliver(h.find('/0/1-0.webp'));
   for (const scale of [503, 800, 503]) {
-    h.drawn.length = 0;
-    h.render({surfacePresentation: {quality: 'pending', targetQuality: 'canonical'},
-      terrainDpr: 1, renderProjection: {scale, translate: [500, 300]}});
-    assert.ok(h.drawn.length > 0, `prepared terrain remains painted before countries at ${scale}`);
+    const view = { terrainDpr: 1, renderProjection: {scale, translate: [500, 300]} };
+    h.drawn.length = 0; h.paths.length = 0;
+    h.render({...view, surfacePresentation: {quality: 'pending', targetQuality: 'canonical'}});
+    assert.equal(h.drawn.length, 0, 'the provisional bitmap must acknowledge before expensive terrain reprojection');
+    assert.equal(h.messages.at(-1).surfaceQuality, 'pending');
+    assert.equal(h.messages.at(-1).physicalLandCount, 1);
+    assert.ok(h.messages.at(-1).bitmap);
+    assert.deepEqual(h.substrates.at(-1), [h.land.geometry]);
+    assert.ok(h.features.every(feature => !h.paths.includes(feature)), 'pending countries are not painted');
+    h.render({...view, visible: false});
+    assert.ok(h.drawn.length > 0, `retained terrain resumes after the background acknowledgement at ${scale}, even with countries hidden`);
+    assert.equal(h.messages.at(-1).surfaceQuality, 'canonical');
     assert.equal(h.messages.at(-1).terrainStats.terrainReady, false, 'painting does not certify missing detail');
+    h.drawn.length = 0;
+    h.render({...view, visible: false});
+    assert.equal(h.drawn.length, 0, 'the admitted terrain paint is reused for an unchanged frame');
   }
 });
 
@@ -221,7 +232,12 @@ test('Canvas keeps world coverage and the physical mask independently of politic
   assert.equal(h.drawn.length, 0);
   await h.deliver(h.find('/0/0-0.webp'));
   h.render({surfacePresentation:{quality:'pending',targetQuality:'canonical'},terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
-  assert.ok(h.drawn.length > 0, 'a ready target tile can paint before political objects');
+  assert.equal(h.drawn.length, 0, 'the provisional physical bitmap defers tile reprojection');
+  assert.equal(h.messages.at(-1).surfaceQuality, 'pending');
+  assert.equal(h.messages.at(-1).physicalLandCount, 1);
+  assert.deepEqual(h.substrates.at(-1), [h.land.geometry]);
+  h.render({terrainDpr:1,renderProjection:{scale:100,translate:[500,300]}});
+  assert.ok(h.drawn.length > 0, 'the next admitted frame paints the retained ready tile');
   assert.equal(h.messages.at(-1).terrainStats.terrainReady, false, 'a partial world is not ready coverage');
   await h.deliver(h.find('/0/1-0.webp'));
   h.drawn.length = 0; h.substrates.length = 0;

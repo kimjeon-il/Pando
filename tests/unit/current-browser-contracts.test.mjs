@@ -19,10 +19,15 @@ test('current discovered tests each have one owner; diagnostic purposes and comm
 });
 
 test('application CI calls the shared selector and runner; automatic test lists are not copied into YAML', () => {
-  const steps = workflow.jobs.checks.steps;
-  assert.ok(steps.some(step => step.run === 'node scripts/run-application-checks.mjs --list --github-output'));
-  assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --output')));
-  assert.equal(steps.some(step => /node --test|playwright test|pnpm test:unit/.test(step.run || '')), false);
+  assert.ok(workflow.jobs.changes.steps.some(step => step.run === 'node scripts/run-application-checks.mjs --list --github-output'));
+  for (const phase of ['non-browser', 'browser']) {
+    const steps = workflow.jobs[phase].steps;
+    assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --list --github-output') && step.run.includes('--phase ' + phase)));
+    assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --phase ' + phase) && step.run.includes('--output')));
+    assert.equal(steps.some(step => /node --test|playwright test|pnpm test:unit/.test(step.run || '')), false);
+  }
+  assert.ok(workflow.jobs.checks.steps.some(step => step.id === 'aggregate'));
+  assert.equal(workflow.jobs.checks.steps.some(step => step.run?.includes('run-application-checks.mjs')), false);
   assert.equal(workflow.on.push.paths, undefined); assert.equal(workflow.on.pull_request.paths, undefined);
   assert.deepEqual(workflow.permissions, { contents: 'read' });
   assert.ok(workflow.jobs.changes.steps.find(step => step.id === 'plan').env.HEAD_SHA.includes('pull_request.head.sha'));
@@ -43,15 +48,30 @@ test('P1/P3 retain native and artifact owners while Web checks share the same ru
 
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
-  const plan = planApplicationChecks({ repository, changedFiles: ['assets/css/features/map-rendering.css'] });
+  const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
   assert.ok(plan.browserSpecs.includes('tests/browser/ui-components.spec.mjs'));
   assert.ok(plan.commands.includes('ui-spacing'));
   assert.deepEqual(plan.externalChecks, []);
   assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);
-  const worker = planApplicationChecks({ repository, changedFiles: ['assets/js/workers/canvas-render-worker.js'] });
+  const worker = planApplicationChecks({ repository, changedFiles: ['shared/frontend/js/workers/canvas-render-worker.js'] });
   assert.ok(worker.browserSpecs.includes('tests/browser/physical-land-time.spec.mjs'));
   for (const id of ['country-selftest', 'country-validity-canonical', 'country-validity', 'territorial-library-contract'])
     assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
+});
+
+test('native Core external checks retain every compiled input and exclude shared frontend resources', () => {
+  const repository = { catalog, files: [], tests: [], owners: new Map(), dependencies: () => [] };
+  const nativeCheck = catalog.externalChecks.find(check => check.id === 'native-core');
+  const manifest = JSON.parse(readFileSync(new URL('../../shared/frontend/static/wasm/pandoeditor-core.manifest.json', import.meta.url), 'utf8'));
+  assert.ok(manifest.inputs.length > 0);
+  for (const path of [...manifest.inputs.map(input => input.path), 'CMakeLists.txt', 'CMakePresets.json']) {
+    const plan = planApplicationChecks({ repository, changedFiles: [path] });
+    assert.deepEqual(plan.externalChecks, [nativeCheck], path);
+  }
+  for (const path of ['shared/frontend/css/features/map-rendering.css', 'shared/frontend/js/workers/canvas-render-worker.js']) {
+    const plan = planApplicationChecks({ repository, changedFiles: [path] });
+    assert.deepEqual(plan.externalChecks, [], path);
+  }
 });
 
 test('prepared asset changes retain the real fixed-land unit and browser regressions', () => {
@@ -149,3 +169,4 @@ test('concurrency follows the current PR/ref while manual diagnostics and reruns
   }
   assert.equal(groups.size, workflows.length);
 });
+

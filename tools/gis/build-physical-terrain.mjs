@@ -51,7 +51,7 @@ export async function buildPhysicalTerrain({sourceRoot,outputRoot,countriesPath,
       const relief=await convertNativePhysicalLuminance({width,height,pixels:grayPixels},{signal});
       const mask=same?sourceMask:await resizeNativePhysicalMask({width:sourceWidth,height:sourceHeight,outputWidth:width,outputHeight:height,pixels:sourceMask},{signal});
       const columns=Math.ceil(width/tileSize),rows=Math.ceil(height/tileSize),levelDir=resolve(terrainDir,String(id));mkdirSync(levelDir);
-      const compositor=createNativePhysicalCompositor({signal});let error;
+      const compositor=createNativePhysicalCompositor({signal});let failed=false,error;
       try{
         for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
           signal?.throwIfAborted();const box=[column*tileSize,row*tileSize,Math.min(width,(column+1)*tileSize),Math.min(height,(row+1)*tileSize)];
@@ -59,9 +59,9 @@ export async function buildPhysicalTerrain({sourceRoot,outputRoot,countriesPath,
           const encoded=await encodeNativeWebpLossless({width:box[2]-box[0]+2,height:box[3]-box[1]+2,data:pixels},{signal});
           writeFileSync(resolve(levelDir,`${column}-${row}.webp`),encoded.data,{flag:'wx'});
         }
-      }catch(cause){error=cause;throw cause;}finally{
-        try{await compositor.close();}catch(cause){if(!error)throw cause;}
-      }
+      }catch(cause){failed=true;error=cause;}
+      try{await compositor.close();}catch(cause){if(!error){failed=true;error=cause;}}
+      if(failed)throw error;
       levels.push({id,width,height,columns,rows,tileSize});
     }
     if(sha(readFileSync(countriesPath))!==sha(countriesBytes)||sha(readFileSync(lakesPath))!==sha(lakesBytes))throw Error('Physical mask sources changed during build');

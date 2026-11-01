@@ -13,6 +13,13 @@ const square = (x0 = 0, y0 = 0, x1 = 10, y1 = 10) => ({
   type: 'Polygon',
   coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]],
 });
+const persistenceFixture = calls => ({
+  queueProject:()=>calls.push('autosave'),
+  queueView:()=>assert.fail('a territorial command must not schedule a view save'),
+  queuePresentation:()=>assert.fail('a territorial command must not schedule a presentation save'),
+  // The fixture records synchronous notifications and owns no pending timer.
+  cancelPending(){},
+});
 
 test('territorial normalization rejects legacy aliases and duplicate IDs', () => {
   assert.throws(() => normalizeTerritorialEntities([{
@@ -69,7 +76,7 @@ test('dangling references and circular parents fail without automatic clearing',
 
 test('the actual Core territorial command owns one history and autosave on success', async () => {
   const calls=[],state={territorialEntities:[createTerritorialFeature({id:'A',name:'A',entityKind:'general',geometry:square()})]};
-  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:()=>calls.push('history'),persistence:{queueProject:()=>calls.push('autosave')}}});
+  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:()=>calls.push('history'),persistence:persistenceFixture(calls)}});
   const result=await executeTerritorialTestCommand(state,'territorial.metadata',{id:'A',field:'name',valuePresent:true,value:'Updated'});
   assert.equal(result.ok,true);assert.equal(result.changed,true);assert.equal(state.territorialEntities[0].properties.name,'Updated');
   assert.deepEqual(calls,['history','autosave']);assert.equal(await testCoreProject(state).project.undo(),true);
@@ -78,7 +85,7 @@ test('the actual Core territorial command owns one history and autosave on succe
 
 test('a rejected second Core operation leaves the first unapplied and skips history/autosave', async () => {
   const calls=[],state={territorialEntities:[createTerritorialFeature({id:'A',name:'A',entityKind:'general',geometry:square()})]};
-  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:()=>calls.push('history'),persistence:{queueProject:()=>calls.push('autosave')}}});
+  await initializeTestTerritorialState(state,null,{platformPorts:{onProjectChanged:()=>calls.push('history'),persistence:persistenceFixture(calls)}});
   const owner=testCoreProject(state),before=owner.project.snapshot(),clock=owner.client.state();
   const result=await owner.project.executeCommand({commandId:'document.batch',targets:[],payload:{operations:[
     {commandId:'territorial.metadata',targets:[{domain:'territorial',id:'A'}],payload:{id:'A',field:'name',valuePresent:true,value:'Must not publish'}},
@@ -90,14 +97,14 @@ test('a rejected second Core operation leaves the first unapplied and skips hist
 
 
 test('canonical timeline parents reject cycles only when intervals overlap', () => {
-  const entities = ['A', 'B'].map(id => ({ id, entityKind: 'general' }));
-  const records = { schemaVersion: 1,
-    lifetimes: entities.map(e => ({ id: 'life'+e.id, entityId: e.id, validFrom: null, validTo: null })),
-    geometryBindings: entities.map(e => ({ id: 'shape'+e.id, entityId: e.id, validFrom: null, validTo: null, geometryRef: { id: 'shape', version: 1 } })),
+  const entities = ['A', 'B'].map(id => ({ objectRef: {domain:'territorial',id}, entityKind: 'general' }));
+  const records = { schemaVersion: 3, propertyBindings: [],
+    lifetimes: entities.map(e => ({ id: 'life'+e.objectRef.id, objectRef: e.objectRef, validFrom: null, validTo: null })),
+    geometryBindings: entities.map(e => ({ id: 'shape'+e.objectRef.id, objectRef: e.objectRef, validFrom: null, validTo: null, geometryRef: { id: 'shape', version: 1 } })),
     parentRelations: ['A','B'].flatMap((entityId, index) => [
-      { id: entityId+'before', entityId, parentId: '', coverageMode: 'explicit', validFrom: null, validTo: index ? '1910' : '1899' },
-      { id: entityId+'during', entityId, parentId: index ? 'A' : 'B', coverageMode: 'partition', validFrom: index ? '1911' : '1900', validTo: index ? '1920' : '1910' },
-      { id: entityId+'after', entityId, parentId: '', coverageMode: 'explicit', validFrom: index ? '1921' : '1911', validTo: null },
+      { id: entityId+'before', objectRef:{domain:'territorial',id:entityId}, parentId: '', coverageMode: 'explicit', validFrom: null, validTo: index ? '1910' : '1899' },
+      { id: entityId+'during', objectRef:{domain:'territorial',id:entityId}, parentId: index ? 'A' : 'B', coverageMode: 'partition', validFrom: index ? '1911' : '1900', validTo: index ? '1920' : '1910' },
+      { id: entityId+'after', objectRef:{domain:'territorial',id:entityId}, parentId: '', coverageMode: 'explicit', validFrom: index ? '1921' : '1911', validTo: null },
     ]) };
   const context = { entities, geometryExists: () => true };
   assert.doesNotThrow(() => normalizeTimelineRecords(records, context));

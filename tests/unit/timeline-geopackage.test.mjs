@@ -33,11 +33,17 @@ for (const row of timelineStorageCases().filter(row => row.expected === 'OK')) t
 });
 
 
-test('production GeoPackage rejects unsupported and malformed content with the original code', async () => {
+test('production GeoPackage file pipeline preserves each validation owner error code', async () => {
   const project = serialize(projectForStorage());
-  await assert.rejects(request('write', new ArrayBuffer(0), { ...project, sovereignty:{} }), { code:'PL-SCHEMA-FIELD' });
+  await assert.rejects(request('write', new ArrayBuffer(0), project), { code:'PL-GPKG-SPATIAL-PROJECTION' });
+  const unsupported = { ...project, sovereignty:{} }, unsupportedBefore = structuredClone(unsupported);
+  assert.throws(() => prepareProjectForStorage(unsupported), { code:'PL-SCHEMA-FIELD' });
+  await assert.rejects(writeProject(unsupported), { code:'UNSUPPORTED_FIELD' });
+  assert.deepEqual(unsupported, unsupportedBefore);
   const invalid = structuredClone(project); invalid.geometries.push(structuredClone(invalid.geometries[0]));
-  await assert.rejects(request('write', new ArrayBuffer(0), invalid), { code:'DUPLICATE_ID' });
+  const invalidBefore = structuredClone(invalid);
+  await assert.rejects(writeProject(invalid), { code:'DUPLICATE_ID' });
+  assert.deepEqual(invalid, invalidBefore);
 });
 
 const exchangeFile = name => new URL(`../fixtures/timeline-exchange/${name}`, import.meta.url);

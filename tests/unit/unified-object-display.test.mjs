@@ -11,10 +11,11 @@ import {normalizeObjectRef} from "../../shared/frontend/js/modules/object-select
 
 test('all territorial objects share one display group irrespective of kind or parent',()=>{
  const rows={A:{id:'A',properties:{entityKind:'general',parentId:''}},B:{id:'B',properties:{entityKind:'general',parentId:'A'}},R:{id:'R',properties:{entityKind:'regional',parentId:'A'}}};
- const state={layerVisibility:{objects:true},itemVisibility:{objects:{B:false}}};
+ const state={timelineCursor:'1914-06',layerVisibility:{objects:true},itemVisibility:{objects:{B:false}}};
  const query=createObjectQuery({selectionServices:{normalizeObjectRef},projectState:{state},territorialModel:{entityRepository:{get:id=>rows[id]}},layerPresentation:{isLayerItemVisible:(group,id)=>state.itemVisibility[group]?.[id]!==false}});
  assert.deepEqual(Object.keys(MAP_DISPLAY_TARGETS).filter(key=>['objects','countries','subunits','regions'].includes(key)),['objects']);
  for(const id of Object.keys(rows)){const ref={domain:'territorial',type:'entity',id};assert.equal(query.layerGroupForObjectRef(ref),'objects');}
+ for(const id of ['A','R'])assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id}),true);
  assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
  rows.B.properties.parentId='';assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
  rows.B.properties.entityKind='regional';assert.equal(query.objectRefVisible({domain:'territorial',type:'entity',id:'B'}),false);
@@ -50,15 +51,21 @@ test('Core preserves object visibility across temporal parent changes and only a
 test('readonly picking selects through common rules without an editor service',async()=>{
  const intents=[],errors=[],picking=createObjectPicking();
  const ref={domain:'territorial',type:'entity',id:'A',key:'territorial:entity:A'};
- picking.connect({projectState:{state:{tool:'select',layerVisibility:{objects:true}}},
-  selectionServices:{normalizeObjectRef},objectLookup:{objectRefExists:()=>true,isObjectAvailable:()=>true},
-  layerPresentation:{isLayerItemVisible:()=>true},countries:{builtinTerritorialScene:()=>({labelRefs:new Map([['A',ref]])})},
-  territorialModel:{entityRepository:{get:()=>null}},platform:{$:()=>null,d3:{event:{}}},
+ const state={tool:'select',timelineCursor:'1914-06',layerVisibility:{objects:true},itemVisibility:{objects:{}}};
+ const entity={id:'A',properties:{entityKind:'general',parentId:''}};
+ const queryPorts={projectState:{state},selectionServices:{normalizeObjectRef},
+  territorialModel:{entityRepository:{get:id=>id===entity.id?entity:null}},
+  layerPresentation:{isLayerItemVisible:(group,id)=>state.itemVisibility[group]?.[id]!==false}};
+ picking.connect({...queryPorts,objectOperationsA:createObjectQuery(queryPorts),
+  countries:{builtinTerritorialScene:()=>({labelRefs:new Map([['A',ref]])})},platform:{$:()=>null,d3:{event:{}}},
   domains:{selectionUiController:{applyIntent:async(value,options)=>intents.push({value,options})}},
   feedback:{reportOperationError:error=>errors.push(error)}});
  await picking.handleMapClick([5,5],{territorialLabelId:'A'});
  assert.deepEqual(errors,[]);assert.equal(intents.length,1);assert.deepEqual(intents[0].value,ref);
  assert.equal(intents[0].options.openEditor,false);
+ state.itemVisibility.objects.A=false;
+ await picking.handleMapClick([5,5],{territorialLabelId:'A'});
+ assert.deepEqual(errors,[]);assert.equal(intents.length,1,'hidden objects must be rejected by the same shared query');
 });
 
 test('registered editor picking still commits vertex placement before ordinary selection',async()=>{
