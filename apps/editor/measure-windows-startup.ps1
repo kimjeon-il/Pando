@@ -1,7 +1,8 @@
 param(
   [Parameter(Mandatory = $true)][string]$BinaryPath,
   [string]$OutputDirectory = (Join-Path $PSScriptRoot '../../build-native/web-shell'),
-  [ValidateRange(1000, 30000)][int]$HoldAfterReadyMs = 12000
+  [ValidateRange(1000, 30000)][int]$HoldAfterReadyMs = 12000,
+  [ValidateRange(1, 10)][int]$TrialCount = 3
 )
 $ErrorActionPreference = 'Stop'
 & node (Join-Path $PSScriptRoot 'packaged-artifacts.mjs') "--verify-binary=$BinaryPath"
@@ -13,15 +14,10 @@ if ([IO.Path]::GetFileName($exe) -ne 'pandolab-web-shell.exe') {
 }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 [IO.Directory]::CreateDirectory($output) | Out-Null
-$destination = Join-Path $output 'paired-startup-memory.json'
-$profiles = @('immediate','deferred','deferred','immediate','immediate','deferred')
+$destination = Join-Path $output 'startup-memory.json'
 $results = [Collections.Generic.List[object]]::new()
 
 function Read-ProcessTreeMemory([int]$RootPid, [int64]$ElapsedMs) {
-  # Query only the process graph rooted at the exact spawned trial EXE.
-  # PSS is not available from these Windows APIs. Report private committed
-  # bytes and summed working sets separately; summed working sets double-count
-  # shared resident pages and cannot be equated to physical RAM or PSS.
   $all = @(Get-CimInstance Win32_Process -ErrorAction Stop)
   $ids = [Collections.Generic.HashSet[int]]::new()
   [void]$ids.Add($RootPid)
@@ -49,9 +45,7 @@ function Read-ProcessTreeMemory([int]$RootPid, [int64]$ElapsedMs) {
         privateCommitMiB = [math]::Round([double]$p.PrivateMemorySize64 / 1MB, 2)
         workingSetMiB = [math]::Round([double]$p.WorkingSet64 / 1MB, 2)
       })
-    } catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
-      # The exact process exited between snapshots.
-    }
+    } catch [Microsoft.PowerShell.Commands.ProcessCommandException] {}
   }
   return [pscustomobject]@{
     elapsedMs = $ElapsedMs
@@ -70,10 +64,9 @@ function Median([double[]]$Items) {
   return ([double]$values[$mid - 1] + [double]$values[$mid]) / 2
 }
 
-for ($index = 0; $index -lt $profiles.Count; $index++) {
-  $mode = $profiles[$index]
+for ($index = 0; $index -lt $TrialCount; $index++) {
   $number = $index + 1
-  $profileId = ('pair-{0:D2}-{1}' -f $number, $mode)
+  $profileId = ('startup-{0:D2}' -f $number)
   $reportFile = Join-Path $output ("world-$profileId.json")
   if (Test-Path -LiteralPath $reportFile) {
     throw "Diagnostic result already exists; refusing to reuse it: $reportFile"
@@ -87,13 +80,12 @@ for ($index = 0; $index -lt $profiles.Count; $index++) {
   $info.ArgumentList.Add([string]$HoldAfterReadyMs)
   $info.ArgumentList.Add('--probe-profile-id')
   $info.ArgumentList.Add($profileId)
-  if ($mode -eq 'immediate') { $info.ArgumentList.Add('--probe-physical-immediate') }
   $info.ArgumentList.Add('--diagnostic-output')
   $info.ArgumentList.Add($reportFile)
 
   $startUtc = [DateTime]::UtcNow
   $process = [Diagnostics.Process]::Start($info)
-  if (-not $process) { throw "Trial process did not start for $mode" }
+  if (-not $process) { throw "Trial process did not start for run $number" }
   $timer = [Diagnostics.Stopwatch]::StartNew()
   $samples = [Collections.Generic.List[object]]::new()
   try {
@@ -101,17 +93,17 @@ for ($index = 0; $index -lt $profiles.Count; $index++) {
       $samples.Add((Read-ProcessTreeMemory -RootPid $process.Id -ElapsedMs $timer.ElapsedMilliseconds))
       if ($timer.ElapsedMilliseconds -gt 210000) {
         $process.Kill($true)
-        throw "Timed out while benchmarking $mode"
+        throw "Timed out while benchmarking run $number"
       }
       [void]$process.WaitForExit(750)
     }
     $timer.Stop()
     $exitCode = $process.ExitCode
     if (-not (Test-Path -LiteralPath $reportFile -PathType Leaf)) {
-      throw "Missing native world report for $mode, exit $exitCode"
+      throw "Missing native world report for run $number, exit $exitCode"
     }
     if ((Get-Item -LiteralPath $reportFile).LastWriteTimeUtc -lt $startUtc) {
-      throw "Stale report for $mode"
+      throw "Stale report for run $number"
     }
     $report = Get-Content -LiteralPath $reportFile -Raw | ConvertFrom-Json
     if ($exitCode -ne 0 -or -not $report.ok -or
@@ -121,20 +113,13 @@ for ($index = 0; $index -lt $profiles.Count; $index++) {
         $report.observed.sourceCountryCount -ne 258 -or
         $report.observed.countryCount -ne 254 -or
         $report.observed.sovereignRootCount -ne 207) {
-      throw "Canonical world failed in $mode : $($report | ConvertTo-Json -Depth 8 -Compress)"
-    }
-    $expectedDeferred = $mode -eq 'deferred'
-    if ([bool]$report.observed.physicalDeferredUntilReady -ne $expectedDeferred) {
-      throw "Physical startup mode was not applied: $mode"
+      throw "Canonical world failed in run $number : $($report | ConvertTo-Json -Depth 8 -Compress)"
     }
     $valid = @($samples | Where-Object { $_.processCount -gt 0 })
-    if ($valid.Count -lt 5) {
-      throw "Insufficient owned-process memory samples in $mode"
-    }
+    if ($valid.Count -lt 5) { throw "Insufficient owned-process memory samples in run $number" }
     $late = @($valid | Select-Object -Last 4)
     $record = [pscustomobject]@{
       run = $number
-      mode = $mode
       startupReadyMs = [math]::Round([double]$report.observed.readyMs, 2)
       canonicalGeometryReceivedMs = [math]::Round([double]$report.observed.canonicalGeometryReceivedMs, 2)
       canonicalMeshReceivedMs = [math]::Round([double]$report.observed.canonicalMeshReceivedMs, 2)
@@ -152,41 +137,38 @@ for ($index = 0; $index -lt $profiles.Count; $index++) {
       report = [IO.Path]::GetFileName($reportFile)
     }
     $results.Add($record)
-    Write-Output ("PAIR_WINDOWS_{0}_PASS {1}" -f $mode.ToUpperInvariant(), ($record | ConvertTo-Json -Depth 4 -Compress))
+    Write-Output ("WINDOWS_STARTUP_RUN_{0:D2}_PASS {1}" -f $number, ($record | ConvertTo-Json -Depth 4 -Compress))
   } finally {
     if (-not $process.HasExited) { $process.Kill($true) }
     $process.Dispose()
   }
 }
-$groups = [ordered]@{}
-foreach ($mode in @('immediate','deferred')) {
-  $rows = @($results | Where-Object { $_.mode -eq $mode })
-  $groups[$mode] = [ordered]@{
-    count = $rows.Count
-    medianStartupReadyMs = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.startupReadyMs }))), 2)
-    medianPeakPrivateCommitMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.peakPrivateCommitMiB }))), 2)
-    medianPeakSummedWorkingSetMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.peakSummedWorkingSetMiB }))), 2)
-    medianLatePrivateCommitMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.latePrivateCommitMiB }))), 2)
-    medianLateSummedWorkingSetMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.lateSummedWorkingSetMiB }))), 2)
-  }
+
+$rows = @($results)
+$summary = [ordered]@{
+  count = $rows.Count
+  medianStartupReadyMs = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.startupReadyMs }))), 2)
+  medianPeakPrivateCommitMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.peakPrivateCommitMiB }))), 2)
+  medianPeakSummedWorkingSetMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.peakSummedWorkingSetMiB }))), 2)
+  medianLatePrivateCommitMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.latePrivateCommitMiB }))), 2)
+  medianLateSummedWorkingSetMiB = [math]::Round((Median ([double[]]@($rows | ForEach-Object { $_.lateSummedWorkingSetMiB }))), 2)
 }
 $measurement = [ordered]@{
-  schema = 'pandolab-windows-webview-paired-startup-memory'
+  schema = 'pandolab-windows-webview-startup-memory'
   version = 1
   capturedUtc = [DateTime]::UtcNow.ToString('o')
-  sequence = $profiles
+  trialCount = $TrialCount
   readyHoldMs = $HoldAfterReadyMs
   notes = @(
-    'Both A/B paths run from the same executable and same pinned world payload on one Windows runner.',
+    'All runs use the one canonical native startup policy and the same pinned world payload.',
     'Every launch uses a distinct diagnostic-only WebView2 data directory; no user cache is deleted.',
     'PrivateMemorySize64 is process private committed memory, not resident physical RAM.',
     'Summed WorkingSet64 counts shared pages in multiple processes and is not PSS.',
     'Peak and late values sum the test process and its observed descendant process tree.',
-    'Values are from three trials per mode; no guaranteed improvement threshold is imposed.',
     'No Android or Qt application was started.'
   )
-  summary = $groups
+  summary = $summary
   runs = $results.ToArray()
 }
 $measurement | ConvertTo-Json -Depth 9 | Set-Content -LiteralPath $destination -Encoding utf8
-Write-Output ("PAIRED_WINDOWS_MEMORY_REPORT {0}" -f $destination)
+Write-Output ("WINDOWS_STARTUP_MEMORY_REPORT {0}" -f $destination)
