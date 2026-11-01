@@ -1,0 +1,47 @@
+name: Viewer temporal performance measurements
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/viewer-temporal-performance.yml
+      - shared/frontend/js/modules/builtin-session.js
+      - shared/frontend/js/modules/map-owner-composition.js
+      - apps/viewer/js/modules/viewer-composition.js
+      - tests/unit/builtin-source-cache.test.mjs
+      - tests/browser/map-transition-baseline.benchmark.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-temporal-performance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  measure:
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [desktop, narrow-viewport]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 36
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node --test tests/unit/builtin-source-cache.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Baseline-matched 20 adjacent transitions plus distant transitions
+        run: pnpm exec playwright test --config tests/browser/map-transition-baseline.config.mjs --grep "P0 unchanged map result, presentation latency and resources: ${{ matrix.profile }}" --workers=1 --retries=0 --reporter=list
+      - name: Preserve verified measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: temporal-measure-${{ matrix.profile }}-${{ github.sha }}
+          path: test-results/map-transition-p0/**/p0-baseline.json
+          if-no-files-found: warn
+          retention-days: 14
