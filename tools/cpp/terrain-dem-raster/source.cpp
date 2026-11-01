@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -27,21 +28,22 @@ int run(int argc,char** argv){
     _setmode(_fileno(stdin),_O_BINARY);
     _setmode(_fileno(stdout),_O_BINARY);
 #endif
-    const bool streaming=argc>1&&std::string(argv[1])=="--stream";
-    if(streaming?!(argc==5||(argc==6&&std::string(argv[5])=="--strict-etopo")):
+    const bool streaming=argc>1&&std::string(argv[1])=="--stream",inspecting=argc>1&&std::string(argv[1])=="--inspect";
+    if(inspecting?!(argc==3||(argc==4&&std::string(argv[3])=="--strict-etopo")):
+       streaming?!(argc==5||(argc==6&&std::string(argv[5])=="--strict-etopo")):
       !(argc==8||(argc==9&&std::string(argv[8])=="--strict-etopo")))throw std::invalid_argument("Expected TIFF, level width/height and DEM windows");
     const auto number=[](const char* text){std::size_t at=0;const auto value=std::stoll(text,&at);if(at!=std::string(text).size())throw std::invalid_argument("Invalid DEM window integer");return value;};
-    const auto width=number(argv[streaming?3:2]),height=number(argv[streaming?4:3]);
+    const auto width=inspecting?1:number(argv[streaming?3:2]),height=inspecting?1:number(argv[streaming?4:3]);
     if(width<1||width>50000||height<1||height>25000)throw std::invalid_argument("DEM level exceeds bounds");
     CPLSetConfigOption("GDAL_PAM_ENABLED","NO");GDALAllRegister();const char* drivers[]={"GTiff",nullptr};
-    std::unique_ptr<void,decltype(&GDALClose)> source(GDALOpenEx(argv[streaming?2:1],GDAL_OF_RASTER|GDAL_OF_READONLY,drivers,nullptr,nullptr),GDALClose);
+    std::unique_ptr<void,decltype(&GDALClose)> source(GDALOpenEx(argv[(streaming||inspecting)?2:1],GDAL_OF_RASTER|GDAL_OF_READONLY,drivers,nullptr,nullptr),GDALClose);
     if(!source||GDALGetRasterCount(source.get())!=1||!GDALGetProjectionRef(source.get())||!*GDALGetProjectionRef(source.get()))
       throw std::invalid_argument("Single-band georeferenced DEM TIFF required");
     double transform[6];const int sw=GDALGetRasterXSize(source.get()),sh=GDALGetRasterYSize(source.get());
     if(sw<1||sh<1||GDALGetGeoTransform(source.get(),transform)!=CE_None||std::abs(transform[0]+180)>1e-8||
       std::abs(transform[1]-360.0/sw)>1e-8||std::abs(transform[2])>1e-8||std::abs(transform[3]-90)>1e-8||
       std::abs(transform[4])>1e-8||std::abs(transform[5]+180.0/sh)>1e-8)throw std::invalid_argument("DEM source grid differs");
-    if((streaming&&argc==6)||(!streaming&&argc==9)){
+    if((inspecting&&argc==4)||(streaming&&argc==6)||(!streaming&&!inspecting&&argc==9)){
       std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> actual(OSRNewSpatialReference(GDALGetProjectionRef(source.get())),OSRDestroySpatialReference);
       std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> expected(OSRNewSpatialReference(nullptr),OSRDestroySpatialReference);
       const char* registration=GDALGetMetadataItem(source.get(),"AREA_OR_POINT",nullptr);
@@ -50,6 +52,16 @@ int run(int argc,char** argv){
     }
     int hasNoData=0;const auto noData=GDALGetRasterNoDataValue(GDALGetRasterBand(source.get(),1),&hasNoData);
     if(!hasNoData||!std::isfinite(noData))throw std::invalid_argument("DEM source NoData required");
+    if(inspecting){
+      const char* dtype=nullptr;switch(GDALGetRasterDataType(GDALGetRasterBand(source.get(),1))){
+        case GDT_Byte:dtype="uint8";break;case GDT_UInt16:dtype="uint16";break;case GDT_Int16:dtype="int16";break;
+        case GDT_UInt32:dtype="uint32";break;case GDT_Int32:dtype="int32";break;
+        case GDT_Float32:dtype="float32";break;case GDT_Float64:dtype="float64";break;
+        default:throw std::invalid_argument("Unsupported DEM source data type");
+      }
+      std::cout<<"{\"width\":"<<sw<<",\"height\":"<<sh<<",\"nodata\":"<<std::setprecision(17)<<noData<<",\"dtype\":\""<<dtype<<"\"}\n";
+      if(!std::cout)throw std::runtime_error("DEM metadata write failed");return 0;
+    }
     std::vector<std::string> arguments={"-of","VRT","-r","average","-te","-180","-90","180","90","-ts",std::to_string(width),std::to_string(height),"-t_srs",GDALGetProjectionRef(source.get())};
     std::vector<char*> pointers;for(auto& value:arguments)pointers.push_back(value.data());pointers.push_back(nullptr);
     std::unique_ptr<GDALWarpAppOptions,decltype(&GDALWarpAppOptionsFree)> options(GDALWarpAppOptionsNew(pointers.data(),nullptr),GDALWarpAppOptionsFree);

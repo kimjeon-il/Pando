@@ -88,7 +88,7 @@ jobs:
           $env:PANDO_MAP_IMAGE_ARTIFACT="$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
           node --test tests/unit/terrain-dem-tint.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/terrain-dem-webp.test.mjs tests/unit/gis-source-launcher.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Tint pixels differ from the frozen Python oracle' }
-          python -m pip install Pillow==12.3.0 numpy==2.3.5 'rasterio>=1.4,<2'
+          python -m pip install Pillow==12.3.0 numpy==2.3.5
           if ($LASTEXITCODE -ne 0) { throw 'Tint producer test dependencies failed' }
           python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_average_does_not_dilute_a_small_island_with_white_sea tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_zip_extraction_preserves_neighbor_and_rejects_traversal tests.python.test_build_terrain_dem.TerrainDemTest.test_webp_roundtrip_and_reproducibility tests.python.test_build_terrain_dem.TerrainDemTest.test_failed_native_webp_encoding_preserves_existing_tile
           if ($LASTEXITCODE -ne 0) { throw 'Tint producer native integration failed' }
@@ -107,6 +107,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        if: inputs.target == 'terrain-dem-gutters-integrated'
+        with:
+          python-version: '3.12'
       - name: Build and verify DEM gutter pixels
         shell: pwsh
         run: |
@@ -137,6 +141,10 @@ jobs:
           $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
           node --test tests/unit/terrain-dem-webp.test.mjs tests/unit/terrain-dem-gutters.test.mjs tests/unit/gis-source-launcher.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM WebP or launcher integration failed' }
+          python -m pip install Pillow==12.3.0 numpy==2.3.5
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter producer test dependencies failed' }
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_reconcile_gutters_uses_published_neighbor_and_is_stable
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter producer integration failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-gutters-${{ matrix.os }}-${{ github.sha }}
@@ -158,6 +166,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Check space for the existing GDAL SDK
         shell: pwsh
         run: |
@@ -188,6 +199,10 @@ jobs:
           $env:PANDO_TERRAIN_DEM_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/artifact"
           node --test tests/unit/terrain-dem-raster-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
+          python -m pip install Pillow==12.3.0 numpy==2.3.5
+          if ($LASTEXITCODE -ne 0) { throw 'DEM inspection test dependencies failed' }
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_native_inspection_validates_etopo_source tests.python.test_build_terrain_dem.TerrainDemTest.test_native_stream_reuses_reader_and_rejects_invalid_source tests.python.test_build_terrain_dem.TerrainDemTest.test_area_average_and_wrapped_gutter
+          if ($LASTEXITCODE -ne 0) { throw 'DEM producer source inspection failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-raster-${{ matrix.os }}-${{ github.sha }}
@@ -491,9 +506,9 @@ jobs:
       - name: Check only the DEM producer's native encoding calls
         shell: pwsh
         run: |
-          python -m pip install Pillow==12.3.0 numpy==2.3.5 'rasterio>=1.4,<2'
+          python -m pip install Pillow==12.3.0 numpy==2.3.5
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer test dependencies failed' }
-          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_signed_elevation_and_byte_boundary tests.python.test_build_terrain_dem.TerrainDemTest.test_shade_quantization_preserves_elevation_and_limits_error tests.python.test_build_terrain_dem.TerrainDemTest.test_coarse_polar_gutter_clamps_adjacent_shade tests.python.test_build_terrain_dem.TerrainDemTest.test_range_and_nodata_are_not_silently_zeroed tests.python.test_build_terrain_dem.TerrainDemTest.test_asset_summary_uses_shared_node_digest
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_signed_elevation_and_byte_boundary tests.python.test_build_terrain_dem.TerrainDemTest.test_shade_quantization_preserves_elevation_and_limits_error tests.python.test_build_terrain_dem.TerrainDemTest.test_coarse_polar_gutter_clamps_adjacent_shade tests.python.test_build_terrain_dem.TerrainDemTest.test_range_and_nodata_are_not_silently_zeroed tests.python.test_build_terrain_dem.TerrainDemTest.test_asset_summary_uses_shared_node_digest tests.python.test_build_terrain_dem.TerrainDemTest.test_generator_refuses_to_overwrite_existing_dataset
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer native encoding calls failed' }
       - uses: actions/upload-artifact@v4
         with:

@@ -10,7 +10,6 @@ import zipfile
 
 import numpy as np
 from PIL import Image
-import rasterio
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -20,6 +19,13 @@ SPEC.loader.exec_module(dem)
 
 
 class TerrainDemTest(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
+    def test_native_inspection_validates_etopo_source(self):
+        fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-etopo-sparse.tif'
+        self.assertEqual(dem.inspect_source(fixture), dict(width=43200, height=21600, nodata=-32768, dtype='int16'))
+        with self.assertRaisesRegex(ValueError, 'DEM|ETOPO|EPSG'):
+            dem.inspect_source(Path(__file__).parents[1] / 'fixtures/terrain-dem-tint/source.tif')
+
     @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
     def test_native_stream_reuses_reader_and_rejects_invalid_source(self):
         fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-etopo-sparse.tif'
@@ -160,18 +166,14 @@ class TerrainDemTest(unittest.TestCase):
 
     @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
     def test_area_average_and_wrapped_gutter(self):
-        values = np.array([[0, 2, 4, 6], [8, 10, 12, 14]], dtype=np.float32)
-        transform = rasterio.transform.from_bounds(-180, -90, 180, 90, 4, 2)
+        fixture = json.loads((Path(__file__).parents[1]/'fixtures/terrain-dem-raster-oracle.json').read_text(encoding='utf-8'))
+        case = next(row for row in fixture['cases'] if row['source'] == 'valid' and row['width'] == 2)
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'source.tif'
-            with rasterio.open(path, 'w', driver='GTiff', width=4, height=2, count=1, dtype='float32',
-                               crs='EPSG:4326', transform=transform, nodata=-99999) as source:
-                source.write(values, 1)
-            with dem.NativeDemWindowReader(path, 2, 1, strict=False) as reader:
-                result = reader.read(-1, -1, 3, 2)
-                np.testing.assert_allclose(result[1], [9, 5, 9, 5])
-                np.testing.assert_allclose(result[0], result[1])
-                np.testing.assert_allclose(result[2], result[1])
+            path.write_bytes(base64.b64decode(fixture['sources']['valid']))
+            with dem.NativeDemWindowReader(path, case['width'], case['height'], strict=False) as reader:
+                result = reader.read(*case['box'])
+                self.assertEqual(result.tobytes(), base64.b64decode(case['expected']))
 
     def test_range_and_nodata_are_not_silently_zeroed(self):
         with self.assertRaises(ValueError):

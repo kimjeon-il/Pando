@@ -1,6 +1,6 @@
 """Build the optional ETOPO 2022 Ice Surface terrain tiles outside the repository.
 
-Example (rasterio, numpy, Pillow and the native DEM encoder required):
+Example (numpy, Pillow and the source-bound native DEM tools required):
   node scripts/gis/run-source.mjs --task terrain-dem --execute -- --etopo ETOPO_2022_v1_30s_N90W180_surface.tif \
       --tint-zip HYP_HR.zip --glaciated-areas ne_10m_glaciated_areas.geojson \
       --countries assets/data/countries-ne-5.1.1.geojson \
@@ -26,7 +26,6 @@ import time
 
 import numpy as np
 from PIL import Image
-import rasterio
 
 
 VERSION = "0.13.3"
@@ -67,22 +66,20 @@ def levels():
     ]
 
 
-def validate_source(source):
-    transform = source.transform
-    expected = rasterio.transform.from_bounds(-180, -90, 180, 90, SOURCE_WIDTH, SOURCE_HEIGHT)
-    if source.width != SOURCE_WIDTH or source.height != SOURCE_HEIGHT:
-        raise ValueError(f"ETOPO 30s cell grid expected {SOURCE_WIDTH}x{SOURCE_HEIGHT}, got {source.width}x{source.height}")
-    # NOAA encodes geographic WGS84 plus EGM2008 height as compound EPSG:9518.
-    if source.crs is None or source.crs.to_epsg() != 9518:
-        raise ValueError(f"Expected WGS84 + EGM2008 height (EPSG:9518), got {source.crs}")
-    if any(abs(a-b) > 1e-8 for a, b in zip(tuple(transform)[:6], tuple(expected)[:6])):
-        raise ValueError(f"Grid origin/resolution mismatch: {transform} != {expected}")
-    if source.nodata is None or not math.isfinite(source.nodata):
-        raise ValueError(f"Source NoData marker missing: {source.nodata}")
-    if source.count != 1:
-        raise ValueError(f"Expected one elevation band, got {source.count}")
-    if source.tags().get('AREA_OR_POINT') != 'Area':
-        raise ValueError('Expected cell-registered ETOPO GeoTIFF')
+def inspect_source(path: Path):
+    """Validate ETOPO metadata using the source-bound native GDAL reader."""
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-raster.mjs'
+    result = subprocess.run(['node', str(script), '--inspect', str(path)], stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=60,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Native ETOPO inspection failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    metadata = json.loads(result.stdout)
+    if (set(metadata) != {'width', 'height', 'nodata', 'dtype'} or metadata['width'] != SOURCE_WIDTH or
+            metadata['height'] != SOURCE_HEIGHT or not isinstance(metadata['nodata'], (int, float)) or
+            not math.isfinite(metadata['nodata']) or not isinstance(metadata['dtype'], str)):
+        raise ValueError('Invalid native ETOPO inspection receipt')
+    return metadata
 
 
 class NativeDemWindowReader:
@@ -233,48 +230,47 @@ def reconcile_gutters(output: Path, level):
 def restore_polar_gutter_shade(output: Path, etopo_path: Path, min_level=0, max_level=5):
     """Refresh only out-of-grid polar shade after a generator upgrade."""
     modified = 0
-    with rasterio.open(etopo_path) as source:
-        validate_source(source)
-        for level in levels():
-            if level['id'] < min_level or level['id'] > max_level:
-                continue
-            width, height = level['width'], level['height']
-            if height <= 1350:
-                for row in sorted({0, level['rows']-1}):
-                    for column in range(level['columns']):
-                        path = output/str(level['id'])/f'{column}-{row}.webp'
-                        with Image.open(path) as image:
-                            pixels = np.array(image.convert('RGBA'))
-                        prior = pixels[:, :, 2].copy()
-                        if row == 0:
-                            pixels[0, :, 2] = pixels[1, :, 2]
-                        if row == level['rows']-1:
-                            pixels[-1, :, 2] = pixels[-2, :, 2]
-                        if not np.array_equal(prior, pixels[:, :, 2]):
-                            save_and_verify_webp(pixels, path)
-                            modified += 1
-                print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
-                continue
-            with NativeDemWindowReader(etopo_path, width, height) as reader:
-                for row in sorted({0, level['rows']-1}):
-                    for column in range(level['columns']):
-                        x0, y0 = column*TILE_SIZE, row*TILE_SIZE
-                        x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
-                        elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
-                        original_shade = shade(elevation, width, height, y0-2)[1:-1, 1:-1]
-                        path = output/str(level['id'])/f'{column}-{row}.webp'
-                        with Image.open(path) as image:
-                            pixels = np.array(image.convert('RGBA'))
-                        prior = pixels[:, :, 2].copy()
-                        if row == 0:
-                            pixels[0, :, 2] = original_shade[0]
-                        if row == level['rows']-1:
-                            pixels[-1, :, 2] = original_shade[-1]
-                        if not np.array_equal(prior, pixels[:, :, 2]):
-                            save_and_verify_webp(pixels, path)
-                            modified += 1
-                        del elevation, original_shade, pixels, prior
+    inspect_source(etopo_path)
+    for level in levels():
+        if level['id'] < min_level or level['id'] > max_level:
+            continue
+        width, height = level['width'], level['height']
+        if height <= 1350:
+            for row in sorted({0, level['rows']-1}):
+                for column in range(level['columns']):
+                    path = output/str(level['id'])/f'{column}-{row}.webp'
+                    with Image.open(path) as image:
+                        pixels = np.array(image.convert('RGBA'))
+                    prior = pixels[:, :, 2].copy()
+                    if row == 0:
+                        pixels[0, :, 2] = pixels[1, :, 2]
+                    if row == level['rows']-1:
+                        pixels[-1, :, 2] = pixels[-2, :, 2]
+                    if not np.array_equal(prior, pixels[:, :, 2]):
+                        save_and_verify_webp(pixels, path)
+                        modified += 1
             print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
+            continue
+        with NativeDemWindowReader(etopo_path, width, height) as reader:
+            for row in sorted({0, level['rows']-1}):
+                for column in range(level['columns']):
+                    x0, y0 = column*TILE_SIZE, row*TILE_SIZE
+                    x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
+                    elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
+                    original_shade = shade(elevation, width, height, y0-2)[1:-1, 1:-1]
+                    path = output/str(level['id'])/f'{column}-{row}.webp'
+                    with Image.open(path) as image:
+                        pixels = np.array(image.convert('RGBA'))
+                    prior = pixels[:, :, 2].copy()
+                    if row == 0:
+                        pixels[0, :, 2] = original_shade[0]
+                    if row == level['rows']-1:
+                        pixels[-1, :, 2] = original_shade[-1]
+                    if not np.array_equal(prior, pixels[:, :, 2]):
+                        save_and_verify_webp(pixels, path)
+                        modified += 1
+                    del elevation, original_shade, pixels, prior
+        print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
     return modified
 
 
@@ -385,34 +381,33 @@ def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path, countr
         raise ValueError(f'Source checksum mismatch: ETOPO={source_sha}, tint={tint_sha}')
     level_reports = []
     peak_working_set = 0
-    with rasterio.open(etopo_path) as source:
-        validate_source(source)
-        source_nodata, source_dtype = source.nodata, source.dtypes[0]
-        for level in levels():
-            level_start = time.monotonic()
-            width, height = level["width"], level["height"]
-            level_dir = output / str(level["id"])
-            level_dir.mkdir(exist_ok=True)
-            # The native warped view averages source elevations before encoding.
-            with NativeDemWindowReader(etopo_path, width, height) as reader:
-                sizes = []
-                for row in range(level["rows"]):
-                    for column in range(level["columns"]):
-                        x0, y0 = column*TILE_SIZE, row*TILE_SIZE
-                        x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
-                        # The second temporary neighbor lets the encoded B
-                        # value of the delivered 1px gutter equal the actual
-                        # neighboring tile's own hillshade, not an edge copy.
-                        elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
-                        rgba = encode(elevation, width, height, y0-2)[1:-1, 1:-1]
-                        path = level_dir / f"{column}-{row}.webp"
-                        save_and_verify_webp(rgba, path)
-                        peak_working_set = max(peak_working_set, current_working_set())
-                        sizes.append(path.stat().st_size)
-            report = {"level": level["id"], "tileCount": len(sizes), "bytes": sum(sizes),
-                      "maxTileBytes": max(sizes), "seconds": round(time.monotonic()-level_start, 3)}
-            level_reports.append(report)
-            print(json.dumps(report), flush=True)
+    source_metadata = inspect_source(etopo_path)
+    source_nodata, source_dtype = source_metadata['nodata'], source_metadata['dtype']
+    for level in levels():
+        level_start = time.monotonic()
+        width, height = level["width"], level["height"]
+        level_dir = output / str(level["id"])
+        level_dir.mkdir(exist_ok=True)
+        # The native warped view averages source elevations before encoding.
+        with NativeDemWindowReader(etopo_path, width, height) as reader:
+            sizes = []
+            for row in range(level["rows"]):
+                for column in range(level["columns"]):
+                    x0, y0 = column*TILE_SIZE, row*TILE_SIZE
+                    x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
+                    # The second temporary neighbor lets the encoded B
+                    # value of the delivered 1px gutter equal the actual
+                    # neighboring tile's own hillshade, not an edge copy.
+                    elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
+                    rgba = encode(elevation, width, height, y0-2)[1:-1, 1:-1]
+                    path = level_dir / f"{column}-{row}.webp"
+                    save_and_verify_webp(rgba, path)
+                    peak_working_set = max(peak_working_set, current_working_set())
+                    sizes.append(path.stat().st_size)
+        report = {"level": level["id"], "tileCount": len(sizes), "bytes": sum(sizes),
+                  "maxTileBytes": max(sizes), "seconds": round(time.monotonic()-level_start, 3)}
+        level_reports.append(report)
+        print(json.dumps(report), flush=True)
     tint_path = output / "tint.webp"
     tint_report = build_tint(tint_zip, tint_path, ice_path, countries_path)
     peak_working_set = max(peak_working_set, current_working_set())

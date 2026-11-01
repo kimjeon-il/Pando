@@ -1,5 +1,5 @@
 // Source-bound GDAL read of averaged DEM windows, with wrap and polar gutters.
-import {spawn} from 'node:child_process';
+import {execFile,spawn} from 'node:child_process';
 import {realpath,stat} from 'node:fs/promises';
 import {endianness} from 'node:os';
 import {delimiter,isAbsolute,resolve} from 'node:path';
@@ -8,6 +8,29 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemRasterSources=Object.freeze(['tools/cpp/terrain-dem-raster/CMakeLists.txt','tools/cpp/terrain-dem-raster/source.cpp']);
+function nativeRaster(root,directory){
+  const executable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
+  const {binary}=verifyNativeTool({root,directory,target:'terrain-dem-raster',executable,sourceFiles:terrainDemRasterSources});
+  const env={...process.env},bin=env.PANDO_TERRAIN_DEM_GDAL_BIN;
+  if(bin){if(!isAbsolute(bin))throw Error('GDAL runtime directory must be absolute');env.PATH=bin+delimiter+(env.PATH||'');}
+  return {binary,env};
+}
+export async function inspectNativeDemSource({source,strict=true},
+  {root=defaultRoot,directory=process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY||resolve(root,'build-native/terrain-dem-raster/artifact'),signal}={}){
+  signal?.throwIfAborted();
+  if(typeof source!=='string'||!source||typeof strict!=='boolean')throw Error('Explicit DEM source and strictness required');
+  const input=await realpath(source);if(!(await stat(input)).isFile())throw Error('DEM source must be a file');
+  const {binary,env}=nativeRaster(root,directory);
+  const output=await new Promise((accept,reject)=>execFile(binary,['--inspect',input,...(strict?['--strict-etopo']:[])],
+    {encoding:'utf8',windowsHide:true,timeout:30000,maxBuffer:65536,signal,env},
+    (error,stdout,stderr)=>error?reject(new Error('Native DEM inspection failed: '+error.message+' '+stderr,{cause:error})):accept(stdout)));
+  const result=JSON.parse(output);
+  if(!result||Object.keys(result).sort().join(',')!=='dtype,height,nodata,width'||
+    !Number.isSafeInteger(result.width)||result.width<1||!Number.isSafeInteger(result.height)||result.height<1||
+    !Number.isFinite(result.nodata)||!['uint8','uint16','int16','uint32','int32','float32','float64'].includes(result.dtype)||
+    (strict&&(result.width!==43200||result.height!==21600)))throw Error('Invalid native DEM inspection receipt');
+  return result;
+}
 export async function createNativeDemWindowReader({source,width,height,strict=true},
   {root=defaultRoot,directory=process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY||resolve(root,'build-native/terrain-dem-raster/artifact'),signal}={}){
   signal?.throwIfAborted();
@@ -15,10 +38,7 @@ export async function createNativeDemWindowReader({source,width,height,strict=tr
     !Number.isSafeInteger(width)||width<1||width>50000||!Number.isSafeInteger(height)||height<1||height>25000)
     throw Error('Explicit bounded DEM source and level required');
   const input=await realpath(source);if(!(await stat(input)).isFile())throw Error('DEM source must be a file');
-  const executable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
-  const {binary}=verifyNativeTool({root,directory,target:'terrain-dem-raster',executable,sourceFiles:terrainDemRasterSources});
-  const env={...process.env},bin=env.PANDO_TERRAIN_DEM_GDAL_BIN;
-  if(bin){if(!isAbsolute(bin))throw Error('GDAL runtime directory must be absolute');env.PATH=bin+delimiter+(env.PATH||'');}
+  const {binary,env}=nativeRaster(root,directory);
   const args=['--stream',input,String(width),String(height),...(strict?['--strict-etopo']:[])];
   const child=spawn(binary,args,{stdio:['pipe','pipe','pipe'],windowsHide:true,signal,env});
   let failure='',closed=false,busy=false,pending=Buffer.alloc(0),offset=0;
@@ -53,4 +73,9 @@ export async function readNativeDemWindow({box,...input},options){
   const reader=await createNativeDemWindowReader(input,options);let failure;
   try{return await reader.read(box);}catch(error){failure=error;throw error;}
   finally{try{await reader.close();}catch(error){if(!failure)throw error;}}
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{if(process.argv.length!==4||process.argv[2]!=='--inspect')throw Error('Expected --inspect DEM_TIFF');
+    console.log(JSON.stringify(await inspectNativeDemSource({source:process.argv[3]})));
+  }catch(error){console.error('terrain-dem-raster: '+error.message);process.exitCode=1;}
 }

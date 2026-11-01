@@ -4,7 +4,7 @@ import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {createNativeDemWindowReader,readNativeDemWindow} from '../../tools/gis/terrain-dem-raster.mjs';
+import {createNativeDemWindowReader,readNativeDemWindow,inspectNativeDemSource} from '../../tools/gis/terrain-dem-raster.mjs';
 
 const binary=process.env.PANDO_TERRAIN_DEM_RASTER_BINARY;
 const fixture=JSON.parse(readFileSync('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
@@ -42,4 +42,17 @@ test('DEM window manager verifies the native artifact and requires explicit sour
     await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box}),/EPSG|ETOPO/i);
     const controller=new AbortController();controller.abort();
     await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box},{signal:controller.signal}),{name:'AbortError'});
+  });
+
+test('native ETOPO inspection reports source metadata and rejects incompatible grids',
+  {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY},async t=>{
+    const root=mkdtempSync(join(tmpdir(),'dem-inspect-'));t.after(()=>rmSync(root,{recursive:true}));
+    const source=join(root,'synthetic.tif');writeFileSync(source,Buffer.from(fixture.sources.valid,'base64'));
+    assert.deepEqual(await inspectNativeDemSource({source,strict:false}),{width:8,height:4,nodata:-32768,dtype:'int16'});
+    assert.deepEqual(await inspectNativeDemSource({source:'tests/fixtures/terrain-dem-etopo-sparse.tif'}),
+      {width:43200,height:21600,nodata:-32768,dtype:'int16'});
+    await assert.rejects(inspectNativeDemSource({source}),/EPSG|ETOPO/i);
+    await assert.rejects(inspectNativeDemSource({source,strict:'yes'}),/explicit/i);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(inspectNativeDemSource({source},{signal:controller.signal}),{name:'AbortError'});
   });
