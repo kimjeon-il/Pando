@@ -37,6 +37,29 @@ export async function proximityWindow(source,target,radius,{signal,workspace=roo
   if(decoded.length!==target.width*target.height||decoded.some(value=>value&~7))throw Error('Invalid native proximity output');
   return decoded;
 }
+// Blend the first three probability channels in original sheet coordinates.
+// Windowing bounds memory; supplied tiles retain the training dataset's order.
+export async function blendEvaluationWindow({width,height,window,tiles},
+  {signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact')}={}){
+  signal?.throwIfAborted();
+  if(![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=65535)||!window||
+    ![window.x,window.y,window.width,window.height].every(Number.isSafeInteger)||window.x<0||window.y<0||
+    window.width<1||window.height<1||window.width>1024||window.height>1024||window.x+window.width>width||window.y+window.height>height||
+    !Array.isArray(tiles)||tiles.length<1||tiles.length>16)throw Error('Explicit bounded evaluation blend window and tiles required');
+  const header=Buffer.alloc(36);header.write('PBLEND01');let offset=8;
+  for(const value of [width,height,window.x,window.y,window.width,window.height,tiles.length]){header.writeUInt32BE(value,offset);offset+=4;}
+  const pieces=[header];let previous=null;
+  for(const tile of tiles){if(!tile||![tile.x,tile.y].every(Number.isSafeInteger)||tile.x<0||tile.y<0||tile.x>=width||tile.y>=height||
+    tile.x%448||tile.y%448||!(tile.probabilities instanceof Uint8Array)||tile.probabilities.byteLength!==3*512*512*4||
+    previous&&(tile.y<previous.y||tile.y===previous.y&&tile.x<=previous.x))throw Error('Invalid evaluation tile order or probabilities');
+    const origin=Buffer.alloc(8);origin.writeUInt32BE(tile.x,0);origin.writeUInt32BE(tile.y,4);pieces.push(origin,Buffer.from(tile.probabilities));previous=tile;}
+  const executable=process.platform==='win32'?'pando-map-evaluation.exe':'pando-map-evaluation';
+  const {binary}=verifyNativeTool({root:workspace,directory,target:'map-evaluation',executable,sourceFiles:evaluationSourceFiles});
+  const result=await invoke(binary,Buffer.concat(pieces),signal,2*1024*1024);
+  if(typeof result?.data!=='string'||!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(result.data))throw Error('Invalid native blend output');
+  const bytes=Buffer.from(result.data,'base64');if(bytes.length!==window.width*window.height||bytes.some(value=>value&~7))throw Error('Invalid native blend output');
+  return bytes;
+}
 export async function diagnosticPixelStatistics({width,height,probability,target,known},
   {signal,workspace=root,directory=process.env.PANDO_MAP_EVALUATION_ARTIFACT||resolve(workspace,'build-native/map-evaluation/artifact')}={}){
   signal?.throwIfAborted();const pixels=width*height,values=pixels*7;
