@@ -42,10 +42,13 @@ test('gzip and identity builtin sources resolve the same world and preserve full
       savedAt:'2026-10-14T00:00:00.000Z',format:'pandolab-autosave'});
     const project=JSON.parse(exported.storageJson);
     assert.equal(project.format,'pandolab-autosave-full');
-    assert.ok(project.timelineRecords.propertyBindings.some(row=>row.entityId==='IRL'&&row.property==='name'&&row.value?.name==='Stored Ireland'));
+    const storedName=project.timelineRecords.propertyBindings.find(row=>row.objectRef?.domain==='territorial'&&row.objectRef.id==='IRL'&&row.property==='name'&&row.value?.name==='Stored Ireland');
+    assert.deepEqual(storedName?.objectRef,{domain:'territorial',id:'IRL'});
     session.documentLoad(exported.storageJson,month);
     const reopened=session.resolveWorld(month,session.projectState().epoch);
-    assert.equal(reopened.entities.find(row=>row.id==='IRL').properties.name.name,'Stored Ireland');
+    const reopenedIreland=reopened.entities.find(row=>row.objectRef?.domain==='territorial'&&row.objectRef.id==='IRL');
+    assert.deepEqual(reopenedIreland?.objectRef,{domain:'territorial',id:'IRL'});
+    assert.equal(reopenedIreland.properties.name.name,'Stored Ireland');
     assert.equal(project.territorialEntities.length,source.territorialEntities.length);
     assert.equal(project.geometries.length,source.geometries.length);
   }finally{session.delete();}

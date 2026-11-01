@@ -8,7 +8,7 @@ import { captureWebWriterClockContract } from '../helpers/web-writer-clock-contr
 
 test('actual Core service commands match original generic/distribution writer clocks and accepted rows and restore removal through current Core Undo/Redo', async () => {
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
-  Object.assign(seed,{ labels: [],labelSettings: {},hydroEdits: [],genericFeatures: [],distributionLayers: [],distributionEntries: [] });
+  Object.assign(seed,{ labels: [],labelSettings: {},genericFeatures: [],distributionLayers: [],distributionEntries: [] });
   const owner=await createNodeCoreProject(seed),generic=createGenericFeatureService({ documentModel: owner.documentModel,commandOwner: owner.project }),
     distribution=createDistributionService({ documentModel: owner.documentModel,commandOwner: owner.project });
   const expected=captureWebWriterClockContract().rows.slice(0,16);
@@ -40,6 +40,7 @@ test('actual Core service commands match original generic/distribution writer cl
       assert.deepEqual(model.genericFeatures,original.genericFeatures,original.operation);
       assert.deepEqual(model.distributionLayers,original.distributionLayers,original.operation);
       assert.deepEqual(model.distributionEntries,original.distributionEntries,original.operation);
+      assert.deepEqual(model.hydroEdits,seed.hydroEdits,`${original.operation}: unrelated hydro identities unchanged`);
       assert.deepEqual(model.geometries,seed.geometries,`${original.operation}: stored territorial archive unchanged`);
       assert.deepEqual(model.sourceInfo,seed.sourceInfo,`${original.operation}: source evidence unchanged`);
     }

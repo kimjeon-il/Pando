@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -127,6 +127,7 @@ test('preview is non-mutating and apply organizes originals, private editions an
 test('push rejection is resumable without republishing private history or duplicating file moves', t => {
   const f = fixture(t); assert.equal(typeof library.organizeLibraryReports, 'function');
   put(f.remote, 'hooks/pre-receive', '#!/bin/sh\nexit 1\n');
+  chmodSync(join(f.remote, 'hooks/pre-receive'), 0o755);
   assert.throws(() => library.organizeLibraryReports({ root: f.root, apply: true }), /push|reject|failed/i);
   const pending = git(f.shared, 'rev-parse', 'HEAD');
   unlinkSync(join(f.remote, 'hooks/pre-receive'));
@@ -138,6 +139,7 @@ test('push rejection is resumable without republishing private history or duplic
 test('a committed retry refuses an intervening private main commit before pushing', t => {
   const f = fixture(t);
   put(f.remote, 'hooks/pre-receive', '#!/bin/sh\nexit 1\n');
+  chmodSync(join(f.remote, 'hooks/pre-receive'), 0o755);
   assert.throws(() => library.organizeLibraryReports({ root: f.root, apply: true }), /push|reject|failed/i);
   unlinkSync(join(f.remote, 'hooks/pre-receive'));
   put(f.shared, 'assets/data/private.bin', 'unpublished private work');

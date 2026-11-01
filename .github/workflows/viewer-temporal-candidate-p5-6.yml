@@ -37,18 +37,18 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
-      - name: Checkout fixed Emscripten 4.0.20
+      - name: Checkout fixed Emscripten 6.0.3
         uses: actions/checkout@v4
         with:
           repository: emscripten-core/emsdk
-          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
           path: build-native/emsdk
           persist-credentials: false
       - name: Compile matching C++ WASM and stage verified browser runtime pair
         shell: bash
         run: |
-          build-native/emsdk/emsdk install 4.0.20
-          build-native/emsdk/emsdk activate 4.0.20
+          build-native/emsdk/emsdk install 6.0.3
+          build-native/emsdk/emsdk activate 6.0.3
           source build-native/emsdk/emsdk_env.sh
           emcmake cmake -S shared -B build-native/p5-6 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
           cmake --build build-native/p5-6 --target pandoeditor_wasm --parallel 1

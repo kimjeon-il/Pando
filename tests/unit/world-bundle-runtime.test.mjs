@@ -94,8 +94,12 @@ test('country asset producers and runtime no longer derive data names from packa
   assert.match(previewProducer, /bundleSeed\.legacyPreviewManifest/);
   assert.match(boundaryProducer, /bundle\.compatibility\.sharedBoundaries/);
   assert.match(metadata, /assets\/data\/world\/current\.json/);
+  assert.match(metadata, /const metadataPaths\s*=\s*Object\.freeze\(\[\s*['"]assets\/data\/world\/current\.json['"]/);
+  assert.match(metadata, /worldBundle\s*:\s*\{\s*url\s*:\s*metadataPaths\[0\],\s*\.\.\.dataIdentity\(metadataPaths\[0\]\)\s*\}/);
   assert.doesNotMatch(metadata, /world-preview-v\$\{appVersion\}/);
-  assert.match(runtime, /world\/current\.json/);
+  assert.match(runtime, /if \(!buildMeta\.worldBundle\) throw new Error/);
+  assert.match(runtime, /manifestLoader\.loadAsset\(buildMeta\.worldBundle,/);
+  assert.match(runtime, /bytes => parseVerifiedWorldBundle\(bytes, buildMeta\.worldBundle\)/);
   assert.doesNotMatch(runtime, /world-preview-v\$\{APP_VERSION\}/);
   assert.doesNotMatch(renderer, /shared-v0\.34\.0\.json\.gz/);
 });

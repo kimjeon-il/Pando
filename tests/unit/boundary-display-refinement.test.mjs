@@ -48,11 +48,17 @@ test('classified shared boundaries retain owner ranges and dash phases at both q
   const preview = prepareCountrySharedBoundaryPacket(sources, features, { maxEdgeDegrees: 2 });
   assert.deepEqual(canonical.internalOwners['CHILD|ROOT'], ['CHILD']);
   assert.deepEqual(preview.internalOwners, canonical.internalOwners);
-  assert.deepEqual(canonical.outlineOverrides.ownerIds, ['ROOT']);
+  assert.deepEqual(canonical.outlineOverrides.ownerIds, ['CHILD', 'ROOT']);
   assert.equal(length(canonical.segments), 4);
-  assert.equal(length(canonical.outlineOverrides.segments), 12);
-  assert.ok(canonical.segments.length > preview.segments.length);
+  assert.equal(length(canonical.outlineOverrides.segments), 18);
+  assert.deepEqual(preview.segments, canonical.segments, 'the common internal boundary already owns canonical subdivision');
+  assert.ok(canonical.outlineOverrides.segments.length > preview.outlineOverrides.segments.length);
   for (const packet of [canonical, preview]) {
+    // The child extends beyond its parent: retain both exposed coastlines,
+    // while their four-degree shared contact remains an internal boundary.
+    for (const [id, expectedLength] of [['ROOT', 12], ['CHILD', 6]]) {
+      assert.equal(length(packet.outlineOverrides.segments.filter(segment => segment.ownerIds.includes(id))), expectedLength);
+    }
     assert.equal(packet.startsEnds.length, packet.segments.length * 4);
     assert.equal(packet.chainPhase.length, packet.segments.length);
     assert.equal(packet.preparedGeometry.segmentCount, packet.segments.length);

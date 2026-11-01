@@ -2,11 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import * as resourceUpdatePolicy from '../../shared/frontend/js/modules/resource-update-policy.js';
 
-const root = new URL('../../assets/js/', import.meta.url);
+const root = new URL('../../shared/frontend/js/', import.meta.url);
 function runtime() {
   const scope = { URL, location: { href: 'https://example.test/assets/js/workers/canvas-render-worker.js' }, importScripts() {} };
   scope.self = scope;
+  scope.PandoLabResourceUpdatePolicy = resourceUpdatePolicy;
   vm.createContext(scope);
   vm.runInContext(readFileSync(new URL('vendor/d3.min.js', root), 'utf8'), scope);
   const source = readFileSync(new URL('workers/canvas-render-worker.js', root), 'utf8');

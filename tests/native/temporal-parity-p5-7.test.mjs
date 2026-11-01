@@ -145,7 +145,7 @@ scenario('P5-7 same-source native/WASM month endpoints, geometry, attributes and
   const manifest = JSON.parse(await readFile('shared/frontend/static/wasm/pandoeditor-core.manifest.json', 'utf8'));
   assert.equal(evidence.identity.sourceSha256, manifest.sourceSha256);
   assert.equal(evidence.identity.abiVersion, 1);
-  assert.equal(evidence.identity.compilerVersion, '4.0.20');
+  assert.equal(evidence.identity.compilerVersion, '6.0.3');
   for (const month of fixture.months) {
     const documentId = await oracle.baseline(fixture.sourceFor(month), fixture.setupFor(month));
     const before = await capture(candidate);

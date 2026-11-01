@@ -2,6 +2,7 @@
 // Uses the D3 spherical winding contract and GEOS topology checks.
 #include <pandoeditor/losslessjson.h>
 #include <pandoeditor/sphericalpolygon.h>
+#include "country-properties.h"
 #include <geos_c.h>
 #include <zlib.h>
 #include <algorithm>
@@ -140,8 +141,7 @@ void checkCollection(Topology& topology,const std::string& label,const V& value)
             id=str(field(row,"id"));
             if(id.empty()||!ids.insert(id).second)throw std::runtime_error("Missing or duplicate country ID");
             const auto& properties=field(row,"properties");
-            if(properties.kind!=V::Object||properties.object.size()!=1||!properties.object.count("name"))
-                throw std::runtime_error("Expected only country name");
+            pandoeditor::tools::requireCountryProperties(properties);
             const auto& geometry=field(row,"geometry");
             validateSphericalPolygon(geometry);
             auto shape=topology.fromJson(geometry);

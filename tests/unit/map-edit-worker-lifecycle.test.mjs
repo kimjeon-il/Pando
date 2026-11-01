@@ -22,14 +22,17 @@ const execute = (requestId, operation, payload, revisions = { sourceRevision: 1 
 // Run the unchanged Worker script and real calculation modules. Only module delivery
 // and timer delivery are gated, so state-changing messages can interleave deterministically.
 function rawWorker(t, heldModule = '') {
-  const script = new URL("../../apps/editor/frontend/js/workers/map-edit-worker.js", import.meta.url).href;
+  const transportModule = new URL('../helpers/source-worker-transport.mjs', import.meta.url).href;
   const coreAdapter = new URL('../helpers/node-core-wasm-loader.mjs', import.meta.url).href;
   const worker = new Worker(`
+    (async () => {
     const { parentPort } = require('node:worker_threads');
-    const fs = require('node:fs'), vm = require('node:vm');
+    const vm = require('node:vm');
+    const { sourceWorkerTransport } = await import(${JSON.stringify(transportModule)});
+    const transport = sourceWorkerTransport('assets/js/workers/map-edit-worker.js');
     global.self = global;
-    self.location = new URL(${JSON.stringify(script)});
-    global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext('(function(module,exports){' + fs.readFileSync(new URL(url), 'utf8') + '\\n}).call(globalThis,undefined,undefined)'));
+    self.location = transport.location;
+    global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext('(function(module,exports){' + transport.read(url) + '\\n}).call(globalThis,undefined,undefined)'));
     self.postMessage = data => parentPort.postMessage(data);
     let releaseImport, releaseTimer, holdTimer = false, importHeld = false;
     const nativeSetTimeout = global.setTimeout;
@@ -39,7 +42,7 @@ function rawWorker(t, heldModule = '') {
       releaseTimer = () => callback(...args);
       parentPort.postMessage({ gate: 'timer' });
     };
-    vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
+    vm.runInThisContext(transport.read(self.location), {
       filename: self.location.href,
       importModuleDynamically: async specifier => {
         if (new URL(specifier).pathname.endsWith('/core-wasm-loader.js')) return import(${JSON.stringify(coreAdapter)});
@@ -50,7 +53,7 @@ function rawWorker(t, heldModule = '') {
             parentPort.postMessage({ gate: 'import' });
           });
         }
-        return import(specifier);
+        return import(transport.sourceUrl(specifier));
       },
     });
     parentPort.on('message', ({ token, message }) => {
@@ -60,18 +63,22 @@ function rawWorker(t, heldModule = '') {
       else self.onmessage({ data: message });
       parentPort.postMessage({ dispatched: token });
     });
+    })();
   `, { eval: true, execArgv: ['--experimental-vm-modules'] });
   t.after(() => worker.terminate());
   const inbox = [], listeners = [];
+  let failure;
+  worker.on('error', error => { failure = error; for (const listener of listeners.splice(0)) listener.reject(error); });
   worker.on('message', message => {
     const index = listeners.findIndex(listener => listener.match(message));
     if (index >= 0) listeners.splice(index, 1)[0].resolve(message);
     else inbox.push(message);
   });
   const next = match => {
+    if (failure) return Promise.reject(failure);
     const index = inbox.findIndex(match);
     if (index >= 0) return Promise.resolve(inbox.splice(index, 1)[0]);
-    return new Promise(resolve => listeners.push({ match, resolve }));
+    return new Promise((resolve, reject) => listeners.push({ match, resolve, reject }));
   };
   let sequence = 0;
   return {

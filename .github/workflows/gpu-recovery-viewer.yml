@@ -32,23 +32,20 @@ jobs:
         uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Apply reviewed G1-G3 candidate only to verification checkout
-        run: node tests/helpers/prepare-gpu-recovery-candidate.mjs
-      - name: Reproduce missing upload progress with a complete fixture
+      - name: Record the committed recovery candidate
         run: |
-          set +e
-          node --test --test-reporter=tap tests/helpers/gpu-recovery-viewer-progress.test.mjs > gpu-viewer-evidence/progress-before.tap 2>&1
-          code=$?
-          set -e
-          test "$code" -eq 1
-          grep -q ERR_ASSERTION gpu-viewer-evidence/progress-before.tap
-          ! grep -Eq 'ReferenceError|SyntaxError|TypeError|ERR_MODULE_NOT_FOUND' gpu-viewer-evidence/progress-before.tap
-      - name: Apply upload progress correction
-        run: node tests/helpers/gpu-recovery-viewer-fix.mjs
-      - name: Reproduce and correct the missing frame approval request
-        run: node tests/helpers/gpu-recovery-viewer-admission-fix.mjs
-      - name: Preserve renderer lifecycle regression in Node without DOM
-        run: node tests/helpers/fix-viewer-recovery-environment.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          assert.equal(execFileSync('git',['status','--porcelain','--untracked-files=no'],{encoding:'utf8'}),'');
+          mkdirSync(process.env.G4_EVIDENCE,{recursive:true});
+          const files=['shared/frontend/js/modules/gpu-map-renderer.js','shared/frontend/js/modules/gpu-context-recovery.js','shared/frontend/js/modules/rendering-domain.js','shared/frontend/js/modules/map-content-presentation.js','tests/browser/viewer-recovery-acceptance.spec.mjs'];
+          const evidence={sourceRevision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),dataRevision:JSON.parse(readFileSync('config/library-data.json','utf8')).revision,sourceInstrumentation:false,files:files.map(path=>({path,sha256:createHash('sha256').update(readFileSync(path)).digest('hex')}))};
+          writeFileSync(process.env.G4_EVIDENCE+'/candidate.json',JSON.stringify(evidence,null,2)+'\n');
+          console.log(JSON.stringify(evidence));
+          NODE
       - name: Verify focused existing and new regressions
         id: unit
         continue-on-error: true
@@ -59,13 +56,11 @@ jobs:
         run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/rendering-domain.js shared/frontend/js/modules/map-content-presentation.js > gpu-viewer-evidence/lint.txt 2>&1
       - name: Install pinned Chromium
         run: pnpm exec playwright install --with-deps chromium > /tmp/viewer-browser-install.log 2>&1
-      - name: Observe actual approval rejection conditions without weakening them
-        run: node tests/helpers/inspect-viewer-recovery.mjs
       - name: Verify one actual WebGL1 viewer recovery
         id: screen
         continue-on-error: true
         run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --grep webgl1 --workers=1 --retries=0 --reporter=list > gpu-viewer-evidence/browser.log 2>&1
-      - name: Summarize exact approval predicates
+      - name: Summarize actual viewer recovery
         if: always()
         run: |
           node --input-type=module <<'NODE'
@@ -73,11 +68,14 @@ jobs:
           const file='gpu-viewer-evidence/acceptance-webgl1/result.json';
           if(existsSync(file)){
             const r=JSON.parse(readFileSync(file));console.log('RESULT '+JSON.stringify({passed:r.passed,error:r.error,rounds:r.rounds,final:r.final?.stats?.gpuRecovery,runtime:r.final?.runtime}));
-            console.log('APPROVAL_COUNTS '+JSON.stringify(r.final?.approvalTrace?.counts));
-            for(const row of r.final?.approvalTrace?.events||[])console.log('APPROVAL '+JSON.stringify(row));
           }
           for(const path of ['unit.tap','lint.txt','browser.log'])if(existsSync('gpu-viewer-evidence/'+path))console.log(path+'\n'+readFileSync('gpu-viewer-evidence/'+path,'utf8').slice(-6000));
           NODE
+      - name: Verify the tested source stayed unchanged
+        if: always()
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
       - uses: actions/upload-artifact@v4
         if: always()
         with:

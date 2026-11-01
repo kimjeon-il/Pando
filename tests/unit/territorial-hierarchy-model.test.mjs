@@ -69,7 +69,12 @@ test('country extent includes detached descendants once and caches geometry work
   assert.equal(resolveTerritorialColor(units[0], { entityRepository: repository, countryColor: () => '#123456' }), '#123456');
   assert.equal(resolveTerritorialColor(units[1], { entityRepository: repository, countryColor: () => '#123456' }), '#ee8800');
   await executeTerritorialTestCommand(state,'territorial.metadata',{id:'DNK',field:'notes',valuePresent:true,value:'new revision'});
-  resolver.scope('DNK'); assert.equal(unions, 2);
+  const updated=resolver.scope('DNK');
+  assert.notStrictEqual(updated,first);assert.equal(updated.entity.properties.notes,'new revision');
+  assert.strictEqual(updated.extent.geometry,first.extent.geometry);
+  assert.strictEqual(updated.extra.geometry,first.extra.geometry);assert.equal(unions,1);
+  await executeTerritorialTestCommand(state,'territorial.geometry',{id:'DNK',geometry:{type:'Polygon',coordinates:[[[0,0],[6,0],[6,1],[0,1],[0,0]]]}});
+  assert.notStrictEqual(resolver.scope('DNK').extent.geometry,first.extent.geometry);assert.equal(unions,2);
   assert.deepEqual({ country, units }, before);
 });
 

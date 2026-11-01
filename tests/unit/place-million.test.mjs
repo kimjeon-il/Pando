@@ -16,21 +16,22 @@ import { layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
 
 test('one million synthetic places use bounded actual Worker viewport queries and main layout', {timeout:120000}, async t=>{
   const directory=await mkdtemp(join(tmpdir(),'pandolab-place-million-')); const started=performance.now();
+  let server,worker,rpc;
+  t.after(async()=>{rpc?.stop();if(worker)await worker.terminate();server?.close();server?.closeAllConnections();await rm(directory,{recursive:true,force:true});});
   const manifest=await buildSyntheticPlaces(1_000_000,directory);
   assert.equal(manifest.revision,'synthetic-1000000');
   const buildMs=performance.now()-started;
-  const server=createServer(async(req,res)=>{
+  server=createServer(async(req,res)=>{
     try { const bytes=await readFile(join(directory,new URL(req.url,'http://localhost').pathname.slice(1)));const range=/bytes=(\d+)-(\d+)/u.exec(req.headers.range||'');
       if(range){const start=Number(range[1]),end=Number(range[2]);res.writeHead(206,{'Content-Range':`bytes ${start}-${end}/${bytes.length}`,'Content-Length':end-start+1});res.end(bytes.subarray(start,end+1));}
       else{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes);}
     }catch{res.writeHead(404);res.end();}
   });
   server.listen(0,'127.0.0.1');await once(server,'listening');
-  const worker=new Worker(new URL('../helpers/place-worker-thread.mjs',import.meta.url),{type:'module'});await once(worker,'message');
+  worker=new Worker(new URL('../helpers/place-worker-thread.mjs',import.meta.url),{type:'module',workerData:{assetRevision:'place-million-fixture'}});await once(worker,'message');
   const adapter={postMessage:message=>worker.postMessage(message),terminate:()=>worker.terminate()};
   worker.on('message',data=>adapter.onmessage?.({data}));worker.on('error',error=>adapter.onerror?.(error));
-  const rpc=createWorkerRpcClient({createWorker:()=>adapter,defaultTimeoutMs:15000});
-  t.after(async()=>{rpc.stop();server.close();server.closeAllConnections();await rm(directory,{recursive:true,force:true});});
+  rpc=createWorkerRpcClient({createWorker:()=>adapter,defaultTimeoutMs:15000});
   const manifestUrl=`http://127.0.0.1:${server.address().port}/manifest.json`,queryTimes=[],layoutTimes=[];
   for(let i=0;i<24;i++){
     const view=placeView({projection:i%3===0?'globe':'flat',threshold:i%6===0?0:12,width:1440,height:900,scale:i%6===0?250:16000,flatCenter:[-170+i*14,35],rotation:[170-i*14,-35,i%4*15]});
@@ -45,3 +46,4 @@ test('one million synthetic places use bounded actual Worker viewport queries an
   assert.ok(p95(layoutTimes)<50,`main layout p95 ${p95(layoutTimes)}ms`);assert.ok(p95(queryTimes)<1500,`Worker query p95 ${p95(queryTimes)}ms`);
   t.diagnostic(JSON.stringify({count:1_000_000,buildMs,workerQueryP95Ms:p95(queryTimes),layoutP95Ms:p95(layoutTimes),tileCount:Object.keys(manifest.tiles).length}));
 });
+

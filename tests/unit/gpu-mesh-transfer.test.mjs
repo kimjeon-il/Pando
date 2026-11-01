@@ -2,25 +2,41 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Worker } from 'node:worker_threads';
 import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from "../../shared/frontend/js/modules/worker-rpc.js";
+import { packCountryMeshFeatures } from '../../shared/frontend/js/modules/country-mesh-transfer.js';
+import { sourceWorkerTransport } from '../helpers/source-worker-transport.mjs';
+
+test('Worker transport resolves current shared and editor owners through public URLs', () => {
+  const transport = sourceWorkerTransport('assets/js/workers/map-edit-worker.js');
+  assert.equal(transport.sourceUrl(transport.location), new URL('../../apps/editor/frontend/js/workers/map-edit-worker.js', import.meta.url).href);
+  assert.equal(transport.sourceUrl('./worker-rpc-host.js'), new URL('../../shared/frontend/js/workers/worker-rpc-host.js', import.meta.url).href);
+  assert.throws(() => transport.sourceUrl('../modules/missing-fixture-module.js'), /Missing frontend source/);
+  assert.throws(() => transport.sourceUrl('https://other.test/assets/js/workers/worker-rpc-host.js'), /public origin/);
+});
 
 test('actual mesh Worker transfers every output buffer and detaches its originals', { timeout: 5000 }, async t => {
-  const script = new URL("../../shared/frontend/js/workers/gpu-mesh-worker.js", import.meta.url).href;
+  const transportModule = new URL('../helpers/source-worker-transport.mjs', import.meta.url).href;
   const worker = new Worker(`
+    (async () => {
     const { parentPort } = require('node:worker_threads');
-    const fs = require('node:fs'), vm = require('node:vm');
+    const vm = require('node:vm');
+    const { sourceWorkerTransport } = await import(${JSON.stringify(transportModule)});
+    const transport = sourceWorkerTransport('assets/js/workers/gpu-mesh-worker.js', { buildMeta: {
+      assetRevision: 'mesh-transfer-test', dataRevision: 'synthetic-mesh-input', resourceProfile: 'test-fixture',
+    } });
     global.self = global;
-    self.location = new URL(${JSON.stringify(script)});
+    self.location = transport.location;
     global.importScripts = (...urls) => urls.forEach(url => vm.runInThisContext(
-      '(function(module,exports){' + fs.readFileSync(new URL(url, self.location), 'utf8') + '\\n}).call(globalThis,undefined,undefined)'));
+      '(function(module,exports){' + transport.read(url) + '\\n}).call(globalThis,undefined,undefined)'));
     self.postMessage = (data, transfer = []) => {
       parentPort.postMessage({ data, transferCount: transfer.length }, transfer);
       parentPort.postMessage({ detached: transfer.every(buffer => buffer.byteLength === 0) });
     };
-    vm.runInThisContext(fs.readFileSync(self.location, 'utf8'), {
+    vm.runInThisContext(transport.read(self.location), {
       filename: self.location.href,
-      importModuleDynamically: specifier => import(new URL(specifier, self.location).href),
+      importModuleDynamically: specifier => import(transport.sourceUrl(specifier)),
     });
     parentPort.on('message', data => self.onmessage({ data }));
+    })();
   `, { eval: true, execArgv: ['--experimental-vm-modules'] });
   t.after(() => worker.terminate());
   const result = new Promise((resolve, reject) => {
@@ -31,11 +47,12 @@ test('actual mesh Worker transfers every output buffer and detaches its original
       if (response && Object.hasOwn(value, 'detached')) resolve({ ...response, detached: value.detached });
     });
   });
-  worker.postMessage({ rpc: WORKER_RPC_PROTOCOL, protocolVersion: WORKER_RPC_PROTOCOL_VERSION,
-    type: 'request', requestId: 1, operation: 'geometry.mesh', payload: { features: [{
+  const payload = await packCountryMeshFeatures([{
       type: 'Feature', id: 'AAA', properties: {}, geometry: { type: 'Polygon',
         coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] },
-    }] } });
+    }]);
+  worker.postMessage({ rpc: WORKER_RPC_PROTOCOL, protocolVersion: WORKER_RPC_PROTOCOL_VERSION,
+    type: 'request', requestId: 1, operation: 'geometry.mesh', payload }, [payload.coordinates.buffer]);
   const response = await result;
   assert.equal(response.data.ok, true, response.data.error?.message);
   assert.deepEqual(response.data.result.countryIds, ['AAA']);

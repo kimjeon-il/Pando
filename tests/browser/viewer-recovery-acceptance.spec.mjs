@@ -19,8 +19,9 @@ async function observe(page){
  });
 }
 async function state(page){return page.evaluate(()=>{
- const o=globalThis.__viewerAcceptance,v=globalThis.__PANDOLAB_VIEWER__,f=o.frame,world=o.session?.documentModel.world();
- return {runtime:o.renderer?.getRuntimeState(),stats:o.renderer?.getStats({detailed:false}),state:v?.documentState(),document:v?JSON.stringify(v.documentSnapshot()):null,
+ const o=globalThis.__viewerAcceptance||{},v=globalThis.__PANDOLAB_VIEWER__,f=o.frame,world=o.session?.documentModel.world(),status=document.getElementById('viewerStatus');
+ return {boot:{url:location.href,readyState:document.readyState,viewerReady:status?.dataset.ready??null,statusText:status?.textContent?.slice(0,1200)||'',coreLoaded:!!globalThis.PandoLabSphericalCore,observerOwners:Object.keys(o),resizableMemorySupported:typeof globalThis.WebAssembly?.Memory?.prototype?.toResizableBuffer==='function'},
+  runtime:o.renderer?.getRuntimeState(),stats:o.renderer?.getStats({detailed:false}),state:v?.documentState(),document:v?JSON.stringify(v.documentSnapshot()):null,
   world:world?{month:world.month,epoch:world.sourceEpoch,count:world.entities?.length}:null,selection:v?.selectionSnapshot(),rendering:o.rendering?.getStats(),
   camera:f?{projection:f.projection,scale:f.cssScale,translate:f.cssTranslate,rotation:f.viewState?.rotation,flatCenter:f.viewState?.flatCenter}:null};
 });}
@@ -40,6 +41,16 @@ async function selectCountry(page){
 for(const backend of ['webgl2','webgl1'])test(`viewer acceptance ${backend}: repeated real recovery preserves displayed map`,async({page,browser})=>{
  const dir=resolve(process.env.G4_EVIDENCE||'gpu-viewer-evidence','acceptance-'+backend);mkdirSync(dir,{recursive:true});
  const result={backend,browser:browser.version(),gpu:'SwiftShader',rounds:[]},errors=[];page.on('pageerror',error=>errors.push(String(error.stack||error)));
+ const consoleEvents=[],consoleCaptures=[],requestFailures=[],httpFailures=[];
+ page.on('console',message=>{
+  if(!['error','warning'].includes(message.type())||consoleEvents.length>=24)return;
+  const row={type:message.type(),text:message.text().slice(0,4000),location:message.location()};consoleEvents.push(row);
+  consoleCaptures.push(Promise.allSettled(message.args().slice(0,2).map(handle=>handle.evaluate(value=>
+   value&&typeof value==='object'?{name:String(value.name||'').slice(0,200),message:String(value.message||value).slice(0,2000),code:String(value.code||'').slice(0,200),stack:String(value.stack||'').slice(0,4000)}:String(value).slice(0,2000))))
+   .then(values=>{row.arguments=values.map(value=>value.status==='fulfilled'?value.value:{captureError:String(value.reason).slice(0,1000)});}));
+ });
+ page.on('requestfailed',request=>{if(requestFailures.length<24)requestFailures.push({url:request.url(),failure:request.failure()?.errorText||''});});
+ page.on('response',response=>{if(response.status()>=400&&httpFailures.length<24)httpFailures.push({url:response.url(),status:response.status()});});
  try{
   await observe(page);await page.goto(`/?renderer=${backend}&debug=1`,{waitUntil:'domcontentloaded'});await ready(page,backend);
   for(const year of [2000,2001]){
@@ -59,6 +70,7 @@ for(const backend of ['webgl2','webgl1'])test(`viewer acceptance ${backend}: rep
   }
   expect(errors).toEqual([]);result.passed=true;
  }catch(error){result.error=String(error.stack||error);throw error;}finally{
+  await Promise.allSettled(consoleCaptures);result.bootDiagnostics={consoleEvents,requestFailures,httpFailures};
   result.errors=errors;try{const s=await state(page);delete s.document;result.final=s;await page.screenshot({path:join(dir,'final.png'),timeout:5000});}catch(error){result.captureError=String(error);}
   writeFileSync(join(dir,'result.json'),JSON.stringify(result,null,2));console.log('VIEWER_ACCEPTANCE '+JSON.stringify(result));
  }

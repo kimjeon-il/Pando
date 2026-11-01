@@ -12,6 +12,7 @@ test('foundation transient capability closes the actual editor flag popover and 
   const focusCalls = [];
   const elements = {
     entityParentRow: editorNode(), entityChildRow: editorNode(),
+    entityParentRows: editorNode(), entityChildRows: editorNode(),
     entityChangeParentBtn: editorNode(), entityAddChildBtn: editorNode(),
     editorSurface: { querySelector: () => null },
     flagMenu: {

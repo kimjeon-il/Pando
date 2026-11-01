@@ -123,7 +123,8 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
   const { window, listeners } = environment(t);
   let flagOpen = true;
   const flagMenu = { matches: () => flagOpen, hidePopover: () => { flagOpen = false; } };
-  const relationElements = new Map(['entityParentRow', 'entityChildRow', 'entityChangeParentBtn', 'entityAddChildBtn'].map(id => [id, editorNode()]));
+  const relationElements = new Map(['entityParentRow', 'entityChildRow', 'entityChangeParentBtn', 'entityAddChildBtn',
+    'entityParentRows', 'entityChildRows'].map(id => [id, editorNode()]));
   const getElement = id => id === 'flagMenu' ? flagMenu : relationElements.get(id) || null;
   const domainAssembly = {
     territorialPropertyController: null,
@@ -154,6 +155,7 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
       createMapInputPresentation,
       installWorkflow() {}, markRuntimeReady() {},
       showFatalError: error => assert.fail(error.stack),
+      reportOperationError: error => assert.fail(error.stack),
       loadPhysicalLandMask:async()=>{landCalls++;},
       init: () => {
         assert.equal(landCalls,1);
@@ -171,8 +173,13 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
   assert.equal(startupCalls, 1);
   assert.equal(typeof foundation.domainControllers.syncTerritorialEditorInteraction, 'function');
   const escape = Object.assign(new Event('keydown', { cancelable: true }), { key: 'Escape' });
-  listeners.get('keydown')(escape);
+  await listeners.get('keydown')(escape);
   assert.equal(flagOpen, false);
   assert.equal(escape.defaultPrevented, true);
+  assert.equal(relationElements.get('entityParentRow').hidden, true);
+  assert.equal(relationElements.get('entityChildRow').hidden, true);
+  assert.equal(relationElements.get('entityParentRows').hidden, false);
+  assert.equal(relationElements.get('entityChildRows').hidden, false);
   owner.lifecycle.dispose();
 });
+

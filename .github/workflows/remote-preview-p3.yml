@@ -81,6 +81,7 @@ jobs:
       - name: Check preview and build plan without installing SDKs
         run: node --test tests/unit/p3-remote-plan.test.mjs
           tests/unit/p3-preview-server.test.mjs
+          tests/unit/p3-presentation.test.mjs
       - name: Fetch source-change base for artifact result verification
         shell: bash
         env:
@@ -143,6 +144,10 @@ jobs:
         if: steps.plan.outputs.gis_native == 'true'
         run: sudo apt-get update && sudo apt-get install -y libgeos-dev zlib1g-dev
           pkg-config cmake
+      - name: Prepare selected native test prerequisites
+        uses: ./.github/actions/native-test-prerequisites
+        with:
+          requirements: ${{ steps.plan.outputs.native_requirements }}
       - name: Execute the same checks as local development
         env: *a1
         run: node scripts/run-application-checks.mjs --output
@@ -255,6 +260,7 @@ jobs:
           persist-credentials: false
       - name: Mount selected baseline inputs from library storage
         id: library_baseline_10
+        if: steps.acceptance_baseline.outcome == 'success'
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa

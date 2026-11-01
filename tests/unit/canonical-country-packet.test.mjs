@@ -93,8 +93,15 @@ test('cooperative materialization respects the 4096-coordinate slice ceiling', a
     onSlice: slice => slices.push(slice),
   });
   assert.equal(result.collection.features.length, 258);
-  assert.equal(result.metrics.coordinateCount, 1100074);
+  const expectedCoordinates = canonical.features.reduce((total, feature) => {
+    const polygons = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+    return total + polygons.reduce((count, polygon) => count + polygon.reduce((sum, ring) => sum + ring.length, 0), 0);
+  }, 0);
+  assert.ok(expectedCoordinates > 4096, 'the input must require more than one cooperative slice');
+  assert.equal(result.metrics.coordinateCount, expectedCoordinates);
+  assert.deepEqual(result.collection.features.map(feature => feature.geometry), canonical.features.map(feature => feature.geometry));
   assert.ok(slices.every(slice => slice.coordinateCount <= 4096));
+  assert.ok(yields > 0, 'large inputs must actually yield');
   assert.equal(yields, slices.filter(slice => !slice.final).length);
   assert.ok(quietWaits >= yields + 1);
 });

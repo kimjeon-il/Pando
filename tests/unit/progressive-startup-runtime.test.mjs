@@ -19,6 +19,8 @@ const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,s
 const collection = size => normalizeCountryCollection({ features: [{ id: 'A', geometry: square(size) }] });
 
 async function startupFixture(t, { pauseAt = null, restored = false, restoredSnapshot = false, onEditable = () => {}, startMonth = '', baselinePending = null, viewRecord = null } = {}) {
+  // The historical fixture's current geometry is explicitly valid in October 2026.
+  t.mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 9, 4, 12) });
   const noop = () => {};
   const geometry = deferred();
   const mesh = deferred();

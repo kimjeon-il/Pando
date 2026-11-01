@@ -117,11 +117,14 @@ test('map edit calculation preserves originals and shares untouched country obje
 
 test('large-data overlays use domain caches and multi-tier culling', () => {
   const rendering = read('shared/frontend/js/modules/rendering-domain.js');
+  const content = read('shared/frontend/js/modules/map-content-presentation.js');
   const index = read('shared/frontend/js/modules/map-object-spatial-index.js');
-  assert.ok(rendering.includes('const buildDistributionRenderRows ='));
-  assert.ok(rendering.includes('const visibleDistributionRenderRows ='));
-  assert.ok(rendering.includes('distributionRenderRowCache'));
-  assert.ok(!rendering.includes('territorialBoundaryCache.revision !== state.stateRevision'));
+  assert.ok(rendering.includes('const content=createMapContentPresentation('));
+  assert.ok(rendering.includes('getDistributionRenderRows: buildDistributionRenderRows'));
+  assert.ok(content.includes('const buildDistributionRenderRows ='));
+  assert.ok(content.includes('const visibleDistributionRenderRows ='));
+  assert.ok(content.includes('distributionRenderRowCache'));
+  assert.ok(!content.includes('territorialBoundaryCache.revision !== state.stateRevision'));
   assert.ok(index.includes("? 'fine'"));
   assert.ok(index.includes("? 'coarse' : 'global'"));
   assert.ok(index.includes('querySphericalCap'));
@@ -130,12 +133,16 @@ test('large-data overlays use domain caches and multi-tier culling', () => {
 test('interactive vertex drags use a session GPU preview without geometry Worker work', () => {
   const editing = read('apps/editor/frontend/js/modules/editing-domain.js');
   const rendering = read('shared/frontend/js/modules/rendering-domain.js');
+  const presentation = read('apps/editor/frontend/js/modules/editing-presentation.js');
   const gestureMove = editing.slice(editing.indexOf('const applyGestureMove ='), editing.indexOf('const flushPendingMove ='));
   assert.ok(gestureMove.includes('geometry.previewObjectGesture?.('));
   assert.ok(gestureMove.includes('geometry.moveBoundaryGesture?.('));
   assert.ok(!gestureMove.includes('mapEditClient.execute('));
-  assert.ok(rendering.includes("type: `${kind}-drag-move`"));
-  assert.ok(rendering.includes('publishEditingInteraction({'));
+  assert.ok(rendering.includes('createEditingPresentation({'));
+  assert.ok(presentation.includes("type: `${kind}-drag-move`"));
+  assert.ok(presentation.includes('publishEditingInteraction({'));
+  assert.ok(!presentation.includes('gpuMapRenderer.render('));
+  assert.ok(!presentation.includes('renderAll('));
   assert.ok(!rendering.includes('gpuMapRenderer.render('));
   assert.ok(!rendering.includes('renderAll('));
 });

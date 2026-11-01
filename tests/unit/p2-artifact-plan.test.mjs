@@ -33,7 +33,7 @@ function fixture(t) {
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const put=(p,b)=>{const file=join(root,p);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,b);};
   const get=p=>readFileSync(join(root,p));
-  put('config/toolchain-versions.json',JSON.stringify({emscripten:'4.0.20'}));
+  put('config/toolchain-versions.json',JSON.stringify({emscripten:'6.0.3'}));
   put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families:[]}));
   put('shared/CMakeLists.txt','project(Shared)\n');
   put('shared/core/src/calc.cpp','int calc=1;\n');
@@ -42,7 +42,7 @@ function fixture(t) {
   put('shared/frontend/static/wasm/pandoeditor-core.wasm',Buffer.from([0,97,115,109,1,0,0,0]));
   put('shared/frontend/static/wasm/pandoeditor-core.manifest.json',JSON.stringify({
     schema:'pandoeditor-core-wasm',abiVersion:1,sourceSha256:identity.sourceSha256,
-    compiler:{name:'emscripten',version:'4.0.20'},inputs:identity.inputs,
+    compiler:{name:'emscripten',version:'6.0.3'},inputs:identity.inputs,
     assets:{
       js:{file:'pandoeditor-core.js',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.js'))},
       wasm:{file:'pandoeditor-core.wasm',sha256:digest(get('shared/frontend/static/wasm/pandoeditor-core.wasm'))}
@@ -121,14 +121,87 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
 
 const integrationPresentationChanges=[
   'shared/frontend/js/modules/map-input-presentation.js',
+  'shared/frontend/js/modules/gpu-map-renderer.js',
+  'apps/editor/frontend/js/modules/editing-domain.js',
   'tests/unit/map-input-controller.test.mjs',
   '.github/workflows/viewer-functional-p6-2.yml',
   '.github/workflows/integration-read-model-p6.yml',
+  '.github/workflows/p6-preflight.yml',
+  '.github/workflows/web-pages.yml',
+  '.github/workflows/shared-core.yml',
+  'eslint.config.js',
+  '.github/workflows/remote-preview-p3.yml',
+  'scripts/run-boundary-revision-comparison.mjs',
+  'scripts/lib/library-preparation-wait.mjs',
+  'scripts/frontend-dev-server.mjs',
+  'scripts/check-renderer-v2.mjs',
+  'scripts/lib/renderer-v2-architecture.mjs',
+  'scripts/contracts/territorial-storage-access.json',
+  'scripts/lib/territorial-storage-audit.mjs',
+  'tools/cpp/validate-country-geometry.cpp',
+  'tools/cpp/country-properties.h',
   'scripts/p2-artifact-plan.mjs',
   'tests/unit/p2-artifact-plan.test.mjs',
 ];
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
+const nativeValidationChanges=[
+  'scripts/check-territorial-library.mjs',
+  'scripts/lib/late-soviet-check.mjs',
+  '.github/actions/native-test-prerequisites/action.yml',
+  'scripts/lib/native-test-prerequisites.mjs',
+  'scripts/prepare-native-test-tools.mjs',
+  '.github/workflows/viewer-functional-p6-1.yml',
+  '.github/workflows/application-architecture.yml',
+  '.github/workflows/ui-architecture.yml',
+  '.github/workflows/place-runtime.yml',
+  '.github/workflows/remote-development-p1.yml',
+];
+function nativeValidationFixture(t) {
+  const f=fixture(t);
+  f.put('tools/generate.mjs','export const generator=1;\n');
+  f.put('tools/check.mjs','export const validator=1;\n');
+  f.put('input/data.json','original');
+  const families=staleDataFamilyIds.map(id=>({id,dependencies:[],inputs:['input/data.json'],outputs:['out/'+id+'.txt'],
+    tools:[],generate:[['node','tools/generate.mjs']],validate:[['node','tools/check.mjs']]}));
+  const config=()=>f.put('config/generated-artifacts.json',JSON.stringify({schema:'pandolab-generated-artifact-graph',schemaVersion:1,families}));
+  config();for(const id of staleDataFamilyIds)f.put('out/'+id+'.txt','existing generated output');
+  artifactOwners.recordArtifactReceipts(f.root,{families:staleDataFamilyIds,sourceSha:'a'.repeat(40)});
+  f.put('input/data.json','previously changed data');
+  return {...f,families,config};
+}
+
+test('CI-only pushes leave existing stale data diagnostics without scheduling generation',t=>{
+  const f=nativeValidationFixture(t),before=graphStatus(f.root);
+  assert.deepEqual(before.selectedFamilies,staleDataFamilyIds);
+  for(const path of nativeValidationChanges){
+    const result=plan(f.root,{changes:[path],event:'push'});
+    assert.equal(result.dataGenerationDeferred,true,path);
+    assert.deepEqual(result.selectedFamilies,[],path);assert.equal(result.wasm,false,path);
+    for(const id of staleDataFamilyIds){
+      assert.equal(result.statuses[id].needed,true,id);
+      assert.deepEqual(result.statuses[id].reasons,before.statuses[id].reasons,id);
+      assert.equal(result.statuses[id].inputFingerprint,before.statuses[id].inputFingerprint,id);
+    }
+  }
+});
+
+test('CI-only exemptions never override declared generation ownership',t=>{
+  const f=nativeValidationFixture(t),path='scripts/lib/native-test-prerequisites.mjs';
+  f.put(path,'export const tool=1;\n');
+  for(const kind of ['input','generator','output']){
+    f.families[0].inputs=['input/data.json'];f.families[0].outputs=['out/territorial.txt'];
+    f.put('tools/generate.mjs','export const generator=1;\n');
+    if(kind==='input')f.families[0].inputs.push(path);
+    if(kind==='output')f.families[0].outputs.push(path);
+    if(kind==='generator')f.put('tools/generate.mjs','import "../'+path+'";\n');
+    f.config();
+    const result=plan(f.root,{changes:[path],event:'push'});
+    assert.equal(result.dataGenerationDeferred,false,kind);
+    assert.deepEqual(result.selectedFamilies,staleDataFamilyIds,kind);
+  }
+});
+
 function staleDataFixture(t) {
   const f=graphFixture(t),template=f.families[0];
   f.families.splice(0,f.families.length,...staleDataFamilyIds.map(id=>({

@@ -10,11 +10,11 @@ import { createEnvironment } from "../../apps/editor/frontend/js/modules/app-env
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] };
 const entity = (id, extra = {}) => catalogEntity({ entityId: `state:${id}`, entityKind: 'general', names: { en: id },
-  lifetime: { validFrom: '1900', validTo: '2000' }, metadata: { referenceDate: '1950' },
+  lifetime: { validFrom: '1900', validTo: '2000' }, metadata: { referenceDate: '1950', representativeGeometryVersionId: `${id}:v1` },
   geometryVersions: [{ versionId: `${id}:v1`, validFrom: '1900', validTo: '2000', geometry }], ...extra });
 const gdr = () => entity('gdr', { names: { ko: '독일 민주공화국' }, alternateNames: ['동독'],
   lifetime: { validFrom: '1949-10-07', validTo: '1990-10-02' },
-  metadata: { referenceDate: '1989-04-25', dissolutionDate: '1990-10-03', approximateGeometry: true, pilot: true },
+  metadata: { referenceDate: '1989-04-25', representativeGeometryVersionId: 'gdr:1989', dissolutionDate: '1990-10-03', approximateGeometry: true, pilot: true },
   geometryVersions: [{ versionId: 'gdr:1989', validFrom: '1989-04-25', validTo: '1989-04-25', certainty: 'medium', geometry }] });
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const textOf = node => [node.textContent, ...node.children.map(textOf)].join(' ');
@@ -121,13 +121,15 @@ test('blank browsing never uses today or geometry; rows preserve identity, order
   assert.equal(h.elements.results.querySelectorAll('h3').length, 0);
   assert.equal(h.elements.results.querySelectorAll('input').length, 0);
   assert.equal(JSON.stringify(entities), before);
-  await h.input('referenceDate', '1989'); assert.equal(h.rows().some(row => row.dataset.libraryEntityId === 'state:unknown'), false);
+  await h.input('referenceDate', '1989');
+  assert.deepEqual(h.rows().map(row => row.dataset.libraryEntityId), entities.map(item => item.entityId), 'dated browsing retains source identities, including unknown lifetime endpoints');
+  assert.deepEqual(h.calls.chunks, []);
   await h.input('referenceDate', ''); h.controller.close(); await h.controller.open();
   assert.equal(h.elements.referenceDate.value, ''); assert.equal(h.rows().length, 4); assert.equal(h.calls.today, 0);
 });
 
 test('year and month inputs consistently select the first day for search, preview, ownership and Add', async () => {
-  const root = entity('root', { geometryVersions: [
+  const root = entity('root', { metadata: { representativeGeometryVersionId: 'early' }, geometryVersions: [
     { versionId: 'early', validFrom: '1949', validTo: '1950-07-14', geometry },
     { versionId: 'late', validFrom: '1950-07-15', validTo: '2000', geometry },
   ] });
@@ -142,23 +144,29 @@ test('year and month inputs consistently select the first day for search, previe
   assert.equal(selectGeometryVersion(root, '1950-07').versionId, 'late', 'direct selector keeps period-end semantics');
 });
 
-test('blank representative discloses untouched coarse source date and imports the exact preview version', async () => {
-  const source = entity('coarse', { metadata: {}, geometryVersions: [{ versionId: 'coarse:v1', validFrom: null, validTo: null, geometry }] });
+test('blank representative preserves coarse provenance and imports the explicit preview version without a shared date', async () => {
+  const source = entity('coarse', { metadata: { referenceDate: '1991', representativeGeometryVersionId: 'coarse:v1' },
+    geometryVersions: [{ versionId: 'coarse:v1', validFrom: null, validTo: null, geometry }] });
   const before = JSON.stringify(source); let descriptors;
   const h = harness({ entities: [source], snapshots: [{ id: 'pilot', referenceDate: '1991', entityRefs: [source.entityId] }],
     instantiate: async (ids, date, depth) => { descriptors = await h.service.instantiateDescriptors(ids, date, depth); return { added: 1 }; } });
   await h.controller.open(); await h.controller.select(source.entityId);
-  assert.equal(h.version(), 'coarse:v1'); assert.match(textOf(h.elements.preview), /자료 기준 1991(?:\s|$)/);
-  assert.doesNotMatch(textOf(h.elements.preview), /자료 기준 1991-01-01/); assert.equal(h.elements.referenceDate.value, '');
-  await h.elements.add.click(); assert.equal(h.calls.ownership[0][1], '1991-01-01'); assert.equal(h.calls.imports[0][1], '1991-01-01');
-  assert.equal(descriptors[0].geometryVersionId, 'coarse:v1'); assert.equal(descriptors[0].metadata.sourceReferenceDate, '1991-01-01');
+  assert.equal(h.version(), 'coarse:v1'); assert.match(textOf(h.elements.preview), /대표 형상 · 공통 기준일 없음/);
+  assert.doesNotMatch(textOf(h.elements.preview), /자료 기준/); assert.equal(h.elements.referenceDate.value, '');
+  await h.elements.add.click(); assert.equal(h.calls.ownership[0][1], null); assert.equal(h.calls.imports[0][1], null);
+  assert.equal(descriptors[0].geometryVersionId, 'coarse:v1'); assert.equal(descriptors[0].metadata.sourceReferenceDate, null);
+  assert.equal(descriptors[0].metadata.referenceDate, '1991');
+  assert.deepEqual(descriptors[0].geometry, geometry); assert.notEqual(descriptors[0].geometry, source.geometryVersions[0].geometry);
+  assert.deepEqual(descriptors[0].metadata.sourceGeometryValidity, { validFrom: null, validTo: null });
+  assert.equal(h.calls.today, 0);
   assert.deepEqual(descriptors[0].metadata.sourceLifetime, source.lifetime); assert.equal(JSON.stringify(source), before);
 });
 
 test('GDR live geometry gaps keep the row but never borrow a representative; unavailable blank rows require a date', async () => {
-  const h = harness({ entities: [gdr(), entity('undated', { metadata: {}, lifetime: { validFrom: null, validTo: null }, geometryVersions: [{ versionId: 'undated:v1', geometry }] })] });
+  const h = harness({ entities: [gdr(), entity('undated', { metadata: { referenceDate: '1950' }, lifetime: { validFrom: null, validTo: null }, geometryVersions: [{ versionId: 'undated:v1', geometry }] })] });
   await h.controller.open(); await h.controller.select('state:gdr');
-  assert.equal(h.version(), 'gdr:1989'); assert.match(textOf(h.elements.preview), /자료 기준 1989-04-25/);
+  assert.equal(h.version(), 'gdr:1989'); assert.match(textOf(h.elements.preview), /대표 형상 · 공통 기준일 없음/);
+  assert.doesNotMatch(textOf(h.elements.preview), /자료 기준/);
   assert.match(textOf(h.elements.preview), /근사 경계/); assert.doesNotMatch(textOf(h.elements.preview), /시험 데이터|출처|이용 조건/);
   for (const date of ['1970', '1989-04']) { await h.input('referenceDate', date); assert.equal(h.rows().length, 2); assert.equal(h.version(), undefined); assert.equal(h.elements.add.disabled, true); assert.match(textOf(h.elements.preview), /국토 자료가 비어.*부재를 뜻하지/); }
   await h.input('referenceDate', '1989-04-25'); assert.equal(h.version(), 'gdr:1989'); assert.equal(h.elements.add.disabled, false);
@@ -268,7 +276,9 @@ test('clock lists index-only neutral events independent of date, selects through
   await h.elements.timeSuggest.click(); assert.equal(h.elements.timePopover.hidden, false); assert.equal(h.elements.timeSuggest.getAttribute('aria-expanded'), 'true');
   assert.match(textOf(h.elements.timePopover), /주요 사건.*기록 시작.*기록 마지막 시점.*해체/); assert.deepEqual(h.calls.chunks, []);
   const dissolution = h.elements.timePopover.querySelectorAll('button').at(-1); await dissolution.click();
-  assert.equal(h.elements.referenceDate.value, '1990-10-03'); assert.equal(h.rows().length, 0); assert.equal(h.elements.timePopover.hidden, true); assert.equal(h.document.activeElement, h.elements.referenceDate);
+  assert.equal(h.elements.referenceDate.value, '1990-10-03');
+  assert.deepEqual(h.rows().map(row => row.dataset.libraryEntityId), ['state:gdr']); assert.match(textOf(h.rows()[0]), /존속 기간 밖/);
+  assert.equal(h.elements.timePopover.hidden, true); assert.equal(h.document.activeElement, h.elements.referenceDate);
   await h.input('search', 'coarse'); await h.elements.timeSuggest.click(); await h.elements.timePopover.querySelectorAll('button')[0].click();
   assert.equal(h.elements.referenceDate.value, '1900'); assert.equal(h.calls.search.at(-1).referenceDate, '1900-01-01');
   await h.elements.timeSuggest.click(); let stopped = false, prevented = false;
@@ -280,10 +290,13 @@ test('clock lists index-only neutral events independent of date, selects through
   await h.input('search', ''); assert.equal(h.elements.timePopover.hidden, true); await h.elements.timeSuggest.click(); h.controller.close(); assert.equal(h.elements.timePopover.hidden, true);
 });
 
-test('event activation that removes a selected identity clears its map, ownership and Add', async () => {
+test('event activation outside the selected lifetime retains its row and clears geometry, ownership and Add', async () => {
   const h = harness({ entities: [gdr()] }); await h.controller.open(); await h.controller.select('state:gdr');
   await h.elements.timeSuggest.click(); await h.elements.timePopover.querySelectorAll('button').at(-1).click();
-  assert.equal(h.rows().length, 0); assert.equal(h.elements.preview.hidden, true); assert.equal(h.elements.ownership.children.length, 0); assert.equal(h.elements.add.disabled, true);
+  assert.deepEqual(h.rows().map(row => row.dataset.libraryEntityId), ['state:gdr']);
+  assert.equal(h.version(), undefined); assert.equal(h.elements.preview.hidden, false); assert.match(textOf(h.elements.preview), /존속 기간 밖/);
+  assert.equal(h.elements.ownership.children.length, 0); assert.equal(h.elements.add.disabled, true);
+  await h.elements.add.click(); assert.deepEqual(h.calls.imports, []);
 });
 
 test('flag picker stays index-only even without a representative and restores original focus', async () => {

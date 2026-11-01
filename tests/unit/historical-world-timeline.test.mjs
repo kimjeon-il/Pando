@@ -39,7 +39,7 @@ test('monthEndDoesNotExtendExactSourceDates', async () => {
   assert.equal(await visible('state:test-ukraine', '2014-03'), false);
   assert.equal(await visible('state:single-day', '1989-04'), false);
   const records = result().project.timelineRecords;
-  const day = records.lifetimes.find(row => row.entityId === 'state:single-day');
+  const day = records.lifetimes.find(row => row.objectRef.domain === 'territorial' && row.objectRef.id === 'state:single-day');
   assert.equal(day.validFrom, '1989-04-25'); assert.equal(day.validTo, '1989-04-25');
 });
 test('unbounded source geometry uses its intervals rather than the device month', async () => {
@@ -59,10 +59,10 @@ test('a current snapshot selecting an explicitly dated version retains its entir
   const historic = source.geometryVersions[0].geometry.coordinates[0];
   historic[1][0]-=0.5; historic[2][0]-=0.5;
   const compiled = compileFixture(input);
-  const bindings = compiled.project.timelineRecords.geometryBindings.filter(row=>row.entityId==='KOR');
+  const bindings = compiled.project.timelineRecords.geometryBindings.filter(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='KOR');
   assert.deepEqual(bindings.map(({validFrom,validTo})=>({validFrom,validTo})),
     [{validFrom:'1948-08-15',validTo:'1953-07-26'},{validFrom:'1953-07-27',validTo:null}]);
-  const lifetime=compiled.project.timelineRecords.lifetimes.find(row=>row.entityId==='KOR');
+  const lifetime=compiled.project.timelineRecords.lifetimes.find(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='KOR');
   assert.equal(lifetime.validFrom,'1948-08-15');
   assert.equal(lifetime.validTo,null);
 });
@@ -76,11 +76,11 @@ test('source lifetime retains precision independently of country geometry availa
   const input=historicalWorldCases();
   input.entities.find(row=>row.entityId==='current:KOR').lifetime.validFrom='1948-08-15';
   const catalog=compileFixture(input),current=contextProject(catalog);
-  assert.deepEqual(current.timelineRecords.lifetimes.find(row=>row.entityId==='KOR'),
-    {id:'historical-world:lifetimes:KOR:0',entityId:'KOR',validFrom:'1948-08-15',validTo:null});
-  const unknown=current.timelineRecords.lifetimes.find(row=>row.entityId==='RUS');
+  assert.deepEqual(current.timelineRecords.lifetimes.find(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='KOR'),
+    {id:'historical-world:lifetimes:KOR:0',objectRef:{domain:'territorial',id:'KOR'},validFrom:'1948-08-15',validTo:null});
+  const unknown=current.timelineRecords.lifetimes.find(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='RUS');
   assert.equal(unknown.validFrom,null);assert.equal(unknown.validTo,null);
-  const rows=catalog.project.timelineRecords.lifetimes.filter(row=>row.entityId==='state:parent');
+  const rows=catalog.project.timelineRecords.lifetimes.filter(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='state:parent');
   assert.equal(rows.length,1);assert.equal(rows[0].validFrom,'1900');assert.equal(rows[0].validTo,'1903');
   assert.equal(selectBuiltinCountries(catalog.index,'1901-07').some(row=>row.entityId==='state:parent'),false);
 });

@@ -13,13 +13,25 @@ export function executePlan(plan, { repository, run = (argv, options) => spawnSy
   let scratch;
   const expanded = argv => argv.map(arg => arg.includes('{scratch}') ? arg.replaceAll('{scratch}', scratch ||= mkdtempSync(join(tmpdir(), 'pando-checks-'))) : arg);
   const definition = id => catalog.prerequisites[id] || catalog.groups.find(group => group.id === id);
-  function command(id, argv, context = []) {
+  function environment(ids, seen = new Set()) {
+    const result = {};
+    for (const id of ids) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const entry = definition(id);
+      Object.assign(result, environment(entry.requires || [], seen));
+      for (const [name, value] of Object.entries(entry.env || {}))
+        result[name] = value.replaceAll('{root}', repository.root);
+    }
+    return result;
+  }
+  function command(id, argv, context = [], env = {}) {
     argv = expanded(argv);
-    const key = JSON.stringify({ argv, context });
+    const key = JSON.stringify({ argv, context, env });
     if (completed.has(key)) return completed.get(key);
     let result;
     try {
-      const response = run(argv, { cwd: repository.root, env: process.env });
+      const response = run(argv, { cwd: repository.root, env: { ...process.env, ...env } });
       result = { id, argv, status: response.status === 0 && !response.error ? 'passed' : 'failed',
         exitCode: response.status, error: response.error?.message };
     } catch (error) { result = { id, argv, status: 'failed', error: error.message }; }
@@ -40,7 +52,7 @@ export function executePlan(plan, { repository, run = (argv, options) => spawnSy
       const extra = entry.appendChanged ? plan.changedFiles.filter(file => /\.[cm]?js$/.test(file)
         && repository.exists(file) && !/\/(?:vendor|worker-runtime|fixtures)\//.test(file)) : [];
       if (entry.appendChanged && !extra.length) continue;
-      if (command(id, [...argv, ...extra], entry.requires || []).status !== 'passed') { ok = false; break; }
+      if (command(id, [...argv, ...extra], entry.requires || [], environment([id])).status !== 'passed') { ok = false; break; }
     }
     states.set(id, ok); return ok;
   }
@@ -49,11 +61,25 @@ export function executePlan(plan, { repository, run = (argv, options) => spawnSy
   // Unit failures stay visible even if a separate browser/asset prerequisite failed.
   if (plan.unitTests.length) {
     if (states.get('core') === false) results.push({ id: 'unit', status: 'blocked', reason: 'core prerequisite failed' });
-    else for (let at = 0; at < plan.unitTests.length; at += 30)
-      command('unit', ['node', '--test', '--test-concurrency=2', ...plan.unitTests.slice(at, at + 30)]);
+    else {
+      const batches = new Map();
+      for (const file of plan.unitTests) {
+        const required = plan.unitTestPrerequisites?.[file] || [];
+        const failed = required.filter(id => !prerequisite(id));
+        if (failed.length) {
+          results.push({ id: 'unit', files: [file], status: 'blocked', reason: 'prerequisite failed', prerequisites: failed });
+          continue;
+        }
+        const key = JSON.stringify(required);
+        if (!batches.has(key)) batches.set(key, { required, files: [] });
+        batches.get(key).files.push(file);
+      }
+      for (const { required, files } of batches.values()) for (let at = 0; at < files.length; at += 30)
+        command('unit', ['node', '--test', '--test-concurrency=2', ...files.slice(at, at + 30)], required, environment(required));
+    }
   }
   if (plan.browserSpecs.length) {
-    if (plan.prerequisites.some(id => states.get(id) === false)) results.push({ id: 'browser', status: 'blocked', reason: 'prerequisite failed' });
+    if ((plan.browserPrerequisites || plan.prerequisites).some(id => states.get(id) === false)) results.push({ id: 'browser', status: 'blocked', reason: 'prerequisite failed' });
     else command('browser', ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1']);
   }
   return { ok: results.every(result => result.status === 'passed'), results, externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
@@ -93,13 +119,16 @@ export function main(args = process.argv.slice(2), env = process.env) {
   if (request.specs) {
     const specs = request.specs;
     for (const spec of specs) if (!repository.owners.has(spec)) throw Error('Missing focused browser spec: ' + spec);
-    plan.unitTests = []; plan.commands = []; plan.browserSpecs = [...specs]; plan.prerequisites = ['core', 'generated'];
+    plan.unitTests = []; plan.commands = []; plan.browserSpecs = [...specs]; plan.prerequisites = ['core', 'generated']; plan.browserPrerequisites = [...plan.prerequisites];
     plan.reasons = Object.fromEntries(specs.map(spec => [spec, ['manual scope: ' + env.BROWSER_SCOPE]]));
   }
   console.log(JSON.stringify(plan, null, 2));
   if (args.includes('--github-output')) {
     if (!env.GITHUB_OUTPUT) throw Error('GITHUB_OUTPUT is required');
-    appendFileSync(env.GITHUB_OUTPUT, `browser=${Boolean(plan.browserSpecs.length)}\nchecks=${Boolean(plan.unitTests.length || plan.browserSpecs.length || plan.commands.length)}\ngis_native=${plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)}\n`);
+    const required = new Set();
+    const include = id => { if (required.has(id)) return; required.add(id); (repository.catalog.prerequisites[id]?.requires || []).forEach(include); };
+    plan.prerequisites.forEach(include);
+    appendFileSync(env.GITHUB_OUTPUT, `browser=${Boolean(plan.browserSpecs.length)}\nchecks=${Boolean(plan.unitTests.length || plan.browserSpecs.length || plan.commands.length)}\ngis_native=${plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)}\nnative_requirements=${JSON.stringify([...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort())}\n`);
   }
   const result = args.includes('--list') ? { status: 'planned', plan } : { status: 'executed', plan, ...executePlan(plan, { repository }) };
   if (value('--output')) writeFileSync(value('--output'), JSON.stringify(result, null, 2) + '\n');

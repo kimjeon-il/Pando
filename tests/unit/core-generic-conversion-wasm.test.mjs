@@ -15,8 +15,8 @@ const gid='11000000-0000-4000-8000-000000000019',lids=['22000000-0000-4000-8000-
 function input() {
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
   const source=structuredClone(seed.genericFeatures[0].properties.source);
-  Object.assign(seed,{ territorialEntities: [],geometries: [],timelineRecords: { schemaVersion: 1,lifetimes: [],geometryBindings: [],parentRelations: [] },
-    labels: [],labelSettings: {},hydroEdits: [],distributionLayers: [],distributionEntries: [],itemVisibility: {} });
+  Object.assign(seed,{ territorialEntities: [],geometries: [],timelineRecords: { schemaVersion: 3,lifetimes: [],geometryBindings: [],parentRelations: [],propertyBindings: [] },
+    labels: [],labelSettings: {},hydroEdits: [],distributionLayers: [],distributionEntries: [] });
   seed.distributionSettings.activeLayerId='';
   seed.layerPresentation.objectStyles={};seed.layerPresentation.objectOrder=[];
   seed.genericFeatures=[{ type: 'Feature',id: gid,geometry: { type: 'MultiPoint',coordinates: [[1.125,2.25],[3.5,4.75]] },
@@ -30,10 +30,10 @@ const observe=(body,state,history) => ({ labels: structuredClone(body.labels),la
   documentDirty: state.documentDirty,presentationDirty: state.presentationDirty,undo: history.canUndo(),redo: history.canRedo() });
 async function originalTrace(seed) {
   const f=historySnapshotFixture({ implementation: original });
-  const admitted=original.prepareProjectForStorage(seed);
-  f.entityStore.restoreProject(admitted);
-  for(const field of original.PROJECT_STATE_FIELDS.filter(row => ['document','presentation'].includes(row.scope)
-    && !['geometries','timelineRecords'].includes(row.name)))f.state[field.name]=structuredClone(admitted[field.name]);
+  // This historical trace receives only the stable operation input. Its own
+  // empty document remains on the frozen schema; the current seed is never loaded.
+  f.state.genericFeatures=structuredClone(seed.genericFeatures);
+  f.state.layerPresentation={ schemaVersion: 4,styles: {},objectStyles: {},objectOrder: [] };
   f.state.stateRevision=0;
   f.state.selected={ domain: 'generic',type: 'feature',id: gid };
   const history=original.createHistoryService({ store: { history: [],historyMeta: [],future: [],futureMeta: [] },
@@ -44,14 +44,15 @@ async function originalTrace(seed) {
     objectPresentation: { genericFeatureGeometryKind: original.genericFeatureGeometryKind },
     labelPresentation: { labelKey: (domain,id) => `${domain}:${id}`,automaticLabelSettings: original.automaticLabelSettings },
     spatialQuery: { mapObjectGeometryRevisions: { generic: 0 } },objectDisplay: { invalidateObjectPresentation() {} },
+    layers: { markLayerTreeDirty() {} },
     propertyEditingA: { applyLabelSelectionIntent() {} },feedback: { setActionStatus() {},reportOperationError: error => { throw error; } },
     domains: { projectDomain: { recordHistory: history.record,queueAutosave() {} },renderingDomain: noRender } });
   const capture=() => observe({ ...f.owner.snapshotEditable(),labelSettings: f.state.labelSettings },{ ...f.saveState.snapshot(),stateRevision: f.state.stateRevision },history);
   const rows=[capture()];assert.equal(await commands.convertSelectedGenericFeature({ target: 'label' }),true);rows.push(capture());
   const serializer=original.createProjectSerializer({ appVersion: seed.version,baseDataset: seed.baseDataset,
-    distributionModes: seed.distributionModel.sourceModes,terrainDataset: seed.physicalSourceInfo.terrain.dataset,hydroDataset: seed.physicalSourceInfo.hydro.dataset,
+    distributionModes: seed.distributionModel.sourceModes,terrainDataset: 'fixture-terrain',hydroDataset: 'fixture-hydro',
     now: () => new Date(seed.savedAt),readSnapshot: () => ({ territorialEntities: f.entityStore.identities(),projectFields: original.pickProjectFields(f.state),
-      fullAutosave: true,terrainSourceInfo: seed.physicalSourceInfo.terrain,hydroManifest: seed.physicalSourceInfo.hydro }) });
+      fullAutosave: true,terrainSourceInfo: { dataset: 'fixture-terrain' },hydroManifest: { dataset: 'fixture-hydro' } }) });
   const saved=serializer.buildProject();assert.deepEqual(saved.labels,rows[1].labels);
   assert.deepEqual(original.prepareProjectForStorage(saved).labels,rows[1].labels);
   assert.equal(history.undo(),true);rows.push(capture());assert.equal(history.redo(),true);rows.push(capture());return rows;

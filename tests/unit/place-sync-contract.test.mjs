@@ -1,3 +1,4 @@
+import { reportPath } from '../../tools/report-paths.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -27,7 +28,7 @@ for (const fixture of contract.fixtures) {
     const { geonameId, reviewFile } = fixture.sourceReview;
     assert.equal(geonameId, Number(fixture.input.sourceId));
     assert.match(reviewFile, /^reports\/places\/tier1-major-cities-batch[\w.-]+\.json$/u);
-    const review = JSON.parse(readFileSync(new URL('../../' + reviewFile, import.meta.url), 'utf8'));
+    const review = JSON.parse(readFileSync(reportPath(reviewFile, { access: 'read' }), 'utf8'));
     const matching = review.records.filter(row => row.geonameId === geonameId);
     assert.equal(matching.length, 1, 'One reviewed source for ' + fixture.id);
     const source = matching[0];
@@ -61,7 +62,7 @@ for (const fixture of contract.fixtures) {
 
 
 test('batch 01: Busan, Osaka and Beijing select one historically aligned native, Korean and English label at date boundaries', () => {
-  const rows = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch01.json', import.meta.url), 'utf8')).records;
+  const rows = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch01.json', { access: 'read' }), 'utf8')).records;
   const record = id => {
     const matches = rows.filter(row => row.geonameId === id);
     assert.equal(matches.length, 1, 'One reviewed place per GeoNames ID: ' + id);
@@ -142,7 +143,7 @@ test('batch 01: Busan, Osaka and Beijing select one historically aligned native,
 
 
 test('Delhi multilingual first-batch names change at approved historical thresholds', () => {
-  const batch = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch01.json', import.meta.url), 'utf8'));
+  const batch = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch01.json', { access: 'read' }), 'utf8'));
   const matches = batch.records.filter(x => x.geonameId === 1273294);
   assert.equal(matches.length, 1);
   const city = matches[0];
@@ -193,7 +194,7 @@ test('Delhi multilingual first-batch names change at approved historical thresho
   assert.ok(city.displayTimeline[3].researchNote.includes('2004-01-26'));
   assert.ok(city.nameSelectionNotes.some(x=>x.includes('1837년')));
   assert.ok(!city.names.some(x=>['Dilli','Dehli','New Delhi','Shahjahanabad'].includes(x.text)));
-  const policy = JSON.parse(readFileSync(new URL('../../reports/places/historical-display-policy.json', import.meta.url), 'utf8')).preferredNameSelection;
+  const policy = JSON.parse(readFileSync(reportPath('reports/places/historical-display-policy.json', { access: 'read' }), 'utf8')).preferredNameSelection;
   assert.equal(policy.maxPreferredNamesPerSlotAtAnyInstant.ko,1);
   assert.equal(policy.maxPreferredNamesPerSlotAtAnyInstant.en,1);
   assert.equal(policy.maxPreferredNamesPerSlotAtAnyInstant.native,3);
@@ -202,7 +203,7 @@ test('Delhi multilingual first-batch names change at approved historical thresho
 
 
 test('Incheon temporary Jemulpo and Korean historical romanization boundaries', () => {
-  const data = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch02-east-asia.json', import.meta.url), 'utf8'));
+  const data = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch02-east-asia.json', { access: 'read' }), 'utf8'));
   const byId = Object.fromEntries(data.records.map(r => [r.geonameId, r]));
   const history = (id, date) => {
     const r = byId[id];
@@ -279,7 +280,7 @@ test('Incheon temporary Jemulpo and Korean historical romanization boundaries', 
 
 
 test('review-only city lifecycle interval contract covers rise, extinction, gaps and unknown years', () => {
-  const p = JSON.parse(readFileSync(new URL('../../reports/places/historical-display-policy.json', import.meta.url), 'utf8'));
+  const p = JSON.parse(readFileSync(reportPath('reports/places/historical-display-policy.json', { access: 'read' }), 'utf8'));
   const cfg = p.temporalEligibility;
   assert.equal(cfg.futureIntervalsField, 'activeIntervals');
   assert.equal(cfg.reviewStatusField, 'lifecycleReviewStatus');
@@ -340,13 +341,13 @@ test('review-only city lifecycle interval contract covers rise, extinction, gaps
   assert.equal(at(uncertainYear,'1951-01-01'),'ineligible');
   assert.equal(at({...newer,lifecycleReviewStatus:'provisional'},'1900-01-01'),'unresolved');
   assert.equal(at(newer,'0900-01-01'),'unresolved');
-  const central = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch15-central-asia-capitals.json', import.meta.url), 'utf8'));
+  const central = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch15-central-asia-capitals.json', { access: 'read' }), 'utf8'));
   for (const [id,year] of [[1526273,1830],[1528675,1868],[162183,1881]]) {
     const city=central.records.find(x=>x.geonameId===id);
     assert.equal(city.temporalEligibility.cityEstablishedFromYear,year);
     assert.equal(Object.hasOwn(city.temporalEligibility,'activeIntervals'),false);
   }
-  const east = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch02-east-asia.json', import.meta.url), 'utf8'));
+  const east = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch02-east-asia.json', { access: 'read' }), 'utf8'));
   for (const [id,firstShown] of [[1848354,'1859-07-01'],[1835235,'1905-01-01']]) {
     const city=east.records.find(x=>x.geonameId===id);
     assert.ok(city);
@@ -359,7 +360,7 @@ test('review-only city lifecycle interval contract covers rise, extinction, gaps
 
 
 test('batch 14: Reykjavik and Ankara reviewed names and previously approved Caucasus dates remain stable', () => {
-  const report = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json', import.meta.url), 'utf8'));
+  const report = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch14-north-atlantic-anatolia-caucasus.json', { access: 'read' }), 'utf8'));
   assert.equal(report.records.length, 5);
   const ids = [3413829, 323786, 611717, 616052, 587084];
   assert.deepEqual(report.records.map(row => row.geonameId), ids);
@@ -412,7 +413,7 @@ test('batch 14: Reykjavik and Ankara reviewed names and previously approved Cauc
 
 
 test('batch 15: all Central Asian city names and script reforms match reviewed historical dates', () => {
-  const data = JSON.parse(readFileSync(new URL('../../reports/places/tier1-major-cities-batch15-central-asia-capitals.json', import.meta.url), 'utf8'));
+  const data = JSON.parse(readFileSync(reportPath('reports/places/tier1-major-cities-batch15-central-asia-capitals.json', { access: 'read' }), 'utf8'));
   const ids = [1526273, 1512569, 1528675, 1221874, 162183];
   assert.deepEqual(data.records.map(r => r.geonameId), ids);
   const city = id => data.records.find(r => r.geonameId === id);

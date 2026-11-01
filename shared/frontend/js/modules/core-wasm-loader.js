@@ -32,7 +32,7 @@ export async function loadVerifiedCore({ baseUrl, fetchAsset = globalThis.fetch,
   });
   const manifest = await read(manifestUrl, 'json');
   if (manifest?.schema !== 'pandoeditor-core-wasm' || manifest.abiVersion !== 1
-    || manifest.compiler?.name !== 'emscripten' || manifest.compiler.version !== '4.0.20'
+    || manifest.compiler?.name !== 'emscripten' || manifest.compiler.version !== '6.0.3'
     || !digestSyntax(manifest.sourceSha256) || manifest.assets?.js?.file !== 'pandoeditor-core.js'
     || manifest.assets?.wasm?.file !== 'pandoeditor-core.wasm'
     || !digestSyntax(manifest.assets.js.sha256) || !digestSyntax(manifest.assets.wasm.sha256))

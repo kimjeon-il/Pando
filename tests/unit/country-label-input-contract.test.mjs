@@ -15,7 +15,7 @@ const countryLabels = () => {
   return rendering.slice(rendering.indexOf('const renderTerritorialLabels ='), rendering.indexOf('enter.append(\'image\')', rendering.indexOf('const renderTerritorialLabels =')));
 };
 
-async function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {}) {
+async function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false, visible = true } = {}) {
   const oldDocument = globalThis.document, oldFrame = globalThis.requestAnimationFrame;
   globalThis.document = { createElement: editorNode };
   globalThis.requestAnimationFrame = () => 0;
@@ -43,7 +43,8 @@ async function fixture(t, { ground = ['B'], coord = [5, 5], mobile = false } = {
     spatialRecords: { indexedMapObjectCandidates: () => ground.map(id => ({ domain: 'territorial', id })), geometryBoundsCache: new WeakMap() },
     cutGeometry: { coordinateBounds: () => [0, 0, 10, 10] }, labelPresentation: { currentMapZoom: () => 100 },
     landRelations: { pointInCountryFeature: () => true },
-    objectOperationsA: { objectDisplayInfo: ref => ({ name: ref.id, type: 'entity' }) },
+    objectOperationsA: { objectDisplayInfo: ref => ({ name: ref.id, type: 'entity' }),
+      objectRefVisible: ref => visible && features.has(ref.id) },
     projectSession: { objectChooserCandidates: [] },
     surfaceCommands: { replaceObjectChooserCandidates: refs => { chooserCandidates.push(refs); } },
     workspaceUiA: { closeSurface() {} },
@@ -80,8 +81,16 @@ test('territorial label dispatch preserves click blocking, pan, modifier togglin
   assert.deepEqual(f.coords, [[5, 5], ['placed', [5, 5]]]); assert.equal(f.domain.size(), 0);
 });
 
+test('a territorial label cannot select or open an object hidden by the visibility capability', async t => {
+  const f = await fixture(t, { visible: false }); await f.activate();
+  assert.equal(f.domain.size(), 0);
+  assert.deepEqual(f.opened, []);
+  assert.deepEqual(f.coords, [], 'a hidden label must not fall through to ground picking');
+});
+
 test('ground map clicks keep the common coordinate handler and label rendering does not duplicate editing tools', () => {
   assert.doesNotMatch(countryLabels(), /toggleNewCountrySource|toggleAnnexDonor|toggleMergeTarget|toggleBoundaryEditCountry/);
   assert.match(countryLabels(), /if \(labels\.mapClickBlocked\?\.\(\)\) return;/);
   assert.match(read('shared/frontend/js/modules/map-input-presentation.js'), /svg\.on\('click', function\(\)\s*\{\s*if \(mapClickBlocked\(\)\) return;\s*handleMapClick\(d3\.mouse\(this\)\);/);
 });
+

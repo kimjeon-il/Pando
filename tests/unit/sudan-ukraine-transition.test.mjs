@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
+import {readTerritorialSource} from '../../tools/territorial-entity-sources.mjs';
 import {selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
-import {builtinProject} from '../helpers/builtin-world.mjs';
+import {scopedBuiltinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
 import {resolvedTimelineViews} from "../../shared/frontend/js/modules/timeline-resolver.js";
 import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
 
 const ids=['state:SDN','state:SDS','state:UKR','state:RUS'];
-const read=()=>new Map(readTerritorialSources().filter(x=>ids.includes(x.entityId)).map(x=>[x.entityId,x]));
+const read=()=>new Map(ids.map(id=>[id,readTerritorialSource(id)]));
 const rings=createRingHitTester(ring=>ring);
 function covers(geometry,point){
  if(!geometry)return false;
@@ -53,21 +53,15 @@ test('monthly end and exact day selection keep Sudan, South Sudan and Ukraine as
  assert.ok(covers(selectGeometryVersion(ukr,'2014-03').geometry,kyiv));
 });
 
-test('built Web/native historical-project input has the same post-transition geographical ownership',()=>{
- const historicalFrames=new Map();
- const focus=new Set(['SDN','SDS','UKR','RUS']);
- const at=(month,id)=>{
-  if(!historicalFrames.has(month)){
-   // One fully resolved source snapshot per reference month, rather than
-   // repeatedly assembling 250+ countries and all their geometry allocations
-   // for each individual assertion. Retain only the 4 inspected identities.
-   const project=builtinProject(month);
-   const result=resolvedTimelineViews(project.territorialEntities,project.timelineRecords,
-    createGeometryVersionStore(project.geometries),month);
-   historicalFrames.set(month,new Map(result.filter(row=>focus.has(row.id)).map(row=>[row.id,row])));
-  }
-  return historicalFrames.get(month).get(id);
- };
+test('built Web/native historical-project input has the same post-transition geographical ownership',async()=>{
+ const months=['2011-06','2011-07','2014-02','2014-03','2015-10','2020-10'],worlds=new Map();
+ for(const month of months){
+  const project=await scopedBuiltinProject(month,['SDN','SDS','UKR','RUS']);
+  assert.deepEqual(project.territorialEntities.map(entity=>entity.id),
+   month==='2011-06'?['RUS','SDN','UKR']:['RUS','SDN','SDS','UKR']);
+  worlds.set(month,resolvedTimelineViews(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month));
+ }
+ const at=(month,id)=>worlds.get(month).find(entity=>entity.id===id);
  const khartoum=[32.56,15.5],juba=[31.58,4.85],kyiv=[30.52,50.45],crimea=[34.1,44.95];
  assert.ok(covers(at('2011-06','SDN')?.geometry,juba));
  assert.equal(at('2011-06','SDS'),undefined);
@@ -90,4 +84,7 @@ test('built Web/native historical-project input has the same post-transition geo
  assert.equal(afterRus?.properties?.sourceGeometryVersion,'state:RUS:natural-earth-5.1.1');
  assert.equal(covers(beforeRus?.geometry,crimea),false);
  assert.equal(covers(afterRus?.geometry,crimea),true);
+ assert.ok(afterRus,'the accepted catalog includes RUS after 1991-12-25');
+ assert.ok(covers(afterRus.geometry,[37.62,55.75]),'the same record retains Moscow');
+ assert.equal(covers(afterRus.geometry,kyiv),false);
 });

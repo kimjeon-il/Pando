@@ -70,7 +70,9 @@ export async function createNativeDemWindowReader({source,width,height,strict=tr
   };
 }
 export async function readNativeDemWindow({box,...input},options){
-  const reader=await createNativeDemWindowReader(input,options);let failure;
-  try{return await reader.read(box);}catch(error){failure=error;throw error;}
-  finally{try{await reader.close();}catch(error){if(!failure)throw error;}}
+  const reader=await createNativeDemWindowReader(input,options);let failed=false,failure,result;
+  try{result=await reader.read(box);}catch(error){failed=true;failure=error;}
+  try{await reader.close();}catch(error){if(!failure){failed=true;failure=error;}}
+  if(failed)throw failure;
+  return result;
 }

@@ -9,9 +9,14 @@ const root=new URL('../../',import.meta.url);
 const getJSON=path=>JSON.parse(readFileSync(new URL(path,root),'utf8'));
 const countryData=()=>getJSON('assets/data/countries-ne-5.1.1.geojson');
 const previewData=()=>{
-  const version=getJSON('package.json').version;
-  return JSON.parse(gunzipSync(readFileSync(new URL(
-    'assets/data/countries-preview-v'+version+'.geojson.gz',root))));
+  const asset=getJSON('assets/data/world/current.json').assets.previewCountries;
+  assert.equal(asset.encoding,'gzip');
+  const stored=readFileSync(new URL('assets/data/'+asset.url,root));
+  assert.equal(stored.length,asset.compressedBytes);
+  assert.equal(createHash('sha256').update(stored).digest('hex'),asset.sha256);
+  const decoded=gunzipSync(stored);
+  assert.equal(decoded.length,asset.decodedBytes);
+  return JSON.parse(decoded);
 };
 const source=path=>readFileSync(repositoryFrontendUrl(path),'utf8');
 const polygons=geo=>geo.type==='Polygon'?[geo.coordinates]:geo.coordinates;

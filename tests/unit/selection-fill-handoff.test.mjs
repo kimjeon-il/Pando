@@ -177,19 +177,25 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
   const previous = globals.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
   const svg = svgFixture(), selected = svg.root(), hovered = svg.root();
   const queued = [], timers = new Map(), workers = [], backgroundFrames = new Map();
-  let rendering, canvas, contextLost = false, scenePaints = 0, nextId = 0;
+  let rendering, canvas, lastSceneReceipt, contextLost = false, scenePaints = 0, nextId = 0, now = 0;
   t.after(() => {
     rendering?.dispose();
     for (const [key, descriptor] of previous) {
       if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
     }
   });
-  t.mock.method(globalThis, 'setTimeout', (callback, delay) => { const id = ++nextId; timers.set(id, { callback, delay }); return id; });
+  t.mock.method(performance, 'now', () => now);
+  t.mock.method(globalThis, 'setTimeout', (callback, delay) => { const id = ++nextId; timers.set(id, { callback, delay, dueAt: now + delay }); return id; });
   t.mock.method(globalThis, 'clearTimeout', id => timers.delete(id));
   const gl = new Proxy({ getContextAttributes: () => ({ stencil: true }), isContextLost: () => contextLost,
-    getShaderParameter: () => true, getProgramParameter: () => true, getParameter: () => 4096,
+    getShaderParameter: () => true, getProgramParameter: (_program, name) => name === gl.LINK_STATUS ? true : 0,
+    getParameter: name => name === gl.VIEWPORT ? [0, 0, 300, 200] : name === gl.COLOR_WRITEMASK ? [true, true, true, true]
+      : name === gl.COLOR_CLEAR_VALUE ? [0, 0, 0, 0] : name === gl.MAX_TEXTURE_SIZE ? 4096 : 0,
+    checkFramebufferStatus: () => gl.FRAMEBUFFER_COMPLETE,
+    readPixels: (_x, _y, _width, _height, _format, _type, pixels) => pixels.fill(255),
     getExtension: () => null, getAttribLocation: () => 0, getUniformLocation: () => ({}),
-  }, { get: (target, name) => name in target ? target[name] : String(name).startsWith('create') ? () => ({}) : () => {} });
+  }, { get: (target, name) => name in target ? target[name] : /^[A-Z][A-Z0-9_]*$/.test(String(name)) ? name
+    : String(name).startsWith('create') ? () => ({}) : () => {} });
   const createCanvas = () => {
     const listeners = new Map();
     const node = { ownerDocument: document, width: 300, height: 200, style: {}, isConnected: true,
@@ -197,7 +203,8 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
       addEventListener: (type, callback) => listeners.set(type, callback), removeEventListener: type => listeners.delete(type),
       dispatch: type => listeners.get(type)?.({ currentTarget: node, preventDefault() {} }),
     };
-    const context = new Proxy({ canvas: node }, { get: (target, name) => name in target ? target[name] : () => {} });
+    const context = new Proxy({ canvas: node, clearRect() { if (node === canvas) scenePaints++; } },
+      { get: (target, name) => name in target ? target[name] : () => {} });
     node.getContext = kind => ['webgl2', 'webgl', 'experimental-webgl'].includes(kind) ? gl : context;
     return node;
   };
@@ -238,7 +245,8 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     canonicalCountryFeatures: () => features,
     renderCountryFeatures: () => features, renderCountryBoundaryFeatures: () => [], countryBoundaryStyleById: () => null,
     countryOutlineFeature: value => value, isCountryVisibleById: id => state.itemVisibility.objects[id==='HKG'?'unit-uuid':id]!==false, setActionStatus() {},
-    renderViewFrame: () => rendering.invalidateGpuFrame('view-frame'),
+    reportOperationError: error => assert.fail(error.cause?.stack || error.stack),
+    renderViewFrame: reason => { scheduledReasons.push(reason); rendering.invalidateView(reason); },
     scheduleGpuFrame: reason => { scheduledReasons.push(reason); rendering.invalidateGpuFrame(reason); },
     scheduleGpuInteractionFrame: reason => { scheduledReasons.push(reason); rendering.invalidateGpuInteraction(reason); },
     rendererUi: { createCanvas, setEngineStatus() {}, setMapPreparationStatus() {}, getMapElement: () => null,
@@ -251,8 +259,12 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     requestFrame: callback => queued.push(callback),
     prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewRevision: 1, projectGeneration: 0,
       viewState: { ...state, translate: [150, 100], scale: 40, dpr: 1 }, projectPath: () => 'M0,0L1,0L1,1Z',
-      createCanvasPath: context => { if (context.canvas === canvas) scenePaints++; return feature => {if(context.canvas===canvas&&feature?.id)drawnIds.push(feature.id);}; } }),
-    renderers: { view: frame => renderer.renderFrame(frame) },
+      createCanvasPath: context => feature => {if(context.canvas===canvas&&feature?.id)drawnIds.push(feature.id);} }),
+    renderers: { view: frame => {
+      const result = renderer.renderFrame(frame);
+      lastSceneReceipt = { frame, result };
+      return result;
+    } },
     selectionResources: { document: svg.document, d3: svg.d3, selectionPass,
       selectionLayer: svg.d3.select(selected), hoverLayer: svg.d3.select(hovered), getState: () => state,
       getInteractionStyle: resolveMapInteractionStyle, territorialEntityById: byId, territorialDisplayFeature: byId,
@@ -281,10 +293,24 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
       return renderer.rebuildFromCountries(features);
     },
     currentCanvas: () => canvas, recoveryPending: () => [...timers.values()].some(timer => timer.delay === 5000),
-    restore: async () => { contextLost = false; await canvas.dispatch('webglcontextrestored'); },
+    restore: async () => {
+      contextLost = false;
+      const restored = canvas.dispatch('webglcontextrestored');
+      for (let step = 0; step < 100 && renderer.getRuntimeState().renderer === 'webgl-recovering'; step++) {
+        for (const [id, callback] of [...backgroundFrames]) { backgroundFrames.delete(id); callback(); }
+        if (queued.length) queued.shift()();
+        await Promise.resolve();
+      }
+      assert.equal(renderer.getRuntimeState().renderer, 'webgl2', 'scheduled shader and upload work must settle restoration');
+      await restored;
+    },
     transition: async () => {
-      const recovery = [...timers.values()].find(timer => timer.delay === 5000);
-      assert.ok(recovery); recovery.callback();
+      const recovery = [...timers].find(([, timer]) => timer.delay === 5000);
+      assert.ok(recovery);
+      const [id, timer] = recovery;
+      timers.delete(id);
+      now = timer.dueAt;
+      timer.callback();
       if (canvasWorker) {
         assert.equal(renderer.getRuntimeState().renderer, 'canvas-worker');
         const worker = workers.find(worker => worker.name === 'pandolab-canvas-renderer');
@@ -302,6 +328,10 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
     },
     verifyCanonical: () => { assert.strictEqual(selection.snapshot(), snapshot); assert.deepEqual(features, model);
       assert.equal(state.pendingCountryRenderIds.size, 0); assert.equal(renderer.getStats().pendingCountryCount, 0); },
+    verifyFrameReceipt: () => {
+      const { frame, result } = lastSceneReceipt;
+      assert.deepEqual(result, { succeeded: true, frameId: frame.frameId, viewRevision: frame.viewRevision });
+    },
   };
 }
 
@@ -320,7 +350,8 @@ test('real context loss reserves scene fills until same-canvas WebGL restoration
   assert.equal(h.renderer.getRuntimeState().renderer, 'webgl2');
   assert.ok(h.renderer.getRenderDevice());
   assert.strictEqual(h.currentCanvas(), recoveringCanvas, 'restoration happens before timeout replaces the canvas');
-  assert.equal(h.recoveryPending(), false, 'successful restoration cancels the fallback timeout');
+  assert.equal(h.recoveryPending(), true, 'usable resources remain monitored until a canonical frame is accepted');
+  assert.equal(h.renderer.getStats().gpuRecovery.phase, 'awaiting-frame');
   assert.equal(h.queued.length, 1, 'restoration itself schedules the selection redraw');
   h.queued.shift()();
   assert.equal(h.nodes(fillSelector).length, 0);
@@ -329,6 +360,9 @@ test('real context loss reserves scene fills until same-canvas WebGL restoration
   assert.equal(h.rendering.getSelectionRenderStats().failureCount, 0);
   assert.equal(h.queued.length, 0);
   h.verifyCanonical();
+
+  assert.equal(h.renderer.getStats().gpuRecovery.phase, 'awaiting-frame', 'an unprepared country surface cannot certify recovery');
+  assert.equal(h.recoveryPending(), true, 'the accepted-frame deadline survives a device-only restoration');
 });
 
 for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker failure' : 'context recovery timeout'} presents its first Canvas2D frame through selection ownership`, async t => {
@@ -344,6 +378,7 @@ for (const canvasWorker of [false, true]) test(`real ${canvasWorker ? 'Worker fa
   // request another redraw or manufacture a selection/user interaction.
   h.queued.shift()();
   assert.equal(h.scenePaints(), 1, 'the transition presents exactly one Canvas2D scene');
+  h.verifyFrameReceipt();
   assert.equal(h.nodes(fillSelector).length, 0, 'first Canvas2D presentation preserves reserved scene-fill ownership');
   assert.equal(h.nodes(outlineSelector).length, 2);
   assert.ok(h.nodes(outlineSelector).every(node => node.getAttribute('fill') === 'none'));
@@ -359,6 +394,7 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
   assert.equal(h.renderer.getStats().pendingCountryCount, 1, 'activation cannot acknowledge an unpainted geometry revision');
   h.queued.shift()();
   assert.equal(h.scenePaints(), 1);
+  h.verifyFrameReceipt();
   assert.equal(h.renderer.getStats().pendingCountryCount, 0);
   assert.equal(h.nodes(fillSelector).length, 0);
   assert.equal(h.nodes(outlineSelector).length, 2);

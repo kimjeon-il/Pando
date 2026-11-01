@@ -108,7 +108,8 @@ test('canonical projection preserves date-line and rolled polar visibility while
     assert.deepEqual(result.records.map(record=>record.sourceId),[expected]);
   }
 });
-test('search uses the same monthly place naming and BCE availability as label drawing',async()=>{
+test('search uses the same monthly place naming and BCE availability as label drawing',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:Date.UTC(2026,9,16)});
  const {bytes,manifest}=fixture(),store=createPlaceWorkerStore({manifest,fetchBytes:async()=>bytes});
  const modern=await store.search('서울 19',undefined,{month:'2026-10',languages:{ko:true}});
  assert.equal(modern.records.length,1);
@@ -117,6 +118,11 @@ test('search uses the same monthly place naming and BCE availability as label dr
  assert.deepEqual(ancient.records,[]);
  const historical=await store.search('서울 19',undefined,{month:'1914-06',languages:{ko:true}});
  assert.equal(historical.displayNames[historical.records[0].id],'(현)서울 19');
+ t.mock.timers.setTime(Date.UTC(2026,10,1));
+ const previousMonth=await store.search('서울 19',undefined,{month:'2026-10',languages:{ko:true}});
+ assert.equal(previousMonth.displayNames[previousMonth.records[0].id],'(현)서울 19');
+ const currentMonth=await store.search('서울 19',undefined,{month:'2026-11',languages:{ko:true}});
+ assert.equal(currentMonth.displayNames[currentMonth.records[0].id],'서울 19');
 });
 
 test('reference lookup finds historical and native names without month or display language filters', async () => {

@@ -40,7 +40,7 @@ function loadSerbiaRivers(country = serbia) {
   context.onmessage = null;
   context.importScripts = () => {};
   for (const file of ['vendor/earcut.min.js', 'workers/geographic-boundary-core.js', 'workers/hydro-tile-worker.js']) {
-    vm.runInContext(read(`assets/js/${file}`).toString(), context);
+    vm.runInContext(read(`shared/frontend/js/${file}`).toString(), context);
   }
   vm.runInContext('manifest = inputManifest', context);
   const decoder = vm.runInContext('({ readGlobalIndex, readFeatureMetadata, readPack, mergeLogicalFragments, logicalPacks, packSpecs, featureMetadata })', context);

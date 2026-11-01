@@ -1,31 +1,27 @@
-import { loadWebOracle } from './web-oracle.mjs';
-const { createCommandFixture } = await loadWebOracle('tools/parity/command-history.mjs');
-const { runProjectTransaction } = await loadWebOracle('assets/js/modules/project-transaction.js');
+import { readFileSync } from 'node:fs';
+import { createCurrentFullDocumentFixture } from './web-full-document-fixture.mjs';
 
-/** Exact current territorial state, geometry versions and operation outcomes. */
+/** Actual current service results, complete storage, projected views and Core checkpoints. */
 export async function webCoreContractTrace() {
-  const fixture = createCommandFixture({ id: 'A', name: 'Alpha' });
-  const rows = [];
+  const seed = JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
+  const fixture = await createCurrentFullDocumentFixture(seed), rows = [];
   const observe = (id, result) => {
-    rows.push({ id, result: JSON.parse(JSON.stringify(result, (key, value) => value instanceof Error
-      ? { name: value.name, code: value.code, message: value.message } : value)),
-    stateRevision: fixture.state.stateRevision, undo: fixture.domain.canUndo(), redo: fixture.domain.canRedo(),
-    dirty: fixture.saveState.snapshot().documentDirty, snapshot: JSON.parse(JSON.stringify(fixture.snapshot())),
-    views: JSON.parse(JSON.stringify(fixture.store.snapshot())) });
+    const state = fixture.client.state();
+    rows.push({ id, result: structuredClone(result), stateRevision: state.stateRevision,
+      checkpoint: state.checkpoint, undo: state.canUndo, redo: state.canRedo, dirty: state.documentDirty,
+      snapshot: fixture.fullSnapshot(), views: structuredClone(fixture.store.snapshot()) });
   };
-  observe('initial', null);
-  observe('normal', fixture.service.updateMetadata('A', 'name', 'Beta'));
-  observe('noop', fixture.service.updateMetadata('A', 'name', 'Beta'));
-  observe('error', fixture.service.updateMetadata('missing', 'name', 'Other'));
-  const before = fixture.snapshot();
-  const cancelled = await runProjectTransaction({ operationType: 'fixture-cancel', snapshot: before,
-    applyCanonical: async () => {
-      fixture.store.setField('A', 'notes', 'must roll back');
-      throw Object.assign(new Error('User cancelled'), { name: 'AbortError', code: 'PL-FIXTURE-CANCELLED' });
-    }, restore: () => fixture.store.restoreProject(before),
-  });
-  observe('cancel', cancelled);
-  observe('undo', fixture.domain.undo());
-  observe('redo', fixture.domain.redo());
-  return rows;
+  try {
+    observe('initial', null);
+    observe('normal', await fixture.service.updateMetadata('A', 'name', 'Beta'));
+    observe('noop', await fixture.service.updateMetadata('A', 'name', 'Beta'));
+    observe('error', await fixture.service.updateMetadata('missing', 'name', 'Other'));
+    const candidate = await fixture.project.prepareCommand({ commandId: 'territorial.field',
+      targets: [{ domain: 'territorial', id: 'A' }], payload: { id: 'A', field: 'notes', value: 'must not be published' } });
+    if (!candidate.ok || !candidate.candidateId) throw new Error('Expected a retained cancellation candidate.');
+    observe('cancel', await fixture.project.cancelCandidate(candidate.candidateId));
+    observe('undo', await fixture.project.undo());
+    observe('redo', await fixture.project.redo());
+    return rows;
+  } finally { fixture.dispose(); }
 }

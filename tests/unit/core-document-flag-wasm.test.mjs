@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createNodeCoreDocument } from '../helpers/core-session.mjs';
+import { currentOpaqueFlagExpectations } from '../helpers/opaque-flag-expectations.mjs';
 
 const fixture = name => JSON.parse(readFileSync(new URL(`../fixtures/portability/${name}.json`,import.meta.url),'utf8'));
 
-test('actual Worker flag promotion/null/removal and whole-document Undo match all 15 independent original Web rows', async () => {
-  const input = fixture('web-opaque-flag-input'), golden = fixture('web-opaque-flag-contract');
+test('actual Worker flag promotion/null/removal and whole-document Undo match all 15 independent flag rows in the current document schema', async () => {
+  const input = fixture('web-opaque-flag-input'), golden = currentOpaqueFlagExpectations();
   for (const operation of input.cases) {
     const rows = golden.cases.filter(row => row.id === operation.id), client = createNodeCoreDocument();
     const valuePresent = operation.op !== 'delete';

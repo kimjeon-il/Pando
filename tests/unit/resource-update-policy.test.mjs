@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import * as policy from "../../shared/frontend/js/modules/resource-update-policy.js";
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { buildFrontendSnapshot } from '../../scripts/lib/frontend-build.mjs';
+import { frontendFixture } from '../helpers/frontend-build-fixture.mjs';
 
 const device = {};
 const dependency = (changes = {}) => ({ source: 'dataset', content: 'sha256:geometry', preparation: 'mesh-v1',
@@ -30,9 +32,12 @@ test('structured dependency keys are deterministic without reference identity or
   assert.notEqual(policy.resourceKey(['a:b', 'c']), policy.resourceKey(['a', 'b:c']));
 });
 
-test('classic Workers execute the generated copy of the same policy contract', () => {
+test('classic Workers execute the generated copy of the same policy contract', async t => {
+  const fixture = frontendFixture(t);
+  fixture.put('shared/frontend/js/modules/resource-update-policy.js', readFileSync(new URL('../../shared/frontend/js/modules/resource-update-policy.js', import.meta.url), 'utf8'));
+  const snapshot = await buildFrontendSnapshot(fixture.options);
   const scope={self:{}};
-  vm.runInNewContext(readFileSync(new URL('../../assets/js/workers/resource-update-policy-core.js',import.meta.url),'utf8'),scope);
+  vm.runInNewContext(snapshot.assets.get('assets/js/workers/resource-update-policy-core.js').bytes.toString('utf8'),scope);
   const result=scope.self.PandoLabResourceUpdatePolicy.resourceUpdate(dependency(),dependency({presentation:'changed'}));
   assert.deepEqual(JSON.parse(JSON.stringify(result)),policy.resourceUpdate(dependency(),dependency({presentation:'changed'})));
 });

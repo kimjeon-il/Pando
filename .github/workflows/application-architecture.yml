@@ -85,6 +85,10 @@ jobs:
         if: steps.plan.outputs.gis_native == 'true'
         run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev
           zlib1g-dev pkg-config cmake
+      - name: Prepare selected native test prerequisites
+        uses: ./.github/actions/native-test-prerequisites
+        with:
+          requirements: ${{ steps.plan.outputs.native_requirements }}
       - name: Execute the same checks as local development
         env: *a5
         run: node scripts/run-application-checks.mjs --output

@@ -29,7 +29,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       return [file];
     });
   }
-  const files = ['assets', 'apps/editor', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows']
+  const files = ['assets', 'apps/editor', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -75,13 +75,30 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
     if (!pattern.includes('*') && !owners.has(pattern)) throw Error('Missing registered test: ' + pattern);
   }
+  const unitRequirements = new Map(tests.filter(file => file.startsWith('tests/unit/'))
+    .map(file => [file, new Set(owners.get(file).requires || [])]));
+  for (const binding of catalog.unitPrerequisites || []) {
+    if (!Array.isArray(binding.tests) || !Array.isArray(binding.requires)) throw Error('Invalid unit prerequisite binding');
+    for (const pattern of binding.tests) if (!pattern.includes('*') && !unitRequirements.has(pattern))
+      throw Error('Missing registered unit prerequisite test: ' + pattern);
+    for (const id of binding.requires) if (!catalog.prerequisites?.[id]?.argv)
+      throw Error('Missing prerequisite: ' + id);
+    for (const [file, required] of unitRequirements) if (matches(file, binding.tests))
+      binding.requires.forEach(id => required.add(id));
+  }
+  function prerequisiteInputs(id) {
+    const entry = catalog.prerequisites[id] || catalog.groups.find(group => group.id === id);
+    return [...(entry.argv || []).filter(arg => /^(?:scripts|tools|apps|tests)\/.*\.[cm]?js$/.test(arg)),
+      ...files.filter(file => matches(file, entry.inputs)), ...(entry.requires || []).flatMap(prerequisiteInputs)];
+  }
   const frontendIndex=buildFrontendIndex(root),publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
   const sourcePath=path=>frontendGeneratedOwners[path]||frontendIndex.get(path)?.sourcePath||path;
   const dependencyCache = new Map();
   function dependencies(file) {
     if (dependencyCache.has(file)) return dependencyCache.get(file);
     const publicFile=publicBySource.get(file)||file;
-    const found = new Set((runtimeDependencies[publicFile] || []).map(sourcePath));
+    const found = new Set([...(runtimeDependencies[publicFile] || []).map(sourcePath),
+      ...[...(unitRequirements.get(file) || [])].flatMap(prerequisiteInputs)]);
     dependencyCache.set(file, found);
     if (!executable(file) || !exists(file)) return [...found];
     const text=publicBySource.has(file)?emitFrontendModule(read(file),file,frontendIndex):read(file);
@@ -183,7 +200,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (file === 'assets/js/build-meta.js') return [...found];
     return [...found];
   }
-  return { root: resolve(root), catalog, files, tests, owners, exists, read, dependencies };
+  return { root: resolve(root), catalog, files, tests, owners, exists, read, dependencies, unitRequirements };
 }
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [] }) {
@@ -265,7 +282,11 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
       && !matches(file, repo.catalog.passiveInputs || []) && !repo.owners.has(file)) throw Error('Unclassified product change: ' + file);
   }
   const unitTests = [...selected].filter(file => file.includes('/unit/')).sort();
+  const unitTestPrerequisites = Object.fromEntries(unitTests.map(file => [file,
+    [...(repo.unitRequirements?.get(file) || [])].sort()]).filter(([, ids]) => ids.length));
+  Object.values(unitTestPrerequisites).flat().forEach(id => prerequisites.add(id));
   const browserSpecs = [...selected].filter(file => file.includes('/browser/')).sort();
+  const browserPrerequisites = [...new Set(browserSpecs.flatMap(file => repo.owners.get(file).requires || []))].sort();
   if (unitTests.some(file => file === 'tests/unit/core-document-world-wasm.test.mjs' ||
     (parents.get('shared/frontend/js/modules/temporal.js') && isConsumer(file, 'shared/frontend/js/modules/temporal.js'))) && repo.catalog.prerequisites?.core) prerequisites.add('core');
   function isConsumer(target, dependency, seen = new Set()) {
@@ -273,7 +294,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     if (seen.has(dependency)) return false; seen.add(dependency);
     return [...(parents.get(dependency) || [])].some(parent => isConsumer(target, parent, seen));
   }
-  return { schema: 'pando-application-check-plan-v1', changedFiles: changed, unitTests, browserSpecs,
+  return { schema: 'pando-application-check-plan-v1', changedFiles: changed, unitTests, unitTestPrerequisites, browserSpecs, browserPrerequisites,
     externalChecks, commands: commands.sort(), prerequisites: [...prerequisites].sort(), reasons,
     manualTests: [...repo.owners].filter(([, group]) => group.mode === 'manual').map(([file]) => file).sort(),
     inventory: { unit: repo.tests.filter(file => file.includes('/unit/')).length, browser: repo.tests.filter(file => file.includes('/browser/')).length } };

@@ -1,4 +1,5 @@
 import { Linter } from 'eslint';
+import { posix } from 'node:path';
 
 const fields = new Set(['territorialEntities']);
 const mutators = new Set(['push', 'pop', 'splice', 'shift', 'unshift', 'sort', 'reverse', 'fill', 'copyWithin']);
@@ -10,7 +11,8 @@ const key = node => node?.computed ? node.property?.value : node?.property?.name
 
 export function unclassifiedTerritorialAccesses(entries, policy) {
   return entries.filter(entry => !policy.owners.some(item => item.file === entry.file
-    && item.functions.includes(entry.function) && item.access.includes(entry.access)));
+    && item.functions.includes(entry.function) && item.access.includes(entry.access)
+    && (!item.detachedCandidate || entry.detachedCandidate === true)));
 }
 
 function functionName(node) {
@@ -22,12 +24,16 @@ function functionName(node) {
   return null;
 }
 
-function ownerOf(node) {
+function ownerFunction(node) {
   for (let cursor = node; cursor; cursor = cursor.parent) {
-    if (/^(?:FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/.test(cursor.type)) {
-      const name = functionName(cursor);
-      if (name) return name;
-    }
+    if (/^(?:FunctionDeclaration|FunctionExpression|ArrowFunctionExpression)$/.test(cursor.type)) return cursor;
+  }
+  return null;
+}
+function ownerOf(node) {
+  for (let owner = ownerFunction(node); owner; owner = ownerFunction(owner.parent)) {
+    const name = functionName(owner);
+    if (name) return name;
   }
   return '<module>';
 }
@@ -57,6 +63,29 @@ export function auditTerritorialStorage(source, file = '<source>') {
       for (const identifier of variable.identifiers) bindings.set(identifier, variable);
       for (const reference of variable.references) bindings.set(reference.identifier, variable);
     }
+  }
+
+  // Constructor permissions apply only to a locally created candidate. A live
+  // project argument or accepted snapshot must not inherit the same permission.
+  function detachedCandidate(value, owner, seen = new Set()) {
+    const node = unwrap(value);
+    if (!node || seen.has(node)) return false;
+    const nextSeen = new Set(seen).add(node);
+    if (node.type === 'Identifier') {
+      const definition = bindings.get(node)?.defs.find(item => item.type === 'Variable');
+      return definition?.parent?.kind === 'const' && definition.node.id.type === 'Identifier'
+        && ownerFunction(definition.node) === owner
+        && detachedCandidate(definition.node.init, owner, nextSeen);
+    }
+    if (node.type !== 'CallExpression') return false;
+    const callee = unwrap(node.callee);
+    if (callee?.type !== 'Identifier') return false;
+    const definitions = bindings.get(callee)?.defs || [];
+    if (callee.name === 'structuredClone' && !definitions.length && node.arguments.length === 1) return true;
+    const imported = definitions.find(item => item.type === 'ImportBinding');
+    return imported?.node.imported?.name === 'createInitialDocument'
+      && posix.normalize(posix.join(posix.dirname(file), imported.parent.source.value))
+        === 'shared/frontend/js/modules/initial-document.js';
   }
 
   function origin(value, seen = new Set()) {
@@ -167,8 +196,12 @@ export function auditTerritorialStorage(source, file = '<source>') {
   const records = new Map();
   function record(node, access, resolved = origin(node)) {
     if (!resolved) return;
+    const storage = unwrap(resolved.node);
+    const candidate = storage?.type === 'MemberExpression' && fields.has(key(storage))
+      && detachedCandidate(storage.object, ownerFunction(node));
     const entry = { file, function: ownerOf(node), line: node.loc.start.line,
-      access, field: resolved.field, via: resolved.via, expression: parsed.getText(node) };
+      access, field: resolved.field, via: resolved.via, expression: parsed.getText(node),
+      ...(candidate ? { detachedCandidate: true } : {}) };
     records.set(`${entry.line}:${node.range[0]}:${access}`, entry);
   }
   for (const node of nodes) {

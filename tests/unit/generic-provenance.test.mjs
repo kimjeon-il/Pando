@@ -66,6 +66,9 @@ const generic = source => ({
 const project = feature => ({
   format: 'pandolab-project-state',
   schemaVersion: PROJECT_SCHEMA_VERSION,
+  documentId: uuid(99),
+  physicalSourceInfo: {},
+  ...projectForStorage().projectFields,
   landObjectModel: {
     schemaVersion: 2,
     coastlineAuthority: 'territorialEntities',
@@ -77,7 +80,7 @@ const project = feature => ({
   territorialModel: { schemaVersion: TERRITORIAL_MODEL_SCHEMA_VERSION },
   distributionModel: { schemaVersion: DISTRIBUTION_MODEL_SCHEMA_VERSION },
   distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
-  layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, overlayOrder: [], styles: {} },
+  layerPresentation: { schemaVersion: LAYER_PRESENTATION_SCHEMA_VERSION, styles: {}, objectStyles: {}, objectOrder: [] },
   territorialEntities: [],
   ...staticTerritorialInput([]),
   genericFeatures: feature ? [feature] : [],
@@ -115,6 +118,8 @@ test('serializer publishes Generic Feature as lossless fallback with provenance 
     terrainDataset: 'terrain',
     hydroDataset: 'hydro',
     readSnapshot: () => ({
+      documentId: uuid(99),
+      physicalSourceInfo: {},
       territorialEntities: [],
       projectFields: { ...projectForStorage().projectFields, genericFeatures: [], ...staticTerritorialInput([]) },
       entityDelta: { changed: [], removedIds: [] },

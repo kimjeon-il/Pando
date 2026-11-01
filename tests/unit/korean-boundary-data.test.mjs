@@ -1,4 +1,3 @@
-import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -10,7 +9,7 @@ import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geome
 import {resolveWorld} from "../../shared/frontend/js/modules/timeline-resolver.js";
 import {refineChinesePaektuSource} from '../../tools/build-korean-boundaries.mjs';
 
-const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(repositoryFrontendUrl(`assets/data/territorial-entities/source/countries/state-${id}.json`))));
+const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`,import.meta.url))));
 const korea=readCountry('KOR'),north=readCountry('PRK');
 const rings=createRingHitTester(ring=>ring);
 const contains=(entity,date,point)=>{
@@ -106,8 +105,18 @@ test('the paired Korean/Chinese changes preserve the Korean land union and produ
 test('Korean reconstruction preserves the supplemented Chinese counterpart byte for byte',()=>{
   const china=readCountry('CHN');
   const lines=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',import.meta.url)));
-  assert.ok(china.geometryVersions[0].modernBoundarySupplement);
-  assert.deepEqual(refineChinesePaektuSource(china,lines,'unused-on-unchanged-chain',china.metadata.representativeGeometryVersionId),china);
+  const version=china.geometryVersions.find(row=>row.versionId===china.metadata.representativeGeometryVersionId);
+  assert.equal(version.sourceId,'natural-earth-5.1.1+dos-lsib-11.4');
+  assert.deepEqual(version.historicalProvenance,{
+    evidenceStatus:'provisional',sourceIds:['natural-earth-5.1.1','dos-lsib-11.4'],
+    reconstructionScope:'Paektu shared boundary only; no extension of Chinese historical coverage',
+    sourceFile:'tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',
+  });
+  const original=JSON.stringify(china);
+  const refined=refineChinesePaektuSource(china,lines,'unused-on-unchanged-chain',version.versionId);
+  assert.deepEqual(refined,china);
+  assert.equal(JSON.stringify(refined),original);
+  assert.equal(JSON.stringify(china),original);
 });
 
 test('the actual published timeline retains Korean creation dates and the June/July 1953 geometry change',()=>{

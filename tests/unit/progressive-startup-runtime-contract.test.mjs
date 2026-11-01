@@ -72,6 +72,8 @@ function deferred() {
 }
 
 async function startupFixture(t, { project = null } = {}) {
+  // The historical fixture's current geometry is explicitly valid in October 2026.
+  t.mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 9, 4, 12) });
   const noop = () => {};
   const geometry = deferred();
   const previewFrame = deferred();
@@ -188,7 +190,7 @@ test('canonical geometry reaches the common Store before editing resumes while t
 test('canonical startup becomes editable without waiting for a preview frame', async t => {
   const fixture = await startupFixture(t);
   await fixture.interactive.promise;
-  fixture.geometry.resolve({countries:normalizeCountryCollection(window.PANDOLAB_COUNTRIES),canonicalCountryStore:{}});
+  fixture.geometry.resolve({countries:normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES),canonicalCountryStore:{}});
   await fixture.editable.promise;
   assert.deepEqual(fixture.errors,[]);
 });
@@ -198,7 +200,7 @@ test('preview frame failure is reported without blocking canonical startup', asy
   const fixture = await startupFixture(t);
   await fixture.interactive.promise;
   fixture.previewFrame.reject(error);
-  fixture.geometry.resolve({countries:normalizeCountryCollection(window.PANDOLAB_COUNTRIES),canonicalCountryStore:{}});
+  fixture.geometry.resolve({countries:normalizeCountryCollection(globalThis.window.PANDOLAB_COUNTRIES),canonicalCountryStore:{}});
   await fixture.editable.promise;
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(fixture.errors.length, 1);
