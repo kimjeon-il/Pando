@@ -8,6 +8,7 @@ import {writeMacroTrainingSample,prepareTrainingBatch,verifyTrainingSample,reche
 import {indexTrainingDataset,trainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
 import {writeTrainingSupervision,verifyTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
 import {verifyTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
+import {verifyTrainingEvidence} from '../../tools/reference-analysis/native-training-batch.mjs';
 
 test('source-bound macro sample is generated from original pixels without overwriting',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-macro-sample-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -44,6 +45,10 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
   const snapshot=verifyTrainingSample(output),sampleReceipt=join(output,'sample.json');
   recheckTrainingSample(output,snapshot);
+  const manifest=JSON.parse(readFileSync(corpus,'utf8'));
+  await verifyTrainingEvidence(root,manifest,{augment:false},snapshot,{epoch:0});
+  await assert.rejects(verifyTrainingEvidence(root,manifest,{augment:false},{...snapshot,tensorSha256:{...snapshot.tensorSha256,target:'0'.repeat(64)}},{epoch:0}),/tensor differs from source/i);
+  await assert.rejects(verifyTrainingEvidence(root,manifest,{augment:false},{...snapshot,validMaskSha256:'0'.repeat(64)},{epoch:0}),/evidence differs/i);
   writeFileSync(sampleReceipt,JSON.stringify({...snapshot,tileIndex:1}));
   assert.doesNotThrow(()=>verifyTrainingSample(output));
   assert.throws(()=>recheckTrainingSample(output,snapshot),/receipt changed/i);
