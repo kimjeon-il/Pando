@@ -5,13 +5,12 @@ on:
     paths: [.github/workflows/objects-main-integration.yml]
 permissions:
   contents: write
+  actions: write
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 25
     env:
-      EMCC_CORES: '1'
-      BINARYEN_CORES: '1'
       NODE_OPTIONS: '--max-old-space-size=1536'
     steps:
       - uses: actions/checkout@v4
@@ -21,71 +20,75 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Reproduce reviewed main-based integration and preserve both parents
+      - name: Preserve the completed native-WASM build and stop only its broken test harness
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD^)" = d81639e1261026ad361d597007eccd17eb53af5c
-          test "$(git rev-parse origin/main)" = 502cc3014db2657c430819a249b9a724f3cb5880
           node --input-type=module <<'NODE'
-          import {writeFileSync} from 'node:fs';
-          import {gunzipSync} from 'node:zlib';
-          import {createHash} from 'node:crypto';
-          const ids=['39e720a7b443836437649266ba90cd5057f25b09','a79a92389c6bb4ed9d5ad929e3769026b4f8770d','71914c30ecb258421cab7f6efacf2cb241d3df99','df25f205509bc4016066acb4220b6db5f6fbe97c'];
-          const parts=[];
-          for(const id of ids){
-            const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs/${id}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
-            if(!response.ok)throw Error(`Reviewed patch blob unavailable: ${response.status}`);
-            const blob=await response.json();const bytes=Buffer.from(blob.content,'base64');
-            const actual=createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
-            if(actual!==id)throw Error('Patch transport identity mismatch');parts.push(bytes);
+          const base=`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}`;
+          const headers={Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'};
+          const get=async path=>{const r=await fetch(base+path,{headers});if(!r.ok)throw Error(`${path}: ${r.status}`);return r.json();};
+          const run=await get('/actions/runs/41286450388');
+          if(run.head_sha!=='95383c378ac9b8dddaf88787e83e0baf85a47347')throw Error('Unexpected prior run identity');
+          const jobs=await get('/actions/runs/41286450388/jobs');
+          const job=jobs.jobs.find(x=>x.id===124788616066);
+          if(!job?.steps.some(s=>s.name==='Build only affected native contracts and source-matched WASM'&&s.conclusion==='success'))throw Error('Do not cancel or discard an incomplete compiled candidate');
+          if(run.status!=='completed'){
+            const r=await fetch(base+'/actions/runs/41286450388/cancel',{method:'POST',headers});
+            if(!r.ok&&r.status!==409)throw Error(`Cannot stop the known test-only harness failure: ${r.status}`);
           }
-          const patch=gunzipSync(Buffer.concat(parts));
-          if(createHash('sha256').update(patch).digest('hex')!=='165bce90b13cdeab5612621bc58df171d3cbf53a7d6a8911f479a18eca4d7cdc')throw Error('Reviewed patch checksum mismatch');
-          writeFileSync('/tmp/objects-stage2.patch',patch);
+          let available=false;
+          for(let i=0;i<60;i++){
+            const artifacts=await get('/actions/runs/41286450388/artifacts');
+            if(artifacts.artifacts.some(x=>x.name==='objects-stage2-verification-41286450388'&&!x.expired)){available=true;break;}
+            await new Promise(resolve=>setTimeout(resolve,5000));
+          }
+          if(!available)throw Error('Compiled candidate was not preserved; do not rebuild or publish blindly');
           NODE
-          git checkout --detach 502cc3014db2657c430819a249b9a724f3cb5880
-          git apply --check --unidiff-zero /tmp/objects-stage2.patch
-          git apply --index --unidiff-zero /tmp/objects-stage2.patch
-          git diff --cached --check
-          git diff --cached --quiet -- config/library-data.json shared/frontend/js/modules/builtin-world-loader.js shared/core/src/webobjectcommands.cpp
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          candidate=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p 502cc3014db2657c430819a249b9a724f3cb5880 -m 'Merge main into work/objects and port temporal deltas into canonical candidate adoption')
-          git checkout --detach "$candidate"
-          rm /tmp/objects-stage2.patch
-      - uses: pnpm/action-setup@v4
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Checkout pinned Emscripten
-        uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          repository: emscripten-core/emsdk
-          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
-          path: build-native/emsdk
-          persist-credentials: false
-      - name: Build only affected native contracts and source-matched WASM
-        shell: bash
+          name: objects-stage2-verification-41286450388
+          run-id: 41286450388
+          github-token: ${{ github.token }}
+          path: build-native/objects-stage2-prior
+      - name: Reuse the exact built candidate and fix only duplicated test registration
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 95383c378ac9b8dddaf88787e83e0baf85a47347
+          git bundle verify build-native/objects-stage2-prior/candidate.bundle
+          git fetch build-native/objects-stage2-prior/candidate.bundle refs/pando/objects-stage2-candidate
+          candidate=$(cat build-native/objects-stage2-prior/candidate-commit.txt)
+          test "$(git rev-parse FETCH_HEAD)" = "$candidate"
+          git merge-base --is-ancestor 95383c378ac9b8dddaf88787e83e0baf85a47347 "$candidate"
+          git merge-base --is-ancestor 502cc3014db2657c430819a249b9a724f3cb5880 "$candidate"
+          git checkout --detach "$candidate"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const path='tests/native/temporal-parity-p5-7.test.mjs';let s=readFileSync(path,'utf8');
+          const anchor="  t.scenario('Stage 2 native/WASM builtin delta";
+          const start=s.indexOf(anchor),end=s.indexOf('after(async () => {',start);
+          if(start<0||end<start||(s.match(/scenario\('Stage 2 native\/WASM builtin delta/g)||[]).length!==2)throw Error('Unexpected test registration source');
+          s=s.slice(0,start)+'  t.'+s.slice(end);writeFileSync(path,s);
+          NODE
+          git diff --check
+          git diff --quiet -- shared config/library-data.json
+          git add tests/native/temporal-parity-p5-7.test.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          fixed=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p "$candidate" -m 'fix(test): retain top-level delta scenario and per-test native cleanup')
+          git checkout --detach "$fixed"
           mkdir -p test-results/objects-stage2
-          test "$(df -Pk . | awk 'NR==2 {print $4}')" -gt 8388608
-          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-          cmake --build build-native/core-session --target document_session_tests temporal_source_tests temporal_candidate_tests temporal_adopt_tests --parallel 2 > test-results/objects-stage2/native-build.log 2>&1 &
-          native_pid=$!
-          build-native/emsdk/emsdk install 4.0.20
-          build-native/emsdk/emsdk activate 4.0.20
-          source build-native/emsdk/emsdk_env.sh
-          emcmake cmake -S shared -B build-native/objects-wasm -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
-          cmake --build build-native/objects-wasm --target pandoeditor_wasm --parallel 1
-          wait "$native_pid"
-          ctest --test-dir build-native/core-session -R '^(document_session_tests|temporal_source_tests|temporal_candidate_tests|temporal_adopt_tests)$' --output-on-failure | tee test-results/objects-stage2/native-tests.log
+          cp build-native/objects-stage2-prior/native-tests.log test-results/objects-stage2/native-tests.log
+          node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check | tee test-results/objects-stage2/wasm-identity.log
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Compile only the native parity probe, reusing already verified WASM
+        run: |
+          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/core-session --target pandoeditor_core --parallel 2 > test-results/objects-stage2/native-build.log 2>&1
           c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core-session/core/libpandoeditor_core.a -lz -o build-native/core-session/temporal-parity-probe
-          node tools/package-shared-core-assets.mjs --build-dir build-native/objects-wasm/wasm
-          node tools/package-shared-core-assets.mjs --build-dir build-native/objects-wasm/wasm --check
-          git add shared/frontend/static/wasm/pandoeditor-core.js shared/frontend/static/wasm/pandoeditor-core.wasm shared/frontend/static/wasm/pandoeditor-core.manifest.json
-          git commit -m 'build(core): pair stage-2 temporal delta source with rebuilt WASM candidate'
-      - name: Verify exact native-WASM parity and affected Worker/model/cache contracts
+      - name: Exact native-WASM parity and affected Worker/model/cache contracts
+        timeout-minutes: 5
         env:
           PANDO_TEMPORAL_NATIVE: build-native/core-session/temporal-parity-probe
           PANDO_P5_7_EVIDENCE: test-results/objects-stage2/parity.json
@@ -95,16 +98,16 @@ jobs:
           node --test --test-concurrency=1 tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/builtin-country-loading.test.mjs | tee test-results/objects-stage2/unit.log
           pnpm exec eslint apps/viewer/js/modules/viewer-composition.js shared/frontend/js/modules/builtin-session.js shared/frontend/js/modules/core-document-read-model.js shared/frontend/js/modules/core-document-runtime.js shared/frontend/js/modules/project-domain.js tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/browser/builtin-temporal-transition.spec.mjs tests/browser/deferred-builtin-timeline.spec.mjs tests/native/temporal-parity-p5-7.test.mjs
       - uses: ./.github/actions/library-data
-      - name: Verify actual WASM source admission and independent Web-App packaging
+      - name: Actual WASM admission and independent Web-App packaging
         env:
           PANDOEDITOR_WASM_MODULE: shared/frontend/static/wasm/pandoeditor-core.js
         run: |
           node --test shared/tests/temporal-transport-p5-5.test.mjs
           node tests/integration/builtin-country-deployment.mjs
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Actual desktop-mobile WebGL and Canvas delta, rollback, cancellation and file opening
+      - name: Desktop-mobile WebGL and Canvas delta, rollback, cancellation and file opening
         run: pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --workers=1 --retries=0 --trace=off --output=test-results/objects-stage2/browser
-      - name: Publish only the verified candidate on work/objects; never main
+      - name: Publish verified work/objects only, never main
         env:
           PANDO_PUSH_TOKEN: ${{ github.token }}
         run: |
@@ -115,14 +118,14 @@ jobs:
           test "$(git ls-remote "$remote" refs/heads/work/objects | cut -f1)" = "$GITHUB_SHA"
           test "$(git ls-remote "$remote" refs/heads/main | cut -f1)" = 502cc3014db2657c430819a249b9a724f3cb5880
           git push "$remote" HEAD:refs/heads/work/objects
-          git rev-parse HEAD | tee test-results/objects-stage2/verified-commit.txt
-      - name: Preserve exact candidate and bounded evidence, including failures
+          git rev-parse HEAD > test-results/objects-stage2/verified-commit.txt
+      - name: Preserve bounded candidate and evidence
         if: always()
         run: |
           mkdir -p test-results/objects-stage2
           git rev-parse HEAD > test-results/objects-stage2/candidate-commit.txt
           git update-ref refs/pando/objects-stage2-candidate HEAD
-          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^502cc3014db2657c430819a249b9a724f3cb5880 || true
+          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^95383c378ac9b8dddaf88787e83e0baf85a47347 ^502cc3014db2657c430819a249b9a724f3cb5880 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
