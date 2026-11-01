@@ -43,6 +43,11 @@ int run(const std::vector<fs::path>& args){
   const pando::reference::SamplingState sampling{0,0,20261030,{0}};
   const auto checkpoint=pando::reference::saveTrainingCheckpoint(*model,optimizer,sampling,device);
   pando::reference::writeNewFile(args[1]/"checkpoint.pt",checkpoint);
+  {
+    torch::NoGradGuard guard;const auto original=model->head->bias.detach().clone();model->head->bias.add_(0.125);
+    pando::reference::writeNewFile(args[1]/"different.pt",pando::reference::saveTrainingCheckpoint(*model,optimizer,sampling,device));
+    model->head->bias.copy_(original);
+  }
   saveWeights(args[1]/"weights.safetensors",*model);
   const auto tile=torch::zeros({1,3,512,512}),overview=torch::zeros({1,3,256,256}),position=torch::tensor({0.f,0.f,1.f,1.f}).reshape({1,4});
   torch::NoGradGuard guard;const auto expected=model->forward(tile,overview,position).to(torch::kCPU).contiguous();

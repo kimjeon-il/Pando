@@ -67,6 +67,30 @@ export async function nativeTrainingWeightsInfer({weights,tile,overview,position
   if(after.recordHash!==verified.recordHash)throw Error('Initializer changed during execution');
   return {...result,weightsSha256:weightsHash};
 }
+// Compare semantic checkpoint state; serialized archive bytes can differ even
+// when model, optimizer, sampling and RNG state are identical.
+export async function compareNativeTrainingCheckpoints({first,second,device='cpu',torchLibrary,
+  root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
+  signal?.throwIfAborted();
+  if(!['win32','linux'].includes(process.platform)||!first||!second||!torchLibrary||!['cpu','cuda'].includes(device))
+    throw Error('Explicit native checkpoint comparison inputs required');
+  const inputs=[first,second].map(value=>{const path=resolve(value),hash=trainingFileIdentity(path),receiptPath=path+'.receipt.json';
+    const bytes=readTrainingBounded(receiptPath,1024*1024),receipt=JSON.parse(bytes);
+    if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash)
+      throw Error('Checkpoint comparison receipt differs from its file');
+    return {path,hash,receiptPath,receiptHash:sha(bytes)};});
+  const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
+  const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
+  const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
+    ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
+  const {child,done}=validator(binary,['compare',device,inputs[0].path,inputs[1].path],env,signal);child.stdin.end();
+  const result=await done;signal?.throwIfAborted();
+  if(result.equal!==true||!Number.isSafeInteger(result.optimizerStates)||result.optimizerStates<0||result.trainingOnly!==true||result.releaseApproved!==false)
+    throw Error('Invalid native checkpoint comparison result');
+  for(const input of inputs)if(trainingFileIdentity(input.path)!==input.hash||trainingFileIdentity(input.receiptPath)!==input.receiptHash)
+    throw Error('Checkpoint comparison input changed during execution');
+  return {...result,firstSha256:inputs[0].hash,secondSha256:inputs[1].hash};
+}
 export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',diagnosticOnly=false,torchLibrary,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
