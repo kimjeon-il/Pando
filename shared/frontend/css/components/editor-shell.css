@@ -1441,3 +1441,30 @@
 .editor-danger-title {
   color: var(--muted);
 }
+
+
+/* P2 inspector: the same flat disclosure treatment applies across object types. */
+#distributionProperties .editor-compact-disclosure,
+#labelProperties .editor-compact-disclosure,
+#hydroProperties .editor-compact-disclosure {
+  border-color: var(--border);
+  background: transparent;
+}
+
+#genericFeatureConversionSection .editor-section-title {
+  margin-bottom: var(--ui-space-1);
+}
+
+#genericFeatureConversionSection #convertGenericFeatureBtn {
+  justify-self: stretch;
+  width: 100%;
+}
+
+#labelBuiltinInfo {
+  display: grid;
+  gap: var(--ui-space-2);
+}
+
+#hydroProperties .editor-action-section + .editor-action-section {
+  padding-top: var(--ui-space-2);
+}
