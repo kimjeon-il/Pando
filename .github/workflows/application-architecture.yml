@@ -34,7 +34,10 @@ jobs:
     timeout-minutes: 6
     outputs:
       checks: ${{ steps.plan.outputs.checks }}
+      non_browser: ${{ steps.plan.outputs.non_browser }}
       browser: ${{ steps.plan.outputs.browser }}
+      browser_count: ${{ steps.plan.outputs.browser_count }}
+      browser_matrix: ${{ steps.plan.outputs.browser_matrix }}
     steps:
       - &a1
         uses: actions/checkout@v4
@@ -62,10 +65,11 @@ jobs:
             'origin/main' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
+          PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
         run: node scripts/run-application-checks.mjs --list --github-output
-  checks:
+  non-browser:
     needs: changes
-    if: needs.changes.outputs.checks == 'true'
+    if: needs.changes.outputs.non_browser == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -77,10 +81,7 @@ jobs:
       - name: Select current application checks
         id: plan
         env: *a5
-        run: node scripts/run-application-checks.mjs --list --github-output
-      - name: Install Chromium only for selected browser checks
-        if: steps.plan.outputs.browser == 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: node scripts/run-application-checks.mjs --list --github-output --phase non-browser
       - name: Install native GIS prerequisites only for selected data checks
         if: steps.plan.outputs.gis_native == 'true'
         run: sudo apt-get update && sudo apt-get install -y libgeos-dev libproj-dev
@@ -89,17 +90,98 @@ jobs:
         uses: ./.github/actions/native-test-prerequisites
         with:
           requirements: ${{ steps.plan.outputs.native_requirements }}
-      - name: Execute the same checks as local development
+      - name: Execute selected commands and unit tests once
         env: *a5
-        run: node scripts/run-application-checks.mjs --output
-          "$RUNNER_TEMP/application-checks.json"
-      - name: Upload application check evidence
+        run: node scripts/run-application-checks.mjs --phase non-browser --output
+          "$RUNNER_TEMP/application-checks-non-browser.json"
+      - name: Upload non-browser check evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: application-checks-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/application-checks.json
+          name: application-checks-non-browser-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/application-checks-non-browser.json
           if-no-files-found: warn
+  browser:
+    needs: changes
+    if: needs.changes.outputs.browser == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.browser_matrix) }}
+    steps:
+      - *a1
+      - *a2
+      - *a3
+      - *a4
+      - *library
+      - name: Select current application checks
+        id: plan
+        env: *a5
+        run: node scripts/run-application-checks.mjs --list --github-output --phase browser
+          --shard ${{ matrix.current }}/${{ matrix.total }}
+      - name: Install Chromium for selected browser checks
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Prepare selected browser native prerequisites
+        uses: ./.github/actions/native-test-prerequisites
+        with:
+          requirements: ${{ steps.plan.outputs.native_requirements }}
+      - name: Execute this shard of the complete selected browser list
+        env: *a5
+        run: node scripts/run-application-checks.mjs --phase browser
+          --shard ${{ matrix.current }}/${{ matrix.total }} --output
+          "$RUNNER_TEMP/application-checks-browser-${{ matrix.current }}-of-${{ matrix.total }}.json"
+      - name: Upload browser shard evidence and existing failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-checks-browser-${{ matrix.current }}-of-${{ matrix.total }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/application-checks-browser-${{ matrix.current }}-of-${{ matrix.total }}.json
+            test-results/
+          if-no-files-found: warn
+  checks:
+    needs: [changes, non-browser, browser]
+    if: always() && (github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Require every selected phase to finish successfully
+        id: aggregate
+        env:
+          SELECTION_RESULT: ${{ needs.changes.result }}
+          CHECKS_SELECTED: ${{ needs.changes.outputs.checks }}
+          NON_BROWSER_SELECTED: ${{ needs.changes.outputs.non_browser }}
+          BROWSER_SELECTED: ${{ needs.changes.outputs.browser }}
+          BROWSER_COUNT: ${{ needs.changes.outputs.browser_count }}
+          BROWSER_MATRIX: ${{ needs.changes.outputs.browser_matrix }}
+          NON_BROWSER_RESULT: ${{ needs.non-browser.result }}
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: |
+          node <<'NODE'
+          const env = process.env;
+          if (env.SELECTION_RESULT !== 'success') throw Error('Application selection did not succeed');
+          const selected = name => {
+            if (!['true', 'false'].includes(env[name])) throw Error('Missing or invalid selection output: ' + name);
+            return env[name] === 'true';
+          };
+          const checks = selected('CHECKS_SELECTED'), nonBrowser = selected('NON_BROWSER_SELECTED'), browser = selected('BROWSER_SELECTED');
+          if (checks !== (nonBrowser || browser)) throw Error('Inconsistent application phase selection');
+          const count = Number(env.BROWSER_COUNT);
+          if (!/^(0|[1-9]\d*)$/.test(env.BROWSER_COUNT || '') || !Number.isSafeInteger(count) || browser !== (count > 0))
+            throw Error('Missing or invalid browser count');
+          const matrix = JSON.parse(env.BROWSER_MATRIX), total = Math.min(8, count);
+          if (!matrix || Object.keys(matrix).length !== 1 || !Array.isArray(matrix.include) || matrix.include.length !== total ||
+              !matrix.include.every((row, index) => row && Object.keys(row).length === 2 && row.current === index + 1 && row.total === total))
+            throw Error('Missing or invalid browser matrix');
+          for (const [phase, required, result] of [
+            ['non-browser', nonBrowser, env.NON_BROWSER_RESULT], ['browser', browser, env.BROWSER_RESULT],
+          ]) {
+            const expected = required ? 'success' : 'skipped';
+            if (result !== expected) throw Error(phase + ' phase must be ' + expected + '; received ' + (result || 'missing'));
+          }
+          console.log(JSON.stringify({ applicationChecksPassed: true, nonBrowser, browser, browserShards: total }));
+          NODE
   boundary-capture-comparison:
     name: Boundary screencast comparison (A1, B1, B2, A2)
     needs: changes

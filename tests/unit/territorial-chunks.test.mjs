@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {selectTerritorialChunkBytes} from '../../tools/territorial-chunk-compression.mjs';
 import test from 'node:test';
-import {readTerritorialSources,entityFileName,territorialDataRoot} from '../../tools/territorial-entity-sources.mjs';
+import {readTerritorialSources,entityFileName,territorialDataRoot,territorialSourceRoot} from '../../tools/territorial-entity-sources.mjs';
 import path from 'node:path';
 test('index lists all source entities without geometry and compressed chunks retain every source byte contract',()=>{
  const index=JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json'),'utf8'));
@@ -22,7 +22,12 @@ test('index lists all source entities without geometry and compressed chunks ret
    assert.deepEqual(JSON.parse(bytes),entity);
    assert.equal(item.file,`${entityFileName(entity.entityId)}.gz`);
  }
- assert.equal(index.snapshots.length,1);
+ const snapshotRoot=path.join(territorialSourceRoot,'snapshots');
+ const snapshots=fs.readdirSync(snapshotRoot).filter(file=>file.endsWith('.json')).sort()
+   .map(file=>JSON.parse(fs.readFileSync(path.join(snapshotRoot,file),'utf8')));
+ assert.ok(snapshots.length>0,'Missing source snapshots');
+ assert.equal(new Set(snapshots.map(snapshot=>snapshot.id)).size,snapshots.length);
+ assert.deepEqual(index.snapshots,snapshots,'Every source snapshot must be published without changing its date or entity selection');
  assert.equal(index.views.length,1);
  assert.equal(index.views[0].id,'world:catalog');
  assert.equal(Object.hasOwn(index.views[0],'referenceDate'),false);

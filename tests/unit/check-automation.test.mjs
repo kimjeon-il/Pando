@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSyn
 import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { runInNewContext } from 'node:vm';
 import { loadRepository, planApplicationChecks, matchesPattern } from '../../scripts/plan-application-checks.mjs';
 
 test('every current browser workflow can be assigned before CI dependency planning', () => {
@@ -46,13 +47,86 @@ test('reference-analysis command documentation is a passive CI input', t => {
 
 test('application CI prepares pinned data before planning and executing registered checks', () => {
   const workflow = parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
-  for (const id of ['changes', 'checks']) {
+  for (const id of ['changes', 'non-browser', 'browser']) {
     const steps = workflow.jobs[id].steps;
     const checkout = steps.findIndex(step => step.uses === 'actions/checkout@v4');
     const prepare = steps.findIndex(step => step.uses === './.github/actions/library-data');
     const plan = steps.findIndex(step => step.run?.includes('run-application-checks.mjs'));
     assert.ok(checkout >= 0 && prepare > checkout && plan > prepare, `${id} must prepare registered data inputs before loading the repository`);
   }
+});
+
+test('Architecture executes one non-browser phase and a bounded isolated browser matrix with distinct evidence', () => {
+  const workflow = parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
+  const jobs = workflow.jobs;
+  for (const key of ['checks', 'non_browser', 'browser', 'browser_count', 'browser_matrix'])
+    assert.equal(jobs.changes.outputs[key], '${{ steps.plan.outputs.' + key + ' }}');
+  assert.equal(jobs['non-browser'].if, "needs.changes.outputs.non_browser == 'true'");
+  assert.equal(jobs.browser.if, "needs.changes.outputs.browser == 'true'");
+  assert.equal(jobs['non-browser'].strategy, undefined);
+  assert.equal(jobs.browser.strategy['fail-fast'], false);
+  assert.equal(jobs.browser.strategy.matrix, '${{ fromJSON(needs.changes.outputs.browser_matrix) }}');
+  for (const phase of ['non-browser', 'browser']) {
+    const job = jobs[phase];
+    assert.equal(job.needs, 'changes');
+    assert.equal(job['timeout-minutes'], 45);
+    assert.equal(job['continue-on-error'], undefined);
+    const plan = job.steps.find(step => step.id === 'plan');
+    assert.ok(plan.run.includes('--list --github-output'));
+    assert.ok(plan.run.includes('--phase ' + phase));
+    const execution = job.steps.find(step => step.run?.includes('run-application-checks.mjs') && !step.run.includes('--list'));
+    assert.ok(execution.run.includes('--phase ' + phase));
+    assert.equal(execution.env.PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE, '1');
+    const upload = job.steps.find(step => step.uses === 'actions/upload-artifact@v4');
+    assert.equal(upload.if, 'always()');
+    assert.ok(upload.with.name.includes('application-checks-' + phase));
+    assert.ok(upload.with.path.includes('application-checks-' + phase));
+    if (phase === 'browser') {
+      for (const step of [plan, execution]) assert.ok(step.run.includes('--shard ${{ matrix.current }}/${{ matrix.total }}'));
+      assert.ok(upload.with.name.includes('${{ matrix.current }}-of-${{ matrix.total }}'));
+      assert.ok(upload.with.path.includes('test-results/'));
+      assert.ok(job.steps.some(step => step.run === 'pnpm exec playwright install --with-deps chromium'));
+    } else assert.equal(job.steps.some(step => step.run?.includes('playwright install')), false);
+  }
+  assert.deepEqual(jobs.checks.needs, ['changes', 'non-browser', 'browser']);
+  assert.equal(jobs.checks.if, "always() && (github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-'))");
+  assert.equal(jobs.checks.steps.some(step => step.run?.includes('run-application-checks.mjs')), false);
+  assert.equal(jobs.changes.steps.find(step => step.id === 'plan').if,
+    "github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-')");
+});
+
+test('Architecture aggregate rejects missing failed or cancelled work and accepts only selected success or explicit empty phases', () => {
+  const workflow = parse(readFileSync(new URL('../../.github/workflows/application-architecture.yml', import.meta.url), 'utf8'));
+  const aggregate = workflow.jobs.checks.steps.find(step => step.id === 'aggregate');
+  assert.ok(aggregate, 'the existing checks job must aggregate every selected execution phase');
+  const source = aggregate.run.match(/^node <<'NODE'\n([\s\S]*)\nNODE\s*$/)?.[1];
+  assert.ok(source, 'exercise the actual inline gate, not a copy of its logic');
+  const references = {
+    SELECTION_RESULT: 'needs.changes.result', CHECKS_SELECTED: 'needs.changes.outputs.checks',
+    NON_BROWSER_SELECTED: 'needs.changes.outputs.non_browser', BROWSER_SELECTED: 'needs.changes.outputs.browser',
+    BROWSER_COUNT: 'needs.changes.outputs.browser_count', BROWSER_MATRIX: 'needs.changes.outputs.browser_matrix',
+    NON_BROWSER_RESULT: 'needs.non-browser.result', BROWSER_RESULT: 'needs.browser.result',
+  };
+  for (const [key, reference] of Object.entries(references)) assert.equal(aggregate.env[key], '${{ ' + reference + ' }}');
+  const matrix = count => JSON.stringify({ include: Array.from({ length: Math.min(8, count) }, (_, i) => ({ current: i + 1, total: Math.min(8, count) })) });
+  const valid = { SELECTION_RESULT: 'success', CHECKS_SELECTED: 'true', NON_BROWSER_SELECTED: 'true', BROWSER_SELECTED: 'true',
+    BROWSER_COUNT: '9', BROWSER_MATRIX: matrix(9), NON_BROWSER_RESULT: 'success', BROWSER_RESULT: 'success' };
+  const run = overrides => runInNewContext(source, { process: { env: { ...valid, ...overrides } }, console: { log() {} } });
+  assert.doesNotThrow(() => run({}));
+  for (const key of Object.keys(valid)) assert.throws(() => run({ [key]: '' }), undefined, 'missing ' + key);
+  for (const key of ['SELECTION_RESULT', 'NON_BROWSER_RESULT', 'BROWSER_RESULT'])
+    for (const result of ['failure', 'cancelled', 'skipped']) assert.throws(() => run({ [key]: result }), undefined, key + ':' + result);
+  for (const key of ['CHECKS_SELECTED', 'NON_BROWSER_SELECTED', 'BROWSER_SELECTED'])
+    for (const value of ['yes', 'false', 'null']) assert.throws(() => run({ [key]: value }), undefined, key + ':' + value);
+  for (const count of ['-1', '0', '1.5', '05', '9007199254740992']) assert.throws(() => run({ BROWSER_COUNT: count }));
+  for (const badMatrix of ['missing', 'null', '[]', '{}', matrix(0), matrix(3),
+    '{"include":[{"current":1,"total":1},{"current":1,"total":1}]}']) assert.throws(() => run({ BROWSER_MATRIX: badMatrix }));
+  const noBrowser = { BROWSER_SELECTED: 'false', BROWSER_COUNT: '0', BROWSER_MATRIX: matrix(0), BROWSER_RESULT: 'skipped' };
+  assert.doesNotThrow(() => run(noBrowser));
+  assert.doesNotThrow(() => run({ NON_BROWSER_SELECTED: 'false', NON_BROWSER_RESULT: 'skipped' }));
+  assert.doesNotThrow(() => run({ ...noBrowser, CHECKS_SELECTED: 'false', NON_BROWSER_SELECTED: 'false', NON_BROWSER_RESULT: 'skipped' }));
+  assert.throws(() => run({ ...noBrowser, BROWSER_RESULT: 'success' }));
+  assert.throws(() => run({ ...noBrowser, NON_BROWSER_RESULT: 'skipped' }));
 });
 
 test('transitive source changes choose related units and declared HTTP browser consumers', () => {

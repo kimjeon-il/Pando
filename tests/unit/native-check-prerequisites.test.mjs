@@ -228,7 +228,7 @@ test('each application runner execution receives the same selected native setup 
       consumers.push(file);
     }
   }
-  assert.deepEqual(consumers.sort(),['application-architecture.yml','place-runtime.yml',
+  assert.deepEqual(consumers.sort(),['application-architecture.yml','application-architecture.yml','place-runtime.yml',
     'remote-development-p1.yml','remote-preview-p3.yml','ui-architecture.yml']);
 });
 

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { projectMapPoint } from './helpers/editor-entry.mjs';
 
 test.use({ viewport: { width: 1100, height: 760 }, deviceScaleFactor: 1, trace: 'off',
   launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
@@ -178,13 +179,27 @@ for (const source of ['dem', 'raster']) {
         expect(current.prepared).toEqual(low.prepared);
         expect(requests.length).toBe(priorRequests);
       }
-      await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+      const beforeSelection = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
+      await page.addStyleTag({ content: '#map .territorial-label-item {pointer-events:none !important;}' });
+      const selectedPoint = await projectMapPoint(page, [32, 39]);
+      await page.mouse.click(selectedPoint.x, selectedPoint.y);
+      const chooser = page.locator('#objectChooserList [data-object-chooser-index]');
+      await expect.poll(async () => await chooser.count() > 0 || await page.evaluate(() =>
+        window.__PANDOLAB_VIEWER__.selectionSnapshot().items.some(ref => ref.id === 'TUR'))).toBe(true);
+      if (await chooser.count()) await chooser.filter({ hasText: '튀르키예' }).click();
+      await expect.poll(() => page.evaluate(() =>
+        window.__PANDOLAB_VIEWER__.selectionSnapshot().items.map(ref => ref.id))).toContain('TUR');
       await expect.poll(async () => (await snapshot(page)).quality).toBe('canonical');
       expect((await snapshot(page)).terrainLevel).toBe(0);
       expect((await snapshot(page)).prepared).toEqual(low.prepared);
-      await page.locator('#mobileEditBtn').evaluate(button => button.click());
+      const clearPoint = await projectMapPoint(page, [-30, 10]);
+      await page.mouse.click(clearPoint.x, clearPoint.y);
+      await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot().items)).toEqual([]);
       await expect.poll(async () => (await snapshot(page)).quality).toBe('preview');
       expect((await snapshot(page)).prepared).toEqual(low.prepared);
+      const afterSelection = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
+      for (const key of ['checkpoint', 'presentationCheckpoint', 'dirty', 'canUndo'])
+        expect(afterSelection[key]).toBe(beforeSelection[key]);
       gate = new Promise(resolve => { release = resolve; }); delayDetail = true;
       await page.evaluate(() => {
         const map = document.getElementById('map'), rect = map.getBoundingClientRect();
