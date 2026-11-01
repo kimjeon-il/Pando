@@ -21,9 +21,15 @@ jobs:
           version: 11.19.0
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - uses: ./.github/actions/library-data
-      - name: Lint the reviewed merge and fixture sources
-        run: pnpm exec eslint shared/frontend/js/modules/builtin-world-loader.js tests/helpers/frontend-build-fixture.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs apps/editor/tests/helpers/world-fixture.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/product-assets.test.mjs
-      - name: Read only relevant dated source descriptors without emitting coordinates
+      - name: Qualify existing Node-only test global and lint the reviewed files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/unit/builtin-country-retry.test.mjs');s=p.read_text();old='setImmediate(resolve)';assert s.count(old)==1;p.write_text(s.replace(old,'globalThis.setImmediate(resolve)'))
+          PY
+          pnpm exec eslint shared/frontend/js/modules/builtin-world-loader.js tests/helpers/frontend-build-fixture.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs apps/editor/tests/helpers/world-fixture.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/product-assets.test.mjs
+      - name: Read relevant dated source descriptors without emitting coordinates
+        if: ${{ !cancelled() }}
         run: |
           node --input-type=module <<'JS'
           import {readTerritorialSource} from './tools/territorial-entity-sources.mjs';
@@ -32,7 +38,8 @@ jobs:
             console.log('DATED_SOURCE='+JSON.stringify({id,lifetime:e.lifetime,versions:e.geometryVersions.map(v=>({id:v.versionId,from:v.validFrom,to:v.validTo,certainty:v.certainty,provenance:v.historicalProvenance?Object.keys(v.historicalProvenance):[]}))}));
           }
           JS
-      - name: Preserve original membership assertion while bounding its failure output
+      - name: Preserve original membership assertion while bounding failure output
+        if: ${{ !cancelled() }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
