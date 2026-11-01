@@ -2,7 +2,7 @@ import {createRuntimeContext} from '../../../../../shared/frontend/js/modules/ru
 import {createMapOwners,initializeMapReadOwners} from "../../../../../shared/frontend/js/modules/map-owner-composition.js";
 import {handleEditorMapClick} from './editor-map-click.js';
 /** Compose owners, connect their explicit ports, then initialize in dependency order. */
-export async function composeApplication({ productMode, revision, platform = {}, onComposed = null }) {
+export async function composeApplication({ productMode, revision, platform, onComposed = null }) {
   const runtimeContext=createRuntimeContext({productMode,meta:globalThis.PANDOLAB_BUILD_META,assetBaseUrl:new URL('../',import.meta.url),platform});
   platform=runtimeContext.platform;
   if(revision!==runtimeContext.meta.assetRevision)throw new Error('Application asset revision mismatch.');
@@ -102,31 +102,31 @@ export async function composeApplication({ productMode, revision, platform = {},
   const territorialConversion = factoryTerritorialConversion.createTerritorialConversion();
   const projectSnapshots = factoryProjectSnapshots.createProjectSnapshots();
   const mapSettings = factoryMapSettings.createMapSettings({capabilities,viewPresentation:{applyPresentation:projectSession.applyViewingPresentation},authoredStyles:true});
-  const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storageNamespace,
-    libraryGeometryContext:platform.libraryGeometryContext });
+  const historyAssembly = factoryHistoryAssembly.createHistoryAssembly({ storageNamespace: platform.storage.namespace,
+    libraryGeometryContext:platform.library.geometryContext });
   const projectRestore = factoryProjectRestore.createProjectRestore();
   const objectDeletion = factoryObjectDeletion.createObjectDeletion();
-  const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.fileAccess });
+  const gisAssembly = factoryGisAssembly.createGisAssembly({ fileAccess: platform.files.access });
   const libraryAssembly = factoryLibraryAssembly.createLibraryAssembly({openLibrary:async()=>{
     const meta=runtimeContext.meta;
     return runtime.territorialEntityLoaderModule.openTerritorialLibraryAccess({
-      repository:platform.getLibraryRepository?await platform.getLibraryRepository():null,
+      repository:platform.library.getRepository?await platform.library.getRepository():null,
       source:{indexUrl:environment.TERRITORIAL_LIBRARY_INDEX_URL,indexSpec:meta.territorialIndex,dataRevision:meta.dataRevision},
       onSyncError:error=>readinessNotifications.reportOperationError(error,'라이브러리는 로컬 자료로 열었습니다. GitHub 동기화 대기 중입니다.','PL-LIB-SYNC-OPEN'),
     });
   }});
   const navigationBindings = factoryNavigationBindings.createNavigationBindings({productMode});
   const toolBindings = factoryToolBindings.createToolBindings();
-  const fileBindings = factoryFileBindings.createFileBindings({libraryGeometryContext:platform.libraryGeometryContext});
-  const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings({libraryGeometryContext:platform.libraryGeometryContext});
+  const fileBindings = factoryFileBindings.createFileBindings({libraryGeometryContext:platform.library.geometryContext});
+  const globalInputBindings = factoryGlobalInputBindings.createGlobalInputBindings({libraryGeometryContext:platform.library.geometryContext});
   const editorBindings = factoryEditorBindings.createEditorBindings();
   const progressiveStartup = factoryProgressiveStartup.createProgressiveStartup({
-    startupMesh: platform.startupMesh,
-    libraryGeometryContext:platform.libraryGeometryContext,
+    startupMesh: platform.resources.startupMesh,
+    libraryGeometryContext:platform.library.geometryContext,
   });
   const domainAssembly = factoryDomainAssembly.createDomainAssembly();
   const lifecycleAssembly = factoryLifecycleAssembly.createLifecycleAssembly({onStarted:async({isActive})=>{
-        if(platform.libraryGeometryContext)platform.libraryGeometryContext.attachRuntime(Object.freeze({
+        if(platform.library.geometryContext)platform.library.geometryContext.attachRuntime(Object.freeze({
           projectDomain:domainAssembly.projectDomain,entityRepository:domainAssembly.territorialEntityRepository,
           editingDomain:domainAssembly.editingDomain,getState:()=>projectSession.state,
         }));

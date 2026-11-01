@@ -1,5 +1,6 @@
 import {presentViewerLoadStatus} from './viewer-load-status.js';
 import {createRuntimeContext} from '../../../../shared/frontend/js/modules/runtime-context.js';
+import {createPlatformPorts} from '../../../../shared/frontend/js/modules/platform-ports.js';
 import {createBrowserFileAccess} from '../../../../shared/frontend/js/modules/browser-file-access.js';
 import {connectMapOwner} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
 import {createBrowserProjectStorage} from "../../../../shared/frontend/js/modules/browser-project-storage.js";
@@ -38,7 +39,7 @@ import {createBuiltinMonthClock} from "../../../../shared/frontend/js/modules/bu
 import {territorialMembershipDelta} from "../../../../shared/frontend/js/modules/territorial-entity-store.js";
 
 export async function composeViewer({ productMode, meta }) {
-  const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url)});
+  const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url),platform:createPlatformPorts({kind:'browser'})});
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,syncStatus,builtinActive=true;

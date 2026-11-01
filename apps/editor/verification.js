@@ -24,7 +24,7 @@ export async function createFixtureProfile(profile) {
     mode: 'test-fixture',
     countriesUrl,
     platform: Object.freeze({
-      builtinWorldLoader: createBuiltinWorldLoader({
+      world: Object.freeze({ builtinLoader: createBuiltinWorldLoader({
         manifestUrl: manifestUrl.href,
         manifestSpec: profile.builtinWorld,
         dataRevision: 'pandoeditor-shell-fixture-v1',
@@ -37,11 +37,9 @@ export async function createFixtureProfile(profile) {
         },
         // The shell must not share the website's world cache or its cleanup.
         cacheStorage: null,
-      }),
-      builtinHydroAvailable: false,
-      builtinPlacesAvailable: false,
-      startupMesh: 'project',
-      storageNamespace: 'pandoeditor-web-shell-prototype-v1',
+      }) }),
+      resources: Object.freeze({ builtinHydro: false, builtinPlaces: false, startupMesh: 'project' }),
+      storage: Object.freeze({ namespace: 'pandoeditor-web-shell-prototype-v1' }),
     }),
   });
 }
@@ -66,10 +64,13 @@ export async function startFixture({ profile, meta, assetBase, versionedAsset })
   const countries = await fetch(profile.countriesUrl);
   if (!countries.ok) throw new Error(`Shell geometry unavailable (${countries.status}).`);
   window.PANDOLAB_COUNTRIES = await countries.json();
-  const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
+  const [{ composeApplication }, { createPlatformPorts }] = await Promise.all([
+    import(versionedAsset('./modules/app-composition.js').href),
+    import(versionedAsset('./modules/platform-ports.js').href),
+  ]);
   let diagnostics;
   const application = await composeApplication({ productMode: 'editor', revision: meta.assetRevision,
-    platform: { ...profile.platform, fileAccess: createNativeStorage() },
+    platform: createPlatformPorts({ kind: 'native', ...profile.platform, files: { access: createNativeStorage() } }),
     onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
   });
   if (!await application.start()) throw new Error('The application could not finish startup.');

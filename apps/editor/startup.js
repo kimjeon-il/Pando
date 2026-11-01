@@ -25,8 +25,12 @@ async function start() {
   installNetworkGuard(globalThis, { allowBundledData: profileMeta.mode === 'map-data', physicalAssets });
   const assetBase = new URL('../assets/js/', import.meta.url);
   const runtimeModuleUrl=new URL('../assets/js/modules/runtime-context.js',import.meta.url);
+  const platformModuleUrl=new URL('../assets/js/modules/platform-ports.js',import.meta.url);
   runtimeModuleUrl.searchParams.set('v',meta.assetRevision);
-  const {validateBuildMetadata,versionedAssetUrl}=await import(runtimeModuleUrl.href);
+  platformModuleUrl.searchParams.set('v',meta.assetRevision);
+  const [{validateBuildMetadata,versionedAssetUrl},{createPlatformPorts}]=await Promise.all([
+    import(runtimeModuleUrl.href),import(platformModuleUrl.href),
+  ]);
   validateBuildMetadata(meta);
   const versionedAsset=relative=>versionedAssetUrl(relative,assetBase,meta.assetRevision);
   const profile = profileMeta.mode === 'map-data'
@@ -63,11 +67,11 @@ async function start() {
   if (profile.mode === 'map-data') {
     // The map-data shell must take precisely the website's progressive WebGL
     // preview -> canonical country packet -> canonical mesh startup path.
-    globalThis.__PANDOLAB_SHELL_PLATFORM__ = Object.freeze({
+    globalThis.__PANDOLAB_SHELL_PLATFORM__ = createPlatformPorts({
+      kind: 'native',
       ...profile.platform,
-      fileAccess: createNativeStorage(),
-      getLibraryRepository,
-      libraryGeometryContext,
+      files: { access: createNativeStorage() },
+      library: { getRepository: getLibraryRepository, geometryContext: libraryGeometryContext },
     });
     window.addEventListener('pandolab:ready', () => {
       window.__PANDOLAB_SHELL_READY__ = true;

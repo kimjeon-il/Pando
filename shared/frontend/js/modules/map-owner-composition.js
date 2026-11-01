@@ -32,11 +32,11 @@ export function initializeMapReadOwners(owners,phase){
 }
 
 /** One owner graph; only the editor may register mutation and persistence hooks. */
-export function createMapOwners({productMode,platform={},buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
+export function createMapOwners({productMode,platform=null,buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
   if(productMode==='viewer'&&editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform);
-  const builtinSession=createBuiltinSession({builtinWorldLoader:platform.builtinWorldLoader,buildMeta});
+  const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta});
   const workspaceSurfaces=createWorkspaceSurfaces({productMode});
   const projectSession=createProjectSession({productMode,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});
