@@ -6,8 +6,9 @@ on:
     paths:
       - '.github/workflows/builtin-country-deployment.yml'
       - 'tests/unit/builtin-country-deployment.test.mjs'
-      - 'tests/unit/builtin-country-storage.test.mjs'
+      - 'tests/unit/builtin-country-parts.test.mjs'
       - 'tools/builtin-country-storage.mjs'
+      - 'shared/frontend/js/modules/builtin-country-files.js'
       - 'scripts/lib/product-assets.mjs'
       - 'apps/editor/world-data-plan.mjs'
       - 'apps/editor/stage.mjs'
@@ -37,14 +38,5 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Prepare exact pinned inputs; no regeneration or data publication
         uses: ./.github/actions/library-data
-      - name: Audit country file sizes without returning map payloads
-        run: |
-          node --input-type=module <<'JS'
-          import fs from 'node:fs';
-          const index=JSON.parse(fs.readFileSync('assets/data/builtin-world/generated/v1/index.json'));
-          const source=JSON.parse(fs.readFileSync('assets/data/territorial-entities/generated/v2/index.json'));
-          const sizes=rows=>rows.map(({entityId,compressedBytes,decodedBytes})=>({entityId,compressedBytes,decodedBytes})).sort((a,b)=>b.compressedBytes-a.compressedBytes);
-          console.log(JSON.stringify({countryCount:index.entities.length,totalStoredBytes:index.entities.reduce((n,row)=>n+row.compressedBytes,0),largestCountries:sizes(index.entities).slice(0,5),largestSources:sizes(source.entities).slice(0,5)}));
-          JS
-      - name: Verify independent Web and App country deployment contracts
-        run: node --test --test-timeout=15000 tests/unit/builtin-country-deployment.test.mjs
+      - name: Verify independent deployment, bounded files and scoped storage contracts
+        run: node --test --test-timeout=15000 tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs
