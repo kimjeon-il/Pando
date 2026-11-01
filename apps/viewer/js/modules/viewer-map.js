@@ -297,7 +297,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
       session=next;projectSession.setViewingPresentation(view||{},{reset:true});if(prepareView)await prepareView();await update();
     },
-    finishInitialPreview:initialPreview.dispose,
+    finishInitialPreview:initialPreview.finish,
+    cancelInitialReveal:initialPreview.dispose,
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{

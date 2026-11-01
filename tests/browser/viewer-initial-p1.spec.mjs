@@ -45,15 +45,39 @@ async function observe(page,profile,info,label){
   await page.screenshot({path:info.outputPath(label+'-preview.png')});
   return state;
 }
-async function finish(page){
+async function finish(page,{reduced=false}={}){
+  await page.evaluate(() => {
+    window.__viewerFirstRevealPhases = [];
+    const root = document.getElementById('viewer');
+    const observer = new MutationObserver(() => {
+      window.__viewerFirstRevealPhases.push(root.dataset.initialReveal ?? 'unset');
+    });
+    observer.observe(root,{attributes:true,attributeFilter:['data-initial-reveal']});
+    window.__viewerFirstRevealObserver = observer;
+  });
   await page.evaluate(()=>{window.__p1Hold=false;window.__p1Release();});
   await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false',{timeout:100000});
   await expect(page.locator('#viewerInitialPreview')).toBeHidden();
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
+  if(!reduced)await expect.poll(()=>page.evaluate(() =>
+    window.__viewerFirstRevealPhases?.includes('labels') ?? false),{timeout:10000}).toBe(true);
+  const phases=await page.evaluate(() => {
+    window.__viewerFirstRevealObserver?.disconnect();
+    return window.__viewerFirstRevealPhases || [];
+  });
+  if(reduced){
+    expect(phases).not.toContain('countries');
+    expect(phases).not.toContain('labels');
+  }else{
+    expect(phases).toContain('countries');
+    expect(phases).toContain('labels');
+    expect(phases.indexOf('countries')).toBeLessThan(phases.indexOf('labels'));
+  }
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.initialMapPresented())).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.visibleTerritorialCount())).toBeGreaterThan(0);
   return await page.evaluate(()=>({scale:window.__PANDOLAB_VIEWER__.rendererStats().screenScale,
-    camera:window.__PANDOLAB_MAP_HOST__?.getViewState?.()||null}));
+    camera:window.__PANDOLAB_MAP_HOST__?.getViewState?.()||null,
+    revealPhases:window.__viewerFirstRevealPhases}));
 }
 for(const profile of profiles){
   test('P1-4 startup/reload and tab: '+profile.name,async({page},info)=>{
@@ -67,7 +91,7 @@ for(const profile of profiles){
     await gated(page);
     await page.goto('/?debug=1');
     const first=await observe(page,profile,info,'initial');
-    const finalMap=await finish(page);
+    const finalMap=await finish(page,profile);
     expect(first.initialGlobeDiameter,{message:'Preview globe must use final canonical camera scale, not initial zoom=1'}).toBeGreaterThan(0);
     expect(finalMap.scale).toBeGreaterThan(0);
     expect(Math.abs(first.initialGlobeDiameter/(2*finalMap.scale)-1),
@@ -77,6 +101,7 @@ for(const profile of profiles){
     await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.builtinMonth().month),
       {timeout:95000}).toBe('2025-12');
     await expect(page.locator('#viewerInitialPreview')).toBeHidden();
+    await expect(page.locator('#viewer')).toHaveAttribute('data-initial-reveal','complete');
     await page.evaluate(()=>{
       window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));
       document.dispatchEvent(new Event('visibilitychange'));
@@ -88,7 +113,7 @@ for(const profile of profiles){
       await page.reload();
       const afterReload=await observe(page,profile,info,'reload');
       expect(afterReload.color).toBe(first.color);
-      const afterReloadFinal=await finish(page);
+      const afterReloadFinal=await finish(page,profile);
       expect(Math.abs(afterReload.initialGlobeDiameter/(2*afterReloadFinal.scale)-1),
         'Reloaded initial preview diameter must match the canonical map').toBeLessThan(0.025);
     }

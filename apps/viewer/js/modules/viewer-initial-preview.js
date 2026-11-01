@@ -6,16 +6,66 @@ export function createViewerInitialPreview({element, loadLand, isInitial, onErro
     || typeof isInitial !== 'function' || typeof onError !== 'function') {
     throw new TypeError('Initial preview requires its SVG paths and lifecycle/resource ports.');
   }
-  let disposed = false, loading = null, geometry = null, lastFrame = null, lastTheme = null, pathKey = null;
+  let disposed = false, finishing = false, fade = null, removeVisibilityListener = null;
+  let loading = null, geometry = null, lastFrame = null, lastTheme = null, pathKey = null;
   element.setAttribute('hidden', '');
   function dispose() {
+    if (disposed) return;
     disposed = true;
+    removeVisibilityListener?.();
+    removeVisibilityListener = null;
+    const pendingFade = fade;
+    fade = null;
+    pendingFade?.cancel?.();
+    const root = element.closest?.('.viewer-root');
+    if (root?.dataset.initialReveal === 'countries') root.dataset.initialReveal = 'complete';
     geometry = lastFrame = lastTheme = pathKey = null;
     element.setAttribute('hidden', '');
     oceanPath.removeAttribute('d');
     landPath.removeAttribute('d');
     oceanPath.removeAttribute('transform');
     landPath.removeAttribute('transform');
+  }
+  // The accepted country + border frame is already displayed behind the
+  // decorative land SVG. Fading that SVG reveals the real map, then labels.
+  // Neither phase delays Core acceptance, map readiness, or user input.
+  function finish() {
+    if (disposed || finishing) return false;
+    const root = element.closest?.('.viewer-root');
+    const doc = element.ownerDocument;
+    const view = doc?.defaultView;
+    if (element.hasAttribute('hidden') || !root || !view ||
+      doc.visibilityState !== 'visible' ||
+      typeof view.matchMedia !== 'function' ||
+      view.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      typeof element.animate !== 'function' ||
+      typeof doc.addEventListener !== 'function' ||
+      typeof doc.removeEventListener !== 'function') {
+      dispose();
+      return false;
+    }
+    finishing = true;
+    root.dataset.initialReveal = 'countries';
+    try {
+      fade = element.animate([{opacity: 1}, {opacity: 0}],
+        {duration: 180, easing: 'ease-out', fill: 'forwards'});
+      if (!fade?.finished || typeof fade.finished.then !== 'function')
+        throw new TypeError('First-map reveal did not return a completion promise.');
+      const onVisibility = () => { if (doc.visibilityState === 'hidden') dispose(); };
+      doc.addEventListener('visibilitychange', onVisibility);
+      removeVisibilityListener = () => doc.removeEventListener('visibilitychange', onVisibility);
+      fade.finished.then(() => {
+        if (disposed) return;  // A newer date/file or hidden tab canceled it.
+        const revealLabels = root.dataset.initialReveal === 'countries' && doc.visibilityState === 'visible';
+        dispose();
+        if (revealLabels) root.dataset.initialReveal = 'labels';
+      }, () => { if (!disposed) dispose(); });
+      return true;
+    } catch (error) {
+      dispose();
+      onError(error);
+      return false;
+    }
   }
   function fail(error) {
     if (!disposed && isInitial()) {
@@ -26,7 +76,7 @@ export function createViewerInitialPreview({element, loadLand, isInitial, onErro
   }
   function render(frame, theme) {
     if (disposed) return false;
-    if (!isInitial()) { dispose(); return false; }
+    if (!isInitial()) { if (!finishing) dispose(); return false; }
     lastFrame = frame; lastTheme = theme;
     if (!geometry || !frame) return false;
     try {
@@ -87,5 +137,5 @@ export function createViewerInitialPreview({element, loadLand, isInitial, onErro
       }).catch(fail);
     return loading;
   }
-  return Object.freeze({start, render, dispose});
+  return Object.freeze({start, render, finish, dispose});
 }

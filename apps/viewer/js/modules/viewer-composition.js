@@ -168,6 +168,11 @@ export async function composeViewer({ productMode, meta }) {
   });
   disposables.push({dispose:disposeTimeline});
   const open=async (reader,options)=>{
+    if (initialPresentation.hasPresented()) {
+      // First-page effects must not replay or overlap later date/file opens.
+      get('viewer').dataset.initialReveal = 'complete';
+      map.cancelInitialReveal();
+    }
     adjacentPrefetch.interrupt();
     postPresentation.invalidate();
     const searchTicket=searchController.beginProjectTransition?.();
