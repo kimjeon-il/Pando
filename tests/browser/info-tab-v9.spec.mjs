@@ -4,12 +4,6 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 import { selectUiOption } from './helpers/ui-select.mjs';
 
-async function openDisclosure(page, selector) {
-  const details = page.locator(selector);
-  await expect(details).toBeVisible({ timeout: 15_000 });
-  if (!await details.evaluate(node => node.open)) await details.locator('summary').click();
-}
-
 test('editor derives live hierarchy in Relations, focuses only via GPS and preserves metadata validation and history', async ({ page }, testInfo) => {
   test.setTimeout(480_000);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -68,8 +62,9 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
       return selected && await page.locator('#entityProperties').isVisible();
     }, { timeout: 30_000 }).toBe(true);
     await expect(page.locator('#entityNameInput')).toHaveValue(project.territorialEntities.find(feature => feature.id === id).properties.name);
-    await page.locator('#editorTabBtn').click();
-    await openDisclosure(page, '#entityRelationsDisclosure');
+    // An unavailable Relations tab must fail promptly, not hang for 8 minutes.
+    await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });
+    await page.locator('#relationTabBtn').click();
   };
   for (const [id, parent, children] of [['R', false, false], ['C', true, false], ['A', false, true], ['B', true, true]]) {
     await select(id);
@@ -79,9 +74,9 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   }
   const rows = page.locator('#entityChildRows .editor-relation-row');
   await expect(rows).toHaveCount(2);
-  expect(await page.locator('#entityProperties > .editor-info-section').first().textContent()).not.toMatch(/メモ|메모|유효 기간|관계 없음|소속 없음|산하 없음/);
-  expect(await page.locator('#entityProperties > .editor-info-section').first().textContent()).toMatch(/이름[\s\S]*존속기간[\s\S]*색상[\s\S]*비고/);
-  await expect(page.locator('#entityRelationsDisclosure')).toHaveCount(1);
+  expect(await page.locator('#entityProperties .editor-info-section').textContent()).not.toMatch(/メモ|메모|유효 기간|관계 없음|소속 없음|산하 없음/);
+  expect(await page.locator('#entityProperties .editor-info-section').textContent()).toMatch(/이름[\s\S]*색상[\s\S]*존속기간[\s\S]*비고/);
+  await expect(page.locator('#entityProperties .editor-info-section #entityRelations')).toHaveCount(0);
   const style = await rows.last().evaluate(row => {
     const name = row.querySelector('.editor-relation-name');
     const button = row.querySelector('button');
@@ -109,7 +104,7 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
     expect((await view()).scale).toBe(expected.scale);
     await expect(page.locator('#entityNameInput')).toHaveValue('B 영토');
   }
-  await openDisclosure(page, '#entityRelationsDisclosure');
+  await page.locator('#relationTabBtn').click();
   await expect(page.locator('#entityChangeParentBtn')).toHaveText('변경');
   await expect(page.locator('#entityAddChildBtn')).toHaveText('추가');
   await expect(page.locator('#addEntityChildBtn')).toHaveCount(0);
@@ -149,7 +144,6 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await expect(period).toHaveValue('');
   await expect(period).not.toHaveAttribute('aria-invalid', 'true');
   await expect(page.locator('#redoBtn')).toBeEnabled();
-  await openDisclosure(page, '#entityNotesDisclosure');
   await page.locator('#entityNotesInput').fill('비고 변경');
   await page.locator('#entityNotesInput').dispatchEvent('change');
   const currentNotes = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B')?.properties.notes);
@@ -163,7 +157,8 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await select('B'); await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNotesInput')).toHaveValue('비고 변경');
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-desktop.png') });
-  await openDisclosure(page, '#entityRelationsDisclosure');
+  await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });
+  await page.locator('#relationTabBtn').click();
   const beforeChild = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C'));
   const selectionRevision = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);
   await page.locator('[data-relation-remove="C"]').click();
@@ -205,13 +200,12 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#entityPeriodInput')).toBeVisible();
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-mobile-top.png') });
-  await openDisclosure(page, '#entityRelationsDisclosure');
+  await page.locator('#relationTabBtn').click();
   await rows.last().scrollIntoViewIfNeeded();
   expect(await rows.last().evaluate(row => row.scrollWidth <= row.clientWidth)).toBe(true);
   await assertAddButtonFits();
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-mobile.png') });
   await page.locator('#editorTabBtn').click();
-  await openDisclosure(page, '#entityNotesDisclosure');
   await page.locator('#entityNotesInput').scrollIntoViewIfNeeded();
   await expect(page.locator('#entityNotesInput')).toHaveValue('비고 변경');
   expect(await page.locator('#editorScrollBody').evaluate(body => body.scrollWidth <= body.clientWidth)).toBe(true);
