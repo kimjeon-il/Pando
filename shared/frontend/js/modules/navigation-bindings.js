@@ -1,5 +1,5 @@
 import { isMobileWorkspaceLayout } from './workspace-layout.js';
-import { exitMenuOnTab } from './menu-presentation.js';
+import { clearMenuPosition, exitMenuOnTab, positionRootMenu } from './menu-presentation.js';
 
 /** NavigationBindings: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -51,6 +51,40 @@ export function createNavigationBindings({productMode='editor'}={}) {
       (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'true');
       requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
     };
+    let topbarOverflowOpen = false;
+    const topbarOverflowMenu = () => (0, dependencies.platform.$)('topbarOverflowMenu');
+    const positionTopbarOverflow = () => {
+      if (!topbarOverflowOpen) return;
+      positionRootMenu({
+        menu: topbarOverflowMenu(),
+        trigger: (0, dependencies.platform.$)('topbarOverflowBtn'),
+      });
+    };
+    const closeTopbarOverflow = ({ restoreFocus = false } = {}) => {
+      const menu = topbarOverflowMenu();
+      if (!menu || !topbarOverflowOpen) return;
+      topbarOverflowOpen = false;
+      menu.hidden = true;
+      clearMenuPosition(menu);
+      const trigger = (0, dependencies.platform.$)('topbarOverflowBtn');
+      trigger?.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) trigger?.focus({ preventScroll: true });
+    };
+    const openTopbarOverflow = () => {
+      const menu = topbarOverflowMenu();
+      const trigger = (0, dependencies.platform.$)('topbarOverflowBtn');
+      if (!menu || !trigger) return;
+      closeMobileMenu();
+      (0, dependencies.workspaceUiA.closeFileMenu)();
+      closeDesktopDisplayMenu?.();
+      topbarOverflowOpen = true;
+      menu.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => {
+        positionTopbarOverflow();
+        menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true });
+      });
+    };
     let displayPointerStartedInside = false;
     let searchToolbarPointer = false;
     const closeDesktopDisplayMenu = () => {
@@ -61,6 +95,7 @@ export function createNavigationBindings({productMode='editor'}={}) {
     };
     document.addEventListener('keydown',event=>{
       if(event.key!=='Escape'||event.defaultPrevented||document.querySelector('.ui-modal:not(.hidden),[aria-modal="true"]:not(.hidden):not([hidden])'))return;
+      if(topbarOverflowOpen){closeTopbarOverflow({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(mobileMenuOpen){closeMobileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(!dependencies.platform.$('objectChooser')?.classList.contains('hidden')){dependencies.objectPicking.closeObjectChooser({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(dependencies.workspaceUiB.isFileMenuOpen){dependencies.workspaceUiA.closeFileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
@@ -76,6 +111,7 @@ export function createNavigationBindings({productMode='editor'}={}) {
         (0, dependencies.workspaceUiA.closeFileMenu)();
       }
       if (!e.target.closest('#mobileGlobalMenu, #mobileMenuBtn')) closeMobileMenu();
+      if (!e.target.closest('#topbarOverflowMenu, #topbarOverflowBtn')) closeTopbarOverflow();
       if (!e.target.closest('#mapDisplaySurface, #mapDisplayBtn') && !(e.detail && displayPointerStartedInside)) {
         closeDesktopDisplayMenu();
       }
@@ -86,9 +122,46 @@ export function createNavigationBindings({productMode='editor'}={}) {
 
     (0, dependencies.platform.$)('mobileFileBtn')?.addEventListener('click', event => {
       event.stopPropagation();
+      closeTopbarOverflow();
       closeDesktopDisplayMenu();
       (0, dependencies.workspaceUiB.toggleFileMenu)();
     });
+    (0, dependencies.platform.$)('topbarOverflowBtn')?.addEventListener('click', event => {
+      event.stopPropagation();
+      if (topbarOverflowOpen) closeTopbarOverflow({ restoreFocus: true });
+      else openTopbarOverflow();
+    });
+    (0, dependencies.platform.$)('topbarOverflowMenu')?.addEventListener('click', event => {
+      if (!event.target.closest('[role="menuitem"]')) return;
+      queueMicrotask(() => closeTopbarOverflow());
+    });
+    (0, dependencies.platform.$)('topbarOverflowMenu')?.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeTopbarOverflow({ restoreFocus: true });
+        return;
+      }
+      if (event.key === 'Tab') {
+        exitMenuOnTab(event, {
+          menus: event.currentTarget,
+          trigger: (0, dependencies.platform.$)('topbarOverflowBtn'),
+          close: () => closeTopbarOverflow(),
+        });
+        return;
+      }
+      const items = [...event.currentTarget.querySelectorAll('[role="menuitem"]:not(:disabled)')];
+      const index = items.indexOf(document.activeElement);
+      let next = -1;
+      if (event.key === 'ArrowDown') next = (index + 1 + items.length) % items.length;
+      else if (event.key === 'ArrowUp') next = (index - 1 + items.length) % items.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = items.length - 1;
+      if (next < 0 || !items.length) return;
+      event.preventDefault();
+      items[next]?.focus({ preventScroll: true });
+    });
+    window.addEventListener('resize', positionTopbarOverflow);
     (0, dependencies.platform.$)('mobileMenuBtn')?.addEventListener('click', event => {
       event.stopPropagation();
       if (!mobileMenuOpen) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
