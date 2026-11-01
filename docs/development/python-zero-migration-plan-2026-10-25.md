@@ -13,7 +13,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-11-01 현행 기준: 추적 Python 21개
+### 2026-11-01 현행 기준: 추적 Python 20개
+
+- **자료 쓰기 lease:** 마지막 Python 생성기 호출자가 사라진 `tools/library_data.py`와 Python 전용 회귀 경로를 제거했다. Node의 동일 범위 lease, 작업트리별 독립 쓰기, 비동기 종료 및 오류 시 lease 해제를 검사한다. 보고서 경로 Python 헬퍼는 학습 호출자가 남아 있어 유지한다.
 
 - **복합 코퍼스 진단:** 매크로와 Semap 보조 코퍼스로 학습한 네이티브 체크포인트는 두 manifest 및 결합 원본 지문이 모두 일치할 때만 진단한다. 개별 지도와 코퍼스 실행에서 주 코퍼스 또는 보조 코퍼스를 명시적으로 선택하며, Semap 원본·라벨·권리와 출력 보호를 기존 Node 소유자로 검증한다. 보존 매크로 지도와 Semap 지도 각 한 건으로 CUDA 배치 한 번을 수행한 후 보조 지도 진단의 단일 실행과 코퍼스 실행에서 좌표·채널 통계·JPEG 바이트가 같았다. 이 체크포인트의 opset 17 ONNX manifest에 보조 코퍼스와 결합 지문을 보존하고, Node와 헤드리스 브라우저 WASM에서 같은 입력의 최대 절대오차 `0.0006847382`를 확인했다. 이는 학습 입력 진단 및 단일 타일 실행 동등성이며 독립 평가·모델 승인이나 Python 진단기의 전체 대체가 아니다.
 
@@ -155,7 +157,7 @@
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
-| `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
+| `tools/report_paths.py` | 기존 Node 보고서 경로 정본; 마지막 Python 호출자 | 권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
