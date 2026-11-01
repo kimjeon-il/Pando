@@ -14,6 +14,8 @@ export function validateTrainingLineage(value){
   return value;
 }
 export function buildTrainingLineage(sheets,{parent=null,parentSha256=null}={}){
+  if(!Array.isArray(sheets)||sheets.some(sheet=>!sheet||!['train','validation','test'].includes(sheet.split)))
+    throw Error('Explicit train, validation or test source split required');
   const result={schemaVersion:1,complete:true,parents:[],sheets:[]};
   if(parent!==null){validateTrainingLineage(parent);if(typeof parentSha256!=='string'||!SHA.test(parentSha256))throw Error('Complete verified ancestral lineage required');
     result.parents=[...parent.parents,parentSha256];result.sheets=parent.sheets.map(row=>({...row}));}
@@ -26,7 +28,9 @@ export function buildTrainingLineage(sheets,{parent=null,parentSha256=null}={}){
 }
 export function assertEvaluationIndependence(lineage,sheets,{split='test'}={}){
   validateTrainingLineage(lineage);
-  for(const sheet of sheets){if(!['test','validation'].includes(split)||sheet.split!==split)throw Error('Independent final-test split required');
+  if(!['test','validation'].includes(split))throw Error('Independent evaluation split required');
+  if(!Array.isArray(sheets)||!sheets.length)throw Error('Independent evaluation sources required');
+  for(const sheet of sheets){if(!sheet||sheet.split!==split)throw Error('Independent final-test split required');
     for(const key of KEYS)if(typeof sheet[key]!=='string'||!sheet[key]||(key==='sha256'&&!SHA.test(sheet[key])))
       throw Error('Not independent: ancestral '+key+' overlap or missing identity');
     for(const previous of lineage.sheets)for(const key of KEYS)if(!sheet[key]||sheet[key]===previous[key])throw Error('Not independent: ancestral '+key+' overlap or missing identity');

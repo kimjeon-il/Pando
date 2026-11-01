@@ -35,3 +35,11 @@ test('incomplete ancestry, hash aliases, missing IDs and wrong split are rejecte
   assert.throws(()=>assertEvaluationIndependence(buildTrainingLineage([]),[{...sheet('different','test'),familyId:null}]),/familyId/);
   assert.throws(()=>assertEvaluationIndependence(lineage,[sheet('different','validation')]),/split/i);
 });
+
+test('lineage rejects unknown source splits and empty independent evaluation scopes',()=>{
+  const lineage=buildTrainingLineage([sheet('train')]);
+  for(const split of [undefined,'training','',null])
+    assert.throws(()=>buildTrainingLineage([{...sheet('fresh'),split}]),/split/i);
+  assert.throws(()=>assertEvaluationIndependence(lineage,[]),/independent/i);
+  assert.throws(()=>assertEvaluationIndependence(lineage,[],{split:'other'}),/split/i);
+});
