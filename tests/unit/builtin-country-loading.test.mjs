@@ -82,7 +82,7 @@ test('a missing country rejects the complete query, retries only that file and c
  const pub=publication([{id:'A'},{id:'B'}]),target=pub.index.entities[1].file;let missing=true;
  const f=reader(pub,{response:file=>file===target&&missing?new Response(null,{status:404}):null});
  await assert.rejects(f.loader.loadProject('2026-10'),/404/);
- assert.equal(countryCalls(f).filter(file=>file===target).length,3);
+ assert.equal(countryCalls(f).filter(file=>file===target).length,1,'404 is not a transient download failure');
  assert.equal(countryCalls(f).filter(file=>file!==target).length,1);
  missing=false;const result=await f.loader.loadProject('2026-10');assert.equal(result.project.territorialEntities.length,2);
  assert.equal(countryCalls(f).filter(file=>file!==target).length,1);
@@ -146,4 +146,31 @@ test('loading still works when persistent cache access is unavailable',async()=>
  const pub=publication([{id:'A'}]),cacheStorage={open:async()=>{throw Error('storage unavailable');}};
  const f=reader(pub,{cacheStorage});assert.equal((await f.loader.loadProject('2026-10')).project.territorialEntities.length,1);
  const count=f.calls.length;await f.loader.loadProject('2026-11');assert.equal(f.calls.length,count);
+});
+
+
+test('background direct country reads retain the main concurrency limit and idle admission',async()=>{
+ const pub=publication([{id:'A'},{id:'B'},{id:'C'}]);let yields=0;
+ const f=reader(pub,{beforeFetch:()=>new Promise(resolve=>setTimeout(resolve,1))});
+ const result=await f.loader.loadProject('2026-10',{concurrency:1,waitForIdle:async()=>{yields++;}});
+ assert.equal(result.project.territorialEntities.length,3);
+ assert.equal(f.peak(),1);
+ assert.equal(yields,4); // Each country and the final publication wait for idle.
+ assert.deepEqual(countryCalls(f),pub.index.entities.map(row=>row.file));
+});
+
+test('cancellation during idle prevents country requests and scene publication',async()=>{
+ const f=reader(publication([{id:'A'}]));let current=true;
+ await assert.rejects(f.loader.loadProject('2026-10',{
+  isCurrent:()=>current,concurrency:1,waitForIdle:async()=>{current=false;}
+ }),error=>error.name==='AbortError');
+ assert.deepEqual(f.calls.map(row=>row.file),['index.json']);
+});
+
+test('invalid per-query country concurrency rejects before fetching the catalog',async()=>{
+ for(const concurrency of [0,7,1.5,NaN]){
+  const f=reader(publication([{id:'A'}]));
+  await assert.rejects(f.loader.loadProject('2026-10',{concurrency}),RangeError);
+  assert.equal(f.calls.length,0);
+ }
 });

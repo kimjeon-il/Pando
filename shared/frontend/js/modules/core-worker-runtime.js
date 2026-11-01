@@ -20,13 +20,27 @@ const documentMethods = Object.freeze({
   'core.document-presentation-catalog': 'presentationCatalogLoad','core.document-candidate-projection': 'candidateProjection',
   'core.document-replacement-capture': 'captureReplacement','core.document-replacement-rollback': 'rollbackReplacement',
   'core.document-replacement-release': 'releaseReplacement',
+  'core.document-temporal-source-prepare':'temporalSourcePrepare',
+  'core.document-temporal-source-stats':'temporalSourceStats',
+  'core.document-temporal-source-release':'temporalSourceRelease',
+  'core.document-temporal-candidate-prepare':'temporalCandidatePrepare',
+  'core.document-temporal-candidate-inspect':'temporalCandidateInspect',
+  'core.document-temporal-candidate-discard':'temporalCandidateDiscard',
+  'core.document-temporal-candidate-adopt':'temporalCandidateAdopt',
 });
 
 /** The single persistent C++ Project owns document, queries, selection and draft. */
 export function createCoreWorkerRuntime({ loadModule, validateFlagDataUrl, productMode = 'editor' }) {
   const policy = createProductModePolicy(productMode);
   let modulePromise = null;
-  const loadOnce = () => modulePromise ||= Promise.resolve().then(loadModule);
+  const loadOnce = () => {
+    if (!modulePromise) modulePromise = Promise.resolve().then(loadModule).catch(error => {
+      // A failed download is not a reusable module. Keep successful engines.
+      modulePromise = null;
+      throw error;
+    });
+    return modulePromise;
+  };
   const document = createDocumentSessionRuntime({ loadModule: loadOnce, validateFlagDataUrl });
   let loaded=false;
   let queue = Promise.resolve();

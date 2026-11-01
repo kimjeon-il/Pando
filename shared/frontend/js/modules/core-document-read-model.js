@@ -117,7 +117,9 @@ export function createCoreDocumentReadModel(initialProject) {
   }
   function acceptTransition(result,operation) {
     if (['core.document-candidate-projection','core.document-prepare'].includes(operation)) return project;
-    if (['core.document-load','core.document-load-baseline','core.document-initialize','core.document-replacement-rollback'].includes(operation)) acceptLoadedProject(result.project);
+    if (['core.document-load','core.document-load-baseline','core.document-initialize',
+      'core.document-replacement-rollback','core.document-temporal-candidate-adopt'].includes(operation))
+      acceptLoadedProject(result.project);
     if (result?.delta) apply(result.delta);
     if (result?.world) acceptWorld(result.world,result.state.epoch);
     else if (result?.state && world && result.state.epoch!==world.sourceEpoch) {

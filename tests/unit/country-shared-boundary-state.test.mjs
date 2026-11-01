@@ -406,3 +406,50 @@ test('the real Worker coalesces rapid replace patches and deletions while preser
   assert.deepEqual(final.packet.internalOwners['B|C'], ['C'], 'latest child/root metadata must classify the contact');
   assert.ok(final.packet.segments.every(segment => segment.start[0] === 4 && segment.end[0] === 4));
 });
+
+test('P4-5 entire worker replacements reuse untouched borders, recomputing only changed-neighbor contacts', async t => {
+  const incremental=countryWorker(t,undefined,'canonical');
+  const old=[rectangle('A',0,0,1,1),rectangle('B',1,0,2,1),
+    rectangle('C',4,0,5,1),rectangle('D',20,0,21,1),rectangle('E',21,0,22,1)];
+  const first=await incremental({type:'replace',features:old});
+  const duplicate=await incremental({type:'replace',features:structuredClone(old)});
+  assert.deepEqual(duplicate.preparationStats,first.preparationStats,
+    'cloned Core snapshots with identical bytes may not reprepare boundaries');
+  assert.deepEqual(duplicate.packet,first.packet,
+    'identical geometry and owner packets must produce exactly the same paint');
+
+  const next=structuredClone(old);
+  next[1]=rectangle('B',3,0,4,1);
+  const moved=await incremental({type:'replace',features:next});
+  assert.equal(moved.preparationStats.preparationCount,
+    first.preparationStats.preparationCount+1,
+    'only the moved polygon may be prepared again');
+  assert.equal(moved.preparationStats.contactComputationCount,
+    first.preparationStats.contactComputationCount+1,
+    'the distant D/E border must not enter contact computation again');
+  const fresh=countryWorker(t,undefined,'canonical');
+  const reference=await fresh({type:'replace',features:next});
+  assert.deepEqual(moved.packet,reference.packet,
+    'incremental geometry/neighbor border output must match fresh full computation');
+
+  const after=structuredClone(next);
+  after[0].geometry.coordinates[0][1][0]+=0.00000001;
+  const precise=await incremental({type:'replace',features:after});
+  assert.equal(precise.preparationStats.preparationCount,moved.preparationStats.preparationCount+1,
+    'even a tiny actual coordinate change must invalidate its source');
+  const fullPrecise=await fresh({type:'replace',features:after});
+  assert.deepEqual(precise.packet,fullPrecise.packet);
+});
+test('P4-5 hierarchy changes rebuild only dependent border presentation and match fresh full output',async t=>{
+  const request=countryWorker(t,undefined,'canonical');
+  const roots=[rectangle('ROOT',0,0,4,4),rectangle('CHILD',0,0,2,4,'ROOT')];
+  const original=await request({type:'replace',features:roots});
+  const updated=structuredClone(roots);
+  updated[1].boundaryRootId='CHILD';
+  const modified=await request({type:'replace',features:updated});
+  assert.deepEqual(modified.preparationStats,original.preparationStats,
+    'same coordinates with a changed hierarchy must reuse geometric contacts');
+  const fresh=countryWorker(t,undefined,'canonical');
+  assert.deepEqual(modified.packet,(await fresh({type:'replace',features:updated})).packet,
+    'the hierarchy itself must still change the internal boundary presentation');
+});

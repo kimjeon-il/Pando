@@ -1,0 +1,58 @@
+name: Core P5-7 native and WASM temporal equivalence
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/core/**
+      - shared/wasm/**
+      - shared/frontend/static/wasm/**
+      - shared/frontend/js/modules/core-wasm-loader.js
+      - shared/frontend/js/modules/core-document-client.js
+      - shared/frontend/js/modules/core-document-runtime.js
+      - shared/frontend/js/modules/core-worker-runtime.js
+      - shared/frontend/js/modules/product-mode-policy.js
+      - tools/load-node-core.mjs
+      - tools/package-shared-core-assets.mjs
+      - tests/unit/core-temporal-transport-p5-5.test.mjs
+      - tests/native/temporal-parity-probe.cpp
+      - tests/native/temporal-parity-p5-7.test.mjs
+      - tests/helpers/temporal-parity-p5-7.mjs
+      - tests/fixtures/portability/web-document-seed.json
+      - .github/workflows/core-temporal-parity-p5-7.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: core-p5-7-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  equivalence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compile only the native Core and parity probe
+        shell: bash
+        run: |
+          cmake -S shared -B build-native/core -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/core --target pandoeditor_core --parallel 2
+          c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
+      - name: Verify committed JS and WASM against this exact C++ source
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Identical fixed inputs, actual native and WASM results, failure and rollback
+        run: node --test tests/native/temporal-parity-p5-7.test.mjs
+      - name: Focused Worker cancellation and late acknowledgement contracts
+        run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs
+      - name: Retain bounded evidence even when a gate fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-temporal-p5-7-${{ github.sha }}
+          path: test-results/temporal-p5-7/
+          if-no-files-found: warn
+          retention-days: 14

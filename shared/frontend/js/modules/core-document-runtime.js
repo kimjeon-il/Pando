@@ -11,6 +11,10 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     if (!sessionPromise) sessionPromise = Promise.resolve().then(loadModule).then(module => {
       if (typeof module.DocumentSession !== 'function') fail('PL-CORE-DOCUMENT-ABI', 'The required whole-document C++ session export is missing.');
       return new module.DocumentSession({ validateFlagDataUrl });
+    }).catch(error => {
+      // Release only a failed admission; command errors never discard a live session.
+      sessionPromise = null;
+      throw error;
     });
     return sessionPromise;
   }
@@ -60,6 +64,15 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     storageSnapshot: (payload, context) => call('storageSnapshot', [], context),
     exportSnapshot: (payload, context) => call('exportSnapshot', [payload], context),
     storageBaselineLoad: (payload,context) => call('storageBaselineLoad',[payload.baseline,payload.expectedEpoch],context,state => ({ state })),
+    // Only WASM owns source bytes and candidate lifetime. No JS history or
+    // temporal resolver is introduced by these ordered Worker calls.
+    temporalSourcePrepare:(payload,context)=>call('temporalSourcePrepare',[payload],context),
+    temporalSourceStats:(payload,context)=>call('temporalSourceStats',[],context),
+    temporalSourceRelease:(payload,context)=>call('temporalSourceRelease',[payload],context),
+    temporalCandidatePrepare:(payload,context)=>call('temporalCandidatePrepare',[payload],context),
+    temporalCandidateInspect:(payload,context)=>call('temporalCandidateInspect',[payload],context),
+    temporalCandidateDiscard:(payload,context)=>call('temporalCandidateDiscard',[payload],context),
+    temporalCandidateAdopt:(payload,context)=>call('temporalCandidateAdopt',[payload],context,loadedResult),
     validateImport: (payload,context) => call('validateImport',[payload.storageJson,payload.baselineId],context),
     inspectImport: (payload,context) => call('inspectImport',() => [payload.storageJson,payload.baselineId,currentMonth()],context),
     resolveWorld: (payload, context) => call('resolveWorld', [payload.month, payload.expectedEpoch], context),

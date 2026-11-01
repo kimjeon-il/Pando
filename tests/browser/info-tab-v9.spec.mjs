@@ -2,7 +2,6 @@ import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
-import { currentCountryFlagUrl } from "../../shared/frontend/js/modules/country-flags.js";
 import { selectUiOption } from './helpers/ui-select.mjs';
 
 test('editor derives live hierarchy in Relations, focuses only via GPS and preserves metadata validation and history', async ({ page }, testInfo) => {
@@ -21,21 +20,23 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   extra.id = 'D'; extra.properties.name = '아주 긴 객체 이름으로 표시하는 산하 객체 ' + '긴 이름 '.repeat(12).trim();
   project.territorialEntities.push(extra);
   for (const collection of ['lifetimes', 'geometryBindings', 'parentRelations']) {
-    const record = structuredClone(project.timelineRecords[collection].find(row => row.entityId === 'C'));
-    record.id += ':D'; record.entityId = 'D';
+    const record = structuredClone(project.timelineRecords[collection].find(row => row.objectRef?.id === 'C'));
+    record.id += ':D'; record.objectRef.id = 'D';
     project.timelineRecords[collection].push(record);
   }
   for (const relation of project.timelineRecords.parentRelations) {
-    relation.parentId = ['C', 'D'].includes(relation.entityId) ? 'B' : relation.parentId;
+    relation.parentId = ['C', 'D'].includes(relation.objectRef.id) ? 'B' : relation.parentId;
     relation.coverageMode = 'explicit';
   }
   for (const [id, x, y, size] of [['A', 0, 0, 12], ['B', 1, 1, 10], ['C', 2, 2, 3], ['D', 7, 7, 3]]) {
     const geometry = { type: 'Polygon', coordinates: [[[x, y], [x, y + size], [x + size, y + size], [x + size, y], [x, y]]] };
     project.geometries.push({ id: `info-shape:${id}`, version: 1, geojson: geometry });
-    project.timelineRecords.geometryBindings.find(record => record.entityId === id).geometryRef = { id: `info-shape:${id}`, version: 1 };
+    project.timelineRecords.geometryBindings.find(record => record.objectRef?.id === id).geometryRef = { id: `info-shape:${id}`, version: 1 };
   }
-  const flag = currentCountryFlagUrl('DEU');
-  for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag.slice(flag.indexOf('/assets/'));
+  // Test a real embedded flag asset; Node file:// URLs have no /assets/ prefix.
+  const flag = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="12"><rect width="16" height="12" fill="#216eaa"/></svg>');
+  for (const feature of project.territorialEntities) feature.properties.metadata.flagDataUrl = flag;
   const receipt=await coreFileProjection(project);
   const file = await productionGeoPackage('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);
   const filePath = testInfo.outputPath('info-project.gpkg');
@@ -61,6 +62,8 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
       return selected && await page.locator('#entityProperties').isVisible();
     }, { timeout: 30_000 }).toBe(true);
     await expect(page.locator('#entityNameInput')).toHaveValue(project.territorialEntities.find(feature => feature.id === id).properties.name);
+    // An unavailable Relations tab must fail promptly, not hang for 8 minutes.
+    await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });
     await page.locator('#relationTabBtn').click();
   };
   for (const [id, parent, children] of [['R', false, false], ['C', true, false], ['A', false, true], ['B', true, true]]) {
@@ -143,12 +146,18 @@ test('editor derives live hierarchy in Relations, focuses only via GPS and prese
   await expect(page.locator('#redoBtn')).toBeEnabled();
   await page.locator('#entityNotesInput').fill('비고 변경');
   await page.locator('#entityNotesInput').dispatchEvent('change');
-  expect(await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B').properties.notes)).toBe('비고 변경');
-  await page.locator('#undoBtn').click(); await select('B'); await page.locator('#editorTabBtn').click();
+  const currentNotes = () => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('B')?.properties.notes);
+  await expect.poll(currentNotes, { timeout: 30_000 }).toBe('비고 변경');
+  await page.locator('#undoBtn').click();
+  await expect.poll(currentNotes, { timeout: 30_000 }).toBe('원본 메타데이터 보존');
+  await select('B'); await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNotesInput')).toHaveValue('원본 메타데이터 보존');
-  await page.locator('#redoBtn').click(); await select('B'); await page.locator('#editorTabBtn').click();
+  await page.locator('#redoBtn').click();
+  await expect.poll(currentNotes, { timeout: 30_000 }).toBe('비고 변경');
+  await select('B'); await page.locator('#editorTabBtn').click();
   await expect(page.locator('#entityNotesInput')).toHaveValue('비고 변경');
   await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath('info-desktop.png') });
+  await expect(page.locator('#relationTabBtn')).toBeVisible({ timeout: 15_000 });
   await page.locator('#relationTabBtn').click();
   const beforeChild = await page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('C'));
   const selectionRevision = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().selectionInput.selectionRevision);

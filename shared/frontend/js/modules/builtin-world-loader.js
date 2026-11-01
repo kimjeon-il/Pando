@@ -123,16 +123,20 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    .finally(()=>pending.delete(key)));
   return pending.get(key);
  }
- async function loadProject(month,{isCurrent=()=>true}={}){
+ async function loadProject(month,{isCurrent=()=>true,concurrency=6,waitForIdle=null}={}){
+  if(!Number.isInteger(concurrency)||concurrency<1||concurrency>6)throw new RangeError('Builtin country read concurrency must be 1-6.');
   const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});};
   assertCurrent();
   const index=await loadIndex();assertCurrent();
   const selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
   let next=0,failed=false;
-  const workers=Array.from({length:Math.min(6,selected.length)},async()=>{
+  const workers=Array.from({length:Math.min(concurrency,selected.length)},async()=>{
    try{
     while(!failed&&next<selected.length){
-     assertCurrent();const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();
+     assertCurrent();
+     if(waitForIdle){await waitForIdle();assertCurrent();}
+     if(failed||next>=selected.length)break;
+     const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();
     }
    }catch(error){failed=true;throw error;}
   });
@@ -143,6 +147,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
    if(error?.name!=='AbortError')await Promise.allSettled(workers);
    throw error;
   }
+  if(waitForIdle)await waitForIdle();
   assertCurrent();
   return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:${month}`};
  }

@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createApplicationLifecycle } from "../../shared/frontend/js/modules/application-lifecycle.js";
 import { createProjectUiBridge } from "../../apps/editor/frontend/js/modules/project-ui-bridge.js";
 import { createPropertyEditorBindings } from "../../apps/editor/frontend/js/modules/property-editor-bindings.js";
+import { genericConversionButtonLabel } from "../../apps/editor/frontend/js/modules/object-property-presentation.js";
 import { createMapInputPresentation } from "../../shared/frontend/js/modules/map-input-presentation.js";
 import {createMapInputController} from '../../shared/frontend/js/modules/map-input-controller.js';
 import {createPointerTargets} from '../../shared/frontend/js/modules/pointer-targets.js';
@@ -369,4 +370,38 @@ test('debug facade reads live view values instead of capturing install-time revi
   assert.equal(window.__PANDOLAB_VIEW_DEBUG__.snapshot().revision, 1);
   revision = 2;
   assert.equal(window.__PANDOLAB_VIEW_DEBUG__.snapshot().revision, 2);
+});
+
+test('generic conversion describes the actual destination without changing the target contract', () => {
+  const targets = [
+    ['label', '지명으로 변경'],
+    ['river', '강으로 변경'],
+    ['general', '객체로 변경'],
+    ['regional', '독립 권역으로 변경'],
+    ['lake', '호수로 변경'],
+    ['distribution', '분포로 변경'],
+    ['', '종류 변경'],
+  ];
+  for (const [target, label] of targets) assert.equal(genericConversionButtonLabel(target), label);
+  const elements = new Map();
+  const getElement = id => {
+    if (!elements.has(id)) elements.set(id, new FakeElement());
+    return elements.get(id);
+  };
+  const bindings = createPropertyEditorBindings({
+    getElement, bindColorPickers() {}, document: {},
+    getPrimary: () => ({ domain: 'generic', id: 'G' }),
+    reportOperationError: error => assert.fail(error.stack),
+  });
+  bindings.bind();
+  for (const [target, label] of targets.slice(0, 6)) {
+    getElement('genericFeatureConvertType').value = target;
+    getElement('genericFeatureConvertType').dispatchEvent(new Event('change'));
+    assert.equal(getElement('convertGenericFeatureBtn').textContent, label, target);
+  }
+  assert.equal(getElement('convertGenericFeatureBtn').disabled, true, 'distribution needs a layer and value');
+  getElement('genericFeatureConvertType').value = 'river';
+  getElement('genericFeatureConvertType').dispatchEvent(new Event('change'));
+  assert.equal(getElement('convertGenericFeatureBtn').disabled, false);
+  bindings.dispose();
 });

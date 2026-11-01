@@ -70,10 +70,10 @@ async function fixture(t, stateOverrides = {}, portOverrides = {}) {
   });
   const document = createFakeDocument();
   const ids = [
-    'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage',
+    'modeEditingHud', 'modeEditingContext', 'modeTaskWindowContent', 'modeTaskName', 'modeTaskStage', 'modeTaskStep',
     'modeTaskStatus', 'modeTaskInstruction', 'modeTaskInput', 'modeTaskTargetSummary', 'modeTaskEditingStage',
     'modeMapSummary', 'editorSurface', 'modeTaskObjects', 'modeTaskResults', 'modeTaskResultsList',
-    'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime',
+    'modeTaskResultsSummary', 'modeTaskDisabledReason', 'modeTaskViewTime', 'modeTaskPeriod',
     'modeTaskAffectedSummary', 'modeTaskAffectedList',
     'modePrimaryBtn', 'modeDraftActions', 'modeDraftDoneBtn', 'geometryPreviewSummary',
     'territorySelectionStack', 'territorySelectionStackSummary', 'territorySelectionStackList',
@@ -822,7 +822,7 @@ test('non-merge preview retains the original general target label', async t => {
   assert.ok(!labels.includes('합쳐질 객체'));
 });
 
-test('country border target picker hides only uncalculated metadata and restores it for editing', async t => {
+test('country border target picker and editing hide uncalculated metadata until review', async t => {
   const f = await fixture(t, {
     tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
     boundaryEditEntityIds: ['COUNTRY'], boundaryEditPhase: 'selecting',
@@ -832,5 +832,264 @@ test('country border target picker hides only uncalculated metadata and restores
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
   f.state.boundaryEditPhase = 'editing';
   f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+});
+
+test('border vertex editing hides uncalculated metadata and review restores real impact', async t => {
+  const feature = (id, name) => ({
+    type: 'Feature', id, properties: { name, entityKind: 'general' },
+    geometry: { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[0,0]]] },
+  });
+  const countries = { COUNTRY: feature('COUNTRY', 'Country'), NEIGHBOR: feature('NEIGHBOR', 'Neighbor') };
+  const f = await fixture(t, {
+    tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
+    boundaryEditEntityIds: ['COUNTRY', 'NEIGHBOR'], boundaryEditPhase: 'editing',
+    boundaryPreparation: { status: 'ready' }, geometryPreview: { session: null },
+  }, {
+    countrySourceFeature: id => countries[id] || null,
+    objectDisplayInfo: ref => ({ name: countries[ref.id]?.properties.name || ref.id, type: ref.type }),
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '변경 미리보기');
+
+  const preview = {
+    operation: 'territorial-country-boundary',
+    affectedIds: ['COUNTRY', 'NEIGHBOR'],
+    validation: { blocking: false, issues: [] },
+    metrics: { finalAreaKm2: 42 },
+    temporalImpact: [{ entityId: 'COUNTRY', from: '1950-01', until: '1951-01' }],
+  };
+  f.state.geometryPreview.session = preview;
+  f.presentation.updateModeButtons();
   assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  const rows = f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+  assert.deepEqual(rows[0], ['국경 조정 국가', 'Country, Neighbor']);
+  assert.ok(rows.some(([name, value]) => name === '결과 면적' && value === '42 km²'));
+  assert.match(f.elements.modeTaskPeriod.textContent, /1950-01/);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '경계 변경 적용');
+  assert.equal(f.elements.modePrimaryBtn.disabled, false);
+
+  preview.validation = { blocking: true, issues: [{ severity: 'error', message: '경계가 겹칩니다.' }] };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '경계가 겹칩니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+});
+
+test('mobile border edit shows one routine hint while retaining processing and accessibility', async t => {
+  const prepare = (isMobile, status = 'ready') => fixture(t, {
+    tool: 'territorial-border', boundaryEditSeedEntityId: 'COUNTRY',
+    boundaryEditEntityIds: ['COUNTRY'], boundaryEditPhase: 'editing',
+    boundaryPreparation: { status }, geometryPreview: { session: null },
+  }, {
+    isMobile: () => isMobile,
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  const mobile = await prepare(true);
+  mobile.presentation.updateModeButtons();
+  assert.equal(mobile.elements.modeTaskInput.classList.contains('hidden'), false);
+  assert.equal(mobile.elements.modeTaskDisabledReason.textContent,
+    '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.');
+  assert.equal(mobile.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.match(mobile.elements.modePrimaryBtn.attributes.get('aria-describedby') || '',
+    /modeTaskDisabledReason/);
+  mobile.state.boundaryPreparation.status = 'pending';
+  mobile.presentation.updateModeButtons();
+  assert.equal(mobile.elements.modeTaskStatus.dataset.taskState, 'preparing');
+  assert.equal(mobile.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+
+  const desktop = await prepare(false);
+  desktop.presentation.updateModeButtons();
+  assert.equal(desktop.elements.modeTaskInput.classList.contains('hidden'), true);
+  assert.equal(desktop.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+});
+
+test('coast editing keeps topology constraints while hiding uncalculated metadata', async t => {
+  const f = await fixture(t, {
+    tool: 'country-coast', coastEditCountryId: 'COUNTRY',
+    boundaryEditPhase: '', boundaryPreparation: { status: 'ready' },
+    geometryPreview: { session: null },
+  }, {
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskInput.textContent, '국경 접점은 고정됩니다.');
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '변경 미리보기');
+
+  f.state.coastEditScopeGenericFeatureId = 'GEN-1';
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskInput.textContent, '연결 영역도 함께 변경됩니다.');
+
+  f.state.spacePanActive = true;
+  f.presentation.syncEditingContext();
+  assert.match(f.elements.modeTaskInput.textContent, /지도 이동 중/);
+  assert.doesNotMatch(f.elements.modeTaskInput.textContent, /연결 영역/);
+  f.state.spacePanActive = false;
+
+  f.state.boundaryPreparation.status = 'error';
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), true,
+    'topology note should not compete with an actual preparation error');
+});
+
+test('coast preview restores dates and shows the edited scope without hiding validation', async t => {
+  const f = await fixture(t, {
+    tool: 'country-coast', coastEditCountryId: 'COUNTRY',
+    boundaryEditPhase: '', boundaryPreparation: { status: 'ready' },
+    geometryPreview: { session: null },
+  }, {
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 1 } }) },
+  });
+  const preview = {
+    operation: 'territorial-coast', affectedIds: ['COUNTRY'],
+    metrics: { finalAreaKm2: 52 },
+    temporalImpact: [{ entityId: 'COUNTRY', from: '1950-01', until: '1951-01' }],
+    validation: { blocking: false, issues: [] },
+  };
+  f.state.geometryPreview.session = preview;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), true);
+  const rows = () => f.elements.geometryPreviewSummary.children.map(row =>
+    [row.children[0].textContent, row.children[1].textContent]);
+  assert.deepEqual(rows()[0], ['해안선 조정 국가', 'Country']);
+  assert.ok(rows().some(([label, value]) => label === '결과 면적' && value === '52 km²'));
+  assert.match(f.elements.modeTaskPeriod.textContent, /1950-01/);
+  assert.equal(f.elements.modePrimaryBtn.textContent, '경계 변경 적용');
+
+  f.state.coastEditScopeGenericFeatureId = 'GEN-1';
+  f.presentation.updateModeButtons();
+  assert.equal(rows()[0][0], '해안선 조정 대상');
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, false);
+
+  preview.validation = { blocking: true, issues: [{ severity: 'error', message: '해안 위상 검증 실패' }] };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '해안 위상 검증 실패');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  assert.equal(f.elements.modePrimaryBtn.disabled, true);
+  f.state.geometryPreview.session = null;
+  f.presentation.syncEditingContext();
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+});
+
+test('coast mobile gesture hint is not repeated while progress remains visible', async t => {
+  const f = await fixture(t, {
+    tool: 'country-coast', coastEditCountryId: 'COUNTRY',
+    boundaryEditPhase: '', boundaryPreparation: { status: 'ready' },
+    geometryPreview: { session: null },
+  }, {
+    isMobile: () => true,
+    editingDomain: { snapshot: () => ({ boundaryDraft: { moveCount: 0 } }) },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskInput.classList.contains('hidden'), false);
+  assert.match(f.elements.modeTaskInput.textContent, /국경 접점은 고정됩니다/);
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.');
+  assert.match(f.elements.modePrimaryBtn.attributes.get('aria-describedby') || '', /modeTaskDisabledReason/);
+  f.state.boundaryPreparation.status = 'pending';
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskStatus.dataset.taskState, 'preparing');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+});
+
+test('region redraw reuses the current target card, hides pre-review metadata and preserves review', async t => {
+  const f = await fixture(t, {
+    tool: 'redraw-territorial-unit',
+    boundaryEditPhase: '',
+    boundaryPreparation: null,
+    territorialUnitRedrawSourceId: 'REG',
+    territorialEntities: [{
+      type: 'Feature', id: 'REG', properties: { name: '독립 권역', entityKind: 'regional' },
+      geometry: { type: 'Polygon', coordinates: [] },
+    }],
+  }, {
+    describeTool: () => ({ name: '영역 다시 지정', stage: '영역 그리기' }),
+    objectDisplayInfo: ref => ({ name: ref.id === 'REG' ? '독립 권역' : 'Country', type: ref.type }),
+    isGenericFeatureDraftTool: () => true,
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskName.textContent, '영역 다시 지정');
+  assert.equal(f.elements.modeTaskStage.textContent, '영역 그리기');
+  assert.equal(f.elements.modeTaskStep.textContent, '1 / 2');
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskObjects.children[0].children[0].textContent, '대상 영역');
+  assert.equal(f.elements.modeTaskObjects.children[0].children[1].children[0].textContent, '독립 권역');
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+
+  f.state.modeTaskMinimized = true;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+  f.state.modeTaskMinimized = false;
+  f.state.geometryPreview.session = {
+    operation: 'redraw-region', validation: { blocking: false },
+    metrics: { finalAreaKm2: 42 }, affectedIds: ['REG'],
+  };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskStage.textContent, '변경 확인');
+  assert.equal(f.elements.modeTaskStep.textContent, '2 / 2');
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), true);
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.geometryPreviewSummary.children.at(-1).children[1].textContent, '42 km²');
+
+  f.state.geometryPreview.session.validation = {
+    blocking: true, issues: [{ severity: 'error', message: '영역이 유효하지 않습니다.' }],
+  };
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.geometryPreviewSummary.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskDisabledReason.textContent, '영역이 유효하지 않습니다.');
+  assert.equal(f.elements.modeTaskDisabledReason.classList.contains('hidden'), false);
+  f.state.geometryPreview.session = null;
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskStage.textContent, '영역 그리기');
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+});
+
+test('hydro vertex editing names the real object and removes redundant pre-review metadata', async t => {
+  const target = { domain: 'hydro', type: 'river', id: 'RIVER-1' };
+  const f = await fixture(t, {
+    tool: 'select', selected: target, boundaryEditPhase: '', boundaryPreparation: null,
+  }, {
+    describeTool: () => ({ name: '객체 선택', stage: '대상 선택' }),
+    objectDisplayInfo: ref => ({ name: ref.id === 'RIVER-1' ? '테스트 강' : 'Other', type: '강' }),
+    editingDomain: {
+      snapshot: () => ({ objectVertexEditing: target }),
+      draftInputActive: () => false,
+    },
+  });
+  f.presentation.updateModeButtons();
+  assert.equal(f.elements.modeTaskName.textContent, '수계 좌표 편집');
+  assert.equal(f.elements.modeTaskStage.textContent, '정점 이동');
+  assert.equal(f.elements.modeTaskTargetSummary.textContent, '테스트 강');
+  assert.equal(f.elements.modeTaskEditingStage.textContent, '좌표 편집');
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskViewTime.parentElement.classList.contains('hidden'), true);
+  assert.equal(f.elements.modeTaskAffectedSummary.parentElement.hidden, true);
+  assert.equal(f.elements.modeTaskObjects.classList.contains('hidden'), true);
+  assert.deepEqual(f.focusCalls, [], 'editing context must not reposition the map');
+  assert.equal(f.state.selected.id, 'RIVER-1');
+  f.state.modeTaskMinimized = true;
+  f.presentation.syncMapContextSurfaces();
+  assert.equal(f.elements.modeTaskTargetSummary.parentElement.classList.contains('hidden'), false);
+  assert.equal(f.elements.modeTaskEditingStage.classList.contains('hidden'), false);
 });

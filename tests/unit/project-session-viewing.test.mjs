@@ -78,7 +78,14 @@ test('shared workspace restore is document scoped and does not change authored d
  assert.equal(session.restoreViewingPresentation({documentId:seed.documentId,viewingPresentation:{layerVisibility:{objects:false,retiredGroup:false},itemVisibility:{objects:{orphan:false}},distributionSettings:{renderMode:'single',activeLayerId:'missing',boundaryVisible:false}}}),true);
  assert.equal(session.state.layerVisibility.objects,false);assert.equal('retiredGroup' in session.state.layerVisibility,false);
  assert.equal(session.state.distributionSettings.activeLayerId,'');assert.equal(session.state.distributionSettings.renderMode,'single');
- session.applyViewingPresentation({action:'objectVisibility',refs:[{domain:'hydroBuiltin',type:'river',id:'river-123'}],visible:false});
+ const hydroVisibility={action:'objectVisibility',refs:[{domain:'hydroBuiltin',type:'river',id:'river-123'}]};
+ assert.equal(session.applyViewingPresentation({...hydroVisibility,visible:false}).changed,true);
+ assert.equal(session.applyViewingPresentation({...hydroVisibility,visible:false}).changed,false,
+   'the same hide must not mutate viewing state');
+ assert.equal(session.applyViewingPresentation({...hydroVisibility,visible:true}).changed,true);
+ assert.equal(session.applyViewingPresentation({...hydroVisibility,visible:true}).changed,false,
+   'the same show must not mutate viewing state');
+ assert.equal(session.applyViewingPresentation({...hydroVisibility,visible:false}).changed,true);
  session.applyViewingPresentation({action:'objectVisibility',refs:[{domain:'placeBuiltin',type:'city',id:'place-123'}],visible:false});
  session.pruneViewingItems({countryLabelIds:[]});assert.deepEqual(session.state.itemVisibility.objects,{});
  assert.equal(session.state.itemVisibility.hydro['river-123'],false);assert.equal(session.state.itemVisibility.labels['place-123'],false);

@@ -1,0 +1,75 @@
+name: P8-2 isolated editor failure reproduction
+
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/editor-ui-p8-targeted-repro.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p8-editor-repro-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  independent-repro:
+    name: Reproduce ${{ matrix.case }}
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [dates, creation, relations, place, merge, hydro]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install Chromium for browser cases
+        if: matrix.case != 'dates'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Reproduce one failure family without changing the application
+        env:
+          PANDOLAB_BROWSER_CHANNEL: chromium
+          P8_CASE: ${{ matrix.case }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "test-results/p8-repro-$P8_CASE"
+          case "$P8_CASE" in
+            dates)
+              node --test --test-concurrency=1 tests/unit/territorial-property-controller.test.mjs tests/unit/task-stage-model.test.mjs tests/unit/task-stage-presentation.test.mjs
+              ;;
+            creation)
+              pnpm exec playwright test tests/browser/workflow-v17.spec.mjs --grep 'general creation retains|regional creation retains' --workers=1 --retries=0 --max-failures=2 --trace off --output="test-results/p8-repro-$P8_CASE"
+              ;;
+            relations)
+              pnpm exec playwright test tests/browser/territorial-parent-edit.spec.mjs --workers=1 --retries=0 --trace off --output="test-results/p8-repro-$P8_CASE"
+              ;;
+            place)
+              pnpm exec playwright test tests/browser/place-runtime.spec.mjs tests/browser/label-metadata-edit.spec.mjs --workers=1 --retries=0 --max-failures=2 --trace off --output="test-results/p8-repro-$P8_CASE"
+              ;;
+            merge)
+              pnpm exec playwright test tests/browser/workflow-v17.spec.mjs --grep 'subunit merge removes' --workers=1 --retries=0 --trace off --output="test-results/p8-repro-$P8_CASE"
+              ;;
+            hydro)
+              pnpm exec playwright test tests/browser/workflow-v17.spec.mjs --grep 'hydro lists preserve' --workers=1 --retries=0 --trace off --output="test-results/p8-repro-$P8_CASE"
+              ;;
+          esac
+      - name: Save exact browser failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p8-repro-${{ matrix.case }}-${{ github.sha }}
+          path: test-results/p8-repro-${{ matrix.case }}/
+          if-no-files-found: warn
+          retention-days: 7

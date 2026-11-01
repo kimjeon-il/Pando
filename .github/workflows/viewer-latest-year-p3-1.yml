@@ -1,0 +1,43 @@
+name: Viewer P3-1 latest year target
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/modules/builtin-month-clock.js
+      - apps/viewer/js/modules/viewer-composition.js
+      - tests/unit/builtin-month-clock.test.mjs
+      - tests/browser/viewer-latest-year-p3-1.spec.mjs
+      - .github/workflows/viewer-latest-year-p3-1.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p3-1-work-ui
+  cancel-in-progress: true
+jobs:
+  latest-target:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Clock and coalescing contracts
+        run: node --test tests/unit/builtin-month-clock.test.mjs tests/unit/viewer-initial-composition.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real timeline latest-only burst and suspended read
+        run: pnpm exec playwright test tests/browser/viewer-latest-year-p3-1.spec.mjs --workers=1
+      - name: Save bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p3-1-latest
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7

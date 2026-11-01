@@ -21,14 +21,14 @@ test('a failed query settles its outstanding failed reads before an immediate cl
    if(file==='index.json')return new Response(bytes);
    const fail=!successful;
    if(fail&&file===slow&&++slowAttempts===3){entered.resolve();await release.promise;}
-   return fail?new Response(null,{status:404}):new Response(files.get(file));
+   return fail?new Response(null,{status:503}):new Response(files.get(file));
   }});
  const first=loader.loadProject('2026-10').then(()=>{settled=true;return null;},error=>{settled=true;return error;});
  await entered.promise;await new Promise(resolve=>setImmediate(resolve));
  // The fast file has failed; the slower file's last failed attempt is still held.
  // Returning now would let an immediate retry join that doomed pending request.
  assert.equal(settled,false,'failed query must drain its outstanding workers');
- release.resolve();assert.match((await first).message,/404/);
+ release.resolve();assert.match((await first).message,/503/);
  successful=true;
  assert.equal((await loader.loadProject('2026-10')).project.territorialEntities.length,2);
  for(const entry of index.entities)assert.equal(calls.filter(file=>file===entry.file).length,4);

@@ -8,6 +8,12 @@ const viewerOperations = new Set([
   'core.document-state', 'core.document-resolve-world', 'core.document-timeline-cursor',
   'core.document-selection-catalog', 'core.document-presentation-catalog',
   'core.document-selection-apply', 'core.document-selection-snapshot',
+  // Scoped, epoch-checked C++ source/candidate handles; adoption additionally
+  // requires the existing Core replacement capsule and stays atomic.
+  'core.document-temporal-source-prepare','core.document-temporal-source-stats',
+  'core.document-temporal-source-release','core.document-temporal-candidate-prepare',
+  'core.document-temporal-candidate-inspect','core.document-temporal-candidate-discard',
+  'core.document-temporal-candidate-adopt',
 ]);
 
 export function createProductModePolicy(productMode) {
