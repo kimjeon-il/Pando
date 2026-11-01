@@ -15,8 +15,8 @@ test('DEM reuse cannot write through a junction into its source directory',async
   try{
     await assert.rejects(rebuildTerrainDemTint({sourceOutput:source,output:destination,tintZip:'missing',ice:'missing',countries:'missing'}),/inside/i);
   }catch(error){
-    error.message+='; paths='+JSON.stringify({source,asyncRealpath:await realpath(source),nativeRealpath:realpathSync.native(source),
-      resolved:futureRealpath(destination),relative:relative(await realpath(source),futureRealpath(destination))});
+    console.error('DEM path diagnostics:',JSON.stringify({source,asyncRealpath:await realpath(source),nativeRealpath:realpathSync.native(source),
+      resolved:futureRealpath(destination),relative:relative(await realpath(source),futureRealpath(destination))}));
     throw error;
   }
 });
