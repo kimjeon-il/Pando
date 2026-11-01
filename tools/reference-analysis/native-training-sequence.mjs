@@ -65,12 +65,15 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
     while(cursor<plan.length&&completed<maxBatches){
       signal?.throwIfAborted();const count=Math.min(batchSize,plan.length-cursor),label=String(cursor+count).padStart(8,'0');
       const checkpoint=join(target,`checkpoint-${label}.pt`),sampleOutput=join(target,`samples-${label}`);
+      const resuming=completed>0||mode==='resume',parentHash=resuming?trainingFileIdentity(current):null,
+        parentReceiptHash=resuming?trainingFileIdentity(current+'.receipt.json'):null;
       const common={mode:completed===0?mode:'resume',input:current,output:checkpoint,corpus,epoch,seed,
         freezeEpochs,learningRate,device,amp,torchLibrary,count,sampleOutput,augment,root,signal};
       last=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly,orderDirectory}):
         await runTrainingBatch({...common,supervision,order,reviewed,publisher});
       const receipt=JSON.parse(readTrainingBounded(checkpoint+'.receipt.json',1024*1024));
-      if(receipt.cursor!==cursor+count||receipt.orderSha256!==plan.orderSha256||receipt.orderLength!==plan.length)
+      if(receipt.cursor!==cursor+count||receipt.orderSha256!==plan.orderSha256||receipt.orderLength!==plan.length||
+        receipt.parentCheckpointSha256!==parentHash||receipt.parentReceiptSha256!==parentReceiptHash)
         throw Error('Training checkpoint cursor differs from the prepared order; preserve outputs');
       current=checkpoint;cursor=receipt.cursor;completed++;
       if(onBatch)await onBatch({epoch,cursor,orderLength:plan.length,batches:completed,checkpoint:current,

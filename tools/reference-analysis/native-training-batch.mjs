@@ -152,6 +152,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
     initialization,encoderInitialization,initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,
+    parentCheckpointSha256:previous?inputHash:null,parentReceiptSha256:previous?initializationRecordHash:null,
     ...(combined?{auxiliarySha256:auxiliaryHash,lineageFingerprint:combined.lineageFingerprint}:{}),epoch,cursor:result.cursor,
     orderSha256:orderData.hash,orderLength:orderData.order.length,seed,freezeEpochs,learningRate,unobservedMask,positiveWeightSha256:weights.hash,
     ampScale:result.ampScale,ampGrowthTracker:result.ampGrowthTracker,attemptedBatches:count('attemptedBatches',1),
