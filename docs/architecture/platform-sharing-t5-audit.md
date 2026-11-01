@@ -28,7 +28,7 @@ native-storage.test.mjs and file-access-contract.test.mjs each implement a nativ
 
 Implemented: `tests/helpers/file-transport-fixtures.mjs` now owns the Browser input/save-picker/download fixture and the Native document-transfer simulator. The Native simulator follows `document-transfer-contract.js` but uses independent Base64 encode/decode logic so production transport behavior is still exercised.
 
-## T9 — P1 staging fixture closure
+## T9 — P1 staging fixture closure — implemented
 
 apps/editor/tests/helpers/world-fixture.mjs manually copies platform-ports.js, platform-runtime.js and runtime-context.js. T1/T2 already required manual edits to this list.
 
@@ -42,4 +42,4 @@ Action: later inject product presentation/input hooks. Keep workspace-surfaces.j
 
 ## Order
 
-T6-T8 complete. Next: T9 -> T10.
+T6-T9 complete. Next: T10.
