@@ -4,7 +4,7 @@ import {copyFileSync,existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} f
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {writeMacroTrainingSample,prepareTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
+import {writeMacroTrainingSample,prepareTrainingBatch,verifyTrainingSample,recheckTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
 import {indexTrainingDataset,trainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
 import {writeTrainingSupervision,verifyTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
 import {verifyTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
@@ -42,6 +42,12 @@ test('source-bound macro sample is generated from original pixels without overwr
   const output=join(root,'sample'),request={corpus,sourceId:'fixture',tileIndex:0,x:0,y:0,augment:false,epoch:0,output};
   const result=await writeMacroTrainingSample(request),expected=JSON.parse(readFileSync(join(fixture,'expected.json'),'utf8'))[0];
   assert.deepEqual(['tile','overview','position','target','valid'].map(name=>result.tensorSha256[name]),expected.hashes);
+  const snapshot=verifyTrainingSample(output),sampleReceipt=join(output,'sample.json');
+  recheckTrainingSample(output,snapshot);
+  writeFileSync(sampleReceipt,JSON.stringify({...snapshot,tileIndex:1}));
+  assert.doesNotThrow(()=>verifyTrainingSample(output));
+  assert.throws(()=>recheckTrainingSample(output,snapshot),/receipt changed/i);
+  writeFileSync(sampleReceipt,JSON.stringify(snapshot));
   await assert.rejects(writeMacroTrainingSample(request),/exists/);
   const order=join(root,'order.u64');writeFileSync(order,Buffer.alloc(8));
   const orderReceipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:stored.corpusSha256,

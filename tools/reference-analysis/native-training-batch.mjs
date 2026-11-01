@@ -10,7 +10,7 @@ import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
-import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
+import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,recheckTrainingSample,prepareTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
 import {verifyCombinedTrainingOrder,verifyTrainingOrder} from './training-order.mjs';
 import {assertPublicEncoderIdentity,corpusFingerprint,readTrainingBounded as readBounded,trainingFileIdentity as identity,verifiedPublicEncoderIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
@@ -148,7 +148,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     if(verified.sha256!==encoderInitialization.sha256||verified.bytes!==encoderInitialization.bytes)throw Error('Public encoder changed during training; preserve its checkpoint');}
   if(combined&&(sha(readBounded(resolve(auxiliary),32*1024*1024))!==auxiliaryHash||await corpusFingerprint(corpus,auxiliary)!==combined.lineageFingerprint))
     throw Error('Combined training sources changed during execution; preserve its checkpoint');
-  for(const sample of samples)verifyTrainingSample(sample.directory);
+  for(let i=0;i<samples.length;i++)recheckTrainingSample(samples[i].directory,checked[i]);
   for(const item of evidence)recheckTrainingSources(item.checks);
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,batchSourceReplayVerified:true,precision,

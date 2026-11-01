@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,statSync,writeFileSync} from 'node:fs';
 import {basename,dirname,join,resolve} from 'node:path';
+import {isDeepStrictEqual} from 'node:util';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
@@ -25,6 +26,10 @@ export function verifyTrainingSample(directory,{requireInternational=false}={}){
     if(trainingSha256(readFileSync(path))!==data.tensorSha256?.[name])throw Error('Training sample tensor changed: '+name);
   }
   return data;
+}
+export function recheckTrainingSample(directory,expected){
+  const actual=verifyTrainingSample(directory);
+  if(!isDeepStrictEqual(actual,expected))throw Error('Training sample receipt changed during execution');
 }
 
 // A single private sample; its caller owns dataset ordering and epoch orchestration.
