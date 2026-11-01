@@ -1,0 +1,71 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
+import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
+import {inspectCanonicalInputs} from '../../scripts/lib/library-auto-inputs.mjs';
+const baselineRevision='a'.repeat(40),revision='b'.repeat(40);
+const hash=b=>createHash('sha256').update(b).digest('hex');
+const bytes=x=>Buffer.from(JSON.stringify(x));
+const raw=()=>({schemaVersion:2,entityId:'state:AAA',lineageId:'aaa',entityKind:'general',names:{en:'A'},lifetime:{validFrom:null,validTo:null},parentEntityId:'',geometryVersions:[{versionId:'v1',validFrom:null,validTo:null,geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]},custom:'kept'}],sourceInfo:{title:'source',custom:'kept'}});
+function fixture(edit=()=>{},archiveEdit=null,indexEdit=()=>{}){
+ const stores={};
+ for(const rev of [baselineRevision,revision]){
+  const e=raw();if(rev===revision)edit(e);
+  const n=normalizeTerritorialLibraryEntity(e), b=bytes(e), h=hash(b);
+  const entry=territorialIndexEntry(n,{sha256:'c'.repeat(64),compressedBytes:1,decodedBytes:b.length});
+  const index={schemaVersion:2,lineages:[{schemaVersion:2,lineageId:'aaa',names:{en:'A'},entityRefs:[e.entityId],relations:[]}],entities:[entry],snapshots:[],views:[{schemaVersion:1,id:'world:catalog',selections:[{entityId:e.entityId,geometryVersionId:'v1'}]}]};
+  if(rev===revision)indexEdit(index);
+  const ib=bytes(index),ih=hash(ib), source=raw(); if(rev===revision&&archiveEdit)archiveEdit(source);
+  const sb=bytes(source),sh=hash(sb), logical='assets/data/territorial-entities/source/countries/state-AAA.json';
+  stores[rev]={'library.json':bytes({schemaVersion:1,indexHash:ih,entities:{[e.entityId]:h}}),['objects/'+h+'.json']:b,['objects/'+ih+'.json']:ib,'archive/index.json':bytes({schemaVersion:1,files:{[logical]:{stored:'archive/blobs/'+sh+'.gz',encoding:'gzip',sha256:sh,bytes:sb.length}}}),['archive/blobs/'+sh+'.gz']:gzipSync(sb)};
+ }
+ return {stores,run:()=>inspectCanonicalInputs({revision,baselineRevision,readBlob:(r,p)=>{if(!stores[r][p])throw Error('missing '+p);return stores[r][p];}})};
+}
+test('unchanged inputs noop and report-only revisions have same fingerprint',()=>{const f=fixture();const r=f.run();assert.equal(r.noop,true);assert.deepEqual(r.writes,[]);assert.equal(r.inputFingerprint,f.run().inputFingerprint);});
+test('country edit projects official normalized source preserving custom version metadata',()=>{const r=fixture(e=>e.names.en='B').run();assert.deepEqual(r.changedEntityIds,['state:AAA']);assert.equal(r.requiredFamilies.length,8);const e=JSON.parse(r.writes[0].bytes);assert.equal(e.names.en,'B');assert.equal(e.sourceInfo.custom,'kept');assert.equal(e.geometryVersions[0].custom,'kept');assert.equal(r.writes[0].path,'assets/data/territorial-entities/source/countries/state-AAA.json');assert.notEqual(r.inputFingerprint,fixture().run().inputFingerprint);});
+for(const key of ['lifetime','lineageId','parentEntityId'])test('rejects identity policy change '+key,()=>assert.throws(()=>fixture(e=>{e[key]=key==='lifetime'?{validFrom:'2000',validTo:null}:'other';}).run()));
+test('rejects source-only edit',()=>assert.throws(()=>fixture(()=>{},e=>e.names.en='B').run(),/SOURCE_WITHOUT_NATIVE/));
+test('rejects conflicting source edit',()=>assert.throws(()=>fixture(e=>e.names.en='B',e=>e.names.en='C').run(),/CONFLICT/));
+test('accepts agreeing native/archive edits',()=>assert.equal(fixture(e=>e.names.en='B',e=>e.names.en='B').run().noop,false));
+test('rejects index metadata mismatch',()=>assert.throws(()=>fixture(()=>{},null,i=>i.entities[0].names.en='wrong').run()));
+test('rejects unknown view version',()=>assert.throws(()=>fixture(()=>{},null,i=>i.views[0].selections[0].geometryVersionId='unknown').run()));
+test('rejects unknown top level fields',()=>assert.throws(()=>fixture(e=>e.surprise=true).run(),/UNKNOWN/));
+test('rejects wrong native hash before JSON',()=>{const f=fixture();const p=Object.keys(f.stores[revision]).find(p=>p.startsWith('objects/'));f.stores[revision][p]=Buffer.from('{}');assert.throws(f.run,/HASH/);});
+test('rejects missing native object',()=>{const f=fixture();delete f.stores[revision][Object.keys(f.stores[revision]).find(p=>p.startsWith('objects/'))];assert.throws(f.run);});
+test('ignores unreferenced objects',()=>{const f=fixture();f.stores[revision]['objects/'+ 'f'.repeat(64)+'.json']=Buffer.from('bad');assert.equal(f.run().noop,true);});
+test('format-only native object change is noop',()=>{const f=fixture();const m=JSON.parse(f.stores[revision]['library.json']),p='objects/'+m.entities['state:AAA']+'.json';const b=Buffer.from(JSON.stringify(JSON.parse(f.stores[revision][p]),null,2));m.entities['state:AAA']=hash(b);f.stores[revision]['objects/'+hash(b)+'.json']=b;f.stores[revision]['library.json']=bytes(m);assert.equal(f.run().noop,true);assert.equal(f.run().inputFingerprint,fixture().run().inputFingerprint);});
+test('rejects archive traversal and malformed gzip',()=>{for(const mode of ['path','gzip']){const f=fixture(),a=JSON.parse(f.stores[revision]['archive/index.json']),d=Object.values(a.files)[0];if(mode==='path')d.stored='../escape';else f.stores[revision][d.stored]=Buffer.from('bad');f.stores[revision]['archive/index.json']=bytes(a);assert.throws(f.run);}});
+test('rejects deleted native catalog entity',()=>{const f=fixture(),m=JSON.parse(f.stores[revision]['library.json']);m.entities={};f.stores[revision]['library.json']=bytes(m);assert.throws(f.run);});
+test('rejects duplicate indexed entity',()=>assert.throws(()=>fixture(()=>{},null,i=>i.entities.push(i.entities[0])).run()));
+test('rejects unsupported changed water entity',()=>{const f=fixture();for(const rev of [baselineRevision,revision]){const s=f.stores[rev],m=JSON.parse(s['library.json']),old=m.entities['state:AAA'],e=JSON.parse(s['objects/'+old+'.json']);e.entityId='waterbody:AAA';e.entityKind='lake';if(rev===revision)e.names.en='changed';const eb=bytes(e),eh=hash(eb);const i=JSON.parse(s['objects/'+m.indexHash+'.json']);i.entities=[territorialIndexEntry(normalizeTerritorialLibraryEntity(e),{sha256:'c'.repeat(64),compressedBytes:1,decodedBytes:eb.length})];i.lineages[0].entityRefs=[e.entityId];i.views[0].selections[0].entityId=e.entityId;const ib=bytes(i),ih=hash(ib);s['objects/'+eh+'.json']=eb;s['objects/'+ih+'.json']=ib;s['library.json']=bytes({schemaVersion:1,indexHash:ih,entities:{[e.entityId]:eh}});}assert.throws(f.run,/UNSUPPORTED_ENTITY_KIND/);});
+test('view edit without source descriptor must fail',()=>assert.throws(()=>fixture(()=>{},null,i=>i.views[0].name='changed').run(),/MISSING_ARCHIVE_SOURCE/));
+function withWorld(f,editSource=()=>{}){for(const rev of [baselineRevision,revision]){const s=f.stores[rev],v={schemaVersion:1,id:'world:catalog',selections:[{entityId:'state:AAA',geometryVersionId:'v1'}]};if(rev===revision)editSource(v);const b=bytes(v),h=hash(b),a=JSON.parse(s['archive/index.json']);a.files['assets/data/territorial-entities/source/views/world.json']={stored:'archive/blobs/'+h+'.gz',encoding:'gzip',sha256:h,bytes:b.length};s['archive/blobs/'+h+'.gz']=gzipSync(b);s['archive/index.json']=bytes(a);}return f;}
+test('valid native world edit emits full world source and all downstream families',()=>{const f=withWorld(fixture(()=>{},null,i=>i.views[0].name='new'));const r=f.run();assert.equal(r.viewChanged,true);assert.equal(r.requiredFamilies.length,8);assert.equal(JSON.parse(r.writes[0].bytes).name,'new');assert.equal(r.writes[0].path,'assets/data/territorial-entities/source/views/world.json');});
+test('rejects conflicting world archive edit',()=>assert.throws(()=>withWorld(fixture(()=>{},null,i=>i.views[0].name='new'),v=>v.name='other').run(),/CONFLICT/));
+test('rejects world source-only edit',()=>assert.throws(()=>withWorld(fixture(),v=>v.name='other').run(),/SOURCE_WITHOUT_NATIVE/));
+test('gzip transport metadata changes do not change fingerprint',()=>{const f=fixture(()=>{},null,i=>{i.entities[0].sha256='d'.repeat(64);i.entities[0].compressedBytes=999;});assert.equal(f.run().noop,true);assert.equal(f.run().inputFingerprint,fixture().run().inputFingerprint);});
+test('rejects newly added native entity',()=>{const f=fixture(),m=JSON.parse(f.stores[revision]['library.json']);m.entities['state:BBB']=m.entities['state:AAA'];f.stores[revision]['library.json']=bytes(m);assert.throws(f.run);});
+test('rejects changed lineage catalog and snapshots',()=>{for(const key of ['lineages','snapshots'])assert.throws(()=>fixture(()=>{},null,i=>{if(key==='lineages')i.lineages[0].names.en='new';else i.snapshots.push({schemaVersion:1,id:'s',referenceDate:'2000',entityRefs:['state:AAA']});}).run());});
+test('rejects oversize native bytes and invalid immutable revisions',()=>{const f=fixture();assert.throws(()=>inspectCanonicalInputs({revision:'0'.repeat(40),baselineRevision,readBlob:()=>Buffer.from('{}')}));assert.throws(()=>inspectCanonicalInputs({revision,baselineRevision,readBlob:()=>Buffer.alloc(32*1024*1024+1)}));});
+test('real geometry edit changes projected bytes',()=>{const r=fixture(e=>e.geometryVersions[0].geometry.coordinates[0][1][0]=2).run();assert.equal(JSON.parse(r.writes[0].bytes).geometryVersions[0].geometry.coordinates[0][1][0],2);});
+test('rejects archive-only edits of referenced unsupported water objects',()=>{
+ const f=fixture();
+ for(const rev of [baselineRevision,revision]){
+  const s=f.stores[rev],m=JSON.parse(s['library.json']),e=JSON.parse(s['objects/'+m.entities['state:AAA']+'.json']);e.entityId='waterbody:AAA';e.entityKind='lake';
+  const eb=bytes(e),eh=hash(eb),i=JSON.parse(s['objects/'+m.indexHash+'.json']);i.entities=[territorialIndexEntry(normalizeTerritorialLibraryEntity(e),{sha256:'c'.repeat(64),compressedBytes:1,decodedBytes:eb.length})];i.lineages[0].entityRefs=[e.entityId];i.views[0].selections[0].entityId=e.entityId;
+  const ib=bytes(i),ih=hash(ib);s['objects/'+eh+'.json']=eb;s['objects/'+ih+'.json']=ib;s['library.json']=bytes({schemaVersion:1,indexHash:ih,entities:{[e.entityId]:eh}});
+  if(rev===revision)e.names.en='archive-only edit';const sb=bytes(e),sh=hash(sb);s['archive/blobs/'+sh+'.gz']=gzipSync(sb);s['archive/index.json']=bytes({schemaVersion:1,files:{'assets/data/territorial-entities/source/countries/waterbody-AAA.json':{stored:'archive/blobs/'+sh+'.gz',encoding:'gzip',sha256:sh,bytes:sb.length}}});
+ }
+ assert.throws(f.run,/UNSUPPORTED_ENTITY_KIND/);
+});
+function archiveDelta(f,logical,{sha256='e'.repeat(64),bytes:byteCount=1,stored='archive/blobs/change.gz',encoding='gzip'}={}){const s=f.stores[revision],a=JSON.parse(s['archive/index.json']);a.files[logical]={sha256,bytes:byteCount,stored,encoding};s['archive/index.json']=bytes(a);return f;}
+function inspectWith(f,verifiedGeneratedPaths){return inspectCanonicalInputs({revision,baselineRevision,verifiedGeneratedPaths,readBlob:(r,p)=>f.stores[r][p]});}
+for(const logical of ['unknown/input.json','assets/data/hydro/lakes_base.geojson','assets/data/places/reviewed-records-v1.json','assets/data/territorial-entities/source/lineages/aaa.json','assets/data/territorial-entities/source/snapshots/old.json'])test('rejects unsupported archive authority '+logical,()=>assert.throws(()=>archiveDelta(fixture(),logical).run(),/UNSUPPORTED_ARCHIVE_INPUT/));
+test('reports archive changes remain noop',()=>{const r=archiveDelta(fixture(),'reports/run.json').run();assert.equal(r.noop,true);assert.deepEqual(r.generatedChanges,[]);});
+test('trusted verified exact generated path permits generated-only recovery',()=>{const logical='assets/data/builtin-world/generated/v1/index.json',f=archiveDelta(fixture(),logical);const r=inspectWith(f,[logical]);assert.equal(r.noop,true);assert.deepEqual(r.generatedChanges,[logical]);});
+test('archive transport-only changes do not need trusted generated path',()=>{const f=fixture(),logical='assets/data/generated.json';for(const rev of [baselineRevision,revision]){const a=JSON.parse(f.stores[rev]['archive/index.json']);a.files[logical]={sha256:'e'.repeat(64),bytes:42,stored:rev===revision?'other/location.gz':'original/location',encoding:rev===revision?'gzip':'identity'};f.stores[rev]['archive/index.json']=bytes(a);}assert.equal(f.run().noop,true);});
+test('trusted paths cannot override authoritative hydro or territorial sources',()=>{for(const logical of ['assets/data/hydro/lakes_base.geojson','assets/data/places/reviewed-records-v1.json','assets/data/terrain/land.json','assets/data/territorial-entities/source/lineages/aaa.json'])assert.throws(()=>inspectWith(archiveDelta(fixture(),logical),[logical]),/UNSUPPORTED_ARCHIVE_INPUT/);});
+test('trusted generated paths are exact safe paths, never prefixes or wildcards',()=>{for(const paths of [['../bad'],['assets/data/*'],['assets/data/'],['/absolute'],['assets/data/a','assets/data/a'],'not-an-array'])assert.throws(()=>inspectWith(fixture(),paths));});
+test('unsupported archive deletion rejected',()=>{const f=fixture(),a=JSON.parse(f.stores[baselineRevision]['archive/index.json']);a.files['unknown/deleted.json']={sha256:'e'.repeat(64),bytes:1,stored:'old',encoding:'identity'};f.stores[baselineRevision]['archive/index.json']=bytes(a);assert.throws(f.run,/UNSUPPORTED_ARCHIVE_INPUT/);});
