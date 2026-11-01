@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createProjectDomain} from '../../shared/frontend/js/modules/project-domain.js';
 import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
+import {createBuiltinMonthClock} from '../../shared/frontend/js/modules/builtin-month-clock.js';
 import {createCoreDocumentReadModel} from '../../shared/frontend/js/modules/core-document-read-model.js';
 
 const fixture=()=> {
@@ -36,6 +37,8 @@ const fixture=()=> {
     releaseReplacement:async id=>{assert.equal(id,9);events.push('release-capsule');return true;},
     selectionCatalogLoad:async()=>{events.push('selection');return{};},
     presentationCatalogLoad:async()=>({}),
+    validateImport:async json=>{events.push('validate-file');return JSON.parse(json);},
+    load:async json=>{events.push('load-file');project=JSON.parse(json);epoch++;return {state:{epoch},project};},
     loadBaseline:async()=>{throw Error('Legacy Core baseline admission must not execute for candidate mode');},
   };
   const generation=[];
@@ -130,4 +133,78 @@ test('P5-6 unpaired WASM fallback remains exclusive to missing source export',as
   const newCandidate=await session.prepareProjectCandidate('2025-12',{setup});
   assert.equal(newCandidate.baselineId,2);assert.equal(loads,1);
   session.dispose();
+});
+
+
+test('P6-3 rapid timeline intents start only the final target and commit it once',async()=>{
+  const started=[],commits=[];
+  const clock=createBuiltinMonthClock({coalesceRequests:true,
+    onCommitted:month=>commits.push(month),
+    applyMonth:async(month,{isCurrent,commit})=>{
+      started.push(month);
+      if(isCurrent())commit();
+      return isCurrent();
+    }});
+  const first=clock.selectMonth('2025-12');
+  const middle=clock.selectMonth('2024-12');
+  const latest=clock.selectMonth('2023-12');
+  assert.deepEqual(started,[],'same-task intermediate targets must not start work');
+  assert.deepEqual(await Promise.all([first,middle,latest]),[false,false,true]);
+  assert.deepEqual(started,['2023-12']);
+  assert.deepEqual(commits,['2023-12']);
+  assert.equal(clock.month(),'2023-12');
+  clock.dispose();
+});
+
+test('P6-3 out-of-order completion cannot publish an older timeline target',async()=>{
+  const pending=new Map(),commits=[];
+  const clock=createBuiltinMonthClock({
+    onCommitted:month=>commits.push(month),
+    applyMonth:(month,{isCurrent,commit})=>new Promise(resolve=>{
+      pending.set(month,{isCurrent,commit,resolve});
+    }),
+  });
+  const older=clock.selectMonth('1950-12');
+  const latest=clock.selectMonth('1951-12');
+  assert.equal(pending.get('1951-12').commit(),true);
+  pending.get('1951-12').resolve(true);
+  assert.equal(await latest,true);
+  assert.equal(pending.get('1950-12').isCurrent(),false);
+  assert.equal(pending.get('1950-12').commit(),false);
+  pending.get('1950-12').resolve(true);
+  assert.equal(await older,false);
+  assert.equal(clock.month(),'1951-12');
+  assert.deepEqual(commits,['1951-12']);
+  clock.dispose();
+});
+
+test('P6-3 opening a user file while a temporal candidate waits discards it before file adoption',async()=>{
+  const f=fixture();
+  const prepared=await f.domain.prepareTemporalBuiltin(f.source,f.setup,
+    {dataRevision:'revision',manifestSha256:'a'.repeat(64)});
+  let releaseBuiltin,markBuiltinStarted;
+  const builtinStarted=new Promise(resolve=>{markBuiltinStarted=resolve;});
+  const builtinGate=new Promise(resolve=>{releaseBuiltin=resolve;});
+  const builtin=f.domain.open(async()=>{
+    markBuiltinStarted();
+    await builtinGate;
+    return prepared;
+  },{source:'builtin'});
+  await builtinStarted;
+
+  const userProject={documentId:'user-file-project',projectSetup:{initialMonth:'2001-01'}};
+  const userFile=f.domain.open(async()=>structuredClone(userProject),{source:'project'});
+  releaseBuiltin();
+
+  assert.equal(await builtin,false,'superseded builtin candidate must not publish');
+  assert.equal(await userFile,true,'user file must become the accepted project');
+  assert.equal(f.project().documentId,'user-file-project');
+  assert.equal(f.project().projectSetup.initialMonth,'2001-01');
+  assert.ok(f.events.includes('discard-8'),'detached temporal candidate must be discarded');
+  assert.ok(f.events.includes('release-source-4'),'detached temporal source must be released');
+  assert.ok(!f.events.includes('adopt'),'stale temporal candidate must never reach Core adoption');
+  assert.equal(f.events.filter(event=>event==='load-file').length,1);
+  assert.ok(f.events.indexOf('discard-8')<f.events.indexOf('capture'),
+    'candidate cleanup must finish before the user file replacement starts');
+  f.domain.dispose();
 });
