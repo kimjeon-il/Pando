@@ -135,7 +135,7 @@ These are OS integration points, not frontend forks.
 
 T4 added `apps/editor/document-transfer-contract.js` and a source-level JS/Rust synchronization test for 256 KiB chunks, the 256 MiB document limit, the 16-file GIS limit, read/write kinds, transfer command names and Tauri handler registration.
 
-The JavaScript and Rust implementations intentionally remain separate. T5 found one remaining perimeter duplication: `network-guard.js` and `src-tauri/build.rs` still list the six document-transfer commands independently. Closing that gap is T6.
+The JavaScript and Rust implementations intentionally remain separate. T6 closed the remaining perimeter: `network-guard.js` consumes the JavaScript contract, the synchronization test checks `src-tauri/build.rs`, and JS transport probes use the same command constants.
 
 ## 8. Confirmed change targets after A0
 
@@ -184,6 +184,6 @@ Do not perform the following as part of the sharing refactor:
 
 A0 and T1-T4 are implemented. T5 completed the second residual-sharing audit and found no new Web/Windows/Android frontend fork.
 
-Remaining work is ordered T6 protocol-perimeter completion -> T7 stale native verification/global cleanup -> T8 transport test-fixture sharing -> T9 staging-fixture closure consolidation -> T10 optional product-mode presentation/input cleanup.
+T6 protocol-perimeter completion and T7 stale native verification/global cleanup are implemented. Remaining work is ordered T8 transport test-fixture sharing -> T9 staging-fixture closure consolidation -> T10 optional product-mode presentation/input cleanup.
 
 Detailed evidence is in `docs/architecture/platform-sharing-t5-audit.md`.
