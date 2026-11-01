@@ -1,0 +1,39 @@
+name: GIS main integration
+on:
+  push:
+    branches: [work/gis]
+    paths: [.github/workflows/gis-main-integration.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Preserve exact source history for offline three-way integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree list --porcelain
+          git status --short --branch
+          test -z "$(git status --porcelain)"
+          git cat-file -e fa2ba8084453396bfde385d311c668dc4381b6c7^{commit}
+          git cat-file -e e26a5b7599da2f71e466f79c69481e040d0cb4d2^{commit}
+          mkdir -p build-native/gis-main-integration
+          git update-ref refs/pando/integration/main fa2ba8084453396bfde385d311c668dc4381b6c7
+          git update-ref refs/pando/integration/gis HEAD
+          git bundle create build-native/gis-main-integration/source.bundle refs/pando/integration/main refs/pando/integration/gis
+          git bundle verify build-native/gis-main-integration/source.bundle
+          sha256sum build-native/gis-main-integration/source.bundle > build-native/gis-main-integration/SHA256SUMS
+          git log -1 --format='%H %s' > build-native/gis-main-integration/source.txt
+          du -h build-native/gis-main-integration/source.bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gis-main-integration-source
+          path: build-native/gis-main-integration/
+          retention-days: 1
+          if-no-files-found: error
