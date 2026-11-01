@@ -10,7 +10,7 @@ export const makeMesh = name => ({name, positions:new Int32Array([0,0,1,0,0,1]),
 // Runs actual renderer functions and scheduler, but not the full module graph.
 // GL allocation, UI and unrelated renderer dependencies are controlled doubles.
 export async function fixture({override=false, version=2, shared=false, holdStroke=false, selectionReady=true, realFallback=false, canvasWorkerMode=false}={}) {
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
   const extract=name=>{
     const start=source.search(new RegExp('^    (?:async )?function '+name+'\\(', 'm'));
     if(start<0)return '';
