@@ -184,7 +184,7 @@ export function diagnoseReviewedSource(request,options){
   return diagnoseSource(request,options);
 }
 
-// Diagnostic only: no ONNX parity, held-out evaluation, or model admission is implied.
+// Diagnostic only: optional ONNX parity is not held-out evaluation or model admission.
 export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,baselineWeights,onnx,output,device,torchLibrary,maximumPreviews=24},options={}){
   const {signal}=options;signal?.throwIfAborted();
   if(!corpus||!checkpoint||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
@@ -284,7 +284,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
           reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true}),checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
           baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),onnx:reportArgument(values.onnx,{access:'read',siblings:true}),output,device:values.device,
           torchLibrary:values['torch-library'],maximumPreviews:Number(count)},{signal:controller.signal});
-        process.stdout.write(JSON.stringify({output,sheets:result.sheets.length,purpose:result.purpose,releaseApproved:false,onnxParityVerified:false})+'\n');
+        process.stdout.write(JSON.stringify({output,sheets:result.sheets.length,purpose:result.purpose,releaseApproved:false,onnxParityVerified:result.onnxParityVerified})+'\n');
       }else{
       const result=await diagnoseSource({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
         auxiliaryCorpus:reportArgument(values['auxiliary-corpus'],{access:'read',siblings:true}),viewCorpus:values['view-corpus']||'primary',
