@@ -22,11 +22,11 @@ native-platform-adapter.js exposes runtime.physicalImmediate and runtime.buildIn
 
 Implemented: the adapter and shell no longer expose the retired physical-immediate or build-info globals. Rust keeps embedded build identity for diagnostics/--build-info only. The unsupported physical-immediate A/B branch was removed; the Windows diagnostic now measures three isolated runs of the one canonical startup policy.
 
-## T8 — P1 test fixture sharing
+## T8 — P1 test fixture sharing — implemented
 
 native-storage.test.mjs and file-access-contract.test.mjs each implement a native transfer simulator. Browser picker fixtures are also recreated in several file tests.
 
-Action: create shared test helpers backed by document-transfer-contract.js and file-access-contract.js.
+Implemented: `tests/helpers/file-transport-fixtures.mjs` now owns the Browser input/save-picker/download fixture and the Native document-transfer simulator. The Native simulator follows `document-transfer-contract.js` but uses independent Base64 encode/decode logic so production transport behavior is still exercised.
 
 ## T9 — P1 staging fixture closure
 
@@ -42,4 +42,4 @@ Action: later inject product presentation/input hooks. Keep workspace-surfaces.j
 
 ## Order
 
-T6-T7 complete. Next: T8 -> T9 -> T10.
+T6-T8 complete. Next: T9 -> T10.
