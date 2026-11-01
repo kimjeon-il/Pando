@@ -14,6 +14,7 @@ on:
       - 'tests/unit/hydro-calibration-native.test.mjs'
       - 'tests/unit/hydro-calibration-python-bridge.test.mjs'
       - 'tests/fixtures/hydro-calibration-chain-oracle.json'
+      - 'tests/fixtures/hydro-calibration-optimizer-oracle.json'
       - '.github/workflows/hydro-calibration-native.yml'
 permissions:
   contents: read
@@ -46,7 +47,7 @@ jobs:
           else { $binary = 'build-native/hydro-calibration/native/pando-hydro-calibration' }
           node tools/gis/package-hydro-calibration.mjs --binary $binary --directory build-native/hydro-calibration/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Calibration packaging failed' }
-      - name: Compare chain counts with the frozen original
+      - name: Compare chain counts and optimization with the frozen original
         shell: pwsh
         run: |
           $env:PANDO_HYDRO_CALIBRATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/hydro-calibration/artifact"
