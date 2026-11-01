@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      COUNTRY_PUBLICATION_PLAN: ${{ runner.temp }}/builtin-country-publication.json
+      COUNTRY_PUBLICATION_PLAN: ${{ github.workspace }}/.library-data/builtin-country-publication-plan.json
     steps:
       - uses: actions/checkout@v4
         with:
