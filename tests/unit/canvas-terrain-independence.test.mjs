@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as resourcePolicy from '../../shared/frontend/js/modules/resource-update-policy.js';
+import {canvasWorkerFrameMatchesPhysical} from '../../shared/frontend/js/modules/country-mesh-zoom-policy.js';
 
 const workerSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url), 'utf8');
 const terrainCoreSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
@@ -73,7 +74,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
-      'self.drawTerrainTriangle = drawTexturedTriangle; self.onmessage = event => {'))(
+      'self.drawTerrainTriangle = drawTexturedTriangle; self.currentRenderState = () => lastRenderMessage; self.onmessage = event => {'))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
     { now: () => 1 }, () => 0);
@@ -104,6 +105,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     terrainManifestUrl: 'https://example.test/assets/data/terrain/v0.12.6/manifest.json' });
   return {
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
+    currentRenderState: () => scope.currentRenderState(),
     drawTriangle: points => scope.drawTerrainTriangle({ probeTriangle: true }, [[0, 0], [1, 0], [0, 1]], points, 1),
     render: extra => send({ ...frame, ...extra, type: 'view' }),
     levels: () => requests.map(request => Number(request.url.match(/\/(\d+)\/\d+-\d+\.webp$/)?.[1])),
@@ -116,6 +118,43 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     find: suffix => requests.find(request => !request.completed && request.url.endsWith(suffix)),
   };
 }
+
+test('Canvas Worker echoes the revisions of the physical packets it actually paints', async () => {
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
+  const start=source.indexOf('    function canvasScenePolygons() {');
+  const end=source.indexOf('\n    function canvasSceneStrokes()',start);
+  assert.ok(start>=0&&end>start,'renderer packet producer must exist');
+  const packet=(role,revision)=>({key:role,role,geometryRevision:revision,sourceKey:`source:${role}:${revision}`,
+    ringCoordinates:new Float64Array([0,0,1,0,1,1,0,0]),ringOffsets:new Uint32Array([0,4]),
+    polygonOffsets:new Uint32Array([0,1]),style:{color:'#fff',fillAlpha:1}});
+  const scene=[packet('physical-land','land-v2'),packet('physical-water','water-v3')];
+  const project=new Function('surfaceScenePolygons',source.slice(start,end)+'\nreturn canvasScenePolygons();');
+  const deltaStart=source.indexOf('    const canvasSentGeometry = new Map();');
+  const deltaEnd=source.indexOf('\n    function canvasCountryFills(',deltaStart);
+  assert.ok(deltaStart>=0&&deltaEnd>deltaStart,'renderer packet delta owner must exist');
+  const delta=new Function(source.slice(deltaStart,deltaEnd)+'\nreturn canvasPacketDelta;')();
+  const h=canvasTerrainRuntime();await settle();
+  let firstCoordinates;
+  for(let i=0;i<2;i++){
+    const sent=delta(project(()=>scene),'scene');
+    assert.equal(sent[0].sourceKey,scene[0].sourceKey,'source identity reaches the Worker');
+    if(i===1)assert.equal(Object.hasOwn(sent[0],'ringCoordinates'),false,'unchanged geometry is reused');
+    h.render({scenePolygons:sent,physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+    const frame=h.messages.filter(message=>message.type==='frame').at(-1);
+    assert.equal(frame.physicalLandRevision,'land-v2');assert.equal(frame.physicalWaterRevision,'water-v3');
+    assert.equal(canvasWorkerFrameMatchesPhysical(frame,{ready:true,landRevision:'land-v2',waterRevision:'water-v3'}),true);
+    if(i===0)firstCoordinates=h.currentRenderState().scenePolygons[0].ringCoordinates;
+    else assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates);
+  }
+  const copied=scene.map(value=>({...value,ringCoordinates:new Float64Array(value.ringCoordinates)}));
+  h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,'unchanged source retains its Worker geometry');
+  copied[0]={...copied[0],sourceKey:'source:physical-land:land-v3',geometryRevision:'land-v3',
+    ringCoordinates:new Float64Array([0,0,2,0,2,1,0,0])};
+  h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  assert.notEqual(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,'changed source replaces Worker geometry');
+  assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).physicalLandRevision,'land-v3');
+});
 
 test('terrain keeps the physical mask when political objects are hidden or absent at the current time', async () => {
   const h = canvasTerrainRuntime(); await settle();
