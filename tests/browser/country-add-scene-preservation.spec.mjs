@@ -17,6 +17,7 @@ for (const renderer of ['webgl2', 'webgl1']) {
     await routeStaticCatalogSource(page,'state:east-prussia');
     await page.addInitScript(() => {
       const NativeWorker = window.Worker;
+      window.__PANDOLAB_COUNTRY_PATCH_DELAY_COUNT__ = 0;
       window.Worker = class DelayedCountryAddPatchWorker extends NativeWorker {
         constructor(url, options) {
           super(url, options);
@@ -24,7 +25,8 @@ for (const renderer of ['webgl2', 'webgl1']) {
         }
 
         postMessage(message, transfer = []) {
-          if (this.delaysCountryPatch && message?.geometryRevision) {
+          if (this.delaysCountryPatch && message?.type === 'request' && message?.metadata?.geometryRevision != null) {
+            window.__PANDOLAB_COUNTRY_PATCH_DELAY_COUNT__++;
             window.setTimeout(() => NativeWorker.prototype.postMessage.call(this, message, transfer), 1800);
             return;
           }
@@ -42,15 +44,21 @@ for (const renderer of ['webgl2', 'webgl1']) {
     await page.locator('[data-library-entity-id="state:east-prussia"]').click();
     await page.locator('#territorialLibraryAddBtn').click();
     await expect(page.locator('#territorialLibraryAddBtn')).toHaveText('확인 후 추가');
+    const delayedBeforeAdd = await page.evaluate(() => window.__PANDOLAB_COUNTRY_PATCH_DELAY_COUNT__);
     await page.locator('#territorialLibraryAddBtn').click();
 
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_COUNTRY_PATCH_DELAY_COUNT__), {
+      timeout: 15_000,
+    }).toBeGreaterThan(delayedBeforeAdd);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.countryPatchPresentation?.phase), {
       timeout: 15_000,
     }).toBe('waiting-mesh');
     const duringPatch = await page.evaluate(() => ({
       metrics: window.__PANDOLAB_GPU_METRICS__,
       previewCount: document.querySelectorAll('.country-patch-preview').length,
+      delayedPatchRequests: window.__PANDOLAB_COUNTRY_PATCH_DELAY_COUNT__,
     }));
+    expect(duringPatch.delayedPatchRequests).toBeGreaterThan(delayedBeforeAdd);
     expect(duringPatch.metrics.sceneCache?.state).toBe('valid');
     expect(duringPatch.metrics.pendingCountryCount).toBeGreaterThan(0);
     expect(duringPatch.previewCount).toBeGreaterThan(0);

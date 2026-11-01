@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { editorTestUrl } from './helpers/editor-entry.mjs';
 
 test('country territory controls expose role cards, a compact draw toolbar and a separate selection list', async ({ page }) => {
   await page.route('**/territory-controls-fixture', route => route.fulfill({
@@ -6,8 +7,8 @@ test('country territory controls expose role cards, a compact draw toolbar and a
     body: '<!doctype html><html lang="ko"><head><link rel="stylesheet" href="/assets/css/app.css"><link rel="stylesheet" href="/assets/css/ui.bundle.css"></head><body class="app-root" data-layout="mobile"></body></html>',
   }));
   await page.goto('/territory-controls-fixture');
-  await page.evaluate(async () => {
-    const source = new DOMParser().parseFromString(await (await fetch('/index.html')).text(), 'text/html');
+  await page.evaluate(async editorUrl => {
+    const source = new DOMParser().parseFromString(await (await fetch(editorUrl)).text(), 'text/html');
     const task = source.getElementById('modeEditingHud');
     document.body.append(task);
     task.querySelector('#modeDraftActions').classList.remove('hidden');
@@ -20,7 +21,7 @@ test('country territory controls expose role cards, a compact draw toolbar and a
       card.textContent = role;
       objects.append(card);
     }
-  });
+  }, editorTestUrl('/index.html'));
   await expect(page.locator('#modeTaskObjects')).toContainText('넘겨받는 객체');
   await expect(page.locator('#modeTaskObjects')).toContainText('넘겨주는 객체');
   await expect(page.locator('#modeComponentsMethodInput + span')).toHaveText('영역 선택');
@@ -37,8 +38,8 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     body: '<!doctype html><html lang="ko"><head><link rel="stylesheet" href="/assets/css/app.css"><link rel="stylesheet" href="/assets/css/ui.bundle.css"></head><body></body></html>',
   }));
   await page.goto('/annex-controls-fixture');
-  await page.evaluate(async () => {
-    const source = new DOMParser().parseFromString(await (await fetch('/index.html')).text(), 'text/html');
+  await page.evaluate(async editorUrl => {
+    const source = new DOMParser().parseFromString(await (await fetch(editorUrl)).text(), 'text/html');
     const task = source.getElementById('modeEditingHud');
     document.body.append(task);
     document.body.classList.add('app-root');
@@ -54,7 +55,7 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     task.querySelector('#modeActionBar').classList.remove('hidden');
     task.querySelector('#modeCancelBtn .mode-button-label').textContent = '뒤로';
     task.querySelector('#modePrimaryBtn .mode-button-label').textContent = '다음';
-  });
+  }, editorTestUrl('/index.html'));
   for (const width of [260, 300, 360]) {
     await page.setViewportSize({ width: width < 300 ? 390 : 1024, height: 844 });
     await page.evaluate(mobile => { document.body.dataset.layout = mobile ? 'mobile' : 'compact'; }, width < 300);

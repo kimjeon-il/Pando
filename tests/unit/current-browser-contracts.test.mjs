@@ -19,10 +19,15 @@ test('current discovered tests each have one owner; diagnostic purposes and comm
 });
 
 test('application CI calls the shared selector and runner; automatic test lists are not copied into YAML', () => {
-  const steps = workflow.jobs.checks.steps;
-  assert.ok(steps.some(step => step.run === 'node scripts/run-application-checks.mjs --list --github-output'));
-  assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --output')));
-  assert.equal(steps.some(step => /node --test|playwright test|pnpm test:unit/.test(step.run || '')), false);
+  assert.ok(workflow.jobs.changes.steps.some(step => step.run === 'node scripts/run-application-checks.mjs --list --github-output'));
+  for (const phase of ['non-browser', 'browser']) {
+    const steps = workflow.jobs[phase].steps;
+    assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --list --github-output') && step.run.includes('--phase ' + phase)));
+    assert.ok(steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --phase ' + phase) && step.run.includes('--output')));
+    assert.equal(steps.some(step => /node --test|playwright test|pnpm test:unit/.test(step.run || '')), false);
+  }
+  assert.ok(workflow.jobs.checks.steps.some(step => step.id === 'aggregate'));
+  assert.equal(workflow.jobs.checks.steps.some(step => step.run?.includes('run-application-checks.mjs')), false);
   assert.equal(workflow.on.push.paths, undefined); assert.equal(workflow.on.pull_request.paths, undefined);
   assert.deepEqual(workflow.permissions, { contents: 'read' });
   assert.ok(workflow.jobs.changes.steps.find(step => step.id === 'plan').env.HEAD_SHA.includes('pull_request.head.sha'));

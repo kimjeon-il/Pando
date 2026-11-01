@@ -1,4 +1,3 @@
-import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -10,6 +9,8 @@ import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modu
 import { createTerritoryComponents } from "../../apps/editor/frontend/js/modules/app-territory-components.js";
 import { composeRiverBoundaryTerritoryComponents } from "../../apps/editor/frontend/js/modules/river-territory-partition.js";
 import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
+import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
+import { validateWorldBundle } from "../../shared/frontend/js/modules/world-bundle-manifest.js";
 
 const normalize = globalThis.PandoLabPolygonGeometry.normalizePolygonGeometry;
 const clipper = globalThis.polygonClipping;
@@ -17,11 +18,15 @@ const square = (a, b, c, d) => normalize({ type: 'Polygon', coordinates: [[[a,b]
 const feature = geometry => ({ type: 'Feature', id: 'source', properties: { name: '기준' }, geometry });
 const coords = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
 const plan = createTerritoryComponentPlan({ clipper, normalize });
+const data = new URL('../../assets/data/', import.meta.url);
+const bundle = validateWorldBundle(JSON.parse(readFileSync(new URL('world/current.json', data), 'utf8')));
 
-for (const filename of ['countries-preview-v0.33.0.geojson.gz', 'countries-ne-5.1.1.geojson']) {
-  test(`Russia preparation preserves every original polygon without clipping: ${filename}`, async () => {
-    const bytes = readFileSync(repositoryFrontendUrl(`assets/data/${filename}`));
+for (const [label, filename] of [['current preview', bundle.assets.previewCountries.url],
+  ['Natural Earth source', 'countries-ne-5.1.1.geojson']]) {
+  test(`Russia preparation preserves every original polygon without clipping: ${label}`, async () => {
+    const bytes = readFileSync(new URL(filename, data));
     const source = JSON.parse(filename.endsWith('.gz') ? gunzipSync(bytes) : bytes).features.find(f => f.id === 'RUS');
+    assert.ok(source, 'Russia must be present in the selected pinned source');
     const forbidden = () => assert.fail('unedited source must not run polygon operations');
     const fast = createTerritoryComponentPlan({ clipper: { union: forbidden, difference: forbidden, intersection: forbidden }, normalize: forbidden });
     const result = await fast.prepare({ features: [source] });
@@ -72,8 +77,13 @@ test('holes, islands and polygons on either side of the dateline retain all coor
   assert.deepEqual(result.items.map(item => item.geometry.coordinates), geometry.coordinates);
 });
 
-test('component cache and render packets reuse geometry across hover, selection and river toggles', async () => {
+test('component cache and render packets reuse geometry across hover, selection and river toggles', async t => {
   let areas = 0;
+  const calculate = sharedCalculationCore.riverPartitionCalculate;
+  t.mock.method(sharedCalculationCore, 'riverPartitionCalculate', (operation, input) => {
+    if (operation === 'area') areas += 1;
+    return calculate.call(sharedCalculationCore, operation, input);
+  });
   const source = feature(square(0, 0, 10, 10));
   const current = { stage: 'selection', activePhase: 'components', baseSourceFeatures: [source],
     selectedComponentKeys: [], componentFeatures: [source], useRiverBoundaries: false };
@@ -81,16 +91,17 @@ test('component cache and render packets reuse geometry across hover, selection 
   api.connect({
     projectState: { state: { territorySelectionSession: current } },
     objectPresentation: { territorialEntityName: () => '기준' },
-    platform: { d3: { geo: { area: () => { areas += 1; return 1; } } } },
     territorialModel: { composeRiverBoundaryTerritoryComponents },
   });
   api.installComponentIndex(current, await plan.prepare({ features: [source] }), 'source:1');
   const initial = api.territoryComponentItems()[0];
+  assert.ok(Number.isFinite(initial.areaKm2) && initial.areaKm2 > 0);
   for (let i = 0; i < 20; i++) {
     current.selectedComponentKeys = i % 2 ? [initial.key] : [];
     const items = api.territoryComponentItems();
     const packet = createEditingRenderPacket({ territoryOperation: { components: items } });
     assert.equal(items[0].geometry, initial.geometry);
+    assert.equal(items[0].areaKm2, initial.areaKm2);
     assert.equal(packet.territoryOperation.components[0].geometry, initial.geometry);
   }
   assert.equal(areas, 1);

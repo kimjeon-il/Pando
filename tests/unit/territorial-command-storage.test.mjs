@@ -2,7 +2,7 @@ import { testCoreProject, initializeTestTerritorialState, snapshotTestTerritoria
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createObjectCommands } from "../../apps/editor/frontend/js/modules/app-object-commands.js";
-import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
+import { createCountryCommits } from "../../apps/editor/frontend/js/modules/app-country-commits.js";
 import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
@@ -19,7 +19,7 @@ async function fixture({ fail = false, child = false } = {}) {
     physicalSettings: { hiddenHydroIds: {} }, stateRevision: 0, itemVisibility: {}, layerPresentation: normalizeLayerPresentation({}), boundaryPreparation: null };
   let confirm,histories=0,saves=0;const patches=[],diagnostics=[];
   await initializeTestTerritorialState(state,null,{platformPorts:{
-    onProjectChanged:event=>{if(event.reason==='objects.remove')histories++;},persistence:{queueProject(){saves++;}},
+    onProjectChanged:event=>{if(event.reason==='objects.remove')histories++;},persistence:{queueProject(){saves++;},cancelPending(){}},
   }});
 const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
@@ -33,6 +33,8 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
   owner.connect({ projectState: { state }, selectionServices: { normalizeObjectRef },
     territorialModel: { entityStore, entityRepository,  DISTRIBUTION_MODES: { TERRITORIAL: 'territorial' } },
     objectModelB: { territorialApplicationService },
+    propertyEditingA: { distributionLayerById: id => core.documentModel.get({ domain: 'distributionLayer', id }) },
+    layerPresentation: { ASSET_REVISION: 'test' },
     presentation: { countryName: feature => feature.properties.name },
     objectPresentation: { territorialEntityName: feature => feature.properties.name, territorialRootName: () => 'B' },
     projectRestore: { openConfirmModal: options => { confirm = options; } },
@@ -93,7 +95,7 @@ test('one object lock guard handles countries and units with explicit refs and r
 });
 test('country construction remains detached until its owning Core command commits', () => {
   const state = {};
-  const owner = createObjectPicking();
+  const owner = createCountryCommits();
   owner.connect({ projectState: { state }, surfaces: { uid: () => 'NEW' }, platform: { deepClone: structuredClone } });
   const feature = owner.createCountryFeature('새 국가', null, geometry);
   assert.equal(feature.id, 'NEW'); assert.deepEqual(feature.geometry, geometry); assert.notEqual(feature.geometry, geometry);

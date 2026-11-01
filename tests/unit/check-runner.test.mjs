@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectChanges } from '../../scripts/lib/check-changes.mjs';
 import { executePlan, selectionRequest } from '../../scripts/run-application-checks.mjs';
+import * as runner from '../../scripts/run-application-checks.mjs';
 
 test('local comparison includes commits, index, working tree, untracked and both rename paths', t => {
   const root = mkdtempSync(join(tmpdir(), 'pando-check-diff-'));
@@ -69,4 +70,113 @@ test('explicit manual coverage stays explicit while artifact auto dispatch stays
   assert.equal(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_PROFILE: 'p3', CHECK_SCOPE: 'auto' }).diff, true);
   assert.equal(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'push', BROWSER_SCOPE: 'focused' }).diff, true);
   assert.throws(() => selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'unknown' }), /Unsupported/);
+});
+
+function phasedFixture() {
+  const repository = { root: '/fixture', catalog: {
+    prerequisites: {
+      core: { argv: ['node', 'core.mjs'] },
+      generated: { argv: ['node', 'generate.mjs'], requires: ['core'] },
+      'native-image': { argv: ['node', 'native.mjs'], requires: ['core'], env: { IMAGE: '{root}/image' } },
+    },
+    groups: [{ id: 'validation', argv: ['node', 'check.mjs'], requires: ['core'], gisNative: true }],
+  } };
+  const plan = { prerequisites: ['core', 'generated', 'native-image'], commands: ['validation'],
+    unitTests: ['tests/unit/native.test.mjs'], unitTestPrerequisites: { 'tests/unit/native.test.mjs': ['native-image'] },
+    browserSpecs: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'].map(id => 'tests/browser/' + id + '.spec.mjs'),
+    browserPrerequisites: ['generated'], manualTests: ['tests/browser/manual.spec.mjs'], changedFiles: [] };
+  return { repository, plan };
+}
+
+test('execution phases preserve the default sequence and run non-browser work only once', () => {
+  const { repository, plan } = phasedFixture(), before = structuredClone(plan), all = [], nonBrowser = [];
+  const complete = executePlan(plan, { repository, run: argv => { all.push(argv); return { status: 0 }; } });
+  assert.deepEqual(all, [
+    ['node', 'core.mjs'], ['node', 'generate.mjs'], ['node', 'native.mjs'], ['node', 'check.mjs'],
+    ['node', '--test', '--test-concurrency=2', 'tests/unit/native.test.mjs'],
+    ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1'],
+  ]);
+  assert.equal(complete.ok, true);
+  const partial = executePlan(plan, { repository, phase: 'non-browser', run: argv => { nonBrowser.push(argv); return { status: 0 }; } });
+  assert.equal(partial.ok, true);
+  assert.deepEqual(nonBrowser, all.slice(0, -1));
+  assert.deepEqual(partial.execution, { phase: 'non-browser', shard: null });
+  assert.deepEqual(plan, before, 'Execution phases must preserve the complete canonical selection');
+});
+
+test('browser shards receive the complete original spec list and only browser prerequisite commands', () => {
+  const { repository, plan } = phasedFixture(), before = structuredClone(plan);
+  for (let current = 1; current <= 8; current++) {
+    const calls = [], shard = current + '/8';
+    const result = executePlan(plan, { repository, phase: 'browser', shard, run: argv => { calls.push(argv); return { status: 0 }; } });
+    assert.deepEqual(calls, [
+      ['node', 'core.mjs'], ['node', 'generate.mjs'],
+      ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1', '--shard', shard],
+    ]);
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.execution, { phase: 'browser', shard });
+    assert.deepEqual(plan, before);
+  }
+});
+
+test('invalid execution phases and shards fail before any command is spawned', () => {
+  const { repository, plan } = phasedFixture();
+  const invalid = [
+    { phase: 'unknown' }, { phase: '' }, { shard: '1/2' }, { phase: 'non-browser', shard: '1/2' },
+    ...['', '0/2', '1/0', '3/2', '1/9', '1', '1/2x', '1.0/2', ' 1/2', '1/2 ', '1/9007199254740992']
+      .map(shard => ({ phase: 'browser', shard })),
+  ];
+  for (const options of invalid) {
+    const calls = [];
+    assert.throws(() => executePlan(plan, { repository, ...options, run: argv => { calls.push(argv); return { status: 0 }; } }),
+      /Invalid execution phase|Invalid browser shard|requires the browser phase/);
+    assert.deepEqual(calls, []);
+  }
+  assert.throws(() => runner.main(['--phase', 'unknown'], {}), /Invalid execution phase/);
+  assert.throws(() => runner.main(['--phase', 'browser', '--shard', '2/1'], {}), /Invalid browser shard/);
+});
+
+test('browser phase keeps failed browser prerequisites blocking and never runs native unit preparation', () => {
+  const { repository, plan } = phasedFixture(), calls = [];
+  const result = executePlan(plan, { repository, phase: 'browser', shard: '1/8', run: argv => {
+    calls.push(argv); return { status: argv.includes('generate.mjs') ? 9 : 0 };
+  } });
+  assert.equal(result.ok, false);
+  assert.deepEqual(calls, [['node', 'core.mjs'], ['node', 'generate.mjs']]);
+  assert.ok(result.results.some(row => row.id === 'browser' && row.status === 'blocked'));
+});
+
+test('empty browser and non-browser phases execute no unrelated work', () => {
+  const { repository, plan } = phasedFixture();
+  for (const [phase, empty] of [
+    ['browser', { ...plan, browserSpecs: [] }],
+    ['non-browser', { ...plan, unitTests: [], commands: [] }],
+  ]) {
+    const calls = [], result = executePlan(empty, { repository, phase, run: argv => { calls.push(argv); return { status: 0 }; } });
+    assert.equal(result.ok, true);
+    assert.deepEqual(calls, []);
+    assert.deepEqual(result.results, []);
+  }
+});
+
+test('execution CI outputs bound a nonempty browser matrix and keep native setup phase-specific', () => {
+  const { repository, plan } = phasedFixture();
+  for (const count of [0, 1, 2, 4, 5, 8, 9]) {
+    const selected = { ...plan, browserSpecs: plan.browserSpecs.slice(0, count) };
+    const outputs = runner.executionOutputs(selected, { repository });
+    const total = Math.min(8, count);
+    assert.equal(outputs.browser, count > 0);
+    assert.equal(outputs.non_browser, true);
+    assert.equal(outputs.browser_count, count);
+    assert.deepEqual(outputs.browser_matrix, { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) });
+    assert.deepEqual(outputs.native_requirements, ['image']);
+  }
+  const browser = runner.executionOutputs(plan, { repository, phase: 'browser', shard: '1/8' });
+  assert.deepEqual(browser.native_requirements, []);
+  assert.equal(browser.gis_native, false);
+  const empty = runner.executionOutputs({ ...plan, unitTests: [], commands: [], browserSpecs: [] }, { repository });
+  assert.equal(empty.checks, false);
+  assert.equal(empty.non_browser, false);
+  assert.equal(empty.browser, false);
+  assert.deepEqual(empty.browser_matrix, { include: [] });
 });

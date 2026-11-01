@@ -6,8 +6,51 @@ import { pathToFileURL } from 'node:url';
 import { collectChanges } from './lib/check-changes.mjs';
 import { loadRepository, planApplicationChecks } from './plan-application-checks.mjs';
 
-export function executePlan(plan, { repository, run = (argv, options) => spawnSync(
+function executionOptions({ phase = 'all', shard = null } = {}) {
+  if (!['all', 'non-browser', 'browser'].includes(phase)) throw Error('Invalid execution phase: ' + phase);
+  if (shard !== null) {
+    if (phase !== 'browser') throw Error('A shard requires the browser phase');
+    const match = typeof shard === 'string' && /^([1-9]\d*)\/([1-9]\d*)$/.exec(shard);
+    const current = Number(match?.[1]), total = Number(match?.[2]);
+    if (!match || !Number.isSafeInteger(current) || !Number.isSafeInteger(total) || current > total || total > 8)
+      throw Error('Invalid browser shard: ' + shard);
+  }
+  return { phase, shard };
+}
+
+function phasePrerequisites(plan, phase) {
+  if (phase === 'browser') {
+    if (!plan.browserSpecs.length) return [];
+    if (!Array.isArray(plan.browserPrerequisites)) throw Error('Missing browser prerequisites in the canonical plan');
+    return plan.browserPrerequisites;
+  }
+  if (phase === 'non-browser' && !plan.unitTests.length && !plan.commands.length) return [];
+  return plan.prerequisites;
+}
+
+export function executionOutputs(plan, { repository, ...options } = {}) {
+  const { phase } = executionOptions(options), required = new Set();
+  const include = id => {
+    if (required.has(id)) return;
+    required.add(id);
+    const entry = repository.catalog.prerequisites[id] || repository.catalog.groups.find(group => group.id === id);
+    (entry?.requires || []).forEach(include);
+  };
+  phasePrerequisites(plan, phase).forEach(include);
+  const nonBrowser = Boolean(plan.unitTests.length || plan.commands.length), count = plan.browserSpecs.length;
+  const total = Math.min(8, count);
+  return {
+    checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
+    browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
+    gis_native: phase !== 'browser' && plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative),
+    native_requirements: [...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort(),
+  };
+}
+
+export function executePlan(plan, { repository, phase = 'all', shard = null, run = (argv, options) => spawnSync(
   argv[0] === 'node' ? process.execPath : argv[0], argv.slice(1), { ...options, stdio: 'inherit', shell: false }) } = {}) {
+  const execution = executionOptions({ phase, shard });
+  const prerequisites = phasePrerequisites(plan, phase);
   const results = [], completed = new Map(), states = new Map(), visiting = new Set();
   const catalog = repository.catalog;
   let scratch;
@@ -56,10 +99,10 @@ export function executePlan(plan, { repository, run = (argv, options) => spawnSy
     }
     states.set(id, ok); return ok;
   }
-  for (const id of plan.prerequisites) prerequisite(id);
-  for (const id of plan.commands) prerequisite(id);
+  for (const id of prerequisites) prerequisite(id);
+  if (phase !== 'browser') for (const id of plan.commands) prerequisite(id);
   // Unit failures stay visible even if a separate browser/asset prerequisite failed.
-  if (plan.unitTests.length) {
+  if (phase !== 'browser' && plan.unitTests.length) {
     if (states.get('core') === false) results.push({ id: 'unit', status: 'blocked', reason: 'core prerequisite failed' });
     else {
       const batches = new Map();
@@ -78,11 +121,11 @@ export function executePlan(plan, { repository, run = (argv, options) => spawnSy
         command('unit', ['node', '--test', '--test-concurrency=2', ...files.slice(at, at + 30)], required, environment(required));
     }
   }
-  if (plan.browserSpecs.length) {
+  if (phase !== 'non-browser' && plan.browserSpecs.length) {
     if ((plan.browserPrerequisites || plan.prerequisites).some(id => states.get(id) === false)) results.push({ id: 'browser', status: 'blocked', reason: 'prerequisite failed' });
-    else command('browser', ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1']);
+    else command('browser', ['node', 'node_modules/@playwright/test/cli.js', 'test', ...plan.browserSpecs, '--workers=1', ...(shard ? ['--shard', shard] : [])]);
   }
-  return { ok: results.every(result => result.status === 'passed'), results, externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
+  return { execution, ok: results.every(result => result.status === 'passed'), results, externalChecks: (plan.externalChecks || []).map(check => ({ ...check, status: 'not-executed-by-application-runner' })) };
 }
 
 export function selectionRequest(catalog, env, groups = []) {
@@ -106,11 +149,12 @@ export function selectionRequest(catalog, env, groups = []) {
 
 export function main(args = process.argv.slice(2), env = process.env) {
   const value = name => { const at = args.indexOf(name); return at < 0 ? undefined : args[at + 1]; };
-  const known = new Set(['--list', '--base', '--group', '--github-output', '--output']);
+  const known = new Set(['--list', '--base', '--group', '--github-output', '--output', '--phase', '--shard']);
   for (let at = 0; at < args.length; at++) {
     if (!known.has(args[at])) throw Error('Unknown check option: ' + args[at]);
-    if (['--base', '--group', '--output'].includes(args[at]) && (!args[++at] || args[at].startsWith('--'))) throw Error('Missing check option value');
+    if (['--base', '--group', '--output', '--phase', '--shard'].includes(args[at]) && (!args[++at] || args[at].startsWith('--'))) throw Error('Missing check option value');
   }
+  const execution = executionOptions({ phase: value('--phase'), shard: value('--shard') });
   const repository = loadRepository();
   const request = selectionRequest(repository.catalog, env, value('--group')?.split(',') || []);
   const comparison = request.diff === false ? collectChanges({ base: env.HEAD_SHA || 'HEAD', head: env.HEAD_SHA || 'HEAD', event: 'push' }) : collectChanges({ base: value('--base') || env.BASE_SHA || 'origin/main',
@@ -125,14 +169,16 @@ export function main(args = process.argv.slice(2), env = process.env) {
   console.log(JSON.stringify(plan, null, 2));
   if (args.includes('--github-output')) {
     if (!env.GITHUB_OUTPUT) throw Error('GITHUB_OUTPUT is required');
-    const required = new Set();
-    const include = id => { if (required.has(id)) return; required.add(id); (repository.catalog.prerequisites[id]?.requires || []).forEach(include); };
-    plan.prerequisites.forEach(include);
-    appendFileSync(env.GITHUB_OUTPUT, `browser=${Boolean(plan.browserSpecs.length)}\nchecks=${Boolean(plan.unitTests.length || plan.browserSpecs.length || plan.commands.length)}\ngis_native=${plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)}\nnative_requirements=${JSON.stringify([...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort())}\n`);
+    const outputs = executionOutputs(plan, { repository, ...execution });
+    appendFileSync(env.GITHUB_OUTPUT, Object.entries(outputs).map(([key, value]) => `${key}=${JSON.stringify(value)}\n`).join(''));
   }
-  const result = args.includes('--list') ? { status: 'planned', plan } : { status: 'executed', plan, ...executePlan(plan, { repository }) };
+  const result = args.includes('--list') ? { status: 'planned', plan, execution } : { status: 'executed', plan, ...executePlan(plan, { repository, ...execution }) };
   if (value('--output')) writeFileSync(value('--output'), JSON.stringify(result, null, 2) + '\n');
-  if (result.status === 'executed') { console.log(JSON.stringify({ applicationChecksPassed: result.ok, results: result.results, externalChecks: result.externalChecks }, null, 2)); if (!result.ok) process.exitCode = 1; }
+  if (result.status === 'executed') {
+    console.log(JSON.stringify({ [execution.phase === 'all' ? 'applicationChecksPassed' : 'applicationPhasePassed']: result.ok,
+      execution, results: result.results, externalChecks: result.externalChecks }, null, 2));
+    if (!result.ok) process.exitCode = 1;
+  }
   return result;
 }
 
