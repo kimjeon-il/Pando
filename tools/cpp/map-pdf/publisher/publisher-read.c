@@ -32,6 +32,12 @@ static int mask_operation(const char *action,const char *width_text,const char *
     height=strtol(height_text,&end,10);if(!end||*end||height<1||height>4096)return 1;
     bits=strtol(bits_text,&end,10);if(!end||*end||bits<1||bits>127)return 1;
     pixels=(size_t)width*(size_t)height;
+    if(!strcmp(action,"rgba")){
+        unsigned char *output;if(size!=pixels*3||bits!=1)return 1;
+        output=(unsigned char*)malloc(pixels*4);if(!output)return 1;
+        for(i=0;i<pixels;i++){output[i*4]=input[i*3];output[i*4+1]=input[i*3+1];output[i*4+2]=input[i*3+2];output[i*4+3]=255;}
+        i=fwrite(output,1,pixels*4,stdout);free(output);return i==pixels*4?0:1;
+    }
     if(!strcmp(action,"compare")){
         const unsigned char *text,*before,*after;if(size!=pixels*8||!(bits==1||bits==2||bits==8||bits==16||bits==64))return 1;
         text=input+pixels;before=input+pixels*2;after=input+pixels*5;
@@ -139,7 +145,7 @@ int main(int argc,char **argv){
 #ifdef _WIN32
     if(_setmode(_fileno(stdin),_O_BINARY)==-1||_setmode(_fileno(stdout),_O_BINARY)==-1)return 1;
 #endif
-    if(argc==5&&(!strcmp(argv[1],"compare")||!strcmp(argv[1],"finish")))mask_mode=1;
+    if(argc==5&&(!strcmp(argv[1],"compare")||!strcmp(argv[1],"finish")||!strcmp(argv[1],"rgba")))mask_mode=1;
     else if(argc==2&&!strcmp(argv[1],"inspect"))render=0;
     else if((argc==4&&!strcmp(argv[1],"render"))||(argc==3&&!strcmp(argv[1],"text"))){char *end=NULL;long value=strtol(argv[2],&end,10);
         if(!end||*end||value<32||value>4096){fprintf(stderr,"Invalid maximum dimension\n");return 1;}
@@ -159,9 +165,13 @@ int main(int argc,char **argv){
         object=pdf_lookup_page_obj(ctx,pdf,0);rotation=pdf_dict_get_inheritable_int(ctx,object,PDF_NAME(Rotate));rotation=((rotation%360)+360)%360;
         if(rotation)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Unrotated publisher PDF page required");
         layers=pdf_count_layers(ctx,pdf);if(layers<1||layers>1024)fz_throw(ctx,FZ_ERROR_LIMIT,"Bounded publisher layers required");
-        if(!render){int entries=pdf_count_layer_config_ui(ctx,pdf);
+        if(!render){int entries=pdf_count_layer_config_ui(ctx,pdf);fz_rect bounds;
             if(entries<0||entries>4096)fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher layer UI exceeds budget");
-            printf("{\"pageCount\":%d,\"rotation\":%d,\"layers\":[",count,rotation);
+            page=fz_load_page(ctx,document,0);bounds=fz_bound_page(ctx,page);
+            if(!isfinite(bounds.x0)||!isfinite(bounds.y0)||!isfinite(bounds.x1)||!isfinite(bounds.y1)||bounds.x1<=bounds.x0||bounds.y1<=bounds.y0)
+                fz_throw(ctx,FZ_ERROR_FORMAT,"Invalid publisher page dimensions");
+            printf("{\"pageCount\":%d,\"rotation\":%d,\"sourceRectPts\":[%.9g,%.9g,%.9g,%.9g],\"layers\":[",count,rotation,
+                (double)bounds.x0,(double)bounds.y0,(double)bounds.x1,(double)bounds.y1);
             for(i=0;i<layers;i++){if(i)putchar(',');printf("{\"name\":");json_string(pdf_layer_name(ctx,pdf,i));
                 printf(",\"enabled\":%s}",pdf_layer_is_enabled(ctx,pdf,i)?"true":"false");}
             printf("],\"ui\":[");

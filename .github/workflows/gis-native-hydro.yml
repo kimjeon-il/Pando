@@ -62,15 +62,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Publisher configure failed' }
           cmake --build build-native/map-pdf/publisher-native --config Release --target pando-publisher-pdf --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Publisher build failed' }
-          if ($IsWindows) { $binary = 'build-native/map-pdf/publisher-native/Release/pando-publisher-pdf.exe' }
-          else { $binary = 'build-native/map-pdf/publisher-native/pando-publisher-pdf' }
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
+          if ($IsWindows) { $binary = 'build-native/map-pdf/publisher-native/Release/pando-publisher-pdf.exe'; $image = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $binary = 'build-native/map-pdf/publisher-native/pando-publisher-pdf'; $image = 'build-native/map-image/pando-map-image' }
           node tools/reference-analysis/package-native-publisher-pdf.mjs --binary $binary --directory build-native/map-pdf/publisher-artifact --sdk $sdk
           if ($LASTEXITCODE -ne 0) { throw 'Publisher packaging failed' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
       - name: Compare publisher layer rasters with frozen source pixels
         shell: pwsh
         run: |
           $env:PANDO_PUBLISHER_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/publisher-artifact"
-          node --test tests/unit/reference-publisher-pdf.test.mjs
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/reference-publisher-pdf.test.mjs tests/unit/reference-publisher-generator.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-publisher-training-source.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Publisher layer pixels differ' }
       - uses: actions/upload-artifact@v4
         if: always()

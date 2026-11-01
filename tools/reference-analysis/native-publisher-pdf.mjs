@@ -6,6 +6,7 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
+import {encodeNativeJpeg} from '../map-image/native-resample.mjs';
 import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 
 export const publisherPdfSourceFiles=Object.freeze(['tools/cpp/map-pdf/publisher/CMakeLists.txt',
@@ -20,7 +21,7 @@ function invoke(binary,args,input,signal){return new Promise((accept,reject)=>{
   const finish=(error,value)=>{if(done)return;done=true;clearTimeout(timer);error?reject(error):accept(value);};
   const timer=setTimeout(()=>{child.kill();finish(Error('Publisher PDF operation timed out'));},120000);
   child.on('error',error=>finish(error));child.stdin.on('error',()=>{});
-  child.stdout.on('data',chunk=>{bytes+=chunk.length;if(bytes>16*1024*1024*3+1024*1024){child.kill();finish(Error('Publisher PDF output exceeds budget'));}else out.push(chunk);});
+  child.stdout.on('data',chunk=>{bytes+=chunk.length;if(bytes>16*1024*1024*5+9*1024*1024){child.kill();finish(Error('Publisher PDF output exceeds budget'));}else out.push(chunk);});
   child.stderr.on('data',chunk=>{errorBytes+=chunk.length;if(errorBytes<=65536)errors.push(chunk);});
   child.on('close',(code,reason)=>code!==0||reason?finish(Error('Publisher PDF failed: '+Buffer.concat(errors).toString('utf8'))):finish(null,Buffer.concat(out,bytes)));
   child.stdin.end(input);
@@ -61,7 +62,9 @@ function checkedText(result,info){
   return {width,height,scale,credits,mask,characters,sourceSha256:result.sourceSha256};
 }
 function checkInfo({header,data,sourceSha256}){
-  if(data.length||header.pageCount!==1||header.rotation!==0||!Array.isArray(header.layers)||!header.layers.length||header.layers.length>1024||
+  if(data.length||header.pageCount!==1||header.rotation!==0||!Array.isArray(header.sourceRectPts)||header.sourceRectPts.length!==4||
+    header.sourceRectPts.some(value=>!Number.isFinite(value))||header.sourceRectPts[2]<=header.sourceRectPts[0]||header.sourceRectPts[3]<=header.sourceRectPts[1]||
+    !Array.isArray(header.layers)||!header.layers.length||header.layers.length>1024||
     header.layers.some(row=>typeof row?.name!=='string'||!row.name||typeof row.enabled!=='boolean')||
     new Set(header.layers.map(row=>row.name)).size!==header.layers.length||!Array.isArray(header.ui)||header.ui.length>4096||
     header.ui.some(row=>typeof row?.text!=='string'||!Number.isSafeInteger(row.depth)||row.depth<0||![0,1,2].includes(row.type)))
@@ -124,5 +127,15 @@ export async function derivePublisherPdfTrainingLayers({path,maximumDimension},{
   if(trainingFileIdentity(actual,{maxBytes:300*1024*1024})!==identity)throw Error('Publisher PDF changed during derivation');
   artifact(workspace,directory);
   return {width:image.width,height:image.height,scale:image.scale,rgb:image.rgb,mask:data.subarray(0,pixels),validMask:data.subarray(pixels),
-    credits:text.credits,observedMask,positivePixels:header.positivePixels,layers,sourceSha256:identity,trainingOnly:true,releaseApproved:false};
+    credits:text.credits,observedMask,positivePixels:header.positivePixels,layers,sourceRectPts:info.sourceRectPts,
+    sourceSha256:identity,trainingOnly:true,releaseApproved:false};
+}
+export async function encodePublisherRgbJpeg({width,height,rgb},{signal,workspace=root,
+  directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact'),imageDirectory}={}){
+  signal?.throwIfAborted();
+  if(![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||!(rgb instanceof Uint8Array)||rgb.length!==width*height*3)
+    throw Error('Bounded publisher RGB pixels required');
+  const binary=artifact(workspace,directory),data=await invoke(binary,['rgba',String(width),String(height),'1'],rgb,signal);
+  if(data.length!==width*height*4)throw Error('Publisher image conversion dimensions differ');
+  return (await encodeNativeJpeg({width,height,data},{signal,workspace,directory:imageDirectory})).data;
 }
