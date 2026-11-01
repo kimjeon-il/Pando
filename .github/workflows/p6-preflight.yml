@@ -60,6 +60,8 @@ on:
       - tests/unit/territorial-editor-lifecycle.test.mjs
       - tests/unit/place-million.test.mjs
       - tests/unit/place-label-workflow.test.mjs
+      - tests/unit/gpu-shared-pass-initialization.test.mjs
+      - tests/unit/country-validator-properties.test.mjs
       - tests/unit/project-autosave-receipt.test.mjs
       - tests/unit/project-preview-policy.test.mjs
       - tests/unit/renderer-responsiveness-source.test.mjs
@@ -67,6 +69,7 @@ on:
       - tests/unit/selection-ui-reset-regression.test.mjs
       - tests/unit/shared-view-policy.test.mjs
       - tests/unit/territorial-interaction-policy.test.mjs
+      - tests/unit/territorial-storage-audit.test.mjs
       - tests/unit/ui-state-controllers.test.mjs
       - scripts/contracts/application-checks.json
       - scripts/run-boundary-revision-comparison.mjs
@@ -340,13 +343,15 @@ jobs:
           set -e
           tail -n 18 test-results/p6-preflight/additional-contracts.tap
           exit "$result"
-      - name: Recheck nine additional Architecture and downstream Core contract files
+      - name: Recheck twelve additional Architecture and downstream Core contract files
         id: architecture_followups
         if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.data.outcome == 'success' && steps.node_deps.outcome == 'success' }}
         shell: bash
         run: |
           set +e
           node --test --test-concurrency=1 --test-timeout=120000 --test-reporter=tap \
+            tests/unit/country-validator-properties.test.mjs \
+            tests/unit/gpu-shared-pass-initialization.test.mjs \
             tests/unit/place-label-workflow.test.mjs \
             tests/unit/project-autosave-receipt.test.mjs \
             tests/unit/project-preview-policy.test.mjs \
@@ -355,6 +360,7 @@ jobs:
             tests/unit/selection-ui-reset-regression.test.mjs \
             tests/unit/shared-view-policy.test.mjs \
             tests/unit/territorial-interaction-policy.test.mjs \
+            tests/unit/territorial-storage-audit.test.mjs \
             tests/unit/ui-state-controllers.test.mjs > test-results/p6-preflight/architecture-followups.tap 2>&1
           result=$?
           set -e
@@ -393,6 +399,19 @@ jobs:
           set -e
           tail -n 18 test-results/p6-preflight/worker-temporal.tap
           exit "$result"
+      - name: Verify the three actual temporal ABI contracts on the committed runtime
+        id: temporal_abi
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.data.outcome == 'success' }}
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-timeout=15000 --test-reporter=tap shared/tests/temporal-transport-p5-5.test.mjs > test-results/p6-preflight/temporal-abi.tap 2>&1
+          result=$?
+          set -e
+          tail -n 18 test-results/p6-preflight/temporal-abi.tap
+          exit "$result"
       - name: Record exact executed counts and unexecuted gates
         if: always()
         env:
@@ -407,6 +426,7 @@ jobs:
           PANDO_PREFLIGHT_PLACE: ${{ steps.place_worker.outcome }}
           PANDO_PREFLIGHT_PARITY: ${{ steps.parity.outcome }}
           PANDO_PREFLIGHT_WORKER: ${{ steps.worker.outcome }}
+          PANDO_PREFLIGHT_TEMPORAL_ABI: ${{ steps.temporal_abi.outcome }}
         run: |
           node --input-type=module <<'NODE'
           import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -441,10 +461,11 @@ jobs:
               tests: nativeAttribute('tests'), failures: nativeAttribute('failures'), skipped: nativeAttribute('skipped') },
             originalContracts: { outcome: process.env.PANDO_PREFLIGHT_CONTRACTS, selectedFiles: 52, counts: tap('original-contracts.tap') },
             additionalContracts: { outcome: process.env.PANDO_PREFLIGHT_ADDITIONAL, selectedFiles: 45, observedFailureFiles: 44, addedRegressionFiles: 1, counts: tap('additional-contracts.tap') },
-            architectureFollowups: { outcome: process.env.PANDO_PREFLIGHT_ARCHITECTURE_FOLLOWUPS, selectedFiles: 9, counts: tap('architecture-followups.tap') },
+            architectureFollowups: { outcome: process.env.PANDO_PREFLIGHT_ARCHITECTURE_FOLLOWUPS, selectedFiles: 12, counts: tap('architecture-followups.tap') },
             placeWorker: { outcome: process.env.PANDO_PREFLIGHT_PLACE, counts: tap('place-worker.tap') },
             temporalParity: { outcome: process.env.PANDO_PREFLIGHT_PARITY, counts: tap('temporal-parity.tap'), evidence: json('temporal-parity.json') },
             workerTemporal: { outcome: process.env.PANDO_PREFLIGHT_WORKER, counts: tap('worker-temporal.tap') },
+            temporalAbi: { outcome: process.env.PANDO_PREFLIGHT_TEMPORAL_ABI, counts: tap('temporal-abi.tap') },
             deferredBrowserCasesExecuted: false,
           };
           if (summary.native.outcome === 'success' && (summary.native.tests !== 9 || summary.native.failures !== 0 || summary.native.skipped !== 0))
@@ -456,6 +477,7 @@ jobs:
             ['placeWorker', summary.placeWorker, 1],
             ['temporalParity', summary.temporalParity, 5],
             ['workerTemporal', summary.workerTemporal, 6],
+            ['temporalAbi', summary.temporalAbi, 3],
           ]) {
             if (batch.outcome !== 'success') continue;
             const c = batch.counts;
@@ -470,17 +492,18 @@ jobs:
           summary.evidenceErrors = failures;
           summary.passed = failures.length === 0
             && Object.values(summary.gates).every(value => value === 'success')
-            && [summary.native, summary.originalContracts, summary.additionalContracts, summary.architectureFollowups, summary.placeWorker, summary.temporalParity, summary.workerTemporal].every(batch => batch.outcome === 'success');
+            && [summary.native, summary.originalContracts, summary.additionalContracts, summary.architectureFollowups, summary.placeWorker, summary.temporalParity, summary.workerTemporal, summary.temporalAbi].every(batch => batch.outcome === 'success');
           writeFileSync(root + 'summary.json', JSON.stringify(summary, null, 2) + '\n');
           const rows = [
             ['Changed/previously failing lint', summary.gates.lint, null, null, null],
             ['Native CTest', summary.native.outcome, summary.native.tests, summary.native.failures, summary.native.skipped],
             ['Original shared-core files (52)', summary.originalContracts.outcome, summary.originalContracts.counts?.tests, summary.originalContracts.counts?.fail, summary.originalContracts.counts?.skipped],
             ['Remaining failed files (44) and concurrency regression (1)', summary.additionalContracts.outcome, summary.additionalContracts.counts?.tests, summary.additionalContracts.counts?.fail, summary.additionalContracts.counts?.skipped],
-            ['Additional Architecture and downstream Core files (9)', summary.architectureFollowups.outcome, summary.architectureFollowups.counts?.tests, summary.architectureFollowups.counts?.fail, summary.architectureFollowups.counts?.skipped],
+            ['Additional Architecture and downstream Core files (12)', summary.architectureFollowups.outcome, summary.architectureFollowups.counts?.tests, summary.architectureFollowups.counts?.fail, summary.architectureFollowups.counts?.skipped],
             ['Previously stalled place Worker', summary.placeWorker.outcome, summary.placeWorker.counts?.tests, summary.placeWorker.counts?.fail, summary.placeWorker.counts?.skipped],
             ['Native/WASM temporal parity', summary.temporalParity.outcome, summary.temporalParity.counts?.tests, summary.temporalParity.counts?.fail, summary.temporalParity.counts?.skipped],
             ['Worker cancellation / late acknowledgement', summary.workerTemporal.outcome, summary.workerTemporal.counts?.tests, summary.workerTemporal.counts?.fail, summary.workerTemporal.counts?.skipped],
+            ['Actual WASM temporal ABI', summary.temporalAbi.outcome, summary.temporalAbi.counts?.tests, summary.temporalAbi.counts?.fail, summary.temporalAbi.counts?.skipped],
           ];
           const display = value => value === null || value === undefined ? 'unobserved' : String(value);
           const report = '## P6 preflight\n\n| Batch | Outcome | Tests | Failures | Skips |\n| --- | --- | ---: | ---: | ---: |\n'

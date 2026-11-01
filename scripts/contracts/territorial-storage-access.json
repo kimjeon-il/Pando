@@ -322,6 +322,65 @@
       ],
       "owner": "current project reader",
       "reason": "Read detached imported identities to attach current package assets before atomic document admission; no active document writes."
+    },
+    {
+      "file": "shared/frontend/js/modules/app-map-settings.js",
+      "functions": [
+        "mapDisplayAvailability"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Map display availability",
+      "reason": "Read the accepted read-only territorial projection installed by ProjectSession to decide whether the object display controls are available."
+    },
+    {
+      "file": "shared/frontend/js/modules/project-session.js",
+      "functions": [
+        "pruneViewingItems"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Session viewing presentation",
+      "reason": "Read IDs from the immutable accepted document snapshot to prune session-only visibility entries; never modify document identities."
+    },
+    {
+      "file": "shared/frontend/js/modules/timeline-records.js",
+      "functions": [
+        "timelineObjectCatalog"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Timeline validation input catalog",
+      "reason": "Copy domain, ID and kind from input identities into the C++ validation context; do not mutate identities or resolve temporal rules."
+    },
+    {
+      "file": "shared/frontend/js/modules/builtin-world-loader.js",
+      "functions": [
+        "assembleBuiltinWorld"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "detachedCandidate": true,
+      "owner": "Builtin source candidate construction",
+      "reason": "Build selected source identities in a structuredClone of the catalog template. The source receipt still requires C++ validation and admission; no active document is writable here."
+    },
+    {
+      "file": "apps/editor/frontend/js/modules/library-geometry-context.js",
+      "functions": [
+        "prepareLibraryGeometryWorkspace"
+      ],
+      "access": [
+        "read",
+        "write"
+      ],
+      "detachedCandidate": true,
+      "owner": "Library geometry candidate construction",
+      "reason": "Append library identities only to a new createInitialDocument candidate. Startup passes it through ProjectDomain.prepareImport/admit before editing the accepted C++ document."
     }
   ]
 }

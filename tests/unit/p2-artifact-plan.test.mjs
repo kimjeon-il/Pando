@@ -134,6 +134,12 @@ const integrationPresentationChanges=[
   'scripts/run-boundary-revision-comparison.mjs',
   'scripts/lib/library-preparation-wait.mjs',
   'scripts/frontend-dev-server.mjs',
+  'scripts/check-renderer-v2.mjs',
+  'scripts/lib/renderer-v2-architecture.mjs',
+  'scripts/contracts/territorial-storage-access.json',
+  'scripts/lib/territorial-storage-audit.mjs',
+  'tools/cpp/validate-country-geometry.cpp',
+  'tools/cpp/country-properties.h',
   'scripts/p2-artifact-plan.mjs',
   'tests/unit/p2-artifact-plan.test.mjs',
 ];
