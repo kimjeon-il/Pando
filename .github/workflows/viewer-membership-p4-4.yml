@@ -6,6 +6,7 @@ on:
       - shared/frontend/js/modules/object-search-controller.js
       - shared/frontend/js/modules/territorial-entity-store.js
       - apps/viewer/js/modules/viewer-composition.js
+      - tests/unit/object-search-controller.test.mjs
       - tests/unit/viewer-country-membership-p4-4.test.mjs
       - tests/browser/viewer-country-membership-p4-4.spec.mjs
       - .github/workflows/viewer-membership-p4-4.yml
