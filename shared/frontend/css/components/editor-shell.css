@@ -1354,3 +1354,52 @@
 .editor-object-header[data-editor-context] .editor-object-meta {
   gap: var(--ui-space-1);
 }
+
+
+/* P2 inspector: compact disclosures expose secondary territorial information on demand. */
+.editor-compact-disclosure {
+  border: 0;
+  border-top: var(--ui-border-width) solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.editor-compact-disclosure > summary {
+  min-height: var(--design-control-lg);
+  padding-inline: 0;
+  border-radius: 0;
+}
+
+.editor-compact-disclosure[open] > summary {
+  border-radius: 0;
+}
+
+.editor-compact-disclosure > .editor-disclosure-body {
+  padding: var(--ui-space-2) 0 var(--ui-space-3);
+}
+
+.editor-disclosure-preview {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--ui-font-sm);
+  font-weight: var(--ui-weight-regular);
+  line-height: var(--ui-line-normal);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-disclosure-preview[data-empty="true"] {
+  color: var(--muted);
+}
+
+#entityRelationsDisclosure {
+  padding-top: 0;
+  border-top: var(--ui-border-width) solid var(--border);
+}
+
+#entityNotesInput {
+  min-height: calc(var(--ui-control-height) * 2.5);
+}
