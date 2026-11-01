@@ -87,6 +87,8 @@ The training-source diagnostic also accepts a historical publisher-layer
 sheet. Its publisher identity, pinned historical renderer version, source and
 image hashes, image dimensions and observed raster channels are checked before
 inference. The Python publisher generator itself has not yet been replaced.
+The native sample preparer can produce source-bound publisher tensors, but the
+current native training campaign has not yet switched publisher inputs.
 
 For a checkpoint trained with an auxiliary Semap corpus, provide the original
 `--auxiliary-corpus` together with `--corpus`. Both manifests and their combined

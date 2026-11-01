@@ -7,7 +7,7 @@ import {basename,delimiter,dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {prepareRasterTrainingTile} from './training-tiles.mjs';
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
@@ -130,7 +130,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   if(combined&&(sha(readBounded(resolve(auxiliary),32*1024*1024))!==auxiliaryHash||await corpusFingerprint(corpus,auxiliary)!==combined.lineageFingerprint))
     throw Error('Combined training sources changed during execution; preserve its checkpoint');
   for(const sample of samples)verifyTrainingSample(sample.directory);
-  for(const item of evidence)recheckMacroTrainingSource(item.checks);
+  for(const item of evidence)recheckTrainingSources(item.checks);
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
     initialization:previous?previous.initialization:'weights-only-no-optimizer',initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,

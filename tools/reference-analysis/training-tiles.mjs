@@ -7,7 +7,7 @@ import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
-import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
@@ -31,7 +31,7 @@ export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,si
     if(!Number.isSafeInteger(sum))throw Error('Training supervision count exceeds safe range');return sum;}));
   const datasets=[primary.tiles,extra.tiles].map((rows,corpusIndex)=>rows.map(tile=>({...tile,localIndex:tile.index,
     index:tile.index+(corpusIndex?primary.tiles.length:0)})));
-  for(const row of primaryManifest.sheets){const {checks}=await verifiedMacroTrainingSource(dirname(primaryPath),primaryManifest,row.id);recheckMacroTrainingSource(checks);}
+  for(const row of primaryManifest.sheets){const {checks}=await verifiedMacroTrainingSource(dirname(primaryPath),primaryManifest,row.id);recheckTrainingSources(checks);}
   if(await corpusFingerprint(primaryPath,auxiliaryPath)!==fingerprint)throw Error('Training sources changed during combined preparation');
   return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,lineageFingerprint:fingerprint,counts,datasets,auxiliarySources:extra.sources};
 }
@@ -71,7 +71,7 @@ export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDi
       if(tiles.length>=1000000)throw Error('Training tile count exceeds budget');
       tiles.push({sourceId:sheet.id,index:tiles.length,x:tile.x,y:tile.y,duplicateGroup:sheet.duplicateGroup});
     }
-    recheckMacroTrainingSource(checks);
+    recheckTrainingSources(checks);
   }
   if(!tiles.length)throw Error('Corpus has no supervised macro training tiles');
   if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during indexing');
@@ -138,7 +138,7 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
     const {annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
     const sheetCounts=await countAnnotationTrainingSupervision({root,annotation},options);
     for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
-    recheckMacroTrainingSource(checks);
+    recheckTrainingSources(checks);
     sources.push({id:row.id,hashes:checks.map(([,expected])=>expected)});
   }
   if(hash(readTrainingBounded(path,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during supervision');

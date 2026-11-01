@@ -7,6 +7,7 @@ import test from 'node:test';
 import {encodeNativeGrayPng} from '../../tools/map-image/native-resample.mjs';
 import * as corpus from '../../tools/reference-analysis/reviewed-corpus.mjs';
 import {diagnoseMacroTrainingSource} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
+import * as trainingSample from '../../tools/reference-analysis/training-sample.mjs';
 
 test('publisher training source binds metadata, source image and observed masks',async t=>{
   assert.equal(typeof corpus.validatePublisherTrainingSource,'function');
@@ -29,6 +30,15 @@ test('publisher training source binds metadata, source image and observed masks'
   assert.equal(verified.sheet.id,'fixture');assert.equal(verified.annotation.width,2);
   const corpusPath=join(root,'corpus.json'),checkpoint=join(root,'checkpoint.pt');
   writeFileSync(corpusPath,JSON.stringify(manifest));writeFileSync(checkpoint,'fixture checkpoint');
+  assert.equal(typeof trainingSample.writePublisherTrainingSample,'function');
+  const samplePath=join(root,'sample');
+  await trainingSample.writePublisherTrainingSample({corpus:corpusPath,sourceId:'fixture',tileIndex:0,x:0,y:0,augment:false,epoch:0,output:samplePath});
+  const sample=trainingSample.verifyTrainingSample(samplePath,{requireInternational:true});
+  assert.equal(sample.sourceKind,'publisher-pdf');
+  const target=readFileSync(join(samplePath,'target.f32')),valid=readFileSync(join(samplePath,'valid.f32'));
+  assert.equal(target.readFloatLE(4),1);assert.equal(valid.readFloatLE(4),1);
+  assert.equal(valid.readFloatLE(4*512*2),0);
+  await assert.rejects(trainingSample.writePublisherTrainingSample({corpus:corpusPath,sourceId:'fixture',tileIndex:0,x:0,y:0,augment:false,epoch:0,output:samplePath}),/exists/i);
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
     checkpointSha256:hash(readFileSync(checkpoint)),corpusSha256:hash(readFileSync(corpusPath))}));
   await assert.rejects(diagnoseMacroTrainingSource({corpus:corpusPath,checkpoint,sourceId:'fixture',device:'cpu',torchLibrary:root}),{code:'ENOENT'});

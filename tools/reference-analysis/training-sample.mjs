@@ -3,7 +3,8 @@ import {existsSync,mkdirSync,readFileSync,statSync,writeFileSync} from 'node:fs'
 import {basename,dirname,join,resolve} from 'node:path';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
-import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
+import {validatePublisherTrainingSource} from './reviewed-corpus.mjs';
 import {indexMacroTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
 import {verifyCombinedTrainingOrder} from './training-order.mjs';
 
@@ -16,7 +17,7 @@ export function verifyTrainingSample(directory,{requireInternational=false}={}){
   const data=JSON.parse(readFileSync(receiptPath,'utf8'));
   if(data.trainingOnly!==true||data.releaseApproved!==false||typeof data.sourceId!=='string'||!data.sourceId||
     !Number.isInteger(data.tileIndex)||data.tileIndex<0||
-    !Number.isInteger(data.augmentationIndex)||data.augmentationIndex<0||!['macro-pdf','semap-label'].includes(data.sourceKind)||
+    !Number.isInteger(data.augmentationIndex)||data.augmentationIndex<0||!['macro-pdf','publisher-pdf','semap-label'].includes(data.sourceKind)||
     (requireInternational&&(!(data.knownInternationalPixels>0)||!(data.positiveInternationalPixels>0)))||
     !['sourceEvidenceSha256','imageSha256','annotationSha256','maskSha256','validMaskSha256'].every(field=>/^[a-f0-9]{64}$/.test(data[field]||'')))
     throw Error('A source-bound training-only sample receipt is required');
@@ -28,22 +29,24 @@ export function verifyTrainingSample(directory,{requireInternational=false}={}){
 }
 
 // A single private sample; its caller owns dataset ordering and epoch orchestration.
-export async function writeMacroTrainingSample({corpus,sourceId,tileIndex,x,y,augment,epoch,output,signal}){
+async function writeSourceTrainingSample({corpus,sourceId,tileIndex,x,y,augment,epoch,output,signal},sourceKind){
   signal?.throwIfAborted();
   if(!corpus||!sourceId||!output||typeof augment!=='boolean'||![tileIndex,x,y,epoch].every(value=>Number.isSafeInteger(value)&&value>=0))
     throw Error('Explicit macro training sample inputs required');
   if(existsSync(output))throw Error('Training sample output exists; preserve it');
   const corpusPath=resolve(corpus),root=dirname(corpusPath),corpusBytes=readTrainingBounded(corpusPath,32*1024*1024),corpusHash=trainingSha256(corpusBytes);
-  const {sheet,annotation,annotationSha256,checks}=await verifiedMacroTrainingSource(root,JSON.parse(corpusBytes),sourceId);
+  const manifest=JSON.parse(corpusBytes);
+  const {sheet,annotation,annotationSha256,checks}=sourceKind==='publisher-pdf'?
+    await validatePublisherTrainingSource({root,corpus:manifest,sourceId},{signal}):await verifiedMacroTrainingSource(root,manifest,sourceId);
   const tiles=await listRasterTrainingTiles({root,annotation},{signal});
   if(!tiles.some(tile=>tile.x===x&&tile.y===y))throw Error('Sample must select a supervised source tile');
   const tensors=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment,epoch,index:tileIndex},{signal});
-  recheckMacroTrainingSource(checks);
+  recheckTrainingSources(checks);
   if(trainingSha256(readTrainingBounded(corpusPath,32*1024*1024))!==corpusHash)throw Error('Training corpus changed during sample preparation');
   const tensorSha256=Object.fromEntries(TRAINING_TENSOR_NAMES.map(name=>[name,trainingSha256(tensors[name])]));
   let knownInternationalPixels=0,positiveInternationalPixels=0;
   for(let offset=0;offset<512*512*4;offset+=4)if(tensors.valid.readFloatLE(offset)>0){knownInternationalPixels++;if(tensors.target.readFloatLE(offset)>0)positiveInternationalPixels++;}
-  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind:'macro-pdf',sourceEvidenceSha256:annotation.sourceSha256,
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind,sourceEvidenceSha256:annotation.sourceSha256,
     augmentationIndex:tileIndex,imageSha256:sheet.sha256,
     annotationSha256,maskSha256:annotation.raster.sha256,validMaskSha256:annotation.validRaster.sha256,tileIndex,pixelOrigin:[x,y],
     positiveInternationalPixels,knownInternationalPixels,tensorSha256};
@@ -51,6 +54,8 @@ export async function writeMacroTrainingSample({corpus,sourceId,tileIndex,x,y,au
   for(const name of TRAINING_TENSOR_NAMES)writeFileSync(join(output,name+'.f32'),tensors[name],{flag:'wx'});
   writeFileSync(join(output,'sample.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
 }
+export function writeMacroTrainingSample(request){return writeSourceTrainingSample(request,'macro-pdf');}
+export function writePublisherTrainingSample(request){return writeSourceTrainingSample(request,'publisher-pdf');}
 
 export async function writeSemapTrainingSample({corpus,sourceId,tileIndex,localIndex,x,y,augment,epoch,output,signal,verifyEvidence}){
   signal?.throwIfAborted();

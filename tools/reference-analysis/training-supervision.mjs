@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {REFERENCE_BOUNDARY_CHANNELS} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {readTrainingBounded} from './training-evidence.mjs';
-import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {macroTrainingSupervision} from './training-tiles.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -42,7 +42,7 @@ export async function verifyMacroTrainingSupervision({corpus,directory,signal}){
     if(!sheet?.id||seen.has(sheet.id)||sheet.split!=='train'||source?.id!==sheet.id)throw Error('Training supervision source identity differs');seen.add(sheet.id);
     const {checks}=await verifiedMacroTrainingSource(root,manifest,sheet.id);
     if(JSON.stringify(source.hashes)!==JSON.stringify(checks.map(([,expected])=>expected)))throw Error('Training supervision source evidence differs');
-    recheckMacroTrainingSource(checks);
+    recheckTrainingSources(checks);
   }
   if(sha(readTrainingBounded(corpusPath,32*1024*1024))!==corpusSha256)throw Error('Training corpus changed during supervision verification');
   return {weightsPath,unobservedMask,corpusSha256,weightsSha256:receipt.weightsSha256,sourcesSha256:sha(JSON.stringify(receipt.sources))};

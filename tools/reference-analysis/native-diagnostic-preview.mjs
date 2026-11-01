@@ -11,7 +11,7 @@ import {drawNativePreviewLabels} from '../map-image/native-preview.mjs';
 import {diagnosticPixelStatistics} from './native-evaluation.mjs';
 import {nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from './native-training-validation.mjs';
 import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
-import {verifiedMacroTrainingSource,recheckMacroTrainingSource} from './macro-training-source.mjs';
+import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {selectDiagnosticTile} from './diagnostic-selection.mjs';
 import {prepareRasterTrainingTile,prepareReviewedTrainingTile} from './training-tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
@@ -135,7 +135,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     if(candidate.origin==='publisher-layer-export')
       ({sheet,annotation,checks}=await validatePublisherTrainingSource({root,corpus:manifest,sourceId},{signal,workspace,imageDirectory}));
     else ({sheet,annotation,checks}=await verifiedMacroTrainingSource(root,manifest,sourceId));
-    recheckMacroTrainingSource(checks);
+    recheckTrainingSources(checks);
   }
   const sourceRoot=reviewed?dirname(reviewPath):auxiliaryView?dirname(auxiliaryPath):root;
   const selected=await selectDiagnosticTile({root:sourceRoot,annotation},{signal,workspace,imageDirectory,reviewDirectory});
@@ -161,7 +161,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||
       trainingFileIdentity(path,{maxBytes:Number.MAX_SAFE_INTEGER})!==sheet.sha256)
       throw Error('Reviewed inputs changed during diagnostic');
-  }else recheckMacroTrainingSource(checks);
+  }else recheckTrainingSources(checks);
   if(trainingFileIdentity(corpusPath)!==corpusHash||trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
     throw Error('Training inputs changed during diagnostic');
   if(combined&&(trainingFileIdentity(auxiliaryPath)!==auxiliaryHash||(!internalScope&&await corpusFingerprint(corpusPath,auxiliaryPath)!==lineageFingerprint)))
