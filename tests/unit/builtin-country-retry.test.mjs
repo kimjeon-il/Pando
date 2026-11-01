@@ -24,7 +24,7 @@ test('a failed query settles its outstanding failed reads before an immediate cl
    return fail?new Response(null,{status:503}):new Response(files.get(file));
   }});
  const first=loader.loadProject('2026-10').then(()=>{settled=true;return null;},error=>{settled=true;return error;});
- await entered.promise;await new Promise(resolve=>setImmediate(resolve));
+ await entered.promise;await new Promise(resolve=>globalThis.setImmediate(resolve));
  // The fast file has failed; the slower file's last failed attempt is still held.
  // Returning now would let an immediate retry join that doomed pending request.
  assert.equal(settled,false,'failed query must drain its outstanding workers');
