@@ -12,6 +12,9 @@ import {writeCombinedTrainingOrder,writeMacroTrainingOrder} from './training-ord
 import {verifyMacroTrainingSupervision} from './training-supervision.mjs';
 import {runCombinedTrainingBatch,runMacroTrainingBatch} from './native-training-batch.mjs';
 import {decideTrainingEpoch} from './training-progress.mjs';
+import {nativeTrainingValidation} from './native-training-validation.mjs';
+import {validateReviewedCorpus} from './reviewed-corpus.mjs';
+import {assertEvaluationIndependence,buildTrainingLineage} from './training-lineage.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 function validateScope({auxiliary,macroOnly,supervision}){
@@ -81,7 +84,7 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
 }
 
 // Multiple epochs remain provisional; training loss is not independent validation.
-export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,macroOnly,supervision,previousCampaign,epoch,seed,freezeEpochs,learningRate,
+export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,macroOnly,supervision,validationCorpus,diagnosticOnly,patience,previousCampaign,epoch,seed,freezeEpochs,learningRate,
   device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,epochs,onProgress,root=rootDefault,signal}={}){
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!torchLibrary||!['cpu','cuda'].includes(device)||
@@ -92,11 +95,27 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
     (onProgress!==undefined&&typeof onProgress!=='function'))
     throw Error('Explicit bounded training campaign configuration required');
   validateScope({auxiliary,macroOnly,supervision});
+  if(validationCorpus?(diagnosticOnly!==true||!Number.isSafeInteger(patience)||patience<1):
+    (diagnosticOnly!==undefined||patience!==undefined))throw Error('Explicit diagnostic validation scope and positive patience required');
   const target=resolve(output);if(existsSync(target))throw Error('Training campaign output exists; preserve it');
   const initial=resolve(input),inputHash=trainingFileIdentity(initial),corpusHash=trainingFileIdentity(resolve(corpus));
   const auxiliaryHash=auxiliary?trainingFileIdentity(resolve(auxiliary)):null;
   const lineageFingerprint=auxiliary?await corpusFingerprint(corpus,auxiliary):null;
-  const configuration={seed,freezeEpochs,learningRate,device,amp,augment,batchSize};let previous=null;
+  let validationHash=null,validationFingerprint=null;
+  if(validationCorpus){
+    const path=resolve(validationCorpus),manifest=JSON.parse(readTrainingBounded(path,32*1024*1024));
+    if(!Array.isArray(manifest.sheets)||!manifest.sheets.length||manifest.sheets.some(row=>row.split!=='validation'))
+      throw Error('Frozen validation-only sources required');
+    await validateReviewedCorpus(manifest,dirname(path),{signal});
+    const training=JSON.parse(readTrainingBounded(resolve(corpus),32*1024*1024));
+    const extra=auxiliary?JSON.parse(readTrainingBounded(resolve(auxiliary),32*1024*1024)).sheets:[];
+    if(!Array.isArray(training.sheets)||!Array.isArray(extra))throw Error('Training corpus sources required');
+    assertEvaluationIndependence(buildTrainingLineage([...training.sheets,...extra]),manifest.sheets,{split:'validation'});
+    validationHash=trainingFileIdentity(path);validationFingerprint=await corpusFingerprint(path);
+  }
+  const selectionMetric=validationCorpus?'validationLoss':'trainingLoss';
+  const configuration={seed,freezeEpochs,learningRate,device,amp,augment,batchSize,
+    ...(validationCorpus?{validationSha256:validationHash,validationFingerprint,diagnosticOnly,patience}:{})};let previous=null;
   if(previousCampaign!==undefined&&previousCampaign!==null){
     if(mode!=='resume'||typeof previousCampaign!=='string'||!previousCampaign)throw Error('Previous campaign requires explicit resume mode');
     previous=JSON.parse(readTrainingBounded(resolve(previousCampaign),8*1024*1024));
@@ -104,7 +123,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
       (auxiliary?(previous.auxiliarySha256!==auxiliaryHash||previous.lineageFingerprint!==lineageFingerprint):Boolean(previous.auxiliarySha256)))
       throw Error('Previous campaign checkpoint or corpus differs');
     if(previous.schemaVersion!==1||previous.status!=='partial'||previous.trainingOnly!==true||previous.independentEvaluation!==false||
-      previous.releaseApproved!==false||previous.lineageComplete!==false||previous.selectionMetric!=='trainingLoss'||
+      previous.releaseApproved!==false||previous.lineageComplete!==false||previous.selectionMetric!==selectionMetric||
       previous.selectionScope!=='campaign-completed-epochs'||previous.requestedEpochs!==epochs||!isDeepStrictEqual(previous.configuration,configuration)||
       !Number.isSafeInteger(previous.completedEpochs)||previous.completedEpochs<0||previous.completedEpochs>=epochs||
       !Number.isSafeInteger(previous.batches)||previous.batches<1||!/^[a-f0-9]{64}$/.test(previous.inputSha256||'')||
@@ -134,10 +153,18 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
       if(receipt.checkpointSha256!==row.checkpointSha256||receipt.corpusSha256!==corpusHash||receipt.epoch!==row.epoch||
         (auxiliary?(receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==lineageFingerprint):Boolean(receipt.auxiliarySha256))||
         decideTrainingEpoch(receipt,{patience:1}).trainingLoss!==row.trainingLoss)throw Error('Previous campaign epoch receipt differs');
+      if(validationCorpus){
+        if(typeof row.validationReceipt!=='string'||!/^[a-f0-9]{64}$/.test(row.validationReceiptSha256||'')||
+          trainingFileIdentity(resolve(row.validationReceipt))!==row.validationReceiptSha256)throw Error('Previous validation receipt differs');
+        const proof=JSON.parse(readTrainingBounded(resolve(row.validationReceipt),1024*1024));
+        if(proof.checkpointSha256!==row.checkpointSha256||proof.corpusSha256!==validationHash||proof.sourceFingerprint!==validationFingerprint||
+          proof.diagnosticOnly!==true||proof.independence?.passed!==false||proof.validationLoss!==row.validationLoss)
+          throw Error('Previous validation evidence differs');
+      }
     }
     if(completedRows.length){
-      const best=completedRows.reduce((left,right)=>right.trainingLoss<left.trainingLoss?right:left);
-      if(previous.bestCheckpoint!==best.checkpoint||previous.bestCheckpointSha256!==best.checkpointSha256||previous.bestScore!==best.trainingLoss||
+      const best=completedRows.reduce((left,right)=>right[selectionMetric]<left[selectionMetric]?right:left);
+      if(previous.bestCheckpoint!==best.checkpoint||previous.bestCheckpointSha256!==best.checkpointSha256||previous.bestScore!==best[selectionMetric]||
         trainingFileIdentity(resolve(best.checkpoint))!==best.checkpointSha256)throw Error('Previous campaign best checkpoint differs');
     }else if(previous.bestCheckpoint!==null||previous.bestCheckpointSha256!==null||previous.bestScore!==null)
       throw Error('Previous campaign has no completed epoch to select');
@@ -145,8 +172,12 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   withLibraryOutputs({root,paths:[target]},()=>{mkdirSync(dirname(target),{recursive:true});mkdirSync(target);});
   let current=initial,remaining=maxBatches,currentEpoch=epoch,completed=previous?.completedEpochs??0,
     bestScore=previous?.bestScore??null,bestCheckpoint=previous?.bestCheckpoint??null,bestCheckpointSha256=previous?.bestCheckpointSha256??null;
-  const results=previous?[...previous.epochs]:[];let report=null;
-  while(completed<epochs&&remaining>0){
+  const results=previous?[...previous.epochs]:[];let report=null,stale=0,stop=false;
+  if(validationCorpus){let score=null;for(const row of results.filter(row=>row.status==='epoch-complete')){
+    if(!Number.isFinite(row.validationLoss))throw Error('Previous validation loss required');
+    if(score===null||row.validationLoss<score){score=row.validationLoss;stale=0;}else stale++;
+  }if(previous&&previous.staleEpochs!==stale)throw Error('Previous validation patience state differs');}
+  while(completed<epochs&&remaining>0&&!stop){
     signal?.throwIfAborted();const activeEpoch=currentEpoch,directory=join(target,`epoch-${String(activeEpoch).padStart(4,'0')}`);
     const progressPath=join(directory,'campaign.json');let written=null,segmentBatches=0;
     const result=await runTrainingSequence({mode:results.length?'resume':mode,input:current,output:directory,corpus,auxiliary,macroOnly,supervision,
@@ -161,13 +192,24 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
         const item={epoch:activeEpoch,status:event.status,cursor:event.cursor,orderLength:event.orderLength,batches:event.batches,
           checkpoint:event.checkpoint,checkpointSha256:event.checkpointSha256};
         if(event.status==='epoch-complete'){
-          const decision=decideTrainingEpoch(receipt,{bestScore,patience:1});item.trainingLoss=decision.trainingLoss;
+          let validationLoss=null;
+          if(validationCorpus){
+            const checked=await nativeTrainingValidation({checkpoint:current,corpus:validationCorpus,device,diagnosticOnly:true,torchLibrary,root,signal});
+            if(checked.checkpointSha256!==event.checkpointSha256||checked.corpusSha256!==validationHash||checked.independence.passed!==false||
+              await corpusFingerprint(validationCorpus)!==validationFingerprint)throw Error('Validation inputs changed during campaign');
+            const proof={...checked,sourceFingerprint:validationFingerprint};item.validationReceipt=join(directory,'validation.json');
+            writeFileSync(item.validationReceipt,JSON.stringify(proof,null,2)+'\n',{flag:'wx'});
+            item.validationReceiptSha256=trainingFileIdentity(item.validationReceipt);item.validationLoss=validationLoss=checked.validationLoss;
+          }
+          const decision=decideTrainingEpoch(receipt,{validationLoss,bestScore,stale,patience:validationCorpus?patience:1});item.trainingLoss=decision.trainingLoss;
+          stale=decision.stale;stop=decision.stop;
           if(decision.improved){bestScore=decision.bestScore;bestCheckpoint=current;bestCheckpointSha256=event.checkpointSha256;}
           completed++;currentEpoch++;
         }
         if(segmentBatches===0)results.push(item);else results[results.length-1]=item;segmentBatches++;
-        report={schemaVersion:1,status:completed===epochs?'complete':'partial',trainingOnly:true,independentEvaluation:false,
-          releaseApproved:false,lineageComplete:false,selectionMetric:'trainingLoss',selectionScope:'campaign-completed-epochs',configuration,
+        report={schemaVersion:1,status:completed===epochs?'complete':stop?'early-stop':'partial',trainingOnly:true,independentEvaluation:false,
+          releaseApproved:false,lineageComplete:false,selectionMetric,selectionScope:'campaign-completed-epochs',configuration,
+          ...(validationCorpus?{staleEpochs:stale}:{}),
           inputSha256:previous?.inputSha256??inputHash,corpusSha256:corpusHash,...(auxiliary?{auxiliarySha256:auxiliaryHash,lineageFingerprint}:{}),completedEpochs:completed,requestedEpochs:epochs,
           batches:(previous?.batches??0)+maxBatches-remaining,checkpoint:current,checkpointSha256:event.checkpointSha256,
           bestCheckpoint,bestCheckpointSha256,bestScore,epochs:results};
@@ -187,6 +229,8 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   }
   if(trainingFileIdentity(resolve(corpus))!==corpusHash||(auxiliary&&(trainingFileIdentity(resolve(auxiliary))!==auxiliaryHash||
     await corpusFingerprint(corpus,auxiliary)!==lineageFingerprint)))throw Error('Training corpus changed during campaign');
+  if(validationCorpus&&(trainingFileIdentity(resolve(validationCorpus))!==validationHash||await corpusFingerprint(validationCorpus)!==validationFingerprint))
+    throw Error('Validation corpus changed during campaign');
   withLibraryOutputs({root,paths:[target]},()=>writeFileSync(join(target,'campaign.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'}));
   return report;
 }
@@ -196,9 +240,11 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},'allow-nonmacro-auxiliary':{type:'boolean',default:false},epoch:{type:'string'},seed:{type:'string'},'freeze-epochs':{type:'string'},
       'learning-rate':{type:'string'},device:{type:'string'},precision:{type:'string'},'torch-library':{type:'string'},
       'batch-size':{type:'string'},'max-batches':{type:'string'},augment:{type:'boolean',default:false},
-      campaign:{type:'boolean',default:false},epochs:{type:'string'},'previous-campaign':{type:'string'}}});
+      campaign:{type:'boolean',default:false},epochs:{type:'string'},'previous-campaign':{type:'string'},
+      'validation-corpus':{type:'string'},'diagnostic-validation':{type:'boolean',default:false},patience:{type:'string'}}});
     const integer=name=>{if(!/^\d+$/.test(values[name]||''))throw Error('Explicit integer '+name+' required');return Number(values[name]);};
-    if(positionals.length||!['fp32','amp-fp16'].includes(values.precision)||(!values.campaign&&(values.epochs!==undefined||values['previous-campaign']!==undefined)))
+    if(positionals.length||!['fp32','amp-fp16'].includes(values.precision)||(!values.campaign&&(values.epochs!==undefined||values['previous-campaign']!==undefined||
+      values['validation-corpus']!==undefined||values['diagnostic-validation']||values.patience!==undefined)))
       throw Error('Explicit macro training sequence configuration required');
     const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
     try{const request={mode:values.mode,input:reportArgument(values.input,{access:'read'}),
@@ -208,6 +254,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       learningRate:Number(values['learning-rate']),device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
       batchSize:integer('batch-size'),maxBatches:integer('max-batches'),augment:values.augment,signal:controller.signal};
       console.log(JSON.stringify(await (values.campaign?runTrainingCampaign({...request,epochs:integer('epochs'),
+        validationCorpus:reportArgument(values['validation-corpus'],{access:'read',siblings:true}),
+        diagnosticOnly:values['diagnostic-validation']?true:undefined,patience:values.patience!==undefined?integer('patience'):undefined,
         previousCampaign:reportArgument(values['previous-campaign'],{access:'read'})}):runTrainingSequence(request))));}
     finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
   }catch(error){console.error('native-training-sequence: '+error.message);process.exitCode=1;}

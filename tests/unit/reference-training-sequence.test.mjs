@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
 import * as training from '../../tools/reference-analysis/native-training-sequence.mjs';
+import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
 const {runTrainingSequence}=training;
 
 test('mixed sequence requires an explicit auxiliary scope and rejects mismatched settings',async t=>{
@@ -29,6 +30,50 @@ test('mixed campaign refuses history from a different auxiliary corpus',async t=
   const request={mode:'resume',input,output,corpus,auxiliary,macroOnly:false,previousCampaign,epoch:0,seed:5,
     freezeEpochs:1,learningRate:.00001,device:'cpu',torchLibrary:root,augment:false,batchSize:1,maxBatches:1,epochs:1};
   await assert.rejects(training.runTrainingCampaign(request),/previous.*corpus/i);
+  assert.equal(existsSync(output),false);
+});
+
+test('validation selection requires an explicit diagnostic scope and patience',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-training-validation-scope-'));t.after(()=>rmSync(root,{recursive:true}));
+  const request={mode:'warm',input:'weights',output:join(root,'new'),corpus:'corpus',supervision:'supervision',epoch:0,seed:5,
+    freezeEpochs:1,learningRate:.00001,device:'cpu',torchLibrary:'library',augment:false,batchSize:1,maxBatches:1,epochs:2};
+  await assert.rejects(training.runTrainingCampaign({...request,validationCorpus:'validation'}),/validation.*scope/i);
+  await assert.rejects(training.runTrainingCampaign({...request,validationCorpus:'validation',diagnosticOnly:true,patience:0}),/validation.*scope/i);
+  await assert.rejects(training.runTrainingCampaign({...request,patience:1}),/validation.*scope/i);
+  assert.equal(existsSync(request.output),false);
+});
+
+test('validation campaign refuses changed validation evidence on resume',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-validation-history-'));t.after(()=>rmSync(root,{recursive:true}));
+  const sha=value=>createHash('sha256').update(value).digest('hex'),image=readFileSync('tests/fixtures/map-image/png-read/orientation-6.png');
+  mkdirSync(join(root,'sources'));mkdirSync(join(root,'labels'));writeFileSync(join(root,'sources/map.png'),image);
+  const annotation={schemaVersion:1,reviewed:true,width:9,height:12,known:{international:[[[0,0],[8,0],[8,11],[0,11]]]},
+    lines:[{kind:'international',width:1,points:[[1,4],[6,4]]}],ignore:[],review:{kind:'agent',reviewer:'fixture',
+      reviewedAt:'2026-10-30T00:00:00Z',sourceSha256:sha(image),predictionBlind:true}};
+  writeFileSync(join(root,'labels/map.json'),JSON.stringify(annotation));
+  const sheet={id:'validation',familyId:'validation-family',editionId:'validation-edition',duplicateGroup:'validation-group',
+    split:'validation',image:'sources/map.png',annotations:'labels/map.json',sha256:sha(image),language:'fas',script:'Arabic',
+    mapKind:'monochrome',source:{url:'https://example.org',license:'fixture'}};
+  const validationCorpus=join(root,'validation.json'),corpus=join(root,'training.json'),checkpoint=join(root,'checkpoint.pt');
+  writeFileSync(validationCorpus,JSON.stringify({schemaVersion:1,sheets:[sheet]}));
+  writeFileSync(corpus,JSON.stringify({sheets:[{id:'train',familyId:'train-family',editionId:'train-edition',duplicateGroup:'train-group',split:'train',sha256:'a'.repeat(64)}]}));
+  writeFileSync(checkpoint,'checkpoint');const corpusHash=sha(readFileSync(corpus)),checkpointHash=sha('checkpoint');
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({checkpointSha256:checkpointHash,corpusSha256:corpusHash,epoch:0,cursor:1,orderLength:1,epochLossSum:1,epochLossCount:1}));
+  const proof=join(root,'proof.json');writeFileSync(proof,'changed');
+  const configuration={seed:5,freezeEpochs:1,learningRate:.00001,device:'cpu',amp:false,augment:false,batchSize:1,
+    validationSha256:sha(readFileSync(validationCorpus)),validationFingerprint:await corpusFingerprint(validationCorpus),diagnosticOnly:true,patience:2};
+  const history={schemaVersion:1,status:'partial',trainingOnly:true,independentEvaluation:false,releaseApproved:false,lineageComplete:false,
+    selectionMetric:'validationLoss',selectionScope:'campaign-completed-epochs',configuration,checkpointSha256:checkpointHash,corpusSha256:corpusHash,
+    inputSha256:'b'.repeat(64),requestedEpochs:2,completedEpochs:1,batches:1,staleEpochs:0,bestCheckpoint:checkpoint,bestCheckpointSha256:checkpointHash,bestScore:.5,
+    epochs:[{epoch:0,status:'epoch-complete',cursor:1,orderLength:1,batches:1,checkpoint,checkpointSha256:checkpointHash,trainingLoss:1,
+      validationLoss:.5,validationReceipt:proof,validationReceiptSha256:'c'.repeat(64)}]};
+  const previousCampaign=join(root,'campaign.json');writeFileSync(previousCampaign,JSON.stringify(history));
+  const output=join(root,'new'),request={mode:'resume',input:checkpoint,output,corpus,supervision:root,
+    validationCorpus,diagnosticOnly:true,patience:2,previousCampaign,epoch:1,seed:5,freezeEpochs:1,learningRate:.00001,
+    device:'cpu',torchLibrary:root,augment:false,batchSize:1,maxBatches:1,epochs:2};
+  await assert.rejects(training.runTrainingCampaign(request),/validation receipt differs/i);
+  writeFileSync(validationCorpus,JSON.stringify({schemaVersion:1,sheets:[{...sheet,familyId:'train-family'}]}));
+  await assert.rejects(training.runTrainingCampaign(request),/familyId/i);
   assert.equal(existsSync(output),false);
 });
 

@@ -90,7 +90,12 @@ inference. The Python publisher generator itself has not yet been replaced.
 The native combined batch and bounded multi-epoch campaign accept publisher-derived
 primary sources with an explicit nonmacro Semap auxiliary corpus. Campaign and
 checkpoint receipts bind both corpus hashes and their combined source fingerprint;
-training loss selection is diagnostic and is not independent validation. For the
+training loss selection is diagnostic and is not independent validation. A
+campaign can instead select by an explicitly scoped source-reviewed validation
+corpus with `--validation-corpus PATH --diagnostic-validation --patience N`.
+Training and validation identities must not overlap, and validation evidence is
+bound to each completed checkpoint. Because inherited ancestry is incomplete,
+this is diagnostic selection, not independent accuracy or model approval. For the
 tested initializer and mixed inputs, CUDA FP16 overflowed
 in both the Python and native models; explicitly choose FP32 for this case.
 This is a provisional training path, not a model release or accuracy claim.
