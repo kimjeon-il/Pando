@@ -30,6 +30,17 @@ function validator(binary,args,env,signal,{binaryOutput=false,maximum=65536}={})
   });
   done.catch(()=>{});return {child,done};
 }
+export async function exchangeNativeInference({child,done,chunks,signal}){
+  try{const [,result]=await Promise.all([pipeline(Readable.from(chunks,{objectMode:false}),child.stdin,{signal}),done]);return result;}
+  catch(error){
+    if(error?.code==='EOF'||error?.code==='EPIPE'){
+      // The child can reject a model before consuming its input. Preserve its
+      // diagnostic rather than replacing it with the pipe's secondary error.
+      try{await done;}catch(nativeError){throw new Error(nativeError.message,{cause:error});}
+    }
+    child.kill();await done.catch(()=>{});throw error;
+  }
+}
 async function inferPrivateModel({path,mode,tile,overview,position,device,output,torchLibrary,root,directory,signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!path||!torchLibrary||!['cpu','cuda'].includes(device))throw Error('Explicit native checkpoint inference inputs required');
@@ -41,15 +52,7 @@ async function inferPrivateModel({path,mode,tile,overview,position,device,output
   const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
   const bytes=7*512*512*4,{child,done}=validator(binary,[mode,device,path,output],env,signal,{binaryOutput:true,maximum:bytes});
-  let logits;try{[,logits]=await Promise.all([pipeline(Readable.from([tile,overview,position],{objectMode:false}),child.stdin,{signal}),done]);}
-  catch(error){
-    if(error?.code==='EOF'||error?.code==='EPIPE'){
-      // The child can reject a model before consuming its input. Preserve its
-      // diagnostic rather than replacing it with the pipe's secondary error.
-      try{await done;}catch(nativeError){throw new Error(nativeError.message,{cause:error});}
-    }
-    child.kill();await done.catch(()=>{});throw error;
-  }
+  const logits=await exchangeNativeInference({child,done,chunks:[tile,overview,position],signal});
   signal?.throwIfAborted();if(logits.length!==bytes)throw Error('Native checkpoint logits have incorrect dimensions');
   for(let at=0;at<logits.length;at+=4){const value=logits.readFloatLE(at);
     if(!Number.isFinite(value)||(output==='probabilities'&&(value<0||value>1)))throw Error('Native checkpoint output contains invalid values');}

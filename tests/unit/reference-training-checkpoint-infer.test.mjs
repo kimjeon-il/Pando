@@ -1,13 +1,20 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {execFileSync,spawnSync} from 'node:child_process';
+import {execFileSync,spawn,spawnSync} from 'node:child_process';
 import {mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {compareNativeTrainingCheckpoints,nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from '../../tools/reference-analysis/native-training-validation.mjs';
+import {compareNativeTrainingCheckpoints,exchangeNativeInference,nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from '../../tools/reference-analysis/native-training-validation.mjs';
 
 const available=Boolean(process.env.PANDO_REFERENCE_INFER_FIXTURE&&process.env.PANDO_REFERENCE_BATCH_DIRECTORY&&process.env.PANDO_REFERENCE_TORCH_LIBRARY);
+test('native inference reports a child rejection instead of its closed pipe',async()=>{
+  const child=spawn(process.execPath,['-e','process.stderr.write("native rejection sentinel");process.exit(1)'],{windowsHide:true,stdio:['pipe','pipe','pipe']});
+  const errors=[];child.stderr.on('data',chunk=>errors.push(chunk));child.stdout.resume();
+  const done=new Promise((accept,reject)=>{child.on('error',reject);child.on('close',code=>code===0?accept(Buffer.alloc(0)):
+    reject(Error('Native validation failed: '+Buffer.concat(errors).toString('utf8'))));});done.catch(()=>{});
+  await assert.rejects(exchangeNativeInference({child,done,chunks:[Buffer.alloc(8*1024*1024)]}),/native rejection sentinel/i);
+});
 test('checkpoint comparison rejects a mismatched receipt before launching the native tool',async t=>{
   const folder=mkdtempSync(join(tmpdir(),'pando-checkpoint-compare-'));t.after(()=>rmSync(folder,{recursive:true}));
   const checkpoint=join(folder,'checkpoint.pt');writeFileSync(checkpoint,'fixture');
