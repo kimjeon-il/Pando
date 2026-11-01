@@ -77,7 +77,7 @@ export async function renderDiagnosticJpeg({original,panels,reviewed=false},{sig
 }
 
 // Inspect one explicitly selected macro source; the result is training-only.
-async function diagnoseSource({corpus,reviewCorpus,sourceId,checkpoint,baselineWeights,device,torchLibrary},
+async function diagnoseSource({corpus,reviewCorpus,sourceId,checkpoint,baselineWeights,device,torchLibrary,captureParity=false},
   {signal,workspace,imageDirectory,previewDirectory,evaluationDirectory,batchDirectory,reviewDirectory}={}){
   signal?.throwIfAborted();
   if(!corpus||!checkpoint||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
@@ -121,6 +121,13 @@ async function diagnoseSource({corpus,reviewCorpus,sourceId,checkpoint,baselineW
   const original=Buffer.alloc(512*512*3);for(let i=0;i<512*512;i++){original[i*3]=image.tile[i*4];original[i*3+1]=image.tile[i*4+1];original[i*3+2]=image.tile[i*4+2];}
   const diagnostic=await diagnoseNativeTrainingTile({checkpoint:checkpointPath,baselineWeights:baselinePath,...tensors,original,device,torchLibrary},
     {signal,workspace,imageDirectory,evaluationDirectory,batchDirectory});
+  let parity;
+  if(captureParity){
+    const inference=await nativeTrainingCheckpointInfer({checkpoint:checkpointPath,tile:tensors.tile,overview:tensors.overview,position:tensors.position,
+      device,torchLibrary,output:'logits',signal,root:workspace,directory:batchDirectory});
+    if(inference.checkpointSha256!==diagnostic.checkpointSha256)throw Error('Checkpoint changed while preparing ONNX inputs');
+    parity={tile:tensors.tile,overview:tensors.overview,position:tensors.position,expectedLogits:inference.logits};
+  }
   const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed},{signal,workspace,imageDirectory,previewDirectory});
   if(reviewed){
     if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||
@@ -133,7 +140,7 @@ async function diagnoseSource({corpus,reviewCorpus,sourceId,checkpoint,baselineW
   return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,baselineChannels:diagnostic.baselineChannels,
     baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?(receipt.initializationSourceSha256??null):null,
     jpeg:preview.data,checkpointSha256:checkpointHash,corpusSha256:corpusHash,...(reviewed?{reviewCorpusSha256:reviewHash,sourceSplit:sheet.split,diagnosticOnly:true}:{}),
-    trainingOnly:true,independentEvaluation:false,releaseApproved:false};
+    ...(parity?{parity}:{}),trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
 export function diagnoseMacroTrainingSource(request,options){return diagnoseSource(request,options);}
@@ -162,11 +169,14 @@ export async function diagnoseTrainingCorpus({corpus,reviewCorpus,checkpoint,bas
   const rows=[];let created=false;
   for(const sourceId of ids){
     signal?.throwIfAborted();
-    const result=await diagnoseSource({corpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,baselineWeights,sourceId,device,torchLibrary},options);
+    const result=await diagnoseSource({corpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,baselineWeights,sourceId,device,torchLibrary,
+      captureParity:rows.length===0},options);
     if(result.checkpointSha256!==checkpointHash||result.corpusSha256!==corpusHash||
       (reviewCorpus&&result.reviewCorpusSha256!==viewHash))throw Error('Diagnostic inputs differ across sources');
-    const {jpeg,...row}=result,previewFile=rows.length<maximumPreviews?`preview-${String(rows.length+1).padStart(4,'0')}.jpg`:null;
+    const {jpeg,parity,...row}=result,previewFile=rows.length<maximumPreviews?`preview-${String(rows.length+1).padStart(4,'0')}.jpg`:null;
     if(!created){await mkdir(target);created=true;}
+    if(parity){for(const [name,bytes] of Object.entries({'tile.f32':parity.tile,'overview.f32':parity.overview,
+      'position.f32':parity.position,'expected-logits.f32':parity.expectedLogits}))await writeFile(join(target,name),bytes,{flag:'wx',signal});}
     if(previewFile)await writeFile(join(target,previewFile),jpeg,{flag:'wx',signal});
     rows.push({...row,previewFile});
   }
