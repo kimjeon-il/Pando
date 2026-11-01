@@ -101,7 +101,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-progress.test.mjs
+      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-encoder-identity.test.mjs
   reference-onnx-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-contracts'
     strategy:

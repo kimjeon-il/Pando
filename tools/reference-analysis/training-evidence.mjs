@@ -21,6 +21,18 @@ export function trainingFileIdentity(path,{maxBytes=1024**3}={}){
     throw Error('Checkpoint or evidence changed while hashing');return hash.digest('hex');
 }finally{closeSync(fd);}}
 
+// The official model filename pins the leading eight hex digits; retain the
+// complete identity and byte count for the training receipt.
+export function verifiedPublicEncoderIdentity({path,url}){
+  const match=typeof url==='string'?/^https:\/\/download\.pytorch\.org\/models\/[^/]+-([a-f0-9]{8})\.pth$/.exec(url):null;
+  if(typeof path!=='string'||!path||!match)throw Error('Pinned official public encoder URL required');
+  const before=statSync(path),digest=trainingFileIdentity(path),after=statSync(path);
+  if(before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ino!==after.ino||before.dev!==after.dev)
+    throw Error('Public encoder weights changed while verifying');
+  if(!digest.startsWith(match[1]))throw Error('Public encoder weight hash differs from the pinned upstream identifier');
+  return {kind:'public-pretrained-image-classification',url,sha256:digest,bytes:after.size};
+}
+
 // Matches the original corpus lineage fingerprint; source validation remains a separate requirement.
 export async function corpusFingerprint(manifest,auxiliary){
   if(!manifest)throw Error('Explicit corpus path required');
@@ -49,13 +61,17 @@ export async function corpusFingerprint(manifest,auxiliary){
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||process.argv[2]!=='--fingerprint-stream')throw Error('Expected --fingerprint-stream');
+    if(process.argv.length!==3||!['--fingerprint-stream','--encoder-identity-stream'].includes(process.argv[2]))throw Error('Expected training evidence stream operation');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;
       if(length>1024*1024)throw Error('Corpus fingerprint request exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
+    if(process.argv[2]==='--encoder-identity-stream'){
+      process.stdout.write(JSON.stringify(verifiedPublicEncoderIdentity(request))+'\n');
+    }else{
     if(typeof request?.manifest!=='string'||!request.manifest||
       (request.auxiliary!==null&&request.auxiliary!==undefined&&(typeof request.auxiliary!=='string'||!request.auxiliary)))
       throw Error('Explicit corpus manifest paths required');
     process.stdout.write(JSON.stringify({fingerprint:await corpusFingerprint(request.manifest,request.auxiliary)})+'\n');
+    }
   }catch(error){console.error('training-evidence: '+error.message);process.exitCode=1;}
 }

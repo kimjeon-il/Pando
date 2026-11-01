@@ -132,19 +132,6 @@ class ReviewContractTests(unittest.TestCase):
             self.assertFalse(report['reviewCoverage']['complete'])
             self.assertIn('incomplete-source-map-review',[v['reason'] for v in report['admission']['failures']])
 
-    def test_public_encoder_initialization_records_actual_verified_weight_bytes(self):
-        from model import verified_pretrained_identity
-        with tempfile.TemporaryDirectory() as directory:
-            path=pathlib.Path(directory)/'encoder.pth';path.write_bytes(b'fixture weights')
-            digest=hashlib.sha256(path.read_bytes()).hexdigest()
-            url='https://download.pytorch.org/models/encoder-'+digest[:8]+'.pth'
-            value=verified_pretrained_identity(path,url)
-            self.assertEqual(value['sha256'],digest)
-            self.assertEqual(value['bytes'],15)
-            path.write_bytes(b'changed')
-            with self.assertRaisesRegex(ValueError,'hash'):
-                verified_pretrained_identity(path,url)
-
     def test_transparent_training_source_uses_the_same_white_composite_as_analysis(self):
         from PIL import Image
         from train import MapTiles
