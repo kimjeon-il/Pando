@@ -18,8 +18,6 @@ export function createNativePlatformAdapter({
     libraryAvailable: scope.PANDOLAB_NATIVE_LIBRARY_AVAILABLE === true,
     autoVerification: scope.__PANDOLAB_SHELL_AUTO__ === true,
     probeHoldMs: Number.isFinite(hold) && hold > 0 ? hold : DEFAULT_PROBE_HOLD_MS,
-    physicalImmediate: scope.__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__ === true,
-    buildInfo: scope.PANDOLAB_NATIVE_BUILD_INFO ?? null,
   });
   const storage = createStorage(invoke);
   let repositoryPromise = null;
