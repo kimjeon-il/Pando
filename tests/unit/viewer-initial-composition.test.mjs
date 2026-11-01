@@ -126,7 +126,7 @@ test('normal year change and later source failure never restore initial mode', a
   await run.ports.timeline.setMonth('2025-12');
   assert.equal(run.get('viewerStatus').dataset.loadingKind, 'temporal');
   assert.equal(run.get('viewerStatus').dataset.ready, 'true',
-    'the existing accepted map must remain usable during date navigation');
+    'the accepted successor is ready only after its date navigation commits');
   assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
   run.failNext();
   await assert.rejects(run.ports.timeline.setMonth('2024-12'), /source unavailable/);
