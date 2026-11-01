@@ -49,7 +49,7 @@ export function createNavigationBindings({productMode='editor'}={}) {
       (0, dependencies.workspaceUiA.closeSurface)('create');
       mobileMenuOpen=true;menu.hidden = false;
       (0, dependencies.platform.$)('mobileMenuBtn')?.setAttribute('aria-expanded', 'true');
-      requestAnimationFrame(() => menu.querySelector('[role="menuitem"]')?.focus({ preventScroll: true }));
+      requestAnimationFrame(() => menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true }));
     };
     let editorObjectMenuOpen = false;
     const editorObjectMenu = () => (0, dependencies.platform.$)('editorObjectMenu');
