@@ -115,10 +115,6 @@ export function createTerritorialPropertyController({
     parentRows.dataset.empty = String(!parent);
     childRows.dataset.empty = String(!children.length);
     $('entityRelations').hidden = !general;
-    const relationSummary = $('entityRelationsSummary');
-    if (relationSummary) relationSummary.textContent = general
-      ? `${parent ? getTerritorialView(entityRef(parent.id)).displayName : '소속 없음'} · 산하 ${children.length}개`
-      : '독립 권역';
     const excluded = new Set([view.ref.id, ...entityRepository.ancestors(view.ref.id).map(feature => String(feature.id))]);
     const candidates = general ? entityRepository.list().filter(candidate => candidate.properties.entityKind === 'general'
       && !candidate.properties.locked && candidate.properties.parentId !== view.ref.id && !excluded.has(String(candidate.id))) : [];
@@ -145,16 +141,6 @@ export function createTerritorialPropertyController({
       nameDisclosure.hidden = nameDetails.hidden;
     }
     elements.notes.value = properties.notes;
-    const notesPreview = $('entityNotesPreview');
-    if (notesPreview) {
-      const text = String(properties.notes || '').replace(/\s+/g, ' ').trim();
-      notesPreview.textContent = text || '추가';
-      notesPreview.dataset.empty = String(!text);
-    }
-    for (const disclosureId of ['entityNotesDisclosure', 'entityRelationsDisclosure']) {
-      const disclosure = $(disclosureId);
-      if (disclosure && activeRef?.key !== view.ref.key) disclosure.open = false;
-    }
     $('entityPeriodInput').value = formatTerritorialPeriodInput(properties);
     clearPeriodError();
     syncIdentity(view);
@@ -175,15 +161,7 @@ export function createTerritorialPropertyController({
       const actionId={editEntityBorderBtn:'border-edit',editEntityCoastBtn:'coast-edit',reconcileEntityCoastBtn:'coast-reconcile',copyEntityRegionBtn:'copy-region',mergeEntityBtn:'merge',redrawEntityBtn:'split',annexEntityBtn:'merge'}[id];
       const action=resolveObjectAction(actionId,{domain:'territorial',locked:properties.locked,disabled:isMutationBlocked(view.ref)&&!properties.locked});
       $(id).disabled=!action.enabled;
-      const small=$(id).querySelector('small');
-      if (small) {
-        const contextualHelp = {
-          annexEntityBtn: '다른 객체에서 가져오기',
-          reconcileEntityCoastBtn: '상위 지도와 맞추기',
-          copyEntityRegionBtn: '원본 영역 유지',
-        }[id] || '';
-        small.textContent = action.reason || contextualHelp;
-      }
+      const small=$(id).querySelector('small');if(small)small.textContent=action.reason||action.help;
       $(id).dataset.actionReason=action.reason?'true':'false';
       $(id).setAttribute('aria-label',action.label+(action.reason?' · '+action.reason:''));
     }
