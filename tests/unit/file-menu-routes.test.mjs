@@ -6,7 +6,7 @@ import { createFileController } from "../../shared/frontend/js/modules/file-cont
 import {renderProductHtml} from '../../scripts/lib/product-html.mjs';
 const {File}=globalThis;
 
-test('topbar keeps primary commands visible and moves settings and help into overflow', () => {
+test('topbar separates history, file, view, settings and help commands', () => {
   const {editor:html}=renderProductHtml(path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8'));
   const tokens = readFileSync(new URL('../../shared/frontend/css/tokens/design-tokens.css', import.meta.url), 'utf8');
   const menuCss = readFileSync(new URL('../../shared/frontend/css/components/menus.css', import.meta.url), 'utf8');
@@ -14,11 +14,9 @@ test('topbar keeps primary commands visible and moves settings and help into ove
   const topbar = html.match(/<header class="topbar"[\s\S]*?<\/header>/)[0];
   const menu = html.match(/<nav id="fileMenu"[\s\S]*?<\/nav>/)[0];
   assert.equal(topbar.includes('class="brand"'), false);
-  assert.deepEqual([...topbar.matchAll(/id="(undoBtn|redoBtn|mobileFileBtn|mapDisplayBtn|topbarOverflowBtn)"/g)].map(m => m[1]),
-    ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'topbarOverflowBtn']);
+  assert.deepEqual([...topbar.matchAll(/id="(undoBtn|redoBtn|mobileFileBtn|mapDisplayBtn|preferencesBtn|helpBtn)"/g)].map(m => m[1]),
+    ['undoBtn', 'redoBtn', 'mobileFileBtn', 'mapDisplayBtn', 'preferencesBtn', 'helpBtn']);
   assert.match(topbar, /<button id="mapDisplayBtn"[^>]*>보기<\/button>/);
-  const overflow = html.match(/<nav id="topbarOverflowMenu"[\s\S]*?<\/nav>/)[0];
-  assert.deepEqual([...overflow.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]), ['preferencesBtn', 'helpBtn']);
   const mobileMenu = html.match(/<nav id="mobileGlobalMenu"[\s\S]*?<\/nav>/)[0];
   assert.deepEqual([...mobileMenu.matchAll(/<button id="([^"]+)"/g)].map(m => m[1]),
     ['mobileMenuFileBtn', 'mobileDisplayBtn', 'mobilePreferencesBtn', 'mobileHelpBtn']);
