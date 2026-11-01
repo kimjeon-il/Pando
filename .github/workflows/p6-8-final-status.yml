@@ -5,6 +5,7 @@ on:
     branches: [p6-8-final-status]
     paths:
       - scripts/contracts/application-checks.json
+      - tests/unit/library-auto-workflows.test.mjs
       - .github/workflows/p6-8-final-status.yml
   workflow_dispatch:
 
