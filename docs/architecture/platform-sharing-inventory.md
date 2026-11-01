@@ -159,9 +159,9 @@ The inventory narrows the earlier refactor plan.
 
 ### T1 — Explicit platform-port contract
 
-Highest priority.
+Implemented after A0. `shared/frontend/js/modules/platform-ports.js` is the canonical validator/factory, and runtime composition now consumes its nested `resources`, `storage`, `files`, `library` and `world` ports instead of the former flat property bag.
 
-Add one canonical validator/factory for the application-facing platform object. It should separate:
+The contract separates:
 
 - resource capabilities;
 - file access;

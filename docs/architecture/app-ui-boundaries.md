@@ -58,10 +58,7 @@ select directly and suppress a later synthetic click through the existing input
 controller. Map settings own accepted
 layer-visibility source preparation through the existing hydro/place loaders.
 
-`runtime-context.js` validates the immutable generated build receipt and owns
-versioned asset URL construction. Composition passes that receipt to builtin
-and physical resource owners. Module-relative imports use their versioned
-module URL. The immutable Worker resolver remains the asset-manifest boundary.
+`platform-ports.js` owns the explicit browser/native execution contract: resource capabilities, storage namespace, file access, optional library access and builtin source loader. `runtime-context.js` validates that immutable platform contract together with the generated build receipt and owns versioned asset URL construction. Composition passes those validated values to builtin and physical resource owners. Module-relative imports use their versioned module URL. The immutable Worker resolver remains the asset-manifest boundary.
 
 `file-controller.js` owns file workflow and ProjectDomain commands. An explicit
 browser or native file-access port owns pickers, input events, paths/URIs and
