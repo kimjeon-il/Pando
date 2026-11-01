@@ -117,23 +117,14 @@ def validate_training_rasters(annotation, sheet, root):
 
 
 def validate_macro_annotation(annotation, sheet, root):
-    import numpy as np
-    from macro import derive, image_bytes
-    validate_training_provenance('macro', annotation, sheet, root)
-    source, metadata_path = [corpus_path(root, annotation.get(field)) for field in ['sourcePdf', 'sourceMetadata']]
-    metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
-    validate_training_rasters(annotation, sheet, root)
-    image, target, valid, _ = derive(source, metadata, annotation['maximumDimension'])
-    for field, expected in [('raster', target), ('validRaster', valid)]:
-        with Image.open(corpus_path(root, annotation[field]['path'])) as raster:
-            if not np.array_equal(expected, np.asarray(raster)):
-                raise ValueError('Macro source supervision differs')
-    if hashlib.sha256(image_bytes(image, 'JPEG')).hexdigest() != sheet['sha256']:
-        raise ValueError('Macro source image differs')
-    observed = [name for index, name in enumerate(CHANNELS) if np.any(valid & (1 << index))]
-    positives = {name: int(np.count_nonzero(target & (1 << index))) for index, name in enumerate(CHANNELS)}
-    if annotation['observedChannels'] != observed or annotation['positivePixels'] != positives:
-        raise ValueError('Macro source supervision statistics differ')
+    script = pathlib.Path(__file__).with_name('validate-macro.mjs')
+    request = json.dumps(dict(root=str(pathlib.Path(root).resolve()), sheet=sheet, annotation=annotation), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--sheet-stream'], input=request, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=1800, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Macro validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != dict(valid=True, sheets=1, trainingOnly=True, independentEvaluation=False):
+        raise ValueError('Invalid native macro validation receipt')
 
 
 def validate_corpus(value, root=None, *, training_only=False):
