@@ -1,26 +1,23 @@
-name: Viewer GPU recovery focused diagnostic
+name: P6-4 focused recovery validation
+
 on:
   push:
     branches: [gpu-recovery-fix]
     paths:
       - .github/workflows/gpu-recovery-focused.yml
-      - tests/browser/gpu-recovery-foreground.spec.mjs
-      - tests/browser/viewer-recovery-acceptance.spec.mjs
-      - shared/frontend/js/modules/gpu-map-renderer.js
-      - shared/frontend/js/modules/map-content-presentation.js
-      - tests/unit/gpu-scene-presentation-ownership.test.mjs
-      - shared/frontend/js/modules/gpu-context-recovery.js
-      - tests/unit/gpu-shared-pass-initialization.test.mjs
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
-  group: gpu-recovery-focused-${{ github.ref }}
-  cancel-in-progress: false
+  group: p6-4-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  viewer:
+  recovery:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,19 +28,34 @@ jobs:
       - uses: ./.github/actions/library-data
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: GPU source-level regression
-        run: node --test tests/helpers/gpu-recovery-viewer-progress.test.mjs tests/unit/gpu-scene-presentation-ownership.test.mjs tests/helpers/gpu-recovery-viewer-presentation.test.mjs tests/unit/gpu-shared-pass-initialization.test.mjs tests/unit/gpu-resource-owners.test.mjs tests/unit/map-render-coordinator.test.mjs
-      - run: pnpm exec eslint shared/frontend/js/modules/gpu-map-renderer.js shared/frontend/js/modules/gpu-context-recovery.js shared/frontend/js/modules/map-content-presentation.js tests/browser/gpu-recovery-foreground.spec.mjs
-      - run: pnpm exec playwright install --with-deps chromium
-      - name: Viewer real WebGL1 and WebGL2 repeated restoration, document, selection and map pixels
-        run: pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs --workers=1 --retries=0
+
+      - name: Network, late Worker acknowledgement, and GPU recovery contracts
+        run: >
+          node --test --test-concurrency=1 --test-timeout=120000
+          tests/unit/background-network-recovery.test.mjs
+          tests/unit/viewer-composition-recovery.test.mjs
+          tests/unit/core-temporal-transport-p5-5.test.mjs
+          tests/helpers/gpu-recovery-viewer-progress.test.mjs
+          tests/helpers/gpu-recovery-viewer-presentation.test.mjs
+          tests/helpers/gpu-recovery-viewer-admission.test.mjs
+          tests/unit/gpu-shared-pass-initialization.test.mjs
+          tests/unit/gpu-resource-owners.test.mjs
+
+      - name: Install Chromium only for the real GPU recovery check
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Real WebGL2 context loss keeps the accepted document and map state
+        env:
+          G4_EVIDENCE: test-results/p6-4-gpu
+        run: >
+          pnpm exec playwright test tests/browser/viewer-recovery-acceptance.spec.mjs
+          --grep "viewer acceptance webgl2"
+          --workers=1 --retries=0 --trace=off --reporter=list
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: gpu-recovery-focused-${{ github.sha }}
-          path: |
-            test-results/gpu-foreground-evidence
-            test-results/gpu-recovery-foreground*
-            gpu-viewer-evidence
-          if-no-files-found: warn
+          name: p6-4-recovery-${{ github.sha }}
+          path: test-results/p6-4-gpu
+          if-no-files-found: ignore
           retention-days: 3
