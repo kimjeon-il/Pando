@@ -55,6 +55,8 @@ jobs:
         run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - name: Check generated frontend metadata
         run: node scripts/generate-build-metadata.mjs --check
+      - name: Lint the changed touch presentation and regression fixture
+        run: pnpm exec eslint shared/frontend/js/modules/map-input-presentation.js tests/unit/map-input-controller.test.mjs
       - name: Focused touch input controller contracts
         run: node --test tests/unit/map-input-controller.test.mjs
       - name: Stage the Web publication closure

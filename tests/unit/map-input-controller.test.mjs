@@ -72,7 +72,7 @@ function createPresentationFixture(productMode, editing = null) {
   const noop = () => {};
   surface.classList = { add: noop, remove: noop };
   const svg = { on() { return this; } };
-  const windowEvents = new EventTarget();
+  const windowEvents = new globalThis.EventTarget();
   const state = {
     mapMoving: false, projectReplacing: false, spacePanActive: false, tool: 'select',
     projection: 'globe', view: { globeZoom: 1, flatZoom: 1 },
@@ -80,7 +80,7 @@ function createPresentationFixture(productMode, editing = null) {
   };
   const presentation = createMapInputPresentation({
     productMode, editing,
-    window: { CustomEvent, dispatchEvent: event => windowEvents.dispatchEvent(event) },
+    window: { CustomEvent: globalThis.CustomEvent, dispatchEvent: event => windowEvents.dispatchEvent(event) },
     navigator: {},
     getRevision: () => 1,
     mapInteractionGate: {
