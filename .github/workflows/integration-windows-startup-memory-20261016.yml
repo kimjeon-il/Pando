@@ -63,20 +63,15 @@ jobs:
               $stage.worldData.fileCount -ne 610) {
             throw 'The immutable world and physical-resource package is not the expected test input.'
           }
-      - name: Build the Windows verification executable
+      - name: Build and test the Windows verification executable through the canonical native producer
         shell: pwsh
         run: |
-          pnpm --dir apps/editor exec tauri build --debug --no-bundle --target x86_64-pc-windows-msvc --features custom-protocol,verification --config src-tauri/tauri.verification.json
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify native diagnostic and file transfer contracts
-        shell: pwsh
-        run: |
-          cargo test --manifest-path apps/editor/src-tauri/Cargo.toml --locked --target x86_64-pc-windows-msvc --features custom-protocol,verification
+          node --input-type=module -e "import {buildNativeOnCI} from './apps/editor/native-producer.mjs'; await buildNativeOnCI({platform:'windows',mode:'verification',test:true});"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Measure three isolated cold-profile runs
         shell: pwsh
         run: |
-          ./apps/editor/measure-windows-startup.ps1 -BinaryPath 'apps/editor/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe' -HoldAfterReadyMs 30000 -TrialCount 3
+          ./apps/editor/measure-windows-startup.ps1 -BinaryPath 'build-native/native-artifacts/windows/verification/pandolab-web-shell.exe' -HoldAfterReadyMs 30000 -TrialCount 3
           $data = Get-Content build-native/web-shell/startup-memory.json -Raw | ConvertFrom-Json
           if ($data.schema -ne 'pandolab-windows-webview-startup-memory' -or $data.summary.count -ne 3) {
             throw 'The Windows startup benchmark is incomplete.'
