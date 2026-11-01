@@ -61,6 +61,15 @@ void reject(Project& p,const std::vector<ObjectRef>& refs,const char* code) {
     }catch(const TimelineError& error){assert(error.code==code);}
     assert(p.revision()==before.revision()&&p.historyCheckpoint()==checkpoint&&semanticallyEqual(p.document(),before.document()));
 }
+void staticNonWaterRemovalDoesNotRequireTimelineCursor() {
+    Project p;p.replace(fixture());const auto before=p.snapshot();
+    assert(before.timelineMonth().empty());
+    assert(apply(p,{{"label","P"}}).changed());
+    assert(p.document().labels.size()==1&&p.document().labels[0].id=="Q");
+    assert(p.document().hydro.size()==2&&p.document().exchangeMetadata==before.document().exchangeMetadata);
+    assert(p.undo()&&semanticallyEqual(p.document(),before.document()));
+    assert(p.redo()&&p.document().labels.size()==1&&p.document().labels[0].id=="Q");
+}
 void fiveDomainsAtomicHistoryAndOriginalCleanup() {
     auto seed=fixture();
     for(const auto* id:{"E","T","U"}) {
@@ -156,4 +165,4 @@ void physicalViewRebaseRejectsUnrelatedMetadataChanges() {
     assert(failed);
 }
 }
-int main(){physicalViewRebaseRejectsUnrelatedMetadataChanges();fiveDomainsAtomicHistoryAndOriginalCleanup();duplicatesAndLastHydroSource();admissionIsAtomicAndChildrenCannotBeBundledAway();registeredDisplayIdentityAndCollision();datedRemovalTruncatesWithoutDroppingIdentityOrArchive();std::cout<<"Web object removal tests passed\n";}
+int main(){physicalViewRebaseRejectsUnrelatedMetadataChanges();staticNonWaterRemovalDoesNotRequireTimelineCursor();fiveDomainsAtomicHistoryAndOriginalCleanup();duplicatesAndLastHydroSource();admissionIsAtomicAndChildrenCannotBeBundledAway();registeredDisplayIdentityAndCollision();datedRemovalTruncatesWithoutDroppingIdentityOrArchive();std::cout<<"Web object removal tests passed\n";}
