@@ -693,17 +693,13 @@
   gap: var(--ui-field-gap);
 }
 
-.editor-panel[data-editor-view="info"] .editor-view > .editor-action-section:not(.editor-relation-section) {
+.editor-panel[data-editor-view="info"] .editor-view > .editor-action-section {
   display: none;
 }
 
 .editor-panel[data-editor-view="info"]
 .editor-object-form > .editor-info-section:first-of-type {
   padding-top: var(--ui-space-2);
-}
-
-.editor-panel[data-editor-view="info"]:not([data-editor-inline-relation="true"]) .editor-view > .editor-relation-section {
-  display: none;
 }
 
 .editor-panel[data-editor-view="actions"] .editor-view > :not(.editor-action-section):not([hidden]) {
@@ -718,28 +714,8 @@
   display: block;
 }
 
-.editor-panel[data-editor-view="actions"] .editor-view > .editor-relation-section {
-  display: none;
-}
-
-.editor-panel[data-editor-view="actions"][data-editor-inline-relation="true"] .editor-view > .editor-relation-section {
-  display: grid;
-}
-
 .editor-panel:not([data-editor-view="actions"]) .editor-delete-control {
   display: none;
-}
-
-.editor-panel[data-editor-view="relation"] .editor-view > :not(.editor-relation-section):not([hidden]) {
-  display: none;
-}
-
-.editor-panel[data-editor-view="relation"] .editor-view > .editor-relation-section {
-  display: grid;
-}
-
-.editor-panel[data-editor-view="relation"] details.editor-relation-section {
-  display: block;
 }
 
 .app-root[data-layout="mobile"] .editor-action-row {
