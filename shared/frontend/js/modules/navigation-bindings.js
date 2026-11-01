@@ -163,6 +163,9 @@ export function createNavigationBindings({productMode='editor'}={}) {
       event.stopPropagation();
       if (!mobileMenuOpen) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
     });
+    for (const id of ['mobileUndoBtn', 'mobileRedoBtn']) {
+      (0, dependencies.platform.$)(id)?.addEventListener('click', () => closeMobileMenu());
+    }
     (0, dependencies.platform.$)('mobileMenuFileBtn')?.addEventListener('click', event => {
       event.stopPropagation();
       closeMobileMenu();
