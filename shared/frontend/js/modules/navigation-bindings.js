@@ -85,6 +85,39 @@ export function createNavigationBindings({productMode='editor'}={}) {
         menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true });
       });
     };
+    let editorObjectMenuOpen = false;
+    const editorObjectMenu = () => (0, dependencies.platform.$)('editorObjectMenu');
+    const positionEditorObjectMenu = () => {
+      if (!editorObjectMenuOpen) return;
+      positionRootMenu({
+        menu: editorObjectMenu(),
+        trigger: (0, dependencies.platform.$)('editorObjectMoreBtn'),
+      });
+    };
+    const closeEditorObjectMenu = ({ restoreFocus = false } = {}) => {
+      const menu = editorObjectMenu();
+      if (!menu || !editorObjectMenuOpen) return;
+      editorObjectMenuOpen = false;
+      menu.hidden = true;
+      clearMenuPosition(menu);
+      const trigger = (0, dependencies.platform.$)('editorObjectMoreBtn');
+      trigger?.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) trigger?.focus({ preventScroll: true });
+    };
+    const openEditorObjectMenu = () => {
+      const menu = editorObjectMenu();
+      const trigger = (0, dependencies.platform.$)('editorObjectMoreBtn');
+      if (!menu || !trigger) return;
+      closeTopbarOverflow();
+      (0, dependencies.workspaceUiA.closeFileMenu)();
+      editorObjectMenuOpen = true;
+      menu.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => {
+        positionEditorObjectMenu();
+        menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true });
+      });
+    };
     let displayPointerStartedInside = false;
     let searchToolbarPointer = false;
     const closeDesktopDisplayMenu = () => {
@@ -95,6 +128,7 @@ export function createNavigationBindings({productMode='editor'}={}) {
     };
     document.addEventListener('keydown',event=>{
       if(event.key!=='Escape'||event.defaultPrevented||document.querySelector('.ui-modal:not(.hidden),[aria-modal="true"]:not(.hidden):not([hidden])'))return;
+      if(editorObjectMenuOpen){closeEditorObjectMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(topbarOverflowOpen){closeTopbarOverflow({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(mobileMenuOpen){closeMobileMenu({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
       if(!dependencies.platform.$('objectChooser')?.classList.contains('hidden')){dependencies.objectPicking.closeObjectChooser({restoreFocus:true});event.preventDefault();event.stopImmediatePropagation();return;}
@@ -112,6 +146,7 @@ export function createNavigationBindings({productMode='editor'}={}) {
       }
       if (!e.target.closest('#mobileGlobalMenu, #mobileMenuBtn')) closeMobileMenu();
       if (!e.target.closest('#topbarOverflowMenu, #topbarOverflowBtn')) closeTopbarOverflow();
+      if (!e.target.closest('#editorObjectMenu, #editorObjectMoreBtn')) closeEditorObjectMenu();
       if (!e.target.closest('#mapDisplaySurface, #mapDisplayBtn') && !(e.detail && displayPointerStartedInside)) {
         closeDesktopDisplayMenu();
       }
@@ -162,6 +197,42 @@ export function createNavigationBindings({productMode='editor'}={}) {
       items[next]?.focus({ preventScroll: true });
     });
     window.addEventListener('resize', positionTopbarOverflow);
+    (0, dependencies.platform.$)('editorObjectMoreBtn')?.addEventListener('click', event => {
+      event.stopPropagation();
+      if (editorObjectMenuOpen) closeEditorObjectMenu({ restoreFocus: true });
+      else openEditorObjectMenu();
+    });
+    (0, dependencies.platform.$)('editorObjectMenu')?.addEventListener('click', event => {
+      if (!event.target.closest('[role="menuitem"]')) return;
+      queueMicrotask(() => closeEditorObjectMenu({ restoreFocus: true }));
+    });
+    (0, dependencies.platform.$)('editorObjectMenu')?.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        closeEditorObjectMenu({ restoreFocus: true });
+        return;
+      }
+      if (event.key === 'Tab') {
+        exitMenuOnTab(event, {
+          menus: event.currentTarget,
+          trigger: (0, dependencies.platform.$)('editorObjectMoreBtn'),
+          close: () => closeEditorObjectMenu(),
+        });
+        return;
+      }
+      const items = [...event.currentTarget.querySelectorAll('[role="menuitem"]:not(:disabled)')];
+      const index = items.indexOf(document.activeElement);
+      let next = -1;
+      if (event.key === 'ArrowDown') next = (index + 1 + items.length) % items.length;
+      else if (event.key === 'ArrowUp') next = (index - 1 + items.length) % items.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = items.length - 1;
+      if (next < 0 || !items.length) return;
+      event.preventDefault();
+      items[next]?.focus({ preventScroll: true });
+    });
+    window.addEventListener('resize', positionEditorObjectMenu);
     (0, dependencies.platform.$)('mobileMenuBtn')?.addEventListener('click', event => {
       event.stopPropagation();
       if (!mobileMenuOpen) openMobileMenu(); else closeMobileMenu({ restoreFocus: true });
