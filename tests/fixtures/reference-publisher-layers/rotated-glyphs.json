@@ -43,5 +43,20 @@
     "maskSha256": "3e3cc35a5646822166817726e3510a112941bf5f15b3694b3d3fc040929315eb",
     "creditSha256": "b8af9dc2eb5ccceba9540ac38f52c8d72f8a9d805e2bf1c2089e11ee855cd1ac",
     "characters": 11
+  },
+  "derived": {
+    "rgbSha256": "7e49a350fa272066e2d111fde97f562f9de725ba96d38b4592484b9f4d428709",
+    "maskSha256": "abaa07df706e6c717bcd93d2a4400f7f6c1543f55bd7ce6c2734b33075569b88",
+    "validSha256": "d0c07d1684c79a2f466d9a037d7c372f936d643457e488cf1aa25969d36d4e3b",
+    "observedMask": 105,
+    "positivePixels": [
+      320,
+      0,
+      0,
+      0,
+      0,
+      748,
+      0
+    ]
   }
 }

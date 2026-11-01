@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import test from 'node:test';
-import {extractPublisherPdfText,inspectPublisherPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
+import {derivePublisherPdfTrainingLayers,extractPublisherPdfText,inspectPublisherPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
 
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
   const root=resolve('tests/fixtures/reference-publisher-layers');
@@ -24,6 +24,10 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
   const text=await extractPublisherPdfText({path,maximumDimension:oracle.text.maximumDimension});
   assert.equal(sha(text.mask),oracle.text.maskSha256);assert.equal(sha(text.credits),oracle.text.creditSha256);
   assert.equal(text.characters,oracle.text.characters);
+  const derived=await derivePublisherPdfTrainingLayers({path,maximumDimension:oracle.text.maximumDimension});
+  assert.equal(sha(derived.rgb),oracle.derived.rgbSha256);assert.equal(sha(derived.mask),oracle.derived.maskSha256);
+  assert.equal(sha(derived.validMask),oracle.derived.validSha256);assert.equal(derived.observedMask,oracle.derived.observedMask);
+  assert.deepEqual(derived.positivePixels,oracle.derived.positivePixels);assert.equal(sha(derived.credits),oracle.text.creditSha256);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:['missing'],maximumDimension:160}),/layer/i);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:['International','International'],maximumDimension:160}),/layer/i);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:[],maximumDimension:16}),/dimension/i);

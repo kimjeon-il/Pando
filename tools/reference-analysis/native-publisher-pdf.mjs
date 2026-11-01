@@ -31,15 +31,34 @@ function artifact(workspace,directory){
   if(sha(readFileSync(resolve(directory,spec.library)))!==spec.sha256)throw Error('Publisher PDF MuPDF runtime hash differs');
   return result.binary;
 }
-async function operation({path,args,signal,workspace,directory,source}){
+async function operation({path,args,signal,workspace,directory,source,binary,knownIdentity,checkSource=true}){
   signal?.throwIfAborted();if(typeof path!=='string'||!path)throw Error('Explicit publisher PDF path required');
-  const actual=resolve(path),input=source??readTrainingBounded(actual,300*1024*1024),identity=sha(input);
-  if(trainingFileIdentity(actual,{maxBytes:300*1024*1024})!==identity)throw Error('Publisher PDF changed before rendering');
-  const binary=artifact(workspace,directory),output=await invoke(binary,args,input,signal);
-  if(trainingFileIdentity(actual,{maxBytes:300*1024*1024})!==identity)throw Error('Publisher PDF changed during rendering');
+  const actual=resolve(path),input=source??readTrainingBounded(actual,300*1024*1024),identity=knownIdentity??sha(input);
+  if(checkSource&&trainingFileIdentity(actual,{maxBytes:300*1024*1024})!==identity)throw Error('Publisher PDF changed before rendering');
+  const executable=binary??artifact(workspace,directory),output=await invoke(executable,args,input,signal);
+  if(checkSource&&trainingFileIdentity(actual,{maxBytes:300*1024*1024})!==identity)throw Error('Publisher PDF changed during rendering');
   const end=output.indexOf(10);if(end<0||end>1024*1024)throw Error('Publisher PDF header exceeds budget');
   const header=JSON.parse(output.subarray(0,end).toString('utf8'));
   return {header,data:output.subarray(end+1),sourceSha256:identity};
+}
+const layerChannels=Object.freeze({international:['International'],administrative:['State or Territory','County or Equivalent'],
+  hydro:['Hydrography'],transport:['Road Features','Trails','Railroads'],frame:['Map Frame','Projection and Grids']});
+const channels=Object.freeze(['international','administrative','coast','hydro','transport','text','frame']);
+function checkedRaster(result,info){
+  const {width,height,scale}=result.header;
+  if(result.sourceSha256!==info.sourceSha256||![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||
+    !Number.isFinite(scale)||scale<=0||result.data.length!==width*height*3)throw Error('Publisher PDF raster dimensions differ');
+  return {width,height,scale,rgb:result.data,sourceSha256:result.sourceSha256};
+}
+function checkedText(result,info){
+  const {width,height,scale,creditBytes,characters}=result.header;
+  if(result.sourceSha256!==info.sourceSha256||![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||
+    !Number.isFinite(scale)||scale<=0||!Number.isSafeInteger(creditBytes)||creditBytes<0||creditBytes>8*1024*1024||
+    !Number.isSafeInteger(characters)||characters<0||characters>10000000||result.data.length!==creditBytes+width*height)
+    throw Error('Publisher PDF text dimensions differ');
+  const credits=result.data.subarray(0,creditBytes),mask=result.data.subarray(creditBytes);
+  if(mask.some(value=>value>1))throw Error('Publisher PDF text mask contains invalid pixels');
+  return {width,height,scale,credits,mask,characters,sourceSha256:result.sourceSha256};
 }
 function checkInfo({header,data,sourceSha256}){
   if(data.length||header.pageCount!==1||header.rotation!==0||!Array.isArray(header.layers)||!header.layers.length||header.layers.length>1024||
@@ -62,10 +81,7 @@ export async function renderPublisherPdfLayers({path,enabled,maximumDimension},{
   const names=new Set(info.layers.map(row=>row.name));if(enabled.some(name=>!names.has(name)))throw Error('Unknown publisher PDF layer');
   const selected=new Set(enabled),bits=info.layers.map(row=>selected.has(row.name)?'1':'0').join('');
   const result=await operation({path,args:['render',String(maximumDimension),bits],signal,workspace,directory,source});
-  const {width,height,scale}=result.header;
-  if(result.sourceSha256!==info.sourceSha256||![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||
-    !Number.isFinite(scale)||scale<=0||result.data.length!==width*height*3)throw Error('Publisher PDF raster dimensions differ');
-  return {width,height,scale,rgb:result.data,sourceSha256:result.sourceSha256};
+  return checkedRaster(result,info);
 }
 export async function extractPublisherPdfText({path,maximumDimension},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
   signal?.throwIfAborted();
@@ -73,12 +89,40 @@ export async function extractPublisherPdfText({path,maximumDimension},{signal,wo
   const source=readTrainingBounded(resolve(path),300*1024*1024);
   const info=checkInfo(await operation({path,args:['inspect'],signal,workspace,directory,source}));
   const result=await operation({path,args:['text',String(maximumDimension)],signal,workspace,directory,source});
-  const {width,height,scale,creditBytes,characters}=result.header;
-  if(result.sourceSha256!==info.sourceSha256||![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||
-    !Number.isFinite(scale)||scale<=0||!Number.isSafeInteger(creditBytes)||creditBytes<0||creditBytes>8*1024*1024||
-    !Number.isSafeInteger(characters)||characters<0||characters>10000000||result.data.length!==creditBytes+width*height)
-    throw Error('Publisher PDF text dimensions differ');
-  const credits=result.data.subarray(0,creditBytes),mask=result.data.subarray(creditBytes);
-  if(mask.some(value=>value>1))throw Error('Publisher PDF text mask contains invalid pixels');
-  return {width,height,scale,credits,mask,characters,sourceSha256:result.sourceSha256};
+  return checkedText(result,info);
+}
+export async function derivePublisherPdfTrainingLayers({path,maximumDimension},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
+  signal?.throwIfAborted();
+  if(typeof path!=='string'||!path||!Number.isSafeInteger(maximumDimension)||maximumDimension<32||maximumDimension>4096)
+    throw Error('Explicit bounded publisher PDF and dimension required');
+  const actual=resolve(path),source=readTrainingBounded(actual,300*1024*1024),identity=sha(source),binary=artifact(workspace,directory);
+  const request={path:actual,source,binary,knownIdentity:identity,signal,workspace,directory};
+  const info=checkInfo(await operation({...request,args:['inspect']})),names=new Set(info.layers.map(layer=>layer.name));
+  for(const required of ['International','Map Frame','Hydrography'])if(!names.has(required))throw Error('Required publisher layer missing: '+required);
+  const parents=new Map(),stack=[];
+  for(const row of info.ui){while(stack.length&&stack.at(-1).depth>=row.depth)stack.pop();
+    if(names.has(row.text)){parents.set(row.text,stack.map(entry=>entry.name));stack.push({depth:row.depth,name:row.text});}}
+  const render=async enabled=>{signal?.throwIfAborted();const selected=new Set(enabled),bits=info.layers.map(layer=>selected.has(layer.name)?'1':'0').join('');
+    return checkedRaster(await operation({...request,args:['render',String(maximumDimension),bits],checkSource:false}),info);};
+  const image=await render([...names].filter(name=>!['Orthoimage','Shaded Relief'].includes(name)));
+  const text=checkedText(await operation({...request,args:['text',String(maximumDimension)],checkSource:false}),info);
+  if(text.width!==image.width||text.height!==image.height||text.scale!==image.scale)throw Error('Publisher text and raster dimensions differ');
+  const pixels=image.width*image.height;let mask=Buffer.alloc(pixels),observedMask=32;const layers={};
+  for(const [channel,candidates] of Object.entries(layerChannels)){
+    const selected=candidates.filter(name=>names.has(name));if(!selected.length)continue;
+    layers[channel]=selected;const bit=1<<channels.indexOf(channel);observedMask|=bit;
+    for(const name of selected){const ancestors=parents.get(name)||[],before=await render(ancestors),after=await render([...ancestors,name]);
+      if([before,after].some(value=>value.width!==image.width||value.height!==image.height||value.scale!==image.scale))throw Error('Publisher layer raster dimensions differ');
+      mask=await invoke(binary,['compare',String(image.width),String(image.height),String(bit)],Buffer.concat([mask,text.mask,before.rgb,after.rgb]),signal);
+      if(mask.length!==pixels)throw Error('Publisher layer comparison dimensions differ');}
+  }
+  const finished=await invoke(binary,['finish',String(image.width),String(image.height),String(observedMask)],Buffer.concat([mask,text.mask]),signal);
+  const end=finished.indexOf(10);if(end<0||end>1024)throw Error('Publisher mask result header differs');
+  const header=JSON.parse(finished.subarray(0,end).toString('utf8')),data=finished.subarray(end+1);
+  if(data.length!==pixels*2||!Array.isArray(header.positivePixels)||header.positivePixels.length!==7||
+    header.positivePixels.some(value=>!Number.isSafeInteger(value)||value<0||value>pixels))throw Error('Publisher mask result differs');
+  if(trainingFileIdentity(actual,{maxBytes:300*1024*1024})!==identity)throw Error('Publisher PDF changed during derivation');
+  artifact(workspace,directory);
+  return {width:image.width,height:image.height,scale:image.scale,rgb:image.rgb,mask:data.subarray(0,pixels),validMask:data.subarray(pixels),
+    credits:text.credits,observedMask,positivePixels:header.positivePixels,layers,sourceSha256:identity,trainingOnly:true,releaseApproved:false};
 }

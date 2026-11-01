@@ -14,7 +14,7 @@
 static unsigned char *read_input(size_t *length){
     const size_t limit=300u*1024u*1024u;size_t used=0,capacity=65536;unsigned char *data=(unsigned char*)malloc(capacity);
     if(!data)return NULL;
-    for(;;){size_t count;if(used==capacity){unsigned char *next;if(capacity>=limit){free(data);return NULL;}
+    for(;;){size_t count;if(used==capacity){unsigned char *next;if(capacity>=limit){int extra=fgetc(stdin);if(extra==EOF&&!ferror(stdin))break;free(data);return NULL;}
         capacity*=2;if(capacity>limit)capacity=limit;next=(unsigned char*)realloc(data,capacity);
         if(!next){free(data);return NULL;}data=next;}
         count=fread(data+used,1,capacity-used,stdin);used+=count;
@@ -25,6 +25,32 @@ static void json_string(const char *value){
     const unsigned char *s=(const unsigned char*)(value?value:"");putchar('"');
     for(;*s;s++){if(*s=='"'||*s=='\\'){putchar('\\');putchar(*s);}else if(*s<32)printf("\\u%04x",(unsigned)*s);else putchar(*s);}
     putchar('"');
+}
+static int mask_operation(const char *action,const char *width_text,const char *height_text,const char *bits_text,unsigned char *input,size_t size){
+    char *end=NULL;long width=strtol(width_text,&end,10),height,bits;size_t pixels,i;int channel;
+    if(!end||*end||width<1||width>4096)return 1;
+    height=strtol(height_text,&end,10);if(!end||*end||height<1||height>4096)return 1;
+    bits=strtol(bits_text,&end,10);if(!end||*end||bits<1||bits>127)return 1;
+    pixels=(size_t)width*(size_t)height;
+    if(!strcmp(action,"compare")){
+        const unsigned char *text,*before,*after;if(size!=pixels*8||!(bits==1||bits==2||bits==8||bits==16||bits==64))return 1;
+        text=input+pixels;before=input+pixels*2;after=input+pixels*5;
+        for(i=0;i<pixels;i++){int delta=0;if(text[i]>1||input[i]>127)return 1;
+            for(channel=0;channel<3;channel++){int d=abs((int)after[i*3+channel]-(int)before[i*3+channel]);if(d>delta)delta=d;}
+            if(!text[i]&&delta>8)input[i]|=(unsigned char)bits;}
+        return fwrite(input,1,pixels,stdout)==pixels?0:1;
+    }
+    if(!strcmp(action,"finish")){
+        size_t positive[7]={0,0,0,0,0,0,0};unsigned char *valid;
+        if(size!=pixels*2||!(bits&32))return 1;
+        valid=input+pixels;
+        for(i=0;i<pixels;i++){unsigned char text=valid[i];if(text>1||input[i]>127||(input[i]&~bits))return 1;
+            if(text){if(input[i])return 1;input[i]=32;valid[i]=32;}else valid[i]=(unsigned char)bits;
+            for(channel=0;channel<7;channel++)if(input[i]&(1<<channel))positive[channel]++;}
+        printf("{\"positivePixels\":[%zu,%zu,%zu,%zu,%zu,%zu,%zu]}\n",positive[0],positive[1],positive[2],positive[3],positive[4],positive[5],positive[6]);
+        return fwrite(input,1,pixels*2,stdout)==pixels*2?0:1;
+    }
+    return 1;
 }
 typedef struct {
     fz_device base;
@@ -109,16 +135,19 @@ static void append_credits(fz_context *ctx,fz_buffer *buffer,const fz_stext_page
 int main(int argc,char **argv){
     fz_context *ctx=NULL;fz_stream *stream=NULL;fz_document *document=NULL;fz_page *page=NULL;fz_pixmap *pixmap=NULL;
     fz_device *text_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;
-    unsigned char *input=NULL,*mask=NULL;size_t input_size=0;int status=1,render=0,maximum=0;
+    unsigned char *input=NULL,*mask=NULL;size_t input_size=0;int status=1,render=0,maximum=0,mask_mode=0;
 #ifdef _WIN32
     if(_setmode(_fileno(stdin),_O_BINARY)==-1||_setmode(_fileno(stdout),_O_BINARY)==-1)return 1;
 #endif
-    if(argc==2&&!strcmp(argv[1],"inspect"))render=0;
+    if(argc==5&&(!strcmp(argv[1],"compare")||!strcmp(argv[1],"finish")))mask_mode=1;
+    else if(argc==2&&!strcmp(argv[1],"inspect"))render=0;
     else if((argc==4&&!strcmp(argv[1],"render"))||(argc==3&&!strcmp(argv[1],"text"))){char *end=NULL;long value=strtol(argv[2],&end,10);
         if(!end||*end||value<32||value>4096){fprintf(stderr,"Invalid maximum dimension\n");return 1;}
         render=argc==3?2:1;maximum=(int)value;}
     else{fprintf(stderr,"Expected inspect, text MAX_DIMENSION or render MAX_DIMENSION LAYER_BITS\n");return 1;}
     input=read_input(&input_size);if(!input){fprintf(stderr,"Unable to read PDF or input exceeds budget\n");return 1;}
+    if(mask_mode){status=mask_operation(argv[1],argv[2],argv[3],argv[4],input,input_size);free(input);
+        if(status)fprintf(stderr,"Invalid publisher mask input\n");return status;}
     ctx=fz_new_context(NULL,NULL,FZ_STORE_DEFAULT);if(!ctx){free(input);fprintf(stderr,"MuPDF context unavailable\n");return 1;}
     fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
     fz_try(ctx){
