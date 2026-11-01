@@ -68,7 +68,7 @@ export function createFileBindings({libraryGeometryContext=null}={}) {
         .catch(error => (0, dependencies.feedback.reportOperationError)(error, 'GIS 내보내기 도구를 불러오지 못했습니다.', 'PL-GIS-LAZY-002', 4200));
     });
     createPreferencesDialog({ document, productMode: 'editor',
-      returnFocus: () => dependencies.platform.$(dependencies.surfaces.layoutMode === 'mobile' ? 'mobilePreferencesBtn' : 'topbarOverflowBtn'),
+      returnFocus: () => dependencies.platform.$(['mobile', 'phone-landscape'].includes(dependencies.surfaces.layoutMode) ? 'mobilePreferencesBtn' : 'topbarOverflowBtn'),
       getPreferences: () => dependencies.preferences.userPreferences,
       applyPreferences: value => dependencies.countryLabelModel.applyUserPreferences(value, { persist: false }),
       beforeOpen: () => { dependencies.workspaceUiA.closeFileMenu(); dependencies.workspaceUiA.closeSurface('create'); },
@@ -78,7 +78,7 @@ export function createFileBindings({libraryGeometryContext=null}={}) {
       if (!helpModal || helpModal.classList.contains('hidden')) return;
       helpModal.classList.add('hidden');
       if (restoreFocus) {
-        const target = dependencies.surfaces.layoutMode === 'mobile'
+        const target = ['mobile', 'phone-landscape'].includes(dependencies.surfaces.layoutMode)
           ? (0, dependencies.platform.$)('mobileHelpBtn')
           : (0, dependencies.platform.$)('topbarOverflowBtn');
         target?.focus({ preventScroll: true });
