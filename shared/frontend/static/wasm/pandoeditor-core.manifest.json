@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "fb6f8c79c19b0f786632b3a494c700373c2cf5a1d41f0e68c5a23c87475ea043",
+  "sourceSha256": "8c8f814667f6fbc2fd8841f1075e9640bc391f3495ac1a189c4bde2ce482a56e",
   "compiler": {
     "name": "emscripten",
     "version": "4.0.20"
@@ -457,7 +457,7 @@
     },
     {
       "path": "shared/core/src/webobjectcommands.cpp",
-      "sha256": "a8bcec81ef83d8cd2a17ad45e3a2863a2aa61bf1446267b38100a596a18c49ea"
+      "sha256": "876664e82c12dbe0a39e73364a1b2bcc5fce726973ffc1c7d905ec6076989891"
     },
     {
       "path": "shared/core/src/webpresentationcommands.cpp",
@@ -569,15 +569,15 @@
     },
     {
       "path": "shared/tests/web-content-codec-tests.cpp",
-      "sha256": "b15d9263cc3978a250704502c9c76b57c802ef2da77df947f215fefc343b0bf7"
+      "sha256": "4464b326edad7841baa1e65410a363928d4438c3180f4813d465eef37e316824"
     },
     {
       "path": "shared/tests/web-content-command-tests.cpp",
-      "sha256": "c97d506793bd284e0261f17e4e33bcede162040cc1f87316cd393a757c2d80d5"
+      "sha256": "765f06420cbb343a445de745f58b9bd08b20ff75426a01841bbd3bd0c3ba6b39"
     },
     {
       "path": "shared/tests/web-object-command-tests.cpp",
-      "sha256": "16c318fca71590345e92d2592da083a42b72241fa21ae1b36200e89321f1e834"
+      "sha256": "b6d6f42f7367ce5629780904b1082e974a094eadbc2a4585a8b7ed49ff78f1d7"
     },
     {
       "path": "shared/tests/web-storage-tests.cpp",
@@ -639,7 +639,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "9671907356ac4b00d1f3bbb10a4a4ed85362b57c8c7d34a530d9ce20e32a70d5"
+      "sha256": "c3d221886f6ad0e4e1a61d4cd2d77e78a579ff5d1ee515e95c64ec69effcbbe8"
     }
   }
 }
