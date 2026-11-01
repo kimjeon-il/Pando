@@ -73,20 +73,9 @@ The same editor frontend is used by Windows and Android. OS-specific behavior is
 
 ## 4. Current platform-port surface
 
-The Editor currently consumes an implicit platform object rather than an explicitly validated contract. Current fields include:
+The former flat platform bag is gone. `shared/frontend/js/modules/platform-ports.js` validates one explicit schema with `resources`, `storage`, `files`, `library` and `world` groups.
 
-- `builtinHydroAvailable`
-- `builtinPlacesAvailable`
-- `startupMesh`
-- `storageNamespace`
-- `fileAccess`
-- `getLibraryRepository`
-- `libraryGeometryContext`
-- optional `builtinWorldLoader` support in shared map composition
-
-Consumers include `resource-capabilities.js`, `map-owner-composition.js`, `app-composition.js`, history composition, GIS composition and progressive startup.
-
-This is the main remaining architectural sharing target: one explicit platform-port contract should describe capabilities and services without exposing Tauri globals to application code.
+`apps/editor/native-platform-adapter.js` is the only frontend runtime owner of raw Tauri/shell globals. Native ports are installed through module-scoped `platform-runtime.js`; browser execution resolves the same contract with `kind: 'browser'`. File access is separately governed by `file-access-contract.js`.
 
 ## 5. Native-only code that should remain native
 
@@ -144,14 +133,9 @@ These are OS integration points, not frontend forks.
 
 ## 7. Cross-language native protocol
 
-`native-storage.js` and `src-tauri/src/document_transfer.rs` intentionally meet at a protocol boundary:
+T4 added `apps/editor/document-transfer-contract.js` and a source-level JS/Rust synchronization test for 256 KiB chunks, the 256 MiB document limit, the 16-file GIS limit, read/write kinds, transfer command names and Tauri handler registration.
 
-- 256 KiB transfer chunks.
-- 256 MiB document limit.
-- document kind names.
-- begin/append/finish/read/abort command lifecycle.
-
-The two languages cannot literally share implementation code. Future work should verify this protocol contract rather than trying to merge JS and Rust source.
+The JavaScript and Rust implementations intentionally remain separate. T5 found one remaining perimeter duplication: `network-guard.js` and `src-tauri/build.rs` still list the six document-transfer commands independently. Closing that gap is T6.
 
 ## 8. Confirmed change targets after A0
 
@@ -196,6 +180,10 @@ Do not perform the following as part of the sharing refactor:
 - Do not move native IPC chunk transport into generic shared frontend code merely for directory symmetry.
 - Do not add compatibility wrappers or keep both old and new platform-port paths after replacement.
 
-## 10. A0 completion state
+## 10. Current completion state
 
-A0 changes no runtime source. The next implementation step should start with **T1 explicit platform-port contract**, followed by **T2 native shell adapter isolation**. The previously proposed broad file-I/O extraction and unconditional relocation of runtime-profile/network policy are not justified by the current source: those components are already shared where they have real consumers.
+A0 and T1-T4 are implemented. T5 completed the second residual-sharing audit and found no new Web/Windows/Android frontend fork.
+
+Remaining work is ordered T6 protocol-perimeter completion -> T7 stale native verification/global cleanup -> T8 transport test-fixture sharing -> T9 staging-fixture closure consolidation -> T10 optional product-mode presentation/input cleanup.
+
+Detailed evidence is in `docs/architecture/platform-sharing-t5-audit.md`.
