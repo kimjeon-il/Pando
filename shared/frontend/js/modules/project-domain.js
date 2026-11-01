@@ -226,6 +226,7 @@ export function createProjectDomain({
         ||typeof commandOwner?.temporalCandidatePrepare!=='function')
         throw new TypeError('Core temporal source/candidate owner is required.');
       let source;
+      const sourceEpoch=commandOwner.state()?.epoch;
       try {
         source=await commandOwner.temporalSourcePrepare(facts,{dataRevision,manifestSha256,isCurrent:current});
         if(!current())throw stale();
@@ -247,7 +248,7 @@ export function createProjectDomain({
           targetMonth:candidate.targetMonth,sourceFingerprint:candidate.sourceFingerprint,
           worldSha256:candidate.worldSha256});
       } catch(error) {
-        if(source&&commandOwner.state()?.epoch===source.expectedEpoch)
+        if(source&&commandOwner.state()?.epoch===sourceEpoch)
           try {await commandOwner.temporalSourceRelease(source.sourceId);}
           catch(releaseError){try{reportDiagnostic({stage:'temporal-source-release',error:releaseError});}catch(_){}}
         throw error;
