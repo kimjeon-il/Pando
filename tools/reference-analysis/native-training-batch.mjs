@@ -72,12 +72,13 @@ export async function verifyTrainingEvidence(root,corpus,sample,data,{epoch,sign
     ...(sourceKind==='reviewed'?{}:{maskSha256:data.maskSha256,validMaskSha256:data.validMaskSha256}),
     tileIndex:data.tileIndex,augmentationIndex:data.augmentationIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment,tensorSha256:data.tensorSha256},checks};
 }
-async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sample,data,{epoch,signal}){
-  const tile=plan.datasets.flat()[sample.index];
+export async function verifyCombinedTrainingEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sample,data,{epoch,signal}){
+  const primaryCount=plan.datasets[0].length;
+  const tile=sample.index<primaryCount?plan.datasets[0][sample.index]:plan.datasets[1][sample.index-primaryCount];
   if(!tile||tile.index!==sample.index||data.sourceId!==tile.sourceId||data.augmentationIndex!==tile.localIndex||
     !Array.isArray(data.pixelOrigin)||data.pixelOrigin[0]!==tile.x||data.pixelOrigin[1]!==tile.y)
     throw Error('Combined source sample differs from its indexed tile');
-  if(tile.index<plan.datasets[0].length)return verifyTrainingEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true,allowReviewed:true});
+  if(tile.index<primaryCount)return verifyTrainingEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true,allowReviewed:true});
   const source=plan.auxiliarySources.find(row=>row.sheet.id===tile.sourceId);
   if(!source||data.sourceKind!=='semap-label'||typeof sample.augment!=='boolean')throw Error('Verified Semap sample required');
   const {sheet,annotation,checks}=source,labelName=basename(annotation.originalImageMember,'.jpg')+'.png';
@@ -128,7 +129,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     throw Error('Training corpus scope differs from checkpoint receipt');
   const sourceRoot=dirname(corpusPath),evidence=[];
   for(let i=0;i<samples.length;i++)evidence.push(combined?
-    await verifyCombinedEvidence(sourceRoot,manifest,dirname(resolve(auxiliary)),combined,samples[i],checked[i],{epoch,signal}):
+    await verifyCombinedTrainingEvidence(sourceRoot,manifest,dirname(resolve(auxiliary)),combined,samples[i],checked[i],{epoch,signal}):
     await verifyTrainingEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal,allowReviewed:reviewed,allowPublisher:publisher}));
   const ampScale=amp?(previous?previous.ampScale:65536):1,ampGrowth=amp?(previous?previous.ampGrowthTracker:0):0;
   if(!Number.isFinite(ampScale)||ampScale<=0||!Number.isInteger(ampGrowth)||ampGrowth<0||ampGrowth>=2000)throw Error('Checkpoint AMP state is invalid');

@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import test from 'node:test';
 import * as training from '../../tools/reference-analysis/native-training-sequence.mjs';
 import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
-import {validateReplayReceiptChain,verifySingleCorpusTrainingReplay} from '../../tools/reference-analysis/native-training-replay.mjs';
+import {validateReplayReceiptChain,verifyTrainingSourceReplay} from '../../tools/reference-analysis/native-training-replay.mjs';
 const {runTrainingSequence}=training;
 
 test('mixed sequence requires an explicit auxiliary scope and rejects mismatched settings',async t=>{
@@ -163,6 +163,16 @@ test('source replay requires a complete linked chain and exact batch evidence',(
   ]){const altered=structuredClone(entries);change(altered);assert.throws(()=>validateReplayReceiptChain(altered,scope));}
 });
 test('source replay rejects missing and repeated checkpoint paths',async()=>{
-  await assert.rejects(verifySingleCorpusTrainingReplay({checkpoints:[],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
-  await assert.rejects(verifySingleCorpusTrainingReplay({checkpoints:['same','same'],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
+  await assert.rejects(verifyTrainingSourceReplay({checkpoints:[],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
+  await assert.rejects(verifyTrainingSourceReplay({checkpoints:['same','same'],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
+});
+test('mixed source replay binds the auxiliary corpus and local augmentation index',()=>{
+  const entries=fixture(),auxiliarySha256=hash('1'),lineageFingerprint=hash('2'),scope={weightsSha256,corpusSha256,auxiliarySha256,lineageFingerprint};
+  for(const entry of entries){entry.receipt.auxiliarySha256=auxiliarySha256;entry.receipt.lineageFingerprint=lineageFingerprint;}
+  Object.assign(entries[1].receipt.evidence[0],{sourceKind:'semap-label',tileIndex:20,augmentationIndex:6});
+  assert.deepEqual(validateReplayReceiptChain(entries,scope),{batches:2,samples:2});
+  assert.throws(()=>validateReplayReceiptChain(entries,{weightsSha256,corpusSha256}),/receipt/i);
+  assert.throws(()=>validateReplayReceiptChain(entries,{...scope,auxiliarySha256:hash('3')}),/receipt/i);
+  const invalid=structuredClone(entries);invalid[1].receipt.evidence[0].augmentationIndex=-1;
+  assert.throws(()=>validateReplayReceiptChain(invalid,scope),/evidence/i);
 });
