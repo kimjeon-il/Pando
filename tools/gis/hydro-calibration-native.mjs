@@ -25,10 +25,13 @@ export async function countHydroCalibrationChains(features,{root=rootDefault,dir
   return result;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const controller=new AbortController(),abort=()=>controller.abort();
+  process.once('SIGINT',abort);process.once('SIGTERM',abort);
   try{
     if(process.argv.length!==3||process.argv[2]!=='--chain-stream')throw Error('Expected --chain-stream');
     const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>512*1024*1024)throw Error('Hydro calibration input exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    console.log(JSON.stringify(await countHydroCalibrationChains(request.features)));
+    console.log(JSON.stringify(await countHydroCalibrationChains(request.features,{signal:controller.signal})));
   }catch(error){console.error('hydro-calibration: '+error.message);process.exitCode=1;}
+  finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }

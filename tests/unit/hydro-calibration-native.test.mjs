@@ -15,4 +15,6 @@ test('calibration stream rejects invalid input and keeps coordinates unchanged',
   assert.equal(run.status,0,run.stderr);assert.deepEqual(JSON.parse(run.stdout),selected.expected);
   await assert.rejects(countHydroCalibrationChains([{id:1,next:0,stage:6,coordinateCount:-1}]),/coordinate count/i);
   await assert.rejects(countHydroCalibrationChains([{id:1.5,next:0,stage:6,coordinateCount:2}]),/integer/i);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(countHydroCalibrationChains(selected.features,{signal:controller.signal}),{name:'AbortError'});
 });
