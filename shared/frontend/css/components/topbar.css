@@ -275,3 +275,30 @@ body.file-menu-open .app-root .topbar {
     background: transparent;
   }
 }
+
+
+/* P1 shell: secondary topbar commands live in a compact overflow menu. */
+.app-root .topbar .topbar-overflow-command {
+  width: var(--design-control-md);
+  min-width: var(--design-control-md);
+  padding: 0;
+}
+
+.app-root .topbar-overflow-menu {
+  position: fixed;
+  z-index: 210;
+  top: var(--ui-menu-position-top, calc(var(--ui-shell-topbar-height) + var(--ui-menu-trigger-gap)));
+  right: auto;
+  left: var(--ui-menu-position-left, var(--ui-menu-screen-edge));
+  max-height: var(--ui-menu-position-max-height, calc(100dvh - var(--ui-shell-topbar-height) - var(--ui-space-5)));
+  overflow-y: auto;
+}
+
+.app-root .topbar-overflow-menu[hidden] {
+  display: none;
+}
+
+.app-root[data-layout="mobile"] .topbar-overflow-menu,
+.app-root[data-layout="phone-landscape"] .topbar-overflow-menu {
+  display: none;
+}
