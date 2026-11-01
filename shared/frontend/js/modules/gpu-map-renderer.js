@@ -4592,7 +4592,7 @@ export function createGpuMapRenderer(deps) {
     function canvasScenePolygons() {
       return surfaceScenePolygons().filter(packet => packet.ringCoordinates).map(packet => ({
         key: packet.key, ringCoordinates: packet.ringCoordinates, ringOffsets: packet.ringOffsets, polygonOffsets: packet.polygonOffsets,
-        role: packet.role, territoryDepth: packet.territoryDepth,
+        geometryRevision: packet.geometryRevision, role: packet.role, territoryDepth: packet.territoryDepth,
         order: packet.order, style: packet.style, blendMode: packet.blendMode,
       }));
     }
