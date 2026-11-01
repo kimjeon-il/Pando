@@ -1,0 +1,88 @@
+name: Complete approved builtin country residual removal
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/builtin-country-phase4-apply.yml'
+      - 'tools/ci/phase4-residual-apply.mjs'
+permissions:
+  contents: write
+concurrency:
+  group: builtin-country-phase4-apply
+  cancel-in-progress: false
+jobs:
+  complete:
+    if: github.ref == 'refs/heads/work/gis' && contains(github.event.head_commit.message, '[apply-country-residuals]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply only reviewed residual edits and retire this one-shot runner
+        run: |
+          node tools/ci/phase4-residual-apply.mjs
+          git diff --check
+          node --check tools/library-data.mjs
+          node --check tools/gis/prepare-water-object-history.mjs
+      - name: Verify archive preservation and scoped storage contracts without downloaded data
+        run: |
+          node --test tests/unit/builtin-country-residuals.test.mjs tests/unit/builtin-country-materialization.test.mjs
+          node --test --test-name-pattern='external materialization|runtime storage advances|scoped native storage uses' tests/unit/library-data.test.mjs
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Check available storage and install the pinned test dependencies
+        run: |
+          test "$(df -Pk . | awk 'NR==2 {print $4}')" -ge 10485760
+          pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare pinned runtime without archived builtin aggregates
+        uses: ./.github/actions/library-data
+      - name: Verify real readers with old-file reads forbidden and affected fixture paths
+        run: |
+          node --import ./tests/helpers/builtin-country-read-guard.mjs --test --test-timeout=30000 --test-name-pattern='published|generated|actual' tests/unit/gis-2000-2026-generated-attributes.test.mjs tests/unit/post-2000-generated-world-display.test.mjs tests/unit/source-date-cut-normalization.test.mjs tests/unit/soviet-republic-transitions.test.mjs tests/unit/ussr-1922-selection.test.mjs
+          node --test --test-timeout=30000 --test-name-pattern='stages committed viewer assets' tests/unit/monorepo-pages-staging.test.mjs
+          node --test --test-timeout=30000 --test-name-pattern='the verification fixture loads' apps/editor/tests/stage.test.mjs
+      - name: Check exact active files and unchanged data pin
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,existsSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {libraryConfig,libraryCheckout} from './tools/library-data.mjs';
+          import {builtinCountryAssets} from './shared/frontend/js/modules/builtin-country-files.js';
+          const base='assets/data/builtin-world/generated/v1/',index=JSON.parse(readFileSync(base+'index.json'));
+          const current=builtinCountryAssets(index),active=new Set([base+'index.json',base+'coverage-report.json',...current.map(row=>base+row.file)]);
+          const pin=libraryConfig().revision;
+          assert.equal(pin,JSON.parse(execFileSync('git',['show','HEAD:config/library-data.json'])).revision);
+          const archive=JSON.parse(execFileSync('git',['show',pin+':archive/index.json'],{cwd:libraryCheckout(),maxBuffer:16*1024*1024}));
+          const retired=Object.keys(archive.files).filter(path=>path.startsWith(base)&&!active.has(path));
+          for(const row of current)assert.ok(existsSync(base+row.file),row.file);
+          for(const path of retired)assert.equal(existsSync(path),false,path);
+          console.log(JSON.stringify({dataPin:pin,activeFiles:current.length,unhydratedArchivedFiles:retired.length,archivePreserved:true}));
+          JS
+      - name: Verify the changed restore network guard in Chromium only
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm exec playwright test tests/browser/territorial-names.spec.mjs --workers=1 --retries=0 --trace off
+      - name: Commit verified exact edits to work/gis without touching main or data
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          const git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:'pipe'}).trim();
+          const allowed=JSON.parse(readFileSync('/tmp/pando-phase4-paths.json'));
+          assert.equal(git('ls-remote','origin','refs/heads/work/gis').split(/\s+/)[0],process.env.GITHUB_SHA,'Concurrent code work must be preserved');
+          const changed=git('diff','--name-only').split('\n').filter(Boolean);
+          assert.deepEqual([...changed].sort(),[...allowed].sort());
+          git('diff','--check');git('add','--',...allowed);
+          console.log(git('diff','--cached','--stat'));
+          git('-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit','-m','refactor(gis): remove remaining builtin aggregate dependencies [skip ci]');
+          git('push','origin','HEAD:refs/heads/work/gis');
+          assert.equal(git('ls-remote','origin','refs/heads/work/gis').split(/\s+/)[0],git('rev-parse','HEAD'));
+          console.log('Verified phase-4 commit: '+git('rev-parse','HEAD'));
+          JS
