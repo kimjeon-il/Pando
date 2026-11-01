@@ -1,0 +1,43 @@
+name: Map P5-1 narrow Core contract timing
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tests/helpers/map-transition-p5-1.mjs
+      - tests/unit/map-transition-p5-1.test.mjs
+      - tests/browser/map-transition-p5-1.benchmark.mjs
+      - tests/browser/map-transition-p5-1.config.mjs
+      - .github/workflows/map-transition-p5-1.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: map-p5-1-narrow-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Confirm exact test-only instrumentation anchors
+        run: node --test tests/unit/map-transition-p5-1.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Four date transitions and Core phases
+        run: pnpm exec playwright test --config tests/browser/map-transition-p5-1.config.mjs
+      - name: Retain timing samples and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-p5-1-${{ github.sha }}
+          path: test-results/map-transition-p5-1/
+          if-no-files-found: ignore
+          retention-days: 14

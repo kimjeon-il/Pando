@@ -79,6 +79,43 @@ target_compile_definitions(geometry_draft_tests PRIVATE
     GEOMETRY_DRAFT_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-draft-contract.json")
 add_test(NAME geometry_draft_tests COMMAND geometry_draft_tests)
 set_tests_properties(geometry_draft_tests PROPERTIES TIMEOUT 10)
+# P5-2: small native-only immutable source registry contract.
+add_executable(temporal_source_tests temporal-source-tests.cpp)
+target_link_libraries(temporal_source_tests PRIVATE Pandoeditor::Core)
+target_compile_definitions(temporal_source_tests PRIVATE
+    TEMPORAL_SOURCE_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-document-seed.json")
+if(MSVC)
+    target_compile_options(temporal_source_tests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(temporal_source_tests PRIVATE -UNDEBUG)
+endif()
+add_test(NAME temporal_source_tests COMMAND temporal_source_tests)
+set_tests_properties(temporal_source_tests PROPERTIES TIMEOUT 15)
+# P5-3: detached date candidate uses the same compiled C++ temporal resolver.
+add_executable(temporal_candidate_tests temporal-candidate-tests.cpp)
+target_link_libraries(temporal_candidate_tests PRIVATE Pandoeditor::Core)
+target_compile_definitions(temporal_candidate_tests PRIVATE
+    TEMPORAL_CANDIDATE_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-document-seed.json")
+if(MSVC)
+    target_compile_options(temporal_candidate_tests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(temporal_candidate_tests PRIVATE -UNDEBUG)
+endif()
+add_test(NAME temporal_candidate_tests COMMAND temporal_candidate_tests)
+set_tests_properties(temporal_candidate_tests PROPERTIES TIMEOUT 15)
+# P5-4: native commit/discard/recovery under the existing replacement capsule.
+add_executable(temporal_adopt_tests temporal-adopt-tests.cpp)
+target_link_libraries(temporal_adopt_tests PRIVATE Pandoeditor::Core)
+target_compile_definitions(temporal_adopt_tests PRIVATE
+    TEMPORAL_ADOPT_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-document-seed.json")
+if(MSVC)
+    target_compile_options(temporal_adopt_tests PRIVATE /UNDEBUG)
+else()
+    target_compile_options(temporal_adopt_tests PRIVATE -UNDEBUG)
+endif()
+add_test(NAME temporal_adopt_tests COMMAND temporal_adopt_tests)
+set_tests_properties(temporal_adopt_tests PROPERTIES TIMEOUT 15)
+
 add_executable(source_admission_tests source-admission-tests.cpp)
 target_link_libraries(source_admission_tests PRIVATE Pandoeditor::Core)
 target_compile_definitions(source_admission_tests PRIVATE SOURCE_ADMISSION_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/../../tests/fixtures/portability/web-document-seed.json")

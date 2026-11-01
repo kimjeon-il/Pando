@@ -147,6 +147,7 @@ export function createMapInputPresentation({productMode,ports,window,navigator,c
       moveStroke: screenPoints => dispatchEditingInteraction('draft-stroke-move', { screenPoints }),
       endStroke: screenPoint => dispatchEditingInteraction('draft-stroke-end', { screenPoint }),
       cancelStroke: async reason => {
+        if(!editing)return false;
         try {
           await editingDomain.cancelActiveGesture('pinch-or-cancel');
           return await dispatchEditingInteraction('draft-stroke-cancel',{ reason: typeof reason==='string' ? reason : 'pointer-cancel' });

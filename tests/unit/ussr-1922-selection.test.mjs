@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from "../../apps/editor/frontend/js/modules/territorial-library.js";
@@ -25,9 +26,9 @@ test('published December world includes founders with the reviewed source versio
  const base=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url),index=JSON.parse(readFileSync(new URL('index.json',base)));
  const selected=selectBuiltinCountries(index,'1922-12').filter(row=>ids.includes(row.entityId));
  assert.equal(selected.length,5);
- const project=assembleBuiltinWorld({...index,entities:selected},selected.map(row=>JSON.parse(gunzipSync(readFileSync(new URL(row.file,base))))),'1922-12');
+ const project=assembleBuiltinWorld({...index,entities:selected},selected.map(row=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(row,file=>readFileSync(new URL(file,base)))))),'1922-12');
  for(const entity of project.territorialEntities)assert.equal(entity.properties.sourceGeometryVersion,entity.id+':1922-12-30-reviewed-v2');
- for(const id of ids.slice(1))assert.equal(project.timelineRecords.parentRelations.find(row=>row.entityId===id).parentId,ids[0]);
+ for(const id of ids.slice(1))assert.equal(project.timelineRecords.parentRelations.find(row=>row.objectRef?.domain==='territorial'&&row.objectRef.id===id).parentId,ids[0]);
 });
 
 test('USSR does not exist before its exact founding day',()=>{

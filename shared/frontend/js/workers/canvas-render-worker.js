@@ -528,6 +528,13 @@ function canvasFallbackWorkerMain() {
 
     function renderTerrain(message, projection, width, height, dpr, visibleLand, plan) {
       if (!plan) return true;
+      // A 'pending' country surface cannot be admitted even after expensive
+      // DEM/raster reprojection. Paint its current physical substrate first,
+      // acknowledge that real Worker bitmap, then let the renderer submit the
+      // latest canonical frame through 'background-presented'.
+      // Otherwise a single optional globe terrain pass holds the Worker busy
+      // and prevents both the first country frame and newer views from running.
+      if (message.surfacePresentation?.quality === 'pending') return false;
       const { targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs } = plan;
       terrainProtectedKeys.clear();
       for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
@@ -943,7 +950,12 @@ function canvasFallbackWorkerMain() {
         const substrateContext = substrate.getContext('2d');
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
         substrateContext.drawImage(canvas, 0, 0);
-        substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete };
+        substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete,
+          // A provisional pending-country frame did not paint terrain at all.
+          // Once any real terrain pass has painted, reuse it until its ready-tile
+          // or view dependency key changes; an incomplete DEM is not a reason
+          // to redo the same expensive globe tessellation on every redraw.
+          terrainPainted: message.surfacePresentation?.quality !== 'pending' };
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
         context.lineJoin = 'round';
         context.lineWidth = theme.strokes.country.width;
@@ -978,7 +990,9 @@ function canvasFallbackWorkerMain() {
         self.PandoLabCanvasSceneComposition.drawOverlays(context, geoPath, message.scenePolygons || [], message.sceneStrokes || [], dpr, protection);
         };
         for (const role of message.visualOrder.base) {
-          if (reuseSubstrate && (role === 'substrate' || role === 'terrain')) continue;
+          // A provisional bitmap has no terrain yet. Reuse its substrate,
+          // but never mistake that incomplete terrain for a finished paint.
+          if (reuseSubstrate && (role === 'substrate' || (role === 'terrain' && substrateState?.terrainPainted))) continue;
           if (Object.hasOwn(paint, role)) paint[role]();
           else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
         }
@@ -1003,9 +1017,19 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
         updateTerrainFrameStats(terrainPlan);
       }
+      // A frame can be rendered while a newer scene is already staged on the
+      // main thread. Echo the exact physical packets and country quality that
+      // were painted; no main-thread snapshot may substitute for this evidence.
+      const landPainted = (message.scenePolygons || []).filter(packet => packet.role === 'physical-land');
+      const waterPainted = (message.scenePolygons || []).filter(packet => packet.role === 'physical-water');
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
+        physicalLandCount: landPainted.length,
+        physicalLandRevision: landPainted.length === 1 ? landPainted[0].geometryRevision : null,
+        physicalWaterCount: waterPainted.length,
+        physicalWaterRevision: waterPainted.length === 1 ? waterPainted[0].geometryRevision : null,
+        surfaceQuality: message.surfacePresentation?.quality || 'pending',
         presentationKey: message.presentationKey,
         styleRevision,
         // Background redraws reuse visual state, but never acknowledge a submission.

@@ -1,6 +1,7 @@
 #include <pandoeditor/projectcodec.h>
 #include <pandoeditor/losslessjson.h>
 #include <pandoeditor/project.h>
+#include <algorithm>
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -14,7 +15,16 @@ const projectcodec::PlatformPorts ports{[](const std::string&){},true,codecjson:
 const std::string labelId="22000000-0000-4000-8000-000000000001";
 std::string seedBytes() {
     std::ifstream input(WEB_CONTENT_CODEC_FIXTURE,std::ios::binary);assert(input);
-    return {std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
+    const std::string bytes{std::istreambuf_iterator<char>(input),std::istreambuf_iterator<char>()};
+    auto root=codecjson::parse(bytes);
+    // GeometryStore emits its keyed archive in ID/version order. Content arrays
+    // retain their input order and are still compared without normalization.
+    auto& archive=root.object.at("geometries").array;
+    std::sort(archive.begin(),archive.end(),[](const auto& a,const auto& b){
+        const auto& left=a.object.at("id").string;const auto& right=b.object.at("id").string;
+        return left==right?codecjson::finiteNumber(a.object.at("version"))<codecjson::finiteNumber(b.object.at("version")):left<right;
+    });
+    return root.encode();
 }
 void canonicalArchiveCollisionRetainsOriginalCarrier(const std::string& seed) {
     auto root=codecjson::parse(seed);
@@ -41,12 +51,13 @@ void canonicalArchiveCollisionRetainsOriginalCarrier(const std::string& seed) {
     assert(restored.geometries.get(original)->points[0].x==127);
     assert(restored.labels[0].geometry==allocated);
 }
-void currentDtoReadersPreserveEveryFieldAndArrayOrder(const std::string& seed) {
+void currentDtoReadersPreserveContentFieldsAndOrder(const std::string& seed) {
     auto root=codecjson::parse(seed);
     root.object.at("labels").array[0].object["sourcePlaceId"]=V::str("builtin:place:source");
     root.object.at("hydroEdits").array[0].object.at("properties").object["sourceFeatureId"]=V::str("builtin-hydro-source");
     root.object.at("distributionLayers").array[0].object["groups"]=codecjson::parse("[\"first\",\"second\"]");
     Project project;project.replace(projectcodec::decodeWeb(root.encode(),ports));
+    project.setTimelineCursor("2026-10",false);
     assert(codecjson::parse(projectcodec::encodeWeb(project.snapshot(),ports)).encode()==root.encode());
     for(const auto& domains:{std::pair{"label","labels"},std::pair{"hydro","hydroEdits"},
             std::pair{"generic","genericFeatures"},std::pair{"distributionLayer","distributionLayers"},
@@ -178,7 +189,7 @@ void onlySingleOwnerPrivateReferencesMayRenumber(const std::string& seed) {
 int main() {
     const auto seed=seedBytes();
     canonicalArchiveCollisionRetainsOriginalCarrier(seed);
-    currentDtoReadersPreserveEveryFieldAndArrayOrder(seed);
+    currentDtoReadersPreserveContentFieldsAndOrder(seed);
     geometryProposalReusesCurrentAndOriginalReferences(seed);
     identityAndCurrentSchemaAreRequired(seed);
     onlySingleOwnerPrivateReferencesMayRenumber(seed);

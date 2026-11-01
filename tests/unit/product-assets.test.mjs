@@ -20,7 +20,10 @@ function fixture() {
     files.set(path, text); mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text);
   };
   put('index.html', '<link rel="stylesheet" href="assets/css/viewer.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
-  put('.nojekyll'); put('assets/css/viewer.css'); put('assets/js/build-meta.js');
+  put('.nojekyll'); put('assets/css/viewer.css');
+  const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
+  put(preview,'preview');
+  put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
   put('assets/js/viewer.js', "import './modules/read.js';");
   put('assets/js/modules/read.js', 'export const value = 1;');
   put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');
@@ -50,17 +53,18 @@ test('viewer publication excludes offline reference OCR and AI runtime assets', 
 });
 
 test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
- const f=fixture();
- f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({entities:[{file:'countries/A.json.gz'}],transport:{url:'transport/packed.bin'}}));
+ const f=fixture(),sha256='a'.repeat(64),country='countries/A-sha256-'+sha256+'.json.gz';
+ f.put('assets/data/builtin-world/generated/v1/index.json',JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',
+  entities:[{entityId:'A',file:country,encoding:'gzip',sha256,compressedBytes:3,decodedBytes:8}]}));
  f.put('assets/data/builtin-world/generated/v1/transport/packed.bin');
- f.put('assets/data/builtin-world/generated/v1/countries/A.json.gz');
+ f.put('assets/data/builtin-world/generated/v1/'+country);
  f.put('assets/data/builtin-world/generated/v1/countries/orphan.json.gz');
  f.put('assets/data/historical-world/generated/v1/world-project.json.gz');
  for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])f.put(path);
  const paths=await f.collect();
  assert.ok(paths.has('assets/data/world/a.bin'));
- assert.ok(paths.has('assets/data/builtin-world/generated/v1/countries/A.json.gz'));
- assert.ok(paths.has('assets/data/builtin-world/generated/v1/transport/packed.bin'));
+ assert.ok(paths.has('assets/data/builtin-world/generated/v1/'+country));
+ assert.equal(paths.has('assets/data/builtin-world/generated/v1/transport/packed.bin'),false);
  assert.equal(paths.has('assets/data/builtin-world/generated/v1/countries/orphan.json.gz'),false);
  assert.equal(paths.has('assets/data/historical-world/generated/v1/world-project.json.gz'),false);
  for(const path of ['assets/data/territorial-entities/source/countries/raw.json','assets/data/prepared-polygons/generated/v1/old.bin','assets/data/world/orphan.bin'])assert.equal(paths.has(path),false,path);

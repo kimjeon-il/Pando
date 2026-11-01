@@ -233,6 +233,12 @@ test('a numeric distribution stores signed values and survives undo and redo', a
     { timeout: 30_000 }).toBe('#3b82f6');
   await expect(page.locator('#distributionColorInput')).toHaveValue('#3b82f6');
   await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#distributionEntryList')).toContainText('분포 없음');
+  await expect(page.locator('#distributionEntryList')).not.toContainText('기준 영역을 선택하거나');
+  await expect(page.locator('#addTerritorialDistributionBtn small')).toBeEmpty();
+  await expect(page.locator('#addGeometryDistributionBtn small')).toBeEmpty();
+  await expect(page.locator('#distributionTerritorialUnitInput')).toBeVisible();
+  await expect(page.locator('#distributionTerritorialUnitInput')).toHaveValue('DEU');
 
   const territorialUnitId = 'DEU';
   await expect(page.locator('#distributionTerritorialUnitInput option[value="DEU"]')).toHaveCount(1);

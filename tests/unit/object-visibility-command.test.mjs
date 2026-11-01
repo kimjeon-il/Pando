@@ -11,17 +11,27 @@ import { FOUNDATION_OWNER_PORTS } from "../../apps/editor/frontend/js/modules/ap
 import { capabilityPortsForFixture } from './helpers/capability-port-fixture.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { startupDocument } from '../helpers/core-startup.mjs';
+import { createTestViewingSession } from '../helpers/viewing-project.mjs';
 
 async function harness(t,refs,{ builtin=false }={}) {
   const input=startupDocument();
-  input.layerVisibility=Object.fromEntries(Object.keys(input.layerVisibility).map(key => [key,false]));
-  input.itemVisibility={};input.physicalSettings.hiddenHydroIds={};input.physicalSettings.hydroLayers={ rivers_hydro: false,lakes_natural_earth: false };
   const effects={ saved: 0,palette: 0,hydro: 0,base: 0,labels: 0,selection: 0 };
-  const owner=await createNodeCoreProject(input,{ persistence: { queuePresentation: () => { effects.saved++; },cancelPending() {} },
-    invalidateProject: () => assert.fail('Visibility cannot invalidate the full project.') });
+  let viewing;
+  const owner=await createNodeCoreProject(input,{
+    viewingPresentation: payload => viewing.session.applyViewingPresentation(payload),
+    persistence: { queueView() { effects.saved++; },queueProject() {},queuePresentation() {},cancelPending() {} },
+    invalidateProject: () => assert.fail('Visibility cannot invalidate the full project.'),
+  });
+  viewing=createTestViewingSession(owner);
+  viewing.session.setViewingPresentation({
+    layerVisibility: Object.fromEntries(Object.keys(viewing.session.state.layerVisibility).map(key => [key,true])),
+    itemVisibility: Object.fromEntries(Object.keys(viewing.session.state.itemVisibility).map(key => [key,{}])),
+    physicalSettings: { ...viewing.session.state.physicalSettings,hiddenHydroIds:{},
+      hydroLayers:{ rivers_hydro:true,lakes_natural_earth:true } },
+  });
   const store=createTerritorialEntityStore({ documentModel: owner.documentModel,commandOwner: owner.client }),repository=createTerritorialEntityRepository({ entityStore: store });
   let selection;
-  t.after(() => { selection?.dispose();store.dispose();owner.dispose(); });
+  t.after(() => { selection?.dispose();store.dispose();viewing.dispose();owner.dispose(); });
   await owner.project.admit(owner.project.snapshot(),{ features: ['a','b'].map(id => createTerritorialFeature({ id,entityKind: 'general',name: id,locked: true,
     geometry: { type: 'Polygon',coordinates: [[[0,0],[8,0],[8,8],[0,8],[0,0]]] } })),preserveCursor: true });
   for(const command of [
@@ -40,12 +50,19 @@ async function harness(t,refs,{ builtin=false }={}) {
   selection=createSelectionDomain({ commandOwner: owner.client,projectDomain: owner.project,
     refAdapter: { fromCore: coreSelectionRefToWeb,toCore: ref => webSelectionRefToCore(ref,{ isStoredHydro: id => !!owner.documentModel.get({ domain: 'hydro',id }) }) } });
   await selection.setMany(refs);await owner.client.markSaved(owner.client.state().epoch);
-  const state={ projectReplacing: false };
+  // Live object visibility consults the accepted timeline month.
+  const state={ projectReplacing: false, timelineCursor: '2026-10' };
   for(const field of ['layerVisibility','itemVisibility','physicalSettings','territorialEntities','genericFeatures','labels','distributionEntries'])
-    Object.defineProperty(state,field,{ get: () => owner.documentModel.snapshot()[field] });
+    Object.defineProperty(state,field,{ get: () => ['layerVisibility','itemVisibility','physicalSettings'].includes(field)
+      ? viewing.session.state[field] : owner.documentModel.snapshot()[field] });
   const nodes=new Map(['objectVisibilityBtn','objectVisibilityIcon','editorObjectStatus'].map(id => [id,{
     attrs: {},dataset: {},classList: { toggle() {} },setAttribute(key,value) { this.attrs[key]=value; },
   }]));
+  nodes.set('objectDeleteBtn', {
+    attrs: {},dataset: {},help: { textContent: '' },
+    setAttribute(key,value) { this.attrs[key]=value; },
+    querySelector(selector) { return selector === 'small' ? this.help : null; },
+  });
   const commands=createObjectCommands();
   const ports={ state,$: id => nodes.get(id),normalizeObjectRef,selectionDomain: selection,entityRepository: repository,
     territorialApplicationService: { canDelete: () => ({ ok: false,code: 'locked' }) },
@@ -73,7 +90,7 @@ test('river and lake display info uses only the object kind without built-in sou
 });
 
 test('per-object visibility preserves every master, selection, document checkpoint and whole-project history',async t => {
-  for(const [domain,type,group] of [['territorial','entity','countries'],['hydro','river','hydro'],['hydro','lake','hydro'],
+  for(const [domain,type,group] of [['territorial','entity','objects'],['hydro','river','hydro'],['hydro','lake','hydro'],
     ['distribution','distribution','distributions'],['label','label','labels'],['generic','feature','genericFeatures']]) {
     const refs=[{ domain,type,id: 'a' }],f=await harness(t,refs),masters=structuredClone(f.state.layerVisibility),checkpoint=f.client.state().checkpoint;
     await f.commands.batchSetVisibility();
@@ -83,17 +100,20 @@ test('per-object visibility preserves every master, selection, document checkpoi
     await f.commands.batchSetVisibility();assert.equal(f.state.itemVisibility[group].a,undefined);
     assert.equal(f.nodes.get('objectVisibilityBtn').attrs['aria-label'],'객체 숨기기');assert.deepEqual(f.state.layerVisibility,masters);
     assert.equal(f.ports.selectionDomain.size(),1);assert.equal(f.effects.saved,2);assert.equal(f.effects.labels,2);assert.equal(f.effects.selection,2);
-    assert.equal(f.client.state().checkpoint,checkpoint);assert.equal(f.client.state().documentDirty,false);assert.equal(f.client.state().presentationDirty,true);
+    assert.equal(f.client.state().checkpoint,checkpoint);assert.equal(f.client.state().documentDirty,false);
+    assert.equal(f.client.state().presentationDirty,false,'viewing-only visibility must not alter Core history');
   }
 });
 
 test('built-in hydro visibility uses admitted logical IDs and preserves source switches',async t => {
   for(const type of ['river','lake']) {
-    const f=await harness(t,[{ domain: 'hydro',type,id: 'builtin-a' }],{ builtin: true }),sources=structuredClone(f.state.physicalSettings.hydroLayers);
-    await f.commands.batchSetVisibility(false);assert.equal(f.state.physicalSettings.hiddenHydroIds['builtin-a'],true);
+    const f=await harness(t,[{ domain: 'hydro',type,id: 'builtin-a' }],{ builtin: true });
+    const sources=structuredClone(f.state.physicalSettings.hydroLayers),items=structuredClone(f.state.itemVisibility);
+    await f.commands.batchSetVisibility(false);assert.equal(f.state.itemVisibility.hydro['builtin-a'],false);
     assert.equal(f.nodes.get('objectVisibilityBtn').disabled,false);await f.commands.batchSetVisibility(true);
-    assert.deepEqual(f.state.physicalSettings.hiddenHydroIds,{});assert.deepEqual(f.state.physicalSettings.hydroLayers,sources);
-    assert.deepEqual(f.state.itemVisibility,{});assert.equal(f.effects.hydro,2);
+    assert.deepEqual(f.state.itemVisibility,items);
+    assert.deepEqual(f.state.physicalSettings.hiddenHydroIds,{});
+    assert.deepEqual(f.state.physicalSettings.hydroLayers,sources);assert.equal(f.effects.hydro,2);
   }
 });
 
@@ -104,4 +124,16 @@ test('mixed visibility, no-op and replacement guards use the same canonical comm
   await f.commands.batchSetVisibility();assert.equal(f.state.itemVisibility.labels.a,undefined);assert.equal(f.effects.saved,1);
   await f.commands.batchSetVisibility(true);assert.equal(f.effects.saved,1);f.state.projectReplacing=true;
   await f.commands.batchSetVisibility(false);assert.equal(f.effects.saved,1);
+});
+
+test('locked delete action shows a compact, accessible disabled reason', async t => {
+  const f=await harness(t,[{ domain: 'territorial',type: 'entity',id: 'a' }]);
+  f.commands.syncObjectActionsMenu();
+  const button=f.nodes.get('objectDeleteBtn');
+  assert.equal(button.disabled,true);
+  assert.equal(button.help.textContent,'잠금 해제 후 삭제');
+  assert.equal(button.dataset.actionReason,'true');
+  assert.equal(button.dataset.tooltip,'잠금 해제 후 삭제');
+  assert.equal(button.attrs['aria-label'],'잠금 해제 후 삭제');
+  assert.equal(f.commands.objectRefLocked({ domain: 'territorial',type: 'entity',id: 'a' }),true);
 });

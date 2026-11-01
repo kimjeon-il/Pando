@@ -8,6 +8,7 @@ import { decodeLibraryArchiveBytes } from './library-archive.mjs';
 import { REPORT_SUBJECTS, organizedReportPath, reportDocumentDetails, reportSubjectReadmes, rewriteReportArtifact } from './library-report-layout.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, makePrivate, publishContent, recoverContentPermissions, removeContentLink, replaceLibraryFile, shareContentFile } from './library-content.mjs';
 import {compactDuplicatePacks} from './library-git.mjs';
+import {runtimeArchiveIndex} from './library-runtime-index.mjs';
 
 export const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
 const gitOptions = ['-c', 'core.fsync=none', '-c', 'core.fsyncObjectFiles=false', '-c', 'core.autocrlf=false', '-c', 'maintenance.auto=false', '-c', 'gc.auto=0'];
@@ -731,6 +732,8 @@ export function materializeRuntimeView({ root, index, source = null, fetch=false
     if (record.schema !== 'pando-shared-runtime-v1' || record.owner !== owner || record.revision !== config.revision) throw Error('Unexpected runtime view ownership');
     return view;
   }
+  // Archive retention is not a runtime download requirement.
+  index = runtimeArchiveIndex(index, entry => decodeArchiveEntry(libraryCheckout(root), entry, config.revision, {fetch}));
   if (existsSync(view)) throw Error(`Incomplete runtime view must be preserved: ${view}`);
   source ||= resolve(shared, '.pando-cache/materialized', config.revision);
   const sourceFiles=contentFiles(source).map(file=>({...file,sha256:contentHash(readFileSync(file.path))}));
@@ -1435,6 +1438,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   if(!reportData)try { git(data.checkout,['merge-base','--is-ancestor',libraryConfig(root).revision,'HEAD']); }
   catch(error){if(error.status!==1)throw error;throw Error('Integrate the pinned runtime data revision into this archive history before storing; preserve both histories.',{cause:error});}
   const index = JSON.parse(reportData?readFileSync(indexPath,'utf8'):git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true}));
+  const runtimeFiles = reportData ? index.files : runtimeArchiveIndex(index, entry => decodeArchiveEntry(data.checkout, entry, libraryConfig(root).revision, {fetch:true})).files;
   const publicationBranch=reportData?'main':git(root,['symbolic-ref','--short','HEAD']);
   if(!publicationBranch)throw Error('Runtime publication requires an explicit application branch.');
   index.branch=publicationBranch;
@@ -1494,6 +1498,8 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   visit(editRoot, 'reports');
   for (const [path, entry] of Object.entries(index.files)) {
     if (path.startsWith('reports/')) continue;
+    // A filtered archived asset is not a user deletion.
+    if (!Object.hasOwn(runtimeFiles, path) && !removed.has(path)) continue;
     if (!included(path) || !(path.startsWith('reports/') || managedMounts.some(mount => path.startsWith(mount + '/'))) || seen.has(path)) continue;
     delete index.files[path];
     if (entry.stored === path || path.startsWith('reports/')) {

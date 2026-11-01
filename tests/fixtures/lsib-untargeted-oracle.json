@@ -1,0 +1,1849 @@
+[
+  {
+    "name": "normal",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "AAA",
+          "CC2_GENC3": "BBB",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              2.0,
+              0.1
+            ],
+            [
+              2.0,
+              0.5
+            ],
+            [
+              2.1,
+              1.0
+            ],
+            [
+              2.0,
+              1.5
+            ],
+            [
+              2.0,
+              1.9
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [
+        {
+          "entityId": "state:AAA",
+          "geometryVersionId": "AAA:current",
+          "inputFileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+          "sourceId": "natural-earth-5.1.1+dos-lsib-11.4",
+          "sourceAttributions": [],
+          "geometry": {
+            "coordinates": [
+              [
+                [
+                  2,
+                  0
+                ],
+                [
+                  2,
+                  0.1
+                ],
+                [
+                  2,
+                  0.5
+                ],
+                [
+                  2.1,
+                  1
+                ],
+                [
+                  2,
+                  1.5
+                ],
+                [
+                  2,
+                  1.9
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  0,
+                  2
+                ],
+                [
+                  0,
+                  0
+                ],
+                [
+                  2,
+                  0
+                ]
+              ]
+            ],
+            "type": "Polygon"
+          },
+          "supplement": {
+            "sourceId": "dos-lsib-11.4",
+            "published": "2025-02-24",
+            "effectiveDateEstablished": false,
+            "status": "provisional-modern-source-supplement",
+            "coastline": "unchanged",
+            "sourceFile": "tools/historical-library/sources/lsib-11.4/boundaries.geojson.gz",
+            "simplificationToleranceDegrees": 0.0004,
+            "simplificationMaximumPx": 0.18204444444444445,
+            "screenBaseline": {
+              "widthCssPx": 2560,
+              "flatZoom": 64
+            },
+            "historicalAccuracyVerified": false,
+            "boundaries": [
+              {
+                "countries": [
+                  "AAA",
+                  "BBB"
+                ],
+                "sourceLineIds": [
+                  "primary"
+                ],
+                "segments": [
+                  {
+                    "old_length_degrees": 2.0,
+                    "anchors": [
+                      [
+                        2,
+                        0.1
+                      ],
+                      [
+                        2,
+                        1.9
+                      ]
+                    ],
+                    "derived_vertices": 5,
+                    "master_vertices": 5,
+                    "replaced_length_degrees": 1.7999999999999998,
+                    "retained_length_degrees": 0.20000000000000018,
+                    "simplification_bound_px": 0.18204444444444445,
+                    "source_length_degrees": 1.819803902718557,
+                    "status": "supplemented-between-intersections"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "entityId": "state:BBB",
+          "geometryVersionId": "BBB:current",
+          "inputFileSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0",
+          "sourceId": "natural-earth-5.1.1+dos-lsib-11.4",
+          "sourceAttributions": [],
+          "geometry": {
+            "coordinates": [
+              [
+                [
+                  2,
+                  0
+                ],
+                [
+                  4,
+                  0
+                ],
+                [
+                  4,
+                  2
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  2,
+                  1.9
+                ],
+                [
+                  2,
+                  1.5
+                ],
+                [
+                  2.1,
+                  1
+                ],
+                [
+                  2,
+                  0.5
+                ],
+                [
+                  2,
+                  0.1
+                ],
+                [
+                  2,
+                  0
+                ]
+              ]
+            ],
+            "type": "Polygon"
+          },
+          "supplement": {
+            "sourceId": "dos-lsib-11.4",
+            "published": "2025-02-24",
+            "effectiveDateEstablished": false,
+            "status": "provisional-modern-source-supplement",
+            "coastline": "unchanged",
+            "sourceFile": "tools/historical-library/sources/lsib-11.4/boundaries.geojson.gz",
+            "simplificationToleranceDegrees": 0.0004,
+            "simplificationMaximumPx": 0.18204444444444445,
+            "screenBaseline": {
+              "widthCssPx": 2560,
+              "flatZoom": 64
+            },
+            "historicalAccuracyVerified": false,
+            "boundaries": [
+              {
+                "countries": [
+                  "AAA",
+                  "BBB"
+                ],
+                "sourceLineIds": [
+                  "primary"
+                ],
+                "segments": [
+                  {
+                    "old_length_degrees": 2.0,
+                    "anchors": [
+                      [
+                        2,
+                        0.1
+                      ],
+                      [
+                        2,
+                        1.9
+                      ]
+                    ],
+                    "derived_vertices": 5,
+                    "master_vertices": 5,
+                    "replaced_length_degrees": 1.7999999999999998,
+                    "retained_length_degrees": 0.20000000000000018,
+                    "simplification_bound_px": 0.18204444444444445,
+                    "source_length_degrees": 1.819803902718557,
+                    "status": "supplemented-between-intersections"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "partially-supplemented",
+          "segments": [
+            {
+              "old_length_degrees": 2.0,
+              "anchors": [
+                [
+                  2,
+                  0.1
+                ],
+                [
+                  2,
+                  1.9
+                ]
+              ],
+              "derived_vertices": 5,
+              "master_vertices": 5,
+              "replaced_length_degrees": 1.7999999999999998,
+              "retained_length_degrees": 0.20000000000000018,
+              "simplification_bound_px": 0.18204444444444445,
+              "source_length_degrees": 1.819803902718557,
+              "status": "supplemented-between-intersections"
+            }
+          ],
+          "sourceLineIds": [
+            "primary"
+          ]
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "disputed",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "AAA",
+          "CC2_GENC3": "BBB",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              2.0,
+              0.1
+            ],
+            [
+              2.0,
+              0.5
+            ],
+            [
+              2.1,
+              1.0
+            ],
+            [
+              2.0,
+              1.5
+            ],
+            [
+              2.0,
+              1.9
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            2.0,
+            0.0
+          ],
+          [
+            2.0,
+            2.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [],
+          "sourceLineIds": [
+            "primary"
+          ],
+          "reason": "existing-disputed-territory-or-protected-country-pair"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "uncertain",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "AAA",
+          "CC2_GENC3": "BBB",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "uncertain attribution",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              2.0,
+              0.1
+            ],
+            [
+              2.0,
+              0.5
+            ],
+            [
+              2.1,
+              1.0
+            ],
+            [
+              2.0,
+              1.5
+            ],
+            [
+              2.0,
+              1.9
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [],
+          "sourceLineIds": [
+            "primary"
+          ],
+          "reason": "uncertain-or-joint-sovereignty"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "distant",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "AAA",
+          "CC2_GENC3": "BBB",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              10,
+              10
+            ],
+            [
+              11,
+              10
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [
+            {
+              "old_length_degrees": 2.0,
+              "status": "withheld",
+              "reason": "No spatially corresponding source section"
+            }
+          ],
+          "sourceLineIds": [
+            "primary"
+          ],
+          "reason": "all-segments-withheld"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "ring",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "AAA",
+          "CC2_GENC3": "BBB",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              1,
+              1
+            ],
+            [
+              2.2,
+              1
+            ],
+            [
+              2.2,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              8,
+              0
+            ],
+            [
+              8,
+              8
+            ],
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          [
+            [
+              4,
+              4
+            ],
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              4
+            ],
+            [
+              4,
+              4
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            1.0,
+            1.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [
+            {
+              "old_length_degrees": 4.0,
+              "status": "withheld",
+              "reason": "Closed enclave chain requires separate ownership review"
+            }
+          ],
+          "sourceLineIds": [
+            "primary"
+          ],
+          "reason": "all-segments-withheld"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "protected",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "CHN",
+          "CC2_GENC3": "IND",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              2.0,
+              0.1
+            ],
+            [
+              2.0,
+              0.5
+            ],
+            [
+              2.1,
+              1.0
+            ],
+            [
+              2.0,
+              1.5
+            ],
+            [
+              2.0,
+              1.9
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "CHN": {
+        "entityId": "state:CHN"
+      },
+      "IND": {
+        "entityId": "state:IND"
+      }
+    },
+    "versions": {
+      "CHN": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "IND": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "CHN": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "IND": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "CHN": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "IND": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "CHN",
+            "IND"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [],
+          "sourceLineIds": [
+            "primary"
+          ],
+          "reason": "existing-disputed-territory-or-protected-country-pair"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "special",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "AAA",
+          "CC2_GENC3": "BBB",
+          "RANK": "2",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "",
+          "ID": "primary"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              2.0,
+              0.1
+            ],
+            [
+              2.0,
+              0.5
+            ],
+            [
+              2.1,
+              1.0
+            ],
+            [
+              2.0,
+              1.5
+            ],
+            [
+              2.0,
+              1.9
+            ]
+          ]
+        }
+      },
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [],
+          "sourceLineIds": [
+            "primary"
+          ],
+          "reason": "special-or-separation-line"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "no-match",
+    "records": [
+      {
+        "properties": {
+          "CC1_GENC3": "CCC",
+          "CC2_GENC3": "DDD",
+          "RANK": "1",
+          "STATUS": "International Boundary",
+          "NOTES": "",
+          "LABEL": "unmatched",
+          "ID": "extra"
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              20.0,
+              20.0
+            ],
+            [
+              21.0,
+              20.0
+            ]
+          ]
+        }
+      }
+    ],
+    "disputes": [
+      {
+        "type": "LineString",
+        "coordinates": [
+          [
+            30.0,
+            30.0
+          ],
+          [
+            31.0,
+            30.0
+          ]
+        ]
+      }
+    ],
+    "entities": {
+      "AAA": {
+        "entityId": "state:AAA"
+      },
+      "BBB": {
+        "entityId": "state:BBB"
+      }
+    },
+    "versions": {
+      "AAA": {
+        "versionId": "AAA:current",
+        "sourceId": "natural-earth-5.1.1"
+      },
+      "BBB": {
+        "versionId": "BBB:current",
+        "sourceId": "natural-earth-5.1.1"
+      }
+    },
+    "geometries": {
+      "AAA": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        ]
+      },
+      "BBB": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              2,
+              0
+            ],
+            [
+              4,
+              0
+            ],
+            [
+              4,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "inputHashes": {
+      "AAA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "BBB": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb0"
+    },
+    "sourceRevision": "fixture",
+    "expected": {
+      "changes": [],
+      "boundaries": [
+        {
+          "countries": [
+            "AAA",
+            "BBB"
+          ],
+          "bbox": [
+            2.0,
+            0.0,
+            2.0,
+            2.0
+          ],
+          "status": "withheld",
+          "segments": [],
+          "sourceLineIds": [],
+          "reason": "no-matching-LSIB-country-pair"
+        },
+        {
+          "countries": [
+            "CCC",
+            "DDD"
+          ],
+          "status": "withheld",
+          "reason": "no-existing-shared-country-chain",
+          "label": "unmatched",
+          "notes": "",
+          "sourceLineIds": [
+            "extra"
+          ]
+        }
+      ]
+    }
+  }
+]
