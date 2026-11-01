@@ -15,6 +15,7 @@ test('responsive map commands and theme-only preferences preserve editing and sa
   await expect(page.locator('#zoomInBtn,#zoomOutBtn,.map-view-toolbar')).toHaveCount(0);
   await expect(page.locator('#resetViewBtn')).toBeVisible();
   await expect(page.locator('[data-layer-group="genericFeatures"].layer-folder')).toBeHidden();
+  await page.locator('#topbarOverflowBtn').click();
   await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesModal')).toBeVisible();
   await expect(page.locator('#preferencesModal input[type="color"]')).toHaveCount(0);
@@ -36,6 +37,7 @@ test('responsive map commands and theme-only preferences preserve editing and sa
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await expect(page.locator('#entityProperties')).toBeVisible();
   await expect(page.locator('#editEntityBorderBtn')).toHaveCount(1);
+  await page.locator('#topbarOverflowBtn').click();
   await page.locator('#preferencesBtn').click();
   const rulesBefore = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().interactionStyle);
   await page.locator('[data-preference-accent="purple"]').click();
