@@ -13,7 +13,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-11-02 현행 기준: 추적 Python 16개
+### 2026-11-02 현행 기준: 추적 Python 15개
+
+- **학습 조건 검사:** 희소 선의 유효 영역은 네이티브 매크로 PDF 검사에서, 학습 이미지의 재현 가능한 증강과 위치·마스크 보존은 Python 기준 텐서 다섯 개의 고정 해시를 비교하는 Node/C++ 검사에서 각각 확인해 중복 Python 테스트를 제거했다. Python 학습 실행기 자체는 계속 전환 대상이다.
 
 - **네이티브 코퍼스 진단의 ONNX 대조:** 생성된 ONNX가 해당 체크포인트와 일치하는지 출력 생성 전에 확인하고, 실제 지도 표본의 Node ONNX Runtime 결과를 같은 체크포인트의 네이티브 로짓과 대조한다. 보존 모델과 실제 학습 표본 한 건의 최대 절대오차는 `0.0006847381591796875`로 기존 한계 `0.005` 이내였다. 이 수치는 실행 동등성만 나타내며 독립 정확도나 모델 승인 결과가 아니다. 기존 Python 진단기의 전체 제거는 남아 있다.
 
@@ -173,7 +175,7 @@
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
-| `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
+| `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
