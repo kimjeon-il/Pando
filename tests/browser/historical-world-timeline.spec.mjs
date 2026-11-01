@@ -106,7 +106,7 @@ test('historical geometry and parent edits preserve the earlier month and suppor
   await page.locator('#redoBtn').click();
   expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).geometry, id)).toEqual(edited);
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), id);
-  await page.locator('#editorTabBtn').click(); if (!await page.locator('#entityRelationsDisclosure').evaluate(node => node.open)) await page.locator('#entityRelationsDisclosure summary').click(); await page.locator('#entityChangeParentBtn').click();
+  await page.locator('#relationTabBtn').click(); await page.locator('#entityChangeParentBtn').click();
   await selectUiOption(page, '#entityParentInput', 'state:nagorno-karabakh');
   await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id).properties.parentId, id)).toBe('state:nagorno-karabakh');
   await month(page, '2012-09');
