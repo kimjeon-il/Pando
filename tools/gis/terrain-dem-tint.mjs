@@ -101,18 +101,3 @@ export async function buildNativeDemTintZip({archive,ice,land,temporaryRoot,widt
     await rmdir(folder);
   }
 }
-
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{
-    if(process.argv.length!==3||process.argv[2]!=='--zip-stream')throw Error('Expected --zip-stream');
-    const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;
-      if(length>1024*1024)throw Error('Tint request exceeds bounds');chunks.push(chunk);}
-    const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
-    try{
-      const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
-      const {webp,...metadata}=await buildNativeDemTintZip(request,{signal:controller.signal});
-      const json=Buffer.from(JSON.stringify(metadata)),header=Buffer.alloc(12);header.write('PDTZIP01');header.writeUInt32LE(json.length,8);
-      process.stdout.write(header);process.stdout.write(json);process.stdout.write(webp);
-    }finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
-  }catch(error){console.error('terrain-dem-tint: '+error.message);process.exitCode=1;}
-}

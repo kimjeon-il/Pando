@@ -89,13 +89,7 @@ jobs:
           set -euo pipefail
           mkdir -p build-native/p4
           python -m unittest discover -s tests -p 'test_*.py' 2>&1 | tee build-native/p4/python-root.log
-          # DEM producer cases run with their source-bound binaries in the focused native jobs.
-          python_tests=(tests/python/test_*.py)
-          selected=()
-          for test_file in "${python_tests[@]}"; do
-            [[ "$test_file" == tests/python/test_build_terrain_dem.py ]] || selected+=("$test_file")
-          done
-          python -m unittest "${selected[@]}" 2>&1 | tee build-native/p4/python-gis.log
+          python -m unittest discover -s tests/python -p 'test_*.py' 2>&1 | tee build-native/p4/python-gis.log
       - name: Preserve Python contract evidence
         if: always()
         uses: actions/upload-artifact@v4

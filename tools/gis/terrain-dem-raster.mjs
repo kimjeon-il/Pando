@@ -74,8 +74,3 @@ export async function readNativeDemWindow({box,...input},options){
   try{return await reader.read(box);}catch(error){failure=error;throw error;}
   finally{try{await reader.close();}catch(error){if(!failure)throw error;}}
 }
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{if(process.argv.length!==4||process.argv[2]!=='--inspect')throw Error('Expected --inspect DEM_TIFF');
-    console.log(JSON.stringify(await inspectNativeDemSource({source:process.argv[3]})));
-  }catch(error){console.error('terrain-dem-raster: '+error.message);process.exitCode=1;}
-}

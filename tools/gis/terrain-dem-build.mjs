@@ -6,6 +6,7 @@ import {basename,dirname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {withLibraryOutputs} from '../library-data.mjs';
+import {futureRealpath} from './build-physical-hydro.mjs';
 import {hashTerrainFile,summarizeTerrainAssets} from './terrain-dem-assets.mjs';
 import {encodeNativeDemElevation} from './terrain-dem-encode.mjs';
 import {reconcileDemGutterFiles,restoreDemPolarGutterShade} from './terrain-dem-gutters.mjs';
@@ -43,6 +44,11 @@ export async function buildTerrainDemCandidate({etopo,tintZip,ice,countries,outp
     ![profile.tintWidth,profile.tintHeight].every(value=>Number.isSafeInteger(value)&&value>0)||
     ![profile.etopoSha256,profile.tintSha256,profile.iceSha256].every(value=>/^[a-f0-9]{64}$/.test(value)))
     throw Error('Explicit DEM candidate inputs, output and source policy are required');
+  if(profile.levels.some((level,index)=>!level||level.id!==index||level.tileSize!==profile.levels[0].tileSize||
+    ![level.width,level.height,level.tileSize,level.columns,level.rows].every(Number.isSafeInteger)||
+    level.width<1||level.width>50000||level.height<1||level.height>25000||level.tileSize<1||level.tileSize>4092||
+    level.columns!==Math.ceil(level.width/level.tileSize)||level.rows!==Math.ceil(level.height/level.tileSize)||level.rows*level.columns>1000000))
+    throw Error('Invalid DEM candidate level configuration');
   output=resolve(output);const start=performance.now();
   const [source,tintSource,iceSource,landSource]=await Promise.all([etopo,tintZip,ice,countries].map(path=>hashTerrainFile(path,{signal})));
   if(source.sha256!==profile.etopoSha256||tintSource.sha256!==profile.tintSha256||iceSource.sha256!==profile.iceSha256)
@@ -73,7 +79,7 @@ export async function buildTerrainDemCandidate({etopo,tintZip,ice,countries,outp
       channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},
       elevation:{encode:'round(meters)+12000',decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},
       shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:0.42,diffuse:0.58,polarFallbackDegrees:89.5,quantizationStep:4},
-      gutter:1,tileSize,levels:profile.levels,urlTemplate:`terrain/v${version}/{level}/{column}-{row}.webp`,
+      gutter:1,tileSize:profile.levels[0].tileSize,levels:profile.levels,urlTemplate:`terrain/v${version}/{level}/{column}-{row}.webp`,
       tint:{url:`terrain/v${version}/tint.webp`,width:profile.tintWidth,height:profile.tintHeight,
         sha256:(await hashTerrainFile(tintPath,{signal})).sha256,...tintReport},
       sources:[{url:'https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif',
@@ -98,7 +104,7 @@ export async function rebuildTerrainDemTint({sourceOutput,tintZip,ice,countries,
   signal?.throwIfAborted();
   if(![sourceOutput,tintZip,ice,countries,output].every(value=>typeof value==='string'&&value))throw Error('Explicit DEM reuse inputs and output required');
   const sourceRoot=await realpath(sourceOutput);output=resolve(output);
-  const rel=relative(sourceRoot,output);
+  const rel=relative(sourceRoot,futureRealpath(output));
   if(!rel||(!rel.startsWith('..'+sep)&&rel!=='..'&&!isAbsolute(rel)))throw Error('DEM reuse output cannot be inside the source dataset');
   const [archiveHash,iceHash,landHash]=await Promise.all([tintZip,ice,countries].map(path=>hashTerrainFile(path,{signal})));
   if(archiveHash.sha256!==profile.tintSha256||iceHash.sha256!==profile.iceSha256)throw Error('Tint source checksum mismatch');
@@ -150,9 +156,12 @@ export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, 
   const logicalOutput=resolve(output);
   return withLibraryOutputs({root:workspace,paths:[logicalOutput]},async()=>{
     output=await realpath(logicalOutput);
-    const manifestPath=join(output,'manifest.json'),original=await readFile(manifestPath,{signal}),manifest=JSON.parse(original.toString('utf8'));
+    const manifestPath=join(output,'manifest.json'),manifestInfo=await lstat(manifestPath);
+    if(!manifestInfo.isFile()||manifestInfo.isSymbolicLink())throw Error('DEM manifest must be a regular file');
+    const original=await readFile(manifestPath,{signal}),manifest=JSON.parse(original.toString('utf8'));
     const reportPath=join(output,'build-report.json');let reportBytes,previous={};
-    try{reportBytes=await readFile(reportPath,{signal});previous=JSON.parse(reportBytes.toString('utf8'));}
+    try{const info=await lstat(reportPath);if(!info.isFile()||info.isSymbolicLink())throw Error('DEM report must be a regular file');
+      reportBytes=await readFile(reportPath,{signal});previous=JSON.parse(reportBytes.toString('utf8'));}
     catch(error){if(error.code!=='ENOENT')throw error;}
     if(etopo)await restoreDemPolarGutterShade({output,source:etopo,levels:manifest.levels,minLevel,maxLevel},{signal});
     for(const level of manifest.levels)await reconcileDemGutterFiles(output,level,{signal});
@@ -204,35 +213,29 @@ export async function generateTerrainDemLevel({source,output,level,strict=true},
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const controller=new AbortController(),abort=()=>controller.abort();
+  process.once('SIGINT',abort);process.once('SIGTERM',abort);
   try{
-    if(process.argv.length===6&&process.argv[2]==='--level')
-      console.log(JSON.stringify(await generateTerrainDemLevel({source:process.argv[3],output:process.argv[4],level:JSON.parse(process.argv[5])})));
-    else if(process.argv.length===3&&process.argv[2]==='--build'){
-      const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>65536)throw Error('DEM request exceeds bounds');chunks.push(chunk);}
-      const request=JSON.parse(Buffer.concat(chunks).toString('utf8'));
-      await buildTerrainDemCandidate(request);
-      console.log(await readFile(join(resolve(request.output),'build-report.json'),'utf8'));
-    }else{
-      const {values}=parseArgs({options:{etopo:{type:'string'},'tint-zip':{type:'string'},'glaciated-areas':{type:'string'},
-        countries:{type:'string'},'reuse-dem':{type:'string'},output:{type:'string'},'repair-output':{type:'boolean'},
-        'repair-polar-min-level':{type:'string'},'repair-polar-max-level':{type:'string'},help:{type:'boolean'}}});
-      if(values.help)console.log('Usage: --output DIR [--etopo TIFF --tint-zip ZIP --glaciated-areas GEOJSON --countries GEOJSON | --reuse-dem DIR ... | --repair-output]');
-      else{
-        if(!values.output)throw Error('Explicit --output required');
-        const input={etopo:values.etopo,tintZip:values['tint-zip'],ice:values['glaciated-areas'],countries:values.countries,output:values.output};
-        let report;
-        if(values['reuse-dem']){
-          await rebuildTerrainDemTint({...input,sourceOutput:values['reuse-dem']});
-          report=JSON.parse(await readFile(join(resolve(values.output),'build-report.json'),'utf8'));
-        }else if(values['repair-output']){
-          const number=(text,fallback)=>{if(text===undefined)return fallback;if(!/^\d+$/.test(text))throw Error('Invalid polar repair level');return Number(text);};
-          report=await repairTerrainDem({output:values.output,etopo:values.etopo,
-            minLevel:number(values['repair-polar-min-level'],0),maxLevel:number(values['repair-polar-max-level'],5)});
-        }else{
-          await buildTerrainDemCandidate(input);report=JSON.parse(await readFile(join(resolve(values.output),'build-report.json'),'utf8'));
-        }
-        console.log(JSON.stringify(report));
+    const {values}=parseArgs({options:{etopo:{type:'string'},'tint-zip':{type:'string'},'glaciated-areas':{type:'string'},
+      countries:{type:'string'},'reuse-dem':{type:'string'},output:{type:'string'},'repair-output':{type:'boolean'},
+      'repair-polar-min-level':{type:'string'},'repair-polar-max-level':{type:'string'},help:{type:'boolean'}}});
+    if(values.help)console.log('Usage: --output DIR [--etopo TIFF --tint-zip ZIP --glaciated-areas GEOJSON --countries GEOJSON | --reuse-dem DIR ... | --repair-output]');
+    else{
+      if(!values.output)throw Error('Explicit --output required');
+      const input={etopo:values.etopo,tintZip:values['tint-zip'],ice:values['glaciated-areas'],countries:values.countries,output:values.output};
+      const options={signal:controller.signal};let report;
+      if(values['reuse-dem']){
+        await rebuildTerrainDemTint({...input,sourceOutput:values['reuse-dem']},options);
+        report=JSON.parse(await readFile(join(resolve(values.output),'build-report.json'),'utf8'));
+      }else if(values['repair-output']){
+        const number=(text,fallback)=>{if(text===undefined)return fallback;if(!/^\d+$/.test(text))throw Error('Invalid polar repair level');return Number(text);};
+        report=await repairTerrainDem({output:values.output,etopo:values.etopo,
+          minLevel:number(values['repair-polar-min-level'],0),maxLevel:number(values['repair-polar-max-level'],5)},options);
+      }else{
+        await buildTerrainDemCandidate(input,options);report=JSON.parse(await readFile(join(resolve(values.output),'build-report.json'),'utf8'));
       }
+      console.log(JSON.stringify(report));
     }
   }catch(error){console.error('terrain-dem-build: '+error.message);process.exitCode=1;}
+  finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }

@@ -64,19 +64,21 @@ export function runSource({argv=process.argv.slice(2),root=ROOT,spawn=spawnSync,
   let env=process.env;
   if(task==='terrain-dem'){
     const executable=process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode';
-    const {binary}=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-encode/artifact'),
+    const encodeDirectory=resolve(root,'build-native/terrain-dem-encode/artifact');
+    verifyNativeTool({root,directory:encodeDirectory,
       target:'terrain-dem-encode',executable,sourceFiles:terrainDemEncodeSources});
     const fillDirectory=resolve(root,'build-native/terrain-dem-encode/fill-artifact');
     const fillExecutable=process.platform==='win32'?'pando-terrain-dem-fill.exe':'pando-terrain-dem-fill';
     verifyNativeTool({root,directory:fillDirectory,target:'terrain-dem-fill',executable:fillExecutable,sourceFiles:terrainDemFillSources});
-    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory};
+    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_DIRECTORY:encodeDirectory,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory};
     const hasOption=name=>args.some(value=>value===name||value.startsWith(name+'='));
     const reuse=hasOption('--reuse-dem'),repair=hasOption('--repair-output');
     if(!reuse&&(!repair||hasOption('--etopo'))){
       const executable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
-      const raster=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-raster/artifact'),
+      const rasterDirectory=resolve(root,'build-native/terrain-dem-raster/artifact');
+      verifyNativeTool({root,directory:rasterDirectory,
         target:'terrain-dem-raster',executable,sourceFiles:terrainDemRasterSources});
-      env.PANDO_TERRAIN_DEM_RASTER_BINARY=raster.binary;
+      env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY=rasterDirectory;
     }
     if(!reuse){
       const gutterDirectory=resolve(root,'build-native/terrain-dem-gutters/artifact');

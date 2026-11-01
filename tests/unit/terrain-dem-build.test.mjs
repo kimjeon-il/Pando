@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,symlink,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -45,15 +45,19 @@ test('small DEM candidate keeps source and output hashes and refuses existing re
     const inputs={etopo:source,tintZip:archive,ice,countries:land,output:join(root,'output')};
     const profile={strict:false,levels:[{id:0,width:8,height:4,tileSize:3,columns:3,rows:2}],tintWidth:4,tintHeight:2,
       etopoSha256:(await hashTerrainFile(source)).sha256,tintSha256:(await hashTerrainFile(archive)).sha256,iceSha256:(await hashTerrainFile(ice)).sha256};
+    await assert.rejects(buildTerrainDemCandidate({...inputs,output:join(root,'bad-level')},
+      {profile:{...profile,levels:[{...profile.levels[0],columns:2}]}}),/level/i);
     const manifest=await buildTerrainDemCandidate(inputs,{profile});
     assert.equal(manifest.sources[0].sha256,profile.etopoSha256);assert.equal(manifest.sources[0].nodata,-32768);
-    assert.equal(manifest.levels[0].columns,3);assert.equal(manifest.tint.width,4);
+    assert.equal(manifest.levels[0].columns,3);assert.equal(manifest.tileSize,3);assert.equal(manifest.tint.width,4);
     assert.equal(manifest.assetsSha256,(await summarizeTerrainAssets(inputs.output,profile.levels)).assetsSha256);
     const previous=await readFile(join(inputs.output,'manifest.json'));
     await assert.rejects(buildTerrainDemCandidate(inputs,{profile}),/exist/i);
     assert.deepEqual(await readFile(join(inputs.output,'manifest.json')),previous);
     await assert.rejects(buildTerrainDemCandidate({...inputs,output:join(root,'bad')},{profile:{...profile,etopoSha256:'0'.repeat(64)}}),/checksum/i);
     const old=JSON.parse(previous);old.version='0.13.2';await writeFile(join(inputs.output,'manifest.json'),JSON.stringify(old));
+    const alias=join(root,'source-alias');await symlink(inputs.output,alias,process.platform==='win32'?'junction':'dir');
+    await assert.rejects(rebuildTerrainDemTint({sourceOutput:inputs.output,tintZip:archive,ice,countries:land,output:join(alias,'nested')},{profile}),/inside/i);
     const reused=join(root,'reused');
     const reusedManifest=await rebuildTerrainDemTint({sourceOutput:inputs.output,tintZip:archive,ice,countries:land,output:reused},{profile});
     assert.equal(reusedManifest.version,'0.13.3');

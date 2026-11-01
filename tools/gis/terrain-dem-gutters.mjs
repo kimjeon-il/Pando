@@ -150,12 +150,3 @@ export async function restoreDemPolarGutterShade({output,source,levels,minLevel=
   }
   return modified;
 }
-
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{if(process.argv.length===4)console.log(JSON.stringify({modified:await reconcileDemGutterFiles(process.argv[2],JSON.parse(process.argv[3]))}));
-    else if(process.argv.length===3&&process.argv[2]==='--polar'){
-      const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>65536)throw Error('Polar request exceeds bounds');chunks.push(chunk);}
-      console.log(JSON.stringify({modified:await restoreDemPolarGutterShade(JSON.parse(Buffer.concat(chunks).toString('utf8')))}));
-    }else throw Error('Expected output directory and JSON level, or --polar with JSON input');
-  }catch(error){console.error('terrain-dem-gutters: '+error.message);process.exitCode=1;}
-}

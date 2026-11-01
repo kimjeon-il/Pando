@@ -107,9 +107,9 @@ test('DEM generation requires source-bound native elevation reading, encoding an
  packageNativeTool({root,binary:tint,directory:join(root,'build-native/terrain-dem-tint/artifact'),target:'terrain-dem-tint',platform:process.platform,
    architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemTintSources});
  assert.equal(runSource({root,argv,output:()=>{},spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
- assert.equal(calls[0].env.PANDO_TERRAIN_DEM_ENCODE_BINARY,join(root,'build-native/terrain-dem-encode/artifact',basename(binary)));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY,join(root,'build-native/terrain-dem-encode/artifact'));
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,join(root,'build-native/terrain-dem-encode/fill-artifact'));
- assert.equal(calls[0].env.PANDO_TERRAIN_DEM_RASTER_BINARY,join(root,'build-native/terrain-dem-raster/artifact',basename(raster)));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY,join(root,'build-native/terrain-dem-raster/artifact'));
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY,join(root,'build-native/terrain-dem-gutters/artifact'));
  assert.equal(calls[0].env.PANDO_MAP_IMAGE_ARTIFACT,join(root,'build-native/map-image/artifact'));
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_TINT_DIRECTORY,join(root,'build-native/terrain-dem-tint/artifact'));
