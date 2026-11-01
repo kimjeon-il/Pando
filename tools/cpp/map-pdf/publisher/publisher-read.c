@@ -127,13 +127,29 @@ static int macro_signatures(macro_stroke_device *dev,const char *value){
 }
 static void macro_stroke_path(fz_context *ctx,fz_device *device,const fz_path *path,const fz_stroke_state *stroke,fz_matrix ctm,
                              fz_colorspace *space,const float *color,float alpha,fz_color_params params){
-    macro_stroke_device *self=(macro_stroke_device*)device;float rgb[3],black[1]={0};int i,j;
+    macro_stroke_device *self=(macro_stroke_device*)device;float rgb[3],black[1]={0},factor=1;int i,j;
     (void)alpha;if(!space||!color)return;fz_convert_color(ctx,space,color,fz_device_rgb(ctx),rgb,NULL,params);
+    /* Match the original line-art extraction: paths are transformed into page
+     * coordinates, while widths and dashes use its recorded path factor. */
+    if(ctm.a!=0&&fabs(ctm.a)==fabs(ctm.d))factor=fabsf(ctm.a);
+    else if(ctm.b!=0&&fabs(ctm.b)==fabs(ctm.c))factor=fabsf(ctm.b);
     for(i=0;i<self->count;i++){const macro_signature *s=&self->signatures[i];
-        if(stroke->dash_len!=s->dash_len||fabs(stroke->linewidth-s->width)>.001)continue;
+        if(stroke->dash_len!=s->dash_len||fabs(factor*stroke->linewidth-s->width)>.001)continue;
         for(j=0;j<3;j++)if(fabs(rgb[j]-s->color[j])>.0001)break;if(j!=3)continue;
-        for(j=0;j<s->dash_len;j++)if(fabs(stroke->dash_list[j]-s->dash[j])>.001)break;if(j!=s->dash_len)continue;
-        self->selected++;fz_stroke_path(ctx,self->draw,path,stroke,ctm,fz_device_gray(ctx),black,1,params);return;
+        for(j=0;j<s->dash_len;j++)if(fabs(factor*stroke->dash_list[j]-s->dash[j])>.001)break;if(j!=s->dash_len)continue;
+        {fz_path *transformed=NULL;fz_stroke_state *copy=NULL;int cap=(int)stroke->start_cap;
+            fz_var(transformed);fz_var(copy);
+            fz_try(ctx){
+                transformed=fz_clone_path(ctx,(fz_path*)path);fz_transform_path(ctx,transformed,ctm);
+                copy=fz_new_stroke_state_with_dash_len(ctx,stroke->dash_len);copy->linewidth=factor*stroke->linewidth;
+                if((int)stroke->dash_cap>cap)cap=(int)stroke->dash_cap;if((int)stroke->end_cap>cap)cap=(int)stroke->end_cap;
+                copy->start_cap=copy->dash_cap=copy->end_cap=(fz_linecap)cap;copy->linejoin=stroke->linejoin;
+                copy->miterlimit=stroke->miterlimit;copy->dash_phase=factor*stroke->dash_phase;
+                for(j=0;j<stroke->dash_len;j++)copy->dash_list[j]=factor*stroke->dash_list[j];
+                self->selected++;fz_stroke_path(ctx,self->draw,transformed,copy,fz_make_matrix(1,0,0,1,0,0),fz_device_gray(ctx),black,1,params);
+            }fz_always(ctx){fz_drop_path(ctx,transformed);fz_drop_stroke_state(ctx,copy);}
+            fz_catch(ctx){fz_rethrow(ctx);}}
+        return;
     }
 }
 static fz_rect credit_character_bounds(fz_context *ctx,const fz_stext_line *line,const fz_stext_char *ch){

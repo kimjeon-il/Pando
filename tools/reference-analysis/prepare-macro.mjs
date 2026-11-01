@@ -50,7 +50,8 @@ export async function prepareMacroSheet({source,root,maximumDimension=2560,metad
   for(const name of ['derived','labels','notices'])if(existsSync(join(base,name)))folder(base,name);
   const previous=regular(join(base,paths.annotations));
   if(previous){const annotation=JSON.parse(previous),image=regular(join(base,paths.image)),notice=regular(join(base,paths.notice));
-    if(!image||!notice||annotation.maximumDimension!==maximumDimension||annotation.sourcePdf!==sourcePdf||annotation.sourceSha256!==sourceSha256||
+    if(!image||!notice||annotation.raster?.path!==paths.raster||annotation.validRaster?.path!==paths.validRaster||
+      annotation.maximumDimension!==maximumDimension||annotation.sourcePdf!==sourcePdf||annotation.sourceSha256!==sourceSha256||
       annotation.sourceMetadata!==sourceMetadata||annotation.sourceMetadataSha256!==sha(metadataBytes))throw Error('Existing macro evidence differs');
     const sheet=sheetFrom(metadata,imageKey,key,sha(image));
     await validateMacroSheet({root:base,sheet,annotation},{signal,workspace,pdfDirectory,imageDirectory});return sheet;
@@ -93,7 +94,8 @@ export async function prepareMacroCorpus({sources,maximumDimension=2560,manifest
     metadataPath:alternates.get(name.slice(0,-4)+'.source.json'),signal},options));
   const target=join(base,manifestName),value={schemaVersion:1,trainingOnly:true,sheets};validateCorpusMetadata(value,{trainingOnly:true});
   const old=regular(target);if(old){const recorded=JSON.parse(old),byId=new Map(sheets.map(sheet=>[sheet.id,sheet]));
-    if(Array.isArray(recorded.sheets)&&recorded.sheets.length===sheets.length&&recorded.sheets.every(row=>byId.has(row.id)))value.sheets=recorded.sheets.map(row=>byId.get(row.id));
+    if(Array.isArray(recorded.sheets)&&recorded.sheets.length===sheets.length&&new Set(recorded.sheets.map(row=>row.id)).size===sheets.length&&
+      recorded.sheets.every(row=>byId.has(row.id)))value.sheets=recorded.sheets.map(row=>byId.get(row.id));
     if(!isDeepStrictEqual(recorded,value))throw Error('Existing macro corpus differs');}
   else writeFileSync(target,JSON.stringify(value,null,2)+'\n',{flag:'wx'});
   return {manifest:target,maps:sheets.length,focus:'macro-only',trainingOnly:true,independentEvaluation:false};
