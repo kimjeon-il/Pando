@@ -13,7 +13,9 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   });
   await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
-  await expect(page.locator('#viewerStatus')).toBeHidden();
+  await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('role','status');
+  await expect(page.locator('#viewerStatus')).toHaveCSS('clip-path','inset(50%)');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.visibleTerritorialCount())).toBeGreaterThan(0);
   await expect(page).toHaveTitle('판도연구소');
   await expect(page.locator('#newProjectBtn, #saveProjectBtn, #undoBtn, #editorPanel')).toHaveCount(0);

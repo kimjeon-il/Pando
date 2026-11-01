@@ -177,13 +177,23 @@ public:
             result.push_back(clone(GEOSGetGeometryN_r(context_,value.get(),index)));
         return result;
     }
-    Shape project(const Shape& value,const std::string& from,const std::string& to) {
+    Shape project(const Shape& value,const std::string& from,const std::string& to,V* metadata=nullptr) {
         if(from==to)return value;
         PJ* raw=proj_create_crs_to_crs(proj_,from.c_str(),to.c_str(),nullptr);
         if(!raw)throw std::runtime_error("PROJ failed: "+from+" to "+to);
+        const char* rawName=metadata?proj_get_name(raw):nullptr;
+        const std::string operationName=rawName?rawName:"";
         PJ* operation=proj_normalize_for_visualization(proj_,raw);
         proj_destroy(raw);
         if(!operation)throw std::runtime_error("PROJ failed: traditional GIS axis order");
+        if(metadata){
+            const char* name=proj_get_name(operation);const double accuracy=proj_coordoperation_get_accuracy(proj_,operation);
+            if(!name||!std::isfinite(accuracy)){proj_destroy(operation);throw std::runtime_error("PROJ transformation metadata unavailable");}
+            std::string description=name;
+            if(from=="EPSG:4258"&&to=="EPSG:4326"&&!operationName.empty())
+                description="axis order change (2D) + "+operationName+" + axis order change (2D)";
+            *metadata=V::obj();metadata->object["description"]=V::str(description);metadata->object["accuracyMetres"]=V::num(accuracy);
+        }
         const auto transform=[](double* x,double* y,void* user)->int {
             auto* projection=static_cast<PJ*>(user);
             const auto result=proj_trans(projection,PJ_FWD,proj_coord(*x,*y,0,0));
@@ -696,10 +706,86 @@ public:
 #include "historical-source-geometry-compare.inc"
 #include "historical-ussr-partition-audit.inc"
 #include "historical-lsib-source-audit.inc"
+#include "historical-lsib-screen-distance.inc"
+#include "historical-german-modern-coast.inc"
 }
 
 int main(int argc,char** argv) {
     try {
+        if(argc==3 && std::string(argv[1])=="--german-1914-modern-coast") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<germanModernCoast(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--select-lsib-nearest-replacements") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<selectLSIBNearestReplacements(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--classify-lsib-spatial") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<classifyLSIBSpatial(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--union-lsib-lines") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<unionLSIBLines(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--prepare-lsib-coast") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<prepareLSIBCoast(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--prepare-lsib-tripoint") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<prepareLSIBTripoint(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--prepare-lsib-enclave") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<prepareLSIBEnclave(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--extract-lsib-shared") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<extractLSIBSharedChains(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--validate-lsib-country-repair") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<validateLSIBCountryRepair(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--replace-lsib-rings") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<replaceLSIBRings(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--replace-lsib-chains") {
+            const auto input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<replaceLSIBChains(pandoeditor::codecjson::parse(input)).encode()<<'\n';return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--sampled-lsib-screen") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<sampledLSIBScreenDistance(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--select-lsib-display") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<selectLSIBScreenDisplay(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--merge-lsib-lines") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<mergeLSIBSourceLines(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--prepare-lsib-reference") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<prepareLSIBScreenReference(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--prepare-lsib-reviewed") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<prepareLSIBReviewedSource(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
+        if(argc==3 && std::string(argv[1])=="--analyze-lsib-section") {
+            const std::string input=std::string(argv[2])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[2]));
+            std::cout<<analyzeLSIBScreenSection(pandoeditor::codecjson::parse(input)).encode()<<'\n';
+            return 0;
+        }
         if(argc==4 && std::string(argv[1])=="--german-1914-base") {
             const std::string specification=std::string(argv[3])=="-"?std::string(std::istreambuf_iterator<char>(std::cin),{}):read(fs::absolute(argv[3]));
             Recipe recipe(fs::absolute(argv[2]),pandoeditor::codecjson::parse(specification));

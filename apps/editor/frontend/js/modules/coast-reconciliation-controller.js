@@ -22,7 +22,7 @@ export function createCoastReconciliationController({ document, window, elements
     elements.title.textContent = automaticAvailable ? '해안선이 서로 일치하지 않습니다' : '해안선을 자동으로 판별할 수 없습니다';
     elements.message.textContent = automaticAvailable
       ? `${subjectName}과(와) ${countryName}의 해안선이 같은 구간에서 서로 다릅니다.\n어느 해안선을 기준으로 맞출지 선택하세요.`
-      : `${countryName}의 실제 해안 topology를 신뢰할 수 있게 판별하지 못했습니다.\n독립 유지로 가져오거나 작업을 취소하세요.`;
+      : `${countryName}의 해안과 육상 국경을 신뢰할 수 있게 구분하지 못했습니다.\n독립 유지 또는 취소를 선택하세요.`;
     if (elements.subject) elements.subject.textContent = `${subjectActionLabel} 기준`;
     if (elements.country) {
       elements.country.disabled = !automaticAvailable;
@@ -37,7 +37,7 @@ export function createCoastReconciliationController({ document, window, elements
       '선택한 기준에 따라 한 번의 실행취소로 되돌릴 수 있습니다.',
     ] : [
       unavailableReason === 'country-coast-not-found'
-        ? '국가 경계에서 단일 소유 exterior 해안선을 찾지 못했습니다.'
+        ? '국가 외곽에서 해안에 해당하는 단일 소유 경계를 찾지 못했습니다.'
         : '자동 정합에 사용할 신뢰 가능한 해안 구간이 없습니다.',
       '육상 국경을 해안으로 오인하지 않도록 자동 정합을 중단했습니다.',
     ];

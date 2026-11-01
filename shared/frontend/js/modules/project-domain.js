@@ -109,7 +109,9 @@ export function createProjectDomain({
     if(replacing)return Promise.reject(Object.assign(new Error('A project replacement is already requested.'),{ code: 'PL-CORE-STALE' }));
     if(applyAccepted!==undefined && typeof applyAccepted!=='function')return Promise.reject(new TypeError('An accepted platform effect must be a function.'));
     if(viewingPresentation && envelope.commandId==='presentation.apply' && ['visibility','objectVisibility','distributionLayerVisibility','terrainMode','distributionRenderMode','distributionActiveLayer','distributionBoundaryVisible'].includes(envelope.payload.action)) {
-      const result=viewingPresentation(envelope.payload);persistence.queueView();return Promise.resolve(result);
+      const result=viewingPresentation(envelope.payload);
+      if(result?.changed!==false)persistence.queueView();
+      return Promise.resolve(result);
     }
     const expectedGeneration = generation;
     const operation=commandQueue.then(async () => {
@@ -207,6 +209,68 @@ export function createProjectDomain({
       return result.state;
     });
     commandQueue=operation.catch(() => {});return operation;
+  };
+  // P5-6: detached native source and candidate creation share the Core
+  // command queue but do not mutate the active document or generation.
+  // No baseline admission occurs until the existing replacement transaction
+  // has captured a reversible Core capsule.
+  const prepareTemporalBuiltin = (facts,setup,{dataRevision,manifestSha256,transition=false,
+    expectedGeneration = generation,isCurrent = () => true} = {}) => {
+    const operation=commandQueue.then(async()=>{
+      assertActive();
+      const current=()=>!disposed&&!replacing&&generation===expectedGeneration&&isCurrent();
+      const stale=()=>Object.assign(new Error('Temporal candidate belongs to an older project request.'),
+        {code:'PL-CORE-STALE',name:'AbortError',cancelled:true});
+      if(!current())throw stale();
+      if(typeof commandOwner?.temporalSourcePrepare!=='function'
+        ||typeof commandOwner?.temporalCandidatePrepare!=='function')
+        throw new TypeError('Core temporal source/candidate owner is required.');
+      let source;
+      const sourceEpoch=commandOwner.state()?.epoch;
+      try {
+        source=await commandOwner.temporalSourcePrepare(facts,{dataRevision,manifestSha256,isCurrent:current});
+        if(!current())throw stale();
+        // Only an explicit builtin Viewer date change retains the document ID.
+        // Native preparation validates the clean builtin owner and immutable
+        // geometry versions before constructing its delta; file/editor loads
+        // keep their existing independent-document admission.
+        if(transition&&(productMode!=='viewer'||snapshot().projectSetup?.sourceMode!=='builtin'))
+          throw new TypeError('Temporal identity reuse requires the active builtin Viewer.');
+        const documentId=transition?snapshot().documentId:globalThis.crypto.randomUUID();
+        const candidate=await commandOwner.temporalCandidatePrepare({
+          sourceId:source.sourceId,targetMonth:facts.sourceMonth,
+          sourceFingerprint:source.fingerprint,setup,documentId,
+        },{isCurrent:current});
+        if(!current())throw stale();
+        if(candidate?.sourceId!==source.sourceId||candidate?.targetMonth!==facts.sourceMonth
+          ||candidate?.sourceFingerprint!==facts.fingerprint
+          ||!Number.isSafeInteger(candidate?.candidateId)||candidate.candidateId<1
+          ||candidate.expectedEpoch!==commandOwner.state()?.epoch)
+          throw Object.assign(new Error('Core temporal candidate receipt is not current.'),
+            {code:'PL-CORE-RESPONSE'});
+        return Object.freeze({kind:'temporal-candidate',setup,
+          expectedGeneration,expectedEpoch:candidate.expectedEpoch,
+          sourceId:source.sourceId,candidateId:candidate.candidateId,
+          targetMonth:candidate.targetMonth,sourceFingerprint:candidate.sourceFingerprint,
+          worldSha256:candidate.worldSha256});
+      } catch(error) {
+        if(source&&commandOwner.state()?.epoch===sourceEpoch)
+          try {await commandOwner.temporalSourceRelease(source.sourceId);}
+          catch(releaseError){try{reportDiagnostic({stage:'temporal-source-release',error:releaseError});}catch(_){}}
+        throw error;
+      }
+    });
+    commandQueue=operation.catch(()=>{});
+    return operation;
+  };
+  const discardTemporalBuiltin = async prepared => {
+    if(prepared?.kind!=='temporal-candidate'||disposed
+      ||commandOwner?.state?.()?.epoch!==prepared.expectedEpoch)return false;
+    try {await commandOwner.temporalCandidateDiscard(prepared.candidateId);}
+    catch(error){try{reportDiagnostic({stage:'temporal-candidate-discard',error});}catch(_){}}
+    try {await commandOwner.temporalSourceRelease(prepared.sourceId);}
+    catch(error){try{reportDiagnostic({stage:'temporal-source-release',error});}catch(_){}}
+    return true;
   };
   const prepareImport = (project,{ baselineId = null,expectedGeneration = generation } = {}) => {
     const operation=commandQueue.then(async () => {
@@ -370,10 +434,24 @@ export function createProjectDomain({
       await onReplacementState(true, reason);
       persistence?.cancelPending?.();
       const nextGeneration = await bumpGeneration(`project-${reason}`, presentation === 'temporal' ? {presentation,isCurrent,onPresented} : null);
-      if(reason==='new'||reason==='builtin'||reason==='builtin-temporal') {
+      if(reason==='builtin'&&prepared.kind==='temporal-candidate') {
+        requireCurrent();
+        if(prepared.expectedGeneration!==nextGeneration-1
+          ||!Number.isSafeInteger(prepared.candidateId)||prepared.candidateId<=0
+          ||prepared.expectedEpoch!==commandOwner.state()?.epoch)
+          throw Object.assign(new Error('The Core temporal candidate is not current.'),
+            {code:'PL-CORE-STALE'});
+        // Core adoption is non-interruptible; its acknowledgement, followed
+        // by the existing read-model publisher, is the sole commit boundary.
+        await commandOwner.temporalCandidateAdopt({
+          candidateId:prepared.candidateId,sourceId:prepared.sourceId,
+          targetMonth:prepared.targetMonth,sourceFingerprint:prepared.sourceFingerprint,
+          worldSha256:prepared.worldSha256,replacementId:checkpoint.replacementId,
+          expectedEpoch:prepared.expectedEpoch,
+        });
+      } else if(reason==='new'||reason==='builtin') {
         if(!Number.isSafeInteger(prepared.baselineId)||prepared.baselineId<=0)throw new TypeError('A previously admitted Core builtin source handle is required.');
-        if(reason==='builtin-temporal')await commandOwner.transitionBaseline(prepared.baselineId,prepared.setup);
-        else await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
+        await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);
       } else await commandOwner.load(JSON.stringify(prepared));
       await readmitBuiltinSelectionCatalogs();
       if (readPresentationCatalog) {
@@ -433,14 +511,14 @@ export function createProjectDomain({
       // Pure preparation does not claim the bounded Core rollback capsule.
       // The complete replacement shares its lifetime with accepted commands.
       const coreProject = currentProject(serializedProject);
-      const prepared=reason==='new'?{...await prepareNewProject(coreProject),setup:coreProject}:(reason==='builtin'||reason==='builtin-temporal')?coreProject:
+      const prepared=reason==='new'?{...await prepareNewProject(coreProject),setup:coreProject}:reason==='builtin'?coreProject:
         await commandOwner.validateImport(JSON.stringify(coreProject),{ baselineId: null });
       const operation=commandQueue.then(() => replaceAccepted(prepared,reason,options));
       commandQueue=operation.catch(() => {});return await operation;
     } catch(error) { replacing=false;throw error; }
   };
   const load = (project,options) => replace(project, 'load',options);
-  const openSource = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented,transition=false}={}) => {
+  const open = async (read,{source='project',presentation='default',isCurrent:requestCurrent=()=>true,onPresented}={}) => {
     assertActive();
     if(!['project','builtin'].includes(source))throw new TypeError('Unknown project source.');
     if(typeof read!=='function')throw new TypeError('Project opening requires its asynchronous source reader.');
@@ -454,9 +532,18 @@ export function createProjectDomain({
       const operation=openQueue.then(async()=>{
         if(!isCurrent())return false;
         if(source==='builtin') {
-          const baseline=await read();
-          if(!baseline||!isCurrent())return false;
-          await replace(baseline,transition?'builtin-temporal':'builtin',{isCurrent,presentation,onPresented});
+          let baseline;
+          try {
+            baseline=await read();
+            if(!baseline||!isCurrent())return false;
+            await replace(baseline,'builtin',{isCurrent,presentation,onPresented});
+          } finally {
+            // A superseded read may have prepared Core source handles but
+            // never entered replacement. Both handles are invalidated by
+            // adoption/rollback; this also cleans up the uncommitted case.
+            if(baseline?.kind==='temporal-candidate')
+              await discardTemporalBuiltin(baseline);
+          }
         }
         else await load(project,{isCurrent});
         return isCurrent();
@@ -467,11 +554,6 @@ export function createProjectDomain({
       if(!isCurrent()&&!error.restoreError)return false;
       throw error;
     } finally {if(isCurrent())opening=false;}
-  };
-  const open=(read,{source='project',presentation='default',isCurrent,onPresented}={})=>openSource(read,{source,presentation,isCurrent,onPresented});
-  const transitionBuiltin=(read,{isCurrent,onPresented}={})=>{
-    if(productMode!=='viewer')throw new TypeError('Builtin temporal transitions require the read-only viewer.');
-    return openSource(read,{source:'builtin',presentation:'temporal',isCurrent,onPresented,transition:true});
   };
   const createProject = async options => replace(normalizeProjectSetup(options), 'new');
   const travelHistory = (direction, metadata) => {
@@ -547,8 +629,10 @@ export function createProjectDomain({
     admitPresentationCatalog,
     admitSelectionCatalog,
     admitStorageBaseline,
+    prepareTemporalBuiltin,
+    discardTemporalBuiltin,
     inspectImport,
-    load,open,transitionBuiltin,
+    load,open,
     getOpenRevision:()=>openRequest,
     isOpening:()=>opening,
     baselineCoverage:(baselineId,month)=>commandOwner.baselineCoverage(baselineId,month),

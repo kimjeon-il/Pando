@@ -12,7 +12,8 @@ test('editing label metadata immediately refreshes its map text and preserves th
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   // Use a small current document to isolate label metadata and avoid unrelated full-world startup work.
-  const project = staticAutosaveProject({ layerVisibility: { labels: true } });
+  // Layer visibility is viewing state, not a project document field.
+  const project = staticAutosaveProject();
   await page.addInitScript(project => localStorage.setItem('pandolab-editor-project', JSON.stringify(project)), project);
   await gotoEditor(page, '/');
   // Label editing uses canMutateProject; the optional enhanced mesh is not required.

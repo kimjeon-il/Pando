@@ -73,6 +73,11 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     if (current.kind === 'annex' && current.stage === 'setup') {
       cards.push(card('넘겨받는 객체', [current.targetCountryId]), card('넘겨주는 객체', current.sourceCountryIds, '객체 선택'));
       relation = '←';
+    } else if (current.kind === 'entity' && current.editOperation === 'annex') {
+      // Keep the existing 3-step subunit annex; the source chooser remains in the setup form.
+      stage = current.stage === 'setup' ? '가져올 영역'
+        : current.stage === 'review' ? '편입 확인' : stage;
+      if (current.stage === 'setup') cards.push(card('넘겨받는 객체', [current.editTargetId]));
     }
   } else if (state.tool === 'merge-country' || state.tool === 'merge-territorial-unit') {
     const country = state.tool === 'merge-country';
@@ -90,6 +95,37 @@ export function taskWorkflowPresentation(state, selectionModel = null, draft = {
     if (!preview) cards.push(card(`남길 ${type}`, [source]));
     resultLabel = `합칠 ${type}`;
     resultRefs = (ids || []).map(ref).filter(Boolean);
+  } else if (state.tool === 'split-territorial-unit' || state.tool === 'split-generic-feature') {
+    // Split sources are selected before drawing; there is no additional picking stage.
+    const territorial = state.tool === 'split-territorial-unit';
+    const sourceId = territorial ? state.territorialUnitSplitSourceId : state.genericFeatureSplitSourceId;
+    const virtualSource = territorial && !!state.territorialUnitSplitVirtualSource;
+    if (!text(sourceId) && !virtualSource) return null;
+    name = '영역 나누기';
+    stage = preview ? '분할 확인' : '경계 그리기';
+    step = preview ? 2 : 1;
+    total = 2;
+    if (!preview) {
+      const sourceRef = text(sourceId) ? normalizeObjectRef({
+        domain: territorial ? 'territorial' : 'generic',
+        type: territorial ? 'entity' : 'feature',
+        id: text(sourceId),
+      }) : null;
+      cards.push({
+        role: '나눌 영역', refs: sourceRef ? [sourceRef] : [],
+        placeholder: virtualSource ? '현재 영역' : '대상 선택',
+      });
+    }
+  } else if (state.tool === 'redraw-territorial-unit') {
+    // The selected region is already the redraw source. Reuse the existing task
+    // card instead of introducing another target-selection step.
+    const source = state.territorialUnitRedrawSourceId;
+    if (!text(source)) return null;
+    name = '영역 다시 지정';
+    stage = preview ? '변경 확인' : '영역 그리기';
+    step = preview ? 2 : 1;
+    total = 2;
+    if (!preview) cards.push(card('대상 영역', [source]));
   } else if (state.tool === 'territorial-border') {
     const ids = [...new Set((state.boundaryEditEntityIds || []).map(text))];
     const source = state.boundaryEditSeedEntityId || ids[0];
@@ -173,7 +209,7 @@ export function taskStagePresentation({
     else if (hydroInvalid) reason = firstIssueMessage(state.multiDraft.previewIssues, '그린 영역의 문제를 확인하세요.');
     else if (draftInvalid) reason = firstIssueMessage(draft.issues, '그린 경로의 문제를 확인하세요.');
     else if (cutInvalid) reason = draft.cutAssessment.message || '선택 영역을 가로지르는 유효한 경계를 그리세요.';
-  } else if (primaryDisabled || draftDisabled || preparing) {
+  } else if (primaryDisabled || (draftDisabled && !hydroReview) || preparing) {
     if (state.modeProcessing || selection?.applying) reason = '작업을 처리하는 중입니다.';
     else if (boundaryPending) reason = '경계를 준비하는 중입니다.';
     else if (selection?.previewPending || selection?.computationPending || selection?.activePhase === 'preparing') reason = '선택 영역을 계산하는 중입니다.';
@@ -203,9 +239,14 @@ export function editingContextPresentation({state,draft={},month='',targets=[],m
   const calculating=!applying && (state.modeProcessing||selection?.previewPending||selection?.computationPending||state.multiDraft?.previewPending);
   const review=selection?selection.stage==='review':!!preview;
   const setup=selection?.stage==='setup'||(['territorial-border','country-coast'].includes(state.tool)&&state.boundaryEditPhase==='selecting');
-  const stage=applying?'적용 중':calculating?'계산 중':review?'미리보기':setup?'대상 선택':'초안';
+  const stage=applying?'적용 중':calculating?'계산 중':review?'미리보기':setup?'대상 선택':editing.objectVertexEditing?'좌표 편집':'초안';
   const names=targets.map(target=>target.name).filter(Boolean);
-  const targetSummary=names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||selection?.name||'새 객체';
+  const fallbackTarget = state.tool === 'split-territorial-unit' && state.territorialUnitSplitVirtualSource
+    ? '현재 영역' : selection?.name;
+  const subunitAnnex = selection?.tool === state.tool && selection.kind === 'entity'
+    && selection.editOperation === 'annex';
+  const targetSummary=subunitAnnex ? names[0]||selection.name||'새 객체'
+    : names.length>1?names[0]+' 외 '+(names.length-1)+'개':names[0]||fallbackTarget||'새 객체';
   const view=month?month.replace(/^(-?)([0-9]+)-([0-9]{2})$/,(_,sign,year,m)=>(sign?'기원전 ':'')+Number(year)+'년 '+Number(m)+'월 말 상태'):'시점 확인 중';
   const periods=preview?.temporalImpact;
   const labels=periods?.map(row=>!row.from&&!row.until?'모든 시점':(row.from?row.from+'부터':'과거 전체')+' · '+(row.until?row.until+' 전까지':'종료 제한 없음'));

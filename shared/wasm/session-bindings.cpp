@@ -572,6 +572,40 @@ CommandRequest typedRequest(const ProjectSnapshot& candidate,const val& input,co
     }
     return {id,candidate.instanceId(),candidate.document().documentId,candidate.revision(),targets,typedArguments(id,input["payload"])};
 }
+
+// WASM is a borrowing boundary, never a byte-buffer owner. Copy the
+// caller's Uint8Array into a native RAII value before any C++ validation.
+projectcodec::WebStorageAssetSource temporalSourceBytes(val input) {
+    constexpr const char* code="CORE_TEMPORAL_SOURCE_ARGS";
+    shape(input,{"kind","sourceBytes","encoding","compressedBytes","decodedBytes",
+        "baseDataset","sourceMonth","fingerprint"},code);
+    if(text(input["kind"],code)!="stored-asset")
+        fail(code,"Only verified stored-asset source bytes are accepted.");
+    const auto bytes=input["sourceBytes"];
+    if(!bytes.instanceof(val::global("Uint8Array")))
+        fail(code,"The source must own a Uint8Array.");
+    const auto size=bytes["length"].as<double>();
+    if(!std::isfinite(size)||std::floor(size)!=size||size<=0||size>256.0*1024*1024)
+        fail(code,"Source buffer size exceeds the verified compressed limit.");
+    projectcodec::WebStorageAssetSource source;
+    source.sourceBytes.resize(static_cast<std::size_t>(size));
+    val view(emscripten::typed_memory_view(source.sourceBytes.size(),source.sourceBytes.data()));
+    view.call<void>("set",bytes);
+    source.encoding=text(input["encoding"],code);
+    source.baseDataset=text(input["baseDataset"],code);
+    source.sourceMonth=text(input["sourceMonth"],code);
+    source.fingerprint=text(input["fingerprint"],code);
+    source.compressedBytes=static_cast<std::uint64_t>(integer(input["compressedBytes"],code));
+    source.decodedBytes=static_cast<std::uint64_t>(integer(input["decodedBytes"],code));
+    return source;
+}
+std::uint32_t temporalHandle(const val& input,const char* code) {
+    if(!type(input,"number"))fail(code,"A positive uint32 handle is required.");
+    const double n=input.as<double>();
+    if(!std::isfinite(n)||std::floor(n)!=n||n<1||n>4294967295.0)
+        fail(code,"Invalid Core-owned temporal handle.");
+    return static_cast<std::uint32_t>(n);
+}
 class WasmDocumentSession {
 public:
     explicit WasmDocumentSession(val options):ports_(documentPorts(options)),session_(ports_){}
@@ -596,6 +630,103 @@ public:
             return documentState(session_.storageBaselineLoad(source,epoch));
         });
     }
+
+    val temporalSourcePrepare(val input) {
+        return boundary([&] {
+            shape(input,{"source","dataRevision","manifestSha256","expectedEpoch"},"CORE_TEMPORAL_SOURCE_ARGS");
+            const auto receipt=session_.temporalSourcePrepare(temporalSourceBytes(input["source"]),
+                text(input["dataRevision"],"CORE_TEMPORAL_SOURCE_ARGS"),
+                text(input["manifestSha256"],"CORE_TEMPORAL_SOURCE_ARGS"),commandEpoch(input));
+            auto result=val::object();
+            result.set("sourceId",receipt.sourceId);
+            result.set("sourceMonth",webString(receipt.sourceMonth));
+            result.set("fingerprint",webString(receipt.fingerprint));
+            result.set("reused",receipt.reused);
+            return result;
+        });
+    }
+    val temporalSourceStats() const {
+        return boundary([&] {
+            const auto stats=session_.temporalSourceStats();
+            auto result=val::object();
+            result.set("entries",static_cast<double>(stats.entries));
+            result.set("declaredDecodedBytes",static_cast<double>(stats.declaredDecodedBytes));
+            result.set("hits",static_cast<double>(stats.hits));
+            result.set("evictions",static_cast<double>(stats.evictions));
+            return result;
+        });
+    }
+    bool temporalSourceRelease(val input) {
+        return boundary([&] {
+            shape(input,{"sourceId","expectedEpoch"},"CORE_TEMPORAL_SOURCE_ARGS");
+            return session_.temporalSourceRelease(temporalHandle(input["sourceId"],"CORE_TEMPORAL_SOURCE_ARGS"),
+                commandEpoch(input));
+        });
+    }
+    val temporalCandidatePrepare(val input) {
+        return boundary([&] {
+            shape(input,{"sourceId","targetMonth","sourceFingerprint","expectedEpoch",
+                "setup","documentId"},"CORE_TEMPORAL_CANDIDATE_ARGS");
+            std::optional<codecjson::Value> setup;
+            if(!input["setup"].isNull()) {
+                const auto json=val::global("JSON").call<val>("stringify",input["setup"]);
+                if(!type(json,"string"))fail("CORE_TEMPORAL_CANDIDATE_ARGS","A project setup object is required.");
+                setup=codecjson::parse(json.as<std::string>());
+            }
+            const auto receipt=session_.temporalCandidatePrepare(
+                temporalHandle(input["sourceId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                text(input["targetMonth"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                text(input["sourceFingerprint"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                commandEpoch(input),setup,text(input["documentId"],"CORE_TEMPORAL_CANDIDATE_ARGS",true));
+            auto result=val::object();
+            result.set("candidateId",receipt.candidateId);
+            result.set("sourceId",receipt.sourceId);
+            result.set("expectedEpoch",receipt.expectedEpoch);
+            result.set("targetMonth",webString(receipt.targetMonth));
+            result.set("sourceFingerprint",webString(receipt.sourceFingerprint));
+            result.set("worldSha256",webString(receipt.worldSha256));
+            result.set("resolvedEntityCount",static_cast<double>(receipt.resolvedEntityCount));
+            result.set("reused",receipt.reused);
+            return result;
+        });
+    }
+    val temporalCandidateInspect(val input) const {
+        return boundary([&] {
+            shape(input,{"candidateId","expectedEpoch"},"CORE_TEMPORAL_CANDIDATE_ARGS");
+            const auto inspected=session_.temporalCandidateInspect(
+                temporalHandle(input["candidateId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),commandEpoch(input));
+            if(!inspected)return val::null();
+            auto result=val::object();
+            result.set("project",val::global("JSON").call<val>("parse",inspected->projectedJson));
+            result.set("world",world(inspected->world));
+            return result;
+        });
+    }
+    bool temporalCandidateDiscard(val input) {
+        return boundary([&] {
+            shape(input,{"candidateId","expectedEpoch"},"CORE_TEMPORAL_CANDIDATE_ARGS");
+            return session_.temporalCandidateDiscard(
+                temporalHandle(input["candidateId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),commandEpoch(input));
+        });
+    }
+    val temporalCandidateAdopt(val input) {
+        return boundary([&] {
+            shape(input,{"candidateId","sourceId","targetMonth","sourceFingerprint","worldSha256",
+                "replacementId","expectedEpoch"},"CORE_TEMPORAL_CANDIDATE_ARGS");
+            std::string delta;
+            const auto adopted=session_.temporalCandidateAdopt(
+                temporalHandle(input["candidateId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                temporalHandle(input["sourceId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                text(input["targetMonth"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                text(input["sourceFingerprint"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                text(input["worldSha256"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                temporalHandle(input["replacementId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
+                commandEpoch(input),&delta);
+            auto result=val::object();result.set("state",documentState(adopted));
+            result.set("delta",delta.empty()?val::null():val::global("JSON").call<val>("parse",delta));
+            return result;
+        });
+    }
     val validateImport(const std::string& input,val baseline) const {
         return boundary([&]{std::optional<std::uint32_t> id;if(!baseline.isNull())id=static_cast<std::uint32_t>(integer(baseline,"CORE_STORAGE_BASELINE"));
             return val::global("JSON").call<val>("parse",session_.validateImport(input,id));});
@@ -608,10 +739,6 @@ public:
     val admitExternalBaseline(std::uint32_t epoch){return boundary([&]{return documentState(session_.admitExternalBaseline(epoch));});}
     val baselineCoverage(std::uint32_t id,const std::string& month) const {return boundary([&]{const auto resolved=session_.baselineWorld(id,month);auto result=val::object();result.set("month",month);result.set("available",resolved.entities.size());return result;});}
     val documentLoadBaseline(std::uint32_t id,const val& setup){return boundary([&]{return documentState(session_.documentLoadBaseline(id,codecjson::parse(val::global("JSON").call<val>("stringify",setup).as<std::string>()),val::global("crypto").call<val>("randomUUID").as<std::string>()));});}
-    val documentTransitionBaseline(std::uint32_t id,const val& setup,std::uint32_t epoch) {
-        return boundary([&]{return commandOutcome(session_.documentTransitionBaseline(id,
-            codecjson::parse(val::global("JSON").call<val>("stringify",setup).as<std::string>()),epoch),session_);});
-    }
     val documentInitialize(val input) {
         return boundary([&]{std::optional<codecjson::Value> features;std::optional<std::string> source;
             if(!input["features"].isUndefined())features=codecjson::parse(val::global("JSON").call<val>("stringify",input["features"]).as<std::string>());
@@ -915,8 +1042,14 @@ EMSCRIPTEN_BINDINGS(pandoeditor_document_session) {
         .function("documentLoad",&WasmDocumentSession::documentLoad).function("storageSnapshot",&WasmDocumentSession::storageSnapshot)
         .function("storageBaselineLoad",&WasmDocumentSession::storageBaselineLoad).function("validateImport",&WasmDocumentSession::validateImport)
         .function("inspectImport",&WasmDocumentSession::inspectImport)
+        .function("temporalSourcePrepare",&WasmDocumentSession::temporalSourcePrepare)
+        .function("temporalSourceStats",&WasmDocumentSession::temporalSourceStats)
+        .function("temporalSourceRelease",&WasmDocumentSession::temporalSourceRelease)
+        .function("temporalCandidatePrepare",&WasmDocumentSession::temporalCandidatePrepare)
+        .function("temporalCandidateInspect",&WasmDocumentSession::temporalCandidateInspect)
+        .function("temporalCandidateDiscard",&WasmDocumentSession::temporalCandidateDiscard)
+        .function("temporalCandidateAdopt",&WasmDocumentSession::temporalCandidateAdopt)
         .function("baselineCoverage",&WasmDocumentSession::baselineCoverage).function("documentLoadBaseline",&WasmDocumentSession::documentLoadBaseline).function("admitExternalBaseline",&WasmDocumentSession::admitExternalBaseline)
-        .function("documentTransitionBaseline",&WasmDocumentSession::documentTransitionBaseline)
         .function("documentInitialize",&WasmDocumentSession::documentInitialize).function("documentSnapshot",&WasmDocumentSession::documentSnapshot)
         .function("captureReplacement",&WasmDocumentSession::captureReplacement).function("rollbackReplacement",&WasmDocumentSession::rollbackReplacement)
         .function("releaseReplacement",&WasmDocumentSession::releaseReplacement)

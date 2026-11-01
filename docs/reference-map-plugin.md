@@ -9,7 +9,8 @@ analysis distribution excludes training code and environments.
 ## Private Work distribution
 
 `tools/reference-analysis/package-private-plugin.mjs` builds from a full source
-SHA already pushed to `origin/work/ui`, paired with its pinned library revision.
+SHA already pushed to `origin/work/ui`, or to an explicitly authorized source
+branch as described below, paired with its pinned library revision.
 It collects the same source/dependency closure as `cloud-probe.mjs`, packages
 verified common source/WASM, English/OSD OCR and place seeds, and lazily fetches
 other requested OCR languages from pinned public library blobs. The pending
@@ -76,6 +77,11 @@ remote snapshots and command lists, and reuse one external candidate path.
    `upload` arguments, including the original ID, expected release ID, archive
    and retired owned paths. Version increases above the actual account version.
    The producer packages a small `release.json` and keeps existing host metadata.
+   When the user explicitly assigns a packaged change to `work/gis` and authorizes
+   the private plugin update, pass `--branch work/gis` to `prepare`. Verify that
+   the current remote plugin's `codeRevision` is an ancestor of the proposed
+   revision before preparing, so the update retains prior packaged work. The
+   default remains `work/ui`; neither mode integrates or pushes another branch.
 
 3. Call Plugin Creator `update_plugin` with the plan's upload arguments. The
    upload overlays files: omit unchanged files only when their identity is

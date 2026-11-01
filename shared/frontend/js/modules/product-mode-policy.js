@@ -2,12 +2,18 @@
 // remain unavailable to the viewer until their effects have been reviewed.
 const viewerOperations = new Set([
   'core.document-load', 'core.document-initialize',
-  'core.document-baseline-coverage', 'core.document-load-baseline', 'core.document-transition-baseline',
+  'core.document-baseline-coverage', 'core.document-load-baseline',
   'core.storage-baseline-load', 'core.document-validate-import', 'core.document-inspect-import',
   'core.document-replacement-capture', 'core.document-replacement-rollback', 'core.document-replacement-release',
   'core.document-state', 'core.document-resolve-world', 'core.document-timeline-cursor',
   'core.document-selection-catalog', 'core.document-presentation-catalog',
   'core.document-selection-apply', 'core.document-selection-snapshot',
+  // Scoped, epoch-checked C++ source/candidate handles; adoption additionally
+  // requires the existing Core replacement capsule and stays atomic.
+  'core.document-temporal-source-prepare','core.document-temporal-source-stats',
+  'core.document-temporal-source-release','core.document-temporal-candidate-prepare',
+  'core.document-temporal-candidate-inspect','core.document-temporal-candidate-discard',
+  'core.document-temporal-candidate-adopt',
 ]);
 
 export function createProductModePolicy(productMode) {

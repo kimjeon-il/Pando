@@ -5,6 +5,7 @@ import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
+import {readBuiltinCountryStoredBytes} from './builtin-country-bytes.mjs';
 import "../shared/frontend/js/workers/gpu-mesh-core.js";
 import { decodePolygonMesh, encodePolygonMesh, POLYGON_MESH_FORMAT_VERSION } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
 import './load-spherical-core.mjs';
@@ -55,7 +56,11 @@ if(physicalMonth){
 const indexPath='assets/data/builtin-world/generated/v1/index.json';
 const index=readJson(indexPath);source(indexPath);
 const countries=index.entities.map(entry=>{
- const file='assets/data/builtin-world/generated/v1/'+entry.file;source(file);return readJson(file);
+ const stored=readBuiltinCountryStoredBytes(entry,relative=>{
+  const file='assets/data/builtin-world/generated/v1/'+relative,bytes=readFileSync(resolve(root,file));
+  inputHashes[file]=sha256(bytes);return bytes;
+ });
+ const country=JSON.parse(gunzipSync(stored));collect(country);return country;
 });
 source('assets/data/territorial-entities/generated/current-world.geojson');
 source('assets/data/physical-land/v1/geometry.json.gz');
@@ -71,7 +76,7 @@ for(const country of countries)for(const row of [...country.timelineRecords.geom
 
 for(const month of [...months].sort()){
  const wanted=selectBuiltinCountries(index,month),ids=new Set(wanted.map(row=>row.entityId));
- const active=countries.filter(row=>ids.has(row.entityId));
+ const active=countries.filter(country=>ids.has(country.entityId));
  const relation=country=>country.timelineRecords.parentRelations.find(row=>temporalContains(row,temporalMonthEnd(month)));
  const needed=new Set();
  for(const country of active){const row=relation(country);if(row?.parentId){needed.add(country.entityId);needed.add(row.parentId);}}

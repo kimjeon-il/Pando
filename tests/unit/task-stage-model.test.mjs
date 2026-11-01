@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import {
   taskTargetRefs,
   taskWorkflowPresentation,
+  editingContextPresentation,
+  shouldShowTaskInputInstruction,
+  taskStagePresentation,
 } from "../../apps/editor/frontend/js/modules/app-task-stage-model.js";
 
 const country = id => ({ id, properties: { entityKind: 'general', name: id } });
@@ -130,4 +133,128 @@ test('country border selection uses country roles while subunit boundary retains
   assert.deepEqual([subunitView.name, subunitView.stage, subunitView.step, subunitView.total],
     ['경계 조정', '경계 편집', 1, 2]);
   assert.equal(subunitView.cards[0].role, '기준 객체');
+});
+
+test('split target is presented in the original card and preview, not a new picking step', () => {
+  const get = resolver([country('DEU'), unit('SUB-1')]);
+  const state = { tool: 'split-territorial-unit', territorialUnitSplitSourceId: 'SUB-1',
+    geometryPreview: { session: null } };
+  const before = structuredClone(state);
+  const view = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([view.name, view.stage, view.step, view.total],
+    ['영역 나누기', '경계 그리기', 1, 2]);
+  assert.deepEqual(view.cards.map(card => [card.role, card.refs.map(ref => ref.id)]),
+    [['나눌 영역', ['SUB-1']]]);
+  assert.deepEqual(taskTargetRefs(state, { territorialEntityById: get }).map(ref => ref.id), ['SUB-1']);
+  assert.deepEqual(state, before);
+  state.geometryPreview.session = { validation: { blocking: false } };
+  const review = taskWorkflowPresentation(state, null, {}, { territorialEntityById: get });
+  assert.deepEqual([review.stage, review.step, review.total], ['분할 확인', 2, 2]);
+  assert.deepEqual(review.cards, []);
+});
+
+test('generic and virtual split sources preserve identity without fictitious selection', () => {
+  const generic = { tool: 'split-generic-feature', genericFeatureSplitSourceId: 'G',
+    genericFeatures: [{ id: 'G' }], geometryPreview: { session: null } };
+  assert.deepEqual(taskWorkflowPresentation(generic).cards[0].refs.map(ref => [ref.domain, ref.type, ref.id]),
+    [['generic', 'feature', 'G']]);
+  assert.deepEqual(taskTargetRefs(generic).map(ref => ref.type), ['feature']);
+  const virtual = { tool: 'split-territorial-unit', territorialUnitSplitVirtualSource: { geometry: {} },
+    geometryPreview: { session: null } };
+  assert.deepEqual(taskWorkflowPresentation(virtual).cards[0].refs, []);
+  assert.equal(taskWorkflowPresentation(virtual).cards[0].placeholder, '현재 영역');
+  assert.equal(editingContextPresentation({ state: virtual, targets: [] }).targetSummary, '현재 영역');
+  assert.equal(taskWorkflowPresentation({ tool: 'split-territorial-unit', geometryPreview: { session: null } }), null);
+});
+
+test('subunit annex keeps its setup/selection/review steps and avoids repeating target information', () => {
+  const get = resolver([country('ROOT'), unit('RECEIVER','subunit','ROOT'), unit('DONOR','subunit','ROOT')]);
+  const selection = {
+    tool: 'draw-territorial-unit', kind: 'entity', editOperation: 'annex',
+    editTargetId: 'RECEIVER', taskLabel: '영역 편입', name: '받는 하위단위',
+    parentId: 'ROOT', sourceKey: 'DONOR', sourceCountryIds: [], stage: 'setup',
+  };
+  const state = {tool: selection.tool, territorySelectionSession: selection, geometryPreview: {session:null}};
+  const snapshot = structuredClone(state);
+  const model = {current:selection,step:1,stageLabel:'객체 정보'};
+  const setup = taskWorkflowPresentation(state,model,{}, {territorialEntityById:get});
+  assert.deepEqual([setup.name,setup.stage,setup.step,setup.total],['영역 편입','가져올 영역',1,3]);
+  assert.deepEqual(setup.cards.map(card=>[card.role,card.refs.map(ref=>ref.id)]),
+    [['넘겨받는 객체',['RECEIVER']]]);
+  assert.deepEqual(taskTargetRefs(state,{territorialEntityById:get}).map(ref=>ref.id),
+    ['RECEIVER','ROOT','DONOR']);
+  assert.deepEqual(state,snapshot);
+  selection.stage='selection';model.step=2;model.stageLabel='영역 선택';
+  const drawing=taskWorkflowPresentation(state,model,{}, {territorialEntityById:get});
+  assert.deepEqual([drawing.stage,drawing.step,drawing.total],['영역 선택',2,3]);
+  assert.deepEqual(drawing.cards,[]);
+  assert.equal(editingContextPresentation({state,targets:[
+    {name:'받는 하위단위'},{name:'상위 객체'},{name:'주는 하위단위'}]}).targetSummary,'받는 하위단위');
+  selection.stage='review';model.step=3;model.stageLabel='생성 확인';
+  state.geometryPreview.session={validation:{blocking:false}};
+  const review=taskWorkflowPresentation(state,model,{}, {territorialEntityById:get});
+  assert.deepEqual([review.name,review.stage,review.step,review.total],
+    ['영역 편입','편입 확인',3,3]);
+  assert.deepEqual(review.cards,[]);
+});
+
+test('ordinary creation retains its existing setup label and no annex card',()=>{
+  const selection={kind:'entity',tool:'draw-territorial-unit',stage:'setup',name:'새 객체',
+    parentId:'ROOT',sourceKey:'DONOR',sourceCountryIds:[]};
+  const model={current:selection,step:1,stageLabel:'객체 정보'};
+  const view=taskWorkflowPresentation({tool:selection.tool,territorySelectionSession:selection,geometryPreview:{session:null}},model);
+  assert.deepEqual([view.stage,view.step,view.total,view.cards.length],['객체 정보',1,3,0]);
+});
+
+test('hydro vertex editing shows its own stage and selected target without mutating geometry state', () => {
+  const state = { tool: 'select', geometryPreview: { session: null } };
+  const editing = { objectVertexEditing: { domain: 'hydro', type: 'river', id: 'river-1' } };
+  const before = structuredClone({ state, editing });
+  const context = editingContextPresentation({
+    state, editing, month: '2026-10', targets: [{ name: '실제 강' }], mobile: true,
+  });
+  assert.equal(context.stage, '좌표 편집');
+  assert.equal(context.targetSummary, '실제 강');
+  assert.equal(context.period, '변경 기간 계산 전', 'do not fabricate an impact period');
+  assert.equal(shouldShowTaskInputInstruction({ state, editing, mobile: true }), true);
+  assert.equal(shouldShowTaskInputInstruction({ state, editing, mobile: false }), false);
+  assert.deepEqual({ state, editing }, before);
+  assert.equal(editingContextPresentation({ state, targets: [{ name: '실제 강' }] }).stage, '초안',
+    'other tool workflows retain their stage');
+});
+
+test('accepted hydro preview avoids inactive draft warning while pending and invalid stay visible', () => {
+  const geometry = { type: 'LineString', coordinates: [[0, 0], [1, 1]] };
+  const multi = { kind: 'hydro', parts: [], current: { geometry },
+    previewPending: false, previewIssues: [], previewGeometry: geometry };
+  const state = { tool: 'river', multiDraft: multi, geometryPreview: { session: null } };
+  const options = {
+    state, selection: null, selectionModel: null,
+    draft: { coords: [], issues: [], strokeActive: false },
+    toolbar: { complete: false, editable: false },
+    primaryDisabled: false, draftDisabled: true,
+    boundaryAnalysis: null, boundaryPending: false, boundaryFailed: false,
+    calculating: false, busy: false, cutLineMode: false, cutLineReady: true,
+    mergeTargetMode: false, genericMergeMode: false, unitMergeMode: false,
+    unitRedrawMode: false, hydroReview: true, hydroCount: 1,
+  };
+  const accepted = taskStagePresentation(options);
+  assert.equal(accepted.status, 'editable');
+  assert.equal(accepted.reason, '');
+
+  multi.previewPending = true;
+  const pending = taskStagePresentation({ ...options, primaryDisabled: true });
+  assert.equal(pending.status, 'preparing');
+  assert.equal(pending.reason, '그린 영역을 확인하는 중입니다.');
+
+  multi.previewPending = false;
+  multi.previewIssues = [{ severity: 'error', message: '유효하지 않은 경로' }];
+  const invalid = taskStagePresentation({ ...options, primaryDisabled: true });
+  assert.equal(invalid.status, 'invalid');
+  assert.equal(invalid.reason, '유효하지 않은 경로');
+
+  multi.previewIssues = [];
+  const ordinary = taskStagePresentation({ ...options, hydroReview: false });
+  assert.equal(ordinary.status, 'needs-target', 'other draft workflows still require completion');
+  assert.notEqual(ordinary.reason, '');
 });

@@ -2,6 +2,10 @@
 
 # Python 완전 제거 로드맵 — 판도연구소
 
+> **2026-10-31 DEM 진행:** 영역 평균·경도 래핑·극지 행 클램프·NoData 및 범위 판정을 GDAL C++ 스트리밍 판독기로 옮기고 기존 생성·극지 보정 경로에 연결했다. 좌표계와 43,200×21,600 격자 확인은 합성 희소 TIFF로 수행했으며, 고정 Rasterio 결과와 작은 합성 자료를 비교했다. [Windows/Linux CI 41170497377](https://github.com/kimjeon-il/Pando/actions/runs/41170497377) 및 Windows 생성기 연결 검사가 통과했다. ETOPO 보존 원본을 아직 확보하지 못해 실제 원본과 LOD 0–5 전체 비교는 미완료이며 DEM 생성기의 나머지 Python도 계속 전환해야 한다.
+
+> **2026-10-31 DEM 타일 경계:** 기존 Python 결과를 고정한 서로 다른 크기의 합성 타일에서 날짜변경선·극지·모서리와 재실행 안정성을 C++ 픽셀 계산 및 Node 관리 경로로 대조했다. [Windows/Linux 픽셀 CI 41171207229](https://github.com/kimjeon-il/Pando/actions/runs/41171207229)와 Windows WebP 픽셀 왕복·생성기 연결 검사가 통과했다. 원본 타일이 검사 중 바뀌면 중단하고, 전체 운영 지형 자료는 생성하거나 수정하지 않았다. 전체 규모 처리 시간과 실제 LOD 자료 비교는 미검증이다.
+
 > **기준:** 2026-10-25, `work/gis` 커밋 `61aa02a9fd098237f7ced6601db76ab4f94eeb65`  
 > **상태:** 구현 전 계획. 이 문서 작성은 코드·자료·CI 변경을 뜻하지 않음.  
 > **대상:** 저장소에 추적된 Python `.py` **101개 전수**. 5개 전환 묶음에 누락·중복 없이 분류함.  
@@ -9,9 +13,11 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-10-30 현행 기준: 추적 Python 31개
+### 2026-10-31 현행 기준: 추적 Python 25개
 
-- **QGIS 프로젝트 저장 이행 중:** 네이티브 CLI/MCP가 현재 이름이 지정되고 실제 파일이 있는 프로젝트만 명시적으로 저장하는 경로를 추가했다. 다른 출력 경로는 받지 않으며 레이어 편집 버퍼를 커밋하지 않는다. Node 전송·CLI·MCP 검사 19개와 [Windows CI 41086672994](https://github.com/kimjeon-il/Pando/actions/runs/41086672994)가 통과했다. QGIS 3.44.15 한 창에서 이름 없는 프로젝트와 파일이 사라진 프로젝트 저장을 거부하고, 별도 빈 시험 프로젝트의 EPSG:3857 변경을 저장 파일에서 확인했다. 편집 중인 합성 GeoJSON 레이어가 있는 프로젝트를 저장해도 편집 버퍼와 원본이 보존되고 롤백되는 것도 실제 확인했다. 시험에 사용한 복사 원본의 해시도 보존됐다. 기존 Python 연결은 유지한다.
+- **QGIS 네이티브 연결 전환:** 실제 사용했던 프로젝트 레이어 출처·편집 상태 조회를 네이티브 프로젝트 및 레이어 목록에 추가했다. 출처는 QGIS의 `publicSource()`를 사용해 인식된 자격 증명을 제거한다. [Windows CI 41144046823](https://github.com/kimjeon-il/Pando/actions/runs/41144046823)과 QGIS 3.44.15 한 창에서 출처·편집 상태·롤백을 확인했다. 실제 MCP의 인증 거부·편집·Undo/Redo·롤백·출력 덮어쓰기 거부와 한글·따옴표 파일 경로, EPSG:3857 클립, QGIS→판도 편집기→QGIS의 선·폴리곤 및 출처 왕복이 통과했다. Codex QGIS 연결을 네이티브 MCP로 전환하고 기존 Python 브리지·부트스트랩·대응 테스트를 제거했다. 현재 열려 있는 채팅은 MCP 연결 새로 고침이 필요할 수 있다. 이는 합성 입력의 기능 검증이며 모든 QGIS 좌표계나 처리 알고리즘 검증은 아니다.
+
+- **QGIS 프로젝트 저장:** 네이티브 CLI/MCP가 현재 이름이 지정되고 실제 파일이 있는 프로젝트만 명시적으로 저장한다. 다른 출력 경로는 받지 않으며 레이어 편집 버퍼를 커밋하지 않는다. Node 전송·CLI·MCP 검사 19개와 [Windows CI 41086672994](https://github.com/kimjeon-il/Pando/actions/runs/41086672994)가 통과했다. QGIS 3.44.15 한 창에서 이름 없는 프로젝트와 파일이 사라진 프로젝트 저장을 거부하고, 별도 빈 시험 프로젝트의 EPSG:3857 변경을 저장 파일에서 확인했다. 편집 중인 합성 GeoJSON 레이어가 있는 프로젝트를 저장해도 편집 버퍼와 원본이 보존되고 롤백되는 것도 실제 확인했다. 시험에 사용한 복사 원본의 해시도 보존됐다.
 
 - **매크로 경계 감독 마스크:** 서로 다른 국가 색상의 인접 경계와 유효 내부, 경계 확장을 공통 C++ 영상 도구로 옮겼다. 기존 Pillow와 합성 입력 40건이 일치했고 [Windows/Linux CI 41066985654](https://github.com/kimjeon-il/Pando/actions/runs/41066985654)의 네이티브 검사도 통과했다. 보존 지도 한 건의 2560×1463 감독·유효 마스크도 이전 결과의 모든 픽셀과 일치했다(원시 픽셀 SHA-256 각각 `0ef709d6160440d618d58a6f117070015cf5454486343a52aaee9bb313336caa`, `f044933207fb46a376ad31d69d9cf38c43f23e1dea3e96d36deb4ee6eb8c5cdc`). 이는 학습용 지도 한 건의 계산 비교이며 독립 모델 평가가 아니다. 나머지 매크로 생성과 Python 호출자는 계속 전환해야 한다.
 
@@ -22,6 +28,11 @@
 - **검토 주석 계산 통합:** Python 코퍼스가 기존 Node/C++ 검토 주석 검증기를 호출하도록 바꾸고 중복 Pillow 마스크 구현을 제거했다. [Windows/Linux CI 41073047871](https://github.com/kimjeon-il/Pando/actions/runs/41073047871), 실제 검토 주석 `pakistan-urdu` 한 건의 기존 승인 및 비블라인드 거부, 합성 큰 선폭의 Pillow 비교 12건이 통과했다. 주석 SHA-256은 `5f4bf051e4139386b9a94f775592adc049198668a457a2b1ff09755f9495b994`이다. 폭 65,536픽셀·선폭 100,000도 작은 창으로 검증했으며, 네이티브 원본 한 변은 최대 1,000,000픽셀, 선폭은 최대 2,145,483,647픽셀로 제한된다. 코퍼스와 학습 실행기의 나머지 Python은 계속 남아 있다.
 
   코퍼스 지문과 학습·검증 노출의 계보 판정도 Node 정본으로 연결해 중복 Python 계산을 제거했다. 합성 원본의 단일·결합 지문, 주석 변경 감지, 조상·가족·검증/시험 분리 및 누락 식별자 거부와 기존 Python 호출자를 확인했다. 보존 검토 코퍼스 한 건의 지문 `b4485e82f9a4df9b78a3f4b46e1f6af342f4d56fce3c4e5e1619a33880a09a6f`, 그 코퍼스와 선택 매크로 코퍼스의 결합 지문 `cfa6f9608307466f0acf1aee308ce417f7d1fef6b5aa1b083c4455154e06a281`은 이전 Python과 같다. 지문은 1GiB 제한 없이 스트리밍하고 다른 체크포인트·증거 호출의 기존 1GiB 한도는 유지한다. 1GiB 초과 원본의 실제 비교는 수행하지 않았다.
+  검토·학습 코퍼스의 공통 메타데이터, 출처·언어, 가족/판본/중복 원본의 분할 검사와 평가용 언어·문자·지도 종류 묶기도 기존 Node 코퍼스 소유자로 통합했다. Python 호출자에서 중복 판정을 제거하고 합성 코퍼스의 누출·경로·언어 거부와 PDF 출판·매크로 라벨의 위조 거부를 확인했다. 보존된 `pakistan-urdu` 한 건의 원본·주석 검증과 `color/Arabic/urd` 묶음도 확인했고, [Windows/Linux 코퍼스 CI 41147789747](https://github.com/kimjeon-il/Pando/actions/runs/41147789747)이 통과했다. 학습 실행기의 나머지 전환은 별도로 남아 있다.
+  출판사 PDF의 생성기 식별자·원본과 메타데이터 해시·권리 확인도 같은 Node 소유자로 옮겼다. 합성 출판사 PDF에서 기존 Python 호출과 위조된 생성기·권리 거부를 확인했다. 래스터 검증과 출판 생성기의 나머지 Python은 유지한다.
+  매크로 지도도 원본·메타데이터 해시, 판본·지리적 범위와 렌더러 출처 판정을 같은 Node 경로로 옮겼다. 합성 PDF에서 범위 위조와 감독 마스크 위조가 기존 Python 호출을 통해 거부되는지 확인했다. 매크로 감독 계산과 재생성 검증의 나머지 Python은 남아 있다.
+  코퍼스 이미지 원본 해시 확인도 검토 코퍼스와 동일한 Node 판독을 사용한다. 코퍼스 원본 변조·경로 이탈 거부, 합성 출판 PDF의 Python 호출 및 기존 검토 주석 경로를 확인했다. 해시는 파일을 전체 메모리에 적재하지 않고 읽는다.
+  출판·매크로 학습 래스터의 그레이스케일·크기·해시·미관측 채널 검사도 행 단위 C++ 영상 도구와 Node로 옮겼다. 기존 Python 호출에서 합성 PDF의 래스터 및 채널 위조가 거부됐고, 4097×4097 일반·Adam7 PNG와 원본 창 검사도 확인했다. 입력은 기존 학습 경로와 같은 PNG·원본당 300MiB, 6억 픽셀 한도를 적용하며, 학습·코퍼스 생성기의 나머지 Python은 남아 있다.
 
 - **QGIS 레이어 확대:** 네이티브 플러그인의 레이어 활성화·확대를 Node CLI와 MCP에 연결했다. [Windows CI 41058486015](https://github.com/kimjeon-il/Pando/actions/runs/41058486015)에서 빌드와 연결 검사를 통과했다. QGIS 3.44.15 한 창에서 합성 피처 두 개를 가진 레이어로 1:100,000,000에서 1:992,042로 확대되는 것과 알 수 없는 ID 거부를 확인했다. 기존 시험 프로젝트는 저장 후 정상 종료하고 같은 전용 프로필을 재사용했다. 나머지 실제 사용 기능과 Python 연결 제거는 미완료다.
 
@@ -46,6 +57,8 @@
   코퍼스 해시가 실제 영수증과 같은 CUDA 체크포인트 `2471e50fdccfd7fa6d6b3992b15470ab222c186804b94fd4a564a979b333a430`와 매크로 자료 `4c25eb7ab89389158ec8f8811769a20fb3687a6d08bc9a9e7932ffe3b8b094ff`에서, 명시적으로 선택한 원본의 출처·해시·변경 여부를 확인한 뒤 타일 8 `(1344,448)`을 선택해 추론·통계·JPEG까지 연결했다. `--macro-source` 명령으로 별도의 새 폴더에 JSON과 JPEG를 기록하고 바이트를 확인했으며 JPEG는 위와 같은 SHA를 갖는다. 서로 다른 코퍼스 영수증과 기존 출력 폴더는 실행 전에 거부한다. 이 제한된 매크로 단일 원본 경로는 전체 진단 명령이나 독립 평가를 대체하지 않는다.
 
   이후 생성되는 C++ 학습 영수증은 가중치 이행 영수증에 기록된 원본 체크포인트 SHA와 실제 초기 가중치 SHA를 기록하고, 재개 시 그대로 전달하며 입력 영수증이 실행 중 바뀌면 거부한다. 실제 보존 가중치와 매크로 자료로 CUDA 한 배치 및 재개 한 배치를 실행해 두 식별값과 커서 1→2를 확인했다. 첫 배치는 AMP 오버플로로 업데이트가 건너뛰어졌고 두 번째 배치는 적용됐다. 초기 식별값이 없는 기존 체크포인트도 실제 재개했으며 알 수 없는 값은 추측하지 않고 `null`로 남긴다. 이 식별값은 아직 기준 모델 비교 경로 전체나 완전한 학습 계보의 승인 근거가 아니다.
+
+  검증된 매크로 학습 순서와 배치 실행을 `native-training-sequence.mjs`에서 연속 실행하고 매 배치의 새 체크포인트와 영수증을 남긴다. 실제 보존 macro-v6 가중치와 선택한 CIA 지도에서 CPU와 CUDA 각각 증강 배치 두 개를 실행한 뒤 첫 체크포인트에서 두 번째 배치를 다시 재개했다. 장치별 재개 대조에서 등록 텐서는 CPU 345개·CUDA 346개, optimizer 상태 32개, 202개 파라미터의 학습 가능 상태, 267개 모듈 상태 및 샘플 순서가 일치했다. 입력 거부·출력 보존 검사는 [Windows/Linux CI 41169759345](https://github.com/kimjeon-il/Pando/actions/runs/41169759345)에서 확인했다. 커서는 14개 중 2개이며 한 epoch 전체, 독립 평가와 모델 승인은 수행하지 않았다. 입력 모델의 이행은 optimizer가 없는 가중치 초기화이고 새 체크포인트 재개와 구분한다.
 
   위 새 영수증에 기록된 Safetensors 초기 가중치만 `--baseline-weights` 비교로 허용하고 다른 가중치와 식별값이 없는 구 영수증은 거부한다. 합성 모델의 C++ 체크포인트·초기 가중치 추론과 거부 사례는 [Windows/Linux CI 41052013392](https://github.com/kimjeon-il/Pando/actions/runs/41052013392)에서 확인했다. 실제 보존 초기 가중치와 선택 타일의 CUDA 확률은 기존 PyTorch 모델과 최대 차이 0, 임계값 판정 차이 0이었다. 같은 코퍼스의 새 학습·재개 체크포인트로 4패널 JPEG와 전후 통계를 기록했고 JPEG SHA-256은 `d66f941735e3ebd36647891ec1155321ad0a971a946c13872fa62495035e07f6`이다. 이는 한 학습 타일의 기능 비교이며 정확도 개선이나 독립 평가가 아니다. 검토 코퍼스·다수 원본·전체 학습/평가 명령과 기존 Python 종료는 계속 남아 있다.
 
@@ -72,12 +85,50 @@
   Node에서 고정 원본 pin·캐시 확인, 타일 조립·마스크·합성·WebP 인코딩, manifest 생성·검증과 독립 출력 저장을 처리한다. 기존 파일 덮어쓰기와 변조된 캐시를 거부한다. 고정 원본으로 기존 미리보기 8개를 한 번 재현해 총 타일 4,454,932바이트와 manifest SHA-256 `def32b86bebf84a24ceecaf68caac7a8d711b4bb355115f983d5d98e3d87a870`이 기존 Python 산출물과 일치했다. 실제 운영 자료는 수정하지 않았다. 기존 생성기·대응 Python 테스트와 해당 Python 실행 호출을 제거하며 DEM 전체 생성기는 여전히 미완료다.
   DEM 완성본 검증은 Node 실행 관리, C++ 픽셀·gutter 검사와 GDAL 원본 표본 판독으로 전환했다. [Windows/Linux native CI 41028995341](https://github.com/kimjeon-il/Pando/actions/runs/41028995341)에서 기존 Python의 채널·양자화 사례와 실패를 확인했고, 고정 실 DEM 타일 694,602픽셀의 불투명도·음영 검사가 기존 Python과 일치했다. 합성 GeoTIFF·타일·tint·참조로 전체 검증 명령의 결과를 Python과 비교했다. 운영 DEM 전체 검사나 재생성은 실행하지 않았다.
   DEM 생성기의 고도 인코딩·음영·극지 gutter 계산은 소스 확인된 C++ 도구로 연결하고 기존 Python 수치 계산을 제거했다. [Windows/Linux CI 41030025755](https://github.com/kimjeon-il/Pando/actions/runs/41030025755)에서 고정 입력 9종이 기존 Python과 일치했고, 고정 DEM 타일에서 복원한 정수 고도 128×128의 음영·RGBA도 각각 SHA-256 `4bf5e9ed284cccdd14c4f6165b101cdb418c648a229f0ed10f3b6cbaa6fa4795`, `2f114dc1a290e5bf55f950cf0a43d00f3d279774a5df7d538f8710f74e5c9a83`으로 일치했다. 이는 기존 타일에서 추출한 고도의 비교이며 원본 ETOPO 실자료 전체 검증은 아니다. GDAL 원본 창·tint·생성 관리의 Python 이전은 남아 있다.
+  tint의 최근접 색 채우기는 GDAL 3.9 이상 C++ API로 옮기고 Python의 기존 계산을 제거했다. [Windows/Linux CI 41147142883](https://github.com/kimjeon-il/Pando/actions/runs/41147142883)과 로컬 Windows GDAL 3.13.3에서 경도 경계, 소수점 짝수 반올림, 손상 입력 및 기존 Python에서 고정한 결과를 비교했다. 전체 tint 생성기는 여전히 Python이며 실제 원본의 추가 비교는 별도 확인이 필요하다.
+  LSIB 화면 차이의 방향별 선분 최근접거리·0.001도 표본 계산은 기존 GEOS C++ 엔진과 Node 실행기로 옮기고 Python의 중복 계산을 제거했다. [Windows/Linux CI 41148612023](https://github.com/kimjeon-il/Pando/actions/runs/41148612023)의 합성 5종 양방향과, 해시를 확인한 보존 LSIB 원본 `4990410a-4158-4932-8445-90397c840a87` 한 선분(원본 1,223점과 시험용 축약 176점)의 양방향 표본 수·거리도 기존 Python과 일치했다. 시험용 축약선은 운영 형상이나 역사 검증이 아니다. LSIB 출처 처리와 전체 실행기의 Python은 남아 있다.
+  화면 검사의 구간 선택도 GEOS로 옮겨 Python의 NumPy 의존 계산을 제거했다. [Windows/Linux CI 41149470663](https://github.com/kimjeon-il/Pando/actions/runs/41149470663)의 폴리곤·다중 폴리곤·구멍·폐곡선 고정 사례와 보존 AUT–LIE 원본 `c133c4d6-bf4f-489d-b51e-abf2be55d369`의 참조 2,464점·기존 표시 구간 92점이 기존 Python 선택과 일치했다. 기존 출력 보고서와 실패 진단은 덮어쓰지 않는다. 이는 기존 자료에 대한 기능 비교이며 역사 경계 승인이나 형상 변경이 아니다. 보고서 조립 등 실행기의 Python은 남아 있다.
+  같은 화면 검사의 ZIP·SHP 출처 읽기는 원본 SHA-256을 확인하는 Node/GDAL 경로와 GEOS 선 병합으로 옮겼다. 원본 ZIP `1eb5af7e80fce60e48d27eba80ae81fd2b25c9cf59f4f4e2efc89c06ad57490a`에서 AUT–LIE 한 선을 선택해 기존 17개 속성과 2,464개 좌표가 일치함을 확인했고, 해당 구간의 선택과 양방향 거리·표본 수도 기존 Python과 같았다. ZIP 전체를 추출하거나 운영 형상을 갱신하지 않았다. 실제 ZIP 판독은 Windows에서 확인했으며 Linux 실제 ZIP 판독과 전체 보고서 조립 전환은 남아 있다.
+
+  후속으로 보고서 조립과 실행 명령을 Node로 전환하고 Python 실행기를 제거했다. 고정 사례의 구멍·폐곡선·참조 출처·허용 한도 초과 및 기존 출력 보호와 보존된 IGM·모나코 참조선의 좌표를 비교했다. AUT–LIE 원본 한 구간의 전체 실행에서 표본 2,887개와 최대 차이 `0.18131739355200677` CSS 픽셀이 기존 결과와 같았다. 이는 기능 동등성 확인이며 역사 경계 승인이나 운영 자료 변경이 아니다. 실제 ZIP 판독은 Windows에서만 확인했으며 Linux 실자료 검증은 남아 있다.
+  LSIB 보충 생성기의 특수선·분쟁·불확실 구간 제외 판정도 Node에서 입력 전체를 한 번에 처리한다. 순위·상태·분쟁 우선순위와 합성 메모 사례, 보존 원본 선 2개의 결과가 기존 Python과 같았고, 합성 엔클레이브·해안 후보 생성 호출도 확인했다. 영토 형상의 역사 승인이나 운영 자료 변경은 아니다.
+  보충 생성기의 LSIB ZIP·SHP 판독도 기존 고정 SHA 확인 Node/GDAL 판독과 GEOS 선 병합으로 연결했다. 선택한 AUT–LIE 원본 한 선의 속성과 2,464개 좌표가 Python 호출을 거쳐 기존 값과 일치했다. 전체 ZIP 생성과 모든 형상 비교는 실행하지 않았고, Natural Earth 분쟁선 판독과 형상 보충의 Python은 남아 있다.
+  모나코의 검토된 고수위 해안 출처·형상 검증도 기존 Node/GEOS 검증기를 보충 생성기에 연결했다. 보존된 세 해안선과 전체 출처 메타데이터가 이전 Python 결과와 같았고 합성 자료의 해시 위조·수위 불일치 및 후보 생성 경로를 확인했다. 출처는 라이브러리의 `tools/historical-library/sources` 내부만 허용한다.
+  산마리노 IGM 예외도 같은 Node/GEOS/PROJ 검증기로 옮겨 Python의 별도 출처 판독·투영 구현을 제거했다. 보존 원본의 2,233개 좌표와 출처·좌표변환 설명 및 정확도가 이전 Python과 일치하고, 합성 예외 후보의 귀속과 출처를 확인했다. 이는 자료 기능 비교이며 역사 형상 승인이나 운영 자료 변경이 아니다.
+  보충 선의 교차점 선택, 기존 양끝 유지·상세 구간 단순화와 자가 교차 거부는 GEOS C++로 옮겨 후보별 계산을 일괄 처리한다. 교차·역방향·겹침·보간·교차점 부재의 고정 사례와 선택한 AUT–LIE 92점 구간이 기존 Python 결과와 일치했고, 실행기 부재는 숨기지 않고 오류로 전달한다. 전체 국경 생성이나 역사 승인 검사는 수행하지 않았다.
+  기존 국가 경계 링에 새 구간을 적용하는 계산도 GEOS C++로 옮겼다. 양쪽 반대 방향의 공유 경계, 폐곡선의 시작점·방향, 구멍 보존과 끝점 삽입의 고정 사례 및 선택한 AUT–LIE 원본 형상이 기존 Python과 같았다. 두 국가 적용은 한 번에 처리하며, 거부된 형상과 실행기 장애를 구분한다. 기존 위상·면적·귀속 검증의 Python은 남아 있다.
+  이어서 국가의 유효성, 겹침, 육지 합집합과 구성 요소·구멍·귀속 보존 검증도 GEOS C++로 옮겼다. 기존 Python의 합성 승인·거부 9개와 AUT–LIE 선택 형상, 두 내륙국·모나코 합성 호출이 일치했다. 입력 국가 순서와 명시적으로 검토된 해안 예외를 보존하며, 이 검증은 역사 경계의 독립 승인이 아니다.
+  국가 사이의 공유 선분 수집·병합도 C++로 이전했다. 국가 입력 순서, 선분 방향과 세 국가 이상이 겹친 선의 제외를 기존 Python 합성 사례와 비교했고, 선택한 AUT–LIE 두 국가의 공유선 좌표도 일치했다. 삼국 접점과 내륙국의 합성 보충 호출은 확인했으며 전 세계 공유선 재생성은 하지 않았다.
+  내륙국의 전체 공유 경계 교체도 기존 네이티브 공유선·링 교체·귀속 검증을 하나로 묶었다. 합성 정상·거부 사례와 선택한 산마리노 IGM 원본 2,233점에 대해 두 국가 형상과 결과 메타데이터가 기존 Python과 일치했으며, 기존 Python 호출에서도 확인했다.
+  삼국 접점의 다섯 구간 선택·교체 및 공유 위상 검증을 한 번의 네이티브 호출로 묶었다. 기준점 부재와 접점 단절 거부를 포함한 합성 사례, 선택한 AUT·LIE·CHE 세 국가와 세 원본 경계선의 출력 형상 및 다섯 구간 메타데이터가 기존 Python과 일치했다. [Windows/Linux CI 41157767833](https://github.com/kimjeon-il/Pando/actions/runs/41157767833)은 합성 사례를 확인했으며 실자료 비교는 Windows에서 수행했다. 전체 생성 실행기의 Python은 남아 있고, 이 비교는 역사 형상 승인이 아니다.
+  FRA–MCO 해안 보충의 기준점 선택, 해안선 교체, 육지·귀속·공유 경계 검증도 네이티브 처리로 묶었다. 기준점 부재, 과도한 접점 이동과 존재하지 않는 교차점의 거부 및 원본 불변을 합성 사례로 확인했고, 선택한 FRA·MCO 국가 형상과 LSIB 선 1개·IGN 해안선 3개의 출력 좌표, 위상과 네 구간 영수증은 기존 Python 결과와 같았다. GEOS 버전에 따라 폴리곤·링 순서가 달라지는 부분은 좌표를 유지한 채 비교했다. [Windows/Linux CI 41158466945](https://github.com/kimjeon-il/Pando/actions/runs/41158466945)는 합성 사례를, 실제 자료는 Windows에서 확인했다. 원본 비교에 사용한 자료 핀은 `139941d8056418547c796068304ba8db3696fe69`이며 이후 마운트는 새 핀으로 갱신했다. 운영 자료 변경이나 역사 형상 승인은 수행하지 않았다.
+  명시적으로 선택한 검토 후보의 원본·해시·귀속·출처 조립을 Node로 옮겼다. 실행은 `node tools/gis/lsib-targeted.mjs --target AUT/LIE --output <새 후보 파일>`처럼 대상과 새 출력 파일을 지정하며, 기존 출력을 덮어쓰지 않는다. 선 합집합·병합은 GEOS가 담당하며 연결·겹침·분기·분리 합성 사례와 [Windows/Linux CI 41158943977](https://github.com/kimjeon-il/Pando/actions/runs/41158943977)을 확인했다. 여러 내륙국·삼국 접점·모나코를 묶는 합성 후보 및 실제 AUT–LIE–CHE 후보의 국가 세 개와 다섯 구간은 이전 Python 결과와 일치했다. 실제 후보 비교에 사용한 자료 핀은 `c73d3f562d35f92d749458c9890bec02875ff605`이며 운영 자료는 변경하지 않았다. 미선택 전체 국가 보충과 원본 보관 실행은 여전히 Python이다.
+  미선택 전체 보충이 소비하는 Natural Earth 분쟁선 SHP·DBF 판독을 Node와 기존 GEOS 선 병합에 연결했다. 형식 3·13·23, 빈 레코드, UTF-8 속성 및 잘린 파일 거부를 합성 사례로 확인했으며, 보존된 분쟁선 파일의 75개 레코드 속성과 좌표가 기존 Python 파서와 일치했다. 전체 세계 국경 생성은 실행하지 않았다.
+  분쟁선의 0.15도 완충·교차 판정과 0.25도 참조선 선택·폐곡선 거부는 C++로 묶어 기존 생성기에 연결했다. 고정 사례와 선택한 AUT–LIE 원본 및 분쟁선 75개에서 기존 Python 판정이 같았고, 실행기 부재·인접 선 없음·닫힌 선 거부를 확인했다. [Windows/Linux CI 41160374554](https://github.com/kimjeon-il/Pando/actions/runs/41160374554)와 [41160717679](https://github.com/kimjeon-il/Pando/actions/runs/41160717679)에서는 합성 사례를, 실제 선택 자료는 Windows에서 검사했다. 전체 세계 국경 생성은 실행하지 않았다.
+  미선택 보충의 국경별 선택·보류·양쪽 귀속 검증과 후보 조립을 Node/C++로 전환했다. 정상 보충과 분쟁·불확실·특수선·보호 국가쌍·원거리·폐곡선·짝 없는 선 8개 합성 사례가 기존 Python 결과와 일치했고, 선택한 실제 AUT–LIE 구간도 안전한 교차점이 없어 보류되는 이전 결과와 같았다. 후보의 `sourceRevision`은 과거 고정 문자열 대신 실제 자료 핀을 사용한다. 전체 세계 자료 생성·전체 ZIP 판독 동등성은 확인하지 않았다.
+  ZIP 내부 SHP·DBF·설명서와 체크섬의 판독·CRC·SHA256 계산은 기존 Node ZIP 정본으로 합쳐 Python `zipfile` 중복을 제거했다. 합성 중첩 ZIP의 손상 거부와 실제 고정 ZIP의 네 개 해시 및 원본 설명서·체크섬 바이트를 확인했다. 기존 보관된 텍스트 사본은 줄바꿈이 LF로 정규화되어 있으므로 ZIP 원문 바이트와 구분한다. 원본 보관 실행기도 `node tools/gis/lsib-untargeted.mjs --archive <ZIP> --disputed-directory <원본 폴더> --evidence-directory <새 폴더> --output <새 후보 파일>`로 전환했고 기존 파일 덮어쓰기를 거부한다. 생성 master는 기존 Python의 JSON·gzip 인코딩과 바이트가 다를 수 있어 의미와 해시를 별도로 기록하며 자동 자료 핀 갱신은 없다. 전체 자료 재생성은 하지 않았다.
 
   DEM tint의 육지·눈·빙하 색상 기증 판정도 네이티브 계산에 연결했다. [Windows/Linux CI 41032868914](https://github.com/kimjeon-il/Pando/actions/runs/41032868914)의 고정 사례와 소스 일치 실행 파일을 확인했고, [41033249980](https://github.com/kimjeon-il/Pando/actions/runs/41033249980)에서 생성기 연결을 확인했다. 보유 tint에서 선택한 128×128 색상과 합성 육지·빙하 마스크를 적용한 판정 16,384개는 기존 Python과 같았으며 SHA-256은 `8161e7b2d1b1155ecfdc8c1896a82eac5fffa60824f19dd81f4548d84466049c`이다. 이 비교는 전체 원본 재생성이나 실제 육지·빙하 마스크 검증이 아니다. 원본 창 판독, 배경 채우기 및 생성 관리는 아직 Python이다.
   생성과 검증의 타일·tint 해시 집계는 Node의 같은 계산을 사용한다. 합성 타일의 순서·바이트·파일 누락과 생성기·검증기 연결을 확인했으며, 보유 DEM 타일 한 장과 tint의 기존 집계 결과는 `370c3f63931b08cddbd753283c709815c8bc11c0ae9978eaad3ecf5ee5093d3d`로 일치했다. [생성 CI 41035148153](https://github.com/kimjeon-il/Pando/actions/runs/41035148153)과 [검증 CI 41035161783](https://github.com/kimjeon-il/Pando/actions/runs/41035161783)이 Windows·Linux에서 통과했다. 운영 자료 전체를 재해시하지 않았다.
   생성기의 단일 원본·산출물 SHA-256도 검증기와 같은 Node 스트리밍 판독으로 옮겼다. 합성 파일과 보유 DEM 타일 791,060바이트의 해시 `eccbdfea15371f054fdefac4774442b1519151b1dda638a01bdb1974bde5de9f`가 이전 Python 결과와 일치했고, [Windows/Linux CI 41035784510](https://github.com/kimjeon-il/Pando/actions/runs/41035784510)이 통과했다.
 
-`work/gis` 현행 기준: 도구 18개, 테스트 13개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+  물리 지형의 외곽 육지 마스크는 기존 C++ 지형 마스크 정본으로 옮겨 국가·호수 외곽을 채우고 내부 구멍을 채우는 기존 동작을 유지했다. 날짜변경선 밖의 부분 픽셀을 제외하는 회귀 사례와 기존 생성기 호출은 [Windows/Linux CI 41165232582](https://github.com/kimjeon-il/Pando/actions/runs/41165232582)에서 통과했다. 선택한 실제 국가 3개와 호수 2개의 720×360 마스크 259,200픽셀은 Python과 일치하며 SHA-256은 `cc6046314e28b654e07e53e38acf5116ea7b9578e59ab5e5116b34fc078f5d31`이다. 전체 국가·호수 재생성 및 물리 지형 타일 전환을 검증한 것은 아니다.
+
+  물리 타일의 육지·해저 마스크 합성, RGBA 조립과 1픽셀 gutter는 같은 네이티브 지형 도구에 묶고, 한 단계의 타일에서 검증된 프로세스 하나를 재사용한다. 알파 0–255, 극지·날짜변경선·타일 모서리의 Pillow 고정 픽셀, 연속 요청·잘린 입력·기존 생성기 호출은 [Windows/Linux CI 41166268426](https://github.com/kimjeon-il/Pando/actions/runs/41166268426)에서 확인했다.
+
+  WebP 저장은 기존 공통 C++ 인코더로 전환하고 RGB·L 래스터의 Lanczos 크기 조정은 같은 공통 계산을 재사용하도록 연결했다. 다른 모드는 명시적으로 거부한다. 작은 2단계 전체 생성과 투명 픽셀·원본 및 기존 출력 보존, RGB/L 고정 리샘플링은 [Windows/Linux CI 41167139738](https://github.com/kimjeon-il/Pando/actions/runs/41167139738)에서 기존 Python 픽셀과 대조했다. WebP 인코더 설정이 달라 인코딩 파일의 전체 바이트 일치는 보장하지 않는다. 실제 21,600×10,800 TIFF의 색상 모드와 타일 비교, 대형 입력 성능은 아직 확인하지 않았다.
+
+  물리 래스터 TIFF 판독과 후보 타일 생성·manifest 실행기 및 호출자를 Node/C++로 교체하고 해당 Python 생성기를 제거했다. RGB·회색조 TIFF의 한글 경로, 원본 해시·덮어쓰기 거부와 두 단계의 작은 고정 픽셀은 [Windows/Linux CI 41168557109](https://github.com/kimjeon-il/Pando/actions/runs/41168557109)에서 검증했다. 로컬 OSGeo4W와 CI GDAL은 DLL ABI가 달라 각각 맞는 빌드를 사용한다. 이 검증은 전체 원본 TIFF나 운영 자료의 승인이 아니다.
+
+  공통 영상 소스 변경에 따라 기존 비공개 Map Toolkit `0.6.5`를 코드 `545b529fd00da4ccbefa532d71582657664ae317`으로 갱신하고 계정의 릴리스 파일 257개를 실제 다운로드와 해시로 검증했다. 세부 범위와 남은 원본 검증은 독립 보고서 `reports/development/integrations/python-zero-remaining-2026-10-28/physical-terrain-resize-plugin.md`에 기록했다.
+
+  기존 물리 자료 생성기의 Natural Earth 수계 벡터 판독·속성·manifest 생성은 Node와 GDAL로 이전했다. 8개 합성 SHP에서 분리 선, 폴리곤 구멍, 다중 외곽, 한글 DBF, 빈 형상, 좌표 순서와 기존 Python 결과의 의미가 일치했고 기존 출력 덮어쓰기 및 원본 폴더 내부 출력은 거부한다. JSON 숫자 인코딩 차이로 출력 해시는 이전 Python과 다를 수 있다. [Windows/Linux CI 41164659641](https://github.com/kimjeon-il/Pando/actions/runs/41164659641)에서 해당 합성 자료와 기존 생성기의 호출을 확인했다. 실제 Natural Earth SHP 전체 비교는 아직 미완료다.
+
+`work/gis` 현행 기준: 도구 12개, 테스트 11개. 아래 행은 현재 추적 파일이며, 개수는 `git ls-files '*.py' '*.pyi' '*.ipynb'`로 다시 계산한다. 각 도구는 대체 구현과 실제 호출자 전환 후 대응 검사를 통과해야 삭제한다. 각 테스트는 같은 행에 명시한 동작 검사가 Node 또는 CTest에서 실제로 수행된 뒤 삭제한다. 원본 26개가 없는 역사 GIS 사례는 고정 사례와 보유 원본의 기능 동등성을 확인하되 빠진 실자료 검증을 별도 기록한다.
+
+  독일 1914 현대 해안 생성은 `tools/gis/build-german-1914-base.mjs --modern-coast`와 기존 GEOS/PROJ 엔진으로 전환했다. 합성 사례는 [Windows/Linux CI 41163860279](https://github.com/kimjeon-il/Pando/actions/runs/41163860279)에서 검증했다. 보유 HGIS 원본과 현재 국가 5개, 보존된 Helgoland·Düne 원본에서는 GEOS 3.13.1 기준 Python과 투영 면적·기준점이 일치했다. 기존 Python의 WGS84 역변환 결과에 자기 교차가 있어 GEOS 위상 복구를 적용하며, 복구된 결과는 같은 버전에서 Python 결과를 복구한 다각형과 공간적으로 일치한다. 미터 좌표로 되돌려 측정한 GEOS 꼭짓점 이산 Hausdorff 거리는 약 0.001712m, 면적 차이는 약 0.098552km²이며, 이는 모든 선분의 최대 거리나 역사 형상 승인을 뜻하지 않는다. 이산 경계 거리가 0.01m를 초과하거나 복구가 유효하지 않으면 후보를 거부한다. 후보 출력과 진단은 별도 경로에만 생성하며 운영 자료와 원본을 자동 변경하지 않는다. GEOS 3.11.4와 3.13.1의 해당 원본 결과는 서로 다르므로 라이브러리 버전별 결과를 같은 바이트나 같은 형상으로 취급하지 않는다.
+
+  동일 원본의 Linux 후보도 [CI 41164063983](https://github.com/kimjeon-il/Pando/actions/runs/41164063983)에서 생성했다. Windows·Linux 후보는 유효하지만 해시가 다르며, 두 형상의 대칭 차이는 약 `4.79e-9` 제곱도이고 꼭짓점 이산 Hausdorff 거리는 약 `0.01474`도다. 차이는 덴마크 인근의 폭이 매우 좁은 형상에 위치한다. 플랫폼 간 바이트·위상 완전 일치나 역사 승인으로 간주하지 않으며 운영 핀에 반영하지 않았다.
 
 지도 플러그인에서 쓰지 않는 Python PDF·래스터 읽기와 미리보기 코드를 제거했다. 공통 네이티브 PNG·JPEG·WebP·PDF의 EXIF·crop·페이지·GeoPDF 고정 사례와 실패 사례 12개를 확인했다. 학습·진단의 EXIF 및 흰색 alpha 합성도 위와 같이 공통 네이티브 경로로 옮겼다.
 
@@ -89,23 +140,19 @@
 
 | 현재 경로 | 대체 소유자와 호출자 | 삭제 전 필수 검증 |
 | --- | --- | --- |
-| `tools/qgis/bootstrap.py`, `tools/qgis/bridge.py` | 네이티브 QGIS 플러그인과 Node CLI/MCP; QGIS 실행 설정 | 실제 사용 편집·처리, 인증, 좌표·ID·출처, 내보내기 왕복 |
 | `tools/build-hydro-tiles.py`, `tools/calibrate-hydro.py`, `tools/hydro_connectivity.py` | 공통 C++ 수계 계산과 Node 생성·출처 관리; 생성 명령과 Actions | 논리 ID, 양자화, 압축·바이너리 순서, 이름, 교정·연결 고정 사례 |
-| `tools/build-physical-data.py`, `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
-| `tools/build_german_empire_1914_modern_coast.py`, `tools/supplement-lsib-boundaries.py`, `tools/verify-lsib-screen-delta.py` | C++ 영토 레시피·GEOS와 Node 출처·검증; 역사 GIS 명령 | ID·기간·귀속·위상, 화면 차이, 고정 사례 및 보유 원본 |
+| `tools/build-terrain-dem.py` | 선택형 GDAL C++ 지형 도구와 Node 실행 관리; 생성·검증 Actions | NoData, 틴트·마스크, 극지 gutter, LOD 0–5, RGBA와 인코딩 차이 |
 | `tools/library_data.py`, `tools/report_paths.py` | 기존 Node 자료 lease·보고서 경로 정본; 마지막 Python 호출자 | lease·권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
 | `tools/reference-analysis/macro.py`, `tools/reference-analysis/publisher.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_build_terrain_dem.py` | CTest 지형·영상 실제 동작 검사 | 고정 입력의 NoData·LOD·픽셀 및 오류 사례 |
-| `tests/python/test_qgis_bridge.py` | Node/QGIS 실제 연결·왕복 검사 | 인증·편집·롤백·내보내기 및 덮어쓰기 거부 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
 | `tests/python/test_reference_analysis_macro.py`, `tests/python/test_reference_analysis_publisher.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
-| `tests/test_lsib_boundary_supplement.py` | CTest/Node LSIB 레시피·화면 차이 검사 | 형상·공유 경계·출처·화면 차이의 고정 사례 |
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.
 

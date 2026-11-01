@@ -4,7 +4,21 @@
     "app": "b39f8ad12472f719614cb38447a19cd06ecc7d28",
     "data": "d790ac6f0e8fe55e1407cc7a5b29bc696f48384c",
     "indexSha256": "65755432154054cbbc3db1255d4d7bcc3268047e5adeeb33f88349741bc95940",
-    "scope": "Pre-change actual modern publication; earlier frozen historical trace remains unchanged."
+    "scope": "Pre-change actual modern publication; earlier frozen historical trace remains unchanged.",
+    "acceptedGeometryUpdates": [
+      {
+        "entities": [
+          "KAZ",
+          "RUS"
+        ],
+        "month": "2026-10",
+        "app": "74b6616c83e12d64a73838cf7d8a786817554e75",
+        "data": "5eb7be55208efaafe39bd5a65ec2f111d70b9053",
+        "generatedData": "e0efdf973508d9ba4fe1621b6157c772ab2f42de",
+        "scope": "Only KAZ/RUS geometry references adopt the approved border data and its verified compiler output; identities, source versions, parent/root attribution, all other entities and point assertions remain unchanged.",
+        "verification": "Reassembled country payload hashes and current bindings verified. Compared with c46890a681721633cdc948fde4ae1bfed14dd196: source hashes unchanged; Hausdorff distance KAZ 7.105427357601002e-15 degrees, RUS 0 degrees; symmetric-difference area KAZ 1.0620858312127338e-16 square degrees, RUS 1.739074115126591e-17 square degrees."
+      }
+    ]
   },
   "months": [
     {
@@ -1557,7 +1571,7 @@
           "parentId": "",
           "rootId": "KAZ",
           "geometryRef": {
-            "id": "historical-world:02ce3308bce584ea00619ed51051e1a8d090c67ee33127101ff9aa7b709da853",
+            "id": "historical-world:2c16ffda27144c332102e7610d5a6cc10edab3bd24c1b3351dcf60255e67066f",
             "version": 1
           }
         },
@@ -2239,7 +2253,7 @@
           "parentId": "",
           "rootId": "RUS",
           "geometryRef": {
-            "id": "historical-world:ec4a51711dd7b654e21e4529fd60fbfae9ded094e95edcdbb7f69128472cad13",
+            "id": "historical-world:e6fa9b950db8df26fe0b015c54d4cf2b4e77d8a8825cec3596eff7e2d91aad93",
             "version": 1
           }
         },

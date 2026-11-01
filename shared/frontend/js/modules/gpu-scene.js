@@ -169,7 +169,18 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
           if (pendingPreparation !== pending || builder !== renderSceneBuilder) return;
           pendingPreparation = null;
           syncGpuRenderScene();
-          dependencies.domains.renderingDomain.invalidateGpuInteraction('overlay-mesh-ready');
+          // An interaction-only invalidation does not request the Canvas Worker
+          // base bitmap. Physical substrate packets remain absent from the
+          // accepted bitmap, so initial countries can never leave 'pending'.
+          const mode = dependencies.rendering.gpuMapRenderer.getRuntimeState?.()?.renderer;
+          if (mode === 'canvas-worker') {
+            // A prepared physical scene needs a real current Worker bitmap,
+            // not only a pending coordinator invalidation. The renderer checks
+            // the project, frame and physical scene before submitting.
+            dependencies.rendering.gpuMapRenderer.requestPreparedCanvasFrame?.();
+            dependencies.domains.renderingDomain.invalidateBaseScene('canvas-scene-ready');
+          } else
+            dependencies.domains.renderingDomain.invalidateGpuInteraction('overlay-mesh-ready');
         }).catch(error => {
           if (pendingPreparation !== pending) return;
           pending.failed = true;

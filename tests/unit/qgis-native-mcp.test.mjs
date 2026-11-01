@@ -24,9 +24,9 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
       else if(request.command==='active-layer')result={layer:{id:request.layer||'layer-1',name:'지도'}};
       else if(request.command==='zoom-to-layer')result={ok:true,id:request.layer};
       else if(request.command==='transform')result={points:request.points,sourceCrs:request.sourceCrs,targetCrs:request.targetCrs};
-      else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
+      else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1',source:'D:/지도/input.geojson',editable:false}]};
       else if(request.command==='save-project')result={saved:true,filename:'D:/지도/project.qgz'};
-      else if(request.command==='layers')result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:request.offset,limit:request.limit};
+      else if(request.command==='layers')result={layers:[{id:'layer-1',visible:true,source:'D:/지도/input.geojson',editable:true}],total_count:1,offset:request.offset,limit:request.limit};
       else if(request.command==='schema')result={layer:request.layer,fields:[{name:'source',type:'Map',length:0,precision:0}]};
       else if(request.command==='set-visibility')result={checked:request.visible,visible:request.visible};
       else if(request.command==='remove-layer')result={removed:true,id:request.layer};
@@ -96,10 +96,13 @@ test('native QGIS MCP exposes only implemented tools and returns actual exchange
   assert.deepEqual(JSON.parse(transformed.result.content[0].text).points,[[1,2],[-1,3]]);
   const badTransform=await call('qgis_native_transform',{sourceCrs:'EPSG:4326',targetCrs:'EPSG:3857',points:[[1]]});assert.equal(badTransform.result.isError,true);
   const project=await call('qgis_native_project',{});assert.equal(JSON.parse(project.result.content[0].text).layer_count,1);
+  assert.equal(JSON.parse(project.result.content[0].text).layers[0].source,'D:/지도/input.geojson');
+  assert.equal(JSON.parse(project.result.content[0].text).layers[0].editable,false);
   const crs=await call('qgis_native_project_crs',{crs:'EPSG:3857'});assert.equal(JSON.parse(crs.result.content[0].text).crs,'EPSG:3857');
   assert.equal((await call('qgis_native_project_crs',{crs:''})).result.isError,true);
   const screenshot=await call('qgis_native_canvas_screenshot',{});assert.deepEqual(screenshot.result.content[0],{type:'image',mimeType:'image/png',data:'iVBORw0KGgo='});
   const layers=await call('qgis_native_layers',{offset:0,limit:10});assert.equal(JSON.parse(layers.result.content[0].text).layers[0].id,'layer-1');
+  assert.equal(JSON.parse(layers.result.content[0].text).layers[0].editable,true);
   const schema=await call('qgis_native_schema',{layer:'layer-1'});assert.equal(JSON.parse(schema.result.content[0].text).fields[0].name,'source');
   const hidden=await call('qgis_native_set_visibility',{layer:'layer-1',visible:false});assert.equal(JSON.parse(hidden.result.content[0].text).visible,false);
   const removed=await call('qgis_native_remove_layer',{layer:'layer-1'});assert.equal(JSON.parse(removed.result.content[0].text).removed,true);

@@ -143,7 +143,7 @@ test('country flag thumbnail and menu preserve the existing data flow', async ({
   await page.locator('#flagMenuBtn').click();
   await expect(page.locator('#flagRemoveBtn')).toBeVisible();
   await expect(page.locator('#flagUploadBtn')).toHaveAccessibleName('파일');
-  await expect(page.locator('#flagRemoveBtn')).toHaveAccessibleName('삭제');
+  await expect(page.locator('#flagRemoveBtn')).toHaveAccessibleName('국기 제거');
   await page.keyboard.press('Escape');
 
   if (!await page.locator('#objectSearchInput').isVisible()) await page.locator('#objectSearchBtn').click();

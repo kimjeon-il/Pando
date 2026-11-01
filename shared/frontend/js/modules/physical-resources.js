@@ -65,11 +65,25 @@ export function createPhysicalWaterPresentation() {
     return previous;
   };
 }
+// Water, its source land derivative and its authoritative catalog identity
+// each affect a physical scene. Reuse a prepared context only when all match;
+// unrelated territorial/label changes never appear in this key.
+export function physicalWaterContextKey(rows){
+  if(!Array.isArray(rows))throw new TypeError('Selected physical water rows are required.');
+  return JSON.stringify(rows.map(row=>{
+    const land=row?.assets?.land?.sha256,water=row?.assets?.asset?.sha256;
+    if(typeof land!=='string'||!land||typeof water!=='string'||!water
+      ||!row.objectRef||!row.geometryRef||!row.identity)
+      throw new TypeError('Physical water context requires complete source identities and fingerprints.');
+    return [row.objectRef,row.geometryRef,land,water,row.identity];
+  }));
+}
 export function createPhysicalResources({ buildMeta,capabilities = {terrain:true,builtinHydro:true,eagerBuiltinHydro:true} } = {}) {
   let dependencies;
   let terrainService;
   let hydroService;
   let physicalLand = null, landLoading = null,physicalAssetLoader=null;
+  let initialPreviewLoading=null;
   function storedPhysicalAssets() {
     if(!physicalAssetLoader)physicalAssetLoader=createStoredAssetLoader({dataRevision:buildMeta.dataRevision,
       resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href});
@@ -83,7 +97,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     const rows=resolvePhysicalWaterObjects(catalog,date)
       .sort((a,b)=>timelineObjectKey(a.objectRef).localeCompare(timelineObjectKey(b.objectRef)));
     if(rows.some(row=>row.assets.land.sha256!==rows[0].assets.land.sha256))throw new Error('Selected water objects require one coherent physical land derivative.');
-    return {catalog,date,rows,key:JSON.stringify(rows.map(row=>[row.objectRef,row.geometryRef]))};
+    return {catalog,date,rows,key:physicalWaterContextKey(rows)};
   }
   function selectedPhysicalWater() {
     const catalog=buildMeta.physicalWaterObjects,date=dependencies.projectState.state.timelineCursor;
@@ -212,6 +226,21 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       builtinTimelineView={revision,date,readyKey,active};
     }
     return builtinTimelineView.active.has(timelineObjectKey({domain:'hydroBuiltin',id:String(feature.properties?.pandolab_id||feature.id)}));
+  }
+  function loadInitialLandPreview(){
+    if(!initialPreviewLoading){
+      const source=buildMeta.physicalLand,spec=buildMeta.initialLandPreview;
+      if(!spec?.url||spec.sourceSha256!==source?.sha256)
+        return Promise.reject(new Error('Initial land preview does not match the pinned physical source.'));
+      initialPreviewLoading=storedPhysicalAssets().loadAsset(spec,'background','initial-land-preview','초기 지도 윤곽',buffer=>{
+        const geometry=JSON.parse(new TextDecoder().decode(buffer));
+        if(geometry?.type!=='MultiPolygon'||!Array.isArray(geometry.coordinates)
+          ||geometry.coordinates.length!==spec.polygonCount)throw new Error('Invalid initial land preview geometry.');
+        return geometry;
+      }).then(result=>Object.freeze({geometry:result.value,revision:spec.sha256}));
+      initialPreviewLoading=initialPreviewLoading.catch(error=>{initialPreviewLoading=null;throw error;});
+    }
+    return initialPreviewLoading;
   }
   function loadPhysicalLandMask({notify=true}={}) {
     if (physicalLand) return Promise.resolve(physicalLand);
@@ -449,6 +478,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     connect,
     initializeTerrainService,
     loadPhysicalLandMask,
+    loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
     get physicalContextState() {

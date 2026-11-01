@@ -8,6 +8,7 @@ import { gunzipSync } from 'node:zlib';
 import { decodeCountryMesh } from "../shared/frontend/js/modules/country-mesh-codec.js";
 import { decodePolygonMesh } from "../shared/frontend/js/modules/polygon-mesh-codec.js";
 import { safePath } from './lib/p2-artifact-graph.mjs';
+import {verifyPreparedInputHashes} from './lib/prepared-input-verification.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const read=p=>readFileSync(safePath(root,p));
@@ -28,7 +29,7 @@ if(family==='world-mesh') {
   assert.equal(manifest.schema,'pandolab-prepared-polygon-meshes');
   assert.ok(Object.keys(manifest.meshes).length,'empty prepared meshes');
   assert.equal(sharedSourceManifest(root).sourceSha256,manifest.algorithmSourceSha256);
-  for(const [path,hash] of Object.entries(manifest.inputHashes))assert.equal(sha(read(path)),hash,'prepared input '+path);
+  verifyPreparedInputHashes(manifest.inputHashes,read);
   for(const spec of Object.values(manifest.meshes)) {
     const bytes=read(spec.url);assert.equal(sha(bytes),spec.sha256);assert.equal(bytes.length,spec.compressedBytes);
     const raw=gunzipSync(bytes);assert.equal(raw.length,spec.decodedBytes);

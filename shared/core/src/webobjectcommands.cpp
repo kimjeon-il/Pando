@@ -75,6 +75,7 @@ template<class Rows>void erase(Rows& rows,const std::set<std::string>& ids) {
     rows.erase(std::remove_if(rows.begin(),rows.end(),[&](const auto& row){return ids.count(row.id);}),rows.end());
 }
 void restoreHydroSources(ProjectDocument& candidate,const std::set<std::string>& sourceIds,const std::string& month) {
+    if(sourceIds.empty())return; // Non-water removals have no source visibility to restore.
     const auto world=resolveWorld(candidate.timelineRecords,{timelineEntityCatalog(candidate),[&](const ObjectRef&,const GeometryRef& ref){return candidate.geometries.get(ref)!=nullptr;}},month);
     std::set<std::string> restore;
     for(const auto& id:sourceIds)if(std::none_of(candidate.hydro.begin(),candidate.hydro.end(),[&](const auto& row){return row.sourceFeatureId==id&&world.find({"hydro",row.id});}))restore.insert(id);
