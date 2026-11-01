@@ -66,31 +66,23 @@ class TerrainDemTest(unittest.TestCase):
                 dem.rebuild_tint_release(missing, missing, missing, missing, root)
 
     def test_tint_zip_extraction_preserves_neighbor_and_rejects_traversal(self):
+        fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-tint'
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             tiff = root / 'input.tif'
-            with rasterio.open(tiff, 'w', driver='GTiff', width=4, height=2, count=3, dtype='uint8',
-                               crs='EPSG:4326', transform=rasterio.transform.from_bounds(-180, -90, 180, 90, 4, 2)) as image:
-                image.write(np.ones((3, 2, 4), dtype=np.uint8))
-            original = tiff.read_bytes()
+            original = (fixture/'source.tif').read_bytes()
             archive = root / 'tint.zip'
             with zipfile.ZipFile(archive, 'w') as zip_file:
-                zip_file.write(tiff, 'input.tif')
+                zip_file.writestr('input.tif', original)
             tiff.write_bytes(b'protected neighbor')
-            polygon = {'type': 'Polygon', 'coordinates': [[[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]]]}
-            ice = root / 'ice.json'; ice.write_text(json.dumps({'features': [{'geometry': polygon}]}))
-            land = root / 'land.json'; land.write_text(json.dumps({'type': 'FeatureCollection', 'features': [{'id': 'x', 'geometry': polygon}]}))
-            def render(source, _ice, _land, output):
-                self.assertNotEqual(Path(source.name).resolve(), tiff.resolve())
-                self.assertEqual(Path(source.name).read_bytes(), original)
-                output.write_bytes(b'rendered')
-                return {'algorithm': 'fixture', 'validCells': 1, 'regionalFillCells': 0}
-            with mock.patch.object(dem, 'TINT_WIDTH', 4), mock.patch.object(dem, 'TINT_HEIGHT', 2), mock.patch.object(dem, 'resample_tint', render):
-                dem.build_tint(archive, root / 'output.webp', ice, land)
+            ice, land = fixture/'ice.geojson', fixture/'land.geojson'
+            with mock.patch.object(dem, 'TINT_WIDTH', 4), mock.patch.object(dem, 'TINT_HEIGHT', 2):
+                report = dem.build_tint(archive, root / 'output.webp', ice, land)
+            self.assertEqual(report['sourceEntry'], 'input.tif')
             self.assertEqual(tiff.read_bytes(), b'protected neighbor')
             with zipfile.ZipFile(archive, 'w') as zip_file:
                 zip_file.writestr('../input.tif', original)
-            with self.assertRaisesRegex(ValueError, 'ZIP|entry|path'):
+            with self.assertRaisesRegex(RuntimeError, 'ZIP|entry|path'):
                 dem.build_tint(archive, root / 'other.webp', ice, land)
             with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_STORED) as zip_file:
                 zip_file.writestr('input.tif', original)
@@ -98,24 +90,25 @@ class TerrainDemTest(unittest.TestCase):
                 info = zip_file.getinfo('input.tif')
                 offset = info.header_offset + 30 + len(info.filename.encode('utf-8')) + len(info.extra)
             corrupted = bytearray(archive.read_bytes()); corrupted[offset] ^= 1; archive.write_bytes(corrupted)
-            with self.assertRaises(zipfile.BadZipFile):
+            with self.assertRaisesRegex(RuntimeError, 'CRC|size'):
                 dem.build_tint(archive, root / 'other.webp', ice, land)
             self.assertEqual(tiff.read_bytes(), b'protected neighbor')
-            self.assertFalse(list(root.glob('pando-tint-*')))
+            self.assertFalse(list(root.glob('.pando-tint-*')))
 
     def test_tint_average_does_not_dilute_a_small_island_with_white_sea(self):
         fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-tint'
         oracle = json.loads((fixture/'oracle.json').read_text())
-        with tempfile.TemporaryDirectory() as folder, rasterio.open(fixture/'source.tif') as source:
+        with tempfile.TemporaryDirectory() as folder:
             first, second = Path(folder)/'first.webp', Path(folder)/'second.webp'
-            report = dem.resample_tint(source, fixture/'ice.geojson', fixture/'land.geojson', first, width=4, height=2)
-            dem.resample_tint(source, fixture/'ice.geojson', fixture/'land.geojson', second, width=4, height=2)
+            with mock.patch.object(dem, 'TINT_WIDTH', 4), mock.patch.object(dem, 'TINT_HEIGHT', 2):
+                report = dem.build_tint(fixture/'source.zip', first, fixture/'ice.geojson', fixture/'land.geojson')
+                dem.build_tint(fixture/'source.zip', second, fixture/'ice.geojson', fixture/'land.geojson')
             pixels = np.asarray(Image.open(first).convert('RGB'))
             np.testing.assert_array_equal(pixels.reshape(-1), oracle['rgb'])
-            self.assertEqual(report, oracle['report'])
+            self.assertEqual({key: report[key] for key in oracle['report']}, oracle['report'])
             self.assertEqual(first.read_bytes(), second.read_bytes())
             with self.assertRaises(FileExistsError):
-                dem.resample_tint(source, fixture/'ice.geojson', fixture/'land.geojson', first, width=4, height=2)
+                dem.build_tint(fixture/'source.zip', first, fixture/'ice.geojson', fixture/'land.geojson')
 
     def test_signed_elevation_and_byte_boundary(self):
         values = np.array([[-12000, -11745, -11744, 0, 53535]], dtype=np.float32)

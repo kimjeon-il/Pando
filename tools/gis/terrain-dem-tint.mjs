@@ -1,14 +1,18 @@
 // Native GDAL tint sampling; the caller owns and removes its temporary TIFF.
 import {execFile} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync} from 'node:fs';
-import {mkdtemp,readFile,realpath,rmdir,stat,unlink} from 'node:fs/promises';
+import {createWriteStream,existsSync} from 'node:fs';
+import {mkdtemp,readFile,realpath,rmdir,stat,statfs,unlink} from 'node:fs/promises';
 import {endianness} from 'node:os';
 import {delimiter,isAbsolute,join,resolve} from 'node:path';
+import {Readable} from 'node:stream';
+import {pipeline} from 'node:stream/promises';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {fillGdalDemTint} from './terrain-dem-source.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
+import {hashTerrainFile} from './terrain-dem-assets.mjs';
+import {zipMembers,zipMemberChunks} from '../lib/geonames-zip.mjs';
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const terrainDemTintSources=Object.freeze(['tools/cpp/terrain-dem-tint/CMakeLists.txt','tools/cpp/terrain-dem-tint/tint.cpp']);
 
@@ -70,13 +74,45 @@ export async function renderNativeDemTint({source,ice,land,temporaryRoot,width,h
   }
 }
 
+export async function buildNativeDemTintZip({archive,ice,land,temporaryRoot,width,height},options={}){
+  const {signal}=options;signal?.throwIfAborted();
+  if(![archive,ice,land,temporaryRoot].every(value=>typeof value==='string'&&value))throw Error('Explicit tint archive and inputs required');
+  const archivePath=await realpath(archive),before=await stat(archivePath);
+  if(!before.isFile()||before.size<22||before.size>64*1024**3)throw Error('Bounded tint ZIP archive required');
+  const entries=(await zipMembers(archivePath,{maxCentral:8*1024*1024})).filter(item=>/\.tiff?$/i.test(item.name));
+  if(entries.length!==1)throw Error('Tint ZIP must contain exactly one TIFF');
+  const entry=entries[0];
+  if(entry.name.includes(':')||entry.uncompressed<1||entry.uncompressed>64*1024**3)throw Error('Invalid tint ZIP entry path or size');
+  const estimate=2*entry.uncompressed+128*1024**2;
+  if(estimate>=1024**3){const disk=await statfs(resolve(temporaryRoot));
+    if(disk.bavail*disk.bsize<estimate+5*1024**3)throw Error('Insufficient space for tint ZIP and 5 GiB headroom');}
+  const [iceHash,landHash]=await Promise.all([hashTerrainFile(ice,{signal}),hashTerrainFile(land,{signal})]);
+  const folder=await mkdtemp(join(resolve(temporaryRoot),'.pando-tint-')),source=join(folder,'source.tif');
+  try{
+    async function* verified(){for await(const chunk of zipMemberChunks(archivePath,entry)){signal?.throwIfAborted();yield chunk;}}
+    await pipeline(Readable.from(verified()),createWriteStream(source,{flags:'wx'}),{signal});
+    const result=await renderNativeDemTint({source,ice,land,temporaryRoot:folder,width,height},options);
+    const after=await stat(archivePath),[iceAfter,landAfter]=await Promise.all([hashTerrainFile(ice,{signal}),hashTerrainFile(land,{signal})]);
+    if(before.size!==after.size||before.mtimeMs!==after.mtimeMs||iceHash.sha256!==iceAfter.sha256||landHash.sha256!==landAfter.sha256)
+      throw Error('Tint ZIP or masks changed during processing');
+    return {...result,sourceEntry:entry.name,iceSourceSha256:iceHash.sha256,landMaskSourceSha256:landHash.sha256};
+  }finally{
+    try{await unlink(source);}catch(error){if(error.code!=='ENOENT')throw error;}
+    await rmdir(folder);
+  }
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
-    if(process.argv.length!==3||process.argv[2]!=='--sample-stream')throw Error('Expected --sample-stream');
+    if(process.argv.length!==3||process.argv[2]!=='--zip-stream')throw Error('Expected --zip-stream');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;
       if(length>1024*1024)throw Error('Tint request exceeds bounds');chunks.push(chunk);}
-    const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8')),result=await renderNativeDemTint(request);
-    const header=Buffer.alloc(16);header.write('PDTINT03');header.writeUInt32LE(result.validCells,8);header.writeUInt32LE(result.regionalFillCells,12);
-    process.stdout.write(header);process.stdout.write(result.webp);
+    const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
+    try{
+      const request=JSON.parse(Buffer.concat(chunks,length).toString('utf8'));
+      const {webp,...metadata}=await buildNativeDemTintZip(request,{signal:controller.signal});
+      const json=Buffer.from(JSON.stringify(metadata)),header=Buffer.alloc(12);header.write('PDTZIP01');header.writeUInt32LE(json.length,8);
+      process.stdout.write(header);process.stdout.write(json);process.stdout.write(webp);
+    }finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
   }catch(error){console.error('terrain-dem-tint: '+error.message);process.exitCode=1;}
 }

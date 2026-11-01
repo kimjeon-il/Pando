@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -67,6 +68,14 @@ int run(int argc,char** argv){try{
     std::abs(transform[0]+180)>1e-7||std::abs(transform[1]-360.0/sw)>1e-7||std::abs(transform[2])>1e-7||
     std::abs(transform[3]-90)>1e-7||std::abs(transform[4])>1e-7||std::abs(transform[5]+180.0/sh)>1e-7)
     throw std::invalid_argument("Tint source grid is not global EPSG:4326");
+  VSIStatBufL sourceInfo{};
+  if(VSIStatL(argv[1],&sourceInfo)!=0||sourceInfo.st_size<0)throw std::runtime_error("Cannot inspect tint source size");
+  const std::uint64_t remaining=std::uint64_t(sw)*std::uint64_t(sh)*4+128ULL*1024*1024;
+  if(std::uint64_t(sourceInfo.st_size)+remaining>=1024ULL*1024*1024){
+    std::error_code error;const auto parent=std::filesystem::u8path(argv[4]).parent_path();
+    const auto disk=std::filesystem::space(parent.empty()?std::filesystem::path("."):parent,error);
+    if(error||disk.available<remaining+5ULL*1024*1024*1024)throw std::runtime_error("Insufficient space for masked tint and 5 GiB headroom");
+  }
   std::unique_ptr<void,decltype(&OSRDestroySpatialReference)> actual(OSRNewSpatialReference(GDALGetProjectionRef(source.get())),OSRDestroySpatialReference),
     expected(OSRNewSpatialReference(nullptr),OSRDestroySpatialReference);
   if(!actual||!expected||OSRImportFromEPSG(expected.get(),4326)!=OGRERR_NONE||!OSRIsSame(actual.get(),expected.get()))throw std::invalid_argument("Tint source grid is not global EPSG:4326");

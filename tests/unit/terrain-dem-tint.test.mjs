@@ -3,10 +3,15 @@ import {copyFile,mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/prom
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {test} from 'node:test';
-import {sampleNativeDemTint,renderNativeDemTint} from '../../tools/gis/terrain-dem-tint.mjs';
+import {sampleNativeDemTint,renderNativeDemTint,buildNativeDemTintZip} from '../../tools/gis/terrain-dem-tint.mjs';
 import {readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
+import {zipMembers} from '../../tools/lib/geonames-zip.mjs';
 const fixture=resolve('tests/fixtures/terrain-dem-tint');
 const oracle=JSON.parse(await readFile(join(fixture,'oracle.json'),'utf8'));
+test('tint ZIP metadata respects its central directory byte budget',async()=>{
+  await assert.rejects(zipMembers(join(fixture,'source.zip'),{maxCentral:4}),/central directory/i);
+  await assert.rejects(zipMembers(join(fixture,'source.zip'),{maxCentral:-1}),/budget/i);
+});
 test('native GDAL tint matches frozen Python small-island and ice pixels',async t=>{
   const root=await mkdtemp(join(tmpdir(),'dem-tint-'));t.after(()=>rm(root,{recursive:true,force:true}));
   const request={source:join(fixture,'source.tif'),ice:join(fixture,'ice.geojson'),land:join(fixture,'land.geojson'),
@@ -61,4 +66,21 @@ test('native tint rendering preserves pixels and cleans only its scratch file',
       {id:'same',geometry:{type:'Polygon',coordinates:[]}},{id:'same',geometry:{type:'Polygon',coordinates:[]}}]}));
     await assert.rejects(renderNativeDemTint({...request,land:invalid}),/duplicate/i);
     assert.deepEqual(await readdir(root),['invalid.json']);
+  });
+
+test('tint ZIP processing checks CRC, preserves originals and cleans temporary files',
+  {skip:!process.env.PANDO_MAP_IMAGE_ARTIFACT},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'dem-tint-zip-'));t.after(()=>rm(root,{recursive:true,force:true}));
+    const archive=join(root,'source.zip');await copyFile(join(fixture,'source.zip'),archive);
+    const original=await readFile(archive),request={archive,ice:join(fixture,'ice.geojson'),land:join(fixture,'land.geojson'),
+      temporaryRoot:root,width:oracle.width,height:oracle.height};
+    const result=await buildNativeDemTintZip(request),decoded=await readNativeRawWebp(result.webp);
+    const rgb=[];for(let i=0;i<decoded.data.length;i+=4)rgb.push(...decoded.data.subarray(i,i+3));
+    assert.deepEqual(rgb,oracle.rgb);assert.equal(result.sourceEntry,'nested/source.tif');
+    assert.equal(result.validCells,oracle.report.validCells);assert.deepEqual(await readFile(archive),original);
+    assert.deepEqual(await readdir(root),['source.zip']);
+    const corrupted=Buffer.from(original),[entry]=await zipMembers(archive);corrupted[entry.dataAt]^=1;await writeFile(archive,corrupted);
+    await assert.rejects(buildNativeDemTintZip(request),/CRC|size/i);assert.deepEqual(await readdir(root),['source.zip']);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(buildNativeDemTintZip(request,{signal:controller.signal}),{name:'AbortError'});
   });
