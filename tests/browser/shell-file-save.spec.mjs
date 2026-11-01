@@ -78,11 +78,10 @@ test('desktop shell keeps a stable command topbar and accessible file and help d
   await expect(page.locator('#mobileFileBtn')).toBeFocused();
   await expect(page.locator('#fileMenu')).toBeHidden();
 
-  await page.locator('#topbarOverflowBtn').click();
   await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesModal')).toBeVisible();
   await page.locator('#preferencesCancelBtn').click();
-  await expect(page.locator('#topbarOverflowBtn')).toBeFocused();
+  await expect(page.locator('#preferencesBtn')).toBeFocused();
 
   await page.locator('#helpBtn').click();
   await expect(page.locator('#helpModal')).toBeVisible();
