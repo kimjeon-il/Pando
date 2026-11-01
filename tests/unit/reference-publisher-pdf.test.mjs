@@ -50,6 +50,23 @@ test('macro stroke signatures match original solid and dashed masks',async()=>{
   const derived=await deriveMacroPdf({path,metadata:oracle.derive.metadata,maximumDimension:160});
   for(const [field,expected] of [['image','rgb'],['target','target'],['known','known'],['credits','credits']])
     assert.equal(createHash('sha256').update(derived[field]).digest('hex'),oracle.derive[expected]);
+  const unknown=await deriveMacroPdf({path,metadata:oracle.unknown.metadata,maximumDimension:160});
+  for(const [field,expected] of [['image','rgb'],['target','target'],['known','known'],['credits','credits']])
+    assert.equal(createHash('sha256').update(unknown[field]).digest('hex'),oracle.unknown[expected]);
+  await assert.rejects(deriveMacroPdf({path,maximumDimension:160,metadata:{...oracle.derive.metadata,
+    supervision:{...oracle.derive.metadata.supervision,knownBandRadiusPixels:99}}}),/band/i);
+  const sparseMetadata={...oracle.derive.metadata,excludedRegionsNormalized:[],supervision:{strategy:'boundary-stroke-signatures',
+    knownBandRadiusPixels:4,channels:{international:[{color:[0,0,0],width:2,dashes:[]}]}}};
+  const sparse=await deriveMacroPdf({path,metadata:sparseMetadata,maximumDimension:160});
+  assert.ok(sparse.target.filter(value=>value!==0).length>50);
+  for(let y=0;y<sparse.height;y++)for(let x=0;x<sparse.width;x++)if(x<25||x>45)assert.equal(sparse.known[y*sparse.width+x],0);
+  for(const rotation of [90,180,270]){
+    const rotated=resolve(root,`strokes-${rotation}.pdf`),reference=JSON.parse(readFileSync(resolve(root,`strokes-${rotation}.json`),'utf8'));
+    const result=await deriveMacroPdf({path:rotated,metadata:oracle.derive.metadata,maximumDimension:160});
+    assert.deepEqual([result.width,result.height],[reference.width,reference.height]);
+    for(const [field,expected] of [['image','rgb'],['target','target'],['known','known'],['credits','credits']])
+      assert.equal(createHash('sha256').update(result[field]).digest('hex'),reference[expected]);
+  }
   await assert.rejects(renderMacroStrokes({path,maximumDimension:160,signatures:[{color:[0,0,0],width:9,dashes:[]}]}),/absent/i);
   assert.deepEqual(readFileSync(path),original);
 });

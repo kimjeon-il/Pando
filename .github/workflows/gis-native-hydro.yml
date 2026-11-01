@@ -77,7 +77,7 @@ jobs:
         run: |
           $env:PANDO_PUBLISHER_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/publisher-artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/reference-publisher-pdf.test.mjs tests/unit/reference-publisher-generator.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-publisher-training-source.test.mjs tests/unit/reference-macro-validation.test.mjs
+          node --test tests/unit/reference-publisher-pdf.test.mjs tests/unit/reference-publisher-generator.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-publisher-training-source.test.mjs tests/unit/reference-macro-validation.test.mjs tests/unit/reference-macro-generator.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Publisher layer pixels differ' }
       - uses: actions/upload-artifact@v4
         if: always()

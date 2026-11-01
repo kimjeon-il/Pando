@@ -48,9 +48,12 @@ export async function validatePublisherProvenance(annotation,sheet,root,{rendere
 }
 export async function validateMacroProvenance(annotation,sheet,root,{rendererVersion,signal}={}){
   signal?.throwIfAborted();const producer=annotation?.producer;
+  const historical=producer?.script==='tools/reference-analysis/macro.py'&&producer.renderer==='PyMuPDF'&&
+    typeof rendererVersion==='string'&&!!rendererVersion&&producer.rendererVersion===rendererVersion;
+  const native=producer?.script==='tools/reference-analysis/prepare-macro.mjs'&&producer.renderer==='MuPDF'&&producer.rendererVersion==='1.26.11'&&
+    producer.sha256==='75dea6a29d9b0e94428a8e21c2640ec958a1faee78b792e70c623162006a9a8b';
   if(annotation?.schemaVersion!==1||annotation.reviewed!==false||annotation.supervisionQuality!=='source-derived-weak'||
-    producer?.script!=='tools/reference-analysis/macro.py'||typeof producer.sha256!=='string'||!SHA.test(producer.sha256)||
-    producer.renderer!=='PyMuPDF'||typeof rendererVersion!=='string'||!rendererVersion||producer.rendererVersion!==rendererVersion)
+    typeof producer?.sha256!=='string'||!SHA.test(producer.sha256)||!(historical||native))
     throw Error('Explicit source-derived macro provenance required');
   const metadata=await trainingProvenanceInputs(annotation,root,'Macro',signal);
   assertMacroMetadata(metadata,annotation,sheet);
