@@ -2,7 +2,7 @@
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
 import {readFile,realpath,stat} from 'node:fs/promises';
-import {dirname,isAbsolute,resolve} from 'node:path';
+import {dirname,extname,isAbsolute,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
@@ -10,11 +10,14 @@ import {validateReviewedAnnotation} from './review-masks.mjs';
 import {validateSourceLanguage} from './source-language.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {assertMacroMetadata} from './macro-training-source.mjs';
+import {auditTrainingRasters} from './training-tiles.mjs';
+import {inspectNativeImageHeader} from '../map-image/native-resample.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
 // Identity of the LF-normalized historical publisher generator at cbda4c35.
 // Existing source-derived evidence keeps this identity after the script retires.
 const PUBLISHER_GENERATOR_SHA256='65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07';
+const PUBLISHER_RENDERER_VERSION='1.26.6';
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 async function verifyOriginalImage(sheet,root,signal){
   const image=await resolveCorpusPath(root,sheet.image);
@@ -70,6 +73,36 @@ export function validateCorpusMetadata(value,{trainingOnly=false}={}){
       if(typeof path!=='string'||!path||isAbsolute(path)||path.includes('\\')||path.split('/').includes('..'))throw Error('Corpus paths must stay inside corpus root');}
   }
   return value;
+}
+
+// Validate only the selected historical publisher training source, without
+// treating its derived masks as independent reviewed truth.
+export async function validatePublisherTrainingSource({root,corpus,sourceId},{signal,workspace,imageDirectory}={}){
+  signal?.throwIfAborted();
+  if(typeof root!=='string'||!root||typeof sourceId!=='string'||!sourceId)throw Error('Explicit publisher source and corpus root required');
+  validateCorpusMetadata(corpus,{trainingOnly:true});
+  const matches=corpus.sheets.filter(sheet=>sheet.id===sourceId);
+  if(matches.length!==1)throw Error('Unique publisher training source required');
+  const sheet=matches[0],annotationPath=await resolveCorpusPath(root,sheet.annotations),info=await stat(annotationPath);
+  if(!info.isFile()||info.size>64*1024*1024)throw Error('Annotation exceeds its byte budget');
+  const bytes=await readFile(annotationPath,{signal}),annotation=JSON.parse(bytes.toString('utf8'));
+  if(annotation.origin!=='publisher-layer-export')throw Error('Publisher training annotation required');
+  const annotationSha256=createHash('sha256').update(bytes).digest('hex');
+  await validatePublisherProvenance(annotation,sheet,root,{rendererVersion:PUBLISHER_RENDERER_VERSION,signal});
+  const imagePath=await verifyOriginalImage(sheet,root,signal),imageInfo=await stat(imagePath);
+  if(!imageInfo.isFile()||imageInfo.size>300*1024*1024)throw Error('Publisher image exceeds its byte budget');
+  const format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(imagePath).toLowerCase()];
+  const image=await inspectNativeImageHeader(await readFile(imagePath,{signal}),format,{signal,workspace,directory:imageDirectory});
+  if(image.encodedSize[0]!==annotation.width||image.encodedSize[1]!==annotation.height)throw Error('Publisher raster/image dimensions differ');
+  await auditTrainingRasters({root,annotation},{signal,workspace,imageDirectory});
+  const checks=[[annotationPath,annotationSha256],[imagePath,sheet.sha256]];
+  for(const [field,expected] of [['sourcePdf',annotation.sourceSha256],['sourceMetadata',annotation.sourceMetadataSha256],
+    ['raster',annotation.raster?.sha256],['validRaster',annotation.validRaster?.sha256]]){
+    const path=await resolveCorpusPath(root,typeof annotation[field]==='string'?annotation[field]:annotation[field]?.path);
+    checks.push([path,expected]);
+  }
+  for(const [path,expected] of checks)if(await hashFile(path,signal)!==expected)throw Error('Publisher training source changed during validation');
+  return {sheet,annotation,annotationPath,annotationSha256,imagePath,checks,trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 export async function validateReviewedCorpus(value,root,{signal,workspace,reviewDirectory,onVerified}={}){
   validateCorpusMetadata(value);

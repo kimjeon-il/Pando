@@ -83,6 +83,11 @@ manifest recorded by the checkpoint. The selected sheet's source and annotation
 are verified, but the result is a diagnostic, not an independence or accuracy
 claim. The same output protection and optional baseline rules apply.
 
+The training-source diagnostic also accepts a historical publisher-layer
+sheet. Its publisher identity, pinned historical renderer version, source and
+image hashes, image dimensions and observed raster channels are checked before
+inference. The Python publisher generator itself has not yet been replaced.
+
 For a checkpoint trained with an auxiliary Semap corpus, provide the original
 `--auxiliary-corpus` together with `--corpus`. Both manifests and their combined
 source fingerprint must match its checkpoint receipt. `--view-corpus auxiliary`
