@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -8,7 +9,7 @@ import {selectBuiltinCountries,assembleBuiltinWorld} from '../../shared/frontend
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 const index=JSON.parse(fs.readFileSync(new URL('index.json',root),'utf8'));
 const read=row=>{
- const bytes=fs.readFileSync(new URL(row.file,root));
+ const bytes=readBuiltinCountryStoredBytes(row,file=>fs.readFileSync(new URL(file,root)));
  assert.equal(createHash('sha256').update(bytes).digest('hex'),row.sha256);
  return JSON.parse(gunzipSync(bytes));
 };

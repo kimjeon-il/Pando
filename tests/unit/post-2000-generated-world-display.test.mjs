@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,7 +19,7 @@ const scenarios=[
  {month:'2011-12',yes:['SDN','SDS','KOS','TLS'],no:['state:yugoslavia','state:unmik-kosovo']}
 ];
 const read=entry=>{
- const bytes=fs.readFileSync(new URL(entry.file,root));
+ const bytes=readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(new URL(file,root)));
  assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
  return JSON.parse(gunzipSync(bytes));
 };

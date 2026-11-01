@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -48,7 +49,7 @@ test('published world retains uninterrupted source geometry through October 2026
   assert.ok(selectedPrevious.has(projectId),projectId+' missing in September');
   const record=entries.get(projectId);
   assert.ok(record);
-  const compressed=fs.readFileSync(new URL(record.file,world));
+  const compressed=readBuiltinCountryStoredBytes(record,file=>fs.readFileSync(new URL(file,world)));
   assert.equal(createHash('sha256').update(compressed).digest('hex'),record.sha256);
   const compiled=JSON.parse(gunzipSync(compressed));
   const selectedSource=month=>compiled.sourceBindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.sourceVersionId;

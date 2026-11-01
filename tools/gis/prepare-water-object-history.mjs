@@ -8,7 +8,6 @@ import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/m
 import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
 import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
 import {withLibraryWrite} from '../library-data.mjs';
-import {finalizeBuiltinWorldFiles,writeBuiltinWorldPublication} from '../build-builtin-world.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
@@ -89,32 +88,13 @@ export async function prepareWaterObjectHistory({root,approvedManifest}) {
     reusedAssets:[approved.asset,reviewed.land,reviewed.water].map(({url,sha256})=>({url,sha256}))};
 }
 
-/** Change only the current common target contract, without recomputing GIS. */
-export function prepareCommonCountryTargets(root) {
-  const directory=path.join(root,'assets/data/builtin-world/generated/v1'),index=JSON.parse(fs.readFileSync(path.join(directory,'index.json'))),files=new Map();
-  const targets=rows=>rows.map(({entityId,...row})=>entityId===undefined?row:{...row,objectRef:{domain:'territorial',id:entityId}});
-  for(const entry of index.entities) {
-    const country=JSON.parse(gunzipSync(fs.readFileSync(path.join(directory,entry.file))));
-    country.timelineRecords.schemaVersion=3;
-    for(const key of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])country.timelineRecords[key]=targets(country.timelineRecords[key]);
-    country.sourceBindings=targets(country.sourceBindings);
-    entry.coverage=targets(entry.coverage);
-    const decoded=Buffer.from(JSON.stringify(country)+'\n'),bytes=gzipSync(decoded,{level:9});bytes[9]=3;
-    entry.compressedBytes=bytes.length;entry.decodedBytes=decoded.length;entry.sha256=sha(bytes);
-    const file='countries/'+entry.entityId.replaceAll(':','-')+'-sha256-'+entry.sha256+'.json.gz';entry.file=file;files.set(file,bytes);
-  }
-  index.template.timelineRecords.schemaVersion=3;
-  finalizeBuiltinWorldFiles(index,files);
-  writeBuiltinWorldPublication(files,directory);
-  return {countryContractFiles:index.entities.length,geometryRegeneration:false,validationScope:'No country-wide geometry/coordinate audit; shared wire-target rewrite only.',storageLayout:index.storageLayout};
-}
-
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href) {
   const args=Object.fromEntries(process.argv.slice(2).map(arg=>{const p=arg.indexOf('=');return [arg.slice(0,p),arg.slice(p+1)];}));
   if(!args['--approved-manifest']||!args['--report'])throw Error('--approved-manifest and --report are required');
   const root=path.resolve(args['--root']||'.');
   const water=await prepareWaterObjectHistory({root,approvedManifest:args['--approved-manifest']});
-  const countries=prepareCommonCountryTargets(root);
+  // The schema-3 country migration is complete; water work never rewrites countries.
+  const countries={countryContractFiles:0,geometryRegeneration:false};
   fs.writeFileSync(args['--report'],JSON.stringify({water,countries},null,2)+'\n');
   console.log(JSON.stringify({waterId:water.entityId,countryContractFiles:countries.countryContractFiles}));
 }
