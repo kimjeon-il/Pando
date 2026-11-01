@@ -8,7 +8,7 @@ import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/m
 import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
 import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
 import {withLibraryWrite} from '../library-data.mjs';
-import {packBuiltinWorldFiles,writeBuiltinWorldPublication} from '../build-builtin-world.mjs';
+import {finalizeBuiltinWorldFiles,writeBuiltinWorldPublication} from '../build-builtin-world.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
@@ -104,9 +104,9 @@ export function prepareCommonCountryTargets(root) {
     const file='countries/'+entry.entityId.replaceAll(':','-')+'-sha256-'+entry.sha256+'.json.gz';entry.file=file;files.set(file,bytes);
   }
   index.template.timelineRecords.schemaVersion=3;
-  packBuiltinWorldFiles(index,files);
+  finalizeBuiltinWorldFiles(index,files);
   writeBuiltinWorldPublication(files,directory);
-  return {countryContractFiles:index.entities.length,geometryRegeneration:false,validationScope:'No country-wide geometry/coordinate audit; shared wire-target rewrite only.',transport:index.transport};
+  return {countryContractFiles:index.entities.length,geometryRegeneration:false,validationScope:'No country-wide geometry/coordinate audit; shared wire-target rewrite only.',storageLayout:index.storageLayout};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href) {

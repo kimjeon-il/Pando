@@ -66,17 +66,22 @@ test('explicit name-history gaps cannot inherit the latest country name or its d
 test('name-only publication decodes only the selected country and rejects hidden non-name changes',()=>{
  const {index,countries}=fixture(),country=countries.find(row=>row.entityId==='RUS');
  const stored=gzipSync(JSON.stringify(country)),opaque=Buffer.from('unrelated immutable stored bytes');
- const previous=structuredClone(index);previous.entities=[{entityId:'RUS',file:'selected.gz',sha256:createHash('sha256').update(stored).digest('hex'),compressedBytes:stored.length},
-  {entityId:'opaque',file:'opaque.gz',compressedBytes:opaque.length}];
+ const descriptor=(entityId,bytes,decodedBytes)=>{
+  const hash=createHash('sha256').update(bytes).digest('hex');
+  return {entityId,file:`countries/${entityId}-sha256-${hash}.json.gz`,encoding:'gzip',sha256:hash,compressedBytes:bytes.length,decodedBytes};
+ };
+ const selected=descriptor('RUS',stored,Buffer.byteLength(JSON.stringify(country))),untouched=descriptor('opaque',opaque,100);
+ const previous=structuredClone(index);previous.entities=[selected,untouched];
  previous.inputHashes={sourceRevisions:{'current:RUS':'before'}};
  const source=historicalWorldCases().entities.find(row=>row.entityId==='current:RUS'),updated={...source,names:{ko:'수정명'}};
  const args={entityIds:[source.entityId],sourceIndex:{entities:[{entityId:source.entityId,sha256:'after'}]},previousIndex:previous,
-  readCountry:file=>file==='selected.gz'?stored:opaque,readSource:()=>updated,readPreviousSource:()=>source};
+  readCountry:file=>{assert.equal(file,selected.file);return stored;},readSource:()=>updated,readPreviousSource:()=>source};
  const files=buildBuiltinWorldNamePublication(args),nextIndex=JSON.parse(files.get('index.json'));
  const next=JSON.parse(gunzipSync(files.get(nextIndex.entities[0].file)));
  assert.equal(next.identity.properties.name,'수정명');
  assert.deepEqual(next.geometries,country.geometries);assert.deepEqual(next.timelineRecords.geometryBindings,country.timelineRecords.geometryBindings);
- assert.equal(files.get('opaque.gz'),opaque);
+ assert.equal(files.has(untouched.file),false);
+ assert.deepEqual(nextIndex.entities[1],untouched);
  assert.throws(()=>buildBuiltinWorldNamePublication({...args,readSource:()=>({...updated,lifetime:{validFrom:'1900',validTo:null}})}),/non-name changes/);
 });
 

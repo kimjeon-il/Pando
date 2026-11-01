@@ -13,21 +13,42 @@ import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.j
 
 const output=fileURLToPath(new URL('../assets/data/builtin-world/generated/v1/',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const storedFields=['entityId','file','encoding','sha256','compressedBytes','decodedBytes'];
 export function recordBuiltinWorldInputs(index,sourceRevisions,view,policy){
  const ordered=Object.fromEntries(Object.entries(sourceRevisions).sort(([a],[b])=>a.localeCompare(b,'en')));
  index.inputHashes={entities:sha(JSON.stringify(ordered)),sourceRevisions:ordered,view:sha(JSON.stringify(view)),policy:sha(JSON.stringify(policy))};
  return index;
 }
-export function packBuiltinWorldFiles(index, files, {verifyEntityIds=null}={}) {
- let offset=0;
- const chunks=index.entities.map(entry=>{
-  const bytes=files.get(entry.file);
-  if(!bytes||((!verifyEntityIds||verifyEntityIds.has(entry.entityId))&&(bytes.length!==entry.compressedBytes||sha(bytes)!==entry.sha256)))throw new Error(`Missing exact country bytes: ${entry.entityId}`);
-  entry.offset=offset;offset+=bytes.length;return bytes;
- });
- const bytes=Buffer.concat(chunks),digest=sha(bytes),url=`transport/countries-sha256-${digest}.bin`;
- files.set(url,bytes);
- index.transport={schemaVersion:1,url,encoding:'identity',sha256:digest,compressedBytes:bytes.length,decodedBytes:bytes.length};
+
+/** Finalize a full publication or a delta over a previously verified index.
+ * Unchanged countries remain references: no aggregate allocation or payload read. */
+export function finalizeBuiltinWorldFiles(index,files,{previousIndex=null}={}) {
+ if(index?.schema!=='pandolab-builtin-world'||index.schemaVersion!==2||!Array.isArray(index.entities)||!(files instanceof Map))throw Error('Invalid builtin publication');
+ if(previousIndex&&(previousIndex.schema!==index.schema||previousIndex.schemaVersion!==2||!Array.isArray(previousIndex.entities)))throw Error('Invalid previous builtin publication');
+ const previous=new Map((previousIndex?.entities||[]).map(entry=>[entry.entityId,entry]));
+ if(previousIndex&&previous.size!==previousIndex.entities.length)throw Error('Duplicate previous builtin country');
+ const ids=new Set(),paths=new Set();
+ for(const entry of index.entities){
+  if(typeof entry.entityId!=='string'||!entry.entityId||ids.has(entry.entityId)
+   ||!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(entry.file)
+   ||!/^[a-f0-9]{64}$/.test(entry.sha256)||entry.file!==`countries/${entry.entityId.replaceAll(':','-')}-sha256-${entry.sha256}.json.gz`
+   ||paths.has(entry.file)||entry.encoding!=='gzip'
+   ||!Number.isSafeInteger(entry.compressedBytes)||entry.compressedBytes<=0
+   ||!Number.isSafeInteger(entry.decodedBytes)||entry.decodedBytes<=0)throw Error(`Invalid builtin country descriptor: ${entry.entityId}`);
+  ids.add(entry.entityId);paths.add(entry.file);
+ }
+ for(const file of files.keys())if(file!=='index.json'&&file!=='coverage-report.json'&&!paths.has(file))throw Error(`Unexpected builtin output: ${file}`);
+ for(const entry of index.entities){
+  const prior=previous.get(entry.entityId),unchanged=prior&&storedFields.every(key=>prior[key]===entry[key]);
+  if(files.has(entry.file)){
+   const bytes=files.get(entry.file);
+   if(!Buffer.isBuffer(bytes)||bytes.length!==entry.compressedBytes||sha(bytes)!==entry.sha256)throw Error(`Invalid country bytes: ${entry.entityId}`);
+   if(unchanged)files.delete(entry.file);
+  }else if(!unchanged)throw Error(`Missing exact country bytes: ${entry.entityId}`);
+  delete entry.offset;
+ }
+ delete index.transport;
+ index.storageLayout='country-files-v1';
  files.set('index.json',Buffer.from(JSON.stringify(index)+'\n'));
  return files;
 }
@@ -40,7 +61,7 @@ export function buildBuiltinWorldPublication({input=null,policyFile=new URL('../
  const files=encodeCountries(index,countries);
  recordBuiltinWorldInputs(index,input?.sourceIndex?Object.fromEntries(input.sourceIndex.entities.filter(row=>!['river','lake'].includes(row.entityType)).map(row=>[row.entityId,row.sha256])):
   Object.fromEntries(entities.map(row=>[row.entityId,sha(JSON.stringify(row))])),view,policy);
- packBuiltinWorldFiles(index,files);
+ finalizeBuiltinWorldFiles(index,files);
  files.set('coverage-report.json',Buffer.from(JSON.stringify(coverageReport)+'\n'));
  return files;
 }
@@ -58,7 +79,7 @@ function encodeCountries(index,countries){
 
 export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previousIndex,readSource=readTerritorialSource,readPreviousSource,readCountry}) {
  if(!entityIds?.length||new Set(entityIds).size!==entityIds.length)throw Error('Explicit unique name scope required');
- const index=structuredClone(previousIndex),files=new Map(),affected=new Set();
+ const index=structuredClone(previousIndex),files=new Map();
  const revisions={...index.inputHashes.sourceRevisions};
  for(const id of entityIds){
   const mapping=index.sourceIdentities.filter(row=>row.sourceEntityIds.includes(id));
@@ -73,18 +94,17 @@ export function buildBuiltinWorldNamePublication({entityIds,sourceIndex,previous
   if(JSON.stringify(unnamed(entity))!==JSON.stringify(unnamed(prior)))throw Error(`Name-only scope includes non-name changes: ${id}`);
   const next=replaceBuiltinWorldCountryNames(country,entity);
   for(const [file,bytes] of encodeCountries(index,[next]))files.set(file,bytes);
-  revisions[id]=source.sha256;affected.add(entry.entityId);
+  revisions[id]=source.sha256;
  }
- for(const entry of index.entities)if(!files.has(entry.file))files.set(entry.file,readCountry(entry.file));
  const ordered=Object.fromEntries(Object.entries(revisions).sort(([a],[b])=>a.localeCompare(b,'en')));
  index.inputHashes.sourceRevisions=ordered;index.inputHashes.entities=sha(JSON.stringify(ordered));
- return packBuiltinWorldFiles(index,files,{verifyEntityIds:affected});
+ return finalizeBuiltinWorldFiles(index,files,{previousIndex});
 }
 
-/** Recompile only connected spatial/hierarchy components; untouched country
- * payloads remain opaque stored bytes, not inputs to country validation. */
+/** Recompile only connected spatial/hierarchy components. Unrelated payloads
+ * are neither read nor returned: their verified descriptors stay in the index. */
 export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previousSourceIndex,view,policy,
- previousIndex,previousCoverage,readSource=readTerritorialSource,readCountry,currentWorld=null,onScope=()=>{},planOnly=false}){
+ previousIndex,previousCoverage,readSource=readTerritorialSource,currentWorld=null,onScope=()=>{},planOnly=false}){
  if(!entityIds?.length||new Set(entityIds).size!==entityIds.length)throw new Error('Explicit unique entity scope required');
  if(previousIndex.inputHashes.view!==sha(JSON.stringify(view))||previousIndex.inputHashes.policy!==sha(JSON.stringify(policy)))throw new Error('World view or policy changed; partial country scope is insufficient');
  const sources=new Map(sourceIndex.entities.map(row=>[row.entityId,row])),oldSources=new Map(previousSourceIndex.entities.map(row=>[row.entityId,row]));
@@ -148,39 +168,40 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
  }
  const index=structuredClone(previousIndex);
  index.entities=[...index.entities.filter(row=>!affected.has(row.entityId)),...replacements.values()].sort((a,b)=>a.entityId.localeCompare(b.entityId,'en'));
- for(const row of index.entities)if(!files.has(row.file))files.set(row.file,readCountry(row.file));
  recordBuiltinWorldInputs(index,revisions,view,policy);
- packBuiltinWorldFiles(index,files,{verifyEntityIds:affected});
+ finalizeBuiltinWorldFiles(index,files,{previousIndex});
  files.set('coverage-report.json',Buffer.from(JSON.stringify({schemaVersion:2,
   adjustments:coalesceCoverageAdjustments([...previousCoverage.adjustments.filter(row=>!affected.has(row.entityId)),...adjustments]),
   entities:[...previousCoverage.entities.filter(row=>!affected.has(row.entityId)),...coverage.values()].sort((a,b)=>a.entityId.localeCompare(b.entityId,'en'))})+'\n'));
  return files;
 }
 export function writeBuiltinWorldPublication(files,directory=output,{check=false}={}){
- const publish=()=>{
- for(const [file,bytes] of files){
+ // The index becomes visible only after the emitted payloads and diagnostics.
+ // Deltas overlay an existing verified publication; old pinned assets are retained.
+ const entries=[...files].filter(([file])=>file!=='index.json');
+ if(files.has('index.json'))entries.push(['index.json',files.get('index.json')]);
+ const changed=[];
+ for(const [file,bytes] of entries){
   const target=path.join(directory,file);
-  if(check){if(!fs.existsSync(target)||!fs.readFileSync(target).equals(bytes))throw new Error(`Stale builtin world data: ${file}`);}
-  else if(!fs.existsSync(target)||!fs.readFileSync(target).equals(bytes)){
-   fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);
-  }
+  if(fs.existsSync(target)&&fs.readFileSync(target).equals(bytes))continue;
+  if(check)throw new Error(`Stale builtin world data: ${file}`);
+  changed.push({target,bytes});
  }
- };
- if(check)return publish();
- const paths=[...files].filter(([file,bytes])=>!fs.existsSync(path.join(directory,file))||!fs.readFileSync(path.join(directory,file)).equals(bytes)).map(([file])=>path.join(directory,file));
- return withLibraryOutputs({paths},publish);
+ if(check||!changed.length)return;
+ return withLibraryOutputs({paths:changed.map(({target})=>target)},()=>{
+  for(const {target,bytes} of changed){fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);}
+ });
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const existing=process.argv.includes('--pack-existing');
+ if(process.argv.includes('--pack-existing'))throw Error('--pack-existing is retired; use country-scoped --entities=<ids> generation');
  const selected=process.argv.find(arg=>arg.startsWith('--entities='));
  const namesOnly=process.argv.includes('--names-only');
  if(namesOnly&&!selected)throw Error('--names-only requires --entities');
  if(namesOnly&&process.argv.includes('--plan'))throw Error('--plan is only supported for geometry generation');
- if(existing&&selected)throw new Error('Choose either --pack-existing or --entities');
  if(process.argv.includes('--plan')&&!selected)throw new Error('--plan requires --entities');
  const sourceIndex=JSON.parse(fs.readFileSync(path.join(territorialDataRoot,'generated/v2/index.json')));
- const index=existing||selected?JSON.parse(fs.readFileSync(path.join(output,'index.json'))):null;
- let files,scope;
+ const index=selected?JSON.parse(fs.readFileSync(path.join(output,'index.json'))):null;
+ let files;
  if(selected){
   if(namesOnly){
    const ids=selected.slice('--entities='.length).split(',').filter(Boolean);
@@ -188,7 +209,6 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
    const archive=JSON.parse(execFileSync('git',['-c','maintenance.auto=false','-c','gc.auto=0','show',`${config.revision}:archive/index.json`],{cwd:checkout,maxBuffer:16*1024*1024}));
    files=buildBuiltinWorldNamePublication({entityIds:ids,sourceIndex,previousIndex:index,readCountry:file=>fs.readFileSync(path.join(output,file)),
     readPreviousSource:id=>normalizeTerritorialLibraryEntity(JSON.parse(decodeArchiveEntry(checkout,archive.files[`assets/data/territorial-entities/source/countries/${entityFileName(id)}`],config.revision)))});
-   scope={projectEntityIds:index.sourceIdentities.filter(row=>row.sourceEntityIds.some(id=>ids.includes(id))).map(row=>row.projectEntityId)};
    console.log(`Name-only generation: ${ids.length} selected source; geometry and coverage reused without recomputation.`);
   }else{
   const root=fileURLToPath(new URL('../',import.meta.url)),config=libraryConfig(root),checkout=libraryCheckout(root);
@@ -197,13 +217,11 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   files=buildBuiltinWorldPartialPublication({entityIds:selected.slice('--entities='.length).split(',').filter(Boolean),sourceIndex,previousSourceIndex,
    view:JSON.parse(fs.readFileSync(path.join(territorialSourceRoot,'views/world.json'))),policy:JSON.parse(fs.readFileSync(new URL('../assets/data/historical-world/policy.json',import.meta.url))),
    previousIndex:index,previousCoverage:JSON.parse(fs.readFileSync(path.join(output,'coverage-report.json'))),
-   readCountry:file=>fs.readFileSync(path.join(output,file)),planOnly:process.argv.includes('--plan'),
-   onScope:planned=>{scope=planned;console.log(`Scoped generation: ${scope.requested} requested; ${scope.sourceIds.length} connected source inputs in ${scope.components.length} components; other source files are not read.`);}});
+   planOnly:process.argv.includes('--plan'),
+   onScope:planned=>{console.log(`Scoped generation: ${planned.requested} requested; ${planned.sourceIds.length} connected source inputs in ${planned.components.length} components; other source and country payload files are not read.`);}});
   if(process.argv.includes('--plan')){console.log(JSON.stringify(files,null,2));process.exit(0);}
   }
- }else files=existing?packBuiltinWorldFiles(index,new Map(index.entities.map(entry=>[entry.file,fs.readFileSync(path.join(output,entry.file))]))):buildBuiltinWorldPublication({input:{sourceIndex}});
- const affectedFiles=scope&&new Set(JSON.parse(files.get('index.json')).entities.filter(row=>scope.projectEntityIds.includes(row.entityId)).map(row=>row.file));
- const outputs=scope?new Map([...files].filter(([file])=>!file.startsWith('countries/')||affectedFiles.has(file))):files;
- writeBuiltinWorldPublication(outputs,output,{check:process.argv.includes('--check')});
- console.log(`Builtin world: ${existing?index.entities.length:JSON.parse(files.get('index.json')).entities.length} country files retained; packed transport, ${[...files.values()].reduce((n,b)=>n+b.length,0)} bytes`);
+ }else files=buildBuiltinWorldPublication({input:{sourceIndex}});
+ writeBuiltinWorldPublication(files,output,{check:process.argv.includes('--check')});
+ console.log(`Builtin world: ${JSON.parse(files.get('index.json')).entities.length} country references; ${[...files.keys()].filter(file=>file.startsWith('countries/')).length} country files emitted; ${[...files.values()].reduce((n,b)=>n+b.length,0)} output bytes; no aggregate transport`);
 }
