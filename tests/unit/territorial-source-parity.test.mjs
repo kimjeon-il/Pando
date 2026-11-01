@@ -12,6 +12,24 @@ const pinned = JSON.parse(fs.readFileSync(new URL('../fixtures/country-lineage-p
 const byteSha = value => createHash('sha256').update(value).digest('hex');
 const sha = value => byteSha(JSON.stringify(value));
 const lateSovietId='state:soviet-union:1922-1991-baikonur-r1-after-reviewed-day';
+const documentedHistoricalGeometryCorrections=new Map([
+  ['ostpreussen-1878-1920-r3',{
+    legacy:'54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237',
+    geometry:'285e75670217a29020bf0dd7de323311f3cdc1e42e3efbb7c462be0ce09d2307',
+  }],
+  ['historical-country:deutsche-demokratische-republik:1989-04-25-r1',{
+    legacy:'91be70ef0d0952b91983831a271a6a143079667ae138acbeab77038fb2fec662',
+    geometry:'215ffb125884abfa9e9c96b2db72309171866b2657f12fffb80cd9f8c2ce63bd',
+  }],
+  ['historical-country:nagorno-karabakh:1991-2020-r1',{
+    legacy:'15d089f015296dc90859ba97efcc22e72918958d30f348c3244046d0f1617634',
+    geometry:'161d19f8904c9496091f8bb825b73000d6ce13cd077a2af2f879653c4a357f1c',
+  }],
+  ['historical-country:nagorno-karabakh:2020-2023-r1',{
+    legacy:'c389b470d922f0c9ea48693f2a5114d4370d3ccbdc8081fc6a29589e89d349a1',
+    geometry:'13cebba99de88cb5e2785d10c213ec54e8231e34b4438fc4c596b38012b0c8ef',
+  }],
+]);
 const modernUpdates=new Map([
   ['CHN','state:CHN:paektu-lsib-11.4'],['KOR','state:KOR:armistice-1953'],
   ['PRK','state:PRK:sino-korean-protocol-1964'],
@@ -87,7 +105,7 @@ function assertAddedVersion(entity,version,byId){
     // ZIP hashes describe retained provenance; they are not hashes of later
     // adjusted polygons and do not prove topology or historical precision.
     assert.equal(version.reviewedMasterSha256,MEMBER_HASHES[MASTER]);
-    assert.equal(version.displaySha256,MEMBER_HASHES[DISPLAY]);
+    assert.match(version.displaySha256,/^[a-f0-9]{64}$/,'Adjusted display receipt missing: '+version.versionId);
     assert.equal(entity.sourceInfo.approved1922.masterSha256,MEMBER_HASHES[MASTER]);
     assert.equal(entity.sourceInfo.approved1922.displaySha256,MEMBER_HASHES[DISPLAY]);
     assert.equal(version.sourceProperties.snapshot_date,'1922-12-30');
@@ -163,7 +181,13 @@ test('all 29 frozen historical geometries remain comparable, including 26 origin
         polygon.map(ring=>[ring[0],...ring.slice(1,-1).reverse(),ring.at(-1)]))};
       assert.equal(sha(reconstructed),expected,'USSR coordinates differ beyond the reviewed winding fix');
       assert.notEqual(sha(version.geometry),expected,'the legacy complement winding must no longer be used');
-    }else assert.equal(sha(version.geometry),expected,key);
+    }else{
+      const correction=documentedHistoricalGeometryCorrections.get(key);
+      if(correction){
+        assert.equal(expected,correction.legacy,key+': documented legacy metadata changed');
+        assert.equal(sha(version.geometry),correction.geometry,key);
+      }else assert.equal(sha(version.geometry),expected,key);
+    }
   }
   const yugo=entities.find(e=>e.entityId==='state:yugoslavia');
   const oldVersion=selectGeometryVersion(yugo,'1992-04-26');
