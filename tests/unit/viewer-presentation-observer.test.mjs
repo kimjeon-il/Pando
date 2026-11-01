@@ -86,3 +86,18 @@ test('construction-time preparation is not mistaken for a displayed renderer fra
   fixture.publish({status: 'ready', label: '준비됨', retry: false});
   assert.equal(events.length, 1);
 });
+
+
+test('limited raster resolution is still a presented map and releases the initial ornament', () => {
+  const state = createViewerInitialPresentation();
+  const fixture = rendererFixture({productMode: 'viewer', onMapPreparationStatus: state.observe});
+  const request = state.track(() => true);
+  request.accept(11);
+  fixture.setGeneration(10);
+  fixture.publish({status: 'limited', label: '제공 해상도로 표시', retry: false});
+  assert.equal(state.hasPresented(), false);
+  fixture.setGeneration(11);
+  fixture.publish({status: 'limited', label: '제공 해상도로 표시', retry: false});
+  assert.equal(state.hasPresented(), true);
+  assert.equal(fixture.nodes.mapPreparationNotice.hidden, true);
+});

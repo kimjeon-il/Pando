@@ -26,7 +26,11 @@ export function createViewerInitialPresentation({onPresented = () => {}} = {}) {
     },
     observe(presentation, generation) {
       if (!pending || disposed || presented) return false;
-      pending.readyGeneration = presentation.status === 'ready'
+      // 'limited' has the same fully presented, generation-matched map
+      // certificate as 'ready'; it only reports a physical raster resolution
+      // ceiling. Do not leave the neutral loading ornament over real countries.
+      const painted = presentation.status === 'ready' || presentation.status === 'limited';
+      pending.readyGeneration = painted
         && Number.isSafeInteger(generation) && generation > 0 ? generation : null;
       return publish(pending);
     },

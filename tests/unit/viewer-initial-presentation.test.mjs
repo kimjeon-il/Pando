@@ -129,3 +129,25 @@ test('invalid request predicates and generations fail visibly', () => {
     assert.throws(() => state.track(() => true).accept(generation), TypeError);
   }
 });
+
+
+test('resolution-limited but fully presented country frame ends only the first-page preview', () => {
+  const {state, notifications} = fixture(), first = state.track(() => true);
+  first.accept(4);
+  for (const status of ['terrain', 'presenting', 'boundaries', 'error', 'loading']) {
+    state.observe({status},4);
+    assert.equal(state.hasPresented(),false,status+' has no presented-frame certificate');
+  }
+  state.observe({status:'limited'},3);
+  assert.equal(state.hasPresented(),false,'different generation cannot dismiss the preview');
+  state.observe({status:'limited'},4);
+  assert.equal(state.hasPresented(),true);
+  assert.equal(notifications(),1);
+});
+
+test('resolution-limited frame before acceptance is observed only for its own generation', () => {
+  const {state} = fixture(), first = state.track(() => true);
+  state.observe({status:'limited'},8);
+  first.accept(8);
+  assert.equal(state.hasPresented(),true);
+});
