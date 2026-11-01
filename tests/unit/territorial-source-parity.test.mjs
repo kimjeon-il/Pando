@@ -25,6 +25,10 @@ const documentedHistoricalGeometryCorrections=new Map([
     legacy:'15d089f015296dc90859ba97efcc22e72918958d30f348c3244046d0f1617634',
     geometry:'161d19f8904c9496091f8bb825b73000d6ce13cd077a2af2f879653c4a357f1c',
   }],
+  ['historical-country:nagorno-karabakh:2020-2023-r1',{
+    legacy:'c389b470d922f0c9ea48693f2a5114d4370d3ccbdc8081fc6a29589e89d349a1',
+    geometry:'13cebba99de88cb5e2785d10c213ec54e8231e34b4438fc4c596b38012b0c8ef',
+  }],
 ]);
 const modernUpdates=new Map([
   ['CHN','state:CHN:paektu-lsib-11.4'],['KOR','state:KOR:armistice-1953'],
