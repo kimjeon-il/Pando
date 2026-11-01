@@ -12,9 +12,10 @@ import {resolveCorpusPath} from './corpus-path.mjs';
 import {assertMacroMetadata} from './macro-training-source.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
-// Identity of the LF-normalized historical publisher generator at cbda4c35.
+// LF-normalized historical publisher generators at 777917fc and cbda4c35.
 // Existing source-derived evidence keeps this identity after the script retires.
-const PUBLISHER_GENERATOR_SHA256='65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07';
+const HISTORICAL_PUBLISHER_GENERATORS=new Set(['53fb78609a1c834f725bb942fa122e8af65872369b025340d6c4fafc2c1f71db',
+  '65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07']);
 const NATIVE_PUBLISHER_GENERATOR_SHA256='97f5465dd0ce8b32e8d374b67252c25250ac814290318609f04609fb0cf9b11e';
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 async function verifyOriginalImage(sheet,root,signal){
@@ -33,11 +34,12 @@ export function evaluationGroups(sheets){const groups={};for(const sheet of shee
 export async function validatePublisherProvenance(annotation,sheet,root,{rendererVersion,signal}={}){
   signal?.throwIfAborted();
   if(annotation?.reviewed!==false||annotation.schemaVersion!==1)throw Error('Publisher-derived training labels cannot claim human review');
-  const producer=annotation.producer,historical={script:'tools/reference-analysis/publisher.py',sha256:PUBLISHER_GENERATOR_SHA256,renderer:'PyMuPDF',rendererVersion};
+  const producer=annotation.producer,historical={script:'tools/reference-analysis/publisher.py',renderer:'PyMuPDF',rendererVersion};
   const native={script:'tools/reference-analysis/prepare-publisher.mjs',sha256:NATIVE_PUBLISHER_GENERATOR_SHA256,renderer:'MuPDF',rendererVersion:'1.26.11'};
   const matches=expected=>Object.keys(expected).every(key=>producer?.[key]===expected[key]);
   if(!producer||typeof producer!=='object'||Array.isArray(producer)||Object.keys(producer).length!==4||
-    !((typeof rendererVersion==='string'&&rendererVersion&&matches(historical))||matches(native)))throw Error('Publisher label generator identity differs');
+    !((typeof rendererVersion==='string'&&rendererVersion&&matches(historical)&&HISTORICAL_PUBLISHER_GENERATORS.has(producer.sha256))||matches(native)))
+    throw Error('Publisher label generator identity differs');
   const metadata=await trainingProvenanceInputs(annotation,root,'Publisher',signal);
   const license=metadata.license,hasLicense=!!license&&(!Array.isArray(license)||license.length>0)&&
     (typeof license!=='object'||Array.isArray(license)||Object.keys(license).length>0);

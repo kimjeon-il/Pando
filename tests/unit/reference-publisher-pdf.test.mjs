@@ -9,7 +9,7 @@ import {inspectNativeJpeg} from '../../tools/map-image/native-resample.mjs';
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
   const root=resolve('tests/fixtures/reference-publisher-layers');
   const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-  for(const [file,manifest] of [['fixture.pdf','oracle.json'],['rotated-glyphs.pdf','rotated-glyphs.json']]){
+  for(const [file,manifest] of [['fixture.pdf','oracle.json'],['rotated-glyphs.pdf','rotated-glyphs.json'],['ocmd.pdf','ocmd.json']]){
   const path=resolve(root,file),input=readFileSync(path),oracle=JSON.parse(readFileSync(resolve(root,manifest),'utf8'));
   assert.equal(sha(input),oracle.sourceSha256);
   const info=await inspectPublisherPdf({path});

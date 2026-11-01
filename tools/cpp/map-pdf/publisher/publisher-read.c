@@ -140,6 +140,7 @@ static void append_credits(fz_context *ctx,fz_buffer *buffer,const fz_stext_page
 }
 int main(int argc,char **argv){
     fz_context *ctx=NULL;fz_stream *stream=NULL;fz_document *document=NULL;fz_page *page=NULL;fz_pixmap *pixmap=NULL;
+    fz_buffer *configured=NULL;fz_output *configured_output=NULL;fz_stream *configured_stream=NULL;fz_document *configured_document=NULL;
     fz_device *text_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;
     unsigned char *input=NULL,*mask=NULL;size_t input_size=0;int status=1,render=0,maximum=0,mask_mode=0;
 #ifdef _WIN32
@@ -155,7 +156,8 @@ int main(int argc,char **argv){
     if(mask_mode){status=mask_operation(argv[1],argv[2],argv[3],argv[4],input,input_size);free(input);
         if(status)fprintf(stderr,"Invalid publisher mask input\n");return status;}
     ctx=fz_new_context(NULL,NULL,FZ_STORE_DEFAULT);if(!ctx){free(input);fprintf(stderr,"MuPDF context unavailable\n");return 1;}
-    fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
+    fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(configured);fz_var(configured_output);fz_var(configured_stream);fz_var(configured_document);
+    fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
     fz_try(ctx){
         pdf_document *pdf;pdf_obj *object;int count,rotation,layers,i;
         fz_register_document_handlers(ctx);stream=fz_open_memory(ctx,input,input_size);
@@ -182,7 +184,15 @@ int main(int argc,char **argv){
             if(render==1&&strlen(argv[3])!=(size_t)layers)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Layer bit count differs");
             for(i=0;i<layers;i++){if(render==1&&argv[3][i]!='0'&&argv[3][i]!='1')fz_throw(ctx,FZ_ERROR_ARGUMENT,"Invalid layer selection");
                 pdf_enable_layer(ctx,pdf,i,render==2||argv[3][i]=='1');}
-            page=fz_load_page(ctx,document,0);bounds=fz_bound_page(ctx,page);
+            /* Persist only in memory, then reopen so PDF optional-content
+             * membership expressions observe the requested default state. */
+            {pdf_write_options options={0};unsigned char *bytes=NULL;size_t length;
+                options.do_encrypt=PDF_ENCRYPT_NONE;options.permissions=4095;options.do_preserve_metadata=1;
+                pdf_set_layer_config_as_default(ctx,pdf);configured=fz_new_buffer(ctx,input_size);
+                configured_output=fz_new_output_with_buffer(ctx,configured);pdf_write_document(ctx,pdf,configured_output,&options);fz_close_output(ctx,configured_output);
+                length=fz_buffer_storage(ctx,configured,&bytes);if(!length||length>300u*1024u*1024u)fz_throw(ctx,FZ_ERROR_LIMIT,"Configured publisher PDF exceeds budget");
+                configured_stream=fz_open_memory(ctx,bytes,length);configured_document=fz_open_document_with_stream(ctx,"application/pdf",configured_stream);}
+            page=fz_load_page(ctx,configured_document,0);bounds=fz_bound_page(ctx,page);
             if(!isfinite(bounds.x0)||!isfinite(bounds.y0)||!isfinite(bounds.x1)||!isfinite(bounds.y1)||bounds.x1<=bounds.x0||bounds.y1<=bounds.y0)
                 fz_throw(ctx,FZ_ERROR_FORMAT,"Invalid publisher page dimensions");
             factor=maximum/fmax((double)(bounds.x1-bounds.x0),(double)(bounds.y1-bounds.y0));
@@ -210,7 +220,8 @@ int main(int argc,char **argv){
         status=0;
     }
     fz_always(ctx){fz_drop_buffer(ctx,credits);fz_drop_stext_page(ctx,text_page);fz_drop_device(ctx,text_device);free(mask);
-        fz_drop_pixmap(ctx,pixmap);fz_drop_page(ctx,page);fz_drop_document(ctx,document);fz_drop_stream(ctx,stream);}
+        fz_drop_pixmap(ctx,pixmap);fz_drop_page(ctx,page);fz_drop_document(ctx,configured_document);fz_drop_stream(ctx,configured_stream);
+        fz_drop_output(ctx,configured_output);fz_drop_buffer(ctx,configured);fz_drop_document(ctx,document);fz_drop_stream(ctx,stream);}
     fz_catch(ctx){fprintf(stderr,"Publisher PDF: %s\n",fz_caught_message(ctx));}
     fz_drop_context(ctx);free(input);return status;
 }
