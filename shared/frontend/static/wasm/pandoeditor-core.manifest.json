@@ -4,7 +4,7 @@
   "sourceSha256": "17df15fda70bc793cfdad80c7344b7b88bf61506e45c5cf54fc275ac3e00ce30",
   "compiler": {
     "name": "emscripten",
-    "version": "6.0.2"
+    "version": "6.0.3"
   },
   "inputs": [
     {
@@ -635,11 +635,11 @@
   "assets": {
     "js": {
       "file": "pandoeditor-core.js",
-      "sha256": "0453c78ffb9b4e429e66b4e95c301e41cadb1c8eaf47f76e2e7a4c330418d356"
+      "sha256": "064dab971a64dc61b4e4da6609b97b38d94757db8ae1c98254596c6cb4ae04bf"
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "b0cb36aabd466327378cf2793efcba82f10dc953a6e60eeba8bbfee029643a4a"
+      "sha256": "491b498da3d843201bfcc81d5d47fbded8235c5432e9919746a353a1467821d3"
     }
   }
 }
