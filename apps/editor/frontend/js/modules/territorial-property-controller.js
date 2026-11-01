@@ -175,7 +175,15 @@ export function createTerritorialPropertyController({
       const actionId={editEntityBorderBtn:'border-edit',editEntityCoastBtn:'coast-edit',reconcileEntityCoastBtn:'coast-reconcile',copyEntityRegionBtn:'copy-region',mergeEntityBtn:'merge',redrawEntityBtn:'split',annexEntityBtn:'merge'}[id];
       const action=resolveObjectAction(actionId,{domain:'territorial',locked:properties.locked,disabled:isMutationBlocked(view.ref)&&!properties.locked});
       $(id).disabled=!action.enabled;
-      const small=$(id).querySelector('small');if(small)small.textContent=action.reason||action.help;
+      const small=$(id).querySelector('small');
+      if (small) {
+        const contextualHelp = {
+          annexEntityBtn: '다른 객체에서 가져오기',
+          reconcileEntityCoastBtn: '상위 지도와 맞추기',
+          copyEntityRegionBtn: '원본 영역 유지',
+        }[id] || '';
+        small.textContent = action.reason || contextualHelp;
+      }
       $(id).dataset.actionReason=action.reason?'true':'false';
       $(id).setAttribute('aria-label',action.label+(action.reason?' · '+action.reason:''));
     }
