@@ -154,7 +154,9 @@ int compareCheckpoints(const std::vector<fs::path>& args){
     }
   }
   require(observedStates==firstOptimizer.state().size(),"Checkpoint has an unbound optimizer state");
-  std::cout<<"{\"equal\":true,\"optimizerStates\":"<<observedStates<<",\"trainingOnly\":true,\"releaseApproved\":false}\n";return 0;
+  std::cout<<"{\"equal\":true,\"optimizerStates\":"<<observedStates<<",\"epoch\":"<<firstSampling.epoch
+    <<",\"cursor\":"<<firstSampling.cursor<<",\"seed\":"<<firstSampling.seed<<",\"orderLength\":"<<firstSampling.order.size()
+    <<",\"trainingOnly\":true,\"releaseApproved\":false}\n";return 0;
 }
 int run(const std::vector<fs::path>& args){
   if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);

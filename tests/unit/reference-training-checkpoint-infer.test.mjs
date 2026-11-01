@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
+import {execFileSync,spawnSync} from 'node:child_process';
 import {mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -13,20 +13,35 @@ test('checkpoint comparison rejects a mismatched receipt before launching the na
   const checkpoint=join(folder,'checkpoint.pt');writeFileSync(checkpoint,'fixture');
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256:'0'.repeat(64)}));
   await assert.rejects(compareNativeTrainingCheckpoints({first:checkpoint,second:checkpoint,device:'cpu',torchLibrary:folder}),/receipt differs/i);
+  const second=join(folder,'second.pt');writeFileSync(second,'second');
+  const base={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',corpusSha256:'a'.repeat(64),precision:'fp32',
+    ampScale:null,ampGrowthTracker:null,epoch:0,cursor:0,orderLength:1,seed:1,freezeEpochs:0,learningRate:.0001,unobservedMask:0,
+    positiveWeightSha256:null,attemptedBatches:0,optimizerUpdates:0,skippedUpdates:0};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({...base,checkpointSha256:createHash('sha256').update('fixture').digest('hex')}));
+  writeFileSync(second+'.receipt.json',JSON.stringify({...base,learningRate:.0002,checkpointSha256:createHash('sha256').update('second').digest('hex')}));
+  await assert.rejects(compareNativeTrainingCheckpoints({first:checkpoint,second,device:'cpu',torchLibrary:folder}),/configuration differs/i);
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-training-validation.mjs','--compare'],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.match(cli.stderr,/first, second, device and torch library/i);
 });
 test('native checkpoint inference matches the source model output', {skip:!available},async t=>{
   const folder=mkdtempSync(join(tmpdir(),'pando-checkpoint-infer-'));t.after(()=>rmSync(folder,{recursive:true}));
   execFileSync(process.env.PANDO_REFERENCE_INFER_FIXTURE,[folder],{stdio:'pipe',windowsHide:true,timeout:180000});
   const checkpoint=join(folder,'checkpoint.pt'),bytes=readFileSync(checkpoint),checkpointSha256=createHash('sha256').update(bytes).digest('hex');
-  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256}));
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256,corpusSha256:'a'.repeat(64),
+    precision:'fp32',ampScale:null,ampGrowthTracker:null,epoch:0,cursor:0,orderLength:1,seed:20261030,freezeEpochs:0,
+    learningRate:.0001,unobservedMask:0,positiveWeightSha256:null,attemptedBatches:0,optimizerUpdates:0,skippedUpdates:0,evidence:[{augment:false}]};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
   const inputs={tile:readFileSync(join(folder,'tile.f32')),overview:readFileSync(join(folder,'overview.f32')),position:readFileSync(join(folder,'position.f32'))};
   const options={checkpoint,...inputs,device:'cpu',torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY};
   const result=await nativeTrainingCheckpointInfer(options),expected=readFileSync(join(folder,'expected.f32'));
   const other=join(folder,'different.pt'),otherSha256=createHash('sha256').update(readFileSync(other)).digest('hex');
-  writeFileSync(other+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256:otherSha256}));
+  writeFileSync(other+'.receipt.json',JSON.stringify({...receipt,checkpointSha256:otherSha256}));
   const comparison={first:checkpoint,second:checkpoint,device:'cpu',torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY};
   const same=await compareNativeTrainingCheckpoints(comparison);
   assert.equal(same.equal,true);assert.equal(same.optimizerStates,0);
+  const cli=JSON.parse(execFileSync(process.execPath,['tools/reference-analysis/native-training-validation.mjs','--compare','--first',checkpoint,'--second',checkpoint,
+    '--device','cpu','--torch-library',process.env.PANDO_REFERENCE_TORCH_LIBRARY,'--directory',process.env.PANDO_REFERENCE_BATCH_DIRECTORY],{encoding:'utf8',windowsHide:true,timeout:180000}));
+  assert.equal(cli.equal,true);assert.equal(cli.firstSha256,checkpointSha256);
   await assert.rejects(compareNativeTrainingCheckpoints({...comparison,second:other}),/parameter differs/i);
   assert.equal(result.logits.length,7*512*512*4);assert.equal(expected.length,result.logits.length);
   let maximum=0;for(let i=0;i<expected.length;i+=4)maximum=Math.max(maximum,Math.abs(expected.readFloatLE(i)-result.logits.readFloatLE(i)));

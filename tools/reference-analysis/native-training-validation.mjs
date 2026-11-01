@@ -6,7 +6,9 @@ import {dirname,delimiter,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
+import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
+import {reportArgument} from '../report-paths.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 import {assertEvaluationIndependence} from './training-lineage.mjs';
@@ -76,16 +78,32 @@ export async function compareNativeTrainingCheckpoints({first,second,device='cpu
     throw Error('Explicit native checkpoint comparison inputs required');
   const inputs=[first,second].map(value=>{const path=resolve(value),hash=trainingFileIdentity(path),receiptPath=path+'.receipt.json';
     const bytes=readTrainingBounded(receiptPath,1024*1024),receipt=JSON.parse(bytes);
-    if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash)
+    if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash||
+      !/^[a-f0-9]{64}$/.test(receipt.corpusSha256||'')||!['fp32','amp-fp16'].includes(receipt.precision)||
+      (receipt.precision==='amp-fp16'&&(device!=='cuda'||!Number.isFinite(receipt.ampScale)||receipt.ampScale<=0||
+        !Number.isInteger(receipt.ampGrowthTracker)||receipt.ampGrowthTracker<0||receipt.ampGrowthTracker>=2000))||
+      (receipt.precision==='fp32'&&(receipt.ampScale!==null||receipt.ampGrowthTracker!==null))||
+      !['epoch','cursor','orderLength','seed','freezeEpochs','attemptedBatches','optimizerUpdates','skippedUpdates'].every(key=>Number.isSafeInteger(receipt[key])&&receipt[key]>=0)||
+      receipt.cursor>receipt.orderLength||receipt.optimizerUpdates+receipt.skippedUpdates!==receipt.attemptedBatches||
+      !Number.isFinite(receipt.learningRate)||receipt.learningRate<=0||receipt.learningRate>.01||
+      !Number.isInteger(receipt.unobservedMask)||receipt.unobservedMask<0||receipt.unobservedMask>127||
+      !(receipt.positiveWeightSha256===null||/^[a-f0-9]{64}$/.test(receipt.positiveWeightSha256||'')))
       throw Error('Checkpoint comparison receipt differs from its file');
-    return {path,hash,receiptPath,receiptHash:sha(bytes)};});
+    return {path,hash,receipt,receiptPath,receiptHash:sha(bytes)};});
+  const config=['precision','ampScale','ampGrowthTracker','epoch','cursor','orderLength','seed','freezeEpochs','learningRate',
+    'unobservedMask','positiveWeightSha256','corpusSha256','auxiliarySha256','lineageFingerprint','orderSha256','attemptedBatches',
+    'optimizerUpdates','skippedUpdates','initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization'];
+  if(config.some(key=>!isDeepStrictEqual(inputs[0].receipt[key],inputs[1].receipt[key]))||
+    !isDeepStrictEqual(inputs[0].receipt.evidence?.[0]?.augment,inputs[1].receipt.evidence?.[0]?.augment))
+    throw Error('Checkpoint comparison training configuration differs');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
   const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
   const {child,done}=validator(binary,['compare',device,inputs[0].path,inputs[1].path],env,signal);child.stdin.end();
   const result=await done;signal?.throwIfAborted();
-  if(result.equal!==true||!Number.isSafeInteger(result.optimizerStates)||result.optimizerStates<0||result.trainingOnly!==true||result.releaseApproved!==false)
+  if(result.equal!==true||!Number.isSafeInteger(result.optimizerStates)||result.optimizerStates<0||result.trainingOnly!==true||result.releaseApproved!==false||
+    ['epoch','cursor','orderLength','seed'].some(key=>result[key]!==inputs[0].receipt[key]))
     throw Error('Invalid native checkpoint comparison result');
   for(const input of inputs)if(trainingFileIdentity(input.path)!==input.hash||trainingFileIdentity(input.receiptPath)!==input.receiptHash)
     throw Error('Checkpoint comparison input changed during execution');
@@ -133,4 +151,16 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
   for(const [path,expected] of checks)if(trainingFileIdentity(path)!==expected)throw Error('Validation source changed during execution');
   return {validationLoss:result.loss,samples:result.samples,device,diagnosticOnly,independence,trainingOnly:true,releaseApproved:false,
     checkpointSha256:checkpointHash,corpusSha256:corpusHash,toolRevision:tool.revision};
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
+  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{compare:{type:'boolean',default:false},first:{type:'string'},second:{type:'string'},
+      device:{type:'string'},'torch-library':{type:'string'},directory:{type:'string'}}});
+    if(positionals.length||!values.compare||!values.first||!values.second||!values.device||!values['torch-library'])
+      throw Error('Expected --compare with first, second, device and torch library');
+    console.log(JSON.stringify(await compareNativeTrainingCheckpoints({first:reportArgument(values.first,{access:'read',siblings:true}),
+      second:reportArgument(values.second,{access:'read',siblings:true}),device:values.device,torchLibrary:values['torch-library'],
+      directory:values.directory,signal:controller.signal})));
+  }catch(error){console.error('native-training-validation: '+error.message);process.exitCode=1;}
+  finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }
