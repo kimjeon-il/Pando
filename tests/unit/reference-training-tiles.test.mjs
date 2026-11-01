@@ -4,12 +4,25 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import {countAnnotationTrainingSupervision,listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
-import {countNativeTrainingSupervision,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,prepareNativeTrainingTile,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 
 test('native supervision counts only target pixels inside known regions',async()=>{
   const target={width:3,height:1,data:Buffer.from([1,2,127])},known={width:3,height:1,data:Buffer.from([1,3,0])};
   assert.deepEqual(await countNativeTrainingSupervision(target,known),[[2,1],[1,1],[0,0],[0,0],[0,0],[0,0],[0,0]]);
   await assert.rejects(countNativeTrainingSupervision(target,{...known,width:2}),/Matching/);
+});
+test('overlapping labels remain separate and padded or unobserved channels stay unknown',async()=>{
+  const width=32,height=24,pixels=512*512,rgba=Buffer.alloc(width*height*4,255);
+  const targetBits=Buffer.alloc(pixels),knownBits=Buffer.alloc(pixels),index=8*512+10;
+  for(let y=0;y<height;y++)knownBits.fill(127&~4,y*512,y*512+width);
+  targetBits[index]=1|32;
+  const result=await prepareNativeTrainingTile({image:{width,height,data:rgba},targetBits,knownBits,x:0,y:0});
+  const value=(buffer,channel,pixel)=>buffer.readFloatLE((channel*pixels+pixel)*4);
+  assert.equal(value(result.target,0,index),1);assert.equal(value(result.target,5,index),1);
+  for(let channel=0;channel<7;channel++){
+    assert.equal(value(result.valid,channel,index),channel===2?0:1);
+    assert.equal(value(result.valid,channel,24*512),0);
+  }
 });
 test('reviewed supervision retains full-sheet fractional pixels across bounded windows',async()=>{
   const annotation={width:4100,height:8,known:{international:[[[4094.5,0],[4098.8,0],[4098.8,7],[4094.5,7]]]},
