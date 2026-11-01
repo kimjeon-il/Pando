@@ -1353,11 +1353,30 @@ export function checkLibraryReports({ root = defaultRoot, prefixes, removePaths 
   return withLibraryLock(root, () => checkOwnedReports(root, prefixes, removePaths),{compact:false});
 }
 
+function validateExpectedLibraryRevision(expectedRevision) {
+  if (expectedRevision !== undefined && (typeof expectedRevision !== 'string' || !/^[a-f0-9]{40}$/.test(expectedRevision))) {
+    throw Error('Expected library revision must be a 40-character lowercase hexadecimal SHA.');
+  }
+}
+function validateExpectedBranch(expectedBranch) {
+  if (expectedBranch !== undefined && !['main', 'work/gis'].includes(expectedBranch)) throw Error('Expected library branch must be main or work/gis.');
+}
+export function assertExpectedLibraryRevision({ expectedRevision, expectedBranch, branch, head, remote }) {
+  validateExpectedBranch(expectedBranch);
+  if (expectedBranch !== undefined && branch !== expectedBranch) throw Error('Library checkout branch differs from expected branch.');
+  validateExpectedLibraryRevision(expectedRevision);
+  if (expectedRevision === undefined) return;
+  if (head !== expectedRevision) throw Error('Library checkout HEAD differs from the expected revision; regenerate against the latest data before storing.');
+  if (remote !== expectedRevision) throw Error(`Library remote ${expectedBranch || 'work/gis'} differs from the expected revision; regenerate against the latest data before storing.`);
+}
+
 // App-owned writers store their output here; the data repository runs no tools.
-export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [] } = {}) {
+export function storeLibraryData({ root = defaultRoot, push = false, prefixes = null, removePaths = [], expectedRevision, expectedBranch } = {}) {
+  validateExpectedLibraryRevision(expectedRevision);
+  validateExpectedBranch(expectedBranch);
   if (!prefixes?.length) throw Error("Storage requires explicit library prefixes.");
   for (const path of prefixes) if (path === 'reports' || path.startsWith('reports/')) assertReportSubject(root, path);
-  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths }));
+  return withLibraryLock(root, () => storeOwnedLibraryData({ root, push, prefixes, removePaths, expectedRevision, expectedBranch }));
 }
 // Advance selected report scopes only. Runtime stores and another report's
 // publication must not replace this branch's independent archived editions.
@@ -1413,8 +1432,16 @@ export function assertTerritorialStorageScope(prefixes,libraryIndex,previousInde
     if(!entry||!included(`${base}/generated/v2/${entry.file}`))throw Error('Scoped territorial storage requires explicit paired source files');
   }
 }
-function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }) {
+function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch }) {
   const data = reportData || prepareOwnedLibraryData({ root, fetch: true });
+  if (expectedRevision !== undefined) {
+    // Check after preparation/fetch and before mutating archived data. A later
+    // concurrent publication is still rejected by the normal non-force push.
+    const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
+    const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
+    const remote = execFileSync('git', [...gitOptions, 'ls-remote', '--exit-code', 'origin', `refs/heads/${expectedBranch || 'work/gis'}`], { cwd: data.checkout, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\s+/)[0];
+    assertExpectedLibraryRevision({ expectedRevision, expectedBranch, branch: git(data.checkout, ['branch', '--show-current']), head: git(data.checkout, ['rev-parse', 'HEAD']), remote });
+  }
   if (libraryWriteLeases(librarySharedCheckout(root)).some(lease => lease.alive && lease.owner === libraryOwnerId(root) && lease.prefixes.some(a => prefixes.some(b => scopesOverlap(a, b))))) throw Error('Finish the active library write lease before storing this scope');
   if (git(data.checkout, ['status', '--porcelain'])) throw Error('Preserve existing data checkout edits before storing library material.');
   if (prefixes && (!Array.isArray(prefixes) || !prefixes.length || prefixes.some(path =>
@@ -1441,6 +1468,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   const runtimeFiles = reportData ? index.files : runtimeArchiveIndex(index, entry => decodeArchiveEntry(data.checkout, entry, libraryConfig(root).revision, {fetch:true})).files;
   const publicationBranch=reportData?'main':git(root,['symbolic-ref','--short','HEAD']);
   if(!publicationBranch)throw Error('Runtime publication requires an explicit application branch.');
+  if (expectedBranch !== undefined && publicationBranch !== expectedBranch) throw Error('Application publication branch differs from expected branch.');
   index.branch=publicationBranch;
   const runtimeDirectories = new Set(Object.entries(index.files).filter(([path, entry]) => path.startsWith('assets/data/') && path === entry.stored).map(([path]) => dirname(path)));
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');
