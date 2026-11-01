@@ -127,8 +127,8 @@ class TerrainDemTest(unittest.TestCase):
         self.assertEqual((int(rgba[0, 2, 0]), int(rgba[0, 2, 1])), (1, 0))
 
     def test_webp_roundtrip_and_reproducibility(self):
-        values = np.array([[0, 1, -1], [120, -100, 300]], dtype=np.float32)
-        rgba = dem.encode(values, 3, 2, 0)
+        rgba = np.array([[[0, 1, 2, 255], [128, 20, 5, 255], [1, 2, 3, 0]],
+                         [[255, 128, 0, 255], [2, 3, 4, 1], [11, 33, 55, 128]]], dtype=np.uint8)
         with tempfile.TemporaryDirectory() as folder:
             first, second = Path(folder)/'a.webp', Path(folder)/'b.webp'
             dem.save_and_verify_webp(rgba, first)
