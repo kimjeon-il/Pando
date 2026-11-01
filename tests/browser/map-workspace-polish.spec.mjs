@@ -26,10 +26,7 @@ async function setStatusBarVisible(page, visible) {
   if (await page.locator('#mobileMenuBtn').isVisible()) {
     await page.locator('#mobileMenuBtn').click();
     await page.locator('#mobilePreferencesBtn').click();
-  } else {
-    await page.locator('#topbarOverflowBtn').click();
-    await page.locator('#preferencesBtn').click();
-  }
+  } else await page.locator('#preferencesBtn').click();
   await expect(page.locator('#preferencesModal')).toBeVisible();
   await page.locator('#preferencesStatusBarVisibleInput').setChecked(visible);
   await page.locator('#preferencesApplyBtn').click();
