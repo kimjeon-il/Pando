@@ -42,7 +42,7 @@ export async function verifyEditingRecovery(page, {url, domainSource, afterBoot 
  expect(await page.evaluate(()=>window.PANDOLAB_TERRITORIAL.get('A').geometry)).toEqual(before);
  await page.keyboard.press('Control+y');await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
  await page.keyboard.down('Space');await expect(page.locator('#modeTaskInput')).toContainText('지도 이동 중');await page.keyboard.up('Space');
- await page.setViewportSize({width:390,height:844});await tap(page.locator('#modeTaskMinimizeBtn'));await expect(page.locator('#modeTaskTargetSummary')).toBeVisible();await expect(page.locator('#modeTaskEditingStage')).toBeVisible();await expect(page.locator('#modeTaskWindowContent')).toBeHidden();await page.locator('#modeTaskMinimizeBtn').click();
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();await expect(page.locator('#modeTaskEditingStage')).toBeHidden();await expect(page.locator('#modeTaskWindowContent')).toBeVisible();
  await page.locator('#modePrimaryBtn').click();await expect(page.locator('#modeReturnBtn')).toBeVisible({timeout:30000});
  await page.locator('#modeReturnBtn').click();await expect(page.locator('#modeReturnBtn')).toBeHidden();
  await page.locator('#modePrimaryBtn').click();await expect(page.locator('#modeReturnBtn')).toBeVisible({timeout:30000});

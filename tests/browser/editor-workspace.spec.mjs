@@ -27,11 +27,9 @@ test('mobile task remains open after its asynchronous property action starts', a
   await expect(page.locator('#modeCancelBtn')).toBeEnabled();
   await page.evaluate(() => window.__testCompleteToolStart(true));
   await expect(page.locator('#editorSurface')).toHaveClass(/mobile-open/);
-  await expect(page.locator('#modeTaskMinimizeBtn')).toBeInViewport();
-  await page.locator('#modeTaskMinimizeBtn').click();
-  await expect(page.locator('#modeTaskMinimizeBtn')).toHaveAttribute('aria-expanded', 'false');
-  await page.locator('#modeTaskMinimizeBtn').click();
-  await expect(page.locator('#modeTaskMinimizeBtn')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();
+  await expect(page.locator('#modeTaskWindowContent')).toBeVisible();
+  await expect(page.locator('#modeActionBar')).toBeVisible();
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
 });
@@ -68,11 +66,9 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
   await expect(page.locator('#editorScrollBody')).not.toBeVisible();
-  await expect(page.locator('#modeTaskMinimizeBtn')).toBeVisible();
-  await page.locator('#modeTaskMinimizeBtn').click();
-  await expect(page.locator('#modeTaskMinimizeBtn')).toHaveAttribute('aria-expanded','false');
-  await page.locator('#modeTaskMinimizeBtn').click();
-  await expect(page.locator('#modeTaskMinimizeBtn')).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();
+  await expect(page.locator('#modeTaskWindowContent')).toBeVisible();
+  await expect(page.locator('#modeActionBar')).toBeVisible();
   await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
   await page.setViewportSize({ width: 1000, height: 900 });
   await expect(page.locator('#app')).toHaveAttribute('data-layout', 'compact');
@@ -85,7 +81,7 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
   await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
-  await expect(page.locator('#modeTaskMinimizeBtn')).toBeVisible();
+  await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#modeTaskName')).toHaveText('영토 편입');
@@ -103,14 +99,14 @@ test('the current editor surface owns tasks at every responsive width', async ({
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
   await expect(page.locator('#editorTaskSlot #modeEditingContext')).toBeVisible();
   await expect(page.locator('#mapTopContextSlot #modeEditingContext')).toHaveCount(0);
-  await expect(page.locator('#modeTaskMinimizeBtn')).toBeVisible();
+  await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#editorTaskSlot > #modeEditingContext')).toHaveCount(1);
   expect(await task.evaluate((node, initial) => node === initial, originalTask)).toBe(true);
   expect(errors).toEqual([]);
 });
 
-test('expanded role-card task keeps a single visible target and restores context on collapse', async ({ page }) => {
+test('role-card task keeps a single visible target inside the editor surface', async ({ page }) => {
   test.setTimeout(150_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const errors = [];
@@ -126,12 +122,9 @@ test('expanded role-card task keeps a single visible target and restores context
   await expect(page.locator('#modeTaskEditingStage')).toBeHidden();
   await expect(page.locator('#modeTaskStatus')).toBeHidden();
   await expect(page.locator('#modeMapSummary')).toBeHidden();
-  await page.locator('#modeTaskMinimizeBtn').click();
-  await expect(page.locator('.mode-task-context-summary')).toBeVisible();
-  await expect(page.locator('#modeTaskTargetSummary')).toContainText('독일');
-  await expect(page.locator('#modeTaskEditingStage')).toBeVisible();
-  await expect(page.locator('#modeTaskWindowContent')).toBeHidden();
-  await page.locator('#modeTaskMinimizeBtn').click();
+  await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();
+  await expect(page.locator('#modeTaskWindowContent')).toBeVisible();
+  await expect(page.locator('#modeTaskEditingStage')).toBeHidden();
   await expect(page.locator('.mode-task-context-summary')).toBeHidden();
   await page.locator('#modeCancelBtn').click();
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');

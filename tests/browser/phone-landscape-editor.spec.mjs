@@ -98,9 +98,14 @@ test('phone landscape switches one right panel, preserves camera and adapts to k
   await page.locator('#mobileEditBtn').click();
   await expect(page.locator('#editorSurface')).toBeVisible();
   expect(await draft()).toEqual(started);
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
   await page.locator('#mobileUndoBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeHidden();
   await expect.poll(async () => (await draft()).draft.coords.length).toBe(0);
+  await page.locator('#mobileMenuBtn').click();
   await page.locator('#mobileRedoBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeHidden();
   await expect.poll(async () => (await draft()).draft.coords).toEqual(started.draft.coords);
   await page.screenshot({ path: test.info().outputPath('phone-landscape-editor.png'), style: '#debugMapPanel { visibility: hidden; }' });
   await page.setViewportSize({ width: 640, height: 360 });

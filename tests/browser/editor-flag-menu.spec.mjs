@@ -15,7 +15,8 @@ test('territorial selection enters the editor directly and preserves its flag me
   await expect(page.locator('#flagPreview')).toBeVisible();
   await expect(page.locator('#editorSurface #entityNameInput, #editorSurface #flagMenuBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface #entityNotesInput')).toHaveCount(1);
-  await expect(page.locator('#editorObjectHeader #objectVisibilityBtn, #editorObjectHeader #objectLockBtn')).toHaveCount(2);
+  await expect(page.locator('#editorObjectHeader #objectVisibilityBtn, #editorObjectHeader #objectLockBtn')).toHaveCount(0);
+  await expect(page.locator('#editorObjectMenu #objectVisibilityBtn, #editorObjectMenu #objectLockBtn')).toHaveCount(2);
   await expect(page.locator('#editorSurface .surface-header-actions #objectVisibilityBtn, #editorSurface .surface-header-actions #objectLockBtn, #editorSurface .surface-header-actions #objectDeleteBtn')).toHaveCount(0);
 
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('BGR'));

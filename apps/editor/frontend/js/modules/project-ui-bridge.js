@@ -118,7 +118,8 @@ export function createProjectUiBridge({
         : fileState === 'saved' || fileState === 'clean'
         ? '모든 변경 사항이 저장되었습니다.'
         : '저장되지 않은 변경 사항이 있습니다.';
-    status.hidden = false;
+    const quiet = !paused && !isSaving && !isError && (fileState === 'saved' || fileState === 'clean');
+    status.hidden = quiet;
     status.dataset.saveState = paused ? 'error' : isSaving ? 'saving' : isError ? 'error' : fileState;
     $('projectSaveStatusText').textContent = saveStateLabel;
     status.dataset.tooltip = saveStateDescription;

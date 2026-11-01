@@ -81,7 +81,7 @@
     position: fixed;
     z-index: 150;
     inset: auto 0 var(--workspace-bottom-offset, var(--ui-space-0));
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: stretch;
     padding: var(--ui-space-1) max(var(--ui-space-1), env(safe-area-inset-right)) calc(var(--ui-mobile-bottom-nav-padding) + env(safe-area-inset-bottom)) max(var(--ui-space-1), env(safe-area-inset-left));
     border-top: 1px solid var(--border);
@@ -90,8 +90,8 @@
 
   [data-layout="mobile"] .mobile-bottom-bar {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-column: 1 / span 5;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-column: 1 / span 3;
     grid-row: 1;
     min-width: 0;
   }
@@ -99,7 +99,7 @@
   [data-layout="mobile"] .mobile-workspace-controls .mobile-menu-toolbar {
     position: static;
     display: flex;
-    grid-column: 6;
+    grid-column: 4;
     grid-row: 1;
     align-items: stretch;
     justify-content: stretch;

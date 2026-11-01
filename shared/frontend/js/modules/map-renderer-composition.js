@@ -64,7 +64,10 @@ export function createMapRenderer(dependencies, { productMode, onMapPreparationS
           const label = dependencies.platform.$('mapPreparationStatus');
           const retry = dependencies.platform.$('mapPreparationRetry');
           const text = productMode === 'viewer' ? presentation.label.replace('현재 화면 ', '').replace('준비 실패', '불러오기 실패') : presentation.label;
-          if (label && label.textContent !== text) label.textContent = text;
+          if (label) {
+            if (label.textContent !== text) label.textContent = text;
+            label.hidden = presentation.status === 'ready';
+          }
           if (productMode === 'viewer') dependencies.platform.$('mapPreparationNotice').hidden = presentation.status !== 'error';
           if (retry) retry.hidden = !presentation.retry;
           if (gpuMapRenderer && onMapPreparationStatus) onMapPreparationStatus(presentation,gpuMapRenderer.getProjectGeneration());

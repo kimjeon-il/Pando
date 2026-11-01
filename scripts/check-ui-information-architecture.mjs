@@ -196,8 +196,15 @@ for (const forbiddenId of ['propertyTitle', 'propertyTypeLabel', 'editorObjectSt
 }
 if (/selectionToolbar|selection-card/.test(html)) fail('retired country card must not remain');
 const objectHeader = elementById('editorObjectHeader', 'section');
-for (const id of ['focusSelectedObjectBtn', 'objectLockBtn', 'objectVisibilityBtn']) {
-  if (!objectHeader.includes(`id="${id}"`)) fail(`editor header must own #${id}`);
+for (const id of ['focusSelectedObjectBtn', 'editorObjectMoreBtn', 'flagMenuBtn']) {
+  if (!objectHeader.includes(`id="${id}"`)) fail(`editor ObjectContext must own #${id}`);
+}
+for (const id of ['objectLockBtn', 'objectVisibilityBtn']) {
+  if (objectHeader.includes(`id="${id}"`)) fail(`editor ObjectContext must move #${id} into the object overflow menu`);
+}
+const objectMenu = elementById('editorObjectMenu', 'div');
+for (const id of ['objectLockBtn', 'objectVisibilityBtn']) {
+  if (!objectMenu.includes(`id="${id}"`)) fail(`editor object overflow menu must own #${id}`);
 }
 if (html.includes('id="modeTaskTargetsFocusBtn"')) fail('task windows must not expose a map-focus action');
 if (!editor.includes('id="editorDeleteSection"')) fail('editor must expose the object delete section');

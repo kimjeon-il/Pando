@@ -29,21 +29,22 @@
 
 ## 편집 Surface
 
-편집 화면의 위계는 다음으로 고정한다.
+P1 Shell 기준 편집 화면의 위계는 다음으로 고정한다.
 
 ```text
-Surface Header: 편집 + 잠금 + 삭제 + 닫기
-Tabs:           정보 / 작업
-ObjectContext:  객체명 + 유형 + 상태 (+ 지도에서 보기)
-Content:        속성 또는 작업
-Danger:         삭제
+Surface Header: 모바일 sheet handle 등 shell chrome
+ObjectContext:  국기 + 객체명 + 유형 + 상태 + 지도에서 보기 + 객체 메뉴
+Object menu:     표시/숨김 + 잠금/잠금 해제
+Tabs:            정보 / 편집 / 관계
+Content:         선택 객체의 속성 또는 명령
+Danger:          삭제
 ```
 
-Surface Header는 현재 창이 무엇인지 설명하고, 선택 객체에 직접 작용하는 잠금·삭제와 닫기만 제공한다. 객체의 이름·유형·상태는 탭 아래 본문 첫머리의 ObjectContext가 담당한다.
+Surface Header는 편집 Surface 자체의 shell만 담당한다. 객체의 이름·유형·상태와 선택 객체 명령은 Surface Header로 올리지 않는다.
 
-ObjectContext의 이름은 두 줄까지 허용하고 이후 말줄임한다. 유형과 잠금 상태는 보조 정보 줄에 표시한다. `지도에서 보기`는 ObjectContext의 보조 action으로 유지할 수 있다.
+ObjectContext의 이름은 두 줄까지 허용하고 이후 말줄임한다. 유형과 잠금·숨김 상태는 보조 정보 줄에 표시한다. `지도에서 보기`는 빠른 위치 확인을 위해 헤더에 직접 유지하고, 표시/숨김과 잠금처럼 빈도가 낮은 보조 명령은 `객체 메뉴` overflow에 둔다. 영토 객체의 국기는 정체성 표시와 기존 국기 관리 진입점을 함께 유지한다.
 
-`정보` 탭은 이름, 색상, 메모, 식별 정보 등 속성 편집을 담당한다. `작업` 탭은 잠금, 종류 변경, 경계 편집, 병합/분할 등 객체에 대한 명령을 담당한다. 삭제는 다른 작업과 섞지 않고 편집 본문 맨 아래의 `위험 작업` 영역에 둔다.
+P2에서도 `정보 / 편집 / 관계` 구조와 기능 위치를 유지한다. 단순화는 새 disclosure·요약 행·그룹을 추가하는 방식이 아니라 기존 카드 chrome, 여백, 반복 설명을 줄이는 방식으로 수행한다. 영토 정보 탭은 이름·존속기간·색상·비고를 기본으로 노출하고, 명칭 상세는 기본 UI에서 노출하지 않는다. 삭제는 기존 편집 본문 맨 아래의 danger 영역을 유지한다.
 
 ## 빈 선택과 다중 선택
 
@@ -56,9 +57,10 @@ ObjectContext의 이름은 두 줄까지 허용하고 이후 말줄임한다. �
 - `추가`의 `만들기 / 라이브러리` 경로 유지
 - `만들기`의 대분류 명칭·순서와 주요 객체 타입
 - Generic Feature 직접 생성 금지
-- 편집 Surface Header에는 잠금·삭제·닫기만 두고 객체별 정보는 침범하지 않음
-- `header → tabs → body → ObjectContext` 위계 유지
-- ObjectContext의 이름/유형/상태 계약
+- 편집 Surface Header는 shell chrome만 소유하고 객체별 정보는 침범하지 않음
+- `header → ObjectContext → tabs → body` 위계 유지
+- ObjectContext의 이름/유형/상태와 지도에서 보기/overflow 계약
+- 표시/숨김과 잠금이 ObjectContext의 객체 메뉴에만 존재하는지
 - 삭제가 최종 danger section에만 존재하는지
 - 객체명 두 줄 표시 계약
 

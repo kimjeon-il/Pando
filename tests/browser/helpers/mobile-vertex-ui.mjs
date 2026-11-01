@@ -14,7 +14,7 @@ export async function verifyMobileVertexUi(page,{url,domainSource,afterBoot=asyn
  await expect.poll(()=>page.evaluate(()=>window.__editingTest.projectState.state.boundaryPreparation?.status),{timeout:30000}).toBe('ready');
  await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
 
- await page.setViewportSize({width:390,height:844});await page.locator('#modeTaskMinimizeBtn').click();await expect(page.locator('#modeTaskInput')).toBeVisible();
+ await page.setViewportSize({width:390,height:844});await expect(page.locator('#modeTaskMinimizeBtn')).toBeHidden();await expect(page.locator('#modeTaskWindowContent')).toBeVisible();await expect(page.locator('#modeTaskInput')).toBeVisible();
  const cdp=await page.context().newCDPSession(page);await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:2});
  const send=(type,points)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:points.map((p,i)=>({x:p[0],y:p[1],id:i+1,radiusX:2,radiusY:2,force:1}))});
  const coords=()=>page.evaluate(()=>window.__editingTestDomains().editingDomain.createRenderPacket().boundaryEdit.handles.map(h=>h.coordinate));const original=await coords();
