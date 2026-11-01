@@ -1,6 +1,7 @@
 // Execute a bounded, source-verified sequence of native macro training batches.
 // This is an experimental checkpoint workflow, not model admission.
-import {existsSync,mkdirSync,statfsSync,writeFileSync} from 'node:fs';
+import {randomUUID} from 'node:crypto';
+import {existsSync,mkdirSync,renameSync,statfsSync,unlinkSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
@@ -14,12 +15,13 @@ import {decideTrainingEpoch} from './training-progress.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export async function runMacroTrainingSequence({mode,input,output,corpus,supervision,epoch,seed,freezeEpochs,learningRate,
-  device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,root=rootDefault,signal}={}){
+  device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,onBatch,root=rootDefault,signal}={}){
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!supervision||!torchLibrary||!['cpu','cuda'].includes(device)||
     typeof augment!=='boolean'||typeof amp!=='boolean'||(amp&&device!=='cuda')||
     ![epoch,seed,freezeEpochs].every(n=>Number.isSafeInteger(n)&&n>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
-    !Number.isSafeInteger(batchSize)||batchSize<1||batchSize>16||!Number.isSafeInteger(maxBatches)||maxBatches<1||maxBatches>1000000)
+    !Number.isSafeInteger(batchSize)||batchSize<1||batchSize>16||!Number.isSafeInteger(maxBatches)||maxBatches<1||maxBatches>1000000||
+    (onBatch!==undefined&&typeof onBatch!=='function'))
     throw Error('Explicit bounded macro training configuration required');
   const target=resolve(output),initial=resolve(input);if(existsSync(target))throw Error('Training sequence output exists; preserve it');
   const inputHash=trainingFileIdentity(initial),checked=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
@@ -56,23 +58,26 @@ export async function runMacroTrainingSequence({mode,input,output,corpus,supervi
       if(receipt.cursor!==cursor+count||receipt.orderSha256!==plan.orderSha256||receipt.orderLength!==plan.length)
         throw Error('Training checkpoint cursor differs from the prepared order; preserve outputs');
       current=checkpoint;cursor=receipt.cursor;completed++;
+      if(onBatch)await onBatch({epoch,cursor,orderLength:plan.length,batches:completed,checkpoint:current,
+        checkpointSha256:last.checkpointSha256,status:cursor===plan.length?'epoch-complete':'partial'});
     }
     const result={schemaVersion:1,trainingOnly:true,releaseApproved:false,independentEvaluation:false,lineageComplete:false,
       status:cursor===plan.length?'epoch-complete':'partial',epoch,cursor,orderLength:plan.length,batches:completed,
       checkpoint:current,checkpointSha256:last.checkpointSha256,orderSha256:plan.orderSha256};
-    writeFileSync(join(target,'sequence.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});return result;
+    signal?.throwIfAborted();writeFileSync(join(target,'sequence.json'),JSON.stringify(result,null,2)+'\n',{flag:'wx'});return result;
   });
 }
 
 // Multiple epochs remain provisional; training loss is not independent validation.
 export async function runMacroTrainingCampaign({mode,input,output,corpus,supervision,previousCampaign,epoch,seed,freezeEpochs,learningRate,
-  device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,epochs,root=rootDefault,signal}={}){
+  device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,epochs,onProgress,root=rootDefault,signal}={}){
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!supervision||!torchLibrary||!['cpu','cuda'].includes(device)||
     typeof augment!=='boolean'||typeof amp!=='boolean'||(amp&&device!=='cuda')||
     ![epoch,seed,freezeEpochs].every(n=>Number.isSafeInteger(n)&&n>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
     !Number.isSafeInteger(batchSize)||batchSize<1||batchSize>16||!Number.isSafeInteger(maxBatches)||maxBatches<1||maxBatches>1000000||
-    !Number.isSafeInteger(epochs)||epochs<1||epochs>1000||epoch+epochs>Number.MAX_SAFE_INTEGER)
+    !Number.isSafeInteger(epochs)||epochs<1||epochs>1000||epoch+epochs>Number.MAX_SAFE_INTEGER||
+    (onProgress!==undefined&&typeof onProgress!=='function'))
     throw Error('Explicit bounded training campaign configuration required');
   const target=resolve(output);if(existsSync(target))throw Error('Training campaign output exists; preserve it');
   const initial=resolve(input),inputHash=trainingFileIdentity(initial),corpusHash=trainingFileIdentity(resolve(corpus));
@@ -122,29 +127,46 @@ export async function runMacroTrainingCampaign({mode,input,output,corpus,supervi
   withLibraryOutputs({root,paths:[target]},()=>{mkdirSync(dirname(target),{recursive:true});mkdirSync(target);});
   let current=initial,remaining=maxBatches,currentEpoch=epoch,completed=previous?.completedEpochs??0,
     bestScore=previous?.bestScore??null,bestCheckpoint=previous?.bestCheckpoint??null,bestCheckpointSha256=previous?.bestCheckpointSha256??null;
-  const results=previous?[...previous.epochs]:[];
+  const results=previous?[...previous.epochs]:[];let report=null;
   while(completed<epochs&&remaining>0){
-    signal?.throwIfAborted();const directory=join(target,`epoch-${String(currentEpoch).padStart(4,'0')}`);
+    signal?.throwIfAborted();const activeEpoch=currentEpoch,directory=join(target,`epoch-${String(activeEpoch).padStart(4,'0')}`);
+    const progressPath=join(directory,'campaign.json');let written=null,segmentBatches=0;
     const result=await runMacroTrainingSequence({mode:results.length?'resume':mode,input:current,output:directory,corpus,supervision,
-      epoch:currentEpoch,seed,freezeEpochs,learningRate,device,amp,torchLibrary,augment,batchSize,maxBatches:remaining,root,signal});
-    remaining-=result.batches;current=result.checkpoint;
-    const item={epoch:currentEpoch,status:result.status,cursor:result.cursor,orderLength:result.orderLength,batches:result.batches,
-      checkpoint:result.checkpoint,checkpointSha256:result.checkpointSha256};
-    if(result.status==='epoch-complete'){
-      const receipt=JSON.parse(readTrainingBounded(current+'.receipt.json',1024*1024));
-      if(receipt.checkpointSha256!==result.checkpointSha256||receipt.corpusSha256!==corpusHash)throw Error('Training epoch receipt differs');
-      const decision=decideTrainingEpoch(receipt,{bestScore,patience:1});
-      item.trainingLoss=decision.trainingLoss;if(decision.improved){bestScore=decision.bestScore;bestCheckpoint=current;bestCheckpointSha256=result.checkpointSha256;}
-      completed++;currentEpoch++;
-    }
-    results.push(item);if(result.status!=='epoch-complete')break;
+      epoch:activeEpoch,seed,freezeEpochs,learningRate,device,amp,torchLibrary,augment,batchSize,maxBatches:remaining,root,signal,
+      onBatch:async event=>{
+        if(event.epoch!==activeEpoch||event.batches!==segmentBatches+1||remaining<1)throw Error('Training campaign batch order differs');
+        const receipt=JSON.parse(readTrainingBounded(event.checkpoint+'.receipt.json',1024*1024));
+        if(receipt.checkpointSha256!==event.checkpointSha256||receipt.corpusSha256!==corpusHash||receipt.epoch!==activeEpoch||
+          receipt.cursor!==event.cursor||receipt.orderLength!==event.orderLength)throw Error('Training campaign batch receipt differs');
+        remaining--;current=event.checkpoint;
+        const item={epoch:activeEpoch,status:event.status,cursor:event.cursor,orderLength:event.orderLength,batches:event.batches,
+          checkpoint:event.checkpoint,checkpointSha256:event.checkpointSha256};
+        if(event.status==='epoch-complete'){
+          const decision=decideTrainingEpoch(receipt,{bestScore,patience:1});item.trainingLoss=decision.trainingLoss;
+          if(decision.improved){bestScore=decision.bestScore;bestCheckpoint=current;bestCheckpointSha256=event.checkpointSha256;}
+          completed++;currentEpoch++;
+        }
+        if(segmentBatches===0)results.push(item);else results[results.length-1]=item;segmentBatches++;
+        report={schemaVersion:1,status:completed===epochs?'complete':'partial',trainingOnly:true,independentEvaluation:false,
+          releaseApproved:false,lineageComplete:false,selectionMetric:'trainingLoss',selectionScope:'campaign-completed-epochs',configuration,
+          inputSha256:previous?.inputSha256??inputHash,corpusSha256:corpusHash,completedEpochs:completed,requestedEpochs:epochs,
+          batches:(previous?.batches??0)+maxBatches-remaining,checkpoint:current,checkpointSha256:event.checkpointSha256,
+          bestCheckpoint,bestCheckpointSha256,bestScore,epochs:results};
+        const text=JSON.stringify(report,null,2)+'\n';
+        if(written===null)writeFileSync(progressPath,text,{flag:'wx'});
+        else{
+          if(readTrainingBounded(progressPath,8*1024*1024).toString('utf8')!==written)throw Error('Training campaign progress changed');
+          const temporary=progressPath+'.'+randomUUID()+'.tmp';let created=false;
+          try{writeFileSync(temporary,text,{flag:'wx'});created=true;renameSync(temporary,progressPath);created=false;}
+          finally{if(created)unlinkSync(temporary);}
+        }
+        written=text;if(onProgress)await onProgress(structuredClone(report),progressPath);
+      }});
+    signal?.throwIfAborted();
+    if(!report||result.batches!==segmentBatches||result.checkpointSha256!==report.checkpointSha256)throw Error('Training campaign sequence differs');
+    if(result.status!=='epoch-complete')break;
   }
   if(trainingFileIdentity(resolve(corpus))!==corpusHash)throw Error('Training corpus changed during campaign');
-  const report={schemaVersion:1,status:completed===epochs?'complete':'partial',trainingOnly:true,independentEvaluation:false,
-    releaseApproved:false,lineageComplete:false,selectionMetric:'trainingLoss',selectionScope:'campaign-completed-epochs',configuration,
-    inputSha256:previous?.inputSha256??inputHash,corpusSha256:corpusHash,completedEpochs:completed,requestedEpochs:epochs,
-    batches:(previous?.batches??0)+maxBatches-remaining,checkpoint:current,checkpointSha256:results.at(-1).checkpointSha256,
-    bestCheckpoint,bestCheckpointSha256,bestScore,epochs:results};
   withLibraryOutputs({root,paths:[target]},()=>writeFileSync(join(target,'campaign.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'}));
   return report;
 }

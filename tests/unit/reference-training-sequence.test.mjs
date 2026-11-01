@@ -15,6 +15,7 @@ test('training campaign requires bounded epochs and protects existing output',as
   const request={mode:'warm',input:'weights',output,corpus:'corpus',supervision:'supervision',epoch:0,seed:5,
     freezeEpochs:1,learningRate:.00001,device:'cpu',torchLibrary:'library',augment:false,batchSize:1,maxBatches:1,epochs:1};
   await assert.rejects(training.runMacroTrainingCampaign({...request,epochs:0}),/configuration/i);
+  await assert.rejects(training.runMacroTrainingCampaign({...request,output:join(root,'new'),onProgress:'invalid'}),/configuration/i);
   await assert.rejects(training.runMacroTrainingCampaign(request),/exists/i);
   assert.equal(readFileSync(output,'utf8'),'protected');
   const controller=new AbortController();controller.abort();
