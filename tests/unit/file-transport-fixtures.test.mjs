@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import {createBrowserFileAccessFixture,createNativeFileAccessFixture,fixtureProjectFile} from '../helpers/file-transport-fixtures.mjs';
 
+const {Blob}=globalThis;
 const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root),'utf8');
 
