@@ -5,35 +5,199 @@ on:
     paths: [.github/workflows/gis-main-integration.yml]
 permissions:
   contents: read
+concurrency:
+  group: gis-main-integration
+  cancel-in-progress: false
 jobs:
-  source:
+  candidate:
     runs-on: ubuntu-24.04
     timeout-minutes: 8
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.merge.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
-      - name: Preserve exact source history for offline three-way integration
+          persist-credentials: true
+      - name: Reproduce the reviewed three-way merge without touching main
+        id: merge
         shell: bash
         run: |
           set -euo pipefail
+          MAIN=fa2ba8084453396bfde385d311c668dc4381b6c7
           git worktree list --porcelain
           git status --short --branch
           test -z "$(git status --porcelain)"
-          git cat-file -e fa2ba8084453396bfde385d311c668dc4381b6c7^{commit}
-          git cat-file -e e26a5b7599da2f71e466f79c69481e040d0cb4d2^{commit}
-          mkdir -p build-native/gis-main-integration
-          git update-ref refs/pando/integration/main fa2ba8084453396bfde385d311c668dc4381b6c7
-          git update-ref refs/pando/integration/gis HEAD
-          git bundle create build-native/gis-main-integration/source.bundle refs/pando/integration/main refs/pando/integration/gis
-          git bundle verify build-native/gis-main-integration/source.bundle
-          sha256sum build-native/gis-main-integration/source.bundle > build-native/gis-main-integration/SHA256SUMS
-          git log -1 --format='%H %s' > build-native/gis-main-integration/source.txt
-          du -h build-native/gis-main-integration/source.bundle
-      - uses: actions/upload-artifact@v4
+          test "$(git rev-parse HEAD^)" = 9ec204ec16207d24b7fd47b80a28bef4c74d8a1c
+          test "$(git diff --name-only HEAD^ HEAD)" = .github/workflows/gis-main-integration.yml
+          test "$(git ls-remote origin refs/heads/main | cut -f1)" = "$MAIN"
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$GITHUB_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          set +e
+          git merge --no-commit --no-ff "$MAIN"
+          status=$?
+          set -e
+          test "$status" = 1
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess,json
+          git=lambda *args:subprocess.check_output(['git',*args],text=True).strip()
+          conflicts=git('diff','--name-only','--diff-filter=U').splitlines()
+          assert conflicts==['shared/frontend/js/modules/builtin-world-loader.js','tests/helpers/frontend-build-fixture.mjs'],conflicts
+          p=Path('shared/frontend/js/modules/builtin-world-loader.js')
+          s=subprocess.check_output(['git','show','e26a5b7599da2f71e466f79c69481e040d0cb4d2:'+str(p)],text=True)
+          def replace_once(text,old,new):
+              assert text.count(old)==1,old
+              return text.replace(old,new)
+          s=replace_once(s,'async function loadProject(month,{isCurrent=()=>true}={}){',"async function loadProject(month,{isCurrent=()=>true,concurrency=6,waitForIdle=null}={}){\n  if(!Number.isInteger(concurrency)||concurrency<1||concurrency>6)throw new RangeError('Builtin country read concurrency must be 1-6.');")
+          s=replace_once(s,'length:Math.min(6,selected.length)','length:Math.min(concurrency,selected.length)')
+          s=replace_once(s,'assertCurrent();const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();',"assertCurrent();\n     if(waitForIdle){await waitForIdle();assertCurrent();}\n     if(failed||next>=selected.length)break;\n     const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();")
+          s=replace_once(s,'  assertCurrent();\n  return {project:assembleBuiltinWorld','  if(waitForIdle)await waitForIdle();\n  assertCurrent();\n  return {project:assembleBuiltinWorld')
+          p.write_text(s)
+          p=Path('tests/helpers/frontend-build-fixture.mjs');s=p.read_text()
+          assert s.count('<<<<<<< HEAD')==1
+          start=s.index('<<<<<<< HEAD');end=s.index('\n',s.index('>>>>>>>',start))
+          p.write_text(s[:start]+"  'assets/data/physical-land/land.bin':storedPhysicalLand,'assets/data/hydro/v0.13.2/data.bin':null,"+s[end:])
+          p=Path('tests/unit/builtin-country-loading.test.mjs');s=p.read_text()
+          s=replace_once(s,"assert.equal(countryCalls(f).filter(file=>file===target).length,3);","assert.equal(countryCalls(f).filter(file=>file===target).length,1,'404 is not a transient download failure');")
+          s+='''
+          
+          test('background direct country reads retain the main concurrency limit and idle admission',async()=>{
+           const pub=publication([{id:'A'},{id:'B'},{id:'C'}]);let yields=0;
+           const f=reader(pub,{beforeFetch:()=>new Promise(resolve=>setTimeout(resolve,1))});
+           const result=await f.loader.loadProject('2026-10',{concurrency:1,waitForIdle:async()=>{yields++;}});
+           assert.equal(result.project.territorialEntities.length,3);
+           assert.equal(f.peak(),1);
+           assert.equal(yields,4); // Each country and the final publication wait for idle.
+           assert.deepEqual(countryCalls(f),pub.index.entities.map(row=>row.file));
+          });
+          
+          test('cancellation during idle prevents country requests and scene publication',async()=>{
+           const f=reader(publication([{id:'A'}]));let current=true;
+           await assert.rejects(f.loader.loadProject('2026-10',{
+            isCurrent:()=>current,concurrency:1,waitForIdle:async()=>{current=false;}
+           }),error=>error.name==='AbortError');
+           assert.deepEqual(f.calls.map(row=>row.file),['index.json']);
+          });
+          
+          test('invalid per-query country concurrency rejects before fetching the catalog',async()=>{
+           for(const concurrency of [0,7,1.5,NaN]){
+            const f=reader(publication([{id:'A'}]));
+            await assert.rejects(f.loader.loadProject('2026-10',{concurrency}),RangeError);
+            assert.equal(f.calls.length,0);
+           }
+          });
+          '''
+          p.write_text(s)
+          p=Path('tests/unit/builtin-country-retry.test.mjs');s=p.read_text()
+          s=replace_once(s,'new Response(null,{status:404})','new Response(null,{status:503})')
+          s=replace_once(s,'/404/','/503/');p.write_text(s)
+          expected={
+           'scripts/lib/product-assets.mjs':'d01f8c9f4f4a270f36075f4644559e6db98e0b76',
+           'shared/frontend/js/modules/builtin-world-loader.js':'c0ac9a8bcc989230f38b88fb5288fcb6b4e15488',
+           'tests/helpers/frontend-build-fixture.mjs':'c9d159b69a81cb1a953f1e2bbd90e6141b1f32bc',
+           'tests/helpers/frontend-pages-fixture.mjs':'5c76c703fb98ea6d966e5ebbfb11abcbf5d2b8af',
+           'tests/unit/builtin-country-loading.test.mjs':'2a05c0ae8bc9bf713609f156306cdf10f4b47e06',
+           'tests/unit/builtin-country-retry.test.mjs':'3c89e3dac2e504c3a4d146433b8e38255d4e4241',
+           'tests/unit/builtin-world-loader.test.mjs':'1542deca2b13068d1f2402eecb63f210b4556588'}
+          for path,sha in expected.items():
+              assert git('hash-object',path)==sha,path
+          subprocess.check_call(['git','add','--',*expected])
+          assert json.loads(Path('config/library-data.json').read_text())['revision']=='5eb7be55208efaafe39bd5a65ec2f111d70b9053'
+          PY
+          git rm -- .github/workflows/gis-main-integration.yml
+          test -z "$(git diff --name-only --diff-filter=U)"
+          git diff --check
+          git diff --cached --exit-code "$MAIN" -- shared/core shared/wasm shared/frontend/static/wasm
+          test "$(git write-tree)" = 5bc051626e0fc0c582b19571c60a22e28c8343a1
+          git commit -m 'Merge repaired main into work/gis for stage-1 integration' -m 'Preserve main Core/WASM and source caching, GIS country-files-v1 publication and data pin 5eb7be55. Resolve reader idle/concurrency and physical-land fixture conflicts; preserve non-retryable 404 and exhausted transient 503 tests. Exact reviewed tree: 5bc051626e0fc0c582b19571c60a22e28c8343a1. Focused local tests 61 passed. Remote Web/App and dated browser acceptance still pending; no main publication in this workflow.'
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$GITHUB_SHA"
+          git push origin HEAD:refs/heads/work/gis
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$(git rev-parse HEAD)"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  contracts:
+    needs: candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
         with:
-          name: gis-main-integration-source
-          path: build-native/gis-main-integration/
-          retention-days: 1
-          if-no-files-found: error
+          ref: ${{ needs.candidate.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Focused merged loader, generation, immutable cache and Web/App contracts
+        run: |
+          node --test --test-concurrency=2 --test-timeout=30000 \
+            tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs \
+            tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-source-cache.test.mjs \
+            tests/unit/viewer-adjacent-prefetch.test.mjs tests/unit/stored-asset-content-cache.test.mjs \
+            tests/unit/builtin-country-publication.test.mjs tests/unit/builtin-country-parts.test.mjs \
+            tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-materialization.test.mjs \
+            tests/unit/builtin-country-residuals.test.mjs tests/unit/prepared-input-verification.test.mjs \
+            tests/unit/frontend-build.test.mjs tests/unit/product-assets.test.mjs \
+            tests/unit/frontend-product-output.test.mjs \
+            apps/editor/tests/world-data-plan.test.mjs apps/editor/tests/stage-world.test.mjs
+      - name: Actual App frontend and verification fixture staging
+        run: node --test --test-timeout=30000 --test-name-pattern='stages the real frontend|verification assets are opt-in|the verification fixture loads' apps/editor/tests/stage.test.mjs
+      - name: Check only conflict-resolution and affected test sources
+        run: pnpm exec eslint shared/frontend/js/modules/builtin-world-loader.js tests/helpers/frontend-build-fixture.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs
+  dated-web-app:
+    needs: candidate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.candidate.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Check storage headroom before preparing only the paired runtime
+        run: |
+          df -h .
+          test "$(df -Pk . | awk 'NR==2 {print $4}')" -gt 8388608
+      - uses: ./.github/actions/library-data
+      - name: Check source/data pins and exact Web/App deployment closures
+        run: |
+          node scripts/generate-build-metadata.mjs
+          node scripts/check-version.mjs
+          node tests/integration/builtin-country-deployment.mjs
+      - name: Verify previously failing modern baseline and affected historical snapshots
+        run: |
+          node --test --test-concurrency=1 \
+            tests/unit/builtin-world-baseline.test.mjs \
+            tests/unit/post-2000-generated-world-display.test.mjs \
+            tests/unit/source-date-cut-normalization.test.mjs \
+            tests/unit/indonesia-territory-timeline.test.mjs \
+            tests/unit/sudan-ukraine-transition.test.mjs \
+            tests/unit/gis-2000-2026-generated-attributes.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real editor year, official-name and flag scenarios plus viewer direct loading
+        run: |
+          pnpm exec playwright test tests/browser/post-2000-world-timeline.spec.mjs \
+            tests/browser/gis-2000-2026-attribute-history.spec.mjs \
+            tests/browser/gis-2000-2026-additional-attributes.spec.mjs \
+            tests/browser/builtin-country-loading.spec.mjs \
+            --workers=1 --retries=0 --max-failures=2 --trace off
+      - name: Retain scoped browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gis-main-integration-browser-${{ needs.candidate.outputs.sha }}
+          path: test-results/
+          retention-days: 3
+          if-no-files-found: ignore
