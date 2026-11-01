@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {buildFrontendIndex,frontendAsset,emitFrontendModule,frontendSourceClosure} from '../../scripts/lib/frontend-layout.mjs';
@@ -75,4 +75,22 @@ test('frontend source closure follows static imports and catalogued runtime edge
    'assets/js/modules/runtime.js',
    'assets/js/modules/static.js',
  ]);
+});
+
+
+test('runtime closure rejects product ownership violations',t=>{
+ const root=fixture(t);
+ put(root,'shared/frontend/js/modules/common.js','export const common=1;');
+ put(root,'apps/editor/frontend/js/private.js','export const value=1;');
+ assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{runtimeDependencies:{
+   'assets/js/modules/common.js':['apps/editor/frontend/js/private.js'],
+ }}),/ownership/i);
+});
+
+test('stage world fixture uses closure roots instead of copying transitive runtime modules by name',()=>{
+ const source=readFileSync(new URL('../../apps/editor/tests/helpers/world-fixture.mjs',import.meta.url),'utf8');
+ assert.match(source,/frontendSourceClosure/);
+ assert.match(source,/runtimeDependencies/);
+ for(const dependency of ['platform-ports.js','file-access-contract.js'])
+   assert.equal(source.includes("await put('shared/frontend/js/modules/"+dependency),false,dependency+' is a transitive dependency');
 });
