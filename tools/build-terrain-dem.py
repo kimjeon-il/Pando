@@ -1,6 +1,6 @@
 """Build the optional ETOPO 2022 Ice Surface terrain tiles outside the repository.
 
-Example (numpy, Pillow and the source-bound native DEM tools required):
+Example (Node and the source-bound native DEM tools required):
   node scripts/gis/run-source.mjs --task terrain-dem --execute -- --etopo ETOPO_2022_v1_30s_N90W180_surface.tif \
       --tint-zip HYP_HR.zip --glaciated-areas ne_10m_glaciated_areas.geojson \
       --countries assets/data/countries-ne-5.1.1.geojson \
@@ -13,7 +13,6 @@ The manifest is published only after every tile has been encoded and verified.
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 import json
 import math
 import os
@@ -21,11 +20,8 @@ import shutil
 import struct
 import subprocess
 from pathlib import Path
-import tempfile
 import time
 
-import numpy as np
-from PIL import Image
 
 
 VERSION = "0.13.3"
@@ -80,137 +76,6 @@ def inspect_source(path: Path):
             not math.isfinite(metadata['nodata']) or not isinstance(metadata['dtype'], str)):
         raise ValueError('Invalid native ETOPO inspection receipt')
     return metadata
-
-
-class NativeDemWindowReader:
-    """Reuse the source-bound GDAL reader for one level of DEM windows."""
-    def __init__(self, source, width, height, strict=True):
-        binary = os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY')
-        if not binary:
-            raise RuntimeError('PANDO_TERRAIN_DEM_RASTER_BINARY is required for DEM generation')
-        if not Path(binary).is_absolute():
-            raise RuntimeError('An absolute PANDO_TERRAIN_DEM_RASTER_BINARY is required')
-        self.width, self.height = width, height
-        env = os.environ.copy()
-        if env.get('PANDO_TERRAIN_DEM_GDAL_BIN'):
-            if not Path(env['PANDO_TERRAIN_DEM_GDAL_BIN']).is_absolute():
-                raise ValueError('GDAL runtime directory must be absolute')
-            env['PATH'] = env['PANDO_TERRAIN_DEM_GDAL_BIN'] + os.pathsep + env.get('PATH', '')
-        self.errors = tempfile.TemporaryFile()
-        try:
-            self.process = subprocess.Popen([binary, '--stream', str(source), str(width), str(height),
-                                             *(['--strict-etopo'] if strict else [])],
-                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.errors,
-                                            env=env, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-        except BaseException:
-            self.errors.close()
-            raise
-        self.executor = ThreadPoolExecutor(max_workers=1)
-
-    def __enter__(self):
-        return self
-
-    def _error(self):
-        self.errors.seek(0)
-        return self.errors.read().decode('utf-8', errors='replace').strip()
-
-    def read(self, x0, y0, x1, y1):
-        w, h = x1-x0, y1-y0
-        if (any(not isinstance(v, int) or abs(v) > 1000000 for v in (x0, y0, x1, y1)) or
-                w < 1 or h < 1 or w > 5000 or h > 5000 or w*h > 16777216 or y0 >= self.height or y1 <= 0):
-            raise ValueError('DEM window exceeds bounds')
-        try:
-            self.process.stdin.write(struct.pack('<8siiii', b'PDEMWIN1', x0, y0, x1, y1))
-            self.process.stdin.flush()
-            output = self.executor.submit(self.process.stdout.read, w*h*4).result(timeout=180)
-        except (BrokenPipeError, FutureTimeout) as error:
-            if self.process.poll() is None:
-                self.process.kill()
-            self.process.wait()
-            raise RuntimeError('Native DEM window failed: ' + self._error()) from error
-        if len(output) != w*h*4:
-            self.process.wait(timeout=180)
-            raise RuntimeError('Native DEM window failed: ' + self._error())
-        return np.frombuffer(output, dtype='<f4').reshape(h, w).copy()
-
-    def __exit__(self, exception_type, exception, traceback):
-        if exception_type and self.process.poll() is None:
-            self.process.kill()
-        try:
-            self.process.stdin.close()
-        except BrokenPipeError:
-            pass
-        timed_out = False
-        try:
-            code = self.process.wait(timeout=180)
-        except subprocess.TimeoutExpired:
-            self.process.kill()
-            self.process.wait()
-            timed_out = True
-            code = self.process.returncode
-        finally:
-            self.process.stdout.close()
-            self.executor.shutdown(wait=True)
-        message = self._error()
-        self.errors.close()
-        if timed_out and not exception_type:
-            raise RuntimeError('Native DEM reader did not stop: ' + message)
-        if code and not exception_type:
-            raise RuntimeError('Native DEM reader failed: ' + message)
-
-
-def _native_dem(elevation, level_width, level_height, north_pixel_row):
-    if not isinstance(elevation, np.ndarray) or elevation.ndim != 2 or elevation.dtype != np.dtype('float32') or not elevation.size:
-        raise ValueError('A nonempty float32 DEM elevation grid is required')
-    if not np.isfinite(elevation).all() or elevation.min() < -BIAS or elevation.max() > 65535-BIAS:
-        raise ValueError('Elevation outside valid encoding range')
-    binary = os.environ.get('PANDO_TERRAIN_DEM_ENCODE_BINARY')
-    if not binary:
-        raise RuntimeError('PANDO_TERRAIN_DEM_ENCODE_BINARY is required for DEM generation')
-    rows, columns = elevation.shape
-    header = struct.pack('<8sIIIIi', b'PDEMENC1', columns, rows, level_width, level_height, north_pixel_row)
-    payload = header + np.ascontiguousarray(elevation, dtype='<f4').tobytes()
-    result = subprocess.run([binary], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180).stdout
-    pixels = rows * columns
-    if len(result) != pixels * 5:
-        raise ValueError('Invalid native DEM encoding output length')
-    return (np.frombuffer(result, dtype=np.uint8, count=pixels).reshape(rows, columns).copy(),
-            np.frombuffer(result, dtype=np.uint8, offset=pixels).reshape(rows, columns, 4).copy())
-
-
-def shade(elevation, level_width, level_height, north_pixel_row):
-    return _native_dem(elevation, level_width, level_height, north_pixel_row)[0]
-
-
-def encode(elevation, level_width, level_height, north_pixel_row):
-    return _native_dem(elevation, level_width, level_height, north_pixel_row)[1]
-
-
-def save_and_verify_webp(rgba, path):
-    if not isinstance(rgba, np.ndarray) or rgba.dtype != np.uint8 or rgba.ndim != 3 or rgba.shape[2] != 4:
-        raise ValueError('A uint8 RGBA DEM tile is required')
-    height, width = rgba.shape[:2]
-    if not width or not height or width > 16384 or height > 16384 or width*height > 16777216:
-        raise ValueError('DEM tile dimensions exceed bounds')
-    script = Path(__file__).resolve().parent / 'gis/terrain-dem-webp.mjs'
-    payload = struct.pack('<8sII', b'PDWEBP01', width, height) + np.ascontiguousarray(rgba).tobytes()
-    result = subprocess.run(['node', str(script), '--stream'], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-    if result.returncode:
-        raise RuntimeError('Native DEM WebP encoding failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    if len(result.stdout) < 12 or result.stdout[:4] != b'RIFF' or result.stdout[8:12] != b'WEBP':
-        raise ValueError('Invalid native DEM WebP output')
-    path = Path(path)
-    if path.is_symlink():
-        raise ValueError('DEM tile output cannot be a symbolic link')
-    fd, temporary = tempfile.mkstemp(prefix=path.name+'.', suffix='.tmp', dir=path.parent)
-    try:
-        with os.fdopen(fd, 'wb') as stream:
-            stream.write(result.stdout)
-        os.replace(temporary, path)
-    finally:
-        if os.path.exists(temporary):
-            os.unlink(temporary)
 
 
 def reconcile_gutters(output: Path, level):

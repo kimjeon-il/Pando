@@ -1,5 +1,4 @@
 import importlib.util
-import base64
 import json
 import os
 from pathlib import Path
@@ -36,30 +35,6 @@ class TerrainDemTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'DEM|ETOPO|EPSG'):
             dem.inspect_source(Path(__file__).parents[1] / 'fixtures/terrain-dem-tint/source.tif')
 
-    @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
-    def test_native_stream_reuses_reader_and_rejects_invalid_source(self):
-        fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-etopo-sparse.tif'
-        with dem.NativeDemWindowReader(fixture, 43200, 21600) as reader:
-            expected = np.array([[100, -20], [350, 25]], dtype=np.float32)
-            np.testing.assert_array_equal(reader.read(0, 0, 2, 2), expected)
-            np.testing.assert_array_equal(reader.read(0, 0, 2, 2), expected)
-        oracle = json.loads((Path(__file__).parents[1] / 'fixtures/terrain-dem-raster-oracle.json').read_text(encoding='utf-8'))
-        with tempfile.TemporaryDirectory() as folder:
-            source = Path(folder) / 'valid.tif'
-            source.write_bytes(base64.b64decode(oracle['sources']['valid']))
-            with self.assertRaisesRegex(RuntimeError, 'ETOPO|EPSG'):
-                with dem.NativeDemWindowReader(source, 8, 4) as reader:
-                    reader.read(0, 0, 2, 2)
-            for case in oracle['cases']:
-                source.write_bytes(base64.b64decode(oracle['sources'][case['source']]))
-                with self.subTest(case=case):
-                    if 'error' in case:
-                        with self.assertRaisesRegex(RuntimeError, 'NoData|range'):
-                            with dem.NativeDemWindowReader(source, case['width'], case['height'], strict=False) as reader:
-                                reader.read(*case['box'])
-                    else:
-                        with dem.NativeDemWindowReader(source, case['width'], case['height'], strict=False) as reader:
-                            self.assertEqual(reader.read(*case['box']).tobytes(), base64.b64decode(case['expected']))
 
     def test_asset_summary_uses_shared_node_digest(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -126,88 +101,13 @@ class TerrainDemTest(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 dem.build_tint(fixture/'source.zip', first, fixture/'ice.geojson', fixture/'land.geojson')
 
-    def test_signed_elevation_and_byte_boundary(self):
-        values = np.array([[-12000, -11745, -11744, 0, 53535]], dtype=np.float32)
-        rgba = dem.encode(values, 5, 1, 0)
-        restored = rgba[:, :, 0].astype(np.int32)*256 + rgba[:, :, 1].astype(np.int32)-12000
-        np.testing.assert_array_equal(restored, values.astype(np.int32))
-        np.testing.assert_array_equal(rgba[:, :, 3], 255)
-        self.assertEqual((int(rgba[0, 1, 0]), int(rgba[0, 1, 1])), (0, 255))
-        self.assertEqual((int(rgba[0, 2, 0]), int(rgba[0, 2, 1])), (1, 0))
 
-    def test_webp_roundtrip_and_reproducibility(self):
-        rgba = np.array([[[0, 1, 2, 255], [128, 20, 5, 255], [1, 2, 3, 0]],
-                         [[255, 128, 0, 255], [2, 3, 4, 1], [11, 33, 55, 128]]], dtype=np.uint8)
-        with tempfile.TemporaryDirectory() as folder:
-            first, second = Path(folder)/'a.webp', Path(folder)/'b.webp'
-            dem.save_and_verify_webp(rgba, first)
-            dem.save_and_verify_webp(rgba, second)
-            self.assertEqual(first.read_bytes(), second.read_bytes())
-            np.testing.assert_array_equal(np.asarray(Image.open(first).convert('RGBA')), rgba)
 
-    def test_failed_native_webp_encoding_preserves_existing_tile(self):
-        with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / 'tile.webp'; path.write_bytes(b'prior tile')
-            failed = mock.Mock(returncode=1, stderr=b'encoder failure', stdout=b'')
-            with mock.patch.object(dem.subprocess, 'run', return_value=failed):
-                with self.assertRaisesRegex(RuntimeError, 'encoder failure'):
-                    dem.save_and_verify_webp(np.zeros((2, 2, 4), dtype=np.uint8), path)
-            self.assertEqual(path.read_bytes(), b'prior tile')
-            self.assertEqual([item.name for item in Path(folder).iterdir()], ['tile.webp'])
 
-    def test_shade_quantization_preserves_elevation_and_limits_error(self):
-        values = np.array([[0, 120, -100, 300], [600, -500, 2200, -3500]], dtype=np.float32)
-        rgba = dem.encode(values, 4, 2, 0)
-        exact_shade = dem.shade(values, 4, 2, 0)
-        expected = np.minimum(((exact_shade.astype(np.uint16) + 2) // 4) * 4, 255).astype(np.uint8)
-        np.testing.assert_array_equal(rgba[:, :, 2], expected)
-        decoded = rgba[:, :, 0].astype(np.int32)*256 + rgba[:, :, 1].astype(np.int32)-12000
-        np.testing.assert_array_equal(decoded, values.astype(np.int32))
-        self.assertLessEqual(np.abs(rgba[:, :, 2].astype(np.int16) - exact_shade.astype(np.int16)).max(), 2)
-        np.testing.assert_array_equal(rgba[:, :, 2] % 4, 0)
 
-    def test_coarse_polar_gutter_clamps_adjacent_shade(self):
-        values = np.array([[100, 200, 300, 400], [200, 300, 400, 500],
-                           [300, 400, 500, 600], [400, 500, 600, 700]], dtype=np.float32)
-        rgba = dem.encode(values, 4, 2, -1)
-        np.testing.assert_array_equal(rgba[0, :, 2], rgba[1, :, 2])
-        np.testing.assert_array_equal(rgba[-1, :, 2], rgba[-2, :, 2])
-        np.testing.assert_array_equal(rgba[1:-1, :, 2] % 4, 0)
 
-    @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
-    def test_area_average_and_wrapped_gutter(self):
-        fixture = json.loads((Path(__file__).parents[1]/'fixtures/terrain-dem-raster-oracle.json').read_text(encoding='utf-8'))
-        case = next(row for row in fixture['cases'] if row['source'] == 'valid' and row['width'] == 2)
-        with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / 'source.tif'
-            path.write_bytes(base64.b64decode(fixture['sources']['valid']))
-            with dem.NativeDemWindowReader(path, case['width'], case['height'], strict=False) as reader:
-                result = reader.read(*case['box'])
-                self.assertEqual(result.tobytes(), base64.b64decode(case['expected']))
 
-    def test_range_and_nodata_are_not_silently_zeroed(self):
-        with self.assertRaises(ValueError):
-            dem.encode(np.array([[-12001]], dtype=np.float32), 1, 1, 0)
 
-    def test_reconcile_gutters_uses_published_neighbor_and_is_stable(self):
-        level = {'id': 0, 'columns': 2, 'rows': 2}
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            (root/'0').mkdir()
-            for row in range(2):
-                for column in range(2):
-                    pixels = np.full((4, 4, 4), 10 + row*2 + column, dtype=np.uint8)
-                    pixels[:, :, 3] = 255
-                    dem.save_and_verify_webp(pixels, root/'0'/f'{column}-{row}.webp')
-            self.assertEqual(dem.reconcile_gutters(root, level), 4)
-            self.assertEqual(dem.reconcile_gutters(root, level), 0)
-            def read(column, row):
-                return np.asarray(Image.open(root/'0'/f'{column}-{row}.webp').convert('RGBA'))
-            west, east = read(0, 0), read(1, 0)
-            north, south = read(0, 0), read(0, 1)
-            np.testing.assert_array_equal(west[:, -1], east[:, 1])
-            np.testing.assert_array_equal(east[:, -1], west[:, 1])
-            np.testing.assert_array_equal(north[-1, :], south[1, :])
 
 
 if __name__ == '__main__':
