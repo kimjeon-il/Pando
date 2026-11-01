@@ -118,7 +118,9 @@ marks training-corpus ancestry and optimizer transfer as unverified; it does not
 claim the selected source trained the model. A baseline may be supplied only if
 the model's transfer record contains `sourceInitializationSha256` and the
 baseline's verified transfer identifies that exact original checkpoint. An
-auxiliary corpus is not supported; this does not replace the full Python command. For ONNX
+auxiliary corpus is accepted only when the combined corpus fingerprint matches
+`trainingCorpusSha256` in the transfer record. This fingerprint match does not
+prove complete ancestry; this does not replace the full Python command. For ONNX
 comparison, first export a new model with its matching `.onnx.export.json` receipt;
 the corpus diagnostic verifies both files and compares one supervised tile. This
 is execution parity only and does not establish complete model equivalence.

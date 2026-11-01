@@ -19,9 +19,14 @@ test('transferred weights diagnostics refuse unverified source, mixed modes and 
   const request={corpus,weights,sourceId:'missing',device:'cpu',torchLibrary:root};
   await assert.rejects(diagnoseMacroTrainingSource({...request,checkpoint:'also.pt'}),/one checkpoint/i);
   await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/initializer identity is missing/i);
-  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus:'aux.json'}),/without.*auxiliary/i);
   await assert.rejects(diagnoseMacroTrainingSource(request),/unique.*source/i);
-  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,auxiliaryCorpus:'aux.json'}),/without.*auxiliary/i);
+  const auxiliaryCorpus=join(root,'auxiliary.json');writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus}),/fingerprint/i);
+  receipt.trainingCorpusSha256=await corpusFingerprint(corpus,auxiliaryCorpus);save();
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus}),/unique.*source/i);
+  receipt.trainingCorpusSha256='0'.repeat(64);save();
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus}),/fingerprint/i);
+  delete receipt.trainingCorpusSha256;save();
   const baselineDir=join(root,'baseline');mkdirSync(baselineDir);const baseline=join(baselineDir,'weights.safetensors');writeFileSync(baseline,'baseline');
   receipt.sourceInitializationSha256='2'.repeat(64);save();
   const prior={...receipt,weightsSha256:createHash('sha256').update('baseline').digest('hex'),sourceCheckpointSha256:'2'.repeat(64)};
@@ -29,6 +34,9 @@ test('transferred weights diagnostics refuse unverified source, mixed modes and 
   await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:baseline}),/unique.*source/i);
   prior.sourceCheckpointSha256='3'.repeat(64);writeFileSync(join(baselineDir,'transfer.json'),JSON.stringify(prior));
   await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:baseline}),/does not match.*initializer/i);
+  receipt.sourceInitializationSha256='invalid';save();
+  await assert.rejects(diagnoseMacroTrainingSource(request),/initialization checkpoint identity/i);
+  delete receipt.sourceInitializationSha256;save();
   receipt.sourceCheckpointSha256=null;save();
   await assert.rejects(diagnoseMacroTrainingSource(request),/verified transferred/i);
   receipt.sourceCheckpointSha256='1'.repeat(64);receipt.weightsSha256='0'.repeat(64);save();

@@ -85,8 +85,6 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   signal?.throwIfAborted();
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
     throw Error('Explicit source, one checkpoint or transferred weights, and device required');
-  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'))
-    throw Error('Transferred weights require a diagnostic without an auxiliary corpus');
   const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(weights||checkpoint),
     receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json';
   const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024);
@@ -97,14 +95,14 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
       !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');
   }else if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||
     receipt.checkpointSha256!==checkpointHash||receipt.corpusSha256!==corpusHash)throw Error('Checkpoint does not match this training corpus');
-  const combined=Object.hasOwn(receipt,'auxiliarySha256')||Object.hasOwn(receipt,'lineageFingerprint');
+  const combined=weights?Boolean(auxiliaryCorpus):Object.hasOwn(receipt,'auxiliarySha256')||Object.hasOwn(receipt,'lineageFingerprint');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
   if(combined&&!auxiliaryCorpus)throw Error('Matching auxiliary corpus is required for this checkpoint');
   if(!combined&&auxiliaryCorpus)throw Error('Checkpoint does not match an auxiliary corpus');
   if(viewCorpus==='auxiliary'&&!combined)throw Error('Auxiliary corpus is required for auxiliary diagnostics');
   const auxiliaryPath=combined?resolve(auxiliaryCorpus):null;
   const auxiliaryHash=combined?trainingFileIdentity(auxiliaryPath):null;
-  if(combined&&receipt.auxiliarySha256!==auxiliaryHash)throw Error('Auxiliary corpus does not match the checkpoint');
+  if(combined&&!weights&&receipt.auxiliarySha256!==auxiliaryHash)throw Error('Auxiliary corpus does not match the checkpoint');
   if(combined){
     const auxiliaryManifest=JSON.parse(readTrainingBounded(auxiliaryPath,32*1024*1024));
     if(!Array.isArray(manifest.sheets)||!Array.isArray(auxiliaryManifest.sheets)||
@@ -115,7 +113,8 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     internalScope.corpusHash===corpusHash&&internalScope.auxiliaryHash===auxiliaryHash;
   const lineageFingerprint=combined?(scopeMatches?internalScope.lineageFingerprint:
     await corpusFingerprint(corpusPath,auxiliaryPath)):null;
-  if(combined&&receipt.lineageFingerprint!==lineageFingerprint)throw Error('Combined corpus fingerprint differs from the checkpoint');
+  if(combined&&(weights?receipt.trainingCorpusSha256!==lineageFingerprint:receipt.lineageFingerprint!==lineageFingerprint))
+    throw Error('Combined corpus fingerprint differs from the checkpoint');
   let baselinePath=null,baselineHash=null,transferPath=null,transferHash=null;
   if(baselineWeights!=null){
     if(typeof baselineWeights!=='string'||!baselineWeights)throw Error('Explicit baseline weights path required');
@@ -196,7 +195,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
       (weights?receipt.sourceInitializationSha256:receipt.initializationSourceSha256??null):null,
     jpeg:preview.data,checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
     ...(weights?{weightsSha256:diagnostic.weightsSha256,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
-      trainingCorpusVerified:false,optimizerStateTransferred:false,lineageComplete:false}:{}),
+      trainingCorpusVerified:false,trainingCorpusFingerprintMatched:combined,optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(combined?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint,viewCorpus}:{}),
     ...(reviewed?{reviewCorpusSha256:reviewHash,sourceSplit:sheet.split,diagnosticOnly:true}:{}),
     ...(parity?{parity}:{}),trainingOnly:true,independentEvaluation:false,releaseApproved:false};
@@ -214,7 +213,6 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
     !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
     throw Error('Explicit bounded corpus diagnostic inputs required');
-  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'))throw Error('Transferred weights require a diagnostic without an auxiliary corpus');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
   if(viewCorpus==='auxiliary'&&!auxiliaryCorpus)throw Error('Auxiliary corpus required for auxiliary diagnostics');
   const target=resolve(output);if(existsSync(target))throw Error('Diagnostic output exists; preserve prior evidence');
@@ -272,7 +270,8 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     throw Error('Combined training inputs changed during diagnostic');
   if(auxiliaryCorpus&&!internalScope){const auxiliaryPath=resolve(auxiliaryCorpus),auxiliaryHash=trainingFileIdentity(auxiliaryPath);
     const fingerprint=await corpusFingerprint(corpusPath,auxiliaryPath),receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
-    if(receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==fingerprint)throw Error('Combined training inputs changed during diagnostic');
+    if(weights?receipt.trainingCorpusSha256!==fingerprint:receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==fingerprint)
+      throw Error('Combined training inputs changed during diagnostic');
     internalScope={corpusPath,auxiliaryPath,corpusHash,auxiliaryHash,lineageFingerprint:fingerprint};}
   if(onnxPath&&!rows.length)throw Error('A supervised diagnostic tile is required for ONNX parity');
   let parityResult=null;
@@ -293,7 +292,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     ...(parityResult?{onnxSha256:onnxHash,onnxParityFile:'onnx-parity.json',onnxMaximumAbsoluteError:parityResult.maximumAbsoluteError}:{}),
     checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
     ...(weights?{weightsSha256:checkpointHash,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
-      trainingCorpusVerified:false,optimizerStateTransferred:false,lineageComplete:false}:{}),
+      trainingCorpusVerified:false,trainingCorpusFingerprintMatched:Boolean(auxiliaryCorpus),optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),
     ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
   await writeFile(join(target,'diagnostics.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx',signal});return report;
