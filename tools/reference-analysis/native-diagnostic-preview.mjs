@@ -1,5 +1,5 @@
 // Binary boundary for native training-diagnostic overlay composition.
-import {dirname,extname,resolve} from 'node:path';
+import {dirname,extname,join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -142,25 +142,78 @@ export function diagnoseReviewedSource(request,options){
   return diagnoseSource(request,options);
 }
 
+// Diagnostic only: no ONNX parity, held-out evaluation, or model admission is implied.
+export async function diagnoseTrainingCorpus({corpus,reviewCorpus,checkpoint,baselineWeights,output,device,torchLibrary,maximumPreviews=24},options={}){
+  const {signal}=options;signal?.throwIfAborted();
+  if(!corpus||!checkpoint||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
+    !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
+    throw Error('Explicit bounded corpus diagnostic inputs required');
+  const target=resolve(output);if(existsSync(target))throw Error('Diagnostic output exists; preserve prior evidence');
+  const viewPath=resolve(reviewCorpus||corpus),viewBytes=readTrainingBounded(viewPath,32*1024*1024);
+  const viewHash=createHash('sha256').update(viewBytes).digest('hex'),view=JSON.parse(viewBytes);
+  if(!Array.isArray(view.sheets)||!view.sheets.length||view.sheets.length>100000)throw Error('Nonempty bounded diagnostic sources required');
+  if(!reviewCorpus&&view.trainingOnly!==true)throw Error('Training-only corpus required');
+  const ids=view.sheets.map(sheet=>sheet?.id);
+  if(ids.some(id=>typeof id!=='string'||!id||id.length>512||id==='.'||id==='..'||/[\\/\u0000-\u001f]/u.test(id)))
+    throw Error('Safe diagnostic source identifiers required');
+  if(new Set(ids).size!==ids.length)throw Error('Unique diagnostic sources required');
+  const checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json',corpusPath=resolve(corpus);
+  const checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath),corpusHash=trainingFileIdentity(corpusPath);
+  const rows=[];let created=false;
+  for(const sourceId of ids){
+    signal?.throwIfAborted();
+    const result=await diagnoseSource({corpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,baselineWeights,sourceId,device,torchLibrary},options);
+    if(result.checkpointSha256!==checkpointHash||result.corpusSha256!==corpusHash||
+      (reviewCorpus&&result.reviewCorpusSha256!==viewHash))throw Error('Diagnostic inputs differ across sources');
+    const {jpeg,...row}=result,previewFile=rows.length<maximumPreviews?`preview-${String(rows.length+1).padStart(4,'0')}.jpg`:null;
+    if(!created){await mkdir(target);created=true;}
+    if(previewFile)await writeFile(join(target,previewFile),jpeg,{flag:'wx',signal});
+    rows.push({...row,previewFile});
+  }
+  if(trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
+    trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
+    throw Error('Diagnostic checkpoint or corpus changed during execution');
+  const report={schemaVersion:1,purpose:reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
+    trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:false,
+    checkpointSha256:rows[0].checkpointSha256,corpusSha256:rows[0].corpusSha256,
+    ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
+  await writeFile(join(target,'diagnostics.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx',signal});return report;
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  const controller=new AbortController(),abort=()=>controller.abort();
+  if(['--macro-source','--reviewed-source','--corpus-sources'].includes(process.argv[2])){
+    process.once('SIGINT',abort);process.once('SIGTERM',abort);
+  }
   try{
-    if(process.argv[2]==='--macro-source'||process.argv[2]==='--reviewed-source'){
-      const reviewed=process.argv[2]==='--reviewed-source';
+    if(['--macro-source','--reviewed-source','--corpus-sources'].includes(process.argv[2])){
+      const batch=process.argv[2]==='--corpus-sources',reviewed=process.argv[2]==='--reviewed-source';
       const {values,positionals}=parseArgs({args:process.argv.slice(3),allowPositionals:true,options:{corpus:{type:'string'},source:{type:'string'},
-        'review-corpus':{type:'string'},checkpoint:{type:'string'},'baseline-weights':{type:'string'},output:{type:'string'},device:{type:'string'},'torch-library':{type:'string'}}});
-      if(positionals.length||!values.corpus||!values.source||!values.checkpoint||!values.output||!values.device||!values['torch-library']||reviewed!==Boolean(values['review-corpus']))
-        throw Error('Expected --macro-source or --reviewed-source, --corpus MANIFEST, --source ID, --checkpoint PATH, --output DIRECTORY, --device cpu|cuda and --torch-library DIRECTORY; reviewed sources also require --review-corpus MANIFEST');
+        'review-corpus':{type:'string'},checkpoint:{type:'string'},'baseline-weights':{type:'string'},output:{type:'string'},device:{type:'string'},
+        'torch-library':{type:'string'},'maximum-previews':{type:'string'}}});
+      if(positionals.length||!values.corpus||(!batch&&!values.source)||(batch&&values.source)||!values.checkpoint||!values.output||!values.device||!values['torch-library']||
+        (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&values['maximum-previews']!==undefined))
+        throw Error('Expected --macro-source, --reviewed-source or --corpus-sources with explicit corpus, checkpoint, output, device and LibTorch; single-source modes require --source');
       const output=resolve(reportArgument(values.output,{access:'write'}));
       if(existsSync(output))throw Error('Diagnostic output exists; preserve prior evidence');
+      if(batch){
+        const count=values['maximum-previews']??'24';if(!/^\d+$/.test(count))throw Error('Invalid preview budget');
+        const result=await diagnoseTrainingCorpus({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
+          reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true}),checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
+          baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),output,device:values.device,
+          torchLibrary:values['torch-library'],maximumPreviews:Number(count)},{signal:controller.signal});
+        process.stdout.write(JSON.stringify({output,sheets:result.sheets.length,purpose:result.purpose,releaseApproved:false,onnxParityVerified:false})+'\n');
+      }else{
       const result=await diagnoseSource({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),...(reviewed?{reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true})}:{}),sourceId:values.source,
         checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),
-        device:values.device,torchLibrary:values['torch-library']});
+        device:values.device,torchLibrary:values['torch-library']},{signal:controller.signal});
       const {jpeg,...diagnostic}=result;
       await mkdir(output);await writeFile(resolve(output,'preview.jpg'),jpeg,{flag:'wx'});
       const purpose=reviewed?'source-reviewed-diagnostic':'training-set-diagnostic-only';
       await writeFile(resolve(output,'diagnostics.json'),JSON.stringify({...diagnostic,purpose,previewFile:'preview.jpg'},null,2)+'\n',{flag:'wx'});
       process.stdout.write(JSON.stringify({output,sourceId:result.sourceId,purpose,releaseApproved:false})+'\n');
       process.exitCode=0;
+      }
     }else{
     if(process.argv.length!==3||process.argv[2]!=='--overlay-stream')throw Error('Expected --overlay-stream');
     const chunks=[];let length=0;for await(const chunk of process.stdin){length+=chunk.length;if(length>64*1024*1024)throw Error('Diagnostic overlay input exceeds budget');chunks.push(chunk);}
@@ -174,4 +227,5 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     for(const panel of await composeNativeDiagnosticOverlays({width,height,original,known,active}))process.stdout.write(panel);
     }
   }catch(error){console.error('native-diagnostic-preview: '+error.message);process.exitCode=1;}
+  finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }

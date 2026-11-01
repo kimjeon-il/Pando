@@ -1,11 +1,34 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {existsSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {diagnoseMacroTrainingSource,diagnoseReviewedSource,summarizeDiagnosticTile} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
+import * as diagnostic from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
+const {diagnoseMacroTrainingSource,diagnoseReviewedSource,summarizeDiagnosticTile}=diagnostic;
+
+test('corpus diagnostics reject unsafe or duplicate sources and existing output',async t=>{
+  assert.equal(typeof diagnostic.diagnoseTrainingCorpus,'function');
+  const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-corpus-'));t.after(()=>rmSync(root,{recursive:true}));
+  const corpus=join(root,'corpus.json'),checkpoint=join(root,'checkpoint.pt'),output=join(root,'output');
+  writeFileSync(checkpoint,'fixture');writeFileSync(output,'protected');
+  const request={corpus,checkpoint,output,device:'cpu',torchLibrary:root,maximumPreviews:1};
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus(request),/exist/i);
+  assert.equal(readFileSync(output,'utf8'),'protected');
+  writeFileSync(corpus,JSON.stringify({trainingOnly:true,sheets:[{id:'same'},{id:'same'}]}));
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output:join(root,'new')}),/unique/i);
+  writeFileSync(corpus,JSON.stringify({trainingOnly:true,sheets:[{id:'../escape'}]}));
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output:join(root,'new')}),/source|identifier/i);
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--corpus-sources','--corpus',corpus,
+    '--checkpoint',checkpoint,'--output',join(root,'new'),'--device','cpu','--torch-library',root],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.match(cli.stderr,/source|identifier/i);
+  writeFileSync(corpus,JSON.stringify({trainingOnly:true,sheets:[{id:'지도_1'}]}));
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output:join(root,'new')}),{code:'ENOENT'});
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output:join(root,'new')},{signal:controller.signal}),{name:'AbortError'});
+  assert.equal(existsSync(join(root,'new')),false);
+});
 
 test('diagnostic tile joins native probabilities, known masks, statistics and overlays',async()=>{
   const width=4,height=1,values=width*height*7,original=Buffer.alloc(width*height*3,255);
