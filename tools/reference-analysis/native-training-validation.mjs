@@ -30,7 +30,7 @@ function validator(binary,args,env,signal,{binaryOutput=false,maximum=65536}={})
   });
   done.catch(()=>{});return {child,done};
 }
-export async function exchangeNativeInference({child,done,chunks,signal}){
+export async function exchangeNativeTrainingInput({child,done,chunks,signal}){
   try{const [,result]=await Promise.all([pipeline(Readable.from(chunks,{objectMode:false}),child.stdin,{signal}),done]);return result;}
   catch(error){
     if(error?.code==='EOF'||error?.code==='EPIPE'){
@@ -52,7 +52,7 @@ async function inferPrivateModel({path,mode,tile,overview,position,device,output
   const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
   const bytes=7*512*512*4,{child,done}=validator(binary,[mode,device,path,output],env,signal,{binaryOutput:true,maximum:bytes});
-  const logits=await exchangeNativeInference({child,done,chunks:[tile,overview,position],signal});
+  const logits=await exchangeNativeTrainingInput({child,done,chunks:[tile,overview,position],signal});
   signal?.throwIfAborted();if(logits.length!==bytes)throw Error('Native checkpoint logits have incorrect dimensions');
   for(let at=0;at<logits.length;at+=4){const value=logits.readFloatLE(at);
     if(!Number.isFinite(value)||(output==='probabilities'&&(value<0||value>1)))throw Error('Native checkpoint output contains invalid values');}
@@ -157,8 +157,7 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
   async function* inputs(){for(const job of jobs){signal?.throwIfAborted();const tile=await prepareReviewedTrainingTile({imagePath:job.imagePath,sourceSha256:job.sheet.sha256,
       annotation:job.annotation,x:job.x,y:job.y,augment:false,epoch:0,index:0},{signal});
     for(const name of ['tile','overview','position','target','valid'])yield tile[name];}}
-  let result;try{[,result]=await Promise.all([pipeline(Readable.from(inputs(),{objectMode:false}),child.stdin,{signal}),done]);}
-  catch(error){child.kill();await done.catch(()=>{});throw error;}
+  const result=await exchangeNativeTrainingInput({child,done,chunks:inputs(),signal});
   signal?.throwIfAborted();if(result.trainingOnly!==true||result.releaseApproved!==false||result.independentEvaluation!==false||result.samples!==jobs.length||!Number.isFinite(result.loss))
     throw Error('Native validation returned an invalid result');
   if(trainingFileIdentity(checkpointPath)!==checkpointHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash||sha(readTrainingBounded(corpusPath,32*1024*1024))!==corpusHash)

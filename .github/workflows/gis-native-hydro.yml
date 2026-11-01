@@ -114,7 +114,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
       - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-encoder-identity.test.mjs
       - run: node --test --test-name-pattern='transferred weights diagnostics' tests/unit/reference-diagnostic-tile.test.mjs
-      - run: node --test --test-name-pattern='native inference reports a child rejection' tests/unit/reference-training-checkpoint-infer.test.mjs
+      - run: node --test --test-name-pattern='native inference reports a child rejection|native training exchange streams' tests/unit/reference-training-checkpoint-infer.test.mjs
   reference-onnx-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-contracts'
     strategy:
