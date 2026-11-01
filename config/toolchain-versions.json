@@ -4,8 +4,8 @@
   "pnpm": "11.19.0",
   "python": "3.12",
   "cmake": "3.31.6",
-  "emscripten": "6.0.2",
-  "emsdkCommit": "ca38f487f28b7c3c16f8f70cd0e012099ac4b7e2",
+  "emscripten": "6.0.3",
+  "emsdkCommit": "db04e88298d9916fc51fcd3743045ca3eb695127",
   "linuxRunner": "ubuntu-24.04",
   "windowsRunner": "windows-2022",
   "sccache": {

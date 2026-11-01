@@ -17,10 +17,10 @@ async function fixture(t, { document = true } = {}) {
   await mkdir(path.join(root, 'shared'), { recursive: true });
   await writeFile(path.join(root, 'shared/contract.h'), '// independent fixture source\n');
   const identity = sharedSourceManifest(root);
-  const js = `export default async () => ({ coreAbiVersion: 1, coreCompilerVersion: '6.0.2', coreSourceSha256: '${identity.sourceSha256}', ${document ? 'DocumentSession: class {},' : ''} normalizePolygonGeometry() {}, normalizePolygonRing() {}, hasCanonicalPolygonWinding() {} });`;
+  const js = `export default async () => ({ coreAbiVersion: 1, coreCompilerVersion: '6.0.3', coreSourceSha256: '${identity.sourceSha256}', ${document ? 'DocumentSession: class {},' : ''} normalizePolygonGeometry() {}, normalizePolygonRing() {}, hasCanonicalPolygonWinding() {} });`;
   const wasm = Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]);
   const manifest = { schema: 'pandoeditor-core-wasm', abiVersion: 1, ...identity,
-    compiler: { name: 'emscripten', version: '6.0.2' }, assets: {
+    compiler: { name: 'emscripten', version: '6.0.3' }, assets: {
       js: { file: 'pandoeditor-core.js', sha256: sha256(js) },
       wasm: { file: 'pandoeditor-core.wasm', sha256: sha256(wasm) },
     } };

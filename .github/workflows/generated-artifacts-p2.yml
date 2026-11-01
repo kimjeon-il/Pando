@@ -153,7 +153,7 @@ jobs:
           grep -Fq "$original" "$port_file"
           sed -i "s|$original|$canonical|" "$port_file"
           grep -Fq "$canonical" "$port_file"
-          # Emscripten 6.0.2 derives the archive suffix from the last
+          # Emscripten 6.0.3 derives the archive suffix from the last
           # URL component. Codeload ends in v1.3.2, not .tar.gz, although its
           # content is the same SHA-512 verified gzip archive. Fix only zlib's
           # suffix inference; do not weaken fetch or integrity verification.
