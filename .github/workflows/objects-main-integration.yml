@@ -4,30 +4,129 @@ on:
     branches: [work/objects]
     paths: [.github/workflows/objects-main-integration.yml]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  source:
+  verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 30
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+      NODE_OPTIONS: '--max-old-space-size=1536'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Export only missing source objects against the retained stage-1 bundle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reproduce reviewed main-based integration and preserve both parents
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 3abe5b0c547b16f6371c0a916da239d0c099178d
+          test "$(git rev-parse HEAD^)" = d81639e1261026ad361d597007eccd17eb53af5c
           test "$(git rev-parse origin/main)" = 502cc3014db2657c430819a249b9a724f3cb5880
-          git update-ref refs/pando/stage2/main 502cc3014db2657c430819a249b9a724f3cb5880
-          git update-ref refs/pando/stage2/objects HEAD
-          mkdir -p build-native/objects-integration
-          git bundle create build-native/objects-integration/source-delta.bundle refs/pando/stage2/main refs/pando/stage2/objects ^733e3d6b0acdcf7252a234dd4d7d37b4ee278efc ^fa2ba8084453396bfde385d311c668dc4381b6c7
-          git rev-parse HEAD > build-native/objects-integration/source.txt
-          sha256sum build-native/objects-integration/source-delta.bundle > build-native/objects-integration/SHA256SUMS
-      - uses: actions/upload-artifact@v4
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          import {createHash} from 'node:crypto';
+          const ids=['39e720a7b443836437649266ba90cd5057f25b09','a79a92389c6bb4ed9d5ad929e3769026b4f8770d','71914c30ecb258421cab7f6efacf2cb241d3df99','df25f205509bc4016066acb4220b6db5f6fbe97c'];
+          const parts=[];
+          for(const id of ids){
+            const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/git/blobs/${id}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
+            if(!response.ok)throw Error(`Reviewed patch blob unavailable: ${response.status}`);
+            const blob=await response.json();const bytes=Buffer.from(blob.content,'base64');
+            const actual=createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+            if(actual!==id)throw Error('Patch transport identity mismatch');parts.push(bytes);
+          }
+          const patch=gunzipSync(Buffer.concat(parts));
+          if(createHash('sha256').update(patch).digest('hex')!=='165bce90b13cdeab5612621bc58df171d3cbf53a7d6a8911f479a18eca4d7cdc')throw Error('Reviewed patch checksum mismatch');
+          writeFileSync('/tmp/objects-stage2.patch',patch);
+          NODE
+          git checkout --detach 502cc3014db2657c430819a249b9a724f3cb5880
+          git apply --check --unidiff-zero /tmp/objects-stage2.patch
+          git apply --index --unidiff-zero /tmp/objects-stage2.patch
+          git diff --cached --check
+          git diff --cached --quiet -- config/library-data.json shared/frontend/js/modules/builtin-world-loader.js shared/core/src/webobjectcommands.cpp
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          candidate=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p 502cc3014db2657c430819a249b9a724f3cb5880 -m 'Merge main into work/objects and port temporal deltas into canonical candidate adoption')
+          git checkout --detach "$candidate"
+          rm /tmp/objects-stage2.patch
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Checkout pinned Emscripten
+        uses: actions/checkout@v4
         with:
-          name: objects-stage2-source-delta
-          path: build-native/objects-integration/
-          if-no-files-found: error
-          retention-days: 1
+          repository: emscripten-core/emsdk
+          ref: e4fe26ef59168ff44f4c23c466e497bf60b3411e
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build only affected native contracts and source-matched WASM
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/objects-stage2
+          test "$(df -Pk . | awk 'NR==2 {print $4}')" -gt 8388608
+          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build-native/core-session --target document_session_tests temporal_source_tests temporal_candidate_tests temporal_adopt_tests --parallel 2 > test-results/objects-stage2/native-build.log 2>&1 &
+          native_pid=$!
+          build-native/emsdk/emsdk install 4.0.20
+          build-native/emsdk/emsdk activate 4.0.20
+          source build-native/emsdk/emsdk_env.sh
+          emcmake cmake -S shared -B build-native/objects-wasm -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/objects-wasm --target pandoeditor_wasm --parallel 1
+          wait "$native_pid"
+          ctest --test-dir build-native/core-session -R '^(document_session_tests|temporal_source_tests|temporal_candidate_tests|temporal_adopt_tests)$' --output-on-failure | tee test-results/objects-stage2/native-tests.log
+          c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core-session/core/libpandoeditor_core.a -lz -o build-native/core-session/temporal-parity-probe
+          node tools/package-shared-core-assets.mjs --build-dir build-native/objects-wasm/wasm
+          node tools/package-shared-core-assets.mjs --build-dir build-native/objects-wasm/wasm --check
+          git add shared/frontend/static/wasm/pandoeditor-core.js shared/frontend/static/wasm/pandoeditor-core.wasm shared/frontend/static/wasm/pandoeditor-core.manifest.json
+          git commit -m 'build(core): pair stage-2 temporal delta source with rebuilt WASM candidate'
+      - name: Verify exact native-WASM parity and affected Worker/model/cache contracts
+        env:
+          PANDO_TEMPORAL_NATIVE: build-native/core-session/temporal-parity-probe
+          PANDO_P5_7_EVIDENCE: test-results/objects-stage2/parity.json
+        run: |
+          set -euo pipefail
+          node --test tests/native/temporal-parity-p5-7.test.mjs | tee test-results/objects-stage2/parity.log
+          node --test --test-concurrency=1 tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/builtin-country-loading.test.mjs | tee test-results/objects-stage2/unit.log
+          pnpm exec eslint apps/viewer/js/modules/viewer-composition.js shared/frontend/js/modules/builtin-session.js shared/frontend/js/modules/core-document-read-model.js shared/frontend/js/modules/core-document-runtime.js shared/frontend/js/modules/project-domain.js tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/browser/builtin-temporal-transition.spec.mjs tests/browser/deferred-builtin-timeline.spec.mjs tests/native/temporal-parity-p5-7.test.mjs
+      - uses: ./.github/actions/library-data
+      - name: Verify actual WASM source admission and independent Web-App packaging
+        env:
+          PANDOEDITOR_WASM_MODULE: shared/frontend/static/wasm/pandoeditor-core.js
+        run: |
+          node --test shared/tests/temporal-transport-p5-5.test.mjs
+          node tests/integration/builtin-country-deployment.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Actual desktop-mobile WebGL and Canvas delta, rollback, cancellation and file opening
+        run: pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --workers=1 --retries=0 --trace=off --output=test-results/objects-stage2/browser
+      - name: Publish only the verified candidate on work/objects; never main
+        env:
+          PANDO_PUSH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(node -p 'JSON.parse(require("fs").readFileSync("config/library-data.json")).revision')" = 5eb7be55208efaafe39bd5a65ec2f111d70b9053
+          test -z "$(git status --porcelain --untracked-files=no)"
+          remote="https://x-access-token:${PANDO_PUSH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          test "$(git ls-remote "$remote" refs/heads/work/objects | cut -f1)" = "$GITHUB_SHA"
+          test "$(git ls-remote "$remote" refs/heads/main | cut -f1)" = 502cc3014db2657c430819a249b9a724f3cb5880
+          git push "$remote" HEAD:refs/heads/work/objects
+          git rev-parse HEAD | tee test-results/objects-stage2/verified-commit.txt
+      - name: Preserve exact candidate and bounded evidence, including failures
+        if: always()
+        run: |
+          mkdir -p test-results/objects-stage2
+          git rev-parse HEAD > test-results/objects-stage2/candidate-commit.txt
+          git update-ref refs/pando/objects-stage2-candidate HEAD
+          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^502cc3014db2657c430819a249b9a724f3cb5880 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: objects-stage2-verification-${{ github.run_id }}
+          path: test-results/objects-stage2/
+          if-no-files-found: warn
+          retention-days: 7
