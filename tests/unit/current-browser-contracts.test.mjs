@@ -43,12 +43,12 @@ test('P1/P3 retain native and artifact owners while Web checks share the same ru
 
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
-  const plan = planApplicationChecks({ repository, changedFiles: ['assets/css/features/map-rendering.css'] });
+  const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
   assert.ok(plan.browserSpecs.includes('tests/browser/ui-components.spec.mjs'));
   assert.ok(plan.commands.includes('ui-spacing'));
   assert.deepEqual(plan.externalChecks, []);
   assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);
-  const worker = planApplicationChecks({ repository, changedFiles: ['assets/js/workers/canvas-render-worker.js'] });
+  const worker = planApplicationChecks({ repository, changedFiles: ['shared/frontend/js/workers/canvas-render-worker.js'] });
   assert.ok(worker.browserSpecs.includes('tests/browser/physical-land-time.spec.mjs'));
   for (const id of ['country-selftest', 'country-validity-canonical', 'country-validity', 'territorial-library-contract'])
     assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
@@ -149,3 +149,4 @@ test('concurrency follows the current PR/ref while manual diagnostics and reruns
   }
   assert.equal(groups.size, workflows.length);
 });
+

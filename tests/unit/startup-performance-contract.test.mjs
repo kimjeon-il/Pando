@@ -8,6 +8,7 @@ import test from 'node:test';
 const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
 const app = read('shared/frontend/js/modules/mobile-sheet-presentation.js')+readFileSync(new URL("../../apps/editor/frontend/js/modules/app-runtime-dependencies.js",import.meta.url),'utf8')+readApplicationOwners('domain-assembly', 'territorial-labels', 'render-quality', 'gpu-scene', 'workspace-surfaces', 'map-host');
 const rendering = read('shared/frontend/js/modules/map-content-presentation.js')+read('shared/frontend/js/modules/rendering-domain.js');
+const renderResources = read('shared/frontend/js/modules/map-renderer-composition.js');
 const gpuScene = read('shared/frontend/js/modules/gpu-scene.js');
 const coordinator = read('shared/frontend/js/modules/map-render-coordinator.js');
 const gpuRenderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
@@ -19,6 +20,7 @@ const storedAssetLoader = read('shared/frontend/js/modules/stored-asset-loader.j
 const projectRestore = read('apps/editor/frontend/js/modules/app-project-restore.js');
 const lifecycleWiring = read('apps/editor/frontend/js/modules/app-connect-lifecycle-ui.js');
 const foundationPorts = read('apps/editor/frontend/js/modules/app-capability-ports-foundation.js');
+const mapOwnerPorts = read('shared/frontend/js/modules/map-owner-ports.js');
 const meshResourceLoader = read('shared/frontend/js/modules/builtin-mesh-resource.js');
 const snapshot=await repositoryFrontendSnapshot();
 const metadata = snapshot.assets.get('assets/js/build-meta.js').bytes.toString('utf8');
@@ -29,9 +31,14 @@ const modalBundle = snapshot.assets.get('assets/css/ui-modal.bundle.css').bytes.
 const indexHtml = snapshot.html.editor;
 
 test('render resources use frame snapshots instead of Proxy traps', () => {
-  assert.doesNotMatch(app, /createLiveResources|new\s+Proxy/);
-  assert.match(app, /createResourceSnapshot/);
-  assert.match(app, /refreshRenderResources/);
+  assert.doesNotMatch(app + renderResources, /createLiveResources|new\s+Proxy/);
+  assert.match(app, /createMapRenderingResources\(\{ports:/);
+  assert.match(renderResources, /function snapshot\(name,values,live\)/);
+  assert.match(renderResources, /const resource=\{\.\.\.values\}/);
+  assert.match(renderResources, /resources\[name\]=\{resource,refresh\};refresh\(\);return resource/);
+  assert.match(renderResources, /refreshRenderResources\(frameId\)/);
+  assert.match(renderResources, /if\(frameId!=null&&frameId===lastFrame\)return lastFrame/);
+  assert.match(renderResources, /for\(const \{refresh\}of Object\.values\(resources\)\)refresh\(\)/);
   assert.doesNotMatch(rendering, /getRenderResourceSnapshot/);
   assert.match(rendering, /beginFrame/);
   assert.match(rendering, /renderResourceRefreshCount/);
@@ -93,7 +100,9 @@ test('data and asset revisions remain separate contracts', () => {
   assert.match(metadata, /"dataRevision":\s*"data-[a-f0-9]{32}"/);
   assert.match(loader, /const DATA_REVISION/);
   assert.match(storedAssetLoader, /const DATA_CACHE_PREFIX = 'pandolab-data-'/);
-  assert.match(loader, /MANIFEST_URL\.searchParams\.set\('v', DATA_REVISION\)/);
+  assert.match(loader, /if \(!buildMeta\.worldBundle\) throw new Error/);
+  assert.match(loader, /createStoredAssetLoader\(\{ dataRevision: DATA_REVISION/);
+  assert.match(loader, /manifestLoader\.loadAsset\(buildMeta\.worldBundle,[\s\S]*?parseVerifiedWorldBundle\(bytes, buildMeta\.worldBundle\)/);
   assert.match(bootstrap, /window\.PANDOLAB_DATA_REVISION = DATA_REVISION/);
   assert.match(bootstrap, /firstCanonicalFrameMs: null/);
   assert.match(bootstrap, /canonicalFrameFallbackCount: 0/);
@@ -159,7 +168,8 @@ test('new project reuses a prepared built-in mesh instead of scheduling a world 
   assert.match(loader, /type: 'builtin-mesh-ready'/);
   assert.match(bootstrap, /identity:\s*data\.identity \|\| null/);
   assert.match(lifecycleWiring, /connectCapabilityOwners\(LIFECYCLE_UI_OWNER_PORTS/);
-  assert.match(foundationPorts, /\["canonicalCountryStore","builtinSession","canonicalCountryStore"\]/);
+  assert.match(foundationPorts, /createReadPorts\(providers, PORT_SPECS\)/);
+  assert.match(mapOwnerPorts, /builtinCountries:Object\.freeze\(\[\["canonicalCountryStore","builtinSession","canonicalCountryStore"\]/);
   assert.match(meshResourceLoader, /if \(pending\) return pending/);
   const resetStart = projectRestore.indexOf('async function resetProjectInPlace');
   const resetEnd = projectRestore.indexOf('function initializeConfirmModalController', resetStart);
@@ -193,3 +203,4 @@ test('modal, GIS, and historical runtimes are absent from the initial request gr
   assert.match(modalBundle, /modal-source: assets\/css\/components\/modals\.css/);
   assert.match(bootstrap, /PANDOLAB_ENSURE_MODAL_STYLES/);
 });
+

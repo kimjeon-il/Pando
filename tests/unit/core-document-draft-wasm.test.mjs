@@ -51,11 +51,57 @@ test('the real Web editing facade awaits the same Worker draft owner and preserv
     for (const [index,action] of actions.entries()) {
       const result=await action();
       assert.equal(result,expected[index].result,expected[index].operation);
-      assert.deepEqual(editing.snapshot(),{...expected[index].snapshot,gestureActive: [2,6,7,8].includes(index)},expected[index].operation);
+      assert.deepEqual(editing.snapshot(),{...expected[index].snapshot,selectedVertex: null,vertexPlacement: false,
+        objectVertexEditing: null,gestureActive: [2,6,7,8].includes(index)},expected[index].operation);
       assert.deepEqual(client.state(),state);
     }
     assert.deepEqual(JSON.parse(await client.storageSnapshot()),loadedSnapshot);
   } finally { editing.dispose();client.dispose(); }
+});
+
+for (const rejected of [
+  { name: 'out-of-range selection returns false', index: 999 },
+  { name: 'fractional selection throws', index: 1.5, code: 'CORE_DRAFT_INDEX' },
+]) test(`the real Web draft facade retains its accepted selection and placement when ${rejected.name}`, async () => {
+  const client = createNodeCoreDocument(), published = [];
+  let editing;
+  try {
+    await client.load(JSON.stringify(fixture('web-document-seed')));
+    editing = createEditingDomain({ commandOwner: client, projectDomain: { getGeneration: () => 1 },
+      onEditingStateChanged: snapshot => published.push(snapshot), draftServices: {
+        getToolConfig: tool => tool === 'polygon' ? { shape: 'polygon' } : null,
+        projectCoordinate: value => value, screenToCoordinate: value => value,
+        requestFrame: () => 1, cancelFrame() {}, reportOperationError: error => { throw error; },
+      } });
+    const event = vertexIndex => ({ type: 'draft-vertex-select', projectGeneration: 1,
+      packetRevision: editing.snapshot().revision, vertexIndex });
+    await editing.setTool('polygon');
+    await editing.startDraft({ coords: [[0,0],[12,0],[12,8]] });
+    assert.equal(await editing.handleInteraction(event(1)), true);
+    assert.equal(await editing.handleInteraction({ type: 'vertex-placement-start' }), true);
+    const before = editing.snapshot(), draftBefore = await client.draftSnapshot(), stateBefore = client.state();
+    const storageBefore = await client.storageSnapshot(), publicationCount = published.length;
+    assert.deepEqual(before.selectedVertex, { kind: 'draft-vertex', targetRef: null, vertexKey: null, vertexIndex: 1 });
+    assert.equal(before.vertexPlacement, true);
+    assert.equal(draftBefore.selectedVertexIndex, 1);
+
+    if (rejected.code) await assert.rejects(editing.handleInteraction(event(rejected.index)), { code: rejected.code });
+    else assert.equal(await editing.handleInteraction(event(rejected.index)), false);
+    assert.equal(published.length, publicationCount, 'A rejected selection must not publish a presentation change.');
+    assert.deepEqual(editing.snapshot(), before);
+    assert.deepEqual(await client.draftSnapshot(), draftBefore);
+    assert.deepEqual(client.state(), stateBefore);
+    assert.equal(await client.storageSnapshot(), storageBefore);
+
+    await editing.refreshEditingPresentation('rejected-selection-refresh');
+    assert.deepEqual(editing.snapshot(), { ...before, revision: before.revision + 1, reason: 'rejected-selection-refresh' },
+      'A later presentation event must not reveal a rejected selection hidden by the snapshot cache.');
+    assert.equal(published.length, publicationCount + 1);
+    assert.deepEqual(published.at(-1), editing.snapshot());
+    assert.deepEqual(await client.draftSnapshot(), draftBefore);
+    assert.deepEqual(client.state(), stateBefore);
+    assert.equal(await client.storageSnapshot(), storageBefore);
+  } finally { editing?.dispose(); client.dispose(); }
 });
 
 test('actual Worker detached draft result and all owned fields match the 23-step frozen original Web trace', async () => {

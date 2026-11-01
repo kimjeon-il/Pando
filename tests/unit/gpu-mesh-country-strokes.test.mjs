@@ -16,7 +16,7 @@ function loadClassic(relativePath, globalName) {
   return value;
 }
 
-const meshCore = loadClassic('assets/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore');
+const meshCore = loadClassic('shared/frontend/js/workers/gpu-mesh-core.js', 'PandoLabGpuMeshCore');
 
 const square = (id, x) => ({
   type: 'Feature',

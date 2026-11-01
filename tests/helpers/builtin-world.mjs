@@ -27,8 +27,9 @@ export function contextProject(catalog){
   const identity=structuredClone(row.identity);
   identity.properties.metadata.historicalTimeline.geometryBindings=row.sourceBindings;return identity;
  });
- project.timelineRecords={schemaVersion:2,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
+ project.timelineRecords={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
  for(const key of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])project.timelineRecords[key]=countries.flatMap(row=>row.timelineRecords[key]);
  project.geometries=[...new Map(countries.flatMap(row=>row.geometries).map(row=>[row.id+':'+row.version,row])).values()];
  return project;
 }
+

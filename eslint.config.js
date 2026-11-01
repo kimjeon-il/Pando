@@ -3,13 +3,15 @@ import js from '@eslint/js';
 const browserGlobals = {
   AbortController: 'readonly', Blob: 'readonly', CustomEvent: 'readonly', DOMParser: 'readonly', File: 'readonly', FileReader: 'readonly',
   DOMException: 'readonly', DecompressionStream: 'readonly', Image: 'readonly', ImageBitmap: 'readonly',
-  ImageData: 'readonly', IndexedDB: 'readonly', HTMLElement: 'readonly', Option: 'readonly',
+  ImageData: 'readonly', IndexedDB: 'readonly', HTMLElement: 'readonly', HTMLCanvasElement: 'readonly', Option: 'readonly',
+  Event: 'readonly', EventTarget: 'readonly', PageTransitionEvent: 'readonly',
   MessageChannel: 'readonly', MessageEvent: 'readonly', MutationObserver: 'readonly', OffscreenCanvas: 'readonly', Path2D: 'readonly',
   Response: 'readonly', ResizeObserver: 'readonly', TextDecoder: 'readonly', TextEncoder: 'readonly', TransformStream: 'readonly',
   URL: 'readonly', URLSearchParams: 'readonly', Worker: 'readonly',
   cancelAnimationFrame: 'readonly', clearInterval: 'readonly', clearTimeout: 'readonly', confirm: 'readonly',
   atob: 'readonly', btoa: 'readonly', caches: 'readonly', createImageBitmap: 'readonly', crypto: 'readonly',
-  document: 'readonly', fetch: 'readonly',
+  document: 'readonly', fetch: 'readonly', innerWidth: 'readonly', innerHeight: 'readonly',
+  matchMedia: 'readonly', visualViewport: 'readonly',
   getComputedStyle: 'readonly', indexedDB: 'readonly', localStorage: 'readonly', location: 'readonly',
   navigator: 'readonly', performance: 'readonly', prompt: 'readonly', queueMicrotask: 'readonly',
   requestAnimationFrame: 'readonly', requestIdleCallback: 'readonly', cancelIdleCallback: 'readonly',
@@ -18,6 +20,8 @@ const browserGlobals = {
 };
 
 const nodeGlobals = {
+  AbortController: 'readonly', CustomEvent: 'readonly', DOMException: 'readonly', Event: 'readonly', EventTarget: 'readonly',
+  ReadableStream: 'readonly', URLSearchParams: 'readonly', queueMicrotask: 'readonly', setImmediate: 'readonly',
   Buffer: 'readonly', Response: 'readonly', TextDecoder: 'readonly', URL: 'readonly', console: 'readonly', process: 'readonly', performance: 'readonly',
   setTimeout: 'readonly', clearTimeout: 'readonly', structuredClone: 'readonly', fetch: 'readonly', AbortSignal: 'readonly', WebSocket: 'readonly',
 };
@@ -70,12 +74,12 @@ export default [
     languageOptions: { sourceType: 'module' },
   },
   {
-    files: ['tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', 'apps/editor/**/*.mjs', 'plugins/pando-map-tools/**/*.mjs', '*.config.js', '.pnpmfile.mjs'],
+    files: ['tests/**/*.mjs', 'shared/tests/**/*.mjs', 'scripts/**/*.mjs', '.github/scripts/**/*.mjs', 'tools/**/*.mjs', 'native/tools/**/*.mjs', 'apps/editor/**/*.mjs', 'plugins/pando-map-tools/**/*.mjs', '*.config.js', '.pnpmfile.mjs'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: nodeGlobals },
     rules: { 'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }] },
   },
   {
-    files: ['tests/browser/**/*.mjs', 'apps/editor/tests/**/*.mjs'],
+    files: ['tests/browser/**/*.mjs', 'tests/integration/**/*.mjs', 'apps/editor/tests/**/*.mjs'],
     languageOptions: { globals: { ...nodeGlobals, ...browserGlobals } },
   },
 ];

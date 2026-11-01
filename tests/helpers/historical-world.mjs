@@ -7,8 +7,9 @@ export function smallHistoricalWorld({ currentId = 'RUS', currentGeometry = null
   ] }).features));
   project.format = 'pandolab-project-state';
   for (const name of ['lifetimes', 'geometryBindings', 'parentRelations']) for (const row of project.timelineRecords[name]) {
-    row.validFrom = row.entityId === currentId ? '2026-10-01' : '1991-08-24';
-    row.validTo = row.entityId === currentId ? '2026-10-31' : '2014-03-17';
+    row.validFrom = row.objectRef.id === currentId ? '2026-10-01' : '1991-08-24';
+    row.validTo = row.objectRef.id === currentId ? '2026-10-31' : '2014-03-17';
   }
   return project;
 }
+

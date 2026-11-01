@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { buildFrontendIndex, frontendAsset, emitFrontendModule, frontendModuleReferences } from '../../scripts/lib/frontend-layout.mjs';
+import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
 import { loadNodeCore } from '../../tools/load-node-core.mjs';
 import { validateWebFlagDataUrl } from "../../shared/frontend/js/modules/country-flags.js";
 import { createCoreDocumentClient } from "../../shared/frontend/js/modules/core-document-client.js";
@@ -23,6 +28,38 @@ const blocked = [
   ['labelGestureApply', [{}], 'core.document-label-gesture'],
   ['candidateProjection', [1, 0], 'core.document-candidate-projection'],
 ];
+
+async function generatedClientFixture(t) {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const output = mkdtempSync(join(tmpdir(), 'pando-product-worker-'));
+  t.after(() => rmSync(output, { recursive: true, force: true }));
+  writeFileSync(join(output, 'package.json'), '{"type":"module"}');
+  const index = buildFrontendIndex(root);
+  const source = publicPath => {
+    const entry = frontendAsset(root, publicPath, { index });
+    return emitFrontendModule(entry.bytes.toString('utf8'), entry.sourcePath, index);
+  };
+  const workerAssets = {};
+  for (const entry of ['assets/js/workers/core-viewer-session-worker.js', 'assets/js/workers/core-session-worker.js']) {
+    const built = await buildWorkerAsset({ root, entry, readSource: source });
+    workerAssets[entry] = { url: built.url };
+  }
+  const written = new Set();
+  const writeModule = publicPath => {
+    if (written.has(publicPath)) return;
+    written.add(publicPath);
+    const bytes = source(publicPath), destination = join(output, publicPath);
+    mkdirSync(dirname(destination), { recursive: true }); writeFileSync(destination, bytes);
+    for (const reference of frontendModuleReferences(bytes).filter(reference => reference.kind === 'import')) {
+      assert.ok(reference.specifier.startsWith('.'), 'client fixture imports must remain in the emitted frontend');
+      writeModule(new URL(reference.specifier, 'file:///' + publicPath).pathname.slice(1));
+    }
+  };
+  const clientPath = 'assets/js/modules/core-document-client.js';
+  writeModule(clientPath);
+  return { createClient: (await import(pathToFileURL(join(output, clientPath)).href)).createCoreDocumentClient,
+    meta: { assetRevision: 'product-mode-fixture', dataRevision: 'data-product-mode-fixture', workerAssets } };
+}
 
 test('viewer client rejects editing and save APIs before RPC even before admission', async () => {
   let created = 0;
@@ -66,23 +103,38 @@ test('invalid product modes fail visibly instead of selecting editor privileges'
   }
 });
 
-test('viewer and editor clients select fixed separate Worker entries', async () => {
+test('viewer and editor clients select fixed separate Worker entries', async t => {
+  const fixture = await generatedClientFixture(t);
   const originalWorker = globalThis.Worker, urls = [];
+  const originalMeta = globalThis.PANDOLAB_BUILD_META;
+  const hadWorker = Object.hasOwn(globalThis, 'Worker'), hadMeta = Object.hasOwn(globalThis, 'PANDOLAB_BUILD_META');
+  globalThis.PANDOLAB_BUILD_META = fixture.meta;
   globalThis.Worker = class {
-    constructor(url) { urls.push(url.pathname); }
+    constructor(url, options) { urls.push({ url, options }); }
     postMessage(message) {
       globalThis.queueMicrotask(() => this.onmessage({ data: { ...message, type: 'result', ok: true,
         result: { state: { epoch: 1 } } } }));
     }
     terminate() {}
   };
-  const viewer = createCoreDocumentClient({ productMode: 'viewer' });
-  const editor = createCoreDocumentClient({ productMode: 'editor' });
+  const viewer = fixture.createClient({ productMode: 'viewer' });
+  const editor = fixture.createClient({ productMode: 'editor' });
   try {
     await viewer.load('{}'); await editor.load('{}');
-    assert.ok(urls[0].endsWith('/core-viewer-session-worker.js'));
-    assert.ok(urls[1].endsWith('/core-session-worker.js'));
-  } finally { viewer.dispose(); editor.dispose(); globalThis.Worker = originalWorker; }
+    assert.equal(urls.length, 2);
+    for (const [position, entry] of ['core-viewer-session-worker.js', 'core-session-worker.js'].entries()) {
+      const { url, options } = urls[position];
+      assert.ok(url.pathname.endsWith('/' + fixture.meta.workerAssets['assets/js/workers/' + entry].url));
+      assert.equal(url.searchParams.get('v'), fixture.meta.assetRevision);
+      assert.equal(url.searchParams.get('dataRevision'), fixture.meta.dataRevision);
+      assert.equal(options.type, 'module');
+    }
+    assert.notEqual(urls[0].url.pathname, urls[1].url.pathname);
+  } finally {
+    viewer.dispose(); editor.dispose();
+    if (hadWorker) globalThis.Worker = originalWorker; else delete globalThis.Worker;
+    if (hadMeta) globalThis.PANDOLAB_BUILD_META = originalMeta; else delete globalThis.PANDOLAB_BUILD_META;
+  }
 });
 
 test('viewer uses the same WASM for admission, timeline, selection and replacement while blocked requests preserve the document', async () => {
@@ -127,3 +179,4 @@ test('viewer uses the same WASM for admission, timeline, selection and replaceme
     assert.equal(client.state().canUndo, false);
   } finally { client.dispose(); await runtime.dispose(); }
 });
+

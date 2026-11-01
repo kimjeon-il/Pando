@@ -101,8 +101,17 @@ function validationOrPresentationOnly(changes,graph) {
   const validationPaths=new Set([
     '.github/workflows/viewer-functional-p6-2.yml',
     '.github/workflows/integration-read-model-p6.yml',
+    '.github/workflows/p6-preflight.yml',
+    '.github/workflows/web-pages.yml',
+    '.github/workflows/shared-core.yml',
+    'eslint.config.js',
+    '.github/workflows/remote-preview-p3.yml',
+    'scripts/run-boundary-revision-comparison.mjs',
+    'scripts/lib/library-preparation-wait.mjs',
+    'scripts/frontend-dev-server.mjs',
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
-    'shared/frontend/js/modules/map-input-presentation.js'
+    'shared/frontend/js/modules/map-input-presentation.js',
+    'apps/editor/frontend/js/modules/editing-domain.js'
   ]);
   const inputMatches=(selector,path)=>typeof selector==='string'
     ?selector.endsWith('/')?path.startsWith(selector):path===selector

@@ -409,9 +409,9 @@ export function createEditingDomain({
     return applyDraft('setInsertMode',{ insertMode: next },{ reason: 'draft-insert-mode' });
   };
 
-  const selectDraftVertex = index => {
+  const selectDraftVertex = (index, { emit: emitChange = true } = {}) => {
     if (!draftInputActive() || draftStroke.active) return false;
-    return applyDraft('selectVertex',{ index },{ reason: 'draft-vertex-select' });
+    return applyDraft('selectVertex',{ index },{ reason: 'draft-vertex-select', emit: emitChange });
   };
 
   const moveSelectedDraftPointByPixels = (dx, dy) => {
@@ -798,8 +798,13 @@ export function createEditingDomain({
     if(type==='gesture-cancel')return cancelActiveGesture('touch-cancel');
     if(type.endsWith('-vertex-select')){
       if(Number(value.projectGeneration)!==projectGeneration||Number(value.packetRevision)!==revision||activeGesture)return false;
-      selectedVertex=Object.freeze({kind:type.replace('-select',''),targetRef:value.targetRef||null,vertexKey:value.vertexKey||null,vertexIndex:value.vertexIndex});vertexPlacement=false;
-      if(type==='draft-vertex-select')return selectDraftVertex(Number(value.vertexIndex));emit(type);return true;
+      const publishSelection = () => {
+        selectedVertex=Object.freeze({kind:type.replace('-select',''),targetRef:value.targetRef||null,vertexKey:value.vertexKey||null,vertexIndex:value.vertexIndex});vertexPlacement=false;
+        emit(type);return true;
+      };
+      if(type==='draft-vertex-select')return Promise.resolve(selectDraftVertex(Number(value.vertexIndex),{ emit: false }))
+        .then(result => result === false ? false : publishSelection());
+      return publishSelection();
     }
     if(type==='vertex-placement-start'){if(!selectedVertex||activeGesture)return false;vertexPlacement=true;emit(type);return true;}
     if(type==='vertex-placement-cancel'){vertexPlacement=false;emit(type);return true;}

@@ -19,7 +19,6 @@ function input() {
   seed.labels = [{ id: labelId, name: 'Movable', kind: 'custom', coordinates: [1.125, 2.25],
     notes: 'Kept notes', metadata: { compatibilitySource: { detail: [null, 'opaque'] } } }];
   seed.labelSettings = { [`label:${labelId}`]: { fontSize: 15, minZoom: 2, maxZoom: 19, visible: true, pinned: false, manualPosition: null } };
-  seed.itemVisibility = {};
   return seed;
 }
 function dragPlatform() {
@@ -36,10 +35,9 @@ const observe = (label, settings, state, history) => ({
   canUndo: history.canUndo(), canRedo: history.canRedo(),
 });
 async function originalTrace(seed, coordinates) {
-  const f = historySnapshotFixture({ implementation: original }), admitted = original.prepareProjectForStorage(seed);
-  f.entityStore.restoreProject(admitted);
-  for (const field of original.PROJECT_STATE_FIELDS.filter(row => ['document', 'presentation'].includes(row.scope)
-    && !['geometries', 'timelineRecords'].includes(row.name))) f.state[field.name] = structuredClone(admitted[field.name]);
+  // Historical gesture behavior depends on label/settings inputs, not on a
+  // current saved-project schema. Keep the frozen fixture's own document.
+  const f = historySnapshotFixture({ implementation: original,labels: seed.labels,labelSettings: seed.labelSettings });
   f.state.tool = 'select'; f.state.stateRevision = 0;
   const history = original.createHistoryService({ store: { history: [], historyMeta: [], future: [], futureMeta: [] },
     snapshot: f.owner.snapshotEditable, restore: f.owner.restoreEditable, normalizeMetadata: value => value,

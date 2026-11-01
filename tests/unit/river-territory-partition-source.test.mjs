@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
-const app = readFileSync(new URL("../../apps/editor/frontend/js/modules/app-runtime-dependencies.js",import.meta.url),'utf8')+readApplicationOwners('project-session', 'domain-assembly', 'river-candidates', 'territory-components', 'territory-selection-workflow');
-const renderer = fs.readFileSync(new URL('assets/js/modules/gpu-map-renderer.js', root), 'utf8');
-const worker = fs.readFileSync(new URL('assets/js/workers/river-territory-partition-worker.js', root), 'utf8');
+const app = fs.readFileSync(new URL("../../apps/editor/frontend/js/modules/app-runtime-dependencies.js",import.meta.url),'utf8')+readApplicationOwners('project-session', 'domain-assembly', 'river-candidates', 'territory-components', 'territory-selection-workflow');
+const renderer = fs.readFileSync(new URL('shared/frontend/js/modules/gpu-map-renderer.js', root), 'utf8');
+const worker = fs.readFileSync(new URL('apps/editor/frontend/js/workers/river-territory-partition-worker.js', root), 'utf8');
 
 test('river partition flow uses current display hydro geometry', () => {
   assert.match(app, /queryHydroLogicalFeatures\(bounds, \{ category: 'river' \}\)/);
@@ -37,11 +37,12 @@ test('river boundaries extend the shared territory component selection flow', ()
 
 test('frontier pocket implementation and companion assets are completely removed', () => {
   for (const relative of [
-    'assets/js/modules/river-annex-metric.js',
-    'assets/js/workers/river-annex-worker.js',
-    'assets/js/workers/hydro-annex-source-worker.js',
+    'apps/editor/frontend/js/modules/river-annex-metric.js',
+    'apps/editor/frontend/js/workers/river-annex-worker.js',
+    'apps/editor/frontend/js/workers/hydro-annex-source-worker.js',
     'assets/data/hydro/annex-source-v1/manifest.json',
     'assets/data/hydro/annex-source-v1/source.json.gz',
     'tools/build-river-annex-source.py',
   ]) assert.equal(fs.existsSync(new URL(relative, root)), false, relative);
 });
+

@@ -9,7 +9,7 @@ const start = source.indexOf('    function ensureCountryIdScene() {');
 const end = source.indexOf('    function pick(screenPoint)', start);
 assert.ok(start >= 0 && end > start);
 const ensureScene = new Function('isWebGlRenderer', 'gl', 'mesh', 'state', 'ensurePickTarget',
-  'meshVariants', 'activeMeshQuality', 'meshCountryIds', 'countryIdSceneKey', 'pickSceneKey',
+  'meshVariants', 'surfacePresentation', 'meshCountryIds', 'countryIdSceneKey', 'pickSceneKey',
   'pickFramebuffer', 'pixelWidth', 'pixelHeight', `${source.slice(start, end)}\nreturn ensureCountryIdScene();`);
 
 for (const [canonicalIds, activeIds, expected] of [
@@ -23,9 +23,16 @@ for (const [canonicalIds, activeIds, expected] of [
     const entry = { mesh: { triangleIndices: [] }, countryIds: canonicalIds };
     const gl = { bindFramebuffer() {}, viewport() {}, enable() {} };
     const result = ensureScene(() => true, gl, {}, { layerVisibility: { objects: true } },
-      () => { targetRequests += 1; }, new Map([['canonical', entry]]), 'preview', activeIds,
+      () => { targetRequests += 1; }, new Map([['canonical', entry]]), { quality: 'canonical', targetQuality: 'canonical' }, activeIds,
       () => 'cached-scene', 'cached-scene', {}, 10, 10);
     assert.equal(result, expected);
     assert.equal(targetRequests, expected ? 1 : 0);
   });
 }
+
+test('pending surfaces cannot allocate a country picking target', () => {
+  const result = ensureScene(() => true, {}, {}, { layerVisibility: { objects: true } },
+    () => assert.fail('pending surfaces must not prepare picking'), new Map(),
+    { quality: 'pending', targetQuality: 'canonical' }, [], () => 'cached-scene', 'cached-scene', {}, 10, 10);
+  assert.equal(result, false);
+});

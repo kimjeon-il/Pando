@@ -120,7 +120,11 @@ test('common role contracts reject tool colors and keep boundary preparation out
   assert.match(rendering, /lastInteractionFillOwner/);
   assert.doesNotMatch(pass, /innerCutout: resolvedStyle.width|phase === 'casing'/);
   assert.match(pass, /CHANNELS = SELECTION_PAINT_ORDER/);
-  assert.match(worker, /type: 'frame',\s+styleRevision/);
+  const frameStart = worker.indexOf("self.postMessage({\n        type: 'frame',");
+  assert.ok(frameStart >= 0);
+  const frame = worker.slice(frameStart, worker.indexOf('});', frameStart));
+  assert.match(frame, /\n\s+styleRevision,/);
+  assert.match(frame, /\n\s+renderRequestId,/);
 });
 
 test('boundary presentation uses explicit geometry and rejects missing owners',async()=>{
@@ -169,10 +173,10 @@ test('Canvas metadata updates share immutable coordinate reconstruction', () => 
 });
 
 
-test('boundary preparation consumes the same preview entity coordinates and switches atomically to canonical coordinates', async () => {
+test('regional boundary preparation consumes preview entity coordinates and switches atomically to canonical coordinates', async () => {
   const geometry = (x, width = 4) => ({ type: 'Polygon', coordinates: [[[x,0],[x,4],[x+width,4],[x+width,0],[x,0]]] });
   const root = { type: 'Feature', id: 'A', properties: { entityKind: 'general', parentId: '' }, geometry: geometry(0) };
-  const child = { type: 'Feature', id: 'B', properties: { entityKind: 'general', parentId: 'A' }, geometry: geometry(0, 2) };
+  const child = { type: 'Feature', id: 'B', properties: { entityKind: 'regional', parentId: '' }, geometry: geometry(0, 2) };
   const displayed = [root, child].map(entity => ({ ...entity, geometry: geometry(20, entity.id === 'B' ? 2 : 4) }));
   const before = structuredClone([root, child]);
   const preparation = createMapDisplayPreparation();
@@ -183,17 +187,21 @@ test('boundary preparation consumes the same preview entity coordinates and swit
   assert.ok(canonical.segments.length > 0);
   assert.ok(canonical.segments.every(segment => segment.a[0] <= 4 && segment.b[0] <= 4));
   assert.deepEqual([root, child], before);
+  const generalChild = { ...child, properties: { entityKind: 'general', parentId: 'A' } };
+  assert.deepEqual((await preparation.prepare({ kind: 'boundaries', entities: [root, generalChild] }, [], [])).segments, [],
+    'general hierarchy boundaries are prepared by the country shared-boundary owner');
 });
 
 
-test('general land substrate is filled once for overlapping hierarchy shapes and excludes independent regional overlays', () => {
+test('physical land substrate is filled once and excludes political hierarchy and regional overlays', () => {
   const drawn = [], calls = [];
   const coordinates = new Float64Array([0,0,0,1,1,1,1,0,0,0]);
   const packet = role => ({role, ringCoordinates: coordinates, polygonOffsets: [0,1], ringOffsets: [0,5]});
-  const root = { type: 'Feature', id: 'A', geometry: { type: 'Polygon', coordinates: [] } };
+  const land = packet('physical-land');
+  const secondLand = { ...packet('physical-land'), ringCoordinates: coordinates.map((value, index) => value + (index % 2 ? 0 : 0.5)) };
   globalThis.PandoLabCanvasSceneComposition.drawGeneralLand({beginPath: () => calls.push('begin'), fill: () => calls.push('fill')},
-    feature => drawn.push(feature), [packet('territorial-fill'), packet('regional-overlay')], [root]);
+    feature => drawn.push(feature), [land, packet('territorial-fill'), packet('regional-overlay'), secondLand]);
   assert.deepEqual(calls, ['begin', 'fill']);
   assert.equal(drawn.length, 2);
-  assert.strictEqual(drawn[0], root);
+  assert.deepEqual(drawn, [land, secondLand].map(globalThis.PandoLabCanvasSceneComposition.geometryFor));
 });

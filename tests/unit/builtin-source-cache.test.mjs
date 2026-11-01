@@ -38,7 +38,7 @@ function fixture({sourceCacheLimits, pinned=true, loader=null, admit=null}={}) {
 test('P2-2 A-B-A revisits reuse immutable verified bytes and skip read, serialize and SHA',async()=>{
  const f=fixture(),original=structuredClone(f.core),doc=structuredClone(f.document);
  const a=await f.session.prepareProjectSource('2026-10');
- const b=await f.session.prepareProjectSource('2025-12');
+ await f.session.prepareProjectSource('2025-12');
  const again=await f.session.prepareProjectSource('2026-10');
  assert.equal(f.reads(),2);assert.equal(f.serializations(),2);
  assert.notEqual(a,again);
@@ -96,7 +96,7 @@ test('P2-2 content cache invalidates on pinned catalog/data revision and never a
  const f=fixture(),first=await f.session.prepareProjectSource('2025-12');
  f.buildMeta.dataRevision='data-revision-B';
  await assert.rejects(f.session.admitPreparedProjectSource(first),{code:'PL-CORE-STALE'});
- const second=await f.session.prepareProjectSource('2025-12');
+ await f.session.prepareProjectSource('2025-12');
  assert.equal(f.reads(),2);
  assert.equal(f.session.sourceCacheStats().entries,1);
  assert.equal(f.admissions.length,0);

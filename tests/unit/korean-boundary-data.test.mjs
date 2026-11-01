@@ -1,4 +1,3 @@
-import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -10,7 +9,7 @@ import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geome
 import {resolveWorld} from "../../shared/frontend/js/modules/timeline-resolver.js";
 import {refineChinesePaektuSource} from '../../tools/build-korean-boundaries.mjs';
 
-const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(repositoryFrontendUrl(`assets/data/territorial-entities/source/countries/state-${id}.json`))));
+const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`,import.meta.url))));
 const korea=readCountry('KOR'),north=readCountry('PRK');
 const rings=createRingHitTester(ring=>ring);
 const contains=(entity,date,point)=>{

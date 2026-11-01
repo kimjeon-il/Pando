@@ -1,0 +1,469 @@
+name: P6 preflight native and Worker contracts
+
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/core/**
+      - shared/tests/**
+      - shared/wasm/**
+      - shared/frontend/static/wasm/**
+      - shared/frontend/js/modules/core-*.js
+      - shared/frontend/js/modules/worker-*.js
+      - shared/frontend/js/modules/product-mode-policy.js
+      - apps/editor/frontend/js/modules/editing-domain.js
+      - tests/native/temporal-parity-*
+      - tests/helpers/**
+      - tests/fixtures/portability/**
+      - tests/unit/core-*.test.mjs
+      - tests/unit/web-*.test.mjs
+      - tests/unit/progressive-startup-runtime*.test.mjs
+      - tests/unit/timeline-controls.test.mjs
+      - tests/unit/shared-core-assets.test.mjs
+      - tests/unit/annex-drawn-selection.test.mjs
+      - tests/unit/app-accent.test.mjs
+      - tests/unit/borneo-country-geometry.test.mjs
+      - tests/unit/boundary-display-refinement.test.mjs
+      - tests/unit/boundary-revision-comparison.test.mjs
+      - tests/unit/boundary-revision-timings.test.mjs
+      - tests/unit/build-metadata.test.mjs
+      - tests/unit/builtin-resource-core-wasm.test.mjs
+      - tests/unit/builtin-subunits.test.mjs
+      - tests/unit/canvas-terrain-independence.test.mjs
+      - tests/unit/country-label-input-contract.test.mjs
+      - tests/unit/country-lineage-preservation.test.mjs
+      - tests/unit/current-browser-contracts.test.mjs
+      - tests/unit/draft-toolbar.test.mjs
+      - tests/unit/editor-test-entry.test.mjs
+      - tests/unit/empty-territorial-boundary.test.mjs
+      - tests/unit/frontend-dev-server.test.mjs
+      - tests/unit/frontend-library-preparation.test.mjs
+      - tests/unit/generic-provenance.test.mjs
+      - tests/unit/gpu-country-pick-slot-guard.test.mjs
+      - tests/unit/gpu-mesh-country-strokes.test.mjs
+      - tests/unit/gpu-mesh-transfer.test.mjs
+      - tests/unit/historical-world-reset.test.mjs
+      - tests/unit/historical-world-timeline.test.mjs
+      - tests/unit/hydro-reliability-source.test.mjs
+      - tests/unit/interaction-roles.test.mjs
+      - tests/unit/korean-boundary-data.test.mjs
+      - tests/unit/label-shell-performance.test.mjs
+      - tests/unit/library-geometry-context.test.mjs
+      - tests/unit/library-import-atomic.test.mjs
+      - tests/unit/library-map-preview.test.mjs
+      - tests/unit/library-origin-period.test.mjs
+      - tests/unit/map-diagnostics.test.mjs
+      - tests/unit/map-edit-worker-lifecycle.test.mjs
+      - tests/unit/map-loading-continuity.test.mjs
+      - tests/unit/river-territory-partition-source.test.mjs
+      - tests/unit/startup-performance-contract.test.mjs
+      - tests/unit/territorial-editor-lifecycle.test.mjs
+      - tests/unit/place-million.test.mjs
+      - scripts/run-boundary-revision-comparison.mjs
+      - scripts/frontend-dev-server.mjs
+      - scripts/lib/library-preparation-wait.mjs
+      - eslint.config.js
+      - tests/unit/builtin-source-cache.test.mjs
+      - shared/tests/temporal-transport-p5-5.test.mjs
+      - tools/load-node-core.mjs
+      - tools/package-shared-core-assets.mjs
+      - .github/workflows/shared-core.yml
+      - .github/workflows/p6-preflight.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p6-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --max-old-space-size=512
+      PANDO_TEMPORAL_NATIVE: build-native/core-session/temporal-parity-probe
+      PANDO_P5_7_EVIDENCE: test-results/p6-preflight/temporal-parity.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Record exact code and protected data identity
+        id: identity
+        run: |
+          mkdir -p test-results/p6-preflight
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { execFileSync } from 'node:child_process';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const data = JSON.parse(readFileSync('config/library-data.json', 'utf8'));
+          const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          assert.equal(commit, process.env.GITHUB_SHA);
+          assert.equal(data.revision, '139941d8056418547c796068304ba8db3696fe69');
+          writeFileSync('test-results/p6-preflight/identity.json', JSON.stringify({
+            schema: 'pando-p6-preflight-identity-v1', commit, dataRevision: data.revision,
+            node: process.version, os: process.platform, arch: process.arch,
+            workflowRun: process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY
+              + '/actions/runs/' + process.env.GITHUB_RUN_ID,
+            deferredBrowserCasesNotExecuted: [
+              'July 1953 transition completion',
+              'injected-failure previous-year click',
+            ],
+          }, null, 2) + '\n');
+          NODE
+      - name: Install only standalone native build prerequisites
+        run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
+      - name: Build the original nine native targets with active assertions
+        id: native_build
+        run: |
+          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --build build-native/core-session --target project_codec_tests document_session_tests geometry_draft_tests web_content_codec_tests web_content_command_tests web_territorial_command_tests source_admission_tests web_storage_tests web_object_command_tests --parallel 2
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const commands = JSON.parse(readFileSync('build-native/core-session/compile_commands.json', 'utf8'));
+          const targets = ["project_codec_tests","document_session_tests","geometry_draft_tests","web_content_codec_tests","web_content_command_tests","web_territorial_command_tests","source_admission_tests","web_storage_tests","web_object_command_tests"];
+          const checks = targets.map(target => {
+            const command = commands.find(row => row.command.includes('/' + target + '.dir/'))?.command;
+            assert.ok(command, 'Missing compile command for ' + target);
+            const definitions = command.match(/(?:^|\s)-[DU]NDEBUG(?=\s|$)/g) || [];
+            assert.equal(definitions.at(-1)?.trim(), '-UNDEBUG', target + ': assertions must remain enabled');
+            return { target, assertionsEnabled: true };
+          });
+          writeFileSync('test-results/p6-preflight/native-assertions.json', JSON.stringify(checks, null, 2) + '\n');
+          NODE
+          c++ -std=c++17 -O2 -UNDEBUG -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core-session/core/libpandoeditor_core.a -lz -o build-native/core-session/temporal-parity-probe
+      - name: Execute the original nine native contracts
+        id: native
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' }}
+        shell: bash
+        run: |
+          set +e
+          ctest --test-dir build-native/core-session -R '^(project_codec_tests|document_session_tests|geometry_draft_tests|web_content_codec_tests|web_content_command_tests|web_territorial_command_tests|source_admission_tests|web_storage_tests|web_object_command_tests)$' --output-on-failure --timeout 10 --no-tests=error --output-junit "$GITHUB_WORKSPACE/test-results/p6-preflight/native.xml" > test-results/p6-preflight/native.log 2>&1
+          result=$?
+          set -e
+          tail -n 55 test-results/p6-preflight/native.log
+          exit "$result"
+      - name: Verify the already generated JS and WASM against this exact source
+        id: runtime_pair
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' }}
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check > test-results/p6-preflight/runtime-pair.json
+      - name: Check reuse and peak space before pinned data preparation
+        id: capacity
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' }}
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { existsSync, statfsSync, writeFileSync } from 'node:fs';
+          import { resolve } from 'node:path';
+          import { libraryConfig, libraryMaterializedRoot } from './tools/library-data.mjs';
+          const config = libraryConfig();
+          assert.equal(config.revision, '139941d8056418547c796068304ba8db3696fe69');
+          // Pinned archive/index.json blob e523fbb761fcebdc6045f8b9049d9037f93f9ab5:
+          // 2,034 non-report entries; unique decoded bytes plus the canonical
+          // prefetch allowance (2 * entry.bytes + 1024 per stored object).
+          const materializedBytes = 677797213, fetchAllowanceBytes = 1403109804;
+          const reuseCandidate = existsSync(resolve(libraryMaterializedRoot(), '.complete'));
+          const peakAdditionalBytes = reuseCandidate ? 0 : materializedBytes + fetchAllowanceBytes;
+          const disk = statfsSync(process.cwd()), freeBytes = disk.bavail * disk.bsize;
+          const evidence = {
+            revision: config.revision, reuseCandidate, materializedBytes, fetchAllowanceBytes,
+            peakAdditionalBytes, requiredHeadroomBytes: 5 * 1024 ** 3, freeBytes,
+            actualReuseAndPeakGuard: 'tools/library-data.mjs materializeRuntimeView and prefetchArchiveEntries',
+          };
+          writeFileSync('test-results/p6-preflight/capacity.json', JSON.stringify(evidence, null, 2) + '\n');
+          assert.ok(freeBytes >= peakAdditionalBytes + evidence.requiredHeadroomBytes,
+            'Pinned data preparation needs its peak additional bytes plus 5 GiB headroom');
+          NODE
+      - name: Prepare pinned data once for the existing builtin-world contract
+        id: data
+        if: ${{ !cancelled() && steps.capacity.outcome == 'success' }}
+        uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+        id: package_manager
+        if: ${{ !cancelled() && steps.data.outcome == 'success' }}
+      - name: Install the frozen test dependencies
+        id: node_deps
+        if: ${{ !cancelled() && steps.data.outcome == 'success' && steps.package_manager.outcome == 'success' }}
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify changed code and the previously failing lint environments
+        id: lint
+        if: ${{ !cancelled() && steps.node_deps.outcome == 'success' }}
+        run: |
+          set +e
+          node --input-type=module <<'NODE' > test-results/p6-preflight/lint.log 2>&1
+          import { execFileSync } from 'node:child_process';
+          const previouslyFailed = ["shared/tests/temporal-transport-p5-5.test.mjs", "tests/browser/viewer-country-mesh-p3-2.spec.mjs", "tests/browser/viewer-initial-p1.spec.mjs", "tests/helpers/gpu-recovery-source-harness.mjs", "tests/integration/viewer-functional-p6-1.spec.mjs", "tests/integration/viewer-functional-p6-2.spec.mjs", "tests/unit/background-asset-recovery.test.mjs", "tests/unit/background-network-recovery.test.mjs", "tests/unit/background-startup-recovery.test.mjs", "tests/unit/builtin-clock-recovery.test.mjs", "tests/unit/builtin-source-cache.test.mjs", "tests/unit/core-temporal-transport-p5-5.test.mjs", "tests/unit/gpu-shared-pass-initialization.test.mjs", "tests/unit/viewer-adjacent-prefetch.test.mjs", "tests/unit/viewer-bootstrap-recovery.test.mjs", "tests/unit/viewer-composition-recovery.test.mjs", "tests/unit/viewer-initial-composition.test.mjs", "tests/unit/viewer-post-presentation.test.mjs"];
+          const changed = execFileSync('git', ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD^', 'HEAD', '--', '*.js', '*.mjs'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+          const files = [...new Set([...previouslyFailed, ...changed])].sort();
+          console.log(JSON.stringify({ scope: 'changed files plus observed lint failures', selectedFiles: files }));
+          execFileSync(process.execPath, ['node_modules/eslint/bin/eslint.js', '--no-warn-ignored', ...files], { stdio: 'inherit' });
+          NODE
+          result=$?
+          set -e
+          tail -n 100 test-results/p6-preflight/lint.log
+          exit "$result"
+      - name: Execute all 52 files from the originally blocked shared-core step
+        id: original_contracts
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.data.outcome == 'success' && steps.node_deps.outcome == 'success' }}
+        env:
+          PANDOEDITOR_WASM_MODULE: shared/frontend/static/wasm/pandoeditor-core.js
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-timeout=15000 --test-reporter=tap \
+            shared/tests/wasm-document-session.test.mjs \
+            tests/unit/core-wasm-loader.test.mjs \
+            tests/unit/web-core-contract.test.mjs \
+            tests/unit/core-document-client.test.mjs \
+            tests/unit/core-document-runtime.test.mjs \
+            tests/unit/core-document-read-model.test.mjs \
+            tests/unit/core-document-wasm.test.mjs \
+            tests/unit/core-document-selection-wasm.test.mjs \
+            tests/unit/core-document-field-wasm.test.mjs \
+            tests/unit/core-document-view-selection-wasm.test.mjs \
+            tests/unit/core-document-world-wasm.test.mjs \
+            tests/unit/core-document-draft-wasm.test.mjs \
+            tests/unit/core-document-batch-wasm.test.mjs \
+            tests/unit/core-codec-unicode-wasm.test.mjs \
+            tests/unit/core-codec-unicode-ids-wasm.test.mjs \
+            tests/unit/core-document-content-wasm.test.mjs \
+            tests/unit/core-project-command-wasm.test.mjs \
+            tests/unit/core-map-presentation-wasm.test.mjs \
+            tests/unit/core-object-catalog-wasm.test.mjs \
+            tests/unit/core-delete-selection-wasm.test.mjs \
+            tests/unit/core-distribution-array-metadata-wasm.test.mjs \
+            tests/unit/core-direct-object-writers-wasm.test.mjs \
+            tests/unit/core-hydro-create-wasm.test.mjs \
+            tests/unit/core-web-history-limit-wasm.test.mjs \
+            tests/unit/core-hydro-hidden-source-wasm.test.mjs \
+            tests/unit/core-label-gesture-wasm.test.mjs \
+            tests/unit/core-hydro-copy-history-wasm.test.mjs \
+            tests/unit/core-gpkg-file-boundary.test.mjs \
+            tests/unit/core-project-admission-wasm.test.mjs \
+            tests/unit/core-project-replacement-wasm.test.mjs \
+            tests/unit/core-project-file-save-wasm.test.mjs \
+            tests/unit/core-territorial-service-wasm.test.mjs \
+            tests/unit/core-territorial-store-wasm.test.mjs \
+            tests/unit/core-empty-document-wasm.test.mjs \
+            tests/unit/progressive-startup-runtime.test.mjs \
+            tests/unit/progressive-startup-runtime-contract.test.mjs \
+            tests/unit/core-save-state-projection.test.mjs \
+            tests/unit/core-draft-primitives.test.mjs \
+            tests/unit/timeline-controls.test.mjs \
+            tests/unit/shared-core-assets.test.mjs \
+            tests/unit/web-document-seed.test.mjs \
+            tests/unit/web-flag-contract.test.mjs \
+            tests/unit/web-selection-contract.test.mjs \
+            tests/unit/web-history-selection-contract.test.mjs \
+            tests/unit/web-draft-contract.test.mjs \
+            tests/unit/core-worker-ownership.test.mjs \
+            tests/unit/web-opaque-flag-contract.test.mjs \
+            tests/unit/web-oracle-admission.test.mjs \
+            tests/unit/web-content-dirty-contract.test.mjs \
+            tests/unit/web-writer-clock-contract.test.mjs \
+            tests/unit/web-map-presentation-contract.test.mjs \
+            tests/unit/web-object-removal-original.test.mjs > test-results/p6-preflight/original-contracts.tap 2>&1
+          result=$?
+          set -e
+          tail -n 18 test-results/p6-preflight/original-contracts.tap
+          exit "$result"
+      - name: Recheck the 44 remaining failed files and the preparation concurrency regression
+        id: additional_contracts
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.data.outcome == 'success' && steps.node_deps.outcome == 'success' }}
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-timeout=120000 --test-reporter=tap \
+            tests/unit/annex-drawn-selection.test.mjs \
+            tests/unit/app-accent.test.mjs \
+            tests/unit/borneo-country-geometry.test.mjs \
+            tests/unit/boundary-display-refinement.test.mjs \
+            tests/unit/boundary-revision-comparison.test.mjs \
+            tests/unit/boundary-revision-timings.test.mjs \
+            tests/unit/build-metadata.test.mjs \
+            tests/unit/builtin-resource-core-wasm.test.mjs \
+            tests/unit/builtin-subunits.test.mjs \
+            tests/unit/canvas-terrain-independence.test.mjs \
+            tests/unit/core-candidate-projection-wasm.test.mjs \
+            tests/unit/core-document-flag-wasm.test.mjs \
+            tests/unit/core-generic-conversion-wasm.test.mjs \
+            tests/unit/core-prerequisite.test.mjs \
+            tests/unit/core-product-mode.test.mjs \
+            tests/unit/core-service-writer-clock-wasm.test.mjs \
+            tests/unit/country-label-input-contract.test.mjs \
+            tests/unit/country-lineage-preservation.test.mjs \
+            tests/unit/current-browser-contracts.test.mjs \
+            tests/unit/draft-toolbar.test.mjs \
+            tests/unit/editor-test-entry.test.mjs \
+            tests/unit/empty-territorial-boundary.test.mjs \
+            tests/unit/frontend-dev-server.test.mjs \
+            tests/unit/frontend-library-preparation.test.mjs \
+            tests/unit/generic-provenance.test.mjs \
+            tests/unit/gpu-country-pick-slot-guard.test.mjs \
+            tests/unit/gpu-mesh-country-strokes.test.mjs \
+            tests/unit/gpu-mesh-transfer.test.mjs \
+            tests/unit/historical-world-reset.test.mjs \
+            tests/unit/historical-world-timeline.test.mjs \
+            tests/unit/hydro-reliability-source.test.mjs \
+            tests/unit/interaction-roles.test.mjs \
+            tests/unit/korean-boundary-data.test.mjs \
+            tests/unit/label-shell-performance.test.mjs \
+            tests/unit/library-geometry-context.test.mjs \
+            tests/unit/library-import-atomic.test.mjs \
+            tests/unit/library-map-preview.test.mjs \
+            tests/unit/library-origin-period.test.mjs \
+            tests/unit/map-diagnostics.test.mjs \
+            tests/unit/map-edit-worker-lifecycle.test.mjs \
+            tests/unit/map-loading-continuity.test.mjs \
+            tests/unit/river-territory-partition-source.test.mjs \
+            tests/unit/startup-performance-contract.test.mjs \
+            tests/unit/territorial-editor-lifecycle.test.mjs \
+            tests/unit/web-shell-packaged-build.test.mjs > test-results/p6-preflight/additional-contracts.tap 2>&1
+          result=$?
+          set -e
+          tail -n 18 test-results/p6-preflight/additional-contracts.tap
+          exit "$result"
+      - name: Complete the previously stalled actual place Worker case once
+        id: place_worker
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' && steps.node_deps.outcome == 'success' }}
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-timeout=120000 --test-reporter=tap tests/unit/place-million.test.mjs > test-results/p6-preflight/place-worker.tap 2>&1
+          result=$?
+          set -e
+          tail -n 18 test-results/p6-preflight/place-worker.tap
+          exit "$result"
+      - name: Compare five actual native and WASM temporal scenarios
+        id: parity
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' && steps.runtime_pair.outcome == 'success' }}
+        shell: bash
+        run: |
+          set +e
+          node --test --test-reporter=tap tests/native/temporal-parity-p5-7.test.mjs > test-results/p6-preflight/temporal-parity.tap 2>&1
+          result=$?
+          set -e
+          tail -n 10 test-results/p6-preflight/temporal-parity.tap
+          exit "$result"
+      - name: Execute six Worker cancellation and late acknowledgement contracts
+        id: worker
+        if: ${{ !cancelled() && steps.runtime_pair.outcome == 'success' }}
+        shell: bash
+        run: |
+          set +e
+          node --test --test-concurrency=1 --test-timeout=15000 --test-reporter=tap tests/unit/core-temporal-transport-p5-5.test.mjs > test-results/p6-preflight/worker-temporal.tap 2>&1
+          result=$?
+          set -e
+          tail -n 18 test-results/p6-preflight/worker-temporal.tap
+          exit "$result"
+      - name: Record exact executed counts and unexecuted gates
+        if: always()
+        env:
+          PANDO_PREFLIGHT_NATIVE_BUILD: ${{ steps.native_build.outcome }}
+          PANDO_PREFLIGHT_NATIVE: ${{ steps.native.outcome }}
+          PANDO_PREFLIGHT_PAIR: ${{ steps.runtime_pair.outcome }}
+          PANDO_PREFLIGHT_DATA: ${{ steps.data.outcome }}
+          PANDO_PREFLIGHT_LINT: ${{ steps.lint.outcome }}
+          PANDO_PREFLIGHT_CONTRACTS: ${{ steps.original_contracts.outcome }}
+          PANDO_PREFLIGHT_ADDITIONAL: ${{ steps.additional_contracts.outcome }}
+          PANDO_PREFLIGHT_PLACE: ${{ steps.place_worker.outcome }}
+          PANDO_PREFLIGHT_PARITY: ${{ steps.parity.outcome }}
+          PANDO_PREFLIGHT_WORKER: ${{ steps.worker.outcome }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+          const root = 'test-results/p6-preflight/';
+          mkdirSync(root, { recursive: true });
+          const failures = [];
+          const read = name => existsSync(root + name) ? readFileSync(root + name, 'utf8') : null;
+          const json = name => {
+            const text = read(name); if (text === null) return null;
+            try { return JSON.parse(text); }
+            catch { failures.push(name + ': malformed evidence'); return null; }
+          };
+          const tap = name => {
+            const text = read(name); if (text === null) return null;
+            const result = {};
+            for (const key of ['tests', 'pass', 'fail', 'cancelled', 'skipped', 'todo']) {
+              const match = text.match(new RegExp('^# ' + key + ' (\\d+)$', 'm'));
+              result[key] = match ? Number(match[1]) : null;
+            }
+            return result;
+          };
+          const xml = read('native.xml'), nativeCounts = xml?.match(/<testsuite\b[^>]*>/)?.[0];
+          const nativeAttribute = key => {
+            const value = nativeCounts?.match(new RegExp('\\b' + key + '="(\\d+)"'))?.[1];
+            return value === undefined ? null : Number(value);
+          };
+          const summary = {
+            schema: 'pando-p6-preflight-v1', identity: json('identity.json'),
+            gates: { nativeBuild: process.env.PANDO_PREFLIGHT_NATIVE_BUILD,
+              runtimePair: process.env.PANDO_PREFLIGHT_PAIR, pinnedData: process.env.PANDO_PREFLIGHT_DATA, lint: process.env.PANDO_PREFLIGHT_LINT },
+            native: { outcome: process.env.PANDO_PREFLIGHT_NATIVE,
+              tests: nativeAttribute('tests'), failures: nativeAttribute('failures'), skipped: nativeAttribute('skipped') },
+            originalContracts: { outcome: process.env.PANDO_PREFLIGHT_CONTRACTS, selectedFiles: 52, counts: tap('original-contracts.tap') },
+            additionalContracts: { outcome: process.env.PANDO_PREFLIGHT_ADDITIONAL, selectedFiles: 45, observedFailureFiles: 44, addedRegressionFiles: 1, counts: tap('additional-contracts.tap') },
+            placeWorker: { outcome: process.env.PANDO_PREFLIGHT_PLACE, counts: tap('place-worker.tap') },
+            temporalParity: { outcome: process.env.PANDO_PREFLIGHT_PARITY, counts: tap('temporal-parity.tap'), evidence: json('temporal-parity.json') },
+            workerTemporal: { outcome: process.env.PANDO_PREFLIGHT_WORKER, counts: tap('worker-temporal.tap') },
+            deferredBrowserCasesExecuted: false,
+          };
+          if (summary.native.outcome === 'success' && (summary.native.tests !== 9 || summary.native.failures !== 0 || summary.native.skipped !== 0))
+            failures.push('Native success requires all nine CTest cases, with no failures or skips');
+          for (const [name, batch, expected] of [
+            ['originalContracts', summary.originalContracts, null],
+            ['additionalContracts', summary.additionalContracts, null],
+            ['placeWorker', summary.placeWorker, 1],
+            ['temporalParity', summary.temporalParity, 5],
+            ['workerTemporal', summary.workerTemporal, 6],
+          ]) {
+            if (batch.outcome !== 'success') continue;
+            const c = batch.counts;
+            if (!c || Object.values(c).some(value => value === null) || c.pass !== c.tests || c.fail || c.cancelled || c.skipped || c.todo)
+              failures.push(name + ': successful command did not report complete passing test counts');
+            if (expected !== null && c?.tests !== expected) failures.push(name + ': expected ' + expected + ' named tests');
+            if (batch.selectedFiles && (c?.tests ?? 0) <= batch.selectedFiles)
+              failures.push(name + ': expected named cases within the selected files, not file-only acknowledgements');
+          }
+          if (summary.temporalParity.outcome === 'success' && summary.temporalParity.evidence?.passed !== true)
+            failures.push('Temporal parity evidence is incomplete');
+          summary.evidenceErrors = failures;
+          summary.passed = failures.length === 0
+            && Object.values(summary.gates).every(value => value === 'success')
+            && [summary.native, summary.originalContracts, summary.additionalContracts, summary.placeWorker, summary.temporalParity, summary.workerTemporal].every(batch => batch.outcome === 'success');
+          writeFileSync(root + 'summary.json', JSON.stringify(summary, null, 2) + '\n');
+          const rows = [
+            ['Changed/previously failing lint', summary.gates.lint, null, null, null],
+            ['Native CTest', summary.native.outcome, summary.native.tests, summary.native.failures, summary.native.skipped],
+            ['Original shared-core files (52)', summary.originalContracts.outcome, summary.originalContracts.counts?.tests, summary.originalContracts.counts?.fail, summary.originalContracts.counts?.skipped],
+            ['Remaining failed files (44) and concurrency regression (1)', summary.additionalContracts.outcome, summary.additionalContracts.counts?.tests, summary.additionalContracts.counts?.fail, summary.additionalContracts.counts?.skipped],
+            ['Previously stalled place Worker', summary.placeWorker.outcome, summary.placeWorker.counts?.tests, summary.placeWorker.counts?.fail, summary.placeWorker.counts?.skipped],
+            ['Native/WASM temporal parity', summary.temporalParity.outcome, summary.temporalParity.counts?.tests, summary.temporalParity.counts?.fail, summary.temporalParity.counts?.skipped],
+            ['Worker cancellation / late acknowledgement', summary.workerTemporal.outcome, summary.workerTemporal.counts?.tests, summary.workerTemporal.counts?.fail, summary.workerTemporal.counts?.skipped],
+          ];
+          const display = value => value === null || value === undefined ? 'unobserved' : String(value);
+          const report = '## P6 preflight\n\n| Batch | Outcome | Tests | Failures | Skips |\n| --- | --- | ---: | ---: | ---: |\n'
+            + rows.map(row => '| ' + row.map(display).join(' | ') + ' |').join('\n')
+            + '\n\nThe two user-deferred browser cases were not executed. Missing counts mean unobserved, not zero.\n';
+          if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, report);
+          console.log(JSON.stringify({ passed: summary.passed, batches: rows, evidenceErrors: failures }));
+          if (failures.length) throw Error(failures.join('; '));
+          NODE
+      - name: Retain bounded evidence even when a gate fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-preflight-${{ github.sha }}
+          path: |
+            test-results/p6-preflight/
+            build-native/core-session/Testing/Temporary/
+          if-no-files-found: error
+          retention-days: 14
+

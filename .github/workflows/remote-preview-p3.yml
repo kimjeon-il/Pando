@@ -255,6 +255,7 @@ jobs:
           persist-credentials: false
       - name: Mount selected baseline inputs from library storage
         id: library_baseline_10
+        if: steps.acceptance_baseline.outcome == 'success'
         uses: kimjeon-il/Pando/.github/actions/library-data@main
         with:
           inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa

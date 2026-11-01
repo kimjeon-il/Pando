@@ -26,6 +26,7 @@ test('the shared base pass can show land and ocean before country mesh exists', 
     physicalLandItems:[{packet:{key:'land',role:'physical-land'}}],independentItems:[],
     deferredOverlayKeys:new Set(),failedOverlayKeys:new Set(),strokeDomainReplacements:[]};
   const result=drawGpuBaseScene({gl,frame:{frameId:1,projectGeneration:0},width:100,height:100,
+    surfacePresentation:{quality:'pending',targetQuality:'canonical'},
     terrainVisible:true,terrainStyle:'physical',countriesVisible:true,mapSubstrate:{color:'#ccc',fillAlpha:1},
     countries:{mesh:null,overrideMesh:null},prepared},
   {drawProgram:()=>{throw new Error('Country data must not be drawn.');},drawOceanSubstrate:()=>draws.push('ocean-substrate'),renderTerrain:pass=>draws.push(pass),
@@ -33,6 +34,9 @@ test('the shared base pass can show land and ocean before country mesh exists', 
     polygonOverlayPass:{drawPackets:()=>draws.push('land')},strokeRenderer:{}});
   assert.deepEqual(draws,['ocean-substrate','land','land','ocean','land']);
   assert.equal(result.frameId,1);
+  assert.equal(result.surface.quality,'pending');
+  assert.equal(result.surface.landSource,'physical-background');
+  assert.equal(result.surface.countryIndexCount,0);
 });
 
 test('the ocean substrate and hydro share the physical palette without changing political water', () => {

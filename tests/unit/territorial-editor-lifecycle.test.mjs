@@ -154,6 +154,7 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
       createMapInputPresentation,
       installWorkflow() {}, markRuntimeReady() {},
       showFatalError: error => assert.fail(error.stack),
+      reportOperationError: error => assert.fail(error.stack),
       loadPhysicalLandMask:async()=>{landCalls++;},
       init: () => {
         assert.equal(landCalls,1);
@@ -176,3 +177,4 @@ test('real lifecycle assembly creates editor capabilities before startup task sy
   assert.equal(escape.defaultPrevented, true);
   owner.lifecycle.dispose();
 });
+

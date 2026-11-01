@@ -205,6 +205,23 @@
   },
   "geometries": [
     {
+      "id": "fixture-water:22000000-0000-4000-8000-000000000005",
+      "version": 1,
+      "geojson": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            127.25,
+            37.75
+          ],
+          [
+            127.5,
+            38
+          ]
+        ]
+      }
+    },
+    {
       "id": "label",
       "version": 1,
       "geojson": {
@@ -377,23 +394,6 @@
         "coordinates": [
           127,
           37
-        ]
-      }
-    },
-    {
-      "id": "fixture-water:22000000-0000-4000-8000-000000000005",
-      "version": 1,
-      "geojson": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            127.25,
-            37.75
-          ],
-          [
-            127.5,
-            38
-          ]
         ]
       }
     }

@@ -6,10 +6,11 @@ import { normalizeUserPreferences, saveUserPreferences } from "../../shared/fron
 import { resolveMapInteractionStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 
 test('accent preset normalizes independently from preserved label and selection settings', () => {
-  for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentColor: value } }).appearance.accentPreset, 'blue');
-  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentColor: '#8b5cf6' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
+  for (const value of [undefined, null, 'invalid', '#123', '#123456ff']) assert.equal(normalizeUserPreferences({ version: 2, appearance: { accentPreset: value } }).appearance.accentPreset, 'blue');
+  const input = normalizeUserPreferences({ version: 2, appearance: { theme: 'light', accentPreset: 'purple' }, labels: { country: { font: 'serif', color: '#123456' } }, selection: { color: '#ff0000', fillStrength: 0.8 } });
   assert.equal(input.appearance.accentPreset, 'purple');
   const changed = saveUserPreferences({ ...input, appearance: { ...input.appearance, accentPreset: 'pink' } }, { setItem() {} });
+  assert.equal(changed.appearance.accentPreset, 'pink');
   assert.deepEqual(changed.labels, input.labels); assert.deepEqual(changed.selection, input.selection);
 });
 

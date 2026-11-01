@@ -33,10 +33,10 @@ export function startupDocument(features=[]) {
       .map(key => [key,feature.properties[key]])) })));
   input.geometries=features.map(feature => ({ id:`startup:${feature.id}`,version:1,geojson:structuredClone(feature.geometry) }));
   input.timelineRecords={ schemaVersion:TIMELINE_RECORD_SCHEMA_VERSION,propertyBindings:[],
-    lifetimes:features.map(feature => ({ id:`life:${feature.id}`,entityId:feature.id,validFrom:null,validTo:null })),
-    geometryBindings:features.map(feature => ({ id:`shape:${feature.id}`,entityId:feature.id,validFrom:null,validTo:null,
+    lifetimes:features.map(feature => ({ id:`life:${feature.id}`,objectRef:{domain:'territorial',id:feature.id},validFrom:null,validTo:null })),
+    geometryBindings:features.map(feature => ({ id:`shape:${feature.id}`,objectRef:{domain:'territorial',id:feature.id},validFrom:null,validTo:null,
       geometryRef:{ id:`startup:${feature.id}`,version:1 } })),
-    parentRelations:features.map(feature => ({ id:`parent:${feature.id}`,entityId:feature.id,validFrom:null,validTo:null,
+    parentRelations:features.map(feature => ({ id:`parent:${feature.id}`,objectRef:{domain:'territorial',id:feature.id},validFrom:null,validTo:null,
       parentId:feature.properties.parentId || '',coverageMode:feature.properties.coverageMode || 'explicit' })) };
   return input;
 }
@@ -45,8 +45,8 @@ export function historicalStartupDocument(features) {
   const input=startupDocument(features);
   for(const rows of [input.timelineRecords.lifetimes,input.timelineRecords.geometryBindings,input.timelineRecords.parentRelations])
     for(const row of rows) {
-      row.validFrom=row.entityId==='state:ukraine' ? '1991-08-24':'2026-10-01';
-      row.validTo=row.entityId==='state:ukraine' ? '2014-03-17':'2026-10-31';
+      row.validFrom=row.objectRef.id==='state:ukraine' ? '1991-08-24':'2026-10-01';
+      row.validTo=row.objectRef.id==='state:ukraine' ? '2014-03-17':'2026-10-31';
     }
   return input;
 }
@@ -75,3 +75,4 @@ export async function createCoreStartupState(t,{ startMonth='',...presentation }
   t.after(() => { entityStore.dispose();owner.dispose(); });
   return { ...owner,state:session.state,entityStore,entityRepository,saveState:session.saveState,noop };
 }
+

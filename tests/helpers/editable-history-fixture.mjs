@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { loadWebOracle } from './web-oracle.mjs';
+const { createLayerList } = await loadWebOracle('assets/js/modules/app-layer-list.js');
 /** Test-only original Web history oracle. Never import a current C++ facade. */
 export function historySnapshotFixture({ labels = [], labelSettings = {}, selectionDomain = { clear() {} }, implementation } = {}) {
   if (!implementation) throw new TypeError('An explicit pinned original Web history implementation is required for this oracle fixture.');
@@ -9,13 +11,19 @@ export function historySnapshotFixture({ labels = [], labelSettings = {}, select
     distributionLayers: [], distributionEntries: [],
     labelSettings: structuredClone(labelSettings), distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true },
     layerPresentation: {}, physicalSettings: { hiddenHydroIds: {} }, layerVisibility: {}, itemVisibility: {},
-    projection: 'flat', view: {}, historyDirtyEntityIds: new Set(), autosaveMode: 'delta',
+    projection: 'flat', view: {}, historyDirtyEntityIds: new Set(), autosaveMode: 'delta', layerFolders: {}, layerTreeRevision: 0,
     selectedDistributionLayerId: '', boundaryPreparation: null,
   };
   const owner = createProjectSnapshots();
   initializeTestTerritorialState(state);
   const entityStore = createTerritorialEntityStore({ getState: () => state });
   const entityRepository = createTerritorialEntityRepository({ entityStore });
+  const layerTree = createLayerList();
+  layerTree.connect({ projectState: { state }, territorialModel: { entityRepository },
+    hydroPresentation: { activeLayerFolderKeys: () => [], HYDRO_LAYER_META: {} },
+    countries: { builtinTerritorialScene: () => ({ labelById: new Map() }) },
+    layerPresentation: { LAYER_GROUP_KEYS: ['countries','countryLabels','subunits','regions','distributions','hydro','genericFeatures','labels'] },
+    domains: { selectionDomain } });
   const saveState = createSaveStateController();
   let searchRenders = 0, searchCancels = 0;
   const geometryChanges = [];
@@ -39,9 +47,9 @@ export function historySnapshotFixture({ labels = [], labelSettings = {}, select
       validateDistributionModel: () => ({ ok: true }) },
     territorialModel: { entityStore, entityRepository, normalizeTerritorialEntities: value => value || [] },
     presentation: { territorialRepository: { get: () => null } },
-    objectCatalogView: { pruneLayerItemVisibility() {} },
+    layerTree, layers: { markLayerTreeDirty: layerTree.markLayerTreeDirty },
     countries: { scheduleCountryLabelAnchors() {} }, objectDisplay: { invalidateObjectPresentation() {} },
-    domains: { selectionDomain, objectSearchController: {
+    domains: { selectionDomain, layerTreeController: {
       cancelSearch() { searchCancels += 1; }, render(force) { assert.equal(force, true); searchRenders += 1; },
     } },
     countryEditingB: { resetBoundaryEditState() {}, resetMergeState() {}, resetGenericFeatureMergeState() {},

@@ -12,10 +12,11 @@ test('production library SVG fits a correctly wound display copy and leaves sour
   const node=()=>({attributes:{},children:[],setAttribute(key,value){this.attributes[key]=value;},appendChild(child){this.children.push(child);},querySelector:()=>null});
   globalThis.document={createElement:node,createElementNS:node,querySelector:node};
   globalThis.window={PANDOLAB_BUILD_META:{dataRevision:'test',territorialIndex:{}}};
-  const noop=()=>{},assembly=createLibraryAssembly();let preview;
+  const noop=()=>{},loader={};let preview;
+  const assembly=createLibraryAssembly({openLibrary:async()=>({loader,editingRepository:null})});
   assembly.connect({platform:{d3:globalThis.d3,$:node},geometryModel:{normalizePolygonGeometry},
-    libraryServices:{ensureTerritorialLibraryRuntime:noop,territorialEntityLoaderModule:{createTerritorialEntityLoader:()=>({})},
-      territorialLibraryServiceModule:{createTerritorialLibraryService:()=>({})},territorialLibraryControllerModule:{createTerritorialLibraryController:options=>{preview=options.renderMapPreview;return{connect:noop};}}},
+    libraryServices:{ensureTerritorialLibraryRuntime:noop,
+      territorialLibraryServiceModule:{createTerritorialLibraryService:options=>{assert.equal(options.loader,loader);return{};}},territorialLibraryControllerModule:{createTerritorialLibraryController:options=>{preview=options.renderMapPreview;return{connect:noop};}}},
     gisRuntime:{gisWorkflow:{ensure:noop}},applicationServicesA:{ensureModalRuntime:noop},applicationServicesB:{},
     platformConfigurationA:{},platformConfigurationB:{},propertyEditingB:{},territorialServicesA:{},surfaces:{},workspaceUiA:{},workspaceUiB:{},projectRestore:{},feedback:{}});
   await assembly.getTerritorialLibraryController();
