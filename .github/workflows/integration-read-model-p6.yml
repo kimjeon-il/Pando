@@ -1,9 +1,10 @@
-name: P6 integration read-model contract
+name: P6 integration fixture contracts
 on:
   push:
     branches: [work/ui]
     paths:
       - tests/unit/core-document-read-model.test.mjs
+      - tests/unit/country-shared-boundary-generator.test.mjs
       - shared/frontend/js/modules/core-document-read-model.js
       - .github/workflows/integration-read-model-p6.yml
   workflow_dispatch:
@@ -28,3 +29,35 @@ jobs:
         run: node --test tests/unit/core-document-read-model.test.mjs
       - name: Focused check inventory and runner contracts
         run: node --test tests/unit/check-automation.test.mjs tests/unit/check-runner.test.mjs
+  shared-boundary-fixture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - name: Check pinned fixture preparation capacity
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync, statfsSync } from 'node:fs';
+          const pin = JSON.parse(readFileSync('config/library-data.json', 'utf8'));
+          assert.equal(pin.revision, '139941d8056418547c796068304ba8db3696fe69');
+          const requiredBytes = 2080907017n + 512n * 1024n ** 2n + 5n * 1024n ** 3n;
+          const disk = statfsSync(process.cwd(), { bigint: true });
+          const freeBytes = disk.bavail * disk.bsize;
+          console.log(JSON.stringify({ dataRevision: pin.revision,
+            requiredBytes: String(requiredBytes), freeBytes: String(freeBytes) }));
+          assert.ok(freeBytes >= requiredBytes, 'Fixture preparation needs its cold peak, temporary reserve and 5 GiB headroom');
+          NODE
+      - uses: ./.github/actions/library-data
+      - name: Verify committed Core identity without rebuilding
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Verify shared-boundary archive ownership and exact content
+        run: node --test tests/unit/country-shared-boundary-generator.test.mjs
