@@ -31,7 +31,7 @@ Android는 USB 디버깅을 허용한 ARM64 실기기를 사용한다. 여러 �
 build:*는 자료를 내장하는 offline CI 산출물 요청이다. build:verification:*는 명시적인
 verification 모드다. development와 verification을 섞을 수 없다. 일반 앱·개발 서버는 map-data만
 허용한다. test:native는 Windows CI 단위검사를 요청한다. fixture 프로필의 원격 빌드 요청은 제공하지 않는다.
-일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다.
+일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다. 컴파일된 build identity는 Rust 진단/`--build-info` 경계에만 남고 WebView 전역으로 주입하지 않는다.
 
 Windows offline 산출물에는 현재 사용자용 `PandoLab-setup.exe` 설치 프로그램이 포함된다.
 설치한 앱은 시작 메뉴에서 실행하며 설치 단계에서 바탕화면 바로가기를 선택할 수 있다.
