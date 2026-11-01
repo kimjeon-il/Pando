@@ -72,9 +72,18 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Tint sampler packaging failed' }
           node tools/gis/package-terrain-dem-fill.mjs --binary $fill --directory build-native/terrain-dem-encode/fill-artifact
           if ($LASTEXITCODE -ne 0) { throw 'Tint fill packaging failed' }
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Tint image configuration failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Tint image build failed' }
+          if ($IsWindows) { $image='build-native/map-image/Release/pando-map-image.exe' }
+          else { $image='build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint image packaging failed' }
           $env:PANDO_TERRAIN_DEM_TINT_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-tint/artifact"
           $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
-          node --test tests/unit/terrain-dem-tint.test.mjs
+          $env:PANDO_MAP_IMAGE_ARTIFACT="$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/terrain-dem-tint.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/terrain-dem-webp.test.mjs tests/unit/gis-source-launcher.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Tint pixels differ from the frozen Python oracle' }
   terrain-dem-gutters:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-gutters' || inputs.target == 'terrain-dem-gutters-integrated')
@@ -433,7 +442,7 @@ jobs:
           node tools/gis/package-terrain-dem-encode.mjs --binary $binary --directory build-native/terrain-dem-encode/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoder packaging failed' }
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
-          node --test tests/unit/terrain-dem-encode.test.mjs tests/unit/terrain-dem-tint-native.test.mjs tests/unit/terrain-dem-assets.test.mjs
+          node --test tests/unit/terrain-dem-encode.test.mjs tests/unit/terrain-dem-assets.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoding differs from the Python oracle' }
       - name: Check space for the focused GDAL SDK
         shell: pwsh

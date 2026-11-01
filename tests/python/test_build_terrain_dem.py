@@ -11,7 +11,6 @@ import zipfile
 import numpy as np
 from PIL import Image
 import rasterio
-from rasterio.io import MemoryFile
 
 
 SPEC = importlib.util.spec_from_file_location(
@@ -104,69 +103,19 @@ class TerrainDemTest(unittest.TestCase):
             self.assertEqual(tiff.read_bytes(), b'protected neighbor')
             self.assertFalse(list(root.glob('pando-tint-*')))
 
-    def test_tint_keeps_white_ice_and_excludes_white_water(self):
-        rgb = np.array([[[255, 255, 180]], [[255, 255, 190]], [[255, 255, 170]]], dtype=np.uint8)
-        valid = dem.tint_validity(rgb, np.array([[False, True, False]]), np.ones((1, 3), dtype=bool), np.ones((1, 3), dtype=bool))
-        np.testing.assert_array_equal(valid, [[False, True, True]])
-
-    def test_nearly_white_water_is_not_a_land_donor_but_real_snow_is_kept(self):
-        rgb = np.array([[[249, 249, 249]], [[250, 250, 250]], [[248, 248, 248]]], dtype=np.uint8)
-        valid = dem.tint_validity(rgb, np.array([[False, False, True]]), np.array([[False, True, False]]), np.array([[False, True, False]]))
-        np.testing.assert_array_equal(valid, [[False, True, True]])
-        # A near-white shoreline pixel is ambiguous background, not a donor.
-        coastal_rgb = np.array([[[237, 249, 237]], [[244, 250, 244]], [[240, 248, 240]]], dtype=np.uint8)
-        np.testing.assert_array_equal(dem.tint_validity(coastal_rgb, np.zeros((1, 3), dtype=bool),
-                                      np.ones((1, 3), dtype=bool), np.array([[False, True, False]])),
-                                      [[False, True, False]])
-
-    def test_tint_fill_wraps_longitude_and_preserves_existing_colour(self):
-        rgb = np.full((3, 2, 8), np.nan, dtype=np.float32)
-        rgb[:, :, 0] = np.array([120, 160, 140])[:, None]
-        rgb[:, :, 4] = np.array([180, 140, 100])[:, None]
-        valid = np.zeros((2, 8), dtype=bool)
-        valid[:, [0, 4]] = True
-        result = dem.fill_tint_background(rgb, valid)
-        np.testing.assert_array_equal(result[:, :, 0], rgb[:, :, 0])
-        # Right edge must borrow from the adjacent left edge across the seam.
-        self.assertLess(int(result[0, 0, -1]), int(result[0, 0, 3]))
-        self.assertFalse(np.any(np.all(result == 255, axis=0)))
-        # A missing cell receives an actual donor colour, not a pale blend.
-        for pixel in result.transpose(1, 2, 0).reshape(-1, 3):
-            self.assertIn(tuple(pixel), [(120, 160, 140), (180, 140, 100)])
-        with self.assertRaisesRegex(ValueError, 'no valid land'):
-            dem.fill_tint_background(rgb, np.zeros_like(valid))
-
-    def test_tint_fill_matches_frozen_fractional_reference(self):
-        fixture = json.loads((Path(__file__).parents[1] / 'fixtures/terrain-dem-fill-oracle.json').read_text(encoding='utf-8'))
-        width, height = fixture['width'], fixture['height']
-        rgb = np.array([np.nan if value is None else value for value in fixture['rgb']], dtype=np.float32).reshape(3, height, width)
-        valid = np.array(fixture['valid'], dtype=bool).reshape(height, width)
-        np.testing.assert_array_equal(dem.fill_tint_background(rgb, valid).ravel(), fixture['expected'])
-
     def test_tint_average_does_not_dilute_a_small_island_with_white_sea(self):
-        transform = rasterio.transform.from_bounds(-180, -90, 180, 90, 8, 4)
-        # Slightly coloured water defeated v1's exact-white rejection.
-        rgb = np.broadcast_to(np.array([247, 250, 249], dtype=np.uint8)[:, None, None], (3, 4, 8)).copy()
-        rgb[:, 1, 1] = [100, 160, 120]
-        rgb[:, 3, 1] = 254
-        rgb[:, :2, 6:] = 255
-        ice = {'type': 'Polygon', 'coordinates': [[[90, 90], [180, 90], [180, 0], [90, 0], [90, 90]]]}
-        land = {'type': 'Polygon', 'coordinates': [[[-135, 45], [-90, 45], [-90, 0], [-135, 0], [-135, 45]]]}
-        tiny_white = {'type': 'Polygon', 'coordinates': [[[-135, -45], [-90, -45], [-90, -90], [-135, -90], [-135, -45]]]}
-        with MemoryFile() as memory, tempfile.TemporaryDirectory() as folder:
-            with memory.open(driver='GTiff', width=8, height=4, count=3, dtype='uint8',
-                             crs='EPSG:4326', transform=transform) as source:
-                source.write(rgb)
-                first, second = Path(folder)/'first.webp', Path(folder)/'second.webp'
-                shapes = [(ice, (90, 0, 180, 90))]
-                land_shapes = [(land, (-135, 0, -90, 45)), (tiny_white, (-135, -90, -90, -45))]
-                dem.resample_tint(source, shapes, land_shapes, first, width=4, height=2)
-                dem.resample_tint(source, shapes, land_shapes, second, width=4, height=2)
-                pixels = np.asarray(Image.open(first).convert('RGB'))
-                np.testing.assert_array_equal(pixels[0, 0], [100, 160, 120])
-                np.testing.assert_array_equal(pixels[1, 0], [100, 160, 120])
-                np.testing.assert_array_equal(pixels[0, -1], [255, 255, 255])
-                self.assertEqual(first.read_bytes(), second.read_bytes())
+        fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-tint'
+        oracle = json.loads((fixture/'oracle.json').read_text())
+        with tempfile.TemporaryDirectory() as folder, rasterio.open(fixture/'source.tif') as source:
+            first, second = Path(folder)/'first.webp', Path(folder)/'second.webp'
+            report = dem.resample_tint(source, fixture/'ice.geojson', fixture/'land.geojson', first, width=4, height=2)
+            dem.resample_tint(source, fixture/'ice.geojson', fixture/'land.geojson', second, width=4, height=2)
+            pixels = np.asarray(Image.open(first).convert('RGB'))
+            np.testing.assert_array_equal(pixels.reshape(-1), oracle['rgb'])
+            self.assertEqual(report, oracle['report'])
+            self.assertEqual(first.read_bytes(), second.read_bytes())
+            with self.assertRaises(FileExistsError):
+                dem.resample_tint(source, fixture/'ice.geojson', fixture/'land.geojson', first, width=4, height=2)
 
     def test_signed_elevation_and_byte_boundary(self):
         values = np.array([[-12000, -11745, -11744, 0, 53535]], dtype=np.float32)

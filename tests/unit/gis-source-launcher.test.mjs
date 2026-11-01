@@ -9,6 +9,7 @@ import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
 import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
 import {terrainDemRasterSources} from '../../tools/gis/terrain-dem-raster.mjs';
 import {terrainDemGutterSources} from '../../tools/gis/terrain-dem-gutters.mjs';
+import {terrainDemTintSources} from '../../tools/gis/terrain-dem-tint.mjs';
 import {mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
 
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
@@ -78,7 +79,7 @@ test('terrain preview dispatcher invokes the Node owner with explicit arguments'
 });
 test('DEM generation requires source-bound native elevation reading, encoding and tint filling',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemRasterSources,...terrainDemGutterSources,...mapImageSourceFiles]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
+ for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemRasterSources,...terrainDemGutterSources,...terrainDemTintSources,...mapImageSourceFiles]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
  const argv=['--task','terrain-dem','--execute'],calls=[];
  assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
  const binary=join(root,process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode');writeFileSync(binary,'fixture binary');
@@ -100,18 +101,28 @@ test('DEM generation requires source-bound native elevation reading, encoding an
  const image=join(root,process.platform==='win32'?'pando-map-image.exe':'pando-map-image');writeFileSync(image,'fixture binary');
  packageNativeTool({root,binary:image,directory:join(root,'build-native/map-image/artifact'),target:'map-image',platform:process.platform,
    architecture:process.arch,revision:'a'.repeat(40),sourceFiles:mapImageSourceFiles});
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const tint=join(root,process.platform==='win32'?'pando-terrain-dem-tint.exe':'pando-terrain-dem-tint');writeFileSync(tint,'fixture binary');
+ packageNativeTool({root,binary:tint,directory:join(root,'build-native/terrain-dem-tint/artifact'),target:'terrain-dem-tint',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemTintSources});
  assert.equal(runSource({root,argv,output:()=>{},spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_ENCODE_BINARY,join(root,'build-native/terrain-dem-encode/artifact',basename(binary)));
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,join(root,'build-native/terrain-dem-encode/fill-artifact'));
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_RASTER_BINARY,join(root,'build-native/terrain-dem-raster/artifact',basename(raster)));
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY,join(root,'build-native/terrain-dem-gutters/artifact'));
  assert.equal(calls[0].env.PANDO_MAP_IMAGE_ARTIFACT,join(root,'build-native/map-image/artifact'));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_TINT_DIRECTORY,join(root,'build-native/terrain-dem-tint/artifact'));
 });
 
 test('tint-only DEM reuse does not require unrelated DEM reader or gutter binaries',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-tint-only-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources]){
+ for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemTintSources,...mapImageSourceFiles]){
    mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');
+ }
+ for(const [target,sources,directory] of [['terrain-dem-tint',terrainDemTintSources,'terrain-dem-tint'],['map-image',mapImageSourceFiles,'map-image']]){
+   const binary=join(root,`pando-${target}${process.platform==='win32'?'.exe':''}`);writeFileSync(binary,'fixture binary');
+   packageNativeTool({root,binary,directory:join(root,'build-native',directory,'artifact'),target,platform:process.platform,
+     architecture:process.arch,revision:'a'.repeat(40),sourceFiles:sources});
  }
  for(const [target,sources,directory] of [['terrain-dem-encode',terrainDemEncodeSources,'artifact'],['terrain-dem-fill',terrainDemFillSources,'fill-artifact']]){
    const binary=join(root,`pando-${target}${process.platform==='win32'?'.exe':''}`);writeFileSync(binary,'fixture binary');

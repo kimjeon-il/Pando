@@ -28,9 +28,6 @@ import zipfile
 import numpy as np
 from PIL import Image
 import rasterio
-from rasterio.enums import Resampling
-from rasterio.features import bounds, geometry_mask
-from rasterio.windows import Window
 
 
 VERSION = "0.13.3"
@@ -293,105 +290,33 @@ def asset_summary(output: Path, level_definitions):
     return summary['assetsSha256'], summary['reports']
 
 
-def tint_validity(rgb, protected_ice, land, land_interior):
-    """Use the native land, snow and protected-ice donor classification."""
-    if not isinstance(rgb, np.ndarray) or rgb.ndim != 3 or rgb.shape[0] != 3 or rgb.dtype != np.uint8:
-        raise ValueError('Tint colours require a three-channel uint8 grid')
-    rows, columns = rgb.shape[1:]
-    masks = (protected_ice, land, land_interior)
-    if not rows or not columns or any(not isinstance(mask, np.ndarray) or mask.shape != (rows, columns) for mask in masks):
-        raise ValueError('Tint masks must match the colour grid')
-    binary = os.environ.get('PANDO_TERRAIN_DEM_ENCODE_BINARY')
-    if not binary:
-        raise RuntimeError('PANDO_TERRAIN_DEM_ENCODE_BINARY is required for DEM generation')
-    header = struct.pack('<8sII', b'PDEMMSK1', columns, rows)
-    payload = header + np.ascontiguousarray(rgb).tobytes()
-    payload += b''.join(np.ascontiguousarray(mask != 0, dtype=np.uint8).tobytes() for mask in masks)
-    result = subprocess.run([binary], input=payload, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=180).stdout
-    if len(result) != rows * columns:
-        raise ValueError('Invalid native tint mask output length')
-    return np.frombuffer(result, dtype=np.uint8).reshape(rows, columns).astype(bool)
-
-
-def fill_tint_background(rgb, valid):
-    """Derive missing colours from surrounding valid tint, never from DEM.
-
-    Ocean tint is display-only padding: the renderer's country mask decides
-    where it is used. Wrap longitude so islands near 180 degrees use neighbours
-    across the seam. Existing valid colours (including white ice) are untouched.
-    """
-    if not valid.any():
-        raise ValueError('Tint has no valid land colours')
-    if valid.ndim != 2 or rgb.shape != (3, *valid.shape):
-        raise ValueError('Tint RGB and valid mask dimensions must match')
-    height, width = valid.shape
-    payload = struct.pack('<8sII', b'PDTINT01', width, height)
-    payload += np.ascontiguousarray(rgb, dtype='<f4').tobytes()
-    payload += np.ascontiguousarray(valid, dtype=np.uint8).tobytes()
-    script = Path(__file__).with_name('gis') / 'terrain-dem-fill.mjs'
-    result = subprocess.run(['node', str(script), '--fill-tint'], input=payload, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, timeout=180, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+def resample_tint(source, ice_path, land_path, output, width=TINT_WIDTH, height=TINT_HEIGHT):
+    """Sample protected land colours and encode them through the native owner."""
+    if output.exists() or output.is_symlink():
+        raise FileExistsError(f'Refusing to overwrite tint output: {output}')
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-tint.mjs'
+    request = dict(source=str(Path(source.name).resolve()), ice=str(Path(ice_path).resolve()),
+                   land=str(Path(land_path).resolve()), temporaryRoot=str(output.parent.resolve()), width=width, height=height)
+    result = subprocess.run(['node', str(script), '--sample-stream'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=2100,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
-        raise RuntimeError('Native GDAL tint fill failed: ' + result.stderr.decode('utf-8', errors='replace'))
-    if len(result.stdout) != 3 * width * height:
-        raise ValueError('Invalid native GDAL tint fill output length')
-    return np.frombuffer(result.stdout, dtype=np.uint8).reshape(3, height, width).copy()
-
-
-def resample_tint(source, ice_geometries, land_geometries, output, width=TINT_WIDTH, height=TINT_HEIGHT):
-    # A temporary masked raster keeps full-resolution arrays off the heap.
-    # The source mask makes GDAL average only valid colours, so small islands
-    # are not diluted by the white water background.
-    with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
-        masked_path = Path(temporary)/'masked-tint.tif'
-        with rasterio.Env(GDAL_TIFF_INTERNAL_MASK=True, GDAL_CACHEMAX=64*1024*1024):
-            with rasterio.open(masked_path, 'w', driver='GTiff', count=3,
-                               width=source.width, height=source.height, dtype='uint8',
-                               crs=source.crs, transform=source.transform,
-                               compress='deflate', tiled=True) as masked:
-                for y in range(0, source.height, 128):
-                    window = Window(0, y, source.width, min(128, source.height-y))
-                    rgb = source.read([1, 2, 3], window=window)
-                    north = source.xy(y, 0, offset='ul')[1]
-                    south = source.xy(y+window.height, 0, offset='ul')[1]
-                    relevant = [geometry for geometry, bounds in ice_geometries
-                                if bounds[1] <= north and bounds[3] >= south]
-                    ice = geometry_mask(relevant, rgb.shape[1:], source.window_transform(window),
-                                        invert=True, all_touched=True) if relevant else np.zeros(rgb.shape[1:], dtype=bool)
-                    start = max(0, y-1)
-                    end = min(source.height, y+int(window.height)+1)
-                    mask_window = Window(0, start, source.width, end-start)
-                    mask_north = source.xy(start, 0, offset='ul')[1]
-                    mask_south = source.xy(end, 0, offset='ul')[1]
-                    relevant_land = [geometry for geometry, extent in land_geometries
-                                     if extent[1] <= mask_north and extent[3] >= mask_south]
-                    # Pixel centres must be on land. all_touched would admit
-                    # the mostly-water fringe we are specifically excluding.
-                    land = geometry_mask(relevant_land, (end-start, source.width), source.window_transform(mask_window),
-                                         invert=True) if relevant_land else np.zeros((end-start, source.width), dtype=bool)
-                    interior = land.copy()
-                    for dx in (-1, 0, 1):
-                        neighbor = np.pad(np.roll(land, dx, axis=1), ((1, 1), (0, 0)), mode='edge')
-                        for dy in (-1, 0, 1):
-                            interior &= neighbor[1+dy:1+dy+len(land)]
-                    offset = y-start
-                    land = land[offset:offset+int(window.height)]
-                    interior = interior[offset:offset+int(window.height)]
-                    valid = tint_validity(rgb, ice, land, interior)
-                    masked.write(rgb, window=window)
-                    masked.write_mask(valid.astype(np.uint8)*255, window=window)
-            with rasterio.open(masked_path) as masked:
-                averaged = masked.read(out_shape=(3, height, width), masked=True,
-                                       resampling=Resampling.average)
-                valid = ~np.ma.getmaskarray(averaged).any(axis=0)
-                repaired = fill_tint_background(averaged.astype(np.float32).filled(np.nan), valid)
-    image = Image.fromarray(np.transpose(repaired, (1, 2, 0)), 'RGB')
-    image.save(output, 'WEBP', lossless=True, method=4)
-    with Image.open(output) as decoded:
-        if not np.array_equal(np.asarray(decoded.convert('RGB')), np.transpose(repaired, (1, 2, 0))):
-            raise ValueError('Tint WebP round-trip mismatch')
-    return {'algorithm': TINT_ALGORITHM, 'validCells': int(valid.sum()),
-            'regionalFillCells': int((~valid).sum())}
+        raise RuntimeError('Native tint sampling failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if len(result.stdout) < 28 or result.stdout[:8] != b'PDTINT03' or result.stdout[16:20] != b'RIFF' or result.stdout[24:28] != b'WEBP':
+        raise ValueError('Invalid native tint receipt')
+    valid, filled = struct.unpack_from('<II', result.stdout, 8)
+    if valid + filled != width*height:
+        raise ValueError('Invalid native tint cell counts')
+    created = False
+    try:
+        with output.open('xb') as stream:
+            created = True
+            stream.write(result.stdout[16:])
+    except BaseException:
+        if created:
+            output.unlink(missing_ok=True)
+        raise
+    return {'algorithm': TINT_ALGORITHM, 'validCells': valid, 'regionalFillCells': filled}
 
 
 def build_tint(tint_zip: Path, output: Path, ice_path: Path, countries_path: Path):
@@ -423,26 +348,6 @@ def build_tint(tint_zip: Path, output: Path, ice_path: Path, countries_path: Pat
 
 
 def _build_tint_from_tiff(tiff_path: Path, output: Path, ice_path: Path, countries_path: Path):
-    ice_source = json.loads(ice_path.read_text(encoding='utf-8'))
-    ice_geometries = [(feature['geometry'], bounds(feature['geometry']))
-                      for feature in ice_source['features']]
-    if not ice_geometries:
-        raise ValueError('Glaciated-area protection mask is empty')
-    countries = json.loads(countries_path.read_text(encoding='utf-8'))
-    if countries.get('type') != 'FeatureCollection' or not countries.get('features'):
-        raise ValueError('Canonical country land mask is empty or invalid')
-    ids = [feature['id'] for feature in countries['features']]
-    if len(set(ids)) != len(ids):
-        raise ValueError('Canonical country land mask has duplicate IDs')
-    land_geometries = []
-    for feature in countries['features']:
-        geometry = feature['geometry']
-        if geometry['type'] not in ('Polygon', 'MultiPolygon'):
-            raise ValueError('Canonical country land mask requires polygon geometry')
-        polygons = geometry['coordinates'] if geometry['type'] == 'MultiPolygon' else [geometry['coordinates']]
-        for coordinates in polygons:
-            polygon = {'type': 'Polygon', 'coordinates': coordinates}
-            land_geometries.append((polygon, bounds(polygon)))
     with rasterio.open(tiff_path) as source:
         if source.width < TINT_WIDTH or source.height < TINT_HEIGHT or source.count < 3:
             raise ValueError(f"Natural Earth tint is smaller than {TINT_WIDTH}x{TINT_HEIGHT} RGB")
@@ -452,7 +357,7 @@ def _build_tint_from_tiff(tiff_path: Path, output: Path, ice_path: Path, countri
         remaining = source.width * source.height * 4 + 128 * 1024**2
         if tiff_path.stat().st_size + remaining >= 1024**3 and shutil.disk_usage(output.parent).free < remaining + 5 * 1024**3:
             raise OSError('Insufficient free space for the masked tint and required headroom')
-        report = resample_tint(source, ice_geometries, land_geometries, output)
+        report = resample_tint(source, ice_path, countries_path, output)
     return report
 
 

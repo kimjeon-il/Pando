@@ -5,18 +5,20 @@
 #include <ogr_srs_api.h>
 #include <cpl_conv.h>
 #include <cpl_string.h>
+#include <cpl_vsi.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #ifdef _WIN32
+#define NOMINMAX
 #include <fcntl.h>
 #include <io.h>
+#include <windows.h>
 #endif
 using Byte=std::uint8_t;
 using Dataset=std::unique_ptr<void,decltype(&GDALClose)>;
@@ -49,13 +51,14 @@ std::vector<Byte> rasterize(const std::vector<Geometry>& shapes,int width,int he
   }
   std::vector<Byte> result(std::size_t(width)*height);check(GDALRasterIO(GDALGetRasterBand(raster.get(),1),GF_Read,0,0,width,height,result.data(),width,height,GDT_Byte,0,0),"Cannot read tint mask");return result;
 }
-int main(int argc,char** argv){try{
+int run(int argc,char** argv){try{
 #ifdef _WIN32
   if(_setmode(_fileno(stdout),_O_BINARY)==-1)throw std::runtime_error("Cannot set binary mode");
 #endif
   if(argc!=7)throw std::invalid_argument("Expected source, ice, land, new temporary TIFF, width and height");
   const int width=integer(argv[5],30000),height=integer(argv[6],16384);
-  if(std::uint64_t(width)*height>12000000||std::filesystem::exists(argv[4]))throw std::invalid_argument("Tint output exceeds bounds or temporary TIFF exists");
+  VSIStatBufL existing{};
+  if(std::uint64_t(width)*height>12000000||VSIStatL(argv[4],&existing)==0)throw std::invalid_argument("Tint output exceeds bounds or temporary TIFF exists");
   CPLSetConfigOption("GDAL_PAM_ENABLED","NO");CPLSetConfigOption("GDAL_TIFF_INTERNAL_MASK","YES");CPLSetConfigOption("GDAL_CACHEMAX","64");GDALAllRegister();
   const char* drivers[]={"GTiff",nullptr};Dataset source(GDALOpenEx(argv[1],GDAL_OF_RASTER|GDAL_OF_READONLY,drivers,nullptr,nullptr),GDALClose);
   if(!source||GDALGetRasterCount(source.get())<3)throw std::invalid_argument("Three-band tint TIFF required");
@@ -97,3 +100,19 @@ int main(int argc,char** argv){try{
   std::cout.write(reinterpret_cast<char*>(rgb.data()),static_cast<std::streamsize>(rgb.size()*4));std::cout.write(reinterpret_cast<char*>(valid.data()),static_cast<std::streamsize>(valid.size()));
   if(!std::cout)throw std::runtime_error("Cannot write tint samples");return 0;
 }catch(const std::exception& error){std::cerr<<"terrain-dem-tint: "<<error.what()<<'\n';return 1;}}
+#ifdef _WIN32
+int wmain(int argc,wchar_t** argv){try{
+  std::vector<std::string> args;args.reserve(argc);
+  for(int i=0;i<argc;i++){
+    const int size=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,argv[i],-1,nullptr,0,nullptr,nullptr);
+    if(size<=0)throw std::invalid_argument("Invalid Unicode argument");
+    std::vector<char> value(static_cast<std::size_t>(size));
+    if(WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,argv[i],-1,value.data(),size,nullptr,nullptr)!=size)
+      throw std::invalid_argument("Invalid Unicode argument");
+    args.emplace_back(value.data());
+  }
+  std::vector<char*> pointers;for(auto& value:args)pointers.push_back(value.data());return run(argc,pointers.data());
+}catch(const std::exception& error){std::cerr<<"terrain-dem-tint: "<<error.what()<<'\n';return 1;}}
+#else
+int main(int argc,char** argv){return run(argc,argv);}
+#endif
