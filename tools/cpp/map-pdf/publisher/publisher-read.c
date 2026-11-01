@@ -115,6 +115,21 @@ static void stroke_text(fz_context *ctx,fz_device *device,const fz_text *text,co
 }
 typedef struct {double color[3],width,dash[32];int dash_len;} macro_signature;
 typedef struct {fz_device base;fz_device *draw;macro_signature signatures[64];int count,selected;} macro_stroke_device;
+typedef struct {fz_path *path;fz_point first,last,points[4];int lines;} macro_path_builder;
+static void macro_move(fz_context *ctx,void *arg,float x,float y){macro_path_builder *b=(macro_path_builder*)arg;
+    b->first=b->last=fz_make_point(x,y);b->points[0]=b->first;b->lines=0;fz_moveto(ctx,b->path,x,y);}
+static void macro_line(fz_context *ctx,void *arg,float x,float y){macro_path_builder *b=(macro_path_builder*)arg;
+    b->last=fz_make_point(x,y);if(++b->lines<4)b->points[b->lines]=b->last;fz_lineto(ctx,b->path,x,y);}
+static void macro_curve(fz_context *ctx,void *arg,float x1,float y1,float x2,float y2,float x3,float y3){macro_path_builder *b=(macro_path_builder*)arg;
+    b->lines=4;b->last=fz_make_point(x3,y3);fz_curveto(ctx,b->path,x1,y1,x2,y2,x3,y3);}
+static void macro_close(fz_context *ctx,void *arg){macro_path_builder *b=(macro_path_builder*)arg;int rectangle=0;
+    if(b->lines==3){fz_point *p=b->points;
+        rectangle=((p[0].x==p[1].x&&p[1].y==p[2].y&&p[2].x==p[3].x&&p[3].y==p[0].y)||
+                   (p[0].y==p[1].y&&p[1].x==p[2].x&&p[2].y==p[3].y&&p[3].x==p[0].x));}
+    if(rectangle)fz_closepath(ctx,b->path);
+    else if(b->last.x!=b->first.x||b->last.y!=b->first.y)fz_lineto(ctx,b->path,b->first.x,b->first.y);
+    b->last=b->first;b->lines=0;
+}
 static int macro_number(const char **cursor,double *result){char *end;double number=strtod(*cursor,&end);
     if(end==*cursor||!isfinite(number))return 0;*cursor=end;*result=number;return 1;}
 static int macro_signatures(macro_stroke_device *dev,const char *value){
@@ -137,18 +152,20 @@ static void macro_stroke_path(fz_context *ctx,fz_device *device,const fz_path *p
         if(stroke->dash_len!=s->dash_len||fabs(factor*stroke->linewidth-s->width)>.001)continue;
         for(j=0;j<3;j++)if(fabs(rgb[j]-s->color[j])>.0001)break;if(j!=3)continue;
         for(j=0;j<s->dash_len;j++)if(fabs(factor*stroke->dash_list[j]-s->dash[j])>.001)break;if(j!=s->dash_len)continue;
-        {fz_path *transformed=NULL;fz_stroke_state *copy=NULL;int cap=(int)stroke->start_cap;
-            fz_var(transformed);fz_var(copy);
+        {fz_path *transformed=NULL,*rebuilt=NULL;fz_stroke_state *copy=NULL;int cap=(int)stroke->start_cap;
+            fz_var(transformed);fz_var(rebuilt);fz_var(copy);
             fz_try(ctx){
                 transformed=fz_clone_path(ctx,(fz_path*)path);fz_transform_path(ctx,transformed,ctm);
+                {fz_path_walker walker={macro_move,macro_line,macro_curve,macro_close,NULL,NULL,NULL,NULL};macro_path_builder builder={0};
+                    rebuilt=fz_new_path(ctx);builder.path=rebuilt;fz_walk_path(ctx,transformed,&walker,&builder);}
                 copy=fz_new_stroke_state_with_dash_len(ctx,stroke->dash_len);copy->linewidth=factor*stroke->linewidth;
                 if((int)stroke->dash_cap>cap)cap=(int)stroke->dash_cap;if((int)stroke->end_cap>cap)cap=(int)stroke->end_cap;
                 copy->start_cap=copy->dash_cap=copy->end_cap=(fz_linecap)cap;
                 copy->linejoin=(fz_linejoin)(int)(factor*stroke->linejoin);copy->miterlimit=10;
                 copy->dash_phase=factor*stroke->dash_phase;copy->dash_len=stroke->dash_len;
                 for(j=0;j<stroke->dash_len;j++)copy->dash_list[j]=factor*stroke->dash_list[j];
-                self->selected++;fz_stroke_path(ctx,self->draw,transformed,copy,fz_make_matrix(1,0,0,1,0,0),fz_device_gray(ctx),black,1,params);
-            }fz_always(ctx){fz_drop_path(ctx,transformed);fz_drop_stroke_state(ctx,copy);}
+                self->selected++;fz_stroke_path(ctx,self->draw,rebuilt,copy,fz_make_matrix(1,0,0,1,0,0),fz_device_gray(ctx),black,1,params);
+            }fz_always(ctx){fz_drop_path(ctx,transformed);fz_drop_path(ctx,rebuilt);fz_drop_stroke_state(ctx,copy);}
             fz_catch(ctx){fz_rethrow(ctx);}}
         return;
     }

@@ -53,6 +53,9 @@ test('macro stroke signatures match original solid and dashed masks',async()=>{
   const join=JSON.parse(readFileSync(resolve(root,'transformed-join.json'),'utf8'));
   const joined=await renderMacroStrokes({path:resolve(root,'transformed-join.pdf'),maximumDimension:160,signatures:join.signatures});
   assert.equal(createHash('sha256').update(joined.mask).digest('hex'),join.sha256);
+  const rectangle=JSON.parse(readFileSync(resolve(root,'rectangle-stroke.json'),'utf8'));
+  const rectMask=await renderMacroStrokes({path:resolve(root,'rectangle-stroke.pdf'),maximumDimension:160,signatures:rectangle.signatures});
+  assert.equal(createHash('sha256').update(rectMask.mask).digest('hex'),rectangle.sha256);
   const derived=await deriveMacroPdf({path,metadata:oracle.derive.metadata,maximumDimension:160});
   for(const [field,expected] of [['image','rgb'],['target','target'],['known','known'],['credits','credits']])
     assert.equal(createHash('sha256').update(derived[field]).digest('hex'),oracle.derive[expected]);
