@@ -9,7 +9,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
     env:
       NODE_OPTIONS: '--max-old-space-size=1536'
     steps:
@@ -22,59 +22,62 @@ jobs:
           node-version: '24'
       - uses: actions/download-artifact@v4
         with:
-          name: objects-stage2-verification-41286848158
-          run-id: 41286848158
+          name: objects-stage2-verification-41287252232
+          run-id: 41287252232
           github-token: ${{ github.token }}
           path: build-native/objects-stage2-prior
-      - name: Reuse accepted native-WASM candidate and qualify existing Node test globals
+      - name: Reuse verified implementation and correct only the outdated observation anchor
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 4872f218ce2049d7f6f3a8bc842f1ba664da7687
+          test "$(git rev-parse HEAD^)" = 565609937e73c60922bfe568e29793354a34b528
           git bundle verify build-native/objects-stage2-prior/candidate.bundle
           git fetch build-native/objects-stage2-prior/candidate.bundle refs/pando/objects-stage2-candidate
           candidate=$(cat build-native/objects-stage2-prior/candidate-commit.txt)
           test "$(git rev-parse FETCH_HEAD)" = "$candidate"
-          git merge-base --is-ancestor 4872f218ce2049d7f6f3a8bc842f1ba664da7687 "$candidate"
+          git merge-base --is-ancestor 565609937e73c60922bfe568e29793354a34b528 "$candidate"
           git merge-base --is-ancestor 502cc3014db2657c430819a249b9a724f3cb5880 "$candidate"
           git checkout --detach "$candidate"
           node --input-type=module <<'NODE'
           import {readFileSync,writeFileSync} from 'node:fs';
+          import {spawnSync} from 'node:child_process';
           const evidence=JSON.parse(readFileSync('build-native/objects-stage2-prior/parity.json','utf8'));
           if(!evidence.passed||evidence.pairedCalls!==351||evidence.cases.length!==6)throw Error('Native/WASM evidence is not accepted');
-          const path='tests/unit/core-temporal-transport-p5-5.test.mjs';let s=readFileSync(path,'utf8');
-          const importLine="import {createProductModePolicy} from '../../shared/frontend/js/modules/product-mode-policy.js';\n";
-          if(!s.includes(importLine)||s.includes('globalThis.setImmediate'))throw Error('Unexpected transport test source');
-          s=s.replace(importLine,'').replaceAll('setImmediate(resolve)','globalThis.setImmediate(resolve)').replaceAll('queueMicrotask(','globalThis.queueMicrotask(').replaceAll('new AbortController(','new globalThis.AbortController(');
+          const assets=JSON.parse(readFileSync('build-native/objects-stage2-prior/web-app-assets.log','utf8'));
+          if(!assets.webAndAppMatch||assets.transportRequests!==0||assets.dataCommit!=='5eb7be55208efaafe39bd5a65ec2f111d70b9053')throw Error('Paired Web/App assets are not accepted');
+          const path='tests/browser/builtin-temporal-transition.spec.mjs';let s=readFileSync(path,'utf8');
+          if(!s.includes("const boot='  await documentSession.commandOwner.load('"))throw Error('Unexpected browser observation source');
+          s=s.replace("const boot='  await documentSession.commandOwner.load('","const boot='  const disposables=['")
+            .replace('for(const anchor of [boot,debug,reader])expect(source).toContain(anchor);','for(const anchor of [boot,debug,reader])expect(source.includes(anchor),`Missing observation boundary: ${anchor}`).toBe(true);')
+            .replace('  await documentSession.commandOwner.load(`)','  const disposables=[`)');
           writeFileSync(path,s);
+          const source=readFileSync('apps/viewer/js/modules/viewer-composition.js','utf8');
+          const boot='  const disposables=[',debug='productMode,documentState:',reader='()=>map.prepareBuiltinProject(month,{isCurrent,transition})';
+          for(const anchor of [boot,debug,reader])if(source.split(anchor).length!==2)throw Error('Ambiguous observation boundary '+anchor);
+          const replacement=s.match(/\.replace\(boot,`([\s\S]*?)`\)/)[1];
+          const instrumented=source.replace(boot,replacement).replace(debug,'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),'+debug).replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}');
+          writeFileSync('/tmp/objects-instrumented.mjs',instrumented);
+          const checked=spawnSync(process.execPath,['--check','/tmp/objects-instrumented.mjs'],{encoding:'utf8'});if(checked.status)throw Error(checked.stderr);
           NODE
+          rm /tmp/objects-instrumented.mjs
           git diff --check
           git diff --quiet -- shared apps config/library-data.json
-          git add tests/unit/core-temporal-transport-p5-5.test.mjs
+          git add tests/browser/builtin-temporal-transition.spec.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          fixed=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p "$candidate" -m 'test(core): qualify Node globals without changing temporal transport assertions')
+          fixed=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p "$candidate" -m 'test(viewer): observe current session lifecycle without altering initial admission')
           git checkout --detach "$fixed"
           mkdir -p test-results/objects-stage2
-          cp build-native/objects-stage2-prior/{native-tests.log,parity.json,parity.log,unit.log} test-results/objects-stage2/
+          cp build-native/objects-stage2-prior/{native-tests.log,parity.json,parity.log,unit.log,actual-wasm.log,web-app-assets.log,transport-lint-fix.log} test-results/objects-stage2/
           node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check | tee test-results/objects-stage2/wasm-identity.log
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Recheck only corrected transport tests and affected lint; retain passed native matrix
-        run: |
-          set -euo pipefail
-          node --test tests/unit/core-temporal-transport-p5-5.test.mjs | tee test-results/objects-stage2/transport-lint-fix.log
-          pnpm exec eslint apps/viewer/js/modules/viewer-composition.js shared/frontend/js/modules/builtin-session.js shared/frontend/js/modules/core-document-read-model.js shared/frontend/js/modules/core-document-runtime.js shared/frontend/js/modules/project-domain.js tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/browser/builtin-temporal-transition.spec.mjs tests/browser/deferred-builtin-timeline.spec.mjs tests/native/temporal-parity-p5-7.test.mjs
+      - run: pnpm exec eslint tests/browser/builtin-temporal-transition.spec.mjs
       - uses: ./.github/actions/library-data
-      - name: Actual WASM admission and independent Web-App packaging
-        env:
-          PANDOEDITOR_WASM_MODULE: shared/frontend/static/wasm/pandoeditor-core.js
-        run: |
-          set -euo pipefail
-          node --test shared/tests/temporal-transport-p5-5.test.mjs | tee test-results/objects-stage2/actual-wasm.log
-          node tests/integration/builtin-country-deployment.mjs | tee test-results/objects-stage2/web-app-assets.log
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Desktop-mobile WebGL and Canvas delta, rollback, cancellation and file opening
-        run: pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --workers=1 --retries=0 --trace=off --output=test-results/objects-stage2/browser
+      - name: Actual desktop-mobile WebGL and Canvas transitions, cancellation and file opening
+        run: |
+          set -o pipefail
+          pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --workers=1 --retries=0 --max-failures=2 --trace=off --output=test-results/objects-stage2/browser | tee test-results/objects-stage2/browser.log
       - name: Publish verified work/objects only, never main
         env:
           PANDO_PUSH_TOKEN: ${{ github.token }}
@@ -93,7 +96,7 @@ jobs:
           mkdir -p test-results/objects-stage2
           git rev-parse HEAD > test-results/objects-stage2/candidate-commit.txt
           git update-ref refs/pando/objects-stage2-candidate HEAD
-          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^4872f218ce2049d7f6f3a8bc842f1ba664da7687 ^502cc3014db2657c430819a249b9a724f3cb5880 || true
+          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^565609937e73c60922bfe568e29793354a34b528 ^502cc3014db2657c430819a249b9a724f3cb5880 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
