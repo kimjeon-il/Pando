@@ -383,6 +383,7 @@
 @media (max-width: 799px) {
   .surface-editor[data-editor-content="task"] > .surface-header {
     display: grid;
+    order: -1;
     flex: 0 0 auto;
     min-height: var(--ui-touch-height);
     padding: 0;
