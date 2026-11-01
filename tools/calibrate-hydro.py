@@ -729,8 +729,9 @@ def chain_rivers(features: Sequence[LinearFeature]) -> dict[str, int]:
             for feature in features if feature.assigned_stage is not None]
     request = json.dumps(dict(features=rows), allow_nan=False, separators=(',', ':')).encode('utf-8')
     script = Path(__file__).with_name('gis') / 'hydro-calibration-native.mjs'
+    # Let the Node timeout terminate its native child before timing out this bridge.
     result = subprocess.run(['node', str(script), '--chain-stream'], input=request, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, timeout=180,
+                            stderr=subprocess.PIPE, timeout=195,
                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     if result.returncode:
         raise RuntimeError('Native Hydro calibration failed: ' + result.stderr.decode('utf-8', errors='replace'))
