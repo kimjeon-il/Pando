@@ -87,9 +87,11 @@ The training-source diagnostic also accepts a historical publisher-layer
 sheet. Its publisher identity, pinned historical renderer version, source and
 image hashes, image dimensions and observed raster channels are checked before
 inference. The Python publisher generator itself has not yet been replaced.
-The native combined batch accepts publisher-derived primary sources with an
-explicit nonmacro Semap auxiliary corpus; the multi-epoch campaign remains
-macro-only. For the tested initializer and mixed inputs, CUDA FP16 overflowed
+The native combined batch and bounded multi-epoch campaign accept publisher-derived
+primary sources with an explicit nonmacro Semap auxiliary corpus. Campaign and
+checkpoint receipts bind both corpus hashes and their combined source fingerprint;
+training loss selection is diagnostic and is not independent validation. For the
+tested initializer and mixed inputs, CUDA FP16 overflowed
 in both the Python and native models; explicitly choose FP32 for this case.
 This is a provisional training path, not a model release or accuracy claim.
 
