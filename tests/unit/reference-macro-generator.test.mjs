@@ -19,6 +19,12 @@ test('macro generator preserves source, alternate editions and training-only evi
   const annotation=JSON.parse(readFileSync(join(root,sheet.annotations))),before=readFileSync(join(root,sheet.image));
   assert.equal(annotation.producer.renderer,'MuPDF');assert.equal(annotation.reviewed,false);assert.equal(first.independentEvaluation,false);
   assert.deepEqual(await prepareMacroCorpus({sources,maximumDimension:160}),first);assert.deepEqual(readFileSync(first.manifest),manifest);
+  const annotationPath=join(root,sheet.annotations),originalAnnotation=readFileSync(annotationPath);
+  const historical={...annotation,producer:{script:'tools/reference-analysis/macro.py',sha256:'a'.repeat(64),renderer:'PyMuPDF',rendererVersion:'1.26.6'}};
+  const recorded=Buffer.from(JSON.stringify(historical,null,2)+'\n');writeFileSync(annotationPath,recorded);
+  assert.deepEqual(await prepareMacroCorpus({sources,maximumDimension:160}),first);assert.deepEqual(readFileSync(annotationPath),recorded);
+  writeFileSync(annotationPath,JSON.stringify({...historical,width:historical.width+1}));
+  await assert.rejects(prepareMacroCorpus({sources,maximumDimension:160}),/dimensions/i);writeFileSync(annotationPath,originalAnnotation);
   const recipes=join(root,'recipes');mkdirSync(recipes);writeFileSync(join(recipes,'fixture.source.json'),JSON.stringify({...metadata,id:'macro-fixture-r2',
     supervision:{...metadata.supervision,radiusPixels:4}}));
   const alternate=await prepareMacroCorpus({sources,maximumDimension:160,metadataDirectory:recipes,manifestName:'corpus.r2.json'});

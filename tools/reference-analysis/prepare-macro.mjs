@@ -14,9 +14,12 @@ import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs'
 import {validateMacroSheet} from './validate-macro.mjs';
 import {validateCorpusMetadata} from './reviewed-corpus.mjs';
 
-const projectRoot=realpathSync(fileURLToPath(new URL('../../',import.meta.url))),script=fileURLToPath(import.meta.url);
+// Windows runners may expose the temporary root via an 8.3 alias. The native
+// resolver expands both roots and children to the same final path spelling.
+const realpath=realpathSync.native;
+const projectRoot=realpath(fileURLToPath(new URL('../../',import.meta.url))),script=fileURLToPath(import.meta.url);
 const worktrees=execFileSync('git',['-c','core.quotepath=false','worktree','list','--porcelain'],{cwd:projectRoot,encoding:'utf8'})
-  .split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>realpathSync(line.slice(9)));
+  .split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>realpath(line.slice(9)));
 const sha=value=>createHash('sha256').update(value).digest('hex'),sourceHash=()=>sha(Buffer.from(readFileSync(script,'utf8').replaceAll('\r\n','\n')));
 const channels=['international','administrative','coast','hydro','transport','text','frame'];
 const within=(root,path)=>{const r=relative(root,path);return !isAbsolute(r)&&r!=='..'&&!r.startsWith('..'+sep);};
@@ -24,7 +27,7 @@ const normal=path=>path.split(sep).join('/');
 function regular(path){if(!existsSync(path))return null;const info=lstatSync(path);
   if(info.isSymbolicLink()||!info.isFile()||info.size>300*1024*1024)throw Error('Existing macro output must be a bounded regular file');return readFileSync(path);}
 function folder(base,name){const path=join(base,name);if(existsSync(path)){const info=lstatSync(path);
-  if(info.isSymbolicLink()||!info.isDirectory()||!within(base,realpathSync(path)))throw Error('Macro output directory must remain inside the corpus');}
+  if(info.isSymbolicLink()||!info.isDirectory()||!within(base,realpath(path)))throw Error('Macro output directory must remain inside the corpus');}
   else mkdirSync(path);}
 function sheetFrom(metadata,imageKey,key,imageSha){return {id:key,familyId:metadata.familyId,editionId:metadata.editionId,duplicateGroup:metadata.duplicateGroup,
   split:'train',image:`derived/${imageKey}.jpg`,sha256:imageSha,annotations:`labels/${key}.json`,mapKind:metadata.mapKind,language:metadata.language,script:metadata.script,
@@ -33,11 +36,11 @@ function sheetFrom(metadata,imageKey,key,imageSha){return {id:key,familyId:metad
 
 export async function prepareMacroSheet({source,root,maximumDimension=2560,metadataPath,signal},{workspace=projectRoot,pdfDirectory,imageDirectory}={}){
   signal?.throwIfAborted();if(typeof source!=='string'||!source||typeof root!=='string'||!root)throw Error('Explicit macro source and corpus required');
-  const base=realpathSync(resolve(root)),pdf=realpathSync(resolve(source));
+  const base=realpath(resolve(root)),pdf=realpath(resolve(source));
   if(worktrees.some(path=>within(path,base)))throw Error('Macro materials belong in external library storage');
   if(!within(base,pdf)||extname(pdf).toLowerCase()!=='.pdf')throw Error('Contained macro source PDF required');
   const sourcePdf=normal(relative(base,pdf)),originalName=sourcePdf.slice(0,-4)+'.source.json';
-  const originalPath=realpathSync(await resolveCorpusPath(base,originalName)),actualMetadata=metadataPath?realpathSync(resolve(metadataPath)):originalPath;
+  const originalPath=realpath(await resolveCorpusPath(base,originalName)),actualMetadata=metadataPath?realpath(resolve(metadataPath)):originalPath;
   if(!within(base,actualMetadata))throw Error(`Contained source metadata required: ${base} -> ${actualMetadata} (${relative(base,actualMetadata)})`);
   const sourceMetadata=normal(relative(base,actualMetadata));await resolveCorpusPath(base,sourceMetadata);
   const metadataBytes=readTrainingBounded(actualMetadata,8*1024*1024),originalBytes=readTrainingBounded(originalPath,8*1024*1024);
@@ -75,18 +78,18 @@ export async function prepareMacroSheet({source,root,maximumDimension=2560,metad
   try{for(const name of ['derived','labels','notices'])folder(base,name);
     for(const [name,path] of Object.entries(paths)){const target=join(base,path);if(!existsSync(target)){writeFileSync(target,payload[name],{flag:'wx'});created.push({target,sha256:sha(payload[name])});}}
     await validateMacroSheet({root:base,sheet,annotation},{signal,workspace,pdfDirectory,imageDirectory});return sheet;
-  }catch(error){for(const item of created.reverse()){try{const info=lstatSync(item.target);if(info.isFile()&&!info.isSymbolicLink()&&within(base,realpathSync(item.target))&&
+  }catch(error){for(const item of created.reverse()){try{const info=lstatSync(item.target);if(info.isFile()&&!info.isSymbolicLink()&&within(base,realpath(item.target))&&
       trainingFileIdentity(item.target)===item.sha256)unlinkSync(item.target);}catch{/* Preserve uncertain outputs. */}}throw error;}
 }
 
 export async function prepareMacroCorpus({sources,maximumDimension=2560,manifestName='corpus.training.json',metadataDirectory,signal},options={}){
   signal?.throwIfAborted();if(typeof sources!=='string'||!sources||typeof manifestName!=='string'||manifestName.includes('..')||!/^[a-z0-9][a-z0-9.-]*\.json$/.test(manifestName))
     throw Error('Explicit sources and safe macro manifest filename required');
-  const sourceRoot=realpathSync(resolve(sources)),base=realpathSync(dirname(sourceRoot));
+  const sourceRoot=realpath(resolve(sources)),base=realpath(dirname(sourceRoot));
   if(worktrees.some(path=>within(path,base)))throw Error('Macro materials belong in external library storage');
   const files=readdirSync(sourceRoot,{withFileTypes:true}).filter(entry=>entry.isFile()&&entry.name.endsWith('.pdf')&&existsSync(join(sourceRoot,entry.name.slice(0,-4)+'.source.json'))).map(entry=>entry.name).sort();
   if(!files.length)throw Error('Verified macro sources required');
-  const alternates=new Map();if(metadataDirectory!==undefined){const dir=realpathSync(resolve(metadataDirectory));
+  const alternates=new Map();if(metadataDirectory!==undefined){const dir=realpath(resolve(metadataDirectory));
     if(!within(base,dir)||dir===sourceRoot||!lstatSync(dir).isDirectory())throw Error('Contained metadata directory distinct from original sources required');
     for(const name of readdirSync(dir).filter(value=>value.endsWith('.source.json'))){if(!files.some(file=>file.slice(0,-4)+'.source.json'===name))throw Error('Unmatched alternate source metadata');alternates.set(name,join(dir,name));}
     if(!alternates.size)throw Error('Empty alternate source metadata');}
