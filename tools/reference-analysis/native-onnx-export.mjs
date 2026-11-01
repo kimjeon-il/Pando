@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceOnnxExportSourceFiles} from './native-infer.mjs';
-import {assertPublicEncoderIdentity,trainingFileIdentity} from './training-evidence.mjs';
+import {assertPublicEncoderIdentity,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -47,16 +47,36 @@ async function runExport({args,output,torchLibrary,root,directory,signal,diagnos
     throw Error('Native ONNX export returned an invalid result');
   return {...receipt,modelSha256:sha256(bytes),toolRevision:manifest.revision,independentEvaluation:false};
 }
-export async function nativeOnnxExport({weights,output,torchLibrary,root=defaultRoot,
+export function transferredWeightsOnnxReceipt({initializer,model}={}){
+  if(initializer?.initialization!=='weights-only-no-optimizer'||!/^[a-f0-9]{64}$/.test(initializer.weightsSha256||'')||
+    !/^[a-f0-9]{64}$/.test(initializer.sourceCheckpointSha256||'')||!model||
+    typeof model.file!=='string'||!/^[\w.-]+\.onnx$/.test(model.file)||basename(model.file)!==model.file||
+    !Number.isSafeInteger(model.bytes)||model.bytes<1||model.bytes>64*1024*1024||!/^[a-f0-9]{64}$/.test(model.sha256||''))
+    throw Error('Verified transferred weights and local ONNX identity required');
+  return {schemaVersion:1,kind:'transferred-weights-onnx-export',model:{file:model.file,sha256:model.sha256,bytes:model.bytes},opset:17,
+    weightsSha256:initializer.weightsSha256,sourceCheckpointSha256:initializer.sourceCheckpointSha256,
+    optimizerStateTransferred:false,lineageComplete:false,trainingOnly:true,independentEvaluation:false,releaseApproved:false};
+}
+export async function nativeOnnxExport({weights,output,receiptOutput,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
   if(process.platform!=='win32'||!weights||!output||!torchLibrary)throw Error('Windows ONNX export requires weights, a new output and a matching LibTorch runtime');
   if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
-  const transfer=JSON.parse(readFileSync(resolve(dirname(weights),'transfer.json'),'utf8'));
-  if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||
-    transfer.transfer!=='weights-only-no-optimizer'||sha256(readFileSync(resolve(weights)))!==transfer.weightsSha256)
-    throw Error('Verified private warm-start weights are required');
-  return runExport({args:[resolve(weights)],output,torchLibrary,root,directory,signal,diagnostic:false});
+  if(receiptOutput!==undefined&&(typeof receiptOutput!=='string'||!output.endsWith('.onnx')||resolve(receiptOutput)!==resolve(output+'.export.json')))
+    throw Error('ONNX export receipt must be the matching .onnx.export.json');
+  if(receiptOutput!==undefined&&occupied(receiptOutput))throw Error('ONNX export receipt exists; preserve the existing file');
+  let initializer;try{initializer=verifyTrainingInitializer({path:weights});}
+  catch(error){throw Error('Verified private warm-start weights are required',{cause:error});}
+  if(initializer.initialization!=='weights-only-no-optimizer')throw Error('Verified private warm-start weights are required');
+  if(receiptOutput!==undefined)transferredWeightsOnnxReceipt({initializer,model:{file:basename(output),bytes:1,sha256:'0'.repeat(64)}});
+  const result=await runExport({args:[resolve(weights)],output,torchLibrary,root,directory,signal,diagnostic:false});
+  const after=verifyTrainingInitializer({path:weights,expectedSha256:initializer.weightsSha256});
+  if(after.recordHash!==initializer.recordHash)throw Error('Transferred weights or receipt changed during ONNX export');
+  if(receiptOutput!==undefined){
+    const receipt=transferredWeightsOnnxReceipt({initializer,model:{file:basename(output),bytes:result.bytes,sha256:result.modelSha256}});
+    writeFileSync(receiptOutput,JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});
+  }
+  return result;
 }
 export async function nativeOnnxDiagnostic({output,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
@@ -101,10 +121,11 @@ export async function nativeCheckpointOnnxExport({checkpoint,proof,output,manife
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     const {values}=parseArgs({options:{weights:{type:'string'},checkpoint:{type:'string'},proof:{type:'string'},output:{type:'string'},
-      manifest:{type:'string'},diagnostic:{type:'boolean',default:false},'torch-library':{type:'string'}}});
+      manifest:{type:'string'},receipt:{type:'string'},diagnostic:{type:'boolean',default:false},'torch-library':{type:'string'}}});
     if(Number(values.diagnostic)+Number(Boolean(values.weights))+Number(Boolean(values.checkpoint))!==1)throw Error('Choose exactly one of diagnostic, weights or checkpoint');
     if(values.manifest&&!values.checkpoint)throw Error('A checkpoint is required for its ONNX manifest');
-    const request={...values,manifestOutput:values.manifest,torchLibrary:values['torch-library']};
+    if(values.receipt&&!values.weights)throw Error('Transferred weights are required for an ONNX export receipt');
+    const request={...values,manifestOutput:values.manifest,receiptOutput:values.receipt,torchLibrary:values['torch-library']};
     console.log(JSON.stringify(await (values.diagnostic?nativeOnnxDiagnostic(request):values.checkpoint?nativeCheckpointOnnxExport(request):nativeOnnxExport(request))));
   }catch(error){console.error('native-onnx-export: '+error.message);process.exitCode=1;}
 }

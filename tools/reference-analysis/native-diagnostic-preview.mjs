@@ -85,8 +85,8 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   signal?.throwIfAborted();
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
     throw Error('Explicit source, one checkpoint or transferred weights, and device required');
-  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null||captureParity))
-    throw Error('Transferred weights require a single-source diagnostic without a baseline or ONNX parity');
+  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null))
+    throw Error('Transferred weights require a diagnostic without a baseline or auxiliary corpus');
   const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(weights||checkpoint),
     receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json';
   const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024);
@@ -174,9 +174,11 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   if(weights&&diagnostic.weightsSha256!==checkpointHash)throw Error('Transferred weights changed during diagnostic');
   let parity;
   if(captureParity){
-    const inference=await nativeTrainingCheckpointInfer({checkpoint:checkpointPath,tile:tensors.tile,overview:tensors.overview,position:tensors.position,
-      device,torchLibrary,output:'logits',signal,root:workspace,directory:batchDirectory});
-    if(inference.checkpointSha256!==diagnostic.checkpointSha256)throw Error('Checkpoint changed while preparing ONNX inputs');
+    const request={tile:tensors.tile,overview:tensors.overview,position:tensors.position,device,torchLibrary,output:'logits',signal,root:workspace,directory:batchDirectory};
+    const inference=weights?await nativeTrainingWeightsInfer({weights:checkpointPath,...request}):
+      await nativeTrainingCheckpointInfer({checkpoint:checkpointPath,...request});
+    if(weights?inference.weightsSha256!==diagnostic.weightsSha256:inference.checkpointSha256!==diagnostic.checkpointSha256)
+      throw Error('Model changed while preparing ONNX inputs');
     parity={tile:tensors.tile,overview:tensors.overview,position:tensors.position,expectedLogits:inference.logits};
   }
   const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed:reviewed||primaryReviewed},{signal,workspace,imageDirectory,previewDirectory});
@@ -203,8 +205,8 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
     !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
     throw Error('Explicit bounded corpus diagnostic inputs required');
-  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null||onnx))
-    throw Error('Transferred weights require a diagnostic without a baseline, auxiliary corpus or ONNX parity');
+  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null))
+    throw Error('Transferred weights require a diagnostic without a baseline or auxiliary corpus');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
   if(viewCorpus==='auxiliary'&&!auxiliaryCorpus)throw Error('Auxiliary corpus required for auxiliary diagnostics');
   const target=resolve(output);if(existsSync(target))throw Error('Diagnostic output exists; preserve prior evidence');
@@ -224,10 +226,15 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     if(receipt.schemaVersion!==1||transferred.initialization!=='weights-only-no-optimizer'||transferred.recordHash!==receiptHash||
       !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');}
   const onnxPath=onnx?resolve(onnx):null,onnxHash=onnxPath?trainingFileIdentity(onnxPath):null;
-  const onnxManifest=onnxPath?onnxPath.replace(/\.onnx$/,'.manifest.json'):null;
+  if(onnxPath&&!onnxPath.endsWith('.onnx'))throw Error('Explicit ONNX model path required');
+  const onnxManifest=onnxPath?(weights?onnxPath+'.export.json':onnxPath.replace(/\.onnx$/,'.manifest.json')):null;
   if(onnxPath&&onnxManifest===onnxPath)throw Error('Explicit ONNX model path required');
   const onnxManifestHash=onnxManifest?trainingFileIdentity(onnxManifest):null;
-  if(onnxPath){const manifest=JSON.parse(readTrainingBounded(onnxManifest,1024*1024));
+  if(onnxPath&&weights){const {inspectTransferredWeightsOnnx}=await import('./verify-trained-onnx.mjs');
+    const checked=inspectTransferredWeightsOnnx({model:onnxPath,weights:checkpointPath,signal});
+    if(checked.modelSha256!==onnxHash||checked.initializer.weightsSha256!==checkpointHash||checked.receiptHash!==onnxManifestHash)
+      throw Error('ONNX does not match the transferred weights');
+  }else if(onnxPath){const manifest=JSON.parse(readTrainingBounded(onnxManifest,1024*1024));
     if(manifest.checkpointSha256!==checkpointHash||manifest.model?.sha256!==onnxHash||manifest.model?.url!==basename(onnxPath)||
       manifest.model?.bytes!==statSync(onnxPath).size||manifest.trainingOnly!==true||manifest.evaluationStatus!=='pending'||
       manifest.releaseApproved!==false||!(manifest.optimizerUpdates>0))throw Error('ONNX does not match the diagnostic checkpoint');}
@@ -235,7 +242,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   for(const sourceId of ids){
     signal?.throwIfAborted();
     const result=await diagnoseSource({corpus,auxiliaryCorpus,viewCorpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,weights,baselineWeights,sourceId,device,torchLibrary,
-      captureParity:!weights&&rows.length===0,skipUnsupervised:true},options,internalScope||(auxiliaryCorpus?{}:null));
+      captureParity:(!weights||Boolean(onnx))&&rows.length===0,skipUnsupervised:true},options,internalScope||(auxiliaryCorpus?{}:null));
     if(!result)continue;
     if((weights?(result.weightsSha256!==checkpointHash||result.sourceCheckpointSha256!==transferred.sourceCheckpointSha256||result.checkpointSha256!==null):
       result.checkpointSha256!==checkpointHash)||result.corpusSha256!==corpusHash||
@@ -261,8 +268,9 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     internalScope={corpusPath,auxiliaryPath,corpusHash,auxiliaryHash,lineageFingerprint:fingerprint};}
   if(onnxPath&&!rows.length)throw Error('A supervised diagnostic tile is required for ONNX parity');
   let parityResult=null;
-  if(onnxPath){const {verifyTrainedOnnx}=await import('./verify-trained-onnx.mjs');
-    parityResult=await verifyTrainedOnnx({model:onnxPath,diagnostics:target,expectedCheckpointSha256:checkpointHash,signal});
+  if(onnxPath){const {verifyTrainedOnnx,verifyTransferredWeightsOnnx}=await import('./verify-trained-onnx.mjs');
+    parityResult=weights?await verifyTransferredWeightsOnnx({model:onnxPath,weights:checkpointPath,diagnostics:target,signal}):
+      await verifyTrainedOnnx({model:onnxPath,diagnostics:target,expectedCheckpointSha256:checkpointHash,signal});
     if(trainingFileIdentity(onnxPath)!==onnxHash||trainingFileIdentity(onnxManifest)!==onnxManifestHash||
       trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
       trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash||

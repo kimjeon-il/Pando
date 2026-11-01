@@ -6,8 +6,36 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import * as exporter from '../../tools/reference-analysis/native-onnx-export.mjs';
+import {inspectTransferredWeightsOnnx} from '../../tools/reference-analysis/verify-trained-onnx.mjs';
 import {validateCandidateModel} from '../../plugins/pando-map-tools/lib/jobs.mjs';
 const {nativeCheckpointOnnxExport,nativeOnnxDiagnostic,nativeOnnxExport}=exporter;
+
+test('transferred weights ONNX receipt preserves unknown ancestry and optimizer state',()=>{
+  const initializer={initialization:'weights-only-no-optimizer',weightsSha256:'a'.repeat(64),sourceCheckpointSha256:'b'.repeat(64)};
+  const model={file:'candidate.onnx',bytes:123,sha256:'c'.repeat(64)};
+  const result=exporter.transferredWeightsOnnxReceipt({initializer,model});
+  assert.equal(result.opset,17);assert.equal(result.weightsSha256,initializer.weightsSha256);
+  assert.equal(result.sourceCheckpointSha256,initializer.sourceCheckpointSha256);assert.deepEqual(result.model,model);
+  assert.equal(result.optimizerStateTransferred,false);assert.equal(result.lineageComplete,false);assert.equal(result.releaseApproved,false);
+  assert.throws(()=>exporter.transferredWeightsOnnxReceipt({initializer:{...initializer,sourceCheckpointSha256:null},model}),/identity/i);
+  assert.throws(()=>exporter.transferredWeightsOnnxReceipt({initializer,model:{...model,file:'../model.onnx'}}),/identity/i);
+});
+
+test('transferred ONNX inspection rejects modified model, weights and export receipt',t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-transfer-'));t.after(()=>rmSync(root,{recursive:true}));
+  const weights=join(root,'weights.safetensors'),model=join(root,'candidate.onnx'),hash=x=>createHash('sha256').update(x).digest('hex');
+  writeFileSync(weights,'weights');writeFileSync(model,'model');
+  const initializer={initialization:'weights-only-no-optimizer',weightsSha256:hash('weights'),sourceCheckpointSha256:'b'.repeat(64)};
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({schemaVersion:1,transfer:initializer.initialization,
+    weightsSha256:initializer.weightsSha256,sourceCheckpointSha256:initializer.sourceCheckpointSha256,
+    trainingOnly:true,evaluationStatus:'pending',releaseApproved:false}));
+  const receipt=exporter.transferredWeightsOnnxReceipt({initializer,model:{file:'candidate.onnx',bytes:5,sha256:hash('model')}});
+  const save=()=>writeFileSync(model+'.export.json',JSON.stringify(receipt));save();
+  assert.equal(inspectTransferredWeightsOnnx({model,weights}).modelSha256,hash('model'));
+  writeFileSync(model,'other');assert.throws(()=>inspectTransferredWeightsOnnx({model,weights}),/does not match/i);writeFileSync(model,'model');
+  writeFileSync(weights,'other');assert.throws(()=>inspectTransferredWeightsOnnx({model,weights}),/initializer/i);writeFileSync(weights,'weights');
+  receipt.opset=18;save();assert.throws(()=>inspectTransferredWeightsOnnx({model,weights}),/does not match/i);
+});
 
 test('checkpoint ONNX manifest preserves pending training lineage and channel visibility',()=>{
   assert.equal(typeof exporter.checkpointOnnxManifest,'function');

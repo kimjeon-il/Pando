@@ -18,16 +18,23 @@ test('transferred weights diagnostics refuse unverified source, mixed modes and 
   const save=()=>writeFileSync(join(root,'transfer.json'),JSON.stringify(receipt));save();
   const request={corpus,weights,sourceId:'missing',device:'cpu',torchLibrary:root};
   await assert.rejects(diagnoseMacroTrainingSource({...request,checkpoint:'also.pt'}),/one checkpoint/i);
-  await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/single-source/i);
-  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus:'aux.json'}),/single-source/i);
+  await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/without.*baseline/i);
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus:'aux.json'}),/without.*auxiliary/i);
   await assert.rejects(diagnoseMacroTrainingSource(request),/unique.*source/i);
-  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,onnx:'model.onnx'}),/without.*ONNX/i);
   await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,baselineWeights:weights}),/without.*baseline/i);
   await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,auxiliaryCorpus:'aux.json'}),/without.*auxiliary/i);
   receipt.sourceCheckpointSha256=null;save();
   await assert.rejects(diagnoseMacroTrainingSource(request),/verified transferred/i);
   receipt.sourceCheckpointSha256='1'.repeat(64);receipt.weightsSha256='0'.repeat(64);save();
   await assert.rejects(diagnoseMacroTrainingSource(request),/initializer/i);
+  receipt.weightsSha256=hash;save();writeFileSync(corpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[{id:'missing',split:'train'}]}));
+  const onnx=join(root,'candidate.onnx');writeFileSync(onnx,'onnx');
+  writeFileSync(onnx+'.export.json',JSON.stringify({schemaVersion:1,kind:'transferred-weights-onnx-export',opset:17,
+    model:{file:'candidate.onnx',sha256:createHash('sha256').update('onnx').digest('hex'),bytes:4},
+    weightsSha256:'0'.repeat(64),sourceCheckpointSha256:receipt.sourceCheckpointSha256,optimizerStateTransferred:false,
+    lineageComplete:false,trainingOnly:true,independentEvaluation:false,releaseApproved:false}));
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,onnx}),/does not match/i);
+  assert.equal(existsSync(output),false);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--corpus-sources','--corpus',corpus,
     '--weights',weights,'--output',output,'--device','cpu','--torch-library',root],{encoding:'utf8'});
   assert.notEqual(cli.status,0);assert.equal(existsSync(output),false);
