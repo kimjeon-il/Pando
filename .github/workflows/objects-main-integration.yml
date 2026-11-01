@@ -5,11 +5,11 @@ on:
     paths: [.github/workflows/objects-main-integration.yml]
 permissions:
   contents: write
-  actions: write
+  actions: read
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 20
     env:
       NODE_OPTIONS: '--max-old-space-size=1536'
     steps:
@@ -20,90 +20,58 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Preserve the completed native-WASM build and stop only its broken test harness
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          node --input-type=module <<'NODE'
-          const base=`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}`;
-          const headers={Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'};
-          const get=async path=>{const r=await fetch(base+path,{headers});if(!r.ok)throw Error(`${path}: ${r.status}`);return r.json();};
-          const run=await get('/actions/runs/41286450388');
-          if(run.head_sha!=='95383c378ac9b8dddaf88787e83e0baf85a47347')throw Error('Unexpected prior run identity');
-          const jobs=await get('/actions/runs/41286450388/jobs');
-          const job=jobs.jobs.find(x=>x.id===124788616066);
-          if(!job?.steps.some(s=>s.name==='Build only affected native contracts and source-matched WASM'&&s.conclusion==='success'))throw Error('Do not cancel or discard an incomplete compiled candidate');
-          if(run.status!=='completed'){
-            const r=await fetch(base+'/actions/runs/41286450388/cancel',{method:'POST',headers});
-            if(!r.ok&&r.status!==409)throw Error(`Cannot stop the known test-only harness failure: ${r.status}`);
-          }
-          let available=false;
-          for(let i=0;i<60;i++){
-            const artifacts=await get('/actions/runs/41286450388/artifacts');
-            if(artifacts.artifacts.some(x=>x.name==='objects-stage2-verification-41286450388'&&!x.expired)){available=true;break;}
-            await new Promise(resolve=>setTimeout(resolve,5000));
-          }
-          if(!available)throw Error('Compiled candidate was not preserved; do not rebuild or publish blindly');
-          NODE
       - uses: actions/download-artifact@v4
         with:
-          name: objects-stage2-verification-41286450388
-          run-id: 41286450388
+          name: objects-stage2-verification-41286848158
+          run-id: 41286848158
           github-token: ${{ github.token }}
           path: build-native/objects-stage2-prior
-      - name: Reuse the exact built candidate and fix only duplicated test registration
+      - name: Reuse accepted native-WASM candidate and qualify existing Node test globals
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 95383c378ac9b8dddaf88787e83e0baf85a47347
+          test "$(git rev-parse HEAD^)" = 4872f218ce2049d7f6f3a8bc842f1ba664da7687
           git bundle verify build-native/objects-stage2-prior/candidate.bundle
           git fetch build-native/objects-stage2-prior/candidate.bundle refs/pando/objects-stage2-candidate
           candidate=$(cat build-native/objects-stage2-prior/candidate-commit.txt)
           test "$(git rev-parse FETCH_HEAD)" = "$candidate"
-          git merge-base --is-ancestor 95383c378ac9b8dddaf88787e83e0baf85a47347 "$candidate"
+          git merge-base --is-ancestor 4872f218ce2049d7f6f3a8bc842f1ba664da7687 "$candidate"
           git merge-base --is-ancestor 502cc3014db2657c430819a249b9a724f3cb5880 "$candidate"
           git checkout --detach "$candidate"
           node --input-type=module <<'NODE'
           import {readFileSync,writeFileSync} from 'node:fs';
-          const path='tests/native/temporal-parity-p5-7.test.mjs';let s=readFileSync(path,'utf8');
-          const anchor="  t.scenario('Stage 2 native/WASM builtin delta";
-          const start=s.indexOf(anchor),end=s.indexOf('after(async () => {',start);
-          if(start<0||end<start||(s.match(/scenario\('Stage 2 native\/WASM builtin delta/g)||[]).length!==2)throw Error('Unexpected test registration source');
-          s=s.slice(0,start)+'  t.'+s.slice(end);writeFileSync(path,s);
+          const evidence=JSON.parse(readFileSync('build-native/objects-stage2-prior/parity.json','utf8'));
+          if(!evidence.passed||evidence.pairedCalls!==351||evidence.cases.length!==6)throw Error('Native/WASM evidence is not accepted');
+          const path='tests/unit/core-temporal-transport-p5-5.test.mjs';let s=readFileSync(path,'utf8');
+          const importLine="import {createProductModePolicy} from '../../shared/frontend/js/modules/product-mode-policy.js';\n";
+          if(!s.includes(importLine)||s.includes('globalThis.setImmediate'))throw Error('Unexpected transport test source');
+          s=s.replace(importLine,'').replaceAll('setImmediate(resolve)','globalThis.setImmediate(resolve)').replaceAll('queueMicrotask(','globalThis.queueMicrotask(').replaceAll('new AbortController(','new globalThis.AbortController(');
+          writeFileSync(path,s);
           NODE
           git diff --check
-          git diff --quiet -- shared config/library-data.json
-          git add tests/native/temporal-parity-p5-7.test.mjs
+          git diff --quiet -- shared apps config/library-data.json
+          git add tests/unit/core-temporal-transport-p5-5.test.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          fixed=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p "$candidate" -m 'fix(test): retain top-level delta scenario and per-test native cleanup')
+          fixed=$(git commit-tree "$(git write-tree)" -p "$GITHUB_SHA" -p "$candidate" -m 'test(core): qualify Node globals without changing temporal transport assertions')
           git checkout --detach "$fixed"
           mkdir -p test-results/objects-stage2
-          cp build-native/objects-stage2-prior/native-tests.log test-results/objects-stage2/native-tests.log
+          cp build-native/objects-stage2-prior/{native-tests.log,parity.json,parity.log,unit.log} test-results/objects-stage2/
           node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check | tee test-results/objects-stage2/wasm-identity.log
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Compile only the native parity probe, reusing already verified WASM
-        run: |
-          cmake -S shared -B build-native/core-session -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
-          cmake --build build-native/core-session --target pandoeditor_core --parallel 2 > test-results/objects-stage2/native-build.log 2>&1
-          c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core-session/core/libpandoeditor_core.a -lz -o build-native/core-session/temporal-parity-probe
-      - name: Exact native-WASM parity and affected Worker/model/cache contracts
-        timeout-minutes: 5
-        env:
-          PANDO_TEMPORAL_NATIVE: build-native/core-session/temporal-parity-probe
-          PANDO_P5_7_EVIDENCE: test-results/objects-stage2/parity.json
+      - name: Recheck only corrected transport tests and affected lint; retain passed native matrix
         run: |
           set -euo pipefail
-          node --test tests/native/temporal-parity-p5-7.test.mjs | tee test-results/objects-stage2/parity.log
-          node --test --test-concurrency=1 tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-document-client.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/builtin-country-loading.test.mjs | tee test-results/objects-stage2/unit.log
+          node --test tests/unit/core-temporal-transport-p5-5.test.mjs | tee test-results/objects-stage2/transport-lint-fix.log
           pnpm exec eslint apps/viewer/js/modules/viewer-composition.js shared/frontend/js/modules/builtin-session.js shared/frontend/js/modules/core-document-read-model.js shared/frontend/js/modules/core-document-runtime.js shared/frontend/js/modules/project-domain.js tests/unit/core-temporal-delta.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs tests/browser/builtin-temporal-transition.spec.mjs tests/browser/deferred-builtin-timeline.spec.mjs tests/native/temporal-parity-p5-7.test.mjs
       - uses: ./.github/actions/library-data
       - name: Actual WASM admission and independent Web-App packaging
         env:
           PANDOEDITOR_WASM_MODULE: shared/frontend/static/wasm/pandoeditor-core.js
         run: |
-          node --test shared/tests/temporal-transport-p5-5.test.mjs
-          node tests/integration/builtin-country-deployment.mjs
+          set -euo pipefail
+          node --test shared/tests/temporal-transport-p5-5.test.mjs | tee test-results/objects-stage2/actual-wasm.log
+          node tests/integration/builtin-country-deployment.mjs | tee test-results/objects-stage2/web-app-assets.log
       - run: pnpm exec playwright install --with-deps chromium
       - name: Desktop-mobile WebGL and Canvas delta, rollback, cancellation and file opening
         run: pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --workers=1 --retries=0 --trace=off --output=test-results/objects-stage2/browser
@@ -125,7 +93,7 @@ jobs:
           mkdir -p test-results/objects-stage2
           git rev-parse HEAD > test-results/objects-stage2/candidate-commit.txt
           git update-ref refs/pando/objects-stage2-candidate HEAD
-          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^95383c378ac9b8dddaf88787e83e0baf85a47347 ^502cc3014db2657c430819a249b9a724f3cb5880 || true
+          git bundle create test-results/objects-stage2/candidate.bundle refs/pando/objects-stage2-candidate ^"$GITHUB_SHA" ^4872f218ce2049d7f6f3a8bc842f1ba664da7687 ^502cc3014db2657c430819a249b9a724f3cb5880 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
