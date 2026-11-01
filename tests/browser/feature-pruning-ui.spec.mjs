@@ -48,9 +48,10 @@ for (const viewport of viewports) {
     await page.locator('#objectSearchResults .object-search-result').first().click();
     await expect(page.locator('#editorSurface')).toHaveClass(/surface-open/);
     await expect(page.locator('#editorTabBtn')).toBeVisible();
-    await expect(page.locator('#editorTabBtn')).toHaveText('정보');
-    await expect(page.locator('#actionsTabBtn')).toHaveText('편집');
-    await expect(page.locator('#relationTabBtn')).toHaveText('관계');
+    await expect(page.locator('#editorTabBtn')).toHaveText('속성');
+    await expect(page.locator('#actionsTabBtn')).toHaveText('작업');
+    await expect(page.locator('#relationTabBtn')).toHaveCount(0);
+    await expect(page.locator('#entityRelationsDisclosure')).toBeVisible();
     await expect(page.locator('#selectionStatus')).toContainText('km²');
     await expect(page.locator('#focusSelectedObjectBtn')).toHaveAttribute('aria-label', '선택 객체로 이동');
     await page.locator('#actionsTabBtn').click();
