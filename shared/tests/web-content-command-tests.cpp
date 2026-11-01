@@ -138,12 +138,22 @@ void currentRawHydroAndLabelAnnotationsKeepPresence() {
     auto command=V::obj();command.object["domain"]=V::str("hydro");command.object["id"]=V::str("new-river");
     command.object["value"]=river;command.object["create"]=V::boolean(true);
     apply(p,"hydro.edit",command);
-    auto expected=river;auto& props=expected.object["properties"];props.object.erase("visible");
+    auto expected=river;expected.object["geometry"]=V{};
+    auto& props=expected.object["properties"];props.object.erase("visible");
     props.object["category"]=V::str("river");props.object["notes"]=V::str("42");props.object["editorColor"]=V::str("#3b82c4");
     props.object["pandolab_domain"]=V::str("hydro");props.object["pandolab_schema_version"]=V::num(1);props.object["pandolab_id"]=V::str("new-river");
-    const auto row=projectcodec::webContentValue(p.snapshot(),{"hydro","new-river"});assert(row.encode()==expected.encode());
-    assert(!row.object.at("properties").object.count("source")&&!row.object.at("properties").object.count("locked"));
-    assert(p.undo()&&p.redo());assert(projectcodec::webContentValue(p.snapshot(),{"hydro","new-river"}).encode()==expected.encode());
+    const auto verifyWater=[&] {
+        const auto row=projectcodec::webContentValue(p.snapshot(),{"hydro","new-river"});
+        assert(row.encode()==expected.encode());
+        assert(!row.object.at("properties").object.count("source")&&!row.object.at("properties").object.count("locked"));
+        // Stored water identity has null geometry; the timeline owns the shape.
+        // Verify both, so omitting the inline geometry cannot hide coordinate loss.
+        const auto world=p.resolveWorld("2026-10");const auto* water=world.find({"hydro","new-river"});
+        assert(water);const auto shape=p.document().geometries.get(water->geometryRef);assert(shape);
+        assert(projectcodec::webGeometryValue(*shape).encode()==river.object.at("geometry").encode());
+    };
+    verifyWater();assert(p.undo());assert(!p.resolveWorld("2026-10").find({"hydro","new-river"}));
+    assert(p.redo());verifyWater();
     const auto label=json(R"({"id":"label-with-metadata","name":"converted label","kind":"custom","coordinates":[9,10],"notes":"kept","metadata":{"compatibilitySource":{"geometryRef":{"id":"source","version":1},"color":"#ABCDEF","extra":[1,null]}}})");
     command.object["domain"]=V::str("label");command.object["id"]=V::str("label-with-metadata");command.object["value"]=label;
     apply(p,"label.edit",command);assert(projectcodec::webContentValue(p.snapshot(),{"label","label-with-metadata"}).encode()==label.encode());

@@ -1,4 +1,4 @@
-import { presentObjectHeading, builtinHydroSourceNotes } from './object-property-presentation.js';
+import { presentObjectHeading, builtinHydroSourceNotes, genericConversionButtonLabel } from './object-property-presentation.js';
 import { isBuiltinPlaceId } from "../../../../../shared/frontend/js/modules/place-contract.js";
 import { resolvePlaceLabelRows } from "../../../../../shared/frontend/js/modules/place-name-display.js";
 import { temporalMonthEnd } from "../../../../../shared/frontend/js/modules/temporal.js";
@@ -136,7 +136,8 @@ export function createObjectPropertyController(runtime = {}) {
     const container = $('distributionEntryList');
     const entries = distributionEntriesForLayer(state.distributionEntries, layer.id);
     if (!entries.length) {
-      container.replaceChildren(createEmptyState('아직 분포가 없습니다.', '기준 영역을 선택하거나 자유 영역을 그리세요.', { compact: true }));
+      // The two add actions already explain how to create an entry.
+      container.replaceChildren(createEmptyState('분포 없음', '', { compact: true }));
       return;
     }
     const fragment = document.createDocumentFragment();
@@ -194,10 +195,11 @@ export function createObjectPropertyController(runtime = {}) {
     parentField?.classList.toggle('hidden', parentChoice.single);
     parentField?.closest('details')?.classList.toggle('hidden', parentChoice.single);
     const territorialInput = $('distributionTerritorialUnitInput');
-    const territorialChoice = replaceSelectOptions(territorialInput, unitOptions.length
+    replaceSelectOptions(territorialInput, unitOptions.length
       ? unitOptions
       : [{ value: '', label: '선택 가능한 기준 영역 없음', placeholder: true }], territorialInput.value, { autoSelectSingle: true });
-    territorialInput.closest('.field-group')?.classList.toggle('hidden', territorialChoice.single);
+    // The applied target stays visible even when it was automatically selected.
+    territorialInput.closest('.field-group')?.classList.remove('hidden');
     $('distributionRenderModeInput').value = state.distributionSettings.renderMode;
     for (const idValue of ['distributionNameInput', 'distributionUnitInput', 'distributionValueScaleInput', 'distributionValueMinInput', 'distributionValueMaxInput', 'distributionColorTrigger', 'distributionParentInput', 'addGeometryDistributionBtn']) $(idValue).disabled = layer.locked;
     $('addTerritorialDistributionBtn').disabled = layer.locked || !territorialInput.value;
@@ -225,6 +227,7 @@ export function createObjectPropertyController(runtime = {}) {
     const typeChoice = replaceSelectOptions(typeInput, options, typeInput.value || options[0]?.value, { autoSelectSingle: true });
     typeInput.closest('.field-group')?.classList.toggle('hidden', typeChoice.single);
     const target = $('genericFeatureConvertType').value;
+    $('convertGenericFeatureBtn').textContent = genericConversionButtonLabel(target);
     const countryField = $('genericFeatureConvertParentField');
     const countryOptions = [{ value: '', label: '상위 객체 없음' }, ...territorialEntityRepository.list({ kind: 'general' }).map(country => ({
       value: String(country.id), label: String(country.properties?.name || country.id),
@@ -282,16 +285,28 @@ export function createObjectPropertyController(runtime = {}) {
     $('labelNameInput').readOnly = builtin;
     $('labelKindInput').disabled = builtin;
     $('labelNotesInput').readOnly = builtin;
-    $('labelBuiltinInfo').hidden = !builtin;
-    $('labelBuiltinSource').textContent = builtin ? label.source : '';
+    const builtinInfo = $('labelBuiltinInfo');
+    builtinInfo.hidden = !builtin;
+    const sourceDetails = builtinInfo.querySelector('details');
+    if (sourceDetails) {
+      // Keep expanded provenance during refresh; reset after changing the selected label.
+      if (sourceDetails.dataset.labelId !== String(label.id)) sourceDetails.open = false;
+      sourceDetails.dataset.labelId = String(label.id);
+    }
+    let uncertainHistoricalName = false;
     if (builtin && /^\d{4}-\d{2}$/u.test(state.timelineCursor || '')) {
       const rows = resolvePlaceLabelRows(label, { ko: true, en: true, native: true }, temporalMonthEnd(state.timelineCursor).canonical);
-      if (rows.some(row => row.modernName)) $('labelBuiltinSource').textContent += ' · (현)은 현대 명칭입니다. 해당 시점의 명칭은 미확인입니다.';
+      uncertainHistoricalName = rows.some(row => row.modernName);
     }
+    const notice = builtinInfo.querySelector('.ui-help-text');
+    if (notice) notice.textContent = uncertainHistoricalName
+      ? '내장 지명 · 원본 수정 불가 · (현)은 현대 명칭입니다. 해당 시점의 명칭은 미확인입니다.'
+      : '내장 지명 · 원본 수정 불가';
+    $('labelBuiltinSource').textContent = builtin ? label.source : '';
     $('labelBuiltinId').textContent = builtin ? label.sourceId : '';
     $('copyPlaceSection').hidden = !builtin;
     const settings = automaticLabelSettings(label.kind, state.labelSettings[labelKey('label', label.id)] || {});
-    $('labelPositionValue').textContent = settings.pinned ? '사용자 위치에 고정됨' : '종류별 정책으로 자동 배치';
+    $('labelPositionValue').textContent = settings.pinned ? '사용자 지정 위치' : '자동 배치';
     $('selectionStatus').textContent = label.name;
     syncActionTab('label');
     syncStatusBar();
@@ -336,7 +351,8 @@ export function createObjectPropertyController(runtime = {}) {
     $('hydroSystemValue').previousElementSibling.textContent = '대표 수계';
     $('hydroTributaryValue').textContent = categoryKey === 'river' ? '본류·표시 지류' : '호수';
     $('hydroSourceValue').textContent = properties.source || `판도연구소 내장 ${category}`;
-    $('hydroBuiltinHelp').lastChild.textContent = ` 기반 내장 ${category}입니다. 직접 수정하려면 복사본을 만드세요.`;
+    // The source remains visible. The edit tab owns the copy action.
+    $('hydroBuiltinHelp').lastChild.textContent = ` · 내장 ${category} · 복사본에서 편집`;
     $('selectionStatus').textContent = displayName;
     syncStatusBar();
     objectSearchController()?.syncSelection();

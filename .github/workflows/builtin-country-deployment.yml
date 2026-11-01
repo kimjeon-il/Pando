@@ -1,0 +1,176 @@
+name: Independent country deployment contracts
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/builtin-country-deployment.yml'
+      - 'tests/unit/builtin-country-deployment.test.mjs'
+      - 'tests/unit/builtin-country-parts.test.mjs'
+      - 'tests/integration/builtin-country-deployment.mjs'
+      - 'tests/browser/builtin-country-loading.spec.mjs'
+      - 'tools/builtin-country-storage.mjs'
+      - 'tools/builtin-country-bytes.mjs'
+      - 'shared/frontend/js/modules/builtin-country-files.js'
+      - 'scripts/lib/product-assets.mjs'
+      - 'apps/editor/world-data-plan.mjs'
+      - 'apps/editor/stage.mjs'
+      - 'docs/development/builtin-country-deployment.md'
+  workflow_dispatch:
+    inputs:
+      activate:
+        description: Store and push verified country files and the paired work/gis pin; never deploy main
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+concurrency:
+  group: builtin-country-deployment-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  deployment:
+    if: github.ref == 'refs/heads/work/gis' && github.actor != 'github-actions[bot]'
+    permissions:
+      contents: write
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COUNTRY_PUBLICATION_PLAN: ${{ github.workspace }}/.library-data/builtin-country-publication-plan.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reuse completed checks only for an identical implementation and input pin
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          const message=JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH)).head_commit?.message||'';
+          const requested=message.match(/\[resume-country-files:(\d+)\]/)?.[1];
+          if(!requested){appendFileSync(process.env.GITHUB_OUTPUT,'verified=false\n');process.exit(0);}
+          const get=async path=>{const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/${path}`,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'}});assert.ok(response.ok,'Prior verification lookup failed: '+response.status);return response.json();};
+          const run=await get('actions/runs/'+requested);
+          assert.equal(run.head_branch,'work/gis');assert.equal(run.path,'.github/workflows/builtin-country-deployment.yml');assert.equal(run.status,'completed');
+          const jobs=await get('actions/runs/'+requested+'/jobs?per_page=100'),job=jobs.jobs.find(row=>row.name==='deployment');
+          for(const name of ['Verify affected generation, loader, deployment and App file contracts','Prepare independent files and a locally verified paired pin; preserve every country hash','Verify real Web/App closures, dated loading and preservation of unrelated archived data','Verify current month, historical selection and no aggregate network request'])assert.equal(job?.steps.find(step=>step.name===name)?.conclusion,'success',name);
+          assert.match(run.head_sha,/^[a-f0-9]{40}$/);
+          execFileSync('git',['fetch','--no-tags','--depth=1','origin',run.head_sha],{stdio:'pipe'});
+          const changed=execFileSync('git',['diff','--name-only',run.head_sha,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+          assert.ok(changed.every(path=>path==='.github/workflows/builtin-country-deployment.yml'||path==='docs/development/builtin-country-deployment.md'),'Implementation or paired input changed; run fresh checks');
+          appendFileSync(process.env.GITHUB_OUTPUT,'verified=true\n');
+          console.log(JSON.stringify({reusedVerificationRun:run.id,verifiedCodeCommit:run.head_sha,implementationAndInputPinIdentical:true}));
+          JS
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - name: Check storage before pinned dependencies and focused browser setup
+        run: test "$(df -Pk . | awk 'NR==2 {print $4}')" -ge 10485760
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare exact paired inputs without GIS regeneration
+        uses: ./.github/actions/library-data
+      - name: Preserve a report-only remote advance without admitting unreviewed runtime data
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/library-data.mjs';
+          withLibraryLock(defaultRoot,()=>{
+           const config=libraryConfig(),checkout=libraryCheckout();
+           const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+           git('fetch','--no-tags','origin','refs/heads/work/gis');
+           const latest=git('rev-parse','FETCH_HEAD');
+           if(latest!==config.revision){
+            git('merge-base','--is-ancestor',config.revision,latest);
+            const paths=git('diff','--name-only',config.revision,latest).split('\n').filter(Boolean);
+            assert.ok(paths.every(path=>path.startsWith('reports/')),'Remote runtime data differs; do not overwrite or silently merge it');
+            assert.equal(git('rev-parse',config.revision+':archive/index.json'),git('rev-parse',latest+':archive/index.json'),'Runtime archive differs');
+            assert.equal(git('status','--porcelain'),'','Preserve unfinished archive checkout edits');
+            assert.equal(git('rev-parse','HEAD'),config.revision,'Preserve independently stored archive history');
+            assert.ok(['','work/gis'].includes(git('branch','--show-current')),'Do not advance a different data branch');
+            git('merge','--ff-only','--no-edit',latest);
+            assert.equal(git('rev-parse','HEAD'),latest);
+            console.log(JSON.stringify({reportOnlyAdvance:{from:config.revision,to:latest,preservedPaths:paths.length},runtimeArchiveUnchanged:true,archiveCheckoutAligned:true}));
+            writeFileSync('config/library-data.json',JSON.stringify({...config,revision:latest},null,2)+'\n');
+           }
+          },{compact:false});
+          JS
+          node tools/library-data.mjs
+      - name: Verify affected generation, loader, deployment and App file contracts
+        if: steps.reuse.outputs.verified != 'true'
+        run: |
+          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs apps/editor/tests/world-data-plan.test.mjs apps/editor/tests/stage-world.test.mjs
+          node --test --test-timeout=30000 --test-name-pattern='stages the real frontend|verification assets are opt-in|the verification fixture loads' apps/editor/tests/stage.test.mjs
+      - name: Prepare independent files and a locally verified paired pin; preserve every country hash
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {libraryConfig} from './tools/library-data.mjs';
+          import {prepareBuiltinCountryFiles,verifyBuiltinCountryFiles,storeBuiltinCountryDelta} from './tools/builtin-country-storage.mjs';
+          const beforeRevision=libraryConfig().revision;
+          const prepared=prepareBuiltinCountryFiles({apply:true});
+          const verified=verifyBuiltinCountryFiles();
+          const stored=storeBuiltinCountryDelta();
+          writeFileSync(process.env.COUNTRY_PUBLICATION_PLAN,JSON.stringify({beforeRevision,revision:stored.revision,prefixes:prepared.prefixes}));
+          console.log(JSON.stringify({preparedCountries:prepared.countryCount,changedStoragePaths:prepared.prefixes.length,preservedCountryHashes:prepared.preservedCountryHashes,...verified,localDataCommit:stored.revision}));
+          JS
+          node tools/library-data.mjs
+      - name: Verify real Web/App closures, dated loading and preservation of unrelated archived data
+        run: node tests/integration/builtin-country-deployment.mjs
+      - name: Verify product asset unit contracts
+        if: steps.reuse.outputs.verified != 'true'
+        run: node --test --test-timeout=30000 tests/unit/product-assets.test.mjs
+      - name: Prepare one real Chromium loading regression
+        if: steps.reuse.outputs.verified != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify current month, historical selection and no aggregate network request
+        if: steps.reuse.outputs.verified != 'true'
+        run: pnpm exec playwright test tests/browser/builtin-country-loading.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
+      - name: Publish only verified country files to the data work/gis branch
+        if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
+        env:
+          PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+        run: |
+          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || { echo 'Library writing credential unavailable'; exit 1; }
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {storeLibraryData,libraryConfig,libraryCheckout,decodeArchiveEntry} from './tools/library-data.mjs';
+          import {createHash} from 'node:crypto';
+          const plan=JSON.parse(readFileSync(process.env.COUNTRY_PUBLICATION_PLAN));
+          assert.equal(execFileSync('git',['branch','--show-current'],{encoding:'utf8'}).trim(),'work/gis');
+          assert.equal(libraryConfig().revision,plan.revision);
+          if(plan.prefixes.length){
+           const expected=new Map(plan.prefixes.map(path=>[path,createHash('sha256').update(readFileSync(path)).digest('hex')]));
+           const revision=storeLibraryData({prefixes:plan.prefixes,push:true});
+           const checkout=libraryCheckout();
+           const archive=JSON.parse(execFileSync('git',['show',revision+':archive/index.json'],{cwd:checkout,maxBuffer:16*1024*1024}));
+           for(const [path,digest] of expected)assert.equal(createHash('sha256').update(decodeArchiveEntry(checkout,archive.files[path],revision)).digest('hex'),digest,path);
+           console.log(JSON.stringify({remoteDataCommit:revision,verifiedStoredPaths:expected.size}));
+          }else console.log('No new country data publication needed');
+          JS
+      - name: Commit verified data pin to work/gis only
+        if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
+        run: |
+          set -euo pipefail
+          git diff --check
+          if git diff --quiet -- config/library-data.json; then echo 'Pin already current'; exit 0; fi
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$GITHUB_SHA" || { echo 'work/gis advanced; preserve published data without overwriting newer code'; exit 1; }
+          git add -- config/library-data.json
+          test "$(git diff --cached --name-only)" = 'config/library-data.json'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'data(gis): pin verified independent country publication [skip ci]'
+          git push origin HEAD:refs/heads/work/gis
+          test "$(git ls-remote origin refs/heads/work/gis | cut -f1)" = "$(git rev-parse HEAD)"

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createMapInputController } from "../../shared/frontend/js/modules/map-input-controller.js";
+import { createMapInputPresentation } from "../../shared/frontend/js/modules/map-input-presentation.js";
 
 class PointerSurface {
   captured = [];
@@ -64,6 +65,85 @@ function createController(surface, overrides = {}) {
     suppressClick: () => {},
     ...overrides,
   });
+}
+
+function createPresentationFixture(productMode, editing = null) {
+  const surface = new PointerSurface(), errors = [], transforms = [], cancellations = [];
+  const noop = () => {};
+  surface.classList = { add: noop, remove: noop };
+  const svg = { on() { return this; } };
+  const windowEvents = new globalThis.EventTarget();
+  const state = {
+    mapMoving: false, projectReplacing: false, spacePanActive: false, tool: 'select',
+    projection: 'globe', view: { globeZoom: 1, flatZoom: 1 },
+    territorySelectionSession: null, labelPlacementMode: false,
+  };
+  const presentation = createMapInputPresentation({
+    productMode, editing,
+    window: { CustomEvent: globalThis.CustomEvent, dispatchEvent: event => windowEvents.dispatchEvent(event) },
+    navigator: {},
+    getRevision: () => 1,
+    mapInteractionGate: {
+      setForcedPan: noop, setNavigationEnabled: noop, setDraftInputActive: noop, isPandoTarget: () => false,
+    },
+    ports: {
+      platform: {
+        $: id => id === 'map' ? surface : null,
+        d3: { select: () => svg, mouse: () => [0, 0], event: { target: surface } },
+      },
+      feedback: { reportOperationError: (error, message, code) => errors.push({ error, message, code }) },
+      rendering: { gpuMapRenderer: { setHydroInteractionActive: noop, prioritizeLatest: noop } },
+      projectState: { state, mapWorkScheduler: { setInteractionActive: noop } },
+      domains: {
+        renderingDomain: { beginInteraction: noop, endInteraction: noop, invalidateView: () => true },
+        selectionDomain: { setHover: async () => false },
+        projectDomain: { queueViewAutosave: noop },
+      },
+      renderQuality: {
+        renderQualityController: { beginInteraction: noop, endInteraction: noop },
+        applyAdaptiveRenderQuality: noop, queueAdaptiveRenderQualityRefresh: noop,
+      },
+      renderScene: { currentRenderQuality: { tier: 'full' } },
+      pointerInteractionA: {
+        cancelCountryHoverPick: noop, mapNavigationEnabled: () => true,
+        mapClickBlocked: () => false, queueCountryHoverPick: noop,
+      },
+      pointerInteractionB: { suppressNextMapClick: noop },
+      navigation: { dragMapBy: noop, transformMapView: value => transforms.push(value), zoomBy: noop },
+      surfaces: { isMobile: () => true },
+      objectPicking: { handleMapClick: noop, getTerritorialLabelRef: () => null },
+      mapView: { screenToGeo: () => [0, 0] },
+      interactionStateCommands: { setHoverHit: noop },
+    },
+    createMapInputController: options => createMapInputController({
+      ...options,
+      cancelStroke: reason => {
+        const pending = options.cancelStroke(reason);
+        cancellations.push(pending);
+        return pending;
+      },
+    }),
+  });
+  const controller = presentation.bindSvg(svg);
+  return { surface, errors, transforms, cancellations, controller, presentation };
+}
+
+function createEditingHooks({ cancelActiveGesture, dispatchInteraction }) {
+  return {
+    domain: { draftInputActive: () => false, clearDraftHover: async () => false, cancelActiveGesture },
+    getDraftSnapshot: () => ({ inputPhase: 'draw', strokeActive: false, dragging: false, coords: [] }),
+    isGenericFeatureDraftTool: () => false,
+    dispatchInteraction,
+  };
+}
+
+function startPinch(surface) {
+  surface.dispatchEvent(pointerEvent('pointerdown', {
+    pointerId: 1, pointerType: 'touch', clientX: 10, clientY: 20,
+  }));
+  surface.dispatchEvent(pointerEvent('pointerdown', {
+    pointerId: 2, pointerType: 'touch', clientX: 40, clientY: 20,
+  }));
 }
 
 test('project replacement blocks wheel, pinch and an already started drag until released', () => {
@@ -307,3 +387,75 @@ test('wheel zoom uses the pointer as a stable focal point', () => {
   assert.ok(transforms[0].zoom > 2);
   controller.destroy();
 });
+
+test('viewer pinch navigates without reporting an editing cancellation error', async t => {
+  const fixture = createPresentationFixture('viewer');
+  t.after(() => fixture.presentation.dispose());
+  startPinch(fixture.surface);
+  fixture.surface.dispatchEvent(pointerEvent('pointermove', {
+    pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 30,
+  }));
+
+  assert.equal(fixture.cancellations.length, 1);
+  assert.equal(await fixture.cancellations[0], false);
+  assert.deepEqual(fixture.errors, []);
+  assert.equal(fixture.controller.isPanning(), true);
+  assert.equal(fixture.transforms.length, 1);
+  assert.equal(fixture.transforms[0].source, 'pinch');
+  assert.deepEqual(fixture.transforms[0].fromPoint, [20, 10]);
+  assert.deepEqual(fixture.transforms[0].toPoint, [25, 15]);
+  assert.ok(fixture.transforms[0].zoom > 1);
+});
+
+test('editor pinch awaits gesture cancellation before dispatch and awaits its acknowledgement', async t => {
+  const gesture = Promise.withResolvers(), stroke = Promise.withResolvers(), events = [];
+  const fixture = createPresentationFixture('editor', createEditingHooks({
+    cancelActiveGesture: reason => { events.push(['gesture', reason]); return gesture.promise; },
+    dispatchInteraction: (operation, payload) => { events.push(['stroke', operation, payload]); return stroke.promise; },
+  }));
+  t.after(() => {
+    gesture.resolve(true);
+    stroke.resolve(true);
+    fixture.presentation.dispose();
+  });
+  startPinch(fixture.surface);
+
+  assert.equal(fixture.cancellations.length, 1);
+  let settled = false;
+  const completion = fixture.cancellations[0].then(result => { settled = true; return result; });
+  assert.deepEqual(events, [['gesture', 'pinch-or-cancel']]);
+  assert.equal(settled, false);
+  gesture.resolve(true);
+  await Promise.resolve();
+  assert.deepEqual(events, [
+    ['gesture', 'pinch-or-cancel'],
+    ['stroke', 'draft-stroke-cancel', { reason: 'pinch' }],
+  ]);
+  assert.equal(settled, false);
+  stroke.resolve(true);
+  assert.equal(await completion, true);
+  assert.deepEqual(fixture.errors, []);
+});
+
+for (const stage of ['gesture', 'stroke']) {
+  test(`editor pinch reports ${stage} cancellation failures through its operation error boundary`, async t => {
+    const failure = new Error(`${stage} cancellation failed`);
+    let dispatches = 0;
+    const fixture = createPresentationFixture('editor', createEditingHooks({
+      cancelActiveGesture: async () => {
+        if (stage === 'gesture') throw failure;
+        return true;
+      },
+      dispatchInteraction: async () => { dispatches += 1; throw failure; },
+    }));
+    t.after(() => fixture.presentation.dispose());
+    startPinch(fixture.surface);
+
+    assert.equal(fixture.cancellations.length, 1);
+    assert.equal(await fixture.cancellations[0], false);
+    assert.equal(fixture.errors.length, 1);
+    assert.equal(fixture.errors[0].error, failure);
+    assert.equal(fixture.errors[0].code, 'PL-DRAFT-CANCEL-001');
+    assert.equal(dispatches, stage === 'gesture' ? 0 : 1);
+  });
+}

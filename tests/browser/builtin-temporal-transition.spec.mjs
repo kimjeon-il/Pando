@@ -1,4 +1,5 @@
 import {expect,test} from '@playwright/test';
+import {createViewerProjectPackage} from '../fixtures/viewer-project-package.mjs';
 
 // Worker-scoped launch settings belong at file scope. The Canvas cases still
 // select the supported Canvas renderer explicitly through the page query.
@@ -10,18 +11,18 @@ async function start(page,renderer){
   await page.clock.setFixedTime(new Date(2026,9,24,12));
   await page.route('**/modules/viewer-composition.js*',async route=>{
     const source=await(await route.fetch()).text();
-    const boot='  await documentSession.commandOwner.load(',debug='productMode,documentState:',reader='()=>map.prepareBuiltinProject(month,{isCurrent})';
+    const boot='  await documentSession.commandOwner.load(',debug='productMode,documentState:',reader='()=>map.prepareBuiltinProject(month,{isCurrent,transition})';
     for(const anchor of [boot,debug,reader])expect(source).toContain(anchor);
     await route.fulfill({contentType:'text/javascript',body:source
       .replace(boot,`  window.__temporalPackets=[];
   documentSession.commandOwner.subscribeTransitions((packet,operation)=>{
-    if(operation==='core.document-load-baseline'||operation==='core.document-transition-baseline')
+    if(['core.document-load','core.document-load-baseline','core.document-temporal-candidate-adopt'].includes(operation))
       window.__temporalPackets.push({operation,fullProject:Object.hasOwn(packet,'project'),
         geometryCount:packet.delta?.geometries?.length??null,month:packet.state?.timelineCursor});
   });
   await documentSession.commandOwner.load(`)
       .replace(debug,'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),'+debug)
-      .replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent});}')});
+      .replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}')});
   });
   await page.goto('/?debug=1'+(renderer==='canvas'?'&renderer=canvas':''));
   await ready(page,'2026-10');
@@ -40,14 +41,18 @@ for(const renderer of ['webgl','canvas'])for(const width of [1280,390])test.desc
     const backend=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer);
     expect(backend).toMatch(renderer==='webgl'?/^webgl[12]$/:/^canvas/);
     const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot());
+    const identity=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
     const activate=async id=>{const control=page.locator('#'+id);if(width===390)await control.tap();else await control.click();};
     await activate('timelinePreviousYear');await ready(page,'2025-12');
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
     await activate('timelineNextYear');await ready(page,'2026-10');
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
     const packets=await page.evaluate(()=>window.__temporalPackets);
-    expect(packets.filter(row=>row.operation==='core.document-load-baseline')).toHaveLength(1);
-    const transitions=packets.filter(row=>row.operation==='core.document-transition-baseline');
+    expect(packets.filter(row=>row.operation==='core.document-load-baseline')).toHaveLength(0);
+    const adoptions=packets.filter(row=>row.operation==='core.document-temporal-candidate-adopt');
+    expect(adoptions.filter(row=>row.fullProject)).toHaveLength(1);
+    const transitions=adoptions.filter(row=>!row.fullProject);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(identity);
     expect(transitions.map(row=>row.month)).toEqual(['2025-12','2026-10']);
     expect(transitions.every(row=>row.fullProject===false&&Number.isInteger(row.geometryCount))).toBe(true);
     expect(errors).toEqual([]);
@@ -70,6 +75,25 @@ test('temporal failures and superseded source reads preserve the last displayed 
   finally{await page.evaluate(()=>window.__releaseTemporal());}
   await ready(page,'2024-12');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
-  const transitions=await page.evaluate(()=>window.__temporalPackets.filter(row=>row.operation==='core.document-transition-baseline'));
+  const transitions=await page.evaluate(()=>window.__temporalPackets.filter(row=>row.operation==='core.document-temporal-candidate-adopt'&&!row.fullProject));
   expect(transitions.map(row=>row.month)).toEqual(['2024-12']);
+});
+
+
+test('Canvas user-file opening retains full document admission after a builtin delta transition',async({page})=>{
+  test.setTimeout(150000);
+  await start(page,'canvas');
+  await page.locator('#timelinePreviousYear').click();await ready(page,'2025-12');
+  const previous=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
+  const fixture=await createViewerProjectPackage('시점 전환 후 사용자 파일');
+  await page.locator('#projectFileInput').setInputFiles({name:'temporal-user-file.gpkg',
+    mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset),
+    {timeout:60000}).toBe(fixture.project.baseDataset);
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  const loaded=await page.evaluate(()=>({id:window.__PANDOLAB_VIEWER__.documentSnapshot().documentId,
+    packet:window.__temporalPackets.at(-1)}));
+  expect(loaded.id).not.toBe(previous);
+  expect(loaded.packet.operation).toBe('core.document-load');
+  expect(loaded.packet.fullProject).toBe(true);
 });

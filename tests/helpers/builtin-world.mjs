@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 let catalog;
@@ -8,7 +9,7 @@ const cache=new Map();
 export function builtinProject(month){
  catalog ||= JSON.parse(fs.readFileSync(new URL('index.json',root)));
  const countries=selectBuiltinCountries(catalog,month).map(entry=>{
-  if(!cache.has(entry.entityId))cache.set(entry.entityId,JSON.parse(gunzipSync(fs.readFileSync(new URL(entry.file,root)))));
+  if(!cache.has(entry.entityId))cache.set(entry.entityId,JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(new URL(file,root))))));
   return cache.get(entry.entityId);
  });
  return assembleBuiltinWorld(catalog,countries,month);

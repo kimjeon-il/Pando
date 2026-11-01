@@ -1,10 +1,11 @@
+import { fetchWithRetry } from './reliability-core.js';
 const fail = (code, message) => { throw Object.assign(new Error(message), { code }); };
 const digestSyntax = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
 const hex = value => [...new Uint8Array(value)].map(byte => byte.toString(16).padStart(2, '0')).join('');
 
 /** Opens only the manifest-pinned JS/WASM pair for this compiled C++ source. */
 export async function loadVerifiedCore({ baseUrl, fetchAsset = globalThis.fetch,
-  importModule = url => import(url), subtle = null,
+  importModule = url => import(url), subtle = null, signal = null,
   createModuleUrl = bytes => {
     if (typeof Blob !== 'function' || typeof URL.createObjectURL !== 'function' || typeof URL.revokeObjectURL !== 'function')
       fail('PL-CORE-WASM-DEPENDENCY', 'Verified JavaScript Blob module support is required.');
@@ -17,12 +18,19 @@ export async function loadVerifiedCore({ baseUrl, fetchAsset = globalThis.fetch,
     || typeof importModule !== 'function' || typeof createModuleUrl !== 'function' || typeof revokeModuleUrl !== 'function')
     fail('PL-CORE-WASM-DEPENDENCY', 'Required verified WASM loader dependencies are missing.');
   const manifestUrl = new URL('pandoeditor-core.manifest.json', baseUrl);
-  const read = async url => {
-    const response = await fetchAsset(url.href, { cache: 'no-store' });
-    if (!response.ok) fail('PL-CORE-WASM-UNAVAILABLE', `공통 C++ 엔진 파일을 읽지 못했습니다: ${url.pathname} (HTTP ${response.status})`);
-    return response;
-  };
-  const manifest = await (await read(manifestUrl)).json();
+  const read = (url, kind) => fetchWithRetry(url.href, { cache: 'no-store', signal }, {
+    fetchFn: fetchAsset, timeoutMs: 30000,
+    consume: (response, { touch, signal: requestSignal }) => {
+      if (!response.ok) fail('PL-CORE-WASM-UNAVAILABLE', `공통 C++ 엔진 파일을 읽지 못했습니다: ${url.pathname} (HTTP ${response.status})`);
+      if (kind === 'json') return response.json();
+      if (!response.body || typeof TransformStream !== 'function') return response.arrayBuffer();
+      const stream = response.body.pipeThrough(new TransformStream({
+        transform(chunk, controller) { touch(); controller.enqueue(chunk); },
+      }), { signal: requestSignal });
+      return new Response(stream).arrayBuffer();
+    },
+  });
+  const manifest = await read(manifestUrl, 'json');
   if (manifest?.schema !== 'pandoeditor-core-wasm' || manifest.abiVersion !== 1
     || manifest.compiler?.name !== 'emscripten' || manifest.compiler.version !== '4.0.20'
     || !digestSyntax(manifest.sourceSha256) || manifest.assets?.js?.file !== 'pandoeditor-core.js'
@@ -35,8 +43,7 @@ export async function loadVerifiedCore({ baseUrl, fetchAsset = globalThis.fetch,
     return url;
   };
   const jsUrl = assetUrl(manifest.assets.js), wasmUrl = assetUrl(manifest.assets.wasm);
-  const [jsBytes, wasmBytes] = await Promise.all([read(jsUrl).then(response => response.arrayBuffer()),
-    read(wasmUrl).then(response => response.arrayBuffer())]);
+  const [jsBytes, wasmBytes] = await Promise.all([read(jsUrl, 'bytes'), read(wasmUrl, 'bytes')]);
   const [jsHash, wasmHash] = await Promise.all([hashing.digest('SHA-256', jsBytes).then(hex), hashing.digest('SHA-256', wasmBytes).then(hex)]);
   if (jsHash !== manifest.assets.js.sha256 || wasmHash !== manifest.assets.wasm.sha256)
     fail('PL-CORE-WASM-INTEGRITY', '공통 C++ 엔진 JS/WASM 파일의 SHA-256이 manifest와 다릅니다.');

@@ -97,15 +97,42 @@ export function assertArtifactsCurrent(statuses,selected=Object.keys(statuses)) 
   }
 }
 
-export function plan(rootDir=root,{changes=[],manual='auto',families=[]}={}) {
+function validationOrPresentationOnly(changes,graph) {
+  const validationPaths=new Set([
+    '.github/workflows/viewer-functional-p6-2.yml',
+    '.github/workflows/integration-read-model-p6.yml',
+    'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
+    'shared/frontend/js/modules/map-input-presentation.js'
+  ]);
+  const inputMatches=(selector,path)=>typeof selector==='string'
+    ?selector.endsWith('/')?path.startsWith(selector):path===selector
+    :(path===selector.prefix||path.startsWith(selector.prefix.replace(/\/$/,'')+'/'))&&new RegExp(selector.pattern).test(path);
+  return changes.length>0&&changes.every(path=>{
+    // Declared selectors also cover deleted inputs and new output paths that
+    // cannot appear in the current graph's expanded hash maps.
+    if(graph.some(f=>f.inputs.some(input=>inputMatches(input,path))||f.sources.includes(path)||
+      ownsPath(f,path)||(f.externalSources||[]).some(source=>source.path===path)))return false;
+    return !path.split('/').some(part=>part==='.'||part==='..')&&
+      (path.startsWith('tests/')||validationPaths.has(path));
+  });
+}
+
+export function plan(rootDir=root,{changes=[],manual='auto',families=[],event=process.env.GITHUB_EVENT_NAME||''}={}) {
   const statuses={
     wasm:wasmStatus(rootDir)
   };
   const jobs=selectJobs(statuses,changes,manual);
   const graph=graphStatus(rootDir,{wasm:statuses.wasm,requested:families,force:manual==='all'});
-  return {statuses:{...statuses,...graph.statuses},...jobs,
-    selectedFamilies:manual==='wasm'||manual==='verify'?[]:graph.selectedFamilies,
-    blockedFamilies:manual==='wasm'?[]:graph.blockedFamilies};
+  // An automatic validation/presentation push must not repair unrelated stale
+  // data. Explicit generation, unknown comparisons and WASM rebuilds retain
+  // their existing selection. Keep stale diagnostics available to --check.
+  const dataGenerationDeferred=event==='push'&&manual==='auto'&&!families.length&&!jobs.wasm&&
+    validationOrPresentationOnly(changes,graph.graph);
+  const familyStatuses=dataGenerationDeferred?Object.fromEntries(Object.entries(graph.statuses)
+    .map(([id,status])=>[id,{...status,selected:false}])):graph.statuses;
+  return {statuses:{...statuses,...familyStatuses},...jobs,dataGenerationDeferred,
+    selectedFamilies:manual==='wasm'||manual==='verify'||dataGenerationDeferred?[]:graph.selectedFamilies,
+    blockedFamilies:manual==='wasm'||dataGenerationDeferred?[]:graph.blockedFamilies};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
@@ -151,6 +178,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
     console.log(JSON.stringify({scope:process.env.PANDO_P2_SCOPE||'auto',
       status:result.statuses,selected:{wasm:result.wasm,families:result.selectedFamilies,
         bootstrap:result.bootstrap},blocked:result.blockedFamilies,
+      dataGenerationDeferred:result.dataGenerationDeferred,
+      ...(result.dataGenerationDeferred?{dataGenerationDeferredReason:'automatic validation/presentation-only push outside declared generation ownership'}:{}),
       changedPaths:difference.paths,diffFallback:difference.fallback},null,2));
   }
 }
+

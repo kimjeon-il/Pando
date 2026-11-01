@@ -2,6 +2,7 @@ import {readFileSync,readdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../../../scripts/lib/ui-source-catalog.mjs';
 import { createHash } from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -56,10 +57,8 @@ export async function worldFixture(t) {
   await put('assets/data/world/current.json', JSON.stringify(world));
   const country=await pinned('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+sha(Buffer.from('COUNTRY'))+'.json.gz',Buffer.from('COUNTRY'));
   const historicPath='assets/data/builtin-world/generated/v1/index.json';
-  const transport=await pinned('assets/data/builtin-world/generated/v1/transport/countries-sha256-'+country.sha256+'.bin',Buffer.from('COUNTRY'));
-  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,
-    transport:{...transport,url:transport.url.split('/v1/')[1],schemaVersion:1,encoding:'identity'},
-    entities:[{...country,file:country.url.split('/v1/')[1],offset:0}]})));
+  const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{},
+    entities:[{...country,entityId:'state:ABC',encoding:'gzip',file:country.url.split('/v1/')[1],coverage:[{validFrom:null,validTo:null}]}]})));
   const libPath = 'assets/data/territorial-entities/generated/v2/';
   const libraryChunk = await pinned(libPath + 'state-ABC.json.gz');
   const indexSpec = await pinned(libPath + 'index.json', Buffer.from(JSON.stringify({
@@ -108,7 +107,9 @@ export async function worldFixture(t) {
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};
   await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify(terrain));
-  const land=await pinned('assets/data/physical-land/v1/fixture-land.bin',Buffer.from('LAND'));
+  const landGeometry=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
+  const land={...await pinned('assets/data/physical-land/v1/fixture-land.bin',gzipSync(landGeometry,{level:9,mtime:0})),
+    encoding:'gzip',decodedBytes:landGeometry.length};
   await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'fixture-land',asset:land}));
   const library=join(root,'.library-data/repository');
   const git=(dir,...args)=>execFileSync('git',['-c','core.fsync=none','-c','user.name=Test','-c','user.email=test@example.invalid',...args],{cwd:dir,encoding:'utf8',stdio:'pipe'}).trim();
@@ -121,5 +122,5 @@ export async function worldFixture(t) {
   }
   await pinData();
   git(root,'init','-q');git(root,'add','package.json');git(root,'commit','-qm','fixture');
-  return { root, put, mesh, transport, pinData };
+  return { root, put, mesh, country, pinData };
 }

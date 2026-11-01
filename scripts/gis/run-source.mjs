@@ -7,17 +7,21 @@ import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {verifyNativeTool} from '../../tools/native-tool.mjs';
 import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
+import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
+import {terrainDemRasterSources} from '../../tools/gis/terrain-dem-raster.mjs';
+import {terrainDemGutterSources} from '../../tools/gis/terrain-dem-gutters.mjs';
+import {mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const TASK_SOURCES = Object.freeze({
   'historical-border':'tools/gis/build-german-1914-base.mjs',
-  'historical-coast':'tools/build_german_empire_1914_modern_coast.py',
+  'historical-coast':'tools/gis/build-german-1914-base.mjs',
   'terrain-dem':'tools/build-terrain-dem.py',
   'terrain-preview':'tools/build-terrain-preview.mjs',
   'hydro-tiles':'tools/build-hydro-tiles.py',
   'hydro-packfile':'tools/build-hydro-packfile.mjs',
   'hydro-connectivity':'tools/repair-hydro-connectivity.mjs',
-  'physical-data':'tools/build-physical-data.py',
+  'physical-data':'tools/build-physical-data.mjs',
   'place-candidates':'tools/build-place-candidates.mjs',
 });
 const pythonExecutable=()=>process.env.PANDOLAB_PYTHON_EXECUTABLE||(process.platform==='win32'?'python':'python3');
@@ -30,7 +34,7 @@ export function buildCommand(task,args=[],{root=ROOT}={}){
     throw Error('GIS source path escaped repository');
   const executable=extname(source)==='.mjs'?process.execPath:pythonExecutable();
   const passthrough=args[0]==='--'?args.slice(1):args;
-  return [executable,source,...passthrough];
+  return [executable,source,...(task==='historical-coast'?['--modern-coast']:[]),...passthrough];
 }
 export function parseArguments(args=process.argv.slice(2)){
   let task=null,execute=false,raw=[];
@@ -61,7 +65,27 @@ export function runSource({argv=process.argv.slice(2),root=ROOT,spawn=spawnSync,
     const executable=process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode';
     const {binary}=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-encode/artifact'),
       target:'terrain-dem-encode',executable,sourceFiles:terrainDemEncodeSources});
-    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary};
+    const fillDirectory=resolve(root,'build-native/terrain-dem-encode/fill-artifact');
+    const fillExecutable=process.platform==='win32'?'pando-terrain-dem-fill.exe':'pando-terrain-dem-fill';
+    verifyNativeTool({root,directory:fillDirectory,target:'terrain-dem-fill',executable:fillExecutable,sourceFiles:terrainDemFillSources});
+    env={...process.env,PANDO_TERRAIN_DEM_ENCODE_BINARY:binary,PANDO_TERRAIN_DEM_FILL_DIRECTORY:fillDirectory};
+    const hasOption=name=>args.some(value=>value===name||value.startsWith(name+'='));
+    const reuse=hasOption('--reuse-dem'),repair=hasOption('--repair-output');
+    if(!reuse&&(!repair||hasOption('--etopo'))){
+      const executable=process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster';
+      const raster=verifyNativeTool({root,directory:resolve(root,'build-native/terrain-dem-raster/artifact'),
+        target:'terrain-dem-raster',executable,sourceFiles:terrainDemRasterSources});
+      env.PANDO_TERRAIN_DEM_RASTER_BINARY=raster.binary;
+    }
+    if(!reuse){
+      const gutterDirectory=resolve(root,'build-native/terrain-dem-gutters/artifact');
+      const gutterExecutable=process.platform==='win32'?'pando-terrain-dem-gutters.exe':'pando-terrain-dem-gutters';
+      verifyNativeTool({root,directory:gutterDirectory,target:'terrain-dem-gutters',executable:gutterExecutable,sourceFiles:terrainDemGutterSources});
+      const imageDirectory=resolve(root,'build-native/map-image/artifact');
+      const imageExecutable=process.platform==='win32'?'pando-map-image.exe':'pando-map-image';
+      verifyNativeTool({root,directory:imageDirectory,target:'map-image',executable:imageExecutable,sourceFiles:mapImageSourceFiles});
+      env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY=gutterDirectory;env.PANDO_MAP_IMAGE_ARTIFACT=imageDirectory;
+    }
   }
   const result=spawn(command[0],command.slice(1),{cwd:root,stdio:'inherit',shell:false,env});
   if(result.error)throw result.error;

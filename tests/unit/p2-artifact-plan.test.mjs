@@ -119,6 +119,108 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
   return staged;
 }
 
+const integrationPresentationChanges=[
+  'shared/frontend/js/modules/map-input-presentation.js',
+  'tests/unit/map-input-controller.test.mjs',
+  '.github/workflows/viewer-functional-p6-2.yml',
+  '.github/workflows/integration-read-model-p6.yml',
+  'scripts/p2-artifact-plan.mjs',
+  'tests/unit/p2-artifact-plan.test.mjs',
+];
+const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
+  'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
+function staleDataFixture(t) {
+  const f=graphFixture(t),template=f.families[0];
+  f.families.splice(0,f.families.length,...staleDataFamilyIds.map(id=>({
+    ...template,id,outputs:['out/'+id+'.txt'],
+    generate:[['node','tools/generate.mjs',id,'input/a.txt']],
+    validate:[['node','tools/check.mjs','out/'+id+'.txt']],
+  })));
+  f.config();
+  for(const id of staleDataFamilyIds)f.put('out/'+id+'.txt','source-a generated');
+  artifactOwners.recordArtifactReceipts(f.root,{families:staleDataFamilyIds,sourceSha:f.head});
+  f.put('input/a.txt','previously changed data input');
+  return f;
+}
+
+test('auto validation/presentation-only push leaves nine stale data families unselected',t=>{
+  const f=staleDataFixture(t),before=graphStatus(f.root);
+  assert.deepEqual(before.selectedFamilies,staleDataFamilyIds);
+  const result=plan(f.root,{changes:integrationPresentationChanges,event:'push'});
+  assert.deepEqual(result.selectedFamilies,[]);
+  assert.deepEqual(result.blockedFamilies,[]);
+  assert.equal(result.wasm,false);
+  assert.equal(result.dataGenerationDeferred,true);
+  for(const id of staleDataFamilyIds) {
+    assert.equal(result.statuses[id].needed,true,id);
+    assert.equal(result.statuses[id].selected,false,id);
+    assert.deepEqual(result.statuses[id].reasons,before.statuses[id].reasons,id);
+    assert.equal(result.statuses[id].inputFingerprint,before.statuses[id].inputFingerprint,id);
+    assert.equal(result.statuses[id].outputFingerprint,before.statuses[id].outputFingerprint,id);
+  }
+  assert.throws(()=>assertArtifactsCurrent(result.statuses,staleDataFamilyIds),
+    /P2_GENERATED_ARTIFACT_STALE: territorial/);
+});
+
+test('auto presentation guard preserves actual generator, data input and pin changes',t=>{
+  for(const path of ['tools/generate.mjs','input/a.txt','config/library-data.json',
+    'config/generated-artifacts.json','config/toolchain-versions.json']) {
+    const f=staleDataFixture(t);
+    assert.deepEqual(plan(f.root,{changes:[...integrationPresentationChanges,path],event:'push'}).selectedFamilies,
+      staleDataFamilyIds,path);
+  }
+});
+
+test('auto presentation guard gives declared input, generator closure and output ownership priority',t=>{
+  for(const kind of ['input','input-prefix','pattern-input','deleted-prefix-input',
+    'generator','validator','output','output-prefix','external-source']) {
+    const f=staleDataFixture(t);
+    const path=['generator','validator'].includes(kind)?'shared/frontend/js/modules/map-input-presentation.js'
+      :kind.startsWith('output')?'.github/workflows/viewer-functional-p6-2.yml':'tests/fixtures/generator-input.json';
+    f.put(path,'{}');
+    if(kind==='input')f.families[0].inputs.push(path);
+    if(['input-prefix','deleted-prefix-input'].includes(kind))f.families[0].inputs.push('tests/fixtures/');
+    if(kind==='pattern-input')f.families[0].inputs.push({prefix:'tests/fixtures/',pattern:'generator-input\\.json$'});
+    if(kind==='generator')f.put('tools/generate.mjs',f.get('tools/generate.mjs')+'\nimport "../'+path+'";\n');
+    if(kind==='validator')f.put('tools/check.mjs',f.get('tools/check.mjs')+'\nimport "../'+path+'";\n');
+    if(kind==='output')f.families[0].outputs.push(path);
+    if(kind==='output-prefix')f.families[0].outputs.push('.github/workflows/');
+    if(kind==='deleted-prefix-input'||kind==='output-prefix')rmSync(join(f.root,path));
+    if(kind==='external-source')f.families[0].externalSources=[{
+      path,source:'https://example.invalid/pinned.json',version:'1',sha256:digest(f.get(path))}];
+    f.config();
+    const before=graphStatus(f.root),result=plan(f.root,{changes:[...integrationPresentationChanges,path],event:'push'});
+    assert.equal(result.dataGenerationDeferred,false,kind);
+    assert.deepEqual(result.selectedFamilies,before.selectedFamilies,kind);
+    assert.deepEqual(result.blockedFamilies,before.blockedFamilies,kind);
+  }
+});
+
+test('auto presentation guard keeps manual modes, explicit families and unknown comparisons unchanged',t=>{
+  const f=staleDataFixture(t);
+  for(const event of ['workflow_dispatch','local','']) {
+    assert.deepEqual(plan(f.root,{changes:integrationPresentationChanges,event}).selectedFamilies,
+      staleDataFamilyIds,event);
+  }
+  assert.deepEqual(plan(f.root,{changes:[],event:'push'}).selectedFamilies,staleDataFamilyIds);
+  const all=plan(f.root,{changes:integrationPresentationChanges,event:'push',manual:'all'});
+  assert.deepEqual(all.selectedFamilies,staleDataFamilyIds);assert.equal(all.wasm,true);
+  const wasm=plan(f.root,{changes:integrationPresentationChanges,event:'push',manual:'wasm'});
+  assert.deepEqual(wasm.selectedFamilies,[]);assert.equal(wasm.wasm,true);
+  const verify=plan(f.root,{changes:integrationPresentationChanges,event:'push',manual:'verify'});
+  assert.deepEqual(verify.selectedFamilies,[]);assert.equal(verify.verifyOnly,true);
+  assert.deepEqual(plan(f.root,{changes:integrationPresentationChanges,event:'push',families:['territorial']}).selectedFamilies,
+    ['territorial']);
+});
+
+test('auto presentation guard does not change a required WASM rebuild or its data publication',t=>{
+  const f=staleDataFixture(t);f.put('shared/core/src/calc.cpp','int calc=2;\n');
+  const result=plan(f.root,{changes:integrationPresentationChanges,event:'push'});
+  assert.equal(result.wasm,true);
+  assert.match(result.statuses.wasm.reasons.join(';'),/source fingerprint/);
+  assert.deepEqual(result.selectedFamilies,staleDataFamilyIds);
+});
+
 test('graph regeneration follows downstream dependencies and preserves unrelated families',async t=>{
   const f=graphFixture(t);await publishFixture(f);f.commit();
   assert.deepEqual(graphStatus(f.root).selectedFamilies,[]);
@@ -432,3 +534,4 @@ test('report fingerprints follow the owner read view when originals are stored o
  const status=graphStatus(f.root).statuses.a;
  assert.deepEqual(status.inputs,{[logical]:digest(bytes)});
 });
+

@@ -129,11 +129,11 @@ test('verification assets are opt-in and disappear on the next ordinary stage', 
   await stagePrototype({ root });
   await assert.rejects(readFile(join(ordinary.directory, 'shell/verification.js')), /ENOENT/);
   await assert.rejects(readFile(join(ordinary.directory, 'shell/fixture-world.json')), /ENOENT/);
-  await assert.rejects(stat(join(ordinary.directory, 'shell/transport')), /ENOENT/);
+  for(const folder of ['transport','countries','country-parts'])await assert.rejects(stat(join(ordinary.directory, 'shell/'+folder)), /ENOENT/);
   assert.ok(names(ordinary).every(path=>!path.includes('reference-analysis')));
 });
 
-test('the verification fixture loads through the current builtin country transport', async t => {
+test('the verification fixture loads through independent builtin country files', async t => {
   const { root } = await source(t);
   const result = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   const profile = JSON.parse(await readFile(join(result.directory, 'shell/stage-profile.json')));

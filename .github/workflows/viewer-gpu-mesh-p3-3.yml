@@ -1,0 +1,43 @@
+name: Viewer P3-3 GPU mesh ownership and reuse
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/gpu-resource-lifecycle.js
+      - tests/browser/viewer-gpu-mesh-lifecycle-p3-3.spec.mjs
+      - tests/unit/gpu-resource-owners.test.mjs
+      - .github/workflows/viewer-gpu-mesh-p3-3.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p3-3-gpu-life
+  cancel-in-progress: true
+jobs:
+  gpu-resource-life:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: GPU owner, staging and context validation
+        run: node --test tests/unit/gpu-resource-owners.test.mjs tests/unit/gpu-upload-staging.test.mjs tests/unit/gpu-renderer-lifecycle.test.mjs tests/unit/country-mesh-content-key.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: WebGL2 and WebGL1 real-context reinitialization
+        run: pnpm exec playwright test tests/browser/viewer-gpu-mesh-lifecycle-p3-3.spec.mjs --workers=1 --retries=0
+      - name: Retain scoped evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p3-3-gpu-life
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 10

@@ -10,12 +10,6 @@ from PIL import Image
 
 CHANNELS = ["international", "administrative", "coast", "hydro", "transport", "text", "frame"]
 RASTER_ORIGINS = {'publisher-layer-export', 'semap-human-mask-export', 'macro-vector-supervision'}
-LANGUAGES = set(json.loads(subprocess.check_output([
-    'node', '--input-type=module', '-e',
-    "import {REFERENCE_OCR_LANGUAGES} from './plugins/pando-map-tools/lib/analysis/ocr-catalog.mjs'; console.log(JSON.stringify(REFERENCE_OCR_LANGUAGES))",
-], cwd=pathlib.Path(__file__).resolve().parents[2], text=True, encoding='utf-8')))
-
-
 def validate_review_annotation(annotation, sheet):
     script = pathlib.Path(__file__).with_name('review-masks.mjs')
     payload = json.dumps(dict(annotation=annotation, sheet=sheet), allow_nan=False).encode('utf-8')
@@ -76,26 +70,22 @@ def corpus_fingerprint(manifest, auxiliary=None):
     return fingerprint
 
 
+def validate_training_provenance(action, annotation, sheet, root):
+    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
+    request = dict(annotation=annotation, sheet=sheet, root=str(pathlib.Path(root).resolve()),
+                   rendererVersion=importlib.metadata.version('PyMuPDF'))
+    result = subprocess.run(['node', str(script), f'--{action}-provenance-stream'],
+                            input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError(f'{action} provenance validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != {'valid': True}:
+        raise ValueError('Invalid training provenance validation receipt')
+
+
 def validate_publisher_annotation(annotation, sheet, root):
-    if annotation.get('reviewed') is not False or annotation.get('schemaVersion') != 1:
-        raise ValueError('Publisher-derived training labels cannot claim human review')
-    producer = annotation.get('producer', {})
-    script_hash = hashlib.sha256(pathlib.Path(__file__).with_name('publisher.py').read_bytes().replace(b'\r\n', b'\n')).hexdigest()
-    if producer != dict(script='tools/reference-analysis/publisher.py', sha256=script_hash,
-                        renderer='PyMuPDF', rendererVersion=importlib.metadata.version('PyMuPDF')):
-        raise ValueError('Publisher label generator identity differs')
-    source = corpus_path(root, annotation.get('sourcePdf'))
-    metadata_path = corpus_path(root, annotation.get('sourceMetadata'))
-    if hashlib.sha256(source.read_bytes()).hexdigest() != annotation.get('sourceSha256'):
-        raise ValueError('Publisher source hash changed')
-    if hashlib.sha256(metadata_path.read_bytes()).hexdigest() != annotation.get('sourceMetadataSha256'):
-        raise ValueError('Publisher source metadata hash changed')
-    metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
-    if (metadata.get('sha256') != annotation['sourceSha256'] or metadata.get('rightsReviewed') is not True
-            or metadata.get('materialKind') != 'publisher-layered-pdf' or not metadata.get('license')
-            or metadata.get('id') != sheet['id'] or metadata.get('familyId') != sheet['familyId']
-            or metadata.get('url') != sheet['source']['url']):
-        raise ValueError('Verified publisher source provenance required')
+    validate_training_provenance('publisher', annotation, sheet, root)
     validate_training_rasters(annotation, sheet, root)
 
 
@@ -112,20 +102,15 @@ def validate_semap_annotation(annotation, sheet, root):
 
 
 def validate_training_rasters(annotation, sheet, root):
-    observed = annotation.get('observedChannels', [])
-    if not observed or len(set(observed)) != len(observed) or any(channel not in CHANNELS for channel in observed):
-        raise ValueError('Explicit observed publisher channels required')
-    allowed = sum(1 << CHANNELS.index(channel) for channel in observed)
-    for name in ['raster', 'validRaster']:
-        spec = annotation.get(name, {})
-        path = corpus_path(root, spec.get('path'))
-        if hashlib.sha256(path.read_bytes()).hexdigest() != spec.get('sha256'):
-            raise ValueError('Publisher raster hash changed')
-        with Image.open(path) as image:
-            if image.mode != 'L' or list(image.size) != [annotation.get('width'), annotation.get('height')]:
-                raise ValueError('Publisher raster dimensions or mode differ')
-            if any(value and value & ~allowed for value, count in enumerate(image.histogram()) if count):
-                raise ValueError('Publisher raster contains unobserved channels')
+    script = pathlib.Path(__file__).with_name('training-tiles.mjs')
+    request = dict(root=str(pathlib.Path(root).resolve()), annotation=annotation)
+    result = subprocess.run(['node', str(script), '--audit-rasters'], input=json.dumps(request, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=1800,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Training raster validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != {'valid': True}:
+        raise ValueError('Invalid training raster validation receipt')
     with Image.open(corpus_path(root, sheet['image'])) as image:
         if list(image.size) != [annotation['width'], annotation['height']]:
             raise ValueError('Publisher raster/image dimensions differ')
@@ -134,23 +119,9 @@ def validate_training_rasters(annotation, sheet, root):
 def validate_macro_annotation(annotation, sheet, root):
     import numpy as np
     from macro import derive, image_bytes
-    producer = annotation.get('producer', {})
-    if (annotation.get('schemaVersion') != 1 or annotation.get('reviewed') is not False
-            or annotation.get('supervisionQuality') != 'source-derived-weak'
-            or producer.get('script') != 'tools/reference-analysis/macro.py'
-            or not re.fullmatch('[a-f0-9]{64}', producer.get('sha256', ''))
-            or producer.get('renderer') != 'PyMuPDF'
-            or producer.get('rendererVersion') != importlib.metadata.version('PyMuPDF')):
-        raise ValueError('Explicit source-derived macro provenance required')
+    validate_training_provenance('macro', annotation, sheet, root)
     source, metadata_path = [corpus_path(root, annotation.get(field)) for field in ['sourcePdf', 'sourceMetadata']]
-    if (hashlib.sha256(source.read_bytes()).hexdigest() != annotation.get('sourceSha256')
-            or hashlib.sha256(metadata_path.read_bytes()).hexdigest() != annotation.get('sourceMetadataSha256')):
-        raise ValueError('Macro source evidence hash changed')
     metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
-    if (metadata.get('sha256') != annotation['sourceSha256']
-            or any(metadata.get(key) != sheet.get(key) for key in ['id', 'familyId', 'editionId', 'duplicateGroup', 'geographicScope', 'scopeEvidence'])
-            or metadata.get('url') != sheet['source']['url'] or metadata.get('license') != sheet['source']['license']):
-        raise ValueError('Verified macro source and geographic scope required')
     validate_training_rasters(annotation, sheet, root)
     image, target, valid, _ = derive(source, metadata, annotation['maximumDimension'])
     for field, expected in [('raster', target), ('validRaster', valid)]:
@@ -166,45 +137,20 @@ def validate_macro_annotation(annotation, sheet, root):
 
 
 def validate_corpus(value, root=None, *, training_only=False):
-    if value.get("schemaVersion") != 1 or not isinstance(value.get("sheets"), list):
-        raise ValueError("Corpus schemaVersion=1 and sheets are required")
-    if training_only and (value.get('trainingOnly') is not True or root is None):
+    if training_only and root is None:
         raise ValueError('Explicit materialized training-only corpus required')
-    if not training_only and value.get('trainingOnly'):
-        raise ValueError('Source-reviewed independent corpus required; supplied corpus is training-only')
-    seen, splits = set(), {}
+    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
+    payload = json.dumps(dict(value=value, trainingOnly=training_only, root=str(pathlib.Path(root).resolve()) if root else None), allow_nan=False).encode('utf-8')
+    result = subprocess.run(['node', str(script), '--metadata-stream'], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=120, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Corpus metadata validation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    if json.loads(result.stdout) != {'valid': True}:
+        raise ValueError('Invalid corpus metadata validation response')
     for sheet in value["sheets"]:
-        if not sheet.get("id") or sheet["id"] in seen:
-            raise ValueError("Unique sheet id required")
-        seen.add(sheet["id"])
-        if sheet.get("split") not in {"train", "validation", "test"}:
-            raise ValueError("Explicit train/validation/test split required")
-        if training_only and sheet['split'] != 'train':
-            raise ValueError('Publisher training-only data cannot become validation/test truth')
-        for key in ["familyId", "editionId", "duplicateGroup"]:
-            group = sheet.get(key)
-            if not group:
-                raise ValueError(key + " required")
-            previous = splits.setdefault((key, group), sheet["split"])
-            if previous != sheet["split"]:
-                raise ValueError(key + " crosses split boundaries")
-        if not sheet.get("annotations"):
-            raise ValueError("Reviewed annotations required; unlabelled sources are inventory only")
-        if not re.fullmatch("[a-f0-9]{64}", sheet.get("sha256", "")):
-            raise ValueError("Original image sha256 required")
-        validate_source_language(sheet)
-        if sheet.get("mapKind") not in {"color", "monochrome"}:
-            raise ValueError("mapKind must be color or monochrome")
-        if not all(sheet.get("source", {}).get(key) for key in ["url", "license"]):
-            raise ValueError("Source URL and license required")
         for key in ["image", "annotations"]:
-            path = pathlib.PurePosixPath(sheet[key])
-            if path.is_absolute() or ".." in path.parts:
-                raise ValueError("Corpus paths must stay inside corpus root")
             if root:
                 absolute = corpus_path(root, sheet[key])
-                if key == "image" and hashlib.sha256(absolute.read_bytes()).hexdigest() != sheet["sha256"]:
-                    raise ValueError("Original image hash changed: " + sheet["id"])
                 if key == "annotations":
                     annotations = json.loads(absolute.read_text(encoding="utf-8"))
                     if annotations.get('origin') == 'publisher-layer-export' and training_only:
@@ -221,16 +167,13 @@ def validate_corpus(value, root=None, *, training_only=False):
 
 
 def evaluation_groups(sheets):
-    groups = {}
-    for sheet in sheets:
-        key = "/".join(sheet[k] for k in ["mapKind", "script", "language"])
-        groups.setdefault(key, []).append(sheet["id"])
+    script = pathlib.Path(__file__).with_name('reviewed-corpus.mjs')
+    result = subprocess.run(['node', str(script), '--groups-stream'], input=json.dumps(sheets, allow_nan=False).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise ValueError('Corpus evaluation grouping failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    groups = json.loads(result.stdout)
+    if not isinstance(groups, dict) or any(not isinstance(ids, list) for ids in groups.values()):
+        raise ValueError('Invalid corpus evaluation grouping response')
     return groups
-
-
-def validate_source_language(source):
-    if not re.fullmatch(r'[a-z]{3}(?:_[a-z0-9]+)*', source.get('language', '')) or not source.get('script'):
-        raise ValueError('Explicit source language and script required')
-    packs = source.get('ocrLanguages', [])
-    if not isinstance(packs, list) or len(set(packs)) != len(packs) or any(pack not in LANGUAGES for pack in packs):
-        raise ValueError('OCR languages must refer to the installed runtime catalog')
