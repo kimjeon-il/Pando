@@ -301,6 +301,19 @@ body.file-menu-open .mobile-backdrop {
   box-shadow: var(--design-toolbar-shadow);
 }
 
+.map-command-toolbar {
+  gap: var(--ui-space-0-5);
+  padding: var(--ui-space-0-5);
+  border-color: color-mix(in srgb, var(--toolbar-border) 55%, transparent);
+  background: color-mix(in srgb, var(--toolbar-bg) 78%, transparent);
+  box-shadow: none;
+}
+
+.map-command-toolbar .map-command-divider {
+  margin-inline: var(--ui-space-0-5);
+  background: color-mix(in srgb, var(--ui-control-border) 60%, transparent);
+}
+
 .map-command-toolbar .map-command-divider {
   margin-inline: var(--ui-space-1);
   background: var(--ui-control-border);
