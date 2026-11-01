@@ -57,3 +57,23 @@ test('raw native globals occur only in the native platform adapter runtime', () 
     assert.equal(source.includes('__PANDOLAB_SHELL_PLATFORM__'),false,path+' retains global platform handoff');
   }
 });
+
+
+test('retired T7 shell inputs and physical A-B benchmark stay removed', () => {
+  const root=new URL('../../../',import.meta.url);
+  const runtimeOptions=readFileSync(new URL('apps/editor/src-tauri/src/runtime_options.rs',root),'utf8');
+  const shell=readFileSync(new URL('apps/editor/src-tauri/src/lib.rs',root),'utf8');
+  const measure=readFileSync(new URL('apps/editor/measure-windows-startup.ps1',root),'utf8');
+  const workflow=readFileSync(new URL('.github/workflows/integration-windows-startup-memory-20261016.yml',root),'utf8');
+  const performance=readFileSync(new URL('config/performance-baseline-v1.json',root),'utf8');
+  assert.doesNotMatch(runtimeOptions,/physical_immediate/);
+  assert.match(runtimeOptions,/--probe-physical-immediate/);
+  assert.doesNotMatch(shell,/PANDOLAB_NATIVE_BUILD_INFO|__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__/);
+  assert.match(shell,/NATIVE_BUILD_INFO/);
+  assert.doesNotMatch(measure,/paired|physicalDeferredUntilReady|\bimmediate\b|\bdeferred\b/);
+  assert.match(measure,/pandolab-windows-webview-startup-memory/);
+  assert.match(workflow,/buildNativeOnCI/);
+  assert.match(workflow,/startup-memory\.json/);
+  assert.match(performance,/windows-webview-startup-memory/);
+  assert.match(performance,/integration-windows-startup-memory-20261016\.yml/);
+});
