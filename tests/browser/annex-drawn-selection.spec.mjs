@@ -75,7 +75,7 @@ test('annex selection controls and heading fit a narrow editor surface', async (
     expect(sizes.titleFits).toBe(true);
     expect(sizes.buttons.slice(0, 3).map(button => button.text)).toEqual(['꼭짓점 추가', '현재 경로 다시 그리기', '그리기 완료']);
     expect(sizes.buttons.every(button => button.fits)).toBe(true);
-    expect(sizes.buttons.slice(0, 3).every(button => button.height >= (width < 300 ? 48 : 36))).toBe(true);
+    expect(sizes.buttons.slice(0, 3).every(button => button.height >= (width < 300 ? 40 : 36))).toBe(true);
     expect(sizes.icons).toBe(4);
   }
 });

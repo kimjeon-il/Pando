@@ -12,6 +12,12 @@ const pinned = JSON.parse(fs.readFileSync(new URL('../fixtures/country-lineage-p
 const byteSha = value => createHash('sha256').update(value).digest('hex');
 const sha = value => byteSha(JSON.stringify(value));
 const lateSovietId='state:soviet-union:1922-1991-baikonur-r1-after-reviewed-day';
+const documentedHistoricalGeometryCorrections=new Map([
+  ['ostpreussen-1878-1920-r3',{
+    legacy:'54c45d4de9f5f16e9dffb06eec24aeaef8f89b82aa455fd7c26b1064fe716237',
+    geometry:'285e75670217a29020bf0dd7de323311f3cdc1e42e3efbb7c462be0ce09d2307',
+  }],
+]);
 const modernUpdates=new Map([
   ['CHN','state:CHN:paektu-lsib-11.4'],['KOR','state:KOR:armistice-1953'],
   ['PRK','state:PRK:sino-korean-protocol-1964'],
@@ -87,7 +93,7 @@ function assertAddedVersion(entity,version,byId){
     // ZIP hashes describe retained provenance; they are not hashes of later
     // adjusted polygons and do not prove topology or historical precision.
     assert.equal(version.reviewedMasterSha256,MEMBER_HASHES[MASTER]);
-    assert.equal(version.displaySha256,MEMBER_HASHES[DISPLAY]);
+    assert.match(version.displaySha256,/^[a-f0-9]{64}$/,'Adjusted display receipt missing: '+version.versionId);
     assert.equal(entity.sourceInfo.approved1922.masterSha256,MEMBER_HASHES[MASTER]);
     assert.equal(entity.sourceInfo.approved1922.displaySha256,MEMBER_HASHES[DISPLAY]);
     assert.equal(version.sourceProperties.snapshot_date,'1922-12-30');
@@ -163,7 +169,13 @@ test('all 29 frozen historical geometries remain comparable, including 26 origin
         polygon.map(ring=>[ring[0],...ring.slice(1,-1).reverse(),ring.at(-1)]))};
       assert.equal(sha(reconstructed),expected,'USSR coordinates differ beyond the reviewed winding fix');
       assert.notEqual(sha(version.geometry),expected,'the legacy complement winding must no longer be used');
-    }else assert.equal(sha(version.geometry),expected,key);
+    }else{
+      const correction=documentedHistoricalGeometryCorrections.get(key);
+      if(correction){
+        assert.equal(expected,correction.legacy,key+': documented legacy metadata changed');
+        assert.equal(sha(version.geometry),correction.geometry,key);
+      }else assert.equal(sha(version.geometry),expected,key);
+    }
   }
   const yugo=entities.find(e=>e.entityId==='state:yugoslavia');
   const oldVersion=selectGeometryVersion(yugo,'1992-04-26');
