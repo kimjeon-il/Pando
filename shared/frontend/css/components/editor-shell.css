@@ -848,7 +848,7 @@
 }
 
 .editor-object-type-label {
-  display: none;
+  display: inline;
 }
 
 .editor-focus-action {
@@ -1350,3 +1350,31 @@
 .editor-name-detail dt { color: var(--muted); }
 .editor-name-detail dd { margin: 0; overflow-wrap: anywhere; }
 
+
+
+/* P1 shell: keep the object header focused on identity and one primary locator. */
+.editor-object-menu {
+  position: fixed;
+  z-index: 120;
+  top: var(--ui-menu-position-top, 0);
+  right: auto;
+  left: var(--ui-menu-position-left, 0);
+  max-height: var(--ui-menu-position-max-height, 80dvh);
+  overflow-y: auto;
+}
+
+.editor-object-menu[hidden] {
+  display: none;
+}
+
+.editor-object-menu .ui-menu-item {
+  min-width: 10rem;
+}
+
+.editor-object-header[data-editor-context] .editor-object-context-main {
+  gap: var(--ui-space-2);
+}
+
+.editor-object-header[data-editor-context] .editor-object-meta {
+  gap: var(--ui-space-1);
+}
