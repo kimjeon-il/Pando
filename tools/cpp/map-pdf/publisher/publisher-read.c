@@ -154,13 +154,14 @@ int main(int argc,char **argv){
             if(render==1){printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g}\n",width,height,factor);
                 for(y=0;y<height;y++)if(fwrite(samples+(size_t)y*stride,1,(size_t)width*3,stdout)!=(size_t)width*3)
                     fz_throw(ctx,FZ_ERROR_GENERIC,"Cannot write publisher raster");
-            }else{publisher_text_device *trace;unsigned char *credit_bytes=NULL;size_t credit_size;
+            }else{publisher_text_device *trace;unsigned char *credit_bytes=NULL;size_t credit_size;fz_stext_options text_options={0};
                 mask=(unsigned char*)calloc((size_t)width*height,1);if(!mask)fz_throw(ctx,FZ_ERROR_SYSTEM,"Publisher text allocation failed");
                 trace=fz_new_derived_device(ctx,publisher_text_device);text_device=&trace->base;
                 trace->mask=mask;trace->width=width;trace->height=height;trace->scale=factor;trace->characters=0;trace->layer[0]='\0';
                 trace->base.fill_text=fill_text;trace->base.stroke_text=stroke_text;trace->base.begin_layer=begin_text_layer;trace->base.end_layer=end_text_layer;
                 fz_run_page(ctx,page,text_device,fz_make_matrix(1,0,0,1,0,0),NULL);fz_close_device(ctx,text_device);
-                text_page=fz_new_stext_page_from_page(ctx,page,NULL);credits=fz_new_buffer(ctx,1024);append_credits(ctx,credits,text_page);
+                text_options.flags=FZ_STEXT_PRESERVE_LIGATURES|FZ_STEXT_PRESERVE_WHITESPACE|FZ_STEXT_MEDIABOX_CLIP|FZ_STEXT_USE_CID_FOR_UNKNOWN_UNICODE;
+                text_page=fz_new_stext_page_from_page(ctx,page,&text_options);credits=fz_new_buffer(ctx,1024);append_credits(ctx,credits,text_page);
                 credit_size=fz_buffer_storage(ctx,credits,&credit_bytes);if(credit_size>8u*1024u*1024u)fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher credits exceed budget");
                 printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"creditBytes\":%zu,\"characters\":%zu}\n",width,height,factor,credit_size,trace->characters);
                 if(fwrite(credit_bytes,1,credit_size,stdout)!=credit_size||fwrite(mask,1,(size_t)width*height,stdout)!=(size_t)width*height)

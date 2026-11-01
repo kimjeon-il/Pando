@@ -7,8 +7,9 @@ import {extractPublisherPdfText,inspectPublisherPdf,renderPublisherPdfLayers} fr
 
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
   const root=resolve('tests/fixtures/reference-publisher-layers');
-  const path=resolve(root,'fixture.pdf'),input=readFileSync(path),oracle=JSON.parse(readFileSync(resolve(root,'oracle.json'),'utf8'));
   const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+  for(const [file,manifest] of [['fixture.pdf','oracle.json'],['rotated-glyphs.pdf','rotated-glyphs.json']]){
+  const path=resolve(root,file),input=readFileSync(path),oracle=JSON.parse(readFileSync(resolve(root,manifest),'utf8'));
   assert.equal(sha(input),oracle.sourceSha256);
   const info=await inspectPublisherPdf({path});
   // MuPDF enumerates OCGs in a different order from the PDF layer UI.
@@ -17,7 +18,7 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
   assert.deepEqual(info.ui.map(layer=>layer.text),oracle.layers);
   assert.equal(info.pageCount,1);assert.equal(info.rotation,0);
   for(const row of oracle.renders){
-    const rendered=await renderPublisherPdfLayers({path,enabled:row.enabled,maximumDimension:160});
+    const rendered=await renderPublisherPdfLayers({path,enabled:row.enabled,maximumDimension:oracle.text.maximumDimension});
     assert.equal(rendered.width,row.width);assert.equal(rendered.height,row.height);assert.equal(sha(rendered.rgb),row.sha256);
   }
   const text=await extractPublisherPdfText({path,maximumDimension:oracle.text.maximumDimension});
@@ -27,4 +28,5 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
   await assert.rejects(renderPublisherPdfLayers({path,enabled:['International','International'],maximumDimension:160}),/layer/i);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:[],maximumDimension:16}),/dimension/i);
   assert.deepEqual(readFileSync(path),input);
+  }
 });
