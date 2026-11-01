@@ -70,6 +70,18 @@ for both files. It starts without optimizer state. Subsequent native checkpoints
 own optimizer and random state. These are training-only artifacts, not an
 independent evaluation or approval for release.
 
+For a newly recorded public-encoder sequence from a single corpus, the native
+source-replay verifier accepts the initializer, original corpus, supervision
+directory and every checkpoint in order. It checks the parent receipts, recorded
+order, source identities and reconstructed training tensors. Its result states
+explicitly that optimizer updates were not replayed and lineage is incomplete.
+Omitting an earlier checkpoint, changing the source or using a mixed-corpus
+sequence is rejected; it does not admit a model for independent evaluation.
+
+```powershell
+node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory $firstCheckpoint $secondCheckpoint
+```
+
 A single source-derived macro training sheet can be inspected using its matching
 native C++ checkpoint and the same CPU/CUDA device recorded in its receipt. The
 output directory must not exist, and its parent must already exist. The command

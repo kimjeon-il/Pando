@@ -52,7 +52,7 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
   if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {...state,cursor:0};
   throw Error('Checkpoint is not at the requested epoch boundary');
 }
-async function verifyEvidence(root,corpus,sample,data,{epoch,signal,allowPublisher=false,allowReviewed=false}){
+export async function verifyTrainingEvidence(root,corpus,sample,data,{epoch,signal,allowPublisher=false,allowReviewed=false}){
   const {sheet,annotation,annotationSha256,imagePath,checks}=allowPublisher||allowReviewed?
     await verifiedPrimaryTrainingSource(root,corpus,data.sourceId,{allowPublisher,allowReviewed,signal}):await verifiedMacroTrainingSource(root,corpus,data.sourceId);
   const sourceKind=annotation.origin==='publisher-layer-export'?'publisher-pdf':annotation.origin==='macro-vector-supervision'?'macro-pdf':'reviewed';
@@ -77,7 +77,7 @@ async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sa
   if(!tile||tile.index!==sample.index||data.sourceId!==tile.sourceId||data.augmentationIndex!==tile.localIndex||
     !Array.isArray(data.pixelOrigin)||data.pixelOrigin[0]!==tile.x||data.pixelOrigin[1]!==tile.y)
     throw Error('Combined source sample differs from its indexed tile');
-  if(tile.index<plan.datasets[0].length)return verifyEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true,allowReviewed:true});
+  if(tile.index<plan.datasets[0].length)return verifyTrainingEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true,allowReviewed:true});
   const source=plan.auxiliarySources.find(row=>row.sheet.id===tile.sourceId);
   if(!source||data.sourceKind!=='semap-label'||typeof sample.augment!=='boolean')throw Error('Verified Semap sample required');
   const {sheet,annotation,checks}=source,labelName=basename(annotation.originalImageMember,'.jpg')+'.png';
@@ -129,7 +129,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const sourceRoot=dirname(corpusPath),evidence=[];
   for(let i=0;i<samples.length;i++)evidence.push(combined?
     await verifyCombinedEvidence(sourceRoot,manifest,dirname(resolve(auxiliary)),combined,samples[i],checked[i],{epoch,signal}):
-    await verifyEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal,allowReviewed:reviewed,allowPublisher:publisher}));
+    await verifyTrainingEvidence(sourceRoot,manifest,samples[i],checked[i],{epoch,signal,allowReviewed:reviewed,allowPublisher:publisher}));
   const ampScale=amp?(previous?previous.ampScale:65536):1,ampGrowth=amp?(previous?previous.ampGrowthTracker:0):0;
   if(!Number.isFinite(ampScale)||ampScale<=0||!Number.isInteger(ampGrowth)||ampGrowth<0||ampGrowth>=2000)throw Error('Checkpoint AMP state is invalid');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';

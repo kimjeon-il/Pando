@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import test from 'node:test';
 import * as training from '../../tools/reference-analysis/native-training-sequence.mjs';
 import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
+import {validateReplayReceiptChain,verifySingleCorpusTrainingReplay} from '../../tools/reference-analysis/native-training-replay.mjs';
 const {runTrainingSequence}=training;
 
 test('mixed sequence requires an explicit auxiliary scope and rejects mismatched settings',async t=>{
@@ -128,4 +129,40 @@ test('training sequence rejects invalid input and preserves existing output',asy
   assert.equal(existsSync(join(root,'new')),false);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-training-sequence.mjs'],{encoding:'utf8'});
   assert.notEqual(cli.status,0);assert.match(cli.stderr,/explicit/i);
+});
+
+const hash=char=>char.repeat(64),weightsSha256=hash('a'),corpusSha256=hash('b');
+function fixture(){
+  const evidence={sourceId:'fixture',sourceKind:'macro-pdf',imageSha256:hash('1'),annotationSha256:hash('2'),sourceEvidenceSha256:hash('3'),
+    maskSha256:hash('4'),validMaskSha256:hash('5'),tileIndex:0,augmentationIndex:0,pixelOrigin:[0,0],augment:false,
+    tensorSha256:Object.fromEntries(['tile','overview','position','target','valid'].map(name=>[name,hash('6')]))};
+  const receipt={schemaVersion:1,checkpointSha256:hash('7'),trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,
+    batchSourceReplayVerified:true,initialization:'public-encoder-no-optimizer',initializationWeightsSha256:weightsSha256,initializationSourceSha256:null,
+    encoderInitialization:{kind:'public-pretrained-image-classification',url:'https://download.pytorch.org/models/model-12345678.pth',sha256:'12345678'+'9'.repeat(56),bytes:1},
+    corpusSha256,device:'cpu',precision:'fp32',epoch:0,seed:1,freezeEpochs:2,learningRate:.0001,unobservedMask:0,
+    orderSha256:hash('8'),positiveWeightSha256:hash('9'),orderLength:4,cursor:1,evidence:[evidence],attemptedBatches:1,optimizerUpdates:1,skippedUpdates:0,
+    parentCheckpointSha256:null,parentReceiptSha256:null};
+  const first={checkpointSha256:hash('7'),receiptSha256:hash('c'),receipt};
+  const second={checkpointSha256:hash('d'),receiptSha256:hash('e'),receipt:{...structuredClone(receipt),checkpointSha256:hash('d'),cursor:2,
+    evidence:[{...structuredClone(evidence),tileIndex:1,augmentationIndex:1}],attemptedBatches:2,optimizerUpdates:2,
+    parentCheckpointSha256:first.checkpointSha256,parentReceiptSha256:first.receiptSha256}};
+  return [first,second];
+}
+test('source replay requires a complete linked chain and exact batch evidence',()=>{
+  const entries=fixture(),scope={weightsSha256,corpusSha256};
+  assert.deepEqual(validateReplayReceiptChain(entries,scope),{batches:2,samples:2});
+  for(const change of [
+    rows=>{rows[1].receipt.parentReceiptSha256=hash('f');},
+    rows=>{rows[1].receipt.cursor=3;},
+    rows=>{rows[1].receipt.epoch=1;},
+    rows=>{rows[1].receipt.evidence[0].maskSha256=undefined;},
+    rows=>{rows[1].receipt.evidence[0].tensorSha256.valid=hash('x');},
+    rows=>{rows[1].receipt.evidence[0].augment=true;},
+    rows=>{rows[1].receipt.auxiliarySha256=hash('f');},
+    rows=>{rows[0].receipt.batchSourceReplayVerified=false;},
+  ]){const altered=structuredClone(entries);change(altered);assert.throws(()=>validateReplayReceiptChain(altered,scope));}
+});
+test('source replay rejects missing and repeated checkpoint paths',async()=>{
+  await assert.rejects(verifySingleCorpusTrainingReplay({checkpoints:[],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
+  await assert.rejects(verifySingleCorpusTrainingReplay({checkpoints:['same','same'],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
 });
