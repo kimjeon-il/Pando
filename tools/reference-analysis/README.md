@@ -83,6 +83,14 @@ manifest recorded by the checkpoint. The selected sheet's source and annotation
 are verified, but the result is a diagnostic, not an independence or accuracy
 claim. The same output protection and optional baseline rules apply.
 
+For a checkpoint trained with an auxiliary Semap corpus, provide the original
+`--auxiliary-corpus` together with `--corpus`. Both manifests and their combined
+source fingerprint must match its checkpoint receipt. `--view-corpus auxiliary`
+selects an auxiliary source instead of a primary macro source; the default is
+`primary`. Use the same options with `--corpus-sources` to inspect every source
+in the selected training corpus. This is still a training-only diagnostic: it
+does not establish independent accuracy or ONNX parity.
+
 Analysis runtime proof uses the plugin CLI with local map/model paths. Native
 application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS
 import, explicit editing, Undo/Redo and actual native save/reopen. Neither check

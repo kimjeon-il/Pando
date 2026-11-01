@@ -6,7 +6,38 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import * as diagnostic from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
+import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
 const {diagnoseMacroTrainingSource,diagnoseReviewedSource,summarizeDiagnosticTile}=diagnostic;
+
+test('combined checkpoint diagnostics require the original auxiliary corpus and lineage fingerprint',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-combined-'));t.after(()=>rmSync(root,{recursive:true}));
+  const corpus=join(root,'primary.json'),auxiliaryCorpus=join(root,'auxiliary.json'),checkpoint=join(root,'checkpoint.pt');
+  writeFileSync(corpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));
+  writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));writeFileSync(checkpoint,'fixture');
+  const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256:hash(checkpoint),
+    corpusSha256:hash(corpus),auxiliarySha256:hash(auxiliaryCorpus),lineageFingerprint:await corpusFingerprint(corpus,auxiliaryCorpus)};
+  const save=()=>writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));save();
+  const request={corpus,checkpoint,sourceId:'missing',device:'cpu',torchLibrary:root};
+  await assert.rejects(diagnoseMacroTrainingSource(request),/auxiliary.*required/i);
+  receipt.auxiliarySha256='0'.repeat(64);save();
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus}),/auxiliary.*match/i);
+  receipt.auxiliarySha256=hash(auxiliaryCorpus);receipt.lineageFingerprint='0'.repeat(64);save();
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus}),/fingerprint/i);
+  receipt.lineageFingerprint=await corpusFingerprint(corpus,auxiliaryCorpus);save();
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus}),/unique.*source/i);
+  await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus,viewCorpus:'auxiliary'}),/unique.*auxiliary.*source/i);
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,viewCorpus:'other',output:join(root,'output')}),/corpus view/i);
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,viewCorpus:'auxiliary',output:join(root,'output')}),/auxiliary.*required/i);
+  writeFileSync(join(root,'image.png'),'fixture');writeFileSync(join(root,'label.json'),'{}');
+  writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[{id:'selected',image:'image.png',annotations:'label.json'}]}));
+  receipt.auxiliarySha256=hash(auxiliaryCorpus);receipt.lineageFingerprint=await corpusFingerprint(corpus,auxiliaryCorpus);save();
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,viewCorpus:'auxiliary',reviewCorpus:null,output:join(root,'output')}),/Semap training source/i);
+  const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--corpus-sources','--corpus',corpus,
+    '--auxiliary-corpus',auxiliaryCorpus,'--view-corpus','auxiliary','--checkpoint',checkpoint,'--output',join(root,'output'),
+    '--device','cpu','--torch-library',root],{encoding:'utf8'});
+  assert.notEqual(cli.status,0);assert.match(cli.stderr,/Semap training source/i);assert.equal(existsSync(join(root,'output')),false);
+});
 
 test('corpus diagnostics reject unsafe or duplicate sources and existing output',async t=>{
   assert.equal(typeof diagnostic.diagnoseTrainingCorpus,'function');
