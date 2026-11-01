@@ -12,6 +12,9 @@ import {resolveCorpusPath} from './corpus-path.mjs';
 import {assertMacroMetadata} from './macro-training-source.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
+// Identity of the LF-normalized historical publisher generator at cbda4c35.
+// Existing source-derived evidence keeps this identity after the script retires.
+const PUBLISHER_GENERATOR_SHA256='65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07';
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 async function verifyOriginalImage(sheet,root,signal){
   const image=await resolveCorpusPath(root,sheet.image);
@@ -29,9 +32,7 @@ export function evaluationGroups(sheets){const groups={};for(const sheet of shee
 export async function validatePublisherProvenance(annotation,sheet,root,{rendererVersion,signal}={}){
   signal?.throwIfAborted();
   if(annotation?.reviewed!==false||annotation.schemaVersion!==1)throw Error('Publisher-derived training labels cannot claim human review');
-  const script=await readFile(fileURLToPath(new URL('./publisher.py',import.meta.url)),{signal});
-  const scriptHash=createHash('sha256').update(Buffer.from(script.toString('utf8').replaceAll('\r\n','\n'))).digest('hex');
-  const producer=annotation.producer,expected={script:'tools/reference-analysis/publisher.py',sha256:scriptHash,renderer:'PyMuPDF',rendererVersion};
+  const producer=annotation.producer,expected={script:'tools/reference-analysis/publisher.py',sha256:PUBLISHER_GENERATOR_SHA256,renderer:'PyMuPDF',rendererVersion};
   if(!producer||typeof producer!=='object'||Array.isArray(producer)||typeof rendererVersion!=='string'||!rendererVersion||
     Object.keys(producer).length!==4||Object.keys(expected).some(key=>producer[key]!==expected[key]))throw Error('Publisher label generator identity differs');
   const metadata=await trainingProvenanceInputs(annotation,root,'Publisher',signal);

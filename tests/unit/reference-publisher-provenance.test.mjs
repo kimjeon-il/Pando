@@ -3,6 +3,8 @@ import {createHash} from 'node:crypto';
 import {mkdtemp,readFile,rmdir,unlink,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import fs from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
 import test from 'node:test';
 import {validatePublisherProvenance} from '../../tools/reference-analysis/reviewed-corpus.mjs';
 
@@ -16,12 +18,17 @@ test('publisher training provenance binds source bytes, rights and generator ide
   const metadata={sha256:sha(source),rightsReviewed:true,materialKind:'publisher-layered-pdf',license:'fixture only',
     id:sheet.id,familyId:sheet.familyId,url:sheet.source.url};
   const metadataBytes=Buffer.from(JSON.stringify(metadata));await writeFile(metadataPath,metadataBytes);
-  const script=await readFile(new URL('../../tools/reference-analysis/publisher.py',import.meta.url));
   const annotation={schemaVersion:1,reviewed:false,sourcePdf:'source.pdf',sourceMetadata:'source.json',
     sourceSha256:sha(source),sourceMetadataSha256:sha(metadataBytes),
-    producer:{script:'tools/reference-analysis/publisher.py',sha256:sha(Buffer.from(script.toString('utf8').replaceAll('\r\n','\n'))),renderer:'PyMuPDF',rendererVersion:'fixture'}};
+    producer:{script:'tools/reference-analysis/publisher.py',sha256:'65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07',renderer:'PyMuPDF',rendererVersion:'fixture'}};
   const check=(changes={})=>validatePublisherProvenance({...annotation,...changes},sheet,root,{rendererVersion:'fixture'});
   await check();
+  const originalRead=fs.promises.readFile;
+  try{
+    fs.promises.readFile=(path,...args)=>String(path).replaceAll('\\','/').endsWith('/publisher.py')
+      ?Promise.reject(Error('Retired source unavailable')):originalRead(path,...args);
+    syncBuiltinESMExports();await check();
+  }finally{fs.promises.readFile=originalRead;syncBuiltinESMExports();}
   await assert.rejects(check({reviewed:true}),/review/i);
   await assert.rejects(check({producer:{...annotation.producer,sha256:'0'.repeat(64)}}),/identity/i);
   await assert.rejects(check({sourcePdf:'../outside.pdf'}),/corpus root/i);
