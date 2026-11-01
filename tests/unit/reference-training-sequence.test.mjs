@@ -24,7 +24,9 @@ test('mixed campaign refuses history from a different auxiliary corpus',async t=
   const root=mkdtempSync(join(tmpdir(),'pando-training-mixed-history-'));t.after(()=>rmSync(root,{recursive:true}));
   const input=join(root,'checkpoint.pt'),corpus=join(root,'primary.json'),auxiliary=join(root,'auxiliary.json');
   const previousCampaign=join(root,'previous.json'),output=join(root,'new');
-  writeFileSync(input,'checkpoint');writeFileSync(corpus,JSON.stringify({sheets:[]}));writeFileSync(auxiliary,JSON.stringify({sheets:[]}));
+  writeFileSync(input,'checkpoint');writeFileSync(join(root,'image.png'),'image');writeFileSync(join(root,'label.json'),'{}');
+  const data={schemaVersion:1,sheets:[{split:'train',image:'image.png',annotations:'label.json'}]};
+  writeFileSync(corpus,JSON.stringify(data));writeFileSync(auxiliary,JSON.stringify(data));
   const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
   writeFileSync(previousCampaign,JSON.stringify({checkpointSha256:hash(input),corpusSha256:hash(corpus),auxiliarySha256:'0'.repeat(64)}));
   const request={mode:'resume',input,output,corpus,auxiliary,macroOnly:false,previousCampaign,epoch:0,seed:5,

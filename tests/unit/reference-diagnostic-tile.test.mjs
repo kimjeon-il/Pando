@@ -30,7 +30,7 @@ test('combined checkpoint diagnostics require the original auxiliary corpus and 
   await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,viewCorpus:'other',output:join(root,'output')}),/corpus view/i);
   await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,viewCorpus:'auxiliary',output:join(root,'output')}),/auxiliary.*required/i);
   writeFileSync(join(root,'image.png'),'fixture');writeFileSync(join(root,'label.json'),'{}');
-  writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[{id:'selected',image:'image.png',annotations:'label.json'}]}));
+  writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[{id:'selected',split:'train',image:'image.png',annotations:'label.json'}]}));
   receipt.auxiliarySha256=hash(auxiliaryCorpus);receipt.lineageFingerprint=await corpusFingerprint(corpus,auxiliaryCorpus);save();
   await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,viewCorpus:'auxiliary',reviewCorpus:null,output:join(root,'output')}),/Semap training source/i);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-diagnostic-preview.mjs','--corpus-sources','--corpus',corpus,

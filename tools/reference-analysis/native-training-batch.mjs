@@ -9,7 +9,7 @@ import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
-import {prepareRasterTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
+import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
 import {verifyCombinedTrainingOrder,verifyMacroTrainingOrder} from './training-order.mjs';
@@ -50,16 +50,18 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
   throw Error('Checkpoint is not at the requested epoch boundary');
 }
 async function verifyEvidence(root,corpus,sample,data,{epoch,signal,allowPublisher=false}){
-  const {sheet,annotation,annotationSha256,checks}=allowPublisher?
-    await verifiedPrimaryTrainingSource(root,corpus,data.sourceId,{allowPublisher:true,signal}):await verifiedMacroTrainingSource(root,corpus,data.sourceId);
-  const sourceKind=annotation.origin==='publisher-layer-export'?'publisher-pdf':'macro-pdf';
-  if(data.sourceKind!==sourceKind||data.augmentationIndex!==data.tileIndex||sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||annotation.sourceSha256!==data.sourceEvidenceSha256||
-    annotation.raster.sha256!==data.maskSha256||annotation.validRaster.sha256!==data.validMaskSha256)
+  const {sheet,annotation,annotationSha256,imagePath,checks}=allowPublisher?
+    await verifiedPrimaryTrainingSource(root,corpus,data.sourceId,{allowPublisher:true,allowReviewed:true,signal}):await verifiedMacroTrainingSource(root,corpus,data.sourceId);
+  const sourceKind=annotation.origin==='publisher-layer-export'?'publisher-pdf':annotation.origin==='macro-vector-supervision'?'macro-pdf':'reviewed';
+  if(data.sourceKind!==sourceKind||data.augmentationIndex!==data.tileIndex||sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||
+    (sourceKind==='reviewed'?sheet.sha256!==data.sourceEvidenceSha256:annotation.sourceSha256!==data.sourceEvidenceSha256||
+      annotation.raster.sha256!==data.maskSha256||annotation.validRaster.sha256!==data.validMaskSha256))
     throw Error('Source-derived primary training evidence differs');
   if(!Array.isArray(data.pixelOrigin)||data.pixelOrigin.length!==2||data.pixelOrigin.some(v=>!Number.isInteger(v)||v<0)||typeof sample.augment!=='boolean')
     throw Error('Training sample position and augmentation must be explicit');
-  const [x,y]=data.pixelOrigin,rebuilt=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,
-    augment:sample.augment,epoch,index:data.tileIndex},{signal});
+  const [x,y]=data.pixelOrigin,inputs={sourceSha256:sheet.sha256,annotation,x,y,augment:sample.augment,epoch,index:data.tileIndex};
+  const rebuilt=sourceKind==='reviewed'?await prepareReviewedTrainingTile({...inputs,imagePath},{signal}):
+    await prepareRasterTrainingTile({...inputs,root,imagePath:sheet.image},{signal});
   for(const name of TRAINING_TENSOR_NAMES)if(trainingSha256(rebuilt[name])!==data.tensorSha256[name])throw Error('Training tensor differs from source: '+name);
   return {record:{sourceId:data.sourceId,sourceKind:data.sourceKind,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,sourceEvidenceSha256:data.sourceEvidenceSha256,
     tileIndex:data.tileIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks};
@@ -103,7 +105,8 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     throw Error('Training samples differ from the saved order');const data=verifyTrainingSample(sample.directory);
     if(data.tileIndex!==sample.index)throw Error('Training sample index differs from its tensor receipt');return data;});
   const corpusPath=resolve(corpus),corpusBytes=readBounded(corpusPath,32*1024*1024),corpusHash=sha(corpusBytes),manifest=JSON.parse(corpusBytes);
-  if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
+  if(manifest.schemaVersion!==1||!Array.isArray(manifest.sheets)||
+    (manifest.trainingOnly!==true&&(!auxiliary||macroOnly!==false)))throw Error('Explicit private training-only corpus required');
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const combined=auxiliary?await verifyCombinedTrainingOrder({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,signal,verifyEvidence:verifySourceEvidence}):null;
   if(!auxiliary&&orderDirectory)throw Error('Auxiliary corpus required for combined training order');

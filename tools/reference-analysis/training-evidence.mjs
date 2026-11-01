@@ -5,6 +5,12 @@ import {fileURLToPath} from 'node:url';
 import {resolveCorpusPath} from './corpus-path.mjs';
 
 export function readTrainingBounded(path,limit){const info=statSync(path);if(!info.isFile()||info.size>limit)throw Error('Training input exceeds its byte budget');return readFileSync(path);}
+export function assertTrainingCorpusScope(path){
+  const manifest=JSON.parse(readTrainingBounded(resolve(path),32*1024*1024));
+  if(manifest.schemaVersion!==1||!Array.isArray(manifest.sheets)||!manifest.sheets.length||manifest.sheets.some(sheet=>sheet?.split!=='train'))
+    throw Error('Training corpus must contain only training sources');
+  return manifest;
+}
 export function trainingFileIdentity(path,{maxBytes=1024**3}={}){
   if(!Number.isSafeInteger(maxBytes)||maxBytes<1)throw Error('Invalid evidence byte budget');
   const fd=openSync(path,'r');try{const before=fstatSync(fd);

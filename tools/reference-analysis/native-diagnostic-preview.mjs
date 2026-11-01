@@ -96,6 +96,12 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   const auxiliaryPath=combined?resolve(auxiliaryCorpus):null;
   const auxiliaryHash=combined?trainingFileIdentity(auxiliaryPath):null;
   if(combined&&receipt.auxiliarySha256!==auxiliaryHash)throw Error('Auxiliary corpus does not match the checkpoint');
+  if(combined){
+    const auxiliaryManifest=JSON.parse(readTrainingBounded(auxiliaryPath,32*1024*1024));
+    if(!Array.isArray(manifest.sheets)||!Array.isArray(auxiliaryManifest.sheets)||
+      manifest.sheets.some(sheet=>sheet?.split!=='train')||auxiliaryManifest.sheets.some(sheet=>sheet?.split!=='train'))
+      throw Error('Training diagnostics require training-only source scope');
+  }
   const lineageFingerprint=combined?(internalScope?.corpusPath===corpusPath&&internalScope?.auxiliaryPath===auxiliaryPath&&
     internalScope.corpusHash===corpusHash&&internalScope.auxiliaryHash===auxiliaryHash?internalScope.lineageFingerprint:
     await corpusFingerprint(corpusPath,auxiliaryPath)):null;
@@ -111,7 +117,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     if(receipt.initializationSourceSha256!==null&&receipt.initializationSourceSha256!==undefined&&
       transfer.sourceCheckpointSha256!==receipt.initializationSourceSha256)throw Error('Baseline original checkpoint identity differs');
   }
-  const reviewed=reviewCorpus!=null,auxiliaryView=viewCorpus==='auxiliary';let sheet,annotation,checks,reviewPath,reviewHash,verified;
+  const reviewed=reviewCorpus!=null,auxiliaryView=viewCorpus==='auxiliary';let sheet,annotation,checks,reviewPath,reviewHash,verified,primaryReviewed=false;
   if(reviewed){
     reviewPath=resolve(reviewCorpus);const bytes=readTrainingBounded(reviewPath,32*1024*1024);
     reviewHash=createHash('sha256').update(bytes).digest('hex');const reviewManifest=JSON.parse(bytes);
@@ -127,16 +133,17 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     const validated=await validateSemapTrainingCorpus({...auxiliaryManifest,sheets:matches},dirname(auxiliaryPath),{signal});
     ({sheet,annotation,checks}=validated.sources[0]);
   }else{
-    ({sheet,annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,sourceId,{allowPublisher:true,signal,workspace,imageDirectory}));
+    verified=await verifiedPrimaryTrainingSource(root,manifest,sourceId,{allowPublisher:true,allowReviewed:combined,signal,workspace,imageDirectory,reviewDirectory});
+    ({sheet,annotation,checks}=verified);primaryReviewed=manifest.trainingOnly!==true;
     recheckTrainingSources(checks);
   }
   const sourceRoot=reviewed?dirname(reviewPath):auxiliaryView?dirname(auxiliaryPath):root;
   const selected=await selectDiagnosticTile({root:sourceRoot,annotation},{signal,workspace,imageDirectory,reviewDirectory});
   if(!selected)throw Error('Source has no supervised diagnostic tile');
-  const {x,y,index}=selected,path=reviewed?verified.imagePath:await resolveCorpusPath(sourceRoot,sheet.image),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
+  const {x,y,index}=selected,path=reviewed||primaryReviewed?verified.imagePath:await resolveCorpusPath(sourceRoot,sheet.image),format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(path).toLowerCase()];
   if(!format)throw Error('Supported training image required');
   const [tensors,image]=await Promise.all([
-    reviewed?prepareReviewedTrainingTile({imagePath:path,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory,reviewDirectory}):
+    reviewed||primaryReviewed?prepareReviewedTrainingTile({imagePath:path,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory,reviewDirectory}):
       prepareRasterTrainingTile({root:sourceRoot,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment:false,epoch:0,index},{signal,workspace,imageDirectory}),
     readNativeTrainingRaster({path,format,expectedSha256:sheet.sha256,x,y},{signal,workspace,directory:imageDirectory})]);
   const original=Buffer.alloc(512*512*3);for(let i=0;i<512*512;i++){original[i*3]=image.tile[i*4];original[i*3+1]=image.tile[i*4+1];original[i*3+2]=image.tile[i*4+2];}
@@ -149,7 +156,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     if(inference.checkpointSha256!==diagnostic.checkpointSha256)throw Error('Checkpoint changed while preparing ONNX inputs');
     parity={tile:tensors.tile,overview:tensors.overview,position:tensors.position,expectedLogits:inference.logits};
   }
-  const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed},{signal,workspace,imageDirectory,previewDirectory});
+  const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed:reviewed||primaryReviewed},{signal,workspace,imageDirectory,previewDirectory});
   if(reviewed){
     if(trainingFileIdentity(reviewPath)!==reviewHash||trainingFileIdentity(verified.annotationPath)!==verified.annotationSha256||
       trainingFileIdentity(path,{maxBytes:Number.MAX_SAFE_INTEGER})!==sheet.sha256)
@@ -185,7 +192,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   const viewPath=resolve(reviewCorpus||(viewCorpus==='auxiliary'?auxiliaryCorpus:corpus)),viewBytes=readTrainingBounded(viewPath,32*1024*1024);
   const viewHash=createHash('sha256').update(viewBytes).digest('hex'),view=JSON.parse(viewBytes);
   if(!Array.isArray(view.sheets)||!view.sheets.length||view.sheets.length>100000)throw Error('Nonempty bounded diagnostic sources required');
-  if(!reviewCorpus&&view.trainingOnly!==true)throw Error('Training-only corpus required');
+  if(!reviewCorpus&&view.trainingOnly!==true&&(!auxiliaryCorpus||view.sheets.some(sheet=>sheet.split!=='train')))throw Error('Training-only corpus required');
   const ids=view.sheets.map(sheet=>sheet?.id);
   if(ids.some(id=>typeof id!=='string'||!id||id.length>512||id==='.'||id==='..'||/[\\/\u0000-\u001f]/u.test(id)))
     throw Error('Safe diagnostic source identifiers required');

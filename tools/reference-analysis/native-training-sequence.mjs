@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {withLibraryOutputs} from '../library-data.mjs';
 import {reportArgument} from '../report-paths.mjs';
-import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {assertTrainingCorpusScope,corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {writeCombinedTrainingOrder,writeMacroTrainingOrder} from './training-order.mjs';
 import {verifyMacroTrainingSupervision} from './training-supervision.mjs';
 import {runCombinedTrainingBatch,runMacroTrainingBatch} from './native-training-batch.mjs';
@@ -32,7 +32,8 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
     throw Error('Explicit bounded macro training configuration required');
   validateScope({auxiliary,macroOnly,supervision});
   const target=resolve(output),initial=resolve(input);if(existsSync(target))throw Error('Training sequence output exists; preserve it');
-  const inputHash=trainingFileIdentity(initial),checked=auxiliary?
+  const inputHash=trainingFileIdentity(initial);if(auxiliary){assertTrainingCorpusScope(corpus);assertTrainingCorpusScope(auxiliary);}
+  const checked=auxiliary?
     {corpusSha256:trainingFileIdentity(resolve(corpus)),auxiliarySha256:trainingFileIdentity(resolve(auxiliary)),lineageFingerprint:await corpusFingerprint(corpus,auxiliary)}:
     await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
   let cursor=0;
@@ -99,6 +100,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
     (diagnosticOnly!==undefined||patience!==undefined))throw Error('Explicit diagnostic validation scope and positive patience required');
   const target=resolve(output);if(existsSync(target))throw Error('Training campaign output exists; preserve it');
   const initial=resolve(input),inputHash=trainingFileIdentity(initial),corpusHash=trainingFileIdentity(resolve(corpus));
+  if(auxiliary){assertTrainingCorpusScope(corpus);assertTrainingCorpusScope(auxiliary);}
   const auxiliaryHash=auxiliary?trainingFileIdentity(resolve(auxiliary)):null;
   const lineageFingerprint=auxiliary?await corpusFingerprint(corpus,auxiliary):null;
   let validationHash=null,validationFingerprint=null;

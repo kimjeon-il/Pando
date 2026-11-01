@@ -86,6 +86,24 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.equal(publisherCombined.trainingOnly,true);assert.equal(publisherCombined.releaseApproved,false);
   await assert.rejects(indexTrainingDataset(publisherPath),/macro/i);
   await assert.rejects(indexTrainingDataset(publisherPath,{allowPublisher:'yes'}),/scope/i);
+  const reviewedRoot=join(root,'reviewed');await mkdir(reviewedRoot);
+  const reviewedImage=await readFile('tests/fixtures/map-image/png-read/orientation-6.png');
+  await writeFile(join(reviewedRoot,'map.png'),reviewedImage);
+  const reviewedAnnotation={schemaVersion:1,reviewed:true,width:9,height:12,known:{international:[[[0,0],[8,0],[8,11],[0,11]]]},
+    lines:[{kind:'international',width:1,points:[[1,4],[6,4]]}],ignore:[],review:{kind:'agent',reviewer:'fixture',
+      reviewedAt:'2026-10-30T00:00:00Z',sourceSha256:sha(reviewedImage),predictionBlind:true}};
+  await writeFile(join(reviewedRoot,'label.json'),JSON.stringify(reviewedAnnotation));
+  const reviewedPath=join(reviewedRoot,'corpus.json');await writeFile(reviewedPath,JSON.stringify({schemaVersion:1,sheets:[{
+    id:'reviewed',familyId:'reviewed-family',editionId:'reviewed-edition',duplicateGroup:'reviewed-group',split:'train',language:'fas',script:'Arabic',mapKind:'monochrome',
+    image:'map.png',sha256:sha(reviewedImage),annotations:'label.json',source:{url:'https://example.org/reviewed',license:'fixture'}}]}));
+  const reviewedCombined=await inspectCombinedTrainingData({corpus:reviewedPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence});
+  assert.deepEqual(reviewedCombined.datasets.map(rows=>rows.map(row=>row.sourceKind||'semap-label')),[['reviewed'],['semap-label']]);
+  await assert.rejects(indexTrainingDataset(reviewedPath),/training.only/i);
+  const reviewedManifest=JSON.parse(await readFile(reviewedPath,'utf8'));
+  await writeFile(reviewedPath,JSON.stringify({...reviewedManifest,sheets:[...reviewedManifest.sheets,{...reviewedManifest.sheets[0],
+    id:'held-out',familyId:'held-out-family',editionId:'held-out-edition',duplicateGroup:'held-out-group',split:'test',image:'unreadable.png'}]}));
+  await assert.rejects(inspectCombinedTrainingData({corpus:reviewedPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence}),/only training sources/i);
+  await writeFile(reviewedPath,JSON.stringify(reviewedManifest));
   if(process.env.PANDO_REFERENCE_BATCH_DIRECTORY&&process.env.PANDO_REFERENCE_TORCH_LIBRARY){
     const absent=join(root,'missing-runtime-order');
     await assert.rejects(writeCombinedTrainingOrder({corpus:macroPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence,epoch:0,seed:42,
@@ -116,9 +134,19 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     const publisherRequest={...request,corpus:publisherPath,orderDirectory:publisherOrder};
     const publisherBatch=await prepareCombinedTrainingBatch({...publisherRequest,cursor:0,count:2,augment:false,output:join(root,'publisher-batch')});
     assert.deepEqual(publisherBatch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['publisher-pdf','semap-label']);
+    const reviewedOrder=join(root,'reviewed-order');
+    const reviewedPlan=await writeCombinedTrainingOrder({corpus:reviewedPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence,
+      epoch:0,seed:42,output:reviewedOrder,torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY});
+    const reviewedBatch=await prepareCombinedTrainingBatch({...request,corpus:reviewedPath,orderDirectory:reviewedOrder,cursor:0,count:2,augment:false,output:join(root,'reviewed-batch')});
+    assert.deepEqual(reviewedBatch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['reviewed','semap-label']);
     const initializer=join(root,'initializer.bin');await writeFile(initializer,'weights');
     await writeFile(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
       transfer:'weights-only-no-optimizer',weightsSha256:sha('weights')}));
+    const reviewedReceiptPath=join(reviewedBatch.samples[0].directory,'sample.json'),reviewedReceipt=JSON.parse(await readFile(reviewedReceiptPath,'utf8'));
+    await writeFile(reviewedReceiptPath,JSON.stringify({...reviewedReceipt,sourceEvidenceSha256:'0'.repeat(64)}));
+    await assert.rejects(nativeTrainingBatch({...request,corpus:reviewedPath,orderDirectory:reviewedOrder,mode:'warm',input:initializer,
+      output:join(root,'reviewed-model.pt'),order:join(reviewedOrder,'order.u64'),positiveWeights:join(reviewedOrder,'weights.f32'),
+      unobservedMask:reviewedPlan.unobservedMask,freezeEpochs:2,learningRate:.0001,device:'cpu',torchLibrary:root,samples:reviewedBatch.samples}),/evidence differs/i);
     const publisherTraining={...publisherRequest,mode:'warm',input:initializer,output:join(root,'publisher-model.pt'),
       order:join(publisherOrder,'order.u64'),positiveWeights:join(publisherOrder,'weights.f32'),unobservedMask:publisherPlan.unobservedMask,
       freezeEpochs:2,learningRate:.0001,device:'cpu',torchLibrary:root,samples:publisherBatch.samples};

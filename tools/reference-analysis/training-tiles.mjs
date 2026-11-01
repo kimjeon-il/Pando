@@ -6,10 +6,10 @@ import {auditNativeTrainingMask,countNativeEncodedTrainingSupervision,countNativ
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
-import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {assertTrainingCorpusScope,corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
-import {validateCorpusMetadata,validatePublisherProvenance} from './reviewed-corpus.mjs';
+import {validateCorpusMetadata,validatePublisherProvenance,validateReviewedCorpus} from './reviewed-corpus.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
 export function isRasterTrainingAnnotation(annotation){return rasterOrigins.has(annotation?.origin);}
@@ -39,8 +39,16 @@ export async function validatePublisherTrainingSource({root,corpus,sourceId},{si
   return {sheet,annotation,annotationPath,annotationSha256,imagePath,checks,trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
-export async function verifiedPrimaryTrainingSource(root,corpus,sourceId,{allowPublisher=false,signal,workspace,imageDirectory}={}){
-  if(typeof allowPublisher!=='boolean')throw Error('Explicit publisher training scope required');
+export async function verifiedPrimaryTrainingSource(root,corpus,sourceId,{allowPublisher=false,allowReviewed=false,signal,workspace,imageDirectory,reviewDirectory}={}){
+  if(typeof allowPublisher!=='boolean'||typeof allowReviewed!=='boolean')throw Error('Explicit training source scope required');
+  if(allowReviewed&&corpus?.trainingOnly!==true){
+    validateCorpusMetadata(corpus);
+    if(!corpus.sheets.length||corpus.sheets.some(sheet=>sheet.split!=='train'))throw Error('Reviewed training corpus must contain only training sources');
+    const matches=corpus.sheets.filter(sheet=>sheet.id===sourceId);if(matches.length!==1)throw Error('Unique reviewed training source required');
+    let verified;await validateReviewedCorpus({...corpus,sheets:matches},root,{signal,workspace,reviewDirectory,onVerified:value=>{verified=value;}});
+    const checks=[[verified.annotationPath,verified.annotationSha256],[verified.imagePath,verified.sheet.sha256]];recheckTrainingSources(checks);
+    return {...verified,checks};
+  }
   if(!allowPublisher)return verifiedMacroTrainingSource(root,corpus,sourceId);
   if(corpus?.schemaVersion!==1||corpus.trainingOnly!==true||!Array.isArray(corpus.sheets))throw Error('Explicit private training-only corpus required');
   const matches=corpus.sheets.filter(sheet=>sheet?.id===sourceId);
@@ -54,13 +62,17 @@ export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,si
   signal?.throwIfAborted();
   if(!corpus||!auxiliary||typeof macroOnly!=='boolean')throw Error('Explicit primary, auxiliary and macro scope required');
   if(macroOnly)throw Error('Unreviewed Semap sources are not valid macro-only training inputs');
-  const primaryPath=resolve(corpus),auxiliaryPath=resolve(auxiliary),fingerprint=await corpusFingerprint(primaryPath,auxiliaryPath);
+  const primaryPath=resolve(corpus),auxiliaryPath=resolve(auxiliary);
   const primaryManifest=JSON.parse(readTrainingBounded(primaryPath,32*1024*1024));
   const auxiliaryManifest=JSON.parse(readTrainingBounded(auxiliaryPath,32*1024*1024));
   if(!Array.isArray(primaryManifest.sheets)||!Array.isArray(auxiliaryManifest.sheets))throw Error('Both training corpora require sheets');
+  assertTrainingCorpusScope(auxiliaryPath);
+  if(primaryManifest.trainingOnly!==true){validateCorpusMetadata(primaryManifest);
+    if(!primaryManifest.sheets.length||primaryManifest.sheets.some(sheet=>sheet.split!=='train'))throw Error('Reviewed training corpus must contain only training sources');}
+  const fingerprint=await corpusFingerprint(primaryPath,auxiliaryPath);
   const ids=new Set(primaryManifest.sheets.map(sheet=>sheet.id));
   if(auxiliaryManifest.sheets.some(sheet=>ids.has(sheet.id)))throw Error('Duplicate sheet identity across training corpora');
-  const options={signal,workspace,imageDirectory,allowPublisher:true};
+  const options={signal,workspace,imageDirectory,allowPublisher:true,allowReviewed:true};
   const primary=await indexTrainingDataset(primaryPath,options),supervision=await trainingSupervision(primaryPath,options);
   if(primary.corpusSha256!==supervision.corpusSha256)throw Error('Primary training corpus changed during preparation');
   const extra=await inspectSemapTrainingDataset(auxiliaryPath,{...options,verifyEvidence});
@@ -95,19 +107,23 @@ export async function inspectSemapTrainingDataset(corpus,{signal,verifyEvidence,
     throw Error('Training corpus changed during indexing');
   return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,corpusSha256,lineageFingerprint,counts,tiles,sources:validated.sources};
 }
-export async function indexTrainingDataset(corpus,{signal,workspace,imageDirectory,allowPublisher=false}={}){
+export async function indexTrainingDataset(corpus,{signal,workspace,imageDirectory,reviewDirectory,allowPublisher=false,allowReviewed=false}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
   const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');
   const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
-  if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
+  if(manifest.schemaVersion!==1||(!allowReviewed&&manifest.trainingOnly!==true)||!Array.isArray(manifest.sheets))throw Error('Explicit private training-only corpus required');
+  if(allowReviewed&&manifest.trainingOnly!==true)validateCorpusMetadata(manifest);
   const tiles=[],seen=new Set();
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
-    const {sheet,annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,row.id,{allowPublisher,signal,workspace,imageDirectory});
-    for(const tile of await listRasterTrainingTiles({root,annotation},{signal,workspace,imageDirectory})){
+    const {sheet,annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,row.id,{allowPublisher,allowReviewed,signal,workspace,imageDirectory,reviewDirectory});
+    const reviewed=!isRasterTrainingAnnotation(annotation);
+    const sourceTiles=reviewed?await listReviewedTrainingTiles(annotation,{fullSheetCoordinates:true,signal,workspace,reviewDirectory}):
+      await listRasterTrainingTiles({root,annotation},{signal,workspace,imageDirectory});
+    for(const tile of sourceTiles){
       if(tiles.length>=1000000)throw Error('Training tile count exceeds budget');
       tiles.push({sourceId:sheet.id,index:tiles.length,x:tile.x,y:tile.y,duplicateGroup:sheet.duplicateGroup,
-        ...(allowPublisher?{sourceKind:annotation.origin==='publisher-layer-export'?'publisher-pdf':'macro-pdf'}:{})});
+        ...(allowPublisher||allowReviewed?{sourceKind:reviewed?'reviewed':annotation.origin==='publisher-layer-export'?'publisher-pdf':'macro-pdf'}:{})});
     }
     recheckTrainingSources(checks);
   }
@@ -164,16 +180,17 @@ async function trainingRaster(root,annotation,field,options){
     await readNativeTrainingMaskWindow(bytes,sha256,options.window,nativeOptions);
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
 }
-export async function trainingSupervision(corpus,{signal,workspace,imageDirectory,allowPublisher=false}={}){
+export async function trainingSupervision(corpus,{signal,workspace,imageDirectory,reviewDirectory,allowPublisher=false,allowReviewed=false}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
   const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');
   const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
-  if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets)||!manifest.sheets.length)
+  if(manifest.schemaVersion!==1||(!allowReviewed&&manifest.trainingOnly!==true)||!Array.isArray(manifest.sheets)||!manifest.sheets.length)
     throw Error('Explicit private training-only corpus required');
-  const counts=Array.from({length:7},()=>[0,0]),seen=new Set(),sources=[],options={signal,workspace,imageDirectory};
+  if(allowReviewed&&manifest.trainingOnly!==true)validateCorpusMetadata(manifest);
+  const counts=Array.from({length:7},()=>[0,0]),seen=new Set(),sources=[],options={signal,workspace,imageDirectory,reviewDirectory};
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
-    const {annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,row.id,{allowPublisher,signal,workspace,imageDirectory});
+    const {annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,row.id,{allowPublisher,allowReviewed,signal,workspace,imageDirectory,reviewDirectory});
     const sheetCounts=await countAnnotationTrainingSupervision({root,annotation},options);
     for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
     recheckTrainingSources(checks);

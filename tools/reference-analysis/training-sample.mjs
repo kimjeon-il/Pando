@@ -4,7 +4,7 @@ import {basename,dirname,join,resolve} from 'node:path';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
-import {indexTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile,validatePublisherTrainingSource} from './training-tiles.mjs';
+import {indexTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile,validatePublisherTrainingSource,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
 import {verifyCombinedTrainingOrder} from './training-order.mjs';
 
 export const TRAINING_TENSOR_NAMES=Object.freeze(['tile','overview','position','target','valid']);
@@ -16,9 +16,9 @@ export function verifyTrainingSample(directory,{requireInternational=false}={}){
   const data=JSON.parse(readFileSync(receiptPath,'utf8'));
   if(data.trainingOnly!==true||data.releaseApproved!==false||typeof data.sourceId!=='string'||!data.sourceId||
     !Number.isInteger(data.tileIndex)||data.tileIndex<0||
-    !Number.isInteger(data.augmentationIndex)||data.augmentationIndex<0||!['macro-pdf','publisher-pdf','semap-label'].includes(data.sourceKind)||
+    !Number.isInteger(data.augmentationIndex)||data.augmentationIndex<0||!['macro-pdf','publisher-pdf','semap-label','reviewed'].includes(data.sourceKind)||
     (requireInternational&&(!(data.knownInternationalPixels>0)||!(data.positiveInternationalPixels>0)))||
-    !['sourceEvidenceSha256','imageSha256','annotationSha256','maskSha256','validMaskSha256'].every(field=>/^[a-f0-9]{64}$/.test(data[field]||'')))
+    !['sourceEvidenceSha256','imageSha256','annotationSha256',...(data.sourceKind==='reviewed'?[]:['maskSha256','validMaskSha256'])].every(field=>/^[a-f0-9]{64}$/.test(data[field]||'')))
     throw Error('A source-bound training-only sample receipt is required');
   for(const name of TRAINING_TENSOR_NAMES){const path=join(directory,name+'.f32'),info=statSync(path);
     if(!info.isFile()||info.size<1||info.size>TRAINING_TENSOR_LIMITS[name])throw Error('Training sample tensor exceeds its byte budget: '+name);
@@ -35,19 +35,23 @@ async function writeSourceTrainingSample({corpus,sourceId,tileIndex,x,y,augment,
   if(existsSync(output))throw Error('Training sample output exists; preserve it');
   const corpusPath=resolve(corpus),root=dirname(corpusPath),corpusBytes=readTrainingBounded(corpusPath,32*1024*1024),corpusHash=trainingSha256(corpusBytes);
   const manifest=JSON.parse(corpusBytes);
-  const {sheet,annotation,annotationSha256,checks}=sourceKind==='publisher-pdf'?
-    await validatePublisherTrainingSource({root,corpus:manifest,sourceId},{signal}):await verifiedMacroTrainingSource(root,manifest,sourceId);
-  const tiles=await listRasterTrainingTiles({root,annotation},{signal});
+  const {sheet,annotation,annotationSha256,imagePath,checks}=sourceKind==='publisher-pdf'?
+    await validatePublisherTrainingSource({root,corpus:manifest,sourceId},{signal}):sourceKind==='reviewed'?
+    await verifiedPrimaryTrainingSource(root,manifest,sourceId,{allowReviewed:true,signal}):await verifiedMacroTrainingSource(root,manifest,sourceId);
+  const tiles=sourceKind==='reviewed'?await listReviewedTrainingTiles(annotation,{fullSheetCoordinates:true,signal}):
+    await listRasterTrainingTiles({root,annotation},{signal});
   if(!tiles.some(tile=>tile.x===x&&tile.y===y))throw Error('Sample must select a supervised source tile');
-  const tensors=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,augment,epoch,index:tileIndex},{signal});
+  const inputs={sourceSha256:sheet.sha256,annotation,x,y,augment,epoch,index:tileIndex};
+  const tensors=sourceKind==='reviewed'?await prepareReviewedTrainingTile({...inputs,imagePath},{signal}):
+    await prepareRasterTrainingTile({...inputs,root,imagePath:sheet.image},{signal});
   recheckTrainingSources(checks);
   if(trainingSha256(readTrainingBounded(corpusPath,32*1024*1024))!==corpusHash)throw Error('Training corpus changed during sample preparation');
   const tensorSha256=Object.fromEntries(TRAINING_TENSOR_NAMES.map(name=>[name,trainingSha256(tensors[name])]));
   let knownInternationalPixels=0,positiveInternationalPixels=0;
   for(let offset=0;offset<512*512*4;offset+=4)if(tensors.valid.readFloatLE(offset)>0){knownInternationalPixels++;if(tensors.target.readFloatLE(offset)>0)positiveInternationalPixels++;}
-  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind,sourceEvidenceSha256:annotation.sourceSha256,
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,sourceId,sourceKind,sourceEvidenceSha256:sourceKind==='reviewed'?sheet.sha256:annotation.sourceSha256,
     augmentationIndex:tileIndex,imageSha256:sheet.sha256,
-    annotationSha256,maskSha256:annotation.raster.sha256,validMaskSha256:annotation.validRaster.sha256,tileIndex,pixelOrigin:[x,y],
+    annotationSha256,...(sourceKind==='reviewed'?{}:{maskSha256:annotation.raster.sha256,validMaskSha256:annotation.validRaster.sha256}),tileIndex,pixelOrigin:[x,y],
     positiveInternationalPixels,knownInternationalPixels,tensorSha256};
   signal?.throwIfAborted();mkdirSync(resolve(output));
   for(const name of TRAINING_TENSOR_NAMES)writeFileSync(join(output,name+'.f32'),tensors[name],{flag:'wx'});
@@ -55,6 +59,7 @@ async function writeSourceTrainingSample({corpus,sourceId,tileIndex,x,y,augment,
 }
 export function writeMacroTrainingSample(request){return writeSourceTrainingSample(request,'macro-pdf');}
 export function writePublisherTrainingSample(request){return writeSourceTrainingSample(request,'publisher-pdf');}
+export function writeReviewedTrainingSample(request){return writeSourceTrainingSample(request,'reviewed');}
 
 export async function writeSemapTrainingSample({corpus,sourceId,tileIndex,localIndex,x,y,augment,epoch,output,signal,verifyEvidence}){
   signal?.throwIfAborted();
@@ -99,8 +104,8 @@ export async function prepareCombinedTrainingBatch({corpus,auxiliary,orderDirect
   const auxiliaryData={tiles:checked.datasets[1],sources:checked.auxiliarySources};
   for(let i=0;i<selected.length;i++){const tile=selected[i],directory=resolve(output,'sample-'+String(i).padStart(2,'0'));
     if(tile.index<checked.datasets[0].length){
-      if(!['macro-pdf','publisher-pdf'].includes(tile.sourceKind))throw Error('Verified primary training source kind required');
-      const write=tile.sourceKind==='publisher-pdf'?writePublisherTrainingSample:writeMacroTrainingSample;
+      if(!['macro-pdf','publisher-pdf','reviewed'].includes(tile.sourceKind))throw Error('Verified primary training source kind required');
+      const write=tile.sourceKind==='publisher-pdf'?writePublisherTrainingSample:tile.sourceKind==='reviewed'?writeReviewedTrainingSample:writeMacroTrainingSample;
       await write({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
     }
     else await writeVerifiedSemapSample({corpusPath:resolve(auxiliary),sourceId:tile.sourceId,tileIndex:tile.index,localIndex:tile.localIndex,

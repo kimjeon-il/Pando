@@ -88,7 +88,9 @@ sheet. Its publisher identity, pinned historical renderer version, source and
 image hashes, image dimensions and observed raster channels are checked before
 inference. The Python publisher generator itself has not yet been replaced.
 The native combined batch and bounded multi-epoch campaign accept publisher-derived
-primary sources with an explicit nonmacro Semap auxiliary corpus. Campaign and
+or source-reviewed primary sources with an explicit nonmacro Semap auxiliary corpus.
+Reviewed training manifests may contain only `train` sheets; put validation and
+test sheets in separate manifests so the training path cannot read them. Campaign and
 checkpoint receipts bind both corpus hashes and their combined source fingerprint;
 training loss selection is diagnostic and is not independent validation. A
 campaign can instead select by an explicitly scoped source-reviewed validation
