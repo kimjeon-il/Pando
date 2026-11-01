@@ -17,7 +17,6 @@ export function createFileController({productMode,readProject=readProjectFile,op
     try{
       const selected=assertGisFileSelection(await fileAccess.openGisFiles());
       if(selected.cancelled){setTarget('');return false;}
-      if(!Array.isArray(selected.files)||!selected.files.length)throw new Error('선택한 GIS 파일이 없습니다.');
       return await acceptGis(selected.files);
     }catch(error){setTarget('');throw error;}
     finally{focus?.focus?.({preventScroll:true});}
