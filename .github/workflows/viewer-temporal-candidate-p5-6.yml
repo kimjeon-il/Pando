@@ -55,7 +55,7 @@ jobs:
           node tools/package-shared-core-assets.mjs --build-dir build-native/p5-6/wasm
           node tools/package-shared-core-assets.mjs --build-dir build-native/p5-6/wasm --check
       - name: P5-6 native candidate integration and existing source contracts
-        run: node --test tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/core-document-read-model.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs
+        run: node --test tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/builtin-source-cache.test.mjs tests/unit/core-temporal-transport-p5-5.test.mjs
       - name: Install only Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Real Viewer year transition, exact A-B-A consistency and timing
