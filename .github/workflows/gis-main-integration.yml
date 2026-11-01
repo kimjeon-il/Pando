@@ -1,0 +1,45 @@
+name: GIS integration historical assertion diagnosis
+on:
+  push:
+    branches: [work/gis]
+    paths: [.github/workflows/gis-main-integration.yml]
+permissions:
+  contents: read
+jobs:
+  historical:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: ./.github/actions/library-data
+      - name: Lint the reviewed merge and fixture sources
+        run: pnpm exec eslint shared/frontend/js/modules/builtin-world-loader.js tests/helpers/frontend-build-fixture.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs apps/editor/tests/helpers/world-fixture.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/product-assets.test.mjs
+      - name: Read only relevant dated source descriptors without emitting coordinates
+        run: |
+          node --input-type=module <<'JS'
+          import {readTerritorialSource} from './tools/territorial-entity-sources.mjs';
+          for(const id of ['state:RUS','state:UKR','state:SDN','state:SDS']){
+            const e=readTerritorialSource(id);
+            console.log('DATED_SOURCE='+JSON.stringify({id,lifetime:e.lifetime,versions:e.geometryVersions.map(v=>({id:v.versionId,from:v.validFrom,to:v.validTo,certainty:v.certainty,provenance:v.historicalProvenance?Object.keys(v.historicalProvenance):[]}))}));
+          }
+          JS
+      - name: Preserve original membership assertion while bounding its failure output
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/unit/sudan-ukraine-transition.test.mjs');s=p.read_text()
+          old=" assert.equal(at('2014-03','RUS'),undefined,'Russian historical Crimea needs separate reconstruction');"
+          new=" const rus=at('2014-03','RUS');\n console.log('RUS_2014_MEMBERSHIP='+JSON.stringify({present:rus!==undefined,sourceGeometryVersion:rus?.properties?.sourceGeometryVersion,crimeaCovered:covers(rus?.geometry,crimea)}));\n assert.equal(rus===undefined,true,'Russian historical Crimea needs separate reconstruction');"
+          assert s.count(old)==1
+          p.write_text(s.replace(old,new))
+          PY
+          /usr/bin/time -v node --max-old-space-size=2048 --test --test-concurrency=1 tests/unit/sudan-ukraine-transition.test.mjs
