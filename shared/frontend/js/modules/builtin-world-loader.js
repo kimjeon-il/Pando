@@ -1,5 +1,5 @@
 import {createStoredAssetLoader} from './stored-asset-loader.js';
-import {parseTemporal,temporalContains,temporalMonthEnd} from './temporal.js';
+import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval} from './temporal.js';
 import {projectTimelineIdentity} from './timeline-resolver.js';
 
 const contains=(rows,month)=>rows.some(row=>temporalContains(row,temporalMonthEnd(month)));
@@ -64,8 +64,12 @@ export function assembleBuiltinWorld(index,countries,month){
 export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){
  if(!manifestUrl||!manifestSpec?.sha256||!dataRevision)throw new Error('Builtin country catalog integrity metadata is required');
  const base=new URL(manifestUrl,globalThis.location?.href),parse=bytes=>JSON.parse(new TextDecoder().decode(bytes));
- const assets=createStoredAssetLoader({dataRevision,fetchFn,cacheStorage,resolveUrl:spec=>new URL(spec.url,base).href});
- let indexPromise,transportPromise;
+ const assetOptions={dataRevision,fetchFn,cacheStorage,resolveUrl:spec=>new URL(spec.url,base).href};
+ // The mutable catalog belongs to a revision. Content-hashed countries do not:
+ // unchanged files must survive a newer catalog/data revision without refetching.
+ const catalogs=createStoredAssetLoader(assetOptions);
+ const assets=createStoredAssetLoader({...assetOptions,cachePolicy:'immutable'});
+ let indexPromise;
  const countries=new Map(),pending=new Map();
  let activeReads=0;
  const readQueue=[];
@@ -73,52 +77,64 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   if(activeReads===6)await new Promise(resolve=>readQueue.push(resolve));else activeReads++;
   try{return await operation();}finally{if(readQueue.length)readQueue.shift()();else activeReads--;}
  }
+ function parseIndex(bytes){
+  const value=parse(bytes);
+  if(value?.schema!=='pandolab-builtin-world'||value.schemaVersion!==2||value.storageLayout!=='country-files-v1'
+   ||Object.hasOwn(value,'transport')||!Array.isArray(value.entities)
+   ||!value.template||typeof value.template!=='object'||Array.isArray(value.template))throw new Error('Invalid builtin world index');
+  const ids=new Set(),paths=new Set();
+  for(const row of value.entities){
+   if(!row||typeof row.entityId!=='string'||!row.entityId||ids.has(row.entityId)
+    ||!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(row.file)
+    ||!/^[a-f0-9]{64}$/.test(row.sha256)||row.file!==`countries/${row.entityId.replaceAll(':','-')}-sha256-${row.sha256}.json.gz`
+    ||paths.has(row.file)||row.encoding!=='gzip'||Object.hasOwn(row,'offset')||!Array.isArray(row.coverage)
+    ||!Number.isSafeInteger(row.compressedBytes)||row.compressedBytes<=0
+    ||!Number.isSafeInteger(row.decodedBytes)||row.decodedBytes<=0)throw new Error('Invalid builtin country descriptor');
+   for(const interval of row.coverage){
+    if(!interval||!['validFrom','validTo'].every(key=>interval[key]===null||typeof interval[key]==='string'&&interval[key].trim()))throw new Error('Invalid builtin country coverage descriptor');
+    normalizeTemporalInterval(interval.validFrom,interval.validTo);
+   }
+   ids.add(row.entityId);paths.add(row.file);
+  }
+  return value;
+ }
+ function parseCountry(bytes,entry){
+  const value=parse(bytes);
+  if(value?.schemaVersion!==2||value.entityId!==entry.entityId||value.identity?.id!==entry.entityId
+   ||!value.identity.properties||typeof value.identity.properties!=='object'||Array.isArray(value.identity.properties)
+   ||!Array.isArray(value.sourceBindings)||!Array.isArray(value.geometries)||value.timelineRecords?.schemaVersion!==3
+   ||!['lifetimes','geometryBindings','parentRelations','propertyBindings'].every(key=>Array.isArray(value.timelineRecords[key])))throw new Error('Invalid builtin country payload or identity: '+entry.entityId);
+  return value;
+ }
  async function loadIndex(){
-  if(!indexPromise)indexPromise=assets.loadAsset({...manifestSpec,url:base.href},'builtin-world','index','국가 자료 목록',parse)
-   .then(({value})=>{
-    if(value.schema!=='pandolab-builtin-world'||value.schemaVersion!==2||!Array.isArray(value.entities)
-      ||new Set(value.entities.map(row=>row.entityId)).size!==value.entities.length)throw new Error('Invalid builtin world index');
-    const transport=value.transport;
-    if(transport?.schemaVersion!==1||transport.encoding!=='identity'
-      ||!/^transport\/countries-sha256-[a-f0-9]{64}\.bin$/.test(transport.url)||!transport.url.includes(transport.sha256)
-      ||!/^[a-f0-9]{64}$/.test(transport.sha256)||!Number.isSafeInteger(transport.compressedBytes)||transport.compressedBytes<=0
-      ||transport.decodedBytes!==transport.compressedBytes)throw new Error('Invalid builtin country transport');
-    let offset=0;
-    for(const row of value.entities){
-     if(!/^countries\/[A-Za-z0-9_-]+-sha256-[a-f0-9]{64}\.json\.gz$/.test(row.file)
-      ||!row.file.includes(row.sha256)||!Array.isArray(row.coverage)
-      ||!Number.isSafeInteger(row.offset)||row.offset!==offset||!Number.isSafeInteger(row.compressedBytes)||row.compressedBytes<=0
-      ||!Number.isSafeInteger(row.decodedBytes)||row.decodedBytes<=0)throw new Error('Invalid builtin country descriptor');
-     offset+=row.compressedBytes;
-     if(!Number.isSafeInteger(offset)||offset>transport.compressedBytes)throw new Error('Builtin country range exceeds transport');
-    }
-    if(offset!==transport.compressedBytes)throw new Error('Incomplete builtin country transport');
-    return value;
-   })
-   .catch(error=>{indexPromise=null;throw error;});
+  if(!indexPromise)indexPromise=catalogs.loadAsset({...manifestSpec,url:base.href},'builtin-world','index','국가 자료 목록',parseIndex)
+   .then(({value})=>value).catch(error=>{indexPromise=null;throw error;});
   return indexPromise;
  }
- async function loadTransport(index){
-  if(!transportPromise)transportPromise=assets.loadStoredAsset(index.transport,'builtin-world','transport','국가 자료 묶음',bytes=>bytes)
-   .then(({value})=>value).catch(error=>{transportPromise=null;throw error;});
-  return transportPromise;
- }
- async function loadCountry(entry,index){
-  if(countries.has(entry.entityId))return countries.get(entry.entityId);
-  if(!pending.has(entry.entityId))pending.set(entry.entityId,limitedRead(async()=>{
-   const bytes=await loadTransport(index);
-   return assets.decodeStoredAsset(bytes.slice(entry.offset,entry.offset+entry.compressedBytes),{...entry,encoding:'gzip'},'builtin-world',entry.entityId,entry.entityId,parse);
-  })
-   .then(({value})=>{if(value.entityId!==entry.entityId||value.schemaVersion!==2)throw new Error('Builtin country identity mismatch');countries.set(entry.entityId,value);return value;})
-   .finally(()=>pending.delete(entry.entityId)));
-  return pending.get(entry.entityId);
+ async function loadCountry(entry){
+  const key=entry.file;
+  if(countries.has(key))return countries.get(key);
+  // A shared file request is independent of any one month query's cancellation.
+  if(!pending.has(key))pending.set(key,limitedRead(()=>assets.loadAsset({...entry,url:entry.file},
+   'builtin-world',entry.entityId,entry.entityId,bytes=>parseCountry(bytes,entry)))
+   .then(({value})=>{countries.set(key,value);return value;})
+   .finally(()=>pending.delete(key)));
+  return pending.get(key);
  }
  async function loadProject(month,{isCurrent=()=>true}={}){
-  const index=await loadIndex(),selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
-  let next=0;
+  const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});};
+  assertCurrent();
+  const index=await loadIndex();assertCurrent();
+  const selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
+  let next=0,failed=false;
   await Promise.all(Array.from({length:Math.min(6,selected.length)},async()=>{
-   while(next<selected.length){if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});const i=next++;loaded[i]=await loadCountry(selected[i],index);}
+   try{
+    while(!failed&&next<selected.length){
+     assertCurrent();const i=next++;loaded[i]=await loadCountry(selected[i]);assertCurrent();
+    }
+   }catch(error){failed=true;throw error;}
   }));
+  assertCurrent();
   return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:${month}`};
  }
  return Object.freeze({loadIndex,loadProject});
