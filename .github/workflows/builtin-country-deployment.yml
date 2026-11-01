@@ -33,6 +33,7 @@ jobs:
     if: github.ref == 'refs/heads/work/gis' && github.actor != 'github-actions[bot]'
     permissions:
       contents: write
+      actions: read
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -45,6 +46,30 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Reuse completed checks only for an identical implementation and input pin
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          const message=JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH)).head_commit?.message||'';
+          const requested=message.match(/\[resume-country-files:(\d+)\]/)?.[1];
+          if(!requested){appendFileSync(process.env.GITHUB_OUTPUT,'verified=false\n');process.exit(0);}
+          const get=async path=>{const response=await fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/${path}`,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'}});assert.ok(response.ok,'Prior verification lookup failed: '+response.status);return response.json();};
+          const run=await get('actions/runs/'+requested);
+          assert.equal(run.head_branch,'work/gis');assert.equal(run.path,'.github/workflows/builtin-country-deployment.yml');assert.equal(run.status,'completed');
+          const jobs=await get('actions/runs/'+requested+'/jobs?per_page=100'),job=jobs.jobs.find(row=>row.name==='deployment');
+          for(const name of ['Verify affected generation, loader, deployment and App file contracts','Prepare independent files and a locally verified paired pin; preserve every country hash','Verify real Web/App closures, dated loading and preservation of unrelated archived data','Verify current month, historical selection and no aggregate network request'])assert.equal(job?.steps.find(step=>step.name===name)?.conclusion,'success',name);
+          assert.match(run.head_sha,/^[a-f0-9]{40}$/);
+          execFileSync('git',['fetch','--no-tags','--depth=1','origin',run.head_sha],{stdio:'pipe'});
+          const changed=execFileSync('git',['diff','--name-only',run.head_sha,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+          assert.ok(changed.every(path=>path==='.github/workflows/builtin-country-deployment.yml'||path==='docs/development/builtin-country-deployment.md'),'Implementation or paired input changed; run fresh checks');
+          appendFileSync(process.env.GITHUB_OUTPUT,'verified=true\n');
+          console.log(JSON.stringify({reusedVerificationRun:run.id,verifiedCodeCommit:run.head_sha,implementationAndInputPinIdentical:true}));
+          JS
       - uses: pnpm/action-setup@v4
         with:
           version: 11.19.0
@@ -53,7 +78,29 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Prepare exact paired inputs without GIS regeneration
         uses: ./.github/actions/library-data
+      - name: Preserve a report-only remote advance without admitting unreviewed runtime data
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          import {libraryConfig,libraryCheckout} from './tools/library-data.mjs';
+          const config=libraryConfig(),checkout=libraryCheckout();
+          const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+          git('fetch','--no-tags','origin','refs/heads/work/gis');
+          const latest=git('rev-parse','FETCH_HEAD');
+          if(latest!==config.revision){
+           git('merge-base','--is-ancestor',config.revision,latest);
+           const paths=git('diff','--name-only',config.revision,latest).split('\n').filter(Boolean);
+           assert.ok(paths.every(path=>path.startsWith('reports/')),'Remote runtime data differs; do not overwrite or silently merge it');
+           assert.equal(git('rev-parse',config.revision+':archive/index.json'),git('rev-parse',latest+':archive/index.json'),'Runtime archive differs');
+           console.log(JSON.stringify({reportOnlyAdvance:{from:config.revision,to:latest,preservedPaths:paths.length},runtimeArchiveUnchanged:true}));
+           writeFileSync('config/library-data.json',JSON.stringify({...config,revision:latest},null,2)+'\n');
+          }
+          JS
+          node tools/library-data.mjs
       - name: Verify affected generation, loader, deployment and App file contracts
+        if: steps.reuse.outputs.verified != 'true'
         run: |
           node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs apps/editor/tests/world-data-plan.test.mjs apps/editor/tests/stage-world.test.mjs
           node --test --test-timeout=30000 --test-name-pattern='stages the real frontend|verification assets are opt-in|the verification fixture loads' apps/editor/tests/stage.test.mjs
@@ -72,12 +119,15 @@ jobs:
           JS
           node tools/library-data.mjs
       - name: Verify real Web/App closures, dated loading and preservation of unrelated archived data
-        run: |
-          node tests/integration/builtin-country-deployment.mjs
-          node --test --test-timeout=30000 tests/unit/product-assets.test.mjs
+        run: node tests/integration/builtin-country-deployment.mjs
+      - name: Verify product asset unit contracts
+        if: steps.reuse.outputs.verified != 'true'
+        run: node --test --test-timeout=30000 tests/unit/product-assets.test.mjs
       - name: Prepare one real Chromium loading regression
+        if: steps.reuse.outputs.verified != 'true'
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify current month, historical selection and no aggregate network request
+        if: steps.reuse.outputs.verified != 'true'
         run: pnpm exec playwright test tests/browser/builtin-country-loading.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
       - name: Publish only verified country files to the data work/gis branch
         if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
