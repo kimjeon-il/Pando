@@ -51,7 +51,7 @@ export async function validateMacroProvenance(annotation,sheet,root,{rendererVer
   const historical=producer?.script==='tools/reference-analysis/macro.py'&&producer.renderer==='PyMuPDF'&&
     typeof rendererVersion==='string'&&!!rendererVersion&&producer.rendererVersion===rendererVersion;
   const native=producer?.script==='tools/reference-analysis/prepare-macro.mjs'&&producer.renderer==='MuPDF'&&producer.rendererVersion==='1.26.11'&&
-    producer.sha256==='9480379ceae9a5dbbd40d9e9f088581dbdf0f17152a3b9a093c94e0bd3d1e414';
+    producer.sha256==='4e4ed7b1926973c866992fb1ca80a255c0e59f1d97350d1d5a223962c16ba1f5';
   if(annotation?.schemaVersion!==1||annotation.reviewed!==false||annotation.supervisionQuality!=='source-derived-weak'||
     typeof producer?.sha256!=='string'||!SHA.test(producer.sha256)||!(historical||native))
     throw Error('Explicit source-derived macro provenance required');

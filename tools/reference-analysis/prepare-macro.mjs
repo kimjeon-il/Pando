@@ -38,7 +38,7 @@ export async function prepareMacroSheet({source,root,maximumDimension=2560,metad
   if(!within(base,pdf)||extname(pdf).toLowerCase()!=='.pdf')throw Error('Contained macro source PDF required');
   const sourcePdf=normal(relative(base,pdf)),originalName=sourcePdf.slice(0,-4)+'.source.json';
   const originalPath=realpathSync(await resolveCorpusPath(base,originalName)),actualMetadata=metadataPath?realpathSync(resolve(metadataPath)):originalPath;
-  if(!within(base,actualMetadata))throw Error('Contained source metadata required');
+  if(!within(base,actualMetadata))throw Error(`Contained source metadata required: ${base} -> ${actualMetadata} (${relative(base,actualMetadata)})`);
   const sourceMetadata=normal(relative(base,actualMetadata));await resolveCorpusPath(base,sourceMetadata);
   const metadataBytes=readTrainingBounded(actualMetadata,8*1024*1024),originalBytes=readTrainingBounded(originalPath,8*1024*1024);
   const metadata=JSON.parse(metadataBytes),original=JSON.parse(originalBytes),key=metadata.id,imageKey=original.id,sourceSha256=trainingFileIdentity(pdf);
