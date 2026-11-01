@@ -57,6 +57,8 @@ export function verifyTrainingInitializer({path,expectedSha256}){
     throw Error('Verified private weights-only initializer required');
   let encoderInitialization=null,sourceCheckpointSha256=record.sourceCheckpointSha256??null;
   if(sourceCheckpointSha256!==null&&!/^[a-f0-9]{64}$/.test(sourceCheckpointSha256))throw Error('Invalid initializer source checkpoint identity');
+  if(record.sourceInitializationSha256!=null&&!/^[a-f0-9]{64}$/.test(record.sourceInitializationSha256))
+    throw Error('Invalid source initialization checkpoint identity');
   if(record.transfer==='public-encoder-no-optimizer'){
     if(record.schemaVersion!==1||sourceCheckpointSha256!==null||record.tensorCount!==340||record.randomSeed!==20261022||
       weightsSha256!==publicEncoderWeightsSha256||record.encoderInitialization?.sha256!==publicEncoderSourceSha256||

@@ -85,8 +85,8 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   signal?.throwIfAborted();
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||typeof sourceId!=='string'||!sourceId||!torchLibrary||!['cpu','cuda'].includes(device))
     throw Error('Explicit source, one checkpoint or transferred weights, and device required');
-  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null))
-    throw Error('Transferred weights require a diagnostic without a baseline or auxiliary corpus');
+  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'))
+    throw Error('Transferred weights require a diagnostic without an auxiliary corpus');
   const corpusPath=resolve(corpus),root=dirname(corpusPath),checkpointPath=resolve(weights||checkpoint),
     receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json';
   const corpusHash=trainingFileIdentity(corpusPath),checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024);
@@ -120,12 +120,20 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   if(baselineWeights!=null){
     if(typeof baselineWeights!=='string'||!baselineWeights)throw Error('Explicit baseline weights path required');
     baselinePath=resolve(baselineWeights);baselineHash=trainingFileIdentity(baselinePath);
-    if(!receipt.initializationWeightsSha256||receipt.initializationWeightsSha256!==baselineHash)throw Error('Baseline does not match the checkpoint initializer');
+    if(!weights&&(!receipt.initializationWeightsSha256||receipt.initializationWeightsSha256!==baselineHash))
+      throw Error('Baseline does not match the checkpoint initializer');
     transferPath=resolve(dirname(baselinePath),'transfer.json');const transferBytes=readTrainingBounded(transferPath,1024*1024);
     transferHash=createHash('sha256').update(transferBytes).digest('hex');const transfer=JSON.parse(transferBytes);
-    if(receipt.initializationSourceSha256!=null&&!/^[a-f0-9]{64}$/.test(receipt.initializationSourceSha256))throw Error('Invalid baseline original checkpoint identity');
-    if(receipt.initializationSourceSha256!==null&&receipt.initializationSourceSha256!==undefined&&
-      transfer.sourceCheckpointSha256!==receipt.initializationSourceSha256)throw Error('Baseline original checkpoint identity differs');
+    if(weights){
+      if(!/^[a-f0-9]{64}$/.test(receipt.sourceInitializationSha256||''))throw Error('Transferred checkpoint initializer identity is missing');
+      const checked=verifyTrainingInitializer({path:baselinePath,expectedSha256:baselineHash});
+      if(checked.initialization!=='weights-only-no-optimizer'||checked.recordHash!==transferHash||
+        checked.sourceCheckpointSha256!==receipt.sourceInitializationSha256)throw Error('Baseline does not match the transferred checkpoint initializer');
+    }else{
+      if(receipt.initializationSourceSha256!=null&&!/^[a-f0-9]{64}$/.test(receipt.initializationSourceSha256))throw Error('Invalid baseline original checkpoint identity');
+      if(receipt.initializationSourceSha256!==null&&receipt.initializationSourceSha256!==undefined&&
+        transfer.sourceCheckpointSha256!==receipt.initializationSourceSha256)throw Error('Baseline original checkpoint identity differs');
+    }
   }
   const reviewed=reviewCorpus!=null,auxiliaryView=viewCorpus==='auxiliary';let sheet,annotation,checks,reviewPath,reviewHash,verified,primaryReviewed=false;
   if(reviewed){
@@ -184,7 +192,8 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   const preview=await renderDiagnosticJpeg({original,panels:diagnostic.panels,reviewed:reviewed||primaryReviewed},{signal,workspace,imageDirectory,previewDirectory});
   await verifyInputs();
   return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,baselineChannels:diagnostic.baselineChannels,
-    baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?(receipt.initializationSourceSha256??null):null,
+    baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?
+      (weights?receipt.sourceInitializationSha256:receipt.initializationSourceSha256??null):null,
     jpeg:preview.data,checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
     ...(weights?{weightsSha256:diagnostic.weightsSha256,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
       trainingCorpusVerified:false,optimizerStateTransferred:false,lineageComplete:false}:{}),
@@ -205,8 +214,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
     !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
     throw Error('Explicit bounded corpus diagnostic inputs required');
-  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null))
-    throw Error('Transferred weights require a diagnostic without a baseline or auxiliary corpus');
+  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'))throw Error('Transferred weights require a diagnostic without an auxiliary corpus');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
   if(viewCorpus==='auxiliary'&&!auxiliaryCorpus)throw Error('Auxiliary corpus required for auxiliary diagnostics');
   const target=resolve(output);if(existsSync(target))throw Error('Diagnostic output exists; preserve prior evidence');

@@ -115,8 +115,10 @@ For an existing model that was transferred once to Safetensors, a source or a
 corpus can also be inspected with `--weights` in place of `--checkpoint`. Its adjacent
 `transfer.json` must bind the weights and the original checkpoint. The report
 marks training-corpus ancestry and optimizer transfer as unverified; it does not
-claim the selected source trained the model. This mode does not accept a baseline
-or an auxiliary corpus and does not replace the full Python command. For ONNX
+claim the selected source trained the model. A baseline may be supplied only if
+the model's transfer record contains `sourceInitializationSha256` and the
+baseline's verified transfer identifies that exact original checkpoint. An
+auxiliary corpus is not supported; this does not replace the full Python command. For ONNX
 comparison, first export a new model with its matching `.onnx.export.json` receipt;
 the corpus diagnostic verifies both files and compares one supervised tile. This
 is execution parity only and does not establish complete model equivalence.
