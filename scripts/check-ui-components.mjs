@@ -91,7 +91,7 @@ for (const id of ['objectSearchInput', 'territorialLibrarySearchInput']) {
 const floatingContracts = new Map([
   ['fileMenu', ['ui-menu', 'ui-popover', 'ui-floating-surface']],
   ['createMenu', ['workspace-surface', 'surface-create', 'ui-sheet', 'ui-menu-surface']],
-  ['modeActionBar', ['ui-floating-surface', 'ui-context-toolbar']],
+  ['modeActionBar', ['ui-context-toolbar']],
   ['objectChooser', ['ui-popover', 'ui-floating-surface']],
   // Single and multiple selection now share the editor object context.
   ['editorObjectHeader', ['editor-object-header']],
