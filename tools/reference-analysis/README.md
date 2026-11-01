@@ -62,6 +62,13 @@ The executable statically includes zlib 1.3.2, libpng 1.6.57, libjpeg-turbo
 license notices are in `tools/cpp/map-pdf/`; preview font and FreeType notices are
 in `tools/cpp/map-preview/`. Training and corpus tools remain under migration.
 
+Native warm training can use either a transferred private checkpoint or a
+separately recorded public-pretrained encoder initializer. The latter receipt
+binds the official source file and the one-time extracted full model weights;
+it starts without optimizer state. Subsequent native checkpoints retain their
+own optimizer and random state. These are training-only artifacts, not an
+independent evaluation or approval for release.
+
 A single source-derived macro training sheet can be inspected using its matching
 native C++ checkpoint and the same CPU/CUDA device recorded in its receipt. The
 output directory must not exist, and its parent must already exist. The command
@@ -86,7 +93,7 @@ claim. The same output protection and optional baseline rules apply.
 The training-source diagnostic also accepts a historical publisher-layer
 sheet. Its publisher identity, pinned historical renderer version, source and
 image hashes, image dimensions and observed raster channels are checked before
-inference. The Python publisher generator itself has not yet been replaced.
+inference. Publisher PDF generation uses the native renderer and Node manager.
 The native combined batch and bounded multi-epoch campaign accept publisher-derived
 or source-reviewed primary sources with an explicit nonmacro Semap auxiliary corpus.
 Reviewed training manifests may contain only `train` sheets; put validation and

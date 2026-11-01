@@ -54,7 +54,7 @@ test('training batch management rejects changed samples and preserves existing o
     annotations:'annotation.json',image:'image.png',source:{url:source.url,license:source.license}}]}));
   await assert.rejects(nativeTrainingBatch(changed),/PDF hash changed/i);assert.equal(existsSync(changed.output),false);
   const checkpoint=join(root,'previous.pt');writeFileSync(checkpoint,'previous checkpoint');
-  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,initialization:'weights-only-no-optimizer',
     checkpointSha256:sha('previous checkpoint'),device:'cuda',precision:'fp32',seed:request.seed,freezeEpochs:request.freezeEpochs,
     learningRate:request.learningRate,unobservedMask:0,positiveWeightSha256:null,epoch:0,cursor:0,orderLength:1,orderSha256:sha(Buffer.alloc(8))}));
   const mismatch={...request,mode:'resume',device:'cuda',amp:true,input:checkpoint,output:join(root,'mismatch.pt')};

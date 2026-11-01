@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {withLibraryOutputs} from '../library-data.mjs';
 import {reportArgument} from '../report-paths.mjs';
-import {assertTrainingCorpusScope,corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
+import {assertTrainingCorpusScope,corpusFingerprint,readTrainingBounded,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {writeCombinedTrainingOrder,writeTrainingOrder} from './training-order.mjs';
 import {verifyTrainingSupervision} from './training-supervision.mjs';
 import {runCombinedTrainingBatch,runTrainingBatch} from './native-training-batch.mjs';
@@ -40,9 +40,7 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
   let cursor=0;
   if(mode==='warm'){
     if(epoch!==0)throw Error('Weights-only initialization starts at epoch zero');
-    const transfer=JSON.parse(readTrainingBounded(join(dirname(initial),'transfer.json'),1024*1024));
-    if(transfer.transfer!=='weights-only-no-optimizer'||transfer.weightsSha256!==inputHash||transfer.trainingOnly!==true||transfer.releaseApproved!==false)
-      throw Error('Verified private weights-only initializer required');
+    verifyTrainingInitializer({path:initial,expectedSha256:inputHash});
   }else{
     const receipt=JSON.parse(readTrainingBounded(initial+'.receipt.json',1024*1024));
     if(receipt.checkpointSha256!==inputHash||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.corpusSha256!==checked.corpusSha256||

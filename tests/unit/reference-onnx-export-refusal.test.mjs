@@ -26,6 +26,12 @@ test('checkpoint ONNX manifest preserves pending training lineage and channel vi
   assert.equal(combinedManifest.auxiliaryCorpusSha256,combined.auxiliarySha256);
   assert.equal(combinedManifest.lineageFingerprint,combined.lineageFingerprint);
   assert.equal(validateCandidateModel(combinedManifest).auxiliaryCorpusSha256,combined.auxiliarySha256);
+  const encoderInitialization={kind:'public-pretrained-image-classification',url:'https://download.pytorch.org/models/encoder-12345678.pth',
+    sha256:'12345678'+'d'.repeat(56),bytes:15};
+  const fresh={...receipt,initialization:'public-encoder-no-optimizer',encoderInitialization};
+  const freshManifest=exporter.checkpointOnnxManifest({receipt:fresh,model});
+  assert.equal(freshManifest.initialization,'public-encoder-no-optimizer');assert.deepEqual(freshManifest.encoderInitialization,encoderInitialization);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...fresh,encoderInitialization:{...encoderInitialization,sha256:'e'.repeat(64)}},model}),/encoder provenance/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,auxiliarySha256:'d'.repeat(64)},model}),/auxiliary/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,lineageFingerprint:'e'.repeat(64)},model}),/auxiliary/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,releaseApproved:true},model}),/receipt/i);

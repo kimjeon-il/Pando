@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {closeSync,fstatSync,openSync,readFileSync,readSync,statSync} from 'node:fs';
 import {basename,dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {isDeepStrictEqual} from 'node:util';
 import {resolveCorpusPath} from './corpus-path.mjs';
 
 export function readTrainingBounded(path,limit){const info=statSync(path);if(!info.isFile()||info.size>limit)throw Error('Training input exceeds its byte budget');return readFileSync(path);}
@@ -31,6 +32,37 @@ export function verifiedPublicEncoderIdentity({path,url}){
     throw Error('Public encoder weights changed while verifying');
   if(!digest.startsWith(match[1]))throw Error('Public encoder weight hash differs from the pinned upstream identifier');
   return {kind:'public-pretrained-image-classification',url,sha256:digest,bytes:after.size};
+}
+export function assertPublicEncoderIdentity(value){
+  const match=typeof value?.url==='string'?/^https:\/\/download\.pytorch\.org\/models\/[^/]+-([a-f0-9]{8})\.pth$/.exec(value.url):null;
+  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==4||value.kind!=='public-pretrained-image-classification'||
+    !match||!/^[a-f0-9]{64}$/.test(value.sha256||'')||!value.sha256.startsWith(match[1])||!Number.isSafeInteger(value.bytes)||value.bytes<1)
+    throw Error('Public encoder provenance required');
+  return value;
+}
+
+// A fresh public encoder and a continued private model are different starts;
+// both still begin without optimizer state and require source-bound receipts.
+export function verifyTrainingInitializer({path,expectedSha256}){
+  if(typeof path!=='string'||!path)throw Error('Explicit training initializer required');
+  const actual=resolve(path),weightsSha256=trainingFileIdentity(actual),recordPath=resolve(dirname(actual),'transfer.json');
+  const recordBytes=readTrainingBounded(recordPath,1024*1024),recordHash=createHash('sha256').update(recordBytes).digest('hex'),record=JSON.parse(recordBytes);
+  if(expectedSha256!==undefined&&expectedSha256!==weightsSha256||record.trainingOnly!==true||record.evaluationStatus!=='pending'||
+    record.releaseApproved!==false||record.weightsSha256!==weightsSha256||!['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(record.transfer))
+    throw Error('Verified private weights-only initializer required');
+  let encoderInitialization=null,sourceCheckpointSha256=record.sourceCheckpointSha256??null;
+  if(sourceCheckpointSha256!==null&&!/^[a-f0-9]{64}$/.test(sourceCheckpointSha256))throw Error('Invalid initializer source checkpoint identity');
+  if(record.transfer==='public-encoder-no-optimizer'){
+    if(record.schemaVersion!==1||sourceCheckpointSha256!==null||record.tensorCount!==340||record.randomSeed!==20261022||
+      typeof record.encoderSourcePath!=='string'||!record.encoderSourcePath||!record.encoderInitialization)
+      throw Error('Verified public encoder initializer receipt required');
+    assertPublicEncoderIdentity(record.encoderInitialization);
+    encoderInitialization=verifiedPublicEncoderIdentity({path:record.encoderSourcePath,url:record.encoderInitialization.url});
+    if(!isDeepStrictEqual(encoderInitialization,record.encoderInitialization))throw Error('Public encoder initializer source differs');
+  }
+  if(trainingFileIdentity(actual)!==weightsSha256||createHash('sha256').update(readTrainingBounded(recordPath,1024*1024)).digest('hex')!==recordHash)
+    throw Error('Training initializer changed during verification');
+  return {initialization:record.transfer,sourceCheckpointSha256,encoderInitialization,weightsSha256,recordPath,recordHash};
 }
 
 // Matches the original corpus lineage fingerprint; source validation remains a separate requirement.

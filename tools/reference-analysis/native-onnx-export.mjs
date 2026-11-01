@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceOnnxExportSourceFiles} from './native-infer.mjs';
-import {trainingFileIdentity} from './training-evidence.mjs';
+import {assertPublicEncoderIdentity,trainingFileIdentity} from './training-evidence.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -15,12 +15,13 @@ const classes=Object.freeze(['international','administrative','coast','hydro','t
 function occupied(path){try{lstatSync(path);return true;}catch(error){if(error.code==='ENOENT')return false;throw error;}}
 export function checkpointOnnxManifest({receipt,model}={}){
   if(!receipt||receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||
-    receipt.lineageComplete!==false||receipt.sourceReplayVerified!==false||receipt.initialization!=='weights-only-no-optimizer'||
+    receipt.lineageComplete!==false||receipt.sourceReplayVerified!==false||!['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(receipt.initialization)||
     !/^[a-f0-9]{64}$/.test(receipt.corpusSha256||'')||!/^[a-f0-9]{64}$/.test(receipt.checkpointSha256||'')||
     !Number.isSafeInteger(receipt.attemptedBatches)||receipt.attemptedBatches<1||
     !Number.isSafeInteger(receipt.optimizerUpdates)||receipt.optimizerUpdates<1||receipt.optimizerUpdates>receipt.attemptedBatches||
     !Number.isSafeInteger(receipt.unobservedMask)||receipt.unobservedMask<0||receipt.unobservedMask>127)
     throw Error('Complete private training receipt required for an ONNX manifest');
+  if(receipt.initialization==='public-encoder-no-optimizer')assertPublicEncoderIdentity(receipt.encoderInitialization);
   const combined=Object.hasOwn(receipt,'auxiliarySha256')||Object.hasOwn(receipt,'lineageFingerprint');
   if(combined&&(!/^[a-f0-9]{64}$/.test(receipt.auxiliarySha256||'')||!/^[a-f0-9]{64}$/.test(receipt.lineageFingerprint||'')))
     throw Error('Complete auxiliary corpus identity required for an ONNX manifest');
@@ -31,7 +32,7 @@ export function checkpointOnnxManifest({receipt,model}={}){
     model:{url:model.file,sha256:model.sha256,bytes:model.bytes},corpusSha256:receipt.corpusSha256,
     ...(combined?{auxiliaryCorpusSha256:receipt.auxiliarySha256,lineageFingerprint:receipt.lineageFingerprint}:{}),
     evaluationStatus:'pending',releaseApproved:false,trainingOnly:true,checkpointSha256:receipt.checkpointSha256,
-    lineageComplete:false,sourceReplayVerified:false,initialization:'weights-only-no-optimizer',trainingBatches:receipt.attemptedBatches,
+    lineageComplete:false,sourceReplayVerified:false,initialization:receipt.initialization,...(receipt.encoderInitialization?{encoderInitialization:receipt.encoderInitialization}:{}),trainingBatches:receipt.attemptedBatches,
     optimizerUpdates:receipt.optimizerUpdates,stepCountKind:'attempted-batches',
     unobservedChannels:classes.filter((_,index)=>(receipt.unobservedMask&(1<<index))!==0)};
 }
@@ -76,7 +77,7 @@ export async function nativeCheckpointOnnxExport({checkpoint,proof,output,manife
   const proofReceipt=receipt.purpose==='real-input-resume-proof'&&receipt.independentEvaluation===false&&
     receipt.preprocessing==='rgb-brightness-then-imagenet-normalization'&&receipt.exactModelResume===true;
   const trainingReceipt=receipt.schemaVersion===1&&receipt.lineageComplete===false&&receipt.sourceReplayVerified===false&&
-    receipt.initialization==='weights-only-no-optimizer'&&['fp32','amp-fp16'].includes(receipt.precision)&&
+    ['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(receipt.initialization)&&['fp32','amp-fp16'].includes(receipt.precision)&&
     (receipt.precision!=='amp-fp16'||receipt.device==='cuda')&&Number.isSafeInteger(receipt.epoch)&&receipt.epoch>=0&&
     Number.isSafeInteger(receipt.cursor)&&receipt.cursor>=0&&Number.isSafeInteger(receipt.orderLength)&&receipt.cursor<=receipt.orderLength;
   if((!proofReceipt&&!trainingReceipt)||receipt.trainingOnly!==true||receipt.releaseApproved!==false||!['cpu','cuda'].includes(receipt.device)||

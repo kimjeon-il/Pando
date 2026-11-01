@@ -13,7 +13,7 @@ import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTra
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
 import {verifyCombinedTrainingOrder,verifyTrainingOrder} from './training-order.mjs';
-import {corpusFingerprint,readTrainingBounded as readBounded,trainingFileIdentity as identity} from './training-evidence.mjs';
+import {assertPublicEncoderIdentity,corpusFingerprint,readTrainingBounded as readBounded,trainingFileIdentity as identity,verifiedPublicEncoderIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -28,14 +28,11 @@ function positiveWeight(path){if(!path)return {argument:'none',hash:null};const 
 function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData}){
   if(mode==='warm'){
     if(epoch!==0)throw Error('A weights-only warm start begins at epoch zero');
-    const initializationRecordPath=join(dirname(inputPath),'transfer.json'),recordBytes=readBounded(initializationRecordPath,1024*1024);
-    const transfer=JSON.parse(recordBytes.toString('utf8'));
-    if(transfer.trainingOnly!==true||transfer.evaluationStatus!=='pending'||transfer.releaseApproved!==false||transfer.transfer!=='weights-only-no-optimizer'||transfer.weightsSha256!==inputHash)
-      throw Error('Verified private weights-only warm start required');
-    const initializationSourceSha256=transfer.sourceCheckpointSha256??null;
-    if(initializationSourceSha256!==null&&!/^[a-f0-9]{64}$/.test(initializationSourceSha256))throw Error('Invalid initializer source checkpoint identity');
-    return {previous:null,cursor:0,initializationSourceSha256,initializationWeightsSha256:inputHash,
-      initializationRecordPath,initializationRecordHash:sha(recordBytes)};
+    const verified=verifyTrainingInitializer({path:inputPath,expectedSha256:inputHash});
+    const encoderSourcePath=verified.encoderInitialization?JSON.parse(readBounded(verified.recordPath,1024*1024)).encoderSourcePath:null;
+    return {previous:null,cursor:0,initialization:verified.initialization,encoderInitialization:verified.encoderInitialization,encoderSourcePath,
+      initializationSourceSha256:verified.sourceCheckpointSha256,initializationWeightsSha256:inputHash,
+      initializationRecordPath:verified.recordPath,initializationRecordHash:verified.recordHash};
   }
   const initializationRecordPath=inputPath+'.receipt.json',recordBytes=readBounded(initializationRecordPath,1024*1024),previous=JSON.parse(recordBytes.toString('utf8'));
   if(previous.schemaVersion!==1||previous.trainingOnly!==true||previous.releaseApproved!==false||previous.lineageComplete!==false||
@@ -43,7 +40,13 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
     previous.learningRate!==learningRate||previous.unobservedMask!==unobservedMask||previous.positiveWeightSha256!==weights.hash)throw Error('Checkpoint receipt or training configuration differs');
   const initializationSourceSha256=previous.initializationSourceSha256??null,initializationWeightsSha256=previous.initializationWeightsSha256??null;
   if([initializationSourceSha256,initializationWeightsSha256].some(value=>value!==null&&!/^[a-f0-9]{64}$/.test(value)))throw Error('Invalid initializer source or weights identity');
-  const state={previous,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash:sha(recordBytes)};
+  if(!['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(previous.initialization))throw Error('Invalid checkpoint initialization kind');
+  if(previous.initialization==='public-encoder-no-optimizer'){
+    assertPublicEncoderIdentity(previous.encoderInitialization);
+    if(initializationSourceSha256!==null)throw Error('Public encoder cannot claim a prior map checkpoint');
+  }
+  const state={previous,initialization:previous.initialization,encoderInitialization:previous.encoderInitialization??null,encoderSourcePath:null,
+    initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash:sha(recordBytes)};
   if(epoch===previous.epoch){if(previous.orderSha256!==orderData.hash||previous.orderLength!==orderData.order.length)throw Error('Training order differs from checkpoint receipt');
     return {...state,cursor:previous.cursor};}
   if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {...state,cursor:0};
@@ -98,7 +101,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
-  const {previous,cursor,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
+  const {previous,cursor,initialization,encoderInitialization,encoderSourcePath,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
   if(previous&&(!Array.isArray(previous.evidence)||!previous.evidence.length||
     previous.evidence.some(row=>typeof row?.augment!=='boolean'||row.augment!==previous.evidence[0].augment)||
     samples.some(row=>row?.augment!==previous.evidence[0].augment)))
@@ -140,13 +143,15 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     (!amp&&(result.ampScale!==null||result.ampGrowthTracker!==null||result.applied!==true)))throw Error('Native training batch returned an invalid result; preserve its checkpoint');
   if(identity(inputPath)!==inputHash||sha(readBounded(initializationRecordPath,1024*1024))!==initializationRecordHash||sha(readBounded(corpusPath,32*1024*1024))!==corpusHash||readOrder(resolve(order)).hash!==orderData.hash||positiveWeight(positiveWeights).hash!==weights.hash)
     throw Error('Training inputs changed during execution; preserve its checkpoint');
+  if(encoderSourcePath){const verified=verifiedPublicEncoderIdentity({path:encoderSourcePath,url:encoderInitialization.url});
+    if(verified.sha256!==encoderInitialization.sha256||verified.bytes!==encoderInitialization.bytes)throw Error('Public encoder changed during training; preserve its checkpoint');}
   if(combined&&(sha(readBounded(resolve(auxiliary),32*1024*1024))!==auxiliaryHash||await corpusFingerprint(corpus,auxiliary)!==combined.lineageFingerprint))
     throw Error('Combined training sources changed during execution; preserve its checkpoint');
   for(const sample of samples)verifyTrainingSample(sample.directory);
   for(const item of evidence)recheckTrainingSources(item.checks);
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
-    initialization:previous?previous.initialization:'weights-only-no-optimizer',initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,
+    initialization,encoderInitialization,initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,
     ...(combined?{auxiliarySha256:auxiliaryHash,lineageFingerprint:combined.lineageFingerprint}:{}),epoch,cursor:result.cursor,
     orderSha256:orderData.hash,orderLength:orderData.order.length,seed,freezeEpochs,learningRate,unobservedMask,positiveWeightSha256:weights.hash,
     ampScale:result.ampScale,ampGrowthTracker:result.ampGrowthTracker,attemptedBatches:count('attemptedBatches',1),
