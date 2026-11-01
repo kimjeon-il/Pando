@@ -4,8 +4,7 @@ import {basename,dirname,join,resolve} from 'node:path';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
-import {validatePublisherTrainingSource} from './reviewed-corpus.mjs';
-import {indexMacroTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile} from './training-tiles.mjs';
+import {indexTrainingDataset,inspectSemapTrainingDataset,listRasterTrainingTiles,prepareRasterTrainingTile,validatePublisherTrainingSource} from './training-tiles.mjs';
 import {verifyCombinedTrainingOrder} from './training-order.mjs';
 
 export const TRAINING_TENSOR_NAMES=Object.freeze(['tile','overview','position','target','valid']);
@@ -99,7 +98,11 @@ export async function prepareCombinedTrainingBatch({corpus,auxiliary,orderDirect
   signal?.throwIfAborted();mkdirSync(resolve(output));const samples=[];
   const auxiliaryData={tiles:checked.datasets[1],sources:checked.auxiliarySources};
   for(let i=0;i<selected.length;i++){const tile=selected[i],directory=resolve(output,'sample-'+String(i).padStart(2,'0'));
-    if(tile.index<checked.datasets[0].length)await writeMacroTrainingSample({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
+    if(tile.index<checked.datasets[0].length){
+      if(!['macro-pdf','publisher-pdf'].includes(tile.sourceKind))throw Error('Verified primary training source kind required');
+      const write=tile.sourceKind==='publisher-pdf'?writePublisherTrainingSample:writeMacroTrainingSample;
+      await write({corpus,sourceId:tile.sourceId,tileIndex:tile.index,x:tile.x,y:tile.y,augment,epoch,output:directory,signal});
+    }
     else await writeVerifiedSemapSample({corpusPath:resolve(auxiliary),sourceId:tile.sourceId,tileIndex:tile.index,localIndex:tile.localIndex,
       x:tile.x,y:tile.y,augment,epoch,output:directory,signal,data:auxiliaryData,recheckCorpus:false});
     samples.push({index:tile.index,directory,augment});
@@ -117,7 +120,7 @@ export async function prepareMacroTrainingBatch({corpus,order,cursor,count,epoch
   if(existsSync(output))throw Error('Training batch output exists; preserve it');
   const orderPath=resolve(order),orderBytes=readTrainingBounded(orderPath,8000000),orderSha256=trainingSha256(orderBytes);
   if(!orderBytes.length||orderBytes.length%8||cursor+count>orderBytes.length/8)throw Error('Invalid training order or cursor');
-  const dataset=await indexMacroTrainingDataset(corpus,{signal}),selected=[];
+  const dataset=await indexTrainingDataset(corpus,{signal}),selected=[];
   for(let i=0;i<count;i++){const index=orderBytes.readBigUInt64LE((cursor+i)*8);
     if(index>=BigInt(dataset.tiles.length))throw Error('Training order contains an invalid sample index');selected.push(dataset.tiles[Number(index)]);}
   if(trainingSha256(readTrainingBounded(orderPath,8000000))!==orderSha256)throw Error('Training order changed during sample preparation');

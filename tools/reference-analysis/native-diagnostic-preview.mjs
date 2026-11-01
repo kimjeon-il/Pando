@@ -11,11 +11,11 @@ import {drawNativePreviewLabels} from '../map-image/native-preview.mjs';
 import {diagnosticPixelStatistics} from './native-evaluation.mjs';
 import {nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from './native-training-validation.mjs';
 import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
-import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
+import {recheckTrainingSources} from './macro-training-source.mjs';
 import {selectDiagnosticTile} from './diagnostic-selection.mjs';
-import {prepareRasterTrainingTile,prepareReviewedTrainingTile} from './training-tiles.mjs';
+import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
-import {validatePublisherTrainingSource,validateReviewedCorpus} from './reviewed-corpus.mjs';
+import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
 
 // The native model supplies probabilities; original RGB and the training
@@ -127,14 +127,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
     const validated=await validateSemapTrainingCorpus({...auxiliaryManifest,sheets:matches},dirname(auxiliaryPath),{signal});
     ({sheet,annotation,checks}=validated.sources[0]);
   }else{
-    if(manifest.schemaVersion!==1||manifest.trainingOnly!==true||!Array.isArray(manifest.sheets))
-      throw Error('Explicit private training-only corpus required');
-    const matches=manifest.sheets?.filter(value=>value?.id===sourceId);
-    if(!Array.isArray(matches)||matches.length!==1)throw Error('Unique training source identity required');
-    const candidate=JSON.parse(readTrainingBounded(await resolveCorpusPath(root,matches[0].annotations),64*1024*1024));
-    if(candidate.origin==='publisher-layer-export')
-      ({sheet,annotation,checks}=await validatePublisherTrainingSource({root,corpus:manifest,sourceId},{signal,workspace,imageDirectory}));
-    else ({sheet,annotation,checks}=await verifiedMacroTrainingSource(root,manifest,sourceId));
+    ({sheet,annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,sourceId,{allowPublisher:true,signal,workspace,imageDirectory}));
     recheckTrainingSources(checks);
   }
   const sourceRoot=reviewed?dirname(reviewPath):auxiliaryView?dirname(auxiliaryPath):root;

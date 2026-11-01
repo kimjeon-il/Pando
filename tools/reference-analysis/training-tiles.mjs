@@ -2,17 +2,54 @@
 import {dirname,extname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {auditNativeTrainingMask,countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
+import {auditNativeTrainingMask,countNativeEncodedTrainingSupervision,countNativeTrainingSupervision,inspectNativeImageHeader,prepareNativeTrainingTilePieces,readNativeTrainingRaster,readNativeTrainingMaskWindow,scanNativeTrainingMaskTiles} from '../map-image/native-resample.mjs';
 import {reviewMasks} from './review-masks.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS,referenceImageTilePlan} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
-import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
+import {corpusFingerprint,readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
+import {validateCorpusMetadata,validatePublisherProvenance} from './reviewed-corpus.mjs';
 
 const rasterOrigins=new Set(['publisher-layer-export','semap-human-mask-export','macro-vector-supervision']);
 export function isRasterTrainingAnnotation(annotation){return rasterOrigins.has(annotation?.origin);}
-// Combine independently verified primary macro and auxiliary Semap training inputs.
+
+// Validate one historical publisher source; its derived masks are not review truth.
+export async function validatePublisherTrainingSource({root,corpus,sourceId},{signal,workspace,imageDirectory}={}){
+  signal?.throwIfAborted();
+  if(typeof root!=='string'||!root||typeof sourceId!=='string'||!sourceId)throw Error('Explicit publisher source and corpus root required');
+  validateCorpusMetadata(corpus,{trainingOnly:true});
+  const matches=corpus.sheets.filter(sheet=>sheet.id===sourceId);
+  if(matches.length!==1)throw Error('Unique publisher training source required');
+  const sheet=matches[0],annotationPath=await resolveCorpusPath(root,sheet.annotations),bytes=readTrainingBounded(annotationPath,64*1024*1024);
+  const annotation=JSON.parse(bytes.toString('utf8')),annotationSha256=createHash('sha256').update(bytes).digest('hex');
+  if(annotation.origin!=='publisher-layer-export')throw Error('Publisher training annotation required');
+  await validatePublisherProvenance(annotation,sheet,root,{rendererVersion:'1.26.6',signal});
+  const imagePath=await resolveCorpusPath(root,sheet.image);
+  if(trainingFileIdentity(imagePath)!==sheet.sha256)throw Error('Original image hash changed: '+sheet.id);
+  const format=({'.png':'png','.jpg':'jpeg','.jpeg':'jpeg','.webp':'webp'})[extname(imagePath).toLowerCase()];
+  const image=await inspectNativeImageHeader(readTrainingBounded(imagePath,300*1024*1024),format,{signal,workspace,directory:imageDirectory});
+  if(image.encodedSize[0]!==annotation.width||image.encodedSize[1]!==annotation.height)throw Error('Publisher raster/image dimensions differ');
+  await auditTrainingRasters({root,annotation},{signal,workspace,imageDirectory});
+  const checks=[[annotationPath,annotationSha256],[imagePath,sheet.sha256]];
+  for(const [field,expected] of [['sourcePdf',annotation.sourceSha256],['sourceMetadata',annotation.sourceMetadataSha256],
+    ['raster',annotation.raster?.sha256],['validRaster',annotation.validRaster?.sha256]])
+    checks.push([await resolveCorpusPath(root,typeof annotation[field]==='string'?annotation[field]:annotation[field]?.path),expected]);
+  recheckTrainingSources(checks);
+  return {sheet,annotation,annotationPath,annotationSha256,imagePath,checks,trainingOnly:true,independentEvaluation:false,releaseApproved:false};
+}
+
+export async function verifiedPrimaryTrainingSource(root,corpus,sourceId,{allowPublisher=false,signal,workspace,imageDirectory}={}){
+  if(typeof allowPublisher!=='boolean')throw Error('Explicit publisher training scope required');
+  if(!allowPublisher)return verifiedMacroTrainingSource(root,corpus,sourceId);
+  if(corpus?.schemaVersion!==1||corpus.trainingOnly!==true||!Array.isArray(corpus.sheets))throw Error('Explicit private training-only corpus required');
+  const matches=corpus.sheets.filter(sheet=>sheet?.id===sourceId);
+  if(matches.length!==1)throw Error('Unique training source identity required');
+  const annotation=JSON.parse(readTrainingBounded(await resolveCorpusPath(root,matches[0].annotations),64*1024*1024));
+  return annotation.origin==='publisher-layer-export'?validatePublisherTrainingSource({root,corpus,sourceId},{signal,workspace,imageDirectory}):
+    verifiedMacroTrainingSource(root,corpus,sourceId);
+}
+// Combine verified primary sources and auxiliary Semap training inputs.
 export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,signal,verifyEvidence,workspace,imageDirectory}){
   signal?.throwIfAborted();
   if(!corpus||!auxiliary||typeof macroOnly!=='boolean')throw Error('Explicit primary, auxiliary and macro scope required');
@@ -23,15 +60,15 @@ export async function inspectCombinedTrainingData({corpus,auxiliary,macroOnly,si
   if(!Array.isArray(primaryManifest.sheets)||!Array.isArray(auxiliaryManifest.sheets))throw Error('Both training corpora require sheets');
   const ids=new Set(primaryManifest.sheets.map(sheet=>sheet.id));
   if(auxiliaryManifest.sheets.some(sheet=>ids.has(sheet.id)))throw Error('Duplicate sheet identity across training corpora');
-  const options={signal,workspace,imageDirectory};
-  const primary=await indexMacroTrainingDataset(primaryPath,options),supervision=await macroTrainingSupervision(primaryPath,options);
+  const options={signal,workspace,imageDirectory,allowPublisher:true};
+  const primary=await indexTrainingDataset(primaryPath,options),supervision=await trainingSupervision(primaryPath,options);
   if(primary.corpusSha256!==supervision.corpusSha256)throw Error('Primary training corpus changed during preparation');
   const extra=await inspectSemapTrainingDataset(auxiliaryPath,{...options,verifyEvidence});
   const counts=supervision.counts.map((pair,i)=>pair.map((value,j)=>{const sum=value+extra.counts[i][j];
     if(!Number.isSafeInteger(sum))throw Error('Training supervision count exceeds safe range');return sum;}));
   const datasets=[primary.tiles,extra.tiles].map((rows,corpusIndex)=>rows.map(tile=>({...tile,localIndex:tile.index,
     index:tile.index+(corpusIndex?primary.tiles.length:0)})));
-  for(const row of primaryManifest.sheets){const {checks}=await verifiedMacroTrainingSource(dirname(primaryPath),primaryManifest,row.id);recheckTrainingSources(checks);}
+  for(const row of primaryManifest.sheets){const {checks}=await verifiedPrimaryTrainingSource(dirname(primaryPath),primaryManifest,row.id,options);recheckTrainingSources(checks);}
   if(await corpusFingerprint(primaryPath,auxiliaryPath)!==fingerprint)throw Error('Training sources changed during combined preparation');
   return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,lineageFingerprint:fingerprint,counts,datasets,auxiliarySources:extra.sources};
 }
@@ -58,7 +95,7 @@ export async function inspectSemapTrainingDataset(corpus,{signal,verifyEvidence,
     throw Error('Training corpus changed during indexing');
   return {trainingOnly:true,releaseApproved:false,independentEvaluation:false,corpusSha256,lineageFingerprint,counts,tiles,sources:validated.sources};
 }
-export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDirectory}={}){
+export async function indexTrainingDataset(corpus,{signal,workspace,imageDirectory,allowPublisher=false}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
   const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');
   const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
@@ -66,10 +103,11 @@ export async function indexMacroTrainingDataset(corpus,{signal,workspace,imageDi
   const tiles=[],seen=new Set();
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
-    const {sheet,annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
+    const {sheet,annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,row.id,{allowPublisher,signal,workspace,imageDirectory});
     for(const tile of await listRasterTrainingTiles({root,annotation},{signal,workspace,imageDirectory})){
       if(tiles.length>=1000000)throw Error('Training tile count exceeds budget');
-      tiles.push({sourceId:sheet.id,index:tiles.length,x:tile.x,y:tile.y,duplicateGroup:sheet.duplicateGroup});
+      tiles.push({sourceId:sheet.id,index:tiles.length,x:tile.x,y:tile.y,duplicateGroup:sheet.duplicateGroup,
+        ...(allowPublisher?{sourceKind:annotation.origin==='publisher-layer-export'?'publisher-pdf':'macro-pdf'}:{})});
     }
     recheckTrainingSources(checks);
   }
@@ -126,7 +164,7 @@ async function trainingRaster(root,annotation,field,options){
     await readNativeTrainingMaskWindow(bytes,sha256,options.window,nativeOptions);
   if(mask.width!==annotation.width||mask.height!==annotation.height)throw Error('Training raster dimensions differ from original');return mask;
 }
-export async function macroTrainingSupervision(corpus,{signal,workspace,imageDirectory}={}){
+export async function trainingSupervision(corpus,{signal,workspace,imageDirectory,allowPublisher=false}={}){
   signal?.throwIfAborted();if(!corpus)throw Error('Explicit macro training corpus required');
   const path=resolve(corpus),root=dirname(path),bytes=readTrainingBounded(path,32*1024*1024),hash=value=>createHash('sha256').update(value).digest('hex');
   const corpusSha256=hash(bytes),manifest=JSON.parse(bytes);
@@ -135,7 +173,7 @@ export async function macroTrainingSupervision(corpus,{signal,workspace,imageDir
   const counts=Array.from({length:7},()=>[0,0]),seen=new Set(),sources=[],options={signal,workspace,imageDirectory};
   for(const row of manifest.sheets){signal?.throwIfAborted();if(!row?.id||seen.has(row.id))throw Error('Unique training source identity required');seen.add(row.id);
     if(row.split!=='train')throw Error('Training-only corpus cannot contain validation or test sheets');
-    const {annotation,checks}=await verifiedMacroTrainingSource(root,manifest,row.id);
+    const {annotation,checks}=await verifiedPrimaryTrainingSource(root,manifest,row.id,{allowPublisher,signal,workspace,imageDirectory});
     const sheetCounts=await countAnnotationTrainingSupervision({root,annotation},options);
     for(let i=0;i<7;i++)for(let j=0;j<2;j++){counts[i][j]+=sheetCounts[i][j];if(!Number.isSafeInteger(counts[i][j]))throw Error('Training supervision count exceeds safe range');}
     recheckTrainingSources(checks);

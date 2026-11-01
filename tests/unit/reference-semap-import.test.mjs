@@ -7,7 +7,7 @@ import test from 'node:test';
 import {encodeNativeGrayPng,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 import {prepareSemapCorpus} from '../../tools/reference-analysis/prepare-semap.mjs';
 import {validateSemapTrainingCorpus,validateSemapTrainingSheet} from '../../tools/reference-analysis/validate-semap.mjs';
-import {inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
+import {indexTrainingDataset,inspectCombinedTrainingData,inspectSemapTrainingDataset} from '../../tools/reference-analysis/training-tiles.mjs';
 import {verifyCombinedTrainingOrder,writeCombinedTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 import {prepareCombinedTrainingBatch,verifyTrainingSample,writeSemapTrainingSample} from '../../tools/reference-analysis/training-sample.mjs';
 import {nativeTrainingBatch,runCombinedTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
@@ -67,6 +67,25 @@ test('Semap importer preserves real originals, rejects changed outputs and never
   assert.deepEqual(combined.counts,[[288,144],[288,144],[288,144],[396,252],[396,143],[288,147],[384,209]]);
   assert.deepEqual(combined.datasets.map(rows=>rows.map(row=>[row.index,row.localIndex])),[[[0,0]],[[1,0]]]);
   assert.equal(combined.trainingOnly,true);assert.equal(combined.releaseApproved,false);
+  const publisherRoot=join(root,'publisher');await mkdir(publisherRoot);
+  for(const name of ['map.png','raster.png','valid.png'])await copyFile('tests/fixtures/reference-training-raster/'+name,join(publisherRoot,name));
+  await writeFile(join(publisherRoot,'source.pdf'),pdf);
+  const publisherMeta={id:'publisher',familyId:'publisher-family',editionId:'edition',format:'pdf',rightsReviewed:true,
+    license:'CC0',materialKind:'publisher-layered-pdf',sha256:sha(pdf),url:'https://example.org/publisher.pdf'};
+  const publisherMetadata=Buffer.from(JSON.stringify(publisherMeta));await writeFile(join(publisherRoot,'source.json'),publisherMetadata);
+  const publisherAnnotation={...JSON.parse(await readFile('tests/fixtures/reference-training-raster/label.json','utf8')),
+    schemaVersion:1,origin:'publisher-layer-export',reviewed:false,sourcePdf:'source.pdf',sourceSha256:sha(pdf),
+    sourceMetadata:'source.json',sourceMetadataSha256:sha(publisherMetadata),observedChannels:['international','administrative','coast','hydro','transport','text','frame'],
+    producer:{script:'tools/reference-analysis/publisher.py',sha256:'65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07',renderer:'PyMuPDF',rendererVersion:'1.26.6'}};
+  await writeFile(join(publisherRoot,'label.json'),JSON.stringify(publisherAnnotation));
+  const publisherPath=join(publisherRoot,'corpus.json');await writeFile(publisherPath,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[{
+    id:'publisher',familyId:'publisher-family',editionId:'edition',duplicateGroup:'publisher-group',split:'train',language:'eng',script:'Latin',mapKind:'color',
+    image:'map.png',sha256:sha(await readFile(join(publisherRoot,'map.png'))),annotations:'label.json',source:{url:publisherMeta.url,license:publisherMeta.license}}]}));
+  const publisherCombined=await inspectCombinedTrainingData({corpus:publisherPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence});
+  assert.deepEqual(publisherCombined.datasets.map(rows=>rows.map(row=>row.sourceId)),[['publisher'],[sheet.id]]);
+  assert.equal(publisherCombined.trainingOnly,true);assert.equal(publisherCombined.releaseApproved,false);
+  await assert.rejects(indexTrainingDataset(publisherPath),/macro/i);
+  await assert.rejects(indexTrainingDataset(publisherPath,{allowPublisher:'yes'}),/scope/i);
   if(process.env.PANDO_REFERENCE_BATCH_DIRECTORY&&process.env.PANDO_REFERENCE_TORCH_LIBRARY){
     const absent=join(root,'missing-runtime-order');
     await assert.rejects(writeCombinedTrainingOrder({corpus:macroPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence,epoch:0,seed:42,
@@ -91,9 +110,24 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     const batch=await prepareCombinedTrainingBatch({...request,cursor:0,count:2,augment:false,output:join(root,'mixed-batch')});
     assert.deepEqual(batch.samples.map(row=>row.index),[0,1]);
     assert.deepEqual(batch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['macro-pdf','semap-label']);
+    const publisherOrder=join(root,'publisher-order');
+    const publisherPlan=await writeCombinedTrainingOrder({corpus:publisherPath,auxiliary:first.manifest,macroOnly:false,verifyEvidence,
+      epoch:0,seed:42,output:publisherOrder,torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY});
+    const publisherRequest={...request,corpus:publisherPath,orderDirectory:publisherOrder};
+    const publisherBatch=await prepareCombinedTrainingBatch({...publisherRequest,cursor:0,count:2,augment:false,output:join(root,'publisher-batch')});
+    assert.deepEqual(publisherBatch.samples.map(row=>verifyTrainingSample(row.directory).sourceKind),['publisher-pdf','semap-label']);
     const initializer=join(root,'initializer.bin');await writeFile(initializer,'weights');
     await writeFile(join(root,'transfer.json'),JSON.stringify({trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
       transfer:'weights-only-no-optimizer',weightsSha256:sha('weights')}));
+    const publisherTraining={...publisherRequest,mode:'warm',input:initializer,output:join(root,'publisher-model.pt'),
+      order:join(publisherOrder,'order.u64'),positiveWeights:join(publisherOrder,'weights.f32'),unobservedMask:publisherPlan.unobservedMask,
+      freezeEpochs:2,learningRate:.0001,device:'cpu',torchLibrary:root,samples:publisherBatch.samples};
+    const publisherReceiptPath=join(publisherBatch.samples[0].directory,'sample.json'),publisherReceipt=JSON.parse(await readFile(publisherReceiptPath,'utf8'));
+    await writeFile(publisherReceiptPath,JSON.stringify({...publisherReceipt,sourceEvidenceSha256:'0'.repeat(64)}));
+    await assert.rejects(nativeTrainingBatch(publisherTraining),/evidence/i);
+    await writeFile(publisherReceiptPath,JSON.stringify(publisherReceipt));
+    await assert.rejects(nativeTrainingBatch(publisherTraining),{code:'ENOENT'});
+    await assert.rejects(access(join(root,'publisher-model.pt')),{code:'ENOENT'});
     const semapReceiptPath=join(batch.samples[1].directory,'sample.json'),semapReceipt=JSON.parse(await readFile(semapReceiptPath,'utf8'));
     semapReceipt.sourceEvidenceSha256='0'.repeat(64);await writeFile(semapReceiptPath,JSON.stringify(semapReceipt));
     await assert.rejects(nativeTrainingBatch({...request,mode:'warm',input:initializer,output:join(root,'invalid.pt'),

@@ -10,7 +10,7 @@ import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
-import {indexMacroTrainingDataset,inspectCombinedTrainingData} from './training-tiles.mjs';
+import {indexTrainingDataset,inspectCombinedTrainingData} from './training-tiles.mjs';
 import {encodedWeights,verifyMacroTrainingSupervision} from './training-supervision.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
@@ -100,7 +100,7 @@ export async function writeMacroTrainingOrder({corpus,supervision,epoch,seed,out
   if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0||!Number.isSafeInteger(epoch+seed))throw Error('Valid training epoch and seed required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json'))throw Error('Training order output exists; preserve it');
   const checked=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
-  const dataset=await indexMacroTrainingDataset(corpus,{signal});
+  const dataset=await indexTrainingDataset(corpus,{signal});
   const result=await writeBalancedTrainingOrder({datasets:[dataset.tiles.map(tile=>tile.duplicateGroup)],epoch,seed,output,torchLibrary,root,directory,signal});
   const corpusHash=createHash('sha256').update(readTrainingBounded(resolve(corpus),32*1024*1024)).digest('hex');
   const after=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});

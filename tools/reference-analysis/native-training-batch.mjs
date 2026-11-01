@@ -9,7 +9,7 @@ import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
-import {prepareRasterTrainingTile} from './training-tiles.mjs';
+import {prepareRasterTrainingTile,verifiedPrimaryTrainingSource} from './training-tiles.mjs';
 import {TRAINING_TENSOR_NAMES,trainingSha256,verifyTrainingSample,prepareMacroTrainingBatch,prepareCombinedTrainingBatch} from './training-sample.mjs';
 import {accumulateEpochLoss} from './training-progress.mjs';
 import {verifyCombinedTrainingOrder,verifyMacroTrainingOrder} from './training-order.mjs';
@@ -49,11 +49,13 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
   if(epoch===previous.epoch+1&&previous.cursor===previous.orderLength)return {...state,cursor:0};
   throw Error('Checkpoint is not at the requested epoch boundary');
 }
-async function verifyEvidence(root,corpus,sample,data,{epoch,signal}){
-  const {sheet,annotation,annotationSha256,checks}=await verifiedMacroTrainingSource(root,corpus,data.sourceId);
-  if(data.sourceKind!=='macro-pdf'||data.augmentationIndex!==data.tileIndex||sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||annotation.sourceSha256!==data.sourceEvidenceSha256||
+async function verifyEvidence(root,corpus,sample,data,{epoch,signal,allowPublisher=false}){
+  const {sheet,annotation,annotationSha256,checks}=allowPublisher?
+    await verifiedPrimaryTrainingSource(root,corpus,data.sourceId,{allowPublisher:true,signal}):await verifiedMacroTrainingSource(root,corpus,data.sourceId);
+  const sourceKind=annotation.origin==='publisher-layer-export'?'publisher-pdf':'macro-pdf';
+  if(data.sourceKind!==sourceKind||data.augmentationIndex!==data.tileIndex||sheet.sha256!==data.imageSha256||annotationSha256!==data.annotationSha256||annotation.sourceSha256!==data.sourceEvidenceSha256||
     annotation.raster.sha256!==data.maskSha256||annotation.validRaster.sha256!==data.validMaskSha256)
-    throw Error('Source-derived macro training evidence differs');
+    throw Error('Source-derived primary training evidence differs');
   if(!Array.isArray(data.pixelOrigin)||data.pixelOrigin.length!==2||data.pixelOrigin.some(v=>!Number.isInteger(v)||v<0)||typeof sample.augment!=='boolean')
     throw Error('Training sample position and augmentation must be explicit');
   const [x,y]=data.pixelOrigin,rebuilt=await prepareRasterTrainingTile({root,imagePath:sheet.image,sourceSha256:sheet.sha256,annotation,x,y,
@@ -67,7 +69,7 @@ async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sa
   if(!tile||tile.index!==sample.index||data.sourceId!==tile.sourceId||data.augmentationIndex!==tile.localIndex||
     !Array.isArray(data.pixelOrigin)||data.pixelOrigin[0]!==tile.x||data.pixelOrigin[1]!==tile.y)
     throw Error('Combined source sample differs from its indexed tile');
-  if(tile.index<plan.datasets[0].length)return verifyEvidence(primaryRoot,manifest,sample,data,{epoch,signal});
+  if(tile.index<plan.datasets[0].length)return verifyEvidence(primaryRoot,manifest,sample,data,{epoch,signal,allowPublisher:true});
   const source=plan.auxiliarySources.find(row=>row.sheet.id===tile.sourceId);
   if(!source||data.sourceKind!=='semap-label'||typeof sample.augment!=='boolean')throw Error('Verified Semap sample required');
   const {sheet,annotation,checks}=source,labelName=basename(annotation.originalImageMember,'.jpg')+'.png';

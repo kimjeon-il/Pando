@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {writeMacroTrainingSample,prepareMacroTrainingBatch} from '../../tools/reference-analysis/training-sample.mjs';
-import {indexMacroTrainingDataset,macroTrainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
+import {indexTrainingDataset,trainingSupervision} from '../../tools/reference-analysis/training-tiles.mjs';
 import {writeMacroTrainingSupervision,verifyMacroTrainingSupervision} from '../../tools/reference-analysis/training-supervision.mjs';
 import {verifyMacroTrainingOrder} from '../../tools/reference-analysis/training-order.mjs';
 
@@ -23,10 +23,10 @@ test('source-bound macro sample is generated from original pixels without overwr
   writeFileSync(join(root,'label.json'),JSON.stringify(annotation));
   const sheet={...source,split:'train',image:'map.png',sha256:sha(readFileSync(join(root,'map.png'))),annotations:'label.json',source:{url:source.url,license:source.license}};
   const corpus=join(root,'corpus.json');writeFileSync(corpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[sheet]}));
-  const indexed=await indexMacroTrainingDataset(corpus);
+  const indexed=await indexTrainingDataset(corpus);
   assert.deepEqual(indexed.tiles.map(({sourceId,index,x,y,duplicateGroup})=>({sourceId,index,x,y,duplicateGroup})),
     [{sourceId:'fixture',index:0,x:0,y:0,duplicateGroup:'group'}]);
-  const supervision=await macroTrainingSupervision(corpus);
+  const supervision=await trainingSupervision(corpus);
   assert.deepEqual(supervision.counts,[[288,144],[288,144],[288,144],[288,144],[288,143],[288,147],[384,209]]);
   assert.deepEqual(supervision.unobservedChannels,[]);
   assert.deepEqual(supervision.positiveWeights.slice(0,4),[1,1,1,1]);
@@ -56,7 +56,7 @@ test('source-bound macro sample is generated from original pixels without overwr
   assert.equal(existsSync(join(root,'invalid')),false);
   writeFileSync(join(root,'source.pdf'),'changed');
   await assert.rejects(writeMacroTrainingSample({...request,output:join(root,'next')}),/PDF hash changed/);
-  await assert.rejects(indexMacroTrainingDataset(corpus),/PDF hash changed/);
+  await assert.rejects(indexTrainingDataset(corpus),/PDF hash changed/);
   await assert.rejects(verifyMacroTrainingSupervision({corpus,directory:supervisionOutput}),/PDF hash changed/);
   assert.equal(existsSync(join(root,'next')),false);
 });

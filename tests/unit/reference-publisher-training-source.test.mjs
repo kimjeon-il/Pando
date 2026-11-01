@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {encodeNativeGrayPng} from '../../tools/map-image/native-resample.mjs';
-import * as corpus from '../../tools/reference-analysis/reviewed-corpus.mjs';
+import * as corpus from '../../tools/reference-analysis/training-tiles.mjs';
 import {diagnoseMacroTrainingSource} from '../../tools/reference-analysis/native-diagnostic-preview.mjs';
 import * as trainingSample from '../../tools/reference-analysis/training-sample.mjs';
 

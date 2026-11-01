@@ -7,7 +7,7 @@ import {parseArgs} from 'node:util';
 import {REFERENCE_BOUNDARY_CHANNELS} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {readTrainingBounded} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
-import {macroTrainingSupervision} from './training-tiles.mjs';
+import {trainingSupervision} from './training-tiles.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function encodedWeights(counts){
@@ -20,7 +20,7 @@ export function encodedWeights(counts){
 export async function writeMacroTrainingSupervision({corpus,output,signal}){
   signal?.throwIfAborted();if(!corpus||!output)throw Error('Explicit macro corpus and supervision output required');
   if(existsSync(output))throw Error('Training supervision output exists; preserve it');
-  const result=await macroTrainingSupervision(corpus,{signal}),{bytes,unobservedMask}=encodedWeights(result.counts);
+  const result=await trainingSupervision(corpus,{signal}),{bytes,unobservedMask}=encodedWeights(result.counts);
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:result.corpusSha256,
     classes:REFERENCE_BOUNDARY_CHANNELS,counts:result.counts,unobservedMask,weightsSha256:sha(bytes),sources:result.sources};
   signal?.throwIfAborted();mkdirSync(resolve(output));writeFileSync(join(output,'weights.f32'),bytes,{flag:'wx'});
