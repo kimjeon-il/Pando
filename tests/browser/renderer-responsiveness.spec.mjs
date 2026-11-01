@@ -95,11 +95,19 @@ test('Canvas2D fallback renders a view frame without Worker support', async ({ p
   await page.addInitScript(() => {
     Object.defineProperty(window, 'OffscreenCanvas', { configurable: true, value: undefined });
   });
-  const errors = await openEnhanced(page, '?perf&renderer=canvas');
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.renderer)).toBe('canvas2d');
-  const before = await page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.displayedRevision);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await gotoEditor(page, '/?perf&renderer=canvas');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 120_000 });
+  // In the Worker-free fallback the late debug facade may not be installed.
+  // Observe the canonical renderer's lightweight metrics instead of that facade.
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer), { timeout: 30_000 }).toBe('canvas2d');
+  const before = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.displayedRevision);
   await zoomMap(page);
-  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.displayedRevision)).toBeGreaterThan(before);
+  await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.displayedRevision), { timeout: 20_000 }).toBeGreaterThan(before);
   await expect(page.locator('#map .gpu-map-canvas')).toBeVisible();
   expect(errors).toEqual([]);
 });

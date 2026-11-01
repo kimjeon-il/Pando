@@ -17,13 +17,394 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-encode]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-step, reference-ordered, reference-sequence, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  terrain-dem-tint:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-tint'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the focused GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: tint-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build tint sampler and fill tool; compare frozen pixels
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.tint-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $env:PATH = "$sdk/bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/terrain-dem-tint -B build-native/terrain-dem-tint "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampling configuration failed' }
+          cmake --build build-native/terrain-dem-tint --config Release --target pando-terrain-dem-tint
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler build failed' }
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-encode "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Tint fill configuration failed' }
+          cmake --build build-native/terrain-dem-encode --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'Tint fill build failed' }
+          if ($IsWindows) { $tint='build-native/terrain-dem-tint/Release/pando-terrain-dem-tint.exe'; $fill='build-native/terrain-dem-encode/Release/pando-terrain-dem-fill.exe' }
+          else { $tint='build-native/terrain-dem-tint/pando-terrain-dem-tint'; $fill='build-native/terrain-dem-encode/pando-terrain-dem-fill' }
+          node tools/gis/package-terrain-dem-tint.mjs --binary $tint --directory build-native/terrain-dem-tint/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler packaging failed' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary $fill --directory build-native/terrain-dem-encode/fill-artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint fill packaging failed' }
+          $env:PANDO_TERRAIN_DEM_TINT_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-tint/artifact"
+          $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
+          node --test tests/unit/terrain-dem-tint.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Tint pixels differ from the frozen Python oracle' }
+  terrain-dem-gutters:
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-gutters' || inputs.target == 'terrain-dem-gutters-integrated')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and verify DEM gutter pixels
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/terrain-dem-gutters -B build-native/terrain-dem-gutters -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter configuration failed' }
+          cmake --build build-native/terrain-dem-gutters --config Release --target pando-terrain-dem-gutters
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter build failed' }
+          if ($IsWindows) { $binary = 'build-native/terrain-dem-gutters/Release/pando-terrain-dem-gutters.exe' }
+          else { $binary = 'build-native/terrain-dem-gutters/pando-terrain-dem-gutters' }
+          node tools/gis/package-terrain-dem-gutters.mjs --binary $binary --directory build-native/terrain-dem-gutters/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter packaging failed' }
+          $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
+          node --test --test-name-pattern 'gutter pixels' tests/unit/terrain-dem-gutters.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter pixels differ from the Python oracle' }
+      - name: Build and verify DEM lossless WebP integration
+        if: inputs.target == 'terrain-dem-gutters-integrated'
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image configuration failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image build failed' }
+          if ($IsWindows) { $binary = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $binary = 'build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image packaging failed' }
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
+          node --test tests/unit/terrain-dem-webp.test.mjs tests/unit/terrain-dem-gutters.test.mjs tests/unit/gis-source-launcher.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'DEM WebP or launcher integration failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-dem-gutters-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/terrain-dem-gutters/artifact/
+          if-no-files-found: error
+          retention-days: 7
+  terrain-dem-raster:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-raster'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the existing GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: dem-raster-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build and compare selected DEM windows
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.dem-raster-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $env:PATH = "$sdk/bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/terrain-dem-raster -B build-native/terrain-dem-raster "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM window reader configuration failed' }
+          cmake --build build-native/terrain-dem-raster --config Release --target pando-terrain-dem-raster
+          if ($LASTEXITCODE -ne 0) { throw 'DEM window reader build failed' }
+          if ($IsWindows) { $env:PANDO_TERRAIN_DEM_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/Release/pando-terrain-dem-raster.exe" }
+          else { $env:PANDO_TERRAIN_DEM_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/pando-terrain-dem-raster" }
+          node tools/gis/package-terrain-dem-raster.mjs --binary $env:PANDO_TERRAIN_DEM_RASTER_BINARY --directory build-native/terrain-dem-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM window reader packaging failed' }
+          $env:PANDO_TERRAIN_DEM_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/artifact"
+          node --test tests/unit/terrain-dem-raster-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-dem-raster-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/terrain-dem-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
+  reference-sequence:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs
+  physical-hydro:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-hydro'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check space for the selected GIS runtime
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 9GB) { throw 'Need estimated 4 GiB GIS runtime space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-name: pando-physical-hydro
+          create-args: >-
+            gdal=3.10.3
+            nodejs=22
+          cache-environment: true
+          cache-downloads: true
+          init-shell: bash
+      - name: Compare selected physical hydro shapefiles
+        env:
+          PANDO_GDAL_OGR2OGR: ogr2ogr
+        run: node --test tests/unit/physical-hydro-native.test.mjs
+  physical-raster:
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'physical-raster' || inputs.target == 'physical-raster-integrated')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the existing GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: physical-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build and verify only the physical source reader
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.physical-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $env:PATH = "$sdk/bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/physical-raster -B build-native/physical-raster "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Physical source reader configuration failed' }
+          cmake --build build-native/physical-raster --config Release --target pando-physical-raster
+          if ($LASTEXITCODE -ne 0) { throw 'Physical source reader build failed' }
+          if ($IsWindows) { $env:PANDO_PHYSICAL_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/Release/pando-physical-raster.exe" }
+          else { $env:PANDO_PHYSICAL_RASTER_BINARY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/pando-physical-raster" }
+          node tools/gis/package-physical-raster.mjs --binary $env:PANDO_PHYSICAL_RASTER_BINARY --directory build-native/physical-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Physical source reader packaging failed' }
+          $env:PANDO_PHYSICAL_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/physical-raster/artifact"
+          node --test tests/unit/physical-raster-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF source pixels differ' }
+          if ('${{ inputs.target }}' -eq 'physical-raster-integrated') {
+            cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+            if ($LASTEXITCODE -ne 0) { throw 'Image codec configuration failed' }
+            cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+            if ($LASTEXITCODE -ne 0) { throw 'Image codec build failed' }
+            if ($IsWindows) { $image = 'build-native/map-image/Release/pando-map-image.exe' }
+            else { $image = 'build-native/map-image/pando-map-image' }
+            node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+            if ($LASTEXITCODE -ne 0) { throw 'Image codec packaging failed' }
+            $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+            cmake -S tools/cpp/terrain -B build-native/terrain-preview -DCMAKE_BUILD_TYPE=Release
+            if ($LASTEXITCODE -ne 0) { throw 'Terrain configuration failed' }
+            cmake --build build-native/terrain-preview --config Release --target pando-terrain-preview
+            if ($LASTEXITCODE -ne 0) { throw 'Terrain build failed' }
+            if ($IsWindows) { $terrain = 'build-native/terrain-preview/Release/pando-terrain-preview.exe' }
+            else { $terrain = 'build-native/terrain-preview/pando-terrain-preview' }
+            node tools/gis/package-terrain-preview.mjs --binary $terrain --directory build-native/terrain-preview/artifact
+            if ($LASTEXITCODE -ne 0) { throw 'Terrain packaging failed' }
+            $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
+            node --test tests/unit/physical-terrain-builder.test.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'Physical terrain pipeline differs from frozen source pixels' }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: physical-raster-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/physical-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
+  terrain-dem-fill-windows:
+    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-fill-windows' || inputs.target == 'physical-raster' || inputs.target == 'terrain-dem-raster' || inputs.target == 'terrain-dem-tint')
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reuse pinned QGIS SDK archives
+        uses: actions/cache/restore@v4
+        with:
+          path: build-native/qgis-sdk/*.tar.bz2
+          key: qgis-sdk-${{ runner.os }}-qgis-3.44.15-qt-5.15.13-gdal-3.13.3-geos-3.15.0-proj-9.8.1-v1
+      - name: Prepare the pinned GDAL development SDK
+        timeout-minutes: 4
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          New-Item -ItemType Directory -Force -Path $sdk | Out-Null
+          $archive = "$sdk/gdal.tar.bz2"
+          $hash = '2475B7AB14A8437B925D1E96908AD5E22B8296ADF01E00B9ECA3EF0816B736C2'
+          if (-not (Test-Path -LiteralPath $archive) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) {
+            curl.exe --proto '=https' --tlsv1.2 --fail --location --max-time 180 --max-filesize 30000000 'https://download-cache.osgeo.org/osgeo4w/v2/x86_64/release/gdal/gdal-devel/gdal-devel-3.13.3-3.tar.bz2' --output $archive
+            if ($LASTEXITCODE -ne 0 -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $hash) { throw 'GDAL SDK download or digest failed' }
+          }
+          $zip = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+          & $zip x -y $archive "-o$sdk/packed" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL SDK decompression failed' }
+          & $zip x -y "$sdk/packed/gdal.tar" "-o$sdk" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL SDK extraction failed' }
+      - name: Build the selected GDAL tint tool
+        if: inputs.target == 'terrain-dem-fill-windows'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-encode -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool configuration failed' }
+          cmake --build build-native/terrain-dem-encode --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool build failed' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary build-native/terrain-dem-encode/Release/pando-terrain-dem-fill.exe --directory build-native/terrain-dem-encode/fill-artifact
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-dem-fill-windows'
+        with:
+          name: terrain-dem-fill-windows-${{ github.sha }}
+          path: build-native/terrain-dem-encode/fill-artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build the physical TIFF reader against the OSGeo4W runtime ABI
+        if: inputs.target == 'physical-raster'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/physical-raster -B build-native/physical-raster -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF reader SDK configuration failed' }
+          cmake --build build-native/physical-raster --config Release --target pando-physical-raster
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF reader SDK build failed' }
+          node tools/gis/package-physical-raster.mjs --binary build-native/physical-raster/Release/pando-physical-raster.exe --directory build-native/physical-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Physical TIFF reader SDK packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'physical-raster'
+        with:
+          name: physical-raster-osgeo-windows-${{ github.sha }}
+          path: build-native/physical-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build the DEM window reader against the OSGeo4W runtime ABI
+        if: inputs.target == 'terrain-dem-raster'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/terrain-dem-raster -B build-native/terrain-dem-raster -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'DEM reader SDK configuration failed' }
+          cmake --build build-native/terrain-dem-raster --config Release --target pando-terrain-dem-raster
+          if ($LASTEXITCODE -ne 0) { throw 'DEM reader SDK build failed' }
+          node tools/gis/package-terrain-dem-raster.mjs --binary build-native/terrain-dem-raster/Release/pando-terrain-dem-raster.exe --directory build-native/terrain-dem-raster/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM reader SDK packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-dem-raster'
+        with:
+          name: terrain-dem-raster-osgeo-windows-${{ github.sha }}
+          path: build-native/terrain-dem-raster/artifact/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Build the tint sampler with the pinned OSGeo SDK
+        if: inputs.target == 'terrain-dem-tint'
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/qgis-sdk"
+          cmake -S tools/cpp/terrain-dem-tint -B build-native/terrain-dem-tint -A x64 "-DGDAL_INCLUDE_DIR=$sdk/include" "-DGDAL_LIBRARY=$sdk/lib/gdal_i.lib"
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler SDK configuration failed' }
+          cmake --build build-native/terrain-dem-tint --config Release --target pando-terrain-dem-tint
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler SDK build failed' }
+          node tools/gis/package-terrain-dem-tint.mjs --binary build-native/terrain-dem-tint/Release/pando-terrain-dem-tint.exe --directory build-native/terrain-dem-tint/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Tint sampler SDK packaging failed' }
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-dem-tint'
+        with:
+          name: terrain-dem-tint-osgeo-windows-${{ github.sha }}
+          path: build-native/terrain-dem-tint/artifact/
+          if-no-files-found: error
+          retention-days: 7
   terrain-dem-encode:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-encode'
     strategy:
@@ -31,7 +412,7 @@ jobs:
       matrix:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -54,6 +435,40 @@ jobs:
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
           node --test tests/unit/terrain-dem-encode.test.mjs tests/unit/terrain-dem-tint-native.test.mjs tests/unit/terrain-dem-assets.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM encoding differs from the Python oracle' }
+      - name: Check space for the focused GDAL SDK
+        shell: pwsh
+        run: |
+          $drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($env:GITHUB_WORKSPACE))
+          if ($drive.AvailableFreeSpace -lt 7GB) { throw 'Need estimated 2 GiB SDK/build space plus 5 GiB headroom' }
+      - uses: mamba-org/setup-micromamba@v3
+        id: dem-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build and verify the selected GDAL tint tool
+        shell: pwsh
+        run: |
+          $prefix = '${{ steps.dem-gdal.outputs.environment-path }}'
+          if ($IsWindows) { $sdk = "$prefix/Library"; $bin = "$sdk/bin"; $env:PATH = "$bin$([IO.Path]::PathSeparator)$env:PATH" }
+          else { $sdk = $prefix; $bin = "$sdk/bin"; $env:LD_LIBRARY_PATH = "$sdk/lib$([IO.Path]::PathSeparator)$env:LD_LIBRARY_PATH" }
+          cmake -S tools/cpp/terrain-dem-fill -B build-native/terrain-dem-encode/fill-build "-DCMAKE_PREFIX_PATH=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool configuration failed' }
+          cmake --build build-native/terrain-dem-encode/fill-build --config Release --target pando-terrain-dem-fill
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool build failed' }
+          if ($IsWindows) { $binary = 'build-native/terrain-dem-encode/fill-build/Release/pando-terrain-dem-fill.exe' }
+          else { $binary = 'build-native/terrain-dem-encode/fill-build/pando-terrain-dem-fill' }
+          node tools/gis/package-terrain-dem-fill.mjs --binary $binary --directory build-native/terrain-dem-encode/fill-artifact
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool packaging failed' }
+          $env:PANDO_TERRAIN_DEM_FILL_BINARY = "$env:GITHUB_WORKSPACE/$binary"
+          $env:PANDO_TERRAIN_DEM_FILL_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/fill-artifact"
+          node --test tests/unit/terrain-dem-fill-native.test.mjs tests/unit/terrain-dem-fill.test.mjs tests/unit/gis-source-launcher.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'GDAL tint tool differs from its Python oracle' }
+          Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_FILL_DIRECTORY=$env:PANDO_TERRAIN_DEM_FILL_DIRECTORY"
+          if ($IsWindows) { Add-Content -Path $env:GITHUB_ENV -Value "PANDO_TERRAIN_DEM_GDAL_BIN=$bin" }
+          else { Add-Content -Path $env:GITHUB_ENV -Value "LD_LIBRARY_PATH=$sdk/lib" }
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -66,6 +481,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer native encoding calls failed' }
           python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_keeps_white_ice_and_excludes_white_water tests.python.test_build_terrain_dem.TerrainDemTest.test_nearly_white_water_is_not_a_land_donor_but_real_snow_is_kept tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_average_does_not_dilute_a_small_island_with_white_sea tests.python.test_build_terrain_dem.TerrainDemTest.test_asset_summary_uses_shared_node_digest
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer tint masking differs from its source contract' }
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_fill_wraps_longitude_and_preserves_existing_colour tests.python.test_build_terrain_dem.TerrainDemTest.test_tint_fill_matches_frozen_fractional_reference
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tint producer differs from its frozen oracle' }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-dem-encode-${{ matrix.os }}-${{ github.sha }}
@@ -214,10 +631,22 @@ jobs:
           $env:PANDO_TERRAIN_PREVIEW_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-preview/artifact"
           node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Terrain preview differs from frozen source pixels' }
+          if ('${{ inputs.target }}' -eq 'terrain-preview-integrated') {
+            node --test tests/unit/map-native-webp-encode.test.mjs tests/unit/physical-webp-stream.test.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'WebP encoding differs from source pixels' }
+            node --test tests/unit/physical-terrain-native.test.mjs
+            if ($LASTEXITCODE -ne 0) { throw 'Physical terrain operations differ from source pixels' }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: terrain-preview-${{ matrix.os }}-${{ github.sha }}
           path: build-native/terrain-preview/artifact/
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: inputs.target == 'terrain-preview-integrated'
+        with:
+          name: terrain-image-codec-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-image/artifact/
           retention-days: 7
   reference-step:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'reference-step' || inputs.target == 'reference-ordered')
@@ -278,7 +707,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Training AMP scaling differs' }
           if ($IsWindows) { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe" }
           else { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/pando-reference-training-batch" }
-          node --test tests/unit/reference-training-batch-refusal.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-training-validation.test.mjs
+          node --test tests/unit/reference-training-batch-refusal.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-training-validation.test.mjs tests/unit/reference-training-sequence.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Training batch refusal check failed' }
       - name: Package the training batch engine
         shell: pwsh
@@ -426,7 +855,7 @@ jobs:
           node tools/reference-analysis/package-native-review.mjs --binary $binary --directory build-native/map-review/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
           $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          node --test tests/unit/reference-review-mask.test.mjs tests/unit/reference-reviewed-corpus.test.mjs
+          node --test tests/unit/reference-review-mask.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-corpus-metadata.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-macro-provenance.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Reviewed masks differ from original' }
       - uses: actions/upload-artifact@v4
         if: always()
@@ -599,7 +1028,7 @@ jobs:
           if ('${{ inputs.target }}' -eq 'map-macro') {
             node --test tests/unit/reference-native-macro.test.mjs
           } else {
-            node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs tests/unit/reference-training-webp-overview.test.mjs tests/unit/reference-training-mask-window.test.mjs tests/unit/reference-diagnostic-selection.test.mjs tests/unit/reference-diagnostic-overlay.test.mjs
+            node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs tests/unit/reference-training-webp-overview.test.mjs tests/unit/reference-training-mask-window.test.mjs tests/unit/reference-training-mask-audit.test.mjs tests/unit/reference-diagnostic-selection.test.mjs tests/unit/reference-diagnostic-overlay.test.mjs
           }
           if ($LASTEXITCODE -ne 0) { throw 'Training image or tile pixels differ' }
       - uses: actions/upload-artifact@v4

@@ -1,0 +1,89 @@
+name: GPU G4 residual editor and Canvas browser verification (no deployment)
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/gpu-recovery-g4-runtime.yml
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/gpu-scene.js
+      - shared/frontend/js/modules/country-mesh-zoom-policy.js
+      - tests/browser/gpu-recovery-g4.spec.mjs
+      - shared/frontend/js/modules/gpu-context-recovery.js
+      - tests/browser/renderer-responsiveness.spec.mjs
+      - tests/browser/editor-status-timeline.spec.mjs
+      - tests/browser/viewer-canvas.spec.mjs
+      - apps/editor/tests/android-policy-sync.test.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: gpu-g4-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  residual-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Mount the unchanged paired library revision
+        uses: ./.github/actions/library-data
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Validate Android policy wiring without generating APK
+        run: node --test apps/editor/tests/android-policy-sync.test.mjs
+      - name: Install pinned Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Viewer Canvas Worker selection and unchanged saved document
+        id: viewer
+        continue-on-error: true
+        run: >-
+          pnpm exec playwright test tests/browser/viewer-canvas.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Editor Canvas Worker and Canvas2D real-frame checks
+        id: canvas
+        if: steps.viewer.outcome == 'success'
+        continue-on-error: true
+        run: >-
+          pnpm exec playwright test tests/browser/renderer-responsiveness.spec.mjs
+          --grep 'Canvas pan and zoom|Canvas2D fallback'
+          --workers=1 --retries=0 --reporter=list
+      - name: Editor Canvas timeline and stable document state
+        id: editor
+        if: steps.viewer.outcome == 'success'
+        continue-on-error: true
+        run: >-
+          pnpm exec playwright test tests/browser/editor-status-timeline.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Exercise current Canvas Worker first-frame, year, selection and resume contract
+        id: worker_g4
+        if: steps.viewer.outcome == 'success' && steps.canvas.outcome == 'success' && steps.editor.outcome == 'success'
+        continue-on-error: true
+        env:
+          G4_EVIDENCE: test-results/g4-m2-viewer-worker
+        run: >-
+          pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs
+          --grep 'viewer canvas-worker:' --workers=1 --retries=0 --reporter=list --trace off
+      - name: Enforce each independent G4 residual gate
+        if: always()
+        env:
+          CANVAS: ${{ steps.canvas.outcome }}
+          EDITOR: ${{ steps.editor.outcome }}
+          VIEWER: ${{ steps.viewer.outcome }}
+          WORKER_G4: ${{ steps.worker_g4.outcome }}
+        run: |
+          echo "G4 canvas=$CANVAS editor=$EDITOR viewer=$VIEWER worker-g4=$WORKER_G4"
+          test "$CANVAS" = success && test "$EDITOR" = success && test "$VIEWER" = success && test "$WORKER_G4" = success
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: gpu-g4-residual-${{ github.sha }}
+          path: test-results
+          retention-days: 3
+          if-no-files-found: ignore

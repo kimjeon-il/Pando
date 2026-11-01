@@ -6,6 +6,10 @@ import {basename,join} from 'node:path';
 import {buildCommand,parseArguments,runSource,ROOT,TASK_SOURCES} from '../../scripts/gis/run-source.mjs';
 import {packageNativeTool} from '../../tools/native-tool.mjs';
 import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
+import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
+import {terrainDemRasterSources} from '../../tools/gis/terrain-dem-raster.mjs';
+import {terrainDemGutterSources} from '../../tools/gis/terrain-dem-gutters.mjs';
+import {mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
 
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
  const calls=[],logs=[];
@@ -28,7 +32,12 @@ test('native Node tools and not-yet-migrated Python GIS tools use their own inte
  assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
  assert.match(buildCommand('historical-border',[])[1],/build-german-1914-base\.mjs$/);
+ const coast=buildCommand('historical-coast',['--output','candidate.json','--diagnostics','diagnostics.json']);
+ assert.equal(coast[0],process.execPath);
+ assert.match(coast[1],/build-german-1914-base\.mjs$/);
+ assert.deepEqual(coast.slice(2),['--modern-coast','--output','candidate.json','--diagnostics','diagnostics.json']);
  assert.match(buildCommand('terrain-preview',[])[1],/build-terrain-preview\.mjs$/);
+ assert.match(buildCommand('physical-data',[])[1],/build-physical-data\.mjs$/);
  assert.match(buildCommand('hydro-connectivity',[])[1],/repair-hydro-connectivity\.mjs$/);
 });
 test('GIS raw subprocess launch requires explicit --execute and keeps forwarded args',()=>{
@@ -67,16 +76,52 @@ test('terrain preview dispatcher invokes the Node owner with explicit arguments'
  assert.match(calls[0].args[0],/build-terrain-preview\.mjs$/);
  assert.deepEqual(calls[0].args.slice(1),['--check']);
 });
-test('DEM generation requires a source-bound native elevation encoder',t=>{
+test('DEM generation requires source-bound native elevation reading, encoding and tint filling',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
+ for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemRasterSources,...terrainDemGutterSources,...mapImageSourceFiles]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
  const argv=['--task','terrain-dem','--execute'],calls=[];
  assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
  const binary=join(root,process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode');writeFileSync(binary,'fixture binary');
  packageNativeTool({root,binary,directory:join(root,'build-native/terrain-dem-encode/artifact'),target:'terrain-dem-encode',platform:process.platform,
    architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemEncodeSources});
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const fill=join(root,process.platform==='win32'?'pando-terrain-dem-fill.exe':'pando-terrain-dem-fill');writeFileSync(fill,'fixture binary');
+ packageNativeTool({root,binary:fill,directory:join(root,'build-native/terrain-dem-encode/fill-artifact'),target:'terrain-dem-fill',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemFillSources});
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const raster=join(root,process.platform==='win32'?'pando-terrain-dem-raster.exe':'pando-terrain-dem-raster');writeFileSync(raster,'fixture binary');
+ packageNativeTool({root,binary:raster,directory:join(root,'build-native/terrain-dem-raster/artifact'),target:'terrain-dem-raster',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemRasterSources});
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const gutters=join(root,process.platform==='win32'?'pando-terrain-dem-gutters.exe':'pando-terrain-dem-gutters');writeFileSync(gutters,'fixture binary');
+ packageNativeTool({root,binary:gutters,directory:join(root,'build-native/terrain-dem-gutters/artifact'),target:'terrain-dem-gutters',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:terrainDemGutterSources});
+ assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
+ const image=join(root,process.platform==='win32'?'pando-map-image.exe':'pando-map-image');writeFileSync(image,'fixture binary');
+ packageNativeTool({root,binary:image,directory:join(root,'build-native/map-image/artifact'),target:'map-image',platform:process.platform,
+   architecture:process.arch,revision:'a'.repeat(40),sourceFiles:mapImageSourceFiles});
  assert.equal(runSource({root,argv,output:()=>{},spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
  assert.equal(calls[0].env.PANDO_TERRAIN_DEM_ENCODE_BINARY,join(root,'build-native/terrain-dem-encode/artifact',basename(binary)));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,join(root,'build-native/terrain-dem-encode/fill-artifact'));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_RASTER_BINARY,join(root,'build-native/terrain-dem-raster/artifact',basename(raster)));
+ assert.equal(calls[0].env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY,join(root,'build-native/terrain-dem-gutters/artifact'));
+ assert.equal(calls[0].env.PANDO_MAP_IMAGE_ARTIFACT,join(root,'build-native/map-image/artifact'));
+});
+
+test('tint-only DEM reuse does not require unrelated DEM reader or gutter binaries',t=>{
+ const root=mkdtempSync(join(tmpdir(),'gis-dem-tint-only-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources]){
+   mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');
+ }
+ for(const [target,sources,directory] of [['terrain-dem-encode',terrainDemEncodeSources,'artifact'],['terrain-dem-fill',terrainDemFillSources,'fill-artifact']]){
+   const binary=join(root,`pando-${target}${process.platform==='win32'?'.exe':''}`);writeFileSync(binary,'fixture binary');
+   packageNativeTool({root,binary,directory:join(root,'build-native/terrain-dem-encode',directory),target,platform:process.platform,
+     architecture:process.arch,revision:'a'.repeat(40),sourceFiles:sources});
+ }
+ const calls=[];
+ assert.equal(runSource({root,argv:['--task','terrain-dem','--execute','--','--reuse-dem=old'],output:()=>{},
+   spawn:(exe,args,options)=>{calls.push(options);return {status:0,signal:null};}}),0);
+ assert.equal(calls.length,1);
 });
 
 test('historical-border dispatches the migrated Node recipe owner without restoring Python',t=>{

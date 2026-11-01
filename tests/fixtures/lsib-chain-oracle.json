@@ -1,0 +1,360 @@
+{
+  "cases": [
+    {
+      "name": "crossings",
+      "old": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      "reference": [
+        [
+          0,
+          0.2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0.2
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0.2
+        ]
+      ],
+      "expected": {
+        "coordinates": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.2
+          ],
+          [
+            3.0,
+            0.0
+          ],
+          [
+            4.0,
+            0.0
+          ]
+        ],
+        "retained_length_degrees": 2.0,
+        "source_length_degrees": 2.039607805437114,
+        "replaced_length_degrees": 2.0,
+        "master_vertices": 3,
+        "derived_vertices": 3,
+        "simplification_bound_px": 0.18204444444444445,
+        "anchors": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            3.0,
+            0.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "interpolated",
+      "old": [
+        [
+          0.1,
+          0.2
+        ],
+        [
+          1.7,
+          0.8
+        ],
+        [
+          3.5,
+          1.4
+        ],
+        [
+          4.9,
+          2.3
+        ]
+      ],
+      "reference": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          6,
+          0
+        ]
+      ],
+      "expected": {
+        "coordinates": [
+          [
+            0.1,
+            0.2
+          ],
+          [
+            0.9571428571428571,
+            0.5214285714285715
+          ],
+          [
+            2.0,
+            0.0
+          ],
+          [
+            4.0,
+            3.0
+          ],
+          [
+            4.596666666666667,
+            2.105
+          ],
+          [
+            4.9,
+            2.3
+          ]
+        ],
+        "retained_length_degrees": 1.2760341738829464,
+        "source_length_degrees": 5.847157137102304,
+        "replaced_length_degrees": 3.994464868990911,
+        "master_vertices": 4,
+        "derived_vertices": 4,
+        "simplification_bound_px": 0.18204444444444445,
+        "anchors": [
+          [
+            0.9571428571428571,
+            0.5214285714285715
+          ],
+          [
+            4.596666666666667,
+            2.105
+          ]
+        ]
+      }
+    },
+    {
+      "name": "reverse",
+      "old": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ]
+      ],
+      "reference": [
+        [
+          4,
+          0.2
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          2,
+          0.2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          0.2
+        ]
+      ],
+      "expected": {
+        "coordinates": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0,
+            0.0
+          ],
+          [
+            2.0,
+            0.2
+          ],
+          [
+            3.0,
+            0.0
+          ],
+          [
+            4.0,
+            0.0
+          ]
+        ],
+        "retained_length_degrees": 2.0,
+        "source_length_degrees": 2.039607805437114,
+        "replaced_length_degrees": 2.0,
+        "master_vertices": 3,
+        "derived_vertices": 3,
+        "simplification_bound_px": 0.18204444444444445,
+        "anchors": [
+          [
+            1.0,
+            0.0
+          ],
+          [
+            3.0,
+            0.0
+          ]
+        ]
+      }
+    },
+    {
+      "name": "no-anchors",
+      "old": [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "reference": [
+        [
+          0,
+          0.1
+        ],
+        [
+          2,
+          0.1
+        ]
+      ],
+      "error": "No independent intersection anchors; old endpoint arcs retained"
+    },
+    {
+      "name": "overlap",
+      "old": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "reference": [
+        [
+          0.5,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2.5,
+          0
+        ]
+      ],
+      "expected": {
+        "coordinates": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5,
+            0.0
+          ],
+          [
+            2.5,
+            0.0
+          ],
+          [
+            3.0,
+            0.0
+          ]
+        ],
+        "retained_length_degrees": 1.0,
+        "source_length_degrees": 2.0,
+        "replaced_length_degrees": 2.0,
+        "master_vertices": 4,
+        "derived_vertices": 2,
+        "simplification_bound_px": 0.18204444444444445,
+        "anchors": [
+          [
+            0.5,
+            0.0
+          ],
+          [
+            2.5,
+            0.0
+          ]
+        ]
+      }
+    }
+  ]
+}

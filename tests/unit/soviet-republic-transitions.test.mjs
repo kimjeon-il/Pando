@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -41,7 +42,7 @@ test('published intervals and month-end selection preserve all fifteen political
  assert.equal(index.schemaVersion,2);
  const projectId=source=>index.sourceIdentities.find(row=>row.sourceEntityIds.includes(source)).projectEntityId;
  const cache=new Map();
- const country=source=>{const id=projectId(source);if(!cache.has(id))cache.set(id,JSON.parse(gunzipSync(readFileSync(new URL(index.entities.find(row=>row.entityId===id).file,directory)))));return cache.get(id);};
+ const country=source=>{const id=projectId(source);if(!cache.has(id))cache.set(id,JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(index.entities.find(row=>row.entityId===id),file=>readFileSync(new URL(file,directory))))));return cache.get(id);};
  const active=(rows,day)=>rows.filter(row=>temporalContains(row,day));
  for(const [code,suffix,day] of transitions){
   const end=new Date(day+'T00:00:00Z');end.setUTCDate(end.getUTCDate()-1);const previous=end.toISOString().slice(0,10);

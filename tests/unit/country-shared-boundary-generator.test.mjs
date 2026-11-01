@@ -1,4 +1,3 @@
-import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -6,7 +5,7 @@ import { gzipSync, gunzipSync } from 'node:zlib';
 
 const worldBundle = JSON.parse(fs.readFileSync(new URL('../../assets/data/world/current.json', import.meta.url), 'utf8'));
 const archiveName = worldBundle.compatibility.sharedBoundaries.preview;
-const archive = fs.readFileSync(repositoryFrontendUrl(`assets/data/${archiveName}`));
+const archive = fs.readFileSync(new URL(`../../assets/data/${archiveName}`, import.meta.url));
 const decoded = gunzipSync(archive);
 
 async function checkArchive(t, replacement, { missing = false } = {}) {

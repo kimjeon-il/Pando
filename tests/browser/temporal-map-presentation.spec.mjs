@@ -113,6 +113,7 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   await page.locator('#timelineGoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.__temporalHeld.length)).toBe(1);
   await expect(page.locator('#viewerStatus')).toHaveText('다음 시점 준비 중…');
+  await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
   await page.evaluate(()=>window.__temporalInvalidate());
   const mapBox=await page.locator('#map').boundingBox();
   const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().screenScale);
@@ -136,7 +137,8 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     console.log('transition readiness',await page.evaluate(()=>{const stats=window.__PANDOLAB_VIEWER__.rendererStats();return {readiness:stats.mapReadiness,generation:stats.projectGeneration,blocked:stats.projectRenderBlocked,terrain:stats.terrainReady,boundary:stats.countrySharedBoundaryReady,physical:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,mesh:stats.lastMeshPreparation};}));
     throw error;
   }
-  await expect(page.locator('#viewerStatus')).toBeHidden();
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
   const physical=await page.evaluate(()=>({frame:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,
     mesh:window.__PANDOLAB_VIEWER__.rendererStats().lastMeshPreparation}));
   expect(physical.frame.matches).toBe(true);
@@ -169,7 +171,8 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
     await page.evaluate(()=>{window.__temporalGate=null;window.__temporalHeld.shift().resolve();});
     await expect(page.locator('#timelineDateButtonText')).toHaveText('1923년 2월',{timeout:45000});
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month)).toBe('1923-02');
-    await expect(page.locator('#viewerStatus')).toBeHidden();
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+    await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
     const preparation=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
     await page.locator('#timelineGoBtn').click();
     await expect(page.locator('#timelinePopover')).toBeHidden({timeout:45000});

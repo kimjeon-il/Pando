@@ -202,7 +202,7 @@
   z-index: 100;
   top: auto;
   right: 0;
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
   left: 0;
   width: 100%;
   max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-topbar-height) - var(--mobile-nav-height));
@@ -226,7 +226,7 @@
   z-index: 100;
   top: auto;
   right: 0;
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, 0px));
+  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
   left: 0;
   width: 100%;
   max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-topbar-height) - var(--mobile-nav-height));

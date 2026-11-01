@@ -1,3 +1,28 @@
+# 2026-11-01 stage-2 integration update
+
+The historical proposal below is retained as the original review record. Main
+502cc301 now owns P5-6 immutable source preparation, bounded cache, candidate
+validation, atomic adoption and rollback. Stage 2 ports the missing delta and
+identity-preservation intent into that existing owner, not a second transition
+API. Old documentTransitionBaseline/transitionBuiltin and selection-key caching
+are superseded. Initial load, user-file opening and editor paths retain complete
+admission; only an explicit clean builtin Viewer date change keeps its identity.
+
+The native candidate prepares and validates its authoritative delta before the
+replacement transaction. Same-ID changed geometry without a new version is
+rejected. Exact month/data/source identity, country-files-v1 and the data pin
+5eb7be55208efaafe39bd5a65ec2f111d70b9053 remain unchanged. No cross-month source
+handle equality is guessed. New tests cover delta publication, state ownership,
+native/WASM equivalence and real desktop/mobile WebGL/Canvas transitions.
+
+Local native document_session_tests and temporal_adopt_tests passed with the new
+rejection and delta/rollback regressions. Source-matched WASM and browser gates
+remain pending until the stage-2 integration workflow records their results.
+No performance latency claim is made. No independent agent reviewer is available;
+final review is an explicit author review, separate from implementation.
+
+---
+
 # Builtin temporal transition — implementation stage 1
 
 Scope: viewer year/month navigation uses a dedicated Core baseline transition instead of the whole-document load protocol. Startup and user-file opening retain their existing contracts. Do not change geometry, date semantics, loading animation, prefetch, or main.

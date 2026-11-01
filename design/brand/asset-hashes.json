@@ -1,6 +1,6 @@
 {
-  "shared/frontend/static/brand/favicon.svg": "890c2990256220ae801496576b49e0f1076bc59a7cf18e8230605a04ad4ba113",
-  "shared/frontend/static/brand/favicon.ico": "846b3eb46d201d2feaf9b188e1cb81cf3cc1689424a97fc691221c5a615b5501",
+  "shared/frontend/static/brand/favicon.svg": "773886eecbffaa74c9a8bdcf711209699f91b7270ac6eb33c1507cc1787eee14",
+  "shared/frontend/static/brand/favicon.ico": "17f1a19bebd25581e61be41a56f9797791524bc4d8250429479c6f411bcac4d8",
   "shared/frontend/static/brand/apple-touch-icon.png": "240b23c30aa30a91c5d54f0110058d90da94c93b7d4ad3e222091cf542066399",
   "apps/editor/src-tauri/icons/icon.ico": "fe342c801dad90826825697131da602ebcc80df8cc22fa112bfb16dc32e2f2ae",
   "apps/editor/src-tauri/icons/icon.png": "d5a55204c27d507d67cf22f23e5e65b3101783a7b496daf376dca790cf714175",

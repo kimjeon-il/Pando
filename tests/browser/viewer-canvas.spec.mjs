@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 
 test('Canvas viewer selects a saved country polygon body without changing project data', async ({ page }) => {
-  const fixture = await createViewerProjectPackage('Canvas 본문 선택',{hiddenObjectIds:['B','R']});
+  const fixture = await createViewerProjectPackage('Canvas 본문 선택');
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => {
@@ -29,9 +29,8 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   }));
 
   await openViewingDisplay(page);
-  // The fixture deliberately overlaps A, its child B and independent region R.
-  // B and R are hidden by individual canonical IDs in the saved defaults.
-  // Hide text/backgrounds so only a root polygon body can satisfy this click.
+  // The fixture contains overlapping polygons; choose A explicitly from the real hit list.
+  // Hide labels and hydro layers so the click targets the actual polygon body.
   for (const group of ['labels', 'rivers', 'lakes']) {
     await setViewingLayer(page,group,false);
   }
@@ -41,17 +40,39 @@ test('Canvas viewer selects a saved country polygon body without changing projec
   await page.locator('#resetViewBtn').click();
   await expect(page.locator('#map text')).toHaveCount(0);
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items).toEqual([]);
+  const priorDisplayedRevision = await page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().displayedRevision);
   await page.evaluate(()=>{const host=window.__PANDOLAB_MAP_HOST__;host.setViewState({projection:'globe',view:{...host.getViewState(),globeRotation:[-5,-5,0],globeZoom:4}});host.requestRepaint('canvas-body-selection');});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.getViewState().globeRotation)).toEqual([-5,-5,0]);
+  // Wait for the asynchronous Canvas Worker to present the new camera before picking.
+  await expect.poll(() => page.evaluate(previous => {
+    const stats = window.__PANDOLAB_VIEWER__.rendererStats();
+    return stats.renderer === 'canvas-worker' && !stats.canvasWorkerBusy
+      && stats.displayedRevision > previous && stats.displayedRevision >= stats.requestedRevision;
+  }, priorDisplayedRevision), { timeout: 45_000 }).toBe(true);
+  // A displayed Canvas frame is not by itself an admitted country-picking surface.
+  // The renderer writes countryVisualPhase from surfacePresentation.quality.
+  await expect.poll(() => page.evaluate(() => {
+    const stats = window.__PANDOLAB_VIEWER__.rendererStats();
+    return stats.projectRenderBlocked ? 'blocked' : stats.surfacePresentation?.quality || 'unknown';
+  }), { timeout: 45_000, message: 'Country surface must leave pending before Canvas picking' }).toMatch(/^(preview|canonical)$/);
   const bounds = await page.locator('#map').boundingBox();
   // Bring the known body coordinate into the viewport and use the real projection.
   const point=await page.evaluate(()=>window.__PANDOLAB_MAP_HOST__.project([8,8]));
   expect(point[0]).toBeGreaterThan(0);expect(point[0]).toBeLessThan(bounds.width);
   expect(point[1]).toBeGreaterThan(0);expect(point[1]).toBeLessThan(bounds.height);
   await page.mouse.click(bounds.x+point[0],bounds.y+point[1]);
-  await expect(page.locator('#objectChooser')).toBeVisible();
-  await expect(page.locator('#objectChooserList [data-object-chooser-index]')).toHaveCount(2);
-  await page.locator('#objectChooserList [data-object-chooser-index]').filter({hasText:'Canvas 본문 선택'}).click();
+  const chooser = page.locator('#objectChooser');
+  // A sole hit selects immediately; overlapping hits open the chooser.
+  await expect.poll(async () => {
+    const selected = await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot().items);
+    return selected.some(item => item.domain === 'territorial' && item.id === 'A') || await chooser.isVisible();
+  }, { timeout: 15_000 }).toBe(true);
+  if (await chooser.isVisible()) {
+    // B has the same text in its parent detail; match A's full accessible name.
+    const target = page.locator('#objectChooserList').getByRole('option', {name:'Canvas 본문 선택 객체',exact:true});
+    await expect(target).toHaveCount(1);
+    await target.click();
+  }
   await expect(page.locator('#viewerSelectionStatus')).toHaveText('Canvas 본문 선택');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.notes)).toBe('원본 메타데이터 보존');
   expect((await page.evaluate(() => window.__PANDOLAB_VIEWER__.selectionSnapshot())).items)

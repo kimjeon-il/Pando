@@ -1,0 +1,85 @@
+name: Viewer P6-1 desktop functional verification
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tests/integration/viewer-functional-p6-1.spec.mjs
+      - tests/integration/viewer-functional-p6-1.config.mjs
+      - .github/workflows/viewer-functional-p6-1.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-p6-1-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  desktop:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - name: Install only Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Check pinned data preparation capacity
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync, statfsSync } from 'node:fs';
+          const pin = JSON.parse(readFileSync('config/library-data.json', 'utf8'));
+          assert.equal(pin.revision, '139941d8056418547c796068304ba8db3696fe69',
+            'Recalculate the capacity estimate if the paired data pin changes');
+          const coldPeakBytes = 2080907017n, headroomBytes = 5n * 1024n ** 3n;
+          const requiredBytes = coldPeakBytes + headroomBytes;
+          const disk = statfsSync(process.cwd(), { bigint: true });
+          const freeBytes = disk.bavail * disk.bsize;
+          console.log(JSON.stringify({ dataRevision: pin.revision,
+            coldPeakBytes: String(coldPeakBytes), headroomBytes: String(headroomBytes),
+            requiredBytes: String(requiredBytes), freeBytes: String(freeBytes) }));
+          assert.ok(freeBytes >= requiredBytes, 'Data preparation needs its cold peak plus 5 GiB headroom');
+          NODE
+      - uses: ./.github/actions/library-data
+      - name: Verify committed JS and WASM source identity without rebuilding
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: One desktop functional scenario
+        run: pnpm exec playwright test --config tests/integration/viewer-functional-p6-1.config.mjs
+      - name: Export bounded screenshot evidence for connector review
+        if: always()
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { existsSync, readFileSync, readdirSync } from 'node:fs';
+          import { join, basename } from 'node:path';
+          import { createHash } from 'node:crypto';
+          const root = 'test-results/viewer-functional-p6-1';
+          if (existsSync(root)) {
+            const names = new Set(['initial.jpg', 'dark.jpg', 'light.jpg']);
+            for (const path of readdirSync(root, { recursive: true }).sort()) {
+              if (!names.has(basename(path))) continue;
+              const bytes = readFileSync(join(root, path));
+              if (bytes.length > 512 * 1024) throw Error('Screenshot exceeds the bounded evidence limit');
+              const base64 = bytes.toString('base64'), name = basename(path);
+              console.log('P6_1_IMAGE ' + JSON.stringify({ name, bytes: bytes.length,
+                sha256: createHash('sha256').update(bytes).digest('hex'), chunks: Math.ceil(base64.length / 8192) }));
+              for (let offset = 0; offset < base64.length; offset += 8192) {
+                console.log('P6_1_IMAGE_CHUNK ' + JSON.stringify({ name, index: offset / 8192,
+                  base64: base64.slice(offset, offset + 8192) }));
+              }
+            }
+          }
+          NODE
+      - name: Save focused functional results and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-p6-1-${{ github.sha }}
+          path: test-results/viewer-functional-p6-1/
+          if-no-files-found: warn
+          retention-days: 14

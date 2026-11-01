@@ -1,0 +1,1057 @@
+{
+  "cases": [
+    {
+      "name": "unchanged",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "valid": true
+    },
+    {
+      "name": "missing-country",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Candidate country set changed"
+    },
+    {
+      "name": "overlap",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                1.0,
+                2.0
+              ],
+              [
+                1.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Candidate counterpart ownership overlaps"
+    },
+    {
+      "name": "changed-union",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                1.5,
+                0.0
+              ],
+              [
+                1.5,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                1.5,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Land/coastline union changed outside reviewed coast"
+    },
+    {
+      "name": "island-change",
+      "before": {
+        "A": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  2.0,
+                  0.0
+                ],
+                [
+                  2.0,
+                  2.0
+                ],
+                [
+                  0.0,
+                  2.0
+                ],
+                [
+                  0.0,
+                  0.0
+                ],
+                [
+                  2.0,
+                  0.0
+                ]
+              ]
+            ],
+            [
+              [
+                [
+                  6.0,
+                  0.0
+                ],
+                [
+                  6.0,
+                  1.0
+                ],
+                [
+                  5.0,
+                  1.0
+                ],
+                [
+                  5.0,
+                  0.0
+                ],
+                [
+                  6.0,
+                  0.0
+                ]
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  4.0,
+                  0.0
+                ],
+                [
+                  4.0,
+                  2.0
+                ],
+                [
+                  2.0,
+                  2.0
+                ],
+                [
+                  2.0,
+                  0.0
+                ],
+                [
+                  4.0,
+                  0.0
+                ]
+              ]
+            ],
+            [
+              [
+                [
+                  6.0,
+                  0.0
+                ],
+                [
+                  6.0,
+                  1.0
+                ],
+                [
+                  5.0,
+                  1.0
+                ],
+                [
+                  5.0,
+                  0.0
+                ],
+                [
+                  6.0,
+                  0.0
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Island/enclave component count changed"
+    },
+    {
+      "name": "hole-change",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                1.0,
+                0.5
+              ],
+              [
+                1.0,
+                1.0
+              ],
+              [
+                0.5,
+                1.0
+              ],
+              [
+                0.5,
+                0.5
+              ],
+              [
+                1.0,
+                0.5
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  1.0,
+                  0.5
+                ],
+                [
+                  1.0,
+                  1.0
+                ],
+                [
+                  0.5,
+                  1.0
+                ],
+                [
+                  0.5,
+                  0.5
+                ],
+                [
+                  1.0,
+                  0.5
+                ]
+              ]
+            ],
+            [
+              [
+                [
+                  6.0,
+                  0.0
+                ],
+                [
+                  6.0,
+                  1.0
+                ],
+                [
+                  5.0,
+                  1.0
+                ],
+                [
+                  5.0,
+                  0.0
+                ],
+                [
+                  6.0,
+                  0.0
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                6.0,
+                0.0
+              ],
+              [
+                6.0,
+                1.0
+              ],
+              [
+                5.0,
+                1.0
+              ],
+              [
+                5.0,
+                0.0
+              ],
+              [
+                6.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Enclave hole count changed"
+    },
+    {
+      "name": "ownership-change",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "B": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Existing component attribution changed"
+    },
+    {
+      "name": "approved-union",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                4.0,
+                0.0
+              ],
+              [
+                4.0,
+                2.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                4.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              4.0,
+              0.0
+            ],
+            [
+              4.0,
+              2.0
+            ],
+            [
+              2.0,
+              2.0
+            ],
+            [
+              2.0,
+              0.0
+            ],
+            [
+              4.0,
+              0.0
+            ]
+          ]
+        ]
+      },
+      "correctedCountry": "A",
+      "valid": true
+    },
+    {
+      "name": "invalid-polygon",
+      "before": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                2.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "after": {
+        "A": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                2.0,
+                2.0
+              ],
+              [
+                0.0,
+                2.0
+              ],
+              [
+                2.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "expectedUnion": null,
+      "correctedCountry": null,
+      "error": "Candidate country polygon invalid: {'A': 'Self-intersection[1 1]'}"
+    }
+  ]
+}

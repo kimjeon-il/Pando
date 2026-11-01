@@ -147,6 +147,8 @@ export function createTaskPresentation() {
     const names = ids => ids.map(id => countryDisplay(id)?.name || territorialUnitDisplay(id)).filter(Boolean).join(', ');
     if (selection) {
       if (selection.kind === 'annex') rows.push(['넘겨받는 국가', names([selection.targetCountryId])]);
+      else if (selection.kind === 'entity' && selection.editOperation === 'annex')
+        rows.push(['넘겨받는 객체', names([selection.editTargetId]) || selection.name]);
       else rows.push(['이름', selection.name]);
       if (selection.parentId) rows.push(['상위 객체', names([selection.parentId])]);
       if (selection.sourceCountryIds.length) rows.push([selection.kind === 'annex' ? '넘겨주는 국가' : '원소속 국가', names(selection.sourceCountryIds)]);
@@ -161,7 +163,13 @@ export function createTaskPresentation() {
         rows.push(['남길 객체', labels.get(merge.keeperId)]);
         rows.push(['합쳐질 객체', merge.absorbedIds.map(id => labels.get(id)).join(', ')]);
       } else if (refs.length) {
-        rows.push(['대상', refs.map(ref => displayObject(ref).name).join(', ')]);
+        const reviewScope = state.tool === 'country-coast' && preview.operation === 'territorial-coast'
+          ? (state.coastEditScopeGenericFeatureId ? '해안선 조정 대상' : '해안선 조정 국가')
+          : state.tool === 'territorial-border' && preview.operation === 'territorial-country-boundary'
+            ? '국경 조정 국가'
+            : state.tool === 'territorial-border' && preview.operation === 'territorial-boundary'
+              ? '경계 조정 객체' : '대상';
+        rows.push([reviewScope, refs.map(ref => displayObject(ref).name).join(', ')]);
       }
     }
     const metrics = preview.metrics || {};
@@ -243,7 +251,10 @@ export function createTaskPresentation() {
     const previewSummary = dependencies.platform.$('geometryPreviewSummary');
     const targetDetailed = (roleCards && !roleCards.classList.contains('hidden'))
       || (previewSummary && !previewSummary.classList.contains('hidden'));
-    targetSummary?.parentElement?.classList.toggle('hidden', !minimized && !!targetDetailed);
+    // Setup fields identify the new object; the summary returns when minimized.
+    const entitySetup = dependencies.projectState.state.territorySelectionSession?.kind === 'entity'
+      && dependencies.projectState.state.territorySelectionSession.stage === 'setup';
+    targetSummary?.parentElement?.classList.toggle('hidden', !minimized && (!!targetDetailed || entitySetup));
     const genericStage = dependencies.platform.$('modeTaskEditingStage');
     genericStage?.classList.toggle('hidden', !minimized);
     genericStage?.setAttribute('aria-live', minimized ? 'polite' : 'off');
@@ -280,6 +291,10 @@ export function createTaskPresentation() {
       const name = dependencies.platform.$('territorialCreateNameInput');
       if (name.value !== selection.name) name.value = selection.name;
       name.closest('.field-group').classList.toggle('hidden', !!selection.editOperation);
+      // An existing subunit's kind and parent cannot change during an annex.
+      const subunitAnnex = selection.kind === 'entity' && selection.editOperation === 'annex';
+      dependencies.platform.$('territorialCreateKindRow')?.classList.toggle('hidden', subunitAnnex);
+      dependencies.platform.$('territorialCreateParentRow')?.classList.toggle('hidden', subunitAnnex);
       const setupModel = dependencies.territorialEditingB.territorialCreateSetupModel();
       const regional = dependencies.platform.$('territorialCreateRegionalInput');
       regional.checked = selection.entityKind === 'regional';
@@ -290,7 +305,9 @@ export function createTaskPresentation() {
       const source = dependencies.platform.$('territorialCreateSourceInput');
       const choice = dependencies.propertyEditingB.replaceSelectOptions(source, setupModel.sourceOptions, selection.sourceKey, { autoSelectSingle: true });
       source.disabled = !!setupModel.session.setupSourceCache?.pending;
-      dependencies.platform.$('territorialCreateSourceRow').classList.toggle('hidden', !selection.parentId || choice.single);
+      // Show the resolved source even if only one source is eligible.
+      dependencies.platform.$('territorialCreateSourceRow').classList.toggle('hidden',
+        !selection.parentId || (choice.single && !subunitAnnex));
     }
     const reference = (0, dependencies.platform.$)('territorialCreateReference');
     reference?.classList.toggle('hidden', !model?.showReference);
@@ -522,7 +539,20 @@ export function createTaskPresentation() {
       const redundantAnnexMethodPrompt = selection?.kind === 'annex' && selection.stage === 'selection'
         && !selection.activeMethod && !selection.requestedMethod && status === 'needs-target'
         && message === '다음 단계로 진행할 영역을 선택하세요.';
-      reasonNode.classList.toggle('hidden', !message || redundantAnnexPrompt || redundantAnnexMethodPrompt);
+      // Keep generic disabled text for aria-describedby; the fields already explain the task.
+      const redundantEntitySetupPrompt = selection?.kind === 'entity' && selection.stage === 'setup'
+        && selectionModel?.showSetup && status === 'needs-target'
+        && message === '대상을 선택하고 필요한 설정을 완료하세요.';
+      // On mobile, the visible vertex-gesture hint already tells users how to
+      // enable preview. Keep the disabled reason in DOM for aria-describedby.
+      const redundantMobileBoundaryHint = ['territorial-border', 'country-coast'].includes(state.tool)
+        && (state.tool === 'country-coast' || state.boundaryEditPhase === 'editing')
+        && !state.geometryPreview?.session && dependencies.surfaces.isMobile()
+        && status === 'needs-target'
+        && !dependencies.platform.$('modeTaskInput')?.classList.contains('hidden')
+        && message === '꼭짓점을 이동하면 변경을 미리 볼 수 있습니다.';
+      reasonNode.classList.toggle('hidden',
+        !message || redundantAnnexPrompt || redundantAnnexMethodPrompt || redundantEntitySetupPrompt || redundantMobileBoundaryHint);
     }
     const instruction = dependencies.platform.$('modeTaskInstruction');
     const candidate = !!selectionModel?.candidate && !!selection?.candidates.length;
@@ -541,10 +571,12 @@ export function createTaskPresentation() {
   function syncEditingContext() {
     const state = dependencies.projectState.state;
     const targetRefs = currentTaskTargets();
+    const editing=dependencies.domains.editingDomain.snapshot();
+    const hydroVertexEditing = editing.objectVertexEditing?.domain === 'hydro';
     const targets = targetRefs.map(displayObject);
+    if (hydroVertexEditing && !targets.length) targets.push(displayObject(editing.objectVertexEditing));
     const preview = state.geometryPreview.session;
     const impact = (preview?.affectedIds || []).map(id => ({name: countryDisplay(id)?.name || territorialUnitDisplay(id) || id}));
-    const editing=dependencies.domains.editingDomain.snapshot();
     const month = dependencies.domains.projectDomain.state()?.timelineCursor;
     const draft = dependencies.draftPresentation.editingDraftSnapshot();
     const mobile = dependencies.surfaces.isMobile();
@@ -556,19 +588,36 @@ export function createTaskPresentation() {
     // Do not repeat uncalculated time/impact metadata before the review stage.
     const annex = state.territorySelectionSession;
     const annexBeforeReview = annex?.kind === 'annex' && annex.stage !== 'review';
+    const entityBeforeReview = annex?.kind === 'entity' && annex.stage !== 'review';
+    const splitBeforeReview = !preview && ['split-territorial-unit', 'split-generic-feature'].includes(state.tool);
+    const redrawBeforeReview = !preview && state.tool === 'redraw-territorial-unit';
     const mergeChoosingTargets = !preview
       && (state.tool === 'merge-country' && !!state.mergeSourceCountryId
         || state.tool === 'merge-territorial-unit' && !!state.territorialUnitMergeSourceId);
-    // A border target-picker also identifies its countries in the existing
-    // role cards. Hide only uncalculated metadata, then restore it in edit/review.
-    const borderChoosingTargets = !preview && state.tool === 'territorial-border'
-      && state.boundaryEditPhase === 'selecting';
+    // The border role cards already identify the edited objects. Neither target
+    // selection nor vertex editing has a calculated change period yet.
+    const borderBeforeReview = !preview && state.tool === 'territorial-border'
+      && ['selecting', 'editing'].includes(state.boundaryEditPhase);
+    const coastBeforeReview = !preview && state.tool === 'country-coast';
+    const hydroVertexBeforeReview = !preview && hydroVertexEditing;
     dependencies.platform.$('modeTaskViewTime')?.parentElement?.classList.toggle('hidden',
-      annexBeforeReview || mergeChoosingTargets || borderChoosingTargets);
+      annexBeforeReview || entityBeforeReview || splitBeforeReview || redrawBeforeReview || mergeChoosingTargets || borderBeforeReview || coastBeforeReview || hydroVertexBeforeReview);
     const taskInput = dependencies.platform.$('modeTaskInput');
-    taskInput?.classList.toggle('hidden', !shouldShowTaskInputInstruction({
+    const showInput = shouldShowTaskInputInstruction({
       state, editing, draft, mobile, draftActive: dependencies.domains.editingDomain?.draftInputActive?.(),
-    }));
+    });
+    // Show the actual topology constraint once, without hiding map-pan,
+    // vertex-placement or recovery instructions. The source geometry is unchanged.
+    const coastTopologyNote = coastBeforeReview && state.boundaryPreparation?.status === 'ready'
+      && !state.modeProcessing && !state.spacePanActive && !editing.vertexPlacement
+      && !draft.vertexInsertMode
+      ? state.coastEditScopeGenericFeatureId ? '연결 영역도 함께 변경됩니다.' : '국경 접점은 고정됩니다.'
+      : '';
+    if (taskInput && coastTopologyNote) {
+      const instruction = showInput ? `${context.instruction} · ${coastTopologyNote}` : coastTopologyNote;
+      if (taskInput.textContent !== instruction) taskInput.textContent = instruction;
+    }
+    taskInput?.classList.toggle('hidden', !showInput && !coastTopologyNote);
     const placement=dependencies.platform.$('vertexPlacementBtn');if(placement){placement.hidden=!editing.selectedVertex||!!preview;placement.disabled=editing.gestureActive||state.modeProcessing;placement.textContent=editing.vertexPlacement?'위치 지정 취소':'선택 정점 위치 지정';}
     const mapSummary=dependencies.platform.$('modeMapSummary');
     if(mapSummary)mapSummary.textContent=[dependencies.platform.$('modeTaskName')?.textContent,context.targetSummary,context.stage].filter(Boolean).join(' · ');
@@ -608,7 +657,7 @@ export function createTaskPresentation() {
         && removedIds.every(id => merge.absorbedIds.includes(id))
         && (preview.temporalImpact || []).every(row => row?.entityId && mergeSet.has(String(row.entityId)))
         && (preview.delta?.objects || []).every(row => row?.ref?.domain === 'territorial' && mergeSet.has(String(row.ref.id)));
-      if (summary.parentElement) summary.parentElement.hidden = !!(duplicateImpact || duplicateMergeImpact);
+      if (summary.parentElement) summary.parentElement.hidden = !!(duplicateImpact || duplicateMergeImpact || hydroVertexBeforeReview);
     }
   }
 
@@ -747,8 +796,9 @@ export function createTaskPresentation() {
     const taskStage = (0, dependencies.platform.$)('modeTaskStage');
     const taskStep = (0, dependencies.platform.$)('modeTaskStep');
     const taskRoot = (0, dependencies.platform.$)('modeEditingHud');
-    if (taskName) taskName.textContent = dependencies.domains.editingDomain.snapshot().objectVertexEditing?'수계 좌표 편집':view?.name || task.name;
-    if (taskStage) taskStage.textContent = view?.stage || task.stage;
+    const vertexEditing = !!dependencies.domains.editingDomain.snapshot().objectVertexEditing;
+    if (taskName) taskName.textContent = vertexEditing ? '수계 좌표 편집' : view?.name || task.name;
+    if (taskStage) taskStage.textContent = vertexEditing ? '정점 이동' : view?.stage || task.stage;
     const taskSeparator = taskRoot?.querySelector('.mode-task-separator');
     if (taskSeparator) taskSeparator.textContent = '·';
     if (taskStep) {

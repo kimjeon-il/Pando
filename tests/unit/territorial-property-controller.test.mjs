@@ -75,7 +75,10 @@ test('name details present current formal names, native languages and aliases wi
   state.views.get(state.a.key).feature.properties.metadata.nameDetails={ko:{common:'A',formal:'정식명',aliases:['별칭']},native:[{language:'hy',common:'Արցախ'}]};
   state.controller.present(state.a);
   const panel=state.fields.get('entityNameDetails');
+  const disclosure=state.fields.get('entityNameDetailsDisclosure');
   assert.equal(panel.hidden,false);
+  assert.equal(disclosure.hidden,false);
+  assert.equal(disclosure.open,false);
   assert.deepEqual(panel.children.map(row=>row.children.map(node=>node.textContent)),[
     ['한국어 통칭','A'],['한국어 정식명','정식명'],['한국어 별칭','별칭'],['원어 (hy) 통칭','Արցախ']]);
   assert.equal(state.relations.length,0);
@@ -313,4 +316,118 @@ test('action rows distinguish routine help from a locked-object reason', () => {
   assert.equal(merge.disabled, true);
   assert.equal(merge.dataset.actionReason, 'true');
   assert.equal(state.fields.get('copyEntityRegionBtn').dataset.actionReason, 'false');
+});
+
+test('name metadata disclosure stays open on refresh and resets when selection changes', () => {
+  const state = setup();
+  const first = state.views.get(state.a.key);
+  first.feature.properties.metadata.nameDetails = {
+    ko: { common: 'A', formal: '정식명', aliases: ['별칭'] },
+    native: [{ language: 'hy', common: 'Արցախ' }],
+  };
+  state.controller.present(state.a);
+  const disclosure = state.fields.get('entityNameDetailsDisclosure');
+  const names = state.fields.get('entityNameDetails');
+  assert.equal(disclosure.hidden, false);
+  assert.equal(disclosure.open, false, 'long name metadata starts collapsed');
+  assert.equal(names.children.length, 4, 'all original name rows remain available');
+  disclosure.open = true;
+  state.controller.present(state.a, { refreshOnly: true });
+  assert.equal(disclosure.open, true, 'refresh does not close an actively inspected name list');
+
+  const other = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'B' });
+  const feature = createTerritorialFeature({ id: 'B', entityKind: 'general', name: 'B', geometry: square(1) });
+  state.views.set(other.key, { ref: other, displayName: 'B', feature, properties: feature.properties });
+  state.setPrimary(other);
+  state.controller.present(other);
+  assert.equal(disclosure.hidden, true, 'do not show an empty name section');
+  assert.equal(disclosure.open, false, 'a different entity clears the expanded state');
+  assert.equal(names.children.length, 0, 'stale historical names do not remain');
+
+  state.setPrimary(state.a);
+  state.controller.present(state.a);
+  assert.equal(disclosure.hidden, false);
+  assert.equal(disclosure.open, false, 'returning to the named entity starts compact');
+  assert.equal(names.children.length, 4);
+});
+
+test('relation tab shows compact empty states without duplicating them beside open pickers', () => {
+  const state = setup();
+  const candidate = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'B' });
+  const feature = createTerritorialFeature({ id: 'B', entityKind: 'general', geometry: square(1) });
+  state.views.set(candidate.key, { ref: candidate, displayName: 'B', feature });
+  state.controller.present(state.a);
+  state.controller.bind();
+
+  const parentRows = state.fields.get('entityParentRows');
+  const childRows = state.fields.get('entityChildRows');
+  const parentPicker = state.fields.get('entityParentRow');
+  const childPicker = state.fields.get('entityChildRow');
+  const changeParent = state.fields.get('entityChangeParentBtn');
+  const addChild = state.fields.get('entityAddChildBtn');
+
+  assert.equal(parentRows.children[0].textContent, '없음');
+  assert.equal(childRows.children[0].textContent, '없음');
+  assert.equal(parentRows.dataset.empty, 'true');
+  assert.equal(childRows.dataset.empty, 'true');
+  assert.equal(parentRows.hidden, false);
+  assert.equal(childRows.hidden, false);
+  assert.equal(addChild.disabled, false);
+
+  changeParent.click();
+  assert.equal(parentPicker.hidden, false);
+  assert.equal(parentRows.hidden, true, 'do not repeat an empty parent beside its picker');
+  assert.equal(childRows.hidden, false);
+  addChild.click();
+  assert.equal(parentPicker.hidden, true);
+  assert.equal(parentRows.hidden, false, 'the old empty state returns when changing pickers');
+  assert.equal(childPicker.hidden, false);
+  assert.equal(childRows.hidden, true, 'do not repeat an empty child beside its picker');
+
+  const childFeature = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', geometry: square(1) });
+  state.views.set(candidate.key, { ref: candidate, displayName: 'B', feature: childFeature });
+  const other = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'C' });
+  const otherFeature = createTerritorialFeature({ id: 'C', entityKind: 'general', geometry: square(1) });
+  state.views.set(other.key, { ref: other, displayName: 'C', feature: otherFeature });
+  state.controller.present(state.a, { refreshOnly: true });
+  assert.equal(childPicker.hidden, false, 'valid open picker remains open on refresh');
+  assert.equal(childRows.dataset.empty, 'false');
+  assert.equal(childRows.hidden, false, 'an existing child must remain visible while adding');
+  assert.equal(childRows.children.length, 1);
+
+  addChild.click();
+  assert.equal(childPicker.hidden, true);
+  assert.equal(childRows.hidden, false);
+  assert.deepEqual(state.relations, [], 'UI visibility changes do not mutate relations');
+});
+
+
+test('relation tab availability is refreshed after switching regional and general entities', () => {
+  const events = [];
+  const state = setup({
+    showPropertyForm: () => {
+      events.push(['show', state.fields.get('entityRelations')?.hidden ?? null]);
+    },
+    syncActionTab: () => {
+      events.push(['tabs', state.fields.get('entityRelations')?.hidden]);
+    },
+  });
+  const regional = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'REG' });
+  const feature = createTerritorialFeature({
+    id: 'REG', entityKind: 'regional', name: '독립 권역', geometry: square(2),
+  });
+  state.views.set(regional.key, { ref: regional, displayName: '독립 권역', feature, properties: feature.properties });
+  state.setPrimary(regional);
+  state.controller.present(regional);
+  assert.deepEqual(events.slice(-2), [['show', null], ['tabs', true]]);
+
+  state.setPrimary(state.a);
+  state.controller.present(state.a);
+  assert.deepEqual(events.slice(-2), [
+    ['show', true], ['tabs', false],
+  ], 'the relation tab must be recalculated after the current general entity becomes visible');
+
+  state.setPrimary(regional);
+  state.controller.present(regional, { refreshOnly: true });
+  assert.deepEqual(events.slice(-2), [['show', false], ['tabs', true]]);
 });

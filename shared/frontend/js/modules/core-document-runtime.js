@@ -11,6 +11,10 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     if (!sessionPromise) sessionPromise = Promise.resolve().then(loadModule).then(module => {
       if (typeof module.DocumentSession !== 'function') fail('PL-CORE-DOCUMENT-ABI', 'The required whole-document C++ session export is missing.');
       return new module.DocumentSession({ validateFlagDataUrl });
+    }).catch(error => {
+      // Release only a failed admission; command errors never discard a live session.
+      sessionPromise = null;
+      throw error;
     });
     return sessionPromise;
   }
@@ -45,11 +49,6 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     load: (payload, context) => call('documentLoad', () => [payload.storageJson, currentMonth()], context,loadedResult),
     baselineCoverage:(payload,context)=>call('baselineCoverage',[payload.baselineId,payload.month],context),
     loadBaseline: (payload,context) => call('documentLoadBaseline',() => [payload.baselineId,payload.setup],context,loadedResult),
-    transitionBaseline: (payload,context) => call('documentTransitionBaseline',[payload.baselineId,payload.setup,payload.expectedEpoch],context,
-      (result,core) => {
-        if(!result?.ok || !result.delta)fail('PL-CORE-DOCUMENT-ABI','A builtin transition must return its accepted canonical delta.');
-        return {...result,world:resolvedWorld(core,result.state),draft:core.draftSnapshot()};
-      }),
     initialize: (payload,context) => call('documentInitialize',() => [{ ...payload,currentMonth: currentMonth() }],context,loadedResult),
     captureReplacement: (payload,context) => call('captureReplacement',[payload.expectedEpoch],context),
     rollbackReplacement: (payload,context) => call('rollbackReplacement',[payload.replacementId,payload.expectedEpoch],context,loadedResult),
@@ -65,6 +64,23 @@ export function createDocumentSessionRuntime({ loadModule, validateFlagDataUrl, 
     storageSnapshot: (payload, context) => call('storageSnapshot', [], context),
     exportSnapshot: (payload, context) => call('exportSnapshot', [payload], context),
     storageBaselineLoad: (payload,context) => call('storageBaselineLoad',[payload.baseline,payload.expectedEpoch],context,state => ({ state })),
+    // Only WASM owns source bytes and candidate lifetime. No JS history or
+    // temporal resolver is introduced by these ordered Worker calls.
+    temporalSourcePrepare:(payload,context)=>call('temporalSourcePrepare',[payload],context),
+    temporalSourceStats:(payload,context)=>call('temporalSourceStats',[],context),
+    temporalSourceRelease:(payload,context)=>call('temporalSourceRelease',[payload],context),
+    temporalCandidatePrepare:(payload,context)=>call('temporalCandidatePrepare',[payload],context),
+    temporalCandidateInspect:(payload,context)=>call('temporalCandidateInspect',[payload],context),
+    temporalCandidateDiscard:(payload,context)=>call('temporalCandidateDiscard',[payload],context),
+    temporalCandidateAdopt:(payload,context)=>call('temporalCandidateAdopt',[payload],context,(result,core)=>{
+      if(!result?.state||!Object.hasOwn(result,'delta'))
+        fail('PL-CORE-DOCUMENT-ABI','Core adoption must identify its complete or delta projection.');
+      if(result.delta===null)return loadedResult(result.state,core);
+      if(typeof result.delta!=='object'||!Array.isArray(result.delta.geometries))
+        fail('PL-CORE-DOCUMENT-ABI','Core temporal adoption requires its authoritative delta.');
+      return {...result,selection:core.selectionSnapshot(),draft:core.draftSnapshot(),
+        world:resolvedWorld(core,result.state)};
+    }),
     validateImport: (payload,context) => call('validateImport',[payload.storageJson,payload.baselineId],context),
     inspectImport: (payload,context) => call('inspectImport',() => [payload.storageJson,payload.baselineId,currentMonth()],context),
     resolveWorld: (payload, context) => call('resolveWorld', [payload.month, payload.expectedEpoch], context),

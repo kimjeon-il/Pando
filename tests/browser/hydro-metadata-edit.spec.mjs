@@ -20,12 +20,29 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await gotoEditor(page, '/assets/css/app.css');
-  const saved = staticAutosaveProject({
-      hydroEdits: [{ type: 'Feature', id: '00000000-0000-4000-8000-000000000005',
-        geometry: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] },
-        properties: { pandolab_domain: 'hydro', pandolab_id: '00000000-0000-4000-8000-000000000005',
-          pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강', editorColor: '#3b82c4', notes: '', locked: false } }],
-  });
+  // The canonical timeline requires a lifetime and geometry binding for each
+  // stored hydro identity. Extend an already serialized fixture with both.
+  const hydroId = '00000000-0000-4000-8000-000000000005';
+  const hydroRef = { domain: 'hydro', id: hydroId };
+  const saved = staticAutosaveProject();
+  saved.hydroEdits.push({ type: 'Feature', id: hydroId, geometry: null,
+    properties: { pandolab_domain: 'hydro', pandolab_id: hydroId,
+      pandolab_schema_version: 1, category: 'river', name: '메타데이터 검증 강',
+      editorColor: '#3b82c4', notes: '', locked: false } });
+  // Static serializer pools can freeze the canonical geometry array. Extend
+  // the detached serialized document by replacement, not mutation in-place.
+  saved.geometries = [...saved.geometries, { id: 'p8-hydro-shape', version: 1,
+    geojson: { type: 'LineString', coordinates: [[5, 45], [8, 46], [10, 45]] } }];
+  saved.timelineRecords = {
+    ...saved.timelineRecords,
+    lifetimes: [...saved.timelineRecords.lifetimes, {
+      id: 'p8-hydro-life', objectRef: hydroRef, validFrom: null, validTo: null,
+    }],
+    geometryBindings: [...saved.timelineRecords.geometryBindings, {
+      id: 'p8-hydro-binding', objectRef: hydroRef, validFrom: null, validTo: null,
+      geometryRef: { id: 'p8-hydro-shape', version: 1 },
+    }],
+  };
   const preferences = defaultUserPreferences(); preferences.selection.outlineVisible = false;
   await page.evaluate(({ saved, preferences, key }) => {
     localStorage.setItem('pandolab-editor-project', JSON.stringify(saved));
@@ -39,8 +56,29 @@ test('editing a river color updates actual GPU paint and undo restores metadata,
     await page.locator('#objectSearchResults .object-search-result').click();
   });
   await expect(page.locator('#hydroProperties')).toBeVisible();
+  await expect(page.locator('#hydroEditFields')).toBeVisible();
+  await expect(page.locator('#hydroBuiltinHelp')).toBeHidden();
+  await expect(page.locator('#hydroBuiltinNotes')).toBeHidden();
+  await expect(page.locator('details[data-od-id="hydro-details"] summary')).toHaveText('비고');
+  await expect(page.locator('label[for="hydroNotesInput"]')).toHaveClass(/ui-visually-hidden/);
+  await page.locator('details[data-od-id="hydro-details"] summary').click();
+  await expect(page.locator('#hydroNotesInput')).toBeVisible();
   await page.waitForFunction(() => window.__PANDOLAB_MAP_HOST__.getViewState().projection === 'flat');
   await page.locator('#focusSelectedObjectBtn').click();
+  await page.locator('#actionsTabBtn').click();
+  await expect(page.locator('#hydroVerticesBtn')).toBeVisible();
+  await page.locator('#hydroVerticesBtn').click();
+  await expect(page.locator('#modeTaskName')).toHaveText('수계 좌표 편집');
+  await expect(page.locator('#modeTaskStage')).toHaveText('정점 이동');
+  await expect(page.locator('#modeTaskTargetSummary')).toHaveText('메타데이터 검증 강');
+  await expect(page.locator('#modeTaskViewTime')).toBeHidden();
+  await expect(page.locator('#modeTaskAffectedSummary')).toBeHidden();
+  // The busy-label node is always in the DOM, but only the accessible
+  // label is the displayed action when the button is not processing.
+  await expect(page.locator('#modePrimaryBtn')).toHaveAttribute('aria-label', '좌표 편집 완료');
+  await page.locator('#modePrimaryBtn').click();
+  await expect(page.locator('#modeActionBar')).toBeHidden();
+  await page.locator('#editorTabBtn').click();
   await page.addStyleTag({ content: '#map .map-selection-outline, #map .map-selection-fill, #map .object-edit-outline { visibility: hidden !important; }' });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_RENDER_DEBUG__.snapshot().gpu.hydroEditBatchCount)).toBe(1);
   const originalColor = await page.locator('#hydroColorInput').inputValue();

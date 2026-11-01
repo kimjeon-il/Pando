@@ -5,6 +5,7 @@ import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
+import {finalizeBuiltinWorldFiles} from '../../tools/builtin-country-bytes.mjs';
 import { tinyFixture } from './fixture.mjs';
 import { guardWorkerSource } from './network-guard.js';
 import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
@@ -150,21 +151,16 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     if (await exists(join(root, 'package.json'))) fixture.project.version = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
     if (fixture.coordinateCount > 100) throw new Error('Prototype fixture exceeds the 100-coordinate limit');
     fixture.builtinIndex.template.version=fixture.project.version;
-    const countryChunks = [];
-    let offset = 0;
+    const countryFiles=new Map();
     for(const country of fixture.builtinCountries){
-      const decoded=Buffer.from(JSON.stringify(country)),stored=gzipSync(decoded,{level:9});
-      const file=`countries/${country.entityId}-sha256-${hash(stored)}.json.gz`;
-      Object.assign(fixture.builtinIndex.entities.find(row=>row.entityId===country.entityId),{file,offset,encoding:'gzip',sha256:hash(stored),compressedBytes:stored.length,decodedBytes:decoded.length});
-      countryChunks.push(stored);
-      offset += stored.length;
+      const decoded=Buffer.from(JSON.stringify(country)),stored=gzipSync(decoded,{level:9});stored[9]=3;
+      const file=`countries/${country.entityId.replaceAll(':','-')}-sha256-${hash(stored)}.json.gz`;
+      Object.assign(fixture.builtinIndex.entities.find(row=>row.entityId===country.entityId),{file,encoding:'gzip',sha256:hash(stored),compressedBytes:stored.length,decodedBytes:decoded.length});
+      countryFiles.set(file,stored);
     }
-    const transport = Buffer.concat(countryChunks), transportHash = hash(transport);
-    const transportUrl = `transport/countries-sha256-${transportHash}.bin`;
-    fixture.builtinIndex.transport = { schemaVersion: 1, url: transportUrl, encoding: 'identity', sha256: transportHash,
-      compressedBytes: transport.length, decodedBytes: transport.length };
-    await emit('shell/' + transportUrl, transport);
-    const world=Buffer.from(JSON.stringify(fixture.builtinIndex));fixtureHash=hash(world);
+    finalizeBuiltinWorldFiles(fixture.builtinIndex,countryFiles);
+    for(const [file,bytes] of countryFiles)if(file!=='index.json')await emit('shell/'+file,bytes);
+    const world=countryFiles.get('index.json');fixtureHash=hash(world);
     await emit('shell/fixture-world.json',world);
     await emit('shell/fixture-countries.json',JSON.stringify(fixture.countries));
     const builtinWorld={url:'./fixture-world.json',encoding:'identity',sha256:hash(world),compressedBytes:world.length,decodedBytes:world.length};

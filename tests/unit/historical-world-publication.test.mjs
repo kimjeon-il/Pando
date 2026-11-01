@@ -34,6 +34,7 @@ test('country publication preserves independent source lifetimes without inventi
  assert.equal(kor.timelineRecords.lifetimes[0].validTo,null);
  assert.equal(rus.timelineRecords.lifetimes[0].validFrom,null);
  assert.equal(rus.timelineRecords.lifetimes[0].validTo,null);
+ assert.equal(parent.timelineRecords.lifetimes[0].validFrom,'1900');
  assert.equal(parent.timelineRecords.lifetimes.length,1);
  assert.deepEqual(parent.timelineRecords.lifetimes.map(({validFrom,validTo})=>({validFrom,validTo})),[{validFrom:'1900',validTo:'1903'}]);
  assert.deepEqual(index.entities.find(row=>row.entityId==='KOR').coverage,[{validFrom:'1948-08-15',validTo:null}]);
@@ -55,12 +56,11 @@ test('partial publication rebuilds a changed lifetime and its overlapping peer, 
   view:input.view,policy:input.policy,previousIndex:JSON.parse(before.get('index.json')),
   previousCoverage:JSON.parse(before.get('coverage-report.json')),
   readSource:id=>{reads.push(id);return input.entities.find(row=>row.entityId===id);},
-  readCountry:file=>before.get(file),
   currentWorld:input.currentWorld});
  const expected=buildBuiltinWorldPublication({input});
  const actualIndex=JSON.parse(partial.get('index.json')),expectedIndex=JSON.parse(expected.get('index.json'));
  assert.deepEqual(actualIndex.entities,expectedIndex.entities);
- for(const entry of actualIndex.entities)assert.deepEqual(partial.get(entry.file),expected.get(entry.file));
+ for(const entry of actualIndex.entities)assert.deepEqual(partial.get(entry.file)||before.get(entry.file),expected.get(entry.file));
  assert.equal(reads.includes('current:KOR'),false,'unrelated sources must not be read or normalized');
  assert.equal(reads.includes(changed.entityId),true);
  assert.deepEqual(JSON.parse(partial.get('coverage-report.json')),JSON.parse(expected.get('coverage-report.json')));
@@ -76,7 +76,7 @@ test('partial lifetime generation carries parent gaps to children and plans with
  const sourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{}))};
  const options={entityIds:['state:parent'],sourceIndex,previousSourceIndex,view:input.view,policy:input.policy,
   previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),
-  currentWorld:input.currentWorld,readCountry:file=>before.get(file),readSource:()=>{throw new Error('unplanned source read');}};
+  currentWorld:input.currentWorld,readSource:()=>{throw new Error('unplanned source read');}};
  const plan=buildBuiltinWorldPartialPublication({...options,planOnly:true});
  assert.ok(plan.sourceIds.includes('state:child'));
  assert.equal(plan.sourceIds.includes('current:KOR'),false);
@@ -85,7 +85,7 @@ test('partial lifetime generation carries parent gaps to children and plans with
  const files=buildBuiltinWorldPartialPublication({...options,readSource:id=>input.entities.find(row=>row.entityId===id)});
  const index=JSON.parse(files.get('index.json')),child=index.entities.find(row=>row.entityId==='state:child');
  assert.deepEqual(child.coverage,[{validFrom:'1902-01-01',validTo:'1903-12-31'}]);
- const country=JSON.parse(gunzipSync(files.get(child.file)));
+ const country=JSON.parse(gunzipSync(files.get(child.file)||before.get(child.file)));
  assert.equal(country.timelineRecords.lifetimes[0].validFrom,'1900','a parent gap must not rewrite the child lifetime');
  assert.deepEqual(index.entities,JSON.parse(buildBuiltinWorldPublication({input}).get('index.json')).entities);
 });
@@ -103,7 +103,7 @@ test('partial generation discovers the first overlap across the antimeridian aft
  const sourceIndex={entities:input.entities.map(entity=>territorialIndexEntry(entity,{}))};
  const files=buildBuiltinWorldPartialPublication({entityIds:[changed.entityId],sourceIndex,previousSourceIndex,
   view:input.view,policy:input.policy,previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),
-  currentWorld:input.currentWorld,readSource:id=>input.entities.find(row=>row.entityId===id),readCountry:file=>before.get(file)});
+  currentWorld:input.currentWorld,readSource:id=>input.entities.find(row=>row.entityId===id)});
  assert.deepEqual(JSON.parse(files.get('index.json')).entities,JSON.parse(buildBuiltinWorldPublication({input}).get('index.json')).entities);
 });
 
@@ -117,7 +117,7 @@ test('partial provenance retains the old revision of an unread, independently ed
  const reads=[];
  const files=buildBuiltinWorldPartialPublication({entityIds:['current:KOR'],sourceIndex,previousSourceIndex,view:input.view,policy:input.policy,
   previousIndex:JSON.parse(before.get('index.json')),previousCoverage:JSON.parse(before.get('coverage-report.json')),currentWorld:input.currentWorld,
-  readSource:id=>{reads.push(id);return input.entities.find(row=>row.entityId===id);},readCountry:file=>before.get(file)});
+  readSource:id=>{reads.push(id);return input.entities.find(row=>row.entityId===id);}});
  const index=JSON.parse(files.get('index.json'));
  assert.equal(reads.includes('current:PRK'),false);
  assert.equal(index.entities.find(row=>row.entityId==='PRK').file,JSON.parse(before.get('index.json')).entities.find(row=>row.entityId==='PRK').file);

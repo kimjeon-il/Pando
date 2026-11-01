@@ -32,10 +32,10 @@ async function fixture(t){
       else if(request.command==='transform'){
         assert.equal(request.sourceCrs,'EPSG:4326');assert.equal(request.targetCrs,'EPSG:3857');
         assert.deepEqual(request.points,[[-1,2]]);result={points:[[1,2]]};}
-      else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1'}]};
+      else if(request.command==='project')result={title:'map',layer_count:1,layers:[{id:'layer-1',source:input,editable:false}]};
       else if(request.command==='save-project')result={saved:true,filename:'D:/지도/project.qgz'};
       else if(request.command==='layers'){assert.equal(request.offset,0);assert.equal(request.limit,10);
-        result={layers:[{id:'layer-1',visible:true}],total_count:1,offset:0,limit:10};}
+        result={layers:[{id:'layer-1',visible:true,source:input,editable:true}],total_count:1,offset:0,limit:10};}
       else if(request.command==='schema'){assert.equal(request.layer,'layer-1');
         result={layer:'layer-1',fields:[{name:'source',type:'Map',length:0,precision:0}]};}
       else if(request.command==='set-visibility'){assert.equal(request.layer,'layer-1');assert.equal(request.visible,false);result={checked:false,visible:false};}
@@ -106,9 +106,11 @@ test('native QGIS CLI exchanges status, opens a file and exports without overwri
   assert.notEqual((await run(['--config',config,'canvas','--scale','1000'])).code,0);
   assert.notEqual((await run(['normalize',input,'--output',join(root,'invalid.geojson'),'--rotation','15'])).code,0);
   const project=await run(['--config',config,'project']);assert.equal(project.code,0,project.stderr);assert.equal(JSON.parse(project.stdout).layer_count,1);
+  assert.equal(JSON.parse(project.stdout).layers[0].source,input);assert.equal(JSON.parse(project.stdout).layers[0].editable,false);
   const zoom=await run(['--config',config,'zoom-to-layer','--layer','layer-1']);assert.equal(zoom.code,0,zoom.stderr);assert.equal(JSON.parse(zoom.stdout).id,'layer-1');
   assert.notEqual((await run(['--config',config,'zoom-to-layer'])).code,0);
   const layers=await run(['--config',config,'layers','--offset','0','--limit','10']);assert.equal(layers.code,0,layers.stderr);
+  assert.equal(JSON.parse(layers.stdout).layers[0].source,input);assert.equal(JSON.parse(layers.stdout).layers[0].editable,true);
   assert.equal(JSON.parse(layers.stdout).layers[0].id,'layer-1');
   const invalidPage=await run(['--config',config,'layers','--limit','101']);assert.notEqual(invalidPage.code,0);
   const schema=await run(['--config',config,'schema','--layer','layer-1']);assert.equal(schema.code,0,schema.stderr);
