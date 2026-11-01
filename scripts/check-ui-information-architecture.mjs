@@ -128,7 +128,8 @@ function requireSurfaceContract(contract) {
   const tabsEnd = source.indexOf('</nav>', tabsIndex);
   const tabs = tabsEnd >= 0 ? source.slice(tabsIndex, tabsEnd) : '';
   const tabButtons = [...tabs.matchAll(/<button\b[^>]*>/gi)].map(match => match[0]);
-  if (tabButtons.length < 2) fail(`#${contract.id} must expose at least two editor tabs`);
+  if (contract.kind === 'editor' && tabButtons.length !== 2) fail(`#${contract.id} must expose exactly two editor tabs`);
+  else if (contract.kind !== 'editor' && tabButtons.length < 2) fail(`#${contract.id} must expose at least two editor tabs`);
   for (const button of tabButtons) {
     if (!/\bui-button\b/.test(button) || !/\bui-tab\b/.test(button) || !/\bdata-surface-tab=/.test(button)) {
       fail(`#${contract.id} tabs must compose .ui-button .ui-tab and data-surface-tab`);
@@ -212,6 +213,11 @@ if (editorHeader.includes('id="objectLockBtn"')) fail('editor Surface Header mus
 if (editorHeader.includes('id="objectDeleteBtn"')) fail('editor Surface Header must not own #objectDeleteBtn');
 
 const tabsIndex = editor.indexOf('class="ui-tabs surface-tabs editor-view-tabs');
+const editorTabsEnd = tabsIndex >= 0 ? editor.indexOf('</nav>', tabsIndex) : -1;
+const editorTabs = tabsIndex >= 0 && editorTabsEnd > tabsIndex ? editor.slice(tabsIndex, editorTabsEnd) : '';
+if (!editorTabs.includes('>속성</button>') || !editorTabs.includes('>작업</button>') || editorTabs.includes('relationTabBtn')) {
+  fail('editor tabs must be exactly 속성 / 작업');
+}
 const bodyIndex = editor.indexOf('id="editorScrollBody"');
 const contextIndex = editor.indexOf('id="editorObjectHeader"');
 if (!(contextIndex > headerEnd && tabsIndex > contextIndex && bodyIndex > tabsIndex)) fail('editor hierarchy must be header → ObjectContext → tabs → body');
@@ -227,15 +233,16 @@ if (!editor.includes('class="editor-section editor-info-section')) fail('editor 
 if (!editor.includes('editor-action-section')) fail('editor must expose action sections');
 for (const formId of ['entityProperties']) {
   const form = elementById(formId, 'form');
-  if (!form.includes('class="editor-section editor-info-section editor-section-primary" aria-label="정보"')) {
-    fail(`#${formId} must expose an information section named 정보`);
+  if (!form.includes('class="editor-section editor-info-section editor-section-primary" aria-label="속성"')) {
+    fail(`#${formId} must expose a property section named 속성`);
   }
-  if (!form.includes('class="editor-section editor-action-section" aria-label="편집"')) {
-    fail(`#${formId} must expose an action section named 편집`);
+  if (!form.includes('class="editor-section editor-action-section" aria-label="작업"')) {
+    fail(`#${formId} must expose an action section named 작업`);
   }
-  if (!form.includes('class="editor-section editor-action-section editor-relation-section" aria-label="관계"')) {
-    fail(`#${formId} must expose a relation section named 관계`);
+  if (!form.includes('id="entityRelationsDisclosure"') || !form.includes('editor-info-section editor-relation-section')) {
+    fail(`#${formId} must expose relations as a property disclosure`);
   }
+  if (!form.includes('id="entityNotesDisclosure"')) fail(`#${formId} must progressively disclose notes`);
 }
 if (/(?:영역 편집|관계 및 종류|관계 및 구조)/.test([
   elementById('entityProperties', 'form'),
