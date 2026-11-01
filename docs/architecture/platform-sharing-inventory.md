@@ -184,6 +184,6 @@ Do not perform the following as part of the sharing refactor:
 
 A0 and T1-T4 are implemented. T5 completed the second residual-sharing audit and found no new Web/Windows/Android frontend fork.
 
-T6 protocol-perimeter completion, T7 stale native verification/global cleanup and T8 transport test-fixture sharing are implemented. Remaining work is ordered T9 staging-fixture closure consolidation -> T10 optional product-mode presentation/input cleanup.
+T6 protocol-perimeter completion, T7 stale native verification/global cleanup, T8 transport test-fixture sharing and T9 staging-fixture dependency closure are implemented. Remaining work is T10 optional product-mode presentation/input cleanup.
 
 Detailed evidence is in `docs/architecture/platform-sharing-t5-audit.md`.
