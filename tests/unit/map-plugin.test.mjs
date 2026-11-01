@@ -7,6 +7,7 @@ import { validateCandidateModel, createJob, reviseJob, exportJob, sealJob, diges
 import { georeferenceQuality } from '../../plugins/pando-map-tools/lib/analysis/georef.mjs';
 import * as engine from '../../plugins/pando-map-tools/lib/engine.mjs';
 import { raster } from '../../plugins/pando-map-tools/lib/raster.mjs';
+import { assertCandidatePreview } from '../helpers/map-preview-assertions.mjs';
 
 test('native rotation works without a signal and reverses clockwise boxes to source pixels', async()=>{
   const pixels=Buffer.alloc(4*2*4,255);pixels[0]=12;
@@ -26,7 +27,8 @@ test('signed map review renders native preview and detects changed source withou
     job.status='needs-georeference';job.graph=fixture.job.graph;job.warp=fixture.job.warp;job.quality=fixture.job.quality;job=sealJob(job);
     await engine.renderPreview(job,output);
     const image=await raster({action:'read',path:output,maxPixels:16777216});
-    assert.equal(Buffer.compare(image.data,await readFile('tests/fixtures/map-image/preview/rich.rgba')),0);
+    assert.deepEqual({width:image.width,height:image.height},fixture.expected);
+    await assertCandidatePreview(image,await readFile('tests/fixtures/map-image/preview/rich.rgba'),job,'signed rich preview');
     const before=await readFile(output);await writeFile(source,Buffer.concat([bytes,Buffer.from('changed')]));
     await assert.rejects(engine.renderPreview(job,output),/Original image hash changed/);assert.deepEqual(await readFile(output),before);
   }finally{if(previous===undefined)delete process.env.PANDO_MAP_PYTHON;else process.env.PANDO_MAP_PYTHON=previous;await rm(dir,{recursive:true,force:true});}

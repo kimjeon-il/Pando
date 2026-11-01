@@ -146,6 +146,8 @@ const integrationPresentationChanges=[
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
 const nativeValidationChanges=[
+  'scripts/check-territorial-library.mjs',
+  'scripts/lib/late-soviet-check.mjs',
   '.github/actions/native-test-prerequisites/action.yml',
   'scripts/lib/native-test-prerequisites.mjs',
   'scripts/prepare-native-test-tools.mjs',
@@ -169,7 +171,7 @@ function nativeValidationFixture(t) {
   return {...f,families,config};
 }
 
-test('native CI-only pushes leave existing stale data diagnostics without scheduling generation',t=>{
+test('CI-only pushes leave existing stale data diagnostics without scheduling generation',t=>{
   const f=nativeValidationFixture(t),before=graphStatus(f.root);
   assert.deepEqual(before.selectedFamilies,staleDataFamilyIds);
   for(const path of nativeValidationChanges){
@@ -184,7 +186,7 @@ test('native CI-only pushes leave existing stale data diagnostics without schedu
   }
 });
 
-test('native CI-only exemptions never override declared generation ownership',t=>{
+test('CI-only exemptions never override declared generation ownership',t=>{
   const f=nativeValidationFixture(t),path='scripts/lib/native-test-prerequisites.mjs';
   f.put(path,'export const tool=1;\n');
   for(const kind of ['input','generator','output']){

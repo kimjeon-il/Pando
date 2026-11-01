@@ -4,9 +4,11 @@ on:
   push:
     branches: [work/ui]
     paths:
+      - shared/CMakeLists.txt
       - shared/core/**
       - shared/tests/**
       - shared/wasm/**
+      - shared/third_party/earcut/earcut.hpp
       - shared/frontend/static/wasm/**
       - shared/frontend/js/modules/core-*.js
       - shared/frontend/js/modules/worker-*.js
@@ -80,6 +82,17 @@ on:
       - shared/tests/temporal-transport-p5-5.test.mjs
       - tools/load-node-core.mjs
       - tools/package-shared-core-assets.mjs
+      - config/library-data.json
+      - .github/actions/library-data/action.yml
+      - tools/library-data.mjs
+      - tools/library-archive.mjs
+      - tools/library-content.mjs
+      - tools/library-git.mjs
+      - tools/library-runtime-index.mjs
+      - tools/library-report-layout.mjs
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
       - .github/workflows/shared-core.yml
       - .github/workflows/p6-preflight.yml
   workflow_dispatch:

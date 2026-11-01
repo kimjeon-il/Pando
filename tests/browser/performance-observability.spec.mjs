@@ -106,6 +106,7 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   };
   // Historical outline is a separately uploaded GPU stroke. Complete its
   // one-time creation before the camera-only reuse interval is sampled.
+  const selectionReadyDeadline = Date.now() + 90_000;
   await expect.poll(() => page.evaluate(() => {
     const snapshot = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return snapshot.gpu.selection?.segmentCount > 0
@@ -136,10 +137,35 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
       strokeGpuBuildCount: gpu.stroke.buildCount,
       strokeGpuUploadBytes: gpu.stroke.uploadBytes,
       meshVariantBytes: gpu.meshVariantBytes,
+      uploads: snapshot.uploads,
+      readiness: {
+        canonicalMeshReady: gpu.canonicalMeshReady,
+        patchWorkerQueueDepth: gpu.patchWorkerJobs?.queueDepth,
+        selectedOutlineReady: gpu.selection?.segmentCount > 0
+          && gpu.selection?.channels?.primary?.drawSucceeded === true && snapshot.selection.fallbackCount === 0,
+        pendingMask: snapshot.pendingMask,
+        frameQueued: snapshot.frameQueued,
+        interactionActive: snapshot.interactionActive,
+      },
       lastReasons: snapshot.lastReasons,
     };
   });
-  const before = await measurement();
+  // Warmup hover can enqueue another stroke upload; completed boundary and
+  // primary selection alone do not prove that the shared queue has drained.
+  // A queued render can enqueue more work. Keep the exact settled sample as
+  // the baseline, within the existing selection-readiness time allowance.
+  let before;
+  await expect.poll(async () => {
+    before = await measurement();
+    return before;
+  }, { timeout: Math.max(1, selectionReadyDeadline - Date.now()), intervals: [350, 900, 1500] }).toMatchObject({
+    renderer: 'webgl2', countryBoundaryReady: true, countryBoundaryReplacementPending: false,
+    uploads: { pending: 0, active: false },
+    readiness: {
+      canonicalMeshReady: true, patchWorkerQueueDepth: 0, selectedOutlineReady: true,
+      pendingMask: 0, frameQueued: false, interactionActive: false,
+    },
+  });
   expect(before.countryBoundaryReady).toBe(true);
   expect(before.countryBoundaryReplacementPending).toBe(false);
   for (const [dx, dy] of [[30, 12], [-28, -8], [22, 10]]) await pan(dx, dy);
@@ -154,6 +180,7 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   expect(after.contextCount).toBe(1);
   expect(after.countryBoundaryReady).toBe(true);
   expect(after.countryBoundaryReplacementPending).toBe(false);
+  expect(after.uploads.pending).toBe(0);
   expect(after.viewRenderCount).toBeGreaterThan(before.viewRenderCount);
   for (const key of [
     'meshSwitchCount', 'countryPatchUploadBytes', 'countryBoundaryRequestId',

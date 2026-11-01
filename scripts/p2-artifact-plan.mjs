@@ -113,6 +113,8 @@ function validationOrPresentationOnly(changes,graph) {
     'eslint.config.js',
     '.github/workflows/remote-preview-p3.yml',
     'scripts/run-boundary-revision-comparison.mjs',
+    'scripts/check-territorial-library.mjs',
+    'scripts/lib/late-soviet-check.mjs',
     'scripts/lib/native-test-prerequisites.mjs',
     'scripts/prepare-native-test-tools.mjs',
     'scripts/lib/library-preparation-wait.mjs',

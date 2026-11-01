@@ -5,19 +5,8 @@ import {join,resolve} from 'node:path';
 import test from 'node:test';
 import {raster} from '../../plugins/pando-map-tools/lib/raster.mjs';
 import {encodeNativePng,readNativeImage} from '../../tools/map-image/native-resample.mjs';
-import {drawNativePreviewLabels,renderNativePreview} from '../../tools/map-image/native-preview.mjs';
-
-async function assertCandidatePreview(decoded,oracle,job,name){
-  // The UI branch explicitly changed only the candidate banner text; preserve
-  // the frozen raster comparison for every pixel below that banner.
-  const start=25*decoded.width*4;
-  assert.equal(Buffer.compare(decoded.data.subarray(start),oracle.subarray(start)),0,name+' map and overlay pixels');
-  const data=Buffer.alloc(decoded.width*24*4,255);
-  const banner='PROVISIONAL CANDIDATES | orange: border / blue: admin / purple: mixed / yellow: unresolved | georeference: '+
-    (job.quality?.recommended?'recommended':'needs review');
-  const expected=await drawNativePreviewLabels({width:decoded.width,height:24,data},[{x:5,y:5,text:banner}]);
-  assert.equal(Buffer.compare(decoded.data.subarray(0,expected.data.length),expected.data),0,name+' candidate banner');
-}
+import {renderNativePreview} from '../../tools/map-image/native-preview.mjs';
+import {assertCandidatePreview} from '../helpers/map-preview-assertions.mjs';
 
 test('native review previews preserve map pixels, overlays and labels without Python',async t=>{
   process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
