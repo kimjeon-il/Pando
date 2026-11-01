@@ -264,6 +264,15 @@ node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath
 & $trainingPython tools/reference-analysis/train.py export --checkpoint $checkpointPath --output $onnxPath
 ```
 
+The native evaluation path accepts a newly trained native checkpoint, or
+transferred Safetensors weights for diagnostic-only use. Transferred weights do
+not contain optimizer state or establish training ancestry:
+
+```powershell
+node tools/reference-analysis/native-evaluate-source.mjs --checkpoint $nativeCheckpoint --corpus $corpusPath --output $nativeEvaluationPath --device cuda --torch-library $torchLibrary --diagnostic-only
+node tools/reference-analysis/native-evaluate-source.mjs --weights $transferredWeights --corpus $corpusPath --output $transferEvaluationPath --device cuda --torch-library $torchLibrary --diagnostic-only
+```
+
 Export deliberately produces a pending, unapproved manifest. Do not change those
 fields merely to enable execution. Independent release evaluation requires region
 accuracy, map-family/script boundary metrics, topology validity and measured

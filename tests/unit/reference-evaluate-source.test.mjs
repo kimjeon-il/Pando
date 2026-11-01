@@ -33,6 +33,13 @@ test('source evaluation protects test scope and incomplete training ancestry',as
   await assert.rejects(evaluateReviewedCheckpointSource({...request,diagnosticOnly:true}),/final-test/i);
   await assert.rejects(evaluateReviewedCheckpointCorpus({...request,output:join(root,'new.json')}),/final-test/i);
   receipt.optimizerUpdates=0;save();await assert.rejects(evaluateReviewedCheckpointSource(request),/checkpoint receipt/i);
+  const weights=join(root,'weights.safetensors');writeFileSync(weights,'transferred fixture');
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({schemaVersion:1,trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,
+    transfer:'weights-only-no-optimizer',weightsSha256:sha('transferred fixture'),sourceCheckpointSha256:'b'.repeat(64)}));
+  await assert.rejects(evaluateReviewedCheckpointSource({...request,checkpoint:undefined,weights}),/diagnostic-only/i);
+  await assert.rejects(evaluateReviewedCheckpointSource({...request,weights,diagnosticOnly:true}),/choose one/i);
+  writeFileSync(weights,'changed');
+  await assert.rejects(evaluateReviewedCheckpointSource({...request,checkpoint:undefined,weights,diagnosticOnly:true}),/weights receipt/i);
   const controller=new AbortController();controller.abort();
   await assert.rejects(evaluateReviewedCheckpointSource(request,{signal:controller.signal}),{name:'AbortError'});
   assert.equal(readFileSync(checkpoint,'utf8'),'fixture checkpoint');
