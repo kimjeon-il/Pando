@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import test from 'node:test';
-import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg,extractPublisherPdfText,inspectPublisherPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
+import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg,extractPublisherPdfText,inspectPublisherPdf,renderMacroPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
 import {inspectNativeJpeg} from '../../tools/map-image/native-resample.mjs';
 
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
@@ -38,4 +38,16 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
   await assert.rejects(renderPublisherPdfLayers({path,enabled:[],maximumDimension:16}),/dimension/i);
   assert.deepEqual(readFileSync(path),input);
   }
+});
+
+test('macro PDF image and glyph masks match the original unrotated coordinate system',async()=>{
+  const root=resolve('tests/fixtures/reference-macro-pdf'),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+  for(const name of ['base','rotation-90','rotation-180','rotation-270']){
+    const path=resolve(root,name+'.pdf'),original=readFileSync(path),oracle=JSON.parse(readFileSync(resolve(root,name+'.json'),'utf8'));
+    const actual=await renderMacroPdf({path,maximumDimension:159});
+    assert.deepEqual([actual.width,actual.height,actual.rotation],[oracle.width,oracle.height,oracle.rotation]);
+    assert.equal(sha(actual.rgb),oracle.rgbSha256);assert.equal(sha(actual.textMask),oracle.textSha256);
+    assert.equal(sha(actual.credits),oracle.creditsSha256);assert.deepEqual(readFileSync(path),original);
+  }
+  await assert.rejects(renderMacroPdf({path:resolve(root,'base.pdf'),maximumDimension:63}),/dimension/i);
 });

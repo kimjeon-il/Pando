@@ -94,6 +94,24 @@ export async function extractPublisherPdfText({path,maximumDimension},{signal,wo
   const result=await operation({path,args:['text',String(maximumDimension)],signal,workspace,directory,source});
   return checkedText(result,info);
 }
+// Macro rendering preserves the source's default layer state and unrotates the
+// page before extracting the image and glyph exclusion mask. The caller rotates
+// all supervision planes together after applying the source recipe.
+export async function renderMacroPdf({path,maximumDimension},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
+  signal?.throwIfAborted();
+  if(typeof path!=='string'||!path||!Number.isSafeInteger(maximumDimension)||maximumDimension<64||maximumDimension>4096)
+    throw Error('Explicit bounded macro PDF and dimension required');
+  const actual=resolve(path),source=readTrainingBounded(actual,300*1024*1024),sourceSha256=sha(source),binary=artifact(workspace,directory);
+  const request={path:actual,signal,workspace,directory,source,binary,knownIdentity:sourceSha256};
+  const rasterResult=await operation({...request,args:['macro-render',String(maximumDimension)]});
+  const textResult=await operation({...request,args:['macro-text',String(maximumDimension)]});
+  const raster=checkedRaster(rasterResult,{sourceSha256}),text=checkedText(textResult,{sourceSha256});
+  const rotation=rasterResult.header.rotation;
+  if(![0,90,180,270].includes(rotation)||textResult.header.rotation!==rotation||
+    raster.width!==text.width||raster.height!==text.height||raster.scale!==text.scale)
+    throw Error('Macro PDF text and raster identity differs');
+  return {...raster,rotation,textMask:text.mask,credits:text.credits};
+}
 export async function derivePublisherPdfTrainingLayers({path,maximumDimension},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
   signal?.throwIfAborted();
   if(typeof path!=='string'||!path||!Number.isSafeInteger(maximumDimension)||maximumDimension<32||maximumDimension>4096)

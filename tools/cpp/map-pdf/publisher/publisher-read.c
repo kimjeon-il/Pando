@@ -64,6 +64,7 @@ typedef struct {
     int width,height;
     double scale;
     size_t characters;
+    int include_all_layers;
     char layer[4097];
 } publisher_text_device;
 static int unicode_space(int c){
@@ -78,7 +79,7 @@ static void begin_text_layer(fz_context *ctx,fz_device *device,const char *name)
 static void end_text_layer(fz_context *ctx,fz_device *device){(void)ctx;((publisher_text_device*)device)->layer[0]='\0';}
 static void trace_text(fz_context *ctx,publisher_text_device *self,const fz_text *text,fz_matrix ctm,float alpha){
     const fz_text_span *span;
-    if(alpha<=0||!strcmp(self->layer,"Orthoimage")||!strcmp(self->layer,"Shaded Relief"))return;
+    if(alpha<=0||(!self->include_all_layers&&(!strcmp(self->layer,"Orthoimage")||!strcmp(self->layer,"Shaded Relief"))))return;
     for(span=text->head;span;span=span->next){
         fz_matrix mat=fz_concat(span->trm,ctm),rotation;fz_point dir=fz_transform_vector(fz_make_point(1,0),mat);
         double size=sqrt((double)dir.x*dir.x+(double)dir.y*dir.y),asc=fz_font_ascender(ctx,span->font),desc=fz_font_descender(ctx,span->font);
@@ -149,9 +150,9 @@ int main(int argc,char **argv){
 #endif
     if(argc==5&&(!strcmp(argv[1],"compare")||!strcmp(argv[1],"finish")||!strcmp(argv[1],"rgba")))mask_mode=1;
     else if(argc==2&&!strcmp(argv[1],"inspect"))render=0;
-    else if((argc==4&&!strcmp(argv[1],"render"))||(argc==3&&!strcmp(argv[1],"text"))){char *end=NULL;long value=strtol(argv[2],&end,10);
+    else if((argc==4&&!strcmp(argv[1],"render"))||(argc==3&&(!strcmp(argv[1],"text")||!strcmp(argv[1],"macro-render")||!strcmp(argv[1],"macro-text")))){char *end=NULL;long value=strtol(argv[2],&end,10);
         if(!end||*end||value<32||value>4096){fprintf(stderr,"Invalid maximum dimension\n");return 1;}
-        render=argc==3?2:1;maximum=(int)value;}
+        render=argc==4?1:!strcmp(argv[1],"macro-render")?3:!strcmp(argv[1],"macro-text")?4:2;maximum=(int)value;}
     else{fprintf(stderr,"Expected inspect, text MAX_DIMENSION or render MAX_DIMENSION LAYER_BITS\n");return 1;}
     input=read_input(&input_size);if(!input){fprintf(stderr,"Unable to read PDF or input exceeds budget\n");return 1;}
     if(mask_mode){status=mask_operation(argv[1],argv[2],argv[3],argv[4],input,input_size);free(input);
@@ -166,8 +167,9 @@ int main(int argc,char **argv){
         if(!pdf)fz_throw(ctx,FZ_ERROR_FORMAT,"Expected PDF document");
         count=fz_count_pages(ctx,document);if(count!=1)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Single publisher PDF page required");
         object=pdf_lookup_page_obj(ctx,pdf,0);rotation=pdf_dict_get_inheritable_int(ctx,object,PDF_NAME(Rotate));rotation=((rotation%360)+360)%360;
-        if(rotation)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Unrotated publisher PDF page required");
-        layers=pdf_count_layers(ctx,pdf);if(layers<1||layers>1024)fz_throw(ctx,FZ_ERROR_LIMIT,"Bounded publisher layers required");
+        if(rotation&&render<3)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Unrotated publisher PDF page required");
+        if(render>=3&&rotation%90)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Unsupported macro page rotation");
+        layers=pdf_count_layers(ctx,pdf);if(layers>1024||(layers<1&&render<3))fz_throw(ctx,FZ_ERROR_LIMIT,"Bounded publisher layers required");
         if(!render){int entries=pdf_count_layer_config_ui(ctx,pdf);fz_rect bounds;
             if(entries<0||entries>4096)fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher layer UI exceeds budget");
             page=fz_load_page(ctx,document,0);bounds=fz_bound_page(ctx,page);
@@ -183,17 +185,19 @@ int main(int argc,char **argv){
             printf("]}\n");
         }else{fz_rect bounds;fz_matrix scale;fz_irect pixel_bounds;int width,height,stride,y;unsigned char *samples;double factor;
             if(render==1&&strlen(argv[3])!=(size_t)layers)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Layer bit count differs");
-            for(i=0;i<layers;i++){if(render==1&&argv[3][i]!='0'&&argv[3][i]!='1')fz_throw(ctx,FZ_ERROR_ARGUMENT,"Invalid layer selection");
+            for(i=0;i<layers&&render<3;i++){if(render==1&&argv[3][i]!='0'&&argv[3][i]!='1')fz_throw(ctx,FZ_ERROR_ARGUMENT,"Invalid layer selection");
                 pdf_enable_layer(ctx,pdf,i,render==2||argv[3][i]=='1');}
             /* Persist only in memory, then reopen so PDF optional-content
              * membership expressions observe the requested default state. */
-            {pdf_write_options options={0};unsigned char *bytes=NULL;size_t length;
+            if(render<3){pdf_write_options options={0};unsigned char *bytes=NULL;size_t length;
                 options.do_encrypt=PDF_ENCRYPT_NONE;options.permissions=4095;options.do_preserve_metadata=1;
                 pdf_set_layer_config_as_default(ctx,pdf);configured=fz_new_buffer(ctx,input_size);
                 configured_output=fz_new_output_with_buffer(ctx,configured);pdf_write_document(ctx,pdf,configured_output,&options);fz_close_output(ctx,configured_output);
                 length=fz_buffer_storage(ctx,configured,&bytes);if(!length||length>300u*1024u*1024u)fz_throw(ctx,FZ_ERROR_LIMIT,"Configured publisher PDF exceeds budget");
                 configured_stream=fz_open_memory(ctx,bytes,length);configured_document=fz_open_document_with_stream(ctx,"application/pdf",configured_stream);}
-            page=fz_load_page(ctx,configured_document,0);bounds=fz_bound_page(ctx,page);
+            if(render>=3){pdf_dict_put_int(ctx,object,PDF_NAME(Rotate),0);page=fz_load_page(ctx,document,0);}
+            else page=fz_load_page(ctx,configured_document,0);
+            bounds=fz_bound_page(ctx,page);
             if(!isfinite(bounds.x0)||!isfinite(bounds.y0)||!isfinite(bounds.x1)||!isfinite(bounds.y1)||bounds.x1<=bounds.x0||bounds.y1<=bounds.y0)
                 fz_throw(ctx,FZ_ERROR_FORMAT,"Invalid publisher page dimensions");
             factor=maximum/fmax((double)bounds.x1-(double)bounds.x0,(double)bounds.y1-(double)bounds.y0);
@@ -202,24 +206,24 @@ int main(int argc,char **argv){
             width=pixel_bounds.x1-pixel_bounds.x0;height=pixel_bounds.y1-pixel_bounds.y0;
             if(width<1||height<1||width>4096||height>4096||(size_t)width*(size_t)height>16777216)
                 fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher raster exceeds budget");
-            if(render==1){
+            if(render==1||render==3){
                 fz_rect infinite=fz_make_rect((float)FZ_MIN_INF_RECT,(float)FZ_MIN_INF_RECT,(float)FZ_MAX_INF_RECT,(float)FZ_MAX_INF_RECT);
                 pixmap=fz_new_pixmap_with_bbox(ctx,fz_device_rgb(ctx),pixel_bounds,NULL,0);fz_clear_pixmap_with_value(ctx,pixmap,255);
                 draw_device=fz_new_draw_device(ctx,scale,pixmap);fz_run_display_list(ctx,display_list,draw_device,fz_make_matrix(1,0,0,1,0,0),infinite,NULL);
                 fz_close_device(ctx,draw_device);stride=fz_pixmap_stride(ctx,pixmap);samples=fz_pixmap_samples(ctx,pixmap);
-                printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g}\n",width,height,factor);
+                printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"rotation\":%d}\n",width,height,factor,rotation);
                 for(y=0;y<height;y++)if(fwrite(samples+(size_t)y*stride,1,(size_t)width*3,stdout)!=(size_t)width*3)
                     fz_throw(ctx,FZ_ERROR_GENERIC,"Cannot write publisher raster");
             }else{publisher_text_device *trace;unsigned char *credit_bytes=NULL;size_t credit_size;fz_stext_options text_options={0};
                 mask=(unsigned char*)calloc((size_t)width*height,1);if(!mask)fz_throw(ctx,FZ_ERROR_SYSTEM,"Publisher text allocation failed");
                 trace=fz_new_derived_device(ctx,publisher_text_device);text_device=&trace->base;
-                trace->mask=mask;trace->width=width;trace->height=height;trace->scale=factor;trace->characters=0;trace->layer[0]='\0';
+                trace->mask=mask;trace->width=width;trace->height=height;trace->scale=factor;trace->characters=0;trace->include_all_layers=render==4;trace->layer[0]='\0';
                 trace->base.fill_text=fill_text;trace->base.stroke_text=stroke_text;trace->base.begin_layer=begin_text_layer;trace->base.end_layer=end_text_layer;
                 fz_run_page(ctx,page,text_device,fz_make_matrix(1,0,0,1,0,0),NULL);fz_close_device(ctx,text_device);
                 text_options.flags=FZ_STEXT_PRESERVE_LIGATURES|FZ_STEXT_PRESERVE_WHITESPACE|FZ_STEXT_MEDIABOX_CLIP|FZ_STEXT_USE_CID_FOR_UNKNOWN_UNICODE;
                 text_page=fz_new_stext_page_from_page(ctx,page,&text_options);credits=fz_new_buffer(ctx,1024);append_credits(ctx,credits,text_page);
                 credit_size=fz_buffer_storage(ctx,credits,&credit_bytes);if(credit_size>8u*1024u*1024u)fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher credits exceed budget");
-                printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"creditBytes\":%zu,\"characters\":%zu}\n",width,height,factor,credit_size,trace->characters);
+                printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g,\"rotation\":%d,\"creditBytes\":%zu,\"characters\":%zu}\n",width,height,factor,rotation,credit_size,trace->characters);
                 if(fwrite(credit_bytes,1,credit_size,stdout)!=credit_size||fwrite(mask,1,(size_t)width*height,stdout)!=(size_t)width*height)
                     fz_throw(ctx,FZ_ERROR_GENERIC,"Cannot write publisher text evidence");
             }
