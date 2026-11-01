@@ -144,7 +144,7 @@ static void macro_stroke_path(fz_context *ctx,fz_device *device,const fz_path *p
                 copy=fz_new_stroke_state_with_dash_len(ctx,stroke->dash_len);copy->linewidth=factor*stroke->linewidth;
                 if((int)stroke->dash_cap>cap)cap=(int)stroke->dash_cap;if((int)stroke->end_cap>cap)cap=(int)stroke->end_cap;
                 copy->start_cap=copy->dash_cap=copy->end_cap=(fz_linecap)cap;copy->linejoin=stroke->linejoin;
-                copy->miterlimit=stroke->miterlimit;copy->dash_phase=factor*stroke->dash_phase;
+                copy->miterlimit=stroke->miterlimit;copy->dash_phase=factor*stroke->dash_phase;copy->dash_len=stroke->dash_len;
                 for(j=0;j<stroke->dash_len;j++)copy->dash_list[j]=factor*stroke->dash_list[j];
                 self->selected++;fz_stroke_path(ctx,self->draw,transformed,copy,fz_make_matrix(1,0,0,1,0,0),fz_device_gray(ctx),black,1,params);
             }fz_always(ctx){fz_drop_path(ctx,transformed);fz_drop_stroke_state(ctx,copy);}
