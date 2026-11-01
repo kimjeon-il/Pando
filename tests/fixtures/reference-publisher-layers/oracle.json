@@ -74,5 +74,20 @@
     0.0,
     160.0,
     120.0
-  ]
+  ],
+  "fractional": {
+    "enabled": [
+      "Map Frame",
+      "State or Territory",
+      "Hydrography",
+      "Road Features",
+      "Geographic Names",
+      "Projection and Grids",
+      "International"
+    ],
+    "maximumDimension": 159,
+    "width": 159,
+    "height": 120,
+    "sha256": "468011cc1989a00a9e6781344d3c21d8517bb6bee546fdc4663fe6631c58008f"
+  }
 }

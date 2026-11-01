@@ -140,6 +140,7 @@ static void append_credits(fz_context *ctx,fz_buffer *buffer,const fz_stext_page
 }
 int main(int argc,char **argv){
     fz_context *ctx=NULL;fz_stream *stream=NULL;fz_document *document=NULL;fz_page *page=NULL;fz_pixmap *pixmap=NULL;
+    fz_display_list *display_list=NULL;fz_device *draw_device=NULL;
     fz_buffer *configured=NULL;fz_output *configured_output=NULL;fz_stream *configured_stream=NULL;fz_document *configured_document=NULL;
     fz_device *text_device=NULL;fz_stext_page *text_page=NULL;fz_buffer *credits=NULL;
     unsigned char *input=NULL,*mask=NULL;size_t input_size=0;int status=1,render=0,maximum=0,mask_mode=0;
@@ -156,7 +157,7 @@ int main(int argc,char **argv){
     if(mask_mode){status=mask_operation(argv[1],argv[2],argv[3],argv[4],input,input_size);free(input);
         if(status)fprintf(stderr,"Invalid publisher mask input\n");return status;}
     ctx=fz_new_context(NULL,NULL,FZ_STORE_DEFAULT);if(!ctx){free(input);fprintf(stderr,"MuPDF context unavailable\n");return 1;}
-    fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(configured);fz_var(configured_output);fz_var(configured_stream);fz_var(configured_document);
+    fz_var(stream);fz_var(document);fz_var(page);fz_var(pixmap);fz_var(display_list);fz_var(draw_device);fz_var(configured);fz_var(configured_output);fz_var(configured_stream);fz_var(configured_document);
     fz_var(text_device);fz_var(text_page);fz_var(credits);fz_var(mask);fz_var(status);
     fz_try(ctx){
         pdf_document *pdf;pdf_obj *object;int count,rotation,layers,i;
@@ -180,7 +181,7 @@ int main(int argc,char **argv){
             for(i=0;i<entries;i++){pdf_layer_config_ui info;pdf_layer_config_ui_info(ctx,pdf,i,&info);
                 if(i)putchar(',');printf("{\"text\":");json_string(info.text);printf(",\"depth\":%d,\"type\":%d}",info.depth,(int)info.type);}
             printf("]}\n");
-        }else{fz_rect bounds;fz_matrix scale;int width,height,stride,y;unsigned char *samples;double factor;
+        }else{fz_rect bounds;fz_matrix scale;fz_irect pixel_bounds;int width,height,stride,y;unsigned char *samples;double factor;
             if(render==1&&strlen(argv[3])!=(size_t)layers)fz_throw(ctx,FZ_ERROR_ARGUMENT,"Layer bit count differs");
             for(i=0;i<layers;i++){if(render==1&&argv[3][i]!='0'&&argv[3][i]!='1')fz_throw(ctx,FZ_ERROR_ARGUMENT,"Invalid layer selection");
                 pdf_enable_layer(ctx,pdf,i,render==2||argv[3][i]=='1');}
@@ -195,12 +196,18 @@ int main(int argc,char **argv){
             page=fz_load_page(ctx,configured_document,0);bounds=fz_bound_page(ctx,page);
             if(!isfinite(bounds.x0)||!isfinite(bounds.y0)||!isfinite(bounds.x1)||!isfinite(bounds.y1)||bounds.x1<=bounds.x0||bounds.y1<=bounds.y0)
                 fz_throw(ctx,FZ_ERROR_FORMAT,"Invalid publisher page dimensions");
-            factor=maximum/fmax((double)(bounds.x1-bounds.x0),(double)(bounds.y1-bounds.y0));
-            scale=fz_scale((float)factor,(float)factor);pixmap=fz_new_pixmap_from_page(ctx,page,scale,fz_device_rgb(ctx),0);
-            width=fz_pixmap_width(ctx,pixmap);height=fz_pixmap_height(ctx,pixmap);stride=fz_pixmap_stride(ctx,pixmap);samples=fz_pixmap_samples(ctx,pixmap);
+            factor=maximum/fmax((double)bounds.x1-(double)bounds.x0,(double)bounds.y1-(double)bounds.y0);
+            scale=fz_scale((float)factor,(float)factor);display_list=fz_new_display_list_from_page(ctx,page);
+            pixel_bounds=fz_round_rect(fz_transform_rect(fz_bound_display_list(ctx,display_list),scale));
+            width=pixel_bounds.x1-pixel_bounds.x0;height=pixel_bounds.y1-pixel_bounds.y0;
             if(width<1||height<1||width>4096||height>4096||(size_t)width*(size_t)height>16777216)
                 fz_throw(ctx,FZ_ERROR_LIMIT,"Publisher raster exceeds budget");
-            if(render==1){printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g}\n",width,height,factor);
+            if(render==1){
+                fz_rect infinite=fz_make_rect((float)FZ_MIN_INF_RECT,(float)FZ_MIN_INF_RECT,(float)FZ_MAX_INF_RECT,(float)FZ_MAX_INF_RECT);
+                pixmap=fz_new_pixmap_with_bbox(ctx,fz_device_rgb(ctx),pixel_bounds,NULL,0);fz_clear_pixmap_with_value(ctx,pixmap,255);
+                draw_device=fz_new_draw_device(ctx,scale,pixmap);fz_run_display_list(ctx,display_list,draw_device,fz_make_matrix(1,0,0,1,0,0),infinite,NULL);
+                fz_close_device(ctx,draw_device);stride=fz_pixmap_stride(ctx,pixmap);samples=fz_pixmap_samples(ctx,pixmap);
+                printf("{\"width\":%d,\"height\":%d,\"scale\":%.17g}\n",width,height,factor);
                 for(y=0;y<height;y++)if(fwrite(samples+(size_t)y*stride,1,(size_t)width*3,stdout)!=(size_t)width*3)
                     fz_throw(ctx,FZ_ERROR_GENERIC,"Cannot write publisher raster");
             }else{publisher_text_device *trace;unsigned char *credit_bytes=NULL;size_t credit_size;fz_stext_options text_options={0};
@@ -220,7 +227,7 @@ int main(int argc,char **argv){
         status=0;
     }
     fz_always(ctx){fz_drop_buffer(ctx,credits);fz_drop_stext_page(ctx,text_page);fz_drop_device(ctx,text_device);free(mask);
-        fz_drop_pixmap(ctx,pixmap);fz_drop_page(ctx,page);fz_drop_document(ctx,configured_document);fz_drop_stream(ctx,configured_stream);
+        fz_drop_device(ctx,draw_device);fz_drop_pixmap(ctx,pixmap);fz_drop_display_list(ctx,display_list);fz_drop_page(ctx,page);fz_drop_document(ctx,configured_document);fz_drop_stream(ctx,configured_stream);
         fz_drop_output(ctx,configured_output);fz_drop_buffer(ctx,configured);fz_drop_document(ctx,document);fz_drop_stream(ctx,stream);}
     fz_catch(ctx){fprintf(stderr,"Publisher PDF: %s\n",fz_caught_message(ctx));}
     fz_drop_context(ctx);free(input);return status;

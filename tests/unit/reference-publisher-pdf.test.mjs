@@ -23,6 +23,8 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
     const rendered=await renderPublisherPdfLayers({path,enabled:row.enabled,maximumDimension:oracle.text.maximumDimension});
     assert.equal(rendered.width,row.width);assert.equal(rendered.height,row.height);assert.equal(sha(rendered.rgb),row.sha256);
   }
+  if(oracle.fractional){const row=oracle.fractional,result=await renderPublisherPdfLayers({path,enabled:row.enabled,maximumDimension:row.maximumDimension});
+    assert.equal(result.width,row.width);assert.equal(result.height,row.height);assert.equal(sha(result.rgb),row.sha256);}
   const text=await extractPublisherPdfText({path,maximumDimension:oracle.text.maximumDimension});
   assert.equal(sha(text.mask),oracle.text.maskSha256);assert.equal(sha(text.credits),oracle.text.creditSha256);
   assert.equal(text.characters,oracle.text.characters);
