@@ -61,7 +61,7 @@ for (const renderer of ['webgl2', 'canvas']) {
     }
     const interior = [-8, 53];
     await expect.poll(() => mapPixel(page, interior), { timeout: renderer === 'canvas' ? 20000 : 8000 }).toEqual([255, 0, 0]);
-    await page.locator('#relationTabBtn').click();
+    await page.locator('#editorTabBtn').click(); if (!await page.locator('#entityRelationsDisclosure').evaluate(node => node.open)) await page.locator('#entityRelationsDisclosure summary').click();
     await page.locator('#entityChangeParentBtn').click();
     await selectUiOption(page, '#entityParentInput', 'GBR');
     await expect.poll(() => page.evaluate(() => window.PANDOLAB_TERRITORIAL.get('IRL').properties.parentId)).toBe('GBR');
