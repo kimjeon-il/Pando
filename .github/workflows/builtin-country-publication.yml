@@ -1,0 +1,43 @@
+name: Builtin country publication contracts
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/build-builtin-world.mjs'
+      - 'tools/gis/prepare-water-object-history.mjs'
+      - 'tests/unit/builtin-country-publication.test.mjs'
+      - 'tests/unit/historical-world-publication.test.mjs'
+      - 'tests/unit/builtin-world-catalog.test.mjs'
+      - '.github/workflows/builtin-country-publication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: builtin-country-publication-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publication:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space before preparing paired read-only test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          free_kib=$(df -Pk . | awk 'NR==2 {print $4}')
+          test "$free_kib" -ge 10485760 || { echo 'Need dependency cache space plus 5 GiB headroom'; exit 1; }
+      - name: Prepare the pinned runtime used by the existing country compiler
+        uses: ./.github/actions/library-data
+      - name: Verify country generation only; do not regenerate or publish library data
+        run: node --test tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs
