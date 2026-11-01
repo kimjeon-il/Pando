@@ -76,6 +76,10 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
     checkpointSha256:hash('checkpoint'),corpusSha256:hash(readFileSync(corpus))}));
   const request={corpus,checkpoint,sourceId:'empty',device:'cpu',torchLibrary:root};
+  const onnx=join(root,'model.onnx');writeFileSync(onnx,'model');writeFileSync(join(root,'model.manifest.json'),JSON.stringify({
+    checkpointSha256:'0'.repeat(64),model:{url:'model.onnx',sha256:hash('model'),bytes:5},trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,optimizerUpdates:1}));
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,onnx,output:join(root,'onnx-mismatch')}),/ONNX.*checkpoint/i);
+  assert.equal(existsSync(join(root,'onnx-mismatch')),false);
   await assert.rejects(diagnoseMacroTrainingSource(request),/no supervised/i);
   const result=await diagnostic.diagnoseTrainingCorpus({...request,output});
   assert.deepEqual(result.sheets,[]);assert.equal(result.independentEvaluation,false);assert.equal(result.onnxParityVerified,false);

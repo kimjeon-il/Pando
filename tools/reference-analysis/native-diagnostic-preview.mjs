@@ -1,7 +1,7 @@
 // Binary boundary for native training-diagnostic overlay composition.
-import {dirname,extname,join,resolve} from 'node:path';
+import {basename,dirname,extname,join,resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {existsSync} from 'node:fs';
+import {existsSync,statSync} from 'node:fs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
@@ -185,7 +185,7 @@ export function diagnoseReviewedSource(request,options){
 }
 
 // Diagnostic only: no ONNX parity, held-out evaluation, or model admission is implied.
-export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,baselineWeights,output,device,torchLibrary,maximumPreviews=24},options={}){
+export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,baselineWeights,onnx,output,device,torchLibrary,maximumPreviews=24},options={}){
   const {signal}=options;signal?.throwIfAborted();
   if(!corpus||!checkpoint||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
     !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
@@ -203,6 +203,14 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(new Set(ids).size!==ids.length)throw Error('Unique diagnostic sources required');
   const checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json',corpusPath=resolve(corpus);
   const checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath),corpusHash=trainingFileIdentity(corpusPath);
+  const onnxPath=onnx?resolve(onnx):null,onnxHash=onnxPath?trainingFileIdentity(onnxPath):null;
+  const onnxManifest=onnxPath?onnxPath.replace(/\.onnx$/,'.manifest.json'):null;
+  if(onnxPath&&onnxManifest===onnxPath)throw Error('Explicit ONNX model path required');
+  const onnxManifestHash=onnxManifest?trainingFileIdentity(onnxManifest):null;
+  if(onnxPath){const manifest=JSON.parse(readTrainingBounded(onnxManifest,1024*1024));
+    if(manifest.checkpointSha256!==checkpointHash||manifest.model?.sha256!==onnxHash||manifest.model?.url!==basename(onnxPath)||
+      manifest.model?.bytes!==statSync(onnxPath).size||manifest.trainingOnly!==true||manifest.evaluationStatus!=='pending'||
+      manifest.releaseApproved!==false||!(manifest.optimizerUpdates>0))throw Error('ONNX does not match the diagnostic checkpoint');}
   const rows=[];let created=false,internalScope=null;
   for(const sourceId of ids){
     signal?.throwIfAborted();
@@ -230,9 +238,22 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     const fingerprint=await corpusFingerprint(corpusPath,auxiliaryPath),receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
     if(receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==fingerprint)throw Error('Combined training inputs changed during diagnostic');
     internalScope={corpusPath,auxiliaryPath,corpusHash,auxiliaryHash,lineageFingerprint:fingerprint};}
+  if(onnxPath&&!rows.length)throw Error('A supervised diagnostic tile is required for ONNX parity');
+  let parityResult=null;
+  if(onnxPath){const {verifyTrainedOnnx}=await import('./verify-trained-onnx.mjs');
+    parityResult=await verifyTrainedOnnx({model:onnxPath,diagnostics:target,expectedCheckpointSha256:checkpointHash,signal});
+    if(trainingFileIdentity(onnxPath)!==onnxHash||trainingFileIdentity(onnxManifest)!==onnxManifestHash||
+      trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
+      trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash||
+      internalScope&&(trainingFileIdentity(internalScope.auxiliaryPath)!==internalScope.auxiliaryHash||
+        await corpusFingerprint(corpusPath,internalScope.auxiliaryPath)!==internalScope.lineageFingerprint))
+      throw Error('ONNX or diagnostic inputs changed during parity verification');
+    await writeFile(join(target,'onnx-parity.json'),JSON.stringify(parityResult,null,2)+'\n',{flag:'wx',signal});
+  }
   if(!created)await mkdir(target);
   const report={schemaVersion:1,purpose:reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
-    trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:false,
+    trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:Boolean(parityResult),
+    ...(parityResult?{onnxSha256:onnxHash,onnxParityFile:'onnx-parity.json',onnxMaximumAbsoluteError:parityResult.maximumAbsoluteError}:{}),
     checkpointSha256:checkpointHash,corpusSha256:corpusHash,
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),
     ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
@@ -249,10 +270,10 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const batch=process.argv[2]==='--corpus-sources',reviewed=process.argv[2]==='--reviewed-source';
       const {values,positionals}=parseArgs({args:process.argv.slice(3),allowPositionals:true,options:{corpus:{type:'string'},source:{type:'string'},
         'auxiliary-corpus':{type:'string'},'view-corpus':{type:'string'},
-        'review-corpus':{type:'string'},checkpoint:{type:'string'},'baseline-weights':{type:'string'},output:{type:'string'},device:{type:'string'},
+        'review-corpus':{type:'string'},checkpoint:{type:'string'},'baseline-weights':{type:'string'},onnx:{type:'string'},output:{type:'string'},device:{type:'string'},
         'torch-library':{type:'string'},'maximum-previews':{type:'string'}}});
       if(positionals.length||!values.corpus||(!batch&&!values.source)||(batch&&values.source)||!values.checkpoint||!values.output||!values.device||!values['torch-library']||
-        (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&values['maximum-previews']!==undefined))
+        (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&(values['maximum-previews']!==undefined||values.onnx)))
         throw Error('Expected --macro-source, --reviewed-source or --corpus-sources with explicit corpus, checkpoint, output, device and LibTorch; single-source modes require --source');
       const output=resolve(reportArgument(values.output,{access:'write'}));
       if(existsSync(output))throw Error('Diagnostic output exists; preserve prior evidence');
@@ -261,7 +282,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
         const result=await diagnoseTrainingCorpus({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
           auxiliaryCorpus:reportArgument(values['auxiliary-corpus'],{access:'read',siblings:true}),viewCorpus:values['view-corpus']||'primary',
           reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true}),checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
-          baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),output,device:values.device,
+          baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),onnx:reportArgument(values.onnx,{access:'read',siblings:true}),output,device:values.device,
           torchLibrary:values['torch-library'],maximumPreviews:Number(count)},{signal:controller.signal});
         process.stdout.write(JSON.stringify({output,sheets:result.sheets.length,purpose:result.purpose,releaseApproved:false,onnxParityVerified:false})+'\n');
       }else{
