@@ -13,7 +13,9 @@
 
 ## 2026-10-29 잔여 기준 목록
 
-### 2026-11-02 현행 기준: 추적 Python 18개
+### 2026-11-02 현행 기준: 추적 Python 16개
+
+- **매크로 PDF 코퍼스:** 색상 경계와 선 굵기·색상·점선 기반 감독을 MuPDF C 및 기존 C++ 마스크 계산, Node 출처·코퍼스 관리로 전환했다. [Windows/Linux CI 41324149713](https://github.com/kimjeon-il/Pando/actions/runs/41324149713)은 회전·변환 선·닫힌 경로·글자 제외·원본 보호를 검사했다. 실제 CIA 세계지도와 호주 지도 각 한 건은 2560픽셀에서 기존 마스크·유효 영역 픽셀과 JPEG 바이트가 같았다. PNG 인코딩 바이트는 달라 기존 파일을 검증 후 재사용한다. 기존 Python 생산자 식별은 보관 자료의 출처로 유지한다. 이는 모델 정확도나 역사 형상 승인이 아니다.
 
 - **출판사 PDF 라벨 생성:** MuPDF C 렌더링과 Node 출처·코퍼스 관리로 전환했다. [Windows/Linux CI 41321580045](https://github.com/kimjeon-il/Pando/actions/runs/41321580045)의 합성 PDF 검사와 기존 Python 코퍼스 소비 검사를 통과했다. 실제 USGS Eastport 원본 한 장은 320픽셀에서 RGB·마스크·유효 영역이 기존 결과와 같고, 2560픽셀에서 마스크·유효 영역 픽셀 및 JPEG 바이트가 기존 보관 결과와 같았다. 기존 자료의 Python 생산자 기록은 역사적 출처로 유지하며 원본과 운영 자료는 변경하지 않았다. 이는 모델 정확도 승인이 아니다.
 
@@ -23,7 +25,7 @@
 - **별도 검증 자료를 이용한 진단 선택:** 네이티브 다중 epoch 실행은 학습 자료와 원본·가족·판본·중복 그룹이 겹치지 않는 검증 자료를 명시적으로 선택할 수 있으며, 매 epoch 검증 손실과 자료 지문을 해당 체크포인트에 묶고 patience를 적용한다. 합성 검증 지도와 실제 Semap 원본을 포함한 CUDA FP32 실행으로 동작을 확인했다. 기존 초기 가중치의 선행 학습 이력은 불완전하므로 이 검증은 진단용이며 독립 정확도나 모델 승인이 아니다.
 - **검토 원본의 복합 학습:** 검토된 학습 지도를 Semap 보조 지도와 함께 인덱싱·감독 집계·표본 생성·CUDA 학습·진단에 연결했다. 학습 manifest에 검증·시험 항목이 섞이면 그 원본을 읽기 전에 거부한다. 합성 검토 지도에서 기존 Python과 새 표본의 텐서 다섯 개 해시가 모두 같았고, 이 지도와 보존 Semap 지도 한 건의 CUDA FP32 배치가 갱신됐다. 이는 제한된 기능 확인이며 독립 평가나 모델 승인, 단독 검토 코퍼스 학습기 전체 전환은 아니다.
 - **단독 검토 코퍼스 학습:** 동일한 출처 검증·감독 집계·균형 순서·체크포인트 실행기를 검토 지도만 사용하는 경우에도 연결했다. 합성 검토 지도의 CUDA FP32 학습 한 epoch와 생성된 체크포인트 진단을 확인했다. 단일 합성 자료를 사용한 기능 확인이며 독립 정확도나 모델 승인이 아니다. 전체 Python 학습 CLI의 평가·전환은 계속 남아 있다.
-- **단독 출판사 코퍼스 학습:** 출처·권리와 원본 해시가 확인된 출판사 자료만으로도 같은 네이티브 감독 집계와 학습 캠페인을 실행할 수 있다. 합성 출판사 PDF의 CUDA FP32 한 epoch와 자료 종류가 잘못 지정된 경우의 거부를 확인했다. 출판 PDF 생성기와 독립 정확도 확인은 아직 미완료다.
+- **단독 출판사 코퍼스 학습:** 출처·권리와 원본 해시가 확인된 출판사 자료만으로도 같은 네이티브 감독 집계와 학습 캠페인을 실행할 수 있다. 합성 출판사 PDF의 CUDA FP32 한 epoch와 자료 종류가 잘못 지정된 경우의 거부를 확인했다. 독립 정확도 확인은 아직 미완료다.
 
 - **Git 이력 도구:** 기존 Python `git-filter-repo` 콜백 및 수동 이력 용량 감사의 인라인 Python을 Node/Git 스트림으로 옮겼다. 작은 합성 저장소에서 브랜치·병합 부모·태그·보고서 보호 ref, 한글 경로, 제외 경로, 남겨둘 자료 바이트와 독립 사본 무결성을 확인했다. 실제 저장소 이력은 변경하지 않았다.
 
@@ -166,12 +168,10 @@
 | `tools/report_paths.py` | 기존 Node 보고서 경로 정본; 마지막 Python 호출자 | 권한·독립 판본·원본 보존, 마지막 Python 호출 제거 |
 | `tools/reference-analysis/corpus.py` | Node 코퍼스·계보·검토 소유자와 C++ 래스터화; 수집·학습 호출자 | 원본·라벨 해시, 누수 방지, 리뷰·known/ignore, 출처와 덮어쓰기 거부 |
 | `tools/reference-analysis/inspect-checkpoint.py` | C++ 평가와 Node 진단·계보 관리; 모델 평가 호출자 | 원본 픽셀 정밀도·재현율, 공변량, 독립성, 체크포인트 거부 |
-| `tools/reference-analysis/macro.py` | C++ PDF·영상 계층과 Node 권리·코퍼스 관리; 자료 준비 명령 | 원본·레이어 선택·마스크·출처·기존 결과 보호 |
 | `tools/reference-analysis/model.py`, `tools/reference-analysis/train.py` | LibTorch C++ 모델·학습·평가·ONNX와 Node 실행 관리; 학습 명령 | 활성 가중치 추론, augmentation, CPU/CUDA 업데이트와 정확한 재개, ONNX 오차 ≤0.005 |
 | `tests/python/test_reference_analysis_conditions.py`, `tests/reference-analysis/test_model.py` | LibTorch CTest 학습·augmentation 검사 | 고정 입력의 모델·손실·gradient와 augmentation |
 | `tests/python/test_reference_analysis_review.py` | Node/C++ 코퍼스·검토·출처 검사 | 분리·계보·known/ignore·실패·원본 보호 |
 | `tests/python/test_reference_analysis_inspection.py` | C++ 평가와 Node 진단 검사 | 경계 지표, 공변량·독립성·체크포인트 진단 |
-| `tests/python/test_reference_analysis_macro.py` | Node/C++ 출처별 코퍼스 생성 검사 | PDF 계층·라벨·mask·ZIP과 출처 불일치 |
 | `tests/test_hydro_calibration.py`, `tests/test_hydro_connectivity.py`, `tests/test_hydro_tiles.py`, `tests/test_hydronym_spacing.py` | CTest/Node 수계 생성·교정·명칭 검사 | 논리 ID, 연결·바이너리·한국어 이름 및 실패 사례 |
 
 재개 실행 방식: 로컬 컴파일러 비활성 설정을 유지하고 사용자가 선택한 GitHub CI에서 네이티브 도구를 빌드한다. CI 빌드를 시작하는 체크포인트 커밋은 검증 대기로 표시한다. 대상 바이너리의 CI·로컬 검사가 통과하기 전에는 대응 Python을 제거하지 않는다. 자동 push 검사를 반복하지 않고 필요한 네이티브 workflow를 명시적으로 실행한다.

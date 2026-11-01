@@ -385,7 +385,7 @@ annotations CC BY 4.0, image reuse conditions in the authors' `license_images.md
 
 `macro-source-catalog.json` pins whole published world/continent/country
 maps, distinct from the city patches and detailed US Topo sheets above. Acquire
-the catalogued PDFs with `acquire-sources.mjs`; run `macro.py` from this app checkout
+the catalogued PDFs with `acquire-sources.mjs`; run `prepare-macro.mjs` from this app checkout
 against the external sources directory. It reuses the current raster corpus,
 trainer, inspection and ONNX verification owners. No product/runtime owner changes.
 
@@ -404,7 +404,7 @@ PDF bytes and whole-map scope are hash-bound in the corpus fingerprint.
 $macroCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/macro-political'
 $macroModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v2'
 node tools/reference-analysis/acquire-sources.mjs --catalog tools/reference-analysis/macro-source-catalog.json --output "$macroCorpus/sources"
-& $trainingPython tools/reference-analysis/macro.py --sources "$macroCorpus/sources" --manifest-name corpus.conditions.training.json
+node tools/reference-analysis/prepare-macro.mjs --sources "$macroCorpus/sources" --manifest-name corpus.conditions.training.json
 & $trainingPython tools/reference-analysis/train.py train --training-only --macro-only --corpus "$macroCorpus/corpus.conditions.training.json" --initialize-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v1/boundary.pt' --output "$macroModel/boundary.pt" --epochs 8 --batch 1 --device cuda --balance-sources --learning-rate 0.00001 --freeze-encoder-epochs 2
 & $trainingPython tools/reference-analysis/train.py export --checkpoint "$macroModel/boundary.pt" --output "$macroModel/boundary.onnx"
 & $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$macroCorpus/corpus.conditions.training.json" --checkpoint "$macroModel/boundary.pt" --baseline-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v1/boundary.pt' --onnx "$macroModel/boundary.onnx" --output "$macroModel/diagnostics"
