@@ -265,8 +265,7 @@
             </button>
             <div id="editorObjectHeading" class="editor-object-heading" aria-label=""><h2 id="propertyTitle"></h2><div class="editor-object-meta"><span id="propertyTypeLabel" class="editor-object-type-label"></span><span id="editorObjectStatus" class="editor-object-status hidden" aria-live="polite"></span></div></div>
             <button id="focusSelectedObjectBtn" class="ui-button icon-btn editor-object-command editor-focus-action hidden" type="button" data-tooltip="선택 객체로 이동" aria-label="선택 객체로 이동"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-focus-target"/></svg></button>
-            <button id="objectVisibilityBtn" class="ui-button icon-btn editor-object-command" type="button" aria-label="객체 숨기기" data-tooltip="객체 숨기기" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectVisibilityIcon" href="#icon-eye"/></svg></button>
-            <button id="objectLockBtn" class="ui-button icon-btn editor-object-command editor-object-command--lock" type="button" aria-label="잠금" data-tooltip="잠금" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg></button>
+            <button id="editorObjectMoreBtn" class="ui-button icon-btn editor-object-command" type="button" aria-label="객체 메뉴" data-tooltip="객체 메뉴" aria-haspopup="menu" aria-controls="editorObjectMenu" aria-expanded="false"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-more"/></svg></button>
           </div>
         </section>
         <div id="flagMenu" class="ui-menu ui-popover ui-floating-surface ui-menu-surface ui-menu-list ui-command-menu editor-flag-menu" popover="auto" role="menu" aria-label="국기 관리">
@@ -276,6 +275,11 @@
           <button id="flagRemoveBtn" type="button" class="ui-button ui-menu-item" role="menuitem"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-trash"/></svg><span>국기 제거</span></button>
         </div>
         <input id="flagFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+
+        <div id="editorObjectMenu" class="ui-menu ui-menu-list ui-menu-surface ui-command-menu editor-object-menu" role="menu" aria-label="객체 메뉴" hidden>
+          <button id="objectVisibilityBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-label="객체 숨기기" data-tooltip="객체 숨기기" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectVisibilityIcon" href="#icon-eye"/></svg><span id="objectVisibilityLabel">객체 숨기기</span></button>
+          <button id="objectLockBtn" class="ui-button ui-menu-item" type="button" role="menuitem" aria-label="잠금" data-tooltip="잠금" aria-pressed="false" disabled><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><use id="objectLockIcon" href="#icon-lock-open"/></svg><span id="objectLockLabel">잠금</span></button>
+        </div>
 
         <nav class="ui-tabs surface-tabs editor-view-tabs hidden" role="tablist" aria-label="객체 편집 탭">
           <button id="editorTabBtn" class="ui-button ui-tab active" data-surface-tab="info" type="button" role="tab" aria-controls="editorScrollBody" aria-selected="true">정보</button>
