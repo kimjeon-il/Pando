@@ -14,14 +14,13 @@ export function createPropertySelection() {
   }
 
   function setEditorShellView(view, { focus = false } = {}) {
-    const requested = view === 'relation' ? 'relation' : view === 'actions' ? 'actions' : 'info';
+    const requested = view === 'actions' ? 'actions' : 'info';
     const tabs = {
       info: (0, dependencies.platform.$)('editorTabBtn'),
       actions: (0, dependencies.platform.$)('actionsTabBtn'),
-      relation: (0, dependencies.platform.$)('relationTabBtn'),
     };
     const available = key => !!tabs[key] && !tabs[key].hidden && tabs[key].getAttribute('aria-disabled') !== 'true';
-    const active = available(requested) ? requested : ['info', 'actions', 'relation'].find(available) || requested;
+    const active = available(requested) ? requested : ['info', 'actions'].find(available) || requested;
     (0, dependencies.platform.$)('editorSurface')?.setAttribute('data-editor-view', active);
     dependencies.workspaceUiA.editorSurfaceTabs?.sync(active, { focus });
   }
