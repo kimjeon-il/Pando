@@ -84,19 +84,26 @@ jobs:
           import {writeFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           import assert from 'node:assert/strict';
-          import {libraryConfig,libraryCheckout} from './tools/library-data.mjs';
-          const config=libraryConfig(),checkout=libraryCheckout();
-          const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
-          git('fetch','--no-tags','origin','refs/heads/work/gis');
-          const latest=git('rev-parse','FETCH_HEAD');
-          if(latest!==config.revision){
-           git('merge-base','--is-ancestor',config.revision,latest);
-           const paths=git('diff','--name-only',config.revision,latest).split('\n').filter(Boolean);
-           assert.ok(paths.every(path=>path.startsWith('reports/')),'Remote runtime data differs; do not overwrite or silently merge it');
-           assert.equal(git('rev-parse',config.revision+':archive/index.json'),git('rev-parse',latest+':archive/index.json'),'Runtime archive differs');
-           console.log(JSON.stringify({reportOnlyAdvance:{from:config.revision,to:latest,preservedPaths:paths.length},runtimeArchiveUnchanged:true}));
-           writeFileSync('config/library-data.json',JSON.stringify({...config,revision:latest},null,2)+'\n');
-          }
+          import {defaultRoot,libraryConfig,libraryCheckout,withLibraryLock} from './tools/library-data.mjs';
+          withLibraryLock(defaultRoot,()=>{
+           const config=libraryConfig(),checkout=libraryCheckout();
+           const git=(...args)=>execFileSync('git',args,{cwd:checkout,encoding:'utf8',stdio:'pipe'}).trim();
+           git('fetch','--no-tags','origin','refs/heads/work/gis');
+           const latest=git('rev-parse','FETCH_HEAD');
+           if(latest!==config.revision){
+            git('merge-base','--is-ancestor',config.revision,latest);
+            const paths=git('diff','--name-only',config.revision,latest).split('\n').filter(Boolean);
+            assert.ok(paths.every(path=>path.startsWith('reports/')),'Remote runtime data differs; do not overwrite or silently merge it');
+            assert.equal(git('rev-parse',config.revision+':archive/index.json'),git('rev-parse',latest+':archive/index.json'),'Runtime archive differs');
+            assert.equal(git('status','--porcelain'),'','Preserve unfinished archive checkout edits');
+            assert.equal(git('rev-parse','HEAD'),config.revision,'Preserve independently stored archive history');
+            assert.ok(['','work/gis'].includes(git('branch','--show-current')),'Do not advance a different data branch');
+            git('merge','--ff-only','--no-edit',latest);
+            assert.equal(git('rev-parse','HEAD'),latest);
+            console.log(JSON.stringify({reportOnlyAdvance:{from:config.revision,to:latest,preservedPaths:paths.length},runtimeArchiveUnchanged:true,archiveCheckoutAligned:true}));
+            writeFileSync('config/library-data.json',JSON.stringify({...config,revision:latest},null,2)+'\n');
+           }
+          },{compact:false});
           JS
           node tools/library-data.mjs
       - name: Verify affected generation, loader, deployment and App file contracts
