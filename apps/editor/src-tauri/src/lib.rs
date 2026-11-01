@@ -31,9 +31,8 @@ struct RuntimeState {
 fn shell_initialization() -> String {
     format!(
         "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});\
-         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});\
-         Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_BUILD_INFO', {{ value: Object.freeze({}), writable: false, configurable: false }});",
-        cfg!(windows), cfg!(feature = "verification"), NATIVE_BUILD_INFO
+         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});",
+        cfg!(windows), cfg!(feature = "verification")
     )
 }
 
@@ -232,11 +231,9 @@ pub fn run() {
     #[cfg(feature = "verification")]
     let probe_script = {
         let auto = _options.auto;
-        let physical_immediate = _options.auto && _options.physical_immediate;
         let probe_hold_ms = if _options.probe_hold_ms > 0 { _options.probe_hold_ms } else { 500 };
         format!(
             "Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
-             Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
              Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
         )
     };
