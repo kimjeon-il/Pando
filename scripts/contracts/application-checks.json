@@ -86,7 +86,9 @@
         "tests/browser/canvas-globe-performance.spec.mjs",
         "tests/browser/p3-remote-preview.spec.mjs",
         "tests/browser/p9-browser-performance.spec.mjs",
-        "tests/browser/russia-edit-preparation.spec.mjs"
+        "tests/browser/russia-edit-preparation.spec.mjs",
+        "tests/browser/m2-gpu-worker-frame-probe.spec.mjs",
+        "tests/browser/map-transition-p5-6.spec.mjs"
       ],
       "inputs": []
     },
@@ -360,7 +362,8 @@
         "tests/browser/east-prussia-library.spec.mjs",
         "tests/browser/historical-library.spec.mjs",
         "tests/browser/library-*.spec.mjs",
-        "tests/browser/historical-world-*.spec.mjs"
+        "tests/browser/historical-world-*.spec.mjs",
+        "tests/browser/post-2000-world-timeline.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/*library*.js",
@@ -1043,6 +1046,20 @@
       "inputs": [
         "plugins/pando-map-tools/**",
         "tools/reference-analysis/**"
+      ]
+    },
+    {
+      "id": "deferred-builtin-timeline",
+      "kind": "browser",
+      "mode": "manual",
+      "reason": "User-deferred unresolved cases: July 1953 transition completion and injected-failure previous-year click. Preserve both cases without automatic rerun or a passing status; execute only when explicitly resumed.",
+      "testPatterns": [
+        "tests/browser/deferred-builtin-timeline.spec.mjs"
+      ],
+      "inputs": [],
+      "requires": [
+        "generated",
+        "core"
       ]
     }
   ],

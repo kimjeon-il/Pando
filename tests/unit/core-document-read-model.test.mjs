@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
 
 const seed = () => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
+const expectedSnapshot = project => {
+  const expected = structuredClone(project);
+  expected.geometries.sort((left, right) => Buffer.compare(Buffer.from(left.id, 'utf8'), Buffer.from(right.id, 'utf8'))
+    || left.version - right.version);
+  return expected;
+};
 const emptyDelta = () => ({ objects: [], orders: orders(seed()), geometries: [], removedGeometryRefs: [], timelineRecords: null, presentation: null, provenance: null,header: null });
 
 const fields = { territorial: 'territorialEntities', label: 'labels', hydro: 'hydroEdits', generic: 'genericFeatures',
@@ -56,7 +63,7 @@ test('a complete C++ document delta changes only its authoritative object and re
   const changed = structuredClone(project.territorialEntities[0]); changed.properties.name = 'Beta';
   model.apply({ ...emptyDelta(), objects: [{ ref: { domain: 'territorial', id: changed.id }, value: changed, index: 0 }] });
   const expected = structuredClone(project); expected.territorialEntities[0] = changed;
-  assert.deepEqual(model.snapshot(), expected);
+  assert.deepEqual(model.snapshot(), expectedSnapshot(expected));
   for (const field of ['labels','hydroEdits','genericFeatures','distributionLayers','distributionEntries','layerPresentation','sourceInfo'])
     assert.equal(model.snapshot()[field], before[field], field);
   assert.throws(() => { model.snapshot().genericFeatures[0].properties.name = 'illegal writer'; }, TypeError);
@@ -80,7 +87,7 @@ test('whole-project history removal drops obsolete geometry versions and never r
   assert.ok(model.geometry({ id: entry.id, version: 1 }));
   model.apply({ ...emptyDelta(), removedGeometryRefs: [{ id: entry.id, version: 1 }] });
   assert.equal(model.geometry({ id: entry.id, version: 1 }), null);
-  assert.deepEqual(model.snapshot(), project);
+  assert.deepEqual(model.snapshot(), expectedSnapshot(project));
 });
 
 test('a canonical archive delta can re-admit an existing identical version without duplicating or reallocating it', () => {
@@ -88,7 +95,7 @@ test('a canonical archive delta can re-admit an existing identical version witho
   const before=model.geometry({ id: entry.id,version: entry.version });
   model.apply({ ...emptyDelta(),geometries: [structuredClone(entry)] });
   assert.equal(model.geometry({ id: entry.id,version: entry.version }),before);
-  assert.deepEqual(model.snapshot(),project);
+  assert.deepEqual(model.snapshot(),expectedSnapshot(project));
   const changed={ ...entry,geojson: { type: 'Point',coordinates: [99.125,88.25] } },accepted=model.snapshot();
   assert.throws(() => model.apply({ ...emptyDelta(),geometries: [changed] }),{ code: 'PL-CORE-RESPONSE' });
   assert.equal(model.snapshot(),accepted);
@@ -107,7 +114,7 @@ test('authoritative domain order can reorder existing rows while provenance rema
   const provenance = { originalArchive: [], inlineAllocations: [], opaqueUncertain: false };
   model.apply({ ...emptyDelta(), orders: nextOrders, provenance });
   const expected = structuredClone(project); expected.territorialEntities.reverse();
-  assert.deepEqual(model.snapshot(), expected);
+  assert.deepEqual(model.snapshot(), expectedSnapshot(expected));
   assert.deepEqual(model.provenance(), provenance);
   assert.ok(Object.isFrozen(model.provenance()));
   assert.equal(model.snapshot().labels, before.labels);
@@ -124,7 +131,7 @@ test('an incomplete authoritative order rejects the entire delta without publish
 
 test('current document world rows share immutable authoritative identities/archive without another writable timeline source', () => {
   const model = createCoreDocumentReadModel(seed()), initial = model.snapshot();
-  const row = { id: 'A', geometryRef: { id: 'shape', version: 1 }, parentId: '', coverageMode: 'explicit',
+  const row = { objectRef: { domain: 'territorial', id: 'A' }, geometryRef: { id: 'shape', version: 1 }, parentId: '', coverageMode: 'explicit',
     validFrom: null, validTo: null, rootId: 'A', ancestors: [], properties: {} };
   const raw = { month: '1914-07', sourceEpoch: 7, entities: [row] };
   const world = model.projectWorld(raw, 7);
@@ -145,14 +152,14 @@ test('current document world rows share immutable authoritative identities/archi
 test('world projection rejects stale epochs and invalid refs without modifying the accepted document', () => {
   const model = createCoreDocumentReadModel(seed()), before = model.snapshot();
   assert.throws(() => model.projectWorld({ month: '1914-07', sourceEpoch: 1, entities: [] },2), { code: 'PL-CORE-STALE' });
-  assert.throws(() => model.projectWorld({ month: '1914-07', sourceEpoch: 2, entities: [{ id: 'missing', geometryRef: { id: 'absent', version: 1 } }] },2),
+  assert.throws(() => model.projectWorld({ month: '1914-07', sourceEpoch: 2, entities: [{ objectRef: { domain: 'territorial', id: 'missing' }, geometryRef: { id: 'absent', version: 1 } }] },2),
     { code: 'PL-CORE-RESPONSE' });
   assert.equal(model.snapshot(), before);
 });
 
 test('accepted metadata acknowledgements reproject current C++ rows while retaining unchanged view and geometry allocations', () => {
   const initial=seed(),model=createCoreDocumentReadModel(initial);
-  const rows=['A','B'].map(id => ({ id,geometryRef: { id: 'shape',version: 1 },parentId: '',coverageMode: 'explicit',
+  const rows=['A','B'].map(id => ({ objectRef: { domain: 'territorial',id },geometryRef: { id: 'shape',version: 1 },parentId: '',coverageMode: 'explicit',
     validFrom: null,validTo: null,rootId: id,ancestors: [],properties: {} }));
   model.acceptTransition({ state: { epoch: 1 },project: initial,world: { month: '1914-07',sourceEpoch: 1,entities: rows } },'core.document-load');
   const before=model.territorialViews(),changed=structuredClone(initial.territorialEntities[0]);changed.properties.name='Accepted rename';
@@ -180,7 +187,7 @@ test('authoritative header patches preserve explicit null and missing fields wit
 });
 
 test('a retained C++ candidate projects immutable preview rows without publishing document, world or archive changes',() => {
-  const model=createCoreDocumentReadModel(seed()),before=model.snapshot(),row={ id: 'A',geometryRef: { id: 'shape',version: 1 },
+  const model=createCoreDocumentReadModel(seed()),before=model.snapshot(),row={ objectRef: { domain: 'territorial',id: 'A' },geometryRef: { id: 'shape',version: 1 },
     parentId: '',coverageMode: 'explicit',validFrom: null,validTo: null,rootId: 'A',ancestors: [],properties: {} },world={ month: '1914-07',sourceEpoch: 1,entities: [row] };
   model.acceptWorld(world,1);const currentWorld=model.world(),currentViews=model.territorialViews();
   const value=structuredClone(before.territorialEntities[0]);value.properties.name='Prepared only';
