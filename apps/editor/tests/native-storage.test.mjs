@@ -2,50 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {randomUUID} from 'node:crypto';
 import { createProbeStorage } from '../probe-storage.js';
-import { createNativeStorage, encodeBytes, decodeBytes } from '../native-storage.js';
+import { createNativeStorage } from '../native-storage.js';
 import {DOCUMENT_TRANSFER_COMMANDS,DOCUMENT_TRANSFER_LIMITS} from '../document-transfer-contract.js';
+import {createNativeDocumentTransferFixture} from '../../../tests/helpers/file-transport-fixtures.mjs';
 const writeProject=async(storage,blob)=>(await storage.prepareProjectSave()).write(blob);
-
-function simulatedNative(files = [], path = 'C:/picked.gpkg') {
-  const writes = [], chunks = [], events = [], reading = new Map();
-  const writing = new Map();
-  let next = 0;
-  const invoke = async (command, args = {}) => {
-    events.push(command);
-    if (command === DOCUMENT_TRANSFER_COMMANDS.beginWrite) { writing.set(++next,[]);return { token: next }; }
-    if (command === DOCUMENT_TRANSFER_COMMANDS.appendWrite) {
-      const bytes = decodeBytes(args.contents);
-      assert.ok(bytes.length <= DOCUMENT_TRANSFER_LIMITS.chunkBytes);
-      chunks.push(bytes);
-      writing.get(args.token).push(bytes);
-      return {};
-    }
-    if (command === DOCUMENT_TRANSFER_COMMANDS.finishWrite) {
-      writes.push(Buffer.concat(writing.get(args.token).map(c => Buffer.from(c))));writing.delete(args.token);
-      return { cancelled: false, path };
-    }
-    if (command === DOCUMENT_TRANSFER_COMMANDS.beginRead) {
-      const selected = files.map(row => {
-        const token = ++next;
-        reading.set(token, { bytes: row.bytes, cursor: 0 });
-        return { token, path: row.path, bytes: row.bytes.length };
-      });
-      return selected.length ? { cancelled: false, files: selected } : { cancelled: true, files: [] };
-    }
-    if (command === DOCUMENT_TRANSFER_COMMANDS.readChunk) {
-      const row = reading.get(args.token);
-      if (!row) throw new Error('Invalid transfer token.');
-      const part = row.bytes.slice(row.cursor, row.cursor + DOCUMENT_TRANSFER_LIMITS.chunkBytes);
-      row.cursor += part.length;
-      const done = row.cursor === row.bytes.length;
-      if (done) reading.delete(args.token);
-      return { contents: encodeBytes(part), done };
-    }
-    if (command === DOCUMENT_TRANSFER_COMMANDS.abort) { writing.delete(args.token);reading.delete(args.token);return true; }
-    throw new Error('Unexpected command ' + command);
-  };
-  return { invoke, writes, chunks, events };
-}
 
 test('ordinary storage exposes error reporting but no verification commands', async () => {
   const calls = [];
@@ -58,7 +18,7 @@ test('ordinary storage exposes error reporting but no verification commands', as
 });
 test('project bridge roundtrips binary bytes through bounded native chunks', async () => {
   const bytes = new Uint8Array([0, 255, 1, 128, 39, 10]);
-  const native = simulatedNative([{ path: 'C:/picked.gpkg', bytes }]);
+  const native = createNativeDocumentTransferFixture({readFiles:[{ path: 'C:/picked.gpkg', bytes }]});
   const storage = createNativeStorage(native.invoke);
   assert.equal((await writeProject(storage,new Blob([bytes]))).cancelled, false);
   assert.deepEqual(new Uint8Array(native.writes[0]), bytes);
@@ -68,7 +28,7 @@ test('project bridge roundtrips binary bytes through bounded native chunks', asy
 test('a document above the prior 1 MiB cap is transferred without a whole-file Base64 value', async () => {
   const bytes = new Uint8Array(1024 * 1024 + 271);
   bytes[bytes.length - 1] = 187;
-  const native = simulatedNative([{ path: 'C:/large.gpkg', bytes }]);
+  const native = createNativeDocumentTransferFixture({readFiles:[{ path: 'C:/large.gpkg', bytes }]});
   const storage = createNativeStorage(native.invoke);
   await writeProject(storage,new Blob([bytes]));
   assert.equal(native.chunks.length, 5);
@@ -98,10 +58,10 @@ test('cancelled user selection is not counted as saved project', async () => {
   assert.deepEqual(await storage.openProjectFile(), { cancelled: true, path: null, file: null });
 });
 test('GIS ZIP and multiselect retain native formats and filename identity', async () => {
-  const native = simulatedNative([
+  const native = createNativeDocumentTransferFixture({readFiles:{gis:[
     { path: 'C:/maps/part.shp', bytes: new Uint8Array([0, 255]) },
     { path: 'content://documents/primary%3ADownload%2Fpart.dbf', bytes: new Uint8Array([1, 2, 3]) },
-  ]);
+  ]}});
   const storage = createNativeStorage(native.invoke);
   const result = await storage.openGisFiles();
   assert.deepEqual(result.files.map(f => f.name), ['part.shp', 'part.dbf']);
@@ -127,7 +87,7 @@ for(const [platform,path] of [['windows','C:/maps/판도.gpkg'],['android','cont
   const [{createFileController},{createInitialDocument},{createNodeCoreProject},{productionGeoPackage}]=await Promise.all([
    import('../../../shared/frontend/js/modules/file-controller.js'),import('../../../shared/frontend/js/modules/initial-document.js'),
    import('../../../tests/helpers/core-project.mjs'),import('../../../tests/helpers/production-geopackage.mjs')]);
-  const selected=[],native=simulatedNative(selected,path),statuses=[],errors=[];
+  const selected=[],native=createNativeDocumentTransferFixture({readFiles:selected,path}),statuses=[],errors=[];
   let mode='',release,entered;
   const failure=new Error('native transfer failed');
   const storage=createNativeStorage(async(command,args)=>{
