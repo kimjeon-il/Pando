@@ -19,7 +19,7 @@ test('evaluation overlap uses the original float32 tile weights and threshold',a
   const result=await blendEvaluationWindow({width,height,window,tiles});
   assert.equal(createHash('sha256').update(result).digest('hex'),oracle.sha256);
   await assert.rejects(blendEvaluationWindow({width,height,window,tiles:[tiles[3],tiles[0]]}),/order/i);
-  await assert.rejects(blendEvaluationWindow({width,height,window:{x:600,y:500,width:20,height:20},tiles:[tiles[0]]}),/uncovered/i);
+  await assert.rejects(blendEvaluationWindow({width,height,window:{x:600,y:500,width:20,height:20},tiles:[tiles[0]]}),/tile/i);
   const controller=new AbortController();controller.abort();
   await assert.rejects(blendEvaluationWindow({width,height,window,tiles},{signal:controller.signal}),/abort/i);
 });

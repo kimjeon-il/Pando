@@ -46,6 +46,11 @@ export async function blendEvaluationWindow({width,height,window,tiles},
     ![window.x,window.y,window.width,window.height].every(Number.isSafeInteger)||window.x<0||window.y<0||
     window.width<1||window.height<1||window.width>1024||window.height>1024||window.x+window.width>width||window.y+window.height>height||
     !Array.isArray(tiles)||tiles.length<1||tiles.length>16)throw Error('Explicit bounded evaluation blend window and tiles required');
+  const expected=[],first=value=>Math.max(0,Math.ceil((value-511)/448))*448;
+  for(let y=first(window.y);y<Math.min(height,window.y+window.height);y+=448)
+    for(let x=first(window.x);x<Math.min(width,window.x+window.width);x+=448)expected.push({x,y});
+  if(tiles.length!==expected.length||tiles.some((tile,index)=>tile?.x!==expected[index].x||tile?.y!==expected[index].y))
+    throw Error('Evaluation blend requires every intersecting tile in dataset order');
   const header=Buffer.alloc(36);header.write('PBLEND01');let offset=8;
   for(const value of [width,height,window.x,window.y,window.width,window.height,tiles.length]){header.writeUInt32BE(value,offset);offset+=4;}
   const pieces=[header];let previous=null;

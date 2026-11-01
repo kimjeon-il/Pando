@@ -9,6 +9,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 #ifdef _WIN32
 #include <fcntl.h>
@@ -99,9 +100,13 @@ int main(){try{
     if(!width||!height||width>65535||height>65535||!ww||!wh||ww>1024||wh>1024||wx>=width||wy>=height||
       ww>width-wx||wh>height-wy||!count||count>16||r.data.size()!=36+count*(8+tileValues*4))
       throw std::runtime_error("Invalid evaluation blend dimensions");
+    const auto first=[](std::uint32_t value){return value<=511?0U:((value-511+447)/448)*448;};
+    std::vector<std::pair<std::uint32_t,std::uint32_t>> expected;
+    for(auto y=first(wy);y<std::min(height,wy+wh);y+=448)for(auto x=first(wx);x<std::min(width,wx+ww);x+=448)expected.emplace_back(x,y);
+    if(expected.size()!=count)throw std::runtime_error("Evaluation blend requires every intersecting tile");
     std::vector<float> weights(pixels),sums(pixels*3);std::uint32_t previousX=0,previousY=0;
     for(std::uint32_t tile=0;tile<count;++tile){const auto x=r.u32(),y=r.u32();
-      if(x>=width||y>=height||x%448||y%448||(tile&&(y<previousY||(y==previousY&&x<=previousX))))
+      if(x!=expected[tile].first||y!=expected[tile].second||x>=width||y>=height||x%448||y%448||(tile&&(y<previousY||(y==previousY&&x<=previousX))))
         throw std::runtime_error("Invalid evaluation tile order or origin");
       previousX=x;previousY=y;const auto tileWidth=std::min<std::uint32_t>(512,width-x),tileHeight=std::min<std::uint32_t>(512,height-y);
       const auto start=r.at;r.at+=tileValues*4;
