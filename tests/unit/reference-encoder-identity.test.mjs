@@ -19,9 +19,12 @@ test('public encoder identity binds official URL, bytes and full hash',t=>{
   const weightsSha256=createHash('sha256').update(weightsBytes).digest('hex'),encoderInitialization={kind:'public-pretrained-image-classification',url,sha256,bytes:15};
   writeFileSync(join(root,'transfer.json'),JSON.stringify({schemaVersion:1,transfer:'public-encoder-no-optimizer',trainingOnly:true,evaluationStatus:'pending',
     releaseApproved:false,weightsSha256,encoderInitialization,encoderSourcePath:path,tensorCount:340,randomSeed:20261022}));
-  const initializer=verifyTrainingInitializer({path:weights});assert.equal(initializer.initialization,'public-encoder-no-optimizer');
-  assert.deepEqual(initializer.encoderInitialization,encoderInitialization);assert.equal(initializer.sourceCheckpointSha256,null);
+  assert.throws(()=>verifyTrainingInitializer({path:weights}),/public encoder initializer receipt/i);
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({transfer:'weights-only-no-optimizer',trainingOnly:true,evaluationStatus:'pending',
+    releaseApproved:false,weightsSha256}));
+  const initializer=verifyTrainingInitializer({path:weights});assert.equal(initializer.initialization,'weights-only-no-optimizer');
+  assert.equal(initializer.encoderInitialization,null);assert.equal(initializer.sourceCheckpointSha256,null);
   assert.throws(()=>verifiedPublicEncoderIdentity({path,url:url.replace('download.pytorch.org','example.test')}),/official/i);
   writeFileSync(path,'changed');assert.throws(()=>verifiedPublicEncoderIdentity({path,url}),/hash differs/i);
-  assert.throws(()=>verifyTrainingInitializer({path:weights}),/hash differs/i);
+  assert.equal(verifyTrainingInitializer({path:weights}).initialization,'weights-only-no-optimizer');
 });

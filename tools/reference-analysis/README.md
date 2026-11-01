@@ -65,7 +65,8 @@ in `tools/cpp/map-preview/`. Training and corpus tools remain under migration.
 Native warm training can use either a transferred private checkpoint or a
 separately recorded public-pretrained encoder initializer. The latter receipt
 binds the official source file and the one-time extracted full model weights;
-it starts without optimizer state. Subsequent native checkpoints retain their
+the currently verified extraction uses seed 20261022 and exact SHA-256 identities
+for both files. It starts without optimizer state. Subsequent native checkpoints retain their
 own optimizer and random state. These are training-only artifacts, not an
 independent evaluation or approval for release.
 

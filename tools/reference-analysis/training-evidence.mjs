@@ -43,6 +43,11 @@ export function assertPublicEncoderIdentity(value){
 
 // A fresh public encoder and a continued private model are different starts;
 // both still begin without optimizer state and require source-bound receipts.
+// This one-time extracted initializer was checked tensor-by-tensor against the
+// official encoder. Binding both digests prevents an arbitrary full model from
+// being presented as that verified extraction merely by changing its receipt.
+const publicEncoderSourceSha256='5c1a416349c4cf298f2a6a5e2600ed0ee55e604713578f5e74e6bc8bcaef7997';
+const publicEncoderWeightsSha256='f61c06441b2b83191a7fdf522467b547c3d60660122ffa07234695c6d38633e5';
 export function verifyTrainingInitializer({path,expectedSha256}){
   if(typeof path!=='string'||!path)throw Error('Explicit training initializer required');
   const actual=resolve(path),weightsSha256=trainingFileIdentity(actual),recordPath=resolve(dirname(actual),'transfer.json');
@@ -54,6 +59,7 @@ export function verifyTrainingInitializer({path,expectedSha256}){
   if(sourceCheckpointSha256!==null&&!/^[a-f0-9]{64}$/.test(sourceCheckpointSha256))throw Error('Invalid initializer source checkpoint identity');
   if(record.transfer==='public-encoder-no-optimizer'){
     if(record.schemaVersion!==1||sourceCheckpointSha256!==null||record.tensorCount!==340||record.randomSeed!==20261022||
+      weightsSha256!==publicEncoderWeightsSha256||record.encoderInitialization?.sha256!==publicEncoderSourceSha256||
       typeof record.encoderSourcePath!=='string'||!record.encoderSourcePath||!record.encoderInitialization)
       throw Error('Verified public encoder initializer receipt required');
     assertPublicEncoderIdentity(record.encoderInitialization);
