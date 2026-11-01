@@ -47,5 +47,11 @@
       "height": 120,
       "sha256": "5ceeda390332238cfda3866bf49a10c81dcf751a57bc9ee53ddd1654ffc04788"
     }
-  ]
+  ],
+  "text": {
+    "maximumDimension": 160,
+    "maskSha256": "bf47886d6a504c845a7c7ecf93889574449679fc59d89d95aedcdcb85512137f",
+    "creditSha256": "afcaf06017cbf0c1610984997f7944a51e6f9457f3dee524ae2ed64995be961d",
+    "characters": 12
+  }
 }

@@ -67,3 +67,18 @@ export async function renderPublisherPdfLayers({path,enabled,maximumDimension},{
     !Number.isFinite(scale)||scale<=0||result.data.length!==width*height*3)throw Error('Publisher PDF raster dimensions differ');
   return {width,height,scale,rgb:result.data,sourceSha256:result.sourceSha256};
 }
+export async function extractPublisherPdfText({path,maximumDimension},{signal,workspace=root,directory=process.env.PANDO_PUBLISHER_PDF_ARTIFACT||resolve(workspace,'build-native/map-pdf/publisher-artifact')}={}){
+  signal?.throwIfAborted();
+  if(!Number.isSafeInteger(maximumDimension)||maximumDimension<32||maximumDimension>4096)throw Error('Bounded publisher maximum dimension required');
+  const source=readTrainingBounded(resolve(path),300*1024*1024);
+  const info=checkInfo(await operation({path,args:['inspect'],signal,workspace,directory,source}));
+  const result=await operation({path,args:['text',String(maximumDimension)],signal,workspace,directory,source});
+  const {width,height,scale,creditBytes,characters}=result.header;
+  if(result.sourceSha256!==info.sourceSha256||![width,height].every(value=>Number.isSafeInteger(value)&&value>0&&value<=4096)||
+    !Number.isFinite(scale)||scale<=0||!Number.isSafeInteger(creditBytes)||creditBytes<0||creditBytes>8*1024*1024||
+    !Number.isSafeInteger(characters)||characters<0||characters>10000000||result.data.length!==creditBytes+width*height)
+    throw Error('Publisher PDF text dimensions differ');
+  const credits=result.data.subarray(0,creditBytes),mask=result.data.subarray(creditBytes);
+  if(mask.some(value=>value>1))throw Error('Publisher PDF text mask contains invalid pixels');
+  return {width,height,scale,credits,mask,characters,sourceSha256:result.sourceSha256};
+}

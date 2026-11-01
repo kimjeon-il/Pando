@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import test from 'node:test';
-import {inspectPublisherPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
+import {extractPublisherPdfText,inspectPublisherPdf,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
 
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
   const root=resolve('tests/fixtures/reference-publisher-layers');
@@ -20,6 +20,9 @@ test('publisher layer renderer matches the frozen original PDF pixels',async()=>
     const rendered=await renderPublisherPdfLayers({path,enabled:row.enabled,maximumDimension:160});
     assert.equal(rendered.width,row.width);assert.equal(rendered.height,row.height);assert.equal(sha(rendered.rgb),row.sha256);
   }
+  const text=await extractPublisherPdfText({path,maximumDimension:oracle.text.maximumDimension});
+  assert.equal(sha(text.mask),oracle.text.maskSha256);assert.equal(sha(text.credits),oracle.text.creditSha256);
+  assert.equal(text.characters,oracle.text.characters);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:['missing'],maximumDimension:160}),/layer/i);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:['International','International'],maximumDimension:160}),/layer/i);
   await assert.rejects(renderPublisherPdfLayers({path,enabled:[],maximumDimension:16}),/dimension/i);
