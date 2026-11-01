@@ -302,11 +302,17 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
       const setup={initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
-      const [prepared]=await Promise.all([
+      // Parallel country/physical preparation must not orphan a native
+      // candidate when only the physical half fails or is superseded.
+      const [candidate,physical]=await Promise.allSettled([
         builtinSession.prepareProjectCandidate(month,{...options,setup}),
         physicalResources.preparePhysicalContext(month,options),
       ]);
-      return prepared;
+      if(candidate.status==='fulfilled'&&physical.status==='rejected')
+        await projectDomain.discardTemporalBuiltin(candidate.value);
+      if(candidate.status==='rejected')throw candidate.reason;
+      if(physical.status==='rejected')throw physical.reason;
+      return candidate.value;
     },
     placeSelectionReferences:labelOwner.builtinPlaceSelectionReferences,hydroSelectionReferences:physicalResources.builtinHydroSelectionReferences,
     objectPicking,closeObjectChooser:objectPicking.closeObjectChooser,objectCatalog,objectQuery,refreshSelection:()=>renderingDomain.invalidateSelection(),

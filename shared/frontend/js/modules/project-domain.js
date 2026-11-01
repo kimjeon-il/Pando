@@ -624,6 +624,7 @@ export function createProjectDomain({
     admitSelectionCatalog,
     admitStorageBaseline,
     prepareTemporalBuiltin,
+    discardTemporalBuiltin,
     inspectImport,
     load,open,
     getOpenRevision:()=>openRequest,

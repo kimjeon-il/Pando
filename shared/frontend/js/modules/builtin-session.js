@@ -250,7 +250,11 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
           ||!String(error.message).includes('temporalSourcePrepare'))throw error;
         return {...await admitPreparedProjectSource(prepared,{isCurrent}),setup};
       }
-      if(!candidate||!isCurrent())throw staleBuiltin();
+      if(!candidate||!isCurrent()) {
+        if(candidate?.kind==='temporal-candidate')
+          await domain.discardTemporalBuiltin(candidate);
+        throw staleBuiltin();
+      }
       return candidate;
     } finally {releasePending();}
   }
