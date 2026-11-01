@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, relative, resolve } from 'node:path';
 import { build } from 'esbuild';
+import {builtinCountryAssets} from '../../shared/frontend/js/modules/builtin-country-files.js';
 
 // Dependencies selected through URLs or classic Worker APIs are reviewed here;
 // static ESM edges are discovered by the same parser used by the build tooling.
@@ -76,8 +77,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
       for(const item of Object.values(manifest.assets||{}))dataAsset(item.url,'assets/data/');
       for(const url of Object.values(manifest.compatibility?.sharedBoundaries||{}))dataAsset(url,'assets/data/');
     }else if(path.includes('/builtin-world/')){
-      dataAsset(manifest.transport.url,base);
-      for(const item of manifest.entities)dataAsset(item.file,base);
+      for(const item of builtinCountryAssets(manifest))dataAsset(item.file,base);
     }
     else if(path.includes('/territorial-entities/')){
       for(const item of manifest.entities)dataAsset(item.file,base);

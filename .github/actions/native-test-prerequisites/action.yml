@@ -24,3 +24,34 @@ runs:
       with:
         environment-file: tools/cpp/territorial-recipe-environment.yml
         init-shell: bash
+    - name: Prepare the existing pinned DEM GDAL environment
+      if: steps.capacity.outputs.gdal_environment == 'true'
+      id: dem-gdal
+      uses: mamba-org/setup-micromamba@v3
+      with:
+        environment-name: pando-dem-gdal
+        create-args: libgdal-core=3.13.3
+        cache-environment: true
+        cache-downloads: true
+        init-shell: none
+    - name: Locate the selected GDAL SDK without changing other test environments
+      if: steps.capacity.outputs.gdal_environment == 'true'
+      shell: bash
+      env:
+        GDAL_ENVIRONMENT_PATH: ${{ steps.dem-gdal.outputs.environment-path }}
+      run: |
+        destination="$GITHUB_WORKSPACE/build-native/terrain-dem-gdal/sdk"
+        mkdir -p "$(dirname "$destination")"
+        if [[ -e "$destination" || -L "$destination" ]]; then
+          if [[ ! -L "$destination" || "$(readlink -f "$destination")" != "$(readlink -f "$GDAL_ENVIRONMENT_PATH")" ]]; then
+            echo "Existing GDAL SDK alias differs: $destination" >&2
+            exit 1
+          fi
+        else
+          ln -s "$GDAL_ENVIRONMENT_PATH" "$destination"
+        fi
+        version=$("$destination/bin/gdal-config" --version)
+        if [[ "$version" != '3.13.3' ]]; then
+          echo "Selected GDAL SDK version differs: $version" >&2
+          exit 1
+        fi

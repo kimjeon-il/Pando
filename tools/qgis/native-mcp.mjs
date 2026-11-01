@@ -1,5 +1,4 @@
-// Native MCP is deliberately separate from the existing upstream server until
-// all used QGIS capabilities have native replacements.
+// Authenticated native QGIS MCP connection.
 import {McpServer} from '@modelcontextprotocol/server';
 import {serveStdio} from '@modelcontextprotocol/server/stdio';
 import * as z from 'zod/v4';

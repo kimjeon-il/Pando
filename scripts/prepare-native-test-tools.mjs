@@ -58,19 +58,24 @@ async function preservePinnedNativeInput(root,path,expectedSha,destination) {
   mkdirSync(dirname(destination),{recursive:true});writeFileSync(destination,source.bytes,{flag:'wx'});
   return {revision:source.revision,sha256:source.sha256,bytes:source.decodedBytes};
 }
-export async function nativeTestCapacity(ids,{root=process.cwd()}={}) {
+export async function nativeTestCapacity(ids,{root=process.cwd(),probe=argv=>spawnSync(argv[0],argv.slice(1),
+  {cwd:root,encoding:'utf8',timeout:10000})}={}) {
   if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'))throw Error('Registered native prerequisite IDs must be an array');
   ids=[...new Set(ids)];for(const id of ids)nativeTestRecipe(id);
   let additionalBytes=0,recipeEnvironment=false;
   if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch').sdk))additionalBytes+=4*1024**3;
   if(ids.includes('territorial-recipe')) {
-    const result=spawnSync(process.env.MAMBA_EXE||'micromamba',['run','-n','pando-territorial-recipe','pkg-config','--modversion','geos','proj'],
-      {cwd:root,encoding:'utf8',timeout:10000});
+    const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-territorial-recipe','pkg-config','--modversion','geos','proj']);
     recipeEnvironment=result.status!==0||Boolean(result.error)||result.stdout.trim()!=='3.13.1\n9.5.1';
     if(recipeEnvironment)additionalBytes+=2*1024**3;
   }
+  const gdalEnvironment=ids.includes('terrain-dem-fill')||ids.includes('terrain-dem-tint');
+  if(gdalEnvironment) {
+    const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-dem-gdal','gdal-config','--version']);
+    if(result.status!==0||result.error||result.stdout.trim()!=='3.13.3')additionalBytes+=2*1024**3;
+  }
   requireCapacity(root,additionalBytes);
-  return {tools:ids.length>0,recipeEnvironment,additionalBytes};
+  return {tools:ids.length>0,recipeEnvironment,gdalEnvironment,additionalBytes};
 }
 
 export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
@@ -145,7 +150,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
       const result=await nativeTestCapacity(JSON.parse(args[1]));
       if(args[2]) {
         if(!process.env.GITHUB_OUTPUT)throw Error('GITHUB_OUTPUT is required');
-        appendFileSync(process.env.GITHUB_OUTPUT,'tools='+result.tools+'\nrecipe_environment='+result.recipeEnvironment+'\n');
+        appendFileSync(process.env.GITHUB_OUTPUT,'tools='+result.tools+'\nrecipe_environment='+result.recipeEnvironment+'\ngdal_environment='+result.gdalEnvironment+'\n');
       }
       console.log(JSON.stringify(result));
     } else {

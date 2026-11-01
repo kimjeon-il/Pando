@@ -75,6 +75,94 @@ test('shared native dependencies prepare once and their explicit environments re
   assert.equal(plain.env.PANDO_PREVIEW_ARTIFACT,process.env.PANDO_PREVIEW_ARTIFACT);
 });
 
+test('merged required native consumers receive their catalogued preparation and batch environment',t=>{
+  const catalog=JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json',import.meta.url),'utf8'));
+  const required={
+    'native-territorial-recipe':{env:'PANDO_TERRITORIAL_RECIPE_BINARY',path:'build-native/territorial-recipe/pando-territorial-recipe',tests:[
+      'tests/unit/gis-german-modern-coast-native.test.mjs','tests/unit/gis-lsib-coast-native.test.mjs',
+      'tests/unit/gis-lsib-spatial-native.test.mjs','tests/unit/gis-lsib-tripoint-native.test.mjs',
+      'tests/unit/gis-lsib-union-native.test.mjs','tests/unit/gis-lsib-untargeted.test.mjs',
+    ]},
+    'native-map-image':{env:'PANDO_MAP_IMAGE_ARTIFACT',path:'build-native/map-image/artifact',tests:[
+      'tests/unit/reference-training-mask-audit.test.mjs','tests/unit/terrain-dem-webp.test.mjs',
+    ]},
+  };
+  const f=fixture(t),consumers=Object.values(required).flatMap(row=>row.tests);
+  for(const file of consumers)f.put(file);
+  f.catalog.prerequisites=Object.fromEntries(Object.keys(required).map(id=>[id,catalog.prerequisites[id]]));
+  f.catalog.unitPrerequisites=catalog.unitPrerequisites.map(binding=>({...binding,
+    tests:binding.tests.filter(pattern=>consumers.some(file=>matchesPattern(file,pattern)))})).filter(binding=>binding.tests.length);
+  for(const entry of Object.values(f.catalog.prerequisites)){
+    f.put(entry.argv[1]);for(const path of entry.inputs)if(!path.includes('*'))f.put(path);
+  }
+  const repository=f.repository();
+  for(const [id,expected] of Object.entries(required))for(const file of expected.tests){
+    const plan=planApplicationChecks({changedFiles:[file],repository});
+    assert.deepEqual(plan.unitTests,[file]);
+    assert.deepEqual(plan.unitTestPrerequisites[file],[id],file);
+    const calls=[],result=executePlan(plan,{repository,run:(argv,options)=>{calls.push({argv,env:options.env});return{status:0};}});
+    assert.equal(result.ok,true,file);
+    const execution=calls.find(row=>row.argv.includes(file));
+    assert.ok(execution,file);
+    assert.equal(execution.env[expected.env],join(f.root,expected.path),file);
+  }
+});
+
+test('required DEM checks prepare their native tools and inherit only the tint fill dependency',t=>{
+  const catalog=JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json',import.meta.url),'utf8'));
+  const ids=['native-terrain-dem-gutters','native-terrain-dem-fill','native-terrain-dem-tint'];
+  for(const id of ids)assert.ok(catalog.prerequisites[id],id+' must be registered');
+  assert.deepEqual(catalog.prerequisites['native-terrain-dem-tint'].requires,['native-terrain-dem-fill']);
+  const f=fixture(t),gutters='tests/unit/terrain-dem-gutters.test.mjs',tint='tests/unit/terrain-dem-tint.test.mjs',
+    optionalFill='tests/unit/terrain-dem-fill.test.mjs',plain='tests/unit/plain.test.mjs',consumers=[gutters,tint,optionalFill,plain];
+  for(const file of consumers)f.put(file);
+  f.catalog.prerequisites=Object.fromEntries(ids.map(id=>[id,catalog.prerequisites[id]]));
+  f.catalog.unitPrerequisites=catalog.unitPrerequisites.map(binding=>({...binding,
+    tests:binding.tests.filter(pattern=>consumers.some(file=>matchesPattern(file,pattern)))})).filter(binding=>binding.tests.length);
+  for(const entry of Object.values(f.catalog.prerequisites)){
+    f.put(entry.argv[1]);for(const path of entry.inputs)if(!path.includes('*'))f.put(path);
+  }
+  const repository=f.repository(),plan=planApplicationChecks({changedFiles:consumers,repository});
+  assert.deepEqual(plan.unitTests,[...consumers].sort());
+  assert.deepEqual(plan.unitTestPrerequisites,{[gutters]:['native-terrain-dem-gutters'],[tint]:['native-terrain-dem-tint']});
+  const calls=[],result=executePlan(plan,{repository,run:(argv,options)=>{calls.push({argv,env:options.env});return{status:0};}});
+  assert.equal(result.ok,true);
+  const fillAt=calls.findIndex(row=>row.argv.at(-1)==='terrain-dem-fill'),tintAt=calls.findIndex(row=>row.argv.at(-1)==='terrain-dem-tint');
+  assert.ok(fillAt>=0&&fillAt<tintAt,'fill must be prepared before tint');
+  assert.equal(calls.filter(row=>row.argv.at(-1)==='terrain-dem-fill').length,1);
+  const expectedFill=join(f.root,'build-native/terrain-dem-encode/fill-artifact'),expectedSdk=join(f.root,'build-native/terrain-dem-gdal/sdk/lib');
+  for(const execution of [calls[tintAt],calls.find(row=>row.argv.includes(tint))]){
+    assert.equal(execution.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,expectedFill);
+    assert.equal(execution.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY,join(f.root,'build-native/terrain-dem-tint/artifact'));
+    assert.equal(execution.env.LD_LIBRARY_PATH,expectedSdk);
+  }
+  const gutterExecution=calls.find(row=>row.argv.includes(gutters));
+  assert.equal(gutterExecution.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY,join(f.root,'build-native/terrain-dem-gutters/artifact'));
+  assert.equal(gutterExecution.env.PANDO_MAP_IMAGE_ARTIFACT,process.env.PANDO_MAP_IMAGE_ARTIFACT);
+  for(const file of [gutters,optionalFill,plain]){
+    const execution=calls.find(row=>row.argv.includes(file));
+    assert.equal(execution.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,process.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY);
+    assert.equal(execution.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY,process.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY);
+    assert.equal(execution.env.LD_LIBRARY_PATH,process.env.LD_LIBRARY_PATH);
+  }
+});
+
+test('DEM GDAL setup retains the canonical pin and is requested only for its consumers',async t=>{
+  const action=YAML.parse(readFileSync(new URL('../../.github/actions/native-test-prerequisites/action.yml',import.meta.url),'utf8'));
+  const setup=action.runs.steps.find(step=>step.with?.['environment-name']==='pando-dem-gdal');
+  assert.ok(setup,'the canonical GDAL environment must be prepared');
+  assert.equal(setup.uses,'mamba-org/setup-micromamba@v3');
+  assert.equal(setup.if,"steps.capacity.outputs.gdal_environment == 'true'");
+  assert.equal(setup.with['create-args'],'libgdal-core=3.13.3');
+  assert.equal(setup.with['init-shell'],'none');
+  const f=fixture(t),calls=[],probe=argv=>{calls.push(argv);return{status:0,stdout:'3.13.3\n'};};
+  const gutters=await nativeTestCapacity(['terrain-dem-gutters'],{root:f.root,probe});
+  assert.equal(gutters.gdalEnvironment,false);assert.deepEqual(calls,[]);
+  const tint=await nativeTestCapacity(['terrain-dem-tint','terrain-dem-fill'],{root:f.root,probe});
+  assert.equal(tint.gdalEnvironment,true);assert.equal(tint.additionalBytes,0);
+  assert.equal(calls.length,1);assert.deepEqual(calls[0].slice(1),['run','-n','pando-dem-gdal','gdal-config','--version']);
+});
+
 test('unknown or missing native test requirements fail catalog validation',t=>{
   const f=fixture(t);f.catalog.unitPrerequisites[0].requires=['unknown'];
   assert.throws(()=>f.repository(),/Missing prerequisite/);
@@ -123,7 +211,7 @@ test('a changed pinned SDK archive is rejected before extraction or compilation'
 
 test('no selected native preparation does not require SDK capacity or a filesystem probe',async()=>{
   assert.deepEqual(await nativeTestCapacity([],{root:'/nonexistent-unselected-native-root'}),
-    {tools:false,recipeEnvironment:false,additionalBytes:0});
+    {tools:false,recipeEnvironment:false,gdalEnvironment:false,additionalBytes:0});
 });
 
 test('each application runner execution receives the same selected native setup before its tests',()=>{

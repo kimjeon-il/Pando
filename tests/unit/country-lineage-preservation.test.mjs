@@ -15,7 +15,7 @@ function verifiedSource(path,expected){
  return JSON.parse(bytes);
 }
 
-test('current pinned catalog preserves all 286 identities, 265 lineages and 318 complete geometry versions',()=>{
+test('current pinned catalog preserves all 286 identities, 265 lineages and 315 complete geometry versions',()=>{
  const config=JSON.parse(fs.readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8'));
  assert.equal(config.repository,baseline.provenance.repository);
  assert.equal(config.revision,baseline.provenance.revision,'the source oracle must be reviewed with a new data pin');

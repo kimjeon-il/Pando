@@ -1172,6 +1172,58 @@
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
+    "native-terrain-dem-gutters": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "terrain-dem-gutters"
+      ],
+      "env": {
+        "PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY": "{root}/build-native/terrain-dem-gutters/artifact"
+      },
+      "inputs": [
+        "tools/cpp/terrain-dem-gutters/**",
+        "tools/gis/terrain-dem-gutters.mjs",
+        "tools/gis/package-terrain-dem-gutters.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-terrain-dem-fill": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "terrain-dem-fill"
+      ],
+      "env": {
+        "PANDO_TERRAIN_DEM_FILL_DIRECTORY": "{root}/build-native/terrain-dem-encode/fill-artifact",
+        "LD_LIBRARY_PATH": "{root}/build-native/terrain-dem-gdal/sdk/lib"
+      },
+      "inputs": [
+        "tools/cpp/terrain-dem-fill/**",
+        "tools/gis/terrain-dem-source.mjs",
+        "tools/gis/package-terrain-dem-fill.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-terrain-dem-tint": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "terrain-dem-tint"
+      ],
+      "requires": [
+        "native-terrain-dem-fill"
+      ],
+      "env": {
+        "PANDO_TERRAIN_DEM_TINT_DIRECTORY": "{root}/build-native/terrain-dem-tint/artifact"
+      },
+      "inputs": [
+        "tools/cpp/terrain-dem-tint/**",
+        "tools/gis/terrain-dem-tint.mjs",
+        "tools/gis/package-terrain-dem-tint.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
     "native-reference-model": {
       "argv": [
         "node",
@@ -1586,12 +1638,14 @@
         "tests/unit/reference-training-image.test.mjs",
         "tests/unit/reference-training-jpeg-overview.test.mjs",
         "tests/unit/reference-training-large-jpeg.test.mjs",
+        "tests/unit/reference-training-mask-audit.test.mjs",
         "tests/unit/reference-training-mask-window.test.mjs",
         "tests/unit/reference-training-order.test.mjs",
         "tests/unit/reference-training-png-overview.test.mjs",
         "tests/unit/reference-training-sample-maker.test.mjs",
         "tests/unit/reference-training-tiles.test.mjs",
-        "tests/unit/reference-training-webp-overview.test.mjs"
+        "tests/unit/reference-training-webp-overview.test.mjs",
+        "tests/unit/terrain-dem-webp.test.mjs"
       ],
       "requires": [
         "native-map-image"
@@ -1677,15 +1731,37 @@
         "tests/unit/gis-ddr-native-partition.test.mjs",
         "tests/unit/gis-german-base-builder.test.mjs",
         "tests/unit/gis-german-base-native.test.mjs",
+        "tests/unit/gis-german-modern-coast-native.test.mjs",
         "tests/unit/gis-historical-linework-native.test.mjs",
         "tests/unit/gis-historical-source-compare.test.mjs",
+        "tests/unit/gis-lsib-coast-native.test.mjs",
         "tests/unit/gis-lsib-source-native.test.mjs",
+        "tests/unit/gis-lsib-spatial-native.test.mjs",
+        "tests/unit/gis-lsib-tripoint-native.test.mjs",
+        "tests/unit/gis-lsib-union-native.test.mjs",
+        "tests/unit/gis-lsib-untargeted.test.mjs",
         "tests/unit/gis-ussr-1922-partition-native.test.mjs",
         "tests/unit/territorial-boundary-supplement.test.mjs",
         "tests/unit/territorial-recipe-cpp.test.mjs"
       ],
       "requires": [
         "native-territorial-recipe"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/terrain-dem-gutters.test.mjs"
+      ],
+      "requires": [
+        "native-terrain-dem-gutters"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/terrain-dem-tint.test.mjs"
+      ],
+      "requires": [
+        "native-terrain-dem-tint"
       ]
     },
     {

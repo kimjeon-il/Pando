@@ -118,7 +118,7 @@ jobs:
           const data = JSON.parse(readFileSync('config/library-data.json', 'utf8'));
           const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
           assert.equal(commit, process.env.GITHUB_SHA);
-          assert.equal(data.revision, '139941d8056418547c796068304ba8db3696fe69');
+          assert.equal(data.revision, '5eb7be55208efaafe39bd5a65ec2f111d70b9053');
           writeFileSync('test-results/p6-preflight/identity.json', JSON.stringify({
             schema: 'pando-p6-preflight-identity-v1', commit, dataRevision: data.revision,
             node: process.version, os: process.platform, arch: process.arch,
@@ -177,11 +177,12 @@ jobs:
           import { resolve } from 'node:path';
           import { libraryConfig, libraryMaterializedRoot } from './tools/library-data.mjs';
           const config = libraryConfig();
-          assert.equal(config.revision, '139941d8056418547c796068304ba8db3696fe69');
-          // Pinned archive/index.json blob e523fbb761fcebdc6045f8b9049d9037f93f9ab5:
-          // 2,034 non-report entries; unique decoded bytes plus the canonical
+          assert.equal(config.revision, '5eb7be55208efaafe39bd5a65ec2f111d70b9053');
+          // Pinned archive/index.json blob 771135a880965fc17314ec6d9506583edbc7d282:
+          // runtimeArchiveIndex selects 1,763 non-report paths, excluding 349
+          // archived builtin paths. Unique decoded bytes plus the conservative
           // prefetch allowance (2 * entry.bytes + 1024 per stored object).
-          const materializedBytes = 677797213, fetchAllowanceBytes = 1403109804;
+          const materializedBytes = 583314733, fetchAllowanceBytes = 1213945382;
           const reuseCandidate = existsSync(resolve(libraryMaterializedRoot(), '.complete'));
           const peakAdditionalBytes = reuseCandidate ? 0 : materializedBytes + fetchAllowanceBytes;
           const disk = statfsSync(process.cwd()), freeBytes = disk.bavail * disk.bsize;

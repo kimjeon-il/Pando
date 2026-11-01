@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "provenance": {
     "repository": "kimjeon-il/PandoLab-library-data",
-    "revision": "139941d8056418547c796068304ba8db3696fe69",
+    "revision": "5eb7be55208efaafe39bd5a65ec2f111d70b9053",
     "archiveIndexPath": "archive/index.json",
-    "archiveIndexBlob": "e523fbb761fcebdc6045f8b9049d9037f93f9ab5",
-    "archiveSourceRevision": "20939a7142dd7adc8ae618323f82a0c81e3e0b1b",
-    "generatedIndexSha256": "a61d9952c66c7d9dd417f376465aecab4f9fb1de4cf691eb98da4eed7c7f5ffe"
+    "archiveIndexBlob": "771135a880965fc17314ec6d9506583edbc7d282",
+    "archiveSourceRevision": "74b6616c83e12d64a73838cf7d8a786817554e75",
+    "generatedIndexSha256": "ca00edc7ba8727ae9efa1b8fa0788dd9d54804bc694d13af85bb59cda1adb1ee"
   },
   "counts": {
     "entities": 286,
     "lineages": 265,
-    "geometryVersions": 318
+    "geometryVersions": 315
   },
   "countries": {
     "state:ABW": {
@@ -111,8 +111,8 @@
       "bytes": 70103
     },
     "state:BHR": {
-      "sha256": "e7a4ca106a435c2e50a9400ed84b22681bd130dfde2b0f5897a44269f6da91a0",
-      "bytes": 15154
+      "sha256": "84746db7467467c1c7bab545e57859749d179fd8a1275777e9d66b01c080cd9e",
+      "bytes": 17732
     },
     "state:BHS": {
       "sha256": "cbb72128ad288c3b3506cab27bd7bacaaf3d3f1bbcf56c43b4206e89528fd913",
@@ -143,8 +143,8 @@
       "bytes": 9347
     },
     "state:BOL": {
-      "sha256": "3fbf6dca68ab04fa2e7ee42470a6da89c64902679ae80d1e224c9e7e034e2c59",
-      "bytes": 121055
+      "sha256": "c1497f6c5f2707b282d2809da9a4e422253d8d65ed818a6479f57615a0582982",
+      "bytes": 122467
     },
     "state:BRA": {
       "sha256": "f61f29458c1874436f48baddd4e2de04129c22bc9a3446882ee3391e81edbf59",
@@ -211,8 +211,8 @@
       "bytes": 21514
     },
     "state:COD": {
-      "sha256": "87bfaf39c222d71e8882567f428c3c435de39eacaee297900591567a8c4a81f0",
-      "bytes": 246862
+      "sha256": "b0af8c87b121727ea9899bbe8bb3071a296fcc88bb6b82c0b184ef8b57f32efa",
+      "bytes": 249331
     },
     "state:COG": {
       "sha256": "94254c6cdf4cfc771bec83f17963a5e967cc3e81990d42a823f073f5ce1d6158",
@@ -227,12 +227,12 @@
       "bytes": 286023
     },
     "state:COM": {
-      "sha256": "2bb0c67f59044335011d7b3118cc8d6bf58c994870988f865ad10245abce7c0d",
-      "bytes": 12367
+      "sha256": "542ed883b42b8a8a1ff02fd5cfd223d30fb39b0513b85e807d7f27a5b6e57b95",
+      "bytes": 13822
     },
     "state:CPV": {
-      "sha256": "f496dfca87806f1a15b6f4743fa2b91f86e7effaa8d5c780d756dad30184291b",
-      "bytes": 39341
+      "sha256": "b5a917e2572ae65d9b0c07d6afefb008290d7b2222410f6d29d120a282a33761",
+      "bytes": 40543
     },
     "state:CRI": {
       "sha256": "ee60c72e04b14588f2208825ca0190057dc6d76715f530f7b5cb7c016c32aa31",
@@ -263,8 +263,8 @@
       "bytes": 27218
     },
     "state:CZE": {
-      "sha256": "2d6f176df40b27b2d7e828f59138560e45aa5c4b95be6ec3e0088fdfbc0be148",
-      "bytes": 72920
+      "sha256": "28ea7d6663877d306dfd38b3fa90b06260d35fad547c9e6784a723d45345e95e",
+      "bytes": 74044
     },
     "state:czechoslovakia": {
       "sha256": "cf83b17878373738108bcb27ca68d97ebf61ffcf5811640e7a12e74be1b0da26",
@@ -363,8 +363,8 @@
       "bytes": 614807
     },
     "state:GEO": {
-      "sha256": "fc9836aaaf6c78a3d2472d49eff2585218669f69918b5d8827a79ed434d7418f",
-      "bytes": 43508
+      "sha256": "6a9d5906522453d8244eec5f2a8e6140c5b81d57e746c96e0776c2ef86992404",
+      "bytes": 44477
     },
     "state:GGY": {
       "sha256": "78d3e0ab0a01f45d01f4428ec50eb3df2a5344dafad5a8113ef4540add5c57a6",
@@ -443,8 +443,8 @@
       "bytes": 67921
     },
     "state:IDN": {
-      "sha256": "7f126a5f3aaed709a9c80474c4cb7eb8674a5074ee4161cf64653e4c824e0cd9",
-      "bytes": 8261167
+      "sha256": "759e0c591c085187c1e1338da491c18e25d8910703278a80f04d5de50777df3c",
+      "bytes": 6556180
     },
     "state:IMN": {
       "sha256": "a8c733b703e8ff3826cee7572b4a34a59466e41d0fa789fb4d2ca5ca76e5aade",
@@ -471,8 +471,8 @@
       "bytes": 317743
     },
     "state:IRQ": {
-      "sha256": "ac0007b6b1579286f510f6fad66d96e8859c2d2cbf92c3181385ceb0f5355ff7",
-      "bytes": 67608
+      "sha256": "59c94ea3927d712899a24fc23fbbb8e5b3fc6d2e74949fb209e1e3e5b490cbab",
+      "bytes": 85400
     },
     "state:ISL": {
       "sha256": "ecef51f0ae8610a3c342eb5dc4f31407f7d91c479f0a26e1cab5dc90fdeffdc5",
@@ -511,16 +511,16 @@
       "bytes": 4067
     },
     "state:KAZ": {
-      "sha256": "889df3556d0c60c1d3b2fd61d00b134510a62b0b99d3ab047ac98380e820b35c",
-      "bytes": 722602
+      "sha256": "87386588e632923811346efad49e7e1c19cad807658b52ddb3d7467357dbbfee",
+      "bytes": 291850
     },
     "state:KEN": {
       "sha256": "cdf2b863e0deed8b106c818da06dc6f2bbd1b4219d60a4f3bf90209a00e1ef6a",
       "bytes": 75999
     },
     "state:KGZ": {
-      "sha256": "f89604fb21e0e1038ea8885e6590cb18b97f00e45b9cb7f3d5f75c0885d7e2d1",
-      "bytes": 95963
+      "sha256": "c2b0b1ac9379290e0835785c554fb3b64c983aa4a229ea99c81c5c34fed4683b",
+      "bytes": 115678
     },
     "state:KHM": {
       "sha256": "8295509898a08ff54387049a9b554a5e7030359f2ba14e058c33e91999235238",
@@ -559,8 +559,8 @@
       "bytes": 54955
     },
     "state:LBY": {
-      "sha256": "54d3b450b9764ac41b63644e7923185824cfd80dabfcff0d8be9114b44312816",
-      "bytes": 52517
+      "sha256": "ebdfe05f304f873b7c49aa4202567e1f80e611b5dd86102a5349ac81f2004a56",
+      "bytes": 54913
     },
     "state:LCA": {
       "sha256": "49fd7f0ff09a22107619e719f6997c94b0e33c895bc1e32408016364860e0a5f",
@@ -575,8 +575,8 @@
       "bytes": 75297
     },
     "state:LSO": {
-      "sha256": "94796e12589aaae7ea5efc1524cb0f8f8394f7e37e025e3a85a6af7626240f2d",
-      "bytes": 26749
+      "sha256": "84fc9cec43ac728c3d93650b412d12ba17cdfb581a7a0d08b4239ade206c7f5e",
+      "bytes": 31099
     },
     "state:LTU": {
       "sha256": "8db65c82a5212902626a1cf7daeba70da13884e93211509838d272b94318ce64",
@@ -627,8 +627,8 @@
       "bytes": 21320
     },
     "state:MKD": {
-      "sha256": "300a05ef1ba43f74f5afa2717f8b9a48c498b40d7dd6063586b5727db7d53432",
-      "bytes": 30057
+      "sha256": "127f61aafc02a072e4b8cc4200821c5f5a4f65af2ca0cba7c189cab30394c0a2",
+      "bytes": 31664
     },
     "state:MLI": {
       "sha256": "48cb3faa163c85c55b9f7b8644742349fa15d9a17e062d8dee5fe98e3365ec1d",
@@ -639,8 +639,8 @@
       "bytes": 6017
     },
     "state:MMR": {
-      "sha256": "6d732c3a7e679d423ac3f2f1bc671e36dd5374b60c20e51de4419698aedf0427",
-      "bytes": 398109
+      "sha256": "8e70c4d926dba5fb5c577365b61e6b08478bdfa5f2dcfb890186affb0684295e",
+      "bytes": 424758
     },
     "state:MNE": {
       "sha256": "8ff646fc438dbf32648aab2c0462959c3e0da29b7b3ec5c5872c31b6f49308ee",
@@ -659,8 +659,8 @@
       "bytes": 204105
     },
     "state:MRT": {
-      "sha256": "89405d74885708ed8bfbeff7c05130c8b6c726e18ce9b4ac4a73618d824da04a",
-      "bytes": 100668
+      "sha256": "aa19b5cdc8fbe32f898be7cc72eac5b3194e37931b443f71aeccb88e6bc1afbd",
+      "bytes": 102629
     },
     "state:MSR": {
       "sha256": "123b05920a2332be090f2e2c1bf31a33269a92368e624920c1eb6a3658c8d922",
@@ -671,8 +671,8 @@
       "bytes": 11168
     },
     "state:MWI": {
-      "sha256": "4e08c9e296ac05110160e88d30cb021185ddbe8bd2c10e2ffdddc56620fa4fcd",
-      "bytes": 71921
+      "sha256": "a274e80550bd64ac99f1415e4ea3c77a2ff35ddee5eda15cab50404ddeb33e41",
+      "bytes": 74463
     },
     "state:MYS": {
       "sha256": "13ba99332591de70dab8c6cc286c985d56bb913e54b78ec11cd755911c6acc3d",
@@ -723,12 +723,12 @@
       "bytes": 31290
     },
     "state:NPL": {
-      "sha256": "dfe22efb8142082a7a115e43e548aa43b3e9c8574a92acde0b66213a56b350e7",
-      "bytes": 81426
+      "sha256": "a589ce5dfd2734b3993f9c4b770809eb82b408a89a972ff20d39875114d56e04",
+      "bytes": 82876
     },
     "state:NRU": {
-      "sha256": "4792e4705e861de45110c007e7f7743bcf3a9a64d7a901c3c7c601aba57d1074",
-      "bytes": 1923
+      "sha256": "09da453b3b29940563c58419b1fdd04a7e562e7f7a4b79f3a2c4ea683996d68d",
+      "bytes": 3314
     },
     "state:NZL": {
       "sha256": "60e44aa43d4723fac412000ca9ba1482a97484bdc3cfc9935da49d4336c7bd50",
@@ -807,12 +807,12 @@
       "bytes": 95131
     },
     "state:RUS": {
-      "sha256": "f7377e3c30b06bc5759c4e1a4abb2cee62ab9398ba044321e95849500d43c4a8",
-      "bytes": 6329397
+      "sha256": "4a6ad266ffb573fcca4b79ef2e7ed8feac04ec988fdb1c4cf04914aa886bcbee",
+      "bytes": 2464697
     },
     "state:RWA": {
-      "sha256": "85bdac3c1f45e8996c890b7815baa878bf4d1c1f97a783036afb1b80159666ac",
-      "bytes": 26173
+      "sha256": "bc5509587204823988dd7040b7fe7079a3bb932e11c47a98f18b19e5612dcd22",
+      "bytes": 27293
     },
     "state:SAH": {
       "sha256": "d6cac4b19e27357d2104ec96afdff8cd9f60c260225050325d0888d196e89a0c",
@@ -827,12 +827,12 @@
       "bytes": 1509
     },
     "state:SDN": {
-      "sha256": "7a61c615ddc9ee91a3c1285cc6983d760c30454f552018280b9fc97df9d3e301",
-      "bytes": 355255
+      "sha256": "56f0434c12639241e00368188531f4ce802a1f2a9d79a21429aa7e29a629d13b",
+      "bytes": 254870
     },
     "state:SDS": {
-      "sha256": "78c8222be2f151da12f05710da2dcf91f558d6c5e0cc8f599b7763637208d0de",
-      "bytes": 180479
+      "sha256": "0ec44382c36596d79cae9e63ccaa6a69c0bdc02fe4d2aee3b7f65d6582ad3e83",
+      "bytes": 92014
     },
     "state:SEN": {
       "sha256": "8af6df984561c8cca9652a44b2da08a9a790d0fe95c338d484bd9e7bdc592318",
@@ -875,8 +875,8 @@
       "bytes": 26566
     },
     "state:SOM": {
-      "sha256": "e929ea296db76fe7956ac0340ad36bc4f0512ae161199267db6842e8dd97cdd5",
-      "bytes": 52832
+      "sha256": "92519ba7edb5645012089b0522dece23aa43770b58b324c09163fff7d99e76bd",
+      "bytes": 53950
     },
     "state:soviet-union-armenian-ssr": {
       "sha256": "d9760de568f073387100bde613061356e46ac90ca034d834da5adb24545c76b7",
@@ -919,24 +919,24 @@
       "bytes": 63964
     },
     "state:soviet-union-russian-sfsr": {
-      "sha256": "347b50c5b6a9b01c225a68d1fab86c57b20e8f9dab6ac7aa360aa8aa35de0f8f",
-      "bytes": 7289843
+      "sha256": "e85558028498ee60f401ee6a427736a6aa22103b69de93fb38cf067dc6cfba51",
+      "bytes": 1979061
     },
     "state:soviet-union-tajik-ssr": {
       "sha256": "a935265b40fc99eb198294f66b70c036804a316f0a4e897687e0a44a3d90a7b6",
       "bytes": 116156
     },
     "state:soviet-union-transcaucasian-sfsr": {
-      "sha256": "5bb96e773ba32af3882bde854fce96ff0f0bbe5d89e272fd1e584465bc0b7b16",
-      "bytes": 97996
+      "sha256": "0cade58efada311ec7f3c95b2b630f69e258016152474ecb1a032dce662bc45f",
+      "bytes": 61458
     },
     "state:soviet-union-turkmen-ssr": {
       "sha256": "e48a2ce89e1f5d59431a39170456bc06f7fe691290d04004cab1a8177b8eaeeb",
       "bytes": 150772
     },
     "state:soviet-union-ukrainian-ssr": {
-      "sha256": "3f0c94e036fa3c7b645ca07ffbb515b2d9d5e7b3896ae7da4aca89cd69de8264",
-      "bytes": 582469
+      "sha256": "b58447ab1d1c0983c7a05a5d6459201b1cf942afc008884d7a57e0a8e0c4db6c",
+      "bytes": 174967
     },
     "state:soviet-union-uzbek-ssr": {
       "sha256": "eb41fac2377979b3c8e8281659fd9423a0f0dd22f118680ffdb26d00969e856f",
@@ -979,8 +979,8 @@
       "bytes": 404844
     },
     "state:SWZ": {
-      "sha256": "ce5ccfce048ad51428590811c5f9bf7110309d8684bb21e4712656501ea14cd1",
-      "bytes": 7922
+      "sha256": "536da45aa191dba96f49572daca27a120d66b8ac240929c02024eb9d343f0905",
+      "bytes": 9404
     },
     "state:SXM": {
       "sha256": "88e3dd2f32045f3feca539d8414171445bade75d0d4e4969cc9bbfb45db7d59a",
@@ -991,8 +991,8 @@
       "bytes": 30846
     },
     "state:SYR": {
-      "sha256": "ca8574b2fe31c805284a802935f2e2170bc5d0bab7769c3f1387e5b09f20032d",
-      "bytes": 48274
+      "sha256": "0f7e4e753b2b425f50ff4278ec9a67d35a66d8b9ad05513fe664adda537e3667",
+      "bytes": 50894
     },
     "state:TCA": {
       "sha256": "40ffd6fa3711185a0463ae1cd1a2294e4d565a979e767f43d98977771898ec94",
@@ -1019,8 +1019,8 @@
       "bytes": 144991
     },
     "state:TLS": {
-      "sha256": "26d1530ee208b582db79c3ded828e3844a03e09a736480e8432b8e9462a074f1",
-      "bytes": 51279
+      "sha256": "08493f2502766b6f22a4d6f5ecbc1338d03a6927c748067e58e496cf76ad3e91",
+      "bytes": 27531
     },
     "state:TON": {
       "sha256": "ec76cb2efe4546bca7f09b545eadff34259d0045732f22f91056065455567945",
@@ -1035,8 +1035,8 @@
       "bytes": 64070
     },
     "state:TUR": {
-      "sha256": "238f382666ae77699056df666c2a68cd99192a8de3a6a93614aa8e5c842aefdc",
-      "bytes": 314314
+      "sha256": "b018f1748560890a3def3d295b2ec7ba2065607b065d11b07510c2c8d6083b73",
+      "bytes": 315731
     },
     "state:TUV": {
       "sha256": "6ed6c9c16edb4052fad46e76a6f8404ba2f733eb33a32ff4a795f191bfff5545",
@@ -1055,8 +1055,8 @@
       "bytes": 48283
     },
     "state:UKR": {
-      "sha256": "6f43a4afa0c7f6d7df3b955d9b94b25d1185c6d868683222026261cf826f3319",
-      "bytes": 769020
+      "sha256": "08ff6b0b0d27c97d9eb6ad9f60bd351787700ecc19cb7636a6657c99f9423291",
+      "bytes": 541324
     },
     "state:UMI": {
       "sha256": "a3d296caa26b5aa23fa5585cdcbe24763768685a3a6cc87d71be3d12783545d9",
@@ -1095,8 +1095,8 @@
       "bytes": 8697
     },
     "state:VEN": {
-      "sha256": "2e34f04f4049138475bda3ca2da5fa214426b8fac02d257c7d9295b8ca112921",
-      "bytes": 280094
+      "sha256": "e1ed172c88524c4d37812bd4ef2dceede1807ab151994fb2ae1e71f1f3577f0c",
+      "bytes": 735766
     },
     "state:VGB": {
       "sha256": "2eb4e39c78f1fc69e26247025ce5ccc35af701acefda76345f657af5bd950642",

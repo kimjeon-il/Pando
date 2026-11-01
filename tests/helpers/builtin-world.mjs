@@ -3,6 +3,7 @@ import {gunzipSync} from 'node:zlib';
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import {createStoredAssetLoader} from '../../shared/frontend/js/modules/stored-asset-loader.js';
 import {temporalContains,temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';
+import {readBuiltinCountryStoredBytes} from '../../tools/builtin-country-bytes.mjs';
 
 const root=new URL('../../assets/data/builtin-world/generated/v1/',import.meta.url);
 let catalog;
@@ -12,7 +13,7 @@ let scopedAssets;
 export function builtinProject(month){
  catalog ||= JSON.parse(fs.readFileSync(new URL('index.json',root)));
  const countries=selectBuiltinCountries(catalog,month).map(entry=>{
-  if(!cache.has(entry.entityId))cache.set(entry.entityId,JSON.parse(gunzipSync(fs.readFileSync(new URL(entry.file,root)))));
+  if(!cache.has(entry.entityId))cache.set(entry.entityId,JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(new URL(file,root))))));
   return cache.get(entry.entityId);
  });
  return assembleBuiltinWorld(catalog,countries,month);
@@ -36,7 +37,7 @@ export async function scopedBuiltinProject(month,entityIds){
   // selector, rather than an omitted input, determines their absence.
   if(!entry)continue;
   if(!scopedCountries.has(entry.file))scopedCountries.set(entry.file,(async()=>{
-   const bytes=fs.readFileSync(new URL(entry.file,root));
+   const bytes=readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(new URL(file,root)));
    const {value}=await scopedAssets.decodeStoredAsset(bytes,entry,'builtin-world',id,id,
     buffer=>JSON.parse(new TextDecoder().decode(buffer)));
    if(value.entityId!==id||value.identity?.id!==id||value.schemaVersion!==2)

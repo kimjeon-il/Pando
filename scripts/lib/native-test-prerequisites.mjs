@@ -21,6 +21,18 @@ export const nativeTestRecipes=Object.freeze({
   'map-evaluation':native('map-evaluation','build-native/map-evaluation/artifact','tools/reference-analysis/native-evaluation.mjs','evaluationSourceFiles','tools/reference-analysis/package-native-evaluation.mjs',[
     configure('tools/cpp/map-evaluation','build-native/map-evaluation/native'),build('build-native/map-evaluation/native',['pando-map-evaluation']),
   ]),
+  'terrain-dem-gutters':native('terrain-dem-gutters','build-native/terrain-dem-gutters/artifact','tools/gis/terrain-dem-gutters.mjs','terrainDemGutterSources','tools/gis/package-terrain-dem-gutters.mjs',[
+    configure('tools/cpp/terrain-dem-gutters','build-native/terrain-dem-gutters','-DCMAKE_BUILD_TYPE=Release'),
+    build('build-native/terrain-dem-gutters',['pando-terrain-dem-gutters']),
+  ]),
+  'terrain-dem-fill':native('terrain-dem-fill','build-native/terrain-dem-encode/fill-artifact','tools/gis/terrain-dem-source.mjs','terrainDemFillSources','tools/gis/package-terrain-dem-fill.mjs',[
+    configure('tools/cpp/terrain-dem-fill','build-native/terrain-dem-encode','-DCMAKE_PREFIX_PATH={root}/build-native/terrain-dem-gdal/sdk','-DCMAKE_BUILD_TYPE=Release'),
+    build('build-native/terrain-dem-encode',['pando-terrain-dem-fill']),
+  ]),
+  'terrain-dem-tint':native('terrain-dem-tint','build-native/terrain-dem-tint/artifact','tools/gis/terrain-dem-tint.mjs','terrainDemTintSources','tools/gis/package-terrain-dem-tint.mjs',[
+    configure('tools/cpp/terrain-dem-tint','build-native/terrain-dem-tint','-DCMAKE_PREFIX_PATH={root}/build-native/terrain-dem-gdal/sdk','-DCMAKE_BUILD_TYPE=Release'),
+    build('build-native/terrain-dem-tint',['pando-terrain-dem-tint']),
+  ]),
   'map-pdf':{
     ...native('map-pdf','build-native/map-pdf/artifact','tools/map-image/native-pdf.mjs','mapPdfSourceFiles','tools/map-image/package-pdf.mjs',[
       configure('tools/cpp/map-pdf','build-native/map-pdf/native','-DPANDO_MUPDF_SDK_ROOT={root}/build-native/map-pdf/sdk/pymupdf'),

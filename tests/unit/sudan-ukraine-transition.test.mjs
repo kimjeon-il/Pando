@@ -7,7 +7,7 @@ import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geome
 import {resolvedTimelineViews} from "../../shared/frontend/js/modules/timeline-resolver.js";
 import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
 
-const ids=['state:SDN','state:SDS','state:UKR'];
+const ids=['state:SDN','state:SDS','state:UKR','state:RUS'];
 const read=()=>new Map(ids.map(id=>[id,readTerritorialSource(id)]));
 const rings=createRingHitTester(ring=>ring);
 function covers(geometry,point){
@@ -29,9 +29,17 @@ test('monthly end and exact day selection keep Sudan, South Sudan and Ukraine as
  assert.equal(selectGeometryVersion(ukr,'2014-03-18')?.versionId,'state:UKR:2014-03-18-post-crimea-r1');
  assert.equal(selectGeometryVersion(ukr,'2014-02')?.versionId,'state:ukraine:1991-2014-r1');
  assert.equal(selectGeometryVersion(ukr,'2014-03')?.versionId,'state:UKR:2014-03-18-post-crimea-r1');
- for(const [entity,modernId] of [[sdn,'state:SDN:natural-earth-5.1.1'],[sds,'state:SDS:natural-earth-5.1.1'],[ukr,'state:UKR:natural-earth-5.1.1']]){
-  assert.equal(selectGeometryVersion(entity,'2026-10-05')?.certainty,'low');
-  assert.equal(selectGeometryVersion(entity,'2026-10-06')?.versionId,modernId);
+ const rus=entries.get('state:RUS');
+ assert.equal(selectGeometryVersion(rus,'2014-03-17')?.versionId,
+  'state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1');
+ assert.equal(selectGeometryVersion(rus,'2014-03-18')?.versionId,'state:RUS:natural-earth-5.1.1');
+ for(const [entity,continuousId] of [[sdn,'state:SDN:2011-07-09-post-secession-r1'],
+  [sds,'state:SDS:2011-07-09-independence-r1'],[ukr,'state:UKR:2014-03-18-post-crimea-r1']]){
+  assert.equal(selectGeometryVersion(entity,'2026-10-05')?.versionId,continuousId);
+  assert.equal(selectGeometryVersion(entity,'2026-10-06')?.versionId,continuousId);
+  assert.equal(selectGeometryVersion(entity,'2026-10-31')?.versionId,continuousId);
+  assert.equal(selectGeometryVersion(entity,'2026-10-06')?.certainty,'low');
+  assert.equal(entity.metadata.sourceOutlineReferenceDate,'2026-10-06');
  }
  const khartoum=[32.56,15.5],juba=[31.58,4.85],kyiv=[30.52,50.45],crimea=[34.1,44.95];
  assert.ok(covers(selectGeometryVersion(sdn,'2011-06').geometry,juba));
@@ -67,10 +75,16 @@ test('built Web/native historical-project input has the same post-transition geo
  assert.ok(at('2015-10','UKR'));
  assert.ok(at('2020-10','SDN'));
  assert.ok(at('2020-10','SDS'));
- const russia=at('2014-03','RUS');
- assert.ok(russia,'the accepted catalog includes RUS after 1991-12-25');
- assert.equal(russia.properties.sourceGeometryVersion,'state:RUS:natural-earth-5.1.1');
- assert.ok(covers(russia.geometry,crimea),'the pinned RUS geometry applies from 2014-03-18');
- assert.ok(covers(russia.geometry,[37.62,55.75]),'the same record retains Moscow');
- assert.equal(covers(russia.geometry,kyiv),false);
+ // The pinned publication now contains the reviewed RUS periods; absence was
+ // an obsolete pre-reconstruction expectation. Check the same dated ownership
+ // as UKR, without asking assertion formatting to dump a whole country shape.
+ const beforeRus=at('2014-02','RUS'),afterRus=at('2014-03','RUS');
+ assert.equal(beforeRus?.properties?.sourceGeometryVersion,
+  'state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1');
+ assert.equal(afterRus?.properties?.sourceGeometryVersion,'state:RUS:natural-earth-5.1.1');
+ assert.equal(covers(beforeRus?.geometry,crimea),false);
+ assert.equal(covers(afterRus?.geometry,crimea),true);
+ assert.ok(afterRus,'the accepted catalog includes RUS after 1991-12-25');
+ assert.ok(covers(afterRus.geometry,[37.62,55.75]),'the same record retains Moscow');
+ assert.equal(covers(afterRus.geometry,kyiv),false);
 });
