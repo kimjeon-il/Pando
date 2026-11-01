@@ -15,6 +15,8 @@
 
 ### 2026-11-02 현행 기준: 추적 Python 12개
 
+- **수계 보정 체인 계산:** 분석 전용 캘리브레이션의 단계별 하천 체인 수와 원본 좌표 수 계산을 C++로 옮기고 기존 실행기에 연결했다. 동일 단계·서로 다른 단계·합류·고리·중복 ID를 포함한 고정 및 난수 소형 연결망 17건이 기존 Python과 일치했다. [Windows/Linux CI 41330663469](https://github.com/kimjeon-il/Pando/actions/runs/41330663469)와 Windows 기존 호출 검사를 통과했다. 운영 수계 자료는 생성·변경하지 않았다. 보정의 공간 계산과 최적화, 수계 생성기의 Python 전환은 계속 남아 있다.
+
 - **코퍼스 검증 호출 통합:** 기존 Python 코퍼스의 출판사·Semap·매크로·독립 검토 분기를 Node 검증 경로로 묶었다. 출처·권리·원본 해시·마스크와 독립 검토 제한은 각각 기존 정본에서 확인한다. 출판사와 Semap 합성 자료의 기존 Python 및 새 호출이 원본을 수용하고 변경된 원본 해시를 거부했으며, 보존된 매크로 지도 한 건의 새 호출도 확인했다. [출판사 CI 41329937176](https://github.com/kimjeon-il/Pando/actions/runs/41329937176)와 [검토 CI 41329936947](https://github.com/kimjeon-il/Pando/actions/runs/41329936947)은 Windows·Linux에서 관련 경로를 확인했다. Python 학습 실행기가 남아 있으므로 임시 호출부는 계속 유지한다.
 
 - **모델 검사 이전:** 매크로 범위와 출처 위장 거부, 중첩 채널·미관측 및 빈 타일 처리를 Node/C++로 검사하고 Python 모델 테스트를 제거했다. 브로드캐스트 손실·미관측 gradient·중첩 채널 gradient, 기존 모델 출력 및 encoder 동결 갱신은 [Linux CI 41328383728](https://github.com/kimjeon-il/Pando/actions/runs/41328383728)과 [Windows CI 41328426827](https://github.com/kimjeon-il/Pando/actions/runs/41328426827)에서 확인했다. 실제 CUDA 학습과 ONNX 실행도 별도로 확인했으며, Python 학습·모델 실행기 자체는 계속 남아 있다.

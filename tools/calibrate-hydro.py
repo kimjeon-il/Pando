@@ -6,7 +6,8 @@ selected Hydro geometries retain every source vertex; the only object-count
 optimization measured here is topology-aware chaining of consecutive river
 reaches after selection.
 
-Required packages: pyshp >= 3.0 and shapely >= 2.0.
+Required packages: pyshp >= 3.0 and shapely >= 2.0. Node.js and the
+source-matched native Hydro calibration artifact are also required.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import json
 import math
 import pickle
 import statistics
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -721,37 +723,21 @@ def residual_overlap(features: Iterable[Any], kind: str) -> float:
 
 
 def chain_rivers(features: Sequence[LinearFeature]) -> dict[str, int]:
-    selected = {int(feature.source_id): feature for feature in features if feature.assigned_stage is not None}
-    upstream_count: dict[int, int] = {source_id: 0 for source_id in selected}
-    for feature in selected.values():
-        if feature.next_down in selected and selected[feature.next_down].assigned_stage == feature.assigned_stage:
-            upstream_count[feature.next_down] += 1
-    starts = [
-        feature for source_id, feature in selected.items()
-        if upstream_count[source_id] != 1
-        or feature.next_down not in selected
-        or selected[feature.next_down].assigned_stage != feature.assigned_stage
-    ]
-    visited: set[int] = set()
-    chains = 0
-    for start in starts:
-        current = start
-        if int(current.source_id) in visited:
-            continue
-        chains += 1
-        while int(current.source_id) not in visited:
-            visited.add(int(current.source_id))
-            downstream = selected.get(current.next_down)
-            if downstream is None or downstream.assigned_stage != current.assigned_stage or upstream_count.get(current.next_down, 0) != 1:
-                break
-            current = downstream
-    chains += len(selected) - len(visited)
-    return {
-        "selectedReachCount": len(selected),
-        "chainCount": chains,
-        "sourceCoordinateCount": sum(feature.source_coordinate_count for feature in selected.values()),
-        "coordinatesAfterChaining": sum(feature.source_coordinate_count for feature in selected.values()),
-    }
+    rows = [dict(id=int(feature.source_id), next=feature.next_down, stage=feature.assigned_stage,
+                 coordinateCount=feature.source_coordinate_count)
+            for feature in features if feature.assigned_stage is not None]
+    request = json.dumps(dict(features=rows), allow_nan=False, separators=(',', ':')).encode('utf-8')
+    script = Path(__file__).with_name('gis') / 'hydro-calibration-native.mjs'
+    result = subprocess.run(['node', str(script), '--chain-stream'], input=request, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=180,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native Hydro calibration failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    counts = json.loads(result.stdout)
+    keys = {'selectedReachCount', 'chainCount', 'sourceCoordinateCount', 'coordinatesAfterChaining'}
+    if not isinstance(counts, dict) or set(counts) != keys or any(type(value) is not int or value < 0 for value in counts.values()):
+        raise ValueError('Invalid native Hydro calibration result')
+    return counts
 
 
 def geojson_line_parts(features: Iterable[dict[str, Any]], region: Region) -> list[list[tuple[float, float]]]:
@@ -991,7 +977,7 @@ def write_report(results: dict[str, Any], output: Path) -> None:
 
 ## 재현 방법
 
-Python 3.11 이상과 `pyshp>=3.0`, `shapely>=2.0`이 필요합니다. HydroRIVERS 대륙별 Shapefile과 전 세계 HydroLAKES Shapefile을 준비한 뒤 저장소 루트에서 실행합니다.
+Python 3.11 이상과 `pyshp>=3.0`, `shapely>=2.0`, Node.js 및 소스와 일치하는 네이티브 Hydro 보정 도구가 필요합니다. HydroRIVERS 대륙별 Shapefile과 전 세계 HydroLAKES Shapefile을 준비한 뒤 저장소 루트에서 실행합니다.
 
 ```powershell
 python tools/calibrate-hydro.py `
