@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {resourceCapabilities} from "../../shared/frontend/js/modules/resource-capabilities.js";
+import {createPlatformPorts} from "../../shared/frontend/js/modules/platform-ports.js";
 import {createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
 import {createHash} from 'node:crypto';
 test('editor disables terrain construction and starts builtin hydro only on request',async t=>{
@@ -8,7 +9,7 @@ test('editor disables terrain construction and starts builtin hydro only on requ
   const previous=globalThis.PANDOLAB_BUILD_META;t.after(()=>{globalThis.PANDOLAB_BUILD_META=previous;});
   globalThis.PANDOLAB_BUILD_META={dataRevision:'fixture',physicalWaterObjects:{identities:[],geometries:[]},physicalLand:{url:'assets/data/land.json',encoding:'identity',compressedBytes:bytes.length,decodedBytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}};
   t.mock.method(globalThis,'fetch',async url=>{assert.equal(String(url),'https://fixture.invalid/land.json');return new Response(bytes);});
-  const capabilities=resourceCapabilities('editor',{builtinHydroAvailable:true,builtinPlacesAvailable:true});
+  const capabilities=resourceCapabilities('editor',createPlatformPorts({kind:'browser',resources:{builtinHydro:true,builtinPlaces:true}}));
   assert.equal(capabilities.terrain,false);assert.equal(capabilities.eagerBuiltinHydro,false);
   let terrain=0,hydro=0,loads=0;
   const resources=createPhysicalResources({buildMeta:globalThis.PANDOLAB_BUILD_META,capabilities});
@@ -23,6 +24,6 @@ test('editor disables terrain construction and starts builtin hydro only on requ
 test('web retains backgrounds, small project exposes no unavailable builtins',()=>{
   assert.equal(resourceCapabilities('viewer').terrain,true);
   assert.equal(resourceCapabilities('viewer').eagerBuiltinHydro,true);
-  const small=resourceCapabilities('editor',{builtinHydroAvailable:false,builtinPlacesAvailable:false});
+  const small=resourceCapabilities('editor',createPlatformPorts({kind:'browser',resources:{builtinHydro:false,builtinPlaces:false}}));
   assert.equal(small.builtinHydro,false);assert.equal(small.builtinPlaces,false);
 });

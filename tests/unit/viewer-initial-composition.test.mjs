@@ -47,7 +47,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     createViewerPostPresentation,
     createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
-    createRuntimeContext: ({meta}) => ({meta, platform: {}}),
+    createPlatformPorts: () => ({}), createRuntimeContext: ({meta}) => ({meta, platform: {}}),
     createPreferencePresentation: () => ({current: {}, apply: noop}),
     createDiagnosticLog: () => ({snapshot: () => [],push: noop}),
     createTooltipController: () => ({bind: noop}), createBrowserProjectStorage: () => ({}),

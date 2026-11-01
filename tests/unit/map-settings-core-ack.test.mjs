@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMapSettings } from "../../shared/frontend/js/modules/app-map-settings.js";
 import { resourceCapabilities } from "../../shared/frontend/js/modules/resource-capabilities.js";
+import { createPlatformPorts } from "../../shared/frontend/js/modules/platform-ports.js";
 import { createInitialDocument } from "../../shared/frontend/js/modules/initial-document.js";
 import { createDistributionLayer, createDistributionEntry } from "../../shared/frontend/js/modules/distribution-model.js";
 
@@ -33,7 +34,7 @@ test('display menus follow registered data and available sources without changin
     const state = { ...createInitialDocument({ appVersion: '0.36.0' }), ...data, layerVisibility: { objects: false, rivers: false, lakes: false, labels: false, distributions: false },
       distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true }, hydroManifest: null };
     const before = structuredClone(state);
-    const settings = createMapSettings({ capabilities: resourceCapabilities(productMode, { builtinHydroAvailable: builtin, builtinPlacesAvailable: builtin }) });
+    const settings = createMapSettings({ capabilities: resourceCapabilities(productMode, createPlatformPorts({ kind: 'browser', resources: { builtinHydro: builtin, builtinPlaces: builtin } })) });
     settings.connect({ layerResources:{loadHydroData:async()=>{},preparePlaces:async()=>{}},projectState: { state }, platform: { $: id => id === 'distributionMenuGroup' ? groups.distribution : null },
       feedback: { reportOperationError: error => assert.fail(error.stack) }, objectModelA: { expandedMapDisplayGroups: new Set() },
       preferences: { userPreferences: { labels: { place: { languages: {} } } } }, hydroModel: { syncPhysicalControls() {} } });

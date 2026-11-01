@@ -92,7 +92,7 @@ try {
   if(values['reuse-session']) {
     await page.evaluate(()=>{
       if(typeof window.__pluginDocument!=='function'||!Array.isArray(window.__nativeCommands)
-        ||!window.__PANDOLAB_SHELL_PLATFORM__?.storageNamespace?.startsWith('pando-map-plugin-validation-'))throw new Error('Reuse requires this test\'s isolated instrumented session');
+        ||!window.__PANDOLAB_SHELL_PLATFORM__?.storage?.namespace?.startsWith('pando-map-plugin-validation-'))throw new Error('Reuse requires this test\'s isolated instrumented session');
       const snapshot=window.__pluginDocument().snapshot();
       if(snapshot.genericFeatures.length||snapshot.hydroEdits.length)throw new Error('Reuse requires an empty test document; rerun without --reuse-session');
     });

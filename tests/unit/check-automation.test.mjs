@@ -194,8 +194,11 @@ test('current native startup metadata seed resolves to the shared runtime owner'
   f.put('apps/editor/startup.js',readFileSync(new URL('../../apps/editor/startup.js',import.meta.url),'utf8'));
   for(const name of ['runtime-profile','native-storage','network-guard'])f.put('apps/editor/'+name+'.js');
   for(const name of ['native-library-repository','library-geometry-context','territorial-entity-loader','territorial-library-service'])f.put('apps/editor/frontend/js/modules/'+name+'.js');
-  f.put('shared/frontend/js/modules/runtime-context.js');
-  assert.ok(f.repository().dependencies('apps/editor/startup.js').includes('shared/frontend/js/modules/runtime-context.js'));
+  f.put('shared/frontend/js/modules/platform-ports.js');
+  f.put('shared/frontend/js/modules/runtime-context.js',"import './platform-ports.js';");
+  const dependencies=f.repository().dependencies('apps/editor/startup.js');
+  assert.ok(dependencies.includes('shared/frontend/js/modules/runtime-context.js'));
+  assert.ok(dependencies.includes('shared/frontend/js/modules/platform-ports.js'));
 });
 
 test('module URL reads retain root configuration and workflow consumers', () => {

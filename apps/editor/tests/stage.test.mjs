@@ -97,6 +97,7 @@ test('stages the real frontend and exact WASM pair without analysis resources or
   const result = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   assert.ok(result.files.some(file => file.path === 'assets/js/app.js'));
   assert.ok(result.files.some(file=>file.path==='assets/js/modules/runtime-context.js'));
+  assert.ok(result.files.some(file=>file.path==='assets/js/modules/platform-ports.js'));
   assert.ok(result.files.every(file => !file.path.startsWith('assets/data/')||file.path.startsWith('assets/data/physical-land/')));
   assert.ok(result.files.every(file => !file.path.includes('reference-analysis')));
   assert.equal(Object.hasOwn(result,'referenceAnalysis'), false);
