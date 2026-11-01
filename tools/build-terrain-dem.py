@@ -327,6 +327,23 @@ def build_tint(tint_zip: Path, output: Path, ice_path: Path, countries_path: Pat
     return {'algorithm': TINT_ALGORITHM, **metadata}
 
 
+def generate_level(etopo_path: Path, output: Path, level):
+    """Generate one level using the Node manager and source-bound native tools."""
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-build.mjs'
+    result = subprocess.run(['node', str(script), '--level', str(etopo_path), str(output), json.dumps(level)],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('DEM level generation failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    report = json.loads(result.stdout)
+    if (set(report) != {'level', 'tileCount', 'bytes', 'maxTileBytes', 'seconds'} or
+            report['level'] != level['id'] or report['tileCount'] != level['rows']*level['columns'] or
+            any(not isinstance(report[key], int) or report[key] < 1 for key in ('bytes', 'maxTileBytes')) or
+            not isinstance(report['seconds'], (int, float)) or not math.isfinite(report['seconds']) or report['seconds'] < 0):
+        raise ValueError('Invalid DEM level generation receipt')
+    return report
+
+
 def rebuild_tint_release(source_output: Path, tint_zip: Path, ice_path: Path, countries_path: Path, output: Path):
     """Publish a new immutable dataset locally, copying every DEM tile unchanged."""
     if output.exists():
@@ -384,28 +401,8 @@ def build(etopo_path: Path, tint_zip: Path, output: Path, ice_path: Path, countr
     source_metadata = inspect_source(etopo_path)
     source_nodata, source_dtype = source_metadata['nodata'], source_metadata['dtype']
     for level in levels():
-        level_start = time.monotonic()
-        width, height = level["width"], level["height"]
-        level_dir = output / str(level["id"])
-        level_dir.mkdir(exist_ok=True)
-        # The native warped view averages source elevations before encoding.
-        with NativeDemWindowReader(etopo_path, width, height) as reader:
-            sizes = []
-            for row in range(level["rows"]):
-                for column in range(level["columns"]):
-                    x0, y0 = column*TILE_SIZE, row*TILE_SIZE
-                    x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
-                    # The second temporary neighbor lets the encoded B
-                    # value of the delivered 1px gutter equal the actual
-                    # neighboring tile's own hillshade, not an edge copy.
-                    elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
-                    rgba = encode(elevation, width, height, y0-2)[1:-1, 1:-1]
-                    path = level_dir / f"{column}-{row}.webp"
-                    save_and_verify_webp(rgba, path)
-                    peak_working_set = max(peak_working_set, current_working_set())
-                    sizes.append(path.stat().st_size)
-        report = {"level": level["id"], "tileCount": len(sizes), "bytes": sum(sizes),
-                  "maxTileBytes": max(sizes), "seconds": round(time.monotonic()-level_start, 3)}
+        report = generate_level(etopo_path, output, level)
+        peak_working_set = max(peak_working_set, current_working_set())
         level_reports.append(report)
         print(json.dumps(report), flush=True)
     tint_path = output / "tint.webp"

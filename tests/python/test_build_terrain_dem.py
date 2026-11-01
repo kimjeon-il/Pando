@@ -19,6 +19,16 @@ SPEC.loader.exec_module(dem)
 
 
 class TerrainDemTest(unittest.TestCase):
+    def test_native_level_refuses_existing_output(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root/'0').mkdir()
+            tile = root/'0/0-0.webp'
+            tile.write_bytes(b'protected')
+            with self.assertRaisesRegex(RuntimeError, 'exist|EEXIST'):
+                dem.generate_level(root/'missing.tif', root, dict(id=0, width=1, height=1, tileSize=1, columns=1, rows=1))
+            self.assertEqual(tile.read_bytes(), b'protected')
+
     @unittest.skipUnless(os.environ.get('PANDO_TERRAIN_DEM_RASTER_BINARY'), 'native DEM reader required')
     def test_native_inspection_validates_etopo_source(self):
         fixture = Path(__file__).parents[1] / 'fixtures/terrain-dem-etopo-sparse.tif'

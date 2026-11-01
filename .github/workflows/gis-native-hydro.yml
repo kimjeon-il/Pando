@@ -197,11 +197,29 @@ jobs:
           node tools/gis/package-terrain-dem-raster.mjs --binary $env:PANDO_TERRAIN_DEM_RASTER_BINARY --directory build-native/terrain-dem-raster/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM window reader packaging failed' }
           $env:PANDO_TERRAIN_DEM_RASTER_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-raster/artifact"
-          node --test tests/unit/terrain-dem-raster-native.test.mjs
+          cmake -S tools/cpp/terrain-dem-encode -B build-native/terrain-dem-encode -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoder configuration failed' }
+          cmake --build build-native/terrain-dem-encode --config Release --target pando-terrain-dem-encode
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoder build failed' }
+          if ($IsWindows) { $encoder='build-native/terrain-dem-encode/Release/pando-terrain-dem-encode.exe' }
+          else { $encoder='build-native/terrain-dem-encode/pando-terrain-dem-encode' }
+          node tools/gis/package-terrain-dem-encode.mjs --binary $encoder --directory build-native/terrain-dem-encode/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM encoder packaging failed' }
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image configuration failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image build failed' }
+          if ($IsWindows) { $image='build-native/map-image/Release/pando-map-image.exe' }
+          else { $image='build-native/map-image/pando-map-image' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM image packaging failed' }
+          $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/terrain-dem-raster-native.test.mjs tests/unit/terrain-dem-build.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
           python -m pip install Pillow==12.3.0 numpy==2.3.5
           if ($LASTEXITCODE -ne 0) { throw 'DEM inspection test dependencies failed' }
-          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_native_inspection_validates_etopo_source tests.python.test_build_terrain_dem.TerrainDemTest.test_native_stream_reuses_reader_and_rejects_invalid_source tests.python.test_build_terrain_dem.TerrainDemTest.test_area_average_and_wrapped_gutter
+          python -m unittest tests.python.test_build_terrain_dem.TerrainDemTest.test_native_inspection_validates_etopo_source tests.python.test_build_terrain_dem.TerrainDemTest.test_native_stream_reuses_reader_and_rejects_invalid_source tests.python.test_build_terrain_dem.TerrainDemTest.test_area_average_and_wrapped_gutter tests.python.test_build_terrain_dem.TerrainDemTest.test_native_level_refuses_existing_output
           if ($LASTEXITCODE -ne 0) { throw 'DEM producer source inspection failed' }
       - uses: actions/upload-artifact@v4
         with:
