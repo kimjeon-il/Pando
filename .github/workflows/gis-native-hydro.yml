@@ -10,7 +10,7 @@ on:
       - 'tools/hydro_connectivity.py'
       - 'tools/build-hydro-tiles.py'
       - 'tools/repair-hydro-connectivity.mjs'
-      - 'tests/test_hydro_connectivity.py'
+      - 'tests/unit/hydro-connectivity-python-bridge.test.mjs'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
     inputs:
@@ -1714,10 +1714,11 @@ jobs:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
         run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
-      - name: Compare Python source oracle and native C++ generator on fixed junctions
+      - name: Verify remaining Python producer calls the native connector
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
-        run: python -m unittest tests.test_hydro_connectivity -v
+          PANDO_HYDRO_CONNECTIVITY_PYTHON: python
+        run: node --test tests/unit/hydro-connectivity-python-bridge.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}

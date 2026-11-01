@@ -26,6 +26,49 @@ function run(input) {
 }
 const nativeTest = (name, fn) => test(name, { skip: !native }, fn);
 
+function scenario(name) {
+  const input=fixture();
+  if(name==='original-mismatch') input.raw[1].end=[.9,0];
+  if(name==='border-conflict') input.parts[1][0].aligned=true;
+  if(name==='long-gap') input.parts[2][0].points[0]=[1.5,0];
+  if(name==='system-mismatch') input.parts[3][0].system='other';
+  if(name==='split-reach') input.parts[2]=[
+    {fid:2,part:1,points:[[1.5,0],[2,0]],aligned:true,system:'10'},
+    {fid:2,part:0,points:[[1.002,0],[1.5,0]],aligned:true,system:'10'}];
+  if(name==='region-gate') input.region='as';
+  if(name==='microdegree') input.parts[2][0].points[0]=[1.000001,0];
+  if(name==='upstream-aligned'){input.parts[1][0].aligned=true;input.parts[2][0].aligned=false;}
+  if(name==='natural-terminal') input.raw[1].next=0;
+  if(name==='missing-downstream') input.raw[1].next=999;
+  if(name==='connected') input.parts[2][0].points[0]=[1,0];
+  if(name==='ambiguous') input.parts[2].push({fid:2,part:1,points:[[3,0],[4,0]],aligned:false,system:'10'});
+  return input;
+}
+nativeTest('native audits match all frozen original Python junction scenarios',async()=>{
+  const oracle=JSON.parse(await readFile('tests/fixtures/hydro-connectivity-audit-oracle.json','utf8'));
+  for(const name of ['baseline','original-mismatch','border-conflict','long-gap','system-mismatch',
+    'split-reach','missing-downstream','connected','ambiguous']){
+    const input=scenario(name),actual=run({...input,mode:'audit',sourceOrder:[1,2,3]}),expected=structuredClone(oracle[name]);
+    assert.deepEqual(actual.regions,expected.regions,name);assert.equal(actual.issues.length,expected.issues.length,name);
+    for(let i=0;i<actual.issues.length;i++){
+      for(const key of ['gapM','originalGapM']) if(key in expected.issues[i]){
+        assert.ok(Math.abs(actual.issues[i][key]-expected.issues[i][key])<1e-6,`${name} ${key}`);
+        delete actual.issues[i][key];delete expected.issues[i][key];
+      }
+      assert.deepEqual(actual.issues[i],expected.issues[i],name);
+    }
+  }
+});
+nativeTest('native repairs match all frozen original Python junction scenarios and are idempotent',async()=>{
+  const oracle=JSON.parse(await readFile('tests/fixtures/hydro-connectivity-repair-oracle.json','utf8'));
+  for(const name of ['baseline','original-mismatch','border-conflict','long-gap','system-mismatch',
+    'split-reach','region-gate','microdegree','upstream-aligned','natural-terminal']){
+    const input=scenario(name),before=structuredClone(input),actual=run(input);
+    assert.deepEqual(actual.parts,oracle[name].parts,name);assert.deepEqual(actual.changes,oracle[name].changes,name);
+    assert.deepEqual(input,before,name);assert.deepEqual(run({...input,parts:actual.parts}).changes,[],name);
+  }
+});
+
 nativeTest('converging tributaries share one aligned downstream port', () => {
   const input = fixture(), untouched = structuredClone(input);
   const result = run(input);
@@ -83,6 +126,11 @@ nativeTest('microdegree quantization produces exact identical confluence coordin
   const result = run(input);
   assert.deepEqual(result.parts['1'][0].points.at(-1), [1.000001, 0]);
   assert.deepEqual(result.parts['3'][0].points.at(-1), [1.000001, 0]);
+});
+nativeTest('collapsed downstream reach has no ambiguous connection',()=>{
+  const input=fixture();input.parts[2][0].points=[[1,0],[1,0]];
+  const result=run({...input,mode:'audit',sourceOrder:[1,2,3]});
+  assert.deepEqual(result.issues,[]);
 });
 nativeTest('reject malformed source geometry instead of emitting partial output', () => {
   const input = fixture();
