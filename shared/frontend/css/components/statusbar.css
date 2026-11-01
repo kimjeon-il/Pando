@@ -146,3 +146,26 @@ body.map-sheet-open .app-root[data-layout="mobile"] .map-bottom-status {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+
+/* P1 shell: the status strip appears only for change, progress or attention. */
+.workspace:has(#editorSurface.surface-open) #statusSelection {
+  display: none;
+}
+
+.workspace:has(#editorSurface.surface-open) .map-bottom-status:not(:has(
+  #projectSaveStatus:not([hidden]),
+  #mapPreparationStatus:not([hidden]),
+  #mapPreparationRetry:not([hidden])
+)) {
+  display: none;
+}
+
+.workspace:not(:has(#editorSurface.surface-open)) .map-bottom-status:not(:has(
+  #projectSaveStatus:not([hidden]),
+  #mapPreparationStatus:not([hidden]),
+  #mapPreparationRetry:not([hidden]),
+  #statusSelection:not(.hidden):not([hidden])
+)) {
+  display: none;
+}
