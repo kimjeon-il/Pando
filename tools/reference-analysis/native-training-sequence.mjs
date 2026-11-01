@@ -76,6 +76,8 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
         throw Error('Training checkpoint cursor differs from the prepared order; preserve outputs');
       if(receipt.parentCheckpointSha256!==parentHash||receipt.parentReceiptSha256!==parentReceiptHash)
         throw Error('Training checkpoint parent identity differs; preserve outputs');
+      if(receipt.batchSourceReplayVerified!==true||!Array.isArray(receipt.evidence)||receipt.evidence.length!==count)
+        throw Error('Training checkpoint batch evidence differs; preserve outputs');
       current=checkpoint;cursor=receipt.cursor;completed++;
       if(onBatch)await onBatch({epoch,cursor,orderLength:plan.length,batches:completed,checkpoint:current,
         checkpointSha256:last.checkpointSha256,status:cursor===plan.length?'epoch-complete':'partial'});

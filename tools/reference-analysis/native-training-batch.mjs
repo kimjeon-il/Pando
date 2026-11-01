@@ -69,7 +69,7 @@ async function verifyEvidence(root,corpus,sample,data,{epoch,signal,allowPublish
     await prepareRasterTrainingTile({...inputs,root,imagePath:sheet.image},{signal});
   for(const name of TRAINING_TENSOR_NAMES)if(trainingSha256(rebuilt[name])!==data.tensorSha256[name])throw Error('Training tensor differs from source: '+name);
   return {record:{sourceId:data.sourceId,sourceKind:data.sourceKind,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,sourceEvidenceSha256:data.sourceEvidenceSha256,
-    tileIndex:data.tileIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks};
+    tileIndex:data.tileIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment,tensorSha256:data.tensorSha256},checks};
 }
 async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sample,data,{epoch,signal}){
   const tile=plan.datasets.flat()[sample.index];
@@ -88,7 +88,8 @@ async function verifyCombinedEvidence(primaryRoot,manifest,auxiliaryRoot,plan,sa
     augment:sample.augment,epoch,index:tile.localIndex},{signal});
   for(const name of TRAINING_TENSOR_NAMES)if(trainingSha256(rebuilt[name])!==data.tensorSha256[name])throw Error('Training tensor differs from source: '+name);
   return {record:{sourceId:data.sourceId,sourceKind:data.sourceKind,imageSha256:data.imageSha256,annotationSha256:data.annotationSha256,
-    sourceEvidenceSha256:data.sourceEvidenceSha256,tileIndex:data.tileIndex,augmentationIndex:data.augmentationIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment},checks};
+    sourceEvidenceSha256:data.sourceEvidenceSha256,tileIndex:data.tileIndex,augmentationIndex:data.augmentationIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment,
+    tensorSha256:data.tensorSha256},checks};
 }
 export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,reviewed=false,publisher=false,verifyEvidence:verifySourceEvidence,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
   samples,device='cpu',amp=device==='cuda',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
@@ -150,7 +151,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   for(const sample of samples)verifyTrainingSample(sample.directory);
   for(const item of evidence)recheckTrainingSources(item.checks);
   const count=(key,increment)=>previous?(Number.isSafeInteger(previous[key])?previous[key]+increment:null):increment;
-  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,precision,
+  const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,batchSourceReplayVerified:true,precision,
     initialization,encoderInitialization,initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,
     parentCheckpointSha256:previous?inputHash:null,parentReceiptSha256:previous?initializationRecordHash:null,
     ...(combined?{auxiliarySha256:auxiliaryHash,lineageFingerprint:combined.lineageFingerprint}:{}),epoch,cursor:result.cursor,
