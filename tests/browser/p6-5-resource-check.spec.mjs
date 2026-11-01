@@ -72,7 +72,7 @@ async function sample(page,cdp,probe,label){
   const chromium=await chromiumProcessPss();
   return {label,at:new Date().toISOString(),app,workerMemory,chromium,
     memory:{mainJsMiB:miB(main.usedSize),workerJsMiB:miB(workerMemory.jsUsedBytes),
-      workerWasmMiB:miB(workerMemory.wasmAllocatedBytes),chromiumPssMiB:chromium.pssMiB??null}};
+      workerWasmMiB:miB(workerMemory.wasmAllocatedBytes),chromiumPssMiB:chromium.available?chromium.pssMiB:null}};
 }
 
 function resourceFingerprint(row){
@@ -87,6 +87,9 @@ function resourceFingerprint(row){
     strokeResourceCount:app.strokeResourceCount,
     strokeActiveBytes:app.strokeActiveBytes,
     selectionActiveBytes:app.selectionActiveBytes,
+    terrainCacheBytes:app.terrainCacheBytes,
+    hydroCacheBytes:app.hydroCacheBytes,
+    sceneCacheRecreateCount:app.sceneCache.recreateCount,
   };
 }
 
@@ -171,6 +174,11 @@ test('P6-5 six adjacent year round trips keep active resources bounded across th
           workerJsMiB:delta(last.memory.workerJsMiB,base.memory.workerJsMiB),
           workerWasmMiB:delta(last.memory.workerWasmMiB,base.memory.workerWasmMiB),
           chromiumPssMiB:delta(last.memory.chromiumPssMiB,base.memory.chromiumPssMiB)},
+        firstBatchToFinalMemoryDelta:samples.length>1?{
+          mainJsMiB:delta(last.memory.mainJsMiB,samples[1].memory.mainJsMiB),
+          workerJsMiB:delta(last.memory.workerJsMiB,samples[1].memory.workerJsMiB),
+          workerWasmMiB:delta(last.memory.workerWasmMiB,samples[1].memory.workerWasmMiB),
+          chromiumPssMiB:delta(last.memory.chromiumPssMiB,samples[1].memory.chromiumPssMiB)}:null,
         sourceCache:{baseline:base.app.sourceCache,final:last.app.sourceCache},
         memorySeries:samples.map(row=>({label:row.label,...row.memory,workerCount:row.workerMemory.count}))};
     }
