@@ -66,7 +66,7 @@ layer-visibility source preparation through the existing hydro/place loaders.
 `prepareProjectSave()` runs before encoding and returns a `write`/`abort`
 destination. The browser picker opens during preparation to retain user
 activation. Native transport retains its existing `finish_document_write`
-dialog timing and chunk protocol. Persistence receives its resolved preview Worker URL; it does not
+dialog timing and chunk protocol. `document-transfer-contract.js` names the JavaScript side of that protocol, while a source-level contract test checks the Rust limits, kinds, commands and Tauri registration against it. Persistence receives its resolved preview Worker URL; it does not
 read platform globals or resolve deployment paths itself.
 
 Library composition injects the existing loader contract and a separate optional

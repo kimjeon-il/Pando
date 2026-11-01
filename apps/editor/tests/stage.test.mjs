@@ -106,6 +106,7 @@ test('stages the real frontend and exact WASM pair without analysis resources or
   assert.ok(result.files.some(file=>file.path==='assets/js/modules/platform-ports.js'));
   assert.ok(result.files.some(file=>file.path==='assets/js/modules/platform-runtime.js'));
   assert.ok(result.files.some(file=>file.path==='shell/native-platform-adapter.js'));
+  assert.ok(result.files.some(file=>file.path==='shell/document-transfer-contract.js'));
   assert.ok(result.files.every(file => !file.path.startsWith('assets/data/')||file.path.startsWith('assets/data/physical-land/')));
   assert.ok(result.files.every(file => !file.path.includes('reference-analysis')));
   assert.equal(Object.hasOwn(result,'referenceAnalysis'), false);

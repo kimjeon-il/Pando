@@ -128,6 +128,7 @@ project import/export uses the production binary GeoPackage codec and a `.gpkg`
 picker filter. Document I/O uses 256 KiB Base64 chunks over the native IPC,
 backed by a disk spool rather than whole-file Base64 values. Maximum total
 project/GIS document size is 256 MiB, with up to 16 GIS files per import.
+`document-transfer-contract.js` owns the JavaScript-side command names, kinds and limits; `native-document-transfer-contract.test.mjs` compares them directly with the Rust constants, command functions and Tauri handler registration so cross-language drift fails CI.
 Small probe and diagnostic files retain the original 1 MiB bound. Android provider
 URIs that do not expose a file extension are rejected instead of being assigned
 a misleading GIS format. Full-project file sizes and provider-name recovery belong

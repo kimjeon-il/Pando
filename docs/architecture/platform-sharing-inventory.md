@@ -181,9 +181,7 @@ Implemented. `shared/frontend/js/modules/file-access-contract.js` now owns the r
 
 ### T4 — Native JS/Rust document-transfer protocol check
 
-Add focused checks that the command names, chunk limit, document limit and supported kinds stay synchronized across JS and Rust.
-
-This is safer and smaller than moving native transport code into the Web layer.
+Implemented. `apps/editor/document-transfer-contract.js` is the JavaScript protocol owner for transfer command names, read/write kinds and numeric limits. `tests/unit/native-document-transfer-contract.test.mjs` parses `src-tauri/src/document_transfer.rs` and `src-tauri/src/lib.rs` and fails when Rust limits, supported kinds, `#[tauri::command]` functions or `generate_handler!` registration diverge. The native transport continues to be implemented separately in JavaScript and Rust.
 
 ## 9. Explicit non-targets
 

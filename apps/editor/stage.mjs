@@ -132,7 +132,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
   if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
   await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
     .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/editor/templates/index.html');
-  const shellFiles = ['startup.js', 'runtime-profile.js', 'native-platform-adapter.js', 'native-storage.js', 'network-guard.js'];
+  const shellFiles = ['startup.js', 'runtime-profile.js', 'native-platform-adapter.js', 'document-transfer-contract.js', 'native-storage.js', 'network-guard.js'];
   if (verification) shellFiles.push('verification.js', 'probe-storage.js', 'diagnostics.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css');
   for (const file of shellFiles) {
     let bytes = snapshot.assets.get('shell/'+file)?.bytes || await readFile(join(here,file));

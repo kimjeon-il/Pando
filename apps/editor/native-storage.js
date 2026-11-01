@@ -1,5 +1,11 @@
-const CHUNK_BYTES = 256 * 1024;
-const DOCUMENT_LIMIT = 256 * 1024 * 1024;
+import {
+  DOCUMENT_TRANSFER_COMMANDS,
+  DOCUMENT_TRANSFER_EXPORT_KIND_BY_FILENAME,
+  DOCUMENT_TRANSFER_KINDS,
+  DOCUMENT_TRANSFER_LIMITS,
+} from './document-transfer-contract.js';
+
+const {chunkBytes,maxDocumentBytes,maxGisFiles}=DOCUMENT_TRANSFER_LIMITS;
 export function encodeBytes(bytes) {
   let binary = '';
   for (let index = 0; index < bytes.length; index += 8192) {
@@ -8,11 +14,11 @@ export function encodeBytes(bytes) {
   return btoa(binary);
 }
 export function decodeBytes(base64) {
-  if (typeof base64 !== 'string' || base64.length > Math.ceil(CHUNK_BYTES / 3) * 4) {
+  if (typeof base64 !== 'string' || base64.length > Math.ceil(chunkBytes / 3) * 4) {
     throw new Error('Invalid 256 KiB native chunk.');
   }
   const binary = atob(base64);
-  if (binary.length > CHUNK_BYTES) throw new Error('Invalid 256 KiB native chunk.');
+  if (binary.length > chunkBytes) throw new Error('Invalid 256 KiB native chunk.');
   return Uint8Array.from(binary, character => character.charCodeAt(0));
 }
 
@@ -27,7 +33,7 @@ function selectedGisName(path) {
 }
 
 function verifyDocumentBlob(blob) {
-  if (!(blob instanceof Blob) || blob.size < 1 || blob.size > DOCUMENT_LIMIT) {
+  if (!(blob instanceof Blob) || blob.size < 1 || blob.size > maxDocumentBytes) {
     throw new Error('Document must be a Blob within the 256 MiB limit.');
   }
 }
@@ -40,34 +46,34 @@ export function createNativeStorage(invoke) {
     return {...result,downloaded:false};
   };
   const abort = async token => {
-    try { await invoke('abort_document_transfer', { token }); }
+    try { await invoke(DOCUMENT_TRANSFER_COMMANDS.abort, { token }); }
     catch (error) { console.error('[PL-NATIVE-TRANSFER-ABORT]', error); }
   };
   async function writeDocument(kind, blob) {
     verifyDocumentBlob(blob);
-    const session = await invoke('begin_document_write', { kind });
+    const session = await invoke(DOCUMENT_TRANSFER_COMMANDS.beginWrite, { kind });
     if (!Number.isSafeInteger(session?.token)) throw new Error('Native write session did not return a token.');
     const token = session.token;
     try {
-      for (let offset = 0; offset < blob.size; offset += CHUNK_BYTES) {
-        const slice = new Uint8Array(await blob.slice(offset, offset + CHUNK_BYTES).arrayBuffer());
-        await invoke('append_document_chunk', { token, contents: encodeBytes(slice) });
+      for (let offset = 0; offset < blob.size; offset += chunkBytes) {
+        const slice = new Uint8Array(await blob.slice(offset, offset + chunkBytes).arrayBuffer());
+        await invoke(DOCUMENT_TRANSFER_COMMANDS.appendWrite, { token, contents: encodeBytes(slice) });
       }
-      return await invoke('finish_document_write', { token });
+      return await invoke(DOCUMENT_TRANSFER_COMMANDS.finishWrite, { token });
     } catch (error) {
       await abort(token);
       throw error;
     }
   }
   async function readDocument(kind) {
-    const selection = await invoke('begin_document_read', { kind });
+    const selection = await invoke(DOCUMENT_TRANSFER_COMMANDS.beginRead, { kind });
     if (selection?.cancelled) return { cancelled: true, files: [] };
-    if (!Array.isArray(selection?.files) || !selection.files.length || selection.files.length > 16) {
+    if (!Array.isArray(selection?.files) || !selection.files.length || selection.files.length > maxGisFiles) {
       throw new Error('Invalid native document selection.');
     }
     if (selection.files.some(file => !Number.isSafeInteger(file.token)
         || !Number.isSafeInteger(file.bytes) || file.bytes < 1)
-        || selection.files.reduce((sum, file) => sum + file.bytes, 0) > DOCUMENT_LIMIT) {
+        || selection.files.reduce((sum, file) => sum + file.bytes, 0) > maxDocumentBytes) {
       throw new Error('Native document selection exceeds 256 MiB.');
     }
     const files = [];
@@ -77,7 +83,7 @@ export function createNativeStorage(invoke) {
       let size = 0, done;
       try {
         do {
-          const part = await invoke('read_document_chunk', { token: file.token });
+          const part = await invoke(DOCUMENT_TRANSFER_COMMANDS.readChunk, { token: file.token });
           const chunk = decodeBytes(part?.contents);
           if (!chunk.byteLength) throw new Error('Empty native document chunk.');
           size += chunk.byteLength;
@@ -99,18 +105,17 @@ export function createNativeStorage(invoke) {
     prepareProjectSave(){
       let ended=false;
       return Object.freeze({
-        async write(blob){if(ended)throw new Error('File writer already finished.');ended=true;return acceptWrite(await writeDocument('project',blob));},
+        async write(blob){if(ended)throw new Error('File writer already finished.');ended=true;return acceptWrite(await writeDocument(DOCUMENT_TRANSFER_KINDS.write.project,blob));},
         async abort(){ended=true;},
       });
     },
     async saveExportFile(filename, blob) {
-      const kind = filename === '판도연구소-GIS-데이터.gpkg' ? 'gis-gpkg'
-        : filename === '판도연구소-GIS-데이터.zip' ? 'gis-zip' : null;
+      const kind = DOCUMENT_TRANSFER_EXPORT_KIND_BY_FILENAME[filename] || null;
       if (!kind) throw new Error('Unsupported GIS export file name.');
       return acceptWrite(await writeDocument(kind, blob));
     },
     async openProjectFile() {
-      const selected = await readDocument('project');
+      const selected = await readDocument(DOCUMENT_TRANSFER_KINDS.read.project);
       if (selected.cancelled) return { cancelled: true, path: null, file: null };
       if (selected.files.length !== 1) throw new Error('Project picker must return one document.');
       const chosen=selected.files[0],name=String(chosen.path||'').split(/[\\/]/).pop();
@@ -118,7 +123,7 @@ export function createNativeStorage(invoke) {
         file:new File([chosen.blob],name&&/\.gpkg$/i.test(name)?name:'판도연구소-프로젝트.gpkg',{type:'application/geopackage+sqlite3'}) };
     },
     async openGisFiles() {
-      const selected = await readDocument('gis');
+      const selected = await readDocument(DOCUMENT_TRANSFER_KINDS.read.gis);
       if (selected.cancelled) return { cancelled: true, files: [] };
       return { cancelled: false, files: selected.files.map(file =>
         new File([file.blob], selectedGisName(file.path))) };
