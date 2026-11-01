@@ -227,6 +227,8 @@ export function createObjectCommands() {
       visibilityButton.setAttribute('aria-label', label);
       visibilityButton.setAttribute('aria-pressed', refs.length && visibleCount > 0 && !allVisible ? 'mixed' : String(refs.length > 0 && allVisible));
       visibilityButton.dataset.tooltip = label;
+      const visibilityLabel = (0, dependencies.platform.$)('objectVisibilityLabel');
+      if (visibilityLabel) visibilityLabel.textContent = label;
       (0, dependencies.platform.$)('objectVisibilityIcon')?.setAttribute('href', !refs.length || visibleCount ? '#icon-eye' : '#icon-eye-off');
     }
     const locked = refs.length > 0 && refs.every(objectRefLocked);
@@ -265,6 +267,8 @@ export function createObjectCommands() {
       lockButton.setAttribute('aria-pressed', String(locked));
       lockButton.setAttribute('aria-label', lockLabel);
       lockButton.dataset.tooltip = lockLabel;
+      const objectLockLabel = (0, dependencies.platform.$)('objectLockLabel');
+      if (objectLockLabel) objectLockLabel.textContent = lockLabel;
       (0, dependencies.platform.$)('objectLockIcon')?.setAttribute('href', locked ? '#icon-lock-closed' : '#icon-lock-open');
     }
     const deleteButton = (0, dependencies.platform.$)('objectDeleteBtn');

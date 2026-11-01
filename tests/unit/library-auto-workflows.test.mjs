@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
 const appPath=new URL('../../.github/workflows/library-data-auto-sync.yml',import.meta.url);
-const dataPath=new URL('../../../data-code-stage/.github/workflows/notify-library-data.yml',import.meta.url);
+const repoRoot=fileURLToPath(new URL('../..',import.meta.url));
+const dataPath=resolve(repoRoot,'../data-code-stage/.github/workflows/notify-library-data.yml');
 const source=p=>existsSync(p)?readFileSync(p,'utf8').replaceAll('\r\n','\n'):'';
 test('receiver isolates work/gis pushes to focused tests and serializes durable writes',()=>{
  const s=source(appPath);assert.match(s,/branches: \['work\/gis'\]/);assert.match(s,/cancel-in-progress: false/);assert.match(s,/contracts:[\s\S]*github.event_name == 'push'/);assert.match(s,/node --test tests\/unit\/library-auto-/);assert.doesNotMatch(s,/pages: write|id-token: write/);

@@ -359,3 +359,22 @@ body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: gri
 .app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--map-safe-left) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
 .app-root[data-layout="phone-landscape"] .status-inner { left: var(--map-safe-left); right: var(--map-safe-right); }
 .app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }
+
+
+/* P1 shell: do not reserve a status strip when no status is actually visible. */
+:root:has(#editorSurface.surface-open):not(:has(
+  #projectSaveStatus:not([hidden]),
+  #mapPreparationStatus:not([hidden]),
+  #mapPreparationRetry:not([hidden])
+)) {
+  --ui-shell-statusbar-height: 0px;
+}
+
+:root:not(:has(#editorSurface.surface-open)):not(:has(
+  #projectSaveStatus:not([hidden]),
+  #mapPreparationStatus:not([hidden]),
+  #mapPreparationRetry:not([hidden]),
+  #statusSelection:not(.hidden):not([hidden])
+)) {
+  --ui-shell-statusbar-height: 0px;
+}

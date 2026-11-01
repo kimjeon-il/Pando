@@ -99,12 +99,15 @@ test('task workspace and toolbar search preserve their DOM and camera across lay
       const geometry = await page.evaluate(() => {
         const bar = document.querySelector('.map-command-toolbar').getBoundingClientRect();
         const input = document.querySelector('#objectSearchInput').getBoundingClientRect();
-        const status = document.querySelector('#mapBottomStatus').getBoundingClientRect();
-        return { barTop: bar.top, barBottom: bar.bottom, inputTop: input.top, inputBottom: input.bottom, statusTop: status.top };
+        const status = document.querySelector('#mapBottomStatus');
+        const statusTop = status.getClientRects().length ? status.getBoundingClientRect().top : null;
+        const mapBottom = document.querySelector('.map-wrap').getBoundingClientRect().bottom;
+        return { barTop: bar.top, barBottom: bar.bottom, inputTop: input.top, inputBottom: input.bottom,
+          lowerBoundary: statusTop ?? mapBottom };
       });
       expect(geometry.inputTop).toBeGreaterThanOrEqual(geometry.barTop);
       expect(geometry.inputBottom).toBeLessThanOrEqual(geometry.barBottom);
-      expect(geometry.barBottom).toBeLessThan(geometry.statusTop);
+      expect(geometry.barBottom).toBeLessThan(geometry.lowerBoundary);
     }
     await page.locator('#objectSearchInput').fill('독일');
     const germany = page.locator('#objectSearchResults .object-search-result-select[data-item-id="DEU"]');
@@ -233,9 +236,12 @@ test('mobile global menu opens the display sheet without restoring desktop navig
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 390, height: 844 });
 
-  await expect(page.locator('.mobile-bottom-bar #mobileDisplayBtn')).toHaveCount(0);
+  await expect(page.locator('.mobile-bottom-bar .ui-nav-item')).toHaveCount(3);
+  await expect(page.locator('.mobile-bottom-bar #mobileUndoBtn, .mobile-bottom-bar #mobileRedoBtn, .mobile-bottom-bar #mobileDisplayBtn')).toHaveCount(0);
   await page.locator('#mobileMenuBtn').click();
   await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  await expect(page.locator('#mobileUndoBtn')).toBeVisible();
+  await expect(page.locator('#mobileRedoBtn')).toBeVisible();
   await expect(page.locator('#mobileDisplayBtn')).toBeVisible();
   await expect(page.locator('#mapDisplayBtn')).toBeHidden();
   await expect(page.locator('#objectSearchBtn')).toBeHidden();
@@ -251,9 +257,14 @@ test('mobile global menu opens the display sheet without restoring desktop navig
   expect(errors).toEqual([]);
 });
 
-test('bottom floating controls clear the status bar only while it is visible', async ({ page }) => {
+test('bottom floating controls use the status strip only when it has active content', async ({ page }) => {
   test.setTimeout(180_000);
   const errors = await openApp(page, { width: 1440, height: 900 });
+
+  await expect(page.locator('#mapBottomStatus')).toBeHidden();
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#editorSurface')).not.toHaveClass(/surface-open/);
 
   for (const viewport of [
     { width: 1440, height: 900 },
