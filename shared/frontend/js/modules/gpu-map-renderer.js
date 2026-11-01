@@ -489,6 +489,9 @@ export function createGpuMapRenderer(deps) {
       resourcesDrawn = resourcesDrawn && physicalSceneMatchesContext(renderScene,getPhysicalContextState());
       recordGpuRecoveryFrame(frame, resourcesDrawn);
       if (temporalPending() && !temporalFrameReady(resourcesDrawn, terrain)) { presentedMapKey='';publishMapReadiness();return; }
+      // The first real Worker bitmap has already painted the physical substrate.
+      // It may promote an initial country frame before terrain tiles finish;
+      // never apply this shortcut to a pending temporal/project replacement.
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady
         || canAdmitCanvasWorkerPartialBackground({
           rendererMode, committedBitmap: committedWorkerBitmap,
