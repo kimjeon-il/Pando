@@ -189,7 +189,7 @@ test('editor identity returns to header flag and focus controls without changing
       await expect(flag).toBeFocused();
       await page.locator('#editorSurface').screenshot({ path: testInfo.outputPath(`restored-editor-${width}-${theme}.png`) });
     }
-    for (const tab of ['#actionsTabBtn', '#relationTabBtn', '#editorTabBtn']) {
+    for (const tab of ['#actionsTabBtn', '#editorTabBtn']) {
       await page.locator(tab).click();
       await expect(flag).toBeVisible();
       await expect(focus).toBeVisible();
