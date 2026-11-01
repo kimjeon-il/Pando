@@ -20,7 +20,10 @@ function fixture() {
     files.set(path, text); mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text);
   };
   put('index.html', '<link rel="stylesheet" href="assets/css/viewer.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
-  put('.nojekyll'); put('assets/css/viewer.css'); put('assets/js/build-meta.js');
+  put('.nojekyll'); put('assets/css/viewer.css');
+  const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
+  put(preview,'preview');
+  put('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
   put('assets/js/viewer.js', "import './modules/read.js';");
   put('assets/js/modules/read.js', 'export const value = 1;');
   put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');

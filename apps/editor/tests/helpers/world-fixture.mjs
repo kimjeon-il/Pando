@@ -2,6 +2,7 @@ import {readFileSync,readdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../../../scripts/lib/ui-source-catalog.mjs';
 import { createHash } from 'node:crypto';
+import {gzipSync} from 'node:zlib';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -106,7 +107,9 @@ export async function worldFixture(t) {
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};
   await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify(terrain));
-  const land=await pinned('assets/data/physical-land/v1/fixture-land.bin',Buffer.from('LAND'));
+  const landGeometry=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));
+  const land={...await pinned('assets/data/physical-land/v1/fixture-land.bin',gzipSync(landGeometry,{level:9,mtime:0})),
+    encoding:'gzip',decodedBytes:landGeometry.length};
   await put('assets/data/physical-land/v1/manifest.json',JSON.stringify({sourceSha256:'fixture-land',asset:land}));
   const library=join(root,'.library-data/repository');
   const git=(dir,...args)=>execFileSync('git',['-c','core.fsync=none','-c','user.name=Test','-c','user.email=test@example.invalid',...args],{cwd:dir,encoding:'utf8',stdio:'pipe'}).trim();

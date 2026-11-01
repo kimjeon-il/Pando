@@ -23,6 +23,9 @@ function appInput(historical=catalog()){
 function viewerInput(index=catalog()){
  const files=new Map([['index.html',''],['.nojekyll',''],['assets/js/viewer.js','export const viewer=true;'],[ROOT+'index.json',JSON.stringify(index)],
   [ROOT+'transport/old.bin','old aggregate'],[ROOT+'countries/orphan.json.gz','orphan']]);
+ const preview='assets/data/physical-land/preview/v1/fixture.json.gz';
+ files.set(preview,'preview');
+ files.set('assets/js/build-meta.js','globalThis.PANDOLAB_BUILD_META=Object.freeze('+JSON.stringify({initialLandPreview:{url:preview}})+');');
  for(const row of index.entities)files.set(ROOT+row.file,'country');
  return {files,collect:()=>collectViewerAssets({root:tmpdir(),availablePaths:[...files.keys()],readSource:path=>files.get(path),workerAssets:{}})};
 }
