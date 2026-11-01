@@ -62,28 +62,14 @@ export function createObjectPropertyController(runtime = {}) {
     const form = activeForm(type);
     const sections = form ? [...form.children].filter(element => !element.hidden && !element.classList.contains('hidden')) : [];
     const infoAvailable = sections.some(element => element.matches?.('.editor-info-section'));
-    const hasActions = sections.some(element => element.matches?.('.editor-action-section') && !element.classList.contains('editor-relation-section'));
-    const relationSections = sections.filter(element => element.matches?.('.editor-relation-section'));
-    const relationAvailable = relationSections.length > 0;
-    const commonAvailable = !!type && [...document.querySelectorAll('.editor-common-actions')].some(element => !element.classList.contains('hidden'));
-    const hasRelation = relationAvailable || commonAvailable;
-    const relationControlCount = relationSections.reduce((count, section) => count + [...section.querySelectorAll('button, input, select, textarea')]
-      .filter(control => !control.disabled && !control.hidden && !control.classList.contains('hidden') && !control.closest('.hidden, [hidden]')).length, 0);
-    const forceRelationTab = type === 'entity';
-    const inlineRelation = !forceRelationTab && relationAvailable && !commonAvailable && relationControlCount <= 1;
-    const relationTabVisible = hasRelation && !inlineRelation;
+    const hasActions = sections.some(element => element.matches?.('.editor-action-section'));
     const editorSurface = $('editorSurface');
-    if (editorSurface) {
-      if (inlineRelation) editorSurface.setAttribute('data-editor-inline-relation', 'true');
-      else editorSurface.removeAttribute('data-editor-inline-relation');
-    }
+    editorSurface?.removeAttribute('data-editor-inline-relation');
     $('editorTabBtn').hidden = !type || !infoAvailable;
     $('editorTabBtn').setAttribute('aria-disabled', String(!infoAvailable));
     $('actionsTabBtn').hidden = !type || !hasActions;
     $('actionsTabBtn').setAttribute('aria-disabled', String(!hasActions));
-    $('relationTabBtn').hidden = !type || !relationTabVisible;
-    $('relationTabBtn').setAttribute('aria-disabled', String(!relationTabVisible));
-    const availableViews = [infoAvailable && 'info', hasActions && 'actions', relationTabVisible && 'relation'].filter(Boolean);
+    const availableViews = [infoAvailable && 'info', hasActions && 'actions'].filter(Boolean);
     document.querySelector('.editor-view-tabs')?.classList.toggle('hidden', !type || availableViews.length <= 1);
     const current = editorSurface?.getAttribute('data-editor-view');
     if (current && !availableViews.includes(current)) setEditorShellView(availableViews[0] || 'info');
