@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {buildBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
-import {createBuiltinWorldLoader} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {createBuiltinWorldLoader,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import {createBuiltinSession} from "../../shared/frontend/js/modules/builtin-session.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {startupDocument} from '../helpers/core-startup.mjs';
@@ -18,26 +18,32 @@ function fixture({cacheStorage=null,assets=files}={}){
    await new Promise(resolve=>setTimeout(resolve,2));busy--;const value=assets.get(file);return new Response(corrupt&&file!=='index.json'?'corrupt':value,{status:value?200:404});}});
  return {loader,calls,peak:()=>peak,corrupt:(value=true)=>{corrupt=value;}};
 }
-test('concurrent month queries share one packed download and later months need no country requests',async()=>{
+test('concurrent month queries share direct country downloads and reuse previously selected countries',async()=>{
  const f=fixture();const [historical]=await Promise.all([f.loader.loadProject('2014-02'),f.loader.loadProject('2014-01')]);
  assert.ok(historical.project.territorialEntities.some(row=>row.id==='state:test-ukraine'));
- assert.deepEqual(f.calls,['index.json',JSON.parse(files.get('index.json')).transport.url]);
+ const index=JSON.parse(files.get('index.json'));
+ const expected=new Set(['index.json',...['2014-02','2014-01'].flatMap(month=>selectBuiltinCountries(index,month).map(row=>row.file))]);
+ assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);assert.ok(f.peak()<=6);
  const count=f.calls.length;await f.loader.loadProject('2014-02');assert.equal(f.calls.length,count);
- await f.loader.loadProject('2027-01');assert.equal(f.calls.length,count);
- assert.equal(f.calls.some(file=>file.startsWith('countries/')),false);
+ await f.loader.loadProject('2027-01');for(const row of selectBuiltinCountries(index,'2027-01'))expected.add(row.file);
+ assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);
+ assert.equal(f.calls.some(file=>file.startsWith('transport/')),false);
  assert.equal(f.calls.some(file=>file.includes('world-project')),false);
 });
-test('a fresh loader reuses the verified catalog and packed bytes from Cache Storage',async()=>{
- const values=new Map();
- const cacheStorage={open:async()=>({match:async key=>values.get(key)?.clone(),put:async(key,response)=>{values.set(key,response.clone());},delete:async key=>values.delete(key)})};
+test('a fresh loader reuses the verified catalog and individual country bytes from Cache Storage',async()=>{
+ const stores=new Map();
+ const cacheStorage={open:async name=>{
+  if(!stores.has(name))stores.set(name,new Map());const values=stores.get(name);
+  return {match:async key=>values.get(key)?.clone(),put:async(key,response)=>{values.set(key,response.clone());},delete:async key=>values.delete(key)};
+ },keys:async()=>[...stores.keys()],delete:async name=>stores.delete(name)};
  const first=fixture({cacheStorage});await first.loader.loadProject('2014-02');
  const second=fixture({cacheStorage});const result=await second.loader.loadProject('2014-02');
  assert.ok(result.project.territorialEntities.length);assert.equal(second.calls.length,0);
 });
-test('an invalid packed byte range is rejected without downloading individual countries',async()=>{
+test('a retired packed offset is rejected before downloading countries',async()=>{
  const assets=new Map(files),index=JSON.parse(assets.get('index.json'));index.entities[0].offset=1;
  assets.set('index.json',Buffer.from(JSON.stringify(index)));
- const f=fixture({assets});await assert.rejects(f.loader.loadProject('2014-02'),/descriptor|range/);
+ const f=fixture({assets});await assert.rejects(f.loader.loadProject('2014-02'),/descriptor|offset/);
  assert.ok(f.calls.every(file=>file==='index.json'));
 });
 test('country integrity failure rejects the whole query and the same loader can retry',async()=>{
