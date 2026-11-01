@@ -1,0 +1,151 @@
+{
+  "step": 0.001,
+  "scale": 455.1111111111111,
+  "shapely": "2.1.2",
+  "geos": "3.13.1",
+  "cases": [
+    {
+      "name": "parallel",
+      "source": [
+        [
+          0,
+          0
+        ],
+        [
+          0.004,
+          0
+        ]
+      ],
+      "target": [
+        [
+          0,
+          0.002
+        ],
+        [
+          0.004,
+          0.002
+        ]
+      ],
+      "forward": 0.9102222222222222,
+      "forwardSamples": 5,
+      "reverse": 0.9102222222222222,
+      "reverseSamples": 5
+    },
+    {
+      "name": "diagonal",
+      "source": [
+        [
+          0,
+          0
+        ],
+        [
+          0.003,
+          0.004
+        ]
+      ],
+      "target": [
+        [
+          0.001,
+          0.002
+        ],
+        [
+          0.006,
+          0.002
+        ]
+      ],
+      "forward": 1.0176593817599042,
+      "forwardSamples": 6,
+      "reverse": 1.6409264471445,
+      "reverseSamples": 6
+    },
+    {
+      "name": "turn",
+      "source": [
+        [
+          0,
+          0
+        ],
+        [
+          0.003,
+          0
+        ],
+        [
+          0.003,
+          0.002
+        ]
+      ],
+      "target": [
+        [
+          0,
+          0.001
+        ],
+        [
+          0.004,
+          0.001
+        ]
+      ],
+      "forward": 0.4551111111111111,
+      "forwardSamples": 6,
+      "reverse": 0.4551111111111111,
+      "reverseSamples": 5
+    },
+    {
+      "name": "zero-segment",
+      "source": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0.002,
+          0
+        ]
+      ],
+      "target": [
+        [
+          0,
+          0.001
+        ],
+        [
+          0.002,
+          0.001
+        ]
+      ],
+      "forward": 0.4551111111111111,
+      "forwardSamples": 4,
+      "reverse": 0.4551111111111111,
+      "reverseSamples": 3
+    },
+    {
+      "name": "reversed",
+      "source": [
+        [
+          0.005,
+          0.002
+        ],
+        [
+          0.001,
+          0.002
+        ]
+      ],
+      "target": [
+        [
+          0.003,
+          0
+        ],
+        [
+          0.003,
+          0.004
+        ]
+      ],
+      "forward": 0.9102222222222222,
+      "forwardSamples": 5,
+      "reverse": 0.9102222222222222,
+      "reverseSamples": 5
+    }
+  ]
+}

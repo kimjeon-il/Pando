@@ -18,7 +18,7 @@
 | Windows | 투명 RGBA 캔버스 + 코발트 심벌. 내부 경계도 투명 | 배경판 없음 |
 | Android adaptive | 전체를 채우는 불투명 코발트 배경 + 별도 흰 전경 | OS/런처가 마스크 결정. 전경에 자체 배경판이나 clip-path 없음 |
 | Android themed | 배경 없는 단색 심벌 | OS가 색과 마스크 결정 |
-| Web favicon | 코발트 배경판 + 흰 소형 심벌 | 기존 SVG/ICO 유지 |
+| Web favicon | 흰 배경판 + 코발트 소형 심벌 | 기존 SVG/ICO 유지 |
 
 Windows의 `apps/editor/src-tauri/icons/icon.png`는 256px다. `icon.ico`는 16/24/32px 소형형과 48/64/128/256px 일반형을 각각 렌더한 PNG 7개를 담는다. 기존 Tauri 설정이 이 두 경로를 사용한다. 16px에서 위 통로 x=6,7, 아래 통로 x=8,9의 두 픽셀 폭을 유지한다. 재출력은 대응하는 `windows*.svg`를 크기별 투명 RGBA로 렌더한 뒤 ICO로 묶는다.
 

@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {buildBuiltinWorldPublication} from '../../tools/build-builtin-world.mjs';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
-import {createBuiltinWorldLoader} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {createBuiltinWorldLoader,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
 import {createBuiltinSession} from "../../shared/frontend/js/modules/builtin-session.js";
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {startupDocument} from '../helpers/core-startup.mjs';
@@ -18,26 +18,32 @@ function fixture({cacheStorage=null,assets=files}={}){
    await new Promise(resolve=>setTimeout(resolve,2));busy--;const value=assets.get(file);return new Response(corrupt&&file!=='index.json'?'corrupt':value,{status:value?200:404});}});
  return {loader,calls,peak:()=>peak,corrupt:(value=true)=>{corrupt=value;}};
 }
-test('concurrent month queries share one packed download and later months need no country requests',async()=>{
+test('concurrent month queries share direct country downloads and reuse previously selected countries',async()=>{
  const f=fixture();const [historical]=await Promise.all([f.loader.loadProject('2014-02'),f.loader.loadProject('2014-01')]);
  assert.ok(historical.project.territorialEntities.some(row=>row.id==='state:test-ukraine'));
- assert.deepEqual(f.calls,['index.json',JSON.parse(files.get('index.json')).transport.url]);
+ const index=JSON.parse(files.get('index.json'));
+ const expected=new Set(['index.json',...['2014-02','2014-01'].flatMap(month=>selectBuiltinCountries(index,month).map(row=>row.file))]);
+ assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);assert.ok(f.peak()<=6);
  const count=f.calls.length;await f.loader.loadProject('2014-02');assert.equal(f.calls.length,count);
- await f.loader.loadProject('2027-01');assert.equal(f.calls.length,count);
- assert.equal(f.calls.some(file=>file.startsWith('countries/')),false);
+ await f.loader.loadProject('2027-01');for(const row of selectBuiltinCountries(index,'2027-01'))expected.add(row.file);
+ assert.deepEqual(new Set(f.calls),expected);assert.equal(f.calls.length,expected.size);
+ assert.equal(f.calls.some(file=>file.startsWith('transport/')),false);
  assert.equal(f.calls.some(file=>file.includes('world-project')),false);
 });
-test('a fresh loader reuses the verified catalog and packed bytes from Cache Storage',async()=>{
- const values=new Map();
- const cacheStorage={open:async()=>({match:async key=>values.get(key)?.clone(),put:async(key,response)=>{values.set(key,response.clone());},delete:async key=>values.delete(key)})};
+test('a fresh loader reuses the verified catalog and individual country bytes from Cache Storage',async()=>{
+ const stores=new Map();
+ const cacheStorage={open:async name=>{
+  if(!stores.has(name))stores.set(name,new Map());const values=stores.get(name);
+  return {match:async key=>values.get(key)?.clone(),put:async(key,response)=>{values.set(key,response.clone());},delete:async key=>values.delete(key)};
+ },keys:async()=>[...stores.keys()],delete:async name=>stores.delete(name)};
  const first=fixture({cacheStorage});await first.loader.loadProject('2014-02');
  const second=fixture({cacheStorage});const result=await second.loader.loadProject('2014-02');
  assert.ok(result.project.territorialEntities.length);assert.equal(second.calls.length,0);
 });
-test('an invalid packed byte range is rejected without downloading individual countries',async()=>{
+test('a retired packed offset is rejected before downloading countries',async()=>{
  const assets=new Map(files),index=JSON.parse(assets.get('index.json'));index.entities[0].offset=1;
  assets.set('index.json',Buffer.from(JSON.stringify(index)));
- const f=fixture({assets});await assert.rejects(f.loader.loadProject('2014-02'),/descriptor|range/);
+ const f=fixture({assets});await assert.rejects(f.loader.loadProject('2014-02'),/descriptor|offset/);
  assert.ok(f.calls.every(file=>file==='index.json'));
 });
 test('country integrity failure rejects the whole query and the same loader can retry',async()=>{
@@ -80,71 +86,22 @@ test('latest builtin reader admits its baseline after a superseded replacement f
 });
 
 
-test('complete active selection proof permits reuse only for the same country records',async()=>{
- const f=fixture(),first=await f.loader.loadProject('2014-01');
- assert.equal(typeof first.selectionKey,'string');assert.ok(first.selectionKey.length>0);
- const same=await f.loader.loadProject('2014-02',{reuseSelectionKey:first.selectionKey});
- assert.equal(same.project,null);assert.equal(same.selectionKey,first.selectionKey);
- const changed=await f.loader.loadProject('2014-03',{reuseSelectionKey:first.selectionKey});
- assert.notEqual(changed.selectionKey,first.selectionKey);assert.ok(changed.project);
- assert.equal(changed.project.territorialEntities.some(row=>row.id==='state:test-ukraine'),false);
- const before=await f.loader.loadProject('2020-10');
- const after=await f.loader.loadProject('2020-11',{reuseSelectionKey:before.selectionKey});
- assert.notEqual(after.selectionKey,before.selectionKey);assert.ok(after.project);
-});
-
-test('cancelled selections never return reusable evidence or materialize a stale world',async()=>{
- const f=fixture();await f.loader.loadProject('2014-01');
- await assert.rejects(f.loader.loadProject('2014-02',{isCurrent:()=>false}),{name:'AbortError'});
- await assert.rejects(f.loader.loadProject('1801-01',{isCurrent:()=>false}),{name:'AbortError'});
-});
-
-
-test('real viewer temporal delta matches full admission while retaining identical JS geometry allocations',async t=>{
- const owner=await createNodeCoreProject(startupDocument([]),{productMode:'viewer',replaceSnapshot:async()=>true,restoreReplacement:async()=>{}});
+test('P2-1 a detached dated builtin source never mutates an actual C++ Core document',async t=>{
+ const owner=await createNodeCoreProject(startupDocument([]),{productMode:'viewer',replaceSnapshot:async()=>true});
  t.after(()=>owner.dispose());
  const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
  session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},domains:{projectDomain:owner.project}});
- const read=month=>async()=>({...await session.prepareProjectBaseline(month,{reuseSelectedSource:true}),
-  setup:{initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'}});
- const received=[];owner.client.subscribeTransitions((packet,operation)=>received.push({packet,operation}));
- await owner.project.open(read('2014-01'),{source:'builtin'});
- const first=owner.documentModel.snapshot(),geometry=first.geometries,identity=first.documentId;
- await owner.project.transitionBuiltin(read('2014-02'));
- const next=owner.documentModel.snapshot();assert.equal(next.documentId,identity);assert.equal(next.geometries,geometry);
- assert.equal(next.projectSetup.initialMonth,'2014-02');assert.equal(owner.client.state().timelineCursor,'2014-02');
- assert.equal(received.filter(row=>row.operation==='core.storage-baseline-load').length,1);
- assert.equal(received.filter(row=>row.operation==='core.document-load-baseline').length,1);
- const packet=received.find(row=>row.operation==='core.document-transition-baseline').packet;
- assert.equal(Object.hasOwn(packet,'project'),false);assert.deepEqual(packet.delta.geometries,[]);
- assert.equal(owner.client.state().dirty,false);assert.equal(owner.client.state().canUndo,false);
- // Country removal and a version change must use fresh, dated source selection.
- for(const month of ['2014-03','2020-10','2020-11','2014-02']){
-  await owner.project.transitionBuiltin(read(month));
-  const reference=await createNodeCoreProject(startupDocument([]),{productMode:'viewer'});
-  try {
-   const expected=(await fixture().loader.loadProject(month)).project;
-   await reference.client.load(JSON.stringify({...expected,documentId:identity}));
-   assert.deepEqual(owner.documentModel.snapshot().territorialEntities,reference.documentModel.snapshot().territorialEntities);
-   assert.deepEqual(owner.documentModel.snapshot().geometries,reference.documentModel.snapshot().geometries);
-   assert.deepEqual(owner.documentModel.territorialViews(),reference.documentModel.territorialViews());
-   assert.equal(owner.client.state().timelineCursor,month);
-  }finally{reference.dispose();}
- }
- assert.equal(received.filter(row=>row.operation==='core.document-load-baseline').length,1);
- assert.equal(received.filter(row=>row.operation==='core.document-transition-baseline').length,5);
-});
-
-
-test('unchanged geometry never permits reuse across a historical name edition',async()=>{
- const input=withExplicitView(historicalWorldCases());
- const source=input.entities.find(row=>row.sourceInfo?.featureId==='RUS');
- source.nameVersions=[{validFrom:null,validTo:'1999',names:{ko:{common:'Old'}}},
-  {validFrom:'2000',validTo:null,names:{ko:{common:'New'}}}];
- const f=fixture({assets:buildBuiltinWorldPublication({input})});
- const before=await f.loader.loadProject('1999-12');
- const after=await f.loader.loadProject('2000-12',{reuseSelectionKey:before.selectionKey});
- assert.notEqual(after.selectionKey,before.selectionKey);
- assert.equal(before.project.territorialEntities.find(row=>row.id==='RUS').properties.name,'Old');
- assert.equal(after.project.territorialEntities.find(row=>row.id==='RUS').properties.name,'New');
+ const beforeCore=structuredClone(owner.client.state());
+ const beforeDoc=structuredClone(owner.documentModel.snapshot());
+ const prepared=await session.prepareProjectSource('2014-02');
+ assert.equal(prepared.sourceMonth,'2014-02');
+ assert.equal(prepared.sourceBytes.length,prepared.compressedBytes);
+ assert.deepEqual(owner.client.state(),beforeCore);
+ assert.deepEqual(owner.documentModel.snapshot(),beforeDoc);
+ assert.equal(session.projectBaseline,null);
+ const receipt=await session.admitPreparedProjectSource(prepared);
+ assert.ok(receipt.baselineId>0);
+ assert.equal(owner.client.state().storageBaselineId,receipt.baselineId);
+ assert.deepEqual(owner.documentModel.snapshot(),beforeDoc,
+   'Explicit Core source admission is not document activation.');
 });

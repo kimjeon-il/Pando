@@ -142,6 +142,10 @@ test('selected built-in river refreshes its properties after the full geometry a
     await expect.poll(() => page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.refreshes), { timeout: 10_000 }).toBeGreaterThan(0);
     expect(await page.locator('#propertyTitle').innerText()).toBe('나일강');
     expect(await page.locator('#hydroProperties').isVisible()).toBe(true);
+    await expect(page.locator('#hydroEditFields')).toBeHidden();
+    await expect(page.locator('#hydroBuiltinHelp')).toContainText('내장 강 · 복사본에서 편집');
+    await expect(page.locator('#hydroSourceValue')).not.toBeEmpty();
+    await expect(page.locator('#hydroBuiltinNotes summary')).toHaveText('자료 출처');
     const requestsAfterHydration = await page.evaluate(() => window.__HYDRO_PROPERTY_PROBE__.requests);
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('SDN'));
     await expect(page.locator('#propertyTitle')).toHaveText('수단');

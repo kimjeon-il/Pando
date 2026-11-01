@@ -219,6 +219,9 @@ export function createProjectSession({productMode='editor',capabilities=resource
         const web=coreSelectionRefToWeb(ref);return {group:resolveVisibilityGroup(web),id:web.id};});
       if(!refs.length||refs.some(ref=>!ref.group))throw new TypeError('Known visibility references are required.');
       const visible=typeof payload.visible==='boolean'?payload.visible:!refs.every(ref=>state.itemVisibility[ref.group]?.[ref.id]!==false);
+      // Repeating the same explicit visibility is not a state mutation.
+      if(!refs.some(ref=>(state.itemVisibility[ref.group]?.[ref.id]!==false)!==visible))
+        return {ok:true,changed:false};
       const items=structuredClone(viewingPresentation.itemVisibility);
       for(const ref of refs){items[ref.group]||={};if(visible)delete items[ref.group][ref.id];else items[ref.group][ref.id]=false;}
       setViewingPresentation({itemVisibility:items});

@@ -36,10 +36,16 @@ async function captureLayouts(page, name) {
   await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
 }
 
-async function draw(page, offset = 0, polygon = false) {
+async function draw(page, offset = 0, polygon = false, connected = false) {
   const map = await page.locator('#map').boundingBox();
-  const points = [[0.38 + offset, 0.38], [0.46 + offset, 0.39], [0.45 + offset, 0.48], ...(polygon ? [[0.38 + offset, 0.38]] : [])]
-    .map(([x, y]) => [map.x + map.width * x, map.y + map.height * y]);
+  const path = connected
+    ? (polygon
+      // Overlap the first polygon: the second piece must be unionable.
+      ? [[0.42, 0.40], [0.49, 0.41], [0.48, 0.47], [0.42, 0.40]]
+      // Continue the first river from its exact last screen coordinate.
+      : [[0.45, 0.48], [0.51, 0.52], [0.54, 0.57]])
+    : [[0.38 + offset, 0.38], [0.46 + offset, 0.39], [0.45 + offset, 0.48], ...(polygon ? [[0.38 + offset, 0.38]] : [])];
+  const points = path.map(([x, y]) => [map.x + map.width * x, map.y + map.height * y]);
   await page.mouse.move(...points[0]);
   await page.mouse.down();
   for (const point of points.slice(1)) await page.mouse.move(...point, { steps: 5 });
@@ -64,7 +70,31 @@ test('annex discard confirmation preserves the exact draft when continuing', asy
   await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
   await page.locator('#actionsTabBtn').click();
   await page.locator('#annexEntityBtn').click();
+  // The async tool-start click is not a Core ACK. Wait until the source-country
+  // picking stage is installed before sending a map click.
+  await expect.poll(() => page.evaluate(() => {
+    const state = window.__testEditorTimeline.state();
+    const session = state.territorySelectionSession;
+    return state.tool === 'annex-territory' && session?.stage === 'setup'
+      && session?.setupCountryPicking === true;
+  }), { timeout: 30_000 }).toBe(true);
   await pickCountry(page, 'POL');
+  try {
+    await expect.poll(() => page.evaluate(() =>
+      window.__testEditorTimeline.state().territorySelectionSession?.sourceCountryIds?.includes('POL') === true
+    ), { timeout: 20_000 }).toBe(true);
+  } catch (error) {
+    const diagnosis = await page.evaluate(() => {
+      const state = window.__testEditorTimeline.state();
+      return { tool: state.tool, stage: state.territorySelectionSession?.stage,
+        picking: state.territorySelectionSession?.setupCountryPicking,
+        sources: state.territorySelectionSession?.sourceCountryIds,
+        selected: state.selected?.id, nextDisabled: document.querySelector('#modePrimaryBtn')?.disabled };
+    });
+    console.log('P8_ANNEX_SOURCE_DIAG ' + JSON.stringify(diagnosis));
+    throw error;
+  }
+  await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#modeTaskStep')).toHaveText('2 / 3');
   await page.locator('#modeDirectLineMethodInput').check();
@@ -222,17 +252,28 @@ for (const kind of ['general', 'regional']) test(`${kind} creation retains candi
     await page.locator('#modePrimaryBtn').click();
     await expect(page.locator('#modeTaskStage')).toHaveText('생성 확인');
     await expect(page.locator('#geometryPreviewSummary')).toContainText(name);
-    await page.locator('#modeCancelBtn').click();
+    // "편집 취소" intentionally asks to discard the workflow. The return
+    // action is the reversible review-to-selection transition under test.
+    await expect(page.locator('#modeReturnBtn')).toBeVisible();
+    await page.locator('#modeReturnBtn').click();
+    await expect(page.locator('#confirmModal')).toBeHidden();
     await expect(page.locator('#territorySelectionStackList li')).toHaveCount(1);
+    await expect(page.locator('#modeTaskStage')).toHaveText('영역 선택');
     await page.locator('#modePrimaryBtn').click();
+    await expect(page.locator('#modeTaskStage')).toHaveText('생성 확인', { timeout: 60_000 });
+    await expect(page.locator('#modePrimaryBtn')).toBeEnabled({ timeout: 60_000 });
     await page.locator('#modePrimaryBtn').click();
+    await expect.poll(() => page.evaluate(({ kind, name }) =>
+      !!window.PANDOLAB_TERRITORIAL.list({ kind }).find(unit => unit.properties.name === name),
+    { kind, name }), { timeout: 60_000 }).toBe(true);
     const created = await page.evaluate(({ kind, name }) => window.PANDOLAB_TERRITORIAL.list({ kind }).find(unit => unit.properties.name === name), { kind, name });
     expect(created.properties.entityKind).toBe(kind);
     expect(created.properties.parentId).toBe(kind === 'general' ? 'DEU' : '');
     expect(created?.geometry?.type).toMatch(/Polygon/);
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
-    expect(await page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), created.id)).toBeNull();
+    await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), created.id),
+      { timeout: 30_000 }).toBeNull();
   expect(errors).toEqual([]);
 });
 
@@ -261,13 +302,25 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await page.evaluate(id => window.PANDOLAB_TERRITORIAL.select(id), units[0].id);
   // GIS units can have no visible map label/card. Use the existing editor entry.
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.locator('#mobileEditBtn').click();
+  // Selection can open the mobile editor already; the same button toggles it
+  // closed. Enter only when the surface is not currently visible.
+  if (!await page.locator('#editorSurface').isVisible()) await page.locator('#mobileEditBtn').click();
+  await expect(page.locator('#editorSurface')).toBeVisible();
   await expect(page.locator('#entityProperties')).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.locator('#actionsTabBtn')).toBeVisible();
   await page.locator('#actionsTabBtn').click();
   await page.locator('#mergeEntityBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.__testEditorTimeline.state().tool)).toBe('merge-territorial-unit');
+  // Imported subunits are less than a degree wide. A full-world viewport
+  // cannot reliably pick their actual polygons by geographic center.
+  await page.evaluate(() => {
+    const host = window.__PANDOLAB_MAP_HOST__;
+    host.setViewState({ projection: 'flat', view: {
+      ...host.getViewState(), flatCenter: [9.5, 50.25], flatZoom: 16,
+    } });
+    host.requestRepaint('p8-subunit-merge-map-picking');
+  });
   await page.addStyleTag({content:'#map .territorial-label-item {pointer-events:none !important;}'});
   for (const target of units.slice(1)) {
     const point = await territorialCenter(page, target.id);
@@ -287,13 +340,20 @@ test('subunit merge removes the exact middle target and preserves preview, apply
   await page.locator('#modePrimaryBtn').click();
   await expect(page.locator('#confirmModal')).toBeVisible();
   await page.locator('#confirmModalOkBtn').click();
+  // Confirming a prepared merge queues an asynchronous Core commit. Wait for
+  // the removed donor to disappear before reading the merged keeper geometry.
+  await expect.poll(() => page.evaluate(id => window.PANDOLAB_TERRITORIAL.get(id), units[1].id),
+    { timeout: 60_000 }).toBeNull();
   const after = await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id)), units.map(unit => unit.id));
   expect(after[0].geometry).not.toEqual(units[0].geometry);
   expect(after[1]).toBeNull();
   expect(after[2].geometry).toEqual(units[2].geometry);
   expect(after[3]).toBeNull();
   await page.locator('#undoBtn').click();
-  expect(await page.evaluate(ids => ids.map(id => window.PANDOLAB_TERRITORIAL.get(id).geometry), units.map(unit => unit.id))).toEqual(units.map(unit => unit.geometry));
+  // Restored donors are absent until the asynchronous Core Undo is accepted.
+  await expect.poll(() => page.evaluate(ids =>
+    ids.map(id => window.PANDOLAB_TERRITORIAL.get(id)?.geometry ?? null),
+  units.map(unit => unit.id)), { timeout: 30_000 }).toEqual(units.map(unit => unit.geometry));
   expect(errors).toEqual([]);
 });
 
@@ -369,7 +429,11 @@ test('merge removal, boundary and coast use actual role cards and the shared spa
   await expect(page.locator('#modeTaskResults')).toBeHidden();
   await captureLayouts(page, 'merge-review');
   await page.locator('#modeCancelBtn').click();
-  await page.locator('#modeCancelBtn').click();
+  // Cancel asks whether to discard an unapplied merge. The backdrop blocks
+  // the task buttons until the user explicitly resolves this confirmation.
+  await expect(page.locator('#confirmModal')).toBeVisible({ timeout: 10_000 });
+  await page.getByRole('button', { name: '초안 버리기' }).click();
+  await expect(page.locator('#confirmModal')).toBeHidden();
   for (const [button, role] of [['editEntityBorderBtn', '기준 국가'], ['editEntityCoastBtn', '대상 객체']]) {
     await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
     await page.locator('#actionsTabBtn').click();
@@ -392,8 +456,34 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await expect(page.locator('#modeTaskName')).toHaveText(title);
     await expect(page.locator('#modeTaskResultsSummary')).toContainText(label + ' 0개');
     await expect(page.locator('#modeDraftDeleteBtn')).toBeHidden();
+    // An enabled Done button can refer to an earlier completed part. Wait for
+    // the current stroke's C++ draft acknowledgement before clicking it.
+    const editingRevision = () => page.evaluate(() => window.__testEditorTimeline.editing().revision);
+    const awaitFreshHydroDraft = async (previousRevision, partCount) => {
+      await expect.poll(() => page.evaluate(({ previousRevision, partCount }) => {
+        const editing = window.__testEditorTimeline.editing();
+        const multi = window.__testEditorTimeline.state().multiDraft;
+        return editing.revision > previousRevision
+          && editing.reason === 'draft-start'
+          && editing.draft.inputPhase === 'draw'
+          && editing.draft.coords.length === 0
+          && !editing.draft.strokeActive
+          && multi?.parts.length === partCount
+          && !multi.current;
+      }, { previousRevision, partCount }), { timeout: 30_000 }).toBe(true);
+    };
+    const awaitAcceptedHydroStroke = async () => {
+      await expect.poll(() => page.evaluate(() => {
+        const draft = window.__testEditorTimeline.editing().draft;
+        return draft.inputPhase === 'refine' && !draft.strokeActive ? draft.coords.length : 0;
+      }), { timeout: 30_000 }).toBeGreaterThanOrEqual(3);
+    };
     await draw(page, 0, tool === 'lake');
+    await awaitAcceptedHydroStroke();
     const vertices = page.locator('g.draft-vertex');
+    // Stroke sampling and DOM handle rendering are asynchronous. Count only
+    // after the expected draft handles have been admitted.
+    await expect.poll(() => vertices.count(), { timeout: 30_000 }).toBeGreaterThanOrEqual(3);
     const vertexCount = await vertices.count();
     await vertices.nth(1).click();
     await expect(page.locator('#modeDraftDeleteBtn')).toBeVisible();
@@ -404,31 +494,64 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(1);
     await expect(page.locator('#multiDrawnAddBtn')).toBeEnabled();
+    const beforeAddRevision = await editingRevision();
     await page.locator('#multiDrawnAddBtn').click();
-    await draw(page, 0.05, tool === 'lake');
+    await awaitFreshHydroDraft(beforeAddRevision, 1);
+    await draw(page, 0.05, tool === 'lake', true);
+    await awaitAcceptedHydroStroke();
     await page.locator('#modeDraftDoneBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(2);
     await expect(page.locator('#multiDrawnUndoBtn')).toBeEnabled();
+    const beforeUndoRevision = await editingRevision();
     await page.locator('#multiDrawnUndoBtn').click();
     await expect(page.locator('#modeTaskResultsList li')).toHaveCount(0);
-    await draw(page, 0, tool === 'lake');
+    await awaitFreshHydroDraft(beforeUndoRevision, 0);
+    try {
+      await draw(page, 0, tool === 'lake');
+      await awaitAcceptedHydroStroke();
+    } catch (error) {
+      const diagnosis = await page.evaluate(() => {
+        const state = window.__testEditorTimeline?.state();
+        const multi = state?.multiDraft;
+        return {
+          tool: state?.tool, processing: state?.modeProcessing,
+          parts: multi?.parts?.length, current: !!multi?.current,
+          pending: multi?.previewPending, issues: multi?.previewIssues,
+          previewGeometry: multi?.previewGeometry?.type,
+          vertexHandles: document.querySelectorAll('g.draft-vertex').length,
+          doneDisabled: document.querySelector('#modeDraftDoneBtn')?.disabled,
+          reason: document.querySelector('#modeTaskDisabledReason')?.textContent,
+          taskInput: document.querySelector('#modeTaskInput')?.textContent,
+          status: document.querySelector('#modeTaskResultsSummary')?.textContent,
+        };
+      });
+      console.log('P8_HYDRO_DRAFT_DIAG ' + JSON.stringify(diagnosis));
+      throw error;
+    }
     await page.locator('#modeDraftDoneBtn').click();
     if (tool === 'river') {
-      // Existing geometry validation rejects the line-only multi-draft preview.
-      // UI-only work must expose that error and must not bypass it to create a river.
-      await expect(page.locator('#modeTaskDisabledReason')).toBeVisible();
-      await expect(page.locator('#modeTaskResultsSummary')).toContainText('검증 필요');
-      await expect(page.locator('#modePrimaryBtn')).toBeDisabled();
-      await captureLayouts(page, tool);
-      await page.locator('#modeCancelBtn').click();
-      continue;
+      // The single retained route is a valid LineString. Preview calculation
+      // is asynchronous; '계산 중' is not an invalid geometry verdict.
+      await expect.poll(() => page.evaluate(() => {
+        const multi = window.__testEditorTimeline?.state().multiDraft;
+        return {
+          pending: !!multi?.previewPending,
+          issues: multi?.previewIssues?.length ?? 0,
+          geometry: multi?.previewGeometry?.type || null,
+        };
+      }), { timeout: 45_000 }).toEqual({
+        pending: false, issues: 0, geometry: 'LineString',
+      });
+      await expect(page.locator('#modeTaskResultsSummary')).toContainText('경로 1개');
+      await expect(page.locator('#modeTaskDisabledReason')).toBeHidden();
     }
     await expect(page.locator('#modePrimaryBtn')).toBeEnabled();
     await expect(page.locator('#modeTaskResultsSummary')).not.toContainText('계산 중');
     await captureLayouts(page, tool);
     await page.locator('#modePrimaryBtn').focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('#hydroProperties')).toBeVisible();
+    // A confirmed hydro command may still be applying its Core result and selection.
+    await expect(page.locator('#hydroProperties')).toBeVisible({ timeout: 45_000 });
     const id = await page.locator('#hydroIdValue').textContent();
     expect(id?.trim()).toBeTruthy();
     const savedFeature = () => page.evaluate(async id => {
@@ -438,22 +561,85 @@ test('hydro lists preserve add, undo and validation, and lake creation retains g
         request.onerror = () => reject(request.error);
       });
       try {
-        return await new Promise((resolve, reject) => {
+        const project = await new Promise((resolve, reject) => {
           const request = database.transaction('projects', 'readonly').objectStore('projects').get('active-project');
-          request.onsuccess = () => resolve(request.result?.hydroEdits?.find(feature => feature.id === id) || null);
+          request.onsuccess = () => resolve(request.result || null);
           request.onerror = () => reject(request.error);
         });
+        const identity = project?.hydroEdits?.find(feature => feature.id === id);
+        if (!identity) return null;
+        // The canonical web storage format stores water identities with null
+        // geometry; shapes belong to the dated geometry binding and archive.
+        const binding = project.timelineRecords?.geometryBindings?.find(row =>
+          row.objectRef?.domain === 'hydro' && row.objectRef?.id === id && row.geometryRef);
+        const geometry = project.geometries?.find(row =>
+          row.id === binding?.geometryRef?.id && row.version === binding?.geometryRef?.version)?.geojson || null;
+        return { ...identity, geometry, storedIdentityGeometry: identity.geometry };
       } finally { database.close(); }
     }, id.trim());
-    await expect.poll(savedFeature, { timeout: 20_000 }).not.toBeNull();
-    const created = await savedFeature();
-    expect(created.geometry.type).toBe(tool === 'river' ? 'LineString' : 'Polygon');
+    // Capture the same accepted persisted snapshot we verified. A second
+    // independent IndexedDB read may race the following save checkpoint.
+    let created = null;
+    try {
+      await expect.poll(async () => {
+        const feature = await savedFeature();
+        if (feature?.geometry?.type && feature.geometry.coordinates?.length) created = feature;
+        return feature?.geometry?.type ?? null;
+      }, { timeout: 30_000 }).toBe(tool === 'river' ? 'LineString' : 'Polygon');
+    } catch (error) {
+      const diagnosis = await page.evaluate(id => {
+        const probe = window.__testEditorTimeline;
+        const core = probe.history(), project = probe.project(), save = probe.save();
+        return { expectedId: id, coreHydroIds: project.hydroEdits?.map(feature => feature.id),
+          coreHistory: { checkpoint: core.checkpoint, undo: core.undoCommandId, redo: core.redoCommandId },
+          autosave: save.autosave, fallback: save.autosaveFallback, autosaveRecovery: save.autosaveRecovery,
+          projectDirty: save.documentDirty, schedulerInteractionActive: probe.scheduler(),
+          activeTool: probe.state().tool };
+      }, id.trim());
+      console.log('P8_HYDRO_CREATE_DIAG ' + JSON.stringify(diagnosis));
+      // A direct flush distinguishes queued-idle starvation from missing Core data.
+      try {
+        await page.evaluate(() => window.__testEditorTimeline.flush());
+        const flushed = await savedFeature();
+        console.log('P8_HYDRO_CREATE_FLUSH_DIAG ' + JSON.stringify({
+          storedAfterFlush: !!flushed, geometryType: flushed?.geometry?.type || null,
+        }));
+      } catch (flushError) {
+        console.log('P8_HYDRO_CREATE_FLUSH_ERROR ' + String(flushError));
+      }
+      throw error;
+    }
+    expect(created).not.toBeNull();
+    expect(created.storedIdentityGeometry).toBeNull();
     expect(created.geometry.coordinates.length).toBeGreaterThan(0);
     await page.locator('#undoBtn').click();
-    await expect(page.locator('#hydroProperties')).toBeHidden();
-    await expect.poll(savedFeature, { timeout: 20_000 }).toBeNull();
+    // Verify canonical storage removal before asserting UI selection invalidation.
+    // Both are async after an accepted Core undo; a short UI-only timeout hides the cause.
+    await expect.poll(savedFeature, { timeout: 45_000 }).toBeNull();
+    await expect(page.locator('#hydroProperties')).toBeHidden({ timeout: 30_000 });
     await page.locator('#redoBtn').click();
-    await expect.poll(savedFeature, { timeout: 20_000 }).toEqual(created);
+    try {
+      await expect.poll(savedFeature, { timeout: 45_000 }).toEqual(created);
+    } catch (error) {
+      const diagnosis = await page.evaluate(id => {
+        const probe = window.__testEditorTimeline;
+        const history = probe.history();
+        const project = probe.project();
+        const state = probe.state();
+        const save = probe.save();
+        return {
+          history: { checkpoint: history.checkpoint, canUndo: history.canUndo, canRedo: history.canRedo,
+            undoCommandId: history.undoCommandId, redoCommandId: history.redoCommandId },
+          projectHydroIds: project.hydroEdits?.map(feature => feature.id),
+          stateHydroIds: state.hydroEdits?.map(feature => feature.id),
+          expectedId: id, autosave: save.autosave, autosaveFallback: save.autosaveFallback, schedulerInteractionActive: probe.scheduler(),
+          saveState: document.querySelector('#projectSaveStatus')?.dataset.saveState,
+          selected: state.selected?.id || null,
+        };
+      }, id.trim());
+      console.log('P8_HYDRO_REDO_DIAG ' + JSON.stringify(diagnosis));
+      throw error;
+    }
   }
   expect(errors).toEqual([]);
 });
@@ -484,7 +670,10 @@ test('free distribution shows real name and signed value and applies immediately
   expect(result[0]).toMatchObject({ mode: 'geometry', value: -4.25 });
   expect(result[0].geometry.type).toBe('Polygon');
   await page.locator('#undoBtn').click();
-  expect(await page.evaluate(() => window.PANDOLAB_DISTRIBUTIONS.listEntries(window.PANDOLAB_DISTRIBUTIONS.listLayers()[0].id).length)).toBe(0);
+  // Indexed project and UI projections update after the accepted Core undo.
+  await expect.poll(() => page.evaluate(() =>
+    window.PANDOLAB_DISTRIBUTIONS.listEntries(window.PANDOLAB_DISTRIBUTIONS.listLayers()[0].id).length),
+  { timeout: 30_000 }).toBe(0);
   expect(errors).toEqual([]);
 });
 

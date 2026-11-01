@@ -1,3 +1,16 @@
+const GENERIC_CONVERSION_BUTTON_LABELS = Object.freeze({
+  label: '지명으로 변경',
+  river: '강으로 변경',
+  general: '객체로 변경',
+  regional: '독립 권역으로 변경',
+  lake: '호수로 변경',
+  distribution: '분포로 변경',
+});
+
+export function genericConversionButtonLabel(target) {
+  return GENERIC_CONVERSION_BUTTON_LABELS[target] || '종류 변경';
+}
+
 const PROPERTY_TYPE_LABELS = Object.freeze({
   entity: '객체',
   distribution: '분포', generic: '기타 객체', label: '지명', hydro: '강·호수', multi: '다중선택',

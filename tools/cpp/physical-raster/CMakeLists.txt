@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(pando_physical_raster LANGUAGES CXX)
+find_package(GDAL 3.9 REQUIRED MODULE)
+add_executable(pando-physical-raster source.cpp)
+target_compile_features(pando-physical-raster PRIVATE cxx_std_17)
+target_link_libraries(pando-physical-raster PRIVATE GDAL::GDAL)

@@ -25,6 +25,33 @@ export function createGpuUploadScope(scheduler) {
   });
 }
 
+// Stage uploads remain owned by the requesting operation until the live
+// mesh or override has actually adopted them. Superseded uploads roll back.
+export function createGpuResourceLease(release) {
+  const pending = new Set();
+  let closed = false;
+  return Object.freeze({
+    own(resource) {
+      if (!resource) return resource;
+      if (closed) {
+        release(resource);
+        throw new Error('GPU resource lease is closed');
+      }
+      pending.add(resource);
+      return resource;
+    },
+    transfer(resource) { return pending.delete(resource); },
+    releaseAll() {
+      if (closed) return;
+      closed = true;
+      for (const resource of pending) {
+        pending.delete(resource);
+        release(resource);
+      }
+    },
+  });
+}
+
 // Owns only allocations made by the coordinator. Dedicated passes own their GL objects.
 export function createGpuResourceLifecycle() {
   const resources = new Map();
@@ -35,7 +62,14 @@ export function createGpuResourceLifecycle() {
   let disposed = false;
   let revision = 0;
   function retain(gl, kind, value) {
-    if (value) resources.set(value, { gl, kind });
+    if (!value) return value;
+    // A late async shader/program may arrive after disposal. Free its handle
+    // on the GL context that allocated it rather than retaining a new leak.
+    if (disposed) {
+      if (!gl.isContextLost?.()) gl[`delete${kind}`](value);
+      return null;
+    }
+    resources.set(value, { gl, kind });
     return value;
   }
   function release(value) {

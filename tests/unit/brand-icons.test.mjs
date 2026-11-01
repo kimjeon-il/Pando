@@ -77,7 +77,8 @@ test('Windows and favicon containers retain their reviewed optical-size PNG fram
 
 test('favicon preserves the reviewed small form instead of auto-scaling the standard glyph',()=>{
  const favicon=text(brand+'favicon.svg');
- assert.match(favicon,/fill="#315EDB"/);
+ assert.match(favicon,/<rect\b[^>]*fill="#FFFFFF"/);
+ assert.equal((favicon.match(/<path\b[^>]*fill="#315EDB"/g)||[]).length,2);
  assert.match(favicon,/M9 6 H18 V27 H24 V42/);assert.match(favicon,/M39 42 H30 V21 H24 V6/);
  assert.doesNotMatch(favicon,/<(?:script|image|filter)\b|href=/);
 });

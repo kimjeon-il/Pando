@@ -30,6 +30,6 @@
     "maskable": "separate safe-area placement; do not stretch the normal app icon",
     "windows": "primary cobalt glyph on transparent canvas; no plate; optical-small at 16-32px",
     "android": "opaque full-bleed primary background and separate white foreground; OS owns adaptive mask",
-    "webFavicon": "white optical-small glyph on fixed primary plate; independent of Windows exports"
+    "webFavicon": "primary cobalt optical-small glyph on fixed white plate; independent of Windows exports"
   }
 }

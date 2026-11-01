@@ -1,3 +1,4 @@
+import { fetchWithRetry, isRetryableHttpStatus } from './reliability-core.js';
 // Shared stored-byte cache, integrity and decoding owner for packed world and catalog assets.
 export function createStoredAssetLoader({dataRevision, resolveUrl, report = () => {}, fetchFn = globalThis.fetch, cacheStorage = globalThis.caches, cachePolicy = 'revision'}) {
  const DATA_CACHE_PREFIX = 'pandolab-data-';
@@ -43,25 +44,26 @@ async function cacheStoredBuffer(cache, url, storedBuffer, headers = null) {
   }
 }
 
-function countedStream(stream, onChunk) {
+function countedStream(stream, onChunk, signal = null) {
   if (!stream || typeof TransformStream !== 'function') return stream;
   return stream.pipeThrough(new TransformStream({
     transform(chunk, controller) {
       onChunk(chunk.byteLength);
       controller.enqueue(chunk);
     },
-  }));
+  }), signal ? { signal } : undefined);
 }
 
-async function consumeStoredResponse(response, spec, phase, key, label, source) {
+async function consumeStoredResponse(response, spec, phase, key, label, source, touch = () => {}, signal = null) {
   const startedAt = performance.now();
   let storedBytes = 0;
   const expectedStored = Number(spec.compressedBytes || 0);
   if (response.body && typeof TransformStream === 'function') {
     const stream = countedStream(response.body, length => {
       storedBytes += length;
+      touch();
       report(phase, key, `${label}: ${source === 'cache' ? '저장된 데이터를 읽는' : '다운로드하는'} 중입니다.`, storedBytes, expectedStored);
-    });
+    }, signal);
     const storedBuffer = await new Response(stream).arrayBuffer();
     return {
       storedBuffer,
@@ -123,6 +125,7 @@ function validateAssetLength(result, spec, label) {
 }
 
 async function loadRepresentation(spec, phase, key, label, validate, signal, representation) {
+  signal?.throwIfAborted();
   const decode=buffer=>representation==='decoded' ? decodeStoredBuffer(buffer,spec,phase,key,label):Promise.resolve({buffer,decodedBytes:buffer.byteLength,decompressMs:0});
   const url = resolveAssetUrl(spec);
   const cache = await openDataCache();
@@ -130,7 +133,8 @@ async function loadRepresentation(spec, phase, key, label, validate, signal, rep
     const cached = await cache.match(url).catch(() => null);
     if (cached) {
       try {
-        const read = await consumeStoredResponse(cached, spec, phase, key, label, 'cache');
+        signal?.throwIfAborted();
+        const read = await consumeStoredResponse(cached, spec, phase, key, label, 'cache', () => {}, signal);
         await validateStoredAsset(read.storedBuffer, spec, label);
         const decoded = await decode(read.storedBuffer);
         const result = {
@@ -141,9 +145,11 @@ async function loadRepresentation(spec, phase, key, label, validate, signal, rep
         };
         if(representation==='decoded')validateAssetLength(result, spec, label);
         const value = await validate(result.buffer, label);
+        signal?.throwIfAborted();
         report(phase, key, `${label}: 저장된 데이터를 확인했습니다.`, Number(spec.compressedBytes || result.storedBytes), Number(spec.compressedBytes || result.storedBytes), true, { source: 'cache' });
         return { ...result, value, cacheHit: true };
-      } catch (_) {
+      } catch (error) {
+        if (signal?.aborted || error?.name === 'AbortError') throw error;
         await cache.delete(url).catch(() => false);
         report(phase, `${key}-cache-repair`, `${label}: 손상된 저장 데이터를 지우고 다시 받습니다.`, 1, 1, true, { source: 'cache', recovered: true });
       }
@@ -153,11 +159,17 @@ async function loadRepresentation(spec, phase, key, label, validate, signal, rep
   let lastError = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
-      const response = await fetchFn(url, { cache: attempt === 1 ? 'default' : 'reload', signal });
-      if (!response.ok) throw new Error(`${label} 요청에 실패했습니다. (${response.status})`);
-      const responseHeaders = response.headers;
-      const read = await consumeStoredResponse(response, spec, phase, key, label, 'network');
+      let responseHeaders;
+      const read = await fetchWithRetry(url, { cache: attempt === 1 ? 'default' : 'reload', signal }, {
+        fetchFn, maxAttempts: 1, timeoutMs: 30000,
+        consume: (response, { touch, signal: requestSignal }) => {
+          if (!response.ok) throw Object.assign(new Error(`${label} 요청에 실패했습니다. (${response.status})`), { httpStatus: response.status });
+          responseHeaders = response.headers;
+          return consumeStoredResponse(response, spec, phase, key, label, 'network', touch, requestSignal);
+        },
+      });
       await validateStoredAsset(read.storedBuffer, spec, label);
+      signal?.throwIfAborted();
       const cacheWriteStartedAt = performance.now();
       report(phase, `${key}-cache-write`, `${label}: 다운로드한 데이터를 저장하는 중입니다.`, 0, 1);
       const cached = await cacheStoredBuffer(cache, url, read.storedBuffer, responseHeaders);
@@ -172,11 +184,13 @@ async function loadRepresentation(spec, phase, key, label, validate, signal, rep
       };
       if(representation==='decoded')validateAssetLength(result, spec, label);
       const value = await validate(result.buffer, label);
+      signal?.throwIfAborted();
       report(phase, key, `${label}: 다운로드를 완료했습니다.`, Number(spec.compressedBytes || result.storedBytes), Number(spec.compressedBytes || result.storedBytes), true, { source: 'network', cached, attempt });
       return { ...result, value, cacheHit: false };
     } catch (error) {
       lastError = error;
-      if (error?.name === 'AbortError') throw error;
+      if (signal?.aborted || error?.name === 'AbortError') throw error;
+      if (Number.isFinite(error?.httpStatus) && !isRetryableHttpStatus(error.httpStatus)) throw error;
       if (cache) await cache.delete(url).catch(() => false);
       if (attempt < 3) {
         report(phase, `${key}-retry`, `${label} 준비를 다시 시도합니다. (${attempt + 1}/3)`, attempt, 3, false, { attempt });

@@ -44,3 +44,52 @@ test('terminated Worker channels close late bitmaps and never dispatch late erro
   assert.equal(delivered, 0); assert.equal(closed, 1);
   owner.dispose();
 });
+
+test('P3-4 lease frees a staged base when a later override stage aborts', async () => {
+  const deleted = [];
+  const gl = { createBuffer: () => ({}), deleteBuffer: buffer => deleted.push(buffer) };
+  const lifecycle = lifecycleModule.createGpuResourceLifecycle();
+  const lease = lifecycleModule.createGpuResourceLease(resources => {
+    lifecycle.release(resources.positionBuffer);
+    lifecycle.release(resources.fillIndexBuffer);
+  });
+  const base = { positionBuffer: lifecycle.create(gl, 'Buffer'), fillIndexBuffer: lifecycle.create(gl, 'Buffer') };
+  await assert.rejects(async () => {
+    try {
+      lease.own(base);
+      throw Object.assign(new Error('Override staging superseded'), { name: 'AbortError' });
+    } finally { lease.releaseAll(); }
+  }, { name: 'AbortError' });
+  lease.releaseAll();
+  assert.deepEqual(deleted, [base.positionBuffer, base.fillIndexBuffer]);
+  lifecycle.dispose();
+  assert.equal(deleted.length, 2);
+});
+
+test('P3-4 lease transfers only adopted resources and releases rejected buffers once', () => {
+  const deleted = [];
+  const gl = { createBuffer: () => ({}), deleteBuffer: buffer => deleted.push(buffer) };
+  const lifecycle = lifecycleModule.createGpuResourceLifecycle();
+  const lease = lifecycleModule.createGpuResourceLease(resources => lifecycle.release(resources.positionBuffer));
+  const base = { positionBuffer: lifecycle.create(gl, 'Buffer') };
+  const override = { positionBuffer: lifecycle.create(gl, 'Buffer') };
+  lease.own(base);
+  lease.own(override);
+  assert.equal(lease.transfer(base), true);
+  lease.releaseAll(); lease.releaseAll();
+  assert.deepEqual(deleted, [override.positionBuffer]);
+  lifecycle.release(base.positionBuffer);
+  assert.deepEqual(deleted, [override.positionBuffer, base.positionBuffer]);
+  lifecycle.dispose();
+  assert.equal(deleted.length, 2);
+});
+
+test('P3-4 late GL handles after lifecycle disposal are released by their allocating context', () => {
+  const freed = [];
+  const gl = { isContextLost: () => false, deleteBuffer: value => freed.push(value) };
+  const lifecycle = lifecycleModule.createGpuResourceLifecycle();
+  lifecycle.dispose();
+  const lateBuffer = {};
+  assert.equal(lifecycle.retain(gl, 'Buffer', lateBuffer), null);
+  assert.deepEqual(freed, [lateBuffer]);
+});
