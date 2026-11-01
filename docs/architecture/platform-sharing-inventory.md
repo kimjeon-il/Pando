@@ -177,12 +177,7 @@ Implemented. `apps/editor/native-platform-adapter.js` is the sole frontend runti
 
 ### T3 — Contract-level file-access consolidation, not transport merging
 
-Keep:
-
-- `browser-file-access.js` as browser transport.
-- `native-storage.js` (or a later semantic rename) as native transport.
-
-Strengthen one shared file-access contract and reuse the same contract tests against browser and simulated native adapters. Extract code only where both adapters actually duplicate semantics.
+Implemented. `shared/frontend/js/modules/file-access-contract.js` now owns the required methods by product mode plus project/GIS selection, prepared-save and write-receipt validation. `platform-ports.js` and `file-controller.js` consume this same owner. `browser-file-access.js` and `native-storage.js` remain separate transports and are exercised by one shared contract suite.
 
 ### T4 — Native JS/Rust document-transfer protocol check
 

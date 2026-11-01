@@ -1,8 +1,8 @@
+import {assertFileAccessPort} from './file-access-contract.js';
 export const PLATFORM_PORTS_SCHEMA = 'pandolab-platform-ports-v1';
 
 const PLATFORM_KINDS = new Set(['browser', 'native']);
 const STARTUP_MESHES = new Set(['builtin', 'project']);
-const EDITOR_FILE_METHODS = ['openProjectFile', 'openGisFiles', 'prepareProjectSave', 'saveExportFile'];
 
 function requireRecord(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError(`${label} must be an object.`);
@@ -14,14 +14,6 @@ function rejectUnknown(record, allowed, label) {
 function optionalFunction(value, label) {
   if (value !== null && value !== undefined && typeof value !== 'function') throw new TypeError(`${label} must be a function or null.`);
   return value ?? null;
-}
-function validateFileAccess(access, { editor = false } = {}) {
-  if (access == null) return null;
-  requireRecord(access, 'Platform file access');
-  const methods = editor ? EDITOR_FILE_METHODS : ['openProjectFile'];
-  for (const name of methods) if (typeof access[name] !== 'function') throw new TypeError(`Platform file access requires ${name}.`);
-  for (const name of ['bind', 'dispose']) if (access[name] !== undefined && typeof access[name] !== 'function') throw new TypeError(`Platform file access ${name} must be a function when provided.`);
-  return access;
 }
 function validateGeometryContext(context) {
   if (context == null) return null;
@@ -88,7 +80,7 @@ export function assertPlatformPorts(platform, { productMode } = {}) {
   if (typeof platform.resources.builtinHydro !== 'boolean' || typeof platform.resources.builtinPlaces !== 'boolean'
       || !STARTUP_MESHES.has(platform.resources.startupMesh)) throw new TypeError('Runtime platform resource ports are invalid.');
   if (platform.storage.namespace !== null && (typeof platform.storage.namespace !== 'string' || !platform.storage.namespace.trim())) throw new TypeError('Runtime platform storage namespace is invalid.');
-  const access = validateFileAccess(platform.files.access, { editor: productMode === 'editor' });
+  const access = platform.files.access === null ? null : assertFileAccessPort(platform.files.access, { productMode });
   const repository = optionalFunction(platform.library.getRepository, 'Runtime platform library repository provider');
   const geometryContext = validateGeometryContext(platform.library.geometryContext);
   validateBuiltinLoader(platform.world.builtinLoader);

@@ -1,17 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBrowserFileAccess} from '../../shared/frontend/js/modules/browser-file-access.js';
+import {assertFileAccessPort,FILE_ACCESS_REQUIRED_METHODS} from '../../shared/frontend/js/modules/file-access-contract.js';
 const {File,Blob}=globalThis;
 
-test('file access requires product operations before binding and validates optional lifecycle methods',async()=>{
+test('file access method ownership comes from the canonical shared contract',async()=>{
  const {createFileController}=await import('../../shared/frontend/js/modules/file-controller.js');
  for(const productMode of ['viewer','editor']){
-  const required=['openProjectFile',...(productMode==='editor'?['openGisFiles','prepareProjectSave','saveExportFile']:[])];
+  const required=FILE_ACCESS_REQUIRED_METHODS[productMode];
   const fileAccess=Object.fromEntries(required.map(name=>[name,()=>{}]));
   const options={productMode,elements:{},fileAccess,reportOperationError(){}};
+  assert.equal(assertFileAccessPort(fileAccess,{productMode}),fileAccess);
   assert.doesNotThrow(()=>createFileController(options));
-  for(const name of required)assert.throws(()=>createFileController({...options,fileAccess:{...fileAccess,[name]:null}}),new RegExp(name));
-  for(const name of ['bind','dispose'])assert.throws(()=>createFileController({...options,fileAccess:{...fileAccess,[name]:true}}),new RegExp(name));
+  for(const name of required)assert.throws(()=>assertFileAccessPort({...fileAccess,[name]:null},{productMode}),new RegExp(name));
+  for(const name of ['bind','dispose'])assert.throws(()=>assertFileAccessPort({...fileAccess,[name]:true},{productMode}),new RegExp(name));
  }
 });
 
