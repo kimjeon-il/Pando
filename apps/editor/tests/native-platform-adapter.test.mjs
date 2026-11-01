@@ -40,14 +40,7 @@ test('raw native globals occur only in the native platform adapter runtime', () 
   const adapter=readFileSync(new URL('apps/editor/native-platform-adapter.js',root),'utf8');
   const raw=['__TAURI_INTERNALS__','PANDOLAB_NATIVE_LIBRARY_AVAILABLE','PANDOLAB_SHELL_VERIFICATION','__PANDOLAB_SHELL_AUTO__','__PANDOLAB_SHELL_PROBE_HOLD_MS__'];
   const retired=['PANDOLAB_NATIVE_BUILD_INFO','__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__'];
-  for(const token of raw)assert.match(adapter,new RegExp(token.replaceAll('
-  for(const path of ['apps/editor/startup.js','apps/editor/native-storage.js','apps/editor/probe-storage.js','apps/editor/full-world-probe.js','apps/editor/verification.js','apps/editor/diagnostics.js','apps/editor/frontend/js/app.js']){
-    const source=readFileSync(new URL(path,root),'utf8');
-    for(const token of raw)assert.equal(source.includes(token),false,path+' bypasses native-platform-adapter: '+token);
-    assert.equal(source.includes('__PANDOLAB_SHELL_PLATFORM__'),false,path+' retains global platform handoff');
-  }
-});
-,'\\  for(const token of raw)assert.match(adapter,new RegExp(token.replaceAll('$','\\$&')));')));
+  for(const token of raw)assert.match(adapter,new RegExp(token.replaceAll('$','\\$&')));
   for(const token of retired)assert.equal(adapter.includes(token),false,'retired adapter input: '+token);
   const shell=readFileSync(new URL('apps/editor/src-tauri/src/lib.rs',root),'utf8');
   for(const token of retired)assert.equal(shell.includes(token),false,'retired shell injection: '+token);
@@ -57,7 +50,6 @@ test('raw native globals occur only in the native platform adapter runtime', () 
     assert.equal(source.includes('__PANDOLAB_SHELL_PLATFORM__'),false,path+' retains global platform handoff');
   }
 });
-
 
 test('retired T7 shell inputs and physical A-B benchmark stay removed', () => {
   const root=new URL('../../../',import.meta.url);
