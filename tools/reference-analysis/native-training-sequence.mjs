@@ -72,9 +72,10 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
       last=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly,orderDirectory}):
         await runTrainingBatch({...common,supervision,order,reviewed,publisher});
       const receipt=JSON.parse(readTrainingBounded(checkpoint+'.receipt.json',1024*1024));
-      if(receipt.cursor!==cursor+count||receipt.orderSha256!==plan.orderSha256||receipt.orderLength!==plan.length||
-        receipt.parentCheckpointSha256!==parentHash||receipt.parentReceiptSha256!==parentReceiptHash)
+      if(receipt.cursor!==cursor+count||receipt.orderSha256!==plan.orderSha256||receipt.orderLength!==plan.length)
         throw Error('Training checkpoint cursor differs from the prepared order; preserve outputs');
+      if(receipt.parentCheckpointSha256!==parentHash||receipt.parentReceiptSha256!==parentReceiptHash)
+        throw Error('Training checkpoint parent identity differs; preserve outputs');
       current=checkpoint;cursor=receipt.cursor;completed++;
       if(onBatch)await onBatch({epoch,cursor,orderLength:plan.length,batches:completed,checkpoint:current,
         checkpointSha256:last.checkpointSha256,status:cursor===plan.length?'epoch-complete':'partial'});
