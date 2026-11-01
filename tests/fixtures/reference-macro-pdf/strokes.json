@@ -33,5 +33,57 @@
       ],
       "sha256": "e7a5d4b4473e923fc26e98c507d44f423f00f70e35e51fa10d958ca84880bf6c"
     }
-  ]
+  ],
+  "derive": {
+    "metadata": {
+      "geographicScope": "country",
+      "scopeEvidence": "fixture",
+      "materialKind": "published-macro-pdf",
+      "rightsReviewed": true,
+      "license": "fixture only",
+      "supervision": {
+        "strategy": "boundary-stroke-signatures",
+        "knownBandRadiusPixels": 4,
+        "channels": {
+          "international": [
+            {
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "width": 2,
+              "dashes": []
+            }
+          ],
+          "administrative": [
+            {
+              "color": [
+                1,
+                0,
+                0
+              ],
+              "width": 2,
+              "dashes": [
+                5,
+                3
+              ]
+            }
+          ]
+        }
+      },
+      "excludedRegionsNormalized": [
+        [
+          0.8,
+          0.8,
+          0.9,
+          0.9
+        ]
+      ]
+    },
+    "rgb": "623e3d5f24b95f50b48698bf19c505505120e60a6c4e90ce3cd5bd5bd217ee33",
+    "target": "eaf64c4368160c5eca7dc757f12bbd9f7878254af600d1014265ad345ae87b60",
+    "known": "fe64796b93382157f17e2a74b91616a9bf6d454a0b28934f352ff338027de9dd",
+    "credits": "04f553d62645660a6725e597d9c6d1e8a6cc4d763a73d0ed7f41cd63953d3471"
+  }
 }

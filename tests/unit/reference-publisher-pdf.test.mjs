@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import test from 'node:test';
 import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg,extractPublisherPdfText,inspectPublisherPdf,renderMacroPdf,renderMacroStrokes,renderPublisherPdfLayers} from '../../tools/reference-analysis/native-publisher-pdf.mjs';
 import {inspectNativeJpeg} from '../../tools/map-image/native-resample.mjs';
-import {deriveMacroFill} from '../../tools/reference-analysis/native-macro-fill.mjs';
+import {deriveMacroPdf} from '../../tools/reference-analysis/native-macro-pdf.mjs';
 
 test('publisher layer renderer matches the frozen original PDF pixels',async()=>{
   const root=resolve('tests/fixtures/reference-publisher-layers');
@@ -47,6 +47,9 @@ test('macro stroke signatures match original solid and dashed masks',async()=>{
   for(const row of oracle.rows){const actual=await renderMacroStrokes({path,maximumDimension:160,signatures:row.signatures});
     assert.deepEqual([actual.width,actual.height],[oracle.width,oracle.height]);
     assert.equal(createHash('sha256').update(actual.mask).digest('hex'),row.sha256);}
+  const derived=await deriveMacroPdf({path,metadata:oracle.derive.metadata,maximumDimension:160});
+  for(const [field,expected] of [['image','rgb'],['target','target'],['known','known'],['credits','credits']])
+    assert.equal(createHash('sha256').update(derived[field]).digest('hex'),oracle.derive[expected]);
   await assert.rejects(renderMacroStrokes({path,maximumDimension:160,signatures:[{color:[0,0,0],width:9,dashes:[]}]}),/absent/i);
   assert.deepEqual(readFileSync(path),original);
 });
@@ -62,11 +65,11 @@ test('macro PDF image and glyph masks match the original unrotated coordinate sy
     const metadata={geographicScope:'country',scopeEvidence:'test fixture',materialKind:'published-macro-pdf',rightsReviewed:true,
       license:'fixture only',supervision:{strategy:'country-fill-adjacency',radiusPixels:3,countryFillColors:[[.7,.5,.3],[.3,.5,.7]]},
       excludedRegionsNormalized:[[.45,.75,.55,.95]]};
-    const fill=await deriveMacroFill({path,metadata,maximumDimension:160});
+    const fill=await deriveMacroPdf({path,metadata,maximumDimension:160});
     assert.deepEqual([fill.width,fill.height],[oracle.fill.width,oracle.fill.height]);
     assert.equal(sha(fill.image),oracle.fill.rgbSha256);assert.equal(sha(fill.target),oracle.fill.targetSha256);
     assert.equal(sha(fill.known),oracle.fill.knownSha256);assert.equal(sha(fill.credits),oracle.fill.creditsSha256);
-    await assert.rejects(deriveMacroFill({path,metadata:{...metadata,rightsReviewed:false},maximumDimension:160}),/rights/i);
+    await assert.rejects(deriveMacroPdf({path,metadata:{...metadata,rightsReviewed:false},maximumDimension:160}),/rights/i);
   }
   await assert.rejects(renderMacroPdf({path:resolve(root,'base.pdf'),maximumDimension:63}),/dimension/i);
 });
