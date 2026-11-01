@@ -115,6 +115,10 @@ export function createTerritorialPropertyController({
     parentRows.dataset.empty = String(!parent);
     childRows.dataset.empty = String(!children.length);
     $('entityRelations').hidden = !general;
+    const relationSummary = $('entityRelationsSummary');
+    if (relationSummary) relationSummary.textContent = general
+      ? `${parent ? getTerritorialView(entityRef(parent.id)).displayName : '소속 없음'} · 산하 ${children.length}개`
+      : '독립 권역';
     const excluded = new Set([view.ref.id, ...entityRepository.ancestors(view.ref.id).map(feature => String(feature.id))]);
     const candidates = general ? entityRepository.list().filter(candidate => candidate.properties.entityKind === 'general'
       && !candidate.properties.locked && candidate.properties.parentId !== view.ref.id && !excluded.has(String(candidate.id))) : [];
@@ -141,6 +145,16 @@ export function createTerritorialPropertyController({
       nameDisclosure.hidden = nameDetails.hidden;
     }
     elements.notes.value = properties.notes;
+    const notesPreview = $('entityNotesPreview');
+    if (notesPreview) {
+      const text = String(properties.notes || '').replace(/\s+/g, ' ').trim();
+      notesPreview.textContent = text || '추가';
+      notesPreview.dataset.empty = String(!text);
+    }
+    for (const disclosureId of ['entityNotesDisclosure', 'entityRelationsDisclosure']) {
+      const disclosure = $(disclosureId);
+      if (disclosure && activeRef?.key !== view.ref.key) disclosure.open = false;
+    }
     $('entityPeriodInput').value = formatTerritorialPeriodInput(properties);
     clearPeriodError();
     syncIdentity(view);
