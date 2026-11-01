@@ -3,6 +3,9 @@ on:
   push:
     branches: [work/ui]
     paths:
+      - shared/frontend/js/modules/map-input-presentation.js
+      - shared/frontend/js/modules/map-input-controller.js
+      - tests/unit/map-input-controller.test.mjs
       - tests/integration/viewer-functional-p6-2.spec.mjs
       - tests/integration/viewer-functional-p6-2.config.mjs
       - .github/workflows/viewer-functional-p6-2.yml
@@ -19,6 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -51,6 +55,8 @@ jobs:
         run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - name: Check generated frontend metadata
         run: node scripts/generate-build-metadata.mjs --check
+      - name: Focused touch input controller contracts
+        run: node --test tests/unit/map-input-controller.test.mjs
       - name: Stage the Web publication closure
         run: node tools/stage-monorepo-pages.mjs --root . --stage "$RUNNER_TEMP/p6-2-pages-site" --manifest "$RUNNER_TEMP/p6-2-pages-evidence.json"
       - name: Verify both App staging profiles without packaging
@@ -60,6 +66,25 @@ jobs:
           node apps/editor/check-stage.mjs
           node apps/editor/stage.mjs --profile=map-data
           node apps/editor/check-stage.mjs
+      - name: Record the actual integration check plan
+        shell: bash
+        run: |
+          mkdir -p test-results/p6-integration
+          node scripts/run-application-checks.mjs --list --base 2b460e40dbc51de2d13b0fe40e11bd4af9e49b75 --output test-results/p6-integration/plan.json
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          import { loadRepository, planApplicationChecks } from './scripts/plan-application-checks.mjs';
+          const plan = JSON.parse(readFileSync('test-results/p6-integration/plan.json', 'utf8')).plan;
+          const deferred = 'tests/browser/deferred-builtin-timeline.spec.mjs';
+          assert.ok(!plan.browserSpecs.includes(deferred), 'User-deferred cases must stay out of automatic integration checks');
+          assert.ok(plan.browserSpecs.includes('tests/browser/timeline-controls.spec.mjs'), 'Ordinary timeline acceptance remains automatic');
+          const manual = planApplicationChecks({ changedFiles: [], repository: loadRepository(), groups: ['deferred-builtin-timeline'] });
+          assert.deepEqual(manual.browserSpecs, [deferred], 'Deferred cases remain explicitly callable');
+          console.log('P6_INTEGRATION_PLAN ' + JSON.stringify({ unitTests: plan.unitTests.length,
+            browserSpecs: plan.browserSpecs.length, commands: plan.commands, prerequisites: plan.prerequisites,
+            deferredAutomatic: false, deferredManual: manual.browserSpecs }));
+          NODE
       - name: One narrow touch functional scenario
         run: pnpm exec playwright test --config tests/integration/viewer-functional-p6-2.config.mjs
       - name: Export bounded screenshot evidence for connector review
@@ -101,5 +126,13 @@ jobs:
         with:
           name: p6-2-publication-preflight-${{ github.sha }}
           path: ${{ runner.temp }}/p6-2-pages-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Retain integration selection evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p6-integration-plan-${{ github.sha }}
+          path: test-results/p6-integration/
           if-no-files-found: warn
           retention-days: 14
