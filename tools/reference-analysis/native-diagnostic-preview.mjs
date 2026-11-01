@@ -198,11 +198,13 @@ export function diagnoseReviewedSource(request,options){
 }
 
 // Diagnostic only: optional ONNX parity is not held-out evaluation or model admission.
-export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,baselineWeights,onnx,output,device,torchLibrary,maximumPreviews=24},options={}){
+export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,weights,baselineWeights,onnx,output,device,torchLibrary,maximumPreviews=24},options={}){
   const {signal}=options;signal?.throwIfAborted();
-  if(!corpus||!checkpoint||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
+  if(!corpus||Boolean(checkpoint)===Boolean(weights)||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
     !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
     throw Error('Explicit bounded corpus diagnostic inputs required');
+  if(weights&&(auxiliaryCorpus||viewCorpus!=='primary'||baselineWeights!=null||onnx))
+    throw Error('Transferred weights require a diagnostic without a baseline, auxiliary corpus or ONNX parity');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
   if(viewCorpus==='auxiliary'&&!auxiliaryCorpus)throw Error('Auxiliary corpus required for auxiliary diagnostics');
   const target=resolve(output);if(existsSync(target))throw Error('Diagnostic output exists; preserve prior evidence');
@@ -214,8 +216,13 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(ids.some(id=>typeof id!=='string'||!id||id.length>512||id==='.'||id==='..'||/[\\/\u0000-\u001f]/u.test(id)))
     throw Error('Safe diagnostic source identifiers required');
   if(new Set(ids).size!==ids.length)throw Error('Unique diagnostic sources required');
-  const checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json',corpusPath=resolve(corpus);
+  const checkpointPath=resolve(weights||checkpoint),receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json',corpusPath=resolve(corpus);
   const checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath),corpusHash=trainingFileIdentity(corpusPath);
+  let transferred=null;
+  if(weights){transferred=verifyTrainingInitializer({path:checkpointPath,expectedSha256:checkpointHash});
+    const receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+    if(receipt.schemaVersion!==1||transferred.initialization!=='weights-only-no-optimizer'||transferred.recordHash!==receiptHash||
+      !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');}
   const onnxPath=onnx?resolve(onnx):null,onnxHash=onnxPath?trainingFileIdentity(onnxPath):null;
   const onnxManifest=onnxPath?onnxPath.replace(/\.onnx$/,'.manifest.json'):null;
   if(onnxPath&&onnxManifest===onnxPath)throw Error('Explicit ONNX model path required');
@@ -227,10 +234,11 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   const rows=[];let created=false,internalScope=null;
   for(const sourceId of ids){
     signal?.throwIfAborted();
-    const result=await diagnoseSource({corpus,auxiliaryCorpus,viewCorpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,baselineWeights,sourceId,device,torchLibrary,
-      captureParity:rows.length===0,skipUnsupervised:true},options,internalScope||(auxiliaryCorpus?{}:null));
+    const result=await diagnoseSource({corpus,auxiliaryCorpus,viewCorpus,...(reviewCorpus?{reviewCorpus}:{}),checkpoint,weights,baselineWeights,sourceId,device,torchLibrary,
+      captureParity:!weights&&rows.length===0,skipUnsupervised:true},options,internalScope||(auxiliaryCorpus?{}:null));
     if(!result)continue;
-    if(result.checkpointSha256!==checkpointHash||result.corpusSha256!==corpusHash||
+    if((weights?(result.weightsSha256!==checkpointHash||result.sourceCheckpointSha256!==transferred.sourceCheckpointSha256||result.checkpointSha256!==null):
+      result.checkpointSha256!==checkpointHash)||result.corpusSha256!==corpusHash||
       (reviewCorpus&&result.reviewCorpusSha256!==viewHash))throw Error('Diagnostic inputs differ across sources');
     if(auxiliaryCorpus&&!internalScope)internalScope={corpusPath,auxiliaryPath:resolve(auxiliaryCorpus),corpusHash,
       auxiliaryHash:result.auxiliaryCorpusSha256,lineageFingerprint:result.lineageFingerprint};
@@ -264,10 +272,12 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     await writeFile(join(target,'onnx-parity.json'),JSON.stringify(parityResult,null,2)+'\n',{flag:'wx',signal});
   }
   if(!created)await mkdir(target);
-  const report={schemaVersion:1,purpose:reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
+  const report={schemaVersion:1,purpose:weights?'transferred-weights-source-diagnostic':reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
     trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:Boolean(parityResult),
     ...(parityResult?{onnxSha256:onnxHash,onnxParityFile:'onnx-parity.json',onnxMaximumAbsoluteError:parityResult.maximumAbsoluteError}:{}),
-    checkpointSha256:checkpointHash,corpusSha256:corpusHash,
+    checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
+    ...(weights?{weightsSha256:checkpointHash,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
+      trainingCorpusVerified:false,optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),
     ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
   await writeFile(join(target,'diagnostics.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx',signal});return report;
@@ -286,7 +296,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
         'review-corpus':{type:'string'},checkpoint:{type:'string'},weights:{type:'string'},'baseline-weights':{type:'string'},onnx:{type:'string'},output:{type:'string'},device:{type:'string'},
         'torch-library':{type:'string'},'maximum-previews':{type:'string'}}});
       if(positionals.length||!values.corpus||(!batch&&!values.source)||(batch&&values.source)||Boolean(values.checkpoint)===Boolean(values.weights)||
-        (batch&&values.weights)||!values.output||!values.device||!values['torch-library']||
+        !values.output||!values.device||!values['torch-library']||
         (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&(values['maximum-previews']!==undefined||values.onnx)))
         throw Error('Expected an explicit corpus, checkpoint or transferred weights, output, device and LibTorch; single-source modes require --source');
       const output=resolve(reportArgument(values.output,{access:'write'}));
@@ -296,6 +306,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
         const result=await diagnoseTrainingCorpus({corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
           auxiliaryCorpus:reportArgument(values['auxiliary-corpus'],{access:'read',siblings:true}),viewCorpus:values['view-corpus']||'primary',
           reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true}),checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
+          weights:reportArgument(values.weights,{access:'read',siblings:true}),
           baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),onnx:reportArgument(values.onnx,{access:'read',siblings:true}),output,device:values.device,
           torchLibrary:values['torch-library'],maximumPreviews:Number(count)},{signal:controller.signal});
         process.stdout.write(JSON.stringify({output,sheets:result.sheets.length,purpose:result.purpose,releaseApproved:false,onnxParityVerified:result.onnxParityVerified})+'\n');

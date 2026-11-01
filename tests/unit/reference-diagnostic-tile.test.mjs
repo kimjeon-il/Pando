@@ -21,6 +21,9 @@ test('transferred weights diagnostics refuse unverified source, mixed modes and 
   await assert.rejects(diagnoseMacroTrainingSource({...request,baselineWeights:weights}),/single-source/i);
   await assert.rejects(diagnoseMacroTrainingSource({...request,auxiliaryCorpus:'aux.json'}),/single-source/i);
   await assert.rejects(diagnoseMacroTrainingSource(request),/unique.*source/i);
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,onnx:'model.onnx'}),/without.*ONNX/i);
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,baselineWeights:weights}),/without.*baseline/i);
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,output,auxiliaryCorpus:'aux.json'}),/without.*auxiliary/i);
   receipt.sourceCheckpointSha256=null;save();
   await assert.rejects(diagnoseMacroTrainingSource(request),/verified transferred/i);
   receipt.sourceCheckpointSha256='1'.repeat(64);receipt.weightsSha256='0'.repeat(64);save();
