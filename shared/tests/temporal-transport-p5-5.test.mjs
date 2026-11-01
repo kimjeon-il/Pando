@@ -95,10 +95,11 @@ test('P5-5 WASM adopt acknowledges accepted Core projection and existing rollbac
       worldSha256:expected.worldSha256,replacementId:capsule+1,expectedEpoch:before.epoch}),
       error=>error?.code==='CORE_TEMPORAL_CANDIDATE_CAPSULE');
     assertUnchanged(session,before,original);
-    const accepted=session.temporalCandidateAdopt({
+    const {state:accepted,delta}=session.temporalCandidateAdopt({
       candidateId:expected.candidateId,sourceId:expected.sourceId,targetMonth:month,
       sourceFingerprint:source.fingerprint,worldSha256:expected.worldSha256,
       replacementId:capsule,expectedEpoch:before.epoch});
+    assert.equal(delta,null,'fresh builtin identity acknowledges a complete projection');
     assert.equal(accepted.timelineCursor,month);
     assert.ok(accepted.epoch>before.epoch);
     assert.equal(session.temporalSourceStats().entries,0);

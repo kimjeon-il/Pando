@@ -212,9 +212,10 @@ export async function composeViewer({ productMode, meta }) {
   const action=(element,event,task)=>element.addEventListener(event,e=>{Promise.resolve().then(()=>task(e)).catch(report);});
   builtinClock=createBuiltinMonthClock({coalesceRequests:true,window,document,applyMonth:async(month,{isCurrent,commit})=>{
     adjacentPrefetch.interrupt();
-    const accepted=await open(()=>map.prepareBuiltinProject(month,{isCurrent}),{source:'builtin',isCurrent,
+    const transition=builtinActive&&builtinClock.month()!==null;
+    const accepted=await open(()=>map.prepareBuiltinProject(month,{isCurrent,transition}),{source:'builtin',isCurrent,
       onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},
-      presentation:builtinActive&&builtinClock.month()!==null?'temporal':'default',
+      presentation:transition?'temporal':'default',
       preserveView:builtinClock.month()!==null});
     if(accepted&&isCurrent()&&initialPresentation.hasPresented())
       adjacentPrefetch.afterPresented(month,{mode:get('timelineViewUnit')?.value==='month'?'month':'year'});

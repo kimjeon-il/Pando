@@ -713,14 +713,18 @@ public:
         return boundary([&] {
             shape(input,{"candidateId","sourceId","targetMonth","sourceFingerprint","worldSha256",
                 "replacementId","expectedEpoch"},"CORE_TEMPORAL_CANDIDATE_ARGS");
-            return documentState(session_.temporalCandidateAdopt(
+            std::string delta;
+            const auto adopted=session_.temporalCandidateAdopt(
                 temporalHandle(input["candidateId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
                 temporalHandle(input["sourceId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
                 text(input["targetMonth"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
                 text(input["sourceFingerprint"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
                 text(input["worldSha256"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
                 temporalHandle(input["replacementId"],"CORE_TEMPORAL_CANDIDATE_ARGS"),
-                commandEpoch(input)));
+                commandEpoch(input),&delta);
+            auto result=val::object();result.set("state",documentState(adopted));
+            result.set("delta",delta.empty()?val::null():val::global("JSON").call<val>("parse",delta));
+            return result;
         });
     }
     val validateImport(const std::string& input,val baseline) const {

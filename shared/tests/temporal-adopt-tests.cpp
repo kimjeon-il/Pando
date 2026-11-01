@@ -183,9 +183,88 @@ void discardedStaleAndAccepted(const std::string& seed) {
     assert(!owner.temporalCandidateInspect(unfinished.candidateId,owner.projectState().epoch));
     assert(owner.project().document().documentId!="uncommitted");
 }
+void sameIdentityCannotTurnUserWorkIntoBuiltinTransition(const std::string& seed) {
+    DocumentSession owner(ports);owner.documentLoad(seed,"2026-10");
+    const auto before=owner.documentSnapshot();
+    const auto epoch=owner.projectState().epoch;
+    const auto input=bytesFor(owner.project(),"2025-12");
+    const auto source=owner.temporalSourcePrepare(input,"stage2-data",pin,epoch);
+    rejects([&]{owner.temporalCandidatePrepare(source.sourceId,"2025-12",input.fingerprint,
+        epoch,setup("2025-12"),owner.project().document().documentId);},"CORE_BUILTIN_TRANSITION");
+    assert(owner.documentSnapshot()==before&&owner.projectState().epoch==epoch);
+}
+
+void builtinDeltaMatchesFullLoadAndPreservesGeometry(const std::string& seed) {
+    DocumentSession owner(ports),reference(ports);
+    owner.documentLoad(seed,"2026-10");reference.documentLoad(seed,"2026-10");
+    const std::string identity="stage2-viewer";
+    const auto prepare=[&](const WebStorageAssetSource& input,const std::string& id) {
+        const auto source=owner.temporalSourcePrepare(input,"stage2-data",pin,owner.projectState().epoch);
+        return owner.temporalCandidatePrepare(source.sourceId,input.sourceMonth,input.fingerprint,
+            owner.projectState().epoch,setup(input.sourceMonth),id);
+    };
+    const auto adopt=[&](const TemporalCandidateReceipt& receipt,std::uint32_t capsule,std::string& delta) {
+        return owner.temporalCandidateAdopt(receipt.candidateId,receipt.sourceId,receipt.targetMonth,
+            receipt.sourceFingerprint,receipt.worldSha256,capsule,receipt.expectedEpoch,&delta);
+    };
+    const auto first=prepare(bytesFor(owner.project(),"2026-10"),identity);
+    auto capsule=owner.captureReplacement(owner.projectState().epoch);
+    std::string encoded="must be cleared for a complete adoption";
+    adopt(first,capsule,encoded);assert(encoded.empty());assert(owner.releaseReplacement(capsule));
+    const auto original=owner.documentSnapshot();
+    const auto next=bytesFor(owner.project(),"2025-12");
+    const auto nextCandidate=prepare(next,identity);
+    assert(owner.documentSnapshot()==original);
+    capsule=owner.captureReplacement(owner.projectState().epoch);
+    const auto state=adopt(nextCandidate,capsule,encoded);
+    const auto delta=codecjson::parse(encoded);
+    assert(delta.object.at("geometries").array.empty());
+    assert(delta.object.at("objects").array.empty());
+    assert(delta.object.at("header").object.at("set").object.at("projectSetup").object.at("initialMonth").string=="2025-12");
+    assert(owner.project().document().documentId==identity);
+    assert(!state.dirty&&!state.canUndo&&!state.canRedo);
+    const auto baseline=reference.storageBaselineLoad(next,reference.projectState().epoch).storageBaselineId;
+    reference.documentLoadBaseline(baseline,setup("2025-12"),identity);
+    assert(reference.documentSnapshot()==owner.documentSnapshot());
+    // A failed later renderer stage restores the prior source and full state.
+    owner.rollbackReplacement(capsule,state.epoch);
+    assert(owner.documentSnapshot()==original);
+
+    auto named=codecjson::parse(original);
+    named.object.at("territorialEntities").array[0].object.at("properties").object["name"]=V::str("Dated country name");
+    Project dated;dated.replace(decodeWeb(named.encode(),ports));
+    const auto namedInput=bytesFor(dated,"2025-12");
+    const auto namedCandidate=prepare(namedInput,identity);
+    capsule=owner.captureReplacement(owner.projectState().epoch);
+    adopt(namedCandidate,capsule,encoded);
+    const auto namedDelta=codecjson::parse(encoded);
+    assert(!namedDelta.object.at("objects").array.empty());
+    assert(namedDelta.object.at("geometries").array.empty());
+    const auto namedBaseline=reference.storageBaselineLoad(namedInput,reference.projectState().epoch).storageBaselineId;
+    reference.documentLoadBaseline(namedBaseline,setup("2025-12"),identity);
+    assert(reference.documentSnapshot()==owner.documentSnapshot());
+    assert(owner.releaseReplacement(capsule));
+
+    const auto accepted=owner.documentSnapshot();
+    auto invalid=codecjson::parse(accepted);
+    for(auto& row:invalid.object.at("geometries").array)if(row.object.at("id").string=="shape")
+        row.object["geojson"]=codecjson::parse(R"({"type":"Polygon","coordinates":[[[0,0],[3,0],[3,2],[0,0]]]})");
+    Project rewritten;rewritten.replace(decodeWeb(invalid.encode(),ports));
+    rejects([&]{prepare(bytesFor(rewritten,"2024-12"),identity);},"CORE_BUILTIN_GEOMETRY_VERSION");
+    assert(owner.documentSnapshot()==accepted);
+    CommandArguments edit;edit.action=TerritorialFieldEdit{territorialRef("A"),TerritorialField::Name,"Unsaved"};
+    assert(owner.executeCommand("territorial.field",edit,{territorialRef("A")},owner.projectState().epoch).result.changed());
+    const auto dirty=owner.documentSnapshot();
+    rejects([&]{prepare(namedInput,identity);},"CORE_BUILTIN_TRANSITION");
+    assert(owner.documentSnapshot()==dirty&&owner.projectState().canUndo);
+    std::cout<<"Stage-2 temporal delta: full-load parity, immutable geometry, identity, dirty-owner rejection and rollback passed\n";
+}
+
 }
 int main(){
     const auto seed=readSeed();
+    sameIdentityCannotTurnUserWorkIntoBuiltinTransition(seed);
+    builtinDeltaMatchesFullLoadAndPreservesGeometry(seed);
     capsuleRollbackAndInvalidRequests(seed);
     discardedStaleAndAccepted(seed);
     std::cout<<"P5-4 temporal commit, discard and capsule rollback passed\n";

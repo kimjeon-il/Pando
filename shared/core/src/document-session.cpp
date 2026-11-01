@@ -163,6 +163,17 @@ TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
             throw TimelineError("CORE_TEMPORAL_CANDIDATE_SETUP","The builtin project setup must match the exact candidate month.");
         setupKey=verifiedSetup.encode();
     }
+    const bool transition=setup&&documentId==project_.document().documentId;
+    if(transition) {
+        const auto header=codecjson::parse(project_.document().exchangeMetadata);
+        const auto activeSetup=header.object.find("projectSetup");
+        if(!activeBaseline_||activeBaseline_->kind()!=projectcodec::WebStorageBaselineKind::Builtin
+            ||activeSetup==header.object.end()||activeSetup->second.kind!=codecjson::Value::Object
+            ||!activeSetup->second.object.count("sourceMode")
+            ||activeSetup->second.object.at("sourceMode").string!="builtin"
+            ||project_.dirty()||project_.canUndo()||project_.canRedo())
+            throw TimelineError("CORE_BUILTIN_TRANSITION","A clean active builtin Viewer source is required for identity-preserving transition.");
+    }
     if(temporalCandidate_&&temporalCandidate_->receipt.sourceId==sourceId
         &&temporalCandidate_->receipt.expectedEpoch==expectedEpoch
         &&temporalCandidate_->receipt.sourceFingerprint==sourceFingerprint
@@ -195,6 +206,17 @@ TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
     staged->project.replace(std::move(document));
     staged->world=staged->project.resolveWorld(targetMonth);
     staged->project.setTimelineCursor(targetMonth,true,&staged->world);
+    if(transition) {
+        for(const auto& [ref,shape]:staged->project.document().geometries.versions()) {
+            const auto previous=project_.document().geometries.get(ref);
+            if(previous&&previous!=shape&&!sameGeometryValue(*previous,*shape))
+                throw TimelineError("CORE_BUILTIN_GEOMETRY_VERSION","A temporal source cannot rewrite an immutable geometry version.");
+        }
+        const auto impact=calculateChangeImpact(project_.document(),staged->project.document(),{},targetMonth);
+        // Prepare the authoritative wire delta before entering the replacement
+        // transaction. Initial/file adoption continues to publish a full model.
+        staged->preparedDelta=projectcodec::encodeWebDelta(project_.document(),staged->project.document(),impact);
+    }
     staged->preparedSetupKey=setupKey;
     staged->preparedDocumentId=documentId;
     staged->adoptionReady=setup.has_value();
@@ -229,7 +251,7 @@ bool DocumentSession::temporalCandidateDiscard(std::uint32_t candidateId,std::ui
 DocumentSessionState DocumentSession::temporalCandidateAdopt(
     std::uint32_t candidateId,std::uint32_t sourceId,const std::string& targetMonth,
     const std::string& sourceFingerprint,const std::string& worldSha256,
-    std::uint32_t replacementId,std::uint32_t expectedEpoch) {
+    std::uint32_t replacementId,std::uint32_t expectedEpoch,std::string* acceptedDelta) {
     requireEpoch(expectedEpoch);
     // Validate the *same* capsule that ProjectDomain already owns, before
     // changing any state. A missing or superseded capsule never commits.
@@ -260,6 +282,7 @@ DocumentSessionState DocumentSession::temporalCandidateAdopt(
     // and allocations above happen before this non-interruptible Core commit.
     // The old Project/selection/draft/baseline/history remain in replacement_.
     auto admittedSource=found->second.baseline;
+    if(acceptedDelta)*acceptedDelta=std::move(temporalCandidate_->preparedDelta);
     project_=std::move(temporalCandidate_->project);
     storageBaseline_=admittedSource;
     activeBaseline_=std::move(admittedSource);
