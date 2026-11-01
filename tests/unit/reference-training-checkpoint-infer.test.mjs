@@ -16,10 +16,15 @@ test('checkpoint comparison rejects a mismatched receipt before launching the na
   const second=join(folder,'second.pt');writeFileSync(second,'second');
   const base={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',corpusSha256:'a'.repeat(64),precision:'fp32',
     ampScale:null,ampGrowthTracker:null,epoch:0,cursor:0,orderLength:1,seed:1,freezeEpochs:0,learningRate:.0001,unobservedMask:0,
-    positiveWeightSha256:null,attemptedBatches:0,optimizerUpdates:0,skippedUpdates:0};
+    positiveWeightSha256:null,attemptedBatches:0,optimizerUpdates:0,skippedUpdates:0,orderSha256:'b'.repeat(64),
+    initialization:'weights-only-no-optimizer',initializationWeightsSha256:'c'.repeat(64),initializationSourceSha256:null,evidence:[{augment:false}]};
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({...base,checkpointSha256:createHash('sha256').update('fixture').digest('hex')}));
   writeFileSync(second+'.receipt.json',JSON.stringify({...base,learningRate:.0002,checkpointSha256:createHash('sha256').update('second').digest('hex')}));
   await assert.rejects(compareNativeTrainingCheckpoints({first:checkpoint,second,device:'cpu',torchLibrary:folder}),/configuration differs/i);
+  const amp={...base,device:'cuda',precision:'amp-fp16',ampScale:65536,ampGrowthTracker:0};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({...amp,checkpointSha256:createHash('sha256').update('fixture').digest('hex')}));
+  writeFileSync(second+'.receipt.json',JSON.stringify({...amp,ampScale:32768,checkpointSha256:createHash('sha256').update('second').digest('hex')}));
+  await assert.rejects(compareNativeTrainingCheckpoints({first:checkpoint,second,device:'cuda',torchLibrary:folder}),/configuration differs/i);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-training-validation.mjs','--compare'],{encoding:'utf8'});
   assert.notEqual(cli.status,0);assert.match(cli.stderr,/first, second, device and torch library/i);
 });
@@ -29,7 +34,9 @@ test('native checkpoint inference matches the source model output', {skip:!avail
   const checkpoint=join(folder,'checkpoint.pt'),bytes=readFileSync(checkpoint),checkpointSha256=createHash('sha256').update(bytes).digest('hex');
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256,corpusSha256:'a'.repeat(64),
     precision:'fp32',ampScale:null,ampGrowthTracker:null,epoch:0,cursor:0,orderLength:1,seed:20261030,freezeEpochs:0,
-    learningRate:.0001,unobservedMask:0,positiveWeightSha256:null,attemptedBatches:0,optimizerUpdates:0,skippedUpdates:0,evidence:[{augment:false}]};
+    learningRate:.0001,unobservedMask:0,positiveWeightSha256:null,attemptedBatches:0,optimizerUpdates:0,skippedUpdates:0,evidence:[{augment:false}],
+    orderSha256:createHash('sha256').update(Buffer.alloc(8)).digest('hex'),initialization:'weights-only-no-optimizer',
+    initializationWeightsSha256:'b'.repeat(64),initializationSourceSha256:null};
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));
   const inputs={tile:readFileSync(join(folder,'tile.f32')),overview:readFileSync(join(folder,'overview.f32')),position:readFileSync(join(folder,'position.f32'))};
   const options={checkpoint,...inputs,device:'cpu',torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY};

@@ -84,6 +84,15 @@ node tools/reference-analysis/native-training-replay.mjs --weights $initializerW
 node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --auxiliary $auxiliaryCorpus --allow-nonmacro-auxiliary $firstCheckpoint $secondCheckpoint
 ```
 
+To compare two native checkpoints from equivalent training runs, the validation
+command checks model tensors, optimizer states, sampling and RNG state together
+with the recorded precision, AMP scale and training configuration. It compares
+semantic state rather than checkpoint archive bytes; it does not approve a model.
+
+```powershell
+node tools/reference-analysis/native-training-validation.mjs --compare --first $continuousCheckpoint --second $resumedCheckpoint --device cuda --torch-library $torchLibrary
+```
+
 A single source-derived macro training sheet can be inspected using its matching
 native C++ checkpoint and the same CPU/CUDA device recorded in its receipt. The
 output directory must not exist, and its parent must already exist. The command

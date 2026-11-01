@@ -87,20 +87,25 @@ export async function compareNativeTrainingCheckpoints({first,second,device='cpu
       receipt.cursor>receipt.orderLength||receipt.optimizerUpdates+receipt.skippedUpdates!==receipt.attemptedBatches||
       !Number.isFinite(receipt.learningRate)||receipt.learningRate<=0||receipt.learningRate>.01||
       !Number.isInteger(receipt.unobservedMask)||receipt.unobservedMask<0||receipt.unobservedMask>127||
-      !(receipt.positiveWeightSha256===null||/^[a-f0-9]{64}$/.test(receipt.positiveWeightSha256||'')))
+      !(receipt.positiveWeightSha256===null||/^[a-f0-9]{64}$/.test(receipt.positiveWeightSha256||''))||
+      !/^[a-f0-9]{64}$/.test(receipt.orderSha256||'')||!['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(receipt.initialization)||
+      !/^[a-f0-9]{64}$/.test(receipt.initializationWeightsSha256||'')||
+      !(receipt.initializationSourceSha256===null||/^[a-f0-9]{64}$/.test(receipt.initializationSourceSha256||''))||
+      !Array.isArray(receipt.evidence)||!receipt.evidence.length||typeof receipt.evidence[0]?.augment!=='boolean'||
+      receipt.evidence.some(item=>item?.augment!==receipt.evidence[0].augment))
       throw Error('Checkpoint comparison receipt differs from its file');
     return {path,hash,receipt,receiptPath,receiptHash:sha(bytes)};});
   const config=['precision','ampScale','ampGrowthTracker','epoch','cursor','orderLength','seed','freezeEpochs','learningRate',
     'unobservedMask','positiveWeightSha256','corpusSha256','auxiliarySha256','lineageFingerprint','orderSha256','attemptedBatches',
-    'optimizerUpdates','skippedUpdates','initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization'];
-  if(config.some(key=>!isDeepStrictEqual(inputs[0].receipt[key],inputs[1].receipt[key]))||
-    !isDeepStrictEqual(inputs[0].receipt.evidence?.[0]?.augment,inputs[1].receipt.evidence?.[0]?.augment))
+    'optimizerUpdates','skippedUpdates','initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization','evidence'];
+  if(config.some(key=>!isDeepStrictEqual(inputs[0].receipt[key],inputs[1].receipt[key])))
     throw Error('Checkpoint comparison training configuration differs');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
   const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
     ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
-  const {child,done}=validator(binary,['compare',device,inputs[0].path,inputs[1].path],env,signal);child.stdin.end();
+  const {child,done}=validator(binary,['compare',device,inputs[0].path,inputs[1].path],env,signal);
+  child.stdin.on('error',error=>{if(error.code!=='EPIPE')child.kill();});child.stdin.end();
   const result=await done;signal?.throwIfAborted();
   if(result.equal!==true||!Number.isSafeInteger(result.optimizerStates)||result.optimizerStates<0||result.trainingOnly!==true||result.releaseApproved!==false||
     ['epoch','cursor','orderLength','seed'].some(key=>result[key]!==inputs[0].receipt[key]))
