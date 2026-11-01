@@ -10,6 +10,8 @@ on:
       - shared/frontend/js/modules/gpu-map-renderer.js
       - shared/frontend/js/workers/canvas-render-worker.js
       - scripts/contracts/application-checks.json
+      - scripts/lib/product-assets.mjs
+      - apps/editor/native-platform-adapter.js
   workflow_dispatch:
 permissions:
   contents: read
