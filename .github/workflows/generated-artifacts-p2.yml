@@ -224,7 +224,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           node scripts/p2-publish-artifacts.mjs
       - name: Hand the exact verified result to P3
-        if: steps.publish.outputs.pushed == 'true' && inputs.scope != 'wasm' && (github.event_name == 'push' || inputs.verification == 'full')
+        # Verified unchanged artifacts still need their deferred P3 checks.
+        if: steps.publish.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT_SHA: ${{ steps.publish.outputs.result_sha }}

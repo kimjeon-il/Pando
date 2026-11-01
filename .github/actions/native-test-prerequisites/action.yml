@@ -34,6 +34,7 @@ runs:
         cache-environment: true
         cache-downloads: true
         init-shell: none
+        generate-run-shell: false
     - name: Locate the selected GDAL SDK without changing other test environments
       if: steps.capacity.outputs.gdal_environment == 'true'
       shell: bash

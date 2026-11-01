@@ -12,7 +12,7 @@ function p3PresentationFailures(state, requestedRenderer) {
   if (render.projectRenderBlocked !== false || !['ready', 'limited'].includes(render.readiness)) {
     failures.push('the current map has not been presented');
   }
-  if (!Number.isSafeInteger(render.projectGeneration) || render.projectGeneration <= 0
+  if (!Number.isSafeInteger(render.projectGeneration) || render.projectGeneration < 0
     || render.countriesPublishedGeneration !== render.projectGeneration) failures.push('country publication is stale');
   for (const [displayed, requested] of [['displayedRevision', 'requestedRevision'], ['displayedGeometryRevision', 'committedGeometryRevision']]) {
     if (!Number.isSafeInteger(render[requested]) || render[requested] < 0 || render[displayed] !== render[requested]) {
