@@ -19,7 +19,7 @@ test('GIS launcher uses an allowlist and dry-run never launches source commands'
  assert.equal(code,0);
  assert.equal(calls.length,0);
  assert.equal(logs[0].mode,'dry-run');
- assert.equal(logs[0].source,'tools/build-terrain-dem.py');
+ assert.equal(logs[0].source,'tools/gis/terrain-dem-build.mjs');
  assert.deepEqual(logs[0].argv,['--etopo','/not-mounted/source.tif']);
  assert.equal(logs[0].requiresExternalOriginals,false);
 });
@@ -64,7 +64,8 @@ test('mapped scripts cannot follow linked directories outside an explicit reposi
  t.after(()=>rmSync(root,{recursive:true,force:true}));
  const outside=join(root,'../'+basename(root)+'-out-of-tree');
  mkdirSync(outside);
- writeFileSync(join(outside,'build-terrain-dem.py'),'# external fixture');
+ mkdirSync(join(outside,'gis'));
+ writeFileSync(join(outside,'gis/terrain-dem-build.mjs'),'// external fixture');
  t.after(()=>rmSync(outside,{recursive:true,force:true}));
  symlinkSync(outside,join(root,'tools'),process.platform==='win32'?'junction':'dir');
  assert.throws(()=>buildCommand('terrain-dem',[],{root}),/escaped repository/);
@@ -79,7 +80,7 @@ test('terrain preview dispatcher invokes the Node owner with explicit arguments'
 });
 test('DEM generation requires source-bound native elevation reading, encoding and tint filling',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-dispatch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemRasterSources,...terrainDemGutterSources,...terrainDemTintSources,...mapImageSourceFiles]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
+ for(const file of ['tools/gis/terrain-dem-build.mjs',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemRasterSources,...terrainDemGutterSources,...terrainDemTintSources,...mapImageSourceFiles]){mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');}
  const argv=['--task','terrain-dem','--execute'],calls=[];
  assert.throws(()=>runSource({root,argv,output:()=>{},spawn:()=>{throw Error('must not run');}}),/ENOENT/);
  const binary=join(root,process.platform==='win32'?'pando-terrain-dem-encode.exe':'pando-terrain-dem-encode');writeFileSync(binary,'fixture binary');
@@ -116,7 +117,7 @@ test('DEM generation requires source-bound native elevation reading, encoding an
 
 test('tint-only DEM reuse does not require unrelated DEM reader or gutter binaries',t=>{
  const root=mkdtempSync(join(tmpdir(),'gis-dem-tint-only-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
- for(const file of ['tools/build-terrain-dem.py',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemTintSources,...mapImageSourceFiles]){
+ for(const file of ['tools/gis/terrain-dem-build.mjs',...terrainDemEncodeSources,...terrainDemFillSources,...terrainDemTintSources,...mapImageSourceFiles]){
    mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),'fixture');
  }
  for(const [target,sources,directory] of [['terrain-dem-tint',terrainDemTintSources,'terrain-dem-tint'],['map-image',mapImageSourceFiles,'map-image']]){

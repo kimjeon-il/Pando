@@ -81,6 +81,11 @@ test('tint ZIP processing checks CRC, preserves originals and cleans temporary f
     assert.deepEqual(await readdir(root),['source.zip']);
     const corrupted=Buffer.from(original),[entry]=await zipMembers(archive);corrupted[entry.dataAt]^=1;await writeFile(archive,corrupted);
     await assert.rejects(buildNativeDemTintZip(request),/CRC|size/i);assert.deepEqual(await readdir(root),['source.zip']);
+    const traversal=Buffer.from(original),safe=Buffer.from('nested/source.tif'),unsafe=Buffer.from('../bad/source.tif');
+    assert.equal(safe.length,unsafe.length);let position=0,replaced=0;
+    while((position=traversal.indexOf(safe,position))!==-1){unsafe.copy(traversal,position);position+=safe.length;replaced++;}
+    assert.equal(replaced,2);await writeFile(archive,traversal);
+    await assert.rejects(buildNativeDemTintZip(request),/unsafe|path/i);assert.deepEqual(await readdir(root),['source.zip']);
     const controller=new AbortController();controller.abort();
     await assert.rejects(buildNativeDemTintZip(request,{signal:controller.signal}),{name:'AbortError'});
   });

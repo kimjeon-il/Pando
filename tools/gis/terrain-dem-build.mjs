@@ -1,11 +1,14 @@
 // Generate one immutable DEM level using the existing native raster and image owners.
-import {mkdir,open,readFile,realpath,rename,stat,statfs} from 'node:fs/promises';
-import {basename,dirname,join,resolve} from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {constants} from 'node:fs';
+import {copyFile,lstat,mkdir,open,readFile,realpath,rename,stat,statfs,unlink} from 'node:fs/promises';
+import {basename,dirname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {parseArgs} from 'node:util';
 import {withLibraryOutputs} from '../library-data.mjs';
 import {hashTerrainFile,summarizeTerrainAssets} from './terrain-dem-assets.mjs';
 import {encodeNativeDemElevation} from './terrain-dem-encode.mjs';
-import {reconcileDemGutterFiles} from './terrain-dem-gutters.mjs';
+import {reconcileDemGutterFiles,restoreDemPolarGutterShade} from './terrain-dem-gutters.mjs';
 import {createNativeDemWindowReader,inspectNativeDemSource} from './terrain-dem-raster.mjs';
 import {buildNativeDemTintZip} from './terrain-dem-tint.mjs';
 import {encodeDemWebp} from './terrain-dem-webp.mjs';
@@ -22,6 +25,15 @@ const defaultProfile=Object.freeze({strict:true,tintWidth:4096,tintHeight:2048,
 
 async function writeExclusive(path,bytes,signal){const file=await open(path,'wx');
   try{await file.writeFile(bytes,{signal});}finally{await file.close();}}
+async function replaceChecked(path,bytes,expected,signal){
+  const temporary=path+'.'+randomUUID()+'.tmp';let created=false;
+  try{
+    await writeExclusive(temporary,bytes,signal);created=true;
+    const info=await lstat(path);if(!info.isFile()||info.isSymbolicLink()||!(await readFile(path,{signal})).equals(expected))
+      throw Error('DEM metadata changed before replacement');
+    await rename(temporary,path);created=false;
+  }finally{if(created)await unlink(temporary);}
+}
 
 export async function buildTerrainDemCandidate({etopo,tintZip,ice,countries,output}={},
   {profile=defaultProfile,signal,workspace=root}={}){
@@ -81,6 +93,83 @@ export async function buildTerrainDemCandidate({etopo,tintZip,ice,countries,outp
   });
 }
 
+export async function rebuildTerrainDemTint({sourceOutput,tintZip,ice,countries,output}={},
+  {profile=defaultProfile,signal,workspace=root}={}){
+  signal?.throwIfAborted();
+  if(![sourceOutput,tintZip,ice,countries,output].every(value=>typeof value==='string'&&value))throw Error('Explicit DEM reuse inputs and output required');
+  const sourceRoot=await realpath(sourceOutput);output=resolve(output);
+  const rel=relative(sourceRoot,output);
+  if(!rel||(!rel.startsWith('..'+sep)&&rel!=='..'&&!isAbsolute(rel)))throw Error('DEM reuse output cannot be inside the source dataset');
+  const [archiveHash,iceHash,landHash]=await Promise.all([tintZip,ice,countries].map(path=>hashTerrainFile(path,{signal})));
+  if(archiveHash.sha256!==profile.tintSha256||iceHash.sha256!==profile.iceSha256)throw Error('Tint source checksum mismatch');
+  const manifest=JSON.parse(await readFile(join(sourceRoot,'manifest.json'),{encoding:'utf8',signal}));
+  if(manifest.representation!=='dem-relief-v1'||manifest.version===version||!Array.isArray(manifest.sources))throw Error('Earlier DEM dataset required');
+  const originalVersion=manifest.version,sourceAssets=await summarizeTerrainAssets(sourceRoot,manifest.levels,{signal});
+  if(sourceAssets.assetsSha256!==manifest.assetsSha256)throw Error('Source DEM dataset checksum mismatch');
+  return withLibraryOutputs({root:workspace,paths:[output]},async()=>{
+    const start=performance.now();await mkdir(dirname(output),{recursive:true});
+    const estimate=sourceAssets.reports.reduce((sum,item)=>sum+item.bytes,0)+profile.tintWidth*profile.tintHeight*8;
+    if(estimate>=1024**3){const disk=await statfs(dirname(output));
+      if(disk.bavail*disk.bsize<estimate+5*1024**3)throw Error('Insufficient DEM copy space and 5 GiB headroom');}
+    await mkdir(output);
+    const tint=await buildNativeDemTintZip({archive:tintZip,ice,land:countries,temporaryRoot:output,
+      width:profile.tintWidth,height:profile.tintHeight},{signal});
+    if(tint.iceSourceSha256!==iceHash.sha256||tint.landMaskSourceSha256!==landHash.sha256)throw Error('Tint mask source changed during processing');
+    const tintPath=join(output,'tint.webp');await writeExclusive(tintPath,tint.webp,signal);
+    const tintReport={algorithm:'canonical-land-average-nearest-fill-v2',validCells:tint.validCells,regionalFillCells:tint.regionalFillCells,
+      sourceEntry:tint.sourceEntry,iceSourceSha256:tint.iceSourceSha256,landMaskSourceSha256:tint.landMaskSourceSha256};
+    for(const level of manifest.levels){
+      const sourceDir=join(sourceRoot,String(level.id)),info=await lstat(sourceDir);
+      if(!info.isDirectory()||info.isSymbolicLink())throw Error('Source DEM level must be a regular directory');
+      const targetDir=join(output,String(level.id));await mkdir(targetDir);
+      for(let row=0;row<level.rows;row++)for(let column=0;column<level.columns;column++){
+        signal?.throwIfAborted();const name=`${column}-${row}.webp`,from=join(sourceDir,name),to=join(targetDir,name),item=await lstat(from);
+        if(!item.isFile()||item.isSymbolicLink())throw Error('Source DEM tile must be a regular file');
+        const before=await hashTerrainFile(from,{signal});await copyFile(from,to,constants.COPYFILE_EXCL);
+        const [after,copy]=await Promise.all([hashTerrainFile(from,{signal}),hashTerrainFile(to,{signal})]);
+        if(before.sha256!==after.sha256||before.sha256!==copy.sha256)throw Error('DEM tile changed during copying');
+      }
+    }
+    manifest.version=version;manifest.urlTemplate=`terrain/v${version}/{level}/{column}-{row}.webp`;
+    manifest.tint={...tintReport,url:`terrain/v${version}/tint.webp`,width:profile.tintWidth,height:profile.tintHeight,
+      sha256:(await hashTerrainFile(tintPath,{signal})).sha256};
+    manifest.sources=manifest.sources.filter(source=>source.url!==iceUrl&&source.role!=='canonical-country-land-mask');
+    manifest.sources.push({url:iceUrl,...iceHash},{role:'canonical-country-land-mask',path:basename(countries),...landHash});
+    const summary=await summarizeTerrainAssets(output,manifest.levels,{signal});manifest.assetsSha256=summary.assetsSha256;
+    const manifestPath=join(output,'manifest.json');await writeExclusive(manifestPath,JSON.stringify(manifest,null,2)+'\n',signal);
+    const report={completed:true,copiedFromVersion:originalVersion,demTilesUnchanged:true,tint:tintReport,levelReports:summary.reports,
+      totalBytes:summary.reports.reduce((sum,item)=>sum+item.bytes,0)+(await stat(tintPath)).size,
+      manifestSha256:(await hashTerrainFile(manifestPath,{signal})).sha256,seconds:Math.round(performance.now()-start)/1000,
+      peakWorkingSetBytes:process.resourceUsage().maxRSS*1024};
+    await writeExclusive(join(output,'build-report.json'),JSON.stringify(report,null,2)+'\n',signal);return manifest;
+  });
+}
+
+export async function repairTerrainDem({output,etopo,minLevel=0,maxLevel=5}={}, {signal,workspace=root}={}){
+  signal?.throwIfAborted();if(typeof output!=='string'||!output)throw Error('Explicit DEM repair output required');
+  const logicalOutput=resolve(output);
+  return withLibraryOutputs({root:workspace,paths:[logicalOutput]},async()=>{
+    output=await realpath(logicalOutput);
+    const manifestPath=join(output,'manifest.json'),original=await readFile(manifestPath,{signal}),manifest=JSON.parse(original.toString('utf8'));
+    const reportPath=join(output,'build-report.json');let reportBytes,previous={};
+    try{reportBytes=await readFile(reportPath,{signal});previous=JSON.parse(reportBytes.toString('utf8'));}
+    catch(error){if(error.code!=='ENOENT')throw error;}
+    if(etopo)await restoreDemPolarGutterShade({output,source:etopo,levels:manifest.levels,minLevel,maxLevel},{signal});
+    for(const level of manifest.levels)await reconcileDemGutterFiles(output,level,{signal});
+    const summary=await summarizeTerrainAssets(output,manifest.levels,{signal}),old=manifest.generation||{};
+    delete manifest.generation;manifest.assetsSha256=summary.assetsSha256;
+    await replaceChecked(manifestPath,Buffer.from(JSON.stringify(manifest,null,2)+'\n'),original,signal);
+    const priorLevels=previous.levelReports||old.levelReports||[];
+    const report={completed:true,totalBytes:summary.reports.reduce((sum,item)=>sum+item.bytes,0)+(await stat(join(output,'tint.webp'))).size,
+      seconds:previous.seconds??old.seconds??null,peakWorkingSetBytes:previous.peakWorkingSetBytes??old.peakWorkingSetBytes??null,
+      levelReports:summary.reports.map((item,index)=>({...item,seconds:priorLevels[index]?.seconds??null})),
+      manifestSha256:(await hashTerrainFile(manifestPath,{signal})).sha256};
+    const bytes=Buffer.from(JSON.stringify(report,null,2)+'\n');
+    if(reportBytes)await replaceChecked(reportPath,bytes,reportBytes,signal);else await writeExclusive(reportPath,bytes,signal);
+    return report;
+  });
+}
+
 export async function generateTerrainDemLevel({source,output,level,strict=true},{signal}={}){
   signal?.throwIfAborted();
   const {id,width,height,tileSize,columns,rows}=level||{};
@@ -123,6 +212,27 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const request=JSON.parse(Buffer.concat(chunks).toString('utf8'));
       await buildTerrainDemCandidate(request);
       console.log(await readFile(join(resolve(request.output),'build-report.json'),'utf8'));
-    }else throw Error('Expected --level SOURCE OUTPUT LEVEL_JSON or --build with JSON input');
+    }else{
+      const {values}=parseArgs({options:{etopo:{type:'string'},'tint-zip':{type:'string'},'glaciated-areas':{type:'string'},
+        countries:{type:'string'},'reuse-dem':{type:'string'},output:{type:'string'},'repair-output':{type:'boolean'},
+        'repair-polar-min-level':{type:'string'},'repair-polar-max-level':{type:'string'},help:{type:'boolean'}}});
+      if(values.help)console.log('Usage: --output DIR [--etopo TIFF --tint-zip ZIP --glaciated-areas GEOJSON --countries GEOJSON | --reuse-dem DIR ... | --repair-output]');
+      else{
+        if(!values.output)throw Error('Explicit --output required');
+        const input={etopo:values.etopo,tintZip:values['tint-zip'],ice:values['glaciated-areas'],countries:values.countries,output:values.output};
+        let report;
+        if(values['reuse-dem']){
+          await rebuildTerrainDemTint({...input,sourceOutput:values['reuse-dem']});
+          report=JSON.parse(await readFile(join(resolve(values.output),'build-report.json'),'utf8'));
+        }else if(values['repair-output']){
+          const number=(text,fallback)=>{if(text===undefined)return fallback;if(!/^\d+$/.test(text))throw Error('Invalid polar repair level');return Number(text);};
+          report=await repairTerrainDem({output:values.output,etopo:values.etopo,
+            minLevel:number(values['repair-polar-min-level'],0),maxLevel:number(values['repair-polar-max-level'],5)});
+        }else{
+          await buildTerrainDemCandidate(input);report=JSON.parse(await readFile(join(resolve(values.output),'build-report.json'),'utf8'));
+        }
+        console.log(JSON.stringify(report));
+      }
+    }
   }catch(error){console.error('terrain-dem-build: '+error.message);process.exitCode=1;}
 }

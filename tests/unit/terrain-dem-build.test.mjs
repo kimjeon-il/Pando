@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -34,7 +35,8 @@ test('small DEM candidate keeps source and output hashes and refuses existing re
   {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY||!process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||
         !process.env.PANDO_MAP_IMAGE_ARTIFACT||!process.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY||
         !process.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY||!process.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY},async()=>{
-  const {buildTerrainDemCandidate}=await import('../../tools/gis/terrain-dem-build.mjs');
+  const {buildTerrainDemCandidate,rebuildTerrainDemTint,repairTerrainDem}=await import('../../tools/gis/terrain-dem-build.mjs');
+  assert.equal(typeof rebuildTerrainDemTint,'function');assert.equal(typeof repairTerrainDem,'function');
   const root=await mkdtemp(join(tmpdir(),'pando-dem-candidate-'));
   try{
     const fixture=JSON.parse(await readFile('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
@@ -51,6 +53,22 @@ test('small DEM candidate keeps source and output hashes and refuses existing re
     await assert.rejects(buildTerrainDemCandidate(inputs,{profile}),/exist/i);
     assert.deepEqual(await readFile(join(inputs.output,'manifest.json')),previous);
     await assert.rejects(buildTerrainDemCandidate({...inputs,output:join(root,'bad')},{profile:{...profile,etopoSha256:'0'.repeat(64)}}),/checksum/i);
+    const old=JSON.parse(previous);old.version='0.13.2';await writeFile(join(inputs.output,'manifest.json'),JSON.stringify(old));
+    const reused=join(root,'reused');
+    const reusedManifest=await rebuildTerrainDemTint({sourceOutput:inputs.output,tintZip:archive,ice,countries:land,output:reused},{profile});
+    assert.equal(reusedManifest.version,'0.13.3');
+    for(let row=0;row<2;row++)for(let column=0;column<3;column++)
+      assert.deepEqual(await readFile(join(reused,'0',`${column}-${row}.webp`)),await readFile(join(inputs.output,'0',`${column}-${row}.webp`)));
+    await assert.rejects(rebuildTerrainDemTint({sourceOutput:inputs.output,tintZip:archive,ice,countries:land,output:reused},{profile}),/exist/i);
+    const tile=join(inputs.output,'0','0-0.webp'),tileBytes=await readFile(tile);await writeFile(tile,Buffer.from('corrupt'));
+    await assert.rejects(rebuildTerrainDemTint({sourceOutput:inputs.output,tintZip:archive,ice,countries:land,output:join(root,'corrupt-copy')},{profile}),/checksum/i);
+    await writeFile(tile,tileBytes);
+    const repaired=await repairTerrainDem({output:reused});
+    assert.equal(repaired.completed,true);
+    const final=JSON.parse(await readFile(join(reused,'manifest.json'),'utf8'));
+    assert.equal(final.assetsSha256,(await summarizeTerrainAssets(reused,profile.levels)).assetsSha256);
+    const cli=JSON.parse(execFileSync(process.execPath,['tools/gis/terrain-dem-build.mjs','--output',reused,'--repair-output'],{encoding:'utf8'}));
+    assert.equal(cli.completed,true);assert.equal(cli.manifestSha256,(await hashTerrainFile(join(reused,'manifest.json'))).sha256);
   }finally{await rm(root,{recursive:true,force:true});}
 });
 
