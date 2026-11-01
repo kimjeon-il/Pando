@@ -29,6 +29,7 @@ jobs:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: ./.github/actions/library-data
       - name: Verify Viewer browser registration and dependency planner
         run: |
           node scripts/run-application-checks.mjs --list --group viewer > /tmp/viewer-catalog.json
