@@ -16,8 +16,9 @@ Never install a desktop GIS application merely to use this plugin.
 
 ## Sources and labels
 
-The canonical owners in tools/reference-analysis/ are acquire-sources.mjs,
-macro.py, corpus.py, train.py, inspect-checkpoint.py and verify-trained-onnx.mjs.
+The canonical owners in tools/reference-analysis/ include acquire-sources.mjs,
+prepare-macro.mjs, prepare-publisher.mjs, corpus.py, train.py,
+native-evaluate-source.mjs, native-diagnostic-preview.mjs and verify-trained-onnx.mjs.
 Read their current README and CLI arguments; extend these owners only when a
 concrete missing capability requires it. Do not create a parallel training engine.
 
