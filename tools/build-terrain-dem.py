@@ -228,50 +228,19 @@ def reconcile_gutters(output: Path, level):
 
 
 def restore_polar_gutter_shade(output: Path, etopo_path: Path, min_level=0, max_level=5):
-    """Refresh only out-of-grid polar shade after a generator upgrade."""
-    modified = 0
-    inspect_source(etopo_path)
-    for level in levels():
-        if level['id'] < min_level or level['id'] > max_level:
-            continue
-        width, height = level['width'], level['height']
-        if height <= 1350:
-            for row in sorted({0, level['rows']-1}):
-                for column in range(level['columns']):
-                    path = output/str(level['id'])/f'{column}-{row}.webp'
-                    with Image.open(path) as image:
-                        pixels = np.array(image.convert('RGBA'))
-                    prior = pixels[:, :, 2].copy()
-                    if row == 0:
-                        pixels[0, :, 2] = pixels[1, :, 2]
-                    if row == level['rows']-1:
-                        pixels[-1, :, 2] = pixels[-2, :, 2]
-                    if not np.array_equal(prior, pixels[:, :, 2]):
-                        save_and_verify_webp(pixels, path)
-                        modified += 1
-            print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
-            continue
-        with NativeDemWindowReader(etopo_path, width, height) as reader:
-            for row in sorted({0, level['rows']-1}):
-                for column in range(level['columns']):
-                    x0, y0 = column*TILE_SIZE, row*TILE_SIZE
-                    x1, y1 = min(width, x0+TILE_SIZE), min(height, y0+TILE_SIZE)
-                    elevation = reader.read(x0-2, y0-2, x1+2, y1+2)
-                    original_shade = shade(elevation, width, height, y0-2)[1:-1, 1:-1]
-                    path = output/str(level['id'])/f'{column}-{row}.webp'
-                    with Image.open(path) as image:
-                        pixels = np.array(image.convert('RGBA'))
-                    prior = pixels[:, :, 2].copy()
-                    if row == 0:
-                        pixels[0, :, 2] = original_shade[0]
-                    if row == level['rows']-1:
-                        pixels[-1, :, 2] = original_shade[-1]
-                    if not np.array_equal(prior, pixels[:, :, 2]):
-                        save_and_verify_webp(pixels, path)
-                        modified += 1
-                    del elevation, original_shade, pixels, prior
-        print(json.dumps({'level': level['id'], 'polarShadeRestoredTiles': modified}), flush=True)
-    return modified
+    """Refresh polar shade through the source-bound native gutter owner."""
+    script = Path(__file__).resolve().parent / 'gis/terrain-dem-gutters.mjs'
+    request = dict(output=str(output), source=str(etopo_path), levels=levels(),
+                   minLevel=min_level, maxLevel=max_level)
+    result = subprocess.run(['node', str(script), '--polar'], input=json.dumps(request).encode('utf-8'),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('DEM polar shade repair failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    receipt = json.loads(result.stdout)
+    if set(receipt) != {'modified'} or not isinstance(receipt['modified'], int) or receipt['modified'] < 0:
+        raise ValueError('Invalid DEM polar shade repair receipt')
+    return receipt['modified']
 
 
 def asset_summary(output: Path, level_definitions):

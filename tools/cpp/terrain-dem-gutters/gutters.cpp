@@ -18,10 +18,26 @@ int main(){try{
   while(std::cin){std::cin.read(chunk.data(),chunk.size());auto size=std::cin.gcount();if(size>0){
     if(input.size()+std::size_t(size)>80ULL*1024*1024)throw std::invalid_argument("DEM gutter input exceeds budget");
     input.insert(input.end(),chunk.data(),chunk.data()+size);}}
-  if(!std::cin.eof()||input.size()<20||!std::equal(input.begin(),input.begin()+8,"PDEMGUT1"))throw std::invalid_argument("Invalid DEM gutter header");
+  if(!std::cin.eof()||input.size()<20)throw std::invalid_argument("Invalid DEM gutter header");
+  const bool polar=std::equal(input.begin(),input.begin()+8,"PDEMPOL1");
+  if(!polar&&!std::equal(input.begin(),input.begin()+8,"PDEMGUT1"))throw std::invalid_argument("Invalid DEM gutter header");
   std::size_t at=8;auto number=[&](){if(at+4>input.size())throw std::invalid_argument("Truncated DEM gutter input");
     auto v=std::uint32_t(input[at])|(std::uint32_t(input[at+1])<<8)|(std::uint32_t(input[at+2])<<16)|(std::uint32_t(input[at+3])<<24);at+=4;return v;};
   const auto width=number(),height=number(),flags=number();
+  if(polar){
+    if(width<3||height<3||width>16384||height>16384||std::uint64_t(width)*height>16777216||
+       flags>15||!(flags&3)||((flags&4)&&!(flags&1))||((flags&8)&&!(flags&2)))throw std::invalid_argument("Invalid DEM polar shade request");
+    const auto imageBytes=std::size_t(width)*height*4,rows=std::size_t(bool(flags&4))+std::size_t(bool(flags&8));
+    if(input.size()-at!=imageBytes+rows*width)throw std::invalid_argument("Invalid DEM polar shade input");
+    std::vector<Byte> output(input.begin()+at,input.begin()+at+imageBytes);at+=imageBytes;
+    const auto top=at,bottom=at+((flags&4)?width:0);
+    for(std::uint32_t x=0;x<width;x++){
+      if(flags&1)output[x*4+2]=(flags&4)?input[top+x]:output[(width+x)*4+2];
+      if(flags&2)output[(std::size_t(height-1)*width+x)*4+2]=(flags&8)?input[bottom+x]:output[(std::size_t(height-2)*width+x)*4+2];
+    }
+    std::cout.write(reinterpret_cast<const char*>(output.data()),static_cast<std::streamsize>(output.size()));
+    if(!std::cout)throw std::runtime_error("Cannot write DEM polar result");return 0;
+  }
   if(width<3||height<3||width>16384||height>16384||std::uint64_t(width)*height>16777216||flags>3)throw std::invalid_argument("Invalid DEM tile dimensions");
   struct Edge{std::uint32_t w,h;std::size_t left,right,top,bottom,topGutter,bottomGutter;};std::array<Edge,8> edges{};
   auto bytes=[&](std::size_t count){if(count>input.size()-at)throw std::invalid_argument("Truncated DEM edge");auto start=at;at+=count;return start;};

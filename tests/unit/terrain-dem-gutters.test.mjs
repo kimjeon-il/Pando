@@ -3,10 +3,24 @@ import assert from 'node:assert/strict';
 import {readFile,mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {demTileEdges,reconcileDemGutterPixels,reconcileDemGutterFiles} from '../../tools/gis/terrain-dem-gutters.mjs';
+import * as gutters from '../../tools/gis/terrain-dem-gutters.mjs';
+const {demTileEdges,reconcileDemGutterPixels,reconcileDemGutterFiles}=gutters;
 import {encodeNativeWebpLossless,readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
 
 const cases=JSON.parse(await readFile(new URL('../fixtures/terrain-dem-gutters-oracle.json',import.meta.url),'utf8'));
+test('polar shade repair preserves other channels and uses the original or adjacent row',async()=>{
+  assert.equal(typeof gutters.restoreDemPolarShadePixels,'function');
+  const original=Buffer.from(Array.from({length:3*4*4},(_,index)=>index));
+  const image={width:4,height:3,data:original};
+  const low=await gutters.restoreDemPolarShadePixels(image,{north:true,south:true});
+  const expected=Buffer.from(original);
+  for(let x=0;x<4;x++){expected[x*4+2]=original[(4+x)*4+2];expected[(8+x)*4+2]=original[(4+x)*4+2];}
+  assert.deepEqual(low.data,expected);assert.equal(low.modified,true);
+  const high=await gutters.restoreDemPolarShadePixels(image,{north:true,south:true,top:Buffer.from([1,2,3,4]),bottom:Buffer.from([5,6,7,8])});
+  for(let x=0;x<4;x++){expected[x*4+2]=x+1;expected[(8+x)*4+2]=x+5;}
+  assert.deepEqual(high.data,expected);assert.deepEqual(image.data,original);
+  await assert.rejects(gutters.restoreDemPolarShadePixels(image,{north:true,south:false,top:Buffer.alloc(3)}),/shade|row/i);
+});
 test('gutter pixels match the frozen Python result at dateline, poles and partial tiles',async()=>{
   for(const fixture of cases){
     const tiles=new Map(fixture.inputs.map(t=>[`${t.column},${t.row}`,{width:t.width,height:t.height,data:Buffer.from(t.rgba)}]));

@@ -213,9 +213,18 @@ jobs:
           else { $image='build-native/map-image/pando-map-image' }
           node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
           if ($LASTEXITCODE -ne 0) { throw 'DEM image packaging failed' }
+          cmake -S tools/cpp/terrain-dem-gutters -B build-native/terrain-dem-gutters -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter configuration failed' }
+          cmake --build build-native/terrain-dem-gutters --config Release --target pando-terrain-dem-gutters
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter build failed' }
+          if ($IsWindows) { $gutter='build-native/terrain-dem-gutters/Release/pando-terrain-dem-gutters.exe' }
+          else { $gutter='build-native/terrain-dem-gutters/pando-terrain-dem-gutters' }
+          node tools/gis/package-terrain-dem-gutters.mjs --binary $gutter --directory build-native/terrain-dem-gutters/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'DEM gutter packaging failed' }
           $env:PANDO_TERRAIN_DEM_ENCODE_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-encode/artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/terrain-dem-raster-native.test.mjs tests/unit/terrain-dem-build.test.mjs
+          $env:PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/terrain-dem-gutters/artifact"
+          node --test tests/unit/terrain-dem-raster-native.test.mjs tests/unit/terrain-dem-build.test.mjs tests/unit/terrain-dem-gutters.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'DEM windows differ from the rasterio oracle' }
           python -m pip install Pillow==12.3.0 numpy==2.3.5
           if ($LASTEXITCODE -ne 0) { throw 'DEM inspection test dependencies failed' }

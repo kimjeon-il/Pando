@@ -5,6 +5,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
+import {encodeDemWebp} from '../../tools/gis/terrain-dem-webp.mjs';
+import {restoreDemPolarGutterShade} from '../../tools/gis/terrain-dem-gutters.mjs';
 
 const expected=[
   '9fb8614b0d2037f720fea17cc998f5e5251e70a4b8f4d8abf5aff524ba310738',
@@ -39,5 +41,24 @@ test('native level generation preserves Python tile pixels and protects existing
     const existing=await readFile(join(root,'0','0-0.webp'));
     await assert.rejects(generateTerrainDemLevel({source,output:root,level,strict:false}),/exist/i);
     assert.deepEqual(await readFile(join(root,'0','0-0.webp')),existing);
+  }finally{await rm(root,{recursive:true,force:true});}
+});
+
+test('polar repair updates only changed shade and remains stable',
+  {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY||!process.env.PANDO_TERRAIN_DEM_ENCODE_DIRECTORY||
+        !process.env.PANDO_MAP_IMAGE_ARTIFACT||!process.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY},async()=>{
+  const {generateTerrainDemLevel}=await import('../../tools/gis/terrain-dem-build.mjs');
+  const root=await mkdtemp(join(tmpdir(),'pando-dem-polar-'));
+  try{
+    const fixture=JSON.parse(await readFile('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
+    const source=join(root,'source.tif');await writeFile(source,Buffer.from(fixture.sources.valid,'base64'));
+    const level={id:0,width:8,height:4,tileSize:3,columns:3,rows:2};
+    await generateTerrainDemLevel({source,output:root,level,strict:false});
+    const path=join(root,'0','0-0.webp'),original=await readNativeRawWebp(await readFile(path));
+    const changed={...original,data:Buffer.from(original.data)};changed.data[2]^=255;
+    await writeFile(path,await encodeDemWebp(changed));
+    assert.equal(await restoreDemPolarGutterShade({output:root,source,levels:[level],strict:false}),1);
+    const repaired=await readNativeRawWebp(await readFile(path));assert.deepEqual(repaired.data,original.data);
+    assert.equal(await restoreDemPolarGutterShade({output:root,source,levels:[level],strict:false}),0);
   }finally{await rm(root,{recursive:true,force:true});}
 });
