@@ -1,0 +1,74 @@
+name: P6-8 final current-main verification
+
+on:
+  push:
+    branches: [p6-8-final-status]
+    paths:
+      - scripts/contracts/application-checks.json
+      - .github/workflows/p6-8-final-status.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p6-8-final-status
+  cancel-in-progress: true
+
+jobs:
+  final:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: ./.github/actions/library-data
+
+      - name: Verify application-check registry and deferred timeline classification
+        run: |
+          mkdir -p test-results/p6-8
+          node scripts/run-application-checks.mjs --list --base f9ec3c1fccc19fbf1fd49c2f002002c2d87a48c3 --output test-results/p6-8/application-check-plan.json
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {loadRepository,planApplicationChecks} from './scripts/plan-application-checks.mjs';
+          const repository=loadRepository();
+          const deferred=planApplicationChecks({changedFiles:[],repository,groups:['deferred-builtin-timeline']});
+          assert.deepEqual(deferred.browserSpecs,['tests/browser/deferred-builtin-timeline.spec.mjs']);
+          const plan=JSON.parse(readFileSync('test-results/p6-8/application-check-plan.json','utf8')).plan;
+          assert.ok(!plan.browserSpecs.includes('tests/browser/deferred-builtin-timeline.spec.mjs'));
+          console.log('P6_8_SELECTOR '+JSON.stringify({unit:plan.unitTests.length,browser:plan.browserSpecs.length,
+            deferred:deferred.browserSpecs}));
+          NODE
+
+      - name: Verify committed Core pair
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+
+      - name: P6-3 race contracts and P6-2 touch controller contracts
+        run: node --test tests/unit/core-temporal-viewer-p5-6.test.mjs tests/unit/map-input-controller.test.mjs
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: P6-1 desktop functional scenario on current main tree
+        run: pnpm exec playwright test --config tests/integration/viewer-functional-p6-1.config.mjs
+
+      - name: P6-2 narrow functional scenario on current main tree
+        run: pnpm exec playwright test --config tests/integration/viewer-functional-p6-2.config.mjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p6-8-final-${{ github.sha }}
+          path: |
+            test-results/p6-8/
+            test-results/viewer-functional-p6-1/
+            test-results/viewer-functional-p6-2/
+          if-no-files-found: warn
+          retention-days: 14
