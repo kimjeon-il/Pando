@@ -143,3 +143,67 @@ test('P8-1 explicitly checks editor information, actions, and task at five width
   await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
   expect(errors).toEqual([]);
 });
+
+
+test('P4 keeps mobile commands compact and preserves focus, long names, text zoom, and edit entry', async ({ page }) => {
+  test.setTimeout(150_000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoEditor(page, '/?renderer=canvas&demTerrain=raster');
+  await expect(page.locator('#app')).toHaveAttribute('data-readiness', 'enhanced', { timeout: 90_000 });
+  await page.evaluate(() => window.PANDOLAB_TERRITORIAL.select('DEU'));
+  await expect(page.locator('#entityProperties')).toBeVisible();
+
+  const longName = '아주 긴 객체 이름이 편집창의 명령과 정보를 밀어내지 않는지 확인하기 위한 독일 객체 이름';
+  await page.evaluate(value => window.PANDOLAB_TERRITORIAL.setName('DEU', value), longName);
+  await expect(page.locator('#propertyTitle')).toHaveText(longName);
+  const heading = await page.locator('#editorObjectHeading').evaluate(node => {
+    const title = node.querySelector('#propertyTitle');
+    const box = node.getBoundingClientRect(), titleBox = title.getBoundingClientRect();
+    const style = getComputedStyle(title);
+    return {
+      fits: titleBox.left >= box.left - 1 && titleBox.right <= box.right + 1,
+      lines: style.webkitLineClamp,
+      overflow: node.scrollWidth - node.clientWidth,
+    };
+  });
+  expect(heading.fits).toBe(true);
+  expect(heading.lines).toBe('2');
+  expect(heading.overflow).toBeLessThanOrEqual(1);
+
+  await page.locator('#editorTabBtn').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#actionsTabBtn')).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#relationTabBtn')).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('#actionsTabBtn')).toBeFocused();
+
+  await page.locator('#actionsTabBtn').click();
+  await page.locator('#mergeEntityBtn').click();
+  await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'task');
+  await expect(page.locator('#modeTaskName')).toHaveText('객체 합병');
+  await expect(page.locator('#modeCancelBtn')).toBeVisible();
+  await page.locator('#modeCancelBtn').click();
+  await expect(page.locator('#editorSurface')).toHaveAttribute('data-editor-content', 'properties');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#app')).toHaveAttribute('data-layout', 'mobile');
+  await page.locator('html').evaluate(node => { node.style.fontSize = '200%'; });
+  await ensureEditor(page);
+  await page.locator('#editorTabBtn').click();
+  const zoomed = await readLayout(page, 'info');
+  expectLayout(zoomed, '390px 200% text');
+  await expect(page.locator('.mobile-bottom-bar .ui-nav-item')).toHaveCount(3);
+  await page.locator('#mobileMenuBtn').click();
+  await expect(page.locator('#mobileGlobalMenu')).toBeVisible();
+  await expect(page.locator('#mobileUndoBtn')).toBeVisible();
+  await expect(page.locator('#mobileRedoBtn')).toBeVisible();
+  const active = await page.evaluate(() => document.activeElement?.id || '');
+  expect(['mobileUndoBtn', 'mobileRedoBtn', 'mobileMenuFileBtn', 'mobileDisplayBtn', 'mobilePreferencesBtn', 'mobileHelpBtn']).toContain(active);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#mobileMenuBtn')).toBeFocused();
+  await page.locator('html').evaluate(node => { node.style.fontSize = ''; });
+  expect(errors).toEqual([]);
+});
