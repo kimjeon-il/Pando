@@ -24,9 +24,9 @@ test('country and interaction coverage stay uniform across dense joins and prese
     const page = await browser.newPage();
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     const proof = await page.evaluate(async () => {
-      const { createGpuStrokeRenderer } = await import('/assets/js/modules/gpu-stroke-renderer.js');
-      const { createRenderDevice } = await import('/assets/js/modules/render-device.js');
-      const { resolveMapStrokeStyle, resolveMapInteractionStyle } = await import('/assets/js/modules/map-interaction-style.js');
+      const { createGpuStrokeRenderer } = await import('/shared/frontend/js/modules/gpu-stroke-renderer.js');
+      const { createRenderDevice } = await import('/shared/frontend/js/modules/render-device.js');
+      const { resolveMapStrokeStyle, resolveMapInteractionStyle } = await import('/shared/frontend/js/modules/map-interaction-style.js');
       const results = [];
       for (const version of [2, 1]) for (const dpr of [1, 2]) for (const role of ['country', 'hover', 'secondary', 'primary']) {
         const canvas = globalThis.document.createElement('canvas'); canvas.width = 256 * dpr; canvas.height = 64 * dpr;

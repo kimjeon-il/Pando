@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMapInteractionPorts } from "../../apps/editor/frontend/js/modules/app-capability-ports-map-interaction.js";
 import { createToolBindings } from "../../apps/editor/frontend/js/modules/app-tool-bindings.js";
+import { createTaskPresentation } from "../../apps/editor/frontend/js/modules/app-task-presentation.js";
 const { EventTarget, Event } = globalThis;
 
 const selectionPortNames = ['territorySelectionA', 'territorySelectionB', 'territorySelectionC'];
@@ -42,49 +43,70 @@ test('the canonical back capability resolves the live workflow and fails when it
 });
 
 function createToolbarFixture() {
-  const state = { territorySelectionSession: { stage: 'selection' } };
+  const state = { territorySelectionSession: { stage: 'review' }, geometryPreview: { session: null },
+    modeProcessing: false, labelPlacementMode: false, tool: 'territory-selection' };
   const providers = {
-    territorySelectionWorkflow: { back: () => { state.territorySelectionSession.stage = 'setup'; } },
+    territorySelectionWorkflow: { back: () => { state.territorySelectionSession.stage = 'selection'; } },
   };
   const ports = createMapInteractionPorts(providers);
   const cancelButton = new EventTarget();
+  const returnButton = new EventTarget();
   const resetButton = new EventTarget();
   const addEntityButton = new EventTarget();
   const regionalInput = new EventTarget();
-  const bindings = createToolBindings();
-  bindings.connect(Object.freeze({
-    platform: { $: id => ({ modeCancelBtn: cancelButton, resetViewBtn: resetButton, addEntityBtn: addEntityButton, territorialCreateRegionalInput: regionalInput })[id] || null },
+  const errors = [];
+  let action = null, discardRequests = 0;
+  const presentation = createTaskPresentation();
+  presentation.connect({
     projectState: { state },
-    countryCommitFlow: { addMultiDraftPart() {}, undoMultiDraftPart() {} },
-    taskPresentation: { toggleMapTaskWindow() {} },
-    feedback: { reportOperationError: error => assert.fail(error.stack) },
-    navigation: { resetView() {} },
+    genericEditingB: { requestDraftDiscard: async callback => { discardRequests += 1; await callback(); return true; } },
+    surfaces: { isGenericFeatureDraftTool: () => false },
     countryEditingA: { cancelActiveMode: () => { state.territorySelectionSession = null; } },
     territorySelectionB: ports.territorySelectionB,
+  });
+  const bindings = createToolBindings();
+  bindings.connect(Object.freeze({
+    platform: { $: id => ({ modeCancelBtn: cancelButton, modeReturnBtn: returnButton, resetViewBtn: resetButton, addEntityBtn: addEntityButton, territorialCreateRegionalInput: regionalInput })[id] || null },
+    projectState: { state },
+    countryCommitFlow: { addMultiDraftPart() {}, undoMultiDraftPart() {} },
+    taskPresentation: { toggleMapTaskWindow() {},
+      returnToEditing: () => (action = presentation.returnToEditing()),
+      cancelCurrentEditing: () => (action = presentation.cancelCurrentEditing()) },
+    feedback: { reportOperationError: error => errors.push(error) },
+    navigation: { resetView() {} },
   }));
   bindings.bindToolUI();
-  return { state, providers, click: () => cancelButton.dispatchEvent(new Event('click')) };
+  return { state, providers, discardRequests: () => discardRequests,
+    async click(kind = 'return') {
+      action = null;
+      (kind === 'cancel' ? cancelButton : returnButton).dispatchEvent(new Event('click'));
+      assert.ok(action instanceof Promise, 'the button must invoke its canonical async task operation');
+      await action;
+      assert.deepEqual(errors, []);
+    } };
 }
 
-test('the existing cancel button dispatches back without the removed alias port', () => {
+test('the review return button dispatches back through the canonical task presentation', async () => {
   const fixture = createToolbarFixture();
-  fixture.click();
-  assert.equal(fixture.state.territorySelectionSession.stage, 'setup');
+  await fixture.click();
+  assert.equal(fixture.state.territorySelectionSession.stage, 'selection');
+  assert.equal(fixture.discardRequests(), 0);
 });
 
-test('the bound cancel button reads a replacement workflow rather than a captured back function', () => {
+test('the bound review return button reads the live replacement workflow', async () => {
   const fixture = createToolbarFixture();
   fixture.providers.territorySelectionWorkflow = {
     back: () => { fixture.state.territorySelectionSession.stage = 'reference'; },
   };
-  fixture.click();
+  await fixture.click();
   assert.equal(fixture.state.territorySelectionSession.stage, 'reference');
 });
 
-test('the cancel button in setup exits the mode instead of navigating back', () => {
+for (const stage of ['setup', 'selection', 'review']) test(`the cancel button in ${stage} discards through the task owner and exits the mode`, async () => {
   const fixture = createToolbarFixture();
-  fixture.state.territorySelectionSession.stage = 'setup';
+  fixture.state.territorySelectionSession.stage = stage;
   fixture.providers.territorySelectionWorkflow = null;
-  fixture.click();
+  await fixture.click('cancel');
   assert.equal(fixture.state.territorySelectionSession, null);
+  assert.equal(fixture.discardRequests(), 1);
 });

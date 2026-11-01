@@ -32,7 +32,10 @@ test('all fifteen transitions select the republic before and the independent pha
   }
   assert.equal(republic.parentEntityId,'state:soviet-union');assert.equal(independent.parentEntityId,'');
  }
- assert.deepEqual(read('state:soviet-union').lifetime,{validFrom:'1922',validTo:'1991'});
+ const union=read('state:soviet-union');
+ assert.deepEqual(union.lifetime,{validFrom:'1922-12-30',validTo:'1991'});
+ assert.equal(territorialEntityExistsAt(union,'1922-12-29'),false,'the union must not exist before its approved formation day');
+ assert.equal(territorialEntityExistsAt(union,'1922-12-30'),true);
 });
 
 test('published intervals and month-end selection preserve all fifteen political transitions',()=>{

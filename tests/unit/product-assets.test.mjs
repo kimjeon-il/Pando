@@ -20,7 +20,9 @@ function fixture() {
     files.set(path, text); mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text);
   };
   put('index.html', '<link rel="stylesheet" href="assets/css/viewer.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/viewer.js"></script>');
-  put('.nojekyll'); put('assets/css/viewer.css'); put('assets/js/build-meta.js');
+  put('.nojekyll'); put('assets/css/viewer.css');
+  put('assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify({ initialLandPreview: { url: 'assets/data/initial-land/preview.gz' } }) + ');\n');
+  put('assets/data/initial-land/preview.gz');
   put('assets/js/viewer.js', "import './modules/read.js';");
   put('assets/js/modules/read.js', 'export const value = 1;');
   put('assets/js/app.js'); put('assets/js/bootstrap.js'); put('assets/js/modules/app-composition.js');
@@ -34,7 +36,7 @@ test('viewer closure includes static and query-versioned dynamic imports but exc
   f.put('assets/js/modules/read.js', "export { value } from './value.js'; const next = import(`./lazy.js?v=${Date.now()}`); export { next };");
   f.put('assets/js/modules/value.js', 'export const value = 1;'); f.put('assets/js/modules/lazy.js', 'export const lazy = true;');
   const paths = await f.collect();
-  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css']) assert.ok(paths.has(path), path);
+  for (const path of ['assets/js/modules/value.js', 'assets/js/modules/lazy.js', 'assets/data/world/a.bin', 'assets/css/viewer.css', 'assets/data/initial-land/preview.gz']) assert.ok(paths.has(path), path);
   for (const path of ['assets/js/app.js', 'assets/js/bootstrap.js', 'assets/js/modules/app-composition.js', 'reports/a.md', 'tools/run.mjs']) assert.equal(paths.has(path), false, path);
 });
 

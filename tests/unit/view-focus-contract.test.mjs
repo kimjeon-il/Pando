@@ -1,7 +1,8 @@
 import { readApplicationOwners, applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import { createObjectCommands } from "../../apps/editor/frontend/js/modules/app-object-commands.js";
@@ -14,7 +15,7 @@ import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules
 
 const appSource = readApplicationOwners('camera-navigation', 'object-commands');
 const navigationBindingsSource = readApplicationOwners('navigation-bindings');
-const htmlSource = await readFile(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
+const htmlSource = renderProductHtml(path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8')).editor;
 
 function functionSource(name, nextName) {
   const start = appSource.indexOf(`function ${name}`);

@@ -90,7 +90,10 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   await expect.poll(() => page.evaluate(() => {
     const { gpu } = window.__PANDOLAB_RENDER_DEBUG__.snapshot();
     return gpu.renderer === 'webgl2' && gpu.canonicalMeshReady === true
-      && !gpu.countrySharedBoundaryReplacementPending && gpu.patchWorkerJobs?.queueDepth === 0;
+      // No pending upload alone is also true while the boundary Worker has
+      // not returned. Publication proves its complete stroke upload is ready.
+      && gpu.countrySharedBoundaryReady === true
+      && gpu.countrySharedBoundaryReplacementPending === false && gpu.patchWorkerJobs?.queueDepth === 0;
   }), { timeout: 90_000 }).toBe(true);
 
   const pan = async (distanceX, distanceY) => {
@@ -121,6 +124,9 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
       meshSwitchCount: gpu.meshSwitchCount,
       countryPatchUploadBytes: gpu.countryPatchUploadBytes,
       countryBoundaryRequestId: gpu.countrySharedBoundaryRequestId,
+      countryBoundaryReady: gpu.countrySharedBoundaryReady,
+      countryBoundaryReplacementPending: gpu.countrySharedBoundaryReplacementPending,
+      countryBoundaryLastMessage: gpu.countrySharedBoundaryLastMessage,
       paletteUploadCount: gpu.paletteUploadCount,
       polygonCacheMisses: renderScene.polygonCacheMisses,
       strokeCacheMisses: renderScene.strokeCacheMisses,
@@ -134,6 +140,8 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
     };
   });
   const before = await measurement();
+  expect(before.countryBoundaryReady).toBe(true);
+  expect(before.countryBoundaryReplacementPending).toBe(false);
   for (const [dx, dy] of [[30, 12], [-28, -8], [22, 10]]) await pan(dx, dy);
   await page.waitForTimeout(600);
   const after = await measurement();
@@ -144,6 +152,8 @@ test('1989 Soviet Union pan keeps WebGL geometry and upload resources stable', a
   console.log('SOVIET_1989_PAN_GPU_REUSE', JSON.stringify(evidence));
   expect(after.renderer).toBe('webgl2');
   expect(after.contextCount).toBe(1);
+  expect(after.countryBoundaryReady).toBe(true);
+  expect(after.countryBoundaryReplacementPending).toBe(false);
   expect(after.viewRenderCount).toBeGreaterThan(before.viewRenderCount);
   for (const key of [
     'meshSwitchCount', 'countryPatchUploadBytes', 'countryBoundaryRequestId',

@@ -9,9 +9,10 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { Blob, File } from 'node:buffer';
 import { TextEncoder, TextDecoder } from 'node:util';
+import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 
-const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
-const html = read('apps/editor/editor.html');
+const read = path => readFileSync(path.startsWith('assets/js/') ? repositoryFrontendUrl(path) : new URL(`../../${path}`, import.meta.url), 'utf8');
+const html = renderProductHtml(read).editor;
 test('export choices use unique current categories and UI has no merged duplicate labels', () => {
   const fieldset = html.match(/<fieldset class="gis-export-layers">[\s\S]*?<\/fieldset>/)[0];
   const values = [...fieldset.matchAll(/value="([^"]+)"/g)].map(match => match[1]);

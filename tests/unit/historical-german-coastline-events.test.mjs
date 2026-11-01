@@ -1,4 +1,3 @@
-import { reportPath } from '../../tools/report-paths.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -58,16 +57,13 @@ test('period map inventory marks geologic editions and lacks implied georeferenc
   }
 });
 
-test('Dollart–Jade modern-coast densification does not claim validated 1914 shorelines', () => {
-  const url = reportPath('reports/borders/reconstruction/germany/diagnostics/german-empire-1914-northsea-dollart-jade.diagnostics.json', { access: 'read' });
-  const report = JSON.parse(readFileSync(url, 'utf8'));
-  assert.equal(report.status, 'applied'); // applied only to the working geometry
-  assert.equal(report.historicalValidation.geometryPatchApplied, 'modern-detail-densification-only');
-  assert.equal(report.historicalValidation.independent1914CoastlineVectorDigitized, false);
-  assert.equal(report.historicalValidation.periodMapWmsLastAccess.includes('401'), true);
-  assert.equal(report.historicalValidation.independentHistoricallyCorrectShorelineMeasured, false);
-  assert.equal(report.historicalValidation.maxFlatZoom64ScreenDifferenceCssPx, null);
-  assert.equal(report.historicalValidation.periodBoundaryVerification, 'not-run');
-  assert.equal(report.validation.allRingsClosed, true);
-  assert.equal(report.validation.properSelfIntersections, 0);
+test('retained coastal event inputs do not promote construction dates to verified shoreline geometry', () => {
+  // The detailed Dollart–Jade investigation and its diagnostics were retired
+  // under historical-border-reconstruction-policy §8. The operating source
+  // catalog still owns the distinction between event evidence and geometry.
+  assert.equal(catalog.dataPolicy.eventYearIsNotExactShorelineSwitch, true);
+  assert.equal(catalog.dataPolicy.enclosedAreaIsNotEquivalentToDryLand, true);
+  assert.equal(catalog.dataPolicy.doNotInferGeometryFromConstructionTimeline, true);
+  assert.equal(catalog.dataPolicy.doNotAutoReplaceCoastline, true);
+  assert.equal(catalog.dataPolicy.geometryState, 'all entries source-indexed; historical geometry not digitized');
 });

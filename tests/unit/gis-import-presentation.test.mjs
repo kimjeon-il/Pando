@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 
 test('import fields separate selection, settings and impact confirmation', () => {
-  const html = fs.readFileSync(new URL('../../apps/editor/editor.html', import.meta.url), 'utf8');
+  const html = renderProductHtml(path => fs.readFileSync(new URL('../../' + path, import.meta.url), 'utf8')).editor;
   for (const [id, step] of Object.entries({ gisLayerRow: 0, gisTargetTypeRow: 1, gisDistributionValueRow: 1,
     gisCoastReferenceRow: 3, gisParentUnitRow: 3, gisAdvancedMapping: 2,
     gisImportImpact: 4, gisFinalSummary: 4 })) {

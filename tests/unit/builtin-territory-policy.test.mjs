@@ -2,8 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { fileURLToPath } from 'node:url';
+import { buildFrontendIndex, emitFrontendModule, frontendAsset } from '../../scripts/lib/frontend-layout.mjs';
 import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
-import { effectiveTerritorialFlagUrl } from "../../shared/frontend/js/modules/country-flags.js";
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const frontendIndex = buildFrontendIndex(root);
+const flagEntry = frontendAsset(root, 'assets/js/modules/country-flags.js', { index: frontendIndex });
+const publicModuleUrl = new URL(flagEntry.publicPath, 'https://flags.test/').href;
+const emittedFlags = emitFrontendModule(flagEntry.bytes.toString('utf8'), flagEntry.sourcePath, frontendIndex);
+const { effectiveTerritorialFlagUrl } = await import('data:text/javascript;base64,' + Buffer.from(
+  emittedFlags.replaceAll('import.meta.url', JSON.stringify(publicModuleUrl))).toString('base64'));
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const context = vm.createContext({});
 vm.runInContext(readFileSync(new URL("../../shared/frontend/js/vendor/polygon-clipping.min.js", import.meta.url), 'utf8'), context);
@@ -32,7 +40,12 @@ test('four island merges are disjoint, input-preserving, idempotent and preserve
 test('special flags are local SVGs; explicit removal and buffer-zone exception remain', () => {
   for (const id of ['CYN', 'SOL']) {
     const url = effectiveTerritorialFlagUrl({ id: id, properties: { entityKind: 'general', metadata: {} } });
-    const svg = readFileSync(new URL(url), 'utf8');
+    const resolved = new URL(url);
+    assert.equal(resolved.origin, new URL(publicModuleUrl).origin);
+    assert.equal(resolved.pathname, `/assets/vendor/political-flags/${id.toLowerCase()}.svg`);
+    const asset = frontendAsset(root, resolved.pathname.slice(1), { index: frontendIndex });
+    assert.equal(asset.sourcePath, `shared/frontend/static/vendor/political-flags/${id.toLowerCase()}.svg`);
+    const svg = asset.bytes.toString('utf8');
     assert.match(svg, /<svg\b/);
     assert.doesNotMatch(svg, /<script\b|<foreignObject\b|(?:href|src)=["']https?:/i);
     assert.equal(effectiveTerritorialFlagUrl({ id: id, properties: { entityKind: 'general', metadata: { flagDataUrl: null } } }), null);

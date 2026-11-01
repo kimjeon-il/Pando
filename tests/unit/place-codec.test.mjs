@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { reportPath } from '../../tools/report-paths.mjs';
 import { encodePlaceTile, decodePlaceTile } from "../../shared/frontend/js/modules/place-codec.js";
 import { normalizePlace, PLACE_LIMITS } from "../../shared/frontend/js/modules/place-contract.js";
 const raw = { source: 'synthetic', sourceId: '서울:1', name: '서울 🗺️', nameEn: 'Seoul', nameNative: '서울', nameTimeline: [{ fromYear: 1900, ko: '경성' }, { fromDate: '1945-08-15', ko: '서울 🗺️' }], kind: 'capital', coordinates: [127.12345, 37.56789], countryCode: 'KR', population: 12345678, priority: 90, minZoom: 1.25, featureCode: 'PPLC' };
@@ -75,7 +76,7 @@ test('Web PLAC v3 bytes match the shared Nicosia hex vector used by the Qt decod
 test('v3 Nicosia fixture stays aligned with the reviewed multilingual timeline', async () => {
   const { readFile } = await import('node:fs/promises');
   const contract = JSON.parse(await readFile(new URL('../../contracts/places/v3.json', import.meta.url), 'utf8'));
-  const source = JSON.parse(await readFile(new URL('../../reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json', import.meta.url), 'utf8'));
+  const source = JSON.parse(await readFile(reportPath('reports/places/tier1-major-cities-batch13-european-microstates-mediterranean.json', { access: 'read' }), 'utf8'));
   const city = source.records.find(record => record.geonameId === 146268);
   assert.ok(city);
   const fixture = contract.fixtures[0].input;

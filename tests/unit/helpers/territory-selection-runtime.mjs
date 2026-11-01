@@ -3,6 +3,7 @@ import { runInThisContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL,fileURLToPath } from 'node:url';
+import { buildFrontendIndex } from '../../../scripts/lib/frontend-layout.mjs';
 
 const sourceRoot = fileURLToPath(new URL('../../../', import.meta.url));
 export const selectionEntrypoints = ['app-territory-selection-workflow','app-territory-components','territory-component-plan','app-country-modes','app-country-commits','app-river-candidates','river-territory-partition','annex-geometry','cut-worker-preparation','map-edit-country-commands','map-edit-preview-calculations','map-edit-geometry','app-cut-geometry','app-land-relations'];
@@ -13,7 +14,12 @@ export async function loadSelectionModules(root = sourceRoot) {
   await import('../../helpers/spherical-core.mjs');
   await import(pathToFileURL(resolve(root, 'shared/frontend/js/vendor/polygon-clipping.min.js')).href);
   runInThisContext(readFileSync(resolve(root, 'shared/frontend/js/vendor/d3.min.js'),'utf8'), {filename:'pinned-d3.min.js'});
-  const modules = await Promise.all([...selectionEntrypoints,'territorial-units'].map(name => import(pathToFileURL(resolve(root,`assets/js/modules/${name}.js`)).href)));
+  const index = buildFrontendIndex(root);
+  const modules = await Promise.all([...selectionEntrypoints,'territorial-units'].map(name => {
+    const entry = index.get(`assets/js/modules/${name}.js`);
+    if (!entry) throw new Error(`Missing canonical selection module: ${name}`);
+    return import(pathToFileURL(resolve(root,entry.sourcePath)).href);
+  }));
   globalThis.window = globalThis;
   return {...Object.assign({}, ...modules), ...globalThis.PandoLabPolygonGeometry, clipper:globalThis.polygonClipping, d3:globalThis.d3};
 }

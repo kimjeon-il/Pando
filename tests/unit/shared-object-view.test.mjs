@@ -24,7 +24,8 @@ test('the shared territorial display view resolves default, custom and absent fl
 test('the common visibility query honors hidden object items for selection and hover output',()=>{
  const feature=createTerritorialFeature({id:'A',name:'A',entityKind:'general',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}});
  let visible=true;
- const query=createObjectQuery({selectionServices:{normalizeObjectRef},territorialModel:{entityRepository:createTerritorialEntityRepository({getEntities:()=>[feature]})},
+ const query=createObjectQuery({projectState:{state:{timelineCursor:'2026-10',layerVisibility:{objects:true}}},
+  selectionServices:{normalizeObjectRef},territorialModel:{entityRepository:createTerritorialEntityRepository({getEntities:()=>[feature]})},
   layerPresentation:{isLayerItemVisible:()=>visible},hydroPresentation:{hydroEditById:()=>null}});
  const ref={domain:'territorial',type:'entity',id:'A'};
  assert.equal(query.objectRefVisible(ref),true);

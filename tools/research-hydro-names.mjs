@@ -6,6 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { gunzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { reportPath } from './report-paths.mjs';
 
 import {
   collectMajorUnnamedEuropeanCandidates,
@@ -14,10 +15,11 @@ import {
 } from './lib/hydro-name-research.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const reportDirectory = path.join(root, 'reports', 'hydro-names');
-const reviewPath = path.join(reportDirectory, 'europe-major-rivers.json');
-const markdownPath = path.join(reportDirectory, 'europe-major-rivers.md');
-const overlayPath = path.join(reportDirectory, 'europe-major-rivers.geojson');
+const checkOnly = process.argv.includes('--check');
+const decodedPath = optionValue('--decoded');
+const reviewPath = reportPath('reports/hydro/names/europe-major-rivers.json', { access: 'read' });
+const markdownPath = reportPath('reports/hydro/names/europe-major-rivers.md', { access: checkOnly ? 'read' : 'write' });
+const overlayPath = reportPath('reports/hydro/names/europe-major-rivers.geojson', { access: !checkOnly && decodedPath ? 'write' : 'read' });
 // Default research validation reconstructs the historical unnamed candidate view
 // from the exact current two-file v0.13.2 metadata. For independent archival
 // reproduction pass --archive-core with immutable v0.13.0 metadata-core.json.gz.
@@ -61,14 +63,13 @@ const currentCandidates = collectMajorUnnamedEuropeanCandidates(sourceFeatures.m
 
 validateReviewEntries(review.entries, { expectedCount: 33 });
 validateCurrentCandidateSet(currentCandidates, review.entries);
-const decodedPath = optionValue('--decoded');
-if (!process.argv.includes('--check') && decodedPath) {
+if (!checkOnly && decodedPath) {
   writeOverlay(decodedPath, optionValues('--osm-cache'), review.entries);
 }
 validateOverlay(JSON.parse(fs.readFileSync(overlayPath, 'utf8')), review.entries);
 
 const generatedMarkdown = renderMarkdown(review);
-if (process.argv.includes('--check')) {
+if (checkOnly) {
   if (normalizeNewlines(fs.readFileSync(markdownPath, 'utf8')) !== normalizeNewlines(generatedMarkdown)) {
     throw new Error('europe-major-rivers.md is stale; run tools/research-hydro-names.mjs');
   }
@@ -138,7 +139,7 @@ function writeOverlay(decodedFile, cacheFiles, entries) {
       });
     }
   }
-  fs.mkdirSync(reportDirectory, { recursive: true });
+  fs.mkdirSync(path.dirname(overlayPath), { recursive: true });
   fs.writeFileSync(overlayPath, `${JSON.stringify({ type: 'FeatureCollection', features })}\n`);
 }
 

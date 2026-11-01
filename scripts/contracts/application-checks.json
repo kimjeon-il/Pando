@@ -1076,6 +1076,228 @@
         "node",
         "scripts/check-core-prerequisite.mjs"
       ]
+    },
+    "native-map-image": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-image"
+      ],
+      "env": {
+        "PANDO_MAP_IMAGE_ARTIFACT": "{root}/build-native/map-image/artifact"
+      },
+      "inputs": [
+        "tools/cpp/CMakeLists.txt",
+        "tools/cpp/map-image/**",
+        "tools/cpp/reference-analysis/condition-sampling.h",
+        "tools/cpp/reference-analysis/training-photometry.h",
+        "tools/map-image/package-native.mjs",
+        "tools/cpp/reference-analysis/CPYTHON-LICENSE",
+        "tools/cpp/map-preview/PILLOW-LICENSE",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-map-review": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-review"
+      ],
+      "env": {
+        "PANDO_MAP_REVIEW_ARTIFACT": "{root}/build-native/map-review/artifact"
+      },
+      "inputs": [
+        "tools/cpp/map-review/**",
+        "tools/cpp/map-image/raster-draw.h",
+        "tools/reference-analysis/package-native-review.mjs",
+        "tools/cpp/map-preview/PILLOW-LICENSE",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-map-preview": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-preview"
+      ],
+      "requires": [
+        "native-map-image"
+      ],
+      "env": {
+        "PANDO_MAP_PREVIEW_ARTIFACT": "{root}/build-native/map-preview/artifact"
+      },
+      "inputs": [
+        "tools/cpp/map-preview/**",
+        "tools/cpp/map-image/raster-draw.h",
+        "tools/map-image/package-preview.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-map-pdf": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-pdf"
+      ],
+      "requires": [
+        "native-map-image",
+        "native-mupdf"
+      ],
+      "env": {
+        "PANDO_MAP_PDF_ARTIFACT": "{root}/build-native/map-pdf/artifact"
+      },
+      "inputs": [
+        "tools/cpp/map-pdf/**",
+        "tools/map-image/package-pdf.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-map-evaluation": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "map-evaluation"
+      ],
+      "requires": [
+        "native-map-review"
+      ],
+      "env": {
+        "PANDO_MAP_EVALUATION_ARTIFACT": "{root}/build-native/map-evaluation/artifact"
+      },
+      "inputs": [
+        "tools/cpp/map-evaluation/**",
+        "tools/cpp/map-image/raster-draw.h",
+        "tools/reference-analysis/package-native-evaluation.mjs",
+        "tools/cpp/map-preview/PILLOW-LICENSE",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-reference-model": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "reference-model"
+      ],
+      "requires": [
+        "native-torch"
+      ],
+      "env": {
+        "PANDO_REFERENCE_INFER_BINARY": "{root}/build-native/reference-analysis/native/pando-reference-infer",
+        "PANDO_REFERENCE_TRAINING_PROOF_BINARY": "{root}/build-native/reference-analysis/native/pando-reference-training-proof",
+        "PANDO_REFERENCE_ONNX_EXPORT_BINARY": "{root}/build-native/reference-analysis/native/pando-reference-onnx-export"
+      },
+      "inputs": [
+        "tools/cpp/CMakeLists.txt",
+        "tools/cpp/reference-analysis/**",
+        "shared/core/src/losslessjson.cpp",
+        "shared/core/include/pandoeditor/losslessjson.h",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-reference-batch": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "reference-batch"
+      ],
+      "requires": [
+        "native-torch"
+      ],
+      "env": {
+        "PANDO_REFERENCE_BATCH_BINARY": "{root}/build-native/reference-analysis/step-test/pando-reference-training-batch",
+        "PANDO_REFERENCE_BATCH_DIRECTORY": "{root}/build-native/reference-analysis/artifact-batch",
+        "PANDO_REFERENCE_TORCH_LIBRARY": "{root}/build-native/reference-analysis/libtorch/lib",
+        "PANDO_REFERENCE_INFER_FIXTURE": "{root}/build-native/reference-analysis/step-test/reference-training-infer-fixture"
+      },
+      "inputs": [
+        "tools/cpp/reference-analysis/**",
+        "tools/reference-analysis/package-native-reference.mjs",
+        "shared/core/src/losslessjson.cpp",
+        "shared/core/include/pandoeditor/losslessjson.h",
+        "tools/cpp/CMakeLists.txt",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-territorial-recipe": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "territorial-recipe"
+      ],
+      "env": {
+        "PANDO_TERRITORIAL_RECIPE_BINARY": "{root}/build-native/territorial-recipe/pando-territorial-recipe"
+      },
+      "inputs": [
+        "tools/cpp/CMakeLists.txt",
+        "tools/cpp/build-territorial-recipe.cpp",
+        "tools/cpp/historical-*.inc",
+        "tools/cpp/territorial-recipe-environment.yml",
+        "shared/core/src/losslessjson.cpp",
+        "shared/core/include/pandoeditor/losslessjson.h",
+        "shared/core/src/sphericalpolygon.cpp",
+        "shared/core/include/pandoeditor/sphericalpolygon.h",
+        "shared/core/include/pandoeditor/geometry-types.h",
+        "shared/core/include/pandoeditor/geometryoperations.h",
+        "shared/core/include/pandoeditor/polygonclipping.h",
+        "shared/core/include/pandoeditor/document.h",
+        "shared/core/include/pandoeditor/geometryprovenance.h",
+        "shared/core/include/pandoeditor/presentation.h",
+        "shared/core/include/pandoeditor/temporal.h",
+        "shared/core/include/pandoeditor/timeline-records.h",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-torch": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "torch"
+      ],
+      "inputs": [
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-mupdf": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "mupdf"
+      ],
+      "inputs": [
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-german-natural-earth": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "german-natural-earth"
+      ],
+      "env": {
+        "PANDO_GERMAN_CANONICAL_NE": "{root}/build-native/german-base/canonical-ne.json"
+      },
+      "inputs": [
+        "tools/gis/verify-german-1914-originals.mjs",
+        "config/library-data.json",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
+    "native-caspian-oracle": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "caspian-oracle"
+      ],
+      "requires": [
+        "native-territorial-recipe"
+      ],
+      "inputs": [
+        "tools/gis/generalize-approved-caspian-display.mjs",
+        "tools/gis/verify-approved-caspian-network.mjs",
+        "tests/fixtures/gis-caspian-1922-python-native-oracle.json",
+        "config/library-data.json",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
     }
   },
   "productRoots": [
@@ -1335,5 +1557,152 @@
         "places"
       ]
     }
-  }
+  },
+  "unitPrerequisites": [
+    {
+      "tests": [
+        "tests/unit/map-native-jpeg-encode.test.mjs",
+        "tests/unit/map-native-packaging.test.mjs",
+        "tests/unit/map-native-resize.test.mjs",
+        "tests/unit/map-native-webp-encode.test.mjs",
+        "tests/unit/map-plugin-native-jpeg-read.test.mjs",
+        "tests/unit/map-plugin-native-png-read.test.mjs",
+        "tests/unit/map-plugin-native-resize.test.mjs",
+        "tests/unit/map-plugin-native-webp-read.test.mjs",
+        "tests/unit/map-plugin-region-atomic.test.mjs",
+        "tests/unit/map-plugin.test.mjs",
+        "tests/unit/reference-analysis-derivative.test.mjs",
+        "tests/unit/reference-corpus-fingerprint.test.mjs",
+        "tests/unit/reference-corpus-preparation.test.mjs",
+        "tests/unit/reference-diagnostic-overlay.test.mjs",
+        "tests/unit/reference-diagnostic-selection.test.mjs",
+        "tests/unit/reference-image-header.test.mjs",
+        "tests/unit/reference-native-macro.test.mjs",
+        "tests/unit/reference-reviewed-corpus.test.mjs",
+        "tests/unit/reference-semap-import.test.mjs",
+        "tests/unit/reference-semap-labels.test.mjs",
+        "tests/unit/reference-semap-ranges.test.mjs",
+        "tests/unit/reference-training-batch-manager.test.mjs",
+        "tests/unit/reference-training-image.test.mjs",
+        "tests/unit/reference-training-jpeg-overview.test.mjs",
+        "tests/unit/reference-training-large-jpeg.test.mjs",
+        "tests/unit/reference-training-mask-window.test.mjs",
+        "tests/unit/reference-training-order.test.mjs",
+        "tests/unit/reference-training-png-overview.test.mjs",
+        "tests/unit/reference-training-sample-maker.test.mjs",
+        "tests/unit/reference-training-tiles.test.mjs",
+        "tests/unit/reference-training-webp-overview.test.mjs"
+      ],
+      "requires": [
+        "native-map-image"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/reference-diagnostic-overlay.test.mjs",
+        "tests/unit/reference-diagnostic-selection.test.mjs",
+        "tests/unit/reference-native-macro.test.mjs",
+        "tests/unit/reference-review-mask.test.mjs",
+        "tests/unit/reference-reviewed-corpus.test.mjs",
+        "tests/unit/reference-training-image.test.mjs",
+        "tests/unit/reference-training-jpeg-overview.test.mjs",
+        "tests/unit/reference-training-large-jpeg.test.mjs",
+        "tests/unit/reference-training-mask-window.test.mjs",
+        "tests/unit/reference-training-png-overview.test.mjs",
+        "tests/unit/reference-training-tiles.test.mjs",
+        "tests/unit/reference-training-webp-overview.test.mjs"
+      ],
+      "requires": [
+        "native-map-review"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/map-plugin-native-preview.test.mjs",
+        "tests/unit/map-plugin-region-atomic.test.mjs",
+        "tests/unit/map-plugin.test.mjs",
+        "tests/unit/reference-diagnostic-jpeg.test.mjs",
+        "tests/unit/reference-diagnostic-tile.test.mjs"
+      ],
+      "requires": [
+        "native-map-preview"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/map-plugin-native-pdf-read.test.mjs"
+      ],
+      "requires": [
+        "native-map-pdf"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/reference-native-diagnostic.test.mjs",
+        "tests/unit/reference-native-evaluation.test.mjs",
+        "tests/unit/reference-training-lineage.test.mjs"
+      ],
+      "requires": [
+        "native-map-evaluation"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/reference-infer-cli.test.mjs",
+        "tests/unit/reference-onnx-export-refusal.test.mjs",
+        "tests/unit/reference-training-proof.test.mjs"
+      ],
+      "requires": [
+        "native-reference-model"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/reference-training-batch-manager.test.mjs",
+        "tests/unit/reference-training-batch-refusal.test.mjs",
+        "tests/unit/reference-training-checkpoint-infer.test.mjs",
+        "tests/unit/reference-training-order.test.mjs",
+        "tests/unit/reference-training-progress.test.mjs",
+        "tests/unit/reference-training-validation.test.mjs"
+      ],
+      "requires": [
+        "native-reference-batch"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/gis-caspian-display-packaging.test.mjs",
+        "tests/unit/gis-caspian-generalize-native.test.mjs",
+        "tests/unit/gis-caspian-physical-native.test.mjs",
+        "tests/unit/gis-ddr-native-partition.test.mjs",
+        "tests/unit/gis-german-base-builder.test.mjs",
+        "tests/unit/gis-german-base-native.test.mjs",
+        "tests/unit/gis-historical-linework-native.test.mjs",
+        "tests/unit/gis-historical-source-compare.test.mjs",
+        "tests/unit/gis-lsib-source-native.test.mjs",
+        "tests/unit/gis-ussr-1922-partition-native.test.mjs",
+        "tests/unit/territorial-boundary-supplement.test.mjs",
+        "tests/unit/territorial-recipe-cpp.test.mjs"
+      ],
+      "requires": [
+        "native-territorial-recipe"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/gis-german-base-builder.test.mjs"
+      ],
+      "requires": [
+        "native-german-natural-earth"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/gis-caspian-pinned-native-oracle.test.mjs"
+      ],
+      "requires": [
+        "native-caspian-oracle"
+      ]
+    }
+  ]
 }

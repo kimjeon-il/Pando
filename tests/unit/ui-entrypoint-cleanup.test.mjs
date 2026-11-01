@@ -3,10 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { saveUserPreferences } from "../../shared/frontend/js/modules/user-preferences.js";
+import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 
 const source = file => readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
-const html = source('apps/editor/editor.html');
+const html = renderProductHtml(source).editor;
 const app = readApplicationOwners('environment', 'map-settings', 'editor-bindings');
+const preferencePresentation = source('shared/frontend/js/modules/preference-presentation.js');
 test('removed entrypoints have no DOM or app bindings', () => {
   for (const id of ['mapToolToolbar', 'mobileZoomInBtn', 'mobileZoomOutBtn', 'mobileWorldBtn', 'keyboardHelpBtn', 'shortcutHelpModal', 'engineStatus', 'objectCoastReconcileMenuBtn']) {
     assert.ok(!html.includes(`id="${id}"`), id);
@@ -16,11 +18,12 @@ test('removed entrypoints have no DOM or app bindings', () => {
   assert.ok(html.includes('id="icon-flask"'));
 });
 test('theme updates retain persisted label and selection values', () => {
-  const original = { version: 2, labels: { country: { font: 'serif', color: '#123456' }, place: { font: 'gothic', color: '#abcdef', pointColor: '#987654' } }, selection: { color: '#123456', outlineVisible: false, fillStrength: 0.8 } };
+  const original = { version: 2, labels: { country: { font: 'serif', color: '#123456' }, place: { font: 'gothic', color: '#abcdef', pointColor: '#987654', languages: { ko: false, en: true, native: true } } }, selection: { color: '#123456', outlineVisible: false, fillStrength: 0.8 } };
   const result = saveUserPreferences({ ...original, appearance: { theme: 'dark' } }, { setItem() {} });
   assert.deepEqual(result.labels, original.labels);
   assert.deepEqual(result.selection, original.selection);
-  assert.match(app, /selectionColor: userPreferences\.selection\.color \|\| resolvedAccentColor,\s+outlineVisible: userPreferences\.selection\.outlineVisible,\s+fillStrength: userPreferences\.selection\.fillStrength/);
+  assert.match(app, /createPreferencePresentation\(/);
+  assert.match(preferencePresentation, /selectionColor:\s*current\.selection\.color\s*\|\|\s*accent,\s*outlineVisible:\s*current\.selection\.outlineVisible,\s+fillStrength:\s*current\.selection\.fillStrength/);
   const fields = html.slice(html.indexOf('id="preferencesModal"'), html.indexOf('id="coastReconciliationModal"'));
   assert.ok(fields.includes('id="preferencesThemeInput"'));
   assert.match(fields, /data-preference-theme="light"/);

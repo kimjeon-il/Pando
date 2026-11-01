@@ -1434,7 +1434,10 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData }
   // archive checkout's later report or other stored work.
   if(!reportData)try { git(data.checkout,['merge-base','--is-ancestor',libraryConfig(root).revision,'HEAD']); }
   catch(error){if(error.status!==1)throw error;throw Error('Integrate the pinned runtime data revision into this archive history before storing; preserve both histories.',{cause:error});}
-  const index = JSON.parse(reportData?readFileSync(indexPath,'utf8'):git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true}));
+  // Report-only storage extends the current archive, independently of the
+  // runtime pin. Starting from that older pin would orphan earlier reports.
+  const reportOnly = prefixes.every(path => path === 'reports' || path.startsWith('reports/'));
+  const index = JSON.parse(reportData || reportOnly ? readFileSync(indexPath,'utf8') : git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true}));
   const publicationBranch=reportData?'main':git(root,['symbolic-ref','--short','HEAD']);
   if(!publicationBranch)throw Error('Runtime publication requires an explicit application branch.');
   index.branch=publicationBranch;

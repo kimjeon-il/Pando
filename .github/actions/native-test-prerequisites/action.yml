@@ -1,0 +1,26 @@
+name: Selected native test prerequisites
+description: Prepare the existing native toolchain only for selected source-bound unit checks
+inputs:
+  requirements:
+    description: JSON array emitted by the application check planner
+    required: false
+    default: '[]'
+runs:
+  using: composite
+  steps:
+    - name: Check only additional native SDK and environment capacity
+      id: capacity
+      shell: bash
+      env:
+        REQUIRED_NATIVE_TOOLS: ${{ inputs.requirements }}
+      run: node scripts/prepare-native-test-tools.mjs --capacity "$REQUIRED_NATIVE_TOOLS" --github-output
+    - name: Install build tools only for selected native unit prerequisites
+      if: steps.capacity.outputs.tools == 'true'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ make unzip pkg-config
+    - name: Prepare the existing pinned GEOS and PROJ recipe environment
+      if: steps.capacity.outputs.recipe_environment == 'true'
+      uses: mamba-org/setup-micromamba@v3
+      with:
+        environment-file: tools/cpp/territorial-recipe-environment.yml
+        init-shell: bash

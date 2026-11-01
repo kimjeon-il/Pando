@@ -120,8 +120,11 @@ test('bulk source admission creates every binding once with exact source coordin
   await f.owner.project.admit(f.owner.project.snapshot(),{features,preserveCursor:true});
   const current=f.owner.project.snapshot();assert.equal(current.territorialEntities.length,100);
   assert.equal(current.geometries.length,100);assert.equal(current.timelineRecords.geometryBindings.length,100);
+  assert.deepEqual(current.timelineRecords.geometryBindings.map(binding=>binding.objectRef),
+    features.map(feature=>({domain:'territorial',id:feature.id})));
   for(const binding of current.timelineRecords.geometryBindings) {
-    assert.equal(binding.geometryRef.id,`territorial-geometry:${binding.entityId}`);assert.equal(binding.geometryRef.version,1);
+    assert.equal(Object.hasOwn(binding,'entityId'),false);
+    assert.equal(binding.geometryRef.id,`territorial-geometry:${binding.objectRef.id}`);assert.equal(binding.geometryRef.version,1);
     assert.deepEqual(f.owner.documentModel.geometry(binding.geometryRef),polygon());
   }
 });

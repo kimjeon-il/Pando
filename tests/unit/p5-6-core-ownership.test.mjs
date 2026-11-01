@@ -19,14 +19,14 @@ test('Web rules are C++-owned while UI/cache/presentation adapters remain live',
 
 test('reintroducing a JavaScript spherical integral is rejected',()=>{
   assert.throws(()=>inspectOwnership(path=>
-    path==='assets/js/modules/polygon-geometry.js'
+    path==='shared/frontend/js/modules/polygon-geometry.js'
       ? read(path)+'\nMath.atan2(0,1)\n' : read(path)),
   /P5_DUPLICATE_JS_RULE: spherical\/ring-area/);
 });
 
 test('replacing the compiled contact gateway with JS fails the ownership audit',()=>{
   assert.throws(()=>inspectOwnership(path=>
-    path==='assets/js/modules/country-contact-core.js'
+    path==='shared/frontend/js/modules/country-contact-core.js'
       ? read(path).replace('sharedCalculationCore.countryContactPairsBatch(',
         'calculatePairsInJavaScript(') : read(path)),
   /P5_WEB_COMPILED_DELEGATION_MISSING: country\/contact/);
@@ -34,7 +34,7 @@ test('replacing the compiled contact gateway with JS fails the ownership audit',
 
 test('compiled grouping remains mandatory after Worker source-ref merge cleanup',()=>{
   assert.throws(()=>inspectOwnership(path=>
-    path==='assets/js/modules/country-shared-boundary-packet.js'
+    path==='shared/frontend/js/modules/country-shared-boundary-packet.js'
       ? read(path).replace('sharedCalculationCore.boundaryAssembleStrokePacket(',
         'calculateStrokePacketInJavaScript(') : read(path)),
   /P5_WEB_COMPILED_DELEGATION_MISSING: boundary\/packet/);

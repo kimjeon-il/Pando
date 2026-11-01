@@ -93,10 +93,13 @@ test('rejoining unchanged interaction packets preserves ownership until geometry
   };
   const layer = { selectAll: () => ({ each: fn => fn.call(node) }) };
   const packets = createInteractionPackets();
+  const preparations = [];
   const previousWorker = globalThis.Worker;
   globalThis.Worker = class {
     postMessage(request) {
       if (request.type !== 'request') return;
+      assert.equal(request.operation, 'geometry.prepare');
+      preparations.push(request.payload.items);
       globalThis.queueMicrotask(() => this.onmessage?.({ data: { ...request, type: 'result', ok: true,
         result: { packets: request.payload.items.map(item => ({ cacheKey: item.cacheKey, packet: buildPolygonGeometryPacket(item.geometry) })) } } }));
     }
@@ -113,27 +116,44 @@ test('rejoining unchanged interaction packets preserves ownership until geometry
   assert.equal(packets.syncGpuInteractionLayer('draft', layer), false, 'fill preparation is asynchronous');
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.ok(packets.currentGpuDraftPackets.length);
+  assert.equal(preparations.length, 1, 'the initial fill and outline share one preparation');
+  const initialPackets = packets.currentGpuDraftPackets;
   ownership.applySvgInteractionOwnership(node, { fillOwner: 'gpu', strokeOwner: 'gpu' });
   assert.equal(packets.syncGpuInteractionLayer('draft', layer), false);
   assert.equal(values.get('fill'), 'none');
   assert.equal(values.get('stroke'), 'none');
+  assert.equal(preparations.length, 1, 'rejoining completed fill and outline must reuse their prepared mesh');
+  assert.deepEqual(packets.currentGpuDraftPackets, initialPackets);
   revision += 1;
+  node.__data__.geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]] };
   assert.equal(packets.syncGpuInteractionLayer('draft', layer), true);
   assert.equal(values.has('fill'), false);
   assert.equal(values.has('stroke'), false);
   await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(preparations.length, 2, 'changed geometry requires one new preparation');
+  assert.ok(packets.currentGpuDraftPackets.length);
+  assert.notDeepEqual(packets.currentGpuDraftPackets, initialPackets);
+  assert.equal(packets.syncGpuInteractionLayer('draft', layer), false, 'the replacement also retains its completed preparation');
+  assert.equal(preparations.length, 2);
+  assert.equal(values.has('fill'), false, 'preparation alone does not claim a completed GPU paint');
+  assert.equal(values.has('stroke'), false);
 });
 
 test('persistent territorial paint and derived boundaries have only the scene renderer as visual owner', async () => {
   const source = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
-  const territorialStart = source.indexOf('const renderTerritorialUnits');
-  const territorialEnd = source.indexOf('const renderGenericFeatures', territorialStart);
-  const territorial = source.slice(territorialStart, territorialEnd);
-  assert.match(territorial, /style\('fill', 'transparent'\)/);
+  const content = await readFile(new URL('../../shared/frontend/js/modules/map-content-presentation.js', import.meta.url), 'utf8');
+  const territorialStart = content.indexOf('const renderTerritorialUnits');
+  const territorialEnd = content.indexOf('const renderGenericFeatures', territorialStart);
+  assert.ok(territorialStart >= 0 && territorialEnd > territorialStart);
+  const territorial = content.slice(territorialStart, territorialEnd);
+  assert.match(source, /createMapContentPresentation\(/);
+  assert.match(territorial, /polygons\.push\(/);
+  assert.match(territorial, /replaceGpuSceneDomain\?\.\('territorial-units', \{ polygons, strokes \}\)/);
+  assert.doesNotMatch(territorial, /append\('path'\)/);
   assert.doesNotMatch(territorial, /style\('fill', feature => resolveFill/);
   assert.match(source, /if \(plan\.fill && !sceneOwnsFills\)/);
   assert.match(source, /if \(fillOwner === 'svg' && !sceneOwnsFills\)/);
-  assert.doesNotMatch(source, /append\('path'\)\.attr\('class', 'territorial-internal-boundary'\)/);
-  assert.doesNotMatch(source, /append\('path'\)\.attr\('class', 'generic-feature-boundary'\)/);
-  assert.doesNotMatch(source, /append\('path'\)\.attr\('class', 'distribution-boundary'\)/);
+  assert.doesNotMatch(source + content, /append\('path'\)\.attr\('class', 'territorial-internal-boundary'\)/);
+  assert.doesNotMatch(source + content, /append\('path'\)\.attr\('class', 'generic-feature-boundary'\)/);
+  assert.doesNotMatch(source + content, /append\('path'\)\.attr\('class', 'distribution-boundary'\)/);
 });

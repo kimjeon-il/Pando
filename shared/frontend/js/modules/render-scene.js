@@ -245,9 +245,10 @@ export function createRenderSceneBuilder({
     if (item?.startsEnds instanceof Float32Array) {
       geometryPacket = Object.freeze({ startsEnds: item.startsEnds, segmentCount: Number(item.segmentCount || item.startsEnds.length / 4) });
     } else if (isPolygonGeometry(item?.geometry)) {
-      const polygonKey = packetKey(item, 'polygon', context.lod, context.projection);
-      const mesh = sources?.get(sourceKey(item, context)) || polygonCache.get(polygonKey)
-        || prepared.get(polygonKey) || polygonPacket(item, input, sources);
+      // Retain this role's alias in the canonical cache even when the fill
+      // supplied the same mesh. releasePrepared() must not make a completed
+      // outline look like unprepared geometry on the next presentation.
+      const mesh = polygonPacket(item, input, sources);
       geometryPacket = Object.freeze({ startsEnds: mesh.startsEnds, segmentCount: mesh.segmentCount });
     } else {
       geometryPacket = buildStrokeGeometryPacket(simplifyRenderGeometry(item?.geometry, {
