@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createPlatformPorts } from '../../../shared/frontend/js/modules/platform-ports.js';
 import { createNativePlatformAdapter } from '../native-platform-adapter.js';
@@ -44,10 +44,20 @@ test('raw native globals occur only in the native platform adapter runtime', () 
   for(const token of retired)assert.equal(adapter.includes(token),false,'retired adapter input: '+token);
   const shell=readFileSync(new URL('apps/editor/src-tauri/src/lib.rs',root),'utf8');
   for(const token of retired)assert.equal(shell.includes(token),false,'retired shell injection: '+token);
-  for(const path of ['apps/editor/startup.js','apps/editor/native-storage.js','apps/editor/probe-storage.js','apps/editor/full-world-probe.js','apps/editor/verification.js','apps/editor/diagnostics.js','apps/editor/frontend/js/app.js']){
+  for(const path of ['apps/editor/startup.js','apps/editor/native-storage.js','apps/editor/probe-storage.js','apps/editor/full-world-probe.js','apps/editor/verification.js','apps/editor/diagnostics.js']){
     const source=readFileSync(new URL(path,root),'utf8');
     for(const token of raw)assert.equal(source.includes(token),false,path+' bypasses native-platform-adapter: '+token);
     assert.equal(source.includes('__PANDOLAB_SHELL_PLATFORM__'),false,path+' retains global platform handoff');
+  }
+  assert.equal(existsSync(new URL('apps/editor/frontend/js/app.js',root)),false,
+    'retired graphical editor entrypoint must not return');
+  // The active Viewer Core and map owners cannot depend on the old shell IPC globals.
+  for(const path of ['apps/viewer/js/viewer.js',
+    'shared/frontend/js/modules/core-document-client.js',
+    'shared/frontend/js/modules/map-owner-composition.js']){
+    const source=readFileSync(new URL(path,root),'utf8');
+    for(const token of raw)assert.equal(source.includes(token),false,
+      path+' leaks old native shell transport: '+token);
   }
 });
 
