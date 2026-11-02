@@ -129,6 +129,11 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
       "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart,workerMs:__p2WorkerTiming?.durationMs??null,epochMs:performance.timeOrigin+performance.now()});");
     await route.fulfill({response,body:source});
   });
+  await page.route('**/workers/worker-rpc-host.js*',async route=>{
+    const response=await route.fetch();let source=await response.text();
+    source=swap(source,"      if (transferables.length) scope.postMessage(response, transferables);\n      else scope.postMessage(response);","      if(operation==='core.document-replacement-release')\n        console.info('P2_HOST_RELEASE '+JSON.stringify({\n          receiveEpochMs:scope.performance.timeOrigin+startedAt,\n          sentEpochMs:scope.performance.timeOrigin+now(),\n          workerDurationMs:response.timing?.durationMs??null,\n        }));\n      if (transferables.length) scope.postMessage(response, transferables);\n      else scope.postMessage(response);");
+    await route.fulfill({response,body:source});
+  });
   await page.route('**/modules/core-worker-runtime.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
     source=swap(source,"  function dispatch(operation, payload, context) {\n    const result = queue.then(async () => {","  function dispatch(operation, payload, context) {\n    const __p2OuterQueued=performance.now();\n    const result = queue.then(async () => {\n      const __p2OuterEntered=performance.now();");
@@ -142,11 +147,15 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
     source=swap(source,"      return projectResult(core[method](...(typeof args === 'function' ? args() : args)),core);","      if(method==='releaseReplacement'){\n        const __p2NativeStarted=performance.now();\n        const __p2Return=core[method](...(typeof args === 'function' ? args() : args));\n        const __p2NativeEnded=performance.now();\n        const __p2Project=projectResult(__p2Return,core);\n        console.info('P2_WORKER_RELEASE '+JSON.stringify({\n          queuedMs:__p2DequeuedAt-__p2QueuedAt,\n          sessionMs:__p2NativeStarted-__p2DequeuedAt,\n          nativeMs:__p2NativeEnded-__p2NativeStarted,\n          projectedMs:performance.now()-__p2NativeEnded,\n          released:__p2Return,\n        }));\n        return __p2Project;\n      }\n      return projectResult(core[method](...(typeof args === 'function' ? args() : args)),core);");
     await route.fulfill({response,body:source});
   });
-  const pageErrors=[],consoleErrors=[],failedRequests=[],nativeRelease=[],outerRelease=[];
+  const pageErrors=[],consoleErrors=[],failedRequests=[],nativeRelease=[],outerRelease=[],hostRelease=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
   page.on('console',message=>{
     const str=message.text();
     if(message.type()==='error')consoleErrors.push(str);
+    if(str.startsWith('P2_HOST_RELEASE ')){
+      try{hostRelease.push(JSON.parse(str.slice('P2_HOST_RELEASE '.length)));}
+      catch(error){consoleErrors.push('Bad host timing payload '+error.message);}
+    }
     if(str.startsWith('P2_OUTER_RELEASE ')){
       try{outerRelease.push(JSON.parse(str.slice('P2_OUTER_RELEASE '.length)));}
       catch(error){consoleErrors.push('Bad outer timing payload '+error.message);}
@@ -218,8 +227,26 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   console.log('P2_MAIN_CPU '+JSON.stringify({samples:profile.samples?.length||0,topCpu}));
   await info.attach('p2-main-cpu-profile',{body:JSON.stringify(profile),contentType:'application/json'});
   expect(pageErrors).toEqual([]);
+  const transport=[];
+  for(let i=0;i<results.length;i++){
+    const mainEvents=results[i].events.filter(e=>e.operation==='core.document-replacement-release');
+    const request=mainEvents.find(e=>e.name==='rpc:request');
+    const done=mainEvents.find(e=>e.name==='rpc:done');
+    const host=hostRelease[i+1]??hostRelease[i]??null;
+    if(request&&done&&host) transport.push({
+      target:results[i].target,
+      mainToWorkerMs:Math.round(host.receiveEpochMs-request.epochMs),
+      workerDurationMs:Math.round(host.workerDurationMs),
+      workerToMainMs:Math.round(done.epochMs-host.sentEpochMs),
+      mainTotalMs:Math.round(done.epochMs-request.epochMs),
+      endToEndDeltaMs:Math.round((host.receiveEpochMs-request.epochMs)+host.workerDurationMs+
+        (done.epochMs-host.sentEpochMs)-(done.epochMs-request.epochMs)),
+    });
+  }
+  console.log('P2_TRANSPORT_DIAG '+JSON.stringify({hostRelease,transport}));
   console.log('P2_WORKER_DIAG '+JSON.stringify({nativeRelease,outerRelease,consoleErrors}));
   expect(nativeRelease.length,'Worker-side native release should be timed for both transitions').toBeGreaterThanOrEqual(2);
   expect(outerRelease.length,'Outer Worker dispatch timing should be measured twice').toBeGreaterThanOrEqual(2);
-  await info.attach('post-ready-cache-diagnostic',{body:JSON.stringify({results,pageErrors,nativeRelease,outerRelease,consoleErrors},null,2),contentType:'application/json'});
+  expect(hostRelease.length,'Host request/reply timing must include the two year transitions').toBeGreaterThanOrEqual(3);
+  await info.attach('post-ready-cache-diagnostic',{body:JSON.stringify({results,pageErrors,nativeRelease,outerRelease,hostRelease,transport,consoleErrors},null,2),contentType:'application/json'});
 });
