@@ -131,7 +131,7 @@ async function runCase(mode,index){
     row.browserVersion=browser.version();
     context=await browser.newContext({viewport:{width:1280,height:800},
       deviceScaleFactor:1,locale:'ko-KR',timezoneId:'Asia/Seoul',reducedMotion:'reduce'});
-    const init='const projectCountryBoundaryMessage='+projectCountryBoundaryMessage.toString()+
+    const init='globalThis.projectCountryBoundaryMessage='+projectCountryBoundaryMessage.toString()+
       ';('+installBrowserProbe.toString()+')('+JSON.stringify(mode)+');';
     await context.addInitScript({content:init});
     const page=await context.newPage(),errors=[];
