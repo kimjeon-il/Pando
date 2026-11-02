@@ -8,6 +8,7 @@ on:
       - 'tools/gis/osm-independent-river-source-inventory.json'
       - 'tests/unit/gis-hydro-followup-independent.test.mjs'
       - 'tools/gis/prepare-hydro-name-replacement-bundle.mjs'
+      - 'tools/gis/hydro-independent-name-policy.mjs'
       - '.github/workflows/gis-hydro-independent-followup-stage.yml'
   workflow_dispatch:
 
@@ -41,7 +42,7 @@ jobs:
           persist-credentials: false
           filter: blob:none
           sparse-checkout: assets/data/hydro/v0.13.2
-      - name: Repack ONLY the 20773860 source metadata in a new temporary release
+      - name: Repack ONLY verified 20773860 and 40423228 source metadata in a new temporary release
         shell: bash
         run: |
           set -euo pipefail
@@ -52,7 +53,7 @@ jobs:
             --baseline-review "$input/hydro-independent-name-replacements.json" \
             --followup-review "tools/gis/hydro-followup-independent-name-replacements.json" \
             --output-dir "$RUNNER_TEMP/hydro-v0.13.3-independent-review"
-      - name: Verify staged release still has 30 OSM systems and must NOT remove the OSM credit
+      - name: Verify staged release still has 29 OSM systems and must NOT remove the OSM credit
         shell: bash
         run: |
           set -euo pipefail
@@ -67,17 +68,18 @@ jobs:
           manifestRoles(manifest);
           const hydro=auditHydroOsm(manifest,bundle);
           const safety=auditOsmCreditRemoval({hydro});
-          assert.equal(hydro.remainingCount,30);
+          assert.equal(hydro.remainingCount,29);
           assert(!hydro.remainingSystemIds.includes('20773860'));
+          assert(!hydro.remainingSystemIds.includes('40423228'));
           assert.equal(manifest.sources.independentHydronymReplacements.replacedSystems,42);
-          assert.equal(manifest.sources.independentHydronymFollowup.replacedSystems,1);
+          assert.equal(manifest.sources.independentHydronymFollowup.replacedSystems,2);
           assert.equal(safety.safeToRemoveMainMapOsmCredit,false);
           const proof=JSON.parse(readFileSync(d.slice(0,-1)+'.proof.json','utf8'));
-          assert.equal(proof.totalIndependentSystems,43);
+          assert.equal(proof.totalIndependentSystems,44);
           assert.equal(proof.deployed,false);
           assert.deepEqual(proof.sourceGeometryShardSha256,proof.stagedGeometryShardSha256);
           console.log('HYDRO_REVIEWED_NONOSM_INCREMENT='+JSON.stringify({
-            approved:proof.replacedSystemIds,allIndependent:43,remainingOsm:30,
+            approved:proof.replacedSystemIds,allIndependent:44,remainingOsm:29,
             geometryUnchanged:true,stillNotDeployed:true,
             original:proof.sourceBundleSha256,candidate:proof.stagedBundleSha256,
           }));
