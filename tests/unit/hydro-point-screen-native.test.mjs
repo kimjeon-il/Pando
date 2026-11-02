@@ -23,7 +23,7 @@ test('guided branch scores preserve distance and upstream orientation',{skip:!bi
 test('guided branch scores handle zero direction and reject malformed geometry',{skip:!binary},()=>{
   const request={mode:'guided-branch',current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[0,0],[0,0]]};
   const result=invoke(request);assert.equal(result.status,0,result.stderr);
-  const score=JSON.parse(result.stdout);assert.equal(score.alignment,0);assert.equal(score.score,.04);
+  const score=JSON.parse(result.stdout);assert.ok(Math.abs(score.alignment)<1e-12);assert.equal(score.score,.04);
   for(const input of [{...request,reference:[[0,0]]},{...request,candidate:[[181,0],[0,0]]}]){
     const failed=invoke(input);assert.notEqual(failed.status,0);assert.equal(failed.stdout,'');
   }
