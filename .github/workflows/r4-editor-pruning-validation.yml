@@ -1,7 +1,7 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
@@ -12,6 +12,14 @@ on:
       - tests/helpers/legacy-project-autosave.mjs
       - tests/helpers/generic-feature-command-service.mjs
       - tests/unit/r4b-data-module-boundaries.test.mjs
+      - tests/unit/r4c-spatial-boundaries.test.mjs
+      - tests/unit/gis-math-contract.test.mjs
+      - tests/unit/gis-geometry-worker.test.mjs
+      - tests/unit/map-editing-foundation.test.mjs
+      - tests/unit/territory-component-plan.test.mjs
+      - tests/unit/import-service.test.mjs
+      - tests/unit/edit-preparation.test.mjs
+      - tests/unit/library-shared-border-precision.test.mjs
       - tests/unit/*territorial*.test.mjs
       - tests/unit/*soviet*.test.mjs
       - tests/unit/ussr-1922-selection.test.mjs
@@ -26,6 +34,8 @@ on:
       - scripts/check-object-registry.mjs
       - scripts/check-renderer-v2.mjs
       - tests/unit/r4-editor-source-retirement.test.mjs
+      - docs/development/r4c-spatial-calculation-boundaries.md
+      - apps/editor/frontend/js/workers/gis-geometry-worker.js
   workflow_dispatch:
 permissions:
   contents: read
@@ -58,6 +68,14 @@ jobs:
           node --test --test-concurrency=2
           tests/unit/r4-editor-source-retirement.test.mjs
           tests/unit/r4b-data-module-boundaries.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
+          tests/unit/gis-math-contract.test.mjs
+          tests/unit/gis-geometry-worker.test.mjs
+          tests/unit/map-editing-foundation.test.mjs
+          tests/unit/territory-component-plan.test.mjs
+          tests/unit/import-service.test.mjs
+          tests/unit/edit-preparation.test.mjs
+          tests/unit/library-shared-border-precision.test.mjs
           tests/unit/builtin-world-catalog.test.mjs
           tests/unit/period-only-world.test.mjs
           tests/unit/historical-world-timeline.test.mjs

@@ -36,7 +36,7 @@ const [projectStateModule, territorialUnitsModule, distributionModelModule, surf
   import(versionedModuleUrl('./modules/select-controller.js')),
   import(versionedModuleUrl('./modules/startup-readiness.js')),
   import(versionedModuleUrl('./modules/boundary-topology.js')),
-  import(versionedModuleUrl('./modules/geometry-metrics.js')),
+  import('../../../../../tools/gis/geometry-metrics.js'),
   import(versionedModuleUrl('./modules/geometry-preview.js')),
   import(versionedModuleUrl('./modules/geometry-validation.js')),
   import(versionedModuleUrl('./modules/label-layout.js')),

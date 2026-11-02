@@ -1,4 +1,5 @@
-import { sharedCalculationCore } from '../../../../../shared/frontend/js/modules/temporal.js';
+// R4-C: geometry measurement adapter; C++/WASM is the sole numeric authority.
+import { sharedCalculationCore } from '../../shared/frontend/js/modules/temporal.js';
 
 export const MEAN_EARTH_RADIUS_KM = 6371.0088;
 

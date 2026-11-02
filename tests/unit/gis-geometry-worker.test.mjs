@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
-import { validateCollection } from "../../apps/editor/frontend/js/modules/gis-geometry-validation.js";
+import { validateCollection } from "../../tools/gis/geometry-validation.js";
 import { GIS_GEOMETRY_TIMEOUT_MS, createGisGeometryValidator, createImportService } from "../../apps/editor/frontend/js/modules/import-service.js";
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';

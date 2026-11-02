@@ -8,10 +8,10 @@ import { sharedCalculationCore } from '../../shared/frontend/js/modules/temporal
 import {
   appendImportedSourceInfo,
   applyImportedPackageAssets,
-  createCountryImportMergePlanner,
   createGisGeometryValidator,
   createImportService,
 } from "../../apps/editor/frontend/js/modules/import-service.js";
+import {createCountryImportMergePlanner} from "../../tools/gis/country-import-merge.js";
 
 test('shared GIS country merge resolves ordered identities and rejects invalid imports', () => {
   assert.deepEqual(sharedCalculationCore.planGisCountryMerge(['A', '이웃', 'A'], ['A', '새 국가']), {

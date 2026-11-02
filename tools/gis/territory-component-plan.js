@@ -1,4 +1,5 @@
-import { wrapPolygonGeometry, normalizeClippedPolygonGeometry } from "../../../../../shared/frontend/js/modules/map-edit-geometry.js";
+// R4-C: detached geometry component preparation; no editor UI.
+import { wrapPolygonGeometry, normalizeClippedPolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 /** Read-only geometry preparation shared by all territory selection tools. */
 export function createTerritoryComponentPlan({ clipper, normalize, checkpoint = async () => {} }) {
   const polygons = geometry => geometry?.type === 'Polygon' ? [geometry.coordinates]

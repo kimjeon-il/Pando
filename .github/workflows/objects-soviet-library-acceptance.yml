@@ -4,8 +4,8 @@ on:
     branches: [work/objects]
     paths:
       - '.github/workflows/objects-soviet-library-acceptance.yml'
-      - 'assets/js/modules/gis-geometry-validation.js'
-      - 'assets/js/modules/map-edit-library-calculation.js'
+      - 'tools/gis/geometry-validation.js'
+      - 'tools/gis/territorial-batch-calculation.js'
       - 'assets/js/modules/app-library-assembly.js'
       - 'assets/js/modules/gis-import-transaction.js'
       - 'assets/js/modules/gis-workflow-controller.js'

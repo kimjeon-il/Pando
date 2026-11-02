@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from "../../shared/frontend/js/modules/boundary-topology.js";
-import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../apps/editor/frontend/js/modules/geometry-metrics.js";
+import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../tools/gis/geometry-metrics.js";
 import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import { resolveSnap, snapThreshold } from "../../apps/editor/frontend/js/modules/geometry-snap.js";
 import { runMapAudit, validateGeometry, validateTerritorialGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";

@@ -1,5 +1,6 @@
+// R4-C: full and scoped GIS overlap validation, with C++-owned geometry checks.
 import { geometryAreaKm2 } from './geometry-metrics.js';
-import { sharedCalculationCore } from '../../../../../shared/frontend/js/modules/temporal.js';
+import { sharedCalculationCore } from '../../shared/frontend/js/modules/temporal.js';
 import { clippingOperationWithPrecisionRetry } from './polygon-clipping-calculation.js';
 
 function polygonSets(geometry) {

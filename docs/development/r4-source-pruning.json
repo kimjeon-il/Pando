@@ -1,12 +1,13 @@
 {
   "schema": "pandolab-r4-source-pruning-v1",
   "baselineCandidates": 153,
-  "removedSourceCount": 45,
+  "removedSourceCount": 50,
   "removedTestCount": 10,
-  "remainingSourceCount": 108,
-  "extractedGisModules": 10,
+  "remainingSourceCount": 103,
+  "extractedGisModules": 15,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
+    "apps/editor/frontend/js/app.js",
     "apps/editor/frontend/js/bootstrap.js",
     "apps/editor/frontend/js/gis-io.js",
     "apps/editor/frontend/js/modules/annex-geometry.js",
@@ -32,7 +33,9 @@
     "apps/editor/frontend/js/modules/edit-preview-controller.js",
     "apps/editor/frontend/js/modules/editor-workspace-presentation.js",
     "apps/editor/frontend/js/modules/generic-feature-service.js",
+    "apps/editor/frontend/js/modules/geometry-metrics.js",
     "apps/editor/frontend/js/modules/gis-domain.js",
+    "apps/editor/frontend/js/modules/gis-geometry-validation.js",
     "apps/editor/frontend/js/modules/gis-import-wizard-controller.js",
     "apps/editor/frontend/js/modules/gis-workflow-controller.js",
     "apps/editor/frontend/js/modules/map-debug-controller.js",
@@ -48,10 +51,12 @@
     "apps/editor/frontend/js/modules/spatial-edit-registration.js",
     "apps/editor/frontend/js/modules/surface-tabs-controller.js",
     "apps/editor/frontend/js/modules/territorial-geometry.js",
+    "apps/editor/frontend/js/modules/territory-component-plan.js",
     "apps/editor/frontend/js/modules/timeline-edit.js",
     "apps/editor/frontend/js/modules/tool-controller.js",
     "apps/editor/frontend/js/workers/core-session-worker.js",
-    "apps/editor/frontend/js/workers/geometry-validation-worker.js"
+    "apps/editor/frontend/js/workers/geometry-validation-worker.js",
+    "apps/editor/templates/index.html"
   ],
   "removedTests": [
     "tests/unit/color-picker-async-command.test.mjs",
@@ -75,5 +80,22 @@
     "retiredAutosaveAdapter": "tests/helpers/legacy-project-autosave.mjs",
     "removedLegacyGisSerializer": "tools/gis/project-serializer.js",
     "territorialLibraryOwner": "tools/gis/territorial-library.js"
+  },
+  "r4cSpatialSeparation": {
+    "schema": "pandolab-r4c-spatial-boundaries-v1",
+    "canonical": [
+      "tools/gis/geometry-metrics.js",
+      "tools/gis/geometry-validation.js",
+      "tools/gis/country-import-merge.js",
+      "tools/gis/territorial-batch-calculation.js",
+      "tools/gis/territory-component-plan.js"
+    ],
+    "removedArchivedModules": [
+      "apps/editor/frontend/js/modules/geometry-metrics.js",
+      "apps/editor/frontend/js/modules/gis-geometry-validation.js",
+      "apps/editor/frontend/js/modules/territory-component-plan.js"
+    ],
+    "retainedWorkerAdapter": "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
+    "decision": "Preserve C++/WASM spatial numerical kernel and relevant GIS tests; leave obsolete editor UI/Worker orchestration for R4-D/E"
   }
 }

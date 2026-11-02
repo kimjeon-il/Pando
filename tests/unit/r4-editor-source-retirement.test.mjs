@@ -8,8 +8,9 @@ const exists=p=>existsSync(resolve(root,p));
 const report=JSON.parse(readFileSync(resolve(root,'docs/development/r4-source-pruning.json'),'utf8'));
 test('R4 removed obsolete editor sources and tests are absent',()=>{
  assert.equal(report.schema,'pandolab-r4-source-pruning-v1');
- assert.equal(report.removedSourceCount,45);
+ assert.equal(report.removedSourceCount,50);
  assert.equal(report.removedTestCount,10);
+ assert.equal(report.remainingSourceCount,report.baselineCandidates-report.removedSourceCount);
  for(const path of [...report.removedSources,...report.removedTests])
    assert.equal(exists(path),false,'Retired source or unit test reappeared: '+path);
 });
@@ -17,6 +18,8 @@ test('R4 preserves GIS and C++ serializer contracts outside the legacy editor',(
  for(const name of ['territorial-library','territorial-index-entry','project-template-compiler',
    'exchange-adapter-registry','cut-worker-preparation',
    'river-territory-partition','polygon-clipping-calculation','timeline-edit',
+   'geometry-metrics','geometry-validation','country-import-merge',
+   'territorial-batch-calculation','territory-component-plan',
    'territorial-geometry','territorial-library-provenance'])
    assert.equal(exists('tools/gis/'+name+'.js'),true,'Canonical GIS contract missing: '+name);
  assert.equal(exists('shared/frontend/js/modules/generic-feature-normalization.js'),true,

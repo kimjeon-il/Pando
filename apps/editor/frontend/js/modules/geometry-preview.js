@@ -1,4 +1,4 @@
-import { geometryAreasKm2, percentChange } from './geometry-metrics.js';
+import { geometryAreasKm2, percentChange } from '../../../../../tools/gis/geometry-metrics.js';
 import { wrapPolygonGeometry, hasCanonicalPolygonWinding, multiCoordinates, normalizeClippedPolygonGeometry } from "../../../../../shared/frontend/js/modules/map-edit-geometry.js";
 import {
   buildRenderableBoundaryGeometry,
