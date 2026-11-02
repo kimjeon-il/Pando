@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {assembleHydroCalibrationResults,buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {readFileSync} from 'node:fs';
 
 test('calibration geometry collection keeps lines and polygons and ignores empty or point parts',()=>{
@@ -99,3 +99,14 @@ test('prepared regional features are assigned through both native calibration op
     assert.ok(result.regions.flatMap(row=>row.rivers).some(row=>row.assignedStage!==null));
     assert.ok(result.regions.flatMap(row=>row.lakes).some(row=>row.assignedStage!==null));assert.deepEqual(regions,before);
   });
+test('calibration results reuse verified regional metrics and retain explicit source evidence',()=>{
+  const oracle=JSON.parse(readFileSync('tests/fixtures/hydro-calibration-metrics-oracle.json','utf8'));
+  const regions=[{...structuredClone(oracle.input),region:{id:'europe',label:'Europe',bbox:[0,0,1,1],calibrate:true}}];
+  const input={regions,river:{weights:[1,-.25],thresholds:[10,9,8,7]},lake:{weights:[1,1],thresholds:[5,4,3,2]},
+    sources:{hydroRivers:{eu:{file:'fixture.shp',size:10}}},representativeChecks:oracle.representativeExpected,worldEstimate:oracle.worldExpected};
+  const before=structuredClone(input),result=assembleHydroCalibrationResults(input);
+  assert.deepEqual(result.regions.europe.rivers,oracle.metrics.river);assert.deepEqual(result.regions.europe.lakes,oracle.metrics.lake);
+  assert.equal(result.regions.europe.riverCandidates,oracle.input.rivers.length);assert.deepEqual(result.sources,input.sources);
+  assert.deepEqual(result.formula.rivers.thresholds,{'6.0':10,'6.7':9,'7.0':8,'7.5':7});
+  assert.equal(result.searchSpace.riverWeights.length,48);assert.equal(result.searchSpace.lakeWeights.length,11);assert.deepEqual(input,before);
+});

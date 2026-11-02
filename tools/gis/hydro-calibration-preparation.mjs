@@ -1,8 +1,12 @@
 import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,measureHydroCalibrationReferenceFeatures} from './hydro-point-screen-native.mjs';
 import {assignHydroCalibrationStages,optimizeHydroCalibration} from './hydro-calibration-native.mjs';
 import {readHydroRegion} from './hydro-source-reader.mjs';
+import {calibrationAcceptance,calibrationResidualOverlap,calibrationStageMetrics} from './hydro-calibration-metrics.mjs';
+import {pythonRound} from './hydro-numeric.mjs';
 
 const calibrationStages=[6,6.7,7,7.5];
+const riverWeights=[1,1.3,1.7,2.1,2.5,3,3.5,4].flatMap(flow=>[-.5,-.25,0,.25,.5,.7].map(area=>[flow,area]));
+const lakeWeights=[-5,-4,-3,-2.5,-2,-1.5,-1,-.5,0,.5,1].map(shoreline=>[1,shoreline]);
 export function buildHydroCalibrationOptimization({regions,kind,weights}={}){
   if(!Array.isArray(regions)||!['river','lake'].includes(kind)||!Array.isArray(weights)||!weights.length||
     weights.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>!Number.isFinite(value))))
@@ -29,8 +33,6 @@ export async function calibrateHydroPreparedRegions({regions}={},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(regions))throw Error('Explicit prepared Hydro calibration regions required');
   const snapshot=structuredClone(regions);
-  const riverWeights=[1,1.3,1.7,2.1,2.5,3,3.5,4].flatMap(flow=>[-.5,-.25,0,.25,.5,.7].map(area=>[flow,area]));
-  const lakeWeights=[-5,-4,-3,-2.5,-2,-1.5,-1,-.5,0,.5,1].map(shoreline=>[1,shoreline]);
   const riverRequest=buildHydroCalibrationOptimization({regions:snapshot,kind:'river',weights:riverWeights});
   const lakeRequest=buildHydroCalibrationOptimization({regions:snapshot,kind:'lake',weights:lakeWeights});
   const [river,lake]=await Promise.all([optimizeHydroCalibration(riverRequest,options),optimizeHydroCalibration(lakeRequest,options)]);
@@ -48,6 +50,34 @@ export async function calibrateHydroPreparedRegions({regions}={},options={}){
   };
   await Promise.all([assign('river',river),assign('lake',lake)]);options.signal?.throwIfAborted();
   return {regions:snapshot,river,lake};
+}
+
+export function assembleHydroCalibrationResults(input){
+  const {regions,river,lake,sources,representativeChecks,worldEstimate}=structuredClone(input??{});
+  const validModel=model=>Array.isArray(model?.weights)&&model.weights.length===2&&model.weights.every(Number.isFinite)&&
+    Array.isArray(model.thresholds)&&model.thresholds.length===calibrationStages.length&&model.thresholds.every(Number.isFinite);
+  const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+  if(!Array.isArray(regions)||!validModel(river)||!validModel(lake)||!object(sources)||!object(representativeChecks)||!object(worldEstimate))
+    throw Error('Explicit Hydro calibration results and evidence required');
+  const thresholds=model=>Object.fromEntries(calibrationStages.map((stage,i)=>[stage.toFixed(1),model.thresholds[i]]));
+  const result={schemaVersion:1,purpose:'analysis-only; PandoLab runtime hydro assets are not modified',stages:[...calibrationStages],
+    formula:{rivers:{flowWeight:river.weights[0],upstreamAreaWeight:river.weights[1],thresholds:thresholds(river),candidateFloor:5,
+      candidateFloorBasis:'maximum score across the complete shared weight search grid'},
+    lakes:{areaWeight:lake.weights[0],shorelineWeight:lake.weights[1],thresholds:thresholds(lake),candidateAreaFloorKm2:1}},
+    searchSpace:{riverWeights:riverWeights.map(([flow,upstreamArea])=>({flow,upstreamArea})),
+      lakeWeights:lakeWeights.map(([area,shoreline])=>({area,shoreline})),sharedAcrossCalibrationRegions:true,regionalThresholdsAllowed:false},
+    regions:{},sources,representativeChecks,worldEstimate};
+  for(const item of regions){const region=item?.region;
+    if(typeof region?.id!=='string'||!region.id||Object.hasOwn(result.regions,region.id)||typeof region.label!=='string'||
+      !Array.isArray(region.bbox)||region.bbox.length!==4||!region.bbox.every(Number.isFinite)||typeof region.calibrate!=='boolean'||
+      !Array.isArray(item.rivers)||!Array.isArray(item.lakes))throw Error('Invalid or duplicate Hydro calibration result region');
+    Object.defineProperty(result.regions,region.id,{enumerable:true,configurable:true,writable:true,value:{label:region.label,bbox:region.bbox,
+      calibrationRegion:region.calibrate,rivers:calibrationStageMetrics(item,'river'),lakes:calibrationStageMetrics(item,'lake'),
+      riverBaseOverlapRatio:pythonRound(calibrationResidualOverlap(item.rivers,'river'),6),
+      lakeBaseOverlapRatio:pythonRound(calibrationResidualOverlap(item.lakes,'lake'),6),
+      riverCandidates:item.rivers.length,lakeCandidates:item.lakes.length}});
+  }
+  result.acceptance=calibrationAcceptance(result);return result;
 }
 
 // Match the Python iter_lines / iter_polygons behavior for clipped geometries.
