@@ -41,6 +41,20 @@ pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback
 
 W2-P5-2의 고정 소스와 데이터 핀이 다른 서버가 4221번 포트에서 응답한다면 실행을 중단한다. 실제 NVIDIA GTX1650, driver 32.0.16.1088, Chromium 151, ANGLE D3D11 및 GPU compositing 확인 실패도 성공으로 처리하지 않는다. 기존 보고서와 결과 디렉터리를 재사용하지 말고 위 output을 새 고유 경로로 변경한다. Playwright 출력/trace/PNG와 console의 W5_BOUNDARY_ROLLBACK_PASS를 원시 증거로 보존한다. Windows 실측 결과는 CI Linux 검증과 별도 판정한다. 프로젝트 보고서 발행 규칙을 따르고 원시 바이트 재검증을 수행한다.
 
+## 실제 CI 검증 기록
+
+- Linux Chromium 회귀 실행: https://github.com/kimjeon-il/Pando/actions/runs/41461767199
+- 검증 소스: GitHub work/ui@7c7df2a348cecf1b5817c6b818d357349db7b10e, 테스트 코드에서만 256KiB 기본 업로드를 유지한 실제 Viewer.
+- 동일한 오류-복구-재시도 회귀 2회 연속 PASS.
+- 오류 주입: 2026-11 초기 세대 1에서 사용자가 이전 연도를 요청하면 프로젝트 세대 2/공유국경 requestId 5/geometryRevision 2/quality canonical에 대해 정확한 Worker-protocol 오류 1건을 전달.
+- renderer가 matching error를 수신하고 이전 프로젝트·월 2026-11, cursor, document ID, 국가 254개, 형상 254개, timeline 5개, 표시 지명 118개의 각각 SHA가 원래 값으로 복구됨.
+- rollback generation 3에서는 canonical mesh ready, boundary ready, countriesPublishedGeneration==projectGeneration, projectRenderBlocked=false 확인.
+- 알림/날짜 패널 UI를 제외한 1280×752 GPU canvas 비교에서 **두 회 모두 실제 차이 픽셀 0개**.
+- 재시도 시 2025-12가 generation 4에서 새 지도·지명·국경을 정상 승인. 예상치 못한 pageerror 없음.
+- 최초 진단이 사용한 __w2Current 임시 값 대신 request-intercepted / error-dispatched / renderer-received 사건을 독립 수집.
+- **Linux headless Chromium, 시험용 프로토콜 오류 주입이라는 제한**은 유지한다. 실제 Windows GPU 또는 비합성 Worker 내부 예외를 검증했다는 뜻은 아니다.
+- 일회성 CI 실패 기록은 삭제하지 않는다. 초기 비교는 오류 UI까지 캔버스 스크린샷에 포함해 픽셀 차이를 잘못 계산했고, 한 실행의 즉시 해시 불일치 원인은 비동기 표시 상태를 포함할 수 있어 확정되지 않았다. 재검사는 항목별 해시와 같은 재시도 조건을 기록해 두 차례 통과했다. 해당 흔들림을 전체 운영 환경의 무결성 보장으로 일반화하지 않는다.
+
 ## 완료 판정
 
 - **검사 수단의 보완**: CI 테스트 완료 여부에 따라 판정, 당시 W2-P5-2 원시 실패는 삭제하지 않는다.
