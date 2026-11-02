@@ -143,7 +143,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
         gl.stencilFunc(gl.ALWAYS, 1, 0xff);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
         gl.colorMask(false, false, false, false);
-        for (const role of mapVisualOrder('hydro')) drawHydro(role);
+        for (const role of mapVisualOrder('hydro')) drawHydro(role, false, true);
         for(const item of physicalWaterItems)drawOverlay(item);
         drawCountryBoundaryStrokes();
         gl.colorMask(true, true, true, true);
