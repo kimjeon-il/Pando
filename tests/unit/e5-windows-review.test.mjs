@@ -55,7 +55,7 @@ test('E5 Windows Tauri uses the unique review entry and narrow read-only capabil
   regex(stage,/nativeEntry:windowsReview\?'review\.html':'index\.html'/);
   regex(stage,/read-only|review/);
   const prod=read('apps/editor/native-producer.mjs');
-  regex(prod,/PANDOLAB_NATIVE_REVIEW:platform==='windows'\?'1':'0'/);
+  regex(prod,/PANDOLAB_NATIVE_REVIEW:'1'/);
   regex(prod,/prototype-review/);
   regex(prod,/https:\/\/raw\.githubusercontent\.com/);
   const guard=read('apps/editor/src-tauri/build.rs');
@@ -68,8 +68,8 @@ test('E5 automatic native builds do not invest in the retiring Android app',()=>
   assert.deepEqual(nativeBuildSelection(['apps/editor/src-tauri/capabilities/prototype-review.json']),['windows']);
   assert.deepEqual(nativeBuildSelection(['apps/viewer/js/viewer.js']),[]);
   assert.deepEqual(nativeBuildSelection([],{platform:'windows'}),['windows']);
-  // The archival Android target is not deleted in E5 (its removal is E6).
-  assert.deepEqual(nativeBuildSelection([],{platform:'android'}),['android']);
+  // E6 retires the native Android target; mobile Web viewer remains available.
+  assert.throws(()=>nativeBuildSelection([],{platform:'android'}),/Unsupported native platform/);
 });
 
 test('E5 Windows verification uses actual map and Core checks, not button hiding',()=>{
