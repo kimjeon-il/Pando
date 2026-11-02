@@ -273,6 +273,7 @@ test('verified source selection exposes indexed upstream candidates through one 
       const [group,unknown]=await selection.candidates([102,999]);
       assert.equal(group.current.recordIndex,1);assert.deepEqual(group.candidates.map(row=>row.id),[103,101]);
       assert.deepEqual(group.candidates.map(row=>row.recordIndex),[2,0]);assert.equal(unknown.current,null);
+      assert.deepEqual((await selection.records([103,999,101])).map(row=>row?.recordIndex??null),[2,null,0]);
       return 'done';
     },options);
     assert.equal(value,'done');await assert.rejects(retained.candidates([102]),/closed/i);

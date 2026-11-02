@@ -329,7 +329,12 @@ export async function withHydroSourceSelection({archive,files,specification,batc
     const seeds=new Set(roots.seeds),continuity=new Set(roots.continuityRoots);
     if([...continuity,...roots.namedCandidates].some(id=>!seeds.has(id))||roots.namedCandidates.some(id=>continuity.has(id)))
       throw Error('Invalid Hydro selection root relationships');
-    const selection={roots:structuredClone(roots),region:receipt.region,records:count,candidates:async ids=>{
+    const selection={roots:structuredClone(roots),region:receipt.region,recordCount:count,records:async ids=>{
+      if(!Array.isArray(ids)||ids.length>4096||ids.some(id=>!Number.isSafeInteger(id)||id<=0))throw Error('Explicit bounded Hydro record IDs required');
+      const result=await request({op:'records',ids});
+      if(!Array.isArray(result?.records)||result.records.length!==ids.length||Object.keys(result).length!==1||
+        result.records.some((row,index)=>row!==null&&(row.id!==ids[index]||!Number.isSafeInteger(row.recordIndex)||row.recordIndex<0)))
+        throw Error('Invalid Hydro selection records');return result.records;},candidates:async ids=>{
       if(!Array.isArray(ids)||ids.length>4096||ids.some(id=>!Number.isSafeInteger(id)||id<=0))throw Error('Explicit bounded Hydro candidate IDs required');
       const result=await request({op:'candidates',ids});
       if(!Array.isArray(result?.groups)||result.groups.length!==ids.length||Object.keys(result).length!==1||result.groups.some((group,index)=>

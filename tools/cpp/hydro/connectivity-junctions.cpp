@@ -348,12 +348,17 @@ Value widthProfile(const Value& request){
             output.array.push_back(std::move(widths));}}
     auto result=Value::obj();result.object["widths"]=std::move(output);return result;
 }
+double riverScore(std::int64_t order,double flow,double area){
+    return static_cast<double>(order)+4.0*std::log10(std::max(flow,1e-6))-0.5*std::log10(std::max(area,1e-6));
+}
+double riverWidth(std::int64_t order,double flow){
+    return 0.5+0.19*std::log2(1.0+std::max(flow,0.0))+0.06*std::max(static_cast<double>(order)-1.0,0.0);
+}
 Value featurePolicy(const Value& request){
     const auto order=integer(field(request,"order"));const double flow=pandoeditor::codecjson::finiteNumber(field(request,"flow")),
       area=pandoeditor::codecjson::finiteNumber(field(request,"upstreamArea")),lake=pandoeditor::codecjson::finiteNumber(field(request,"lakeArea")),
       zoom=pandoeditor::codecjson::finiteNumber(field(request,"zoom"));
-    const double score=static_cast<double>(order)+4.0*std::log10(std::max(flow,1e-6))-0.5*std::log10(std::max(area,1e-6));
-    const double rawWidth=0.5+0.19*std::log2(1.0+std::max(flow,0.0))+0.06*std::max(static_cast<double>(order)-1.0,0.0);
+    const double score=riverScore(order,flow,area),rawWidth=riverWidth(order,flow);
     if(!std::isfinite(score)||!std::isfinite(rawWidth))throw std::invalid_argument("Invalid Hydro feature score");
     const double riverThresholds[]={14.4744,12.4307,11.2137,10.55},lakeThresholds[]={250.0,100.0,40.0,40.0},zoomThresholds[]={6.0,6.7,7.0,7.5};
     Value river,lakeStage;int zoomStage=3;
@@ -400,8 +405,7 @@ public:
             const double flow=pandoeditor::codecjson::finiteNumber(field(item,"flow")),area=pandoeditor::codecjson::finiteNumber(field(item,"upstreamArea"));
             const auto& endorheic=field(item,"endorheic");
             if(id<=0||next<0||index<0||endorheic.kind!=Value::Bool||byId.count(id))throw std::invalid_argument("Invalid or duplicate Hydro selection record");
-            const double score=static_cast<double>(order)+4.0*std::log10(std::max(flow,1e-6))-0.5*std::log10(std::max(area,1e-6));
-            const double width=0.5+0.19*std::log2(1.0+std::max(flow,0.0))+0.06*std::max(static_cast<double>(order)-1.0,0.0);
+            const double score=riverScore(order,flow,area),width=riverWidth(order,flow);
             if(!std::isfinite(score)||!std::isfinite(width))throw std::invalid_argument("Invalid Hydro selection score");
             const auto position=rows.size();byId.emplace(id,position);
             rows.push_back({id,next,basin,order,index,flow,area,score,std::max(0.55,std::min(2.6,width)),endorheic.raw=="true",score>=10.55});
@@ -434,13 +438,21 @@ public:
             group.object["candidates"]=std::move(candidates);groups.array.push_back(std::move(group));}
         auto result=Value::obj();result.object["groups"]=std::move(groups);return result;
     }
+    Value records(const Value& request) const {
+        if(!prepared)throw std::invalid_argument("Hydro selection not prepared");
+        const auto& ids=elements(field(request,"ids"));if(ids.size()>4096)throw std::invalid_argument("Hydro record batch exceeds budget");
+        auto records=Value::arr();for(const auto& value:ids){const auto id=integer(value);if(id<=0)throw std::invalid_argument("Invalid Hydro record ID");
+            const auto found=byId.find(id);records.array.push_back(found==byId.end()?Value():encodeRow(rows[found->second]));}
+        auto result=Value::obj();result.object["records"]=std::move(records);return result;
+    }
 };
 void selectionStream(){
     SourceSelection selection;std::string line;
     while(std::getline(std::cin,line)){if(line.size()>32*1024*1024)throw std::invalid_argument("Hydro selection request exceeds budget");
         const auto request=pandoeditor::codecjson::parse(line);const auto op=str(field(request,"op"));Value result;
         if(op=="add")result=selection.add(request);else if(op=="prepare")result=selection.prepare();
-        else if(op=="candidates")result=selection.candidates(request);else throw std::invalid_argument("Invalid Hydro selection operation");
+        else if(op=="candidates")result=selection.candidates(request);else if(op=="records")result=selection.records(request);
+        else throw std::invalid_argument("Invalid Hydro selection operation");
         std::cout<<result.encode()<<std::endl;}
 }
 // Match Hydro's selected-network downstream width propagation before rendering.

@@ -30,7 +30,7 @@ nativeTest('streaming source selection keeps seeds, roots and the strongest eigh
   const rows=[row(100,0,6,500,5000),row(101,100,5,100,2000),row(102,101,2,1,500),
     ...Array.from({length:10},(_,i)=>row(i+1,102,1,1,10))];
   const requests=[{op:'add',rows:rows.slice(0,6)},{op:'add',rows:rows.slice(6)},
-    {op:'prepare'},{op:'candidates',ids:[100,101,102,999]}];
+    {op:'prepare'},{op:'candidates',ids:[100,101,102,999]},{op:'records',ids:[102,999,100]}];
   const result=spawnSync(native,['--selection-stream'],{input:requests.map(value=>JSON.stringify(value)).join('\n')+'\n',encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);const replies=result.stdout.trim().split('\n').map(JSON.parse);
   assert.deepEqual(replies[0],{count:6});assert.deepEqual(replies[1],{count:13});
@@ -39,6 +39,7 @@ nativeTest('streaming source selection keeps seeds, roots and the strongest eigh
   assert.deepEqual(replies[3].groups.map(group=>group.id),[100,101,102,999]);
   assert.deepEqual(replies[3].groups[2].candidates.map(candidate=>candidate.id),[3,4,5,6,7,8,9,10]);
   assert.deepEqual(replies[3].groups[3].candidates,[]);
+  assert.deepEqual(replies[4].records.map(record=>record?.id??null),[102,null,100]);
   const duplicate=spawnSync(native,['--selection-stream'],{input:[{op:'add',rows:[rows[0],rows[0]]}].map(JSON.stringify).join('\n')+'\n',encoding:'utf8'});
   assert.notEqual(duplicate.status,0);assert.match(duplicate.stderr,/duplicate/i);
 });
