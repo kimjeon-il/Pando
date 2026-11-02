@@ -128,7 +128,9 @@ Corpus diagnostic `corpusSha256` is the source-content fingerprint (including
 the auxiliary corpus when present); `corpusManifestSha256` is the primary
 manifest file hash. A single-source diagnostic records only the manifest hash.
 Neither fingerprint establishes that transferred weights were trained on the
-selected sources unless their provenance is separately verified.
+selected sources unless their provenance is separately verified. For a full
+corpus diagnostic, `trainingCorpusFingerprintMatched` states whether the
+transferred checkpoint's recorded fingerprint equals that corpus fingerprint.
 
 ```powershell
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus $corpusPath --source SOURCE_ID --weights $transferredWeights --output $newDiagnosticDirectory --device cuda --torch-library $torchLibrary

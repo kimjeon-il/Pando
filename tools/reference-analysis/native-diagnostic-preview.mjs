@@ -226,9 +226,9 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(new Set(ids).size!==ids.length)throw Error('Unique diagnostic sources required');
   const checkpointPath=resolve(weights||checkpoint),receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json',corpusPath=resolve(corpus);
   const checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath),corpusHash=trainingFileIdentity(corpusPath);
-  let transferred=null;
+  let transferred=null,transferReceipt=null;
   if(weights){transferred=verifyTrainingInitializer({path:checkpointPath,expectedSha256:checkpointHash});
-    const receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+    const receipt=transferReceipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
     if(receipt.schemaVersion!==1||transferred.initialization!=='weights-only-no-optimizer'||transferred.recordHash!==receiptHash||
       !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');}
   const onnxPath=onnx?resolve(onnx):null,onnxHash=onnxPath?trainingFileIdentity(onnxPath):null;
@@ -245,6 +245,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
       manifest.model?.bytes!==statSync(onnxPath).size||manifest.trainingOnly!==true||manifest.evaluationStatus!=='pending'||
       manifest.releaseApproved!==false||!(manifest.optimizerUpdates>0))throw Error('ONNX does not match the diagnostic checkpoint');}
   const corpusSha256=await corpusFingerprint(corpusPath,auxiliaryCorpus);
+  const trainingCorpusFingerprintMatched=Boolean(weights&&transferReceipt.trainingCorpusSha256===corpusSha256);
   const rows=[];let created=false,internalScope=null;
   for(const sourceId of ids){
     signal?.throwIfAborted();
@@ -261,7 +262,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     if(parity){for(const [name,bytes] of Object.entries({'tile.f32':parity.tile,'overview.f32':parity.overview,
       'position.f32':parity.position,'expected-logits.f32':parity.expectedLogits}))await writeFile(join(target,name),bytes,{flag:'wx',signal});}
     if(previewFile)await writeFile(join(target,previewFile),jpeg,{flag:'wx',signal});
-    rows.push({...row,previewFile});
+    rows.push({...row,...(weights?{trainingCorpusFingerprintMatched}:{}),previewFile});
   }
   const finalCorpusFingerprint=await corpusFingerprint(corpusPath,auxiliaryCorpus);
   if(trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
@@ -297,7 +298,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     ...(parityResult?{onnxSha256:onnxHash,onnxParityFile:'onnx-parity.json',onnxMaximumAbsoluteError:parityResult.maximumAbsoluteError}:{}),
     checkpointSha256:weights?null:checkpointHash,corpusSha256,corpusManifestSha256:corpusHash,
     ...(weights?{weightsSha256:checkpointHash,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
-      trainingCorpusVerified:false,trainingCorpusFingerprintMatched:Boolean(auxiliaryCorpus),optimizerStateTransferred:false,lineageComplete:false}:{}),
+      trainingCorpusVerified:false,trainingCorpusFingerprintMatched,optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),
     ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
   await writeFile(join(target,'diagnostics.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx',signal});return report;

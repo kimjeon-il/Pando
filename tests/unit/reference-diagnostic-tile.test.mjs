@@ -140,6 +140,15 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
   const combined=await diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,output:join(root,'combined')});
   assert.deepEqual(combined.sheets,[]);assert.equal(combined.lineageFingerprint,lineageFingerprint);
   assert.equal(combined.corpusManifestSha256,hash(readFileSync(corpus)));assert.equal(combined.corpusSha256,lineageFingerprint);
+  const weights=join(root,'weights.safetensors');writeFileSync(weights,'weights');
+  const transfer={schemaVersion:1,trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,transfer:'weights-only-no-optimizer',
+    weightsSha256:hash('weights'),sourceCheckpointSha256:'a'.repeat(64),trainingCorpusSha256:await corpusFingerprint(corpus)};
+  writeFileSync(join(root,'transfer.json'),JSON.stringify(transfer));
+  const source=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,output:join(root,'weights-matching')});
+  assert.equal(source.trainingCorpusFingerprintMatched,true);assert.equal(source.trainingCorpusVerified,false);
+  transfer.trainingCorpusSha256='b'.repeat(64);writeFileSync(join(root,'transfer.json'),JSON.stringify(transfer));
+  const other=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,output:join(root,'weights-different')});
+  assert.equal(other.trainingCorpusFingerprintMatched,false);assert.equal(other.trainingCorpusVerified,false);
 });
 
 test('diagnostic tile joins native probabilities, known masks, statistics and overlays',async()=>{
