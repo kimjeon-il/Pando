@@ -278,7 +278,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       values['diagnostic-validation']&&values['independent-validation'])
       throw Error('Explicit macro training sequence configuration required');
     const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
-    try{const request={mode:values.mode,input:reportArgument(values.input,{access:'read'}),
+    try{const request={mode:values.mode,input:reportArgument(values.input,{access:'read',siblings:true}),
       output:reportArgument(values.output,{access:'write'}),corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
       auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),macroOnly:values['allow-nonmacro-auxiliary']?false:undefined,reviewed:values.reviewed,publisher:values.publisher,
       supervision:reportArgument(values.supervision,{access:'read'}),epoch:integer('epoch'),seed:integer('seed'),freezeEpochs:integer('freeze-epochs'),

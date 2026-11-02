@@ -8,6 +8,7 @@ import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
+import {reportArgument} from '../report-paths.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
 import {indexTrainingDataset,inspectCombinedTrainingData} from './training-tiles.mjs';
@@ -127,8 +128,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     if(positionals.length||!/^\d+$/.test(values.epoch||'')||!/^\d+$/.test(values.seed||''))throw Error('Explicit macro corpus, epoch, seed and output required');
     if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.supervision||values.reviewed||values.publisher))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and no macro supervision directory');
     if(!values.auxiliary&&values['allow-nonmacro-auxiliary'])throw Error('Auxiliary corpus required for nonmacro scope');
-    const common={corpus:values.corpus,epoch:Number(values.epoch),seed:Number(values.seed),output:values.output,torchLibrary:values['torch-library']};
-    console.log(JSON.stringify(values.auxiliary?await writeCombinedTrainingOrder({...common,auxiliary:values.auxiliary,macroOnly:false}):
-      await writeTrainingOrder({...common,supervision:values.supervision,reviewed:values.reviewed,publisher:values.publisher})));
+    const common={corpus:reportArgument(values.corpus,{access:'read',siblings:true}),epoch:Number(values.epoch),seed:Number(values.seed),
+      output:reportArgument(values.output,{access:'write'}),torchLibrary:values['torch-library']};
+    console.log(JSON.stringify(values.auxiliary?await writeCombinedTrainingOrder({...common,auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),macroOnly:false}):
+      await writeTrainingOrder({...common,supervision:reportArgument(values.supervision,{access:'read'}),reviewed:values.reviewed,publisher:values.publisher})));
   }catch(error){console.error('training-order: '+error.message);process.exitCode=1;}
 }

@@ -15,6 +15,11 @@ test('combined order CLI requires explicit nonmacro auxiliary scope',()=>{
   const result=spawnSync(process.execPath,['tools/reference-analysis/training-order.mjs','--auxiliary','semap.json','--epoch','0','--seed','42'],{encoding:'utf8',timeout:10000});
   assert.equal(result.status,1);assert.match(result.stderr,/explicit nonmacro/i);
 });
+test('training order CLI resolves report inputs through the canonical report owner',()=>{
+  const result=spawnSync(process.execPath,['tools/reference-analysis/training-order.mjs','--corpus','reports/not-a-report-subject/corpus.json',
+    '--supervision','unused','--epoch','0','--seed','1','--output','unused-order','--torch-library','.'],{encoding:'utf8',timeout:10000});
+  assert.notEqual(result.status,0);assert.match(result.stderr,/canonical report subject/i);
+});
 
 test('balanced order refuses invalid groups and preserves existing output',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-order-'));t.after(()=>rmSync(root,{recursive:true}));
