@@ -185,3 +185,23 @@ test('E3 CLI compares two real local Git commits and writes checksummed read-onl
   assert.throws(()=>generateE3RevisionEvidence({...run,'evidence-path':'reports/borders/reconstruction/unknown/README.md',
     'output-dir':join(output,'other')}),/git show|unknown|path|revision|exist|fatal/i);
 });
+
+
+test('E3 report-only descendant revisions produce explicit zero-change evidence without a forged proposal',t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-e3-report-only-')),output=mkdtempSync(join(tmpdir(),'pando-e3-no-map-'));
+  t.after(()=>{rmSync(root,{recursive:true,force:true});rmSync(output,{recursive:true,force:true});});
+  git(root,'init','-q');
+  git(root,'remote','add','origin','https://github.com/kimjeon-il/PandoLab-library-data.git');
+  const base=commitFixture(root,entity());
+  put(root,'reports/development/ui/source-review/README.md','No map source changes.\n');
+  git(root,'add','.');git(root,'commit','-qm','report only');
+  const candidate=git(root,'rev-parse','HEAD');
+  const result=generateE3RevisionEvidence({base,candidate,'data-root':root,'output-dir':output,
+    'comparison-month':'2008-10','code-revision':D});
+  assert.equal(result.diff.indexChangedEntities,0);
+  assert.equal(result.diff.changes.length,0);
+  assert.equal(result.bundle,null);
+  assert.equal(result.manifest.status,'no-map-changes');
+  assert.equal(result.manifest.files.length,2);
+  assert.equal(git(root,'status','--porcelain'),'');
+});
