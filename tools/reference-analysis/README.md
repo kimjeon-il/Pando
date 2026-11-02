@@ -144,6 +144,11 @@ node tools/reference-analysis/native-onnx-export.mjs --weights $transferredWeigh
 node tools/reference-analysis/native-diagnostic-preview.mjs --corpus-sources --corpus $corpusPath --weights $transferredWeights --onnx $newOnnxPath --output $newCorpusDiagnosticDirectory --device cuda --torch-library $torchLibrary
 ```
 
+The native ONNX exporter accepts Windows and Linux source-bound artifacts with
+their matching LibTorch runtimes. Linux uses the fixed 2.7.1 CPU SDK; Windows
+uses the fixed 2.14.1 runtime. A diagnostic export remains a synthetic execution
+check and does not approve a model.
+
 For one source-reviewed sheet, use `--reviewed-source` and add
 `--review-corpus` pointing to its manifest. `--corpus` remains the training
 manifest recorded by the checkpoint. The selected sheet's source and annotation

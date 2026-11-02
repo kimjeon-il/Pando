@@ -37,10 +37,13 @@ export function checkpointOnnxManifest({receipt,model}={}){
     unobservedChannels:classes.filter((_,index)=>(receipt.unobservedMask&(1<<index))!==0)};
 }
 async function runExport({args,output,torchLibrary,root,directory,signal,diagnostic,checkpoint=false}){
-  const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-onnx-export',executable:'pando-reference-onnx-export.exe',sourceFiles:referenceOnnxExportSourceFiles});
+  const executable=process.platform==='win32'?'pando-reference-onnx-export.exe':'pando-reference-onnx-export';
+  const {binary,manifest}=verifyNativeTool({root,directory,target:'reference-onnx-export',executable,sourceFiles:referenceOnnxExportSourceFiles});
   const library=matchingTorchLibrary(torchLibrary,manifest);
   const stdout=await new Promise((ok,fail)=>execFile(binary,[...args,resolve(output)],{encoding:'utf8',windowsHide:true,
-    maxBuffer:1024**2,timeout:180000,signal,env:{...process.env,PATH:library+delimiter+process.env.PATH,CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
+    maxBuffer:1024**2,timeout:180000,signal,env:{...process.env,
+      ...(process.platform==='win32'?{PATH:library+delimiter+(process.env.PATH||'')}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),
+      CUBLAS_WORKSPACE_CONFIG:':4096:8'}},
   (error,text,stderr)=>error?fail(new Error('Native ONNX export failed: '+error.message+' '+stderr,{cause:error})):ok(text)));
   signal?.throwIfAborted();const receipt=JSON.parse(stdout),bytes=readFileSync(resolve(output));
   if(receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.diagnostic!==diagnostic||receipt.checkpoint!==checkpoint||receipt.opset!==17||receipt.bytes!==bytes.length||!bytes.length)
@@ -60,7 +63,7 @@ export function transferredWeightsOnnxReceipt({initializer,model}={}){
 export async function nativeOnnxExport({weights,output,receiptOutput,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
-  if(process.platform!=='win32'||!weights||!output||!torchLibrary)throw Error('Windows ONNX export requires weights, a new output and a matching LibTorch runtime');
+  if(!['win32','linux'].includes(process.platform)||!weights||!output||!torchLibrary)throw Error('ONNX export requires weights, a new output and a matching LibTorch runtime');
   if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
   if(receiptOutput!==undefined&&(typeof receiptOutput!=='string'||!output.endsWith('.onnx')||resolve(receiptOutput)!==resolve(output+'.export.json')))
     throw Error('ONNX export receipt must be the matching .onnx.export.json');
@@ -81,14 +84,14 @@ export async function nativeOnnxExport({weights,output,receiptOutput,torchLibrar
 export async function nativeOnnxDiagnostic({output,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
-  if(process.platform!=='win32'||!output||!torchLibrary)throw Error('Windows ONNX diagnostic requires a new output and a matching LibTorch runtime');
+  if(!['win32','linux'].includes(process.platform)||!output||!torchLibrary)throw Error('ONNX diagnostic requires a new output and a matching LibTorch runtime');
   if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
   return runExport({args:['--diagnostic'],output,torchLibrary,root,directory,signal,diagnostic:true});
 }
 export async function nativeCheckpointOnnxExport({checkpoint,proof,output,manifestOutput,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/onnx-export'),signal}){
   signal?.throwIfAborted();
-  if(process.platform!=='win32'||!checkpoint||!proof||!output||!torchLibrary)throw Error('Checkpoint ONNX export requires a checkpoint, its proof, a new output and a matching LibTorch runtime');
+  if(!['win32','linux'].includes(process.platform)||!checkpoint||!proof||!output||!torchLibrary)throw Error('Checkpoint ONNX export requires a checkpoint, its proof, a new output and a matching LibTorch runtime');
   if(occupied(output))throw Error('ONNX output exists; preserve the existing file');
   const proofPath=resolve(proof);if(statSync(proofPath).size>1024**2)throw Error('Training proof exceeds its size limit');
   const proofBytes=readFileSync(proofPath),proofHash=sha256(proofBytes),receipt=JSON.parse(proofBytes.toString('utf8'));

@@ -17,13 +17,52 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-onnx-linux:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-linux'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - name: Prepare locked ONNX runtime and fixed CPU LibTorch
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          pnpm install --frozen-lockfile --ignore-scripts
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
+            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
+            --output build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build and package only ONNX export and parity tools
+        run: |
+          cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
+          cmake --build build-native/reference-analysis/native --target pando-reference-onnx-tests pando-reference-onnx-export --parallel 1
+          node tools/reference-analysis/package-native-reference.mjs --kind onnx-export --binary build-native/reference-analysis/native/pando-reference-onnx-export --directory build-native/reference-analysis/onnx-export
+      - name: Verify Linux export, overwrite protection and ONNX numerical parity
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
+          PANDO_REFERENCE_TORCH_LIBRARY: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
+          PANDO_REFERENCE_ONNX_EXPORT_DIRECTORY: ${{ github.workspace }}/build-native/reference-analysis/onnx-export
+          PANDO_REFERENCE_ONNX_EXPORT_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-export
+          PANDO_REFERENCE_ONNX_TEST_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-tests
+        run: node --test tests/unit/reference-onnx-export-refusal.test.mjs tests/unit/reference-onnx-export.test.mjs
   hydro-shared-boundary:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-shared-boundary'
     runs-on: ubuntu-24.04

@@ -10,6 +10,16 @@ import {inspectTransferredWeightsOnnx} from '../../tools/reference-analysis/veri
 import {validateCandidateModel} from '../../plugins/pando-map-tools/lib/jobs.mjs';
 const {nativeCheckpointOnnxExport,nativeOnnxDiagnostic,nativeOnnxExport}=exporter;
 
+test('Linux ONNX export checks the requested output before native execution',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-linux-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const output=join(root,'existing.onnx');writeFileSync(output,'preserve');
+  const descriptor=Object.getOwnPropertyDescriptor(process,'platform');
+  try{Object.defineProperty(process,'platform',{value:'linux',configurable:true});
+    await assert.rejects(nativeOnnxDiagnostic({output,torchLibrary:root}),/output exists/i);
+    assert.equal(readFileSync(output,'utf8'),'preserve');
+  }finally{Object.defineProperty(process,'platform',descriptor);}
+});
+
 test('transferred weights ONNX receipt preserves unknown ancestry and optimizer state',()=>{
   const initializer={initialization:'weights-only-no-optimizer',weightsSha256:'a'.repeat(64),sourceCheckpointSha256:'b'.repeat(64)};
   const model={file:'candidate.onnx',bytes:123,sha256:'c'.repeat(64)};
@@ -78,7 +88,7 @@ test('native exporter refuses missing arguments and existing output',{skip:!proc
   }
   assert.equal(readFileSync(output,'utf8'),'preserve');
 });
-test('ONNX export preserves existing output and refuses modified warm-start weights',{skip:process.platform!=='win32'},async t=>{
+test('ONNX export preserves existing output and refuses modified warm-start weights',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-refusal-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const weights=join(root,'weights.safetensors'),output=join(root,'model.onnx');
   writeFileSync(weights,'weights');writeFileSync(output,'existing model');
@@ -92,7 +102,7 @@ test('ONNX export preserves existing output and refuses modified warm-start weig
   await assert.rejects(nativeOnnxExport({...request,output:unused}),/warm-start weights/);
   assert.equal(existsSync(unused),false);
 });
-test('checkpoint export refuses invalid resume proof and changed checkpoint bytes',{skip:process.platform!=='win32'},async t=>{
+test('checkpoint export refuses invalid resume proof and changed checkpoint bytes',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-checkpoint-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const checkpoint=join(root,'checkpoint.pt'),proof=join(root,'proof.json'),output=join(root,'new.onnx');
   writeFileSync(checkpoint,'modified');
@@ -107,7 +117,7 @@ test('checkpoint export refuses invalid resume proof and changed checkpoint byte
   await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary:root}),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
 });
-test('checkpoint export accepts a bound private training receipt and refuses altered receipts',{skip:process.platform!=='win32'},async t=>{
+test('checkpoint export accepts a bound private training receipt and refuses altered receipts',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-batch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const checkpoint=join(root,'checkpoint.pt'),proof=checkpoint+'.receipt.json',output=join(root,'new.onnx');
   writeFileSync(checkpoint,'checkpoint');
@@ -125,7 +135,7 @@ test('checkpoint export accepts a bound private training receipt and refuses alt
   await assert.rejects(nativeCheckpointOnnxExport(request),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
 });
-test('checkpoint export protects an existing matching manifest before generating a model',{skip:process.platform!=='win32'},async t=>{
+test('checkpoint export protects an existing matching manifest before generating a model',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-manifest-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const checkpoint=join(root,'checkpoint.pt'),proof=checkpoint+'.receipt.json',output=join(root,'new.onnx'),manifestOutput=join(root,'new.manifest.json');
   writeFileSync(checkpoint,'checkpoint');writeFileSync(manifestOutput,'protected');
