@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 import { createNodeSelection } from '../helpers/core-selection.mjs';
-import { createGenericFeatureService } from "../../tools/gis/generic-feature-service.js";
+import { createGenericFeatureService } from '../helpers/generic-feature-command-service.mjs';
 import { createObjectDeletion } from "../../apps/editor/frontend/js/modules/app-object-deletion.js";
 const originalSelection=await loadWebOracle('assets/js/modules/selection-domain.js');
 const originalDeletion=await loadWebOracle('assets/js/modules/app-object-deletion.js');
