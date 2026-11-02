@@ -1437,13 +1437,33 @@ export function assertTerritorialStorageScope(prefixes,libraryIndex,previousInde
     if(!entry||!included(`${base}/generated/v2/${entry.file}`))throw Error('Scoped territorial storage requires explicit paired source files');
   }
 }
+// Git extraHeader is multi-valued: reset inherited checkout headers before
+// supplying the existing write token. This affects only this child command.
+export function libraryWriteGitEnvironment(token, base = process.env) {
+  if (!token) return base;
+  const raw = base.GIT_CONFIG_COUNT ?? '0';
+  if (!/^(0|[1-9][0-9]*)$/.test(raw) || Number(raw) > 1024) throw Error('Invalid inherited Git configuration count');
+  const count = Number(raw);
+  return { ...base, GIT_CONFIG_COUNT: String(count + 2),
+    [`GIT_CONFIG_KEY_${count}`]: 'http.https://github.com/.extraheader', [`GIT_CONFIG_VALUE_${count}`]: '',
+    [`GIT_CONFIG_KEY_${count + 1}`]: 'http.https://github.com/.extraheader',
+    [`GIT_CONFIG_VALUE_${count + 1}`]: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` };
+}
+// Runtime inputs remain pinned, while report editions belong to current storage
+// history. Never roll report descriptors back while publishing generated data.
+export function runtimeStoreIndex(pinned, current) {
+  return { ...pinned, files: {
+    ...Object.fromEntries(Object.entries(pinned.files).filter(([path]) => !path.startsWith('reports/'))),
+    ...Object.fromEntries(Object.entries(current.files).filter(([path]) => path.startsWith('reports/'))),
+  } };
+}
 function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, expectedRevision, expectedBranch }) {
   const data = reportData || prepareOwnedLibraryData({ root, fetch: true });
   if (expectedRevision !== undefined) {
     // Check after preparation/fetch and before mutating archived data. A later
     // concurrent publication is still rejected by the normal non-force push.
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
-    const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
+    const env = libraryWriteGitEnvironment(token);
     const remote = execFileSync('git', [...gitOptions, 'ls-remote', '--exit-code', 'origin', `refs/heads/${expectedBranch || 'work/gis'}`], { cwd: data.checkout, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\s+/)[0];
     assertExpectedLibraryRevision({ expectedRevision, expectedBranch, branch: git(data.checkout, ['branch', '--show-current']), head: git(data.checkout, ['rev-parse', 'HEAD']), remote });
   }
@@ -1472,7 +1492,8 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, 
   // Report-only storage extends the current archive, independently of the
   // runtime pin. Starting from that older pin would orphan earlier reports.
   const reportOnly = prefixes.every(path => path === 'reports' || path.startsWith('reports/'));
-  const index = JSON.parse(reportData || reportOnly ? readFileSync(indexPath,'utf8') : git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true}));
+  const currentIndex = JSON.parse(readFileSync(indexPath,'utf8'));
+  const index = reportData || reportOnly ? currentIndex : runtimeStoreIndex(JSON.parse(git(data.checkout,['show',`${libraryConfig(root).revision}:archive/index.json`],{allowFetch:true})), currentIndex);
   const runtimeFiles = reportData || reportOnly ? index.files : runtimeArchiveIndex(index, entry => decodeArchiveEntry(data.checkout, entry, libraryConfig(root).revision, {fetch:true})).files;
   const publicationBranch=reportData?'main':git(root,['symbolic-ref','--short','HEAD']);
   if(!publicationBranch)throw Error('Runtime publication requires an explicit application branch.');
@@ -1574,7 +1595,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, 
   if (compaction.status !== 'compacted') throw Error(`Stored library checkout could not be compacted: ${compaction.reason}`);
   if (push) {
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
-    const env = token ? { ...process.env, GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from('x-access-token:' + token).toString('base64')}` } : process.env;
+    const env = libraryWriteGitEnvironment(token);
     execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${publicationBranch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
     const branch = publicationBranch;
     const remote = execFileSync('git', [...gitOptions, 'ls-remote', '--exit-code', 'origin', `refs/heads/${branch}`], { cwd: data.checkout, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\s+/)[0];

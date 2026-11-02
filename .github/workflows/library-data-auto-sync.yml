@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github,workflows,request}.test.mjs tests/unit/library-data-expected-revision.test.mjs tests/unit/library-data-scope.test.mjs
+      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github,workflows,request}.test.mjs tests/unit/library-data-expected-revision.test.mjs tests/unit/library-data-scope.test.mjs tests/unit/library-data-auth.test.mjs
   gate:
     if: github.repository == 'kimjeon-il/Pando'
     runs-on: ubuntu-24.04
