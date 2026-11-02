@@ -126,7 +126,7 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   // and immutable Git object bytes, never registers an editor mutation hook.
   const showReview=async sourceButton=>{
     if(!reviewPanelLoading)reviewPanelLoading=import('./viewer-review-panel.js').then(module=>{
-      reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,
+      reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,isBuiltinMap:()=>builtinActive,
         meta:runtimeContext.meta,onError:error=>diagnostics.push({category:'e4-review-data',
           errorCode:error?.code||'PL-E4-REVIEW',technicalMessage:error?.message||String(error)})});
       disposables.push(reviewPanel);

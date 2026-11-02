@@ -2,11 +2,17 @@
 import {copyFile,mkdir,readFile,readdir,unlink,writeFile,stat} from 'node:fs/promises';
 import {editorStageRoot} from '../../tools/worktree-storage.mjs';
 import {resolve} from 'node:path';
+import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {nativeInputIdentity,nativeTargets,nativeModes,nativeHash,apkCertificateSha256,verifyNativeBundle} from './native-contract.mjs';
 const shell=fileURLToPath(new URL('./',import.meta.url));
 const exists=path=>stat(path).then(()=>true,()=>false);
+export function nativeFrontendDist(configDir,distDir,pathApi=path){
+  const relative=pathApi.relative(configDir,distDir)||'.';
+  if(pathApi.isAbsolute(relative))throw Error('Native frontend and Tauri config must be on the same drive');
+  return relative;
+}
 export function nativeBuildArguments(platform,mode) {
   if(!Object.hasOwn(nativeTargets,platform))throw Error('Unsupported native platform');
   if(!nativeModes.includes(mode))throw Error('Unsupported native mode');
@@ -43,7 +49,7 @@ export async function buildNativeOnCI({root=resolve(shell,'../..'),platform,mode
     delete capability.$schema;capability.remote={urls:['http://127.0.0.1:4175']};
     config.app={...config.app,security:{...config.app?.security,capabilities:[capability]}};
   }
-  if(mode!=='development')config.build={...config.build,frontendDist:resolve(editorStageRoot(root),'dist')};
+  if(mode!=='development')config.build={...config.build,frontendDist:nativeFrontendDist(resolve(shell,'src-tauri'),resolve(editorStageRoot(root),'dist'))};
   if(platform==='windows'&&mode==='offline')config.bundle={...config.bundle,active:true,targets:['nsis']};
   const library=JSON.parse(await readFile(resolve(root,'config/library-data.json'),'utf8'));
   const env={...process.env,CARGO_INCREMENTAL:'0',PANDOLAB_NATIVE_BUILD_INFO:JSON.stringify(buildInfo),PANDOLAB_LIBRARY_REPOSITORY:library.repository,PANDOLAB_SHELL_PROFILE:'map-data',PANDOLAB_NATIVE_REVIEW:platform==='windows'?'1':'0',PANDOLAB_SHELL_DEVELOPMENT:mode==='development'?'1':'0',PANDOLAB_SHELL_VERIFICATION:mode==='verification'?'1':'0',TAURI_CONFIG:JSON.stringify(config)};
