@@ -362,5 +362,95 @@
     "riverRenderLoadRatio": 0.0001528584530724549,
     "lakeRenderLoadRatio": 0.0004967709885742673,
     "method": "Calibration-region selection and chaining ratios extrapolated to published global source counts."
+  },
+  "representativeInput": {
+    "rivers": [
+      {
+        "properties": {
+          "name_en": "Nile River"
+        }
+      },
+      {
+        "properties": {
+          "name_original": "DANUBE"
+        }
+      },
+      {
+        "properties": {
+          "name": "Murray"
+        }
+      }
+    ],
+    "lakes": [
+      {
+        "properties": {
+          "name_en": "Superior"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Michigan"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Huron"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Erie"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Ontario"
+        }
+      }
+    ]
+  },
+  "representativeExpected": {
+    "나일강": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "nile"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "다뉴브강": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "danube"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "미시시피강": {
+      "present": false,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "머리강": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "murray"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "오대호": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "superior",
+        "michigan",
+        "huron",
+        "erie",
+        "ontario"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    }
   }
 }

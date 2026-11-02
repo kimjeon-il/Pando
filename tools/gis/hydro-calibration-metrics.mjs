@@ -41,6 +41,18 @@ export function calibrationResidualOverlap(features,kind){
   return denominator?numerator/denominator:0;
 }
 
+export function calibrationRepresentativeChecks({rivers,lakes}={}){
+  if(!Array.isArray(rivers)||!Array.isArray(lakes))throw Error('Explicit retained river and lake sources required');
+  const names=feature=>['name_en','name_original','name'].map(key=>String(feature?.properties?.[key]??'')).join(' ').toLowerCase();
+  const checks=[['나일강',rivers,['nile']],['다뉴브강',rivers,['danube']],['미시시피강',rivers,['mississippi']],
+    ['머리강',rivers,['murray']],['오대호',lakes,['superior','michigan','huron','erie','ontario']]];
+  return Object.fromEntries(checks.map(([label,features,tokens])=>{
+    const matchedNames=tokens.filter(token=>features.some(feature=>names(feature).includes(token)));
+    return [label,{present:matchedNames.length===tokens.length,retainedLayer:'Natural Earth base',matchedNames,
+      note:'기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다.'}];
+  }));
+}
+
 export function calibrationAcceptance(results){
   if(!results?.regions||!results.representativeChecks)throw Error('Calibration regions and representative checks required');
   const riverFinal=[],lakeFinal=[],intermediate=[],overlaps=[];
@@ -84,11 +96,14 @@ export async function estimateCalibrationWorld(regions,options={}){
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
   try{
-    if(process.argv.length!==3||process.argv[2]!=='--world-estimate-stream')throw Error('Expected --world-estimate-stream');
+    if(process.argv.length!==3||!['--world-estimate-stream','--representatives-stream'].includes(process.argv[2]))
+      throw Error('Expected a calibration metrics stream operation');
     const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;
       if(size>512*1024*1024)throw Error('Calibration world input exceeds byte budget');chunks.push(chunk);}
     const request=JSON.parse(Buffer.concat(chunks,size).toString('utf8'));
-    console.log(JSON.stringify(await estimateCalibrationWorld(request.regions,{signal:controller.signal})));
+    const result=process.argv[2]==='--world-estimate-stream'?await estimateCalibrationWorld(request.regions,{signal:controller.signal}):
+      calibrationRepresentativeChecks(request);
+    console.log(JSON.stringify(result));
   }catch(error){console.error('hydro-calibration-metrics: '+error.message);process.exitCode=1;}
   finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }
