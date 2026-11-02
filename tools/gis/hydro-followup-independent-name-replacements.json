@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "status": "independent-natural-earth-suez-canal-81-sample-and-egyptian-authority-review",
+  "status": "2-verified-independent-hydronym-replacements-suez-canal-and-south-hangang-branch",
   "reference": {
     "baselineHydroVersion": "0.13.2",
     "baselineBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
     "screenRunId": 41466882236,
-    "scope": "Only 20773860. The adjacent 20774342 is independently unresolved and must not be promoted.",
+    "scope": "Only 20773860 and 40423228; 20774342 has just 4/81 Suez matches and remains unresolved.",
     "geometryChanged": false
   },
   "replacements": [
@@ -37,6 +37,48 @@
         }
       ],
       "reviewNotes": "The published mainstem has 69/81 Natural Earth Suez Canal matches; nearest candidate Ismailiya Canal has 14/81, and the authoritative Egyptian canal name is Suez Canal, not a river. Public-domain NE supplies geometric identity; government authority supplies the independent waterway name. Only this Hydro system is in scope; the other Suez-labelled logical system has 4/81 NE matches and remains unapproved."
+    },
+    {
+      "systemId": "40423228",
+      "previousNameKo": "남한강",
+      "nameKo": "남한강",
+      "aliases": [
+        "Namhangang River",
+        "South Hangang River"
+      ],
+      "tributaryNames": [],
+      "naturalEarth": {
+        "name": "Namhan",
+        "sampleCoverage": 0.802
+      },
+      "hydroRiversRegion": "as",
+      "officialNationalAtlasBranchReview": {
+        "method": "government-national-atlas-independent-branch",
+        "status": "geographic-branch-name-not-statutory-river-name",
+        "authority": "National Geographic Information Institute (Korea)",
+        "independentVectorName": "Namhan",
+        "downstreamNamedRiver": "Han",
+        "downstreamNameSampleCoverage": 0.37,
+        "siblingBranchName": "Bukhangang",
+        "confluencePlace": "Yangsu-ri, Yangseo-myeon, Yangpyeong County",
+        "boundedMainstemSampleCount": 81,
+        "reason": "The 2025 National Atlas of Korea (NGII) explicitly distinguishes the Namhangang and Bukhangang geographic branches, which converge at Yangsu-ri to form the downstream Hangang. The independent public-domain Natural Earth polyline named Namhan overlaps 65 of the published Hydro mainstem's 81 samples (0.802), while the downstream Han candidate also overlaps 30/81 (0.370). These are geographic reach names, not competing tributary names or legal stream-register classifications. Retain the existing conventional branch label rather than mislabel the entire river as a distinct statutory watercourse."
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "national-atlas-government",
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_4065.php"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://m.korea.kr/briefing/actuallyView.do?newsId=148712044"
+        }
+      ],
+      "reviewNotes": "65/81 NE Namhan reference matches support the branch label. Official NGII atlas names it a geographic branch, not an administratively separate national river. The original 남한강 label is retained; only OSM metadata, aliases, and independent attribution are corrected."
     }
   ]
 }
