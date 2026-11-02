@@ -169,16 +169,22 @@ export function revisionIndexDiff(baseIndex,candidateIndex){
     .map(sourceEntityId=>({sourceEntityId,beforeDigest:left[sourceEntityId]??null,afterDigest:right[sourceEntityId]??null}));
 }
 /** E3 reads the exact immutable object bytes, never an app-rendered GeoJSON. */
-export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,candidateIndex,readEntity,comparisonMonth=null,maxEntities=50}){
+export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,candidateIndex,readEntity,comparisonMonth=null,maxEntities=50,batchIndex=null}){
   if(!SHA.test(baseRevision)||!SHA.test(candidateRevision)||baseRevision===candidateRevision)invalid('Two distinct exact data Git commits are required.');
   if(typeof readEntity!=='function')invalid('Source object reader is mandatory.');
   if(comparisonMonth!==null){
     const point=parseTemporal(comparisonMonth,{nullable:false});
     if(point.precision!=='month'||point.canonical!==comparisonMonth)invalid('Comparison must use an exact month cursor.');
   }
-  const changed=revisionIndexDiff(baseIndex,candidateIndex);
-  if(!Number.isInteger(maxEntities)||maxEntities<1||maxEntities>200||changed.length>maxEntities)
-    invalid('Source revision change exceeds the explicit bounded entity budget.');
+  const allChanged=revisionIndexDiff(baseIndex,candidateIndex);
+  if(!Number.isInteger(maxEntities)||maxEntities<1||maxEntities>200)
+    invalid('Source revision budget must be an integer between 1 and 200.');
+  const batchCount=Math.max(1,Math.ceil(allChanged.length/maxEntities));
+  if(batchIndex!==null&&(!Number.isInteger(batchIndex)||batchIndex<1||batchIndex>batchCount))
+    invalid('Requested batch-index is not inside the complete source revision range.');
+  if(batchIndex===null&&batchCount>1)
+    invalid('Source revision exceeds the entity budget; provide --batch-index=1..'+batchCount+' to cover every object.');
+  const changed=batchIndex===null?allChanged:allChanged.slice((batchIndex-1)*maxEntities,batchIndex*maxEntities);
   const changes=[],issues=[],nonMapMetadata=[],readHashes=[];
   for(const row of changed){
     if(!row.sourceEntityId.startsWith('state:')) {
@@ -204,7 +210,8 @@ export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,ca
     ||temporalContains(row,selectedMonthEnd.canonical)):changes;
   return Object.freeze({schemaVersion:E3_DIFF_SCHEMA_VERSION,dataset:{repository:REVIEW_DATA_REPOSITORY,
       baseRevision,candidateRevision},comparisonMonth,
-    indexChangedEntities:changed.length,readObjects:readHashes,
+    totalChangedEntities:allChanged.length,indexChangedEntities:changed.length,
+    scope:{batchIndex:batchIndex??1,batchCount,complete:batchCount===1},readObjects:readHashes,
     changes,issues,nonMapMetadata,selectedAtComparisonMonth:selectedChanges.length});
 }
 /** A candidate is pending even when source comparisons have no schema errors. */
@@ -228,7 +235,8 @@ export function verificationSummary(diff,{codeRevision=null}={}){
   return Object.freeze({schemaVersion:1,kind:'e3-source-revision-verification',
     dataset:diff.dataset,comparisonMonth:diff.comparisonMonth,codeRevision,
     sourceHashCheck:'passed',changedEntities:diff.indexChangedEntities,
-    modeledChanges:diff.changes.length,coverage:covered?'modeled':'partial',
+    totalChangedEntities:diff.totalChangedEntities,scope:diff.scope,
+    modeledChanges:diff.changes.length,coverage:covered?(diff.scope.complete?'modeled':'scoped'):'partial',
     historicalAccuracy:'not-verified',checks,issues:diff.issues,
     note:'Git index/content hashes and C++ temporal/schema validation do not certify historical evidence or shared-border topology. No automated approval or application.'});
 }

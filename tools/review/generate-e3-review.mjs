@@ -12,7 +12,7 @@ const SHA=/^[a-f0-9]{40}$/;
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 function error(msg){throw Object.assign(new Error(msg),{code:'PL-E3-INPUT'});}
 function parseOptions(argv) {
-  const allowed=new Set(['base','candidate','data-root','output-dir','evidence-path','comparison-month','proposal-id','created-at','code-revision']);
+  const allowed=new Set(['base','candidate','data-root','output-dir','evidence-path','comparison-month','proposal-id','created-at','code-revision','batch-index','batch-size']);
   const options={};
   for(const arg of argv){
     const match=/^--([a-z-]+)=(.+)$/.exec(arg);
@@ -28,6 +28,11 @@ function parseOptions(argv) {
   if((options['evidence-path']&&!options['proposal-id'])||(!options['evidence-path']&&options['proposal-id']))
     error('Proposals require both --evidence-path and --proposal-id.');
   if(!options['created-at']&&options['proposal-id'])error('Proposals require an explicit immutable --created-at timestamp.');
+  for(const key of ['batch-index','batch-size'])if(options[key]!==undefined
+    &&(!/^[1-9]\d*$/.test(options[key])||!Number.isSafeInteger(Number(options[key]))))
+    error('--'+key+' must be a positive integer.');
+  if(options['batch-size']!==undefined&&Number(options['batch-size'])>200)
+    error('--batch-size exceeds the maximum of 200 source entities.');
   return options;
 }
 function git(root,...args){
@@ -74,7 +79,8 @@ export function generateE3RevisionEvidence(options) {
   const diff=collectRevisionDiff({
     baseRevision:o.base,candidateRevision:o.candidate,baseIndex,candidateIndex,
     readEntity:params=>readObject(root,params),comparisonMonth:o['comparison-month'],
-    maxEntities:50,
+    maxEntities:o['batch-size']?Number(o['batch-size']):50,
+    batchIndex:o['batch-index']?Number(o['batch-index']):null,
   });
   const verification=verificationSummary(diff,{codeRevision:o['code-revision']});
   const bundle=o['evidence-path'] && diff.changes.length ? (() => {
@@ -101,7 +107,8 @@ export function generateE3RevisionEvidence(options) {
   }
   const manifest={
     schemaVersion:1,kind:'e3-generated-revision-evidence',
-    codeRevision:o['code-revision'],dataset:diff.dataset,
+    codeRevision:o['code-revision'],dataset:diff.dataset,scope:diff.scope,
+    totalChangedEntities:diff.totalChangedEntities,
     proposalId:bundle?.proposal.proposalId??null,
     status:diff.issues.length?'requires-manual-interval-review':diff.changes.length?'awaiting-human-review':'no-map-changes',
     createdAt:o['created-at']??envTime(),files,
@@ -114,7 +121,8 @@ if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
   try{
     const r=generateE3RevisionEvidence(parseOptions(process.argv.slice(2)));
     console.log(JSON.stringify({dataset:r.diff.dataset,
-      changedEntities:r.diff.indexChangedEntities,
+      changedEntities:r.diff.indexChangedEntities,totalChangedEntities:r.diff.totalChangedEntities,
+      scope:r.diff.scope,
       changes:r.diff.changes.length,issues:r.diff.issues.length,
       proposalStatus:r.bundle?reviewState(r.bundle).status:null,
       files:r.manifest.files.map(x=>x.name),
