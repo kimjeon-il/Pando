@@ -14,7 +14,7 @@ import {runCombinedTrainingBatch,runTrainingBatch,verifyCombinedTrainingEvidence
 import {compareNativeTrainingCheckpoints} from './native-training-validation.mjs';
 import {recheckTrainingSources} from './macro-training-source.mjs';
 import {assertReplayedEpochProgress} from './training-progress.mjs';
-import {assertSelectionExposure,validateSelectionExposure} from './training-lineage.mjs';
+import {selectionLineageCandidate,validateSelectionExposure,validateTrainingLineage} from './training-lineage.mjs';
 import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 
 const SHA=/^[a-f0-9]{64}$/,sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -90,13 +90,13 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
   if(!isDeepStrictEqual(entries[0].receipt.encoderInitialization,initializer.encoderInitialization))throw Error('Public encoder provenance differs');
   const exposure=entries[0].receipt.selectionExposure,selectionPath=selectionCorpus?resolve(selectionCorpus):null;
   if(Boolean(exposure)!==Boolean(selectionPath))throw Error('Matching validation selection corpus required for replay');
-  let selectionHash=null,selectionFingerprint=null;
+  let selectionHash=null,selectionFingerprint=null,lineageCandidate=null;
   if(selectionPath){
     const bytes=readTrainingBounded(selectionPath,32*1024*1024),selection=JSON.parse(bytes);selectionHash=sha(bytes);
     selectionFingerprint=await corpusFingerprint(selectionPath);
     const extra=auxiliaryPath?JSON.parse(readTrainingBounded(auxiliaryPath,32*1024*1024)).sheets:[];
     if(!Array.isArray(manifest.sheets)||!Array.isArray(extra))throw Error('Training source identities required for selection exposure');
-    assertSelectionExposure({exposure,manifestSha256:selectionHash,fingerprint:selectionFingerprint,
+    lineageCandidate=selectionLineageCandidate({exposure,manifestSha256:selectionHash,fingerprint:selectionFingerprint,
       trainingSheets:[...manifest.sheets,...extra].filter(sheet=>sheet?.split==='train'),selectionSheets:selection.sheets});
     await validateReviewedCorpus(selection,dirname(selectionPath),{signal});
   }
@@ -145,7 +145,7 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
     entries.some(entry=>trainingFileIdentity(entry.path)!==entry.checkpointSha256||trainingFileIdentity(entry.path+'.receipt.json')!==entry.receiptSha256))
     throw Error('Training replay inputs changed during verification');
   return {schemaVersion:1,sourceReplayVerified:true,checkpointLinksVerified:true,optimizerUpdatesReplayed:false,lineageComplete:false,
-    independentEvaluation:false,releaseApproved:false,...totals,corpusSha256:corpusHash,...(selectionPath?{selectionExposureVerified:true}:{}),
+    independentEvaluation:false,releaseApproved:false,...totals,corpusSha256:corpusHash,...(selectionPath?{selectionExposureVerified:true,lineageCandidate}:{}),
     ...(auxiliaryPath?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint}:{}),checkpointSha256:entries.at(-1).checkpointSha256};
 }
 
@@ -187,7 +187,9 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
       throw Error('Original checkpoints changed during update replay');
     const after=await verifyTrainingSourceReplay({checkpoints:paths,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed,publisher},{signal});
     if(!isDeepStrictEqual(after,source))throw Error('Training sources changed during update replay');
-    return {...source,optimizerUpdatesReplayed:true,replayedCheckpoints:paths.length,independentEvaluation:false,lineageComplete:false,releaseApproved:false};
+    const lineage=source.lineageCandidate?validateTrainingLineage({...source.lineageCandidate,complete:true}):null;
+    return {...source,optimizerUpdatesReplayed:true,replayedCheckpoints:paths.length,independentEvaluation:false,
+      lineageComplete:Boolean(lineage),...(lineage?{lineage}:{}),releaseApproved:false};
   });
 }
 

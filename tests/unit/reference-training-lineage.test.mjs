@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {assertEvaluationIndependence,assertSelectionExposure,buildTrainingLineage,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
+import {assertEvaluationIndependence,assertSelectionExposure,buildTrainingLineage,selectionLineageCandidate,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
 
 test('lineage stream records parents and refuses invalid independent sources',()=>{
   const parent=buildTrainingLineage([sheet('train')]),fresh=sheet('fresh');
@@ -48,6 +48,9 @@ test('declared validation selection binds its sources and excludes training over
   const request={exposure,manifestSha256:exposure.manifestSha256,fingerprint:exposure.fingerprint,
     trainingSheets:[sheet('train')],selectionSheets:[sheet('selection','validation')]};
   assert.doesNotThrow(()=>assertSelectionExposure(request));
+  const candidate=selectionLineageCandidate(request);
+  assert.equal(candidate.complete,false);assert.deepEqual(candidate.sheets.map(row=>row.usage),['train','selection']);
+  assert.throws(()=>validateTrainingLineage(candidate),/complete/i);
   assert.throws(()=>assertSelectionExposure({...request,fingerprint:'c'.repeat(64)}),/selection.*fingerprint/i);
   assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[{...sheet('selection','validation'),familyId:'family-train'}]}),/familyId/i);
   assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[sheet('selection','test')]}),/validation/i);

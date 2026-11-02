@@ -166,7 +166,13 @@ New validation-selection campaigns also bind the validation manifest hash and
 source fingerprint to each batch receipt. When replaying such a chain, provide
 `--selection-corpus` with the same validated source corpus; replay rejects a
 missing or changed selection and source-family overlap. This verifies the
-declared selection scope, not ancestral completeness or independent accuracy.
+declared selection scope. A complete source and optimizer replay starting at
+the verified public encoder returns its complete declared training/selection
+lineage; source-only replay and transferred checkpoints remain incomplete.
+`nativeTrainingValidation` can receive a `lineageReplay` request containing the
+ordered checkpoints, weights, training corpus, supervision and a new scratch
+directory. It reruns that proof against the requested validation corpus before
+checking training ancestry; this does not approve the model or its accuracy.
 Replay accepts up to 100,000 explicitly ordered checkpoints, as source replay
 does. It estimates scratch space for all selected batches and checks for at
 least 5 GiB additional free space before a replay needing 1 GiB or more.

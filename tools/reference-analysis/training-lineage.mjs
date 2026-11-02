@@ -53,6 +53,13 @@ export function assertSelectionExposure({exposure,manifestSha256,fingerprint,tra
     throw Error('Validation source identities required for selection exposure');
   assertEvaluationIndependence(buildTrainingLineage(trainingSheets),selectionSheets,{split:'validation'});
 }
+// This describes declared sources; optimizer replay must verify the model before
+// the candidate may be promoted to complete lineage.
+export function selectionLineageCandidate(request){
+  assertSelectionExposure(request);
+  const lineage=buildTrainingLineage([...request.trainingSheets,...request.selectionSheets]);
+  return {...lineage,complete:false};
+}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
     if(process.argv.length!==3||process.argv[2]!=='--stream')throw Error('Expected --stream');
