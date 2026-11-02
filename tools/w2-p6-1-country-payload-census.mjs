@@ -1,4 +1,4 @@
-import {createHash} from 'node:crypto';
+/* global Worker, TextEncoder, crypto, document */
 import {execFileSync} from 'node:child_process';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
@@ -14,7 +14,6 @@ const sourceRoot=resolve(root,process.env.PANDOLAB_P6_PINNED_SOURCE||'.w2-p6-fix
 const output=resolve(root,process.env.PANDOLAB_P6_OUTPUT||'test-results/w2-p6-1');
 const port=Number(process.env.PANDOLAB_P6_PORT||4251);
 const git=(dir,...args)=>execFileSync('git',args,{cwd:dir,encoding:'utf8'}).trim();
-const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const assert=(yes,message)=>{if(!yes)throw Error(message);};
 assert(git(sourceRoot,'rev-parse','HEAD')===PIN,'Unexpected P6-0 pinned source');
 const config=JSON.parse(readFileSync(join(root,'config/library-data.json')));
