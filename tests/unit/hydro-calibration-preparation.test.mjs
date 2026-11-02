@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,prepareHydroCalibrationLakes,prepareHydroCalibrationReference} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {readFileSync} from 'node:fs';
 
 test('calibration geometry collection keeps lines and polygons and ignores empty or point parts',()=>{
@@ -21,6 +21,18 @@ test('calibration reference preparation clips source and produces the metric fie
     assert.equal(result.screenLength,100);assert.equal(result.screenArea,2500);assert.equal(result.lines.length,1);assert.equal(result.polygons.length,1);
     assert.ok(Math.abs(result.lengthKm-2*111.320*Math.cos(Math.PI/180))<1e-10);
     assert.deepEqual(input,before);
+  });
+test('reference stage metrics keep per-feature counts and zoom thresholds',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const features=[{properties:{min_zoom:6},geometry:{type:'MultiLineString',coordinates:[[[-1,1],[3,1]],[[.5,0],[.5,1]]]}},
+      {properties:{min_zoom:7},geometry:{type:'LineString',coordinates:[[0,0],[1,0]]}},
+      {properties:{min_zoom:6},geometry:{type:'LineString',coordinates:[[5,5],[6,6]]}}];
+    const before=structuredClone(features),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const result=await measureHydroCalibrationReferenceStages({kind:'river',bounds:[0,0,2,2],width:100,height:100,features},options);
+    assert.equal(result['6.0'].count,1);assert.equal(result['6.0'].screenLength,150);
+    assert.equal(result['6.7'].count,1);assert.equal(result['7.0'].count,2);assert.equal(result['7.0'].screenLength,200);
+    assert.deepEqual(features,before);
   });
 test('clipped reference inputs feed river and lake duplicate decisions without modifying sources',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{

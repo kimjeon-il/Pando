@@ -269,7 +269,7 @@ Value calibrationScreen(const Value& input){
     const double areaPx=polygonArea*width*height/((box[2]-box[0])*(box[3]-box[1]));
     if(!std::isfinite(lineLength)||!std::isfinite(lineLengthKm)||!std::isfinite(areaPx))throw std::invalid_argument("Invalid calibration screen result");
     auto result=Value::obj();result.object["lineLengthPx"]=Value::num(lineLength);result.object["lineLengthKm"]=Value::num(lineLengthKm);
-    result.object["polygonAreaPx"]=Value::num(areaPx);return result;
+    result.object["polygonAreaPx"]=Value::num(areaPx);result.object["polygonAreaKm2"]=Value::num(polygonArea*std::abs(px*py));return result;
 }
 Value calibrationRiverDuplicates(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
@@ -486,6 +486,34 @@ Value calibrationLakeFeatures(const Value& input){
         output.array.push_back(std::move(row));}
     auto result=Value::obj();result.object["lakes"]=std::move(output);return result;
 }
+Value calibrationReferenceFeatures(const Value& input){
+    const auto& kind=field(input,"kind");if(kind.kind!=Value::String||(kind.string!="river"&&kind.string!="lake"))
+        throw std::invalid_argument("Invalid calibration reference kind");
+    const auto& geometries=array(field(input,"geometries"));if(geometries.size()>1000)throw std::invalid_argument("Calibration reference batch exceeds budget");
+    auto clipRequest=Value::obj();clipRequest.object["bounds"]=field(input,"bounds");clipRequest.object["geometries"]=field(input,"geometries");
+    const auto clipped=calibrationClip(clipRequest);auto output=Value::arr();output.array.reserve(geometries.size());
+    for(const auto& geo:array(field(clipped,"geometries"))){auto lines=Value::arr(),polygons=Value::arr();
+        std::function<void(const Value&)> collect=[&](const Value& item){const auto& type=field(item,"type");if(type.kind!=Value::String)
+                throw std::runtime_error("Invalid calibration reference geometry");
+            if(type.string=="GeometryCollection"){for(const auto& child:array(field(item,"geometries")))collect(child);return;}
+            if(type.string=="LineString"){const auto& coords=field(item,"coordinates");if(!array(coords).empty())lines.array.push_back(coords);return;}
+            if(type.string=="MultiLineString"){for(const auto& line:array(field(item,"coordinates")))if(!array(line).empty())lines.array.push_back(line);return;}
+            if(type.string=="Polygon"){if(!array(field(item,"coordinates")).empty())polygons.array.push_back(item);return;}
+            if(type.string=="MultiPolygon"){for(const auto& coords:array(field(item,"coordinates")))if(!array(coords).empty()){
+                auto polygon=Value::obj();polygon.object["type"]=Value::str("Polygon");polygon.object["coordinates"]=coords;polygons.array.push_back(std::move(polygon));}}
+        };collect(geo);
+        const bool river=kind.string=="river",present=river?!lines.array.empty():!polygons.array.empty();auto row=Value::obj();
+        row.object["count"]=Value::num(present?1:0);
+        if(present){auto screenInput=Value::obj();screenInput.object["bounds"]=field(input,"bounds");screenInput.object["width"]=field(input,"width");
+            screenInput.object["height"]=field(input,"height");screenInput.object["lines"]=river?std::move(lines):Value::arr();
+            screenInput.object["polygons"]=river?Value::arr():std::move(polygons);const auto metrics=calibrationScreen(screenInput);
+            if(river){row.object["lengthKm"]=field(metrics,"lineLengthKm");row.object["screenLength"]=field(metrics,"lineLengthPx");}
+            else{row.object["areaKm2"]=field(metrics,"polygonAreaKm2");row.object["screenArea"]=field(metrics,"polygonAreaPx");}}
+        else if(river){row.object["lengthKm"]=Value::num(0);row.object["screenLength"]=Value::num(0);}
+        else{row.object["areaKm2"]=Value::num(0);row.object["screenArea"]=Value::num(0);}
+        output.array.push_back(std::move(row));}
+    auto result=Value::obj();result.object["features"]=std::move(output);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -529,6 +557,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-reference-features")
+        return calibrationReferenceFeatures(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-lake-features")
         return calibrationLakeFeatures(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-river-features")

@@ -125,7 +125,7 @@ export async function calculateHydroCalibrationScreen({bounds,width,height,lines
     throw Error('Explicit Hydro calibration screen dimensions and geometry required');
   const result=await screenHydroPoints({mode:'calibration-screen',bounds,width,height,lines,polygons},options);
   if(!Number.isFinite(result?.lineLengthPx)||result.lineLengthPx<0||!Number.isFinite(result.lineLengthKm)||result.lineLengthKm<0||
-    !Number.isFinite(result.polygonAreaPx)||result.polygonAreaPx<0)
+    !Number.isFinite(result.polygonAreaPx)||result.polygonAreaPx<0||!Number.isFinite(result.polygonAreaKm2)||result.polygonAreaKm2<0)
     throw Error('Invalid Hydro calibration screen receipt');
   return result;
 }
@@ -205,6 +205,19 @@ export async function buildHydroCalibrationLakeFeatures({bounds,width,height,lak
       throw Error('Invalid Hydro calibration lake result');previous=index;
   }
   return result.lakes;
+}
+export async function measureHydroCalibrationReferenceFeatures({kind,bounds,width,height,geometries}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!['river','lake'].includes(kind)||!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||
+    bounds[2]<=bounds[0]||bounds[3]<=bounds[1]||!Number.isFinite(width)||width<=0||!Number.isFinite(height)||height<=0||
+    !Array.isArray(geometries)||geometries.length>1000)throw Error('Explicit bounded Hydro reference features required');
+  if(!geometries.length)return [];
+  const result=await screenHydroPoints({mode:'calibration-reference-features',kind,bounds,width,height,geometries},options);
+  const fields=kind==='river'?['lengthKm','screenLength']:['areaKm2','screenArea'];
+  if(!Array.isArray(result?.features)||result.features.length!==geometries.length||result.features.some(row=>
+    ![0,1].includes(row?.count)||fields.some(key=>!Number.isFinite(row[key])||row[key]<0)))
+    throw Error('Invalid Hydro reference feature receipt');
+  return result.features;
 }
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.

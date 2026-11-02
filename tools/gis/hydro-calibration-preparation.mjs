@@ -1,4 +1,4 @@
-import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates} from './hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,measureHydroCalibrationReferenceFeatures} from './hydro-point-screen-native.mjs';
 import {assignHydroCalibrationStages,optimizeHydroCalibration} from './hydro-calibration-native.mjs';
 import {readHydroRegion} from './hydro-source-reader.mjs';
 
@@ -86,7 +86,24 @@ export async function prepareHydroCalibrationReference({bounds,width,height,feat
   const snapshot=structuredClone({bounds,width,height,features});
   const {lines,polygons}=await clipFeatures(snapshot.bounds,snapshot.features,options);
   const metrics=await calculateHydroCalibrationScreen({bounds:snapshot.bounds,width:snapshot.width,height:snapshot.height,lines,polygons},options);
-  return {lines,polygons,lengthKm:metrics.lineLengthKm,screenLength:metrics.lineLengthPx,screenArea:metrics.polygonAreaPx};
+  return {lines,polygons,lengthKm:metrics.lineLengthKm,areaKm2:metrics.polygonAreaKm2,
+    screenLength:metrics.lineLengthPx,screenArea:metrics.polygonAreaPx};
+}
+export async function measureHydroCalibrationReferenceStages({kind,bounds,width=1200,height=720,features}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!['river','lake'].includes(kind)||!Array.isArray(features)||features.some(row=>!row||typeof row!=='object'||!row.geometry))
+    throw Error('Explicit Hydro calibration reference features required');
+  const source=structuredClone(features),results=[];
+  const zooms=source.map(row=>{const value=row.properties?.min_zoom===undefined?99:row.properties.min_zoom;
+    if(value===null||(typeof value==='string'&&!value.trim())||!Number.isFinite(Number(value)))throw Error('Invalid Hydro reference minimum zoom');
+    return Number(value);});
+  for(let at=0;at<source.length;at+=1000){const geometries=source.slice(at,at+1000).map(row=>row.geometry);
+    for(const row of await measureHydroCalibrationReferenceFeatures({kind,bounds,width,height,geometries},options))results.push(row);}
+  if(!source.length)await measureHydroCalibrationReferenceFeatures({kind,bounds,width,height,geometries:[]},options);
+  return Object.fromEntries(calibrationStages.map(stage=>{const metrics=kind==='river'?{count:0,lengthKm:0,screenLength:0}:
+    {count:0,areaKm2:0,screenArea:0};
+    for(let i=0;i<results.length;i++)if(zooms[i]<=stage+1e-9)for(const key of Object.keys(metrics))metrics[key]+=results[i][key];
+    return [stage.toFixed(1),metrics];}));
 }
 export async function prepareHydroCalibrationRivers({archive,specification,selected,bounds,width=1200,height=720}={},options={}){
   options.signal?.throwIfAborted();

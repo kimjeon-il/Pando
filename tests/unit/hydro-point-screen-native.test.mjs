@@ -94,8 +94,9 @@ test('calibration screen preserves pixel line length and polygon hole area',{ski
   const result=invoke(request);assert.equal(result.status,0,result.stderr);
   const values=JSON.parse(result.stdout);assert.equal(values.lineLengthPx,50);assert.equal(values.polygonAreaPx,1200);
   assert.ok(Math.abs(values.lineLengthKm-Math.hypot(3*111.320*Math.cos(5*Math.PI/180),4*110.574))<1e-10);
+  assert.ok(Math.abs(values.polygonAreaKm2-12*111.320*Math.cos(5*Math.PI/180)*110.574)<1e-8);
   const empty=invoke({...request,lines:[],polygons:[]});assert.equal(empty.status,0,empty.stderr);
-  assert.deepEqual(JSON.parse(empty.stdout),{lineLengthPx:0,lineLengthKm:0,polygonAreaPx:0});
+  assert.deepEqual(JSON.parse(empty.stdout),{lineLengthPx:0,lineLengthKm:0,polygonAreaPx:0,polygonAreaKm2:0});
   const invalid=invoke({...request,bounds:[0,0,0,10]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
 test('calibration river duplicates preserve sampled overlap and direction thresholds',{skip:!binary},()=>{
@@ -150,6 +151,15 @@ test('selected HydroLAKES become clipped calibration features with source coordi
   assert.equal(rows.length,1);assert.equal(rows[0].sourceId,10);assert.equal(rows[0].name,'Lake A');
   assert.equal(rows[0].sourceCoordinateCount,5);assert.equal(rows[0].screenArea,2500);
   assert.equal(rows[0].geometry.type,'Polygon');assert.equal(rows[0].duplicate,false);assert.equal(rows[0].assignedStage,null);
+});
+test('reference feature metrics count clipped features rather than line parts',{skip:!binary},()=>{
+  const request={mode:'calibration-reference-features',kind:'river',bounds:[0,0,2,2],width:100,height:100,geometries:[
+    {type:'MultiLineString',coordinates:[[[-1,1],[3,1]],[[.5,0],[.5,1]]]},
+    {type:'LineString',coordinates:[[5,5],[6,6]]}]};
+  const result=invoke(request);assert.equal(result.status,0,result.stderr);const rows=JSON.parse(result.stdout).features;
+  assert.equal(rows[0].count,1);assert.equal(rows[0].screenLength,150);
+  assert.ok(Math.abs(rows[0].lengthKm-(2*111.320*Math.cos(Math.PI/180)+110.574))<1e-9);
+  assert.deepEqual(rows[1],{count:0,lengthKm:0,screenLength:0});
 });
 test('source-bound guided branch and upstream batches return ordered native decisions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
