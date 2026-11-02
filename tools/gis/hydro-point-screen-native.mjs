@@ -139,6 +139,17 @@ export async function findHydroCalibrationRiverDuplicates({centerLat,distanceKm,
     (row.duplicate&&row.duplicateFraction<.18)))throw Error('Invalid Hydro calibration duplicate receipt');
   return result.rivers;
 }
+export async function findHydroCalibrationLakeDuplicates({centerLat,distanceKm,basePolygons,lakes}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!Number.isFinite(centerLat)||Math.abs(centerLat)>90||!Number.isFinite(distanceKm)||distanceKm<0||
+    !Array.isArray(basePolygons)||!Array.isArray(lakes)||lakes.length>100000)throw Error('Explicit Hydro calibration lake input required');
+  if(!lakes.length)return [];
+  const result=await screenHydroPoints({mode:'calibration-lake-duplicates',centerLat,distanceKm,basePolygons,lakes},options);
+  if(!Array.isArray(result?.lakes)||result.lakes.length!==lakes.length||result.lakes.some(row=>
+    typeof row?.duplicate!=='boolean'||!Number.isFinite(row.duplicateFraction)||row.duplicateFraction<0||row.duplicateFraction>1.0000000001))
+    throw Error('Invalid Hydro calibration lake duplicate receipt');
+  return result.lakes;
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){

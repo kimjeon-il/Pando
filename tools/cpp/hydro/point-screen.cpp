@@ -320,6 +320,49 @@ Value calibrationRiverDuplicates(const Value& input){
         output.array.push_back(std::move(result));}
     auto result=Value::obj();result.object["rivers"]=std::move(output);return result;
 }
+Value calibrationLakeDuplicates(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& sources=array(field(input,"basePolygons")),&lakes=array(field(input,"lakes"));
+    const double latitude=pandoeditor::codecjson::finiteNumber(field(input,"centerLat")),distance=pandoeditor::codecjson::finiteNumber(field(input,"distanceKm"));
+    if(sources.size()>100000||lakes.size()>100000||std::abs(latitude)>90||distance<0)throw std::invalid_argument("Invalid calibration lake batch");
+    const double scaleX=111.320*std::cos(latitude*3.14159265358979323846/180),scaleY=110.574;
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
+    if(!reader)throw std::runtime_error("GEOS GeoJSON reader failed");std::size_t vertices=0;
+    const auto polygon=[&](const Value& source){const auto& type=field(source,"type"),&coordinates=field(source,"coordinates");
+        if(type.kind!=Value::String||(type.string!="Polygon"&&type.string!="MultiPolygon"))throw std::invalid_argument("Calibration polygon required");
+        const auto projectRings=[&](const Value& value){auto rings=Value::arr();for(const auto& ring:array(value)){auto output=Value::arr();
+            const auto& points=array(ring);vertices+=points.size();if(points.size()<4||vertices>5000000)throw std::invalid_argument("Invalid calibration polygon ring");
+            for(const auto& item:points){const auto p=inputPoint(item);auto point=Value::arr();point.array={Value::num(p.x*scaleX),Value::num(p.y*scaleY)};
+                output.array.push_back(std::move(point));}rings.array.push_back(std::move(output));}return rings;};
+        auto projected=Value::obj();projected.object["type"]=type;
+        if(type.string=="Polygon")projected.object["coordinates"]=projectRings(coordinates);
+        else{auto parts=Value::arr();for(const auto& value:array(coordinates))parts.array.push_back(projectRings(value));projected.object["coordinates"]=std::move(parts);}
+        return own(context.get(),GEOSGeoJSONReader_readGeometry_r(context.get(),reader.get(),projected.encode().c_str()));};
+    std::vector<Geometry> base;std::vector<std::size_t> ids;base.reserve(sources.size());ids.reserve(sources.size());
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(context.get(),10),TreeDeleter{context.get()});
+    if(!tree)throw std::runtime_error("GEOS calibration lake tree failed");
+    for(const auto& row:sources){base.push_back(polygon(row));ids.push_back(ids.size());
+        GEOSSTRtree_insert_r(context.get(),tree.get(),base.back().get(),&ids.back());}
+    auto output=Value::arr();output.array.reserve(lakes.size());
+    for(const auto& row:lakes){auto lake=polygon(row);std::vector<std::size_t> found;
+        GEOSSTRtree_query_r(context.get(),tree.get(),lake.get(),collectReferenceIndex,&found);
+        double lakeArea=0;if(!GEOSArea_r(context.get(),lake.get(),&lakeArea))throw std::runtime_error("GEOS calibration lake area failed");
+        double best=0;bool duplicate=false;
+        for(const auto index:found){auto intersection=own(context.get(),GEOSIntersection_r(context.get(),lake.get(),base[index].get()));
+            double area=0,baseArea=0;if(!GEOSArea_r(context.get(),intersection.get(),&area)||!GEOSArea_r(context.get(),base[index].get(),&baseArea))
+                throw std::runtime_error("GEOS calibration lake overlap failed");if(area<=0)continue;
+            const double combined=lakeArea+baseArea-area,iou=combined?area/combined:0,coverage=lakeArea?area/lakeArea:0;best=std::max(best,coverage);
+            auto center=own(context.get(),GEOSGetCentroid_r(context.get(),lake.get())),baseCenter=own(context.get(),GEOSGetCentroid_r(context.get(),base[index].get()));
+            auto boundary=own(context.get(),GEOSBoundary_r(context.get(),lake.get())),baseBoundary=own(context.get(),GEOSBoundary_r(context.get(),base[index].get()));
+            double centers=0,boundaries=0;if(!GEOSDistance_r(context.get(),center.get(),baseCenter.get(),&centers)||
+              !GEOSDistance_r(context.get(),boundary.get(),baseBoundary.get(),&boundaries))throw std::runtime_error("GEOS calibration lake distance failed");
+            if(iou>=0.08||coverage>=0.08||(centers<=distance&&boundaries<=distance*2)){duplicate=true;break;}}
+        auto result=Value::obj();result.object["duplicate"]=Value::boolean(duplicate);result.object["duplicateFraction"]=Value::num(best);
+        output.array.push_back(std::move(result));}
+    auto result=Value::obj();result.object["lakes"]=std::move(output);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -363,6 +406,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-lake-duplicates")
+        return calibrationLakeDuplicates(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-river-duplicates")
         return calibrationRiverDuplicates(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-screen")
