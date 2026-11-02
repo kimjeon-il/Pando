@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {classifyEditorChild,cacheDirectories,assertOffline,sqliteProof,compactDatabase,discoverProfile,confirmRecovery,checkedConsumers} from '../../tools/pc-cleanup.mjs';
 import {DatabaseSync} from 'node:sqlite';
 import {mkdtempSync,rmSync,existsSync,mkdirSync,writeFileSync,readFileSync,linkSync,symlinkSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {homedir,tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {auditFileAllocation} from '../../tools/pc-file-allocation.mjs';
 import {previewGeneratedCleanup,applyGeneratedCleanup} from '../../tools/worktree-generated.mjs';
@@ -24,6 +24,21 @@ test('profile classification separates generated outputs, originals and keys',()
 test('offline guard rejects live Codex and Edge without stopping them',()=>{
  for(const Name of ['Codex.exe','codex.exe','msedge.exe'])assert.throws(()=>assertOffline([{Name,ProcessId:123}]),/Close/);
  assert.doesNotThrow(()=>assertOffline([{Name:'node.exe',ProcessId:456}]));
+});
+test('offline guard excludes only the verified Windows Search WebView process tree',()=>{
+ const parent={Name:'SearchHost.exe',ProcessId:1,ExecutablePath:join(process.env.SystemRoot||'C:/Windows','SystemApps/MicrosoftWindows.Client.CBS_cw5n1h2txyewy/SearchHost.exe')};
+ const profile=join(homedir(),'AppData/Local/Packages/MicrosoftWindows.Client.CBS_cw5n1h2txyewy/LocalState/EBWebView');
+ const browser={Name:'msedgewebview2.exe',ProcessId:2,ParentProcessId:1,CommandLine:'msedgewebview2.exe --webview-exe-name=SearchHost.exe --user-data-dir="'+profile+'"'};
+ const child={Name:'msedgewebview2.exe',ProcessId:3,ParentProcessId:2,CommandLine:'msedgewebview2.exe --type=renderer'};
+ assert.doesNotThrow(()=>assertOffline([parent,browser,child]));
+ for(const changed of [
+  [{...parent,ExecutablePath:'C:/other/SearchHost.exe'},browser,child],
+  [parent,{...browser,CommandLine:'msedgewebview2.exe --user-data-dir="C:/other"'},child],
+  [parent,{...browser,ParentProcessId:99},child],
+  [parent,browser,{...child,CommandLine:'msedgewebview2.exe --user-data-dir="C:/other"'}],
+  [parent,browser,child,{Name:'msedgewebview2.exe',ProcessId:4,ParentProcessId:99}],
+  [parent,browser,child,{Name:'Codex.exe',ProcessId:5}],
+ ])assert.throws(()=>assertOffline(changed),/Close/);
 });
 test('discovery keeps active scopes, personal Temp files, Playwright installs and persistent browser data',t=>{
  const home=mkdtempSync(join(tmpdir(),'pc-policy-'));t.after(()=>rmSync(home,{recursive:true,force:true}));

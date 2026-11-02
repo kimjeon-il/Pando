@@ -40,7 +40,25 @@ export function pcProcesses(){
  return [JSON.parse(raw)].flat();
 }
 export function assertOffline(processes){
- const busy=processes.filter(p=>/^(?:codex|msedge|msedgewebview2)\.exe$/i.test(p.Name||''));
+ const byId=new Map(processes.map(p=>[Number(p.ProcessId),p]));
+ const norm=path=>resolve(path).replaceAll('\\','/').toLowerCase();
+ const searchHost=norm(join(process.env.SystemRoot||'C:/Windows','SystemApps/MicrosoftWindows.Client.CBS_cw5n1h2txyewy/SearchHost.exe'));
+ const searchProfile=norm(join(homedir(),'AppData/Local/Packages/MicrosoftWindows.Client.CBS_cw5n1h2txyewy/LocalState/EBWebView'));
+ const trustedSearch=process=>{
+  const seen=new Set();
+  while(process&&/^msedgewebview2\.exe$/i.test(process.Name||'')){
+   if(seen.has(Number(process.ProcessId)))return false;seen.add(Number(process.ProcessId));
+   const command=process.CommandLine||'',profile=command.match(/--user-data-dir=(?:"([^"]+)"|(\S+))/i);
+   if(profile&&norm(profile[1]||profile[2])!==searchProfile)return false;
+   const parent=byId.get(Number(process.ParentProcessId));
+   if(parent&&/^SearchHost\.exe$/i.test(parent.Name||'')){
+    return !!parent.ExecutablePath&&norm(parent.ExecutablePath)===searchHost&&!!profile&&/--webview-exe-name=SearchHost\.exe(?:\s|$)/i.test(command);
+   }
+   process=parent;
+  }
+  return false;
+ };
+ const busy=processes.filter(p=>/^(?:codex|msedge)\.exe$/i.test(p.Name||'')||(/^msedgewebview2\.exe$/i.test(p.Name||'')&&!trustedSearch(p)));
  if(busy.length)throw Error('Close Codex and Edge normally before offline maintenance: '+busy.map(p=>p.Name+':'+p.ProcessId).join(', '));
 }
 const quote=name=>'"'+name.replaceAll('"','""')+'"';
