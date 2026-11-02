@@ -54,11 +54,11 @@ export function createHydroWorkerDecoder(manifest,{root=defaultRoot}={}){
   vm.runInContext('manifest = inputManifest',context);
   return vm.runInContext('({readGlobalIndex,readFeatureMetadata,readPack,packSpecs,logicalPacks,featureMetadata})',context);
 }
-export function decodeHydroGeneratedPack({files,layout,stages},{root=defaultRoot}={}){
+function prepareHydroPack({files,layout,stages},root){
   if(!(files instanceof Map)||!layout?.index||!layout.metadata?.core||!layout.metadata?.detail||
     !Array.isArray(layout.shards)||!Array.isArray(stages)||stages.length!==4)throw Error('Explicit Hydro pack files and layout required');
   const sha=data=>createHash('sha256').update(data).digest('hex');
-  function read(spec){const data=files.get(spec.url);
+  function read(spec){const data=files.get(spec.sha256)??files.get(spec.url);
     if(!Buffer.isBuffer(data)||data.length!==spec.bytes||sha(data)!==spec.sha256)throw Error('Hydro pack asset hash differs: '+spec.url);return data;}
   const decoder=createHydroWorkerDecoder({stages},{root});
   decoder.readGlobalIndex(gunzipSync(read(layout.index)));decoder.readFeatureMetadata(gunzipSync(read(layout.metadata.core)));
@@ -67,6 +67,35 @@ export function decodeHydroGeneratedPack({files,layout,stages},{root=defaultRoot
   const detailIds=new Set();for(const row of details.features){const meta=decoder.featureMetadata.get(row.fid);
     if(!meta||detailIds.has(row.fid))throw Error('Unknown or duplicate Hydro detail identity');detailIds.add(row.fid);Object.assign(meta,row);}
   if(detailIds.size!==decoder.featureMetadata.size)throw Error('Missing Hydro detail metadata');
+  return {decoder,read};
+}
+export function decodeHydroSelectedPack({files,layout,stages,logicalFids},{root=defaultRoot}={}){
+  if(!Array.isArray(logicalFids)||!logicalFids.length||logicalFids.some(id=>!Number.isSafeInteger(id)||id<0)||
+    new Set(logicalFids).size!==logicalFids.length)throw Error('Explicit unique selected Hydro logical IDs required');
+  const {decoder,read}=prepareHydroPack({files,layout,stages},root),selected=new Set(logicalFids),packIds=new Set();
+  for(const id of selected){const packs=decoder.logicalPacks.get(id);if(!packs?.length)throw Error('Selected Hydro logical ID missing from index');
+    for(const pack of packs)packIds.add(pack);}
+  const expected=new Set([...decoder.featureMetadata.values()].filter(row=>selected.has(row.logicalFid)).map(row=>row.fid));
+  const shardSpecs=new Map(layout.shards.map(spec=>[spec.id,spec])),shards=new Map(),seen=new Set(),found=new Set(),features=[];
+  for(const id of [...packIds].sort((a,b)=>a-b)){const spec=decoder.packSpecs.get(id),shardSpec=spec&&shardSpecs.get(spec.shard);
+    if(!shardSpec)throw Error('Selected Hydro pack or shard missing');
+    if(!shards.has(spec.shard))shards.set(spec.shard,read(shardSpec));const shard=shards.get(spec.shard);
+    if(spec.offset<0||spec.offset+spec.length>shard.length)throw Error('Invalid selected Hydro pack range');
+    for(const feature of decoder.readPack(gunzipSync(shard.subarray(spec.offset,spec.offset+spec.length)),id).features){
+      const fid=feature.properties.__fid,metadata=decoder.featureMetadata.get(fid);if(!selected.has(metadata.logicalFid))continue;
+      if(seen.has(fid))throw Error('Duplicate selected Hydro feature identity');seen.add(fid);found.add(metadata.logicalFid);
+      if(metadata.stage!==feature.properties.stage||metadata.flags!==feature.properties.__flags||
+        metadata.fragmentIndex!==feature.properties.fragment_index||metadata.fragmentCount!==feature.properties.fragment_count)
+        throw Error('Selected Hydro pack fields differ from metadata');
+      features.push({metadata,geometry:feature.geometry,widths:feature.properties.stroke_widths});
+    }
+  }
+  if(found.size!==selected.size||seen.size!==expected.size||[...expected].some(fid=>!seen.has(fid)))
+    throw Error('Selected Hydro logical ID has missing decoded features');
+  features.sort((a,b)=>a.metadata.fid-b.metadata.fid);return structuredClone(features);
+}
+export function decodeHydroGeneratedPack({files,layout,stages},{root=defaultRoot}={}){
+  const {decoder,read}=prepareHydroPack({files,layout,stages},root);
   const shards=new Map(layout.shards.map(spec=>[spec.id,read(spec)])),seen=new Set(),features=[];
   for(const spec of decoder.packSpecs.values()){
     const shard=shards.get(spec.shard);if(!shard||spec.offset<0||spec.offset+spec.length>shard.length)throw Error('Invalid Hydro pack range');
