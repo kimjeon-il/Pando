@@ -47,6 +47,8 @@ test('E5 Windows Tauri uses the unique review entry and narrow read-only capabil
   const native=read('apps/editor/src-tauri/src/lib.rs');
   regex(native,/let entry = if cfg!\(windows\) \{ "review\.html" \} else \{ "index\.html" \}/);
   regex(native,/on_navigation\(local_navigation\)/);
+  for(const deleted of ['document_transfer::','library_commands::','TransferManager::'])
+    assert.equal(native.includes(deleted),false,'legacy mutation IPC still registered: '+deleted);
   regex(native,/save_review_correction/);
   regex(native,/PANDOLAB_NATIVE_REVIEW/);
   const stage=read('apps/editor/stage.mjs');
