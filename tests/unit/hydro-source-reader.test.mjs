@@ -143,8 +143,9 @@ test('selected HydroRIVERS archive supplies clipped calibration river features',
     const input=await generationFixture(root),selected=new Set([101,102,103]),before=await readFile(input.archive);
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
     const rows=await prepareHydroCalibrationRivers({...input,selected,bounds:[0,-1,3,1],width:300,height:200},options);
-    assert.equal(rows.length,1);assert.equal(rows[0].sourceId,102);assert.equal(rows[0].sourceCoordinateCount,2);
-    assert.equal(rows[0].screenLength,100);assert.ok(Math.abs(rows[0].lengthKm-111.32)<1e-10);
+    assert.deepEqual(rows.map(row=>row.sourceId),[101,102]);assert.equal(rows[0].sourceCoordinateCount,5);
+    assert.equal(rows[1].sourceCoordinateCount,2);assert.equal(rows[1].screenLength,100);
+    assert.ok(Math.abs(rows[1].lengthKm-111.32)<1e-10);
     assert.deepEqual(selected,new Set([101,102,103]));assert.deepEqual(await readFile(input.archive),before);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
