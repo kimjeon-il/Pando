@@ -1504,12 +1504,6 @@
     "map-rendering": [
       "tests/browser/country-map-substrate.spec.mjs",
       "tests/browser/interaction-unification.spec.mjs"
-    ],
-    "editor-diagnostics": [
-      "tests/browser/gis-interchange.spec.mjs",
-      "tests/browser/boundary-cut-snapping.spec.mjs",
-      "tests/browser/hydro-metadata-edit.spec.mjs",
-      "tests/browser/library-header-layout.spec.mjs"
     ]
   },
   "externalChecks": [
