@@ -49,7 +49,11 @@ export function rewriteHydroNames({manifest,bundle,substitutions,sourceName,sour
     ensure(urls.length&&urls.every(url=>typeof url==='string'&&!/openstreetmap|overpass/i.test(url)),`Non-independent source URL for ${id}`);
     target.independentSourceUrls=urls;
     if(Number(row.fragmentIndex)===0){if(review.aliases.length)target.aliases=[...review.aliases];if(review.tributaryNames.length)target.tributaryNames=[...review.tributaryNames];}
-    if(String(target.source||'').includes('OSM waterway names'))target.source='HydroRIVERS 1.0 · independently verified river names';
+    if(String(target.source||'').includes('OSM waterway names')){
+      const allowed=['HydroRIVERS 1.0 · independently verified river names','HydroRIVERS 1.0 · unnamed logical system'];
+      ensure(review.sourceLabel===undefined||allowed.includes(review.sourceLabel),`Unknown independent source label for ${id}`);
+      target.source=review.sourceLabel||allowed[0];
+    }
     changes[id]=(changes[id]||0)+1;
   }
   ensure(Object.keys(changes).length===Object.keys(substitutions).length,'Missing reviewed source system from existing bundle');
