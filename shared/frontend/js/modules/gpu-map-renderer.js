@@ -17,6 +17,8 @@ import { resetGpuNormalBlend } from './gpu-blend-utils.js';
 import { linkGpuProgram, GPU_SPHERICAL_POSITION_GLSL } from './gpu-shader-utils.js';
 import { GPU_VIEW_UNIFORM_NAMES, setGpuViewUniforms } from './gpu-view-uniforms.js';
 import { createGpuHydroPreparation } from './gpu-hydro-preparation.js';
+import { hydroSdfShaderSources } from './gpu-hydro-sdf.js';
+import { createGpuHydroCoverage } from './gpu-hydro-coverage.js';
 import { createBuiltinMeshResourceLoader } from './builtin-mesh-resource.js';
 import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
@@ -569,6 +571,7 @@ export function createGpuMapRenderer(deps) {
     const hydroDescriptorPacksByLogicalId = new Map();
     const hydroDescriptorPacksByFid = new Map();
     let interactionActive = false, hydroVisibilityDirty = true;
+    const hydroCoverage = createGpuHydroCoverage();
     const hydroPreparation = createGpuHydroPreparation({
       createWorker: () => workerChannels.create(runtimeAssetUrl('workers/hydro-tile-worker.js'), { name: 'pandolab-hydro-tiles' }),
       getMode: () => rendererMode, isMobile, DATA_REVISION, ASSET_REVISION,
@@ -1158,112 +1161,6 @@ export function createGpuMapRenderer(deps) {
         gl_Position = vec4(clip, 0.0, 1.0);
         vCountry = aCountry;
       }`;
-    const hydroRibbonVertexSourceWebGl2 = `#version 300 es
-      precision highp float;
-      ${GPU_SPHERICAL_POSITION_GLSL}
-      precision highp int;
-      layout(location=0) in vec2 aCorner;
-      layout(location=1) in ivec2 aStart;
-      layout(location=2) in ivec2 aEnd;
-      layout(location=3) in uint aCountry;
-      layout(location=4) in float aStartWidth;
-      layout(location=5) in float aEndWidth;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform float uWidthBoost;
-      uniform float uWidthScale;
-      uniform int uMode;
-      out float vDepth;
-      flat out uint vCountry;
-      void projectCoord(ivec2 coord, out vec2 screenPoint, out float depth) {
-        float lon = float(coord.x) * 0.000001 * ${Math.PI / 180};
-        float lat = float(coord.y) * 0.000001 * ${Math.PI / 180};
-        if (uMode == 0) {
-          vec3 point = gpuUnitSphere(lon, lat);
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          depth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          depth = 1.0;
-        }
-      }
-      void main() {
-        vec2 startPoint;
-        vec2 endPoint;
-        float startDepth;
-        float endDepth;
-        projectCoord(aStart, startPoint, startDepth);
-        projectCoord(aEnd, endPoint, endDepth);
-        vec2 direction = endPoint - startPoint;
-        float segmentLength = length(direction);
-        direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
-        vec2 normal = vec2(-direction.y, direction.x);
-        float width = mix(aStartWidth, aEndWidth, aCorner.x) * uWidthScale;
-        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
-        vDepth = mix(startDepth, endDepth, aCorner.x);
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vCountry = aCountry;
-      }`;
-    const hydroRibbonVertexSourceWebGl1 = `
-      precision highp float;
-      ${GPU_SPHERICAL_POSITION_GLSL}
-      precision mediump int;
-      attribute vec2 aCorner;
-      attribute vec2 aStart;
-      attribute vec2 aEnd;
-      attribute float aCountry;
-      attribute float aStartWidth;
-      attribute float aEndWidth;
-      uniform vec2 uViewport;
-      uniform vec2 uTranslate;
-      uniform float uScale;
-      uniform vec3 uRowX;
-      uniform vec3 uRowY;
-      uniform vec3 uRowZ;
-      uniform vec2 uFlatCenter;
-      uniform float uWorldOffset;
-      uniform float uWidthBoost;
-      uniform float uWidthScale;
-      uniform int uMode;
-      varying float vDepth;
-      varying float vCountry;
-      void projectCoord(vec2 coord, out vec2 screenPoint, out float depth) {
-        float lon = coord.x * 0.000001 * ${Math.PI / 180};
-        float lat = coord.y * 0.000001 * ${Math.PI / 180};
-        if (uMode == 0) {
-          vec3 point = gpuUnitSphere(lon, lat);
-          screenPoint = uTranslate + uScale * vec2(dot(uRowX, point), dot(uRowY, point));
-          depth = dot(uRowZ, point);
-        } else {
-          screenPoint = uTranslate + uScale * vec2(lon + uWorldOffset - uFlatCenter.x, -(lat - uFlatCenter.y));
-          depth = 1.0;
-        }
-      }
-      void main() {
-        vec2 startPoint;
-        vec2 endPoint;
-        float startDepth;
-        float endDepth;
-        projectCoord(aStart, startPoint, startDepth);
-        projectCoord(aEnd, endPoint, endDepth);
-        vec2 direction = endPoint - startPoint;
-        float segmentLength = length(direction);
-        direction = segmentLength > 0.0001 ? direction / segmentLength : vec2(1.0, 0.0);
-        vec2 normal = vec2(-direction.y, direction.x);
-        float width = mix(aStartWidth, aEndWidth, aCorner.x) * uWidthScale;
-        vec2 screenPoint = mix(startPoint, endPoint, aCorner.x) + normal * aCorner.y * (width + uWidthBoost) * 0.5;
-        vDepth = mix(startDepth, endDepth, aCorner.x);
-        vec2 clip = vec2(screenPoint.x * 2.0 / uViewport.x - 1.0, 1.0 - screenPoint.y * 2.0 / uViewport.y);
-        gl_Position = vec4(clip, 0.0, 1.0);
-        vCountry = aCountry;
-      }`;
     const fillFragmentSourceWebGl1 = `
       precision highp float;
       precision mediump int;
@@ -1644,16 +1541,11 @@ export function createGpuMapRenderer(deps) {
         glVersion === 2 ? terrainVertexSourceWebGl2 : terrainVertexSourceWebGl1,
         glVersion === 2 ? terrainFragmentSourceWebGl2 : terrainFragmentSourceWebGl1,
       ) : null;
+      const hydroSdf = hydroSdfShaderSources(glVersion);
       hydroFillProgram = createProgram(vertexSource, glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1);
-      hydroLineProgram = createProgram(
-        glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
-        glVersion === 2 ? hydroFragmentSourceWebGl2 : hydroFragmentSourceWebGl1,
-      );
+      hydroLineProgram = createProgram(hydroSdf.vertex, hydroSdf.fragment);
       hydroPickProgram = createProgram(vertexSource, glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1);
-      hydroLinePickProgram = createProgram(
-        glVersion === 2 ? hydroRibbonVertexSourceWebGl2 : hydroRibbonVertexSourceWebGl1,
-        glVersion === 2 ? hydroPickFragmentSourceWebGl2 : hydroPickFragmentSourceWebGl1,
-      );
+      hydroLinePickProgram = createProgram(hydroSdf.vertex, hydroSdf.pick);
       const viewUniforms = GPU_VIEW_UNIFORM_NAMES;
       for (const program of [fillProgram, pickProgram, terrainProgram, hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
         primeProgramLocations(program, viewUniforms);
@@ -1662,7 +1554,7 @@ export function createGpuMapRenderer(deps) {
       primeProgramLocations(fillProgram, ['uBaseLand', 'uBaseLandColor'], []);
       primeProgramLocations(countryStateFillProgram, ['uCountryIds', 'uPalette', 'uPaletteWidth'], ['aPosition']);
       for (const program of [hydroFillProgram, hydroLineProgram, hydroPickProgram, hydroLinePickProgram].filter(Boolean)) {
-        primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
+        primeProgramLocations(program, ['uHydroVisibility', 'uHydroVisibilitySize', 'uHydroColor', 'uWidthBoost', 'uWidthScale', 'uAaRadius', 'uCoverageOnly'], ['aCoord', 'aCountry', 'aCorner', 'aStart', 'aEnd', 'aStartWidth', 'aEndWidth']);
       }
       if(terrainProgram)primeProgramLocations(terrainProgram, ['uTerrain', 'uGeoBounds', 'uUvBounds', 'uPhysicalStyle', 'uDarkTheme'], ['aGrid']);
       if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && !ensureTerrainDemProgram()) {
@@ -1693,6 +1585,7 @@ export function createGpuMapRenderer(deps) {
       overrideFillIndexBuffer = lifecycle.create(gl, 'Buffer');
       resetGpuNormalBlend(gl);
       gl.disable(gl.DEPTH_TEST);
+      hydroCoverage.setContext(gl, glVersion);
       pickFramebuffer = null;
       pickTexture = null;
       pickSceneKey = '';
@@ -1843,6 +1736,7 @@ export function createGpuMapRenderer(deps) {
         projectGeneration, contextGeneration: renderDeviceContextRevision });
       hydroPreparation.setContext({ gl: null, version: glVersion, scheduler: hydroUploadScheduler,
         projectGeneration, contextGeneration: renderDeviceContextRevision });
+      hydroCoverage.handleContextLost();
       lifecycle.releaseContext(gl);
       failTemporalPresentation(Object.assign(new Error('Context lost during temporal presentation'), {name:'AbortError'}));
       pendingCanonicalCommit?.reject(Object.assign(new Error('Context lost during canonical commit'), { name: 'AbortError' }));
@@ -3525,7 +3419,7 @@ export function createGpuMapRenderer(deps) {
       return [coordLocation, featureLocation];
     }
 
-    function setHydroUniforms(program, color) {
+    function setHydroUniforms(program, color, coverageOnly = false) {
       gl.useProgram(program);
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, hydroVisibilityTexture);
@@ -3535,6 +3429,8 @@ export function createGpuMapRenderer(deps) {
       else gl.uniform2f(sizeLocation, hydroVisibilityWidth, hydroVisibilityHeight);
       const colorLocation = cachedUniformLocation(program, 'uHydroColor');
       if (colorLocation && color) gl.uniform4fv(colorLocation, color);
+      const coverageLocation = cachedUniformLocation(program, 'uCoverageOnly');
+      if (coverageLocation !== null) gl.uniform1i(coverageLocation, coverageOnly ? 1 : 0);
     }
 
     function setInstanceDivisor(location, divisor) {
@@ -3576,7 +3472,7 @@ export function createGpuMapRenderer(deps) {
       return locations;
     }
 
-    function drawHydroEntry(program, entry, category, color = null, picking = false) {
+    function drawHydroEntry(program, entry, category, color = null, picking = false, coverageOnly = false) {
       const resources = entry.resources;
       if (!resources) return;
       const borderAligned = category === 'border-river';
@@ -3586,12 +3482,15 @@ export function createGpuMapRenderer(deps) {
           ? resources.lakeBoundarySegmentCount
           : (borderAligned ? resources.borderRiverSegmentCount : resources.riverSegmentCount);
       if (!count) return;
-      setHydroUniforms(program, color);
+      setHydroUniforms(program, color, coverageOnly);
       const locations = category === 'lake' ? bindLakeAttributes(program, resources) : bindRiverAttributes(program, resources, category);
       const frameContext = activeFrameContext || lastVisualFrame;
       if (!frameContext) return false;
       const widthBoostLocation = cachedUniformLocation(program, 'uWidthBoost');
       if (widthBoostLocation) gl.uniform1f(widthBoostLocation, picking ? 6 * frameContext.dpr : 0);
+      const aaLocation = cachedUniformLocation(program, 'uAaRadius');
+      // One CSS pixel of SDF transition, scaled to the true backing-store DPR.
+      if (aaLocation) gl.uniform1f(aaLocation, picking ? 0 : Math.max(0.5, Math.min(1.5, frameContext.dpr * 0.5)));
       const widthScaleLocation = cachedUniformLocation(program, 'uWidthScale');
       if (widthScaleLocation) {
         const theme = mapTheme();
@@ -3609,7 +3508,11 @@ export function createGpuMapRenderer(deps) {
       entry.lastUsed = performance.now();
     }
 
-    function drawHydro(category, picking = false) {
+    function drawHydro(category, picking = false, maskOnly = false) {
+      // River and border-aligned river segments occupy one continuous coverage
+      // surface; the second visual role is consumed by the first. Picking still
+      // submits both roles independently to preserve stable feature IDs.
+      if (category === 'border-river' && !picking) return;
       if ((!hydroPreparation.manifest || !hydroPreparation.activeIds().length) && !hydroPreparation.editEntries().length) return;
       const theme = mapTheme();
       const isLake = category === 'lake' || category === 'lake-boundary';
@@ -3623,13 +3526,47 @@ export function createGpuMapRenderer(deps) {
         : (picking ? hydroPickProgram : hydroFillProgram);
       const rgb = hydroDisplayColor(isLake ? 'lake' : 'river', true);
       const color = [...rgb, hydroOpacity];
-      for (const packId of hydroPreparation.activeIds()) {
-        const entry = hydroPreparation.pack(packId);
-        if (entry) drawHydroEntry(program, entry, category, color, picking);
+      const roles = category === 'river' && !picking ? ['river', 'border-river'] : [category];
+      const builtin = hydroPreparation.activeIds().map(id => hydroPreparation.pack(id)).filter(Boolean);
+      const edits = picking ? [] : hydroPreparation.editEntries();
+      const drawEntry = (entry, paintColor, coverageOnly = false) => {
+        for (const role of roles) drawHydroEntry(program, entry, role, paintColor, picking, coverageOnly);
+      };
+
+      // Stencil reservation and ID picking have different target semantics.
+      // Never composite a color texture into a stencil or identifier pass.
+      if (picking || maskOnly || category === 'lake') {
+        for (const entry of builtin) drawEntry(entry, color);
+        for (const entry of edits) {
+          const editRgb = parseColor(entry.color).map(value => value / 255);
+          drawEntry(entry, [...editRgb, hydroOpacity]);
+        }
+        return;
       }
-      for (const entry of picking ? [] : hydroPreparation.editEntries()) {
+      const groups = new Map();
+      const add = (entry, pigment) => {
+        const key = pigment.slice(0, 3).map(value => Math.round(value * 255)).join(',');
+        if (!groups.has(key)) groups.set(key, { color: pigment, entries: [] });
+        groups.get(key).entries.push(entry);
+      };
+      for (const entry of builtin) add(entry, color);
+      for (const entry of edits) {
         const editRgb = parseColor(entry.color).map(value => value / 255);
-        drawHydroEntry(program, entry, category, [...editRgb, hydroOpacity], picking);
+        add(entry, [...editRgb, hydroOpacity]);
+      }
+      const nonEmpty = entry => roles.some(role => role === 'lake-boundary'
+        ? entry.resources?.lakeBoundarySegmentCount > 0
+        : role === 'border-river'
+          ? entry.resources?.borderRiverSegmentCount > 0
+          : entry.resources?.riverSegmentCount > 0);
+      for (const group of groups.values()) {
+        const entries = group.entries.filter(nonEmpty);
+        if (!entries.length) continue;
+        const paint = coverageOnly => {
+          for (const entry of entries) drawEntry(entry, group.color, coverageOnly);
+        };
+        if (!hydroCoverage.render({ width: pixelWidth, height: pixelHeight, color: group.color,
+          paint: () => paint(true) })) paint(false);
       }
     }
 
@@ -5892,6 +5829,7 @@ export function createGpuMapRenderer(deps) {
         paletteDirty: { ...paletteDirty },
         ...performanceMetrics,
         ...hydroPreparation.stats(),
+        hydroCoverage: hydroCoverage.stats(),
         canvasWorkerMessagesByType: { ...performanceMetrics.canvasWorkerMessagesByType },
         ...(rendererMode === 'canvas-worker' || rendererMode === 'canvas2d' ? canvasTerrainStats : {}),
       };
@@ -5900,6 +5838,7 @@ export function createGpuMapRenderer(deps) {
     function releaseGpuContext() {
       cancelSharedGpuInitialization('context-released');
       hydroPreparation.resetGpu();
+      hydroCoverage.dispose();
       terrainPreparation?.reset();
       sceneColorCache.dispose(); interactionFillCache.dispose(); interactionStrokeCache.dispose();
       polygonOverlayPass.dispose(); strokeRenderer.dispose();

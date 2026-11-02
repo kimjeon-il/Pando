@@ -279,7 +279,7 @@ jobs:
           mkdir -p test-results/p3-browser
           pnpm exec playwright test \
             tests/browser/p3-remote-preview.spec.mjs \
-            tests/browser/performance-observability.spec.mjs \
+            tests/browser/hydro-sdf-webgl.spec.mjs \
             --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
       - name: Verify affected Web editing, persistence and plugin import workflows
