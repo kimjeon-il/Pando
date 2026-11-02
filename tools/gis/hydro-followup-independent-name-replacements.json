@@ -6,7 +6,8 @@
     "baselineBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
     "screenRunId": 41466882236,
     "scope": "Only 20773860 and 40423228; 20774342 has just 4/81 Suez matches and remains unresolved.",
-    "geometryChanged": false
+    "geometryChanged": false,
+    "regionCorrection": "The published HydroRIVERS provenance uses af for 1* (Chari), eu for 2* (including Suez), si for 3* (Ob), as for 4*. Original Suez followup incorrectly used af; fixed using the 31-record published region counts (af2/eu11/si1/as17)."
   },
   "replacements": [
     {
@@ -17,7 +18,7 @@
         "Suez Canal"
       ],
       "tributaryNames": [],
-      "hydroRiversRegion": "af",
+      "hydroRiversRegion": "eu",
       "naturalEarth": {
         "name": "Suez Canal",
         "sampleCoverage": 0.852
