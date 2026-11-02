@@ -206,6 +206,17 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [] }) {
   const repo = repository || loadRepository();
   const changed = [...new Set(changedFiles.map(slash))].sort();
+  // A no-op diff has no affected consumers. The inventory was already validated
+  // by loadRepository(), but retired, archived editor tests need not be parsed
+  // as runnable production dependency graphs for a no-change plan.
+  if (!changed.length && !requestedGroups.length) return {
+    schema:'pando-application-check-plan-v1',changedFiles:[],
+    unitTests:[],unitTestPrerequisites:{},browserSpecs:[],browserPrerequisites:[],
+    externalChecks:[],commands:[],prerequisites:[],reasons:{},
+    manualTests:[...repo.owners].filter(([,group])=>group.mode==='manual').map(([file])=>file).sort(),
+    inventory:{unit:repo.tests.filter(file=>file.includes('/unit/')).length,
+      browser:repo.tests.filter(file=>file.includes('/browser/')).length},
+  };
   const reasons = {}, selected = new Set(), commands = [], prerequisites = new Set();
   const expand = patterns => repo.files.filter(file => matches(file, patterns));
   const entry = id => repo.catalog.prerequisites?.[id] || repo.catalog.groups.find(group => group.id === id);
