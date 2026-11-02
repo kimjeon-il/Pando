@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {resolveWorkGisRequest,assertRequestedDataHead,REQUEST_PATH} from '../../scripts/lib/library-auto-request.mjs';
+const sha='a'.repeat(40),before='b'.repeat(40),after='c'.repeat(40);
+const request={schemaVersion:1,dataBranch:'work/gis',dataRevision:sha};
+const input=()=>({repository:'kimjeon-il/Pando',ref:'refs/heads/work/gis',before,after,changedPaths:[REQUEST_PATH],request});
+test('changed exact work/gis request enters existing publisher',()=>assert.deepEqual(resolveWorkGisRequest(input()),{branch:'work/gis',revision:sha}));
+test('ordinary code pushes do not execute persistent request',()=>assert.equal(resolveWorkGisRequest({...input(),changedPaths:['scripts/lib/library-auto-request.mjs']}),null));
+test('foreign repo/ref and invalid push endpoints fail closed',()=>{for(const patch of [{repository:'evil/Pando'},{ref:'refs/heads/main'},{before:'0'.repeat(40)},{after:';echo x'}])assert.throws(()=>resolveWorkGisRequest({...input(),...patch}));});
+test('request schema is closed and forbids main, malformed revisions, commands and unknown keys',()=>{for(const patch of [{schemaVersion:2},{dataBranch:'main'},{dataRevision:'0'.repeat(40)},{dataRevision:'a'.repeat(39)},{dataRevision:'$(danger)'},{command:'anything'}])assert.throws(()=>resolveWorkGisRequest({...input(),request:{...request,...patch}}));});
+test('strict input head guard cannot silently consume newer native input',()=>{assert.doesNotThrow(()=>assertRequestedDataHead(sha,sha));assert.throws(()=>assertRequestedDataHead(sha,before),/REQUEST_DATA_HEAD_MOVED/);assert.throws(()=>assertRequestedDataHead('',sha));});

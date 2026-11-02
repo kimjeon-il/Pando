@@ -31,7 +31,9 @@ export function parseAutomaticEnvironment(env){
  if(branch==='main'&&!productionEnabled)fail('MAIN_PRODUCTION_DISABLED');
  assertDedicatedJob(env,branch);
  if(!env.GITHUB_TOKEN||!env.PANDOLAB_LIBRARY_WRITE_TOKEN)fail('AUTH_MISSING');
- return {branch,dataSha,productionEnabled};
+ const requestedDataSha=env.GITHUB_EVENT_NAME==='push'?env.LIBRARY_AUTO_REQUEST_DATA_SHA:null;
+ if(env.GITHUB_EVENT_NAME==='push'&&(branch!=='work/gis'||!SHA.test(requestedDataSha||'')||requestedDataSha!==dataSha))fail('INVALID_WORK_GIS_REQUEST');
+ return {branch,dataSha,productionEnabled,requestedDataSha};
 }
 export function assertAppPaths(paths){if(paths.some(p=>![CONFIG,FIXTURE].includes(p)))fail('UNEXPECTED_APP_PATH');}
 export function compareCandidateOutputs(expected,actual){
@@ -59,6 +61,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','shared/frontend/js/modules','apps/editor/frontend/js/modules']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
  async function inspect(){
   const h=heads();latest=h;
+  if(settings.requestedDataSha&&h.data!==settings.requestedDataSha&&h.data!==stored)fail('REQUEST_DATA_HEAD_MOVED');
   // Outdated source events are notifications, never overwrite the latest head.
   text(dataRoot,['merge-base','--is-ancestor',settings.dataSha,h.data]);
   if(text(root,['rev-parse','HEAD'])!==h.app||text(root,['branch','--show-current'])!==branch)fail('APP_CHECKOUT_NOT_CURRENT');
@@ -168,3 +171,4 @@ export async function runAutomaticSync({root=resolve(fileURLToPath(new URL('../'
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const args=process.argv.slice(2);if(args.some(x=>x!=='--check')){console.error('Unsupported arguments');process.exitCode=2;}else runAutomaticSync({check:args.includes('--check')}).then(result=>{console.log(JSON.stringify(result));if(['incomplete','blocked'].includes(result.status))process.exitCode=1;}).catch(error=>{console.error(error.code||'AUTOMATIC_SYNC_FAILED');process.exitCode=1;});
 }
+

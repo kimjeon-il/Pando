@@ -8,6 +8,7 @@ on:
       - 'tests/unit/library-auto-*.test.mjs'
       - 'tools/library-data.mjs'
       - 'config/library-auto-sync.json'
+      - 'config/library-auto-work-gis-request.json'
       - '.github/workflows/library-data-auto-sync.yml'
   workflow_dispatch:
     inputs:
@@ -29,7 +30,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: library-data-auto-${{ inputs.data_branch || 'main' }}
+  group: library-data-auto-${{ github.event_name == 'push' && 'work/gis' || inputs.data_branch || 'main' }}
   cancel-in-progress: false
 jobs:
   contracts:
@@ -42,18 +43,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github,workflows}.test.mjs tests/unit/library-data-expected-revision.test.mjs
+      - run: node --test tests/unit/library-auto-{sync,inputs,publication,runtime,executor,github,workflows,request}.test.mjs tests/unit/library-data-expected-revision.test.mjs
   gate:
-    if: github.event_name != 'push' && github.repository == 'kimjeon-il/Pando'
+    if: github.repository == 'kimjeon-il/Pando'
     runs-on: ubuntu-24.04
     outputs:
       allowed: ${{ steps.policy.outputs.allowed }}
       branch: ${{ steps.policy.outputs.branch }}
       production: ${{ steps.policy.outputs.production }}
+      revision: ${{ steps.policy.outputs.revision }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.data_branch || 'main' }}
+          ref: ${{ github.event_name == 'push' && github.sha || github.event_name == 'workflow_dispatch' && inputs.data_branch || 'main' }}
+          fetch-depth: 0
           persist-credentials: false
       - name: Gate before secrets and dependencies
         id: policy
@@ -64,7 +67,20 @@ jobs:
         with:
           script: |
             const fs = require('node:fs');
-            const branch = context.eventName === 'workflow_dispatch' ? process.env.DATA_BRANCH : 'main';
+            let branch = context.eventName === 'workflow_dispatch' ? process.env.DATA_BRANCH : 'main';
+            let revision = process.env.DATA_REVISION || '';
+            if (context.eventName === 'push') {
+              const {execFileSync} = require('node:child_process');
+              const {resolveWorkGisRequest, REQUEST_PATH} = await import(process.cwd() + '/scripts/lib/library-auto-request.mjs');
+              const before = context.payload.before, after = context.sha;
+              if (!/^(?!0{40}$)[a-f0-9]{40}$/.test(before || '') || !/^(?!0{40}$)[a-f0-9]{40}$/.test(after || '')) throw new Error('Invalid request push SHA');
+              const git = args => execFileSync('git', args, {encoding:'utf8'});
+              const changedPaths = git(['diff','--name-only',before,after,'--',REQUEST_PATH]).trim().split('\n').filter(Boolean);
+              const request = changedPaths.includes(REQUEST_PATH) ? JSON.parse(git(['show',after + ':' + REQUEST_PATH])) : null;
+              const selected = resolveWorkGisRequest({repository:context.repo.owner + '/' + context.repo.repo,ref:context.ref,before,after,changedPaths,request});
+              if (!selected) { core.setOutput('allowed','false'); return; }
+              branch = selected.branch; revision = selected.revision;
+            }
             if (!['main', 'work/gis'].includes(branch)) throw new Error('Invalid branch');
             if (context.eventName === 'workflow_dispatch') {
               if (context.ref !== `refs/heads/${branch}`) throw new Error('App/data branch mismatch');
@@ -74,18 +90,20 @@ jobs:
             const policy = JSON.parse(fs.readFileSync('config/library-auto-sync.json', 'utf8'));
             if (Object.keys(policy).length !== 1 || typeof policy.productionEnabled !== 'boolean') throw new Error('Invalid policy');
             const enabled = policy.productionEnabled === true;
+            core.setOutput('revision', revision);
             core.setOutput('branch', branch);
             core.setOutput('production', String(enabled));
             core.setOutput('allowed', String(!(branch === 'main' && !enabled)));
   sync:
-    needs: gate
-    if: needs.gate.outputs.allowed == 'true'
+    needs: [gate, contracts]
+    if: always() && needs.gate.outputs.allowed == 'true' && (github.event_name != 'push' || needs.contracts.result == 'success')
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
       contents: write
       actions: write
     env:
+      LIBRARY_AUTO_REQUEST_DATA_SHA: ${{ github.event_name == 'push' && needs.gate.outputs.revision || '' }}
       LIBRARY_AUTO_BRANCH: ${{ needs.gate.outputs.branch }}
       LIBRARY_AUTO_PRODUCTION_ENABLED: ${{ needs.gate.outputs.production }}
       PANDOLAB_LIBRARY_DATA_ROOT: ${{ github.workspace }}/.library-data/repository
@@ -113,11 +131,22 @@ jobs:
           version: '11.19.0'
           run_install: false
       - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Reject moved exact work/gis request input
+        if: github.event_name == 'push'
+        env:
+          REQUESTED_DATA_SHA: ${{ needs.gate.outputs.revision }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {assertRequestedDataHead} from './scripts/lib/library-auto-request.mjs';
+          const actual = execFileSync('git',['rev-parse','HEAD'],{cwd:process.env.PANDOLAB_LIBRARY_DATA_ROOT,encoding:'utf8'}).trim();
+          assertRequestedDataHead(process.env.REQUESTED_DATA_SHA,actual);
+          NODE
       - name: Prepare pinned external library data
         uses: ./.github/actions/library-data
       - name: Resolve exact notification or recovery revision
         env:
-          NOTIFIED_SHA: ${{ inputs.data_revision }}
+          NOTIFIED_SHA: ${{ needs.gate.outputs.revision }}
         run: |
           node --input-type=module <<'NODE'
           import {execFileSync} from 'node:child_process';
@@ -150,3 +179,4 @@ jobs:
           path: ${{ runner.temp }}/library-auto-result/result.txt
           if-no-files-found: warn
           retention-days: 7
+
