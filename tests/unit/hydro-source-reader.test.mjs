@@ -3,10 +3,10 @@ import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
+import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata,scanHydroRiverCandidates} from '../../tools/gis/hydro-source-reader.mjs';
 import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
-import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRiverRegions,prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -45,7 +45,9 @@ async function generationFixture(root,{invalidCoordinate=false,invalidAttribute=
   const headers=[],bodies=[],index=[];let offset=100;
   for(const [i,parts] of lines.entries()){
     const points=parts.flat(),body=Buffer.alloc(44+parts.length*4+points.length*16);
-    body.writeInt32LE(3,0);body.writeInt32LE(parts.length,36);body.writeInt32LE(points.length,40);
+    body.writeInt32LE(3,0);[Math.min(...points.map(p=>p[0])),Math.min(...points.map(p=>p[1])),
+      Math.max(...points.map(p=>p[0])),Math.max(...points.map(p=>p[1]))].forEach((value,j)=>body.writeDoubleLE(value,4+j*8));
+    body.writeInt32LE(parts.length,36);body.writeInt32LE(points.length,40);
     let pointOffset=0;for(const [j,part] of parts.entries()){body.writeInt32LE(pointOffset,44+j*4);pointOffset+=part.length;}
     points.forEach(([x,y],j)=>{body.writeDoubleLE(x,44+parts.length*4+j*16);body.writeDoubleLE(y,52+parts.length*4+j*16);});
     const header=Buffer.alloc(8),entry=Buffer.alloc(8);header.writeInt32BE(i+1,0);header.writeInt32BE(body.length/2,4);
@@ -136,6 +138,27 @@ test('generation metadata streams each source record in source order with all se
   const wrong=structuredClone(input.specification);wrong.files.find(file=>file.file.endsWith('.dbf')).sha256='0'.repeat(64);
   await assert.rejects(scanHydroRegionMetadata({...input,specification:wrong,onRecord:()=>{}}),/hash/i);
 });
+test('calibration river scan streams matching source geometry once with verified originals',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-hydro-river-scan-'));t.after(()=>rm(root,{recursive:true}));
+  const input=await generationFixture(root),batches=[],before=await readFile(input.archive);
+  const result=await scanHydroRiverCandidates({...input,bounds:[[1.5,-.1,2.5,.1]],batchSize:1,onBatch:batch=>batches.push(batch)});
+  assert.deepEqual(result,{region:'eu',records:3,selected:1});
+  assert.deepEqual(batches,[[{id:102,next:0,mainRiver:102,order:6,flow:3.5,upstreamArea:200,endorheic:true,region:'eu',parts:[[[1,0],[2,0]]]}]]);
+  assert.deepEqual(await readFile(input.archive),before);
+  const wrong=structuredClone(input.specification);wrong.files.find(file=>file.file.endsWith('.shp')).sha256='0'.repeat(64);
+  await assert.rejects(scanHydroRiverCandidates({...input,specification:wrong,bounds:[[0,-1,3,2]],onBatch:()=>{}}),/hash/i);
+});
+test('verified river source reaches regional calibration without a precomputed ID list',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-river-regions-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const result=await prepareHydroCalibrationRiverRegions({archives:[input],regions:[{id:'west',bbox:[0,-1,.75,1]},
+      {id:'east',bbox:[1.5,-1,2.5,1]}],width:300,height:200,batchSize:1},options);
+    assert.deepEqual(result.west.map(row=>row.sourceId),[101]);assert.deepEqual(result.east.map(row=>row.sourceId),[102]);
+    const wrong=structuredClone(input);wrong.specification.files.find(file=>file.file.endsWith('.shp')).sha256='0'.repeat(64);
+    await assert.rejects(prepareHydroCalibrationRiverRegions({archives:[wrong],regions:[{id:'west',bbox:[0,-1,.75,1]}]},options),/hash/i);
+  });
 test('source metadata and native scoring stream in order across bounded batches',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
     const root=await mkdtemp(join(tmpdir(),'pando-hydro-score-'));t.after(()=>rm(root,{recursive:true}));
@@ -228,6 +251,9 @@ test('one calibration region combines selected sources, reference layers and dup
     const {lakes:unused,...rest}=input;assert.equal(unused.length,1);
     assert.deepEqual(await prepareHydroCalibrationRegion({...rest,preparedLakes},options),result);
     await assert.rejects(prepareHydroCalibrationRegion({...input,preparedLakes},options),/region inputs/i);
+    const preparedRivers=await prepareHydroCalibrationRivers({...input.riverSource,bounds,width:300,height:200},options);
+    const {riverSource:unusedSource,...preselected}=rest;assert.ok(unusedSource.archive);
+    assert.deepEqual(await prepareHydroCalibrationRegion({...preselected,preparedLakes,preparedRivers},options),result);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];

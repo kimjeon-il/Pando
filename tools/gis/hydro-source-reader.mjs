@@ -38,7 +38,7 @@ class ByteReader{
     const tail=Buffer.concat(remainder);if(tail.length&&!(allowDbfEnd&&tail.length===1&&tail[0]===0x1a))throw Error('Unexpected Hydro source trailing bytes');
   }
 }
-async function readDbf(reader,selected,detail,onRecord){
+async function readDbf(reader,selected,detail,onRecord,{onDeleted,trackIds=true}={}){
   const header=await reader.take(32),count=header.readUInt32LE(4),headerLength=header.readUInt16LE(8),recordLength=header.readUInt16LE(10);
   if(headerLength<33||(headerLength-33)%32||recordLength<2)throw Error('Invalid Hydro DBF header');
   const descriptors=await reader.take(headerLength-32);if(descriptors.at(-1)!==13)throw Error('Invalid Hydro DBF field terminator');
@@ -57,10 +57,10 @@ async function readDbf(reader,selected,detail,onRecord){
     if(!text)return 0;if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text))throw Error('Invalid Hydro DBF generation field value');
     const value=Number(text);if(!Number.isFinite(value)||(integer&&!Number.isSafeInteger(value)))throw Error('Invalid Hydro DBF generation field value');return value;};
   const byRecord=new Map(),seen=new Set();
-  for(let oid=0;oid<count;oid++){const record=await reader.take(recordLength);if(record[0]===42)continue;if(record[0]!==32)throw Error('Invalid Hydro DBF record');
+  for(let oid=0;oid<count;oid++){const record=await reader.take(recordLength);if(record[0]===42){if(onDeleted)await onDeleted(oid);continue;}if(record[0]!==32)throw Error('Invalid Hydro DBF record');
     const id=number(record,'HYRIV_ID');if(selected&&!selected.has(id))continue;
-    if(id<=0||seen.has(id))throw Error('Invalid or duplicate Hydro source ID');
-    seen.add(id);const row={id,next:number(record,'NEXT_DOWN')};
+    if(id<=0||(trackIds&&seen.has(id)))throw Error('Invalid or duplicate Hydro source ID');
+    if(trackIds)seen.add(id);const row={id,next:number(record,'NEXT_DOWN')};
     if(detail==='generation')Object.assign(row,{mainRiver:numeric(record,'MAIN_RIV',true),order:numeric(record,'ORD_STRA',true),
       flow:numeric(record,'DIS_AV_CMS'),upstreamArea:numeric(record,'UPLAND_SKM'),endorheic:Boolean(numeric(record,'ENDORHEIC',true))});
     if(onRecord)await onRecord({...row,recordIndex:oid});else byRecord.set(oid,row);}
@@ -116,6 +116,43 @@ export async function scanHydroRegionMetadata({archive,specification,onRecord,si
   const reader=new ByteReader(verifiedChunks(archive,chosen.get(name),specs.get(name),signal),signal);
   const result=await readDbf(reader,null,'generation',onRecord);
   return {region,records:result.seen.size};
+}
+// Selection callbacks are provisional until all archive members have been verified.
+export async function scanHydroRiverCandidates({archive,specification,bounds,onBatch,batchSize=256,signal}={}){
+  signal?.throwIfAborted();
+  if(!Array.isArray(bounds)||!bounds.length||bounds.some(box=>!Array.isArray(box)||box.length!==4||!box.every(Number.isFinite)||
+    box[2]<=box[0]||box[3]<=box[1])||typeof onBatch!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>4096)
+    throw Error('Explicit Hydro river candidate bounds required');
+  const boxes=structuredClone(bounds),{region,names,specs,chosen}=await resolveSourceMembers(archive,specification);
+  const stream=name=>verifiedChunks(archive,chosen.get(name),specs.get(name),signal);
+  const dbf=new ByteReader(stream(names[0]),signal),shp=new ByteReader(stream(names[1]),signal),member=chosen.get(names[1]);
+  try{const header=await shp.take(100);
+    if(header.readInt32BE(0)!==9994||header.readInt32BE(24)*2!==member.uncompressed||header.readInt32LE(28)!==1000||header.readInt32LE(32)!==3)
+      throw Error('Invalid Hydro shapefile header');
+    let batch=[],scanned=0,selected=0;const seen=new Set();
+    const nextShape=async(row,oid)=>{const record=await shp.take(8),number=record.readInt32BE(0),length=record.readInt32BE(4)*2;
+      if(number!==oid+1||length<4||shp.position+length>member.uncompressed)throw Error('Invalid Hydro shapefile record');scanned++;
+      if(!row){await shp.take(length,true);return;}
+      const type=(await shp.take(4)).readInt32LE(0);if(type===0){await shp.take(length-4,true);return;}
+      if(type!==3||length<44)throw Error('Invalid Hydro polyline record');const body=await shp.take(40);
+      const box=[0,1,2,3].map(i=>body.readDoubleLE(i*8)),parts=body.readInt32LE(32),points=body.readInt32LE(36);
+      if(!box.every(Number.isFinite)||parts<1||points<1||parts>points||parts>1000000||length!==44+parts*4+points*16)
+        throw Error('Invalid Hydro polyline dimensions');
+      if(!boxes.some(b=>box[0]<=b[2]&&box[2]>=b[0]&&box[1]<=b[3]&&box[3]>=b[1])){await shp.take(length-44,true);return;}
+      const starts=await shp.take(parts*4),coords=await shp.take(points*16),lines=[];let previous=-1;
+      for(let i=0;i<parts;i++){const start=starts.readInt32LE(i*4),end=i+1<parts?starts.readInt32LE((i+1)*4):points;
+        if((i===0&&start!==0)||start<=previous||end<=start||end>points)throw Error('Invalid Hydro polyline parts');previous=start;
+        const line=[];for(let j=start;j<end;j++){const point=[coords.readDoubleLE(j*16),coords.readDoubleLE(j*16+8)];
+          if(point.some(value=>!Number.isFinite(value))||Math.abs(point[0])>180||Math.abs(point[1])>90)throw Error('Invalid Hydro source coordinate');line.push(point);}lines.push(line);}
+      if(seen.has(row.id))throw Error('Duplicate selected Hydro river identity');seen.add(row.id);
+      const {recordIndex,...metadata}=row;batch.push({...metadata,region,parts:lines});selected++;
+      if(batch.length===batchSize){await onBatch(batch);signal?.throwIfAborted();batch=[];}};
+    const records=await readDbf(dbf,null,'generation',row=>nextShape(row,row.recordIndex),
+      {onDeleted:oid=>nextShape(null,oid),trackIds:false});
+    if(scanned!==records.count||shp.position!==member.uncompressed)throw Error('Hydro shapefile and DBF record counts differ');
+    await shp.finish();for(const name of names.slice(2))for await(const chunk of stream(name)){if(!Buffer.isBuffer(chunk))throw Error('Invalid Hydro source chunk');}
+    if(batch.length)await onBatch(batch);signal?.throwIfAborted();return {region,records:scanned,selected};
+  }finally{await dbf.iterator.return?.();await shp.iterator.return?.();}
 }
 async function* verifiedFileChunks(spec,signal){
   const hash=createHash('sha256'),stream=createReadStream(spec.path);

@@ -1,6 +1,6 @@
 import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,measureHydroCalibrationReferenceFeatures,organizeHydroLakePolygons} from './hydro-point-screen-native.mjs';
 import {assignHydroCalibrationStages,optimizeHydroCalibration} from './hydro-calibration-native.mjs';
-import {readHydroRegion,scanHydroLakeSource} from './hydro-source-reader.mjs';
+import {readHydroRegion,scanHydroLakeSource,scanHydroRiverCandidates} from './hydro-source-reader.mjs';
 import {calibrationAcceptance,calibrationResidualOverlap,calibrationStageMetrics} from './hydro-calibration-metrics.mjs';
 import {pythonRound} from './hydro-numeric.mjs';
 
@@ -156,6 +156,20 @@ export async function prepareHydroCalibrationRivers({archive,specification,selec
   }
   return result;
 }
+export async function prepareHydroCalibrationRiverRegions({archives,regions,width=1200,height=720,batchSize=256}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(archives)||!archives.length||!Array.isArray(regions)||!regions.length||
+    regions.some(region=>typeof region?.id!=='string'||!region.id||!Array.isArray(region.bbox))||
+    new Set(regions.map(region=>region.id)).size!==regions.length)throw Error('Explicit Hydro river calibration sources and regions required');
+  const snapshot=structuredClone({archives,regions}),output=new Map(snapshot.regions.map(region=>[region.id,[]])),seen=new Set();
+  for(const entry of snapshot.archives)await scanHydroRiverCandidates({...entry,bounds:snapshot.regions.map(region=>region.bbox),batchSize,
+    signal:options.signal,onBatch:async reaches=>{
+      for(const row of reaches){if(seen.has(row.id))throw Error('Duplicate Hydro river identity across sources');seen.add(row.id);}
+      const results=await Promise.all(snapshot.regions.map(region=>buildHydroCalibrationRiverFeatures({bounds:region.bbox,width,height,reaches},options)));
+      for(let i=0;i<results.length;i++)output.get(snapshot.regions[i].id).push(...results[i]);
+    }});
+  options.signal?.throwIfAborted();return Object.fromEntries(output);
+}
 export async function prepareHydroCalibrationLakes({lakes,bounds,width=1200,height=720}={},options={}){
   options.signal?.throwIfAborted();if(!Array.isArray(lakes))throw Error('Explicit selected Hydro lake source required');
   const source=structuredClone(lakes),result=[];
@@ -182,14 +196,16 @@ export async function prepareHydroCalibrationLakeRegions({files,regions,width=12
 }
 export async function prepareHydroCalibrationRegion(input,options={}){
   options.signal?.throwIfAborted();
-  const {region,width=1200,height=720,riverSource,lakes,preparedLakes:preselectedLakes,riverReference,lakeReference}=structuredClone(input??{});
+  const {region,width=1200,height=720,riverSource,preparedRivers:preselectedRivers,lakes,preparedLakes:preselectedLakes,
+    riverReference,lakeReference}=structuredClone(input??{});
   if(typeof region?.id!=='string'||!region.id||typeof region.label!=='string'||typeof region.calibrate!=='boolean'||
     !Array.isArray(region.bbox)||region.bbox.length!==4||region.bbox.some(value=>!Number.isFinite(value))||
-    !riverReference||!lakeReference||!riverSource||(Array.isArray(lakes)===Array.isArray(preselectedLakes)))
+    !riverReference||!lakeReference||((riverSource!==undefined)===Array.isArray(preselectedRivers))||
+    (Array.isArray(lakes)===Array.isArray(preselectedLakes)))
     throw Error('Explicit Hydro calibration region inputs required');
   const bounds=region.bbox;
   const [rivers,preparedLakes,riverStages,lakeStages]=await Promise.all([
-    prepareHydroCalibrationRivers({...riverSource,bounds,width,height},options),
+    preselectedRivers??prepareHydroCalibrationRivers({...riverSource,bounds,width,height},options),
     preselectedLakes??prepareHydroCalibrationLakes({lakes,bounds,width,height},options),
     prepareHydroCalibrationStageReferences({...riverReference,kind:'river',bounds,width,height},options),
     prepareHydroCalibrationStageReferences({...lakeReference,kind:'lake',bounds,width,height},options)]);
