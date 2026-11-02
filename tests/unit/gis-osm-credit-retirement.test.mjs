@@ -62,6 +62,17 @@ test('corrupt source range, SHA and source counts are rejected',()=>{
   manifest.sources.hydroRivers[0].osmMatches=0;
   assert.throws(()=>auditHydroOsm(manifest,bundle),/account mismatch/);
 });
+test('metadata-only OSM removal cannot retain the old OSM dataset/source declaration',()=>{
+  const {manifest,bundle}=sample({osm:false,source:'HydroRIVERS 1.0'});
+  manifest.dataset='HydroRIVERS 1.0 systems · OSM waterway names';
+  manifest.sources.osmWaterways.file='osm-waterway-ko-v0.13.0.json';
+  const audit=auditHydroOsm(manifest,bundle);
+  assert.equal(audit.remainingCount,0);
+  assert.equal(audit.staleManifestOsmSource,true);
+  const result=auditOsmCreditRemoval({hydro:audit,baikonur:official});
+  assert.equal(result.safeToRemoveMainMapOsmCredit,false);
+  assert.match(result.blockers.join(' / '),/Hydro manifest still declares/);
+});
 test('OSM source labels or independent URL contamination cannot be papered over',()=>{
   const {manifest,bundle}=sample({osm:false,source:'HydroRIVERS 1.0 · OSM waterway names'});
   const hydro=auditHydroOsm(manifest,bundle);
