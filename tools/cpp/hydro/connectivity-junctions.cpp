@@ -399,7 +399,7 @@ Value fragmentGeometries(const Value& request){
     if(fragments.size()>100000)throw std::invalid_argument("Hydro geometry batch exceeds budget");
     std::size_t points=0;auto geometries=Value::arr();geometries.array.reserve(fragments.size());
     for(const auto& fragment:fragments){auto parts=Value::arr();
-        for(const auto& reach:elements(fragment)){const auto& source=elements(field(reach,"parts")),&snap=field(reach,"renderSnap");
+        for(const auto& reach:elements(fragment)){const auto& source=elements(field(reach,"parts"));const auto& snap=field(reach,"renderSnap");
             if(snap.kind!=Value::Null){const auto& target=elements(snap);if(target.size()!=2)throw std::invalid_argument("Invalid Hydro render snap");
                 for(const auto& value:target)pandoeditor::codecjson::finiteNumber(value);}
             for(std::size_t i=0;i<source.size();++i){const auto& coords=elements(source[i]);if(coords.size()<2)continue;

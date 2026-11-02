@@ -206,7 +206,9 @@ export async function buildHydroFragmentGeometries(fragments,options={}){
     return parts.length===1?{type:'LineString',coordinates:parts[0]}:{type:'MultiLineString',coordinates:parts};});
   const input=fragments.map(fragment=>fragment.map(row=>({parts:row.parts,renderSnap:row.renderSnap??null})));
   const result=await runHydroConnectivity({mode:'fragment-geometries',fragments:input},options);
-  if(!Array.isArray(result?.geometries)||!isDeepStrictEqual(result.geometries,expected))throw Error('Hydro fragment geometry receipt differs');
+  // JSON normalizes negative zero to zero; both denote the same source coordinate.
+  if(!Array.isArray(result?.geometries)||!isDeepStrictEqual(result.geometries,JSON.parse(JSON.stringify(expected))))
+    throw Error('Hydro fragment geometry receipt differs');
   return result.geometries;
 }
 export async function assembleHydroSystemFragments({chains}={},options={}){

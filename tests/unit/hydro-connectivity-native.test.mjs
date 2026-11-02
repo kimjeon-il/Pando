@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {assembleHydroSystemFragments,auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroSystemFragments,auditHydroParts,auditHydroSourceArchives,buildHydroFragmentGeometries,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -93,6 +93,13 @@ test('native system fragments retain chain order, role and per-point widths',
     assert.deepEqual(chains,before);
     await assert.rejects(assembleHydroSystemFragments({chains:[chains[0],chains[0]]},
       {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),/identity/i);
+  });
+test('source-bound fragment geometry accepts negative zero and protects input coordinates',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const fragments=[[{parts:[[[0,-0],[1,0]]],renderSnap:[2,0]}]],before=structuredClone(fragments);
+    assert.deepEqual(await buildHydroFragmentGeometries(fragments,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),
+      [{type:'LineString',coordinates:[[0,0],[2,0]]}]);
+    assert.deepEqual(fragments,before);
   });
 nativeTest('logical river chains preserve canonical confluence and input order',()=>{
   const reaches=[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],canonical=[{downstream:3,upstream:1},{downstream:4,upstream:3}];
