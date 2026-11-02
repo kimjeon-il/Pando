@@ -1,4 +1,4 @@
-/* global Worker, document, TextEncoder, crypto, PerformanceObserver */
+/* global Worker, document, TextEncoder, crypto, PerformanceObserver, createImageBitmap, atob, Blob */
 import {execFileSync} from 'node:child_process';
 import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
