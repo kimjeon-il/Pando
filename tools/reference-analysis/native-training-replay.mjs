@@ -14,11 +14,13 @@ import {runCombinedTrainingBatch,runTrainingBatch,verifyCombinedTrainingEvidence
 import {compareNativeTrainingCheckpoints} from './native-training-validation.mjs';
 import {recheckTrainingSources} from './macro-training-source.mjs';
 import {assertReplayedEpochProgress} from './training-progress.mjs';
+import {assertSelectionExposure,validateSelectionExposure} from './training-lineage.mjs';
+import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 
 const SHA=/^[a-f0-9]{64}$/,sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const tensors=['tile','overview','position','target','valid'];
 const sameFields=['initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization',
-  'corpusSha256','auxiliarySha256','lineageFingerprint','device','precision','seed','freezeEpochs','learningRate','unobservedMask','positiveWeightSha256'];
+  'corpusSha256','auxiliarySha256','lineageFingerprint','selectionExposure','device','precision','seed','freezeEpochs','learningRate','unobservedMask','positiveWeightSha256'];
 export function validateReplayReceiptChain(entries,{weightsSha256,corpusSha256,auxiliarySha256=null,lineageFingerprint=null}){
   const combined=auxiliarySha256!==null;
   if(!Array.isArray(entries)||!entries.length||entries.length>100000||!SHA.test(weightsSha256||'')||!SHA.test(corpusSha256||'')||
@@ -41,6 +43,7 @@ export function validateReplayReceiptChain(entries,{weightsSha256,corpusSha256,a
       r.optimizerUpdates<0||r.skippedUpdates<0||r.optimizerUpdates+r.skippedUpdates!==r.attemptedBatches)
       throw Error('Invalid or incomplete source-replay checkpoint receipt');
     assertPublicEncoderIdentity(r.encoderInitialization);
+    if(r.selectionExposure!==undefined)validateSelectionExposure(r.selectionExposure);
     const start=previous?(r.epoch===previous.receipt.epoch?previous.receipt.cursor:0):0;
     if(!previous){if(r.epoch!==0||r.parentCheckpointSha256!==null||r.parentReceiptSha256!==null)throw Error('Checkpoint chain must start at the public encoder');}
     else{
@@ -68,7 +71,7 @@ export function validateReplayReceiptChain(entries,{weightsSha256,corpusSha256,a
   return {batches:entries.length,samples:totalSamples};
 }
 
-export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed=false,publisher=false},{signal}={}){
+export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed=false,publisher=false},{signal}={}){
   signal?.throwIfAborted();
   if(!Array.isArray(checkpoints)||!checkpoints.length||checkpoints.length>100000||checkpoints.some(path=>typeof path!=='string'||!path)||
     new Set(checkpoints.map(path=>resolve(path))).size!==checkpoints.length||!weights||!corpus||typeof reviewed!=='boolean'||
@@ -85,6 +88,18 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
     return {path,receipt,checkpointSha256,receiptSha256:sha(bytes)};});
   const totals=validateReplayReceiptChain(entries,{weightsSha256:initializer.weightsSha256,corpusSha256:corpusHash,auxiliarySha256:auxiliaryHash,lineageFingerprint});
   if(!isDeepStrictEqual(entries[0].receipt.encoderInitialization,initializer.encoderInitialization))throw Error('Public encoder provenance differs');
+  const exposure=entries[0].receipt.selectionExposure,selectionPath=selectionCorpus?resolve(selectionCorpus):null;
+  if(Boolean(exposure)!==Boolean(selectionPath))throw Error('Matching validation selection corpus required for replay');
+  let selectionHash=null,selectionFingerprint=null;
+  if(selectionPath){
+    const bytes=readTrainingBounded(selectionPath,32*1024*1024),selection=JSON.parse(bytes);selectionHash=sha(bytes);
+    selectionFingerprint=await corpusFingerprint(selectionPath);
+    const extra=auxiliaryPath?JSON.parse(readTrainingBounded(auxiliaryPath,32*1024*1024)).sheets:[];
+    if(!Array.isArray(manifest.sheets)||!Array.isArray(extra))throw Error('Training source identities required for selection exposure');
+    assertSelectionExposure({exposure,manifestSha256:selectionHash,fingerprint:selectionFingerprint,
+      trainingSheets:[...manifest.sheets,...extra].filter(sheet=>sheet?.split==='train'),selectionSheets:selection.sheets});
+    await validateReviewedCorpus(selection,dirname(selectionPath),{signal});
+  }
   const supervisionPaths=auxiliaryPath?[]:['supervision.json','weights.f32'].map(name=>resolve(supervision,name));
   const supervisionHashes=supervisionPaths.map(path=>trainingFileIdentity(path));
   const dataset=auxiliaryPath?null:await indexTrainingDataset(corpusPath,{allowReviewed:reviewed,allowPublisher:publisher,signal});
@@ -124,23 +139,24 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
   if(trainingFileIdentity(corpusPath)!==corpusHash||verifyTrainingInitializer({path:weights}).recordHash!==initializer.recordHash||
     supervisionPaths.some((path,index)=>trainingFileIdentity(path)!==supervisionHashes[index])||
     auxiliaryPath&&(trainingFileIdentity(auxiliaryPath)!==auxiliaryHash||await corpusFingerprint(corpusPath,auxiliaryPath)!==lineageFingerprint)||
+    selectionPath&&(trainingFileIdentity(selectionPath)!==selectionHash||await corpusFingerprint(selectionPath)!==selectionFingerprint)||
     [...orders].some(([path,order])=>trainingFileIdentity(path)!==order.verified.orderSha256||trainingFileIdentity(order.orderReceiptPath)!==order.receiptHash||
       order.weightsPath&&trainingFileIdentity(order.weightsPath)!==order.verified.weightsSha256)||
     entries.some(entry=>trainingFileIdentity(entry.path)!==entry.checkpointSha256||trainingFileIdentity(entry.path+'.receipt.json')!==entry.receiptSha256))
     throw Error('Training replay inputs changed during verification');
   return {schemaVersion:1,sourceReplayVerified:true,checkpointLinksVerified:true,optimizerUpdatesReplayed:false,lineageComplete:false,
-    independentEvaluation:false,releaseApproved:false,...totals,corpusSha256:corpusHash,
+    independentEvaluation:false,releaseApproved:false,...totals,corpusSha256:corpusHash,...(selectionPath?{selectionExposureVerified:true}:{}),
     ...(auxiliaryPath?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint}:{}),checkpointSha256:entries.at(-1).checkpointSha256};
 }
 
 // Re-run an explicitly bounded sequence in a new, caller-owned directory.
 // Equal checkpoints prove this execution, not independent model accuracy.
-export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed=false,publisher=false,scratch,torchLibrary},{signal}={}){
+export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed=false,publisher=false,scratch,torchLibrary},{signal}={}){
   signal?.throwIfAborted();
   if(!Array.isArray(checkpoints)||!checkpoints.length||checkpoints.length>100000||!scratch||!torchLibrary)
     throw Error('Explicit scratch directory, LibTorch and a bounded ordered checkpoint chain required');
   const target=resolve(scratch);if(existsSync(target))throw Error('Training replay output exists; preserve prior evidence');
-  const source=await verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed,publisher},{signal});
+  const source=await verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed,publisher},{signal});
   const paths=checkpoints.map(value=>resolve(value)),receipts=paths.map(path=>JSON.parse(readTrainingBounded(path+'.receipt.json',1024*1024)));
   const sourceHashes=paths.map(path=>[trainingFileIdentity(path),trainingFileIdentity(path+'.receipt.json')]);
   const initializer=verifyTrainingInitializer({path:weights});
@@ -158,7 +174,7 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
       const orderDirectory=auxiliary?join(dirname(paths[i]),'order'):dirname(paths[i]),order=join(orderDirectory,'order.u64');
       const common={mode:i?'resume':'warm',input:current,output:join(folder,'checkpoint.pt'),sampleOutput:join(folder,'samples'),
         corpus,epoch:r.epoch,seed:r.seed,freezeEpochs:r.freezeEpochs,learningRate:r.learningRate,device:r.device,
-        amp:r.precision==='amp-fp16',torchLibrary,count:r.evidence.length,augment:r.evidence[0].augment,signal};
+        amp:r.precision==='amp-fp16',torchLibrary,count:r.evidence.length,augment:r.evidence[0].augment,selectionExposure:r.selectionExposure,signal};
       const result=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly:false,orderDirectory}):
         await runTrainingBatch({...common,order,supervision,reviewed,publisher});
       const replayedReceipt=JSON.parse(readTrainingBounded(common.output+'.receipt.json',1024*1024));
@@ -169,7 +185,7 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
     }
     if(paths.some((path,i)=>trainingFileIdentity(path)!==sourceHashes[i][0]||trainingFileIdentity(path+'.receipt.json')!==sourceHashes[i][1]))
       throw Error('Original checkpoints changed during update replay');
-    const after=await verifyTrainingSourceReplay({checkpoints:paths,weights,corpus,auxiliary,supervision,reviewed,publisher},{signal});
+    const after=await verifyTrainingSourceReplay({checkpoints:paths,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed,publisher},{signal});
     if(!isDeepStrictEqual(after,source))throw Error('Training sources changed during update replay');
     return {...source,optimizerUpdatesReplayed:true,replayedCheckpoints:paths.length,independentEvaluation:false,lineageComplete:false,releaseApproved:false};
   });
@@ -178,7 +194,7 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{weights:{type:'string'},corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},
-      reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false},
+      reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'selection-corpus':{type:'string'},'allow-nonmacro-auxiliary':{type:'boolean',default:false},
       'replay-updates':{type:'boolean',default:false},scratch:{type:'string'},'torch-library':{type:'string'}}});
     if(!values.weights||!values.corpus||!positionals.length||Boolean(values.auxiliary)!==Boolean(values['allow-nonmacro-auxiliary'])||
       (values.auxiliary?Boolean(values.supervision)||values.reviewed||values.publisher:!values.supervision)||
@@ -187,6 +203,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     const request={weights:reportArgument(values.weights,{access:'read',siblings:true}),
       corpus:reportArgument(values.corpus,{access:'read',siblings:true}),auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),
       supervision:reportArgument(values.supervision,{access:'read',siblings:true}),
+      selectionCorpus:reportArgument(values['selection-corpus'],{access:'read',siblings:true}),
       reviewed:values.reviewed,publisher:values.publisher,checkpoints:positionals.map(path=>reportArgument(path,{access:'read',siblings:true}))};
     const result=values['replay-updates']?await verifyTrainingUpdateReplay({...request,scratch:reportArgument(values.scratch,{access:'write'}),
       torchLibrary:values['torch-library']},{signal:controller.signal}):await verifyTrainingSourceReplay(request,{signal:controller.signal});

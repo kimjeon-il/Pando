@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {assertEvaluationIndependence,buildTrainingLineage,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
+import {assertEvaluationIndependence,assertSelectionExposure,buildTrainingLineage,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
 
 test('lineage stream records parents and refuses invalid independent sources',()=>{
   const parent=buildTrainingLineage([sheet('train')]),fresh=sheet('fresh');
@@ -42,4 +42,14 @@ test('lineage rejects unknown source splits and empty independent evaluation sco
     assert.throws(()=>buildTrainingLineage([{...sheet('fresh'),split}]),/split/i);
   assert.throws(()=>assertEvaluationIndependence(lineage,[]),/independent/i);
   assert.throws(()=>assertEvaluationIndependence(lineage,[],{split:'other'}),/split/i);
+});
+test('declared validation selection binds its sources and excludes training overlaps',()=>{
+  const exposure={schemaVersion:1,manifestSha256:'a'.repeat(64),fingerprint:'b'.repeat(64)};
+  const request={exposure,manifestSha256:exposure.manifestSha256,fingerprint:exposure.fingerprint,
+    trainingSheets:[sheet('train')],selectionSheets:[sheet('selection','validation')]};
+  assert.doesNotThrow(()=>assertSelectionExposure(request));
+  assert.throws(()=>assertSelectionExposure({...request,fingerprint:'c'.repeat(64)}),/selection.*fingerprint/i);
+  assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[{...sheet('selection','validation'),familyId:'family-train'}]}),/familyId/i);
+  assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[sheet('selection','test')]}),/validation/i);
+  assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[]}),/validation/i);
 });

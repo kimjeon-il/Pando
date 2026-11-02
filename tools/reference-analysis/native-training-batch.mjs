@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {existsSync,statSync,writeFileSync} from 'node:fs';
 import {basename,delimiter,dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {parseArgs} from 'node:util';
+import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
@@ -15,6 +15,7 @@ import {accumulateEpochLoss} from './training-progress.mjs';
 import {verifyCombinedTrainingOrder,verifyTrainingOrder} from './training-order.mjs';
 import {assertPublicEncoderIdentity,corpusFingerprint,readTrainingBounded as readBounded,trainingFileIdentity as identity,verifiedPublicEncoderIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
+import {validateSelectionExposure} from './training-lineage.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 function readOrder(path){const bytes=readBounded(path,8000000);if(!bytes.length||bytes.length%8)throw Error('Invalid bounded training order');
@@ -94,7 +95,7 @@ export async function verifyCombinedTrainingEvidence(primaryRoot,manifest,auxili
     tileIndex:data.tileIndex,augmentationIndex:data.augmentationIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment,
     tensorSha256:data.tensorSha256},checks};
 }
-export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,reviewed=false,publisher=false,verifyEvidence:verifySourceEvidence,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
+export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,reviewed=false,publisher=false,verifyEvidence:verifySourceEvidence,selectionExposure,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
   samples,device='cpu',amp=device==='cuda',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!torchLibrary||!['cpu','cuda'].includes(device)||
@@ -102,10 +103,14 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     typeof reviewed!=='boolean'||typeof publisher!=='boolean'||((reviewed||publisher)&&auxiliary)||(reviewed&&publisher)||
     typeof amp!=='boolean'||(amp&&device!=='cuda')||!Number.isInteger(unobservedMask)||unobservedMask<0||unobservedMask>127||
     !Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit native training batch inputs and configuration required');
+  if(selectionExposure!==undefined)selectionExposure={...validateSelectionExposure(selectionExposure)};
   const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
   const {previous,cursor,initialization,encoderInitialization,encoderSourcePath,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
+  if(previous?.selectionExposure!==undefined){validateSelectionExposure(previous.selectionExposure);
+    if(selectionExposure!==undefined&&!isDeepStrictEqual(selectionExposure,previous.selectionExposure))throw Error('Validation selection exposure differs from checkpoint');
+    selectionExposure=previous.selectionExposure;}
   if(previous&&(!Array.isArray(previous.evidence)||!previous.evidence.length||
     previous.evidence.some(row=>typeof row?.augment!=='boolean'||row.augment!==previous.evidence[0].augment)||
     samples.some(row=>row?.augment!==previous.evidence[0].augment)))
@@ -157,6 +162,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,sourceReplayVerified:false,batchSourceReplayVerified:true,precision,
     initialization,encoderInitialization,initializationSourceSha256,initializationWeightsSha256,device,corpusSha256:corpusHash,
     parentCheckpointSha256:previous?inputHash:null,parentReceiptSha256:previous?initializationRecordHash:null,
+    ...(selectionExposure?{selectionExposure}:{}),
     ...(combined?{auxiliarySha256:auxiliaryHash,lineageFingerprint:combined.lineageFingerprint}:{}),epoch,cursor:result.cursor,
     orderSha256:orderData.hash,orderLength:orderData.order.length,seed,freezeEpochs,learningRate,unobservedMask,positiveWeightSha256:weights.hash,
     ampScale:result.ampScale,ampGrowthTracker:result.ampGrowthTracker,attemptedBatches:count('attemptedBatches',1),

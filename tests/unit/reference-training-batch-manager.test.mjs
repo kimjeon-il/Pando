@@ -30,6 +30,7 @@ test('training batch management rejects changed samples and preserves existing o
     device:'cpu',unobservedMask:0,torchLibrary:root,samples:[{index:0,directory:sample}]};
   await assert.rejects(nativeTrainingBatch({...request,unobservedMask:undefined}),/configuration/i);
   await assert.rejects(nativeTrainingBatch({...request,amp:true}),/configuration/i);
+  await assert.rejects(nativeTrainingBatch({...request,selectionExposure:{schemaVersion:1}}),/selection exposure/i);
   writeFileSync(output,'preserve');await assert.rejects(nativeTrainingBatch(request),/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
   const sampleOutput=join(root,'prepared');await assert.rejects(runTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false,supervision:join(root,'supervision')}),/exists/i);
   assert.equal(existsSync(sampleOutput),false);
@@ -63,5 +64,8 @@ test('training batch management rejects changed samples and preserves existing o
   const prior=JSON.parse(readFileSync(checkpoint+'.receipt.json','utf8'));
   prior.evidence=[{augment:false}];writeFileSync(checkpoint+'.receipt.json',JSON.stringify(prior));
   await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,samples:[{index:0,directory:sample,augment:true}]}),/augmentation.*resume/i);
+  prior.selectionExposure={schemaVersion:1,manifestSha256:'1'.repeat(64),fingerprint:'2'.repeat(64)};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify(prior));
+  await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,selectionExposure:{...prior.selectionExposure,fingerprint:'3'.repeat(64)}}),/selection exposure differs/i);
   assert.equal(existsSync(mismatch.output),false);
 });

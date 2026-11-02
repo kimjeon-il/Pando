@@ -159,8 +159,19 @@ test('source replay requires a complete linked chain and exact batch evidence',(
     rows=>{rows[1].receipt.evidence[0].tensorSha256.valid=hash('x');},
     rows=>{rows[1].receipt.evidence[0].augment=true;},
     rows=>{rows[1].receipt.auxiliarySha256=hash('f');},
+    rows=>{rows[1].receipt.selectionExposure={schemaVersion:1,manifestSha256:hash('a'),fingerprint:hash('b')};},
     rows=>{rows[0].receipt.batchSourceReplayVerified=false;},
   ]){const altered=structuredClone(entries);change(altered);assert.throws(()=>validateReplayReceiptChain(altered,scope));}
+});
+test('source replay binds the declared validation selection for every batch',()=>{
+  const entries=fixture(),scope={weightsSha256,corpusSha256};
+  const selectionExposure={schemaVersion:1,manifestSha256:hash('a'),fingerprint:hash('b')};
+  for(const entry of entries)entry.receipt.selectionExposure={...selectionExposure};
+  assert.deepEqual(validateReplayReceiptChain(entries,scope),{batches:2,samples:2});
+  const altered=structuredClone(entries);altered[1].receipt.selectionExposure.fingerprint=hash('c');
+  assert.throws(()=>validateReplayReceiptChain(altered,scope),/configuration differs/i);
+  altered[0].receipt.selectionExposure.fingerprint='invalid';
+  assert.throws(()=>validateReplayReceiptChain(altered,scope),/selection/i);
 });
 test('source replay rejects missing and repeated checkpoint paths',async()=>{
   await assert.rejects(verifyTrainingSourceReplay({checkpoints:[],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);

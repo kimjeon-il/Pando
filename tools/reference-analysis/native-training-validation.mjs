@@ -106,7 +106,7 @@ export async function compareNativeTrainingCheckpoints({first,second,device='cpu
       throw Error('Checkpoint comparison receipt differs from its file');
     return {path,hash,receipt,receiptPath,receiptHash:sha(bytes)};});
   const config=['precision','ampScale','ampGrowthTracker','epoch','cursor','orderLength','seed','freezeEpochs','learningRate',
-    'unobservedMask','positiveWeightSha256','corpusSha256','auxiliarySha256','lineageFingerprint','orderSha256','attemptedBatches',
+    'unobservedMask','positiveWeightSha256','corpusSha256','auxiliarySha256','lineageFingerprint','selectionExposure','orderSha256','attemptedBatches',
     'optimizerUpdates','skippedUpdates','initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization','evidence'];
   if(config.some(key=>!isDeepStrictEqual(inputs[0].receipt[key],inputs[1].receipt[key])))
     throw Error('Checkpoint comparison training configuration differs');

@@ -162,6 +162,11 @@ in both the Python and native models; explicitly choose FP32 for this case.
 This is a provisional training path, not a model release or accuracy claim.
 An optimizer-update replay compares the recorded epoch loss sum and count as
 well as checkpoint state; changed or missing selection evidence fails replay.
+New validation-selection campaigns also bind the validation manifest hash and
+source fingerprint to each batch receipt. When replaying such a chain, provide
+`--selection-corpus` with the same validated source corpus; replay rejects a
+missing or changed selection and source-family overlap. This verifies the
+declared selection scope, not ancestral completeness or independent accuracy.
 Replay accepts up to 100,000 explicitly ordered checkpoints, as source replay
 does. It estimates scratch space for all selected batches and checks for at
 least 5 GiB additional free space before a replay needing 1 GiB or more.

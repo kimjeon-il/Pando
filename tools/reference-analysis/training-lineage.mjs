@@ -3,6 +3,13 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const KEYS=Object.freeze(['id','sha256','familyId','editionId','duplicateGroup']);
 const SHA=/^[a-f0-9]{64}$/;
+// A declared selection scope is not evidence of complete ancestral lineage.
+export function validateSelectionExposure(value){
+  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==3||value.schemaVersion!==1||
+    !SHA.test(value.manifestSha256||'')||!SHA.test(value.fingerprint||''))
+    throw Error('Valid validation selection exposure required');
+  return value;
+}
 export function validateTrainingLineage(value){
   if(!value||typeof value!=='object'||Array.isArray(value)||value.schemaVersion!==1||value.complete!==true||
     !Array.isArray(value.sheets)||!Array.isArray(value.parents)||value.parents.some(hash=>typeof hash!=='string'||!SHA.test(hash)))
@@ -35,6 +42,16 @@ export function assertEvaluationIndependence(lineage,sheets,{split='test'}={}){
       throw Error('Not independent: ancestral '+key+' overlap or missing identity');
     for(const previous of lineage.sheets)for(const key of KEYS)if(!sheet[key]||sheet[key]===previous[key])throw Error('Not independent: ancestral '+key+' overlap or missing identity');
   }
+}
+export function assertSelectionExposure({exposure,manifestSha256,fingerprint,trainingSheets,selectionSheets}){
+  validateSelectionExposure(exposure);
+  if(exposure.manifestSha256!==manifestSha256||exposure.fingerprint!==fingerprint)
+    throw Error('Validation selection manifest or fingerprint differs');
+  if(!Array.isArray(trainingSheets)||!trainingSheets.length||trainingSheets.some(sheet=>sheet?.split!=='train'))
+    throw Error('Training source identities required for selection exposure');
+  if(!Array.isArray(selectionSheets)||!selectionSheets.length||selectionSheets.some(sheet=>sheet?.split!=='validation'))
+    throw Error('Validation source identities required for selection exposure');
+  assertEvaluationIndependence(buildTrainingLineage(trainingSheets),selectionSheets,{split:'validation'});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{
