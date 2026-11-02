@@ -284,7 +284,7 @@ test('cycles in prerequisites and missing fixture inputs fail inventory before e
   f.catalog.prerequisites.generated.requires = ['generated'];
   assert.throws(() => f.repository(), /cyclic/i);
   const g = fixture(); g.put('tests/unit/missing-fixture.test.mjs', "import '../fixtures/removed.json';");
-  assert.throws(() => planApplicationChecks({ changedFiles: [], repository: g.repository() }), /missing.*removed.json/i);
+  assert.throws(() => planApplicationChecks({ changedFiles: ['tests/unit/missing-fixture.test.mjs'], repository: g.repository() }), /missing.*removed.json/i);
 });
 
 test('a checker and its prerequisite implementation are inferred inputs, not copied file lists', () => {
