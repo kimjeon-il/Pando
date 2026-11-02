@@ -7,7 +7,7 @@ import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import "../../shared/frontend/js/modules/polygon-geometry.js";
 import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modules/territory-component-plan.js";
 import { createTerritoryComponents } from "../../apps/editor/frontend/js/modules/app-territory-components.js";
-import { composeRiverBoundaryTerritoryComponents } from "../../apps/editor/frontend/js/modules/river-territory-partition.js";
+import { composeRiverBoundaryTerritoryComponents } from "../../tools/gis/river-territory-partition.js";
 import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
 import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 import { validateWorldBundle } from "../../shared/frontend/js/modules/world-bundle-manifest.js";

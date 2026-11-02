@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from "../../apps/editor/frontend/js/modules/timeline-edit.js";
+import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from "../../tools/gis/timeline-edit.js";
 import { normalizeTimelineRecords } from "../../shared/frontend/js/modules/timeline-records.js";
 
 const corpus = JSON.parse(readFileSync(new URL('../fixtures/portability/timeline-edit.json', import.meta.url), 'utf8'));

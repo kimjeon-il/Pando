@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from "../../apps/editor/frontend/js/modules/timeline-edit.js";
+import { replaceTimelineRecordAtMonth, truncateTimelineEntityAtMonth } from "../../tools/gis/timeline-edit.js";
 import { normalizeTimelineRecords } from "../../shared/frontend/js/modules/timeline-records.js";
 
 const records = { schemaVersion: 3, lifetimes: [], geometryBindings: [
