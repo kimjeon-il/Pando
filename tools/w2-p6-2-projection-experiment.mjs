@@ -146,8 +146,11 @@ async function runCase(mode,index){
     assert(row.meta.sourceCommit===PIN&&row.meta.dataRevision===RUNTIME,'P6-2 source/data mismatch');
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     row.initial=await pageState(page);
+    // The first dated frame is certified before the optional background
+    // shared-boundary packet finishes. Preserve its natural pending state:
+    // forcing boundaryReady here changes the very first-switch experiment.
     assert(row.initial.month==='2026-11'&&row.initial.cursor==='2026-11'
-      &&row.initial.ready==='true'&&row.initial.boundaryReady,'Initial map not ready');
+      &&row.initial.ready==='true'&&row.initial.canonical,'Initial map not ready');
     // Entire geometry count and JSON sizes are compared ONLY after the map is
     // ready, never in the critical path around postMessage or a year click.
     row.offPath=await page.evaluate(()=>{
