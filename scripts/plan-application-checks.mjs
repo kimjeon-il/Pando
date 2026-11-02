@@ -259,7 +259,15 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   }
   const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
   const parents = new Map(), visited = new Set();
-  const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/)/.test(file);
+  const liveShellSources = new Set([
+    'apps/editor/stage.mjs','apps/editor/check-stage.mjs','apps/editor/dev.mjs',
+    'apps/editor/native-contract.mjs','apps/editor/native-producer.mjs',
+    'apps/editor/packaged-artifacts.mjs','apps/editor/review-probe.js',
+    'apps/editor/world-data-plan.mjs','apps/editor/fixture.mjs',
+    'apps/editor/fixture-limits.js','apps/editor/write-evidence.mjs',
+  ]);
+  const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
+    /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const queue = [...repo.tests.filter(file => repo.owners.get(file)?.mode !== 'retired'),
     ...repo.catalog.groups.flatMap(inputsFor).filter(file => !retiredFrontend(file)),
     ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || [])).filter(file => !retiredFrontend(file))];
