@@ -48,7 +48,7 @@ const compilerPatterns={
  'pc-temp':/^(?:pando-(?:check-plan|viewer-assets|worker-assets|pages|check-diff|assembly-test|core-assets|provenance-check|publication-test|cleanup-test)-[^/]+|playwright(?:_chromiumdev_profile|-artifacts|-transform)-[^/]+|pando-checks-[^/]+\/web-site)(?:\/|$)/,
  'retired-editor':/^(?:android\/(?:sdk|gradle|downloads|java|build-x86_64)|cache|installer|windows-portable|m91-linker-tools|crash-analysis-[^/]+\/(?:windbg[^/]*\.(?:msix|msixbundle)|debugger|symbols)|(?:integration-[^/]+-release-\d+|m91-release-[^/]+|main-[^/]+-release-\d+)\/(?:build|zip-[^/]+|portable|publish|retired-[^/]+|previous-portable[^/]*|previous-integration[^/]*|windows-portable|download-[^/]+|Pandoeditor-[^/]+\.zip))(?:\/|$)/,
  'android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|\.temp)(?:\/|$)/,
- toolchains:/^(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)/,
+ toolchains:/^(?:(?:binutils-new|cargo|cmake|gradle|rustup|sccache)(?:\/|$)|emsdk-6\.0\.3\/(?:upstream|node|python|downloads)(?:\/|$))/,
  'retired-android-sdk':/^(?:build-tools|cmake|cmdline-tools|extras|ndk|platforms|emulator|system-images|sources|patcher|platform-tools|licenses|\.knownPackages|\.sdk|\.temp)(?:\/|$)/,
  avd:/^medium_phone(?:\.avd(?:\/|$)|\.ini$)/,
  'compiler-cache':/^sccache(?:\/|$)/,

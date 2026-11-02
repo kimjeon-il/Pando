@@ -10,6 +10,12 @@ function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
 function options(root){return {roots:[root],requests:[{root,path:'build-native/p9/retired/output.exe',reason:'retired reproducible native test',action:'delete'}],consumers:[],protectedPaths:[]};}
 
+test('retired Emscripten runtime scope excludes SDK source and other toolchains',t=>{
+ const root=fixture(t);put(root,'emsdk-6.0.3/upstream/bin/clang.exe');put(root,'emsdk-6.0.3/emsdk.py','source');put(root,'emsdk-7.0.0/upstream/bin/clang.exe');
+ const o={roots:[root],compilerScopes:[{root,kind:'toolchains'}],requests:[{root,path:'emsdk-6.0.3/upstream',action:'delete',reason:'disabled local compiler, verified no consumers'}]};const m=previewGeneratedCleanup(o);assert.equal(m.entries.length,1);assert.throws(()=>applyGeneratedCleanup({...o,manifest:m,consumers:[{Name:'clang.exe',ExecutablePath:join(root,'emsdk-6.0.3/upstream/bin/clang.exe')}]}),/consumer/i);assert.equal(applyGeneratedCleanup({...o,manifest:m}).deletedBytes,9);assert.ok(existsSync(join(root,'emsdk-6.0.3/emsdk.py')));
+ for(const p of ['emsdk-6.0.3','emsdk-6.0.3/emsdk.py','emsdk-7.0.0/upstream'])assert.throws(()=>previewGeneratedCleanup({...o,requests:[{...o.requests[0],path:p}]}),/scope/i);
+});
+
 test('explicit retired Cargo and cache scopes reject escape and preserve Android keys',t=>{
  const root=fixture(t);put(root,'main-cargo-gnu/debug/deps/x.rlib');put(root,'android/user/debug.keystore','private key');
  const o={roots:[root],compilerScopes:[{root,kind:'retired-cargo'}],requests:[{root,path:'main-cargo-gnu',reason:'confirmed retired Cargo producer without consumers',action:'delete'}]};
