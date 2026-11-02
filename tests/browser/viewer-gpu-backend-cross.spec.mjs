@@ -47,8 +47,9 @@ async function installInstrumentation(page){
       'applyMonth:async(month,{isCurrent,commit})=>{',
       "applyMonth:async(month,{isCurrent,commit})=>{globalThis.__gpuCrossProbe?.mark('requested',month);");
     source=replaceExactlyOnce(source,
-      "onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
-      "onPresented:()=>{commit();globalThis.__gpuCrossProbe?.mark('presented',month);window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
+      "onPresented:()=>{commit();}",
+      "onPresented:()=>{commit();globalThis.__gpuCrossProbe?.mark('presented',month);}");
+
     source=replaceExactlyOnce(source,
       "status.dataset.ready='true';",
       "status.dataset.ready='true';globalThis.__gpuCrossProbe?.mark('ready');");
