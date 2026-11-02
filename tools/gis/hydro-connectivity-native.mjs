@@ -5,7 +5,7 @@ import {createInterface} from 'node:readline';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {readHydroRegion,readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
+import {readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/connectivity-junctions.cpp',
@@ -392,14 +392,18 @@ export async function excludeHydroInvalidTerminalBasins(reaches,options={}){
   return result;
 }
 // Build private selected reaches only; terminal classification and naming remain separate.
-export async function buildHydroSelectedReaches({archive,specification,selected}={},options={}){
+export async function buildHydroSelectedReaches({selected,selection,reader}={},options={}){
   options.signal?.throwIfAborted();
-  const source=await readHydroRegion({archive,specification,selected,detail:'generation',signal:options.signal});
-  const rows=source.sourceOrder.map(id=>({id,...source.rows[id]})),policies=[];
-  for(let at=0;at<rows.length;at+=100000){
-    const batch=rows.slice(at,at+100000).map(row=>({order:row.order,flow:row.flow,upstreamArea:row.upstreamArea,lakeArea:0,zoom:0}));
-    for(const policy of await scoreHydroFeaturePolicies(batch,options))policies.push(policy);
-  }
+  if(!selection||typeof selection.records!=='function'||typeof reader?.read!=='function'||!(selected instanceof Set)||
+    selected.size>1000000||[...selected].some(id=>!Number.isSafeInteger(id)||id<=0))throw Error('Explicit indexed Hydro source selection required');
+  const ids=[...selected],metadata=[];for(let at=0;at<ids.length;at+=4096)metadata.push(...await selection.records(ids.slice(at,at+4096)));
+  if(metadata.some(row=>!row))throw Error('Selected Hydro source not found');metadata.sort((a,b)=>a.recordIndex-b.recordIndex);
+  const rows=[],policies=[];for(let at=0;at<metadata.length;at+=4096){const batch=metadata.slice(at,at+4096);
+    const shapes=await reader.read(batch.map(row=>({id:row.id,recordIndex:row.recordIndex})));
+    if(shapes.length!==batch.length||shapes.some((shape,i)=>shape.id!==batch[i].id||!shape.parts?.length||!shape.parts.at(-1)?.length))
+      throw Error('Invalid indexed Hydro source shape');
+    for(let i=0;i<batch.length;i++){const row=batch[i],parts=shapes[i].parts;
+      rows.push({...row,parts,end:parts.at(-1).at(-1)});policies.push({riverStage:row.stage,width:row.width});}}
   const widths=await propagateHydroWidths(rows.map((row,i)=>({id:row.id,next:row.next,width:policies[i].width})),options);
   return rows.map((row,i)=>({id:row.id,next:row.next,mainRiver:row.mainRiver,order:row.order,flow:row.flow,
     upstreamArea:row.upstreamArea,stage:policies[i].riverStage??3,width:widths[i].width,endWidth:widths[i].endWidth,

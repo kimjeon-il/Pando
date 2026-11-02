@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import test from 'node:test';
 import {selectHydroSourceTopology} from '../../tools/gis/hydro-source-selection.mjs';
-import {withHydroSourceSelection} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {buildHydroSelectedReaches,withHydroSourceSelection} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {openHydroRiverShapeReader} from '../../tools/gis/hydro-source-reader.mjs';
 
 test('source topology follows named guidance, medium basins and downstream closure',
@@ -34,11 +34,19 @@ test('verified indexed source selection matches the original Python topology ora
       files[ext]={path,sha256:createHash('sha256').update(await readFile(path)).digest('hex')};}
     const reader=await openHydroRiverShapeReader(files),references=[{type:'Feature',properties:{name_en:'guide'},
       geometry:{type:'LineString',coordinates:[[-1,0],[4,0]]}}];
-    try{const result=await withHydroSourceSelection({files,specification:{datasetCode:'eu'},batchSize:3},
-      selection=>selectHydroSourceTopology({selection,reader,references},{pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
-        runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT}}),{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
-    assert.deepEqual(result.ids,[10,20,40,11,13,30,31,32]);
-    assert.deepEqual(result.stats,{seedReachCount:2,continuityRootCount:1,namedContinuityRootCount:1,
-      mediumMainstemRootCount:1,mediumMainstemReachCount:3,downstreamClosureReachCount:1});}
+    try{await withHydroSourceSelection({files,specification:{datasetCode:'eu'},batchSize:3},async selection=>{
+      const result=await selectHydroSourceTopology({selection,reader,references},{pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+        runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT}});
+      assert.deepEqual(result.ids,[10,20,40,11,13,30,31,32]);
+      assert.deepEqual(result.stats,{seedReachCount:2,continuityRootCount:1,namedContinuityRootCount:1,
+        mediumMainstemRootCount:1,mediumMainstemReachCount:3,downstreamClosureReachCount:1});
+      const reaches=await buildHydroSelectedReaches({selection,reader,selected:new Set(result.ids)},
+        {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+      assert.deepEqual(reaches.map(row=>row.stage),[3,1,3,3,3,3,3,3]);
+      const expected=[[1.945060181722841,2.1936998213239964],[2.1936998213239964,2.1936998213239964],
+        [2.1936998213239964,2.1936998213239964],[.69,1.945060181722841],[.69,.69],[.69,.69],[.69,.69],[.69,.69]];
+      for(let i=0;i<reaches.length;i++){assert.ok(Math.abs(reaches[i].width-expected[i][0])<1e-12);
+        assert.ok(Math.abs(reaches[i].endWidth-expected[i][1])<1e-12);}
+    },{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});}
     finally{await reader.close();}
   });

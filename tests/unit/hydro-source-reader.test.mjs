@@ -282,24 +282,36 @@ test('verified source selection exposes indexed upstream candidates through one 
     const controller=new AbortController();controller.abort();
     await assert.rejects(withHydroSourceSelection(input,()=>{},{...options,signal:controller.signal}),{name:'AbortError'});
   });
+async function withIndexedFixture(root,input,callback){
+  const files={};for(const member of await zipMembers(input.archive)){if(!/\.(shp|shx|dbf)$/i.test(member.name))continue;
+    const chunks=[];for await(const chunk of zipMemberChunks(input.archive,member))chunks.push(chunk);
+    const bytes=Buffer.concat(chunks),ext=member.name.split('.').at(-1),path=join(root,`indexed.${ext}`);await writeFile(path,bytes);
+    files[ext]={path,sha256:createHash('sha256').update(bytes).digest('hex')};}
+  const reader=await openHydroRiverShapeReader(files),options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+  try{return await withHydroSourceSelection({files,specification:input.specification},selection=>callback({selection,reader,options}),options);}
+  finally{await reader.close();}
+}
 test('selected source reaches keep full geometry and downstream-corrected widths',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
     const root=await mkdtemp(join(tmpdir(),'pando-hydro-selected-'));t.after(()=>rm(root,{recursive:true}));
-    const input=await generationFixture(root),selected=new Set([101,102,103]);
-    const result=await buildHydroSelectedReaches({...input,selected},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    const input=await generationFixture(root),selected=new Set([103,101,102]);
+    await withIndexedFixture(root,input,async ({selection,reader,options})=>{
+    const result=await buildHydroSelectedReaches({selection,reader,selected},options);
     assert.deepEqual(result.map(row=>row.id),[101,102,103]);
     assert.deepEqual(result[0].parts,[[[0,0],[0.25,0.1],[0.5,0]],[[0.5,0],[1,0]]]);
     assert.deepEqual(result[0].originalEndpoint,[1,0]);assert.equal(result[0].endWidth,result[1].width);
     assert.equal(result[2].endWidth,result[1].width);assert.equal(result[1].endWidth,result[1].width);
     assert.equal(result[1].endorheic,true);assert.equal(result[2].stage,3);
-    assert.deepEqual(selected,new Set([101,102,103]));
-    await assert.rejects(buildHydroSelectedReaches({...input,selected:new Set([999])},{}),/not found/i);
+    assert.deepEqual(selected,new Set([103,101,102]));
+    await assert.rejects(buildHydroSelectedReaches({selection,reader,selected:new Set([999])},options),/not found/i);
+    });
   });
 test('verified selected source flows into the reference-guided chain builder',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY||!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
     const root=await mkdtemp(join(tmpdir(),'pando-hydro-source-chains-'));t.after(()=>rm(root,{recursive:true}));
     const input=await generationFixture(root),connectivity={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
-    const reaches=await buildHydroSelectedReaches({...input,selected:new Set([101,102,103])},connectivity);
+    await withIndexedFixture(root,input,async ({selection,reader})=>{
+    const reaches=await buildHydroSelectedReaches({selection,reader,selected:new Set([101,102,103])},connectivity);
     const references=[{id:'guide',properties:{name:'Guide'},geometry:{type:'LineString',coordinates:[[0,1],[1,0],[2,0]]}}];
     const pointScreen={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
     const chains=await assembleHydroCanonicalChains({reaches,references},{connectivity,pointScreen});
@@ -309,6 +321,7 @@ test('verified selected source flows into the reference-guided chain builder',
     assert.deepEqual(systems.map(row=>({systemId:row.systemId,mainstemIndex:row.mainstemIndex,
       fragments:row.fragments.map(fragment=>({ids:fragment.reachIds,parts:fragment.widths.length}))})),
     [{systemId:102,mainstemIndex:0,fragments:[{ids:[103,102],parts:2},{ids:[101],parts:2}]}]);
+    });
   });
 test('selected HydroRIVERS archive supplies clipped calibration river features',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
