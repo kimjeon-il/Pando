@@ -8,6 +8,26 @@ function invoke(value){
   assert.ok(binary,'PANDO_HYDRO_POINT_SCREEN_BINARY must name the native test tool');
   return spawnSync(binary,[],{input:JSON.stringify(value),encoding:'utf8',maxBuffer:16*1024*1024});
 }
+test('guided branch scores preserve distance and upstream orientation',{skip:!binary},()=>{
+  const current=[[0,0],[1,0]],reference=[[-1,0],[1,0]];
+  for(const [candidate,score,alignment] of [
+    [[[0,0],[-1,0]],0,1],
+    [[[0,0],[0,1]],.04,0],
+    [[[0,.1],[0,1]],.14,0],
+    [[[-1,0],[0,0]],0,1],
+  ]){
+    const result=invoke({mode:'guided-branch',current,candidate,reference});assert.equal(result.status,0,result.stderr);
+    const actual=JSON.parse(result.stdout);assert.ok(Math.abs(actual.score-score)<1e-12);assert.ok(Math.abs(actual.alignment-alignment)<1e-12);
+  }
+});
+test('guided branch scores handle zero direction and reject malformed geometry',{skip:!binary},()=>{
+  const request={mode:'guided-branch',current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[0,0],[0,0]]};
+  const result=invoke(request);assert.equal(result.status,0,result.stderr);
+  const score=JSON.parse(result.stdout);assert.equal(score.alignment,0);assert.equal(score.score,.04);
+  for(const input of [{...request,reference:[[0,0]]},{...request,candidate:[[181,0],[0,0]]}]){
+    const failed=invoke(input);assert.notEqual(failed.status,0);assert.equal(failed.stdout,'');
+  }
+});
 test('native point screen computes projected lengths and closest points',{skip:!binary},()=>{
   const output=invoke(fixture);assert.equal(output.status,0,output.stderr);
   const result=JSON.parse(output.stdout);assert.equal(result.points.length,3);assert.equal(result.lineLengthsMeters.length,2);

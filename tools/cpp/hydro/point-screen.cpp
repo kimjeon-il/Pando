@@ -94,6 +94,38 @@ Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lin
     auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
 }
 Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+// Geographic-degree score used to choose a named upstream branch at a confluence.
+Value guidedBranchScore(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    std::size_t vertices=0;
+    const auto readLine=[&](const char* key){const auto& source=array(field(input,key));vertices+=source.size();
+        if(source.size()<2||vertices>1000000)throw std::invalid_argument("Bounded branch lines required");
+        std::vector<Point> result;result.reserve(source.size());for(const auto& point:source)result.push_back(inputPoint(point));return result;};
+    const auto current=readLine("current"),candidate=readLine("candidate"),reference=readLine("reference");
+    const std::array<Point,2> currentEnds{current.front(),current.back()},candidateEnds{candidate.front(),candidate.back()};
+    std::size_t ci=0,ui=0;double closest=std::numeric_limits<double>::infinity();
+    for(std::size_t i=0;i<2;++i)for(std::size_t j=0;j<2;++j){const double gap=std::hypot(currentEnds[i].x-candidateEnds[j].x,currentEnds[i].y-candidateEnds[j].y);
+        if(gap<closest){closest=gap;ci=i;ui=j;}}
+    const auto confluence=currentEnds[ci],downEnd=currentEnds[1-ci],upEnd=candidateEnds[1-ui];
+    const auto unit=[](double x,double y){const auto length=std::hypot(x,y);return length>0?Point{x/length,y/length}:Point{0,0};};
+    const auto downstream=unit(downEnd.x-confluence.x,downEnd.y-confluence.y),upstream=unit(upEnd.x-confluence.x,upEnd.y-confluence.y);
+    auto referenceLine=geometry(context.get(),reference,false),candidateLine=geometry(context.get(),candidate,false),point=geometry(context.get(),{confluence},true);
+    double length=0,distance=0;if(!GEOSLength_r(context.get(),referenceLine.get(),&length)||!std::isfinite(length)||length<0||
+       !GEOSDistance_r(context.get(),candidateLine.get(),referenceLine.get(),&distance)||!std::isfinite(distance)||distance<0)
+        throw std::runtime_error("Guided branch geometry failed");
+    const double position=length>0?GEOSProject_r(context.get(),referenceLine.get(),point.get()):0;
+    if(!std::isfinite(position)||position<0)throw std::runtime_error("Guided branch projection failed");
+    const double delta=std::min(0.025,std::max(length*0.08,1e-5));
+    auto before=own(context.get(),GEOSInterpolate_r(context.get(),referenceLine.get(),std::max(0.0,position-delta)));
+    auto after=own(context.get(),GEOSInterpolate_r(context.get(),referenceLine.get(),std::min(length,position+delta)));
+    double bx,by,ax,ay;if(!GEOSGeomGetX_r(context.get(),before.get(),&bx)||!GEOSGeomGetY_r(context.get(),before.get(),&by)||
+       !GEOSGeomGetX_r(context.get(),after.get(),&ax)||!GEOSGeomGetY_r(context.get(),after.get(),&ay))throw std::runtime_error("Guided branch tangent failed");
+    auto tangent=unit(ax-bx,ay-by);if(tangent.x*downstream.x+tangent.y*downstream.y<0){tangent.x=-tangent.x;tangent.y=-tangent.y;}
+    const double alignment=-upstream.x*tangent.x-upstream.y*tangent.y;
+    auto result=Value::obj();result.object["score"]=Value::num(distance+std::max(0.0,1-alignment)*0.04);
+    result.object["alignment"]=Value::num(alignment);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -137,6 +169,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="guided-branch")
+        return guidedBranchScore(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="shared-boundary")
         return sharedBoundaryDistances(input);
     const auto crs=utm(field(input,"crs"));const auto& sourceLines=array(field(input,"lines"));const auto& sourcePoints=array(field(input,"points"));
