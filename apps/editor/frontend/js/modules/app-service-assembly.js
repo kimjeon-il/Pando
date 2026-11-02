@@ -1,4 +1,5 @@
 import {createMapRenderer} from "../../../../../shared/frontend/js/modules/map-renderer-composition.js";
+import {createEditorMapPreparationPresenter} from './editor-map-presentation-policy.js';
 
 /** ServiceAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
@@ -101,7 +102,7 @@ export function createServiceAssembly() {
     }
   }
 
-  function initializeGpuMapRenderer(){gpuMapRenderer=createMapRenderer(dependencies,{productMode:'editor'});}
+  function initializeGpuMapRenderer(){gpuMapRenderer=createMapRenderer(dependencies,{presentMapPreparation:createEditorMapPreparationPresenter(dependencies.platform.$)});}
 
   return Object.freeze({
     connect,
