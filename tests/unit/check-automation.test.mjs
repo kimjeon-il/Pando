@@ -192,10 +192,19 @@ test('current native startup metadata seed resolves to the shared runtime owner'
   f.catalog.runtimeBases=catalog.runtimeBases;
   f.catalog.relocatedSources=catalog.relocatedSources;
   f.put('apps/editor/startup.js',readFileSync(new URL('../../apps/editor/startup.js',import.meta.url),'utf8'));
+  f.put('apps/editor/native-platform-adapter.js',readFileSync(new URL('../../apps/editor/native-platform-adapter.js',import.meta.url),'utf8'));
   for(const name of ['runtime-profile','native-storage','network-guard'])f.put('apps/editor/'+name+'.js');
   for(const name of ['native-library-repository','library-geometry-context','territorial-entity-loader','territorial-library-service'])f.put('apps/editor/frontend/js/modules/'+name+'.js');
-  f.put('shared/frontend/js/modules/runtime-context.js');
-  assert.ok(f.repository().dependencies('apps/editor/startup.js').includes('shared/frontend/js/modules/runtime-context.js'));
+  f.put('shared/frontend/js/modules/platform-ports.js');
+  f.put('shared/frontend/js/modules/platform-runtime.js',"import './platform-ports.js';");
+  f.put('shared/frontend/js/modules/runtime-context.js',"import './platform-ports.js';");
+  const dependencies=f.repository().dependencies('apps/editor/startup.js');
+  assert.ok(dependencies.includes('apps/editor/native-platform-adapter.js'));
+  assert.ok(dependencies.includes('shared/frontend/js/modules/runtime-context.js'));
+  const adapterDependencies=f.repository().dependencies('apps/editor/native-platform-adapter.js');
+  assert.ok(adapterDependencies.includes('apps/editor/native-storage.js'));
+  assert.ok(adapterDependencies.includes('shared/frontend/js/modules/platform-ports.js'));
+  assert.ok(adapterDependencies.includes('shared/frontend/js/modules/platform-runtime.js'));
 });
 
 test('module URL reads retain root configuration and workflow consumers', () => {

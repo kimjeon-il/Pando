@@ -19,10 +19,8 @@ export async function createRuntimeProfile(profile,meta) {
   return Object.freeze({
     mode: 'map-data',
     platform: Object.freeze({
-      builtinHydroAvailable: true,
-      builtinPlacesAvailable: true,
-      startupMesh: 'builtin',
-      storageNamespace: 'pandoeditor-web-shell-world-v1',
+      resources: Object.freeze({ builtinHydro: true, builtinPlaces: true, startupMesh: 'builtin' }),
+      storage: Object.freeze({ namespace: 'pandoeditor-web-shell-world-v1' }),
     }),
   });
 }

@@ -2,6 +2,7 @@ import {test,expect} from '@playwright/test';
 import {staticAutosaveProject} from '../helpers/timeline-project.mjs';
 import {createTerritorialFeature} from '../../shared/frontend/js/modules/territorial-units.js';
 import {setEditorMonth} from './helpers/editor-entry.mjs';
+import {DOCUMENT_TRANSFER_COMMANDS} from '../../apps/editor/document-transfer-contract.js';
 
 const appShell=process.env.PANDOLAB_NAMES_APP_SHELL==='1';
 test(`temporal country names edit, undo, save and reopen in ${appShell?'app shell':'web editor'}`,async({page},info)=>{
@@ -11,7 +12,7 @@ test(`temporal country names edit, undo, save and reopen in ${appShell?'app shel
   const details=common=>({ko:{common,formal:common+' 정식명',aliases:['검색 별칭']},native:[{language:'hy',common:'Արցախ'},{language:'ru',common:'Арцах'}]});
   seed.timelineRecords.propertyBindings=[['old',null,'1999','옛 이름'],['new','2000',null,'새 이름']].map(([id,validFrom,validTo,name])=>({
     id,objectRef:{domain:'territorial',id:'name-test'},validFrom,validTo,property:'name',value:{name,nameExplicit:true,names:details(name)}}));
-  await page.addInitScript(({seed,appShell})=>{
+  await page.addInitScript(({seed,appShell,commands})=>{
     localStorage.setItem('pandoeditor-web-shell-prototype-v1-project',JSON.stringify(seed));
     localStorage.setItem('pandoeditor-web-shell-world-v1-project',JSON.stringify(seed));
     localStorage.setItem('pandolab-editor-project',JSON.stringify(seed));
@@ -20,16 +21,16 @@ test(`temporal country names edit, undo, save and reopen in ${appShell?'app shel
       globalThis.PANDOLAB_SHELL_VERIFICATION=false;let chunks=[],readAt=0;
       globalThis.__namesSaved=null;
       globalThis.__TAURI_INTERNALS__={invoke:async(command,payload)=>{
-        if(command==='begin_document_write'){chunks=[];return {token:1};}
-        if(command==='append_document_chunk'){chunks.push(payload.contents);return {};}
-        if(command==='finish_document_write'){globalThis.__namesSaved=chunks;return {path:'names.gpkg'};}
-        if(command==='begin_document_read'){readAt=0;return {files:[{token:2,path:'names.gpkg',bytes:chunks.reduce((sum,c)=>sum+atob(c).length,0)}]};}
-        if(command==='read_document_chunk'){const contents=chunks[readAt++];return {contents,done:readAt===chunks.length};}
-        if(command==='abort_document_transfer')return {};
+        if(command===commands.beginWrite){chunks=[];return {token:1};}
+        if(command===commands.appendWrite){chunks.push(payload.contents);return {};}
+        if(command===commands.finishWrite){globalThis.__namesSaved=chunks;return {path:'names.gpkg'};}
+        if(command===commands.beginRead){readAt=0;return {files:[{token:2,path:'names.gpkg',bytes:chunks.reduce((sum,c)=>sum+atob(c).length,0)}]};}
+        if(command===commands.readChunk){const contents=chunks[readAt++];return {contents,done:readAt===chunks.length};}
+        if(command===commands.abort)return {};
         throw Error('Unexpected test native command: '+command);
       }};
     }
-  },{seed,appShell});
+  },{seed,appShell,commands:DOCUMENT_TRANSFER_COMMANDS});
   await page.route('**/modules/app-composition.js*',async route=>{
     const response=await route.fetch(),source=await response.text(),anchor='if (onComposed) await onComposed(';
     if(!source.includes(anchor))throw Error('Timeline probe boundary missing');

@@ -1,3 +1,4 @@
+import {EDITOR_MAP_INPUT_RESERVED_SELECTOR} from './editor-map-presentation-policy.js';
 /** LifecycleAssembly: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -172,7 +173,7 @@ export function createLifecycleAssembly({onStarted=null,onStopped=null}={}) {
         },
         dependencies.domainControllers.initializeDomainBoundaries,
         () => {
-          mapInputPresentation = (0, dependencies.uiFactoriesB.createMapInputPresentation)({productMode:'editor',ports:dependencies,window,navigator,
+          mapInputPresentation = (0, dependencies.uiFactoriesB.createMapInputPresentation)({ports:dependencies,window,navigator,reservedTargetSelector:EDITOR_MAP_INPUT_RESERVED_SELECTOR,
             createMapInputController:dependencies.uiFactoriesA.createMapInputController,
             getRevision:()=>dependencies.pointerInteractionA.editInteractionRevision,mapInteractionGate,
             editing:{domain:dependencies.domains.editingDomain,getDraftSnapshot:dependencies.draftPresentation.editingDraftSnapshot,

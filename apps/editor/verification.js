@@ -1,10 +1,24 @@
-import { createNativeStorage } from './native-storage.js';
+import { createProbeStorage } from './probe-storage.js';
 import { installDiagnostics } from './diagnostics.js';
 import { installFullWorldProbe } from './full-world-probe.js';
-export { finishDiagnostics } from './probe-storage.js';
-export function installWorld(profile) {
-  installFullWorldProbe({
-    readyDelayMs: Number(globalThis.__PANDOLAB_SHELL_PROBE_HOLD_MS__) || 500,
+
+export function createVerificationRuntime({ invoke, auto = false, probeHoldMs = 500, scope = globalThis } = {}) {
+  const probeStorage = createProbeStorage(invoke, { scope });
+  const hold = Number(probeHoldMs);
+  return Object.freeze({
+    auto: auto === true,
+    probeHoldMs: Number.isFinite(hold) && hold > 0 ? hold : 500,
+    probeStorage,
+    finishDiagnostics: probeStorage.finishDiagnostics,
+  });
+}
+
+export function installWorld(profile, { runtime } = {}) {
+  if (!runtime) throw new TypeError('Full-world verification requires the native verification runtime.');
+  return installFullWorldProbe({
+    auto: runtime.auto,
+    readyDelayMs: runtime.probeHoldMs,
+    reportFn: runtime.finishDiagnostics,
     expectedSourceCount: profile.world.countryCount,
     expectedModelCount: profile.world.modelEntityCount,
     expectedRootCount: profile.world.rootCount,
@@ -24,7 +38,7 @@ export async function createFixtureProfile(profile) {
     mode: 'test-fixture',
     countriesUrl,
     platform: Object.freeze({
-      builtinWorldLoader: createBuiltinWorldLoader({
+      world: Object.freeze({ builtinLoader: createBuiltinWorldLoader({
         manifestUrl: manifestUrl.href,
         manifestSpec: profile.builtinWorld,
         dataRevision: 'pandoeditor-shell-fixture-v1',
@@ -35,18 +49,16 @@ export async function createFixtureProfile(profile) {
           }
           return fetch(url, options);
         },
-        // The shell must not share the website's world cache or its cleanup.
         cacheStorage: null,
-      }),
-      builtinHydroAvailable: false,
-      builtinPlacesAvailable: false,
-      startupMesh: 'project',
-      storageNamespace: 'pandoeditor-web-shell-prototype-v1',
+      }) }),
+      resources: Object.freeze({ builtinHydro: false, builtinPlaces: false, startupMesh: 'project' }),
+      storage: Object.freeze({ namespace: 'pandoeditor-web-shell-prototype-v1' }),
     }),
   });
 }
 
-export async function startFixture({ profile, meta, assetBase, versionedAsset }) {
+export async function startFixture({ profile, meta, assetBase, versionedAsset, platform, nativeStorage, verificationRuntime }) {
+  if (!platform || !nativeStorage || !verificationRuntime) throw new TypeError('Fixture startup requires explicit native platform and verification ports.');
   window.PANDOLAB_APP_VERSION = meta.appVersion;
   window.PANDOLAB_ASSET_REVISION = meta.assetRevision;
   window.PANDOLAB_DATA_REVISION = meta.dataRevision;
@@ -68,9 +80,16 @@ export async function startFixture({ profile, meta, assetBase, versionedAsset })
   window.PANDOLAB_COUNTRIES = await countries.json();
   const { composeApplication } = await import(versionedAsset('./modules/app-composition.js').href);
   let diagnostics;
-  const application = await composeApplication({ productMode: 'editor', revision: meta.assetRevision,
-    platform: { ...profile.platform, fileAccess: createNativeStorage() },
-    onComposed: async runtime => { diagnostics = await installDiagnostics(runtime); },
+  const application = await composeApplication({
+    productMode: 'editor',
+    revision: meta.assetRevision,
+    platform,
+    onComposed: async runtime => {
+      diagnostics = await installDiagnostics(runtime, {
+        nativeStorage,
+        probeStorage: verificationRuntime.probeStorage,
+      });
+    },
   });
   if (!await application.start()) throw new Error('The application could not finish startup.');
   const { initializeUiRuntime } = await import(versionedAsset('./modules/ui-runtime.js').href);
@@ -81,5 +100,5 @@ export async function startFixture({ profile, meta, assetBase, versionedAsset })
   window.__PANDOLAB_STARTUP_METRICS__.startupPhase = 'canonical-ready';
   window.dispatchEvent(new CustomEvent('pandolab:interactive'));
   window.__PANDOLAB_SHELL_READY__ = true;
-  if (window.__PANDOLAB_SHELL_AUTO__) await diagnostics.run();
+  if (verificationRuntime.auto) await diagnostics.run();
 }

@@ -12,7 +12,7 @@ const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composi
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const noop = () => {};
 function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
-  const nodes = new Map(), ports = {previewFinishes: 0}, errors = [];
+  const nodes = new Map(), ports = {previewFinishes: 0,previewCancels: 0}, errors = [];
   const get = id => {
     if (!nodes.has(id)) nodes.set(id, {dataset: {}, hidden: false, textContent: '', addEventListener: noop, appendChild: noop, setAttribute(name, value) { this[name] = value; }});
     return nodes.get(id);
@@ -38,7 +38,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
       } finally { opening = false; }
     },
   };
-  const map = {finishInitialPreview: () => { ports.previewFinishes++; }, viewState: {}, objectPresentation: {}, objectQuery: {},
+  const map = {finishInitialPreview: () => { ports.previewFinishes++; }, cancelInitialReveal: () => { ports.previewCancels++; }, viewState: {}, objectPresentation: {}, objectQuery: {},
     objectCatalog: {invalidateObjectPresentation: noop, pruneLayerItemVisibility: async () => {}},
     navigation: {}, capturePresentation: () => ({}), loadPhysicalResources: noop,
     loadPhysicalLandMask: async () => {}, update: async () => {},
@@ -47,7 +47,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     createViewerPostPresentation,
     createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
-    createRuntimeContext: ({meta}) => ({meta, platform: {}}),
+    createPlatformPorts: () => ({}), createRuntimeContext: ({meta}) => ({meta, platform: {}}),
     createPreferencePresentation: () => ({current: {}, apply: noop}),
     createDiagnosticLog: () => ({snapshot: () => [],push: noop}),
     createTooltipController: () => ({bind: noop}), createBrowserProjectStorage: () => ({}),
@@ -125,14 +125,19 @@ test('normal year change and later source failure never restore initial mode', a
   const run = fixture(); await run.started;
   await run.ports.timeline.setMonth('2025-12');
   assert.equal(run.get('viewerStatus').dataset.loadingKind, 'temporal');
+  assert.equal(run.get('viewerStatus').dataset.ready, 'true',
+    'the accepted successor is ready only after its date navigation commits');
   assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
   run.failNext();
   await assert.rejects(run.ports.timeline.setMonth('2024-12'), /source unavailable/);
+  assert.equal(run.get('viewerStatus').dataset.ready, 'true',
+    'a failed next-month read must restore the previous accepted map readiness');
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.get('viewer').dataset.initialLoading, 'false');
   await run.ports.lifecycle.startup(); // Same entry used by lifecycle recovery.
   assert.equal(run.debug().initialMapPresented(), true);
   assert.equal(run.ports.previewFinishes, 1);
+  assert.ok(run.ports.previewCancels>=2,'later timeline attempts cancel first-page effects without replaying them');
   assert.equal(run.ports.map.isInitialPresentation(), false);
 });
 

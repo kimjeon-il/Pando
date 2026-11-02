@@ -17,7 +17,9 @@ test('entry stays below 400 nonempty lines and owns only versioned composition/s
   const source = read('apps/editor/frontend/js/app.js');
   assert.ok(source.split(/\r?\n/).filter(line => line.trim()).length <= 400);
   assert.doesNotMatch(source, /\bfunction\b|=>|document\.|addEventListener\(|new (?:Map|Set|Worker)/);
+  assert.match(source, /resolveRuntimePlatform\(\{ productMode: 'editor' \}\)/);
   assert.match(source, /await composeApplication\(\{ productMode: 'editor', revision, platform \}\)/);
+  assert.doesNotMatch(source, /__PANDOLAB_SHELL_PLATFORM__|__TAURI_INTERNALS__|PANDOLAB_NATIVE_/);
   assert.match(source, /void application\.start\(\)/);
   assert.match(composition, /encodeURIComponent\(revision\)/);
   assert.equal(new Set(moduleNames).size, moduleNames.length);

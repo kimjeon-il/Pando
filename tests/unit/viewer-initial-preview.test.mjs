@@ -127,3 +127,79 @@ test('already zoomed globe and flat maps do not receive a second preview zoom', 
   f.preview.render({...frame(), projection: 'flat', globeZoom: 1, cssTranslate: [320, 240]}, palette);
   assert.equal(f.land.getAttribute('transform'), null);
 });
+
+test('first normal presentation reveals country/border frame before labels', async () => {
+  const f = fixture(), root = {dataset: {}}, listeners = new Map();
+  let resolveAnimation;
+  f.element.closest = name => name === '.viewer-root' ? root : null;
+  f.element.ownerDocument = {visibilityState: 'visible',
+    defaultView: {matchMedia: () => ({matches: false})},
+    addEventListener: (name, listener) => listeners.set(name, listener),
+    removeEventListener: name => listeners.delete(name)};
+  f.element.animate = () => ({cancel: () => {}, finished: new Promise(resolve => {resolveAnimation = resolve;})});
+  f.preview.render(frame(), palette); await f.preview.start(); f.complete();
+  assert.equal(f.preview.finish(), true);
+  assert.equal(root.dataset.initialReveal, 'countries');
+  assert.equal(f.element.hasAttribute('hidden'), false);
+  assert.equal(f.preview.render(frame(), palette), false);
+  resolveAnimation(); await Promise.resolve(); await Promise.resolve();
+  assert.equal(f.element.hasAttribute('hidden'), true);
+  assert.equal(root.dataset.initialReveal, 'labels');
+  assert.equal(listeners.size, 0);
+});
+
+test('navigation or imported file cancels an in-flight first-page reveal', async () => {
+  const f = fixture(), root = {dataset: {}}, listeners = new Map();
+  let resolveAnimation, cancels = 0;
+  f.element.closest = () => root;
+  f.element.ownerDocument = {visibilityState: 'visible',
+    defaultView: {matchMedia: () => ({matches: false})},
+    addEventListener: (name, listener) => listeners.set(name, listener),
+    removeEventListener: name => listeners.delete(name)};
+  f.element.animate = () => ({cancel: () => {cancels++;}, finished: new Promise(resolve => {resolveAnimation = resolve;})});
+  f.preview.render(frame(), palette); await f.preview.start(); f.complete();
+  assert.equal(f.preview.finish(), true);
+  f.preview.dispose(); root.dataset.initialReveal = 'complete';
+  resolveAnimation(); await Promise.resolve(); await Promise.resolve();
+  assert.equal(root.dataset.initialReveal, 'complete');
+  assert.equal(f.element.hasAttribute('hidden'), true);
+  assert.equal(cancels, 1); assert.equal(listeners.size, 0);
+});
+
+test('hidden tab aborts animation, reduced motion and absent preview never delay readiness', async () => {
+  const f = fixture(), root = {dataset: {}}, listeners = new Map();
+  let resolveAnimation;
+  const doc = {visibilityState: 'visible',defaultView: {matchMedia: () => ({matches: false})},
+    addEventListener: (name, listener) => listeners.set(name, listener),
+    removeEventListener: name => listeners.delete(name)};
+  f.element.closest = () => root; f.element.ownerDocument = doc;
+  f.element.animate = () => ({cancel: () => {},finished: new Promise(resolve => {resolveAnimation = resolve;})});
+  f.preview.render(frame(), palette);await f.preview.start();f.complete();
+  assert.equal(f.preview.finish(), true);
+  doc.visibilityState = 'hidden'; listeners.get('visibilitychange')();
+  resolveAnimation();await Promise.resolve();await Promise.resolve();
+  assert.equal(root.dataset.initialReveal, 'complete');
+  assert.equal(f.element.hasAttribute('hidden'), true);
+  const reduced = fixture();reduced.element.closest = () => ({dataset: {}});
+  reduced.element.ownerDocument = {visibilityState: 'visible',
+    defaultView: {matchMedia: () => ({matches: true})}};
+  reduced.preview.render(frame(), palette);await reduced.preview.start();reduced.complete();
+  assert.equal(reduced.preview.finish(), false);
+  assert.equal(reduced.element.hasAttribute('hidden'), true);
+  const fast = fixture();fast.complete();
+  assert.equal(fast.preview.finish(), false);
+});
+
+test('optional animation API failure does not change Core/map readiness', async () => {
+  const f = fixture(), root = {dataset: {}};
+  f.element.closest = () => root;
+  f.element.ownerDocument = {visibilityState: 'visible',
+    defaultView: {matchMedia: () => ({matches: false})},
+    addEventListener: () => {},removeEventListener: () => {}};
+  f.element.animate = () => {throw new Error('animation unavailable');};
+  f.preview.render(frame(), palette);await f.preview.start();f.complete();
+  assert.equal(f.preview.finish(), false);
+  assert.equal(f.element.hasAttribute('hidden'), true);
+  assert.equal(root.dataset.initialReveal, 'complete');
+  assert.equal(f.errors.length, 1);
+});

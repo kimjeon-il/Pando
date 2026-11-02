@@ -17,6 +17,7 @@ import { commitSelectionFallbackCoverage } from './selection-fallback-coverage.j
 import { isMapVisualFrame } from './map-visual-frame.js';
 
 export function createRenderingDomain({
+  readOnly = false,
   context = null,
   prepareMapDisplay = null,
   onMapDisplayReady = () => {},
@@ -53,6 +54,8 @@ export function createRenderingDomain({
   reportDiagnostic = () => {},
   disposeMapDisplay = null,
 } = {}) {
+  if (readOnly && (editPreviewController || editingRenderResources || getEditingRenderPacket || emitEditingInteraction || createEditingPresentation))
+    throw new TypeError('Read-only rendering cannot install editor interaction or preview resources.');
   if (typeof emitEditingInteraction==='function' && typeof reportEditingOperationError!=='function')
     throw new TypeError('Editing interaction dispatch requires its operation error reporter.');
   let disposed = false;

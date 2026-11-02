@@ -136,3 +136,31 @@ test('shared rendering resources retain one frame snapshot and the canonical sel
  assert.ok(first>initial);assert.equal(resources.selectionResources.territorialDisplayFeature('A'),entity);
  assert.equal(resources.selectionResources.activeEditPreview,undefined);
 });
+
+
+test('Viewer owns a bounded two-month source budget without altering editor storage', () => {
+  const viewer=createMapOwners({productMode:'viewer'});
+  const editor=createMapOwners({productMode:'editor'});
+  const a=viewer.builtinSession.sourceCacheStats();
+  const b=editor.builtinSession.sourceCacheStats();
+  assert.equal(a.maxBytes,32*1024*1024);
+  assert.equal(a.maxEntries,3);
+  assert.equal(b.maxBytes,24*1024*1024);
+  assert.equal(b.maxEntries,3);
+  assert.equal(a.entries,0);
+  assert.equal(b.entries,0);
+  viewer.builtinSession.dispose();
+  editor.builtinSession.dispose();
+});
+
+
+test('Windows flat read-only owners use common map graph without edit hooks',()=>{
+ assert.throws(()=>createMapOwners({productMode:'editor',readOnly:true,editing:{persistView(){}}}),/cannot register editing/);
+ const owners=createMapOwners({productMode:'editor',readOnly:true});
+ assert.equal(owners.capabilities.globe,false);
+ assert.equal(owners.capabilities.terrain,false);
+ assert.equal(typeof owners.projectSession.setViewingPresentation,'function');
+ assert.equal(typeof owners.objectPicking.handleObjectSelectionAt,'function');
+ assert.equal(typeof owners.mapHost.projectionViewSnapshot,'function');
+ owners.builtinSession.dispose();
+});

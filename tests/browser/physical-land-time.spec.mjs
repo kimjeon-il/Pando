@@ -80,7 +80,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
   }, renderer === 'canvas');
   await page.route('**/modules/map-renderer-composition.js*', async route => {
     const response = await route.fetch(), source = await response.text();
-    const anchor = 'export function createMapRenderer(dependencies, { productMode }) {';
+    const anchor = 'export function createMapRenderer(dependencies, { presentMapPreparation, onMapPreparationStatus = null } = {}) {';
     expect(source).toContain(anchor);
     await route.fulfill({ response, body: source.replace(anchor, anchor + '\nwindow.__landPorts = dependencies;') });
   });

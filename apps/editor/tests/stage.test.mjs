@@ -66,17 +66,23 @@ test('native build mode controls features and rejects the wrong artifact identit
   assert.doesNotThrow(() => assertVerificationBuild({ verification: true, profile: 'test-fixture' }));
 });
 
-test('startup errors use ordinary reporting except in the auto verification window', async () => {
+test('startup errors use adapter-owned reporting except in the auto verification window', async () => {
   const source = (await readFile(new URL('../startup.js', import.meta.url), 'utf8'))
     .replace(/^import .*;\r?\n/gm, '').replaceAll('import.meta.url', '"https://shell.test/shell/startup.js"')
     .replace('const verification = null;', 'const verification = globalThis.testVerification;');
   for (const [verification, auto, expected] of [[false, false, 'report'], [true, false, 'report'], [true, true, 'finish']]) {
     const calls = [];
     await runInNewContext(source, {
-      testVerification: verification ? { finishDiagnostics: async report => calls.push(['finish', report]) } : null,
-      writeDiagnosticReport: async report => calls.push(['report', report]),
+      testVerification: verification ? {
+        createVerificationRuntime: () => ({ auto, finishDiagnostics: async report => calls.push(['finish', report]) }),
+      } : null,
+      createNativePlatformAdapter: () => ({
+        invoke() {},
+        runtime: { autoVerification: auto, probeHoldMs: 500 },
+        writeDiagnosticReport: async report => calls.push(['report', report]),
+      }),
       document: { readyState: 'complete', getElementById: () => null },
-      window: { d3: {}, __PANDOLAB_SHELL_AUTO__: auto }, console: { error() {} },
+      window: { d3: {} }, console: { error() {} },
     });
     assert.equal(calls.length, 1);
     assert.equal(calls[0][0], expected);
@@ -97,6 +103,10 @@ test('stages the real frontend and exact WASM pair without analysis resources or
   const result = await stagePrototype({ root, profile: 'test-fixture', verification: true });
   assert.ok(result.files.some(file => file.path === 'assets/js/app.js'));
   assert.ok(result.files.some(file=>file.path==='assets/js/modules/runtime-context.js'));
+  assert.ok(result.files.some(file=>file.path==='assets/js/modules/platform-ports.js'));
+  assert.ok(result.files.some(file=>file.path==='assets/js/modules/platform-runtime.js'));
+  assert.ok(result.files.some(file=>file.path==='shell/native-platform-adapter.js'));
+  assert.ok(result.files.some(file=>file.path==='shell/document-transfer-contract.js'));
   assert.ok(result.files.every(file => !file.path.startsWith('assets/data/')||file.path.startsWith('assets/data/physical-land/')));
   assert.ok(result.files.every(file => !file.path.includes('reference-analysis')));
   assert.equal(Object.hasOwn(result,'referenceAnalysis'), false);

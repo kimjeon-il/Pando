@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
-import {buildFrontendIndex,frontendAsset,emitFrontendModule} from '../../scripts/lib/frontend-layout.mjs';
+import {buildFrontendIndex,frontendAsset,emitFrontendModule,frontendSourceClosure} from '../../scripts/lib/frontend-layout.mjs';
 
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-frontend-layout-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='export const value=1;'){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);return file;}
@@ -59,4 +59,38 @@ test('native Worker URL literals resolve in their published shell namespace',t=>
  const root=fixture(t);put(root,'apps/editor/diagnostics.js');put(root,'apps/editor/frontend/js/workers/gis-gpkg-worker.js');const index=buildFrontendIndex(root);
  const emitted=emitFrontendModule(`const worker=new URL('../assets/js/workers/gis-gpkg-worker.js',import.meta.url);`,'apps/editor/diagnostics.js',index);
  assert.ok(emitted.includes('../assets/js/workers/gis-gpkg-worker.js'));
+});
+
+
+test('frontend source closure follows static imports and catalogued runtime edges',t=>{
+ const root=fixture(t);
+ put(root,'shared/frontend/js/modules/entry.js',"import './static.js';\nexport const entry=1;");
+ put(root,'shared/frontend/js/modules/static.js','export const stat=1;');
+ put(root,'shared/frontend/js/modules/runtime.js','export const runtime=1;');
+ const closure=frontendSourceClosure(root,['assets/js/modules/entry.js'],{runtimeDependencies:{
+   'assets/js/modules/entry.js':['shared/frontend/js/modules/runtime.js'],
+ }});
+ assert.deepEqual(closure.map(row=>row.publicPath),[
+   'assets/js/modules/entry.js',
+   'assets/js/modules/runtime.js',
+   'assets/js/modules/static.js',
+ ]);
+});
+
+
+test('runtime closure rejects product ownership violations',t=>{
+ const root=fixture(t);
+ put(root,'shared/frontend/js/modules/common.js','export const common=1;');
+ put(root,'apps/editor/frontend/js/private.js','export const value=1;');
+ assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{runtimeDependencies:{
+   'assets/js/modules/common.js':['apps/editor/frontend/js/private.js'],
+ }}),/ownership/i);
+});
+
+test('stage world fixture uses closure roots instead of copying transitive runtime modules by name',()=>{
+ const source=readFileSync(new URL('../../apps/editor/tests/helpers/world-fixture.mjs',import.meta.url),'utf8');
+ assert.match(source,/frontendSourceClosure/);
+ assert.match(source,/runtimeDependencies/);
+ for(const dependency of ['platform-ports.js','file-access-contract.js'])
+   assert.equal(source.includes("await put('shared/frontend/js/modules/"+dependency),false,dependency+' is a transitive dependency');
 });

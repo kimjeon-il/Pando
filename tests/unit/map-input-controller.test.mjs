@@ -79,7 +79,10 @@ function createPresentationFixture(productMode, editing = null) {
     territorySelectionSession: null, labelPlacementMode: false,
   };
   const presentation = createMapInputPresentation({
-    productMode, editing,
+    editing,
+    reservedTargetSelector: productMode==='editor'
+      ? 'button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker'
+      : 'button,input,select,textarea,a,[contenteditable="true"]',
     window: { CustomEvent: globalThis.CustomEvent, dispatchEvent: event => windowEvents.dispatchEvent(event) },
     navigator: {},
     getRevision: () => 1,

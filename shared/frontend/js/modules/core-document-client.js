@@ -8,11 +8,12 @@ const stateResponses = new Set(['core.document-state', 'core.document-mark-saved
 /** Ordered transport only. Document validation and history stay in C++ Project. */
 export function createCoreDocumentClient({
   productMode = 'editor',
-  createWorker = () => new Worker(workerAssetUrl(new URL(productMode === 'viewer'
+  readOnly = productMode === 'viewer',
+  createWorker = () => new Worker(workerAssetUrl(new URL(readOnly
     ? '../workers/core-viewer-session-worker.js' : '../workers/core-session-worker.js', import.meta.url)), { type: 'module' }),
   onTransition = () => {},
 } = {}) {
-  const policy = createProductModePolicy(productMode);
+  const policy = createProductModePolicy(productMode,{readOnly});
   let currentState = null;
   let disposed = false;
   let queue = Promise.resolve();
@@ -94,6 +95,7 @@ export function createCoreDocumentClient({
   }
   return Object.freeze({
     productMode: policy.productMode,
+    readOnly: policy.readOnly,
     subscribeTransitions(listener) {
       if (typeof listener !== 'function') throw new TypeError('A Core acknowledgement subscriber is required.');
       subscribers.add(listener);

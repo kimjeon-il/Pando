@@ -6,6 +6,7 @@ on:
       - apps/viewer/js/modules/viewer-composition.js
       - apps/viewer/js/modules/viewer-post-presentation.js
       - shared/frontend/js/modules/object-search-controller.js
+      - tests/unit/object-search-controller.test.mjs
       - tests/unit/viewer-initial-composition.test.mjs
       - tests/unit/viewer-post-presentation.test.mjs
       - tests/unit/viewer-composition-recovery.test.mjs

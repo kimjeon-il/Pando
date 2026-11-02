@@ -8,6 +8,10 @@ test.use({trace:'off',actionTimeout:15000,launchOptions:{args:[
 ]}});
 
 async function start(page,renderer){
+  if(renderer==='canvas2d'){
+    await page.addInitScript(()=>Object.defineProperty(window,'OffscreenCanvas',
+      {configurable:true,value:undefined}));
+  }
   await page.clock.setFixedTime(new Date(2026,9,24,12));
   await page.route('**/modules/viewer-composition.js*',async route=>{
     const source=await(await route.fetch()).text();
@@ -24,7 +28,7 @@ async function start(page,renderer){
       .replace(debug,'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),'+debug)
       .replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}')});
   });
-  await page.goto('/?debug=1'+(renderer==='canvas'?'&renderer=canvas':''));
+  await page.goto('/?debug=1'+(renderer==='webgl'?'':'&renderer=canvas'));
   await ready(page,'2026-10');
 }
 async function ready(page,month){
@@ -32,14 +36,15 @@ async function ready(page,month){
     cursor:window.__PANDOLAB_VIEWER__?.documentState().timelineCursor,
     ready:document.querySelector('#viewerStatus')?.dataset.ready})),{timeout:90000}).toEqual({month,cursor:month,ready:'true'});
 }
-for(const renderer of ['webgl','canvas'])for(const width of [1280,390])test.describe(`${renderer} ${width}px`,()=>{
+for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1280,390])test.describe(`${renderer} ${width}px`,()=>{
   test.use({viewport:{width,height:844},hasTouch:width===390});
   test('dedicated temporal path presents dated frames without another whole-document load',async({page},testInfo)=>{
-    test.setTimeout(150000);
+    test.setTimeout(210000);
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await start(page,renderer);
     const backend=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer);
-    expect(backend).toMatch(renderer==='webgl'?/^webgl[12]$/:/^canvas/);
+    if(renderer==='webgl')expect(backend).toMatch(/^webgl[12]$/);
+    else expect(backend,'Canvas Worker and Canvas2D must not silently substitute').toBe(renderer);
     const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot());
     const identity=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
     const activate=async id=>{const control=page.locator('#'+id);if(width===390)await control.tap();else await control.click();};
@@ -47,6 +52,19 @@ for(const renderer of ['webgl','canvas'])for(const width of [1280,390])test.desc
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
     await activate('timelineNextYear');await ready(page,'2026-10');
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
+    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
+    await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false');
+    // A newer Core cursor is not sufficient proof of a painted frame.
+    await expect.poll(()=>page.evaluate(()=>{
+      const stats=window.__PANDOLAB_VIEWER__.rendererStats();
+      return !!(['ready','limited'].includes(stats.mapReadiness?.status)
+        && !stats.projectRenderBlocked
+        && stats.countriesPublishedGeneration===stats.projectGeneration
+        && stats.canonicalMeshReady
+        && stats.displayedGeometryRevision===stats.committedGeometryRevision
+        && (stats.renderer!=='canvas-worker'||!stats.canvasWorkerBusy
+          && stats.canvasDisplayedStyleRevision===stats.canvasStyleRevision));
+    }),{timeout:45000,message:'Current dated frame must be presented by the selected renderer'}).toBe(true);
     const packets=await page.evaluate(()=>window.__temporalPackets);
     expect(packets.filter(row=>row.operation==='core.document-load-baseline')).toHaveLength(0);
     const adoptions=packets.filter(row=>row.operation==='core.document-temporal-candidate-adopt');
@@ -56,13 +74,13 @@ for(const renderer of ['webgl','canvas'])for(const width of [1280,390])test.desc
     expect(transitions.map(row=>row.month)).toEqual(['2025-12','2026-10']);
     expect(transitions.every(row=>row.fullProject===false&&Number.isInteger(row.geometryCount))).toBe(true);
     expect(errors).toEqual([]);
-    await testInfo.attach('temporal-packets',{body:JSON.stringify({renderer,backend,width,packets}),contentType:'application/json'});
+    await testInfo.attach('temporal-packets',{body:JSON.stringify({renderer,backend,width,packets,renderedVerified:true}),contentType:'application/json'});
   });
 });
 
 test('temporal failures and superseded source reads preserve the last displayed date',async({page})=>{
   test.setTimeout(150000);
-  await start(page,'canvas');
+  await start(page,'canvas-worker');
   const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot());
   await page.evaluate(()=>{window.__temporalRead=async()=>{throw Error('temporal source unavailable');};});
   await page.locator('#timelinePreviousYear').click();
@@ -82,7 +100,7 @@ test('temporal failures and superseded source reads preserve the last displayed 
 
 test('Canvas user-file opening retains full document admission after a builtin delta transition',async({page})=>{
   test.setTimeout(150000);
-  await start(page,'canvas');
+  await start(page,'canvas-worker');
   await page.locator('#timelinePreviousYear').click();await ready(page,'2025-12');
   const previous=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
   const fixture=await createViewerProjectPackage('시점 전환 후 사용자 파일');

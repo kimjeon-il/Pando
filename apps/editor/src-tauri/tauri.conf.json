@@ -13,7 +13,7 @@
     "windows": [],
     "security": {
       "csp": "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'",
-      "capabilities": ["prototype-main"]
+      "capabilities": ["prototype-review"]
     }
   },
   "bundle": { "active": false, "icon": ["icons/icon.ico", "icons/icon.png"] }

@@ -1,4 +1,5 @@
 import {createViewerInitialPreview} from './viewer-initial-preview.js';
+import {createViewerMapPreparationPresenter,VIEWER_MAP_INPUT_RESERVED_SELECTOR} from './viewer-map-presentation-policy.js';
 import {connectMapOwner,createMapReadPorts,mergeCapabilityPorts} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
 import {createMapInputPresentation} from "../../../../shared/frontend/js/modules/map-input-presentation.js";
 import {workerAssetUrl} from "../../../../shared/frontend/js/modules/worker-asset-url.js";
@@ -140,7 +141,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     readinessUi:{isSafeKoreanErrorMessage},mapHostViewB:{queueMapResize:()=>mapHost.queueMapResize()},
     mapView:{get mapHost(){return mapHost.mapHost;}},domains:{get renderingDomain(){return renderingDomain;}},
     renderQuality,renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
-    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{productMode:'viewer',onMapPreparationStatus});
+    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{presentMapPreparation:createViewerMapPreparationPresenter(id=>document.getElementById(id)),onMapPreparationStatus});
   let initialized;
   physicalResources.initializeTerrainService();
 
@@ -210,7 +211,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     onError:error=>diagnostics.push({category:'initial-preview',errorCode:'PL-MAP-INITIAL-PREVIEW',
       technicalMessage:error.message||String(error),stack:error.stack||''})});
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
-  renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
+  renderingDomain=createRenderingDomain({readOnly:true,gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     ...createMapRenderingResources({session:{selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},ports:mergeCapabilityPorts(commonPorts,readPorts,{
@@ -280,7 +281,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     layerPresentation:objectCatalog,landRelations:{pointInCountryFeature:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry)},
     platform:{d3,clamp},surfaces:{isMobile},rendering:{gpuMapRenderer:renderer},feedback:{reportOperationError:onError}}));
   pointerTargets.initializeHoverPickFrame();
-  const inputPresentation=createMapInputPresentation({productMode:'viewer',window,navigator,createMapInputController,getRevision:()=>updateGeneration,mapInteractionGate:createMapInteractionGate(),
+  const inputPresentation=createMapInputPresentation({window,navigator,createMapInputController,getRevision:()=>updateGeneration,mapInteractionGate:createMapInteractionGate(),reservedTargetSelector:VIEWER_MAP_INPUT_RESERVED_SELECTOR,
     ports:mergeCapabilityPorts(commonPorts,{
       platform:{$:id=>document.getElementById(id),d3},rendering:{gpuMapRenderer:renderer},
       domains:{renderingDomain,selectionDomain,projectDomain},navigation,mapView:mapProjection,
@@ -297,7 +298,8 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
       session=next;projectSession.setViewingPresentation(view||{},{reset:true});if(prepareView)await prepareView();await update();
     },
-    finishInitialPreview:initialPreview.dispose,
+    finishInitialPreview:initialPreview.finish,
+    cancelInitialReveal:initialPreview.dispose,
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{

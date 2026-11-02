@@ -51,6 +51,43 @@ export function frontendAsset(root,publicPath,{index=buildFrontendIndex(root),pr
  if(product==='viewer'&&entry.product==='editor')throw Error('Viewer reaches editor product source: '+publicPath);
  return {...entry,bytes:readFileSync(resolve(root,entry.sourcePath))};
 }
+
+export function frontendSourceClosure(root, entryPublicPaths, {index=buildFrontendIndex(root), runtimeDependencies={}}={}) {
+ const bySource=new Map([...index.values()].map(entry=>[entry.sourcePath,entry]));
+ const pending=[...new Set(entryPublicPaths)],selected=new Map();
+ const enqueue=(value,owner=null)=>{
+  const target=index.has(value)?index.get(value):bySource.get(value);
+  if(!target)throw Error('Missing frontend closure dependency: '+value);
+  if(owner&&target.product!=='shared'&&target.product!==owner.product)
+    throw Error('Frontend closure product ownership violation: '+owner.sourcePath+' -> '+target.sourcePath);
+  if(!selected.has(target.publicPath)&&!pending.includes(target.publicPath))pending.push(target.publicPath);
+ };
+ while(pending.length){
+  const publicPath=pending.shift(),entry=index.get(publicPath);
+  if(!entry)throw Error('Missing frontend closure entry: '+publicPath);
+  selected.set(publicPath,entry);
+  for(const dependency of runtimeDependencies[publicPath]||[])enqueue(dependency,entry);
+  if(!/\.m?js$/.test(entry.sourcePath))continue;
+  const source=readFileSync(resolve(root,entry.sourcePath),'utf8');
+  for(const reference of frontendModuleReferences(source)){
+   if(!reference.specifier.startsWith('.'))continue;
+   const file=reference.specifier.split(/[?#]/,1)[0];
+   if(reference.kind==='url'&&!/\.m?js$/.test(file))continue;
+   const sourcePath=posix.normalize(posix.join(posix.dirname(entry.sourcePath),file));
+   let target=bySource.get(sourcePath);
+   if(!target&&reference.kind==='url'){
+    const targetPublic=posix.normalize(posix.join(posix.dirname(publicPath),file));
+    target=index.get(targetPublic);
+   }
+   if(!target){
+    if(generatedModulePaths.has(sourcePath))continue;
+    throw Error('Missing frontend closure dependency: '+entry.sourcePath+' -> '+reference.specifier);
+   }
+   enqueue(target.publicPath,entry);
+  }
+ }
+ return [...selected.values()].sort((a,b)=>a.publicPath.localeCompare(b.publicPath));
+}
 let parser;
 export function frontendModuleReferences(source){
  parser??=new (require('eslint').Linter)();

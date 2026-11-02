@@ -25,6 +25,8 @@ test('map-data stage selects manifest-pinned Web resources and keeps the canonic
   assert.ok(staged.files.some(file => file.path.endsWith('/state-ABC.json.gz')));
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
   assert.ok(staged.files.some(file => file.path.endsWith('/places-v1.bin')));
+  assert.ok(staged.files.some(file => file.path === 'assets/js/modules/platform-ports.js'));
+  assert.ok(staged.files.some(file => file.path === 'assets/js/modules/file-access-contract.js'));
   assert.equal(staged.files.some(file=>file.path.includes('terrain-preview')),false);
   assert.equal(await readFile(join(staged.directory, country.url), 'utf8'), 'COUNTRY');
   assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/countries/')), true);

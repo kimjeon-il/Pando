@@ -6,7 +6,7 @@
 | --- | --- |
 | `property-editor-bindings.js` | Property field/action listeners and their teardown; selection is queried, never stored here. |
 | `project-ui-bridge.js` | Draft-vs-project Undo/Redo routing, new-project confirmation and save/history presentation. |
-| `map-input-presentation.js` | Map movement presentation, SVG pointer/hover routing and input-controller teardown for both flat and globe views. |
+| `map-input-presentation.js` | Product-neutral map movement, SVG pointer/hover routing and input-controller teardown. Viewer/Editor inject reserved-target policy; editing behavior is enabled only by an editing capability hook. |
 | `gis-workflow-controller.js` | Lazy GIS service/wizard composition, current-project wizard options, identity/impact planning and validator lifetime. |
 | `map-debug-controller.js` | Debug panel and existing render/view diagnostic facades; dynamic resources are read when queried. |
 | `application-lifecycle.js` | One startup Promise, ordered composition, readiness/error publication and BFCache-aware disposal. |
@@ -58,20 +58,15 @@ select directly and suppress a later synthetic click through the existing input
 controller. Map settings own accepted
 layer-visibility source preparation through the existing hydro/place loaders.
 
-`runtime-context.js` validates the immutable generated build receipt and owns
-versioned asset URL construction. Composition passes that receipt to builtin
-and physical resource owners. Module-relative imports use their versioned
-module URL. The immutable Worker resolver remains the asset-manifest boundary.
+`platform-ports.js` owns the explicit browser/native execution contract: resource capabilities, storage namespace, file access, optional library access and builtin source loader. `native-platform-adapter.js` is the only frontend runtime reader of raw Tauri/shell globals and installs the accepted native contract into module-scoped `platform-runtime.js`; browser execution resolves an explicit browser contract from the same registry boundary. `runtime-context.js` validates that immutable platform contract together with the generated build receipt and owns versioned asset URL construction. Composition passes those validated values to builtin and physical resource owners. Module-relative imports use their versioned module URL. The immutable Worker resolver remains the asset-manifest boundary.
 
-`file-controller.js` owns file workflow and ProjectDomain commands. An explicit
-browser or native file-access port owns pickers, input events, paths/URIs and
-bytes. The controller requires `openProjectFile` for both products and
-`openGisFiles`, `prepareProjectSave`, `saveExportFile` for the editor at construction.
-Optional transport `bind`/`dispose` hooks must be functions when provided.
+`file-access-contract.js` is the canonical browser/native file-access contract. It owns required methods by product mode and validates project/GIS selections, prepared save destinations and write receipts. `platform-ports.js` and `file-controller.js` both consume that one contract instead of duplicating method lists. Browser and native transports still own their own dialogs, paths/URIs and bytes.
+
+`file-controller.js` owns file workflow and ProjectDomain commands. The controller consumes the validated file-access port; optional transport `bind`/`dispose` hooks remain part of the shared contract.
 `prepareProjectSave()` runs before encoding and returns a `write`/`abort`
 destination. The browser picker opens during preparation to retain user
 activation. Native transport retains its existing `finish_document_write`
-dialog timing and chunk protocol. Persistence receives its resolved preview Worker URL; it does not
+dialog timing and chunk protocol. `document-transfer-contract.js` names the JavaScript side of that protocol, while a source-level contract test checks the Rust limits, kinds, commands and Tauri registration against it. Persistence receives its resolved preview Worker URL; it does not
 read platform globals or resolve deployment paths itself.
 
 Library composition injects the existing loader contract and a separate optional

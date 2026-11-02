@@ -1,4 +1,20 @@
+# 판도연구소 Windows 검수기 (E5)
+
+> **2026-11-02 E5 제품 전환:** Windows 앱은 편집기가 아니라 **읽기 전용 검수기**로 시작합니다. 기존 편집기 진입점·소스는 E6 정리 전까지 보존되지만 Windows 실행 화면이 아닙니다. Android 네이티브 신규 개발·자동 빌드는 중단했고 모바일 웹 검수는 유지합니다.
+
+Windows 검수기는 E4 웹 검수와 **동일한 공통 지도·검수 모듈**을 사용하지만 평면(flat) 지도로 표시합니다. 직접 도형 수정, 프로젝트 저장, 원본 GIS 쓰기, 라이브러리 커밋/동기화는 Windows 앱 capability에서 허용하지 않습니다. E3 검수 JSON의 수동 불러오기, 변경 전후 비교, 원본 SHA 대조, 국가 객체·보고서 조회, 사용자 확인이 필요한 수정 요청서 JSON 저장만 제공합니다.
+
+[상세 E5 설계·실행/검증 계약](../../docs/architecture/windows-review-e5.md)
+
+기존 Windows 실행·빌드 명령은 유지하되, Windows 전용 Tauri 창은 이제 `review.html`을 표시합니다. 아래 과거 개발·Android 편집기 문서는 **E0 시점 동작을 설명하는 기록**이며 현재 Windows 기능 안내가 아닙니다. 기존 편집기 코드 제거와 설명 정리는 E6에서 처리합니다.
+
+---
+
 # PandoLab Windows·Android 앱
+
+> **Editor feature freeze (E0, 2026-11-02):** Direct graphical-map editing receives no new features. Current behavior remains intact until the read/review cutover. Scope, dependency inventory and E1 gates: [editor-retirement-e0.md](../../docs/development/editor-retirement-e0.md).
+> **E1 platform decision:** Web and Windows are the migration targets. Android native development is frozen pending retirement; Android mobile web is still in scope.
+
 
 Windows MSVC x64와 Android ARM64 앱이다. 평소 개발은 Node·Git·브라우저·빌드된 앱·ADB를 사용한다.
 Rust1.99.1·C++·Android SDK/NDK 컴파일은 GitHub Actions가 담당하며 로컬 컴파일이나 SDK 자동 설치는 없다.
@@ -31,7 +47,7 @@ Android는 USB 디버깅을 허용한 ARM64 실기기를 사용한다. 여러 �
 build:*는 자료를 내장하는 offline CI 산출물 요청이다. build:verification:*는 명시적인
 verification 모드다. development와 verification을 섞을 수 없다. 일반 앱·개발 서버는 map-data만
 허용한다. test:native는 Windows CI 단위검사를 요청한다. fixture 프로필의 원격 빌드 요청은 제공하지 않는다.
-일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다.
+일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다. 컴파일된 build identity는 Rust 진단/`--build-info` 경계에만 남고 WebView 전역으로 주입하지 않는다.
 
 Windows offline 산출물에는 현재 사용자용 `PandoLab-setup.exe` 설치 프로그램이 포함된다.
 설치한 앱은 시작 메뉴에서 실행하며 설치 단계에서 바탕화면 바로가기를 선택할 수 있다.
@@ -100,7 +116,7 @@ storage is separate from normal browser sessions.
 
 ## Narrow native bridge
 
-The frontend invokes these commands through `window.__TAURI_INTERNALS__.invoke`.
+`native-platform-adapter.js` is the only frontend runtime module that reads the raw Tauri bridge and shell-injected native flags. It binds `window.__TAURI_INTERNALS__.invoke` once, then supplies explicit file/library/platform ports to the shared application runtime.
 `write_probe_file`, `read_probe_file`, and `finish_probe` exist only in explicit
 verification builds; `write_diagnostic_report` remains available in ordinary builds:
 
@@ -128,6 +144,7 @@ project import/export uses the production binary GeoPackage codec and a `.gpkg`
 picker filter. Document I/O uses 256 KiB Base64 chunks over the native IPC,
 backed by a disk spool rather than whole-file Base64 values. Maximum total
 project/GIS document size is 256 MiB, with up to 16 GIS files per import.
+`document-transfer-contract.js` owns the JavaScript-side command names, kinds and limits; `native-document-transfer-contract.test.mjs` compares them directly with the Rust constants, command functions and Tauri handler registration so cross-language drift fails CI.
 Small probe and diagnostic files retain the original 1 MiB bound. Android provider
 URIs that do not expose a file extension are rejected instead of being assigned
 a misleading GIS format. Full-project file sizes and provider-name recovery belong
@@ -142,9 +159,7 @@ The dialog plugin's Rust API returns `None` for a dismissed picker; on mobile it
 upstream API also maps picker errors to `None`, so this prototype cannot distinguish
 those picker failures from user dismissal. Read/write errors remain explicit.
 
-`--probe-auto` sets immutable `window.__PANDOLAB_SHELL_AUTO__ = true` at document
-initialization. Only that mode permits `finish_probe` to exit after the report has
-been flushed. `--diagnostic-output <absolute filename>` additionally writes a report
+`--probe-auto` sets an immutable shell verification flag at document initialization. The native adapter consumes that raw flag and passes a typed verification runtime onward; only that mode permits `finish_probe` to exit after the report has been flushed. `--diagnostic-output <absolute filename>` additionally writes a report
 to a host-selected Windows path; no frontend command accepts an output path.
 
 The CSP permits only packaged assets, native IPC, local/blob workers, and the WASM

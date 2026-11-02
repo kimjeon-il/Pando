@@ -235,7 +235,10 @@ async function hoverLifecycle(t) {
 function escapeThroughApp(fixture) {
   const listeners=new Map(),hidden={hidden:true,classList:{contains:name=>name==='hidden'},addEventListener(){},querySelector(){return null;}};
   const document={addEventListener:(type,listener)=>listeners.set(type,listener),querySelector:()=>null,activeElement:{tagName:'INPUT'},body:{classList:{contains:()=>false}}};
-  const owner=vm.runInNewContext(`(${createNavigationBindings.toString()})({productMode:'viewer'})`,{document,isMobileWorkspaceLayout:()=>false});
+  // The live navigation owner registers a resize listener on browser window.
+  // Supply that real required port to the VM, not a missing global.
+  const window={addEventListener(){}};
+  const owner=vm.runInNewContext(`(${createNavigationBindings.toString()})({productMode:'viewer'})`,{document,window,isMobileWorkspaceLayout:()=>false});
   const workspace={MOBILE_SHEET_IDS:{},surfaceController:fixture.surfaces,closeSurface:kind=>{assert.equal(kind,'search');fixture.close();}};
   owner.connect({platform:{$:()=>hidden},readinessUi:{clearNotification(){}},mapSettingsUi:{bindMapDisplayUI(){}},workspaceUiA:workspace,workspaceUiB:workspace,surfaces:{layoutMode:'wide'},projectState:{state:fixture.state}});
   owner.bindNavigationUI();listeners.get('keydown')({key:'Escape',preventDefault(){},stopImmediatePropagation(){}});

@@ -119,10 +119,11 @@ test('viewer and editor clients select fixed separate Worker entries', async t =
   };
   const viewer = fixture.createClient({ productMode: 'viewer' });
   const editor = fixture.createClient({ productMode: 'editor' });
+  const flatReview = fixture.createClient({ productMode: 'editor', readOnly: true });
   try {
-    await viewer.load('{}'); await editor.load('{}');
-    assert.equal(urls.length, 2);
-    for (const [position, entry] of ['core-viewer-session-worker.js', 'core-session-worker.js'].entries()) {
+    await viewer.load('{}'); await editor.load('{}'); await flatReview.load('{}');
+    assert.equal(urls.length, 3);
+    for (const [position, entry] of ['core-viewer-session-worker.js', 'core-session-worker.js', 'core-viewer-session-worker.js'].entries()) {
       const { url, options } = urls[position];
       assert.ok(url.pathname.endsWith('/' + fixture.meta.workerAssets['assets/js/workers/' + entry].url));
       assert.equal(url.searchParams.get('v'), fixture.meta.assetRevision);
@@ -130,8 +131,11 @@ test('viewer and editor clients select fixed separate Worker entries', async t =
       assert.equal(options.type, 'module');
     }
     assert.notEqual(urls[0].url.pathname, urls[1].url.pathname);
+    assert.equal(urls[2].url.pathname, urls[0].url.pathname, 'flat read-only app must use read-only Worker');
+    assert.equal(flatReview.readOnly, true);
+    assert.equal(flatReview.productMode, 'editor');
   } finally {
-    viewer.dispose(); editor.dispose();
+    viewer.dispose(); editor.dispose(); flatReview.dispose();
     if (hadWorker) globalThis.Worker = originalWorker; else delete globalThis.Worker;
     if (hadMeta) globalThis.PANDOLAB_BUILD_META = originalMeta; else delete globalThis.PANDOLAB_BUILD_META;
   }
@@ -180,3 +184,50 @@ test('viewer uses the same WASM for admission, timeline, selection and replaceme
   } finally { client.dispose(); await runtime.dispose(); }
 });
 
+test('flat read-only Windows session reads the actual Viewer Core without admitting editing commands', async () => {
+  const runtime = createCoreWorkerRuntime({ productMode: 'viewer', loadModule: () => loadNodeCore(),
+    validateFlagDataUrl: validateWebFlagDataUrl });
+  const initial = JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
+  const calls = [];
+  const port = {
+    terminate() {},
+    postMessage(message) {
+      if (message.type !== 'request') return;
+      calls.push(message.operation);
+      runtime.dispatch(message.operation, message.payload, context).then(result => {
+        port.onmessage({ data: { ...message, type: 'result', ok: true, result } });
+      }, error => {
+        port.onmessage({ data: { ...message, type: 'result', ok: false, error } });
+      });
+    },
+  };
+  const client = createCoreDocumentClient({ productMode: 'editor', readOnly: true, createWorker: () => port });
+  try {
+    assert.equal(client.productMode, 'editor');
+    assert.equal(client.readOnly, true);
+    const loaded = await client.load(JSON.stringify(initial));
+    assert.deepEqual(authored(loaded.project), initial);
+    const world = await client.resolveWorld('2020-01');
+    assert.equal(world.month, '2020-01');
+    const cursor = await client.setTimelineCursor('2020-01');
+    assert.equal(cursor.world.month, '2020-01');
+    const ref = { domain: 'territorial', type: 'entity', id: 'A' };
+    await client.selectionApply({ action: 'replace', ref });
+    assert.deepEqual((await client.selectionSnapshot()).items, [ref]);
+    for (const [method, args, operation] of blocked) {
+      await assert.rejects(client[method](...args), {
+        code: 'PL-PRODUCT-READONLY', productMode: 'editor', operation,
+      });
+    }
+    const state = await client.projectState();
+    assert.equal(state.dirty, false);
+    assert.equal(state.canUndo, false);
+    assert.ok(calls.includes('core.document-timeline-cursor'));
+    assert.ok(calls.includes('core.document-selection-apply'));
+    for (const [, , operation] of blocked) assert.equal(calls.includes(operation), false,
+      'blocked edit command must never reach a Viewer Core Worker: ' + operation);
+  } finally {
+    client.dispose();
+    await runtime.dispose();
+  }
+});

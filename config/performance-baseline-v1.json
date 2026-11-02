@@ -18,8 +18,8 @@
     ],
     "sovietMonth": "1989-06",
     "modernMonth": "2026-10",
-    "windowsWebView2": "separate paired benchmark, not directly comparable",
-    "android": "deferred",
+    "windowsWebView2": "separate startup-memory diagnostic, not directly comparable",
+    "android": "not measured by the Windows startup-memory diagnostic",
     "qtRenderer": "excluded"
   },
   "datasets": {
@@ -140,10 +140,10 @@
       ]
     },
     {
-      "id": "windows-webview-paired",
+      "id": "windows-webview-startup-memory",
       "owner": "integration",
       "level": "windows-only",
-      "workflow": ".github/workflows/integration-windows-startup-memory-ab-20261016.yml",
+      "workflow": ".github/workflows/integration-windows-startup-memory-20261016.yml",
       "tests": [
         "apps/editor/measure-windows-startup.ps1"
       ]

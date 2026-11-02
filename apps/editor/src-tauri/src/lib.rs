@@ -5,6 +5,8 @@ mod library_commands;
 mod storage;
 mod document_transfer;
 mod runtime_options;
+#[cfg(windows)]
+mod review_correction;
 
 use serde::Serialize;
 #[cfg(feature = "verification")]
@@ -32,8 +34,8 @@ fn shell_initialization() -> String {
     format!(
         "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});\
          Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});\
-         Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_BUILD_INFO', {{ value: Object.freeze({}), writable: false, configurable: false }});",
-        cfg!(windows), cfg!(feature = "verification"), NATIVE_BUILD_INFO
+         Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_REVIEW', {{ value: {}, writable: false, configurable: false }});",
+        cfg!(windows), cfg!(feature = "verification"), cfg!(windows)
     )
 }
 
@@ -211,10 +213,12 @@ async fn finish_probe(
 fn local_navigation(url: &tauri::Url) -> bool {
     #[cfg(feature = "development")]
     if url.scheme() == "http" && url.host_str() == Some("127.0.0.1") && url.port() == Some(4175)
-        && url.username().is_empty() && url.password().is_none() { return true; }
+        && url.username().is_empty() && url.password().is_none()
+        && (!cfg!(windows) || url.path()=="/review.html") { return true; }
     url.username().is_empty()
         && url.password().is_none()
         && url.port().is_none()
+        && (!cfg!(windows) || url.path()=="/review.html")
         && matches!(
             (url.scheme(), url.host_str()),
             ("tauri", Some("localhost")) | ("http" | "https", Some("tauri.localhost"))
@@ -232,11 +236,9 @@ pub fn run() {
     #[cfg(feature = "verification")]
     let probe_script = {
         let auto = _options.auto;
-        let physical_immediate = _options.auto && _options.physical_immediate;
         let probe_hold_ms = if _options.probe_hold_ms > 0 { _options.probe_hold_ms } else { 500 };
         format!(
             "Object.defineProperty(window, '__PANDOLAB_SHELL_AUTO__', {{ value: {auto}, writable: false }});\
-             Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_PHYSICAL_IMMEDIATE__', {{ value: {physical_immediate}, writable: false }});\
              Object.defineProperty(window, '__PANDOLAB_SHELL_PROBE_HOLD_MS__', {{ value: {probe_hold_ms}, writable: false }});"
         )
     };
@@ -256,6 +258,7 @@ pub fn run() {
             #[cfg(feature = "verification")] read_probe_file,
             #[cfg(feature = "verification")] finish_probe,
             write_diagnostic_report,
+            #[cfg(windows)] review_correction::save_review_correction,
             document_transfer::begin_document_write, document_transfer::append_document_chunk,
             document_transfer::finish_document_write, document_transfer::begin_document_read,
             document_transfer::read_document_chunk, document_transfer::abort_document_transfer,
@@ -264,8 +267,10 @@ pub fn run() {
             library_commands::library_conflict,
             library_commands::library_open_geometry, library_commands::library_read_external_changes, library_commands::library_read_candidate])
         .setup(move |app| {
-            let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                .title("PandoLab 시험용")
+            let entry = if cfg!(windows) { "review.html" } else { "index.html" };
+            let title = if cfg!(windows) { "판도연구소 — 검수기" } else { "PandoLab 시험용" };
+            let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App(entry.into()))
+                .title(title)
                 .inner_size(1280.0, 820.0)
                 .on_navigation(local_navigation)
                 .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
@@ -292,10 +297,11 @@ mod tests {
     use super::local_navigation;
     #[test]
     fn navigation_allows_only_packaged_asset_origins() {
+        let page = if cfg!(windows) { "review.html" } else { "index.html" };
         for url in [
-            "tauri://localhost/index.html",
-            "http://tauri.localhost/index.html",
-            "https://tauri.localhost/index.html",
+            format!("tauri://localhost/{page}"),
+            format!("http://tauri.localhost/{page}"),
+            format!("https://tauri.localhost/{page}"),
         ] {
             assert!(local_navigation(&url.parse().unwrap()), "{url}");
         }
@@ -312,6 +318,8 @@ mod tests {
         ] {
             assert!(!local_navigation(&url.parse().unwrap()), "{url}");
         }
-        assert_eq!(local_navigation(&"http://127.0.0.1:4175/index.html".parse().unwrap()), cfg!(feature = "development"));
+        assert_eq!(local_navigation(&"http://127.0.0.1:4175/review.html".parse().unwrap()), cfg!(feature = "development"));
+        assert_eq!(local_navigation(&"http://127.0.0.1:4175/index.html".parse().unwrap()), cfg!(feature = "development")&&!cfg!(windows));
+        if cfg!(windows) { assert!(!local_navigation(&"tauri://localhost/index.html".parse().unwrap())); }
     }
 }

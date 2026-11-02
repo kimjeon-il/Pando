@@ -21,8 +21,19 @@ export const runtimeDependencies = Object.freeze({
   'assets/js/workers/canvas-render-worker.js': ['assets/js/vendor/d3.min.js', 'assets/js/workers/geographic-boundary-core.js',
     'assets/js/workers/canvas-scene-composition-core.js', 'assets/js/workers/canvas-terrain-dem-core.js', 'assets/js/modules/terrain-manifest.js'],
   'assets/js/workers/project-read-worker.js': ['assets/js/vendor/sql/sql-wasm.js', 'assets/js/vendor/sql/sql-wasm.wasm'],
+  // Native shell loads only these six version-pinned modules through its
+  // injected loader port. Their identities are fixed; only asset revisions vary.
+  'shell/native-platform-adapter.js': [
+    'apps/editor/frontend/js/modules/native-library-repository.js',
+    'apps/editor/frontend/js/modules/library-geometry-context.js',
+    'apps/editor/frontend/js/modules/territorial-entity-loader.js',
+    'apps/editor/frontend/js/modules/territorial-library-service.js',
+    'shared/frontend/js/modules/platform-ports.js',
+    'shared/frontend/js/modules/platform-runtime.js',
+  ],
 });
 export const dynamicExpressions = Object.freeze({
+  'shell/native-platform-adapter.js': ['url'],
   'assets/js/modules/core-wasm-loader.js': ['url'],
   'assets/js/workers/canvas-render-worker.js': ['validationUrl.href'],
   'assets/js/workers/place-worker.js': ['storeModuleUrl.href'],

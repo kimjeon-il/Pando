@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "proposal": {
+    "proposalId": "fixture-review-001",
+    "createdAt": "2026-11-02T01:00:00.000Z",
+    "createdBy": "ai",
+    "dataset": {
+      "repository": "kimjeon-il/PandoLab-library-data",
+      "baseRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "candidateRevision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "comparisonMonth": "1914-07",
+    "supersedesProposalId": null,
+    "evidence": [
+      {
+        "id": "research-map",
+        "reportPath": "reports/borders/reconstruction/synthetic-1914-boundary.md",
+        "revision": "cccccccccccccccccccccccccccccccccccccccc"
+      },
+      {
+        "id": "research-meta",
+        "reportPath": "reports/development/ui/synthetic-review-context.md",
+        "revision": "cccccccccccccccccccccccccccccccccccccccc"
+      }
+    ],
+    "changes": [
+      {
+        "sourceEntityId": "state:EXAMPLE_A",
+        "kind": "geometry",
+        "field": "geometry",
+        "validFrom": "1914-07-15",
+        "validTo": "1914-08",
+        "before": {
+          "versionId": "prior-version",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "after": {
+          "versionId": "new-version",
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "evidenceIds": [
+          "research-map"
+        ]
+      },
+      {
+        "sourceEntityId": "state:EXAMPLE_A",
+        "kind": "name",
+        "field": "names.ko.formal",
+        "validFrom": "1914",
+        "validTo": "1915",
+        "before": "이전 정식 명칭",
+        "after": "변경된 정식 명칭",
+        "evidenceIds": [
+          "research-meta"
+        ]
+      },
+      {
+        "sourceEntityId": "state:EXAMPLE_A",
+        "kind": "flag",
+        "field": "metadata.flagHistory",
+        "validFrom": "1914-07",
+        "validTo": null,
+        "before": null,
+        "after": {
+          "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        },
+        "evidenceIds": [
+          "research-meta"
+        ]
+      },
+      {
+        "sourceEntityId": "state:EXAMPLE_A",
+        "kind": "parent",
+        "field": "parentEntityId",
+        "validFrom": "1914-07",
+        "validTo": null,
+        "before": null,
+        "after": "state:EXAMPLE_B",
+        "evidenceIds": [
+          "research-map"
+        ]
+      },
+      {
+        "sourceEntityId": "state:EXAMPLE_B",
+        "kind": "lifetime",
+        "field": "lifetime",
+        "validFrom": "1914-07",
+        "validTo": null,
+        "before": null,
+        "after": {
+          "validFrom": "1914-07",
+          "validTo": null
+        },
+        "evidenceIds": [
+          "research-meta"
+        ]
+      }
+    ]
+  },
+  "events": []
+}

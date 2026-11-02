@@ -235,7 +235,7 @@ test('common entity actions await completion inside the existing operation error
 test('flat/globe input reads current zoom and movement transitions stay single-shot', () => {
   let inputOptions,state={mapMoving:false,projection:'flat',view:{flatZoom:2,globeZoom:3},tool:'select'};
   const events=[],window=fakeWindow();window.addEventListener('pandolab:interaction-state',event=>events.push(event.detail.active));
-  const bridge=createMapInputPresentation({productMode:'editor',window,navigator:{},getRevision:()=>1,mapInteractionGate:{},
+  const bridge=createMapInputPresentation({reservedTargetSelector:'button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker',window,navigator:{},getRevision:()=>1,mapInteractionGate:{},
     createMapInputController:options=>{inputOptions=options;return {destroy(){}};},
     editing:{domain:{clearDraftHover(){}},getDraftSnapshot:()=>({}),dispatchInteraction(){}},
     ports:{platform:{$:()=>new FakeElement(),d3:{select:()=>({on(){return this;}})}},
@@ -255,7 +255,7 @@ test('shared input uses canonical state and reports a hover rejection with its o
  const events=[],errors=[],state={mapMoving:false,tool:'select',projection:'flat',view:{flatZoom:2,globeZoom:3}};
  const hover={on(name,fn){events[name]=fn;return this;}},window=fakeWindow();
  const failure=new Error('selection rejected');
- const bridge=createMapInputPresentation({productMode:'viewer',window,navigator:{},getRevision:()=>1,
+ const bridge=createMapInputPresentation({reservedTargetSelector:'button,input,select,textarea,a,[contenteditable="true"]',window,navigator:{},getRevision:()=>1,
   createMapInputController:()=>({destroy(){}}),mapInteractionGate:{},
   ports:{platform:{$:()=>new FakeElement(),d3:{select:()=>hover}},projectState:{state},renderScene:{},renderQuality:{},rendering:{},navigation:{},mapView:{},objectPicking:{},surfaces:{},
    pointerInteractionA:{cancelCountryHoverPick(){}},pointerInteractionB:{},interactionStateCommands:{setHoverHit(){}},
@@ -270,7 +270,7 @@ test('both products select once and discard touch releases after replacement or 
   const map=new FakeElement(),state={tool:'select',projection:'flat',view:{flatZoom:1,globeZoom:1}},window=fakeWindow();let clicks=0,clickHandler,revision=1;
   map.getBoundingClientRect=()=>({left:0,top:0});
   const d3={select:()=>({on(){return this;}}),mouse:()=>[20,20]},targets=createPointerTargets();targets.connect({platform:{d3},projectState:{state}});
-  const bridge=createMapInputPresentation({productMode,window,navigator:{},createMapInputController,getRevision:()=>revision,
+  const bridge=createMapInputPresentation({window,navigator:{},createMapInputController,getRevision:()=>revision,reservedTargetSelector:productMode==='editor'?'button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker':'button,input,select,textarea,a,[contenteditable="true"]',
    mapInteractionGate:createMapInteractionGate(),
    editing:productMode==='editor'?{domain:{draftInputActive:()=>false},getDraftSnapshot:()=>({inputPhase:'idle'})}:null,
    ports:{platform:{$:()=>map,d3},projectState:{state},renderScene:{},renderQuality:{},rendering:{},navigation:{},mapView:{},surfaces:{isMobile:()=>true},
@@ -288,7 +288,7 @@ test('both products select once and discard touch releases after replacement or 
 
 test('map pinch cancellation waits for the draft owner and reports a rejected Core acknowledgement once', async () => {
   let inputOptions,reject;const pending=new Promise((resolve,fail)=>{reject=fail;}),errors=[],dispatched=[];
-  const bridge=createMapInputPresentation({productMode:'editor',window:fakeWindow(),navigator:{},getRevision:()=>1,mapInteractionGate:{},
+  const bridge=createMapInputPresentation({reservedTargetSelector:'button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker',window:fakeWindow(),navigator:{},getRevision:()=>1,mapInteractionGate:{},
     createMapInputController:options=>{inputOptions=options;return {destroy(){}};},
     editing:{domain:{cancelActiveGesture:()=>pending},dispatchInteraction:(...args)=>{dispatched.push(args);return true;}},
     ports:{platform:{$:()=>new FakeElement(),d3:{select:()=>({on(){return this;}})}},projectState:{},rendering:{},renderScene:{},renderQuality:{},domains:{},

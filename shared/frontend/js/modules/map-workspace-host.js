@@ -4,8 +4,8 @@ import { createProductModePolicy } from './product-mode-policy.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapHost({productMode='editor'}={}) {
-  const productPolicy=createProductModePolicy(productMode);
+export function createMapHost({productMode='editor',readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat'}={}) {
+  const productPolicy=createProductModePolicy(productMode,{readOnly,projection});
   let dependencies;
   let svg;
   let interactionSvg;
@@ -264,7 +264,7 @@ export function createMapHost({productMode='editor'}={}) {
       .attr('focusable', 'false'));
     const baseRoot = dependencies.mapLayers.baseSvg.append('g').attr('class', 'map-base-root');
     dependencies.mapHostCommands.installFlatOceanLayer(baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat'));
-    if(productMode==='viewer') {
+    if(productPolicy.projection==='globe') {
       oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
       shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
     }
@@ -274,7 +274,7 @@ export function createMapHost({productMode='editor'}={}) {
     mapEl.appendChild(gpuCanvas);
     svg = map.append('svg').attr('class', 'map-svg map-overlay-svg');
     attachMapOutput({overlaySvg:svg,gpuCanvas});
-    ({interactionSvg,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer}=createMapOverlayLayers({map,svg}));
+    ({interactionSvg,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer}=createMapOverlayLayers({map,svg,productMode,readOnly}));
 
     dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
   }
@@ -436,7 +436,8 @@ export function createMapHost({productMode='editor'}={}) {
   });
 }
 
-export function createMapOverlayLayers({map,svg,productMode='editor'}){
+export function createMapOverlayLayers({map,svg,productMode='editor',readOnly=productMode==='viewer'}){
+    const editOverlays=productMode==='editor'&&!readOnly;
     const interactionSvg = map.append('svg').attr('class', 'map-interaction-svg');
     const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
     const root = svg.append('g').attr('class', 'map-root');
@@ -445,7 +446,7 @@ export function createMapOverlayLayers({map,svg,productMode='editor'}){
     const hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
     const hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
     const hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
-    const boundaryEditLayer = productMode==='editor'?root.append('g').attr('class', 'boundary-edit-layer'):null;
+    const boundaryEditLayer = editOverlays?root.append('g').attr('class', 'boundary-edit-layer'):null;
     const overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
     const territorialBoundaryLayer = root.append('g').attr('class', 'territorial-boundary-layer');
     const territorialUnitLayer = overlayStackLayer;
@@ -453,12 +454,12 @@ export function createMapOverlayLayers({map,svg,productMode='editor'}){
     const genericFeatureLayer = overlayStackLayer;
     const hoverLayer = root.append('g').attr('class', 'hover-overlay-layer');
     const selectionLayer = root.append('g').attr('class', 'selection-overlay-layer');
-    const previewLayer = productMode==='editor'?root.append('g').attr('class', 'geometry-preview-layer'):null;
-    const validationLayer = productMode==='editor'?root.append('g').attr('class', 'validation-overlay-layer'):null;
-    const vertexLayer = productMode==='editor'?root.append('g').attr('class', 'vertices-layer'):null;
-    const draftLayer = productMode==='editor'?root.append('g').attr('class', 'draft-layer'):null;
-    const snapLayer = productMode==='editor'?root.append('g').attr('class', 'snap-indicator-layer'):null;
-    const territorialOperationLayer = productMode==='editor'?interactionRoot.append('g').attr('class', 'territorial-operation-layer'):null;
+    const previewLayer = editOverlays?root.append('g').attr('class', 'geometry-preview-layer'):null;
+    const validationLayer = editOverlays?root.append('g').attr('class', 'validation-overlay-layer'):null;
+    const vertexLayer = editOverlays?root.append('g').attr('class', 'vertices-layer'):null;
+    const draftLayer = editOverlays?root.append('g').attr('class', 'draft-layer'):null;
+    const snapLayer = editOverlays?root.append('g').attr('class', 'snap-indicator-layer'):null;
+    const territorialOperationLayer = editOverlays?interactionRoot.append('g').attr('class', 'territorial-operation-layer'):null;
     const territorialLabelLayer = root.append('g').attr('class', 'territorial-label-layer');
     const labelLayer = root.append('g').attr('class', 'labels-layer');
     const interactionLayers = [[territorialOperationLayer, 'edit-preview'], [hoverLayer, 'hover'],

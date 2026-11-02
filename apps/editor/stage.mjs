@@ -31,7 +31,7 @@ export function validateShellProfile(profile, verification) {
 }
 
 /** Ordinary app builds always use the real world; fixture staging is verification-only. */
-export async function stagePrototype({ root = repository, profile = 'map-data', verification = false } = {}) {
+export async function stagePrototype({ root = repository, profile = 'map-data', verification = false, windowsReview = false } = {}) {
   validateShellProfile(profile, verification);
   const parent = editorStageRoot(root);
   await mkdir(parent, { recursive: true });
@@ -50,7 +50,7 @@ export async function stagePrototype({ root = repository, profile = 'map-data', 
       else removeStagedDirectory({root,directory:previous});
     }
     if (await exists(pending)) removeStagedDirectory({root,directory:pending});
-    const result = await stageOwnedPrototype({ root, profile, verification, directory: pending });
+    const result = await stageOwnedPrototype({ root, profile, verification, windowsReview, directory: pending });
     if (await exists(directory)) await renameStageDirectory(directory, previous);
     try { await renameStageDirectory(pending, directory); }
     catch (error) { if (await exists(previous)) await renameStageDirectory(previous, directory); throw error; }
@@ -63,14 +63,14 @@ export async function stagePrototype({ root = repository, profile = 'map-data', 
   finally { await lock.close(); await unlink(lockPath); }
 }
 
-export async function createDevelopmentAssets({ root = repository, profile = 'map-data' } = {}) {
+export async function createDevelopmentAssets({ root = repository, profile = 'map-data', windowsReview = true } = {}) {
   const assets = new Map();
-  const evidence = await stageOwnedPrototype({ root, profile, verification: false, assets, directory: null });
+  const evidence = await stageOwnedPrototype({ root, profile, verification: false, windowsReview, assets, directory: null });
   assets.set('shell/stage-evidence.json', { bytes: Buffer.from(JSON.stringify({ ...evidence, executionMode: 'development' })) });
   return { assets, evidence };
 }
 
-async function stageOwnedPrototype({ root, profile, verification, directory, assets = null }) {
+async function stageOwnedPrototype({ root, profile, verification, windowsReview = false, directory, assets = null }) {
   validateShellProfile(profile, verification);
   root = resolve(root);
   const storage = assets ? null : storageSettings(root);
@@ -115,7 +115,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
   }
   await emit(manifestPath, manifestBytes, snapshot.assets.get(manifestPath).sourcePath);
   for(const [path,entry] of snapshot.assets) {
-    if(path==='index.html'||path==='.nojekyll'||path.startsWith('shell/')||path.startsWith('assets/wasm/')||entry.product==='viewer')continue;
+    if(path==='index.html'||path==='.nojekyll'||path.startsWith('shell/')||path.startsWith('assets/wasm/')||(!windowsReview&&entry.product==='viewer'))continue;
     if(profile==='test-fixture'&&path.startsWith('assets/data/'))continue;
     let bytes=entry.bytes;
     await emit(path,bytes,entry.sourcePath);
@@ -132,8 +132,21 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
   if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
   await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
     .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/editor/templates/index.html');
-  const shellFiles = ['startup.js', 'runtime-profile.js', 'native-storage.js', 'network-guard.js'];
+  if(windowsReview){
+    if(profile!=='map-data')throw new Error('Windows inspection requires the pinned map-data profile.');
+    let reviewer=snapshot.html.viewer;
+    if(!reviewer.includes('assets/js/viewer.js')||!reviewer.includes('id="reviewPanel"'))
+      throw new Error('The canonical E4 review entrypoint is unavailable.');
+    reviewer=reviewer.replace('<title>판도연구소</title>','<title>판도연구소 — 검수기</title>');
+    if(verification){
+      if(!reviewer.includes('</body>'))throw new Error('Windows review verification requires complete HTML.');
+      reviewer=reviewer.replace('</body>','<script type="module" src="shell/review-probe.js"></script>\n</body>');
+    }
+    await emit('review.html',reviewer,'apps/viewer/templates/index.html');
+  }
+  const shellFiles = ['startup.js', 'runtime-profile.js', 'native-platform-adapter.js', 'document-transfer-contract.js', 'native-storage.js', 'network-guard.js'];
   if (verification) shellFiles.push('verification.js', 'probe-storage.js', 'diagnostics.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css');
+  if (verification && windowsReview) shellFiles.push('review-probe.js');
   for (const file of shellFiles) {
     let bytes = snapshot.assets.get('shell/'+file)?.bytes || await readFile(join(here,file));
     if (file === 'startup.js' && verification) {
@@ -201,7 +214,7 @@ async function stageOwnedPrototype({ root, profile, verification, directory, ass
     trackedDiffSha256 = hash(execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, windowsHide: true, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore','pipe','pipe'] }));
   } catch { /* Synthetic staging tests have no Git directory. */ }
   const dataPin = await exists(join(root, 'config/library-data.json')) ? JSON.parse(await readFile(join(root, 'config/library-data.json'), 'utf8')) : null;
-  const result = { schema: 'pandolab-web-shell-stage', frontendInputSha256:snapshot.sourceSha256, dataRevision:snapshot.dataRevision, profile, verification, directory, commit, trackedDiffSha256,
+  const result = { schema: 'pandolab-web-shell-stage', frontendInputSha256:snapshot.sourceSha256, dataRevision:snapshot.dataRevision, profile, verification, nativeEntry:windowsReview?'review.html':'index.html', directory, commit, trackedDiffSha256,
     dataRepository: dataPin?.repository, dataCommit: dataPin?.revision,
     coreSourceSha256: coreManifest.sourceSha256 || null,
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,
@@ -221,6 +234,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const profile = process.argv.find(arg => arg.startsWith('--profile='))?.slice('--profile='.length)
     || process.env.PANDOLAB_SHELL_PROFILE || 'map-data';
   const verification = process.argv.includes('--verification') || process.env.PANDOLAB_SHELL_VERIFICATION === '1';
-  const result = await stagePrototype({ profile, verification });
+  const windowsReview = process.argv.includes('--windows-review') || process.env.PANDOLAB_NATIVE_REVIEW === '1';
+  const result = await stagePrototype({ profile, verification, windowsReview });
   console.log(`Staged ${result.profile}: ${result.files.length} files, ${result.bytes} bytes, ${result.worldData?.countryCount || result.fixture?.entityCount} entities (${result.commit}).`);
 }
