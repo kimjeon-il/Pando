@@ -1,8 +1,6 @@
-export function createMapInputPresentation({productMode,ports,window,navigator,createMapInputController,getRevision,mapInteractionGate,editing:editingHooks=null} = {}) {
-  if(!['viewer','editor'].includes(productMode))throw new TypeError('Map input requires explicit product mode.');
-  const editing=productMode==='editor';
-  if(!editing&&editingHooks)throw new TypeError('Viewer input cannot register editing hooks.');
-  if(editing&&!editingHooks)throw new TypeError('Editor input requires its editing hooks.');
+export function createMapInputPresentation({ports,window,navigator,createMapInputController,getRevision,mapInteractionGate,editing:editingHooks=null,reservedTargetSelector=''} = {}) {
+  const editing=editingHooks!==null;
+  if(typeof reservedTargetSelector!=='string')throw new TypeError('Map input reserved target selector must be a string.');
   if(typeof ports?.feedback?.reportOperationError!=='function')throw new TypeError('Map input requires its operation error reporter.');
   const reportOperationError=(error,code)=>ports.feedback.reportOperationError(error,'지도 입력을 적용하지 못했습니다.',code,4200);
   const {$,d3}=ports.platform;
@@ -93,7 +91,7 @@ export function createMapInputPresentation({productMode,ports,window,navigator,c
       element: $('map'),
       isInputBlocked: () => getInputSnapshot().projectReplacing,
       interactiveTarget: (target, event) => {
-        if (target?.closest?.('button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker')) return true;
+        if (reservedTargetSelector && target?.closest?.(reservedTargetSelector)) return true;
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
