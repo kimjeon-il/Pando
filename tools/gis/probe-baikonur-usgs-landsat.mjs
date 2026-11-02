@@ -79,6 +79,10 @@ export async function probePublicDomainBaikonurScenes({fetcher=fetch,signal}={})
       const value=await fetchBoundedJson(url,{fetcher,signal,timeoutMs:22000,limit:3_000_000,
         headers:{Accept:'application/geo+json, application/json',
           'User-Agent':'PandoLab-independent-USGS-riverbank-audit/1.0'}});
+      row.rawStacSceneCount=Array.isArray(value?.features)?value.features.length:null;
+      row.sampleAssetKeys=Array.isArray(value?.features)&&value.features.length
+        ?Object.keys(value.features[0].assets||{}).slice(0,20):[];
+      row.sampleGreenHrefScheme=value?.features?.[0]?.assets?.green?.href?.split(':')?.[0]||null;
       const screened=filterUsableLandsatScenes(value);
       Object.assign(row,screened);
       row.status=screened.matchedInQuery?'public-domain-scenes-discovered'
@@ -101,7 +105,10 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     writeFileSync(resolve(argv[1]),JSON.stringify(data,null,2)+'\n',{flag:'wx'});
     console.log('BAIKONUR_PUBLIC_DOMAIN_LANDSAT='+JSON.stringify({
       bankSections:data.bankSections.map(row=>({pair:row.officialTreatyPointPair,
-        status:row.status,scenes:row.matchedInQuery||0,selected:row.candidates?.map(x=>x.sceneId)||[]})),
+        status:row.status,scenes:row.matchedInQuery||0,
+        rawScenes:row.rawStacSceneCount||0,rejected:row.rejected||{},
+        greenScheme:row.sampleGreenHrefScheme||null,
+        selected:row.candidates?.map(x=>x.sceneId)||[]})),
       rights:data.reuseRights,sourceOnly:true,
     }));
   }catch(error){console.error(error.stack);process.exitCode=1;}
