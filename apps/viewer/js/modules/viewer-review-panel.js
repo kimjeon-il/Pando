@@ -101,7 +101,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
   const err=(message)=>{const node=get('reviewLoadStatus');text(node,message);node.dataset.tone='error';};
   const feedback=(id,message,tone)=>{const node=get(id);text(node,message);if(node)node.dataset.tone=tone||'';};
   let current=null,chosenEntity=null,chosenChange=null,activeFetch=null,requestSerial=0;
-  let trigger=null,disposed=false,rawObjectBytes=new Map();
+  let trigger=null,disposed=false,rawObjectBytes=new Map(),loadSerial=0;
   function open(sourceButton=button){
     if(disposed)return;
     trigger=sourceButton;panel.hidden=false;
@@ -110,7 +110,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
   }
   function close(){
     if(disposed)return;
-    abortFetch();panel.hidden=true;
+    loadSerial++;abortFetch();panel.hidden=true;
     button.setAttribute('aria-expanded','false');mobileButton?.setAttribute('aria-expanded','false');
     trigger?.focus?.();
   }
@@ -166,7 +166,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     get('reviewCompareSection').hidden=selected?.kind!=='geometry';
     get('reviewGeometryPreviews').hidden=true;
     feedback('reviewCompareStatus','원본 형상을 아직 비교하지 않았습니다.');
-    get('reviewCorrectionKind').value=selected?.kind==='geometry'?'geometry':selected?.kind==='name'||selected?.kind==='flag'||selected?.kind==='parent'?'attribute':selected?.kind==='lifetime'?'date':'other';
+    get('reviewIssueKind').value=selected?.kind==='geometry'?'geometry':selected?.kind==='name'||selected?.kind==='flag'||selected?.kind==='parent'?'attribute':selected?.kind==='lifetime'?'date':'other';
     renderReportLinks();
   }
   function selectEntity(id){
@@ -220,18 +220,18 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
   }
   async function loadEvidence(inputFiles){
     if(disposed)return;
-    const ticket=++requestSerial;
+    const ticket=++loadSerial;
     feedback('reviewLoadStatus','검수 파일과 SHA-256을 검사하는 중…');
     try{
       const result=await readReviewEvidenceFiles(inputFiles,{subtle:window.crypto?.subtle});
-      if(ticket!==requestSerial||disposed)return;
+      if(ticket!==loadSerial||disposed)return;
       abortFetch();current=result.inspection;
       chosenEntity=null;chosenChange=null;rawObjectBytes=new Map();
       get('reviewSearch').value='';get('reviewKindFilter').value='';
       renderSummary(result.checksumVerified);
       if(current.entities.length)selectEntity(current.entities[0].sourceEntityId);
       else {get('reviewDetail').hidden=true;renderBrowse();}
-    }catch(error){if(ticket===requestSerial){err('검수 파일을 적용하지 않았습니다: '+error.message);onError(error);}
+    }catch(error){if(ticket===loadSerial&&!disposed){err('검수 파일을 적용하지 않았습니다: '+error.message);onError(error);}
     }finally{get('reviewEvidenceInput').value='';}
   }
   async function focusOnMap(){
