@@ -84,6 +84,20 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
   const initial=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month);
   expect(initial).toMatch(/^\d{4}-\d{2}$/);
   const earlier=String(Number(initial.slice(0,4))-1)+'-12';
+  const glDetails=await page.evaluate(()=>{
+    const canvas=document.getElementById('viewerCanvas'),gl=canvas?.getContext('webgl2');
+    const info=gl?.getExtension('WEBGL_debug_renderer_info');
+    return {
+      webglVersion:gl?.getParameter(gl.VERSION)??null,
+      vendor:gl?.getParameter(gl.VENDOR)??null,
+      renderer:gl?.getParameter(gl.RENDERER)??null,
+      unmaskedRenderer:info?gl.getParameter(info.UNMASKED_RENDERER_WEBGL):null,
+      unmaskedVendor:info?gl.getParameter(info.UNMASKED_VENDOR_WEBGL):null,
+      attributes:gl?.getContextAttributes?.()??null,
+      canvasSize:[canvas.width,canvas.height],dpr:devicePixelRatio
+    };
+  });
+  console.log('PANDO_GL_BACKEND '+JSON.stringify(glDetails));
 
   const cdp=await page.context().newCDPSession(page);
   let traceLive=false;
