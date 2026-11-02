@@ -4,6 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
+import {scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -92,6 +93,20 @@ test('generation metadata streams each source record in source order with all se
   const wrong=structuredClone(input.specification);wrong.files.find(file=>file.file.endsWith('.dbf')).sha256='0'.repeat(64);
   await assert.rejects(scanHydroRegionMetadata({...input,specification:wrong,onRecord:()=>{}}),/hash/i);
 });
+test('source metadata and native scoring stream in order across bounded batches',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-score-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),batches=[];
+    const result=await scoreHydroSourceMetadata({...input,batchSize:2,onBatch:rows=>batches.push(rows)},
+      {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(result,{region:'eu',records:3});assert.deepEqual(batches.map(rows=>rows.length),[2,1]);
+    assert.deepEqual(batches.flat().map(row=>row.id),[101,102,103]);
+    assert.equal(batches[0][0].stage,null);assert.ok(Number.isFinite(batches[0][0].score));
+    assert.ok(batches.flat().every(row=>row.width>=0.55&&row.width<=2.6));
+    await assert.rejects(scoreHydroSourceMetadata({...input,batchSize:0,onBatch:()=>{}},{}),/batch/i);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(scoreHydroSourceMetadata({...input,onBatch:()=>{}},{signal:controller.signal}),{name:'AbortError'});
+  });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];
   const manifest={sources:{hydroRivers:regions.map(datasetCode=>({datasetCode,files:[]}))}};

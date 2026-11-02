@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {readHydroSources} from './hydro-source-reader.mjs';
+import {readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/connectivity-junctions.cpp',
@@ -228,6 +228,24 @@ export async function scoreHydroFeaturePolicies(features,options={}){
     throw Error('Explicit bounded Hydro feature policy inputs required');
   if(!features.length)return [];
   return validateHydroFeaturePolicies(await runHydroConnectivity({mode:'feature-policies',features},options),features);
+}
+// onBatch receives provisional rows until the source reader verifies the DBF hash and CRC.
+export async function scoreHydroSourceMetadata({archive,specification,onBatch,batchSize=4096}={},options={}){
+  options.signal?.throwIfAborted();
+  if(typeof onBatch!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>100000)
+    throw Error('Explicit bounded Hydro score batch consumer required');
+  let pending=[];
+  const flush=async()=>{
+    if(!pending.length)return;
+    const records=pending;pending=[];
+    const policies=await scoreHydroFeaturePolicies(records.map(row=>({order:row.order,flow:row.flow,
+      upstreamArea:row.upstreamArea,lakeArea:0,zoom:0})),options);
+    options.signal?.throwIfAborted();
+    await onBatch(records.map((row,i)=>({...row,score:policies[i].score,stage:policies[i].riverStage,width:policies[i].width})));
+  };
+  const receipt=await scanHydroRegionMetadata({archive,specification,signal:options.signal,onRecord:async row=>{
+    pending.push(row);if(pending.length===batchSize)await flush();}});
+  await flush();options.signal?.throwIfAborted();return receipt;
 }
 export async function auditHydroParts({parts,raw,sourceOrder},options){
   if(!parts||!raw||!Array.isArray(sourceOrder))throw Error('Explicit Hydro parts, originals and source order required');
