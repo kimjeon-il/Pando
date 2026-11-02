@@ -17,6 +17,23 @@ import {prepareRasterTrainingTile,prepareReviewedTrainingTile,verifiedPrimaryTra
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 import {validateSemapTrainingCorpus} from './validate-semap.mjs';
+import {REFERENCE_BOUNDARY_CHANNELS} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
+
+// Transferred weights do not carry a verified optimizer or epoch history.
+export function diagnosticTrainingProgress(receipt){
+  if(receipt===null)return {trainingBatches:null,optimizerUpdates:null,skippedUpdates:null,trainingLoss:null,
+    validationLoss:null,unobservedChannels:null,epochComplete:null};
+  if(!receipt||!['attemptedBatches','optimizerUpdates','skippedUpdates','unobservedMask','cursor','orderLength'].every(key=>
+    Number.isSafeInteger(receipt[key])&&receipt[key]>=0)||receipt.attemptedBatches<1||
+    receipt.optimizerUpdates+receipt.skippedUpdates!==receipt.attemptedBatches||receipt.unobservedMask>127||
+    receipt.orderLength<1||receipt.cursor>receipt.orderLength)throw Error('Invalid diagnostic training progress');
+  const complete=receipt.cursor===receipt.orderLength;
+  if(complete&&(!Number.isFinite(receipt.epochLossSum)||!Number.isSafeInteger(receipt.epochLossCount)||receipt.epochLossCount<1))
+    throw Error('Invalid diagnostic training progress loss');
+  return {trainingBatches:receipt.attemptedBatches,optimizerUpdates:receipt.optimizerUpdates,skippedUpdates:receipt.skippedUpdates,
+    trainingLoss:complete?receipt.epochLossSum/receipt.epochLossCount:null,validationLoss:null,
+    unobservedChannels:REFERENCE_BOUNDARY_CHANNELS.filter((_,index)=>(receipt.unobservedMask&(1<<index))!==0),epochComplete:complete};
+}
 
 // The native model supplies probabilities; original RGB and the training
 // tensors use the same channel-major ordering as the existing diagnostic.
@@ -198,7 +215,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
       trainingCorpusVerified:false,trainingCorpusFingerprintMatched:combined,optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(combined?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint,viewCorpus}:{}),
     ...(reviewed?{reviewCorpusSha256:reviewHash,sourceSplit:sheet.split,diagnosticOnly:true}:{}),
-    ...(parity?{parity}:{}),trainingOnly:true,independentEvaluation:false,releaseApproved:false};
+    ...(parity?{parity}:{}),...diagnosticTrainingProgress(weights?null:receipt),trainingOnly:true,independentEvaluation:false,releaseApproved:false};
 }
 
 export function diagnoseMacroTrainingSource(request,options){return diagnoseSource(request,options);}
@@ -226,9 +243,12 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(new Set(ids).size!==ids.length)throw Error('Unique diagnostic sources required');
   const checkpointPath=resolve(weights||checkpoint),receiptPath=weights?resolve(dirname(checkpointPath),'transfer.json'):checkpointPath+'.receipt.json',corpusPath=resolve(corpus);
   const checkpointHash=trainingFileIdentity(checkpointPath),receiptHash=trainingFileIdentity(receiptPath),corpusHash=trainingFileIdentity(corpusPath);
+  const receiptBytes=readTrainingBounded(receiptPath,1024*1024);
+  if(createHash('sha256').update(receiptBytes).digest('hex')!==receiptHash)throw Error('Diagnostic receipt changed while reading');
+  const diagnosticReceipt=JSON.parse(receiptBytes);
   let transferred=null,transferReceipt=null;
   if(weights){transferred=verifyTrainingInitializer({path:checkpointPath,expectedSha256:checkpointHash});
-    const receipt=transferReceipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+    const receipt=transferReceipt=diagnosticReceipt;
     if(receipt.schemaVersion!==1||transferred.initialization!=='weights-only-no-optimizer'||transferred.recordHash!==receiptHash||
       !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');}
   const onnxPath=onnx?resolve(onnx):null,onnxHash=onnxPath?trainingFileIdentity(onnxPath):null;
@@ -294,6 +314,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   }
   if(!created)await mkdir(target);
   const report={schemaVersion:1,purpose:weights?'transferred-weights-source-diagnostic':reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
+    ...diagnosticTrainingProgress(weights?null:diagnosticReceipt),
     trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:Boolean(parityResult),
     ...(parityResult?{onnxSha256:onnxHash,onnxParityFile:'onnx-parity.json',onnxMaximumAbsoluteError:parityResult.maximumAbsoluteError}:{}),
     checkpointSha256:weights?null:checkpointHash,corpusSha256,corpusManifestSha256:corpusHash,

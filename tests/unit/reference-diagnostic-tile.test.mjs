@@ -9,6 +9,18 @@ import * as diagnostic from '../../tools/reference-analysis/native-diagnostic-pr
 import {corpusFingerprint} from '../../tools/reference-analysis/training-evidence.mjs';
 const {diagnoseMacroTrainingSource,diagnoseReviewedSource,summarizeDiagnosticTile}=diagnostic;
 
+test('diagnostics expose recorded native progress without inventing transferred history',()=>{
+  const receipt={attemptedBatches:4,optimizerUpdates:3,skippedUpdates:1,unobservedMask:5,
+    cursor:7,orderLength:7,epochLossSum:2,epochLossCount:4};
+  assert.deepEqual(diagnostic.diagnosticTrainingProgress(receipt),{trainingBatches:4,optimizerUpdates:3,skippedUpdates:1,
+    trainingLoss:0.5,validationLoss:null,unobservedChannels:['international','coast'],epochComplete:true});
+  assert.equal(diagnostic.diagnosticTrainingProgress({...receipt,cursor:6}).trainingLoss,null);
+  assert.deepEqual(diagnostic.diagnosticTrainingProgress(null),{trainingBatches:null,optimizerUpdates:null,skippedUpdates:null,
+    trainingLoss:null,validationLoss:null,unobservedChannels:null,epochComplete:null});
+  assert.throws(()=>diagnostic.diagnosticTrainingProgress({...receipt,optimizerUpdates:4}),/progress/i);
+  assert.throws(()=>diagnostic.diagnosticTrainingProgress({...receipt,unobservedMask:128}),/progress/i);
+});
+
 test('transferred weights diagnostics refuse unverified source, mixed modes and baselines',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-transfer-'));t.after(()=>rmSync(root,{recursive:true}));
   const corpus=join(root,'corpus.json'),weights=join(root,'weights.safetensors'),output=join(root,'output');
@@ -118,7 +130,8 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
     annotations:'labels/map.json',sha256:hash(image),language:'fas',script:'Arabic',mapKind:'monochrome',source:{url:'https://example.org',license:'fixture'}};
   const corpus=join(root,'corpus.json'),checkpoint=join(root,'checkpoint.pt'),output=join(root,'output');
   writeFileSync(corpus,JSON.stringify({schemaVersion:1,sheets:[sheet]}));writeFileSync(checkpoint,'checkpoint');
-  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
+  const progress={attemptedBatches:4,optimizerUpdates:3,skippedUpdates:1,unobservedMask:5,cursor:7,orderLength:7,epochLossSum:2,epochLossCount:4};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',...progress,
     checkpointSha256:hash('checkpoint'),corpusSha256:hash(readFileSync(corpus))}));
   const request={corpus,checkpoint,sourceId:'empty',device:'cpu',torchLibrary:root};
   const onnx=join(root,'model.onnx');writeFileSync(onnx,'model');writeFileSync(join(root,'model.manifest.json'),JSON.stringify({
@@ -131,11 +144,12 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
   assert.equal(result.corpusManifestSha256,hash(readFileSync(corpus)));
   assert.equal(result.corpusSha256,await corpusFingerprint(corpus));
   assert.notEqual(result.corpusSha256,result.corpusManifestSha256);
+  assert.equal(result.trainingLoss,0.5);assert.equal(result.optimizerUpdates,3);assert.deepEqual(result.unobservedChannels,['international','coast']);
   assert.deepEqual(JSON.parse(readFileSync(join(output,'diagnostics.json'),'utf8')).sheets,[]);
   assert.equal(existsSync(join(output,'tile.f32')),false);
   const auxiliaryCorpus=join(root,'auxiliary.json');writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));
   const lineageFingerprint=await corpusFingerprint(corpus,auxiliaryCorpus);
-  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',...progress,
     checkpointSha256:hash('checkpoint'),corpusSha256:hash(readFileSync(corpus)),auxiliarySha256:hash(readFileSync(auxiliaryCorpus)),lineageFingerprint}));
   const combined=await diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,output:join(root,'combined')});
   assert.deepEqual(combined.sheets,[]);assert.equal(combined.lineageFingerprint,lineageFingerprint);
@@ -146,6 +160,7 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
   writeFileSync(join(root,'transfer.json'),JSON.stringify(transfer));
   const source=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,output:join(root,'weights-matching')});
   assert.equal(source.trainingCorpusFingerprintMatched,true);assert.equal(source.trainingCorpusVerified,false);
+  assert.equal(source.trainingBatches,null);assert.equal(source.optimizerUpdates,null);assert.equal(source.trainingLoss,null);
   transfer.trainingCorpusSha256='b'.repeat(64);writeFileSync(join(root,'transfer.json'),JSON.stringify(transfer));
   const other=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,output:join(root,'weights-different')});
   assert.equal(other.trainingCorpusFingerprintMatched,false);assert.equal(other.trainingCorpusVerified,false);

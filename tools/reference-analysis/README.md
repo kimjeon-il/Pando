@@ -131,6 +131,12 @@ Neither fingerprint establishes that transferred weights were trained on the
 selected sources unless their provenance is separately verified. For a full
 corpus diagnostic, `trainingCorpusFingerprintMatched` states whether the
 transferred checkpoint's recorded fingerprint equals that corpus fingerprint.
+Native checkpoint diagnostics report attempted batches, applied and skipped
+optimizer updates, and the channels marked unobserved in the checkpoint receipt.
+Training loss is reported only for a completed epoch; validation loss is unknown
+unless separately established by a validation receipt. For transferred weights,
+these progress fields are null because optimizer and epoch history were not
+transferred.
 
 ```powershell
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus $corpusPath --source SOURCE_ID --weights $transferredWeights --output $newDiagnosticDirectory --device cuda --torch-library $torchLibrary
