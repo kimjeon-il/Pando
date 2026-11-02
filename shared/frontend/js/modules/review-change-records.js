@@ -85,10 +85,11 @@ function reportPath(value) {
 const interval = (source, location) => {
   shape(source, ['validFrom', 'validTo'], [], location);
   for (const endpoint of ['validFrom', 'validTo'])
-    if (source[endpoint] !== null && typeof source[endpoint] !== 'string')
-      fail(location + '.' + endpoint + ' must be a temporal string or explicit null.');
-  const result = normalizeTemporalInterval(source.validFrom, source.validTo);
-  return { validFrom: result.validFrom, validTo: result.validTo };
+    if (source[endpoint] !== null) exactText(source[endpoint], location + '.' + endpoint, 32);
+  try {
+    const result = normalizeTemporalInterval(source.validFrom, source.validTo);
+    return { validFrom: result.validFrom, validTo: result.validTo };
+  } catch (error) { fail(location + ' has invalid temporal endpoints: ' + error.message); }
 };
 const nullable = (value, normalize) => value === null ? null : normalize(value);
 
@@ -147,9 +148,13 @@ function proposal(source) {
   let comparisonMonth = null;
   if (source.comparisonMonth !== null) {
     if (typeof source.comparisonMonth !== 'string') fail('comparisonMonth must be a month or explicit null.');
-    const temporal = parseTemporal(source.comparisonMonth, { nullable: false });
-    if (temporal.precision !== 'month') fail('comparisonMonth must have calendar-month precision.');
-    comparisonMonth = temporal.canonical;
+    exactText(source.comparisonMonth, 'comparisonMonth', 32);
+    try {
+      const temporal = parseTemporal(source.comparisonMonth, { nullable: false });
+      if (temporal.precision !== 'month') fail('comparisonMonth must have calendar-month precision.');
+      comparisonMonth = temporal.canonical;
+    } catch (error) { if (error.code === 'PL-REVIEW-SCHEMA') throw error;
+      fail('comparisonMonth has invalid temporal precision/date: ' + error.message); }
   }
   const reports = list(source.evidence, 'proposal.evidence', 60).map(evidence);
   unique(reports.map(row => row.id), 'proposal evidence');
