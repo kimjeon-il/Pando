@@ -52,7 +52,8 @@ test('P2-4 one accepted year switch loads physical resources once and preserves 
 
 test('P2-4 diagnose bounded source misses and post-present readiness without changing runtime code', async ({page},info)=>{
   test.setTimeout(240000);
-  await page.clock.setFixedTime(new Date(2026,9,31,12));
+  // Do not emulate the clock in a performance diagnosis. Playwright clock
+  // intercepts performance/timer globals and can contaminate scheduling.
   await page.addInitScript(()=>{
     window.__P2_COST__={events:[],longTasks:[],heartbeats:[],activeHeartbeat:null,mark(name,detail={}){
       this.events.push({name,at:performance.now(),...detail});
@@ -199,8 +200,11 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   const cdp=await page.context().newCDPSession(page);
   await cdp.send('Profiler.enable');
   await cdp.send('Profiler.start');
+  const initialMonth=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month??null);
+  expect(initialMonth).toMatch(/^\\d{4}-\\d{2}$/);
+  const previousYearMonth=String(Number(initialMonth.slice(0,4))-1)+'-12';
   const results=[];
-  for(const [button,target] of [['timelinePreviousYear','2025-12'],['timelineNextYear','2026-10']]){
+  for(const [button,target] of [['timelinePreviousYear',previousYearMonth],['timelineNextYear',initialMonth]]){
     await page.evaluate(()=>{window.__P2_COST__.events=[];window.__P2_COST__.longTasks=[];window.__P2_COST__.heartbeats=[];});
     await page.locator('#'+button).click();
     await expect.poll(()=>page.evaluate(()=>({
