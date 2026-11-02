@@ -17,13 +17,46 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-sampling-linux:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sampling-linux'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare fixed CPU LibTorch
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
+            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
+            --output build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build and package only the native sampling owner
+        run: |
+          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch"
+          cmake --build build-native/reference-analysis/step-test --target pando-reference-training-batch --parallel 1
+          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary build-native/reference-analysis/step-test/pando-reference-training-batch --directory build-native/reference-analysis/artifact-batch
+      - name: Check native balanced and uniform orders
+        env:
+          PANDO_REFERENCE_TORCH_LIBRARY: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
+          PANDO_REFERENCE_BATCH_DIRECTORY: ${{ github.workspace }}/build-native/reference-analysis/artifact-batch
+        run: node --test tests/unit/reference-training-order.test.mjs
   reference-onnx-linux:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-linux'
     runs-on: ubuntu-24.04
