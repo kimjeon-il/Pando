@@ -6,10 +6,12 @@
 #include <cstdint>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -277,6 +279,52 @@ Value logicalChains(const Value& request){
     auto output=Value::arr();for(const auto& chain:chains){auto values=Value::arr();for(const auto id:chain)values.array.push_back(Value::num(static_cast<double>(id)));output.array.push_back(std::move(values));}
     auto result=Value::obj();result.object["chains"]=std::move(output);return result;
 }
+Value riverSystems(const Value& request){
+    struct Reach{std::int64_t id,main;double area,flow,stage;bool noStage;std::string border;const Value* parts;};
+    const auto& input=elements(field(request,"chains"));if(input.size()>1000000)throw std::invalid_argument("Hydro system input exceeds budget");
+    std::vector<std::vector<Reach>> chains;std::map<std::int64_t,std::vector<std::size_t>> groups;std::size_t total=0;
+    auto fragments=Value::arr();
+    for(std::size_t index=0;index<input.size();++index){const auto& rows=elements(input[index]);total+=rows.size();
+        if(rows.empty()||total>1000000)throw std::invalid_argument("Nonempty bounded Hydro chains required");
+        std::vector<Reach> chain;std::map<std::int64_t,std::size_t> counts;auto fragmentsForChain=Value::arr();
+        for(const auto& row:rows){const auto id=integer(field(row,"id")),main=integer(field(row,"mainRiver"));
+            const double area=pandoeditor::codecjson::finiteNumber(field(row,"upstreamArea")),flow=pandoeditor::codecjson::finiteNumber(field(row,"flow"));
+            const auto& stageValue=field(row,"stage"),&border=field(row,"borderPair"),&parts=field(row,"parts");
+            if(id<=0||(stageValue.kind!=Value::Null&&stageValue.kind!=Value::Number)||
+              (border.kind!=Value::Null&&border.kind!=Value::Array)||parts.kind!=Value::Array)throw std::invalid_argument("Invalid Hydro system reach");
+            const bool noStage=stageValue.kind==Value::Null;const double stage=noStage?0:pandoeditor::codecjson::finiteNumber(stageValue);
+            const auto borderKey=border.encode();
+            if(chain.empty()||chain.back().noStage!=noStage||(!noStage&&chain.back().stage!=stage)||chain.back().border!=borderKey)
+                fragmentsForChain.array.push_back(Value::arr());
+            fragmentsForChain.array.back().array.push_back(Value::num(static_cast<double>(id)));
+            chain.push_back({id,main,area,flow,stage,noStage,borderKey,&parts});if(main)++counts[main];
+        }
+        auto system=chain.back().id;std::size_t frequency=0;
+        for(const auto& [id,count]:counts)if(count>frequency||(count==frequency&&id>system)){frequency=count;system=id;}
+        groups[system].push_back(index);chains.push_back(std::move(chain));fragments.array.push_back(std::move(fragmentsForChain));
+    }
+    auto systems=Value::arr();std::size_t pointsSeen=0;
+    for(const auto& [system,indexes]:groups){std::size_t mainstem=indexes.front();bool found=false;
+        for(const auto index:indexes){for(const auto& row:chains[index])if(row.id==system){mainstem=index;found=true;break;}if(found)break;}
+        if(!found)for(const auto index:indexes){const auto& a=chains[index],&b=chains[mainstem];
+            if(std::make_tuple(a.back().area,a.back().flow,a.size())>std::make_tuple(b.back().area,b.back().flow,b.size()))mainstem=index;}
+        bool anyPoint=false,usable=false;double west=180,south=std::numeric_limits<double>::infinity(),east=-180,north=-std::numeric_limits<double>::infinity();
+        for(const auto index:indexes)for(const auto& reach:chains[index])for(const auto& part:elements(*reach.parts)){
+            const auto& coordinates=elements(part);if(!coordinates.empty())anyPoint=true;
+            pointsSeen+=coordinates.size();if(pointsSeen>10000000)throw std::invalid_argument("Hydro system coordinates exceed budget");
+            for(const auto& coordinate:coordinates){const auto& pair=elements(coordinate);if(pair.size()!=2)throw std::invalid_argument("Invalid Hydro system point");
+                const double rawLon=pandoeditor::codecjson::finiteNumber(pair[0]),lat=pandoeditor::codecjson::finiteNumber(pair[1]);
+                if(coordinates.size()<2)continue;double lon=std::fmod(rawLon+180.0,360.0);if(lon<0)lon+=360.0;lon-=180.0;if(lon==-180.0)lon=180.0;
+                west=std::min(west,lon);east=std::max(east,lon);south=std::min(south,lat);north=std::max(north,lat);usable=true;}}
+        auto item=Value::obj(),list=Value::arr(),bounds=Value::arr();list.array.push_back(Value::num(static_cast<double>(mainstem)));
+        for(const auto index:indexes)if(index!=mainstem)list.array.push_back(Value::num(static_cast<double>(index)));
+        const std::vector<double> range=usable?std::vector<double>{west,south,east,north}:anyPoint?std::vector<double>{-180,-90,180,90}:std::vector<double>{0,0,0,0};
+        for(const auto value:range)bounds.array.push_back(Value::num(value));
+        item.object["systemId"]=Value::num(static_cast<double>(system));item.object["chainIndexes"]=std::move(list);
+        item.object["mainstemIndex"]=Value::num(static_cast<double>(mainstem));item.object["bounds"]=std::move(bounds);systems.array.push_back(std::move(item));
+    }
+    auto result=Value::obj();result.object["systems"]=std::move(systems);result.object["fragments"]=std::move(fragments);return result;
+}
 }
 int main() {
     try {
@@ -286,6 +334,7 @@ int main() {
         if(mode==request.object.end())std::cout<<doRepair(std::move(request)).encode()<<'\n';
         else if(str(mode->second)=="audit")std::cout<<doAudit(std::move(request)).encode()<<'\n';
         else if(str(mode->second)=="logical-chains")std::cout<<logicalChains(request).encode()<<'\n';
+        else if(str(mode->second)=="river-systems")std::cout<<riverSystems(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
     }catch(const std::exception& error) {

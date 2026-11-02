@@ -43,6 +43,31 @@ nativeTest('logical river chains reject missing links, invalid choices and cycle
     assert.notEqual(result.status,0);assert.equal(result.stdout,'');
   }
 });
+nativeTest('river systems select mainstems and split stages without changing source order',()=>{
+  const reach=(id,mainRiver,upstreamArea,flow,stage,borderPair,parts)=>({id,mainRiver,upstreamArea,flow,stage,borderPair,parts});
+  const chains=[
+    [reach(20,10,20,3,1,null,[[[181,1],[182,2]]])],
+    [reach(10,10,100,4,1,null,[[[3,4],[4,5]]]),reach(11,10,110,5,2,['AAA','BBB'],[[[4,5],[5,6]]])],
+    [reach(30,99,10,2,1,null,[[[6,7],[7,8]]])],
+    [reach(31,99,30,1,1,null,[[[8,9],[9,10]]])],
+  ];
+  const actual=run({mode:'river-systems',chains});
+  assert.deepEqual(actual.systems,[
+    {systemId:10,chainIndexes:[1,0],mainstemIndex:1,bounds:[-179,1,5,6]},
+    {systemId:99,chainIndexes:[3,2],mainstemIndex:3,bounds:[6,7,9,10]},
+  ]);
+  assert.deepEqual(actual.fragments,[[[20]],[[10],[11]],[[30]],[[31]]]);
+  assert.deepEqual(run({mode:'river-systems',chains:[]}),{systems:[],fragments:[]});
+  const ties=run({mode:'river-systems',chains:[
+    [reach(3,6,1,0,1,['AAA','BBB'],[[[4,4]]]),reach(4,5,2,0,1,['AAA','CCC'],[])],
+    [reach(19,0,1,0,null,null,[])],
+  ]});
+  assert.deepEqual(ties.systems,[
+    {systemId:6,chainIndexes:[0],mainstemIndex:0,bounds:[-180,-90,180,90]},
+    {systemId:19,chainIndexes:[1],mainstemIndex:1,bounds:[0,0,0,0]},
+  ]);
+  assert.deepEqual(ties.fragments,[[[3],[4]],[[19]]]);
+});
 
 function scenario(name) {
   const input=fixture();
