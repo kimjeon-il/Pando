@@ -8,6 +8,7 @@ import {
 } from '../../shared/frontend/js/modules/review-inspection.js';
 import {readReviewEvidenceFiles} from '../../shared/frontend/js/modules/review-evidence-files.js';
 import {appendReviewEvent} from '../../shared/frontend/js/modules/review-change-records.js';
+import {buildReviewPreviewPaths} from '../../apps/viewer/js/modules/viewer-review-panel.js';
 
 const source=()=>JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json',import.meta.url),'utf8'));
 const sha=value=>createHash('sha256').update(value).digest('hex');
@@ -155,4 +156,32 @@ test('E4 verifies all manifest file bytes, rejects mismatches and imports atomic
   await assert.rejects(readReviewEvidenceFiles(absent,{subtle:webcrypto.subtle}),/누락/);
   await assert.rejects(readReviewEvidenceFiles([mockFile('evil.json',{hi:true})],
     {subtle:webcrypto.subtle}),/지원하지/);
+});
+
+
+test('E4 before-after previews have one frame even across the antimeridian and require no D3',()=>{
+  const old={type:'Polygon',coordinates:[[[179,10],[-179,10],[-179,11],[179,11],[179,10]]]};
+  const next={type:'Polygon',coordinates:[[[179,10],[-178,10],[-178,11],[179,11],[179,10]]]};
+  const paths=buildReviewPreviewPaths({before:old,after:next});
+  assert.ok(paths.before.startsWith('M'));
+  assert.ok(paths.after.startsWith('M'));
+  assert.notEqual(paths.before,paths.after);
+  const oldXs=Array.from(paths.before.matchAll(/(?:M|L)(\d+\.\d+) /g),x=>Number(x[1]));
+  assert.equal(oldXs.length,5);
+  assert.ok(oldXs.every(x=>x>=10&&x<=310));
+  assert.ok(Math.max(...oldXs)-Math.min(...oldXs)<296);
+  assert.ok(Object.isFrozen(paths));
+  assert.equal(buildReviewPreviewPaths({before:null,after:next}).before,null);
+  assert.throws(()=>buildReviewPreviewPaths({before:null,after:null}),/표시할/);
+  assert.throws(()=>buildReviewPreviewPaths({before:{...old,coordinates:[[[179,110],[1,110],[2,120],[179,110]]]},after:next}),/경위도/);
+});
+
+test('E4 review owner uses only declared template controls, including correction type',()=>{
+  const owner=readFileSync(new URL('../../apps/viewer/js/modules/viewer-review-panel.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../../apps/viewer/templates/index.html',import.meta.url),'utf8');
+  const refs=[...owner.matchAll(/\bget\('([^']+)'\)/g)].map(x=>x[1])
+    .filter(x=>x.startsWith('review')||x==='mobileReviewBtn');
+  assert.ok(refs.length>20,'E4 DOM integration check must cover the real panel');
+  for(const id of new Set(refs))assert.ok(html.includes('id="'+id+'"'),'missing review control: '+id);
+  assert.match(owner,/get\('reviewIssueKind'\)/);
 });
