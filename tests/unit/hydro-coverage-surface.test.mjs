@@ -10,7 +10,8 @@ function fakeGl(supportMax = true) {
     'BLEND_EQUATION_ALPHA','BLEND_SRC_RGB','BLEND_DST_RGB','BLEND_SRC_ALPHA','BLEND_DST_ALPHA',
     'NEAREST','TEXTURE_MIN_FILTER','TEXTURE_MAG_FILTER','TEXTURE_WRAP_S','TEXTURE_WRAP_T',
     'CLAMP_TO_EDGE','RGBA','UNSIGNED_BYTE','COLOR_ATTACHMENT0','FRAMEBUFFER_COMPLETE','STATIC_DRAW',
-    'COLOR_BUFFER_BIT','ONE','SRC_ALPHA','ONE_MINUS_SRC_ALPHA','FUNC_ADD','TRIANGLE_STRIP','FLOAT']
+    'COLOR_BUFFER_BIT','ONE','SRC_ALPHA','ONE_MINUS_SRC_ALPHA','FUNC_ADD','TRIANGLE_STRIP','FLOAT',
+    'VERTEX_SHADER','FRAGMENT_SHADER','COMPILE_STATUS','LINK_STATUS']
     .reduce((obj,key,index)=>(obj[key]=index+1,obj),{});
   const gl = {...constants};
   let activeTexture = gl.TEXTURE3, framebuffer = null, readFramebuffer = null, program = null, arrayBuffer = null;
@@ -21,6 +22,11 @@ function fakeGl(supportMax = true) {
   const calls = [];
   gl.calls = calls;
   gl.isContextLost = () => false;
+  gl.createShader = () => ({});
+  gl.shaderSource = gl.compileShader = gl.deleteShader = gl.attachShader = gl.linkProgram = () => {};
+  gl.getShaderParameter = gl.getProgramParameter = () => true;
+  gl.getShaderInfoLog = gl.getProgramInfoLog = () => '';
+  gl.createProgram = () => ({});
   gl.getExtension = name => supportMax && name === 'EXT_blend_minmax' ? {MAX_EXT:gl.MAX}:null;
   gl.createTexture = () => ({});
   gl.createFramebuffer = () => ({});
