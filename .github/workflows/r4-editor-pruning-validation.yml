@@ -7,6 +7,13 @@ on:
       - docs/development/r4-source-pruning.json
       - apps/editor/frontend/**
       - tools/gis/**
+      - shared/frontend/js/modules/generic-feature-normalization.js
+      - shared/frontend/js/modules/project-baseline-fingerprint.js
+      - tests/helpers/legacy-project-autosave.mjs
+      - tests/helpers/generic-feature-command-service.mjs
+      - tests/unit/r4b-data-module-boundaries.test.mjs
+      - tools/builtin-world-compiler.mjs
+      - package.json
       - scripts/contracts/application-checks.json
       - scripts/contracts/territorial-storage-access.json
       - scripts/check-generic-provenance.mjs
@@ -43,6 +50,8 @@ jobs:
         run: >-
           node --test --test-concurrency=2
           tests/unit/r4-editor-source-retirement.test.mjs
+          tests/unit/r4b-data-module-boundaries.test.mjs
+          tests/unit/versioning-source-schema.test.mjs
           apps/editor/tests/native-contract.test.mjs
           tests/unit/territorial-library.test.mjs
           tests/unit/territorial-library-data.test.mjs

@@ -69,6 +69,11 @@
     "version": 1,
     "canonicalGenericFeatureNormalization": "shared/frontend/js/modules/generic-feature-normalization.js",
     "historicalCommandAdapter": "tests/helpers/generic-feature-command-service.mjs",
-    "retiredMixedModule": "tools/gis/generic-feature-service.js"
+    "retiredMixedModule": "tools/gis/generic-feature-service.js",
+    "canonicalProjectTemplateCompiler": "tools/gis/project-template-compiler.js",
+    "canonicalBaselineFingerprint": "shared/frontend/js/modules/project-baseline-fingerprint.js",
+    "retiredAutosaveAdapter": "tests/helpers/legacy-project-autosave.mjs",
+    "removedLegacyGisSerializer": "tools/gis/project-serializer.js",
+    "territorialLibraryOwner": "tools/gis/territorial-library.js"
   }
 }

@@ -14,7 +14,7 @@ test('R4 removed obsolete editor sources and tests are absent',()=>{
    assert.equal(exists(path),false,'Retired source or unit test reappeared: '+path);
 });
 test('R4 preserves GIS and C++ serializer contracts outside the legacy editor',()=>{
- for(const name of ['territorial-library','territorial-index-entry','project-serializer',
+ for(const name of ['territorial-library','territorial-index-entry','project-template-compiler',
    'exchange-adapter-registry','cut-worker-preparation',
    'river-territory-partition','polygon-clipping-calculation','timeline-edit',
    'territorial-geometry','territorial-library-provenance'])
@@ -23,6 +23,9 @@ test('R4 preserves GIS and C++ serializer contracts outside the legacy editor',(
    'Canonical v2 feature normalization must be independent of old GIS mutation commands');
  assert.equal(exists('tests/helpers/generic-feature-command-service.mjs'),true,
    'Legacy Core command adapter must be test-owned');
+ assert.equal(exists('tools/gis/project-serializer.js'),false,'Legacy autosave must be test-owned');
+ assert.equal(exists('shared/frontend/js/modules/project-baseline-fingerprint.js'),true);
+ assert.equal(exists('tests/helpers/legacy-project-autosave.mjs'),true);
  assert.equal(exists('tools/gis/generic-feature-service.js'),false,
    'The old GIS data+editor-command mixed service must not remain');
  const pkg=JSON.parse(readFileSync(resolve(root,'package.json'),'utf8'));
