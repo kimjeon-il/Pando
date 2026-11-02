@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {selectTerritorialChunkBytes} from './territorial-chunk-compression.mjs';
 import {readTerritorialSources,readTerritorialSource,readTerritorialLineages,entityFileName,territorialDataRoot,territorialSourceRoot} from './territorial-entity-sources.mjs';
 import {parseTemporal} from "../shared/frontend/js/modules/temporal.js";
-import {territorialIndexEntry} from "../apps/editor/frontend/js/modules/territorial-index-entry.js";
+import {territorialIndexEntry} from "./gis/territorial-index-entry.js";
 const output=path.join(territorialDataRoot,'generated/v2');
 const check=process.argv.includes('--check');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
