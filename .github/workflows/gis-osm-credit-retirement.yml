@@ -8,6 +8,8 @@ on:
       - 'tools/gis/baikonur-2019-exclusions.mjs'
       - 'tests/unit/gis-osm-credit-retirement.test.mjs'
       - 'tests/unit/gis-baikonur-2019-exclusions.test.mjs'
+      - 'tools/gis/osm-independent-river-source-inventory.json'
+      - 'tests/unit/gis-osm-source-inventory.test.mjs'
       - '.github/workflows/gis-osm-credit-retirement.yml'
   workflow_dispatch:
 
@@ -27,7 +29,7 @@ jobs:
           node-version: '24'
       - name: Run focused source contract tests
         run: |
-          node --test tests/unit/gis-osm-credit-retirement.test.mjs tests/unit/gis-baikonur-2019-exclusions.test.mjs
+          node --test tests/unit/gis-osm-credit-retirement.test.mjs tests/unit/gis-baikonur-2019-exclusions.test.mjs tests/unit/gis-osm-source-inventory.test.mjs
       - name: Read the exact production data pin
         id: pinned-data
         shell: bash
