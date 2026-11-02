@@ -244,8 +244,8 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   };
   for(let i=0;i<results.length;i++){
     const events=results[i].events;
-    const release=legs(events,'core.document-replacement-release',releaseHosts[i+1]);
-    const control=legs(events,'core.document-temporal-candidate-prepare',fastHosts[i]);
+    const release=legs(events,'core.document-replacement-release',releaseHosts[releaseHosts.length-results.length+i]);
+    const control=legs(events,'core.document-temporal-candidate-prepare',fastHosts[fastHosts.length-results.length+i]);
     if(!release||!control)continue;
     const outboundExcess=release.outboundRaw-control.outboundRaw;
     const inboundExcess=release.inboundRaw-control.inboundRaw;
@@ -265,7 +265,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   expect(nativeRelease.length,'Worker-side native release should be timed for both transitions').toBeGreaterThanOrEqual(2);
   expect(outerRelease.length,'Outer Worker dispatch timing should be measured twice').toBeGreaterThanOrEqual(2);
   expect(releaseHosts.length,'Host release must include startup and two transitions').toBeGreaterThanOrEqual(3);
-  expect(fastHosts.length,'Host candidate prepare must include both transitions').toBeGreaterThanOrEqual(2);
+  expect(fastHosts.length,'Host candidate prepare must include initial admission and both transitions').toBeGreaterThanOrEqual(3);
   expect(transport).toHaveLength(2);
   await info.attach('post-ready-cache-diagnostic',{body:JSON.stringify({results,pageErrors,nativeRelease,outerRelease,hostRelease,transport,consoleErrors},null,2),contentType:'application/json'});
 });
