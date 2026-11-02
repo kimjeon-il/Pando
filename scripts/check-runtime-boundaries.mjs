@@ -3,7 +3,7 @@
 import {readFileSync} from 'node:fs';
 import {posix,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {buildFrontendIndex,frontendModuleReferences,frontendRoots} from './lib/frontend-layout.mjs';
+import {buildFrontendIndex,frontendGeneratedOwners,frontendModuleReferences,frontendRoots} from './lib/frontend-layout.mjs';
 import {isEditorOnlyAsset,runtimeDependencies} from './lib/product-assets.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -60,6 +60,8 @@ function visit(asset){
       const target=bySource.get(path)||(reference.kind==='url'
         ?index.get(posix.normalize(posix.join(posix.dirname(asset),file))):null);
       if(!target){
+        // Generated frontend metadata has no checked-in module source.
+        if(Object.hasOwn(frontendGeneratedOwners,path))continue;
         // Temporal's Node helper is substituted by the existing Web build owner.
         if(path==='tools/load-node-core.mjs'&&asset==='assets/js/modules/temporal.js')continue;
         fail('Unmapped active import: '+entry.sourcePath+' -> '+reference.specifier);
