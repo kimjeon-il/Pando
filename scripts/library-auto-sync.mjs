@@ -62,7 +62,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  const archived=(rev,p)=>{const entry=archive(rev).files[p];if(!entry)fail('MISSING_ARCHIVED_FILE');return (io.decodeArchiveEntry||decodeArchiveEntry)(dataRoot,entry,rev,{fetch:false});};
  const github=io.github||createGithubPages({token:env.GITHUB_TOKEN,verifyLive:io.verifyLive});
  let prepared=null,derived=null,stored=null,latest=null;
- function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','shared/frontend/js/modules','apps/editor/frontend/js/modules']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
+ function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/library-auto-inputs.mjs','scripts/lib/library-auto-runtime.mjs','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','shared/frontend/js/modules','apps/editor/frontend/js/modules']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
  async function inspect(){
   const h=heads();latest=h;
   if(settings.requestedDataSha&&h.data!==settings.requestedDataSha&&h.data!==stored)fail('REQUEST_DATA_HEAD_MOVED');
@@ -80,7 +80,8 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   const runtimeChanges=differences.filter(p=>!p.startsWith('reports/')&&!sourcePath(p));
   const masked={...nextArchive,files:{...nextArchive.files}};
   for(const p of runtimeChanges){if(baseArchive.files[p])masked.files[p]=baseArchive.files[p];else delete masked.files[p];}
-  const projection=inspectCanonicalInputs({revision:h.data,baselineRevision:c.revision,readBlob:(rev,p)=>rev===h.data&&p==='archive/index.json'?Buffer.from(JSON.stringify(masked)):blob(rev,p)});
+  const changedPaths=git(dataRoot,['diff','--name-only','-z','--no-renames',c.revision,h.data,'--']).toString().split('\0').filter(Boolean);
+  const projection=inspectCanonicalInputs({changedPaths,revision:h.data,baselineRevision:c.revision,readBlob:(rev,p)=>rev===h.data&&p==='archive/index.json'?Buffer.from(JSON.stringify(masked)):blob(rev,p)});
   let receipt=null;try{receipt=JSON.parse(archived(h.data,RECEIPT_PATH)).autoPublication;}catch(error){if(nextArchive.files[RECEIPT_PATH]&&error.code!=='ENOENT')throw error;}
   let completed=null;
   const token=JSON.stringify(h);
@@ -98,7 +99,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   if(pinned&&receipt)completed={inputFingerprint:receipt.inputFingerprint,generatorIdentity:receipt.generatorIdentity,dataSha:h.data};
   if(!pinned&&receipt&&derived?.candidate===h.data){completed={inputFingerprint:projection.inputFingerprint,generatorIdentity:id,dataSha:h.data};}
   if(stored===h.data)completed={inputFingerprint:projection.inputFingerprint,generatorIdentity:id,dataSha:h.data};
-  prepared={h,c,id,projection,runtimeChanges,nextArchive,receipt,token};
+  prepared={h,c,id,projection,changedPaths,runtimeChanges,nextArchive,receipt,token};
   let run=null;
   if(completed&&c.revision===completed.dataSha){
    if(branch==='main'){const evidence=await github.verify(h.app,{dataSha:completed.dataSha});if(evidence.run)run={dataSha:completed.dataSha,appSha:h.app,status:evidence.status,target:'production'};}
@@ -130,7 +131,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
    const allowed=new Set([...Object.keys(result.autoReceipt.outputs),...result.changedPaths,RECEIPT_PATH]);
    if(p.runtimeChanges.some(path=>!allowed.has(path)))fail('UNKNOWN_RUNTIME_EDIT');
    // Confirm canonical inspection against real descriptors after proof.
-   inspectCanonicalInputs({revision:p.h.data,baselineRevision:p.c.revision,readBlob:blob,verifiedGeneratedPaths:p.runtimeChanges});
+   inspectCanonicalInputs({changedPaths:p.changedPaths,revision:p.h.data,baselineRevision:p.c.revision,readBlob:blob,verifiedGeneratedPaths:p.runtimeChanges});
    return;
   }
   const removed=result.changedPaths.filter(path=>path!==FIXTURE&&!result.sourcePaths.includes(path)&&path!==RECEIPT_PATH&&!Object.hasOwn(result.autoReceipt.outputs,path));
