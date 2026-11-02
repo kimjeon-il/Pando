@@ -8,7 +8,6 @@ export const nativeModes=['development','offline','verification'];
 export const nativeHash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function nativeBuildSelection(paths,{platform}={}){
  if(platform){if(platform==='all')return ['windows','android'];if(!Object.hasOwn(nativeTargets,platform))throw Error('Unsupported native platform');return [platform];}
- const android=paths.some(p=>p.startsWith('apps/editor/src-tauri/android/')||p==='apps/editor/src-tauri/sync-android.mjs');
  const common=paths.some(p=>/^apps\/editor\/src-tauri\/(?:src\/|capabilities\/|permissions\/|icons\/|Cargo\.|build\.rs$|tauri\.)/.test(p)||['apps/editor/native-contract.mjs','apps/editor/native-producer.mjs','apps/editor/packaged-artifacts.mjs','config/toolchain-versions.json','config/native-artifacts.json','.github/workflows/remote-development-p1.yml'].includes(p));
  // Android native is retired: never schedule it automatically for common code.
  return common?['windows']:[];

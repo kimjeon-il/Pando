@@ -1,7 +1,7 @@
 // Windows verification builds only; ordinary review HTML never includes this file.
 // Reports a native WebView2 map, actual Viewer Core write refusal and open E4 panel.
 const runtime = globalThis.__TAURI_INTERNALS__;
-const invoked = runtime?.invoke;
+const invoked = typeof runtime?.invoke==='function' ? runtime.invoke.bind(runtime) : null;
 if(globalThis.PANDOLAB_NATIVE_REVIEW!==true
   ||globalThis.PANDOLAB_SHELL_VERIFICATION!==true
   ||typeof invoked!=='function')
