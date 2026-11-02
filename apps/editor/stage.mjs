@@ -138,10 +138,15 @@ async function stageOwnedPrototype({ root, profile, verification, windowsReview 
     if(!reviewer.includes('assets/js/viewer.js')||!reviewer.includes('id="reviewPanel"'))
       throw new Error('The canonical E4 review entrypoint is unavailable.');
     reviewer=reviewer.replace('<title>판도연구소</title>','<title>판도연구소 — 검수기</title>');
+    if(verification){
+      if(!reviewer.includes('</body>'))throw new Error('Windows review verification requires complete HTML.');
+      reviewer=reviewer.replace('</body>','<script type="module" src="shell/review-probe.js"></script>\n</body>');
+    }
     await emit('review.html',reviewer,'apps/viewer/templates/index.html');
   }
   const shellFiles = ['startup.js', 'runtime-profile.js', 'native-platform-adapter.js', 'document-transfer-contract.js', 'native-storage.js', 'network-guard.js'];
   if (verification) shellFiles.push('verification.js', 'probe-storage.js', 'diagnostics.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css');
+  if (verification && windowsReview) shellFiles.push('review-probe.js');
   for (const file of shellFiles) {
     let bytes = snapshot.assets.get('shell/'+file)?.bytes || await readFile(join(here,file));
     if (file === 'startup.js' && verification) {

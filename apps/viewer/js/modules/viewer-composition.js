@@ -59,6 +59,24 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile(),protectErrorNotices:true});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,readOnly:true,initialProject:createInitialDocument({appVersion:meta.appVersion})});
+  // Available only to a signed verification build, never to ordinary users.
+  // This probes the actual viewer Core command admission rather than DOM button visibility.
+  if(nativeReview && globalThis.PANDOLAB_SHELL_VERIFICATION===true)
+    Object.defineProperty(globalThis,'__PANDOLAB_NATIVE_REVIEW_VERIFICATION__',{value:Object.freeze({
+      async capture(){
+        let mutationBlocked=false;
+        try{await documentSession.commandOwner.execute({});}
+        catch(error){mutationBlocked=error?.code==='PL-PRODUCT-READONLY';}
+        return Object.freeze({readOnly:documentSession.readOnly,
+          projection:map?.viewState?.projection??null,
+          dataReady:status.dataset.ready==='true',
+          panelOpen:get('reviewPanel')?.hidden===false,
+          hasReviewLoad:get('reviewEvidenceInput')?.type==='file',
+          editorDomAbsent:get('editorSurface')===null,
+          canUndo:documentSession.commandOwner.state()?.canUndo,
+          mutationBlocked});
+      },
+    }),configurable:false});
   const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
@@ -310,6 +328,7 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   if(new URLSearchParams(window.location.search).get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
+    mapProjection:()=>map.viewState.projection,readOnly:documentSession.readOnly,
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({month:builtinClock.month(),automatic:builtinClock.isAutomatic()})});
   }
   const lifecycle=createApplicationLifecycle({window,document,
