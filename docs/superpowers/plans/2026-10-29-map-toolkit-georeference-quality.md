@@ -1,5 +1,7 @@
 # Map Toolkit georeference quality implementation plan
 
+> Historical implementation plan. For current training commands and owners, use `tools/reference-analysis/README.md`.
+
 > **For agentic workers:** Use superpowers:executing-plans inline, with TDD and one final fresh review. Preserve the permanent work/ui checkout and unrelated WIP.
 
 **Goal:** Improve the existing private Map Toolkit's measured registration and boundary-candidate quality, retaining review and private file delivery.

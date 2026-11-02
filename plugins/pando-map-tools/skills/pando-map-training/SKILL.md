@@ -9,20 +9,21 @@ Use existing Pando command-line tools through the built-in Codex terminal.
 This skills-based plugin needs no QGIS, additional desktop app, MCP server,
 new virtual environment, background daemon or full application build.
 
-The permanent implementation checkout on this PC is D:/dev/worktrees/ui.
-Respect its AGENTS.md and preserve unrelated work. Reuse
-build-native/python/Scripts/python.exe and its existing CUDA installation.
+The permanent GIS implementation checkout on this PC is D:/dev/worktrees/gis.
+Respect its AGENTS.md and preserve unrelated work. Reuse the source-matched
+native training tool and the existing matching LibTorch/CUDA runtime.
 Never install a desktop GIS application merely to use this plugin.
 
 ## Sources and labels
 
 The canonical owners in tools/reference-analysis/ include acquire-sources.mjs,
-prepare-macro.mjs, prepare-publisher.mjs, corpus.py, train.py,
-native-evaluate-source.mjs, native-diagnostic-preview.mjs and verify-trained-onnx.mjs.
+prepare-macro.mjs, prepare-publisher.mjs, reviewed-corpus.mjs,
+training-supervision.mjs, native-training-sequence.mjs, native-evaluate-source.mjs,
+native-diagnostic-preview.mjs and native-onnx-export.mjs.
 Read their current README and CLI arguments; extend these owners only when a
 concrete missing capability requires it. Do not create a parallel training engine.
 
-Resolve external data with tools/report-paths.mjs or tools/report_paths.py and
+Resolve external data with tools/report-paths.mjs and
 explicit read/write access. Run code in the app checkout, not the data store.
 Keep original maps, annotations, models and reports in external library storage.
 Hydrate requested scopes only; reuse source bytes and dependencies.
@@ -41,11 +42,11 @@ Validate with the current corpus owner before training.
 
 ## Train and inspect
 
-Use train.py train --training-only --macro-only --balance-sources with an explicit
-admitted corpus and a new output path. An actual prior checkpoint is usable
+Use native-training-sequence.mjs with --campaign, --sampling balanced, an explicit
+admitted macro corpus, source-bound supervision and a new output path. An actual prior checkpoint is usable
 only with complete transitive source/family/edition/duplicate lineage. Otherwise
 start from the verified public encoder; do not restamp missing lineage. Add
---augment-conditions when scan/photometric diversity is requested; coordinates
+--augment when scan/photometric diversity is requested; coordinates
 and labels stay unchanged. Select epochs, learning rate and encoder freeze for
 the actual data. Record attempted batches, successful updates and AMP skips.
 Use a separate frozen validation corpus and validation-loss early stopping.
@@ -61,12 +62,12 @@ weights already trained on rejected targets. Cancel only owned training jobs.
 
 Run focused condition/macro/model checks for actual changes. After real GPU
 training, export ONNX and inspect identical unaugmented targets against the actual
-baseline with inspect-checkpoint.py. Verify ONNX/PyTorch parity locally using
+baseline with native-diagnostic-preview.mjs. Verify ONNX/LibTorch parity locally using
 verify-trained-onnx.mjs in the existing Node WASM runtime. Pass local model and
 diagnostic paths; no browser, static server or --base argument is used.
-Its --baseline-checkpoint is the actual inherited map initializer only. For a
+Its --baseline-weights must be the actual inherited initializer only. For a
 fresh encoder, omit that option and compare the baseline separately with
-train.py evaluate on the exact same frozen known-pixel corpus. Pass the actual
+native-evaluate-source.mjs on the exact same frozen known-pixel corpus. Pass the actual
 --auxiliary-corpus to inspection too, so its fingerprint matches training.
 
 Training-tile fitting is not held-out accuracy. Keep trainingOnly true,

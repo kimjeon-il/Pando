@@ -1,5 +1,7 @@
 # Reference image automatic analysis implementation
 
+> Historical implementation plan. For current training commands and owners, use `tools/reference-analysis/README.md`.
+
 Approved specification: user-provided implementation plan, 2026-10-22. Implement inline on the permanent work/ui worktree. No main integration or deployment.
 
 ## Required behavior
