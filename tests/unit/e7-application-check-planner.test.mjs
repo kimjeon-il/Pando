@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {frontendGeneratedOwners} from '../../scripts/lib/frontend-layout.mjs';
 import {loadRepository,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
 
 test('E7 validates all test registrations without reparsing retired editor imports on a no-change commit',()=>{
@@ -27,4 +28,8 @@ test('R1 runtime checker executes against the shipped Viewer and Windows reviewe
     cwd:fileURLToPath(new URL('../../',import.meta.url)),encoding:'utf8',timeout:120000,
   });
   assert.match(output,/Viewer\/Windows runtime boundaries passed/);
+});
+
+test('R1 generated build metadata remains owned by the canonical frontend builder',()=>{
+  assert.equal(frontendGeneratedOwners['assets/js/build-meta.js'],'scripts/lib/frontend-build.mjs');
 });
