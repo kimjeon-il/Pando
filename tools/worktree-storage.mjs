@@ -191,11 +191,26 @@ export function installNativeArtifactView({root,source,manifest,settings=storage
 }
 const fileIdentity=path=>{const s=lstatSync(path,{bigint:true});return `${s.dev}:${s.ino}:${s.size}:${s.mtimeNs}:${s.ctimeNs}`;};
 const payloadIdentity=path=>fileIdentity(path).split(':').slice(0,4).join(':');
+function isRetiringEmsdkConsumer(p){
+  return /^D:\/build\/toolchains\/emsdk-6\.0\.3\//i.test((p.ExecutablePath||'').replaceAll('\\','/'))||
+    /D:\/build\/toolchains\/emsdk-6\.0\.3(?=[/\s"']|$)/i.test((p.CommandLine||'').replaceAll('\\','/'));
+}
+export function isStorageConsumer(p){
+  const name=p.Name||'',command=p.CommandLine||'';
+  return isRetiringEmsdkConsumer(p)||
+    /^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\w-]+|pandolab.*|baseline-ui_tests|candidate-ui_tests)\.exe$/i.test(name)||
+    (/^java(w)?\.exe$/i.test(name)&&/gradle/i.test(command))||
+    (/^(msedgewebview2|chrome|msedge)\.exe$/i.test(name)&&/PandoLab|worktrees/i.test(command))||
+    (/^node\.exe$/i.test(name)&&/stage\.mjs|dev\.mjs|frontend-dev-server\.mjs|tests[\\/]browser[\\/]server\.mjs|tools[\\/]build-[\w-]+\.mjs|tauri.*(dev|build)/i.test(command));
+}
+export function storageConsumersFromProcesses(processes){
+  return processes.filter(isStorageConsumer).map(p=>isRetiringEmsdkConsumer(p)?{...p,globalBuild:true}:p);
+}
 export function runningStorageConsumers(){
   if(process.platform!=='win32')throw Error('Consumer inventory requires this Windows host');
-  const command="Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|emulator|qemu-system-[\\w-]+|pandolab.*|baseline-ui_tests|candidate-ui_tests)\\.exe$' -or ($_.Name -match '^java(w)?\\.exe$' -and $_.CommandLine -match 'gradle') -or ($_.Name -match '^(msedgewebview2|chrome|msedge)\\.exe$' -and $_.CommandLine -match 'PandoLab|worktrees') -or ($_.Name -eq 'node.exe' -and $_.CommandLine -match 'stage\\.mjs|dev\\.mjs|frontend-dev-server\\.mjs|tests[\\\\/]browser[\\\\/]server\\.mjs|tools[\\\\/]build-[\\w-]+\\.mjs|tauri.*(dev|build)') } | Select-Object ProcessId,Name,CommandLine,ExecutablePath | ConvertTo-Json -Compress";
-  const json=execFileSync('powershell.exe',['-NoProfile','-Command',command],{encoding:'utf8',windowsHide:true}).trim();
-  return json?[JSON.parse(json)].flat():[];
+  const inventory='Get-CimInstance Win32_Process | Select-Object ProcessId,Name,CommandLine,ExecutablePath | ConvertTo-Json -Compress';
+  const json=execFileSync('powershell.exe',['-NoProfile','-Command',inventory],{encoding:'utf8',windowsHide:true,maxBuffer:8*1024**2}).trim();
+  return json?storageConsumersFromProcesses([JSON.parse(json)].flat()):[];
 }
 export function permanentWorktrees(root=repository){return execFileSync('git',['-C',root,'worktree','list','--porcelain'],{encoding:'utf8',windowsHide:true}).split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>resolve(line.slice(9)));}
 export function protectedWorktreeFiles(roots){return roots.flatMap(app=>execFileSync('git',['-C',app,'ls-files','-z','--cached','--others','--exclude-standard'],{encoding:'utf8',windowsHide:true}).split('\0').filter(Boolean).map(path=>resolve(app,path)));}

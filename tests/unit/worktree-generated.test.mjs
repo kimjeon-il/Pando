@@ -10,6 +10,12 @@ function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
 function options(root){return {roots:[root],requests:[{root,path:'build-native/p9/retired/output.exe',reason:'retired reproducible native test',action:'delete'}],consumers:[],protectedPaths:[]};}
 
+test('retired Emscripten runtime scope excludes SDK source and other toolchains',t=>{
+ const root=fixture(t);put(root,'emsdk-6.0.3/upstream/bin/clang.exe');put(root,'emsdk-6.0.3/emsdk.py','source');put(root,'emsdk-7.0.0/upstream/bin/clang.exe');
+ const o={roots:[root],compilerScopes:[{root,kind:'toolchains'}],requests:[{root,path:'emsdk-6.0.3/upstream',action:'delete',reason:'disabled local compiler, verified no consumers'}]};const m=previewGeneratedCleanup(o);assert.equal(m.entries.length,1);assert.throws(()=>applyGeneratedCleanup({...o,manifest:m,consumers:[{Name:'clang.exe',ExecutablePath:join(root,'emsdk-6.0.3/upstream/bin/clang.exe')}]}),/consumer/i);assert.equal(applyGeneratedCleanup({...o,manifest:m}).deletedBytes,9);assert.ok(existsSync(join(root,'emsdk-6.0.3/emsdk.py')));
+ for(const p of ['emsdk-6.0.3','emsdk-6.0.3/emsdk.py','emsdk-7.0.0/upstream'])assert.throws(()=>previewGeneratedCleanup({...o,requests:[{...o.requests[0],path:p}]}),/scope/i);
+});
+
 test('explicit retired Cargo and cache scopes reject escape and preserve Android keys',t=>{
  const root=fixture(t);put(root,'main-cargo-gnu/debug/deps/x.rlib');put(root,'android/user/debug.keystore','private key');
  const o={roots:[root],compilerScopes:[{root,kind:'retired-cargo'}],requests:[{root,path:'main-cargo-gnu',reason:'confirmed retired Cargo producer without consumers',action:'delete'}]};
@@ -50,6 +56,32 @@ test('closed validation evidence can only be relocated with exact bytes',t=>{
  const o={roots:[root],requests:[{...request,action:'relocate',destination:join(evidence,'native.log')}],relocationRoots:[evidence]};
  const manifest=previewGeneratedCleanup(o);assert.equal(applyGeneratedCleanup({...o,manifest}).relocatedBytes,14);
  assert.equal(readFileSync(join(evidence,'native.log'),'utf8'),'original proof');
+});
+test('retired replay tensors require an intact separate duplicate and resume safely',t=>{
+ const root=fixture(t),target='build-native/reference-analysis/replay/tensor.f32',keeper='build-native/reference-analysis/retained/tensor.f32';put(root,target,'tensor');put(root,keeper,'tensor');
+ const base={root,path:target,reason:'ended replay; exact tensor retained',action:'delete'};
+ assert.throws(()=>previewGeneratedCleanup({roots:[root],requests:[base]}),/must be relocated/);
+ const options={roots:[root],requests:[{...base,duplicateOf:keeper}]};const manifest=previewGeneratedCleanup(options),journal=join(root,'cleanup.journal');
+ writeFileSync(join(root,keeper),'change');assert.throws(()=>applyGeneratedCleanup({...options,manifest,journal}),/duplicate|changed/i);assert.ok(existsSync(join(root,target)));
+ writeFileSync(join(root,keeper),'tensor');const refreshed=previewGeneratedCleanup(options);
+ assert.throws(()=>applyGeneratedCleanup({...options,manifest:refreshed,journal,afterMutation:()=>{throw Error('interrupted');}}),/interrupted/);
+ const result=applyGeneratedCleanup({...options,manifest:refreshed,journal});assert.equal(result.deletedBytes,6);assert.equal(readFileSync(join(root,keeper),'utf8'),'tensor');
+ put(root,target,'tensor');assert.throws(()=>previewGeneratedCleanup({roots:[root],requests:[{...base,duplicateOf:'../escape'}]}),/escape|outside/i);
+ assert.throws(()=>previewGeneratedCleanup({roots:[root],requests:[{...base,duplicateOf:keeper},{...base,path:keeper,duplicateOf:target}]}),/also selected/i);
+ const changed=previewGeneratedCleanup(options);let modified=false;assert.throws(()=>applyGeneratedCleanup({...options,manifest:changed,refreshConsumers:()=>{if(!modified){modified=true;writeFileSync(join(root,keeper),'xxxxxx');}return[];}}),/duplicate.*changed/i);assert.ok(existsSync(join(root,target)));
+ writeFileSync(join(root,keeper),'tensor');const alias='build-native/reference-analysis/retained/alias.f32';linkSync(join(root,target),join(root,alias));assert.throws(()=>previewGeneratedCleanup({roots:[root],requests:[{...base,duplicateOf:alias}]}),/duplicate.*proof/i);
+});
+test('resuming a retired tensor also verifies its retained duplicate',t=>{
+ const root=fixture(t),target='build-native/reference-analysis/replay/tensor.f32',keeper='build-native/reference-analysis/retained/tensor.f32';put(root,target,'tensor');put(root,keeper,'tensor');
+ const options={roots:[root],requests:[{root,path:target,action:'delete',reason:'completed replay exact duplicate',duplicateOf:keeper}]},manifest=previewGeneratedCleanup(options),journal=join(root,'journal');
+ assert.throws(()=>applyGeneratedCleanup({...options,manifest,journal,afterMutation:()=>{throw Error('interrupted');}}),/interrupted/);writeFileSync(join(root,keeper),'change');
+ assert.throws(()=>applyGeneratedCleanup({...options,manifest,journal}),/duplicate.*changed/i);
+});
+test('apply rejects a tampered manifest that selects its own duplicate source',t=>{
+ const root=fixture(t),target='build-native/reference-analysis/replay/tensor.f32',keeper='build-native/reference-analysis/retained/tensor.f32';put(root,target,'tensor');put(root,keeper,'tensor');
+ const options={roots:[root],requests:[{root,path:target,action:'delete',reason:'completed replay exact duplicate',duplicateOf:keeper}]},manifest=previewGeneratedCleanup(options);
+ manifest.entries[0].duplicateOf=target;manifest.entries[0].duplicateIdentity=manifest.entries[0].identity;
+ assert.throws(()=>applyGeneratedCleanup({...options,manifest}),/duplicate.*selected|duplicate.*source/i);assert.ok(existsSync(join(root,target)));
 });
 test('retired dependency links are unlinked without traversing their shared store',t=>{
  const root=fixture(t),shared=fixture(t);put(shared,'keep.js','shared package');
