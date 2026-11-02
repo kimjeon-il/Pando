@@ -158,7 +158,7 @@ impl Api for Offline {
     }
 }
 #[test]
-fn failed_sync_keeps_outbox_and_unsynced_publish_never_calls_transport() {
+fn failed_sync_keeps_outbox_and_does_not_change_local_source() {
     let r = repo("offline");
     let first = r
         .seed(index(&["state:A"]), vec![entity("state:A", "a")])
@@ -169,9 +169,13 @@ fn failed_sync_keeps_outbox_and_unsynced_publish_never_calls_transport() {
         .contains("offline"));
     assert_eq!(r.open().unwrap()["status"]["state"], "queued");
     assert_eq!(r.read_entity("state:A").unwrap()["names"]["ko"], "a");
-    assert!(library_sync::publish(&r, &Offline, rev)
+    // The retired publishing command does not exist; a second failed sync
+    // must still preserve the queued source and leave the local data intact.
+    assert!(library_sync::sync(&r, &Offline, None)
         .unwrap_err()
-        .contains("current synced revision"));
+        .contains("offline"));
+    assert_eq!(r.open().unwrap()["status"]["state"], "queued");
+    assert_eq!(r.read_entity("state:A").unwrap()["names"]["ko"], "a");
 }
 struct NewRemote {
     calls: RefCell<Vec<(String, String, Option<Value>)>>,
