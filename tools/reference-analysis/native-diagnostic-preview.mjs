@@ -34,6 +34,23 @@ export function diagnosticTrainingProgress(receipt){
     trainingLoss:complete?receipt.epochLossSum/receipt.epochLossCount:null,validationLoss:null,
     unobservedChannels:REFERENCE_BOUNDARY_CHANNELS.filter((_,index)=>(receipt.unobservedMask&(1<<index))!==0),epochComplete:complete};
 }
+export function sourceReportedDiagnosticProgress(source,transfer){
+  if(!source||source.schemaVersion!==1||source.purpose!=='training-set-diagnostic-only'||
+    source.independentEvaluation!==false||source.releaseApproved!==false||
+    !/^[a-f0-9]{64}$/.test(transfer?.sourceCheckpointSha256||'')||source.checkpointSha256!==transfer.sourceCheckpointSha256)
+    throw Error('Historical diagnostic checkpoint identity differs');
+  if(!/^[a-f0-9]{64}$/.test(source.corpusSha256||'')||
+    (transfer.trainingCorpusSha256!=null&&source.corpusSha256!==transfer.trainingCorpusSha256))
+    throw Error('Historical diagnostic corpus fingerprint differs');
+  if(!Number.isSafeInteger(source.trainingBatches)||source.trainingBatches<1||!Number.isSafeInteger(source.optimizerUpdates)||
+    source.optimizerUpdates<0||source.optimizerUpdates>source.trainingBatches||!Number.isFinite(source.trainingLoss)||
+    (source.validationLoss!==null&&!Number.isFinite(source.validationLoss))||!Array.isArray(source.unobservedChannels)||
+    new Set(source.unobservedChannels).size!==source.unobservedChannels.length||
+    source.unobservedChannels.some(channel=>!REFERENCE_BOUNDARY_CHANNELS.includes(channel)))
+    throw Error('Invalid historical diagnostic progress');
+  return {corpusSha256:source.corpusSha256,trainingBatches:source.trainingBatches,optimizerUpdates:source.optimizerUpdates,trainingLoss:source.trainingLoss,
+    validationLoss:source.validationLoss,unobservedChannels:[...source.unobservedChannels],evidenceKind:'historical-diagnostic-report'};
+}
 
 // The native model supplies probabilities; original RGB and the training
 // tensors use the same channel-major ordering as the existing diagnostic.
@@ -225,12 +242,14 @@ export function diagnoseReviewedSource(request,options){
 }
 
 // Diagnostic only: optional ONNX parity is not held-out evaluation or model admission.
-export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,weights,baselineWeights,onnx,output,device,torchLibrary,maximumPreviews=24},options={}){
+export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus='primary',reviewCorpus,checkpoint,weights,baselineWeights,onnx,sourceDiagnostics,output,device,torchLibrary,maximumPreviews=24},options={}){
   const {signal}=options;signal?.throwIfAborted();
   if(!corpus||Boolean(checkpoint)===Boolean(weights)||!output||!torchLibrary||!['cpu','cuda'].includes(device)||
     !Number.isSafeInteger(maximumPreviews)||maximumPreviews<0||maximumPreviews>1024)
     throw Error('Explicit bounded corpus diagnostic inputs required');
   if(!['primary','auxiliary'].includes(viewCorpus)||(viewCorpus==='auxiliary'&&reviewCorpus!=null))throw Error('Invalid diagnostic corpus view');
+  if(sourceDiagnostics!=null&&(typeof sourceDiagnostics!=='string'||!sourceDiagnostics||!weights))
+    throw Error('Historical source diagnostics require transferred weights and an explicit report');
   if(viewCorpus==='auxiliary'&&!auxiliaryCorpus)throw Error('Auxiliary corpus required for auxiliary diagnostics');
   const target=resolve(output);if(existsSync(target))throw Error('Diagnostic output exists; preserve prior evidence');
   const viewPath=resolve(reviewCorpus||(viewCorpus==='auxiliary'?auxiliaryCorpus:corpus)),viewBytes=readTrainingBounded(viewPath,32*1024*1024);
@@ -251,6 +270,9 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     const receipt=transferReceipt=diagnosticReceipt;
     if(receipt.schemaVersion!==1||transferred.initialization!=='weights-only-no-optimizer'||transferred.recordHash!==receiptHash||
       !/^[a-f0-9]{64}$/.test(transferred.sourceCheckpointSha256||''))throw Error('Verified transferred checkpoint weights required');}
+  const sourcePath=sourceDiagnostics?resolve(sourceDiagnostics):null,sourceBytes=sourcePath?readTrainingBounded(sourcePath,64*1024*1024):null;
+  const sourceDiagnosticSha256=sourceBytes?createHash('sha256').update(sourceBytes).digest('hex'):null;
+  const sourceReportedProgress=sourceBytes?sourceReportedDiagnosticProgress(JSON.parse(sourceBytes),transferReceipt):null;
   const onnxPath=onnx?resolve(onnx):null,onnxHash=onnxPath?trainingFileIdentity(onnxPath):null;
   if(onnxPath&&!onnxPath.endsWith('.onnx'))throw Error('Explicit ONNX model path required');
   const onnxManifest=onnxPath?(weights?onnxPath+'.export.json':onnxPath.replace(/\.onnx$/,'.manifest.json')):null;
@@ -287,6 +309,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   const finalCorpusFingerprint=await corpusFingerprint(corpusPath,auxiliaryCorpus);
   if(trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
     trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash||
+    (sourcePath&&trainingFileIdentity(sourcePath)!==sourceDiagnosticSha256)||
     finalCorpusFingerprint!==corpusSha256)
     throw Error('Diagnostic checkpoint or corpus changed during execution');
   if(internalScope&&(trainingFileIdentity(internalScope.auxiliaryPath)!==internalScope.auxiliaryHash||
@@ -306,6 +329,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     if(trainingFileIdentity(onnxPath)!==onnxHash||trainingFileIdentity(onnxManifest)!==onnxManifestHash||
       trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
       trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash||
+      (sourcePath&&trainingFileIdentity(sourcePath)!==sourceDiagnosticSha256)||
       parityCorpusFingerprint!==corpusSha256||
       internalScope&&(trainingFileIdentity(internalScope.auxiliaryPath)!==internalScope.auxiliaryHash||
         parityCorpusFingerprint!==internalScope.lineageFingerprint))
@@ -320,6 +344,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     checkpointSha256:weights?null:checkpointHash,corpusSha256,corpusManifestSha256:corpusHash,
     ...(weights?{weightsSha256:checkpointHash,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
       trainingCorpusVerified:false,trainingCorpusFingerprintMatched,optimizerStateTransferred:false,lineageComplete:false}:{}),
+    ...(sourcePath?{sourceDiagnosticSha256,sourceReportedProgress}:{}),
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),
     ...(reviewCorpus?{reviewCorpusSha256:viewHash}:{}),sheets:rows};
   await writeFile(join(target,'diagnostics.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx',signal});return report;
@@ -335,11 +360,11 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       const batch=process.argv[2]==='--corpus-sources',reviewed=process.argv[2]==='--reviewed-source';
       const {values,positionals}=parseArgs({args:process.argv.slice(3),allowPositionals:true,options:{corpus:{type:'string'},source:{type:'string'},
         'auxiliary-corpus':{type:'string'},'view-corpus':{type:'string'},
-        'review-corpus':{type:'string'},checkpoint:{type:'string'},weights:{type:'string'},'baseline-weights':{type:'string'},onnx:{type:'string'},output:{type:'string'},device:{type:'string'},
+        'review-corpus':{type:'string'},checkpoint:{type:'string'},weights:{type:'string'},'baseline-weights':{type:'string'},onnx:{type:'string'},'source-diagnostics':{type:'string'},output:{type:'string'},device:{type:'string'},
         'torch-library':{type:'string'},'maximum-previews':{type:'string'}}});
       if(positionals.length||!values.corpus||(!batch&&!values.source)||(batch&&values.source)||Boolean(values.checkpoint)===Boolean(values.weights)||
         !values.output||!values.device||!values['torch-library']||
-        (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&(values['maximum-previews']!==undefined||values.onnx)))
+        (!batch&&reviewed!==Boolean(values['review-corpus']))||(!batch&&(values['maximum-previews']!==undefined||values.onnx||values['source-diagnostics'])))
         throw Error('Expected an explicit corpus, checkpoint or transferred weights, output, device and LibTorch; single-source modes require --source');
       const output=resolve(reportArgument(values.output,{access:'write'}));
       if(existsSync(output))throw Error('Diagnostic output exists; preserve prior evidence');
@@ -349,7 +374,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
           auxiliaryCorpus:reportArgument(values['auxiliary-corpus'],{access:'read',siblings:true}),viewCorpus:values['view-corpus']||'primary',
           reviewCorpus:reportArgument(values['review-corpus'],{access:'read',siblings:true}),checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
           weights:reportArgument(values.weights,{access:'read',siblings:true}),
-          baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),onnx:reportArgument(values.onnx,{access:'read',siblings:true}),output,device:values.device,
+          baselineWeights:reportArgument(values['baseline-weights'],{access:'read',siblings:true}),onnx:reportArgument(values.onnx,{access:'read',siblings:true}),
+          sourceDiagnostics:reportArgument(values['source-diagnostics'],{access:'read'}),output,device:values.device,
           torchLibrary:values['torch-library'],maximumPreviews:Number(count)},{signal:controller.signal});
         process.stdout.write(JSON.stringify({output,sheets:result.sheets.length,purpose:result.purpose,releaseApproved:false,onnxParityVerified:result.onnxParityVerified})+'\n');
       }else{

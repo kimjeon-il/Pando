@@ -142,6 +142,12 @@ Training loss is reported only for a completed epoch; validation loss is unknown
 unless separately established by a validation receipt. For transferred weights,
 these progress fields are null because optimizer and epoch history were not
 transferred.
+For transferred weights, `--source-diagnostics PATH` optionally links the
+previous training-only diagnostic report. Its original checkpoint hash and,
+when recorded, training-corpus fingerprint must match the transfer record. The
+new report identifies the historical source report and preserves its reported
+batch counts and loss separately; this does not transfer optimizer state or
+establish independent accuracy.
 
 ```powershell
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus $corpusPath --source SOURCE_ID --weights $transferredWeights --output $newDiagnosticDirectory --device cuda --torch-library $torchLibrary

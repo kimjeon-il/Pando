@@ -20,6 +20,17 @@ test('diagnostics expose recorded native progress without inventing transferred 
   assert.throws(()=>diagnostic.diagnosticTrainingProgress({...receipt,optimizerUpdates:4}),/progress/i);
   assert.throws(()=>diagnostic.diagnosticTrainingProgress({...receipt,unobservedMask:128}),/progress/i);
 });
+test('transferred diagnostics retain only matching historical checkpoint progress',()=>{
+  const source={schemaVersion:1,purpose:'training-set-diagnostic-only',independentEvaluation:false,releaseApproved:false,
+    checkpointSha256:'a'.repeat(64),corpusSha256:'b'.repeat(64),trainingBatches:20,optimizerUpdates:19,trainingLoss:0.5,validationLoss:null,
+    unobservedChannels:['coast']};
+  const transfer={sourceCheckpointSha256:'a'.repeat(64),trainingCorpusSha256:'b'.repeat(64)};
+  assert.deepEqual(diagnostic.sourceReportedDiagnosticProgress(source,transfer),{corpusSha256:'b'.repeat(64),trainingBatches:20,optimizerUpdates:19,
+    trainingLoss:0.5,validationLoss:null,unobservedChannels:['coast'],evidenceKind:'historical-diagnostic-report'});
+  assert.throws(()=>diagnostic.sourceReportedDiagnosticProgress({...source,checkpointSha256:'c'.repeat(64)},transfer),/checkpoint/i);
+  assert.throws(()=>diagnostic.sourceReportedDiagnosticProgress({...source,corpusSha256:'c'.repeat(64)},transfer),/corpus/i);
+  assert.throws(()=>diagnostic.sourceReportedDiagnosticProgress({...source,optimizerUpdates:21},transfer),/progress/i);
+});
 
 test('transferred weights diagnostics refuse unverified source, mixed modes and baselines',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-diagnostic-transfer-'));t.after(()=>rmSync(root,{recursive:true}));
@@ -161,6 +172,13 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
   const source=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,output:join(root,'weights-matching')});
   assert.equal(source.trainingCorpusFingerprintMatched,true);assert.equal(source.trainingCorpusVerified,false);
   assert.equal(source.trainingBatches,null);assert.equal(source.optimizerUpdates,null);assert.equal(source.trainingLoss,null);
+  const historic=join(root,'historic.json');writeFileSync(historic,JSON.stringify({schemaVersion:1,purpose:'training-set-diagnostic-only',
+    independentEvaluation:false,releaseApproved:false,checkpointSha256:transfer.sourceCheckpointSha256,corpusSha256:transfer.trainingCorpusSha256,
+    trainingBatches:20,optimizerUpdates:19,trainingLoss:0.5,validationLoss:null,unobservedChannels:['coast']}));
+  const recorded=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,sourceDiagnostics:historic,output:join(root,'historic')});
+  assert.equal(recorded.sourceReportedProgress.trainingBatches,20);assert.equal(recorded.sourceReportedProgress.evidenceKind,'historical-diagnostic-report');
+  assert.equal(recorded.optimizerStateTransferred,false);assert.equal(recorded.trainingBatches,null);
+  await assert.rejects(diagnostic.diagnoseTrainingCorpus({...request,sourceDiagnostics:historic,output:join(root,'invalid-historic')}),/transferred weights/i);
   transfer.trainingCorpusSha256='b'.repeat(64);writeFileSync(join(root,'transfer.json'),JSON.stringify(transfer));
   const other=await diagnostic.diagnoseTrainingCorpus({...request,checkpoint:undefined,weights,output:join(root,'weights-different')});
   assert.equal(other.trainingCorpusFingerprintMatched,false);assert.equal(other.trainingCorpusVerified,false);
