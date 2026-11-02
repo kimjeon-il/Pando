@@ -20,10 +20,14 @@ $processInfo = [Diagnostics.ProcessStartInfo]::new()
 $processInfo.FileName = $executable
 $processInfo.UseShellExecute = $false
 $processInfo.CreateNoWindow = $true
+$processInfo.RedirectStandardError = $true
+$processInfo.RedirectStandardOutput = $true
 $processInfo.ArgumentList.Add('--probe-auto')
 $processInfo.ArgumentList.Add('--diagnostic-output')
 $processInfo.ArgumentList.Add($reportFile)
 $process = [Diagnostics.Process]::Start($processInfo)
+$stderrTask = $process.StandardError.ReadToEndAsync()
+$stdoutTask = $process.StandardOutput.ReadToEndAsync()
 try {
   while (-not $process.WaitForExit(1000)) {
     if ([DateTime]::UtcNow -gt $start.AddMinutes(5)) {
@@ -31,8 +35,12 @@ try {
       throw 'E5 Windows review did not finish its actual WebView2/C++ readiness probe.'
     }
   }
+  $stderr = $stderrTask.GetAwaiter().GetResult()
+  $stdout = $stdoutTask.GetAwaiter().GetResult()
+  [IO.File]::WriteAllText((Join-Path $output 'windows-review-stderr.txt'), $stderr)
+  [IO.File]::WriteAllText((Join-Path $output 'windows-review-stdout.txt'), $stdout)
   if (-not (Test-Path -LiteralPath $reportFile -PathType Leaf)) {
-    throw "Windows E5 reviewer produced no diagnostic report (exit $($process.ExitCode))."
+    throw "Windows E5 reviewer produced no diagnostic report (exit $($process.ExitCode)): $stderr"
   }
   if ((Get-Item -LiteralPath $reportFile).LastWriteTimeUtc -lt $start) {
     throw 'Windows E5 reviewer report is stale.'

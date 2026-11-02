@@ -160,6 +160,8 @@ jobs:
           name: e5-windows-review-native-${{ github.sha }}
           path: |
             build-native/e5-windows/windows-review-probe.json
+            build-native/e5-windows/windows-review-stderr.txt
+            build-native/e5-windows/windows-review-stdout.txt
             build-native/native-artifacts/windows/verification/native-artifact.json
           if-no-files-found: warn
           retention-days: 14
