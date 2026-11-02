@@ -10,7 +10,7 @@ export const catalogPath = 'scripts/contracts/application-checks.json';
 // Archived graphical-editor browser tests are indexed for traceability but
 // must not be parsed as currently deployable Viewer runtime dependencies.
 // Classification uses explicit retired entrypoints, not a blanket test ban.
-export function retiredEditorBrowserReason(file,source='') {
+export function retiredEditorBrowserReason(file,source='',availablePaths=null) {
   if(!file.startsWith('tests/browser/')||!file.endsWith('.spec.mjs'))return null;
   if(/(?:^|\/)(?:editor-[^/]+|draft-[^/]+|editing-[^/]+|map-editing-[^/]+|mobile-vertex-ui|phone-landscape-editor)\.spec\.mjs$/.test(file))
     return 'retired graphical-editor browser entrypoint';
@@ -18,6 +18,16 @@ export function retiredEditorBrowserReason(file,source='') {
      /\b(?:gotoEditor|editorTestUrl)\s*\(/.test(source) ||
      /(?:\/__editor\/index\.html|products\.editor|renderProductHtml\([^)]+\)\.editor)/.test(source))
     return 'loads retired editor DOM or startup instead of the shipped Viewer';
+  // An old browser fixture that imports a module/Worker outside the public
+  // Viewer source graph tests the retired editor, not a released runtime.
+  // Real Viewer and GIS tests with valid imports remain automatic.
+  if(availablePaths)for(const match of source.matchAll(
+    /(?:\bimport\s*\(|\bnew\s+Worker\s*\()\s*['"]\/(assets\/js\/[^'"?]+)[^'"]*['"]/g)) {
+    const asset=match[1];
+    if(!availablePaths.has(asset) && !frontendGeneratedOwners[asset] &&
+       !asset.startsWith('assets/js/worker-runtime/'))
+      return 'references a retired non-distributable browser module: '+asset;
+  }
   return null;
 }
 
@@ -81,11 +91,12 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   [...catalog.groups.map(group => group.id), ...Object.keys(catalog.prerequisites || {})].forEach(checkPrerequisite);
   for (const specs of Object.values(catalog.manualScopes || {})) for (const spec of specs)
     if (!exists(spec)) throw Error('Missing focused browser spec: ' + spec);
+  const frontendIndex = buildFrontendIndex(root);
   const owners = new Map(), retiredTests = new Map();
   for (const file of tests) {
     const group = catalog.groups.find(group => matches(file, group.testPatterns));
     if (!group) throw Error('Unregistered test: ' + file);
-    const reason = retiredEditorBrowserReason(file, read(file));
+    const reason = retiredEditorBrowserReason(file, read(file), frontendIndex);
     if (reason) {
       retiredTests.set(file, reason);
       owners.set(file, { ...group, mode: 'retired', reason });
@@ -110,7 +121,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     return [...(entry.argv || []).filter(arg => /^(?:scripts|tools|apps|tests)\/.*\.[cm]?js$/.test(arg)),
       ...files.filter(file => matches(file, entry.inputs)), ...(entry.requires || []).flatMap(prerequisiteInputs)];
   }
-  const frontendIndex=buildFrontendIndex(root),publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
+  const publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
   const sourcePath=path=>frontendGeneratedOwners[path]||frontendIndex.get(path)?.sourcePath||path;
   const dependencyCache = new Map();
   function dependencies(file) {

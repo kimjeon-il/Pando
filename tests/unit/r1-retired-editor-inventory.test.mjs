@@ -12,6 +12,7 @@ test('R1 reports every archived editor browser test without dropping its catalog
     'tests/browser/mobile-native-selection.spec.mjs',
     'tests/browser/phone-landscape-editor.spec.mjs',
     'tests/browser/product-pruning.spec.mjs',
+    'tests/browser/gis-math-contract.spec.mjs',
   ];
   for(const file of obsolete) {
     assert.ok(repo.retiredTests.has(file),file);
