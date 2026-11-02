@@ -9,11 +9,15 @@ test('official 2019 exclusion polygons preserve 4/21/9/7 points',()=>{
     .map(([id,rows])=>[id,rows.length])),{'1-1':4,'1-2':21,'1-3':9,'1-4':7});
   const collection=baikonur2019Exclusions();
   assert.equal(collection.properties.openStreetMapDataUsed,false);
-  assert.equal(collection.features.length,3);
-  assert.equal(collection.properties.unresolvedPlots.length,1);
-  assert.equal(collection.properties.unresolvedPlots[0].plot,'1-3');
-  assert.equal(collection.properties.unresolvedPlots[0].problems[0].point,5);
-  assert.equal(collection.features.find(x=>x.properties.plot==='1-3'),undefined);
+  assert.equal(collection.features.length,4);
+  assert.equal(collection.properties.unresolvedPlots.length,0);
+  assert.equal(collection.properties.correctedOfficialTextDiscrepancy.plot,'1-3');
+  assert.equal(collection.properties.correctedOfficialTextDiscrepancy.point,5);
+  assert.equal(collection.properties.correctedOfficialTextDiscrepancy.verifiedLatitudeDms,'45 33 06,84');
+  assert.equal(collection.properties.independentOfficialCrosschecks.length,2);
+  const corrected=collection.features.find(x=>x.properties.plot==='1-3');
+  assert(corrected);
+  assert.deepEqual(corrected.geometry.coordinates[0][4], [63.299825,45.5519]);
   assert.equal(collection.properties.status,'RESEARCH_ONLY_NOT_FOR_RUNTIME');
 });
 test('fractional second DMS is parsed but malformed government text is not guessed',()=>{
