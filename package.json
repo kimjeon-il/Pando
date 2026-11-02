@@ -67,10 +67,8 @@
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
     "dev:editor": "node scripts/frontend-dev-server.mjs --product=editor",
     "dev:windows": "node apps/editor/dev.mjs --native=windows",
-    "dev:android": "node apps/editor/dev.mjs --native=android",
     "build:web": "node scripts/generate-build-metadata.mjs --product=viewer",
     "build:windows": "node apps/editor/packaged-artifacts.mjs --fetch --platform=windows --mode=offline",
-    "build:android": "node apps/editor/packaged-artifacts.mjs --fetch --platform=android --mode=offline",
     "deps:prepare": "node tools/worktree-storage.mjs --prepare-dependencies"
   },
   "devDependencies": {

@@ -1,192 +1,37 @@
-# 판도연구소 Windows 검수기 (E5)
+# 판도연구소 Windows 검수기
 
-> **2026-11-02 E5 제품 전환:** Windows 앱은 편집기가 아니라 **읽기 전용 검수기**로 시작합니다. 기존 편집기 진입점·소스는 E6 정리 전까지 보존되지만 Windows 실행 화면이 아닙니다. Android 네이티브 신규 개발·자동 빌드는 중단했고 모바일 웹 검수는 유지합니다.
+> **운영 기준 (2026-11-02, E7/R2):** Windows Tauri 앱은 읽기 전용 검수기입니다. Android 네이티브 앱은 빌드·실행·아티팩트 설치 대상에서 제외되었으며, 모바일에서는 공개 반응형 웹 열람기를 사용합니다.
 
-Windows 검수기는 E4 웹 검수와 **동일한 공통 지도·검수 모듈**을 사용하지만 평면(flat) 지도로 표시합니다. 직접 도형 수정, 프로젝트 저장, 원본 GIS 쓰기, 라이브러리 커밋/동기화는 Windows 앱 capability에서 허용하지 않습니다. E3 검수 JSON의 수동 불러오기, 변경 전후 비교, 원본 SHA 대조, 국가 객체·보고서 조회, 사용자 확인이 필요한 수정 요청서 JSON 저장만 제공합니다.
+검수기는 `apps/viewer`의 동일한 지도·검수 UI를 `review.html`로 배포하되 Windows에서 평면(`flat`) 투영을 사용합니다. 지도·역사 시점·속성·국경 수정 전후를 조회하고, 근거 보고서 및 원본 SHA를 확인할 수 있습니다. 사용자가 명시적으로 지정한 **수정 요청서 JSON**과 진단 보고서 외에는 원본 GIS·프로젝트 파일 또는 GitHub에 쓰지 않습니다.
 
-[상세 E5 설계·실행/검증 계약](../../docs/architecture/windows-review-e5.md)
-
-기존 Windows 실행·빌드 명령은 유지하되, Windows 전용 Tauri 창은 이제 `review.html`을 표시합니다. 아래 과거 개발·Android 편집기 문서는 **E0 시점 동작을 설명하는 기록**이며 현재 Windows 기능 안내가 아닙니다. 기존 편집기 코드 제거와 설명 정리는 E6에서 처리합니다.
-
----
-
-# PandoLab Windows·Android 앱
-
-> **Editor feature freeze (E0, 2026-11-02):** Direct graphical-map editing receives no new features. Current behavior remains intact until the read/review cutover. Scope, dependency inventory and E1 gates: [editor-retirement-e0.md](../../docs/development/editor-retirement-e0.md).
-> **E1 platform decision:** Web and Windows are the migration targets. Android native development is frozen pending retirement; Android mobile web is still in scope.
-
-
-Windows MSVC x64와 Android ARM64 앱이다. 평소 개발은 Node·Git·브라우저·빌드된 앱·ADB를 사용한다.
-Rust1.99.1·C++·Android SDK/NDK 컴파일은 GitHub Actions가 담당하며 로컬 컴파일이나 SDK 자동 설치는 없다.
-
-## 실행과 원격 빌드
-
-저장소 루트에서 실행한다. Windows 실행 정책이 pnpm.ps1을 막으면 pnpm.cmd를 사용한다.
+## 실행 및 빌드 (저장소 루트)
 
 ```powershell
+pnpm.cmd deps:prepare
+pnpm.cmd dev:web
+pnpm.cmd --dir apps/editor dev:server
 pnpm.cmd --dir apps/editor dev:windows
-pnpm.cmd --dir apps/editor dev:android -- --serial=DEVICE_SERIAL
 pnpm.cmd --dir apps/editor build:windows
-pnpm.cmd --dir apps/editor build:android
+pnpm.cmd --dir apps/editor build:verification:windows
 pnpm.cmd --dir apps/editor test:native
 ```
 
-개발 앱은 명시적인 Cargo development feature로 빌드한다. 화면·지도 자료를 내장하지 않고
-같은 작업트리의 http://127.0.0.1:4175를 읽는다. JS/CSS는 서버 재로딩으로 반영한다.
-같은 네이티브 입력 해시의 CI 실행기는 재사용한다. 없으면 원격 브랜치의 현재 커밋을 빌드
-요청하고 검증 후 받는다. 미커밋 네이티브 입력은 커밋·푸시 오류로 중단하며 자동 커밋하지 않는다.
-C++ 변경은 기존 P2의 소스 일치 WASM 생성·게시 절차를 거친다. JS/CSS와 runtime pin 변경은
-개발 실행기 재빌드를 유발하지 않는다. 다른 작업트리가4175를 사용하면 중단한다.
-서버만 실행하려면 dev:server를 사용한다.
+`dev:server`는 로컬 포트 `127.0.0.1:4175`에서 Windows 검수용 Viewer 자산을 제공합니다. `dev:windows`는 GitHub Actions의 소스 고정 실행 파일을 받아 실행하며, 개발용 WebView는 해당 포트에 연결됩니다. Windows 네이티브 컴파일은 CI에서 수행하며, 미커밋 빌드 입력을 자동으로 커밋하지 않습니다. PowerShell에서 `pnpm.ps1`이 차단되는 경우 `pnpm.cmd`를 사용합니다.
 
-Android는 USB 디버깅을 허용한 ARM64 실기기를 사용한다. 여러 기기가 있으면 serial이 필요하다.
-에뮬레이터는 자동 실행하지 않는다. ADB reverse로 같은 서버에 연결하고 자신이 만든 연결만
-종료 시 제거한다. APK 인증서를 pin과 설치된 앱 양쪽에 대조한 뒤 업데이트 설치한다.
-불일치는 중단하며 앱 삭제·데이터 초기화는 하지 않는다.
+`build:windows`는 `remote-development-p1.yml`에 Windows x64 오프라인 빌드를 요청합니다. CI의 `PandoLab-setup.exe` 및 `pandolab-web-shell.exe`는 커밋·입력 SHA-256·파일 해시를 검증한 후 불변 스토리지에서 재사용합니다. 생성된 설치 파일이 곧바로 공개 배포되지는 않습니다. 원격 아티팩트 보존 기간은 설정상 7일입니다.
 
-build:*는 자료를 내장하는 offline CI 산출물 요청이다. build:verification:*는 명시적인
-verification 모드다. development와 verification을 섞을 수 없다. 일반 앱·개발 서버는 map-data만
-허용한다. test:native는 Windows CI 단위검사를 요청한다. fixture 프로필의 원격 빌드 요청은 제공하지 않는다.
-일반 앱에는 시험 파일 쓰기·자동 종료 명령이 없다. 검증 스크립트는 build-info를 확인한다. 컴파일된 build identity는 Rust 진단/`--build-info` 경계에만 남고 WebView 전역으로 주입하지 않는다.
+네이티브 실행 모드는 `development`, `offline`, `verification`입니다. `test-fixture` 자료는 명시적인 `verification` 빌드에서만 사용 가능하고 일반 Windows 빌드는 `map-data`만 사용합니다. `--probe-auto` 등의 자동 검증 옵션은 시험 빌드에서만 허용됩니다.
 
-Windows offline 산출물에는 현재 사용자용 `PandoLab-setup.exe` 설치 프로그램이 포함된다.
-설치한 앱은 시작 메뉴에서 실행하며 설치 단계에서 바탕화면 바로가기를 선택할 수 있다.
-Android는 기존 앱 식별자와 서명을 유지해 기존 설치를 덮어쓰는 방식으로 갱신한다.
+## 권한과 파일 처리
 
-packaged-artifacts.mjs가 CI 요청·다운로드·검증을 소유한다. Manifest는 소스 커밋, 네이티브 입력
-SHA-256, 플랫폼, 실행 모드, 도구 버전과 파일별 크기·SHA-256을 기록한다. Windows build-info와
-Android APK 인증서도 확인한다. 실행기는 공용 D:/build/cache/pandolab/native/<입력 SHA-256>에서
-blob pool과 읽기 전용 하드링크를 공유한다. 브랜치별 참조는 .library-data/native-artifacts.json이다.
-실패한 전송은 현재 정상 실행기를 보존하고 다음 요청에서 재시도한다. Actions artifact 보존 기간은7일이며
-Cargo target·SDK·Gradle 중간 산출물은 포함하지 않는다.
+- Windows 사용자 창은 `apps/editor/src-tauri/capabilities/prototype-review.json`의 `allow-write-diagnostic-report`, `allow-save-review-correction` 권한만 사용합니다.
+- 검수 수정 요청서는 사용자 파일 저장 대화상자에서 직접 지정한 경로에만 저장됩니다. 기존 프로젝트·GeoPackage 작성, Undo/Redo, GIS 데이터 변경, Git 승인·병합은 허용되지 않습니다.
+- 실제 Windows 창은 `review.html`만 열고 외부 내비게이션과 새 창을 차단합니다. 고정된 출처의 검수 자료만 읽습니다.
+- 기존 Windows 앱 식별자 `com.pandolab.webshell.prototype`는 사용자 설치 및 데이터 경로 호환성을 위해 R2에서 변경하지 않았습니다. 제품명·패키지 식별자 변경은 별도 마이그레이션 작업으로 다룹니다.
+- 이전 Windows 사용자 데이터·원본 GeoPackage와 과거 Android 캐시는 이번 정리에서 삭제하거나 이동하지 않습니다.
 
-run-windows.bat는 Node로 offline 산출물을 검증하고 실행한다. 로컬 컴파일러를 비활성화할 때는
-node tools/worktree-storage.mjs --disable-local-compiler를 사용한다. App blob 공유와 라이브러리
-공유 저장소는 계속 활성 상태다. main 통합과 제품 배포는 별도 승인 범위다.
+## 수용 검사
 
-## Resource profiles (2-3A–C)
+`e6-retirement-acceptance.yml`, `e7-final-readonly-regression.yml` 및 R2 네이티브 계약 테스트에서 Viewer 소스 격리, 수정 명령 거부, Windows 빌드·WebView2 실제 실행, 아티팩트 무결성, Android 빌드·APK 차단을 검증합니다. Windows 설치 파일을 별도로 배포했다는 뜻은 아닙니다.
 
-The verification-only **test-fixture** profile is the 15-coordinate offline
-smoke fixture. Its tests, size restrictions and storage namespace remain unchanged.
-It can be staged only for verification. The development server and ordinary
-offline artifact preservation always reject it.
-
-The default **map-data** profile uses the *same* progressive Web startup as
-the public website (`assets/js/bootstrap.js`, `data-loader-worker.js`,
-the verified C++/WASM core, preview geometry and canonical GPU mesh).
-The original Web menu and DOM are packaged, not recreated for Tauri.
-The profile stages only the assets referenced by the current pinned world,
-historical-world, territorial-library and prepared-polygon manifests.
-Every pinned asset is checked for length and SHA-256 before packaging;
-unreferenced older versions are excluded.
-
-For Windows PowerShell (from the repository root):
-
-```powershell
-pnpm --dir apps/editor build:windows
-
-# Explicit fixture verification only:
-$env:PANDOLAB_SHELL_PROFILE = 'test-fixture'
-pnpm --dir apps/editor build:verification:windows
-Remove-Item Env:PANDOLAB_SHELL_PROFILE
-```
-
-For Android, `pnpm --dir apps/editor build:android` also defaults to map-data.
-Remote builds currently use map-data. For local staging-only fixture checks,
-`pnpm --dir apps/editor stage:map-data` creates a map-data staging
-snapshot **only**. This does not compile an application.
-
-The map-data profile includes manifest-pinned offline HydroRIVERS and built-in places.
-Both are off by default and load only when explicitly enabled in View. Project-created
-water objects and labels remain editable independently. Terrain data and its menu are
-excluded from the app. The public Web retains its backgrounds. New app projects start
-on the flat map; globe projection remains available.
-
-Current projects use schema 13 with a stable documentId and authored defaultView.
-Use project settings to capture the current month and object visibility as the default
-or return to it. Navigation and temporary visibility are device workspace state and
-do not dirty the project. Version 12 projects/autosaves are rejected without conversion
-or automatic deletion. All territorial objects share the objects display group,
-objectNames/objectFlags controls and layer-presentation schema 5.
-
-The application identifier is `com.pandolab.webshell.prototype`. Fixed prototype
-files live below the OS application-data directory in `test-profile/`. Windows
-WebView2 also uses a dedicated `test-profile/webview2` directory, so its browser
-storage is separate from normal browser sessions.
-
-## Narrow native bridge
-
-`native-platform-adapter.js` is the only frontend runtime module that reads the raw Tauri bridge and shell-injected native flags. It binds `window.__TAURI_INTERNALS__.invoke` once, then supplies explicit file/library/platform ports to the shared application runtime.
-`write_probe_file`, `read_probe_file`, and `finish_probe` exist only in explicit
-verification builds; `write_diagnostic_report` remains available in ordinary builds:
-
-| Command | Argument | Result |
-| --- | --- | --- |
-| `write_probe_file` | `{contents: string}` | `{path, sha256}` |
-| `read_probe_file` | `{}` | `{contents, path}` |
-| `write_diagnostic_report` | `{report: object}` | `{path}` |
-| `finish_probe` | `{report: object}` | `{path}` |
-| `begin_document_write` | `{kind: 'project'/'gis-gpkg'/'gis-zip'}` | `{token}` |
-| `append_document_chunk` | `{token, contents: base64Chunk}` | `{}` |
-| `finish_document_write` | `{token}` | `{cancelled, path}` |
-| `begin_document_read` | `{kind: 'project'/'gis'}` | `{cancelled, files: [{token,path,bytes}]}` |
-| `read_document_chunk` | `{token}` | `{contents: base64Chunk, done}` |
-| `abort_document_transfer` | `{token}` | `boolean` |
-
-The diagnostic snapshot filename is `test-fixture.json`; the report filename is
-`diagnostic-report.json`. Both have a strict 1 MiB UTF-8 byte limit, checked before
-creating directories. Local writes use a flushed adjacent temporary file and an
-atomic replacement; failure preserves the previous destination. Reads are bounded
-before allocating an entire file. Import/export paths originate exclusively in
-the native file picker and cannot be supplied by JavaScript. Cancellation returns
-`cancelled: true`; file I/O and encoding failures reject the command. Current
-project import/export uses the production binary GeoPackage codec and a `.gpkg`
-picker filter. Document I/O uses 256 KiB Base64 chunks over the native IPC,
-backed by a disk spool rather than whole-file Base64 values. Maximum total
-project/GIS document size is 256 MiB, with up to 16 GIS files per import.
-`document-transfer-contract.js` owns the JavaScript-side command names, kinds and limits; `native-document-transfer-contract.test.mjs` compares them directly with the Rust constants, command functions and Tauri handler registration so cross-language drift fails CI.
-Small probe and diagnostic files retain the original 1 MiB bound. Android provider
-URIs that do not expose a file extension are rejected instead of being assigned
-a misleading GIS format. Full-project file sizes and provider-name recovery belong
-to the later map-data app expansion.
-
-Android pickers return `content://` URIs, which the filesystem plugin opens through
-the platform provider. Android export uses `ACTION_CREATE_DOCUMENT` and writes a
-new document; provider storage does not offer the local filesystem's atomic rename
-guarantee. It may leave a partial **new** document after a provider/write failure.
-Application-data project/report writes retain atomic replacement on Android.
-The dialog plugin's Rust API returns `None` for a dismissed picker; on mobile its
-upstream API also maps picker errors to `None`, so this prototype cannot distinguish
-those picker failures from user dismissal. Read/write errors remain explicit.
-
-`--probe-auto` sets an immutable shell verification flag at document initialization. The native adapter consumes that raw flag and passes a typed verification runtime onward; only that mode permits `finish_probe` to exit after the report has been flushed. `--diagnostic-output <absolute filename>` additionally writes a report
-to a host-selected Windows path; no frontend command accepts an output path.
-
-The CSP permits only packaged assets, native IPC, local/blob workers, and the WASM
-loader. Its `unsafe-eval` allowance is required by the existing manifest-pinned
-Emscripten Embind loader, which generates its JavaScript invocation bridge with
-`new Function`; `wasm-unsafe-eval` alone cannot start that loader. The prototype
-uses the existing shared core unchanged. External fetch/font/script origins are denied. Native navigation permits
-only exact packaged origins and denies new windows. No generic filesystem, shell,
-opener, remote navigation, or disabled-WebView-security permission is granted.
-
-Every native diagnostic report adds `embeddedBuild` from compile-time embedded
-stage evidence: source revision/diff hash, shared-core source hash, fixture hash,
-and WASM loader/manifest/binary hashes. This identity is read from the executable's
-compiled snapshot rather than the working directory at runtime.
-
-Focused storage and navigation tests:
-
-```powershell
-pnpm --dir apps/editor test:native
-```
-
-This command requests the focused native tests in GitHub Actions with the pinned
-toolchain. A local Rust installation is not required. Test output or build
-success alone does not verify a device flow.
-
-## PC·Android 공통 계산 검증
-
-실제 WebView CDP 포트를 지정해 `node tests/browser/native-computation-parity.mjs --windows=PORT --android=PORT --output=FILE`로 동일 WASM 바이트, 폴리곤 계산·wrapping과 렌더링 형상 패킷·배율 정책을 대조한다.
-이는 모든 기능·상황의 동등성을 대신하는 검사는 아니다. 실제 파일 선택·편집·저장·재열기도 별도로 확인한다.
-Android의 CDP 캡처에는 GPU 지도 레이어가 누락될 수 있으므로, 실제 표시 확인에는 기기 자체 screencap을 함께 사용한다.
+역사적 편집기·Android 프로토타입 구현 과정은 Git 기록과 [E0 기준](../../docs/development/editor-retirement-e0.md), [E5 Windows 검수기 전환](../../docs/architecture/windows-review-e5.md), [E7 검증](../../docs/architecture/web-windows-final-regression-e7.md)에 남겨둡니다.

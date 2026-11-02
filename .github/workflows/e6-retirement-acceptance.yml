@@ -6,6 +6,10 @@ on:
       - .github/workflows/e6-retirement-acceptance.yml
       - apps/editor/stage.mjs
       - apps/editor/src-tauri/**
+      - package.json
+      - tools/worktree-storage.mjs
+      - tests/unit/native-artifact-storage.test.mjs
+      - tests/unit/r2-native-platform-retirement.test.mjs
       - apps/editor/native-contract.mjs
       - apps/editor/native-producer.mjs
       - apps/editor/dev.mjs
@@ -61,6 +65,8 @@ jobs:
           tests/unit/frontend-layout.test.mjs
           tests/unit/brand-icons.test.mjs
           tests/unit/brand-platforms.test.mjs
+          tests/unit/native-artifact-storage.test.mjs
+          tests/unit/r2-native-platform-retirement.test.mjs
       - name: Verify review-only compilation, source isolation and Windows contracts
         run: >-
           node --test --test-concurrency=2
@@ -68,6 +74,8 @@ jobs:
           tests/unit/frontend-layout.test.mjs
           tests/unit/brand-icons.test.mjs
           tests/unit/brand-platforms.test.mjs
+          tests/unit/native-artifact-storage.test.mjs
+          tests/unit/r2-native-platform-retirement.test.mjs
           apps/editor/tests/stage.test.mjs
           apps/editor/tests/stage-world.test.mjs
           apps/editor/tests/native-contract.test.mjs
