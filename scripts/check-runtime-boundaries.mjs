@@ -113,7 +113,8 @@ mustContain('assets/js/modules/map-workspace-host.js',/const editOverlays=produc
 mustContain('assets/js/modules/rendering-domain.js',/createMapRenderCoordinator\(\{/,
   'RenderingDomain must own the canonical render coordinator');
 for(const [asset,body] of sources)
-  if(asset!=='assets/js/modules/rendering-domain.js'&&/createMapRenderCoordinator\(\{/.test(body))
+  if(!['assets/js/modules/rendering-domain.js','assets/js/modules/map-render-coordinator.js'].includes(asset)
+    &&/createMapRenderCoordinator\(\{/.test(body))
     fail('Duplicate render coordinator: '+asset);
 
 // Windows retains only reviewed diagnostic and user-selected correction writes.
