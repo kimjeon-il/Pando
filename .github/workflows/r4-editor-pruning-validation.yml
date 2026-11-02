@@ -47,6 +47,7 @@ jobs:
         run: node scripts/check-runtime-boundaries.mjs
       - name: Validate territorial storage, provenance and version ownership
         run: |
+          node scripts/check-command-architecture.mjs
           node scripts/check-territorial-storage.mjs
           node scripts/check-generic-provenance.mjs
           node scripts/check-version-architecture.mjs
@@ -57,6 +58,10 @@ jobs:
           node --test --test-concurrency=2
           tests/unit/r4-editor-source-retirement.test.mjs
           tests/unit/r4b-data-module-boundaries.test.mjs
+          tests/unit/builtin-world-catalog.test.mjs
+          tests/unit/period-only-world.test.mjs
+          tests/unit/historical-world-timeline.test.mjs
+          tests/unit/service-core-command-owner.test.mjs
           tests/unit/versioning-source-schema.test.mjs
           apps/editor/tests/native-contract.test.mjs
           tests/unit/territorial-library.test.mjs
