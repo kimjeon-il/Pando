@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {createHash,webcrypto} from 'node:crypto';
 import {
   inspectReviewEvidence,reviewObjectMapRef,reviewValueText,reviewEvidenceUrl,
-  reviewChangeKey,correctionRequest,
+  reviewChangeKey,correctionRequest,reviewEvidenceForObject,
 } from '../../shared/frontend/js/modules/review-inspection.js';
 import {readReviewEvidenceFiles} from '../../shared/frontend/js/modules/review-evidence-files.js';
 import {appendReviewEvent} from '../../shared/frontend/js/modules/review-change-records.js';
@@ -64,6 +64,9 @@ test('E4 inspects matching E2/E3 proposal, scoped diff, unverified checks and so
   assert.match(reviewValueText('geometry',diff.changes[0].before),/SHA-256/);
   assert.match(reviewValueText('lifetime',diff.changes[4].after),/1914-07/);
   assert.equal(reviewValueText('flag',null),'해당 버전 없음');
+  assert.deepEqual(reviewEvidenceForObject(inspection,'state:EXAMPLE_A').map(x=>x.id),
+    ['research-map','research-meta']);
+  assert.deepEqual(reviewEvidenceForObject(inspection,'state:EXAMPLE_B').map(x=>x.id),['research-meta']);
   const url=reviewEvidenceUrl(bundle.proposal.evidence[0]);
   assert.equal(url,'https://github.com/kimjeon-il/PandoLab-library-data/blob/'
     +'c'.repeat(40)+'/reports/borders/reconstruction/synthetic-1914-boundary.md');

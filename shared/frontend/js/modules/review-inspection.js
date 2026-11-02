@@ -170,3 +170,12 @@ export function correctionRequest({inspection,sourceEntityId,change,kind,reason,
     notice:'Local correction request only. Not an E2 review event, GitHub issue, approval or data modification.',
   });
 }
+
+/** The whole selected source entity is backed by these immutable report records. */
+export function reviewEvidenceForObject(inspection,sourceEntityId){
+  const bundle=inspection?.proposal;
+  if(!bundle)return Object.freeze([]);
+  const ids=new Set(bundle.proposal.changes.filter(x=>x.sourceEntityId===sourceEntityId)
+    .flatMap(x=>x.evidenceIds));
+  return Object.freeze(bundle.proposal.evidence.filter(x=>ids.has(x.id)));
+}

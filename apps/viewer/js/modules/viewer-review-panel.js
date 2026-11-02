@@ -1,6 +1,6 @@
 import {
   reviewChangeTypeLabels, reviewValueText, reviewChangeKey, reviewObjectMapRef,
-  reviewEvidenceUrl, correctionRequest,
+  reviewEvidenceUrl, reviewEvidenceForObject, correctionRequest,
 } from '../../../../shared/frontend/js/modules/review-inspection.js';
 import {readReviewEvidenceFiles} from '../../../../shared/frontend/js/modules/review-evidence-files.js';
 
@@ -133,10 +133,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
   }
   function renderReportLinks(){
     const list=get('reviewSourceLinks');list.replaceChildren();
-    const bundle=current?.proposal;
-    const item=selectedChange();
-    const evidenceIds=bundle?.proposal.changes.find(x=>reviewChangeKey(x)===reviewChangeKey(item))?.evidenceIds||[];
-    const found=bundle?.proposal.evidence.filter(e=>evidenceIds.includes(e.id))||[];
+    const found=reviewEvidenceForObject(current,chosenEntity);
     if(!found.length){list.appendChild(element(document,'li','','연결된 근거 보고서가 없습니다.'));return;}
     for(const row of found){
       const li=element(document,'li'),link=element(document,'a','',row.reportPath);
