@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {calculateHydroCalibrationScreen,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {calculateHydroCalibrationScreen,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -97,6 +97,15 @@ test('calibration screen preserves pixel line length and polygon hole area',{ski
   assert.deepEqual(JSON.parse(empty.stdout),{lineLengthPx:0,polygonAreaPx:0});
   const invalid=invoke({...request,bounds:[0,0,0,10]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
+test('calibration river duplicates preserve sampled overlap and direction thresholds',{skip:!binary},()=>{
+  const request={mode:'calibration-river-duplicates',centerLat:0,distanceKm:4,baseLines:[[[0,0],[1,0]]],
+    rivers:[[[[0,0],[1,0]]],[[[0,.01],[1,.01]]],[[[0,.1],[1,.1]]],[[[.5,-.1],[.5,.1]]]]};
+  const result=invoke(request);assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).rivers,[{duplicate:true,duplicateFraction:1},{duplicate:true,duplicateFraction:1},
+    {duplicate:false,duplicateFraction:0},{duplicate:false,duplicateFraction:.2}]);
+  const empty=invoke({...request,baseLines:[]});assert.equal(empty.status,0,empty.stderr);
+  assert.deepEqual(JSON.parse(empty.stdout).rivers,request.rivers.map(()=>({duplicate:false,duplicateFraction:0})));
+});
 test('source-bound guided branch and upstream batches return ordered native decisions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
@@ -131,6 +140,15 @@ test('source-bound calibration screen computes only explicitly selected geometry
       runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
     assert.deepEqual(await calculateHydroCalibrationScreen(input,options),{lineLengthPx:50,polygonAreaPx:1200});
     assert.deepEqual(input,before);await assert.rejects(calculateHydroCalibrationScreen({...input,width:0},options),/screen|dimensions/i);
+  });
+test('source-bound calibration duplicate screen returns fractions without changing input',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const input={centerLat:0,distanceKm:4,baseLines:[[[0,0],[1,0]]],rivers:[[[[0,0],[1,0]]],[[[.5,-.1],[.5,.1]]]]};
+    const before=structuredClone(input),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    assert.deepEqual(await findHydroCalibrationRiverDuplicates(input,options),
+      [{duplicate:true,duplicateFraction:1},{duplicate:false,duplicateFraction:.2}]);
+    assert.deepEqual(input,before);
   });
 test('native point screen computes projected lengths and closest points',{skip:!binary},()=>{
   const output=invoke(fixture);assert.equal(output.status,0,output.stderr);

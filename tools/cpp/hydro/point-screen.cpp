@@ -267,6 +267,59 @@ Value calibrationScreen(const Value& input){
     if(!std::isfinite(lineLength)||!std::isfinite(areaPx))throw std::invalid_argument("Invalid calibration screen result");
     auto result=Value::obj();result.object["lineLengthPx"]=Value::num(lineLength);result.object["polygonAreaPx"]=Value::num(areaPx);return result;
 }
+Value calibrationRiverDuplicates(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& sources=array(field(input,"baseLines")),&rivers=array(field(input,"rivers"));
+    const double latitude=pandoeditor::codecjson::finiteNumber(field(input,"centerLat")),distance=pandoeditor::codecjson::finiteNumber(field(input,"distanceKm"));
+    if(sources.size()>100000||rivers.size()>100000||std::abs(latitude)>90||distance<0)throw std::invalid_argument("Invalid calibration river batch");
+    const double scaleX=111.320*std::cos(latitude*3.14159265358979323846/180),scaleY=110.574;
+    std::size_t vertices=0;
+    const auto project=[&](const Value& value){const auto& source=array(value);vertices+=source.size();
+        if(source.size()<2||vertices>5000000)throw std::invalid_argument("Invalid calibration river line");
+        std::vector<Point> points;points.reserve(source.size());for(const auto& row:source){const auto point=inputPoint(row);points.push_back({point.x*scaleX,point.y*scaleY});}return points;};
+    std::vector<Geometry> base;std::vector<std::vector<Point>> basePoints;std::map<const GEOSGeometry*,std::size_t> indexes;
+    base.reserve(sources.size());basePoints.reserve(sources.size());
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(context.get(),10),TreeDeleter{context.get()});
+    if(!tree)throw std::runtime_error("GEOS calibration tree failed");
+    for(const auto& source:sources){auto points=project(source);auto line=geometry(context.get(),points,false);const auto* raw=line.get();
+        indexes.emplace(raw,base.size());GEOSSTRtree_insert_r(context.get(),tree.get(),raw,const_cast<GEOSGeometry*>(raw));
+        basePoints.push_back(std::move(points));base.push_back(std::move(line));}
+    struct BufferDeleter{GEOSContextHandle_t context;void operator()(GEOSBufferParams* value)const{if(value)GEOSBufferParams_destroy_r(context,value);}};
+    struct PreparedDeleter{GEOSContextHandle_t context;void operator()(const GEOSPreparedGeometry* value)const{if(value)GEOSPreparedGeom_destroy_r(context,value);}};
+    std::unique_ptr<GEOSBufferParams,BufferDeleter> params(GEOSBufferParams_create_r(context.get()),BufferDeleter{context.get()});
+    if(!params||!GEOSBufferParams_setEndCapStyle_r(context.get(),params.get(),GEOSBUF_CAP_FLAT)||
+      !GEOSBufferParams_setJoinStyle_r(context.get(),params.get(),GEOSBUF_JOIN_ROUND)||
+      !GEOSBufferParams_setQuadrantSegments_r(context.get(),params.get(),16))throw std::runtime_error("GEOS buffer setup failed");
+    Geometry corridor(nullptr,GeosDeleter{context.get()});
+    std::unique_ptr<const GEOSPreparedGeometry,PreparedDeleter> prepared(nullptr,PreparedDeleter{context.get()});
+    if(!base.empty()){auto merged=unionLines(context.get(),base);corridor=own(context.get(),GEOSBufferWithParams_r(context.get(),merged.get(),params.get(),distance));
+        prepared.reset(GEOSPrepare_r(context.get(),corridor.get()));if(!prepared)throw std::runtime_error("GEOS calibration preparation failed");}
+    const auto direction=[](const std::vector<Point>& line){double longest=-1,dx=0,dy=0;
+        for(std::size_t i=1;i<line.size();++i){const double x=line[i].x-line[i-1].x,y=line[i].y-line[i-1].y,length=std::hypot(x,y);
+            if(length>longest){longest=length;dx=x;dy=y;}}const double norm=std::hypot(dx,dy);return norm>0?Point{dx/norm,dy/norm}:Point{0,0};};
+    auto output=Value::arr();output.array.reserve(rivers.size());
+    for(const auto& source:rivers){const auto& parts=array(source);std::vector<Geometry> lines;std::vector<std::vector<Point>> allPoints;
+        std::size_t total=0,hits=0,main=0;double maximum=-1;
+        for(const auto& part:parts){auto points=project(part);auto line=geometry(context.get(),points,false);double length=0;
+            if(!GEOSLength_r(context.get(),line.get(),&length)||!std::isfinite(length))throw std::runtime_error("GEOS calibration line length failed");
+            if(length>maximum){maximum=length;main=lines.size();}
+            if(prepared){const int samples=std::max(5,std::min(9,static_cast<int>(std::ceil(length/25.0))+2));
+                for(int i=0;i<samples;++i){auto point=own(context.get(),GEOSInterpolateNormalized_r(context.get(),line.get(),static_cast<double>(i)/(samples-1)));
+                    const auto covered=GEOSPreparedCovers_r(context.get(),prepared.get(),point.get());if(covered==2)throw std::runtime_error("GEOS calibration coverage failed");
+                    hits+=covered==1;++total;}}
+            allPoints.push_back(std::move(points));lines.push_back(std::move(line));}
+        const double fraction=static_cast<double>(hits)/std::max<std::size_t>(total,1);bool duplicate=false;
+        if(prepared&&fraction>=0.18){const auto* nearest=GEOSSTRtree_nearest_r(context.get(),tree.get(),lines[main].get());
+            const auto found=indexes.find(nearest);double separation=0;
+            if(found==indexes.end()||!GEOSDistance_r(context.get(),lines[main].get(),nearest,&separation))throw std::runtime_error("GEOS calibration nearest line failed");
+            const auto a=direction(allPoints[main]),b=direction(basePoints[found->second]);
+            const double alignment=separation<=distance?std::abs(a.x*b.x+a.y*b.y):0;
+            duplicate=fraction>=0.70||alignment>=0.62;}
+        auto result=Value::obj();result.object["duplicate"]=Value::boolean(duplicate);result.object["duplicateFraction"]=Value::num(fraction);
+        output.array.push_back(std::move(result));}
+    auto result=Value::obj();result.object["rivers"]=std::move(output);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -310,6 +363,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-river-duplicates")
+        return calibrationRiverDuplicates(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-screen")
         return calibrationScreen(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="osm-waterway-match")
