@@ -84,7 +84,7 @@ export function generateE3RevisionEvidence(options) {
     const bytes=atRevision(root,o.candidate,reportPath);
     if(!bytes.length)error('Historical report is empty: '+reportPath);
     return createPendingRevisionReview(diff,{
-      proposalId:o['proposal-id'],createdAt:o['created-at'],createdBy:'ai',
+      proposalId:o['proposal-id'],createdAt:o['created-at'],createdBy:'automation',
       evidence:{reportPath,revision:o.candidate},
     });
   })():null;

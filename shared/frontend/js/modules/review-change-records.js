@@ -143,7 +143,7 @@ function proposal(source) {
   const baseRevision = sha(source.dataset.baseRevision, 'baseRevision');
   const candidateRevision = sha(source.dataset.candidateRevision, 'candidateRevision');
   if (baseRevision === candidateRevision) fail('Review requires two distinct immutable data revisions.');
-  if (!['ai', 'human'].includes(source.createdBy)) fail('Proposal creator must be ai or human.');
+  if (!['ai', 'human', 'automation'].includes(source.createdBy)) fail('Proposal creator must be ai, human or automation.');
   let comparisonMonth = null;
   if (source.comparisonMonth !== null) {
     if (typeof source.comparisonMonth !== 'string') fail('comparisonMonth must be a month or explicit null.');

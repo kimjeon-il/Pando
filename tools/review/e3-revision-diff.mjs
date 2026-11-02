@@ -208,7 +208,7 @@ export function collectRevisionDiff({baseRevision,candidateRevision,baseIndex,ca
     changes,issues,nonMapMetadata,selectedAtComparisonMonth:selectedChanges.length});
 }
 /** A candidate is pending even when source comparisons have no schema errors. */
-export function createPendingRevisionReview(diff,{proposalId,createdAt,createdBy='ai',evidence}={}){
+export function createPendingRevisionReview(diff,{proposalId,createdAt,createdBy='automation',evidence}={}){
   if(!diff?.changes?.length||diff.issues.length)invalid('Cannot generate E2 proposal for empty, incomplete or ambiguous source differences.');
   if(!evidence||typeof evidence.reportPath!=='string'||!SHA.test(evidence.revision||''))
     invalid('A Git-revision-pinned report must be explicitly verified before proposing review.');
