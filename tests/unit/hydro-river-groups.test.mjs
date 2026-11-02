@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {verifyHydroRiverGroups,verifyHydroManifestPolicy} from '../../tools/gis/hydro-pack-decoder.mjs';
+import {createHash} from 'node:crypto';
+import {verifyHydroRiverGroups,verifyHydroManifestPolicy,verifyHydroSelectedLakes} from '../../tools/gis/hydro-pack-decoder.mjs';
 
 function sample(){return [
   {metadata:{fid:1,logicalFid:20,awId:'river:20',category:'river',stage:1,fragmentIndex:0,fragmentCount:3,role:'mainstem'},
@@ -50,4 +51,14 @@ test('Hydro manifest keeps delivery limits and downstream selection policy',()=>
   const cache=structuredClone(manifest);cache.cache.name='pandolab-water-v1-independent-aaaaaaaaaaaaaaaa';assert.throws(()=>verifyHydroManifestPolicy({...input,manifest:cache}),/metadata/i);
   assert.throws(()=>verifyHydroManifestPolicy({...input,manifestBytes:102400}),/limit/i);
   assert.throws(()=>verifyHydroManifestPolicy({...input,packCount:3}),/count/i);
+});
+
+test('selected Natural Earth lakes keep their source and reject changed originals',()=>{
+  const original=Buffer.from('source'),sha256=createHash('sha256').update(original).digest('hex');
+  const features=[{metadata:{category:'lake',layerId:'lakes_natural_earth',source:'Natural Earth 5.0.0 1:10m',awId:'ne:lake:1'},
+    geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}];
+  assert.deepEqual(verifyHydroSelectedLakes({features,original,sha256}),{lakes:1,coordinates:4});
+  assert.throws(()=>verifyHydroSelectedLakes({features,original:Buffer.from('changed'),sha256}),/source.*hash/i);
+  const wrong=structuredClone(features);wrong[0].metadata.awId='hydro-lake:1';
+  assert.throws(()=>verifyHydroSelectedLakes({features:wrong,original,sha256}),/lake.*source/i);
 });

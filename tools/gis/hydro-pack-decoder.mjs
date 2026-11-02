@@ -35,6 +35,22 @@ export function verifyHydroManifestPolicy({manifest,version,manifestBytes,packCo
     throw Error('Hydro selection policy differs');
   return {version,packs:packCount,logicalFeatures:logicalCount};
 }
+export function verifyHydroSelectedLakes({features,original,sha256}={}){
+  if(!Array.isArray(features)||!features.length||!Buffer.isBuffer(original)||!/^[a-f0-9]{64}$/.test(sha256||''))
+    throw Error('Selected lakes and explicit Natural Earth source hash required');
+  if(createHash('sha256').update(original).digest('hex')!==sha256)throw Error('Natural Earth lake source hash differs');
+  let coordinates=0;
+  for(const {metadata,geometry} of features){
+    if(metadata?.category!=='lake'||metadata.layerId!=='lakes_natural_earth'||metadata.source!=='Natural Earth 5.0.0 1:10m'||
+      typeof metadata.awId!=='string'||!metadata.awId||metadata.awId.startsWith('hydro-lake:'))throw Error('Invalid selected lake source');
+    const polygons=geometry?.type==='Polygon'?[geometry.coordinates]:geometry?.type==='MultiPolygon'?geometry.coordinates:null;
+    if(!Array.isArray(polygons)||!polygons.length)throw Error('Invalid selected lake geometry');
+    for(const polygon of polygons){if(!Array.isArray(polygon)||!polygon.length)throw Error('Invalid selected lake geometry');
+      for(const ring of polygon){if(!Array.isArray(ring)||!ring.length||ring.some(point=>!Array.isArray(point)||point.length!==2||
+        point.some(value=>!Number.isFinite(value))))throw Error('Invalid selected lake geometry');coordinates+=ring.length;}}
+  }
+  return {lakes:features.length,coordinates};
+}
 // A caller supplies complete selected logical systems, not a global catalogue.
 export function verifyHydroRiverGroups(features){
   if(!Array.isArray(features)||!features.length)throw Error('Selected Hydro river systems required');
