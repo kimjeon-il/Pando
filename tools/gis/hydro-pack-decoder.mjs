@@ -8,6 +8,33 @@ import {buildFrontendIndex,frontendAsset} from '../../scripts/lib/frontend-layou
 import {pythonRound} from './hydro-numeric.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
+export function verifyHydroManifestPolicy({manifest,version,manifestBytes,packCount,logicalCount}={}){
+  if(!manifest||typeof version!=='string'||!version||manifest.version!==version||manifest.schema!=='pandolab-water-shards-v5'||
+    !/^[a-f0-9]{64}$/.test(manifest.container?.sha256||''))throw Error('Invalid Hydro manifest identity');
+  const {index,metadata,shards,stats,selection}=manifest;
+  if(!Number.isSafeInteger(manifestBytes)||manifestBytes<0||manifestBytes>=100*1024||
+    !Number.isSafeInteger(index?.bytes)||index.bytes<0||index.bytes>=100*1024||
+    !Number.isSafeInteger(stats?.compressedBytes)||stats.compressedBytes<0||stats.compressedBytes>=48*1024*1024||
+    !Array.isArray(shards)||!shards.length||shards.some(row=>!Number.isSafeInteger(row?.bytes)||row.bytes<0||row.bytes>4*1024*1024))
+    throw Error('Hydro manifest delivery limit exceeded');
+  if(!Number.isSafeInteger(packCount)||packCount<0||!Number.isSafeInteger(logicalCount)||logicalCount<0||
+    packCount!==stats.packCount||logicalCount!==stats.logicalFeatureCount||
+    !Number.isSafeInteger(metadata?.featureCount)||metadata.featureCount!==stats.featureCount||metadata.detail?.lazy!==true||
+    !/^[a-f0-9]{64}$/.test(metadata.core?.sha256||'')||
+    manifest.cache?.name!==`pandolab-water-v${version}-independent-${metadata.core.sha256.slice(0,16)}`)
+    throw Error('Hydro manifest resource count or metadata differs');
+  const thresholds=[14.4744,12.4307,11.2137,10.55],terminal=selection?.terminalConnectivity;
+  if(!Array.isArray(selection?.riverThresholds)||selection.riverThresholds.length!==thresholds.length||
+    selection.riverThresholds.some((value,i)=>value!==thresholds[i])||typeof selection.riverContinuity!=='string'||
+    !selection.riverContinuity.includes('closed downstream')||selection.mediumMainstemMinBasinKm2!==2500||
+    terminal?.maximumCoastExtensionKm!==25||typeof terminal.unresolvedRenderedLandTerminal!=='string'||
+    !terminal.unresolvedRenderedLandTerminal.includes('exclude')||!stats.terminalClassCounts||
+    typeof stats.terminalClassCounts!=='object'||Array.isArray(stats.terminalClassCounts)||
+    ['downstreamClosureReachCount','coastSnappedTerminalCount','mediumMainstemReachCount','borderAlignedLengthKm']
+      .some(key=>!Number.isFinite(stats[key])||stats[key]<=0)||(stats.terminalClassCounts?.['unresolved-land']??0)!==0)
+    throw Error('Hydro selection policy differs');
+  return {version,packs:packCount,logicalFeatures:logicalCount};
+}
 // A caller supplies complete selected logical systems, not a global catalogue.
 export function verifyHydroRiverGroups(features){
   if(!Array.isArray(features)||!features.length)throw Error('Selected Hydro river systems required');

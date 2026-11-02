@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {verifyHydroRiverGroups} from '../../tools/gis/hydro-pack-decoder.mjs';
+import {verifyHydroRiverGroups,verifyHydroManifestPolicy} from '../../tools/gis/hydro-pack-decoder.mjs';
 
 function sample(){return [
   {metadata:{fid:1,logicalFid:20,awId:'river:20',category:'river',stage:1,fragmentIndex:0,fragmentCount:3,role:'mainstem'},
@@ -34,4 +34,20 @@ test('river validation rejects missing or misplaced terminals and narrowing or i
   rows=sample();rows[0].widths[0]=[1,0.9];assert.throws(()=>verifyHydroRiverGroups(rows),/width/i);
   rows=sample();rows[0].widths[0]=[0.54,0.8];assert.throws(()=>verifyHydroRiverGroups(rows),/width/i);
   rows=sample();rows[0].widths.pop();assert.throws(()=>verifyHydroRiverGroups(rows),/width/i);
+});
+
+function manifestSample(){return {version:'1',schema:'pandolab-water-shards-v5',container:{sha256:'a'.repeat(64)},
+  cache:{name:'pandolab-water-v1-independent-bbbbbbbbbbbbbbbb'},index:{bytes:40},metadata:{featureCount:6,core:{sha256:'b'.repeat(64)},detail:{lazy:true}},
+  shards:[{bytes:40}],stats:{featureCount:6,compressedBytes:40,packCount:2,logicalFeatureCount:3,
+    downstreamClosureReachCount:1,coastSnappedTerminalCount:1,mediumMainstemReachCount:1,borderAlignedLengthKm:1,terminalClassCounts:{}},
+  selection:{riverThresholds:[14.4744,12.4307,11.2137,10.55],riverContinuity:'closed downstream',mediumMainstemMinBasinKm2:2500,
+    terminalConnectivity:{maximumCoastExtensionKm:25,unresolvedRenderedLandTerminal:'exclude unresolved'}}};}
+test('Hydro manifest keeps delivery limits and downstream selection policy',()=>{
+  const manifest=manifestSample(),input={manifest,version:'1',manifestBytes:100,packCount:2,logicalCount:3};
+  assert.deepEqual(verifyHydroManifestPolicy(input),{version:'1',packs:2,logicalFeatures:3});
+  const wrong=structuredClone(manifest);wrong.selection.riverThresholds[0]=14;assert.throws(()=>verifyHydroManifestPolicy({...input,manifest:wrong}),/selection/i);
+  const bad=structuredClone(manifest);bad.stats.terminalClassCounts['unresolved-land']=1;assert.throws(()=>verifyHydroManifestPolicy({...input,manifest:bad}),/selection/i);
+  const cache=structuredClone(manifest);cache.cache.name='pandolab-water-v1-independent-aaaaaaaaaaaaaaaa';assert.throws(()=>verifyHydroManifestPolicy({...input,manifest:cache}),/metadata/i);
+  assert.throws(()=>verifyHydroManifestPolicy({...input,manifestBytes:102400}),/limit/i);
+  assert.throws(()=>verifyHydroManifestPolicy({...input,packCount:3}),/count/i);
 });
