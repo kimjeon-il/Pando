@@ -6,6 +6,7 @@ import {gunzipSync} from 'node:zlib';
 import vm from 'node:vm';
 import {buildFrontendIndex,frontendAsset} from '../../scripts/lib/frontend-layout.mjs';
 import {pythonRound} from './hydro-numeric.mjs';
+import {encodeHydroGzip} from './hydro-encoding-native.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export function verifyHydroManifestPolicy({manifest,version,manifestBytes,packCount,logicalCount}={}){
@@ -35,6 +36,22 @@ export function verifyHydroManifestPolicy({manifest,version,manifestBytes,packCo
     throw Error('Hydro selection policy differs');
   return {version,packs:packCount,logicalFeatures:logicalCount};
 }
+export async function verifyHydroCoreDelivery({data,sha256,featureCount}={},options={}){
+  if(!Buffer.isBuffer(data)||!/^[a-f0-9]{64}$/.test(sha256||'')||!Number.isSafeInteger(featureCount)||featureCount<0)
+    throw Error('Explicit Hydro core bytes, hash and feature count required');
+  if(createHash('sha256').update(data).digest('hex')!==sha256)throw Error('Hydro core metadata hash differs');
+  const raw=gunzipSync(data,{maxOutputLength:64*1024*1024}).toString('utf8'),core=JSON.parse(raw);
+  if(core.version!==5||!Array.isArray(core.features)||core.features.length!==featureCount)throw Error('Hydro core feature count differs');
+  if(JSON.stringify(core)!==raw)throw Error('Hydro core metadata is not canonically serializable');
+  const features=core.features.map(row=>{if(!row||typeof row!=='object'||Array.isArray(row))throw Error('Invalid Hydro core feature');
+    const {systemId,mainstemNameKo,role,...delivery}=row;return delivery;});
+  const compress=options.gzip??encodeHydroGzip;
+  const [delivery]=await compress([Buffer.from(JSON.stringify({...core,features}))],options);
+  if(!Buffer.isBuffer(delivery))throw Error('Invalid Hydro core gzip output');
+  const deliveryBytes=delivery.length;
+  if(deliveryBytes>=700*1024)throw Error('Hydro core delivery budget exceeded');
+  return {featureCount,deliveryBytes};
+}
 export function verifyHydroSelectedLakes({features,original,sha256}={}){
   if(!Array.isArray(features)||!features.length||!Buffer.isBuffer(original)||!/^[a-f0-9]{64}$/.test(sha256||''))
     throw Error('Selected lakes and explicit Natural Earth source hash required');
@@ -50,6 +67,33 @@ export function verifyHydroSelectedLakes({features,original,sha256}={}){
         point.some(value=>!Number.isFinite(value))))throw Error('Invalid selected lake geometry');coordinates+=ring.length;}}
   }
   return {lakes:features.length,coordinates};
+}
+export function verifyHydroKoreaCoverage(features){
+  if(!Array.isArray(features)||!features.length)throw Error('Explicit Korea Hydro features required');
+  const extent=[124,33,131,43],korea=features.filter(row=>{const bounds=row?.metadata?.bounds;
+    if(!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value)))throw Error('Invalid Hydro feature bounds');
+    const [west,south,east,north]=bounds.map(value=>value/1000000);
+    return !(east<extent[0]||west>extent[2]||north<extent[1]||south>extent[3]);});
+  const rivers=korea.filter(row=>row.metadata.category==='river'),lakes=korea.filter(row=>row.metadata.category==='lake');
+  const groups=new Set(rivers.map(row=>row.metadata.logicalFid)),chains=rivers.filter(row=>row.metadata.terminal);
+  if(!groups.size||chains.length<18||!lakes.length)throw Error('Korea Hydro coverage is incomplete');
+  const sourceIds=new Set(korea.flatMap(row=>String(row.metadata.sourceId||'').split(',').filter(Boolean)));
+  if(['40425195','40425194','40391748','40391614','40475481','40515775'].some(id=>!sourceIds.has(id)))
+    throw Error('Korea Hydro source reaches are missing');
+  const named=[['압록','Yalu'],['두만','Tumen']],distances=[];
+  for(const labels of named){const selected=rivers.filter(row=>typeof row.metadata.name==='string'&&labels.some(label=>row.metadata.name.includes(label)));
+    if(!selected.length||new Set(selected.map(row=>row.metadata.logicalFid)).size!==1)throw Error('Korea named mainstem identity differs');
+    let minimum=Infinity;
+    for(const row of selected){const parts=row.geometry?.type==='LineString'?[row.geometry.coordinates]:
+      row.geometry?.type==='MultiLineString'?row.geometry.coordinates:null;
+      if(!Array.isArray(parts))throw Error('Invalid Korea mainstem geometry');
+      for(const part of parts){if(!Array.isArray(part))throw Error('Invalid Korea mainstem geometry');
+        for(const point of part){if(!Array.isArray(point)||point.length!==2||point.some(value=>!Number.isFinite(value)))throw Error('Invalid Korea mainstem coordinate');
+          const dx=(point[0]-128.095)*111.32*Math.cos((point[1]+42.006)/2*Math.PI/180),dy=(point[1]-42.006)*110.57;
+          minimum=Math.min(minimum,Math.hypot(dx,dy));}}}
+    if(minimum>35)throw Error('Korea mainstem does not reach near Paektu');distances.push(minimum);
+  }
+  return {systems:groups.size,chains:chains.length,lakes:lakes.length,paektuDistancesKm:distances};
 }
 // A caller supplies complete selected logical systems, not a global catalogue.
 export function verifyHydroRiverGroups(features){
@@ -128,7 +172,9 @@ export function decodeHydroSelectedPack({files,layout,stages,logicalFids},{root=
       const fid=feature.properties.__fid,metadata=decoder.featureMetadata.get(fid);if(!selected.has(metadata.logicalFid))continue;
       if(seen.has(fid))throw Error('Duplicate selected Hydro feature identity');seen.add(fid);found.add(metadata.logicalFid);
       if(metadata.stage!==feature.properties.stage||metadata.flags!==feature.properties.__flags||
-        metadata.fragmentIndex!==feature.properties.fragment_index||metadata.fragmentCount!==feature.properties.fragment_count)
+        metadata.fragmentIndex!==feature.properties.fragment_index||metadata.fragmentCount!==feature.properties.fragment_count||
+        !Array.isArray(metadata.bounds)||metadata.bounds.length!==4||
+        metadata.bounds.some((value,index)=>value!==Math.round(feature.__awBounds[index]*1000000)))
         throw Error('Selected Hydro pack fields differ from metadata');
       features.push({metadata,geometry:feature.geometry,widths:feature.properties.stroke_widths});
     }

@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
-import {verifyHydroRiverGroups,verifyHydroManifestPolicy,verifyHydroSelectedLakes} from '../../tools/gis/hydro-pack-decoder.mjs';
+import {gzipSync} from 'node:zlib';
+import {verifyHydroRiverGroups,verifyHydroManifestPolicy,verifyHydroSelectedLakes,verifyHydroKoreaCoverage,verifyHydroCoreDelivery} from '../../tools/gis/hydro-pack-decoder.mjs';
 
 function sample(){return [
   {metadata:{fid:1,logicalFid:20,awId:'river:20',category:'river',stage:1,fragmentIndex:0,fragmentCount:3,role:'mainstem'},
@@ -53,6 +54,19 @@ test('Hydro manifest keeps delivery limits and downstream selection policy',()=>
   assert.throws(()=>verifyHydroManifestPolicy({...input,packCount:3}),/count/i);
 });
 
+test('core delivery budget excludes only the three added system fields',async()=>{
+  const core={version:5,features:[{fid:1,name:'압록강',systemId:'id',mainstemNameKo:'압록강',role:'mainstem',layerId:'river'}]};
+  const data=gzipSync(Buffer.from(JSON.stringify(core))),sha256=createHash('sha256').update(data).digest('hex');
+  const gzip=async buffers=>buffers.map(buffer=>gzipSync(buffer,{level:9}));
+  const result=await verifyHydroCoreDelivery({data,sha256,featureCount:1},{gzip});
+  const expected=gzipSync(Buffer.from(JSON.stringify({version:5,features:[{fid:1,name:'압록강',layerId:'river'}]})),{level:9});
+  assert.equal(result.deliveryBytes,expected.length);assert.equal(result.featureCount,1);
+  await assert.rejects(verifyHydroCoreDelivery({data,sha256:'0'.repeat(64),featureCount:1},{gzip}),/hash/i);
+  await assert.rejects(verifyHydroCoreDelivery({data,sha256,featureCount:2},{gzip}),/count/i);
+  const noncanonical=gzipSync(Buffer.from('{ "version": 5, "features": [] }'));
+  await assert.rejects(verifyHydroCoreDelivery({data:noncanonical,sha256:createHash('sha256').update(noncanonical).digest('hex'),featureCount:0},{gzip}),/canonically/i);
+});
+
 test('selected Natural Earth lakes keep their source and reject changed originals',()=>{
   const original=Buffer.from('source'),sha256=createHash('sha256').update(original).digest('hex');
   const features=[{metadata:{category:'lake',layerId:'lakes_natural_earth',source:'Natural Earth 5.0.0 1:10m',awId:'ne:lake:1'},
@@ -61,4 +75,16 @@ test('selected Natural Earth lakes keep their source and reject changed original
   assert.throws(()=>verifyHydroSelectedLakes({features,original:Buffer.from('changed'),sha256}),/source.*hash/i);
   const wrong=structuredClone(features);wrong[0].metadata.awId='hydro-lake:1';
   assert.throws(()=>verifyHydroSelectedLakes({features:wrong,original,sha256}),/lake.*source/i);
+});
+
+test('selected Korea coverage keeps named mainstems and important source reaches',()=>{
+  const ids=['40425195','40425194','40391748','40391614','40475481','40515775'];
+  const features=Array.from({length:18},(_,i)=>({metadata:{category:'river',logicalFid:i+1,
+    name:i===0?'압록강':i===1?'두만강':'',sourceId:ids[i]||'',terminal:{class:'sea'},bounds:[128095000,42006000,128095000,42006000]},
+    geometry:{type:'LineString',coordinates:[[128.095,42.006],[128.095,42.006]]}}));
+  features.push({metadata:{category:'lake',bounds:[128095000,42006000,128095000,42006000]},geometry:{type:'Polygon',coordinates:[]}});
+  const result=verifyHydroKoreaCoverage(features);assert.equal(result.chains,18);assert.equal(result.lakes,1);
+  const wrong=structuredClone(features);wrong[0].metadata.sourceId='';assert.throws(()=>verifyHydroKoreaCoverage(wrong),/source/i);
+  wrong[0].metadata.sourceId=ids[0];wrong[1].geometry.coordinates=[[130,40],[130,40]];
+  assert.throws(()=>verifyHydroKoreaCoverage(wrong),/paektu/i);
 });
