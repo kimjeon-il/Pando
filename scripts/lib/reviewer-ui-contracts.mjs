@@ -7,6 +7,7 @@ import {renderProductHtml} from './product-html.mjs';
 import {buildFrontendIndex,frontendAsset,frontendRoots} from './frontend-layout.mjs';
 import {buildUiBundles} from '../build-ui-bundle.mjs';
 import {UI_VIEWER_SOURCES,UI_BUNDLE_SOURCES} from './ui-source-catalog.mjs';
+import {collectCssRules} from './css-analysis.mjs';
 import {isEditorOnlyAsset} from './product-assets.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -21,6 +22,32 @@ const requiredIds=['viewer','map','viewerCanvas','reviewPanel','reviewPanelBtn',
  'reviewExportRequest','reviewCorrectionStatus','viewerStatus','viewerSelectionStatus'];
 const retiredIds=['editorSurface','editorObjectHeader','createMenuBtn','modeDraftInsertBtn',
  'modeDraftDeleteBtn','undoBtn','redoBtn','objectDeleteBtn'];
+
+// Preserve the practical CSS ownership safeguards of the former architecture
+// audit, while scoping them to the released Viewer and Windows review product.
+export function auditReviewCss(file,source) {
+ const failures=[];
+ const layout=/^(?:assets\/css\/)?layout\//.test(file);
+ const product=/^(?:apps\/viewer\/css\/)?viewer\.css$/.test(file);
+ const skin=/^(?:padding(?:-.+)?|background(?:-.+)?|border(?:-.+)?|border-radius|color|font(?:-.+)?|box-shadow|text-shadow|fill|stroke)$/;
+ for(const rule of collectCssRules(source,{filePath:file})) {
+   for(const selector of rule.selectors) {
+     if(/#(?:editorSurface|modeDraft|createMenuBtn)/.test(selector))
+       failures.push('Retired editor CSS selector in '+file+': '+selector);
+   }
+   for(const {property,value,important} of rule.declarations) {
+     if(property.startsWith('--'))continue;
+     if(layout&&skin.test(property))
+       failures.push('layout CSS may position/size but not reskin UI: '+file+' '+rule.prelude+' { '+property+' }');
+     if(product&&!/\.viewer-review[\w-]*/.test(rule.prelude)&&
+       /\b(?:input|select|textarea)\b/.test(rule.prelude)&&skin.test(property))
+       failures.push('product CSS may position/size but not reskin UI: '+file+' '+rule.prelude+' { '+property+' }');
+     if(important&&layout)
+       failures.push('layout CSS must not force !important: '+file+' '+rule.prelude);
+   }
+ }
+ return [...new Set(failures)];
+}
 
 export function validateReviewUi(kind,{html:providedHtml}={}) {
  if(!['architecture','components','information','layering'].includes(kind))
@@ -65,6 +92,8 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
      ['Render edit resource exclusion',renderer,/Read-only rendering cannot install editor/],
      ['Windows source closure',stage,/entry\.product==='editor'\|\|!snapshot\.viewerPaths\.has\(path\)/],
    ])if(!pattern.test(text))fail(name+' lost its read-only isolation contract');
+   errors.push(...auditReviewCss('viewer.css',viewerCss),
+     ...auditReviewCss('layout/surfaces.css',read('shared/frontend/css/layout/surfaces.css')));
    if(statSync(resolve(root,'apps/viewer/css/viewer.css')).size>12288)
      fail('Viewer placement CSS exceeded the R1 12 KiB ceiling');
    if(!/\.viewer-root/.test(viewerCss)||!/\.viewer-review-panel/.test(viewerCss))
