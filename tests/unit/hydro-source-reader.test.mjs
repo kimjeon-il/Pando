@@ -147,17 +147,23 @@ test('calibration river scan streams matching source geometry once with verified
   assert.deepEqual(await readFile(input.archive),before);
   const wrong=structuredClone(input.specification);wrong.files.find(file=>file.file.endsWith('.shp')).sha256='0'.repeat(64);
   await assert.rejects(scanHydroRiverCandidates({...input,specification:wrong,bounds:[[0,-1,3,2]],onBatch:()=>{}}),/hash/i);
+  const files={};for(const member of await zipMembers(input.archive)){const chunks=[];for await(const chunk of zipMemberChunks(input.archive,member))chunks.push(chunk);
+    const bytes=Buffer.concat(chunks),ext=member.name.split('.').at(-1),path=join(root,`river.${ext}`);await writeFile(path,bytes);
+    files[ext]={path,sha256:createHash('sha256').update(bytes).digest('hex')};}
+  const plain=[];assert.deepEqual(await scanHydroRiverCandidates({files,specification:input.specification,bounds:[[1.5,-.1,2.5,.1]],onBatch:batch=>plain.push(...batch)}),result);
+  assert.deepEqual(plain,batches.flat());
 });
 test('verified river source reaches regional calibration without a precomputed ID list',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
     const root=await mkdtemp(join(tmpdir(),'pando-hydro-river-regions-'));t.after(()=>rm(root,{recursive:true}));
     const input=await generationFixture(root),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
       runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
-    const result=await prepareHydroCalibrationRiverRegions({archives:[input],regions:[{id:'west',bbox:[0,-1,.75,1]},
-      {id:'east',bbox:[1.5,-1,2.5,1]}],width:300,height:200,batchSize:1},options);
+    const result=await prepareHydroCalibrationRiverRegions({archives:[input],regions:[{id:'west',riverCode:'eu',bbox:[0,-1,.75,1]},
+      {id:'east',riverCode:'eu',bbox:[1.5,-1,2.5,1]}],width:300,height:200,batchSize:1},options);
     assert.deepEqual(result.west.map(row=>row.sourceId),[101]);assert.deepEqual(result.east.map(row=>row.sourceId),[102]);
     const wrong=structuredClone(input);wrong.specification.files.find(file=>file.file.endsWith('.shp')).sha256='0'.repeat(64);
-    await assert.rejects(prepareHydroCalibrationRiverRegions({archives:[wrong],regions:[{id:'west',bbox:[0,-1,.75,1]}]},options),/hash/i);
+    await assert.rejects(prepareHydroCalibrationRiverRegions({archives:[wrong],regions:[{id:'west',riverCode:'eu',bbox:[0,-1,.75,1]}]},options),/hash/i);
+    await assert.rejects(prepareHydroCalibrationRiverRegions({archives:[input],regions:[{id:'west',riverCode:'as',bbox:[0,-1,.75,1]}]},options),/sources and regions/i);
   });
 test('source metadata and native scoring stream in order across bounded batches',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{

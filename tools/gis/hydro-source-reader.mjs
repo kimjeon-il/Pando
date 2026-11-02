@@ -118,14 +118,21 @@ export async function scanHydroRegionMetadata({archive,specification,onRecord,si
   return {region,records:result.seen.size};
 }
 // Selection callbacks are provisional until all archive members have been verified.
-export async function scanHydroRiverCandidates({archive,specification,bounds,onBatch,batchSize=256,signal}={}){
+export async function scanHydroRiverCandidates({archive,files,specification,bounds,onBatch,batchSize=256,signal}={}){
   signal?.throwIfAborted();
   if(!Array.isArray(bounds)||!bounds.length||bounds.some(box=>!Array.isArray(box)||box.length!==4||!box.every(Number.isFinite)||
     box[2]<=box[0]||box[3]<=box[1])||typeof onBatch!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>4096)
     throw Error('Explicit Hydro river candidate bounds required');
-  const boxes=structuredClone(bounds),{region,names,specs,chosen}=await resolveSourceMembers(archive,specification);
-  const stream=name=>verifiedChunks(archive,chosen.get(name),specs.get(name),signal);
-  const dbf=new ByteReader(stream(names[0]),signal),shp=new ByteReader(stream(names[1]),signal),member=chosen.get(names[1]);
+  if(Boolean(archive)===Boolean(files))throw Error('One Hydro river source location required');
+  const boxes=structuredClone(bounds);let region,names,stream,member;
+  if(archive){const source=await resolveSourceMembers(archive,specification);({region,names}=source);member=source.chosen.get(names[1]);
+    stream=name=>verifiedChunks(archive,source.chosen.get(name),source.specs.get(name),signal);
+  }else{region=specification?.datasetCode;names=['dbf','shp','shx','prj'];
+    if(!regions.includes(region)||names.some(name=>typeof files?.[name]?.path!=='string'||!files[name].path||!/^[a-f0-9]{64}$/.test(files[name].sha256||'')))
+      throw Error('Explicit Hydro river source files required');
+    const source=structuredClone(files);member={uncompressed:(await stat(source.shp.path)).size};stream=name=>verifiedFileChunks(source[name],signal);
+  }
+  const dbf=new ByteReader(stream(names[0]),signal),shp=new ByteReader(stream(names[1]),signal);
   try{const header=await shp.take(100);
     if(header.readInt32BE(0)!==9994||header.readInt32BE(24)*2!==member.uncompressed||header.readInt32LE(28)!==1000||header.readInt32LE(32)!==3)
       throw Error('Invalid Hydro shapefile header');

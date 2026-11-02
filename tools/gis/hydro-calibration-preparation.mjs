@@ -159,15 +159,20 @@ export async function prepareHydroCalibrationRivers({archive,specification,selec
 export async function prepareHydroCalibrationRiverRegions({archives,regions,width=1200,height=720,batchSize=256}={},options={}){
   options.signal?.throwIfAborted();
   if(!Array.isArray(archives)||!archives.length||!Array.isArray(regions)||!regions.length||
-    regions.some(region=>typeof region?.id!=='string'||!region.id||!Array.isArray(region.bbox))||
-    new Set(regions.map(region=>region.id)).size!==regions.length)throw Error('Explicit Hydro river calibration sources and regions required');
+    regions.some(region=>typeof region?.id!=='string'||!region.id||typeof region.riverCode!=='string'||!Array.isArray(region.bbox))||
+    new Set(regions.map(region=>region.id)).size!==regions.length||archives.some(entry=>typeof entry?.specification?.datasetCode!=='string')||
+    new Set(archives.map(entry=>entry.specification.datasetCode)).size!==archives.length||
+    regions.some(region=>!archives.some(entry=>entry.specification.datasetCode===region.riverCode)))
+    throw Error('Explicit Hydro river calibration sources and regions required');
   const snapshot=structuredClone({archives,regions}),output=new Map(snapshot.regions.map(region=>[region.id,[]])),seen=new Set();
-  for(const entry of snapshot.archives)await scanHydroRiverCandidates({...entry,bounds:snapshot.regions.map(region=>region.bbox),batchSize,
+  for(const entry of snapshot.archives){const matching=snapshot.regions.filter(region=>region.riverCode===entry.specification.datasetCode);
+    if(!matching.length)continue;
+    await scanHydroRiverCandidates({...entry,bounds:matching.map(region=>region.bbox),batchSize,
     signal:options.signal,onBatch:async reaches=>{
       for(const row of reaches){if(seen.has(row.id))throw Error('Duplicate Hydro river identity across sources');seen.add(row.id);}
-      const results=await Promise.all(snapshot.regions.map(region=>buildHydroCalibrationRiverFeatures({bounds:region.bbox,width,height,reaches},options)));
-      for(let i=0;i<results.length;i++)output.get(snapshot.regions[i].id).push(...results[i]);
-    }});
+      const results=await Promise.all(matching.map(region=>buildHydroCalibrationRiverFeatures({bounds:region.bbox,width,height,reaches},options)));
+      for(let i=0;i<results.length;i++)output.get(matching[i].id).push(...results[i]);
+    }});}
   options.signal?.throwIfAborted();return Object.fromEntries(output);
 }
 export async function prepareHydroCalibrationLakes({lakes,bounds,width=1200,height=720}={},options={}){
