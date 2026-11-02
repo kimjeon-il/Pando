@@ -119,10 +119,23 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
       "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart});");
     await route.fulfill({response,body:source});
   });
-  await page.goto('/?debug=1&renderer=webgl2');
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
-  const results=[],pageErrors=[];
+  const pageErrors=[],consoleErrors=[],failedRequests=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
+  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
+  page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText}));
+  await page.goto('/?debug=1&renderer=webgl2');
+  await page.waitForFunction(()=>{
+    const e=document.querySelector('#viewerStatus');
+    return e?.dataset.ready==='true'||e?.getAttribute('role')==='alert';
+  },null,{timeout:95000});
+  const boot=await page.evaluate(()=>{
+    const node=document.querySelector('#viewerStatus');
+    return {ready:node?.dataset.ready,role:node?.getAttribute('role'),text:node?.textContent,
+      diagnostics:globalThis.__PANDOLAB_VIEWER__?.diagnostics?.()??null,
+      status:globalThis.__PANDOLAB_VIEWER__?.documentState?.()??null};
+  });
+  if(boot.ready!=='true')throw Error('P2 diagnostic startup failure: '+JSON.stringify({boot,pageErrors,consoleErrors,failedRequests}).slice(0,12000));
+  const results=[];
   for(const [button,target] of [['timelinePreviousYear','2025-12'],['timelineNextYear','2026-10']]){
     await page.evaluate(()=>{window.__P2_COST__.events=[];});
     await page.locator('#'+button).click();
