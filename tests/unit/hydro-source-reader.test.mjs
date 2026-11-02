@@ -86,6 +86,8 @@ test('lake source streams selected bounding boxes, Windows names and source ring
   const {files,data,ring}=await lakeFixture(root),batches=[],input={files,bounds:[[0,-1,3,2]],batchSize:1,onBatch:batch=>batches.push(batch)};
   const result=await scanHydroLakeSource(input);assert.deepEqual(result,{records:3,selected:1});
   assert.deepEqual(batches,[[{id:7,name:'Lac Caf\u00e9',areaKm2:5,shorelineKm:8,rings:[ring(0)]}]]);
+  const {shx:unusedIndex,prj:unusedProjection,...required}=files;assert.ok(unusedIndex.path&&unusedProjection.path);
+  assert.deepEqual(await scanHydroLakeSource({...input,files:required,onBatch:()=>{}}),result);
   const wrong=structuredClone(files);wrong.shp.sha256='0'.repeat(64);
   await assert.rejects(scanHydroLakeSource({...input,files:wrong,onBatch:()=>{}}),/hash/i);
   const controller=new AbortController();controller.abort();await assert.rejects(scanHydroLakeSource({...input,signal:controller.signal}),{name:'AbortError'});
@@ -152,6 +154,8 @@ test('calibration river scan streams matching source geometry once with verified
     files[ext]={path,sha256:createHash('sha256').update(bytes).digest('hex')};}
   const plain=[];assert.deepEqual(await scanHydroRiverCandidates({files,specification:input.specification,bounds:[[1.5,-.1,2.5,.1]],onBatch:batch=>plain.push(...batch)}),result);
   assert.deepEqual(plain,batches.flat());
+  const {shx:unusedIndex,prj:unusedProjection,...required}=files;assert.ok(unusedIndex.path&&unusedProjection.path);
+  assert.deepEqual(await scanHydroRiverCandidates({files:required,specification:input.specification,bounds:[[1.5,-.1,2.5,.1]],onBatch:()=>{}}),result);
 });
 test('verified river source reaches regional calibration without a precomputed ID list',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{

@@ -127,7 +127,7 @@ export async function scanHydroRiverCandidates({archive,files,specification,boun
   const boxes=structuredClone(bounds);let region,names,stream,member;
   if(archive){const source=await resolveSourceMembers(archive,specification);({region,names}=source);member=source.chosen.get(names[1]);
     stream=name=>verifiedChunks(archive,source.chosen.get(name),source.specs.get(name),signal);
-  }else{region=specification?.datasetCode;names=['dbf','shp','shx','prj'];
+  }else{region=specification?.datasetCode;names=['dbf','shp',...['shx','prj'].filter(name=>files?.[name]!==undefined)];
     if(!regions.includes(region)||names.some(name=>typeof files?.[name]?.path!=='string'||!files[name].path||!/^[a-f0-9]{64}$/.test(files[name].sha256||'')))
       throw Error('Explicit Hydro river source files required');
     const source=structuredClone(files);member={uncompressed:(await stat(source.shp.path)).size};stream=name=>verifiedFileChunks(source[name],signal);
@@ -170,7 +170,7 @@ async function* verifiedFileChunks(spec,signal){
 // Callback batches are provisional: consumers must not publish them until the promise verifies every source hash.
 export async function scanHydroLakeSource({files,bounds,onBatch,batchSize=256,signal}={}){
   signal?.throwIfAborted();
-  const names=['shp','dbf','shx','prj'];
+  const names=['shp','dbf',...['shx','prj'].filter(name=>files?.[name]!==undefined)];
   if(!files||names.some(name=>typeof files[name]?.path!=='string'||!files[name].path||!/^[a-f0-9]{64}$/.test(files[name].sha256||''))||
     !Array.isArray(bounds)||!bounds.length||bounds.some(box=>!Array.isArray(box)||box.length!==4||!box.every(Number.isFinite)||box[2]<=box[0]||box[3]<=box[1])||
     typeof onBatch!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>4096)throw Error('Explicit Hydro lake source and bounds required');
@@ -216,7 +216,7 @@ export async function scanHydroLakeSource({files,bounds,onBatch,batchSize=256,si
       if(batch.length===batchSize){await onBatch(batch);signal?.throwIfAborted();batch=[];}
     }
     await dbf.finish({allowDbfEnd:true});await shp.finish();
-    for(const name of ['shx','prj'])for await(const chunk of verifiedFileChunks(snapshot.files[name],signal)){if(!Buffer.isBuffer(chunk))throw Error('Invalid Hydro lake source chunk');}
+    for(const name of names.slice(2))for await(const chunk of verifiedFileChunks(snapshot.files[name],signal)){if(!Buffer.isBuffer(chunk))throw Error('Invalid Hydro lake source chunk');}
     if(batch.length)await onBatch(batch);signal?.throwIfAborted();return {records:count,selected};
   }finally{await dbf.iterator.return?.();await shp.iterator.return?.();}
 }
