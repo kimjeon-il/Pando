@@ -1,7 +1,7 @@
 import {contentHash} from '../../tools/library-content.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync,symlinkSync,statSync,linkSync,utimesSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync,symlinkSync,statSync,linkSync,utimesSync,chmodSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {previewGeneratedCleanup,applyGeneratedCleanup,cargoRetirementRequests} from '../../tools/worktree-generated.mjs';
@@ -67,6 +67,12 @@ test('preview is read-only; apply rejects stale hashes before deleting anything'
 });
 test('safe apply resumes and is idempotent without deleting a shared peer',t=>{
  const root=fixture(t),o=options(root);put(root,o.requests[0].path);put(root,'build-native/p9/retired/second.exe');o.requests=[{...o.requests[0],path:'build-native/p9/retired'}];const peer=join(root,'peer');linkSync(join(root,'build-native/p9/retired/output.exe'),peer);const m=previewGeneratedCleanup(o),journal=join(root,'journal.json');assert.throws(()=>applyGeneratedCleanup({...o,manifest:m,journal,afterRemoved:()=>{throw Error('interrupted');}}),/interrupted/);const result=applyGeneratedCleanup({...o,manifest:m,journal});assert.equal(result.deletedBytes,18);assert.equal(readFileSync(peer,'utf8'),'generated');assert.equal(statSync(peer).nlink,1);assert.equal(existsSync(journal),false);assert.equal(applyGeneratedCleanup({...o,manifest:m,journal}).deletedBytes,0);
+});
+test('PC cleanup preserves read-only shared files and resumes without double counting',t=>{
+ const root=fixture(t),o=options(root);o.requests[0].path='build-native/p9/retired';put(root,o.requests[0].path+'/a-shared','shared');put(root,o.requests[0].path+'/z-disposable','delete');const shared=join(root,o.requests[0].path,'a-shared'),peer=join(root,'peer');linkSync(shared,peer);chmodSync(shared,0o444);
+ const manifest=previewGeneratedCleanup(o),journal=join(root,'journal.json');assert.throws(()=>applyGeneratedCleanup({...o,manifest,journal}),/Readonly shared/);
+ const result=applyGeneratedCleanup({...o,manifest,journal,preserveReadonlyShared:true,retainCompletedJournal:true});assert.equal(result.deletedBytes,6);assert.equal(result.preservedShared.length,1);assert.equal(result.preservedShared[0].path,shared);assert.equal(readFileSync(peer,'utf8'),'shared');assert.equal(statSync(peer).mode&0o200,0);assert.ok(existsSync(shared));
+ const resumed=applyGeneratedCleanup({...o,manifest,journal,preserveReadonlyShared:true,retainCompletedJournal:true});assert.equal(resumed.deletedBytes,6);assert.equal(resumed.preservedShared.length,1);
 });
 test('protected files, sources, unknown roots and junctions are rejected',t=>{
  const root=fixture(t),o=options(root);put(root,o.requests[0].path);assert.throws(()=>previewGeneratedCleanup({...o,protectedPaths:[join(root,o.requests[0].path)]}),/protected/i);assert.throws(()=>previewGeneratedCleanup({...o,requests:[{...o.requests[0],path:'tools/source.py'}]}),/scope/i);const outside=fixture(t);mkdirSync(join(root,'build-native/p9/linked'),{recursive:true});symlinkSync(outside,join(root,'build-native/p9/linked/escape'),'junction');assert.throws(()=>previewGeneratedCleanup({...o,requests:[{...o.requests[0],path:'build-native/p9/linked'}]}),/link/i);

@@ -225,7 +225,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
     const moved=manifest.entries.filter(e=>e.action==='relocate').reduce((sum,e)=>sum+e.bytes,0),d=statfsSync('D:/');
     if(moved>=1024**3&&d.bavail*d.bsize<moved+5*1024**3)throw Error('Evidence relocation needs peak bytes plus 5GiB headroom');
     const baseline=join(directory,prefix+'.before.json'),before=existsSync(baseline)?JSON.parse(readFileSync(baseline,'utf8')):free();if(!existsSync(baseline))atomicStorageJSON(baseline,before);
-    const result=applyGeneratedCleanup({...options,...saved,manifest,consumers:checkedConsumers({policy:saved,offline,processes:getConsumers()}),refreshConsumers:()=>checkedConsumers({policy:saved,offline,processes:getConsumers()}),verifiedPreview:proof.schema?proof:null,journal:join(directory,prefix+'.journal.json'),retainCompletedJournal:true});
+    const result=applyGeneratedCleanup({...options,...saved,manifest,consumers:checkedConsumers({policy:saved,offline,processes:getConsumers()}),refreshConsumers:()=>checkedConsumers({policy:saved,offline,processes:getConsumers()}),verifiedPreview:proof.schema?proof:null,journal:join(directory,prefix+'.journal.json'),retainCompletedJournal:true,preserveReadonlyShared:true});
     atomicStorageJSON(resultPath,{...result,allocation,before,after:free(),completedAt:new Date().toISOString()});
    }
    const completedJournal=join(directory,prefix+'.journal.json');if(existsSync(completedJournal)){
