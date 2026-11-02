@@ -105,6 +105,18 @@ export async function measureHydroCalibrationReferenceStages({kind,bounds,width=
     for(let i=0;i<results.length;i++)if(zooms[i]<=stage+1e-9)for(const key of Object.keys(metrics))metrics[key]+=results[i][key];
     return [stage.toFixed(1),metrics];}));
 }
+export async function prepareHydroCalibrationStageReferences(input,options={}){
+  options.signal?.throwIfAborted();
+  if(!input||typeof input.sameLayer!=='boolean')throw Error('Explicit Hydro reference layer relationship required');
+  const {kind,width,height}=input,sameLayer=input.sameLayer,bounds=structuredClone(input.bounds),baseFeatures=structuredClone(input.baseFeatures);
+  const supplementFeatures=sameLayer?null:structuredClone(input.supplementFeatures);
+  const baselines=await measureHydroCalibrationReferenceStages({kind,bounds,width,height,features:baseFeatures},options);
+  if(sameLayer)return {baselines,targets:structuredClone(baselines)};
+  const supplement=await measureHydroCalibrationReferenceStages({kind,bounds,width,height,features:supplementFeatures},options);
+  const targets=Object.fromEntries(calibrationStages.map(stage=>{const key=stage.toFixed(1);
+    return [key,Object.fromEntries(Object.keys(baselines[key]).map(field=>[field,baselines[key][field]+supplement[key][field]]))];}));
+  return {baselines,targets};
+}
 export async function prepareHydroCalibrationRivers({archive,specification,selected,bounds,width=1200,height=720}={},options={}){
   options.signal?.throwIfAborted();
   const source=await readHydroRegion({archive,specification,selected,detail:'generation',signal:options.signal}),result=[];
