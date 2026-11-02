@@ -8,9 +8,9 @@ import {geometryRevisionKey} from './geometry-versions.js';
 import {buildGraticuleStrokeGeometryPacket} from './graticule-geometry.js';
 import {createGpuMapRenderer} from './gpu-map-renderer.js';
 import {createTerritorialFillResolver} from './territorial-fill-style.js';
-export function createMapRenderer(dependencies, { productMode, onMapPreparationStatus = null }) {
+export function createMapRenderer(dependencies, { presentMapPreparation, onMapPreparationStatus = null } = {}) {
+    if (typeof presentMapPreparation !== 'function') throw new TypeError('Map renderer requires a preparation presenter.');
     if (onMapPreparationStatus !== null && typeof onMapPreparationStatus !== 'function') throw new TypeError('Map preparation observer must be a function.');
-    if (!['viewer', 'editor'].includes(productMode)) throw new TypeError('Renderer presentation product mode is required.');
     let gpuMapRenderer=null;
     gpuMapRenderer=createGpuMapRenderer({
       APP_VERSION: dependencies.platformConfigurationA.APP_VERSION,
@@ -61,15 +61,7 @@ export function createMapRenderer(dependencies, { productMode, onMapPreparationS
           (window.__PANDOLAB_STARTUP_METRICS__ ||= {}).rendererStatus = text;
         },
         setMapPreparationStatus: presentation => {
-          const label = dependencies.platform.$('mapPreparationStatus');
-          const retry = dependencies.platform.$('mapPreparationRetry');
-          const text = productMode === 'viewer' ? presentation.label.replace('현재 화면 ', '').replace('준비 실패', '불러오기 실패') : presentation.label;
-          if (label) {
-            if (label.textContent !== text) label.textContent = text;
-            label.hidden = presentation.status === 'ready';
-          }
-          if (productMode === 'viewer') dependencies.platform.$('mapPreparationNotice').hidden = presentation.status !== 'error';
-          if (retry) retry.hidden = !presentation.retry;
+          presentMapPreparation(presentation,{retry:()=>gpuMapRenderer?.retryMapPreparation?.()});
           if (gpuMapRenderer && onMapPreparationStatus) onMapPreparationStatus(presentation,gpuMapRenderer.getProjectGeneration());
         },
         onContextStateChange: phase => dependencies.domains.renderingDomain?.invalidateGpuContext?.(phase) || false,
@@ -84,8 +76,6 @@ export function createMapRenderer(dependencies, { productMode, onMapPreparationS
     });
 
     gpuMapRenderer.setRenderQuality?.(dependencies.renderScene.currentRenderQuality);
-    const retry = dependencies.platform.$('mapPreparationRetry');
-    if (retry) retry.onclick = () => gpuMapRenderer.retryMapPreparation();
     return gpuMapRenderer;
   }
 
