@@ -40,7 +40,25 @@ export function pcProcesses(){
  return [JSON.parse(raw)].flat();
 }
 export function assertOffline(processes){
- const busy=processes.filter(p=>/^(?:codex|msedge|msedgewebview2)\.exe$/i.test(p.Name||''));
+ const byId=new Map(processes.map(p=>[Number(p.ProcessId),p]));
+ const norm=path=>resolve(path).replaceAll('\\','/').toLowerCase();
+ const searchHost=norm(join(process.env.SystemRoot||'C:/Windows','SystemApps/MicrosoftWindows.Client.CBS_cw5n1h2txyewy/SearchHost.exe'));
+ const searchProfile=norm(join(homedir(),'AppData/Local/Packages/MicrosoftWindows.Client.CBS_cw5n1h2txyewy/LocalState/EBWebView'));
+ const trustedSearch=process=>{
+  const seen=new Set();
+  while(process&&/^msedgewebview2\.exe$/i.test(process.Name||'')){
+   if(seen.has(Number(process.ProcessId)))return false;seen.add(Number(process.ProcessId));
+   const command=process.CommandLine||'',profile=command.match(/--user-data-dir=(?:"([^"]+)"|(\S+))/i);
+   if(profile&&norm(profile[1]||profile[2])!==searchProfile)return false;
+   const parent=byId.get(Number(process.ParentProcessId));
+   if(parent&&/^SearchHost\.exe$/i.test(parent.Name||'')){
+    return !!parent.ExecutablePath&&norm(parent.ExecutablePath)===searchHost&&!!profile&&/--webview-exe-name=SearchHost\.exe(?:\s|$)/i.test(command);
+   }
+   process=parent;
+  }
+  return false;
+ };
+ const busy=processes.filter(p=>/^(?:codex|msedge)\.exe$/i.test(p.Name||'')||(/^msedgewebview2\.exe$/i.test(p.Name||'')&&!trustedSearch(p)));
  if(busy.length)throw Error('Close Codex and Edge normally before offline maintenance: '+busy.map(p=>p.Name+':'+p.ProcessId).join(', '));
 }
 const quote=name=>'"'+name.replaceAll('"','""')+'"';
@@ -108,6 +126,7 @@ export function confirmRecovery(directory){
 }
 export function checkedConsumers({processes,offline,policy}){
  if(offline)assertOffline(processes);
+ if(policy?.requests.some(r=>/[\\/]Temp$/i.test(r.root)&&/^(?:pando-|playwright)/i.test(r.path))&&processes.some(p=>/^node(?:\.exe)?$/i.test(p.Name||'')&&/(?:tests[\\/]browser[\\/]server\.mjs|scripts[\\/]run-application-checks\.mjs|(?:^|\s)--test(?:\s|$))/i.test(p.CommandLine||'')))throw Error('An active Pando test owner blocks saved Temp scopes');
  if(policy?.requests.some(r=>/^playwright/.test(r.path))&&processes.some(p=>/^(?:msedge|chrome|chrome-headless-shell)\.exe$/i.test(p.Name||'')))throw Error('An active automation browser owner blocks saved Temp scopes');
  if(policy?.requests.some(r=>/[\\/]Pandoeditor$/i.test(r.root)&&/^cache(?:[\\/]|$)/.test(r.path))&&processes.some(p=>/^pandoeditor\.exe$/i.test(p.Name||'')))throw Error('An active Qt editor owner blocks its profile cache');
  return processes;
@@ -206,7 +225,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
     const moved=manifest.entries.filter(e=>e.action==='relocate').reduce((sum,e)=>sum+e.bytes,0),d=statfsSync('D:/');
     if(moved>=1024**3&&d.bavail*d.bsize<moved+5*1024**3)throw Error('Evidence relocation needs peak bytes plus 5GiB headroom');
     const baseline=join(directory,prefix+'.before.json'),before=existsSync(baseline)?JSON.parse(readFileSync(baseline,'utf8')):free();if(!existsSync(baseline))atomicStorageJSON(baseline,before);
-    const result=applyGeneratedCleanup({...options,...saved,manifest,consumers:checkedConsumers({policy:saved,offline,processes:getConsumers()}),refreshConsumers:()=>checkedConsumers({policy:saved,offline,processes:getConsumers()}),verifiedPreview:proof.schema?proof:null,journal:join(directory,prefix+'.journal.json'),retainCompletedJournal:true});
+    const result=applyGeneratedCleanup({...options,...saved,manifest,consumers:checkedConsumers({policy:saved,offline,processes:getConsumers()}),refreshConsumers:()=>checkedConsumers({policy:saved,offline,processes:getConsumers()}),verifiedPreview:proof.schema?proof:null,journal:join(directory,prefix+'.journal.json'),retainCompletedJournal:true,preserveReadonlyShared:true});
     atomicStorageJSON(resultPath,{...result,allocation,before,after:free(),completedAt:new Date().toISOString()});
    }
    const completedJournal=join(directory,prefix+'.journal.json');if(existsSync(completedJournal)){

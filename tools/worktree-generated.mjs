@@ -112,7 +112,7 @@ export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPa
  const selected=new Set([...seen].map(normalizedPath));for(const e of entries)if(e.duplicateOf&&selected.has(normalizedPath(resolve(e.root,e.duplicateOf))))throw Error('Duplicate source is also selected for deletion');
  return {schema,compilerScopes,roots:roots.map(p=>resolve(p)),relocationRoots:relocationRoots.map(p=>resolve(p)),createdAt:new Date().toISOString(),entries};
 }
-export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[],verifiedPreview=null,copyForRelocation=copyFileSync,retainCompletedJournal=false}){
+export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsumers=()=>consumers,protectedPaths=[],relocationRoots=manifest.relocationRoots||[],journal=null,afterRemoved=()=>{},afterMutation=()=>{},progress=()=>{},compilerScopes=[],verifiedPreview=null,copyForRelocation=copyFileSync,retainCompletedJournal=false,preserveReadonlyShared=false}){
  roots=roots.map(p=>resolve(p));protectedPaths=protectedPaths.map(p=>resolve(p));
  if(JSON.stringify(manifest.compilerScopes||[])!==JSON.stringify(compilerScopes))throw Error('Compiler retirement scope mismatch');
  if(manifest.schema!==schema||JSON.stringify(manifest.roots)!==JSON.stringify(roots.map(p=>resolve(p))))throw Error('Manifest scope mismatch');
@@ -205,7 +205,13 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
     if(!s.isSymbolicLink()||!dependencyPattern.test(e.path))throw Error('Dependency link changed before removal');
     unlinkSync(p);
    }else{
-    if(!(s.mode&0o200)){if(s.nlink>1)throw Error('Readonly shared output requires its content-store owner');chmodSync(p,0o600);}
+    if(!(s.mode&0o200)){
+     if(s.nlink>1){
+      if(!preserveReadonlyShared)throw Error('Readonly shared output requires its content-store owner');
+      (state.preservedShared??=[]).push({path:p,bytes:e.bytes,sha256:e.sha256,links:s.nlink});finish(index,e,false);save();continue;
+     }
+     chmodSync(p,0o600);
+    }
     unlinkSync(p);
    }
    afterMutation(e);finish(index,e,true,physicalBytes);afterRemoved(e);
