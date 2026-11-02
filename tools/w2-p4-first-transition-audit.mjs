@@ -110,11 +110,26 @@ for(const entry of allowed){
   const workers=spans.filter(e=>/DedicatedWorker|Worker thread/i.test(e.threadName));
   const functions=main.filter(e=>e.name==='FunctionCall'||/FireAnimationFrame|EventDispatch/.test(e.name));
   const explicitUpload=main.filter(e=>/gpu-upload-scheduler|gpu-stroke-renderer/i.test(nameOf(e)));
+  const allShortMain=events.filter(e=>e.ph==='X'&&Number.isFinite(e.dur)&&e.ts<end&&finish(e)>begin
+    &&/RendererMain/i.test(threads.get(idOf(e))||'')
+    &&(e.name==='FireAnimationFrame'
+      ||(e.name==='FunctionCall'&&/gpu-upload-scheduler|gpu-stroke-renderer/i.test(nameOf(e)))
+      ||/BufferSubData|BufferData|TexSubImage|BufferSubData|GLES2Implementation::Flush/i.test(e.name)));
+  const compactEvents=what=>allShortMain.filter(what).sort((a,b)=>a.ts-b.ts).map(e=>({
+    name:e.name,startMs:round((e.ts-origin)/1000,3),durationMs:round(e.dur/1000,3),
+    url:nameOf(e).split('/').at(-1).split('?')[0]}));
+  const everyFrame=compactEvents(e=>e.name==='FireAnimationFrame');
+  const everyUploadCallback=compactEvents(e=>e.name==='FunctionCall'&&/gpu-upload-scheduler|gpu-stroke-renderer/.test(nameOf(e)));
+  const everyGLUpload=compactEvents(e=>/BufferSubData|BufferData|TexSubImage/.test(e.name));
+  const gaps=everyFrame.slice(1).map((v,i)=>round(v.startMs-everyFrame[i].startMs));
   phases[label]={
     startMs:round(startMs),endMs:round(endMs),durationMs:round(endMs-startMs),
     mainTop:details(main),workerTop:details(workers),mainFunctions:details(functions),
     uploadSchedulerCalls:details(explicitUpload),
-    frames:main.filter(e=>e.name==='FireAnimationFrame').length,
+    frames:everyFrame.length,frameTimesMs:everyFrame.slice(0,80),
+    frameGapMaxMs:gaps.length?Math.max(...gaps):null,
+    uploadCallbackCount:everyUploadCallback.length,uploadCallbackEvents:everyUploadCallback.slice(0,90),
+    glUploadCallCount:everyGLUpload.length,glUploadEvents:everyGLUpload.slice(0,90),
     mainRunTasks:main.filter(e=>e.name==='RunTask').length
   };
  }
@@ -131,7 +146,10 @@ for(const entry of allowed){
   preTop:phases.preWorkerPost?.mainTop?.slice(0,8),
   gpuTop:phases.gpuResourceWait?.mainTop?.slice(0,8),
   gpuUpload:phases.gpuResourceWait?.uploadSchedulerCalls?.slice(0,6),
-  gpuFrames:phases.gpuResourceWait?.frames
+  gpuFrames:phases.gpuResourceWait?.frames,
+  gpuCallbacks:phases.gpuResourceWait?.uploadCallbackCount,
+  gpuGLUploadCalls:phases.gpuResourceWait?.glUploadCallCount,
+  gpuFrameGap:phases.gpuResourceWait?.frameGapMaxMs
  }).slice(0,15000));
 }
 const record={
@@ -162,7 +180,10 @@ writeFileSync(join(output,'phase-summary.json'),JSON.stringify({
   run,workerResult,preTop:phases.preWorkerPost?.mainTop?.slice(0,7),
   gpuTop:phases.gpuResourceWait?.mainTop?.slice(0,7),
   upload:phases.gpuResourceWait?.uploadSchedulerCalls?.slice(0,7),
-  frameCount:phases.gpuResourceWait?.frames
+  frameCount:phases.gpuResourceWait?.frames,
+  frameGapMaxMs:phases.gpuResourceWait?.frameGapMaxMs,
+  uploadCallbackCount:phases.gpuResourceWait?.uploadCallbackCount,
+  glUploadCallCount:phases.gpuResourceWait?.glUploadCallCount
  }))
 },null,2)+'\n');
 console.log('W2P4_SUMMARY '+JSON.stringify({n:rows.length,medianMs:summ,
