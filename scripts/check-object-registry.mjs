@@ -1,109 +1,55 @@
-import { readApplicationOwners } from './lib/application-source.mjs';
-import fs from 'node:fs';
-import path from 'node:path';
 import process from 'node:process';
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
 import {
-  MAP_OBJECT_CATEGORIES,
-  MAP_OBJECT_CATEGORY_ORDER,
-  MAP_OBJECT_TYPES,
-  categoryForCreateItem,
-} from "../shared/frontend/js/modules/map-object-categories.js";
-import { OBJECT_ACTIONS, objectActionApplies } from "../apps/editor/frontend/js/modules/object-action-registry.js";
-import { ACTION_UI_BINDINGS } from "../apps/editor/frontend/js/modules/object-registry-presenter.js";
+ MAP_OBJECT_CATEGORIES, MAP_OBJECT_CATEGORY_ORDER, MAP_OBJECT_TYPES,
+ categoryForCreateItem,
+} from '../shared/frontend/js/modules/map-object-categories.js';
+import {createProductModePolicy} from '../shared/frontend/js/modules/product-mode-policy.js';
+import {renderProductHtml} from './lib/product-html.mjs';
 
-const root = process.cwd();
-const failures = [];
-const fail = message => failures.push(message);
-
-const requiredTypeFields = [
-  'key', 'domain', 'type', 'category', 'label', 'icon', 'editor', 'creatable',
-];
-for (const [key, descriptor] of Object.entries(MAP_OBJECT_TYPES)) {
-  for (const field of requiredTypeFields) {
-    if (!(field in descriptor)) fail(`object type ${key} is missing '${field}'`);
-  }
-  if (descriptor.key !== key) fail(`object type ${key} must self-identify with key '${key}'`);
-  if (!MAP_OBJECT_CATEGORIES[descriptor.category]) fail(`object type ${key} references unknown category '${descriptor.category}'`);
-  if (!descriptor.label) fail(`object type ${key} must have a display label`);
-  if (!descriptor.editor) fail(`object type ${key} must declare an editor target`);
-  if (descriptor.creatable && (!descriptor.createButton || !descriptor.createAction)) {
-    fail(`creatable object type ${key} must declare createButton and createAction`);
-  }
-  if (descriptor.creatable && categoryForCreateItem(key) !== descriptor.category) {
-    fail(`creatable object type ${key} is not routed through its declared category`);
-  }
-  if (key !== 'distribution' && !descriptor.layerGroup) fail(`object type ${key} must declare layerGroup`);
-  if (key !== 'distribution' && !descriptor.presentationGroup) fail(`object type ${key} must declare presentationGroup`);
+// The old UI actions and editor command presenters are retired. This
+// contract protects canonical object categories and actual read-only
+// Viewer/Windows review, not the removed app-composition DOM.
+const root=process.cwd();
+const read=path=>readFileSync(resolve(root,path),'utf8');
+const errors=[],fail=text=>errors.push(text);
+for(const [key,type] of Object.entries(MAP_OBJECT_TYPES)){
+ for(const field of ['key','domain','type','category','label','icon']){
+   if(!(field in type))fail(key+' missing object metadata: '+field);
+ }
+ if(type.key!==key)fail('Object key mismatch: '+key);
+ if(!MAP_OBJECT_CATEGORIES[type.category])fail('Unknown category: '+type.category);
+ if(!type.label)fail('Missing label: '+key);
+ if(type.creatable&&categoryForCreateItem(key)!==type.category)
+   fail('Object creation descriptor disagrees with category: '+key);
+ if(key!=='distribution'&&(!type.layerGroup||!type.presentationGroup))
+   fail('Missing read-only layer presentation group: '+key);
 }
-
-if (MAP_OBJECT_TYPES.generic.creatable !== false) fail('generic objects must remain non-creatable');
-if (MAP_OBJECT_TYPES.generic.fallbackOnly !== true) fail('generic objects must remain fallback-only');
-if (MAP_OBJECT_TYPES.generic.createButton || MAP_OBJECT_TYPES.generic.createAction) fail('generic objects may not expose a create entry point');
-if (JSON.stringify(MAP_OBJECT_TYPES.generic.allowedActions) !== JSON.stringify(['focus', 'lock', 'delete'])) {
-  fail('generic objects must restrict product actions to focus/lock/delete');
+const expected=['territorial','distribution','features'];
+if(JSON.stringify(MAP_OBJECT_CATEGORY_ORDER)!==JSON.stringify(expected))
+ fail('Viewer object category order changed');
+for(const [key,group] of Object.entries(MAP_OBJECT_CATEGORIES)){
+ for(const type of group.createItems||[]){
+   if(!MAP_OBJECT_TYPES[type]||MAP_OBJECT_TYPES[type].category!==key)
+     fail('Object category/type mismatch: '+key+'/'+type);
+ }
 }
-if (objectActionApplies('coast-reconcile', { domain: 'generic', type: 'feature' })) {
-  fail('generic objects may not reuse territorial coast reconciliation');
+if(MAP_OBJECT_TYPES.generic.creatable!==false||MAP_OBJECT_TYPES.generic.fallbackOnly!==true)
+ fail('Generic fallback must not be directly created in the Viewer');
+const viewer=createProductModePolicy('viewer',{readOnly:true});
+try{viewer.assertOperation('core.document-execute');fail('Viewer accepted a mutation');}
+catch(error){if(error.code!=='PL-PRODUCT-READONLY')fail('Unexpected Viewer mutation error');}
+const html=renderProductHtml(read).web;
+for(const id of ['viewer','map','reviewPanel','reviewObjectList','reviewDetail']){
+ if(!html.includes('id="'+id+'"'))fail('Missing read-only Viewer/review section: '+id);
 }
-
-const expectedOrder = ['territorial', 'distribution', 'features'];
-if (JSON.stringify(MAP_OBJECT_CATEGORY_ORDER) !== JSON.stringify(expectedOrder)) {
-  fail(`object category order must remain ${expectedOrder.join(' → ')}`);
+for(const id of ['editorSurface','drawCountryBtn','objectDeleteBtn','reconcileEntityCoastBtn']){
+ if(html.includes('id="'+id+'"'))fail('Retired editing UI leaked into the Viewer: '+id);
 }
-for (const [categoryKey, category] of Object.entries(MAP_OBJECT_CATEGORIES)) {
-  for (const typeKey of category.createItems) {
-    if (!MAP_OBJECT_TYPES[typeKey]) fail(`category ${categoryKey} references unknown type ${typeKey}`);
-    else if (MAP_OBJECT_TYPES[typeKey].category !== categoryKey) fail(`category ${categoryKey} disagrees with type ${typeKey}`);
-  }
-}
-
-for (const actionId of ['focus', 'lock', 'delete', 'copy-region', 'border-edit', 'coast-reconcile']) {
-  const action = OBJECT_ACTIONS[actionId];
-  if (!action) {
-    fail(`missing canonical object action '${actionId}'`);
-    continue;
-  }
-  for (const field of ['id', 'command', 'label', 'icon', 'capability']) {
-    if (!(field in action)) fail(`object action ${actionId} is missing '${field}'`);
-  }
-}
-if (OBJECT_ACTIONS.delete?.danger !== true) fail('delete action must remain marked as danger');
-
-const requiredBindings = Object.freeze({
-  lock: ['objectLockBtn'],
-  delete: ['objectDeleteBtn'],
-  focus: ['focusSelectedObjectBtn', 'objectFocusMenuBtn'],
-  'coast-reconcile': ['reconcileEntityCoastBtn'],
-  'copy-region': ['copyEntityRegionBtn'],
-});
-for (const [actionId, elementIds] of Object.entries(requiredBindings)) {
-  const bound = new Set((ACTION_UI_BINDINGS[actionId] || []).map(binding => binding.elementId));
-  for (const elementId of elementIds) {
-    if (!bound.has(elementId)) fail(`object action ${actionId} is not shared by UI endpoint #${elementId}`);
-  }
-}
-
-const uiRuntimeSource = fs.readFileSync(path.join(root, 'apps/editor/frontend/js/modules/ui-runtime.js'), 'utf8');
-if (!uiRuntimeSource.includes("import { installObjectRegistryPresenter } from './object-registry-presenter.js';")) {
-  fail('canonical UI runtime must import the object registry presenter');
-}
-if (!uiRuntimeSource.includes('installObjectRegistryPresenter();')) {
-  fail('object registry presenter is not installed by the canonical UI runtime');
-}
-
-const appSource = readApplicationOwners('object-presentation');
-for (const marker of [
-  'Object.values(MAP_OBJECT_TYPES)',
-  'Object.values(MAP_OBJECT_TYPES)',
-  'category.createItems.forEach(type =>',
-]) {
-  if (!appSource.includes(marker)) fail(`app.js is not consuming canonical object registry marker: ${marker}`);
-}
-
-if (failures.length) {
-  console.error(`Object registry audit failed with ${failures.length} issue(s):`);
-  for (const message of [...new Set(failures)]) console.error(`- ${message}`);
-  process.exitCode = 1;
-} else {
-  console.log(`Object registry audit passed: ${Object.keys(MAP_OBJECT_TYPES).length} object types, ${Object.keys(OBJECT_ACTIONS).length} actions, shared menu/editor bindings enforced.`);
-}
+const source=read('apps/viewer/js/modules/viewer-composition.js');
+if(!source.includes('createMapOwners({productMode,readOnly:true'))
+ fail('Viewer object selection must use read-only map owners');
+if(errors.length){
+ console.error(errors.join('\n'));process.exitCode=1;
+}else console.log('Viewer object registry check passed: '+Object.keys(MAP_OBJECT_TYPES).length+' canonical types, read-only review owners.');

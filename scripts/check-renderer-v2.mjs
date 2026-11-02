@@ -1,4 +1,4 @@
-import { readApplicationOwners } from './lib/application-source.mjs';
+// Active render ownership is the shared map composition and Viewer runtime.
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -19,7 +19,7 @@ const stroke = read('shared/frontend/js/modules/gpu-stroke-renderer.js');
 const scene = read('shared/frontend/js/modules/render-scene.js');
 const coordinator = read('shared/frontend/js/modules/map-render-coordinator.js');
 const meshWorker = read('shared/frontend/js/workers/gpu-mesh-worker.js');
-const app = readApplicationOwners('map-host', 'gpu-scene');
+const app = read('shared/frontend/js/modules/map-owner-composition.js') + '\n' + read('apps/viewer/js/modules/viewer-composition.js');
 const css = read('shared/frontend/css/app.css');
 
 expect(renderer.includes('createRenderDevice({'), 'main GPU renderer must own the RenderDevice');
