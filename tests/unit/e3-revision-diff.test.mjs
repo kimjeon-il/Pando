@@ -207,3 +207,37 @@ test('E3 report-only descendant revisions produce explicit zero-change evidence 
   assert.equal(result.manifest.files.length,2);
   assert.equal(git(root,'status','--porcelain'),'');
 });
+
+
+test('E3 visits every changed source exactly once through explicit bounded batches',()=>{
+  const baseIndex={schemaVersion:1,entities:{}},candidateIndex={schemaVersion:1,entities:{}};
+  const bytes=new Map();
+  for(const suffix of ['A','B','C']){
+    const before=entity(),after=structuredClone(before);
+    before.entityId='state:EXAMPLE_'+suffix;
+    after.entityId=before.entityId;
+    after.geometryVersions[0].geometry=geo(suffix.charCodeAt(0)-63);
+    const b=Buffer.from(JSON.stringify(before)),a=Buffer.from(JSON.stringify(after));
+    baseIndex.entities[before.entityId]=hash(b);
+    candidateIndex.entities[before.entityId]=hash(a);
+    bytes.set(A+':'+hash(b),b);bytes.set(B+':'+hash(a),a);
+  }
+  const input={baseRevision:A,candidateRevision:B,baseIndex,candidateIndex,
+    readEntity:({revision,digest})=>({bytes:bytes.get(revision+':'+digest)}),
+    comparisonMonth:'2008-10',maxEntities:1};
+  assert.throws(()=>collectRevisionDiff(input),/batch-index=1\.\.3/);
+  const batches=[1,2,3].map(batchIndex=>collectRevisionDiff({...input,batchIndex}));
+  assert.deepEqual(batches.map(x=>x.changes[0].sourceEntityId),
+    ['state:EXAMPLE_A','state:EXAMPLE_B','state:EXAMPLE_C']);
+  for(let i=0;i<batches.length;i++){
+    const x=batches[i],receipt=verificationSummary(x);
+    assert.equal(x.totalChangedEntities,3);
+    assert.equal(x.indexChangedEntities,1);
+    assert.deepEqual(x.scope,{batchIndex:i+1,batchCount:3,complete:false});
+    assert.equal(receipt.coverage,'scoped');
+    assert.equal(receipt.sourceHashCheck,'passed');
+    assert.equal(x.issues.length,0);
+  }
+  assert.throws(()=>collectRevisionDiff({...input,batchIndex:4}),/batch-index/);
+  assert.throws(()=>collectRevisionDiff({...input,batchIndex:0}),/batch-index/);
+});
