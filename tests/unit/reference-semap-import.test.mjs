@@ -124,7 +124,7 @@ test('Semap importer preserves real originals, rejects changed outputs and never
     const request={corpus:macroPath,auxiliary:first.manifest,orderDirectory:output,macroOnly:false,epoch:0,seed:42,verifyEvidence};
     assert.equal((await verifyCombinedTrainingOrder(request)).lineageFingerprint,plan.lineageFingerprint);
     const previous=join(root,'previous.pt');await writeFile(previous,'checkpoint');
-    await writeFile(previous+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,
+    await writeFile(previous+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,initialization:'weights-only-no-optimizer',
       checkpointSha256:sha('checkpoint'),device:'cpu',precision:'fp32',seed:42,freezeEpochs:2,learningRate:.0001,
       unobservedMask:plan.unobservedMask,positiveWeightSha256:plan.weightsSha256,epoch:0,cursor:0,orderLength:plan.length,orderSha256:plan.orderSha256,
       corpusSha256:sha(await readFile(macroPath)),auxiliarySha256:'0'.repeat(64),lineageFingerprint:plan.lineageFingerprint}));

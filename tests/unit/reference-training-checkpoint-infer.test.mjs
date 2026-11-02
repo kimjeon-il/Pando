@@ -36,6 +36,8 @@ test('checkpoint comparison rejects a mismatched receipt before launching the na
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({...base,checkpointSha256:createHash('sha256').update('fixture').digest('hex')}));
   writeFileSync(second+'.receipt.json',JSON.stringify({...base,learningRate:.0002,checkpointSha256:createHash('sha256').update('second').digest('hex')}));
   await assert.rejects(compareNativeTrainingCheckpoints({first:checkpoint,second,device:'cpu',torchLibrary:folder}),/configuration differs/i);
+  writeFileSync(second+'.receipt.json',JSON.stringify({...base,sampling:'uniform',checkpointSha256:createHash('sha256').update('second').digest('hex')}));
+  await assert.rejects(compareNativeTrainingCheckpoints({first:checkpoint,second,device:'cpu',torchLibrary:folder}),/configuration differs/i);
   const amp={...base,device:'cuda',precision:'amp-fp16',ampScale:65536,ampGrowthTracker:0};
   writeFileSync(checkpoint+'.receipt.json',JSON.stringify({...amp,checkpointSha256:createHash('sha256').update('fixture').digest('hex')}));
   writeFileSync(second+'.receipt.json',JSON.stringify({...amp,ampScale:32768,checkpointSha256:createHash('sha256').update('second').digest('hex')}));

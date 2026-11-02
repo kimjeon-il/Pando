@@ -89,7 +89,7 @@ export async function compareNativeTrainingCheckpoints({first,second,device='cpu
   const inputs=[first,second].map(value=>{const path=resolve(value),hash=trainingFileIdentity(path),receiptPath=path+'.receipt.json';
     const bytes=readTrainingBounded(receiptPath,1024*1024),receipt=JSON.parse(bytes);
     if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash||
-      !/^[a-f0-9]{64}$/.test(receipt.corpusSha256||'')||!['fp32','amp-fp16'].includes(receipt.precision)||
+      !/^[a-f0-9]{64}$/.test(receipt.corpusSha256||'')||!['fp32','amp-fp16'].includes(receipt.precision)||!['balanced','uniform'].includes(receipt.sampling??'balanced')||
       (receipt.precision==='amp-fp16'&&(device!=='cuda'||!Number.isFinite(receipt.ampScale)||receipt.ampScale<=0||
         !Number.isInteger(receipt.ampGrowthTracker)||receipt.ampGrowthTracker<0||receipt.ampGrowthTracker>=2000))||
       (receipt.precision==='fp32'&&(receipt.ampScale!==null||receipt.ampGrowthTracker!==null))||
@@ -108,7 +108,8 @@ export async function compareNativeTrainingCheckpoints({first,second,device='cpu
   const config=['precision','ampScale','ampGrowthTracker','epoch','cursor','orderLength','seed','freezeEpochs','learningRate',
     'unobservedMask','positiveWeightSha256','corpusSha256','auxiliarySha256','lineageFingerprint','selectionExposure','orderSha256','attemptedBatches',
     'optimizerUpdates','skippedUpdates','initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization','evidence'];
-  if(config.some(key=>!isDeepStrictEqual(inputs[0].receipt[key],inputs[1].receipt[key])))
+  if(config.some(key=>!isDeepStrictEqual(inputs[0].receipt[key],inputs[1].receipt[key]))||
+    (inputs[0].receipt.sampling??'balanced')!==(inputs[1].receipt.sampling??'balanced'))
     throw Error('Checkpoint comparison training configuration differs');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
   const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});

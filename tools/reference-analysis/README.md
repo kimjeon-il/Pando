@@ -70,6 +70,14 @@ for both files. It starts without optimizer state. Subsequent native checkpoints
 own optimizer and random state. These are training-only artifacts, not an
 independent evaluation or approval for release.
 
+Training sequences and campaigns accept `--sampling uniform` to visit each
+supervised tile exactly once per epoch, or `--sampling balanced` to balance
+original sources. Balanced remains the default for the existing native workflow.
+The uniform order uses the existing deterministic native shuffle and is bound
+to the checkpoint and resume receipts. Its random sequence is not the old
+PyTorch DataLoader's sequence; its one-visit sampling and native resume state
+are preserved. Changing sampling when resuming a checkpoint is rejected.
+
 For a newly recorded public-encoder sequence, the native source-replay verifier
 accepts the initializer, original corpus and every checkpoint in order. For a
 single corpus, provide its supervision directory; for a mixed corpus, provide

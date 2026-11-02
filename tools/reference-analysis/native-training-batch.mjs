@@ -26,7 +26,7 @@ function positiveWeight(path){if(!path)return {argument:'none',hash:null};const 
   if(bytes.length!==28||Array.from({length:7},(_,i)=>bytes.readFloatLE(i*4)).some(v=>!Number.isFinite(v)||v<1||v>64))throw Error('Positive weights must contain seven values in 1..64');
   return {argument:resolve(path),hash:sha(bytes)};
 }
-function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData}){
+function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData,sampling}){
   if(mode==='warm'){
     if(epoch!==0)throw Error('A weights-only warm start begins at epoch zero');
     const verified=verifyTrainingInitializer({path:inputPath,expectedSha256:inputHash});
@@ -38,7 +38,8 @@ function trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learnin
   const initializationRecordPath=inputPath+'.receipt.json',recordBytes=readBounded(initializationRecordPath,1024*1024),previous=JSON.parse(recordBytes.toString('utf8'));
   if(previous.schemaVersion!==1||previous.trainingOnly!==true||previous.releaseApproved!==false||previous.lineageComplete!==false||
     previous.checkpointSha256!==inputHash||previous.device!==device||previous.precision!==precision||previous.seed!==seed||previous.freezeEpochs!==freezeEpochs||
-    previous.learningRate!==learningRate||previous.unobservedMask!==unobservedMask||previous.positiveWeightSha256!==weights.hash)throw Error('Checkpoint receipt or training configuration differs');
+    previous.learningRate!==learningRate||previous.unobservedMask!==unobservedMask||previous.positiveWeightSha256!==weights.hash||
+    (previous.sampling??'balanced')!==sampling)throw Error('Checkpoint receipt or training configuration differs');
   const initializationSourceSha256=previous.initializationSourceSha256??null,initializationWeightsSha256=previous.initializationWeightsSha256??null;
   if([initializationSourceSha256,initializationWeightsSha256].some(value=>value!==null&&!/^[a-f0-9]{64}$/.test(value)))throw Error('Invalid initializer source or weights identity');
   if(!['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(previous.initialization))throw Error('Invalid checkpoint initialization kind');
@@ -95,19 +96,19 @@ export async function verifyCombinedTrainingEvidence(primaryRoot,manifest,auxili
     tileIndex:data.tileIndex,augmentationIndex:data.augmentationIndex,pixelOrigin:data.pixelOrigin,augment:sample.augment,
     tensorSha256:data.tensorSha256},checks};
 }
-export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,reviewed=false,publisher=false,verifyEvidence:verifySourceEvidence,selectionExposure,order,epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
+export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,orderDirectory,macroOnly,reviewed=false,publisher=false,verifyEvidence:verifySourceEvidence,selectionExposure,order,sampling='balanced',epoch,seed,freezeEpochs,learningRate,positiveWeights,unobservedMask,
   samples,device='cpu',amp=device==='cuda',torchLibrary,root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!['warm','resume'].includes(mode)||!input||!output||!corpus||!order||!torchLibrary||!['cpu','cuda'].includes(device)||
     ![epoch,seed,freezeEpochs].every(v=>Number.isSafeInteger(v)&&v>=0)||!Number.isFinite(learningRate)||learningRate<=0||learningRate>.01||
     typeof reviewed!=='boolean'||typeof publisher!=='boolean'||((reviewed||publisher)&&auxiliary)||(reviewed&&publisher)||
-    typeof amp!=='boolean'||(amp&&device!=='cuda')||!Number.isInteger(unobservedMask)||unobservedMask<0||unobservedMask>127||
+    typeof amp!=='boolean'||(amp&&device!=='cuda')||!['balanced','uniform'].includes(sampling)||!Number.isInteger(unobservedMask)||unobservedMask<0||unobservedMask>127||
     !Array.isArray(samples)||samples.length<1||samples.length>16)throw Error('Explicit native training batch inputs and configuration required');
   if(selectionExposure!==undefined)selectionExposure={...validateSelectionExposure(selectionExposure)};
   const precision=amp?'amp-fp16':'fp32';
   const target=resolve(output),receiptPath=target+'.receipt.json';if(existsSync(target)||existsSync(receiptPath))throw Error('Checkpoint or receipt already exists; preserve existing output');
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
-  const {previous,cursor,initialization,encoderInitialization,encoderSourcePath,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData});
+  const {previous,cursor,initialization,encoderInitialization,encoderSourcePath,initializationSourceSha256,initializationWeightsSha256,initializationRecordPath,initializationRecordHash}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision,unobservedMask,weights,orderData,sampling});
   if(previous?.selectionExposure!==undefined){validateSelectionExposure(previous.selectionExposure);
     if(selectionExposure!==undefined&&!isDeepStrictEqual(selectionExposure,previous.selectionExposure))throw Error('Validation selection exposure differs from checkpoint');
     selectionExposure=previous.selectionExposure;}
@@ -128,7 +129,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
   if(!auxiliary&&orderDirectory)throw Error('Auxiliary corpus required for combined training order');
   const auxiliaryHash=combined?sha(readBounded(resolve(auxiliary),32*1024*1024)):null;
   if(combined&&(resolve(order)!==resolve(orderDirectory,'order.u64')||resolve(positiveWeights||'')!==resolve(orderDirectory,'weights.f32')||
-    combined.orderSha256!==orderData.hash||combined.weightsSha256!==weights.hash||combined.unobservedMask!==unobservedMask))
+    combined.orderSha256!==orderData.hash||combined.weightsSha256!==weights.hash||combined.unobservedMask!==unobservedMask||combined.sampling!==sampling))
     throw Error('Combined training configuration differs from the verified order');
   if(previous&&(combined?(previous.auxiliarySha256!==auxiliaryHash||previous.lineageFingerprint!==combined.lineageFingerprint):Boolean(previous.auxiliarySha256)))
     throw Error('Training corpus scope differs from checkpoint receipt');
@@ -164,7 +165,7 @@ export async function nativeTrainingBatch({mode,input,output,corpus,auxiliary,or
     parentCheckpointSha256:previous?inputHash:null,parentReceiptSha256:previous?initializationRecordHash:null,
     ...(selectionExposure?{selectionExposure}:{}),
     ...(combined?{auxiliarySha256:auxiliaryHash,lineageFingerprint:combined.lineageFingerprint}:{}),epoch,cursor:result.cursor,
-    orderSha256:orderData.hash,orderLength:orderData.order.length,seed,freezeEpochs,learningRate,unobservedMask,positiveWeightSha256:weights.hash,
+    orderSha256:orderData.hash,orderLength:orderData.order.length,sampling,seed,freezeEpochs,learningRate,unobservedMask,positiveWeightSha256:weights.hash,
     ampScale:result.ampScale,ampGrowthTracker:result.ampGrowthTracker,attemptedBatches:count('attemptedBatches',1),
     optimizerUpdates:count('optimizerUpdates',result.applied?1:0),skippedUpdates:count('skippedUpdates',result.applied?0:1),
     ...accumulateEpochLoss(previous,epoch,result.loss),checkpointSha256:identity(target),checkpointBytes:info.size,toolRevision:tool.revision,evidence:evidence.map(item=>item.record)};
@@ -182,16 +183,17 @@ export async function runCombinedTrainingBatch({count,sampleOutput,augment,...op
     !Number.isSafeInteger(count)||count<1||count>16)throw Error('Explicit native combined batch configuration required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json')||existsSync(sampleOutput))throw Error('Checkpoint, receipt or sample output exists; preserve it');
   const plan=await verifyCombinedTrainingOrder({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,signal,verifyEvidence});
+  if(options.sampling!==undefined&&options.sampling!==plan.sampling)throw Error('Combined training sampling differs from the order');
   const order=resolve(orderDirectory,'order.u64'),positiveWeights=resolve(orderDirectory,'weights.f32'),unobservedMask=plan.unobservedMask;
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(order),weights=positiveWeight(positiveWeights);
-  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData});
+  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData,sampling:plan.sampling});
   if(previous&&(previous.corpusSha256!==sha(readBounded(resolve(corpus),32*1024*1024))||
     previous.auxiliarySha256!==sha(readBounded(resolve(auxiliary),32*1024*1024))||previous.lineageFingerprint!==plan.lineageFingerprint))
     throw Error('Combined training corpus differs from checkpoint receipt');
   const prepared=await prepareCombinedTrainingBatch({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,cursor,count,augment,output:sampleOutput,signal,verifyEvidence});
   if(prepared.lineageFingerprint!==plan.lineageFingerprint||prepared.orderSha256!==orderData.hash||identity(inputPath)!==inputHash)
     throw Error('Combined training inputs changed before execution; preserve the samples');
-  return nativeTrainingBatch({...options,device,amp,order,positiveWeights,unobservedMask,samples:prepared.samples});
+  return nativeTrainingBatch({...options,device,amp,order,sampling:plan.sampling,positiveWeights,unobservedMask,samples:prepared.samples});
 }
 
 // Select and reconstruct one batch directly from its validated source corpus.
@@ -204,18 +206,19 @@ export async function runTrainingBatch({count,sampleOutput,augment,supervision,r
     !Number.isSafeInteger(count)||count<1||count>16)throw Error('Explicit native macro batch configuration required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json')||existsSync(sampleOutput))throw Error('Checkpoint, receipt or sample output exists; preserve it');
   const checkedOrder=await verifyTrainingOrder({corpus,order,supervision,reviewed,publisher,epoch,seed,signal});
+  if(options.sampling!==undefined&&options.sampling!==checkedOrder.sampling)throw Error('Training sampling differs from the order');
   const positiveWeights=checkedOrder.weightsPath,unobservedMask=checkedOrder.unobservedMask;
   const inputPath=resolve(input),inputHash=identity(inputPath),orderData=readOrder(resolve(order)),weights=positiveWeight(positiveWeights);
-  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData});
+  const {previous,cursor}=trainingStart({mode,inputPath,inputHash,epoch,seed,freezeEpochs,learningRate,device,precision:amp?'amp-fp16':'fp32',unobservedMask,weights,orderData,sampling:checkedOrder.sampling});
   const corpusHash=sha(readBounded(resolve(corpus),32*1024*1024));
   if(previous&&previous.corpusSha256!==corpusHash)throw Error('Training corpus differs from checkpoint receipt');
   const prepared=await prepareTrainingBatch({corpus,order,cursor,count,epoch,augment,reviewed,publisher,output:sampleOutput,signal});
   const afterPreparation=await verifyTrainingOrder({corpus,order,supervision,reviewed,publisher,epoch,seed,signal});
   if(prepared.orderSha256!==orderData.hash||orderData.hash!==checkedOrder.orderSha256||prepared.corpusSha256!==corpusHash||identity(inputPath)!==inputHash)
     throw Error('Training inputs changed before batch execution');
-  if(afterPreparation.sourcesSha256!==checkedOrder.sourcesSha256||afterPreparation.weightsSha256!==checkedOrder.weightsSha256||afterPreparation.orderSha256!==checkedOrder.orderSha256)
+  if(afterPreparation.sourcesSha256!==checkedOrder.sourcesSha256||afterPreparation.weightsSha256!==checkedOrder.weightsSha256||afterPreparation.orderSha256!==checkedOrder.orderSha256||afterPreparation.sampling!==checkedOrder.sampling)
     throw Error('Training source changed during batch preparation');
-  return nativeTrainingBatch({...options,device,amp,reviewed,publisher,positiveWeights,unobservedMask,samples:prepared.samples});
+  return nativeTrainingBatch({...options,device,amp,reviewed,publisher,sampling:checkedOrder.sampling,positiveWeights,unobservedMask,samples:prepared.samples});
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

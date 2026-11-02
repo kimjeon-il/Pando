@@ -123,6 +123,7 @@ test('training sequence rejects invalid input and preserves existing output',asy
   const request={mode:'warm',input:'weights',output,corpus:'corpus',supervision:'supervision',epoch:0,seed:5,
     freezeEpochs:1,learningRate:.00001,device:'cpu',torchLibrary:'library',augment:false,batchSize:1,maxBatches:1};
   await assert.rejects(runTrainingSequence({...request,batchSize:0}),/configuration/i);
+  await assert.rejects(runTrainingSequence({...request,sampling:'unknown'}),/configuration/i);
   await assert.rejects(runTrainingSequence(request),/exists/i);
   assert.equal(readFileSync(output,'utf8'),'keep');
   const signal=new AbortController();signal.abort();
@@ -161,8 +162,15 @@ test('source replay requires a complete linked chain and exact batch evidence',(
     rows=>{rows[1].receipt.evidence[0].augment=true;},
     rows=>{rows[1].receipt.auxiliarySha256=hash('f');},
     rows=>{rows[1].receipt.selectionExposure={schemaVersion:1,manifestSha256:hash('a'),fingerprint:hash('b')};},
+    rows=>{rows[1].receipt.sampling='uniform';},
     rows=>{rows[0].receipt.batchSourceReplayVerified=false;},
   ]){const altered=structuredClone(entries);change(altered);assert.throws(()=>validateReplayReceiptChain(altered,scope));}
+});
+test('source replay keeps uniform sampling bound across checkpoints',()=>{
+  const entries=fixture(),scope={weightsSha256,corpusSha256};
+  for(const entry of entries)entry.receipt.sampling='uniform';
+  assert.deepEqual(validateReplayReceiptChain(entries,scope),{batches:2,samples:2});
+  entries[1].receipt.sampling='balanced';assert.throws(()=>validateReplayReceiptChain(entries,scope),/configuration differs/i);
 });
 test('source replay binds the declared validation selection for every batch',()=>{
   const entries=fixture(),scope={weightsSha256,corpusSha256};

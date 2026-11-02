@@ -36,7 +36,7 @@ export function validateReplayReceiptChain(entries,{weightsSha256,corpusSha256,a
       r.initialization!=='public-encoder-no-optimizer'||r.initializationWeightsSha256!==weightsSha256||r.initializationSourceSha256!==null||r.corpusSha256!==corpusSha256||
       (combined?(r.auxiliarySha256!==auxiliarySha256||r.lineageFingerprint!==lineageFingerprint):
         (r.auxiliarySha256!==undefined||r.lineageFingerprint!==undefined))||
-      !['cpu','cuda'].includes(r.device)||!['fp32','amp-fp16'].includes(r.precision)||(r.precision==='amp-fp16'&&r.device!=='cuda')||
+      !['cpu','cuda'].includes(r.device)||!['fp32','amp-fp16'].includes(r.precision)||!['balanced','uniform'].includes(r.sampling??'balanced')||(r.precision==='amp-fp16'&&r.device!=='cuda')||
       !Number.isSafeInteger(r.epoch)||r.epoch<0||!Number.isSafeInteger(r.seed)||r.seed<0||!Number.isSafeInteger(r.freezeEpochs)||r.freezeEpochs<0||
       !Number.isFinite(r.learningRate)||r.learningRate<=0||r.learningRate>.01||!Number.isInteger(r.unobservedMask)||r.unobservedMask<0||r.unobservedMask>127||
       !SHA.test(r.orderSha256||'')||!SHA.test(r.positiveWeightSha256||'')||!Number.isSafeInteger(r.orderLength)||r.orderLength<1||
@@ -51,7 +51,7 @@ export function validateReplayReceiptChain(entries,{weightsSha256,corpusSha256,a
     else{
       const prior=previous.receipt;
       if(r.parentCheckpointSha256!==previous.checkpointSha256||r.parentReceiptSha256!==previous.receiptSha256||
-        sameFields.some(key=>!isDeepStrictEqual(r[key],prior[key]))||
+        sameFields.some(key=>!isDeepStrictEqual(r[key],prior[key]))||(r.sampling??'balanced')!==(prior.sampling??'balanced')||
         (r.epoch===prior.epoch?(r.orderSha256!==prior.orderSha256||r.orderLength!==prior.orderLength):
           r.epoch!==prior.epoch+1||prior.cursor!==prior.orderLength)||
         r.optimizerUpdates<prior.optimizerUpdates||r.skippedUpdates<prior.skippedUpdates)
@@ -119,7 +119,7 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
       orders.set(orderPath,{verified,bytes,orderReceiptPath,receiptHash,weightsPath,tiles:auxiliaryPath?verified.datasets.flat():null});
     }
     const {verified,bytes,tiles}=orders.get(orderPath);
-    if(verified.orderSha256!==r.orderSha256||verified.length!==r.orderLength||verified.weightsSha256!==r.positiveWeightSha256||
+    if(verified.orderSha256!==r.orderSha256||verified.length!==r.orderLength||verified.sampling!==(r.sampling??'balanced')||verified.weightsSha256!==r.positiveWeightSha256||
       verified.unobservedMask!==r.unobservedMask||(auxiliaryPath&&verified.lineageFingerprint!==lineageFingerprint))
       throw Error('Recorded training order or weights differ');
     const start=previous&&r.epoch===previous.epoch?previous.cursor:0;
@@ -183,7 +183,7 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
       signal?.throwIfAborted();const r=receipts[i],folder=join(target,`batch-${String(i+1).padStart(6,'0')}`);mkdirSync(folder);
       const orderDirectory=auxiliary?join(dirname(paths[i]),'order'):dirname(paths[i]),order=join(orderDirectory,'order.u64');
       const common={mode:i?'resume':'warm',input:current,output:join(folder,'checkpoint.pt'),sampleOutput:join(folder,'samples'),
-        corpus,epoch:r.epoch,seed:r.seed,freezeEpochs:r.freezeEpochs,learningRate:r.learningRate,device:r.device,
+        corpus,sampling:r.sampling??'balanced',epoch:r.epoch,seed:r.seed,freezeEpochs:r.freezeEpochs,learningRate:r.learningRate,device:r.device,
         amp:r.precision==='amp-fp16',torchLibrary,count:r.evidence.length,augment:r.evidence[0].augment,selectionExposure:r.selectionExposure,signal};
       const result=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly:false,orderDirectory}):
         await runTrainingBatch({...common,order,supervision,reviewed,publisher});
