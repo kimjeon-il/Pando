@@ -19,12 +19,16 @@ async function currentMap(page) {
       timeline:d.timelineRecords,labels,
       paths:[...document.querySelectorAll('#viewerLabels path')].map(e=>e.getAttribute('d')).sort(),
     };
-    const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',
-      new TextEncoder().encode(JSON.stringify(records))))]
+    const digest=async value=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',
+      new TextEncoder().encode(JSON.stringify(value))))]
       .map(byte=>byte.toString(16).padStart(2,'0')).join('');
+    const parts=Object.fromEntries(await Promise.all(Object.entries(records).map(async([kind,value])=>[
+      kind,{sha:await digest(value),count:Array.isArray(value)?value.length:Object.keys(value||{}).length},
+    ])));
+    const hash=await digest(records);
     return {
       month:viewer.builtinMonth().month,cursor:viewer.documentState().timelineCursor,
-      documentId:d.documentId,hash,ready:document.querySelector('#viewerStatus')?.dataset.ready,
+      documentId:d.documentId,hash,parts,ready:document.querySelector('#viewerStatus')?.dataset.ready,
       generation:stats.projectGeneration,canonicalMeshReady:stats.canonicalMeshReady,
       boundaryReady:stats.countrySharedBoundaryReady,
       blocked:stats.projectRenderBlocked,countriesPublishedGeneration:stats.countriesPublishedGeneration,
@@ -131,6 +135,8 @@ test('matching boundary Worker protocol error rolls back the dated Core document
     expect(after.month).toBe(before.month);
     expect(after.cursor).toBe(before.cursor);
     expect(after.documentId).toBe(before.documentId);
+    console.log('W5_ROLLBACK_SEMANTIC_COMPARISON '+JSON.stringify({before,after,
+      events:await page.evaluate(()=>globalThis.__W5Rollback.events)}).slice(0,16000));
     expect(after.hash,'rollback must restore the prior authoritative country/label/timeline state').toBe(before.hash);
     const afterPicture=await page.locator('#viewerCanvas').screenshot({animations:'disabled',style:mapCaptureStyle});
     const pictureCompare=await page.evaluate(async({beforeB64,afterB64})=>{
