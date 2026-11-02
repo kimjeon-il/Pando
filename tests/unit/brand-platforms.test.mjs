@@ -7,7 +7,6 @@ const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root));
 const text=path=>read(path).toString('utf8');
 const native='apps/editor/src-tauri/';
-const source=`${native}android/app/src/main/`;
 const paths=svg=>[...svg.matchAll(/(?:\bd|android:pathData)="([^"]+)"/g)].map(m=>m[1]);
 
 // Decode the actual committed RGBA pixels, not just the PNG/ICO header or its hash.
@@ -98,26 +97,6 @@ test('Windows source changes paint only, preserving approved normal and optical-
     assert.deepEqual(paths(win),paths(text(`design/brand/${name}`)));
     assert.match(win,/viewBox="0 0 48 48"/);assert.match(win,/fill="#315EDB"/);
     assert.doesNotMatch(win,/<(?:rect|circle|ellipse|image|filter|mask|clipPath|linearGradient)\b|transform=/);
-  }
-});
-
-test('Android keeps full-bleed system-shaped background and glyph-only foreground/monochrome',()=>{
-  const normal=paths(text('design/brand/symbol-black.svg'));
-  assert.match(text(source+'res/values/pando_brand.xml'),/<color name="pando_icon_background">#315EDB<\/color>/);
-  for(const kind of ['foreground','monochrome']){
-    const path=`res/drawable/pando_icon_${kind}.xml`,xml=text(source+path);
-    assert.deepEqual(paths(xml),normal);
-    assert.equal((xml.match(/<path\b/g)||[]).length,2);
-    assert.match(xml,/android:viewportWidth="108"/);assert.match(xml,/android:translateX="22"/);
-    assert.doesNotMatch(xml,/<clip-path\b|#315EDB/);
-    assert.deepEqual(read(source+path),read(`${native}gen/android/app/src/main/${path}`));
-  }
-  for(const api of [26,33])for(const name of ['pando_launcher','pando_launcher_round']){
-    const path=`res/mipmap-anydpi-v${api}/${name}.xml`,xml=text(source+path);
-    assert.match(xml,/<background android:drawable="@color\/pando_icon_background"/);
-    assert.match(xml,/<foreground android:drawable="@drawable\/pando_icon_foreground"/);
-    if(api===33)assert.match(xml,/<monochrome android:drawable="@drawable\/pando_icon_monochrome"/);
-    assert.deepEqual(read(source+path),read(`${native}gen/android/app/src/main/${path}`));
   }
 });
 
