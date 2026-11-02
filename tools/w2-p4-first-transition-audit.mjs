@@ -1,10 +1,10 @@
-import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 import {gunzipSync} from 'node:zlib';
 
 const root=resolve(process.argv[2]||'.w2-p4-library/reports/development/performance/w2-p3-windows-gpu-final-2026-11-02');
 const output=resolve(process.argv[3]||'test-results/w2-p4-1');
-const json=name=>JSON.parse(readFileSync(join(root,name),'utf8'));
+const json=name=>{const file=join(root,name);const present=existsSync(file)?file:file+'.gz';const bytes=readFileSync(present);return JSON.parse(present.endsWith('.gz')?gunzipSync(bytes).toString('utf8'):bytes.toString('utf8'));};
 const first=json('first-transition-timelines.json');
 const round=(x,n=1)=>Number.isFinite(x)?Number(x.toFixed(n)):null;
 const percentile=(values,p)=>{
