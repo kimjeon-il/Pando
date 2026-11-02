@@ -90,8 +90,8 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
     const response=await route.fetch();let source=await response.text();
     source=swap(source,"onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
       "onPresented:()=>{window.__P2_COST__.mark('presented');commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
-    source=swap(source,"if(!await projectDomain.open(reader,options)){firstMap.cancel();return false;}",
-      "const __p2Opened=await projectDomain.open(reader,options);window.__P2_COST__.mark('domain.open:end');if(!__p2Opened){firstMap.cancel();return false;}");
+    source=swap(source,"if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}",
+      "window.__P2_COST__.mark('domain.open:end');if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}");
     source=swap(source,"await map.objectCatalog.pruneLayerItemVisibility();\n    await map.update();",
       "window.__P2_COST__.mark('post-prune:start');await map.objectCatalog.pruneLayerItemVisibility();window.__P2_COST__.mark('post-prune:end');window.__P2_COST__.mark('post-update:start');await map.update();window.__P2_COST__.mark('post-update:end');");
     source=swap(source,"status.dataset.ready='true';","status.dataset.ready='true';window.__P2_COST__.mark('ready');");
