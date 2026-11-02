@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {createHydroSystemNamer} from '../../tools/gis/hydro-system-names.mjs';
+import {createHydroSystemNamer,nameHydroSystems} from '../../tools/gis/hydro-system-names.mjs';
 
 const replacements=JSON.parse(readFileSync('tools/gis/hydro-independent-name-replacements.json','utf8'));
 const document={schemaVersion:1,replacements:[replacements.replacements[0]]};
@@ -46,3 +46,30 @@ test('system overrides take precedence and aliases use Python Unicode code point
   const result=name({systemId:42,chainIndexes:[0],mainstemIndex:0,neNames:{0:'Other River'},osmByChain:{}});
   assert.equal(result.displayName,'정식강');assert.deepEqual(result.aliases,['Other','\ue000','😀']);
 });
+test('independent-only systems never access OSM source rows or chain extents',async()=>{
+  const input={systems:[{systemId:Number(document.replacements[0].systemId),chainIndexes:[0],mainstemIndex:0}],
+    neNames:{0:'Nile River'},aliases:{},systemOverrides:{},independentDocument:document};
+  Object.defineProperty(input,'osmRows',{get(){throw Error('OSM must not be consulted');}});
+  Object.defineProperty(input,'chainBounds',{get(){throw Error('OSM bounds must not be consulted');}});
+  const result=await nameHydroSystems(input);
+  assert.equal(result[0].name.displayName,document.replacements[0].nameKo);assert.equal(result[0].name.independent,true);
+});
+test('unmatched systems retain natural earth names without launching a spatial tool',async()=>{
+  const input={systems:[{systemId:42,chainIndexes:[0],mainstemIndex:0}],neNames:{0:'Yalu River'},
+    aliases:{},systemOverrides:{},independentDocument:{schemaVersion:1,replacements:[]},osmRows:[],chainBounds:{0:[0,0,1,1]}};
+  const result=await nameHydroSystems(input);assert.equal(result[0].name.displayName,'Yalu');
+  assert.deepEqual(result[0].name.osmRelationIds,[]);
+});
+test('mixed systems match OSM only for systems without independent replacements',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const input={systems:[{systemId:Number(document.replacements[0].systemId),chainIndexes:[0],mainstemIndex:0},
+      {systemId:42,chainIndexes:[1],mainstemIndex:1}],neNames:{0:'Nile River',1:'Yalu River'},aliases:{},systemOverrides:{},
+    independentDocument:document,chainBounds:{1:[0,0,10,10]},
+    osmRows:[{id:7,bounds:[0,0,10,10],nameKo:'한강',names:['Han River']}]};
+    const pending=nameHydroSystems(input,{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT});
+    input.osmRows[0].nameKo='변조강';input.neNames[1]='Changed River';
+    const result=await pending;
+    assert.equal(result[0].name.independent,true);assert.deepEqual(result[0].name.osmRelationIds,[]);
+    assert.equal(result[1].name.displayName,'한강');assert.deepEqual(result[1].name.osmRelationIds,[7]);
+  });

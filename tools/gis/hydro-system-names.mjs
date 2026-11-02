@@ -1,5 +1,6 @@
 import {normalizeHydronym} from './hydronym-normalize.mjs';
 import {validateIndependentHydronyms} from './hydro-independent-name-policy.mjs';
+import {matchHydroOsmWaterways} from './hydro-osm-waterway.mjs';
 
 const isObject=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 // Python sorts Unicode code points, rather than UTF-16 code units.
@@ -42,4 +43,30 @@ export function createHydroSystemNamer({aliases,systemOverrides,independentDocum
     if(replacement){outputAliases=[...replacement.aliases].sort(compareNames);tributaryNames=[...replacement.tributaryNames].sort(compareNames);}
     return {displayName,nameEnriched,aliases:outputAliases,tributaryNames,osmRelationIds,independent:Boolean(replacement)};
   };
+}
+// Independent replacements are filtered before touching OSM rows or geometry.
+export async function nameHydroSystems(input,options={}){
+  options.signal?.throwIfAborted();
+  const {aliases,systemOverrides,independentDocument}=input??{};
+  if(!Array.isArray(input?.systems)||!isObject(input.neNames))throw Error('Explicit Hydro systems and Natural Earth names required');
+  const systems=structuredClone(input.systems),neNames=structuredClone(input.neNames);
+  const replacement=validateIndependentHydronyms(structuredClone(independentDocument));
+  const namer=createHydroSystemNamer({aliases,systemOverrides,independentDocument}),seenSystems=new Set(),seenChains=new Set(),tasks=[];
+  for(let i=0;i<systems.length;i++){const system=systems[i];
+    if(!Number.isSafeInteger(system?.systemId)||system.systemId<=0||seenSystems.has(system.systemId)||
+      !Array.isArray(system.chainIndexes)||!system.chainIndexes.length||new Set(system.chainIndexes).size!==system.chainIndexes.length||
+      !system.chainIndexes.includes(system.mainstemIndex)||
+      system.chainIndexes.some(index=>!Number.isSafeInteger(index)||index<0||seenChains.has(index)))throw Error('Invalid Hydro naming systems');
+    seenSystems.add(system.systemId);for(const index of system.chainIndexes)seenChains.add(index);
+    if(!Object.hasOwn(replacement,String(system.systemId)))for(const index of system.chainIndexes)tasks.push({system:i,index});
+  }
+  const decisions=systems.map(()=>({}));
+  if(tasks.length){if(!Array.isArray(input.osmRows)||!isObject(input.chainBounds))throw Error('Explicit Hydro OSM rows and chain bounds required');
+    const osmRows=structuredClone(input.osmRows),chainBounds=structuredClone(input.chainBounds);
+    for(let at=0;at<tasks.length;at+=100000){const batch=tasks.slice(at,at+100000);
+      const matches=await matchHydroOsmWaterways({rows:osmRows,targets:batch.map(task=>chainBounds[task.index])},options);
+      for(let i=0;i<batch.length;i++)if(matches[i])decisions[batch[i].system][batch[i].index]=matches[i];}
+  }
+  options.signal?.throwIfAborted();
+  return systems.map((system,i)=>({systemId:system.systemId,name:namer({...system,neNames,osmByChain:decisions[i]})}));
 }

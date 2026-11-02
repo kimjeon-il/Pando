@@ -112,6 +112,7 @@ export async function matchHydroOsmBounds({candidates,targets}={},options={}){
   if(!Array.isArray(candidates)||candidates.length>1000000||candidates.some(box=>!valid(box,true))||
     !Array.isArray(targets)||targets.length>100000||targets.some(box=>!valid(box,false)))throw Error('Explicit bounded Hydro OSM extents required');
   if(!targets.length)return [];
+  if(!candidates.length)return targets.map(()=>null);
   const result=await screenHydroPoints({mode:'osm-waterway-match',candidates,targets},options);
   if(!Array.isArray(result?.matches)||result.matches.length!==targets.length||result.matches.some(index=>
     index!==null&&(!Number.isSafeInteger(index)||index<0||index>=candidates.length)))throw Error('Invalid Hydro OSM match receipt');

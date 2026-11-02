@@ -19,8 +19,9 @@ test('source-bound OSM matching returns only unambiguous selected relations',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const rows=parseHydroOsmWaterways(input,{aliases:{}}),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
       runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
-    const matches=await matchHydroOsmWaterways({rows,targets:[[0,0,10,10],[50,50,51,51]]},options);
-    assert.deepEqual(matches,[rows[0],null]);
+    const original=structuredClone(rows[0]),pending=matchHydroOsmWaterways({rows,targets:[[0,0,10,10],[50,50,51,51]]},options);
+    rows[0].nameKo='변조강';const matches=await pending;
+    assert.deepEqual(matches,[original,null]);
     const duplicate=[rows[0],{...rows[0],id:99,bounds:[0.01,0.01,10.01,10.01]}];
     assert.deepEqual(await matchHydroOsmWaterways({rows:duplicate,targets:[[0,0,10,10]]},options),[null]);
   });

@@ -26,6 +26,7 @@ export async function matchHydroOsmWaterways({rows,targets}={},options={}){
   if(!Array.isArray(rows)||rows.some(row=>!object(row)||!Number.isSafeInteger(row.id)||row.id<=0||
     !Array.isArray(row.names)||row.names.some(name=>typeof name!=='string')||typeof row.nameKo!=='string'))
     throw Error('Explicit Hydro OSM source rows required');
-  const matches=await matchHydroOsmBounds({candidates:rows.map(row=>row.bounds),targets},options);
-  return matches.map(index=>index===null?null:structuredClone(rows[index]));
+  const snapshot=structuredClone(rows);
+  const matches=await matchHydroOsmBounds({candidates:snapshot.map(row=>row.bounds),targets},options);
+  return matches.map(index=>index===null?null:snapshot[index]);
 }
