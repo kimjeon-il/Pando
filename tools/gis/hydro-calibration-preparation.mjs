@@ -86,7 +86,7 @@ export async function prepareHydroCalibrationReference({bounds,width,height,feat
   const snapshot=structuredClone({bounds,width,height,features});
   const {lines,polygons}=await clipFeatures(snapshot.bounds,snapshot.features,options);
   const metrics=await calculateHydroCalibrationScreen({bounds:snapshot.bounds,width:snapshot.width,height:snapshot.height,lines,polygons},options);
-  return {lines,polygons,screenLength:metrics.lineLengthPx,screenArea:metrics.polygonAreaPx};
+  return {lines,polygons,lengthKm:metrics.lineLengthKm,screenLength:metrics.lineLengthPx,screenArea:metrics.polygonAreaPx};
 }
 export async function prepareHydroCalibrationRivers({archive,specification,selected,bounds,width=1200,height=720}={},options={}){
   options.signal?.throwIfAborted();

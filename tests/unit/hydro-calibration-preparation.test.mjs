@@ -19,6 +19,7 @@ test('calibration reference preparation clips source and produces the metric fie
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
     const result=await prepareHydroCalibrationReference(input,options);
     assert.equal(result.screenLength,100);assert.equal(result.screenArea,2500);assert.equal(result.lines.length,1);assert.equal(result.polygons.length,1);
+    assert.ok(Math.abs(result.lengthKm-2*111.320*Math.cos(Math.PI/180))<1e-10);
     assert.deepEqual(input,before);
   });
 test('clipped reference inputs feed river and lake duplicate decisions without modifying sources',

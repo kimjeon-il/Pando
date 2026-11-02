@@ -92,9 +92,10 @@ test('calibration screen preserves pixel line length and polygon hole area',{ski
     lines:[[[0,0],[3,4]]],polygons:[{type:'Polygon',coordinates:[[[0,0],[4,0],[4,4],[0,4],[0,0]],
       [[1,1],[1,3],[3,3],[3,1],[1,1]]]}]};
   const result=invoke(request);assert.equal(result.status,0,result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout),{lineLengthPx:50,polygonAreaPx:1200});
+  const values=JSON.parse(result.stdout);assert.equal(values.lineLengthPx,50);assert.equal(values.polygonAreaPx,1200);
+  assert.ok(Math.abs(values.lineLengthKm-Math.hypot(3*111.320*Math.cos(5*Math.PI/180),4*110.574))<1e-10);
   const empty=invoke({...request,lines:[],polygons:[]});assert.equal(empty.status,0,empty.stderr);
-  assert.deepEqual(JSON.parse(empty.stdout),{lineLengthPx:0,polygonAreaPx:0});
+  assert.deepEqual(JSON.parse(empty.stdout),{lineLengthPx:0,lineLengthKm:0,polygonAreaPx:0});
   const invalid=invoke({...request,bounds:[0,0,0,10]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
 test('calibration river duplicates preserve sampled overlap and direction thresholds',{skip:!binary},()=>{
@@ -182,7 +183,8 @@ test('source-bound calibration screen computes only explicitly selected geometry
       polygons:[{type:'Polygon',coordinates:[[[0,0],[4,0],[4,4],[0,4],[0,0]],[[1,1],[1,3],[3,3],[3,1],[1,1]]]}]};
     const before=structuredClone(input),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
       runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
-    assert.deepEqual(await calculateHydroCalibrationScreen(input,options),{lineLengthPx:50,polygonAreaPx:1200});
+    const result=await calculateHydroCalibrationScreen(input,options);assert.equal(result.lineLengthPx,50);assert.equal(result.polygonAreaPx,1200);
+    assert.ok(Math.abs(result.lineLengthKm-Math.hypot(3*111.320*Math.cos(5*Math.PI/180),4*110.574))<1e-10);
     assert.deepEqual(input,before);await assert.rejects(calculateHydroCalibrationScreen({...input,width:0},options),/screen|dimensions/i);
   });
 test('source-bound calibration duplicate screen returns fractions without changing input',
@@ -208,8 +210,10 @@ test('source-bound calibration clipping composes with screen metrics',
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
     const clipped=await clipHydroCalibrationGeometries(input,options);
     assert.deepEqual(clipped,[{type:'LineString',coordinates:[[0,1],[2,1]]}]);
-    assert.deepEqual(await calculateHydroCalibrationScreen({bounds:input.bounds,width:100,height:100,
-      lines:[clipped[0].coordinates],polygons:[]},options),{lineLengthPx:100,polygonAreaPx:0});
+    const metrics=await calculateHydroCalibrationScreen({bounds:input.bounds,width:100,height:100,
+      lines:[clipped[0].coordinates],polygons:[]},options);
+    assert.equal(metrics.lineLengthPx,100);assert.equal(metrics.polygonAreaPx,0);
+    assert.ok(Math.abs(metrics.lineLengthKm-2*111.320*Math.cos(Math.PI/180))<1e-10);
     assert.deepEqual(input,before);
   });
 test('source-bound selected lake features retain source identity and clipping metrics',

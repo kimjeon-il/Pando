@@ -124,7 +124,8 @@ export async function calculateHydroCalibrationScreen({bounds,width,height,lines
     !Number.isFinite(width)||width<=0||!Number.isFinite(height)||height<=0||!Array.isArray(lines)||!Array.isArray(polygons))
     throw Error('Explicit Hydro calibration screen dimensions and geometry required');
   const result=await screenHydroPoints({mode:'calibration-screen',bounds,width,height,lines,polygons},options);
-  if(!Number.isFinite(result?.lineLengthPx)||result.lineLengthPx<0||!Number.isFinite(result.polygonAreaPx)||result.polygonAreaPx<0)
+  if(!Number.isFinite(result?.lineLengthPx)||result.lineLengthPx<0||!Number.isFinite(result.lineLengthKm)||result.lineLengthKm<0||
+    !Number.isFinite(result.polygonAreaPx)||result.polygonAreaPx<0)
     throw Error('Invalid Hydro calibration screen receipt');
   return result;
 }

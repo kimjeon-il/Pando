@@ -250,14 +250,16 @@ Value calibrationScreen(const Value& input){
     std::array<double,4> box{};for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(bounds[i]);
     const double width=pandoeditor::codecjson::finiteNumber(field(input,"width")),height=pandoeditor::codecjson::finiteNumber(field(input,"height"));
     if(box[2]<=box[0]||box[3]<=box[1]||width<=0||height<=0)throw std::invalid_argument("Invalid calibration screen dimensions");
-    const double sx=width/(box[2]-box[0]),sy=height/(box[3]-box[1]);
+    const double sx=width/(box[2]-box[0]),sy=height/(box[3]-box[1]),
+      px=111.320*std::cos((box[1]+box[3])/2*3.14159265358979323846/180),py=110.574;
     const auto& lines=array(field(input,"lines")),&polygons=array(field(input,"polygons"));
     if(lines.size()>100000||polygons.size()>100000)throw std::invalid_argument("Calibration screen batch exceeds budget");
-    std::size_t vertices=0;double lineLength=0,polygonArea=0;
+    std::size_t vertices=0;double lineLength=0,lineLengthKm=0,polygonArea=0;
     for(const auto& source:lines){const auto& coords=array(source);if(coords.size()<2)throw std::invalid_argument("Invalid calibration line");
         vertices+=coords.size();if(vertices>5000000)throw std::invalid_argument("Calibration coordinates exceed budget");
         auto previous=inputPoint(coords.front());for(std::size_t i=1;i<coords.size();++i){const auto current=inputPoint(coords[i]);
-            lineLength+=std::hypot((current.x-previous.x)*sx,(current.y-previous.y)*sy);previous=current;}}
+            lineLength+=std::hypot((current.x-previous.x)*sx,(current.y-previous.y)*sy);
+            lineLengthKm+=std::hypot(current.x*px-previous.x*px,current.y*py-previous.y*py);previous=current;}}
     struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
     std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
     if(!reader)throw std::runtime_error("GEOS GeoJSON reader failed");
@@ -265,8 +267,9 @@ Value calibrationScreen(const Value& input){
         if(GEOSGeomTypeId_r(context.get(),polygon.get())!=GEOS_POLYGON)throw std::invalid_argument("Calibration polygon required");
         double area=0;if(!GEOSArea_r(context.get(),polygon.get(),&area)||!std::isfinite(area)||area<0)throw std::runtime_error("GEOS calibration area failed");polygonArea+=area;}
     const double areaPx=polygonArea*width*height/((box[2]-box[0])*(box[3]-box[1]));
-    if(!std::isfinite(lineLength)||!std::isfinite(areaPx))throw std::invalid_argument("Invalid calibration screen result");
-    auto result=Value::obj();result.object["lineLengthPx"]=Value::num(lineLength);result.object["polygonAreaPx"]=Value::num(areaPx);return result;
+    if(!std::isfinite(lineLength)||!std::isfinite(lineLengthKm)||!std::isfinite(areaPx))throw std::invalid_argument("Invalid calibration screen result");
+    auto result=Value::obj();result.object["lineLengthPx"]=Value::num(lineLength);result.object["lineLengthKm"]=Value::num(lineLengthKm);
+    result.object["polygonAreaPx"]=Value::num(areaPx);return result;
 }
 Value calibrationRiverDuplicates(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
