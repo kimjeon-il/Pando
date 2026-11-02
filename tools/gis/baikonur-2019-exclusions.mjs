@@ -6,6 +6,8 @@
 export const BAIKONUR_2019_RATIFICATION='2019-12-25';
 export const BAIKONUR_2019_EFFECTIVE='2020-01-22';
 export const BAIKONUR_2019_OFFICIAL_URL='https://old.adilet.zan.kz/rus/docs/Z1900000282';
+export const BAIKONUR_2017_OFFICIAL_URL='https://old.adilet.zan.kz/rus/docs/P1700000697';
+export const BAIKONUR_2019_KAZAKH_COMPARISON_URL='https://adilet.zan.kz/rus/docs/Z1900000282/compare';
 export const BAIKONUR_2019_EXCLUSIONS=Object.freeze({
   '1-1':[
     ['45 44 14,16','63 01 05,00'],['45 41 16,51','63 13 48,98'],
@@ -27,7 +29,7 @@ export const BAIKONUR_2019_EXCLUSIONS=Object.freeze({
   '1-3':[
     ['45 34 46,67','63 16 29,24'],['45 34 46,10','63 17 04,11'],
     ['45 34 45,48','63 17 41,00'],['45 34 45,16','63 17 59,69'],
-    ['45,33 06,84','63 17 59,37'], // Official text has '45,33': DO NOT silently correct.
+    ['45 33 06,84','63 17 59,37'], // Russian 2019 typographical comma independently resolved from official 2017 and Kazakh 2019 texts.
     ['45 33 08,00','63 15 19,32'],['45 34 15,84','63 15 20,23'],
     ['45 34 12,17','63 15 56,25'],['45 34 08,95','63 16 27,31'],
   ],
@@ -71,11 +73,16 @@ export function baikonur2019Exclusions(){
   return {
     type:'FeatureCollection',name:'Baikonur lease amendment 2019 — exclusions only',
     properties:{
-      sourceUrl:BAIKONUR_2019_OFFICIAL_URL,ratified:BAIKONUR_2019_RATIFICATION,
+      sourceUrl:BAIKONUR_2019_OFFICIAL_URL,
+      independentOfficialCrosschecks:[BAIKONUR_2017_OFFICIAL_URL,BAIKONUR_2019_KAZAKH_COMPARISON_URL],
+      correctedOfficialTextDiscrepancy:{plot:'1-3',point:5,
+        erroneousRussianText:'45,33 06,84',verifiedLatitudeDms:'45 33 06,84',
+        basis:'2017 Kazakhstan Government protocol and Kazakh 2019 ratification annex'},
+      ratified:BAIKONUR_2019_RATIFICATION,
       effectiveDate:BAIKONUR_2019_EFFECTIVE,openStreetMapDataUsed:false,
       status:'RESEARCH_ONLY_NOT_FOR_RUNTIME',
       unresolvedPlots:unresolved,
-      remaining:['Correct the official malformed latitude in plot 1-3 from an independent authoritative scan',
+      remaining:['Confirm official datum and surveyed coordinates against cadastral boundaries',
         'Digitize Tyuratam and Akay exclusions and road/rail exclusions',
         'Survey the two Syr Darya right-bank reaches without OSM',
         'Check polygons, datum, Kazakhstan-Baikonur shared topology and effective time'],
