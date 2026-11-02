@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "status": "independent-natural-earth-suez-canal-81-sample-and-egyptian-authority-review",
+  "reference": {
+    "baselineHydroVersion": "0.13.2",
+    "baselineBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+    "screenRunId": 41466882236,
+    "scope": "Only 20773860. The adjacent 20774342 is independently unresolved and must not be promoted.",
+    "geometryChanged": false
+  },
+  "replacements": [
+    {
+      "systemId": "20773860",
+      "previousNameKo": "수에즈운하강",
+      "nameKo": "수에즈운하",
+      "aliases": [
+        "Suez Canal"
+      ],
+      "tributaryNames": [],
+      "hydroRiversRegion": "af",
+      "naturalEarth": {
+        "name": "Suez Canal",
+        "sampleCoverage": 0.852
+      },
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-hydrology",
+          "url": "https://www.suezcanal.gov.eg/English/About/SuezCanal/Pages/AboutSuezCanal.aspx"
+        },
+        {
+          "kind": "government-waterway-authority",
+          "url": "https://www.suezcanal.gov.eg/English/Pages/FAQ.aspx"
+        }
+      ],
+      "reviewNotes": "The published mainstem has 69/81 Natural Earth Suez Canal matches; nearest candidate Ismailiya Canal has 14/81, and the authoritative Egyptian canal name is Suez Canal, not a river. Public-domain NE supplies geometric identity; government authority supplies the independent waterway name. Only this Hydro system is in scope; the other Suez-labelled logical system has 4/81 NE matches and remains unapproved."
+    }
+  ]
+}
