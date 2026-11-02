@@ -1,7 +1,7 @@
 import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,measureHydroCalibrationReferenceFeatures,organizeHydroLakePolygons} from './hydro-point-screen-native.mjs';
 import {assignHydroCalibrationStages,optimizeHydroCalibration} from './hydro-calibration-native.mjs';
 import {readHydroRegion,scanHydroLakeSource,scanHydroRiverCandidates} from './hydro-source-reader.mjs';
-import {calibrationAcceptance,calibrationResidualOverlap,calibrationStageMetrics} from './hydro-calibration-metrics.mjs';
+import {calibrationAcceptance,calibrationRepresentativeChecks,calibrationResidualOverlap,calibrationStageMetrics,estimateCalibrationWorld} from './hydro-calibration-metrics.mjs';
 import {pythonRound} from './hydro-numeric.mjs';
 
 const calibrationStages=[6,6.7,7,7.5];
@@ -219,6 +219,22 @@ export async function prepareHydroCalibrationRegion(input,options={}){
   options.signal?.throwIfAborted();
   return {region,...marked,riverTargets:riverStages.targets,riverBaselines:riverStages.baselines,
     lakeTargets:lakeStages.targets,lakeBaselines:lakeStages.baselines};
+}
+export async function runHydroCalibration(input,{pointScreen={},calibration={},signal}={}){
+  signal?.throwIfAborted();const {archives,lakeFiles,regions,references,representativeSource,sources,width=1200,height=720,batchSize=256}=
+    structuredClone(input??{});
+  if(!Array.isArray(regions)||!regions.length||!references||typeof references!=='object'||!representativeSource||!sources)
+    throw Error('Explicit Hydro analysis inputs required');
+  const point={...pointScreen,signal},native={...calibration,signal};
+  const rivers=await prepareHydroCalibrationRiverRegions({archives,regions,width,height,batchSize},point);
+  const lakes=await prepareHydroCalibrationLakeRegions({files:lakeFiles,regions,width,height,batchSize},point),prepared=[];
+  for(const region of regions){const reference=Object.hasOwn(references,region.id)?references[region.id]:null;
+    if(!reference?.riverReference||!reference?.lakeReference)throw Error('Missing Hydro region references');
+    prepared.push(await prepareHydroCalibrationRegion({region,width,height,preparedRivers:rivers[region.id],preparedLakes:lakes[region.id],
+      riverReference:reference.riverReference,lakeReference:reference.lakeReference},point));}
+  const fitted=await calibrateHydroPreparedRegions({regions:prepared},native);
+  const representativeChecks=calibrationRepresentativeChecks(representativeSource),worldEstimate=await estimateCalibrationWorld(fitted.regions,native);
+  signal?.throwIfAborted();return assembleHydroCalibrationResults({...fitted,sources,representativeChecks,worldEstimate});
 }
 export async function markHydroCalibrationDuplicates({bounds,baseRiverFeatures,baseLakeFeatures,rivers,lakes}={},options={}){
   options.signal?.throwIfAborted();
