@@ -206,6 +206,16 @@ export async function buildHydroCalibrationLakeFeatures({bounds,width,height,lak
   }
   return result.lakes;
 }
+export async function organizeHydroLakePolygons(shapes,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(shapes)||shapes.length>4096)throw Error('Explicit bounded Hydro lake shapes required');
+  if(!shapes.length)return [];
+  const result=await screenHydroPoints({mode:'lake-polygon-rings',shapes},options);
+  if(!Array.isArray(result?.geometries)||result.geometries.length!==shapes.length||
+    result.geometries.some(geometry=>!['Polygon','MultiPolygon'].includes(geometry?.type)||!Array.isArray(geometry.coordinates)))
+    throw Error('Invalid native Hydro lake polygons');
+  return result.geometries;
+}
 export async function measureHydroCalibrationReferenceFeatures({kind,bounds,width,height,geometries}={},options={}){
   options.signal?.throwIfAborted();
   if(!['river','lake'].includes(kind)||!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||

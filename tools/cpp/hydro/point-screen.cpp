@@ -98,6 +98,50 @@ Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lin
     auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
 }
 Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+// Match pyshp's shapefile winding and hole grouping before GEOS repairs geometry.
+double lakeRingArea(const std::vector<Point>& ring){double result=0;for(std::size_t i=1;i<ring.size();++i)
+    result+=ring[i].x*(ring[i+1==ring.size()?1:i+1].y-ring[i-1].y);return result;}
+bool lakeRingContains(const std::vector<Point>& ring,Point point){bool inside=false,above=ring[0].y>=point.y;Point prior=ring[0];
+    for(std::size_t i=1;i<ring.size();++i){const auto current=ring[i];const bool nextAbove=current.y>=point.y;
+        if(above!=nextAbove){const bool right=prior.x>=point.x;if(right==(current.x>=point.x)){if(right)inside=!inside;}
+            else if(current.x-(current.y-point.y)*(prior.x-current.x)/(prior.y-current.y)>=point.x)inside=!inside;}
+        above=nextAbove;prior=current;}return inside;}
+Point lakeRingSample(const std::vector<Point>& ring){std::vector<Point> triplet;
+    for(std::size_t i=0;i<=ring.size();++i){const Point point=i==ring.size()?ring[1]:ring[i];
+        if(std::none_of(triplet.begin(),triplet.end(),[&](Point p){return p.x==point.x&&p.y==point.y;}))triplet.push_back(point);
+        if(triplet.size()==3){const auto a=triplet[0],b=triplet[1],c=triplet[2];
+            if((a.y-b.y)*(a.x-c.x)!=(a.y-c.y)*(a.x-b.x)){
+                const std::vector<Point> triangle{a,b,c,a};const Point centroid{(a.x+b.x+c.x)/3,(a.y+b.y+c.y)/3};
+                if(lakeRingArea(triangle)>=0&&lakeRingContains(ring,centroid))return centroid;}
+            triplet.erase(triplet.begin());}}
+    throw std::invalid_argument("Unable to sample lake polygon ring");}
+Value lakePolygonRings(const Value& input){const auto& shapes=array(field(input,"shapes"));
+    if(shapes.size()>4096)throw std::invalid_argument("Lake polygon batch exceeds budget");auto geometries=Value::arr();std::size_t vertices=0;
+    for(const auto& shape:shapes){struct Ring{Value source;std::vector<Point> points;double area;std::array<double,4> bounds;};
+        std::vector<Ring> shells,holes;for(const auto& source:array(shape)){const auto& coords=array(source);vertices+=coords.size();
+            if(coords.size()<4||vertices>5000000)throw std::invalid_argument("Invalid lake polygon ring");
+            Ring ring{source,{},0,{180,90,-180,-90}};ring.points.reserve(coords.size());
+            for(const auto& item:coords){const Point p=inputPoint(item);ring.points.push_back(p);
+                ring.bounds[0]=std::min(ring.bounds[0],p.x);ring.bounds[1]=std::min(ring.bounds[1],p.y);
+                ring.bounds[2]=std::max(ring.bounds[2],p.x);ring.bounds[3]=std::max(ring.bounds[3],p.y);}
+            if(ring.points.front().x!=ring.points.back().x||ring.points.front().y!=ring.points.back().y)
+                throw std::invalid_argument("Unclosed lake polygon ring");
+            ring.area=lakeRingArea(ring.points);if(ring.area<0)shells.push_back(std::move(ring));else holes.push_back(std::move(ring));}
+        if(shells.empty()&&holes.empty())throw std::invalid_argument("Empty lake polygon shape");
+        std::vector<std::vector<std::size_t>> assigned(shells.size());std::vector<std::size_t> orphans;
+        for(std::size_t h=0;h<holes.size();++h){if(shells.size()==1){assigned[0].push_back(h);continue;}
+            std::vector<std::size_t> candidates;for(std::size_t s=0;s<shells.size();++s){const auto a=shells[s].bounds,b=holes[h].bounds;
+                if(a[0]<b[0]&&a[1]<b[1]&&a[2]>b[2]&&a[3]>b[3])candidates.push_back(s);}
+            if(candidates.size()>1){const auto sample=lakeRingSample(holes[h].points);
+                candidates.erase(std::remove_if(candidates.begin(),candidates.end(),[&](std::size_t s){return !lakeRingContains(shells[s].points,sample);}),candidates.end());}
+            if(candidates.empty())orphans.push_back(h);else{const auto best=*std::min_element(candidates.begin(),candidates.end(),
+                [&](std::size_t a,std::size_t b){return std::abs(shells[a].area)<std::abs(shells[b].area);});assigned[best].push_back(h);}}
+        auto polygons=Value::arr();for(std::size_t s=0;s<shells.size();++s){auto polygon=Value::arr();polygon.array.push_back(shells[s].source);
+            for(auto h:assigned[s])polygon.array.push_back(holes[h].source);polygons.array.push_back(std::move(polygon));}
+        for(auto h:orphans){auto polygon=Value::arr();polygon.array.push_back(holes[h].source);polygons.array.push_back(std::move(polygon));}
+        auto geo=Value::obj();geo.object["type"]=Value::str(polygons.array.size()==1?"Polygon":"MultiPolygon");
+        geo.object["coordinates"]=polygons.array.size()==1?std::move(polygons.array.front()):std::move(polygons);geometries.array.push_back(std::move(geo));}
+    auto result=Value::obj();result.object["geometries"]=std::move(geometries);return result;}
 Value canonicalUpstream(const Value& input,bool useOrder){
     const auto exactInteger=[](const Value& value){const double n=pandoeditor::codecjson::finiteNumber(value);
         if(std::abs(n)>9007199254740991.0||std::trunc(n)!=n)throw std::invalid_argument("Invalid river identity");return static_cast<std::int64_t>(n);};
@@ -557,6 +601,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="lake-polygon-rings")
+        return lakePolygonRings(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-reference-features")
         return calibrationReferenceFeatures(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-lake-features")

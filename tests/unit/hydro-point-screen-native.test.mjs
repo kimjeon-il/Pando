@@ -21,6 +21,15 @@ test('guided branch scores preserve distance and upstream orientation',{skip:!bi
     const actual=JSON.parse(result.stdout);assert.ok(Math.abs(actual.score-score)<1e-12);assert.ok(Math.abs(actual.alignment-alignment)<1e-12);
   }
 });
+test('lake polygon rings preserve nested shells, holes and orphan source order',{skip:!binary},()=>{
+  const cw=(a,b,c,d)=>[[a,b],[a,d],[c,d],[c,b],[a,b]],ccw=(a,b,c,d)=>cw(a,b,c,d).reverse();
+  const outer=cw(0,0,10,10),inner=cw(2,2,8,8),hole=ccw(3,3,4,4),orphan=ccw(15,15,16,16);
+  const cases=[[[outer,inner,hole,orphan],{type:'MultiPolygon',coordinates:[[outer],[inner,hole],[orphan]]}],
+    [[outer,orphan],{type:'Polygon',coordinates:[outer,orphan]}],[[hole,orphan],{type:'MultiPolygon',coordinates:[[hole],[orphan]]}]];
+  const result=invoke({mode:'lake-polygon-rings',shapes:cases.map(([rings])=>rings)});
+  assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout).geometries,cases.map(([,expected])=>expected));
+  assert.notEqual(invoke({mode:'lake-polygon-rings',shapes:[[[[0,0],[1,1]]]]}).status,0);
+});
 test('guided branch scores handle zero direction and reject malformed geometry',{skip:!binary},()=>{
   const request={mode:'guided-branch',current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[0,0],[0,0]]};
   const result=invoke(request);assert.equal(result.status,0,result.stderr);
