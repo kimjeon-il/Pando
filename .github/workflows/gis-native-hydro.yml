@@ -36,9 +36,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Check space for the existing GDAL SDK
+        run: |
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 7516192768 ]; then echo 'Need 2 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+      - uses: mamba-org/setup-micromamba@v3
+        id: hydro-outlet-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
       - name: Build only Hydro outlet geometry and connectivity
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev libgdal-dev zlib1g-dev ninja-build
+          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev zlib1g-dev ninja-build
           cmake -S tools/cpp -B build-native/hydro-outlets -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
           cmake --build build-native/hydro-outlets --target pando-hydro-point-screen pando-hydro-connectivity
@@ -47,9 +59,11 @@ jobs:
           cmake -S tools/cpp/hydro-encoding -B build-native/hydro-outlets/encoding -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build-native/hydro-outlets/encoding --target pando-hydro-encoding
           node tools/gis/package-hydro-encoding.mjs --binary build-native/hydro-outlets/encoding/pando-hydro-encoding --directory build-native/hydro-outlets/encoding-artifact
-          cmake -S tools/cpp/physical-raster -B build-native/hydro-outlets/raster -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S tools/cpp/physical-raster -B build-native/hydro-outlets/raster -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH='${{ steps.hydro-outlet-gdal.outputs.environment-path }}'
           cmake --build build-native/hydro-outlets/raster --target pando-physical-raster
           node tools/gis/package-physical-raster.mjs --binary build-native/hydro-outlets/raster/pando-physical-raster --directory build-native/hydro-outlets/raster-artifact
+          echo 'LD_LIBRARY_PATH=${{ steps.hydro-outlet-gdal.outputs.environment-path }}/lib' >> "$GITHUB_ENV"
       - name: Check outlet geometry, selection and classification
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-outlets/pando-hydro-point-screen
