@@ -43,6 +43,9 @@ test('source evaluation protects test scope and incomplete training ancestry',as
   const save=()=>writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));save();
   const request={checkpoint,corpus,sourceId:'fixture',device:'cpu',torchLibrary:root};
   await assert.rejects(evaluateReviewedCheckpointSource(request),/ancestry/i);
+  receipt.lineageComplete=true;receipt.lineage={schemaVersion:1,complete:true,sheets:[],parents:[]};save();
+  await assert.rejects(evaluateReviewedCheckpointSource(request),/replay|ancestry/i);
+  receipt.lineageComplete=false;delete receipt.lineage;save();
   await assert.rejects(evaluateReviewedCheckpointSource({...request,lineageReplay:{checkpoints:[]}}),/replay.*checkpoint/i);
   const incomplete=spawnSync(process.execPath,['tools/reference-analysis/native-evaluate-source.mjs','--checkpoint',checkpoint,'--corpus',corpus,
     '--output',join(root,'incomplete.json'),'--device','cpu','--torch-library',root,'--replay-checkpoint',checkpoint],{encoding:'utf8'});

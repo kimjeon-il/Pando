@@ -17,5 +17,8 @@ test('validation refuses incomplete ancestry and training-only validation data',
   await assert.rejects(nativeTrainingValidation({...request,lineageReplay:{checkpoints:[]}}),/replay.*checkpoint/i);
   await assert.rejects(nativeTrainingValidation({...request,lineageReplay:{checkpoints:[join(root,'other.pt')]}}),/replay.*checkpoint/i);
   await assert.rejects(nativeTrainingValidation({...request,diagnosticOnly:true}),/training.only/i);
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,
+    lineageComplete:true,lineage:{schemaVersion:1,complete:true,sheets:[],parents:[]},checkpointSha256:sha('checkpoint'),device:'cpu'}));
+  await assert.rejects(nativeTrainingValidation(request),/replay|ancestr/i);
   assert.equal(existsSync(checkpoint),true);
 });

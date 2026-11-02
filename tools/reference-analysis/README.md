@@ -82,6 +82,9 @@ explicitly ordered checkpoints are accepted, subject to the scratch-space and
 headroom checks. Existing outputs and changed sources are rejected. Full replay
 from the verified public encoder can establish the declared training and selection
 lineage; transferred weights remain incomplete and no replay approves a model.
+A checkpoint receipt's own `lineageComplete` field is not replay evidence:
+validation and final evaluation require explicit verified replay for an
+independence claim.
 
 ```powershell
 node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory $firstCheckpoint $secondCheckpoint

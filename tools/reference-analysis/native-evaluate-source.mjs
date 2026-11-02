@@ -55,7 +55,7 @@ function evaluationModel({checkpoint,weights,device,diagnosticOnly}){
 }
 async function replayedEvaluationLineage(model,lineageReplay,torchLibrary,signal){
   if(lineageReplay===undefined)return null;
-  if(model.mode!=='checkpoint'||model.receipt.lineageComplete===true)throw Error('Choose one source of checkpoint ancestry for evaluation');
+  if(model.mode!=='checkpoint')throw Error('Native checkpoint required for replayed evaluation ancestry');
   return verifyCheckpointReplayLineage({checkpoint:model.path,checkpointSha256:model.hash,selectionCorpus:lineageReplay?.selectionCorpus,
     torchLibrary,lineageReplay,signal});
 }
@@ -71,7 +71,8 @@ async function evaluateSource({checkpoint,weights,corpus,sourceId,device,torchLi
   let verified;await validateReviewedCorpus({...manifest,sheets:matches},sourceRoot,{signal,workspace,reviewDirectory,onVerified:value=>{verified=value;}});
   const {sheet,annotation,annotationPath,annotationSha256,imagePath}=verified;
   let independence={passed:false,reason:'incomplete-training-ancestry'};
-  const lineage=replayedLineage?.lineage||(receipt.lineageComplete===true?receipt.lineage:null);
+  // A receipt is an input, not proof that its declared ancestry trained this model.
+  const lineage=replayedLineage?.lineage??null;
   if(lineage){try{assertEvaluationIndependence(lineage,[sheet]);independence={passed:true};}
     catch(error){if(!diagnosticOnly)throw error;independence={passed:false,reason:error.message};}}
   else if(!diagnosticOnly)throw Error('Complete training ancestry is required for independent evaluation');

@@ -144,9 +144,8 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
   const checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json',checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
   if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==checkpointHash)
     throw Error('Private checkpoint receipt differs from its file');
-  let trainingLineage=receipt.lineageComplete===true?receipt.lineage:null,verifiedReplay=false,replayToken=null,replayedBatchesThisRun=null;
+  let trainingLineage=null,verifiedReplay=false,replayToken=null,replayedBatchesThisRun=null;
   if(lineageReplay!==undefined){
-    if(trainingLineage)throw Error('Choose one source of training ancestry');
     const proof=await verifyCheckpointReplayLineage({checkpoint:checkpointPath,checkpointSha256:checkpointHash,selectionCorpus:corpus,torchLibrary,lineageReplay,signal});
     const {lineage}=proof;replayToken=proof.replayToken;replayedBatchesThisRun=proof.replayedBatchesThisRun;
     trainingLineage={...lineage,sheets:lineage.sheets.filter(row=>row.usage==='train')};verifiedReplay=true;
