@@ -62,11 +62,11 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
   ensure(result.remainingCount===originalOsm-approved.length
     &&approved.every(id=>!result.remainingSystemIds.includes(id))
     &&result.remainingSystemIds.every(id=>prior.remainingSystemIds.includes(id)),
-  'The staged source data is not exactly 30 remaining OSM-matched systems');
+  'The staged source data does not have the expected remaining OSM-matched systems');
   ensure(equal(manifest.shards.map(s=>s.sha256),staged.shards.map(s=>s.sha256))
     &&manifest.index.sha256===staged.index.sha256,'Geometry/index immutability failed');
 
-  // Permit only the 20773860 core/detail rows to differ; the other 16k+ features
+  // Permit only the two audited core/detail river systems to differ; all other features
   // and all previously approved 42 systems are byte-for-byte semantic identities.
   const beforeCore=readHydroMetadataSection(bundle,manifest.metadata.core),
     afterCore=readHydroMetadataSection(output.bundle,staged.metadata.core),
@@ -79,14 +79,14 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
   let changedCore=0,changedDetail=0;
   for(const row of beforeCore){
     const after=toCore.get(Number(row.fid)),id=String(row.systemId||'');
-    if(id!==approved[0]){ensure(equal(row,after),'Unrelated core river/lake changed');continue;}
+    if(!approvedNames.has(id)){ensure(equal(row,after),'Unrelated core river/lake changed');continue;}
     changedCore++;
     ensure(after.name===approvedNames.get(id)&&after.mainstemNameKo===approvedNames.get(id),
       'Verified independent hydronym name not installed: '+id);
   }
   for(const row of beforeDetail){
     const after=toDetail.get(Number(row.fid)),id=String(fromCore.get(Number(row.fid))?.systemId||'');
-    if(id!==approved[0]){ensure(equal(row,after),'Unrelated source metadata changed');continue;}
+    if(!approvedNames.has(id)){ensure(equal(row,after),'Unrelated source metadata changed');continue;}
     changedDetail++;
     ensure(!(after.osmRelationIds||[]).length
       &&!String(after.source||'').includes('OSM waterway names')
