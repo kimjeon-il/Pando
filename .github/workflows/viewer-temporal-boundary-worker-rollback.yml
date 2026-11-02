@@ -1,0 +1,48 @@
+name: Viewer temporal boundary Worker error rollback
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs
+      - .github/workflows/viewer-temporal-boundary-worker-rollback.yml
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/gpu-worker-channels.js
+      - shared/frontend/js/modules/project-domain.js
+      - apps/viewer/js/modules/viewer-composition.js
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-temporal-boundary-rollback-work-ui
+  cancel-in-progress: true
+jobs:
+  rollback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Check rollback test syntax and lint
+        run: |
+          node --check tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs
+          pnpm exec eslint tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Verify real Viewer temporal Worker error path, Core rollback, pixels and retry
+        run: pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs --workers=1 --retries=0 --trace=off
+      - name: Upload rollback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-temporal-boundary-rollback
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
