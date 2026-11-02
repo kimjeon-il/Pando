@@ -1,7 +1,7 @@
 // Read only selected HydroRIVERS topology from pinned ZIP members, without extracting originals.
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {stat} from 'node:fs/promises';
+import {open,stat} from 'node:fs/promises';
 import {posix,resolve} from 'node:path';
 import {zipMemberChunks,zipMembers} from '../lib/geonames-zip.mjs';
 
@@ -166,6 +166,55 @@ async function* verifiedFileChunks(spec,signal){
   try{for await(const chunk of stream){signal?.throwIfAborted();hash.update(chunk);yield chunk;}
     signal?.throwIfAborted();if(hash.digest('hex')!==spec.sha256)throw Error('Hydro lake source hash mismatch: '+spec.path);
   }finally{stream.destroy();}
+}
+async function readExactAt(handle,length,position){
+  if(!Number.isSafeInteger(length)||length<0||length>16*1024*1024||!Number.isSafeInteger(position)||position<0)
+    throw Error('Invalid Hydro indexed read');
+  const bytes=Buffer.allocUnsafe(length);let done=0;
+  while(done<length){const part=await handle.read(bytes,done,length-done,position+done);if(!part.bytesRead)throw Error('Truncated Hydro indexed source');done+=part.bytesRead;}
+  return bytes;
+}
+// Source identities are verified once; each read rechecks the open file and path before returning geometry.
+export async function openHydroRiverShapeReader({shp,shx}={},options={}){
+  options.signal?.throwIfAborted();
+  if([shp,shx].some(spec=>typeof spec?.path!=='string'||!spec.path||!/^[a-f0-9]{64}$/.test(spec.sha256||'')))
+    throw Error('Explicit hashed Hydro shape and index required');
+  const source=structuredClone({shp,shx}),shape=await open(source.shp.path,'r');let closed=false;
+  try{const baseline=await shape.stat(),same=info=>info.isFile()&&info.size===baseline.size&&info.mtimeMs===baseline.mtimeMs&&info.ino===baseline.ino&&info.dev===baseline.dev;
+    if(!baseline.isFile()||!same(await stat(source.shp.path)))throw Error('Hydro source changed while opening');
+    for await(const chunk of verifiedFileChunks(source.shp,options.signal)){if(!Buffer.isBuffer(chunk))throw Error('Invalid Hydro source chunk');}
+    if(!same(await shape.stat())||!same(await stat(source.shp.path)))throw Error('Hydro source changed while verifying');
+    const indexInfo=await stat(source.shx.path);if(!indexInfo.isFile()||indexInfo.size<100||indexInfo.size>128*1024*1024)
+      throw Error('Invalid Hydro shape index');
+    const indexChunks=[];for await(const chunk of verifiedFileChunks(source.shx,options.signal))indexChunks.push(chunk);
+    const index=Buffer.concat(indexChunks),afterIndex=await stat(source.shx.path);
+    if(index.length!==indexInfo.size||afterIndex.size!==indexInfo.size||afterIndex.mtimeMs!==indexInfo.mtimeMs||
+      afterIndex.ino!==indexInfo.ino||afterIndex.dev!==indexInfo.dev)throw Error('Hydro index changed while verifying');
+    const header=await readExactAt(shape,100,0),validHeader=(value,size)=>value.readInt32BE(0)===9994&&value.readInt32BE(24)*2===size&&
+      value.readInt32LE(28)===1000&&value.readInt32LE(32)===3;
+    if(!validHeader(header,baseline.size)||!validHeader(index,index.length)||(index.length-100)%8)throw Error('Invalid Hydro shape or index header');
+    const count=(index.length-100)/8;
+    return {records:count,async read(records,{signal=options.signal}={}){
+      signal?.throwIfAborted();if(closed)throw Error('Hydro indexed reader is closed');
+      if(!Array.isArray(records)||records.length>4096)throw Error('Explicit bounded Hydro indexed records required');
+      const selected=structuredClone(records),ids=new Set(),indices=new Set();for(const row of selected){
+        if(!Number.isSafeInteger(row?.id)||row.id<=0||!Number.isSafeInteger(row.recordIndex)||row.recordIndex<0||row.recordIndex>=count||
+          ids.has(row.id)||indices.has(row.recordIndex))throw Error('Invalid or duplicate Hydro indexed record');ids.add(row.id);indices.add(row.recordIndex);}
+      if(!same(await shape.stat())||!same(await stat(source.shp.path)))throw Error('Hydro source changed before indexed read');
+      const output=[];for(const row of selected){signal?.throwIfAborted();const at=100+row.recordIndex*8,offset=index.readInt32BE(at)*2,length=index.readInt32BE(at+4)*2;
+        if(offset<100||length<4||offset+8+length>baseline.size)throw Error('Invalid Hydro indexed shape range');
+        const bytes=await readExactAt(shape,8+length,offset);if(bytes.readInt32BE(0)!==row.recordIndex+1||bytes.readInt32BE(4)*2!==length)
+          throw Error('Hydro index and shape record differ');const type=bytes.readInt32LE(8);if(type===0&&length===4){output.push({id:row.id,parts:[]});continue;}
+        if(type!==3||length<44)throw Error('Invalid indexed Hydro polyline');const parts=bytes.readInt32LE(44),points=bytes.readInt32LE(48);
+        if(parts<1||points<1||parts>points||length!==44+parts*4+points*16)throw Error('Invalid indexed Hydro polyline dimensions');
+        const lines=[];let previous=-1;for(let i=0;i<parts;i++){const start=bytes.readInt32LE(52+i*4),end=i+1<parts?bytes.readInt32LE(52+(i+1)*4):points;
+          if((i===0&&start!==0)||start<=previous||end<=start||end>points)throw Error('Invalid indexed Hydro polyline parts');previous=start;
+          const line=[];for(let j=start;j<end;j++){const at=52+parts*4+j*16,point=[bytes.readDoubleLE(at),bytes.readDoubleLE(at+8)];
+            if(point.some(value=>!Number.isFinite(value))||Math.abs(point[0])>180||Math.abs(point[1])>90)throw Error('Invalid indexed Hydro coordinate');line.push(point);}lines.push(line);}
+        output.push({id:row.id,parts:lines});}
+      if(!same(await shape.stat())||!same(await stat(source.shp.path)))throw Error('Hydro source changed during indexed read');signal?.throwIfAborted();return output;
+    },async close(){if(!closed){closed=true;await shape.close();}}};
+  }catch(error){await shape.close();throw error;}
 }
 // Callback batches are provisional: consumers must not publish them until the promise verifies every source hash.
 export async function scanHydroLakeSource({files,bounds,onBatch,batchSize=256,signal}={}){

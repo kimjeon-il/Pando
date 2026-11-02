@@ -3,7 +3,7 @@ import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata,scanHydroRiverCandidates} from '../../tools/gis/hydro-source-reader.mjs';
+import {hydroSourceArchivesFromManifest,openHydroRiverShapeReader,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata,scanHydroRiverCandidates} from '../../tools/gis/hydro-source-reader.mjs';
 import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
 import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRiverRegions,prepareHydroCalibrationRivers,runHydroCalibration,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
@@ -141,6 +141,21 @@ test('generation metadata streams each source record in source order with all se
   await assert.rejects(scanHydroRegionMetadata({...input,onRecord:()=>{throw Error('stop selection');}}),/stop selection/);
   const wrong=structuredClone(input.specification);wrong.files.find(file=>file.file.endsWith('.dbf')).sha256='0'.repeat(64);
   await assert.rejects(scanHydroRegionMetadata({...input,specification:wrong,onRecord:()=>{}}),/hash/i);
+});
+test('indexed Hydro source reader returns requested original shapes without scanning unrelated geometry',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-hydro-indexed-'));t.after(()=>rm(root,{recursive:true}));
+  const input=await generationFixture(root),files={};
+  for(const member of await zipMembers(input.archive)){if(!/\.(shp|shx)$/i.test(member.name))continue;
+    const chunks=[];for await(const chunk of zipMemberChunks(input.archive,member))chunks.push(chunk);const bytes=Buffer.concat(chunks),ext=member.name.split('.').at(-1);
+    const path=join(root,`river.${ext}`);await writeFile(path,bytes);files[ext]={path,sha256:createHash('sha256').update(bytes).digest('hex')};}
+  const reader=await openHydroRiverShapeReader(files),selected=await readHydroRegion({...input,selected:new Set([101,103]),detail:'generation'});
+  const result=await reader.read([{id:103,recordIndex:2},{id:101,recordIndex:0}]);
+  assert.deepEqual(result,[{id:103,parts:selected.rows['103'].parts},{id:101,parts:selected.rows['101'].parts}]);
+  await assert.rejects(reader.read([{id:101,recordIndex:0},{id:101,recordIndex:1}]),/duplicate/i);
+  await reader.close();await assert.rejects(reader.read([{id:101,recordIndex:0}]),/closed/i);
+  const wrong=structuredClone(files);wrong.shx.sha256='0'.repeat(64);await assert.rejects(openHydroRiverShapeReader(wrong),/hash/i);
+  const changed=await openHydroRiverShapeReader(files),bytes=await readFile(files.shp.path);await writeFile(files.shp.path,Buffer.concat([bytes,Buffer.from([0])]));
+  await assert.rejects(changed.read([{id:101,recordIndex:0}]),/changed/i);await changed.close();
 });
 test('calibration river scan streams matching source geometry once with verified originals',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-hydro-river-scan-'));t.after(()=>rm(root,{recursive:true}));
