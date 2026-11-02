@@ -2,7 +2,7 @@ import { productionGeoPackage as request, spatialLayerCount,coreFileProjection }
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
 import { prepareProjectForStorage } from "../../shared/frontend/js/modules/project-state.js";
 import { projectForStorage, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";

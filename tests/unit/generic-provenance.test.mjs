@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertCurrentProjectSchema, PROJECT_SCHEMA_VERSION } from "../../shared/frontend/js/modules/project-state.js";
 import { validateProjectReferenceIntegrity } from "../../shared/frontend/js/modules/project-invariants.js";
-import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 import { createGisImportTransactionCommitter } from "../../apps/editor/frontend/js/modules/gis-import-transaction.js";

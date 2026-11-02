@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
 import { restoreEntitiesFromDelta } from "../../shared/frontend/js/modules/project-state.js";
 import { PROJECT_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';

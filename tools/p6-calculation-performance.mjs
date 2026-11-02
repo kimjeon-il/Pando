@@ -27,9 +27,9 @@ if(process.argv.includes('--sample-root')) {
   const geometry=id=>{const g=world.features.find(f=>f.id===id).geometry;return g.type==='Polygon'?[g.coordinates]:g.coordinates;};
   const polygonCases=[['union',[geometry('ARM'),geometry('TUR')]],['difference',[geometry('RUS'),[[[[25,50],[45,50],[45,65],[25,65],[25,50]]]]]]];
   await load('shared/frontend/js/modules/polygon-geometry.js');
-  const cut=await load('apps/editor/frontend/js/modules/cut-worker-preparation.js');
+  const cut=await load('tools/gis/cut-worker-preparation.js');
   const cutCases=JSON.parse(read('tests/fixtures/shared-core/web-m97/cut-corpus.json')).map(row=>row.payload);
-  const river=await load('apps/editor/frontend/js/modules/river-territory-partition.js');
+  const river=await load('tools/gis/river-territory-partition.js');
   const riverCases=JSON.parse(read('tests/fixtures/shared-core/web-m972-river/synthetic-cases.json'));
   const reference=await load('plugins/pando-map-tools/lib/analysis/georef.mjs');
   const refCases=JSON.parse(read('tests/fixtures/shared-core/reference-calibration.json'));

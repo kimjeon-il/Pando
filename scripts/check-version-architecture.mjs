@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as versionContract from "../shared/frontend/js/modules/version-contract.js";
-import { EXCHANGE_TARGETS, EXCHANGE_TARGET_DESCRIPTORS } from "../apps/editor/frontend/js/modules/exchange-adapter-registry.js";
+import { EXCHANGE_TARGETS, EXCHANGE_TARGET_DESCRIPTORS } from "../tools/gis/exchange-adapter-registry.js";
 import { parseJavaScript } from './lib/source-analysis.mjs';
 
 const owner = 'assets/js/modules/version-contract.js';

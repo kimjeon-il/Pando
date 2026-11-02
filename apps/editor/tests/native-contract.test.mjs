@@ -42,7 +42,7 @@ test('R3 excludes dormant editor frontend, HTML and retired shell JavaScript fro
    assert.equal(after.sha256,before.sha256,'unshipped editor edits must not alter '+mode+' input content hash');
    assert.deepEqual(after.inputs,before.inputs);
    const archived=Object.keys(after.inputs).filter(p=>p.startsWith('apps/editor/frontend/'));
-   assert.deepEqual(archived,['apps/editor/frontend/js/modules/project-serializer.js'].filter(p=>Object.hasOwn(after.inputs,p)));
+   assert.deepEqual(archived,[]);
    assert.equal(Object.keys(after.inputs).some(p=>p.startsWith('apps/editor/templates/')),false);
  }
 });
@@ -62,7 +62,7 @@ test('R3 includes live Viewer, Windows staging tools, WASM bytes and exact sourc
    'apps/editor/document-transfer-contract.js',
    'apps/editor/world-data-plan.mjs',
    'apps/editor/fixture.mjs',
-   'apps/editor/frontend/js/modules/project-serializer.js',
+   'tools/gis/project-serializer.js',
    'tests/helpers/core-startup.mjs',
    'scripts/lib/frontend-build.mjs',
    'scripts/build-ui-bundle.mjs',

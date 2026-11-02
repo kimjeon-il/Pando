@@ -23,17 +23,6 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "apps/editor/frontend/js/gis-io.js",
-      "functions": [
-        "exportGeoPackage"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
       "file": "apps/editor/frontend/js/modules/app-library-assembly.js",
       "functions": [
         "instantiateTerritorialLibraryEntities"
@@ -210,18 +199,6 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "apps/editor/frontend/js/gis-io.js",
-      "functions": [
-        "inspectFiles",
-        "gisSpatialSnapshot"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "GIS project boundary",
-      "reason": "Reads detached validated identities; derives spatial Features from canonical records."
-    },
-    {
       "file": "shared/frontend/js/modules/builtin-session.js",
       "functions": [
         "prepareProjectBaseline"
@@ -242,18 +219,6 @@
       ],
       "owner": "Static preview derivation",
       "reason": "Reads metadata identities and immutable bindings to derive preview Features without choosing a date."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/project-serializer.js",
-      "functions": [
-        "content",
-        "buildAutosave"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "Detached current-format codec",
-      "reason": "Encodes detached current-format data for offline tooling. Live save and autosave use C++ exportSnapshot, never a second writable model."
     },
     {
       "file": "shared/frontend/js/modules/project-state.js",
@@ -381,6 +346,28 @@
       "detachedCandidate": true,
       "owner": "Library geometry candidate construction",
       "reason": "Append library identities only to a new createInitialDocument candidate. Startup passes it through ProjectDomain.prepareImport/admit before editing the accepted C++ document."
+    },
+    {
+      "file": "shared/frontend/js/modules/review-inspection.js",
+      "functions": [
+        "reviewObjectMapRef"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "E4 read-only review object mapping",
+      "reason": "Reads immutable candidate/project entity identity to resolve a review object reference. No accepted Core document mutation."
+    },
+    {
+      "file": "apps/viewer/js/modules/viewer-review-panel.js",
+      "functions": [
+        "syncMapSelection"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "E4 read-only review selection synchronization",
+      "reason": "Reads one accepted Core document snapshot to synchronize a review-panel selection; no data writes or independent geography state."
     }
   ]
 }

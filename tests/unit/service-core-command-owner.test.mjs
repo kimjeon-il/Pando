@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createGenericFeatureService } from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
+import { createGenericFeatureService } from "../../tools/gis/generic-feature-service.js";
 import { createDistributionService } from "../../apps/editor/frontend/js/modules/distribution-service.js";
 
 for (const create of [createGenericFeatureService, createDistributionService]) {

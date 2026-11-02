@@ -4,8 +4,8 @@ import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {pathToFileURL} from 'node:url';
 import '../../shared/frontend/js/vendor/polygon-clipping.min.js';
-import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
-import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
+import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
+import {territorialIndexEntry} from './territorial-index-entry.js';
 import {sharedCalculationCore} from '../../shared/frontend/js/modules/temporal.js';
 import {withLibraryWrite} from '../library-data.mjs';
 

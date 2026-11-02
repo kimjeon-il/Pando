@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {normalizeTerritorialLibraryEntity,selectGeometryVersion,instantiateLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity,selectGeometryVersion,instantiateLibraryEntity} from '../../tools/gis/territorial-library.js';
 import {prepareLibraryGeometryWorkspace,collectLibraryGeometryChanges} from '../../apps/editor/frontend/js/modules/library-geometry-context.js';
 import {normalizeTimelineRecords,timelineObjectCatalog} from '../../shared/frontend/js/modules/timeline-records.js';
 

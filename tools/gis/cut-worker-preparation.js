@@ -1,5 +1,6 @@
-import { sharedCalculationCore } from "../../../../../shared/frontend/js/modules/temporal.js";
-import { geometryRevision } from "../../../../../shared/frontend/js/modules/geometry-versions.js";
+// Extracted calculation/data contract; not part of the shipped Viewer runtime.
+import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
+import { geometryRevision } from "../../shared/frontend/js/modules/geometry-versions.js";
 
 // Bounded worker-owned native handles. Identity + revision is the source key;
 // view/draft changes never rebuild boundary indexes.

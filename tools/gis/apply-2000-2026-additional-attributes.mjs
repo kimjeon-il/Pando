@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {readTerritorialSources,updateTerritorialSource} from '../territorial-entity-sources.mjs';
-import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 
 const error=message=>{throw new Error('ADDITIONAL_2000_2026_ATTRIBUTES: '+message);};
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');

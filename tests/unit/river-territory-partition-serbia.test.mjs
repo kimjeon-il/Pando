@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import { TextDecoder } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import test from 'node:test';
-import { buildRiverTerritoryPartitions, createRiverPartitionWorkspace } from "../../apps/editor/frontend/js/modules/river-territory-partition.js";
+import { buildRiverTerritoryPartitions, createRiverPartitionWorkspace } from "../../tools/gis/river-territory-partition.js";
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import { createCountryCommandCalculator } from "../../apps/editor/frontend/js/modules/map-edit-country-commands.js";
 import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";

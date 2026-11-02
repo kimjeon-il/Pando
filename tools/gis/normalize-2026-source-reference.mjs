@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {readTerritorialSources,readTerritorialSource,territorialSourceRoot,updateTerritorialSource} from '../territorial-entity-sources.mjs';
 import {writeLibraryOutput} from '../library-data.mjs';
-import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 
 export const SOURCE_REFERENCE_DATE='2026-10-06';
 const PRIOR_DAY='2026-10-05';

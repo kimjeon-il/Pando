@@ -1,4 +1,4 @@
-import {normalizeTerritorialLibraryEntity} from '../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from './gis/territorial-library.js';
 import {normalizeTimelineRecords} from '../shared/frontend/js/modules/timeline-records.js';
 
 /** Project library-owned geometryVersions to the common runtime contract.

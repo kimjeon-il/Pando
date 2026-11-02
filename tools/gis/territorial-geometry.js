@@ -1,3 +1,4 @@
+// Extracted calculation/data contract; not part of the shipped Viewer runtime.
 
 function multiCoordinates(geometry) {
   if (geometry?.type === 'Polygon') return [geometry.coordinates || []];

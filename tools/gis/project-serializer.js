@@ -1,12 +1,13 @@
-import {timelineObjectCatalog} from '../../../../../shared/frontend/js/modules/timeline-records.js';
-import { normalizeTerritorialIdentities, TERRITORIAL_ENTITY_KINDS } from "../../../../../shared/frontend/js/modules/territorial-units.js";
-import { normalizeTerritorialEntities } from "../../../../../shared/frontend/js/modules/territorial-units.js";
-import { assertCurrentProjectSchema, assertProjectBaselineFingerprint } from "../../../../../shared/frontend/js/modules/project-state.js";
-import { assertProjectReferenceIntegrity } from "../../../../../shared/frontend/js/modules/project-invariants.js";
-import { restoreTimelineStorage } from "../../../../../shared/frontend/js/modules/timeline-storage.js";
-import { createGeometrySnapshotPool } from "../../../../../shared/frontend/js/modules/geometry-versions.js";
+// Preserved GIS data/core calculation contract after retired editor source removal.
+import {timelineObjectCatalog} from '../../shared/frontend/js/modules/timeline-records.js';
+import { normalizeTerritorialIdentities, TERRITORIAL_ENTITY_KINDS } from "../../shared/frontend/js/modules/territorial-units.js";
+import { normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
+import { assertCurrentProjectSchema, assertProjectBaselineFingerprint } from "../../shared/frontend/js/modules/project-state.js";
+import { assertProjectReferenceIntegrity } from "../../shared/frontend/js/modules/project-invariants.js";
+import { restoreTimelineStorage } from "../../shared/frontend/js/modules/timeline-storage.js";
+import { createGeometrySnapshotPool } from "../../shared/frontend/js/modules/geometry-versions.js";
 import { PROJECT_SCHEMA_VERSION, SOURCE_PROVENANCE_SCHEMA_VERSION, GENERIC_FEATURE_SCHEMA_VERSION,
-  TERRITORIAL_MODEL_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION } from "../../../../../shared/frontend/js/modules/version-contract.js";
+  TERRITORIAL_MODEL_SCHEMA_VERSION, DISTRIBUTION_MODEL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 
 function modelContracts({ genericFeatureSchemaVersion, distributionSchemaVersion, distributionModes }) {
   return {

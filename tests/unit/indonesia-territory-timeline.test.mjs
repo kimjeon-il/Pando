@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
-import {selectGeometryVersion, territorialEntityExistsAt} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {selectGeometryVersion, territorialEntityExistsAt} from "../../tools/gis/territorial-library.js";
 import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
 import {builtinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";

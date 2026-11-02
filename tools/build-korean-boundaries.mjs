@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {sharedCalculationCore} from "../shared/frontend/js/modules/temporal.js";
-import {clippingOperationWithPrecisionRetry} from "../apps/editor/frontend/js/modules/polygon-clipping-calculation.js";
+import {clippingOperationWithPrecisionRetry} from "./gis/polygon-clipping-calculation.js";
 import {updateTerritorialSource,readTerritorialSource} from './territorial-entity-sources.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));

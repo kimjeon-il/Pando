@@ -1,4 +1,5 @@
-import { sharedCalculationCore } from "../../../../../shared/frontend/js/modules/temporal.js";
+// Extracted calculation/data contract; not part of the shipped Viewer runtime.
+import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
 const collectionFields = Object.freeze({
   geometryBindings: ['geometryRef'],

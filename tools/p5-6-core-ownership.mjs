@@ -17,7 +17,7 @@ export const calculations=Object.freeze([
   {area:'timeline/resolution',cpp:'shared/core/src/timeline-resolver.cpp',
     web:'shared/frontend/js/modules/timeline-resolver.js',api:['sharedCalculationCore.timelineResolveWorld(']},
   {area:'timeline/edit',cpp:'shared/core/src/timeline-edit.cpp',
-    web:'apps/editor/frontend/js/modules/timeline-edit.js',api:['sharedCalculationCore.timelineEditRecord(', 'sharedCalculationCore.timelineTruncateEntity(']},
+    web:'tools/gis/timeline-edit.js',api:['sharedCalculationCore.timelineEditRecord(', 'sharedCalculationCore.timelineTruncateEntity(']},
   {area:'spherical/ring-area',cpp:'shared/core/src/sphericalpolygon.cpp',
     web:'shared/frontend/js/modules/polygon-geometry.js',
     api:['sphericalRingSignedArea(', 'sphericalRingSignedAreas('],

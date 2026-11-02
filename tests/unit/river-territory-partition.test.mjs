@@ -10,7 +10,7 @@ const {
   RIVER_TERRITORY_PARTITION_CONFIG,
   riverTerritoryPartitionConfigFingerprint,
   riverTerritoryAreaKm2,
-} = await import("../../apps/editor/frontend/js/modules/river-territory-partition.js");
+} = await import("../../tools/gis/river-territory-partition.js");
 
 const clipper = globalThis.polygonClipping;
 

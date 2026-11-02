@@ -6,7 +6,7 @@ import {gzipSync,gunzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {withLibraryOutputs,libraryConfig,libraryCheckout,decodeArchiveEntry} from './library-data.mjs';
 import {readTerritorialSources,readTerritorialSource,entityFileName,territorialSourceRoot,territorialDataRoot} from './territorial-entity-sources.mjs';
-import {normalizeTerritorialLibraryEntity} from '../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from './gis/territorial-library.js';
 import {buildCurrentWorld} from './territorial-current-world.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments,replaceBuiltinWorldCountryNames} from './builtin-world-compiler.mjs';
 import {BUILTIN_SUBUNITS} from "../shared/frontend/js/modules/builtin-subunits.js";

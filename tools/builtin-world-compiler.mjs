@@ -6,9 +6,9 @@ import { BUILTIN_TERRITORY_MERGES } from "../shared/frontend/js/modules/builtin-
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../shared/frontend/js/modules/territorial-units.js";
 import { createGeometryVersionStore } from "../shared/frontend/js/modules/geometry-version-store.js";
 import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline-records.js";
-import { createProjectSerializer } from "../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectSerializer } from "./gis/project-serializer.js";
 import { DISTRIBUTION_MODES } from "../shared/frontend/js/modules/distribution-model.js";
-import {territorialNameData} from '../apps/editor/frontend/js/modules/territorial-library.js';
+import {territorialNameData} from './gis/territorial-library.js';
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
 
 const compare = (a, b) => {

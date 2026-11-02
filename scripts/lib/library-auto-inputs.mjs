@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
-import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,assertTerritorialIndexEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
-import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
+import {normalizeTerritorialLibraryEntity,normalizeTerritorialLibraryIndex,assertTerritorialIndexEntity} from '../../tools/gis/territorial-library.js';
+import {territorialIndexEntry} from '../../tools/gis/territorial-index-entry.js';
 const MAX=32*1024*1024;
 const FAMILIES=Object.freeze(['territorial','current-world','world-mesh','world-preview','world-bundle','shared-boundaries','builtin-world','prepared-mesh']);
 const hash=b=>createHash('sha256').update(b).digest('hex');

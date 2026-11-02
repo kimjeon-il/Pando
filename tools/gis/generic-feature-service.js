@@ -1,9 +1,10 @@
-import {DEFAULT_GENERIC_FEATURE_COLOR} from "../../../../../shared/frontend/js/modules/color-adapter.js";
+// Preserved GIS data/core calculation contract after retired editor source removal.
+import {DEFAULT_GENERIC_FEATURE_COLOR} from "../../shared/frontend/js/modules/color-adapter.js";
 import {
   SOURCE_KINDS,
   normalizeSourceProvenance,
-} from "../../../../../shared/frontend/js/modules/source-provenance.js";
-import { GENERIC_FEATURE_SCHEMA_VERSION } from "../../../../../shared/frontend/js/modules/version-contract.js";
+} from "../../shared/frontend/js/modules/source-provenance.js";
+import { GENERIC_FEATURE_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
 
 export { GENERIC_FEATURE_SCHEMA_VERSION };
 export const GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS = Object.freeze([

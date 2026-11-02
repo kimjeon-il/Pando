@@ -3,7 +3,7 @@ import {
   parseTemporal, normalizeTemporalInterval, temporalIntervalsOverlap,
   temporalContains, temporalMonthEnd, compareTemporal, compareTemporalKeys, temporalFollowingDay,
 } from '../../shared/frontend/js/modules/temporal.js';
-import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from '../gis/territorial-library.js';
 import {createReviewBundle, REVIEW_DATA_REPOSITORY} from '../../shared/frontend/js/modules/review-change-records.js';
 
 export const E3_DIFF_SCHEMA_VERSION = 1;

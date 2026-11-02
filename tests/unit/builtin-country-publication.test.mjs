@@ -6,7 +6,7 @@ import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
 import * as publication from '../../tools/build-builtin-world.mjs';
-import {territorialIndexEntry} from '../../apps/editor/frontend/js/modules/territorial-index-entry.js';
+import {territorialIndexEntry} from '../../tools/gis/territorial-index-entry.js';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {withExplicitView} from '../helpers/builtin-world.mjs';
 
