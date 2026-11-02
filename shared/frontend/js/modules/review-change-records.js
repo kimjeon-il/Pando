@@ -77,7 +77,7 @@ function reportPath(value) {
   const parts = value.split('/');
   if (parts[0] !== 'reports' || !reportSubjects.has(parts[1]) || parts.length < 4
     || parts.some(part => !part || part === '.' || part === '..' || part.startsWith('.')
-      || /[\\?#%\u0000-\u001f]/.test(part))
+      || (/[\\?#%]/.test(part) || [...part].some(char => char.codePointAt(0) < 32)))
     || !/\.(?:md|json)$/.test(parts.at(-1)))
     fail('Evidence must point to a canonical, safe report/verification file in the external library.');
   return value;
@@ -91,7 +91,6 @@ const interval = (source, location) => {
     return { validFrom: result.validFrom, validTo: result.validTo };
   } catch (error) { fail(location + ' has invalid temporal endpoints: ' + error.message); }
 };
-const nullable = (value, normalize) => value === null ? null : normalize(value);
 
 function changeValue(kind, value) {
   if (value === null) return null;
