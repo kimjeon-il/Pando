@@ -130,6 +130,7 @@ test('E3 admits a pending E2 review only with verified report revision; topology
     createdAt:'2026-11-02T01:00:00.000Z',createdBy:'ai',
     evidence:{reportPath:'reports/borders/reconstruction/synthetic-case/README.md',revision:B}});
   assert.equal(reviewState(proposal).status,'pending');
+  assert.equal(proposal.proposal.createdBy,'ai');
   assert.equal(proposal.events.length,0);
   assert.deepEqual(normalizeReviewBundle(proposal),proposal);
   assert.throws(()=>createPendingRevisionReview(result,{proposalId:'e3-no-evidence',
@@ -174,6 +175,7 @@ test('E3 CLI compares two real local Git commits and writes checksummed read-onl
   assert.equal(checked.diff.changes.length,1);
   assert.equal(checked.verification.historicalAccuracy,'not-verified');
   assert.equal(reviewState(checked.bundle).status,'pending');
+  assert.equal(checked.bundle.proposal.createdBy,'automation');
   const manifest=JSON.parse(readFileSync(join(output,'e3-output-manifest.json'),'utf8'));
   assert.equal(manifest.status,'awaiting-human-review');
   assert.equal(manifest.files.length,3);

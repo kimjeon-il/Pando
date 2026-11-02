@@ -16,7 +16,7 @@
 
 한 제안은 `{schemaVersion:1,proposal:{...},events:[]}`로 기록한다.
 
-`proposal`의 필수 항목: `proposalId`, `createdAt`(UTC ISO milliseconds), `createdBy`(ai|human), `dataset`(repository/baseRevision/candidateRevision), `comparisonMonth`, `evidence[]`, `changes[]`. 선택 `supersedesProposalId`는 기존 제안의 ID를 가리키며 이전 이력을 덮어쓰지 않는다.
+`proposal`의 필수 항목: `proposalId`, `createdAt`(UTC ISO milliseconds), `createdBy`(ai|human|automation), `dataset`(repository/baseRevision/candidateRevision), `comparisonMonth`, `evidence[]`, `changes[]`. 선택 `supersedesProposalId`는 기존 제안의 ID를 가리키며 이전 이력을 덮어쓰지 않는다.
 
 각 `evidence`는 `id`, `reportPath`, `revision`(보고서 독립 Git SHA)를 가진다. 각각의 변경에 `evidenceIds[]`로 정확히 연결한다. 보고서는 `reports/<정규 분류>/<작업 범위>/<파일>.md` 또는 검증 JSON이어야 한다. 절대경로·외부 URL·경로 탈출을 허용하지 않는다.
 

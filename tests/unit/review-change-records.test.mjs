@@ -120,6 +120,9 @@ test('E2 validation, human approval, and independent application form an immutab
   assert.equal(b.events.length,3);
   assert.ok(b.events.every(Object.isFrozen));
   assert.equal(b.proposal.createdBy,'ai');
+  const automatic=structuredClone(fixture());automatic.proposal.createdBy='automation';
+  assert.equal(normalizeReviewBundle(automatic).proposal.createdBy,'automation');
+  check(x=>{x.proposal.createdBy='anonymous';},/creator/);
   assert.deepEqual(fixture().events,[]);
   assert.deepEqual(normalizeReviewBundle(JSON.parse(serializeReviewBundle(b))),b);
 });
