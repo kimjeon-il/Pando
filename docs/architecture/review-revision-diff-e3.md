@@ -22,7 +22,7 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 
 후보 리비전의 날짜별 형상/명칭 에디션을 우선 사용하고, 변경 전 기간이 그 에디션 전체를 명확히 포괄하는 경우에만 before/after를 구성한다. 기존 전체 기간이 후보 여러 기간으로 분리되는 경우 인접일 연결성을 점검한다. 시작·종료가 부분적으로만 겹쳐서 의미를 확정할 수 없는 변경은 날짜를 임의로 쪼개지 않고 `unaligned-interval` 또는 `coverage-gap`을 기록한다. 거짓 변경 건수를 만들지 않는다.
 
-1회 비교는 기본 최대 **50개 변경 객체**로 제한한다. 대량 리비전은 무한 메모리 작업을 하지 않고 정해진 범위로 분할해야 한다. 원본 국가 ID `state:...` 외 객체(하천·호수 등)는 현재 E2 국가 계약의 범위 밖이며, 그런 객체의 변경은 `unsupported-object-domain`으로 남겨 별도 정책을 요구한다.
+1회 비교는 기본 최대 **50개 변경 객체**로 제한한다. 50개 초과인 자료 리비전을 `--batch-index` 없이 실행하면 예상 배치 개수를 표시하고 실패한다. `--batch-index=1`부터 끝 배치까지 차례로 실행하여 **전체 변경 객체를 누락 없이** 처리한다. `--batch-size=50`을 조정할 수 있지만 상한은 200이다. 각 출력은 `totalChangedEntities`, `indexChangedEntities`, `scope:{batchIndex,batchCount,complete}`를 기록하고 부분 배치의 검증 상태는 `coverage:scoped`로 표시한다. 여러 배치의 결과를 전체 검증 성공으로 합치려면 E3/E4에서 모든 배치의 SHA 및 상태를 함께 확인해야 한다. 원본 국가 ID `state:...` 외 객체(하천·호수 등)는 현재 E2 국가 계약의 범위 밖이며, 그런 객체의 변경은 `unsupported-object-domain`으로 남겨 별도 정책을 요구한다.
 
 서로 다른 Git 리비전이지만 `library.json` 국가 원본에 차이가 없는 경우에도 성공적인 **`no-map-changes`** 산출물을 작성한다. 연구 보고서만 추가된 것을 국경 변경으로 취급하지 않는다.
 
@@ -82,6 +82,8 @@ node tools/review/generate-e3-review.mjs \
   --created-at=<UTC ISO millisecond 생성 시각> \
   --output-dir=<현재 작업에서 승인된 출력 폴더>
 ```
+
+필요한 대량 원본 리비전 비교는 `--batch-index=1 --batch-size=50`으로 시작해 반환되는 `scope.batchCount`까지 반복한다. **배치마다 별도 `--output-dir`와 고유한 `--proposal-id`**가 필요하다. 산출물이 각 배치의 변경 원본을 정확히 식별하므로 E4에서 한 번에 조합할 수 있다.
 
 자동 수용 CI: [.github/workflows/e3-revision-comparison.yml](../../.github/workflows/e3-revision-comparison.yml). 검증은 Pando에서만 수행하고 외부 데이터 repo에는 테스트·CI·코드를 추가하지 않는다.
 
