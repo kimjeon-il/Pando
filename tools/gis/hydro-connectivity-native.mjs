@@ -1,6 +1,7 @@
 // Source-bound native Hydro connectivity audit. Inputs and originals remain unchanged.
-import {execFile} from 'node:child_process';
+import {execFile,spawn} from 'node:child_process';
 import {resolve} from 'node:path';
+import {createInterface} from 'node:readline';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
@@ -291,6 +292,55 @@ export async function scoreHydroSourceMetadata({archive,files,specification,onBa
   const receipt=await scanHydroRegionMetadata({archive,files,specification,signal:options.signal,onRecord:async row=>{
     pending.push(row);if(pending.length===batchSize)await flush();}});
   await flush();options.signal?.throwIfAborted();return receipt;
+}
+// Candidate callbacks run only after the source stream's complete hash/CRC
+// succeeds; the subprocess and all provisional metadata die on any failure.
+export async function withHydroSourceSelection({archive,files,specification,batchSize=4096}={},use,options={}){
+  const {root=rootDefault,directory=resolve(root,'build-native/hydro-connectivity/artifact'),signal}=options;
+  signal?.throwIfAborted();if(typeof use!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>100000)
+    throw Error('Explicit Hydro source selection callback and batch size required');
+  const executable=process.platform==='win32'?'pando-hydro-connectivity.exe':'pando-hydro-connectivity';
+  const {binary}=verifyNativeTool({root,directory,target:'hydro-connectivity',executable,sourceFiles:hydroConnectivitySources});
+  const child=spawn(binary,['--selection-stream'],{windowsHide:true,stdio:['pipe','pipe','pipe'],signal});
+  let stderr='',failure,closed=false,busy=false;
+  child.stderr.setEncoding('utf8');child.stderr.on('data',text=>{stderr=(stderr+text).slice(-8192);});
+  child.on('error',error=>{failure=error;});child.stdin.on('error',error=>{failure??=error;});
+  const finished=new Promise(resolveClose=>child.once('close',(code,termination)=>resolveClose({code,termination})));
+  const lines=createInterface({input:child.stdout,crlfDelay:Infinity})[Symbol.asyncIterator]();
+  const request=async payload=>{
+    signal?.throwIfAborted();if(closed)throw Error('Hydro source selection is closed');
+    if(busy)throw Error('Hydro source selection request already in progress');busy=true;
+    try{const bytes=JSON.stringify(payload);if(Buffer.byteLength(bytes)>32*1024*1024)throw Error('Hydro selection request exceeds byte budget');
+      child.stdin.write(bytes+'\n');const next=await lines.next();signal?.throwIfAborted();
+      if(next.done){const end=await finished;throw new Error('Native Hydro selection failed: '+(failure?.message||stderr||end.code),{cause:failure});}
+      if(next.value.length>64*1024*1024)throw Error('Hydro selection response exceeds byte budget');return JSON.parse(next.value);
+    }finally{busy=false;}
+  };
+  try{let pending=[],count=0;
+    const flush=async()=>{if(!pending.length)return;const rows=pending;pending=[];const result=await request({op:'add',rows});count+=rows.length;
+      if(result?.count!==count||Object.keys(result).length!==1)throw Error('Invalid Hydro selection count');};
+    const receipt=await scanHydroRegionMetadata({archive,files,specification,signal,onRecord:async row=>{
+      pending.push(row);if(pending.length===batchSize)await flush();}});
+    await flush();if(receipt.records!==count)throw Error('Hydro selection source count differs');
+    const roots=await request({op:'prepare'}),names=['seeds','continuityRoots','namedCandidates','mediumRoots'];
+    if(!roots||Object.keys(roots).length!==names.length||names.some(name=>!Array.isArray(roots[name])||
+      roots[name].some(id=>!Number.isSafeInteger(id)||id<=0)||new Set(roots[name]).size!==roots[name].length))
+      throw Error('Invalid Hydro selection roots');
+    const seeds=new Set(roots.seeds),continuity=new Set(roots.continuityRoots);
+    if([...continuity,...roots.namedCandidates].some(id=>!seeds.has(id))||roots.namedCandidates.some(id=>continuity.has(id)))
+      throw Error('Invalid Hydro selection root relationships');
+    const selection={roots:structuredClone(roots),region:receipt.region,records:count,candidates:async ids=>{
+      if(!Array.isArray(ids)||ids.length>4096||ids.some(id=>!Number.isSafeInteger(id)||id<=0))throw Error('Explicit bounded Hydro candidate IDs required');
+      const result=await request({op:'candidates',ids});
+      if(!Array.isArray(result?.groups)||result.groups.length!==ids.length||Object.keys(result).length!==1||result.groups.some((group,index)=>
+        group?.id!==ids[index]||!Array.isArray(group.candidates)||group.candidates.length>8||
+        (group.current!==null&&group.current?.id!==group.id)||group.candidates.some(row=>row?.next!==group.id||
+          !Number.isSafeInteger(row.id)||row.id<=0||!Number.isSafeInteger(row.recordIndex)||row.recordIndex<0)))
+        throw Error('Invalid Hydro selection candidates');return result.groups;}};
+    const value=await use(selection);signal?.throwIfAborted();closed=true;child.stdin.end();const result=await finished;
+    if(result.code!==0)throw new Error('Native Hydro selection failed: '+(failure?.message||stderr||result.code),{cause:failure});
+    return value;
+  }finally{closed=true;if(child.exitCode===null)child.kill();await finished;await lines.return?.();}
 }
 export function validateHydroWidthPropagation(result,reaches){
   if(!Array.isArray(reaches)||reaches.length>1000000||!result||typeof result!=='object'||Array.isArray(result)||

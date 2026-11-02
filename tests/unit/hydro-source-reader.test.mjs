@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {hydroSourceArchivesFromManifest,openHydroRiverShapeReader,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata,scanHydroRiverCandidates} from '../../tools/gis/hydro-source-reader.mjs';
-import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata,withHydroSourceSelection} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
 import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRiverRegions,prepareHydroCalibrationRivers,runHydroCalibration,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
@@ -263,6 +263,23 @@ test('source metadata and native scoring stream in order across bounded batches'
     await assert.rejects(scoreHydroSourceMetadata({...input,batchSize:0,onBatch:()=>{}},{}),/batch/i);
     const controller=new AbortController();controller.abort();
     await assert.rejects(scoreHydroSourceMetadata({...input,onBatch:()=>{}},{signal:controller.signal}),{name:'AbortError'});
+  });
+test('verified source selection exposes indexed upstream candidates through one native session',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-selection-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};let retained;
+    const value=await withHydroSourceSelection({...input,batchSize:2},async selection=>{
+      retained=selection;assert.deepEqual(selection.roots.mediumRoots,[]);
+      const [group,unknown]=await selection.candidates([102,999]);
+      assert.equal(group.current.recordIndex,1);assert.deepEqual(group.candidates.map(row=>row.id),[103,101]);
+      assert.deepEqual(group.candidates.map(row=>row.recordIndex),[2,0]);assert.equal(unknown.current,null);
+      return 'done';
+    },options);
+    assert.equal(value,'done');await assert.rejects(retained.candidates([102]),/closed/i);
+    const bad=structuredClone(input);bad.specification.files.find(file=>file.file.endsWith('.dbf')).sha256='0'.repeat(64);
+    let called=false;await assert.rejects(withHydroSourceSelection(bad,()=>{called=true;},options),/hash/i);assert.equal(called,false);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(withHydroSourceSelection(input,()=>{},{...options,signal:controller.signal}),{name:'AbortError'});
   });
 test('selected source reaches keep full geometry and downstream-corrected widths',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
