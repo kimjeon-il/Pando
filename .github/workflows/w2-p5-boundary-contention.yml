@@ -1,0 +1,36 @@
+name: W2-P5 boundary Worker contention protocol
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tests/unit/w2-p5-worker-contention.test.mjs
+      - shared/frontend/js/workers/country-shared-boundary-worker.js
+      - .github/workflows/w2-p5-boundary-contention.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: w2-p5-boundary-worker-work-ui
+  cancel-in-progress: true
+jobs:
+  contention:
+    name: Preserve latest generation and exact packet output
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Syntax and focused lint
+        run: |
+          node --check tests/unit/w2-p5-worker-contention.test.mjs
+          pnpm exec eslint tests/unit/w2-p5-worker-contention.test.mjs
+      - name: Real Node Worker A-B-A controlled cancellation and existing exact-border regressions
+        run: |
+          node --test --test-timeout=60000 --test-concurrency=1 tests/unit/w2-p5-worker-contention.test.mjs tests/unit/country-shared-boundary-state.test.mjs
