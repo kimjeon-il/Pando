@@ -394,6 +394,25 @@ Value propagateWidths(const Value& request){
         item.object["endWidth"]=Value::num(next==lookup.end()?row.width:rows[next->second].width);output.array.push_back(std::move(item));}
     auto result=Value::obj();result.object["reaches"]=std::move(output);return result;
 }
+Value fragmentGeometries(const Value& request){
+    const auto& fragments=elements(field(request,"fragments"));
+    if(fragments.size()>100000)throw std::invalid_argument("Hydro geometry batch exceeds budget");
+    std::size_t points=0;auto geometries=Value::arr();geometries.array.reserve(fragments.size());
+    for(const auto& fragment:fragments){auto parts=Value::arr();
+        for(const auto& reach:elements(fragment)){const auto& source=elements(field(reach,"parts")),&snap=field(reach,"renderSnap");
+            if(snap.kind!=Value::Null){const auto& target=elements(snap);if(target.size()!=2)throw std::invalid_argument("Invalid Hydro render snap");
+                for(const auto& value:target)pandoeditor::codecjson::finiteNumber(value);}
+            for(std::size_t i=0;i<source.size();++i){const auto& coords=elements(source[i]);if(coords.size()<2)continue;
+                points+=coords.size();if(points>10000000)throw std::invalid_argument("Hydro geometry coordinates exceed budget");
+                for(const auto& point:coords){const auto& xy=elements(point);if(xy.size()!=2)throw std::invalid_argument("Invalid Hydro geometry point");
+                    for(const auto& value:xy)pandoeditor::codecjson::finiteNumber(value);}
+                auto part=source[i];if(snap.kind!=Value::Null&&i+1==source.size())part.array.back()=snap;
+                parts.array.push_back(std::move(part));}}
+        auto row=Value::obj();row.object["type"]=Value::str(parts.array.size()==1?"LineString":"MultiLineString");
+        row.object["coordinates"]=parts.array.size()==1?std::move(parts.array.front()):std::move(parts);
+        geometries.array.push_back(std::move(row));}
+    auto result=Value::obj();result.object["geometries"]=std::move(geometries);return result;
+}
 // Decide an outlet class from source-bound geometry and raster observations.
 Value outletDecision(const Value& request){
     const auto boolean=[&](const char* name){const auto& value=field(request,name);if(value.kind!=Value::Bool)throw std::invalid_argument("Expected outlet boolean");return value.raw=="true";};
@@ -449,6 +468,7 @@ int main() {
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
         else if(str(mode->second)=="propagate-widths")std::cout<<propagateWidths(request).encode()<<'\n';
+        else if(str(mode->second)=="fragment-geometries")std::cout<<fragmentGeometries(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");

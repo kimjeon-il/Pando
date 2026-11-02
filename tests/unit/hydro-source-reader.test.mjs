@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
-import {buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
@@ -128,7 +128,13 @@ test('verified selected source flows into the reference-guided chain builder',
     const reaches=await buildHydroSelectedReaches({...input,selected:new Set([101,102,103])},connectivity);
     const references=[{id:'guide',properties:{name:'Guide'},geometry:{type:'LineString',coordinates:[[0,1],[1,0],[2,0]]}}];
     const pointScreen={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
-    assert.deepEqual(await assembleHydroCanonicalChains({reaches,references},{connectivity,pointScreen}),[[103,102],[101]]);
+    const chains=await assembleHydroCanonicalChains({reaches,references},{connectivity,pointScreen});
+    assert.deepEqual(chains,[[103,102],[101]]);
+    const byId=new Map(reaches.map(row=>[row.id,{...row,borderPair:null}]));
+    const systems=await assembleHydroSystemFragments({chains:chains.map(chain=>chain.map(id=>byId.get(id)))},connectivity);
+    assert.deepEqual(systems.map(row=>({systemId:row.systemId,mainstemIndex:row.mainstemIndex,
+      fragments:row.fragments.map(fragment=>({ids:fragment.reachIds,parts:fragment.widths.length}))})),
+    [{systemId:102,mainstemIndex:0,fragments:[{ids:[103,102],parts:2},{ids:[101],parts:2}]}]);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];

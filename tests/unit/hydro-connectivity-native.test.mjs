@@ -88,6 +88,8 @@ test('native system fragments retain chain order, role and per-point widths',
       fragments:system.fragments.map(fragment=>({chainIndex:fragment.chainIndex,reachIds:fragment.reachIds,widths:fragment.widths}))})),
     [{systemId:10,mainstemIndex:0,fragments:[{chainIndex:0,reachIds:[1],widths:[[1,1.5]]},
       {chainIndex:0,reachIds:[2],widths:[[1.5,2]]},{chainIndex:1,reachIds:[3],widths:[[1,1.2]]}]}]);
+    assert.deepEqual(result[0].fragments[0].geometry,{type:'LineString',coordinates:[[1,0],[2,0]]});
+    assert.deepEqual(result[0].fragments[1].geometry,{type:'LineString',coordinates:[[2,0],[3,0]]});
     assert.deepEqual(chains,before);
     await assert.rejects(assembleHydroSystemFragments({chains:[chains[0],chains[0]]},
       {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),/identity/i);
@@ -174,6 +176,18 @@ nativeTest('selected Hydro reaches propagate width downstream across joins in so
     const result=spawnSync(native,[],{input:JSON.stringify({mode:'propagate-widths',reaches:invalid}),encoding:'utf8'});
     assert.notEqual(result.status,0);assert.equal(result.stdout,'');
   }
+});
+nativeTest('fragment geometry retains source part order and applies only the final snapped endpoint',()=>{
+  const fragments=[[
+    {parts:[[[0,0]],[[1,0],[2,0]]],renderSnap:[2.25,0]},
+    {parts:[[[2,0],[3,0]]],renderSnap:null}
+  ],[{parts:[[[4,0],[5,0]]],renderSnap:null}]];
+  const actual=run({mode:'fragment-geometries',fragments});
+  assert.deepEqual(actual,{geometries:[{type:'MultiLineString',coordinates:[[[1,0],[2.25,0]],[[2,0],[3,0]]]},
+    {type:'LineString',coordinates:[[4,0],[5,0]]}]});
+  assert.deepEqual(fragments[0][0].parts[1].at(-1),[2,0]);
+  const invalid=spawnSync(native,[],{input:JSON.stringify({mode:'fragment-geometries',fragments:[[{parts:[[[0,0],[1,0]]],renderSnap:[null,0]}]]}),encoding:'utf8'});
+  assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
 test('width propagation receipts preserve source identities and shared downstream widths',()=>{
   const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:0,width:0.6}];

@@ -191,6 +191,24 @@ export async function buildHydroRiverSystems({chains}={},options={}){
   hydroSystemKeys(chains);
   return validateHydroRiverSystems(await runHydroConnectivity({mode:'river-systems',chains},options),{chains});
 }
+export async function buildHydroFragmentGeometries(fragments,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(fragments)||fragments.length>100000||fragments.some(row=>!Array.isArray(row)))
+    throw Error('Explicit bounded Hydro fragments required');
+  if(!fragments.length)return [];
+  const expected=fragments.map(fragment=>{const parts=[];
+    for(const reach of fragment){if(!Array.isArray(reach?.parts))throw Error('Invalid Hydro fragment source parts');
+      const snap=reach.renderSnap??null;
+      if(snap!==null&&(!Array.isArray(snap)||snap.length!==2||snap.some(value=>!Number.isFinite(value))))throw Error('Invalid Hydro render snap');
+      for(let i=0;i<reach.parts.length;i++){const part=reach.parts[i];if(!Array.isArray(part))throw Error('Invalid Hydro fragment part');
+        if(part.length<2)continue;
+        if(part.some(point=>!Array.isArray(point)||point.length!==2||point.some(value=>!Number.isFinite(value))))throw Error('Invalid Hydro fragment point');
+        parts.push(snap!==null&&i===reach.parts.length-1?[...part.slice(0,-1),snap]:part);}}
+    return parts.length===1?{type:'LineString',coordinates:parts[0]}:{type:'MultiLineString',coordinates:parts};});
+  const input=fragments.map(fragment=>fragment.map(row=>({parts:row.parts,renderSnap:row.renderSnap??null})));
+  const result=await runHydroConnectivity({mode:'fragment-geometries',fragments:input},options);
+  if(!Array.isArray(result?.geometries)||!isDeepStrictEqual(result.geometries,expected))throw Error('Hydro fragment geometry receipt differs');
+  return result.geometries;
+}
 export async function assembleHydroSystemFragments({chains}={},options={}){
   options.signal?.throwIfAborted();hydroSystemKeys(chains);const rows=new Map();
   for(const chain of chains)for(const reach of chain){
@@ -208,7 +226,8 @@ export async function assembleHydroSystemFragments({chains}={},options={}){
   for(let at=0;at<fragmentsAll.length;at+=1000){const batch=fragmentsAll.slice(at,at+1000),flat=[];
     for(const fragment of batch)for(const id of fragment.reachIds)flat.push(rows.get(id));
     const profiles=await buildHydroWidthProfile({reaches:flat},options);let index=0;
-    for(const fragment of batch){let count=0;
+    const geometries=await buildHydroFragmentGeometries(batch.map(fragment=>fragment.reachIds.map(id=>rows.get(id))),options);
+    for(const [i,fragment] of batch.entries()){let count=0;fragment.geometry=geometries[i];
       for(const id of fragment.reachIds)for(const part of rows.get(id).parts)if(part.length>=2)count++;
       fragment.widths=profiles.widths.slice(index,index+count);index+=count;}
     if(index!==profiles.widths.length)throw Error('Hydro fragment width count differs');
