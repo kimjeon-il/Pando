@@ -151,7 +151,7 @@ jobs:
       - name: Execute actual Windows WebView2/Core read-only acceptance
         shell: pwsh
         run: |
-          ./apps/editor/verify-review-windows.ps1 -BinaryPath 'apps/editor/src-tauri/target/x86_64-pc-windows-msvc/debug/pandolab-web-shell.exe'
+          ./apps/editor/verify-review-windows.ps1 -BinaryPath 'build-native/native-artifacts/windows/verification/pandolab-web-shell.exe'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve Windows GUI and native build evidence
         if: always()
