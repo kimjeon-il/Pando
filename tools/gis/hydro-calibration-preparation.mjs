@@ -167,6 +167,24 @@ export async function prepareHydroCalibrationLakes({lakes,bounds,width=1200,heig
   }
   return result;
 }
+export async function prepareHydroCalibrationRegion(input,options={}){
+  options.signal?.throwIfAborted();
+  const {region,width=1200,height=720,riverSource,lakes,riverReference,lakeReference}=structuredClone(input??{});
+  if(typeof region?.id!=='string'||!region.id||typeof region.label!=='string'||typeof region.calibrate!=='boolean'||
+    !Array.isArray(region.bbox)||region.bbox.length!==4||region.bbox.some(value=>!Number.isFinite(value))||
+    !riverReference||!lakeReference||!riverSource)throw Error('Explicit Hydro calibration region inputs required');
+  const bounds=region.bbox;
+  const [rivers,preparedLakes,riverStages,lakeStages]=await Promise.all([
+    prepareHydroCalibrationRivers({...riverSource,bounds,width,height},options),
+    prepareHydroCalibrationLakes({lakes,bounds,width,height},options),
+    prepareHydroCalibrationStageReferences({...riverReference,kind:'river',bounds,width,height},options),
+    prepareHydroCalibrationStageReferences({...lakeReference,kind:'lake',bounds,width,height},options)]);
+  const marked=await markHydroCalibrationDuplicates({bounds,baseRiverFeatures:riverReference.baseFeatures,
+    baseLakeFeatures:lakeReference.baseFeatures,rivers,lakes:preparedLakes},options);
+  options.signal?.throwIfAborted();
+  return {region,...marked,riverTargets:riverStages.targets,riverBaselines:riverStages.baselines,
+    lakeTargets:lakeStages.targets,lakeBaselines:lakeStages.baselines};
+}
 export async function markHydroCalibrationDuplicates({bounds,baseRiverFeatures,baseLakeFeatures,rivers,lakes}={},options={}){
   options.signal?.throwIfAborted();
   const invalid=row=>typeof row?.duplicate!=='boolean'||!Number.isFinite(row.duplicateFraction)||row.duplicateFraction<0||row.duplicateFraction>1;
