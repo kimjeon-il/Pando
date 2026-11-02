@@ -50,9 +50,18 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 - `comparisonMonth=2008-10` (지도 비교는 해당 월말; 원본 국경 사건 날짜는 별도 보존)
 - 근거: [아바가이투 G 후보 연구 README-ko.md](https://github.com/kimjeon-il/PandoLab-library-data/blob/a36bf7621a0cc72267415be19562cc78d3fc725d/reports/borders/reconstruction/abagaitu-g-geographic-candidate-2026-11-01/README-ko.md)
 
-`library.json`에 의해 실제 변경된 원본 객체는 `state:CHN`, `state:RUS` 두 개다. 데이터 원본 비교에서 **4건의 E2 변경 슬롯**을 발견했고, 구간 미대응 `issues: 0`으로 판정했다. 중국의 `2008-10-14` 형상 버전 변경을 실제로 확인했다. 이 비교 결과는 문헌의 역사적 정확성 또는 전체 국경 위상 검사 통과를 뜻하지 않는다.
+`library.json`에 의해 실제 변경된 원본 객체는 `state:CHN`, `state:RUS` 두 개다. 데이터 원본 비교에서 **4건의 E2 형상 변경 슬롯**을 발견했고, 구간 미대응 `issues: 0`으로 판정했다.
 
-수용 실행: [GitHub Actions E3 실제 데이터 검증](https://github.com/kimjeon-il/Pando/actions/runs/41375685446). 실행 결과 두 Job 모두 success: **E3/E2 계약 단위 테스트 17개 통과**, 실자료 원본 비교·검증/제안 JSON 생성·E2 계약 재검사·artifact 보관 성공. 결과 파일: [E3 실제 비교 증거 ZIP](https://github.com/kimjeon-il/Pando/actions/runs/41375685446/artifacts/13110523571).
+| 원본 객체 | 변경 필드 | 정확한 역사적 적용 구간 |
+| --- | --- | --- |
+| `state:CHN` | `geometry` | 시작 제한 없음 ~ `2008-10-13` |
+| `state:CHN` | `geometry` | `2008-10-14` ~ 종료 제한 없음 |
+| `state:RUS` | `geometry` | `2008-10-14` ~ `2014-03-17` |
+| `state:RUS` | `geometry` | `2014-03-18` ~ 종료 제한 없음 |
+
+표의 구간은 원본에서 확인한 **지도 형상 에디션의 유효기간**이다. 각 행을 별개의 영토 이양 사건이나 그 날짜의 역사적 합의로 단정해서는 안 된다. 특히 2014년 이후 러시아 형상은 적용 시점이 있다는 정보일 뿐, 영유권·승인 상태에 대한 정치적 판단을 의미하지 않는다.
+
+최종 수용 실행: [GitHub Actions E3 실제 데이터 검증](https://github.com/kimjeon-il/Pando/actions/runs/41376142774), Pando 코드 기준 `247480803aa525343d6284eb3cc8fd1f38de5cf7`. 두 Job 모두 success: **E3/E2 계약 단위 테스트 18개 통과**, 실자료 원본 비교·검증/제안 JSON 생성·E2 계약 재검사·artifact 보관 성공. 결과 파일: [E3 실제 비교 증거 ZIP](https://github.com/kimjeon-il/Pando/actions/runs/41376142774/artifacts/13111775401). 생성 제안은 `e3-abagaitu-2008-g-41376142774`, `createdBy: automation`, `status: pending`, `events: []`이며 승인·적용되지 않았다. 역사지리 정확성은 `not-verified`, 전체 인접 국경 위상 검증은 `not-run`으로 기록했다. 이 작업은 실제 원본 GIS 데이터나 외부 자료 저장소의 최신 리비전을 수정하지 않았다.
 
 ## 5. 직접 실행 방법
 
