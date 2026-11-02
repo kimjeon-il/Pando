@@ -37,12 +37,13 @@ for (const viewport of [{width:1440,height:900},{width:844,height:390},
   {width:390,height:844},{width:320,height:700}]) {
   test('Viewer controls retain usable sizing at '+viewport.width+'x'+viewport.height,async({page})=>{
     await page.setViewportSize(viewport);
-    await page.goto('/assets/css/app.css');
-    await page.setContent('<style>'+styles+'</style>'+sprite+
-      '<div class="app-root viewer-root" data-layout="'+(viewport.width<800?'mobile':'wide')+'">'+
-      '<div class="topbar"><div class="topbar-actions" style="display:flex;flex-wrap:wrap;gap:8px;padding:16px">'+
-      buttons.map(sourceButton).join('')+'</div></div></div>');
-    const rects=await page.locator('button').evaluateAll(nodes=>nodes.map(node=>{
+    const markup=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
+      .replace(/<link\b[^>]*>/gi,'').replace('</head>','<style>'+styles+'</style></head>');
+    await page.setContent(markup);
+    await page.locator('#viewer').evaluate((node,layout)=>node.dataset.layout=layout,viewport.width<800?'mobile':'wide');
+    for(const id of ['mobileGlobalMenu','fileMenu','reviewPanel','reviewSummary'])
+      await page.locator('#'+id).evaluate(node=>node.hidden=false);
+    const rects=await page.locator(buttons.map(id=>'#'+id).join(',')).evaluateAll(nodes=>nodes.map(node=>{
       const rect=node.getBoundingClientRect();
       return {id:node.id,width:rect.width,height:rect.height,display:getComputedStyle(node).display};
     }));

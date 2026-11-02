@@ -13,11 +13,19 @@ vm.runInContext(readFileSync(new URL('sql-wasm.js', sqlDir), 'utf8'), sqlContext
 const SQL = await sqlContext.initSqlJs({ wasmBinary: readFileSync(new URL('sql-wasm.wasm', sqlDir)) });
 export { SQL as productionSql };
 const snapshot=await repositoryFrontendSnapshot();
+// Fixture production uses the retained encoder source, never a shipped Viewer asset.
+// The Viewer only reads packages; its public dependency closure must stay read-only.
+const encoderSource=new URL('../../apps/editor/frontend/js/workers/gis-gpkg-worker.js',import.meta.url);
+const fixtureScripts=new Map([
+  ['assets/js/workers/gis-gpkg-worker.js',readFileSync(encoderSource,'utf8')],
+  ['assets/js/gis-adapters.js',readFileSync(new URL('../../apps/editor/frontend/js/gis-adapters.js',import.meta.url),'utf8')],
+]);
 const workerUrl=new URL('https://fixture.invalid/assets/js/workers/gis-gpkg-worker.js');
 const worker=vm.createContext({URL,console,TextEncoder,TextDecoder,structuredClone,Uint8Array,DataView,atob,btoa,initSqlJs:async()=>SQL,location:{href:workerUrl.href}});worker.self=worker;
 const dynamic=vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER;
-worker.importScripts=(...urls)=>{for(const url of urls){const path=new URL(url,workerUrl).pathname.slice(1);if(path.endsWith('/sql-wasm.js'))continue;const entry=snapshot.assets.get(path);if(!entry)throw Error('Unowned Worker script: '+path);vm.runInContext(nodeWorkerScript(snapshot,path),worker,{filename:new URL(path,'https://fixture.invalid/').href,importModuleDynamically:dynamic});}};
-vm.runInContext(nodeWorkerScript(snapshot,'assets/js/workers/gis-gpkg-worker.js'),worker,{filename:workerUrl.href,importModuleDynamically:dynamic});
+worker.importScripts=(...urls)=>{for(const url of urls){const path=new URL(url,workerUrl).pathname.slice(1);if(path.endsWith('/sql-wasm.js'))continue;const entry=fixtureScripts.has(path)?fixtureScripts.get(path):nodeWorkerScript(snapshot,path);vm.runInContext(entry,worker,{filename:new URL(path,'https://fixture.invalid/').href,importModuleDynamically:dynamic});}};
+vm.runInContext(fixtureScripts.get('assets/js/workers/gis-gpkg-worker.js'),worker,{filename:encoderSource.href,
+  importModuleDynamically:dynamic});
 
 export async function productionGeoPackage(action, buffer, projectState,spatialState) {
   let message;

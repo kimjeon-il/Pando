@@ -10,24 +10,16 @@ export const catalogPath = 'scripts/contracts/application-checks.json';
 // Archived graphical-editor browser tests are indexed for traceability but
 // must not be parsed as currently deployable Viewer runtime dependencies.
 // Classification uses explicit retired entrypoints, not a blanket test ban.
-export function retiredEditorBrowserReason(file,source='',availablePaths=null) {
+export function retiredEditorBrowserReason(file,source='') {
   if(!file.startsWith('tests/browser/')||!file.endsWith('.spec.mjs'))return null;
+  if(['tests/browser/gis-math-contract.spec.mjs','tests/browser/prepared-overlay-mesh.spec.mjs'].includes(file))
+    return 'tests retired graphical-editor modules';
   if(/(?:^|\/)(?:editor-[^/]+|draft-[^/]+|editing-[^/]+|map-editing-[^/]+|mobile-vertex-ui|phone-landscape-editor)\.spec\.mjs$/.test(file))
     return 'retired graphical-editor browser entrypoint';
   if(/(?:from|import)\s*['"][^'"]*helpers\/editor-entry\.mjs['"]/.test(source) ||
      /\b(?:gotoEditor|editorTestUrl)\s*\(/.test(source) ||
      /(?:\/__editor\/index\.html|products\.editor|renderProductHtml\([^)]+\)\.editor)/.test(source))
     return 'loads retired editor DOM or startup instead of the shipped Viewer';
-  // An old browser fixture that imports a module/Worker outside the public
-  // Viewer source graph tests the retired editor, not a released runtime.
-  // Real Viewer and GIS tests with valid imports remain automatic.
-  if(availablePaths)for(const match of source.matchAll(
-    /(?:\bimport\s*\(|\bnew\s+Worker\s*\()\s*['"]\/(assets\/js\/[^'"?]+)[^'"]*['"]/g)) {
-    const asset=match[1];
-    if(!availablePaths.has(asset) && !frontendGeneratedOwners[asset] &&
-       !asset.startsWith('assets/js/worker-runtime/'))
-      return 'references a retired non-distributable browser module: '+asset;
-  }
   return null;
 }
 
@@ -103,7 +95,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (!group) throw Error('Unregistered test: ' + file);
     const reason = retiredUnitTests.has(file)
       ? 'tests the removed graphical-editor application rather than current Viewer/Windows'
-      : retiredEditorBrowserReason(file, read(file), frontendIndex);
+      : retiredEditorBrowserReason(file, read(file));
     if (reason) {
       retiredTests.set(file, reason);
       owners.set(file, { ...group, mode: 'retired', reason });
@@ -270,16 +262,16 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     'apps/editor/stage.mjs','apps/editor/check-stage.mjs','apps/editor/dev.mjs',
     'apps/editor/native-contract.mjs','apps/editor/native-producer.mjs',
     'apps/editor/packaged-artifacts.mjs','apps/editor/review-probe.js',
+    'apps/editor/network-guard.js','apps/editor/document-transfer-contract.js',
     'apps/editor/world-data-plan.mjs','apps/editor/fixture.mjs',
     'apps/editor/fixture-limits.js','apps/editor/write-evidence.mjs',
   ]);
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
-  const frontendIndex = repo.frontendIndex || (repo.root ? buildFrontendIndex(repo.root) : new Map());
   const isRetiredHelper = file => /^tests\/browser\/helpers\/.*\.mjs$/.test(file)
-    && retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs',
-      repo.read(file), frontendIndex);
+    && (file === 'tests/browser/helpers/korean-boundary-workflow.mjs' ||
+      retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs', repo.read(file)));
   const skipArchived = file => retiredFrontend(file) || isRetiredTest(file) || isRetiredHelper(file);
   const queue = [...repo.tests,
     ...repo.catalog.groups.flatMap(inputsFor),

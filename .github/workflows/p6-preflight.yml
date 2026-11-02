@@ -1,100 +1,10 @@
-name: P6 preflight native and Worker contracts
+name: P6 historical preflight (manual)
+# Fixed 2026-10 preflight inventory, including retired editor/export contracts.
+# Reproduce on its historical revision only; current Core/Viewer gates are
+# shared-core.yml, application-architecture.yml and e7-final-readonly-regression.yml.
+# Never launch this broad historical inventory on an ordinary work branch push.
 
 on:
-  push:
-    branches: [work/ui]
-    paths:
-      - shared/CMakeLists.txt
-      - shared/core/**
-      - shared/tests/**
-      - shared/wasm/**
-      - shared/third_party/earcut/earcut.hpp
-      - shared/frontend/static/wasm/**
-      - shared/frontend/js/modules/core-*.js
-      - shared/frontend/js/modules/worker-*.js
-      - shared/frontend/js/modules/product-mode-policy.js
-      - apps/editor/frontend/js/modules/editing-domain.js
-      - tests/native/temporal-parity-*
-      - tests/helpers/**
-      - tests/fixtures/portability/**
-      - tests/unit/core-*.test.mjs
-      - tests/unit/web-*.test.mjs
-      - tests/unit/progressive-startup-runtime*.test.mjs
-      - tests/unit/timeline-controls.test.mjs
-      - tests/unit/shared-core-assets.test.mjs
-      - tests/unit/annex-drawn-selection.test.mjs
-      - tests/unit/app-accent.test.mjs
-      - tests/unit/borneo-country-geometry.test.mjs
-      - tests/unit/boundary-display-refinement.test.mjs
-      - tests/unit/boundary-revision-comparison.test.mjs
-      - tests/unit/boundary-revision-timings.test.mjs
-      - tests/unit/build-metadata.test.mjs
-      - tests/unit/builtin-resource-core-wasm.test.mjs
-      - tests/unit/builtin-subunits.test.mjs
-      - tests/unit/canvas-terrain-independence.test.mjs
-      - tests/unit/country-label-input-contract.test.mjs
-      - tests/unit/country-lineage-preservation.test.mjs
-      - tests/unit/current-browser-contracts.test.mjs
-      - tests/unit/draft-toolbar.test.mjs
-      - tests/unit/editor-test-entry.test.mjs
-      - tests/unit/empty-territorial-boundary.test.mjs
-      - tests/unit/frontend-dev-server.test.mjs
-      - tests/unit/frontend-library-preparation.test.mjs
-      - tests/unit/generic-provenance.test.mjs
-      - tests/unit/gpu-country-pick-slot-guard.test.mjs
-      - tests/unit/gpu-mesh-country-strokes.test.mjs
-      - tests/unit/gpu-mesh-transfer.test.mjs
-      - tests/unit/historical-world-reset.test.mjs
-      - tests/unit/historical-world-timeline.test.mjs
-      - tests/unit/hydro-reliability-source.test.mjs
-      - tests/unit/interaction-roles.test.mjs
-      - tests/unit/korean-boundary-data.test.mjs
-      - tests/unit/label-shell-performance.test.mjs
-      - tests/unit/library-geometry-context.test.mjs
-      - tests/unit/library-import-atomic.test.mjs
-      - tests/unit/library-map-preview.test.mjs
-      - tests/unit/library-origin-period.test.mjs
-      - tests/unit/map-diagnostics.test.mjs
-      - tests/unit/map-edit-worker-lifecycle.test.mjs
-      - tests/unit/map-loading-continuity.test.mjs
-      - tests/unit/river-territory-partition-source.test.mjs
-      - tests/unit/startup-performance-contract.test.mjs
-      - tests/unit/territorial-editor-lifecycle.test.mjs
-      - tests/unit/place-million.test.mjs
-      - tests/unit/place-label-workflow.test.mjs
-      - tests/unit/gpu-shared-pass-initialization.test.mjs
-      - tests/unit/country-validator-properties.test.mjs
-      - tests/unit/project-autosave-receipt.test.mjs
-      - tests/unit/project-preview-policy.test.mjs
-      - tests/unit/renderer-responsiveness-source.test.mjs
-      - tests/unit/selection-fill-handoff.test.mjs
-      - tests/unit/selection-ui-reset-regression.test.mjs
-      - tests/unit/shared-view-policy.test.mjs
-      - tests/unit/territorial-interaction-policy.test.mjs
-      - tests/unit/territorial-storage-audit.test.mjs
-      - tests/unit/ui-state-controllers.test.mjs
-      - scripts/contracts/application-checks.json
-      - scripts/run-boundary-revision-comparison.mjs
-      - scripts/frontend-dev-server.mjs
-      - scripts/lib/library-preparation-wait.mjs
-      - eslint.config.js
-      - tests/unit/builtin-source-cache.test.mjs
-      - shared/tests/temporal-transport-p5-5.test.mjs
-      - tools/load-node-core.mjs
-      - tools/package-shared-core-assets.mjs
-      - config/library-data.json
-      - .github/actions/library-data/action.yml
-      - tools/library-data.mjs
-      - tools/library-archive.mjs
-      - tools/library-content.mjs
-      - tools/library-git.mjs
-      - tools/library-runtime-index.mjs
-      - tools/library-report-layout.mjs
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
-      - .github/workflows/shared-core.yml
-      - .github/workflows/p6-preflight.yml
   workflow_dispatch:
 
 permissions:

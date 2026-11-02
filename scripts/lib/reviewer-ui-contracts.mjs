@@ -35,7 +35,7 @@ export function auditReviewCss(file,source) {
      if(/#(?:editorSurface|modeDraft|createMenuBtn)/.test(selector))
        failures.push('Retired editor CSS selector in '+file+': '+selector);
    }
-   for(const {property,value,important} of rule.declarations) {
+   for(const {property,important} of rule.declarations) {
      if(property.startsWith('--'))continue;
      if(layout&&skin.test(property))
        failures.push('layout CSS may position/size but not reskin UI: '+file+' '+rule.prelude+' { '+property+' }');
