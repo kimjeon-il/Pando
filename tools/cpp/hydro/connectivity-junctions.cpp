@@ -248,14 +248,45 @@ Value doRepair(Value request) {
     result.object["changes"]=std::move(changes);
     return result;
 }
+// Assemble upstream-to-downstream logical objects after the caller has selected
+// the canonical incoming reach at each confluence.
+Value logicalChains(const Value& request){
+    const auto& input=elements(field(request,"reaches")),&choices=elements(field(request,"canonical"));
+    if(input.size()>1000000||choices.size()>input.size())throw std::invalid_argument("Hydro chain input exceeds budget");
+    std::vector<std::int64_t> order;std::map<std::int64_t,std::int64_t> next,canonical;
+    for(const auto& row:input){const auto id=integer(field(row,"id")),downstream=integer(field(row,"next"));
+        if(id<=0||downstream<0||!next.emplace(id,downstream).second)throw std::invalid_argument("Invalid or duplicate Hydro reach identity");
+        order.push_back(id);}
+    std::map<std::int64_t,std::vector<std::int64_t>> upstream;
+    for(const auto id:order){const auto downstream=next.at(id);if(!downstream)continue;
+        if(!next.count(downstream))throw std::invalid_argument("Selected Hydro downstream is missing");upstream[downstream].push_back(id);}
+    for(const auto& row:choices){const auto downstream=integer(field(row,"downstream")),selected=integer(field(row,"upstream"));
+        const auto found=upstream.find(downstream);
+        if(found==upstream.end()||std::find(found->second.begin(),found->second.end(),selected)==found->second.end()||
+          !canonical.emplace(downstream,selected).second)throw std::invalid_argument("Invalid canonical Hydro upstream");}
+    if(canonical.size()!=upstream.size())throw std::invalid_argument("Canonical Hydro upstream is missing");
+    std::map<std::int64_t,std::size_t> pending,owner;std::vector<std::int64_t> queue;
+    for(const auto id:order){pending[id]=upstream[id].size();if(!pending[id])queue.push_back(id);}
+    std::vector<std::vector<std::int64_t>> chains;std::size_t visited=0;
+    while(!queue.empty()){const auto id=queue.back();queue.pop_back();
+        if(!owner.count(id)){owner[id]=chains.size();chains.emplace_back();}
+        chains[owner.at(id)].push_back(id);++visited;const auto downstream=next.at(id);if(!downstream)continue;
+        if(--pending.at(downstream)==0){const auto selected=canonical.at(downstream);
+            if(!owner.count(selected))throw std::runtime_error("Canonical upstream was not processed");owner[downstream]=owner.at(selected);queue.push_back(downstream);}}
+    if(visited!=order.size())throw std::invalid_argument("Hydro reach network contains a cycle");
+    auto output=Value::arr();for(const auto& chain:chains){auto values=Value::arr();for(const auto id:chain)values.array.push_back(Value::num(static_cast<double>(id)));output.array.push_back(std::move(values));}
+    auto result=Value::obj();result.object["chains"]=std::move(output);return result;
+}
 }
 int main() {
     try {
         const std::string input{std::istreambuf_iterator<char>{std::cin},std::istreambuf_iterator<char>{}};
         if(input.size()>512*1024*1024)throw std::invalid_argument("Hydro junction request exceeds 512 MiB");
         auto request=pandoeditor::codecjson::parse(input);const auto mode=request.object.find("mode");
-        if(mode!=request.object.end()&&str(mode->second)!="audit")throw std::invalid_argument("Invalid Hydro operation");
-        std::cout<<(mode==request.object.end()?doRepair(std::move(request)):doAudit(std::move(request))).encode()<<'\n';
+        if(mode==request.object.end())std::cout<<doRepair(std::move(request)).encode()<<'\n';
+        else if(str(mode->second)=="audit")std::cout<<doAudit(std::move(request)).encode()<<'\n';
+        else if(str(mode->second)=="logical-chains")std::cout<<logicalChains(request).encode()<<'\n';
+        else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
     }catch(const std::exception& error) {
         std::cerr<<"hydro-connectivity: "<<error.what()<<'\n';

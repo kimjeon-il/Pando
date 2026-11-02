@@ -25,6 +25,24 @@ function run(input) {
   return JSON.parse(result.stdout);
 }
 const nativeTest = (name, fn) => test(name, { skip: !native }, fn);
+nativeTest('logical river chains preserve canonical confluence and input order',()=>{
+  const reaches=[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],canonical=[{downstream:3,upstream:1},{downstream:4,upstream:3}];
+  assert.deepEqual(run({mode:'logical-chains',reaches,canonical}),{chains:[[2],[1,3,4]]});
+  assert.deepEqual(run({mode:'logical-chains',reaches:[{id:9,next:0}],canonical:[]}),{chains:[[9]]});
+  assert.deepEqual(run({mode:'logical-chains',reaches:[],canonical:[]}),{chains:[]});
+});
+nativeTest('logical river chains reject missing links, invalid choices and cycles',()=>{
+  for(const input of [
+    {reaches:[{id:1,next:9}],canonical:[]},
+    {reaches:[{id:1,next:2},{id:2,next:0}],canonical:[{downstream:2,upstream:9}]},
+    {reaches:[{id:1,next:2},{id:2,next:0}],canonical:[]},
+    {reaches:[{id:1,next:0},{id:1,next:0}],canonical:[]},
+    {reaches:[{id:1,next:2},{id:2,next:1}],canonical:[{downstream:1,upstream:2},{downstream:2,upstream:1}]},
+  ]){
+    const result=spawnSync(native,[],{input:JSON.stringify({mode:'logical-chains',...input}),encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});
 
 function scenario(name) {
   const input=fixture();
