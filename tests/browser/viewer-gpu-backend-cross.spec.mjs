@@ -47,8 +47,9 @@ async function installInstrumentation(page){
       'applyMonth:async(month,{isCurrent,commit})=>{',
       "applyMonth:async(month,{isCurrent,commit})=>{globalThis.__gpuCrossProbe?.mark('requested',month);");
     source=replaceExactlyOnce(source,
-      "onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
-      "onPresented:()=>{commit();globalThis.__gpuCrossProbe?.mark('presented',month);window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
+      "onPresented:()=>{commit();}",
+      "onPresented:()=>{commit();globalThis.__gpuCrossProbe?.mark('presented',month);}");
+
     source=replaceExactlyOnce(source,
       "status.dataset.ready='true';",
       "status.dataset.ready='true';globalThis.__gpuCrossProbe?.mark('ready');");
@@ -68,7 +69,7 @@ async function installInstrumentation(page){
   });
 }
 async function runOne(mode,baseURL){
-  const report={mode:mode.name,flags:mode.flags,platform:process.platform,status:'pending',samples:[],errors:[]};
+  const report={mode:mode.name,flags:mode.flags,platform:process.platform,status:'pending',warmupSamples:[],samples:[],errors:[]};
   let browser,context,page;
   try{
     browser=await chromium.launch({headless:true,args:mode.flags,timeout:90000});
@@ -157,6 +158,7 @@ async function runOne(mode,baseURL){
         workerReleaseMs:record.workerReleaseMs,longTaskMaxMs:record.longTaskMaxMs,
         longTasks:record.longTasks,semanticHash,visible:record.visible};
       if(i>=warmups)report.samples.push(sample);
+      else report.warmupSamples.push(sample);
       console.log('GPU_CROSS_SAMPLE '+JSON.stringify({mode:mode.name,category:report.category,round:i,...sample}).slice(0,6000));
     }
     report.hashes=Object.fromEntries(hashes);
@@ -187,9 +189,13 @@ test('same-host GPU/backend comparison without presuming hardware acceleration',
     ?[{name:'metal',flags:['--use-angle=metal']},
       {name:'swiftshader',flags:['--use-angle=swiftshader']},
       {name:'metal-retest',flags:['--use-angle=metal']}]
-    :[{name:'default',flags:[]},
-      {name:'swiftshader',flags:['--use-angle=swiftshader']},
-      {name:'default-retest',flags:[]}];
+    :process.platform==='win32'
+      ?[{name:'d3d11',flags:['--use-angle=d3d11']},
+        {name:'swiftshader',flags:['--use-angle=swiftshader']},
+        {name:'d3d11-retest',flags:['--use-angle=d3d11']}]
+      :[{name:'default',flags:[]},
+        {name:'swiftshader',flags:['--use-angle=swiftshader']},
+        {name:'default-retest',flags:[]}];
   const report={schema:'pando-gpu-cross-v1',sourceCommit:process.env.GITHUB_SHA??null,
     host:{platform:process.platform,arch:process.arch,cpus:process.env.RUNNER_OS??null},
     measuredAt:new Date().toISOString(),modes:[],comparison:null};

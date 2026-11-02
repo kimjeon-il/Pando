@@ -12,7 +12,7 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
  const evidence=JSON.parse(await readFile(resolve(directory,'shell/stage-evidence.json'),'utf8'));
  const profile=JSON.parse(await readFile(resolve(directory,'shell/stage-profile.json'),'utf8'));
  assert.equal(profile.verification, evidence.verification, 'Stage mode identity mismatch');
- const verificationFiles = ['verification.js','probe-storage.js','diagnostics.js','full-world-probe.js','fixture-limits.js','diagnostics.css'];
+ const verificationFiles = ['review-probe.js'];
  for (const file of verificationFiles) assert.equal(evidence.files.some(entry => entry.path === 'shell/' + file), evidence.verification, file);
  assert.ok(evidence.files.some(file=>file.path==='index.html'));
  const metadataSource = await readFile(resolve(directory,'assets/js/build-meta.js'),'utf8');
@@ -28,7 +28,15 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
  }
  assert.ok(evidence.files.some(file=>file.path===metadata.physicalLand.url), 'Physical substrate must be bundled in both profiles');
  const html=await readFile(resolve(directory,'index.html'),'utf8');
- assert.match(html,/assets\/js\/bootstrap\.js/);assert.doesNotMatch(html,/<script\b[^>]*src=["'][^"']*assets\/js\/viewer\.js/);
+ assert.match(html,/assets\/js\/viewer\.js/);
+ assert.doesNotMatch(html,/assets\/js\/(?:bootstrap|app|gis-io)\.js/);
+ assert.equal(evidence.nativeEntry,'review.html');
+ const reviewHtml=await readFile(resolve(directory,'review.html'),'utf8');
+ assert.match(reviewHtml,/id="reviewPanel"/);
+ assert.match(reviewHtml,/assets\/js\/viewer\.js/);
+ for(const banned of ['assets/js/bootstrap.js','assets/js/app.js','assets/js/gis-io.js',
+   'shell/startup.js','shell/native-storage.js','shell/document-transfer-contract.js'])
+   assert.ok(!evidence.files.some(file=>file.path===banned), 'Legacy editor asset staged: '+banned);
  if(profile.mode==='map-data'){
    const {plan}=await loadFullWorldAssetPlan(path=>path==='assets/js/build-meta.js'?Promise.resolve(metadataSource):readFile(resolve(root,path),'utf8'));
    for(const key of ['worldFileCount','physicalFileCount','countryCount','rootCount','unitCount','modelEntityCount','mergedSourceCount','sourceSha256'])assert.equal(evidence.worldData[key],plan[key],key);
@@ -36,6 +44,6 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
    const staged=new Set(evidence.files.map(file=>file.path));
    for(const entry of plan.entries)assert.ok(staged.has(entry.path),`Missing pinned app data: ${entry.path}`);
  }
- console.log(`Editor stage verified: ${profile.mode}, ${evidence.files.length} files.`);return evidence;
+ console.log(`Windows review stage verified: ${profile.mode}, ${evidence.files.length} files.`);return evidence;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))await checkShellStage();

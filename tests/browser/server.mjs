@@ -8,8 +8,7 @@ import {prepareLibraryData,libraryRuntimeLeasePath} from '../../tools/library-da
 const root=resolve(process.cwd()),port=Number(process.env.PANDOLAB_TEST_PORT||4173);
 const prepared=prepareLibraryData({root}),snapshot=await buildFrontendSnapshot({root});
 const {assets}=await developmentAssets({repository:root,product:'viewer',prepared,snapshot});
-for(const [path,asset]of snapshot.assets)assets.set(path,{bytes:asset.bytes});
-assets.set('__editor/index.html',{bytes:Buffer.from(snapshot.html.editor.replace('href="../../" data-product-base="editor"','href="/" data-product-base="editor"'))});
+for(const [path,asset]of snapshot.assets)if(snapshot.viewerPaths.has(path))assets.set(path,{bytes:asset.bytes});
 assets.set('review.html',{bytes:Buffer.from(snapshot.html.viewer.replace('<title>판도연구소</title>',
   '<title>판도연구소 — 검수기</title>'))});
 const lease=libraryRuntimeLeasePath(root,'verification');

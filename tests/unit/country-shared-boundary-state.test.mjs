@@ -349,6 +349,10 @@ test('W2-P3 immutable boundary stroke packet survives transferred buffers and pr
   assert.equal(same.projectGeneration, 11);
   assert.equal(same.packetCacheHit, true,
     'a new generation must reuse exact SHA-256/hierarchy/quality stroke preparation');
+  assert.equal(same.packetCacheResidentEstimate,first.packetCacheResidentEstimate,
+    'a cache hit must not grow the one-entry resident byte estimate');
+  assert.ok(Number.isFinite(first.packetPreparationMs) && first.packetPreparationMs >= 0);
+  assert.ok(Number.isFinite(same.packetPreparationMs) && same.packetPreparationMs >= 0);
   assert.deepEqual(same.packet, first.packet, 'a retransmitted prepared packet must keep every display byte and owner range');
   assert.ok(same.packet.startsEnds.byteLength > 0);
   assert.ok(same.packet.preparedGeometry.instances.byteLength > 0);

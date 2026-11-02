@@ -9,11 +9,11 @@ const sourceRoot=fileURLToPath(root),index=buildFrontendIndex(sourceRoot);
 const file=p=>index.has(p)?frontendAsset(sourceRoot,p,{index}).bytes.toString('utf8'):readFileSync(new URL(p,root),'utf8');
 const project=file('assets/js/modules/project-state.js');
 const domain=file('assets/js/modules/project-domain.js');
-const serializer=file('assets/js/modules/project-serializer.js');
+const serializer=file('apps/editor/frontend/js/modules/project-serializer.js');
 const version=file('assets/js/modules/version-contract.js');
 const territorial=file('assets/js/modules/territorial-units.js');
 const distribution=file('assets/js/modules/distribution-model.js');
-const gis=file('assets/js/gis-adapters.js');
+const gis=file('apps/editor/frontend/js/gis-adapters.js');
 
 test('project data follows its C++-compatible schema and UUID identity policy',()=>{
   assert.match(serializer,/schemaVersion = PROJECT_SCHEMA_VERSION/);

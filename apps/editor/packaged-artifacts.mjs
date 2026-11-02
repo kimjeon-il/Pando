@@ -64,7 +64,6 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
   let run=find();
   const availablePushArtifact=run?.event==='push'&&artifactsByRun.get(run.id)?.some(a=>a.name===artifactName&&!a.expired);
   if(!run||run.status==='completed'&&run.conclusion!=='success'&&!availablePushArtifact){
-    if(testNative&&platform!=='windows')throw Error('Native unit tests run on Windows; Android runtime verification is a separate device workflow');
     minimumId=run?run.id+1:0;gh(['workflow','run',pin.workflow,'--repo',pin.repository,'--ref',branch,'-f','scope='+(testNative?'native-tests':'native'),'-f','native_platform='+platform,'-f','native_mode='+mode]);run=null;
   }
   const deadline=Date.now()+timeoutMs;let last='';
@@ -121,7 +120,7 @@ async function main() {
   if(process.argv.includes('--ci-build')){
     console.log(JSON.stringify(await buildNativeOnCI({platform:option('platform'),mode,test:process.argv.includes('--test-native')})));return;
   }
-  if(!process.argv.includes('--fetch'))throw Error('Use --fetch --platform=windows|android --mode=development|offline|verification. Native compilation is CI-only.');
+  if(!process.argv.includes('--fetch'))throw Error('Use --fetch --platform=windows --mode=development|offline|verification. Native compilation is CI-only.');
   const result=await fetchNativeArtifact({platform:option('platform')||'windows',mode,testNative:process.argv.includes('--test-native')});
   console.log(process.argv.includes('--path-only')?result.directory:JSON.stringify(result));
 }

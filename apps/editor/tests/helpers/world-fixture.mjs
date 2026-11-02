@@ -27,7 +27,7 @@ export async function worldFixture(t) {
     await put(path, bytes);
     return { url: path, sha256: sha(bytes), compressedBytes: bytes.byteLength, decodedBytes: bytes.byteLength };
   };
-  await put('index.html', '<html>Viewer only</html>');
+  await put('index.html', '<html><head><title>판도연구소</title></head><body>Viewer only<aside id="reviewPanel"></aside><script src="assets/js/viewer.js"></script></body></html>');
   await put('apps/editor/editor.html', '<html><base href="../../" data-product-base="editor" /><script src="assets/js/bootstrap.js?v=test" defer></script></html>');
   await put('assets/js/app.js', 'export const originalWeb = true;');
   await put('assets/js/bootstrap.js', 'globalThis.startedByWebBootstrap = true;');

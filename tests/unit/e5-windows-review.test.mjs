@@ -45,17 +45,21 @@ test('E5 Windows Tauri uses the unique review entry and narrow read-only capabil
     'finish-document-write','read-document-chunk','library-open-geometry'])
     assert.ok(!cap.permissions.some(p=>p.includes(forbidden)),forbidden);
   const native=read('apps/editor/src-tauri/src/lib.rs');
-  regex(native,/let entry = if cfg!\(windows\) \{ "review\.html" \} else \{ "index\.html" \}/);
+  regex(native,/let entry = "review\.html"/);
   regex(native,/on_navigation\(local_navigation\)/);
+  for(const deleted of ['document_transfer::','library_commands::','TransferManager::'])
+    assert.equal(native.includes(deleted),false,'legacy mutation IPC still registered: '+deleted);
   regex(native,/save_review_correction/);
   regex(native,/PANDOLAB_NATIVE_REVIEW/);
   const stage=read('apps/editor/stage.mjs');
   regex(stage,/snapshot\.html\.viewer/);
   regex(stage,/await emit\('review\.html',reviewer/);
-  regex(stage,/nativeEntry:windowsReview\?'review\.html':'index\.html'/);
+  regex(stage,/!snapshot\.viewerPaths\.has\(path\)/);
+  regex(stage,/nativeEntry:'review\.html'/);
+  assert.doesNotMatch(stage,/snapshot\.html\.editor|shell\/startup\.js/);
   regex(stage,/read-only|review/);
   const prod=read('apps/editor/native-producer.mjs');
-  regex(prod,/PANDOLAB_NATIVE_REVIEW:platform==='windows'\?'1':'0'/);
+  regex(prod,/PANDOLAB_NATIVE_REVIEW:'1'/);
   regex(prod,/prototype-review/);
   regex(prod,/https:\/\/raw\.githubusercontent\.com/);
   const guard=read('apps/editor/src-tauri/build.rs');
@@ -68,8 +72,8 @@ test('E5 automatic native builds do not invest in the retiring Android app',()=>
   assert.deepEqual(nativeBuildSelection(['apps/editor/src-tauri/capabilities/prototype-review.json']),['windows']);
   assert.deepEqual(nativeBuildSelection(['apps/viewer/js/viewer.js']),[]);
   assert.deepEqual(nativeBuildSelection([],{platform:'windows'}),['windows']);
-  // The archival Android target is not deleted in E5 (its removal is E6).
-  assert.deepEqual(nativeBuildSelection([],{platform:'android'}),['android']);
+  // E6 retires the native Android target; mobile Web viewer remains available.
+  assert.throws(()=>nativeBuildSelection([],{platform:'android'}),/Unsupported native platform/);
 });
 
 test('E5 Windows verification uses actual map and Core checks, not button hiding',()=>{
