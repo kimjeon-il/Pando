@@ -391,6 +391,19 @@ export async function excludeHydroInvalidTerminalBasins(reaches,options={}){
     throw Error('Hydro terminal exclusion does not preserve upstream closure');
   return result;
 }
+export async function classifyHydroOutlets(observations,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(observations)||observations.length>100000)throw Error('Explicit bounded Hydro outlet observations required');
+  if(!observations.length)return [];
+  const result=await runHydroConnectivity({mode:'outlet-decisions',observations},options);
+  const classes=new Set(['sea','lake','unresolved-land','excluded-small-land','excluded-undisplayed-water']);
+  if(!Array.isArray(result?.decisions)||result.decisions.length!==observations.length||Object.keys(result).length!==1||
+    result.decisions.some(row=>!classes.has(row?.class)||!Number.isFinite(row.distanceKm)||row.distanceKm<0||
+      (row.snap!==null&&(!Array.isArray(row.snap)||row.snap.length!==2||
+        row.snap.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90))||row.class!=='sea'))))
+    throw Error('Invalid Hydro outlet decisions');
+  return result.decisions;
+}
 // Build private selected reaches only; terminal classification and naming remain separate.
 export async function buildHydroSelectedReaches({selected,selection,reader}={},options={}){
   options.signal?.throwIfAborted();

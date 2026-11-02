@@ -268,6 +268,15 @@ nativeTest('terminal decisions retain lake, coast, omitted land and water preced
     assert.notEqual(result.status,0);assert.equal(result.stdout,'');
   }
 });
+nativeTest('terminal decisions process bounded observation batches in input order',()=>{
+  const base={lakeDistance:null,lakeCovers:false,coastDistance:3,onLand:true,undisplayedWater:false,
+    outsideLength:0,maxKm:25,target:[1,2]};
+  const decisions=run({mode:'outlet-decisions',observations:[base,{...base,lakeDistance:.5},
+    {...base,onLand:false,coastDistance:30}]});
+  assert.deepEqual(decisions.decisions.map(row=>row.class),['sea','lake','excluded-small-land']);
+  assert.deepEqual(decisions.decisions[0].snap,[1,2]);assert.equal(decisions.decisions[1].distanceKm,.5);
+  assert.deepEqual(run({mode:'outlet-decisions',observations:[]}),{decisions:[]});
+});
 nativeTest('outlet sample handles the date line, raster edges and near-white water',()=>{
   const sample=run({mode:'outlet-sample',source:[179,0],target:[-179,0],width:360,height:180,rgb:[249,250,249]});
   assert.ok(Math.abs(sample.distanceKm-222.64)<1e-9);assert.deepEqual(sample.pixel,[359,90]);assert.equal(sample.undisplayedWater,true);

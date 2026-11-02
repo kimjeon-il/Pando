@@ -547,6 +547,13 @@ Value outletDecision(const Value& request){
     if(snap){auto coordinates=Value::arr();coordinates.array={Value::num(longitude),Value::num(y)};result.object["snap"]=std::move(coordinates);}
     else result.object["snap"]=Value();return result;
 }
+Value outletDecisions(const Value& request){
+    const auto& observations=elements(field(request,"observations"));
+    if(observations.size()>100000)throw std::invalid_argument("Hydro outlet batch exceeds budget");
+    auto decisions=Value::arr();decisions.array.reserve(observations.size());
+    for(const auto& observation:observations)decisions.array.push_back(outletDecision(observation));
+    auto result=Value::obj();result.object["decisions"]=std::move(decisions);return result;
+}
 Value outletSample(const Value& request){
     const auto& source=elements(field(request,"source")),&target=elements(field(request,"target")),&rgb=elements(field(request,"rgb"));
     if(source.size()!=2||target.size()!=2||rgb.size()!=3)throw std::invalid_argument("Explicit outlet point and RGB required");
@@ -584,6 +591,7 @@ int main(int argc,char** argv) {
         else if(str(mode->second)=="fragment-geometries")std::cout<<fragmentGeometries(request).encode()<<'\n';
         else if(str(mode->second)=="exclude-terminal-basins")std::cout<<excludeTerminalBasins(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
+        else if(str(mode->second)=="outlet-decisions")std::cout<<outletDecisions(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
