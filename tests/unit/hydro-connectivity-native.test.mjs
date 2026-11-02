@@ -106,6 +106,19 @@ nativeTest('terminal decisions retain lake, coast, omitted land and water preced
     assert.notEqual(result.status,0);assert.equal(result.stdout,'');
   }
 });
+nativeTest('outlet sample handles the date line, raster edges and near-white water',()=>{
+  const sample=run({mode:'outlet-sample',source:[179,0],target:[-179,0],width:360,height:180,rgb:[249,250,249]});
+  assert.ok(Math.abs(sample.distanceKm-222.64)<1e-9);assert.deepEqual(sample.pixel,[359,90]);assert.equal(sample.undisplayedWater,true);
+  const edge=run({mode:'outlet-sample',source:[-180,90],target:[180,90],width:360,height:180,rgb:[248,249,248]});
+  assert.deepEqual(edge.pixel,[359,0]);assert.equal(edge.undisplayedWater,false);assert.equal(edge.distanceKm,0);
+  const color=run({mode:'outlet-sample',source:[0,-90],target:[0,-89],width:360,height:180,rgb:[249,251,249]});
+  assert.deepEqual(color.pixel,[180,179]);assert.equal(color.undisplayedWater,false);assert.equal(color.distanceKm,110.57);
+  for(const overrides of [{width:0},{rgb:[249,256,249]},{source:[0]}]){
+    const request={mode:'outlet-sample',source:[0,0],target:[1,1],width:360,height:180,rgb:[255,255,255],...overrides};
+    const failed=spawnSync(native,[],{input:JSON.stringify(request),encoding:'utf8'});
+    assert.notEqual(failed.status,0);assert.equal(failed.stdout,'');
+  }
+});
 
 function scenario(name) {
   const input=fixture();

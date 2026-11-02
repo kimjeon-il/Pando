@@ -75,6 +75,10 @@ Value encodedPoint(const Point& value) {
     result.array={Value::num(value.lon),Value::num(value.lat)};
     return result;
 }
+double normalizedLongitude(double value){
+    auto longitude=std::fmod(value+180.0,360.0);if(longitude<0)longitude+=360.0;longitude-=180.0;
+    return longitude==-180.0?180.0:longitude;
+}
 std::int64_t halfEvenMicro(double value) {
     const auto scaled=value*1'000'000.0;
     const double down=std::floor(scaled), frac=scaled-down;
@@ -314,7 +318,7 @@ Value riverSystems(const Value& request){
             pointsSeen+=coordinates.size();if(pointsSeen>10000000)throw std::invalid_argument("Hydro system coordinates exceed budget");
             for(const auto& coordinate:coordinates){const auto& pair=elements(coordinate);if(pair.size()!=2)throw std::invalid_argument("Invalid Hydro system point");
                 const double rawLon=pandoeditor::codecjson::finiteNumber(pair[0]),lat=pandoeditor::codecjson::finiteNumber(pair[1]);
-                if(coordinates.size()<2)continue;double lon=std::fmod(rawLon+180.0,360.0);if(lon<0)lon+=360.0;lon-=180.0;if(lon==-180.0)lon=180.0;
+                if(coordinates.size()<2)continue;const double lon=normalizedLongitude(rawLon);
                 west=std::min(west,lon);east=std::max(east,lon);south=std::min(south,lat);north=std::max(north,lat);usable=true;}}
         auto item=Value::obj(),list=Value::arr(),bounds=Value::arr();list.array.push_back(Value::num(static_cast<double>(mainstem)));
         for(const auto index:indexes)if(index!=mainstem)list.array.push_back(Value::num(static_cast<double>(index)));
@@ -370,7 +374,7 @@ Value outletDecision(const Value& request){
     if(lakeDistance<0||coast<0||outside<0)throw std::invalid_argument("Invalid outlet distance");
     const auto& target=elements(field(request,"target"));if(target.size()!=2)throw std::invalid_argument("Outlet target needs two coordinates");
     const double x=pandoeditor::codecjson::finiteNumber(target[0]),y=pandoeditor::codecjson::finiteNumber(target[1]);
-    double longitude=std::fmod(x+180.0,360.0);if(longitude<0)longitude+=360.0;longitude-=180.0;if(longitude==-180.0)longitude=180.0;
+    const double longitude=normalizedLongitude(x);
     std::string classification;double distance=coast;bool snap=false;
     if(lake.kind!=Value::Null&&(lakeCovers||lakeDistance<=1.0)){classification="lake";distance=lakeDistance;}
     else if(coast<=1e-5){classification="sea";distance=0;}
@@ -381,6 +385,24 @@ Value outletDecision(const Value& request){
     auto result=Value::obj();result.object["class"]=Value::str(classification);result.object["distanceKm"]=Value::num(distance);
     if(snap){auto coordinates=Value::arr();coordinates.array={Value::num(longitude),Value::num(y)};result.object["snap"]=std::move(coordinates);}
     else result.object["snap"]=Value();return result;
+}
+Value outletSample(const Value& request){
+    const auto& source=elements(field(request,"source")),&target=elements(field(request,"target")),&rgb=elements(field(request,"rgb"));
+    if(source.size()!=2||target.size()!=2||rgb.size()!=3)throw std::invalid_argument("Explicit outlet point and RGB required");
+    const auto width=integer(field(request,"width")),height=integer(field(request,"height"));
+    if(width<=0||height<=0||width>2147483647||height>2147483647)throw std::invalid_argument("Invalid outlet raster dimensions");
+    const double sx=pandoeditor::codecjson::finiteNumber(source[0]),sy=pandoeditor::codecjson::finiteNumber(source[1]),
+      tx=pandoeditor::codecjson::finiteNumber(target[0]),ty=pandoeditor::codecjson::finiteNumber(target[1]);
+    const double distance=std::hypot(normalizedLongitude(sx-tx)*111.32*std::cos(sy*(kPi/180.0)),(sy-ty)*110.57);
+    if(!std::isfinite(distance))throw std::invalid_argument("Invalid outlet distance");
+    const auto pixel=[](double coordinate,std::int64_t size){if(coordinate<=0)return std::int64_t{0};
+        if(coordinate>=static_cast<double>(size))return size-1;return static_cast<std::int64_t>(coordinate);};
+    const auto px=pixel((normalizedLongitude(sx)+180.0)/360.0*width,width),py=pixel((90.0-sy)/180.0*height,height);
+    std::int64_t low=255,high=0;for(const auto& value:rgb){const auto channel=integer(value);if(channel<0||channel>255)throw std::invalid_argument("Invalid outlet raster channel");
+        low=std::min(low,channel);high=std::max(high,channel);}
+    auto result=Value::obj(),coordinates=Value::arr();coordinates.array={Value::num(static_cast<double>(px)),Value::num(static_cast<double>(py))};
+    result.object["distanceKm"]=Value::num(distance);result.object["pixel"]=std::move(coordinates);
+    result.object["undisplayedWater"]=Value::boolean(high-low<=1&&low>=249);return result;
 }
 }
 int main() {
@@ -395,6 +417,7 @@ int main() {
         else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
+        else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
     }catch(const std::exception& error) {
