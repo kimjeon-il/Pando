@@ -118,9 +118,11 @@ test('calibration lake duplicates preserve coverage, overlap and separation deci
 });
 test('calibration clipping keeps only the explicitly bounded source geometry',{skip:!binary},()=>{
   const request={mode:'calibration-clip',bounds:[0,0,2,2],geometries:[{type:'LineString',coordinates:[[-1,1],[3,1]]},
-    {type:'Polygon',coordinates:[[[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]]]}]};
+    {type:'Polygon',coordinates:[[[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]]]},
+    {type:'LineString',coordinates:[[5,5],[6,6]]}]};
   const result=invoke(request);assert.equal(result.status,0,result.stderr);const clipped=JSON.parse(result.stdout).geometries;
   assert.deepEqual(clipped[0],{type:'LineString',coordinates:[[0,1],[2,1]]});
+  assert.deepEqual(clipped[2],{type:'LineString',coordinates:[]});
   const metric=invoke({mode:'calibration-screen',bounds:[0,0,2,2],width:100,height:100,lines:[],polygons:[clipped[1]]});
   assert.equal(metric.status,0,metric.stderr);assert.equal(JSON.parse(metric.stdout).polygonAreaPx,2500);
   const invalid=invoke({...request,bounds:[0,0,0,2]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
