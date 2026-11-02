@@ -1,0 +1,92 @@
+[
+  {
+    "name": "사우스아랄씨",
+    "category": "lake",
+    "overrides": {
+      "사우스아랄씨": "남아랄해"
+    },
+    "expected": "남아랄해"
+  },
+  {
+    "name": "노스아랄씨호",
+    "category": "lake",
+    "overrides": {
+      "노스아랄씨호": "북아랄해"
+    },
+    "expected": "북아랄해"
+  },
+  {
+    "name": "세인트 폴 강",
+    "category": "river",
+    "overrides": {},
+    "expected": "세인트폴강"
+  },
+  {
+    "name": "레이크 위니페고시스",
+    "category": "lake",
+    "overrides": {},
+    "expected": "레이크위니페고시스호"
+  },
+  {
+    "name": "조지아 만",
+    "category": "lake",
+    "overrides": {},
+    "expected": "조지아만"
+  },
+  {
+    "name": "비스툴라 석호",
+    "category": "lake",
+    "overrides": {},
+    "expected": "비스툴라석호"
+  },
+  {
+    "name": "브라마푸트라강 / 얄룽창포강",
+    "category": "river",
+    "overrides": {},
+    "expected": "브라마푸트라강/얄룽창포강"
+  },
+  {
+    "name": "Example River",
+    "category": "river",
+    "overrides": {},
+    "expected": "Example"
+  },
+  {
+    "name": "미명명 수계 4",
+    "category": "river",
+    "overrides": {},
+    "expected": "미명명 수계 4"
+  },
+  {
+    "name": "Example",
+    "category": "river",
+    "overrides": {
+      "Example": "산타 마리아강"
+    },
+    "expected": "산타마리아강"
+  },
+  {
+    "name": "  한강  ",
+    "category": "river",
+    "overrides": {},
+    "expected": "한강"
+  },
+  {
+    "name": "ELBE RİVER",
+    "category": "river",
+    "overrides": {},
+    "expected": "ELBE"
+  },
+  {
+    "name": "A LaKe",
+    "category": "lake",
+    "overrides": {},
+    "expected": "A"
+  },
+  {
+    "name": "",
+    "category": "river",
+    "overrides": {},
+    "expected": ""
+  }
+]
