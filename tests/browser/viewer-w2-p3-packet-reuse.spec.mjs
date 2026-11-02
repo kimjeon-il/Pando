@@ -58,6 +58,7 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       expect(row.stats.countrySharedBoundarySegmentCount).toBeGreaterThan(100);
       records.push(row);
     }
+    console.log('W2_P3_REAL_PACKET_CACHE '+JSON.stringify({initial,previous,records}).slice(0,13000));
     const all=records.at(-1).packets.filter(p=>p.kind==='prepared');
     expect(all.length,'actual boundary Worker should publish canonical packets in the real Viewer').toBeGreaterThanOrEqual(2);
     expect(all.some(p=>p.packetCacheHit===true),
