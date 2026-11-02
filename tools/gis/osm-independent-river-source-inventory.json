@@ -1,0 +1,425 @@
+{
+  "schema": "pando-osm-hydro-independent-source-candidate-inventory-v1",
+  "release": "HydroRIVERS v0.13.2",
+  "pinnedDataRevision": "5eb7be55208efaafe39bd5a65ec2f111d70b9053",
+  "pinnedBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+  "warning": "These are source search leads ONLY, not 31 approved replacements. Do not delete OSM relations or attribution until independent whole-system identities are validated and the packed release changes.",
+  "generalUnmatchedLookupSources": [
+    "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/",
+    "https://geonames.nga.mil/geonames/GNSHome/"
+  ],
+  "osmWaterwayMatchedSystems": 31,
+  "approvedSystems": 0,
+  "rows": [
+    {
+      "systemId": "10521208",
+      "currentNameKo": "샤리강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "10526283",
+      "currentNameKo": "샤리강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20071308",
+      "currentNameKo": "오울루강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://finto.fi/yso-paikat/en/page/p139542",
+        "https://finto.fi/yso-paikat/fi/page/p204727"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20075401",
+      "currentNameKo": "오울루강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://finto.fi/yso-paikat/en/page/p139542",
+        "https://finto.fi/yso-paikat/fi/page/p204727"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20282318",
+      "currentNameKo": "오데르강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://danepubliczne.imgw.pl/api/data/hydro/format/html"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20456598",
+      "currentNameKo": "우랄강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://silkadv.com/en/content/ural-river-kazakhstan",
+        "https://silkadv.com/ru/node/4653"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20532766",
+      "currentNameKo": "테레크강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://waterresources.ru/reki/terek/",
+        "https://www.mdpi.com/2073-4441/17/23/3390"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20540915",
+      "currentNameKo": "테레크강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://waterresources.ru/reki/terek/",
+        "https://www.mdpi.com/2073-4441/17/23/3390"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20561290",
+      "currentNameKo": "리오니강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+        "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20565620",
+      "currentNameKo": "리오니강",
+      "auditedBatch": 1,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+        "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Named station/reference point distances alone do not identify all Hydro mainstem/tributary fragments."
+    },
+    {
+      "systemId": "20628098",
+      "currentNameKo": "아무다리야강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://dahiti.dgfi.tum.de/en/12348/",
+        "https://www.mdpi.com/2073-4441/17/5/721"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "20773860",
+      "currentNameKo": "수에즈운하강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "20774342",
+      "currentNameKo": "수에즈운하강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "30145067",
+      "currentNameKo": "오비강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://dahiti.dgfi.tum.de/en/38692/",
+        "https://fish.gov.ru/wp-content/uploads/2025/11/zs.pdf",
+        "https://www.snt-bugorok.ru/level/uroven-vody-v-irtyshe-u-goroda-khanty-mansiisk-segodnya"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40188382",
+      "currentNameKo": "시르다리야강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40364680",
+      "currentNameKo": "청천강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-173649&outFields=*&f=json"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40391614",
+      "currentNameKo": "대동강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-187951&outFields=*&f=json"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40414035",
+      "currentNameKo": "례성강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?outFields=%2A&where=ufi+%3D+-191071"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40415850",
+      "currentNameKo": "림진강/임진강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-708771&outFields=*&f=json",
+        "https://www.nibr.go.kr/aiibook/access/ecatalogt.jsp?Dir=1069&callmode=admin&catimage=&eclang=ko&start=12&um=s"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40423228",
+      "currentNameKo": "남한강",
+      "auditedBatch": 2,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://yss.purpleo.kr/article/277"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Independent point-to-line proximity does not establish the complete Hydro system's river identity."
+    },
+    {
+      "systemId": "40475481",
+      "currentNameKo": "금강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "40486439",
+      "currentNameKo": "아라카와강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geonames/GNSHome/",
+        "https://www.ktr.mlit.go.jp/arage/suibou-info/common/html/rain2128100100001_10.html"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41023100",
+      "currentNameKo": "라비강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41067217",
+      "currentNameKo": "브라마푸트라강/얄룽창포강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41109275",
+      "currentNameKo": "난판강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41171836",
+      "currentNameKo": "룩남강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41182380",
+      "currentNameKo": "꺼우강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41337891",
+      "currentNameKo": "빠삭강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41386179",
+      "currentNameKo": "미명명 수계 41386179",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geonames/GNSHome/"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41386700",
+      "currentNameKo": "미명명 수계 41386700",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://geonames.nga.mil/geonames/GNSHome/"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    },
+    {
+      "systemId": "41390476",
+      "currentNameKo": "발라이강",
+      "auditedBatch": 3,
+      "priorEvidenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+      "namedPointCandidateUrls": [
+        "https://vupc.mae.gov.vn/Data/files/12-2017-tt-btnmt.pdf"
+      ],
+      "independentIdentityConfirmed": false,
+      "metadataReplacementApproved": false,
+      "geometryChanged": false,
+      "caveat": "Government gazetteer point screening did not approve any name or whole-system match.",
+      "priorScreenIdentityConfirmed": false
+    }
+  ]
+}
