@@ -20,10 +20,10 @@ prepare-reference-analysis-assets.mjs prepares/checks only the shared pinned
 language files. Tesseract and ONNX Runtime reuse installed Node dependencies;
 there is no browser runtime bundle, Blob bootstrap or static server. The plugin
 Worker owns OCR startup cancellation and failures. The source-verified Windows
-native ONNX exporter can create an untrained interface diagnostic in the fixed
-ignored build directory. Install the matching CI artifact in
+and Linux native ONNX exporter can create an untrained interface diagnostic in
+the fixed ignored build directory. Install the matching CI artifact in
 `build-native/reference-analysis/onnx-export` and point `--torch-library` to the
-matching LibTorch 2.14.1 runtime directory. Existing outputs are never replaced.
+matching LibTorch runtime (2.14.1 on Windows or 2.7.1 on Linux). Existing outputs are never replaced.
 This diagnostic is never a release model.
 
 ```powershell
@@ -76,10 +76,12 @@ single corpus, provide its supervision directory; for a mixed corpus, provide
 the auxiliary corpus and explicitly allow its nonmacro scope. The verifier
 checks parent receipts, recorded order, source identities and reconstructed
 training tensors. With `--replay-updates`, an explicit new scratch directory and
-the matching LibTorch runtime, it also re-executes up to 16 recorded batches on
-the recorded device and compares every resulting checkpoint state. Existing
-outputs and changed sources are rejected. This does not establish complete
-training lineage or admit a model for independent evaluation.
+the matching LibTorch runtime, it also re-executes the recorded batches on
+the recorded device and compares every resulting checkpoint state. Up to 100,000
+explicitly ordered checkpoints are accepted, subject to the scratch-space and
+headroom checks. Existing outputs and changed sources are rejected. Full replay
+from the verified public encoder can establish the declared training and selection
+lineage; transferred weights remain incomplete and no replay approves a model.
 
 ```powershell
 node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory $firstCheckpoint $secondCheckpoint
