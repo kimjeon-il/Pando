@@ -94,6 +94,32 @@ Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lin
     auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
 }
 Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+Value sharedBoundaryDistances(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* reader)const{if(reader)GEOSGeoJSONReader_destroy_r(context,reader);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
+    if(!reader)throw std::runtime_error("GEOS GeoJSON reader failed");
+    const auto country=[&](const char* key){const auto& source=field(input,key);const auto json=source.encode();
+        auto result=own(context.get(),GEOSGeoJSONReader_readGeometry_r(context.get(),reader.get(),json.c_str()));
+        const int type=GEOSGeomTypeId_r(context.get(),result.get());
+        if(type!=GEOS_POLYGON&&type!=GEOS_MULTIPOLYGON)throw std::invalid_argument("Country geometry must be a polygon");
+        return result;};
+    auto left=country("left"),right=country("right");
+    auto leftBoundary=own(context.get(),GEOSBoundary_r(context.get(),left.get()));
+    auto rightBoundary=own(context.get(),GEOSBoundary_r(context.get(),right.get()));
+    auto shared=own(context.get(),GEOSIntersection_r(context.get(),leftBoundary.get(),rightBoundary.get()));
+    const char empty=GEOSisEmpty_r(context.get(),shared.get());
+    if(empty==1)throw std::invalid_argument("Shared country boundary is empty");
+    if(empty!=0)throw std::runtime_error("Shared country boundary check failed");
+    const auto& points=array(field(input,"points"));if(points.empty()||points.size()>1000000)throw std::invalid_argument("Bounded boundary points required");
+    std::vector<double> distances;distances.reserve(points.size());
+    for(const auto& source:points){auto point=geometry(context.get(),{inputPoint(source)},true);double distance=0;
+        if(!GEOSDistance_r(context.get(),shared.get(),point.get(),&distance)||!std::isfinite(distance)||distance<0)
+            throw std::runtime_error("Shared country boundary distance failed");
+        distances.push_back(distance);}
+    auto result=Value::obj();result.object["distances"]=numberArray(distances);return result;
+}
 Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GEOSGeometry* target,int count){
     const double total=std::accumulate(source.lengths.begin(),source.lengths.end(),0.0);
     if(!std::isfinite(total)||total<=0)throw std::invalid_argument("Invalid total river length");
@@ -109,6 +135,10 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
     return distances;
 }
 Value run(const Value& input){
+    if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
+    const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="shared-boundary")
+        return sharedBoundaryDistances(input);
     const auto crs=utm(field(input,"crs"));const auto& sourceLines=array(field(input,"lines"));const auto& sourcePoints=array(field(input,"points"));
     std::string mode="union_if_line";
     const auto modeField=input.object.find("mode");
