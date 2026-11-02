@@ -98,7 +98,11 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
       cursor:globalThis.__PANDOLAB_VIEWER__?.documentState()?.timelineCursor,
       ready:document.querySelector('#viewerStatus')?.dataset.ready
     })),{timeout:100000}).toEqual({month:earlier,cursor:earlier,ready:'true'});
-    const obs=await page.evaluate(()=>structuredClone(globalThis.__MAIN_STALL_PROBE__));
+    const obs=await page.evaluate(()=>{
+      const p=globalThis.__MAIN_STALL_PROBE__;
+      return {marks:p.marks.slice(),longTasks:p.longTasks.slice(),longFrames:p.longFrames.slice(),
+        glCalls:p.glCalls.slice(),heartbeat:p.heartbeat.slice()};
+    });
     summary.observation=obs;
     const completed=new Promise((resolve,reject)=>{
       cdp.once('Tracing.tracingComplete',resolve);
