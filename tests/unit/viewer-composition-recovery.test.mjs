@@ -54,7 +54,7 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
       open:async reader=>{openRevision++;await reader();if(!suppressReadyCertificate)preparationObserver({status:'ready'},openRevision);return true;}}),
     createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
     createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
-    createBuiltinMonthClock:options=>({...controller(),month:()=>null,isAutomatic:()=>!manual,
+    createBuiltinMonthClock:options=>({...controller(),month:()=>null,suspend:()=>()=>true,isAutomatic:()=>!manual,
       refresh:()=>manual?false:options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop}),
       followNow:()=>{nowSelections++;return options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop});}}),
   };
