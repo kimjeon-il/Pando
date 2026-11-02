@@ -292,7 +292,7 @@ test('fixture gate validates the complete current canonical Node module closure'
   const baselineRoot = matchingFixtureRoot(t, boundaryFixtureFiles(root));
   const { fixtureFiles } = checkBoundaryFixtureEquivalence(root, baselineRoot);
   for (const path of ['shared/frontend/js/modules/project-state.js', 'shared/frontend/js/modules/polygon-geometry.js',
-    'tools/gis/project-serializer.js', 'tests/fixtures/timeline-storage.json',
+    'tools/gis/project-template-compiler.js', 'tests/fixtures/timeline-storage.json',
     'tests/helpers/core-session-node-worker.mjs', 'shared/frontend/js/modules/core-document-runtime.js',
     'shared/frontend/static/wasm/pandoeditor-core.wasm', 'shared/core/src/webobjectcommands.cpp',
     'tests/fixtures/portability/web-9300609-oracle/manifest.json',

@@ -4,7 +4,7 @@ import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import test from 'node:test';
 import {readTerritorialSources,entityFileName,territorialSourceRoot} from '../../tools/territorial-entity-sources.mjs';
-import {selectGeometryVersion} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {selectGeometryVersion} from "../../tools/gis/territorial-library.js";
 import {FOUNDER_IDS,MEMBER_HASHES,MASTER,DISPLAY} from '../../tools/gis/replay-ussr-1922-countries.mjs';
 const data = new URL('../../assets/data/',import.meta.url);
 const baseline = JSON.parse(fs.readFileSync(new URL('../fixtures/territorial-entity-baseline.json',import.meta.url),'utf8'));

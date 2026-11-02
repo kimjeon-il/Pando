@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createProjectSerializer} from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import {createProjectTemplateCompiler} from "../../tools/gis/project-template-compiler.js";
 import {createSaveStateController} from "../../apps/editor/frontend/js/modules/save-state-controller.js";
 import {projectForStorage,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
@@ -10,7 +10,7 @@ const {fingerprintProjectBaseline}=await loadWebOracle('assets/js/modules/projec
 function project(staticOnly=false) {
   const source=projectForStorage();
   if(staticOnly)source.projectFields.timelineRecords.geometryBindings=[{id:'shape-static',objectRef:{domain:"territorial",id:'A'},validFrom:null,validTo:null,geometryRef:{id:'shape',version:2}}];
-  return structuredClone(createProjectSerializer({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],
+  return structuredClone(createProjectTemplateCompiler({appVersion:'0.34.0',baseDataset:'base',distributionModes:['territorial','geometry'],
     terrainDataset:'terrain',hydroDataset:'hydro',readSnapshot:()=>source}).buildProject());
 }
 async function session(t,input=staticAutosaveProject()) {

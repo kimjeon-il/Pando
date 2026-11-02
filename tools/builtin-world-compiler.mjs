@@ -6,7 +6,7 @@ import { BUILTIN_TERRITORY_MERGES } from "../shared/frontend/js/modules/builtin-
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../shared/frontend/js/modules/territorial-units.js";
 import { createGeometryVersionStore } from "../shared/frontend/js/modules/geometry-version-store.js";
 import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline-records.js";
-import { createProjectSerializer } from "./gis/project-serializer.js";
+import { createProjectTemplateCompiler } from "./gis/project-template-compiler.js";
 import { DISTRIBUTION_MODES } from "../shared/frontend/js/modules/distribution-model.js";
 import {territorialNameData} from './gis/territorial-library.js';
 import { adjustHistoricalTerritories, historicalWorldClipper,createHistoricalTerritoryCache } from './historical-world-territories.mjs';
@@ -256,7 +256,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     distributionSettings:{renderMode:'overlap',activeLayerId:'',boundaryVisible:true},
     projectSetup:{initialMonth:'1970-01',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
     layerPresentation:{schemaVersion:5,styles:{},objectStyles:{},objectOrder:[]}}};
-  const template=createProjectSerializer({appVersion:'builtin-world-v1',distributionModes:Object.values(DISTRIBUTION_MODES),
+  const template=createProjectTemplateCompiler({appVersion:'builtin-world-v1',distributionModes:Object.values(DISTRIBUTION_MODES),
     now:()=>new Date(0),readSnapshot:()=>snapshot}).buildProject();
   delete template.projectSetup;
   const countries=[];

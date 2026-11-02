@@ -6,7 +6,7 @@ import {
   GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS,
   GENERIC_FEATURE_SCHEMA_VERSION,
   normalizeGenericFeatureCollection,
-} from "../tools/gis/generic-feature-service.js";
+} from "../shared/frontend/js/modules/generic-feature-normalization.js";
 import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
 } from "../shared/frontend/js/modules/source-provenance.js";
@@ -59,7 +59,7 @@ const projectStateSource = read('shared/frontend/js/modules/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {
   if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance validation marker: ${marker}`);
 }
-const serializerSource = read('tools/gis/project-serializer.js');
+const serializerSource = read('tools/gis/project-template-compiler.js');
 for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {
   if (!serializerSource.includes(marker)) fail(`serializer is missing Generic fallback contract marker: ${marker}`);
 }

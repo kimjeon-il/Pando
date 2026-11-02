@@ -4,7 +4,7 @@
   "removedSourceCount": 45,
   "removedTestCount": 10,
   "remainingSourceCount": 108,
-  "extractedGisModules": 11,
+  "extractedGisModules": 10,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
     "apps/editor/frontend/js/bootstrap.js",
@@ -64,5 +64,16 @@
     "tests/unit/selection-ui-focus.test.mjs",
     "tests/unit/surface-tabs-controller.test.mjs",
     "tests/unit/tool-controller.test.mjs"
-  ]
+  ],
+  "r4bDataSeparation": {
+    "version": 1,
+    "canonicalGenericFeatureNormalization": "shared/frontend/js/modules/generic-feature-normalization.js",
+    "historicalCommandAdapter": "tests/helpers/generic-feature-command-service.mjs",
+    "retiredMixedModule": "tools/gis/generic-feature-service.js",
+    "canonicalProjectTemplateCompiler": "tools/gis/project-template-compiler.js",
+    "canonicalBaselineFingerprint": "shared/frontend/js/modules/project-baseline-fingerprint.js",
+    "retiredAutosaveAdapter": "tests/helpers/legacy-project-autosave.mjs",
+    "removedLegacyGisSerializer": "tools/gis/project-serializer.js",
+    "territorialLibraryOwner": "tools/gis/territorial-library.js"
+  }
 }
