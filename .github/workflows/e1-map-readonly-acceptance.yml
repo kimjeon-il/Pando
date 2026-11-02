@@ -14,6 +14,9 @@ on:
       - shared/frontend/js/modules/map-workspace-host.js
       - shared/frontend/js/modules/rendering-domain.js
       - apps/viewer/js/modules/viewer-map.js
+      - apps/viewer/js/modules/viewer-composition.js
+      - tests/unit/viewer-composition-recovery.test.mjs
+      - tests/browser/viewer-project-open.spec.mjs
       - tests/unit/core-product-mode.test.mjs
       - tests/unit/map-readonly-flat-boundary.test.mjs
       - tests/unit/shared-map-composition.test.mjs
@@ -72,6 +75,7 @@ jobs:
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/application-composition.test.mjs
           tests/unit/domain-split-contract.test.mjs
+          tests/unit/viewer-composition-recovery.test.mjs
       - name: Verify existing runtime module boundaries
         run: node scripts/check-runtime-boundaries.mjs
 

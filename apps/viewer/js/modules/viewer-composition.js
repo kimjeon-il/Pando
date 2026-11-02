@@ -179,6 +179,7 @@ export async function composeViewer({ productMode, meta }) {
     const preserved=options?.preserveView?map.capturePresentation():null;
     openingPreserved=preserved;
     const request=projectDomain.getOpenRevision()+1;
+    const previouslyReady=status.dataset.ready==='true';
     // The prior dated map remains visible, but the requested new frame is
     // not ready until its generation has actually been presented. Keep the
     // existing presentation-commit and benchmark ordering intact.
@@ -188,7 +189,11 @@ export async function composeViewer({ productMode, meta }) {
     presentViewerLoadStatus(status,options?.presentation==='temporal'?'다음 시점 준비 중…':'지도 불러오는 중…');
     status.dataset.ready='false';
     try {
-    if(!await projectDomain.open(reader,options)){firstMap.cancel();return false;}
+    if(!await projectDomain.open(reader,options)){
+      firstMap.cancel();
+      if(request===projectDomain.getOpenRevision())status.dataset.ready=String(previouslyReady);
+      return false;
+    }
     if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
     const presentedGeneration=projectDomain.getGeneration();
     firstMap.accept(presentedGeneration);
@@ -207,8 +212,8 @@ export async function composeViewer({ productMode, meta }) {
     } catch(error){firstMap.cancel();if(request===projectDomain.getOpenRevision()){
       // A rejected source read or successfully rolled-back candidate still
       // leaves the previous dated map active. A failed restoration does not.
-      status.dataset.ready=error.restoreError?'false'
-        :String(retainingDatedFrame||initialPresentation.hasPresented());
+      status.dataset.ready=String(!error.restoreError
+        &&(previouslyReady||retainingDatedFrame||initialPresentation.hasPresented()));
       presentViewerLoadStatus(status,'지도를 불러오지 못했습니다.');throw error;
     }return false;}
     finally {

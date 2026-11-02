@@ -17,11 +17,12 @@ class Element extends EventTarget {
   appendChild(value){this.children.push(value);}
   setAttribute(name,value){this[name]=value;}
 }
-async function fixture({engineFailure=false,mapFailure=false}={}){
+async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertificate=false}={}){
   const elements=new Map(),document=new EventTarget(),window=new EventTarget();
   document.visibilityState='visible';document.getElementById=id=>{if(!elements.has(id))elements.set(id,new Element());return elements.get(id);};
   document.createElement=()=>new Element();window.document=document;window.navigator={onLine:true};window.CustomEvent=CustomEvent;window.location={search:''};
   let loads=0,maps=0,reads=0,disposed=0,nowSelections=0,manual=false,openRevision=0,ready=0;
+  let openUserProject;
   let preparationObserver=noop;
   window.addEventListener('pandolab:ready',()=>ready++);
   const controller=()=>({bind:noop,dispose:()=>disposed++,connect:noop,enhanceAll:noop,sync:noop,resetProject:noop,syncNow:noop,
@@ -50,8 +51,8 @@ async function fixture({engineFailure=false,mapFailure=false}={}){
     installTimelineControls:()=>noop,createAppObjectSearchController:()=>objectCatalog,createSemanticIcon:noop,createEmptyState:noop,
     createSelectionDomain:controller,coreSelectionRefToWeb:noop,webSelectionRefToCore:noop,createDocumentSession:()=>session,
     createProjectDomain:()=>({...controller(),getOpenRevision:()=>openRevision,getGeneration:()=>openRevision,isOpening:()=>false,
-      open:async reader=>{openRevision++;await reader();preparationObserver({status:'ready'},openRevision);return true;}}),
-    createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:controller,readProjectFile:noop,
+      open:async reader=>{openRevision++;await reader();if(!suppressReadyCertificate)preparationObserver({status:'ready'},openRevision);return true;}}),
+    createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
     createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
     createBuiltinMonthClock:options=>({...controller(),month:()=>null,isAutomatic:()=>!manual,
       refresh:()=>manual?false:options.applyMonth('1953-07',{isCurrent:()=>true,commit:noop}),
@@ -63,7 +64,8 @@ async function fixture({engineFailure=false,mapFailure=false}={}){
   const context=vm.createContext(bindings);vm.runInContext(source+'\nglobalThis.run=composeViewer;',context);
   await context.run({productMode:'viewer',meta:{appVersion:'test'}});
   return {window,initialLoading:()=>document.getElementById('viewer').dataset.initialLoading,status:document.getElementById('viewerStatus'),manual:()=>{manual=true;},
-    stats:()=>({loads,maps,reads,disposed,nowSelections,ready}),wake:()=>window.dispatchEvent(new Event('focus'))};
+    stats:()=>({loads,maps,reads,disposed,nowSelections,ready}),wake:()=>window.dispatchEvent(new Event('focus')),
+    openInvalidProject:()=>openUserProject(async()=>{throw new Error('invalid project payload');})};
 }
 
 test('actual viewer composition resumes initial engine admission before creating the map once',async()=>{
@@ -99,4 +101,13 @@ test('recoverable startup errors remain visible with retry; recovery returns to 
   assert.equal(f.status.role,'status');assert.equal(f.status.hidden,false);
   assert.equal(f.status.dataset.ready,'true');assert.equal(f.status.children.length,0);
   f.window.dispatchEvent(Object.assign(new Event('pagehide'),{persisted:false}));
+});
+
+
+test('rejected project read restores previously accepted map readiness even without first-frame certification',async()=>{
+  const f=await fixture({suppressReadyCertificate:true});
+  assert.equal(f.status.dataset.ready,'true');
+  assert.equal(f.initialLoading(),'true');
+  await assert.rejects(f.openInvalidProject(),/invalid project payload/);
+  assert.equal(f.status.dataset.ready,'true');
 });
