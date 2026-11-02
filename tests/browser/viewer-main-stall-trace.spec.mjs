@@ -165,3 +165,97 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
     await cdp.detach();
   }
 });
+
+
+test('Compare native compositor stall with the SVG and GPU canvas selectively hidden (diagnostic only)',async({page},info)=>{
+  test.setTimeout(240000);
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>{
+    const p=globalThis.__LAYER_ABLATION__={events:[],longTasks:[],heartbeat:null,mark(name){
+      this.events.push({name,at:performance.now()});
+    },start(){
+      const record={start:performance.now(),ticks:[]};
+      record.timer=setInterval(()=>record.ticks.push(performance.now()),16);
+      this.heartbeat=record;
+    },end(){
+      if(!this.heartbeat)return;
+      clearInterval(this.heartbeat.timer);
+      this.heartbeat.end=performance.now();
+    }};
+    try{new PerformanceObserver(list=>{
+      for(const entry of list.getEntries())p.longTasks.push({at:entry.startTime,ms:entry.duration});
+    }).observe({type:'longtask',buffered:true});}catch(_){}
+  });
+  await page.route('**/modules/core-document-client.js*',async route=>{
+    const response=await route.fetch();let source=await response.text();
+    source=replaceOnce(source,'      const { result } = await rpc.request(operation, request, atomic || speculative',
+      "      if(operation==='core.document-replacement-release'){window.__LAYER_ABLATION__.mark('release:start');window.__LAYER_ABLATION__.start();}"+
+      '      const { result } = await rpc.request(operation, request, atomic || speculative');
+    source=replaceOnce(source,'        ? { timeoutMs: 0 } : { signal: options.signal });',
+      "        ? { timeoutMs: 0 } : { signal: options.signal });if(operation==='core.document-replacement-release'){window.__LAYER_ABLATION__.mark('release:end');window.__LAYER_ABLATION__.end();}");
+    await route.fulfill({response,body:source});
+  });
+  await page.goto('/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
+  const currentMonth=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month);
+  expect(currentMonth).toMatch(/^\d{4}-\d{2}$/);
+  const previousMonth=String(Number(currentMonth.slice(0,4))-1)+'-12';
+  const scenarios=[
+    {name:'baseline',hidden:[],button:'timelinePreviousYear',month:previousMonth},
+    {name:'hide-label-svg',hidden:['viewerLabels'],button:'timelineNextYear',month:currentMonth},
+    {name:'hide-gpu-canvas',hidden:['viewerCanvas'],button:'timelinePreviousYear',month:previousMonth},
+    {name:'hide-both-map-surfaces',hidden:['viewerCanvas','viewerLabels'],button:'timelineNextYear',month:currentMonth},
+    {name:'restored-baseline',hidden:[],button:'timelinePreviousYear',month:previousMonth},
+  ];
+  const observations=[];
+  try{
+    for(const scenario of scenarios){
+      await page.evaluate(ids=>{
+        let node=document.getElementById('pando-ablation-style');
+        if(!node){node=document.createElement('style');node.id='pando-ablation-style';document.head.appendChild(node);}
+        node.textContent=ids.map(id=>'#'+id+' {visibility:hidden !important}').join('\n');
+        window.__LAYER_ABLATION__.events=[];
+        window.__LAYER_ABLATION__.longTasks=[];
+        window.__LAYER_ABLATION__.heartbeat=null;
+      },scenario.hidden);
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      const start=await page.evaluate(()=>performance.now());
+      await page.locator('#'+scenario.button).click();
+      await expect.poll(()=>page.evaluate(()=>({
+        month:globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month,
+        cursor:globalThis.__PANDOLAB_VIEWER__?.documentState()?.timelineCursor,
+        ready:document.querySelector('#viewerStatus')?.dataset.ready
+      })),{timeout:90000}).toEqual({month:scenario.month,cursor:scenario.month,ready:'true'});
+      const observation=await page.evaluate(since=>{
+        const p=globalThis.__LAYER_ABLATION__;
+        const start=p.events.find(e=>e.name==='release:start')?.at??null;
+        const end=p.events.find(e=>e.name==='release:end')?.at??null;
+        const tasks=p.longTasks.filter(e=>e.at>=since-50);
+        const hb=p.heartbeat;
+        const points=hb?[hb.start,...hb.ticks,hb.end]:[];
+        return {
+          releaseMs:start!==null&&end!==null?end-start:null,
+          longTaskMaxMs:Math.max(0,...tasks.map(t=>t.ms)),
+          longTasks:tasks.filter(t=>t.ms>100).slice(0,12),
+          heartbeatTicks:hb?.ticks?.length??null,
+          heartbeatLongestGapMs:points.length>1?Math.max(...points.slice(1).map((v,i)=>v-points[i])):null,
+          labelsChildCount:document.getElementById('viewerLabels').querySelectorAll('*').length,
+          canvasPixels:[document.getElementById('viewerCanvas').width,document.getElementById('viewerCanvas').height],
+          visibleTerritorialCount:globalThis.__PANDOLAB_VIEWER__?.visibleTerritorialCount()
+        };
+      },start);
+      const row={scenario:scenario.name,hidden:scenario.hidden,month:scenario.month,...observation};
+      observations.push(row);
+      console.log('PANDO_LAYER_ABLATION '+JSON.stringify(row));
+      expect(row.releaseMs,'Each case must retain the real Core release handshake').not.toBe(null);
+      expect(row.visibleTerritorialCount).toBeGreaterThan(0);
+    }
+    expect(errors).toEqual([]);
+  }finally{
+    await mkdir('test-results/viewer-main-stall',{recursive:true});
+    const path='test-results/viewer-main-stall/ablation.json';
+    await writeFile(path,JSON.stringify({observations,errors},null,2));
+    await info.attach('viewer-surface-ablation',{path,contentType:'application/json'});
+  }
+});
