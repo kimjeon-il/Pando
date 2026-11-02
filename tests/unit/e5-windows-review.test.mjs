@@ -45,7 +45,7 @@ test('E5 Windows Tauri uses the unique review entry and narrow read-only capabil
     'finish-document-write','read-document-chunk','library-open-geometry'])
     assert.ok(!cap.permissions.some(p=>p.includes(forbidden)),forbidden);
   const native=read('apps/editor/src-tauri/src/lib.rs');
-  regex(native,/let entry = if cfg!\(windows\) \{ "review\.html" \} else \{ "index\.html" \}/);
+  regex(native,/let entry = "review\.html"/);
   regex(native,/on_navigation\(local_navigation\)/);
   for(const deleted of ['document_transfer::','library_commands::','TransferManager::'])
     assert.equal(native.includes(deleted),false,'legacy mutation IPC still registered: '+deleted);
@@ -54,7 +54,9 @@ test('E5 Windows Tauri uses the unique review entry and narrow read-only capabil
   const stage=read('apps/editor/stage.mjs');
   regex(stage,/snapshot\.html\.viewer/);
   regex(stage,/await emit\('review\.html',reviewer/);
-  regex(stage,/nativeEntry:windowsReview\?'review\.html':'index\.html'/);
+  regex(stage,/!snapshot\.viewerPaths\.has\(path\)/);
+  regex(stage,/nativeEntry:'review\.html'/);
+  assert.doesNotMatch(stage,/snapshot\.html\.editor|shell\/startup\.js/);
   regex(stage,/read-only|review/);
   const prod=read('apps/editor/native-producer.mjs');
   regex(prod,/PANDOLAB_NATIVE_REVIEW:'1'/);
