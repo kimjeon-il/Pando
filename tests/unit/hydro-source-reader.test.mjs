@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
@@ -10,6 +10,7 @@ import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydr
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
+import {executeHydroCalibration} from '../../tools/gis/calibrate-hydro.mjs';
 
 const archive='tests/fixtures/hydro-source/fixture.zip';
 const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/spec.json','utf8'));
@@ -185,6 +186,31 @@ test('verified selected river and lake sources produce a complete analysis resul
     assert.equal(result.regions.europe.rivers['6.0'].targetCount,1);assert.equal(result.regions.europe.lakes['6.0'].targetCount,1);
     assert.equal(result.representativeChecks['나일강'].present,false);assert.equal(result.acceptance.representativeFeaturesPresent,false);
     assert.equal(analysis.regions[0].region.id,'europe');assert.deepEqual(result.sources,{fixture:true});assert.deepEqual(input,before);
+  });
+test('calibration command writes verified results and comparison image only to a new output',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT||!process.env.PANDO_MAP_PREVIEW_ARTIFACT},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-command-'));t.after(()=>rm(root,{recursive:true}));
+    const source=await generationFixture(root),lake=await lakeFixture(root),riverRoot=join(root,'rivers'),lakeRoot=join(root,'lakes'),earth=join(root,'data','hydro');
+    for(const path of [riverRoot,lakeRoot,earth])await mkdir(path,{recursive:true});
+    for(const member of await zipMembers(source.archive)){const chunks=[];for await(const chunk of zipMemberChunks(source.archive,member))chunks.push(chunk);
+      await writeFile(join(riverRoot,member.name.split('/').at(-1)),Buffer.concat(chunks));}
+    for(const ext of ['shp','dbf','shx','prj'])await writeFile(join(lakeRoot,`HydroLAKES_polys_v10.${ext}`),lake.data[ext]);
+    const line={type:'Feature',properties:{min_zoom:6},geometry:{type:'LineString',coordinates:[[0,0],[2,0]]}},
+      polygon={type:'Feature',properties:{min_zoom:6},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}};
+    for(const [name,features] of Object.entries({rivers_base:[],lakes_base:[],rivers_europe:[line],lakes_europe:[polygon]}))
+      await writeFile(join(earth,`${name}.geojson`),JSON.stringify({type:'FeatureCollection',features}));
+    const region={id:'europe',label:'유럽',riverCode:'eu',bbox:[0,-1,3,2],riverLayer:'rivers_europe',lakeLayer:'lakes_europe',calibrate:true};
+    const regularFont=process.platform==='win32'?'C:/Windows/Fonts/malgun.ttf':'/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+      boldFont=process.platform==='win32'?'C:/Windows/Fonts/malgunbd.ttf':'/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+    const input={riverRoots:[riverRoot],hydrolakes:lakeRoot,naturalEarthRoot:earth,output:join(root,'output'),regions:[region],regularFont,boldFont};
+    const options={pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},
+      calibration:{directory:process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT},preview:{directory:process.env.PANDO_MAP_PREVIEW_ARTIFACT}};
+    await assert.rejects(executeHydroCalibration({...input,output:join(earth,'unsafe')},options),/outside runtime data/i);
+    const receipt=await executeHydroCalibration(input,options),result=JSON.parse(await readFile(join(root,'output','results.json'),'utf8'));
+    assert.equal(result.regions.europe.riverCandidates,2);assert.equal(result.regions.europe.lakeCandidates,1);
+    assert.equal(receipt.files.length,3);assert.equal((await readFile(join(root,'output','europe.png'))).subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+    const before=await readFile(join(root,'output','results.json'));await assert.rejects(executeHydroCalibration(input,options),/already exists/i);
+    assert.deepEqual(await readFile(join(root,'output','results.json')),before);
   });
 test('source metadata and native scoring stream in order across bounded batches',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{

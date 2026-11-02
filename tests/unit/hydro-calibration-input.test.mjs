@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -33,4 +34,8 @@ test('calibration source discovery binds selected shapefile members and rejects 
   assert.deepEqual(Object.keys(result.lakeFiles).sort(),['dbf','shp']);
   const copy=join(riverRoot,'copy');await mkdir(copy);await writeFile(join(copy,'HydroRIVERS_v10_eu.shp'),'other');
   await assert.rejects(prepareHydroCalibrationSourceFiles(input),/exactly one/i);
+});
+test('calibration CLI rejects missing required source paths',()=>{
+  const result=spawnSync(process.execPath,['tools/gis/calibrate-hydro.mjs'],{encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.match(result.stderr,/Expected --hydrorivers-root/);
 });

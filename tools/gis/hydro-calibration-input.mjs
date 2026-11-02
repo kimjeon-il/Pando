@@ -18,7 +18,7 @@ async function findUniqueSource(roots,filename,signal){
   }
   if(matches.size!==1)throw Error(`Expected exactly one ${filename}, found ${matches.size}`);return [...matches.values()][0];
 }
-async function hashSourceFile(path,signal){
+export async function fingerprintHydroCalibrationFile(path,signal){
   const before=await stat(path);if(!before.isFile())throw Error('Hydro source must be a file');const hash=createHash('sha256');let size=0;
   for await(const chunk of createReadStream(path,{signal})){signal?.throwIfAborted();size+=chunk.length;hash.update(chunk);}
   const after=await stat(path);if(size!==before.size||before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ino!==after.ino||before.dev!==after.dev)
@@ -28,7 +28,7 @@ async function shapefileMembers(shp,signal){
   const dir=dirname(shp),stem=basename(shp,extname(shp)).toLowerCase(),entries=await readdir(dir,{withFileTypes:true}),files={};
   for(const ext of ['shp','dbf','shx','prj']){const matches=entries.filter(entry=>entry.isFile()&&entry.name.toLowerCase()===`${stem}.${ext}`);
     if(matches.length>1||(!matches.length&&['shp','dbf'].includes(ext)))throw Error(`Expected one Hydro ${ext} source member`);
-    if(matches.length)files[ext]=await hashSourceFile(await realpath(join(dir,matches[0].name)),signal);}
+    if(matches.length)files[ext]=await fingerprintHydroCalibrationFile(await realpath(join(dir,matches[0].name)),signal);}
   return files;
 }
 export async function prepareHydroCalibrationSourceFiles({riverRoots,hydrolakes,regions,signal}={}){
