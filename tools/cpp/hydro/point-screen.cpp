@@ -363,6 +363,29 @@ Value calibrationLakeDuplicates(const Value& input){
         output.array.push_back(std::move(result));}
     auto result=Value::obj();result.object["lakes"]=std::move(output);return result;
 }
+Value calibrationClip(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& bounds=array(field(input,"bounds")),&sources=array(field(input,"geometries"));
+    if(bounds.size()!=4||sources.size()>100000)throw std::invalid_argument("Invalid calibration clipping batch");
+    std::array<double,4> box{};for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(bounds[i]);
+    if(box[2]<=box[0]||box[3]<=box[1])throw std::invalid_argument("Invalid calibration clipping bounds");
+    auto region=own(context.get(),GEOSGeom_createRectangle_r(context.get(),box[0],box[1],box[2],box[3]));
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    struct WriterDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONWriter* value)const{if(value)GEOSGeoJSONWriter_destroy_r(context,value);}};
+    struct TextDeleter{GEOSContextHandle_t context;void operator()(char* value)const{if(value)GEOSFree_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
+    std::unique_ptr<GEOSGeoJSONWriter,WriterDeleter> writer(GEOSGeoJSONWriter_create_r(context.get()),WriterDeleter{context.get()});
+    if(!reader||!writer)throw std::runtime_error("GEOS GeoJSON setup failed");
+    auto output=Value::arr();output.array.reserve(sources.size());
+    for(const auto& source:sources){auto geometry=own(context.get(),GEOSGeoJSONReader_readGeometry_r(context.get(),reader.get(),source.encode().c_str()));
+        const auto valid=GEOSisValid_r(context.get(),geometry.get());if(valid==2)throw std::runtime_error("GEOS source validity failed");
+        if(!valid)geometry=own(context.get(),GEOSBuffer_r(context.get(),geometry.get(),0,16));
+        auto clipped=own(context.get(),GEOSIntersection_r(context.get(),geometry.get(),region.get()));
+        std::unique_ptr<char,TextDeleter> json(GEOSGeoJSONWriter_writeGeometry_r(context.get(),writer.get(),clipped.get(),-1),TextDeleter{context.get()});
+        if(!json)throw std::runtime_error("GEOS clipped GeoJSON failed");output.array.push_back(pandoeditor::codecjson::parse(json.get()));}
+    auto result=Value::obj();result.object["geometries"]=std::move(output);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -406,6 +429,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-clip")
+        return calibrationClip(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-lake-duplicates")
         return calibrationLakeDuplicates(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-river-duplicates")
