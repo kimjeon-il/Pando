@@ -88,7 +88,11 @@ export async function exportNativeCheckpointWeights({checkpoint,output,device='c
     throw Error('Explicit native checkpoint, new output, device and torch library required');
   const source=resolve(checkpoint),hash=trainingFileIdentity(source),receiptPath=source+'.receipt.json',
     receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
-  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash)
+  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash||
+    !/^[a-f0-9]{64}$/.test(receipt.corpusSha256||'')||!['weights-only-no-optimizer','public-encoder-no-optimizer'].includes(receipt.initialization)||
+    (receipt.initializationSourceSha256!=null&&!/^[a-f0-9]{64}$/.test(receipt.initializationSourceSha256))||
+    (receipt.lineageFingerprint!=null&&!/^[a-f0-9]{64}$/.test(receipt.lineageFingerprint))||
+    (receipt.checkpointBytes!==undefined&&receipt.checkpointBytes!==statSync(source).size))
     throw Error('Private checkpoint receipt differs from its file');
   const target=resolve(output);if(existsSync(target))throw Error('Weights output exists; preserve it');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
@@ -105,7 +109,8 @@ export async function exportNativeCheckpointWeights({checkpoint,output,device='c
     throw Error('Checkpoint changed during weights export; preserve the output');
   const record={schemaVersion:1,transfer:'weights-only-no-optimizer',sourceFormat:'native-training-checkpoint',
     sourceCheckpointSha256:hash,sourceReceiptSha256:receiptHash,sourceInitializationSha256:receipt.initializationSourceSha256??null,
-    sourceCorpusManifestSha256:receipt.corpusSha256??null,weightsSha256,optimizerStateTransferred:false,lineageComplete:false,
+    sourceCorpusManifestSha256:receipt.corpusSha256,...(receipt.lineageFingerprint?{trainingCorpusSha256:receipt.lineageFingerprint}:{}),
+    weightsSha256,optimizerStateTransferred:false,lineageComplete:false,
     trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,toolRevision:tool.revision};
   writeFileSync(join(target,'transfer.json'),JSON.stringify(record,null,2)+'\n',{flag:'wx'});return {...record,weights};
 }
@@ -227,7 +232,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       console.log(JSON.stringify(await exportNativeCheckpointWeights({checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
         output:reportArgument(values.output,{access:'write'}),device:values.device,torchLibrary:values['torch-library'],directory:values.directory,signal:controller.signal})));
     }else{
-    if(positionals.length||!values.compare||!values.first||!values.second||!values.device||!values['torch-library'])
+    if(positionals.length||!values.compare||values.checkpoint||values.output||!values.first||!values.second||!values.device||!values['torch-library'])
       throw Error('Expected --compare with first, second, device and torch library');
     console.log(JSON.stringify(await compareNativeTrainingCheckpoints({first:reportArgument(values.first,{access:'read',siblings:true}),
       second:reportArgument(values.second,{access:'read',siblings:true}),device:values.device,torchLibrary:values['torch-library'],

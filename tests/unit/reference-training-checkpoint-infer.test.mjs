@@ -16,6 +16,10 @@ test('checkpoint weights export rejects an unrelated receipt and preserves outpu
   assert.equal(typeof validation.exportNativeCheckpointWeights,'function');
   await assert.rejects(validation.exportNativeCheckpointWeights({checkpoint,output,device:'cpu',torchLibrary:folder}),/receipt/i);
   assert.throws(()=>readFileSync(output),{code:'ENOENT'});
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',
+    checkpointSha256:createHash('sha256').update('fixture').digest('hex'),corpusSha256:'bad',initialization:'weights-only-no-optimizer'}));
+  await assert.rejects(validation.exportNativeCheckpointWeights({checkpoint,output,device:'cpu',torchLibrary:folder}),/receipt/i);
+  assert.throws(()=>readFileSync(output),{code:'ENOENT'});
 });
 test('native inference reports a child rejection instead of its closed pipe',async()=>{
   const child=spawn(process.execPath,['-e','process.stderr.write("native rejection sentinel");process.exit(1)'],{windowsHide:true,stdio:['pipe','pipe','pipe']});
