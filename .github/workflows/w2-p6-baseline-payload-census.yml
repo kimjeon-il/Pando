@@ -37,6 +37,8 @@ jobs:
           test "$(git -C .w2-p6-fixed rev-parse HEAD)" = "fe8282ba32761ab9586348d1712e11cc1f4e7882"
           node --check tools/w2-p6-1-country-payload-census.mjs
           pnpm exec eslint tools/w2-p6-1-country-payload-census.mjs
+      - name: P6-0 pinned C++/Worker country-boundary correctness regression
+        run: node --test --test-concurrency=1 --test-timeout=60000 .w2-p6-fixed/tests/unit/country-shared-boundary-state.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Census canonical 254-country Worker payload off the timed transition path
         env:
