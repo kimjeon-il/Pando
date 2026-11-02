@@ -150,7 +150,24 @@ export function writeStagedContent({root,directory,path,bytes,settings=storageSe
 }
 export function installNativeArtifactView({root,source,manifest,settings=storageSettings(root),afterFile=()=>{}}){
   if(!settings)throw Error('Activate application storage before installing native artifacts');
-  if(manifest.schema!==1||!/^[a-f0-9]{64}$/.test(manifest.nativeInputSha256)||!['windows','android','android-x86_64'].includes(manifest.platform)||!['development','offline','verification'].includes(manifest.mode))throw Error('Invalid native artifact identity');
+  // New installations are Windows-only. Retired Android cache objects remain untouched.
+  if(manifest?.schema!==1||!/^[a-f0-9]{64}$/.test(manifest.nativeInputSha256)||
+     manifest.platform!=='windows'||!['development','offline','verification'].includes(manifest.mode))
+    throw Error('Invalid Windows native artifact identity');
+  if(!Array.isArray(manifest.files)||!manifest.files.length)
+    throw Error('Invalid Windows native artifact file list');
+  const allowed=new Set(['pandolab-web-shell.exe','WebView2Loader.dll',
+    ...(manifest.mode==='offline'?['PandoLab-setup.exe']:[])]);
+  const selected=new Set();
+  for(const file of manifest.files){
+    if(!file||typeof file.path!=='string'||!allowed.has(file.path)||selected.has(file.path)||
+       !Number.isSafeInteger(file.bytes)||file.bytes<=0||!/^[a-f0-9]{64}$/.test(file.sha256))
+      throw Error('Unexpected Windows native artifact path, size, hash, or duplicate');
+    selected.add(file.path);
+  }
+  if(!selected.has('pandolab-web-shell.exe')||
+     (manifest.mode==='offline'&&!selected.has('PandoLab-setup.exe')))
+    throw Error('Required Windows executable or offline installer is missing');
   return withStorageLock(root,settings,()=>{
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'native/'+manifest.nativeInputSha256),pending=directory+'.pending',journal=containedPath(settings.cacheRoot,'native-install.pending.json');
     if(existsSync(journal)&&JSON.parse(readFileSync(journal)).manifest.nativeInputSha256!==manifest.nativeInputSha256)throw Error('Resume the pending native artifact installation first');
@@ -162,11 +179,11 @@ export function installNativeArtifactView({root,source,manifest,settings=storage
       if(existsSync(join(pending,'native-artifact.json'))&&JSON.stringify(JSON.parse(readFileSync(join(pending,'native-artifact.json'))))!==JSON.stringify(manifest))throw Error('Pending native artifact differs; preserve it for recovery');
       atomicStorageJSON(join(pending,'native-artifact.json'),manifest);atomicStorageJSON(journal,{root,source,manifest});
       const view={viewRoot:pending,marker:'native-artifact.json'};
-      for(const f of manifest.files){if(!['pandolab-web-shell.exe','WebView2Loader.dll','app.apk'].includes(f.path))throw Error('Unexpected native artifact path');const input=containedPath(source,f.path),bytes=readFileSync(input);if(bytes.length!==f.bytes||contentHash(bytes)!==f.sha256)throw Error('Downloaded native artifact changed');publishContent(store,bytes);linkContentView(store,f.sha256,containedPath(pending,f.path),view);afterFile(f);}
+      for(const f of manifest.files){const input=containedPath(source,f.path),bytes=readFileSync(input);if(bytes.length!==f.bytes||contentHash(bytes)!==f.sha256)throw Error('Downloaded native artifact changed');publishContent(store,bytes);linkContentView(store,f.sha256,containedPath(pending,f.path),view);afterFile(f);}
       checkFiles(pending,manifest);renameSync(pending,directory);
     }
     const current=JSON.parse(readFileSync(containedPath(directory,'native-artifact.json')));
-    if(current.nativeInputSha256!==manifest.nativeInputSha256||current.platform!==manifest.platform||current.mode!==manifest.mode)throw Error('Native view identity changed');checkFiles(directory,current);
+    if(current.nativeInputSha256!==manifest.nativeInputSha256||current.platform!==manifest.platform||current.mode!==manifest.mode||JSON.stringify(current)!==JSON.stringify(manifest))throw Error('Native view identity changed');checkFiles(directory,current);
     if(existsSync(journal))unlinkSync(journal);
     const pointer=containedPath(root,'.library-data/native-artifacts.json'),bindings=existsSync(pointer)?JSON.parse(readFileSync(pointer)):{};
     bindings[manifest.platform+'-'+manifest.mode]={directory,nativeInputSha256:manifest.nativeInputSha256};atomicStorageJSON(pointer,bindings);return directory;
