@@ -201,7 +201,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   await cdp.send('Profiler.enable');
   await cdp.send('Profiler.start');
   const initialMonth=await page.evaluate(()=>globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month??null);
-  expect(initialMonth).toMatch(/^\\d{4}-\\d{2}$/);
+  expect(initialMonth).toMatch(/^\d{4}-\d{2}$/);
   const previousYearMonth=String(Number(initialMonth.slice(0,4))-1)+'-12';
   const results=[];
   for(const [button,target] of [['timelinePreviousYear',previousYearMonth],['timelineNextYear',initialMonth]]){
