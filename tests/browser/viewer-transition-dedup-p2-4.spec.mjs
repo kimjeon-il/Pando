@@ -119,9 +119,23 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
       "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart});");
     await route.fulfill({response,body:source});
   });
-  const pageErrors=[],consoleErrors=[],failedRequests=[];
+  // Read-only diagnostic instrumentation of the real Core Worker entry.
+  await page.route('**/modules/core-document-runtime.js*',async route=>{
+    const response=await route.fetch();let source=await response.text();
+    source=swap(source,"  function call(method, args, context, projectResult = result => result) {\n    const result = queue.then(async () => {","  function call(method, args, context, projectResult = result => result) {\n    const __p2QueuedAt=performance.now();\n    const result = queue.then(async () => {\n      const __p2DequeuedAt=performance.now();");
+    source=swap(source,"      return projectResult(core[method](...(typeof args === 'function' ? args() : args)),core);","      if(method==='releaseReplacement'){\n        const __p2NativeStarted=performance.now();\n        const __p2Return=core[method](...(typeof args === 'function' ? args() : args));\n        const __p2NativeEnded=performance.now();\n        const __p2Project=projectResult(__p2Return,core);\n        console.info('P2_WORKER_RELEASE '+JSON.stringify({\n          queuedMs:__p2DequeuedAt-__p2QueuedAt,\n          sessionMs:__p2NativeStarted-__p2DequeuedAt,\n          nativeMs:__p2NativeEnded-__p2NativeStarted,\n          projectedMs:performance.now()-__p2NativeEnded,\n          released:__p2Return,\n        }));\n        return __p2Project;\n      }\n      return projectResult(core[method](...(typeof args === 'function' ? args() : args)),core);");
+    await route.fulfill({response,body:source});
+  });
+  const pageErrors=[],consoleErrors=[],failedRequests=[],nativeRelease=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
-  page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
+  page.on('console',message=>{
+    const str=message.text();
+    if(message.type()==='error')consoleErrors.push(str);
+    if(str.startsWith('P2_WORKER_RELEASE ')){
+      try{nativeRelease.push(JSON.parse(str.slice('P2_WORKER_RELEASE '.length)));}
+      catch(error){consoleErrors.push('Bad native timing payload '+error.message);}
+    }
+  });
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),error:request.failure()?.errorText}));
   await page.goto('/?debug=1&renderer=webgl2');
   await page.waitForFunction(()=>{
@@ -166,5 +180,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
     console.log('P2_COST_DIAG '+JSON.stringify({target,spans:result.spans,source:result.events.filter(e=>e.name.startsWith('source:')),rpc:result.events.filter(e=>e.name==='rpc:done'),cache:result.cache}).slice(0,14000));
   }
   expect(pageErrors).toEqual([]);
-  await info.attach('post-ready-cache-diagnostic',{body:JSON.stringify({results,pageErrors},null,2),contentType:'application/json'});
+  console.log('P2_WORKER_DIAG '+JSON.stringify({nativeRelease,consoleErrors}));
+  expect(nativeRelease.length,'Worker-side native release should be timed for both transitions').toBeGreaterThanOrEqual(2);
+  await info.attach('post-ready-cache-diagnostic',{body:JSON.stringify({results,pageErrors,nativeRelease,consoleErrors},null,2),contentType:'application/json'});
 });
