@@ -77,7 +77,7 @@ export function generateE3RevisionEvidence(options) {
     maxEntities:50,
   });
   const verification=verificationSummary(diff,{codeRevision:o['code-revision']});
-  const bundle=o['evidence-path'] ? (() => {
+  const bundle=o['evidence-path'] && diff.changes.length ? (() => {
     const reportPath=o['evidence-path'];
     if(!/^reports\/(?:borders|hydro|places|terrain|map-analysis|development)\/[^/]+\/.+\.md$/.test(reportPath)||reportPath.includes('..'))
       error('E3 requires one canonical Markdown evidence path.');
@@ -90,7 +90,6 @@ export function generateE3RevisionEvidence(options) {
   })():null;
   const outputDir=resolve(o['output-dir']);
   mkdirSync(outputDir,{recursive:true});
-  if(!diff.changes.length)error('No representable mapped differences; use a narrower data revision pair.');
   const files=[
     writeOnce(outputDir,'e3-source-diff.json',diff),
     writeOnce(outputDir,'e3-verification.json',verification),
@@ -104,7 +103,7 @@ export function generateE3RevisionEvidence(options) {
     schemaVersion:1,kind:'e3-generated-revision-evidence',
     codeRevision:o['code-revision'],dataset:diff.dataset,
     proposalId:bundle?.proposal.proposalId??null,
-    status:diff.issues.length?'requires-manual-interval-review':'awaiting-human-review',
+    status:diff.issues.length?'requires-manual-interval-review':diff.changes.length?'awaiting-human-review':'no-map-changes',
     createdAt:o['created-at']??envTime(),files,
     caveat:'Generated comparison and checks do not verify shared-border topology, historical accuracy, or human approval.',
   };
@@ -118,7 +117,9 @@ if(process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1])){
       changedEntities:r.diff.indexChangedEntities,
       changes:r.diff.changes.length,issues:r.diff.issues.length,
       proposalStatus:r.bundle?reviewState(r.bundle).status:null,
-      files:r.manifest.files.map(x=>x.name)},null,2));
+      files:r.manifest.files.map(x=>x.name),
+      changedSlots:r.diff.changes.slice(0,20).map(x=>({sourceEntityId:x.sourceEntityId,kind:x.kind,
+        field:x.field,validFrom:x.validFrom,validTo:x.validTo}))},null,2));
   }catch(e){
     console.error((e.code||'PL-E3-ERROR')+': '+e.message);
     process.exitCode=1;
