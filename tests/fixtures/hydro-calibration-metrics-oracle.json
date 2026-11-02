@@ -291,5 +291,76 @@
     "lakeFinalWithin20Percent": false,
     "baseOverlapBelow2Percent": false,
     "representativeFeaturesPresent": true
+  },
+  "worldInput": [
+    {
+      "region": {
+        "id": "europe",
+        "calibrate": true
+      },
+      "rivers": [
+        {
+          "sourceId": 1,
+          "nextDown": 2,
+          "assignedStage": 6.0,
+          "sourceCoordinateCount": 10
+        },
+        {
+          "sourceId": 2,
+          "nextDown": 0,
+          "assignedStage": 6.0,
+          "sourceCoordinateCount": 12
+        },
+        {
+          "sourceId": 3,
+          "nextDown": 2,
+          "assignedStage": null,
+          "sourceCoordinateCount": 5
+        }
+      ],
+      "lakes": [
+        {
+          "assignedStage": 6.7,
+          "sourceCoordinateCount": 20
+        },
+        {
+          "assignedStage": null,
+          "sourceCoordinateCount": 30
+        }
+      ]
+    },
+    {
+      "region": {
+        "id": "korea",
+        "calibrate": false
+      },
+      "rivers": [
+        {
+          "sourceId": 4,
+          "nextDown": 0,
+          "assignedStage": 6.0,
+          "sourceCoordinateCount": 50
+        }
+      ],
+      "lakes": []
+    }
+  ],
+  "worldExpected": {
+    "riverChaining": {
+      "chainCount": 1,
+      "coordinatesAfterChaining": 22,
+      "selectedReachCount": 2,
+      "sourceCoordinateCount": 22,
+      "objectReductionPercent": 50.0
+    },
+    "riverReachCount": 5666667,
+    "riverChainCount": 2833334,
+    "riverCoordinateCount": 62333337,
+    "lakeFeatureCount": 713844,
+    "lakeCoordinateCount": 14276880,
+    "gzipMiB": 800.9921340942383,
+    "riverRenderLoadRatio": 0.0001528584530724549,
+    "lakeRenderLoadRatio": 0.0004967709885742673,
+    "method": "Calibration-region selection and chaining ratios extrapolated to published global source counts."
   }
 }

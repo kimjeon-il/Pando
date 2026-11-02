@@ -10,12 +10,18 @@ on:
       - 'shared/core/src/losslessjson.cpp'
       - 'tools/calibrate-hydro.py'
       - 'tools/gis/hydro-calibration-native.mjs'
+      - 'tools/gis/hydro-calibration-metrics.mjs'
+      - 'tools/gis/hydro-calibration-report.mjs'
       - 'tools/gis/package-hydro-calibration.mjs'
       - 'tests/unit/hydro-calibration-native.test.mjs'
       - 'tests/unit/hydro-calibration-python-bridge.test.mjs'
       - 'tests/unit/hydro-name-python-bridge.test.mjs'
+      - 'tests/unit/hydro-calibration-metrics.test.mjs'
+      - 'tests/unit/hydro-calibration-report.test.mjs'
       - 'tests/fixtures/hydro-calibration-chain-oracle.json'
       - 'tests/fixtures/hydro-calibration-optimizer-oracle.json'
+      - 'tests/fixtures/hydro-calibration-metrics-oracle.json'
+      - 'tests/fixtures/hydro-calibration-report-oracle.json'
       - '.github/workflows/hydro-calibration-native.yml'
 permissions:
   contents: read
@@ -54,7 +60,7 @@ jobs:
           $env:PANDO_HYDRO_CALIBRATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/hydro-calibration/artifact"
           $env:PANDO_HYDRO_CALIBRATION_PYTHON = 'python'
           $env:PANDO_HYDRO_NAME_PYTHON = 'python'
-          node --test tests/unit/hydro-calibration-native.test.mjs tests/unit/hydro-calibration-python-bridge.test.mjs tests/unit/hydro-name-python-bridge.test.mjs
+          node --test tests/unit/hydro-calibration-native.test.mjs tests/unit/hydro-calibration-python-bridge.test.mjs tests/unit/hydro-name-python-bridge.test.mjs tests/unit/hydro-calibration-metrics.test.mjs tests/unit/hydro-calibration-report.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Calibration oracle differs' }
       - uses: actions/upload-artifact@v4
         with:

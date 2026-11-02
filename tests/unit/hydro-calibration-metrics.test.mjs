@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {calibrationAcceptance,calibrationResidualOverlap,calibrationStageMetrics} from '../../tools/gis/hydro-calibration-metrics.mjs';
+import {calibrationAcceptance,calibrationResidualOverlap,calibrationStageMetrics,estimateCalibrationWorld} from '../../tools/gis/hydro-calibration-metrics.mjs';
 
 const oracle=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-metrics-oracle.json',import.meta.url),'utf8'));
 test('stage measurements and residual overlap match the Python calibration',()=>{
@@ -20,4 +21,14 @@ test('acceptance follows the original thresholds and excludes Korea',()=>{
   input.representativeChecks.missing={present:false};assert.equal(calibrationAcceptance(input).representativeFeaturesPresent,false);
   input.regions.europe=structuredClone(oracle.acceptanceInput.regions.europe);input.regions.europe.rivers['7.5'].lengthRatio=null;
   assert.throws(()=>calibrationAcceptance(input),/finite/i);
+});
+test('world estimate uses the native chain count and the original extrapolation',async()=>{
+  assert.deepEqual(await estimateCalibrationWorld(oracle.worldInput),oracle.worldExpected);
+  const empty=await estimateCalibrationWorld([{region:{calibrate:true},rivers:[],lakes:[]}]);
+  assert.equal(empty.riverReachCount,0);assert.equal(empty.lakeFeatureCount,0);assert.equal(empty.riverChaining.objectReductionPercent,100);
+  const cli=spawnSync(process.execPath,['tools/gis/hydro-calibration-metrics.mjs','--world-estimate-stream'],
+    {input:JSON.stringify({regions:oracle.worldInput}),encoding:'utf8'});
+  assert.equal(cli.status,0,cli.stderr);assert.deepEqual(JSON.parse(cli.stdout),oracle.worldExpected);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(estimateCalibrationWorld(oracle.worldInput,{signal:controller.signal}),{name:'AbortError'});
 });
