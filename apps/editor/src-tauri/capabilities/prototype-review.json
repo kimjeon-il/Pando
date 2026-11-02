@@ -6,6 +6,7 @@
     "main"
   ],
   "permissions": [
-    "allow-write-diagnostic-report"
+    "allow-write-diagnostic-report",
+    "allow-save-review-correction"
   ]
 }

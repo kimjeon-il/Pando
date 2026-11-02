@@ -5,6 +5,8 @@ mod library_commands;
 mod storage;
 mod document_transfer;
 mod runtime_options;
+#[cfg(windows)]
+mod review_correction;
 
 use serde::Serialize;
 #[cfg(feature = "verification")]
@@ -256,6 +258,7 @@ pub fn run() {
             #[cfg(feature = "verification")] read_probe_file,
             #[cfg(feature = "verification")] finish_probe,
             write_diagnostic_report,
+            #[cfg(windows)] review_correction::save_review_correction,
             document_transfer::begin_document_write, document_transfer::append_document_chunk,
             document_transfer::finish_document_write, document_transfer::begin_document_read,
             document_transfer::read_document_chunk, document_transfer::abort_document_transfer,

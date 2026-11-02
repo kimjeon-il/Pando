@@ -344,13 +344,22 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     }catch(e){feedback('reviewCompareStatus','원본 JSON 검사 실패: '+e.message,'error');}
     finally{get('reviewSourceInput').value='';}
   }
-  function downloadCorrection(){
+  async function downloadCorrection(){
     const change=selectedChange();
     if(!current||!change)return;
     try {
       const request=correctionRequest({inspection:current,sourceEntityId:chosenEntity,change,
         kind:get('reviewIssueKind').value,reason:get('reviewIssueReason').value,
         createdAt:new Date().toISOString()});
+      if(window.PANDOLAB_NATIVE_REVIEW===true){
+        const invoke=window.__TAURI_INTERNALS__?.invoke;
+        if(typeof invoke!=='function')no('Windows 수정 요청서 저장 기능을 사용할 수 없습니다.');
+        const result=await invoke.call(window.__TAURI_INTERNALS__,'save_review_correction',{draft:request});
+        feedback('reviewCorrectionStatus',result?.cancelled
+          ?'수정 요청서 저장을 취소했습니다.'
+          :'Windows에 수정 요청서를 저장했습니다. 실제 GIS나 GitHub에는 반영되지 않았습니다.');
+        return;
+      }
       const body=JSON.stringify(request,null,2)+'\n';
       const blob=new Blob([body],{type:'application/json'});
       const url=window.URL.createObjectURL(blob);

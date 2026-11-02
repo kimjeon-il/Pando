@@ -1,0 +1,11 @@
+# Automatically generated from the save_review_correction Tauri command.
+
+[[permission]]
+identifier = "allow-save-review-correction"
+description = "Enables the save_review_correction command with a user-selected JSON destination."
+commands.allow = ["save_review_correction"]
+
+[[permission]]
+identifier = "deny-save-review-correction"
+description = "Denies the save_review_correction command."
+commands.deny = ["save_review_correction"]
