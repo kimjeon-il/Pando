@@ -87,6 +87,25 @@ nativeTest('hydro visibility and symbolic width use the fixed source thresholds'
   const middle=run({mode:'feature-policy',order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002});
   assert.equal(middle.score,12);assert.equal(middle.riverStage,2);assert.equal(middle.lakeStage,null);assert.equal(middle.minZoomStage,3);
 });
+nativeTest('terminal decisions retain lake, coast, omitted land and water precedence',()=>{
+  const request={mode:'outlet-decision',lakeDistance:null,lakeCovers:false,coastDistance:3,onLand:true,
+    outsideLength:0,undisplayedWater:false,maxKm:25,target:[181,2]};
+  const cases=[
+    [{lakeDistance:.5},{class:'lake',distanceKm:.5,snap:null}],
+    [{coastDistance:.000001},{class:'sea',distanceKm:0,snap:null}],
+    [{coastDistance:1.5},{class:'sea',distanceKm:1.5,snap:[-179,2]}],
+    [{},{class:'sea',distanceKm:3,snap:[-179,2]}],
+    [{onLand:false,undisplayedWater:true},{class:'sea',distanceKm:3,snap:[-179,2]}],
+    [{onLand:false,undisplayedWater:true,coastDistance:26},{class:'excluded-small-land',distanceKm:26,snap:null}],
+    [{onLand:true,undisplayedWater:true,coastDistance:26},{class:'excluded-undisplayed-water',distanceKm:26,snap:null}],
+    [{onLand:true,undisplayedWater:false,coastDistance:26},{class:'unresolved-land',distanceKm:26,snap:null}],
+  ];
+  for(const [overrides,expected] of cases)assert.deepEqual(run({...request,...overrides}),expected);
+  for(const overrides of [{coastDistance:-1},{lakeCovers:true},{target:[1]},{onLand:'yes'}]){
+    const result=spawnSync(native,[],{input:JSON.stringify({...request,...overrides}),encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});
 
 function scenario(name) {
   const input=fixture();

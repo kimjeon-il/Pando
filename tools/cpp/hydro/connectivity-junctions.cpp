@@ -359,6 +359,29 @@ Value featurePolicy(const Value& request){
     result.object["width"]=Value::num(std::max(0.55,std::min(2.6,rawWidth)));
     result.object["lakeStage"]=lakeStage;result.object["minZoomStage"]=Value::num(zoomStage);return result;
 }
+// Decide an outlet class from source-bound geometry and raster observations.
+Value outletDecision(const Value& request){
+    const auto boolean=[&](const char* name){const auto& value=field(request,name);if(value.kind!=Value::Bool)throw std::invalid_argument("Expected outlet boolean");return value.raw=="true";};
+    const auto& lake=field(request,"lakeDistance");const bool lakeCovers=boolean("lakeCovers"),onLand=boolean("onLand"),water=boolean("undisplayedWater");
+    if(lake.kind==Value::Null&&lakeCovers)throw std::invalid_argument("Lake coverage needs a lake distance");
+    const double lakeDistance=lake.kind==Value::Null?0:pandoeditor::codecjson::finiteNumber(lake),
+      coast=pandoeditor::codecjson::finiteNumber(field(request,"coastDistance")),outside=pandoeditor::codecjson::finiteNumber(field(request,"outsideLength")),
+      maxKm=pandoeditor::codecjson::finiteNumber(field(request,"maxKm"));
+    if(lakeDistance<0||coast<0||outside<0)throw std::invalid_argument("Invalid outlet distance");
+    const auto& target=elements(field(request,"target"));if(target.size()!=2)throw std::invalid_argument("Outlet target needs two coordinates");
+    const double x=pandoeditor::codecjson::finiteNumber(target[0]),y=pandoeditor::codecjson::finiteNumber(target[1]);
+    double longitude=std::fmod(x+180.0,360.0);if(longitude<0)longitude+=360.0;longitude-=180.0;if(longitude==-180.0)longitude=180.0;
+    std::string classification;double distance=coast;bool snap=false;
+    if(lake.kind!=Value::Null&&(lakeCovers||lakeDistance<=1.0)){classification="lake";distance=lakeDistance;}
+    else if(coast<=1e-5){classification="sea";distance=0;}
+    else if(coast<=2.0||(coast<=maxKm&&onLand&&outside<=1e-5)||(coast<=maxKm&&!onLand&&water)){classification="sea";snap=true;}
+    else if(!onLand)classification="excluded-small-land";
+    else if(water)classification="excluded-undisplayed-water";
+    else classification="unresolved-land";
+    auto result=Value::obj();result.object["class"]=Value::str(classification);result.object["distanceKm"]=Value::num(distance);
+    if(snap){auto coordinates=Value::arr();coordinates.array={Value::num(longitude),Value::num(y)};result.object["snap"]=std::move(coordinates);}
+    else result.object["snap"]=Value();return result;
+}
 }
 int main() {
     try {
@@ -371,6 +394,7 @@ int main() {
         else if(str(mode->second)=="river-systems")std::cout<<riverSystems(request).encode()<<'\n';
         else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
+        else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
     }catch(const std::exception& error) {
