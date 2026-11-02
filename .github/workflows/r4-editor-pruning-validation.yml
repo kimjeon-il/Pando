@@ -1,0 +1,51 @@
+name: R4 editor source pruning and GIS preservation
+on:
+  push:
+    branches: [fix/r4-editor-source-retirement-20261102]
+    paths:
+      - .github/workflows/r4-editor-pruning-validation.yml
+      - docs/development/r4-source-pruning.json
+      - apps/editor/frontend/**
+      - tools/gis/**
+      - scripts/contracts/application-checks.json
+      - scripts/contracts/territorial-storage-access.json
+      - scripts/check-generic-provenance.mjs
+      - tests/unit/r4-editor-source-retirement.test.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify all registered tests after old source deletion
+        run: node scripts/run-application-checks.mjs --list --base HEAD > /dev/null
+      - name: Validate Viewer and Windows boundaries
+        run: node scripts/check-runtime-boundaries.mjs
+      - name: Validate territorial storage, provenance and version ownership
+        run: |
+          node scripts/check-territorial-storage.mjs
+          node scripts/check-generic-provenance.mjs
+          node scripts/check-version-architecture.mjs
+          node scripts/check-object-registry.mjs
+      - name: Exercise extracted GIS data and native reviewer tests
+        run: >-
+          node --test --test-concurrency=2
+          tests/unit/r4-editor-source-retirement.test.mjs
+          apps/editor/tests/native-contract.test.mjs
+          tests/unit/territorial-library.test.mjs
+          tests/unit/territorial-library-data.test.mjs
+          tests/unit/territorial-geometry.test.mjs
+          tests/unit/timeline-edit.test.mjs
+          tests/unit/project-serializer.test.mjs
+          tests/unit/generic-feature-service.test.mjs
+          tests/unit/library-auto-inputs.test.mjs
+          tests/unit/library-auto-executor.test.mjs
+          tests/unit/korean-boundary-data.test.mjs
