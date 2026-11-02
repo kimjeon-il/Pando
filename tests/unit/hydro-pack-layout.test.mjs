@@ -53,8 +53,10 @@ test('Hydro shard and index layout matches the original Python binary ordering',
   assert.equal(complete.files.get('metadata-detail.json.gz').toString('hex'),oracle.metadataDetailGzipHex);
   assert.equal(complete.files.get('shards/s0.bin').toString('hex'),oracle.packs.map(row=>row.gzipHex).join(''));
   const stages=Array.from({length:4},(_,id)=>({id,minZoom:6+id}));
-  const decoded=decodeHydroGeneratedPack({...complete,stages});
+  const decoded=decodeHydroGeneratedPack({...complete,stages,expectedStats:complete.stats});
   assert.deepEqual(decoded.map(row=>row.metadata.fid),[1,2,3,4,10,11]);
+  assert.throws(()=>decodeHydroGeneratedPack({...complete,stages,expectedStats:{...complete.stats,coordinateCount:26}}),/coordinate.*count/i);
+  assert.throws(()=>decodeHydroGeneratedPack({...complete,stages,expectedStats:{...complete.stats,logicalFeatureCount:7}}),/logical.*count/i);
   assert.deepEqual(decoded[0].geometry.coordinates,[[180,0],[-179.999999,.000001],[180,-.000001]]);
   assert.deepEqual(decoded[0].widths,[[0,1.234,65.535]]);
   assert.equal(decoded[0].metadata.sourceId,'100,110,105');
@@ -66,6 +68,16 @@ test('Hydro shard and index layout matches the original Python binary ordering',
   assert.throws(()=>decodeHydroSelectedPack({...complete,files:damagedSelected,stages,logicalFids:[101]}),/hash/i);
   assert.throws(()=>decodeHydroSelectedPack({...complete,stages,logicalFids:[99999]}),/logical|selected/i);
   assert.throws(()=>decodeHydroSelectedPack({...complete,stages,logicalFids:[101,101]}),/logical|selected/i);
+  const stageIndex=gunzipSync(complete.files.get('index.bin.gz'));let position=20;
+  for(let i=0;i<stageIndex.readUInt32LE(8);i++){const count=stageIndex.readUInt16LE(position+5);position+=7+count*4;}
+  const logicalEntries=[];for(let i=0;i<stageIndex.readUInt32LE(12);i++){const logical=stageIndex.readUInt32LE(position),count=stageIndex.readUInt16LE(position+4);
+    position+=6;logicalEntries.push({logical,packs:Array.from({length:count},(_,j)=>stageIndex.readUInt32LE(position+j*4))});position+=count*4;}
+  const firstPack=stageIndex.readUInt32LE(position),selectedLogical=logicalEntries.find(row=>row.packs.includes(firstPack))?.logical;
+  assert.notEqual(selectedLogical,undefined);stageIndex[position+14]=(stageIndex[position+14]+1)%4;
+  const stageBytes=gzipSync(stageIndex),stageFiles=new Map(complete.files);stageFiles.set('index.bin.gz',stageBytes);
+  const stageLayout={...complete.layout,index:{...complete.layout.index,bytes:stageBytes.length,sha256:createHash('sha256').update(stageBytes).digest('hex')}};
+  assert.throws(()=>decodeHydroGeneratedPack({...complete,layout:stageLayout,files:stageFiles,stages}),/pack.*stage/i);
+  assert.throws(()=>decodeHydroSelectedPack({...complete,layout:stageLayout,files:stageFiles,stages,logicalFids:[selectedLogical]}),/pack.*stage/i);
   const altered=gunzipSync(complete.files.get('index.bin.gz'));let offset=20;
   for(let i=0;i<altered.readUInt32LE(8);i++){const count=altered.readUInt16LE(offset+5);offset+=7+count*4;}
   let changed=false;for(let i=0;i<altered.readUInt32LE(12);i++){
