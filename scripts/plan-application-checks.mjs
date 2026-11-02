@@ -88,6 +88,8 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     'tests/unit/application-composition.test.mjs',
     'tests/unit/capability-ports-contract.test.mjs',
     'tests/unit/territorial-gis-export.test.mjs',
+    'tests/unit/territorial-property-controller.test.mjs',
+    'tests/unit/startup-performance-contract.test.mjs',
   ]);
   const owners = new Map(), retiredTests = new Map();
   for (const file of tests) {
