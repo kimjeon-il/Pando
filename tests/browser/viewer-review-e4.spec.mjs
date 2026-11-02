@@ -62,7 +62,7 @@ test('E4 map revision follows the actual builtin or opened project',async({page}
   await page.locator('#reviewEvidenceInput').setInputFiles(model.files);
   await expect(page.locator('#reviewMapRevision')).toContainText('변경 전');
   await page.locator('#projectFileInput').setInputFiles({name:'review-file.gpkg',mimeType:'application/geopackage+sqlite3',buffer:projectBytes});
-  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(project.project.documentId);
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(project.documentId);
   await expect(page.locator('#reviewMapRevision')).toContainText('파일 지도');
   await page.evaluate(()=>document.getElementById('builtinMapBtn').click());
   await expect(page.locator('#reviewMapRevision')).toContainText('변경 전',{timeout:120000});
@@ -87,6 +87,8 @@ test('E4 can compare again after cancelling an in-flight source request',async({
   });
   await ready(page);
   await page.locator('#reviewPanelBtn').click();
+  // The E4 panel is a lazy import; wait for event handlers before setting files.
+  await expect(page.locator('#reviewPanel')).toBeVisible();
   await page.locator('#reviewEvidenceInput').setInputFiles(model.files);
   await expect(page.locator('#reviewLoadStatus')).toContainText('검수 자료 읽기 완료');
   await page.locator('#reviewFetchGeometry').click();
