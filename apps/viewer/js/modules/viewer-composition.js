@@ -53,7 +53,7 @@ export async function composeViewer({ productMode, meta }) {
   const owners=createMapOwners({productMode,buildMeta:runtimeContext.meta,platform:runtimeContext.platform,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
   const surfaces=owners.workspaceSurfaces;
   const selectController=createSelectController({document,window});selectController.enhanceAll();
-  const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile()});
+  const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile(),protectErrorNotices:true});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,initialProject:createInitialDocument({appVersion:meta.appVersion})});
   const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];

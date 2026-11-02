@@ -1,7 +1,9 @@
 import {compactNotificationMessage} from './notification-copy.js';
 export function createNotificationPresentation(ports){
   const getElement=(...args)=>ports.getElement(...args),isMobile=()=>ports.isMobile();
+  let errorHoldUntil=0;
   function clearNotification() {
+    errorHoldUntil=0;
     clearTimeout(setActionStatus._timer);
     const notice = getElement('actionStatus');
     if (!notice) return;
@@ -19,6 +21,10 @@ export function createNotificationPresentation(ports){
   function setActionStatus(message, tone = 'success', timeout = 1800, { forceVisible = false } = {}) {
     const notice = getElement('actionStatus');
     if (!notice) return;
+    // Background readiness/success must not immediately erase a user's file
+    // failure. The viewer opts in; editor behavior remains unchanged.
+    if (ports.protectErrorNotices===true && tone!=='error'
+      && !forceVisible && Date.now()<errorHoldUntil) return;
     const fullMessage = String(message ?? '').replace(/\s+/g, ' ').trim();
     const isTopLevelNotice = ['working', 'success', 'error', 'info', 'warning'].includes(tone)
       || forceVisible;
@@ -38,6 +44,7 @@ export function createNotificationPresentation(ports){
     notice.classList.remove('hidden');
     notice.classList.remove('ready', 'working', 'success', 'error', 'info', 'warning');
     notice.classList.add(tone);
+    errorHoldUntil=tone==='error' ? (timeout>0?Date.now()+timeout:Infinity) : 0;
     notice.setAttribute('role', tone === 'error' ? 'alert' : 'status');
     notice.setAttribute('aria-label', fullMessage);
     if (visibleMessage !== fullMessage) notice.dataset.tooltip = fullMessage;
