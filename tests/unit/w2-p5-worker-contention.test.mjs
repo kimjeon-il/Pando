@@ -9,7 +9,7 @@ import { performance } from 'node:perf_hooks';
 const originalUrl = new URL('../../shared/frontend/js/workers/country-shared-boundary-worker.js', import.meta.url);
 const coreUrl = new URL('../../tools/load-spherical-core.mjs', import.meta.url).href;
 const moduleRoot = new URL('../../shared/frontend/js/modules/', import.meta.url).href;
-const original = readFileSync(originalUrl, 'utf8');
+const original = readFileSync(originalUrl, 'utf8').replaceAll('\r\n', '\n');
 const checkpointAnchor = '    let packet;\n    if (packetCacheHit) {';
 const syntheticMs = 350;
 const graceMs = 85;
