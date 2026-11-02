@@ -140,7 +140,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     readinessUi:{isSafeKoreanErrorMessage},mapHostViewB:{queueMapResize:()=>mapHost.queueMapResize()},
     mapView:{get mapHost(){return mapHost.mapHost;}},domains:{get renderingDomain(){return renderingDomain;}},
     renderQuality,renderScene:{get currentRenderQuality(){return renderQuality.currentRenderQuality;}},
-    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{productMode:'viewer',onMapPreparationStatus});
+    feedback:{reportOperationError:onError,setActionStatus:onStatus}},{presentMapPreparation:createViewerMapPreparationPresenter(id=>document.getElementById(id)),onMapPreparationStatus});
   let initialized;
   physicalResources.initializeTerrainService();
 
@@ -280,7 +280,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     layerPresentation:objectCatalog,landRelations:{pointInCountryFeature:(coord,feature)=>hitTester.containsGeometry(coord,feature.geometry)},
     platform:{d3,clamp},surfaces:{isMobile},rendering:{gpuMapRenderer:renderer},feedback:{reportOperationError:onError}}));
   pointerTargets.initializeHoverPickFrame();
-  const inputPresentation=createMapInputPresentation({productMode:'viewer',window,navigator,createMapInputController,getRevision:()=>updateGeneration,mapInteractionGate:createMapInteractionGate(),
+  const inputPresentation=createMapInputPresentation({window,navigator,createMapInputController,getRevision:()=>updateGeneration,mapInteractionGate:createMapInteractionGate(),reservedTargetSelector:VIEWER_MAP_INPUT_RESERVED_SELECTOR,
     ports:mergeCapabilityPorts(commonPorts,{
       platform:{$:id=>document.getElementById(id),d3},rendering:{gpuMapRenderer:renderer},
       domains:{renderingDomain,selectionDomain,projectDomain},navigation,mapView:mapProjection,
