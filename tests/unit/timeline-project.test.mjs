@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { assertCurrentProjectSchema } from "../../shared/frontend/js/modules/project-state.js";
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 
 import { projectForStorage } from '../helpers/timeline-project.mjs';
-const serializer = source => createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
+const serializer = source => createProjectTemplateCompiler({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial', 'geometry'], terrainDataset: 'terrain', hydroDataset: 'hydro',
   readSnapshot: () => source, now: () => new Date('2026-10-04T00:00:00Z') });
 

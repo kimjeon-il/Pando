@@ -1,6 +1,6 @@
 // Compatibility adapter for historic autosave/Core tests only. GIS publication
 // uses project-template-compiler.js; the deployed Viewer never imports this file.
-import {createProjectTemplateCompiler} from './project-template-compiler.js';
+import {createProjectTemplateCompiler} from '../../tools/gis/project-template-compiler.js';
 import {assertCurrentProjectSchema,assertProjectBaselineFingerprint} from '../../shared/frontend/js/modules/project-state.js';
 import {normalizeTerritorialIdentities} from '../../shared/frontend/js/modules/territorial-units.js';
 import {createGeometrySnapshotPool} from '../../shared/frontend/js/modules/geometry-versions.js';

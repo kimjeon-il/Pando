@@ -3,7 +3,7 @@ import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import * as projectState from "../../shared/frontend/js/modules/project-state.js";
-import * as serializerModule from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import * as serializerModule from "../helpers/legacy-project-autosave.mjs";
 import { projectForStorage, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";

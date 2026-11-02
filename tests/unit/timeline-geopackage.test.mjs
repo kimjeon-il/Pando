@@ -2,7 +2,7 @@ import { productionGeoPackage as request, spatialLayerCount,coreFileProjection }
 import { timelineStorageCases } from '../fixtures/timeline-storage-cases.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { prepareProjectForStorage } from "../../shared/frontend/js/modules/project-state.js";
 import { projectForStorage, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { prepareProjectForActivation } from "../../shared/frontend/js/modules/project-state.js";
 
 const writeProject=async project=>{const receipt=await coreFileProjection(project);return request('write',new ArrayBuffer(0),receipt.project,receipt.spatialState);};
-const serialize = snapshot => createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base',
+const serialize = snapshot => createProjectTemplateCompiler({ appVersion: '0.34.0', baseDataset: 'base',
   distributionModes: ['territorial','geometry'], terrainDataset: 'terrain', hydroDataset: 'hydro', readSnapshot: () => snapshot }).buildProject();
 
 for (const kind of ['complex','static','empty']) test(`production GeoPackage worker round-trips ${kind} v14 project`, async () => {

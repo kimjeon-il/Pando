@@ -1,5 +1,5 @@
 import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
-import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import {coreFileProjection} from '../helpers/production-geopackage.mjs';
@@ -32,7 +32,7 @@ test('child-only GeoJSON export writes one layer and omits administrative fields
     });
   }
   const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
-  const project = createProjectSerializer({ appVersion: '0.34.0', baseDataset: 'base', distributionModes: ['territorial','geometry'],
+  const project = createProjectTemplateCompiler({ appVersion: '0.34.0', baseDataset: 'base', distributionModes: ['territorial','geometry'],
     readSnapshot: () => staticSerializerSnapshot({ fullAutosave: true, territorialEntities: [
       createTerritorialFeature({ id: 'C', entityKind: 'general', geometry }),
       createTerritorialFeature({ id: 's', entityKind: 'general', parentId: 'C', name: '자치령', geometry }),
