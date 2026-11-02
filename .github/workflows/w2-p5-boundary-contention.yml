@@ -6,6 +6,7 @@ on:
       - tests/unit/w2-p5-worker-contention.test.mjs
       - shared/frontend/js/workers/country-shared-boundary-worker.js
       - .github/workflows/w2-p5-boundary-contention.yml
+      - tools/w2-p5-inflight-packet-audit.mjs
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,3 +35,27 @@ jobs:
       - name: Real Node Worker A-B-A controlled cancellation and existing exact-border regressions
         run: |
           node --test --test-timeout=60000 --test-concurrency=1 tests/unit/w2-p5-worker-contention.test.mjs tests/unit/country-shared-boundary-state.test.mjs
+      - name: Read-only checkout of exact W2-P4-2 Windows evidence
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: 3e63d665f70972902a68008e0d14ec26a2506bad
+          path: .w2-p5-library
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: |
+            reports/development/performance/w2-p4-2-windows-gpu-2026-11-02/README.md
+            reports/development/performance/w2-p4-2-windows-gpu-2026-11-02/p4-analysis.json
+            reports/development/performance/w2-p4-2-windows-gpu-2026-11-02/final-audit.json
+      - name: Verify real hardware trace-derived previous/new request association
+        run: |
+          node --check tools/w2-p5-inflight-packet-audit.mjs
+          node tools/w2-p5-inflight-packet-audit.mjs .w2-p5-library/reports/development/performance/w2-p4-2-windows-gpu-2026-11-02 test-results/w2-p5
+      - name: Archive W2-P5 source-pinned inference only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w2-p5-pinned-windows-contention
+          path: test-results/w2-p5/
+          if-no-files-found: warn
+          retention-days: 14
