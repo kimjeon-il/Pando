@@ -24,8 +24,12 @@ test('selected Hydro source flows into verifiable private packs and a source man
       sampleWater:async points=>points.map(()=>false),aliases:{},systemOverrides:{},independentDocument:{schemaVersion:1,replacements:[]},osmRows:[],source},options);
     assert.equal(result.manifest.stats.selectedReachCount,8);assert.equal(result.manifest.stats.riverSystemCount,2);
     const oracle=JSON.parse(await readFile('tests/fixtures/hydro-generation-oracle.json','utf8'));
-    for(const [name,expected] of Object.entries(oracle.files)){const bytes=result.pack.files.get(name);
-      assert.equal(bytes.length,expected.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),expected.sha256);}
+    for(const [name,expected] of Object.entries(oracle.files)){const bytes=result.pack.files.get(name),comparable=Buffer.from(bytes);
+      // zlib records the producer OS in byte 9; compare every other byte with the Windows oracle.
+      if(name.endsWith('.gz'))comparable[9]=10;
+      else if(name.startsWith('shards/')){const shard=Number(name.match(/s(\d+)\.bin$/)[1]);
+        for(const pack of result.pack.layout.packs)if(pack.shard===shard)comparable[pack.offset+9]=10;}
+      assert.equal(bytes.length,expected.bytes);assert.equal(createHash('sha256').update(comparable).digest('hex'),expected.sha256);}
     assert.deepEqual(result.manifest.stats,oracle.stats);
     const decoded=decodeHydroGeneratedPack({...result.pack,stages:result.manifest.stages,expectedStats:result.pack.stats});
     assert.equal(decoded.length,result.manifest.stats.featureCount);assert.equal(decoded.at(-1).metadata.name,'시험호');
