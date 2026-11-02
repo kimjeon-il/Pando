@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -149,6 +149,34 @@ nativeTest('batched Hydro scoring preserves single-record results and rejects ma
   const result=spawnSync(native,[],{input:JSON.stringify({mode:'feature-policies',features:[rows[0],{...rows[1],flow:null}]}),encoding:'utf8'});
   assert.notEqual(result.status,0);assert.equal(result.stdout,'');
 });
+nativeTest('selected Hydro reaches propagate width downstream across joins in source order',()=>{
+  const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:4,width:0.6},
+    {id:4,next:0,width:1.5},{id:5,next:99,width:0.8}];
+  assert.deepEqual(run({mode:'propagate-widths',reaches}),{reaches:[
+    {id:1,width:2,endWidth:2},{id:2,width:1,endWidth:2},{id:3,width:2,endWidth:2},
+    {id:4,width:2,endWidth:2},{id:5,width:0.8,endWidth:0.8}]});
+  for(const invalid of [[{id:1,next:2,width:1},{id:2,next:1,width:1}],
+    [{id:1,next:0,width:1},{id:1,next:0,width:2}],[{id:1,next:0,width:null}]]){
+    const result=spawnSync(native,[],{input:JSON.stringify({mode:'propagate-widths',reaches:invalid}),encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});
+test('width propagation receipts preserve source identities and shared downstream widths',()=>{
+  const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:0,width:0.6}];
+  const result={reaches:[{id:1,width:2,endWidth:2},{id:2,width:1,endWidth:2},{id:3,width:2,endWidth:2}]};
+  assert.deepEqual(validateHydroWidthPropagation(result,reaches),result.reaches);
+  for(const bad of [{reaches:result.reaches.slice(1)},{reaches:[result.reaches[1],result.reaches[0],result.reaches[2]]},
+    {reaches:[result.reaches[0],{...result.reaches[1],endWidth:1},result.reaches[2]]},
+    {reaches:[result.reaches[0],result.reaches[1],{...result.reaches[2],width:0.5}]}])
+    assert.throws(()=>validateHydroWidthPropagation(bad,reaches),/width/i);
+});
+test('source-bound width propagation retains inputs and propagates across a confluence',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:0,width:0.6}],before=structuredClone(reaches);
+    const actual=await propagateHydroWidths(reaches,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(actual,[{id:1,width:2,endWidth:2},{id:2,width:1,endWidth:2},{id:3,width:2,endWidth:2}]);
+    assert.deepEqual(reaches,before);
+  });
 test('Hydro batch scoring validates complete, finite and bounded native receipts',()=>{
   const rows=[{order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
   const valid={features:[{score:12,riverStage:2,lakeStage:null,width:1.2,minZoomStage:3}]};

@@ -370,6 +370,30 @@ Value featurePolicies(const Value& request){
     for(const auto& row:input)output.array.push_back(featurePolicy(row));
     auto result=Value::obj();result.object["features"]=std::move(output);return result;
 }
+// Match Hydro's selected-network downstream width propagation before rendering.
+Value propagateWidths(const Value& request){
+    const auto& input=elements(field(request,"reaches"));
+    if(input.size()>1000000)throw std::invalid_argument("Hydro width network exceeds budget");
+    struct Reach {std::int64_t id,next;double width;std::size_t incoming=0;};
+    std::vector<Reach> rows;rows.reserve(input.size());std::map<std::int64_t,std::size_t> lookup;
+    for(const auto& row:input){const auto id=integer(field(row,"id")),next=integer(field(row,"next"));
+        const auto width=pandoeditor::codecjson::finiteNumber(field(row,"width"));
+        if(id<=0||next<0||width<0||!lookup.emplace(id,rows.size()).second)throw std::invalid_argument("Invalid Hydro width reach");
+        rows.push_back({id,next,width,0});}
+    for(const auto& row:rows){const auto next=lookup.find(row.next);if(next!=lookup.end())++rows[next->second].incoming;}
+    std::vector<std::size_t> queue;queue.reserve(rows.size());
+    for(std::size_t i=0;i<rows.size();++i)if(!rows[i].incoming)queue.push_back(i);
+    std::size_t processed=0;
+    while(!queue.empty()){const auto index=queue.back();queue.pop_back();++processed;const auto next=lookup.find(rows[index].next);
+        if(next==lookup.end())continue;auto& downstream=rows[next->second];downstream.width=std::max(downstream.width,rows[index].width);
+        if(--downstream.incoming==0)queue.push_back(next->second);}
+    if(processed!=rows.size())throw std::invalid_argument("Hydro width network contains a cycle");
+    auto output=Value::arr();output.array.reserve(rows.size());
+    for(const auto& row:rows){const auto next=lookup.find(row.next);auto item=Value::obj();
+        item.object["id"]=Value::num(static_cast<double>(row.id));item.object["width"]=Value::num(row.width);
+        item.object["endWidth"]=Value::num(next==lookup.end()?row.width:rows[next->second].width);output.array.push_back(std::move(item));}
+    auto result=Value::obj();result.object["reaches"]=std::move(output);return result;
+}
 // Decide an outlet class from source-bound geometry and raster observations.
 Value outletDecision(const Value& request){
     const auto boolean=[&](const char* name){const auto& value=field(request,name);if(value.kind!=Value::Bool)throw std::invalid_argument("Expected outlet boolean");return value.raw=="true";};
@@ -424,6 +448,7 @@ int main() {
         else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
+        else if(str(mode->second)=="propagate-widths")std::cout<<propagateWidths(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");

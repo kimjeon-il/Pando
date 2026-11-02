@@ -247,6 +247,28 @@ export async function scoreHydroSourceMetadata({archive,specification,onBatch,ba
     pending.push(row);if(pending.length===batchSize)await flush();}});
   await flush();options.signal?.throwIfAborted();return receipt;
 }
+export function validateHydroWidthPropagation(result,reaches){
+  if(!Array.isArray(reaches)||reaches.length>1000000||!result||typeof result!=='object'||Array.isArray(result)||
+    Object.keys(result).join(',')!=='reaches'||!Array.isArray(result.reaches)||result.reaches.length!==reaches.length)
+    throw Error('Invalid Hydro width propagation receipt');
+  const output=new Map(),expected=new Map();
+  for(let i=0;i<reaches.length;i++){
+    const input=reaches[i],row=result.reaches[i];
+    if(!Number.isSafeInteger(input?.id)||input.id<=0||!Number.isSafeInteger(input.next)||input.next<0||
+      !Number.isFinite(input.width)||input.width<0||output.has(input.id)||row?.id!==input.id||
+      !Number.isFinite(row.width)||!Number.isFinite(row.endWidth))throw Error('Invalid Hydro width propagation reach');
+    output.set(input.id,row);expected.set(input.id,input.width);
+  }
+  for(const input of reaches){const row=output.get(input.id),next=output.get(input.next);
+    if(row.endWidth!==(next?.width??row.width))throw Error('Invalid Hydro downstream width');
+    if(next)expected.set(input.next,Math.max(expected.get(input.next),row.width));}
+  for(const [id,width] of expected)if(output.get(id).width!==width)throw Error('Invalid Hydro propagated width');
+  return result.reaches;
+}
+export async function propagateHydroWidths(reaches,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(reaches))throw Error('Explicit Hydro width reaches required');
+  return validateHydroWidthPropagation(await runHydroConnectivity({mode:'propagate-widths',reaches},options),reaches);
+}
 export async function auditHydroParts({parts,raw,sourceOrder},options){
   if(!parts||!raw||!Array.isArray(sourceOrder))throw Error('Explicit Hydro parts, originals and source order required');
   const input={parts,raw,sourceOrder};return validateHydroAudit(await runHydroConnectivity({mode:'audit',...input},options),input);
