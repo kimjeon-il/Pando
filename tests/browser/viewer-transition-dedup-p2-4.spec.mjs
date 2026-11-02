@@ -131,7 +131,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   });
   await page.route('**/workers/worker-rpc-host.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
-    source=swap(source,"      if (transferables.length) scope.postMessage(response, transferables);\n      else scope.postMessage(response);","      if(operation==='core.document-replacement-release')\n        console.info('P2_HOST_RELEASE '+JSON.stringify({\n          receiveEpochMs:scope.performance.timeOrigin+startedAt,\n          sentEpochMs:scope.performance.timeOrigin+now(),\n          workerDurationMs:response.timing?.durationMs??null,\n        }));\n      if (transferables.length) scope.postMessage(response, transferables);\n      else scope.postMessage(response);");
+    source=swap(source,"      if (transferables.length) scope.postMessage(response, transferables);\n      else scope.postMessage(response);","      if(operation==='core.document-replacement-release'||operation==='core.document-temporal-candidate-prepare')\n        console.info('P2_HOST_RELEASE '+JSON.stringify({\n          operation,\n          receiveEpochMs:scope.performance.timeOrigin+startedAt,\n          sentEpochMs:scope.performance.timeOrigin+now(),\n          workerDurationMs:response.timing?.durationMs??null,\n        }));\n      if (transferables.length) scope.postMessage(response, transferables);\n      else scope.postMessage(response);");
     await route.fulfill({response,body:source});
   });
   await page.route('**/modules/core-worker-runtime.js*',async route=>{
@@ -228,25 +228,44 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   await info.attach('p2-main-cpu-profile',{body:JSON.stringify(profile),contentType:'application/json'});
   expect(pageErrors).toEqual([]);
   const transport=[];
+  const releaseHosts=hostRelease.filter(h=>h.operation==='core.document-replacement-release');
+  const fastHosts=hostRelease.filter(h=>h.operation==='core.document-temporal-candidate-prepare');
+  // Main and Worker performance.timeOrigin differ under the fixed Playwright
+  // clock. Compare each leg to a fast native RPC in the SAME transition; this
+  // cancels the unknown clock offset without assuming identical time origins.
+  const legs=(events,operation,host)=>{
+    const e=events.filter(x=>x.operation===operation);
+    const request=e.find(x=>x.name==='rpc:request'),done=e.find(x=>x.name==='rpc:done');
+    if(!request||!done||!host)return null;
+    return {outboundRaw:host.receiveEpochMs-request.epochMs,
+      inboundRaw:done.epochMs-host.sentEpochMs,
+      workerMs:host.workerDurationMs,
+      totalMs:done.epochMs-request.epochMs};
+  };
   for(let i=0;i<results.length;i++){
-    const mainEvents=results[i].events.filter(e=>e.operation==='core.document-replacement-release');
-    const request=mainEvents.find(e=>e.name==='rpc:request');
-    const done=mainEvents.find(e=>e.name==='rpc:done');
-    const host=hostRelease[i+1]??hostRelease[i]??null;
-    if(request&&done&&host) transport.push({
-      target:results[i].target,
-      mainToWorkerMs:Math.round(host.receiveEpochMs-request.epochMs),
-      workerDurationMs:Math.round(host.workerDurationMs),
-      workerToMainMs:Math.round(done.epochMs-host.sentEpochMs),
-      mainTotalMs:Math.round(done.epochMs-request.epochMs),
-      endToEndDeltaMs:Math.round((host.receiveEpochMs-request.epochMs)+host.workerDurationMs+
-        (done.epochMs-host.sentEpochMs)-(done.epochMs-request.epochMs)),
+    const events=results[i].events;
+    const release=legs(events,'core.document-replacement-release',releaseHosts[i+1]);
+    const control=legs(events,'core.document-temporal-candidate-prepare',fastHosts[i]);
+    if(!release||!control)continue;
+    const outboundExcess=release.outboundRaw-control.outboundRaw;
+    const inboundExcess=release.inboundRaw-control.inboundRaw;
+    transport.push({target:results[i].target,
+      releaseTotalMs:Math.round(release.totalMs),
+      releaseWorkerMs:Math.round(release.workerMs),
+      controlTotalMs:Math.round(control.totalMs),
+      controlWorkerMs:Math.round(control.workerMs),
+      outboundExcessMs:Math.round(outboundExcess),
+      inboundExcessMs:Math.round(inboundExcess),
+      controlTotalMinusWorkerMs:Math.round(control.totalMs-control.workerMs),
+      clockOffsetCalibration:'same-transition fast candidate prepare',
     });
   }
   console.log('P2_TRANSPORT_DIAG '+JSON.stringify({hostRelease,transport}));
   console.log('P2_WORKER_DIAG '+JSON.stringify({nativeRelease,outerRelease,consoleErrors}));
   expect(nativeRelease.length,'Worker-side native release should be timed for both transitions').toBeGreaterThanOrEqual(2);
   expect(outerRelease.length,'Outer Worker dispatch timing should be measured twice').toBeGreaterThanOrEqual(2);
-  expect(hostRelease.length,'Host request/reply timing must include the two year transitions').toBeGreaterThanOrEqual(3);
+  expect(releaseHosts.length,'Host release must include startup and two transitions').toBeGreaterThanOrEqual(3);
+  expect(fastHosts.length,'Host candidate prepare must include both transitions').toBeGreaterThanOrEqual(2);
+  expect(transport).toHaveLength(2);
   await info.attach('post-ready-cache-diagnostic',{body:JSON.stringify({results,pageErrors,nativeRelease,outerRelease,hostRelease,transport,consoleErrors},null,2),contentType:'application/json'});
 });
