@@ -99,7 +99,10 @@ test('matching boundary Worker protocol error rolls back the dated Core document
   expect(before.boundaryReady).toBe(true);
   const targetGeneration=before.generation+1;
   await page.evaluate(generation=>{globalThis.__W5Rollback.targetGeneration=generation;},targetGeneration);
-  const beforePicture=await page.locator('#viewerCanvas').screenshot({animations:'disabled'});
+  // Screenshot only the GPU canvas: alert toasts and the timeline form are
+  // expected UI differences after failure, not changes to rendered map pixels.
+  const mapCaptureStyle='body * {visibility:hidden!important} #viewerCanvas {visibility:visible!important}';
+  const beforePicture=await page.locator('#viewerCanvas').screenshot({animations:'disabled',style:mapCaptureStyle});
   let after,afterRetry;
   try{
     await page.locator('#timelinePreviousYear').click({timeout:30000});
@@ -124,7 +127,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
     expect(after.cursor).toBe(before.cursor);
     expect(after.documentId).toBe(before.documentId);
     expect(after.hash,'rollback must restore the prior authoritative country/label/timeline state').toBe(before.hash);
-    const afterPicture=await page.locator('#viewerCanvas').screenshot({animations:'disabled'});
+    const afterPicture=await page.locator('#viewerCanvas').screenshot({animations:'disabled',style:mapCaptureStyle});
     const pictureCompare=await page.evaluate(async({beforeB64,afterB64})=>{
       async function pixels(base64){
         const bytes=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
@@ -144,9 +147,10 @@ test('matching boundary Worker protocol error rolls back the dated Core document
       }
       return{width:a.width,height:a.height,differentPixels:different};
     },{beforeB64:beforePicture.toString('base64'),afterB64:afterPicture.toString('base64')});
-    expect(pictureCompare.differentPixels,'a failed date switch must preserve its previous map pixels').toBe(0);
     await info.attach('w2-p5-rollback-canvas-before',{body:beforePicture,contentType:'image/png'});
     await info.attach('w2-p5-rollback-canvas-after',{body:afterPicture,contentType:'image/png'});
+    console.log('W5_ROLLBACK_MAP_PIXEL_DIFFERENCE '+JSON.stringify(pictureCompare));
+    expect(pictureCompare.differentPixels,'a failed date switch must preserve its previous map pixels').toBe(0);
     // The fault is armed only for one generation. After rollback, retry the
     // same year switch without a reload and demand a real new dated frame.
     await page.locator('#timelinePreviousYear').click({timeout:30000});
