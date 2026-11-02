@@ -36,7 +36,7 @@ class ByteReader{
     const tail=Buffer.concat(remainder);if(tail.length&&!(allowDbfEnd&&tail.length===1&&tail[0]===0x1a))throw Error('Unexpected Hydro source trailing bytes');
   }
 }
-async function readDbf(reader,selected,detail){
+async function readDbf(reader,selected,detail,onRecord){
   const header=await reader.take(32),count=header.readUInt32LE(4),headerLength=header.readUInt16LE(8),recordLength=header.readUInt16LE(10);
   if(headerLength<33||(headerLength-33)%32||recordLength<2)throw Error('Invalid Hydro DBF header');
   const descriptors=await reader.take(headerLength-32);if(descriptors.at(-1)!==13)throw Error('Invalid Hydro DBF field terminator');
@@ -56,11 +56,12 @@ async function readDbf(reader,selected,detail){
     const value=Number(text);if(!Number.isFinite(value)||(integer&&!Number.isSafeInteger(value)))throw Error('Invalid Hydro DBF generation field value');return value;};
   const byRecord=new Map(),seen=new Set();
   for(let oid=0;oid<count;oid++){const record=await reader.take(recordLength);if(record[0]===42)continue;if(record[0]!==32)throw Error('Invalid Hydro DBF record');
-    const id=number(record,'HYRIV_ID');if(!selected.has(id))continue;if(seen.has(id))throw Error('Duplicate Hydro source ID');
+    const id=number(record,'HYRIV_ID');if(selected&&!selected.has(id))continue;
+    if(id<=0||seen.has(id))throw Error('Invalid or duplicate Hydro source ID');
     seen.add(id);const row={id,next:number(record,'NEXT_DOWN')};
     if(detail==='generation')Object.assign(row,{mainRiver:numeric(record,'MAIN_RIV',true),order:numeric(record,'ORD_STRA',true),
       flow:numeric(record,'DIS_AV_CMS'),upstreamArea:numeric(record,'UPLAND_SKM'),endorheic:Boolean(numeric(record,'ENDORHEIC',true))});
-    byRecord.set(oid,row);}
+    if(onRecord)await onRecord({...row,recordIndex:oid});else byRecord.set(oid,row);}
   await reader.finish({allowDbfEnd:true});return {byRecord,count,seen};
 }
 async function readShp(reader,member,records,region,detail){
@@ -94,11 +95,9 @@ async function readShp(reader,member,records,region,detail){
   if(oid!==records.count)throw Error('Hydro shapefile and DBF record counts differ');
   await reader.finish();return rows;
 }
-export async function readHydroRegion({archive,specification,selected,signal,requireAll=true,detail='endpoints'}){
-  signal?.throwIfAborted();const region=specification?.datasetCode;
-  if(!['endpoints','generation'].includes(detail))throw Error('Invalid Hydro source detail');
-  if(!archive||!regions.includes(region)||!(selected instanceof Set)||!selected.size||selected.size>1000000||typeof requireAll!=='boolean'||
-    [...selected].some(id=>!Number.isSafeInteger(id)||id<=0)||!Array.isArray(specification.files))throw Error('Explicit bounded Hydro source selection required');
+async function resolveSourceMembers(archive,specification){
+  const region=specification?.datasetCode;
+  if(!archive||!regions.includes(region)||!Array.isArray(specification.files))throw Error('Explicit Hydro source specification required');
   const base=`HydroRIVERS_v10_${region}`,names=['dbf','shp','shx','prj'].map(ext=>base+'.'+ext),specs=new Map();
   for(const item of specification.files){if(!item||!names.includes(item.file)||specs.has(item.file)||!/^[a-f0-9]{64}$/.test(item.sha256||''))
     throw Error('Invalid Hydro source manifest');specs.set(item.file,item.sha256);}
@@ -106,6 +105,22 @@ export async function readHydroRegion({archive,specification,selected,signal,req
   const members=await zipMembers(archive),chosen=new Map();for(const member of members){const name=posix.basename(member.name);if(!names.includes(name))continue;
     if(chosen.has(name))throw Error('Duplicate Hydro archive member: '+name);chosen.set(name,member);}
   if(chosen.size!==names.length)throw Error('Missing Hydro source archive member');
+  return {region,names,specs,chosen};
+}
+// Metadata is provisional until the promise resolves, after the DBF hash and CRC are verified.
+export async function scanHydroRegionMetadata({archive,specification,onRecord,signal}){
+  signal?.throwIfAborted();if(typeof onRecord!=='function')throw Error('Hydro metadata record consumer required');
+  const {region,names,specs,chosen}=await resolveSourceMembers(archive,specification),name=names[0];
+  const reader=new ByteReader(verifiedChunks(archive,chosen.get(name),specs.get(name),signal),signal);
+  const result=await readDbf(reader,null,'generation',onRecord);
+  return {region,records:result.seen.size};
+}
+export async function readHydroRegion({archive,specification,selected,signal,requireAll=true,detail='endpoints'}){
+  signal?.throwIfAborted();
+  if(!['endpoints','generation'].includes(detail))throw Error('Invalid Hydro source detail');
+  if(!(selected instanceof Set)||!selected.size||selected.size>1000000||typeof requireAll!=='boolean'||
+    [...selected].some(id=>!Number.isSafeInteger(id)||id<=0))throw Error('Explicit bounded Hydro source selection required');
+  const {region,names,specs,chosen}=await resolveSourceMembers(archive,specification);
   const stream=name=>verifiedChunks(archive,chosen.get(name),specs.get(name),signal);
   const records=await readDbf(new ByteReader(stream(names[0]),signal),selected,detail);
   const rows=await readShp(new ByteReader(stream(names[1]),signal),chosen.get(names[1]),records,region,detail);

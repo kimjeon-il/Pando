@@ -3,15 +3,25 @@ import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources} from '../../tools/gis/hydro-source-reader.mjs';
+import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
-import yazl from 'yazl';
-import {createWriteStream} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {pipeline} from 'node:stream/promises';
+import {crc32} from 'node:zlib';
 
 const archive='tests/fixtures/hydro-source/fixture.zip';
 const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/spec.json','utf8'));
+function zipFiles(files){
+  const local=[],central=[];let offset=0;
+  for(const [name,data] of files){const filename=Buffer.from(name),checksum=crc32(data),a=Buffer.alloc(30),b=Buffer.alloc(46);
+    a.writeUInt32LE(0x04034b50,0);a.writeUInt16LE(20,4);a.writeUInt32LE(checksum,14);
+    a.writeUInt32LE(data.length,18);a.writeUInt32LE(data.length,22);a.writeUInt16LE(filename.length,26);
+    b.writeUInt32LE(0x02014b50,0);b.writeUInt16LE(20,4);b.writeUInt16LE(20,6);b.writeUInt32LE(checksum,16);
+    b.writeUInt32LE(data.length,20);b.writeUInt32LE(data.length,24);b.writeUInt16LE(filename.length,28);b.writeUInt32LE(offset,42);
+    local.push(a,filename,data);central.push(b,filename);offset+=a.length+filename.length+data.length;}
+  const directory=Buffer.concat(central),end=Buffer.alloc(22);end.writeUInt32LE(0x06054b50,0);end.writeUInt16LE(files.size,8);
+  end.writeUInt16LE(files.size,10);end.writeUInt32LE(directory.length,12);end.writeUInt32LE(offset,16);
+  return Buffer.concat([...local,directory,end]);
+}
 async function generationFixture(root,{invalidCoordinate=false,invalidAttribute=false}={}){
   const originals=new Map();
   for(const member of await zipMembers(archive)){const chunks=[];for await(const chunk of zipMemberChunks(archive,member))chunks.push(chunk);
@@ -42,9 +52,9 @@ async function generationFixture(root,{invalidCoordinate=false,invalidAttribute=
   shpHeader.writeInt32BE(offset/2,24);shxHeader.writeInt32BE((100+index.length*8)/2,24);
   originals.set(shpName,Buffer.concat([shpHeader,...headers.flatMap((header,i)=>[header,bodies[i]])]));
   originals.set(shxName,Buffer.concat([shxHeader,...index]));
-  const zip=new yazl.ZipFile(),files=[];
-  for(const [name,data] of originals){zip.addBuffer(data,name);files.push({file:name.split('/').at(-1),sha256:createHash('sha256').update(data).digest('hex')});}
-  zip.end();const path=join(root,'generation.zip');await pipeline(zip.outputStream,createWriteStream(path));
+  const files=[];
+  for(const [name,data] of originals)files.push({file:name.split('/').at(-1),sha256:createHash('sha256').update(data).digest('hex')});
+  const path=join(root,'generation.zip');await writeFile(path,zipFiles(originals));
   return {archive:path,specification:{datasetCode:'eu',files}};
 }
 test('generation selection reads full geometry and HydroRIVERS scoring attributes without modifying originals',async t=>{
@@ -67,6 +77,20 @@ test('generation selection rejects damaged interior coordinates and scoring attr
   await assert.rejects(readHydroRegion({...coordinate,selected:new Set([101]),detail:'generation'}),/coordinate/i);
   const attribute=await generationFixture(root,{invalidAttribute:true});
   await assert.rejects(readHydroRegion({...attribute,selected:new Set([101]),detail:'generation'}),/field.*value/i);
+});
+test('generation metadata streams each source record in source order with all selection attributes',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-hydro-metadata-'));t.after(()=>rm(root,{recursive:true}));
+  const input=await generationFixture(root),rows=[];
+  const result=await scanHydroRegionMetadata({...input,onRecord:row=>rows.push(row)});
+  assert.deepEqual(result,{region:'eu',records:3});
+  assert.deepEqual(rows,[
+    {id:101,next:102,mainRiver:102,order:5,flow:1.25,upstreamArea:100,endorheic:false,recordIndex:0},
+    {id:102,next:0,mainRiver:102,order:6,flow:3.5,upstreamArea:200,endorheic:true,recordIndex:1},
+    {id:103,next:102,mainRiver:102,order:4,flow:0,upstreamArea:50,endorheic:false,recordIndex:2}
+  ]);
+  await assert.rejects(scanHydroRegionMetadata({...input,onRecord:()=>{throw Error('stop selection');}}),/stop selection/);
+  const wrong=structuredClone(input.specification);wrong.files.find(file=>file.file.endsWith('.dbf')).sha256='0'.repeat(64);
+  await assert.rejects(scanHydroRegionMetadata({...input,specification:wrong,onRecord:()=>{}}),/hash/i);
 });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];
