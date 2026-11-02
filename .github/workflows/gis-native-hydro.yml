@@ -38,19 +38,27 @@ jobs:
           node-version: '24'
       - name: Build only Hydro outlet geometry and connectivity
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev ninja-build
+          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev libgdal-dev zlib1g-dev ninja-build
           cmake -S tools/cpp -B build-native/hydro-outlets -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
           cmake --build build-native/hydro-outlets --target pando-hydro-point-screen pando-hydro-connectivity
           node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-outlets/pando-hydro-point-screen --directory build-native/hydro-outlets/point-artifact
           node tools/gis/package-hydro-connectivity.mjs --binary build-native/hydro-outlets/pando-hydro-connectivity --directory build-native/hydro-outlets/connectivity-artifact
+          cmake -S tools/cpp/hydro-encoding -B build-native/hydro-outlets/encoding -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/hydro-outlets/encoding --target pando-hydro-encoding
+          node tools/gis/package-hydro-encoding.mjs --binary build-native/hydro-outlets/encoding/pando-hydro-encoding --directory build-native/hydro-outlets/encoding-artifact
+          cmake -S tools/cpp/physical-raster -B build-native/hydro-outlets/raster -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/hydro-outlets/raster --target pando-physical-raster
+          node tools/gis/package-physical-raster.mjs --binary build-native/hydro-outlets/raster/pando-physical-raster --directory build-native/hydro-outlets/raster-artifact
       - name: Check outlet geometry, selection and classification
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-outlets/pando-hydro-point-screen
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/point-artifact
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro-outlets/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/connectivity-artifact
-        run: node --test --test-name-pattern='regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-whole.test.mjs tests/unit/hydro-border-partial.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs tests/unit/hydro-network-normalization.test.mjs tests/unit/hydro-reference-names.test.mjs tests/unit/hydro-region-pipeline.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-lake-features.test.mjs
+          PANDO_HYDRO_ENCODING_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/encoding-artifact
+          PANDO_PHYSICAL_RASTER_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/raster-artifact
+        run: node --test --test-name-pattern='Hydro metadata|Hydro shard|generation command|generation manifest|selected Hydro source flows|river source discovery|official Rhine source|regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-whole.test.mjs tests/unit/hydro-border-partial.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs tests/unit/hydro-network-normalization.test.mjs tests/unit/hydro-reference-names.test.mjs tests/unit/hydro-region-pipeline.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-lake-features.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-generation-manifest.test.mjs tests/unit/hydro-generation-pipeline.test.mjs tests/unit/hydro-river-input.test.mjs tests/unit/hydro-rhine-source.test.mjs tests/unit/hydro-pack-layout.test.mjs
   hydro-chains:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-chains'
     strategy:

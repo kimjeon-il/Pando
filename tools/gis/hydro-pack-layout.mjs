@@ -72,6 +72,25 @@ export function buildHydroMetadata(features,prepared){
   const detail=rows.map(row=>({fid:row.fid,...Object.fromEntries(Object.entries(row).filter(([name])=>detailNames.has(name)))}));
   return {core:{version:5,features:core},detail:{version:5,features:detail}};
 }
+function hydroFloat(value){
+  if(!Number.isFinite(value))throw Error('Hydro metadata float must be finite');
+  if(Object.is(value,-0))return '-0.0';
+  const exponential=value.toExponential(),parts=exponential.split('e'),exponent=Number(parts[1]);
+  if(exponent < -4||exponent>=16){const sign=exponent<0?'-':'+';return parts[0]+'e'+sign+String(Math.abs(exponent)).padStart(2,'0');}
+  const decimal=String(value);return decimal.includes('.')?decimal:decimal+'.0';
+}
+// Python's JSON writer preserves float types even when their value is integral.
+export function serializeHydroMetadata(value){
+  const encode=(item,float=false)=>{
+    if(typeof item==='number')return float?hydroFloat(item):(Number.isFinite(item)?JSON.stringify(item):(()=>{throw Error('Hydro metadata number must be finite');})());
+    if(item===null||typeof item==='boolean'||typeof item==='string')return JSON.stringify(item);
+    if(Array.isArray(item))return '['+item.map(value=>encode(value,float)).join(',')+']';
+    if(item&&typeof item==='object')return '{'+Object.entries(item).filter(([,value])=>value!==undefined).map(([key,value])=>
+      JSON.stringify(key)+':'+encode(value,key==='width'||key==='sourceEndpoint'||key==='renderEndpoint')).join(',')+'}';
+    throw Error('Invalid Hydro metadata value');
+  };
+  return encode(value);
+}
 
 async function compressHydro(inputs,{gzip=encodeHydroGzip,signal,...options}={}){
   const output=[];for(let at=0;at<inputs.length;at+=128){signal?.throwIfAborted();
@@ -121,7 +140,8 @@ export async function finalizeHydroPackGroups(plan,options={}){
 export async function buildHydroPack({features,encoded,changedFeatureIds},options={}){
   options.signal?.throwIfAborted();const plan=planHydroPackGroups({features,encoded,changedFeatureIds});
   const layout=await finalizeHydroPackGroups(plan,options),metadata=buildHydroMetadata(features,plan.prepared);
-  const [core,detail]=await compressHydro([Buffer.from(JSON.stringify(metadata.core)),Buffer.from(JSON.stringify(metadata.detail))],options);
+  const serialize=options.metadataFloatFields?serializeHydroMetadata:JSON.stringify;
+  const [core,detail]=await compressHydro([Buffer.from(serialize(metadata.core)),Buffer.from(serialize(metadata.detail))],options);
   const sha=data=>createHash('sha256').update(data).digest('hex');
   const index={url:'index.bin.gz',bytes:layout.indexGzip.length,sha256:sha(layout.indexGzip),
     tileCount:layout.indexTileCount,logicalFeatureCount:layout.logicalFeatureCount};

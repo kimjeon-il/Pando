@@ -5,19 +5,21 @@ import {readFile,readdir,realpath,stat} from 'node:fs/promises';
 import {basename,dirname,extname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {selectHydroCalibrationReferences} from './hydro-calibration-preparation.mjs';
 
-async function findUniqueSource(roots,filename,signal){
-  const matches=new Map(),wanted=filename.toLowerCase();let visited=0;
-  const add=async path=>{const actual=await realpath(path);matches.set(process.platform==='win32'?actual.toLowerCase():actual,actual);};
+async function findUniqueSources(roots,filenames,signal){
+  const wanted=new Map(filenames.map(name=>[name.toLowerCase(),new Map()]));let visited=0;
+  const add=async (path,name)=>{const actual=await realpath(path);wanted.get(name).set(process.platform==='win32'?actual.toLowerCase():actual,actual);};
   for(const root of roots){signal?.throwIfAborted();const actual=await realpath(resolve(root)),info=await stat(actual);
-    if(info.isFile()){if(basename(actual).toLowerCase()===wanted)await add(actual);continue;}
+    if(info.isFile()){const name=basename(actual).toLowerCase();if(wanted.has(name))await add(actual,name);continue;}
     if(!info.isDirectory())throw Error('Hydro source root must be a file or directory');const pending=[actual];
     while(pending.length){const directory=pending.pop();for(const entry of await readdir(directory,{withFileTypes:true})){
       signal?.throwIfAborted();if(++visited>500000)throw Error('Hydro source discovery exceeds entry budget');
       const path=join(directory,entry.name);if(entry.isDirectory())pending.push(path);
-      else if(entry.isFile()&&entry.name.toLowerCase()===wanted)await add(path);}}
+      else if(entry.isFile()&&wanted.has(entry.name.toLowerCase()))await add(path,entry.name.toLowerCase());}}
   }
-  if(matches.size!==1)throw Error(`Expected exactly one ${filename}, found ${matches.size}`);return [...matches.values()][0];
+  return filenames.map(filename=>{const matches=wanted.get(filename.toLowerCase());
+    if(matches.size!==1)throw Error(`Expected exactly one ${filename}, found ${matches.size}`);return [...matches.values()][0];});
 }
+async function findUniqueSource(roots,filename,signal){return (await findUniqueSources(roots,[filename],signal))[0];}
 export async function fingerprintHydroCalibrationFile(path,signal){
   const before=await stat(path);if(!before.isFile())throw Error('Hydro source must be a file');const hash=createHash('sha256');let size=0;
   for await(const chunk of createReadStream(path,{signal})){signal?.throwIfAborted();size+=chunk.length;hash.update(chunk);}
@@ -26,10 +28,21 @@ export async function fingerprintHydroCalibrationFile(path,signal){
 }
 async function shapefileMembers(shp,signal){
   const dir=dirname(shp),stem=basename(shp,extname(shp)).toLowerCase(),entries=await readdir(dir,{withFileTypes:true}),files={};
-  for(const ext of ['shp','dbf','shx','prj']){const matches=entries.filter(entry=>entry.isFile()&&entry.name.toLowerCase()===`${stem}.${ext}`);
+  for(const ext of ['shp','shx','dbf','prj','cpg']){const matches=entries.filter(entry=>entry.isFile()&&entry.name.toLowerCase()===`${stem}.${ext}`);
     if(matches.length>1||(!matches.length&&['shp','dbf'].includes(ext)))throw Error(`Expected one Hydro ${ext} source member`);
     if(matches.length)files[ext]=await fingerprintHydroCalibrationFile(await realpath(join(dir,matches[0].name)),signal);}
   return files;
+}
+export async function prepareHydroRiverSources({riverRoots,codes,signal}={}){
+  signal?.throwIfAborted();const allowed=new Set(['af','ar','as','au','eu','gr','na','sa','si']);
+  if(!Array.isArray(riverRoots)||!riverRoots.length||riverRoots.some(root=>typeof root!=='string'||!root)||
+    !Array.isArray(codes)||!codes.length||new Set(codes).size!==codes.length||codes.some(code=>!allowed.has(code)))
+    throw Error('Explicit unique Hydro river roots and regions required');
+  const paths=await findUniqueSources(riverRoots,codes.map(code=>`HydroRIVERS_v10_${code}.shp`),signal),result=[];
+  for(let index=0;index<paths.length;index++){const files=await shapefileMembers(paths[index],signal);
+    if(!files.shx)throw Error('Hydro indexed generation requires a source SHX file');
+    result.push({files,specification:{datasetCode:codes[index]},sourceFiles:Object.values(files).map(item=>({file:basename(item.path),sha256:item.sha256}))});}
+  return result;
 }
 export async function prepareHydroCalibrationSourceFiles({riverRoots,hydrolakes,regions,signal}={}){
   signal?.throwIfAborted();

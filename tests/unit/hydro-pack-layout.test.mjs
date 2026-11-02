@@ -6,12 +6,17 @@ import {tmpdir} from 'node:os';
 import {dirname,join} from 'node:path';
 import test from 'node:test';
 import {gunzipSync,gzipSync} from 'node:zlib';
-import {buildHydroMetadata,buildHydroPack,finalizeHydroPackGroups,planHydroPackGroups} from '../../tools/gis/hydro-pack-layout.mjs';
+import {buildHydroMetadata,buildHydroPack,finalizeHydroPackGroups,planHydroPackGroups,serializeHydroMetadata} from '../../tools/gis/hydro-pack-layout.mjs';
 import {decodeHydroGeneratedPack,decodeHydroSelectedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
 import {loadCompleteHydroFeatures,loadSelectedHydroFeatures} from '../../tools/gis/hydro-selected-data.mjs';
 
 const features=JSON.parse(readFileSync('tests/fixtures/hydro-encoding-oracle.json','utf8'));
 const oracle=JSON.parse(readFileSync('tests/fixtures/hydro-pack-oracle.json','utf8'));
+test('Hydro metadata preserves Python float spelling for widths and terminal coordinates',()=>{
+  const value={version:5,features:[{fid:1,width:1,terminal:{class:'sea',sourceEndpoint:[4,-0],renderEndpoint:[.00001,1e16]}}]};
+  assert.equal(serializeHydroMetadata(value),'{"version":5,"features":[{"fid":1,"width":1.0,"terminal":{"class":"sea","sourceEndpoint":[4.0,-0.0],"renderEndpoint":[1e-05,1e+16]}}]}');
+  assert.throws(()=>serializeHydroMetadata({features:[{width:Infinity}]}),/finite/i);
+});
 function inputs(){return features.map(({feature:row,featureHex})=>({
   feature:{metadata:{fid:row.fid,logicalFid:row.logical_fid,awId:row.pandolab_id,category:row.category,stage:row.stage,flags:row.flags,
     fragmentIndex:row.fragment_index,fragmentCount:row.fragment_count,width:row.width,bounds:row.bounds.map(value=>Math.round(value*1000000)),
