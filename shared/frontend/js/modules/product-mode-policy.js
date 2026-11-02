@@ -16,20 +16,23 @@ const viewerOperations = new Set([
   'core.document-temporal-candidate-adopt',
 ]);
 
-export function createProductModePolicy(productMode) {
+export function createProductModePolicy(productMode, {readOnly = productMode === 'viewer'} = {}) {
   if (productMode !== 'viewer' && productMode !== 'editor')
     throw new TypeError('Product mode must be viewer or editor.');
+  if (typeof readOnly !== 'boolean' || (productMode === 'viewer' && !readOnly))
+    throw new TypeError('Viewer must remain read-only; map access must be explicit.');
   const projection = productMode === 'viewer' ? 'globe' : 'flat';
   return Object.freeze({
     productMode,
+    readOnly,
     projection,
     assertProjection(requested) {
       if (requested !== undefined && requested !== projection)
         throw Object.assign(new Error(`The ${productMode} supports only the ${projection} projection.`), { code: 'PL-PRODUCT-PROJECTION', productMode, projection: requested });
     },
     assertOperation(operation) {
-      if (productMode === 'viewer' && !viewerOperations.has(operation))
-        throw Object.assign(new Error('This operation is unavailable in the read-only viewer.'),
+      if (readOnly && !viewerOperations.has(operation))
+        throw Object.assign(new Error(`This operation is unavailable in the read-only ${productMode === 'viewer' ? 'viewer' : 'map'}.`),
           { code: 'PL-PRODUCT-READONLY', productMode, operation });
     },
   });

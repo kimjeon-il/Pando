@@ -119,10 +119,11 @@ test('viewer and editor clients select fixed separate Worker entries', async t =
   };
   const viewer = fixture.createClient({ productMode: 'viewer' });
   const editor = fixture.createClient({ productMode: 'editor' });
+  const flatReview = fixture.createClient({ productMode: 'editor', readOnly: true });
   try {
-    await viewer.load('{}'); await editor.load('{}');
-    assert.equal(urls.length, 2);
-    for (const [position, entry] of ['core-viewer-session-worker.js', 'core-session-worker.js'].entries()) {
+    await viewer.load('{}'); await editor.load('{}'); await flatReview.load('{}');
+    assert.equal(urls.length, 3);
+    for (const [position, entry] of ['core-viewer-session-worker.js', 'core-session-worker.js', 'core-viewer-session-worker.js'].entries()) {
       const { url, options } = urls[position];
       assert.ok(url.pathname.endsWith('/' + fixture.meta.workerAssets['assets/js/workers/' + entry].url));
       assert.equal(url.searchParams.get('v'), fixture.meta.assetRevision);
@@ -130,8 +131,11 @@ test('viewer and editor clients select fixed separate Worker entries', async t =
       assert.equal(options.type, 'module');
     }
     assert.notEqual(urls[0].url.pathname, urls[1].url.pathname);
+    assert.equal(urls[2].url.pathname, urls[0].url.pathname, 'flat read-only app must use read-only Worker');
+    assert.equal(flatReview.readOnly, true);
+    assert.equal(flatReview.productMode, 'editor');
   } finally {
-    viewer.dispose(); editor.dispose();
+    viewer.dispose(); editor.dispose(); flatReview.dispose();
     if (hadWorker) globalThis.Worker = originalWorker; else delete globalThis.Worker;
     if (hadMeta) globalThis.PANDOLAB_BUILD_META = originalMeta; else delete globalThis.PANDOLAB_BUILD_META;
   }
