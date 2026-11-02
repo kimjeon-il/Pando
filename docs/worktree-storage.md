@@ -4,9 +4,9 @@
 
 ## 로컬 컴파일 비활성화
 
-현재 work/ui의 개발·빌드 진입점은 CI 실행기를 받는다. Rust·C++·Android 컴파일은
-Actions에서 수행하고 로컬에는 Node·Git·브라우저·앱·ADB를 남긴다. SDK 자동 설치와
-로컬 컴파일 fallback은 없다. 세부 사용법은 apps/editor/README.md를 따른다.
+현재 Windows 검수기와 공통 C++/WASM의 개발·빌드는 CI 실행기를 사용한다. 로컬에는
+Node·Git·브라우저와 검증된 Windows 실행 파일만 필요하다. Android 앱·ADB·SDK·NDK
+빌드는 중단되었고, 모바일 기능은 웹 브라우저에서 제공한다. SDK 자동 설치와 로컬 컴파일 fallback은 없다. 세부 사용법은 apps/editor/README.md를 따른다.
 
 `node tools/worktree-storage.mjs --disable-local-compiler`는 활성 빌드를 거부하고,
 소유한 sccache 서버만 확인 후 종료한다. 공통 Git의 pando-storage.json에 compilerEnabled=false를
@@ -58,14 +58,14 @@ CMake와 Emscripten 버전은 config/toolchain-versions.json을 기준으로 CI�
 
 ## CI 전환 후 컴파일 도구 정리
 
-Windows 앱과 Android 실기기 검증 후 로컬 compiler를 비활성화한 상태에서만 다음 범위를 허용한다.
+Windows 검수기 및 공통 C++/WASM 검증 후 로컬 compiler를 비활성화한 상태에서만 다음 범위를 허용한다.
 
 ```powershell
 node tools/worktree-storage.mjs --retire-generated=requests.json --retire-compilers --output=manifest.json
 node tools/worktree-storage.mjs --retire-generated=manifest.json --retire-compilers --apply --output=result.json
 ```
 
-고정된 Pando toolchain, 종료된 target/CMake/Emscripten 출력과 지정된 Android SDK/AVD 범위만 대상으로 한다.
+고정된 Pando toolchain과 종료된 target/CMake/Emscripten 출력만 현재 개발 범위다. 과거 Android SDK/AVD 정리 규칙은 **사용자가 별도 승인한 역사적 설치물 정리용**으로 남겨두며, R2는 실제 로컬 파일을 자동 삭제하지 않는다.
 현재 platform-tools와 GPU Python은 허용 범위에 없다. 실행 중인 compiler·emulator·QEMU는 차단한다.
 이미 공용 native view로 전환된 앱·서버는 보존하며, 삭제 대상의 경로를 사용하는 소비자는 계속 차단한다.
 미리보기와 적용은 파일 ID·크기·SHA-256·경로·junction을 확인한다. 적용 중 전체 사전 검사의 해시는

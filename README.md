@@ -1,8 +1,8 @@
 # 판도연구소 v0.36.0
 
-국가와 국경을 만드는 세계지도 편집기입니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용하며, 빌드 과정 없이 정적 서버나 GitHub Pages에서 실행됩니다.
+1801년 이후의 세계 역사 지도와 국가·영토 속성을 탐색하는 웹 열람기이며, Windows에서는 같은 지도 엔진을 이용한 읽기 전용 검수기를 제공합니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용합니다.
 
-이 저장소는 웹(루트), [Windows·Android 앱](apps/editor/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)를 함께 관리합니다. 앱 실행·개발 기준은 `apps/editor`이며, 웹 화면·Worker·WASM·자료를 같은 커밋에서 사용합니다.
+이 저장소는 PC·모바일 웹 열람기, [Windows 검수기](apps/editor/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)를 함께 관리합니다. `apps/viewer`가 공개 웹과 Windows 검수기의 공통 UI 정본입니다. Android 네이티브 앱은 폐기되었고 모바일 브라우저는 계속 지원합니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -24,13 +24,12 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 | 명령 | 용도 |
 | --- | --- |
 | `pnpm.cmd dev:web` | PC·모바일 웹, localhost:4173 |
-| `pnpm.cmd dev:editor` | 편집기 개발 서버, localhost:4175 |
+| `pnpm.cmd dev:editor` | Windows 검수기용 개발 서버(내부 호환 명칭), localhost:4175 |
 | `pnpm.cmd dev:windows` | CI Windows 실행기와 개발 서버 |
-| `pnpm.cmd dev:android` | CI ARM64 APK·ADB 실기기와 개발 서버 |
 | `pnpm.cmd build:web` | viewer 전용 정적 산출물 |
-| `pnpm.cmd build:windows` / `build:android` | 대응 CI 오프라인 산출물 요청·검증 |
+| `pnpm.cmd build:windows` | Windows 전용 CI 오프라인 설치 파일 요청·검증 |
 
-소스와 생성물의 위치는 [폴더·생성물 운영](docs/workspace-layout.md)을 참고하세요. 생성 HTML을 직접 열지 말고 개발 서버를 사용합니다. Rust·Android SDK·Emscripten은 로컬에 설치하지 않습니다.
+소스와 생성물의 위치는 [폴더·생성물 운영](docs/workspace-layout.md)을 참고하세요. 생성 HTML을 직접 열지 말고 개발 서버를 사용합니다. Rust·Emscripten은 CI에서 준비하며, Android SDK/NDK는 더 이상 앱 빌드에 사용하지 않습니다.
 
 ## 검사 실행
 
