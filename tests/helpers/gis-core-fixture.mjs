@@ -5,7 +5,8 @@ import {createLandRelations} from "../../apps/editor/frontend/js/modules/app-lan
 import {territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
 import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
 import {applyImportedPackageAssets} from "../../apps/editor/frontend/js/modules/import-service.js";
-import {createGenericFeatureService,normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from "../../tools/gis/generic-feature-service.js";
+import {createGenericFeatureService} from './generic-feature-command-service.mjs';
+import {normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from '../../shared/frontend/js/modules/generic-feature-normalization.js';
 
 /** Real C++ command/preview owner; only platform I/O, prompts and display hooks are test doubles. */
 export async function createGisCoreFixture(territorialEntities=[],{fields={},runtime={},platformPorts={}}={}) {

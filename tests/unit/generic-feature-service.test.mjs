@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  createGenericFeatureService,
-  normalizeGenericFeatureCollection,
-  normalizeGenericFeatureSemantics,
-} from "../../tools/gis/generic-feature-service.js";
+import {createGenericFeatureService} from '../helpers/generic-feature-command-service.mjs';
+import {normalizeGenericFeatureCollection,normalizeGenericFeatureSemantics}
+  from '../../shared/frontend/js/modules/generic-feature-normalization.js';
 
 const genericFeature = (id, geometry = { type: 'Point', coordinates: [1, 2] }, properties = {}) => ({
   type: 'Feature', id, geometry, properties: { schemaVersion: 2, name: id, color: '#123456', ...properties },

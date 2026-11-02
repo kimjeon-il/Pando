@@ -6,7 +6,7 @@ import {
   GENERIC_FEATURE_CANONICAL_PROPERTY_KEYS,
   GENERIC_FEATURE_SCHEMA_VERSION,
   normalizeGenericFeatureCollection,
-} from "../tools/gis/generic-feature-service.js";
+} from "../shared/frontend/js/modules/generic-feature-normalization.js";
 import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
 } from "../shared/frontend/js/modules/source-provenance.js";

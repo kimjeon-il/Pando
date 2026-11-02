@@ -17,8 +17,11 @@ for(const entry of [...index.keys()].filter(p=>p.startsWith('assets/js/modules/'
   const source=read(`assets/js/modules/${entry.name}`);
   for(const file of retired)if(source.includes(`from './${file}'`))failures.push(`${entry.name} imports retired owner ${file}`);
 }
-for(const file of ['territorial-service.js','generic-feature-service.js','distribution-service.js']) {
-  const source=read(`assets/js/modules/${file}`);
+// These legacy command adapters are test-only; the published Viewer uses C++ read-only ports.
+for(const file of ['apps/editor/frontend/js/modules/territorial-service.js',
+                   'tests/helpers/generic-feature-command-service.mjs',
+                   'apps/editor/frontend/js/modules/distribution-service.js']) {
+  const source=read(file);
   if(!source.includes('commandOwner')||!source.includes('executeCommand'))failures.push(`${file} lacks the accepted C++ command boundary`);
   for(const forbidden of ['createDocumentMutationRunner','commandPipeline','recordHistory(','queueAutosave(','restoreSnapshot('])
     if(source.includes(forbidden))failures.push(`${file} owns an obsolete mutation/history side effect: ${forbidden}`);

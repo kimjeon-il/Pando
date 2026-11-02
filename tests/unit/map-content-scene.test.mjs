@@ -6,7 +6,7 @@ import { createTerritorialEntityRepository } from "../../shared/frontend/js/modu
 import { createDistributionLayer, createDistributionEntry } from "../../shared/frontend/js/modules/distribution-model.js";
 import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
 import { resolveMapTheme } from "../../shared/frontend/js/modules/map-theme.js";
-import { normalizeGenericFeatureSemantics } from "../../tools/gis/generic-feature-service.js";
+import { normalizeGenericFeatureSemantics } from "../../shared/frontend/js/modules/generic-feature-normalization.js";
 
 import {readDomainColor,COLOR_DOMAINS} from "../../shared/frontend/js/modules/color-adapter.js";
 import {createMapContentPresentation} from "../../shared/frontend/js/modules/map-content-presentation.js";

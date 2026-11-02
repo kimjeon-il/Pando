@@ -5,7 +5,7 @@ import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer
 import {startupDocument} from '../helpers/core-startup.mjs';
 import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
 import {createDistributionLayer,createDistributionEntry} from "../../shared/frontend/js/modules/distribution-model.js";
-import {normalizeGenericFeatureSemantics} from "../../apps/editor/frontend/js/modules/generic-feature-service.js";
+import {normalizeGenericFeatureSemantics} from "../../shared/frontend/js/modules/generic-feature-normalization.js";
 
 const flag='data:image/svg+xml;base64,'+Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8"><path fill="red" d="M0 0h12v8H0z"/></svg>').toString('base64');
 async function observe(page){
