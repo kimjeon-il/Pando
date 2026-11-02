@@ -141,6 +141,15 @@ test('native system fragments retain chain order, role and per-point widths',
     await assert.rejects(assembleHydroSystemFragments({chains:[chains[0],chains[0]]},
       {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),/identity/i);
   });
+test('system fragments retain separate geometry for split reaches with the same source ID',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const reach=(parts,borderPair)=>({id:10,mainRiver:10,upstreamArea:100,flow:1,stage:3,borderPair,
+      width:1,endWidth:2,renderSnap:null,parts:[parts]}),chains=[[
+      reach([[0,0],[1,0]],null),reach([[1,0],[2,0]],['AAA','BBB']),reach([[2,0],[3,0]],null)]];
+    const result=await assembleHydroSystemFragments({chains},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(result[0].fragments.map(row=>row.reachIds),[[10],[10],[10]]);
+    assert.deepEqual(result[0].fragments.map(row=>row.geometry.coordinates),[[[0,0],[1,0]],[[1,0],[2,0]],[[2,0],[3,0]]]);
+  });
 test('source-bound fragment geometry accepts negative zero and protects input coordinates',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const fragments=[[{parts:[[[0,-0],[1,0]]],renderSnap:[2,0]}]],before=structuredClone(fragments);

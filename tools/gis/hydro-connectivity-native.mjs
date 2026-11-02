@@ -213,25 +213,27 @@ export async function buildHydroFragmentGeometries(fragments,options={}){
   return result.geometries;
 }
 export async function assembleHydroSystemFragments({chains}={},options={}){
-  options.signal?.throwIfAborted();hydroSystemKeys(chains);const rows=new Map();
-  for(const chain of chains)for(const reach of chain){
-    if(rows.has(reach.id)||!Number.isFinite(reach.width)||!Number.isFinite(reach.endWidth))
-      throw Error('Invalid Hydro fragment reach identity or width');
-    rows.set(reach.id,reach);
+  options.signal?.throwIfAborted();hydroSystemKeys(chains);const owners=new Map();
+  for(let chainIndex=0;chainIndex<chains.length;chainIndex++)for(let index=0;index<chains[chainIndex].length;index++){
+    const reach=chains[chainIndex][index],prior=owners.get(reach.id);
+    if(!Number.isFinite(reach.width)||!Number.isFinite(reach.endWidth)||(prior&&(prior.chain!==chainIndex||prior.index!==index-1)))
+      throw Error('Invalid Hydro fragment reach identity or width');owners.set(reach.id,{chain:chainIndex,index});
   }
-  const layout=await buildHydroRiverSystems({chains},options),systems=[],fragmentsAll=[];
+  const layout=await buildHydroRiverSystems({chains},options),systems=[],fragmentsAll=[],members=new Map();
   for(const system of layout.systems){const fragments=[];
-    for(const chainIndex of system.chainIndexes)for(const reachIds of layout.fragments[chainIndex])
-      fragments.push({chainIndex,reachIds:[...reachIds]});
+    for(const chainIndex of system.chainIndexes){let offset=0;for(const reachIds of layout.fragments[chainIndex]){
+      const fragment={chainIndex,reachIds:[...reachIds]},rows=chains[chainIndex].slice(offset,offset+reachIds.length);offset+=reachIds.length;
+      if(rows.length!==reachIds.length||rows.some((row,i)=>row.id!==reachIds[i]))throw Error('Hydro fragment source order differs');
+      members.set(fragment,rows);fragments.push(fragment);}}
     for(const fragment of fragments)fragmentsAll.push(fragment);
     systems.push({...system,fragments});
   }
   for(let at=0;at<fragmentsAll.length;at+=1000){const batch=fragmentsAll.slice(at,at+1000),flat=[];
-    for(const fragment of batch)for(const id of fragment.reachIds)flat.push(rows.get(id));
+    for(const fragment of batch)flat.push(...members.get(fragment));
     const profiles=await buildHydroWidthProfile({reaches:flat},options);let index=0;
-    const geometries=await buildHydroFragmentGeometries(batch.map(fragment=>fragment.reachIds.map(id=>rows.get(id))),options);
+    const geometries=await buildHydroFragmentGeometries(batch.map(fragment=>members.get(fragment)),options);
     for(const [i,fragment] of batch.entries()){let count=0;fragment.geometry=geometries[i];
-      for(const id of fragment.reachIds)for(const part of rows.get(id).parts)if(part.length>=2)count++;
+      for(const row of members.get(fragment))for(const part of row.parts)if(part.length>=2)count++;
       fragment.widths=profiles.widths.slice(index,index+count);index+=count;}
     if(index!==profiles.widths.length)throw Error('Hydro fragment width count differs');
   }
