@@ -15,7 +15,7 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       'globalThis.__W2P3_PACKETS__.push({',
       'kind:data?.type,requestId:data?.requestId,projectGeneration:data?.projectGeneration,',
       'geometryRevision:data?.geometryRevision,quality:data?.quality,',
-      'packetCacheHit:data?.packetCacheHit??null,',
+      'packetCacheHit:data?.packetCacheHit??null,packetPreparationMs:data?.packetPreparationMs??null,',
       'packetCacheResidentEstimate:data?.packetCacheResidentEstimate??null,',
       'segments:data?.packet?.segments?.length??0,receivedAt:performance.now()',
       '});',
@@ -89,6 +89,13 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     expect(forced).toMatchObject({packetCacheHit:true,projectGeneration:currentGeneration,
       segments:expectedSegments});
     expect(forced.packetCacheResidentEstimate).toBeGreaterThan(0);
+    const firstFull=all.find(p=>p.packetCacheHit===false&&p.segments===expectedSegments);
+    expect(firstFull,'at least one actual full-world packet computation is required').toBeTruthy();
+    expect(firstFull.packetPreparationMs).toBeGreaterThan(forced.packetPreparationMs);
+    console.log('W2_P3_PACKET_PREPARATION_COST '+JSON.stringify({
+      fullWorldMs:firstFull.packetPreparationMs,reusedMs:forced.packetPreparationMs,
+      estimatedRetainedBytes:forced.packetCacheResidentEstimate,segments:expectedSegments
+    }));
     expect(final.stats.countrySharedBoundarySegmentCount).toBe(expectedSegments);
     expect(final.stats.countrySharedBoundaryReplacementPending).toBe(false);
     expect(final.packets.filter(p=>p.kind==='prepared')).toHaveLength(beforeReprepare+1);

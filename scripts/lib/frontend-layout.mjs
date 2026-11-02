@@ -3,7 +3,7 @@ import {resolve,posix} from 'node:path';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 
-export const frontendTemplates=Object.freeze({web:'apps/viewer/templates/index.html',editor:'apps/editor/templates/index.html'});
+export const frontendTemplates=Object.freeze({web:'apps/viewer/templates/index.html'});
 export const frontendFragmentRoot='shared/frontend/ui/fragments';
 export const frontendWasmRoot='shared/frontend/static/wasm';
 export const frontendGeneratedOwners=Object.freeze({'assets/js/build-meta.js':'scripts/lib/frontend-build.mjs','assets/js/workers/resource-update-policy-core.js':'scripts/lib/frontend-build.mjs'});
@@ -16,9 +16,6 @@ export const frontendRoots=Object.freeze([
  {sourcePath:'shared/frontend/static',publicPath:'assets',product:'shared'},
  {sourcePath:'apps/viewer/js',publicPath:'assets/js',product:'viewer'},
  {sourcePath:'apps/viewer/css',publicPath:'assets/css',product:'viewer'},
- {sourcePath:'apps/editor/frontend/js',publicPath:'assets/js',product:'editor'},
- {sourcePath:'apps/editor/frontend/css',publicPath:'assets/css',product:'editor'},
- {sourcePath:'apps/editor',publicPath:'shell',product:'editor',shallow:true},
 ]);
 const slash=path=>path.replaceAll('\\','/');
 function validPublicPath(path){
@@ -45,10 +42,10 @@ export function buildFrontendIndex(root){
  }
  return index;
 }
-export function frontendAsset(root,publicPath,{index=buildFrontendIndex(root),product='editor'}={}){
+export function frontendAsset(root,publicPath,{index=buildFrontendIndex(root),product='viewer'}={}){
  validPublicPath(publicPath);const entry=index.get(publicPath);
  if(!entry)throw Error('Missing frontend source: '+publicPath);
- if(product==='viewer'&&entry.product==='editor')throw Error('Viewer reaches editor product source: '+publicPath);
+ if(product!=='viewer')throw Error('Only the Viewer/Windows reviewer frontend is distributed');
  return {...entry,bytes:readFileSync(resolve(root,entry.sourcePath))};
 }
 

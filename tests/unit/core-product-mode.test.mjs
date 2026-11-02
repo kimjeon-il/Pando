@@ -40,7 +40,7 @@ async function generatedClientFixture(t) {
     return emitFrontendModule(entry.bytes.toString('utf8'), entry.sourcePath, index);
   };
   const workerAssets = {};
-  for (const entry of ['assets/js/workers/core-viewer-session-worker.js', 'assets/js/workers/core-session-worker.js']) {
+  for (const entry of ['assets/js/workers/core-viewer-session-worker.js']) {
     const built = await buildWorkerAsset({ root, entry, readSource: source });
     workerAssets[entry] = { url: built.url };
   }
@@ -103,41 +103,35 @@ test('invalid product modes fail visibly instead of selecting editor privileges'
   }
 });
 
-test('viewer and editor clients select fixed separate Worker entries', async t => {
-  const fixture = await generatedClientFixture(t);
-  const originalWorker = globalThis.Worker, urls = [];
-  const originalMeta = globalThis.PANDOLAB_BUILD_META;
-  const hadWorker = Object.hasOwn(globalThis, 'Worker'), hadMeta = Object.hasOwn(globalThis, 'PANDOLAB_BUILD_META');
-  globalThis.PANDOLAB_BUILD_META = fixture.meta;
-  globalThis.Worker = class {
-    constructor(url, options) { urls.push({ url, options }); }
-    postMessage(message) {
-      globalThis.queueMicrotask(() => this.onmessage({ data: { ...message, type: 'result', ok: true,
-        result: { state: { epoch: 1 } } } }));
-    }
-    terminate() {}
+test('the published frontend contains exactly one read-only Viewer Core Worker',async t=>{
+  const fixture=await generatedClientFixture(t);
+  assert.deepEqual(Object.keys(fixture.meta.workerAssets),['assets/js/workers/core-viewer-session-worker.js']);
+  const originalWorker=globalThis.Worker,urls=[],originalMeta=globalThis.PANDOLAB_BUILD_META;
+  const hadWorker=Object.hasOwn(globalThis,'Worker'),hadMeta=Object.hasOwn(globalThis,'PANDOLAB_BUILD_META');
+  globalThis.PANDOLAB_BUILD_META=fixture.meta;
+  globalThis.Worker=class {
+    constructor(url,options){urls.push({url,options});}
+    postMessage(message){globalThis.queueMicrotask(()=>this.onmessage({data:{...message,type:'result',ok:true,
+      result:{state:{epoch:1}}}}));}
+    terminate(){}
   };
-  const viewer = fixture.createClient({ productMode: 'viewer' });
-  const editor = fixture.createClient({ productMode: 'editor' });
-  const flatReview = fixture.createClient({ productMode: 'editor', readOnly: true });
-  try {
-    await viewer.load('{}'); await editor.load('{}'); await flatReview.load('{}');
-    assert.equal(urls.length, 3);
-    for (const [position, entry] of ['core-viewer-session-worker.js', 'core-session-worker.js', 'core-viewer-session-worker.js'].entries()) {
-      const { url, options } = urls[position];
-      assert.ok(url.pathname.endsWith('/' + fixture.meta.workerAssets['assets/js/workers/' + entry].url));
-      assert.equal(url.searchParams.get('v'), fixture.meta.assetRevision);
-      assert.equal(url.searchParams.get('dataRevision'), fixture.meta.dataRevision);
-      assert.equal(options.type, 'module');
+  const viewer=fixture.createClient({productMode:'viewer'});
+  const flatReview=fixture.createClient({productMode:'editor',readOnly:true});
+  try{
+    await viewer.load('{}');await flatReview.load('{}');
+    assert.equal(urls.length,2);
+    for(const {url,options} of urls){
+      assert.ok(url.pathname.endsWith('/'+fixture.meta.workerAssets['assets/js/workers/core-viewer-session-worker.js'].url));
+      assert.equal(url.searchParams.get('v'),fixture.meta.assetRevision);
+      assert.equal(url.searchParams.get('dataRevision'),fixture.meta.dataRevision);
+      assert.equal(options.type,'module');
     }
-    assert.notEqual(urls[0].url.pathname, urls[1].url.pathname);
-    assert.equal(urls[2].url.pathname, urls[0].url.pathname, 'flat read-only app must use read-only Worker');
-    assert.equal(flatReview.readOnly, true);
-    assert.equal(flatReview.productMode, 'editor');
-  } finally {
-    viewer.dispose(); editor.dispose(); flatReview.dispose();
-    if (hadWorker) globalThis.Worker = originalWorker; else delete globalThis.Worker;
-    if (hadMeta) globalThis.PANDOLAB_BUILD_META = originalMeta; else delete globalThis.PANDOLAB_BUILD_META;
+    assert.equal(urls[0].url.pathname,urls[1].url.pathname);
+    assert.equal(flatReview.readOnly,true);
+  }finally{
+    viewer.dispose();flatReview.dispose();
+    if(hadWorker)globalThis.Worker=originalWorker;else delete globalThis.Worker;
+    if(hadMeta)globalThis.PANDOLAB_BUILD_META=originalMeta;else delete globalThis.PANDOLAB_BUILD_META;
   }
 });
 

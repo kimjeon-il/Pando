@@ -88,7 +88,10 @@
         "tests/browser/p9-browser-performance.spec.mjs",
         "tests/browser/russia-edit-preparation.spec.mjs",
         "tests/browser/m2-gpu-worker-frame-probe.spec.mjs",
-        "tests/browser/map-transition-p5-6.spec.mjs"
+        "tests/browser/map-transition-p5-6.spec.mjs",
+        "tests/browser/p6-5-resource-check.spec.mjs",
+        "tests/browser/p6-6-desktop-performance.spec.mjs",
+        "tests/browser/p6-7-narrow-performance.spec.mjs"
       ],
       "inputs": []
     },
@@ -339,7 +342,8 @@
         "tests/browser/unified-objects.spec.mjs",
         "tests/browser/map-startup-publication.spec.mjs",
         "tests/browser/map-surface-quality.spec.mjs",
-        "tests/browser/resource-dependency-reuse.spec.mjs"
+        "tests/browser/resource-dependency-reuse.spec.mjs",
+        "tests/browser/windows-review-e5.spec.mjs"
       ],
       "inputs": [
         "apps/viewer/js/viewer.js",
@@ -858,7 +862,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -981,7 +985,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -995,7 +999,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -1009,7 +1013,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -1025,7 +1029,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",

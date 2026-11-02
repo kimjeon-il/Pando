@@ -159,6 +159,7 @@ async function prepareMessage(message) {
     // queued date changes get a chance to supersede this packet before paint.
     await yieldToMessages();
     if (!isLatest(message)) return;
+    const packetPreparationStarted = performance.now();
     const preparedFeatures = boundaryState.features();
     const key = packetIdentity(message, preparedFeatures);
     const packetCacheHit = retainedPacket?.key === key;
@@ -176,12 +177,14 @@ async function prepareMessage(message) {
         ? {key, packet: copyTransferredArrays(packet), residentBytes}
         : null;
     }
+    const packetPreparationMs = performance.now() - packetPreparationStarted;
     await yieldToMessages();
     if (!isLatest(message)) return;
     self.postMessage({ type: 'prepared', requestId: message.requestId,
       projectGeneration: message.projectGeneration, geometryRevision: message.geometryRevision,
       quality: message.quality, preparationStats: boundaryState.stats(),
-      packetCacheHit, packetCacheResidentEstimate: retainedPacket?.residentBytes || 0, packet },
+      packetCacheHit, packetPreparationMs,
+      packetCacheResidentEstimate: retainedPacket?.residentBytes || 0, packet },
       transferBuffers(packet));
   } catch (error) {
     if (!applied && deferUnapplied(message)) return;

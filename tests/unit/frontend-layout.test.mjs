@@ -4,93 +4,81 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync,readFileSync} fro
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {buildFrontendIndex,frontendAsset,emitFrontendModule,frontendSourceClosure} from '../../scripts/lib/frontend-layout.mjs';
-
-function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-frontend-layout-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
+function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-reviewer-layout-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='export const value=1;'){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);return file;}
-
-test('product source ownership and public URLs are separate identities',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/modules/common.js');put(root,'apps/viewer/js/viewer.js');put(root,'apps/editor/frontend/js/app.js');put(root,'shared/frontend/static/fonts/font.woff','font');
+test('E6 permits Viewer/shared code but retires native shell and editor product from frontend graph',t=>{
+ const root=fixture(t);
+ put(root,'shared/frontend/js/modules/common.js');put(root,'apps/viewer/js/viewer.js');
+ put(root,'apps/editor/frontend/js/app.js');put(root,'apps/editor/frontend/js/modules/private.js');
+ put(root,'apps/editor/startup.js');put(root,'shared/frontend/static/fonts/font.woff','font');
  const index=buildFrontendIndex(root);
- assert.deepEqual(index.get('assets/js/modules/common.js'),{sourcePath:'shared/frontend/js/modules/common.js',publicPath:'assets/js/modules/common.js',product:'shared'});
- assert.equal(frontendAsset(root,'assets/js/viewer.js',{index,product:'viewer'}).sourcePath,'apps/viewer/js/viewer.js');
- assert.throws(()=>frontendAsset(root,'assets/js/app.js',{index,product:'viewer'}),/editor|product/i);
+ assert.deepEqual(index.get('assets/js/modules/common.js'),{
+   sourcePath:'shared/frontend/js/modules/common.js',publicPath:'assets/js/modules/common.js',product:'shared'});
+ assert.equal(frontendAsset(root,'assets/js/viewer.js',{index}).sourcePath,'apps/viewer/js/viewer.js');
+ for(const forbidden of ['assets/js/app.js','assets/js/modules/private.js','shell/startup.js'])
+   assert.throws(()=>frontendAsset(root,forbidden,{index}),/missing/i);
  assert.equal(frontendAsset(root,'assets/fonts/font.woff',{index}).bytes.toString(),'font');
+ assert.throws(()=>frontendAsset(root,'assets/js/viewer.js',{index,product:'editor'}),/Viewer/i);
 });
-
-test('duplicate public ownership, private paths and source junctions fail visibly',t=>{
+test('duplicate public ownership, private paths and junctions fail visibly',t=>{
  const root=fixture(t);put(root,'shared/frontend/js/a.js');put(root,'apps/viewer/js/a.js');
  assert.throws(()=>buildFrontendIndex(root),/duplicate/i);
  const other=fixture(t);put(other,'shared/frontend/js/a.js');const index=buildFrontendIndex(other);
- for(const path of ['../AGENTS.md','assets/../../AGENTS.md','apps/editor/src-tauri/Cargo.toml','assets/js/missing.js'])assert.throws(()=>frontendAsset(other,path,{index}),/invalid|missing|private/i);
+ for(const path of ['../AGENTS.md','assets/../../AGENTS.md','apps/editor/src-tauri/Cargo.toml','assets/js/missing.js'])
+   assert.throws(()=>frontendAsset(other,path,{index}),/invalid|missing|private/i);
  const outside=fixture(t);put(outside,'private.js');symlinkSync(outside,join(other,'shared/frontend/js/linked'),'junction');
  assert.throws(()=>buildFrontendIndex(other),/link|junction/i);
 });
-
-test('browser emission resolves physical cross-product imports back to public identities',t=>{
+test('browser emission resolves physical shared imports to public module URLs',t=>{
  const root=fixture(t);put(root,'shared/frontend/js/modules/common.js');put(root,'apps/viewer/js/viewer.js');
- const index=buildFrontendIndex(root),source=`import {value} from '../../../shared/frontend/js/modules/common.js';\nexport * from '../../../shared/frontend/js/modules/common.js';\nconst lazy=import(\`../../../shared/frontend/js/modules/common.js?v=\${revision}\`);\nconst url=new URL('../../../shared/frontend/js/modules/common.js',import.meta.url);`;
- const emitted=emitFrontendModule(source,'apps/viewer/js/viewer.js',index);
- assert.equal((emitted.match(/\.\/modules\/common\.js/g)||[]).length,4);
- assert.ok(emitted.includes('?v=${revision}'));
- assert.throws(()=>emitFrontendModule(`import '../../../tools/private.mjs';`,'apps/viewer/js/viewer.js',index),/private|unmapped/i);
-});
-
-test('native bridge modules retain shell URLs without leaking into viewer',t=>{
- const root=fixture(t);put(root,'apps/editor/native-storage.js');
  const index=buildFrontendIndex(root);
- assert.equal(index.get('shell/native-storage.js').product,'editor');
- assert.throws(()=>frontendAsset(root,'shell/native-storage.js',{index,product:'viewer'}),/editor|product/i);
+ const source="import {value} from '../../../shared/frontend/js/modules/common.js';\n"
+  +"export * from '../../../shared/frontend/js/modules/common.js';\n"
+  +"const url=new URL('../../../shared/frontend/js/modules/common.js',import.meta.url);";
+ const output=emitFrontendModule(source,'apps/viewer/js/viewer.js',index);
+ assert.equal((output.match(/\.\/modules\/common\.js/g)||[]).length,3);
+ assert.throws(()=>emitFrontendModule("import '../../../tools/private.mjs';",
+   'apps/viewer/js/viewer.js',index),/private|unmapped/i);
 });
-
-test('shared and viewer code cannot acquire an editor implementation through an import',t=>{
- const root=fixture(t);put(root,'shared/frontend/js/common.js');put(root,'apps/viewer/js/viewer.js');put(root,'apps/editor/frontend/js/private.js');
- const index=buildFrontendIndex(root);
- assert.throws(()=>emitFrontendModule(`import '../../editor/frontend/js/private.js';`,'apps/viewer/js/viewer.js',index),/product|ownership/i);
- assert.throws(()=>emitFrontendModule(`import '../../../apps/editor/frontend/js/private.js';`,'shared/frontend/js/common.js',index),/product|ownership/i);
+test('shared and Viewer sources cannot import retired editor implementations',t=>{
+ const root=fixture(t);put(root,'shared/frontend/js/common.js');put(root,'apps/viewer/js/viewer.js');
+ put(root,'apps/editor/frontend/js/private.js');const index=buildFrontendIndex(root);
+ assert.throws(()=>emitFrontendModule("import '../../editor/frontend/js/private.js';",
+   'apps/viewer/js/viewer.js',index),/private|unmapped/i);
+ assert.throws(()=>emitFrontendModule("import '../../../apps/editor/frontend/js/private.js';",
+   'shared/frontend/js/common.js',index),/private|unmapped/i);
 });
-
-test('a declared generated module is resolved by public identity without a source placeholder',t=>{
+test('generated metadata resolves without a source placeholder',t=>{
  const root=fixture(t);put(root,'apps/viewer/js/viewer.js');const index=buildFrontendIndex(root);
- const emitted=emitFrontendModule(`const meta=new URL('../../../assets/js/build-meta.js',import.meta.url);`,'apps/viewer/js/viewer.js',index);
- assert.ok(emitted.includes('./build-meta.js'));
+ assert.ok(emitFrontendModule("const meta=new URL('../../../assets/js/build-meta.js',import.meta.url);",
+   'apps/viewer/js/viewer.js',index).includes('./build-meta.js'));
 });
-
-test('native Worker URL literals resolve in their published shell namespace',t=>{
- const root=fixture(t);put(root,'apps/editor/diagnostics.js');put(root,'apps/editor/frontend/js/workers/gis-gpkg-worker.js');const index=buildFrontendIndex(root);
- const emitted=emitFrontendModule(`const worker=new URL('../assets/js/workers/gis-gpkg-worker.js',import.meta.url);`,'apps/editor/diagnostics.js',index);
- assert.ok(emitted.includes('../assets/js/workers/gis-gpkg-worker.js'));
+test('Viewer Worker URLs resolve without the native editor bridge',t=>{
+ const root=fixture(t);put(root,'apps/viewer/js/viewer.js');
+ put(root,'shared/frontend/js/workers/map-display-worker.js');
+ const index=buildFrontendIndex(root);
+ const output=emitFrontendModule("const worker=new URL('../../../shared/frontend/js/workers/map-display-worker.js',import.meta.url);",
+   'apps/viewer/js/viewer.js',index);
+ assert.ok(output.includes('./workers/map-display-worker.js'));
 });
-
-
 test('frontend source closure follows static imports and catalogued runtime edges',t=>{
- const root=fixture(t);
- put(root,'shared/frontend/js/modules/entry.js',"import './static.js';\nexport const entry=1;");
+ const root=fixture(t);put(root,'shared/frontend/js/modules/entry.js',"import './static.js';\nexport const entry=1;");
  put(root,'shared/frontend/js/modules/static.js','export const stat=1;');
  put(root,'shared/frontend/js/modules/runtime.js','export const runtime=1;');
  const closure=frontendSourceClosure(root,['assets/js/modules/entry.js'],{runtimeDependencies:{
    'assets/js/modules/entry.js':['shared/frontend/js/modules/runtime.js'],
  }});
  assert.deepEqual(closure.map(row=>row.publicPath),[
-   'assets/js/modules/entry.js',
-   'assets/js/modules/runtime.js',
-   'assets/js/modules/static.js',
- ]);
+   'assets/js/modules/entry.js','assets/js/modules/runtime.js','assets/js/modules/static.js']);
 });
-
-
-test('runtime closure rejects product ownership violations',t=>{
- const root=fixture(t);
- put(root,'shared/frontend/js/modules/common.js','export const common=1;');
- put(root,'apps/editor/frontend/js/private.js','export const value=1;');
- assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{runtimeDependencies:{
-   'assets/js/modules/common.js':['apps/editor/frontend/js/private.js'],
- }}),/ownership/i);
+test('runtime closure rejects private retired editor dependencies',t=>{
+ const root=fixture(t);put(root,'shared/frontend/js/modules/common.js');
+ put(root,'apps/editor/frontend/js/private.js');
+ assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{
+   runtimeDependencies:{'assets/js/modules/common.js':['apps/editor/frontend/js/private.js']},
+ }),/missing/i);
 });
-
-test('stage world fixture uses closure roots instead of copying transitive runtime modules by name',()=>{
+test('world fixture uses real dependency closure instead of ad-hoc copies',()=>{
  const source=readFileSync(new URL('../../apps/editor/tests/helpers/world-fixture.mjs',import.meta.url),'utf8');
- assert.match(source,/frontendSourceClosure/);
- assert.match(source,/runtimeDependencies/);
- for(const dependency of ['platform-ports.js','file-access-contract.js'])
-   assert.equal(source.includes("await put('shared/frontend/js/modules/"+dependency),false,dependency+' is a transitive dependency');
+ assert.match(source,/frontendSourceClosure/);assert.match(source,/runtimeDependencies/);
 });

@@ -31,7 +31,7 @@ export function validateShellProfile(profile, verification) {
 }
 
 /** Ordinary app builds always use the real world; fixture staging is verification-only. */
-export async function stagePrototype({ root = repository, profile = 'map-data', verification = false, windowsReview = false } = {}) {
+export async function stagePrototype({ root = repository, profile = 'map-data', verification = false, windowsReview = true } = {}) {
   validateShellProfile(profile, verification);
   const parent = editorStageRoot(root);
   await mkdir(parent, { recursive: true });
@@ -70,8 +70,9 @@ export async function createDevelopmentAssets({ root = repository, profile = 'ma
   return { assets, evidence };
 }
 
-async function stageOwnedPrototype({ root, profile, verification, windowsReview = false, directory, assets = null }) {
+async function stageOwnedPrototype({ root, profile, verification, windowsReview = true, directory, assets = null }) {
   validateShellProfile(profile, verification);
+  if(windowsReview!==true)throw Error('Legacy graphical editor staging is retired: Windows reviewer only.');
   root = resolve(root);
   const storage = assets ? null : storageSettings(root);
   const snapshot = await buildFrontendSnapshot({root,resourceProfile:profile,workerSourceTransform:(_path,source)=>guardWorkerSource(source,{allowBundledData:profile==='map-data'})});
@@ -115,7 +116,8 @@ async function stageOwnedPrototype({ root, profile, verification, windowsReview 
   }
   await emit(manifestPath, manifestBytes, snapshot.assets.get(manifestPath).sourcePath);
   for(const [path,entry] of snapshot.assets) {
-    if(path==='index.html'||path==='.nojekyll'||path.startsWith('shell/')||path.startsWith('assets/wasm/')||(!windowsReview&&entry.product==='viewer'))continue;
+    if(path==='index.html'||path==='.nojekyll'||path.startsWith('shell/')||path.startsWith('assets/wasm/')
+      ||entry.product==='editor'||!snapshot.viewerPaths.has(path))continue;
     if(profile==='test-fixture'&&path.startsWith('assets/data/'))continue;
     let bytes=entry.bytes;
     await emit(path,bytes,entry.sourcePath);
@@ -124,38 +126,22 @@ async function stageOwnedPrototype({ root, profile, verification, windowsReview 
     const paths=new Set(['assets/data/physical-land/v1/manifest.json',buildMeta.physicalLand.url,...(buildMeta.physicalWaterObjects?.geometries||[]).flatMap(row=>[row.land.url,row.asset.url])]);
     for(const path of paths){if(!path.startsWith('assets/data/physical-land/')||path.split('/').includes('..'))throw Error('Invalid physical background path');await emit(path,await readFile(join(root,path)),path);}
   }
-  const html = snapshot.html.editor;
-  const productBase = '<base href="../../" data-product-base="editor" />';
-  if (html.split(productBase).length !== 2 || (html.match(/<base\b/g) || []).length !== 1)
-    throw new Error('The editor entry requires its explicit product base.');
-  const bootstrap = /<script\s+src="assets\/js\/bootstrap\.js[^"]*"\s+defer><\/script>/;
-  if (!bootstrap.test(html)) throw new Error('The current frontend bootstrap entry was not found.');
-  await emit('index.html', html.replace(productBase, '<base href="./" data-product-base="editor" />')
-    .replace(bootstrap, '<script type="module" src="shell/startup.js"></script>'), 'apps/editor/templates/index.html');
-  if(windowsReview){
-    if(profile!=='map-data')throw new Error('Windows inspection requires the pinned map-data profile.');
-    let reviewer=snapshot.html.viewer;
-    if(!reviewer.includes('assets/js/viewer.js')||!reviewer.includes('id="reviewPanel"'))
-      throw new Error('The canonical E4 review entrypoint is unavailable.');
-    reviewer=reviewer.replace('<title>판도연구소</title>','<title>판도연구소 — 검수기</title>');
-    if(verification){
-      if(!reviewer.includes('</body>'))throw new Error('Windows review verification requires complete HTML.');
-      reviewer=reviewer.replace('</body>','<script type="module" src="shell/review-probe.js"></script>\n</body>');
-    }
-    await emit('review.html',reviewer,'apps/viewer/templates/index.html');
+  // E6: only the reviewed Web product is published into Windows. The legacy
+  // editor bootstrap, mutation handlers and modal/vertex assets are excluded.
+  if(profile!=='map-data'&&!verification)
+    throw Error('Windows reviewer fixture requires explicit verification.');
+  let reviewer=snapshot.html.viewer;
+  if(!reviewer.includes('assets/js/viewer.js')||!reviewer.includes('id="reviewPanel"'))
+    throw Error('The canonical E4 reviewer entrypoint is unavailable.');
+  await emit('index.html', reviewer, 'apps/viewer/templates/index.html');
+  reviewer=reviewer.replace('<title>판도연구소</title>','<title>판도연구소 — 검수기</title>');
+  if(verification){
+    if(!reviewer.includes('</body>'))throw Error('Windows review verification requires complete HTML.');
+    reviewer=reviewer.replace('</body>','<script type="module" src="shell/review-probe.js"></script>\\n</body>');
   }
-  const shellFiles = ['startup.js', 'runtime-profile.js', 'native-platform-adapter.js', 'document-transfer-contract.js', 'native-storage.js', 'network-guard.js'];
-  if (verification) shellFiles.push('verification.js', 'probe-storage.js', 'diagnostics.js', 'full-world-probe.js', 'fixture-limits.js', 'diagnostics.css');
-  if (verification && windowsReview) shellFiles.push('review-probe.js');
-  for (const file of shellFiles) {
-    let bytes = snapshot.assets.get('shell/'+file)?.bytes || await readFile(join(here,file));
-    if (file === 'startup.js' && verification) {
-      const source = bytes.toString();
-      if (!source.includes('const verification = null;')) throw Error('Missing verification staging boundary.');
-      bytes = Buffer.from(source.replace('const verification = null;', "import * as verification from './verification.js';"));
-    }
-    await emit('shell/' + file, bytes, 'apps/editor/' + file);
-  }
+  await emit('review.html',reviewer,'apps/viewer/templates/index.html');
+  if(verification)await emit('shell/review-probe.js',await readFile(join(here,'review-probe.js')),
+    'apps/editor/review-probe.js');
   let fixture = null;
   let fixtureHash = null;
   let worldData = null;
@@ -214,7 +200,7 @@ async function stageOwnedPrototype({ root, profile, verification, windowsReview 
     trackedDiffSha256 = hash(execFileSync('git', ['diff', '--binary', 'HEAD'], { cwd: root, windowsHide: true, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore','pipe','pipe'] }));
   } catch { /* Synthetic staging tests have no Git directory. */ }
   const dataPin = await exists(join(root, 'config/library-data.json')) ? JSON.parse(await readFile(join(root, 'config/library-data.json'), 'utf8')) : null;
-  const result = { schema: 'pandolab-web-shell-stage', frontendInputSha256:snapshot.sourceSha256, dataRevision:snapshot.dataRevision, profile, verification, nativeEntry:windowsReview?'review.html':'index.html', directory, commit, trackedDiffSha256,
+  const result = { schema: 'pandolab-web-shell-stage', frontendInputSha256:snapshot.sourceSha256, dataRevision:snapshot.dataRevision, profile, verification, nativeEntry:'review.html', directory, commit, trackedDiffSha256,
     dataRepository: dataPin?.repository, dataCommit: dataPin?.revision,
     coreSourceSha256: coreManifest.sourceSha256 || null,
     fixture: fixture ? { entityCount: fixture.entityCount, coordinateCount: fixture.coordinateCount, sha256: fixtureHash } : null,
@@ -234,7 +220,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const profile = process.argv.find(arg => arg.startsWith('--profile='))?.slice('--profile='.length)
     || process.env.PANDOLAB_SHELL_PROFILE || 'map-data';
   const verification = process.argv.includes('--verification') || process.env.PANDOLAB_SHELL_VERIFICATION === '1';
-  const windowsReview = process.argv.includes('--windows-review') || process.env.PANDOLAB_NATIVE_REVIEW === '1';
+  const windowsReview = true; // No native editor or Android product remains.
   const result = await stagePrototype({ profile, verification, windowsReview });
   console.log(`Staged ${result.profile}: ${result.files.length} files, ${result.bytes} bytes, ${result.worldData?.countryCount || result.fixture?.entityCount} entities (${result.commit}).`);
 }
