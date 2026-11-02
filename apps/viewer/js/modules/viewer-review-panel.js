@@ -37,6 +37,7 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
       +revision+'/objects/'+row.sha256+'.json';
     let raw=sourceBytes?.get(revision);
     if(!raw){
+      if(sourceBytes)no('변경 전후 두 원본 JSON 파일이 모두 필요합니다.');
       if(typeof fetchFn!=='function')no('원본 자료를 가져올 연결이 없습니다.');
       const response=await fetchFn(url,{credentials:'omit',mode:'cors',signal});
       if(!response?.ok)no('원본 Git 객체를 가져오지 못했습니다 ('+side+').');
@@ -162,7 +163,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
       values.appendChild(element(document,'span','','이전: '+reviewValueText(change.kind,change.before)));
       values.appendChild(element(document,'span','','변경: '+reviewValueText(change.kind,change.after)));
       item.append(title,dates,values);
-      listen(item,'click',()=>{chosenChange=reviewChangeKey(change);renderDetail();});
+      item.addEventListener('click',()=>{abortFetch();chosenChange=reviewChangeKey(change);renderDetail();});
       container.appendChild(item);
     }
     const selected=selectedChange();
@@ -188,7 +189,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
       const button=element(document,'button','ui-button',row.sourceEntityId+' · '+row.count+'건');
       button.type='button';button.setAttribute('aria-current',String(row.sourceEntityId===chosenEntity));
       button.setAttribute('role','listitem');
-      listen(button,'click',()=>selectEntity(row.sourceEntityId));
+      button.addEventListener('click',()=>selectEntity(row.sourceEntityId));
       list.appendChild(button);
     }
     if(!visible)list.appendChild(element(document,'p','viewer-review-hint','검색 조건에 해당하는 변경이 없습니다.'));
@@ -271,12 +272,14 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
   }
   async function loadSourceFiles(files){
     if(!current||!selectedChange()||selectedChange().kind!=='geometry')return;
+    const subject=chosenEntity;
     try{
       const records=new Map();
       for(const file of files){
         if(file.size<=0||file.size>16*1024*1024||!file.name.endsWith('.json'))no('원본 JSON 크기 또는 파일명을 확인하세요.');
         const bytes=new Uint8Array(await file.arrayBuffer());
         const digest=hex(await window.crypto.subtle.digest('SHA-256',bytes));
+        if(subject!==chosenEntity)no('원본 파일 선택 중 검수 대상이 바뀌었습니다.');
         const item=current.diff.readObjects.find(x=>x.sourceEntityId===chosenEntity&&x.sha256===digest);
         if(!item)no('이 파일은 선택된 객체의 E3 Git SHA와 일치하지 않습니다.');
         records.set(item.revision,bytes);
