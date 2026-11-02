@@ -314,6 +314,28 @@ export async function propagateHydroWidths(reaches,options={}){
   options.signal?.throwIfAborted();if(!Array.isArray(reaches))throw Error('Explicit Hydro width reaches required');
   return validateHydroWidthPropagation(await runHydroConnectivity({mode:'propagate-widths',reaches},options),reaches);
 }
+export async function excludeHydroInvalidTerminalBasins(reaches,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(reaches)||reaches.length>1000000)throw Error('Explicit Hydro terminal reaches required');
+  const source=structuredClone(reaches),ids=new Set(),allowed=new Set(['sea','lake','endorheic','unresolved-land','excluded-small-land',
+    'excluded-undisplayed-water','excluded-unresolved-source-terminal']);
+  for(const row of source){if(!Number.isSafeInteger(row?.id)||row.id<=0||!Number.isSafeInteger(row.next)||row.next<0||ids.has(row.id))
+    throw Error('Invalid or duplicate Hydro terminal identity');ids.add(row.id);
+    if(row.next===0?!allowed.has(row.terminalClass):row.terminalClass!==null)throw Error('Invalid Hydro terminal classification');}
+  const result=await runHydroConnectivity({mode:'exclude-terminal-basins',reaches:source},options);
+  if(!Array.isArray(result?.kept)||!Array.isArray(result.excluded)||!Array.isArray(result.terminals))throw Error('Invalid Hydro terminal exclusion result');
+  const excluded=new Set(result.excluded),kept=new Set(result.kept);
+  if(excluded.size!==result.excluded.length||kept.size!==result.kept.length||excluded.size+kept.size!==source.length||
+    source.some(row=>excluded.has(row.id)===kept.has(row.id))||
+    !isDeepStrictEqual(result.kept,source.filter(row=>kept.has(row.id)).map(row=>row.id))||
+    !isDeepStrictEqual(result.excluded,source.filter(row=>excluded.has(row.id)).map(row=>row.id)))throw Error('Invalid Hydro terminal exclusion identities');
+  const excludedClasses=new Set(['unresolved-land','excluded-small-land','excluded-undisplayed-water','excluded-unresolved-source-terminal']);
+  const terminals=source.filter(row=>excludedClasses.has(row.terminalClass)).map(row=>({id:row.id,
+    terminalClass:row.terminalClass==='unresolved-land'?'excluded-unresolved-source-terminal':row.terminalClass}));
+  if(!isDeepStrictEqual(result.terminals,terminals)||terminals.some(row=>!excluded.has(row.id))||source.some(row=>
+    row.next&&((excluded.has(row.next)&&!excluded.has(row.id))||(excluded.has(row.id)&&!excluded.has(row.next)))))
+    throw Error('Hydro terminal exclusion does not preserve upstream closure');
+  return result;
+}
 // Build private selected reaches only; terminal classification and naming remain separate.
 export async function buildHydroSelectedReaches({archive,specification,selected}={},options={}){
   options.signal?.throwIfAborted();

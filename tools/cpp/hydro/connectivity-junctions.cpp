@@ -414,6 +414,32 @@ Value fragmentGeometries(const Value& request){
     auto result=Value::obj();result.object["geometries"]=std::move(geometries);return result;
 }
 // Decide an outlet class from source-bound geometry and raster observations.
+Value excludeTerminalBasins(const Value& request){
+    const auto& source=elements(field(request,"reaches"));if(source.size()>1000000)throw std::invalid_argument("Hydro terminal network exceeds budget");
+    struct Reach{std::int64_t id,next;std::string classification;};std::vector<Reach> rows;rows.reserve(source.size());
+    std::set<std::int64_t> identities,excluded;std::map<std::int64_t,std::vector<std::int64_t>> upstream;auto terminals=Value::arr();
+    const std::set<std::string> allowed{"sea","lake","endorheic","unresolved-land","excluded-small-land",
+        "excluded-undisplayed-water","excluded-unresolved-source-terminal"};
+    for(const auto& item:source){const auto id=integer(field(item,"id")),next=integer(field(item,"next"));const auto& value=field(item,"terminalClass");
+        if(id<=0||next<0||!identities.insert(id).second)throw std::invalid_argument("Invalid or duplicate Hydro terminal identity");
+        std::string classification;if(value.kind==Value::String)classification=value.string;else if(value.kind!=Value::Null)
+            throw std::invalid_argument("Invalid Hydro terminal class");
+        if((next==0&&(classification.empty()||!allowed.count(classification)))||(next!=0&&!classification.empty()))
+            throw std::invalid_argument("Invalid Hydro terminal classification");
+        if(classification=="unresolved-land")classification="excluded-unresolved-source-terminal";
+        const bool remove=classification=="excluded-small-land"||classification=="excluded-undisplayed-water"||
+            classification=="excluded-unresolved-source-terminal";
+        if(remove){excluded.insert(id);auto terminal=Value::obj();terminal.object["id"]=Value::num(static_cast<double>(id));
+            terminal.object["terminalClass"]=Value::str(classification);terminals.array.push_back(std::move(terminal));}
+        if(next)upstream[next].push_back(id);rows.push_back({id,next,std::move(classification)});
+    }
+    std::vector<std::int64_t> stack(excluded.begin(),excluded.end());while(!stack.empty()){
+        const auto id=stack.back();stack.pop_back();auto it=upstream.find(id);if(it==upstream.end())continue;
+        for(auto candidate:it->second)if(excluded.insert(candidate).second)stack.push_back(candidate);}
+    auto kept=Value::arr(),removed=Value::arr();for(const auto& row:rows)
+        (excluded.count(row.id)?removed:kept).array.push_back(Value::num(static_cast<double>(row.id)));
+    auto result=Value::obj();result.object["kept"]=std::move(kept);result.object["excluded"]=std::move(removed);result.object["terminals"]=std::move(terminals);return result;
+}
 Value outletDecision(const Value& request){
     const auto boolean=[&](const char* name){const auto& value=field(request,name);if(value.kind!=Value::Bool)throw std::invalid_argument("Expected outlet boolean");return value.raw=="true";};
     const auto& lake=field(request,"lakeDistance");const bool lakeCovers=boolean("lakeCovers"),onLand=boolean("onLand"),water=boolean("undisplayedWater");
@@ -469,6 +495,7 @@ int main() {
         else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
         else if(str(mode->second)=="propagate-widths")std::cout<<propagateWidths(request).encode()<<'\n';
         else if(str(mode->second)=="fragment-geometries")std::cout<<fragmentGeometries(request).encode()<<'\n';
+        else if(str(mode->second)=="exclude-terminal-basins")std::cout<<excludeTerminalBasins(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");
