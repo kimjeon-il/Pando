@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "prototype-review",
+  "description": "Windows GIS review: read-only embedded Viewer Core, no project/GIS/editor writes.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "allow-write-diagnostic-report"
+  ]
+}

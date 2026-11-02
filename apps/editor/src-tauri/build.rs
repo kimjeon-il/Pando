@@ -31,6 +31,9 @@ fn main() {
         let evidence_bytes = std::fs::read(&evidence_path).expect("Missing stage evidence");
         let evidence: serde_json::Value = serde_json::from_slice(&evidence_bytes).expect("Invalid stage evidence");
         let profile = evidence["profile"].as_str().expect("Missing staged resource profile");
+        if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") && profile == "map-data" {
+            assert_eq!(evidence["nativeEntry"].as_str(),Some("review.html"),"Windows native build must package the read-only reviewer");
+        }
         assert!(profile == "map-data" || (verification && profile == "test-fixture"),
             "The test-fixture profile requires a verification native build");
         assert_eq!(evidence["verification"].as_bool(), Some(verification),
