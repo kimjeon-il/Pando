@@ -194,6 +194,17 @@ export function verifyNaturalEarthEvidence(review,evidence){
     if(entry.partialExistingNameReview){
       ensure(candidates[0].name===match.name&&close(competing,entry.partialExistingNameReview.strongestOtherNENameCoverage,.001)&&competing<=.05&&match.meanDistanceDegrees<=.025,'Partial competing candidate mismatch: '+id);
     }
+    if(entry.officialNationalAtlasBranchReview) {
+      const branch=entry.officialNationalAtlasBranchReview;
+      const downstream=candidates.find(row=>row.name===branch.downstreamNamedRiver);
+      ensure(candidates[0].name===match.name
+        &&close(match.sampleCoverage,entry.naturalEarth.sampleCoverage,.001)
+        &&match.meanDistanceDegrees<.03
+        &&downstream&&close(downstream.sampleCoverage,branch.downstreamNameSampleCoverage,.001)
+        &&downstream.meanDistanceDegrees<.04
+        &&candidates[0].supportingSamples>=65,
+      'National atlas branch/independent downstream naming geometry mismatch: '+id);
+    }
     const confluence=entry.basinConfluenceReview||entry.independentBasinRename;
     if(confluence){
       const trib=candidates.find(row=>row.name===confluence.namedTributaryNE),threshold=entry.independentBasinRename ? .90 : .75;
