@@ -8,6 +8,7 @@ import {geometryRevisionKey} from './geometry-versions.js';
 import {buildGraticuleStrokeGeometryPacket} from './graticule-geometry.js';
 import {createGpuMapRenderer} from './gpu-map-renderer.js';
 import {createTerritorialFillResolver} from './territorial-fill-style.js';
+/** Product-neutral renderer wiring; product composition owns preparation UI. */
 export function createMapRenderer(dependencies, { presentMapPreparation, onMapPreparationStatus = null } = {}) {
     if (typeof presentMapPreparation !== 'function') throw new TypeError('Map renderer requires a preparation presenter.');
     if (onMapPreparationStatus !== null && typeof onMapPreparationStatus !== 'function') throw new TypeError('Map preparation observer must be a function.');
