@@ -16,12 +16,13 @@ const viewerOperations = new Set([
   'core.document-temporal-candidate-adopt',
 ]);
 
-export function createProductModePolicy(productMode, {readOnly = productMode === 'viewer'} = {}) {
+export function createProductModePolicy(productMode, {readOnly = productMode === 'viewer', projection = productMode === 'viewer' ? 'globe' : 'flat'} = {}) {
   if (productMode !== 'viewer' && productMode !== 'editor')
     throw new TypeError('Product mode must be viewer or editor.');
   if (typeof readOnly !== 'boolean' || (productMode === 'viewer' && !readOnly))
     throw new TypeError('Viewer must remain read-only; map access must be explicit.');
-  const projection = productMode === 'viewer' ? 'globe' : 'flat';
+  if (!['flat','globe'].includes(projection) || (productMode === 'editor' && projection !== 'flat'))
+    throw new TypeError('Unsupported projection for the selected product.');
   return Object.freeze({
     productMode,
     readOnly,

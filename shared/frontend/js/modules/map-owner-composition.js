@@ -32,11 +32,11 @@ export function initializeMapReadOwners(owners,phase){
 }
 
 /** One owner graph; only the editor may register mutation and persistence hooks. */
-export function createMapOwners({productMode,readOnly=productMode==='viewer',platform=null,buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
+export function createMapOwners({productMode,readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat',platform=null,buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
   if(typeof readOnly!=='boolean'||(productMode==='viewer'&&!readOnly))throw new TypeError('Read-only map mode must be explicit.');
   if(readOnly&&editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
-  const capabilities=resourceCapabilities(productMode,platform);
+  const capabilities=resourceCapabilities(productMode,platform,{projection});
   // A normal month source is ~13 MiB. The Viewer's previous 24 MiB budget
   // could not retain two adjacent months, forcing repeated JSON/SHA work even
   // for A-B-A navigation. This is immutable source bytes only, not a second
@@ -44,7 +44,7 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pla
   const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta,
     sourceCacheLimits:productMode==='viewer'?{maxEntries:3,maxBytes:32*1024*1024}:null});
   const workspaceSurfaces=createWorkspaceSurfaces({productMode});
-  const projectSession=createProjectSession({productMode,readOnly,capabilities,resolveVisibilityGroup,onViewingChange});
+  const projectSession=createProjectSession({productMode,readOnly,projection,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});
   const pointerTargets=createPointerTargets({isDraggingDraft:editing?.isDraggingDraft});
   const cameraNavigation=createCameraNavigation({persistView:editing?.persistView});
@@ -57,7 +57,7 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pla
   const territorialLabels=createTerritorialLabels({capabilities});
   const physicalResources=createPhysicalResources({capabilities,buildMeta});
   const gpuScene=createGpuScene({getEditPreview:editing?.getEditPreview,getPhysicalLand:()=>physicalResources.physicalLand});
-  const mapHost=createMapHost({productMode,readOnly});
+  const mapHost=createMapHost({productMode,readOnly,projection});
   const objectPicking=createObjectPicking({openEditor:!readOnly,handleEditingClick:editing?.handleMapClick,onBackgroundClear:editing?.onBackgroundClear,performanceRecorder:editing?.performanceRecorder,closeActiveOverlay});
   return Object.freeze({capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
 }
