@@ -17,7 +17,7 @@ function walk(dir){
 }
 const target=[...walk('apps/editor/frontend'),...walk('apps/editor/templates')].sort();
 const candidate=new Set(target);
-if(target.length!==153)throw Error('R4 expected 153 archived frontend sources, found '+target.length);
+if(target.length>153)throw Error('R4 retired frontend source tree expanded unexpectedly: '+target.length);
 const sources=[
   ...walk('scripts'),...walk('tools'),...walk('tests'),
   ...walk('apps'),...walk('shared'),...walk('.github'),

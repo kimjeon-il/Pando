@@ -9,9 +9,9 @@ export const nativeHash=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 // Offline and verification builds package the *Viewer* product, not the archived
 // graphical editor. This audited list includes the actual staging tools and
-// the single editor-era serializer still reached by the tiny verification fixture.
+// the pure serializer extracted to tools/gis (required by the tiny verification fixture).
 // Do not add apps/editor/frontend/**, apps/editor/templates/** or apps/editor/*.js
-// globs here. Move the fixture's serializer dependency before retiring its exception.
+// globs here. The test fixture imports the extracted serializer without the editor source tree.
 export const nativePackagedInputPaths=Object.freeze([
   'shared/frontend',
   'apps/viewer',
@@ -20,7 +20,7 @@ export const nativePackagedInputPaths=Object.freeze([
   'apps/editor/fixture.mjs',
   'apps/editor/network-guard.js',
   'apps/editor/document-transfer-contract.js',
-  'apps/editor/frontend/js/modules/project-serializer.js',
+  'tools/gis/project-serializer.js',
   'tests/helpers/core-startup.mjs',
   'tests/helpers/core-project.mjs',
   'tests/helpers/core-session.mjs',
