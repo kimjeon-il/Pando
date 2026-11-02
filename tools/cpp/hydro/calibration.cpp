@@ -36,6 +36,28 @@ struct Feature { double order,first,second,metricFirst,metricSecond; };
 struct StageMetrics { double first,second; };
 struct Region { std::vector<Feature> features; std::array<StageMetrics,4> targets,baselines; };
 struct Scored {double score,first,second;};
+std::array<double,2> lineDirection(const Value& line,std::size_t& pointCount){
+    if(line.kind!=Value::Array)throw std::invalid_argument("Calibration line coordinates required");
+    pointCount+=line.array.size();if(pointCount>10000000)throw std::invalid_argument("Too many calibration coordinates");
+    std::array<double,2> previous{},best{};double bestLength=-1.0;bool first=true;
+    for(const auto& point:line.array){
+        if(point.kind!=Value::Array||point.array.size()!=2)throw std::invalid_argument("Calibration point needs two coordinates");
+        const std::array<double,2> current{number(point.array[0]),number(point.array[1])};
+        if(!first){const double dx=current[0]-previous[0],dy=current[1]-previous[1],length=std::hypot(dx,dy);
+            if(!std::isfinite(length))throw std::invalid_argument("Invalid calibration segment length");
+            if(length>bestLength){bestLength=length;best={dx,dy};}}
+        previous=current;first=false;
+    }
+    if(bestLength<=0.0)return {0.0,0.0};return {best[0]/bestLength,best[1]/bestLength};
+}
+Value directions(const Value& input){
+    const auto& pairs=field(input,"pairs");if(pairs.kind!=Value::Array||pairs.array.size()>1000000)
+        throw std::invalid_argument("Bounded calibration line pairs required");
+    Value result=Value::arr();result.array.reserve(pairs.array.size());std::size_t count=0;
+    for(const auto& pair:pairs.array){const auto left=lineDirection(field(pair,"left"),count),right=lineDirection(field(pair,"right"),count);
+        result.array.push_back(Value::num(std::abs(left[0]*right[0]+left[1]*right[1])));}
+    return result;
+}
 double featureScore(const Feature& feature,double firstWeight,double secondWeight){
     const double result=feature.order+firstWeight*std::log10(std::max(feature.first,1e-6))+
         secondWeight*std::log10(std::max(feature.second,1e-6));
@@ -212,7 +234,7 @@ int main(){
         const auto request=pandoeditor::codecjson::parse(input);const auto& mode=field(request,"mode");
         if(mode.kind!=Value::String)throw std::invalid_argument("Invalid calibration operation");
         const auto result=mode.string=="chain"?chain(request):mode.string=="optimize"?optimize(request):
-            mode.string=="assign"?assign(request):throw std::invalid_argument("Invalid calibration operation");
+            mode.string=="assign"?assign(request):mode.string=="directions"?directions(request):throw std::invalid_argument("Invalid calibration operation");
         std::cout<<result.encode()<<'\n';return 0;
     }catch(const std::exception& error){std::cerr<<"hydro-calibration: "<<error.what()<<'\n';return 1;}
 }

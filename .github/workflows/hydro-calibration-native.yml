@@ -20,6 +20,7 @@ on:
       - 'tests/unit/hydro-calibration-report.test.mjs'
       - 'tests/fixtures/hydro-calibration-chain-oracle.json'
       - 'tests/fixtures/hydro-calibration-optimizer-oracle.json'
+      - 'tests/fixtures/hydro-calibration-direction-oracle.json'
       - 'tests/fixtures/hydro-calibration-metrics-oracle.json'
       - 'tests/fixtures/hydro-calibration-report-oracle.json'
       - '.github/workflows/hydro-calibration-native.yml'

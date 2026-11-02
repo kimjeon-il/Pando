@@ -2,10 +2,23 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {assignHydroCalibrationStages,countHydroCalibrationChains,optimizeHydroCalibration} from '../../tools/gis/hydro-calibration-native.mjs';
+import {assignHydroCalibrationStages,compareHydroCalibrationDirections,countHydroCalibrationChains,optimizeHydroCalibration} from '../../tools/gis/hydro-calibration-native.mjs';
 
 const cases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-chain-oracle.json',import.meta.url),'utf8'));
 const optimizerCases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-optimizer-oracle.json',import.meta.url),'utf8'));
+const directionCases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-direction-oracle.json',import.meta.url),'utf8'));
+test('projected line direction similarity follows original longest-segment rules',async()=>{
+  const actual=await compareHydroCalibrationDirections(directionCases.map(({left,right})=>({left,right})));
+  assert.equal(actual.length,directionCases.length);
+  for(let i=0;i<actual.length;i++)assert.ok(Math.abs(actual[i]-directionCases[i].expected)<1e-15,`case ${i}`);
+  const stream=spawnSync(process.execPath,['tools/gis/hydro-calibration-native.mjs','--direction-stream'],{
+    cwd:process.cwd(),input:JSON.stringify({pairs:directionCases.slice(0,3)}),encoding:'utf8'});
+  assert.equal(stream.status,0,stream.stderr);
+  assert.deepEqual(JSON.parse(stream.stdout),actual.slice(0,3));
+  await assert.rejects(compareHydroCalibrationDirections([{left:[[0]],right:[]}]),/point|coordinate/i);
+  const controller=new AbortController();controller.abort();
+  await assert.rejects(compareHydroCalibrationDirections([],{signal:controller.signal}),{name:'AbortError'});
+});
 test('native Hydro chain counts match the original calibration cases',async()=>{
   for(const row of cases)assert.deepEqual(await countHydroCalibrationChains(row.features),row.expected,row.name);
 });
