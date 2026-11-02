@@ -859,7 +859,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -982,7 +982,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -996,7 +996,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -1010,7 +1010,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
@@ -1026,7 +1026,7 @@
       "kind": "command",
       "inputs": [
         "assets/data/territorial-entities/source/**",
-        "assets/data/countries-ne-5.1.1.geojson"
+        "config/library-data.json"
       ],
       "argv": [
         "node",
