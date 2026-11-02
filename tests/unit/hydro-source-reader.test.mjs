@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
-import {scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -106,6 +106,19 @@ test('source metadata and native scoring stream in order across bounded batches'
     await assert.rejects(scoreHydroSourceMetadata({...input,batchSize:0,onBatch:()=>{}},{}),/batch/i);
     const controller=new AbortController();controller.abort();
     await assert.rejects(scoreHydroSourceMetadata({...input,onBatch:()=>{}},{signal:controller.signal}),{name:'AbortError'});
+  });
+test('selected source reaches keep full geometry and downstream-corrected widths',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-selected-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),selected=new Set([101,102,103]);
+    const result=await buildHydroSelectedReaches({...input,selected},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(result.map(row=>row.id),[101,102,103]);
+    assert.deepEqual(result[0].parts,[[[0,0],[0.25,0.1],[0.5,0]],[[0.5,0],[1,0]]]);
+    assert.deepEqual(result[0].originalEndpoint,[1,0]);assert.equal(result[0].endWidth,result[1].width);
+    assert.equal(result[2].endWidth,result[1].width);assert.equal(result[1].endWidth,result[1].width);
+    assert.equal(result[1].endorheic,true);assert.equal(result[2].stage,3);
+    assert.deepEqual(selected,new Set([101,102,103]));
+    await assert.rejects(buildHydroSelectedReaches({...input,selected:new Set([999])},{}),/not found/i);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];

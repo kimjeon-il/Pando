@@ -4,7 +4,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
-import {readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
+import {readHydroRegion,readHydroSources,scanHydroRegionMetadata} from './hydro-source-reader.mjs';
 
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroConnectivitySources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/connectivity-junctions.cpp',
@@ -268,6 +268,20 @@ export function validateHydroWidthPropagation(result,reaches){
 export async function propagateHydroWidths(reaches,options={}){
   options.signal?.throwIfAborted();if(!Array.isArray(reaches))throw Error('Explicit Hydro width reaches required');
   return validateHydroWidthPropagation(await runHydroConnectivity({mode:'propagate-widths',reaches},options),reaches);
+}
+// Build private selected reaches only; terminal classification and naming remain separate.
+export async function buildHydroSelectedReaches({archive,specification,selected}={},options={}){
+  options.signal?.throwIfAborted();
+  const source=await readHydroRegion({archive,specification,selected,detail:'generation',signal:options.signal});
+  const rows=source.sourceOrder.map(id=>({id,...source.rows[id]})),policies=[];
+  for(let at=0;at<rows.length;at+=100000){
+    const batch=rows.slice(at,at+100000).map(row=>({order:row.order,flow:row.flow,upstreamArea:row.upstreamArea,lakeArea:0,zoom:0}));
+    for(const policy of await scoreHydroFeaturePolicies(batch,options))policies.push(policy);
+  }
+  const widths=await propagateHydroWidths(rows.map((row,i)=>({id:row.id,next:row.next,width:policies[i].width})),options);
+  return rows.map((row,i)=>({id:row.id,next:row.next,mainRiver:row.mainRiver,order:row.order,flow:row.flow,
+    upstreamArea:row.upstreamArea,stage:policies[i].riverStage??3,width:widths[i].width,endWidth:widths[i].endWidth,
+    parts:row.parts,endorheic:row.endorheic,originalEndpoint:row.end}));
 }
 export async function auditHydroParts({parts,raw,sourceOrder},options){
   if(!parts||!raw||!Array.isArray(sourceOrder))throw Error('Explicit Hydro parts, originals and source order required');
