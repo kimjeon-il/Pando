@@ -91,7 +91,7 @@ export async function runTrainingSequence({mode,input,output,corpus,auxiliary,ma
 }
 
 // Multiple epochs remain provisional; training loss is not independent validation.
-export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,macroOnly,supervision,reviewed=false,publisher=false,validationCorpus,diagnosticOnly,patience,previousCampaign,epoch,seed,freezeEpochs,learningRate,
+export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,macroOnly,supervision,reviewed=false,publisher=false,validationCorpus,diagnosticOnly,patience,replayWeights,previousCampaign,epoch,seed,freezeEpochs,learningRate,
   device='cpu',amp=device==='cuda',torchLibrary,augment,batchSize,maxBatches,epochs,onProgress,root=rootDefault,signal}={}){
   signal?.throwIfAborted();
   if(!['warm','resume'].includes(mode)||!input||!output||!corpus||!torchLibrary||!['cpu','cuda'].includes(device)||
@@ -102,10 +102,16 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
     (onProgress!==undefined&&typeof onProgress!=='function'))
     throw Error('Explicit bounded training campaign configuration required');
   validateScope({auxiliary,macroOnly,supervision,reviewed,publisher});
-  if(validationCorpus?(diagnosticOnly!==true||!Number.isSafeInteger(patience)||patience<1):
-    (diagnosticOnly!==undefined||patience!==undefined))throw Error('Explicit diagnostic validation scope and positive patience required');
+  if(validationCorpus?(typeof diagnosticOnly!=='boolean'||!Number.isSafeInteger(patience)||patience<1):
+    (diagnosticOnly!==undefined||patience!==undefined||replayWeights!=null))throw Error('Explicit validation scope and positive patience required');
+  const independentValidation=Boolean(validationCorpus)&&diagnosticOnly===false;
+  if(independentValidation&&(!replayWeights||mode==='resume'&&!previousCampaign))throw Error('Independent validation requires replay weights and complete campaign history');
+  if(!independentValidation&&replayWeights!=null)throw Error('Replay weights require independent validation');
   const target=resolve(output);if(existsSync(target))throw Error('Training campaign output exists; preserve it');
   const initial=resolve(input),inputHash=trainingFileIdentity(initial),corpusHash=trainingFileIdentity(resolve(corpus));
+  const replayInitializer=independentValidation?verifyTrainingInitializer({path:replayWeights}):null;
+  if(replayInitializer&&(replayInitializer.initialization!=='public-encoder-no-optimizer'||mode==='warm'&&replayInitializer.weightsSha256!==inputHash))
+    throw Error('Independent validation requires the original verified public encoder weights');
   if(auxiliary){assertTrainingCorpusScope(corpus);assertTrainingCorpusScope(auxiliary);}
   const auxiliaryHash=auxiliary?trainingFileIdentity(resolve(auxiliary)):null;
   const lineageFingerprint=auxiliary?await corpusFingerprint(corpus,auxiliary):null;
@@ -125,13 +131,18 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   const selectionExposure=validationCorpus?{schemaVersion:1,manifestSha256:validationHash,fingerprint:validationFingerprint}:undefined;
   const configuration={seed,freezeEpochs,learningRate,device,amp,augment,batchSize,
     ...(reviewed?{sourceScope:'reviewed'}:publisher?{sourceScope:'publisher'}:{}),
-    ...(validationCorpus?{validationSha256:validationHash,validationFingerprint,diagnosticOnly,patience}:{})};let previous=null;
+    ...(validationCorpus?{validationSha256:validationHash,validationFingerprint,diagnosticOnly,patience}:{}),
+    ...(independentValidation?{replayWeightsSha256:replayInitializer.weightsSha256}:{})};let previous=null;
   if(previousCampaign!==undefined&&previousCampaign!==null){
     if(mode!=='resume'||typeof previousCampaign!=='string'||!previousCampaign)throw Error('Previous campaign requires explicit resume mode');
     previous=JSON.parse(readTrainingBounded(resolve(previousCampaign),8*1024*1024));
     if(previous.checkpointSha256!==inputHash||previous.corpusSha256!==corpusHash||
       (auxiliary?(previous.auxiliarySha256!==auxiliaryHash||previous.lineageFingerprint!==lineageFingerprint):Boolean(previous.auxiliarySha256)))
       throw Error('Previous campaign checkpoint or corpus differs');
+    if(independentValidation&&(previous.inputSha256!==replayInitializer.weightsSha256||!Array.isArray(previous.replayCheckpoints)||
+      previous.replayCheckpoints.length!==previous.batches||!previous.replayCheckpoints.length||
+      previous.replayCheckpoints.some(path=>typeof path!=='string'||!path)||new Set(previous.replayCheckpoints.map(path=>resolve(path))).size!==previous.replayCheckpoints.length||
+      resolve(previous.replayCheckpoints.at(-1))!==initial))throw Error('Complete replay checkpoint history required for independent validation');
     if(previous.schemaVersion!==1||previous.status!=='partial'||previous.trainingOnly!==true||previous.independentEvaluation!==false||
       previous.releaseApproved!==false||previous.lineageComplete!==false||previous.selectionMetric!==selectionMetric||
       previous.selectionScope!=='campaign-completed-epochs'||previous.requestedEpochs!==epochs||!isDeepStrictEqual(previous.configuration,configuration)||
@@ -168,7 +179,8 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
           trainingFileIdentity(resolve(row.validationReceipt))!==row.validationReceiptSha256)throw Error('Previous validation receipt differs');
         const proof=JSON.parse(readTrainingBounded(resolve(row.validationReceipt),1024*1024));
         if(proof.checkpointSha256!==row.checkpointSha256||proof.corpusSha256!==validationHash||proof.sourceFingerprint!==validationFingerprint||
-          proof.diagnosticOnly!==true||proof.independence?.passed!==false||proof.validationLoss!==row.validationLoss)
+          proof.diagnosticOnly!==diagnosticOnly||proof.independence?.passed!==independentValidation||proof.validationLoss!==row.validationLoss||
+          independentValidation&&proof.trainingAncestry!=='replayed-public-encoder')
           throw Error('Previous validation evidence differs');
       }
     }
@@ -183,6 +195,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   let current=initial,remaining=maxBatches,currentEpoch=epoch,completed=previous?.completedEpochs??0,
     bestScore=previous?.bestScore??null,bestCheckpoint=previous?.bestCheckpoint??null,bestCheckpointSha256=previous?.bestCheckpointSha256??null;
   const results=previous?[...previous.epochs]:[];let report=null,stale=0,stop=false;
+  const replayCheckpoints=independentValidation?[...(previous?.replayCheckpoints??[])]:null;
   if(validationCorpus){let score=null;for(const row of results.filter(row=>row.status==='epoch-complete')){
     if(!Number.isFinite(row.validationLoss))throw Error('Previous validation loss required');
     if(score===null||row.validationLoss<score){score=row.validationLoss;stale=0;}else stale++;
@@ -198,14 +211,18 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
         if(receipt.checkpointSha256!==event.checkpointSha256||receipt.corpusSha256!==corpusHash||receipt.epoch!==activeEpoch||
           (auxiliary?(receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==lineageFingerprint):Boolean(receipt.auxiliarySha256))||
           receipt.cursor!==event.cursor||receipt.orderLength!==event.orderLength)throw Error('Training campaign batch receipt differs');
+        if(independentValidation){if(!isDeepStrictEqual(receipt.selectionExposure,selectionExposure))throw Error('Validation selection exposure differs from checkpoint');
+          replayCheckpoints.push(event.checkpoint);}
         remaining--;current=event.checkpoint;
         const item={epoch:activeEpoch,status:event.status,cursor:event.cursor,orderLength:event.orderLength,batches:event.batches,
           checkpoint:event.checkpoint,checkpointSha256:event.checkpointSha256};
         if(event.status==='epoch-complete'){
           let validationLoss=null;
           if(validationCorpus){
-            const checked=await nativeTrainingValidation({checkpoint:current,corpus:validationCorpus,device,diagnosticOnly:true,torchLibrary,root,signal});
-            if(checked.checkpointSha256!==event.checkpointSha256||checked.corpusSha256!==validationHash||checked.independence.passed!==false||
+            const lineageReplay=independentValidation?{checkpoints:[...replayCheckpoints],weights:replayWeights,corpus,auxiliary,supervision,reviewed,publisher,
+              scratch:join(directory,'validation-replay')}:undefined;
+            const checked=await nativeTrainingValidation({checkpoint:current,corpus:validationCorpus,device,diagnosticOnly,torchLibrary,lineageReplay,root,signal});
+            if(checked.checkpointSha256!==event.checkpointSha256||checked.corpusSha256!==validationHash||checked.independence.passed!==independentValidation||
               await corpusFingerprint(validationCorpus)!==validationFingerprint)throw Error('Validation inputs changed during campaign');
             const proof={...checked,sourceFingerprint:validationFingerprint};item.validationReceipt=join(directory,'validation.json');
             writeFileSync(item.validationReceipt,JSON.stringify(proof,null,2)+'\n',{flag:'wx'});
@@ -219,6 +236,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
         if(segmentBatches===0)results.push(item);else results[results.length-1]=item;segmentBatches++;
         report={schemaVersion:1,status:completed===epochs?'complete':stop?'early-stop':'partial',trainingOnly:true,independentEvaluation:false,
           releaseApproved:false,lineageComplete:false,selectionMetric,selectionScope:'campaign-completed-epochs',configuration,
+          ...(independentValidation?{replayCheckpoints:[...replayCheckpoints]}:{}),
           ...(validationCorpus?{staleEpochs:stale}:{}),
           inputSha256:previous?.inputSha256??inputHash,corpusSha256:corpusHash,...(auxiliary?{auxiliarySha256:auxiliaryHash,lineageFingerprint}:{}),completedEpochs:completed,requestedEpochs:epochs,
           batches:(previous?.batches??0)+maxBatches-remaining,checkpoint:current,checkpointSha256:event.checkpointSha256,
@@ -251,10 +269,12 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       'learning-rate':{type:'string'},device:{type:'string'},precision:{type:'string'},'torch-library':{type:'string'},
       'batch-size':{type:'string'},'max-batches':{type:'string'},augment:{type:'boolean',default:false},
       campaign:{type:'boolean',default:false},epochs:{type:'string'},'previous-campaign':{type:'string'},
-      'validation-corpus':{type:'string'},'diagnostic-validation':{type:'boolean',default:false},patience:{type:'string'}}});
+      'validation-corpus':{type:'string'},'diagnostic-validation':{type:'boolean',default:false},'independent-validation':{type:'boolean',default:false},
+      'replay-weights':{type:'string'},patience:{type:'string'}}});
     const integer=name=>{if(!/^\d+$/.test(values[name]||''))throw Error('Explicit integer '+name+' required');return Number(values[name]);};
     if(positionals.length||!['fp32','amp-fp16'].includes(values.precision)||(!values.campaign&&(values.epochs!==undefined||values['previous-campaign']!==undefined||
-      values['validation-corpus']!==undefined||values['diagnostic-validation']||values.patience!==undefined)))
+      values['validation-corpus']!==undefined||values['diagnostic-validation']||values['independent-validation']||values['replay-weights']!==undefined||values.patience!==undefined))||
+      values['diagnostic-validation']&&values['independent-validation'])
       throw Error('Explicit macro training sequence configuration required');
     const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
     try{const request={mode:values.mode,input:reportArgument(values.input,{access:'read'}),
@@ -265,7 +285,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       batchSize:integer('batch-size'),maxBatches:integer('max-batches'),augment:values.augment,signal:controller.signal};
       console.log(JSON.stringify(await (values.campaign?runTrainingCampaign({...request,epochs:integer('epochs'),
         validationCorpus:reportArgument(values['validation-corpus'],{access:'read',siblings:true}),
-        diagnosticOnly:values['diagnostic-validation']?true:undefined,patience:values.patience!==undefined?integer('patience'):undefined,
+        diagnosticOnly:values['diagnostic-validation']?true:values['independent-validation']?false:undefined,
+        replayWeights:reportArgument(values['replay-weights'],{access:'read',siblings:true}),patience:values.patience!==undefined?integer('patience'):undefined,
         previousCampaign:reportArgument(values['previous-campaign'],{access:'read'})}):runTrainingSequence(request))));}
     finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
   }catch(error){console.error('native-training-sequence: '+error.message);process.exitCode=1;}

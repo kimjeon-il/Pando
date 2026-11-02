@@ -160,6 +160,13 @@ this is diagnostic selection, not independent accuracy or model approval. For th
 tested initializer and mixed inputs, CUDA FP16 overflowed
 in both the Python and native models; explicitly choose FP32 for this case.
 This is a provisional training path, not a model release or accuracy claim.
+For a campaign starting from the verified public encoder, use
+`--independent-validation --replay-weights PATH` instead of
+`--diagnostic-validation`. At each completed epoch, the entire ordered checkpoint
+chain is replayed before validation loss can select a candidate. A resumed
+campaign must provide its previous campaign report and the same initializer;
+incomplete or changed histories are rejected. The candidate remains private
+and a separate final-test evaluation is required.
 An optimizer-update replay compares the recorded epoch loss sum and count as
 well as checkpoint state; changed or missing selection evidence fails replay.
 New validation-selection campaigns also bind the validation manifest hash and

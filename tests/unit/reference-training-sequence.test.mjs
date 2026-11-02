@@ -36,13 +36,14 @@ test('mixed campaign refuses history from a different auxiliary corpus',async t=
   assert.equal(existsSync(output),false);
 });
 
-test('validation selection requires an explicit diagnostic scope and patience',async t=>{
+test('validation selection requires an explicit scope, patience and verified replay weights',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-training-validation-scope-'));t.after(()=>rmSync(root,{recursive:true}));
   const request={mode:'warm',input:'weights',output:join(root,'new'),corpus:'corpus',supervision:'supervision',epoch:0,seed:5,
     freezeEpochs:1,learningRate:.00001,device:'cpu',torchLibrary:'library',augment:false,batchSize:1,maxBatches:1,epochs:2};
   await assert.rejects(training.runTrainingCampaign({...request,validationCorpus:'validation'}),/validation.*scope/i);
   await assert.rejects(training.runTrainingCampaign({...request,validationCorpus:'validation',diagnosticOnly:true,patience:0}),/validation.*scope/i);
   await assert.rejects(training.runTrainingCampaign({...request,patience:1}),/validation.*scope/i);
+  await assert.rejects(training.runTrainingCampaign({...request,validationCorpus:'validation',diagnosticOnly:false,patience:1}),/replay weights/i);
   assert.equal(existsSync(request.output),false);
 });
 
