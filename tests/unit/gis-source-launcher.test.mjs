@@ -23,15 +23,15 @@ test('GIS launcher uses an allowlist and dry-run never launches source commands'
  assert.deepEqual(logs[0].argv,['--etopo','/not-mounted/source.tif']);
  assert.equal(logs[0].requiresExternalOriginals,false);
 });
-test('native Node tools and not-yet-migrated Python GIS tools use their own interpreters',()=>{
+test('GIS source tools use their canonical Node entrypoints',()=>{
  for(const task of Object.keys(TASK_SOURCES)) {
    const cmd=buildCommand(task,[]);
    assert.ok(cmd[1].startsWith(ROOT));
-   if(TASK_SOURCES[task].endsWith('.mjs'))assert.equal(cmd[0],process.execPath);
-   else assert.match(cmd[0],/python/i);
+   assert.ok(TASK_SOURCES[task].endsWith('.mjs'));assert.equal(cmd[0],process.execPath);
  }
  assert.match(buildCommand('place-candidates',[])[1],/build-place-candidates\.mjs$/);
  assert.match(buildCommand('hydro-packfile',[])[1],/build-hydro-packfile\.mjs$/);
+ assert.match(buildCommand('hydro-tiles',[])[1],/build-hydro\.mjs$/);
  assert.match(buildCommand('historical-border',[])[1],/build-german-1914-base\.mjs$/);
  const coast=buildCommand('historical-coast',['--output','candidate.json','--diagnostics','diagnostics.json']);
  assert.equal(coast[0],process.execPath);

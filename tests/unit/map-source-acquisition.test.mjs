@@ -78,7 +78,7 @@ test('map CLI invokes the Node source owner and holds a source with unverified r
     const sourcePath=join(dir,'source.json'),jobPath=join(dir,'job.json');
     await writeFile(sourcePath,JSON.stringify({id:'unreviewed',rightsReviewed:false}));
     const cli=fileURLToPath(new URL('../../plugins/pando-map-tools/scripts/map.mjs',import.meta.url));
-    const result=spawnSync(process.execPath,[cli,'analyze','--source',sourcePath,'--job',jobPath],{encoding:'utf8',env:{...process.env,PANDO_MAP_PYTHON:join(dir,'missing-python')}});
+    const result=spawnSync(process.execPath,[cli,'analyze','--source',sourcePath,'--job',jobPath],{encoding:'utf8'});
     assert.equal(result.status,1,result.stderr);
     const errors=result.stderr.trim().split(/\r?\n/).map(line=>JSON.parse(line));
     assert(errors.some(row=>row.phase==='source'&&row.status==='acquiring'));

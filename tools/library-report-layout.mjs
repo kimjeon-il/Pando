@@ -78,7 +78,7 @@ export function rewriteReportLinks(text, from, to, mapping) {
 export function rewriteReportArtifact(text, from, to, mapping) {
   if (!from.endsWith('.json')) {
     const result = rewriteReportLinks(text, from, to, mapping);
-    return from === 'reports/TEMPLATE.md' && !result.includes('## 보관 경로') ? result.trimEnd() + '\n\n## 보관 경로\n\n[주제 색인](README.md)에서 `borders`, `hydro`, `places`, `terrain`, `map-analysis`, `development` 중 하나를 선택한다. 보고서와 첨부는 같은 작업 묶음에 보관하고, Node/Python 경로 helper에는 `reports/<주제>/<작업 범위>`를 직접 전달한다. 완료된 범위만 라이브러리에 보관·커밋·푸시·원격 검증한다.\n' : result;
+    return from === 'reports/TEMPLATE.md' && !result.includes('## 보관 경로') ? result.trimEnd() + '\n\n## 보관 경로\n\n[주제 색인](README.md)에서 `borders`, `hydro`, `places`, `terrain`, `map-analysis`, `development` 중 하나를 선택한다. 보고서와 첨부는 같은 작업 묶음에 보관하고, Node 경로 helper에는 `reports/<주제>/<작업 범위>`를 직접 전달한다. 완료된 범위만 라이브러리에 보관·커밋·푸시·원격 검증한다.\n' : result;
   }
   let changed = false;
   const walk = value => {

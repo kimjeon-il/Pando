@@ -232,15 +232,15 @@ test('staged dependencies still reject missing imports and paths outside the bun
   assert.throws(() => f.repository().dependencies('apps/editor/escape.js'), /outside repository|unmapped frontend import.*outside/);
 });
 
-test('nested GIS Python changes select their existing external workflow', () => {
+test('Hydro generation changes select their native external workflow', () => {
   const f = fixture();
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
-  const check = catalog.externalChecks.find(row => row.id === 'gis-python');
+  const check = catalog.externalChecks.find(row => row.id === 'hydro-native-generation');
   f.catalog.externalChecks = [check]; f.put(check.workflow);
-  const changedFiles = ['tools/build-hydro-tiles.py', 'scripts/research/check.py', 'tests/test_hydro_independent_names.py'];
+  const changedFiles = ['tools/gis/build-hydro.mjs', 'tools/cpp/hydro/point-screen.cpp', 'tests/unit/hydro-generation-pipeline.test.mjs'];
   changedFiles.forEach(file => f.put(file));
   const plan = planApplicationChecks({ changedFiles, repository: f.repository() });
-  assert.deepEqual(plan.externalChecks.map(row => row.id), ['gis-python']);
+  assert.deepEqual(plan.externalChecks.map(row => row.id), ['hydro-native-generation']);
 });
 
 test('new and moved tests are discovered; an unregistered browser test fails coverage', () => {

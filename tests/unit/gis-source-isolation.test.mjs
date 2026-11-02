@@ -4,9 +4,10 @@ import test from 'node:test';
 import { classifyPaths } from '../../scripts/p1-plan-remote-checks.mjs';
 
 const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
-test('general Web tests and versioning use only Node; old Python suite remains explicit',()=>{
+test('general Web tests and versioning use only Node',()=>{
   const scripts=JSON.parse(read('package.json')).scripts;
-  assert.ok(scripts['test:gis-python'].includes('python -m unittest'));
+  assert.equal(Object.hasOwn(scripts,'test:gis-python'),false);
+  assert.equal(Object.hasOwn(scripts,'test:python'),false);
   for(const name of ['test','check:versioning','check:architecture'])
     assert.doesNotMatch(scripts[name],/\bpython(?:3)?\b|test:python|test:gis-python/,
       'Normal '+name+' must not invoke Python');
@@ -21,12 +22,12 @@ test('normal Web/core CI jobs cannot install Python or execute GIS Python tests'
       wf+' must not contain an isolated GIS job');
   }
 });
-test('raw Python GIS inputs only run from the dedicated opt-in workflow and CLI',()=>{
-  const wf=read('.github/workflows/gis-python-p4.yml');
+test('GIS source work uses the dedicated workflow and opt-in CLI',()=>{
+  const wf=read('.github/workflows/gis-source-p4.yml');
   assert.match(wf,/workflow_dispatch:/);
-  assert.match(wf,/python-syntax:/);
-  assert.match(wf,/python-contracts:/);
+  assert.match(wf,/gis-source:/);
   assert.match(wf,/historical-geometry:/);
+  assert.doesNotMatch(wf,/setup-python|python -m/);
   assert.doesNotMatch(wf,/^\s+schedule:/m);
   assert.ok(wf.includes("github.event_name == 'workflow_dispatch'"));
   const cli=read('scripts/gis/run-source.mjs');
@@ -34,12 +35,12 @@ test('raw Python GIS inputs only run from the dedicated opt-in workflow and CLI'
   assert.match(cli,/if\(!execute\)return 0/);
   assert.match(cli,/spawn\(command\[0\]/);
 });
-test('Python-only GIS edits select no standard Web/core/WASM job',()=>{
+test('GIS generator edits do not select core or WASM compilation',()=>{
   const caps={core:true,gisTools:true,web:true};
-  for(const path of ['tools/build-hydro-tiles.py']){
+  for(const path of ['tools/gis/build-hydro.mjs']){
     const plan=classifyPaths([path],caps);
-    assert.equal(plan.python,true,path);
-    for(const flag of ['web','core','wasm','gisTools','gis','ui'])
+    assert.equal(plan.gis,true,path);
+    for(const flag of ['core','wasm','gisTools','ui'])
       assert.equal(plan[flag],false,path+' unexpectedly triggered '+flag);
   }
 });

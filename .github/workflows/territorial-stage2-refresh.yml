@@ -1,4 +1,4 @@
-# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-python-p4.yml.
+# Explicit GIS/source-data reproduction; lightweight source checks remain in gis-source-p4.yml.
 name: One-shot USSR territorial asset regeneration
 on:
   workflow_dispatch:

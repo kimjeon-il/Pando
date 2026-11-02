@@ -2,7 +2,6 @@
   "schema": "pando-development-toolchain-v1",
   "node": "24",
   "pnpm": "11.19.0",
-  "python": "3.12",
   "cmake": "3.31.6",
   "emscripten": "6.0.3",
   "emsdkCommit": "db04e88298d9916fc51fcd3743045ca3eb695127",

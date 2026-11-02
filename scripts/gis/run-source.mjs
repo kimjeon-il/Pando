@@ -3,7 +3,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {verifyNativeTool} from '../../tools/native-tool.mjs';
 import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
@@ -19,13 +19,12 @@ export const TASK_SOURCES = Object.freeze({
   'historical-coast':'tools/gis/build-german-1914-base.mjs',
   'terrain-dem':'tools/gis/terrain-dem-build.mjs',
   'terrain-preview':'tools/build-terrain-preview.mjs',
-  'hydro-tiles':'tools/build-hydro-tiles.py',
+  'hydro-tiles':'tools/gis/build-hydro.mjs',
   'hydro-packfile':'tools/build-hydro-packfile.mjs',
   'hydro-connectivity':'tools/repair-hydro-connectivity.mjs',
   'physical-data':'tools/build-physical-data.mjs',
   'place-candidates':'tools/build-place-candidates.mjs',
 });
-const pythonExecutable=()=>process.env.PANDOLAB_PYTHON_EXECUTABLE||(process.platform==='win32'?'python':'python3');
 export function buildCommand(task,args=[],{root=ROOT}={}){
   if(!Object.hasOwn(TASK_SOURCES,task))throw Error('Unsupported GIS research task: '+task);
   const rootPath=realpathSync(root);
@@ -33,9 +32,8 @@ export function buildCommand(task,args=[],{root=ROOT}={}){
   const rel=relative(rootPath,source);
   if(!rel||rel==='..'||rel.startsWith('..'+sep)||isAbsolute(rel))
     throw Error('GIS source path escaped repository');
-  const executable=extname(source)==='.mjs'?process.execPath:pythonExecutable();
   const passthrough=args[0]==='--'?args.slice(1):args;
-  return [executable,source,...(task==='historical-coast'?['--modern-coast']:[]),...passthrough];
+  return [process.execPath,source,...(task==='historical-coast'?['--modern-coast']:[]),...passthrough];
 }
 export function parseArguments(args=process.argv.slice(2)){
   let task=null,execute=false,raw=[];

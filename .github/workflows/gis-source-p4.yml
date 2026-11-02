@@ -1,0 +1,87 @@
+name: P4 Isolated GIS source checks
+on:
+  push:
+    branches: [work/ui, work/objects, work/gis, work/places]
+    paths:
+      - '.github/workflows/gis-source-p4.yml'
+      - 'scripts/gis/run-source.mjs'
+      - 'tools/gis/build-german-1914-base.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tools/gis/build-hydro.mjs'
+      - 'tests/unit/python-bridge-retirement.test.mjs'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/gis-source-p4.yml'
+      - 'scripts/gis/run-source.mjs'
+      - 'tools/gis/build-german-1914-base.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
+      - 'tools/gis/build-hydro.mjs'
+      - 'tests/unit/python-bridge-retirement.test.mjs'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'GIS source checks or C++ historical recipe verification'
+        type: choice
+        required: false
+        default: source
+        options: [source, historical, all]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p4-gis-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gis-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify the GIS dispatcher and retired interpreter guard
+        run: node --test tests/unit/gis-source-launcher.test.mjs tests/unit/python-bridge-retirement.test.mjs
+
+  historical-geometry:
+    if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'historical' || inputs.scope == 'all')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      PANDO_TERRITORIAL_RECIPE_BINARY: ${{ github.workspace }}/build-native/territorial-recipe/pando-territorial-recipe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare pinned external library data
+        uses: ./.github/actions/library-data
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-file: tools/cpp/territorial-recipe-environment.yml
+          init-shell: bash
+      - name: Build the existing native C++ historical geometry recipe
+        run: |
+          cmake -S tools/cpp -B build-native/territorial-recipe -G Ninja \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF \
+            -DPANDO_BUILD_TERRITORIAL_RECIPE=ON
+          cmake --build build-native/territorial-recipe --target pando-territorial-recipe
+      - name: Cross-check persisted geometry against the pinned C++ recipe
+        run: |
+          node --test tests/unit/territorial-recipe-cli.test.mjs tests/unit/territorial-recipe-cpp.test.mjs
+          node tools/build-territorial-geometry.mjs --check
+      - name: Preserve historical recipe proof, not reprocessed data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p4-historical-cpp-${{ github.sha }}
+          path: build-native/territorial-recipe/CMakeCache.txt
+          if-no-files-found: warn
+          retention-days: 10

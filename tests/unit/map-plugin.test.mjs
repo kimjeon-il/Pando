@@ -18,7 +18,6 @@ test('native rotation works without a signal and reverses clockwise boxes to sou
 
 test('signed map review renders native preview and detects changed source without Python',async()=>{
   const dir=await mkdtemp(join(tmpdir(),'pando-map-preview-workflow-'));
-  const previous=process.env.PANDO_MAP_PYTHON;process.env.PANDO_MAP_PYTHON=join(dir,'missing-python');
   try{
     const source=join(dir,'map.png'),output=join(dir,'preview.png');
     const bytes=await readFile('tests/fixtures/map-image/preview/rich.png');await writeFile(source,bytes);
@@ -31,7 +30,7 @@ test('signed map review renders native preview and detects changed source withou
     await assertCandidatePreview(image,await readFile('tests/fixtures/map-image/preview/rich.rgba'),job,'signed rich preview');
     const before=await readFile(output);await writeFile(source,Buffer.concat([bytes,Buffer.from('changed')]));
     await assert.rejects(engine.renderPreview(job,output),/Original image hash changed/);assert.deepEqual(await readFile(output),before);
-  }finally{if(previous===undefined)delete process.env.PANDO_MAP_PYTHON;else process.env.PANDO_MAP_PYTHON=previous;await rm(dir,{recursive:true,force:true});}
+  }finally{await rm(dir,{recursive:true,force:true});}
 });
 
 test('Node resolves the ORT WASM entry with env and session exports', () => {

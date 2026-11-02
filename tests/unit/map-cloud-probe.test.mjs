@@ -10,10 +10,8 @@ import { nodeManifest, collectSourceFiles } from '../../tools/reference-analysis
 import * as probe from '../../tools/reference-analysis/cloud-probe.mjs';
 import {prepareRuntime} from '../../plugins/pando-map-tools/lib/runtime.mjs';
 
-test('map runtime starts without a Python interpreter',async()=>{
-  const previous=process.env.PANDO_MAP_PYTHON;process.env.PANDO_MAP_PYTHON=join(tmpdir(),'no-such-python');
-  try{const result=await prepareRuntime({workspace:process.cwd()});assert.equal(result.workspace,process.cwd());assert.equal(Object.hasOwn(result,'python'),false);}
-  finally{if(previous===undefined)delete process.env.PANDO_MAP_PYTHON;else process.env.PANDO_MAP_PYTHON=previous;}
+test('map runtime exposes only its current runtime dependencies',async()=>{
+  const result=await prepareRuntime({workspace:process.cwd()});assert.equal(result.workspace,process.cwd());assert.equal(Object.hasOwn(result,'python'),false);
 });
 
 test('environment gate requires observed Work cloud execution rather than a local smoke test',()=>{

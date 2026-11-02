@@ -8,10 +8,9 @@ on:
       - 'tools/cpp/hydro/connectivity-junctions.cpp'
       - 'tools/gis/hydro-connectivity-native.mjs'
       - 'tests/unit/hydro-connectivity-native.test.mjs'
-      - 'tools/hydro_connectivity.py'
-      - 'tools/build-hydro-tiles.py'
+      - 'tools/gis/build-hydro.mjs'
       - 'tools/repair-hydro-connectivity.mjs'
-      - 'tests/unit/hydro-connectivity-python-bridge.test.mjs'
+      - 'tests/unit/hydro-network-normalization.test.mjs'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
     inputs:
@@ -1322,7 +1321,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Native preview differs from original' }
           node --test --test-name-pattern='macro diagnostics refuse|reviewed diagnostics refuse|corpus diagnostics reject' tests/unit/reference-diagnostic-tile.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic scope refusal failed' }
-          $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
           node --test --test-name-pattern='signed map review renders' tests/unit/map-plugin.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map review workflow failed' }
       - uses: actions/upload-artifact@v4
@@ -1496,7 +1494,6 @@ jobs:
           $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
           node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/map-native-webp-encode.test.mjs tests/unit/map-native-jpeg-encode.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-sample-maker.test.mjs tests/unit/reference-corpus-fingerprint.test.mjs tests/unit/reference-training-order.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-semap-labels.test.mjs tests/unit/reference-semap-ranges.test.mjs tests/unit/reference-semap-import.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
-          $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
           node --test --test-name-pattern='native rotation works|Live-Wire preserves' tests/unit/map-plugin.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image workflow failed' }
       - uses: actions/upload-artifact@v4
@@ -1951,21 +1948,11 @@ jobs:
           cmake --build build-native/hydro --target pando-hydro-connectivity
       - name: Package source-bound Hydro connectivity engine
         run: node tools/gis/package-hydro-connectivity.mjs --binary build-native/hydro/pando-hydro-connectivity --directory build-native/hydro/artifact
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: '.python-version'
-      - name: Install temporary source-oracle and producer dependencies
-        run: python -m pip install -r tools/requirements-hydro-tiles.txt
       - name: Verify source-proven confluence and border-alignment invariants
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
         run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
-      - name: Verify remaining Python producer calls the native connector
-        env:
-          PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
-          PANDO_HYDRO_CONNECTIVITY_PYTHON: python
-        run: node --test tests/unit/hydro-connectivity-python-bridge.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}

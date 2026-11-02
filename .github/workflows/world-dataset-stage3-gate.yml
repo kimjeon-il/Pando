@@ -25,7 +25,7 @@ on:
       - 'tools/build-world-preview.mjs'
       - 'tools/build-world-mesh.mjs'
       - 'tools/build-country-shared-boundaries.mjs'
-      - 'tools/validate-country-geometry.py'
+      - 'tools/run-country-validator.mjs'
       - 'tests/browser/startup-performance.spec.mjs'
       - 'tests/unit/world-bundle*.test.mjs'
       - 'tests/unit/stored-asset-content-cache.test.mjs'

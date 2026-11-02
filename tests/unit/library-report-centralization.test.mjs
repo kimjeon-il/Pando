@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import * as library from '../../tools/library-data.mjs';
 import { createP3PreviewServer } from '../../scripts/p3-preview-server.mjs';
 import {makePrivate} from '../../tools/library-content.mjs';
+import {reportArgument} from '../../tools/report-paths.mjs';
 
 const put = (path, value) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, value); };
 const git = (cwd, ...args) => execFileSync('git', ['-c', 'core.autocrlf=false', '-c', 'gc.auto=0', '-C', cwd, ...args], { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
@@ -41,7 +41,7 @@ function fixture(t) {
   for (const [root, checkout] of [[app, data], [ui, uiData]]) {
     mkdirSync(join(root, '.library-data'), { recursive: true }); symlinkSync(checkout, join(root, '.library-data/repository'), process.platform === 'win32' ? 'junction' : 'dir');
     const legacy = join(checkout, '.working', revision, 'reports');
-    for (const [path, entry] of Object.entries(files)) put(join(legacy, path.slice(8)), path.endsWith('.md') ? '# shared original\n' : '{"edition":1}\n');
+    for (const path of Object.keys(files)) put(join(legacy, path.slice(8)), path.endsWith('.md') ? '# shared original\n' : '{"edition":1}\n');
     put(join(checkout, '.working/report-owner.json'), JSON.stringify({ path: `${revision}/reports`, revision }));
     put(join(checkout, '.working', revision, '.reports-complete'), revision + '\n');
     symlinkSync(legacy, join(root, 'reports'), process.platform === 'win32' ? 'junction' : 'dir');
@@ -180,11 +180,10 @@ test('a recovery journal never permits unrelated staged data to enter the migrat
   assert.ok(existsSync(join(f.uiData, '.working', f.revision, 'reports/development/shared.md')));
 });
 
-test('Python report arguments resolve branch input siblings through the same central owner', t => {
+test('report arguments resolve branch input siblings through the same central owner', t => {
   const f = fixture(t); library.centralizeLibraryReports({ root: f.app, apply: true });
-  const tools = fileURLToPath(new URL('../../tools', import.meta.url));
-  const output = execFileSync(process.env.PANDOLAB_PYTHON || 'python', ['-c',
-    "import sys,json;sys.path.insert(0,sys.argv[1]);from report_paths import report_argument;from pathlib import Path;p=report_argument('reports/development/review/value.json',access='read',siblings=True,root=sys.argv[2]);print(Path(p).read_text())", tools, f.ui], { cwd: f.ui, encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } });
+  const path=reportArgument(join(f.ui,'reports/development/review/value.json'),{access:'read',siblings:true,root:f.ui});
+  const output=readFileSync(path,'utf8');
   assert.deepEqual(JSON.parse(output), { edition: 2, unfinished: true });
 });
 

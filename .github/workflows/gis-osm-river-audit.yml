@@ -21,7 +21,7 @@ on:
       - tests/unit/hydro-name-repack.test.mjs
       - tests/unit/hydro-independent-name-policy.test.mjs
       - tests/unit/hydro-independent-evidence.test.mjs
-      - tools/build-hydro-tiles.py
+      - tools/gis/build-hydro.mjs
       - .github/workflows/gis-osm-river-audit.yml
   workflow_dispatch:
 

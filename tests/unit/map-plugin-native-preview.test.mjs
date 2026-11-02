@@ -20,7 +20,6 @@ test('native preview draws explicit Unicode text with the verified selected type
 });
 
 test('native review previews preserve map pixels, overlays and labels without Python',async t=>{
-  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
   const root=resolve('tests/fixtures/map-image/preview'),temporary=mkdtempSync(join(tmpdir(),'pando-map-preview-'));
   t.after(()=>rmSync(temporary,{recursive:true,force:true}));
   for(const name of ['rich','wide','large']){
