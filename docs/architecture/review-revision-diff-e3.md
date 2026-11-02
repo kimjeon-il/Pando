@@ -61,7 +61,7 @@ E3가 비교하는 것은 Web/App 코드가 아닌 외부 데이터 저장소 **
 
 표의 구간은 원본에서 확인한 **지도 형상 에디션의 유효기간**이다. 각 행을 별개의 영토 이양 사건이나 그 날짜의 역사적 합의로 단정해서는 안 된다. 특히 2014년 이후 러시아 형상은 적용 시점이 있다는 정보일 뿐, 영유권·승인 상태에 대한 정치적 판단을 의미하지 않는다.
 
-최종 수용 실행: [GitHub Actions E3 실제 데이터 검증](https://github.com/kimjeon-il/Pando/actions/runs/41376142774), Pando 코드 기준 `247480803aa525343d6284eb3cc8fd1f38de5cf7`. 두 Job 모두 success: **E3/E2 계약 단위 테스트 18개 통과**, 실자료 원본 비교·검증/제안 JSON 생성·E2 계약 재검사·artifact 보관 성공. 결과 파일: [E3 실제 비교 증거 ZIP](https://github.com/kimjeon-il/Pando/actions/runs/41376142774/artifacts/13111775401). 생성 제안은 `e3-abagaitu-2008-g-41376142774`, `createdBy: automation`, `status: pending`, `events: []`이며 승인·적용되지 않았다. 역사지리 정확성은 `not-verified`, 전체 인접 국경 위상 검증은 `not-run`으로 기록했다. 이 작업은 실제 원본 GIS 데이터나 외부 자료 저장소의 최신 리비전을 수정하지 않았다.
+최종 수용 실행: [GitHub Actions E3 실제 데이터 검증](https://github.com/kimjeon-il/Pando/actions/runs/41376530189), Pando 코드 기준 `5b20e450f4a72e7ff8a0aba168fda0556be817be`. 두 Job 모두 success: **E3/E2 계약 단위 테스트 19개 통과**, 실자료 원본 비교·검증/제안 JSON 생성·E2 계약 재검사·artifact 보관 성공. 결과 파일: [E3 실제 비교 증거 ZIP](https://github.com/kimjeon-il/Pando/actions/runs/41376530189/artifacts/13111541337). 생성 제안은 `e3-abagaitu-2008-g-41376530189`, `createdBy: automation`, `status: pending`, `events: []`이며 승인·적용되지 않았다. 역사지리 정확성은 `not-verified`, 전체 인접 국경 위상 검증은 `not-run`으로 기록했다. 이 작업은 실제 원본 GIS 데이터나 외부 자료 저장소의 최신 리비전을 수정하지 않았다.
 
 ## 5. 직접 실행 방법
 
