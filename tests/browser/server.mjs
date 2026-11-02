@@ -10,6 +10,8 @@ const prepared=prepareLibraryData({root}),snapshot=await buildFrontendSnapshot({
 const {assets}=await developmentAssets({repository:root,product:'viewer',prepared,snapshot});
 for(const [path,asset]of snapshot.assets)assets.set(path,{bytes:asset.bytes});
 assets.set('__editor/index.html',{bytes:Buffer.from(snapshot.html.editor.replace('href="../../" data-product-base="editor"','href="/" data-product-base="editor"'))});
+assets.set('review.html',{bytes:Buffer.from(snapshot.html.viewer.replace('<title>판도연구소</title>',
+  '<title>판도연구소 — 검수기</title>'))});
 const lease=libraryRuntimeLeasePath(root,'verification');
 mkdirSync(dirname(lease),{recursive:true});
 writeFileSync(lease,JSON.stringify({pid:process.pid,root,product:'verification',materialized:[prepared.materialized]}));
