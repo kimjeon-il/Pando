@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {createNativeLibraryRepository} from "../../apps/editor/frontend/js/modules/native-library-repository.js";
 import {createRepositoryTerritorialLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
-import {encodeTerritorialIndexEntry,territorialIndexEntry} from "../../apps/editor/frontend/js/modules/territorial-index-entry.js";
+import {encodeTerritorialIndexEntry,territorialIndexEntry} from "../../tools/gis/territorial-index-entry.js";
 const fixtureSource={schemaVersion:2,entityId:'state:fixture',entityKind:'general',lineageId:'fixture',names:{ko:'합성 정치체',en:'Synthetic'},alternateNames:[],
  lifetime:{validFrom:null,validTo:null},parentEntityId:'',instantiation:{mode:'independent',countryUpdates:{}},metadata:{},sourceInfo:{sourceId:'fixture',title:'Synthetic',license:'test'},
  geometryVersions:[{versionId:'state:fixture:v1',validFrom:null,validTo:null,certainty:'reviewed',sourceId:'fixture',geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}}]};

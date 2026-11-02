@@ -9,9 +9,9 @@ import {prepareLibraryGeometryWorkspace, collectLibraryGeometryChanges,
   parseNativeLibraryGeometryRequest, createLibraryGeometryContext} from "../../apps/editor/frontend/js/modules/library-geometry-context.js";
 import {createRepositoryTerritorialLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
 import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
-import {normalizeTerritorialLibraryEntity} from "../../apps/editor/frontend/js/modules/territorial-library.js";
-import {encodeTerritorialIndexEntry} from "../../apps/editor/frontend/js/modules/territorial-index-entry.js";
-import {markEditedLibrarySource} from "../../apps/editor/frontend/js/modules/territorial-library-provenance.js";
+import {normalizeTerritorialLibraryEntity} from "../../tools/gis/territorial-library.js";
+import {encodeTerritorialIndexEntry} from "../../tools/gis/territorial-index-entry.js";
+import {markEditedLibrarySource} from "../../tools/gis/territorial-library-provenance.js";
 import {sharedCalculationCore} from "../../shared/frontend/js/modules/temporal.js";
 import {confirmLibraryGeometryBeforeUnload} from "../../apps/editor/frontend/js/modules/app-global-input-bindings.js";
 
