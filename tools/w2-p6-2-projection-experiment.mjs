@@ -1,4 +1,4 @@
-/* global Worker, TextEncoder, crypto, document, performance, requestAnimationFrame */
+/* global Worker, TextEncoder, crypto, document, performance, requestAnimationFrame, PerformanceObserver, createImageBitmap, atob, Blob, setTimeout, clearTimeout */
 import {execFileSync} from 'node:child_process';
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
