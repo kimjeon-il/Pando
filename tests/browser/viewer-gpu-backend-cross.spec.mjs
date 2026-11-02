@@ -181,11 +181,15 @@ async function runOne(mode,baseURL){
 test('same-host GPU/backend comparison without presuming hardware acceleration',async({baseURL},testInfo)=>{
   test.setTimeout(1100000);
   if(!baseURL)throw new Error('Base URL is required for Pando GPU cross benchmark');
+  // A-B-A controls for warm driver caches and first-browser ordering.
+  // Re-run the first backend on the SAME runner after forcing SwiftShader.
   const modes=process.platform==='darwin'
     ?[{name:'metal',flags:['--use-angle=metal']},
-      {name:'swiftshader',flags:['--use-angle=swiftshader']}]
+      {name:'swiftshader',flags:['--use-angle=swiftshader']},
+      {name:'metal-retest',flags:['--use-angle=metal']}]
     :[{name:'default',flags:[]},
-      {name:'swiftshader',flags:['--use-angle=swiftshader']}];
+      {name:'swiftshader',flags:['--use-angle=swiftshader']},
+      {name:'default-retest',flags:[]}];
   const report={schema:'pando-gpu-cross-v1',sourceCommit:process.env.GITHUB_SHA??null,
     host:{platform:process.platform,arch:process.arch,cpus:process.env.RUNNER_OS??null},
     measuredAt:new Date().toISOString(),modes:[],comparison:null};
@@ -217,6 +221,18 @@ test('same-host GPU/backend comparison without presuming hardware acceleration',
         available:report.modes.map(m=>({mode:m.mode,status:m.status,category:m.category,renderer:m.gpu?.unmaskedRenderer})),
       };
     }
+    const first=report.modes[0],retest=report.modes.at(-1);
+    report.orderControl={
+      firstMode:first.mode,retestMode:retest.mode,
+      sameDriver:first.gpu?.unmaskedRenderer===retest.gpu?.unmaskedRenderer,
+      firstReleaseP50Ms:first.stats?.releaseRoundtripMs?.p50??null,
+      retestReleaseP50Ms:retest.stats?.releaseRoundtripMs?.p50??null,
+      firstReadyP50Ms:first.stats?.requestedToReadyMs?.p50??null,
+      retestReadyP50Ms:retest.stats?.requestedToReadyMs?.p50??null,
+      firstPresentedP50Ms:first.stats?.requestedToPresentedMs?.p50??null,
+      retestPresentedP50Ms:retest.stats?.requestedToPresentedMs?.p50??null
+    };
+    console.log('GPU_CROSS_ORDER_CONTROL '+JSON.stringify(report.orderControl));
     console.log('GPU_CROSS_COMPARISON '+JSON.stringify(report.comparison));
   }finally{
     await mkdir('test-results/viewer-gpu-backend-cross',{recursive:true});
