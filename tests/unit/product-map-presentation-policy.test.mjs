@@ -22,6 +22,7 @@ test('shared renderer and input presentation stay product-neutral',()=>{
   assert.doesNotMatch(input,/\bproductMode\b/);
   assert.doesNotMatch(input,/\.editor-drawer|\.project-bounds-picker/);
   assert.match(input,/reservedTargetSelector/);
+  assert.match(input,/const editing=editingHooks!==null/);
 });
 
 test('Viewer and Editor own distinct preparation presentation and reserved targets',()=>{
