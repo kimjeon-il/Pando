@@ -65,6 +65,8 @@ test('Windows and favicon containers retain their reviewed optical-size PNG fram
  const apple=bytes(brand+'apple-touch-icon.png');assert.equal(apple.readUInt32BE(16),180);assert.equal(apple.readUInt32BE(20),180);
  const approved=JSON.parse(text('design/brand/asset-hashes.json'));
  for(const [path,sha]of Object.entries(approved)){
+  assert.doesNotMatch(path,/^(?:apps\/editor\/src-tauri\/(?:android|gen\/android)\/)/,
+    'retired Android native asset must not remain in the Windows/Web brand inventory');
   const raw=bytes(path),content=/\.(?:svg|xml)$/.test(path)?Buffer.from(raw.toString('utf8').replaceAll('\r\n','\n')):raw;
   assert.equal(createHash('sha256').update(content).digest('hex'),sha,path);
  }
