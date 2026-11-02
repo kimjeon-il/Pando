@@ -225,7 +225,7 @@ test('completed hydro renders before canonical country boundaries in every nativ
     assert.ok(order.indexOf('border-river') < order.indexOf('country-boundary'));
   }
   assert.ok(webgl.includes("for (const role of mapVisualOrder('base', 'gpu'))"));
-  assert.ok(webgl.includes("for (const role of mapVisualOrder('hydro')) drawHydro(role)"));
+  assert.ok(webgl.includes("for (const role of mapVisualOrder('hydro')) drawHydro(role, false, true)"));
   assert.ok(webgl.includes('drawCountryBoundaryStrokes()'));
   const canvasWrapper = functionSource(gpu,'renderCanvasFallback');
   assert.ok(canvasWrapper.includes('drawCanvasFallback(frame)'));
