@@ -4,10 +4,70 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources} from '../../tools/gis/hydro-source-reader.mjs';
-import {zipMembers,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
+import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
+import yazl from 'yazl';
+import {createWriteStream} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {pipeline} from 'node:stream/promises';
 
 const archive='tests/fixtures/hydro-source/fixture.zip';
 const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/spec.json','utf8'));
+async function generationFixture(root,{invalidCoordinate=false,invalidAttribute=false}={}){
+  const originals=new Map();
+  for(const member of await zipMembers(archive)){const chunks=[];for await(const chunk of zipMemberChunks(archive,member))chunks.push(chunk);
+    originals.set(member.name,Buffer.concat(chunks));}
+  const dbfName=[...originals.keys()].find(name=>name.endsWith('.dbf'));
+  const fields=[['HYRIV_ID',10,0],['NEXT_DOWN',10,0],['MAIN_RIV',10,0],['ORD_STRA',3,0],['DIS_AV_CMS',12,2],['UPLAND_SKM',12,2],['ENDORHEIC',2,0]];
+  const records=[[101,102,102,5,1.25,100,0],[102,0,102,6,3.5,200,1],[103,102,102,4,0,50,0]];
+  const headerLength=33+32*fields.length,recordLength=1+fields.reduce((n,field)=>n+field[1],0),dbf=Buffer.alloc(headerLength+records.length*recordLength+1,0);
+  dbf[0]=3;dbf.writeUInt32LE(records.length,4);dbf.writeUInt16LE(headerLength,8);dbf.writeUInt16LE(recordLength,10);
+  fields.forEach(([name,width,decimals],i)=>{const at=32+i*32;dbf.write(name,at,'ascii');dbf[at+11]=78;dbf[at+16]=width;dbf[at+17]=decimals;});
+  dbf[headerLength-1]=13;records.forEach((row,i)=>{let at=headerLength+i*recordLength;dbf[at++]=32;
+    row.forEach((value,j)=>{const [,width,decimals]=fields[j];dbf.write(Number(value).toFixed(decimals).padStart(width,' '),at,'ascii');at+=width;});});dbf[dbf.length-1]=26;
+  if(invalidAttribute)dbf[headerLength+1+10+10+10+3]=88;
+  originals.set(dbfName,dbf);
+  const shpName=[...originals.keys()].find(name=>name.endsWith('.shp'));
+  const shxName=[...originals.keys()].find(name=>name.endsWith('.shx'));
+  const lines=[[[[0,0],[invalidCoordinate?NaN:0.25,0.1],[0.5,0]],[[0.5,0],[1,0]]],[[[1,0],[2,0]]],[[[0,1],[1,0]]]];
+  const headers=[],bodies=[],index=[];let offset=100;
+  for(const [i,parts] of lines.entries()){
+    const points=parts.flat(),body=Buffer.alloc(44+parts.length*4+points.length*16);
+    body.writeInt32LE(3,0);body.writeInt32LE(parts.length,36);body.writeInt32LE(points.length,40);
+    let pointOffset=0;for(const [j,part] of parts.entries()){body.writeInt32LE(pointOffset,44+j*4);pointOffset+=part.length;}
+    points.forEach(([x,y],j)=>{body.writeDoubleLE(x,44+parts.length*4+j*16);body.writeDoubleLE(y,52+parts.length*4+j*16);});
+    const header=Buffer.alloc(8),entry=Buffer.alloc(8);header.writeInt32BE(i+1,0);header.writeInt32BE(body.length/2,4);
+    entry.writeInt32BE(offset/2,0);entry.writeInt32BE(body.length/2,4);headers.push(header);bodies.push(body);index.push(entry);offset+=8+body.length;
+  }
+  const shpHeader=Buffer.from(originals.get(shpName).subarray(0,100)),shxHeader=Buffer.from(shpHeader);
+  shpHeader.writeInt32BE(offset/2,24);shxHeader.writeInt32BE((100+index.length*8)/2,24);
+  originals.set(shpName,Buffer.concat([shpHeader,...headers.flatMap((header,i)=>[header,bodies[i]])]));
+  originals.set(shxName,Buffer.concat([shxHeader,...index]));
+  const zip=new yazl.ZipFile(),files=[];
+  for(const [name,data] of originals){zip.addBuffer(data,name);files.push({file:name.split('/').at(-1),sha256:createHash('sha256').update(data).digest('hex')});}
+  zip.end();const path=join(root,'generation.zip');await pipeline(zip.outputStream,createWriteStream(path));
+  return {archive:path,specification:{datasetCode:'eu',files}};
+}
+test('generation selection reads full geometry and HydroRIVERS scoring attributes without modifying originals',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-hydro-generation-'));t.after(()=>rm(root,{recursive:true}));
+  const input=await generationFixture(root),before=await readFile(input.archive);
+  const result=await readHydroRegion({...input,selected:new Set([101,103]),detail:'generation'});
+  assert.deepEqual(result.sourceOrder,[101,103]);
+  assert.deepEqual(result.rows['101'],{region:'eu',next:102,start:[0,0],end:[1,0],
+    mainRiver:102,order:5,flow:1.25,upstreamArea:100,endorheic:false,
+    parts:[[[0,0],[0.25,0.1],[0.5,0]],[[0.5,0],[1,0]]]});
+  assert.deepEqual(result.rows['103'].parts,[[[0,1],[1,0]]]);
+  assert.equal(result.rows['103'].upstreamArea,50);assert.deepEqual(await readFile(input.archive),before);
+  assert.deepEqual(await readHydroSources([{...input,selected:new Set([101,103]),detail:'generation'}]),result);
+  await assert.rejects(readHydroRegion({...input,selected:new Set([101]),detail:'unknown'}),/detail/i);
+  await assert.rejects(readHydroRegion({archive,specification,selected:new Set([101]),detail:'generation'}),/field/i);
+});
+test('generation selection rejects damaged interior coordinates and scoring attributes even with matching hashes',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-hydro-generation-invalid-'));t.after(()=>rm(root,{recursive:true}));
+  const coordinate=await generationFixture(root,{invalidCoordinate:true});
+  await assert.rejects(readHydroRegion({...coordinate,selected:new Set([101]),detail:'generation'}),/coordinate/i);
+  const attribute=await generationFixture(root,{invalidAttribute:true});
+  await assert.rejects(readHydroRegion({...attribute,selected:new Set([101]),detail:'generation'}),/field.*value/i);
+});
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];
   const manifest={sources:{hydroRivers:regions.map(datasetCode=>({datasetCode,files:[]}))}};

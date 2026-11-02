@@ -36,7 +36,7 @@ class ByteReader{
     const tail=Buffer.concat(remainder);if(tail.length&&!(allowDbfEnd&&tail.length===1&&tail[0]===0x1a))throw Error('Unexpected Hydro source trailing bytes');
   }
 }
-async function readDbf(reader,selected){
+async function readDbf(reader,selected,detail){
   const header=await reader.take(32),count=header.readUInt32LE(4),headerLength=header.readUInt16LE(8),recordLength=header.readUInt16LE(10);
   if(headerLength<33||(headerLength-33)%32||recordLength<2)throw Error('Invalid Hydro DBF header');
   const descriptors=await reader.take(headerLength-32);if(descriptors.at(-1)!==13)throw Error('Invalid Hydro DBF field terminator');
@@ -45,16 +45,25 @@ async function readDbf(reader,selected){
     const width=descriptors[at+16],type=String.fromCharCode(descriptors[at+11]);if(!width||offset+width>recordLength||fields.has(name))throw Error('Invalid Hydro DBF field');
     fields.set(name,{offset,width,type});offset+=width;}
   if(offset!==recordLength||!fields.has('HYRIV_ID')||!fields.has('NEXT_DOWN'))throw Error('Missing Hydro DBF topology fields');
+  if(detail==='generation'&&['MAIN_RIV','ORD_STRA','DIS_AV_CMS','UPLAND_SKM','ENDORHEIC'].some(name=>!fields.has(name)))
+    throw Error('Missing Hydro DBF generation fields');
   const number=(record,name)=>{const field=fields.get(name);if(!['N','F'].includes(field.type))throw Error('Invalid Hydro DBF topology type');
     const text=record.toString('ascii',field.offset,field.offset+field.width).trim();if(!/^[+-]?\d+$/.test(text))throw Error('Invalid Hydro DBF topology value');
     const value=Number(text);if(!Number.isSafeInteger(value))throw Error('Hydro source ID exceeds safe range');return value;};
+  const numeric=(record,name,integer=false)=>{const field=fields.get(name);if(!['N','F'].includes(field.type))throw Error('Invalid Hydro DBF generation field type');
+    const text=record.toString('ascii',field.offset,field.offset+field.width).trim();
+    if(!text)return 0;if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text))throw Error('Invalid Hydro DBF generation field value');
+    const value=Number(text);if(!Number.isFinite(value)||(integer&&!Number.isSafeInteger(value)))throw Error('Invalid Hydro DBF generation field value');return value;};
   const byRecord=new Map(),seen=new Set();
   for(let oid=0;oid<count;oid++){const record=await reader.take(recordLength);if(record[0]===42)continue;if(record[0]!==32)throw Error('Invalid Hydro DBF record');
     const id=number(record,'HYRIV_ID');if(!selected.has(id))continue;if(seen.has(id))throw Error('Duplicate Hydro source ID');
-    seen.add(id);byRecord.set(oid,{id,next:number(record,'NEXT_DOWN')});}
+    seen.add(id);const row={id,next:number(record,'NEXT_DOWN')};
+    if(detail==='generation')Object.assign(row,{mainRiver:numeric(record,'MAIN_RIV',true),order:numeric(record,'ORD_STRA',true),
+      flow:numeric(record,'DIS_AV_CMS'),upstreamArea:numeric(record,'UPLAND_SKM'),endorheic:Boolean(numeric(record,'ENDORHEIC',true))});
+    byRecord.set(oid,row);}
   await reader.finish({allowDbfEnd:true});return {byRecord,count,seen};
 }
-async function readShp(reader,member,records,region){
+async function readShp(reader,member,records,region,detail){
   const header=await reader.take(100);
   if(header.readInt32BE(0)!==9994||header.readInt32BE(24)*2!==member.uncompressed||header.readInt32LE(28)!==1000||header.readInt32LE(32)!==3)
     throw Error('Invalid Hydro shapefile header');
@@ -69,16 +78,25 @@ async function readShp(reader,member,records,region){
       throw Error('Invalid Hydro selected polyline');
     const starts=await reader.take(parts*4);let previous=-1;
     for(let i=0;i<parts;i++){const start=starts.readInt32LE(i*4);if((i===0&&start!==0)||start<=previous||start>=points)throw Error('Invalid Hydro polyline parts');previous=start;}
-    const first=await reader.take(16);if(points>2)await reader.take((points-2)*16,true);const last=points>1?await reader.take(16):first;
     const point=bytes=>{const value=[bytes.readDoubleLE(0),bytes.readDoubleLE(8)];
       if(value.some(v=>!Number.isFinite(v))||Math.abs(value[0])>180||Math.abs(value[1])>90)throw Error('Invalid Hydro source coordinate');return value;};
-    rows[selected.id]={region,next:selected.next,start:point(first),end:point(last)};
+    if(detail==='generation'){
+      const coords=await reader.take(points*16),lines=[];for(let i=0;i<parts;i++){
+        const start=starts.readInt32LE(i*4),end=i+1<parts?starts.readInt32LE((i+1)*4):points,line=[];
+        for(let j=start;j<end;j++)line.push(point(coords.subarray(j*16,j*16+16)));lines.push(line);}
+      const {id,next,...attributes}=selected;
+      rows[id]={region,next,start:lines[0][0],end:lines.at(-1).at(-1),...attributes,parts:lines};
+    }else{
+      const first=await reader.take(16);if(points>2)await reader.take((points-2)*16,true);const last=points>1?await reader.take(16):first;
+      rows[selected.id]={region,next:selected.next,start:point(first),end:point(last)};
+    }
   }
   if(oid!==records.count)throw Error('Hydro shapefile and DBF record counts differ');
   await reader.finish();return rows;
 }
-export async function readHydroRegion({archive,specification,selected,signal,requireAll=true}){
+export async function readHydroRegion({archive,specification,selected,signal,requireAll=true,detail='endpoints'}){
   signal?.throwIfAborted();const region=specification?.datasetCode;
+  if(!['endpoints','generation'].includes(detail))throw Error('Invalid Hydro source detail');
   if(!archive||!regions.includes(region)||!(selected instanceof Set)||!selected.size||selected.size>1000000||typeof requireAll!=='boolean'||
     [...selected].some(id=>!Number.isSafeInteger(id)||id<=0)||!Array.isArray(specification.files))throw Error('Explicit bounded Hydro source selection required');
   const base=`HydroRIVERS_v10_${region}`,names=['dbf','shp','shx','prj'].map(ext=>base+'.'+ext),specs=new Map();
@@ -89,9 +107,11 @@ export async function readHydroRegion({archive,specification,selected,signal,req
     if(chosen.has(name))throw Error('Duplicate Hydro archive member: '+name);chosen.set(name,member);}
   if(chosen.size!==names.length)throw Error('Missing Hydro source archive member');
   const stream=name=>verifiedChunks(archive,chosen.get(name),specs.get(name),signal);
-  const records=await readDbf(new ByteReader(stream(names[0]),signal),selected);
-  const rows=await readShp(new ByteReader(stream(names[1]),signal),chosen.get(names[1]),records,region);
-  for(const name of names.slice(2))for await(const _ of stream(name)){} // Verify unused index and projection originals too.
+  const records=await readDbf(new ByteReader(stream(names[0]),signal),selected,detail);
+  const rows=await readShp(new ByteReader(stream(names[1]),signal),chosen.get(names[1]),records,region,detail);
+  for(const name of names.slice(2))for await(const chunk of stream(name)){
+    if(!Buffer.isBuffer(chunk))throw Error('Invalid Hydro source chunk');
+  } // Verify unused index and projection originals too.
   if((requireAll&&records.seen.size!==selected.size)||Object.keys(rows).length!==records.seen.size)throw Error('Selected Hydro source IDs not found');
   return {rows,sourceOrder:[...records.byRecord.values()].map(row=>row.id)};
 }
