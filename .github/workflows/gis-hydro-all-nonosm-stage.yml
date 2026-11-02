@@ -12,6 +12,7 @@ on:
       - 'tools/gis/hydro-independent-name-policy.mjs'
       - 'tools/gis/audit-osm-credit-removal.mjs'
       - 'tests/unit/gis-hydro-bulk-all29.test.mjs'
+      - 'tests/unit/gis-hydro-followup-independent.test.mjs'
       - '.github/workflows/gis-hydro-all-nonosm-stage.yml'
   workflow_dispatch:
 
