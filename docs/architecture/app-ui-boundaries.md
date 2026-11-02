@@ -6,7 +6,7 @@
 | --- | --- |
 | `property-editor-bindings.js` | Property field/action listeners and their teardown; selection is queried, never stored here. |
 | `project-ui-bridge.js` | Draft-vs-project Undo/Redo routing, new-project confirmation and save/history presentation. |
-| `map-input-presentation.js` | Map movement presentation, SVG pointer/hover routing and input-controller teardown for both flat and globe views. |
+| `map-input-presentation.js` | Product-neutral map movement, SVG pointer/hover routing and input-controller teardown. Viewer/Editor inject reserved-target policy; editing behavior is enabled only by an editing capability hook. |
 | `gis-workflow-controller.js` | Lazy GIS service/wizard composition, current-project wizard options, identity/impact planning and validator lifetime. |
 | `map-debug-controller.js` | Debug panel and existing render/view diagnostic facades; dynamic resources are read when queried. |
 | `application-lifecycle.js` | One startup Promise, ordered composition, readiness/error publication and BFCache-aware disposal. |
