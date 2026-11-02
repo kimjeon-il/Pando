@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {temporalContains} from "../../shared/frontend/js/modules/temporal.js";
 import {selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
-import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {normalizeTerritorialLibraryEntity,selectGeometryVersion,territorialEntityExistsAt} from "../../tools/gis/territorial-library.js";
 
 const transitions=[
  ['RUS','russian-sfsr','1991-12-25'],['UKR','ukrainian-ssr','1991-08-24'],
