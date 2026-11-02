@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {buildHydroCalibrationLakeFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -42,6 +43,16 @@ test('hydro comparison raster keeps panel mapping, lake holes and distinct overl
   assert.notDeepEqual(pixel(16+168,48+117),pixel(592+168,48+117));
   assert.notDeepEqual(pixel(1168+168,48+117),pixel(1168+280,48+195));
 });
+test('selected real HydroRIVERS coordinates and calibration candidates match the Python oracle',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const fixture=JSON.parse(readFileSync('tests/fixtures/hydro-calibration-europe-oracle.json','utf8'));
+    const actual=await buildHydroCalibrationRiverFeatures({bounds:fixture.source.bounds,width:1200,height:720,reaches:fixture.reaches},
+      {directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT});
+    assert.equal(actual.length,fixture.expected.length);
+    for(let i=0;i<actual.length;i++){const a={...actual[i]},b={...fixture.expected[i]};
+      for(const key of ['lengthKm','screenLength']){assert.ok(Math.abs(a[key]-b[key])<1e-6,`${key} differs`);delete a[key];delete b[key];}
+      assert.deepEqual(a,b);}
+  });
 test('guided branch scores handle zero direction and reject malformed geometry',{skip:!binary},()=>{
   const request={mode:'guided-branch',current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[0,0],[0,0]]};
   const result=invoke(request);assert.equal(result.status,0,result.stderr);
