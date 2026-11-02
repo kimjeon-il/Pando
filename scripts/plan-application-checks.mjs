@@ -92,11 +92,18 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   for (const specs of Object.values(catalog.manualScopes || {})) for (const spec of specs)
     if (!exists(spec)) throw Error('Missing focused browser spec: ' + spec);
   const frontendIndex = buildFrontendIndex(root);
+  const retiredUnitTests = new Set([
+    'tests/unit/application-composition.test.mjs',
+    'tests/unit/capability-ports-contract.test.mjs',
+    'tests/unit/territorial-gis-export.test.mjs',
+  ]);
   const owners = new Map(), retiredTests = new Map();
   for (const file of tests) {
     const group = catalog.groups.find(group => matches(file, group.testPatterns));
     if (!group) throw Error('Unregistered test: ' + file);
-    const reason = retiredEditorBrowserReason(file, read(file), frontendIndex);
+    const reason = retiredUnitTests.has(file)
+      ? 'tests the removed graphical-editor application rather than current Viewer/Windows'
+      : retiredEditorBrowserReason(file, read(file), frontendIndex);
     if (reason) {
       retiredTests.set(file, reason);
       owners.set(file, { ...group, mode: 'retired', reason });
@@ -269,7 +276,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
-  const frontendIndex = repo.frontendIndex || buildFrontendIndex(repo.root);
+  const frontendIndex = repo.frontendIndex || (repo.root ? buildFrontendIndex(repo.root) : new Map());
   const isRetiredHelper = file => /^tests\/browser\/helpers\/.*\.mjs$/.test(file)
     && retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs',
       repo.read(file), frontendIndex);

@@ -4,7 +4,7 @@ import test from 'node:test';
 import {loadRepository,planApplicationChecks,retiredEditorBrowserReason} from '../../scripts/plan-application-checks.mjs';
 
 const repo=loadRepository(new URL('../../',import.meta.url));
-test('R1 reports every archived editor browser test without dropping its catalog owner',()=>{
+test('R1 reports archived editor browser and unit tests without dropping their catalog owner',()=>{
   assert.equal(repo.owners.size,repo.tests.length);
   const obsolete=[
     'tests/browser/feedback-accessibility.spec.mjs',
@@ -13,6 +13,9 @@ test('R1 reports every archived editor browser test without dropping its catalog
     'tests/browser/phone-landscape-editor.spec.mjs',
     'tests/browser/product-pruning.spec.mjs',
     'tests/browser/gis-math-contract.spec.mjs',
+    'tests/unit/application-composition.test.mjs',
+    'tests/unit/capability-ports-contract.test.mjs',
+    'tests/unit/territorial-gis-export.test.mjs',
   ];
   for(const file of obsolete) {
     assert.ok(repo.retiredTests.has(file),file);
