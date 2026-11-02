@@ -2,8 +2,8 @@
  * Existing 42 independently reviewed systems and all 3 geometry shards remain immutable.
  */
 import {createHash} from 'node:crypto';
-import {readFileSync,writeFileSync,mkdirSync,existsSync,realpathSync} from 'node:fs';
-import {dirname,basename,resolve,relative,isAbsolute,sep} from 'node:path';
+import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
+import {dirname,resolve,relative,isAbsolute,sep} from 'node:path';
 import {parseArgs} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {validateIndependentHydronyms} from './hydro-independent-name-policy.mjs';
@@ -72,7 +72,7 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
   ensure(equal(beforeCore.map(x=>x.fid),afterCore.map(x=>x.fid))
     &&equal(beforeDetail.map(x=>x.fid),afterDetail.map(x=>x.fid)),
   'Source feature identities changed');
-  const toCore=counts(afterCore),toDetail=counts(afterDetail);
+  const toCore=counts(afterCore),toDetail=counts(afterDetail),fromCore=counts(beforeCore);
   let changedCore=0,changedDetail=0;
   for(const row of beforeCore){
     const after=toCore.get(Number(row.fid)),id=String(row.systemId||'');
@@ -82,7 +82,7 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
       'Verified Suez Canal name not installed');
   }
   for(const row of beforeDetail){
-    const after=toDetail.get(Number(row.fid)),id=String(counts(beforeCore).get(Number(row.fid))?.systemId||'');
+    const after=toDetail.get(Number(row.fid)),id=String(fromCore.get(Number(row.fid))?.systemId||'');
     if(id!==approved[0]){ensure(equal(row,after),'Unrelated source metadata changed');continue;}
     changedDetail++;
     ensure(!(after.osmRelationIds||[]).length
