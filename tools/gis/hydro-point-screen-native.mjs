@@ -156,6 +156,26 @@ export async function selectHydroBorderCandidates({borders,requests}={},options=
       !Array.isArray(row.pair)||row.pair.length!==2||row.pair.some((value,i)=>value!==borders[row.lineIndex]?.pair?.[i])))))
     throw Error('Invalid Hydro indexed border candidates');return result.candidates;
 }
+export async function findHydroNearbyBorders({borders,requests}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(borders)||borders.length>100000||!Array.isArray(requests)||requests.length>10000)
+    throw Error('Explicit bounded Hydro nearby border requests required');
+  if(!requests.length)return [];
+  const result=await screenHydroPoints({mode:'border-nearby-index',borders,requests},options);
+  if(!Array.isArray(result?.nearby)||result.nearby.length!==requests.length||result.nearby.some(row=>!Array.isArray(row)||
+    row.some((value,index)=>!Number.isSafeInteger(value)||value<0||value>=borders.length||(index&&row[index-1]>=value))))
+    throw Error('Invalid Hydro nearby border indexes');return result.nearby;
+}
+export async function findHydroPartialBorderRuns(requests,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(requests)||requests.length>10000)throw Error('Explicit bounded Hydro partial borders required');
+  if(!requests.length)return [];
+  const result=await screenHydroPoints({mode:'partial-border-runs',requests},options);
+  const validLine=line=>Array.isArray(line)&&line.length>=2&&line.every(point=>Array.isArray(point)&&point.length===2&&point.every(Number.isFinite));
+  if(!Array.isArray(result?.runs)||result.runs.length!==requests.length||result.runs.some(rows=>!Array.isArray(rows)||rows.some(row=>
+    !Number.isFinite(row.sourceStart)||!Number.isFinite(row.sourceEnd)||row.sourceStart<0||row.sourceEnd-row.sourceStart<10||
+    !Number.isFinite(row.length)||row.length<10||!Number.isFinite(row.sourceLength)||row.sourceLength<row.sourceEnd||
+    !Number.isFinite(row.latitude)||Math.abs(row.latitude)>90||
+    !validLine(row.metricSource)||!validLine(row.metricBorder))))throw Error('Invalid Hydro partial border runs');return result.runs;
+}
 export async function matchHydroOsmBounds({candidates,targets}={},options={}){
   options.signal?.throwIfAborted();
   const valid=(box,nonempty)=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite)&&

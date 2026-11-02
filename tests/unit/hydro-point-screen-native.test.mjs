@@ -46,9 +46,20 @@ test('border candidate index avoids distant borders and rejects ambiguous countr
     requests=[[[1.02,.2],[1.02,1.8]],[[1.2,.2],[1.2,1.8]],[[.8,1],[1.2,1]]];
   const result=invoke({mode:'border-candidate-index',borders,requests});assert.equal(result.status,0,result.stderr);
   assert.deepEqual(JSON.parse(result.stdout).candidates,[null,null,null]);
+  const nearby=invoke({mode:'border-nearby-index',borders,requests});assert.equal(nearby.status,0,nearby.stderr);
+  assert.deepEqual(JSON.parse(nearby.stdout).nearby,[[0,1],[],[0,1]]);
   const one=invoke({mode:'border-candidate-index',borders:borders.slice(0,1),requests});assert.equal(one.status,0,one.stderr);
   const rows=JSON.parse(one.stdout).candidates;assert.equal(rows[0].lineIndex,0);assert.deepEqual(rows[0].pair,['AAA','BBB']);
   assert.equal(rows[1],null);assert.equal(rows[2],null);
+});
+test('partial border proximity retains entry and exit distances on the original reach',{skip:!binary},()=>{
+  const source=[[.5,.2],[1.02,.5],[1.02,1.6],[1.5,1.8]],border=[[1,0],[1,2]];
+  const result=invoke({mode:'partial-border-runs',requests:[{source,border},{source:[[3,0],[3,1]],border}]});
+  assert.equal(result.status,0,result.stderr);const rows=JSON.parse(result.stdout).runs;
+  assert.equal(rows[0].length,1);assert.deepEqual(rows[1],[]);
+  assert.ok(Math.abs(rows[0][0].sourceStart-50.312231298353176)<1e-9);
+  assert.ok(Math.abs(rows[0][0].sourceEnd-198.91425732953581)<1e-9);
+  assert.ok(Math.abs(rows[0][0].length-148.60202603118265)<1e-9);
 });
 test('source-bound shared country borders retain the selected pair',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
