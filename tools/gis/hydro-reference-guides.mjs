@@ -1,6 +1,6 @@
 // Reassemble Natural Earth river rows before selecting their guide lines.
 import {buildHydroLogicalChains} from './hydro-connectivity-native.mjs';
-import {findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from './hydro-point-screen-native.mjs';
+import {findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,scoreHydroReferenceNameCandidates,selectHydroUpstreams} from './hydro-point-screen-native.mjs';
 function lineParts(geometry){
   const parts=geometry?.type==='LineString'?[geometry.coordinates]:geometry?.type==='MultiLineString'?geometry.coordinates:[];
   if(!Array.isArray(parts))throw Error('Invalid Hydro reference geometry');
@@ -84,4 +84,21 @@ export async function assembleHydroCanonicalChains({reaches,references}={},optio
   const connectivityOptions={...options.connectivity};if(options.signal)connectivityOptions.signal=options.signal;
   const result=await buildHydroLogicalChains({reaches:reaches.map(row=>({id:row.id,next:row.next})),canonical:choices},connectivityOptions);
   return result.chains;
+}
+// Natural Earth names are assigned before border alignment, one chain per name.
+export async function matchHydroReferenceNames({chains,references,bounds}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(chains)||chains.some(chain=>!Array.isArray(chain))||!Array.isArray(references))
+    throw Error('Explicit Hydro chains and reference features required');
+  const guides=prepareHydroReferenceGuides(references).features.map(feature=>({
+    name:String(feature.properties.name_ko||feature.properties.name_en||feature.properties.name||'').trim(),geometry:feature.geometry})).filter(row=>row.name);
+  const input=chains.map((chain,index)=>({index,area:chain.length?chain.reduce((value,row)=>Math.max(value,row.upstreamArea),-Infinity):0,
+    parts:chain.flatMap(row=>row.parts.filter(part=>part.length>=2))}));
+  if(input.some(row=>!Number.isFinite(row.area)))throw Error('Invalid Hydro naming basin area');
+  const best=new Map();for(let at=0;at<input.length;at+=1000){const rows=await scoreHydroReferenceNameCandidates({bounds,references:guides,
+    chains:input.slice(at,at+1000)},options);
+    for(const row of rows){if(!row)continue;const previous=best.get(row.name);
+      if(!previous||row.area>previous.area||(row.area===previous.area&&(row.distance<previous.distance||
+        (row.distance===previous.distance&&(row.alignment>previous.alignment||
+          (row.alignment===previous.alignment&&row.index<previous.index))))))best.set(row.name,row);}}
+  return Object.fromEntries([...best.values()].map(row=>[row.index,row.name]));
 }

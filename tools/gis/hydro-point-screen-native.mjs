@@ -185,6 +185,17 @@ export async function findHydroBorderJunctions({borders,requests}={},options={})
     (!Array.isArray(point)||point.length!==2||point.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90)))))
     throw Error('Invalid Hydro border junctions');return result.junctions;
 }
+export async function scoreHydroReferenceNameCandidates({bounds,references,chains}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||
+    bounds[2]<bounds[0]||bounds[3]<bounds[1]||!Array.isArray(references)||references.length>100000||
+    !Array.isArray(chains)||chains.length>10000)throw Error('Explicit bounded Hydro reference naming inputs required');
+  if(!chains.length)return [];
+  const result=await screenHydroPoints({mode:'reference-name-candidates',bounds,references,chains},options);
+  if(!Array.isArray(result?.candidates)||result.candidates.length!==chains.length||result.candidates.some((row,index)=>row!==null&&
+    (row.index!==chains[index]?.index||typeof row.name!=='string'||!row.name||!Number.isFinite(row.area)||row.area!==chains[index].area||
+      !Number.isFinite(row.distance)||row.distance<0||row.distance>4||!Number.isFinite(row.alignment)||row.alignment<.55||row.alignment>1.0000000001)))
+    throw Error('Invalid Hydro reference name candidates');return result.candidates;
+}
 export async function matchHydroOsmBounds({candidates,targets}={},options={}){
   options.signal?.throwIfAborted();
   const valid=(box,nonempty)=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite)&&

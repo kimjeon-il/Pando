@@ -575,6 +575,56 @@ Value borderJunctions(const Value& input){
         junctions.array.push_back(std::move(value));}
     auto result=Value::obj();result.object["junctions"]=std::move(junctions);return result;
 }
+Value referenceNameCandidates(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");const auto ctx=context.get();
+    const auto& bounds=array(field(input,"bounds")),&references=array(field(input,"references")),&chains=array(field(input,"chains"));
+    if(bounds.size()!=4||references.size()>100000||chains.size()>10000)throw std::invalid_argument("Invalid Hydro reference naming batch");
+    std::array<double,4> box{};for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(bounds[i]);
+    if(box[2]<box[0]||box[3]<box[1])throw std::invalid_argument("Invalid Hydro naming bounds");
+    auto region=own(ctx,GEOSGeom_createRectangle_r(ctx,box[0],box[1],box[2],box[3]));
+    double factor=111.32*std::cos((box[1]+box[3])/2*3.14159265358979323846/180.0);
+    const auto scale=[](double* x,double* y,void* user)->int{*x*=*static_cast<double*>(user);*y*=110.57;return std::isfinite(*x)&&std::isfinite(*y)?1:0;};
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(ctx),ReaderDeleter{ctx});
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(ctx,10),TreeDeleter{ctx});
+    if(!reader||!tree)throw std::runtime_error("GEOS naming index failed");
+    std::vector<Geometry> lines;std::vector<std::string> names;std::map<const GEOSGeometry*,std::size_t> indexes;
+    const auto append=[&](const GEOSGeometry* value,const std::string& name){if(GEOSGeomTypeId_r(ctx,value)!=GEOS_LINESTRING)return;
+        const auto* sequence=GEOSGeom_getCoordSeq_r(ctx,value);unsigned int size=0;
+        if(!sequence||!GEOSCoordSeq_getSize_r(ctx,sequence,&size)||size<2)return;
+        auto projected=own(ctx,GEOSGeom_transformXY_r(ctx,value,scale,&factor));const auto* raw=projected.get();
+        indexes.emplace(raw,lines.size());GEOSSTRtree_insert_r(ctx,tree.get(),raw,const_cast<GEOSGeometry*>(raw));
+        names.push_back(name);lines.push_back(std::move(projected));};
+    for(const auto& reference:references){const auto& name=field(reference,"name");if(name.kind!=Value::String)throw std::invalid_argument("Invalid Hydro reference name");
+        if(name.string.empty())continue;const auto json=field(reference,"geometry").encode();
+        auto source=own(ctx,GEOSGeoJSONReader_readGeometry_r(ctx,reader.get(),json.c_str()));auto clipped=own(ctx,GEOSIntersection_r(ctx,source.get(),region.get()));
+        if(GEOSGeomTypeId_r(ctx,clipped.get())==GEOS_LINESTRING)append(clipped.get(),name.string);
+        else{const int count=GEOSGetNumGeometries_r(ctx,clipped.get());for(int i=0;i<count;++i)append(GEOSGetGeometryN_r(ctx,clipped.get(),i),name.string);}}
+    const auto direction=[&](const GEOSGeometry* line){const auto* seq=GEOSGeom_getCoordSeq_r(ctx,line);unsigned int count=0;
+        if(!seq||!GEOSCoordSeq_getSize_r(ctx,seq,&count)||count<2)throw std::runtime_error("GEOS naming direction failed");
+        Point first{},last{};if(!GEOSCoordSeq_getX_r(ctx,seq,0,&first.x)||!GEOSCoordSeq_getY_r(ctx,seq,0,&first.y)||
+          !GEOSCoordSeq_getX_r(ctx,seq,count-1,&last.x)||!GEOSCoordSeq_getY_r(ctx,seq,count-1,&last.y))throw std::runtime_error("GEOS naming endpoint failed");
+        const double dx=last.x-first.x,dy=last.y-first.y,length=std::hypot(dx,dy);return length>0?Point{dx/length,dy/length}:Point{0,0};};
+    auto output=Value::arr();std::size_t vertices=0;
+    for(const auto& chain:chains){const auto& index=field(chain,"index"),&area=field(chain,"area");
+        const double numericIndex=pandoeditor::codecjson::finiteNumber(index),basin=pandoeditor::codecjson::finiteNumber(area);
+        if(numericIndex<0||std::trunc(numericIndex)!=numericIndex||numericIndex>9007199254740991.0)throw std::invalid_argument("Invalid Hydro naming chain index");
+        Geometry main(nullptr,GeosDeleter{ctx});double longest=-1;
+        for(const auto& part:array(field(chain,"parts"))){const auto& coordinates=array(part);if(coordinates.size()<2)continue;
+            vertices+=coordinates.size();if(vertices>5000000)throw std::invalid_argument("Hydro naming vertices exceed budget");
+            std::vector<Point> points;for(const auto& item:coordinates){const auto p=inputPoint(item);points.push_back({p.x*factor,p.y*110.57});}
+            auto line=geometry(ctx,points,false);double length=0;if(!GEOSLength_r(ctx,line.get(),&length))throw std::runtime_error("GEOS naming length failed");
+            if(length>longest){longest=length;main=std::move(line);}}
+        if(!main||lines.empty()){output.array.push_back(Value());continue;}
+        const auto* nearest=GEOSSTRtree_nearest_r(ctx,tree.get(),main.get());const auto found=indexes.find(nearest);double distance=0;
+        if(found==indexes.end()||!GEOSDistance_r(ctx,main.get(),nearest,&distance))throw std::runtime_error("GEOS nearest Hydro name failed");
+        const auto a=direction(main.get()),b=direction(nearest);const double alignment=std::abs(a.x*b.x+a.y*b.y);
+        if(distance>4.0||alignment<.55){output.array.push_back(Value());continue;}
+        auto row=Value::obj();row.object["index"]=index;row.object["name"]=Value::str(names[found->second]);row.object["area"]=Value::num(basin);
+        row.object["distance"]=Value::num(distance);row.object["alignment"]=Value::num(alignment);output.array.push_back(std::move(row));}
+    auto result=Value::obj();result.object["candidates"]=std::move(output);return result;
+}
 void collectReferenceIndex(void* item,void* user){
     static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));
 }
@@ -967,6 +1017,8 @@ Value run(const Value& input){
         return borderCandidateIndex(input,true);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="border-junctions")
         return borderJunctions(input);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-name-candidates")
+        return referenceNameCandidates(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")
         return referenceGuides(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&

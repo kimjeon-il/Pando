@@ -68,6 +68,16 @@ test('different border pairs meet at their exact shared junction',{skip:!binary}
   const result=invoke({mode:'border-junctions',borders,requests});assert.equal(result.status,0,result.stderr);
   assert.deepEqual(JSON.parse(result.stdout).junctions,[[1,1],null]);
 });
+test('reference river name candidates preserve basin, proximity and bearing',{skip:!binary},()=>{
+  const references=[{name:'River A',geometry:{type:'LineString',coordinates:[[0,0],[4,0]]}},
+    {name:'River B',geometry:{type:'LineString',coordinates:[[0,.5],[4,.5]]}}],
+    chains=[{index:0,area:10,parts:[[[0,.01],[4,.01]]]},{index:1,area:100,parts:[[[0,.02],[4,.02]]]},
+      {index:2,area:10,parts:[[[0,.49],[4,.49]]]},{index:3,area:20,parts:[[[2,-.1],[2,.1]]]}];
+  const result=invoke({mode:'reference-name-candidates',bounds:[0,-1,4,1],references,chains});assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).candidates.map(row=>row?.name??null),['River A','River A','River B',null]);
+  const flat=invoke({mode:'reference-name-candidates',bounds:[0,0,4,0],references,chains});assert.equal(flat.status,0,flat.stderr);
+  assert.equal(JSON.parse(flat.stdout).candidates[1].name,'River A');
+});
 test('source-bound shared country borders retain the selected pair',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const rect=(a,b,c,d)=>({type:'Polygon',coordinates:[[[a,b],[c,b],[c,d],[a,d],[a,b]]]});
