@@ -154,13 +154,13 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
       !values['replay-selection']||!values['replay-scratch']||Boolean(values['replay-supervision'])===Boolean(values['replay-auxiliary'])||
       (values['replay-reviewed']&&values['replay-publisher'])||(values['replay-auxiliary']&&(values['replay-reviewed']||values['replay-publisher']))))
       throw Error('Explicit replay configuration with checkpoint chain, sources and scratch required');
-    const lineageReplay=hasReplay?{checkpoints:values['replay-checkpoint'].map(path=>reportArgument(path,{access:'read'})),
+    const lineageReplay=hasReplay?{checkpoints:values['replay-checkpoint'].map(path=>reportArgument(path,{access:'read',siblings:true})),
       weights:reportArgument(values['replay-weights'],{access:'read',siblings:true}),corpus:reportArgument(values['replay-corpus'],{access:'read',siblings:true}),
       auxiliary:reportArgument(values['replay-auxiliary'],{access:'read',siblings:true}),supervision:reportArgument(values['replay-supervision'],{access:'read',siblings:true}),
       selectionCorpus:reportArgument(values['replay-selection'],{access:'read',siblings:true}),scratch:reportArgument(values['replay-scratch'],{access:'write'}),
       reviewed:values['replay-reviewed'],publisher:values['replay-publisher']}:undefined;
-    const report=await evaluateReviewedCheckpointCorpus({checkpoint:reportArgument(values.checkpoint,{access:'read'}),
-      weights:reportArgument(values.weights,{access:'read'}),
+    const report=await evaluateReviewedCheckpointCorpus({checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
+      weights:reportArgument(values.weights,{access:'read',siblings:true}),
       corpus:reportArgument(values.corpus,{access:'read',siblings:true}),output:reportArgument(values.output,{access:'write'}),
       baselineReport:reportArgument(values['baseline-report'],{access:'read'}),device:values.device,torchLibrary:values['torch-library'],
       diagnosticOnly:values['diagnostic-only'],lineageReplay},{signal:controller.signal});
