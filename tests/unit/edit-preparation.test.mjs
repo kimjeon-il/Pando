@@ -6,7 +6,7 @@ import '../helpers/spherical-core.mjs';
 vm.runInThisContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js", import.meta.url), 'utf8'));
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import "../../shared/frontend/js/modules/polygon-geometry.js";
-import { prepareCutInWorker } from "../../apps/editor/frontend/js/modules/cut-worker-preparation.js";
+import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
 import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modules/territory-component-plan.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 import { geometrySegmentIndex, segmentQueryBounds } from "../../apps/editor/frontend/js/modules/geometry-segment-index.js";

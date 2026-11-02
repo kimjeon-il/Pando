@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import * as boundary from "../../shared/frontend/js/modules/geographic-boundary.js";
 import { distanceKm, geometryAreaKm2, lineDistanceKm } from "../../apps/editor/frontend/js/modules/geometry-metrics.js";
-import * as partitions from "../../apps/editor/frontend/js/modules/river-territory-partition.js";
+import * as partitions from "../../tools/gis/river-territory-partition.js";
 import { validateCollection } from "../../apps/editor/frontend/js/modules/gis-geometry-validation.js";
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 import { sphericalCore } from '../helpers/spherical-core.mjs';
@@ -232,7 +232,7 @@ test('GIS contract test sources stay worker-safe and do not revive removed paths
   assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);
   const productionSources = [
     read('shared/frontend/js/modules/geographic-boundary.js'),
-    read('apps/editor/frontend/js/modules/river-territory-partition.js'),
+    read('tools/gis/river-territory-partition.js'),
     workerSources,
   ].join('\n');
   assert.doesNotMatch(productionSources, /gpu-state-scope|selection-coverage|annex-source-v1|frontier-pocket/);
