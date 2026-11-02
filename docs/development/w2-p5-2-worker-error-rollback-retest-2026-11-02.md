@@ -32,17 +32,18 @@ $env:PANDOLAB_W3_EVIDENCE='D:/dev/PandoLab-library-data/reports/.edits/ui/develo
 node tools/w2-p5-2-server.mjs
 ~~~
 
-터미널 2, **같은 work/ui 체크아웃**:
+터미널 2, **같은 work/ui 체크아웃**. 이 환경에서만 실제 GTX1650/드라이버/ANGLE D3D11 및 기준 소스·자료 버전을 자동 확인한다:
 ~~~
 $env:PANDOLAB_TEST_PORT='4221'
-pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs --workers=1 --retries=0 --trace=on
+$env:PANDOLAB_W5_REQUIRE_GTX1650='1'
+pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs --workers=1 --retries=0 --repeat-each=2 --trace=on --output='test-results/w2-p5-rollback-gtx1650-new-scope'
 ~~~
 
-실GPU D3D11인지와 source/build identity를 별도 확인한다(해당 환경에 대한 검사 코드의 조건부 자동 검증은 도구 변경시 버전 기록). Node runner는 성공 실행과 실패 실행의 JSON/trace/PNG를 서로 덮어쓰지 않는 별도 결과 디렉터리에 보관한다. 프로젝트 보고서 발행 규칙을 따르고 원시 바이트 재검증을 수행한다.
+W2-P5-2의 고정 소스와 데이터 핀이 다른 서버가 4221번 포트에서 응답한다면 실행을 중단한다. 실제 NVIDIA GTX1650, driver 32.0.16.1088, Chromium 151, ANGLE D3D11 및 GPU compositing 확인 실패도 성공으로 처리하지 않는다. 기존 보고서와 결과 디렉터리를 재사용하지 말고 위 output을 새 고유 경로로 변경한다. Playwright 출력/trace/PNG와 console의 W5_BOUNDARY_ROLLBACK_PASS를 원시 증거로 보존한다. Windows 실측 결과는 CI Linux 검증과 별도 판정한다. 프로젝트 보고서 발행 규칙을 따르고 원시 바이트 재검증을 수행한다.
 
 ## 완료 판정
 
 - **검사 수단의 보완**: CI 테스트 완료 여부에 따라 판정, 당시 W2-P5-2 원시 실패는 삭제하지 않는다.
 - **실제 브라우저 롤백**: 오류 응답 식별, rollback generation, 데이터/날짜/국경/지명, UI 제외 지도 픽셀, 정상 재시도 모두 통과 시에만 완료.
-- **Windows GTX1650 하드웨어**: 별도 로컬 확인 전 미검증.
+- **Windows GTX1650 하드웨어**: `PANDOLAB_W5_REQUIRE_GTX1650=1` 검사가 같은 고정 환경에서 모두 통과하고 원시 결과가 저장되기 전에는 미검증.
 - 제품 JS/C++/GIS 데이터 및 배포는 건드리지 않고, main 통합은 하지 않는다.
