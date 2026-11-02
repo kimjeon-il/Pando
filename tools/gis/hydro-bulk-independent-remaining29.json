@@ -1,0 +1,1226 @@
+{
+  "schemaVersion": 1,
+  "phase": "all-29-source-metadata-replacements-reviewed-as-a-single-batch",
+  "originalHydroVersion": "0.13.2",
+  "originalBundleSha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+  "preservedPreviouslyApprovedSystemIds": [
+    "20773860",
+    "40423228"
+  ],
+  "sourceIndependentNamedSystems": 19,
+  "neutralizedUnverifiedNameSystems": 10,
+  "limitations": "Independent geographical river names are reach/basin labels; even high NE overlap does not certify all tributaries. Ten unsupported names are reset to stable source-neutral IDs to avoid laundering the old OSM names. Published Hydro geometry is never changed.",
+  "substitutions": [
+    {
+      "systemId": "10521208",
+      "previousNameKo": "샤리강",
+      "nameKo": "샤리강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "af",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Chari",
+            "matched": 39,
+            "of": 81,
+            "coverage": 0.481,
+            "meanDistanceDegrees": 0.0097
+          },
+          {
+            "name": "Bahr Aouk",
+            "matched": 14,
+            "of": 81,
+            "coverage": 0.173,
+            "meanDistanceDegrees": 0.01492
+          },
+          {
+            "name": "Aoukalé",
+            "matched": 3,
+            "of": 81,
+            "coverage": 0.037,
+            "meanDistanceDegrees": 0.09094
+          },
+          {
+            "name": "Logone",
+            "matched": 2,
+            "of": 81,
+            "coverage": 0.025,
+            "meanDistanceDegrees": 0.0555
+          },
+          {
+            "name": "Ouham",
+            "matched": 2,
+            "of": 81,
+            "coverage": 0.025,
+            "meanDistanceDegrees": 0.07617
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf"
+        ]
+      },
+      "reviewStatement": "Chari (Natural Earth 39/81) and the Chad IRD hydrometric station series support the main reach; unrelated tributary names are not retained",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "10526283",
+      "previousNameKo": "샤리강",
+      "nameKo": "미명명 수계 10526283",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "af",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://horizon.documentation.ird.fr/exl-doc/pleins_textes/2021-08/010082147.pdf"
+        ]
+      },
+      "reviewStatement": "Original Chari attribution unsupported: all seven reference stations are >52 km from this Hydro mainstem and NE has no named match",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20071308",
+      "previousNameKo": "오울루강",
+      "nameKo": "오울루강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://finto.fi/yso-paikat/fi/page/p204727"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Oulujoki",
+            "matched": 24,
+            "of": 81,
+            "coverage": 0.296,
+            "meanDistanceDegrees": 0.01186
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://finto.fi/yso-paikat/en/page/p139542",
+          "https://finto.fi/yso-paikat/fi/page/p204727"
+        ]
+      },
+      "reviewStatement": "Oulujoki: Finnish national gazetteer and Natural Earth 24/81; maintain only basin/reach appellation",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20075401",
+      "previousNameKo": "오울루강",
+      "nameKo": "오울루강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://finto.fi/yso-paikat/en/page/p139542"
+        },
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://finto.fi/yso-paikat/en/page/p139542",
+          "https://finto.fi/yso-paikat/fi/page/p204727"
+        ]
+      },
+      "reviewStatement": "Oulujoki: Finnish official place name and 0.396 km independent station proximity; limited reach-level evidence",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20282318",
+      "previousNameKo": "오데르강",
+      "nameKo": "오데르강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://danepubliczne.imgw.pl/api/data/hydro/format/html"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Oder",
+            "matched": 21,
+            "of": 81,
+            "coverage": 0.259,
+            "meanDistanceDegrees": 0.01666
+          },
+          {
+            "name": "Warta",
+            "matched": 14,
+            "of": 81,
+            "coverage": 0.173,
+            "meanDistanceDegrees": 0.02234
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://danepubliczne.imgw.pl/api/data/hydro/format/html"
+        ]
+      },
+      "reviewStatement": "Odra/Oder: Polish hydrometric named stations 4 within 1 km and Natural Earth 21/81; exclude Warta as an independently named tributary",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20456598",
+      "previousNameKo": "우랄강",
+      "nameKo": "우랄강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://silkadv.com/en/content/ural-river-kazakhstan"
+        },
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://silkadv.com/en/content/ural-river-kazakhstan",
+          "https://silkadv.com/ru/node/4653"
+        ]
+      },
+      "reviewStatement": "Ural: independent Kazakh geographic description and one named point 0.207 km from the Hydro course; second point is geographically distant",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20532766",
+      "previousNameKo": "테레크강",
+      "nameKo": "테레크강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://www.mdpi.com/2073-4441/17/23/3390"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://waterresources.ru/reki/terek/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://waterresources.ru/reki/terek/",
+          "https://www.mdpi.com/2073-4441/17/23/3390"
+        ]
+      },
+      "reviewStatement": "Terek: an independently published basin study and independent river description; one named point 1.366 km from the Hydro mainstem",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20540915",
+      "previousNameKo": "테레크강",
+      "nameKo": "테레크강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://www.mdpi.com/2073-4441/17/23/3390"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://waterresources.ru/reki/terek/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://waterresources.ru/reki/terek/",
+          "https://www.mdpi.com/2073-4441/17/23/3390"
+        ]
+      },
+      "reviewStatement": "Terek: two named station points within 0.1 km of the Hydro mainstem",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20561290",
+      "previousNameKo": "리오니강",
+      "nameKo": "리오니강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2023_ENG.pdf"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf"
+        ]
+      },
+      "reviewStatement": "Rioni: official basin monitoring investigations, four station locations within 1 km",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20565620",
+      "previousNameKo": "리오니강",
+      "nameKo": "리오니강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2023_ENG.pdf"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch01-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://eu4waterdata.eu/images/pdf/library/UBA/EU4EnvWD_A1.4.1_GE_SW_Survey_Report_2022_ENG.pdf",
+          "https://publikasjoner.nve.no/rapport/2017/rapport2017_27.pdf"
+        ]
+      },
+      "reviewStatement": "Rioni: official basin monitoring investigations, six station locations within 1 km",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20628098",
+      "previousNameKo": "아무다리야강",
+      "nameKo": "미명명 수계 20628098",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://dahiti.dgfi.tum.de/en/12348/",
+          "https://www.mdpi.com/2073-4441/17/5/721"
+        ]
+      },
+      "reviewStatement": "Original Amu Darya attribution unsupported: the two named hydrometric references are >257 km away and NE has no candidate",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "20774342",
+      "previousNameKo": "수에즈운하강",
+      "nameKo": "미명명 수계 20774342",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "eu",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Suez Canal",
+            "matched": 4,
+            "of": 81,
+            "coverage": 0.049,
+            "meanDistanceDegrees": 0.12853
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://companies.suezcanal.gov.eg/Home/English/Pages/default.aspx"
+        ]
+      },
+      "reviewStatement": "Second Suez-labelled system differs from authoritative Suez Canal trace: only 4/81 NE points (mean 0.12853 degrees), station distances >27 km",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "30145067",
+      "previousNameKo": "오비강",
+      "nameKo": "오비강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "si",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://vtu.fish.gov.ru/press/regionalnye-novosti/ogranicheniya-dlya-lyubitelskogo-rybolovstva-v-zapadno-sibirskom-rybokhozyaystvennom-basseyne-osenne/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Ob",
+            "matched": 31,
+            "of": 81,
+            "coverage": 0.383,
+            "meanDistanceDegrees": 0.02245
+          },
+          {
+            "name": "Irtysh",
+            "matched": 17,
+            "of": 81,
+            "coverage": 0.21,
+            "meanDistanceDegrees": 0.01867
+          },
+          {
+            "name": "Tobol",
+            "matched": 4,
+            "of": 81,
+            "coverage": 0.049,
+            "meanDistanceDegrees": 0.01607
+          },
+          {
+            "name": "river-1381",
+            "matched": 4,
+            "of": 81,
+            "coverage": 0.049,
+            "meanDistanceDegrees": 0.0695
+          },
+          {
+            "name": "river-1380",
+            "matched": 3,
+            "of": 81,
+            "coverage": 0.037,
+            "meanDistanceDegrees": 0.11135
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://dahiti.dgfi.tum.de/en/38692/",
+          "https://fish.gov.ru/wp-content/uploads/2025/11/zs.pdf",
+          "https://www.snt-bugorok.ru/level/uroven-vody-v-irtyshe-u-goroda-khanty-mansiisk-segodnya"
+        ]
+      },
+      "reviewStatement": "Ob basin: 31/81 NE Ob observations, 17/81 Irtysh; all four independent named points within 1 km, not a claim every tributary is called Ob",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40188382",
+      "previousNameKo": "시르다리야강",
+      "nameKo": "미명명 수계 40188382",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Original Syr Darya logical system has no independently named anchor or matching Natural Earth reach in the pinned review",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40364680",
+      "previousNameKo": "청천강",
+      "nameKo": "청천강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-national-atlas",
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_1841.php"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-173649&outFields=*&f=json"
+        ]
+      },
+      "reviewStatement": "Cheongcheon River independently identified in South Korea NGII national atlas and NGA US-government geographic names; approximate GNS point 0.475 km from Hydro",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40391614",
+      "previousNameKo": "대동강",
+      "nameKo": "대동강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-national-atlas",
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_1841.php"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-187951&outFields=*&f=json"
+        ]
+      },
+      "reviewStatement": "Daedong River independently named in NGII North Korea geography and NGA names; NGA point is 8.523 km away, not river polyline verification",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40414035",
+      "previousNameKo": "례성강",
+      "nameKo": "례성강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-national-atlas",
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_1841.php"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?outFields=%2A&where=ufi+%3D+-191071"
+        ]
+      },
+      "reviewStatement": "Ryesong River independently named in NGII North Korea geography and NGA names; named point 0.697 km from Hydro",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40415850",
+      "previousNameKo": "림진강/임진강",
+      "nameKo": "임진강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-national-atlas",
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_4065.php"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://geonames.nga.mil/geonames/GNSHome/"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch02-default-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geon-ags/rest/services/RESEARCH/GIS_OUTPUT/MapServer/0/query?where=ufi%20%3D%20-708771&outFields=*&f=json",
+          "https://www.nibr.go.kr/aiibook/access/ecatalogt.jsp?Dir=1069&callmode=admin&catimage=&eclang=ko&start=12&um=s"
+        ]
+      },
+      "reviewStatement": "Imjin River independently named in Korean NGII atlas and NGA; two named points within 5 km, do not retain unverified OSM-only spelling aliases",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40475481",
+      "previousNameKo": "금강",
+      "nameKo": "금강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-national-atlas",
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_3176.php"
+        },
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Geum River independently named in official Korean National Atlas; published Hydro bounding box is in the Geum basin; absence of matching NE vector is explicitly disclosed",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "40486439",
+      "previousNameKo": "아라카와강",
+      "nameKo": "아라카와강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://www.ktr.mlit.go.jp/arage/about/index.html"
+        },
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Tone",
+            "matched": 22,
+            "of": 81,
+            "coverage": 0.272,
+            "meanDistanceDegrees": 0.10719
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geonames/GNSHome/",
+          "https://www.ktr.mlit.go.jp/arage/suibou-info/common/html/rain2128100100001_10.html"
+        ]
+      },
+      "reviewStatement": "Arakawa: Japanese MLIT Arakawa river office confirms official river name and its Tokyo/Saitama setting; nearest rainfall-building point alone is not centerline proof",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41023100",
+      "previousNameKo": "라비강",
+      "nameKo": "인더스강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://www.pib.gov.in/Pressreleaseshare.aspx?PRID=1807862&lang=2&reg=48"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Indus",
+            "matched": 49,
+            "of": 81,
+            "coverage": 0.605,
+            "meanDistanceDegrees": 0.01778
+          },
+          {
+            "name": "Chenab",
+            "matched": 14,
+            "of": 81,
+            "coverage": 0.173,
+            "meanDistanceDegrees": 0.01881
+          },
+          {
+            "name": "Ravi",
+            "matched": 7,
+            "of": 81,
+            "coverage": 0.086,
+            "meanDistanceDegrees": 0.0806
+          },
+          {
+            "name": "Sutlej",
+            "matched": 2,
+            "of": 81,
+            "coverage": 0.025,
+            "meanDistanceDegrees": 0.08254
+          }
+        ],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Previous Ravi classification contradicted by NE: Indus 49/81, Ravi just 7/81, Chenab 14/81; Indian government officially distinguishes these rivers",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41067217",
+      "previousNameKo": "브라마푸트라강/얄룽창포강",
+      "nameKo": "브라마푸트라강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "independent-hydrological-literature",
+          "url": "https://www.britannica.com/place/Brahmaputra-River"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Brahmaputra",
+            "matched": 51,
+            "of": 81,
+            "coverage": 0.63,
+            "meanDistanceDegrees": 0.02709
+          },
+          {
+            "name": "river-256",
+            "matched": 20,
+            "of": 81,
+            "coverage": 0.247,
+            "meanDistanceDegrees": 0.01508
+          },
+          {
+            "name": "river-257",
+            "matched": 9,
+            "of": 81,
+            "coverage": 0.111,
+            "meanDistanceDegrees": 0.02814
+          },
+          {
+            "name": "river-255",
+            "matched": 6,
+            "of": 81,
+            "coverage": 0.074,
+            "meanDistanceDegrees": 0.05539
+          },
+          {
+            "name": "Ganges",
+            "matched": 4,
+            "of": 81,
+            "coverage": 0.049,
+            "meanDistanceDegrees": 0.05669
+          }
+        ],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Mainstem follows Natural Earth Brahmaputra 51/81, geographic name is independent of OSM; previous Yarlung Tsangpo compound retained only as a review note",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41109275",
+      "previousNameKo": "난판강",
+      "nameKo": "미명명 수계 41109275",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Zuo",
+            "matched": 26,
+            "of": 81,
+            "coverage": 0.321,
+            "meanDistanceDegrees": 0.0169
+          },
+          {
+            "name": "Xi",
+            "matched": 21,
+            "of": 81,
+            "coverage": 0.259,
+            "meanDistanceDegrees": 0.0157
+          },
+          {
+            "name": "Yu",
+            "matched": 19,
+            "of": 81,
+            "coverage": 0.235,
+            "meanDistanceDegrees": 0.01772
+          },
+          {
+            "name": "Xunjiang",
+            "matched": 13,
+            "of": 81,
+            "coverage": 0.16,
+            "meanDistanceDegrees": 0.0206
+          },
+          {
+            "name": "Yong",
+            "matched": 12,
+            "of": 81,
+            "coverage": 0.148,
+            "meanDistanceDegrees": 0.01963
+          }
+        ],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Original Nanpan label conflicts with mixed Zuo/Xi/Yu/Xunjiang/Yong Natural Earth candidates; do not choose one as a whole-basin river",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41171836",
+      "previousNameKo": "룩남강",
+      "nameKo": "미명명 수계 41171836",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Original Luc Nam label has no independent hydrometric station or Natural Earth mainstem match in the pinned review",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41182380",
+      "previousNameKo": "꺼우강",
+      "nameKo": "미명명 수계 41182380",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Red",
+            "matched": 30,
+            "of": 81,
+            "coverage": 0.37,
+            "meanDistanceDegrees": 0.02011
+          },
+          {
+            "name": "Black",
+            "matched": 3,
+            "of": 81,
+            "coverage": 0.037,
+            "meanDistanceDegrees": 0.1075
+          }
+        ],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Original Cau label conflicts with broad Red River 30/81 candidate and no Cau public-domain centerline match",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41337891",
+      "previousNameKo": "빠삭강",
+      "nameKo": "욤강",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "independent-geographical-reach-name",
+      "sourceLabel": "HydroRIVERS 1.0 · independently verified river names",
+      "independentSources": [
+        {
+          "kind": "public-domain-vector",
+          "url": "https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-rivers-lake-centerlines/"
+        },
+        {
+          "kind": "government-or-national-gazetteer",
+          "url": "https://water.rid.go.th/hyd/download/book2012/assets/basic-html/page19.html"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Yom",
+            "matched": 56,
+            "of": 81,
+            "coverage": 0.691,
+            "meanDistanceDegrees": 0.00679
+          },
+          {
+            "name": "Chao Phraya",
+            "matched": 28,
+            "of": 81,
+            "coverage": 0.346,
+            "meanDistanceDegrees": 0.01363
+          },
+          {
+            "name": "Ping",
+            "matched": 3,
+            "of": 81,
+            "coverage": 0.037,
+            "meanDistanceDegrees": 0.06625
+          }
+        ],
+        "namedReferenceUrls": []
+      },
+      "reviewStatement": "Previous Pasak label contradicts NE mainstem: Yom 56/81, Chao Phraya 28/81, Pasak absent; Thai Royal Irrigation Department distinguishes Yom and Pasak monitoring basins",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41386179",
+      "previousNameKo": "미명명 수계 41386179",
+      "nameKo": "미명명 수계 41386179",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Krong",
+            "matched": 1,
+            "of": 81,
+            "coverage": 0.012,
+            "meanDistanceDegrees": 0.13792
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geonames/GNSHome/"
+        ]
+      },
+      "reviewStatement": "Originally unnamed, no independently matched river: Dong Nai NGA point is 8.748 km from the modeled mainstem",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41386700",
+      "previousNameKo": "미명명 수계 41386700",
+      "nameKo": "미명명 수계 41386700",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [],
+        "namedReferenceUrls": [
+          "https://geonames.nga.mil/geonames/GNSHome/"
+        ]
+      },
+      "reviewStatement": "Originally unnamed, no independently matched river: Dong Nai NGA point is 65.837 km from the modeled mainstem",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    },
+    {
+      "systemId": "41390476",
+      "previousNameKo": "발라이강",
+      "nameKo": "미명명 수계 41390476",
+      "aliases": [],
+      "tributaryNames": [],
+      "hydroRiversRegion": "as",
+      "classification": "source-neutral-unnamed-hydro-system",
+      "sourceLabel": "HydroRIVERS 1.0 · unnamed logical system",
+      "independentSources": [
+        {
+          "kind": "primary-hydrorivers-geometry",
+          "url": "https://www.hydrosheds.org/products/hydrorivers"
+        }
+      ],
+      "evidence": {
+        "baselineGeometrySha256": "f0832dd2024cbfad8b1662410a4f189fa95bcecb56c3e3f1ad69d36af4a0c36f",
+        "sourceScreenId": 41466882236,
+        "referenceFile": "tests/fixtures/hydro-osm-batch03-v0132-expected.json",
+        "naturalEarthCandidateSampleCoverage": [
+          {
+            "name": "Mekong",
+            "matched": 33,
+            "of": 81,
+            "coverage": 0.407,
+            "meanDistanceDegrees": 0.10799
+          },
+          {
+            "name": "river-1764",
+            "matched": 18,
+            "of": 81,
+            "coverage": 0.222,
+            "meanDistanceDegrees": 0.10441
+          },
+          {
+            "name": "river-1763",
+            "matched": 8,
+            "of": 81,
+            "coverage": 0.099,
+            "meanDistanceDegrees": 0.13373
+          }
+        ],
+        "namedReferenceUrls": [
+          "https://vupc.mae.gov.vn/Data/files/12-2017-tt-btnmt.pdf"
+        ]
+      },
+      "reviewStatement": "Original Ba Lai river endpoints lie 15.2 and 27.159 km from Hydro mainstem; 33/81 NE Mekong observations are >0.1 degree away; do not assert Ba Lai course",
+      "geometryChanged": false,
+      "osmNamesOrRelationsReused": false
+    }
+  ]
+}
