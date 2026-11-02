@@ -3,10 +3,10 @@ import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
+import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
 import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
-import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -60,6 +60,47 @@ async function generationFixture(root,{invalidCoordinate=false,invalidAttribute=
   const path=join(root,'generation.zip');await writeFile(path,zipFiles(originals));
   return {archive:path,specification:{datasetCode:'eu',files}};
 }
+async function lakeFixture(root){
+  const fields=[['Hylak_id','N',8],['Lake_name','C',12],['Lake_area','N',8],['Shore_len','N',8]],records=[[7,'Lac Caf\u00e9',5,8],[8,'Tiny',.5,3],[9,'Far\u0081',3,4]];
+  const headerLength=33+32*fields.length,recordLength=1+fields.reduce((n,row)=>n+row[2],0),dbf=Buffer.alloc(headerLength+records.length*recordLength+1);
+  dbf[0]=3;dbf.writeUInt32LE(records.length,4);dbf.writeUInt16LE(headerLength,8);dbf.writeUInt16LE(recordLength,10);
+  fields.forEach(([name,type,width],i)=>{const at=32+i*32;dbf.write(name,at,'ascii');dbf[at+11]=type.charCodeAt(0);dbf[at+16]=width;});dbf[headerLength-1]=13;
+  records.forEach((row,i)=>{let at=headerLength+i*recordLength;dbf[at++]=32;row.forEach((value,j)=>{const [,type,width]=fields[j];
+    const text=String(value);dbf.write(type==='C'?text.padEnd(width,' '):text.padStart(width,' '),at,'latin1');at+=width;});});dbf[dbf.length-1]=26;
+  const ring=(x)=>[[x,0],[x,1],[x+1,1],[x+1,0],[x,0]],bodies=[],entries=[];let offset=100;
+  for(const [i,x] of [0,1,20].entries()){const points=ring(x),body=Buffer.alloc(48+points.length*16),header=Buffer.alloc(8),entry=Buffer.alloc(8);
+    body.writeInt32LE(5,0);[x,0,x+1,1].forEach((v,j)=>body.writeDoubleLE(v,4+j*8));body.writeInt32LE(1,36);body.writeInt32LE(points.length,40);
+    points.forEach(([a,b],j)=>{body.writeDoubleLE(a,48+j*16);body.writeDoubleLE(b,56+j*16);});header.writeInt32BE(i+1,0);header.writeInt32BE(body.length/2,4);
+    entry.writeInt32BE(offset/2,0);entry.writeInt32BE(body.length/2,4);entries.push(entry);bodies.push(header,body);offset+=8+body.length;}
+  const header=Buffer.alloc(100);header.writeInt32BE(9994,0);header.writeInt32BE(offset/2,24);header.writeInt32LE(1000,28);header.writeInt32LE(5,32);
+  const index=Buffer.from(header);index.writeInt32BE((100+8*entries.length)/2,24);
+  const data={shp:Buffer.concat([header,...bodies]),dbf,shx:Buffer.concat([index,...entries]),prj:Buffer.from('WGS84')},files={};
+  for(const [ext,bytes] of Object.entries(data)){const path=join(root,`lakes.${ext}`);await writeFile(path,bytes);
+    files[ext]={path,sha256:createHash('sha256').update(bytes).digest('hex')};}
+  return {files,data,ring};
+}
+test('lake source streams selected bounding boxes, Windows names and source rings only after metadata selection',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-hydro-lakes-'));t.after(()=>rm(root,{recursive:true}));
+  const {files,data,ring}=await lakeFixture(root),batches=[],input={files,bounds:[[0,-1,3,2]],batchSize:1,onBatch:batch=>batches.push(batch)};
+  const result=await scanHydroLakeSource(input);assert.deepEqual(result,{records:3,selected:1});
+  assert.deepEqual(batches,[[{id:7,name:'Lac Caf\u00e9',areaKm2:5,shorelineKm:8,rings:[ring(0)]}]]);
+  const wrong=structuredClone(files);wrong.shp.sha256='0'.repeat(64);
+  await assert.rejects(scanHydroLakeSource({...input,files:wrong,onBatch:()=>{}}),/hash/i);
+  const controller=new AbortController();controller.abort();await assert.rejects(scanHydroLakeSource({...input,signal:controller.signal}),{name:'AbortError'});
+  assert.deepEqual(await readFile(files.shp.path),data.shp);
+});
+test('verified lake source reaches native polygon and regional calibration preparation',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-lake-pipeline-'));t.after(()=>rm(root,{recursive:true}));
+    const {files}=await lakeFixture(root),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const result=await prepareHydroCalibrationLakeRegions({files,regions:[{id:'west',bbox:[0,-1,3,2]},
+      {id:'east',bbox:[19,-1,22,2]}],width:300,height:300,batchSize:1},options);
+    assert.deepEqual(result.west.map(row=>row.sourceId),[7]);assert.equal(result.west[0].name,'Lac Caf\u00e9');
+    assert.deepEqual(result.east.map(row=>row.sourceId),[9]);assert.equal(result.east[0].name,'Far\ufffd');assert.equal(result.west[0].screenArea,10000);
+    const wrong=structuredClone(files);wrong.dbf.sha256='0'.repeat(64);
+    await assert.rejects(prepareHydroCalibrationLakeRegions({files:wrong,regions:[{id:'west',bbox:[0,-1,3,2]}]},options),/hash/i);
+  });
 test('generation selection reads full geometry and HydroRIVERS scoring attributes without modifying originals',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-hydro-generation-'));t.after(()=>rm(root,{recursive:true}));
   const input=await generationFixture(root),before=await readFile(input.archive);
@@ -183,6 +224,10 @@ test('one calibration region combines selected sources, reference layers and dup
     assert.equal(result.lakeTargets['6.0'].count,0);assert.equal(result.lakeTargets['7.0'].count,1);
     assert.equal(result.lakeBaselines['7.0'].count,0);assert.deepEqual(result.rivers.map(row=>row.sourceId),[101,102]);
     assert.equal(result.lakes[0].sourceId,7);assert.deepEqual(input,before);
+    const preparedLakes=await prepareHydroCalibrationLakes({lakes:input.lakes,bounds,width:300,height:200},options);
+    const {lakes:unused,...rest}=input;assert.equal(unused.length,1);
+    assert.deepEqual(await prepareHydroCalibrationRegion({...rest,preparedLakes},options),result);
+    await assert.rejects(prepareHydroCalibrationRegion({...input,preparedLakes},options),/region inputs/i);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];

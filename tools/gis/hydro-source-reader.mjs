@@ -1,5 +1,7 @@
 // Read only selected HydroRIVERS topology from pinned ZIP members, without extracting originals.
 import {createHash} from 'node:crypto';
+import {createReadStream} from 'node:fs';
+import {stat} from 'node:fs/promises';
 import {posix,resolve} from 'node:path';
 import {zipMemberChunks,zipMembers} from '../lib/geonames-zip.mjs';
 
@@ -114,6 +116,65 @@ export async function scanHydroRegionMetadata({archive,specification,onRecord,si
   const reader=new ByteReader(verifiedChunks(archive,chosen.get(name),specs.get(name),signal),signal);
   const result=await readDbf(reader,null,'generation',onRecord);
   return {region,records:result.seen.size};
+}
+async function* verifiedFileChunks(spec,signal){
+  const hash=createHash('sha256'),stream=createReadStream(spec.path);
+  try{for await(const chunk of stream){signal?.throwIfAborted();hash.update(chunk);yield chunk;}
+    signal?.throwIfAborted();if(hash.digest('hex')!==spec.sha256)throw Error('Hydro lake source hash mismatch: '+spec.path);
+  }finally{stream.destroy();}
+}
+// Callback batches are provisional: consumers must not publish them until the promise verifies every source hash.
+export async function scanHydroLakeSource({files,bounds,onBatch,batchSize=256,signal}={}){
+  signal?.throwIfAborted();
+  const names=['shp','dbf','shx','prj'];
+  if(!files||names.some(name=>typeof files[name]?.path!=='string'||!files[name].path||!/^[a-f0-9]{64}$/.test(files[name].sha256||''))||
+    !Array.isArray(bounds)||!bounds.length||bounds.some(box=>!Array.isArray(box)||box.length!==4||!box.every(Number.isFinite)||box[2]<=box[0]||box[3]<=box[1])||
+    typeof onBatch!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>4096)throw Error('Explicit Hydro lake source and bounds required');
+  const snapshot=structuredClone({files,bounds}),size=(await stat(snapshot.files.shp.path)).size;
+  const dbf=new ByteReader(verifiedFileChunks(snapshot.files.dbf,signal),signal),shp=new ByteReader(verifiedFileChunks(snapshot.files.shp,signal),signal);
+  try{
+    const header=await dbf.take(32),count=header.readUInt32LE(4),headerLength=header.readUInt16LE(8),recordLength=header.readUInt16LE(10);
+    if(headerLength<33||(headerLength-33)%32||recordLength<2)throw Error('Invalid Hydro lake DBF header');
+    const descriptors=await dbf.take(headerLength-32),fields=new Map();if(descriptors.at(-1)!==13)throw Error('Invalid Hydro lake DBF fields');
+    let offset=1;for(let at=0;at<descriptors.length-1;at+=32){const end=descriptors.indexOf(0,at),name=descriptors.toString('ascii',at,end<0||end>at+11?at+11:end);
+      const width=descriptors[at+16],type=String.fromCharCode(descriptors[at+11]);if(!width||offset+width>recordLength||fields.has(name))throw Error('Invalid Hydro lake DBF field');
+      fields.set(name,{offset,width,type});offset+=width;}
+    if(offset!==recordLength||['Hylak_id','Lake_name','Lake_area','Shore_len'].some(name=>!fields.has(name)))throw Error('Missing Hydro lake DBF fields');
+    const readText=(record,name)=>{const field=fields.get(name);return record.subarray(field.offset,field.offset+field.width);};
+    const number=(record,name)=>{if(!['N','F'].includes(fields.get(name).type))throw Error('Invalid Hydro lake DBF numeric type');
+      const text=readText(record,name).toString('ascii').trim();if(!text)return 0;
+      if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)||!Number.isFinite(Number(text)))throw Error('Invalid Hydro lake DBF numeric value');return Number(text);};
+    if(fields.get('Lake_name').type!=='C')throw Error('Invalid Hydro lake DBF name type');
+    const shapeHeader=await shp.take(100);if(shapeHeader.readInt32BE(0)!==9994||shapeHeader.readInt32BE(24)*2!==size||
+      shapeHeader.readInt32LE(28)!==1000||shapeHeader.readInt32LE(32)!==5)throw Error('Invalid Hydro lake shapefile header');
+    const decoder=new TextDecoder('windows-1252'),seen=new Set();let batch=[],selected=0;
+    for(let oid=0;oid<count;oid++){
+      const record=await dbf.take(recordLength),recordHeader=await shp.take(8),length=recordHeader.readInt32BE(4)*2;
+      if(recordHeader.readInt32BE(0)!==oid+1||length<4||shp.position+length>size)throw Error('Invalid Hydro lake shapefile record');
+      if(record[0]!==32&&record[0]!==42)throw Error('Invalid Hydro lake DBF record');
+      if(record[0]===42){await shp.take(length,true);continue;}
+      const area=number(record,'Lake_area');if(area<1){await shp.take(length,true);continue;}
+      const typeBytes=await shp.take(4),type=typeBytes.readInt32LE(0);if(type===0){await shp.take(length-4,true);continue;}
+      if(type!==5||length<44)throw Error('Invalid Hydro lake polygon record');const body=await shp.take(40);
+      const shapeBounds=[0,1,2,3].map(i=>body.readDoubleLE(i*8)),parts=body.readInt32LE(32),points=body.readInt32LE(36);
+      if(!shapeBounds.every(Number.isFinite)||parts<1||points<1||parts>points||parts>1000000||length!==44+parts*4+points*16)
+        throw Error('Invalid Hydro lake polygon dimensions');
+      const intersects=snapshot.bounds.some(box=>shapeBounds[0]<=box[2]&&shapeBounds[2]>=box[0]&&shapeBounds[1]<=box[3]&&shapeBounds[3]>=box[1]);
+      if(!intersects){await shp.take(length-44,true);continue;}
+      const starts=await shp.take(parts*4),coordinates=await shp.take(points*16),rings=[];let previous=-1;
+      for(let i=0;i<parts;i++){const start=starts.readInt32LE(i*4),end=i+1<parts?starts.readInt32LE((i+1)*4):points;
+        if((i===0&&start!==0)||start<=previous||end<=start||end>points)throw Error('Invalid Hydro lake polygon parts');previous=start;
+        const ring=[];for(let j=start;j<end;j++){const point=[coordinates.readDoubleLE(j*16),coordinates.readDoubleLE(j*16+8)];
+          if(point.some(value=>!Number.isFinite(value))||Math.abs(point[0])>180||Math.abs(point[1])>90)throw Error('Invalid Hydro lake coordinate');ring.push(point);}rings.push(ring);}
+      const id=number(record,'Hylak_id');if(!Number.isSafeInteger(id)||id<=0||seen.has(id))throw Error('Invalid or duplicate Hydro lake identity');seen.add(id);
+      const name=decoder.decode(readText(record,'Lake_name')).trim().replace(/\0+$/u,'').replace(/[\u0081\u008d\u008f\u0090\u009d]/gu,'\ufffd');
+      batch.push({id,name,areaKm2:area,shorelineKm:number(record,'Shore_len'),rings});selected++;
+      if(batch.length===batchSize){await onBatch(batch);signal?.throwIfAborted();batch=[];}
+    }
+    await dbf.finish({allowDbfEnd:true});await shp.finish();
+    for(const name of ['shx','prj'])for await(const chunk of verifiedFileChunks(snapshot.files[name],signal)){if(!Buffer.isBuffer(chunk))throw Error('Invalid Hydro lake source chunk');}
+    if(batch.length)await onBatch(batch);signal?.throwIfAborted();return {records:count,selected};
+  }finally{await dbf.iterator.return?.();await shp.iterator.return?.();}
 }
 export async function readHydroRegion({archive,specification,selected,signal,requireAll=true,detail='endpoints'}){
   signal?.throwIfAborted();
