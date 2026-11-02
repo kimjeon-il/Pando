@@ -1,461 +1,135 @@
-import fs from 'node:fs';
-import {buildFrontendIndex} from './lib/frontend-layout.mjs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { readApplicationImplementations, readApplicationOwners, domainPublicFacade, assertProjectLifecycleFacade } from './lib/application-source.mjs';
+// R1: only the shipped Viewer and Windows read-only reviewer are runtime contracts.
+// The retired graphical-editor source tree is not a required application domain.
+import {readFileSync} from 'node:fs';
+import {posix,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {buildFrontendIndex,frontendGeneratedOwners,frontendModuleReferences,frontendRoots} from './lib/frontend-layout.mjs';
+import {isEditorOnlyAsset,runtimeDependencies} from './lib/product-assets.mjs';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const frontend=buildFrontendIndex(root);
-const modules=[...frontend.values()].filter(row=>row.publicPath.startsWith('assets/js/modules/')&&row.publicPath.endsWith('.js'));
-const moduleFiles=modules.map(row=>path.resolve(root,row.sourcePath));
-const sourceByFile = new Map(moduleFiles.map(file => [file, fs.readFileSync(file, 'utf8')]));
-const sourceByName=new Map(modules.map(row=>[path.basename(row.publicPath),sourceByFile.get(path.resolve(root,row.sourcePath))]));
-
-function localImports(file, source) {
-  const imports = [];
-  const pattern = /(?:import|export)\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/g;
-  for (const match of source.matchAll(pattern)) {
-    if (!match[1].startsWith('.')) continue;
-    const resolved = path.resolve(path.dirname(file), match[1]);
-    const target = path.extname(resolved) ? resolved : `${resolved}.js`;
-    if (sourceByFile.has(target)) imports.push(target);
-  }
-  // Include revisioned dynamic imports in the same cycle graph.
-  for (const match of source.matchAll(/(?:import\s*\(|new URL\s*\()\s*[`'"](\.\.?\/[^`'"?$]+\.js)/g)) {
-    const target = path.resolve(path.dirname(file), match[1]);
-    if (sourceByFile.has(target)) imports.push(target);
-  }
-  return imports;
+const root=fileURLToPath(new URL('../',import.meta.url));
+const index=buildFrontendIndex(root);
+const bySource=new Map([...index.values()].map(entry=>[entry.sourcePath,entry]));
+const sources=new Map();
+const fail=message=>{throw Error('Read-only runtime boundary: '+message);};
+const read=path=>readFileSync(resolve(root,path),'utf8');
+function source(asset){
+  const entry=index.get(asset);
+  if(!entry)fail('Missing deployed frontend module: '+asset);
+  if(!sources.has(asset))sources.set(asset,read(entry.sourcePath));
+  return sources.get(asset);
 }
-
-const graph = new Map([...sourceByFile].map(([file, source]) => [file, localImports(file, source)]));
-const visiting = new Set();
-const visited = new Set();
-const stack = [];
-function visit(file) {
-  if (visited.has(file)) return;
-  if (visiting.has(file)) {
-    const start = stack.indexOf(file);
-    const cycle = [...stack.slice(start), file].map(entry => path.basename(entry)).join(' -> ');
-    throw new Error(`Circular module dependency: ${cycle}`);
-  }
-  visiting.add(file);
-  stack.push(file);
-  for (const dependency of graph.get(file) || []) visit(dependency);
-  stack.pop();
-  visiting.delete(file);
-  visited.add(file);
-}
-for (const file of graph.keys()) visit(file);
-
-const domFreeModules = [
-  'persistence-service.js',
-  'physical-layer-service.js',
-  'territorial-service.js',
-  'distribution-service.js',
-  'generic-feature-service.js',
-  'map-render-coordinator.js',
-  'core-document-read-model.js',
-  'territorial-library-service.js',
-  'import-service.js',
-  'map-edit-worker-client.js',
-  'render-device.js',
-  'render-scene.js',
-  'scene-color-cache.js',
-  'gpu-polygon-overlay-pass.js',
-  'gpu-stroke-renderer.js',
-  'hydro-tile-window.js',
-  'selection-packet.js',
-  'selection-pass.js',
-  'selection-stroke-geometry.js',
-  'project-domain.js',
-  'selection-domain.js',
-  'gis-domain.js',
-  'editing-domain.js',
-  'editing-render-packet.js',
+const required=[
+  'assets/js/viewer.js',
+  'assets/js/modules/viewer-composition.js',
+  'assets/js/modules/viewer-review-panel.js',
+  'assets/js/modules/core-document-client.js',
+  'assets/js/modules/project-domain.js',
+  'assets/js/modules/selection-domain.js',
+  'assets/js/modules/rendering-domain.js',
+  'assets/js/modules/map-owner-composition.js',
+  'assets/js/modules/map-workspace-host.js',
+  'assets/js/modules/map-render-coordinator.js',
+  'assets/js/modules/product-mode-policy.js',
+  'assets/js/workers/core-viewer-session-worker.js',
 ];
-for (const name of domFreeModules) {
-  const source = sourceByName.get(name);
-  if (!source) throw new Error(`Missing runtime boundary module: ${name}`);
-  for (const token of ['document.', 'querySelector(', 'getElementById(']) {
-    if (source.includes(token)) throw new Error(`${name} must remain DOM-free: ${token}`);
-  }
-}
+for(const entry of frontendRoots)
+  if(entry.product==='editor'||entry.sourcePath.startsWith('apps/editor/'))
+    fail('Retired editor root reentered the product source index: '+entry.sourcePath);
+for(const entry of index.values())
+  if(entry.product!=='shared'&&entry.product!=='viewer')
+    fail('Unexpected product owner: '+entry.sourcePath);
+for(const asset of required)source(asset);
 
-const domainContracts = new Map([
-  ['project-domain.js', 'createProjectDomain'],
-  ['selection-domain.js', 'createSelectionDomain'],
-  ['gis-domain.js', 'createGisDomain'],
-  ['editing-domain.js', 'createEditingDomain'],
-  ['rendering-domain.js', 'createRenderingDomain'],
-]);
-for (const [name, factory] of domainContracts) {
-  const source = sourceByName.get(name);
-  if (!source || !new RegExp(`export\\s+function\\s+${factory}\\b`).test(source)) {
-    throw new Error(`${name} must expose ${factory} as its domain boundary`);
-  }
-}
-for (const name of ['project-domain.js', 'selection-domain.js', 'gis-domain.js', 'editing-domain.js']) {
-  const source = sourceByName.get(name) || '';
-  for (const token of ['document.', 'window.', 'getContext(', 'createElement(']) {
-    if (source.includes(token)) throw new Error(`${name} must remain platform-free: ${token}`);
-  }
-}
-
-// These services receive platform capabilities at composition, not from globals.
-for (const name of ['editing-domain.js', 'territorial-service.js', 'persistence-service.js']) {
-  const source = sourceByName.get(name);
-  for (const token of ['globalThis.requestAnimationFrame', 'globalThis.setTimeout', 'globalThis.crypto', 'indexedDB.open(', 'localStorage.setItem(']) {
-    if (source.includes(token)) throw new Error(`${name} must use its injected platform boundary: ${token}`);
-  }
-}
-
-const selectionPassSource = sourceByName.get('selection-pass.js') || '';
-for (const token of ['getContext(', 'addEventListener(', 'removeEventListener(']) {
-  if (selectionPassSource.includes(token)) throw new Error(`selection-pass.js must not own canvas/context lifecycle: ${token}`);
-}
-if (sourceByName.has('selection-canvas-host.js')) {
-  throw new Error('selection-canvas-host.js must be removed after single-context integration');
-}
-for (const name of ['gpu-polygon-overlay-pass.js', 'gpu-stroke-renderer.js', 'selection-pass.js']) {
-  const source = sourceByName.get(name) || '';
-  if (source.includes('getContext(')) throw new Error(`${name} must receive the shared RenderDevice instead of creating a context`);
-}
-
-const gpuRendererSource = sourceByName.get('gpu-map-renderer.js') || '';
-for (const token of ['webglcontextlost', 'webglcontextrestored', 'createRenderDevice({']) {
-  if (!gpuRendererSource.includes(token)) throw new Error(`gpu-map-renderer.js must own the shared WebGL lifecycle: ${token}`);
-}
-
-const javascriptFiles = [path.join(root, 'apps/editor/frontend/js/app.js'), ...moduleFiles];
-for (const file of javascriptFiles) {
-  if (path.basename(file) === 'browser-project-storage.js') continue;
-  const source = fs.readFileSync(file, 'utf8');
-  for (const token of ['indexedDB.open(', 'localStorage.setItem(', 'localStorage.removeItem(']) {
-    if (source.includes(token)) throw new Error(`${path.relative(root, file)} bypasses browser-project-storage.js: ${token}`);
-  }
-}
-
-const entrySource = fs.readFileSync(path.join(root, 'apps/editor/frontend/js/app.js'), 'utf8');
-const appSource = readApplicationImplementations();
-const appLogicalLineCount = entrySource.split(/\r?\n/).filter(line => line.trim()).length;
-if (appLogicalLineCount > 400) {
-  throw new Error(`app.js logical line ratchet exceeded: ${appLogicalLineCount} > 400`);
-}
-if (/\bfunction\b|=>|document\.|addEventListener\(|\bnew\s+(?:Map|Set|Worker)\b/.test(entrySource)) {
-  throw new Error('app.js must contain only revisioned loading, composition and lifecycle startup');
-}
-const bootstrapSource = fs.readFileSync(path.join(root, 'apps/editor/frontend/js/bootstrap.js'), 'utf8');
-if (appSource.includes("worker.postMessage({ type: 'execute'")) {
-  throw new Error('app.js bypasses map-edit-worker-client.js');
-}
-
-for (const token of [
-  'createObjectSelectionController',
-  'objectSelectionSyncing',
-  'selectHandlers:',
-  'selectionController:',
-]) {
-  if (appSource.includes(token)) throw new Error(`app.js bypasses the selection domain: ${token}`);
-}
-for (const legacyFunction of [
-  'selectCountry',
-  'selectTerritorialUnit',
-  'selectDistributionLayer',
-  'selectGenericFeature',
-  'selectHydro',
-  'selectLabel',
-]) {
-  if (new RegExp(`function\\s+${legacyFunction}\\b`).test(appSource)) {
-    throw new Error(`app.js retains a mixed selection/editor owner: ${legacyFunction}`);
-  }
-}
-const selectionDomainSource = sourceByName.get('selection-domain.js') || '';
-const renderingDomainSource = sourceByName.get('rendering-domain.js') || '';
-const projectDomainSource = sourceByName.get('project-domain.js') || '';
-const gisDomainSource = sourceByName.get('gis-domain.js') || '';
-if (selectionDomainSource.includes('JSON.stringify')) {
-  throw new Error('selection-domain.js must use controller change events instead of serialized snapshots');
-}
-
-const editingDomainSource = sourceByName.get('editing-domain.js') || '';
-const editingPacketSource = sourceByName.get('editing-render-packet.js') || '';
-if (!editingDomainSource.includes("from './editing-render-packet.js'")) {
-  throw new Error('EditingDomain must own immutable EditingRenderPacket creation');
-}
-if (!renderingDomainSource.includes('getEditingRenderPacket') || !renderingDomainSource.includes('emitEditingInteraction')) {
-  throw new Error('RenderingDomain must consume editing packets and emit typed editing interactions');
-}
-if (!editingPacketSource.includes('createEditingRenderPacket') || !editingPacketSource.includes('EMPTY_EDITING_RENDER_PACKET')) {
-  throw new Error('editing-render-packet.js must expose the production packet contract');
-}
-for (const token of [
-  'state.draftCoords',
-  'state.draftHover',
-  'state.draftCutAssessment',
-  'state.draftEdit',
-  'state.draftStroke',
-  'state.activeSnap',
-]) {
-  if (appSource.includes(token)) throw new Error(`app.js retains mutable editing state ownership: ${token}`);
-}
-for (const name of [
-  'queueDraftStrokeRender',
-  'genericDraftIssues',
-  'refreshDraftDerivedState',
-  'getEditableVertices',
-  'setEditableVertexCoord',
-  'editableVertexPreviewSegments',
-  'boundaryTopologyPreviewTargets',
-  'moveBoundaryTopologyPreviewTargets',
-  'vertexDragBehavior',
-  'countryBoundaryVertexDragBehavior',
-]) {
-  if (new RegExp(`function\\s+${name}\\b`).test(appSource)) throw new Error(`app.js retains legacy editing implementation: ${name}`);
-}
-if (/renderingDomain\?\.render(?:Draft|DraftInsertionHandle|Vertices|Snap)\?\./.test(appSource)) {
-  throw new Error('app.js must invalidate editing overlays instead of directly rendering editing passes');
-}
-for (const token of ['const editingDomain =', 'state.draftEdit.', 'state.draftCutAssessment']) {
-  if (renderingDomainSource.includes(token)) throw new Error(`RenderingDomain mutates or shims editing state: ${token}`);
-}
-for (const [file, source] of sourceByFile) {
-  const name = path.basename(file);
-  if (name === 'selection-domain.js' || name === 'object-selection-controller.js') continue;
-  if (source.includes('createObjectSelectionController(')) {
-    throw new Error(`${name} creates a selection controller outside SelectionDomain`);
-  }
-}
-
-const removedRuntimeSymbols = [
-  'LEGACY_GENERIC_FEATURE_SCHEMA_VERSION', 'genericFeatureRoleRule',
-  'RIBBON_SEGMENT_SCALAR_COUNT', 'appendSelectionRibbonSegment', 'ribbonVerticesForSelectionSegments', 'flattenSelectionGeometry',
-  'prepareEditableProjectSnapshot', 'coreObjectRefToWeb', 'createObjectActionExecutor',
-  'territorialDeletionAllowed', 'exchangeDomainForTarget', 'createExchangeAdapterRegistry',
-  'timelinePriorMonth', 'hasDatedTimelineRecords', 'isMapHost',
-
-  'topologySnapCandidates',
-  'countryGeometryFingerprint',
-  'COUNTRY_PROPERTY_KEYS',
-  'genericFeatureRoleCompatible',
-  'formatDistance',
-  'validateSharedBoundary',
-  'deleteGpuProgram',
-  'buildGpuStrokeRibbon',
-  'GRATICULE_MAX_EDGE_DEGREES',
-  'COAST_PREFLIGHT_TARGETS',
-  'EXPLICIT_IMPORT_TARGETS',
-  'assertMapHost',
-  'MAP_OBJECT_INDEX_DEFAULTS',
-  'objectActionsFor',
-  'rendererV2PassIds',
-  'buildSelectionPointCoordinates',
-  'assertSourceProvenance',
-  'sourceProvenanceKind',
-  'VERSION_CHANGE_LEVELS',
-  'isSupportedProjectSchemaVersion',
-];
-const runtimeSources = [appSource, bootstrapSource, ...sourceByFile.values()];
-for (const symbol of removedRuntimeSymbols) {
-  const pattern = new RegExp(`\\b${symbol}\\b`);
-  if (runtimeSources.some(source => pattern.test(source))) throw new Error(`Removed runtime symbol was reintroduced: ${symbol}`);
-}
-
-const canonicalPacketSource = sourceByName.get('canonical-country-packet.js') || '';
-const labelLayoutSource = sourceByName.get('label-layout.js') || '';
-const countryFlagsSource = sourceByName.get('country-flags.js') || '';
-if (canonicalPacketSource.includes('encodeCanonicalCountryPacket')) {
-  throw new Error('canonical packet encoder must remain build-only under tools/');
-}
-if (labelLayoutSource.includes('layoutLabelsLegacy')) {
-  throw new Error('legacy label layout must remain outside the runtime module graph');
-}
-if (sourceByName.has('renderer-v2-contract.js')) {
-  throw new Error('architecture-only renderer contract must not be shipped as a runtime module');
-}
-for (const symbol of [
-  'COUNTRY_FLAG_SOURCE',
-  'COUNTRY_FLAG_NATIVE_SOURCE',
-  'CURRENT_COUNTRY_FLAG_EXCLUDED_IDS',
-  'CURRENT_COUNTRY_FLAG_NATIVE_CODES',
-]) {
-  if (new RegExp(`\\bexport\\s+(?:const|function)\\s+${symbol}\\b`).test(countryFlagsSource)) {
-    throw new Error(`country flag test expectation leaked into runtime: ${symbol}`);
-  }
-}
-for (const relativePath of [
-  'tools/canonical-country-packet-encoder.mjs',
-  'tools/benchmark-helpers/legacy-label-layout.mjs',
-  'tests/fixtures/country-flag-expectations.mjs',
-  'scripts/lib/renderer-v2-architecture.mjs',
-]) {
-  if (!fs.existsSync(path.join(root, relativePath))) throw new Error(`Missing non-runtime helper: ${relativePath}`);
-}
-
-const privateModuleDeclarations = new Map([
-  ['adaptive-render-quality.js', ['RENDER_QUALITY_TIERS']],
-  ['canonical-country-packet.js', ['CANONICAL_COUNTRY_PACKET_VERSION', 'CANONICAL_COUNTRY_PACKET_HEADER_WORDS']],
-  ['coast-reconciliation.js', ['COAST_RECONCILIATION_DEFAULTS', 'localMetricDistance', 'extractExteriorSegments']],
-  ['country-import-identity.js', ['countryImportIdentity']],
-  ['distribution-model.js', ['normalizeDistributionLayer', 'normalizeDistributionEntry']],
-  ['draft-editor.js', ['snapshotDraft']],
-  ['draft-stroke.js', ['DRAFT_STROKE_PROFILES', 'draftPointerGroup']],
-  ['geometry-snap.js', ['SNAP_THRESHOLDS']],
-  ['geometry-validation.js', ['validateAdministrativeContainment', 'validateDistributionReference']],
-  ['gpu-stroke-renderer.js', ['GPU_STROKE_NODE_KINDS']],
-  ['territorial-library.js', ['freeze', 'interval']],
-  ['icon-utils.js', ['ICON_REGISTRY', 'createSvgIcon']],
-  ['layer-presentation.js', ['PRESENTATION_GROUPS', 'normalizeLayerStyle']],
-  ['map-host.js', ['MAP_PROJECTION_KINDS']],
-  ['map-object-categories.js', ['MAP_OBJECT_DOMAINS']],
-  ['map-object-spatial-index.js', ['splitGeographicBounds']],
-  ['project-state.js', ['PROJECT_FORMATS', 'isProjectObjectId']],
-  ['reliability-core.js', ['delayWithSignal']],
-  ['render-lod.js', ['RENDER_LOD_LEVELS']],
-  ['runtime-performance-metrics.js', ['PERFORMANCE_DIAGNOSTIC_THRESHOLDS']],
-  ['temporal.js', ['isLeapYear', 'daysInMonth']],
-  ['territorial-units.js', ['territorialUnitType', 'isTerritorialFeature']],
-  ['tool-controller.js', ['TOOL_DEFINITIONS']],
-  ['worker-rpc.js', ['createWorkerRpcError', 'createCanonicalWorkerRpcCodec']],
-]);
-for (const [name, symbols] of privateModuleDeclarations) {
-  const source = sourceByName.get(name) || '';
-  for (const symbol of symbols) {
-    const exported = new RegExp(`\\bexport\\s+(?:async\\s+)?(?:const|function)\\s+${symbol}\\b`);
-    if (exported.test(source)) throw new Error(`${name} exposes internal-only declaration: ${symbol}`);
-  }
-}
-
-for (const source of runtimeSources) {
-  if (/\bnew\s+KeyboardEvent\s*\(/.test(source)) throw new Error('KeyboardEvent must be created from the target element realm');
-}
-
-const removedGlobalAssignments = [
-  'PANDOLAB_STARTUP_TASK_GATE',
-  'PANDOLAB_BUILD_ID',
-  'PANDOLAB_DATA_CACHE_NAME',
-  'PANDOLAB_DOMAIN_CONTEXT',
-  'PANDOLAB_DOMAINS',
-  'PANDOLAB_CANONICAL_DATA_PROMISE',
-  '__PANDOLAB_EDITING_DOMAIN__',
-  '__PANDOLAB_MAP_LAYOUT_METRICS__',
-  '__PANDOLAB_SELECTION_PERFORMANCE__',
-  '__PANDOLAB_SELECTION_BASELINE__',
-  '__PANDOLAB_RENDER_METRICS__',
-  '__PANDOLAB_WORKER_METRICS__',
-];
-for (const name of removedGlobalAssignments) {
-  const assignment = new RegExp(`\\b(?:window|globalThis)\\.${name}\\s*=`);
-  if (runtimeSources.some(source => assignment.test(source))) throw new Error(`Write-only global facade was reintroduced: ${name}`);
-}
-
-const coordinatorSource = sourceByName.get('map-render-coordinator.js') || '';
-for (const token of ['mapRenderCoordinator', 'MAP_RENDER_DIRTY', 'invalidateMask']) {
-  if (appSource.includes(token)) throw new Error(`app.js bypasses RenderingDomain invalidation ownership: ${token}`);
-}
-for (const helper of [
-  'invalidateView',
-  'invalidateSelection',
-  'invalidateSelectionStyle',
-  'invalidateGpuInteraction',
-  'invalidateOverlayGeometry',
-  'invalidateOverlayStyle',
-  'invalidateCountryPatch',
-  'invalidateHydroPatch',
-  'invalidateTerritorialPatch',
-  'invalidateGenericPatch',
-  'invalidateLabels',
-  'invalidateProjectRender',
-  'invalidateBaseScene',
-]) {
-  if (new RegExp(`function\\s+${helper}\\b`).test(appSource)) {
-    throw new Error(`app.js retains duplicate render invalidation helper: ${helper}`);
-  }
-}
-if (!renderingDomainSource.includes('createMapRenderCoordinator({')) {
-  throw new Error('rendering-domain.js must create and own MapRenderCoordinator');
-}
-for (const [file, source] of sourceByFile) {
-  const name = path.basename(file);
-  if (name === 'map-render-coordinator.js' || name === 'rendering-domain.js') continue;
-  if (source.includes('createMapRenderCoordinator(')) {
-    throw new Error(`${name} creates MapRenderCoordinator outside RenderingDomain`);
-  }
-}
-for (const token of ['STRING_MASKS', 'scheduleFull', 'scheduleView']) {
-  if (coordinatorSource.includes(token)) throw new Error(`Coordinator retains render compatibility API: ${token}`);
-}
-if (/\bFULL\s*:/.test(coordinatorSource)) throw new Error('Coordinator must not expose a FULL mask alias');
-for (const method of ['renderFull', 'renderView', 'renderFrame', 'isInteractionActive', 'advanceRevision']) {
-  if (new RegExp(`\\b${method}\\s*:`).test(coordinatorSource)) throw new Error(`Coordinator exposes test-only method: ${method}`);
-}
-const coordinatorPublicFacade = coordinatorSource.slice(coordinatorSource.lastIndexOf('return Object.freeze({'));
-if (/\n\s*revision\s*[:]/.test(coordinatorPublicFacade)) {
-  throw new Error('Coordinator must expose renderRevision through getStats only');
-}
-if (!readApplicationOwners('map-host').includes("invalidateViewport?.('resize')")) {
-  throw new Error('app.js resize path must use RenderingDomain.invalidateViewport');
-}
-if (appSource.includes('renderAll(')) throw new Error('app.js must not retain renderAll compatibility calls');
-
-// Project lifecycle APIs now have production UI consumers, not existence-only facades.
-assertProjectLifecycleFacade(projectDomainSource);
-if (/\b(?:historyService|persistenceService)\s*\./.test(appSource)) {
-  throw new Error('app.js must use ProjectDomain instead of history/persistence services directly');
-}
-if (/function\s+(?:recordHistory|commitHistorySnapshot|queueAutosave|queueViewAutosave|queuePresentationAutosave|persistAutosave|restoreAutosavedProject)\s*\(/.test(appSource)) {
-  throw new Error('app.js must not reintroduce project history/persistence wrappers');
-}
-const removedDomainFacadeMethods = new Map([
-  [projectDomainSource, ['buildProject']],
-  [gisDomainSource, [
-    'normalizeGeometry', 'validateGeometry', 'resolveCountryIdentity',
-    'planCountryImport', 'planTerritorialImport', 'planCoastReconciliation',
-    'planRiverPartition', 'executeWorker', 'cancelWorker',
-  ]],
-  [editingDomainSource, [
-    'beginTool', 'updatePointer', 'finishTool', 'cancelTool', 'beginBoundaryEdit',
-    'beginObjectVertexEdit', 'beginBoundaryVertexEdit', 'executeTerritorialTransaction',
-    'commit', 'cancel', 'setDraftHover', 'selectDraftVertex', 'applyGeometryPatch',
-    'commitDraftCoords', 'appendDraftCoordinate', 'insertDraftPoint', 'beginDraftStroke',
-    'appendDraftStroke', 'finishDraftStroke', 'cancelDraftStroke', 'syncDraftCoordinates',
-    'reconcileCoast',
-  ]],
-  [renderingDomainSource, [
-    'beginFrame', 'invalidateViewSettle', 'renderGpuInteraction', 'renderBoundaryEdit',
-    'renderGeometryPreview', 'renderSelection', 'renderHoverOverlay', 'renderTerritorialLabels',
-    'renderUserLabels', 'renderTerritorialLabelPositions', 'renderUserLabelPositions',
-    'renderHydroEdits', 'renderDistributions', 'renderBase', 'renderProjectedOverlays',
-  ]],
-]);
-for (const [source, methods] of removedDomainFacadeMethods) {
-  const facade = domainPublicFacade(source);
-  for (const method of methods) {
-    if (new RegExp(`\\b${method}\\s*[,:(]`).test(facade)) {
-      throw new Error(`Domain public facade reintroduced external-unused method: ${method}`);
+// Follow active import/Worker edges, including the lazily loaded Viewer composition.
+// Archived editor HTML, modules, startup and tests are excluded from this check.
+const visiting=new Set(),visited=new Set(),stack=[];
+function visit(asset){
+  if(visited.has(asset))return;
+  if(visiting.has(asset))fail('Circular frontend imports: '+[...stack,asset].join(' -> '));
+  const entry=index.get(asset);
+  if(!entry)fail('Missing frontend asset: '+asset);
+  if(entry.product==='editor'||isEditorOnlyAsset(asset))
+    fail('Editor-only module reached from Viewer: '+asset);
+  visiting.add(asset);stack.push(asset);
+  if(/\.m?js$/.test(entry.sourcePath)){
+    for(const reference of frontendModuleReferences(source(asset))){
+      if(!reference.specifier.startsWith('.'))continue;
+      const file=reference.specifier.split(/[?#]/,1)[0];
+      if(!/\.m?js$/.test(file))continue;
+      const path=posix.normalize(posix.join(posix.dirname(entry.sourcePath),file));
+      const target=bySource.get(path)||(reference.kind==='url'
+        ?index.get(posix.normalize(posix.join(posix.dirname(asset),file))):null);
+      if(!target){
+        // Generated frontend metadata has no checked-in module source.
+        if(Object.hasOwn(frontendGeneratedOwners,path))continue;
+        // Temporal's Node helper is substituted by the existing Web build owner.
+        if(path==='tools/load-node-core.mjs'&&asset==='assets/js/modules/temporal.js')continue;
+        fail('Unmapped active import: '+entry.sourcePath+' -> '+reference.specifier);
+      }
+      if(target.product!=='shared'&&target.product!==entry.product)
+        fail('Cross-product import: '+entry.sourcePath+' -> '+target.sourcePath);
+      visit(target.publicPath);
     }
   }
+  for(const dependency of runtimeDependencies[asset]||[])
+    if(index.has(dependency)&&/\.m?js$/.test(dependency))visit(dependency);
+  stack.pop();visiting.delete(asset);visited.add(asset);
 }
-const lifecycleSource = sourceByName.get('application-lifecycle.js') || '';
-if (!readApplicationOwners('lifecycle-assembly').includes('createApplicationLifecycle({') || !entrySource.includes('void application.start();')) {
-  throw new Error('app.js must start through the application composition root');
-}
-if (!lifecycleSource.includes('if (!event.persisted) dispose();')) {
-  throw new Error('domain disposal must preserve pages retained in the back-forward cache');
-}
-if (!/renderingDomain,\s*editingDomain,\s*selectionDomain,\s*gisWorkflow,\s*gisDomain,\s*projectDomain,\s*commandOwner\]/.test(readApplicationOwners('lifecycle-assembly'))) {
-  throw new Error('app.js must dispose every domain in visual-to-data ownership order');
-}
-if (!lifecycleSource.includes('resource?.dispose?.()')) {
-  throw new Error('application lifecycle does not invoke dispose');
-}
-for (const name of ['bindEditorFields', 'bindChangeFields', 'handleUndoRequest', 'handleRedoRequest', 'syncProjectSaveStatus', 'updateHistoryButtons', 'requestNewProject', 'beginMapMovement', 'finishMapMovement', 'bindMapInputPresentation', 'ensureGisServices', 'gisImportCountryOptions', 'planCountryImportIdentity', 'renderDebugMapPanel', 'installRenderDebugFacade', 'installViewDebugFacade', 'disposeDomainBoundaries']) {
-  if (new RegExp(`function\\s+${name}\\b`).test(appSource)) {
-    throw new Error(`app.js reintroduced an extracted UI/composition implementation: ${name}`);
-  }
-}
+for(const asset of required)visit(asset);
 
-// SelectionDomain.remove remains integration debt until its final caller is migrated or deleted.
-// Every domain dispose method is now integrated through the common pagehide teardown boundary.
+const mustContain=(asset,expression,message)=>{
+  if(!expression.test(source(asset)))fail(message);
+};
+for(const [name,factory] of [
+  ['project-domain.js','createProjectDomain'],
+  ['selection-domain.js','createSelectionDomain'],
+  ['rendering-domain.js','createRenderingDomain'],
+]){
+  const asset='assets/js/modules/'+name;
+  if(!new RegExp('export\\s+function\\s+'+factory+'\\b').test(source(asset)))
+    fail('Missing canonical domain factory: '+name);
+}
+for(const name of ['project-domain.js','selection-domain.js','map-render-coordinator.js']){
+  const body=source('assets/js/modules/'+name);
+  for(const token of ['document.','querySelector(','getElementById('])
+    if(body.includes(token))fail(name+' must stay DOM-free: '+token);
+}
+mustContain('assets/js/modules/viewer-composition.js',/createMapOwners\(\{productMode,readOnly:true,/,
+  'Viewer must create read-only map owners');
+mustContain('assets/js/modules/viewer-composition.js',/createDocumentSession\(\{productMode,readOnly:true,/,
+  'Viewer must create a read-only document session');
+mustContain('assets/js/modules/viewer-composition.js',/createProjectDomain\(\{productMode,readOnly:true,/,
+  'Viewer must create a read-only project domain');
+mustContain('assets/js/modules/product-mode-policy.js',/PL-PRODUCT-READONLY/,
+  'Core product mode must reject mutation operations');
+mustContain('assets/js/modules/core-document-client.js',/policy\.assertOperation\(operation\)/,
+  'Core document client must check the product policy');
+mustContain('assets/js/modules/rendering-domain.js',/if\s*\(\s*readOnly\s*&&\s*\(editPreviewController/,
+  'Read-only renderer must reject edit/preview hooks');
+mustContain('assets/js/modules/map-owner-composition.js',/if\s*\(\s*readOnly\s*&&\s*editing\s*\)/,
+  'Read-only map owner must reject editing hooks');
+mustContain('assets/js/modules/map-workspace-host.js',/const editOverlays=productMode==='editor'&&!readOnly/,
+  'Read-only map host must exclude editable overlays');
+mustContain('assets/js/modules/rendering-domain.js',/createMapRenderCoordinator\(\{/,
+  'RenderingDomain must own the canonical render coordinator');
+for(const [asset,body] of sources)
+  if(!['assets/js/modules/rendering-domain.js','assets/js/modules/map-render-coordinator.js'].includes(asset)
+    &&/createMapRenderCoordinator\(\{/.test(body))
+    fail('Duplicate render coordinator: '+asset);
 
-console.log(`Runtime boundaries OK: ${moduleFiles.length} modules, no circular imports.`);
+// Windows retains only reviewed diagnostic and user-selected correction writes.
+const rust=read('apps/editor/src-tauri/src/lib.rs');
+const handler=rust.match(/\.invoke_handler\(tauri::generate_handler!\[([\s\S]*?)\]\)/)?.[1];
+if(!handler||!handler.includes('review_correction::save_review_correction')
+  ||!handler.includes('write_diagnostic_report'))
+  fail('Windows review command handler is missing');
+if(/\b(?:begin_document_write|append_document_chunk|finish_document_write|begin_document_read|read_document_chunk|abort_document_transfer|save_project|commit_import)\b/.test(handler))
+  fail('Retired editor write command is registered in the Windows reviewer');
+if(!rust.includes('let entry = "review.html";'))
+  fail('Windows shell must start at review.html');
+const capability=JSON.parse(read('apps/editor/src-tauri/capabilities/prototype-review.json'));
+const allowed=['allow-save-review-correction','allow-write-diagnostic-report'];
+if(JSON.stringify([...capability.permissions].sort())!==JSON.stringify(allowed))
+  fail('Windows reviewer capability exceeds allowed writes');
+
+console.log('Viewer/Windows runtime boundaries passed ('+visited.size+' reachable modules).');

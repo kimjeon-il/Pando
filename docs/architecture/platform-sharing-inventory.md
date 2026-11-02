@@ -1,5 +1,7 @@
 # Cross-platform code sharing boundary inventory (A0)
 
+> **Archived architecture snapshot (2026-11-01).** The Web/Windows/Android editor architecture below is historical, not current product guidance. E7 replaced the native product with a Windows read-only reviewer; R2 retired the Android build and artifact contracts. See [Windows reviewer](windows-review-e5.md) and [E7 results](web-windows-final-regression-e7.md). Mobile Web remains supported.
+
 Baseline: `work/ui` @ `c1b8d34e8f43fc609ae18de685a54b4bed06c8f5` (2026-11-01).
 
 This inventory fixes the ownership boundary before further Web / Windows / Android code-sharing work. It is descriptive only: A0 does not change production behavior.

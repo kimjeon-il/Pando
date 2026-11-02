@@ -1,0 +1,11 @@
+import{readFileSync,writeFileSync,mkdirSync}from'node:fs';
+import{execFileSync}from'node:child_process';
+import{instrument}from'./w2-p5-2-instrument.mjs';
+const base=process.env.PANDOLAB_W3_EVIDENCE;if(!base)throw Error('Missing evidence path');
+const root='D:/dev/worktrees/w2-p3-after',sha='fe8282ba32761ab9586348d1712e11cc1f4e7882',revision='5eb7be55208efaafe39bd5a65ec2f111d70b9053';
+if(execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim()!==sha)throw Error('Source mismatch');
+const index=JSON.parse(execFileSync('git',['show',revision+':archive/index.json'],{cwd:'D:/dev/PandoLab-library-data',maxBuffer:32*1024**2}));
+const version=process.env.W5_SERVER_VERSION||'v2',materialized='D:/dev/PandoLab-library-data/.pando-cache/materialized/ui/'+revision,dir=base+'/instrumented-baseline-'+version;mkdirSync(dir,{recursive:true});
+const {buildFrontendSnapshot}=await import('file:///'+root+'/scripts/lib/frontend-build.mjs');const {developmentAssets}=await import('file:///'+root+'/scripts/frontend-dev-server.mjs');const {createP3PreviewServer}=await import('file:///'+root+'/scripts/p3-preview-server.mjs');
+const snapshot=await buildFrontendSnapshot({root,readPinnedData:p=>readFileSync(materialized+'/'+p),dataPaths:Object.keys(index.files).filter(p=>p.startsWith('assets/data/')),readSourceBytes:p=>{const b=readFileSync(root+'/'+p);if(!/\.[cm]?js$/.test(p))return b;const original=b.toString('utf8').replaceAll('\r\n','\n'),result=instrument(p,original);if(result!==original)writeFileSync(dir+'/'+p.replaceAll('/','__'),result,{flag:'wx'});return Buffer.from(result)}});
+const {assets}=await developmentAssets({repository:root,product:'viewer',prepared:{revision,files:index.files,materialized},snapshot});for(const [p,a]of snapshot.assets)assets.set(p,{bytes:a.bytes});const server=createP3PreviewServer(root,{assets:()=>assets,reports:false});await new Promise(r=>server.listen(4221,'127.0.0.1',r));writeFileSync(base+'/server-baseline-'+version+'.json',JSON.stringify({port:4221,stepBytes:262144,source:snapshot.sourceCommit,revision}),{flag:'wx'});console.log('W5_SERVER 4221');

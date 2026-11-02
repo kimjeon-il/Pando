@@ -9,12 +9,8 @@ node_modules/
 /apps/editor/.dist-pending/
 /apps/editor/.dist-previous/
 /apps/editor/src-tauri/target/
-/apps/editor/src-tauri/gen/schemas/
-/apps/editor/src-tauri/gen/android/.gradle/
-/apps/editor/src-tauri/gen/android/.kotlin/
-/apps/editor/src-tauri/gen/android/**/build/
-/apps/editor/src-tauri/gen/android/.tauri/
-/apps/editor/src-tauri/gen/android/local.properties
+# Generated Tauri schemas and retired platform scaffolding; not product source.
+/apps/editor/src-tauri/gen/
 playwright-report/
 test-results/
 .terrain-preview-cache/

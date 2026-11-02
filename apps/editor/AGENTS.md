@@ -1,11 +1,12 @@
-# Scope: apps/editor — graphical editor development freeze
+# Scope: apps/editor — Windows read-only reviewer (E7/R2)
 
-Follow the repository-root AGENTS.md and docs/branch-policy.md.
+Follow repository-root AGENTS.md and docs/branch-policy.md.
 
-- As of 2026-11-02 the interactive, hand-authored GIS editor is in a **new-feature freeze**. Do not add new direct polygon/vertex manipulation, country/coast drawing, snap/draft, or direct-map-edit tool features.
-- Do not delete, disable, or silently replace existing editor behavior during E0. The old code remains a reference until the review workflow is adopted and verified.
-- E1 and later work targets Web and Windows only. Do not invest in Android-specific features, compatibility fixes, UI upgrades or native verification for the retiring Android app. Preserve existing Android files until E6 so shared Windows/Tauri code is not damaged.
-- Work explicitly requested under E1–E7 (read/review architecture, extraction, cutover, removal and regression) is allowed. Stability/security/data-integrity fixes are allowed if independently tested.
-- Preserve C++/WASM read/validation routines, the current supported project format, browser/native file-access contract, Windows/Android identity and exact pinned external data until a targeted change is separately authorized.
-- Avoid adding parallel state owners or new editable formats; use existing canonical owners. No deployment or main merge without explicit authorization.
-- See [E0 implementation contract](../../docs/development/editor-retirement-e0.md) for per-module inventory, baseline and verification gates.
+- `apps/editor/src-tauri` and the shell tooling are Windows-only. The active UI is the `apps/viewer` Viewer/Review graph, staged as `review.html`.
+- Do not add Android or APK builds, NDK alignment flags, native Android resources, signer/ADB flows, or Android acceptance checks. Responsive mobile Web remains supported and must not be removed.
+- Do not reactivate graphical editing, geometry drafting/vertex manipulation, editor command IPC, GeoPackage writes or native document transfer in the Windows reviewer.
+- Preserve the Viewer shared C++/WASM core, historic dataset pins, read-only document admission, source SHA validation, provenance, correction-draft and diagnostic permissions.
+- Do not change the installed Windows application identifier, user profile locations or native-cache layout without a separate migration plan. Never delete existing user profiles or retired Android caches implicitly.
+- Keep the native artifact installer limited to Windows signed/source-verified manifests and `pandolab-web-shell.exe`, optional `WebView2Loader.dll` and offline `PandoLab-setup.exe`.
+- The archived `apps/editor/frontend` and `apps/editor/templates` sources are not product entrypoints. R3/R4 will address their build hashes and eventual deletion; do not couple them back into Viewer.
+- Keep E6/E7/R2 contract tests and real Windows WebView2 verification. Main merges, release deployment and GIS data changes require separate authorization.
