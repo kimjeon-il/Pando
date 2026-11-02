@@ -93,6 +93,18 @@ export async function findHydroReferenceGuides({references,queries,maxDistance}=
     throw Error('Invalid Hydro reference guide receipt');
   return result.matches;
 }
+export async function longestHydroSourceLines(reaches,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(reaches)||reaches.length>100000||reaches.some(parts=>!Array.isArray(parts)))
+    throw Error('Explicit bounded Hydro source parts required');
+  if(!reaches.length)return [];
+  const result=await screenHydroPoints({mode:'longest-lines',reaches},options);
+  if(!Array.isArray(result?.indices)||result.indices.length!==reaches.length||result.indices.some((index,i)=>
+    index===null?reaches[i].some(part=>Array.isArray(part)&&part.length>=2):
+      !Number.isSafeInteger(index)||index<0||index>=reaches[i].length||!Array.isArray(reaches[i][index])||reaches[i][index].length<2))
+    throw Error('Invalid Hydro longest line receipt');
+  return result.indices.map((index,i)=>index===null?null:reaches[i][index]);
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){

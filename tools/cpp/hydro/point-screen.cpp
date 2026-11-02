@@ -185,6 +185,21 @@ Value referenceGuides(const Value& input){
         match.object["distance"]=Value::num(distance);matches.array.push_back(std::move(match));}
     auto result=Value::obj();result.object["matches"]=std::move(matches);return result;
 }
+Value longestSourceLines(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& reaches=array(field(input,"reaches"));if(reaches.size()>100000)throw std::invalid_argument("Hydro reach batch exceeds budget");
+    std::size_t vertices=0;auto indices=Value::arr();indices.array.reserve(reaches.size());
+    for(const auto& reach:reaches){const auto& parts=array(reach);double longest=-1;Value selected;
+        for(std::size_t i=0;i<parts.size();++i){const auto& coords=array(parts[i]);if(coords.size()<2)continue;
+            vertices+=coords.size();if(vertices>5000000)throw std::invalid_argument("Hydro line vertices exceed budget");
+            std::vector<Point> points;points.reserve(coords.size());for(const auto& point:coords)points.push_back(inputPoint(point));
+            auto line=geometry(context.get(),points,false);double length=0;
+            if(!GEOSLength_r(context.get(),line.get(),&length)||!std::isfinite(length))throw std::runtime_error("GEOS line length failed");
+            if(length>longest){longest=length;selected=Value::num(static_cast<double>(i));}}
+        indices.array.push_back(std::move(selected));}
+    auto result=Value::obj();result.object["indices"]=std::move(indices);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -228,6 +243,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="longest-lines")
+        return longestSourceLines(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")
         return referenceGuides(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {findHydroReferenceGuides,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -69,6 +69,13 @@ test('nearest geographic reference selects only lines inside the requested guide
   assert.deepEqual(JSON.parse(empty.stdout).matches,[null,null,null,null]);
   const invalid=invoke({...request,queries:[[[181,0],[0,0]]]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
+test('longest source line chooses the first planar maximum and ignores short parts',{skip:!binary},()=>{
+  const reaches=[[[[0,0]],[[0,0],[1,0]],[[0,0],[0,1]]],[[[0,0],[1,0]],[[0,0],[3,0]]],[[[0,0]]],[]];
+  const result=invoke({mode:'longest-lines',reaches});assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).indices,[1,1,null,null]);
+  const invalid=invoke({mode:'longest-lines',reaches:[[[[0,0],[181,0]]]]});
+  assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
+});
 test('source-bound guided branch and upstream batches return ordered native decisions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
@@ -88,6 +95,12 @@ test('source-bound reference guides retain their source index and threshold',
     assert.equal(matches[0].index,0);assert.ok(Math.abs(matches[0].distance-.1)<1e-12);assert.deepEqual(matches.slice(1),[null,null]);
     assert.deepEqual(await findHydroReferenceGuides({references:[],queries,maxDistance:.22},options),[null,null,null]);
     await assert.rejects(findHydroReferenceGuides({references,queries,maxDistance:-1},options),/reference/i);
+  });
+test('source-bound longest-line selection returns original source parts',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const reaches=[[[[0,0]],[[0,0],[1,0]],[[0,0],[0,1]]],[[[0,0],[2,0]]],[]];
+    assert.deepEqual(await longestHydroSourceLines(reaches,options),[reaches[0][1],reaches[1][0],null]);
   });
 test('native point screen computes projected lengths and closest points',{skip:!binary},()=>{
   const output=invoke(fixture);assert.equal(output.status,0,output.stderr);
