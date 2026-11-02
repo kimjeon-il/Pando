@@ -53,8 +53,9 @@ test('matching boundary Worker protocol error rolls back the dated Core document
           // The original latest-request metadata is used unchanged. Refuse
           // to deliver a real prepared packet for the deliberately failed
           // generation, and send exactly one matching Worker error.
-          if(probe.fired++)throw Error('Duplicate error injection for the same new generation');
-          const fault={type:'error',requestId:data.requestId,
+          if(probe.fired===0){
+            probe.fired=1;
+            const fault={type:'error',requestId:data.requestId,
             projectGeneration:data.projectGeneration,geometryRevision:data.geometryRevision,
             quality:data.quality,message:'W5_CONTROLLED_BOUNDARY_ERROR'};
           probe.events.push({stage:'worker-request-intercepted',...fault,features:data.features.length});
@@ -62,7 +63,10 @@ test('matching boundary Worker protocol error rolls back the dated Core document
             probe.events.push({stage:'worker-error-dispatched',...fault});
             this.dispatchEvent(new MessageEvent('message',{data:fault}));
           });
-          return;
+            return;
+          }
+          probe.events.push({stage:'later-request-forwarded',requestId:data.requestId,
+            projectGeneration:data.projectGeneration,geometryRevision:data.geometryRevision});
         }
         return super.postMessage(data,transfer);
       }
@@ -77,7 +81,8 @@ test('matching boundary Worker protocol error rolls back the dated Core document
     if(source.split(force).length!==2||source.split(receipt).length!==2)
       throw Error('W2-P5 rollback test ports changed; inspect renderer source');
     source=source.replace(force,
-      "      if(globalThis.__W5Rollback?.targetGeneration===projectGeneration){\n"+
+      "      if(globalThis.__W5Rollback?.targetGeneration===projectGeneration && !globalThis.__W5Rollback.forceDone){\n"+
+      "        globalThis.__W5Rollback.forceDone=true;\n"+
       "        globalThis.__W5Rollback.events.push({stage:'force-new-generation-boundary',generation:projectGeneration});\n"+
       "        countryBoundaryDependencies=null;\n"+
       "      }\n"+force);
