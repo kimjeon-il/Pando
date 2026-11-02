@@ -89,7 +89,9 @@
         "tests/browser/russia-edit-preparation.spec.mjs",
         "tests/browser/m2-gpu-worker-frame-probe.spec.mjs",
         "tests/browser/map-transition-p5-6.spec.mjs",
-        "tests/browser/p6-5-resource-check.spec.mjs"
+        "tests/browser/p6-5-resource-check.spec.mjs",
+        "tests/browser/p6-6-desktop-performance.spec.mjs",
+        "tests/browser/p6-7-narrow-performance.spec.mjs"
       ],
       "inputs": []
     },
@@ -340,7 +342,8 @@
         "tests/browser/unified-objects.spec.mjs",
         "tests/browser/map-startup-publication.spec.mjs",
         "tests/browser/map-surface-quality.spec.mjs",
-        "tests/browser/resource-dependency-reuse.spec.mjs"
+        "tests/browser/resource-dependency-reuse.spec.mjs",
+        "tests/browser/windows-review-e5.spec.mjs"
       ],
       "inputs": [
         "apps/viewer/js/viewer.js",
