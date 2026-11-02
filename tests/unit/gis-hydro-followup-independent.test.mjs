@@ -18,7 +18,7 @@ test('two of the original 31 are approved from independent traces and government
   assert.equal(row.nameKo,'수에즈운하');
   assert.equal(row.naturalEarth.name,'Suez Canal');
   assert.equal(row.naturalEarth.sampleCoverage,.852);
-  assert.equal(row.hydroRiversRegion,'af');
+  assert.equal(row.hydroRiversRegion,'eu');
   assert(ORIGINAL_OSM_SYSTEM_IDS.includes(row.systemId));
   assert(!earlier.replacements.some(x=>x.systemId===row.systemId));
   assert(!Object.values(verified).some(x=>x.systemId==='20774342'));
