@@ -9,6 +9,9 @@ on:
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
       - 'tests/unit/python-bridge-retirement.test.mjs'
+      - '**/*.py'
+      - '**/*.pyi'
+      - '**/*.ipynb'
   pull_request:
     branches: [main]
     paths:
@@ -18,6 +21,9 @@ on:
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
       - 'tests/unit/python-bridge-retirement.test.mjs'
+      - '**/*.py'
+      - '**/*.pyi'
+      - '**/*.ipynb'
   workflow_dispatch:
     inputs:
       scope:

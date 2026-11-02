@@ -15,8 +15,17 @@ test('project-owned Python files have been retired', () => {
   assert.deepEqual(tracked('*.py', '*.pyi', '*.ipynb'), []);
 });
 
+const pythonCommand = /(?:^|[;&|]\s*|(?:^|\n)\s*-?\s*run:\s*)\s*(?:python(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?\s+(?:-m\s+|-c\s+|[^\s]+\.py\b)/im;
+
+test('Python command guard recognizes workflow and package invocations', () => {
+  for (const command of ['- run: python -m pip install x', '- run: python tools/example.py',
+    'run: |\n  python3 -c x', 'node first.js && python3.12 tools/a.py']) {
+    assert.match(command, pythonCommand);
+  }
+  assert.doesNotMatch('node tools/example.mjs', pythonCommand);
+});
+
 test('project workflows and package scripts do not run Python', () => {
-  const pythonCommand = /(?:^|[;&|]\s*)\s*(?:python(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?\s+(?:-m\s+|-c\s+|[^\s]+\.py\b)/im;
   for (const path of tracked('.github/workflows/*.yml', '.github/workflows/*.yaml')) {
     const content = read(path);
     assert.doesNotMatch(content, /uses:\s*actions\/setup-python@/i, path);
@@ -29,7 +38,7 @@ test('project workflows and package scripts do not run Python', () => {
 });
 
 test('project tools do not launch a Python interpreter', () => {
-  const launch = /\b(?:spawn|spawnSync|execFile|execFileSync)\s*\(\s*['"](?:python(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?['"]/i;
+  const launch = /\b(?:spawn|spawnSync|execFile|execFileSync|exec|execSync)\s*\(\s*['"](?:python(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?(?:['"]|\s)/i;
   const retiredEnvironment = /\b(?:PANDOLAB_PYTHON(?:_EXECUTABLE)?|PANDO_HYDRO_(?:NAME|CONNECTIVITY)_PYTHON|PANDO_MAP_PYTHON)\b/;
   for (const path of tracked('tools/**/*.mjs', 'tools/*.mjs', 'scripts/**/*.mjs', 'scripts/*.mjs')) {
     const content = read(path);
