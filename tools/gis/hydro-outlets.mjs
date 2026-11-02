@@ -5,14 +5,15 @@ import {pythonRound} from './hydro-numeric.mjs';
 
 export function createHydroWaterRasterSampler({width,height,data}={}){
   if(!Number.isSafeInteger(width)||width<1||!Number.isSafeInteger(height)||height<1||
-    !(data instanceof Uint8Array)||data.length!==width*height*4)throw Error('Explicit RGBA Hydro water raster required');
+    !(data instanceof Uint8Array)||![width*height*3,width*height*4].includes(data.length))throw Error('Explicit RGB or RGBA Hydro water raster required');
+  const channels=data.length/(width*height);
   return async points=>{
     if(!Array.isArray(points)||points.some(point=>!Array.isArray(point)||point.length!==2||
       point.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90))))throw Error('Invalid Hydro water sample point');
     return points.map(([longitude,latitude])=>{
       let lon=((longitude+180)%360+360)%360-180;if(lon===-180)lon=180;
       const x=Math.min(width-1,Math.max(0,Math.trunc((lon+180)/360*width))),
-        y=Math.min(height-1,Math.max(0,Math.trunc((90-latitude)/180*height))),at=(y*width+x)*4;
+        y=Math.min(height-1,Math.max(0,Math.trunc((90-latitude)/180*height))),at=(y*width+x)*channels;
       const rgb=[data[at],data[at+1],data[at+2]];return Math.max(...rgb)-Math.min(...rgb)<=1&&Math.min(...rgb)>=249;
     });
   };

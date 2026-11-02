@@ -8,6 +8,7 @@ test('water raster sampling follows the original equirectangular pixel and RGB r
   const sample=createHydroWaterRasterSampler({width:4,height:2,data});
   assert.deepEqual(await sample([[-180,90],[-90,90],[0,90],[180,-90],[-180,-90],[-90,-90]]),
     [true,true,false,true,true,true]);
+  assert.deepEqual(await createHydroWaterRasterSampler({width:2,height:1,data:Uint8Array.from([0,0,0,249,250,249])})([[-90,0],[90,0]]),[false,true]);
   assert.throws(()=>createHydroWaterRasterSampler({width:4,height:2,data:data.subarray(1)}),/raster/i);
   await assert.rejects(sample([[0,91]]),/point/i);
 });
