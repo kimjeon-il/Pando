@@ -210,6 +210,24 @@ async fn finish_probe(
     Ok(written)
 }
 
+// Tauri 2.12.4's WebviewUrl::App(path) performs an unchecked Url::join
+// during window preparation. On packaged Windows builds its base can be
+// non-hierarchical and that join panics before WebView2 even opens. Use the
+// existing Windows app protocol origin explicitly; do not load a remote site.
+fn shell_entry_url(entry: &str) -> WebviewUrl {
+    #[cfg(all(windows, not(feature = "development")))]
+    {
+        assert_eq!(entry, "review.html", "Windows must start at the read-only reviewer");
+        WebviewUrl::External(
+            "http://tauri.localhost/review.html".parse().expect("valid fixed local Tauri review URL")
+        )
+    }
+    #[cfg(any(not(windows), feature = "development"))]
+    {
+        WebviewUrl::App(entry.into())
+    }
+}
+
 fn local_navigation(url: &tauri::Url) -> bool {
     #[cfg(feature = "development")]
     if url.scheme() == "http" && url.host_str() == Some("127.0.0.1") && url.port() == Some(4175)
@@ -269,7 +287,7 @@ pub fn run() {
         .setup(move |app| {
             let entry = if cfg!(windows) { "review.html" } else { "index.html" };
             let title = if cfg!(windows) { "판도연구소 — 검수기" } else { "PandoLab 시험용" };
-            let builder = WebviewWindowBuilder::new(app, "main", WebviewUrl::App(entry.into()))
+            let builder = WebviewWindowBuilder::new(app, "main", shell_entry_url(entry))
                 .title(title)
                 .inner_size(1280.0, 820.0)
                 .on_navigation(local_navigation)
@@ -295,6 +313,26 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::local_navigation;
+    #[test]
+    fn review_entry_uses_local_windows_protocol_without_tauri_app_url_join() {
+        let entry = if cfg!(windows) { "review.html" } else { "index.html" };
+        match super::shell_entry_url(entry) {
+            #[cfg(all(windows, not(feature = "development")))]
+            tauri::WebviewUrl::External(url) => {
+                assert_eq!(url.as_str(), "http://tauri.localhost/review.html");
+                assert!(super::local_navigation(&url));
+            }
+            #[cfg(any(not(windows), feature = "development"))]
+            tauri::WebviewUrl::App(path) => assert_eq!(path.to_str(), Some(entry)),
+            _ => panic!("Unexpected native application navigation target"),
+        }
+    }
+    #[cfg(all(windows, not(feature = "development")))]
+    #[test]
+    #[should_panic(expected = "Windows must start at the read-only reviewer")]
+    fn windows_rejects_editor_entrypoint_on_packaged_builds() {
+        super::shell_entry_url("index.html");
+    }
     #[test]
     fn navigation_allows_only_packaged_asset_origins() {
         let page = if cfg!(windows) { "review.html" } else { "index.html" };
