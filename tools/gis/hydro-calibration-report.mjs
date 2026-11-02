@@ -3,9 +3,10 @@ import {pythonRound} from './hydro-numeric.mjs';
 import {existsSync,readFileSync,realpathSync,statSync} from 'node:fs';
 import {basename,dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {parseArgs} from 'node:util';
+import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {writeLibraryOutput} from '../library-data.mjs';
 import {reportArgument} from '../report-paths.mjs';
+import {calibrationAcceptance} from './hydro-calibration-metrics.mjs';
 
 const stages=['6.0','6.7','7.0','7.5'];
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
@@ -91,7 +92,7 @@ ${representatives}
 \`\`\`powershell
 node tools/gis/hydro-calibration-report.mjs \`
   --input <results.json> \`
-  --output <새-보고서.md>
+  --output <새-보고서.md> --verify-acceptance
 \`\`\`
 
 \`results.json\`에는 공식, 단계별 원시 지표, 중복률, 입력 파일 정보가 들어 있습니다. 비교 PNG는 동일 범위·등거리 경위도 화면·동일 선폭으로 생성했습니다. 회색은 양쪽에 공통인 Natural Earth 기본 수계입니다. 한반도는 Natural Earth 지역 보충 자료가 없으므로 현재 전 세계 기본 수계를 왼쪽 기준으로 표시하며 최적화 목적함수에는 넣지 않았습니다.
@@ -102,8 +103,9 @@ node tools/gis/hydro-calibration-report.mjs \`
 `;
 }
 
-export function writeCalibrationReport({input,output,root=defaultRoot}){
+export function writeCalibrationReport({input,output,verifyAcceptance=false,root=defaultRoot}){
   if(typeof input!=='string'||!input||typeof output!=='string'||!output)throw Error('Explicit calibration results and new report path required');
+  if(typeof verifyAcceptance!=='boolean')throw Error('Explicit acceptance verification flag required');
   const source=resolve(reportArgument(input,{access:'read',siblings:true,root}));
   const target=resolve(reportArgument(output,{access:'write',root}));
   const actual=resolve(realpathSync(dirname(target)),basename(target)),assets=resolve(root,'assets/data');
@@ -114,13 +116,15 @@ export function writeCalibrationReport({input,output,root=defaultRoot}){
   const text=readFileSync(source,'utf8'),after=statSync(source);
   if(before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ino!==after.ino||before.dev!==after.dev)
     throw Error('Calibration results changed during reading');
-  const report=renderCalibrationReport(JSON.parse(text));writeLibraryOutput(actual,report,{encoding:'utf8',flag:'wx'});
+  const results=JSON.parse(text);
+  if(verifyAcceptance&&!isDeepStrictEqual(calibrationAcceptance(results),results.acceptance))throw Error('Calibration acceptance differs from stage measurements');
+  const report=renderCalibrationReport(results);writeLibraryOutput(actual,report,{encoding:'utf8',flag:'wx'});
   return {output:actual,bytes:Buffer.byteLength(report)};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
-  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{input:{type:'string'},output:{type:'string'}}});
+  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{input:{type:'string'},output:{type:'string'},'verify-acceptance':{type:'boolean',default:false}}});
     if(positionals.length||!values.input||!values.output)throw Error('Explicit calibration results and new report path required');
-    console.log(JSON.stringify(writeCalibrationReport(values)));
+    console.log(JSON.stringify(writeCalibrationReport({input:values.input,output:values.output,verifyAcceptance:values['verify-acceptance']})));
   }catch(error){console.error('hydro-calibration-report: '+error.message);process.exitCode=1;}
 }

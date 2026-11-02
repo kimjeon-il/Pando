@@ -8,6 +8,7 @@ import test from 'node:test';
 import {renderCalibrationReport,writeCalibrationReport} from '../../tools/gis/hydro-calibration-report.mjs';
 
 const cases=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-report-oracle.json',import.meta.url),'utf8'));
+const metrics=JSON.parse(readFileSync(new URL('../fixtures/hydro-calibration-metrics-oracle.json',import.meta.url),'utf8'));
 test('calibration report preserves Python results for pass and failure cases',()=>{
   for(const {input,expectedPrefix} of cases){
     const output=renderCalibrationReport(input);
@@ -34,4 +35,16 @@ test('report output cannot target runtime assets',t=>{
   const assets=join(root,'assets','data');mkdirSync(assets,{recursive:true});
   const input=join(root,'results.json');writeFileSync(input,JSON.stringify(cases[0].input));
   assert.throws(()=>writeCalibrationReport({root,input,output:join(assets,'report.md')}),/outside runtime assets/i);
+});
+test('report can verify acceptance against the underlying stage measurements',t=>{
+  const root=mkdtempSync(join(tmpdir(),'hydro-report-acceptance-'));t.after(()=>rmSync(root,{recursive:true}));
+  const input=join(root,'results.json'),output=join(root,'report.md'),result=structuredClone(cases[0].input);
+  result.regions.europe={...metrics.acceptanceInput.regions.europe,label:'유럽'};result.acceptance=metrics.acceptance;
+  result.representativeChecks=metrics.acceptanceInput.representativeChecks;
+  writeFileSync(input,JSON.stringify(result));
+  const args=['tools/gis/hydro-calibration-report.mjs','--input',input,'--output',output,'--verify-acceptance'];
+  let run=spawnSync(process.execPath,args,{encoding:'utf8'});assert.equal(run.status,0,run.stderr);
+  result.acceptance.riverFinalWithin15Percent=!result.acceptance.riverFinalWithin15Percent;writeFileSync(input,JSON.stringify(result));
+  run=spawnSync(process.execPath,[...args.slice(0,4),join(root,'bad.md'),'--verify-acceptance'],{encoding:'utf8'});
+  assert.notEqual(run.status,0);assert.match(run.stderr,/acceptance/i);
 });
