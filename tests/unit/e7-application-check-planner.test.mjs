@@ -28,6 +28,7 @@ test('R1 runtime checker executes against the shipped Viewer and Windows reviewe
     cwd:fileURLToPath(new URL('../../',import.meta.url)),encoding:'utf8',timeout:120000,
   });
   assert.match(output,/Viewer\/Windows runtime boundaries passed/);
+  assert.match(output,/reachable modules/);
 });
 
 test('R1 generated build metadata remains owned by the canonical frontend builder',()=>{
