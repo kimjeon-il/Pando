@@ -108,7 +108,11 @@ Value calibrationImageLayers(const Value& input){
     const std::array<int,3> offsets{16,592,1168};
     for(int offset:offsets)for(int y=top;y<=top+panelHeight;++y)for(int x=offset;x<=offset+panelWidth;++x){
         const int dx=std::max({offset+6-x,0,x-(offset+panelWidth-6)}),dy=std::max({top+6-y,0,y-(top+panelHeight-6)});
-        if(dx*dx+dy*dy>36)continue;const bool border=x==offset||x==offset+panelWidth||y==top||y==top+panelHeight||dx*dx+dy*dy>=29;
+        const int sideX=std::min(x-offset,offset+panelWidth-x),sideY=std::min(y-top,top+panelHeight-y);
+        const bool cornerBorder=(sideY==0&&(sideX==4||sideX==5))||(sideX==0&&(sideY==4||sideY==5));
+        const bool cornerFill=(sideX==4&&sideY==1)||(sideX==1&&sideY==4);
+        if(dx*dx+dy*dy>36&&!cornerBorder)continue;
+        const bool border=!cornerFill&&(cornerBorder||x==offset||x==offset+panelWidth||y==top||y==top+panelHeight||dx*dx+dy*dy>=29);
         const std::size_t at=(std::size_t(y)*width+x)*4;rgba[at]=border?185:234;rgba[at+1]=border?197:240;rgba[at+2]=border?207:244;}
     struct Mask{int w,h;std::vector<std::uint8_t> data;
         void pixel(int x,int y,std::uint32_t value){if(x>=0&&x<w&&y>=0&&y<h)data[std::size_t(y)*w+x]=static_cast<std::uint8_t>(value);}

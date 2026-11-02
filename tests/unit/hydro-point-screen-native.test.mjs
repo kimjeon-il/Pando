@@ -38,6 +38,7 @@ test('hydro comparison raster keeps panel mapping, lake holes and distinct overl
   assert.deepEqual([image.width,image.height,bytes.length],[1744,510,1744*510*4]);
   const pixel=(x,y)=>[...bytes.subarray((y*1744+x)*4,(y*1744+x)*4+4)];
   assert.deepEqual(pixel(16+280,48+195),[234,240,244,255]);
+  assert.deepEqual(pixel(16+4,48),[185,197,207,255]);assert.deepEqual(pixel(16+4,48+1),[234,240,244,255]);
   assert.notDeepEqual(pixel(16+168,48+117),pixel(592+168,48+117));
   assert.notDeepEqual(pixel(1168+168,48+117),pixel(1168+280,48+195));
 });

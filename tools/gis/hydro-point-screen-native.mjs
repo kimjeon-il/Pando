@@ -217,6 +217,18 @@ export async function organizeHydroLakePolygons(shapes,options={}){
     throw Error('Invalid native Hydro lake polygons');
   return result.geometries;
 }
+export async function renderHydroCalibrationImageLayers(input,options={}){
+  options.signal?.throwIfAborted();
+  const keys=['baseLines','basePolygons','referenceLines','referencePolygons','hydroLines','hydroPolygons'];
+  if(!Array.isArray(input?.bounds)||input.bounds.length!==4||input.bounds.some(value=>!Number.isFinite(value))||
+    input.bounds[2]<=input.bounds[0]||input.bounds[3]<=input.bounds[1]||keys.some(key=>!Array.isArray(input[key])))
+    throw Error('Explicit Hydro calibration image layers required');
+  const result=await screenHydroPoints({...input,mode:'calibration-image-layers'},options);
+  if(result?.width!==1744||result?.height!==510||typeof result.rgba!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(result.rgba))
+    throw Error('Invalid native Hydro calibration image');
+  const data=Buffer.from(result.rgba,'base64');if(data.length!==1744*510*4)throw Error('Invalid native Hydro calibration image size');
+  return {width:1744,height:510,data};
+}
 export async function measureHydroCalibrationReferenceFeatures({kind,bounds,width,height,geometries}={},options={}){
   options.signal?.throwIfAborted();
   if(!['river','lake'].includes(kind)||!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||

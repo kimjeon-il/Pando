@@ -139,6 +139,23 @@ async function clipFeatures(bounds,features,options){
   }
   return collectHydroCalibrationGeometry(clipped);
 }
+export async function buildHydroCalibrationImageLayers(input,options={}){
+  options.signal?.throwIfAborted();const {region,riverReference,lakeReference,rivers,lakes}=structuredClone(input??{});
+  if(!Array.isArray(region?.bbox)||region.bbox.length!==4||typeof riverReference?.sameLayer!=='boolean'||
+    typeof lakeReference?.sameLayer!=='boolean'||!Array.isArray(rivers)||!Array.isArray(lakes)||
+    [...rivers,...lakes].some(row=>row?.assignedStage!==null&&!Number.isFinite(row?.assignedStage)))
+    throw Error('Explicit Hydro calibration image inputs required');
+  const bounds=region.bbox,baseRiver=clipFeatures(bounds,riverReference.baseFeatures,options),baseLake=clipFeatures(bounds,lakeReference.baseFeatures,options);
+  const [baseRivers,baseLakes,referenceRivers,referenceLakes]=await Promise.all([baseRiver,baseLake,
+    riverReference.sameLayer?baseRiver:clipFeatures(bounds,riverReference.supplementFeatures,options),
+    lakeReference.sameLayer?baseLake:clipFeatures(bounds,lakeReference.supplementFeatures,options)]);
+  const selected=row=>row.assignedStage!==null&&row.assignedStage<=7.5+1e-9;
+  const hydroLines=rivers.filter(selected).flatMap(row=>{if(!Array.isArray(row.parts))throw Error('Invalid Hydro image river');return row.parts;});
+  const hydroPolygons=collectHydroCalibrationGeometry(lakes.filter(selected).map(row=>row.geometry)).polygons;
+  return {bounds,baseLines:baseRivers.lines,basePolygons:baseLakes.polygons.map(row=>row.coordinates),
+    referenceLines:referenceRivers.lines,referencePolygons:referenceLakes.polygons.map(row=>row.coordinates),
+    hydroLines,hydroPolygons:hydroPolygons.map(row=>row.coordinates)};
+}
 export async function prepareHydroCalibrationReference({bounds,width,height,features}={},options={}){
   options.signal?.throwIfAborted();
   const snapshot=structuredClone({bounds,width,height,features});

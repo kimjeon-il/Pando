@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {assembleHydroCalibrationResults,buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {assembleHydroCalibrationResults,buildHydroCalibrationImageLayers,buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {readFileSync} from 'node:fs';
 
 test('calibration geometry collection keeps lines and polygons and ignores empty or point parts',()=>{
@@ -35,6 +35,19 @@ test('calibration reference preparation clips source and produces the metric fie
     assert.equal(result.screenLength,100);assert.equal(result.screenArea,2500);assert.equal(result.lines.length,1);assert.equal(result.polygons.length,1);
     assert.ok(Math.abs(result.lengthKm-2*111.320*Math.cos(Math.PI/180))<1e-10);
     assert.deepEqual(input,before);
+  });
+test('calibration comparison layers use clipped references and final-stage Hydro only',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const line={type:'LineString',coordinates:[[-1,1],[3,1]]},polygon={type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]};
+    const reference={sameLayer:true,baseFeatures:[{geometry:line}]},lakeReference={sameLayer:true,baseFeatures:[{geometry:polygon}]};
+    const input={region:{bbox:[0,0,2,2]},riverReference:reference,lakeReference,
+      rivers:[{assignedStage:7.5,parts:[[[0,0],[1,1]]]},{assignedStage:null,parts:[[[1,1],[2,2]]]}],
+      lakes:[{assignedStage:7,geometry:polygon},{assignedStage:null,geometry:polygon}]};
+    const before=structuredClone(input),options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const result=await buildHydroCalibrationImageLayers(input,options);
+    assert.deepEqual(result.baseLines,[[[0,1],[2,1]]]);assert.deepEqual(result.referenceLines,result.baseLines);
+    assert.equal(result.basePolygons.length,1);assert.equal(result.referencePolygons.length,1);
+    assert.deepEqual(result.hydroLines,[[[0,0],[1,1]]]);assert.equal(result.hydroPolygons.length,1);assert.deepEqual(input,before);
   });
 test('reference stage metrics keep per-feature counts and zoom thresholds',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
