@@ -110,12 +110,17 @@ async function resolveSourceMembers(archive,specification){
   return {region,names,specs,chosen};
 }
 // Metadata is provisional until the promise resolves, after the DBF hash and CRC are verified.
-export async function scanHydroRegionMetadata({archive,specification,onRecord,signal}){
+export async function scanHydroRegionMetadata({archive,files,specification,onRecord,signal}){
   signal?.throwIfAborted();if(typeof onRecord!=='function')throw Error('Hydro metadata record consumer required');
-  const {region,names,specs,chosen}=await resolveSourceMembers(archive,specification),name=names[0];
-  const reader=new ByteReader(verifiedChunks(archive,chosen.get(name),specs.get(name),signal),signal);
-  const result=await readDbf(reader,null,'generation',onRecord);
-  return {region,records:result.seen.size};
+  if(Boolean(archive)===Boolean(files))throw Error('One Hydro metadata source location required');let region,chunks;
+  if(archive){const source=await resolveSourceMembers(archive,specification),name=source.names[0];region=source.region;
+    chunks=verifiedChunks(archive,source.chosen.get(name),source.specs.get(name),signal);
+  }else{region=specification?.datasetCode;const dbf=structuredClone(files?.dbf);
+    if(!regions.includes(region)||typeof dbf?.path!=='string'||!dbf.path||!/^[a-f0-9]{64}$/.test(dbf.sha256||''))
+      throw Error('Explicit Hydro metadata source required');chunks=verifiedFileChunks(dbf,signal);}
+  const reader=new ByteReader(chunks,signal);
+  try{const result=await readDbf(reader,null,'generation',onRecord);return {region,records:result.seen.size};}
+  finally{await reader.iterator.return?.();}
 }
 // Selection callbacks are provisional until all archive members have been verified.
 export async function scanHydroRiverCandidates({archive,files,specification,bounds,onBatch,batchSize=256,signal}={}){

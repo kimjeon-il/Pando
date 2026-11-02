@@ -275,7 +275,7 @@ export async function scoreHydroFeaturePolicies(features,options={}){
   return validateHydroFeaturePolicies(await runHydroConnectivity({mode:'feature-policies',features},options),features);
 }
 // onBatch receives provisional rows until the source reader verifies the DBF hash and CRC.
-export async function scoreHydroSourceMetadata({archive,specification,onBatch,batchSize=4096}={},options={}){
+export async function scoreHydroSourceMetadata({archive,files,specification,onBatch,batchSize=4096}={},options={}){
   options.signal?.throwIfAborted();
   if(typeof onBatch!=='function'||!Number.isSafeInteger(batchSize)||batchSize<1||batchSize>100000)
     throw Error('Explicit bounded Hydro score batch consumer required');
@@ -288,7 +288,7 @@ export async function scoreHydroSourceMetadata({archive,specification,onBatch,ba
     options.signal?.throwIfAborted();
     await onBatch(records.map((row,i)=>({...row,score:policies[i].score,stage:policies[i].riverStage,width:policies[i].width})));
   };
-  const receipt=await scanHydroRegionMetadata({archive,specification,signal:options.signal,onRecord:async row=>{
+  const receipt=await scanHydroRegionMetadata({archive,files,specification,signal:options.signal,onRecord:async row=>{
     pending.push(row);if(pending.length===batchSize)await flush();}});
   await flush();options.signal?.throwIfAborted();return receipt;
 }

@@ -145,10 +145,12 @@ test('generation metadata streams each source record in source order with all se
 test('indexed Hydro source reader returns requested original shapes without scanning unrelated geometry',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pando-hydro-indexed-'));t.after(()=>rm(root,{recursive:true}));
   const input=await generationFixture(root),files={};
-  for(const member of await zipMembers(input.archive)){if(!/\.(shp|shx)$/i.test(member.name))continue;
+  for(const member of await zipMembers(input.archive)){if(!/\.(shp|shx|dbf)$/i.test(member.name))continue;
     const chunks=[];for await(const chunk of zipMemberChunks(input.archive,member))chunks.push(chunk);const bytes=Buffer.concat(chunks),ext=member.name.split('.').at(-1);
     const path=join(root,`river.${ext}`);await writeFile(path,bytes);files[ext]={path,sha256:createHash('sha256').update(bytes).digest('hex')};}
   const reader=await openHydroRiverShapeReader(files),selected=await readHydroRegion({...input,selected:new Set([101,103]),detail:'generation'});
+  const metadata=[];assert.deepEqual(await scanHydroRegionMetadata({files,specification:input.specification,onRecord:row=>metadata.push(row)}),{region:'eu',records:3});
+  assert.deepEqual(metadata.map(row=>[row.id,row.recordIndex]),[[101,0],[102,1],[103,2]]);
   const result=await reader.read([{id:103,recordIndex:2},{id:101,recordIndex:0}]);
   assert.deepEqual(result,[{id:103,parts:selected.rows['103'].parts},{id:101,parts:selected.rows['101'].parts}]);
   await assert.rejects(reader.read([{id:101,recordIndex:0},{id:101,recordIndex:1}]),/duplicate/i);
@@ -251,6 +253,13 @@ test('source metadata and native scoring stream in order across bounded batches'
     assert.deepEqual(batches.flat().map(row=>row.id),[101,102,103]);
     assert.equal(batches[0][0].stage,null);assert.ok(Number.isFinite(batches[0][0].score));
     assert.ok(batches.flat().every(row=>row.width>=0.55&&row.width<=2.6));
+    const dbfMember=(await zipMembers(input.archive)).find(member=>member.name.endsWith('.dbf'));
+    const chunks=[];for await(const chunk of zipMemberChunks(input.archive,dbfMember))chunks.push(chunk);
+    const bytes=Buffer.concat(chunks),path=join(root,'river.dbf');await writeFile(path,bytes);
+    const files={dbf:{path,sha256:createHash('sha256').update(bytes).digest('hex')}},plain=[];
+    assert.deepEqual(await scoreHydroSourceMetadata({files,specification:input.specification,batchSize:2,onBatch:rows=>plain.push(...rows)},
+      {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),result);
+    assert.deepEqual(plain,batches.flat());
     await assert.rejects(scoreHydroSourceMetadata({...input,batchSize:0,onBatch:()=>{}},{}),/batch/i);
     const controller=new AbortController();controller.abort();
     await assert.rejects(scoreHydroSourceMetadata({...input,onBatch:()=>{}},{signal:controller.signal}),{name:'AbortError'});
