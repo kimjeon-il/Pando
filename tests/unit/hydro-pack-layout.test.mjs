@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
+import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {dirname,join} from 'node:path';
 import test from 'node:test';
 import {gunzipSync,gzipSync} from 'node:zlib';
 import {buildHydroMetadata,buildHydroPack,finalizeHydroPackGroups,planHydroPackGroups} from '../../tools/gis/hydro-pack-layout.mjs';
 import {decodeHydroGeneratedPack,decodeHydroSelectedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
+import {loadSelectedHydroFeatures} from '../../tools/gis/hydro-selected-data.mjs';
 
 const features=JSON.parse(readFileSync('tests/fixtures/hydro-encoding-oracle.json','utf8'));
 const oracle=JSON.parse(readFileSync('tests/fixtures/hydro-pack-oracle.json','utf8'));
@@ -34,7 +38,7 @@ test('Hydro metadata keeps source details separate and matches existing Python r
   assert.equal(Buffer.from(JSON.stringify(metadata.core)).toString('hex'),oracle.metadataCoreRawHex);
   assert.equal(Buffer.from(JSON.stringify(metadata.detail)).toString('hex'),oracle.metadataDetailRawHex);
 });
-test('Hydro shard and index layout matches the original Python binary ordering',async()=>{
+test('Hydro shard and index layout matches the original Python binary ordering',async t=>{
   const rows=inputs(),plan=planHydroPackGroups({features:rows.map(row=>row.feature),encoded:rows.map(row=>row.encoded),changedFeatureIds:[]});
   const lookup=new Map(oracle.packs.map(row=>[row.rawHex,row.gzipHex]));lookup.set(oracle.indexRawHex,oracle.indexGzipHex);
   lookup.set(oracle.metadataCoreRawHex,oracle.metadataCoreGzipHex);lookup.set(oracle.metadataDetailRawHex,oracle.metadataDetailGzipHex);
@@ -62,6 +66,13 @@ test('Hydro shard and index layout matches the original Python binary ordering',
   assert.equal(decoded[0].metadata.sourceId,'100,110,105');
   const selected=decodeHydroSelectedPack({...complete,stages,logicalFids:[101]});
   assert.deepEqual(selected,decoded.filter(row=>row.metadata.logicalFid===101));
+  const directory=await mkdtemp(join(tmpdir(),'pando-hydro-selected-data-'));t.after(()=>rm(directory,{recursive:true}));
+  for(const [name,bytes] of complete.files){const path=join(directory,name);await mkdir(dirname(path),{recursive:true});await writeFile(path,bytes);}
+  await writeFile(join(directory,'manifest.json'),JSON.stringify({...complete.layout,stages}));
+  const loaded=await loadSelectedHydroFeatures({directory,logicalFids:[101]});assert.deepEqual(loaded.features,selected);
+  await assert.rejects(loadSelectedHydroFeatures({directory,logicalFids:[99999]}),/logical|selected/i);
+  const shardPath=join(directory,complete.layout.shards[0].url),damaged=await readFile(shardPath);damaged[0]^=1;await writeFile(shardPath,damaged);
+  await assert.rejects(loadSelectedHydroFeatures({directory,logicalFids:[101]}),/hash/i);
   const layoutWithUnused={...complete.layout,shards:[...complete.layout.shards,{id:99,url:'unused',bytes:1,sha256:'0'.repeat(64)}]};
   assert.deepEqual(decodeHydroSelectedPack({...complete,layout:layoutWithUnused,stages,logicalFids:[101]}),selected);
   const damagedSelected=new Map(complete.files);damagedSelected.set('shards/s0.bin',Buffer.from('damaged'));
