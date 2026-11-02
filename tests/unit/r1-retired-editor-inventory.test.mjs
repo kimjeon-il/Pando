@@ -16,6 +16,8 @@ test('R1 reports archived editor browser and unit tests without dropping their c
     'tests/unit/application-composition.test.mjs',
     'tests/unit/capability-ports-contract.test.mjs',
     'tests/unit/territorial-gis-export.test.mjs',
+    'tests/unit/territorial-property-controller.test.mjs',
+    'tests/unit/startup-performance-contract.test.mjs',
   ];
   for(const file of obsolete) {
     assert.ok(repo.retiredTests.has(file),file);

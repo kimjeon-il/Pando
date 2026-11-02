@@ -1,4 +1,11 @@
 import { expect, test } from '@playwright/test';
+import {fileURLToPath} from 'node:url';
+import {readFileSync} from 'node:fs';
+import {buildUiBundles} from '../../scripts/build-ui-bundle.mjs';
+import {buildFrontendIndex,frontendAsset} from '../../scripts/lib/frontend-layout.mjs';
+
+const root=fileURLToPath(new URL('../../',import.meta.url)),index=buildFrontendIndex(root);
+const styles=buildUiBundles(root,{readSource:path=>frontendAsset(root,path,{index}).bytes.toString('utf8')}).viewer;
 
 test.use({ hasTouch: true });
 
@@ -6,15 +13,10 @@ for (const viewport of [{width: 640, height: 360}, {width: 844, height: 390}]) {
   test('phone-landscape sheet at ' + viewport.width + ' keeps its common side-dock skin', async ({ page }) => {
     await page.setViewportSize(viewport);
     const safeTop = viewport.width === 640 ? 24 : 0;
-    if (safeTop) await page.route('**/assets/css/ui.bundle.css', async route => {
-      const response = await route.fetch();
-      const body = (await response.text()).replaceAll('env(safe-area-inset-top)', '24px').replaceAll('env(safe-area-inset-right)', '12px');
-      await route.fulfill({response,body});
-    });
-    await page.goto('/assets/css/app.css');
+    const css=styles.replaceAll('env(safe-area-inset-top)',safeTop+'px').replaceAll('env(safe-area-inset-right)',safeTop?'12px':'0px');
     await page.setContent([
-      '<link rel="stylesheet" href="/assets/css/app.css">',
-      '<link rel="stylesheet" href="/assets/css/ui.bundle.css">',
+      '<style>'+readFileSync(new URL('../../shared/frontend/css/app.css',import.meta.url),'utf8')+'</style>',
+      '<style>'+css+'</style>',
       '<div class="app-root" data-layout="phone-landscape">',
       ' <div class="workspace search-drawer-open">',
       '   <main class="map-wrap"></main>',

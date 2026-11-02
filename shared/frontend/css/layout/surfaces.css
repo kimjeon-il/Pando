@@ -257,7 +257,7 @@
   flex-direction: column;
   position: fixed;
   z-index: 100;
-  top: calc(var(--workspace-visible-top, var(--ui-space-0)) + env(safe-area-inset-top));
+  top: calc(var(--workspace-visible-top, 0px) + env(safe-area-inset-top));
   right: var(--phone-dock-width);
   bottom: auto;
   left: auto;
@@ -334,7 +334,7 @@ body .app-root.viewer-root[data-layout="phone-landscape"] .mobile-menu-toolbar {
 .app-root[data-layout="phone-landscape"] :is(.mobile-global-menu, .top-actions) {
   position: fixed;
   z-index: 210;
-  top: calc(var(--workspace-visible-top, var(--ui-space-0)) + env(safe-area-inset-top));
+  top: calc(var(--workspace-visible-top, 0px) + env(safe-area-inset-top));
   left: auto;
   right: var(--phone-dock-width);
   width: var(--phone-panel-width);
