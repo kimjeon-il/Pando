@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
+import {scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -45,6 +46,29 @@ test('canonical upstream selection preserves basin, guide threshold and determin
   assert.equal(JSON.parse(invoke({mode:'guided-upstream',basin:7,candidates:tied}).stdout).id,2);
   const invalid=invoke({mode:'canonical-upstream',basin:7,candidates:[]});assert.notEqual(invalid.status,0);
 });
+test('batched guided geometry and canonical decisions match individual native calls',{skip:!binary},()=>{
+  const branches=[{current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[-1,0],[1,0]]},
+    {current:[[0,0],[1,0]],candidate:[[0,0],[0,1]],reference:[[-1,0],[1,0]]}];
+  let batch=invoke({mode:'guided-branches',branches});assert.equal(batch.status,0,batch.stderr);
+  assert.deepEqual(JSON.parse(batch.stdout).branches,branches.map(branch=>JSON.parse(invoke({mode:'guided-branch',...branch}).stdout)));
+  const row=(id,area,score,alignment)=>({id,basin:7,area,flow:1,order:2,score,alignment});
+  const groups=[{basin:7,candidates:[row(1,10,0,1),row(2,8,.04,0)]},{basin:7,candidates:[row(3,4,null,null)]}];
+  batch=invoke({mode:'canonical-upstreams',groups});assert.equal(batch.status,0,batch.stderr);
+  assert.deepEqual(JSON.parse(batch.stdout).groups,groups.map(group=>JSON.parse(invoke({mode:'canonical-upstream',...group}).stdout)));
+  const invalid=invoke({mode:'guided-branches',branches:[branches[0],{...branches[1],current:[[0,0]]}]});
+  assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
+});
+test('source-bound guided branch and upstream batches return ordered native decisions',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const branches=[{current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[-1,0],[1,0]]},
+      {current:[[0,0],[1,0]],candidate:[[0,0],[0,1]],reference:[[-1,0],[1,0]]}];
+    const scores=await scoreHydroGuidedBranches(branches,options);
+    assert.deepEqual(scores,[{score:0,alignment:1},{score:0.04,alignment:0}]);
+    const candidates=scores.map((value,i)=>({id:i+1,basin:7,area:10,flow:1,order:1,...value}));
+    assert.deepEqual(await selectHydroUpstreams([{basin:7,candidates}],{...options,kind:'canonical'}),[1]);
+    await assert.rejects(selectHydroUpstreams([{basin:7,candidates:[]}],{...options,kind:'canonical'}),/candidate|upstream/i);
+  });
 test('native point screen computes projected lengths and closest points',{skip:!binary},()=>{
   const output=invoke(fixture);assert.equal(output.status,0,output.stderr);
   const result=JSON.parse(output.stdout);assert.equal(result.points.length,3);assert.equal(result.lineLengthsMeters.length,2);

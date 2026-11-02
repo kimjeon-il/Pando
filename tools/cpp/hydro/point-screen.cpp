@@ -199,6 +199,15 @@ Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&
+      (requested->second.string=="guided-branches"||requested->second.string=="canonical-upstreams"||requested->second.string=="guided-upstreams")){
+        const auto& mode=requested->second.string;const bool branches=mode=="guided-branches";
+        const auto& source=array(field(input,branches?"branches":"groups"));
+        if(source.size()>10000)throw std::invalid_argument("Hydro guide batch exceeds budget");
+        auto rows=Value::arr();rows.array.reserve(source.size());
+        for(const auto& row:source)rows.array.push_back(branches?guidedBranchScore(row):canonicalUpstream(row,mode=="canonical-upstreams"));
+        auto result=Value::obj();result.object[branches?"branches":"groups"]=std::move(rows);return result;
+    }
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&
       (requested->second.string=="canonical-upstream"||requested->second.string=="guided-upstream"))
         return canonicalUpstream(input,requested->second.string=="canonical-upstream");
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="guided-branch")

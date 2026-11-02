@@ -50,6 +50,34 @@ export async function screenHydroPoints(input,{root=defaultRoot,directory=resolv
   });
   signal?.throwIfAborted();return JSON.parse(stdout);
 }
+export async function scoreHydroGuidedBranches(branches,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(branches)||branches.length>10000||branches.some(row=>['current','candidate','reference'].some(key=>
+    !Array.isArray(row?.[key])||row[key].length<2||row[key].some(point=>!Array.isArray(point)||point.length!==2||
+      point.some(value=>!Number.isFinite(value))))))throw Error('Explicit bounded Hydro guided branch geometry required');
+  if(!branches.length)return [];
+  const result=await screenHydroPoints({mode:'guided-branches',branches},options);
+  if(!Array.isArray(result?.branches)||result.branches.length!==branches.length||result.branches.some(row=>
+    !Number.isFinite(row?.score)||row.score<0||!Number.isFinite(row.alignment)||Math.abs(row.alignment)>1.0000000001))
+    throw Error('Invalid Hydro guided branch receipt');
+  return result.branches;
+}
+export async function selectHydroUpstreams(groups,{kind,...options}={}){
+  options.signal?.throwIfAborted();
+  if(!['canonical','guided'].includes(kind)||!Array.isArray(groups)||groups.length>10000||groups.some(group=>
+    !Number.isSafeInteger(group?.basin)||!Array.isArray(group.candidates)||!group.candidates.length||
+    group.candidates.some(row=>!Number.isSafeInteger(row?.id)||!Number.isSafeInteger(row.basin)||!Number.isSafeInteger(row.order)||
+      !Number.isFinite(row.area)||!Number.isFinite(row.flow)||
+      !((row.score===null&&row.alignment===null)||(Number.isFinite(row.score)&&row.score>=0&&
+        Number.isFinite(row.alignment)&&Math.abs(row.alignment)<=1.0000000001)))||
+    new Set(group.candidates.map(row=>row.id)).size!==group.candidates.length))throw Error('Invalid Hydro upstream candidate groups');
+  if(!groups.length)return [];
+  const result=await screenHydroPoints({mode:kind+'-upstreams',groups},options);
+  if(!Array.isArray(result?.groups)||result.groups.length!==groups.length||result.groups.some((row,i)=>
+    !Number.isSafeInteger(row?.id)||!groups[i].candidates.some(candidate=>candidate.id===row.id)))
+    throw Error('Invalid Hydro upstream decision receipt');
+  return result.groups.map(row=>row.id);
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){
