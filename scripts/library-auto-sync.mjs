@@ -43,7 +43,7 @@ export function compareCandidateOutputs(expected,actual){
 function defaultGit(root,args){try{return execFileSync('git',args,{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:64*1024*1024,stdio:['ignore','pipe','pipe']});}catch(error){error.autoOperation='git:'+args[0];throw error;}}
 export function automaticFailureDetails(error,env=process.env){
  const redact=value=>{let s=String(value||'');for(const key of ['GITHUB_TOKEN','PANDOLAB_LIBRARY_WRITE_TOKEN'])if(env[key])s=s.split(env[key]).join('[REDACTED]');return s.replace(/https?:\/\/[^\s]+/g,'[URL]').slice(0,3000);};
- return {code:error.code||'AUTOMATIC_SYNC_FAILED',operation:error.autoOperation||'reconcile',name:error.name||'Error',message:redact(error.message),stderr:redact(error.stderr),frames:String(error.stack||'').split('\n').slice(1).filter(s=>/\/(scripts|tools)\//.test(s)).slice(0,5).map(redact)};
+ return {code:error.code||'AUTOMATIC_SYNC_FAILED',operation:error.autoOperation||'reconcile',phase:error.autoPhase||null,name:error.name||'Error',message:redact(error.message),stderr:redact(error.stderr),frames:String(error.stack||'').split('\n').slice(1).filter(s=>/\/(scripts|tools)\//.test(s)).slice(0,5).map(redact)};
 }
 function branchGuard(settings){return settings.branch==='main'&&!settings.productionEnabled;}
 export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
@@ -136,7 +136,9 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   }
   const removed=result.changedPaths.filter(path=>path!==FIXTURE&&!result.sourcePaths.includes(path)&&path!==RECEIPT_PATH&&!Object.hasOwn(result.autoReceipt.outputs,path));
   const prefixes=[...new Set([...Object.keys(result.autoReceipt.outputs),...result.sourcePaths,...removed,RECEIPT_PATH])];
+  console.log(JSON.stringify({phase:'store-start',inputDataSha:p.h.data}));
   stored=(io.storeLibraryData||storeLibraryData)({root,push:true,prefixes,removePaths:removed,expectedRevision:p.h.data,expectedBranch:branch});
+  console.log(JSON.stringify({phase:'store-complete',dataSha:stored}));
   const after=heads();if(after.app!==p.h.app||after.data!==stored)fail('HEAD_MOVED');
  }
  async function connect(plan,token){
@@ -160,7 +162,8 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   text(root,['push','origin',`HEAD:refs/heads/${branch}`]);
   const h=heads();if(h.app!==text(root,['rev-parse','HEAD'])||h.data!==target)fail('HEAD_MOVED');
  }
- return {inspect,assertCurrent,deriveAndStore,connect,deploy:async(plan,token)=>{await assertCurrent(token);return github.dispatch(plan.expected.appSha,{productionEnabled:settings.productionEnabled,branch});},verify:async plan=>branch==='main'?github.verify(plan.expected.appSha,{dataSha:plan.expected.outputDataSha}):{status:'verified'},get latest(){return latest;}};
+ const traced=(phase,fn)=>async(...args)=>{try{return await fn(...args);}catch(error){error.autoPhase=phase;(io.reportFailure||console.error)(JSON.stringify(automaticFailureDetails(error,env)));throw error;}};
+ return {inspect:traced('inspect',inspect),assertCurrent,deriveAndStore:traced('deriveAndStore',deriveAndStore),connect:traced('connect',connect),deploy:async(plan,token)=>{await assertCurrent(token);return github.dispatch(plan.expected.appSha,{productionEnabled:settings.productionEnabled,branch});},verify:async plan=>branch==='main'?github.verify(plan.expected.appSha,{dataSha:plan.expected.outputDataSha}):{status:'verified'},get latest(){return latest;}};
 }
 export async function runAutomaticSync({root=resolve(fileURLToPath(new URL('../',import.meta.url))),env=process.env,check=false,io={}}={}){
  if(check){const policy=JSON.parse(readFileSync(resolve(root,'config/library-auto-sync.json'),'utf8'));if(Object.keys(policy).length!==1||typeof policy.productionEnabled!=='boolean')fail('INVALID_AUTOMATIC_POLICY');return {status:'checked',productionEnabled:policy.productionEnabled};}

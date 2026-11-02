@@ -1427,7 +1427,12 @@ export function assertTerritorialStorageScope(prefixes,libraryIndex,previousInde
     if(!included(`${base}/generated/v2/${entry.file}`)||!included(`${base}/source/countries/${entry.entityId.replace(':','-')}.json`))
       throw Error(`Scoped territorial storage requires source, chunk and index together: ${entry.entityId}`);
   }
+  if(JSON.stringify(libraryIndex.views||[])!==JSON.stringify(previousIndex.views||[])&&!included(base+'/source/views/world.json'))throw Error('Scoped territorial storage requires paired world view source');
   for(const prefix of prefixes.filter(path=>path.startsWith(base+'/source/'))) {
+    if(prefix===base+'/source/views/world.json'){
+      if(!Array.isArray(libraryIndex.views)||libraryIndex.views.length!==1||libraryIndex.views[0].id!=='world:catalog')throw Error('Scoped territorial storage requires a supported world view');
+      continue;
+    }
     const entry=libraryIndex.entities.find(row=>prefix===`${base}/source/countries/${row.entityId.replace(':','-')}.json`);
     if(!entry||!included(`${base}/generated/v2/${entry.file}`))throw Error('Scoped territorial storage requires explicit paired source files');
   }
@@ -1642,3 +1647,4 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   }
   }
 }
+
