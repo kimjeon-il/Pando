@@ -41,3 +41,12 @@ window.__PANDOLAB_STARTUP_METRICS__
 6. 최적화 전후의 `count`, `p95Ms`, `maxMs`, `firstLoadTotalMs`를 비교한다.
 
 보고서는 최근 표본 120개만 유지한다. 프로젝트 데이터나 사용자 입력값 전체를 저장하거나 외부로 전송하지 않는다.
+
+## W1 Windows 실제 GPU 검증 근거
+
+2026-11-02의 W1 측정은 `work/ui` 코드 `69a34dceccdf4b348dfaaab79fa5dc712a169e53`와
+라이브러리 runtime pin `5eb7be55208efaafe39bd5a65ec2f111d70b9053`을 사용했다.
+보고서, 원시 trace, 로그, 스크린샷 및 재현용 측정 패치는 외부 라이브러리의
+`reports/development/performance/w1-windows-gpu-2026-11-02/measurement/README.md`에 있다.
+보고서 원격 바이트 검증 revision은 `fd58c91c2bb944e338c026add222788373ba2ffd`다.
+이는 해당 호스트와 측정 시점의 근거이며 현재 빌드 전체의 성능 보장을 뜻하지 않는다.
