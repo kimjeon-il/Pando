@@ -6,7 +6,7 @@ import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroLakeSource,scanHydroRegionMetadata,scanHydroRiverCandidates} from '../../tools/gis/hydro-source-reader.mjs';
 import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
-import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRiverRegions,prepareHydroCalibrationRivers,runHydroCalibration} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakeRegions,prepareHydroCalibrationLakes,prepareHydroCalibrationRegion,prepareHydroCalibrationRiverRegions,prepareHydroCalibrationRivers,runHydroCalibration,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -168,13 +168,12 @@ test('verified river source reaches regional calibration without a precomputed I
 test('verified selected river and lake sources produce a complete analysis result',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT},async t=>{
     const root=await mkdtemp(join(tmpdir(),'pando-hydro-analysis-'));t.after(()=>rm(root,{recursive:true}));
-    const archive=await generationFixture(root),{files}=await lakeFixture(root),region={id:'europe',label:'Fixture',riverCode:'eu',bbox:[0,-1,3,2],calibrate:true};
+    const archive=await generationFixture(root),{files}=await lakeFixture(root),region={id:'europe',label:'Fixture',riverCode:'eu',bbox:[0,-1,3,2],
+      riverLayer:'rivers_europe',lakeLayer:'lakes_europe',calibrate:true};
     const line={properties:{min_zoom:6},geometry:{type:'LineString',coordinates:[[0,0],[2,0]]}},
       lake={properties:{min_zoom:6},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}};
-    const input={archives:[archive],lakeFiles:files,regions:[region],references:{europe:{
-      riverReference:{sameLayer:false,baseFeatures:[],supplementFeatures:[line]},
-      lakeReference:{sameLayer:false,baseFeatures:[],supplementFeatures:[lake]}}},
-    representativeSource:{rivers:[],lakes:[]},sources:{fixture:true}};
+    const selected=selectHydroCalibrationReferences({regions:[region],layers:{rivers_base:[],lakes_base:[],rivers_europe:[line],lakes_europe:[lake]}});
+    const input={archives:[archive],lakeFiles:files,regions:[region],...selected,sources:{fixture:true}};
     const options={pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},
       calibration:{directory:process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT}};
     const before=structuredClone(input),result=await runHydroCalibration(input,options);

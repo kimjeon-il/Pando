@@ -7,6 +7,34 @@ import {pythonRound} from './hydro-numeric.mjs';
 const calibrationStages=[6,6.7,7,7.5];
 const riverWeights=[1,1.3,1.7,2.1,2.5,3,3.5,4].flatMap(flow=>[-.5,-.25,0,.25,.5,.7].map(area=>[flow,area]));
 const lakeWeights=[-5,-4,-3,-2.5,-2,-1.5,-1,-.5,0,.5,1].map(shoreline=>[1,shoreline]);
+export function selectHydroCalibrationReferences(input){
+  const {regions,layers}=structuredClone(input??{});
+  if(!Array.isArray(regions)||!regions.length||!layers||typeof layers!=='object'||Array.isArray(layers)||
+    regions.some(region=>typeof region?.id!=='string'||!region.id||!Array.isArray(region.bbox)||region.bbox.length!==4||
+      !region.bbox.every(Number.isFinite)||region.bbox[2]<=region.bbox[0]||region.bbox[3]<=region.bbox[1]||
+      typeof region.riverLayer!=='string'||typeof region.lakeLayer!=='string')||new Set(regions.map(region=>region.id)).size!==regions.length)
+    throw Error('Explicit Hydro reference regions and layers required');
+  const names=new Set(['rivers_base','lakes_base',...regions.flatMap(region=>[region.riverLayer,region.lakeLayer])]),indexed=new Map();
+  for(const name of names){if(!Object.hasOwn(layers,name)||!Array.isArray(layers[name]))throw Error('Missing Hydro reference layer: '+name);
+    const rows=layers[name].map(feature=>{let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+      const coordinates=value=>{if(!Array.isArray(value))throw Error('Invalid Hydro reference coordinate');
+        if(typeof value[0]==='number'){if(value.length<2||!Number.isFinite(value[0])||!Number.isFinite(value[1]))throw Error('Invalid Hydro reference coordinate');
+          minX=Math.min(minX,value[0]);minY=Math.min(minY,value[1]);maxX=Math.max(maxX,value[0]);maxY=Math.max(maxY,value[1]);}
+        else for(const item of value)coordinates(item);};
+      const geometry=value=>{if(!value||typeof value!=='object')throw Error('Invalid Hydro reference geometry');
+        if(value.type==='GeometryCollection'){if(!Array.isArray(value.geometries))throw Error('Invalid Hydro reference geometry');
+          for(const item of value.geometries)geometry(item);}
+        else if(['Point','MultiPoint','LineString','MultiLineString','Polygon','MultiPolygon'].includes(value.type))coordinates(value.coordinates);
+        else throw Error('Invalid Hydro reference geometry');};
+      geometry(feature?.geometry);if(!Number.isFinite(minX))throw Error('Empty Hydro reference geometry');return {feature,bounds:[minX,minY,maxX,maxY]};});
+    indexed.set(name,rows);
+  }
+  const select=(name,box)=>indexed.get(name).filter(({bounds:b})=>b[0]<=box[2]&&b[2]>=box[0]&&b[1]<=box[3]&&b[3]>=box[1]).map(row=>row.feature);
+  const references=Object.fromEntries(regions.map(region=>{const build=(base,layer)=>{const sameLayer=base===layer,baseFeatures=select(base,region.bbox);
+    return sameLayer?{sameLayer,baseFeatures}:{sameLayer,baseFeatures,supplementFeatures:select(layer,region.bbox)};};
+    return [region.id,{riverReference:build('rivers_base',region.riverLayer),lakeReference:build('lakes_base',region.lakeLayer)}];}));
+  return {references,representativeSource:{rivers:layers.rivers_base,lakes:layers.lakes_base}};
+}
 export function buildHydroCalibrationOptimization({regions,kind,weights}={}){
   if(!Array.isArray(regions)||!['river','lake'].includes(kind)||!Array.isArray(weights)||!weights.length||
     weights.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>!Number.isFinite(value))))

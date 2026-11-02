@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {assembleHydroCalibrationResults,buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {assembleHydroCalibrationResults,buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {readFileSync} from 'node:fs';
 
 test('calibration geometry collection keeps lines and polygons and ignores empty or point parts',()=>{
@@ -9,6 +9,20 @@ test('calibration geometry collection keeps lines and polygons and ignores empty
     {type:'MultiPolygon',coordinates:[[],polygon]},{type:'Point',coordinates:[0,0]}]}];
   assert.deepEqual(collectHydroCalibrationGeometry(geometry),{lines:[line],polygons:[{type:'Polygon',coordinates:polygon}]});
   assert.throws(()=>collectHydroCalibrationGeometry([{type:'Unknown'}]),/geometry/i);
+});
+test('calibration references select intersecting base and regional source features without double layers',()=>{
+  const feature=(id,geometry)=>({type:'Feature',id,properties:{min_zoom:6},geometry});
+  const inside=feature('inside',{type:'LineString',coordinates:[[0,0],[1,1]]}),outside=feature('outside',{type:'LineString',coordinates:[[20,20],[21,21]]});
+  const lake=feature('lake',{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]});
+  const input={regions:[{id:'a',bbox:[-1,-1,2,2],riverLayer:'regional',lakeLayer:'lakes_base'},
+    {id:'b',bbox:[19,19,22,22],riverLayer:'rivers_base',lakeLayer:'lakes_base'}],
+  layers:{rivers_base:[inside,outside],lakes_base:[lake],regional:[inside]}};
+  const before=structuredClone(input),result=selectHydroCalibrationReferences(input);
+  assert.deepEqual(result.references.a.riverReference.baseFeatures,[inside]);assert.deepEqual(result.references.a.riverReference.supplementFeatures,[inside]);
+  assert.equal(result.references.a.riverReference.sameLayer,false);assert.equal(result.references.a.lakeReference.sameLayer,true);
+  assert.deepEqual(result.references.b.riverReference.baseFeatures,[outside]);assert.equal(result.references.b.riverReference.sameLayer,true);
+  assert.deepEqual(result.representativeSource.rivers,[inside,outside]);assert.deepEqual(input,before);
+  assert.throws(()=>selectHydroCalibrationReferences({...input,layers:{...input.layers,regional:[{geometry:{type:'LineString',coordinates:[[NaN,0]]}}]}}),/coordinate/i);
 });
 test('calibration reference preparation clips source and produces the metric fields',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
