@@ -59,7 +59,7 @@ const projectStateSource = read('shared/frontend/js/modules/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {
   if (!projectStateSource.includes(marker)) fail(`project schema is missing Generic/provenance validation marker: ${marker}`);
 }
-const serializerSource = read('tools/gis/project-serializer.js');
+const serializerSource = read('tools/gis/project-template-compiler.js');
 for (const marker of ["purpose: 'lossless-fallback'", 'directCreation: false', 'sourceProvenanceSchemaVersion']) {
   if (!serializerSource.includes(marker)) fail(`serializer is missing Generic fallback contract marker: ${marker}`);
 }

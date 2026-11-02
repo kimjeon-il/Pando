@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION } from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import { normalizeTerritorialLibraryEntity, selectGeometryVersion, instantiateLibraryEntity, TERRITORIAL_LIBRARY_SCHEMA_VERSION } from "../../tools/gis/territorial-library.js";
 import {projectTimelineIdentity} from '../../shared/frontend/js/modules/timeline-resolver.js';
 
 const geometry = { type: 'Polygon', coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]] };
