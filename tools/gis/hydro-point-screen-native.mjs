@@ -6,6 +6,7 @@ import {verifyNativeTool} from '../native-tool.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroPointScreenSources=Object.freeze(['tools/cpp/CMakeLists.txt','tools/cpp/hydro/point-screen.cpp',
+  'tools/cpp/map-image/raster-draw.h','tools/cpp/map-preview/PILLOW-LICENSE',
   'shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
 export function lineParts(geometry){
   if(geometry?.type==='LineString')return [geometry.coordinates];

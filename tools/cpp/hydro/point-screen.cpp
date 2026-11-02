@@ -1,6 +1,7 @@
 // Read-only point-to-mainstem screen shared by the independent Hydro audits.
 // Input and output are JSON on stdin/stdout. This tool never edits map data.
 #include <pandoeditor/losslessjson.h>
+#include "../map-image/raster-draw.h"
 #include <geos_c.h>
 #include <proj.h>
 #include <algorithm>
@@ -98,6 +99,51 @@ Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lin
     auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
 }
 Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+Value calibrationImageLayers(const Value& input){
+    constexpr int width=1744,height=510,top=48,panelWidth=560,panelHeight=390;
+    const auto& sourceBounds=array(field(input,"bounds"));if(sourceBounds.size()!=4)throw std::invalid_argument("Invalid image bounds");
+    std::array<double,4> bounds{};for(std::size_t i=0;i<4;++i)bounds[i]=pandoeditor::codecjson::finiteNumber(sourceBounds[i]);
+    if(bounds[2]<=bounds[0]||bounds[3]<=bounds[1])throw std::invalid_argument("Invalid image bounds");
+    std::vector<std::uint8_t> rgba(std::size_t(width)*height*4);for(std::size_t i=0;i<rgba.size();i+=4){rgba[i]=244;rgba[i+1]=247;rgba[i+2]=251;rgba[i+3]=255;}
+    const std::array<int,3> offsets{16,592,1168};
+    for(int offset:offsets)for(int y=top;y<=top+panelHeight;++y)for(int x=offset;x<=offset+panelWidth;++x){
+        const int dx=std::max({offset+6-x,0,x-(offset+panelWidth-6)}),dy=std::max({top+6-y,0,y-(top+panelHeight-6)});
+        if(dx*dx+dy*dy>36)continue;const bool border=x==offset||x==offset+panelWidth||y==top||y==top+panelHeight||dx*dx+dy*dy>=29;
+        const std::size_t at=(std::size_t(y)*width+x)*4;rgba[at]=border?185:234;rgba[at+1]=border?197:240;rgba[at+2]=border?207:244;}
+    struct Mask{int w,h;std::vector<std::uint8_t> data;
+        void pixel(int x,int y,std::uint32_t value){if(x>=0&&x<w&&y>=0&&y<h)data[std::size_t(y)*w+x]=static_cast<std::uint8_t>(value);}
+        void hline(int x0,int y,int x1,std::uint32_t value){if(y<0||y>=h||x1<0||x0>=w)return;
+            x0=std::max(0,x0);x1=std::min(w-1,x1);for(int x=x0;x<=x1;++x)pixel(x,y,value);}};
+    const auto mapped=[&](const Value& item,int offset){const auto point=inputPoint(item);
+        const double x=offset+(point.x-bounds[0])/(bounds[2]-bounds[0])*panelWidth,y=top+(bounds[3]-point.y)/(bounds[3]-bounds[1])*panelHeight;
+        if(std::abs(x)>1000000||std::abs(y)>1000000)throw std::invalid_argument("Image coordinate exceeds budget");
+        return std::make_pair(static_cast<int>(x),static_cast<int>(y));};
+    auto apply=[&](const char* key,int offset,bool polygons,std::array<int,4> color,int lineWidth){
+        Mask mask{width,height,std::vector<std::uint8_t>(std::size_t(width)*height)};std::size_t vertices=0;
+        const auto ring=[&](const Value& value){std::vector<std::pair<int,int>> points;const auto& coords=array(value);vertices+=coords.size();
+            if(vertices>5000000)throw std::invalid_argument("Image coordinate budget exceeded");points.reserve(coords.size());
+            for(const auto& point:coords)points.push_back(mapped(point,offset));return points;};
+        for(const auto& item:array(field(input,key))){if(polygons){const auto& rings=array(item);for(std::size_t i=0;i<rings.size();++i)
+                pando::map_image::draw::polygon(mask,ring(rings[i]),i==0?255:0);}
+            else{const auto points=ring(item);for(std::size_t i=1;i<points.size();++i){const auto a=points[i-1],b=points[i];
+                if(lineWidth==1)pando::map_image::draw::thinLine(mask,a.first,a.second,b.first,b.second,255);
+                else pando::map_image::draw::wideLine(mask,a.first,a.second,b.first,b.second,lineWidth,255);}
+                if(points.size()>1)mask.pixel(points.back().first,points.back().second,255);}}
+        for(std::size_t i=0;i<mask.data.size();++i)if(mask.data[i]){const auto at=i*4;for(int channel=0;channel<3;++channel){
+            const int sum=rgba[at+channel]*(255-color[3])+color[channel]*color[3]+128;rgba[at+channel]=static_cast<std::uint8_t>((sum+(sum>>8))>>8);}}
+    };
+    for(int offset:{offsets[0],offsets[1]}){apply("basePolygons",offset,true,{145,165,177,148},1);apply("baseLines",offset,false,{102,123,136,210},1);}
+    apply("referencePolygons",offsets[0],true,{35,138,166,140},1);apply("referenceLines",offsets[0],false,{23,102,124,230},1);
+    apply("hydroPolygons",offsets[1],true,{139,91,194,140},1);apply("hydroLines",offsets[1],false,{98,58,145,220},1);
+    apply("referencePolygons",offsets[2],true,{22,166,182,122},1);apply("hydroPolygons",offsets[2],true,{227,70,154,112},1);
+    apply("referenceLines",offsets[2],false,{8,124,136,240},2);apply("hydroLines",offsets[2],false,{224,41,132,225},1);
+    constexpr char alphabet[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";std::string encoded;encoded.reserve((rgba.size()+2)/3*4);
+    for(std::size_t i=0;i<rgba.size();i+=3){const std::uint32_t value=(std::uint32_t(rgba[i])<<16)|
+        (i+1<rgba.size()?std::uint32_t(rgba[i+1])<<8:0)|(i+2<rgba.size()?rgba[i+2]:0);
+        encoded.push_back(alphabet[(value>>18)&63]);encoded.push_back(alphabet[(value>>12)&63]);
+        encoded.push_back(i+1<rgba.size()?alphabet[(value>>6)&63]:'=');encoded.push_back(i+2<rgba.size()?alphabet[value&63]:'=');}
+    auto result=Value::obj();result.object["width"]=Value::num(width);result.object["height"]=Value::num(height);result.object["rgba"]=Value::str(std::move(encoded));return result;
+}
 // Match pyshp's shapefile winding and hole grouping before GEOS repairs geometry.
 double lakeRingArea(const std::vector<Point>& ring){double result=0;for(std::size_t i=1;i<ring.size();++i)
     result+=ring[i].x*(ring[i+1==ring.size()?1:i+1].y-ring[i-1].y);return result;}
@@ -601,6 +647,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-image-layers")
+        return calibrationImageLayers(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="lake-polygon-rings")
         return lakePolygonRings(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-reference-features")

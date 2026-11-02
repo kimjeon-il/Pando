@@ -30,6 +30,17 @@ test('lake polygon rings preserve nested shells, holes and orphan source order',
   assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout).geometries,cases.map(([,expected])=>expected));
   assert.notEqual(invoke({mode:'lake-polygon-rings',shapes:[[[[0,0],[1,1]]]]}).status,0);
 });
+test('hydro comparison raster keeps panel mapping, lake holes and distinct overlay colors',{skip:!binary},()=>{
+  const polygon=[[[.5,.5],[1.5,.5],[1.5,1.5],[.5,1.5],[.5,.5]],[[.8,.8],[1.2,.8],[1.2,1.2],[.8,1.2],[.8,.8]]];
+  const result=invoke({mode:'calibration-image-layers',bounds:[0,0,2,2],baseLines:[],basePolygons:[],referenceLines:[],
+    referencePolygons:[polygon],hydroLines:[],hydroPolygons:[polygon]});
+  assert.equal(result.status,0,result.stderr);const image=JSON.parse(result.stdout),bytes=Buffer.from(image.rgba,'base64');
+  assert.deepEqual([image.width,image.height,bytes.length],[1744,510,1744*510*4]);
+  const pixel=(x,y)=>[...bytes.subarray((y*1744+x)*4,(y*1744+x)*4+4)];
+  assert.deepEqual(pixel(16+280,48+195),[234,240,244,255]);
+  assert.notDeepEqual(pixel(16+168,48+117),pixel(592+168,48+117));
+  assert.notDeepEqual(pixel(1168+168,48+117),pixel(1168+280,48+195));
+});
 test('guided branch scores handle zero direction and reject malformed geometry',{skip:!binary},()=>{
   const request={mode:'guided-branch',current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[0,0],[0,0]]};
   const result=invoke(request);assert.equal(result.status,0,result.stderr);
