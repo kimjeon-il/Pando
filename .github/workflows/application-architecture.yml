@@ -10,7 +10,6 @@ on:
         options:
           - default
           - map-rendering
-          - editor-diagnostics
           - boundary-capture-comparison
           - boundary-native-capture
           - boundary-revision-comparison

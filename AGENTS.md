@@ -80,6 +80,11 @@ local worktree. Web source lives in `apps/viewer/`, shared frontend source in `s
   locations. Do not bypass an execution-policy rejection with another tool.
 - Use the existing preparation, storage and cleanup commands for scoped
   checks; do not add an always-running full-project validation hook.
+- The full-validation restriction below does not prohibit scoped cleanup.
+  Verified unused, reproducible temporary/build outputs may be removed under
+  this storage policy without another permission request. A tool-policy denial
+  is separate from this repository's authorization; report the actual denial
+  without attributing it to the user's full-validation restriction.
 - Report removed targets and logical bytes separately from measured drive
   free-space change. Explain the current use of retained large generated
   outputs, and distinguish successful, skipped and blocked deletions.
@@ -328,13 +333,21 @@ Do not perform unrelated broad refactors in the same change unless they are
 required to remove a duplicated or obsolete implementation introduced by the
 change.
 
-## Testing
-
 ## Testing and verification
 
+- **Only full-project validation requires a separate explicit user request.**
+  Do not run the whole test suite, every architecture check, full C++ test/build
+  matrices, or whole-catalog/GIS validation merely because they seem necessary,
+  a skill asks for them, or the task includes committing or deploying.
+- Focused unit/browser checks, changed-file checks, necessary scoped data
+  preparation, affected-target incremental builds (including WASM), and
+  deployment/live checks are permitted within the authorized task. Do not ask
+  again solely because one of these steps is required to finish that task.
+- "Keep checks minimal" means select the smallest sufficient relevant checks;
+  it does not prohibit all checks, prerequisite preparation or safe cleanup.
 - Run only the checks that are relevant to the files and behavior changed.
 - Do not run the entire test suite, all architecture checks, or unrelated
-  validation commands by default.
+  validation commands without an explicit user request for that scope.
 - Choose the smallest set of checks that can reasonably detect regressions
   caused by the current change.
 - For place names, country names, lifetimes and other data-only edits, check
@@ -346,12 +359,15 @@ change.
 - Reuse unchanged generated country assets. When generation needs connected
   geometry or parent dependencies, report that input scope separately from
   the records selected for data validation; do not add a whole-catalog check.
-- Expand the test scope only when:
+- Expand the focused test scope only when:
   - the change crosses multiple architectural boundaries
   - shared infrastructure was modified
   - a relevant focused test fails
   - the affected dependency graph is broad
-  - the user explicitly requests a full verification
+  - the user explicitly requests additional affected-workflow verification
+
+  These conditions do not authorize full-project validation. Ask for that
+  scope only if it is genuinely required; otherwise finish with focused checks.
 
 Examples:
 
@@ -368,7 +384,8 @@ Examples:
   run the relevant worker/renderer checks and focused regression tests.
 
 - Project-wide architecture or shared-state change:
-  run broader architecture and unit checks as justified by the impact.
+  cover the affected architecture and dependency paths with focused checks;
+  a broad impact alone does not authorize the entire suite.
 
 - Do not run expensive unrelated tests merely to increase the number of
   passing checks.

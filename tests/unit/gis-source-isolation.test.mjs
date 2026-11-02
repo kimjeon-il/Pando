@@ -4,6 +4,13 @@ import test from 'node:test';
 import { classifyPaths } from '../../scripts/p1-plan-remote-checks.mjs';
 
 const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
+test('the fixed historical P6 inventory is manual while current product gates remain active',()=>{
+  const historical=read('.github/workflows/p6-preflight.yml');
+  assert.match(historical,/workflow_dispatch:/);
+  assert.doesNotMatch(historical,/^ {2}(?:push|pull_request):/m);
+  assert.match(read('.github/workflows/shared-core.yml'),/core-gpkg-file-boundary\.test\.mjs/);
+  assert.match(read('.github/workflows/e7-final-readonly-regression.yml'),/push:/);
+});
 test('general Web tests and versioning use only Node',()=>{
   const scripts=JSON.parse(read('package.json')).scripts;
   assert.equal(Object.hasOwn(scripts,'test:gis-python'),false);

@@ -48,9 +48,12 @@ for (const properties of [{ schemaVersion: 1 }, { schemaVersion: 2, role: 'terri
   if (!rejected) fail('Retired Generic schema/fields were accepted');
 }
 
-const staticUiSource = renderProductHtml(read).editor;
-for (const marker of ['genericFeatureConversionSection', 'convertGenericFeatureBtn']) {
-  if (!staticUiSource.includes(marker)) fail(`canonical Generic fallback UI is missing marker: ${marker}`);
+const staticUiSource = renderProductHtml(read).web;
+if (!staticUiSource.includes('id="reviewPanel"') || !staticUiSource.includes('id="reviewSourceLinks"'))
+  fail('Canonical Viewer is missing the read-only review and provenance interface');
+for (const retired of ['genericFeatureConversionSection', 'convertGenericFeatureBtn', 'editorSurface']) {
+  if (staticUiSource.includes('id="'+retired+'"'))
+    fail('Retired GIS editing UI entered the Viewer: '+retired);
 }
 const projectStateSource = read('shared/frontend/js/modules/project-state.js');
 for (const marker of ['validateSourceProvenance', 'GENERIC_PROPERTY_KEYS']) {

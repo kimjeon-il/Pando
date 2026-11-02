@@ -1,4 +1,3 @@
-import { gotoEditor } from './helpers/editor-entry.mjs';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
@@ -39,10 +38,10 @@ function p3PresentationFailures(state, requestedRenderer) {
 
 async function readP3Presentation(page) {
   return page.evaluate(() => {
-    const snapshot = globalThis.__PANDOLAB_RENDER_DEBUG__?.snapshot(), gpu = snapshot?.gpu;
+    const viewer=globalThis.__PANDOLAB_VIEWER__, gpu=viewer?.rendererStats();
     if (!gpu) return { render: null };
-    const state = { frameId: snapshot.lastCommittedVisualFrameId,
-      countryFeatureCount: globalThis.PANDOLAB_TERRITORIAL?.list({ kind: 'general', parentId: '' }).filter(feature => !!feature.geometry).length ?? 0,
+    const state = { frameId: gpu.displayedRevision,
+      countryFeatureCount: viewer.visibleTerritorialCount(),
       render: {
       renderer: gpu.renderer, readiness: gpu.mapReadiness?.status,
       canonicalMeshReady: gpu.canonicalMeshReady, canonicalPromotionError: gpu.canonicalPromotionError,
@@ -123,17 +122,17 @@ for(const config of [
     });
     let ready=false,failure,presentation=null;
     try {
-      await gotoEditor(page, '/?renderer='+config.renderer+'&demTerrain=raster&perf=1',
+      await page.goto('/?debug=1&renderer='+config.renderer+'&demTerrain=raster&perf=1',
         {waitUntil:'domcontentloaded',timeout:30_000});
       const readinessDeadline=Date.now()+110_000;
-      const app=page.locator('#app');
-      await expect(app).toHaveAttribute('data-readiness',/^(preview|editable|enhanced)$/,
+      const app=page.locator('#viewerStatus');
+      await expect(app).toHaveAttribute('data-ready','true',
         {timeout:110_000});
       if(process.env.PANDO_P9_ACCEPTANCE==='true') {
-        await page.waitForFunction(()=>/^(enhanced|error)$/.test(document.getElementById('app')?.dataset.readiness||''),undefined,{timeout:Math.max(1,readinessDeadline-Date.now())});
+        await page.waitForFunction(()=>document.getElementById('viewerStatus')?.dataset.ready==='true',undefined,{timeout:Math.max(1,readinessDeadline-Date.now())});
         await testInfo.attach('p9-startup-errors.json',{
-          body:Buffer.from(JSON.stringify({runtimeErrors,readiness:await app.getAttribute('data-readiness')},null,2)),contentType:'application/json'});
-        await expect(app).toHaveAttribute('data-readiness','enhanced',{timeout:1000});
+          body:Buffer.from(JSON.stringify({runtimeErrors,readiness:await app.getAttribute('data-ready')},null,2)),contentType:'application/json'});
+        await expect(app).toHaveAttribute('data-ready','true',{timeout:1000});
       }
       await expect(page.locator('#map')).toBeVisible();
       const mapBounds=await page.locator('#map').boundingBox();
@@ -145,7 +144,7 @@ for(const config of [
       },{timeout:Math.max(1,readinessDeadline-Date.now()),message:'the current canonical country map must actually be displayed'}).toEqual([]);
       ready=true;
       const diagnostic=await page.evaluate(()=>({
-        readiness:document.getElementById('app')?.dataset.readiness,
+        readiness:document.getElementById('viewerStatus')?.dataset.ready,
         renderer:globalThis.__PANDOLAB_GPU_METRICS__?.renderer??null,
         previewMs:globalThis.__PANDOLAB_STARTUP_METRICS__?.previewDisplayMs??null,
         mapCanvasCount:document.querySelectorAll('#map canvas').length,
@@ -169,7 +168,7 @@ for(const config of [
               return [key,typeof value==='string'?value.slice(0,2048):['number','boolean'].includes(typeof value)?value:null];
             }));
             return {
-              url:location.href.slice(0,2048),title:document.title.slice(0,512),readiness:document.getElementById('app')?.dataset.readiness??null,
+              url:location.href.slice(0,2048),title:document.title.slice(0,512),readiness:document.getElementById('viewerStatus')?.dataset.ready??null,
               bootstrap:{error:document.getElementById('bootstrapLoading')?.classList.contains('error')??false,
                 message:document.getElementById('bootstrapLoadingText')?.textContent?.slice(0,512)??null,
                 probe:document.getElementById('startupProbe')?.textContent?.slice(0,512)??null},
