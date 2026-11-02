@@ -152,3 +152,15 @@ test('Viewer owns a bounded two-month source budget without altering editor stor
   viewer.builtinSession.dispose();
   editor.builtinSession.dispose();
 });
+
+
+test('Windows flat read-only owners use common map graph without edit hooks',()=>{
+ assert.throws(()=>createMapOwners({productMode:'editor',readOnly:true,editing:{persistView(){}}}),/cannot register editing/);
+ const owners=createMapOwners({productMode:'editor',readOnly:true});
+ assert.equal(owners.capabilities.globe,false);
+ assert.equal(owners.capabilities.terrain,false);
+ assert.equal(typeof owners.projectSession.setViewingPresentation,'function');
+ assert.equal(typeof owners.objectPicking.handleObjectSelectionAt,'function');
+ assert.equal(typeof owners.mapHost.projectionViewSnapshot,'function');
+ owners.builtinSession.dispose();
+});

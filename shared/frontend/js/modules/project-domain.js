@@ -1,6 +1,7 @@
 import {normalizeProjectSetup} from './project-setup.js';
 import { getRuntimePerformanceMetrics,PERFORMANCE_METRIC_NAMES } from './runtime-performance-metrics.js';
 import { createCoreDocumentReadModel } from './core-document-read-model.js';
+import { createProductModePolicy } from './product-mode-policy.js';
 
 const metricNow=() => typeof performance==='undefined' ? Date.now():performance.now();
 const cloneValue = value => {
@@ -20,6 +21,7 @@ const presentationCommands=new Set(['presentation.apply','distribution.render-mo
  */
 export function createProjectDomain({
   productMode,
+  readOnly = productMode === 'viewer',
   replaceSnapshot = () => false,
   viewingPresentation = null,
   persistence = null,
@@ -46,6 +48,7 @@ export function createProjectDomain({
   readPresentationCatalog = null,
 } = {}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project domain requires explicit product mode.');
+  createProductModePolicy(productMode,{readOnly});
   let generation = 0;
   let openRequest=0,opening=false,openQueue=Promise.resolve();
   let disposed = false;
@@ -234,7 +237,7 @@ export function createProjectDomain({
         // Native preparation validates the clean builtin owner and immutable
         // geometry versions before constructing its delta; file/editor loads
         // keep their existing independent-document admission.
-        if(transition&&(productMode!=='viewer'||snapshot().projectSetup?.sourceMode!=='builtin'))
+        if(transition&&(!readOnly||snapshot().projectSetup?.sourceMode!=='builtin'))
           throw new TypeError('Temporal identity reuse requires the active builtin Viewer.');
         const documentId=transition?snapshot().documentId:globalThis.crypto.randomUUID();
         const candidate=await commandOwner.temporalCandidatePrepare({
@@ -638,7 +641,7 @@ export function createProjectDomain({
     baselineCoverage:(baselineId,month)=>commandOwner.baselineCoverage(baselineId,month),
     resetRenderGeneration,
     dispose,
-    ...(productMode==='editor'?{
+    ...(!readOnly?{
       buildFileSnapshot,
       buildAutosave,
       executeCommand,

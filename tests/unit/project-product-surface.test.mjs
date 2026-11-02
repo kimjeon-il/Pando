@@ -12,3 +12,13 @@ test('project domains require explicit product mode and only editors register mu
   for(const key of ['configureProject','comparisonMonth','comparisonHighlight','comparisonResult','setComparisonMonth','resolveComparison','highlightComparison'])assert.equal(key in domain,false,key);
  }
 });
+
+
+test('Windows read-only project exposes queries without editor commands',()=>{
+ const options={productMode:'editor',readOnly:true,commandOwner:{state:()=>({epoch:1})},documentModel:{snapshot:()=>({}),projectWorld:x=>x}};
+ const domain=createProjectDomain(options);
+ for(const key of ['snapshot','resolveWorld','open','inspectImport','prepareTemporalBuiltin'])assert.equal(typeof domain[key],'function',key);
+ for(const key of ['createProject','executeCommand','save','undo','redo','buildFileSnapshot','buildAutosave','prepareImport'])assert.equal(key in domain,false,key);
+ assert.throws(()=>createProjectDomain({...options,productMode:'viewer',readOnly:false}),/read-only/i);
+ domain.dispose();
+});

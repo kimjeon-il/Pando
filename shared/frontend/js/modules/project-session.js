@@ -11,9 +11,9 @@ const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: 
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createProjectSession({productMode='editor',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null}={}) {
+export function createProjectSession({productMode='editor',readOnly=productMode==='viewer',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null}={}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
-  const productPolicy=createProductModePolicy(productMode);
+  const productPolicy=createProductModePolicy(productMode,{readOnly});
   const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
   let viewingPresentation=null,documentProjection=null,physicalSettings;
   let dependencies;
@@ -136,7 +136,7 @@ export function createProjectSession({productMode='editor',capabilities=resource
       historyDirtyEntityIds: readonlyIds(Object.freeze([])),
       pendingCountryRenderIds: new Set(),
       autosaveMode: 'delta',
-      geometryPreview: productMode==='editor'?(0, dependencies.applicationFactories.createGeometryPreviewState)():null,
+      geometryPreview: !readOnly?(0, dependencies.applicationFactories.createGeometryPreviewState)():null,
       modeProcessing: false,
       modeTaskMinimized: false,
       audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
@@ -167,7 +167,7 @@ export function createProjectSession({productMode='editor',capabilities=resource
       },
     }));
 
-    if(productMode==='editor')(saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({
+    if(!readOnly)(saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({
       getDocumentState: () => dependencies.domains.commandOwner?.state() ?? null,
       onChange: (...args) => dependencies.lifecycleUi.projectUi.syncSaveStatus(...args) }));
 
@@ -198,7 +198,7 @@ export function createProjectSession({productMode='editor',capabilities=resource
         if(typeof value.boundaryVisible==='boolean')patch.distributionSettings.boundaryVisible=value.boundaryVisible;
         if(value.activeLayerId===''||state.distributionLayers.some(layer=>layer.id===value.activeLayerId))patch.distributionSettings.activeLayerId=value.activeLayerId;
       }
-      if(productMode==='viewer'&&stored.layerPresentation)patch.layerPresentation=dependencies.modelValidation.normalizeLayerPresentation(stored.layerPresentation);
+      if(readOnly&&stored.layerPresentation)patch.layerPresentation=dependencies.modelValidation.normalizeLayerPresentation(stored.layerPresentation);
       setViewingPresentation(patch);
     }
     return true;
@@ -237,7 +237,7 @@ export function createProjectSession({productMode='editor',capabilities=resource
     if(onViewingChange)onViewingChange();
     return { ok: true, changed: true };
   }
-  const captureViewingPresentation=()=>structuredClone(Object.fromEntries(Object.entries(viewingPresentation || {}).filter(([key])=>key!=='physicalSettings'&&(productMode==='viewer'||key!=='layerPresentation'))));
+  const captureViewingPresentation=()=>structuredClone(Object.fromEntries(Object.entries(viewingPresentation || {}).filter(([key])=>key!=='physicalSettings'&&(readOnly||key!=='layerPresentation'))));
 
   // A detached, empty startup input. C++ validates and owns it before any
   // preview/canonical source or editable UI is admitted.
@@ -283,7 +283,7 @@ export function createProjectSession({productMode='editor',capabilities=resource
     };
     const properties=Object.fromEntries(['documentId','projectSetup','sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
       'distributionEntries','distributionSettings','physicalSettings','layerVisibility','itemVisibility','layerPresentation','timelineRecords']
-      .map(name => [name,{ enumerable: true,get: () => name==='hydroEdits'?documentModel.list('hydro'):name==='itemVisibility'?effectiveItemVisibility():viewingFields.has(name)&&(productMode==='viewer'||name!=='layerPresentation')?viewingPresentation[name]:documentModel.snapshot()[name] }]));
+      .map(name => [name,{ enumerable: true,get: () => name==='hydroEdits'?documentModel.list('hydro'):name==='itemVisibility'?effectiveItemVisibility():viewingFields.has(name)&&(readOnly||name!=='layerPresentation')?viewingPresentation[name]:documentModel.snapshot()[name] }]));
     Object.assign(properties,{ territorialEntities: { enumerable: true,get: entityStore.snapshot },geometries: { enumerable: true,get: () => geometries },
       stateRevision: { enumerable: true,get: () => coreState().stateRevision },timelineCursor: { enumerable: true,get: () => coreState().timelineCursor },
       historyDirtyEntityIds: { enumerable: true,get: historyDirtyEntityIds } });

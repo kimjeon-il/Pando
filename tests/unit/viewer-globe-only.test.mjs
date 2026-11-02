@@ -54,3 +54,23 @@ test('world bounds keep a complete globe and editor bounds keep a flat fit',()=>
   const flat=initialBoundsView({west:170,east:-170,south:-10,north:10},layout,'flat');
   assert.equal(flat.projection,'flat');assert.equal(Math.abs(flat.view.flatCenter[0]),180);
 });
+
+
+test('flat review keeps editor projection but never creates edit-draft or save state',()=>{
+ const policy=createProductModePolicy('editor',{readOnly:true});
+ assert.equal(policy.projection,'flat');assert.equal(policy.readOnly,true);
+ assert.throws(()=>policy.assertProjection('globe'),{code:'PL-PRODUCT-PROJECTION'});
+ assert.throws(()=>policy.assertOperation('core.document-execute'),{code:'PL-PRODUCT-READONLY'});
+ assert.doesNotThrow(()=>policy.assertOperation('core.document-selection-apply'));
+ const session=createProjectSession({productMode:'editor',readOnly:true});
+ session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
+  modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
+  applicationFactories:{createGeometryPreviewState:()=>assert.fail('read-only must not allocate editing state')},
+  uiFactoriesA:{createAtomicMapStateController},uiFactoriesB:{createSaveStateController:()=>assert.fail('read-only must not allocate a save state')},
+  mapNavigation:{clampViewZooms:view=>view,reprojectView:view=>view}});
+ session.initializeMapWorkScheduler();
+ assert.equal(session.state.projection,'flat');assert.equal(session.state.geometryPreview,null);
+ assert.equal(session.saveState,undefined);
+ assert.throws(()=>createProductModePolicy('viewer',{readOnly:false}),TypeError);
+ assert.throws(()=>createProductModePolicy('editor',{readOnly:'true'}),TypeError);
+});
