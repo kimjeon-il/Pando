@@ -176,6 +176,15 @@ export async function findHydroPartialBorderRuns(requests,options={}){
     !Number.isFinite(row.latitude)||Math.abs(row.latitude)>90||
     !validLine(row.metricSource)||!validLine(row.metricBorder))))throw Error('Invalid Hydro partial border runs');return result.runs;
 }
+export async function findHydroBorderJunctions({borders,requests}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(borders)||borders.length>100000||!Array.isArray(requests)||requests.length>10000)
+    throw Error('Explicit bounded Hydro border junction requests required');
+  if(!requests.length)return [];
+  const result=await screenHydroPoints({mode:'border-junctions',borders,requests},options);
+  if(!Array.isArray(result?.junctions)||result.junctions.length!==requests.length||result.junctions.some(point=>point!==null&&
+    (!Array.isArray(point)||point.length!==2||point.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90)))))
+    throw Error('Invalid Hydro border junctions');return result.junctions;
+}
 export async function matchHydroOsmBounds({candidates,targets}={},options={}){
   options.signal?.throwIfAborted();
   const valid=(box,nonempty)=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite)&&

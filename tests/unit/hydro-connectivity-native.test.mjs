@@ -56,6 +56,15 @@ nativeTest('border grouping requires continuous length and coverage on the same 
     [candidate(2,10,[1,6,6,6]),candidate(3,10,[1,2])]]});
   assert.deepEqual(result.accepted,[[true,true,false,false],[false,true]]);
 });
+nativeTest('chain endpoint normalization honors border ownership and exact triple junctions',()=>{
+  const reach=(parts,borderPair=null)=>({parts:[parts],borderPair});
+  const input={mode:'normalize-chains',chains:[[reach([[0,0],[1,0]]),reach([[1.001,0],[2,0]],['AAA','BBB']),
+    reach([[2.001,0],[3,0]],['BBB','CCC'])]],junctions:[[null,[2,0]]]};
+  const result=run(input);assert.equal(result.changed,2);
+  assert.deepEqual(result.chains[0].map(row=>row.parts[0]),[[[0,0],[1.001,0]],[[1.001,0],[2,0]],[[2,0],[3,0]]]);
+  const missing=spawnSync(native,[],{input:JSON.stringify({...input,junctions:[[null,null]]}),encoding:'utf8'});
+  assert.notEqual(missing.status,0);assert.match(missing.stderr,/junction/i);
+});
 test('source-bound border substrings preserve projected line cuts',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},source=[[0,0],[1,0],[1,2],[2,2]],

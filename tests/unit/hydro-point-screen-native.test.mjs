@@ -61,6 +61,13 @@ test('partial border proximity retains entry and exit distances on the original 
   assert.ok(Math.abs(rows[0][0].sourceEnd-198.91425732953581)<1e-9);
   assert.ok(Math.abs(rows[0][0].length-148.60202603118265)<1e-9);
 });
+test('different border pairs meet at their exact shared junction',{skip:!binary},()=>{
+  const borders=[{pair:['AAA','BBB'],coordinates:[[1,0],[1,2]]},{pair:['BBB','CCC'],coordinates:[[1,1],[2,1]]}],
+    requests=[{leftPair:['AAA','BBB'],rightPair:['BBB','CCC'],leftPoint:[1,.999],rightPoint:[1.001,1]},
+      {leftPair:['AAA','BBB'],rightPair:['BBB','CCC'],leftPoint:[1,0],rightPoint:[2,1]}];
+  const result=invoke({mode:'border-junctions',borders,requests});assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).junctions,[[1,1],null]);
+});
 test('source-bound shared country borders retain the selected pair',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const rect=(a,b,c,d)=>({type:'Polygon',coordinates:[[[a,b],[c,b],[c,d],[a,d],[a,b]]]});

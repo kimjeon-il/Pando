@@ -292,6 +292,25 @@ export async function acceptHydroBorderGroups(chains,options={}){
     !Array.isArray(row)||row.length!==chains[i].length||row.some((value,j)=>typeof value!=='boolean'||(value&&chains[i][j]===null))))
     throw Error('Invalid Hydro border group receipt');return result.accepted;
 }
+export async function normalizeHydroChainCoordinates({chains,junctions}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(chains)||chains.length>100000||!Array.isArray(junctions)||junctions.length!==chains.length)
+    throw Error('Explicit Hydro chains and junctions required');
+  if(!chains.length)return {chains:[],changed:0};
+  const input=structuredClone(chains),result=await runHydroConnectivity({mode:'normalize-chains',chains:input,junctions},options);
+  if(!Array.isArray(result?.chains)||result.chains.length!==chains.length||!Number.isSafeInteger(result.changed)||result.changed<0)
+    throw Error('Invalid Hydro normalized chains');
+  for(let i=0;i<chains.length;i++){
+    if(!Array.isArray(chains[i])||!Array.isArray(result.chains[i])||chains[i].length!==result.chains[i].length)
+      throw Error('Invalid Hydro normalized chain size');
+    for(let j=0;j<chains[i].length;j++){const before=chains[i][j],after=result.chains[i][j];
+      if(!Array.isArray(before?.parts)||!Array.isArray(after?.parts)||before.parts.length!==after.parts.length||
+        !isDeepStrictEqual({...before,parts:undefined},{...after,parts:undefined}))throw Error('Hydro normalization changed reach metadata');
+      for(let k=0;k<before.parts.length;k++){const a=before.parts[k],b=after.parts[k];
+        if(!Array.isArray(a)||!Array.isArray(b)||a.length!==b.length||!isDeepStrictEqual(a.slice(1,-1),b.slice(1,-1)))
+          throw Error('Hydro normalization changed interior coordinates');}}
+  }
+  return result;
+}
 // onBatch receives provisional rows until the source reader verifies the DBF hash and CRC.
 export async function scoreHydroSourceMetadata({archive,files,specification,onBatch,batchSize=4096}={},options={}){
   options.signal?.throwIfAborted();

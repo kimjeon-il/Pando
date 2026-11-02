@@ -426,6 +426,32 @@ Value borderGroupAcceptance(const Value& request){
         accepted.array.push_back(std::move(flags));}
     auto result=Value::obj();result.object["accepted"]=std::move(accepted);return result;
 }
+Value normalizeChains(Value request){
+    auto& chains=field(request,"chains");const auto& junctions=elements(field(request,"junctions"));
+    if(chains.kind!=Value::Array||chains.array.size()!=junctions.size()||chains.array.size()>100000)
+        throw std::invalid_argument("Invalid Hydro normalization chains");
+    struct Part{Value* coordinates;std::vector<std::string> pair;};std::size_t changed=0,total=0;
+    const auto canonical=[](Point p){return Key{halfEvenMicro(normalizedLongitude(p.lon)),halfEvenMicro(std::max(-90.0,std::min(90.0,p.lat)))};};
+    for(std::size_t c=0;c<chains.array.size();++c){auto& chain=chains.array[c];if(chain.kind!=Value::Array)throw std::invalid_argument("Invalid Hydro chain");
+        std::vector<Part> parts;for(auto& reach:chain.array){const auto& pairValue=field(reach,"borderPair");std::vector<std::string> pair;
+            if(pairValue.kind!=Value::Null){const auto& values=elements(pairValue);if(values.size()!=2)throw std::invalid_argument("Invalid Hydro border pair");
+                pair={str(values[0]),str(values[1])};if(pair[0]>=pair[1])throw std::invalid_argument("Invalid Hydro border pair");}
+            auto& source=field(reach,"parts");if(source.kind!=Value::Array)throw std::invalid_argument("Invalid Hydro reach parts");
+            for(auto& part:source.array){if(part.kind!=Value::Array)throw std::invalid_argument("Invalid Hydro part");if(part.array.size()>=2)parts.push_back({&part,pair});}}
+        total+=parts.size();if(total>1000000)throw std::invalid_argument("Hydro normalization parts exceed budget");
+        const auto& sharedJunctions=elements(junctions[c]);if(sharedJunctions.size()!=(parts.empty()?0:parts.size()-1))
+            throw std::invalid_argument("Hydro chain junction count differs");
+        for(std::size_t i=0;i+1<parts.size();++i){auto& left=parts[i],&right=parts[i+1];const auto a=point(left.coordinates->array.back()),b=point(right.coordinates->array.front());
+            const double gap=std::hypot(normalizedLongitude(b.lon-a.lon)*111.32*std::cos((a.lat+b.lat)*kPi/360.0),(b.lat-a.lat)*110.57);
+            if(gap>25.0)throw std::invalid_argument("Hydro chain gap exceeds 25 km");const auto qa=canonical(a),qb=canonical(b);Key shared;
+            if(qa==qb)shared=qb;
+            else if(!left.pair.empty()&&!right.pair.empty()&&left.pair!=right.pair){
+                if(sharedJunctions[i].kind==Value::Null)throw std::invalid_argument("Hydro border junction missing");shared=canonical(point(sharedJunctions[i]));}
+            else if(!left.pair.empty())shared=qa;else shared=qb;
+            if(qa!=shared||qb!=shared)++changed;const Point exact{static_cast<double>(shared.first)/1000000.0,static_cast<double>(shared.second)/1000000.0};
+            left.coordinates->array.back()=encodedPoint(exact);right.coordinates->array.front()=encodedPoint(exact);}}
+    auto result=Value::obj();result.object["chains"]=std::move(chains);result.object["changed"]=Value::num(static_cast<double>(changed));return result;
+}
 // Keep regional source metadata in one native process while indexed geometry is
 // fetched on demand.  The eight retained upstream candidates match the source
 // generator's (basin area, flow, source ID) heap ordering.
@@ -639,6 +665,7 @@ int main(int argc,char** argv) {
         else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
         else if(str(mode->second)=="border-substrings")std::cout<<borderSubstrings(request).encode()<<'\n';
         else if(str(mode->second)=="border-group-acceptance")std::cout<<borderGroupAcceptance(request).encode()<<'\n';
+        else if(str(mode->second)=="normalize-chains")std::cout<<normalizeChains(std::move(request)).encode()<<'\n';
         else if(str(mode->second)=="propagate-widths")std::cout<<propagateWidths(request).encode()<<'\n';
         else if(str(mode->second)=="fragment-geometries")std::cout<<fragmentGeometries(request).encode()<<'\n';
         else if(str(mode->second)=="exclude-terminal-basins")std::cout<<excludeTerminalBasins(request).encode()<<'\n';

@@ -50,7 +50,7 @@ jobs:
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/point-artifact
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro-outlets/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/connectivity-artifact
-        run: node --test --test-name-pattern='border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-whole.test.mjs tests/unit/hydro-border-partial.test.mjs tests/unit/hydro-border-alignment.test.mjs
+        run: node --test --test-name-pattern='border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-whole.test.mjs tests/unit/hydro-border-partial.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs
   hydro-chains:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-chains'
     strategy:
@@ -75,7 +75,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Hydro build failed' }
           if ($IsWindows) { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe" }
           else { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/pando-hydro-connectivity" }
-          node --test --test-name-pattern='border grouping|border substrings|streaming source selection|logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
+          node --test --test-name-pattern='chain endpoint normalization|border grouping|border substrings|streaming source selection|logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro chain or junction check failed' }
           node tools/gis/package-hydro-connectivity.mjs --binary "$env:PANDO_HYDRO_CONNECTIVITY_BINARY" --directory build-native/hydro/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro packaging failed' }

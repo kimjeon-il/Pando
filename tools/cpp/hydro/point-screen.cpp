@@ -542,6 +542,39 @@ Value borderCandidateIndex(const Value& input,bool nearbyOnly=false){
         output.array.push_back(std::move(group[0]));}
     auto result=Value::obj();result.object["candidates"]=std::move(output);return result;
 }
+Value borderJunctions(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");const auto ctx=context.get();
+    const auto& borders=array(field(input,"borders")),&requests=array(field(input,"requests"));
+    if(borders.size()>100000||requests.size()>10000)throw std::invalid_argument("Hydro border junction batch exceeds budget");
+    using Pair=std::pair<std::string,std::string>;std::map<Pair,std::vector<Geometry>> byPair;
+    const auto readPair=[](const Value& value){const auto& pair=array(value);if(pair.size()!=2||pair[0].kind!=Value::String||pair[1].kind!=Value::String||
+        pair[0].string>=pair[1].string)throw std::invalid_argument("Invalid Hydro junction pair");return Pair{pair[0].string,pair[1].string};};
+    for(const auto& row:borders){const auto pair=readPair(field(row,"pair"));std::vector<Point> points;
+        for(const auto& value:array(field(row,"coordinates")))points.push_back(inputPoint(value));if(points.size()<2)throw std::invalid_argument("Invalid Hydro junction border");
+        byPair[pair].push_back(geometry(ctx,points,false));}
+    std::map<Pair,Geometry> merged;
+    for(auto& entry:byPair){std::vector<GEOSGeometry*> raw;for(auto& line:entry.second)raw.push_back(line.get());
+        auto* collection=GEOSGeom_createCollection_r(ctx,GEOS_GEOMETRYCOLLECTION,raw.data(),static_cast<unsigned int>(raw.size()));
+        if(!collection)throw std::runtime_error("GEOS junction collection failed");for(auto& line:entry.second)line.release();
+        auto owned=own(ctx,collection);merged.emplace(entry.first,own(ctx,GEOSUnaryUnion_r(ctx,owned.get())));}
+    const auto normalized=[](double x){double value=std::fmod(x+180.0,360.0);if(value<0)value+=360.0;value-=180.0;return value==-180.0?180.0:value;};
+    const auto distance=[&](Point a,Point b){return std::hypot(normalized(a.x-b.x)*111.32*std::cos(a.y*3.14159265358979323846/180.0),
+        (a.y-b.y)*110.57);};
+    auto junctions=Value::arr();for(const auto& request:requests){const auto left=merged.find(readPair(field(request,"leftPair"))),
+        right=merged.find(readPair(field(request,"rightPair")));if(left==merged.end()||right==merged.end()){junctions.array.push_back(Value());continue;}
+        auto intersection=own(ctx,GEOSIntersection_r(ctx,left->second.get(),right->second.get()));const auto empty=GEOSisEmpty_r(ctx,intersection.get());
+        if(empty==2)throw std::runtime_error("GEOS junction emptiness failed");if(empty==1){junctions.array.push_back(Value());continue;}
+        const auto a=inputPoint(field(request,"leftPoint")),b=inputPoint(field(request,"rightPoint"));
+        const Point reference{(a.x+a.x+normalized(b.x-a.x))/2,(a.y+b.y)/2};auto point=geometry(ctx,{reference},true);
+        auto* sequence=GEOSNearestPoints_r(ctx,point.get(),intersection.get());if(!sequence)throw std::runtime_error("GEOS nearest border junction failed");
+        Point target{};const int ok=GEOSCoordSeq_getX_r(ctx,sequence,1,&target.x)&&GEOSCoordSeq_getY_r(ctx,sequence,1,&target.y);
+        GEOSCoordSeq_destroy_r(ctx,sequence);if(!ok)throw std::runtime_error("GEOS border junction coordinate failed");target.x=normalized(target.x);
+        if(std::max(distance(a,target),distance(b,target))>25.0){junctions.array.push_back(Value());continue;}
+        auto value=Value::arr();value.array={Value::num(std::nearbyint(target.x*1000000.0)/1000000.0),Value::num(std::nearbyint(target.y*1000000.0)/1000000.0)};
+        junctions.array.push_back(std::move(value));}
+    auto result=Value::obj();result.object["junctions"]=std::move(junctions);return result;
+}
 void collectReferenceIndex(void* item,void* user){
     static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));
 }
@@ -932,6 +965,8 @@ Value run(const Value& input){
         return borderCandidateIndex(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="border-nearby-index")
         return borderCandidateIndex(input,true);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="border-junctions")
+        return borderJunctions(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")
         return referenceGuides(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&
