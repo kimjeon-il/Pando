@@ -32,14 +32,14 @@ Implemented: `tests/helpers/file-transport-fixtures.mjs` now owns the Browser in
 
 apps/editor/tests/helpers/world-fixture.mjs manually copies platform-ports.js, platform-runtime.js and runtime-context.js. T1/T2 already required manual edits to this list.
 
-Action: derive the fixture runtime closure from the existing dependency catalog, or centralize the copied runtime-module list in one helper.
+Implemented: `frontendSourceClosure()` derives fixture runtime modules from the canonical frontend source map, static ESM edges and `runtimeDependencies`; `world-fixture.mjs` now seeds only runtime roots.
 
-## T10 — P2 product-mode cleanup
+## T10 — P2 product-mode cleanup — implemented
 
 map-renderer-composition.js still owns Viewer-specific map-preparation wording/UI and map-input-presentation.js contains editor-specific interactive-target policy. These are product differences, not OS forks.
 
-Action: later inject product presentation/input hooks. Keep workspace-surfaces.js, project-session.js and Viewer/Editor top-level composition split.
+Implemented: shared renderer composition now receives a preparation presenter hook, and shared map input no longer receives productMode. Viewer and Editor own their map-preparation presenter and reserved input-target selector in product modules. Intentional capability/product owners such as workspace-surfaces.js and project-session.js remain unchanged.
 
 ## Order
 
-T6-T9 complete. Next: T10.
+T6-T10 complete.
