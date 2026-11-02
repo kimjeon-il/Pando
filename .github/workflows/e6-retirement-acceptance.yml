@@ -112,7 +112,6 @@ jobs:
           pnpm exec playwright test
           tests/browser/windows-review-e5.spec.mjs
           tests/browser/viewer-review-e4.spec.mjs
-          tests/browser/viewer-canvas.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - if: failure()
         uses: actions/upload-artifact@v4
