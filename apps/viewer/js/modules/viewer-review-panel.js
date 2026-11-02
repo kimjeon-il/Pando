@@ -64,22 +64,78 @@ export async function readReviewGeometry(inspection,sourceEntityId,change,{
   }
   return Object.freeze({before:output[0],after:output[1]});
 }
-function renderGeometryPair(document,d3,geometries){
-  if(!d3?.geoNaturalEarth1||!d3?.geoPath)
-    no('지도 투영 모듈을 사용할 수 없습니다.');
-  const frames=[['reviewBeforeMap',geometries.before],['reviewAfterMap',geometries.after]];
-  const values=frames.map(([id,geometry])=>geometry&&({type:'Feature',geometry,properties:{}})).filter(Boolean);
-  if(!values.length)no('표시할 원본 형상이 없습니다.');
-  // One identical read-only view/projection for before and after. The preview
-  // displays geometry alone, not the entire historical world or topology proof.
-  const projection=d3.geoNaturalEarth1().fitExtent([[12,12],[308,178]],{type:'FeatureCollection',features:values});
-  const path=d3.geoPath(projection);
-  for(const [id,geometry] of frames){
+/** Bounded UI-only lon/lat sketch: common frame, wrapped longitude seam, no runtime map owner. */
+export function buildReviewPreviewPaths(geometries){
+  const frames=[geometries?.before??null,geometries?.after??null];
+  const allRings=[],separate=[],longitudes=[],latitudes=[];
+  let total=0;
+  for(const geometry of frames){
+    if(geometry===null){separate.push(null);continue;}
+    if(!['Polygon','MultiPolygon'].includes(geometry?.type))
+      no('원본 형상 미리보기는 Polygon/MultiPolygon만 지원합니다.');
+    const polygons=geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
+    if(!Array.isArray(polygons)||!polygons.length)no('원본 형상 좌표가 비어 있습니다.');
+    const own=[];
+    for(const polygon of polygons){
+      if(!Array.isArray(polygon)||!polygon.length)no('원본 다각형 링이 없습니다.');
+      for(const ring of polygon){
+        if(!Array.isArray(ring)||ring.length<4)no('다각형 링의 좌표가 부족합니다.');
+        if(++total>100000)no('한 번에 표시할 원본 링의 수가 너무 많습니다.');
+        const points=[];
+        for(const pos of ring){
+          if(!Array.isArray(pos)||pos.length<2||!Number.isFinite(pos[0])
+            ||!Number.isFinite(pos[1])||pos[0]<-180||pos[0]>180||pos[1]<-90||pos[1]>90)
+            no('경위도 좌표 값이 올바르지 않습니다.');
+          points.push(pos);
+          longitudes.push((pos[0]+360)%360);
+          latitudes.push(pos[1]);
+          if(longitudes.length>250000)no('원본 정점 수가 안전한 화면 비교 한도를 초과했습니다.');
+        }
+        own.push(points);allRings.push(points);
+      }
+    }
+    separate.push(own);
+  }
+  if(!allRings.length)no('표시할 원본 형상이 없습니다.');
+  // Pick the longest empty longitude gap as the common seam. This avoids
+  // drawing a line across the entire map for a feature near the dateline.
+  const sortedLon=[...longitudes].sort((a,b)=>a-b);
+  let seam=sortedLon[0],largestGap=-1;
+  for(let i=0;i<sortedLon.length;i++){
+    const after=i+1<sortedLon.length?sortedLon[i+1]:sortedLon[0]+360;
+    const gap=after-sortedLon[i];
+    if(gap>largestGap){largestGap=gap;seam=after%360;}
+  }
+  const unwrap=lon=>{
+    const normalized=(lon+360)%360;
+    return normalized<seam?normalized+360:normalized;
+  };
+  const xs=longitudes.map(x=>x<seam?x+360:x);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...latitudes),maxY=Math.max(...latitudes);
+  const availableWidth=296,availableHeight=166;
+  const scale=Math.min(availableWidth/Math.max(maxX-minX,0.00001),
+    availableHeight/Math.max(maxY-minY,0.00001));
+  if(!Number.isFinite(scale)||scale<=0)no('형상 표시 축척을 계산하지 못했습니다.');
+  const offsetX=160-(maxX-minX)*scale/2;
+  const offsetY=95-(maxY-minY)*scale/2;
+  const point=p=>(offsetX+(unwrap(p[0])-minX)*scale).toFixed(2)
+    +' '+(offsetY+(maxY-p[1])*scale).toFixed(2);
+  return Object.freeze({
+    before:separate[0]===null?null:separate[0].map(ring=>
+      'M'+ring.map(point).join('L')+'Z').join(''),
+    after:separate[1]===null?null:separate[1].map(ring=>
+      'M'+ring.map(point).join('L')+'Z').join(''),
+  });
+}
+function renderGeometryPair(document,geometries){
+  const paths=buildReviewPreviewPaths(geometries);
+  for(const [id,key] of [['reviewBeforeMap','before'],['reviewAfterMap','after']]){
     const svg=document.getElementById(id);
     svg.replaceChildren();
-    if(geometry){
+    if(paths[key]!==null){
       const node=document.createElementNS('http://www.w3.org/2000/svg','path');
-      node.setAttribute('d',path({type:'Feature',geometry,properties:{}})||'');
+      node.setAttribute('d',paths[key]);
       svg.appendChild(node);
     }else{
       const node=document.createElementNS('http://www.w3.org/2000/svg','text');
@@ -255,7 +311,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
         signal:activeFetch.signal,sourceBytes:useLocal?rawObjectBytes:null,
       });
       if(disposed||ticket!==requestSerial)return;
-      renderGeometryPair(document,window.d3,pair);
+      renderGeometryPair(document,pair);
       get('reviewGeometryPreviews').hidden=false;
       feedback('reviewCompareStatus','두 형상 원본 SHA-256 검증 완료. 같은 투영으로 비교 표시 중 (국경 위상·역사 정확성 미검증).');
     }catch(error){
