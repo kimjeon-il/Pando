@@ -186,7 +186,8 @@ test('E2 chronology stays sidecar-only and deterministic across independent prop
   assert.deepEqual(rows,indexReviewHistory([x,y]));
   assert.equal(rows[0].sourceEntityId,'state:EXAMPLE_A');
   assert.equal(rows[0].proposalId,'fixture-review-001');
-  assert.equal(rows[1].proposalId,'fixture-review-002');
+  assert.deepEqual(rows.filter(row=>row.kind==='geometry').map(row=>row.proposalId),
+    ['fixture-review-001','fixture-review-002']);
   assert.ok(Object.isFrozen(rows[0]));
   assert.ok(Object.isFrozen(rows[0].evidenceIds));
   assert.throws(()=>indexReviewHistory([x,x]),/Duplicate proposalId/);
