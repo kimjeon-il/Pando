@@ -51,7 +51,9 @@ export function auditHydroOsm(manifest,bundle,{baseline=false}={}) {
     const fromOsm=(row.osmRelationIds||[]).length>0;
     const osmSource=/\bOSM waterway names\b/i.test(String(row.source||''));
     if(fromOsm||osmSource)found.add(id);
-    if(fromOsm!==osmSource&&osmSource)sourceViolations.push({systemId:id,fid:row.fid,kind:'OSM source label without relation'});
+    // One logical Hydro system may have many fragments; OSM relation IDs are stored only on its first.
+    if(Number(coreRow.fragmentIndex??0)===0 && osmSource && !fromOsm)
+      sourceViolations.push({systemId:id,fid:row.fid,kind:'OSM first-fragment label without relation'});
     if((row.independentSourceUrls||[]).some(url=>/openstreetmap|overpass/i.test(url)))danglingSources.add(id);
   }
   const matched=sortIds(found),declared=Number(manifest.stats?.osmWaterwayMatchCount);
@@ -67,6 +69,9 @@ export function auditHydroOsm(manifest,bundle,{baseline=false}={}) {
   }
   return {
     remainingCount:matched.length,remainingSystemIds:matched,
+    staleManifestOsmSource:declared===0 && (/\bOSM waterway names\b/i.test(String(manifest.dataset||''))
+      || typeof manifest.sources.osmWaterways?.file==='string'
+      || /OSM/i.test(String(manifest.sources.osmWaterways?.license||''))),
     inconsistentLabels:sourceViolations,independentUrlOsmContamination:sortIds(danglingSources),
     hydroShapeUnchangedByThisAudit:true,
     independentSourcesVerifiedByThisAudit:false,
@@ -92,6 +97,7 @@ export function auditOsmCreditRemoval({hydro,baikonur,otherRuntimeOsmUses=[]}={}
     ...(hydro.remainingCount?['Hydro OSM systems: '+hydro.remainingCount]:[]),
     ...(hydro.inconsistentLabels.length?['Hydro source label inconsistency']:[]),
     ...(hydro.independentUrlOsmContamination.length?['Hydro independent URLs include OSM']:[]),
+    ...(hydro.staleManifestOsmSource?['Hydro manifest still declares OSM-source data']:[]),
     ...(!officialBoundaryReady?['Baikonur independently verified right-bank geometry/exclusions missing']:[]),
     ...otherRuntimeOsmUses.map(item=>'Other OSM runtime use: '+item),
   ];
