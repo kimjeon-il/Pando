@@ -6,6 +6,7 @@ import {existsSync,statSync,writeFileSync} from 'node:fs';
 import {basename,delimiter,dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
+import {reportArgument} from '../report-paths.mjs';
 import {verifyNativeTool} from '../native-tool.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
@@ -232,12 +233,15 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     if(positionals.length||!['cpu','cuda'].includes(values.device)||!['fp32','amp-fp16'].includes(values.precision))throw Error('Explicit macro batch configuration required');
     if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.order||values.supervision||values.reviewed||values.publisher))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and an order directory');
     if(!values.auxiliary&&(values['allow-nonmacro-auxiliary']||values['order-directory']))throw Error('Auxiliary corpus required for combined scope');
-    const common={mode:values.mode,input:values.input,output:values.output,corpus:values.corpus,
+    const common={mode:values.mode,input:reportArgument(values.input,{access:'read',siblings:true}),output:reportArgument(values.output,{access:'write'}),
+      corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
       epoch:integer('epoch'),seed:integer('seed'),freezeEpochs:integer('freeze-epochs'),learningRate:Number(values['learning-rate']),
       device:values.device,amp:values.precision==='amp-fp16',torchLibrary:values['torch-library'],
-      count:integer('count'),sampleOutput:values['sample-output'],augment:values.augment};
-    const result=values.auxiliary?await runCombinedTrainingBatch({...common,auxiliary:values.auxiliary,orderDirectory:values['order-directory'],macroOnly:false}):
-      await runTrainingBatch({...common,order:values.order,supervision:values.supervision,reviewed:values.reviewed,publisher:values.publisher});
+      count:integer('count'),sampleOutput:reportArgument(values['sample-output'],{access:'write'}),augment:values.augment};
+    const result=values.auxiliary?await runCombinedTrainingBatch({...common,auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),
+      orderDirectory:reportArgument(values['order-directory'],{access:'read'}),macroOnly:false}):
+      await runTrainingBatch({...common,order:reportArgument(values.order,{access:'read',siblings:true}),
+        supervision:reportArgument(values.supervision,{access:'read'}),reviewed:values.reviewed,publisher:values.publisher});
     console.log(JSON.stringify(result));
   }catch(error){console.error('native-training-batch: '+error.message);process.exitCode=1;}
 }

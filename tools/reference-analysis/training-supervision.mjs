@@ -4,6 +4,7 @@ import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
+import {reportArgument} from '../report-paths.mjs';
 import {REFERENCE_BOUNDARY_CHANNELS} from '../../plugins/pando-map-tools/lib/analysis/tiles.mjs';
 import {readTrainingBounded} from './training-evidence.mjs';
 import {verifiedMacroTrainingSource,recheckTrainingSources} from './macro-training-source.mjs';
@@ -67,6 +68,7 @@ export async function verifyTrainingSupervision({corpus,directory,reviewed=false
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},output:{type:'string'},reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false}}});
     if(positionals.length||!values.corpus||!values.output)throw Error('Explicit --corpus and --output required');
-    console.log(JSON.stringify(await writeTrainingSupervision(values)));
+    console.log(JSON.stringify(await writeTrainingSupervision({...values,corpus:reportArgument(values.corpus,{access:'read',siblings:true}),
+      output:reportArgument(values.output,{access:'write'})})));
   }catch(error){console.error('training-supervision: '+error.message);process.exitCode=1;}
 }

@@ -15,6 +15,14 @@ test('combined batch CLI requires explicit nonmacro auxiliary scope',()=>{
   const result=spawnSync(process.execPath,['tools/reference-analysis/native-training-batch.mjs','--auxiliary','semap.json','--device','cpu','--precision','fp32'],{encoding:'utf8',timeout:10000});
   assert.equal(result.status,1);assert.match(result.stderr,/explicit nonmacro/i);
 });
+test('training batch and supervision CLIs resolve canonical report inputs',()=>{
+  for(const [script,args] of [
+    ['training-supervision.mjs',['--corpus','reports/not-a-report-subject/corpus.json','--output','unused']],
+    ['native-training-batch.mjs',['--mode','warm','--input','unused','--output','unused-output','--corpus','reports/not-a-report-subject/corpus.json',
+      '--device','cpu','--precision','fp32']]
+  ]){const result=spawnSync(process.execPath,['tools/reference-analysis/'+script,...args],{encoding:'utf8',timeout:10000});
+    assert.notEqual(result.status,0);assert.match(result.stderr,/canonical report subject/i);}
+});
 
 test('training batch management rejects changed samples and preserves existing outputs',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-training-batch-'));t.after(()=>rmSync(root,{recursive:true}));
