@@ -31,7 +31,7 @@ struct RuntimeState {
 fn shell_initialization() -> String {
     format!(
         "Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_LIBRARY_AVAILABLE', {{ value: {}, writable: false, configurable: false }});\
-         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});\\
+         Object.defineProperty(globalThis, 'PANDOLAB_SHELL_VERIFICATION', {{ value: {}, writable: false, configurable: false }});\
          Object.defineProperty(globalThis, 'PANDOLAB_NATIVE_REVIEW', {{ value: {}, writable: false, configurable: false }});",
         cfg!(windows), cfg!(feature = "verification"), cfg!(windows)
     )
