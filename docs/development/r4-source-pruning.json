@@ -4,7 +4,7 @@
   "removedSourceCount": 50,
   "removedTestCount": 10,
   "remainingSourceCount": 103,
-  "extractedGisModules": 15,
+  "extractedGisModules": 16,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
     "apps/editor/frontend/js/app.js",
@@ -88,7 +88,8 @@
       "tools/gis/geometry-validation.js",
       "tools/gis/country-import-merge.js",
       "tools/gis/territorial-batch-calculation.js",
-      "tools/gis/territory-component-plan.js"
+      "tools/gis/territory-component-plan.js",
+      "tools/gis/country-geometry-calculator.js"
     ],
     "removedArchivedModules": [
       "apps/editor/frontend/js/modules/geometry-metrics.js",
@@ -96,6 +97,12 @@
       "apps/editor/frontend/js/modules/territory-component-plan.js"
     ],
     "retainedWorkerAdapter": "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
-    "decision": "Preserve C++/WASM spatial numerical kernel and relevant GIS tests; leave obsolete editor UI/Worker orchestration for R4-D/E"
+    "decision": "Preserve C++/WASM spatial numerical kernel and relevant GIS tests; leave obsolete editor UI/Worker orchestration for R4-D/E",
+    "workerBridges": [
+      "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
+      "apps/editor/frontend/js/modules/map-edit-country-commands.js",
+      "apps/editor/frontend/js/modules/polygon-clipping-calculation.js",
+      "apps/editor/frontend/js/modules/river-territory-partition.js"
+    ]
   }
 }

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import {createLandRelations} from "../../apps/editor/frontend/js/modules/app-land-relations.js";
-import {createCountryCommandCalculator} from "../../apps/editor/frontend/js/modules/map-edit-country-commands.js";
+import {createCountryCommandCalculator} from "../../tools/gis/country-geometry-calculator.js";
 import {createTerritorialFeature,territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
 import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
 import {testCoreProject,initializeTestTerritorialState} from '../helpers/timeline-project.mjs';

@@ -9,6 +9,7 @@ import {distanceKm,geometryAreaKm2,lineDistanceKm} from '../../tools/gis/geometr
 import {validateCollection} from '../../tools/gis/geometry-validation.js';
 import {createCountryImportMergePlanner} from '../../tools/gis/country-import-merge.js';
 import {calculateLibraryBatch} from '../../tools/gis/territorial-batch-calculation.js';
+import {createCountryCommandCalculator} from '../../tools/gis/country-geometry-calculator.js';
 import {createTerritoryComponentPlan} from '../../tools/gis/territory-component-plan.js';
 import {normalizePolygonGeometry} from '../../shared/frontend/js/modules/map-edit-geometry.js';
 
@@ -33,6 +34,16 @@ test('R4-C canonical spatial adapters rely on one shared C++ calculation owner',
  assert.match(validate,/from '.\/polygon-clipping-calculation\.js'/);
  assert.match(batch,/from '.\/country-import-merge\.js'/);
  assert.match(batch,/from '.\/geometry-validation\.js'/);
+ const calculator=read('tools/gis/country-geometry-calculator.js');
+ assert.match(calculator,/from '.\/polygon-clipping-calculation\.js'/);
+ assert.doesNotMatch(calculator,/apps\/editor\/frontend|window\.|document\.|commandOwner/);
+ assert.equal(typeof createCountryCommandCalculator,'function');
+ assert.match(read('apps/editor/frontend/js/modules/map-edit-country-commands.js'),
+   /export \{createCountryCommandCalculator\} from/);
+ assert.match(read('apps/editor/frontend/js/modules/polygon-clipping-calculation.js'),
+   /export \{clippingOperationWithPrecisionRetry\} from/);
+ assert.match(read('apps/editor/frontend/js/modules/river-territory-partition.js'),
+   /export \* from/);
 });
 
 test('R4-C metrics keep antimeridian distance and hole-aware polygon areas',()=>{

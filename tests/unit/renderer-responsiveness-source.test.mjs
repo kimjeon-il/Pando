@@ -103,7 +103,7 @@ test('Canvas Worker persists independently revisioned view and style state', () 
 
 test('map edit calculation preserves originals and shares untouched country objects', async () => {
   await import("../../shared/frontend/js/vendor/polygon-clipping.min.js");
-  const { createCountryCommandCalculator } = await import("../../apps/editor/frontend/js/modules/map-edit-country-commands.js");
+  const { createCountryCommandCalculator } = await import("../../tools/gis/country-geometry-calculator.js");
   const { normalizePolygonGeometry } = await import("../../shared/frontend/js/modules/map-edit-geometry.js");
   const square = x => normalizePolygonGeometry({ type: 'Polygon', coordinates: [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 1], [x, 0]]] });
   const countries = new Map(['source', 'target', 'untouched'].map((id, index) => [id, { type: 'Feature', id, properties: {}, geometry: square(index) }]));

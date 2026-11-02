@@ -12,8 +12,9 @@ Status: implemented in a branch-local commit; final CI to determine acceptance.
 | `tools/gis/country-import-merge.js` | Country identity, overlay planning and affected-area accounting using C++ merge plan | Extracted from `import-service.js` |
 | `tools/gis/territorial-batch-calculation.js` | Deterministic country/donor replacement, source preservation, precision discard and scope validation | Extracted from `map-edit-library-calculation.js` |
 | `tools/gis/territory-component-plan.js` | Read-only, independent polygon component preparation and residual/sliver conservation | `territory-component-plan.js` (deleted) |
+| `tools/gis/country-geometry-calculator.js` | Deterministic country cut/merge/new-country geometry; sole precision retry uses canonical C++ polygon wrapper | Calculation extracted from `map-edit-country-commands.js` |
 
-The GIS-only calculation modules do not depend on the graphical editor's DOM, Worker orchestration, draft data models or native IPC. The archived `map-edit-library-calculation.js` retains only the legacy Worker export bridge, which is scheduled for deletion alongside its Worker in R4-D/E.
+The GIS-only calculation modules do not depend on the graphical editor's DOM, Worker orchestration, draft data models or native IPC. Legacy `map-edit-country-commands.js`, `polygon-clipping-calculation.js`, and `river-territory-partition.js` now contain only forwarding exports to their canonical GIS counterparts until the archived Worker and UI are removed. The archived `map-edit-library-calculation.js` retains only the legacy Worker export bridge, which is scheduled for deletion alongside its Worker in R4-D/E.
 
 `coast-reconciliation.js`, `geometry-snap.js`, `boundary-preparation.js`, `geometry-segment-index.js` and other draft/edit-only functions remain in the unshipped editor tree; they have no current GIS CLI consumers and should **not** be copied into tools/gis merely to preserve obsolete editing behavior. R4-D/E should classify their tests and retire them with the editor.
 

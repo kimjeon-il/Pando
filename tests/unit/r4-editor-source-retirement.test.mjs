@@ -19,7 +19,7 @@ test('R4 preserves GIS and C++ serializer contracts outside the legacy editor',(
    'exchange-adapter-registry','cut-worker-preparation',
    'river-territory-partition','polygon-clipping-calculation','timeline-edit',
    'geometry-metrics','geometry-validation','country-import-merge',
-   'territorial-batch-calculation','territory-component-plan',
+   'territorial-batch-calculation','territory-component-plan','country-geometry-calculator',
    'territorial-geometry','territorial-library-provenance'])
    assert.equal(exists('tools/gis/'+name+'.js'),true,'Canonical GIS contract missing: '+name);
  assert.equal(exists('shared/frontend/js/modules/generic-feature-normalization.js'),true,

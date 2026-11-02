@@ -20,6 +20,10 @@ on:
       - tests/unit/import-service.test.mjs
       - tests/unit/edit-preparation.test.mjs
       - tests/unit/library-shared-border-precision.test.mjs
+      - tests/unit/annex-slivers.test.mjs
+      - tests/unit/land-relations-presentation.test.mjs
+      - tests/unit/river-territory-partition-serbia.test.mjs
+      - tests/unit/shared-geometry-calculations.test.mjs
       - tests/unit/*territorial*.test.mjs
       - tests/unit/*soviet*.test.mjs
       - tests/unit/ussr-1922-selection.test.mjs
@@ -76,6 +80,10 @@ jobs:
           tests/unit/import-service.test.mjs
           tests/unit/edit-preparation.test.mjs
           tests/unit/library-shared-border-precision.test.mjs
+          tests/unit/annex-slivers.test.mjs
+          tests/unit/land-relations-presentation.test.mjs
+          tests/unit/river-territory-partition-serbia.test.mjs
+          tests/unit/shared-geometry-calculations.test.mjs
           tests/unit/builtin-world-catalog.test.mjs
           tests/unit/period-only-world.test.mjs
           tests/unit/historical-world-timeline.test.mjs

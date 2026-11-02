@@ -8,7 +8,7 @@ import { gunzipSync } from 'node:zlib';
 import test from 'node:test';
 import { buildRiverTerritoryPartitions, createRiverPartitionWorkspace } from "../../tools/gis/river-territory-partition.js";
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
-import { createCountryCommandCalculator } from "../../apps/editor/frontend/js/modules/map-edit-country-commands.js";
+import { createCountryCommandCalculator } from "../../tools/gis/country-geometry-calculator.js";
 import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
 
 const root = new URL('../../', import.meta.url);
