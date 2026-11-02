@@ -325,6 +325,40 @@ Value riverSystems(const Value& request){
     }
     auto result=Value::obj();result.object["systems"]=std::move(systems);result.object["fragments"]=std::move(fragments);return result;
 }
+Value widthProfile(const Value& request){
+    const auto& reaches=elements(field(request,"reaches"));if(reaches.size()>1000000)throw std::invalid_argument("Hydro width input exceeds budget");
+    auto output=Value::arr();std::size_t pointsSeen=0;
+    for(const auto& reach:reaches){const double start=pandoeditor::codecjson::finiteNumber(field(reach,"width")),end=pandoeditor::codecjson::finiteNumber(field(reach,"endWidth"));
+        for(const auto& part:elements(field(reach,"parts"))){const auto& coordinates=elements(part);if(coordinates.size()<2)continue;
+            pointsSeen+=coordinates.size();if(pointsSeen>10000000)throw std::invalid_argument("Hydro width coordinates exceed budget");
+            std::vector<double> cumulative; cumulative.reserve(coordinates.size());cumulative.push_back(0);double lastX=0,lastY=0;
+            for(std::size_t i=0;i<coordinates.size();++i){const auto& xy=elements(coordinates[i]);if(xy.size()!=2)throw std::invalid_argument("Invalid Hydro width point");
+                const double x=pandoeditor::codecjson::finiteNumber(xy[0]),y=pandoeditor::codecjson::finiteNumber(xy[1]);
+                if(i){const double mean=((lastY+y)/2.0)*(kPi/180.0),dx=(x-lastX)*std::cos(mean),dy=y-lastY;
+                    const double next=cumulative.back()+std::hypot(dx,dy);if(!std::isfinite(next))throw std::invalid_argument("Invalid Hydro width length");cumulative.push_back(next);}
+                lastX=x;lastY=y;}
+            auto widths=Value::arr();const auto total=cumulative.back();for(const auto distance:cumulative){
+                const double value=total<=1e-12?start:start+(end-start)*distance/total;
+                if(!std::isfinite(value))throw std::invalid_argument("Invalid Hydro width value");widths.array.push_back(Value::num(value));}
+            output.array.push_back(std::move(widths));}}
+    auto result=Value::obj();result.object["widths"]=std::move(output);return result;
+}
+Value featurePolicy(const Value& request){
+    const auto order=integer(field(request,"order"));const double flow=pandoeditor::codecjson::finiteNumber(field(request,"flow")),
+      area=pandoeditor::codecjson::finiteNumber(field(request,"upstreamArea")),lake=pandoeditor::codecjson::finiteNumber(field(request,"lakeArea")),
+      zoom=pandoeditor::codecjson::finiteNumber(field(request,"zoom"));
+    const double score=static_cast<double>(order)+4.0*std::log10(std::max(flow,1e-6))-0.5*std::log10(std::max(area,1e-6));
+    const double rawWidth=0.5+0.19*std::log2(1.0+std::max(flow,0.0))+0.06*std::max(static_cast<double>(order)-1.0,0.0);
+    if(!std::isfinite(score)||!std::isfinite(rawWidth))throw std::invalid_argument("Invalid Hydro feature score");
+    const double riverThresholds[]={14.4744,12.4307,11.2137,10.55},lakeThresholds[]={250.0,100.0,40.0,40.0},zoomThresholds[]={6.0,6.7,7.0,7.5};
+    Value river,lakeStage;int zoomStage=3;
+    for(int stage=0;stage<4;++stage)if(score>=riverThresholds[stage]){river=Value::num(stage);break;}
+    for(int stage=0;stage<4;++stage)if(lake>=lakeThresholds[stage]){lakeStage=Value::num(stage);break;}
+    for(int stage=0;stage<4;++stage)if(zoom<=zoomThresholds[stage]+1e-9){zoomStage=stage;break;}
+    auto result=Value::obj();result.object["score"]=Value::num(score);result.object["riverStage"]=river;
+    result.object["width"]=Value::num(std::max(0.55,std::min(2.6,rawWidth)));
+    result.object["lakeStage"]=lakeStage;result.object["minZoomStage"]=Value::num(zoomStage);return result;
+}
 }
 int main() {
     try {
@@ -335,6 +369,8 @@ int main() {
         else if(str(mode->second)=="audit")std::cout<<doAudit(std::move(request)).encode()<<'\n';
         else if(str(mode->second)=="logical-chains")std::cout<<logicalChains(request).encode()<<'\n';
         else if(str(mode->second)=="river-systems")std::cout<<riverSystems(request).encode()<<'\n';
+        else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
+        else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
     }catch(const std::exception& error) {

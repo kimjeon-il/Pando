@@ -68,6 +68,25 @@ nativeTest('river systems select mainstems and split stages without changing sou
   ]);
   assert.deepEqual(ties.fragments,[[[3],[4]],[[19]]]);
 });
+nativeTest('river width profiles interpolate by latitude-adjusted segment length',()=>{
+  const result=run({mode:'width-profile',reaches:[
+    {width:1,endWidth:4,parts:[[[0,0],[1,0],[1,2]],[[5,5],[5,5]],[[1,1]]]},
+    {width:2,endWidth:3,parts:[[[0,60],[2,60],[2,61]]]},
+  ]});
+  assert.equal(result.widths.length,3);
+  assert.deepEqual(result.widths[0],[1,2,4]);assert.deepEqual(result.widths[1],[1,1]);
+  assert.ok(Math.abs(result.widths[2][1]-2.5)<1e-12);assert.equal(result.widths[2][2],3);
+});
+nativeTest('hydro visibility and symbolic width use the fixed source thresholds',()=>{
+  const small=run({mode:'feature-policy',order:1,flow:0,upstreamArea:0,lakeArea:40,zoom:7.0000000005});
+  assert.equal(small.score,-20);assert.equal(small.riverStage,null);assert.equal(small.width,.55);
+  assert.equal(small.lakeStage,2);assert.equal(small.minZoomStage,2);
+  const large=run({mode:'feature-policy',order:20,flow:1e12,upstreamArea:1,lakeArea:250,zoom:6});
+  assert.equal(large.score,68);assert.equal(large.riverStage,0);assert.equal(large.width,2.6);
+  assert.equal(large.lakeStage,0);assert.equal(large.minZoomStage,0);
+  const middle=run({mode:'feature-policy',order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002});
+  assert.equal(middle.score,12);assert.equal(middle.riverStage,2);assert.equal(middle.lakeStage,null);assert.equal(middle.minZoomStage,3);
+});
 
 function scenario(name) {
   const input=fixture();
