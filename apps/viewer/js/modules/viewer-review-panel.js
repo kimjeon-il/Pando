@@ -110,9 +110,12 @@ export function buildReviewPreviewPaths(geometries){
     const normalized=(lon+360)%360;
     return normalized<seam?normalized+360:normalized;
   };
-  const xs=longitudes.map(x=>x<seam?x+360:x);
-  const minX=Math.min(...xs),maxX=Math.max(...xs);
-  const minY=Math.min(...latitudes),maxY=Math.max(...latitudes);
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(let i=0;i<longitudes.length;i++){
+    const x=longitudes[i]<seam?longitudes[i]+360:longitudes[i],y=latitudes[i];
+    minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+    minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+  }
   const availableWidth=296,availableHeight=166;
   const scale=Math.min(availableWidth/Math.max(maxX-minX,0.00001),
     availableHeight/Math.max(maxY-minY,0.00001));
