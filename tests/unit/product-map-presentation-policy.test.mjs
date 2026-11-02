@@ -20,6 +20,7 @@ test('shared renderer and input presentation stay product-neutral',()=>{
   assert.doesNotMatch(renderer,/mapPreparationNotice/);
   assert.match(renderer,/presentMapPreparation/);
   assert.match(renderer,/Map renderer requires a preparation presenter\./);
+  assert.match(renderer,/presentMapPreparation\(presentation/);
   assert.doesNotMatch(input,/\bproductMode\b/);
   assert.doesNotMatch(input,/\.editor-drawer|\.project-bounds-picker/);
   assert.match(input,/reservedTargetSelector/);
