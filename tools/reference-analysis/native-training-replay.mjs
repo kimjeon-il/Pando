@@ -82,6 +82,7 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
   const corpusPath=resolve(corpus),corpusBytes=readTrainingBounded(corpusPath,32*1024*1024),corpusHash=sha(corpusBytes),manifest=JSON.parse(corpusBytes),root=dirname(corpusPath);
   const auxiliaryPath=auxiliary?resolve(auxiliary):null,auxiliaryHash=auxiliaryPath?trainingFileIdentity(auxiliaryPath):null,
     lineageFingerprint=auxiliaryPath?await corpusFingerprint(corpusPath,auxiliaryPath):null;
+  const trainingCorpusFingerprint=lineageFingerprint??await corpusFingerprint(corpusPath);
   const entries=checkpoints.map(value=>{const path=resolve(value),bytes=readTrainingBounded(path+'.receipt.json',1024*1024),receipt=JSON.parse(bytes);
     const checkpointSha256=trainingFileIdentity(path);if(!Number.isSafeInteger(receipt.checkpointBytes)||statSync(path).size!==receipt.checkpointBytes)
       throw Error('Checkpoint size differs from its receipt');
@@ -139,13 +140,14 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
   if(trainingFileIdentity(corpusPath)!==corpusHash||verifyTrainingInitializer({path:weights}).recordHash!==initializer.recordHash||
     supervisionPaths.some((path,index)=>trainingFileIdentity(path)!==supervisionHashes[index])||
     auxiliaryPath&&(trainingFileIdentity(auxiliaryPath)!==auxiliaryHash||await corpusFingerprint(corpusPath,auxiliaryPath)!==lineageFingerprint)||
+    !auxiliaryPath&&await corpusFingerprint(corpusPath)!==trainingCorpusFingerprint||
     selectionPath&&(trainingFileIdentity(selectionPath)!==selectionHash||await corpusFingerprint(selectionPath)!==selectionFingerprint)||
     [...orders].some(([path,order])=>trainingFileIdentity(path)!==order.verified.orderSha256||trainingFileIdentity(order.orderReceiptPath)!==order.receiptHash||
       order.weightsPath&&trainingFileIdentity(order.weightsPath)!==order.verified.weightsSha256)||
     entries.some(entry=>trainingFileIdentity(entry.path)!==entry.checkpointSha256||trainingFileIdentity(entry.path+'.receipt.json')!==entry.receiptSha256))
     throw Error('Training replay inputs changed during verification');
   return {schemaVersion:1,sourceReplayVerified:true,checkpointLinksVerified:true,optimizerUpdatesReplayed:false,lineageComplete:false,
-    independentEvaluation:false,releaseApproved:false,...totals,corpusSha256:corpusHash,...(selectionPath?{selectionExposureVerified:true,lineageCandidate}:{}),
+    independentEvaluation:false,releaseApproved:false,...totals,corpusSha256:corpusHash,trainingCorpusFingerprint,...(selectionPath?{selectionExposureVerified:true,lineageCandidate}:{}),
     ...(auxiliaryPath?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint}:{}),checkpointSha256:entries.at(-1).checkpointSha256};
 }
 

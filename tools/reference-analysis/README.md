@@ -173,6 +173,13 @@ lineage; source-only replay and transferred checkpoints remain incomplete.
 ordered checkpoints, weights, training corpus, supervision and a new scratch
 directory. It reruns that proof against the requested validation corpus before
 checking training ancestry; this does not approve the model or its accuracy.
+`native-evaluate-source.mjs` accepts the same proof with repeated
+`--replay-checkpoint` arguments plus `--replay-weights`, `--replay-corpus`,
+`--replay-selection`, `--replay-supervision` and `--replay-scratch`. For a
+mixed corpus use `--replay-auxiliary` in place of `--replay-supervision`.
+Final-test sources are checked against both training and selection exposure.
+Its `trainingCorpusSha256` is the full fingerprint; the primary manifest hash
+is recorded separately as `trainingCorpusManifestSha256`.
 Replay accepts up to 100,000 explicitly ordered checkpoints, as source replay
 does. It estimates scratch space for all selected batches and checks for at
 least 5 GiB additional free space before a replay needing 1 GiB or more.

@@ -22,6 +22,7 @@ test('lineage retains ancestors and records validation selection without includi
   const result=buildTrainingLineage([fresh,selection,ignored],{parent,parentSha256:'c'.repeat(64)});
   assert.deepEqual(result.parents,['c'.repeat(64)]);assert.equal(result.sheets.length,3);assert.equal(result.sheets[2].usage,'selection');
   assert.doesNotThrow(()=>assertEvaluationIndependence(result,[sheet('test','test')]));
+  assert.throws(()=>assertEvaluationIndependence(result,[{...selection,split:'test'}]),/id/);
   const leaked={...sheet('different','test'),familyId:original.familyId};assert.throws(()=>assertEvaluationIndependence(result,[leaked]),/familyId/);
   assert.throws(()=>assertEvaluationIndependence(result,[selection]),/independent/i);
 });

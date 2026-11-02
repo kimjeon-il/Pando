@@ -1,13 +1,23 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {evaluateReviewedCheckpointCorpus,evaluateReviewedCheckpointSource,finalizeReviewedEvaluation} from '../../tools/reference-analysis/native-evaluate-source.mjs';
+import {evaluateReviewedCheckpointCorpus,evaluateReviewedCheckpointSource,finalizeReviewedEvaluation,trainingCorpusIdentity} from '../../tools/reference-analysis/native-evaluate-source.mjs';
 import {metricsFromCounts} from '../../tools/reference-analysis/native-evaluation.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('evaluation distinguishes a manifest hash from the full training fingerprint',()=>{
+  const manifest='a'.repeat(64),fingerprint='b'.repeat(64);
+  assert.deepEqual(trainingCorpusIdentity({mode:'checkpoint',receipt:{corpusSha256:manifest}}),
+    {trainingCorpusSha256:null,trainingCorpusManifestSha256:manifest});
+  assert.deepEqual(trainingCorpusIdentity({mode:'checkpoint',receipt:{corpusSha256:manifest},replayedFingerprint:fingerprint}),
+    {trainingCorpusSha256:fingerprint,trainingCorpusManifestSha256:manifest});
+  assert.equal(trainingCorpusIdentity({mode:'checkpoint',receipt:{corpusSha256:manifest,lineageFingerprint:fingerprint}}).trainingCorpusSha256,fingerprint);
+  assert.throws(()=>trainingCorpusIdentity({mode:'checkpoint',receipt:{corpusSha256:manifest,lineageFingerprint:'invalid'}}),/fingerprint/i);
+});
 test('diagnostic and partial review cannot claim independent admission',()=>{
   const counts=[[4,4,4,4],[0,0,0,0],[0,0,0,0]],perSheet={fixture:metricsFromCounts(counts)};
   const confounders={fixture:{text:{international:{falsePositive:0,pixels:4}}}};
@@ -33,6 +43,10 @@ test('source evaluation protects test scope and incomplete training ancestry',as
   const save=()=>writeFileSync(checkpoint+'.receipt.json',JSON.stringify(receipt));save();
   const request={checkpoint,corpus,sourceId:'fixture',device:'cpu',torchLibrary:root};
   await assert.rejects(evaluateReviewedCheckpointSource(request),/ancestry/i);
+  await assert.rejects(evaluateReviewedCheckpointSource({...request,lineageReplay:{checkpoints:[]}}),/replay.*checkpoint/i);
+  const incomplete=spawnSync(process.execPath,['tools/reference-analysis/native-evaluate-source.mjs','--checkpoint',checkpoint,'--corpus',corpus,
+    '--output',join(root,'incomplete.json'),'--device','cpu','--torch-library',root,'--replay-checkpoint',checkpoint],{encoding:'utf8'});
+  assert.notEqual(incomplete.status,0);assert.match(incomplete.stderr,/replay.*configuration/i);
   const protectedOutput=join(root,'protected.json');writeFileSync(protectedOutput,'keep');
   await assert.rejects(evaluateReviewedCheckpointCorpus({...request,output:protectedOutput}),/output already exists/i);
   assert.equal(readFileSync(protectedOutput,'utf8'),'keep');

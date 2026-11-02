@@ -124,6 +124,17 @@ export async function compareNativeTrainingCheckpoints({first,second,device='cpu
     throw Error('Checkpoint comparison input changed during execution');
   return {...result,firstSha256:inputs[0].hash,secondSha256:inputs[1].hash};
 }
+export async function verifyCheckpointReplayLineage({checkpoint,checkpointSha256,selectionCorpus,torchLibrary,lineageReplay,signal}){
+  const checkpointPath=resolve(checkpoint);
+  if(!lineageReplay||!Array.isArray(lineageReplay.checkpoints)||!lineageReplay.checkpoints.length||
+    typeof lineageReplay.checkpoints.at(-1)!=='string'||resolve(lineageReplay.checkpoints.at(-1))!==checkpointPath)
+    throw Error('Replay checkpoint chain must end with the requested validation checkpoint');
+  const {verifyTrainingUpdateReplay}=await import('./native-training-replay.mjs');
+  const proof=await verifyTrainingUpdateReplay({...lineageReplay,selectionCorpus,torchLibrary},{signal});
+  if(proof.lineageComplete!==true||proof.optimizerUpdatesReplayed!==true||proof.selectionExposureVerified!==true||
+    proof.checkpointSha256!==checkpointSha256||!proof.lineage)throw Error('Complete replayed training ancestry is required for validation');
+  return {lineage:proof.lineage,trainingCorpusFingerprint:proof.trainingCorpusFingerprint};
+}
 export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',diagnosticOnly=false,torchLibrary,lineageReplay,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
@@ -134,15 +145,9 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
     throw Error('Private checkpoint receipt differs from its file');
   let trainingLineage=receipt.lineageComplete===true?receipt.lineage:null,verifiedReplay=false;
   if(lineageReplay!==undefined){
-    if(!lineageReplay||!Array.isArray(lineageReplay.checkpoints)||!lineageReplay.checkpoints.length||
-      typeof lineageReplay.checkpoints.at(-1)!=='string'||resolve(lineageReplay.checkpoints.at(-1))!==checkpointPath)
-      throw Error('Replay checkpoint chain must end with the requested validation checkpoint');
     if(trainingLineage)throw Error('Choose one source of training ancestry');
-    const {verifyTrainingUpdateReplay}=await import('./native-training-replay.mjs');
-    const proof=await verifyTrainingUpdateReplay({...lineageReplay,selectionCorpus:corpus,torchLibrary},{signal});
-    if(proof.lineageComplete!==true||proof.optimizerUpdatesReplayed!==true||proof.selectionExposureVerified!==true||
-      proof.checkpointSha256!==checkpointHash||!proof.lineage)throw Error('Complete replayed training ancestry is required for validation');
-    trainingLineage={...proof.lineage,sheets:proof.lineage.sheets.filter(row=>row.usage==='train')};verifiedReplay=true;
+    const {lineage}=await verifyCheckpointReplayLineage({checkpoint:checkpointPath,checkpointSha256:checkpointHash,selectionCorpus:corpus,torchLibrary,lineageReplay,signal});
+    trainingLineage={...lineage,sheets:lineage.sheets.filter(row=>row.usage==='train')};verifiedReplay=true;
   }
   if(!trainingLineage&&!diagnosticOnly)throw Error('Complete training ancestry is required for independent validation');
   const corpusPath=resolve(corpus),corpusBytes=readTrainingBounded(corpusPath,32*1024*1024),corpusHash=sha(corpusBytes),manifest=JSON.parse(corpusBytes),sourceRoot=dirname(corpusPath);
