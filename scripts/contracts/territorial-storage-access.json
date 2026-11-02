@@ -23,17 +23,6 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "apps/editor/frontend/js/gis-io.js",
-      "functions": [
-        "exportGeoPackage"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "GIS detached project boundary",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
       "file": "apps/editor/frontend/js/modules/app-library-assembly.js",
       "functions": [
         "instantiateTerritorialLibraryEntities"
@@ -210,18 +199,6 @@
       "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
     },
     {
-      "file": "apps/editor/frontend/js/gis-io.js",
-      "functions": [
-        "inspectFiles",
-        "gisSpatialSnapshot"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "GIS project boundary",
-      "reason": "Reads detached validated identities; derives spatial Features from canonical records."
-    },
-    {
       "file": "shared/frontend/js/modules/builtin-session.js",
       "functions": [
         "prepareProjectBaseline"
@@ -242,18 +219,6 @@
       ],
       "owner": "Static preview derivation",
       "reason": "Reads metadata identities and immutable bindings to derive preview Features without choosing a date."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/project-serializer.js",
-      "functions": [
-        "content",
-        "buildAutosave"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "Detached current-format codec",
-      "reason": "Encodes detached current-format data for offline tooling. Live save and autosave use C++ exportSnapshot, never a second writable model."
     },
     {
       "file": "shared/frontend/js/modules/project-state.js",
