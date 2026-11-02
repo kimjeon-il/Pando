@@ -262,7 +262,8 @@ export async function runHydroCalibration(input,{pointScreen={},calibration={},s
       riverReference:reference.riverReference,lakeReference:reference.lakeReference},point));}
   const fitted=await calibrateHydroPreparedRegions({regions:prepared},native);
   const representativeChecks=calibrationRepresentativeChecks(representativeSource),worldEstimate=await estimateCalibrationWorld(fitted.regions,native);
-  signal?.throwIfAborted();return assembleHydroCalibrationResults({...fitted,sources,representativeChecks,worldEstimate});
+  signal?.throwIfAborted();return {results:assembleHydroCalibrationResults({...fitted,sources,representativeChecks,worldEstimate}),
+    regions:fitted.regions};
 }
 export async function markHydroCalibrationDuplicates({bounds,baseRiverFeatures,baseLakeFeatures,rivers,lakes}={},options={}){
   options.signal?.throwIfAborted();

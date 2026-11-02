@@ -176,11 +176,11 @@ test('verified selected river and lake sources produce a complete analysis resul
     const input={archives:[archive],lakeFiles:files,regions:[region],...selected,sources:{fixture:true}};
     const options={pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},
       calibration:{directory:process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT}};
-    const before=structuredClone(input),result=await runHydroCalibration(input,options);
+    const before=structuredClone(input),analysis=await runHydroCalibration(input,options),result=analysis.results;
     assert.equal(result.schemaVersion,1);assert.equal(result.regions.europe.riverCandidates,2);assert.equal(result.regions.europe.lakeCandidates,1);
     assert.equal(result.regions.europe.rivers['6.0'].targetCount,1);assert.equal(result.regions.europe.lakes['6.0'].targetCount,1);
     assert.equal(result.representativeChecks['나일강'].present,false);assert.equal(result.acceptance.representativeFeaturesPresent,false);
-    assert.deepEqual(result.sources,{fixture:true});assert.deepEqual(input,before);
+    assert.equal(analysis.regions[0].region.id,'europe');assert.deepEqual(result.sources,{fixture:true});assert.deepEqual(input,before);
   });
 test('source metadata and native scoring stream in order across bounded batches',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async t=>{
