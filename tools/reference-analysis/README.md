@@ -369,6 +369,22 @@ alone do not provide the three independent families needed for training.
 
 ## Commands
 
+For a reviewed manifest containing train, validation and test sheets together,
+prepare the separate manifests expected by the native training workflow:
+
+```powershell
+node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath --split-prefix reviewed
+```
+
+This validates the selected corpus and writes `reviewed.train.json`,
+`reviewed.validation.json` and `reviewed.test.json` alongside its manifest.
+Source and annotation paths stay relative to the same corpus root. The command
+rejects missing splits, shared source identities across splits, and existing
+outputs; it does not alter original images, labels or the input manifest. Use
+the training manifest with `--reviewed`, the validation manifest for model
+selection, and the test manifest only for final evaluation. For report paths,
+the normal report owner manages the new manifest editions.
+
 The fixed development environment is `build-native/python/Scripts/python.exe`.
 Top-level dependency versions are in `requirements.txt`. CPU verifies
 architecture/export; install matching official CUDA PyTorch/torchvision wheels

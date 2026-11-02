@@ -32,6 +32,32 @@ test('reviewed corpus validates materialized source and keeps language groups di
   const result=JSON.parse(execFileSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--corpus',manifest],{encoding:'utf8'}));
   assert.deepEqual(result,{valid:true,groups:{'monochrome/Arabic/fas':['map']}});
 });
+test('reviewed corpus splits preserve original paths and refuse existing outputs or source leakage',async t=>{
+  const {root,sheet,annotation}=await fixture(t),rows=[];
+  const original=await readFile(join(root,'sources/map.png'));
+  for(const [i,split] of ['train','validation','test'].entries()){
+    const bytes=Buffer.concat([original,Buffer.from([i])]),sha256=createHash('sha256').update(bytes).digest('hex');
+    await writeFile(join(root,`sources/${split}.png`),bytes);
+    await writeFile(join(root,`labels/${split}.json`),JSON.stringify({...annotation,review:{...annotation.review,sourceSha256:sha256}}));
+    rows.push({...sheet,id:split,familyId:split,editionId:split,duplicateGroup:split,split,
+      image:`sources/${split}.png`,annotations:`labels/${split}.json`,sha256});
+  }
+  const manifest=join(root,'review.json'),input={schemaVersion:1,sheets:rows};await writeFile(manifest,JSON.stringify(input));
+  const run=()=>spawnSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--corpus',manifest,'--split-prefix','separated'],{encoding:'utf8'});
+  const result=run();assert.equal(result.status,0,result.stderr);
+  for(const row of rows){const value=JSON.parse(await readFile(join(root,`separated.${row.split}.json`),'utf8'));
+    assert.deepEqual(value,{schemaVersion:1,sheets:[row]});await validateReviewedCorpus(value,root);}
+  const before=await readFile(join(root,'separated.train.json'));
+  const again=run();assert.notEqual(again.status,0);assert.match(again.stderr,/exist/i);
+  assert.deepEqual(await readFile(join(root,'separated.train.json')),before);
+  await writeFile(manifest,JSON.stringify({...input,sheets:[rows[0],{...rows[1],sha256:rows[0].sha256},rows[2]]}));
+  const leakage=spawnSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--corpus',manifest,'--split-prefix','leaked'],{encoding:'utf8'});
+  assert.notEqual(leakage.status,0);assert.match(leakage.stderr,/overlap|independent/i);
+  await assert.rejects(readFile(join(root,'leaked.train.json')),{code:'ENOENT'});
+  await writeFile(manifest,JSON.stringify({...input,sheets:rows.slice(0,2)}));
+  const missing=spawnSync(process.execPath,['tools/reference-analysis/reviewed-corpus.mjs','--corpus',manifest,'--split-prefix','missing'],{encoding:'utf8'});
+  assert.notEqual(missing.status,0);assert.match(missing.stderr,/nonempty/i);
+});
 test('materialized corpus shares reviewed checks in training and independent scopes',async t=>{
   const {root,sheet,annotation}=await fixture(t),reviewed={schemaVersion:1,sheets:[sheet]},training={...reviewed,trainingOnly:true};
   assert.equal(await validateMaterializedCorpus(reviewed,root),reviewed);

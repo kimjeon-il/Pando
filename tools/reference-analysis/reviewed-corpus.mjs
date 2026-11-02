@@ -1,8 +1,8 @@
 // Validate independently reviewed originals; derived training labels are not truth.
 import {createHash} from 'node:crypto';
-import {createReadStream} from 'node:fs';
-import {readFile,realpath,stat} from 'node:fs/promises';
-import {dirname,isAbsolute,resolve} from 'node:path';
+import {createReadStream,existsSync} from 'node:fs';
+import {readFile,realpath,stat,writeFile} from 'node:fs/promises';
+import {dirname,isAbsolute,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
@@ -10,6 +10,7 @@ import {validateReviewedAnnotation} from './review-masks.mjs';
 import {validateSourceLanguage} from './source-language.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {assertMacroMetadata} from './macro-training-source.mjs';
+import {assertEvaluationIndependence,buildTrainingLineage} from './training-lineage.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
 // LF-normalized historical publisher generators at 777917fc and cbda4c35.
@@ -97,6 +98,15 @@ export async function validateReviewedCorpus(value,root,{signal,workspace,review
   }
   return value;
 }
+// Keep original-relative paths valid while separating selection and final-test inputs.
+export function splitReviewedCorpus(value){
+  validateCorpusMetadata(value);
+  const parts=Object.fromEntries(['train','validation','test'].map(split=>[split,value.sheets.filter(sheet=>sheet.split===split)]));
+  if(Object.values(parts).some(sheets=>!sheets.length))throw Error('Nonempty train, validation and test sources required');
+  assertEvaluationIndependence(buildTrainingLineage(parts.train),parts.validation,{split:'validation'});
+  assertEvaluationIndependence(buildTrainingLineage([...parts.train,...parts.validation]),parts.test);
+  return Object.fromEntries(Object.entries(parts).map(([split,sheets])=>[split,{...value,sheets}]));
+}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{if(process.argv.length===3&&['--metadata-stream','--groups-stream','--publisher-provenance-stream','--macro-provenance-stream'].includes(process.argv[2])){
       const chunks=[];let size=0;for await(const chunk of process.stdin){size+=chunk.length;if(size>32*1024*1024)throw Error('Corpus metadata exceeds byte budget');chunks.push(chunk);}
@@ -115,10 +125,19 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
           for(const sheet of request.value.sheets)await verifyOriginalImage(sheet,request.root);}
         console.log(JSON.stringify({valid:true}));
       }
-    }else{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
+    }else{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},'split-prefix':{type:'string'}}});
     if(positionals.length||!values.corpus)throw Error('Usage: node tools/reference-analysis/reviewed-corpus.mjs --corpus MANIFEST');
-    const path=resolve(reportArgument(values.corpus,{access:'read',siblings:true})),value=JSON.parse(await readFile(path,'utf8'));
-    const result=await validateReviewedCorpus(value,dirname(path));console.log(JSON.stringify({valid:true,groups:evaluationGroups(result.sheets)}));
+    const path=resolve(reportArgument(values.corpus,{access:'read',siblings:true})),bytes=await readFile(path),value=JSON.parse(bytes);
+    if(values['split-prefix']!==undefined){
+      const prefix=values['split-prefix'];if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(prefix))throw Error('Safe split filename prefix required');
+      const parts=splitReviewedCorpus(value),outputs=Object.fromEntries(Object.keys(parts).map(split=>[split,
+        reportArgument(join(dirname(values.corpus),`${prefix}.${split}.json`),{access:'write'})]));
+      if(Object.values(outputs).some(output=>resolve(output)===path||existsSync(output)))throw Error('Split output already exists; preserve it');
+      await validateReviewedCorpus(value,dirname(path));
+      if(!(await readFile(path)).equals(bytes))throw Error('Corpus changed during split preparation');
+      for(const [split,output] of Object.entries(outputs))await writeFile(output,JSON.stringify(parts[split],null,2)+'\n',{flag:'wx'});
+      console.log(JSON.stringify({outputs,counts:Object.fromEntries(Object.entries(parts).map(([split,part])=>[split,part.sheets.length]))}));
+    }else{const result=await validateReviewedCorpus(value,dirname(path));console.log(JSON.stringify({valid:true,groups:evaluationGroups(result.sheets)}));}
     }
   }catch(error){console.error('reviewed-corpus: '+error.message);process.exitCode=1;}
 }
