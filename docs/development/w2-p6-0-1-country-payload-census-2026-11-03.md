@@ -18,7 +18,7 @@ Windows 실GPU 참고값은 W2-P5-2의 원본 A 집단: 첫 전환 별도 Chromi
 
 P6-1 진단은 위 소스와 data pin을 GitHub Actions에서 별도 checkout으로 사용해 **Linux Chromium에서 실제 Viewer의 국경 Worker에 전송된 입력 객체**를 수집했다. Worker.prototype.postMessage에서 참조만 보관하고, 첫 지도 ready 후 별도 루틴으로 JSON byte를 계산했다. 따라서 실험 중 메인 스레드에 13MB의 추가 직렬화/해시를 삽입하지 않았다. 여기의 KB/MB는 1000 기반 JSON UTF-8 길이이며 Chromium의 native structured-clone wire bytes, 실제 Windows CPU 또는 GPU 시간은 아니다.
 
-검증된 실행: https://github.com/kimjeon-il/Pando/actions/runs/41472398276 (PASSED). 254개 per-country 상세 JSON은 artifact 13156061098: w2-p6-1-pinned-254-country-census (14일 보존, tools/w2-p6-1-country-payload-census.mjs로 재현 가능). 고정 소스 Worker 단위 회귀를 추가한 재실행은 별도 검증을 따른다.
+검증된 최초 실행: https://github.com/kimjeon-il/Pando/actions/runs/41472398276 (PASSED, artifact 13156061098). **최종 고정소스 회귀 포함 실행: https://github.com/kimjeon-il/Pando/actions/runs/41473136186 (PASSED; 고정 소스 공유국경 Worker unit 21개 통과, census 반복 값 완전 동일; artifact 13155184286).** 국가별 254개 상세 JSON 이름은 w2-p6-1-country-payload-census.json, Actions artifact 보관 14일. tools/w2-p6-1-country-payload-census.mjs와 .github/workflows/w2-p6-baseline-payload-census.yml로 재현한다.
 
 ## 2. 실제 전달된 요청의 메타데이터
 
