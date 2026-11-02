@@ -1,6 +1,7 @@
 # PandoLab Windows·Android 앱
 
 > **Editor feature freeze (E0, 2026-11-02):** Direct graphical-map editing receives no new features. Current behavior remains intact until the read/review cutover. Scope, dependency inventory and E1 gates: [editor-retirement-e0.md](../../docs/development/editor-retirement-e0.md).
+> **E1 platform decision:** Web and Windows are the migration targets. Android native development is frozen pending retirement; Android mobile web is still in scope.
 
 
 Windows MSVC x64와 Android ARM64 앱이다. 평소 개발은 Node·Git·브라우저·빌드된 앱·ADB를 사용한다.
