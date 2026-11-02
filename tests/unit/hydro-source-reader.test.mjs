@@ -6,6 +6,7 @@ import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
 import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
+import {prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -135,6 +136,16 @@ test('verified selected source flows into the reference-guided chain builder',
     assert.deepEqual(systems.map(row=>({systemId:row.systemId,mainstemIndex:row.mainstemIndex,
       fragments:row.fragments.map(fragment=>({ids:fragment.reachIds,parts:fragment.widths.length}))})),
     [{systemId:102,mainstemIndex:0,fragments:[{ids:[103,102],parts:2},{ids:[101],parts:2}]}]);
+  });
+test('selected HydroRIVERS archive supplies clipped calibration river features',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-calibration-source-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),selected=new Set([101,102,103]),before=await readFile(input.archive);
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const rows=await prepareHydroCalibrationRivers({...input,selected,bounds:[0,-1,3,1],width:300,height:200},options);
+    assert.equal(rows.length,1);assert.equal(rows[0].sourceId,102);assert.equal(rows[0].sourceCoordinateCount,2);
+    assert.equal(rows[0].screenLength,100);assert.ok(Math.abs(rows[0].lengthKm-111.32)<1e-10);
+    assert.deepEqual(selected,new Set([101,102,103]));assert.deepEqual(await readFile(input.archive),before);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];

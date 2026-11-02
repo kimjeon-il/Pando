@@ -162,6 +162,28 @@ export async function clipHydroCalibrationGeometries({bounds,geometries}={},opti
     result.geometries.some(value=>!value||!kinds.has(value.type)))throw Error('Invalid Hydro calibration clipping receipt');
   return result.geometries;
 }
+export async function buildHydroCalibrationRiverFeatures({bounds,width,height,reaches}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||bounds[2]<=bounds[0]||bounds[3]<=bounds[1]||
+    !Number.isFinite(width)||width<=0||!Number.isFinite(height)||height<=0||!Array.isArray(reaches)||reaches.length>100000)
+    throw Error('Explicit Hydro calibration river features required');
+  if(!reaches.length)return [];
+  const order=new Map();for(let i=0;i<reaches.length;i++){
+    const row=reaches[i];if(!Number.isSafeInteger(row?.id)||row.id<=0||order.has(row.id))throw Error('Invalid Hydro calibration source identity');
+    order.set(row.id,i);
+  }
+  const result=await screenHydroPoints({mode:'calibration-river-features',bounds,width,height,reaches},options);
+  if(!Array.isArray(result?.rivers))throw Error('Invalid Hydro calibration river receipt');
+  let previous=-1;
+  for(const row of result.rivers){const index=order.get(row?.sourceId),source=reaches[index];
+    if(index===undefined||index<=previous||row.nextDown!==source.next||row.mainRiver!==source.mainRiver||row.order!==source.order||
+      row.flow!==source.flow||row.upstreamArea!==source.upstreamArea||!Array.isArray(row.parts)||!row.parts.length||
+      !Number.isSafeInteger(row.sourceCoordinateCount)||row.sourceCoordinateCount<0||!Number.isFinite(row.lengthKm)||row.lengthKm<0||
+      !Number.isFinite(row.screenLength)||row.screenLength<0||row.duplicate!==false||row.duplicateFraction!==0||row.assignedStage!==null)
+      throw Error('Invalid Hydro calibration river result');previous=index;
+  }
+  return result.rivers;
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){

@@ -127,6 +127,18 @@ test('calibration clipping keeps only the explicitly bounded source geometry',{s
   assert.equal(metric.status,0,metric.stderr);assert.equal(JSON.parse(metric.stdout).polygonAreaPx,2500);
   const invalid=invoke({...request,bounds:[0,0,0,2]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
+test('selected HydroRIVERS become clipped calibration features with original score floor',{skip:!binary},()=>{
+  const request={mode:'calibration-river-features',bounds:[0,-1,3,1],width:300,height:200,reaches:[
+    {id:102,next:0,mainRiver:102,order:6,flow:3.5,upstreamArea:200,parts:[[[1,0],[2,0]]]},
+    {id:101,next:102,mainRiver:102,order:1,flow:0,upstreamArea:100,parts:[[[0,0],[1,0]]]},
+    {id:103,next:0,mainRiver:103,order:6,flow:3.5,upstreamArea:200,parts:[[[5,0],[6,0]]]}
+  ]};
+  const result=invoke(request);assert.equal(result.status,0,result.stderr);const rows=JSON.parse(result.stdout).rivers;
+  assert.equal(rows.length,1);assert.equal(rows[0].sourceId,102);assert.equal(rows[0].nextDown,0);
+  assert.deepEqual(rows[0].parts,[[[1,0],[2,0]]]);assert.equal(rows[0].sourceCoordinateCount,2);
+  assert.ok(Math.abs(rows[0].lengthKm-111.32)<1e-10);assert.equal(rows[0].screenLength,100);
+  assert.equal(rows[0].duplicate,false);assert.equal(rows[0].duplicateFraction,0);assert.equal(rows[0].assignedStage,null);
+});
 test('source-bound guided branch and upstream batches return ordered native decisions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};

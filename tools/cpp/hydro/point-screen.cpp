@@ -7,6 +7,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -386,6 +387,56 @@ Value calibrationClip(const Value& input){
         if(!json)throw std::runtime_error("GEOS clipped GeoJSON failed");output.array.push_back(pandoeditor::codecjson::parse(json.get()));}
     auto result=Value::obj();result.object["geometries"]=std::move(output);return result;
 }
+Value calibrationRiverFeatures(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& bounds=array(field(input,"bounds")),&reaches=array(field(input,"reaches"));
+    if(bounds.size()!=4||reaches.size()>100000)throw std::invalid_argument("Invalid calibration river feature batch");
+    std::array<double,4> box{};for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(bounds[i]);
+    const double width=pandoeditor::codecjson::finiteNumber(field(input,"width")),height=pandoeditor::codecjson::finiteNumber(field(input,"height"));
+    if(box[2]<=box[0]||box[3]<=box[1]||width<=0||height<=0)throw std::invalid_argument("Invalid calibration dimensions");
+    const double sx=width/(box[2]-box[0]),sy=height/(box[3]-box[1]),
+      px=111.320*std::cos((box[1]+box[3])/2*3.14159265358979323846/180),py=110.574;
+    auto region=own(context.get(),GEOSGeom_createRectangle_r(context.get(),box[0],box[1],box[2],box[3]));
+    std::size_t vertices=0;auto output=Value::arr();
+    const double flows[]={1,1.3,1.7,2.1,2.5,3,3.5,4},areas[]={-.5,-.25,0,.25,.5,.7};
+    for(const auto& reach:reaches){const auto& id=field(reach,"id"),&next=field(reach,"next"),&main=field(reach,"mainRiver"),&orderValue=field(reach,"order");
+        const double sourceId=pandoeditor::codecjson::finiteNumber(id),nextId=pandoeditor::codecjson::finiteNumber(next),mainId=pandoeditor::codecjson::finiteNumber(main),
+          order=pandoeditor::codecjson::finiteNumber(orderValue),flow=pandoeditor::codecjson::finiteNumber(field(reach,"flow")),
+          upstream=pandoeditor::codecjson::finiteNumber(field(reach,"upstreamArea"));
+        for(const double value:{sourceId,nextId,mainId,order})if(std::trunc(value)!=value||std::abs(value)>9007199254740991.0)
+            throw std::invalid_argument("Invalid calibration river identity");
+        if(sourceId<=0||nextId<0)throw std::invalid_argument("Invalid calibration river identity");
+        double maximum=-std::numeric_limits<double>::infinity();for(const auto fw:flows)for(const auto aw:areas)
+            maximum=std::max(maximum,order+fw*std::log10(std::max(flow,1e-6))+aw*std::log10(std::max(upstream,1e-6)));
+        if(maximum<5)continue;
+        const auto& sourceParts=array(field(reach,"parts"));std::size_t sourceCoordinates=0;auto parts=Value::arr();double length=0,screen=0;
+        std::function<void(const GEOSGeometry*)> collect=[&](const GEOSGeometry* item){
+            const int type=GEOSGeomTypeId_r(context.get(),item);if(type==GEOS_LINESTRING){
+                const auto* sequence=GEOSGeom_getCoordSeq_r(context.get(),item);unsigned int count=0;
+                if(!sequence||!GEOSCoordSeq_getSize_r(context.get(),sequence,&count))throw std::runtime_error("GEOS calibration coordinates failed");
+                if(count<2)return;auto line=Value::arr();Point previous{};
+                for(unsigned int i=0;i<count;++i){Point point{};if(!GEOSCoordSeq_getX_r(context.get(),sequence,i,&point.x)||!GEOSCoordSeq_getY_r(context.get(),sequence,i,&point.y))
+                    throw std::runtime_error("GEOS calibration coordinate failed");
+                    if(i){length+=std::hypot(point.x*px-previous.x*px,point.y*py-previous.y*py);
+                        screen+=std::hypot((point.x-previous.x)*sx,(point.y-previous.y)*sy);}previous=point;
+                    auto coordinate=Value::arr();coordinate.array={Value::num(point.x),Value::num(point.y)};line.array.push_back(std::move(coordinate));}
+                parts.array.push_back(std::move(line));return;}
+            if(type==GEOS_MULTILINESTRING||type==GEOS_GEOMETRYCOLLECTION){const int count=GEOSGetNumGeometries_r(context.get(),item);
+                if(count<0)throw std::runtime_error("GEOS calibration geometry count failed");for(int i=0;i<count;++i)collect(GEOSGetGeometryN_r(context.get(),item,i));}
+        };
+        for(const auto& source:sourceParts){const auto& coords=array(source);if(coords.size()<2)continue;sourceCoordinates+=coords.size();vertices+=coords.size();
+            if(vertices>5000000)throw std::invalid_argument("Calibration river coordinates exceed budget");
+            std::vector<Point> points;points.reserve(coords.size());for(const auto& point:coords)points.push_back(inputPoint(point));
+            auto line=geometry(context.get(),points,false),clipped=own(context.get(),GEOSIntersection_r(context.get(),line.get(),region.get()));collect(clipped.get());}
+        if(parts.array.empty())continue;
+        auto row=Value::obj();row.object["sourceId"]=id;row.object["nextDown"]=next;row.object["mainRiver"]=main;row.object["order"]=orderValue;
+        row.object["flow"]=Value::num(flow);row.object["upstreamArea"]=Value::num(upstream);row.object["parts"]=std::move(parts);
+        row.object["sourceCoordinateCount"]=Value::num(static_cast<double>(sourceCoordinates));row.object["lengthKm"]=Value::num(length);
+        row.object["screenLength"]=Value::num(screen);row.object["duplicate"]=Value::boolean(false);row.object["duplicateFraction"]=Value::num(0);
+        row.object["assignedStage"]=Value();output.array.push_back(std::move(row));}
+    auto result=Value::obj();result.object["rivers"]=std::move(output);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -429,6 +480,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-river-features")
+        return calibrationRiverFeatures(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-clip")
         return calibrationClip(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-lake-duplicates")

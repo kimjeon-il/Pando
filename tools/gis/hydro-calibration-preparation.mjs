@@ -1,5 +1,6 @@
-import {calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates} from './hydro-point-screen-native.mjs';
+import {buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates} from './hydro-point-screen-native.mjs';
 import {assignHydroCalibrationStages,optimizeHydroCalibration} from './hydro-calibration-native.mjs';
+import {readHydroRegion} from './hydro-source-reader.mjs';
 
 const calibrationStages=[6,6.7,7,7.5];
 export function buildHydroCalibrationOptimization({regions,kind,weights}={}){
@@ -86,6 +87,15 @@ export async function prepareHydroCalibrationReference({bounds,width,height,feat
   const {lines,polygons}=await clipFeatures(snapshot.bounds,snapshot.features,options);
   const metrics=await calculateHydroCalibrationScreen({bounds:snapshot.bounds,width:snapshot.width,height:snapshot.height,lines,polygons},options);
   return {lines,polygons,screenLength:metrics.lineLengthPx,screenArea:metrics.polygonAreaPx};
+}
+export async function prepareHydroCalibrationRivers({archive,specification,selected,bounds,width=1200,height=720}={},options={}){
+  options.signal?.throwIfAborted();
+  const source=await readHydroRegion({archive,specification,selected,detail:'generation',signal:options.signal}),result=[];
+  for(let at=0;at<source.sourceOrder.length;at+=4096){const ids=source.sourceOrder.slice(at,at+4096);
+    const reaches=ids.map(id=>({id,...source.rows[id]}));
+    for(const row of await buildHydroCalibrationRiverFeatures({bounds,width,height,reaches},options))result.push(row);
+  }
+  return result;
 }
 export async function markHydroCalibrationDuplicates({bounds,baseRiverFeatures,baseLakeFeatures,rivers,lakes}={},options={}){
   options.signal?.throwIfAborted();
