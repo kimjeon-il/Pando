@@ -19,13 +19,13 @@ test('real WebGL 1/2 compile and link SDF color and pick shaders without changin
       });
       if (!gl) { output.push({ version, available: false }); continue; }
       const sources = hydroSdfShaderSources(version);
-      let color = null, pick = null, union = null;
+      let color = null, pick = null;
       try {
         color = linkGpuProgram(gl, sources.vertex, sources.fragment, { label: `hydro-sdf-color-gl${version}` });
         pick = linkGpuProgram(gl, sources.vertex, sources.pick, { label: `hydro-sdf-pick-gl${version}` });
         const coverage = createGpuHydroCoverage();
         coverage.setContext(gl, version);
-        union = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
+        const union = coverage.render({ width: 128, height: 128, color: [0.1, 0.4, 0.9, 0.65], paint() {} });
         const error = gl.getError();
         output.push({ version, available: true, compiled: true, union, error,
           supported: coverage.stats().maximumBlend });
