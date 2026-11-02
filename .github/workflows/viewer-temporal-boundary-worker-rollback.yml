@@ -35,7 +35,7 @@ jobs:
           pnpm exec eslint tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Verify real Viewer temporal Worker error path, Core rollback, pixels and retry
-        run: pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs --workers=1 --retries=0 --trace=off
+        run: pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs --workers=1 --retries=0 --trace=off --repeat-each=2
       - name: Upload rollback evidence
         if: always()
         uses: actions/upload-artifact@v4
