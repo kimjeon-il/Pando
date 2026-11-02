@@ -268,20 +268,22 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   ]);
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
-  const queue = [...repo.tests.filter(file => repo.owners.get(file)?.mode !== 'retired'),
-    ...repo.catalog.groups.flatMap(inputsFor).filter(file => !retiredFrontend(file)),
-    ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || [])).filter(file => !retiredFrontend(file))];
+  const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
+  const queue = [...repo.tests,
+    ...repo.catalog.groups.flatMap(inputsFor),
+    ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || []))]
+    .filter(file => !retiredFrontend(file) && !isRetiredTest(file));
   for (let at = 0; at < queue.length; at++) {
     const file = queue[at];
     if (visited.has(file)) continue;
     visited.add(file);
     // Retired editor frontend is not a public runtime. Keep its direct source
     // identity for historical tests, but do not parse its orphaned worker graph.
-    if (retiredFrontend(file)) continue;
+    if (retiredFrontend(file) || isRetiredTest(file)) continue;
     for (const dependency of repo.dependencies(file)) {
       if (!parents.has(dependency)) parents.set(dependency, new Set());
       parents.get(dependency).add(file);
-      if (!retiredFrontend(dependency)) queue.push(dependency);
+      if (!retiredFrontend(dependency) && !isRetiredTest(dependency)) queue.push(dependency);
     }
   }
   const affectedBy = new Map();
