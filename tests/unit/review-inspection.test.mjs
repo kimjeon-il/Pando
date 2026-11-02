@@ -10,7 +10,6 @@ import {readReviewEvidenceFiles} from '../../shared/frontend/js/modules/review-e
 import {appendReviewEvent} from '../../shared/frontend/js/modules/review-change-records.js';
 
 const source=()=>JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json',import.meta.url),'utf8'));
-const proposal=source;
 const sha=value=>createHash('sha256').update(value).digest('hex');
 function filesModel(){
   const bundle=source(),diff={

@@ -5,7 +5,6 @@ import {
 import {readReviewEvidenceFiles} from '../../../../shared/frontend/js/modules/review-evidence-files.js';
 
 const SHA=/^[0-9a-f]{64}$/;
-const REPO='kimjeon-il/PandoLab-library-data';
 const safeName=id=>id.replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,100);
 const hex=bytes=>[...new Uint8Array(bytes)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const no=message=>{throw Object.assign(new Error(message),{code:'PL-REVIEW-PREVIEW'});};
