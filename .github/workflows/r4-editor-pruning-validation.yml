@@ -10,6 +10,8 @@ on:
       - scripts/contracts/application-checks.json
       - scripts/contracts/territorial-storage-access.json
       - scripts/check-generic-provenance.mjs
+      - scripts/check-object-registry.mjs
+      - scripts/check-renderer-v2.mjs
       - tests/unit/r4-editor-source-retirement.test.mjs
   workflow_dispatch:
 permissions:
@@ -35,6 +37,7 @@ jobs:
           node scripts/check-generic-provenance.mjs
           node scripts/check-version-architecture.mjs
           node scripts/check-object-registry.mjs
+          node scripts/check-renderer-v2.mjs
       - name: Exercise extracted GIS data and native reviewer tests
         run: >-
           node --test --test-concurrency=2
