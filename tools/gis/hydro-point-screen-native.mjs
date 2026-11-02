@@ -121,6 +121,41 @@ export async function observeHydroOutlets({land,lakes,points}={},options={}){
     row.target.some(value=>!Number.isFinite(value))))throw Error('Invalid Hydro outlet observations');
   return result.observations;
 }
+function validBorderCandidate(row){
+  return row===null||(Number.isFinite(row?.start)&&row.start>=0&&Number.isFinite(row.end)&&row.end>=0&&Number.isFinite(row.length)&&row.length>0&&
+    Number.isFinite(row.score)&&row.score>=0&&Array.isArray(row.distances)&&row.distances.length>0&&
+    row.distances.every(value=>Number.isFinite(value)&&value>=0&&value<=12)&&Array.isArray(row.metricBorder)&&row.metricBorder.length>=2&&
+    row.metricBorder.every(point=>Array.isArray(point)&&point.length===2&&point.every(Number.isFinite)));
+}
+export async function scoreHydroBorderCandidates(requests,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(requests)||requests.length>10000)throw Error('Explicit bounded Hydro border candidates required');
+  if(!requests.length)return [];
+  const result=await screenHydroPoints({mode:'border-candidates',requests},options);
+  if(!Array.isArray(result?.candidates)||result.candidates.length!==requests.length||result.candidates.some(row=>!validBorderCandidate(row)))
+    throw Error('Invalid Hydro border candidate receipt');return result.candidates;
+}
+export async function findHydroSharedCountryBorders(countries,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(countries)||countries.length>100000||countries.some(row=>typeof row?.id!=='string'||!row.id||!row.geometry)||
+    new Set(countries.map(row=>row.id)).size!==countries.length)throw Error('Explicit unique Hydro country polygons required');
+  if(!countries.length)return [];
+  const result=await screenHydroPoints({mode:'shared-country-borders',countries},options);
+  const ids=new Set(countries.map(row=>row.id));
+  if(!Array.isArray(result?.lines)||result.lines.some(row=>!Array.isArray(row?.pair)||row.pair.length!==2||
+    row.pair[0]>=row.pair[1]||row.pair.some(id=>!ids.has(id))||!Array.isArray(row.coordinates)||row.coordinates.length<2||
+    row.coordinates.some(point=>!Array.isArray(point)||point.length!==2||point.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90)))))
+    throw Error('Invalid Hydro shared country borders');return result.lines;
+}
+export async function selectHydroBorderCandidates({borders,requests}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(borders)||borders.length>100000||!Array.isArray(requests)||requests.length>10000)
+    throw Error('Explicit bounded Hydro indexed border requests required');
+  if(!requests.length)return [];
+  const result=await screenHydroPoints({mode:'border-candidate-index',borders,requests},options);
+  if(!Array.isArray(result?.candidates)||result.candidates.length!==requests.length||result.candidates.some(row=>
+    !validBorderCandidate(row)||(row!==null&&(!Number.isSafeInteger(row.lineIndex)||row.lineIndex<0||row.lineIndex>=borders.length||
+      !Array.isArray(row.pair)||row.pair.length!==2||row.pair.some((value,i)=>value!==borders[row.lineIndex]?.pair?.[i])))))
+    throw Error('Invalid Hydro indexed border candidates');return result.candidates;
+}
 export async function matchHydroOsmBounds({candidates,targets}={},options={}){
   options.signal?.throwIfAborted();
   const valid=(box,nonempty)=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite)&&

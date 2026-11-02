@@ -406,6 +406,26 @@ Value borderSubstrings(const Value& request){
     }
     auto result=Value::obj();result.object["lines"]=std::move(lines);return result;
 }
+Value borderGroupAcceptance(const Value& request){
+    const auto& chains=elements(field(request,"chains"));if(chains.size()>100000)throw std::invalid_argument("Hydro border chain batch exceeds budget");
+    auto accepted=Value::arr();std::size_t budget=0;
+    for(const auto& chainValue:chains){const auto& chain=elements(chainValue);budget+=chain.size();
+        if(budget>1000000)throw std::invalid_argument("Hydro border chains exceed budget");
+        auto flags=Value::arr();flags.array.assign(chain.size(),Value::boolean(false));std::size_t cursor=0;
+        while(cursor<chain.size()){if(chain[cursor].kind==Value::Null){++cursor;continue;}
+            const auto lineIndex=integer(field(chain[cursor],"lineIndex"));if(lineIndex<0)throw std::invalid_argument("Invalid Hydro border index");
+            std::size_t end=cursor;double total=0;std::size_t samples=0,covered=0;double maximum=0;
+            while(end<chain.size()&&chain[end].kind!=Value::Null&&integer(field(chain[end],"lineIndex"))==lineIndex){
+                const auto length=pandoeditor::codecjson::finiteNumber(field(chain[end],"length"));if(length<0)throw std::invalid_argument("Invalid Hydro border length");
+                total+=length;const auto& distances=elements(field(chain[end],"distances"));samples+=distances.size();
+                for(const auto& value:distances){const auto distance=pandoeditor::codecjson::finiteNumber(value);if(distance<0)throw std::invalid_argument("Invalid Hydro border distance");
+                    if(distance<=5.0)++covered;maximum=std::max(maximum,distance);}++end;}
+            if(total>=10.0&&samples&&static_cast<double>(covered)/samples>=.70&&maximum<=12.0)
+                for(std::size_t i=cursor;i<end;++i)flags.array[i]=Value::boolean(true);
+            cursor=end;}
+        accepted.array.push_back(std::move(flags));}
+    auto result=Value::obj();result.object["accepted"]=std::move(accepted);return result;
+}
 // Keep regional source metadata in one native process while indexed geometry is
 // fetched on demand.  The eight retained upstream candidates match the source
 // generator's (basin area, flow, source ID) heap ordering.
@@ -618,6 +638,7 @@ int main(int argc,char** argv) {
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
         else if(str(mode->second)=="border-substrings")std::cout<<borderSubstrings(request).encode()<<'\n';
+        else if(str(mode->second)=="border-group-acceptance")std::cout<<borderGroupAcceptance(request).encode()<<'\n';
         else if(str(mode->second)=="propagate-widths")std::cout<<propagateWidths(request).encode()<<'\n';
         else if(str(mode->second)=="fragment-geometries")std::cout<<fragmentGeometries(request).encode()<<'\n';
         else if(str(mode->second)=="exclude-terminal-basins")std::cout<<excludeTerminalBasins(request).encode()<<'\n';

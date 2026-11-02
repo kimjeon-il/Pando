@@ -49,6 +49,13 @@ nativeTest('border substrings retain canonical vertices, direction and quantized
     {source,metric,start:10,end:10},{source:[[0,0],[.0000001,0],[1,0]],metric:[[0,0],[1,0],[10,0]],start:0,end:10}]});
   assert.deepEqual(result.lines,[[[.5,0],[1,0],[1,2],[1.5,2]],[[1.5,2],[1,2],[1,0],[.5,0]],[],[[0,0],[1,0]]]);
 });
+nativeTest('border grouping requires continuous length and coverage on the same border',()=>{
+  const candidate=(lineIndex,length,distances)=>({lineIndex,length,distances});
+  const result=run({mode:'border-group-acceptance',chains:[
+    [candidate(0,6,[1,2]),candidate(0,5,[4,10]),null,candidate(1,9,[1])],
+    [candidate(2,10,[1,6,6,6]),candidate(3,10,[1,2])]]});
+  assert.deepEqual(result.accepted,[[true,true,false,false],[false,true]]);
+});
 test('source-bound border substrings preserve projected line cuts',
   {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},source=[[0,0],[1,0],[1,2],[2,2]],

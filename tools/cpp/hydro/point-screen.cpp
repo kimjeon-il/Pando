@@ -15,6 +15,7 @@
 #include <map>
 #include <memory>
 #include <numeric>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -359,6 +360,140 @@ Value outletObservations(const Value& input){
         row.object["outsideLength"]=Value::num(outside);row.object["target"]=std::move(targetValue);observations.array.push_back(std::move(row));
     }
     auto result=Value::obj();result.object["observations"]=std::move(observations);return result;
+}
+// Screen explicit shared-border lines using the source generator's kilometre
+// projection, span, bearing and one-kilometre distance samples.
+Value borderCandidates(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");const auto ctx=context.get();
+    const auto& requests=array(field(input,"requests"));if(requests.size()>10000)throw std::invalid_argument("Hydro border candidate batch exceeds budget");
+    std::size_t vertices=0,samples=0;auto output=Value::arr();
+    for(const auto& request:requests){const auto& sourceInput=array(field(request,"source")),&borderInput=array(field(request,"border"));
+        vertices+=sourceInput.size()+borderInput.size();if(sourceInput.size()<2||borderInput.size()<2||vertices>5000000)
+            throw std::invalid_argument("Invalid Hydro border candidate lines");
+        std::vector<Point> source,border;for(const auto& value:sourceInput)source.push_back(inputPoint(value));
+        for(const auto& value:borderInput)border.push_back(inputPoint(value));
+        auto sourceLine=geometry(ctx,source,false),centroid=own(ctx,GEOSGetCentroid_r(ctx,sourceLine.get()));double latitude=0;
+        if(!GEOSGeomGetY_r(ctx,centroid.get(),&latitude))throw std::runtime_error("GEOS border source centroid failed");
+        const double factor=111.32*std::cos(latitude*3.14159265358979323846/180.0);
+        std::vector<Point> metricSource,metricBorder;for(const auto& p:source)metricSource.push_back({p.x*factor,p.y*110.57});
+        for(const auto& p:border)metricBorder.push_back({p.x*factor,p.y*110.57});
+        auto line=geometry(ctx,metricSource,false),boundary=geometry(ctx,metricBorder,false);double length=0,borderLength=0,distance=0;
+        if(!GEOSLength_r(ctx,line.get(),&length)||!GEOSLength_r(ctx,boundary.get(),&borderLength)||!GEOSDistance_r(ctx,line.get(),boundary.get(),&distance))
+            throw std::runtime_error("GEOS border distance failed");
+        if(length<=1e-6||distance>12){output.array.push_back(Value());continue;}
+        auto first=geometry(ctx,{metricSource.front()},true),last=geometry(ctx,{metricSource.back()},true);
+        const double start=GEOSProject_r(ctx,boundary.get(),first.get()),end=GEOSProject_r(ctx,boundary.get(),last.get());
+        const double span=std::abs(end-start);if(start<0||end<0||span<length*.35||span>length*3.0+5.0){output.array.push_back(Value());continue;}
+        const double middle=(start+end)/2,delta=std::min(5.0,std::max(.5,span/2));
+        auto before=own(ctx,GEOSInterpolate_r(ctx,boundary.get(),std::max(0.0,middle-delta))),after=own(ctx,GEOSInterpolate_r(ctx,boundary.get(),std::min(borderLength,middle+delta)));
+        Point a{},b{};if(!GEOSGeomGetX_r(ctx,before.get(),&a.x)||!GEOSGeomGetY_r(ctx,before.get(),&a.y)||
+          !GEOSGeomGetX_r(ctx,after.get(),&b.x)||!GEOSGeomGetY_r(ctx,after.get(),&b.y))throw std::runtime_error("GEOS border direction failed");
+        const auto direction=[](Point a,Point b){const double dx=b.x-a.x,dy=b.y-a.y,norm=std::hypot(dx,dy);
+            return norm>0?Point{dx/norm,dy/norm}:Point{0,0};};
+        const auto bd=direction(a,b),rd=direction(metricSource.front(),metricSource.back());
+        const double dot=std::abs(bd.x*rd.x+bd.y*rd.y),angle=std::acos(std::max(-1.0,std::min(1.0,dot)))*180.0/3.14159265358979323846;
+        if(angle>30.0){output.array.push_back(Value());continue;}
+        const auto count=static_cast<std::size_t>(std::max(1.0,std::ceil(length)));samples+=count+1;
+        if(samples>5000000)throw std::invalid_argument("Hydro border samples exceed budget");
+        std::vector<double> distances;distances.reserve(count+1);double sum=0,maximum=0;
+        for(std::size_t i=0;i<=count;++i){auto point=own(ctx,GEOSInterpolate_r(ctx,line.get(),std::min(length,static_cast<double>(i))));double value=0;
+            if(!GEOSDistance_r(ctx,point.get(),boundary.get(),&value)||!std::isfinite(value))throw std::runtime_error("GEOS border sample failed");
+            distances.push_back(value);sum+=value;maximum=std::max(maximum,value);}
+        if(maximum>12.0){output.array.push_back(Value());continue;}
+        auto item=Value::obj(),metric=Value::arr();for(const auto& p:metricBorder){auto pair=Value::arr();pair.array={Value::num(p.x),Value::num(p.y)};metric.array.push_back(std::move(pair));}
+        item.object["start"]=Value::num(start);item.object["end"]=Value::num(end);item.object["length"]=Value::num(length);
+        item.object["score"]=Value::num(sum/distances.size()+angle*.08);item.object["distances"]=numberArray(distances);
+        item.object["metricBorder"]=std::move(metric);output.array.push_back(std::move(item));
+    }
+    auto result=Value::obj();result.object["candidates"]=std::move(output);return result;
+}
+Value sharedCountryBorders(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");const auto ctx=context.get();
+    const auto& countries=array(field(input,"countries"));if(countries.size()>100000)throw std::invalid_argument("Hydro country count exceeds budget");
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(ctx),ReaderDeleter{ctx});
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(ctx,10),TreeDeleter{ctx});
+    if(!reader||!tree)throw std::runtime_error("GEOS country index failed");
+    std::vector<std::string> names;std::vector<Geometry> areas,boundaries;std::vector<std::size_t> indexes;
+    names.reserve(countries.size());areas.reserve(countries.size());boundaries.reserve(countries.size());indexes.reserve(countries.size());
+    std::set<std::string> seen;
+    for(const auto& country:countries){const auto& id=field(country,"id");if(id.kind!=Value::String||id.string.empty()||!seen.insert(id.string).second)
+            throw std::invalid_argument("Invalid or duplicate Hydro country ID");
+        const auto json=field(country,"geometry").encode();auto shape=own(ctx,GEOSGeoJSONReader_readGeometry_r(ctx,reader.get(),json.c_str()));
+        const int type=GEOSGeomTypeId_r(ctx,shape.get());if(type!=GEOS_POLYGON&&type!=GEOS_MULTIPOLYGON)throw std::invalid_argument("Hydro country must be polygonal");
+        names.push_back(id.string);boundaries.push_back(own(ctx,GEOSBoundary_r(ctx,shape.get())));areas.push_back(std::move(shape));indexes.push_back(indexes.size());
+        GEOSSTRtree_insert_r(ctx,tree.get(),areas.back().get(),&indexes.back());}
+    using Pair=std::pair<std::string,std::string>;std::map<Pair,std::vector<Geometry>> groups;
+    const auto collect=[](void* item,void* user){static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));};
+    const auto appendLines=[&](const auto& self,const GEOSGeometry* value,std::vector<Geometry>& target)->void{
+        const int type=GEOSGeomTypeId_r(ctx,value);if(type==GEOS_LINESTRING){double length=0;
+            if(!GEOSLength_r(ctx,value,&length))throw std::runtime_error("GEOS shared border length failed");
+            if(length>1e-9)target.push_back(own(ctx,GEOSGeom_clone_r(ctx,value)));return;}
+        if(type==GEOS_MULTILINESTRING||type==GEOS_GEOMETRYCOLLECTION){const int count=GEOSGetNumGeometries_r(ctx,value);
+            for(int i=0;i<count;++i)self(self,GEOSGetGeometryN_r(ctx,value,i),target);}};
+    for(std::size_t left=0;left<areas.size();++left){std::vector<std::size_t> matches;
+        GEOSSTRtree_query_r(ctx,tree.get(),areas[left].get(),collect,&matches);std::sort(matches.begin(),matches.end());
+        for(const auto right:matches){if(right<=left)continue;auto intersection=own(ctx,GEOSIntersection_r(ctx,boundaries[left].get(),boundaries[right].get()));
+            const auto pair=std::minmax(names[left],names[right]);auto& lines=groups[{pair.first,pair.second}];appendLines(appendLines,intersection.get(),lines);}}
+    auto output=Value::arr();
+    for(auto& entry:groups){auto& lines=entry.second;if(lines.empty())continue;std::vector<GEOSGeometry*> raw;
+        for(auto& line:lines)raw.push_back(line.get());auto* collection=GEOSGeom_createCollection_r(ctx,GEOS_GEOMETRYCOLLECTION,raw.data(),static_cast<unsigned int>(raw.size()));
+        if(!collection)throw std::runtime_error("GEOS shared border collection failed");for(auto& line:lines)line.release();
+        auto owned=own(ctx,collection),united=own(ctx,GEOSUnaryUnion_r(ctx,owned.get()));
+        auto merged=GEOSGeomTypeId_r(ctx,united.get())==GEOS_LINESTRING?own(ctx,GEOSGeom_clone_r(ctx,united.get())):own(ctx,GEOSLineMerge_r(ctx,united.get()));
+        std::vector<Geometry> mergedLines;appendLines(appendLines,merged.get(),mergedLines);
+        for(const auto& line:mergedLines){const auto* coordinates=GEOSGeom_getCoordSeq_r(ctx,line.get());unsigned int count=0;
+            if(!coordinates||!GEOSCoordSeq_getSize_r(ctx,coordinates,&count))throw std::runtime_error("GEOS shared border coordinates failed");
+            auto coords=Value::arr();for(unsigned int i=0;i<count;++i){double x=0,y=0;
+                if(!GEOSCoordSeq_getX_r(ctx,coordinates,i,&x)||!GEOSCoordSeq_getY_r(ctx,coordinates,i,&y))throw std::runtime_error("GEOS shared border coordinate failed");
+                auto point=Value::arr();point.array={Value::num(x),Value::num(y)};coords.array.push_back(std::move(point));}
+            auto pair=Value::arr();pair.array={Value::str(entry.first.first),Value::str(entry.first.second)};
+            auto row=Value::obj();row.object["pair"]=std::move(pair);row.object["coordinates"]=std::move(coords);output.array.push_back(std::move(row));}}
+    auto result=Value::obj();result.object["lines"]=std::move(output);return result;
+}
+Value borderCandidateIndex(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");const auto ctx=context.get();
+    const auto& borders=array(field(input,"borders")),&requests=array(field(input,"requests"));
+    if(borders.size()>100000||requests.size()>10000)throw std::invalid_argument("Hydro border index exceeds budget");
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(ctx,10),TreeDeleter{ctx});if(!tree)throw std::runtime_error("GEOS border tree failed");
+    std::vector<Geometry> geometries;std::vector<std::size_t> ids;geometries.reserve(borders.size());ids.reserve(borders.size());
+    for(const auto& border:borders){const auto& pair=array(field(border,"pair")),&coordinates=array(field(border,"coordinates"));
+        if(pair.size()!=2||pair[0].kind!=Value::String||pair[1].kind!=Value::String||pair[0].string>=pair[1].string||coordinates.size()<2)
+            throw std::invalid_argument("Invalid Hydro indexed border");
+        std::vector<Point> points;for(const auto& item:coordinates)points.push_back(inputPoint(item));geometries.push_back(geometry(ctx,points,false));
+        ids.push_back(ids.size());GEOSSTRtree_insert_r(ctx,tree.get(),geometries.back().get(),&ids.back());}
+    const auto collect=[](void* item,void* user){static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));};
+    std::vector<std::vector<Value>> groups(requests.size());std::vector<std::pair<std::size_t,std::size_t>> owners;auto batch=Value::arr();
+    const auto flush=[&](){if(batch.array.empty())return;auto request=Value::obj();request.object["requests"]=std::move(batch);
+        auto result=borderCandidates(request);const auto& rows=array(field(result,"candidates"));if(rows.size()!=owners.size())throw std::runtime_error("Hydro candidate count differs");
+        for(std::size_t i=0;i<rows.size();++i)if(rows[i].kind!=Value::Null){auto row=rows[i];const auto index=owners[i].second;
+            row.object["lineIndex"]=Value::num(static_cast<double>(index));row.object["pair"]=field(borders[index],"pair");groups[owners[i].first].push_back(std::move(row));}
+        owners.clear();batch=Value::arr();};
+    std::size_t vertices=0;
+    for(std::size_t index=0;index<requests.size();++index){const auto& source=array(requests[index]);if(source.size()<2)continue;
+        vertices+=source.size();if(vertices>5000000)throw std::invalid_argument("Hydro border query vertices exceed budget");
+        double minX=180,minY=90,maxX=-180,maxY=-90;for(const auto& coordinate:source){const auto point=inputPoint(coordinate);
+            minX=std::min(minX,point.x);maxX=std::max(maxX,point.x);minY=std::min(minY,point.y);maxY=std::max(maxY,point.y);}
+        const double latitude=std::max(-89.5,std::min(89.5,(minY+maxY)/2)),yPad=12.0/110.57+1e-4,
+            xPad=std::min(4.0,12.0/std::max(4.0,111.32*std::abs(std::cos(latitude*3.14159265358979323846/180.0)))+1e-4);
+        auto envelope=own(ctx,GEOSGeom_createRectangle_r(ctx,minX-xPad,minY-yPad,maxX+xPad,maxY+yPad));std::vector<std::size_t> matches;
+        GEOSSTRtree_query_r(ctx,tree.get(),envelope.get(),collect,&matches);std::sort(matches.begin(),matches.end());
+        for(const auto border:matches){auto request=Value::obj();request.object["source"]=requests[index];request.object["border"]=field(borders[border],"coordinates");
+            batch.array.push_back(std::move(request));owners.emplace_back(index,border);if(batch.array.size()==1000)flush();}}
+    flush();auto output=Value::arr();
+    for(auto& group:groups){if(group.empty()){output.array.push_back(Value());continue;}
+        const auto rank=[](const Value& item){const auto& pair=array(field(item,"pair"));return std::make_tuple(
+            pandoeditor::codecjson::finiteNumber(field(item,"score")),pair[0].string,pair[1].string,pandoeditor::codecjson::finiteNumber(field(item,"lineIndex")));};
+        std::sort(group.begin(),group.end(),[&](const auto& a,const auto& b){return rank(a)<rank(b);});
+        if(group.size()>1){const auto& first=array(field(group[0],"pair")),&second=array(field(group[1],"pair"));
+            if((first[0].string!=second[0].string||first[1].string!=second[1].string)&&
+                pandoeditor::codecjson::finiteNumber(field(group[1],"score"))<=pandoeditor::codecjson::finiteNumber(field(group[0],"score"))+.5){
+                output.array.push_back(Value());continue;}}
+        output.array.push_back(std::move(group[0]));}
+    auto result=Value::obj();result.object["candidates"]=std::move(output);return result;
 }
 void collectReferenceIndex(void* item,void* user){
     static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));
@@ -740,6 +875,12 @@ Value run(const Value& input){
         return longestSourceLines(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="outlet-observations")
         return outletObservations(input);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="border-candidates")
+        return borderCandidates(input);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="shared-country-borders")
+        return sharedCountryBorders(input);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="border-candidate-index")
+        return borderCandidateIndex(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")
         return referenceGuides(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&

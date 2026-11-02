@@ -283,6 +283,15 @@ export async function extractHydroBorderSubstrings(requests,options={}){
     line.some(point=>!Array.isArray(point)||point.length!==2||point.some(value=>!Number.isFinite(value)))))
     throw Error('Invalid Hydro border substring receipt');return result.lines;
 }
+export async function acceptHydroBorderGroups(chains,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(chains)||chains.length>100000||chains.some(chain=>!Array.isArray(chain)))
+    throw Error('Explicit bounded Hydro border chains required');
+  if(!chains.length)return [];
+  const result=await runHydroConnectivity({mode:'border-group-acceptance',chains},options);
+  if(!Array.isArray(result?.accepted)||result.accepted.length!==chains.length||result.accepted.some((row,i)=>
+    !Array.isArray(row)||row.length!==chains[i].length||row.some((value,j)=>typeof value!=='boolean'||(value&&chains[i][j]===null))))
+    throw Error('Invalid Hydro border group receipt');return result.accepted;
+}
 // onBatch receives provisional rows until the source reader verifies the DBF hash and CRC.
 export async function scoreHydroSourceMetadata({archive,files,specification,onBatch,batchSize=4096}={},options={}){
   options.signal?.throwIfAborted();

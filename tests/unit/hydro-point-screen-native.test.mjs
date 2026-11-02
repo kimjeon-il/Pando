@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,observeHydroOutlets,organizeHydroLakePolygons,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,findHydroSharedCountryBorders,longestHydroSourceLines,observeHydroOutlets,organizeHydroLakePolygons,scoreHydroBorderCandidates,scoreHydroGuidedBranches,selectHydroBorderCandidates,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -21,6 +21,57 @@ test('outlet observations use rendered land, coastline and lake geometry',{skip:
   assert.ok(rows[3].coastDistance>1&&rows[3].coastDistance<2);assert.deepEqual(rows[3].target,[0,5]);
   assert.notEqual(invoke({mode:'outlet-observations',land:[],lakes:[],points:[[0,0]]}).status,0);
 });
+test('border candidate screening matches source metric distance, direction and projection',{skip:!binary},()=>{
+  const border=[[1,0],[1,2]],source=[[1.02,.2],[1.02,1.8]],reverse=[...source].reverse();
+  const result=invoke({mode:'border-candidates',requests:[{source,border},{source:[[1.2,.2],[1.2,1.8]],border},
+    {source:[[.8,1],[1.2,1]],border},{source:reverse,border}]});
+  assert.equal(result.status,0,result.stderr);const rows=JSON.parse(result.stdout).candidates;
+  assert.equal(rows[1],null);assert.equal(rows[2],null);
+  for(const [index,start,end] of [[0,22.114,199.026],[3,199.026,22.114]]){
+    assert.ok(Math.abs(rows[index].start-start)<1e-9);assert.ok(Math.abs(rows[index].end-end)<1e-9);
+    assert.ok(Math.abs(rows[index].length-176.912)<1e-9);assert.ok(Math.abs(rows[index].score-2.226060908496194)<1e-9);
+    assert.ok(rows[index].distances.every(value=>value<=12));
+  }
+});
+test('shared country borders preserve pair identity and canonical vertices',{skip:!binary},()=>{
+  const rect=(a,b,c,d)=>({type:'Polygon',coordinates:[[[a,b],[c,b],[c,d],[a,d],[a,b]]]});
+  const countries=[{id:'AAA',geometry:rect(0,0,1,2)},{id:'BBB',geometry:rect(1,0,2,2)},
+    {id:'CCC',geometry:rect(3,0,4,2)}];
+  const result=invoke({mode:'shared-country-borders',countries});assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).lines,[{pair:['AAA','BBB'],coordinates:[[1,0],[1,2]]}]);
+  assert.notEqual(invoke({mode:'shared-country-borders',countries:[countries[0],countries[0]]}).status,0);
+});
+test('border candidate index avoids distant borders and rejects ambiguous country pairs',{skip:!binary},()=>{
+  const borders=[{pair:['AAA','BBB'],coordinates:[[1,0],[1,2]]},{pair:['AAA','CCC'],coordinates:[[1.001,0],[1.001,2]]}],
+    requests=[[[1.02,.2],[1.02,1.8]],[[1.2,.2],[1.2,1.8]],[[.8,1],[1.2,1]]];
+  const result=invoke({mode:'border-candidate-index',borders,requests});assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).candidates,[null,null,null]);
+  const one=invoke({mode:'border-candidate-index',borders:borders.slice(0,1),requests});assert.equal(one.status,0,one.stderr);
+  const rows=JSON.parse(one.stdout).candidates;assert.equal(rows[0].lineIndex,0);assert.deepEqual(rows[0].pair,['AAA','BBB']);
+  assert.equal(rows[1],null);assert.equal(rows[2],null);
+});
+test('source-bound shared country borders retain the selected pair',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const rect=(a,b,c,d)=>({type:'Polygon',coordinates:[[[a,b],[c,b],[c,d],[a,d],[a,b]]]});
+    const countries=[{id:'AAA',geometry:rect(0,0,1,2)},{id:'BBB',geometry:rect(1,0,2,2)}],
+      options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    assert.deepEqual(await findHydroSharedCountryBorders(countries,options),[{pair:['AAA','BBB'],coordinates:[[1,0],[1,2]]}]);
+    await assert.rejects(findHydroSharedCountryBorders([countries[0],countries[0]],options),/unique/i);
+  });
+test('source-bound border candidate scoring returns the projected canonical line',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const [row]=await scoreHydroBorderCandidates([{source:[[1.02,.2],[1.02,1.8]],border:[[1,0],[1,2]]}],options);
+    assert.ok(Math.abs(row.score-2.226060908496194)<1e-9);assert.equal(row.metricBorder.length,2);
+    assert.deepEqual(await scoreHydroBorderCandidates([],options),[]);
+  });
+test('source-bound indexed border candidate retains the actual line and pair',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},
+      borders=[{pair:['AAA','BBB'],coordinates:[[1,0],[1,2]]}],requests=[[[1.02,.2],[1.02,1.8]],[[1.2,.2],[1.2,1.8]]];
+    const result=await selectHydroBorderCandidates({borders,requests},options);
+    assert.equal(result[0].lineIndex,0);assert.deepEqual(result[0].pair,borders[0].pair);assert.equal(result[1],null);
+  });
 test('source-bound outlet observations preserve empty lakes and input order',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const land=[{type:'Polygon',coordinates:[[[0,0],[10,0],[10,10],[0,10],[0,0]]]}];
