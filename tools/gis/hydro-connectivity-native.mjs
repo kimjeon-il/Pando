@@ -91,6 +91,126 @@ async function runHydroConnectivity(payload,{root=rootDefault,directory=resolve(
   });
   signal?.throwIfAborted();return JSON.parse(text);
 }
+// Validate both the native result and its relationship to the exact selected
+// topology before a producer can use the returned logical objects.
+export function validateHydroLogicalChains(result,{reaches,canonical}={}){
+  if(!Array.isArray(reaches)||reaches.length>1000000||!Array.isArray(canonical)||canonical.length>reaches.length||
+    !result||typeof result!=='object'||Array.isArray(result)||Object.keys(result).join(',')!=='chains'||!Array.isArray(result.chains))
+    throw Error('Invalid Hydro logical chain request or receipt');
+  const next=new Map(),chosen=new Map();
+  for(const row of reaches){
+    if(!Number.isSafeInteger(row?.id)||row.id<=0||!Number.isSafeInteger(row.next)||row.next<0||next.has(row.id))
+      throw Error('Invalid Hydro logical chain reach');
+    next.set(row.id,row.next);
+  }
+  for(const row of canonical){
+    if(!Number.isSafeInteger(row?.downstream)||!Number.isSafeInteger(row.upstream)||chosen.has(row.downstream)||
+      !next.has(row.downstream)||next.get(row.upstream)!==row.downstream)
+      throw Error('Invalid Hydro logical chain canonical upstream');
+    chosen.set(row.downstream,row.upstream);
+  }
+  for(const downstream of next.values())if(downstream&&(!next.has(downstream)||!chosen.has(downstream)))
+    throw Error('Hydro logical chain downstream or canonical upstream missing');
+  const positions=new Map();
+  for(let chainIndex=0;chainIndex<result.chains.length;chainIndex++){
+    const chain=result.chains[chainIndex];if(!Array.isArray(chain)||!chain.length)throw Error('Invalid Hydro logical chain');
+    for(let index=0;index<chain.length;index++){
+      const id=chain[index];if(!next.has(id)||positions.has(id))throw Error('Invalid Hydro logical chain identity');
+      positions.set(id,{chainIndex,index});
+      if(index&& (next.get(chain[index-1])!==id||chosen.get(id)!==chain[index-1]))
+        throw Error('Invalid Hydro logical chain connection');
+    }
+  }
+  if(positions.size!==next.size)throw Error('Hydro logical chain reach missing');
+  for(const [downstream,upstream] of chosen){const a=positions.get(upstream),b=positions.get(downstream);
+    if(!a||!b||a.chainIndex!==b.chainIndex||a.index+1!==b.index)throw Error('Hydro logical chain split a canonical connection');}
+  return result;
+}
+export async function buildHydroLogicalChains({reaches,canonical}={},options={}){
+  if(!Array.isArray(reaches)||!Array.isArray(canonical))throw Error('Explicit Hydro logical chain inputs required');
+  const input={reaches,canonical};
+  return validateHydroLogicalChains(await runHydroConnectivity({mode:'logical-chains',...input},options),input);
+}
+function hydroSystemKeys(chains){
+  if(!Array.isArray(chains)||chains.length>1000000)throw Error('Invalid Hydro river system chains');
+  let total=0;
+  return chains.map(chain=>{
+    if(!Array.isArray(chain)||!chain.length||(total+=chain.length)>1000000)throw Error('Invalid Hydro river system chain');
+    const counts=new Map();
+    for(const row of chain){
+      if(!Number.isSafeInteger(row?.id)||row.id<=0||!Number.isSafeInteger(row.mainRiver)||
+        !Number.isFinite(row.upstreamArea)||!Number.isFinite(row.flow)||
+        (row.stage!==null&&!Number.isFinite(row.stage))||
+        (row.borderPair!==null&&!Array.isArray(row.borderPair))||!Array.isArray(row.parts))
+        throw Error('Invalid Hydro river system reach');
+      if(row.mainRiver)counts.set(row.mainRiver,(counts.get(row.mainRiver)||0)+1);
+    }
+    let id=chain.at(-1).id,frequency=0;
+    for(const [candidate,count] of counts)if(count>frequency||(count===frequency&&candidate>id)){id=candidate;frequency=count;}
+    return id;
+  });
+}
+export function validateHydroRiverSystems(result,{chains}={}){
+  const expectedSystems=hydroSystemKeys(chains);
+  if(!result||typeof result!=='object'||Array.isArray(result)||
+    Object.keys(result).sort().join(',')!=='fragments,systems'||!Array.isArray(result.systems)||
+    !Array.isArray(result.fragments)||result.fragments.length!==chains.length)
+    throw Error('Invalid Hydro river system receipt');
+  for(let i=0;i<chains.length;i++){
+    const chain=chains[i],fragments=result.fragments[i];
+    if(!Array.isArray(chain)||!chain.length||!Array.isArray(fragments)||!fragments.length)
+      throw Error('Invalid Hydro river system fragment');
+    let position=0;
+    for(const fragment of fragments){
+      if(!Array.isArray(fragment)||!fragment.length)throw Error('Empty Hydro river system fragment');
+      for(let j=0;j<fragment.length;j++,position++){
+        const row=chain[position],previous=chain[position-1];
+        if(!row||!Number.isSafeInteger(row.id)||fragment[j]!==row.id)throw Error('Hydro river fragment order differs');
+        const same=previous&&previous.stage===row.stage&&isDeepStrictEqual(previous.borderPair,row.borderPair);
+        if(position&&Boolean(j)!==Boolean(same))throw Error('Hydro river fragment boundary differs');
+      }
+    }
+    if(position!==chain.length)throw Error('Hydro river fragment reach missing');
+  }
+  const seen=new Set(),systems=new Set();
+  for(const system of result.systems){
+    if(!Number.isSafeInteger(system?.systemId)||systems.has(system.systemId)||!Array.isArray(system.chainIndexes)||
+      !system.chainIndexes.length||!system.chainIndexes.includes(system.mainstemIndex)||!Array.isArray(system.bounds)||
+      system.bounds.length!==4||system.bounds.some(value=>!Number.isFinite(value)))throw Error('Invalid Hydro river system');
+    systems.add(system.systemId);
+    for(const index of system.chainIndexes){
+      if(!Number.isSafeInteger(index)||index<0||index>=chains.length||seen.has(index)||expectedSystems[index]!==system.systemId)
+        throw Error('Invalid Hydro river system chain');
+      seen.add(index);
+    }
+  }
+  if(seen.size!==chains.length)throw Error('Hydro river system chain missing');
+  return result;
+}
+export async function buildHydroRiverSystems({chains}={},options={}){
+  hydroSystemKeys(chains);
+  return validateHydroRiverSystems(await runHydroConnectivity({mode:'river-systems',chains},options),{chains});
+}
+export function validateHydroWidthProfile(result,{reaches}={}){
+  if(!Array.isArray(reaches)||!result||typeof result!=='object'||Array.isArray(result)||
+    Object.keys(result).join(',')!=='widths'||!Array.isArray(result.widths))throw Error('Invalid Hydro width receipt');
+  let index=0;
+  for(const reach of reaches){
+    if(!Number.isFinite(reach?.width)||!Number.isFinite(reach.endWidth)||!Array.isArray(reach.parts))throw Error('Invalid Hydro width reach');
+    for(const part of reach.parts){
+      if(!Array.isArray(part))throw Error('Invalid Hydro width part');if(part.length<2)continue;
+      const widths=result.widths[index++],low=Math.min(reach.width,reach.endWidth)-1e-12,high=Math.max(reach.width,reach.endWidth)+1e-12;
+      if(!Array.isArray(widths)||widths.length!==part.length||widths.some(value=>!Number.isFinite(value)||value<low||value>high)||
+        Math.abs(widths[0]-reach.width)>1e-12)throw Error('Invalid Hydro width profile');
+    }
+  }
+  if(index!==result.widths.length)throw Error('Hydro width part count differs');
+  return result;
+}
+export async function buildHydroWidthProfile({reaches}={},options={}){
+  if(!Array.isArray(reaches))throw Error('Explicit Hydro width reaches required');
+  return validateHydroWidthProfile(await runHydroConnectivity({mode:'width-profile',reaches},options),{reaches});
+}
 export async function auditHydroParts({parts,raw,sourceOrder},options){
   if(!parts||!raw||!Array.isArray(sourceOrder))throw Error('Explicit Hydro parts, originals and source order required');
   const input={parts,raw,sourceOrder};return validateHydroAudit(await runHydroConnectivity({mode:'audit',...input},options),input);

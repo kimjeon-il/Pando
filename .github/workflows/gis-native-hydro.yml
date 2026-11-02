@@ -6,6 +6,7 @@ on:
     paths:
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/cpp/hydro/connectivity-junctions.cpp'
+      - 'tools/gis/hydro-connectivity-native.mjs'
       - 'tests/unit/hydro-connectivity-native.test.mjs'
       - 'tools/hydro_connectivity.py'
       - 'tools/build-hydro-tiles.py'
