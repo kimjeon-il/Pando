@@ -1,6 +1,6 @@
 import {execFileSync,spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {chmodSync,existsSync,readFileSync} from 'node:fs';
+import {chmodSync,existsSync,readFileSync,statSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {verifyNativeTool} from '../native-tool.mjs';
@@ -90,7 +90,7 @@ function request(width,height,pixels,typeface,rows){
   u32(width);u32(height);u32(typeface.length);u32(rows.length);parts.push(typeface,pixels);
   for(const row of rows){u32(row.type);u32(row.color);
     if(row.type===1){u32(row.values.length/2);for(const v of row.values)i32(v);}
-    else if(row.type===5){f64(row.x);f64(row.y);u32(row.stroke);const text=Buffer.from(row.text,'ascii');u32(text.length);parts.push(text);}
+    else if(row.type===5){f64(row.x);f64(row.y);u32(row.stroke);u32(row.size??10);const text=Buffer.from(row.text,'utf8');u32(text.length);parts.push(text);}
     else for(const v of row.values)i32(v);
   }
   return Buffer.concat(parts);
@@ -106,17 +106,25 @@ function run(binary,input,expected,signal){return new Promise((accept,reject)=>{
   child.on('close',(code,reason)=>code!==0||reason||overflow?finish(Error('Native preview failed: '+Buffer.concat(errors).toString('utf8'))):finish(null,Buffer.concat(chunks,size)));
   child.stdin.end(input);
 });}
-export async function drawNativePreviewLabels(image,labels,{signal,workspace=root,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
+export async function drawNativePreviewLabels(image,labels,{signal,workspace=root,fontFile,fontSha256,directory=process.env.PANDO_MAP_PREVIEW_ARTIFACT||
   resolve(workspace,'build-native/map-preview',existsSync(resolve(workspace,'.map-runtime.json'))?`${process.platform}-${process.arch}`:'artifact')}={}){
   signal?.throwIfAborted();const {width,height,data}=image||{};
   if(![width,height].every(value=>Number.isInteger(value)&&value>0&&value<=2200)||!(data instanceof Uint8Array)||data.length!==width*height*4||
     !Array.isArray(labels)||labels.length>32||labels.some(row=>!row||!Number.isFinite(row.x)||!Number.isFinite(row.y)||
-      typeof row.text!=='string'||!row.text.length||row.text.length>512||!/^[\x20-\x7e]+$/.test(row.text)))
-    throw Error('Bounded image and ASCII preview labels required');
+      typeof row.text!=='string'||!row.text.length||row.text.length>512||!row.text.isWellFormed()||
+      Array.from(row.text).some(character=>character.codePointAt(0)<32||character.codePointAt(0)===127)||
+      (row.size!==undefined&&(!Number.isInteger(row.size)||row.size<1||row.size>128))||
+      (row.color!==undefined&&(!Number.isInteger(row.color)||row.color<0||row.color>0xffffff))))
+    throw Error('Bounded image and preview labels required');
   const {binary}=artifact(workspace,directory,process.platform);
   if(process.platform!=='win32'&&!process.env.PANDO_MAP_PREVIEW_ARTIFACT&&existsSync(resolve(workspace,'.map-runtime.json')))chmodSync(binary,0o755);
-  const commands=labels.map(({x,y,text})=>({type:5,color:0,x,y,stroke:0,text}));
-  const pixels=await run(binary,request(width,height,data,font(workspace),commands),width*height*4,signal);
+  let typeface;if(fontFile===undefined&&fontSha256===undefined)typeface=font(workspace);
+  else{if(typeof fontFile!=='string'||!fontFile||!/^[a-f0-9]{64}$/.test(fontSha256||''))throw Error('Explicit preview font and hash required');
+    const info=statSync(fontFile);if(!info.isFile()||info.size<1||info.size>32*1024*1024)throw Error('Preview font size mismatch');
+    typeface=readFileSync(fontFile);if(typeface.length!==info.size||createHash('sha256').update(typeface).digest('hex')!==fontSha256)
+      throw Error('Preview font hash or size mismatch');}
+  const commands=labels.map(({x,y,text,size=10,color=0})=>({type:5,color,x,y,stroke:0,text,size}));
+  const pixels=await run(binary,request(width,height,data,typeface,commands),width*height*4,signal);
   if(pixels.length!==data.length)throw Error('Native preview output length mismatch');
   return {width,height,data:pixels};
 }

@@ -1,12 +1,23 @@
 import assert from 'node:assert/strict';
-import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {existsSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import test from 'node:test';
 import {raster} from '../../plugins/pando-map-tools/lib/raster.mjs';
 import {encodeNativePng,readNativeImage} from '../../tools/map-image/native-resample.mjs';
-import {renderNativePreview} from '../../tools/map-image/native-preview.mjs';
+import {drawNativePreviewLabels,renderNativePreview} from '../../tools/map-image/native-preview.mjs';
 import {assertCandidatePreview} from '../helpers/map-preview-assertions.mjs';
+
+test('native preview draws explicit Unicode text with the verified selected typeface',async()=>{
+  const fontFile=process.platform==='win32'?'C:/Windows/Fonts/malgun.ttf':'/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
+  if(!existsSync(fontFile))return;
+  const fontSha256=createHash('sha256').update(readFileSync(fontFile)).digest('hex'),data=Buffer.alloc(240*60*4,255);
+  const input={width:240,height:60,data};
+  const result=await drawNativePreviewLabels(input,[{x:5,y:5,text:'한글 · é',size:18,color:0x172033}],{fontFile,fontSha256});
+  assert.equal(result.data.length,data.length);assert.ok(!result.data.equals(data));assert.ok(data.every(value=>value===255));
+  await assert.rejects(drawNativePreviewLabels(input,[{x:5,y:5,text:'한글',size:18}],{fontFile,fontSha256:'0'.repeat(64)}),/font.*hash/i);
+});
 
 test('native review previews preserve map pixels, overlays and labels without Python',async t=>{
   process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');

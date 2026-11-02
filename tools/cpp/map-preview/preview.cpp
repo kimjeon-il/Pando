@@ -73,10 +73,17 @@ struct Font {
     }
     ~Font(){if(face)FT_Done_Face(face);if(library)FT_Done_FreeType(library);}
     struct Glyph {FT_UInt index;long advance;};
-    void layer(Canvas& canvas,double fx,double fy,const std::string& text,std::uint32_t color,bool stroke){
+    void layer(Canvas& canvas,double fx,double fy,const std::string& text,std::uint32_t color,bool stroke,int size){
         std::vector<Glyph> glyphs;glyphs.reserve(text.size());FT_UInt last=0;
-        for(unsigned char ch:text){if(ch<32||ch>126)throw std::runtime_error("Invalid preview label");
-            const FT_UInt index=FT_Get_Char_Index(face,ch);if(FT_Load_Glyph(face,index,FT_LOAD_DEFAULT))throw std::runtime_error("Preview glyph unavailable");
+        for(std::size_t at=0;at<text.size();){const auto first=static_cast<unsigned char>(text[at++]);std::uint32_t code=0;int remaining=0;
+            if(first<128)code=first;else if(first>=0xc2&&first<=0xdf){code=first&31;remaining=1;}
+            else if(first>=0xe0&&first<=0xef){code=first&15;remaining=2;}else if(first>=0xf0&&first<=0xf4){code=first&7;remaining=3;}
+            else throw std::runtime_error("Invalid preview UTF-8 label");const int bytes=remaining;
+            while(remaining--){if(at>=text.size())throw std::runtime_error("Truncated preview UTF-8 label");const auto ch=static_cast<unsigned char>(text[at++]);
+                if((ch&0xc0)!=0x80)throw std::runtime_error("Invalid preview UTF-8 label");code=(code<<6)|(ch&63);}
+            if(code<32||code==127||(bytes==2&&code<0x800)||(bytes==3&&code<0x10000)||code>0x10ffff||(code>=0xd800&&code<=0xdfff))
+                throw std::runtime_error("Invalid preview label");
+            const FT_UInt index=FT_Get_Char_Index(face,code);if(FT_Load_Glyph(face,index,FT_LOAD_DEFAULT))throw std::runtime_error("Preview glyph unavailable");
             if(last&&index&&FT_HAS_KERNING(face)){FT_Vector delta{};if(!FT_Get_Kerning(face,last,index,FT_KERNING_DEFAULT,&delta))glyphs.back().advance+=pixel26(delta.x);}
             glyphs.push_back({index,face->glyph->metrics.horiAdvance});last=index;
         }
@@ -85,8 +92,8 @@ struct Font {
         double ix,iy;const double sx=std::modf(fx,&ix),sy=std::modf(fy,&iy);long pen=std::lround(sx*64),ypen=-std::lround(sy*64);
         const int baseY=int(iy)+pixel26(face->size->metrics.ascender);const int startX=int(ix);
         long total=0;for(const auto& g:glyphs)total+=g.advance;
-        const int left=std::max(0,startX-16),right=std::min(canvas.w,startX+pixel26(total)+24);
-        const int top=std::max(0,baseY-32),bottom=std::min(canvas.h,baseY+24);
+        const int margin=std::max(32,size*2),left=std::max(0,startX-margin),right=std::min(canvas.w,startX+pixel26(total)+margin);
+        const int top=std::max(0,baseY-margin),bottom=std::min(canvas.h,baseY+margin);
         if(right<=left||bottom<=top){if(stroker)FT_Stroker_Done(stroker);return;}
         const int mw=right-left,mh=bottom-top;std::vector<Byte> mask(std::size_t(mw)*mh,0);
         for(const auto& item:glyphs){
@@ -108,8 +115,9 @@ struct Font {
             const auto i=(std::size_t(y)*canvas.w+x)*4;const int channels[3]={int(color>>16)&255,int(color>>8)&255,int(color)&255};
             for(int k=0;k<3;++k){const int sum=canvas.data[i+k]*(255-a)+channels[k]*a+128;canvas.data[i+k]=Byte((sum+(sum>>8))>>8);}}
     }
-    void text(Canvas& c,double x,double y,const std::string& value,std::uint32_t color,bool stroke){
-        if(stroke)layer(c,x,y,value,0xffffff,true);layer(c,x,y,value,color,false);
+    void text(Canvas& c,double x,double y,const std::string& value,std::uint32_t color,bool stroke,int size){
+        if(size<1||size>128||FT_Set_Char_Size(face,0,size*64,72,72))throw std::runtime_error("Invalid preview text size");
+        if(stroke)layer(c,x,y,value,0xffffff,true,size);layer(c,x,y,value,color,false,size);
     }
 };
 }
@@ -122,7 +130,7 @@ int main(){
         while(std::cin){std::cin.read(chunk.data(),chunk.size());const auto n=std::cin.gcount();if(n>0){
             if(input.size()+std::size_t(n)>128ULL*1024*1024)throw std::runtime_error("Preview input exceeds byte budget");input.insert(input.end(),chunk.data(),chunk.data()+n);}}
         if(!std::cin.eof())throw std::runtime_error("Cannot read preview input");Reader r{input};const auto w=r.u32(),h=r.u32(),fontSize=r.u32(),count=r.u32();
-        if(w<1||h<1||w>2200||h>2200||fontSize!=12676||count>1000000)throw std::runtime_error("Invalid preview dimensions or commands");
+        if(w<1||h<1||w>2200||h>2200||fontSize<1||fontSize>32*1024*1024||count>1000000)throw std::runtime_error("Invalid preview dimensions or commands");
         Font font(r.take(fontSize));Canvas canvas{int(w),int(h),r.take(std::size_t(w)*h*4)};
         for(std::uint32_t i=0;i<count;++i){const auto type=r.u32(),color=r.u32();
             if(type==1){const auto n=r.u32();if(n>1000000)throw std::runtime_error("Too many line points");
@@ -132,8 +140,8 @@ int main(){
                 if(std::max({std::abs(std::int64_t(x0)),std::abs(std::int64_t(y0)),std::abs(std::int64_t(x1)),std::abs(std::int64_t(y1))})>1000000)throw std::runtime_error("Preview coordinate exceeds budget");
                 if(type==2){if(x1-x0>32||y1-y0>32)throw std::runtime_error("Preview ellipse exceeds budget");ellipse(canvas,x0,y0,x1,y1,color);}
                 else rectangle(canvas,x0,y0,x1,y1,color,type==4);}
-            else if(type==5){const double x=r.f64(),y=r.f64();const bool stroke=r.u32()!=0;const auto n=r.u32();if(n>10000)throw std::runtime_error("Preview label exceeds budget");
-                const auto value=r.take(n);font.text(canvas,x,y,std::string(value.begin(),value.end()),color,stroke);}
+            else if(type==5){const double x=r.f64(),y=r.f64();const bool stroke=r.u32()!=0;const auto size=r.u32(),n=r.u32();if(n>10000)throw std::runtime_error("Preview label exceeds budget");
+                const auto value=r.take(n);font.text(canvas,x,y,std::string(value.begin(),value.end()),color,stroke,static_cast<int>(size));}
             else throw std::runtime_error("Unknown preview command");
         }
         if(r.at!=input.size())throw std::runtime_error("Trailing preview input");
