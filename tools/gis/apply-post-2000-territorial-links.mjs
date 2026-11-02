@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {readTerritorialSources,readTerritorialLineages,territorialSourceRoot,entityFileName,updateTerritorialSource} from '../territorial-entity-sources.mjs';
 import {writeLibraryOutput} from '../library-data.mjs';
-import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity,normalizeTerritorialLineage} from './territorial-library.js';
 
 const ids={untaet:'state:untaet-east-timor',unmik:'state:unmik-kosovo'};
 const sha=x=>createHash('sha256').update(JSON.stringify(x)).digest('hex');

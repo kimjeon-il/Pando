@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {readTerritorialSources,updateTerritorialSource} from '../territorial-entity-sources.mjs';
-import {normalizeTerritorialLibraryEntity} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {normalizeTerritorialLibraryEntity} from './territorial-library.js';
 
 const fail=message=>{throw new Error('ATTRIBUTE_HISTORY_2000_2026: '+message);};
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
