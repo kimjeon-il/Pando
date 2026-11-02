@@ -7,7 +7,7 @@
 
 버전 정본은 `config/toolchain-versions.json`이다. Node 24, pnpm 11.19.0,
 CMake 3.31.6, Emscripten 6.0.3을 해당 작업에만 준비한다.
-GIS Python 3.12 검사는 별도 `gis-python-p4.yml`에서 수행한다.
+GIS 원본 실행기 검사는 별도 `gis-source-p4.yml`에서 수행한다.
 앱 Rust·Android SDK 준비는 `apps/editor/README.md`를 따른다.
 
 | 프리셋 | 범위 |

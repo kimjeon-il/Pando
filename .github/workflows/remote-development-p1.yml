@@ -162,7 +162,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Verify the same pinned versions and selective scopes
-        run: node --test tests/unit/p1-remote-scopes.test.mjs tests/unit/p4-python-isolation.test.mjs tests/unit/versioning-source-schema.test.mjs
+        run: node --test tests/unit/p1-remote-scopes.test.mjs tests/unit/gis-source-isolation.test.mjs tests/unit/versioning-source-schema.test.mjs
       - name: Try shallow-fetching push/PR base for exact changed paths
         shell: bash
         env:

@@ -7,7 +7,7 @@ import {verifyNativeTool} from '../native-tool.mjs';
 const rootDefault=fileURLToPath(new URL('../../',import.meta.url));
 export const hydroEncodingSources=Object.freeze(['tools/cpp/hydro-encoding/CMakeLists.txt','tools/cpp/hydro-encoding/encode.cpp',
   'shared/core/include/pandoeditor/losslessjson.h','shared/core/src/losslessjson.cpp']);
-function geometryBounds(geometry){
+export function hydroGeometryBounds(geometry){
   const {type,coordinates}=geometry||{};
   const polygons=type==='LineString'?[[coordinates]]:type==='MultiLineString'||type==='Polygon'?[coordinates]:type==='MultiPolygon'?coordinates:null;
   if(!Array.isArray(polygons))throw Error('Supported Hydro geometry required');
@@ -29,7 +29,7 @@ export function prepareHydroEncodingFeatures(features,changedFeatureIds){
     seen.add(id);
     return {fid:id,logical_fid:meta.logicalFid,pandolab_id:meta.awId,category:meta.category,stage:meta.stage,flags:meta.flags,
       fragment_index:meta.fragmentIndex,fragment_count:meta.fragmentCount,width:meta.width,geometry:feature.geometry,
-      bounds:changed.has(id)?geometryBounds(feature.geometry):meta.bounds.map(value=>value/1000000),
+      bounds:changed.has(id)?hydroGeometryBounds(feature.geometry):meta.bounds.map(value=>value/1000000),
       width_profile:feature.widths??null,source_id:meta.sourceId??''};
   });
   if([...changed].some(id=>!seen.has(id)))throw Error('Changed Hydro feature identity is missing');

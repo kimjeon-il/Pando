@@ -33,7 +33,7 @@ micromamba run -n pando-territorial-recipe cmake --build build-native/territoria
 PANDO_TERRITORIAL_RECIPE_BINARY="$PWD/build-native/territorial-recipe/pando-territorial-recipe" micromamba run -n pando-territorial-recipe node tools/build-territorial-geometry.mjs --check
 ```
 
-The optional `.github/workflows/gis-python-p4.yml` `historical-geometry`
+The optional `.github/workflows/gis-source-p4.yml` `historical-geometry`
 job builds the C++ recipe engine only when explicitly selected through the
 GIS-only workflow. The ordinary `application-architecture.yml` `data-contracts`
 job independently checks preview assets, catalog chunks and version contracts

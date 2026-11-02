@@ -20,16 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - name: Validate relocated color generator and focused historical GIS tests
         run: |
           node tools/build-country-default-colors.mjs --check
           node --test tests/unit/historical-german-coastline-events.test.mjs tests/unit/historical-netherlands-coast-events.test.mjs
-      - name: Python syntax for maintained GIS generators
+      - name: Check maintained GIS entrypoint syntax
         run: |
-          python -m compileall -q scripts/gis
           node --check tools/build-place-candidates.mjs
           node --check tools/gis/build-german-1914-base.mjs
       - name: Validate application report ownership

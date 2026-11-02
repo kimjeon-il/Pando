@@ -305,7 +305,8 @@
         "shared/frontend/js/workers/data-loader-worker.js"
       ],
       "tools": [
-        "python"
+        "node",
+        "cmake"
       ],
       "resolve": "hydro",
       "manual": true,
@@ -322,7 +323,8 @@
         "shared/frontend/js/workers/data-loader-worker.js"
       ],
       "tools": [
-        "python"
+        "node",
+        "cmake"
       ],
       "resolve": "terrain",
       "manual": true,

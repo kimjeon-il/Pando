@@ -6,24 +6,72 @@ on:
     paths:
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/cpp/hydro/connectivity-junctions.cpp'
+      - 'tools/gis/hydro-connectivity-native.mjs'
       - 'tests/unit/hydro-connectivity-native.test.mjs'
-      - 'tools/hydro_connectivity.py'
-      - 'tools/build-hydro-tiles.py'
+      - 'tools/gis/build-hydro.mjs'
       - 'tools/repair-hydro-connectivity.mjs'
-      - 'tests/unit/hydro-connectivity-python-bridge.test.mjs'
+      - 'tests/unit/hydro-network-normalization.test.mjs'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
     inputs:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-chains, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-transfer, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-transfer, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  hydro-outlets:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-outlets'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check space for the existing GDAL SDK
+        run: |
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 7516192768 ]; then echo 'Need 2 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+      - uses: mamba-org/setup-micromamba@v3
+        id: hydro-outlet-gdal
+        with:
+          environment-name: pando-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
+      - name: Build only Hydro outlet geometry and connectivity
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev zlib1g-dev ninja-build
+          cmake -S tools/cpp -B build-native/hydro-outlets -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
+          cmake --build build-native/hydro-outlets --target pando-hydro-point-screen pando-hydro-connectivity
+          node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-outlets/pando-hydro-point-screen --directory build-native/hydro-outlets/point-artifact
+          node tools/gis/package-hydro-connectivity.mjs --binary build-native/hydro-outlets/pando-hydro-connectivity --directory build-native/hydro-outlets/connectivity-artifact
+          cmake -S tools/cpp/hydro-encoding -B build-native/hydro-outlets/encoding -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/hydro-outlets/encoding --target pando-hydro-encoding
+          node tools/gis/package-hydro-encoding.mjs --binary build-native/hydro-outlets/encoding/pando-hydro-encoding --directory build-native/hydro-outlets/encoding-artifact
+          cmake -S tools/cpp/physical-raster -B build-native/hydro-outlets/raster -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH='${{ steps.hydro-outlet-gdal.outputs.environment-path }}'
+          cmake --build build-native/hydro-outlets/raster --target pando-physical-raster
+          node tools/gis/package-physical-raster.mjs --binary build-native/hydro-outlets/raster/pando-physical-raster --directory build-native/hydro-outlets/raster-artifact
+          echo 'LD_LIBRARY_PATH=${{ steps.hydro-outlet-gdal.outputs.environment-path }}/lib' >> "$GITHUB_ENV"
+      - name: Check outlet geometry, selection and classification
+        env:
+          PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-outlets/pando-hydro-point-screen
+          PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/point-artifact
+          PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro-outlets/pando-hydro-connectivity
+          PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/connectivity-artifact
+          PANDO_HYDRO_ENCODING_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/encoding-artifact
+          PANDO_PHYSICAL_RASTER_DIRECTORY: ${{ github.workspace }}/build-native/hydro-outlets/raster-artifact
+        run: node --test --test-name-pattern='Hydro metadata|Hydro shard|generation command|generation manifest|selected Hydro source flows|river source discovery|official Rhine source|regional Hydro pipeline|river feature assembly|Natural Earth lake features|system fragments retain|reference river name candidates|reference naming|border candidate|shared country borders|whole border alignment|partial border|short consecutive reaches|complete and partial border|different border pairs|chain normalization|network normalization|outlet observations|outlet pipeline|water raster sampling|verified indexed source selection' tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-outlets.test.mjs tests/unit/hydro-source-selection.test.mjs tests/unit/hydro-border-whole.test.mjs tests/unit/hydro-border-partial.test.mjs tests/unit/hydro-border-alignment.test.mjs tests/unit/hydro-chain-normalization.test.mjs tests/unit/hydro-network-normalization.test.mjs tests/unit/hydro-reference-names.test.mjs tests/unit/hydro-region-pipeline.test.mjs tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-river-features.test.mjs tests/unit/hydro-lake-features.test.mjs tests/unit/hydro-generation-command.test.mjs tests/unit/hydro-generation-manifest.test.mjs tests/unit/hydro-generation-pipeline.test.mjs tests/unit/hydro-river-input.test.mjs tests/unit/hydro-rhine-source.test.mjs tests/unit/hydro-pack-layout.test.mjs
   hydro-chains:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-chains'
     strategy:
@@ -48,8 +96,19 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Hydro build failed' }
           if ($IsWindows) { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe" }
           else { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/pando-hydro-connectivity" }
-          node --test --test-name-pattern='logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
+          node --test --test-name-pattern='chain endpoint normalization|border grouping|border substrings|streaming source selection|logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro chain or junction check failed' }
+          node tools/gis/package-hydro-connectivity.mjs --binary "$env:PANDO_HYDRO_CONNECTIVITY_BINARY" --directory build-native/hydro/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro packaging failed' }
+          $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
+          node --test --test-name-pattern='verified source selection exposes' tests/unit/hydro-source-reader.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro streamed selection check failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hydro-selection-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/hydro/artifact/
+          if-no-files-found: error
+          retention-days: 7
   reference-transfer:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-transfer'
     strategy:
@@ -190,18 +249,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Build only the GEOS point screen
+      - name: Build the GEOS point screen and Hydro chain engine
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev ninja-build
           cmake -S tools/cpp -B build-native/hydro-point-screen -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON
-          cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
+          cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen pando-hydro-connectivity
           node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
+          node tools/gis/package-hydro-connectivity.mjs --binary build-native/hydro-point-screen/pando-hydro-connectivity --directory build-native/hydro-point-screen/connectivity-artifact
+          cmake -S tools/cpp/hydro-calibration -B build-native/hydro-point-screen/calibration -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/hydro-point-screen/calibration --target pando-hydro-calibration
+          node tools/gis/package-hydro-calibration.mjs --binary build-native/hydro-point-screen/calibration/pando-hydro-calibration --directory build-native/hydro-point-screen/calibration-artifact
       - name: Check exact shared-boundary and existing point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/artifact
-        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs
+          PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/connectivity-artifact
+          PANDO_HYDRO_CALIBRATION_ARTIFACT: ${{ github.workspace }}/build-native/hydro-point-screen/calibration-artifact
+        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs tests/unit/hydro-calibration-input.test.mjs tests/unit/hydro-data-validation.test.mjs tests/unit/hydro-pack-layout.test.mjs tests/unit/hydro-river-groups.test.mjs
   publisher-pdf:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'publisher-pdf'
     strategy:
@@ -1256,7 +1321,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Native preview differs from original' }
           node --test --test-name-pattern='macro diagnostics refuse|reviewed diagnostics refuse|corpus diagnostics reject' tests/unit/reference-diagnostic-tile.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic scope refusal failed' }
-          $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
           node --test --test-name-pattern='signed map review renders' tests/unit/map-plugin.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map review workflow failed' }
       - uses: actions/upload-artifact@v4
@@ -1430,7 +1494,6 @@ jobs:
           $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
           node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/map-native-webp-encode.test.mjs tests/unit/map-native-jpeg-encode.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-sample-maker.test.mjs tests/unit/reference-corpus-fingerprint.test.mjs tests/unit/reference-training-order.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-semap-labels.test.mjs tests/unit/reference-semap-ranges.test.mjs tests/unit/reference-semap-import.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
-          $env:PANDO_MAP_PYTHON = "$env:GITHUB_WORKSPACE/no-python"
           node --test --test-name-pattern='native rotation works|Live-Wire preserves' tests/unit/map-plugin.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image workflow failed' }
       - uses: actions/upload-artifact@v4
@@ -1885,21 +1948,11 @@ jobs:
           cmake --build build-native/hydro --target pando-hydro-connectivity
       - name: Package source-bound Hydro connectivity engine
         run: node tools/gis/package-hydro-connectivity.mjs --binary build-native/hydro/pando-hydro-connectivity --directory build-native/hydro/artifact
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: '.python-version'
-      - name: Install temporary source-oracle and producer dependencies
-        run: python -m pip install -r tools/requirements-hydro-tiles.txt
       - name: Verify source-proven confluence and border-alignment invariants
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
-        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
-      - name: Verify remaining Python producer calls the native connector
-        env:
-          PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
-          PANDO_HYDRO_CONNECTIVITY_PYTHON: python
-        run: node --test tests/unit/hydro-connectivity-python-bridge.test.mjs
+        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}
@@ -1930,7 +1983,7 @@ jobs:
         run: |
           $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe"
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
+          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro connectivity checks failed' }
       - uses: actions/upload-artifact@v4
         with:

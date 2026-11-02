@@ -50,7 +50,7 @@ jobs:
           node scripts/generate-build-metadata.mjs --check
           node scripts/check-version.mjs
       - name: Verify project schema and remote plan contracts
-        run: node --test tests/unit/versioning-source-schema.test.mjs tests/unit/p1-remote-scopes.test.mjs tests/unit/p4-python-isolation.test.mjs
+        run: node --test tests/unit/versioning-source-schema.test.mjs tests/unit/p1-remote-scopes.test.mjs tests/unit/gis-source-isolation.test.mjs
       - name: Verify WebView and file IO integration contracts
         run: >
           node --test
