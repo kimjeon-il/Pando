@@ -194,7 +194,7 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
   withLibraryOutputs({root,paths:[target]},()=>{mkdirSync(dirname(target),{recursive:true});mkdirSync(target);});
   let current=initial,remaining=maxBatches,currentEpoch=epoch,completed=previous?.completedEpochs??0,
     bestScore=previous?.bestScore??null,bestCheckpoint=previous?.bestCheckpoint??null,bestCheckpointSha256=previous?.bestCheckpointSha256??null;
-  const results=previous?[...previous.epochs]:[];let report=null,stale=0,stop=false;
+  const results=previous?[...previous.epochs]:[];let report=null,stale=0,stop=false,trustedReplay;
   const replayCheckpoints=independentValidation?[...(previous?.replayCheckpoints??[])]:null;
   if(validationCorpus){let score=null;for(const row of results.filter(row=>row.status==='epoch-complete')){
     if(!Number.isFinite(row.validationLoss))throw Error('Previous validation loss required');
@@ -220,10 +220,11 @@ export async function runTrainingCampaign({mode,input,output,corpus,auxiliary,ma
           let validationLoss=null;
           if(validationCorpus){
             const lineageReplay=independentValidation?{checkpoints:[...replayCheckpoints],weights:replayWeights,corpus,auxiliary,supervision,reviewed,publisher,
-              scratch:join(directory,'validation-replay')}:undefined;
+              scratch:join(directory,'validation-replay'),trustedReplay}:undefined;
             const checked=await nativeTrainingValidation({checkpoint:current,corpus:validationCorpus,device,diagnosticOnly,torchLibrary,lineageReplay,root,signal});
             if(checked.checkpointSha256!==event.checkpointSha256||checked.corpusSha256!==validationHash||checked.independence.passed!==independentValidation||
               await corpusFingerprint(validationCorpus)!==validationFingerprint)throw Error('Validation inputs changed during campaign');
+            if(independentValidation){if(!checked.replayToken)throw Error('Verified training replay token required');trustedReplay=checked.replayToken;}
             const proof={...checked,sourceFingerprint:validationFingerprint};item.validationReceipt=join(directory,'validation.json');
             writeFileSync(item.validationReceipt,JSON.stringify(proof,null,2)+'\n',{flag:'wx'});
             item.validationReceiptSha256=trainingFileIdentity(item.validationReceipt);item.validationLoss=validationLoss=checked.validationLoss;

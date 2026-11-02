@@ -169,6 +169,10 @@ chain is replayed before validation loss can select a candidate. A resumed
 campaign must provide its previous campaign report and the same initializer;
 incomplete or changed histories are rejected. The candidate remains private
 and a separate final-test evaluation is required.
+Within one running campaign, a previously verified in-memory prefix is reused
+and only newly added batches are replayed. All source and checkpoint identities
+are rechecked. The prefix is never serialized; after a process restart the full
+chain is replayed again before independent validation.
 An optimizer-update replay compares the recorded epoch loss sum and count as
 well as checkpoint state; changed or missing selection evidence fails replay.
 New validation-selection campaigns also bind the validation manifest hash and

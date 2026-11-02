@@ -19,6 +19,8 @@ import {validateReviewedCorpus} from './reviewed-corpus.mjs';
 
 const SHA=/^[a-f0-9]{64}$/,sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const tensors=['tile','overview','position','target','valid'];
+// Only an in-process successful replay may supply a reusable verified prefix.
+const replayPrefixes=new WeakMap();
 const sameFields=['initialization','initializationWeightsSha256','initializationSourceSha256','encoderInitialization',
   'corpusSha256','auxiliarySha256','lineageFingerprint','selectionExposure','device','precision','seed','freezeEpochs','learningRate','unobservedMask','positiveWeightSha256'];
 export function validateReplayReceiptChain(entries,{weightsSha256,corpusSha256,auxiliarySha256=null,lineageFingerprint=null}){
@@ -153,10 +155,12 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
 
 // Re-run an explicitly bounded sequence in a new, caller-owned directory.
 // Equal checkpoints prove this execution, not independent model accuracy.
-export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed=false,publisher=false,scratch,torchLibrary},{signal}={}){
+export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed=false,publisher=false,scratch,torchLibrary,trustedReplay},{signal}={}){
   signal?.throwIfAborted();
   if(!Array.isArray(checkpoints)||!checkpoints.length||checkpoints.length>100000||!scratch||!torchLibrary)
     throw Error('Explicit scratch directory, LibTorch and a bounded ordered checkpoint chain required');
+  const prefix=trustedReplay===undefined?null:replayPrefixes.get(trustedReplay);
+  if(trustedReplay!==undefined&&!prefix)throw Error('Verified in-process replay prefix required');
   const target=resolve(scratch);if(existsSync(target))throw Error('Training replay output exists; preserve prior evidence');
   const source=await verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed,publisher},{signal});
   const paths=checkpoints.map(value=>resolve(value)),receipts=paths.map(path=>JSON.parse(readTrainingBounded(path+'.receipt.json',1024*1024)));
@@ -166,12 +170,16 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
     {weightsSha256:initializer.weightsSha256,corpusSha256:source.corpusSha256,auxiliarySha256:source.auxiliaryCorpusSha256??null,
       lineageFingerprint:source.lineageFingerprint??null});
   if(sourceHashes.at(-1)[0]!==source.checkpointSha256)throw Error('Original checkpoint chain changed before update replay');
-  const peak=receipts.reduce((sum,row)=>sum+(256+32*row.evidence.length)*1024*1024,0);
+  if(prefix&&(prefix.weightsSha256!==initializer.weightsSha256||prefix.paths.length>=paths.length||
+    prefix.paths.some((path,i)=>path!==paths[i]||!isDeepStrictEqual(prefix.hashes[i],sourceHashes[i]))))
+    throw Error('Verified replay prefix differs from the checkpoint chain');
+  const start=prefix?prefix.paths.length:0;
+  const peak=receipts.slice(start).reduce((sum,row)=>sum+(256+32*row.evidence.length)*1024*1024,0);
   if(peak>=1024**3){const space=statfsSync(dirname(target));if(Number(space.bavail)*Number(space.bsize)<peak+5*1024**3)
     throw Error('Insufficient space for replay checkpoints and 5 GiB headroom');}
   return withLibraryOutputs({paths:[target]},async()=>{
-    signal?.throwIfAborted();mkdirSync(target);let current=resolve(weights);
-    for(let i=0;i<paths.length;i++){
+    signal?.throwIfAborted();mkdirSync(target);let current=start?paths[start-1]:resolve(weights);
+    for(let i=start;i<paths.length;i++){
       signal?.throwIfAborted();const r=receipts[i],folder=join(target,`batch-${String(i+1).padStart(6,'0')}`);mkdirSync(folder);
       const orderDirectory=auxiliary?join(dirname(paths[i]),'order'):dirname(paths[i]),order=join(orderDirectory,'order.u64');
       const common={mode:i?'resume':'warm',input:current,output:join(folder,'checkpoint.pt'),sampleOutput:join(folder,'samples'),
@@ -190,8 +198,10 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
     const after=await verifyTrainingSourceReplay({checkpoints:paths,weights,corpus,auxiliary,supervision,selectionCorpus,reviewed,publisher},{signal});
     if(!isDeepStrictEqual(after,source))throw Error('Training sources changed during update replay');
     const lineage=source.lineageCandidate?validateTrainingLineage({...source.lineageCandidate,complete:true}):null;
-    return {...source,optimizerUpdatesReplayed:true,replayedCheckpoints:paths.length,independentEvaluation:false,
+    const result={...source,optimizerUpdatesReplayed:true,replayedCheckpoints:paths.length,replayedBatchesThisRun:paths.length-start,independentEvaluation:false,
       lineageComplete:Boolean(lineage),...(lineage?{lineage}:{}),releaseApproved:false};
+    const replayToken={};replayPrefixes.set(replayToken,{paths,hashes:sourceHashes,weightsSha256:initializer.weightsSha256});
+    Object.defineProperty(result,'replayToken',{value:replayToken});return result;
   });
 }
 

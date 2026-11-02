@@ -133,7 +133,8 @@ export async function verifyCheckpointReplayLineage({checkpoint,checkpointSha256
   const proof=await verifyTrainingUpdateReplay({...lineageReplay,selectionCorpus,torchLibrary},{signal});
   if(proof.lineageComplete!==true||proof.optimizerUpdatesReplayed!==true||proof.selectionExposureVerified!==true||
     proof.checkpointSha256!==checkpointSha256||!proof.lineage)throw Error('Complete replayed training ancestry is required for validation');
-  return {lineage:proof.lineage,trainingCorpusFingerprint:proof.trainingCorpusFingerprint};
+  return {lineage:proof.lineage,trainingCorpusFingerprint:proof.trainingCorpusFingerprint,
+    replayToken:proof.replayToken,replayedBatchesThisRun:proof.replayedBatchesThisRun};
 }
 export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',diagnosticOnly=false,torchLibrary,lineageReplay,
   root=defaultRoot,directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
@@ -143,10 +144,11 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
   const checkpointPath=resolve(checkpoint),receiptPath=checkpointPath+'.receipt.json',checkpointHash=trainingFileIdentity(checkpointPath),receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
   if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==checkpointHash)
     throw Error('Private checkpoint receipt differs from its file');
-  let trainingLineage=receipt.lineageComplete===true?receipt.lineage:null,verifiedReplay=false;
+  let trainingLineage=receipt.lineageComplete===true?receipt.lineage:null,verifiedReplay=false,replayToken=null,replayedBatchesThisRun=null;
   if(lineageReplay!==undefined){
     if(trainingLineage)throw Error('Choose one source of training ancestry');
-    const {lineage}=await verifyCheckpointReplayLineage({checkpoint:checkpointPath,checkpointSha256:checkpointHash,selectionCorpus:corpus,torchLibrary,lineageReplay,signal});
+    const proof=await verifyCheckpointReplayLineage({checkpoint:checkpointPath,checkpointSha256:checkpointHash,selectionCorpus:corpus,torchLibrary,lineageReplay,signal});
+    const {lineage}=proof;replayToken=proof.replayToken;replayedBatchesThisRun=proof.replayedBatchesThisRun;
     trainingLineage={...lineage,sheets:lineage.sheets.filter(row=>row.usage==='train')};verifiedReplay=true;
   }
   if(!trainingLineage&&!diagnosticOnly)throw Error('Complete training ancestry is required for independent validation');
@@ -180,9 +182,10 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
   if(trainingFileIdentity(checkpointPath)!==checkpointHash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash||sha(readTrainingBounded(corpusPath,32*1024*1024))!==corpusHash)
     throw Error('Validation checkpoint or corpus changed during execution');
   for(const [path,expected] of checks)if(trainingFileIdentity(path)!==expected)throw Error('Validation source changed during execution');
-  return {validationLoss:result.loss,samples:result.samples,device,diagnosticOnly,independence,trainingOnly:true,releaseApproved:false,
-    ...(verifiedReplay?{trainingAncestry:'replayed-public-encoder'}:{}),
+  const validation={validationLoss:result.loss,samples:result.samples,device,diagnosticOnly,independence,trainingOnly:true,releaseApproved:false,
+    ...(verifiedReplay?{trainingAncestry:'replayed-public-encoder',replayedBatchesThisRun}:{}),
     checkpointSha256:checkpointHash,corpusSha256:corpusHash,toolRevision:tool.revision};
+  if(replayToken)Object.defineProperty(validation,'replayToken',{value:replayToken});return validation;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);

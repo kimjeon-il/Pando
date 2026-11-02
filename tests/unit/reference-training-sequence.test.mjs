@@ -183,6 +183,7 @@ test('update replay allows long bounded chains but rejects invalid chains and ex
   await assert.rejects(verifyTrainingUpdateReplay({checkpoints:[],scratch:join(root,'new'),torchLibrary:root}),/bounded/i);
   await assert.rejects(verifyTrainingUpdateReplay({checkpoints:Array(100001).fill('x'),scratch:join(root,'new'),torchLibrary:root}),/bounded/i);
   await assert.rejects(verifyTrainingUpdateReplay({checkpoints:Array(17).fill('x'),scratch:join(root,'new'),torchLibrary:root}),/distinct checkpoint chain/i);
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:['x'],scratch:join(root,'new'),torchLibrary:root,trustedReplay:{}}),/replay prefix/i);
   await assert.rejects(verifyTrainingUpdateReplay({checkpoints:['x'],scratch:root,torchLibrary:root}),/output exists/i);
   assert.equal(existsSync(join(root,'new')),false);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-training-replay.mjs','--weights','x','--corpus','x','--supervision','x',
