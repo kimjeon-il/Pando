@@ -1,7 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {createViewerProjectPackage} from '../fixtures/viewer-project-package.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const bundleTemplate=()=>JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json',import.meta.url),'utf8'));
@@ -53,12 +52,16 @@ function dataFixture(baseRevision){
 test('E4 map revision follows the actual builtin or opened project',async({page})=>{
   test.setTimeout(180000);
   const pin=JSON.parse(readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8')).revision;
-  const model=dataFixture(pin),project=await createViewerProjectPackage('별도 파일 지도');
+  // Historical GeoPackage bytes and its JSON oracle are checked-in, immutable
+  // fixtures. E4 must not instantiate the retired editor-only GPKG writer.
+  const model=dataFixture(pin);
+  const project=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/complex.json',import.meta.url),'utf8'));
+  const projectBytes=readFileSync(new URL('../fixtures/timeline-exchange/complex.gpkg',import.meta.url));
   await ready(page);
   await page.locator('#reviewPanelBtn').click();
   await page.locator('#reviewEvidenceInput').setInputFiles(model.files);
   await expect(page.locator('#reviewMapRevision')).toContainText('변경 전');
-  await page.locator('#projectFileInput').setInputFiles({name:'review-file.gpkg',mimeType:'application/geopackage+sqlite3',buffer:project.bytes});
+  await page.locator('#projectFileInput').setInputFiles({name:'review-file.gpkg',mimeType:'application/geopackage+sqlite3',buffer:projectBytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(project.project.documentId);
   await expect(page.locator('#reviewMapRevision')).toContainText('파일 지도');
   await page.evaluate(()=>document.getElementById('builtinMapBtn').click());
