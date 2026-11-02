@@ -1,0 +1,66 @@
+{
+  "description": "Synthetic nine-reach source, original Python generator; no private source data.",
+  "files": {
+    "index.bin.gz": {
+      "bytes": 89,
+      "sha256": "0504a701802d0344438cc38a9e246540b4e5f2957e23f7736cd9a6dbfc17f53e"
+    },
+    "metadata-core.json.gz": {
+      "bytes": 438,
+      "sha256": "745fb2ab87747828f53850a4a3f7a407a786293faafe3df809d35031cf71903d"
+    },
+    "metadata-detail.json.gz": {
+      "bytes": 156,
+      "sha256": "d395c50a99fcbd42707c98ec7aa09d2a25cb793607d0e3e9cdac06de4c2631b2"
+    },
+    "shards/s0.bin": {
+      "bytes": 346,
+      "sha256": "ceb64fb6e06bff3efdc8a91b209a992d4edae755966ab0ed38059003e42df414"
+    }
+  },
+  "stats": {
+    "featureCount": 5,
+    "coordinateCount": 21,
+    "categoryCounts": {
+      "river": 4,
+      "lake": 1
+    },
+    "layerCounts": {
+      "rivers_hydro": 4,
+      "lakes_natural_earth": 1
+    },
+    "stageCounts": {
+      "river:3": 3,
+      "river:1": 1,
+      "lake:0": 1
+    },
+    "packCount": 4,
+    "shardCount": 1,
+    "indexTileCount": 3,
+    "logicalFeatureCount": 3,
+    "compressedBytes": 1029,
+    "largestPackBytes": 120,
+    "seedReachCount": 2,
+    "continuityRootCount": 1,
+    "namedContinuityRootCount": 1,
+    "mediumMainstemRootCount": 1,
+    "mediumMainstemReachCount": 3,
+    "selectedReachCount": 8,
+    "continuityReachCount": 6,
+    "downstreamClosureReachCount": 1,
+    "coastSnappedTerminalCount": 0,
+    "terminalClassCounts": {
+      "sea": 2
+    },
+    "excludedTerminalReachCount": 0,
+    "borderAlignedReachCount": 0,
+    "borderAlignedRiverCount": 0,
+    "borderAlignedLengthKm": 0,
+    "borderChangedCoordinateCount": 0,
+    "connectionChangedCount": 0,
+    "riverSystemCount": 2,
+    "namedRiverSystemCount": 1,
+    "unnamedRiverSystemCount": 1,
+    "osmWaterwayMatchCount": 0
+  }
+}

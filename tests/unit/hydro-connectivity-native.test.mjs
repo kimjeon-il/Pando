@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,auditHydroSourceArchives,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,repairHydroParts,validateHydroAudit,validateHydroRepair,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroSystemFragments,auditHydroParts,auditHydroSourceArchives,buildHydroFragmentGeometries,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,extractHydroBorderSubstrings,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -25,6 +25,138 @@ function run(input) {
   return JSON.parse(result.stdout);
 }
 const nativeTest = (name, fn) => test(name, { skip: !native }, fn);
+nativeTest('streaming source selection keeps seeds, roots and the strongest eight upstream records',()=>{
+  const row=(id,next,order,flow,upstreamArea,mainRiver=100)=>({id,next,mainRiver,order,flow,upstreamArea,endorheic:false,recordIndex:id-1});
+  const rows=[row(100,0,6,500,5000),row(101,100,5,100,2000),row(102,101,2,1,500),
+    ...Array.from({length:10},(_,i)=>row(i+1,102,1,1,10))];
+  const requests=[{op:'add',rows:rows.slice(0,6)},{op:'add',rows:rows.slice(6)},
+    {op:'prepare'},{op:'candidates',ids:[100,101,102,999]},{op:'records',ids:[102,999,100]}];
+  const result=spawnSync(native,['--selection-stream'],{input:requests.map(value=>JSON.stringify(value)).join('\n')+'\n',encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);const replies=result.stdout.trim().split('\n').map(JSON.parse);
+  assert.deepEqual(replies[0],{count:6});assert.deepEqual(replies[1],{count:13});
+  assert.deepEqual(replies[2].mediumRoots,[100]);assert.ok(replies[2].seeds.includes(100));
+  assert.ok(replies[2].continuityRoots.includes(101));
+  assert.deepEqual(replies[3].groups.map(group=>group.id),[100,101,102,999]);
+  assert.deepEqual(replies[3].groups[2].candidates.map(candidate=>candidate.id),[3,4,5,6,7,8,9,10]);
+  assert.deepEqual(replies[3].groups[3].candidates,[]);
+  assert.deepEqual(replies[4].records.map(record=>record?.id??null),[102,null,100]);
+  const duplicate=spawnSync(native,['--selection-stream'],{input:[{op:'add',rows:[rows[0],rows[0]]}].map(JSON.stringify).join('\n')+'\n',encoding:'utf8'});
+  assert.notEqual(duplicate.status,0);assert.match(duplicate.stderr,/duplicate/i);
+});
+nativeTest('border substrings retain canonical vertices, direction and quantized deduplication',()=>{
+  const source=[[0,0],[1,0],[1,2],[2,2]],metric=[[0,0],[10,0],[10,20],[20,20]];
+  const result=run({mode:'border-substrings',requests:[{source,metric,start:5,end:35},{source,metric,start:35,end:5},
+    {source,metric,start:10,end:10},{source:[[0,0],[.0000001,0],[1,0]],metric:[[0,0],[1,0],[10,0]],start:0,end:10}]});
+  assert.deepEqual(result.lines,[[[.5,0],[1,0],[1,2],[1.5,2]],[[1.5,2],[1,2],[1,0],[.5,0]],[],[[0,0],[1,0]]]);
+});
+nativeTest('border grouping requires continuous length and coverage on the same border',()=>{
+  const candidate=(lineIndex,length,distances)=>({lineIndex,length,distances});
+  const result=run({mode:'border-group-acceptance',chains:[
+    [candidate(0,6,[1,2]),candidate(0,5,[4,10]),null,candidate(1,9,[1])],
+    [candidate(2,10,[1,6,6,6]),candidate(3,10,[1,2])]]});
+  assert.deepEqual(result.accepted,[[true,true,false,false],[false,true]]);
+});
+nativeTest('chain endpoint normalization honors border ownership and exact triple junctions',()=>{
+  const reach=(parts,borderPair=null)=>({parts:[parts],borderPair});
+  const input={mode:'normalize-chains',chains:[[reach([[0,0],[1,0]]),reach([[1.001,0],[2,0]],['AAA','BBB']),
+    reach([[2.001,0],[3,0]],['BBB','CCC'])]],junctions:[[null,[2,0]]]};
+  const result=run(input);assert.equal(result.changed,2);
+  assert.deepEqual(result.chains[0].map(row=>row.parts[0]),[[[0,0],[1.001,0]],[[1.001,0],[2,0]],[[2,0],[3,0]]]);
+  const missing=spawnSync(native,[],{input:JSON.stringify({...input,junctions:[[null,null]]}),encoding:'utf8'});
+  assert.notEqual(missing.status,0);assert.match(missing.stderr,/junction/i);
+});
+test('source-bound border substrings preserve projected line cuts',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},source=[[0,0],[1,0],[1,2],[2,2]],
+      metric=[[0,0],[10,0],[10,20],[20,20]];
+    assert.deepEqual(await extractHydroBorderSubstrings([{source,metric,start:35,end:5}],options),[[[1.5,2],[1,2],[1,0],[.5,0]]]);
+    assert.deepEqual(await extractHydroBorderSubstrings([],options),[]);
+  });
+test('logical-chain receipts reject missing, duplicated or wrongly connected reaches',()=>{
+  const input={reaches:[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],
+    canonical:[{downstream:3,upstream:1},{downstream:4,upstream:3}]};
+  const result={chains:[[2],[1,3,4]]};
+  assert.deepEqual(validateHydroLogicalChains(result,input),result);
+  for(const bad of [{chains:[[2],[1,3]]},{chains:[[2],[1,3,4,4]]},
+    {chains:[[1],[2,3,4]]},{chains:[[2],[1,4,3]]}])
+    assert.throws(()=>validateHydroLogicalChains(bad,input),/chain/i);
+});
+test('source-bound logical-chain API preserves topology, order and cancellation',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+    const input={reaches:[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],
+      canonical:[{downstream:3,upstream:1},{downstream:4,upstream:3}]};
+    const before=structuredClone(input);
+    assert.deepEqual(await buildHydroLogicalChains(input,options),{chains:[[2],[1,3,4]]});
+    assert.deepEqual(input,before);
+    await assert.rejects(buildHydroLogicalChains({reaches:[{id:1,next:9}],canonical:[]},options),/downstream|connectivity/i);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(buildHydroLogicalChains(input,{...options,signal:controller.signal}),{name:'AbortError'});
+  });
+test('producer receipts preserve every chain and stage fragment without reassignment',()=>{
+  const reach=(id,stage,borderPair)=>({id,mainRiver:10,upstreamArea:10,flow:2,stage,borderPair,parts:[[[0,0],[1,1]]]});
+  const chains=[[reach(1,1,null),reach(2,2,['AAA','BBB'])],[reach(3,1,null)]];
+  const result={systems:[{systemId:10,chainIndexes:[0,1],mainstemIndex:0,bounds:[0,0,1,1]}],fragments:[[[1],[2]],[[3]]]};
+  assert.deepEqual(validateHydroRiverSystems(result,{chains}),result);
+  for(const bad of [
+    {...result,fragments:[[[1,2]],[[3]]]},
+    {...result,fragments:[[[1],[2]],[[2]]]},
+    {...result,systems:[{...result.systems[0],chainIndexes:[0]}]},
+    {...result,systems:[{...result.systems[0],mainstemIndex:2}]},
+    {...result,systems:[{...result.systems[0],systemId:11}]},
+  ])assert.throws(()=>validateHydroRiverSystems(bad,{chains}),/system|fragment/i);
+  const invalid=structuredClone(chains);invalid[0][0].stage=NaN;
+  assert.throws(()=>validateHydroRiverSystems(result,{chains:invalid}),/system|fragment/i);
+});
+test('width receipts retain a finite value for each original displayed point',()=>{
+  const reaches=[{width:1,endWidth:4,parts:[[[0,0],[1,0],[1,2]],[[5,5],[5,5]],[[1,1]]]}];
+  const result={widths:[[1,2,4],[1,1]]};
+  assert.deepEqual(validateHydroWidthProfile(result,{reaches}),result);
+  for(const bad of [{widths:[[1,2,4]]},{widths:[[1,2],[1,1]]},{widths:[[1,5,4],[1,1]]}])
+    assert.throws(()=>validateHydroWidthProfile(bad,{reaches}),/width/i);
+});
+test('source-bound producer APIs preserve system selection and geographic widths',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+    const reach=(id,stage,borderPair)=>({id,mainRiver:10,upstreamArea:10,flow:2,stage,borderPair,parts:[[[0,0],[1,1]]]});
+    const chains=[[reach(1,1,null),reach(2,2,['AAA','BBB'])],[reach(3,1,null)]];
+    assert.deepEqual(await buildHydroRiverSystems({chains},options),
+      {systems:[{systemId:10,chainIndexes:[0,1],mainstemIndex:0,bounds:[0,0,1,1]}],fragments:[[[1],[2]],[[3]]]});
+    const reaches=[{width:1,endWidth:4,parts:[[[0,0],[1,0],[1,2]],[[5,5],[5,5]],[[1,1]]]}];
+    assert.deepEqual(await buildHydroWidthProfile({reaches},options),{widths:[[1,2,4],[1,1]]});
+  });
+test('native system fragments retain chain order, role and per-point widths',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const reach=(id,stage,start,end)=>({id,mainRiver:10,upstreamArea:id===2?200:id*10,flow:id,stage,borderPair:null,
+      width:start,endWidth:end,parts:[[[id,0],[id+1,0]]]});
+    const chains=[[reach(1,1,1,1.5),reach(2,2,1.5,2)],[reach(3,1,1,1.2)]],before=structuredClone(chains);
+    const result=await assembleHydroSystemFragments({chains},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(result.map(system=>({systemId:system.systemId,mainstemIndex:system.mainstemIndex,
+      fragments:system.fragments.map(fragment=>({chainIndex:fragment.chainIndex,reachIds:fragment.reachIds,widths:fragment.widths}))})),
+    [{systemId:10,mainstemIndex:0,fragments:[{chainIndex:0,reachIds:[1],widths:[[1,1.5]]},
+      {chainIndex:0,reachIds:[2],widths:[[1.5,2]]},{chainIndex:1,reachIds:[3],widths:[[1,1.2]]}]}]);
+    assert.deepEqual(result[0].fragments[0].geometry,{type:'LineString',coordinates:[[1,0],[2,0]]});
+    assert.deepEqual(result[0].fragments[1].geometry,{type:'LineString',coordinates:[[2,0],[3,0]]});
+    assert.deepEqual(chains,before);
+    await assert.rejects(assembleHydroSystemFragments({chains:[chains[0],chains[0]]},
+      {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),/identity/i);
+  });
+test('system fragments retain separate geometry for split reaches with the same source ID',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const reach=(parts,borderPair)=>({id:10,mainRiver:10,upstreamArea:100,flow:1,stage:3,borderPair,
+      width:1,endWidth:2,renderSnap:null,parts:[parts]}),chains=[[
+      reach([[0,0],[1,0]],null),reach([[1,0],[2,0]],['AAA','BBB']),reach([[2,0],[3,0]],null)]];
+    const result=await assembleHydroSystemFragments({chains},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(result[0].fragments.map(row=>row.reachIds),[[10],[10],[10]]);
+    assert.deepEqual(result[0].fragments.map(row=>row.geometry.coordinates),[[[0,0],[1,0]],[[1,0],[2,0]],[[2,0],[3,0]]]);
+  });
+test('source-bound fragment geometry accepts negative zero and protects input coordinates',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const fragments=[[{parts:[[[0,-0],[1,0]]],renderSnap:[2,0]}]],before=structuredClone(fragments);
+    assert.deepEqual(await buildHydroFragmentGeometries(fragments,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),
+      [{type:'LineString',coordinates:[[0,0],[2,0]]}]);
+    assert.deepEqual(fragments,before);
+  });
 nativeTest('logical river chains preserve canonical confluence and input order',()=>{
   const reaches=[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],canonical=[{downstream:3,upstream:1},{downstream:4,upstream:3}];
   assert.deepEqual(run({mode:'logical-chains',reaches,canonical}),{chains:[[2],[1,3,4]]});
@@ -87,6 +219,74 @@ nativeTest('hydro visibility and symbolic width use the fixed source thresholds'
   const middle=run({mode:'feature-policy',order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002});
   assert.equal(middle.score,12);assert.equal(middle.riverStage,2);assert.equal(middle.lakeStage,null);assert.equal(middle.minZoomStage,3);
 });
+nativeTest('batched Hydro scoring preserves single-record results and rejects malformed batches',()=>{
+  const rows=[{order:1,flow:0,upstreamArea:0,lakeArea:40,zoom:7.0000000005},
+    {order:20,flow:1e12,upstreamArea:1,lakeArea:250,zoom:6},
+    {order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
+  assert.deepEqual(run({mode:'feature-policies',features:rows}).features,rows.map(row=>run({mode:'feature-policy',...row})));
+  assert.deepEqual(run({mode:'feature-policies',features:[]}),{features:[]});
+  const result=spawnSync(native,[],{input:JSON.stringify({mode:'feature-policies',features:[rows[0],{...rows[1],flow:null}]}),encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+});
+nativeTest('selected Hydro reaches propagate width downstream across joins in source order',()=>{
+  const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:4,width:0.6},
+    {id:4,next:0,width:1.5},{id:5,next:99,width:0.8}];
+  assert.deepEqual(run({mode:'propagate-widths',reaches}),{reaches:[
+    {id:1,width:2,endWidth:2},{id:2,width:1,endWidth:2},{id:3,width:2,endWidth:2},
+    {id:4,width:2,endWidth:2},{id:5,width:0.8,endWidth:0.8}]});
+  for(const invalid of [[{id:1,next:2,width:1},{id:2,next:1,width:1}],
+    [{id:1,next:0,width:1},{id:1,next:0,width:2}],[{id:1,next:0,width:null}]]){
+    const result=spawnSync(native,[],{input:JSON.stringify({mode:'propagate-widths',reaches:invalid}),encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});
+nativeTest('fragment geometry retains source part order and applies only the final snapped endpoint',()=>{
+  const fragments=[[
+    {parts:[[[0,0]],[[1,0],[2,0]]],renderSnap:[2.25,0]},
+    {parts:[[[2,0],[3,0]]],renderSnap:null}
+  ],[{parts:[[[4,0],[5,0]]],renderSnap:null}]];
+  const actual=run({mode:'fragment-geometries',fragments});
+  assert.deepEqual(actual,{geometries:[{type:'MultiLineString',coordinates:[[[1,0],[2.25,0]],[[2,0],[3,0]]]},
+    {type:'LineString',coordinates:[[4,0],[5,0]]}]});
+  assert.deepEqual(fragments[0][0].parts[1].at(-1),[2,0]);
+  const invalid=spawnSync(native,[],{input:JSON.stringify({mode:'fragment-geometries',fragments:[[{parts:[[[0,0],[1,0]]],renderSnap:[null,0]}]]}),encoding:'utf8'});
+  assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
+});
+test('width propagation receipts preserve source identities and shared downstream widths',()=>{
+  const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:0,width:0.6}];
+  const result={reaches:[{id:1,width:2,endWidth:2},{id:2,width:1,endWidth:2},{id:3,width:2,endWidth:2}]};
+  assert.deepEqual(validateHydroWidthPropagation(result,reaches),result.reaches);
+  for(const bad of [{reaches:result.reaches.slice(1)},{reaches:[result.reaches[1],result.reaches[0],result.reaches[2]]},
+    {reaches:[result.reaches[0],{...result.reaches[1],endWidth:1},result.reaches[2]]},
+    {reaches:[result.reaches[0],result.reaches[1],{...result.reaches[2],width:0.5}]}])
+    assert.throws(()=>validateHydroWidthPropagation(bad,reaches),/width/i);
+});
+test('source-bound width propagation retains inputs and propagates across a confluence',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const reaches=[{id:1,next:3,width:2},{id:2,next:3,width:1},{id:3,next:0,width:0.6}],before=structuredClone(reaches);
+    const actual=await propagateHydroWidths(reaches,{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(actual,[{id:1,width:2,endWidth:2},{id:2,width:1,endWidth:2},{id:3,width:2,endWidth:2}]);
+    assert.deepEqual(reaches,before);
+  });
+test('Hydro batch scoring validates complete, finite and bounded native receipts',()=>{
+  const rows=[{order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
+  const valid={features:[{score:12,riverStage:2,lakeStage:null,width:1.2,minZoomStage:3}]};
+  assert.deepEqual(validateHydroFeaturePolicies(valid,rows),valid.features);
+  for(const bad of [{features:[]},{features:[{...valid.features[0],score:NaN}]},
+    {features:[{...valid.features[0],riverStage:4}]},{features:[{...valid.features[0],width:2.7}]}])
+    assert.throws(()=>validateHydroFeaturePolicies(bad,rows),/policy|score/i);
+});
+test('source-bound Hydro batch scoring keeps input ordering and supports cancellation',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+    const rows=[{order:1,flow:0,upstreamArea:0,lakeArea:40,zoom:7.0000000005},
+      {order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
+    const before=structuredClone(rows),out=await scoreHydroFeaturePolicies(rows,options);
+    assert.equal(out.length,2);assert.equal(out[0].score,-20);assert.equal(out[1].score,12);
+    assert.deepEqual(rows,before);const controller=new AbortController();controller.abort();
+    await assert.rejects(scoreHydroFeaturePolicies(rows,{...options,signal:controller.signal}),{name:'AbortError'});
+    await assert.rejects(scoreHydroFeaturePolicies([{...rows[0],flow:NaN}],options),/policy|feature/i);
+  });
 nativeTest('terminal decisions retain lake, coast, omitted land and water precedence',()=>{
   const request={mode:'outlet-decision',lakeDistance:null,lakeCovers:false,coastDistance:3,onLand:true,
     outsideLength:0,undisplayedWater:false,maxKm:25,target:[181,2]};
@@ -105,6 +305,15 @@ nativeTest('terminal decisions retain lake, coast, omitted land and water preced
     const result=spawnSync(native,[],{input:JSON.stringify({...request,...overrides}),encoding:'utf8'});
     assert.notEqual(result.status,0);assert.equal(result.stdout,'');
   }
+});
+nativeTest('terminal decisions process bounded observation batches in input order',()=>{
+  const base={lakeDistance:null,lakeCovers:false,coastDistance:3,onLand:true,undisplayedWater:false,
+    outsideLength:0,maxKm:25,target:[1,2]};
+  const decisions=run({mode:'outlet-decisions',observations:[base,{...base,lakeDistance:.5},
+    {...base,onLand:false,coastDistance:30}]});
+  assert.deepEqual(decisions.decisions.map(row=>row.class),['sea','lake','excluded-small-land']);
+  assert.deepEqual(decisions.decisions[0].snap,[1,2]);assert.equal(decisions.decisions[1].distanceKm,.5);
+  assert.deepEqual(run({mode:'outlet-decisions',observations:[]}),{decisions:[]});
 });
 nativeTest('outlet sample handles the date line, raster edges and near-white water',()=>{
   const sample=run({mode:'outlet-sample',source:[179,0],target:[-179,0],width:360,height:180,rgb:[249,250,249]});

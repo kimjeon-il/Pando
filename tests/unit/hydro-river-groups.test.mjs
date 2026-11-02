@@ -72,6 +72,10 @@ test('selected Natural Earth lakes keep their source and reject changed original
   const features=[{metadata:{category:'lake',layerId:'lakes_natural_earth',source:'Natural Earth 5.0.0 1:10m',awId:'ne:lake:1'},
     geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]}}];
   assert.deepEqual(verifyHydroSelectedLakes({features,original,sha256}),{lakes:1,coordinates:4});
+  assert.deepEqual(verifyHydroSelectedLakes({features,original,sha256,expectedLakeCount:1,expectedCoordinateCount:4}),{lakes:1,coordinates:4});
+  assert.throws(()=>verifyHydroSelectedLakes({features,original,sha256,expectedLakeCount:2,expectedCoordinateCount:4}),/count/i);
+  assert.throws(()=>verifyHydroSelectedLakes({features,original,sha256,expectedLakeCount:1,expectedCoordinateCount:5}),/count/i);
+  assert.throws(()=>verifyHydroSelectedLakes({features,original,sha256,expectedLakeCount:1}),/explicit/i);
   assert.throws(()=>verifyHydroSelectedLakes({features,original:Buffer.from('changed'),sha256}),/source.*hash/i);
   const wrong=structuredClone(features);wrong[0].metadata.awId='hydro-lake:1';
   assert.throws(()=>verifyHydroSelectedLakes({features:wrong,original,sha256}),/lake.*source/i);

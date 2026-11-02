@@ -8,15 +8,16 @@ on:
       - 'tools/cpp/hydro/calibration.cpp'
       - 'shared/core/include/pandoeditor/losslessjson.h'
       - 'shared/core/src/losslessjson.cpp'
-      - 'tools/calibrate-hydro.py'
+      - 'tools/gis/calibrate-hydro.mjs'
       - 'tools/gis/hydro-calibration-native.mjs'
       - 'tools/gis/hydro-calibration-metrics.mjs'
+      - 'tools/gis/hydro-calibration-preparation.mjs'
       - 'tools/gis/hydro-calibration-report.mjs'
       - 'tools/gis/package-hydro-calibration.mjs'
       - 'tests/unit/hydro-calibration-native.test.mjs'
-      - 'tests/unit/hydro-calibration-python-bridge.test.mjs'
-      - 'tests/unit/hydro-name-python-bridge.test.mjs'
+      - 'tests/unit/hydro-name.test.mjs'
       - 'tests/unit/hydro-calibration-metrics.test.mjs'
+      - 'tests/unit/hydro-calibration-preparation.test.mjs'
       - 'tests/unit/hydro-calibration-report.test.mjs'
       - 'tests/fixtures/hydro-calibration-chain-oracle.json'
       - 'tests/fixtures/hydro-calibration-optimizer-oracle.json'
@@ -41,9 +42,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - uses: actions/setup-python@v5
-        with:
-          python-version-file: '.python-version'
       - name: Build and package the calibration engine
         shell: pwsh
         run: |
@@ -59,9 +57,7 @@ jobs:
         shell: pwsh
         run: |
           $env:PANDO_HYDRO_CALIBRATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/hydro-calibration/artifact"
-          $env:PANDO_HYDRO_CALIBRATION_PYTHON = 'python'
-          $env:PANDO_HYDRO_NAME_PYTHON = 'python'
-          node --test tests/unit/hydro-calibration-native.test.mjs tests/unit/hydro-calibration-python-bridge.test.mjs tests/unit/hydro-name-python-bridge.test.mjs tests/unit/hydro-calibration-metrics.test.mjs tests/unit/hydro-calibration-report.test.mjs
+          node --test tests/unit/hydro-calibration-native.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-calibration-metrics.test.mjs tests/unit/hydro-calibration-report.test.mjs tests/unit/hydro-calibration-preparation.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Calibration oracle differs' }
       - uses: actions/upload-artifact@v4
         with:

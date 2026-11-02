@@ -7,7 +7,6 @@ import test from 'node:test';
 import {raster} from '../../plugins/pando-map-tools/lib/raster.mjs';
 
 test('native PNG input preserves original mapping and pixels across colors, alpha, EXIF and crop',async()=>{
-  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
   const root=resolve('tests/fixtures/map-image/png-read');
   for(const name of ['rgba','rgb','orientation-2','orientation-3','orientation-4','orientation-5','orientation-6','orientation-7','orientation-8',
     'palette-alpha','gray1','gray16','gray16-key','rgb16','gray-alpha16','rgba16','gray-alpha','gray-key','rgb-key','adam7','crop-resize']){
@@ -20,7 +19,6 @@ test('native PNG input preserves original mapping and pixels across colors, alph
 });
 
 test('native PNG input rejects bad rectangles, budgets and missing files',async()=>{
-  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
   const path=resolve('tests/fixtures/map-image/png-read/rgba.png');
   await assert.rejects(raster({action:'read',path,maxPixels:255}),/budget/i);
   await assert.rejects(raster({action:'read',path,maxPixels:256,rect:{x:10,y:0,width:3,height:3}}),/bounds|rectangle/i);
@@ -28,7 +26,6 @@ test('native PNG input rejects bad rectangles, budgets and missing files',async(
 });
 
 test('unsupported raster formats and operations fail without invoking Python',async t=>{
-  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
   const folder=mkdtempSync(join(tmpdir(),'pando-raster-format-'));t.after(()=>rmSync(folder,{recursive:true,force:true}));
   const path=join(folder,'invalid.bmp');writeFileSync(path,Buffer.from('not an accepted raster'));
   await assert.rejects(raster({action:'read',path,maxPixels:256}),/PNG, JPEG, WebP or PDF/i);
@@ -36,7 +33,6 @@ test('unsupported raster formats and operations fail without invoking Python',as
 });
 
 test('native PNG input detects file content and rejects truncated or oversized input',async t=>{
-  process.env.PANDO_MAP_PYTHON=resolve('definitely-missing-python');
   const folder=mkdtempSync(join(tmpdir(),'pando-png-source-'));t.after(()=>rmSync(folder,{recursive:true,force:true}));
   const original=readFileSync('tests/fixtures/map-image/png-read/rgba.png'),disguised=join(folder,'source.jpg');
   writeFileSync(disguised,original);const expected=JSON.parse(readFileSync('tests/fixtures/map-image/png-read/rgba.json','utf8'));

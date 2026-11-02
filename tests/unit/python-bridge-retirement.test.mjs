@@ -10,36 +10,39 @@ const tracked = (...patterns) => execFileSync('git', ['ls-files', '-z', '--', ..
   cwd: root, encoding: 'utf8',
 }).split('\0').filter(Boolean);
 const read = path => readFileSync(join(root, path), 'utf8');
-const remaining = tracked('*.py', '*.pyi', '*.ipynb').sort();
 
-test('QGIS exchange has no project-owned Python bridge or bridge test', () => {
-  for (const path of ['tools/qgis/bootstrap.py', 'tools/qgis/bridge.py', 'tests/python/test_qgis_bridge.py']) {
-    assert.ok(!remaining.includes(path), `Retired QGIS Python remains: ${path}`);
+test('project-owned Python files have been retired', () => {
+  assert.deepEqual(tracked('*.py', '*.pyi', '*.ipynb'), []);
+});
+
+const pythonCommand = /(?:^|[;&|]\s*|(?:^|\n)\s*-?\s*run:\s*)\s*(?:python(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?\s+(?:-m\s+|-c\s+|[^\s]+\.py\b)/im;
+
+test('Python command guard recognizes workflow and package invocations', () => {
+  for (const command of ['- run: python -m pip install x', '- run: python tools/example.py',
+    'run: |\n  python3 -c x', 'node first.js && python3.12 tools/a.py']) {
+    assert.match(command, pythonCommand);
+  }
+  assert.doesNotMatch('node tools/example.mjs', pythonCommand);
+});
+
+test('project workflows and package scripts do not run Python', () => {
+  for (const path of tracked('.github/workflows/*.yml', '.github/workflows/*.yaml')) {
+    const content = read(path);
+    assert.doesNotMatch(content, /uses:\s*actions\/setup-python@/i, path);
+    assert.doesNotMatch(content, pythonCommand, path);
+  }
+  const scripts = JSON.parse(read('package.json')).scripts;
+  for (const [name, command] of Object.entries(scripts)) {
+    assert.doesNotMatch(command, pythonCommand, `package script ${name}`);
   }
 });
 
-test('Python files only decrease within the reviewed inventory', () => {
-  const plan = read('docs/development/python-zero-migration-plan-2026-10-25.md');
-  const inventory = plan.split('## 2026-10-29 잔여 기준 목록')[1]?.split('\n## ')[0];
-  assert.ok(inventory, 'Python migration inventory must remain available');
-  const reviewed = [...inventory.matchAll(/^- `([^`]+\.(?:py|pyi|ipynb))`\r?$/gm)].map(match => match[1]);
-  assert.equal(reviewed.length, 55, 'the reviewed migration inventory must cover 55 files');
-  assert.equal(new Set(reviewed).size, 55, 'the reviewed inventory must not contain duplicates');
-  assert.ok(remaining.length <= 4, `Python file count exceeded its current ceiling: ${remaining.length}`);
-  for (const path of remaining) assert.ok(reviewed.includes(path), `Unreviewed Python file: ${path}`);
-});
-
-test('temporary Python bridge modules have real consumers and leave no orphaned adapters', t => {
-  const python = tracked('*.py');
-  const bridgeImports = [
-    ['tools/library_data.py', /\b(?:from\s+(?:tools\.)?library_data\s+import|import\s+(?:tools\.)?library_data\b)/],
-    ['tools/report_paths.py', /\b(?:from\s+(?:tools\.)?report_paths\s+import|import\s+(?:tools\.)?report_paths\b)/],
-    ['tests/application_source.py', /\b(?:from\s+tests\.application_source\s+import|import\s+tests\.application_source\b)/],
-  ];
-  for (const [bridge, importPattern] of bridgeImports) {
-    const consumers = python.filter(path => path !== bridge && importPattern.test(read(path)));
-    assert.equal(remaining.includes(bridge), consumers.length > 0,
-      `${bridge}: ${consumers.length ? 'bridge removed before callers' : 'unreferenced bridge remains'}`);
-    t.diagnostic(`${bridge}: ${consumers.length} Python caller(s)`);
+test('project tools do not launch a Python interpreter', () => {
+  const launch = /\b(?:spawn|spawnSync|execFile|execFileSync|exec|execSync)\s*\(\s*['"](?:python(?:\d+(?:\.\d+)*)?|py)(?:\.exe)?(?:['"]|\s)/i;
+  const retiredEnvironment = /\b(?:PANDOLAB_PYTHON(?:_EXECUTABLE)?|PANDO_HYDRO_(?:NAME|CONNECTIVITY)_PYTHON|PANDO_MAP_PYTHON)\b/;
+  for (const path of tracked('tools/**/*.mjs', 'tools/*.mjs', 'scripts/**/*.mjs', 'scripts/*.mjs')) {
+    const content = read(path);
+    assert.doesNotMatch(content, launch, path);
+    assert.doesNotMatch(content, retiredEnvironment, path);
   }
 });

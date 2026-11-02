@@ -1044,7 +1044,7 @@
       "id": "map-plugin-runtime",
       "kind": "unit",
       "mode": "manual",
-      "reason": "Requires the existing local Python/Pillow/PyMuPDF environment and pinned OCR resources; run explicitly for headless plugin runtime verification.",
+      "reason": "Requires the source-bound native image tools and pinned analysis resources; run explicitly for headless plugin runtime verification.",
       "testPatterns": [
         "tests/unit/map-plugin.test.mjs"
       ],
@@ -1532,21 +1532,15 @@
       "reason": "Standalone C++ compilation remains owned by P1; local application checks do not certify native execution."
     },
     {
-      "id": "gis-python",
+      "id": "hydro-native-generation",
       "inputs": [
-        "tools/*.py",
-        "tools/**/*.py",
-        "scripts/*.py",
-        "scripts/gis/*.py",
-        "scripts/gis/**/*.py",
-        "scripts/research/*.py",
-        "scripts/research/**/*.py",
-        "tests/*.py",
-        "tests/**/*.py",
-        "tests/python/**"
+        "tools/gis/build-hydro.mjs",
+        "tools/gis/hydro-generation-*.mjs",
+        "tools/cpp/hydro/*.cpp",
+        "tests/unit/hydro-generation-*.test.mjs"
       ],
-      "workflow": ".github/workflows/gis-python-p4.yml",
-      "reason": "GIS Python keeps its independent runtime and workflow."
+      "workflow": ".github/workflows/gis-native-hydro.yml",
+      "reason": "Hydro generation uses focused native and source-bound GIS checks."
     }
   ],
   "remoteScopes": {

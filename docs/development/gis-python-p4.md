@@ -1,4 +1,6 @@
-# P4 — 원본 GIS Python 가공을 앱·웹 개발에서 격리
+# P4 — 원본 GIS 도구를 앱·웹 개발에서 격리
+
+> **2026-11-02 현행 상태:** 아래는 이행 당시 기록이다. 프로젝트 소유 Python 실행기는 제거됐고, 현재 GIS 실행기 검사는 `.github/workflows/gis-source-p4.yml`이 담당한다. 역사 C++ 검사는 해당 workflow의 수동 `historical` 범위에서 실행한다. 원본 GIS 작업은 Node/C++ 실행기와 명시적으로 준비한 원본·SDK를 사용하며 Python 환경 설치나 `test:gis-python` 실행은 필요하지 않다.
 
 기준 브랜치: `work/objects` (2026-10-14). 역사 국경, 지역별 연구 지도, 좌표계, 지형 DEM, 수계·호수, 지명 후보 가공은 **선택적 오프라인 연구 작업**이다. 일반 웹 개발·검증, Pages 배포, C++ core/WASM, WebView 앱의 기본 `BUILD_TESTING=ON`에는 Python이 필요하지 않다.
 

@@ -52,9 +52,12 @@ export async function verifyHydroCoreDelivery({data,sha256,featureCount}={},opti
   if(deliveryBytes>=700*1024)throw Error('Hydro core delivery budget exceeded');
   return {featureCount,deliveryBytes};
 }
-export function verifyHydroSelectedLakes({features,original,sha256}={}){
+export function verifyHydroSelectedLakes({features,original,sha256,expectedLakeCount,expectedCoordinateCount}={}){
   if(!Array.isArray(features)||!features.length||!Buffer.isBuffer(original)||!/^[a-f0-9]{64}$/.test(sha256||''))
     throw Error('Selected lakes and explicit Natural Earth source hash required');
+  const requireTotals=expectedLakeCount!==undefined||expectedCoordinateCount!==undefined;
+  if(requireTotals&&(!Number.isSafeInteger(expectedLakeCount)||expectedLakeCount<0||
+    !Number.isSafeInteger(expectedCoordinateCount)||expectedCoordinateCount<0))throw Error('Explicit lake and coordinate counts required');
   if(createHash('sha256').update(original).digest('hex')!==sha256)throw Error('Natural Earth lake source hash differs');
   let coordinates=0;
   for(const {metadata,geometry} of features){
@@ -66,6 +69,7 @@ export function verifyHydroSelectedLakes({features,original,sha256}={}){
       for(const ring of polygon){if(!Array.isArray(ring)||!ring.length||ring.some(point=>!Array.isArray(point)||point.length!==2||
         point.some(value=>!Number.isFinite(value))))throw Error('Invalid selected lake geometry');coordinates+=ring.length;}}
   }
+  if(requireTotals&&(features.length!==expectedLakeCount||coordinates!==expectedCoordinateCount))throw Error('Hydro lake or coordinate count differs');
   return {lakes:features.length,coordinates};
 }
 export function verifyHydroKoreaCoverage(features){
@@ -156,6 +160,29 @@ function prepareHydroPack({files,layout,stages},root){
   if(detailIds.size!==decoder.featureMetadata.size)throw Error('Missing Hydro detail metadata');
   return {decoder,read};
 }
+function readVerifiedHydroPack(decoder,shard,spec){
+  const raw=gunzipSync(shard.subarray(spec.offset,spec.offset+spec.length));
+  if(raw.length<12||raw.readUInt16LE(6)!==spec.stage)throw Error('Hydro pack stage differs from index');
+  const decoded=decoder.readPack(raw,spec.id);
+  if(decoded.features.some(feature=>feature.properties.stage!==spec.stage))throw Error('Hydro pack feature stage differs');
+  return decoded.features;
+}
+function verifiedHydroFeature(decoder,feature,spec){
+  const metadata=decoder.featureMetadata.get(feature.properties.__fid);
+  if(!metadata||!decoder.logicalPacks.get(metadata.logicalFid)?.includes(spec.id)||metadata.stage!==feature.properties.stage||
+    metadata.category!==feature.properties.category||metadata.flags!==feature.properties.__flags||metadata.fragmentIndex!==feature.properties.fragment_index||
+    metadata.fragmentCount!==feature.properties.fragment_count||!Array.isArray(metadata.bounds)||metadata.bounds.length!==4||
+    metadata.bounds.some((value,index)=>value!==Math.round(feature.__awBounds[index]*1000000)))
+    throw Error('Hydro pack fields or logical index differ from metadata');
+  return metadata;
+}
+export function hydroGeometryCoordinates(geometry){
+  if(!['LineString','MultiLineString','Polygon','MultiPolygon'].includes(geometry?.type))throw Error('Invalid Hydro geometry kind');
+  function count(value){if(!Array.isArray(value))throw Error('Invalid Hydro geometry coordinates');
+    if(typeof value[0]==='number'){if(value.length!==2||value.some(number=>!Number.isFinite(number)))throw Error('Invalid Hydro geometry coordinate');return 1;}
+    return value.reduce((sum,item)=>sum+count(item),0);}
+  return count(geometry.coordinates);
+}
 export function decodeHydroSelectedPack({files,layout,stages,logicalFids},{root=defaultRoot}={}){
   if(!Array.isArray(logicalFids)||!logicalFids.length||logicalFids.some(id=>!Number.isSafeInteger(id)||id<0)||
     new Set(logicalFids).size!==logicalFids.length)throw Error('Explicit unique selected Hydro logical IDs required');
@@ -168,14 +195,9 @@ export function decodeHydroSelectedPack({files,layout,stages,logicalFids},{root=
     if(!shardSpec)throw Error('Selected Hydro pack or shard missing');
     if(!shards.has(spec.shard))shards.set(spec.shard,read(shardSpec));const shard=shards.get(spec.shard);
     if(spec.offset<0||spec.offset+spec.length>shard.length)throw Error('Invalid selected Hydro pack range');
-    for(const feature of decoder.readPack(gunzipSync(shard.subarray(spec.offset,spec.offset+spec.length)),id).features){
-      const fid=feature.properties.__fid,metadata=decoder.featureMetadata.get(fid);if(!selected.has(metadata.logicalFid))continue;
+    for(const feature of readVerifiedHydroPack(decoder,shard,spec)){
+      const fid=feature.properties.__fid,metadata=verifiedHydroFeature(decoder,feature,spec);if(!selected.has(metadata.logicalFid))continue;
       if(seen.has(fid))throw Error('Duplicate selected Hydro feature identity');seen.add(fid);found.add(metadata.logicalFid);
-      if(metadata.stage!==feature.properties.stage||metadata.flags!==feature.properties.__flags||
-        metadata.fragmentIndex!==feature.properties.fragment_index||metadata.fragmentCount!==feature.properties.fragment_count||
-        !Array.isArray(metadata.bounds)||metadata.bounds.length!==4||
-        metadata.bounds.some((value,index)=>value!==Math.round(feature.__awBounds[index]*1000000)))
-        throw Error('Selected Hydro pack fields differ from metadata');
       features.push({metadata,geometry:feature.geometry,widths:feature.properties.stroke_widths});
     }
   }
@@ -183,17 +205,23 @@ export function decodeHydroSelectedPack({files,layout,stages,logicalFids},{root=
     throw Error('Selected Hydro logical ID has missing decoded features');
   features.sort((a,b)=>a.metadata.fid-b.metadata.fid);return structuredClone(features);
 }
-export function decodeHydroGeneratedPack({files,layout,stages},{root=defaultRoot}={}){
+export function decodeHydroGeneratedPack({files,layout,stages,expectedStats},{root=defaultRoot}={}){
   const {decoder,read}=prepareHydroPack({files,layout,stages},root);
-  const shards=new Map(layout.shards.map(spec=>[spec.id,read(spec)])),seen=new Set(),features=[];
+  if(expectedStats!==undefined&&(!expectedStats||['featureCount','coordinateCount','logicalFeatureCount'].some(key=>
+    !Number.isSafeInteger(expectedStats[key])||expectedStats[key]<0)))throw Error('Explicit Hydro aggregate counts required');
+  const shards=new Map(layout.shards.map(spec=>[spec.id,read(spec)])),seen=new Set(),features=[];let coordinateCount=0;
   for(const spec of decoder.packSpecs.values()){
     const shard=shards.get(spec.shard);if(!shard||spec.offset<0||spec.offset+spec.length>shard.length)throw Error('Invalid Hydro pack range');
-    for(const feature of decoder.readPack(gunzipSync(shard.subarray(spec.offset,spec.offset+spec.length)),spec.id).features){
+    for(const feature of readVerifiedHydroPack(decoder,shard,spec)){
       const fid=feature.properties.__fid;if(seen.has(fid))throw Error('Duplicate Hydro feature identity');seen.add(fid);
-      features.push({metadata:decoder.featureMetadata.get(fid),geometry:feature.geometry,widths:feature.properties.stroke_widths});
+      const metadata=verifiedHydroFeature(decoder,feature,spec);if(expectedStats)coordinateCount+=hydroGeometryCoordinates(feature.geometry);
+      features.push({metadata,geometry:feature.geometry,widths:feature.properties.stroke_widths});
     }
   }
   if(seen.size!==layout.metadata.featureCount||seen.size!==decoder.featureMetadata.size)throw Error('Missing Hydro features');
+  if(expectedStats){if(features.length!==expectedStats.featureCount)throw Error('Hydro feature count differs');
+    if(coordinateCount!==expectedStats.coordinateCount)throw Error('Hydro coordinate count differs');
+    if(decoder.logicalPacks.size!==expectedStats.logicalFeatureCount)throw Error('Hydro logical count differs');}
   features.sort((a,b)=>a.metadata.fid-b.metadata.fid);return structuredClone(features);
 }
 
