@@ -280,13 +280,13 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
     adjacentPrefetch.interrupt();
     const transition=builtinActive&&builtinClock.month()!==null;
     const accepted=await open(()=>map.prepareBuiltinProject(month,{isCurrent,transition}),{source:'builtin',isCurrent,
-      onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},
+      onPresented:()=>{commit();},
       presentation:transition?'temporal':'default',
       preserveView:builtinClock.month()!==null});
     if(accepted&&isCurrent()&&initialPresentation.hasPresented())
       adjacentPrefetch.afterPresented(month,{mode:get('timelineViewUnit')?.value==='month'?'month':'year'});
     return accepted;
-  },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();},onError:report});
+  },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     adjacentPrefetch.interrupt();
