@@ -1,0 +1,92 @@
+name: GIS Hydro independent source followup staging (never deploy)
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/gis/stage-hydro-independent-followup.mjs'
+      - 'tools/gis/hydro-followup-independent-name-replacements.json'
+      - 'tools/gis/osm-independent-river-source-inventory.json'
+      - 'tests/unit/gis-hydro-followup-independent.test.mjs'
+      - 'tools/gis/prepare-hydro-name-replacement-bundle.mjs'
+      - '.github/workflows/gis-hydro-independent-followup-stage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-reviewed-metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify government/NE independent followup and immutable 31-candidate source screen
+        run: |
+          node --test tests/unit/gis-hydro-followup-independent.test.mjs tests/unit/gis-osm-source-inventory.test.mjs
+      - name: Pin the exact current external geographic data commit
+        id: pinned
+        run: |
+          node -p "require('./config/library-data.json').revision" > "$RUNNER_TEMP/current-hydro-pin"
+          echo "sha=$(cat "$RUNNER_TEMP/current-hydro-pin")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ steps.pinned.outputs.sha }}
+          path: .pando-hydro-followup-source
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: assets/data/hydro/v0.13.2
+      - name: Repack ONLY the 20773860 source metadata in a new temporary release
+        shell: bash
+        run: |
+          set -euo pipefail
+          input=".pando-hydro-followup-source/assets/data/hydro/v0.13.2"
+          node tools/gis/stage-hydro-independent-followup.mjs \
+            --manifest "$input/manifest.json" \
+            --bundle "$input/hydro.bin" \
+            --baseline-review "$input/hydro-independent-name-replacements.json" \
+            --followup-review "tools/gis/hydro-followup-independent-name-replacements.json" \
+            --output-dir "$RUNNER_TEMP/hydro-v0.13.3-independent-review"
+      - name: Verify staged release still has 30 OSM systems and must NOT remove the OSM credit
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {auditHydroOsm,auditOsmCreditRemoval} from './tools/gis/audit-osm-credit-removal.mjs';
+          import {manifestRoles} from './tools/check-current-hydro-layout.mjs';
+          const d=process.env.RUNNER_TEMP+'/hydro-v0.13.3-independent-review/';
+          const manifest=JSON.parse(readFileSync(d+'manifest.json','utf8'));
+          const bundle=readFileSync(d+'hydro.bin');
+          manifestRoles(manifest);
+          const hydro=auditHydroOsm(manifest,bundle);
+          const safety=auditOsmCreditRemoval({hydro});
+          assert.equal(hydro.remainingCount,30);
+          assert(!hydro.remainingSystemIds.includes('20773860'));
+          assert.equal(manifest.sources.independentHydronymReplacements.replacedSystems,42);
+          assert.equal(manifest.sources.independentHydronymFollowup.replacedSystems,1);
+          assert.equal(safety.safeToRemoveMainMapOsmCredit,false);
+          const proof=JSON.parse(readFileSync(d.slice(0,-1)+'.proof.json','utf8'));
+          assert.equal(proof.totalIndependentSystems,43);
+          assert.equal(proof.deployed,false);
+          assert.deepEqual(proof.sourceGeometryShardSha256,proof.stagedGeometryShardSha256);
+          console.log('HYDRO_REVIEWED_NONOSM_INCREMENT='+JSON.stringify({
+            approved:proof.replacedSystemIds,allIndependent:43,remainingOsm:30,
+            geometryUnchanged:true,stillNotDeployed:true,
+            original:proof.sourceBundleSha256,candidate:proof.stagedBundleSha256,
+          }));
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gis-hydro-v0.13.3-nonosm-candidate-NOT-DEPLOYED
+          path: |
+            ${{ runner.temp }}/hydro-v0.13.3-independent-review/
+            ${{ runner.temp }}/hydro-v0.13.3-independent-review.proof.json
+          retention-days: 30
+          if-no-files-found: error
