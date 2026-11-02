@@ -160,6 +160,8 @@ this is diagnostic selection, not independent accuracy or model approval. For th
 tested initializer and mixed inputs, CUDA FP16 overflowed
 in both the Python and native models; explicitly choose FP32 for this case.
 This is a provisional training path, not a model release or accuracy claim.
+An optimizer-update replay compares the recorded epoch loss sum and count as
+well as checkpoint state; changed or missing selection evidence fails replay.
 
 Reviewed-only training uses the same source-bound supervision, order and campaign
 owners. Pass `--reviewed` to `training-supervision.mjs` and

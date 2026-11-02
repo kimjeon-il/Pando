@@ -13,6 +13,7 @@ import {verifyCombinedTrainingOrder,verifyTrainingOrder} from './training-order.
 import {runCombinedTrainingBatch,runTrainingBatch,verifyCombinedTrainingEvidence,verifyTrainingEvidence} from './native-training-batch.mjs';
 import {compareNativeTrainingCheckpoints} from './native-training-validation.mjs';
 import {recheckTrainingSources} from './macro-training-source.mjs';
+import {assertReplayedEpochProgress} from './training-progress.mjs';
 
 const SHA=/^[a-f0-9]{64}$/,sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const tensors=['tile','overview','position','target','valid'];
@@ -160,6 +161,8 @@ export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,aux
         amp:r.precision==='amp-fp16',torchLibrary,count:r.evidence.length,augment:r.evidence[0].augment,signal};
       const result=auxiliary?await runCombinedTrainingBatch({...common,auxiliary,macroOnly:false,orderDirectory}):
         await runTrainingBatch({...common,order,supervision,reviewed,publisher});
+      const replayedReceipt=JSON.parse(readTrainingBounded(common.output+'.receipt.json',1024*1024));
+      assertReplayedEpochProgress(r,replayedReceipt);
       const comparison=await compareNativeTrainingCheckpoints({first:paths[i],second:common.output,device:r.device,torchLibrary,signal});
       if(comparison.equal!==true||result.checkpointSha256!==comparison.secondSha256)throw Error('Replayed checkpoint state differs');
       current=common.output;
