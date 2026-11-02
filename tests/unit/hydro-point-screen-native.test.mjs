@@ -76,6 +76,17 @@ test('longest source line chooses the first planar maximum and ignores short par
   const invalid=invoke({mode:'longest-lines',reaches:[[[[0,0],[181,0]]]]});
   assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
 });
+test('OSM waterway extent matching preserves overlap, ambiguity and missing-match decisions',{skip:!binary},()=>{
+  const request={mode:'osm-waterway-match',candidates:[[0,0,10,10],[30,30,31,31]],
+    targets:[[0,0,10,10],[30,30,31,31],[50,50,51,51]]};
+  const result=invoke(request);assert.equal(result.status,0,result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).matches,[0,1,null]);
+  const empty=invoke({...request,candidates:[]});assert.equal(empty.status,0,empty.stderr);
+  assert.deepEqual(JSON.parse(empty.stdout).matches,[null,null,null]);
+  const ambiguous=invoke({...request,candidates:[[0,0,10,10],[0.01,0.01,10.01,10.01]]});
+  assert.equal(ambiguous.status,0,ambiguous.stderr);assert.deepEqual(JSON.parse(ambiguous.stdout).matches,[null,null,null]);
+  const invalid=invoke({...request,candidates:[[0,0,0,10]]});assert.notEqual(invalid.status,0);assert.equal(invalid.stdout,'');
+});
 test('source-bound guided branch and upstream batches return ordered native decisions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};

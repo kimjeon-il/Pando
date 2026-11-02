@@ -200,6 +200,47 @@ Value longestSourceLines(const Value& input){
         indices.array.push_back(std::move(selected));}
     auto result=Value::obj();result.object["indices"]=std::move(indices);return result;
 }
+void collectReferenceIndex(void* item,void* user){
+    static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));
+}
+Value osmWaterwayMatches(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& candidates=array(field(input,"candidates")),&targets=array(field(input,"targets"));
+    if(candidates.size()>1000000||targets.size()>100000)throw std::invalid_argument("Hydro OSM match batch exceeds budget");
+    const auto bounds=[](const Value& source,bool nonempty){const auto& row=array(source);
+        if(row.size()!=4)throw std::invalid_argument("Invalid Hydro OSM bounds");std::array<double,4> box{};
+        for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(row[i]);
+        if(box[2]<box[0]||box[3]<box[1]||(nonempty&&(box[2]==box[0]||box[3]==box[1])))
+            throw std::invalid_argument("Invalid Hydro OSM bounds");return box;};
+    std::vector<std::array<double,4>> boxes;std::vector<Geometry> geometries;std::vector<std::size_t> ids;
+    boxes.reserve(candidates.size());geometries.reserve(candidates.size());ids.reserve(candidates.size());
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(context.get(),10),TreeDeleter{context.get()});
+    if(!tree)throw std::runtime_error("GEOS OSM tree failed");
+    for(const auto& row:candidates){const auto box=bounds(row,true);boxes.push_back(box);ids.push_back(ids.size());
+        geometries.push_back(own(context.get(),GEOSGeom_createRectangle_r(context.get(),box[0],box[1],box[2],box[3])));
+        GEOSSTRtree_insert_r(context.get(),tree.get(),geometries.back().get(),&ids.back());}
+    auto matches=Value::arr();matches.array.reserve(targets.size());
+    for(const auto& row:targets){const auto target=bounds(row,false);const double sx=std::max(target[2]-target[0],0.05),
+        sy=std::max(target[3]-target[1],0.05),buffer=std::max(sx,sy)*0.08+0.05;
+        auto envelope=own(context.get(),GEOSGeom_createRectangle_r(context.get(),target[0]-buffer,target[1]-buffer,target[2]+buffer,target[3]+buffer));
+        std::vector<std::size_t> found;GEOSSTRtree_query_r(context.get(),tree.get(),envelope.get(),collectReferenceIndex,&found);
+        std::vector<std::pair<double,std::size_t>> scores;
+        for(const auto index:found){const auto& box=boxes[index];
+            const double intersection=std::max(0.0,std::min(target[2],box[2])-std::max(target[0],box[0]))*
+              std::max(0.0,std::min(target[3],box[3])-std::max(target[1],box[1]));
+            const double area=(target[2]-target[0])*(target[3]-target[1])+(box[2]-box[0])*(box[3]-box[1])-intersection;
+            const double overlap=area?intersection/area:0;
+            const double edge=std::abs(box[0]-target[0])/sx+std::abs(box[2]-target[2])/sx+
+              std::abs(box[1]-target[1])/sy+std::abs(box[3]-target[3])/sy;
+            const double center=std::hypot(((box[0]+box[2])-(target[0]+target[2]))/(2*sx),
+              ((box[1]+box[3])-(target[1]+target[3]))/(2*sy));
+            if(overlap>=0.12||(center<=0.35&&edge<=2.5))scores.emplace_back(edge+center*0.8-overlap*2.0,index);}
+        std::sort(scores.begin(),scores.end());
+        if(scores.empty()||(scores.size()>1&&scores[1].first<=scores[0].first+0.15))matches.array.push_back(Value());
+        else matches.array.push_back(Value::num(static_cast<double>(scores[0].second)));}
+    auto result=Value::obj();result.object["matches"]=std::move(matches);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -243,6 +284,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="osm-waterway-match")
+        return osmWaterwayMatches(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="longest-lines")
         return longestSourceLines(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")

@@ -105,6 +105,18 @@ export async function longestHydroSourceLines(reaches,options={}){
     throw Error('Invalid Hydro longest line receipt');
   return result.indices.map((index,i)=>index===null?null:reaches[i][index]);
 }
+export async function matchHydroOsmBounds({candidates,targets}={},options={}){
+  options.signal?.throwIfAborted();
+  const valid=(box,nonempty)=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite)&&
+    (nonempty?box[2]>box[0]&&box[3]>box[1]:box[2]>=box[0]&&box[3]>=box[1]);
+  if(!Array.isArray(candidates)||candidates.length>1000000||candidates.some(box=>!valid(box,true))||
+    !Array.isArray(targets)||targets.length>100000||targets.some(box=>!valid(box,false)))throw Error('Explicit bounded Hydro OSM extents required');
+  if(!targets.length)return [];
+  const result=await screenHydroPoints({mode:'osm-waterway-match',candidates,targets},options);
+  if(!Array.isArray(result?.matches)||result.matches.length!==targets.length||result.matches.some(index=>
+    index!==null&&(!Number.isSafeInteger(index)||index<0||index>=candidates.length)))throw Error('Invalid Hydro OSM match receipt');
+  return result.matches;
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){
