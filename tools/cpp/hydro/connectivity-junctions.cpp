@@ -376,6 +376,36 @@ Value featurePolicies(const Value& request){
     for(const auto& row:input)output.array.push_back(featurePolicy(row));
     auto result=Value::obj();result.object["features"]=std::move(output);return result;
 }
+// Preserve canonical source vertices while cutting by projected line distance.
+Value borderSubstrings(const Value& request){
+    const auto& input=elements(field(request,"requests"));if(input.size()>10000)throw std::invalid_argument("Hydro border substring batch exceeds budget");
+    auto lines=Value::arr();std::size_t vertices=0;
+    for(const auto& item:input){const auto& source=elements(field(item,"source")),&metric=elements(field(item,"metric"));
+        const double start=pandoeditor::codecjson::finiteNumber(field(item,"start")),end=pandoeditor::codecjson::finiteNumber(field(item,"end"));
+        auto output=Value::arr();vertices+=source.size();if(vertices>5000000)throw std::invalid_argument("Hydro border substring vertices exceed budget");
+        if(source.size()!=metric.size()||source.size()<2){lines.array.push_back(std::move(output));continue;}
+        std::vector<Point> points,projected;std::vector<double> cumulative{0};points.reserve(source.size());projected.reserve(source.size());
+        for(std::size_t i=0;i<source.size();++i){points.push_back(point(source[i]));const auto& coords=elements(metric[i]);
+            if(coords.size()!=2)throw std::invalid_argument("Invalid Hydro border projected point");
+            projected.push_back({pandoeditor::codecjson::finiteNumber(coords[0]),pandoeditor::codecjson::finiteNumber(coords[1])});
+            if(i)cumulative.push_back(cumulative.back()+std::hypot(projected[i].lon-projected[i-1].lon,projected[i].lat-projected[i-1].lat));}
+        double lower=std::max(0.0,start),upper=std::min(cumulative.back(),end);if(lower>upper)std::swap(lower,upper);
+        if(upper-lower<=1e-6){lines.array.push_back(std::move(output));continue;}
+        const auto interpolate=[&](double at){for(std::size_t i=0;i+1<cumulative.size();++i)if(at<=cumulative[i+1]+1e-9){
+                const auto span=cumulative[i+1]-cumulative[i],ratio=span<=1e-12?0.0:(at-cumulative[i])/span;
+                return Point{points[i].lon+(points[i+1].lon-points[i].lon)*ratio,points[i].lat+(points[i+1].lat-points[i].lat)*ratio};}
+            return points.back();};
+        std::vector<Point> chosen{interpolate(lower)};for(std::size_t i=1;i+1<points.size();++i)
+            if(lower<cumulative[i]&&cumulative[i]<upper)chosen.push_back(points[i]);chosen.push_back(interpolate(upper));
+        std::vector<Point> deduplicated;for(const auto& itemPoint:chosen){const auto quantized=Key{halfEvenMicro(normalizedLongitude(itemPoint.lon)),
+                halfEvenMicro(std::max(-90.0,std::min(90.0,itemPoint.lat)))};
+            if(deduplicated.empty()||quantized!=Key{halfEvenMicro(normalizedLongitude(deduplicated.back().lon)),
+                halfEvenMicro(std::max(-90.0,std::min(90.0,deduplicated.back().lat)))})deduplicated.push_back(itemPoint);}
+        if(start>end)std::reverse(deduplicated.begin(),deduplicated.end());for(const auto& itemPoint:deduplicated)output.array.push_back(encodedPoint(itemPoint));
+        lines.array.push_back(std::move(output));
+    }
+    auto result=Value::obj();result.object["lines"]=std::move(lines);return result;
+}
 // Keep regional source metadata in one native process while indexed geometry is
 // fetched on demand.  The eight retained upstream candidates match the source
 // generator's (basin area, flow, source ID) heap ordering.
@@ -587,6 +617,7 @@ int main(int argc,char** argv) {
         else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
+        else if(str(mode->second)=="border-substrings")std::cout<<borderSubstrings(request).encode()<<'\n';
         else if(str(mode->second)=="propagate-widths")std::cout<<propagateWidths(request).encode()<<'\n';
         else if(str(mode->second)=="fragment-geometries")std::cout<<fragmentGeometries(request).encode()<<'\n';
         else if(str(mode->second)=="exclude-terminal-basins")std::cout<<excludeTerminalBasins(request).encode()<<'\n';

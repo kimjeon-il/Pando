@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {assembleHydroSystemFragments,auditHydroParts,auditHydroSourceArchives,buildHydroFragmentGeometries,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroSystemFragments,auditHydroParts,auditHydroSourceArchives,buildHydroFragmentGeometries,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,extractHydroBorderSubstrings,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -43,6 +43,19 @@ nativeTest('streaming source selection keeps seeds, roots and the strongest eigh
   const duplicate=spawnSync(native,['--selection-stream'],{input:[{op:'add',rows:[rows[0],rows[0]]}].map(JSON.stringify).join('\n')+'\n',encoding:'utf8'});
   assert.notEqual(duplicate.status,0);assert.match(duplicate.stderr,/duplicate/i);
 });
+nativeTest('border substrings retain canonical vertices, direction and quantized deduplication',()=>{
+  const source=[[0,0],[1,0],[1,2],[2,2]],metric=[[0,0],[10,0],[10,20],[20,20]];
+  const result=run({mode:'border-substrings',requests:[{source,metric,start:5,end:35},{source,metric,start:35,end:5},
+    {source,metric,start:10,end:10},{source:[[0,0],[.0000001,0],[1,0]],metric:[[0,0],[1,0],[10,0]],start:0,end:10}]});
+  assert.deepEqual(result.lines,[[[.5,0],[1,0],[1,2],[1.5,2]],[[1.5,2],[1,2],[1,0],[.5,0]],[],[[0,0],[1,0]]]);
+});
+test('source-bound border substrings preserve projected line cuts',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},source=[[0,0],[1,0],[1,2],[2,2]],
+      metric=[[0,0],[10,0],[10,20],[20,20]];
+    assert.deepEqual(await extractHydroBorderSubstrings([{source,metric,start:35,end:5}],options),[[[1.5,2],[1,2],[1,0],[.5,0]]]);
+    assert.deepEqual(await extractHydroBorderSubstrings([],options),[]);
+  });
 test('logical-chain receipts reject missing, duplicated or wrongly connected reaches',()=>{
   const input={reaches:[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],
     canonical:[{downstream:3,upstream:1},{downstream:4,upstream:3}]};

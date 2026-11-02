@@ -275,6 +275,14 @@ export async function scoreHydroFeaturePolicies(features,options={}){
   if(!features.length)return [];
   return validateHydroFeaturePolicies(await runHydroConnectivity({mode:'feature-policies',features},options),features);
 }
+export async function extractHydroBorderSubstrings(requests,options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(requests)||requests.length>10000)throw Error('Explicit bounded Hydro border substrings required');
+  if(!requests.length)return [];
+  const result=await runHydroConnectivity({mode:'border-substrings',requests},options);
+  if(!Array.isArray(result?.lines)||result.lines.length!==requests.length||result.lines.some(line=>!Array.isArray(line)||
+    line.some(point=>!Array.isArray(point)||point.length!==2||point.some(value=>!Number.isFinite(value)))))
+    throw Error('Invalid Hydro border substring receipt');return result.lines;
+}
 // onBatch receives provisional rows until the source reader verifies the DBF hash and CRC.
 export async function scoreHydroSourceMetadata({archive,files,specification,onBatch,batchSize=4096}={},options={}){
   options.signal?.throwIfAborted();
