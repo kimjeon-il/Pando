@@ -126,6 +126,7 @@ export function confirmRecovery(directory){
 }
 export function checkedConsumers({processes,offline,policy}){
  if(offline)assertOffline(processes);
+ if(policy?.requests.some(r=>/[\\/]Temp$/i.test(r.root)&&/^(?:pando-|playwright)/i.test(r.path))&&processes.some(p=>/^node(?:\.exe)?$/i.test(p.Name||'')&&/(?:tests[\\/]browser[\\/]server\.mjs|scripts[\\/]run-application-checks\.mjs|(?:^|\s)--test(?:\s|$))/i.test(p.CommandLine||'')))throw Error('An active Pando test owner blocks saved Temp scopes');
  if(policy?.requests.some(r=>/^playwright/.test(r.path))&&processes.some(p=>/^(?:msedge|chrome|chrome-headless-shell)\.exe$/i.test(p.Name||'')))throw Error('An active automation browser owner blocks saved Temp scopes');
  if(policy?.requests.some(r=>/[\\/]Pandoeditor$/i.test(r.root)&&/^cache(?:[\\/]|$)/.test(r.path))&&processes.some(p=>/^pandoeditor\.exe$/i.test(p.Name||'')))throw Error('An active Qt editor owner blocks its profile cache');
  return processes;

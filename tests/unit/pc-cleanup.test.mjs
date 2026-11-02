@@ -96,6 +96,10 @@ test('Codex restarted after offline preview blocks cache deletion without path a
  const options={roots:[root],compilerScopes:[{root,kind:'pc-cache'}],requests:[{root,path:'cache',action:'delete',reason:'closed app cache'}]},manifest=previewGeneratedCleanup(options);
  assert.throws(()=>applyGeneratedCleanup({...options,manifest,refreshConsumers:()=>checkedConsumers({policy:options,offline:true,processes:[{Name:'codex.exe',CommandLine:'codex.exe'}]})}),/Close/);assert.ok(existsSync(join(root,'cache')));
 });
+test('active Pando test server blocks retirement of its temporary fixtures',()=>{
+ const policy={requests:[{root:'C:/Users/example/AppData/Local/Temp',path:'pando-viewer-assets-case'}]};
+ assert.throws(()=>checkedConsumers({policy,offline:true,processes:[{Name:'node.exe',CommandLine:'node tests/browser/server.mjs'}]}),/test|owner/i);
+});
 test('Qt editor owner blocks its saved cache scope even when executable lives on D',()=>{
  const policy={requests:[{root:'C:/Users/example/AppData/Local/Pandoeditor',path:'cache'}]};
  assert.throws(()=>checkedConsumers({policy,offline:false,processes:[{Name:'Pandoeditor.exe',ExecutablePath:'D:/apps/Pandoeditor.exe'}]}),/Qt|owner/i);
