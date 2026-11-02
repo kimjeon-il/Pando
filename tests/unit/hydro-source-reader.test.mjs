@@ -6,7 +6,7 @@ import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
 import {assembleHydroSystemFragments,buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
-import {prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {calibrateHydroPreparedRegions,markHydroCalibrationDuplicates,prepareHydroCalibrationLakes,prepareHydroCalibrationRivers} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -147,6 +147,27 @@ test('selected HydroRIVERS archive supplies clipped calibration river features',
     assert.equal(rows[1].sourceCoordinateCount,2);assert.equal(rows[1].screenLength,100);
     assert.ok(Math.abs(rows[1].lengthKm-111.32)<1e-10);
     assert.deepEqual(selected,new Set([101,102,103]));assert.deepEqual(await readFile(input.archive),before);
+  });
+test('selected river and lake sources reach the native calibration assignment',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-calibration-pipeline-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),bounds=[0,-1,3,1],point={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const rivers=await prepareHydroCalibrationRivers({...input,selected:new Set([101,102,103]),bounds,width:300,height:200},point);
+    const polygon={type:'Polygon',coordinates:[[[1,0],[2,0],[2,1],[1,1],[1,0]]]};
+    const lakes=await prepareHydroCalibrationLakes({bounds,width:300,height:200,
+      lakes:[{id:7,name:'Test',areaKm2:5,shorelineKm:8,geometry:polygon}]},point);
+    const marked=await markHydroCalibrationDuplicates({bounds,baseRiverFeatures:[],baseLakeFeatures:[],rivers,lakes},point);
+    const stageKeys=['6.0','6.7','7.0','7.5'];
+    const region={region:{calibrate:true},...marked,
+      riverTargets:Object.fromEntries(stageKeys.map(key=>[key,{lengthKm:300,screenLength:300}])),
+      riverBaselines:Object.fromEntries(stageKeys.map(key=>[key,{lengthKm:0,screenLength:0}])),
+      lakeTargets:Object.fromEntries(stageKeys.map(key=>[key,{screenArea:10000,count:1}])),
+      lakeBaselines:Object.fromEntries(stageKeys.map(key=>[key,{screenArea:0,count:0}]))};
+    const result=await calibrateHydroPreparedRegions({regions:[region]},{directory:process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT});
+    assert.equal(result.river.thresholds.length,4);assert.equal(result.lake.thresholds.length,4);
+    assert.deepEqual(result.regions[0].rivers.map(row=>row.sourceId),[101,102]);assert.equal(result.regions[0].lakes[0].sourceId,7);
+    assert.ok(result.regions[0].rivers.every(row=>row.assignedStage===null||[6,6.7,7,7.5].includes(row.assignedStage)));
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];

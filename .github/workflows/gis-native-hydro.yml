@@ -199,11 +199,15 @@ jobs:
           cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen pando-hydro-connectivity
           node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
           node tools/gis/package-hydro-connectivity.mjs --binary build-native/hydro-point-screen/pando-hydro-connectivity --directory build-native/hydro-point-screen/connectivity-artifact
+          cmake -S tools/cpp/hydro-calibration -B build-native/hydro-point-screen/calibration -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/hydro-point-screen/calibration --target pando-hydro-calibration
+          node tools/gis/package-hydro-calibration.mjs --binary build-native/hydro-point-screen/calibration/pando-hydro-calibration --directory build-native/hydro-point-screen/calibration-artifact
       - name: Check exact shared-boundary and existing point-screen cases
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/artifact
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/connectivity-artifact
+          PANDO_HYDRO_CALIBRATION_ARTIFACT: ${{ github.workspace }}/build-native/hydro-point-screen/calibration-artifact
         run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs
   publisher-pdf:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'publisher-pdf'
