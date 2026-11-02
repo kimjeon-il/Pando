@@ -66,3 +66,17 @@
 - `node tools/review/validate-review-bundle.mjs <review.json>`: 파일을 수정하지 않는 검증 CLI.
 
 E2는 실제 데이터 리비전 비교·CI 자동 차이 추출(E3), 지도 검수 UI(E4), Windows 실제 검수 앱(E5), Android 유지보수(E6에서 제거)까지 구현하지 않는다. 새 역사 GIS 사건·명칭·국기·국경과 자료 핀을 임의로 생성하지 않는다.
+
+
+## 5. E2 최종 수용 검증 (2026-11-02)
+
+**결과: E2 검수 기록 데이터 계약·불변 변경 이력·검증/조회 API 완료.**
+
+- 수용 기준 커밋: `d8f6e58f4ea0d3b6da0ab174950689c3c3fb842a`.
+- 독립 GitHub Actions: [E2 review sidecar and history acceptance / 41372768718](https://github.com/kimjeon-il/Pando/actions/runs/41372768718). `review-contract` 실행 **success**.
+- 정식 C++/WASM temporal prerequisite 통과. C++ 시간축을 재구현하거나 날짜 정밀도를 월 단위로 강제하지 않았다.
+- `tests/unit/review-change-records.test.mjs` **9개 통과, 실패 0**. 유효 제안, 엄격한 국가 원본 ID/해시·리비전/근거 경로, 연·월·일 유효성, 불변 재검증, 상태 전이, 승인 전 CI 필수 검사, 반영 이력, 중복·누락·시간 역행 거부, 결정적 객체별 이력 색인 확인.
+- ESLint, `node tools/review/validate-review-bundle.mjs tests/fixtures/review/e2-synthetic-review.json` 및 `node scripts/check-runtime-boundaries.mjs` 모두 성공.
+- 초기 CI에서 발견한 ESLint 경고 2건(제어 문자 정규식, 미사용 헬퍼)은 [`d8f6e58f`](https://github.com/kimjeon-il/Pando/commit/d8f6e58f4ea0d3b6da0ab174950689c3c3fb842a)에서 수정했고 수용 CI를 재실행하여 통과했다. 초기 실패 기록은 변경하지 않는다.
+
+**한계/후속:** 이번 단계에는 **실제 역사 데이터 수정, 외부 라이브러리 내 실제 제안서 발행, 실제 두 Git 리비전의 GIS 비교 또는 CI 승인·데이터 병합 확인**이 없다. 실제 외부 자료는 E3 이후에 생성/연결한다. 웹 검수 UI는 E4, Windows 검수 앱 전환·네이티브 실행은 E5다. 단위 테스트 통과를 UI 실제 실행 검증으로 표현하지 않는다.
