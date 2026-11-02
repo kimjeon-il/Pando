@@ -78,6 +78,21 @@ export async function selectHydroUpstreams(groups,{kind,...options}={}){
     throw Error('Invalid Hydro upstream decision receipt');
   return result.groups.map(row=>row.id);
 }
+export async function findHydroReferenceGuides({references,queries,maxDistance}={},options={}){
+  options.signal?.throwIfAborted();
+  const validLine=line=>Array.isArray(line)&&line.length>=2&&line.every(point=>Array.isArray(point)&&point.length===2&&
+    point.every((value,i)=>Number.isFinite(value)&&Math.abs(value)<=(i===0?180:90)));
+  if(!Array.isArray(references)||references.length>100000||references.some(line=>!validLine(line))||
+    !Array.isArray(queries)||queries.length>100000||queries.some(line=>!Array.isArray(line)||(line.length&&!validLine(line)))||
+    !Number.isFinite(maxDistance)||maxDistance<0)throw Error('Explicit bounded Hydro reference guides required');
+  if(!queries.length)return [];
+  const result=await screenHydroPoints({mode:'reference-guides',references,queries,maxDistance},options);
+  if(!Array.isArray(result?.matches)||result.matches.length!==queries.length||result.matches.some((row,i)=>row!==null&&
+    (!queries[i].length||!Number.isSafeInteger(row?.index)||row.index<0||row.index>=references.length||
+      !Number.isFinite(row.distance)||row.distance<0||row.distance>maxDistance)))
+    throw Error('Invalid Hydro reference guide receipt');
+  return result.matches;
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){

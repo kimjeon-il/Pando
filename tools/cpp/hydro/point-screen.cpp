@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <stdexcept>
@@ -155,6 +156,35 @@ Value guidedBranchScore(const Value& input){
     auto result=Value::obj();result.object["score"]=Value::num(distance+std::max(0.0,1-alignment)*0.04);
     result.object["alignment"]=Value::num(alignment);return result;
 }
+// Match ReferenceGuides.nearest in geographic degrees, sharing one indexed tree per batch.
+Value referenceGuides(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& source=array(field(input,"references")),&queries=array(field(input,"queries"));
+    const double maximum=pandoeditor::codecjson::finiteNumber(field(input,"maxDistance"));
+    if(source.size()>100000||queries.size()>100000||maximum<0)throw std::invalid_argument("Invalid Hydro reference guide batch");
+    std::vector<Geometry> references;references.reserve(source.size());std::map<const GEOSGeometry*,std::size_t> indexes;
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> tree(GEOSSTRtree_create_r(context.get(),10),TreeDeleter{context.get()});
+    if(!tree)throw std::runtime_error("GEOS reference tree failed");
+    std::size_t vertices=0;
+    const auto line=[&](const Value& row){const auto& coords=array(row);vertices+=coords.size();
+        if(coords.size()<2||vertices>5000000)throw std::invalid_argument("Invalid Hydro reference line");
+        std::vector<Point> points;points.reserve(coords.size());for(const auto& coordinate:coords)points.push_back(inputPoint(coordinate));
+        return geometry(context.get(),points,false);};
+    for(const auto& row:source){auto item=line(row);const auto* raw=item.get();indexes.emplace(raw,references.size());
+        GEOSSTRtree_insert_r(context.get(),tree.get(),raw,const_cast<GEOSGeometry*>(raw));references.push_back(std::move(item));}
+    auto matches=Value::arr();matches.array.reserve(queries.size());
+    for(const auto& row:queries){if(array(row).empty()){matches.array.push_back(Value());continue;}
+        auto query=line(row);if(references.empty()){matches.array.push_back(Value());continue;}
+        const auto* nearest=GEOSSTRtree_nearest_r(context.get(),tree.get(),query.get());
+        const auto found=indexes.find(nearest);double distance=0;
+        if(found==indexes.end()||!GEOSDistance_r(context.get(),query.get(),nearest,&distance)||!std::isfinite(distance)||distance<0)
+            throw std::runtime_error("GEOS nearest reference failed");
+        if(distance>maximum){matches.array.push_back(Value());continue;}
+        auto match=Value::obj();match.object["index"]=Value::num(static_cast<double>(found->second));
+        match.object["distance"]=Value::num(distance);matches.array.push_back(std::move(match));}
+    auto result=Value::obj();result.object["matches"]=std::move(matches);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -198,6 +228,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")
+        return referenceGuides(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&
       (requested->second.string=="guided-branches"||requested->second.string=="canonical-upstreams"||requested->second.string=="guided-upstreams")){
         const auto& mode=requested->second.string;const bool branches=mode=="guided-branches";
