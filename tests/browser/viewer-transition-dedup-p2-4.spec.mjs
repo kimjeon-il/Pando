@@ -136,7 +136,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   });
   await page.route('**/modules/worker-rpc.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
-    source=swap(source,"    const decoded = codec.decodeMessage(event?.data);","    const decoded = codec.decodeMessage(event?.data);\\n    if(decoded?.operation==='core.document-replacement-release' && decoded?.kind==='result')globalThis.__P2_COST__?.mark('rpc:onmessage',{operation:decoded.operation,epochMs:performance.timeOrigin+performance.now()});");
+    source=swap(source,"    const decoded = codec.decodeMessage(event?.data);","    const decoded = codec.decodeMessage(event?.data);\n    if(decoded?.operation==='core.document-replacement-release' && decoded?.kind==='result')globalThis.__P2_COST__?.mark('rpc:onmessage',{operation:decoded.operation,epochMs:performance.timeOrigin+performance.now()});");
     await route.fulfill({response,body:source});
   });
   await page.route('**/modules/core-document-client.js*',async route=>{
