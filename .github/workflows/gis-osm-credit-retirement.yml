@@ -1,0 +1,75 @@
+name: GIS OSM credit retirement proof (read-only)
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/gis/audit-osm-credit-removal.mjs'
+      - 'tools/gis/baikonur-2019-exclusions.mjs'
+      - 'tests/unit/gis-osm-credit-retirement.test.mjs'
+      - 'tests/unit/gis-baikonur-2019-exclusions.test.mjs'
+      - '.github/workflows/gis-osm-credit-retirement.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-only-source-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run focused source contract tests
+        run: |
+          node --test tests/unit/gis-osm-credit-retirement.test.mjs tests/unit/gis-baikonur-2019-exclusions.test.mjs
+      - name: Read the exact production data pin
+        id: pinned-data
+        shell: bash
+        run: |
+          echo "revision=$(node -p "require('./config/library-data.json').revision")" >> "$GITHUB_OUTPUT"
+      - name: Checkout only the currently published Hydro package
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ steps.pinned-data.outputs.revision }}
+          path: .pando-osm-audit-input
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: assets/data/hydro/v0.13.2
+      - name: Prove the existing data is still NOT ready for attribution removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          node tools/gis/audit-osm-credit-removal.mjs \
+            --manifest .pando-osm-audit-input/assets/data/hydro/v0.13.2/manifest.json \
+            --bundle .pando-osm-audit-input/assets/data/hydro/v0.13.2/hydro.bin \
+            --baseline > "$RUNNER_TEMP/osm-retirement-audit.json"
+          status=$?
+          set -e
+          if [ "$status" -ne 2 ]; then
+            echo "Expected the current release to block attribution removal, got status $status" >&2
+            exit 1
+          fi
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const report=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/osm-retirement-audit.json','utf8'));
+          assert.equal(report.safeToRemoveMainMapOsmCredit,false);
+          assert.equal(report.hydro.remainingCount,31);
+          assert.equal(report.officialBoundaryReady,false);
+          console.log('Current product still requires OSM attribution. No data was changed.');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: osm-credit-retirement-current-pinned-evidence
+          path: ${{ runner.temp }}/osm-retirement-audit.json
+          if-no-files-found: warn
+          retention-days: 21
