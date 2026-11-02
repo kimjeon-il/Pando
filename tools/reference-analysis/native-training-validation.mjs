@@ -2,6 +2,7 @@
 // checkpoint; a diagnostic result is never an independent model approval.
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {existsSync,mkdirSync,statSync,writeFileSync} from 'node:fs';
 import {dirname,delimiter,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {Readable} from 'node:stream';
@@ -78,6 +79,35 @@ export async function nativeTrainingWeightsInfer({weights,tile,overview,position
   const after=verifyTrainingInitializer({path,expectedSha256:weightsHash});
   if(after.recordHash!==verified.recordHash)throw Error('Initializer changed during execution');
   return {...result,weightsSha256:weightsHash};
+}
+// A new weights-only start is distinct from resuming the saved optimizer/RNG.
+export async function exportNativeCheckpointWeights({checkpoint,output,device='cpu',torchLibrary,root=defaultRoot,
+  directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}={}){
+  signal?.throwIfAborted();
+  if(!['win32','linux'].includes(process.platform)||!checkpoint||!output||!torchLibrary||!['cpu','cuda'].includes(device))
+    throw Error('Explicit native checkpoint, new output, device and torch library required');
+  const source=resolve(checkpoint),hash=trainingFileIdentity(source),receiptPath=source+'.receipt.json',
+    receiptBytes=readTrainingBounded(receiptPath,1024*1024),receiptHash=sha(receiptBytes),receipt=JSON.parse(receiptBytes);
+  if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.device!==device||receipt.checkpointSha256!==hash)
+    throw Error('Private checkpoint receipt differs from its file');
+  const target=resolve(output);if(existsSync(target))throw Error('Weights output exists; preserve it');
+  const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
+  const {binary,manifest:tool}=verifyNativeTool({root,directory,target:'reference-training-batch',executable,sourceFiles:referenceBatchSourceFiles});
+  const library=matchingTorchLibrary(torchLibrary,tool),env={...process.env,
+    ...(process.platform==='win32'?{PATH:library+delimiter+process.env.PATH}:{LD_LIBRARY_PATH:library+delimiter+(process.env.LD_LIBRARY_PATH||'')}),CUBLAS_WORKSPACE_CONFIG:':4096:8'};
+  signal?.throwIfAborted();mkdirSync(target);const weights=join(target,'weights.safetensors');
+  const {child,done}=validator(binary,['export-weights',device,source,weights],env,signal);
+  const result=await exchangeNativeTrainingInput({child,done,chunks:[],signal});signal?.throwIfAborted();
+  if(result.trainingOnly!==true||result.releaseApproved!==false||result.optimizerStateTransferred!==false||
+    !Number.isSafeInteger(result.bytes)||result.bytes<1||statSync(weights).size!==result.bytes)throw Error('Native weights export returned an invalid receipt');
+  const weightsSha256=trainingFileIdentity(weights);
+  if(trainingFileIdentity(source)!==hash||sha(readTrainingBounded(receiptPath,1024*1024))!==receiptHash)
+    throw Error('Checkpoint changed during weights export; preserve the output');
+  const record={schemaVersion:1,transfer:'weights-only-no-optimizer',sourceFormat:'native-training-checkpoint',
+    sourceCheckpointSha256:hash,sourceReceiptSha256:receiptHash,sourceInitializationSha256:receipt.initializationSourceSha256??null,
+    sourceCorpusManifestSha256:receipt.corpusSha256??null,weightsSha256,optimizerStateTransferred:false,lineageComplete:false,
+    trainingOnly:true,evaluationStatus:'pending',releaseApproved:false,toolRevision:tool.revision};
+  writeFileSync(join(target,'transfer.json'),JSON.stringify(record,null,2)+'\n',{flag:'wx'});return {...record,weights};
 }
 // Compare semantic checkpoint state; serialized archive bytes can differ even
 // when model, optimizer, sampling and RNG state are identical.
@@ -189,13 +219,20 @@ export async function nativeTrainingValidation({checkpoint,corpus,device='cpu',d
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const controller=new AbortController(),abort=()=>controller.abort();process.once('SIGINT',abort);process.once('SIGTERM',abort);
-  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{compare:{type:'boolean',default:false},first:{type:'string'},second:{type:'string'},
-      device:{type:'string'},'torch-library':{type:'string'},directory:{type:'string'}}});
+  try{const {values,positionals}=parseArgs({allowPositionals:true,options:{compare:{type:'boolean',default:false},'export-weights':{type:'boolean',default:false},
+      checkpoint:{type:'string'},output:{type:'string'},first:{type:'string'},second:{type:'string'},device:{type:'string'},'torch-library':{type:'string'},directory:{type:'string'}}});
+    if(values['export-weights']){
+      if(positionals.length||values.compare||values.first||values.second||!values.checkpoint||!values.output||!values.device||!values['torch-library'])
+        throw Error('Expected --export-weights with checkpoint, new output, device and torch library');
+      console.log(JSON.stringify(await exportNativeCheckpointWeights({checkpoint:reportArgument(values.checkpoint,{access:'read',siblings:true}),
+        output:reportArgument(values.output,{access:'write'}),device:values.device,torchLibrary:values['torch-library'],directory:values.directory,signal:controller.signal})));
+    }else{
     if(positionals.length||!values.compare||!values.first||!values.second||!values.device||!values['torch-library'])
       throw Error('Expected --compare with first, second, device and torch library');
     console.log(JSON.stringify(await compareNativeTrainingCheckpoints({first:reportArgument(values.first,{access:'read',siblings:true}),
       second:reportArgument(values.second,{access:'read',siblings:true}),device:values.device,torchLibrary:values['torch-library'],
       directory:values.directory,signal:controller.signal})));
+    }
   }catch(error){console.error('native-training-validation: '+error.message);process.exitCode=1;}
   finally{process.removeListener('SIGINT',abort);process.removeListener('SIGTERM',abort);}
 }

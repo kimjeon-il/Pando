@@ -385,6 +385,18 @@ the training manifest with `--reviewed`, the validation manifest for model
 selection, and the test manifest only for final evaluation. For report paths,
 the normal report owner manages the new manifest editions.
 
+To start a separate training run from a native checkpoint's model weights,
+export them to a new private directory:
+
+```powershell
+node tools/reference-analysis/native-training-validation.mjs --export-weights --checkpoint $nativeCheckpoint --output $newWeightsDirectory --device cuda --torch-library $torchLibrary
+```
+
+Use its `weights.safetensors` as the next warm-start input. The export records
+the source checkpoint and receipt hashes. It deliberately does not transfer the
+optimizer, RNG or sample cursor and does not establish complete ancestry; use
+the existing resume workflow for an exact continuation of the same run.
+
 The fixed development environment is `build-native/python/Scripts/python.exe`.
 Top-level dependency versions are in `requirements.txt`. CPU verifies
 architecture/export; install matching official CUDA PyTorch/torchvision wheels

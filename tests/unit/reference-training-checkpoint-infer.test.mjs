@@ -6,8 +6,17 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {compareNativeTrainingCheckpoints,exchangeNativeTrainingInput,nativeTrainingCheckpointInfer,nativeTrainingWeightsInfer} from '../../tools/reference-analysis/native-training-validation.mjs';
+import * as validation from '../../tools/reference-analysis/native-training-validation.mjs';
 
 const available=Boolean(process.env.PANDO_REFERENCE_INFER_FIXTURE&&process.env.PANDO_REFERENCE_BATCH_DIRECTORY&&process.env.PANDO_REFERENCE_TORCH_LIBRARY);
+test('checkpoint weights export rejects an unrelated receipt and preserves outputs',async t=>{
+  const folder=mkdtempSync(join(tmpdir(),'pando-checkpoint-export-'));t.after(()=>rmSync(folder,{recursive:true}));
+  const checkpoint=join(folder,'checkpoint.pt'),output=join(folder,'new-weights');writeFileSync(checkpoint,'fixture');
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,device:'cpu',checkpointSha256:'0'.repeat(64)}));
+  assert.equal(typeof validation.exportNativeCheckpointWeights,'function');
+  await assert.rejects(validation.exportNativeCheckpointWeights({checkpoint,output,device:'cpu',torchLibrary:folder}),/receipt/i);
+  assert.throws(()=>readFileSync(output),{code:'ENOENT'});
+});
 test('native inference reports a child rejection instead of its closed pipe',async()=>{
   const child=spawn(process.execPath,['-e','process.stderr.write("native rejection sentinel");process.exit(1)'],{windowsHide:true,stdio:['pipe','pipe','pipe']});
   const errors=[];child.stderr.on('data',chunk=>errors.push(chunk));child.stdout.resume();
@@ -81,6 +90,14 @@ test('native checkpoint inference matches the source model output', {skip:!avail
   const baseline=await nativeTrainingWeightsInfer({...options,weights,output:'probabilities'});
   maximum=0;for(let i=0;i<expectedProbability.length;i+=4)maximum=Math.max(maximum,Math.abs(expectedProbability.readFloatLE(i)-baseline.probabilities.readFloatLE(i)));
   assert.ok(maximum<=1e-6,`initializer probability error ${maximum}`);assert.equal(baseline.weightsSha256,weightsSha256);
+  const output=join(folder,'exported'),exported=await validation.exportNativeCheckpointWeights({checkpoint,output,device:'cpu',
+    torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY});
+  assert.equal(exported.sourceCheckpointSha256,checkpointSha256);assert.equal(exported.optimizerStateTransferred,false);
+  const loaded=await nativeTrainingWeightsInfer({...options,weights:join(output,'weights.safetensors')});
+  assert.equal(loaded.weightsSha256,exported.weightsSha256);
+  assert.deepEqual(loaded.logits,result.logits);
+  await assert.rejects(validation.exportNativeCheckpointWeights({checkpoint,output,device:'cpu',
+    torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY,directory:process.env.PANDO_REFERENCE_BATCH_DIRECTORY}),/exist/i);
   const invalidDirectory=join(folder,'invalid-weights');mkdirSync(invalidDirectory);
   const invalidPath=join(invalidDirectory,'weights.safetensors'),raw=readFileSync(weights),headerLength=Number(raw.readBigUInt64LE());
   const header=JSON.parse(raw.subarray(8,8+headerLength));delete header.__metadata__;

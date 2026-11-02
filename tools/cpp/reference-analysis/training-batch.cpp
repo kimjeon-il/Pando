@@ -2,6 +2,7 @@
 // handled by the caller; this executable never approves or publishes a model.
 #include "reference-io.h"
 #include "safetensors.h"
+#include "safetensors-write.h"
 #include "training-ordered-step.h"
 #include "training-amp.h"
 #include "training-validation.h"
@@ -159,6 +160,16 @@ int compareCheckpoints(const std::vector<fs::path>& args){
     <<",\"trainingOnly\":true,\"releaseApproved\":false}\n";return 0;
 }
 int run(const std::vector<fs::path>& args){
+  if(args.size()>1&&args[1]==fs::path("export-weights")){
+    if(args.size()!=5)throw std::invalid_argument("Expected export-weights DEVICE CHECKPOINT NEW_OUTPUT");
+    if(fs::exists(args[4]))throw std::invalid_argument("Weights output exists; preserve it");
+    const auto device=pando::reference::selectDevice(args[2].string());
+    const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
+    pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+    pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
+    const auto output=pando::reference::saveModelSafetensors(*model);pando::reference::writeNewFile(args[4],output);
+    std::cout<<"{\"trainingOnly\":true,\"releaseApproved\":false,\"optimizerStateTransferred\":false,\"bytes\":"<<output.size()<<"}\n";return 0;
+  }
   if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);
   if(args.size()>1&&(args[1]==fs::path("infer")||args[1]==fs::path("infer-weights")))return infer(args);
   if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);

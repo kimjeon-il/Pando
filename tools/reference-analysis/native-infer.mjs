@@ -18,6 +18,7 @@ export const referenceSourceFiles=Object.freeze(['tools/cpp/CMakeLists.txt','too
 export const referenceProofSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/reference-training-proof.cpp',
   'tools/cpp/reference-analysis/training-step.h']);
 export const referenceBatchSourceFiles=Object.freeze([...referenceSourceFiles,'tools/cpp/reference-analysis/training-step.h',
+  'tools/cpp/reference-analysis/safetensors-write.h',
   'tools/cpp/reference-analysis/training-ordered-step.h','tools/cpp/reference-analysis/training-amp.h','tools/cpp/reference-analysis/training-validation.h',
   'tools/cpp/reference-analysis/training-sampling.h','tools/cpp/reference-analysis/condition-sampling.h','tools/cpp/reference-analysis/training-supervision.h','tools/cpp/reference-analysis/training-batch.cpp',
   'tools/cpp/reference-analysis/training-step-test/CMakeLists.txt']);

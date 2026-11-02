@@ -17,13 +17,70 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-transfer, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  reference-transfer:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-transfer'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare fixed LibTorch SDK
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need 4 GiB build space and 5 GiB headroom' }
+            $url='https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip'
+            $expected='28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7'
+          } else {
+            if (([int64](((df -PB1 . | Select-Object -Last 1).Trim() -split '\s+')[3])) -lt 9663676416) { throw 'Need 4 GiB build space and 5 GiB headroom' }
+            $url='https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip'
+            $expected='63D572598C8D532128A335018913E795C1BBB32602CE378896DC8CFBB5590976'
+          }
+          New-Item -ItemType Directory -Path build-native/reference-analysis -Force | Out-Null
+          $curl = if ($IsWindows) { 'curl.exe' } else { 'curl' }
+          & $curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 $url --output build-native/reference-analysis/libtorch.zip
+          if ($LASTEXITCODE -ne 0 -or (Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne $expected) { throw 'LibTorch download or SHA-256 failed' }
+          if ($IsWindows) { Expand-Archive build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis }
+          else { unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis; if ($LASTEXITCODE -ne 0) { throw 'LibTorch extraction failed' } }
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
+      - name: Build and verify checkpoint weights transfer
+        shell: pwsh
+        run: |
+          $torch="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
+          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
+          if ($LASTEXITCODE -ne 0) { throw 'Configure failed' }
+          cmake --build build-native/reference-analysis/step-test --config Release --target pando-reference-training-batch reference-training-infer-fixture --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'Training tool build failed' }
+          if ($IsWindows) { $build='build-native/reference-analysis/step-test/Release'; $ext='.exe' }
+          else { $build='build-native/reference-analysis/step-test'; $ext=''; $env:LD_LIBRARY_PATH="$torch/lib" }
+          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary "$build/pando-reference-training-batch$ext" --directory build-native/reference-analysis/artifact-batch
+          if ($LASTEXITCODE -ne 0) { throw 'Training tool packaging failed' }
+          $env:PANDO_REFERENCE_INFER_FIXTURE="$env:GITHUB_WORKSPACE/$build/reference-training-infer-fixture$ext"
+          $env:PANDO_REFERENCE_BATCH_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/artifact-batch"
+          $env:PANDO_REFERENCE_TORCH_LIBRARY="$torch/lib"
+          node --test tests/unit/reference-training-checkpoint-infer.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Checkpoint weights transfer differs' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reference-transfer-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/reference-analysis/artifact-batch/
+          if-no-files-found: error
+          retention-days: 7
   reference-sampling-linux:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sampling-linux'
     runs-on: ubuntu-24.04
