@@ -54,8 +54,21 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   test.setTimeout(240000);
   await page.clock.setFixedTime(new Date(2026,9,31,12));
   await page.addInitScript(()=>{
-    window.__P2_COST__={events:[],longTasks:[],mark(name,detail={}){
+    window.__P2_COST__={events:[],longTasks:[],heartbeats:[],activeHeartbeat:null,mark(name,detail={}){
       this.events.push({name,at:performance.now(),...detail});
+    },beginHeartbeat(){
+      const sample={start:performance.now(),ticks:[]};
+      const timer=setInterval(()=>sample.ticks.push(performance.now()),16);
+      this.activeHeartbeat={sample,timer};
+    },endHeartbeat(){
+      const current=this.activeHeartbeat;
+      if(!current)return;
+      clearInterval(current.timer);this.activeHeartbeat=null;
+      const {start,ticks}=current.sample;
+      const end=performance.now(),points=[start,...ticks,end];
+      const gaps=points.slice(1).map((value,i)=>value-points[i]);
+      this.heartbeats.push({ms:end-start,tickCount:ticks.length,
+        maxGapMs:Math.max(0,...gaps),gapsOver50:gaps.filter(g=>g>50).length});
     }};
     try{new PerformanceObserver(list=>{
       for(const task of list.getEntries())window.__P2_COST__.longTasks.push({at:task.startTime,ms:task.duration});
@@ -121,12 +134,17 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
       "if(generation===updateGeneration)schedule();window.__P2_COST__.mark('map.update:end');");
     await route.fulfill({response,body:source});
   });
+  await page.route('**/modules/worker-rpc.js*',async route=>{
+    const response=await route.fetch();let source=await response.text();
+    source=swap(source,"    const decoded = codec.decodeMessage(event?.data);","    const decoded = codec.decodeMessage(event?.data);\\n    if(decoded?.operation==='core.document-replacement-release' && decoded?.kind==='result')globalThis.__P2_COST__?.mark('rpc:onmessage',{operation:decoded.operation,epochMs:performance.timeOrigin+performance.now()});");
+    await route.fulfill({response,body:source});
+  });
   await page.route('**/modules/core-document-client.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
     source=swap(source,"const { result } = await rpc.request(operation, request, atomic || speculative",
-      "const __p2RpcStart=performance.now();window.__P2_COST__.mark('rpc:request',{operation,epochMs:performance.timeOrigin+__p2RpcStart});const { result, timing: __p2WorkerTiming } = await rpc.request(operation, request, atomic || speculative");
+      "const __p2RpcStart=performance.now();window.__P2_COST__.mark('rpc:request',{operation,epochMs:performance.timeOrigin+__p2RpcStart});if(operation==='core.document-replacement-release')window.__P2_COST__.beginHeartbeat();const { result, timing: __p2WorkerTiming } = await rpc.request(operation, request, atomic || speculative");
     source=swap(source,"? { timeoutMs: 0 } : { signal: options.signal });",
-      "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart,workerMs:__p2WorkerTiming?.durationMs??null,epochMs:performance.timeOrigin+performance.now()});");
+      "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart,workerMs:__p2WorkerTiming?.durationMs??null,epochMs:performance.timeOrigin+performance.now()});if(operation==='core.document-replacement-release')window.__P2_COST__.endHeartbeat();");
     await route.fulfill({response,body:source});
   });
   await page.route('**/workers/worker-rpc-host.js*',async route=>{
@@ -183,7 +201,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   await cdp.send('Profiler.start');
   const results=[];
   for(const [button,target] of [['timelinePreviousYear','2025-12'],['timelineNextYear','2026-10']]){
-    await page.evaluate(()=>{window.__P2_COST__.events=[];window.__P2_COST__.longTasks=[];});
+    await page.evaluate(()=>{window.__P2_COST__.events=[];window.__P2_COST__.longTasks=[];window.__P2_COST__.heartbeats=[];});
     await page.locator('#'+button).click();
     await expect.poll(()=>page.evaluate(()=>({
       month:window.__PANDOLAB_VIEWER__?.builtinMonth().month,
@@ -203,13 +221,19 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
         selectionPrune:elapsed('selection-prune:start','selection-prune:end'),
         postUpdate:elapsed('post-update:start','post-update:end'),
       };
-      return {spans,cache,events:events.map(e=>({...e,at:Math.round(e.at)})),longTasks:window.__P2_COST__.longTasks.slice()};
+      const req=events.find(e=>e.name==='rpc:request'&&e.operation==='core.document-replacement-release');
+      const msg=events.find(e=>e.name==='rpc:onmessage'&&e.operation==='core.document-replacement-release');
+      const done=events.find(e=>e.name==='rpc:done'&&e.operation==='core.document-replacement-release');
+      spans.releaseRequestToMessageMs=req&&msg?Math.round(msg.at-req.at):null;
+      spans.releaseMessageToDoneMs=msg&&done?Math.round(done.at-msg.at):null;
+      return {spans,cache,events:events.map(e=>({...e,at:Math.round(e.at)})),
+        longTasks:window.__P2_COST__.longTasks.slice(),heartbeats:window.__P2_COST__.heartbeats.slice()};
     });
     expect(result.spans.presentToReady).not.toBe(null);
     expect(result.spans.postPrune).not.toBe(null);
     expect(result.spans.postUpdate).not.toBe(null);
     results.push({target,...result});
-    console.log('P2_MAIN_DIAG '+JSON.stringify({target,longTasks:result.longTasks,
+    console.log('P2_MAIN_DIAG '+JSON.stringify({target,longTasks:result.longTasks,heartbeats:result.heartbeats,
       expensivePasses:result.events.filter(e=>e.name.startsWith('render:')).sort((a,b)=>(b.ms??0)-(a.ms??0)).slice(0,15)}).slice(0,12000));
     console.log('P2_COST_DIAG '+JSON.stringify({target,spans:result.spans,source:result.events.filter(e=>e.name.startsWith('source:')),rpc:result.events.filter(e=>e.name==='rpc:done'),cache:result.cache}).slice(0,14000));
   }
