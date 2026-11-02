@@ -191,6 +191,30 @@ export async function buildHydroRiverSystems({chains}={},options={}){
   hydroSystemKeys(chains);
   return validateHydroRiverSystems(await runHydroConnectivity({mode:'river-systems',chains},options),{chains});
 }
+export async function assembleHydroSystemFragments({chains}={},options={}){
+  options.signal?.throwIfAborted();hydroSystemKeys(chains);const rows=new Map();
+  for(const chain of chains)for(const reach of chain){
+    if(rows.has(reach.id)||!Number.isFinite(reach.width)||!Number.isFinite(reach.endWidth))
+      throw Error('Invalid Hydro fragment reach identity or width');
+    rows.set(reach.id,reach);
+  }
+  const layout=await buildHydroRiverSystems({chains},options),systems=[],fragmentsAll=[];
+  for(const system of layout.systems){const fragments=[];
+    for(const chainIndex of system.chainIndexes)for(const reachIds of layout.fragments[chainIndex])
+      fragments.push({chainIndex,reachIds:[...reachIds]});
+    for(const fragment of fragments)fragmentsAll.push(fragment);
+    systems.push({...system,fragments});
+  }
+  for(let at=0;at<fragmentsAll.length;at+=1000){const batch=fragmentsAll.slice(at,at+1000),flat=[];
+    for(const fragment of batch)for(const id of fragment.reachIds)flat.push(rows.get(id));
+    const profiles=await buildHydroWidthProfile({reaches:flat},options);let index=0;
+    for(const fragment of batch){let count=0;
+      for(const id of fragment.reachIds)for(const part of rows.get(id).parts)if(part.length>=2)count++;
+      fragment.widths=profiles.widths.slice(index,index+count);index+=count;}
+    if(index!==profiles.widths.length)throw Error('Hydro fragment width count differs');
+  }
+  return systems;
+}
 export function validateHydroWidthProfile(result,{reaches}={}){
   if(!Array.isArray(reaches)||!result||typeof result!=='object'||Array.isArray(result)||
     Object.keys(result).join(',')!=='widths'||!Array.isArray(result.widths))throw Error('Invalid Hydro width receipt');

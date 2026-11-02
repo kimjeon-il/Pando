@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroSystemFragments,auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,propagateHydroWidths,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,validateHydroWidthPropagation,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -77,6 +77,20 @@ test('source-bound producer APIs preserve system selection and geographic widths
       {systems:[{systemId:10,chainIndexes:[0,1],mainstemIndex:0,bounds:[0,0,1,1]}],fragments:[[[1],[2]],[[3]]]});
     const reaches=[{width:1,endWidth:4,parts:[[[0,0],[1,0],[1,2]],[[5,5],[5,5]],[[1,1]]]}];
     assert.deepEqual(await buildHydroWidthProfile({reaches},options),{widths:[[1,2,4],[1,1]]});
+  });
+test('native system fragments retain chain order, role and per-point widths',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const reach=(id,stage,start,end)=>({id,mainRiver:10,upstreamArea:id===2?200:id*10,flow:id,stage,borderPair:null,
+      width:start,endWidth:end,parts:[[[id,0],[id+1,0]]]});
+    const chains=[[reach(1,1,1,1.5),reach(2,2,1.5,2)],[reach(3,1,1,1.2)]],before=structuredClone(chains);
+    const result=await assembleHydroSystemFragments({chains},{directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY});
+    assert.deepEqual(result.map(system=>({systemId:system.systemId,mainstemIndex:system.mainstemIndex,
+      fragments:system.fragments.map(fragment=>({chainIndex:fragment.chainIndex,reachIds:fragment.reachIds,widths:fragment.widths}))})),
+    [{systemId:10,mainstemIndex:0,fragments:[{chainIndex:0,reachIds:[1],widths:[[1,1.5]]},
+      {chainIndex:0,reachIds:[2],widths:[[1.5,2]]},{chainIndex:1,reachIds:[3],widths:[[1,1.2]]}]}]);
+    assert.deepEqual(chains,before);
+    await assert.rejects(assembleHydroSystemFragments({chains:[chains[0],chains[0]]},
+      {directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY}),/identity/i);
   });
 nativeTest('logical river chains preserve canonical confluence and input order',()=>{
   const reaches=[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],canonical=[{downstream:3,upstream:1},{downstream:4,upstream:3}];
