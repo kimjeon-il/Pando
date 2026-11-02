@@ -145,7 +145,7 @@ test('E4 verifies all manifest file bytes, rejects mismatches and imports atomic
   assert.equal(imported.inspection.entities.length,2);
   const without=await readReviewEvidenceFiles(files.slice(0,3),{subtle:webcrypto.subtle});
   assert.equal(without.checksumVerified,false);
-  const altered=completeFiles();altered[0]=mockFile(altered[0].name,{...JSON.parse(altered[0].raw),extra:true});
+  const altered=completeFiles();altered[0]=mockFile(altered[0].name,{...JSON.parse(altered[0].raw),comparisonMonth:'1914-08'});
   await assert.rejects(readReviewEvidenceFiles(altered,{subtle:webcrypto.subtle}),/SHA-256/);
   await assert.rejects(readReviewEvidenceFiles([...files,files[0]],{subtle:webcrypto.subtle}),/1~4/);
   const absent=completeFiles().filter(x=>x.name!=='e3-pending-proposal.json');

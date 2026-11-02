@@ -90,7 +90,7 @@ test('E4 review opens matching immutable revisions, draws verified source previe
   const download=await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^pando-review-correction-/);
   await expect(page.locator('#reviewCorrectionStatus')).toContainText('로컬 수정 요청서');
-  const tampered={...model.diff,dataset:{...model.diff.dataset,candidateRevision:'f'.repeat(40)}};
+  const tampered={...model.diff,schemaVersion:900,dataset:{...model.diff.dataset,candidateRevision:'f'.repeat(40)}};
   await page.locator('#reviewEvidenceInput').setInputFiles([
     {name:'e3-source-diff.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(tampered))},
   ]);
