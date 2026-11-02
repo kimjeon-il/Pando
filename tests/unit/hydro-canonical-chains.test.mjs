@@ -21,5 +21,8 @@ test('selected source reaches follow the named reference through a confluence',
     assert.deepEqual(await assembleHydroCanonicalChains({reaches,references},options),[[2],[1,3]]);
     assert.deepEqual(await assembleHydroCanonicalChains({reaches,references:[]},options),[[2,3],[1]]);
     assert.deepEqual(reaches,before);
+    const snapped=structuredClone(reaches);snapped[1].parts=[[[1,0],[0,0]]];snapped[2].renderSnap=[-1,0];
+    assert.deepEqual(await assembleHydroCanonicalChains({reaches:snapped,references},options),[[2,3],[1]]);
+    assert.deepEqual(snapped[2].parts,[[[0,0],[1,0]]]);
     await assert.rejects(assembleHydroCanonicalChains({reaches:reaches.slice(0,2),references},options),/downstream/i);
   });

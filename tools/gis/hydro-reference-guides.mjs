@@ -44,7 +44,10 @@ export async function assembleHydroCanonicalChains({reaches,references}={},optio
   for(const row of reaches){
     if(!Number.isSafeInteger(row?.id)||row.id<=0||byId.has(row.id)||!Number.isSafeInteger(row.next)||row.next<0||
       !Number.isSafeInteger(row.mainRiver)||!Number.isSafeInteger(row.order)||!Number.isFinite(row.flow)||
-      !Number.isFinite(row.upstreamArea)||!Array.isArray(row.parts))throw Error('Invalid Hydro canonical reach');
+      !Number.isFinite(row.upstreamArea)||!Array.isArray(row.parts)||
+      (row.renderSnap!=null&&(!Array.isArray(row.renderSnap)||row.renderSnap.length!==2||
+        row.renderSnap.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90)))))
+      throw Error('Invalid Hydro canonical reach');
     byId.set(row.id,row);
   }
   for(const row of reaches){if(!row.next)continue;if(!byId.has(row.next))throw Error('Selected Hydro downstream is missing');
@@ -54,7 +57,9 @@ export async function assembleHydroCanonicalChains({reaches,references}={},optio
   const neededRows=[...needed].map(id=>byId.get(id)),lines=new Map(),geometryOptions={...options.pointScreen};
   if(options.signal)geometryOptions.signal=options.signal;
   for(let at=0;at<neededRows.length;at+=1000){const batch=neededRows.slice(at,at+1000);
-    const selected=await longestHydroSourceLines(batch.map(row=>row.parts),geometryOptions);
+    const sourceParts=batch.map(row=>row.parts.map((part,i)=>row.renderSnap!=null&&i===row.parts.length-1&&Array.isArray(part)&&part.length>=2?
+      [...part.slice(0,-1),row.renderSnap]:part));
+    const selected=await longestHydroSourceLines(sourceParts,geometryOptions);
     for(let i=0;i<batch.length;i++)lines.set(batch[i].id,selected[i]);}
   const guides=prepareHydroReferenceGuides(references),guideById=new Map();
   if(guides.lines.length)for(let at=0;at<ids.length;at+=1000){const batch=ids.slice(at,at+1000);
