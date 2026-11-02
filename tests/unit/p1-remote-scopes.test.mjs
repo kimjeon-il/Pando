@@ -29,7 +29,7 @@ test('WebView shell changes select the current Web app checks', () => {
   assert.equal(classifyPaths(['apps/editor/startup.js'],all).web,true);
 });
 test('GIS Python and city records stay in their own scopes', () => {
-  const gis=classifyPaths(['tools/calibrate-hydro.py'],all);
+  const gis=classifyPaths(['tools/build-hydro-tiles.py'],all);
   assert.equal(gis.python,true);assert.equal(gis.gis,false);
   assert.equal(gis.web,false, 'GIS Python-only change belongs to the independent Python workflow');
   const cities=classifyPaths(['assets/data/places/manifest.json'],all);

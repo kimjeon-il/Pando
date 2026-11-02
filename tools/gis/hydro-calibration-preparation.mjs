@@ -238,8 +238,10 @@ export async function prepareHydroCalibrationLakeRegions({files,regions,width=12
   const snapshot=structuredClone({files,regions}),output=new Map(snapshot.regions.map(region=>[region.id,[]]));
   await scanHydroLakeSource({files:snapshot.files,bounds:snapshot.regions.map(region=>region.bbox),batchSize,signal:options.signal,onBatch:async rows=>{
     const geometries=await organizeHydroLakePolygons(rows.map(row=>row.rings),options);
-    const lakes=rows.map(({rings,...row},i)=>({...row,geometry:geometries[i]}));
-    const results=await Promise.all(snapshot.regions.map(region=>prepareHydroCalibrationLakes({lakes,bounds:region.bbox,width,height},options)));
+    const lakes=rows.map(({rings,bounds,...row},i)=>({...row,geometry:geometries[i]}));
+    const results=await Promise.all(snapshot.regions.map(region=>{const b=region.bbox,selected=lakes.filter((_,i)=>{
+      const a=rows[i].bounds;return a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];});
+      return prepareHydroCalibrationLakes({lakes:selected,bounds:b,width,height},options);}));
     for(let i=0;i<results.length;i++)output.get(snapshot.regions[i].id).push(...results[i]);
   }});
   options.signal?.throwIfAborted();return Object.fromEntries(output);

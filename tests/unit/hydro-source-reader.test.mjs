@@ -11,6 +11,7 @@ import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
 import {executeHydroCalibration} from '../../tools/gis/calibrate-hydro.mjs';
+import {decodeNativeImageBytes} from '../../tools/map-image/native-resample.mjs';
 
 const archive='tests/fixtures/hydro-source/fixture.zip';
 const specification=JSON.parse(await readFile('tests/fixtures/hydro-source/spec.json','utf8'));
@@ -86,7 +87,7 @@ test('lake source streams selected bounding boxes, Windows names and source ring
   const root=await mkdtemp(join(tmpdir(),'pando-hydro-lakes-'));t.after(()=>rm(root,{recursive:true}));
   const {files,data,ring}=await lakeFixture(root),batches=[],input={files,bounds:[[0,-1,3,2]],batchSize:1,onBatch:batch=>batches.push(batch)};
   const result=await scanHydroLakeSource(input);assert.deepEqual(result,{records:3,selected:1});
-  assert.deepEqual(batches,[[{id:7,name:'Lac Caf\u00e9',areaKm2:5,shorelineKm:8,rings:[ring(0)]}]]);
+  assert.deepEqual(batches,[[{id:7,name:'Lac Caf\u00e9',areaKm2:5,shorelineKm:8,bounds:[0,0,1,1],rings:[ring(0)]}]]);
   const {shx:unusedIndex,prj:unusedProjection,...required}=files;assert.ok(unusedIndex.path&&unusedProjection.path);
   assert.deepEqual(await scanHydroLakeSource({...input,files:required,onBatch:()=>{}}),result);
   const wrong=structuredClone(files);wrong.shp.sha256='0'.repeat(64);
@@ -182,9 +183,17 @@ test('verified selected river and lake sources produce a complete analysis resul
     const options={pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},
       calibration:{directory:process.env.PANDO_HYDRO_CALIBRATION_ARTIFACT}};
     const before=structuredClone(input),analysis=await runHydroCalibration(input,options),result=analysis.results;
+    const oracle=JSON.parse(await readFile('tests/fixtures/hydro-calibration-pipeline-oracle.json','utf8'));
     assert.equal(result.schemaVersion,1);assert.equal(result.regions.europe.riverCandidates,2);assert.equal(result.regions.europe.lakeCandidates,1);
     assert.equal(result.regions.europe.rivers['6.0'].targetCount,1);assert.equal(result.regions.europe.lakes['6.0'].targetCount,1);
     assert.equal(result.representativeChecks['나일강'].present,false);assert.equal(result.acceptance.representativeFeaturesPresent,false);
+    assert.deepEqual([result.formula.rivers.flowWeight,result.formula.rivers.upstreamAreaWeight],oracle.riverWeights);
+    assert.deepEqual(result.formula.rivers.thresholds,oracle.riverThresholds);
+    assert.deepEqual([result.formula.lakes.areaWeight,result.formula.lakes.shorelineWeight],oracle.lakeWeights);
+    assert.deepEqual(result.formula.lakes.thresholds,oracle.lakeThresholds);
+    assert.deepEqual(result.regions.europe.rivers,oracle.riverMetrics);assert.deepEqual(result.regions.europe.lakes,oracle.lakeMetrics);
+    assert.deepEqual(analysis.regions[0].rivers.map(row=>[row.sourceId,row.assignedStage]),oracle.riverStages);
+    assert.deepEqual(analysis.regions[0].lakes.map(row=>[row.sourceId,row.assignedStage]),oracle.lakeStages);
     assert.equal(analysis.regions[0].region.id,'europe');assert.deepEqual(result.sources,{fixture:true});assert.deepEqual(input,before);
   });
 test('calibration command writes verified results and comparison image only to a new output',
@@ -209,6 +218,11 @@ test('calibration command writes verified results and comparison image only to a
     const receipt=await executeHydroCalibration(input,options),result=JSON.parse(await readFile(join(root,'output','results.json'),'utf8'));
     assert.equal(result.regions.europe.riverCandidates,2);assert.equal(result.regions.europe.lakeCandidates,1);
     assert.equal(receipt.files.length,3);assert.equal((await readFile(join(root,'output','europe.png'))).subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+    const oracle=JSON.parse(await readFile('tests/fixtures/hydro-calibration-pipeline-oracle.json','utf8'));
+    if(createHash('sha256').update(await readFile(regularFont)).digest('hex')===oracle.picture.regularFontSha256&&
+      createHash('sha256').update(await readFile(boldFont)).digest('hex')===oracle.picture.boldFontSha256){
+      const decoded=await decodeNativeImageBytes({bytes:await readFile(join(root,'output','europe.png')),format:'png',maxPixels:1000000});
+      assert.equal(createHash('sha256').update(decoded.data).digest('hex'),oracle.picture.rgbaSha256);}
     const before=await readFile(join(root,'output','results.json'));await assert.rejects(executeHydroCalibration(input,options),/already exists/i);
     assert.deepEqual(await readFile(join(root,'output','results.json')),before);
   });

@@ -212,7 +212,7 @@ export async function scanHydroLakeSource({files,bounds,onBatch,batchSize=256,si
           if(point.some(value=>!Number.isFinite(value))||Math.abs(point[0])>180||Math.abs(point[1])>90)throw Error('Invalid Hydro lake coordinate');ring.push(point);}rings.push(ring);}
       const id=number(record,'Hylak_id');if(!Number.isSafeInteger(id)||id<=0||seen.has(id))throw Error('Invalid or duplicate Hydro lake identity');seen.add(id);
       const name=decoder.decode(readText(record,'Lake_name')).trim().replace(/\0+$/u,'').replace(/[\u0081\u008d\u008f\u0090\u009d]/gu,'\ufffd');
-      batch.push({id,name,areaKm2:area,shorelineKm:number(record,'Shore_len'),rings});selected++;
+      batch.push({id,name,areaKm2:area,shorelineKm:number(record,'Shore_len'),bounds:shapeBounds,rings});selected++;
       if(batch.length===batchSize){await onBatch(batch);signal?.throwIfAborted();batch=[];}
     }
     await dbf.finish({allowDbfEnd:true});await shp.finish();

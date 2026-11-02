@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,organizeHydroLakePolygons,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -52,6 +52,23 @@ test('selected real HydroRIVERS coordinates and calibration candidates match the
     for(let i=0;i<actual.length;i++){const a={...actual[i]},b={...fixture.expected[i]};
       for(const key of ['lengthKm','screenLength']){assert.ok(Math.abs(a[key]-b[key])<1e-6,`${key} differs`);delete a[key];delete b[key];}
       assert.deepEqual(a,b);}
+  });
+test('selected real HydroLAKES polygons preserve Python geometry and screen area',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const fixture=JSON.parse(readFileSync('tests/fixtures/hydro-calibration-lakes-oracle.json','utf8')),
+      options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const geometry=await organizeHydroLakePolygons(fixture.lakes.map(row=>row.rings),options);
+    const lakes=fixture.lakes.map(({rings,...row},i)=>({...row,geometry:geometry[i]}));
+    const actual=await buildHydroCalibrationLakeFeatures({bounds:fixture.source.bounds,width:1200,height:720,lakes},options);
+    const ringKey=ring=>{const points=ring.slice(0,-1).map(point=>JSON.stringify(point)),variants=[];
+      for(const row of [points,[...points].reverse()])for(let i=0;i<row.length;i++)variants.push([...row.slice(i),...row.slice(0,i)].join(';'));
+      return variants.sort()[0];};
+    const geometryKey=value=>{const polygons=value.type==='Polygon'?[value.coordinates]:value.coordinates;
+      return polygons.map(polygon=>JSON.stringify([ringKey(polygon[0]),...polygon.slice(1).map(ringKey).sort()])).sort();};
+    assert.equal(actual.length,fixture.expected.length);
+    for(let i=0;i<actual.length;i++){const a={...actual[i]},b={...fixture.expected[i]};
+      assert.deepEqual(geometryKey(a.geometry),geometryKey(b.geometry));assert.ok(Math.abs(a.screenArea-b.screenArea)<1e-6);
+      delete a.geometry;delete b.geometry;delete a.screenArea;delete b.screenArea;assert.deepEqual(a,b);}
   });
 test('guided branch scores handle zero direction and reject malformed geometry',{skip:!binary},()=>{
   const request={mode:'guided-branch',current:[[0,0],[1,0]],candidate:[[0,0],[-1,0]],reference:[[0,0],[0,0]]};

@@ -36,7 +36,7 @@ test('raw Python GIS inputs only run from the dedicated opt-in workflow and CLI'
 });
 test('Python-only GIS edits select no standard Web/core/WASM job',()=>{
   const caps={core:true,gisTools:true,web:true};
-  for(const path of ['tools/calibrate-hydro.py']){
+  for(const path of ['tools/build-hydro-tiles.py']){
     const plan=classifyPaths([path],caps);
     assert.equal(plan.python,true,path);
     for(const flag of ['web','core','wasm','gisTools','gis','ui'])

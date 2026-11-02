@@ -199,18 +199,17 @@ node tools/build-physical-data.mjs <Natural-Earth-원본-폴더> <새-후보-폴
 
 ### Hydro 전 세계 보충 자료 캘리브레이션
 
-`tools/calibrate-hydro.py`는 HydroRIVERS·HydroLAKES를 현재 Natural Earth 기본+지역 보충 수계와 비교하는 분석 전용 도구입니다. 유럽·북미·호주에 동일한 중요도 공식과 `min_zoom 6.0·6.7·7.0·7.5` 경계를 적용하고, 한반도는 별도 검증 범위로 사용합니다. Natural Earth 기본 수계 중복 제거, 단계별 길이·화면 점유율·호수 개수, 하천 체인 결합 시 좌표 보존과 예상 전 세계 용량을 함께 계산합니다.
+`tools/gis/calibrate-hydro.mjs`는 HydroRIVERS·HydroLAKES를 현재 Natural Earth 기본+지역 보충 수계와 비교하는 분석 전용 도구입니다. 유럽·북미·호주에 동일한 중요도 공식과 `min_zoom 6.0·6.7·7.0·7.5` 경계를 적용하고, 한반도는 별도 검증 범위로 사용합니다. Natural Earth 기본 수계 중복 제거, 단계별 길이·화면 점유율·호수 개수, 하천 체인 결합 시 좌표 보존과 예상 전 세계 용량을 함께 계산합니다.
 
 ```powershell
-python -m pip install -r tools/requirements-hydro-calibration.txt
-python tools/calibrate-hydro.py `
+node tools/gis/calibrate-hydro.mjs `
   --hydrorivers-root <HydroRIVERS-대륙별-폴더> `
   --hydrolakes <HydroLAKES_polys_v10.shp> `
   --natural-earth-root assets/data/hydro `
-  --output reports/hydro/calibration/
+  --output reports/hydro/calibration/<새-분석-폴더>
 ```
 
-분석 출력은 안전상 `assets/data` 아래로 지정할 수 없습니다. 캘리브레이션 원본 결과는 [`reports/hydro/calibration/`](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/hydro-calibration/README.md)에 보존되어 있습니다.
+소스와 일치하는 네이티브 Hydro 계산기·GEOS 점 검사기·이미지/미리보기 도구가 필요합니다. Windows에서는 `PANDO_HYDRO_RUNTIME_ROOT`에 일치하는 OSGeo4W 경로를 지정합니다. 분석 출력은 `assets/data` 아래로 지정할 수 없으며 기존 폴더를 덮어쓰지 않습니다. 캘리브레이션 원본 결과는 [`reports/hydro/calibration/`](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/hydro-calibration/README.md)에 보존되어 있습니다.
 
 실제 v0.13.1 수계 샤드는 다음 명령으로 다시 생성합니다. 아홉 개 HydroRIVERS 대륙 Shapefile, 저장소의 Natural Earth `lakes_base.geojson`, 검수 교정표와 빌드용 OSM waterway 관계 내보내기를 사용합니다. 생성기는 중형 본류를 하구까지 폐합하고, 수계 단위 논리 ID와 본류·지류 역할을 만든 뒤 내장 공유국경과 일치하는 세부 구간을 표시용 형상으로 정렬합니다. 결과에는 Natural Earth 호수, 단일 공간 인덱스와 4MiB 이하 정적 샤드가 포함됩니다. 표시 강의 종점은 바다·Natural Earth 호수·합류점·내륙 유역으로 분류하고, 같은 육지 안의 명확한 하구만 최대 25km 범위에서 연결합니다. Hydro 원본 연결망 자체가 해안에서 멀리 끊겨 안전하게 복구할 수 없는 경우에는 임의의 직선을 만들지 않고 해당 논리 수계 전체를 제외하며 manifest 통계에 남깁니다.
 
