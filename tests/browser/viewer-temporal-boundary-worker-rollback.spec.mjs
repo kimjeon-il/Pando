@@ -103,6 +103,32 @@ test('matching boundary Worker protocol error rolls back the dated Core document
     globalThis.__PANDOLAB_VIEWER__?.rendererStats()?.countrySharedBoundaryReady),
   {timeout:120000}).toBe(true);
   expect(routeCount).toBe(1);
+  if(process.env.PANDOLAB_W5_REQUIRE_GTX1650==='1'){
+    const browser=page.context().browser();
+    const session=await browser.newBrowserCDPSession();
+    try{
+      const gpu=(await session.send('SystemInfo.getInfo')).gpu;
+      const version=browser.version();
+      const identity=await page.evaluate(()=>{
+        const canvas=document.querySelector('#viewerCanvas'),gl=canvas?.getContext('webgl2');
+        const unmasked=gl?.getExtension('WEBGL_debug_renderer_info');
+        return{renderer:gl?.getParameter(unmasked.UNMASKED_RENDERER_WEBGL),
+          version:gl?.getParameter(gl.VERSION),width:canvas?.width,height:canvas?.height,
+          dpr:globalThis.devicePixelRatio,build:globalThis.PANDOLAB_BUILD_META};
+      });
+      expect(version).toBe('151.0.7922.34');
+      expect(gpu.devices.some(device=>device.deviceString==='NVIDIA GeForce GTX 1650'
+        &&device.driverVersion==='32.0.16.1088')).toBe(true);
+      expect(gpu.featureStatus.gpu_compositing).toBe('enabled');
+      expect(identity.renderer).toMatch(/NVIDIA.*Direct3D11/);
+      expect(identity.version).toContain('WebGL 2.0');
+      expect([identity.width,identity.height,identity.dpr]).toEqual([1280,752,1]);
+      expect(identity.build.sourceCommit).toBe('fe8282ba32761ab9586348d1712e11cc1f4e7882');
+      expect(identity.build.dataRevision).toBe('data-f50b7f480c812df6f5ea0c40f5461ab0');
+      await info.attach('w2-p5-worker-rollback-verified-gtx1650',
+        {body:JSON.stringify({version,gpu,identity},null,2),contentType:'application/json'});
+    }finally{await session.detach();}
+  }
   const before=await currentMap(page);
   expect(before.ready).toBe('true');
   expect(before.boundaryReady).toBe(true);
