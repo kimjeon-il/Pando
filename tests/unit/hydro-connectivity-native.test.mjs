@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import {auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,repairHydroParts,validateHydroAudit,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {auditHydroParts,auditHydroSourceArchives,buildHydroLogicalChains,buildHydroRiverSystems,buildHydroWidthProfile,hydroPartsBySource,planHydroFeatureRepairs,planHydroSourceRepairs,repairHydroParts,scoreHydroFeaturePolicies,validateHydroAudit,validateHydroFeaturePolicies,validateHydroLogicalChains,validateHydroRepair,validateHydroRiverSystems,validateHydroWidthProfile,verifyHydroStaged} from '../../tools/gis/hydro-connectivity-native.mjs';
 import {readFile} from 'node:fs/promises';
 
 const native = process.env.PANDO_HYDRO_CONNECTIVITY_BINARY;
@@ -140,6 +140,34 @@ nativeTest('hydro visibility and symbolic width use the fixed source thresholds'
   const middle=run({mode:'feature-policy',order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002});
   assert.equal(middle.score,12);assert.equal(middle.riverStage,2);assert.equal(middle.lakeStage,null);assert.equal(middle.minZoomStage,3);
 });
+nativeTest('batched Hydro scoring preserves single-record results and rejects malformed batches',()=>{
+  const rows=[{order:1,flow:0,upstreamArea:0,lakeArea:40,zoom:7.0000000005},
+    {order:20,flow:1e12,upstreamArea:1,lakeArea:250,zoom:6},
+    {order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
+  assert.deepEqual(run({mode:'feature-policies',features:rows}).features,rows.map(row=>run({mode:'feature-policy',...row})));
+  assert.deepEqual(run({mode:'feature-policies',features:[]}),{features:[]});
+  const result=spawnSync(native,[],{input:JSON.stringify({mode:'feature-policies',features:[rows[0],{...rows[1],flow:null}]}),encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+});
+test('Hydro batch scoring validates complete, finite and bounded native receipts',()=>{
+  const rows=[{order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
+  const valid={features:[{score:12,riverStage:2,lakeStage:null,width:1.2,minZoomStage:3}]};
+  assert.deepEqual(validateHydroFeaturePolicies(valid,rows),valid.features);
+  for(const bad of [{features:[]},{features:[{...valid.features[0],score:NaN}]},
+    {features:[{...valid.features[0],riverStage:4}]},{features:[{...valid.features[0],width:2.7}]}])
+    assert.throws(()=>validateHydroFeaturePolicies(bad,rows),/policy|score/i);
+});
+test('source-bound Hydro batch scoring keeps input ordering and supports cancellation',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY},async()=>{
+    const options={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+    const rows=[{order:1,flow:0,upstreamArea:0,lakeArea:40,zoom:7.0000000005},
+      {order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002}];
+    const before=structuredClone(rows),out=await scoreHydroFeaturePolicies(rows,options);
+    assert.equal(out.length,2);assert.equal(out[0].score,-20);assert.equal(out[1].score,12);
+    assert.deepEqual(rows,before);const controller=new AbortController();controller.abort();
+    await assert.rejects(scoreHydroFeaturePolicies(rows,{...options,signal:controller.signal}),{name:'AbortError'});
+    await assert.rejects(scoreHydroFeaturePolicies([{...rows[0],flow:NaN}],options),/policy|feature/i);
+  });
 nativeTest('terminal decisions retain lake, coast, omitted land and water precedence',()=>{
   const request={mode:'outlet-decision',lakeDistance:null,lakeCovers:false,coastDistance:3,onLand:true,
     outsideLength:0,undisplayedWater:false,maxKm:25,target:[181,2]};

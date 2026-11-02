@@ -363,6 +363,13 @@ Value featurePolicy(const Value& request){
     result.object["width"]=Value::num(std::max(0.55,std::min(2.6,rawWidth)));
     result.object["lakeStage"]=lakeStage;result.object["minZoomStage"]=Value::num(zoomStage);return result;
 }
+Value featurePolicies(const Value& request){
+    const auto& input=elements(field(request,"features"));
+    if(input.size()>100000)throw std::invalid_argument("Hydro feature policy batch exceeds budget");
+    auto output=Value::arr();output.array.reserve(input.size());
+    for(const auto& row:input)output.array.push_back(featurePolicy(row));
+    auto result=Value::obj();result.object["features"]=std::move(output);return result;
+}
 // Decide an outlet class from source-bound geometry and raster observations.
 Value outletDecision(const Value& request){
     const auto boolean=[&](const char* name){const auto& value=field(request,name);if(value.kind!=Value::Bool)throw std::invalid_argument("Expected outlet boolean");return value.raw=="true";};
@@ -416,6 +423,7 @@ int main() {
         else if(str(mode->second)=="river-systems")std::cout<<riverSystems(request).encode()<<'\n';
         else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
         else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
+        else if(str(mode->second)=="feature-policies")std::cout<<featurePolicies(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
         else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
         else throw std::invalid_argument("Invalid Hydro operation");

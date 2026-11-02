@@ -211,6 +211,24 @@ export async function buildHydroWidthProfile({reaches}={},options={}){
   if(!Array.isArray(reaches))throw Error('Explicit Hydro width reaches required');
   return validateHydroWidthProfile(await runHydroConnectivity({mode:'width-profile',reaches},options),{reaches});
 }
+export function validateHydroFeaturePolicies(result,features){
+  if(!Array.isArray(features)||!result||typeof result!=='object'||Array.isArray(result)||
+    Object.keys(result).join(',')!=='features'||!Array.isArray(result.features)||result.features.length!==features.length)
+    throw Error('Invalid Hydro feature policy receipt');
+  const stage=value=>value===null||(Number.isInteger(value)&&value>=0&&value<4);
+  for(const row of result.features)if(!row||!Number.isFinite(row.score)||!Number.isFinite(row.width)||row.width<0.55||row.width>2.6||
+    !stage(row.riverStage)||!stage(row.lakeStage)||!Number.isInteger(row.minZoomStage)||row.minZoomStage<0||row.minZoomStage>3)
+    throw Error('Invalid Hydro feature policy score');
+  return result.features;
+}
+export async function scoreHydroFeaturePolicies(features,options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(features)||features.length>100000||features.some(row=>!Number.isSafeInteger(row?.order)||
+    !Number.isFinite(row.flow)||!Number.isFinite(row.upstreamArea)||!Number.isFinite(row.lakeArea)||!Number.isFinite(row.zoom)))
+    throw Error('Explicit bounded Hydro feature policy inputs required');
+  if(!features.length)return [];
+  return validateHydroFeaturePolicies(await runHydroConnectivity({mode:'feature-policies',features},options),features);
+}
 export async function auditHydroParts({parts,raw,sourceOrder},options){
   if(!parts||!raw||!Array.isArray(sourceOrder))throw Error('Explicit Hydro parts, originals and source order required');
   const input={parts,raw,sourceOrder};return validateHydroAudit(await runHydroConnectivity({mode:'audit',...input},options),input);
