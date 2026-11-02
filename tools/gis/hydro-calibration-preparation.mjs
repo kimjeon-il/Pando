@@ -1,4 +1,4 @@
-import {buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates} from './hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates} from './hydro-point-screen-native.mjs';
 import {assignHydroCalibrationStages,optimizeHydroCalibration} from './hydro-calibration-native.mjs';
 import {readHydroRegion} from './hydro-source-reader.mjs';
 
@@ -94,6 +94,17 @@ export async function prepareHydroCalibrationRivers({archive,specification,selec
   for(let at=0;at<source.sourceOrder.length;at+=4096){const ids=source.sourceOrder.slice(at,at+4096);
     const reaches=ids.map(id=>({id,...source.rows[id]}));
     for(const row of await buildHydroCalibrationRiverFeatures({bounds,width,height,reaches},options))result.push(row);
+  }
+  return result;
+}
+export async function prepareHydroCalibrationLakes({lakes,bounds,width=1200,height=720}={},options={}){
+  options.signal?.throwIfAborted();if(!Array.isArray(lakes))throw Error('Explicit selected Hydro lake source required');
+  const source=structuredClone(lakes),result=[];
+  const ids=new Set();for(const row of source){if(!Number.isSafeInteger(row?.id)||row.id<=0||ids.has(row.id))
+    throw Error('Invalid or duplicate Hydro lake identity');ids.add(row.id);}
+  if(!source.length)return buildHydroCalibrationLakeFeatures({bounds,width,height,lakes:source},options);
+  for(let at=0;at<source.length;at+=4096){
+    for(const row of await buildHydroCalibrationLakeFeatures({bounds,width,height,lakes:source.slice(at,at+4096)},options))result.push(row);
   }
   return result;
 }

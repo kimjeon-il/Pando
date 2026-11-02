@@ -184,6 +184,27 @@ export async function buildHydroCalibrationRiverFeatures({bounds,width,height,re
   }
   return result.rivers;
 }
+export async function buildHydroCalibrationLakeFeatures({bounds,width,height,lakes}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||bounds[2]<=bounds[0]||bounds[3]<=bounds[1]||
+    !Number.isFinite(width)||width<=0||!Number.isFinite(height)||height<=0||!Array.isArray(lakes)||lakes.length>100000)
+    throw Error('Explicit Hydro calibration lake features required');
+  if(!lakes.length)return [];
+  const order=new Map();for(let i=0;i<lakes.length;i++){
+    const row=lakes[i];if(!Number.isSafeInteger(row?.id)||row.id<=0||order.has(row.id))throw Error('Invalid Hydro calibration lake identity');
+    order.set(row.id,i);
+  }
+  const result=await screenHydroPoints({mode:'calibration-lake-features',bounds,width,height,lakes},options);
+  if(!Array.isArray(result?.lakes))throw Error('Invalid Hydro calibration lake receipt');
+  let previous=-1;
+  for(const row of result.lakes){const index=order.get(row?.sourceId),source=lakes[index];
+    if(index===undefined||index<=previous||row.name!==source.name||row.areaKm2!==source.areaKm2||row.shorelineKm!==source.shorelineKm||
+      !['Polygon','MultiPolygon'].includes(row.geometry?.type)||!Number.isSafeInteger(row.sourceCoordinateCount)||row.sourceCoordinateCount<0||
+      !Number.isFinite(row.screenArea)||row.screenArea<0||row.duplicate!==false||row.duplicateFraction!==0||row.assignedStage!==null)
+      throw Error('Invalid Hydro calibration lake result');previous=index;
+  }
+  return result.lakes;
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){

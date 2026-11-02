@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -139,6 +139,17 @@ test('selected HydroRIVERS become clipped calibration features with original sco
   assert.ok(Math.abs(rows[0].lengthKm-111.32)<1e-10);assert.equal(rows[0].screenLength,100);
   assert.equal(rows[0].duplicate,false);assert.equal(rows[0].duplicateFraction,0);assert.equal(rows[0].assignedStage,null);
 });
+test('selected HydroLAKES become clipped calibration features with source coordinate counts',{skip:!binary},()=>{
+  const polygon=(x,y,w,h)=>({type:'Polygon',coordinates:[[[x,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y]]]});
+  const request={mode:'calibration-lake-features',bounds:[0,0,2,2],width:100,height:100,lakes:[
+    {id:10,name:'Lake A',areaKm2:5,shorelineKm:10,geometry:polygon(-1,-1,2,2)},
+    {id:11,name:'Small',areaKm2:.5,shorelineKm:2,geometry:polygon(0,0,1,1)},
+    {id:12,name:'Outside',areaKm2:3,shorelineKm:4,geometry:polygon(4,4,1,1)}]};
+  const result=invoke(request);assert.equal(result.status,0,result.stderr);const rows=JSON.parse(result.stdout).lakes;
+  assert.equal(rows.length,1);assert.equal(rows[0].sourceId,10);assert.equal(rows[0].name,'Lake A');
+  assert.equal(rows[0].sourceCoordinateCount,5);assert.equal(rows[0].screenArea,2500);
+  assert.equal(rows[0].geometry.type,'Polygon');assert.equal(rows[0].duplicate,false);assert.equal(rows[0].assignedStage,null);
+});
 test('source-bound guided branch and upstream batches return ordered native decisions',
   {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
     const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
@@ -200,6 +211,15 @@ test('source-bound calibration clipping composes with screen metrics',
     assert.deepEqual(await calculateHydroCalibrationScreen({bounds:input.bounds,width:100,height:100,
       lines:[clipped[0].coordinates],polygons:[]},options),{lineLengthPx:100,polygonAreaPx:0});
     assert.deepEqual(input,before);
+  });
+test('source-bound selected lake features retain source identity and clipping metrics',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const lakes=[{id:10,name:'Lake A',areaKm2:5,shorelineKm:10,
+      geometry:{type:'Polygon',coordinates:[[[-1,-1],[1,-1],[1,1],[-1,1],[-1,-1]]]}}],before=structuredClone(lakes);
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const result=await buildHydroCalibrationLakeFeatures({bounds:[0,0,2,2],width:100,height:100,lakes},options);
+    assert.equal(result[0].sourceId,10);assert.equal(result[0].screenArea,2500);assert.equal(result[0].sourceCoordinateCount,5);
+    assert.deepEqual(lakes,before);
   });
 test('native point screen computes projected lengths and closest points',{skip:!binary},()=>{
   const output=invoke(fixture);assert.equal(output.status,0,output.stderr);

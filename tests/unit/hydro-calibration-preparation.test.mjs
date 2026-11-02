@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,prepareHydroCalibrationReference} from '../../tools/gis/hydro-calibration-preparation.mjs';
+import {buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,prepareHydroCalibrationLakes,prepareHydroCalibrationReference} from '../../tools/gis/hydro-calibration-preparation.mjs';
 import {readFileSync} from 'node:fs';
 
 test('calibration geometry collection keeps lines and polygons and ignores empty or point parts',()=>{
@@ -33,6 +33,16 @@ test('clipped reference inputs feed river and lake duplicate decisions without m
     assert.deepEqual(result.lakes.map(row=>[row.duplicate,row.duplicateFraction]),[[true,1]]);assert.deepEqual(input,before);
     const empty=await markHydroCalibrationDuplicates({...input,baseRiverFeatures:[],baseLakeFeatures:[]},options);
     assert.deepEqual(empty.rivers,input.rivers);assert.deepEqual(empty.lakes,input.lakes);
+  });
+test('selected lake source prepares features for calibration duplicate screening',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const polygon={type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]};
+    const input={bounds:[-2,-2,2,2],width:100,height:100,lakes:[{id:7,name:'Test',areaKm2:5,shorelineKm:8,geometry:polygon}]};
+    const options={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    const lakes=await prepareHydroCalibrationLakes(input,options);
+    const result=await markHydroCalibrationDuplicates({bounds:input.bounds,baseRiverFeatures:[],baseLakeFeatures:[{geometry:polygon}],rivers:[],lakes},options);
+    assert.equal(result.lakes.length,1);assert.equal(result.lakes[0].sourceId,7);assert.equal(result.lakes[0].duplicate,true);
+    assert.equal(result.lakes[0].duplicateFraction,1);
   });
 test('calibration optimization receives only nonduplicate rows and preserves all stage targets',()=>{
   const source=JSON.parse(readFileSync('tests/fixtures/hydro-calibration-optimizer-oracle.json','utf8'))[0].request;

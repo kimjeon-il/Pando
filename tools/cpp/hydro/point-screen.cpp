@@ -437,6 +437,52 @@ Value calibrationRiverFeatures(const Value& input){
         row.object["assignedStage"]=Value();output.array.push_back(std::move(row));}
     auto result=Value::obj();result.object["rivers"]=std::move(output);return result;
 }
+Value calibrationLakeFeatures(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& bounds=array(field(input,"bounds")),&lakes=array(field(input,"lakes"));
+    if(bounds.size()!=4||lakes.size()>100000)throw std::invalid_argument("Invalid calibration lake feature batch");
+    std::array<double,4> box{};for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(bounds[i]);
+    const double width=pandoeditor::codecjson::finiteNumber(field(input,"width")),height=pandoeditor::codecjson::finiteNumber(field(input,"height"));
+    if(box[2]<=box[0]||box[3]<=box[1]||width<=0||height<=0)throw std::invalid_argument("Invalid calibration dimensions");
+    auto region=own(context.get(),GEOSGeom_createRectangle_r(context.get(),box[0],box[1],box[2],box[3]));
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    struct WriterDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONWriter* value)const{if(value)GEOSGeoJSONWriter_destroy_r(context,value);}};
+    struct TextDeleter{GEOSContextHandle_t context;void operator()(char* value)const{if(value)GEOSFree_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
+    std::unique_ptr<GEOSGeoJSONWriter,WriterDeleter> writer(GEOSGeoJSONWriter_create_r(context.get()),WriterDeleter{context.get()});
+    if(!reader||!writer)throw std::runtime_error("GEOS GeoJSON setup failed");auto output=Value::arr();
+    for(const auto& source:lakes){const auto& id=field(source,"id"),&name=field(source,"name"),&geometryValue=field(source,"geometry");
+        const double numericId=pandoeditor::codecjson::finiteNumber(id),area=pandoeditor::codecjson::finiteNumber(field(source,"areaKm2")),
+          shore=pandoeditor::codecjson::finiteNumber(field(source,"shorelineKm"));
+        if(numericId<=0||std::trunc(numericId)!=numericId||numericId>9007199254740991.0||name.kind!=Value::String)
+            throw std::invalid_argument("Invalid calibration lake identity");
+        if(area<1)continue;
+        auto original=own(context.get(),GEOSGeoJSONReader_readGeometry_r(context.get(),reader.get(),geometryValue.encode().c_str()));
+        const auto valid=GEOSisValid_r(context.get(),original.get());if(valid==2)throw std::runtime_error("GEOS lake validity failed");
+        if(!valid)original=own(context.get(),GEOSBuffer_r(context.get(),original.get(),0,16));
+        const int sourceCoordinates=GEOSGetNumCoordinates_r(context.get(),original.get());
+        if(sourceCoordinates<0)throw std::runtime_error("GEOS lake coordinate count failed");
+        auto clipped=own(context.get(),GEOSIntersection_r(context.get(),original.get(),region.get()));auto polygons=Value::arr();
+        std::function<void(const GEOSGeometry*)> collect=[&](const GEOSGeometry* item){const auto empty=GEOSisEmpty_r(context.get(),item);
+            if(empty==2)throw std::runtime_error("GEOS lake empty check failed");if(empty)return;const int type=GEOSGeomTypeId_r(context.get(),item);
+            if(type==GEOS_POLYGON){std::unique_ptr<char,TextDeleter> json(GEOSGeoJSONWriter_writeGeometry_r(context.get(),writer.get(),item,-1),TextDeleter{context.get()});
+                if(!json)throw std::runtime_error("GEOS lake GeoJSON failed");auto polygon=pandoeditor::codecjson::parse(json.get());
+                polygons.array.push_back(field(polygon,"coordinates"));return;}
+            if(type==GEOS_MULTIPOLYGON||type==GEOS_GEOMETRYCOLLECTION){const int count=GEOSGetNumGeometries_r(context.get(),item);
+                if(count<0)throw std::runtime_error("GEOS lake geometry count failed");for(int i=0;i<count;++i)collect(GEOSGetGeometryN_r(context.get(),item,i));}};
+        collect(clipped.get());if(polygons.array.empty())continue;
+        double clippedArea=0;if(!GEOSArea_r(context.get(),clipped.get(),&clippedArea))throw std::runtime_error("GEOS clipped lake area failed");
+        auto geo=Value::obj();geo.object["type"]=Value::str(polygons.array.size()==1?"Polygon":"MultiPolygon");
+        geo.object["coordinates"]=polygons.array.size()==1?std::move(polygons.array.front()):std::move(polygons);
+        auto row=Value::obj();row.object["sourceId"]=id;row.object["name"]=name;row.object["areaKm2"]=Value::num(area);
+        row.object["shorelineKm"]=Value::num(shore);row.object["geometry"]=std::move(geo);
+        row.object["sourceCoordinateCount"]=Value::num(sourceCoordinates);
+        row.object["screenArea"]=Value::num(clippedArea*width*height/((box[2]-box[0])*(box[3]-box[1])));
+        row.object["duplicate"]=Value::boolean(false);row.object["duplicateFraction"]=Value::num(0);row.object["assignedStage"]=Value();
+        output.array.push_back(std::move(row));}
+    auto result=Value::obj();result.object["lakes"]=std::move(output);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -480,6 +526,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-lake-features")
+        return calibrationLakeFeatures(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-river-features")
         return calibrationRiverFeatures(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-clip")
