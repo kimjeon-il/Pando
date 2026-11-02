@@ -230,7 +230,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (file === 'assets/js/build-meta.js') return [...found];
     return [...found];
   }
-  return { root: resolve(root), catalog, files, tests, owners, retiredTests, exists, read, dependencies, unitRequirements };
+  return { root: resolve(root), catalog, files, tests, owners, retiredTests, frontendIndex, exists, read, dependencies, unitRequirements };
 }
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [] }) {
@@ -269,9 +269,10 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
+  const frontendIndex = repo.frontendIndex || buildFrontendIndex(repo.root);
   const isRetiredHelper = file => /^tests\/browser\/helpers\/.*\.mjs$/.test(file)
     && retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs',
-      repo.read(file), buildFrontendIndex(repo.root));
+      repo.read(file), frontendIndex);
   const skipArchived = file => retiredFrontend(file) || isRetiredTest(file) || isRetiredHelper(file);
   const queue = [...repo.tests,
     ...repo.catalog.groups.flatMap(inputsFor),
