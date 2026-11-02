@@ -26,6 +26,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify all registered tests after old source deletion
         run: node scripts/run-application-checks.mjs --list --base HEAD > /dev/null
