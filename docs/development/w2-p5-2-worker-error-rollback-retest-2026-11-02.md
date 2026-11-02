@@ -1,0 +1,48 @@
+# W2-P5-2 — 공유국경 Worker 오류 롤백 검사 보완
+
+날짜: 2026-11-02 (Asia/Seoul). 제품 코드 변경 없이 기존 **검사 도구의 재현성·관측 범위**를 보완한다. 이번 테스트를 Windows GTX 1650 성능 측정으로 혼동하지 않는다.
+
+## 이전 검사 실패와 구분할 사항
+
+기존 tools/w2-p5-2-rollback.mjs의 실측 보고서는 PandoLab-library-data@a2a22c338c5924a83413e449647f4a9b172100e4의 reports/development/performance/w2-p5-2-windows-gpu-2026-11-02/rollback.json 및 rollback-retry.json에 기록돼 있다. 모두 120초 대기 시간 초과였고 **Worker protocol error가 실제로 렌더러에서 처리됐는지 확인하지 않았다**. 기존 판정은 미검증이며 제품 rollback 결함을 의미하지 않는다.
+
+원인 후보: 진단용 globalThis.__w2Current는 shared GPU Worker channel의 마지막 메시지로 반복 덮어써질 수 있다. 또한 연도 전환에서 기존 인증된 국경을 재사용하면 새 Worker 요청이 존재하지 않을 수 있다. 조건 없는 __w2Current.type==='error' 폴링은 신뢰할 수 없다.
+
+새 회귀 파일: tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs. Work/ui 검증은 .github/workflows/viewer-temporal-boundary-worker-rollback.yml로 실행한다.
+
+## 검사 구현 및 실제 검증 사항
+
+1. Playwright page.addInitScript로 Worker 객체를 진단 인스턴스에서만 감싸고 실제 Worker 옵션 name pandolab-country-shared-boundary를 식별한다. 제품 Worker 내부 코드는 고치지 않는다.
+2. 초기 WebGL 지도와 국가 경계가 준비될 때까지 대기한다. 이후 첫 연도 전환의 정확한 새 projectGeneration을 계산하고 해당 세대 국경 준비만 test-only로 강제한다.
+3. 진단 Worker boundary channel에 새로운 requestId, projectGeneration, geometryRevision, quality를 그대로 사용해 **일치하는 type=error 메시지 한 건**을 재현한다. 후속 메시지는 실제 Worker로 전달한다. 이것은 Worker protocol 오류를 **주입하는 검사**이지, 실제 Worker 계산 중 예외가 자연 발생했다고 주장하지 않는다.
+4. 한 메시지가 아니라 request-intercepted, dispatched, renderer-received 세 독립 사건을 기록한다. Worker message가 다른 GPU 응답으로 덮어써질 위험을 제거한다.
+5. 프로젝트가 rollback 후 더 큰 세대를 부여받고, 기존 날짜/cursor/document ID, 국가·geometry·timeline·SVG label 의미 SHA를 회복하며 countrySharedBoundaryReady, canonicalMeshReady, countriesPublishedGeneration==projectGeneration, projectRenderBlocked=false를 충족하는지 확인한다.
+6. 오류 알림 및 시점 이동 패널은 **정상적인 실패 UI**이므로 실제 canvas 픽셀 검사에서 숨긴다. 두 캔버스 이미지를 디코딩해 채널별 실제 차이 픽셀 수를 직접 계산하고 0인지 확인한다. 첫 CI에서 UI overlay가 85,066 픽셀 비교 차이를 일으켰으나 UI 제외 캔버스 비교는 0이었다.
+7. 오류 주입은 한 번만 수행하고, 재시도에 다시 원래 연도로 이동해 날짜/cursor/경계/새 지도 frame이 모두 정상 인증되는지 확인한다.
+
+**한계**: Linux GitHub CI는 Ubuntu Chromium 조건이며 물리 NVIDIA GPU가 아니다. 실제 Worker의 WASM 계산에서 발생한 비합성 예외, Windows GTX1650 전용 rollback, 연속된 다중 오류와 급격한 월 전환, 장기 메모리는 별도 검사해야 한다.
+
+## Windows 기존 pinned 서버에서 재검증
+
+기존 w2-p3-after detached 소스/미완성 WASM/manifest/캐시/미커밋 파일 및 기존 287개 증거는 덮어쓰지 않는다. work/ui의 현재 browser 회귀 파일과 Playwright toolchain을 사용하되 pinned server는 제품 소스 fe8282ba32761ab9586348d1712e11cc1f4e7882, 자료 라이브러리 5eb7be55208efaafe39bd5a65ec2f111d70b9053을 유지한다.
+
+PowerShell 터미널 1:
+~~~
+$env:PANDOLAB_W3_EVIDENCE='D:/dev/PandoLab-library-data/reports/.edits/ui/development/performance/<new-unique-scope>'
+node tools/w2-p5-2-server.mjs
+~~~
+
+터미널 2, **같은 work/ui 체크아웃**:
+~~~
+$env:PANDOLAB_TEST_PORT='4221'
+pnpm exec playwright test tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs --workers=1 --retries=0 --trace=on
+~~~
+
+실GPU D3D11인지와 source/build identity를 별도 확인한다(해당 환경에 대한 검사 코드의 조건부 자동 검증은 도구 변경시 버전 기록). Node runner는 성공 실행과 실패 실행의 JSON/trace/PNG를 서로 덮어쓰지 않는 별도 결과 디렉터리에 보관한다. 프로젝트 보고서 발행 규칙을 따르고 원시 바이트 재검증을 수행한다.
+
+## 완료 판정
+
+- **검사 수단의 보완**: CI 테스트 완료 여부에 따라 판정, 당시 W2-P5-2 원시 실패는 삭제하지 않는다.
+- **실제 브라우저 롤백**: 오류 응답 식별, rollback generation, 데이터/날짜/국경/지명, UI 제외 지도 픽셀, 정상 재시도 모두 통과 시에만 완료.
+- **Windows GTX1650 하드웨어**: 별도 로컬 확인 전 미검증.
+- 제품 JS/C++/GIS 데이터 및 배포는 건드리지 않고, main 통합은 하지 않는다.
