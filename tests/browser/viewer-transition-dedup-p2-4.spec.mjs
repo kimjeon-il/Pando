@@ -54,15 +54,25 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   test.setTimeout(240000);
   await page.clock.setFixedTime(new Date(2026,9,31,12));
   await page.addInitScript(()=>{
-    window.__P2_COST__={events:[],mark(name,detail={}){
+    window.__P2_COST__={events:[],longTasks:[],mark(name,detail={}){
       this.events.push({name,at:performance.now(),...detail});
     }};
+    try{new PerformanceObserver(list=>{
+      for(const task of list.getEntries())window.__P2_COST__.longTasks.push({at:task.startTime,ms:task.duration});
+    }).observe({type:'longtask',buffered:true});}catch(_){/* optional browser diagnostic */}
+
   });
   const swap=(source,old,next)=>{
     const first=source.indexOf(old);
     if(first<0||source.indexOf(old,first+old.length)!==-1)throw Error('Profiling anchor changed: '+old.slice(0,85));
     return source.slice(0,first)+next+source.slice(first+old.length);
   };
+  await page.route('**/modules/map-render-coordinator.js*',async route=>{
+    const response=await route.fetch();let source=await response.text();
+    source=swap(source,"    rendererTimes[name] = Math.max(0, now() - startedAt);\n    return value;","    rendererTimes[name] = Math.max(0, now() - startedAt);\n    if(rendererTimes[name]>=30)globalThis.__P2_COST__?.mark('render:pass',{pass:name,ms:rendererTimes[name]});\n    return value;");
+    source=swap(source,"      metrics.lastRenderMs = Math.max(0, now() - startedAt);","      metrics.lastRenderMs = Math.max(0, now() - startedAt);\n      if(metrics.lastRenderMs>=30)globalThis.__P2_COST__?.mark('render:frame',{ms:metrics.lastRenderMs,passes:rendererTimes,reasons});");
+    await route.fulfill({response,body:source});
+  });
   await page.route('**/modules/viewer-composition.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
     source=swap(source,"onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
@@ -114,9 +124,9 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   await page.route('**/modules/core-document-client.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
     source=swap(source,"const { result } = await rpc.request(operation, request, atomic || speculative",
-      "const __p2RpcStart=performance.now();const { result, timing: __p2WorkerTiming } = await rpc.request(operation, request, atomic || speculative");
+      "const __p2RpcStart=performance.now();window.__P2_COST__.mark('rpc:request',{operation,epochMs:performance.timeOrigin+__p2RpcStart});const { result, timing: __p2WorkerTiming } = await rpc.request(operation, request, atomic || speculative");
     source=swap(source,"? { timeoutMs: 0 } : { signal: options.signal });",
-      "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart,workerMs:__p2WorkerTiming?.durationMs??null});");
+      "? { timeoutMs: 0 } : { signal: options.signal });window.__P2_COST__.mark('rpc:done',{operation,elapsedMs:performance.now()-__p2RpcStart,workerMs:__p2WorkerTiming?.durationMs??null,epochMs:performance.timeOrigin+performance.now()});");
     await route.fulfill({response,body:source});
   });
   await page.route('**/modules/core-worker-runtime.js*',async route=>{
@@ -159,9 +169,12 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
       status:globalThis.__PANDOLAB_VIEWER__?.documentState?.()??null};
   });
   if(boot.ready!=='true')throw Error('P2 diagnostic startup failure: '+JSON.stringify({boot,pageErrors,consoleErrors,failedRequests}).slice(0,12000));
+  const cdp=await page.context().newCDPSession(page);
+  await cdp.send('Profiler.enable');
+  await cdp.send('Profiler.start');
   const results=[];
   for(const [button,target] of [['timelinePreviousYear','2025-12'],['timelineNextYear','2026-10']]){
-    await page.evaluate(()=>{window.__P2_COST__.events=[];});
+    await page.evaluate(()=>{window.__P2_COST__.events=[];window.__P2_COST__.longTasks=[];});
     await page.locator('#'+button).click();
     await expect.poll(()=>page.evaluate(()=>({
       month:window.__PANDOLAB_VIEWER__?.builtinMonth().month,
@@ -181,14 +194,29 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
         selectionPrune:elapsed('selection-prune:start','selection-prune:end'),
         postUpdate:elapsed('post-update:start','post-update:end'),
       };
-      return {spans,cache,events:events.map(e=>({...e,at:Math.round(e.at)}))};
+      return {spans,cache,events:events.map(e=>({...e,at:Math.round(e.at)})),longTasks:window.__P2_COST__.longTasks.slice()};
     });
     expect(result.spans.presentToReady).not.toBe(null);
     expect(result.spans.postPrune).not.toBe(null);
     expect(result.spans.postUpdate).not.toBe(null);
     results.push({target,...result});
+    console.log('P2_MAIN_DIAG '+JSON.stringify({target,longTasks:result.longTasks,
+      expensivePasses:result.events.filter(e=>e.name.startsWith('render:')).sort((a,b)=>(b.ms??0)-(a.ms??0)).slice(0,15)}).slice(0,12000));
     console.log('P2_COST_DIAG '+JSON.stringify({target,spans:result.spans,source:result.events.filter(e=>e.name.startsWith('source:')),rpc:result.events.filter(e=>e.name==='rpc:done'),cache:result.cache}).slice(0,14000));
   }
+  const {profile}=await cdp.send('Profiler.stop');
+  await cdp.detach();
+  const profileNodes=new Map(profile.nodes.map(node=>[node.id,node]));
+  const sampledCpu=new Map();
+  for(let i=0;i<(profile.samples?.length||0);i++){
+    const call=profileNodes.get(profile.samples[i])?.callFrame;
+    if(!call)continue;
+    const key=(call.functionName||'(anonymous)')+' '+(call.url||'(native)')+':'+(call.lineNumber+1);
+    sampledCpu.set(key,(sampledCpu.get(key)||0)+(profile.timeDeltas?.[i]||0)/1000);
+  }
+  const topCpu=[...sampledCpu].sort((a,b)=>b[1]-a[1]).slice(0,24);
+  console.log('P2_MAIN_CPU '+JSON.stringify({samples:profile.samples?.length||0,topCpu}));
+  await info.attach('p2-main-cpu-profile',{body:JSON.stringify(profile),contentType:'application/json'});
   expect(pageErrors).toEqual([]);
   console.log('P2_WORKER_DIAG '+JSON.stringify({nativeRelease,outerRelease,consoleErrors}));
   expect(nativeRelease.length,'Worker-side native release should be timed for both transitions').toBeGreaterThanOrEqual(2);
