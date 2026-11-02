@@ -5,6 +5,8 @@ on:
     paths:
       - .github/workflows/e7-final-readonly-regression.yml
       - scripts/contracts/application-checks.json
+      - scripts/plan-application-checks.mjs
+      - tests/unit/e7-application-check-planner.test.mjs
       - apps/viewer/**
       - apps/editor/src-tauri/**
       - apps/editor/stage.mjs
@@ -66,6 +68,7 @@ jobs:
           tests/unit/review-inspection.test.mjs
           tests/unit/e3-revision-diff.test.mjs
           tests/unit/e5-windows-review.test.mjs
+          tests/unit/e7-application-check-planner.test.mjs
           tests/unit/core-product-mode.test.mjs
           tests/unit/frontend-layout.test.mjs
           tests/unit/frontend-build.test.mjs
