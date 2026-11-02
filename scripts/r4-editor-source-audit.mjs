@@ -68,3 +68,54 @@ const summary={
 console.log('R4_AUDIT_JSON_BEGIN');
 console.log(JSON.stringify(summary,null,2));
 console.log('R4_AUDIT_JSON_END');
+
+// Candidate reachability from actively valuable historical GIS/Core validation.
+// Historical editor-only tests are retired independently of product runtime.
+const retainedDataModules=new Set([
+  'territorial-library.js','territorial-index-entry.js','project-serializer.js',
+  'exchange-adapter-registry.js','generic-feature-service.js',
+  'cut-worker-preparation.js','river-territory-partition.js',
+  'polygon-clipping-calculation.js','timeline-edit.js','territorial-geometry.js',
+  'territorial-library-provenance.js',
+]);
+const retiredTestName = file=>/^tests\/(?:unit|browser)\//.test(file)&&
+  /(?:^|\/)(?:app-|editor-|editing-|draft-|map-edit-|task-|workflow-layout|tool-controller|file-menu|color-picker|custom-color|overlay-scrollbars|project-ui|autosave-recovery|selection-ui|property-editor|edit-preview|geometry-rpc-consumers|persistence-service|surface-tabs|surface-metrics)/.test(file.split('/').at(-1));
+const requiredModules =new Set(
+  [...externallyUsed]
+   .filter(x=>x.tools.length||x.tests.some(t=>!retiredTestName(t)))
+   .map(x=>x.path)
+   .filter(p=>!retainedDataModules.has(p.split('/').at(-1)))
+);
+const edgeRegex=/(?:from\s*|import\s*\(\s*|import\s*|new URL\(\s*)['"]([^'"]+)['"]/g;
+const graph=new Map;
+for(const old of target){
+  const src=readFileSync(resolve(root,old),'utf8'),siblings=new Set;
+  for(const m of src.matchAll(edgeRegex)){
+    const imp=m[1].split(/[?#]/,1)[0];
+    if(!imp.startsWith('.'))continue;
+    const linked=posix.normalize(posix.join(posix.dirname(old),imp));
+    if(candidate.has(linked))siblings.add(linked);
+  }
+  graph.set(old,[...siblings]);
+}
+const reachable=new Set;
+function include(file){
+  if(reachable.has(file))return;
+  reachable.add(file);
+  for(const dep of graph.get(file)||[])include(dep);
+}
+for(const f of requiredModules)include(f);
+const removable=target.filter(p=>!reachable.has(p));
+const precious=externallyUsed.filter(x=>reachable.has(x.path)&&x.tests.some(t=>!retiredTestName(t)))
+ .map(x=>({path:x.path,activeTests:x.tests.filter(t=>!retiredTestName(t)).slice(0,5),total:x.tests.length}));
+console.log('R4_REACHABILITY_BEGIN');
+console.log(JSON.stringify({
+  protectedRoots:requiredModules.size,
+  protectedClosure:reachable.size,
+  safeUnusedFiles:removable.length,
+  portableDataContractFiles:[...retainedDataModules],
+  removable,
+  retainedByTests:precious,
+},null,2));
+console.log('R4_REACHABILITY_END');
+
