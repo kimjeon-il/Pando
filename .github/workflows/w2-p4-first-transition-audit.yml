@@ -1,0 +1,57 @@
+name: W2-P4 read-only Windows first-transition trace audit
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tools/w2-p4-first-transition-audit.mjs
+      - .github/workflows/w2-p4-first-transition-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: w2-p4-audit-work-ui
+  cancel-in-progress: true
+jobs:
+  analyze-pinned-windows-trace:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      PINNED_W2P3_ARCHIVE: .w2-p4-library/reports/development/performance/w2-p3-windows-gpu-final-2026-11-02
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Checkout exact Windows GTX 1650 evidence snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: 84d68e4e462457fd0e3d7c86a2088aa081b9b562
+          path: .w2-p4-library
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: |
+            reports/development/performance/w2-p3-windows-gpu-final-2026-11-02
+      - name: Validate pins and evidence without executing original app
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/w2-p4-first-transition-audit.mjs
+          test -s "$PINNED_W2P3_ARCHIVE/first-transition-timelines.json"
+          test -s "$PINNED_W2P3_ARCHIVE/B-cold-1-trace.json.gz"
+          test -s "$PINNED_W2P3_ARCHIVE/A-cold-1-trace.json.gz"
+          test -s "$PINNED_W2P3_ARCHIVE/B-cold-0-trace.json.gz"
+      - name: Reconstruct pre-Worker, postMessage, and resource-publication gaps
+        shell: bash
+        run: |
+          node --max-old-space-size=4096 --expose-gc tools/w2-p4-first-transition-audit.mjs "$PINNED_W2P3_ARCHIVE" test-results/w2-p4-1
+      - name: Upload extracted timeline and stage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w2-p4-1-windows-trace-phase-audit
+          path: test-results/w2-p4-1/
+          if-no-files-found: warn
+          retention-days: 14
