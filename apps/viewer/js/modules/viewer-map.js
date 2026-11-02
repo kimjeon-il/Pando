@@ -1,4 +1,5 @@
 import {createViewerInitialPreview} from './viewer-initial-preview.js';
+import {createViewerMapPreparationPresenter,VIEWER_MAP_INPUT_RESERVED_SELECTOR} from './viewer-map-presentation-policy.js';
 import {connectMapOwner,createMapReadPorts,mergeCapabilityPorts} from "../../../../shared/frontend/js/modules/map-owner-ports.js";
 import {createMapInputPresentation} from "../../../../shared/frontend/js/modules/map-input-presentation.js";
 import {workerAssetUrl} from "../../../../shared/frontend/js/modules/worker-asset-url.js";
