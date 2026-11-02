@@ -6,7 +6,7 @@ import { createNodeCoreProject } from './core-project.mjs';
 import { loadWebOracle } from './web-oracle.mjs';
 import { DISTRIBUTION_MODES } from "../../shared/frontend/js/modules/distribution-model.js";
 import { afterEach } from 'node:test';
-import { createProjectSerializer } from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
 import {createTestViewingSession} from './viewing-project.mjs';
 
 // These original factories only construct detached scenario inputs. Current

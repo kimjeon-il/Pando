@@ -7,7 +7,7 @@ import { createNodeCoreProject } from './core-project.mjs';
 import { normalizeTerritorialIdentities,TERRITORIAL_IDENTITY_FIELDS } from "../../shared/frontend/js/modules/territorial-units.js";
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {fingerprintProjectBaseline} from "../../apps/editor/frontend/js/modules/project-serializer.js";
+import {fingerprintProjectBaseline} from "../../tools/gis/project-serializer.js";
 
 const noop=() => {};
 function emptySession() {
