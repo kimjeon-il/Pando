@@ -55,7 +55,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   // Do not emulate the clock in a performance diagnosis. Playwright clock
   // intercepts performance/timer globals and can contaminate scheduling.
   await page.addInitScript(()=>{
-    window.__P2_COST__={events:[],longTasks:[],heartbeats:[],activeHeartbeat:null,mark(name,detail={}){
+    window.__P2_COST__={events:[],longTasks:[],longFrames:[],heartbeats:[],activeHeartbeat:null,mark(name,detail={}){
       this.events.push({name,at:performance.now(),...detail});
     },beginHeartbeat(){
       const sample={start:performance.now(),ticks:[]};
@@ -74,6 +74,23 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
     try{new PerformanceObserver(list=>{
       for(const task of list.getEntries())window.__P2_COST__.longTasks.push({at:task.startTime,ms:task.duration});
     }).observe({type:'longtask',buffered:true});}catch(_){/* optional browser diagnostic */}
+    try{new PerformanceObserver(list=>{
+      for(const frame of list.getEntries()){
+        if(frame.duration<200)continue;
+        window.__P2_COST__.longFrames.push({
+          at:frame.startTime,ms:frame.duration,blockingMs:frame.blockingDuration,
+          renderStart:frame.renderStart,styleStart:frame.styleAndLayoutStart,
+          scripts:[...(frame.scripts||[])].map(script=>({
+            at:script.startTime,ms:script.duration,
+            pauseMs:script.pauseDuration,layoutMs:script.forcedStyleAndLayoutDuration,
+            sourceURL:script.sourceURL||'',sourceFunctionName:script.sourceFunctionName||'',
+            invoker:script.invoker||'',invokerType:script.invokerType||'',
+            sourceCharPosition:script.sourceCharPosition,
+          })).sort((a,b)=>b.ms-a.ms).slice(0,18)
+        });
+      }
+    }).observe({type:'long-animation-frame',buffered:true});}catch(_){/* browser may not expose LoAF */}
+
 
   });
   const swap=(source,old,next)=>{
@@ -205,7 +222,7 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
   const previousYearMonth=String(Number(initialMonth.slice(0,4))-1)+'-12';
   const results=[];
   for(const [button,target] of [['timelinePreviousYear',previousYearMonth],['timelineNextYear',initialMonth]]){
-    await page.evaluate(()=>{window.__P2_COST__.events=[];window.__P2_COST__.longTasks=[];window.__P2_COST__.heartbeats=[];});
+    await page.evaluate(()=>{window.__P2_COST__.events=[];window.__P2_COST__.longTasks=[];window.__P2_COST__.longFrames=[];window.__P2_COST__.heartbeats=[];});
     await page.locator('#'+button).click();
     await expect.poll(()=>page.evaluate(()=>({
       month:window.__PANDOLAB_VIEWER__?.builtinMonth().month,
@@ -231,13 +248,13 @@ test('P2-4 diagnose bounded source misses and post-present readiness without cha
       spans.releaseRequestToMessageMs=req&&msg?Math.round(msg.at-req.at):null;
       spans.releaseMessageToDoneMs=msg&&done?Math.round(done.at-msg.at):null;
       return {spans,cache,events:events.map(e=>({...e,at:Math.round(e.at)})),
-        longTasks:window.__P2_COST__.longTasks.slice(),heartbeats:window.__P2_COST__.heartbeats.slice()};
+        longTasks:window.__P2_COST__.longTasks.slice(),longFrames:window.__P2_COST__.longFrames.slice(),heartbeats:window.__P2_COST__.heartbeats.slice()};
     });
     expect(result.spans.presentToReady).not.toBe(null);
     expect(result.spans.postPrune).not.toBe(null);
     expect(result.spans.postUpdate).not.toBe(null);
     results.push({target,...result});
-    console.log('P2_MAIN_DIAG '+JSON.stringify({target,longTasks:result.longTasks,heartbeats:result.heartbeats,
+    console.log('P2_MAIN_DIAG '+JSON.stringify({target,longTasks:result.longTasks,longFrames:result.longFrames,heartbeats:result.heartbeats,
       expensivePasses:result.events.filter(e=>e.name.startsWith('render:')).sort((a,b)=>(b.ms??0)-(a.ms??0)).slice(0,15)}).slice(0,12000));
     console.log('P2_COST_DIAG '+JSON.stringify({target,spans:result.spans,source:result.events.filter(e=>e.name.startsWith('source:')),rpc:result.events.filter(e=>e.name==='rpc:done'),cache:result.cache}).slice(0,14000));
   }
