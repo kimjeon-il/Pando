@@ -8,6 +8,7 @@ on:
       - tests/unit/country-shared-boundary-state.test.mjs
       - tests/unit/physical-water-context-p4-5.test.mjs
       - tests/browser/viewer-boundary-p4-5.spec.mjs
+      - tests/browser/viewer-w2-p3-packet-reuse.spec.mjs
       - .github/workflows/viewer-boundary-physical-p4-5.yml
   workflow_dispatch:
 permissions:
@@ -34,3 +35,5 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Actual WebGL country boundary Worker smoke
         run: pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs --workers=1
+      - name: W2-P3 real adjacent year packet reuse and transfer lifetime
+        run: pnpm exec playwright test tests/browser/viewer-w2-p3-packet-reuse.spec.mjs --workers=1 --retries=0 --trace=off

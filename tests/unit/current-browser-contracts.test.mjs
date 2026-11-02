@@ -49,7 +49,9 @@ test('P1/P3 retain native and artifact owners while Web checks share the same ru
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
-  assert.ok(plan.browserSpecs.includes('tests/browser/ui-components.spec.mjs'));
+  assert.ok(plan.browserSpecs.includes('tests/browser/button-consistency.spec.mjs'));
+  assert.equal(plan.browserSpecs.includes('tests/browser/ui-components.spec.mjs'),false,
+    'retired editor browser layout cannot run in the Viewer');
   assert.ok(plan.commands.includes('ui-spacing'));
   assert.deepEqual(plan.externalChecks, []);
   assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);

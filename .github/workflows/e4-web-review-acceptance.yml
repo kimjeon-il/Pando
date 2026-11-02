@@ -55,8 +55,12 @@ jobs:
           tests/unit/review-change-records.test.mjs
           tests/unit/e3-revision-diff.test.mjs
           tests/unit/notification-priority.test.mjs
-      - name: Check unchanged map and read-only runtime boundaries
-        run: node scripts/check-runtime-boundaries.mjs
+      - name: Check Viewer-only source closure and Windows read-only contract
+        run: >-
+          node --test
+          tests/unit/frontend-layout.test.mjs
+          tests/unit/frontend-build.test.mjs
+          tests/unit/e5-windows-review.test.mjs
 
   e4-browser:
     needs: e4-contract
@@ -73,11 +77,10 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Exercise E4 panel, source SHA geometry, correction export and viewer project-open regression
+      - name: Exercise E4 panel, source SHA geometry, correction export and fixed GeoPackage project-open regression
         run: >-
           pnpm exec playwright test
           tests/browser/viewer-review-e4.spec.mjs
-          tests/browser/viewer-project-open.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed E4 screenshots and traces
         if: failure()

@@ -139,7 +139,7 @@ test('transitive source changes choose related units and declared HTTP browser c
   assert.equal(plan.manualTests.includes('tests/browser/measure.spec.mjs'), true);
 });
 
-test('staged shell imports, re-exports and module URLs resolve to their source owners', () => {
+test('archived shell imports retain source ownership but do not create public product consumers', () => {
   const f = fixture();
   f.put('apps/editor/native.js');
   f.put('shared/frontend/js/workers/place-worker.js');
@@ -158,8 +158,9 @@ test('staged shell imports, re-exports and module URLs resolve to their source o
     'apps/editor/native.js', 'shared/frontend/js/modules/leaf.js', 'shared/frontend/js/modules/other.js',
     'shared/frontend/js/modules/terrain.js', 'shared/frontend/js/workers/place-worker.js',
   ]);
-  const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/workers/place-worker.js'], repository: repo });
-  assert.deepEqual(plan.unitTests, ['tests/unit/probe.test.mjs']);
+  assert.throws(() => planApplicationChecks({
+    changedFiles: ['shared/frontend/js/workers/place-worker.js'], repository: repo
+  }), /Unclassified product change/);
 });
 
 test('shell Node tools and nested tests keep source-relative paths', () => {
@@ -183,28 +184,20 @@ test('verification startup resolves versioned fixture modules at the declared ru
   const repo = f.repository();
   assert.deepEqual(repo.dependencies('apps/editor/verification.js'), ['shared/frontend/js/modules/leaf.js']);
   const plan = planApplicationChecks({ changedFiles: ['shared/frontend/js/modules/leaf.js'], repository: repo });
-  assert.ok(plan.unitTests.includes('tests/unit/verification.test.mjs'));
+  assert.equal(plan.unitTests.includes('tests/unit/verification.test.mjs'),false,
+    'archived shell should no longer be an active product consumer');
 });
 
-test('current native startup metadata seed resolves to the shared runtime owner', t => {
+test('current Viewer startup imports share the canonical frontend owner', t => {
   const f=fixture();t.after(()=>rmSync(f.root,{recursive:true,force:true}));
-  const catalog=JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json',import.meta.url)));
-  f.catalog.runtimeBases=catalog.runtimeBases;
-  f.catalog.relocatedSources=catalog.relocatedSources;
-  f.put('apps/editor/startup.js',readFileSync(new URL('../../apps/editor/startup.js',import.meta.url),'utf8'));
-  f.put('apps/editor/native-platform-adapter.js',readFileSync(new URL('../../apps/editor/native-platform-adapter.js',import.meta.url),'utf8'));
-  for(const name of ['runtime-profile','native-storage','network-guard'])f.put('apps/editor/'+name+'.js');
-  for(const name of ['native-library-repository','library-geometry-context','territorial-entity-loader','territorial-library-service'])f.put('apps/editor/frontend/js/modules/'+name+'.js');
-  f.put('shared/frontend/js/modules/platform-ports.js');
-  f.put('shared/frontend/js/modules/platform-runtime.js',"import './platform-ports.js';");
+  f.put('apps/viewer/js/viewer.js',"import '../../../shared/frontend/js/modules/runtime-context.js';");
   f.put('shared/frontend/js/modules/runtime-context.js',"import './platform-ports.js';");
-  const dependencies=f.repository().dependencies('apps/editor/startup.js');
-  assert.ok(dependencies.includes('apps/editor/native-platform-adapter.js'));
-  assert.ok(dependencies.includes('shared/frontend/js/modules/runtime-context.js'));
-  const adapterDependencies=f.repository().dependencies('apps/editor/native-platform-adapter.js');
-  assert.ok(adapterDependencies.includes('apps/editor/native-storage.js'));
-  assert.ok(adapterDependencies.includes('shared/frontend/js/modules/platform-ports.js'));
-  assert.ok(adapterDependencies.includes('shared/frontend/js/modules/platform-runtime.js'));
+  f.put('shared/frontend/js/modules/platform-ports.js','export const ports=true;');
+  const repo=f.repository();
+  assert.deepEqual(repo.dependencies('apps/viewer/js/viewer.js'),
+    ['shared/frontend/js/modules/runtime-context.js']);
+  assert.deepEqual(repo.dependencies('shared/frontend/js/modules/runtime-context.js'),
+    ['shared/frontend/js/modules/platform-ports.js']);
 });
 
 test('module URL reads retain root configuration and workflow consumers', () => {
@@ -228,8 +221,8 @@ test('staged dependencies still reject missing imports and paths outside the bun
   f.catalog.relocatedSources = [{ source: 'apps/editor/', output: 'shell/', files: ['apps/editor/*.js'] }];
   f.put('apps/editor/missing.js', "import './missing-dependency.js';");
   f.put('apps/editor/escape.js', "import '../../../outside.js';");
-  assert.throws(() => f.repository().dependencies('apps/editor/missing.js'), /unmapped frontend import.*missing-dependency/);
-  assert.throws(() => f.repository().dependencies('apps/editor/escape.js'), /outside repository|unmapped frontend import.*outside/);
+  assert.throws(() => f.repository().dependencies('apps/editor/missing.js'), /Missing dependency .*missing-dependency/);
+  assert.throws(() => f.repository().dependencies('apps/editor/escape.js'), /outside repository|Missing dependency .*outside/);
 });
 
 test('nested GIS Python changes select their existing external workflow', () => {
@@ -290,7 +283,7 @@ test('cycles in prerequisites and missing fixture inputs fail inventory before e
   const f = fixture();
   f.catalog.prerequisites.generated.requires = ['generated'];
   assert.throws(() => f.repository(), /cyclic/i);
-  const g = fixture(); g.put('tests/unit/missing-fixture.test.mjs', "readFileSync('tests/fixtures/removed.json');");
+  const g = fixture(); g.put('tests/unit/missing-fixture.test.mjs', "import '../fixtures/removed.json';");
   assert.throws(() => planApplicationChecks({ changedFiles: [], repository: g.repository() }), /missing.*removed.json/i);
 });
 

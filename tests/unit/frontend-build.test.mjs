@@ -5,10 +5,10 @@ import {join} from 'node:path';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
 import {frontendFixture as fixture} from '../helpers/frontend-build-fixture.mjs';
 
-test('one source build produces distinct products and generated assets without writing source outputs',async t=>{
+test('one source build emits only the Viewer runtime shared with Windows reviewer',async t=>{
  const f=fixture(t),snapshot=await buildFrontendSnapshot(f.options);
  assert.ok(snapshot.html.viewer.includes('assets/js/viewer.js'));
- assert.ok(snapshot.html.editor.includes('assets/js/bootstrap.js'));
+ assert.equal(Object.hasOwn(snapshot.html,'editor'),false);
  assert.ok(snapshot.assets.has('assets/js/build-meta.js'));
  assert.equal(snapshot.buildMeta.worldBundle.url,'assets/data/world/current.json');
  assert.match(snapshot.buildMeta.initialLandPreview.sha256,/^[a-f0-9]{64}$/);
@@ -16,9 +16,11 @@ test('one source build produces distinct products and generated assets without w
  assert.ok(snapshot.assets.has(snapshot.buildMeta.initialLandPreview.url));
  assert.ok(snapshot.viewerPaths.has(snapshot.buildMeta.initialLandPreview.url));
  assert.match(snapshot.buildMeta.worldBundle.sha256,/^[a-f0-9]{64}$/);
- assert.ok(snapshot.assets.has('assets/css/ui.bundle.css'));
+ assert.ok(snapshot.assets.has('assets/css/ui-viewer.bundle.css'));
+ assert.equal(snapshot.assets.has('assets/css/ui.bundle.css'),false);
  assert.ok(snapshot.viewerPaths.has('assets/js/viewer.js'));
  assert.equal(snapshot.viewerPaths.has('assets/js/bootstrap.js'),false);
+ assert.equal(snapshot.assets.has('assets/js/bootstrap.js'),false);
  assert.equal(snapshot.assets.get('assets/js/viewer.js').sourcePath,'apps/viewer/js/viewer.js');
  for(const path of ['index.html','assets/js/build-meta.js','apps/editor/editor.html','assets/worker-runtime'])assert.equal(existsSync(join(f.root,path)),false,path);
 });

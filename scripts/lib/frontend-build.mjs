@@ -26,12 +26,12 @@ export function selectFrontendProduct(snapshot,product,{readRuntimeAsset}={}){
 }
 export function readFrontendInput(snapshot,path,encoding){
  if(isAbsolute(path))path=relative(snapshot.root,path).replaceAll('\\','/');
- const bytes=path==='__editor/index.html'?Buffer.from(snapshot.html.editor):snapshot.assets.has(path)?snapshot.assets.get(path).bytes:readFileSync(resolve(snapshot.root,path));
+ const bytes=snapshot.assets.has(path)?snapshot.assets.get(path).bytes:readFileSync(resolve(snapshot.root,path));
  return encoding?bytes.toString(encoding):bytes;
 }
 export function hasFrontendInput(snapshot,path){
  if(isAbsolute(path))path=relative(snapshot.root,path).replaceAll('\\','/');
- return path==='__editor/index.html'||snapshot.assets.has(path)||existsSync(resolve(snapshot.root,path));
+ return snapshot.assets.has(path)||existsSync(resolve(snapshot.root,path));
 }
 const metadataPaths=Object.freeze(['assets/data/world/current.json','assets/data/terrain-preview/v0.13.3-p2/manifest.json','assets/data/physical-land/v1/manifest.json','assets/data/hydro/v0.13.2/manifest.json','assets/data/places/manifest.json','assets/data/territorial-entities/generated/v2/index.json','assets/data/builtin-world/generated/v1/index.json','assets/data/prepared-polygons/generated/v2/manifest.json']);
 const pinnedContexts=new Map();
@@ -45,7 +45,7 @@ function pinnedContext(root){
 }
 const stable=value=>Array.isArray(value)?'['+value.map(stable).join(',')+']':value&&typeof value==='object'?'{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stable(value[k])).join(',')+'}':JSON.stringify(value);
 
-/** Build both frontend products from source, without writing into a checkout. */
+/** Build the one Viewer runtime shared by browser and Windows review, without output mutations. */
 export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,readPinnedData,dataPaths,readSourceBytes,resourceProfile,workerSourceTransform=(_path,source)=>source}={}){
  if(resourceProfile!==undefined&&!['map-data','test-fixture'].includes(resourceProfile))throw Error('Invalid frontend resource profile');
  root=resolve(root);const pinned=readPinnedData?null:pinnedContext(root);
@@ -75,7 +75,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
   throw Error('Missing product input: '+path);
  };
  const bundles=buildUiBundles(root,{readSource:read});
- generated('assets/css/ui.bundle.css',bundles.main);generated('assets/css/ui-viewer.bundle.css',bundles.viewer,'viewer');generated('assets/css/ui-modal.bundle.css',bundles.modal,'editor');
+ generated('assets/css/ui-viewer.bundle.css',bundles.viewer,'viewer');
  const policy=await transform(read('assets/js/modules/resource-update-policy.js'),{format:'iife',globalName:'PandoLabResourceUpdatePolicy',target:'es2022',legalComments:'none'});
  generated('assets/js/workers/resource-update-policy-core.js','// Generated from the canonical resource policy.\n'+policy.code+'\nself.PandoLabResourceUpdatePolicy = PandoLabResourceUpdatePolicy;\n');
  const workerAssets={};
@@ -105,7 +105,7 @@ export async function buildFrontendSnapshot({root=process.cwd(),sourceCommit,rea
  generated('index.html',render(templates.web,moduleImports),'viewer');generated('.nojekyll','', 'viewer');
  const viewerPaths=await collectViewerAssets({root,availablePaths:[...assets.keys(),...dataPaths],readSource:read,workerAssets});
  const viewerImports=Object.fromEntries(Object.entries(moduleImports).filter(([path])=>viewerPaths.has(path.slice(2))));
- const html={viewer:render(templates.web,viewerImports),editor:render(templates.editor,moduleImports)};
+ const html={viewer:render(templates.web,viewerImports)};
  generated('index.html',html.viewer,'viewer');
  const sourceSha256=hash(JSON.stringify({sourceCommit,appVersion,dataRevision,sources:sourceInputs.sort((a,b)=>a.sourcePath.localeCompare(b.sourcePath)),outputs:[...assets].map(([path,entry])=>[path,hash(entry.bytes)])}));
  return{root,sourceCommit,sourceSha256,dataRevision,dataCommit:pinned?.revision||null,assets,index,viewerPaths,html,buildMeta,sourceInputs};

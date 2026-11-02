@@ -16,7 +16,10 @@ export function auditVersionDisplays({ version, readme, html }) {
   const readmeVersion = readme.match(/^# .*?v(\d+\.\d+\.\d+)/m)?.[1];
   if (readmeVersion !== version) failures.push('README display version differs from package.json');
   const htmlVersion = html.match(/\bdata-app-version\s*=\s*["']([^"']+)["']/)?.[1];
-  if (htmlVersion !== version) failures.push('HTML display version differs from package.json');
+  if (htmlVersion !== undefined) {
+    if (htmlVersion !== version) failures.push('HTML display version differs from package.json');
+  } else if (!/assets\/js\/build-meta\.js/.test(html))
+    failures.push('Viewer must load canonical versioned build metadata');
   return failures;
 }
 
@@ -86,7 +89,7 @@ export function checkVersionArchitecture(root) {
   const failures = [], sources = new Map();
   const read = file => fs.readFileSync(path.join(root, file), 'utf8');
   failures.push(...auditVersionDisplays({ version: JSON.parse(read('package.json')).version,
-    readme: read('README.md'), html: renderProductHtml(read).editor }));
+    readme: read('README.md'), html: renderProductHtml(read).web }));
   const index=buildFrontendIndex(root);
   for(const row of index.values())if(row.publicPath.startsWith('assets/js/modules/')&&row.publicPath.endsWith('.js'))sources.set(row.publicPath,emitFrontendModule(frontendAsset(root,row.publicPath,{index}).bytes.toString('utf8'),row.sourcePath,index));
   const schemaNames = Object.keys(versionContract).filter(name => name.endsWith('_SCHEMA_VERSION'));

@@ -60,14 +60,7 @@ fn main() {
             "read_probe_file",
             "write_diagnostic_report",
             "finish_probe",
-            "begin_document_write",
-            "append_document_chunk",
-            "finish_document_write",
-            "begin_document_read",
-            "read_document_chunk",
-            "abort_document_transfer",
-            "library_open", "library_read_entity", "library_commit",
-            "library_sync", "library_conflict", "library_open_geometry", "library_read_external_changes", "library_read_candidate",
+            "save_review_correction",
         ]),
     ))
     .expect("failed to build prototype shell configuration");

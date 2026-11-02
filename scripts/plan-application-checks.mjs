@@ -6,6 +6,31 @@ import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
 
 export const catalogPath = 'scripts/contracts/application-checks.json';
+
+// Archived graphical-editor browser tests are indexed for traceability but
+// must not be parsed as currently deployable Viewer runtime dependencies.
+// Classification uses explicit retired entrypoints, not a blanket test ban.
+export function retiredEditorBrowserReason(file,source='',availablePaths=null) {
+  if(!file.startsWith('tests/browser/')||!file.endsWith('.spec.mjs'))return null;
+  if(/(?:^|\/)(?:editor-[^/]+|draft-[^/]+|editing-[^/]+|map-editing-[^/]+|mobile-vertex-ui|phone-landscape-editor)\.spec\.mjs$/.test(file))
+    return 'retired graphical-editor browser entrypoint';
+  if(/(?:from|import)\s*['"][^'"]*helpers\/editor-entry\.mjs['"]/.test(source) ||
+     /\b(?:gotoEditor|editorTestUrl)\s*\(/.test(source) ||
+     /(?:\/__editor\/index\.html|products\.editor|renderProductHtml\([^)]+\)\.editor)/.test(source))
+    return 'loads retired editor DOM or startup instead of the shipped Viewer';
+  // An old browser fixture that imports a module/Worker outside the public
+  // Viewer source graph tests the retired editor, not a released runtime.
+  // Real Viewer and GIS tests with valid imports remain automatic.
+  if(availablePaths)for(const match of source.matchAll(
+    /(?:\bimport\s*\(|\bnew\s+Worker\s*\()\s*['"]\/(assets\/js\/[^'"?]+)[^'"]*['"]/g)) {
+    const asset=match[1];
+    if(!availablePaths.has(asset) && !frontendGeneratedOwners[asset] &&
+       !asset.startsWith('assets/js/worker-runtime/'))
+      return 'references a retired non-distributable browser module: '+asset;
+  }
+  return null;
+}
+
 const slash = path => path.replaceAll('\\', '/');
 export function matchesPattern(file, pattern) {
   const tokens = pattern.split(/(\*\*|\*)/).map(part => part === '**' ? '.*' : part === '*' ? '[^/]*' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
@@ -66,11 +91,23 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   [...catalog.groups.map(group => group.id), ...Object.keys(catalog.prerequisites || {})].forEach(checkPrerequisite);
   for (const specs of Object.values(catalog.manualScopes || {})) for (const spec of specs)
     if (!exists(spec)) throw Error('Missing focused browser spec: ' + spec);
-  const owners = new Map();
+  const frontendIndex = buildFrontendIndex(root);
+  const retiredUnitTests = new Set([
+    'tests/unit/application-composition.test.mjs',
+    'tests/unit/capability-ports-contract.test.mjs',
+    'tests/unit/territorial-gis-export.test.mjs',
+  ]);
+  const owners = new Map(), retiredTests = new Map();
   for (const file of tests) {
     const group = catalog.groups.find(group => matches(file, group.testPatterns));
     if (!group) throw Error('Unregistered test: ' + file);
-    owners.set(file, group);
+    const reason = retiredUnitTests.has(file)
+      ? 'tests the removed graphical-editor application rather than current Viewer/Windows'
+      : retiredEditorBrowserReason(file, read(file), frontendIndex);
+    if (reason) {
+      retiredTests.set(file, reason);
+      owners.set(file, { ...group, mode: 'retired', reason });
+    } else owners.set(file, group);
   }
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
     if (!pattern.includes('*') && !owners.has(pattern)) throw Error('Missing registered test: ' + pattern);
@@ -91,7 +128,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     return [...(entry.argv || []).filter(arg => /^(?:scripts|tools|apps|tests)\/.*\.[cm]?js$/.test(arg)),
       ...files.filter(file => matches(file, entry.inputs)), ...(entry.requires || []).flatMap(prerequisiteInputs)];
   }
-  const frontendIndex=buildFrontendIndex(root),publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
+  const publicBySource=new Map([...frontendIndex.values()].map(row=>[row.sourcePath,row.publicPath]));
   const sourcePath=path=>frontendGeneratedOwners[path]||frontendIndex.get(path)?.sourcePath||path;
   const dependencyCache = new Map();
   function dependencies(file) {
@@ -200,12 +237,23 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (file === 'assets/js/build-meta.js') return [...found];
     return [...found];
   }
-  return { root: resolve(root), catalog, files, tests, owners, exists, read, dependencies, unitRequirements };
+  return { root: resolve(root), catalog, files, tests, owners, retiredTests, frontendIndex, exists, read, dependencies, unitRequirements };
 }
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [] }) {
   const repo = repository || loadRepository();
   const changed = [...new Set(changedFiles.map(slash))].sort();
+  // A no-op diff has no affected consumers. The inventory was already validated
+  // by loadRepository(), but retired, archived editor tests need not be parsed
+  // as runnable production dependency graphs for a no-change plan.
+  if (!changed.length && !requestedGroups.length) return {
+    schema:'pando-application-check-plan-v1',changedFiles:[],
+    unitTests:[],unitTestPrerequisites:{},browserSpecs:[],browserPrerequisites:[],
+    externalChecks:[],commands:[],prerequisites:[],reasons:{},
+    manualTests:[...repo.owners].filter(([,group])=>group.mode==='manual').map(([file])=>file).sort(),
+    inventory:{unit:repo.tests.filter(file=>file.includes('/unit/')).length,
+      browser:repo.tests.filter(file=>file.includes('/browser/')).length},
+  };
   const reasons = {}, selected = new Set(), commands = [], prerequisites = new Set();
   const expand = patterns => repo.files.filter(file => matches(file, patterns));
   const entry = id => repo.catalog.prerequisites?.[id] || repo.catalog.groups.find(group => group.id === id);
@@ -218,15 +266,36 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   }
   const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
   const parents = new Map(), visited = new Set();
-  const queue = [...repo.tests, ...repo.catalog.groups.flatMap(inputsFor),
-    ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || []))];
+  const liveShellSources = new Set([
+    'apps/editor/stage.mjs','apps/editor/check-stage.mjs','apps/editor/dev.mjs',
+    'apps/editor/native-contract.mjs','apps/editor/native-producer.mjs',
+    'apps/editor/packaged-artifacts.mjs','apps/editor/review-probe.js',
+    'apps/editor/world-data-plan.mjs','apps/editor/fixture.mjs',
+    'apps/editor/fixture-limits.js','apps/editor/write-evidence.mjs',
+  ]);
+  const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
+    /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
+  const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
+  const frontendIndex = repo.frontendIndex || (repo.root ? buildFrontendIndex(repo.root) : new Map());
+  const isRetiredHelper = file => /^tests\/browser\/helpers\/.*\.mjs$/.test(file)
+    && retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs',
+      repo.read(file), frontendIndex);
+  const skipArchived = file => retiredFrontend(file) || isRetiredTest(file) || isRetiredHelper(file);
+  const queue = [...repo.tests,
+    ...repo.catalog.groups.flatMap(inputsFor),
+    ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || []))]
+    .filter(file => !skipArchived(file));
   for (let at = 0; at < queue.length; at++) {
     const file = queue[at];
     if (visited.has(file)) continue;
     visited.add(file);
+    // Retired editor frontend is not a public runtime. Keep its direct source
+    // identity for historical tests, but do not parse its orphaned worker graph.
+    if (skipArchived(file)) continue;
     for (const dependency of repo.dependencies(file)) {
       if (!parents.has(dependency)) parents.set(dependency, new Set());
-      parents.get(dependency).add(file); queue.push(dependency);
+      parents.get(dependency).add(file);
+      if (!skipArchived(dependency)) queue.push(dependency);
     }
   }
   const affectedBy = new Map();
@@ -246,7 +315,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   const externalChecks = (repo.catalog.externalChecks || []).filter(check => changed.some(file => matches(file, check.inputs)));
   externalChecks.forEach(check => changed.filter(file => matches(file, check.inputs)).forEach(file => matchedProduct.add(file)));
   for (const group of repo.catalog.groups) {
-    const members = [...repo.owners].filter(([, owner]) => owner.id === group.id).map(([file]) => file);
+    const members = [...repo.owners].filter(([,owner]) => owner.id === group.id && owner.mode !== 'retired').map(([file]) => file);
     const inputs = inputsFor(group);
     const groupReasons = [...new Set(inputs.flatMap(file => affected(file)))];
     // Deleted paths still match the input policy and select surviving consumers.
