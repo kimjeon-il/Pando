@@ -1,3 +1,4 @@
+/** Product-neutral input routing; product composition supplies reserved DOM targets and optional editing capability. */
 export function createMapInputPresentation({ports,window,navigator,createMapInputController,getRevision,mapInteractionGate,editing:editingHooks=null,reservedTargetSelector=''} = {}) {
   const editing=editingHooks!==null;
   if(typeof reservedTargetSelector!=='string')throw new TypeError('Map input reserved target selector must be a string.');
