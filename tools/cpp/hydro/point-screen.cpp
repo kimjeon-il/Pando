@@ -295,6 +295,71 @@ Value longestSourceLines(const Value& input){
         indices.array.push_back(std::move(selected));}
     auto result=Value::obj();result.object["indices"]=std::move(indices);return result;
 }
+// Produce the geometric observations used by the original outlet resolver.
+// Water-raster pixels remain an explicit, separately sampled input.
+Value outletObservations(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");const auto ctx=context.get();
+    const auto& landInput=array(field(input,"land")),&lakeInput=array(field(input,"lakes")),&points=array(field(input,"points"));
+    if(landInput.empty()||landInput.size()>100000||lakeInput.size()>100000||points.size()>100000)
+        throw std::invalid_argument("Bounded rendered land, lakes and outlet points required");
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(ctx),ReaderDeleter{ctx});
+    if(!reader)throw std::runtime_error("GEOS GeoJSON reader failed");
+    const auto read=[&](const Value& item){const auto json=item.encode();auto result=own(ctx,GEOSGeoJSONReader_readGeometry_r(ctx,reader.get(),json.c_str()));
+        const int type=GEOSGeomTypeId_r(ctx,result.get());if(type!=GEOS_POLYGON&&type!=GEOS_MULTIPOLYGON)
+            throw std::invalid_argument("Hydro outlet inputs must be polygons");return result;};
+    std::vector<Geometry> landParts;std::vector<GEOSGeometry*> landPointers;
+    for(const auto& item:landInput){landParts.push_back(read(item));landPointers.push_back(landParts.back().get());}
+    auto* collection=GEOSGeom_createCollection_r(ctx,GEOS_GEOMETRYCOLLECTION,landPointers.data(),static_cast<unsigned int>(landPointers.size()));
+    if(!collection)throw std::runtime_error("GEOS land collection failed");for(auto& part:landParts)part.release();
+    auto landCollection=own(ctx,collection);
+    auto land=own(ctx,GEOSUnaryUnion_r(ctx,landCollection.get())),coast=own(ctx,GEOSBoundary_r(ctx,land.get()));
+    const auto shift=[](double* x,double*,void* user)->int{*x+=*static_cast<double*>(user);return std::isfinite(*x)?1:0;};
+    const auto translated=[&](const GEOSGeometry* value,double offset){return own(ctx,GEOSGeom_transformXY_r(ctx,value,shift,&offset));};
+    std::vector<Geometry> lands,presence,connector,coasts,lakes;
+    std::unique_ptr<GEOSSTRtree,TreeDeleter> coastTree(GEOSSTRtree_create_r(ctx,10),TreeDeleter{ctx}),
+        lakeTree(GEOSSTRtree_create_r(ctx,10),TreeDeleter{ctx});
+    if(!coastTree||!lakeTree)throw std::runtime_error("GEOS outlet tree failed");
+    const int coastCount=GEOSGetNumGeometries_r(ctx,coast.get());if(coastCount<1)throw std::invalid_argument("Rendered coastline is empty");
+    for(double offset:{-360.0,0.0,360.0}){
+        lands.push_back(translated(land.get(),offset));presence.push_back(own(ctx,GEOSBuffer_r(ctx,lands.back().get(),.01,16)));
+        connector.push_back(own(ctx,GEOSBuffer_r(ctx,lands.back().get(),.002,16)));
+        for(int i=0;i<coastCount;++i){const auto* component=GEOSGetGeometryN_r(ctx,coast.get(),i);
+            if(!component)throw std::runtime_error("GEOS coastline component failed");coasts.push_back(translated(component,offset));
+            GEOSSTRtree_insert_r(ctx,coastTree.get(),coasts.back().get(),coasts.back().get());}
+        for(const auto& item:lakeInput){auto original=read(item);if(GEOSisEmpty_r(ctx,original.get())==1)continue;
+            lakes.push_back(translated(original.get(),offset));GEOSSTRtree_insert_r(ctx,lakeTree.get(),lakes.back().get(),lakes.back().get());}
+    }
+    const auto nearestTarget=[&](const GEOSGeometry* from,const GEOSGeometry* to){
+        auto* sequence=GEOSNearestPoints_r(ctx,from,to);if(!sequence)throw std::runtime_error("GEOS outlet nearest points failed");
+        Point target{};const int ok=GEOSCoordSeq_getX_r(ctx,sequence,1,&target.x)&&GEOSCoordSeq_getY_r(ctx,sequence,1,&target.y);
+        GEOSCoordSeq_destroy_r(ctx,sequence);if(!ok)throw std::runtime_error("GEOS outlet target failed");return target;};
+    const auto normalized=[](double x){double value=std::fmod(x+180.0,360.0);if(value<0)value+=360.0;value-=180.0;return value==-180.0?180.0:value;};
+    const auto kilometers=[&](Point a,Point b){return std::hypot(normalized(a.x-b.x)*111.32*std::cos(a.y*3.14159265358979323846/180.0),
+        (a.y-b.y)*110.57);};
+    auto observations=Value::arr();observations.array.reserve(points.size());
+    for(const auto& item:points){auto source=inputPoint(item);source.x=normalized(source.x);auto point=geometry(ctx,{source},true);
+        const auto* shore=GEOSSTRtree_nearest_r(ctx,coastTree.get(),point.get());if(!shore)throw std::runtime_error("GEOS nearest coast failed");
+        const auto target=nearestTarget(point.get(),shore);const double coastDistance=kilometers(source,target);
+        Value lakeDistance;bool lakeCovers=false;
+        if(!lakes.empty()){const auto* lake=GEOSSTRtree_nearest_r(ctx,lakeTree.get(),point.get());if(!lake)throw std::runtime_error("GEOS nearest lake failed");
+            const auto covers=GEOSCovers_r(ctx,lake,point.get());if(covers==2)throw std::runtime_error("GEOS lake coverage failed");
+            lakeCovers=covers==1;lakeDistance=Value::num(kilometers(source,nearestTarget(point.get(),lake)));}
+        std::size_t nearestLand=0;double least=std::numeric_limits<double>::infinity();
+        for(std::size_t i=0;i<lands.size();++i){double distance=0;if(!GEOSDistance_r(ctx,lands[i].get(),point.get(),&distance))throw std::runtime_error("GEOS land distance failed");
+            if(distance<least){least=distance;nearestLand=i;}}
+        const auto covers=GEOSCovers_r(ctx,presence[nearestLand].get(),point.get());if(covers==2)throw std::runtime_error("GEOS land coverage failed");
+        double outside=0;if(covers==1&&coastDistance>2.0&&coastDistance<=25.0){auto line=geometry(ctx,{source,target},false);
+            auto difference=own(ctx,GEOSDifference_r(ctx,line.get(),connector[nearestLand].get()));
+            if(!GEOSLength_r(ctx,difference.get(),&outside))throw std::runtime_error("GEOS outlet connector failed");}
+        auto row=Value::obj(),targetValue=Value::arr();targetValue.array={Value::num(target.x),Value::num(target.y)};
+        row.object["lakeDistance"]=lakeDistance;row.object["lakeCovers"]=Value::boolean(lakeCovers);
+        row.object["coastDistance"]=Value::num(coastDistance);row.object["onLand"]=Value::boolean(covers==1);
+        row.object["outsideLength"]=Value::num(outside);row.object["target"]=std::move(targetValue);observations.array.push_back(std::move(row));
+    }
+    auto result=Value::obj();result.object["observations"]=std::move(observations);return result;
+}
 void collectReferenceIndex(void* item,void* user){
     static_cast<std::vector<std::size_t>*>(user)->push_back(*static_cast<std::size_t*>(item));
 }
@@ -673,6 +738,8 @@ Value run(const Value& input){
         return osmWaterwayMatches(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="longest-lines")
         return longestSourceLines(input);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="outlet-observations")
+        return outletObservations(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="reference-guides")
         return referenceGuides(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&

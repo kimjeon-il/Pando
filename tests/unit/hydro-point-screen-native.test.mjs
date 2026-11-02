@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,organizeHydroLakePolygons,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
+import {buildHydroCalibrationLakeFeatures,buildHydroCalibrationRiverFeatures,calculateHydroCalibrationScreen,clipHydroCalibrationGeometries,findHydroCalibrationLakeDuplicates,findHydroCalibrationRiverDuplicates,findHydroReferenceGuides,longestHydroSourceLines,observeHydroOutlets,organizeHydroLakePolygons,scoreHydroGuidedBranches,selectHydroUpstreams} from '../../tools/gis/hydro-point-screen-native.mjs';
 
 const binary=process.env.PANDO_HYDRO_POINT_SCREEN_BINARY;
 const fixture={crs:'EPSG:32632',lines:[[[9,0],[9,1]],[[9.2,0],[9.2,1]]],points:[[9,0],[9.1,0.5],[9.19,0.5]]};
@@ -10,6 +10,25 @@ function invoke(value){
   assert.ok(binary,'PANDO_HYDRO_POINT_SCREEN_BINARY must name the native test tool');
   return spawnSync(binary,[],{input:JSON.stringify(value),encoding:'utf8',maxBuffer:16*1024*1024});
 }
+test('outlet observations use rendered land, coastline and lake geometry',{skip:!binary},()=>{
+  const polygon=coordinates=>({type:'Polygon',coordinates:[coordinates]});
+  const land=polygon([[0,0],[10,0],[10,10],[0,10],[0,0]]),lake=polygon([[4,4],[6,4],[6,6],[4,6],[4,4]]);
+  const result=invoke({mode:'outlet-observations',land:[land],lakes:[lake],points:[[5,5],[1,1],[0,5],[-.01,5]]});
+  assert.equal(result.status,0,result.stderr);const rows=JSON.parse(result.stdout).observations;
+  assert.equal(rows.length,4);assert.equal(rows[0].lakeCovers,true);assert.equal(rows[0].lakeDistance,0);
+  assert.equal(rows[1].onLand,true);assert.ok(rows[1].coastDistance>100);
+  assert.equal(rows[2].coastDistance,0);assert.equal(rows[3].onLand,true);
+  assert.ok(rows[3].coastDistance>1&&rows[3].coastDistance<2);assert.deepEqual(rows[3].target,[0,5]);
+  assert.notEqual(invoke({mode:'outlet-observations',land:[],lakes:[],points:[[0,0]]}).status,0);
+});
+test('source-bound outlet observations preserve empty lakes and input order',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async()=>{
+    const land=[{type:'Polygon',coordinates:[[[0,0],[10,0],[10,10],[0,10],[0,0]]]}];
+    const rows=await observeHydroOutlets({land,lakes:[],points:[[0,5],[1,1]]},
+      {directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT});
+    assert.equal(rows[0].coastDistance,0);assert.equal(rows[0].lakeDistance,null);assert.equal(rows[1].onLand,true);
+    await assert.rejects(observeHydroOutlets({land,lakes:[],points:[[181,0]]},{}),/outlet points/i);
+  });
 test('guided branch scores preserve distance and upstream orientation',{skip:!binary},()=>{
   const current=[[0,0],[1,0]],reference=[[-1,0],[1,0]];
   for(const [candidate,score,alignment] of [

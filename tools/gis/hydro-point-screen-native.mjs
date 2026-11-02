@@ -106,6 +106,21 @@ export async function longestHydroSourceLines(reaches,options={}){
     throw Error('Invalid Hydro longest line receipt');
   return result.indices.map((index,i)=>index===null?null:reaches[i][index]);
 }
+export async function observeHydroOutlets({land,lakes,points}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(land)||!land.length||land.length>100000||!Array.isArray(lakes)||lakes.length>100000||
+    !Array.isArray(points)||points.length>100000||points.some(point=>!Array.isArray(point)||point.length!==2||
+      point.some((value,i)=>!Number.isFinite(value)||Math.abs(value)>(i===0?180:90))))
+    throw Error('Explicit rendered Hydro land, lakes and outlet points required');
+  if(!points.length)return [];
+  const result=await screenHydroPoints({mode:'outlet-observations',land,lakes,points},options);
+  if(!Array.isArray(result?.observations)||result.observations.length!==points.length||result.observations.some(row=>
+    !row||!(row.lakeDistance===null||(Number.isFinite(row.lakeDistance)&&row.lakeDistance>=0))||typeof row.lakeCovers!=='boolean'||
+    !Number.isFinite(row.coastDistance)||row.coastDistance<0||typeof row.onLand!=='boolean'||
+    !Number.isFinite(row.outsideLength)||row.outsideLength<0||!Array.isArray(row.target)||row.target.length!==2||
+    row.target.some(value=>!Number.isFinite(value))))throw Error('Invalid Hydro outlet observations');
+  return result.observations;
+}
 export async function matchHydroOsmBounds({candidates,targets}={},options={}){
   options.signal?.throwIfAborted();
   const valid=(box,nonempty)=>Array.isArray(box)&&box.length===4&&box.every(Number.isFinite)&&
