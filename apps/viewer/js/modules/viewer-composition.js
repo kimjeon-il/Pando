@@ -59,6 +59,7 @@ export async function composeViewer({ productMode, meta }) {
   const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
+  let reviewPanel=null,reviewPanelLoading=null;
   const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
@@ -81,7 +82,7 @@ export async function composeViewer({ productMode, meta }) {
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
     refAdapter:{fromCore:coreSelectionRefToWeb,toCore:ref=>webSelectionRefToCore(ref,{isStoredHydro:id=>documentSession.documentModel.get({domain:'hydro',id})!==null})},
-    onSelectionChanged:snapshot=>selectionUiController.sync(snapshot),
+    onSelectionChanged:snapshot=>{selectionUiController.sync(snapshot);reviewPanel?.syncMapSelection(snapshot);},
     onHoverChanged:snapshot=>tooltipController.setMapHover(snapshot.hover?map.objectQuery.objectDisplayInfo(snapshot.hover):null),
     requestRender:()=>map.refreshSelection()});
   disposables.push(selectionDomain);
@@ -100,6 +101,27 @@ export async function composeViewer({ productMode, meta }) {
   map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report,
     onMapPreparationStatus:initialPresentation.observe,isInitialPresentation:()=>!initialPresentation.hasPresented()});
   disposables.push(map);
+  // The review UI loads only on deliberate opening. It reads E2/E3 sidecars
+  // and immutable Git object bytes, never registers an editor mutation hook.
+  const showReview=async sourceButton=>{
+    if(!reviewPanelLoading)reviewPanelLoading=import('./viewer-review-panel.js').then(module=>{
+      reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,
+        meta:runtimeContext.meta,onError:error=>diagnostics.push({category:'e4-review-data',
+          errorCode:error?.code||'PL-E4-REVIEW',technicalMessage:error?.message||String(error)})});
+      disposables.push(reviewPanel);
+      return reviewPanel;
+    }).catch(error=>{reviewPanelLoading=null;throw error;});
+    const inspector=await reviewPanelLoading;
+    inspector.open(sourceButton);
+    if(sourceButton?.id==='mobileReviewBtn')surfaces.closeMobileSheets();
+  };
+  for(const id of ['reviewPanelBtn','mobileReviewBtn']){
+    const button=get(id);
+    if(!button)continue;
+    const handler=()=>showReview(button).catch(error=>report(error,'검수 화면을 열지 못했습니다.','PL-E4-REVIEW-START'));
+    button.addEventListener('click',handler);
+    disposables.push({dispose:()=>button.removeEventListener('click',handler)});
+  }
   const adjacentPrefetch=createViewerAdjacentPrefetch({
     prepareSource:(month,options)=>owners.builtinSession.prepareProjectSource(month,options),
     requestIdle:callback=>typeof window.requestIdleCallback==='function'
