@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {hydroSourceArchivesFromManifest,readHydroRegion,readHydroSources,scanHydroRegionMetadata} from '../../tools/gis/hydro-source-reader.mjs';
 import {buildHydroSelectedReaches,scoreHydroSourceMetadata} from '../../tools/gis/hydro-connectivity-native.mjs';
+import {assembleHydroCanonicalChains} from '../../tools/gis/hydro-reference-guides.mjs';
 import {zipMembers,zipMemberChunks,zipRangeMembers,readZipRangeMember} from '../../tools/lib/geonames-zip.mjs';
 import {createHash} from 'node:crypto';
 import {crc32} from 'node:zlib';
@@ -119,6 +120,15 @@ test('selected source reaches keep full geometry and downstream-corrected widths
     assert.equal(result[1].endorheic,true);assert.equal(result[2].stage,3);
     assert.deepEqual(selected,new Set([101,102,103]));
     await assert.rejects(buildHydroSelectedReaches({...input,selected:new Set([999])},{}),/not found/i);
+  });
+test('verified selected source flows into the reference-guided chain builder',
+  {skip:!process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY||!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY},async t=>{
+    const root=await mkdtemp(join(tmpdir(),'pando-hydro-source-chains-'));t.after(()=>rm(root,{recursive:true}));
+    const input=await generationFixture(root),connectivity={directory:process.env.PANDO_HYDRO_CONNECTIVITY_DIRECTORY};
+    const reaches=await buildHydroSelectedReaches({...input,selected:new Set([101,102,103])},connectivity);
+    const references=[{id:'guide',properties:{name:'Guide'},geometry:{type:'LineString',coordinates:[[0,1],[1,0],[2,0]]}}];
+    const pointScreen={directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT};
+    assert.deepEqual(await assembleHydroCanonicalChains({reaches,references},{connectivity,pointScreen}),[[103,102],[101]]);
   });
 test('full Hydro source selection requires each region exactly once',()=>{
   const regions=['eu','as','si','af','sa','na','ar','au','gr'];
