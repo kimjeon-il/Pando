@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -370,6 +371,78 @@ Value featurePolicies(const Value& request){
     for(const auto& row:input)output.array.push_back(featurePolicy(row));
     auto result=Value::obj();result.object["features"]=std::move(output);return result;
 }
+// Keep regional source metadata in one native process while indexed geometry is
+// fetched on demand.  The eight retained upstream candidates match the source
+// generator's (basin area, flow, source ID) heap ordering.
+class SourceSelection {
+    struct Row{std::int64_t id,next,basin,order,index;double flow,area,score,width;bool endorheic,seed;};
+    std::vector<Row> rows;
+    std::unordered_map<std::int64_t,std::size_t> byId;
+    std::unordered_map<std::int64_t,std::vector<std::size_t>> upstream;
+    bool prepared=false;
+    auto rank(std::size_t index) const {const auto& row=rows[index];return std::make_tuple(row.area,row.flow,row.id);}
+    Value encodeRow(const Row& row) const {
+        auto result=Value::obj();result.object["id"]=Value::num(static_cast<double>(row.id));
+        result.object["next"]=Value::num(static_cast<double>(row.next));result.object["mainRiver"]=Value::num(static_cast<double>(row.basin));
+        result.object["order"]=Value::num(static_cast<double>(row.order));result.object["recordIndex"]=Value::num(static_cast<double>(row.index));
+        result.object["flow"]=Value::num(row.flow);result.object["upstreamArea"]=Value::num(row.area);result.object["endorheic"]=Value::boolean(row.endorheic);
+        result.object["score"]=Value::num(row.score);result.object["width"]=Value::num(row.width);
+        Value stage;const double thresholds[]={14.4744,12.4307,11.2137,10.55};
+        for(int i=0;i<4;++i)if(row.score>=thresholds[i]){stage=Value::num(i);break;}
+        result.object["stage"]=stage;return result;
+    }
+public:
+    Value add(const Value& request){
+        if(prepared)throw std::invalid_argument("Hydro selection already prepared");
+        const auto& input=elements(field(request,"rows"));if(input.size()>100000)throw std::invalid_argument("Hydro selection batch exceeds budget");
+        for(const auto& item:input){const auto id=integer(field(item,"id")),next=integer(field(item,"next")),basin=integer(field(item,"mainRiver")),
+            order=integer(field(item,"order")),index=integer(field(item,"recordIndex"));
+            const double flow=pandoeditor::codecjson::finiteNumber(field(item,"flow")),area=pandoeditor::codecjson::finiteNumber(field(item,"upstreamArea"));
+            const auto& endorheic=field(item,"endorheic");
+            if(id<=0||next<0||index<0||endorheic.kind!=Value::Bool||byId.count(id))throw std::invalid_argument("Invalid or duplicate Hydro selection record");
+            const double score=static_cast<double>(order)+4.0*std::log10(std::max(flow,1e-6))-0.5*std::log10(std::max(area,1e-6));
+            const double width=0.5+0.19*std::log2(1.0+std::max(flow,0.0))+0.06*std::max(static_cast<double>(order)-1.0,0.0);
+            if(!std::isfinite(score)||!std::isfinite(width))throw std::invalid_argument("Invalid Hydro selection score");
+            const auto position=rows.size();byId.emplace(id,position);
+            rows.push_back({id,next,basin,order,index,flow,area,score,std::max(0.55,std::min(2.6,width)),endorheic.raw=="true",score>=10.55});
+            if(next){auto& candidates=upstream[next];candidates.push_back(position);
+                std::sort(candidates.begin(),candidates.end(),[this](auto a,auto b){return rank(a)<rank(b);});
+                if(candidates.size()>8)candidates.erase(candidates.begin());}
+        }
+        auto result=Value::obj();result.object["count"]=Value::num(static_cast<double>(rows.size()));return result;
+    }
+    Value prepare(){
+        if(prepared)throw std::invalid_argument("Hydro selection already prepared");prepared=true;
+        std::unordered_map<std::int64_t,std::size_t> incoming;
+        for(const auto& row:rows)if(row.seed)incoming.emplace(row.id,0);
+        for(const auto& row:rows)if(row.seed){auto it=incoming.find(row.next);if(it!=incoming.end())++it->second;}
+        auto seeds=Value::arr(),continuity=Value::arr(),named=Value::arr(),medium=Value::arr();
+        for(const auto& row:rows){if(row.seed){seeds.array.push_back(Value::num(static_cast<double>(row.id)));
+                if(incoming.at(row.id)==0){auto& target=(row.order>=5&&row.flow>=75.0&&row.score>=10.86)?continuity:named;
+                    target.array.push_back(Value::num(static_cast<double>(row.id)));}}
+            if(!row.next&&row.area>=2500.0)medium.array.push_back(Value::num(static_cast<double>(row.id)));}
+        auto result=Value::obj();result.object["seeds"]=std::move(seeds);result.object["continuityRoots"]=std::move(continuity);
+        result.object["namedCandidates"]=std::move(named);result.object["mediumRoots"]=std::move(medium);return result;
+    }
+    Value candidates(const Value& request) const {
+        if(!prepared)throw std::invalid_argument("Hydro selection not prepared");
+        const auto& ids=elements(field(request,"ids"));if(ids.size()>4096)throw std::invalid_argument("Hydro candidate batch exceeds budget");
+        auto groups=Value::arr();for(const auto& value:ids){const auto id=integer(value);if(id<=0)throw std::invalid_argument("Invalid Hydro candidate ID");
+            auto group=Value::obj(),candidates=Value::arr();group.object["id"]=Value::num(static_cast<double>(id));
+            const auto current=byId.find(id);group.object["current"]=current==byId.end()?Value():encodeRow(rows[current->second]);
+            const auto found=upstream.find(id);if(found!=upstream.end())for(const auto position:found->second)candidates.array.push_back(encodeRow(rows[position]));
+            group.object["candidates"]=std::move(candidates);groups.array.push_back(std::move(group));}
+        auto result=Value::obj();result.object["groups"]=std::move(groups);return result;
+    }
+};
+void selectionStream(){
+    SourceSelection selection;std::string line;
+    while(std::getline(std::cin,line)){if(line.size()>32*1024*1024)throw std::invalid_argument("Hydro selection request exceeds budget");
+        const auto request=pandoeditor::codecjson::parse(line);const auto op=str(field(request,"op"));Value result;
+        if(op=="add")result=selection.add(request);else if(op=="prepare")result=selection.prepare();
+        else if(op=="candidates")result=selection.candidates(request);else throw std::invalid_argument("Invalid Hydro selection operation");
+        std::cout<<result.encode()<<std::endl;}
+}
 // Match Hydro's selected-network downstream width propagation before rendering.
 Value propagateWidths(const Value& request){
     const auto& input=elements(field(request,"reaches"));
@@ -481,8 +554,10 @@ Value outletSample(const Value& request){
     result.object["undisplayedWater"]=Value::boolean(high-low<=1&&low>=249);return result;
 }
 }
-int main() {
+int main(int argc,char** argv) {
     try {
+        if(argc==2&&std::string(argv[1])=="--selection-stream"){selectionStream();return 0;}
+        if(argc!=1)throw std::invalid_argument("Invalid Hydro command line");
         const std::string input{std::istreambuf_iterator<char>{std::cin},std::istreambuf_iterator<char>{}};
         if(input.size()>512*1024*1024)throw std::invalid_argument("Hydro junction request exceeds 512 MiB");
         auto request=pandoeditor::codecjson::parse(input);const auto mode=request.object.find("mode");

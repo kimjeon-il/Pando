@@ -25,6 +25,23 @@ function run(input) {
   return JSON.parse(result.stdout);
 }
 const nativeTest = (name, fn) => test(name, { skip: !native }, fn);
+nativeTest('streaming source selection keeps seeds, roots and the strongest eight upstream records',()=>{
+  const row=(id,next,order,flow,upstreamArea,mainRiver=100)=>({id,next,mainRiver,order,flow,upstreamArea,endorheic:false,recordIndex:id-1});
+  const rows=[row(100,0,6,500,5000),row(101,100,5,100,2000),row(102,101,2,1,500),
+    ...Array.from({length:10},(_,i)=>row(i+1,102,1,1,10))];
+  const requests=[{op:'add',rows:rows.slice(0,6)},{op:'add',rows:rows.slice(6)},
+    {op:'prepare'},{op:'candidates',ids:[100,101,102,999]}];
+  const result=spawnSync(native,['--selection-stream'],{input:requests.map(value=>JSON.stringify(value)).join('\n')+'\n',encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);const replies=result.stdout.trim().split('\n').map(JSON.parse);
+  assert.deepEqual(replies[0],{count:6});assert.deepEqual(replies[1],{count:13});
+  assert.deepEqual(replies[2].mediumRoots,[100]);assert.ok(replies[2].seeds.includes(100));
+  assert.ok(replies[2].continuityRoots.includes(101));
+  assert.deepEqual(replies[3].groups.map(group=>group.id),[100,101,102,999]);
+  assert.deepEqual(replies[3].groups[2].candidates.map(candidate=>candidate.id),[3,4,5,6,7,8,9,10]);
+  assert.deepEqual(replies[3].groups[3].candidates,[]);
+  const duplicate=spawnSync(native,['--selection-stream'],{input:[{op:'add',rows:[rows[0],rows[0]]}].map(JSON.stringify).join('\n')+'\n',encoding:'utf8'});
+  assert.notEqual(duplicate.status,0);assert.match(duplicate.stderr,/duplicate/i);
+});
 test('logical-chain receipts reject missing, duplicated or wrongly connected reaches',()=>{
   const input={reaches:[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],
     canonical:[{downstream:3,upstream:1},{downstream:4,upstream:3}]};
