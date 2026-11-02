@@ -6,6 +6,7 @@ import {basename,delimiter,dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
+import {reportArgument} from '../report-paths.mjs';
 import {matchingTorchLibrary,referenceOnnxExportSourceFiles} from './native-infer.mjs';
 import {assertPublicEncoderIdentity,trainingFileIdentity,verifyTrainingInitializer} from './training-evidence.mjs';
 
@@ -128,7 +129,9 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
     if(Number(values.diagnostic)+Number(Boolean(values.weights))+Number(Boolean(values.checkpoint))!==1)throw Error('Choose exactly one of diagnostic, weights or checkpoint');
     if(values.manifest&&!values.checkpoint)throw Error('A checkpoint is required for its ONNX manifest');
     if(values.receipt&&!values.weights)throw Error('Transferred weights are required for an ONNX export receipt');
-    const request={...values,manifestOutput:values.manifest,receiptOutput:values.receipt,torchLibrary:values['torch-library']};
+    const report=(name,access)=>values[name]===undefined?undefined:reportArgument(values[name],{access,siblings:true});
+    const request={...values,weights:report('weights','read'),checkpoint:report('checkpoint','read'),proof:report('proof','read'),
+      output:report('output','write'),manifestOutput:report('manifest','write'),receiptOutput:report('receipt','write'),torchLibrary:values['torch-library']};
     console.log(JSON.stringify(await (values.diagnostic?nativeOnnxDiagnostic(request):values.checkpoint?nativeCheckpointOnnxExport(request):nativeOnnxExport(request))));
   }catch(error){console.error('native-onnx-export: '+error.message);process.exitCode=1;}
 }

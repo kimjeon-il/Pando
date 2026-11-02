@@ -19,6 +19,11 @@ test('Linux ONNX export checks the requested output before native execution',asy
     assert.equal(readFileSync(output,'utf8'),'preserve');
   }finally{Object.defineProperty(process,'platform',descriptor);}
 });
+test('ONNX export resolves report output through the canonical report owner',()=>{
+  const result=spawnSync(process.execPath,['tools/reference-analysis/native-onnx-export.mjs','--diagnostic',
+    '--output','reports/not-a-report-subject/model.onnx','--torch-library','.'],{encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.match(result.stderr,/canonical report subject/i);
+});
 
 test('transferred weights ONNX receipt preserves unknown ancestry and optimizer state',()=>{
   const initializer={initialization:'weights-only-no-optimizer',weightsSha256:'a'.repeat(64),sourceCheckpointSha256:'b'.repeat(64)};
