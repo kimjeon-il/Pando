@@ -133,12 +133,12 @@ export async function verifyTrainingSourceReplay({checkpoints,weights,corpus,aux
     ...(auxiliaryPath?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint}:{}),checkpointSha256:entries.at(-1).checkpointSha256};
 }
 
-// Re-run only an explicitly bounded sequence in a new, caller-owned directory.
+// Re-run an explicitly bounded sequence in a new, caller-owned directory.
 // Equal checkpoints prove this execution, not independent model accuracy.
 export async function verifyTrainingUpdateReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed=false,publisher=false,scratch,torchLibrary},{signal}={}){
   signal?.throwIfAborted();
-  if(!Array.isArray(checkpoints)||!checkpoints.length||checkpoints.length>16||!scratch||!torchLibrary)
-    throw Error('Explicit scratch directory, LibTorch and at most 16 ordered checkpoints required');
+  if(!Array.isArray(checkpoints)||!checkpoints.length||checkpoints.length>100000||!scratch||!torchLibrary)
+    throw Error('Explicit scratch directory, LibTorch and a bounded ordered checkpoint chain required');
   const target=resolve(scratch);if(existsSync(target))throw Error('Training replay output exists; preserve prior evidence');
   const source=await verifyTrainingSourceReplay({checkpoints,weights,corpus,auxiliary,supervision,reviewed,publisher},{signal});
   const paths=checkpoints.map(value=>resolve(value)),receipts=paths.map(path=>JSON.parse(readTrainingBounded(path+'.receipt.json',1024*1024)));

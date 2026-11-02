@@ -166,10 +166,11 @@ test('source replay rejects missing and repeated checkpoint paths',async()=>{
   await assert.rejects(verifyTrainingSourceReplay({checkpoints:[],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
   await assert.rejects(verifyTrainingSourceReplay({checkpoints:['same','same'],weights:'x',corpus:'x',supervision:'x'}),/checkpoint chain/i);
 });
-test('update replay refuses unbounded input and an existing scratch directory',async t=>{
+test('update replay allows long bounded chains but rejects invalid chains and existing scratch',async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-update-replay-'));t.after(()=>rmSync(root,{recursive:true}));
-  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:[],scratch:join(root,'new'),torchLibrary:root}),/at most 16/i);
-  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:Array(17).fill('x'),scratch:join(root,'new'),torchLibrary:root}),/at most 16/i);
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:[],scratch:join(root,'new'),torchLibrary:root}),/bounded/i);
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:Array(100001).fill('x'),scratch:join(root,'new'),torchLibrary:root}),/bounded/i);
+  await assert.rejects(verifyTrainingUpdateReplay({checkpoints:Array(17).fill('x'),scratch:join(root,'new'),torchLibrary:root}),/distinct checkpoint chain/i);
   await assert.rejects(verifyTrainingUpdateReplay({checkpoints:['x'],scratch:root,torchLibrary:root}),/output exists/i);
   assert.equal(existsSync(join(root,'new')),false);
   const cli=spawnSync(process.execPath,['tools/reference-analysis/native-training-replay.mjs','--weights','x','--corpus','x','--supervision','x',
