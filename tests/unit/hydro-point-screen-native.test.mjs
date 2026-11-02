@@ -28,6 +28,23 @@ test('guided branch scores handle zero direction and reject malformed geometry',
     const failed=invoke(input);assert.notEqual(failed.status,0);assert.equal(failed.stdout,'');
   }
 });
+test('canonical upstream selection preserves basin, guide threshold and deterministic ties',{skip:!binary},()=>{
+  const row=(id,basin,area,flow,order,score=null,alignment=null)=>({id,basin,area,flow,order,score,alignment});
+  const cases=[
+    {candidates:[row(1,7,10,2,1),row(2,8,100,9,5)],basin:7,id:1},
+    {candidates:[row(1,7,10,2,1),row(2,7,10,2,1)],basin:7,id:2},
+    {candidates:[row(1,7,100,2,1,.05,.5),row(2,7,20,1,1,.01,.2),row(3,7,9,9,9,0,1)],basin:7,id:2},
+    {candidates:[row(1,7,100,2,1,.17,1),row(2,7,20,1,1,.18,1)],basin:7,id:1},
+    {candidates:[row(1,7,100,2,1,.16,.5),row(2,7,20,1,1,.16,.7)],basin:7,id:2},
+    {candidates:[row(1,7,-2,-5,1,0,1),row(2,7,-1,-4,1,.01,1)],basin:7,id:2},
+  ];
+  for(const {basin,candidates,id} of cases){const result=invoke({mode:'canonical-upstream',basin,candidates});
+    assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).id,id);}
+  const tied=[row(1,7,10,2,3),row(2,7,10,2,1)];
+  assert.equal(JSON.parse(invoke({mode:'canonical-upstream',basin:7,candidates:tied}).stdout).id,1);
+  assert.equal(JSON.parse(invoke({mode:'guided-upstream',basin:7,candidates:tied}).stdout).id,2);
+  const invalid=invoke({mode:'canonical-upstream',basin:7,candidates:[]});assert.notEqual(invalid.status,0);
+});
 test('native point screen computes projected lengths and closest points',{skip:!binary},()=>{
   const output=invoke(fixture);assert.equal(output.status,0,output.stderr);
   const result=JSON.parse(output.stdout);assert.equal(result.points.length,3);assert.equal(result.lineLengthsMeters.length,2);

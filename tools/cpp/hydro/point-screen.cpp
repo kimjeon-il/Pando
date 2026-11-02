@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -13,6 +14,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using Value=pandoeditor::codecjson::Value;
@@ -94,6 +96,33 @@ Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lin
     auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
 }
 Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+Value canonicalUpstream(const Value& input,bool useOrder){
+    const auto exactInteger=[](const Value& value){const double n=pandoeditor::codecjson::finiteNumber(value);
+        if(std::abs(n)>9007199254740991.0||std::trunc(n)!=n)throw std::invalid_argument("Invalid river identity");return static_cast<std::int64_t>(n);};
+    const auto basin=exactInteger(field(input,"basin"));const auto& source=array(field(input,"candidates"));
+    if(source.empty()||source.size()>1000000)throw std::invalid_argument("Bounded upstream candidates required");
+    struct Candidate{Value id;std::int64_t numericId,basin,order;double area,flow,score,alignment;bool guided;};
+    std::vector<Candidate> candidates;candidates.reserve(source.size());bool same=false;
+    for(const auto& row:source){const auto& id=field(row,"id");const auto numericId=exactInteger(id),rowBasin=exactInteger(field(row,"basin")),order=exactInteger(field(row,"order"));
+        const double area=pandoeditor::codecjson::finiteNumber(field(row,"area")),flow=pandoeditor::codecjson::finiteNumber(field(row,"flow"));
+        const auto& scoreValue=field(row,"score"),&alignmentValue=field(row,"alignment");
+        if((scoreValue.kind==Value::Null)!=(alignmentValue.kind==Value::Null))throw std::invalid_argument("Invalid upstream candidate");
+        const bool guided=scoreValue.kind!=Value::Null;const double score=guided?pandoeditor::codecjson::finiteNumber(scoreValue):0,
+          alignment=guided?pandoeditor::codecjson::finiteNumber(alignmentValue):0;
+        if(guided&&(score<0||alignment < -1.0000000001||alignment > 1.0000000001))throw std::invalid_argument("Invalid guided branch score");
+        same|=rowBasin==basin;candidates.push_back({id,numericId,rowBasin,order,area,flow,score,alignment,guided});}
+    double largest=-std::numeric_limits<double>::infinity();for(const auto& row:candidates)if(!same||row.basin==basin)largest=std::max(largest,row.area);
+    const Candidate* bestGuide=nullptr;const Candidate* fallback=nullptr;
+    for(const auto& row:candidates){if(same&&row.basin!=basin)continue;
+        if(!fallback||std::make_tuple(row.area,row.flow,useOrder?row.order:0,row.numericId)>
+          std::make_tuple(fallback->area,fallback->flow,useOrder?fallback->order:0,fallback->numericId))fallback=&row;
+        if(row.guided&&row.area>=largest*0.10&&(!bestGuide||
+          std::make_tuple(row.score,-row.alignment,-row.area,-row.flow,row.numericId)<
+          std::make_tuple(bestGuide->score,-bestGuide->alignment,-bestGuide->area,-bestGuide->flow,bestGuide->numericId)))bestGuide=&row;
+    }
+    const auto* selected=bestGuide&&bestGuide->score<=0.16?bestGuide:fallback;
+    if(!selected)throw std::runtime_error("No upstream candidate");auto result=Value::obj();result.object["id"]=selected->id;return result;
+}
 // Geographic-degree score used to choose a named upstream branch at a confluence.
 Value guidedBranchScore(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
@@ -169,6 +198,9 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&
+      (requested->second.string=="canonical-upstream"||requested->second.string=="guided-upstream"))
+        return canonicalUpstream(input,requested->second.string=="canonical-upstream");
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="guided-branch")
         return guidedBranchScore(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="shared-boundary")
