@@ -128,6 +128,9 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
   await assert.rejects(diagnoseMacroTrainingSource(request),/no supervised/i);
   const result=await diagnostic.diagnoseTrainingCorpus({...request,output});
   assert.deepEqual(result.sheets,[]);assert.equal(result.independentEvaluation,false);assert.equal(result.onnxParityVerified,false);
+  assert.equal(result.corpusManifestSha256,hash(readFileSync(corpus)));
+  assert.equal(result.corpusSha256,await corpusFingerprint(corpus));
+  assert.notEqual(result.corpusSha256,result.corpusManifestSha256);
   assert.deepEqual(JSON.parse(readFileSync(join(output,'diagnostics.json'),'utf8')).sheets,[]);
   assert.equal(existsSync(join(output,'tile.f32')),false);
   const auxiliaryCorpus=join(root,'auxiliary.json');writeFileSync(auxiliaryCorpus,JSON.stringify({schemaVersion:1,trainingOnly:true,sheets:[]}));
@@ -136,6 +139,7 @@ test('corpus diagnostics skip reviewed sources with no supervised pixels',async 
     checkpointSha256:hash('checkpoint'),corpusSha256:hash(readFileSync(corpus)),auxiliarySha256:hash(readFileSync(auxiliaryCorpus)),lineageFingerprint}));
   const combined=await diagnostic.diagnoseTrainingCorpus({...request,auxiliaryCorpus,output:join(root,'combined')});
   assert.deepEqual(combined.sheets,[]);assert.equal(combined.lineageFingerprint,lineageFingerprint);
+  assert.equal(combined.corpusManifestSha256,hash(readFileSync(corpus)));assert.equal(combined.corpusSha256,lineageFingerprint);
 });
 
 test('diagnostic tile joins native probabilities, known masks, statistics and overlays',async()=>{

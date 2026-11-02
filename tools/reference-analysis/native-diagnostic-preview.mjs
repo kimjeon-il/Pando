@@ -193,7 +193,7 @@ async function diagnoseSource({corpus,auxiliaryCorpus,viewCorpus='primary',revie
   return {sourceId,tileIndex:index,pixelOrigin:[x,y],channels:diagnostic.channels,baselineChannels:diagnostic.baselineChannels,
     baselineWeightsSha256:diagnostic.baselineWeightsSha256,baselineOriginalCheckpointSha256:baselinePath?
       (weights?receipt.sourceInitializationSha256:receipt.initializationSourceSha256??null):null,
-    jpeg:preview.data,checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
+    jpeg:preview.data,checkpointSha256:weights?null:checkpointHash,corpusManifestSha256:corpusHash,
     ...(weights?{weightsSha256:diagnostic.weightsSha256,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
       trainingCorpusVerified:false,trainingCorpusFingerprintMatched:combined,optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(combined?{auxiliaryCorpusSha256:auxiliaryHash,lineageFingerprint,viewCorpus}:{}),
@@ -244,6 +244,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     if(manifest.checkpointSha256!==checkpointHash||manifest.model?.sha256!==onnxHash||manifest.model?.url!==basename(onnxPath)||
       manifest.model?.bytes!==statSync(onnxPath).size||manifest.trainingOnly!==true||manifest.evaluationStatus!=='pending'||
       manifest.releaseApproved!==false||!(manifest.optimizerUpdates>0))throw Error('ONNX does not match the diagnostic checkpoint');}
+  const corpusSha256=await corpusFingerprint(corpusPath,auxiliaryCorpus);
   const rows=[];let created=false,internalScope=null;
   for(const sourceId of ids){
     signal?.throwIfAborted();
@@ -251,7 +252,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
       captureParity:(!weights||Boolean(onnx))&&rows.length===0,skipUnsupervised:true},options,internalScope||(auxiliaryCorpus?{}:null));
     if(!result)continue;
     if((weights?(result.weightsSha256!==checkpointHash||result.sourceCheckpointSha256!==transferred.sourceCheckpointSha256||result.checkpointSha256!==null):
-      result.checkpointSha256!==checkpointHash)||result.corpusSha256!==corpusHash||
+      result.checkpointSha256!==checkpointHash)||result.corpusManifestSha256!==corpusHash||
       (reviewCorpus&&result.reviewCorpusSha256!==viewHash))throw Error('Diagnostic inputs differ across sources');
     if(auxiliaryCorpus&&!internalScope)internalScope={corpusPath,auxiliaryPath:resolve(auxiliaryCorpus),corpusHash,
       auxiliaryHash:result.auxiliaryCorpusSha256,lineageFingerprint:result.lineageFingerprint};
@@ -262,14 +263,16 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
     if(previewFile)await writeFile(join(target,previewFile),jpeg,{flag:'wx',signal});
     rows.push({...row,previewFile});
   }
+  const finalCorpusFingerprint=await corpusFingerprint(corpusPath,auxiliaryCorpus);
   if(trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
-    trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash)
+    trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash||
+    finalCorpusFingerprint!==corpusSha256)
     throw Error('Diagnostic checkpoint or corpus changed during execution');
   if(internalScope&&(trainingFileIdentity(internalScope.auxiliaryPath)!==internalScope.auxiliaryHash||
-    await corpusFingerprint(corpusPath,internalScope.auxiliaryPath)!==internalScope.lineageFingerprint))
+    finalCorpusFingerprint!==internalScope.lineageFingerprint))
     throw Error('Combined training inputs changed during diagnostic');
   if(auxiliaryCorpus&&!internalScope){const auxiliaryPath=resolve(auxiliaryCorpus),auxiliaryHash=trainingFileIdentity(auxiliaryPath);
-    const fingerprint=await corpusFingerprint(corpusPath,auxiliaryPath),receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
+    const fingerprint=finalCorpusFingerprint,receipt=JSON.parse(readTrainingBounded(receiptPath,1024*1024));
     if(weights?receipt.trainingCorpusSha256!==fingerprint:receipt.auxiliarySha256!==auxiliaryHash||receipt.lineageFingerprint!==fingerprint)
       throw Error('Combined training inputs changed during diagnostic');
     internalScope={corpusPath,auxiliaryPath,corpusHash,auxiliaryHash,lineageFingerprint:fingerprint};}
@@ -278,11 +281,13 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   if(onnxPath){const {verifyTrainedOnnx,verifyTransferredWeightsOnnx}=await import('./verify-trained-onnx.mjs');
     parityResult=weights?await verifyTransferredWeightsOnnx({model:onnxPath,weights:checkpointPath,diagnostics:target,signal}):
       await verifyTrainedOnnx({model:onnxPath,diagnostics:target,expectedCheckpointSha256:checkpointHash,signal});
+    const parityCorpusFingerprint=await corpusFingerprint(corpusPath,auxiliaryCorpus);
     if(trainingFileIdentity(onnxPath)!==onnxHash||trainingFileIdentity(onnxManifest)!==onnxManifestHash||
       trainingFileIdentity(viewPath)!==viewHash||trainingFileIdentity(corpusPath)!==corpusHash||
       trainingFileIdentity(checkpointPath)!==checkpointHash||trainingFileIdentity(receiptPath)!==receiptHash||
+      parityCorpusFingerprint!==corpusSha256||
       internalScope&&(trainingFileIdentity(internalScope.auxiliaryPath)!==internalScope.auxiliaryHash||
-        await corpusFingerprint(corpusPath,internalScope.auxiliaryPath)!==internalScope.lineageFingerprint))
+        parityCorpusFingerprint!==internalScope.lineageFingerprint))
       throw Error('ONNX or diagnostic inputs changed during parity verification');
     await writeFile(join(target,'onnx-parity.json'),JSON.stringify(parityResult,null,2)+'\n',{flag:'wx',signal});
   }
@@ -290,7 +295,7 @@ export async function diagnoseTrainingCorpus({corpus,auxiliaryCorpus,viewCorpus=
   const report={schemaVersion:1,purpose:weights?'transferred-weights-source-diagnostic':reviewCorpus?'source-reviewed-diagnostic':'training-set-diagnostic-only',
     trainingOnly:true,independentEvaluation:false,releaseApproved:false,onnxParityVerified:Boolean(parityResult),
     ...(parityResult?{onnxSha256:onnxHash,onnxParityFile:'onnx-parity.json',onnxMaximumAbsoluteError:parityResult.maximumAbsoluteError}:{}),
-    checkpointSha256:weights?null:checkpointHash,corpusSha256:corpusHash,
+    checkpointSha256:weights?null:checkpointHash,corpusSha256,corpusManifestSha256:corpusHash,
     ...(weights?{weightsSha256:checkpointHash,sourceCheckpointSha256:transferred.sourceCheckpointSha256,
       trainingCorpusVerified:false,trainingCorpusFingerprintMatched:Boolean(auxiliaryCorpus),optimizerStateTransferred:false,lineageComplete:false}:{}),
     ...(internalScope?{auxiliaryCorpusSha256:internalScope.auxiliaryHash,lineageFingerprint:internalScope.lineageFingerprint,viewCorpus}:{}),

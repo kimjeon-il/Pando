@@ -124,6 +124,11 @@ prove complete ancestry; this does not replace the full Python command. For ONNX
 comparison, first export a new model with its matching `.onnx.export.json` receipt;
 the corpus diagnostic verifies both files and compares one supervised tile. This
 is execution parity only and does not establish complete model equivalence.
+Corpus diagnostic `corpusSha256` is the source-content fingerprint (including
+the auxiliary corpus when present); `corpusManifestSha256` is the primary
+manifest file hash. A single-source diagnostic records only the manifest hash.
+Neither fingerprint establishes that transferred weights were trained on the
+selected sources unless their provenance is separately verified.
 
 ```powershell
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus $corpusPath --source SOURCE_ID --weights $transferredWeights --output $newDiagnosticDirectory --device cuda --torch-library $torchLibrary
