@@ -1,0 +1,84 @@
+name: E4 web review and evidence acceptance
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - .github/workflows/e4-web-review-acceptance.yml
+      - apps/viewer/templates/index.html
+      - apps/viewer/css/viewer.css
+      - apps/viewer/js/modules/viewer-composition.js
+      - apps/viewer/js/modules/viewer-review-panel.js
+      - shared/frontend/js/modules/review-inspection.js
+      - shared/frontend/js/modules/review-evidence-files.js
+      - tests/unit/review-inspection.test.mjs
+      - tests/browser/viewer-review-e4.spec.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+# Keep source-SHA evidence despite unrelated UI commits.
+concurrency:
+  group: e4-review-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  e4-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify paired canonical temporal Core
+        run: node scripts/check-core-prerequisite.mjs
+      - name: Lint review model, browser owner and assertions
+        run: >-
+          pnpm exec eslint
+          shared/frontend/js/modules/review-inspection.js
+          shared/frontend/js/modules/review-evidence-files.js
+          apps/viewer/js/modules/viewer-review-panel.js
+          apps/viewer/js/modules/viewer-composition.js
+          tests/unit/review-inspection.test.mjs
+          tests/browser/viewer-review-e4.spec.mjs
+      - name: Verify E2/E3 handoff, source mapping and hash-verified file imports
+        run: >-
+          node --test
+          tests/unit/review-inspection.test.mjs
+          tests/unit/review-change-records.test.mjs
+          tests/unit/e3-revision-diff.test.mjs
+      - name: Check unchanged map and read-only runtime boundaries
+        run: node scripts/check-runtime-boundaries.mjs
+
+  e4-browser:
+    needs: e4-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise E4 panel, source SHA geometry, correction export and viewer project-open regression
+        run: >-
+          pnpm exec playwright test
+          tests/browser/viewer-review-e4.spec.mjs
+          tests/browser/viewer-project-open.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Preserve failed E4 screenshots and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e4-browser-failure-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
