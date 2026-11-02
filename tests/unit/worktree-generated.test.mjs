@@ -71,6 +71,12 @@ test('resuming a retired tensor also verifies its retained duplicate',t=>{
  assert.throws(()=>applyGeneratedCleanup({...options,manifest,journal,afterMutation:()=>{throw Error('interrupted');}}),/interrupted/);writeFileSync(join(root,keeper),'change');
  assert.throws(()=>applyGeneratedCleanup({...options,manifest,journal}),/duplicate.*changed/i);
 });
+test('apply rejects a tampered manifest that selects its own duplicate source',t=>{
+ const root=fixture(t),target='build-native/reference-analysis/replay/tensor.f32',keeper='build-native/reference-analysis/retained/tensor.f32';put(root,target,'tensor');put(root,keeper,'tensor');
+ const options={roots:[root],requests:[{root,path:target,action:'delete',reason:'completed replay exact duplicate',duplicateOf:keeper}]},manifest=previewGeneratedCleanup(options);
+ manifest.entries[0].duplicateOf=target;manifest.entries[0].duplicateIdentity=manifest.entries[0].identity;
+ assert.throws(()=>applyGeneratedCleanup({...options,manifest}),/duplicate.*selected|duplicate.*source/i);assert.ok(existsSync(join(root,target)));
+});
 test('retired dependency links are unlinked without traversing their shared store',t=>{
  const root=fixture(t),shared=fixture(t);put(shared,'keep.js','shared package');
  mkdirSync(join(root,'node_modules/.pnpm'),{recursive:true});symlinkSync(shared,join(root,'node_modules/.pnpm/shared-package'),'junction');

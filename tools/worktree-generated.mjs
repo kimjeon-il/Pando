@@ -116,6 +116,12 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  roots=roots.map(p=>resolve(p));protectedPaths=protectedPaths.map(p=>resolve(p));
  if(JSON.stringify(manifest.compilerScopes||[])!==JSON.stringify(compilerScopes))throw Error('Compiler retirement scope mismatch');
  if(manifest.schema!==schema||JSON.stringify(manifest.roots)!==JSON.stringify(roots.map(p=>resolve(p))))throw Error('Manifest scope mismatch');
+ const normalizedPath=p=>process.platform==='win32'?resolve(p).toLowerCase():resolve(p),selected=new Set(manifest.entries.map(e=>normalizedPath(resolve(e.root,e.path))));
+ for(const e of manifest.entries){
+  const target=validate(e.root,e.path,roots,protectedPaths,compilerScopes,e.action),relativeTarget=relative(e.root,target).replaceAll('\\','/');
+  if(evidencePattern.test(relativeTarget)&&e.action==='delete'&&!e.duplicateOf)throw Error('Unique retired evidence must be relocated');
+  if(e.duplicateOf){const keeper=containedPath(e.root,e.duplicateOf),rel=relative(e.root,keeper).replaceAll('\\','/');if(e.action!=='delete'||!/^build-native\/reference-analysis\/.*\.f32$/i.test(relativeTarget)||!/^build-native\/reference-analysis\/.*\.f32$/i.test(rel)||selected.has(normalizedPath(keeper)))throw Error('Duplicate source is also selected or outside the tensor scope');}
+ }
  const targets=compilerScopes.length?[...new Map(manifest.entries.map(e=>[e.root+'|'+e.scope,e])).values()].map(e=>containedPath(e.root,e.scope)):roots;
  assertIdle(roots,consumers,targets);
  const digest=contentHash(Buffer.from(JSON.stringify(manifest)));let state={schema,digest,completedCount:0,pending:null,deletedBytes:0,relocatedBytes:0,payloadBytesUnlinked:0};
