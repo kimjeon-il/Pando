@@ -40,7 +40,11 @@ export function compareCandidateOutputs(expected,actual){
  const keys=o=>Object.keys(o).sort();
  if(JSON.stringify(keys(expected))!==JSON.stringify(keys(actual))||keys(expected).some(p=>expected[p]!==actual[p]))fail('CANDIDATE_OUTPUT_MISMATCH');
 }
-function defaultGit(root,args){return execFileSync('git',args,{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:64*1024*1024,stdio:['ignore','pipe','pipe']});}
+function defaultGit(root,args){try{return execFileSync('git',args,{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:64*1024*1024,stdio:['ignore','pipe','pipe']});}catch(error){error.autoOperation='git:'+args[0];throw error;}}
+export function automaticFailureDetails(error,env=process.env){
+ const redact=value=>{let s=String(value||'');for(const key of ['GITHUB_TOKEN','PANDOLAB_LIBRARY_WRITE_TOKEN'])if(env[key])s=s.split(env[key]).join('[REDACTED]');return s.replace(/https?:\/\/[^\s]+/g,'[URL]').slice(0,3000);};
+ return {code:error.code||'AUTOMATIC_SYNC_FAILED',operation:error.autoOperation||'reconcile',name:error.name||'Error',message:redact(error.message),stderr:redact(error.stderr),frames:String(error.stack||'').split('\n').slice(1).filter(s=>/\/(scripts|tools)\//.test(s)).slice(0,5).map(redact)};
+}
 function branchGuard(settings){return settings.branch==='main'&&!settings.productionEnabled;}
 export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  if(env.GITHUB_ACTIONS!=='true')fail('GITHUB_ACTIONS_REQUIRED');
@@ -169,6 +173,6 @@ export async function runAutomaticSync({root=resolve(fileURLToPath(new URL('../'
  return reconcileLibraryData({request,policy:{productionEnabled:settings.productionEnabled},adapters});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const args=process.argv.slice(2);if(args.some(x=>x!=='--check')){console.error('Unsupported arguments');process.exitCode=2;}else runAutomaticSync({check:args.includes('--check')}).then(result=>{console.log(JSON.stringify(result));if(['incomplete','blocked'].includes(result.status))process.exitCode=1;}).catch(error=>{console.error(error.code||'AUTOMATIC_SYNC_FAILED');process.exitCode=1;});
+ const args=process.argv.slice(2);if(args.some(x=>x!=='--check')){console.error('Unsupported arguments');process.exitCode=2;}else runAutomaticSync({check:args.includes('--check')}).then(result=>{console.log(JSON.stringify(result));if(['incomplete','blocked'].includes(result.status))process.exitCode=1;}).catch(error=>{console.error(JSON.stringify(automaticFailureDetails(error)));process.exitCode=1;});
 }
 
