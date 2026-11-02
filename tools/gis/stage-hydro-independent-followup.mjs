@@ -34,18 +34,21 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
   ensure(Object.keys(previous).length===originalIndependent,'Previous independently sourced names incomplete');
   const reviewDocument=JSON.parse(followupBytes),followup=validateIndependentHydronyms(reviewDocument);
   const approved=Object.keys(followup);
-  ensure(approved.length===1&&approved[0]==='20773860','Unexpected followup approval scope');
-  ensure(!Object.hasOwn(previous,approved[0]),'Followup already in baseline review');
+  const approvedNames=new Map([['20773860','수에즈운하'],['40423228','남한강']]);
+  ensure(approved.length===approvedNames.size&&approved.every(id=>approvedNames.has(id)),
+    'Unexpected followup approval scope');
+  ensure(approved.every(id=>!Object.hasOwn(previous,id)),
+    'Followup already in baseline review');
   ensure(reviewDocument.reference?.baselineBundleSha256===manifest.container.sha256
     &&reviewDocument.reference.geometryChanged===false,'Unpinned or shape-changing followup');
   const prior=auditHydroOsm(manifest,bundle,{baseline:true});
-  ensure(prior.remainingCount===originalOsm&&prior.remainingSystemIds.includes(approved[0]),
-    'The expected OSM-linked Suez Canal is no longer in this bundle');
+  ensure(prior.remainingCount===originalOsm&&approved.every(id=>prior.remainingSystemIds.includes(id)),
+    'Expected OSM-linked target systems have changed in the source bundle');
 
   const output=rewriteHydroNames({manifest,bundle,substitutions:followup,sourceName:file,sourceBytes:followupBytes});
   const staged=output.manifest;
   // The generic repacker assumes a single review file. Restore the immutable 42-source
-  // archive; a *separate* incremental receipt proves the 43rd name.
+  // archive; a *separate* incremental receipt proves the 43rd/44th verified names.
   staged.sources.independentHydronymReplacements=structuredClone(manifest.sources.independentHydronymReplacements);
   staged.sources.independentHydronymFollowup={
     file,sha256:sha(followupBytes),replacedSystems:approved.length,
@@ -54,10 +57,10 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
   staged.version=stagedVersion;
   staged.cache.name='pandolab-water-v0.13.3-independent-'+staged.metadata.core.sha256.slice(0,12);
   staged.dataset=String(manifest.dataset).replace('OSM waterway names',
-    'OSM waterway names (30 systems remaining; Suez Canal independently verified)');
+    'OSM waterway names (29 systems remaining; Suez Canal and Namhangang independently verified)');
   const result=auditHydroOsm(staged,output.bundle);
-  ensure(result.remainingCount===originalOsm-1
-    &&!result.remainingSystemIds.includes(approved[0])
+  ensure(result.remainingCount===originalOsm-approved.length
+    &&approved.every(id=>!result.remainingSystemIds.includes(id))
     &&result.remainingSystemIds.every(id=>prior.remainingSystemIds.includes(id)),
   'The staged source data is not exactly 30 remaining OSM-matched systems');
   ensure(equal(manifest.shards.map(s=>s.sha256),staged.shards.map(s=>s.sha256))
@@ -78,8 +81,8 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
     const after=toCore.get(Number(row.fid)),id=String(row.systemId||'');
     if(id!==approved[0]){ensure(equal(row,after),'Unrelated core river/lake changed');continue;}
     changedCore++;
-    ensure(after.name==='수에즈운하'&&after.mainstemNameKo==='수에즈운하',
-      'Verified Suez Canal name not installed');
+    ensure(after.name===approvedNames.get(id)&&after.mainstemNameKo===approvedNames.get(id),
+      'Verified independent hydronym name not installed: '+id);
   }
   for(const row of beforeDetail){
     const after=toDetail.get(Number(row.fid)),id=String(fromCore.get(Number(row.fid))?.systemId||'');
@@ -88,9 +91,9 @@ export function makeHydroFollowupCandidate({manifest,bundle,baselineBytes,follow
     ensure(!(after.osmRelationIds||[]).length
       &&!String(after.source||'').includes('OSM waterway names')
       &&after.independentSourceUrls?.length>=2,
-    'Suez Canal independent attribution incomplete');
+    'Independent hydronym attribution incomplete: '+id);
   }
-  ensure(changedCore>0&&changedDetail===changedCore,'Suez Canal fragment identity mismatch');
+  ensure(changedCore>0&&changedDetail===changedCore,'Target fragment identity mismatch');
   return {
     manifest:staged,bundle:output.bundle,baselineBytes,followupBytes,
     proof:{
