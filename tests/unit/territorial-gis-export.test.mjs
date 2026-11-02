@@ -12,14 +12,13 @@ import { TextEncoder, TextDecoder } from 'node:util';
 import { renderProductHtml } from '../../scripts/lib/product-html.mjs';
 
 const read = path => readFileSync(path.startsWith('assets/js/') ? repositoryFrontendUrl(path) : new URL(`../../${path}`, import.meta.url), 'utf8');
-const html = renderProductHtml(read).editor;
-test('export choices use unique current categories and UI has no merged duplicate labels', () => {
-  const fieldset = html.match(/<fieldset class="gis-export-layers">[\s\S]*?<\/fieldset>/)[0];
-  const values = [...fieldset.matchAll(/value="([^"]+)"/g)].map(match => match[1]);
-  assert.deepEqual(values, ['countries', 'subunits', 'regions', 'genericFeatures', 'distributions', 'labels']);
-  assert.equal((fieldset.match(/<span>하위단위<\/span>/g) || []).length, 1);
-  assert.doesNotMatch(html, /하위단위(?:·| 또는 )하위단위/);
+const html = renderProductHtml(read).web;
+test('the Viewer review interface cannot export or mutate GIS source layers',()=>{
+  for(const id of ['reviewPanel','reviewEvidenceInput','reviewExportRequest','reviewSourceLinks'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.doesNotMatch(html,/(?:gis-export-layers|id="gisExportFormat"|id="dataExportBtn")/);
 });
+
 
 test('child-only GeoJSON export writes one layer and omits administrative fields', async () => {
   const context = vm.createContext({ URL, Blob, structuredClone, TextEncoder, TextDecoder,
