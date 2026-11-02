@@ -202,7 +202,7 @@ jobs:
         env:
           PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/artifact
-        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs
+        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs
   publisher-pdf:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'publisher-pdf'
     strategy:
