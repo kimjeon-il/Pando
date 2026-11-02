@@ -346,6 +346,28 @@
       "detachedCandidate": true,
       "owner": "Library geometry candidate construction",
       "reason": "Append library identities only to a new createInitialDocument candidate. Startup passes it through ProjectDomain.prepareImport/admit before editing the accepted C++ document."
+    },
+    {
+      "file": "shared/frontend/js/modules/review-inspection.js",
+      "functions": [
+        "reviewObjectMapRef"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "E4 read-only review object mapping",
+      "reason": "Reads immutable candidate/project entity identity to resolve a review object reference. No accepted Core document mutation."
+    },
+    {
+      "file": "apps/viewer/js/modules/viewer-review-panel.js",
+      "functions": [
+        "syncMapSelection"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "E4 read-only review selection synchronization",
+      "reason": "Reads one accepted Core document snapshot to synchronize a review-panel selection; no data writes or independent geography state."
     }
   ]
 }
