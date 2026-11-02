@@ -1,12 +1,14 @@
 import {test,expect} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
+import {createViewerProjectPackage} from '../fixtures/viewer-project-package.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const bundleTemplate=()=>JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json',import.meta.url),'utf8'));
 const geo=width=>({type:'Polygon',coordinates:[[[70,30],[70+width,30],[70+width,36],[70,36],[70,30]]]});
-function dataFixture(){
+function dataFixture(baseRevision){
   const proposal=bundleTemplate(),before=geo(4),after=geo(9);
+  if(baseRevision)proposal.proposal.dataset.baseRevision=baseRevision;
   const oldVersion='geo-original',newVersion='geo-after';
   proposal.proposal.comparisonMonth='2008-10';
   proposal.proposal.changes=[{
@@ -47,10 +49,52 @@ function dataFixture(){
     buffer:Buffer.from(JSON.stringify(manifest,null,2)+'\n')});
   return {files,rawBefore,rawAfter,diff};
 }
+
+test('E4 map revision follows the actual builtin or opened project',async({page})=>{
+  test.setTimeout(180000);
+  const pin=JSON.parse(readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8')).revision;
+  const model=dataFixture(pin),project=await createViewerProjectPackage('별도 파일 지도');
+  await ready(page);
+  await page.locator('#reviewPanelBtn').click();
+  await page.locator('#reviewEvidenceInput').setInputFiles(model.files);
+  await expect(page.locator('#reviewMapRevision')).toContainText('변경 전');
+  await page.locator('#projectFileInput').setInputFiles({name:'review-file.gpkg',mimeType:'application/geopackage+sqlite3',buffer:project.bytes});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(project.project.documentId);
+  await expect(page.locator('#reviewMapRevision')).toContainText('파일 지도');
+  await page.evaluate(()=>document.getElementById('builtinMapBtn').click());
+  await expect(page.locator('#reviewMapRevision')).toContainText('변경 전',{timeout:120000});
+});
 async function ready(page){
   await page.goto('/?debug=1&renderer=canvas');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
 }
+
+test('E4 can compare again after cancelling an in-flight source request',async({page})=>{
+  test.setTimeout(180000);
+  const model=dataFixture();
+  let releaseFirst;
+  const firstRequest=new Promise(resolve=>{releaseFirst=resolve;});
+  let requested;
+  const requestStarted=new Promise(resolve=>{requested=resolve;});
+  let first=true;
+  await page.route('https://raw.githubusercontent.com/kimjeon-il/PandoLab-library-data/**',async route=>{
+    if(first){first=false;requested();await firstRequest;}
+    const body=route.request().url().includes(model.diff.readObjects[0].sha256)?model.rawBefore:model.rawAfter;
+    await route.fulfill({status:200,contentType:'application/json',body,headers:{'access-control-allow-origin':'*'}}).catch(()=>{});
+  });
+  await ready(page);
+  await page.locator('#reviewPanelBtn').click();
+  await page.locator('#reviewEvidenceInput').setInputFiles(model.files);
+  await expect(page.locator('#reviewLoadStatus')).toContainText('검수 자료 읽기 완료');
+  await page.locator('#reviewFetchGeometry').click();
+  await requestStarted;
+  await expect(page.locator('#reviewFetchGeometry')).toBeDisabled();
+  await page.locator('#reviewChangeList button').first().click();
+  releaseFirst();
+  await expect(page.locator('#reviewFetchGeometry')).toBeEnabled();
+  await page.locator('#reviewFetchGeometry').click();
+  await expect(page.locator('#reviewCompareStatus')).toContainText('원본 SHA-256 검증 완료',{timeout:20000});
+});
 
 test('E4 review opens matching immutable revisions, draws verified source previews, exports correction without writing the map',async({page})=>{
   test.setTimeout(180000);

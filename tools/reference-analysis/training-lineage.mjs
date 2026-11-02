@@ -3,6 +3,13 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const KEYS=Object.freeze(['id','sha256','familyId','editionId','duplicateGroup']);
 const SHA=/^[a-f0-9]{64}$/;
+// A declared selection scope is not evidence of complete ancestral lineage.
+export function validateSelectionExposure(value){
+  if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==3||value.schemaVersion!==1||
+    !SHA.test(value.manifestSha256||'')||!SHA.test(value.fingerprint||''))
+    throw Error('Valid validation selection exposure required');
+  return value;
+}
 export function validateTrainingLineage(value){
   if(!value||typeof value!=='object'||Array.isArray(value)||value.schemaVersion!==1||value.complete!==true||
     !Array.isArray(value.sheets)||!Array.isArray(value.parents)||value.parents.some(hash=>typeof hash!=='string'||!SHA.test(hash)))
@@ -14,6 +21,8 @@ export function validateTrainingLineage(value){
   return value;
 }
 export function buildTrainingLineage(sheets,{parent=null,parentSha256=null}={}){
+  if(!Array.isArray(sheets)||sheets.some(sheet=>!sheet||!['train','validation','test'].includes(sheet.split)))
+    throw Error('Explicit train, validation or test source split required');
   const result={schemaVersion:1,complete:true,parents:[],sheets:[]};
   if(parent!==null){validateTrainingLineage(parent);if(typeof parentSha256!=='string'||!SHA.test(parentSha256))throw Error('Complete verified ancestral lineage required');
     result.parents=[...parent.parents,parentSha256];result.sheets=parent.sheets.map(row=>({...row}));}
@@ -26,11 +35,30 @@ export function buildTrainingLineage(sheets,{parent=null,parentSha256=null}={}){
 }
 export function assertEvaluationIndependence(lineage,sheets,{split='test'}={}){
   validateTrainingLineage(lineage);
-  for(const sheet of sheets){if(!['test','validation'].includes(split)||sheet.split!==split)throw Error('Independent final-test split required');
+  if(!['test','validation'].includes(split))throw Error('Independent evaluation split required');
+  if(!Array.isArray(sheets)||!sheets.length)throw Error('Independent evaluation sources required');
+  for(const sheet of sheets){if(!sheet||sheet.split!==split)throw Error('Independent final-test split required');
     for(const key of KEYS)if(typeof sheet[key]!=='string'||!sheet[key]||(key==='sha256'&&!SHA.test(sheet[key])))
       throw Error('Not independent: ancestral '+key+' overlap or missing identity');
     for(const previous of lineage.sheets)for(const key of KEYS)if(!sheet[key]||sheet[key]===previous[key])throw Error('Not independent: ancestral '+key+' overlap or missing identity');
   }
+}
+export function assertSelectionExposure({exposure,manifestSha256,fingerprint,trainingSheets,selectionSheets}){
+  validateSelectionExposure(exposure);
+  if(exposure.manifestSha256!==manifestSha256||exposure.fingerprint!==fingerprint)
+    throw Error('Validation selection manifest or fingerprint differs');
+  if(!Array.isArray(trainingSheets)||!trainingSheets.length||trainingSheets.some(sheet=>sheet?.split!=='train'))
+    throw Error('Training source identities required for selection exposure');
+  if(!Array.isArray(selectionSheets)||!selectionSheets.length||selectionSheets.some(sheet=>sheet?.split!=='validation'))
+    throw Error('Validation source identities required for selection exposure');
+  assertEvaluationIndependence(buildTrainingLineage(trainingSheets),selectionSheets,{split:'validation'});
+}
+// This describes declared sources; optimizer replay must verify the model before
+// the candidate may be promoted to complete lineage.
+export function selectionLineageCandidate(request){
+  assertSelectionExposure(request);
+  const lineage=buildTrainingLineage([...request.trainingSheets,...request.selectionSheets]);
+  return {...lineage,complete:false};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{

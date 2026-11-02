@@ -1,0 +1,162 @@
+[
+  {
+    "name": "empty",
+    "features": [],
+    "expected": {
+      "selectedReachCount": 0,
+      "chainCount": 0,
+      "sourceCoordinateCount": 0,
+      "coordinatesAfterChaining": 0
+    }
+  },
+  {
+    "name": "linear",
+    "features": [
+      {
+        "id": 1,
+        "next": 2,
+        "stage": 6,
+        "coordinateCount": 2
+      },
+      {
+        "id": 2,
+        "next": 0,
+        "stage": 6,
+        "coordinateCount": 3
+      }
+    ],
+    "expected": {
+      "selectedReachCount": 2,
+      "chainCount": 1,
+      "sourceCoordinateCount": 5,
+      "coordinatesAfterChaining": 5
+    }
+  },
+  {
+    "name": "different-stage",
+    "features": [
+      {
+        "id": 1,
+        "next": 2,
+        "stage": 6,
+        "coordinateCount": 2
+      },
+      {
+        "id": 2,
+        "next": 0,
+        "stage": 6.7,
+        "coordinateCount": 3
+      }
+    ],
+    "expected": {
+      "selectedReachCount": 2,
+      "chainCount": 2,
+      "sourceCoordinateCount": 5,
+      "coordinatesAfterChaining": 5
+    }
+  },
+  {
+    "name": "junction",
+    "features": [
+      {
+        "id": 1,
+        "next": 3,
+        "stage": 6,
+        "coordinateCount": 2
+      },
+      {
+        "id": 2,
+        "next": 3,
+        "stage": 6,
+        "coordinateCount": 4
+      },
+      {
+        "id": 3,
+        "next": 0,
+        "stage": 6,
+        "coordinateCount": 3
+      }
+    ],
+    "expected": {
+      "selectedReachCount": 3,
+      "chainCount": 3,
+      "sourceCoordinateCount": 9,
+      "coordinatesAfterChaining": 9
+    }
+  },
+  {
+    "name": "cycle",
+    "features": [
+      {
+        "id": 1,
+        "next": 2,
+        "stage": 6,
+        "coordinateCount": 2
+      },
+      {
+        "id": 2,
+        "next": 1,
+        "stage": 6,
+        "coordinateCount": 3
+      }
+    ],
+    "expected": {
+      "selectedReachCount": 2,
+      "chainCount": 2,
+      "sourceCoordinateCount": 5,
+      "coordinatesAfterChaining": 5
+    }
+  },
+  {
+    "name": "ignored",
+    "features": [
+      {
+        "id": 1,
+        "next": 2,
+        "stage": null,
+        "coordinateCount": 8
+      },
+      {
+        "id": 2,
+        "next": 0,
+        "stage": 6,
+        "coordinateCount": 3
+      }
+    ],
+    "expected": {
+      "selectedReachCount": 1,
+      "chainCount": 1,
+      "sourceCoordinateCount": 3,
+      "coordinatesAfterChaining": 3
+    }
+  },
+  {
+    "name": "duplicate",
+    "features": [
+      {
+        "id": 1,
+        "next": 0,
+        "stage": 6,
+        "coordinateCount": 99
+      },
+      {
+        "id": 2,
+        "next": 0,
+        "stage": 6,
+        "coordinateCount": 3
+      },
+      {
+        "id": 1,
+        "next": 2,
+        "stage": 6,
+        "coordinateCount": 2
+      }
+    ],
+    "expected": {
+      "selectedReachCount": 2,
+      "chainCount": 1,
+      "sourceCoordinateCount": 5,
+      "coordinatesAfterChaining": 5
+    }
+  }
+]

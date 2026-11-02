@@ -25,6 +25,143 @@ function run(input) {
   return JSON.parse(result.stdout);
 }
 const nativeTest = (name, fn) => test(name, { skip: !native }, fn);
+nativeTest('logical river chains preserve canonical confluence and input order',()=>{
+  const reaches=[{id:1,next:3},{id:2,next:3},{id:3,next:4},{id:4,next:0}],canonical=[{downstream:3,upstream:1},{downstream:4,upstream:3}];
+  assert.deepEqual(run({mode:'logical-chains',reaches,canonical}),{chains:[[2],[1,3,4]]});
+  assert.deepEqual(run({mode:'logical-chains',reaches:[{id:9,next:0}],canonical:[]}),{chains:[[9]]});
+  assert.deepEqual(run({mode:'logical-chains',reaches:[],canonical:[]}),{chains:[]});
+});
+nativeTest('logical river chains reject missing links, invalid choices and cycles',()=>{
+  for(const input of [
+    {reaches:[{id:1,next:9}],canonical:[]},
+    {reaches:[{id:1,next:2},{id:2,next:0}],canonical:[{downstream:2,upstream:9}]},
+    {reaches:[{id:1,next:2},{id:2,next:0}],canonical:[]},
+    {reaches:[{id:1,next:0},{id:1,next:0}],canonical:[]},
+    {reaches:[{id:1,next:2},{id:2,next:1}],canonical:[{downstream:1,upstream:2},{downstream:2,upstream:1}]},
+  ]){
+    const result=spawnSync(native,[],{input:JSON.stringify({mode:'logical-chains',...input}),encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});
+nativeTest('river systems select mainstems and split stages without changing source order',()=>{
+  const reach=(id,mainRiver,upstreamArea,flow,stage,borderPair,parts)=>({id,mainRiver,upstreamArea,flow,stage,borderPair,parts});
+  const chains=[
+    [reach(20,10,20,3,1,null,[[[181,1],[182,2]]])],
+    [reach(10,10,100,4,1,null,[[[3,4],[4,5]]]),reach(11,10,110,5,2,['AAA','BBB'],[[[4,5],[5,6]]])],
+    [reach(30,99,10,2,1,null,[[[6,7],[7,8]]])],
+    [reach(31,99,30,1,1,null,[[[8,9],[9,10]]])],
+  ];
+  const actual=run({mode:'river-systems',chains});
+  assert.deepEqual(actual.systems,[
+    {systemId:10,chainIndexes:[1,0],mainstemIndex:1,bounds:[-179,1,5,6]},
+    {systemId:99,chainIndexes:[3,2],mainstemIndex:3,bounds:[6,7,9,10]},
+  ]);
+  assert.deepEqual(actual.fragments,[[[20]],[[10],[11]],[[30]],[[31]]]);
+  assert.deepEqual(run({mode:'river-systems',chains:[]}),{systems:[],fragments:[]});
+  const ties=run({mode:'river-systems',chains:[
+    [reach(3,6,1,0,1,['AAA','BBB'],[[[4,4]]]),reach(4,5,2,0,1,['AAA','CCC'],[])],
+    [reach(19,0,1,0,null,null,[])],
+  ]});
+  assert.deepEqual(ties.systems,[
+    {systemId:6,chainIndexes:[0],mainstemIndex:0,bounds:[-180,-90,180,90]},
+    {systemId:19,chainIndexes:[1],mainstemIndex:1,bounds:[0,0,0,0]},
+  ]);
+  assert.deepEqual(ties.fragments,[[[3],[4]],[[19]]]);
+});
+nativeTest('river width profiles interpolate by latitude-adjusted segment length',()=>{
+  const result=run({mode:'width-profile',reaches:[
+    {width:1,endWidth:4,parts:[[[0,0],[1,0],[1,2]],[[5,5],[5,5]],[[1,1]]]},
+    {width:2,endWidth:3,parts:[[[0,60],[2,60],[2,61]]]},
+  ]});
+  assert.equal(result.widths.length,3);
+  assert.deepEqual(result.widths[0],[1,2,4]);assert.deepEqual(result.widths[1],[1,1]);
+  assert.ok(Math.abs(result.widths[2][1]-2.5)<1e-12);assert.equal(result.widths[2][2],3);
+});
+nativeTest('hydro visibility and symbolic width use the fixed source thresholds',()=>{
+  const small=run({mode:'feature-policy',order:1,flow:0,upstreamArea:0,lakeArea:40,zoom:7.0000000005});
+  assert.equal(small.score,-20);assert.equal(small.riverStage,null);assert.equal(small.width,.55);
+  assert.equal(small.lakeStage,2);assert.equal(small.minZoomStage,2);
+  const large=run({mode:'feature-policy',order:20,flow:1e12,upstreamArea:1,lakeArea:250,zoom:6});
+  assert.equal(large.score,68);assert.equal(large.riverStage,0);assert.equal(large.width,2.6);
+  assert.equal(large.lakeStage,0);assert.equal(large.minZoomStage,0);
+  const middle=run({mode:'feature-policy',order:5,flow:100,upstreamArea:100,lakeArea:39,zoom:7.000000002});
+  assert.equal(middle.score,12);assert.equal(middle.riverStage,2);assert.equal(middle.lakeStage,null);assert.equal(middle.minZoomStage,3);
+});
+nativeTest('terminal decisions retain lake, coast, omitted land and water precedence',()=>{
+  const request={mode:'outlet-decision',lakeDistance:null,lakeCovers:false,coastDistance:3,onLand:true,
+    outsideLength:0,undisplayedWater:false,maxKm:25,target:[181,2]};
+  const cases=[
+    [{lakeDistance:.5},{class:'lake',distanceKm:.5,snap:null}],
+    [{coastDistance:.000001},{class:'sea',distanceKm:0,snap:null}],
+    [{coastDistance:1.5},{class:'sea',distanceKm:1.5,snap:[-179,2]}],
+    [{},{class:'sea',distanceKm:3,snap:[-179,2]}],
+    [{onLand:false,undisplayedWater:true},{class:'sea',distanceKm:3,snap:[-179,2]}],
+    [{onLand:false,undisplayedWater:true,coastDistance:26},{class:'excluded-small-land',distanceKm:26,snap:null}],
+    [{onLand:true,undisplayedWater:true,coastDistance:26},{class:'excluded-undisplayed-water',distanceKm:26,snap:null}],
+    [{onLand:true,undisplayedWater:false,coastDistance:26},{class:'unresolved-land',distanceKm:26,snap:null}],
+  ];
+  for(const [overrides,expected] of cases)assert.deepEqual(run({...request,...overrides}),expected);
+  for(const overrides of [{coastDistance:-1},{lakeCovers:true},{target:[1]},{onLand:'yes'}]){
+    const result=spawnSync(native,[],{input:JSON.stringify({...request,...overrides}),encoding:'utf8'});
+    assert.notEqual(result.status,0);assert.equal(result.stdout,'');
+  }
+});
+nativeTest('outlet sample handles the date line, raster edges and near-white water',()=>{
+  const sample=run({mode:'outlet-sample',source:[179,0],target:[-179,0],width:360,height:180,rgb:[249,250,249]});
+  assert.ok(Math.abs(sample.distanceKm-222.64)<1e-9);assert.deepEqual(sample.pixel,[359,90]);assert.equal(sample.undisplayedWater,true);
+  const edge=run({mode:'outlet-sample',source:[-180,90],target:[180,90],width:360,height:180,rgb:[248,249,248]});
+  assert.deepEqual(edge.pixel,[359,0]);assert.equal(edge.undisplayedWater,false);assert.equal(edge.distanceKm,0);
+  const color=run({mode:'outlet-sample',source:[0,-90],target:[0,-89],width:360,height:180,rgb:[249,251,249]});
+  assert.deepEqual(color.pixel,[180,179]);assert.equal(color.undisplayedWater,false);assert.equal(color.distanceKm,110.57);
+  for(const overrides of [{width:0},{rgb:[249,256,249]},{source:[0]}]){
+    const request={mode:'outlet-sample',source:[0,0],target:[1,1],width:360,height:180,rgb:[255,255,255],...overrides};
+    const failed=spawnSync(native,[],{input:JSON.stringify(request),encoding:'utf8'});
+    assert.notEqual(failed.status,0);assert.equal(failed.stdout,'');
+  }
+});
+
+function scenario(name) {
+  const input=fixture();
+  if(name==='original-mismatch') input.raw[1].end=[.9,0];
+  if(name==='border-conflict') input.parts[1][0].aligned=true;
+  if(name==='long-gap') input.parts[2][0].points[0]=[1.5,0];
+  if(name==='system-mismatch') input.parts[3][0].system='other';
+  if(name==='split-reach') input.parts[2]=[
+    {fid:2,part:1,points:[[1.5,0],[2,0]],aligned:true,system:'10'},
+    {fid:2,part:0,points:[[1.002,0],[1.5,0]],aligned:true,system:'10'}];
+  if(name==='region-gate') input.region='as';
+  if(name==='microdegree') input.parts[2][0].points[0]=[1.000001,0];
+  if(name==='upstream-aligned'){input.parts[1][0].aligned=true;input.parts[2][0].aligned=false;}
+  if(name==='natural-terminal') input.raw[1].next=0;
+  if(name==='missing-downstream') input.raw[1].next=999;
+  if(name==='connected') input.parts[2][0].points[0]=[1,0];
+  if(name==='ambiguous') input.parts[2].push({fid:2,part:1,points:[[3,0],[4,0]],aligned:false,system:'10'});
+  return input;
+}
+nativeTest('native audits match all frozen original Python junction scenarios',async()=>{
+  const oracle=JSON.parse(await readFile('tests/fixtures/hydro-connectivity-audit-oracle.json','utf8'));
+  for(const name of ['baseline','original-mismatch','border-conflict','long-gap','system-mismatch',
+    'split-reach','missing-downstream','connected','ambiguous']){
+    const input=scenario(name),actual=run({...input,mode:'audit',sourceOrder:[1,2,3]}),expected=structuredClone(oracle[name]);
+    assert.deepEqual(actual.regions,expected.regions,name);assert.equal(actual.issues.length,expected.issues.length,name);
+    for(let i=0;i<actual.issues.length;i++){
+      for(const key of ['gapM','originalGapM']) if(key in expected.issues[i]){
+        assert.ok(Math.abs(actual.issues[i][key]-expected.issues[i][key])<1e-6,`${name} ${key}`);
+        delete actual.issues[i][key];delete expected.issues[i][key];
+      }
+      assert.deepEqual(actual.issues[i],expected.issues[i],name);
+    }
+  }
+});
+nativeTest('native repairs match all frozen original Python junction scenarios and are idempotent',async()=>{
+  const oracle=JSON.parse(await readFile('tests/fixtures/hydro-connectivity-repair-oracle.json','utf8'));
+  for(const name of ['baseline','original-mismatch','border-conflict','long-gap','system-mismatch',
+    'split-reach','region-gate','microdegree','upstream-aligned','natural-terminal']){
+    const input=scenario(name),before=structuredClone(input),actual=run(input);
+    assert.deepEqual(actual.parts,oracle[name].parts,name);assert.deepEqual(actual.changes,oracle[name].changes,name);
+    assert.deepEqual(input,before,name);assert.deepEqual(run({...input,parts:actual.parts}).changes,[],name);
+  }
+});
 
 nativeTest('converging tributaries share one aligned downstream port', () => {
   const input = fixture(), untouched = structuredClone(input);
@@ -83,6 +220,11 @@ nativeTest('microdegree quantization produces exact identical confluence coordin
   const result = run(input);
   assert.deepEqual(result.parts['1'][0].points.at(-1), [1.000001, 0]);
   assert.deepEqual(result.parts['3'][0].points.at(-1), [1.000001, 0]);
+});
+nativeTest('collapsed downstream reach has no ambiguous connection',()=>{
+  const input=fixture();input.parts[2][0].points=[[1,0],[1,0]];
+  const result=run({...input,mode:'audit',sourceOrder:[1,2,3]});
+  assert.deepEqual(result.issues,[]);
 });
 nativeTest('reject malformed source geometry instead of emitting partial output', () => {
   const input = fixture();

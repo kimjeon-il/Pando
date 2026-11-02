@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "sourceSha256": "c0e568f287728ee5fb26a9614afd017ee8679c543e2d0be9ff256e0cb6a070be",
+  "layers": [
+    "International",
+    "Map Frame",
+    "Hydrography",
+    "Orthoimage",
+    "Shaded Relief",
+    "Geographic Names"
+  ],
+  "renders": [
+    {
+      "enabled": [],
+      "width": 180,
+      "height": 100,
+      "sha256": "a1a9f3f234fd046e93fc67a71fa0d70c4e3fe2ebf80a276e84d8daa0a62ae085"
+    },
+    {
+      "enabled": [
+        "International"
+      ],
+      "width": 180,
+      "height": 100,
+      "sha256": "0c226bae6b8f743fff8acf3849c38149cca5596f27f2640fd9a1c296d0d11289"
+    },
+    {
+      "enabled": [
+        "International",
+        "Map Frame",
+        "Hydrography",
+        "Orthoimage",
+        "Shaded Relief",
+        "Geographic Names"
+      ],
+      "width": 180,
+      "height": 100,
+      "sha256": "92cc7cc5eacca83863659a5d8b37d126a2f2af1d9f9d01845ba41a9821455373"
+    }
+  ],
+  "text": {
+    "maximumDimension": 180,
+    "maskSha256": "3e3cc35a5646822166817726e3510a112941bf5f15b3694b3d3fc040929315eb",
+    "creditSha256": "b8af9dc2eb5ccceba9540ac38f52c8d72f8a9d805e2bf1c2089e11ee855cd1ac",
+    "characters": 11
+  },
+  "derived": {
+    "rgbSha256": "7e49a350fa272066e2d111fde97f562f9de725ba96d38b4592484b9f4d428709",
+    "maskSha256": "abaa07df706e6c717bcd93d2a4400f7f6c1543f55bd7ce6c2734b33075569b88",
+    "validSha256": "d0c07d1684c79a2f466d9a037d7c372f936d643457e488cf1aa25969d36d4e3b",
+    "observedMask": 105,
+    "positivePixels": [
+      320,
+      0,
+      0,
+      0,
+      0,
+      748,
+      0
+    ]
+  },
+  "sourceRectPts": [
+    0.0,
+    0.0,
+    180.0,
+    100.0
+  ]
+}

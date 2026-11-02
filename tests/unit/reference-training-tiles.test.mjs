@@ -1,15 +1,30 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import test from 'node:test';
 import {countAnnotationTrainingSupervision,listRasterTrainingTiles,listReviewedTrainingTiles,prepareRasterTrainingTile,prepareReviewedTrainingTile} from '../../tools/reference-analysis/training-tiles.mjs';
-import {countNativeTrainingSupervision,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
+import {countNativeTrainingSupervision,encodeNativeGrayPng,prepareNativeTrainingTile,readNativeTrainingMask} from '../../tools/map-image/native-resample.mjs';
 
 test('native supervision counts only target pixels inside known regions',async()=>{
   const target={width:3,height:1,data:Buffer.from([1,2,127])},known={width:3,height:1,data:Buffer.from([1,3,0])};
   assert.deepEqual(await countNativeTrainingSupervision(target,known),[[2,1],[1,1],[0,0],[0,0],[0,0],[0,0],[0,0]]);
   await assert.rejects(countNativeTrainingSupervision(target,{...known,width:2}),/Matching/);
+});
+test('overlapping labels remain separate and padded or unobserved channels stay unknown',async()=>{
+  const width=32,height=24,pixels=512*512,rgba=Buffer.alloc(width*height*4,255);
+  const targetBits=Buffer.alloc(pixels),knownBits=Buffer.alloc(pixels),index=8*512+10;
+  for(let y=0;y<height;y++)knownBits.fill(127&~4,y*512,y*512+width);
+  targetBits[index]=1|32;
+  const result=await prepareNativeTrainingTile({image:{width,height,data:rgba},targetBits,knownBits,x:0,y:0});
+  const value=(buffer,channel,pixel)=>buffer.readFloatLE((channel*pixels+pixel)*4);
+  assert.equal(value(result.target,0,index),1);assert.equal(value(result.target,5,index),1);
+  for(let channel=0;channel<7;channel++){
+    assert.equal(value(result.valid,channel,index),channel===2?0:1);
+    assert.equal(value(result.valid,channel,24*512),0);
+  }
 });
 test('reviewed supervision retains full-sheet fractional pixels across bounded windows',async()=>{
   const annotation={width:4100,height:8,known:{international:[[[4094.5,0],[4098.8,0],[4098.8,7],[4094.5,7]]]},
@@ -39,6 +54,15 @@ test('training tile selection keeps supervised areas and excludes unknown padded
   const annotation={width:600,height:16,known:{international:[[[0,0],[49,0],[49,15],[0,15]]]},lines:[],ignore:[]};
   assert.deepEqual((await listReviewedTrainingTiles(annotation)).map(row=>row.x),[0]);
   assert.deepEqual((await listReviewedTrainingTiles(annotation,{supervisedOnly:false})).map(row=>row.x),[0,448]);
+});
+
+test('raster training excludes a tile without any known channel',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'pando-training-unknown-'));t.after(()=>rm(root,{recursive:true}));
+  const bytes=await encodeNativeGrayPng({width:32,height:24,data:Buffer.alloc(32*24)});
+  await writeFile(join(root,'known.png'),bytes);
+  const annotation={origin:'publisher-layer-export',width:32,height:24,validRaster:{path:'known.png',sha256:createHash('sha256').update(bytes).digest('hex')}};
+  assert.deepEqual(await listRasterTrainingTiles({root,annotation}),[]);
+  assert.deepEqual((await listRasterTrainingTiles({root,annotation},{supervisedOnly:false})).map(({x,y})=>[x,y]),[[0,0]]);
 });
 
 test('Python dataset index uses full-sheet rounding at fractional tile edges',async()=>{
@@ -72,6 +96,14 @@ test('native training tile matches Python tensors, masks, position and augmentat
     assert.equal(createHash('sha256').update(repeat[name]).digest('hex'),expected[1].hashes[i]);
   for(const name of ['tile','overview'])for(let offset=0;offset<repeat[name].length;offset+=4)
     assert(Number.isFinite(repeat[name].readFloatLE(offset)),'Augmented training inputs must be finite');
+});
+test('transparent training pixels composite onto white before normalization',async()=>{
+  const imagePath='tests/fixtures/map-image/png-read/rgba.png',sourceSha256=createHash('sha256').update(await readFile(imagePath)).digest('hex');
+  const annotation={width:12,height:9,known:{},lines:[],regions:[],ignore:[]};
+  const result=await prepareReviewedTrainingTile({imagePath,sourceSha256,annotation,x:0,y:0});
+  assert.ok(Math.abs(result.tile.readFloatLE(0)-(1-.485)/.229)<1e-6);
+  assert.ok(Math.abs(result.tile.readFloatLE(6*4)-(222/255-.485)/.229)<1e-6);
+  assert.ok(Math.abs(result.tile.readFloatLE((512*512+6)*4)-(0-.456)/.224)<1e-6);
 });
 test('training sample stream returns the source-bound native tensors',async()=>{
   const root='tests/fixtures/reference-training-tile',annotation=JSON.parse(await readFile(root+'/label.json','utf8'));

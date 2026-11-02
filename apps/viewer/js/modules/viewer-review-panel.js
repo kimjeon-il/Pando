@@ -149,8 +149,8 @@ function renderGeometryPair(document,geometries){
 }
 
 /** Overlay-only UI owner; does not own the map, Core document, or Git write access. */
-export function createViewerReviewPanel({document,window,map,documentSession,meta={},onError=()=>{}}={}){
-  if(!document||!window||!map||!documentSession)
+export function createViewerReviewPanel({document,window,map,documentSession,isBuiltinMap,meta={},onError=()=>{}}={}){
+  if(!document||!window||!map||!documentSession||typeof isBuiltinMap!=='function')
     throw new TypeError('Review presentation requires the current read-only map and document session.');
   const get=id=>document.getElementById(id);
   const panel=get('reviewPanel'),button=get('reviewPanelBtn'),mobileButton=get('mobileReviewBtn');
@@ -165,6 +165,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     if(disposed)return;
     trigger=sourceButton;panel.hidden=false;
     button.setAttribute('aria-expanded','true');mobileButton?.setAttribute('aria-expanded','true');
+    if(current){updateMapRevision();updateFocus();}
     if(current)get('reviewSearch').focus();else get('reviewLoadBtn').focus();
   }
   function close(){
@@ -173,7 +174,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     button.setAttribute('aria-expanded','false');mobileButton?.setAttribute('aria-expanded','false');
     trigger?.focus?.();
   }
-  function abortFetch(){activeFetch?.abort();activeFetch=null;requestSerial++;}
+  function abortFetch(){activeFetch?.abort();activeFetch=null;requestSerial++;get('reviewFetchGeometry').disabled=false;}
   function selectedChange(){
     if(!current||!chosenEntity)return null;
     return current.diff.changes.find(c=>c.sourceEntityId===chosenEntity
@@ -249,6 +250,13 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     }
     if(!visible)list.appendChild(element(document,'p','viewer-review-hint','검색 조건에 해당하는 변경이 없습니다.'));
   }
+  function updateMapRevision(){
+    if(!current)return;
+    const data=current.diff.dataset,runtimeSha=isBuiltinMap()?meta.dataCommit:null;
+    text(get('reviewMapRevision'),runtimeSha===data.baseRevision?'변경 전 (현재 지도 pin)'
+      :runtimeSha===data.candidateRevision?'변경 후 (현재 지도 pin)'
+        :'다른 리비전 / 파일 지도. 두 지도가 동시에 표시되는 것은 아닙니다.');
+  }
   function renderSummary(checksumVerified){
     const summary=get('reviewSummary');summary.hidden=false;
     const data=current.diff.dataset,state=current.state;
@@ -257,10 +265,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     text(get('reviewCounts'),current.entities.length+'개 / '+current.diff.changes.length+'건');
     text(get('reviewBaseRevision'),data.baseRevision);
     text(get('reviewCandidateRevision'),data.candidateRevision);
-    const runtimeSha=meta.dataCommit||null;
-    text(get('reviewMapRevision'),runtimeSha===data.baseRevision?'변경 전 (현재 지도 pin)'
-      :runtimeSha===data.candidateRevision?'변경 후 (현재 지도 pin)'
-        :'다른 리비전 / 파일 지도. 두 지도가 동시에 표시되는 것은 아닙니다.');
+    updateMapRevision();
     const scope=current.diff.scope;
     text(get('reviewTrustNotice'),(checksumVerified?'선택한 산출물 파일 SHA-256 일치. ':'산출물 목록 SHA 검증 없음. ')
       +(scope&&!scope.complete?'일부 배치 '+scope.batchIndex+'/'+scope.batchCount+'. ':'')
@@ -344,13 +349,22 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
     }catch(e){feedback('reviewCompareStatus','원본 JSON 검사 실패: '+e.message,'error');}
     finally{get('reviewSourceInput').value='';}
   }
-  function downloadCorrection(){
+  async function downloadCorrection(){
     const change=selectedChange();
     if(!current||!change)return;
     try {
       const request=correctionRequest({inspection:current,sourceEntityId:chosenEntity,change,
         kind:get('reviewIssueKind').value,reason:get('reviewIssueReason').value,
         createdAt:new Date().toISOString()});
+      if(window.PANDOLAB_NATIVE_REVIEW===true){
+        const invoke=window.__TAURI_INTERNALS__?.invoke;
+        if(typeof invoke!=='function')no('Windows 수정 요청서 저장 기능을 사용할 수 없습니다.');
+        const result=await invoke.call(window.__TAURI_INTERNALS__,'save_review_correction',{draft:request});
+        feedback('reviewCorrectionStatus',result?.cancelled
+          ?'수정 요청서 저장을 취소했습니다.'
+          :'Windows에 수정 요청서를 저장했습니다. 실제 GIS나 GitHub에는 반영되지 않았습니다.');
+        return;
+      }
       const body=JSON.stringify(request,null,2)+'\n';
       const blob=new Blob([body],{type:'application/json'});
       const url=window.URL.createObjectURL(blob);
@@ -380,6 +394,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,met
   listen(get('reviewSourceBtn'),'click',()=>get('reviewSourceInput').click());
   listen(get('reviewSourceInput'),'change',e=>{if(e.target.files?.length)loadSourceFiles(e.target.files);});
   listen(get('reviewExportRequest'),'click',downloadCorrection);
+  listen(window,'pandolab:project-changed',()=>{if(current){updateMapRevision();updateFocus();}});
   listen(document,'keydown',e=>{if(e.key==='Escape'&&!panel.hidden){e.preventDefault();close();}});
   return Object.freeze({
     open,close,syncMapSelection,

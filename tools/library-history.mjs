@@ -1,8 +1,10 @@
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { pipeline } from 'node:stream/promises';
 import { organizedReportPath } from './library-report-layout.mjs';
+import { HistoryStreamFilter } from './library-history-stream.mjs';
 
 export function canonicalResearchPath(path) {
   if (/^reports\/(?:geography|research)\//.test(path)) return organizedReportPath(path);
@@ -111,8 +113,11 @@ export function preservePrivateHistoryObjects({ source, target, objects, manifes
   return { objectMap, additionalObjects: extra.size, pack };
 }
 
-export async function rewriteHistory({ source, target, manifest, filterRepoPath, pythonPath, refs = ['--all'], renamePaths = {} }) {
+export async function rewriteHistory({ source, target, manifest, refs = ['--all'], renamePaths = {} }) {
   source = resolve(source); target = resolve(target);
+  if (!manifest || !Array.isArray(refs) || !refs.length || !Array.isArray(manifest.excludedPrefixes || []) ||
+    (manifest.excludedPrefixes || []).some(path => typeof path !== 'string' || !path.endsWith('/') || path.startsWith('/') || path.includes('\\') || path.split('/').slice(0, -1).some(part => !part || part === '.' || part === '..')))
+    throw Error('Invalid history filter or excluded prefix');
   if (existsSync(target)) throw Error('History output already exists; inspect it before resuming.');
   const environment = { ...process.env, GIT_NO_LAZY_FETCH: '1', GIT_OPTIONAL_LOCKS: '0' };
   const git = (...args) => execFileSync('git', ['-c', 'gc.auto=0', '-c', 'maintenance.auto=false', ...args], { env: environment, encoding: 'utf8', maxBuffer: 64 * 1024 ** 2, stdio: ['pipe', 'pipe', 'pipe'] }).trim();
@@ -121,7 +126,6 @@ export async function rewriteHistory({ source, target, manifest, filterRepoPath,
   const objects = resolve(source, git('-C', source, 'rev-parse', '--git-common-dir'), 'objects');
   mkdirSync(join(target, 'objects/info'), { recursive: true });
   writeFileSync(join(target, 'objects/info/alternates'), objects.replaceAll('\\', '/') + '\n');
-  const manifestPath = target + '.manifest.json', callbackPath = target + '.callback.py';
   const indexOids = git('-C', source, 'rev-list', '--objects', ...refs, '--', 'archive/index.json')
     .split('\n').filter(line => /^[a-f0-9]{40} archive\/index.json$/.test(line)).map(line => line.slice(0, 40));
   const indexBlobMap = {};
@@ -133,21 +137,33 @@ export async function rewriteHistory({ source, target, manifest, filterRepoPath,
       env: environment, input: JSON.stringify(filtered) + '\n', encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
   }
-  writeFileSync(manifestPath, JSON.stringify({ ...manifest, indexBlobMap, renamePaths }));
-  writeFileSync(callbackPath, `import json\nif 'pando_history' not in globals():\n    with open(${JSON.stringify(manifestPath.replaceAll('\\', '/'))}, encoding='utf-8') as f:\n        globals()['pando_history'] = json.load(f)\n    pando_history['excluded'] = {p.encode('utf-8') for p in pando_history.get('paths', [])}\n    pando_history['retained'] = {p.encode('utf-8') for p in pando_history.get('keepPaths', [])}\nkept = []\nfor change in commit.file_changes:\n    if change.filename in pando_history['excluded']:\n        continue\n    name = change.filename.decode('utf-8')\n    if 'keepPaths' in pando_history and change.filename not in pando_history['retained']:\n        continue\n    if change.type == b'M':\n        old = change.blob_id.decode('ascii')\n        allowed = pando_history.get('allowedBlobIds', {}).get(name)\n        if allowed is not None and old not in allowed:\n            kept.append(FileChange(b'D', change.filename))\n            continue\n        if change.filename == b'archive/index.json' and old in pando_history['indexBlobMap']:\n            change.blob_id = pando_history['indexBlobMap'][old].encode('ascii')\n    if name in pando_history['renamePaths']:\n        change.filename = pando_history['renamePaths'][name].encode('utf-8')\n    kept.append(change)\ncommit.file_changes = kept\n`);
-  const exporter = spawn('git', ['-C', source, 'fast-export', ...refs, '--show-original-ids', '--no-data', '--signed-tags=strip', '--tag-of-filtered-object=rewrite', '--reference-excluded-parents', '--use-done-feature'], { env: environment, stdio: ['ignore', 'pipe', 'pipe'] });
-  const filter = spawn(pythonPath, [filterRepoPath, '--source', source, '--target', target, '--stdin', '--force', '--prune-empty', 'never', '--prune-degenerate', 'never', '--preserve-commit-hashes', '--commit-callback', callbackPath], { env: environment, stdio: ['pipe', 'pipe', 'pipe'] });
-  let output = '', errors = '';
-  exporter.stderr.on('data', chunk => { errors += chunk; });
-  filter.stdout.on('data', chunk => { output += chunk; });
-  filter.stderr.on('data', chunk => { errors += chunk; });
-  exporter.stdout.on('error', error => { errors += error.message; });
-  filter.stdin.on('error', error => { errors += error.message; });
-  exporter.stdout.pipe(filter.stdin);
-  const completion = child => new Promise((resolveChild, reject) => {
-    child.once('error', reject); child.once('close', code => resolveChild(code));
+  const marksPath = join(target, 'pando-import-marks');
+  const exporter = spawn('git', ['-C', source, 'fast-export', ...refs, '--show-original-ids', '--no-data', '--no-renames', '--signed-tags=strip', '--tag-of-filtered-object=rewrite', '--reference-excluded-parents', '--use-done-feature'], { env: environment, stdio: ['ignore', 'pipe', 'pipe'] });
+  const importer = spawn('git', ['--git-dir=' + target, 'fast-import', '--quiet', '--export-marks=' + marksPath], { env: environment, stdio: ['pipe', 'ignore', 'pipe'] });
+  const filter = new HistoryStreamFilter(manifest, indexBlobMap, renamePaths);
+  let errors = '';
+  for (const child of [exporter, importer]) child.stderr.on('data', chunk => { errors += chunk; });
+  const completion = child => new Promise((accept, reject) => {
+    child.once('error', reject); child.once('close', code => accept(code));
   });
-  const [exportCode, filterCode] = await Promise.all([completion(exporter), completion(filter)]);
-  if (exportCode || filterCode) throw Error(`History filtering failed (${exportCode}/${filterCode}): ${errors}\n${output}`);
-  return { target, output, errors };
+  const finished = Promise.all([completion(exporter), completion(importer)]);
+  try {
+    await pipeline(exporter.stdout, filter, importer.stdin);
+    const [exportCode, importCode] = await finished;
+    if (exportCode || importCode) throw Error(`History filtering failed (${exportCode}/${importCode}): ${errors}`);
+    const marks = new Map(readFileSync(marksPath, 'utf8').trim().split('\n').filter(Boolean).map(line => line.split(' ')));
+    mkdirSync(join(target, 'filter-repo'), { recursive: true });
+    const rows = filter.commits.map(({ mark, oid }) => {
+      const mapped = marks.get(':' + mark);
+      if (!mapped) throw Error('Missing imported commit mark: ' + mark);
+      return oid + ' ' + mapped;
+    });
+    writeFileSync(join(target, 'filter-repo/commit-map'), 'old                                      new\n' + rows.join('\n') + '\n');
+    unlinkSync(marksPath);
+    return { target, output: '', errors };
+  } catch (error) {
+    exporter.kill(); importer.kill();
+    await finished.catch(() => {});
+    throw new Error(`History filtering failed: ${errors}${error.message}`, { cause: error });
+  }
 }

@@ -38,9 +38,12 @@ import { createPreferencesDialog } from "../../../../shared/frontend/js/modules/
 import {createBuiltinMonthClock} from "../../../../shared/frontend/js/modules/builtin-month-clock.js";
 import {territorialMembershipDelta} from "../../../../shared/frontend/js/modules/territorial-entity-store.js";
 
-export async function composeViewer({ productMode, meta }) {
+export async function composeViewer({ productMode, meta, nativeReview = false }) {
   const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url),platform:createPlatformPorts({kind:'browser'})});
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
+  if(nativeReview!==false && (nativeReview!==true || globalThis.PANDOLAB_NATIVE_REVIEW!==true))
+    throw new TypeError('Windows review mode requires the native read-only shell.');
+  const projection=nativeReview?'flat':'globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
@@ -50,24 +53,42 @@ export async function composeViewer({ productMode, meta }) {
   const tooltipController=createTooltipController({document,window,tooltip:get('uiTooltip'),clamp:(value,min,max)=>Math.max(min,Math.min(max,value))});
   tooltipController.bind();
   const viewStorage=createBrowserProjectStorage({productMode,indexedDB:window.indexedDB,localStorage:window.localStorage,databaseName:'pandolab-viewer',storeName:'views',viewKey:'active-view'});
-  const owners=createMapOwners({productMode,buildMeta:runtimeContext.meta,platform:runtimeContext.platform,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
+  const owners=createMapOwners({productMode,readOnly:true,projection,buildMeta:runtimeContext.meta,platform:runtimeContext.platform,onViewingChange:()=>{if(!map)return;const record={documentId:documentSession.documentModel.snapshot().documentId,viewingPresentation:map.capturePresentation(),savedAt:new Date().toISOString()};viewStorage.writeView(record).catch(error=>report(error,'보기 설정을 저장하지 못했습니다.','PL-WORKSPACE-WRITE-001'));syncStatus();},resolveVisibilityGroup:ref=>map.objectQuery.layerGroupForObjectRef(ref),isObjectVisible:(group,id)=>map.objectQuery.objectRefVisible(map.objectQuery.layerItemObjectRef(group,id)),closeActiveOverlay:()=>surfaces.closeMobileSheets()});
   const surfaces=owners.workspaceSurfaces;
   const selectController=createSelectController({document,window});selectController.enhanceAll();
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile(),protectErrorNotices:true});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
-  const documentSession=createDocumentSession({productMode,initialProject:createInitialDocument({appVersion:meta.appVersion})});
+  const documentSession=createDocumentSession({productMode,readOnly:true,initialProject:createInitialDocument({appVersion:meta.appVersion})});
+  // Available only to a signed verification build, never to ordinary users.
+  // This probes the actual viewer Core command admission rather than DOM button visibility.
+  if(nativeReview && globalThis.PANDOLAB_SHELL_VERIFICATION===true)
+    Object.defineProperty(globalThis,'__PANDOLAB_NATIVE_REVIEW_VERIFICATION__',{value:Object.freeze({
+      async capture(){
+        let mutationBlocked=false;
+        try{await documentSession.commandOwner.execute({});}
+        catch(error){mutationBlocked=error?.code==='PL-PRODUCT-READONLY';}
+        return Object.freeze({readOnly:documentSession.readOnly,
+          projection:map?.viewState?.projection??null,
+          dataReady:status.dataset.ready==='true',
+          panelOpen:get('reviewPanel')?.hidden===false,
+          hasReviewLoad:get('reviewEvidenceInput')?.type==='file',
+          editorDomAbsent:get('editorSurface')===null,
+          canUndo:documentSession.commandOwner.state()?.canUndo,
+          mutationBlocked});
+      },
+    }),configurable:false});
   const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
   let reviewPanel=null,reviewPanelLoading=null;
-  const projectDomain=createProjectDomain({productMode,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
+  const projectDomain=createProjectDomain({productMode,readOnly:true,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
     replaceSnapshot:async()=>{await map.setSession(activeSession,{prepareView:async()=>{
       const project=activeSession.documentModel.snapshot(),bounds=project.projectSetup.initialMapBounds;
       if(openingPreserved)map.projectSession.restoreViewingPresentation({documentId:project.documentId,viewingPresentation:openingPreserved});
       else {
-        const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),'globe');
+        const initial=initialBoundsView(bounds,map.mapProjection.projectionLayoutMetrics(),projection);
         map.viewState.projection=initial.projection;map.viewState.view=initial.view;
         let workspace=null;
         try{workspace=await viewStorage.readView(project.documentId);}catch(error){report(error,'보기 설정을 복원하지 못했습니다.','PL-WORKSPACE-READ-001');}
@@ -105,7 +126,7 @@ export async function composeViewer({ productMode, meta }) {
   // and immutable Git object bytes, never registers an editor mutation hook.
   const showReview=async sourceButton=>{
     if(!reviewPanelLoading)reviewPanelLoading=import('./viewer-review-panel.js').then(module=>{
-      reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,
+      reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,isBuiltinMap:()=>builtinActive,
         meta:runtimeContext.meta,onError:error=>diagnostics.push({category:'e4-review-data',
           errorCode:error?.code||'PL-E4-REVIEW',technicalMessage:error?.message||String(error)})});
       disposables.push(reviewPanel);
@@ -115,6 +136,11 @@ export async function composeViewer({ productMode, meta }) {
     inspector.open(sourceButton);
     if(sourceButton?.id==='mobileReviewBtn')surfaces.closeMobileSheets();
   };
+  if(nativeReview){
+    const reveal=()=>showReview(get('reviewPanelBtn')).catch(error=>report(error,'검수 화면을 열지 못했습니다.','PL-E5-REVIEW-START'));
+    window.addEventListener('pandolab:ready',reveal,{once:true});
+    disposables.push({dispose:()=>window.removeEventListener('pandolab:ready',reveal)});
+  }
   for(const id of ['reviewPanelBtn','mobileReviewBtn']){
     const button=get(id);
     if(!button)continue;
@@ -254,13 +280,13 @@ export async function composeViewer({ productMode, meta }) {
     adjacentPrefetch.interrupt();
     const transition=builtinActive&&builtinClock.month()!==null;
     const accepted=await open(()=>map.prepareBuiltinProject(month,{isCurrent,transition}),{source:'builtin',isCurrent,
-      onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},
+      onPresented:()=>{commit();},
       presentation:transition?'temporal':'default',
       preserveView:builtinClock.month()!==null});
     if(accepted&&isCurrent()&&initialPresentation.hasPresented())
       adjacentPrefetch.afterPresented(month,{mode:get('timelineViewUnit')?.value==='month'?'month':'year'});
     return accepted;
-  },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();},onError:report});
+  },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     adjacentPrefetch.interrupt();
@@ -302,6 +328,7 @@ export async function composeViewer({ productMode, meta }) {
   if(new URLSearchParams(window.location.search).get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
+    mapProjection:()=>map.viewState.projection,readOnly:documentSession.readOnly,
     openFile:file=>openUserProject(()=>readProjectFile(file)),builtinMonth:()=>({month:builtinClock.month(),automatic:builtinClock.isAutomatic()})});
   }
   const lifecycle=createApplicationLifecycle({window,document,

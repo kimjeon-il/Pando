@@ -1,3 +1,15 @@
+# 판도연구소 Windows 검수기 (E5)
+
+> **2026-11-02 E5 제품 전환:** Windows 앱은 편집기가 아니라 **읽기 전용 검수기**로 시작합니다. 기존 편집기 진입점·소스는 E6 정리 전까지 보존되지만 Windows 실행 화면이 아닙니다. Android 네이티브 신규 개발·자동 빌드는 중단했고 모바일 웹 검수는 유지합니다.
+
+Windows 검수기는 E4 웹 검수와 **동일한 공통 지도·검수 모듈**을 사용하지만 평면(flat) 지도로 표시합니다. 직접 도형 수정, 프로젝트 저장, 원본 GIS 쓰기, 라이브러리 커밋/동기화는 Windows 앱 capability에서 허용하지 않습니다. E3 검수 JSON의 수동 불러오기, 변경 전후 비교, 원본 SHA 대조, 국가 객체·보고서 조회, 사용자 확인이 필요한 수정 요청서 JSON 저장만 제공합니다.
+
+[상세 E5 설계·실행/검증 계약](../../docs/architecture/windows-review-e5.md)
+
+기존 Windows 실행·빌드 명령은 유지하되, Windows 전용 Tauri 창은 이제 `review.html`을 표시합니다. 아래 과거 개발·Android 편집기 문서는 **E0 시점 동작을 설명하는 기록**이며 현재 Windows 기능 안내가 아닙니다. 기존 편집기 코드 제거와 설명 정리는 E6에서 처리합니다.
+
+---
+
 # PandoLab Windows·Android 앱
 
 > **Editor feature freeze (E0, 2026-11-02):** Direct graphical-map editing receives no new features. Current behavior remains intact until the read/review cutover. Scope, dependency inventory and E1 gates: [editor-retirement-e0.md](../../docs/development/editor-retirement-e0.md).

@@ -20,10 +20,10 @@ prepare-reference-analysis-assets.mjs prepares/checks only the shared pinned
 language files. Tesseract and ONNX Runtime reuse installed Node dependencies;
 there is no browser runtime bundle, Blob bootstrap or static server. The plugin
 Worker owns OCR startup cancellation and failures. The source-verified Windows
-native ONNX exporter can create an untrained interface diagnostic in the fixed
-ignored build directory. Install the matching CI artifact in
+and Linux native ONNX exporter can create an untrained interface diagnostic in
+the fixed ignored build directory. Install the matching CI artifact in
 `build-native/reference-analysis/onnx-export` and point `--torch-library` to the
-matching LibTorch 2.14.1 runtime directory. Existing outputs are never replaced.
+matching LibTorch runtime (2.14.1 on Windows or 2.7.1 on Linux). Existing outputs are never replaced.
 This diagnostic is never a release model.
 
 ```powershell
@@ -62,6 +62,53 @@ The executable statically includes zlib 1.3.2, libpng 1.6.57, libjpeg-turbo
 license notices are in `tools/cpp/map-pdf/`; preview font and FreeType notices are
 in `tools/cpp/map-preview/`. Training and corpus tools remain under migration.
 
+Native warm training can use either a transferred private checkpoint or a
+separately recorded public-pretrained encoder initializer. The latter receipt
+binds the official source file and the one-time extracted full model weights;
+the currently verified extraction uses seed 20261022 and exact SHA-256 identities
+for both files. It starts without optimizer state. Subsequent native checkpoints retain their
+own optimizer and random state. These are training-only artifacts, not an
+independent evaluation or approval for release.
+
+Training sequences and campaigns accept `--sampling uniform` to visit each
+supervised tile exactly once per epoch, or `--sampling balanced` to balance
+original sources. Balanced remains the default for the existing native workflow.
+The uniform order uses the existing deterministic native shuffle and is bound
+to the checkpoint and resume receipts. Its random sequence is not the old
+PyTorch DataLoader's sequence; its one-visit sampling and native resume state
+are preserved. Changing sampling when resuming a checkpoint is rejected.
+
+For a newly recorded public-encoder sequence, the native source-replay verifier
+accepts the initializer, original corpus and every checkpoint in order. For a
+single corpus, provide its supervision directory; for a mixed corpus, provide
+the auxiliary corpus and explicitly allow its nonmacro scope. The verifier
+checks parent receipts, recorded order, source identities and reconstructed
+training tensors. With `--replay-updates`, an explicit new scratch directory and
+the matching LibTorch runtime, it also re-executes the recorded batches on
+the recorded device and compares every resulting checkpoint state. Up to 100,000
+explicitly ordered checkpoints are accepted, subject to the scratch-space and
+headroom checks. Existing outputs and changed sources are rejected. Full replay
+from the verified public encoder can establish the declared training and selection
+lineage; transferred weights remain incomplete and no replay approves a model.
+A checkpoint receipt's own `lineageComplete` field is not replay evidence:
+validation and final evaluation require explicit verified replay for an
+independence claim.
+
+```powershell
+node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory $firstCheckpoint $secondCheckpoint
+node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --auxiliary $auxiliaryCorpus --allow-nonmacro-auxiliary $firstCheckpoint $secondCheckpoint
+node tools/reference-analysis/native-training-replay.mjs --weights $initializerWeights --corpus $trainingCorpus --supervision $supervisionDirectory --replay-updates --scratch $newScratchDirectory --torch-library $torchLibrary $firstCheckpoint $secondCheckpoint
+```
+
+To compare two native checkpoints from equivalent training runs, the validation
+command checks model tensors, optimizer states, sampling and RNG state together
+with the recorded precision, AMP scale and training configuration. It compares
+semantic state rather than checkpoint archive bytes; it does not approve a model.
+
+```powershell
+node tools/reference-analysis/native-training-validation.mjs --compare --first $continuousCheckpoint --second $resumedCheckpoint --device cuda --torch-library $torchLibrary
+```
+
 A single source-derived macro training sheet can be inspected using its matching
 native C++ checkpoint and the same CPU/CUDA device recorded in its receipt. The
 output directory must not exist, and its parent must already exist. The command
@@ -70,18 +117,130 @@ JPEG; it does not establish independent accuracy or approve a model release.
 To show the initialization alongside the trained result, add `--baseline-weights`
 with the original private Safetensors file and its adjacent transfer receipt.
 Its hash must match the checkpoint receipt; earlier checkpoints without a
-recorded initializer identity cannot be used for this comparison. This command
-does not yet replace the full Python inspection command or its other corpus modes.
+recorded initializer identity cannot be used for this comparison.
 
 ```powershell
 node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/example/corpus.training.json --source SOURCE_ID --checkpoint EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/checkpoint.pt --output EXTERNAL_LIBRARY_REPORTS/map-analysis/models/example/diagnostic-source --device cuda --torch-library 'C:/path/to/matching/torch/lib'
 ```
+
+For an existing model that was transferred once to Safetensors, a source or a
+corpus can also be inspected with `--weights` in place of `--checkpoint`. Its adjacent
+`transfer.json` must bind the weights and the original checkpoint. The report
+marks training-corpus ancestry and optimizer transfer as unverified; it does not
+claim the selected source trained the model. A baseline may be supplied only if
+the model's transfer record contains `sourceInitializationSha256` and the
+baseline's verified transfer identifies that exact original checkpoint. An
+auxiliary corpus is accepted only when the combined corpus fingerprint matches
+`trainingCorpusSha256` in the transfer record. This fingerprint match does not
+prove complete ancestry. For ONNX
+comparison, first export a new model with its matching `.onnx.export.json` receipt;
+the corpus diagnostic verifies both files and compares one supervised tile. This
+is execution parity only and does not establish complete model equivalence.
+Corpus diagnostic `corpusSha256` is the source-content fingerprint (including
+the auxiliary corpus when present); `corpusManifestSha256` is the primary
+manifest file hash. A single-source diagnostic records only the manifest hash.
+Neither fingerprint establishes that transferred weights were trained on the
+selected sources unless their provenance is separately verified. For a full
+corpus diagnostic, `trainingCorpusFingerprintMatched` states whether the
+transferred checkpoint's recorded fingerprint equals that corpus fingerprint.
+Native checkpoint diagnostics report attempted batches, applied and skipped
+optimizer updates, and the channels marked unobserved in the checkpoint receipt.
+Training loss is reported only for a completed epoch; validation loss is unknown
+unless separately established by a validation receipt. For transferred weights,
+these progress fields are null because optimizer and epoch history were not
+transferred.
+For transferred weights, `--source-diagnostics PATH` optionally links the
+previous training-only diagnostic report. Its original checkpoint hash and,
+when recorded, training-corpus fingerprint must match the transfer record. The
+new report identifies the historical source report and preserves its reported
+batch counts and loss separately; this does not transfer optimizer state or
+establish independent accuracy.
+
+```powershell
+node tools/reference-analysis/native-diagnostic-preview.mjs --macro-source --corpus $corpusPath --source SOURCE_ID --weights $transferredWeights --output $newDiagnosticDirectory --device cuda --torch-library $torchLibrary
+node tools/reference-analysis/native-onnx-export.mjs --weights $transferredWeights --output $newOnnxPath --receipt "$newOnnxPath.export.json" --torch-library $torchLibrary
+node tools/reference-analysis/native-diagnostic-preview.mjs --corpus-sources --corpus $corpusPath --weights $transferredWeights --onnx $newOnnxPath --output $newCorpusDiagnosticDirectory --device cuda --torch-library $torchLibrary
+```
+
+The native ONNX exporter accepts Windows and Linux source-bound artifacts with
+their matching LibTorch runtimes. Linux uses the fixed 2.7.1 CPU SDK; Windows
+uses the fixed 2.14.1 runtime. A diagnostic export remains a synthetic execution
+check and does not approve a model.
 
 For one source-reviewed sheet, use `--reviewed-source` and add
 `--review-corpus` pointing to its manifest. `--corpus` remains the training
 manifest recorded by the checkpoint. The selected sheet's source and annotation
 are verified, but the result is a diagnostic, not an independence or accuracy
 claim. The same output protection and optional baseline rules apply.
+
+The training-source diagnostic also accepts a historical publisher-layer
+sheet. Its publisher identity, pinned historical renderer version, source and
+image hashes, image dimensions and observed raster channels are checked before
+inference. Publisher PDF generation uses the native renderer and Node manager.
+The native combined batch and bounded multi-epoch campaign accept publisher-derived
+or source-reviewed primary sources with an explicit nonmacro Semap auxiliary corpus.
+Reviewed training manifests may contain only `train` sheets; put validation and
+test sheets in separate manifests so the training path cannot read them. Campaign and
+checkpoint receipts bind both corpus hashes and their combined source fingerprint;
+training loss selection is diagnostic and is not independent validation. A
+campaign can instead select by an explicitly scoped source-reviewed validation
+corpus with `--validation-corpus PATH --diagnostic-validation --patience N`.
+Training and validation identities must not overlap, and validation evidence is
+bound to each completed checkpoint. Because inherited ancestry is incomplete,
+this is diagnostic selection, not independent accuracy or model approval. For the
+tested initializer and mixed inputs, CUDA FP16 overflowed
+in both the Python and native models; explicitly choose FP32 for this case.
+This is a provisional training path, not a model release or accuracy claim.
+For a campaign starting from the verified public encoder, use
+`--independent-validation --replay-weights PATH` instead of
+`--diagnostic-validation`. At each completed epoch, the entire ordered checkpoint
+chain is replayed before validation loss can select a candidate. A resumed
+campaign must provide its previous campaign report and the same initializer;
+incomplete or changed histories are rejected. The candidate remains private
+and a separate final-test evaluation is required.
+Within one running campaign, a previously verified in-memory prefix is reused
+and only newly added batches are replayed. All source and checkpoint identities
+are rechecked. The prefix is never serialized; after a process restart the full
+chain is replayed again before independent validation.
+An optimizer-update replay compares the recorded epoch loss sum and count as
+well as checkpoint state; changed or missing selection evidence fails replay.
+New validation-selection campaigns also bind the validation manifest hash and
+source fingerprint to each batch receipt. When replaying such a chain, provide
+`--selection-corpus` with the same validated source corpus; replay rejects a
+missing or changed selection and source-family overlap. This verifies the
+declared selection scope. A complete source and optimizer replay starting at
+the verified public encoder returns its complete declared training/selection
+lineage; source-only replay and transferred checkpoints remain incomplete.
+`nativeTrainingValidation` can receive a `lineageReplay` request containing the
+ordered checkpoints, weights, training corpus, supervision and a new scratch
+directory. It reruns that proof against the requested validation corpus before
+checking training ancestry; this does not approve the model or its accuracy.
+`native-evaluate-source.mjs` accepts the same proof with repeated
+`--replay-checkpoint` arguments plus `--replay-weights`, `--replay-corpus`,
+`--replay-selection`, `--replay-supervision` and `--replay-scratch`. For a
+mixed corpus use `--replay-auxiliary` in place of `--replay-supervision`.
+Final-test sources are checked against both training and selection exposure.
+Its `trainingCorpusSha256` is the full fingerprint; the primary manifest hash
+is recorded separately as `trainingCorpusManifestSha256`.
+Replay accepts up to 100,000 explicitly ordered checkpoints, as source replay
+does. It estimates scratch space for all selected batches and checks for at
+least 5 GiB additional free space before a replay needing 1 GiB or more.
+
+Reviewed-only training uses the same source-bound supervision, order and campaign
+owners. Pass `--reviewed` to `training-supervision.mjs` and
+`native-training-sequence.mjs`; omit the auxiliary arguments. Existing reviewed
+source files and output checkpoints are never overwritten.
+For publisher-only source-derived training, use `--publisher` in the same two
+commands. This scope verifies the publisher provenance and cannot be combined
+with `--reviewed` or used to claim reviewed validation truth.
+
+For a checkpoint trained with an auxiliary Semap corpus, provide the original
+`--auxiliary-corpus` together with `--corpus`. Both manifests and their combined
+source fingerprint must match its checkpoint receipt. `--view-corpus auxiliary`
+selects an auxiliary source instead of a primary macro source; the default is
+`primary`. Use the same options with `--corpus-sources` to inspect every source
+in the selected training corpus. This is still a training-only diagnostic: it
+does not establish independent accuracy or ONNX parity.
 
 Analysis runtime proof uses the plugin CLI with local map/model paths. Native
 application proof uses `tests/browser/native-map-plugin.mjs` for ordinary GIS
@@ -209,24 +368,74 @@ alone do not provide the three independent families needed for training.
 
 ## Commands
 
-The fixed development environment is `build-native/python/Scripts/python.exe`.
-Top-level dependency versions are in `requirements.txt`. CPU verifies
-architecture/export; install matching official CUDA PyTorch/torchvision wheels
-in this same environment for GPU training. Check the interpreter's ABI, available
-disk space and the GPU's supported architecture before installing. Do not create
-another virtual environment or retain downloaded wheel copies.
+For a reviewed manifest containing train, validation and test sheets together,
+prepare the separate manifests expected by the native training workflow:
 
 ```powershell
-$trainingPython = 'D:/dev/worktrees/ui/build-native/python/Scripts/python.exe'
+node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath --split-prefix reviewed
+```
+
+This validates the selected corpus and writes `reviewed.train.json`,
+`reviewed.validation.json` and `reviewed.test.json` alongside its manifest.
+Source and annotation paths stay relative to the same corpus root. The command
+rejects missing splits, shared source identities across splits, and existing
+outputs; it does not alter original images, labels or the input manifest. Use
+the training manifest with `--reviewed`, the validation manifest for model
+selection, and the test manifest only for final evaluation. For report paths,
+the normal report owner manages the new manifest editions.
+
+To start a separate training run from a native checkpoint's model weights,
+export them to a new private directory:
+
+```powershell
+node tools/reference-analysis/native-training-validation.mjs --export-weights --checkpoint $nativeCheckpoint --output $newWeightsDirectory --device cuda --torch-library $torchLibrary
+```
+
+Use its `weights.safetensors` as the next warm-start input. The export records
+the source checkpoint and receipt hashes. It deliberately does not transfer the
+optimizer, RNG or sample cursor and does not establish complete ancestry; use
+the existing resume workflow for an exact continuation of the same run.
+
+Use the source-matched `build-native/reference-analysis/training-batch` tool and
+the existing matching LibTorch runtime. CPU and CUDA are explicit selections;
+the CUDA runtime in the existing training environment may be reused without
+running its interpreter. Training outputs and initializer receipts remain private.
+
+```powershell
 $corpusPath = 'EXTERNAL_LIBRARY_CORPUS/corpus.json'
-$checkpointPath = 'EXTERNAL_LIBRARY_WEIGHTS/boundary.pt'
+$torchLibrary = 'EXISTING_LIBTORCH/lib'
+$publicWeights = 'EXTERNAL_VERIFIED_ENCODER/weights.safetensors'
+$trainingOutput = 'EXTERNAL_LIBRARY_WEIGHTS/new-campaign'
+$supervision = 'EXTERNAL_LIBRARY_WEIGHTS/new-supervision'
 $evaluationPath = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/reports/boundary-evaluation.json'
 $onnxPath = 'EXTERNAL_LIBRARY_RUNTIME/boundary.onnx'
 
-node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath
-& $trainingPython tools/reference-analysis/train.py train --corpus $corpusPath --output $checkpointPath --batch 1
-& $trainingPython tools/reference-analysis/train.py evaluate --corpus $corpusPath --checkpoint $checkpointPath --output $evaluationPath
-& $trainingPython tools/reference-analysis/train.py export --checkpoint $checkpointPath --output $onnxPath
+node tools/reference-analysis/reviewed-corpus.mjs --corpus $corpusPath --split-prefix reviewed
+$corpusRoot = Split-Path $corpusPath
+$trainCorpus = Join-Path $corpusRoot 'reviewed.train.json'
+$validationCorpus = Join-Path $corpusRoot 'reviewed.validation.json'
+$testCorpus = Join-Path $corpusRoot 'reviewed.test.json'
+node tools/reference-analysis/training-supervision.mjs --corpus $trainCorpus --output $supervision --reviewed
+$campaign = node tools/reference-analysis/native-training-sequence.mjs --campaign --mode warm --input $publicWeights --output $trainingOutput --corpus $trainCorpus --supervision $supervision --reviewed --validation-corpus $validationCorpus --independent-validation --replay-weights $publicWeights --patience 5 --epoch 0 --epochs 30 --seed 20261023 --freeze-epochs 2 --learning-rate 0.0001 --device cuda --precision fp32 --torch-library $torchLibrary --batch-size 1 --max-batches 1000000 --sampling uniform | ConvertFrom-Json
+$nativeCheckpoint = $campaign.bestCheckpoint
+node tools/reference-analysis/native-onnx-export.mjs --checkpoint $nativeCheckpoint --proof "$nativeCheckpoint.receipt.json" --output $onnxPath --manifest ($onnxPath -replace '\.onnx$', '.manifest.json') --torch-library $torchLibrary
+```
+
+Select a final checkpoint only after a completed epoch. For independent final
+evaluation provide the ordered replay chain and its original encoder, training,
+selection and supervision inputs as described above. `--diagnostic-only` can
+inspect incomplete ancestry but does not qualify a model.
+
+The native evaluation path accepts a newly trained native checkpoint, or
+verified Safetensors initializers for diagnostic-only use. An initializer may
+be transferred private weights or the verified public encoder start. Neither
+contains optimizer state or establishes map-training ancestry. To compare the
+same frozen corpus before and after training, pass the initializer evaluation
+report as `--baseline-report` when evaluating the checkpoint:
+
+```powershell
+node tools/reference-analysis/native-evaluate-source.mjs --checkpoint $nativeCheckpoint --corpus $corpusPath --output $nativeEvaluationPath --device cuda --torch-library $torchLibrary --diagnostic-only
+node tools/reference-analysis/native-evaluate-source.mjs --weights $transferredWeights --corpus $corpusPath --output $transferEvaluationPath --device cuda --torch-library $torchLibrary --diagnostic-only
 ```
 
 Export deliberately produces a pending, unapproved manifest. Do not change those
@@ -246,7 +455,7 @@ attribution and historical screen-space geometry accuracy are separate evaluatio
 
 `usgs-source-catalog.json` pins five actual US Topo GeoPDFs with download hashes,
 publication dates and reuse conditions. Keep original PDFs and generated
-`notices/` together: map-specific third-party credits still apply. `publisher.py`
+`notices/` together: map-specific third-party credits still apply. `prepare-publisher.mjs`
 uses their optional-content layers, with imagery and shaded relief switched off,
 to create source-derived multi-label training masks. International and state/
 county boundaries, hydrography, transport, glyph boxes and map frame are distinct
@@ -257,18 +466,19 @@ water polygons are not silently relabelled as coastline.
 $publisherCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/usgs-publisher'
 $firstModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/usgs-publisher-v1'
 node tools/reference-analysis/acquire-sources.mjs --catalog tools/reference-analysis/usgs-source-catalog.json --output "$publisherCorpus/sources"
-& $trainingPython tools/reference-analysis/publisher.py --sources "$publisherCorpus/sources"
-$env:TORCH_HOME = "$firstModel/encoder"
-& $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --output "$firstModel/boundary.pt" --epochs 12 --batch 1 --device cuda
-& $trainingPython tools/reference-analysis/train.py export --checkpoint "$firstModel/boundary.pt" --output "$firstModel/boundary.onnx"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --checkpoint "$firstModel/boundary.pt" --onnx "$firstModel/boundary.onnx" --output "$firstModel/diagnostics"
+node tools/reference-analysis/prepare-publisher.mjs --sources "$publisherCorpus/sources"
+node tools/reference-analysis/training-supervision.mjs --corpus "$publisherCorpus/corpus.training.json" --output "$firstModel/supervision" --publisher
+$campaign = node tools/reference-analysis/native-training-sequence.mjs --campaign --mode warm --input $publicWeights --output "$firstModel/campaign" --corpus "$publisherCorpus/corpus.training.json" --supervision "$firstModel/supervision" --publisher --epoch 0 --epochs 12 --seed 20261023 --freeze-epochs 2 --learning-rate 0.0001 --device cuda --precision fp32 --torch-library $torchLibrary --batch-size 1 --max-batches 1000000 --sampling uniform | ConvertFrom-Json
+$checkpoint = $campaign.bestCheckpoint
+node tools/reference-analysis/native-onnx-export.mjs --checkpoint $checkpoint --proof "$checkpoint.receipt.json" --output "$firstModel/boundary.onnx" --manifest "$firstModel/boundary.manifest.json" --torch-library $torchLibrary
+node tools/reference-analysis/native-diagnostic-preview.mjs --corpus-sources --corpus "$publisherCorpus/corpus.training.json" --checkpoint $checkpoint --onnx "$firstModel/boundary.onnx" --output "$firstModel/diagnostics" --device cuda --torch-library $torchLibrary
 ```
 
 All five maps share one production family, so all belong to `train`. The explicit
-`--training-only` path validates PDF, generator, source metadata and raster hashes;
+publisher training scope validates PDF, generator, source metadata and raster hashes;
 it never sets human `reviewed` or manufactures validation/test splits. The normal
 corpus validator/evaluator rejects this training-only corpus and checkpoint.
-Training uses CUDA mixed precision when available, six-channel validity, capped
+Training uses the explicitly selected precision, six-channel validity, capped
 positive class weights and a suppressed unobserved coast output. Checkpoint
 selection uses training loss only, with `validationLoss: null`. The data identity
 includes image/annotation/raster/source bytes, not just the manifest. Preserve the
@@ -310,17 +520,17 @@ color/monochrome field records a raster-chroma heuristic for inventory only.
 ```powershell
 $auxiliaryCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/semap-diverse'
 $auxiliaryManifest = "$auxiliaryCorpus/corpus.expanded.training.json"
-$previousModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v1'
 $diverseModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/diverse-v2'
 node tools/reference-analysis/prepare-semap.mjs --output $auxiliaryCorpus --per-institution 12 --maximum-maps 96 --manifest-name corpus.expanded.training.json
-& $trainingPython tools/reference-analysis/train.py train --training-only --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --initialize-checkpoint "$previousModel/boundary.pt" --output "$diverseModel/boundary.pt" --epochs 6 --batch 1 --device cuda --balance-sources --learning-rate 0.00003 --freeze-encoder-epochs 0
-& $trainingPython tools/reference-analysis/train.py export --checkpoint "$diverseModel/boundary.pt" --output "$diverseModel/boundary.onnx"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --view-corpus auxiliary --checkpoint "$diverseModel/boundary.pt" --baseline-checkpoint "$previousModel/boundary.pt" --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/auxiliary-diagnostics"
-node tools/reference-analysis/verify-trained-onnx.mjs --model reports/map-analysis/models/diverse-v2/boundary.onnx --diagnostics reports/map-analysis/models/diverse-v2/diagnostics --output "$diverseModel/onnx-wasm-parity.json"
+$initialWeights = 'EXTERNAL_VERIFIED_TRANSFER/weights.safetensors'
+$campaign = node tools/reference-analysis/native-training-sequence.mjs --campaign --mode warm --input $initialWeights --output "$diverseModel/campaign" --corpus "$publisherCorpus/corpus.training.json" --auxiliary $auxiliaryManifest --allow-nonmacro-auxiliary --epoch 0 --epochs 6 --seed 20261023 --freeze-epochs 0 --learning-rate 0.00003 --device cuda --precision fp32 --torch-library $torchLibrary --batch-size 1 --max-batches 1000000 --sampling balanced | ConvertFrom-Json
+$checkpoint = $campaign.bestCheckpoint
+node tools/reference-analysis/native-onnx-export.mjs --checkpoint $checkpoint --proof "$checkpoint.receipt.json" --output "$diverseModel/boundary.onnx" --manifest "$diverseModel/boundary.manifest.json" --torch-library $torchLibrary
+node tools/reference-analysis/native-diagnostic-preview.mjs --corpus-sources --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --checkpoint $checkpoint --baseline-weights $initialWeights --onnx "$diverseModel/boundary.onnx" --output "$diverseModel/diagnostics" --device cuda --torch-library $torchLibrary
+node tools/reference-analysis/native-diagnostic-preview.mjs --corpus-sources --corpus "$publisherCorpus/corpus.training.json" --auxiliary-corpus $auxiliaryManifest --view-corpus auxiliary --checkpoint $checkpoint --baseline-weights $initialWeights --output "$diverseModel/auxiliary-diagnostics" --device cuda --torch-library $torchLibrary
 ```
 
-The last command reads local files in the existing Node WASM runtime. It checks
+The primary diagnostic reads local files in the existing Node WASM runtime. It checks
 the trained ONNX hash, actual output shape/finite values and PyTorch numerical
 parity, and records timing. It does not change model release/evaluation status. Fine-tuning records attempted batches, successful optimizer updates
 and AMP-overflow skips separately; the original first-stage run's successful
@@ -334,7 +544,7 @@ requirement that historical selection code equal the latest implementation.
 Changed semantic conversion still fails. Ordinary independent-evaluation and
 model release criteria remain independent of provisional plugin execution.
 
-`--balance-sources` visits at least one tile from every original each epoch,
+`--sampling balanced` visits at least one tile from every original each epoch,
 balances corpus quotas and samples additional originals uniformly, so a large
 USGS sheet cannot outweigh many small historical originals by tile count alone.
 Sampling is deterministic per epoch/seed and recorded in the checkpoint. The
@@ -350,7 +560,7 @@ annotations CC BY 4.0, image reuse conditions in the authors' `license_images.md
 
 `macro-source-catalog.json` pins whole published world/continent/country
 maps, distinct from the city patches and detailed US Topo sheets above. Acquire
-the catalogued PDFs with `acquire-sources.mjs`; run `macro.py` from this app checkout
+the catalogued PDFs with `acquire-sources.mjs`; run `prepare-macro.mjs` from this app checkout
 against the external sources directory. It reuses the current raster corpus,
 trainer, inspection and ONNX verification owners. No product/runtime owner changes.
 
@@ -369,10 +579,13 @@ PDF bytes and whole-map scope are hash-bound in the corpus fingerprint.
 $macroCorpus = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/corpus/macro-political'
 $macroModel = 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v2'
 node tools/reference-analysis/acquire-sources.mjs --catalog tools/reference-analysis/macro-source-catalog.json --output "$macroCorpus/sources"
-& $trainingPython tools/reference-analysis/macro.py --sources "$macroCorpus/sources" --manifest-name corpus.conditions.training.json
-& $trainingPython tools/reference-analysis/train.py train --training-only --macro-only --corpus "$macroCorpus/corpus.conditions.training.json" --initialize-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v1/boundary.pt' --output "$macroModel/boundary.pt" --epochs 8 --batch 1 --device cuda --balance-sources --learning-rate 0.00001 --freeze-encoder-epochs 2
-& $trainingPython tools/reference-analysis/train.py export --checkpoint "$macroModel/boundary.pt" --output "$macroModel/boundary.onnx"
-& $trainingPython tools/reference-analysis/inspect-checkpoint.py --corpus "$macroCorpus/corpus.conditions.training.json" --checkpoint "$macroModel/boundary.pt" --baseline-checkpoint 'EXTERNAL_LIBRARY_REPORTS/map-analysis/models/macro-v1/boundary.pt' --onnx "$macroModel/boundary.onnx" --output "$macroModel/diagnostics"
+node tools/reference-analysis/prepare-macro.mjs --sources "$macroCorpus/sources" --manifest-name corpus.conditions.training.json
+$initialWeights = 'EXTERNAL_VERIFIED_TRANSFER/weights.safetensors'
+node tools/reference-analysis/training-supervision.mjs --corpus "$macroCorpus/corpus.conditions.training.json" --output "$macroModel/supervision"
+$campaign = node tools/reference-analysis/native-training-sequence.mjs --campaign --mode warm --input $initialWeights --output "$macroModel/campaign" --corpus "$macroCorpus/corpus.conditions.training.json" --supervision "$macroModel/supervision" --epoch 0 --epochs 8 --seed 20261023 --freeze-epochs 2 --learning-rate 0.00001 --device cuda --precision fp32 --torch-library $torchLibrary --batch-size 1 --max-batches 1000000 --sampling balanced | ConvertFrom-Json
+$checkpoint = $campaign.bestCheckpoint
+node tools/reference-analysis/native-onnx-export.mjs --checkpoint $checkpoint --proof "$checkpoint.receipt.json" --output "$macroModel/boundary.onnx" --manifest "$macroModel/boundary.manifest.json" --torch-library $torchLibrary
+node tools/reference-analysis/native-diagnostic-preview.mjs --corpus-sources --corpus "$macroCorpus/corpus.conditions.training.json" --checkpoint $checkpoint --baseline-weights $initialWeights --onnx "$macroModel/boundary.onnx" --output "$macroModel/diagnostics" --device cuda --torch-library $torchLibrary
 ```
 
 Macro scope records a verified whole-map extent, not a count of cropped tiles or
@@ -434,10 +647,10 @@ unknown rather than invented whole-map negatives. Africa supplies conservative
 country-fill seams, with sea/coast, same-colour boundaries and hatched areas left
 unknown. Neither is independently reviewed evaluation truth.
 
-The local `pando-map-tools` Codex plugin uses these existing command-line owners
-and the existing Python/CUDA environment. It requires no QGIS, new desktop app
-or MCP server. Check source/mask dimensions, render overlays with existing Python
-image tools and inspect the actual pixels. Pixel-grid alignment is not geographic
+The local `pando-map-tools` Codex plugin uses these command-line owners and the
+existing LibTorch/CUDA runtime. It requires no QGIS, new desktop app or MCP server.
+Check source/mask dimensions, render overlays with the native image tools and
+inspect the actual pixels. Pixel-grid alignment is not geographic
 registration, historical validation or a model quality score.
 
 An exclusion correction uses `--metadata-directory` with a distinct supervision
@@ -447,13 +660,13 @@ positive pixels. Do not export or initialize from that rejected checkpoint. Use
 the corrected exclusion x0.28..0.42/y0.46..0.56, verify target and validity there
 are zero, and restart from the last admitted macro-v4 checkpoint into macro-v6.
 
-`train.py train --augment-conditions` varies colour/grayscale, brightness,
+`native-training-sequence.mjs --augment` varies colour/grayscale, brightness,
 contrast, saturation, blur, resolution and JPEG compression using a deterministic
 paired recipe for the tile and overview. It does not change coordinates, masks,
 validity, sampler membership or source identity. Recipes vary by epoch/tile and
 are recorded in the checkpoint. These are synthetic acquisition conditions, not
 additional original maps, languages or evaluation groups. Evaluation and inspection
-remain unaugmented. Combine it with `--macro-only --balance-sources`, continue from
+remain unaugmented. Combine it with `--sampling balanced`, continue from
 the actual admitted prior checkpoint, and use a new output directory.
 
 ## Work cloud execution probe

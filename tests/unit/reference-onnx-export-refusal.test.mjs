@@ -6,8 +6,51 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import * as exporter from '../../tools/reference-analysis/native-onnx-export.mjs';
+import {inspectTransferredWeightsOnnx} from '../../tools/reference-analysis/verify-trained-onnx.mjs';
 import {validateCandidateModel} from '../../plugins/pando-map-tools/lib/jobs.mjs';
 const {nativeCheckpointOnnxExport,nativeOnnxDiagnostic,nativeOnnxExport}=exporter;
+
+test('Linux ONNX export checks the requested output before native execution',async t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-linux-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const output=join(root,'existing.onnx');writeFileSync(output,'preserve');
+  const descriptor=Object.getOwnPropertyDescriptor(process,'platform');
+  try{Object.defineProperty(process,'platform',{value:'linux',configurable:true});
+    await assert.rejects(nativeOnnxDiagnostic({output,torchLibrary:root}),/output exists/i);
+    assert.equal(readFileSync(output,'utf8'),'preserve');
+  }finally{Object.defineProperty(process,'platform',descriptor);}
+});
+test('ONNX export resolves report output through the canonical report owner',()=>{
+  const result=spawnSync(process.execPath,['tools/reference-analysis/native-onnx-export.mjs','--diagnostic',
+    '--output','reports/not-a-report-subject/model.onnx','--torch-library','.'],{encoding:'utf8'});
+  assert.notEqual(result.status,0);assert.match(result.stderr,/canonical report subject/i);
+});
+
+test('transferred weights ONNX receipt preserves unknown ancestry and optimizer state',()=>{
+  const initializer={initialization:'weights-only-no-optimizer',weightsSha256:'a'.repeat(64),sourceCheckpointSha256:'b'.repeat(64)};
+  const model={file:'candidate.onnx',bytes:123,sha256:'c'.repeat(64)};
+  const result=exporter.transferredWeightsOnnxReceipt({initializer,model});
+  assert.equal(result.opset,17);assert.equal(result.weightsSha256,initializer.weightsSha256);
+  assert.equal(result.sourceCheckpointSha256,initializer.sourceCheckpointSha256);assert.deepEqual(result.model,model);
+  assert.equal(result.optimizerStateTransferred,false);assert.equal(result.lineageComplete,false);assert.equal(result.releaseApproved,false);
+  assert.throws(()=>exporter.transferredWeightsOnnxReceipt({initializer:{...initializer,sourceCheckpointSha256:null},model}),/identity/i);
+  assert.throws(()=>exporter.transferredWeightsOnnxReceipt({initializer,model:{...model,file:'../model.onnx'}}),/identity/i);
+});
+
+test('transferred ONNX inspection rejects modified model, weights and export receipt',t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-onnx-transfer-'));t.after(()=>rmSync(root,{recursive:true}));
+  const weights=join(root,'weights.safetensors'),model=join(root,'candidate.onnx'),hash=x=>createHash('sha256').update(x).digest('hex');
+  writeFileSync(weights,'weights');writeFileSync(model,'model');
+  const initializer={initialization:'weights-only-no-optimizer',weightsSha256:hash('weights'),sourceCheckpointSha256:'b'.repeat(64)};
+  writeFileSync(join(root,'transfer.json'),JSON.stringify({schemaVersion:1,transfer:initializer.initialization,
+    weightsSha256:initializer.weightsSha256,sourceCheckpointSha256:initializer.sourceCheckpointSha256,
+    trainingOnly:true,evaluationStatus:'pending',releaseApproved:false}));
+  const receipt=exporter.transferredWeightsOnnxReceipt({initializer,model:{file:'candidate.onnx',bytes:5,sha256:hash('model')}});
+  const save=()=>writeFileSync(model+'.export.json',JSON.stringify(receipt));save();
+  assert.equal(inspectTransferredWeightsOnnx({model,weights}).modelSha256,hash('model'));
+  writeFileSync(model,'other');assert.throws(()=>inspectTransferredWeightsOnnx({model,weights}),/does not match/i);writeFileSync(model,'model');
+  writeFileSync(weights,'other');assert.throws(()=>inspectTransferredWeightsOnnx({model,weights}),/initializer/i);writeFileSync(weights,'weights');
+  receipt.opset=18;save();assert.throws(()=>inspectTransferredWeightsOnnx({model,weights}),/does not match/i);
+});
 
 test('checkpoint ONNX manifest preserves pending training lineage and channel visibility',()=>{
   assert.equal(typeof exporter.checkpointOnnxManifest,'function');
@@ -21,6 +64,19 @@ test('checkpoint ONNX manifest preserves pending training lineage and channel vi
   assert.equal(manifest.lineageComplete,false);assert.equal(manifest.checkpointSha256,receipt.checkpointSha256);
   assert.deepEqual(validateCandidateModel(manifest).observedChannels,['international']);
   assert.deepEqual(manifest.unobservedChannels,['administrative','coast','hydro','transport','text','frame']);
+  const combined={...receipt,auxiliarySha256:'d'.repeat(64),lineageFingerprint:'e'.repeat(64)};
+  const combinedManifest=exporter.checkpointOnnxManifest({receipt:combined,model});
+  assert.equal(combinedManifest.auxiliaryCorpusSha256,combined.auxiliarySha256);
+  assert.equal(combinedManifest.lineageFingerprint,combined.lineageFingerprint);
+  assert.equal(validateCandidateModel(combinedManifest).auxiliaryCorpusSha256,combined.auxiliarySha256);
+  const encoderInitialization={kind:'public-pretrained-image-classification',url:'https://download.pytorch.org/models/encoder-12345678.pth',
+    sha256:'12345678'+'d'.repeat(56),bytes:15};
+  const fresh={...receipt,initialization:'public-encoder-no-optimizer',encoderInitialization};
+  const freshManifest=exporter.checkpointOnnxManifest({receipt:fresh,model});
+  assert.equal(freshManifest.initialization,'public-encoder-no-optimizer');assert.deepEqual(freshManifest.encoderInitialization,encoderInitialization);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...fresh,encoderInitialization:{...encoderInitialization,sha256:'e'.repeat(64)}},model}),/encoder provenance/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,auxiliarySha256:'d'.repeat(64)},model}),/auxiliary/i);
+  assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,lineageFingerprint:'e'.repeat(64)},model}),/auxiliary/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,releaseApproved:true},model}),/receipt/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt:{...receipt,optimizerUpdates:3},model}),/receipt/i);
   assert.throws(()=>exporter.checkpointOnnxManifest({receipt,model:{...model,file:'../unsafe.onnx'}}),/model/i);
@@ -37,7 +93,7 @@ test('native exporter refuses missing arguments and existing output',{skip:!proc
   }
   assert.equal(readFileSync(output,'utf8'),'preserve');
 });
-test('ONNX export preserves existing output and refuses modified warm-start weights',{skip:process.platform!=='win32'},async t=>{
+test('ONNX export preserves existing output and refuses modified warm-start weights',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-refusal-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const weights=join(root,'weights.safetensors'),output=join(root,'model.onnx');
   writeFileSync(weights,'weights');writeFileSync(output,'existing model');
@@ -51,7 +107,7 @@ test('ONNX export preserves existing output and refuses modified warm-start weig
   await assert.rejects(nativeOnnxExport({...request,output:unused}),/warm-start weights/);
   assert.equal(existsSync(unused),false);
 });
-test('checkpoint export refuses invalid resume proof and changed checkpoint bytes',{skip:process.platform!=='win32'},async t=>{
+test('checkpoint export refuses invalid resume proof and changed checkpoint bytes',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-checkpoint-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const checkpoint=join(root,'checkpoint.pt'),proof=join(root,'proof.json'),output=join(root,'new.onnx');
   writeFileSync(checkpoint,'modified');
@@ -66,7 +122,7 @@ test('checkpoint export refuses invalid resume proof and changed checkpoint byte
   await assert.rejects(nativeCheckpointOnnxExport({checkpoint,proof,output,torchLibrary:root}),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
 });
-test('checkpoint export accepts a bound private training receipt and refuses altered receipts',{skip:process.platform!=='win32'},async t=>{
+test('checkpoint export accepts a bound private training receipt and refuses altered receipts',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-batch-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const checkpoint=join(root,'checkpoint.pt'),proof=checkpoint+'.receipt.json',output=join(root,'new.onnx');
   writeFileSync(checkpoint,'checkpoint');
@@ -84,7 +140,7 @@ test('checkpoint export accepts a bound private training receipt and refuses alt
   await assert.rejects(nativeCheckpointOnnxExport(request),/matching private checkpoint/);
   assert.equal(existsSync(output),false);
 });
-test('checkpoint export protects an existing matching manifest before generating a model',{skip:process.platform!=='win32'},async t=>{
+test('checkpoint export protects an existing matching manifest before generating a model',{skip:!['win32','linux'].includes(process.platform)},async t=>{
   const root=mkdtempSync(join(tmpdir(),'pando-onnx-manifest-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
   const checkpoint=join(root,'checkpoint.pt'),proof=checkpoint+'.receipt.json',output=join(root,'new.onnx'),manifestOutput=join(root,'new.manifest.json');
   writeFileSync(checkpoint,'checkpoint');writeFileSync(manifestOutput,'protected');

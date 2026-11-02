@@ -23,6 +23,7 @@ test('publisher training provenance binds source bytes, rights and generator ide
     producer:{script:'tools/reference-analysis/publisher.py',sha256:'65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07',renderer:'PyMuPDF',rendererVersion:'fixture'}};
   const check=(changes={})=>validatePublisherProvenance({...annotation,...changes},sheet,root,{rendererVersion:'fixture'});
   await check();
+  await check({producer:{...annotation.producer,sha256:'53fb78609a1c834f725bb942fa122e8af65872369b025340d6c4fafc2c1f71db'}});
   const originalRead=fs.promises.readFile;
   try{
     fs.promises.readFile=(path,...args)=>String(path).replaceAll('\\','/').endsWith('/publisher.py')

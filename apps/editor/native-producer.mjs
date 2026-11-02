@@ -2,11 +2,17 @@
 import {copyFile,mkdir,readFile,readdir,unlink,writeFile,stat} from 'node:fs/promises';
 import {editorStageRoot} from '../../tools/worktree-storage.mjs';
 import {resolve} from 'node:path';
+import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {nativeInputIdentity,nativeTargets,nativeModes,nativeHash,apkCertificateSha256,verifyNativeBundle} from './native-contract.mjs';
 const shell=fileURLToPath(new URL('./',import.meta.url));
 const exists=path=>stat(path).then(()=>true,()=>false);
+export function nativeFrontendDist(configDir,distDir,pathApi=path){
+  const relative=pathApi.relative(configDir,distDir)||'.';
+  if(pathApi.isAbsolute(relative))throw Error('Native frontend and Tauri config must be on the same drive');
+  return relative;
+}
 export function nativeBuildArguments(platform,mode) {
   if(!Object.hasOwn(nativeTargets,platform))throw Error('Unsupported native platform');
   if(!nativeModes.includes(mode))throw Error('Unsupported native mode');
@@ -27,15 +33,26 @@ export async function buildNativeOnCI({root=resolve(shell,'../..'),platform,mode
   const identity=nativeInputIdentity(root,{platform,mode}),sourceCommit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8',windowsHide:true}).trim();
   const buildInfo={sourceCommit,nativeInputSha256:identity.sha256,platform,target:identity.target,mode,toolchainVersion:identity.toolchainVersion};
   const config=JSON.parse(await readFile(resolve(shell,'src-tauri',mode==='development'?'tauri.dev.json':mode==='verification'?'tauri.verification.json':'tauri.conf.json'),'utf8'));
-  if(mode==='development'){
+  if(platform==='windows'){
+    const reviewCap=JSON.parse(await readFile(resolve(shell,'src-tauri/capabilities/prototype-review.json'),'utf8'));
+    delete reviewCap.$schema;
+    if(mode==='development')reviewCap.remote={urls:['http://127.0.0.1:4175']};
+    config.app={...config.app,security:{...config.app?.security,capabilities:[
+      ...(mode==='development'?[reviewCap]:['prototype-review']),
+      ...(mode==='verification'?['verification']:[]),
+    ]}};
+    const baseline=JSON.parse(await readFile(resolve(shell,'src-tauri/tauri.conf.json'),'utf8')).app.security.csp;
+    config.app.security.csp=baseline.replace("connect-src 'self'","connect-src 'self' https://raw.githubusercontent.com");
+  }
+  if(mode==='development'&&platform!=='windows'){
     const capability=JSON.parse(await readFile(resolve(shell,'src-tauri/capabilities/prototype-main.json'),'utf8'));
     delete capability.$schema;capability.remote={urls:['http://127.0.0.1:4175']};
     config.app={...config.app,security:{...config.app?.security,capabilities:[capability]}};
   }
-  if(mode!=='development')config.build={...config.build,frontendDist:resolve(editorStageRoot(root),'dist')};
+  if(mode!=='development')config.build={...config.build,frontendDist:nativeFrontendDist(resolve(shell,'src-tauri'),resolve(editorStageRoot(root),'dist'))};
   if(platform==='windows'&&mode==='offline')config.bundle={...config.bundle,active:true,targets:['nsis']};
   const library=JSON.parse(await readFile(resolve(root,'config/library-data.json'),'utf8'));
-  const env={...process.env,CARGO_INCREMENTAL:'0',PANDOLAB_NATIVE_BUILD_INFO:JSON.stringify(buildInfo),PANDOLAB_LIBRARY_REPOSITORY:library.repository,PANDOLAB_SHELL_PROFILE:'map-data',PANDOLAB_SHELL_DEVELOPMENT:mode==='development'?'1':'0',PANDOLAB_SHELL_VERIFICATION:mode==='verification'?'1':'0',TAURI_CONFIG:JSON.stringify(config)};
+  const env={...process.env,CARGO_INCREMENTAL:'0',PANDOLAB_NATIVE_BUILD_INFO:JSON.stringify(buildInfo),PANDOLAB_LIBRARY_REPOSITORY:library.repository,PANDOLAB_SHELL_PROFILE:'map-data',PANDOLAB_NATIVE_REVIEW:platform==='windows'?'1':'0',PANDOLAB_SHELL_DEVELOPMENT:mode==='development'?'1':'0',PANDOLAB_SHELL_VERIFICATION:mode==='verification'?'1':'0',TAURI_CONFIG:JSON.stringify(config)};
   await mkdir(output,{recursive:true});const overlay=resolve(output,'ci-config.json');await writeFile(overlay,JSON.stringify(config));
   const invocation=nativeCompilerInvocation(platform,[...nativeBuildArguments(platform,mode),'--config',overlay]);
   try{

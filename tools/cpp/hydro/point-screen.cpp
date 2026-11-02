@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -13,6 +14,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using Value=pandoeditor::codecjson::Value;
@@ -94,6 +96,91 @@ Geometry unionLines(GEOSContextHandle_t context,const std::vector<Geometry>& lin
     auto collection=own(context,collectionRaw);return own(context,GEOSUnaryUnion_r(context,collection.get()));
 }
 Value numberArray(const std::vector<double>& numbers){auto result=Value::arr();for(double number:numbers)result.array.push_back(Value::num(number));return result;}
+Value canonicalUpstream(const Value& input,bool useOrder){
+    const auto exactInteger=[](const Value& value){const double n=pandoeditor::codecjson::finiteNumber(value);
+        if(std::abs(n)>9007199254740991.0||std::trunc(n)!=n)throw std::invalid_argument("Invalid river identity");return static_cast<std::int64_t>(n);};
+    const auto basin=exactInteger(field(input,"basin"));const auto& source=array(field(input,"candidates"));
+    if(source.empty()||source.size()>1000000)throw std::invalid_argument("Bounded upstream candidates required");
+    struct Candidate{Value id;std::int64_t numericId,basin,order;double area,flow,score,alignment;bool guided;};
+    std::vector<Candidate> candidates;candidates.reserve(source.size());bool same=false;
+    for(const auto& row:source){const auto& id=field(row,"id");const auto numericId=exactInteger(id),rowBasin=exactInteger(field(row,"basin")),order=exactInteger(field(row,"order"));
+        const double area=pandoeditor::codecjson::finiteNumber(field(row,"area")),flow=pandoeditor::codecjson::finiteNumber(field(row,"flow"));
+        const auto& scoreValue=field(row,"score"),&alignmentValue=field(row,"alignment");
+        if((scoreValue.kind==Value::Null)!=(alignmentValue.kind==Value::Null))throw std::invalid_argument("Invalid upstream candidate");
+        const bool guided=scoreValue.kind!=Value::Null;const double score=guided?pandoeditor::codecjson::finiteNumber(scoreValue):0,
+          alignment=guided?pandoeditor::codecjson::finiteNumber(alignmentValue):0;
+        if(guided&&(score<0||alignment < -1.0000000001||alignment > 1.0000000001))throw std::invalid_argument("Invalid guided branch score");
+        same|=rowBasin==basin;candidates.push_back({id,numericId,rowBasin,order,area,flow,score,alignment,guided});}
+    double largest=-std::numeric_limits<double>::infinity();for(const auto& row:candidates)if(!same||row.basin==basin)largest=std::max(largest,row.area);
+    const Candidate* bestGuide=nullptr;const Candidate* fallback=nullptr;
+    for(const auto& row:candidates){if(same&&row.basin!=basin)continue;
+        if(!fallback||std::make_tuple(row.area,row.flow,useOrder?row.order:0,row.numericId)>
+          std::make_tuple(fallback->area,fallback->flow,useOrder?fallback->order:0,fallback->numericId))fallback=&row;
+        if(row.guided&&row.area>=largest*0.10&&(!bestGuide||
+          std::make_tuple(row.score,-row.alignment,-row.area,-row.flow,row.numericId)<
+          std::make_tuple(bestGuide->score,-bestGuide->alignment,-bestGuide->area,-bestGuide->flow,bestGuide->numericId)))bestGuide=&row;
+    }
+    const auto* selected=bestGuide&&bestGuide->score<=0.16?bestGuide:fallback;
+    if(!selected)throw std::runtime_error("No upstream candidate");auto result=Value::obj();result.object["id"]=selected->id;return result;
+}
+// Geographic-degree score used to choose a named upstream branch at a confluence.
+Value guidedBranchScore(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    std::size_t vertices=0;
+    const auto readLine=[&](const char* key){const auto& source=array(field(input,key));vertices+=source.size();
+        if(source.size()<2||vertices>1000000)throw std::invalid_argument("Bounded branch lines required");
+        std::vector<Point> result;result.reserve(source.size());for(const auto& point:source)result.push_back(inputPoint(point));return result;};
+    const auto current=readLine("current"),candidate=readLine("candidate"),reference=readLine("reference");
+    const std::array<Point,2> currentEnds{current.front(),current.back()},candidateEnds{candidate.front(),candidate.back()};
+    std::size_t ci=0,ui=0;double closest=std::numeric_limits<double>::infinity();
+    for(std::size_t i=0;i<2;++i)for(std::size_t j=0;j<2;++j){const double gap=std::hypot(currentEnds[i].x-candidateEnds[j].x,currentEnds[i].y-candidateEnds[j].y);
+        if(gap<closest){closest=gap;ci=i;ui=j;}}
+    const auto confluence=currentEnds[ci],downEnd=currentEnds[1-ci],upEnd=candidateEnds[1-ui];
+    const auto unit=[](double x,double y){const auto length=std::hypot(x,y);return length>0?Point{x/length,y/length}:Point{0,0};};
+    const auto downstream=unit(downEnd.x-confluence.x,downEnd.y-confluence.y),upstream=unit(upEnd.x-confluence.x,upEnd.y-confluence.y);
+    auto referenceLine=geometry(context.get(),reference,false),candidateLine=geometry(context.get(),candidate,false),point=geometry(context.get(),{confluence},true);
+    double length=0,distance=0;if(!GEOSLength_r(context.get(),referenceLine.get(),&length)||!std::isfinite(length)||length<0||
+       !GEOSDistance_r(context.get(),candidateLine.get(),referenceLine.get(),&distance)||!std::isfinite(distance)||distance<0)
+        throw std::runtime_error("Guided branch geometry failed");
+    const double position=length>0?GEOSProject_r(context.get(),referenceLine.get(),point.get()):0;
+    if(!std::isfinite(position)||position<0)throw std::runtime_error("Guided branch projection failed");
+    const double delta=std::min(0.025,std::max(length*0.08,1e-5));
+    auto before=own(context.get(),GEOSInterpolate_r(context.get(),referenceLine.get(),std::max(0.0,position-delta)));
+    auto after=own(context.get(),GEOSInterpolate_r(context.get(),referenceLine.get(),std::min(length,position+delta)));
+    double bx,by,ax,ay;if(!GEOSGeomGetX_r(context.get(),before.get(),&bx)||!GEOSGeomGetY_r(context.get(),before.get(),&by)||
+       !GEOSGeomGetX_r(context.get(),after.get(),&ax)||!GEOSGeomGetY_r(context.get(),after.get(),&ay))throw std::runtime_error("Guided branch tangent failed");
+    auto tangent=unit(ax-bx,ay-by);if(tangent.x*downstream.x+tangent.y*downstream.y<0){tangent.x=-tangent.x;tangent.y=-tangent.y;}
+    const double alignment=-upstream.x*tangent.x-upstream.y*tangent.y;
+    auto result=Value::obj();result.object["score"]=Value::num(distance+std::max(0.0,1-alignment)*0.04);
+    result.object["alignment"]=Value::num(alignment);return result;
+}
+Value sharedBoundaryDistances(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* reader)const{if(reader)GEOSGeoJSONReader_destroy_r(context,reader);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
+    if(!reader)throw std::runtime_error("GEOS GeoJSON reader failed");
+    const auto country=[&](const char* key){const auto& source=field(input,key);const auto json=source.encode();
+        auto result=own(context.get(),GEOSGeoJSONReader_readGeometry_r(context.get(),reader.get(),json.c_str()));
+        const int type=GEOSGeomTypeId_r(context.get(),result.get());
+        if(type!=GEOS_POLYGON&&type!=GEOS_MULTIPOLYGON)throw std::invalid_argument("Country geometry must be a polygon");
+        return result;};
+    auto left=country("left"),right=country("right");
+    auto leftBoundary=own(context.get(),GEOSBoundary_r(context.get(),left.get()));
+    auto rightBoundary=own(context.get(),GEOSBoundary_r(context.get(),right.get()));
+    auto shared=own(context.get(),GEOSIntersection_r(context.get(),leftBoundary.get(),rightBoundary.get()));
+    const char empty=GEOSisEmpty_r(context.get(),shared.get());
+    if(empty==1)throw std::invalid_argument("Shared country boundary is empty");
+    if(empty!=0)throw std::runtime_error("Shared country boundary check failed");
+    const auto& points=array(field(input,"points"));if(points.empty()||points.size()>1000000)throw std::invalid_argument("Bounded boundary points required");
+    std::vector<double> distances;distances.reserve(points.size());
+    for(const auto& source:points){auto point=geometry(context.get(),{inputPoint(source)},true);double distance=0;
+        if(!GEOSDistance_r(context.get(),shared.get(),point.get(),&distance)||!std::isfinite(distance)||distance<0)
+            throw std::runtime_error("Shared country boundary distance failed");
+        distances.push_back(distance);}
+    auto result=Value::obj();result.object["distances"]=numberArray(distances);return result;
+}
 Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GEOSGeometry* target,int count){
     const double total=std::accumulate(source.lengths.begin(),source.lengths.end(),0.0);
     if(!std::isfinite(total)||total<=0)throw std::invalid_argument("Invalid total river length");
@@ -109,6 +196,15 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
     return distances;
 }
 Value run(const Value& input){
+    if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
+    const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&
+      (requested->second.string=="canonical-upstream"||requested->second.string=="guided-upstream"))
+        return canonicalUpstream(input,requested->second.string=="canonical-upstream");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="guided-branch")
+        return guidedBranchScore(input);
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="shared-boundary")
+        return sharedBoundaryDistances(input);
     const auto crs=utm(field(input,"crs"));const auto& sourceLines=array(field(input,"lines"));const auto& sourcePoints=array(field(input,"points"));
     std::string mode="union_if_line";
     const auto modeField=input.object.find("mode");

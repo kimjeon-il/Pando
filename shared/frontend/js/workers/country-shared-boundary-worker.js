@@ -31,6 +31,39 @@ let draining = false;
 let latestSequence = 0;
 let latestMessage = null;
 
+// Only the last exact geometry/hierarchy/quality packet is reusable. The
+// authoritative feature store remains the only owner of topology mutations.
+// Retain a bounded copy of the six *transferred* arrays: postMessage detaches
+// each outgoing ArrayBuffer, including for a superseded project generation.
+const PACKET_REUSE_BUDGET = 96 * 1024 * 1024;
+let retainedPacket = null;
+function packetIdentity(message, features) {
+  return JSON.stringify([message.quality, message.includeOutlines !== false,
+    features.map(feature => [String(feature.id), String(feature.boundaryRootId || ''),
+      String(feature.properties?.parentId || ''), feature.boundaryGeometryRevision])]);
+}
+function packetResidentEstimate(packet) {
+  // Includes both sets of typed arrays and a conservative per-segment JS
+  // estimate; it is a retention limit, not a native/GPU heap measurement.
+  return [packet, packet.outlineOverrides].reduce((sum, part) =>
+    sum + part.startsEnds.byteLength + part.chainPhase.byteLength
+      + part.preparedGeometry.instances.byteLength + part.preparedGeometry.nodes.byteLength
+      + part.segments.length * 128, 0);
+}
+function copyTransferredArrays(packet) {
+  const copyPart = part => ({...part, startsEnds: part.startsEnds.slice(),
+    preparedGeometry: {...part.preparedGeometry,
+      instances: part.preparedGeometry.instances.slice(),
+      nodes: part.preparedGeometry.nodes.slice()}});
+  return {...copyPart(packet), outlineOverrides: copyPart(packet.outlineOverrides)};
+}
+function transferBuffers(packet) {
+  return [packet.startsEnds.buffer, packet.preparedGeometry.instances.buffer,
+    packet.preparedGeometry.nodes.buffer, packet.outlineOverrides.startsEnds.buffer,
+    packet.outlineOverrides.preparedGeometry.instances.buffer,
+    packet.outlineOverrides.preparedGeometry.nodes.buffer];
+}
+
 const yieldToMessages = () => new Promise(resolve => setTimeout(resolve, 0));
 const isLatest = message => message.sequence === latestSequence;
 
@@ -91,6 +124,7 @@ async function prepareMessage(message) {
       if ((index & 31) === 31) await yieldToMessages();
     }
     if (deferUnapplied(message)) return;
+    let changed, cacheSeeded = false;
     if (message.type === 'replace') {
       let cached = message.cacheUrl === loadedCacheUrl && message.quality === loadedCacheQuality ? pendingCache : null;
       if (message.cacheUrl && (message.cacheUrl !== loadedCacheUrl || message.quality !== loadedCacheQuality)) {
@@ -110,29 +144,45 @@ async function prepareMessage(message) {
         }
       }
       if (deferUnapplied(message)) return;
-      boundaryState.replace(features, cached ? { cachedSegments: cached.segments,
+      cacheSeeded = !!cached;
+      changed = boundaryState.replace(features, cached ? { cachedSegments: cached.segments,
         changedIds: message.skipCacheReconcile ? new Set() : changedCountryGeometryIds(features, cached.signatures) } : {});
       if (cached === pendingCache) pendingCache = null;
     } else if (message.type === 'patch') {
-      boundaryState.patch(features, message.removedIds || []);
+      changed = boundaryState.patch(features, message.removedIds || []);
     } else return;
+    // A changed source or an independently seeded cached topology invalidates
+    // the retained stroke packet even if another generation will arrive soon.
+    if (changed.size || cacheSeeded) retainedPacket = null;
     applied = true;
     // Geometry/index preparation remains available to the next patch, but
     // queued date changes get a chance to supersede this packet before paint.
     await yieldToMessages();
     if (!isLatest(message)) return;
-    const packet = prepareCountrySharedBoundaryPacket(boundaryState.segments(), boundaryState.features(),
-      { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: message.quality === 'preview' ? 2 : 0.499,
-        includeOutlines: message.includeOutlines !== false });
+    const preparedFeatures = boundaryState.features();
+    const key = packetIdentity(message, preparedFeatures);
+    const packetCacheHit = retainedPacket?.key === key;
+    let packet;
+    if (packetCacheHit) {
+      // Transfer a new set of views. Retained arrays stay attached and can
+      // serve another generation or a later identical replace/patch.
+      packet = copyTransferredArrays(retainedPacket.packet);
+    } else {
+      packet = prepareCountrySharedBoundaryPacket(boundaryState.segments(), preparedFeatures,
+        { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: message.quality === 'preview' ? 2 : 0.499,
+          includeOutlines: message.includeOutlines !== false });
+      const residentBytes = packetResidentEstimate(packet);
+      retainedPacket = residentBytes <= PACKET_REUSE_BUDGET
+        ? {key, packet: copyTransferredArrays(packet), residentBytes}
+        : null;
+    }
     await yieldToMessages();
     if (!isLatest(message)) return;
     self.postMessage({ type: 'prepared', requestId: message.requestId,
       projectGeneration: message.projectGeneration, geometryRevision: message.geometryRevision,
-      quality: message.quality, preparationStats: boundaryState.stats(), packet }, [
-      packet.startsEnds.buffer, packet.preparedGeometry.instances.buffer, packet.preparedGeometry.nodes.buffer,
-      packet.outlineOverrides.startsEnds.buffer, packet.outlineOverrides.preparedGeometry.instances.buffer,
-      packet.outlineOverrides.preparedGeometry.nodes.buffer,
-    ]);
+      quality: message.quality, preparationStats: boundaryState.stats(),
+      packetCacheHit, packetCacheResidentEstimate: retainedPacket?.residentBytes || 0, packet },
+      transferBuffers(packet));
   } catch (error) {
     if (!applied && deferUnapplied(message)) return;
     if (isLatest(message)) postError(message, error);

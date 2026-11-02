@@ -8,12 +8,22 @@ import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {parseArgs} from 'node:util';
 import {verifyNativeTool} from '../native-tool.mjs';
+import {reportArgument} from '../report-paths.mjs';
 import {matchingTorchLibrary,referenceBatchSourceFiles} from './native-infer.mjs';
 import {corpusFingerprint,readTrainingBounded} from './training-evidence.mjs';
-import {indexMacroTrainingDataset,inspectCombinedTrainingData} from './training-tiles.mjs';
-import {encodedWeights,verifyMacroTrainingSupervision} from './training-supervision.mjs';
+import {indexTrainingDataset,inspectCombinedTrainingData} from './training-tiles.mjs';
+import {encodedWeights,verifyTrainingSupervision} from './training-supervision.mjs';
 
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
+// Entries are reused only after supervision verification rechecks every bound
+// source; changes to manifest or source identities select a different entry.
+const uniformTileCounts=new Map();
+export function assertUniformTrainingOrder(bytes,total){
+  if(!Buffer.isBuffer(bytes)||!Number.isSafeInteger(total)||total<1||total>1000000||bytes.length!==total*8)
+    throw Error('Uniform training order must visit all tiles');
+  const seen=new Set();for(let offset=0;offset<bytes.length;offset+=8){const index=bytes.readBigUInt64LE(offset);
+    if(index>=BigInt(total)||seen.has(index))throw Error('Uniform training order contains an invalid index');seen.add(index);}
+}
 function trainingOrderTool({root,directory=resolve(root,'build-native/reference-analysis/training-batch'),torchLibrary}){
   if(!['win32','linux'].includes(process.platform)||!torchLibrary)throw Error('Explicit native training order inputs required');
   const executable=process.platform==='win32'?'pando-reference-training-batch.exe':'pando-reference-training-batch';
@@ -21,9 +31,9 @@ function trainingOrderTool({root,directory=resolve(root,'build-native/reference-
   return {binary,manifest,library:matchingTorchLibrary(torchLibrary,manifest)};
 }
 // Prepare a source-bound mixed-corpus sampling order and weights; no training or model admission.
-export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal,verifyEvidence}){
+export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,sampling='balanced',epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal,verifyEvidence}){
   signal?.throwIfAborted();
-  if(!corpus||!auxiliary||!output||!torchLibrary||typeof macroOnly!=='boolean'||
+  if(!corpus||!auxiliary||!output||!torchLibrary||typeof macroOnly!=='boolean'||!['balanced','uniform'].includes(sampling)||
     !Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0||!Number.isSafeInteger(epoch+seed))
     throw Error('Explicit combined training order inputs required');
   if(existsSync(output))throw Error('Training order output exists; preserve it');
@@ -31,13 +41,13 @@ export async function writeCombinedTrainingOrder({corpus,auxiliary,macroOnly,epo
   const {bytes,unobservedMask}=encodedWeights(data.counts),target=resolve(output),order=join(target,'order.u64');
   trainingOrderTool({root,directory,torchLibrary});
   signal?.throwIfAborted();mkdirSync(target);
-  const result=await writeBalancedTrainingOrder({datasets:data.datasets.map(rows=>rows.map(row=>row.duplicateGroup)),epoch,seed,
+  const result=await writeSampledTrainingOrder({datasets:data.datasets.map(rows=>rows.map(row=>row.duplicateGroup)),sampling,epoch,seed,
     output:order,torchLibrary,root,directory,signal});
   if(await corpusFingerprint(corpus,auxiliary)!==data.lineageFingerprint)throw Error('Training sources changed during order preparation; preserve the output');
   writeFileSync(join(target,'weights.f32'),bytes,{flag:'wx'});
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,independentEvaluation:false,macroOnly:false,
     lineageFingerprint:data.lineageFingerprint,counts:data.counts,unobservedMask,weightsSha256:createHash('sha256').update(bytes).digest('hex'),
-    epoch,seed,length:result.length,orderSha256:result.sha256,datasetLengths:data.datasets.map(rows=>rows.length),toolRevision:result.toolRevision};
+    sampling,epoch,seed,length:result.length,orderSha256:result.sha256,datasetLengths:data.datasets.map(rows=>rows.length),toolRevision:result.toolRevision};
   writeFileSync(join(target,'order.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
 }
 export async function verifyCombinedTrainingOrder({corpus,auxiliary,orderDirectory,macroOnly,epoch,seed,signal,verifyEvidence}){
@@ -56,16 +66,27 @@ export async function verifyCombinedTrainingOrder({corpus,auxiliary,orderDirecto
     !Number.isSafeInteger(receipt.length)||receipt.length<1||order.length!==receipt.length*8||receipt.orderSha256!==digest(order))
     throw Error('Combined training order differs from source or receipt');
   const total=data.datasets.reduce((sum,rows)=>sum+rows.length,0);
-  for(let offset=0;offset<order.length;offset+=8)if(order.readBigUInt64LE(offset)>=BigInt(total))throw Error('Combined training order contains an invalid index');
-  return {...data,orderSha256:receipt.orderSha256,weightsSha256:receipt.weightsSha256,unobservedMask:receipt.unobservedMask,length:receipt.length};
+  const sampling=receipt.sampling??'balanced';if(!['balanced','uniform'].includes(sampling))throw Error('Invalid combined training sampling');
+  if(sampling==='uniform')assertUniformTrainingOrder(order,total);
+  else for(let offset=0;offset<order.length;offset+=8)if(order.readBigUInt64LE(offset)>=BigInt(total))throw Error('Combined training order contains an invalid index');
+  return {...data,sampling,orderSha256:receipt.orderSha256,weightsSha256:receipt.weightsSha256,unobservedMask:receipt.unobservedMask,length:receipt.length};
 }
-export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,torchLibrary,root=defaultRoot,
+export async function writeSampledTrainingOrder({datasets,sampling='balanced',epoch,seed,output,torchLibrary,root=defaultRoot,
   directory=resolve(root,'build-native/reference-analysis/training-batch'),signal}){
   signal?.throwIfAborted();
   if(!['win32','linux'].includes(process.platform)||!output||!torchLibrary)throw Error('Explicit native training order inputs required');
   if(existsSync(output))throw Error('Training order output exists; preserve it');
   if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0||!Number.isSafeInteger(epoch+seed)||
-    !Array.isArray(datasets)||!datasets.length||datasets.length>64)throw Error('Valid training epoch, seed and corpora required');
+    !Array.isArray(datasets)||!datasets.length||datasets.length>64||!['balanced','uniform'].includes(sampling))throw Error('Valid training epoch, seed, sampling and corpora required');
+  if(sampling==='uniform'){
+    let count=0,groupBytes=0;
+    for(const rows of datasets){if(!Array.isArray(rows)||!rows.length||rows.length>1000000-count)throw Error('Invalid training tile count');
+      count+=rows.length;for(const group of rows){if(typeof group!=='string'||!group||!group.isWellFormed()||group.includes('\0'))throw Error('Valid training duplicate group required');
+        const size=Buffer.byteLength(group);groupBytes+=size;if(size>1024||groupBytes>64*1024*1024)throw Error('Training group exceeds byte budget');}}
+    // One unique group per tile uses the existing deterministic native shuffle,
+    // without balancing or repeating any original source.
+    datasets=[Array.from({length:count},(_,index)=>String(index).padStart(7,'0'))];
+  }
   const pieces=[],number=value=>{const bytes=Buffer.allocUnsafe(4);bytes.writeUInt32LE(value);pieces.push(bytes);};
   let total=0,largest=0,groupBytes=0;number(datasets.length);
   for(const rows of datasets){if(!Array.isArray(rows)||!rows.length||rows.length>1000000-total)throw Error('Invalid training tile count');
@@ -92,43 +113,53 @@ export async function writeBalancedTrainingOrder({datasets,epoch,seed,output,tor
   catch(error){child.kill();await done.catch(()=>{});throw error;}
   signal?.throwIfAborted();const bytes=Buffer.concat(result);if(bytes.length!==length*8)throw Error('Native training order has incorrect length');
   for(let offset=0;offset<bytes.length;offset+=8)if(bytes.readBigUInt64LE(offset)>=BigInt(total))throw Error('Native training order contains an invalid index');
+  if(sampling==='uniform')assertUniformTrainingOrder(bytes,total);
   writeFileSync(resolve(output),bytes,{flag:'wx'});
   return {length,sha256:createHash('sha256').update(bytes).digest('hex'),toolRevision:manifest.revision};
 }
-export async function writeMacroTrainingOrder({corpus,supervision,epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal}){
-  signal?.throwIfAborted();if(!corpus||!supervision||!output||!torchLibrary)throw Error('Explicit macro corpus, supervision and training order inputs required');
+export async function writeTrainingOrder({corpus,supervision,reviewed=false,publisher=false,sampling='balanced',epoch,seed,output,torchLibrary,root=defaultRoot,directory,signal}){
+  signal?.throwIfAborted();if(!corpus||!supervision||!output||!torchLibrary||!['balanced','uniform'].includes(sampling))throw Error('Explicit macro corpus, supervision and training order inputs required');
   if(!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0||!Number.isSafeInteger(epoch+seed))throw Error('Valid training epoch and seed required');
   if(existsSync(output)||existsSync(resolve(output)+'.receipt.json'))throw Error('Training order output exists; preserve it');
-  const checked=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
-  const dataset=await indexMacroTrainingDataset(corpus,{signal});
-  const result=await writeBalancedTrainingOrder({datasets:[dataset.tiles.map(tile=>tile.duplicateGroup)],epoch,seed,output,torchLibrary,root,directory,signal});
+  const checked=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
+  const dataset=await indexTrainingDataset(corpus,{allowReviewed:reviewed,allowPublisher:publisher,signal});
+  const result=await writeSampledTrainingOrder({datasets:[dataset.tiles.map(tile=>tile.duplicateGroup)],sampling,epoch,seed,output,torchLibrary,root,directory,signal});
   const corpusHash=createHash('sha256').update(readTrainingBounded(resolve(corpus),32*1024*1024)).digest('hex');
-  const after=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
+  const after=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
   if(corpusHash!==dataset.corpusSha256||corpusHash!==checked.corpusSha256||after.sourcesSha256!==checked.sourcesSha256||after.weightsSha256!==checked.weightsSha256)
     throw Error('Training source changed during order preparation; preserve the output');
   const receipt={schemaVersion:1,trainingOnly:true,releaseApproved:false,corpusSha256:dataset.corpusSha256,sourcesSha256:checked.sourcesSha256,
-    weightsSha256:checked.weightsSha256,epoch,seed,length:result.length,orderSha256:result.sha256,toolRevision:result.toolRevision};
+    weightsSha256:checked.weightsSha256,sampling,epoch,seed,length:result.length,orderSha256:result.sha256,toolRevision:result.toolRevision};
   writeFileSync(resolve(output)+'.receipt.json',JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});return receipt;
 }
-export async function verifyMacroTrainingOrder({corpus,order,supervision,epoch,seed,signal}){
+export async function verifyTrainingOrder({corpus,order,supervision,reviewed=false,publisher=false,epoch,seed,signal}){
   signal?.throwIfAborted();if(!corpus||!order||!supervision||!Number.isSafeInteger(epoch)||epoch<0||!Number.isSafeInteger(seed)||seed<0)
     throw Error('Explicit bound training order inputs required');
   const receipt=JSON.parse(readTrainingBounded(resolve(order)+'.receipt.json',1024*1024)),bytes=readTrainingBounded(resolve(order),8000000);
-  const checked=await verifyMacroTrainingSupervision({corpus,directory:supervision,signal});
+  const checked=await verifyTrainingSupervision({corpus,directory:supervision,reviewed,publisher,signal});
   if(receipt.schemaVersion!==1||receipt.trainingOnly!==true||receipt.releaseApproved!==false||receipt.corpusSha256!==checked.corpusSha256||
     receipt.sourcesSha256!==checked.sourcesSha256||receipt.weightsSha256!==checked.weightsSha256||receipt.epoch!==epoch||receipt.seed!==seed||
     !Number.isSafeInteger(receipt.length)||receipt.length<1||bytes.length!==receipt.length*8||
     receipt.orderSha256!==createHash('sha256').update(bytes).digest('hex'))throw Error('Bound training order differs from its source or receipt');
-  return {...checked,length:receipt.length,orderSha256:receipt.orderSha256};
+  const sampling=receipt.sampling??'balanced';if(!['balanced','uniform'].includes(sampling))throw Error('Invalid training sampling');
+  if(sampling==='uniform'){
+    const key=JSON.stringify([checked.corpusSha256,checked.sourcesSha256,reviewed,publisher]);let count=uniformTileCounts.get(key);
+    if(count===undefined){const dataset=await indexTrainingDataset(corpus,{allowReviewed:reviewed,allowPublisher:publisher,signal});
+      if(dataset.corpusSha256!==checked.corpusSha256)throw Error('Uniform training corpus changed');count=dataset.tiles.length;
+      if(uniformTileCounts.size>=32)uniformTileCounts.delete(uniformTileCounts.keys().next().value);uniformTileCounts.set(key,count);}
+    assertUniformTrainingOrder(bytes,count);
+  }
+  return {...checked,sampling,length:receipt.length,orderSha256:receipt.orderSha256};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},auxiliary:{type:'string'},supervision:{type:'string'},epoch:{type:'string'},seed:{type:'string'},
-    output:{type:'string'},'torch-library':{type:'string'},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
+      output:{type:'string'},sampling:{type:'string',default:'balanced'},'torch-library':{type:'string'},reviewed:{type:'boolean',default:false},publisher:{type:'boolean',default:false},'allow-nonmacro-auxiliary':{type:'boolean',default:false}}});
     if(positionals.length||!/^\d+$/.test(values.epoch||'')||!/^\d+$/.test(values.seed||''))throw Error('Explicit macro corpus, epoch, seed and output required');
-    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.supervision))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and no macro supervision directory');
+    if(values.auxiliary&&(!values['allow-nonmacro-auxiliary']||values.supervision||values.reviewed||values.publisher))throw Error('Combined corpus requires explicit nonmacro auxiliary scope and no macro supervision directory');
     if(!values.auxiliary&&values['allow-nonmacro-auxiliary'])throw Error('Auxiliary corpus required for nonmacro scope');
-    const common={corpus:values.corpus,epoch:Number(values.epoch),seed:Number(values.seed),output:values.output,torchLibrary:values['torch-library']};
-    console.log(JSON.stringify(values.auxiliary?await writeCombinedTrainingOrder({...common,auxiliary:values.auxiliary,macroOnly:false}):
-      await writeMacroTrainingOrder({...common,supervision:values.supervision})));
+    const common={corpus:reportArgument(values.corpus,{access:'read',siblings:true}),sampling:values.sampling,epoch:Number(values.epoch),seed:Number(values.seed),
+      output:reportArgument(values.output,{access:'write'}),torchLibrary:values['torch-library']};
+    console.log(JSON.stringify(values.auxiliary?await writeCombinedTrainingOrder({...common,auxiliary:reportArgument(values.auxiliary,{access:'read',siblings:true}),macroOnly:false}):
+      await writeTrainingOrder({...common,supervision:reportArgument(values.supervision,{access:'read'}),reviewed:values.reviewed,publisher:values.publisher})));
   }catch(error){console.error('training-order: '+error.message);process.exitCode=1;}
 }

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {win32} from 'node:path';
 import {nativeBuildArguments,nativeCompilerInvocation} from '../native-producer.mjs';
 test('CI builds select explicit execution modes and only the requested native target',()=>{
  const dev=nativeBuildArguments('windows','development');assert.ok(dev.includes('x86_64-pc-windows-msvc'));assert.ok(dev.includes('custom-protocol,development'));assert.ok(dev.includes('--no-bundle'));assert.ok(!dev.includes('--release'));
@@ -11,3 +12,11 @@ test('CI builds select explicit execution modes and only the requested native ta
 test('Android Gradle reentry receives the pnpm CLI identity instead of a bare node tauri path',()=>{assert.deepEqual(nativeCompilerInvocation('android',['android','init','--ci']),{command:'pnpm',args:['exec','tauri','android','init','--ci']});const windows=nativeCompilerInvocation('windows',['build']);assert.equal(windows.command,process.execPath);assert.ok(windows.args[0].endsWith('tauri.js'));});
 
 test('CI native tests exercise the exact executable feature combination',async()=>{const owner=await import('../native-producer.mjs');for(const mode of ['development','offline','verification']){const build=nativeBuildArguments('windows',mode),test=owner.nativeTestArguments('windows',mode);assert.equal(test[test.indexOf('--features')+1],build[build.indexOf('--features')+1]);}});
+
+test('Windows staged frontend is a relative directory, never a drive-letter URL',async()=>{
+ const {nativeFrontendDist}=await import('../native-producer.mjs');
+ const config='D:\\a\\Pando\\Pando\\apps\\editor\\src-tauri',dist='D:\\a\\Pando\\build\\editor\\dist';
+ const value=nativeFrontendDist(config,dist,win32);
+ assert.equal(win32.resolve(config,value),dist);
+ assert.throws(()=>new URL(value));
+});

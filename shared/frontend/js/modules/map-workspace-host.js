@@ -4,8 +4,8 @@ import { createProductModePolicy } from './product-mode-policy.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapHost({productMode='editor',readOnly=productMode==='viewer'}={}) {
-  const productPolicy=createProductModePolicy(productMode,{readOnly});
+export function createMapHost({productMode='editor',readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat'}={}) {
+  const productPolicy=createProductModePolicy(productMode,{readOnly,projection});
   let dependencies;
   let svg;
   let interactionSvg;
@@ -264,7 +264,7 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
       .attr('focusable', 'false'));
     const baseRoot = dependencies.mapLayers.baseSvg.append('g').attr('class', 'map-base-root');
     dependencies.mapHostCommands.installFlatOceanLayer(baseRoot.append('rect').attr('class', 'map-ocean map-ocean-flat'));
-    if(productMode==='viewer') {
+    if(productPolicy.projection==='globe') {
       oceanLayer = baseRoot.append('circle').attr('class', 'map-ocean map-ocean-globe');
       shadowLayer = baseRoot.append('circle').attr('class', 'globe-shadow');
     }

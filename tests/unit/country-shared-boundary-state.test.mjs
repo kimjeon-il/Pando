@@ -339,6 +339,49 @@ test('the real Worker preserves canonical replace preparation and updates only p
   assert.deepEqual(deleted.packet.segments, []);
 });
 
+test('W2-P3 immutable boundary stroke packet survives transferred buffers and project generations', async t => {
+  const request = countryWorker(t, undefined, 'canonical');
+  const source = [rectangle('ROOT', 0, 0, 4, 4), rectangle('CHILD', 0, 0, 2, 4, 'ROOT')];
+  const first = await request({type:'replace', features:source, projectGeneration:10});
+  assert.equal(first.packetCacheHit, false);
+  assert.ok(first.packetCacheResidentEstimate > 0);
+  const same = await request({type:'replace', features:structuredClone(source), projectGeneration:11});
+  assert.equal(same.projectGeneration, 11);
+  assert.equal(same.packetCacheHit, true,
+    'a new generation must reuse exact SHA-256/hierarchy/quality stroke preparation');
+  assert.deepEqual(same.packet, first.packet, 'a retransmitted prepared packet must keep every display byte and owner range');
+  assert.ok(same.packet.startsEnds.byteLength > 0);
+  assert.ok(same.packet.preparedGeometry.instances.byteLength > 0);
+  assert.notStrictEqual(same.packet.startsEnds.buffer, first.packet.startsEnds.buffer,
+    'outbound TypedArrays must never transfer/detach the retained preparation');
+  const renamed = structuredClone(source);
+  renamed[0].properties.name = 'Updated display name';
+  const metadata = await request({type:'replace', features:renamed, projectGeneration:12});
+  assert.equal(metadata.packetCacheHit, true,
+    'a non-boundary display property must not destroy exact prepared border reuse');
+  assert.deepEqual(metadata.packet, first.packet);
+
+  const hierarchy = structuredClone(source);
+  hierarchy[1].boundaryRootId = 'CHILD';
+  const reassigned = await request({type:'replace', features:hierarchy, projectGeneration:13});
+  assert.equal(reassigned.packetCacheHit, false, 'changed sovereign hierarchy must invalidate the stroke packet');
+  const freshHierarchy = countryWorker(t, undefined, 'canonical');
+  assert.deepEqual(reassigned.packet, (await freshHierarchy({type:'replace', features:hierarchy})).packet);
+  const hiddenOutlines = await request({type:'replace', features:hierarchy, includeOutlines:false});
+  assert.equal(hiddenOutlines.packetCacheHit, false, 'changing exterior visibility is a different render packet');
+  assert.equal(hiddenOutlines.packet.outlineOverrides.segments.length, 0);
+  const visibleAgain = await request({type:'replace', features:hierarchy, includeOutlines:true});
+  assert.equal(visibleAgain.packetCacheHit, false, 'single-entry cache must not resurrect the alternate quality packet');
+  assert.deepEqual(visibleAgain.packet, reassigned.packet);
+
+  const moved = structuredClone(hierarchy);
+  moved[1].geometry.coordinates[0][1][0] += 0.00000001;
+  const changed = await request({type:'replace', features:moved, projectGeneration:14});
+  assert.equal(changed.packetCacheHit, false, 'even subpixel real shape changes must invalidate the cache');
+  const freshMoved = countryWorker(t,undefined,'canonical');
+  assert.deepEqual(changed.packet,(await freshMoved({type:'replace',features:moved})).packet);
+});
+
 test('the real Worker hydrates the current cache payload before classifying parent-child interiors', async t => {
   const rows = [rectangle('ROOT', 0, 0, 1, 1), rectangle('CHILD', 1, 0, 2, 1, 'ROOT')];
   const cache = { version: 1, quality: 'preview', signatures: Object.fromEntries(rows.map(row => [row.id, countryGeometrySignature(row)])),

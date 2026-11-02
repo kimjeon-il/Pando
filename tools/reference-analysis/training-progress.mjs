@@ -8,6 +8,14 @@ export function accumulateEpochLoss(previous,epoch,loss){
   if(!Number.isFinite(sum)||!Number.isSafeInteger(count))throw Error('Epoch loss accumulation exceeds range');
   return {epochLossSum:sum,epochLossCount:count};
 }
+// Check selection evidence separately from model and optimizer tensors.
+export function assertReplayedEpochProgress(original,replayed){
+  const valid=value=>value&&Number.isSafeInteger(value.epoch)&&value.epoch>=0&&
+    Number.isFinite(value.epochLossSum)&&Number.isSafeInteger(value.epochLossCount)&&value.epochLossCount>0;
+  if(!valid(original)||!valid(replayed)||original.epoch!==replayed.epoch||
+    original.epochLossSum!==replayed.epochLossSum||original.epochLossCount!==replayed.epochLossCount)
+    throw Error('Replayed epoch loss history differs from checkpoint receipt');
+}
 export function decideTrainingEpoch(receipt,{validationLoss=null,bestScore=null,stale=0,patience}={}){
   if(!receipt||!Number.isSafeInteger(receipt.epoch)||receipt.epoch<0||!Number.isSafeInteger(receipt.orderLength)||receipt.orderLength<1||
     !Number.isSafeInteger(receipt.cursor)||receipt.cursor!==receipt.orderLength||

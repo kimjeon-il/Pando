@@ -50,3 +50,25 @@ export async function screenHydroPoints(input,{root=defaultRoot,directory=resolv
   });
   signal?.throwIfAborted();return JSON.parse(stdout);
 }
+// Compare only explicitly selected border fragments with the exact shared
+// country boundary in geographic coordinates, matching the retained GIS test.
+export async function verifyHydroBorderFragments({left,right,pair,features},options={}){
+  if(!left||!right||typeof pair!=='string'||!/^[A-Z]{3}\/[A-Z]{3}$/.test(pair)||!Array.isArray(features)||!features.length)
+    throw Error('Explicit country pair and selected river fragments required');
+  const points=[];
+  for(const row of features){const meta=row?.metadata;
+    if(meta?.category!=='river'||meta.flags!==1||typeof meta.source!=='string'||
+      !meta.source.includes('Natural Earth border ')||!meta.source.endsWith(' '+pair))throw Error('Invalid border fragment source pair or flags');
+    const parts=lineParts(row.geometry);
+    if(!Array.isArray(parts)||!parts.length)throw Error('Border fragment lines required');
+    for(const part of parts){if(!Array.isArray(part)||!part.length)throw Error('Border fragment points required');
+      for(const point of part){if(!Array.isArray(point)||point.length!==2||point.some(value=>!Number.isFinite(value)))
+          throw Error('Invalid border fragment coordinate');points.push(point);if(points.length>1000000)throw Error('Too many border fragment points');}}
+  }
+  const result=await screenHydroPoints({mode:'shared-boundary',left,right,points},options);
+  if(!Array.isArray(result?.distances)||result.distances.length!==points.length||
+    result.distances.some(value=>!Number.isFinite(value)||value<0))throw Error('Invalid shared boundary distances');
+  let maximum=0;for(const distance of result.distances)maximum=Math.max(maximum,distance);
+  if(maximum>2e-6)throw Error('Border fragment differs from exact country shared boundary');
+  return {pair,fragments:features.length,points:points.length,maxDistanceDegrees:maximum};
+}

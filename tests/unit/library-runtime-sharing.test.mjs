@@ -5,7 +5,6 @@ import { createHash } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
 import * as library from '../../tools/library-data.mjs';
 import { contentFiles } from '../../tools/library-content.mjs';
 import {createP3PreviewServer} from '../../scripts/p3-preview-server.mjs';
@@ -32,7 +31,11 @@ test('same-pin runtime views share readonly bytes but scoped writes stay branch-
   assert.notEqual(library.libraryMaterializedRoot(f.app),library.libraryMaterializedRoot(f.ui));
   assert.equal(statSync(a,{bigint:true}).ino,statSync(b,{bigint:true}).ino);
   assert.throws(()=>writeFileSync(b,'unsafe'));
-  library.withLibraryWrite({root:f.ui,prefixes:['assets/data/current.bin']},()=>writeFileSync(b,'ui edit'));
+  library.withLibraryWrite({root:f.ui,prefixes:['assets/data/current.bin']},()=>{
+    assert.equal(library.libraryWriteLeases(f.data).filter(lease=>lease.alive).length,1);
+    writeFileSync(b,'ui edit');
+  });
+  assert.equal(library.libraryWriteLeases(f.data).filter(lease=>lease.alive).length,0);
   assert.equal(readFileSync(a,'utf8'),'runtime original');assert.equal(readFileSync(b,'utf8'),'ui edit');
   assert.notEqual(statSync(a,{bigint:true}).ino,statSync(b,{bigint:true}).ino);
   library.prepareLibraryData({root:f.ui,fetch:false});assert.equal(readFileSync(b,'utf8'),'ui edit');
@@ -55,14 +58,7 @@ test('async write leases persist until completion and reject overlapping writes'
   assert.throws(()=>library.withLibraryWrite({root:f.app,prefixes:['assets/data/current.bin']},()=>{}),/write|lease|running/i);
   release();await operation;assert.equal(readFileSync(join(f.app,f.logical),'utf8'),'finished');
   library.withLibraryWrite({root:f.app,prefixes:['assets/data/current.bin']},()=>{});
-});
-
-test('Python context manager detaches only its scope and releases its live lease', {skip:!process.env.PANDOLAB_TEST_PYTHON}, t => {
-  const f=fixture(t);library.prepareLibraryData({root:f.app,fetch:false});library.prepareLibraryData({root:f.ui,fetch:false});
-  const tools=fileURLToPath(new URL('../../tools',import.meta.url));
-  const program='import sys,pathlib; sys.path.insert(0,sys.argv[1]); from library_data import library_write; root=pathlib.Path(sys.argv[2]);\nwith library_write(["assets/data/current.bin"],root=root):\n (root/"assets/data/current.bin").write_bytes(b"python edit")\n';
-  execFileSync(process.env.PANDOLAB_TEST_PYTHON,['-B','-c',program,tools,f.ui],{env:{...process.env,PYTHONDONTWRITEBYTECODE:'1'},stdio:['pipe','pipe','pipe']});
-  assert.equal(readFileSync(join(f.app,f.logical),'utf8'),'runtime original');assert.equal(readFileSync(join(f.ui,f.logical),'utf8'),'python edit');
+  assert.throws(()=>library.withLibraryWrite({root:f.app,prefixes:['assets/data/current.bin']},()=>{throw Error('fixture failure');}),/fixture failure/);
   assert.equal(library.libraryWriteLeases(f.data).filter(lease=>lease.alive).length,0);
 });
 

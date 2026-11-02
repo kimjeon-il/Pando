@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {assertEvaluationIndependence,buildTrainingLineage,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
+import {assertEvaluationIndependence,assertSelectionExposure,buildTrainingLineage,selectionLineageCandidate,validateTrainingLineage} from '../../tools/reference-analysis/training-lineage.mjs';
 
 test('lineage stream records parents and refuses invalid independent sources',()=>{
   const parent=buildTrainingLineage([sheet('train')]),fresh=sheet('fresh');
@@ -22,6 +22,7 @@ test('lineage retains ancestors and records validation selection without includi
   const result=buildTrainingLineage([fresh,selection,ignored],{parent,parentSha256:'c'.repeat(64)});
   assert.deepEqual(result.parents,['c'.repeat(64)]);assert.equal(result.sheets.length,3);assert.equal(result.sheets[2].usage,'selection');
   assert.doesNotThrow(()=>assertEvaluationIndependence(result,[sheet('test','test')]));
+  assert.throws(()=>assertEvaluationIndependence(result,[{...selection,split:'test'}]),/id/);
   const leaked={...sheet('different','test'),familyId:original.familyId};assert.throws(()=>assertEvaluationIndependence(result,[leaked]),/familyId/);
   assert.throws(()=>assertEvaluationIndependence(result,[selection]),/independent/i);
 });
@@ -34,4 +35,25 @@ test('incomplete ancestry, hash aliases, missing IDs and wrong split are rejecte
   assert.throws(()=>assertEvaluationIndependence(lineage,[{...sheet('different','test'),editionId:null}]),/editionId/);
   assert.throws(()=>assertEvaluationIndependence(buildTrainingLineage([]),[{...sheet('different','test'),familyId:null}]),/familyId/);
   assert.throws(()=>assertEvaluationIndependence(lineage,[sheet('different','validation')]),/split/i);
+});
+
+test('lineage rejects unknown source splits and empty independent evaluation scopes',()=>{
+  const lineage=buildTrainingLineage([sheet('train')]);
+  for(const split of [undefined,'training','',null])
+    assert.throws(()=>buildTrainingLineage([{...sheet('fresh'),split}]),/split/i);
+  assert.throws(()=>assertEvaluationIndependence(lineage,[]),/independent/i);
+  assert.throws(()=>assertEvaluationIndependence(lineage,[],{split:'other'}),/split/i);
+});
+test('declared validation selection binds its sources and excludes training overlaps',()=>{
+  const exposure={schemaVersion:1,manifestSha256:'a'.repeat(64),fingerprint:'b'.repeat(64)};
+  const request={exposure,manifestSha256:exposure.manifestSha256,fingerprint:exposure.fingerprint,
+    trainingSheets:[sheet('train')],selectionSheets:[sheet('selection','validation')]};
+  assert.doesNotThrow(()=>assertSelectionExposure(request));
+  const candidate=selectionLineageCandidate(request);
+  assert.equal(candidate.complete,false);assert.deepEqual(candidate.sheets.map(row=>row.usage),['train','selection']);
+  assert.throws(()=>validateTrainingLineage(candidate),/complete/i);
+  assert.throws(()=>assertSelectionExposure({...request,fingerprint:'c'.repeat(64)}),/selection.*fingerprint/i);
+  assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[{...sheet('selection','validation'),familyId:'family-train'}]}),/familyId/i);
+  assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[sheet('selection','test')]}),/validation/i);
+  assert.throws(()=>assertSelectionExposure({...request,selectionSheets:[]}),/validation/i);
 });

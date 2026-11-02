@@ -1,0 +1,220 @@
+[
+  {
+    "input": {
+      "acceptance": {
+        "density": true,
+        "network": true
+      },
+      "regions": {
+        "korea": {
+          "label": "한반도",
+          "rivers": {
+            "6.0": {
+              "selectedCount": 1234,
+              "lengthRatio": null,
+              "pixelRatio": 0.125
+            },
+            "6.7": {
+              "selectedCount": 1235,
+              "lengthRatio": 1.2345,
+              "pixelRatio": 0.125
+            },
+            "7.0": {
+              "selectedCount": 1236,
+              "lengthRatio": 1.2345,
+              "pixelRatio": 0.125
+            },
+            "7.5": {
+              "selectedCount": 1237,
+              "lengthRatio": 1.2345,
+              "pixelRatio": 0.125
+            }
+          },
+          "lakes": {
+            "6.0": {
+              "selectedCount": 56,
+              "countRatio": 0.875,
+              "pixelAreaRatio": 1.125
+            },
+            "6.7": {
+              "selectedCount": 57,
+              "countRatio": 0.875,
+              "pixelAreaRatio": null
+            },
+            "7.0": {
+              "selectedCount": 58,
+              "countRatio": 0.875,
+              "pixelAreaRatio": 1.125
+            },
+            "7.5": {
+              "selectedCount": 59,
+              "countRatio": 0.875,
+              "pixelAreaRatio": 1.125
+            }
+          },
+          "riverBaseOverlapRatio": 0.0125,
+          "lakeBaseOverlapRatio": 0.005
+        }
+      },
+      "formula": {
+        "rivers": {
+          "flowWeight": 1.3,
+          "upstreamAreaWeight": -0.7,
+          "thresholds": {
+            "6.0": 14.4744,
+            "6.7": 12.4307,
+            "7.0": 11.2137,
+            "7.5": 10.55
+          }
+        },
+        "lakes": {
+          "areaWeight": 1.25,
+          "shorelineWeight": 0.5,
+          "thresholds": {
+            "6.0": 3.0,
+            "6.7": 2.5,
+            "7.0": 2.0,
+            "7.5": 1.5
+          }
+        }
+      },
+      "worldEstimate": {
+        "riverChaining": {
+          "selectedReachCount": 10000,
+          "chainCount": 5000,
+          "objectReductionPercent": 50.0,
+          "sourceCoordinateCount": 100000,
+          "coordinatesAfterChaining": 100000
+        },
+        "riverReachCount": 12345,
+        "riverChainCount": 6789,
+        "riverCoordinateCount": 98765,
+        "lakeFeatureCount": 1355,
+        "gzipMiB": 12.25,
+        "riverRenderLoadRatio": 1.25,
+        "lakeRenderLoadRatio": 0.75
+      },
+      "representativeChecks": {
+        "압록강": {
+          "present": true
+        },
+        "미확인": {
+          "present": null
+        },
+        "누락": {
+          "present": false
+        }
+      }
+    },
+    "expectedPrefix": "# 판도연구소 수계 자료 캘리브레이션 보고서\n\n이 보고서는 Natural Earth 전 세계 기본 수계를 유지한 상태에서 HydroRIVERS/HydroLAKES 보충 후보를 유럽·북미·호주의 Natural Earth 1:10m 보충 레이어와 같은 화면 밀도로 맞춘 분석 결과입니다. 판도연구소 실행 자산은 교체하지 않았습니다.\n\n## 결론\n\n**통과 · 전 세계 교체 후보로 사용할 수 있습니다.**\n\n- 통과: `density`\n- 통과: `network`\n\n세 기준 지역에 지역별 예외값을 두지 않고 같은 공식과 같은 단계 임계값을 사용했습니다. 비교 비율은 실제 표시 조합인 `(Natural Earth 기본 + Hydro 보충) / (Natural Earth 기본 + Natural Earth 보충)`이며 1.0에 가까울수록 같은 밀도입니다. 미통과 항목이 하나라도 있으면 런타임 자료를 교체하지 않습니다.\n\n## 확정된 공통 공식\n\n- 강: `ORD_STRA + 1.30 × log10(DIS_AV_CMS) -0.70 × log10(UPLAND_SKM)`\n- 강 임계값: 6.0 → 14.4744, 6.7 → 12.4307, 7.0 → 11.2137, 7.5 → 10.5500\n- 호수: `1.25 × log10(Lake_area) + 0.50 × log10(Shore_len)`\n- 호수 임계값: 6.0 → 3.0000, 6.7 → 2.5000, 7.0 → 2.0000, 7.5 → 1.5000\n- 강 중복 판정: 기본 강 4 km 회랑과 중첩 길이, 주방향 유사도를 함께 사용했습니다.\n- 호수 중복 판정: 기본 호수와의 IoU, 객체 면적 중첩률, 중심점 및 경계 거리를 함께 사용했습니다.\n\n## 지역별 결과\n\n### 한반도\n\n![한반도 비교](./korea.png)\n\n| min_zoom | 표시 강 수 | 강 길이 비 | 강 화면 비 | 표시 호수 수 | 호수 수 비 | 호수 화면 비 |\n|---:|---:|---:|---:|---:|---:|---:|\n| 6.0 | 1,234 | — | 0.125 | 56 | 0.875 | 1.125 |\n| 6.7 | 1,235 | 1.234 | 0.125 | 57 | 0.875 | — |\n| 7.0 | 1,236 | 1.234 | 0.125 | 58 | 0.875 | 1.125 |\n| 7.5 | 1,237 | 1.234 | 0.125 | 59 | 0.875 | 1.125 |\n\n기본 수계 잔여 중복: 강 1.2%, 호수 0.5%.\n\n\n## 연결 체인과 전 세계 예상치\n\n아래 수치는 합격한 공식의 적용 예상치입니다.\n\n- 기준 지역 최종 선택 reach: 10,000개\n- 연결 후 체인: 5,000개 (50.0% 감소)\n- 좌표: 100,000개 → 100,000개 (삭제·단순화 없음)\n- 전 세계 예상 reach: 12,345개\n- 전 세계 예상 체인: 6,789개\n- 전 세계 예상 강 좌표: 98,765개\n- 전 세계 예상 호수 객체: 1,355개\n- 예상 gzip 압축 용량: 약 12.2 MiB\n- 최종 단계 렌더 부하는 현재 Natural Earth 지역 보충 수계 대비 강 1.25배, 호수 0.75배로 추정합니다.\n\n## 대표 수계 확인\n\n- 압록강: 확인\n- 미확인: 후속 전 세계 검증\n- 누락: 누락\n\n"
+  },
+  {
+    "input": {
+      "acceptance": {
+        "density": true,
+        "network": false
+      },
+      "regions": {
+        "korea": {
+          "label": "한반도",
+          "rivers": {
+            "6.0": {
+              "selectedCount": 1234,
+              "lengthRatio": null,
+              "pixelRatio": 0.125
+            },
+            "6.7": {
+              "selectedCount": 1235,
+              "lengthRatio": 1.2345,
+              "pixelRatio": 0.125
+            },
+            "7.0": {
+              "selectedCount": 1236,
+              "lengthRatio": 1.2345,
+              "pixelRatio": 0.125
+            },
+            "7.5": {
+              "selectedCount": 1237,
+              "lengthRatio": 1.2345,
+              "pixelRatio": 0.125
+            }
+          },
+          "lakes": {
+            "6.0": {
+              "selectedCount": 56,
+              "countRatio": 0.875,
+              "pixelAreaRatio": 1.125
+            },
+            "6.7": {
+              "selectedCount": 57,
+              "countRatio": 0.875,
+              "pixelAreaRatio": null
+            },
+            "7.0": {
+              "selectedCount": 58,
+              "countRatio": 0.875,
+              "pixelAreaRatio": 1.125
+            },
+            "7.5": {
+              "selectedCount": 59,
+              "countRatio": 0.875,
+              "pixelAreaRatio": 1.125
+            }
+          },
+          "riverBaseOverlapRatio": 0.0125,
+          "lakeBaseOverlapRatio": 0.005
+        }
+      },
+      "formula": {
+        "rivers": {
+          "flowWeight": 1.3,
+          "upstreamAreaWeight": -0.7,
+          "thresholds": {
+            "6.0": 14.4744,
+            "6.7": 12.4307,
+            "7.0": 11.2137,
+            "7.5": 10.55
+          }
+        },
+        "lakes": {
+          "areaWeight": 1.25,
+          "shorelineWeight": 0.5,
+          "thresholds": {
+            "6.0": 3.0,
+            "6.7": 2.5,
+            "7.0": 2.0,
+            "7.5": 1.5
+          }
+        }
+      },
+      "worldEstimate": {
+        "riverChaining": {
+          "selectedReachCount": 10000,
+          "chainCount": 5000,
+          "objectReductionPercent": 50.0,
+          "sourceCoordinateCount": 100000,
+          "coordinatesAfterChaining": 100000
+        },
+        "riverReachCount": 12345,
+        "riverChainCount": 6789,
+        "riverCoordinateCount": 98765,
+        "lakeFeatureCount": 1355,
+        "gzipMiB": 12.25,
+        "riverRenderLoadRatio": 1.25,
+        "lakeRenderLoadRatio": 0.75
+      },
+      "representativeChecks": {
+        "압록강": {
+          "present": true
+        },
+        "미확인": {
+          "present": null
+        },
+        "누락": {
+          "present": false
+        }
+      }
+    },
+    "expectedPrefix": "# 판도연구소 수계 자료 캘리브레이션 보고서\n\n이 보고서는 Natural Earth 전 세계 기본 수계를 유지한 상태에서 HydroRIVERS/HydroLAKES 보충 후보를 유럽·북미·호주의 Natural Earth 1:10m 보충 레이어와 같은 화면 밀도로 맞춘 분석 결과입니다. 판도연구소 실행 자산은 교체하지 않았습니다.\n\n## 결론\n\n**보류 · 현재 제약으로는 전 세계 교체에 사용할 수 없습니다.**\n\n- 통과: `density`\n- 미통과: `network`\n\n세 기준 지역에 지역별 예외값을 두지 않고 같은 공식과 같은 단계 임계값을 사용했습니다. 비교 비율은 실제 표시 조합인 `(Natural Earth 기본 + Hydro 보충) / (Natural Earth 기본 + Natural Earth 보충)`이며 1.0에 가까울수록 같은 밀도입니다. 미통과 항목이 하나라도 있으면 런타임 자료를 교체하지 않습니다.\n\n## 최적 탐색값 (합격 기준 미달)\n\n- 강: `ORD_STRA + 1.30 × log10(DIS_AV_CMS) -0.70 × log10(UPLAND_SKM)`\n- 강 임계값: 6.0 → 14.4744, 6.7 → 12.4307, 7.0 → 11.2137, 7.5 → 10.5500\n- 호수: `1.25 × log10(Lake_area) + 0.50 × log10(Shore_len)`\n- 호수 임계값: 6.0 → 3.0000, 6.7 → 2.5000, 7.0 → 2.0000, 7.5 → 1.5000\n- 강 중복 판정: 기본 강 4 km 회랑과 중첩 길이, 주방향 유사도를 함께 사용했습니다.\n- 호수 중복 판정: 기본 호수와의 IoU, 객체 면적 중첩률, 중심점 및 경계 거리를 함께 사용했습니다.\n\n## 지역별 결과\n\n### 한반도\n\n![한반도 비교](./korea.png)\n\n| min_zoom | 표시 강 수 | 강 길이 비 | 강 화면 비 | 표시 호수 수 | 호수 수 비 | 호수 화면 비 |\n|---:|---:|---:|---:|---:|---:|---:|\n| 6.0 | 1,234 | — | 0.125 | 56 | 0.875 | 1.125 |\n| 6.7 | 1,235 | 1.234 | 0.125 | 57 | 0.875 | — |\n| 7.0 | 1,236 | 1.234 | 0.125 | 58 | 0.875 | 1.125 |\n| 7.5 | 1,237 | 1.234 | 0.125 | 59 | 0.875 | 1.125 |\n\n기본 수계 잔여 중복: 강 1.2%, 호수 0.5%.\n\n\n## 연결 체인과 전 세계 예상치\n\n아래 수치는 현재 최적 탐색값을 적용한 참고치이며, 미통과 상태이므로 배포 용량 계획에 사용하면 안 됩니다.\n\n- 기준 지역 최종 선택 reach: 10,000개\n- 연결 후 체인: 5,000개 (50.0% 감소)\n- 좌표: 100,000개 → 100,000개 (삭제·단순화 없음)\n- 전 세계 예상 reach: 12,345개\n- 전 세계 예상 체인: 6,789개\n- 전 세계 예상 강 좌표: 98,765개\n- 전 세계 예상 호수 객체: 1,355개\n- 예상 gzip 압축 용량: 약 12.2 MiB\n- 최종 단계 렌더 부하는 현재 Natural Earth 지역 보충 수계 대비 강 1.25배, 호수 0.75배로 추정합니다.\n\n## 대표 수계 확인\n\n- 압록강: 확인\n- 미확인: 후속 전 세계 검증\n- 누락: 누락\n\n"
+  }
+]

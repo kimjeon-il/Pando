@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
 import {loadOrtRuntime} from '../../plugins/pando-map-tools/lib/engine.mjs';
+import {nativeOnnxDiagnostic} from '../../tools/reference-analysis/native-onnx-export.mjs';
 
 function protobufFields(bytes){
   let index=0;
@@ -32,6 +33,31 @@ function protobufFields(bytes){
   }
   return fields;
 }
+
+test('source-bound ONNX diagnostic export runs on the current platform',
+  {skip:!process.env.PANDO_REFERENCE_ONNX_EXPORT_DIRECTORY||!process.env.PANDO_REFERENCE_TORCH_LIBRARY},async t=>{
+    const directory=mkdtempSync(join(tmpdir(),'pando-onnx-export-'));let session,outputs;const inputs={};
+    try{
+      const path=join(directory,'model.onnx');
+      const result=await nativeOnnxDiagnostic({output:path,directory:process.env.PANDO_REFERENCE_ONNX_EXPORT_DIRECTORY,
+        torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY});
+      assert.equal(result.opset,17);assert.equal(result.releaseApproved,false);assert.equal(result.diagnostic,true);
+      const bytes=readFileSync(path),model=protobufFields(bytes),opsets=model.filter(([field])=>field===8);
+      assert.equal(opsets.length,1);assert.equal(protobufFields(opsets[0][1]).find(([field])=>field===2)?.[1],17n);
+      const ort=loadOrtRuntime();session=await ort.InferenceSession.create(bytes,{executionProviders:['wasm']});
+      assert.deepEqual(session.inputNames,['tile','overview','position']);assert.deepEqual(session.outputNames,['logits']);
+      for(const [name,shape] of [['tile',[1,3,512,512]],['overview',[1,3,256,256]],['position',[1,4]]])
+        inputs[name]=new ort.Tensor('float32',new Float32Array(shape.reduce((a,b)=>a*b,1)),shape);
+      outputs=await session.run(inputs);assert.deepEqual(outputs.logits.dims,[1,7,512,512]);
+      assert(outputs.logits.data.every(Number.isFinite));
+      await assert.rejects(nativeOnnxDiagnostic({output:path,directory:process.env.PANDO_REFERENCE_ONNX_EXPORT_DIRECTORY,
+        torchLibrary:process.env.PANDO_REFERENCE_TORCH_LIBRARY}),/output exists/i);
+      t.diagnostic(`Exported ${result.bytes} ONNX bytes`);
+    }finally{
+      for(const tensor of Object.values(inputs))tensor.dispose();for(const tensor of Object.values(outputs||{}))tensor.dispose();
+      if(session)await session.release();rmSync(directory,{recursive:true,force:true});
+    }
+  });
 
 test('native ONNX graph reproduces every C++ model output and refuses overwrite',{skip:!process.env.PANDO_REFERENCE_ONNX_TEST_BINARY},async t=>{
   const binary=process.env.PANDO_REFERENCE_ONNX_TEST_BINARY;

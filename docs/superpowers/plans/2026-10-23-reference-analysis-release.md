@@ -1,5 +1,7 @@
 # Reference analysis main integration and follow-up
 
+> Historical implementation plan. For current training commands and owners, use `tools/reference-analysis/README.md`.
+
 Approved by user: publish the current implementation to main/Pages, then continue
 the existing reference-image analysis plan. Execute inline on permanent work/ui;
 main is the clean integration checkout. No unrelated GIS integration or portable

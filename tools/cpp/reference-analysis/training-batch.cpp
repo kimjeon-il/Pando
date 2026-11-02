@@ -2,6 +2,7 @@
 // handled by the caller; this executable never approves or publishes a model.
 #include "reference-io.h"
 #include "safetensors.h"
+#include "safetensors-write.h"
 #include "training-ordered-step.h"
 #include "training-amp.h"
 #include "training-validation.h"
@@ -13,6 +14,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -103,10 +105,75 @@ int validate(const std::vector<fs::path>& args){
   std::cout<<std::setprecision(17)<<"{\"trainingOnly\":true,\"releaseApproved\":false,\"independentEvaluation\":false,\"samples\":"
     <<count<<",\"loss\":"<<sum/double(count)<<"}\n";return 0;
 }
+// Check semantic training state, not archive bytes: optimizer serialization
+// can use different internal parameter identifiers for identical states.
+int compareCheckpoints(const std::vector<fs::path>& args){
+  if(args.size()!=5)throw std::invalid_argument("Expected compare DEVICE CHECKPOINT_A CHECKPOINT_B");
+  torch::set_num_threads(2);const auto device=pando::reference::selectDevice(args[2].string());
+  pando::reference::ReferenceBoundaryModel first,second;first->to(device);second->to(device);
+  torch::optim::AdamW firstOptimizer(first->parameters(),torch::optim::AdamWOptions(1e-4));
+  torch::optim::AdamW secondOptimizer(second->parameters(),torch::optim::AdamWOptions(1e-4));
+  const auto read=[](const fs::path& path){const auto bytes=pando::reference::readBounded(path,1024ULL*1024*1024);return std::string(bytes.begin(),bytes.end());};
+  const auto firstSampling=pando::reference::loadTrainingCheckpoint(*first,firstOptimizer,read(args[3]),device);
+  const auto firstCpuRng=at::globalContext().defaultGenerator(torch::Device(torch::kCPU)).get_state().clone();
+  const auto firstGpuRng=device.is_cuda()?at::globalContext().defaultGenerator(device).get_state().clone():torch::Tensor();
+  const auto secondSampling=pando::reference::loadTrainingCheckpoint(*second,secondOptimizer,read(args[4]),device);
+  const auto secondCpuRng=at::globalContext().defaultGenerator(torch::Device(torch::kCPU)).get_state();
+  const auto secondGpuRng=device.is_cuda()?at::globalContext().defaultGenerator(device).get_state():torch::Tensor();
+  const auto same=[](const torch::Tensor& a,const torch::Tensor& b){return a.defined()==b.defined()&&(!a.defined()||
+    (a.scalar_type()==b.scalar_type()&&a.sizes()==b.sizes()&&torch::equal(a,b)));};
+  const auto require=[](bool value,const char* message){if(!value)throw std::runtime_error(message);};
+  require(firstSampling.epoch==secondSampling.epoch&&firstSampling.cursor==secondSampling.cursor&&firstSampling.seed==secondSampling.seed&&
+    firstSampling.order==secondSampling.order,"Checkpoint sampling differs");
+  require(same(firstCpuRng,secondCpuRng)&&same(firstGpuRng,secondGpuRng),"Checkpoint RNG state differs");
+  const auto firstParameters=first->named_parameters(true),secondParameters=second->named_parameters(true);
+  const auto firstBuffers=first->named_buffers(true),secondBuffers=second->named_buffers(true);
+  require(firstParameters.size()==secondParameters.size()&&firstBuffers.size()==secondBuffers.size(),"Checkpoint model inventory differs");
+  for(const auto& item:firstParameters){require(secondParameters.contains(item.key()),"Checkpoint parameter missing");const auto& other=secondParameters[item.key()];
+    require(item.value().requires_grad()==other.requires_grad()&&same(item.value(),other),"Checkpoint parameter differs");}
+  for(const auto& item:firstBuffers){require(secondBuffers.contains(item.key())&&same(item.value(),secondBuffers[item.key()]),"Checkpoint buffer differs");}
+  const auto firstModules=first->named_modules("",false),secondModules=second->named_modules("",false);
+  require(first->is_training()==second->is_training()&&firstModules.size()==secondModules.size(),"Checkpoint module inventory differs");
+  for(const auto& item:firstModules)require(secondModules.contains(item.key())&&item.value()->is_training()==secondModules[item.key()]->is_training(),"Checkpoint training mode differs");
+  const auto& firstGroups=firstOptimizer.param_groups();const auto& secondGroups=secondOptimizer.param_groups();
+  require(firstGroups.size()==secondGroups.size()&&firstOptimizer.state().size()==secondOptimizer.state().size(),"Checkpoint optimizer inventory differs");
+  std::map<void*,std::string> firstNames,secondNames;
+  for(const auto& item:firstParameters)firstNames.emplace(item.value().unsafeGetTensorImpl(),item.key());
+  for(const auto& item:secondParameters)secondNames.emplace(item.value().unsafeGetTensorImpl(),item.key());
+  std::size_t observedStates=0;
+  for(std::size_t group=0;group<firstGroups.size();++group){const auto& a=firstGroups[group];const auto& b=secondGroups[group];
+    require(static_cast<const torch::optim::AdamWOptions&>(a.options())==static_cast<const torch::optim::AdamWOptions&>(b.options())&&a.params().size()==b.params().size(),"Checkpoint optimizer options differ");
+    for(std::size_t index=0;index<a.params().size();++index){
+      const auto firstName=firstNames.find(a.params()[index].unsafeGetTensorImpl()),secondName=secondNames.find(b.params()[index].unsafeGetTensorImpl());
+      require(firstName!=firstNames.end()&&secondName!=secondNames.end()&&firstName->second==secondName->second,"Checkpoint optimizer parameter order differs");
+      const auto left=firstOptimizer.state().find(a.params()[index].unsafeGetTensorImpl()),right=secondOptimizer.state().find(b.params()[index].unsafeGetTensorImpl());
+      require((left==firstOptimizer.state().end())==(right==secondOptimizer.state().end()),"Checkpoint optimizer state membership differs");
+      if(left==firstOptimizer.state().end())continue;
+      const auto* x=dynamic_cast<const torch::optim::AdamWParamState*>(left->second.get());const auto* y=dynamic_cast<const torch::optim::AdamWParamState*>(right->second.get());
+      require(x&&y&&x->step()==y->step()&&same(x->exp_avg(),y->exp_avg())&&same(x->exp_avg_sq(),y->exp_avg_sq())&&same(x->max_exp_avg_sq(),y->max_exp_avg_sq()),"Checkpoint optimizer state differs");
+      ++observedStates;
+    }
+  }
+  require(observedStates==firstOptimizer.state().size(),"Checkpoint has an unbound optimizer state");
+  std::cout<<"{\"equal\":true,\"optimizerStates\":"<<observedStates<<",\"epoch\":"<<firstSampling.epoch
+    <<",\"cursor\":"<<firstSampling.cursor<<",\"seed\":"<<firstSampling.seed<<",\"orderLength\":"<<firstSampling.order.size()
+    <<",\"trainingOnly\":true,\"releaseApproved\":false}\n";return 0;
+}
 int run(const std::vector<fs::path>& args){
+  if(args.size()>1&&args[1]==fs::path("export-weights")){
+    if(args.size()!=5)throw std::invalid_argument("Expected export-weights DEVICE CHECKPOINT NEW_OUTPUT");
+    if(fs::exists(args[4]))throw std::invalid_argument("Weights output exists; preserve it");
+    const auto device=pando::reference::selectDevice(args[2].string());
+    const auto bytes=pando::reference::readBounded(args[3],1024ULL*1024*1024);
+    pando::reference::ReferenceBoundaryModel model;model->to(device);torch::optim::AdamW optimizer(model->parameters(),torch::optim::AdamWOptions(1e-4));
+    pando::reference::loadTrainingCheckpoint(*model,optimizer,std::string(bytes.begin(),bytes.end()),device);
+    const auto output=pando::reference::saveModelSafetensors(*model);pando::reference::writeNewFile(args[4],output);
+    std::cout<<"{\"trainingOnly\":true,\"releaseApproved\":false,\"optimizerStateTransferred\":false,\"bytes\":"<<output.size()<<"}\n";return 0;
+  }
   if(args.size()>1&&args[1]==fs::path("order"))return balancedOrder(args);
   if(args.size()>1&&(args[1]==fs::path("infer")||args[1]==fs::path("infer-weights")))return infer(args);
   if(args.size()>1&&args[1]==fs::path("validate"))return validate(args);
+  if(args.size()>1&&args[1]==fs::path("compare"))return compareCheckpoints(args);
   if(args.size()<17||(args.size()-15)%2||args.size()>47)throw std::invalid_argument("Expected DEVICE warm|resume INPUT OUTPUT EPOCH SEED FREEZE_EPOCHS LEARNING_RATE ORDER WEIGHTS|none PRECISION SCALE GROWTH UNOBSERVED_MASK INDEX SAMPLE_DIR...");
   const auto mode=args[2].string();if(mode!="warm"&&mode!="resume")throw std::invalid_argument("Training mode must be warm or resume");
   if(fs::exists(args[4]))throw std::invalid_argument("Checkpoint output exists; preserve it");

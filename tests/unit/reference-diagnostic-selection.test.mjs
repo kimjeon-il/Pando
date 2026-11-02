@@ -11,7 +11,7 @@ test('diagnostic selection uses known positives and keeps the first maximum',asy
     regions:[{kind:'text',polygon:[[100,100],[120,100],[120,110],[100,110]]}],ignore:[[[89,189],[141,189],[141,211],[89,211]]]};
   const selected=await selectDiagnosticTile({annotation});
   assert.deepEqual({index:selected.index,x:selected.x,y:selected.y,channel:selected.channel},{index:1,x:448,y:0,channel:2});
-  assert.ok(selected.positivePixels>0);
+  assert.equal(selected.positivePixels,93);
 });
 
 test('diagnostic selection keeps first tile for ties and uses hydro for no positives',async()=>{

@@ -11,9 +11,9 @@ const readonlyIds=ids => Object.freeze({ get size() { return ids.length; },has: 
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createProjectSession({productMode='editor',readOnly=productMode==='viewer',capabilities=resourceCapabilities(productMode),resolveVisibilityGroup,onViewingChange=null}={}) {
+export function createProjectSession({productMode='editor',readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat',capabilities=resourceCapabilities(productMode,null,{projection}),resolveVisibilityGroup,onViewingChange=null}={}) {
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Project session requires immutable product mode.');
-  const productPolicy=createProductModePolicy(productMode,{readOnly});
+  const productPolicy=createProductModePolicy(productMode,{readOnly,projection});
   const viewingFields=new Set(['layerVisibility','layerPresentation','itemVisibility','physicalSettings','distributionSettings']);
   let viewingPresentation=null,documentProjection=null,physicalSettings;
   let dependencies;

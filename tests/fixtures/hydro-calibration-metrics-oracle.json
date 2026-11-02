@@ -1,0 +1,456 @@
+{
+  "input": {
+    "rivers": [
+      {
+        "assignedStage": 6.0,
+        "lengthKm": 10.12345,
+        "screenLength": 3.5,
+        "duplicateFraction": 0.1
+      },
+      {
+        "assignedStage": 7.0,
+        "lengthKm": 2.4,
+        "screenLength": 1.25,
+        "duplicateFraction": 0.5
+      },
+      {
+        "assignedStage": null,
+        "lengthKm": 5.0,
+        "screenLength": 7.0,
+        "duplicateFraction": 0.9
+      }
+    ],
+    "lakes": [
+      {
+        "assignedStage": 6.7,
+        "screenArea": 2.5,
+        "duplicateFraction": 0.2
+      },
+      {
+        "assignedStage": 7.5,
+        "screenArea": 7.5,
+        "duplicateFraction": 0.4
+      }
+    ],
+    "riverTargets": {
+      "6.0": {
+        "count": 10,
+        "lengthKm": 20.0,
+        "screenLength": 10.0
+      },
+      "6.7": {
+        "count": 11,
+        "lengthKm": 20.0,
+        "screenLength": 10.0
+      },
+      "7.0": {
+        "count": 12,
+        "lengthKm": 20.0,
+        "screenLength": 10.0
+      },
+      "7.5": {
+        "count": 13,
+        "lengthKm": 20.0,
+        "screenLength": 10.0
+      }
+    },
+    "riverBaselines": {
+      "6.0": {
+        "count": 0,
+        "lengthKm": 5.0,
+        "screenLength": 2.0
+      },
+      "6.7": {
+        "count": 1,
+        "lengthKm": 5.0,
+        "screenLength": 2.0
+      },
+      "7.0": {
+        "count": 2,
+        "lengthKm": 5.0,
+        "screenLength": 2.0
+      },
+      "7.5": {
+        "count": 3,
+        "lengthKm": 5.0,
+        "screenLength": 2.0
+      }
+    },
+    "lakeTargets": {
+      "6.0": {
+        "count": 4,
+        "screenArea": 12.0
+      },
+      "6.7": {
+        "count": 5,
+        "screenArea": 12.0
+      },
+      "7.0": {
+        "count": 6,
+        "screenArea": 12.0
+      },
+      "7.5": {
+        "count": 7,
+        "screenArea": 12.0
+      }
+    },
+    "lakeBaselines": {
+      "6.0": {
+        "count": 0,
+        "screenArea": 1.0
+      },
+      "6.7": {
+        "count": 1,
+        "screenArea": 1.0
+      },
+      "7.0": {
+        "count": 2,
+        "screenArea": 1.0
+      },
+      "7.5": {
+        "count": 3,
+        "screenArea": 1.0
+      }
+    }
+  },
+  "metrics": {
+    "river": {
+      "6.0": {
+        "targetCount": 10,
+        "selectedCount": 1,
+        "targetLengthKm": 20.0,
+        "selectedLengthKm": 15.123,
+        "lengthRatio": 0.7562,
+        "targetPixelLength": 10.0,
+        "selectedPixelLength": 5.5,
+        "pixelRatio": 0.55
+      },
+      "6.7": {
+        "targetCount": 11,
+        "selectedCount": 2,
+        "targetLengthKm": 20.0,
+        "selectedLengthKm": 15.123,
+        "lengthRatio": 0.7562,
+        "targetPixelLength": 10.0,
+        "selectedPixelLength": 5.5,
+        "pixelRatio": 0.55
+      },
+      "7.0": {
+        "targetCount": 12,
+        "selectedCount": 4,
+        "targetLengthKm": 20.0,
+        "selectedLengthKm": 17.523,
+        "lengthRatio": 0.8762,
+        "targetPixelLength": 10.0,
+        "selectedPixelLength": 6.75,
+        "pixelRatio": 0.675
+      },
+      "7.5": {
+        "targetCount": 13,
+        "selectedCount": 5,
+        "targetLengthKm": 20.0,
+        "selectedLengthKm": 17.523,
+        "lengthRatio": 0.8762,
+        "targetPixelLength": 10.0,
+        "selectedPixelLength": 6.75,
+        "pixelRatio": 0.675
+      }
+    },
+    "lake": {
+      "6.0": {
+        "targetCount": 4,
+        "selectedCount": 0,
+        "countRatio": 0.0,
+        "targetPixelArea": 12.0,
+        "selectedPixelArea": 1.0,
+        "pixelAreaRatio": 0.0833
+      },
+      "6.7": {
+        "targetCount": 5,
+        "selectedCount": 2,
+        "countRatio": 0.4,
+        "targetPixelArea": 12.0,
+        "selectedPixelArea": 3.5,
+        "pixelAreaRatio": 0.2917
+      },
+      "7.0": {
+        "targetCount": 6,
+        "selectedCount": 3,
+        "countRatio": 0.5,
+        "targetPixelArea": 12.0,
+        "selectedPixelArea": 3.5,
+        "pixelAreaRatio": 0.2917
+      },
+      "7.5": {
+        "targetCount": 7,
+        "selectedCount": 5,
+        "countRatio": 0.7143,
+        "targetPixelArea": 12.0,
+        "selectedPixelArea": 11.0,
+        "pixelAreaRatio": 0.9167
+      }
+    },
+    "riverOverlap": 0.17665619298196583,
+    "lakeOverlap": 0.35
+  },
+  "acceptanceInput": {
+    "regions": {
+      "europe": {
+        "rivers": {
+          "6.0": {
+            "targetCount": 10,
+            "selectedCount": 1,
+            "targetLengthKm": 20.0,
+            "selectedLengthKm": 15.123,
+            "lengthRatio": 0.7562,
+            "targetPixelLength": 10.0,
+            "selectedPixelLength": 5.5,
+            "pixelRatio": 0.55
+          },
+          "6.7": {
+            "targetCount": 11,
+            "selectedCount": 2,
+            "targetLengthKm": 20.0,
+            "selectedLengthKm": 15.123,
+            "lengthRatio": 0.7562,
+            "targetPixelLength": 10.0,
+            "selectedPixelLength": 5.5,
+            "pixelRatio": 0.55
+          },
+          "7.0": {
+            "targetCount": 12,
+            "selectedCount": 4,
+            "targetLengthKm": 20.0,
+            "selectedLengthKm": 17.523,
+            "lengthRatio": 0.8762,
+            "targetPixelLength": 10.0,
+            "selectedPixelLength": 6.75,
+            "pixelRatio": 0.675
+          },
+          "7.5": {
+            "targetCount": 13,
+            "selectedCount": 5,
+            "targetLengthKm": 20.0,
+            "selectedLengthKm": 17.523,
+            "lengthRatio": 0.8762,
+            "targetPixelLength": 10.0,
+            "selectedPixelLength": 6.75,
+            "pixelRatio": 0.675
+          }
+        },
+        "lakes": {
+          "6.0": {
+            "targetCount": 4,
+            "selectedCount": 0,
+            "countRatio": 0.0,
+            "targetPixelArea": 12.0,
+            "selectedPixelArea": 1.0,
+            "pixelAreaRatio": 0.0833
+          },
+          "6.7": {
+            "targetCount": 5,
+            "selectedCount": 2,
+            "countRatio": 0.4,
+            "targetPixelArea": 12.0,
+            "selectedPixelArea": 3.5,
+            "pixelAreaRatio": 0.2917
+          },
+          "7.0": {
+            "targetCount": 6,
+            "selectedCount": 3,
+            "countRatio": 0.5,
+            "targetPixelArea": 12.0,
+            "selectedPixelArea": 3.5,
+            "pixelAreaRatio": 0.2917
+          },
+          "7.5": {
+            "targetCount": 7,
+            "selectedCount": 5,
+            "countRatio": 0.7143,
+            "targetPixelArea": 12.0,
+            "selectedPixelArea": 11.0,
+            "pixelAreaRatio": 0.9167
+          }
+        },
+        "riverBaseOverlapRatio": 0.17665619298196583,
+        "lakeBaseOverlapRatio": 0.35
+      }
+    },
+    "representativeChecks": {
+      "present": {
+        "present": true
+      },
+      "unreviewed": {
+        "present": null
+      }
+    }
+  },
+  "acceptance": {
+    "riverFinalWithin15Percent": false,
+    "intermediateScreenWithin25Percent": false,
+    "lakeFinalWithin20Percent": false,
+    "baseOverlapBelow2Percent": false,
+    "representativeFeaturesPresent": true
+  },
+  "worldInput": [
+    {
+      "region": {
+        "id": "europe",
+        "calibrate": true
+      },
+      "rivers": [
+        {
+          "sourceId": 1,
+          "nextDown": 2,
+          "assignedStage": 6.0,
+          "sourceCoordinateCount": 10
+        },
+        {
+          "sourceId": 2,
+          "nextDown": 0,
+          "assignedStage": 6.0,
+          "sourceCoordinateCount": 12
+        },
+        {
+          "sourceId": 3,
+          "nextDown": 2,
+          "assignedStage": null,
+          "sourceCoordinateCount": 5
+        }
+      ],
+      "lakes": [
+        {
+          "assignedStage": 6.7,
+          "sourceCoordinateCount": 20
+        },
+        {
+          "assignedStage": null,
+          "sourceCoordinateCount": 30
+        }
+      ]
+    },
+    {
+      "region": {
+        "id": "korea",
+        "calibrate": false
+      },
+      "rivers": [
+        {
+          "sourceId": 4,
+          "nextDown": 0,
+          "assignedStage": 6.0,
+          "sourceCoordinateCount": 50
+        }
+      ],
+      "lakes": []
+    }
+  ],
+  "worldExpected": {
+    "riverChaining": {
+      "chainCount": 1,
+      "coordinatesAfterChaining": 22,
+      "selectedReachCount": 2,
+      "sourceCoordinateCount": 22,
+      "objectReductionPercent": 50.0
+    },
+    "riverReachCount": 5666667,
+    "riverChainCount": 2833334,
+    "riverCoordinateCount": 62333337,
+    "lakeFeatureCount": 713844,
+    "lakeCoordinateCount": 14276880,
+    "gzipMiB": 800.9921340942383,
+    "riverRenderLoadRatio": 0.0001528584530724549,
+    "lakeRenderLoadRatio": 0.0004967709885742673,
+    "method": "Calibration-region selection and chaining ratios extrapolated to published global source counts."
+  },
+  "representativeInput": {
+    "rivers": [
+      {
+        "properties": {
+          "name_en": "Nile River"
+        }
+      },
+      {
+        "properties": {
+          "name_original": "DANUBE"
+        }
+      },
+      {
+        "properties": {
+          "name": "Murray"
+        }
+      }
+    ],
+    "lakes": [
+      {
+        "properties": {
+          "name_en": "Superior"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Michigan"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Huron"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Erie"
+        }
+      },
+      {
+        "properties": {
+          "name_en": "Ontario"
+        }
+      }
+    ]
+  },
+  "representativeExpected": {
+    "나일강": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "nile"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "다뉴브강": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "danube"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "미시시피강": {
+      "present": false,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "머리강": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "murray"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    },
+    "오대호": {
+      "present": true,
+      "retainedLayer": "Natural Earth base",
+      "matchedNames": [
+        "superior",
+        "michigan",
+        "huron",
+        "erie",
+        "ontario"
+      ],
+      "note": "기본 수계는 유지되고 Hydro의 동일 구간만 제거됩니다."
+    }
+  }
+}

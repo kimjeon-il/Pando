@@ -1,8 +1,8 @@
 // Validate independently reviewed originals; derived training labels are not truth.
 import {createHash} from 'node:crypto';
-import {createReadStream} from 'node:fs';
-import {readFile,realpath,stat} from 'node:fs/promises';
-import {dirname,isAbsolute,resolve} from 'node:path';
+import {createReadStream,existsSync} from 'node:fs';
+import {readFile,realpath,stat,writeFile} from 'node:fs/promises';
+import {dirname,isAbsolute,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
@@ -10,11 +10,14 @@ import {validateReviewedAnnotation} from './review-masks.mjs';
 import {validateSourceLanguage} from './source-language.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
 import {assertMacroMetadata} from './macro-training-source.mjs';
+import {assertEvaluationIndependence,buildTrainingLineage} from './training-lineage.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
-// Identity of the LF-normalized historical publisher generator at cbda4c35.
+// LF-normalized historical publisher generators at 777917fc and cbda4c35.
 // Existing source-derived evidence keeps this identity after the script retires.
-const PUBLISHER_GENERATOR_SHA256='65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07';
+const HISTORICAL_PUBLISHER_GENERATORS=new Set(['53fb78609a1c834f725bb942fa122e8af65872369b025340d6c4fafc2c1f71db',
+  '65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07']);
+const NATIVE_PUBLISHER_GENERATOR_SHA256='97f5465dd0ce8b32e8d374b67252c25250ac814290318609f04609fb0cf9b11e';
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 async function verifyOriginalImage(sheet,root,signal){
   const image=await resolveCorpusPath(root,sheet.image);
@@ -32,9 +35,12 @@ export function evaluationGroups(sheets){const groups={};for(const sheet of shee
 export async function validatePublisherProvenance(annotation,sheet,root,{rendererVersion,signal}={}){
   signal?.throwIfAborted();
   if(annotation?.reviewed!==false||annotation.schemaVersion!==1)throw Error('Publisher-derived training labels cannot claim human review');
-  const producer=annotation.producer,expected={script:'tools/reference-analysis/publisher.py',sha256:PUBLISHER_GENERATOR_SHA256,renderer:'PyMuPDF',rendererVersion};
-  if(!producer||typeof producer!=='object'||Array.isArray(producer)||typeof rendererVersion!=='string'||!rendererVersion||
-    Object.keys(producer).length!==4||Object.keys(expected).some(key=>producer[key]!==expected[key]))throw Error('Publisher label generator identity differs');
+  const producer=annotation.producer,historical={script:'tools/reference-analysis/publisher.py',renderer:'PyMuPDF',rendererVersion};
+  const native={script:'tools/reference-analysis/prepare-publisher.mjs',sha256:NATIVE_PUBLISHER_GENERATOR_SHA256,renderer:'MuPDF',rendererVersion:'1.26.11'};
+  const matches=expected=>Object.keys(expected).every(key=>producer?.[key]===expected[key]);
+  if(!producer||typeof producer!=='object'||Array.isArray(producer)||Object.keys(producer).length!==4||
+    !((typeof rendererVersion==='string'&&rendererVersion&&matches(historical)&&HISTORICAL_PUBLISHER_GENERATORS.has(producer.sha256))||matches(native)))
+    throw Error('Publisher label generator identity differs');
   const metadata=await trainingProvenanceInputs(annotation,root,'Publisher',signal);
   const license=metadata.license,hasLicense=!!license&&(!Array.isArray(license)||license.length>0)&&
     (typeof license!=='object'||Array.isArray(license)||Object.keys(license).length>0);
@@ -43,9 +49,12 @@ export async function validatePublisherProvenance(annotation,sheet,root,{rendere
 }
 export async function validateMacroProvenance(annotation,sheet,root,{rendererVersion,signal}={}){
   signal?.throwIfAborted();const producer=annotation?.producer;
+  const historical=producer?.script==='tools/reference-analysis/macro.py'&&producer.renderer==='PyMuPDF'&&
+    typeof rendererVersion==='string'&&!!rendererVersion&&producer.rendererVersion===rendererVersion;
+  const native=producer?.script==='tools/reference-analysis/prepare-macro.mjs'&&producer.renderer==='MuPDF'&&producer.rendererVersion==='1.26.11'&&
+    producer.sha256==='ebb69547d81059f9a94152b3caef936b30da600f544aabe3e80d3411bb600f7e';
   if(annotation?.schemaVersion!==1||annotation.reviewed!==false||annotation.supervisionQuality!=='source-derived-weak'||
-    producer?.script!=='tools/reference-analysis/macro.py'||typeof producer.sha256!=='string'||!SHA.test(producer.sha256)||
-    producer.renderer!=='PyMuPDF'||typeof rendererVersion!=='string'||!rendererVersion||producer.rendererVersion!==rendererVersion)
+    typeof producer?.sha256!=='string'||!SHA.test(producer.sha256)||!(historical||native))
     throw Error('Explicit source-derived macro provenance required');
   const metadata=await trainingProvenanceInputs(annotation,root,'Macro',signal);
   assertMacroMetadata(metadata,annotation,sheet);
@@ -71,6 +80,7 @@ export function validateCorpusMetadata(value,{trainingOnly=false}={}){
   }
   return value;
 }
+
 export async function validateReviewedCorpus(value,root,{signal,workspace,reviewDirectory,onVerified}={}){
   validateCorpusMetadata(value);
   if(onVerified!==undefined&&typeof onVerified!=='function')throw Error('Invalid verified source consumer');
@@ -87,6 +97,15 @@ export async function validateReviewedCorpus(value,root,{signal,workspace,review
     if(onVerified)await onVerified({sheet,annotation,annotationPath,annotationSha256:createHash('sha256').update(annotationBytes).digest('hex'),imagePath:image});
   }
   return value;
+}
+// Keep original-relative paths valid while separating selection and final-test inputs.
+export function splitReviewedCorpus(value){
+  validateCorpusMetadata(value);
+  const parts=Object.fromEntries(['train','validation','test'].map(split=>[split,value.sheets.filter(sheet=>sheet.split===split)]));
+  if(Object.values(parts).some(sheets=>!sheets.length))throw Error('Nonempty train, validation and test sources required');
+  assertEvaluationIndependence(buildTrainingLineage(parts.train),parts.validation,{split:'validation'});
+  assertEvaluationIndependence(buildTrainingLineage([...parts.train,...parts.validation]),parts.test);
+  return Object.fromEntries(Object.entries(parts).map(([split,sheets])=>[split,{...value,sheets}]));
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{if(process.argv.length===3&&['--metadata-stream','--groups-stream','--publisher-provenance-stream','--macro-provenance-stream'].includes(process.argv[2])){
@@ -106,10 +125,19 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
           for(const sheet of request.value.sheets)await verifyOriginalImage(sheet,request.root);}
         console.log(JSON.stringify({valid:true}));
       }
-    }else{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'}}});
+    }else{const {values,positionals}=parseArgs({allowPositionals:true,options:{corpus:{type:'string'},'split-prefix':{type:'string'}}});
     if(positionals.length||!values.corpus)throw Error('Usage: node tools/reference-analysis/reviewed-corpus.mjs --corpus MANIFEST');
-    const path=resolve(reportArgument(values.corpus,{access:'read',siblings:true})),value=JSON.parse(await readFile(path,'utf8'));
-    const result=await validateReviewedCorpus(value,dirname(path));console.log(JSON.stringify({valid:true,groups:evaluationGroups(result.sheets)}));
+    const path=resolve(reportArgument(values.corpus,{access:'read',siblings:true})),bytes=await readFile(path),value=JSON.parse(bytes);
+    if(values['split-prefix']!==undefined){
+      const prefix=values['split-prefix'];if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(prefix))throw Error('Safe split filename prefix required');
+      const parts=splitReviewedCorpus(value),outputs=Object.fromEntries(Object.keys(parts).map(split=>[split,
+        reportArgument(join(dirname(values.corpus),`${prefix}.${split}.json`),{access:'write'})]));
+      if(Object.values(outputs).some(output=>resolve(output)===path||existsSync(output)))throw Error('Split output already exists; preserve it');
+      await validateReviewedCorpus(value,dirname(path));
+      if(!(await readFile(path)).equals(bytes))throw Error('Corpus changed during split preparation');
+      for(const [split,output] of Object.entries(outputs))await writeFile(output,JSON.stringify(parts[split],null,2)+'\n',{flag:'wx'});
+      console.log(JSON.stringify({outputs,counts:Object.fromEntries(Object.entries(parts).map(([split,part])=>[split,part.sheets.length]))}));
+    }else{const result=await validateReviewedCorpus(value,dirname(path));console.log(JSON.stringify({valid:true,groups:evaluationGroups(result.sheets)}));}
     }
   }catch(error){console.error('reviewed-corpus: '+error.message);process.exitCode=1;}
 }

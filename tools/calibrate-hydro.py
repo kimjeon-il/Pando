@@ -6,19 +6,20 @@ selected Hydro geometries retain every source vertex; the only object-count
 optimization measured here is topology-aware chaining of consecutive river
 reaches after selection.
 
-Required packages: pyshp >= 3.0 and shapely >= 2.0.
+Required packages: pyshp >= 3.0 and shapely >= 2.0. Node.js and the
+source-matched native Hydro calibration artifact are also required. Use
+build-native/hydro-calibration/artifact or PANDO_HYDRO_CALIBRATION_ARTIFACT.
 """
 
 from __future__ import annotations
 
 import argparse
-import bisect
 import gzip
 import hashlib
 import json
 import math
 import pickle
-import statistics
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -530,144 +531,67 @@ def mark_lake_duplicates(data: RegionData, distance_km: float = 5.0) -> None:
         feature.duplicate = duplicate
 
 
-def ratio(value: float, target: float) -> float:
-    if target <= 0:
-        return 1.0 if value <= 0 else float("inf")
-    return value / target
-
-
 def report_ratio(value: float, target: float) -> float | None:
     return None if target <= 0 else round(value / target, 4)
 
 
-def log_error(value: float, target: float) -> float:
-    return abs(math.log(max(ratio(value, target), 1e-9)))
+def run_calibration_native(operation: str, request: dict[str, Any]) -> Any:
+    script = Path(__file__).with_name('gis') / 'hydro-calibration-native.mjs'
+    payload = json.dumps(request, allow_nan=False, separators=(',', ':')).encode('utf-8')
+    result = subprocess.run(['node', str(script), operation], input=payload, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, timeout=1815 if operation == '--optimize-stream' else 195,
+                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    if result.returncode:
+        raise RuntimeError('Native Hydro calibration failed: ' + result.stderr.decode('utf-8', errors='replace'))
+    return json.loads(result.stdout)
 
 
-def candidate_thresholds(scored: dict[str, list[tuple[float, Any]]], points: int = 220) -> list[float]:
-    values = sorted(score for rows in scored.values() for score, _ in rows)
-    if not values:
-        return []
-    result = {values[0] - 1e-9, values[-1] + 1e-9}
-    for index in range(points + 1):
-        result.add(values[min(len(values) - 1, round(index * (len(values) - 1) / points))])
-    return sorted(result, reverse=True)
+def optimize_calibration(calibration: Sequence[RegionData], kind: str) -> tuple[tuple[float, float], dict[float, float]]:
+    river = kind == 'river'
+    regions = []
+    for data in calibration:
+        features = data.rivers if river else data.lakes
+        rows = [dict(order=feature.order, first=feature.flow, second=feature.upstream_area,
+                     metricFirst=feature.length_km, metricSecond=feature.screen_length) if river else
+                dict(first=feature.area_km2, second=feature.shoreline_km, metricFirst=feature.screen_area)
+                for feature in features if not feature.duplicate]
+        def metrics(value):
+            return dict(first=value.length_km, second=value.screen_length) if river else dict(first=value.screen_area, second=value.count)
+        targets = data.river_targets if river else data.lake_targets
+        baselines = data.river_baselines if river else data.lake_baselines
+        regions.append(dict(features=rows, targets=[metrics(targets[stage]) for stage in STAGES],
+                            baselines=[metrics(baselines[stage]) for stage in STAGES]))
+    grid = RIVER_WEIGHT_GRID if river else LAKE_WEIGHT_GRID
+    result = run_calibration_native('--optimize-stream', dict(kind=kind, stages=STAGES, regions=regions, weights=grid))
+    if (not isinstance(result, dict) or set(result) != {'weights', 'thresholds', 'objective'} or
+            not isinstance(result['weights'], list) or tuple(result['weights']) not in grid or
+            not isinstance(result['thresholds'], list) or len(result['thresholds']) not in (0, len(STAGES)) or
+            any(type(value) not in (int, float) or not math.isfinite(value) for value in result['thresholds'])):
+        raise ValueError('Invalid native Hydro calibration optimization result')
+    return tuple(result['weights']), dict(zip(STAGES, result['thresholds']))
 
 
-def optimize_thresholds(
-    scored: dict[str, list[tuple[float, Any]]],
-    targets: dict[str, dict[float, ReferenceStage]],
-    baselines: dict[str, dict[float, ReferenceStage]],
-    kind: str,
-) -> tuple[dict[float, float], float]:
-    thresholds = candidate_thresholds(scored)
-    if not thresholds:
-        return {}, float("inf")
-    metric_rows: dict[str, dict[float, tuple[float, float, int]]] = {}
-    for region_id, rows in scored.items():
-        descending = sorted(rows, key=lambda item: item[0], reverse=True)
-        scores = [-score for score, _ in descending]
-        first_prefix = [0.0]
-        second_prefix = [0.0]
-        for _, feature in descending:
-            if kind == "river":
-                first_prefix.append(first_prefix[-1] + feature.length_km)
-                second_prefix.append(second_prefix[-1] + feature.screen_length)
-            else:
-                first_prefix.append(first_prefix[-1] + feature.screen_area)
-                second_prefix.append(second_prefix[-1] + 1.0)
-        metric_rows[region_id] = {
-            threshold: (
-                first_prefix[bisect.bisect_right(scores, -threshold)],
-                second_prefix[bisect.bisect_right(scores, -threshold)],
-                bisect.bisect_right(scores, -threshold),
-            )
-            for threshold in thresholds
-        }
-
-    selected: dict[float, float] = {}
-    total_objective = 0.0
-    previous = float("inf")
-    for stage in STAGES:
-        allowed = [threshold for threshold in thresholds if threshold <= previous + 1e-9]
-        best_threshold = allowed[0]
-        best_objective = float("inf")
-        for threshold in allowed:
-            errors = []
-            for region_id in scored:
-                first, second, _ = metric_rows[region_id][threshold]
-                target = targets[region_id][stage]
-                baseline = baselines[region_id][stage]
-                if kind == "river":
-                    first += baseline.length_km
-                    second += baseline.screen_length
-                    if stage == STAGES[-1]:
-                        errors.extend((log_error(first, target.length_km), log_error(second, target.screen_length)))
-                    else:
-                        errors.append(log_error(second, target.screen_length))
-                else:
-                    first += baseline.screen_area
-                    second += baseline.count
-                    if stage == STAGES[-1]:
-                        errors.extend((log_error(first, target.screen_area), log_error(second, target.count)))
-                    else:
-                        errors.append(log_error(first, target.screen_area))
-            objective = max(errors, default=0.0) * 0.7 + statistics.fmean(errors or [0.0]) * 0.3
-            if objective < best_objective:
-                best_objective = objective
-                best_threshold = threshold
-        selected[stage] = best_threshold
-        previous = best_threshold
-        total_objective += best_objective
-    return selected, total_objective
-
-
-def optimize_rivers(calibration: Sequence[RegionData]) -> tuple[tuple[float, float], dict[float, float]]:
-    best: tuple[float, tuple[float, float], dict[float, float]] | None = None
-    targets = {data.region.id: data.river_targets for data in calibration}
-    baselines = {data.region.id: data.river_baselines for data in calibration}
-    for weights in RIVER_WEIGHT_GRID:
-        scored = {
-            data.region.id: [(feature.score(*weights), feature) for feature in data.rivers if not feature.duplicate]
-            for data in calibration
-        }
-        thresholds, objective = optimize_thresholds(scored, targets, baselines, "river")
-        candidate = (objective, weights, thresholds)
-        if best is None or candidate[0] < best[0]:
-            best = candidate
-    if best is None:
-        raise RuntimeError("하천 임계값을 계산할 수 없습니다.")
-    return best[1], best[2]
-
-
-def optimize_lakes(calibration: Sequence[RegionData]) -> tuple[tuple[float, float], dict[float, float]]:
-    best: tuple[float, tuple[float, float], dict[float, float]] | None = None
-    targets = {data.region.id: data.lake_targets for data in calibration}
-    baselines = {data.region.id: data.lake_baselines for data in calibration}
-    for weights in LAKE_WEIGHT_GRID:
-        scored = {
-            data.region.id: [(feature.score(*weights), feature) for feature in data.lakes if not feature.duplicate]
-            for data in calibration
-        }
-        thresholds, objective = optimize_thresholds(scored, targets, baselines, "lake")
-        candidate = (objective, weights, thresholds)
-        if best is None or candidate[0] < best[0]:
-            best = candidate
-    if best is None:
-        raise RuntimeError("호수 임계값을 계산할 수 없습니다.")
-    return best[1], best[2]
-
-
-def assign_stages(features: Iterable[Any], weights: tuple[float, float], thresholds: dict[float, float]) -> None:
-    for feature in features:
-        feature.assigned_stage = None
+def assign_stages(features: Iterable[Any], weights: tuple[float, float], thresholds: dict[float, float], kind: str) -> None:
+    items = list(features)
+    if not any(not feature.duplicate for feature in items):
+        for feature in items:
+            feature.assigned_stage = None
+        return
+    rows = []
+    for feature in items:
         if feature.duplicate:
-            continue
-        score = feature.score(*weights)
-        for stage in STAGES:
-            if score >= thresholds[stage]:
-                feature.assigned_stage = stage
-                break
+            rows.append(dict(duplicate=True))
+        elif kind == 'river':
+            rows.append(dict(duplicate=False, order=feature.order, first=feature.flow, second=feature.upstream_area))
+        else:
+            rows.append(dict(duplicate=False, first=feature.area_km2, second=feature.shoreline_km))
+    result = run_calibration_native('--assign-stream', dict(kind=kind, stages=STAGES, weights=weights,
+                                      thresholds=[thresholds[stage] for stage in STAGES], features=rows))
+    if (not isinstance(result, list) or len(result) != len(items) or
+            any(value is not None and value not in STAGES for value in result)):
+        raise ValueError('Invalid native Hydro calibration assignment result')
+    for feature, stage in zip(items, result):
+        feature.assigned_stage = stage
 
 
 def selected_at(features: Iterable[Any], stage: float) -> list[Any]:
@@ -721,37 +645,14 @@ def residual_overlap(features: Iterable[Any], kind: str) -> float:
 
 
 def chain_rivers(features: Sequence[LinearFeature]) -> dict[str, int]:
-    selected = {int(feature.source_id): feature for feature in features if feature.assigned_stage is not None}
-    upstream_count: dict[int, int] = {source_id: 0 for source_id in selected}
-    for feature in selected.values():
-        if feature.next_down in selected and selected[feature.next_down].assigned_stage == feature.assigned_stage:
-            upstream_count[feature.next_down] += 1
-    starts = [
-        feature for source_id, feature in selected.items()
-        if upstream_count[source_id] != 1
-        or feature.next_down not in selected
-        or selected[feature.next_down].assigned_stage != feature.assigned_stage
-    ]
-    visited: set[int] = set()
-    chains = 0
-    for start in starts:
-        current = start
-        if int(current.source_id) in visited:
-            continue
-        chains += 1
-        while int(current.source_id) not in visited:
-            visited.add(int(current.source_id))
-            downstream = selected.get(current.next_down)
-            if downstream is None or downstream.assigned_stage != current.assigned_stage or upstream_count.get(current.next_down, 0) != 1:
-                break
-            current = downstream
-    chains += len(selected) - len(visited)
-    return {
-        "selectedReachCount": len(selected),
-        "chainCount": chains,
-        "sourceCoordinateCount": sum(feature.source_coordinate_count for feature in selected.values()),
-        "coordinatesAfterChaining": sum(feature.source_coordinate_count for feature in selected.values()),
-    }
+    rows = [dict(id=int(feature.source_id), next=feature.next_down, stage=feature.assigned_stage,
+                 coordinateCount=feature.source_coordinate_count)
+            for feature in features if feature.assigned_stage is not None]
+    counts = run_calibration_native('--chain-stream', dict(features=rows))
+    keys = {'selectedReachCount', 'chainCount', 'sourceCoordinateCount', 'coordinatesAfterChaining'}
+    if not isinstance(counts, dict) or set(counts) != keys or any(type(value) is not int or value < 0 for value in counts.values()):
+        raise ValueError('Invalid native Hydro calibration result')
+    return counts
 
 
 def geojson_line_parts(features: Iterable[dict[str, Any]], region: Region) -> list[list[tuple[float, float]]]:
@@ -991,7 +892,7 @@ def write_report(results: dict[str, Any], output: Path) -> None:
 
 ## 재현 방법
 
-Python 3.11 이상과 `pyshp>=3.0`, `shapely>=2.0`이 필요합니다. HydroRIVERS 대륙별 Shapefile과 전 세계 HydroLAKES Shapefile을 준비한 뒤 저장소 루트에서 실행합니다.
+Python 3.11 이상과 `pyshp>=3.0`, `shapely>=2.0`, Node.js 및 소스와 일치하는 네이티브 Hydro 보정 도구가 필요합니다. HydroRIVERS 대륙별 Shapefile과 전 세계 HydroLAKES Shapefile을 준비한 뒤 저장소 루트에서 실행합니다.
 
 ```powershell
 python tools/calibrate-hydro.py `
@@ -1117,12 +1018,12 @@ def main() -> None:
 
     calibration = [item for item in data if item.region.calibrate]
     print("공통 하천 중요도 공식과 단계 임계값을 최적화하는 중입니다.")
-    river_weights, river_thresholds = optimize_rivers(calibration)
+    river_weights, river_thresholds = optimize_calibration(calibration, 'river')
     print("공통 호수 중요도 공식과 단계 임계값을 최적화하는 중입니다.")
-    lake_weights, lake_thresholds = optimize_lakes(calibration)
+    lake_weights, lake_thresholds = optimize_calibration(calibration, 'lake')
     for item in data:
-        assign_stages(item.rivers, river_weights, river_thresholds)
-        assign_stages(item.lakes, lake_weights, lake_thresholds)
+        assign_stages(item.rivers, river_weights, river_thresholds, 'river')
+        assign_stages(item.lakes, lake_weights, lake_thresholds, 'lake')
 
     results: dict[str, Any] = {
         "schemaVersion": 1,

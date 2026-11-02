@@ -6,10 +6,12 @@
 #include <cstdint>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -72,6 +74,10 @@ Value encodedPoint(const Point& value) {
     auto result=Value::arr();
     result.array={Value::num(value.lon),Value::num(value.lat)};
     return result;
+}
+double normalizedLongitude(double value){
+    auto longitude=std::fmod(value+180.0,360.0);if(longitude<0)longitude+=360.0;longitude-=180.0;
+    return longitude==-180.0?180.0:longitude;
 }
 std::int64_t halfEvenMicro(double value) {
     const auto scaled=value*1'000'000.0;
@@ -248,14 +254,171 @@ Value doRepair(Value request) {
     result.object["changes"]=std::move(changes);
     return result;
 }
+// Assemble upstream-to-downstream logical objects after the caller has selected
+// the canonical incoming reach at each confluence.
+Value logicalChains(const Value& request){
+    const auto& input=elements(field(request,"reaches")),&choices=elements(field(request,"canonical"));
+    if(input.size()>1000000||choices.size()>input.size())throw std::invalid_argument("Hydro chain input exceeds budget");
+    std::vector<std::int64_t> order;std::map<std::int64_t,std::int64_t> next,canonical;
+    for(const auto& row:input){const auto id=integer(field(row,"id")),downstream=integer(field(row,"next"));
+        if(id<=0||downstream<0||!next.emplace(id,downstream).second)throw std::invalid_argument("Invalid or duplicate Hydro reach identity");
+        order.push_back(id);}
+    std::map<std::int64_t,std::vector<std::int64_t>> upstream;
+    for(const auto id:order){const auto downstream=next.at(id);if(!downstream)continue;
+        if(!next.count(downstream))throw std::invalid_argument("Selected Hydro downstream is missing");upstream[downstream].push_back(id);}
+    for(const auto& row:choices){const auto downstream=integer(field(row,"downstream")),selected=integer(field(row,"upstream"));
+        const auto found=upstream.find(downstream);
+        if(found==upstream.end()||std::find(found->second.begin(),found->second.end(),selected)==found->second.end()||
+          !canonical.emplace(downstream,selected).second)throw std::invalid_argument("Invalid canonical Hydro upstream");}
+    if(canonical.size()!=upstream.size())throw std::invalid_argument("Canonical Hydro upstream is missing");
+    std::map<std::int64_t,std::size_t> pending,owner;std::vector<std::int64_t> queue;
+    for(const auto id:order){pending[id]=upstream[id].size();if(!pending[id])queue.push_back(id);}
+    std::vector<std::vector<std::int64_t>> chains;std::size_t visited=0;
+    while(!queue.empty()){const auto id=queue.back();queue.pop_back();
+        if(!owner.count(id)){owner[id]=chains.size();chains.emplace_back();}
+        chains[owner.at(id)].push_back(id);++visited;const auto downstream=next.at(id);if(!downstream)continue;
+        if(--pending.at(downstream)==0){const auto selected=canonical.at(downstream);
+            if(!owner.count(selected))throw std::runtime_error("Canonical upstream was not processed");owner[downstream]=owner.at(selected);queue.push_back(downstream);}}
+    if(visited!=order.size())throw std::invalid_argument("Hydro reach network contains a cycle");
+    auto output=Value::arr();for(const auto& chain:chains){auto values=Value::arr();for(const auto id:chain)values.array.push_back(Value::num(static_cast<double>(id)));output.array.push_back(std::move(values));}
+    auto result=Value::obj();result.object["chains"]=std::move(output);return result;
+}
+Value riverSystems(const Value& request){
+    struct Reach{std::int64_t id,main;double area,flow,stage;bool noStage;std::string border;const Value* parts;};
+    const auto& input=elements(field(request,"chains"));if(input.size()>1000000)throw std::invalid_argument("Hydro system input exceeds budget");
+    std::vector<std::vector<Reach>> chains;std::map<std::int64_t,std::vector<std::size_t>> groups;std::size_t total=0;
+    auto fragments=Value::arr();
+    for(std::size_t index=0;index<input.size();++index){const auto& rows=elements(input[index]);total+=rows.size();
+        if(rows.empty()||total>1000000)throw std::invalid_argument("Nonempty bounded Hydro chains required");
+        std::vector<Reach> chain;std::map<std::int64_t,std::size_t> counts;auto fragmentsForChain=Value::arr();
+        for(const auto& row:rows){const auto id=integer(field(row,"id")),main=integer(field(row,"mainRiver"));
+            const double area=pandoeditor::codecjson::finiteNumber(field(row,"upstreamArea")),flow=pandoeditor::codecjson::finiteNumber(field(row,"flow"));
+            const auto& stageValue=field(row,"stage"),&border=field(row,"borderPair"),&parts=field(row,"parts");
+            if(id<=0||(stageValue.kind!=Value::Null&&stageValue.kind!=Value::Number)||
+              (border.kind!=Value::Null&&border.kind!=Value::Array)||parts.kind!=Value::Array)throw std::invalid_argument("Invalid Hydro system reach");
+            const bool noStage=stageValue.kind==Value::Null;const double stage=noStage?0:pandoeditor::codecjson::finiteNumber(stageValue);
+            const auto borderKey=border.encode();
+            if(chain.empty()||chain.back().noStage!=noStage||(!noStage&&chain.back().stage!=stage)||chain.back().border!=borderKey)
+                fragmentsForChain.array.push_back(Value::arr());
+            fragmentsForChain.array.back().array.push_back(Value::num(static_cast<double>(id)));
+            chain.push_back({id,main,area,flow,stage,noStage,borderKey,&parts});if(main)++counts[main];
+        }
+        auto system=chain.back().id;std::size_t frequency=0;
+        for(const auto& [id,count]:counts)if(count>frequency||(count==frequency&&id>system)){frequency=count;system=id;}
+        groups[system].push_back(index);chains.push_back(std::move(chain));fragments.array.push_back(std::move(fragmentsForChain));
+    }
+    auto systems=Value::arr();std::size_t pointsSeen=0;
+    for(const auto& [system,indexes]:groups){std::size_t mainstem=indexes.front();bool found=false;
+        for(const auto index:indexes){for(const auto& row:chains[index])if(row.id==system){mainstem=index;found=true;break;}if(found)break;}
+        if(!found)for(const auto index:indexes){const auto& a=chains[index],&b=chains[mainstem];
+            if(std::make_tuple(a.back().area,a.back().flow,a.size())>std::make_tuple(b.back().area,b.back().flow,b.size()))mainstem=index;}
+        bool anyPoint=false,usable=false;double west=180,south=std::numeric_limits<double>::infinity(),east=-180,north=-std::numeric_limits<double>::infinity();
+        for(const auto index:indexes)for(const auto& reach:chains[index])for(const auto& part:elements(*reach.parts)){
+            const auto& coordinates=elements(part);if(!coordinates.empty())anyPoint=true;
+            pointsSeen+=coordinates.size();if(pointsSeen>10000000)throw std::invalid_argument("Hydro system coordinates exceed budget");
+            for(const auto& coordinate:coordinates){const auto& pair=elements(coordinate);if(pair.size()!=2)throw std::invalid_argument("Invalid Hydro system point");
+                const double rawLon=pandoeditor::codecjson::finiteNumber(pair[0]),lat=pandoeditor::codecjson::finiteNumber(pair[1]);
+                if(coordinates.size()<2)continue;const double lon=normalizedLongitude(rawLon);
+                west=std::min(west,lon);east=std::max(east,lon);south=std::min(south,lat);north=std::max(north,lat);usable=true;}}
+        auto item=Value::obj(),list=Value::arr(),bounds=Value::arr();list.array.push_back(Value::num(static_cast<double>(mainstem)));
+        for(const auto index:indexes)if(index!=mainstem)list.array.push_back(Value::num(static_cast<double>(index)));
+        const std::vector<double> range=usable?std::vector<double>{west,south,east,north}:anyPoint?std::vector<double>{-180,-90,180,90}:std::vector<double>{0,0,0,0};
+        for(const auto value:range)bounds.array.push_back(Value::num(value));
+        item.object["systemId"]=Value::num(static_cast<double>(system));item.object["chainIndexes"]=std::move(list);
+        item.object["mainstemIndex"]=Value::num(static_cast<double>(mainstem));item.object["bounds"]=std::move(bounds);systems.array.push_back(std::move(item));
+    }
+    auto result=Value::obj();result.object["systems"]=std::move(systems);result.object["fragments"]=std::move(fragments);return result;
+}
+Value widthProfile(const Value& request){
+    const auto& reaches=elements(field(request,"reaches"));if(reaches.size()>1000000)throw std::invalid_argument("Hydro width input exceeds budget");
+    auto output=Value::arr();std::size_t pointsSeen=0;
+    for(const auto& reach:reaches){const double start=pandoeditor::codecjson::finiteNumber(field(reach,"width")),end=pandoeditor::codecjson::finiteNumber(field(reach,"endWidth"));
+        for(const auto& part:elements(field(reach,"parts"))){const auto& coordinates=elements(part);if(coordinates.size()<2)continue;
+            pointsSeen+=coordinates.size();if(pointsSeen>10000000)throw std::invalid_argument("Hydro width coordinates exceed budget");
+            std::vector<double> cumulative; cumulative.reserve(coordinates.size());cumulative.push_back(0);double lastX=0,lastY=0;
+            for(std::size_t i=0;i<coordinates.size();++i){const auto& xy=elements(coordinates[i]);if(xy.size()!=2)throw std::invalid_argument("Invalid Hydro width point");
+                const double x=pandoeditor::codecjson::finiteNumber(xy[0]),y=pandoeditor::codecjson::finiteNumber(xy[1]);
+                if(i){const double mean=((lastY+y)/2.0)*(kPi/180.0),dx=(x-lastX)*std::cos(mean),dy=y-lastY;
+                    const double next=cumulative.back()+std::hypot(dx,dy);if(!std::isfinite(next))throw std::invalid_argument("Invalid Hydro width length");cumulative.push_back(next);}
+                lastX=x;lastY=y;}
+            auto widths=Value::arr();const auto total=cumulative.back();for(const auto distance:cumulative){
+                const double value=total<=1e-12?start:start+(end-start)*distance/total;
+                if(!std::isfinite(value))throw std::invalid_argument("Invalid Hydro width value");widths.array.push_back(Value::num(value));}
+            output.array.push_back(std::move(widths));}}
+    auto result=Value::obj();result.object["widths"]=std::move(output);return result;
+}
+Value featurePolicy(const Value& request){
+    const auto order=integer(field(request,"order"));const double flow=pandoeditor::codecjson::finiteNumber(field(request,"flow")),
+      area=pandoeditor::codecjson::finiteNumber(field(request,"upstreamArea")),lake=pandoeditor::codecjson::finiteNumber(field(request,"lakeArea")),
+      zoom=pandoeditor::codecjson::finiteNumber(field(request,"zoom"));
+    const double score=static_cast<double>(order)+4.0*std::log10(std::max(flow,1e-6))-0.5*std::log10(std::max(area,1e-6));
+    const double rawWidth=0.5+0.19*std::log2(1.0+std::max(flow,0.0))+0.06*std::max(static_cast<double>(order)-1.0,0.0);
+    if(!std::isfinite(score)||!std::isfinite(rawWidth))throw std::invalid_argument("Invalid Hydro feature score");
+    const double riverThresholds[]={14.4744,12.4307,11.2137,10.55},lakeThresholds[]={250.0,100.0,40.0,40.0},zoomThresholds[]={6.0,6.7,7.0,7.5};
+    Value river,lakeStage;int zoomStage=3;
+    for(int stage=0;stage<4;++stage)if(score>=riverThresholds[stage]){river=Value::num(stage);break;}
+    for(int stage=0;stage<4;++stage)if(lake>=lakeThresholds[stage]){lakeStage=Value::num(stage);break;}
+    for(int stage=0;stage<4;++stage)if(zoom<=zoomThresholds[stage]+1e-9){zoomStage=stage;break;}
+    auto result=Value::obj();result.object["score"]=Value::num(score);result.object["riverStage"]=river;
+    result.object["width"]=Value::num(std::max(0.55,std::min(2.6,rawWidth)));
+    result.object["lakeStage"]=lakeStage;result.object["minZoomStage"]=Value::num(zoomStage);return result;
+}
+// Decide an outlet class from source-bound geometry and raster observations.
+Value outletDecision(const Value& request){
+    const auto boolean=[&](const char* name){const auto& value=field(request,name);if(value.kind!=Value::Bool)throw std::invalid_argument("Expected outlet boolean");return value.raw=="true";};
+    const auto& lake=field(request,"lakeDistance");const bool lakeCovers=boolean("lakeCovers"),onLand=boolean("onLand"),water=boolean("undisplayedWater");
+    if(lake.kind==Value::Null&&lakeCovers)throw std::invalid_argument("Lake coverage needs a lake distance");
+    const double lakeDistance=lake.kind==Value::Null?0:pandoeditor::codecjson::finiteNumber(lake),
+      coast=pandoeditor::codecjson::finiteNumber(field(request,"coastDistance")),outside=pandoeditor::codecjson::finiteNumber(field(request,"outsideLength")),
+      maxKm=pandoeditor::codecjson::finiteNumber(field(request,"maxKm"));
+    if(lakeDistance<0||coast<0||outside<0)throw std::invalid_argument("Invalid outlet distance");
+    const auto& target=elements(field(request,"target"));if(target.size()!=2)throw std::invalid_argument("Outlet target needs two coordinates");
+    const double x=pandoeditor::codecjson::finiteNumber(target[0]),y=pandoeditor::codecjson::finiteNumber(target[1]);
+    const double longitude=normalizedLongitude(x);
+    std::string classification;double distance=coast;bool snap=false;
+    if(lake.kind!=Value::Null&&(lakeCovers||lakeDistance<=1.0)){classification="lake";distance=lakeDistance;}
+    else if(coast<=1e-5){classification="sea";distance=0;}
+    else if(coast<=2.0||(coast<=maxKm&&onLand&&outside<=1e-5)||(coast<=maxKm&&!onLand&&water)){classification="sea";snap=true;}
+    else if(!onLand)classification="excluded-small-land";
+    else if(water)classification="excluded-undisplayed-water";
+    else classification="unresolved-land";
+    auto result=Value::obj();result.object["class"]=Value::str(classification);result.object["distanceKm"]=Value::num(distance);
+    if(snap){auto coordinates=Value::arr();coordinates.array={Value::num(longitude),Value::num(y)};result.object["snap"]=std::move(coordinates);}
+    else result.object["snap"]=Value();return result;
+}
+Value outletSample(const Value& request){
+    const auto& source=elements(field(request,"source")),&target=elements(field(request,"target")),&rgb=elements(field(request,"rgb"));
+    if(source.size()!=2||target.size()!=2||rgb.size()!=3)throw std::invalid_argument("Explicit outlet point and RGB required");
+    const auto width=integer(field(request,"width")),height=integer(field(request,"height"));
+    if(width<=0||height<=0||width>2147483647||height>2147483647)throw std::invalid_argument("Invalid outlet raster dimensions");
+    const double sx=pandoeditor::codecjson::finiteNumber(source[0]),sy=pandoeditor::codecjson::finiteNumber(source[1]),
+      tx=pandoeditor::codecjson::finiteNumber(target[0]),ty=pandoeditor::codecjson::finiteNumber(target[1]);
+    const double distance=std::hypot(normalizedLongitude(sx-tx)*111.32*std::cos(sy*(kPi/180.0)),(sy-ty)*110.57);
+    if(!std::isfinite(distance))throw std::invalid_argument("Invalid outlet distance");
+    const auto pixel=[](double coordinate,std::int64_t size){if(coordinate<=0)return std::int64_t{0};
+        if(coordinate>=static_cast<double>(size))return size-1;return static_cast<std::int64_t>(coordinate);};
+    const auto px=pixel((normalizedLongitude(sx)+180.0)/360.0*width,width),py=pixel((90.0-sy)/180.0*height,height);
+    std::int64_t low=255,high=0;for(const auto& value:rgb){const auto channel=integer(value);if(channel<0||channel>255)throw std::invalid_argument("Invalid outlet raster channel");
+        low=std::min(low,channel);high=std::max(high,channel);}
+    auto result=Value::obj(),coordinates=Value::arr();coordinates.array={Value::num(static_cast<double>(px)),Value::num(static_cast<double>(py))};
+    result.object["distanceKm"]=Value::num(distance);result.object["pixel"]=std::move(coordinates);
+    result.object["undisplayedWater"]=Value::boolean(high-low<=1&&low>=249);return result;
+}
 }
 int main() {
     try {
         const std::string input{std::istreambuf_iterator<char>{std::cin},std::istreambuf_iterator<char>{}};
         if(input.size()>512*1024*1024)throw std::invalid_argument("Hydro junction request exceeds 512 MiB");
         auto request=pandoeditor::codecjson::parse(input);const auto mode=request.object.find("mode");
-        if(mode!=request.object.end()&&str(mode->second)!="audit")throw std::invalid_argument("Invalid Hydro operation");
-        std::cout<<(mode==request.object.end()?doRepair(std::move(request)):doAudit(std::move(request))).encode()<<'\n';
+        if(mode==request.object.end())std::cout<<doRepair(std::move(request)).encode()<<'\n';
+        else if(str(mode->second)=="audit")std::cout<<doAudit(std::move(request)).encode()<<'\n';
+        else if(str(mode->second)=="logical-chains")std::cout<<logicalChains(request).encode()<<'\n';
+        else if(str(mode->second)=="river-systems")std::cout<<riverSystems(request).encode()<<'\n';
+        else if(str(mode->second)=="width-profile")std::cout<<widthProfile(request).encode()<<'\n';
+        else if(str(mode->second)=="feature-policy")std::cout<<featurePolicy(request).encode()<<'\n';
+        else if(str(mode->second)=="outlet-decision")std::cout<<outletDecision(request).encode()<<'\n';
+        else if(str(mode->second)=="outlet-sample")std::cout<<outletSample(request).encode()<<'\n';
+        else throw std::invalid_argument("Invalid Hydro operation");
         return 0;
     }catch(const std::exception& error) {
         std::cerr<<"hydro-connectivity: "<<error.what()<<'\n';

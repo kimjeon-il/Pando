@@ -31,14 +31,20 @@ export function parseAutomaticEnvironment(env){
  if(branch==='main'&&!productionEnabled)fail('MAIN_PRODUCTION_DISABLED');
  assertDedicatedJob(env,branch);
  if(!env.GITHUB_TOKEN||!env.PANDOLAB_LIBRARY_WRITE_TOKEN)fail('AUTH_MISSING');
- return {branch,dataSha,productionEnabled};
+ const requestedDataSha=env.GITHUB_EVENT_NAME==='push'?env.LIBRARY_AUTO_REQUEST_DATA_SHA:null;
+ if(env.GITHUB_EVENT_NAME==='push'&&(branch!=='work/gis'||!SHA.test(requestedDataSha||'')||requestedDataSha!==dataSha))fail('INVALID_WORK_GIS_REQUEST');
+ return {branch,dataSha,productionEnabled,requestedDataSha};
 }
 export function assertAppPaths(paths){if(paths.some(p=>![CONFIG,FIXTURE].includes(p)))fail('UNEXPECTED_APP_PATH');}
 export function compareCandidateOutputs(expected,actual){
  const keys=o=>Object.keys(o).sort();
  if(JSON.stringify(keys(expected))!==JSON.stringify(keys(actual))||keys(expected).some(p=>expected[p]!==actual[p]))fail('CANDIDATE_OUTPUT_MISMATCH');
 }
-function defaultGit(root,args){return execFileSync('git',args,{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:64*1024*1024,stdio:['ignore','pipe','pipe']});}
+function defaultGit(root,args){try{return execFileSync('git',args,{cwd:root,env:{...process.env,GIT_NO_LAZY_FETCH:'1'},maxBuffer:64*1024*1024,stdio:['ignore','pipe','pipe']});}catch(error){error.autoOperation='git:'+args[0];throw error;}}
+export function automaticFailureDetails(error,env=process.env){
+ const redact=value=>{let s=String(value||'');for(const key of ['GITHUB_TOKEN','PANDOLAB_LIBRARY_WRITE_TOKEN'])if(env[key])s=s.split(env[key]).join('[REDACTED]');return s.replace(/https?:\/\/[^\s]+/g,'[URL]').slice(0,3000);};
+ return {code:error.code||'AUTOMATIC_SYNC_FAILED',operation:error.autoOperation||'reconcile',phase:error.autoPhase||null,name:error.name||'Error',message:redact(error.message),stderr:redact(error.stderr),frames:String(error.stack||'').split('\n').slice(1).filter(s=>/\/(scripts|tools)\//.test(s)).slice(0,5).map(redact)};
+}
 function branchGuard(settings){return settings.branch==='main'&&!settings.productionEnabled;}
 export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  if(env.GITHUB_ACTIONS!=='true')fail('GITHUB_ACTIONS_REQUIRED');
@@ -56,9 +62,10 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
  const archived=(rev,p)=>{const entry=archive(rev).files[p];if(!entry)fail('MISSING_ARCHIVED_FILE');return (io.decodeArchiveEntry||decodeArchiveEntry)(dataRoot,entry,rev,{fetch:false});};
  const github=io.github||createGithubPages({token:env.GITHUB_TOKEN,verifyLive:io.verifyLive});
  let prepared=null,derived=null,stored=null,latest=null;
- function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','shared/frontend/js/modules','apps/editor/frontend/js/modules']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
+ function generator(appSha){const files=text(root,['ls-tree','-r','--name-only',appSha,'--','tools','scripts/lib/library-auto-inputs.mjs','scripts/lib/library-auto-runtime.mjs','scripts/lib/p2-artifact-graph.mjs','config/generated-artifacts.json','config/toolchain-versions.json','shared/frontend/js/modules','apps/editor/frontend/js/modules']);return hash(Buffer.concat(files.split('\n').filter(Boolean).sort().flatMap(p=>[Buffer.from(p+'\0'),git(root,['show',`${appSha}:${p}`]),Buffer.from('\0')])));}
  async function inspect(){
   const h=heads();latest=h;
+  if(settings.requestedDataSha&&h.data!==settings.requestedDataSha&&h.data!==stored)fail('REQUEST_DATA_HEAD_MOVED');
   // Outdated source events are notifications, never overwrite the latest head.
   text(dataRoot,['merge-base','--is-ancestor',settings.dataSha,h.data]);
   if(text(root,['rev-parse','HEAD'])!==h.app||text(root,['branch','--show-current'])!==branch)fail('APP_CHECKOUT_NOT_CURRENT');
@@ -73,7 +80,8 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   const runtimeChanges=differences.filter(p=>!p.startsWith('reports/')&&!sourcePath(p));
   const masked={...nextArchive,files:{...nextArchive.files}};
   for(const p of runtimeChanges){if(baseArchive.files[p])masked.files[p]=baseArchive.files[p];else delete masked.files[p];}
-  const projection=inspectCanonicalInputs({revision:h.data,baselineRevision:c.revision,readBlob:(rev,p)=>rev===h.data&&p==='archive/index.json'?Buffer.from(JSON.stringify(masked)):blob(rev,p)});
+  const changedPaths=git(dataRoot,['diff','--name-only','-z','--no-renames',c.revision,h.data,'--']).toString().split('\0').filter(Boolean);
+  const projection=inspectCanonicalInputs({changedPaths,revision:h.data,baselineRevision:c.revision,readBlob:(rev,p)=>rev===h.data&&p==='archive/index.json'?Buffer.from(JSON.stringify(masked)):blob(rev,p)});
   let receipt=null;try{receipt=JSON.parse(archived(h.data,RECEIPT_PATH)).autoPublication;}catch(error){if(nextArchive.files[RECEIPT_PATH]&&error.code!=='ENOENT')throw error;}
   let completed=null;
   const token=JSON.stringify(h);
@@ -91,7 +99,7 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   if(pinned&&receipt)completed={inputFingerprint:receipt.inputFingerprint,generatorIdentity:receipt.generatorIdentity,dataSha:h.data};
   if(!pinned&&receipt&&derived?.candidate===h.data){completed={inputFingerprint:projection.inputFingerprint,generatorIdentity:id,dataSha:h.data};}
   if(stored===h.data)completed={inputFingerprint:projection.inputFingerprint,generatorIdentity:id,dataSha:h.data};
-  prepared={h,c,id,projection,runtimeChanges,nextArchive,receipt,token};
+  prepared={h,c,id,projection,changedPaths,runtimeChanges,nextArchive,receipt,token};
   let run=null;
   if(completed&&c.revision===completed.dataSha){
    if(branch==='main'){const evidence=await github.verify(h.app,{dataSha:completed.dataSha});if(evidence.run)run={dataSha:completed.dataSha,appSha:h.app,status:evidence.status,target:'production'};}
@@ -123,12 +131,14 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
    const allowed=new Set([...Object.keys(result.autoReceipt.outputs),...result.changedPaths,RECEIPT_PATH]);
    if(p.runtimeChanges.some(path=>!allowed.has(path)))fail('UNKNOWN_RUNTIME_EDIT');
    // Confirm canonical inspection against real descriptors after proof.
-   inspectCanonicalInputs({revision:p.h.data,baselineRevision:p.c.revision,readBlob:blob,verifiedGeneratedPaths:p.runtimeChanges});
+   inspectCanonicalInputs({changedPaths:p.changedPaths,revision:p.h.data,baselineRevision:p.c.revision,readBlob:blob,verifiedGeneratedPaths:p.runtimeChanges});
    return;
   }
   const removed=result.changedPaths.filter(path=>path!==FIXTURE&&!result.sourcePaths.includes(path)&&path!==RECEIPT_PATH&&!Object.hasOwn(result.autoReceipt.outputs,path));
   const prefixes=[...new Set([...Object.keys(result.autoReceipt.outputs),...result.sourcePaths,...removed,RECEIPT_PATH])];
+  console.log(JSON.stringify({phase:'store-start',inputDataSha:p.h.data}));
   stored=(io.storeLibraryData||storeLibraryData)({root,push:true,prefixes,removePaths:removed,expectedRevision:p.h.data,expectedBranch:branch});
+  console.log(JSON.stringify({phase:'store-complete',dataSha:stored}));
   const after=heads();if(after.app!==p.h.app||after.data!==stored)fail('HEAD_MOVED');
  }
  async function connect(plan,token){
@@ -152,7 +162,8 @@ export function createAutomaticAdapters({root,env=process.env,settings,io={}}){
   text(root,['push','origin',`HEAD:refs/heads/${branch}`]);
   const h=heads();if(h.app!==text(root,['rev-parse','HEAD'])||h.data!==target)fail('HEAD_MOVED');
  }
- return {inspect,assertCurrent,deriveAndStore,connect,deploy:async(plan,token)=>{await assertCurrent(token);return github.dispatch(plan.expected.appSha,{productionEnabled:settings.productionEnabled,branch});},verify:async plan=>branch==='main'?github.verify(plan.expected.appSha,{dataSha:plan.expected.outputDataSha}):{status:'verified'},get latest(){return latest;}};
+ const traced=(phase,fn)=>async(...args)=>{try{return await fn(...args);}catch(error){error.autoPhase=phase;(io.reportFailure||console.error)(JSON.stringify(automaticFailureDetails(error,env)));throw error;}};
+ return {inspect:traced('inspect',inspect),assertCurrent,deriveAndStore:traced('deriveAndStore',deriveAndStore),connect:traced('connect',connect),deploy:async(plan,token)=>{await assertCurrent(token);return github.dispatch(plan.expected.appSha,{productionEnabled:settings.productionEnabled,branch});},verify:async plan=>branch==='main'?github.verify(plan.expected.appSha,{dataSha:plan.expected.outputDataSha}):{status:'verified'},get latest(){return latest;}};
 }
 export async function runAutomaticSync({root=resolve(fileURLToPath(new URL('../',import.meta.url))),env=process.env,check=false,io={}}={}){
  if(check){const policy=JSON.parse(readFileSync(resolve(root,'config/library-auto-sync.json'),'utf8'));if(Object.keys(policy).length!==1||typeof policy.productionEnabled!=='boolean')fail('INVALID_AUTOMATIC_POLICY');return {status:'checked',productionEnabled:policy.productionEnabled};}
@@ -166,5 +177,6 @@ export async function runAutomaticSync({root=resolve(fileURLToPath(new URL('../'
  return reconcileLibraryData({request,policy:{productionEnabled:settings.productionEnabled},adapters});
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const args=process.argv.slice(2);if(args.some(x=>x!=='--check')){console.error('Unsupported arguments');process.exitCode=2;}else runAutomaticSync({check:args.includes('--check')}).then(result=>{console.log(JSON.stringify(result));if(['incomplete','blocked'].includes(result.status))process.exitCode=1;}).catch(error=>{console.error(error.code||'AUTOMATIC_SYNC_FAILED');process.exitCode=1;});
+ const args=process.argv.slice(2);if(args.some(x=>x!=='--check')){console.error('Unsupported arguments');process.exitCode=2;}else runAutomaticSync({check:args.includes('--check')}).then(result=>{console.log(JSON.stringify(result));if(['incomplete','blocked'].includes(result.status))process.exitCode=1;}).catch(error=>{console.error(JSON.stringify(automaticFailureDetails(error)));process.exitCode=1;});
 }
+

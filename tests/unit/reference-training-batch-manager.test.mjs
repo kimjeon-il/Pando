@@ -5,7 +5,7 @@ import {existsSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync} from
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {nativeTrainingBatch,runMacroTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
+import {nativeTrainingBatch,runTrainingBatch} from '../../tools/reference-analysis/native-training-batch.mjs';
 
 test('macro batch CLI refuses incomplete configuration without creating outputs',()=>{
   const result=spawnSync(process.execPath,['tools/reference-analysis/native-training-batch.mjs'],{encoding:'utf8',timeout:10000});
@@ -14,6 +14,14 @@ test('macro batch CLI refuses incomplete configuration without creating outputs'
 test('combined batch CLI requires explicit nonmacro auxiliary scope',()=>{
   const result=spawnSync(process.execPath,['tools/reference-analysis/native-training-batch.mjs','--auxiliary','semap.json','--device','cpu','--precision','fp32'],{encoding:'utf8',timeout:10000});
   assert.equal(result.status,1);assert.match(result.stderr,/explicit nonmacro/i);
+});
+test('training batch and supervision CLIs resolve canonical report inputs',()=>{
+  for(const [script,args] of [
+    ['training-supervision.mjs',['--corpus','reports/not-a-report-subject/corpus.json','--output','unused']],
+    ['native-training-batch.mjs',['--mode','warm','--input','unused','--output','unused-output','--corpus','reports/not-a-report-subject/corpus.json',
+      '--device','cpu','--precision','fp32']]
+  ]){const result=spawnSync(process.execPath,['tools/reference-analysis/'+script,...args],{encoding:'utf8',timeout:10000});
+    assert.notEqual(result.status,0);assert.match(result.stderr,/canonical report subject/i);}
 });
 
 test('training batch management rejects changed samples and preserves existing outputs',async t=>{
@@ -30,8 +38,9 @@ test('training batch management rejects changed samples and preserves existing o
     device:'cpu',unobservedMask:0,torchLibrary:root,samples:[{index:0,directory:sample}]};
   await assert.rejects(nativeTrainingBatch({...request,unobservedMask:undefined}),/configuration/i);
   await assert.rejects(nativeTrainingBatch({...request,amp:true}),/configuration/i);
+  await assert.rejects(nativeTrainingBatch({...request,selectionExposure:{schemaVersion:1}}),/selection exposure/i);
   writeFileSync(output,'preserve');await assert.rejects(nativeTrainingBatch(request),/exists/i);assert.equal(readFileSync(output,'utf8'),'preserve');
-  const sampleOutput=join(root,'prepared');await assert.rejects(runMacroTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false,supervision:join(root,'supervision')}),/exists/i);
+  const sampleOutput=join(root,'prepared');await assert.rejects(runTrainingBatch({...request,samples:undefined,count:1,sampleOutput,augment:false,supervision:join(root,'supervision')}),/exists/i);
   assert.equal(existsSync(sampleOutput),false);
   const changed={...request,output:join(root,'fresh.pt')};writeFileSync(join(sample,'target.f32'),'changed');
   await assert.rejects(nativeTrainingBatch(changed),/tensor changed/i);assert.equal(existsSync(changed.output),false);
@@ -54,10 +63,18 @@ test('training batch management rejects changed samples and preserves existing o
     annotations:'annotation.json',image:'image.png',source:{url:source.url,license:source.license}}]}));
   await assert.rejects(nativeTrainingBatch(changed),/PDF hash changed/i);assert.equal(existsSync(changed.output),false);
   const checkpoint=join(root,'previous.pt');writeFileSync(checkpoint,'previous checkpoint');
-  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify({schemaVersion:1,trainingOnly:true,releaseApproved:false,lineageComplete:false,initialization:'weights-only-no-optimizer',
     checkpointSha256:sha('previous checkpoint'),device:'cuda',precision:'fp32',seed:request.seed,freezeEpochs:request.freezeEpochs,
     learningRate:request.learningRate,unobservedMask:0,positiveWeightSha256:null,epoch:0,cursor:0,orderLength:1,orderSha256:sha(Buffer.alloc(8))}));
   const mismatch={...request,mode:'resume',device:'cuda',amp:true,input:checkpoint,output:join(root,'mismatch.pt')};
   await assert.rejects(nativeTrainingBatch(mismatch),/configuration differs/i);assert.equal(existsSync(mismatch.output),false);
   await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,unobservedMask:1}),/configuration differs/i);
+  await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,sampling:'uniform'}),/configuration differs/i);
+  const prior=JSON.parse(readFileSync(checkpoint+'.receipt.json','utf8'));
+  prior.evidence=[{augment:false}];writeFileSync(checkpoint+'.receipt.json',JSON.stringify(prior));
+  await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,samples:[{index:0,directory:sample,augment:true}]}),/augmentation.*resume/i);
+  prior.selectionExposure={schemaVersion:1,manifestSha256:'1'.repeat(64),fingerprint:'2'.repeat(64)};
+  writeFileSync(checkpoint+'.receipt.json',JSON.stringify(prior));
+  await assert.rejects(nativeTrainingBatch({...mismatch,amp:false,selectionExposure:{...prior.selectionExposure,fingerprint:'3'.repeat(64)}}),/selection exposure differs/i);
+  assert.equal(existsSync(mismatch.output),false);
 });

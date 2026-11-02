@@ -32,6 +32,6 @@ export async function verifiedMacroTrainingSource(root,corpus,sourceId){
   return {sheet,annotation,annotationSha256,checks:[[sourcePdf,annotation.sourceSha256],[metadataPath,annotation.sourceMetadataSha256],
     [annotationPath,annotationSha256],[imagePath,sheet.sha256],[maskPath,annotation.raster.sha256],[validPath,annotation.validRaster.sha256]]};
 }
-export function recheckMacroTrainingSource(checks){
+export function recheckTrainingSources(checks){
   for(const [path,expected] of checks)if(trainingFileIdentity(path)!==expected)throw Error('Training source changed during execution');
 }

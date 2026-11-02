@@ -28,7 +28,7 @@
 
 기존 작업본을 정리할 때는 PandoLab에서 `./tools/cleanup-reference-analysis-caches.ps1 -ReportWorkingCopiesOnly`로 미리보고 `-Apply`로 실제 재배치와 삭제를 실행한다. 모든 작업트리의 보고서와 private evidence를 먼저 해시로 대조하고, 중앙 원문을 검증한 뒤 사본만 삭제한다. 사용 중인 원본·미보관 변경·상설 작업트리·런타임/WASM 조합은 보존한다. `private-evidence/<owner>/<source revision>`는 공개 보관 대상과 분리된 원본 위치다.
 
-런타임 생성기는 `withLibraryWrite({ root, prefixes }, operation)` 또는 Python의 `library_write(prefixes, root=...)` 안에서 쓴다. 지정 범위만 독립 파일로 분리하고 비동기 작업 종료까지 쓰기 lease를 유지한다. 출력 경로를 받는 생성기는 `withLibraryOutputs`/`library_output`을 사용한다. 마운트 밖의 개별 staging 경로는 독립 파일로 작성하며, 같은 pin의 다른 브랜치 파일은 수정하지 않는다. 명령형 생성기는 `node tools/library-data.mjs --with-write --include-prefix=assets/data/<scope> -- <command> <args>`로 실행할 수 있다. 보관은 쓰기 lease 종료 후 실행한다.
+런타임 생성기는 `withLibraryWrite({ root, prefixes }, operation)` 안에서 쓴다. 지정 범위만 독립 파일로 분리하고 비동기 작업 종료까지 쓰기 lease를 유지한다. 출력 경로를 받는 생성기는 `withLibraryOutputs`를 사용한다. 마운트 밖의 개별 staging 경로는 독립 파일로 작성하며, 같은 pin의 다른 브랜치 파일은 수정하지 않는다. 명령형 생성기는 `node tools/library-data.mjs --with-write --include-prefix=assets/data/<scope> -- <command> <args>`로 실행할 수 있다. 보관은 쓰기 lease 종료 후 실행한다.
 
 전체 저장소 정리는 `./tools/cleanup-reference-analysis-caches.ps1 -LibraryStorageOnly`로 미리보고 `-Apply`로 적용한다. 실행 중인 서버·쓰기 lease를 확인하고, 현재 pin과 미보관 작업본을 보존한 뒤 구 캐시만 제거한다. Git 정리는 미참조 객체를 포함한 모든 로컬 객체를 promisor 여부에 따라 다시 압축하고, 새 pack의 정확한 객체 집합·무결성과 refs·HEAD·reflog를 검증한다. 과거 index 사본과 서로 다른 옛 작업본은 `private-evidence/storage-migrations/<작업 ID>/`에 출처와 함께 보존한다. 중단 시 같은 명령으로 `.pando-store/storage-migration.pending.json`을 재개한다. 종료가 확인된 잠금 소유자의 파일만 회수하며 실행 중인 작업의 잠금은 보존한다.
 

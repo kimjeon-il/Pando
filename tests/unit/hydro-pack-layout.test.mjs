@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
+import {gunzipSync,gzipSync} from 'node:zlib';
 import {buildHydroMetadata,buildHydroPack,finalizeHydroPackGroups,planHydroPackGroups} from '../../tools/gis/hydro-pack-layout.mjs';
-import {decodeHydroGeneratedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
+import {decodeHydroGeneratedPack,decodeHydroSelectedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
 
 const features=JSON.parse(readFileSync('tests/fixtures/hydro-encoding-oracle.json','utf8'));
 const oracle=JSON.parse(readFileSync('tests/fixtures/hydro-pack-oracle.json','utf8'));
@@ -56,6 +58,23 @@ test('Hydro shard and index layout matches the original Python binary ordering',
   assert.deepEqual(decoded[0].geometry.coordinates,[[180,0],[-179.999999,.000001],[180,-.000001]]);
   assert.deepEqual(decoded[0].widths,[[0,1.234,65.535]]);
   assert.equal(decoded[0].metadata.sourceId,'100,110,105');
+  const selected=decodeHydroSelectedPack({...complete,stages,logicalFids:[101]});
+  assert.deepEqual(selected,decoded.filter(row=>row.metadata.logicalFid===101));
+  const layoutWithUnused={...complete.layout,shards:[...complete.layout.shards,{id:99,url:'unused',bytes:1,sha256:'0'.repeat(64)}]};
+  assert.deepEqual(decodeHydroSelectedPack({...complete,layout:layoutWithUnused,stages,logicalFids:[101]}),selected);
+  const damagedSelected=new Map(complete.files);damagedSelected.set('shards/s0.bin',Buffer.from('damaged'));
+  assert.throws(()=>decodeHydroSelectedPack({...complete,files:damagedSelected,stages,logicalFids:[101]}),/hash/i);
+  assert.throws(()=>decodeHydroSelectedPack({...complete,stages,logicalFids:[99999]}),/logical|selected/i);
+  assert.throws(()=>decodeHydroSelectedPack({...complete,stages,logicalFids:[101,101]}),/logical|selected/i);
+  const altered=gunzipSync(complete.files.get('index.bin.gz'));let offset=20;
+  for(let i=0;i<altered.readUInt32LE(8);i++){const count=altered.readUInt16LE(offset+5);offset+=7+count*4;}
+  let changed=false;for(let i=0;i<altered.readUInt32LE(12);i++){
+    const logical=altered.readUInt32LE(offset),count=altered.readUInt16LE(offset+4);offset+=6;
+    if(logical===101&&count){altered.writeUInt32LE(2,offset);changed=true;}offset+=count*4;
+  }
+  assert.equal(changed,true);const changedIndex=gzipSync(altered),changedFiles=new Map(complete.files);changedFiles.set('index.bin.gz',changedIndex);
+  const changedLayout={...complete.layout,index:{...complete.layout.index,bytes:changedIndex.length,sha256:createHash('sha256').update(changedIndex).digest('hex')}};
+  assert.throws(()=>decodeHydroSelectedPack({...complete,layout:changedLayout,files:changedFiles,stages,logicalFids:[101]}),/missing/i);
   const corrupted=new Map(complete.files);corrupted.set('shards/s0.bin',Buffer.from('damaged'));
   assert.throws(()=>decodeHydroGeneratedPack({...complete,files:corrupted,stages}),/hash/i);
   await assert.rejects(finalizeHydroPackGroups(plan,{gzip:async values=>values.map(()=>Buffer.from('bad'))}),/gzip|header/i);

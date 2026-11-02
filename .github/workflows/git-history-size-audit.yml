@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/git-history-size-audit.yml'
       - 'tools/git-history-dryrun.sh'
+      - 'tools/git-history-dryrun.mjs'
+      - 'tools/library-history*.mjs'
   workflow_dispatch:
 
 permissions:
@@ -19,19 +21,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          sparse-checkout-cone-mode: false
           sparse-checkout: |
             tools/git-history-dryrun.sh
-      - name: Prepare pinned external library data
-        uses: ./.github/actions/library-data
-      - uses: actions/setup-python@v5
+            tools/git-history-dryrun.mjs
+            tools/library-history.mjs
+            tools/library-history-stream.mjs
+            tools/library-report-layout.mjs
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      - name: Install local rewrite tool
-        shell: bash
-        run: |
-          echo "HISTORY_VENV=$RUNNER_TEMP/history-venv" >> "$GITHUB_ENV"
-          python -m venv "$RUNNER_TEMP/history-venv"
-          "$RUNNER_TEMP/history-venv/bin/pip" install --disable-pip-version-check 'git-filter-repo==2.47.0'
+          node-version: '24'
       - name: Audit full Git mirror and isolated rewritten copy
         shell: bash
         run: bash tools/git-history-dryrun.sh

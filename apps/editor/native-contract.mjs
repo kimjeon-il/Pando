@@ -8,15 +8,15 @@ export const nativeModes=['development','offline','verification'];
 export const nativeHash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function nativeBuildSelection(paths,{platform}={}){
  if(platform){if(platform==='all')return ['windows','android'];if(!Object.hasOwn(nativeTargets,platform))throw Error('Unsupported native platform');return [platform];}
- const android=paths.some(p=>p.startsWith('apps/editor/src-tauri/android/')||p==='apps/editor/src-tauri/sync-android.mjs');
  const common=paths.some(p=>/^apps\/editor\/src-tauri\/(?:src\/|capabilities\/|permissions\/|icons\/|Cargo\.|build\.rs$|tauri\.)/.test(p)||['apps/editor/native-contract.mjs','apps/editor/native-producer.mjs','apps/editor/packaged-artifacts.mjs','config/toolchain-versions.json','config/native-artifacts.json','.github/workflows/remote-development-p1.yml'].includes(p));
- return common?['windows','android']:android?['android']:[];
+ // Android native is retired: never schedule it automatically for common code.
+ return common?['windows']:[];
 }
 export function nativeInputIdentity(root,{platform,mode}){
  if(!Object.hasOwn(nativeTargets,platform))throw Error('Unsupported native platform');
  if(!nativeModes.includes(mode))throw Error('Unsupported native mode');
  root=resolve(root);const files=new Map();
- const add=p=>{if(p==='assets/data'||p.endsWith('/README.md'))return;const full=join(root,p);if(!existsSync(full))return;const s=lstatSync(full);if(s.isSymbolicLink())throw Error('Linked native source must be preserved: '+p);if(s.isDirectory()){for(const name of readdirSync(full).sort())add(p+'/'+name);return;}if(!s.isFile())throw Error('Non-file native input');const bytes=readFileSync(full);files.set(p,nativeHash(/\.(?:rs|toml|lock|json|m?js|cjs|css|html|xml|kt|kts|properties|ps1|sh|txt|md|svg)$/.test(p)?Buffer.from(bytes.toString('utf8').replaceAll('\r\n','\n')):bytes));};
+ const add=p=>{if(p==='assets/data'||p.endsWith('/README.md'))return;const full=join(root,p);if(!existsSync(full))return;const s=lstatSync(full);if(s.isSymbolicLink())throw Error('Linked native source must be preserved: '+p);if(s.isDirectory()){for(const name of readdirSync(full).sort())add(p+'/'+name);return;}if(!s.isFile())throw Error('Non-file native input');const bytes=readFileSync(full);const textInput=/\.(?:rs|toml|lock|json|m?js|cjs|css|html|xml|kt|kts|properties|ps1|sh|txt|md|svg)$/.test(p)||/(?:^|\/)(?:NOTICE|LICENSE)$/.test(p);files.set(p,nativeHash(textInput?Buffer.from(bytes.toString('utf8').replaceAll('\r\n','\n')):bytes));};
  const base='apps/editor/src-tauri/';
  for(const p of ['Cargo.toml','Cargo.lock','build.rs','src','capabilities','permissions','icons','tauri.conf.json','tauri.dev.json','tauri.verification.json'])add(base+p);
  if(platform.startsWith('android')){add(base+'android');add(base+'sync-android.mjs');}

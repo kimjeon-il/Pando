@@ -9,6 +9,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 #ifdef _WIN32
 #include <fcntl.h>
@@ -93,6 +94,40 @@ int main(){try{
   if(_setmode(_fileno(stdin),_O_BINARY)==-1)throw std::runtime_error("Cannot set binary input");
 #endif
   Reader r;std::array<char,65536> chunk{};while(std::cin){std::cin.read(chunk.data(),chunk.size());auto n=std::cin.gcount();if(n>0){if(r.data.size()+std::size_t(n)>64ULL*1024*1024)throw std::runtime_error("Evaluation input exceeds budget");r.data.insert(r.data.end(),chunk.data(),chunk.data()+n);}}
+  if(r.data.size()>=8&&std::string(r.data.begin(),r.data.begin()+8)=="PBLEND01"){
+    r.at=8;const auto width=r.u32(),height=r.u32(),wx=r.u32(),wy=r.u32(),ww=r.u32(),wh=r.u32(),count=r.u32();
+    const std::uint64_t pixels=std::uint64_t(ww)*wh,tileValues=3ULL*512*512;
+    if(!width||!height||width>65535||height>65535||!ww||!wh||ww>1024||wh>1024||wx>=width||wy>=height||
+      ww>width-wx||wh>height-wy||!count||count>16||r.data.size()!=36+count*(8+tileValues*4))
+      throw std::runtime_error("Invalid evaluation blend dimensions");
+    const auto first=[](std::uint32_t value){return value<=511?0U:((value-511+447)/448)*448;};
+    std::vector<std::pair<std::uint32_t,std::uint32_t>> expected;
+    for(auto y=first(wy);y<std::min(height,wy+wh);y+=448)for(auto x=first(wx);x<std::min(width,wx+ww);x+=448)expected.emplace_back(x,y);
+    if(expected.size()!=count)throw std::runtime_error("Evaluation blend requires every intersecting tile");
+    std::vector<float> weights(pixels),sums(pixels*3);std::uint32_t previousX=0,previousY=0;
+    for(std::uint32_t tile=0;tile<count;++tile){const auto x=r.u32(),y=r.u32();
+      if(x!=expected[tile].first||y!=expected[tile].second||x>=width||y>=height||x%448||y%448||(tile&&(y<previousY||(y==previousY&&x<=previousX))))
+        throw std::runtime_error("Invalid evaluation tile order or origin");
+      previousX=x;previousY=y;const auto tileWidth=std::min<std::uint32_t>(512,width-x),tileHeight=std::min<std::uint32_t>(512,height-y);
+      const auto start=r.at;r.at+=tileValues*4;
+      for(std::uint32_t py=std::max(y,wy);py<std::min(y+tileHeight,wy+wh);++py)for(std::uint32_t px=std::max(x,wx);px<std::min(x+tileWidth,wx+ww);++px){
+        const auto lx=px-x,ly=py-y;const auto index=std::size_t(py-wy)*ww+(px-wx);
+        const float weight=float(std::min({1.0,double(lx+1)/64.0,double(tileWidth-lx)/64.0,double(ly+1)/64.0,double(tileHeight-ly)/64.0}));
+        weights[index]+=weight;
+        for(std::size_t channel=0;channel<3;++channel){const auto at=start+4*(channel*512ULL*512+ly*512ULL+lx);
+          const std::uint32_t bits=std::uint32_t(r.data[at])|(std::uint32_t(r.data[at+1])<<8)|(std::uint32_t(r.data[at+2])<<16)|(std::uint32_t(r.data[at+3])<<24);
+          float probability;std::memcpy(&probability,&bits,sizeof(probability));
+          if(!std::isfinite(probability)||probability<0||probability>1)throw std::runtime_error("Invalid evaluation probability");
+          // NumPy rounds the product to float32 before its in-place addition.
+          volatile float weighted=probability*weight;sums[channel*pixels+index]+=weighted;
+        }
+      }
+    }
+    std::vector<Byte> result(pixels);
+    for(std::size_t i=0;i<pixels;++i){if(!(weights[i]>0))throw std::runtime_error("Evaluation left uncovered source pixels");
+      for(int channel=0;channel<3;++channel)if(sums[channel*pixels+i]/weights[i]>=.55f)result[i]|=Byte(1<<channel);}
+    std::cout<<"{\"data\":\""<<base64(result)<<"\"}";if(!std::cout)throw std::runtime_error("Cannot write evaluation blend");return 0;
+  }
   if(r.data.size()>=8&&std::string(r.data.begin(),r.data.begin()+8)=="PXCOR001"){
     r.at=8;const auto sx=r.u32(),sy=r.u32(),sw=r.u32(),sh=r.u32(),tx=r.u32(),ty=r.u32(),tw=r.u32(),th=r.u32();const auto radius=r.f64();
     if(!sw||!sh||!tw||!th||sw>1024||sh>1024||tw>1024||th>1024||sx>65535||sy>65535||tx>65535||ty>65535||

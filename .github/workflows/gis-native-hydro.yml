@@ -10,20 +10,260 @@ on:
       - 'tools/hydro_connectivity.py'
       - 'tools/build-hydro-tiles.py'
       - 'tools/repair-hydro-connectivity.mjs'
-      - 'tests/test_hydro_connectivity.py'
+      - 'tests/unit/hydro-connectivity-python-bridge.test.mjs'
       - '.github/workflows/gis-native-hydro.yml'
   workflow_dispatch:
     inputs:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-chains, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-transfer, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
   contents: read
 
 jobs:
+  hydro-chains:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-chains'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build and verify Hydro chain and junction logic
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp -B build-native/hydro -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_TERRITORIAL_RECIPE=OFF -DPANDO_BUILD_HYDRO_CONNECTIVITY=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro configure failed' }
+          cmake --build build-native/hydro --config Release --target pando-hydro-connectivity --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro build failed' }
+          if ($IsWindows) { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe" }
+          else { $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/pando-hydro-connectivity" }
+          node --test --test-name-pattern='logical river chains|river systems select|river width profiles|hydro visibility|terminal decisions|outlet sample|native audits|native repairs' tests/unit/hydro-connectivity-native.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Hydro chain or junction check failed' }
+  reference-transfer:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-transfer'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare fixed LibTorch SDK
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need 4 GiB build space and 5 GiB headroom' }
+            $url='https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip'
+            $expected='28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7'
+          } else {
+            if (([int64](((df -PB1 . | Select-Object -Last 1).Trim() -split '\s+')[3])) -lt 9663676416) { throw 'Need 4 GiB build space and 5 GiB headroom' }
+            $url='https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip'
+            $expected='63D572598C8D532128A335018913E795C1BBB32602CE378896DC8CFBB5590976'
+          }
+          New-Item -ItemType Directory -Path build-native/reference-analysis -Force | Out-Null
+          $curl = if ($IsWindows) { 'curl.exe' } else { 'curl' }
+          & $curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 $url --output build-native/reference-analysis/libtorch.zip
+          if ($LASTEXITCODE -ne 0 -or (Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne $expected) { throw 'LibTorch download or SHA-256 failed' }
+          if ($IsWindows) { Expand-Archive build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis }
+          else { unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis; if ($LASTEXITCODE -ne 0) { throw 'LibTorch extraction failed' } }
+          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
+      - name: Build and verify checkpoint weights transfer
+        shell: pwsh
+        run: |
+          $torch="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
+          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
+          if ($LASTEXITCODE -ne 0) { throw 'Configure failed' }
+          cmake --build build-native/reference-analysis/step-test --config Release --target pando-reference-training-batch reference-training-infer-fixture --parallel 1
+          if ($LASTEXITCODE -ne 0) { throw 'Training tool build failed' }
+          if ($IsWindows) { $build='build-native/reference-analysis/step-test/Release'; $ext='.exe' }
+          else { $build='build-native/reference-analysis/step-test'; $ext=''; $env:LD_LIBRARY_PATH="$torch/lib" }
+          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary "$build/pando-reference-training-batch$ext" --directory build-native/reference-analysis/artifact-batch
+          if ($LASTEXITCODE -ne 0) { throw 'Training tool packaging failed' }
+          $env:PANDO_REFERENCE_INFER_FIXTURE="$env:GITHUB_WORKSPACE/$build/reference-training-infer-fixture$ext"
+          $env:PANDO_REFERENCE_BATCH_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/artifact-batch"
+          $env:PANDO_REFERENCE_TORCH_LIBRARY="$torch/lib"
+          node --test tests/unit/reference-training-checkpoint-infer.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Checkpoint weights transfer differs' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reference-transfer-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/reference-analysis/artifact-batch/
+          if-no-files-found: error
+          retention-days: 7
+  reference-sampling-linux:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sampling-linux'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare fixed CPU LibTorch
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
+            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
+            --output build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build and package only the native sampling owner
+        run: |
+          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch"
+          cmake --build build-native/reference-analysis/step-test --target pando-reference-training-batch --parallel 1
+          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary build-native/reference-analysis/step-test/pando-reference-training-batch --directory build-native/reference-analysis/artifact-batch
+      - name: Check native balanced and uniform orders
+        env:
+          PANDO_REFERENCE_TORCH_LIBRARY: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
+          PANDO_REFERENCE_BATCH_DIRECTORY: ${{ github.workspace }}/build-native/reference-analysis/artifact-batch
+        run: node --test tests/unit/reference-training-order.test.mjs
+  reference-onnx-linux:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-linux'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+      - name: Prepare locked ONNX runtime and fixed CPU LibTorch
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 . | awk 'NR==2 {print $4}')
+          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
+          pnpm install --frozen-lockfile --ignore-scripts
+          mkdir -p build-native/reference-analysis
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
+            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
+            --output build-native/reference-analysis/libtorch.zip
+          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
+          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
+      - name: Build and package only ONNX export and parity tools
+        run: |
+          cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
+          cmake --build build-native/reference-analysis/native --target pando-reference-onnx-tests pando-reference-onnx-export --parallel 1
+          node tools/reference-analysis/package-native-reference.mjs --kind onnx-export --binary build-native/reference-analysis/native/pando-reference-onnx-export --directory build-native/reference-analysis/onnx-export
+      - name: Verify Linux export, overwrite protection and ONNX numerical parity
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
+          PANDO_REFERENCE_TORCH_LIBRARY: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
+          PANDO_REFERENCE_ONNX_EXPORT_DIRECTORY: ${{ github.workspace }}/build-native/reference-analysis/onnx-export
+          PANDO_REFERENCE_ONNX_EXPORT_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-export
+          PANDO_REFERENCE_ONNX_TEST_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-tests
+        run: node --test tests/unit/reference-onnx-export-refusal.test.mjs tests/unit/reference-onnx-export.test.mjs
+  hydro-shared-boundary:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-shared-boundary'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build only the GEOS point screen
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq libgeos-dev libproj-dev ninja-build
+          cmake -S tools/cpp -B build-native/hydro-point-screen -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_HYDRO_POINT_SCREEN=ON
+          cmake --build build-native/hydro-point-screen --target pando-hydro-point-screen
+          node tools/gis/package-hydro-point-screen.mjs --binary build-native/hydro-point-screen/pando-hydro-point-screen --directory build-native/hydro-point-screen/artifact
+      - name: Check exact shared-boundary and existing point-screen cases
+        env:
+          PANDO_HYDRO_POINT_SCREEN_BINARY: ${{ github.workspace }}/build-native/hydro-point-screen/pando-hydro-point-screen
+          PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/artifact
+        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs
+  publisher-pdf:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'publisher-pdf'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Obtain the pinned MuPDF SDK
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path build-native/map-pdf/sdk | Out-Null
+          if ($IsWindows) {
+            $url = 'https://files.pythonhosted.org/packages/f9/e8/989f4eaa369c7166dc24f0eaa3023f13788c40ff1b96701f7047421554a8/pymupdf-1.26.6-cp310-abi3-win_amd64.whl'
+            $expected = 'ce02ca96ed0d1acfd00331a4d41a34c98584d034155b06fd4ec0f051718de7ba'
+          } else {
+            $url = 'https://files.pythonhosted.org/packages/4f/bf/6e02e3d84b32c137c71a0a3dcdba8f2f6e9950619a3bc272245c7c06a051/pymupdf-1.26.6-cp310-abi3-manylinux_2_28_x86_64.whl'
+            $expected = '7777d0b7124c2ebc94849536b6a1fb85d158df3b9d873935e63036559391534c'
+          }
+          $wheel = 'build-native/map-pdf/publisher-sdk.zip'
+          Invoke-WebRequest -Uri $url -OutFile $wheel
+          if ((Get-FileHash -Algorithm SHA256 -LiteralPath $wheel).Hash.ToLowerInvariant() -ne $expected) { throw 'MuPDF SDK hash mismatch' }
+          Expand-Archive -LiteralPath $wheel -DestinationPath build-native/map-pdf/sdk
+      - name: Build the publisher PDF layer reader
+        shell: pwsh
+        run: |
+          $sdk = "$env:GITHUB_WORKSPACE/build-native/map-pdf/sdk/pymupdf"
+          cmake -S tools/cpp/map-pdf/publisher -B build-native/map-pdf/publisher-native "-DPANDO_MUPDF_SDK_ROOT=$sdk" -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Publisher configure failed' }
+          cmake --build build-native/map-pdf/publisher-native --config Release --target pando-publisher-pdf --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Publisher build failed' }
+          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON -DCMAKE_BUILD_TYPE=Release
+          if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
+          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
+          if ($IsWindows) { $binary = 'build-native/map-pdf/publisher-native/Release/pando-publisher-pdf.exe'; $image = 'build-native/map-image/Release/pando-map-image.exe' }
+          else { $binary = 'build-native/map-pdf/publisher-native/pando-publisher-pdf'; $image = 'build-native/map-image/pando-map-image' }
+          node tools/reference-analysis/package-native-publisher-pdf.mjs --binary $binary --directory build-native/map-pdf/publisher-artifact --sdk $sdk
+          if ($LASTEXITCODE -ne 0) { throw 'Publisher packaging failed' }
+          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
+      - name: Compare publisher layer rasters with frozen source pixels
+        shell: pwsh
+        run: |
+          $env:PANDO_PUBLISHER_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/publisher-artifact"
+          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
+          node --test tests/unit/reference-publisher-pdf.test.mjs tests/unit/reference-publisher-generator.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-publisher-training-source.test.mjs tests/unit/reference-macro-validation.test.mjs tests/unit/reference-macro-generator.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Publisher layer pixels differ' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: publisher-pdf-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/map-pdf/publisher-artifact/
+          if-no-files-found: ignore
+          retention-days: 7
   reference-sequence-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence-contracts'
     strategy:
@@ -39,7 +279,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-progress.test.mjs
+      - name: Build reviewed-mask tool for validation scope contracts
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/map-review -B build-native/map-review/native
+          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
+          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+          if ($IsWindows) { $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
+          else { $review = 'build-native/map-review/native/pando-map-review' }
+          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
+      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-order.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-encoder-identity.test.mjs tests/unit/reference-training-validation.test.mjs tests/unit/reference-evaluate-source.test.mjs
+      - run: node --test tests/unit/python-bridge-retirement.test.mjs tests/unit/reference-corpus-metadata.test.mjs tests/unit/reference-reviewed-corpus.test.mjs
+      - run: node --test --test-name-pattern='transferred weights diagnostics|diagnostics expose recorded native progress|transferred diagnostics retain|corpus diagnostics skip reviewed' tests/unit/reference-diagnostic-tile.test.mjs
+      - run: node --test --test-name-pattern='native inference reports a child rejection|native training exchange streams|checkpoint comparison rejects a mismatched' tests/unit/reference-training-checkpoint-infer.test.mjs
   reference-onnx-contracts:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-contracts'
     strategy:
@@ -662,7 +916,7 @@ jobs:
           node tools/gis/package-hydro-encoding.mjs --binary $env:PANDO_HYDRO_ENCODING_BINARY --directory build-native/hydro-encoding/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder packaging failed' }
           $env:PANDO_HYDRO_ENCODING_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/artifact"
-          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-pack-layout.test.mjs tests/unit/hydro-repair-pipeline.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
+          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-pack-layout.test.mjs tests/unit/hydro-river-groups.test.mjs tests/unit/hydro-repair-pipeline.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro feature bytes differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -744,6 +998,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Prepare reviewed-mask dependency for training contract tests
+        shell: pwsh
+        run: |
+          cmake -S tools/cpp/map-review -B build-native/map-review/native
+          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
+          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+          if ($IsWindows) { $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
+          else { $review = 'build-native/map-review/native/pando-map-review' }
+          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
+          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
       - name: Acquire fixed Windows LibTorch SDK
         if: runner.os == 'Windows'
         shell: pwsh
@@ -877,7 +1142,7 @@ jobs:
           node tools/reference-analysis/package-native-evaluation.mjs --binary $evaluation --directory build-native/map-evaluation/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Evaluation packaging failed' }
           $env:PANDO_MAP_EVALUATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-evaluation/artifact"
-          node --test tests/unit/reference-native-evaluation.test.mjs tests/unit/reference-native-diagnostic.test.mjs tests/unit/reference-training-lineage.test.mjs
+          node --test tests/unit/reference-native-evaluation.test.mjs tests/unit/reference-native-diagnostic.test.mjs tests/unit/reference-training-lineage.test.mjs tests/unit/reference-evaluation-blend.test.mjs tests/unit/reference-evaluate-source.test.mjs tests/unit/reference-diagnostic-onnx-scope.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Evaluation differs from original' }
       - uses: actions/upload-artifact@v4
         if: always()
@@ -1630,10 +1895,11 @@ jobs:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
         run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
-      - name: Compare Python source oracle and native C++ generator on fixed junctions
+      - name: Verify remaining Python producer calls the native connector
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ${{ github.workspace }}/build-native/hydro/pando-hydro-connectivity
-        run: python -m unittest tests.test_hydro_connectivity -v
+          PANDO_HYDRO_CONNECTIVITY_PYTHON: python
+        run: node --test tests/unit/hydro-connectivity-python-bridge.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}

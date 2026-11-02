@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "sourceSha256": "b8ad625631ac27db2eb537d9475d49e213839d338764f7f0f3dc61683aefcc0c",
+  "layers": [
+    "International",
+    "Map Frame",
+    "Hydrography"
+  ],
+  "sourceRectPts": [
+    0.0,
+    0.0,
+    160.0,
+    100.0
+  ],
+  "renders": [
+    {
+      "enabled": [],
+      "width": 160,
+      "height": 100,
+      "sha256": "9e42cb47c8874f4fd1a939da79541e5ca186aca364c186c428d060df0ad1f6af"
+    },
+    {
+      "enabled": [
+        "Hydrography"
+      ],
+      "width": 160,
+      "height": 100,
+      "sha256": "a478c18482e256eb5d2804962cafb3ebe8487bdb272fda2d2e33553bcd20a1eb"
+    },
+    {
+      "enabled": [
+        "International",
+        "Map Frame",
+        "Hydrography"
+      ],
+      "width": 160,
+      "height": 100,
+      "sha256": "a478c18482e256eb5d2804962cafb3ebe8487bdb272fda2d2e33553bcd20a1eb"
+    }
+  ],
+  "text": {
+    "maximumDimension": 160,
+    "maskSha256": "be53a7826a8e2826306e0dc5a409c1e029e228414353a2ec6563221d5e81f2ca",
+    "creditSha256": "a1b96d775d62a82cb0f6f0d962f6ca579ea3aeb87b9f5439d9eada3500d03655",
+    "characters": 5
+  },
+  "derived": {
+    "rgbSha256": "a478c18482e256eb5d2804962cafb3ebe8487bdb272fda2d2e33553bcd20a1eb",
+    "maskSha256": "855de61051bd03c9e0c9c33a3d13f92ec95cb79f045f497afe1b0036c46ce5cf",
+    "validSha256": "502ffa5e5d1664b46a3bf225d3e3e033d0c78c9004509f0eca6be034dbe83649",
+    "observedMask": 105,
+    "positivePixels": [
+      0,
+      0,
+      0,
+      560,
+      0,
+      364,
+      0
+    ]
+  }
+}

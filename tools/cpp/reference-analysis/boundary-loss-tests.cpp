@@ -19,6 +19,16 @@ int main(){
         auto loss=pando::reference::boundaryLoss(logits,target,valid);loss.backward();
         close(loss.item<double>(),1.4681425094604492,2e-6,"Broadcast loss differs from the original");
         close(logits.grad().abs().sum().item<double>(),0.709199070930481,2e-6,"Broadcast gradient differs from the original");
+        close(pando::reference::boundaryLoss(logits.detach(),target,valid.expand_as(logits)).item<double>(),
+            loss.item<double>(),1e-6,"Explicit and broadcast validity differ");
+        auto overlapping=torch::zeros_like(target);
+        overlapping.index_put_({0,0,5,5},1);overlapping.index_put_({0,5,5,5},1);
+        auto overlapLogits=torch::zeros_like(logits).set_requires_grad(true);
+        auto overlapLoss=pando::reference::boundaryLoss(overlapLogits,overlapping,valid);overlapLoss.backward();
+        check(torch::isfinite(overlapLoss).item<bool>()&&torch::isfinite(overlapLogits.grad()).all().item<bool>(),
+            "Overlapping semantic channels must produce finite loss and gradients");
+        check(overlapLogits.grad().index({0,0,5,5}).item<float>()<0&&overlapLogits.grad().index({0,5,5,5}).item<float>()<0,
+            "Overlapping targets must train both channels independently");
         auto explicitValid=valid.expand_as(logits).clone();explicitValid.index_put_({torch::indexing::Slice(),2},0);
         target.index_put_({torch::indexing::Slice(),2},1);logits.grad().zero_();
         auto masked=pando::reference::boundaryLoss(logits,target,explicitValid);masked.backward();
