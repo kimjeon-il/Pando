@@ -118,6 +118,16 @@ export async function matchHydroOsmBounds({candidates,targets}={},options={}){
     index!==null&&(!Number.isSafeInteger(index)||index<0||index>=candidates.length)))throw Error('Invalid Hydro OSM match receipt');
   return result.matches;
 }
+export async function calculateHydroCalibrationScreen({bounds,width,height,lines,polygons}={},options={}){
+  options.signal?.throwIfAborted();
+  if(!Array.isArray(bounds)||bounds.length!==4||bounds.some(value=>!Number.isFinite(value))||bounds[2]<=bounds[0]||bounds[3]<=bounds[1]||
+    !Number.isFinite(width)||width<=0||!Number.isFinite(height)||height<=0||!Array.isArray(lines)||!Array.isArray(polygons))
+    throw Error('Explicit Hydro calibration screen dimensions and geometry required');
+  const result=await screenHydroPoints({mode:'calibration-screen',bounds,width,height,lines,polygons},options);
+  if(!Number.isFinite(result?.lineLengthPx)||result.lineLengthPx<0||!Number.isFinite(result.polygonAreaPx)||result.polygonAreaPx<0)
+    throw Error('Invalid Hydro calibration screen receipt');
+  return result;
+}
 // Compare only explicitly selected border fragments with the exact shared
 // country boundary in geographic coordinates, matching the retained GIS test.
 export async function verifyHydroBorderFragments({left,right,pair,features},options={}){

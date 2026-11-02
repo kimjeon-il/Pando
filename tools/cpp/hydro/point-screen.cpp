@@ -241,6 +241,32 @@ Value osmWaterwayMatches(const Value& input){
         else matches.array.push_back(Value::num(static_cast<double>(scores[0].second)));}
     auto result=Value::obj();result.object["matches"]=std::move(matches);return result;
 }
+// Calculate screen-space metrics on already clipped source lines and polygons.
+Value calibrationScreen(const Value& input){
+    using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
+    GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
+    const auto& bounds=array(field(input,"bounds"));if(bounds.size()!=4)throw std::invalid_argument("Invalid calibration screen bounds");
+    std::array<double,4> box{};for(std::size_t i=0;i<4;++i)box[i]=pandoeditor::codecjson::finiteNumber(bounds[i]);
+    const double width=pandoeditor::codecjson::finiteNumber(field(input,"width")),height=pandoeditor::codecjson::finiteNumber(field(input,"height"));
+    if(box[2]<=box[0]||box[3]<=box[1]||width<=0||height<=0)throw std::invalid_argument("Invalid calibration screen dimensions");
+    const double sx=width/(box[2]-box[0]),sy=height/(box[3]-box[1]);
+    const auto& lines=array(field(input,"lines")),&polygons=array(field(input,"polygons"));
+    if(lines.size()>100000||polygons.size()>100000)throw std::invalid_argument("Calibration screen batch exceeds budget");
+    std::size_t vertices=0;double lineLength=0,polygonArea=0;
+    for(const auto& source:lines){const auto& coords=array(source);if(coords.size()<2)throw std::invalid_argument("Invalid calibration line");
+        vertices+=coords.size();if(vertices>5000000)throw std::invalid_argument("Calibration coordinates exceed budget");
+        auto previous=inputPoint(coords.front());for(std::size_t i=1;i<coords.size();++i){const auto current=inputPoint(coords[i]);
+            lineLength+=std::hypot((current.x-previous.x)*sx,(current.y-previous.y)*sy);previous=current;}}
+    struct ReaderDeleter{GEOSContextHandle_t context;void operator()(GEOSGeoJSONReader* value)const{if(value)GEOSGeoJSONReader_destroy_r(context,value);}};
+    std::unique_ptr<GEOSGeoJSONReader,ReaderDeleter> reader(GEOSGeoJSONReader_create_r(context.get()),ReaderDeleter{context.get()});
+    if(!reader)throw std::runtime_error("GEOS GeoJSON reader failed");
+    for(const auto& source:polygons){const auto json=source.encode();auto polygon=own(context.get(),GEOSGeoJSONReader_readGeometry_r(context.get(),reader.get(),json.c_str()));
+        if(GEOSGeomTypeId_r(context.get(),polygon.get())!=GEOS_POLYGON)throw std::invalid_argument("Calibration polygon required");
+        double area=0;if(!GEOSArea_r(context.get(),polygon.get(),&area)||!std::isfinite(area)||area<0)throw std::runtime_error("GEOS calibration area failed");polygonArea+=area;}
+    const double areaPx=polygonArea*width*height/((box[2]-box[0])*(box[3]-box[1]));
+    if(!std::isfinite(lineLength)||!std::isfinite(areaPx))throw std::invalid_argument("Invalid calibration screen result");
+    auto result=Value::obj();result.object["lineLengthPx"]=Value::num(lineLength);result.object["polygonAreaPx"]=Value::num(areaPx);return result;
+}
 Value sharedBoundaryDistances(const Value& input){
     using GeosContext=std::unique_ptr<GEOSContextHandle_HS,decltype(&GEOS_finish_r)>;
     GeosContext context(GEOS_init_r(),GEOS_finish_r);if(!context)throw std::runtime_error("GEOS context failed");
@@ -284,6 +310,8 @@ Value sampleDistances(GEOSContextHandle_t context,const LineSet& source,const GE
 Value run(const Value& input){
     if(input.kind!=Value::Object)throw std::invalid_argument("Expected point-screen object");
     const auto requested=input.object.find("mode");
+    if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="calibration-screen")
+        return calibrationScreen(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="osm-waterway-match")
         return osmWaterwayMatches(input);
     if(requested!=input.object.end()&&requested->second.kind==Value::String&&requested->second.string=="longest-lines")
