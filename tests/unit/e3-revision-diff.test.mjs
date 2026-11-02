@@ -6,7 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {
-  collectRevisionDiff,createPendingRevisionReview,diffTerritorialEntities,
+  collectRevisionDiff,createPendingRevisionReview,
   revisionIndexDiff,verificationSummary,
 } from '../../tools/review/e3-revision-diff.mjs';
 import {generateE3RevisionEvidence} from '../../tools/review/generate-e3-review.mjs';

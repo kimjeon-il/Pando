@@ -17,7 +17,6 @@ const cmp=(a,b)=>a<b?-1:a>b?1:0;
 function invalid(message) {throw Object.assign(new Error(message),{code:'PL-E3-REVISION'});}
 const sorted = items=>[...items].sort(cmp);
 const plain = x=>!!x&&typeof x==='object'&&!Array.isArray(x);
-const bound = x=>x==null?null:x;
 const validPeriod=period=>{
   if(!plain(period)||!Object.hasOwn(period,'validFrom')||!Object.hasOwn(period,'validTo'))invalid('Source interval must have both temporal endpoints.');
   for(const x of [period.validFrom,period.validTo])if(x!==null&&typeof x!=='string')invalid('Non-string temporal source endpoint.');
@@ -135,7 +134,7 @@ export function diffTerritorialEntities(beforeInput,afterInput,{sourceEntityId}=
   if(beforeInput&&beforeInput.entityId!==id||afterInput&&afterInput.entityId!==id)invalid('Source entity ID mismatch.');
   if(beforeInput)normalizeTerritorialLibraryEntity(beforeInput);
   if(afterInput)normalizeTerritorialLibraryEntity(afterInput);
-  const before=beforeInput||{},after=afterInput||{},issues=[],changes=[],metadataChanges=enumMetadataDifferences(beforeInput,afterInput);
+  const issues=[],changes=[],metadataChanges=enumMetadataDifferences(beforeInput,afterInput);
   const zero={lifetime:null,parentEntityId:'',geometryVersions:[],names:{},metadata:{}};
   const old=beforeInput||zero,next=afterInput||zero;
   if(!same(old.lifetime,next.lifetime))
