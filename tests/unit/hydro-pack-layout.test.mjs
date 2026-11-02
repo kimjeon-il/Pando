@@ -8,7 +8,7 @@ import test from 'node:test';
 import {gunzipSync,gzipSync} from 'node:zlib';
 import {buildHydroMetadata,buildHydroPack,finalizeHydroPackGroups,planHydroPackGroups} from '../../tools/gis/hydro-pack-layout.mjs';
 import {decodeHydroGeneratedPack,decodeHydroSelectedPack} from '../../tools/gis/hydro-pack-decoder.mjs';
-import {loadSelectedHydroFeatures} from '../../tools/gis/hydro-selected-data.mjs';
+import {loadCompleteHydroFeatures,loadSelectedHydroFeatures} from '../../tools/gis/hydro-selected-data.mjs';
 
 const features=JSON.parse(readFileSync('tests/fixtures/hydro-encoding-oracle.json','utf8'));
 const oracle=JSON.parse(readFileSync('tests/fixtures/hydro-pack-oracle.json','utf8'));
@@ -68,8 +68,11 @@ test('Hydro shard and index layout matches the original Python binary ordering',
   assert.deepEqual(selected,decoded.filter(row=>row.metadata.logicalFid===101));
   const directory=await mkdtemp(join(tmpdir(),'pando-hydro-selected-data-'));t.after(()=>rm(directory,{recursive:true}));
   for(const [name,bytes] of complete.files){const path=join(directory,name);await mkdir(dirname(path),{recursive:true});await writeFile(path,bytes);}
-  await writeFile(join(directory,'manifest.json'),JSON.stringify({...complete.layout,stages}));
+  await writeFile(join(directory,'manifest.json'),JSON.stringify({...complete.layout,stages,stats:complete.stats}));
   const loaded=await loadSelectedHydroFeatures({directory,logicalFids:[101]});assert.deepEqual(loaded.features,selected);
+  await assert.rejects(loadCompleteHydroFeatures({directory}),/explicit/i);
+  const all=await loadCompleteHydroFeatures({directory,acknowledgeWholeCatalog:true});assert.deepEqual(all.features,decoded);
+  assert.equal(all.packCount,complete.stats.packCount);assert.equal(all.logicalCount,complete.stats.logicalFeatureCount);
   await assert.rejects(loadSelectedHydroFeatures({directory,logicalFids:[99999]}),/logical|selected/i);
   const shardPath=join(directory,complete.layout.shards[0].url),damaged=await readFile(shardPath);damaged[0]^=1;await writeFile(shardPath,damaged);
   await assert.rejects(loadSelectedHydroFeatures({directory,logicalFids:[101]}),/hash/i);

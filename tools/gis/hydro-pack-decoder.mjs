@@ -170,13 +170,13 @@ function readVerifiedHydroPack(decoder,shard,spec){
 function verifiedHydroFeature(decoder,feature,spec){
   const metadata=decoder.featureMetadata.get(feature.properties.__fid);
   if(!metadata||!decoder.logicalPacks.get(metadata.logicalFid)?.includes(spec.id)||metadata.stage!==feature.properties.stage||
-    metadata.flags!==feature.properties.__flags||metadata.fragmentIndex!==feature.properties.fragment_index||
+    metadata.category!==feature.properties.category||metadata.flags!==feature.properties.__flags||metadata.fragmentIndex!==feature.properties.fragment_index||
     metadata.fragmentCount!==feature.properties.fragment_count||!Array.isArray(metadata.bounds)||metadata.bounds.length!==4||
     metadata.bounds.some((value,index)=>value!==Math.round(feature.__awBounds[index]*1000000)))
     throw Error('Hydro pack fields or logical index differ from metadata');
   return metadata;
 }
-function hydroGeometryCoordinates(geometry){
+export function hydroGeometryCoordinates(geometry){
   if(!['LineString','MultiLineString','Polygon','MultiPolygon'].includes(geometry?.type))throw Error('Invalid Hydro geometry kind');
   function count(value){if(!Array.isArray(value))throw Error('Invalid Hydro geometry coordinates');
     if(typeof value[0]==='number'){if(value.length!==2||value.some(number=>!Number.isFinite(number)))throw Error('Invalid Hydro geometry coordinate');return 1;}

@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {open,readFile,realpath,stat} from 'node:fs/promises';
 import {isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {gunzipSync} from 'node:zlib';
-import {createHydroWorkerDecoder,decodeHydroSelectedPack} from './hydro-pack-decoder.mjs';
+import {createHydroWorkerDecoder,decodeHydroGeneratedPack,decodeHydroSelectedPack} from './hydro-pack-decoder.mjs';
 
 async function localSource(root,url){
   if(typeof url!=='string'||!url||isAbsolute(url)||url.includes('\\')||url.split('/').some(part=>!part||part==='.'||part==='..'))
@@ -23,6 +23,13 @@ async function readResource(root,spec,signal){
   const after=await stat(path);if(before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ino!==after.ino||before.dev!==after.dev||
     createHash('sha256').update(data).digest('hex')!==spec.sha256)throw Error('Hydro resource changed or hash differs');return data;
 }
+async function readManifest(root,signal){
+  const path=await localSource(root,'manifest.json'),before=await stat(path);
+  if(!before.isFile()||before.size>1024*1024)throw Error('Hydro manifest exceeds byte budget');
+  const bytes=await readFile(path,{signal}),after=await stat(path);
+  if(bytes.length!==before.size||before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ino!==after.ino||before.dev!==after.dev)
+    throw Error('Hydro manifest changed during reading');return bytes;
+}
 export async function loadSelectedHydroFeatures({directory,bounds,logicalFids,signal}={}){
   signal?.throwIfAborted();if(typeof directory!=='string'||!directory||(bounds===undefined)===(logicalFids===undefined))
     throw Error('Explicit Hydro directory and one selection scope required');
@@ -30,8 +37,7 @@ export async function loadSelectedHydroFeatures({directory,bounds,logicalFids,si
     throw Error('Invalid Hydro selection bounds');
   if(logicalFids!==undefined&&(!Array.isArray(logicalFids)||!logicalFids.length||logicalFids.some(id=>!Number.isSafeInteger(id)||id<0)||
     new Set(logicalFids).size!==logicalFids.length))throw Error('Explicit unique Hydro logical IDs required');
-  const root=await realpath(resolve(directory)),manifestPath=await localSource(root,'manifest.json'),manifestBytes=await readFile(manifestPath,{signal});
-  if(manifestBytes.length>1024*1024)throw Error('Hydro manifest exceeds byte budget');
+  const root=await realpath(resolve(directory)),manifestBytes=await readManifest(root,signal);
   const manifest=JSON.parse(manifestBytes.toString('utf8'));if(!manifest?.index||!manifest.metadata?.core||!manifest.metadata?.detail||
     !Array.isArray(manifest.shards)||!Array.isArray(manifest.stages)||manifest.stages.length!==4)throw Error('Invalid Hydro manifest');
   const files=new Map();for(const spec of [manifest.index,manifest.metadata.core,manifest.metadata.detail])
@@ -48,5 +54,21 @@ export async function loadSelectedHydroFeatures({directory,bounds,logicalFids,si
   const shards=manifest.shards.filter(spec=>shardIds.has(spec.id));if(shards.length!==shardIds.size)throw Error('Selected Hydro shard missing');
   for(const spec of shards)files.set(spec.sha256,await readResource(root,spec,signal));
   const features=decodeHydroSelectedPack({files,layout:{...manifest,shards},stages:manifest.stages,logicalFids:ids});
-  signal?.throwIfAborted();return {features,logicalFids:ids,shards:shards.map(row=>row.id)};
+  signal?.throwIfAborted();return {features,logicalFids:ids,shards:shards.map(row=>row.id),version:manifest.version};
+}
+// This is deliberately opt-in: normal scoped checks must use loadSelectedHydroFeatures.
+export async function loadCompleteHydroFeatures({directory,acknowledgeWholeCatalog=false,signal}={}){
+  signal?.throwIfAborted();if(typeof directory!=='string'||!directory||acknowledgeWholeCatalog!==true)
+    throw Error('Explicit whole-catalog Hydro scope required');
+  const root=await realpath(resolve(directory)),manifestBytes=await readManifest(root,signal);
+  const manifest=JSON.parse(manifestBytes.toString('utf8'));
+  if(!manifest?.index||!manifest.metadata?.core||!manifest.metadata?.detail||!manifest.stats||!Array.isArray(manifest.shards)||
+    !Array.isArray(manifest.stages)||manifest.stages.length!==4)throw Error('Invalid Hydro manifest');
+  const files=new Map();for(const spec of [manifest.index,manifest.metadata.core,manifest.metadata.detail,...manifest.shards])
+    files.set(spec.sha256,await readResource(root,spec,signal));
+  const decoder=createHydroWorkerDecoder({stages:manifest.stages});
+  decoder.readGlobalIndex(gunzipSync(files.get(manifest.index.sha256),{maxOutputLength:64*1024*1024}));
+  const features=decodeHydroGeneratedPack({files,layout:manifest,stages:manifest.stages,expectedStats:manifest.stats});
+  signal?.throwIfAborted();return {manifest,manifestBytes:manifestBytes.length,features,packCount:decoder.packSpecs.size,
+    logicalCount:decoder.logicalPacks.size,core:files.get(manifest.metadata.core.sha256)};
 }

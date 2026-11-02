@@ -208,7 +208,7 @@ jobs:
           PANDO_HYDRO_POINT_SCREEN_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/artifact
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/connectivity-artifact
           PANDO_HYDRO_CALIBRATION_ARTIFACT: ${{ github.workspace }}/build-native/hydro-point-screen/calibration-artifact
-        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs tests/unit/hydro-calibration-input.test.mjs
+        run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs tests/unit/hydro-calibration-input.test.mjs tests/unit/hydro-data-validation.test.mjs tests/unit/hydro-pack-layout.test.mjs tests/unit/hydro-river-groups.test.mjs
   publisher-pdf:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'publisher-pdf'
     strategy:
