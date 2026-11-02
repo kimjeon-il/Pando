@@ -1,0 +1,62 @@
+name: W2-P6-2 pinned boundary Feature projection A-B-A
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tools/w2-p6-2-project-country-feature.mjs
+      - tools/w2-p6-2-projection-experiment.mjs
+      - tests/unit/w2-p6-2-feature-projection.test.mjs
+      - .github/workflows/w2-p6-feature-projection-experiment.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: w2-p6-projection-work-ui
+  cancel-in-progress: true
+jobs:
+  projection:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Pin W2-P4/P5 production measurement source without modifying it
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: fe8282ba32761ab9586348d1712e11cc1f4e7882
+          path: .w2-p6-fixed
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Confirm source pin and static projection contract
+        run: |
+          test "$(git -C .w2-p6-fixed rev-parse HEAD)" = fe8282ba32761ab9586348d1712e11cc1f4e7882
+          node --check tools/w2-p6-2-project-country-feature.mjs
+          node --check tools/w2-p6-2-projection-experiment.mjs
+          node --check tests/unit/w2-p6-2-feature-projection.test.mjs
+          pnpm exec eslint tools/w2-p6-2-project-country-feature.mjs tools/w2-p6-2-projection-experiment.mjs tests/unit/w2-p6-2-feature-projection.test.mjs
+      - name: Real pinned Node Worker/regression plus metadata projection tests
+        run: |
+          node --test --test-concurrency=1 --test-timeout=60000 tests/unit/w2-p6-2-feature-projection.test.mjs .w2-p6-fixed/tests/unit/country-shared-boundary-state.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Complete A-B-A pinned Viewer date-switch and fresh Worker byte-for-byte parity
+        env:
+          PANDOLAB_P6_PINNED_SOURCE: .w2-p6-fixed
+          PANDOLAB_P6_OUTPUT: test-results/w2-p6-2
+          PANDOLAB_P6_PORT: '4252'
+          PANDOLAB_P6_REPETITIONS: '2'
+        run: node --max-old-space-size=6144 tools/w2-p6-2-projection-experiment.mjs
+      - name: Upload immutable per-case timing, Worker hashes and map screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w2-p6-2-pinned-feature-projection-ab-a
+          path: test-results/w2-p6-2/
+          if-no-files-found: warn
+          retention-days: 14
