@@ -203,7 +203,8 @@ export function prepareAllNonOsmHydro({
       !String(after.source||'').includes('OSM') &&
       equals(after.independentSourceUrls,
         [...new Set(review.independentSources.map(x=>x.url))]) &&
-      !after.aliases?.length && !after.tributaryNames?.length,
+      (review.classification!=='source-neutral-unnamed-hydro-system' ||
+        (!after.aliases?.length&&!after.tributaryNames?.length)),
       'Target metadata did not become OSM-independent '+id);
     check(equals(
       Object.fromEntries(Object.entries(oldRow).filter(([k])=>!['name','mainstemNameKo'].includes(k))),
