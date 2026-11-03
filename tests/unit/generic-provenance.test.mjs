@@ -8,7 +8,7 @@ import { validateProjectReferenceIntegrity } from "../../shared/frontend/js/modu
 import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
-import { createGisImportTransactionCommitter } from "../../apps/editor/frontend/js/modules/gis-import-transaction.js";
+import { createGisImportTransactionCommitter } from "../helpers/core-gis-compat/gis-import-transaction.mjs";
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 

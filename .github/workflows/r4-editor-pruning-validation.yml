@@ -1,7 +1,7 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [work/ui, work/r4e1-gis-interop-20261103, fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4e2-core-gis-test-fixtures-20261103, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
@@ -19,6 +19,20 @@ on:
       - docs/development/r4e0-source-dispositions.json
       - tests/unit/r4e0-dependency-audit.test.mjs
       - tests/unit/r4e1-gis-interop-boundaries.test.mjs
+      - tests/unit/r4e2-core-gis-boundaries.test.mjs
+      - tests/helpers/core-gis-compat/**
+      - tests/helpers/core-command-services/**
+      - tests/helpers/gis-core-fixture.mjs
+      - tests/helpers/current-command-fixture.mjs
+      - tests/helpers/web-full-document-fixture.mjs
+      - tests/unit/core-*-wasm.test.mjs
+      - tests/unit/core-generic-conversion-wasm.test.mjs
+      - tests/unit/core-label-gesture-wasm.test.mjs
+      - tests/unit/territorial-service.test.mjs
+      - tests/unit/distribution-service.test.mjs
+      - tests/unit/import-service.test.mjs
+      - tests/unit/generic-provenance.test.mjs
+      - tests/unit/land-relations-presentation.test.mjs
       - tests/unit/country-import-identity.test.mjs
       - tests/unit/import-plan.test.mjs
       - tests/unit/gis-adapters.test.mjs
@@ -89,6 +103,19 @@ jobs:
           tests/unit/r4d-legacy-ci-boundaries.test.mjs
           tests/unit/r4e0-dependency-audit.test.mjs
           tests/unit/r4e1-gis-interop-boundaries.test.mjs
+          tests/unit/r4e2-core-gis-boundaries.test.mjs
+          tests/unit/territorial-service.test.mjs
+          tests/unit/distribution-service.test.mjs
+          tests/unit/core-territorial-service-wasm.test.mjs
+          tests/unit/core-service-writer-clock-wasm.test.mjs
+          tests/unit/service-core-command-owner.test.mjs
+          tests/unit/core-direct-object-writers-wasm.test.mjs
+          tests/unit/core-delete-selection-wasm.test.mjs
+          tests/unit/core-generic-conversion-wasm.test.mjs
+          tests/unit/core-label-gesture-wasm.test.mjs
+          tests/unit/generic-provenance.test.mjs
+          tests/unit/land-relations-presentation.test.mjs
+          tests/unit/import-service.test.mjs
           tests/unit/country-import-identity.test.mjs
           tests/unit/import-plan.test.mjs
           tests/unit/gis-adapters.test.mjs

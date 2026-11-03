@@ -7,7 +7,7 @@ import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/t
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
-import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
+import { createTerritorialApplicationService } from "../helpers/core-command-services/territorial-service.mjs";
 import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
 import {createSelectionDomain} from "../../shared/frontend/js/modules/selection-domain.js";
 import {webSelectionRefToCore,coreSelectionRefToWeb} from "../../shared/frontend/js/modules/core-object-ref.js";

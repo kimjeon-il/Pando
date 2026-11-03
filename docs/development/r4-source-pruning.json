@@ -217,5 +217,133 @@
         "note": "Frozen encoder for original GeoPackage interoperability; never shipped in Viewer/Windows reviewer."
       }
     ]
+  },
+  "r4e2CoreGisTestMigration": {
+    "schema": "pandolab-r4e2-core-gis-test-migration-v1",
+    "countInvariant": {
+      "baselineCandidates": 153,
+      "removed": 50,
+      "remaining": 103
+    },
+    "testOwnedSources": [
+      "tests/helpers/core-command-services/territorial-service.mjs",
+      "tests/helpers/core-command-services/distribution-service.mjs",
+      "tests/helpers/core-command-services/save-state-controller.mjs",
+      "tests/helpers/core-gis-compat/gis-import-transaction.mjs",
+      "tests/helpers/core-gis-compat/land-relations.mjs",
+      "tests/helpers/core-gis-compat/import-service.mjs"
+    ],
+    "directCoreTestChanges": [
+      "tests/unit/core-direct-object-writers-wasm.test.mjs",
+      "tests/unit/core-delete-selection-wasm.test.mjs",
+      "tests/unit/core-generic-conversion-wasm.test.mjs",
+      "tests/unit/core-label-gesture-wasm.test.mjs"
+    ],
+    "testOnlySourcesNotShipped": true,
+    "knownActiveUiTestsDeferred": [
+      "tests/unit/platform-boundaries.test.mjs",
+      "tests/unit/general-regional-contract.test.mjs",
+      "tests/unit/territorial-command-storage.test.mjs",
+      "tests/unit/territorial-metadata-command.test.mjs",
+      "tests/unit/core-document-draft-wasm.test.mjs"
+    ],
+    "note": "Core semantic regression imports moved to test-owned adapters or direct ProjectDomain/C++ commands. Legacy UI-facade tests remain active for R4-E3 triage; no old 103 source has been deleted in E2.",
+    "statuses": [
+      {
+        "old": "apps/editor/frontend/js/modules/app-country-commits.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-cut-geometry.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-generic-commands.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-history-assembly.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-land-relations.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-gis-compat/land-relations.mjs"
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-library-assembly.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-object-commands.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-object-deletion.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-object-metadata.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-project-restore.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-project-snapshots.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-river-candidates.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-territorial-conversion.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-territory-components.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/distribution-service.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-command-services/distribution-service.mjs"
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/map-edit-territorial-commands.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/persistence-service.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/save-state-controller.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-command-services/save-state-controller.mjs"
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/territorial-service.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-command-services/territorial-service.mjs"
+      }
+    ]
   }
 }

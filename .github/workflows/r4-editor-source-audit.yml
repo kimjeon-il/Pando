@@ -1,13 +1,16 @@
 name: R4 archived editor source references audit
 on:
   push:
-    branches: [work/ui, work/r4e1-gis-interop-20261103]
+    branches: [work/ui, work/r4e2-core-gis-test-fixtures-20261103]
     paths:
       - scripts/r4-editor-source-audit.mjs
       - scripts/r4e0-dependency-audit.mjs
       - docs/development/r4e0-source-dispositions.json
       - tests/unit/r4e0-dependency-audit.test.mjs
       - tests/unit/r4e1-gis-interop-boundaries.test.mjs
+      - tests/unit/r4e2-core-gis-boundaries.test.mjs
+      - tests/helpers/core-gis-compat/**
+      - tests/helpers/core-command-services/**
       - tests/fixtures/geopackage/compat/**
       - apps/editor/frontend/**
       - tools/gis/**

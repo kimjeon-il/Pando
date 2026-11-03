@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
+import { createTerritorialApplicationService } from "../helpers/core-command-services/territorial-service.mjs";
 import { createEditingDomain } from "../../apps/editor/frontend/js/modules/editing-domain.js";
 import { createProjectSession } from "../../shared/frontend/js/modules/project-session.js";
 import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
 import { createGeometryPreviewState } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
-import { createSaveStateController } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
+import { createSaveStateController } from "../helpers/core-command-services/save-state-controller.mjs";
 import { DISTRIBUTION_RENDER_MODES } from "../../shared/frontend/js/modules/distribution-model.js";
 import {createNodeSelection} from '../helpers/core-selection.mjs';
 

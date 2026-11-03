@@ -4,7 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { validateCollection } from "../../tools/gis/geometry-validation.js";
 import {GIS_GEOMETRY_TIMEOUT_MS,createGisGeometryValidator} from "../../tools/gis/gis-geometry-validator.js";
-import {createImportService} from "../../apps/editor/frontend/js/modules/import-service.js";
+import {createImportService} from "../helpers/core-gis-compat/import-service.mjs";
 import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 

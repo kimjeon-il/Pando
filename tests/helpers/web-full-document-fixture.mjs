@@ -1,7 +1,7 @@
 import { createNodeCoreProject } from './core-project.mjs';
 import { createTerritorialEntityStore } from '../../shared/frontend/js/modules/territorial-entity-store.js';
 import { createTerritorialEntityRepository } from '../../shared/frontend/js/modules/territorial-entity-repository.js';
-import { createTerritorialApplicationService } from '../../apps/editor/frontend/js/modules/territorial-service.js';
+import { createTerritorialApplicationService } from './core-command-services/territorial-service.mjs';
 
 /** Current Web service graph backed by the actual C++ document Worker. */
 export async function createCurrentFullDocumentFixture(input) {
