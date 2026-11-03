@@ -7,7 +7,7 @@ import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { startupDocument } from '../helpers/core-startup.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { moveOverlayGroup, normalizeLayerPresentation, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
-import { AUTOSAVE_STATES, createSaveStateController, FILE_SAVE_STATES } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
+import { AUTOSAVE_STATES, createSaveStateController, FILE_SAVE_STATES } from "../helpers/core-command-services/save-state-controller.mjs";
 
 const country = id => ({ domain: 'territorial', type: 'entity', id });
 

@@ -6,7 +6,7 @@ import { createProjectSession } from "../../shared/frontend/js/modules/project-s
 import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
 import { createGeometryPreviewState } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
 import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
-import { createSaveStateController } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
+import { createSaveStateController } from "../helpers/core-command-services/save-state-controller.mjs";
 import { DISTRIBUTION_RENDER_MODES } from "../../shared/frontend/js/modules/distribution-model.js";
 import {createNodeSelection} from '../helpers/core-selection.mjs';
 
