@@ -75,7 +75,15 @@ def search_scenes(bbox, year):
                    for b in ("green", "nir08", "qa_pixel")):
             continue
         choices.append(scene)
+    def bbox_coverage(scene):
+        ext = scene.get("bbox")
+        if not (isinstance(ext,list) and len(ext)==4):
+            return 0.0
+        x0=max(bbox[0],ext[0]); y0=max(bbox[1],ext[1])
+        x1=min(bbox[2],ext[2]); y1=min(bbox[3],ext[3])
+        return max(0,x1-x0)*max(0,y1-y0)/max(1e-8,(bbox[2]-bbox[0])*(bbox[3]-bbox[1]))
     choices.sort(key=lambda s: (
+        -bbox_coverage(s),
         0 if year < 2000 or s.get("id", "").startswith(("LC08_", "LC09_")) else 1,
         s["properties"].get("eo:cloud_cover", 100),
         s["properties"].get("datetime", ""),
@@ -162,7 +170,7 @@ def inspect_scene(scene, area):
     }
 
 
-def run(areas, years=(1994, 2020), attempts=3):
+def run(areas, years=(1994, 1995, 2020), attempts=8):
     report = {
         "schema": "pando-baikonur-independent-historic-spectral-preflight-v1",
         "legalBoundaryVerified": False,
@@ -182,6 +190,8 @@ def run(areas, years=(1994, 2020), attempts=3):
                 for scene in candidates[:attempts]:
                     try:
                         item["examined"].append(inspect_scene(scene, area))
+                        if len(item["examined"])>=2:
+                            break
                     except Exception as ex:
                         # Never log an exception containing Azure signed URL/SAS.
                         item["errors"].append({
