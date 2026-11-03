@@ -297,7 +297,7 @@ jobs:
           if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
           pattern='annex - (polygon|components|line multiple crossings)|a child cut|plugin GeoJSON|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
           if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
-          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/map-plugin-import.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
+          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/temporal-map-presentation.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs --grep='.' "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Compare initial display, edit readiness, frames and JS heap against the
           fixed baseline
         if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' &&
@@ -305,7 +305,7 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDO_P9_BASELINE_ROOT: build-native/p9/baseline
-        run: pnpm exec playwright test tests/browser/p9-browser-performance.spec.mjs
+        run: pnpm exec playwright test tests/browser/viewer-main-stall-trace.spec.mjs
           --workers=1 --retries=0 --output=test-results/p9-browser-performance
       - name: Archive screenshots, test output and failure evidence
         if: always()

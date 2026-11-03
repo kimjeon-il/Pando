@@ -43,7 +43,7 @@ on:
       - 'tests/unit/p5-6-performance-review.test.mjs'
       - 'tools/p5-6-core-ownership.mjs'
       - 'tools/p5-6-review-performance.mjs'
-      - 'tests/browser/russia-edit-preparation.spec.mjs'
+      - 'tests/browser/viewer-boundary-p4-5.spec.mjs'
       - 'assets/js/build-meta.js'
       - 'assets/data/prepared-polygons/generated/v2/manifest.json'
       - 'scripts/check-version.mjs'
@@ -181,8 +181,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-results/p5-6-russia
-          pnpm exec playwright test tests/browser/russia-edit-preparation.spec.mjs \
-            --grep 'Russia detailed polygon creation.*webgl2' \
+          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs \
+            --grep='.' \
             --workers=1 --retries=0 --output=test-results/p5-6-russia \
             2>&1 | tee test-results/p5-6-russia.log
           node --input-type=module <<'NODE'

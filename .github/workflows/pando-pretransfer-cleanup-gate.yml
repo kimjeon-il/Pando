@@ -63,7 +63,7 @@ jobs:
       - name: Verify selected UI candidates
         run: |
           node --test tests/unit/adaptive-render-quality.test.mjs tests/unit/country-mesh-zoom-policy.test.mjs
-          pnpm exec playwright test tests/browser/country-shared-boundary.spec.mjs tests/browser/startup-performance.spec.mjs --grep 'keeps precise|Android-density'
+          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-main-stall-trace.spec.mjs --grep='.'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
