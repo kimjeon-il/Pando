@@ -500,3 +500,87 @@ test('P4-5 hierarchy changes rebuild only dependent border presentation and matc
   assert.deepEqual(modified.packet,(await fresh({type:'replace',features:updated})).packet,
     'the hierarchy itself must still change the internal boundary presentation');
 });
+
+
+test('P6-3 real Worker delta reuses only acknowledged SHA geometry while matching fresh full packets', async t => {
+  const incremental = countryWorker(t, undefined, 'canonical');
+  const roots = [rectangle('ROOT', 0, 0, 4, 4),
+    rectangle('CHILD', 0, 0, 2, 4, 'ROOT'), rectangle('NEIGHBOR', 4, 0, 6, 4)];
+  const initial = await incremental({ type: 'replace', features: roots, projectGeneration: 30 });
+  assert.match(initial.baseToken, /^boundary-base-v1:/);
+  const omit = feature => {
+    const { geometry, ...metadata } = feature;
+    return metadata;
+  };
+  const hierarchy = structuredClone(roots);
+  hierarchy[0].properties.name = 'Display-only rename';
+  hierarchy[1].boundaryRootId = 'CHILD';
+  const ownership = await incremental({ type: 'delta', transportVersion: 1,
+    baseToken: initial.baseToken, features: hierarchy.map(omit), removedIds: [],
+    projectGeneration: 31 });
+  assert.equal(ownership.type, 'prepared');
+  assert.equal(ownership.transportReusedGeometryCount, 3);
+  assert.equal(ownership.preparationStats.preparationCount, initial.preparationStats.preparationCount,
+    'unchanged coordinates should not reprepare polygons');
+  const reference = countryWorker(t, undefined, 'canonical');
+  const fullHierarchy = await reference({ type: 'replace', features: hierarchy, projectGeneration: 31 });
+  assert.deepEqual(ownership.packet, fullHierarchy.packet,
+    'ownerRanges, instances, nodes, chains and border outputs must be byte-identical');
+
+  const moved = structuredClone(hierarchy);
+  moved[2].geometry.coordinates[0][1][0] += 1e-8;
+  const movedDelta = await incremental({ type: 'delta', transportVersion: 1,
+    baseToken: ownership.baseToken, features: [omit(moved[0]), omit(moved[1]), moved[2]],
+    removedIds: [], projectGeneration: 32 });
+  assert.equal(movedDelta.transportReusedGeometryCount, 2);
+  const fullMoved = await reference({ type: 'replace', features: moved, projectGeneration: 32 });
+  assert.deepEqual(movedDelta.packet, fullMoved.packet,
+    'one 1e-8-degree coordinate mutation must match a fresh all-geometry source');
+
+  const afterDeletion = moved.slice(0, 2);
+  const deleted = await incremental({ type: 'delta', transportVersion: 1,
+    baseToken: movedDelta.baseToken, features: afterDeletion.map(omit),
+    removedIds: ['NEIGHBOR'], projectGeneration: 33, includeOutlines: false });
+  assert.equal(deleted.transportReusedGeometryCount, 2);
+  assert.equal(deleted.packet.outlineOverrides.segments.length, 0);
+  const fullDeleted = await reference({ type: 'replace', features: afterDeletion,
+    projectGeneration: 33, includeOutlines: false });
+  assert.deepEqual(deleted.packet, fullDeleted.packet);
+
+  const wrong = await incremental({ type: 'delta', transportVersion: 1, baseToken: 'not-a-base',
+    features: afterDeletion.map(omit), removedIds: [], projectGeneration: 34 });
+  assert.equal(wrong.type, 'resync', 'base mismatch requests a full reload without mutating the Worker');
+  const recovered = await incremental({ type: 'delta', transportVersion: 1,
+    baseToken: deleted.baseToken, features: afterDeletion.map(omit), removedIds: [],
+    projectGeneration: 35, includeOutlines: false });
+  assert.equal(recovered.type, 'prepared');
+  assert.deepEqual(recovered.packet, fullDeleted.packet);
+
+  const restarted = countryWorker(t, undefined, 'canonical');
+  const stale = await restarted({ type: 'delta', transportVersion: 1,
+    baseToken: recovered.baseToken, features: afterDeletion.map(omit), removedIds: [],
+    projectGeneration: 36 });
+  assert.equal(stale.type, 'resync', 'a restarted Worker must not accept an earlier instance token');
+  const replacement = await restarted({ type: 'replace', features: afterDeletion, projectGeneration: 36 });
+  const fresh = countryWorker(t, undefined, 'canonical');
+  assert.deepEqual(replacement.packet,
+    (await fresh({ type: 'replace', features: afterDeletion })).packet);
+});
+
+test('P6-3 real Worker rejects malformed deletion and unknown omitted geometry without modifying base', async t => {
+  const request = countryWorker(t, undefined, 'preview');
+  const rows = [rectangle('A', 0, 0, 1, 1), rectangle('B', 1, 0, 2, 1)];
+  const initial = await request({ type: 'replace', features: rows });
+  const omitted = rows.map(({ geometry, ...metadata }) => metadata);
+  const wrongDeletion = await request({ type: 'delta', transportVersion: 1,
+    baseToken: initial.baseToken, features: omitted, removedIds: ['B'] });
+  assert.equal(wrongDeletion.type, 'resync');
+  const unknown = await request({ type: 'delta', transportVersion: 1,
+    baseToken: initial.baseToken, features: [...omitted, { id: 'C', type: 'Feature', properties: {} }],
+    removedIds: [] });
+  assert.equal(unknown.type, 'resync');
+  const valid = await request({ type: 'delta', transportVersion: 1,
+    baseToken: initial.baseToken, features: omitted, removedIds: [] });
+  assert.equal(valid.type, 'prepared');
+  assert.deepEqual(valid.packet, initial.packet);
+});
