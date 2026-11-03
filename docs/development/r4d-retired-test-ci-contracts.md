@@ -18,3 +18,9 @@ Run `node scripts/r4d-check-retired-tests.mjs --check`, `node --test tests/unit/
 The R4-D report intentionally displays the remaining active test imports that still need migration or retirement before R4-E; it does not silently discard valuable GIS coverage.
 
 Do not remove `tools/gis`, the C++/WASM calculation engine, original GIS data, date-line/hole/shared-border checks, actual GIS Worker parity, Viewer or Windows reviewer functionality.
+
+## R4-E migration inventory
+
+The R4-D audit on the preserved R4-C tree found **120 active test files containing references** to legacy editor paths and 155 such references in retired test files; this broad count includes source-inspection strings as well as imports. Treat it as a conservative migration queue, not proof that 120 shipped modules depend on the old editor. R4-E must separately classify direct imports, source inspections, and GIS/Worker parity fixtures before deleting the 103 remaining source files.
+
+The default unit runner uses batches of at most 120 spec paths to avoid exceeding Windows process command-line limits, while browser suites keep a single Playwright invocation.
