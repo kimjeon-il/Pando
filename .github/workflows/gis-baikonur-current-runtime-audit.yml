@@ -36,6 +36,25 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /assets/data/territorial-entities/generated/v2/index.json
+      - name: Hydrate original published KAB/KAZ runtime geometry without modification
+        run: node tools/library-data.mjs
+      - name: Summarize the real compressed GIS geometry input schemas
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          for(const id of ['KAB','KAZ']){
+            const path='assets/data/territorial-entities/generated/v2/state-'+id+'.json.gz';
+            const doc=JSON.parse(gunzipSync(readFileSync(path)));
+            const versions=doc.geometryVersions||doc.entity?.geometryVersions||[];
+            console.log('BAIKONUR_RUNTIME_GEOMETRY_SCHEMA='+JSON.stringify({
+              id,keys:Object.keys(doc).slice(0,20),versionCount:versions.length,
+              geometryShapes:versions.map(x=>({id:x.versionId||x.id,
+                shape:x.geometry?.type||x.data?.geometry?.type||null,
+                rings:x.geometry?.coordinates?.length||null})),
+            }));
+          }
+          JS
       - name: Read exact original KAB/KAZ version records, no geometry writes
         run: |
           node tools/gis/audit-baikonur-current-runtime.mjs             --index .baikonur-original-runtime/assets/data/territorial-entities/generated/v2/index.json             > "$RUNNER_TEMP/baikonur-kab-kaz-current-source-audit.json"
