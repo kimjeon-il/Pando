@@ -1,0 +1,106 @@
+name: P1 Hydro complete real-data verification (no publication)
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-p1-hydro-real-data.yml'
+      - 'tools/gis/verify-p1-hydro-publication.mjs'
+      - 'tools/gis/verify-p1-hydro-originals.mjs'
+      - 'tools/gis/hydro-selected-data.mjs'
+      - 'tools/gis/hydro-pack-decoder.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gis-p1-hydro-real-work-gis
+  cancel-in-progress: true
+
+jobs:
+  publication-full:
+    name: Decode and verify all published Hydro resources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Mount exact application-pinned external real data
+        uses: ./.github/actions/library-data
+      - name: Run whole Hydro actual asset validation
+        run: |
+          set -euo pipefail
+          mkdir -p p1-reports
+          node --check tools/gis/verify-p1-hydro-publication.mjs
+          node tools/gis/verify-p1-hydro-publication.mjs \
+            --directory assets/data/hydro/v0.13.4 \
+            --output p1-reports/p1-hydro-full-publication.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-hydro-full-publication
+          path: p1-reports/p1-hydro-full-publication.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  official-nine-region-originals:
+    name: Validate SHA-256 for all 36 official HydroRIVERS shapefile members
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Mount source-pinned release manifest
+        uses: ./.github/actions/library-data
+      - name: Check space and required source unpacking tool
+        run: |
+          set -euo pipefail
+          command -v unzip
+          free=$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2{print $4}')
+          test "$free" -gt 8589934592 || { echo 'Need 3 GiB for sources plus 5 GiB headroom' >&2; exit 1; }
+      - name: Download official HydroRIVERS v1 and verify archive members
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/p1-hydro-originals" p1-reports
+          for code in af ar as au eu gr na sa si; do
+            echo "::group::HydroRIVERS $code"
+            archive="$RUNNER_TEMP/p1-hydro-$code.zip"
+            destination="$RUNNER_TEMP/p1-hydro-originals/$code"
+            mkdir -p "$destination"
+            curl --proto '=https' --tlsv1.2 --fail --location --retry 3 \
+              --connect-timeout 30 --max-time 900 --max-filesize 150000000 \
+              "https://data.hydrosheds.org/file/HydroRIVERS/HydroRIVERS_v10_$code"_shp.zip \
+              --output "$archive"
+            unzip -tqq "$archive"
+            for extension in shp shx dbf prj; do
+              member="HydroRIVERS_v10_$code.$extension"
+              members=$(unzip -Z1 "$archive" | grep -E "(^|/)HydroRIVERS_v10_$code[.]$extension$" || true)
+              count=$(printf '%s\n' "$members" | grep -c . || true)
+              test "$count" -eq 1 || { echo "Missing/ambiguous source member: $member" >&2; exit 1; }
+              unzip -p "$archive" "$members" > "$destination/$member"
+              test -s "$destination/$member" || { echo "Empty $member" >&2; exit 1; }
+            done
+            rm "$archive"
+            echo "::endgroup::"
+          done
+          node tools/gis/verify-p1-hydro-originals.mjs \
+            --manifest assets/data/hydro/v0.13.4/manifest.json \
+            --originals "$RUNNER_TEMP/p1-hydro-originals" \
+            --output p1-reports/p1-hydro-originals-proof.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-hydro-official-originals-proof
+          path: p1-reports/p1-hydro-originals-proof.json
+          if-no-files-found: warn
+          retention-days: 14
