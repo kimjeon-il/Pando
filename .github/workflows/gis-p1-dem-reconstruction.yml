@@ -37,15 +37,25 @@ jobs:
           set -euo pipefail
           available=$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2{print $4}')
           if [ "$available" -lt 9663676416 ]; then echo 'Need 4 GiB working data plus 5 GiB headroom' >&2; exit 1; fi
+      - uses: mamba-org/setup-micromamba@v3
+        id: p1-dem-gdal
+        with:
+          environment-name: pando-p1-dem-gdal
+          create-args: libgdal-core=3.13.3
+          cache-environment: true
+          cache-downloads: true
+          init-shell: none
       - name: Build source-verified native GDAL, WebP, DEM encoder and gutter tools
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y -qq cmake ninja-build gdal-bin libgdal-dev
+          sudo apt-get install -y -qq cmake ninja-build
+          gdal_sdk='${{ steps.p1-dem-gdal.outputs.environment-path }}'
+          echo "LD_LIBRARY_PATH=$gdal_sdk/lib" >> "$GITHUB_ENV"
           cmake -S tools/cpp -B build-native/p1-map-image -G Ninja -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
           cmake --build build-native/p1-map-image --target pando-map-image --parallel 2
           node tools/map-image/package-native.mjs --binary build-native/p1-map-image/pando-map-image --directory build-native/p1-map-image/artifact
-          cmake -S tools/cpp/terrain-dem-raster -B build-native/p1-dem-raster -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S tools/cpp/terrain-dem-raster -B build-native/p1-dem-raster -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_PREFIX_PATH=$gdal_sdk"
           cmake --build build-native/p1-dem-raster --target pando-terrain-dem-raster --parallel 2
           node tools/gis/package-terrain-dem-raster.mjs --binary build-native/p1-dem-raster/pando-terrain-dem-raster --directory build-native/p1-dem-raster/artifact
           cmake -S tools/cpp/terrain-dem-encode -B build-native/p1-dem-encode -G Ninja -DCMAKE_BUILD_TYPE=Release
