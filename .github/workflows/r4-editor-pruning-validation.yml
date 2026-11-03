@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - work/ui
+      - integration/r4e4-e5-final-20261103
       - work/r4e3-test-fixture-retirement-20261103
       - fix/r4-editor-source-retirement-20261102
       - work/r4e3-retired-test-fixture-pruning-20261103
