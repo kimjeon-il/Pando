@@ -8,6 +8,7 @@ test('P6 stage 2: actual dated Viewer records scoped Worker phases with stable d
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => {
     globalThis.__P6_STAGE2_MESSAGES__ = [];
+    globalThis.__P6_STAGE2_DECISIONS__ = [];
     const Native = globalThis.Worker;
     globalThis.Worker = class ProfiledCountryBoundaryWorker extends Native {
       constructor(url, options) {
@@ -46,6 +47,17 @@ test('P6 stage 2: actual dated Viewer records scoped Worker phases with stable d
     };
   });
 
+  // Instrument only the test-served renderer. Normal product bundles do not
+  // install a transport diagnostic callback or add extra bytes to Worker RPC.
+  await page.route('**/modules/gpu-map-renderer.js*', async route => {
+    const response = await route.fetch();
+    const source = await response.text();
+    const marker = 'const countryBoundaryGeometryTransport = createCountryBoundaryGeometryTransport();';
+    if (source.split(marker).length !== 2) throw Error('P6 transport diagnostics port changed');
+    await route.fulfill({ response, body: source.replace(marker,
+      'const countryBoundaryGeometryTransport = createCountryBoundaryGeometryTransport({onDecision: decision => globalThis.__P6_STAGE2_DECISIONS__.push({...decision,at:performance.now()})});') });
+  });
+
   const ready = async month => {
     await expect.poll(() => page.evaluate(() => ({
       month: globalThis.__PANDOLAB_VIEWER__?.builtinMonth()?.month,
@@ -79,13 +91,19 @@ test('P6 stage 2: actual dated Viewer records scoped Worker phases with stable d
       ['1992-12', '#timelineNextYear'],
       ['1991-12', '#timelinePreviousYear'],
     ]) {
-      const before = await page.evaluate(() => globalThis.__P6_STAGE2_MESSAGES__.length);
+      const before = await page.evaluate(() => ({
+        messages: globalThis.__P6_STAGE2_MESSAGES__.length,
+        decisions: globalThis.__P6_STAGE2_DECISIONS__.length,
+      }));
       await page.locator(selector).click();
       await ready(target);
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const record = {
-        target, hash: await signature(), events: await page.evaluate(index =>
-          globalThis.__P6_STAGE2_MESSAGES__.slice(index), before),
+        target, hash: await signature(),
+        events: await page.evaluate(index =>
+          globalThis.__P6_STAGE2_MESSAGES__.slice(index), before.messages),
+        decisions: await page.evaluate(index =>
+          globalThis.__P6_STAGE2_DECISIONS__.slice(index), before.decisions),
       };
       records.push(record);
       if (target === '1991-12') expect(record.hash).toBe(hash1991);
@@ -106,7 +124,7 @@ test('P6 stage 2: actual dated Viewer records scoped Worker phases with stable d
     console.log('P6_STAGE2_HISTORY_PROFILE ' + JSON.stringify({
       source: 'Linux Playwright; not a verified discrete GPU timing',
       directions: records.map(r => ({
-        target: r.target, hash: r.hash, events: r.events.map(e => ({
+        target: r.target, hash: r.hash, decisions: r.decisions, events: r.events.map(e => ({
           ...e, stages: e.stages?.map(s => ({ ...s, ms: Number(s.ms.toFixed(3)) })),
         })),
       })), sendModes,
