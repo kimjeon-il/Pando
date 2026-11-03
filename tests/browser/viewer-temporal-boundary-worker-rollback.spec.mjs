@@ -52,7 +52,7 @@ async function settledMap(page) {
     const current=await currentMap(page);
     const stableKey=current.parts.labels.sha+':'+current.parts.paths.sha;
     const complete=ready.presented&&ready.loading==='false'
-      &&ready.reveal==='complete'&&current.ready==='true'&&current.boundaryReady;
+      &&['labels','complete'].includes(ready.reveal)&&current.ready==='true'&&current.boundaryReady;
     if(complete&&stableKey===previous) {
       if(Date.now()-stableSince>=1200)return current;
     } else {
