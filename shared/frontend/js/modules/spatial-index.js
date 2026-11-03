@@ -251,8 +251,6 @@ export function createSpatialIndex() {
     invalidateGeometryCaches(changed);
     (0, dependencies.countryCommands.bumpLandRevision)();
     dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
-    dependencies.projectState.state.boundaryPreparation?.cancel();
-    dependencies.projectState.state.boundaryPreparation = null;
     dependencies.rendering.gpuMapRenderer.applyCountryPatch(
       { ids: [...changed], features, removedIds },
       { presentation },

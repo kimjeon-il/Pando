@@ -76,7 +76,7 @@ function createPresentationFixture(productMode, editing = null) {
   const state = {
     mapMoving: false, projectReplacing: false, spacePanActive: false, tool: 'select',
     projection: 'globe', view: { globeZoom: 1, flatZoom: 1 },
-    territorySelectionSession: null, labelPlacementMode: false,
+    labelPlacementMode: false,
   };
   const presentation = createMapInputPresentation({
     editing,

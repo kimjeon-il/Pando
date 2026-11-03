@@ -1,7 +1,7 @@
 import "../shared/frontend/js/vendor/polygon-clipping.min.js";
 import './load-spherical-core.mjs';
 import "../shared/frontend/js/modules/polygon-geometry.js";
-import "../shared/frontend/js/modules/territorial-edit-plan.js";
+import {area as polygonArea} from '../shared/frontend/js/modules/map-edit-geometry.js';
 import { normalizeTemporalInterval, compareTemporal } from "../shared/frontend/js/modules/temporal.js";
 
 export const historicalWorldClipper = globalThis.polygonClipping;
@@ -21,7 +21,6 @@ function intersects(a, b) {
 export function adjustHistoricalTerritories(input, policy, clipper = historicalWorldClipper, cache=createHistoricalTerritoryCache(clipper)) {
   if (policy.schemaVersion !== 1 || policy.unknownPeerOverlap !== 'exclude-from-all' || !Array.isArray(policy.replacements)) throw new Error('Invalid historical territory policy');
   if(cache.clipper!==clipper)throw new Error('Historical territory cache belongs to another clipper');
-  const kernel = globalThis.PandoLabTerritorialEdit.createKernel(clipper);
   const wrapped = cache.wrapped;
   const coordinates = geometry => {
     if (!wrapped.has(geometry)) wrapped.set(geometry, globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(geometry, clipper));
@@ -69,7 +68,8 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   };
   const intersection = (a, b) => evaluate('intersection',[a,b],`intersection ${owner(a)} / ${owner(b)}`);
   const difference = (a, b) => evaluate('difference',[a,b],`difference ${owner(a)} / ${owner(b)}`);
-  const area=geometry=>{if(!cache.areas.has(geometry))cache.areas.set(geometry,kernel.area(geometry));return cache.areas.get(geometry);};
+  const area=geometry=>{if(!cache.areas.has(geometry))cache.areas.set(geometry,
+    polygonArea(globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(geometry,clipper)));return cache.areas.get(geometry);};
   const significant = (geometry, reference) => geometry && area(geometry) > Math.max(1e-10, area(reference) * 1e-9);
   const candidates = input.map(row => ({ ...row })).sort((a, b) => a.entityId.localeCompare(b.entityId, 'en'));
   const byId = new Map(candidates.map(row => [row.entityId, row])), changed = new Set(), adjustments = [];

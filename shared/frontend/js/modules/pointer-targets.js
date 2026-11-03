@@ -163,12 +163,10 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
 
   function mapNavigationEnabled() {
     return !dependencies.projectState.state.labelPlacementMode
-      && (dependencies.domains.editingDomain?.draftInputActive?.() || ['select', 'move', 'territorial-border', 'country-coast', 'merge-country', 'merge-generic-feature', 'new-country', 'annex-territory'].includes(dependencies.projectState.state.tool));
+      && ['select', 'move'].includes(dependencies.projectState.state.tool);
   }
 
   function activeSnapOwnerIds() {
-    if (dependencies.projectState.state.tool === 'territorial-border') return dependencies.projectState.state.boundaryEditEntityIds.map(String);
-    if (dependencies.projectState.state.coastEditCountryId) return [String(dependencies.projectState.state.coastEditCountryId)];
     if (dependencies.projectState.state.selected?.domain === 'territorial') return [String(dependencies.projectState.state.selected.id)];
     if (dependencies.projectState.state.selected?.domain === 'generic') return [String(dependencies.projectState.state.selected.id)];
     if (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)) return [String(dependencies.projectState.state.selected.id)];

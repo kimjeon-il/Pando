@@ -12,16 +12,16 @@ function fixture() {
     has: value => current.keys.includes(value.key) };
   const ui=createSelectionUiController({ selectionDomain: domain,resolveRef: normalizeObjectRef,
     presenters: { default: () => events.push('present') },
-    uiActions: { openEditor: () => events.push('open'),focusObject: () => events.push('focus'),closeChooser: () => events.push('close') } });
+    uiActions: { closeChooser: () => events.push('close') } });
   return { ui,events,reject: error => reject(error),complete() { current={ items: [ref],keys: [ref.key],primaryKey: ref.key };resolve(); },
     switchProject() { generation+=1; } };
 }
-test('selection focus and editor opening wait for the accepted selection ACK', async () => {
+test('selection presentation waits for the accepted selection ACK', async () => {
   const f=fixture(),pending=f.ui.applyIntent(ref);
   assert.deepEqual(f.events,[]);f.complete();assert.equal(await pending,true);
-  assert.deepEqual(f.events,['present','open','focus','close']);f.ui.dispose();
+  assert.deepEqual(f.events,['present','close']);f.ui.dispose();
 });
-for (const reason of ['disposed','replaced']) test(`late selection ACK after ${reason} cannot focus or open an old object`,async () => {
+for (const reason of ['disposed','replaced']) test(`late selection ACK after ${reason} cannot present an old object`,async () => {
   const f=fixture(),pending=f.ui.applyIntent(ref);
   if(reason==='disposed')f.ui.dispose();else f.switchProject();
   f.complete();assert.equal(await pending,false);assert.deepEqual(f.events,[]);f.ui.dispose();

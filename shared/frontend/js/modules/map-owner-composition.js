@@ -58,6 +58,6 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   const physicalResources=createPhysicalResources({capabilities,buildMeta});
   const gpuScene=createGpuScene({getEditPreview:editing?.getEditPreview,getPhysicalLand:()=>physicalResources.physicalLand});
   const mapHost=createMapHost({productMode,readOnly,projection});
-  const objectPicking=createObjectPicking({openEditor:!readOnly,handleEditingClick:editing?.handleMapClick,onBackgroundClear:editing?.onBackgroundClear,performanceRecorder:editing?.performanceRecorder,closeActiveOverlay});
+  const objectPicking=createObjectPicking({performanceRecorder:editing?.performanceRecorder,closeActiveOverlay});
   return Object.freeze({capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
 }

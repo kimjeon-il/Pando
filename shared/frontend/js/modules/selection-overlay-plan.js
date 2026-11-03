@@ -2,8 +2,8 @@ import { interactionChannel, mapInteractionEntries } from './interaction-roles.j
 import { resolveInteractionEntries, resolveMapStrokeStyle } from './map-interaction-style.js';
 
 /** Selection policy only: callers resolve geometry/cache entries before planning. */
-export function selectionEntries(snapshot, state, options, toolEntries = []) {
-  return resolveInteractionEntries([...mapInteractionEntries(snapshot, state, options), ...toolEntries]);
+export function selectionEntries(snapshot, options, toolEntries = []) {
+  return resolveInteractionEntries([...mapInteractionEntries(snapshot, options), ...toolEntries]);
 }
 
 /** Plan ownership from the already resolved priority/hierarchy order, without resolving geometry. */

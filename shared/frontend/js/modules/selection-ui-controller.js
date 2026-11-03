@@ -42,7 +42,7 @@ export function createSelectionUiController({
     return true;
   };
 
-  const presentSelectionState = (current, { refreshOnly = true, openEditor = false } = {}) => {
+  const presentSelectionState = (current, { refreshOnly = true } = {}) => {
     const count = current.items.length;
     if (!count) {
       uiActions.clearPresenter?.({ refreshOnly: false });
@@ -52,9 +52,8 @@ export function createSelectionUiController({
     if (count > 1) renderMultiple(current);
     else {
       const presenter = presenters.resolve?.(ref) || presenters[ref.domain] || presenters.default;
-      presenter?.(ref, { refreshOnly, openEditor });
+      presenter?.(ref, { refreshOnly });
     }
-    if (openEditor && !refreshOnly) uiActions.openEditor?.(ref);
     return ref;
   };
 
@@ -106,7 +105,6 @@ export function createSelectionUiController({
     orderedRefs = [],
     scope = 'map',
     refreshOnly = false,
-    openEditor = null,
   } = {}) => {
     if (disposed) return false;
     const ref = resolveRef(value);
@@ -121,11 +119,7 @@ export function createSelectionUiController({
     const selected = selectionDomain.has(ref);
     const current = selection();
     const clickedPrimary = selected && primary(current)?.key === ref.key;
-    const territorialTarget = ref.domain === 'territorial'
-      && ref.type === 'entity';
-    const shouldOpenEditor = clickedPrimary && (openEditor == null ? !territorialTarget || (mode === 'replace' && current.items.length === 1) : openEditor);
-    presentSelectionState(current, { refreshOnly: clickedPrimary ? refreshOnly : true, openEditor: shouldOpenEditor });
-    if (clickedPrimary && !refreshOnly && !territorialTarget) uiActions.focusObject?.(ref);
+    presentSelectionState(current, { refreshOnly: clickedPrimary ? refreshOnly : true });
     uiActions.closeChooser?.();
     return selected;
   };

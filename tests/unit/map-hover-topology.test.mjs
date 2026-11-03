@@ -161,22 +161,12 @@ test('rebinding and disposing remove the shared-map hover listeners without dupl
   assert.equal((await f.hover(f.hit)).areaPicks, 1);
 });
 
-test('shared-map mouseleave clears hover and draft movement retains one map-local dispatch', async t => {
+test('shared-map mouseleave clears hover without a stale map pick', async t => {
   const f = await fixture(t); await f.hover(f.label);
   // Browsers emit both; D3 uses mouseout to emulate leave without a native probe.
   f.dispatch(f.map, 'mouseout'); f.dispatch(f.map, 'mouseleave');
   await f.settle();
   assert.equal(f.domain.snapshot().hover, null);
-  f.draftEvents.length = 0;
-  f.state.tool = 'annex-territory';
-  f.state.territorySelectionSession = { tool: 'annex-territory', stage: 'selection', activePhase: 'drawing', activeMethod: 'line' };
-  Object.assign(f.draft, { inputPhase: 'draw', coords: [[0, 0]] });
-  await f.hover(f.label);
-  assert.equal(f.draftEvents.length, 1);
-  assert.equal(f.draftEvents[0][0], 'draft-hover-move');
-  assert.deepEqual([...f.draftEvents[0][1].screenPoint], [60, 60]);
-  f.setPanning(true); await f.hover(f.hit);
-  assert.equal(f.draftEvents.length, 1, 'panning cannot add draft points');
   assert.equal(f.domain.size(), 0);
 });
 

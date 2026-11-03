@@ -24,7 +24,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     const state=ports.projectState.state;
     return {moving:state.mapMoving,projectReplacing:state.projectReplacing===true,spacePanActive:state.spacePanActive,
       tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom,
-      territorySelectionSession:state.territorySelectionSession,labelPlacementMode:state.labelPlacementMode};
+      labelPlacementMode:state.labelPlacementMode};
   };
   const clearDraftHover = async reason => {
     if(!editing)return false;
@@ -120,16 +120,12 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
         if(input.tool==='select'&&!input.labelPlacementMode)return true;
         if(!editing)return false;
         if (input.tool === 'move') return false;
-        const territoryDraft = input.territorySelectionSession?.tool === input.tool
-          && input.territorySelectionSession.stage === 'selection'
-          && input.territorySelectionSession.activePhase === 'drawing'
-          && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
-        const draftTap = (isGenericFeatureDraftTool(input.tool) || territoryDraft) && getDraftSnapshot().inputPhase === 'draw';
+        const draftTap = isGenericFeatureDraftTool(input.tool) && getDraftSnapshot().inputPhase === 'draw';
         return input.labelPlacementMode || draftTap || input.tool === 'point'
           || input.tool === 'merge-territorial-unit' || input.tool === 'merge-generic-feature';
       },
       directTap: handleMapClick,
-      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool !== 'move' && ['select', 'territorial-border', 'country-coast', 'merge-country'].includes(getInputSnapshot().tool) && !getInputSnapshot().labelPlacementMode,
+      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
       canDrawStroke: () => {
         if(!editing)return false;
@@ -196,11 +192,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       const coord = screenToGeo(screenPoint);
       if (coord) {
         const input = getInputSnapshot();
-        const territoryDraft = input.territorySelectionSession?.tool === input.tool
-          && input.territorySelectionSession.stage === 'selection'
-          && input.territorySelectionSession.activePhase === 'drawing'
-          && ['line', 'polygon'].includes(input.territorySelectionSession.activeMethod);
-        if (editing&&(isGenericFeatureDraftTool(input.tool) || territoryDraft) && draft.inputPhase === 'draw' && draft.coords.length) {
+        if (editing && isGenericFeatureDraftTool(input.tool) && draft.inputPhase === 'draw' && draft.coords.length) {
           dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
         }
         if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape')) {

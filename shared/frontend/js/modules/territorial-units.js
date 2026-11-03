@@ -1,5 +1,4 @@
 import './polygon-geometry.js';
-import './territorial-edit-plan.js';
 import {
   normalizeTemporalInterval,
 } from './temporal.js';
@@ -117,7 +116,17 @@ export function normalizeTerritorialFeature(feature, { cloneGeometry = clone } =
   };
 }
 
-export const territorialRootId = globalThis.PandoLabTerritorialEdit.territorialRootId;
+export function territorialRootId(feature, getEntity) {
+  if (!feature) return '';
+  const core = globalThis.PandoLabSphericalCore;
+  if (typeof core?.resolveTerritorialRoot !== 'function') throw new Error('Canonical C++ territorial root validator is unavailable.');
+  const result = core.resolveTerritorialRoot(feature, getEntity);
+  if (result.status === 'regional-parent') throw new Error('독립 권역에는 부모를 지정할 수 없습니다.');
+  if (result.status === 'cycle') throw new Error(feature.id + '의 부모 관계가 순환합니다.');
+  if (result.status === 'invalid-parent') throw new Error(feature.id + '의 부모는 존재하는 일반객체여야 합니다.');
+  if (result.status !== 'valid') throw new Error('Unknown C++ territorial root result.');
+  return result.rootId;
+}
 
 export function normalizeTerritorialEntities(value, {
   getEntity = () => null,
