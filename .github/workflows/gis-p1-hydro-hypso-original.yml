@@ -1,0 +1,55 @@
+name: P1 Hydro original HYP_HR_SR source recovery (read-only)
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-p1-hydro-hypso-original.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-raster:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Retrieve Natural Earth HYP_HR_SR archival raster
+        run: |
+          set -euo pipefail
+          mkdir -p p1-proof
+          available=$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2 {print $4}')
+          test "$available" -gt 6442450944 || { echo 'Need source plus 5 GiB headroom' >&2; exit 1; }
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 \
+            --max-time 900 --max-filesize 220000000 \
+            'https://naturalearth.s3.amazonaws.com/10m_raster/HYP_HR_SR.zip' \
+            --output "$RUNNER_TEMP/HYP_HR_SR.zip"
+          unzip -tqq "$RUNNER_TEMP/HYP_HR_SR.zip"
+          member=$(unzip -Z1 "$RUNNER_TEMP/HYP_HR_SR.zip" | grep -E '(^|/)HYP_HR_SR[.]tif$' || true)
+          test "$(printf '%s\n' "$member" | grep -c .)" -eq 1 || { echo 'Expected one HYP_HR_SR.tif' >&2; exit 1; }
+          unzip -p "$RUNNER_TEMP/HYP_HR_SR.zip" "$member" > "$RUNNER_TEMP/HYP_HR_SR.tif"
+          original=$(sha256sum "$RUNNER_TEMP/HYP_HR_SR.tif" | cut -d' ' -f1)
+          bytes=$(stat -c %s "$RUNNER_TEMP/HYP_HR_SR.tif")
+          ORIGINAL_SHA="$original" ORIGINAL_BYTES="$bytes" SOURCE_MEMBER="$member" node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          const expected='7239fbf10d4b7abc3bb8233551e5e2fcf3f6ab40e8309716cb0560179256e0b2';
+          const got=process.env.ORIGINAL_SHA;
+          const proof={schema:'pando-p1-hydro-hypso-source-v1',source:'Natural Earth HYP_HR_SR.zip',
+            filename:process.env.SOURCE_MEMBER,bytes:Number(process.env.ORIGINAL_BYTES),
+            expectedSha256:expected,observedSha256:got,verified:got===expected,
+            originalNineHydroRegionsVerified:false,publishedDataModified:false};
+          writeFileSync('p1-proof/hypso-original-hash.json',JSON.stringify(proof,null,2)+'\n',{flag:'wx'});
+          console.log('P1_HYDRO_HYPSO='+JSON.stringify(proof));
+          if(!proof.verified)throw Error('Natural Earth HYP_HR_SR source differs from Hydro v0.13.4 pinned original');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-hydro-hypso-original-source-hash
+          path: p1-proof/hypso-original-hash.json
+          if-no-files-found: warn
+          retention-days: 21
