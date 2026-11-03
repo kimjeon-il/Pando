@@ -34,7 +34,12 @@ test('P6 stage 2: actual dated Viewer records scoped Worker phases with stable d
         const started = performance.now();
         // A test-only flag asks the real Worker to return bounded phase timings;
         // never modify geometry, metadata, or transfer buffers.
-        try { return super.postMessage({ ...message, profilePacket: true }, transfer); }
+        try {
+          return super.postMessage({ ...message, profilePacket: true,
+            // One fixed real transition compares all pruned contact outputs
+            // with the original full C++ output, including source references.
+            verifyContactParity: message.projectGeneration === 3 }, transfer);
+        }
         finally {
           globalThis.__P6_STAGE2_MESSAGES__.push({
             direction: 'sent', type: message.type, requestId: message.requestId,
@@ -120,6 +125,10 @@ test('P6 stage 2: actual dated Viewer records scoped Worker phases with stable d
     const received = records.flatMap(record => record.events).filter(e =>
       e.direction === 'received' && e.type === 'prepared');
     expect(received.length, 'dated boundary Worker should emit timed packets').toBeGreaterThan(0);
+    const actualParity = received.flatMap(e => e.stages || []).filter(e => e.stage === 'contact-parity-full');
+    expect(actualParity.some(e => e.matched === true),
+      'actual historical C++ source index reduction must match unpruned output').toBe(true);
+
     const sendModes = records.flatMap(r => r.events).filter(e => e.direction === 'sent');
     console.log('P6_STAGE2_HISTORY_PROFILE ' + JSON.stringify({
       source: 'Linux Playwright; not a verified discrete GPU timing',
