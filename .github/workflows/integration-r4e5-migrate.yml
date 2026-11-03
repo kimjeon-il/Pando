@@ -85,7 +85,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A -- apps/editor/frontend tests/unit scripts/contracts \
             scripts/r4e5-finalize.mjs docs/development/r4-source-pruning.json \
-            docs/development/r4e5-final-migration.json .github/workflows
+            docs/development/r4e5-final-migration.json
           git diff --cached --check
           git diff --cached --quiet && exit 0
           git commit -m 'refactor(r4-e5): complete archived editor removal and retain canonical tests'
