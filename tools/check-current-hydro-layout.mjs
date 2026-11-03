@@ -106,13 +106,17 @@ export async function auditLayout(root,{allowRetired=false}={}) {
   const manifestBuffer=readFileSync(manifestPath),manifest=JSON.parse(manifestBuffer);
   const roles=manifestRoles(manifest),packed=readFileSync(inside(dir,manifest.container.url));
   const current=listFiles(dir),declared=[relative(dir,manifestPath).replaceAll('\\','/'),manifest.container.url];
-  const nameEvidence=manifest.sources?.independentHydronymReplacements;
-  if(nameEvidence){
-    ensure(typeof nameEvidence.file==='string'&&/^[\w.-]+\.json$/.test(nameEvidence.file)
-      &&validHash(nameEvidence.sha256),'Invalid independent river-name source declaration');
-    const sourceBytes=readFileSync(inside(dir,nameEvidence.file));
-    ensure(hash(sourceBytes)===nameEvidence.sha256,'Independent river-name source SHA-256 mismatch');
-    declared.push(nameEvidence.file);
+  const receiptNames=['independentHydronymReplacements','independentHydronymFollowup',
+    'independentHydronymBulk'];
+  for(const name of receiptNames){
+    const evidence=manifest.sources?.[name];
+    if(!evidence)continue;
+    ensure(typeof evidence.file==='string'&&/^[\w.-]+\.json$/.test(evidence.file)
+      &&validHash(evidence.sha256),'Invalid independent river-name source declaration '+name);
+    ensure(!declared.includes(evidence.file),'Repeated independent source receipt '+name);
+    const sourceBytes=readFileSync(inside(dir,evidence.file));
+    ensure(hash(sourceBytes)===evidence.sha256,'Independent river-name source SHA-256 mismatch '+name);
+    declared.push(evidence.file);
   }
   declared.sort();
   ensure(JSON.stringify(current)===JSON.stringify(declared),'Current hydro package contains missing or undeclared files');
