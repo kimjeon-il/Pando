@@ -5,6 +5,9 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/stage-hydro-all-nonosm.mjs'
+      - 'shared/frontend/js/workers/hydro-tile-worker.js'
+      - 'tools/check-current-hydro-layout.mjs'
+      - 'scripts/lib/product-assets.mjs'
       - 'tools/gis/hydro-bulk-independent-remaining29.json'
       - 'tools/gis/hydro-followup-independent-name-replacements.json'
       - 'tools/gis/osm-independent-river-source-inventory.json'
@@ -123,6 +126,10 @@ jobs:
           assert.equal(full.ready,true);
           assert(ranged.requests.length>=3);
           assert.equal(full.requests.length,1);
+          const corrupted=structuredClone(manifest);
+          corrupted.sources.independentHydronymBulk.replacedSystems=28;
+          await assert.rejects(()=>verifyWorker('.',corrupted,bundle,{supportsRange:true}),
+            /통합 수계 형식 또는 버전이 올바르지 않습니다/);
           console.log('ZERO_OSM_HYDRO_WORKER_PARITY='+JSON.stringify({
             viewerWorkerReady:true,rangeRequests:ranged.requests.length,
             fullFileRequests:full.requests.length,
