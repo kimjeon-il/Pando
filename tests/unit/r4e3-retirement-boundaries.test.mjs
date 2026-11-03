@@ -38,11 +38,13 @@ test('R4-E3 removes obsolete workflows and keeps Viewer, GIS and Core acceptance
   'tests/unit/core-direct-object-writers-wasm.test.mjs',
   'tests/unit/core-gpkg-file-boundary.test.mjs',
  ])assert.equal(exists(name),true,name);
+ const staleReferences=[];
  for(const name of readdirSync(new URL('../../.github/workflows/',import.meta.url)).filter(n=>n.endsWith('.yml'))){
   const source=read('.github/workflows/'+name);
   for(const stale of [...manifest.retireTests,...manifest.additionalRetiredUnitTests])
-   assert.ok(!source.includes(stale),name+' still references '+stale);
+   if(source.includes(stale))staleReferences.push(name+' -> '+stale);
  }
+ assert.deepEqual(staleReferences,[],'Surviving CI must not reference retired editor tests');
 });
 
 test('R4-E3 retires editor-only fixture code but preserves read-only comparison oracles',()=>{
