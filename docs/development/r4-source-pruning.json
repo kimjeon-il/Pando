@@ -119,5 +119,103 @@
       "apps/editor/src-tauri"
     ],
     "note": "R4-D retires historical editor CI contracts; the 103 archived sources are deleted only in R4-E after dependency closure."
+  },
+  "r4e1GisInterop": {
+    "schema": "pandolab-r4e1-gis-interop-v1",
+    "baselineLegacyFiles": 103,
+    "canonicalGisSources": [
+      "tools/gis/country-import-identity.js",
+      "tools/gis/gis-import-plan.js",
+      "tools/gis/import-plan.js",
+      "tools/gis/gis-geometry-validator.js",
+      "tools/gis/territorial-entity-loader.js",
+      "tools/gis/gis-geometry-worker.js"
+    ],
+    "frozenTestFixtures": [
+      "tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt",
+      "tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt"
+    ],
+    "retainedOldSourcesUntilE2ToE5": true,
+    "gisDataAndWasmUnchanged": true,
+    "coverage": [
+      {
+        "old": "apps/editor/frontend/js/gis-adapters.js",
+        "status": "test-fixture",
+        "next": "tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt",
+        "note": "Classic GIS rows/columns retained only for frozen GeoPackage compatibility and old adapter tests."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/country-import-identity.js",
+        "status": "canonical",
+        "next": "tools/gis/country-import-identity.js",
+        "note": "Pure trusted country identity and mapping."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/gis-import-plan.js",
+        "status": "canonical",
+        "next": "tools/gis/gis-import-plan.js",
+        "note": "Immutable GIS import plan and stale-generation guard."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/gis-import-transaction.js",
+        "status": "defer-to-e2",
+        "next": null,
+        "note": "Legacy editor document mutation/commit; Core test assertions may migrate in E2, not a tools/gis production owner."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/import-plan.js",
+        "status": "canonical",
+        "next": "tools/gis/import-plan.js",
+        "note": "Structured import format/target mapping using canonical exchange registry."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/import-service.js",
+        "status": "partially-canonical",
+        "next": "tools/gis/gis-geometry-validator.js",
+        "note": "Actual GIS Worker RPC and timeout behavior moved; retired openImportWizard remains for E2/E3."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/library-geometry-context.js",
+        "status": "defer-to-e4",
+        "next": null,
+        "note": "Geometry editing workspace and native editor launch, not readonly Viewer data access."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/library-ownership.js",
+        "status": "defer-to-e3",
+        "next": null,
+        "note": "Old parent-choice UI and import command selection; preserve valuable hierarchy invariants in Core tests."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/native-library-repository.js",
+        "status": "defer-to-e4",
+        "next": null,
+        "note": "Obsolete native library_commit / sync editing bridge, forbidden in Windows read-only reviewer."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/territorial-entity-loader.js",
+        "status": "partially-canonical",
+        "next": "tools/gis/territorial-entity-loader.js",
+        "note": "Verified read-only catalog and repository loading moved; old native sync composition remains separately retired."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/territorial-library-service.js",
+        "status": "defer-to-e2",
+        "next": "tools/gis/territorial-library.js",
+        "note": "Reader/date semantics already owned by canonical territorial library; old editor search/service facade to be retired after tests."
+      },
+      {
+        "old": "apps/editor/frontend/js/workers/gis-geometry-worker.js",
+        "status": "canonical",
+        "next": "tools/gis/gis-geometry-worker.js",
+        "note": "Actual RPC handler now tested using GIS-only Worker entry and shared C++/WASM core."
+      },
+      {
+        "old": "apps/editor/frontend/js/workers/gis-gpkg-worker.js",
+        "status": "test-fixture",
+        "next": "tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt",
+        "note": "Frozen encoder for original GeoPackage interoperability; never shipped in Viewer/Windows reviewer."
+      }
+    ]
   }
 }
