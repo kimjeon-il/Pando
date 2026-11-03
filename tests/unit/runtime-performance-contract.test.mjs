@@ -15,6 +15,6 @@ test('startup, frame cadence and paint telemetry keep bounded diagnostic fields'
   assert.ok(metrics.includes(name),name);
 });
 test('canonical project command instrumentation does not use the retired editor persistence owner',()=>{
- assert.match(projectDomain,/PERFORMANCE_METRIC_NAMES\\.COMMAND/);
- assert.doesNotMatch(projectDomain,/apps\\/editor\\/frontend/);
+ assert.ok(projectDomain.includes('PERFORMANCE_METRIC_NAMES.COMMAND'));
+ assert.ok(!projectDomain.includes('apps/editor/frontend'));
 });
