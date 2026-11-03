@@ -24,10 +24,12 @@ test('USGS L2 offsets are mandatory, not raw DN NDWI',()=>{
  assert.equal(classifyLandsatWater(0,8200,128).valid,false);
 });
 test('scene discovery excludes non-public signed assets, winter and clouds before spectral work',()=>{
- const ok=scene('L9_STAC_OK',3),winter=scene('WINTER',0,'2025-01-10T00:00:00Z'),
-  cloud=scene('CLOUDS',65),external=scene('EXTERNAL',1);
+ const ok=scene('LC09_STAC_OK',3),winter=scene('LC08_WINTER',0,'2025-01-10T00:00:00Z'),
+  cloud=scene('LC08_CLOUDS',65),external=scene('LC08_EXTERNAL',1);
  external.assets.green.href='s3://private-bucket/green.tif';
- assert.deepEqual(usableScenes([cloud,ok,external,winter]).map(x=>x.id),['L9_STAC_OK']);
+ assert.deepEqual(usableScenes([cloud,ok,external,winter]).map(x=>x.id),['LC09_STAC_OK']);
+ assert.deepEqual(usableScenes([scene('LC09_OLD',1,'2019-08-01T00:00:00Z'),ok],
+  '2025-05-01T00:00:00Z/2025-09-30T23:59:59Z').map(x=>x.id),['LC09_STAC_OK']);
 });
 test('three prealigned GDAL UTM rasters produce honest water/valid counts',()=>{
  const pack=values=>{const raw=Buffer.alloc(values.length*2);values.forEach((v,i)=>raw.writeUInt16LE(v,i*2));
