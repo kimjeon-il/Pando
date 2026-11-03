@@ -39,8 +39,14 @@ function sourceOwner(file,repo){
  if(file.startsWith('tests/')||file.startsWith('apps/editor/tests/'))return 'test-helper';
  return 'other';
 }
-const simpleLiteral=node=>node?.type==='Literal'&&typeof node.value==='string'?node.value:
- node?.type==='TemplateLiteral'&&!node.expressions.length?node.quasis[0]?.value?.cooked:null;
+const simpleLiteral=node=>{
+ if(node?.type==='Literal'&&typeof node.value==='string')return node.value;
+ if(node?.type!=='TemplateLiteral')return null;
+ const prefix=node.quasis?.[0]?.value?.cooked||'';
+ // Only a query/hash cache buster may be dynamic. Never guess a variable file name.
+ if(node.expressions?.length&&!/\.(?:m?js|html|json)[?#]/.test(prefix))return null;
+ return prefix.split(/[?#]/)[0];
+};
 const calleeName=node=>node?.type==='Identifier'?node.name:node?.type==='MemberExpression'?node.property?.name:null;
 function resolveLiteral(file,value){
  if(typeof value!=='string')return null;
@@ -71,13 +77,15 @@ function references(file,body,known){
      if(['ImportDeclaration','ExportNamedDeclaration','ExportAllDeclaration'].includes(node.type)&&value)
        emit(value,node.type==='ImportDeclaration'?'static-import':'re-export',row);
      if(node.type==='ImportExpression'){
-       const literal=simpleLiteral(node.source);
+       const valueNode=node.source?.type==='NewExpression'&&calleeName(node.source.callee)==='URL'
+         ?node.source.arguments?.[0]:node.source;
+       const literal=simpleLiteral(valueNode);
        if(literal)emit(literal,'dynamic-import',row);
        else if(isLegacy(file)||body.includes(PREFIX))unresolved.push({file,line:row,kind:'dynamic-import-expression'});
      }
      if(node.type==='NewExpression'&&calleeName(node.callee)==='URL'){
        const literal=simpleLiteral(node.arguments?.[0]);
-       if(literal){
+       if(literal&&!ancestors.some(n=>n.type==='ImportExpression')){
          const parents=ancestors.filter(n=>n.type==='CallExpression'||n.type==='NewExpression')
            .map(n=>calleeName(n.callee));
          const kind=parents.includes('Worker')?'worker-url':
@@ -159,7 +167,7 @@ export function buildR4E0Map(root=ROOT){
    .flatMap(walk).filter(f=>!isLegacy(f)&&/\.(?:js|mjs|cjs|json|yml|yaml|html|toml|md)$/.test(f))));
  const byTarget=new Map(ledger.decisions.map(row=>[row.path,[]]));
  const graph=new Map(legacy.map(path=>[path,new Set]));
- const broad=[],parseWarnings=[],unresolved=[];
+ const broad=[],unresolved=[];
  for(const file of sorted(new Set([...legacy,...externalFiles]))){
    let body;
    try{body=text(file);}catch(e){errors.push('Unreadable reference source: '+file);continue;}

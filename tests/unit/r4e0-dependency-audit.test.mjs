@@ -54,6 +54,10 @@ test('R4-E0 dependency graph produces unique complete deletion units',()=>{
    for(const path of row.internalOutgoing)assert.ok(candidates.has(path),path);
    for(const path of row.atomicDeletionGroup)assert.ok(candidates.has(path),path);
  }
+ const composition=audit.records.find(x=>x.path==='apps/editor/frontend/js/modules/app-composition.js');
+ assert.ok(composition.internalOutgoing.includes(
+   'apps/editor/frontend/js/modules/app-runtime-dependencies.js'),
+   'versioned URL dynamic import must be resolved to its static module filename');
  for(const cycle of audit.cycles){
    assert.ok(cycle.length>1);
    for(const path of cycle)assert.deepEqual(audit.records.find(x=>x.path===path).atomicDeletionGroup,cycle);
