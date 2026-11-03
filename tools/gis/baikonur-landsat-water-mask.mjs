@@ -11,7 +11,7 @@ import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {fetchBoundedJson} from './bounded-source-json.mjs';
 import {TREATY_BANK_BOXES} from './probe-baikonur-government-hydrography.mjs';
-import {PLANETARY_COLLECTION,planetarySignQuery} from './probe-baikonur-planetary-landsat.mjs';
+import {PLANETARY_COLLECTION} from './probe-baikonur-planetary-landsat.mjs';
 import {ANCHORS,decimalDegrees} from './baikonur-official-reference.mjs';
 const ensure=(v,m)=>{if(!v)throw Error(m);};
 const sha=b=>createHash('sha256').update(b).digest('hex');
@@ -201,7 +201,7 @@ async function captureOne({bank,epoch,root,fetcher}){
   ensure(stac?.type==='FeatureCollection'&&Array.isArray(stac.features),'Invalid STAC imagery results');
   const list=usableScenes(stac.features);
   let lastFailure='no-eligible-scene';
-  for(const scene of list.slice(0,4)){
+  for(const scene of list.slice(0,2)){
     const dir=join(root,bank.treatyPointPair.join('-')+'-'+epoch.key+'-'+scene.id.replace(/[^a-zA-Z0-9_-]/g,''));
     mkdirSync(dir,{recursive:true});
     try{
@@ -238,6 +238,7 @@ async function captureOne({bank,epoch,root,fetcher}){
     }catch(error){
       lastFailure=String(error.message||error).replace(/https?:\/\/[^\s]+/g,'[private-remote-url]');
       rmSync(dir,{recursive:true,force:true});
+      if(/gdalwarp failed|Service response unavailable: 429|SAS token invalid/.test(lastFailure))break;
     }
   }
   return {treatyPointPair:bank.treatyPointPair,epoch:epoch.key,
