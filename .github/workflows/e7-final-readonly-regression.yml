@@ -1,9 +1,12 @@
 name: E7 final Web and Windows read-only regression
 on:
   push:
-    branches: [work/ui]
+    branches: [work/ui, integration/r4e4-e5-final-20261103]
     paths:
       - .github/workflows/e7-final-readonly-regression.yml
+      - apps/editor/frontend/**
+      - docs/development/r4-source-pruning.json
+      - tests/unit/**
       - scripts/contracts/application-checks.json
       - scripts/plan-application-checks.mjs
       - tests/unit/e7-application-check-planner.test.mjs
