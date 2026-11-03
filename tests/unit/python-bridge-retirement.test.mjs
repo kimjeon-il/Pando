@@ -13,7 +13,7 @@ const read = path => readFileSync(join(root, path), 'utf8');
 
 // These are static checks of owned commands, not a claim about external SDKs.
 const commandStart = /(?:^|[\n;&|])\s*(?:(?:-\s*)?run:\s*|&\s*|(?:\/usr\/bin\/)?env\s+|uv\s+run\s+|conda\s+run\s+)*(?:pythonw?(?:\d+(?:\.\d+)*)?|pyw?)(?:\.exe)?(?=\s|$)/im;
-const commandArgs = /(?<![\w.\/\\-])(?:pythonw?(?:\d+(?:\.\d+)*)?|pyw?)(?:\.exe)?(?=\s+(?:-m\b|-c\b|-3(?:\.\d+)?\b|--version\b|-[vV]\b|[^\s'"\x60]+\.pyw?(?=\s|$)))/im;
+const commandArgs = /(?<![\w./\\-])(?:pythonw?(?:\d+(?:\.\d+)*)?|pyw?)(?:\.exe)?(?=\s+(?:-m\b|-c\b|-3(?:\.\d+)?\b|--version\b|-[vV]\b|[^\s'"\x60]+\.pyw?(?=\s|$)))/im;
 const quotedPath = /(?:^|[\n;&|])\s*&?\s*['"][^'"\n]*[\\/](?:pythonw?(?:\d+(?:\.\d+)*)?|pyw?)(?:\.exe)?['"](?=\s|$)/im;
 const pipCommand = /(?:^|[\n;&|])\s*(?:(?:-\s*)?run:\s*|&\s*)?(?:uv\s+)?pip(?:\d+(?:\.\d+)*)?(?:\.exe)?(?=\s|$)/im;
 const cmakePython = /\bfind_package\s*\(\s*Python(?:3|Interp)?\b|\b(?:execute_process|add_custom_command)\s*\([^\n]{0,250}\bCOMMAND\s+(?:\S+[\\/])?(?:pythonw?(?:\d+(?:\.\d+)*)?|pyw?)(?:\.exe)?\b/i;
