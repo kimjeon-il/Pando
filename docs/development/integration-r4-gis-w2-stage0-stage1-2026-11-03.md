@@ -32,4 +32,13 @@ Since the GIS commits are already included in the baseline, the Stage 1 delivera
 - Stage 1 must not be labeled an end-to-end source reproduction or deployed-data change. Current OSM/attribution and map performance experiments are later stages.
 - GitHub connector can inspect committed remote history but cannot attest to uncommitted worktree contents. No local checkout or native execution is claimed in this audit.
 
+## Stage 1 verified run (2026-11-03)
+
+- Source commit under test: `48f9a78439def8a842157110c54ded9e02458509`.
+- [Integration CI #41580591771](https://github.com/kimjeon-il/Pando/actions/runs/41580591771): **SUCCESS** (both jobs). GIS/Python contract suite 21 passed / 0 failed; C++ `pando-core` 3 CTest passed / 0 failed; C++ `pando-gis-tools` 1 CTest passed / 0 failed. Configured source dry-run checks also succeeded.
+- [P4 GIS source #41580591816](https://github.com/kimjeon-il/Pando/actions/runs/41580591816): **SUCCESS**; the earlier [P4 run #41580466367](https://github.com/kimjeon-il/Pando/actions/runs/41580466367) reported 20 passed / 0 failed.
+- [P3 remote preview #41580591803](https://github.com/kimjeon-il/Pando/actions/runs/41580591803) **FAILED on branch naming**, `P3_UNSUPPORTED_PREVIEW_BRANCH: integration/r4-gis-w2-20261103`. This does not negate the passed GIS/C++ tests, but the P3 branch whitelist requires a separately tested integration-branch accommodation before later Web preview validation.
+- [Draft PR #19](https://github.com/kimjeon-il/Pando/pull/19) was closed **unmerged** at 2026-11-03 04:55:55 UTC and its temporary branch disappeared. The verified source commit remained reachable; the branch was subsequently restored at that exact commit. Closure/deletion cause was not established. The PR remains closed and is not evidence of a main merge.
+- This evidence note is documentation-only and does not change the tested GIS/C++ source or external library pin.
+
 Do not merge the temporary branch into `main` or deploy it without separate authorization.
