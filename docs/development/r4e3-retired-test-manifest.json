@@ -211,7 +211,8 @@
     ".github/workflows/soviet-source-row-long-cycle.yml",
     ".github/workflows/soviet-source-row-packing.yml",
     ".github/workflows/soviet-streamed-renderable-long-cycle.yml",
-    ".github/workflows/soviet-streamed-renderable-memory-ab.yml"
+    ".github/workflows/soviet-streamed-renderable-memory-ab.yml",
+    ".github/workflows/timeline-lightweight-regression.yml"
   ],
   "migrateWorkflows": [
     ".github/workflows/application-architecture.yml",
