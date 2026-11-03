@@ -106,7 +106,7 @@ export function assembleStrokeWithGroupReuse(ordered,quality,nativeAssemble,prio
       {inputSegments:ordered.length}), cache:null, reusedGroups:0,assembledGroups:groups.length};
   }
   const previous=prior?.quality===quality ? prior.groups : null;
-  const changed=[],newGroups=[];
+  const changed=[];
   for (const group of groups) {
     group.coords=snapshot(group);
     const old=group.coords && previous?.get(group.key);
