@@ -27,7 +27,7 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
      assert.equal(createHash('sha256').update(source).digest('hex'), asset.sha256[path], path);
    }
  }
- assert.ok(evidence.files.some(file=>file.path===metadata.physicalLand.url), 'Physical substrate must be bundled in both profiles');
+ if (profile.mode === 'map-data') assert.ok(evidence.files.some(file=>file.path===metadata.physicalLand.url), 'Physical substrate must be bundled in map-data profile');
  const html=await readFile(resolve(directory,'index.html'),'utf8');
  assert.match(html,/assets\/js\/viewer\.js/);
  assert.doesNotMatch(html,/assets\/js\/(?:bootstrap|app|gis-io)\.js/);

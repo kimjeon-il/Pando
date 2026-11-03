@@ -33,7 +33,8 @@ test('real WebGL strokes retain A through partial uploads and present all of B b
         viewState: { projection: 'flat', translate: [64, 64], scale: 500, dpr: 1, size: { width: 128, height: 128 }, flatCenter: [0, 0] } });
       const prepared = prepareGpuBaseScene({ frame, scene: desired, presentedStrokeDomains }, { strokeRenderer });
       const result = drawGpuBaseScene({ gl, frame, width: 128, height: 128, countriesVisible: false, terrainVisible: false,
-        countries: {}, prepared }, { strokeRenderer, renderTerrain() {}, drawHydro() {}, drawCountryBoundaryStrokes() {} });
+        surfacePresentation: { quality: 'pending' },
+        countries: {}, prepared }, { strokeRenderer, drawOceanSubstrate() {}, renderTerrain() {}, drawHydro() {}, drawCountryBoundaryStrokes() {} });
       const pixels = sign => [2, 4].map(latitude => {
         const point = frame.projectVisibleCoordinate([0, sign * latitude]);
         const pixel = new Uint8Array(4);
