@@ -40,8 +40,12 @@ const safeBlob=asset=>{
   try{const u=new URL(asset.href);return u.protocol==='https:'&&u.hostname.endsWith('.blob.core.windows.net')
     &&!u.search&&!u.hash&&/\.tif$/i.test(u.pathname);}catch{return false;}
 };
-export function usableScenes(features){
+export function usableScenes(features,window=null){
+  const [start,end]=window?window.split('/'):['0000','9999'];
   return (features||[]).filter(x=>x.collection==='landsat-c2-l2'
+    &&typeof x.id==='string'&&/^LC0[89]_/.test(x.id)
+    &&typeof x.properties?.datetime==='string'
+    &&x.properties.datetime>=start&&x.properties.datetime<=end
     &&inSummer(x)&&Number.isFinite(x.properties?.['eo:cloud_cover'])
     &&x.properties['eo:cloud_cover']<=20
     &&['green','nir08','qa_pixel'].every(k=>safeBlob(x.assets?.[k])))
@@ -210,13 +214,14 @@ export function waterPathConnected(mask,width,height,a,b){
   return false;
 }
 async function captureOne({bank,epoch,root,fetcher}){
-  const url=new URL(PLANETARY_COLLECTION);
-  url.search=new URLSearchParams({bbox:bank.bbox.map(x=>x.toFixed(7)).join(','),
-    datetime:epoch.window,limit:'100'}).toString();
-  const stac=await fetchBoundedJson(url,{fetcher,timeoutMs:30000,limit:5_000_000,
-    headers:{Accept:'application/json'}});
+  const url='https://planetarycomputer.microsoft.com/api/stac/v1/search';
+  const request={collections:['landsat-c2-l2'],bbox:bank.bbox,datetime:epoch.window,limit:100};
+  const stac=await fetchBoundedJson(url,{fetcher:(target,options)=>fetcher(target,{...options,
+    method:'POST',body:JSON.stringify(request),
+    headers:{...options.headers,'Content-Type':'application/json'}}),
+    timeoutMs:30000,limit:5_000_000,headers:{Accept:'application/geo+json,application/json'}});
   ensure(stac?.type==='FeatureCollection'&&Array.isArray(stac.features),'Invalid STAC imagery results');
-  const list=usableScenes(stac.features);
+  const list=usableScenes(stac.features,epoch.window);
   let lastFailure='no-eligible-scene';
   for(const scene of list.slice(0,2)){
     const dir=join(root,bank.treatyPointPair.join('-')+'-'+epoch.key+'-'+scene.id.replace(/[^a-zA-Z0-9_-]/g,''));
@@ -235,7 +240,7 @@ async function captureOne({bank,epoch,root,fetcher}){
         treatyPointPair:bank.treatyPointPair,epoch:epoch.key,
         sceneId:scene.id,acquiredAt:scene.properties.datetime,
         sceneCloudCoverPercent:scene.properties['eo:cloud_cover'],
-        sourceStacUrl:url,originalProvider:'US Geological Survey',
+        sourceStacUrl:url,sourceSearch:request,originalProvider:'US Geological Survey',
         rights:'US public domain; USGS credit requested',
         sensor:'Landsat Collection 2 Level 2',
         maskAlgorithm:'cloud/shadow/snow masked USGS QA_PIXEL, scaled Green/NIR NDWI>=0.13 or QA water',
@@ -259,7 +264,7 @@ async function captureOne({bank,epoch,root,fetcher}){
     }
   }
   return {treatyPointPair:bank.treatyPointPair,epoch:epoch.key,
-    sourceStacUrl:url,scenesScanned:stac.features.length,eligible:list.length,
+    sourceStacUrl:url,sourceSearch:request,scenesScanned:stac.features.length,eligible:list.length,
     errorClass:lastFailure,methodStatus:'NO_VALID_SATELLITE_CLIP_YET',
     leasePolygonsReplaced:false,noOSMDataSource:true,
   };
