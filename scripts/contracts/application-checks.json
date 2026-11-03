@@ -16,7 +16,6 @@
         "tests/browser/phone-landscape-editor.spec.mjs",
         "tests/browser/mobile-vertex-ui.spec.mjs",
         "tests/browser/mobile-native-selection.spec.mjs",
-        "tests/browser/button-consistency.spec.mjs",
         "tests/browser/radio-row-consistency.spec.mjs",
         "tests/browser/file-menu-layering.spec.mjs",
         "tests/browser/workflow-v17.spec.mjs",
@@ -37,7 +36,7 @@
       "id": "retired-editor-unit",
       "kind": "unit",
       "mode": "retired",
-      "reason": "Retired editor interaction and mutation tests, retained as historical source.",
+      "reason": "Historical graphical-editor-only tests are held outside shipped Viewer/Windows and canonical GIS regression gates; R4-E will remove their source fixtures.",
       "testPatterns": [
         "tests/unit/application-composition.test.mjs",
         "tests/unit/capability-ports-contract.test.mjs",
@@ -460,7 +459,8 @@
         "tests/browser/search-stable-surface.spec.mjs",
         "tests/browser/ui-*.spec.mjs",
         "tests/browser/workspace-surfaces.spec.mjs",
-        "tests/browser/info-*.spec.mjs"
+        "tests/browser/info-*.spec.mjs",
+        "tests/browser/button-consistency.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/css/**",

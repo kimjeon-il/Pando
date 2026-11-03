@@ -104,5 +104,20 @@
       "apps/editor/frontend/js/modules/polygon-clipping-calculation.js",
       "apps/editor/frontend/js/modules/river-territory-partition.js"
     ]
+  },
+  "r4dTestCiSeparation": {
+    "schema": "pandolab-r4d-retired-tests-ci-v1",
+    "archivedEditorSourcesRetained": 103,
+    "retiredWorkflowCount": 11,
+    "legacyTestsAreNotExecutables": true,
+    "canonicalCoverage": [
+      "tools/gis",
+      "shared/frontend/js/modules",
+      "shared/core",
+      "shared/wasm",
+      "apps/viewer",
+      "apps/editor/src-tauri"
+    ],
+    "note": "R4-D retires historical editor CI contracts; the 103 archived sources are deleted only in R4-E after dependency closure."
   }
 }

@@ -1,9 +1,14 @@
 name: R4 archived editor source references audit
 on:
   push:
-    branches: [fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4d-editor-test-ci]
     paths:
       - scripts/r4-editor-source-audit.mjs
+      - scripts/r4d-check-retired-tests.mjs
+      - scripts/contracts/application-checks.json
+      - tests/unit/**
+      - tests/browser/**
+      - .github/workflows/r4-editor-pruning-validation.yml
       - .github/workflows/r4-editor-source-audit.yml
   workflow_dispatch:
 permissions:
@@ -20,3 +25,4 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node scripts/r4-editor-source-audit.mjs
+      - run: node scripts/r4d-check-retired-tests.mjs --check

@@ -97,7 +97,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (!group) throw Error('Unregistered test: ' + file);
     const reason = retiredUnitTests.has(file)
       ? 'tests the removed graphical-editor application rather than current Viewer/Windows'
-      : retiredEditorBrowserReason(file, read(file));
+      : retiredEditorBrowserReason(file, read(file)) || (group.mode === 'retired' ? group.reason : null);
     if (reason) {
       retiredTests.set(file, reason);
       owners.set(file, { ...group, mode: 'retired', reason });

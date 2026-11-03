@@ -13,6 +13,9 @@ on:
       - tests/helpers/generic-feature-command-service.mjs
       - tests/unit/r4b-data-module-boundaries.test.mjs
       - tests/unit/r4c-spatial-boundaries.test.mjs
+      - tests/unit/r4d-legacy-ci-boundaries.test.mjs
+      - scripts/r4d-check-retired-tests.mjs
+      - scripts/run-active-tests.mjs
       - tests/unit/gis-math-contract.test.mjs
       - tests/unit/gis-geometry-worker.test.mjs
       - tests/unit/map-editing-foundation.test.mjs
@@ -57,6 +60,8 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify all registered tests after old source deletion
         run: node scripts/run-application-checks.mjs --list --base HEAD > /dev/null
+      - name: Validate R4-D retired test and CI boundaries
+        run: node scripts/r4d-check-retired-tests.mjs --check
       - name: Validate Viewer and Windows boundaries
         run: node scripts/check-runtime-boundaries.mjs
       - name: Validate territorial storage, provenance and version ownership
@@ -73,21 +78,16 @@ jobs:
           tests/unit/r4-editor-source-retirement.test.mjs
           tests/unit/r4b-data-module-boundaries.test.mjs
           tests/unit/r4c-spatial-boundaries.test.mjs
+          tests/unit/r4d-legacy-ci-boundaries.test.mjs
           tests/unit/gis-math-contract.test.mjs
           tests/unit/gis-geometry-worker.test.mjs
-          tests/unit/map-editing-foundation.test.mjs
-          tests/unit/territory-component-plan.test.mjs
-          tests/unit/import-service.test.mjs
-          tests/unit/edit-preparation.test.mjs
           tests/unit/library-shared-border-precision.test.mjs
           tests/unit/annex-slivers.test.mjs
-          tests/unit/land-relations-presentation.test.mjs
           tests/unit/river-territory-partition-serbia.test.mjs
           tests/unit/shared-geometry-calculations.test.mjs
           tests/unit/builtin-world-catalog.test.mjs
           tests/unit/period-only-world.test.mjs
           tests/unit/historical-world-timeline.test.mjs
-          tests/unit/service-core-command-owner.test.mjs
           tests/unit/versioning-source-schema.test.mjs
           apps/editor/tests/native-contract.test.mjs
           tests/unit/territorial-library.test.mjs
@@ -107,4 +107,3 @@ jobs:
           tests/unit/library-import-atomic.test.mjs
           tests/unit/territorial-source-parity.test.mjs
           tests/unit/territorial-library-service.test.mjs
-          tests/unit/territorial-library-controller.test.mjs
