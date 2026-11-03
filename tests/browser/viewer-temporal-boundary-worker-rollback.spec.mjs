@@ -36,6 +36,35 @@ async function currentMap(page) {
   });
 }
 
+// Renderer readiness can precede asynchronous SVG label hydration. Verify the
+// fully revealed initial map and a stable label snapshot before taking the
+// authoritative rollback reference; do not weaken the exact hash/pixel checks.
+async function settledMap(page) {
+  const deadline=Date.now()+30000;
+  let previous='', stableSince=0, last=null;
+  while(Date.now()<deadline) {
+    const ready=await page.evaluate(()=>{
+      const root=document.querySelector('#viewer');
+      return {presented:globalThis.__PANDOLAB_VIEWER__?.initialMapPresented()===true,
+        loading:root?.dataset.initialLoading,
+        reveal:root?.dataset.initialReveal};
+    });
+    const current=await currentMap(page);
+    const stableKey=current.parts.labels.sha+':'+current.parts.paths.sha;
+    const complete=ready.presented&&ready.loading==='false'
+      &&ready.reveal==='complete'&&current.ready==='true'&&current.boundaryReady;
+    if(complete&&stableKey===previous) {
+      if(Date.now()-stableSince>=1200)return current;
+    } else {
+      previous=complete?stableKey:'';
+      stableSince=Date.now();
+    }
+    last={ready,labels:current.parts.labels,count:current.parts.labels.count};
+    await page.waitForTimeout(200);
+  }
+  throw new Error('Viewer labels did not settle before rollback comparison: '+JSON.stringify(last));
+}
+
 test('matching boundary Worker protocol error rolls back the dated Core document and restores a certified frame',async({page},info)=>{
   test.setTimeout(240000);
   await page.clock.setFixedTime(new Date(2026,10,2,12));
@@ -129,7 +158,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
         {body:JSON.stringify({version,gpu,identity},null,2),contentType:'application/json'});
     }finally{await session.detach();}
   }
-  const before=await currentMap(page);
+  const before=await settledMap(page);
   expect(before.ready).toBe('true');
   expect(before.boundaryReady).toBe(true);
   const targetGeneration=before.generation+1;
@@ -157,7 +186,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
         result.boundaryReady && result.canonicalMeshReady &&
         !result.blocked && result.countriesPublishedGeneration===result.generation;
     },{timeout:120000}).toBe(true);
-    after=await currentMap(page);
+    after=await settledMap(page);
     expect(after.month).toBe(before.month);
     expect(after.cursor).toBe(before.cursor);
     expect(after.documentId).toBe(before.documentId);
