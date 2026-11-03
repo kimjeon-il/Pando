@@ -14,7 +14,7 @@ import {PLANETARY_COLLECTION} from './probe-baikonur-planetary-landsat.mjs';
 
 export const HISTORIC_SCENE_YEARS=Object.freeze([1994,1995,2019,2020]);
 export const HISTORIC_STAC_LIMIT=100;
-const sourceUrl=PLANETARY_COLLECTION;
+const sourceUrl='https://planetarycomputer.microsoft.com/api/stac/v1/search';
 const requireValue=(test,message)=>{if(!test)throw Error(message);};
 export function sceneYearQuery(bbox,year,{limit=HISTORIC_STAC_LIMIT}={}){
   requireValue(HISTORIC_SCENE_YEARS.includes(year),'Unreviewed treaty year requested');
@@ -23,6 +23,7 @@ export function sceneYearQuery(bbox,year,{limit=HISTORIC_STAC_LIMIT}={}){
   requireValue(Number.isInteger(limit)&&limit>=1&&limit<=100,'STAC limit out of range');
   const u=new URL(sourceUrl);
   u.search=new URLSearchParams({
+    collections:'landsat-c2-l2',
     bbox:bbox.map(n=>n.toFixed(7)).join(','),
     datetime:year+'-01-01T00:00:00Z/'+year+'-12-31T23:59:59Z',
     limit:String(limit)
@@ -32,7 +33,8 @@ export function sceneYearQuery(bbox,year,{limit=HISTORIC_STAC_LIMIT}={}){
 const pageAllowed=(url)=>{
   const u=new URL(url);
   requireValue(u.origin==='https://planetarycomputer.microsoft.com'
-    &&u.pathname.startsWith('/api/stac/v1/collections/landsat-c2-l2/'),
+    &&(u.pathname==='/api/stac/v1/search'
+      ||u.pathname.startsWith('/api/stac/v1/collections/landsat-c2-l2/')),
     'Cross-domain or untrusted STAC next-page URL');
   return u.href;
 };
