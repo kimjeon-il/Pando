@@ -125,7 +125,7 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'shared/frontend/js/modules/map-input-presentation.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
-    'tests/unit/r4c-spatial-boundaries.test.mjs'
+    'scripts/r4d-check-retired-tests.mjs'
   ]);
   const inputMatches=(selector,path)=>typeof selector==='string'
     ?selector.endsWith('/')?path.startsWith(selector):path===selector
