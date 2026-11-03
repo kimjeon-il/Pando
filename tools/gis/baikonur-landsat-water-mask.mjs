@@ -121,16 +121,19 @@ function warpSigned(asset,dir,filename,bbox,{fetcher}){
       /^bytes 0-1023\//.test(sample.headers.get('content-range')||'');
     await sample.body?.cancel();
     ensure(rangeSupported,'SAS Blob byte-range reading failed: HTTP '+sample.status);
-    const dest=join(dir,filename+'.bin'),u='/vsicurl/'+signedUrl;
+    const dest=join(dir,filename+'.bin'),warpOutput=join(dir,filename+'.tif');
+    const u='/vsicurl/'+signedUrl;
     run('gdalwarp',[
-      '-of','ENVI','-ot','UInt16','-r','near',
+      '-of','GTiff','-ot','UInt16','-r','near',
       '-overwrite','-t_srs','EPSG:32641','-te_srs','EPSG:4326',
       '-te',...bbox.map(x=>String(x)),'-tr','30','30',
-      '-srcnodata','0','-dstnodata','0','-co','INTERLEAVE=BSQ',
-      u,dest
+      '-srcnodata','0','-dstnodata','0',
+      u,warpOutput
     ],{env:{GDAL_DISABLE_READDIR_ON_OPEN:'EMPTY_DIR',
       GDAL_HTTP_TIMEOUT:'45',GDAL_HTTP_MAX_RETRY:'2',GDAL_HTTP_RETRY_DELAY:'2'},
       timeoutMs:210000});
+    run('gdal_translate',['-of','ENVI','-ot','UInt16','-co','INTERLEAVE=BSQ',
+      warpOutput,dest],{timeoutMs:40000});
     const info=JSON.parse(run('gdalinfo',['-json',dest],{timeoutMs:20000}));
     ensure(info.size?.length===2&&info.size[0]>0&&info.size[1]>0
       &&info.size[0]*info.size[1]<3000000&&Array.isArray(info.geoTransform),
