@@ -5,7 +5,7 @@
  */
 import {createHash} from 'node:crypto';
 import {existsSync,readFileSync,writeFileSync,mkdirSync,copyFileSync} from 'node:fs';
-import {dirname,resolve,join} from 'node:path';
+import {resolve,join} from 'node:path';
 import {parseArgs} from 'node:util';
 import {fileURLToPath} from 'node:url';
 import {auditHydroOsm} from './audit-osm-credit-removal.mjs';
@@ -81,9 +81,8 @@ export function planHydroLibraryPublication({pinnedIndex,currentIndex,manifest,p
     check(r.file===name&&r.sha256===digest(bytesByName[name]),
       'Hydro source receipt SHA mismatch: '+kind);
   }
-  check(pinnedIndex.files[SRC+'/manifest.json'].sha256===
-    digest(bytesByName['manifest.json'])===false?false:true,
-  'Invalid pinned Hydro metadata identity'); // Guard rechecked below against the original.
+  check(pinnedIndex.files[SRC+'/manifest.json'].stored===SRC+'/manifest.json',
+    'The pinned original Hydro manifest must be directly preserved');
   const records=Object.fromEntries(FILES.map(name=>{
     const file=DST+'/'+name,bytes=bytesByName[name];
     return [file,{stored:file,encoding:'identity',sha256:digest(bytes),bytes:bytes.length}];
