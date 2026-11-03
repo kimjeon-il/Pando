@@ -30,6 +30,42 @@ let queued = null;
 let draining = false;
 let latestSequence = 0;
 let latestMessage = null;
+let verifiedBase = null;
+let nextBaseVersion = 0;
+
+// A delta may only hydrate coordinates from a successfully transferred,
+// authoritative Worker snapshot. Superseded jobs are never usable bases.
+function resolveDelta(message) {
+  if (!verifiedBase || message.transportVersion !== 1
+    || message.baseToken !== verifiedBase.token || !Array.isArray(message.features)
+    || !Array.isArray(message.removedIds)) return null;
+  const seen = new Set(), reusedDigests = new Map(), rows = [];
+  for (const feature of message.features) {
+    if (!feature || feature.id == null) return null;
+    const id = String(feature.id);
+    if (!id || seen.has(id)) return null;
+    seen.add(id);
+    if (Object.hasOwn(feature, 'geometry')) {
+      rows.push(feature);
+    } else {
+      const previous = verifiedBase.byId.get(id);
+      if (!previous) return null;
+      reusedDigests.set(rows.length, previous.boundaryGeometryRevision);
+      rows.push({ ...feature, geometry: previous.geometry });
+    }
+  }
+  const removed = new Set(message.removedIds.map(String));
+  if (removed.size !== message.removedIds.length
+    || [...removed].some(id => seen.has(id) || !verifiedBase.byId.has(id))
+    || [...verifiedBase.byId.keys()].some(id => (!seen.has(id)) !== removed.has(id)))
+    return null;
+  return { rows, reusedDigests };
+}
+function postResync(message) {
+  self.postMessage({ type: 'resync', requestId: message.requestId,
+    projectGeneration: message.projectGeneration, geometryRevision: message.geometryRevision,
+    quality: message.quality, message: 'Unverified country boundary delta base' });
+}
 
 // Only the last exact geometry/hierarchy/quality packet is reusable. The
 // authoritative feature store remains the only owner of topology mutations.
@@ -68,7 +104,8 @@ const yieldToMessages = () => new Promise(resolve => setTimeout(resolve, 0));
 const isLatest = message => message.sequence === latestSequence;
 
 function combine(previous, next) {
-  if (!previous || next.type === 'replace' || previous.projectGeneration !== next.projectGeneration) return next;
+  if (!previous || next.type === 'replace' || next.type === 'delta' || previous.type === 'delta'
+    || previous.projectGeneration !== next.projectGeneration) return next;
   const features = new Map((previous.features || []).map(feature => [String(feature.id), feature]));
   const removed = new Set((previous.removedIds || []).map(String));
   for (const value of next.removedIds || []) {
@@ -106,18 +143,22 @@ async function prepareMessage(message) {
       { changedCountryGeometryIds }, { polygonGeometryDigest }] = await modules;
     if (deferUnapplied(message)) return;
     if (!boundaryState) boundaryState = createCountrySharedBoundaryState();
-    // Every replace still carries the entire authoritative country snapshot.
-    // A new Core project may rematerialize identical coordinates as new JS
-    // objects, so identity/version-only keys cause needless full topology work.
-    // Exact SHA-256 over the actual geometry, not a short display checksum,
-    // allows the existing prepared store to reuse only truly identical edges.
-    // Hash in this Worker, never on the input/UI thread. The full snapshot
-    // also makes late/superseded requests safe without patch-base guesses.
+    // Full/patch inputs are verified in this Worker as before. A delta
+    // reuses only SHA-256 digests and coordinates from the last acknowledged
+    // base; new or changed coordinates are always hashed here.
+    const hydrated = message.type === 'delta' ? resolveDelta(message) : null;
+    if (message.type === 'delta' && !hydrated) {
+      if (isLatest(message)) postResync(message);
+      return;
+    }
+    const source = hydrated?.rows || (message.features || []);
     const features = [];
-    for (const [index, feature] of (message.features || []).entries()) {
+    for (const [index, feature] of source.entries()) {
       if (deferUnapplied(message)) return;
-      const digest = feature.geometry == null
-        ? 'empty' : await polygonGeometryDigest(feature.geometry);
+      const cachedRevision = hydrated?.reusedDigests.get(index);
+      const digest = cachedRevision
+        ? cachedRevision.slice('sha256:'.length)
+        : feature.geometry == null ? 'empty' : await polygonGeometryDigest(feature.geometry);
       features.push({ ...feature,
         boundaryRootId: feature.boundaryRootId || (!feature.properties?.parentId ? String(feature.id) : ''),
         boundaryGeometryRevision: `sha256:${digest}` });
@@ -148,6 +189,10 @@ async function prepareMessage(message) {
       changed = boundaryState.replace(features, cached ? { cachedSegments: cached.segments,
         changedIds: message.skipCacheReconcile ? new Set() : changedCountryGeometryIds(features, cached.signatures) } : {});
       if (cached === pendingCache) pendingCache = null;
+    } else if (message.type === 'delta') {
+      // The complete current metadata/ID list is authoritative. The existing
+      // prepared topology is still incrementally updated from changed digests.
+      changed = boundaryState.replace(features);
     } else if (message.type === 'patch') {
       changed = boundaryState.patch(features, message.removedIds || []);
     } else return;
@@ -180,12 +225,19 @@ async function prepareMessage(message) {
     const packetPreparationMs = performance.now() - packetPreparationStarted;
     await yieldToMessages();
     if (!isLatest(message)) return;
+    const baseToken = `boundary-base-v1:${++nextBaseVersion}`;
     self.postMessage({ type: 'prepared', requestId: message.requestId,
       projectGeneration: message.projectGeneration, geometryRevision: message.geometryRevision,
       quality: message.quality, preparationStats: boundaryState.stats(),
-      packetCacheHit, packetPreparationMs,
+      packetCacheHit, packetPreparationMs, baseToken,
+      transportReusedGeometryCount: hydrated?.reusedDigests.size || 0,
       packetCacheResidentEstimate: retainedPacket?.residentBytes || 0, packet },
       transferBuffers(packet));
+    // Commit only after postMessage succeeds. In-flight/cancelled computations
+    // may have altered topology, but never become the next transport base.
+    const baseFeatures = message.type === 'patch' ? preparedFeatures : features;
+    verifiedBase = { token: baseToken, projectGeneration: message.projectGeneration,
+      byId: new Map(baseFeatures.map(feature => [String(feature.id), feature])) };
   } catch (error) {
     if (!applied && deferUnapplied(message)) return;
     if (isLatest(message)) postError(message, error);
@@ -204,7 +256,7 @@ async function drain() {
 }
 
 self.onmessage = ({ data }) => {
-  if (!data || !['replace', 'patch'].includes(data.type)) return;
+  if (!data || !['replace', 'patch', 'delta'].includes(data.type)) return;
   latestMessage = { ...data, sequence: ++latestSequence };
   queued = combine(queued, latestMessage);
   if (!draining) drain().catch(error => postError(latestMessage, error));
