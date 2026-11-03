@@ -53,8 +53,16 @@ function run(command,args,{input=null,env={},timeoutMs=180000}={}){
   const result=spawnSync(command,args,{input,env:{...process.env,...env},encoding:'utf8',
     maxBuffer:4_000_000,timeout:timeoutMs});
   // Don't ever log signed Azure URLs via stdout/stderr/arguments.
-  if(result.error||result.status!==0)throw Error(command+' failed, code='+
-    String(result.status)+' errorClass='+String(result.error?.code||'none'));
+  if(result.error||result.status!==0){
+    const cleaned=String(result.stderr||'').split(/\r?\n/)
+      .filter(line=>/ERROR|WARNING|Failed|unable|cannot|unsupported|Invalid|HTTP|TIFF|COG/i.test(line))
+      .slice(0,5).map(line=>line
+        .replace(/https?:\/\/\S+/g,'[REDACTED_REMOTE_ASSET_URL]')
+        .replace(/(?:sig|sv|se|sp|st)=\S+/gi,'[REDACTED_SAS_PARAMETER]'))
+      .join(' | ').slice(0,440);
+    throw Error(command+' failed, code='+String(result.status)
+      +' errorClass='+String(result.error?.code||'none')+' diagnostic='+cleaned);
+  }
   return result.stdout;
 }
 function utm(lon,lat){
@@ -71,15 +79,35 @@ function positionFor(point,info){
     'Unexpected 30-meter satellite analysis grid');
   return {anchor:point,x:(x-west)/dx,y:(y-north)/dy,projected:[x,y]};
 }
+const tokenPromises=new Map();
+async function reusableSasForAsset(asset,{fetcher}){
+  const uri=new URL(asset.href);
+  ensure(uri.protocol==='https:'&&uri.hostname.endsWith('.blob.core.windows.net')
+    &&!uri.search,'Unsigned https Azure USGS asset required');
+  const account=uri.hostname.slice(0,-'.blob.core.windows.net'.length);
+  const container=uri.pathname.split('/')[1];
+  ensure(/^[a-z0-9]+$/.test(account)&&/^[a-z0-9-]+$/.test(container),
+    'Invalid Planetary Computer storage scope');
+  const key=account+'/'+container;
+  if(!tokenPromises.has(key)){
+    const url='https://planetarycomputer.microsoft.com/api/sas/v1/token/'+key;
+    tokenPromises.set(key,fetchBoundedJson(url,{fetcher,timeoutMs:16000,limit:12000,
+      headers:{Accept:'application/json'}}).then(record=>{
+      ensure(typeof record?.token==='string'&&record.token.includes('sig=')&&record.token.includes('se='),
+        'Planetary Computer collection SAS token invalid');
+      return record.token.replace(/^\?/,'');
+    }));
+  }
+  const token=await tokenPromises.get(key);
+  return asset.href+'?'+token;
+}
 function warpSigned(asset,dir,filename,bbox,{fetcher}){
   const href=asset.href;
-  return fetchBoundedJson(planetarySignQuery(href),{
-    fetcher,timeoutMs:16000,limit:10000,headers:{Accept:'application/json'},
-  }).then(signed=>{
-    ensure(typeof signed?.href==='string'&&signed.href.startsWith(href+'?')
-      &&new URL(signed.href).hostname===new URL(href).hostname,
+  return reusableSasForAsset(asset,{fetcher}).then(signedUrl=>{
+    ensure(signedUrl.startsWith(href+'?')
+      &&new URL(signedUrl).hostname===new URL(href).hostname,
       'Public Landsat SAS was not scoped to selected asset');
-    const dest=join(dir,filename+'.bin'),u='/vsicurl/'+signed.href;
+    const dest=join(dir,filename+'.bin'),u='/vsicurl/'+signedUrl;
     run('gdalwarp',[
       '-q','-of','ENVI','-ot','UInt16','-r','near',
       '-overwrite','-t_srs','EPSG:32641','-te_srs','EPSG:4326',
@@ -87,7 +115,6 @@ function warpSigned(asset,dir,filename,bbox,{fetcher}){
       '-srcnodata','0','-dstnodata','0','-co','INTERLEAVE=BSQ',
       u,dest
     ],{env:{GDAL_DISABLE_READDIR_ON_OPEN:'EMPTY_DIR',
-      CPL_VSIL_CURL_ALLOWED_EXTENSIONS:'.TIF,.tif',
       GDAL_HTTP_TIMEOUT:'45',GDAL_HTTP_MAX_RETRY:'2',GDAL_HTTP_RETRY_DELAY:'2'},
       timeoutMs:210000});
     const info=JSON.parse(run('gdalinfo',['-json',dest],{timeoutMs:20000}));
@@ -247,11 +274,14 @@ export async function main(argv=process.argv.slice(2)){
     bankSections:records,
   };
   writeFileSync(join(root,'manifest.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});
+  const complete=records.filter(x=>x.sceneId).length;
   console.log('BAIKONUR_LANDSAT_WATER_REPORT='+JSON.stringify({
-    sections:records.length,clippedScenes:records.filter(x=>x.sceneId).length,
+    sections:records.length,clippedScenes:complete,
     bothTreatyAnchorsConnected:records.filter(x=>x.connectsBothTreatyAnchors).length,
     publicDomain:true,productionModified:false,
   }));
+  // No CI success for an empty or partially clipped source study.
+  if(complete!==4)process.exitCode=2;
   return report;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
