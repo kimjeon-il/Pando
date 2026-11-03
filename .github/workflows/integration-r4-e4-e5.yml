@@ -10,6 +10,8 @@ on:
       - 'scripts/**'
       - 'docs/development/r4-source-pruning.json'
       - 'docs/development/r4e0-source-dispositions.json'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
