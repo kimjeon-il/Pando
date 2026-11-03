@@ -5,6 +5,8 @@ on:
     paths:
       - scripts/r4-editor-source-audit.mjs
       - scripts/r4e3-retirement-inventory.mjs
+      - docs/development/r4e3-retired-test-manifest.json
+      - tests/unit/r4e3-retirement-boundaries.test.mjs
       - scripts/r4e0-dependency-audit.mjs
       - docs/development/r4e0-source-dispositions.json
       - tests/unit/r4e0-dependency-audit.test.mjs
@@ -39,7 +41,7 @@ jobs:
       - run: node scripts/r4-editor-source-audit.mjs
       - run: node scripts/r4d-check-retired-tests.mjs --check
       - name: Inventory retired editor tests and fixtures
-        run: node scripts/r4e3-retirement-inventory.mjs --summary --output test-results/r4e3-inventory.json
+        run: node scripts/r4e3-retirement-inventory.mjs --check --summary --output test-results/r4e3-inventory.json
       - name: Upload E3 retirement inventory
         if: always()
         uses: actions/upload-artifact@v4
