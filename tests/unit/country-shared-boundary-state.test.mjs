@@ -593,7 +593,10 @@ test('P6 stage-2 opt-in phase profile measures real Worker preparation without c
   const measured = await request({ type: 'replace', features: rows, profilePacket: true });
   assert.equal(measured.type, 'prepared');
   const stages = measured.packetProfile.map(row => row.stage);
-  for (const stage of ['digest', 'state-update', 'packet-identity', 'state-segments',
+  for (const stage of ['digest', 'state-update', 'prepare-store-replace',
+    'contact-remove', 'contact-neighbor-search', 'contact-encode',
+    'contact-native-bridge', 'contact-decode', 'contact-merge',
+    'packet-identity', 'state-segments',
     'hierarchy-internal', 'hierarchy-classification', 'outline-index',
     'outline-scan-including-wasm', 'contact-stroke-sort', 'contact-stroke-wasm-bridge',
     'contact-stroke-gpu-instances', 'outline-stroke-sort', 'outline-stroke-wasm-bridge',
