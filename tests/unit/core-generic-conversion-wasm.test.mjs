@@ -87,7 +87,7 @@ test('two-point generic conversion commits both labels, automatic settings and r
     return result.changed;
   };
   const capture=() => observe(owner.documentModel.snapshot(),owner.client.state(),owner.project),actual=[capture()];
-  assert.equal(await commands.convertSelectedGenericFeature({ target: 'label' }),true);actual.push(capture());
+  assert.equal(await convert(),true);actual.push(capture());
   assert.equal(await owner.project.undo(),true);actual.push(capture());assert.equal(owner.project.canUndo(),false,'The whole conversion has one history boundary.');
   assert.equal(await owner.project.redo(),true);actual.push(capture());assert.deepEqual(actual,expected);
   const saved=await owner.client.exportSnapshot({ format: 'pandolab-project-state',version: seed.version,savedAt: seed.savedAt });
