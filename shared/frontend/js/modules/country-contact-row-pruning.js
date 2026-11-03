@@ -10,7 +10,7 @@ const safeBounds = bounds => Array.isArray(bounds) && bounds.length===4 &&
 
 export function selectCountryContactRows(features,activePairs) {
   const selections=features.map(()=>new Set()), full=new Set();
-  let queries=0, fallbackPairs=0;
+  let queries=0, fallbackPairs=0, emptyPairs=0;
   for(const [leftIndex,rightIndex] of activePairs) {
     const left=features[leftIndex],right=features[rightIndex];
     if(full.has(leftIndex)&&full.has(rightIndex))continue;
@@ -24,10 +24,17 @@ export function selectCountryContactRows(features,activePairs) {
       fromRight=right.spatialIndex.query(padBoundaryBounds(left.bounds));
       queries+=2;
     }
-    // On any ambiguous or empty broad-phase query, fall back to the entire
-    // original features, letting the authoritative C++ kernel decide.
-    if(!fromLeft?.length || !fromRight?.length) {
+    // Missing/invalid query metadata is not proof of disjoint geometry.
+    // An empty *verified spatial query*, in contrast, proves that no source
+    // edge in this pair can intersect the other's entire geographic bounds.
+    // Keep other pairs in the same batch independent rather than making one
+    // distant candidate force both countries' full coastlines into native.
+    if(!Array.isArray(fromLeft) || !Array.isArray(fromRight)) {
       full.add(leftIndex);full.add(rightIndex);fallbackPairs++;
+      continue;
+    }
+    if(!fromLeft.length || !fromRight.length) {
+      emptyPairs++;
       continue;
     }
     if(!full.has(leftIndex))for(const row of fromLeft)selections[leftIndex].add(row);
@@ -39,6 +46,6 @@ export function selectCountryContactRows(features,activePairs) {
     sourceEdges:features.reduce((n,f)=>n+f.segments.length,0),
     selectedEdges:selected.reduce((n,rows)=>n+rows.length,0),
     featureCount:features.length,candidatePairs:activePairs.length,
-    spatialQueries:queries,fallbackPairs,
+    spatialQueries:queries,fallbackPairs,emptyPairs,
   }};
 }
