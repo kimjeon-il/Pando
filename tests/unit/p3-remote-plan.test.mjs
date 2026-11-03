@@ -30,7 +30,8 @@ test('manual modes and branch slugs reject unexpected strings',()=>{
   assert.equal(previewSlug('work/places'),'work-places');
   assert.equal(previewSlug('work/integration-objects-20261017'),'work-integration-objects-20261017');
   assert.equal(previewSlug('work/feature-123'),'work-feature-123');
-  for (const invalid of ['../../main','main','work/','work/UPPER','work/../escape','work/nested/branch','work/.hidden'])
+  assert.equal(previewSlug('integration/r4-gis-w2-20261103'),'integration-r4-gis-w2-20261103');
+  for (const invalid of ['../../main','main','work/','work/UPPER','work/../escape','work/nested/branch','work/.hidden','integration/../main','integration/UPPER','integration/nested/branch'])
     assert.throws(()=>previewSlug(invalid),/P3_UNSUPPORTED_PREVIEW_BRANCH/);
 });
 async function fixture(t){const f=await pagesRepositoryFixture(t);return {...f,output:f.stage};}
