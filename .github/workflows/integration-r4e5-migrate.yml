@@ -62,6 +62,19 @@ jobs:
             tests/unit/r4e1-gis-interop-boundaries.test.mjs \
             tests/unit/r4e2-core-gis-boundaries.test.mjs \
             tests/unit/r4e3-retired-editor-closure.test.mjs
+      - name: Normalize generated files without modifying unselected sources
+        run: |
+          node --input-type=module <<'NODE'
+          import {execFileSync} from 'node:child_process';
+          import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+          const changed=execFileSync('git',['diff','--name-only','--diff-filter=AM','-z']);
+          for(const file of changed.toString('utf8').split('\\0').filter(Boolean)){
+            if(!/\\.(?:mjs|js|ya?ml|json)$/.test(file)||!existsSync(file))continue;
+            const old=readFileSync(file,'utf8');
+            const clean=old.replace(/[ \\t]+$/gm,'').replace(/\\n{3,}$/,'\\n');
+            if(clean!==old)writeFileSync(file,clean);
+          }
+          NODE
       - name: Commit only the migration to the isolated branch
         shell: bash
         run: |
