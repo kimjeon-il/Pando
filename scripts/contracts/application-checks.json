@@ -1445,8 +1445,8 @@
   },
   "manualScopes": {
     "map-rendering": [
-      "tests/browser/country-map-substrate.spec.mjs",
-      "tests/browser/interaction-unification.spec.mjs"
+      "tests/browser/viewer-review-e4.spec.mjs",
+      "tests/browser/viewer-boundary-p4-5.spec.mjs"
     ]
   },
   "externalChecks": [

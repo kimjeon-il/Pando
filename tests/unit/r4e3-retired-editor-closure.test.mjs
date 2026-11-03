@@ -23,7 +23,7 @@ test('R4-E3 preserves actual C++/WASM, GIS, GeoPackage and Viewer acceptance ora
  for(const file of ['tests/unit/territorial-entity-store.test.mjs','tests/unit/river-territory-partition-serbia.test.mjs',
   'tests/unit/land-relations-presentation.test.mjs','tests/unit/map-hover-topology.test.mjs',
   'tests/browser/viewer-review-e4.spec.mjs','tests/browser/windows-review-e5.spec.mjs',
-  'tests/browser/country-map-substrate.spec.mjs'.replace('country-map-substrate','viewer-display-regression')])
+  'tests/browser/viewer-boundary-p4-5.spec.mjs'])
   assert.equal(exists(file),true,file);
  assert.equal(exists('apps/editor/frontend/js/modules/editing-domain.js'),true,
   'R4-E3 must not start the 103-file application source removal planned for E4');
