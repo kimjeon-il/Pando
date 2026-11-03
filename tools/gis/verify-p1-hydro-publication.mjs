@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {gunzipSync} from 'node:zlib';
 import {loadCompleteHydroFeatures} from './hydro-selected-data.mjs';
-import {hydroGeometryCoordinates,verifyHydroKoreaCoverage,verifyHydroManifestPolicy,verifyHydroRiverGroups} from './hydro-pack-decoder.mjs';
+import {hydroGeometryCoordinates,verifyHydroCoreDelivery,verifyHydroKoreaCoverage,verifyHydroManifestPolicy,verifyHydroRiverGroups} from './hydro-pack-decoder.mjs';
 import {HYDRO_DATA_VERSION} from '../../shared/frontend/js/modules/physical-layer-service.js';
 
 const codes=['af','ar','as','au','eu','gr','na','sa','si'];
@@ -64,6 +64,8 @@ export async function verifyPublishedHydro({directory}={}){
   assert.equal(container.sha256,manifest.container.sha256,'Hydro container SHA differs');
   assert.equal(container.bytes,manifest.container.bytes,'Hydro container byte count differs');
   assert.equal(sha(core),manifest.metadata.core.sha256,'Compressed Hydro core SHA differs');
+  const coreDelivery=await verifyHydroCoreDelivery({data:core,sha256:manifest.metadata.core.sha256,
+    featureCount:manifest.metadata.featureCount},{directory:process.env.PANDO_HYDRO_ENCODING_DIRECTORY});
   const raw=gunzipSync(core,{maxOutputLength:64*1024*1024}).toString('utf8'),coreJson=JSON.parse(raw);
   assert.equal(JSON.stringify(coreJson),raw,'Hydro core JSON not canonical');
   assert.equal(coreJson.version,5);
@@ -91,7 +93,7 @@ export async function verifyPublishedHydro({directory}={}){
     manifestBytes,features:features.length,logicalFeatures:logicalCount,packs:packCount,coordinates:vertices,
     sourceRegions:codes,sourceMemberReceipts:36,riverFeatures:rivers.length,riverSystems:riverAudit.systems,
     lakeGeometry:lakeAudit,korea:koreanCoverage,borderTaggedFeatures:borderTagged.length,
-    delivery,allPublishedResourceRangesAndHashesChecked:true,allPublishedGeometryDecoded:true,
+    delivery,coreDelivery,allPublishedResourceRangesAndHashesChecked:true,allPublishedGeometryDecoded:true,
     rawHydroRiversMembersCompared:false,originalNaturalEarthLakesCompared:false,
     originalCountryBorderGeometriesCompared:false,wholeOriginalGeneratorReproduced:false,
   };

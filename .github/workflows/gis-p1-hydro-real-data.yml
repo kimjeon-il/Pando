@@ -23,7 +23,7 @@ jobs:
   publication-full:
     name: Decode and verify all published Hydro resources
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,7 +35,17 @@ jobs:
         run: node --test tests/unit/p1-hydro-source-receipts.test.mjs
       - name: Mount exact application-pinned external real data
         uses: ./.github/actions/library-data
+      - name: Build source-verified C++ Hydro encoding contract
+        run: |
+          set -euo pipefail
+          cmake -S tools/cpp/hydro-encoding -B build-native/p1-hydro-encoding -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/p1-hydro-encoding --target pando-hydro-encoding --parallel 2
+          node tools/gis/package-hydro-encoding.mjs \
+            --binary build-native/p1-hydro-encoding/pando-hydro-encoding \
+            --directory build-native/p1-hydro-encoding/artifact
       - name: Run whole Hydro actual asset validation
+        env:
+          PANDO_HYDRO_ENCODING_DIRECTORY: build-native/p1-hydro-encoding/artifact
         run: |
           set -euo pipefail
           mkdir -p p1-reports
