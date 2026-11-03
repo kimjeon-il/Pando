@@ -44,9 +44,11 @@ const expectedRetired=[
 ];
 for(const test of expectedRetired)if(exists(test)&&repo.owners.get(test)?.mode!=='retired')
   fail('Historical editor-only regression remains active: '+test);
+// R4-E2: land-relations-presentation is now a current Core/GIS fixture,
+// not an archived editor presentation test.
 const oldTestNames=[
  'edit-preview-handoff.test.mjs','map-editing-foundation.test.mjs',
- 'edit-preparation.test.mjs','land-relations-presentation.test.mjs',
+ 'edit-preparation.test.mjs',
  'territorial-library-controller.test.mjs'
 ];
 for(const file of ['.github/workflows/r4-editor-pruning-validation.yml',
