@@ -718,7 +718,14 @@ onmessage = async event => {
     try {
       manifest = message.manifest;
       if (manifest.container) {
-        if (manifest.version !== '0.13.2' ||
+        const isDeployedHydro = manifest.version === '0.13.2';
+        const isStagedNonOsmHydro = manifest.version === '0.13.4'
+          && manifest.stats?.osmWaterwayMatchCount === 0
+          && manifest.sources?.osmWaterways?.matchedSystems === 0
+          && manifest.sources?.independentHydronymReplacements?.replacedSystems === 42
+          && manifest.sources?.independentHydronymFollowup?.replacedSystems === 2
+          && manifest.sources?.independentHydronymBulk?.replacedSystems === 29;
+        if (!(isDeployedHydro || isStagedNonOsmHydro) ||
             manifest.container.url !== 'hydro.bin' ||
             manifest.container.format !== 'byte-concatenated-subresources-v1')
           throw new Error('통합 수계 형식 또는 버전이 올바르지 않습니다.');

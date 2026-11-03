@@ -52,8 +52,8 @@ export function verifyCandidate(profile,lock,{expectedHead=null}={}){
     'assets/js/gis-io.js','assets/js/vendor/gdal/gdal3WebAssembly.wasm',
     'assets/js/vendor/gdal/gdal3WebAssembly.data',
     'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
-    'assets/data/hydro/v0.13.2/manifest.json',
-    'assets/data/hydro/v0.13.2/hydro.bin',
+    'assets/data/hydro/v0.13.4/manifest.json',
+    'assets/data/hydro/v0.13.4/hydro.bin',
     'assets/data/territorial-entities/generated/v2/index.json']){
     if(!actual.has(path))errors.push('Protected runtime asset missing: '+path);
   }

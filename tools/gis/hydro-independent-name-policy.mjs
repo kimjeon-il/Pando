@@ -91,6 +91,22 @@ export function validateIndependentHydronyms(document) {
       coverageBetween(government.within1kmGovernmentToHydro, 0.85, 1, true) &&
       coverageBetween(government.p90DistanceKm, 0, 0.75, true);
 
+    // Preserve government-atlas geographic branch names even where the statutory
+    // combined river has a different administrative name. A branch is not a tributary.
+    const branch = item.officialNationalAtlasBranchReview;
+    const branchValid = isObject(branch) &&
+      branch.method === 'government-national-atlas-independent-branch' &&
+      branch.status === 'geographic-branch-name-not-statutory-river-name' &&
+      item.previousNameKo === name &&
+      geom?.name === branch.independentVectorName &&
+      coverageBetween(rate, 0.78, 0.85, true) &&
+      branch.authority === 'National Geographic Information Institute (Korea)' &&
+      text(branch.siblingBranchName) && text(branch.downstreamNamedRiver) &&
+      text(branch.confluencePlace) && branch.downstreamNamedRiver !== geom.name &&
+      coverageBetween(branch.downstreamNameSampleCoverage, 0.25, 0.5, true) &&
+      atLeast(branch.boundedMainstemSampleCount, 81) &&
+      text(branch.reason) && branch.reason.length >= 100;
+
     const border = item.crossBorderNameReview;
     const borderValid = isObject(border) &&
       border.method === 'bulgarian-greek-institutional-mainstem-confirmation' &&
@@ -99,7 +115,7 @@ export function validateIndependentHydronyms(document) {
       text(border.reason) && border.reason.length >= 160;
 
     ensure([neValid, stationValid, conservativeValid, basinValid, renameValid, partialValid,
-      govValid, borderValid].some(Boolean), 'Missing independent mainstem evidence for system ' + id);
+      govValid, borderValid, branchValid].some(Boolean), 'Missing independent mainstem evidence for system ' + id);
 
     const references = item.independentSources;
     ensure(Array.isArray(references) && references.length >= 2,
@@ -132,10 +148,14 @@ export function validateIndependentHydronyms(document) {
     if (borderValid) ensure(includes(kinds, 'public-domain-vector', 'government-hydrology',
       'government-crossborder-hydrology', 'international-crossborder-programme'),
     'Two adjacent governments and separate regional source required for ' + id);
+    if (branchValid) ensure(includes(kinds, 'public-domain-vector', 'national-atlas-government')
+      && references.some(ref => ref.kind === 'national-atlas-government'
+        && new URL(ref.url).hostname === 'nationalatlas.ngii.go.kr'),
+      'Government national atlas reference and public domain trace required for ' + id);
     ensure(vector || gauges || govValid,
       'Independent geodata and named hydrology evidence required for ' + id);
     ensure([neValid, gauges, conservativeValid, basinValid, renameValid, partialValid,
-      govValid, borderValid].some(Boolean), 'Missing verified mainstem corroboration for ' + id);
+      govValid, borderValid, branchValid].some(Boolean), 'Missing verified mainstem corroboration for ' + id);
     verified[id] = item;
   }
   return verified;
@@ -173,6 +193,17 @@ export function verifyNaturalEarthEvidence(review,evidence){
     }
     if(entry.partialExistingNameReview){
       ensure(candidates[0].name===match.name&&close(competing,entry.partialExistingNameReview.strongestOtherNENameCoverage,.001)&&competing<=.05&&match.meanDistanceDegrees<=.025,'Partial competing candidate mismatch: '+id);
+    }
+    if(entry.officialNationalAtlasBranchReview) {
+      const branch=entry.officialNationalAtlasBranchReview;
+      const downstream=candidates.find(row=>row.name===branch.downstreamNamedRiver);
+      ensure(candidates[0].name===match.name
+        &&close(match.sampleCoverage,entry.naturalEarth.sampleCoverage,.001)
+        &&match.meanDistanceDegrees<.03
+        &&downstream&&close(downstream.sampleCoverage,branch.downstreamNameSampleCoverage,.001)
+        &&downstream.meanDistanceDegrees<.04
+        &&candidates[0].supportingSamples>=65,
+      'National atlas branch/independent downstream naming geometry mismatch: '+id);
     }
     const confluence=entry.basinConfluenceReview||entry.independentBasinRename;
     if(confluence){

@@ -88,9 +88,9 @@ export async function worldFixture(t) {
     terrain.tiles[tile] = { sha256: (await pinned(path, bytes)).sha256, bytes: bytes.length };
   }
   await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json', JSON.stringify(terrain));
-  const hydroBin = await pinned('assets/data/hydro/v0.13.2/hydro.bin', Buffer.from('HYDRO'));
-  await put('assets/data/hydro/v0.13.2/manifest.json', JSON.stringify({
-    version: '0.13.2', schema: 'pandolab-water-shards-v5',shards:[],
+  const hydroBin = await pinned('assets/data/hydro/v0.13.4/hydro.bin', Buffer.from('HYDRO'));
+  await put('assets/data/hydro/v0.13.4/manifest.json', JSON.stringify({
+    version: '0.13.4', schema: 'pandolab-water-shards-v5',shards:[],
     container: { url: 'hydro.bin', sha256: hydroBin.sha256, bytes: hydroBin.compressedBytes },
     stats: { compressedBytes: hydroBin.compressedBytes },
   }));

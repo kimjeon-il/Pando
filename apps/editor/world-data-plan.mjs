@@ -83,15 +83,23 @@ export function buildFullWorldAssetPlan({ meta, world, historical, library, prep
   // Physical resources are packaged, not eagerly decoded. The unchanged
   // Web loaders schedule tile and shard reads according to map visibility.
   const worldFileCount = files.size;
-  if (hydro?.version !== '0.13.2' || hydro.schema !== 'pandolab-water-shards-v5'
+  if (hydro?.version !== '0.13.4' || hydro.schema !== 'pandolab-water-shards-v5'
       || hydro.container?.url !== 'hydro.bin'
       || hydro.container?.bytes !== hydro.stats?.compressedBytes) {
     throw new Error('Local hydro packfile contract is invalid.');
   }
-  add('assets/data/hydro/v0.13.2/manifest.json');
-  add('assets/data/hydro/v0.13.2/hydro.bin', {
+  add('assets/data/hydro/v0.13.4/manifest.json');
+  add('assets/data/hydro/v0.13.4/hydro.bin', {
     sha256: hydro.container.sha256, compressedBytes: hydro.container.bytes,
   });
+  for(const kind of ['independentHydronymReplacements','independentHydronymFollowup',
+    'independentHydronymBulk']){
+    const receipt=hydro.sources?.[kind];
+    if(!receipt)continue;
+    if(typeof receipt.file!=='string'||!/^[\w.-]+\.json$/.test(receipt.file)
+        ||!HEX.test(receipt.sha256||''))throw new Error('Invalid Hydro provenance receipt');
+    add('assets/data/hydro/v0.13.4/'+receipt.file);
+  }
   if (places?.version !== 1 || !places.revision
       || places.shards?.['places-v1']?.url !== 'places-v1.bin'
       || Object.keys(places.shards).length !== 1) {
@@ -124,7 +132,7 @@ export async function loadFullWorldAssetPlan(readText){
       historical: await loadManifest('assets/data/builtin-world/generated/v1/index.json'),
       library: await loadManifest('assets/data/territorial-entities/generated/v2/index.json'),
       prepared: await loadManifest('assets/data/prepared-polygons/generated/v2/manifest.json'),
-      hydro: await loadManifest('assets/data/hydro/v0.13.2/manifest.json'),
+      hydro: await loadManifest('assets/data/hydro/v0.13.4/manifest.json'),
       places: await loadManifest('assets/data/places/manifest.json'),
     });
     return {plan,meta};

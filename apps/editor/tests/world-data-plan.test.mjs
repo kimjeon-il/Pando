@@ -40,7 +40,7 @@ function fixture() {
     ].map(path => [path, { sha256: SHA, bytes: 3 }])),
   };
   const hydro = {
-    version: '0.13.2', schema: 'pandolab-water-shards-v5',
+    version: '0.13.4', schema: 'pandolab-water-shards-v5',
     container: { url: 'hydro.bin', sha256: SHA, bytes: 3 },
     stats: { compressedBytes: 3 },
   };
@@ -66,7 +66,7 @@ test('map-data manifest closure includes active historical and prepared geometry
   assert.ok(paths.includes('assets/data/builtin-world/generated/v1/countries/state-ABC-sha256-'+SHA+'.json.gz'));
   assert.equal(paths.some(path => path.includes('builtin-world/generated/v1/transport/')), false);
   assert.ok(paths.includes('assets/data/territorial-entities/generated/v2/state-ABC.json.gz'));
-  assert.ok(paths.includes('assets/data/hydro/v0.13.2/hydro.bin'));
+  assert.ok(paths.includes('assets/data/hydro/v0.13.4/hydro.bin'));
   assert.equal(paths.some(path=>path.includes('terrain')),false);
   assert.ok(paths.includes('assets/data/places/places-v1.bin'));
   assert.equal(paths.filter(path => /terrain-preview|hydro|places/.test(path)).length, 4);
