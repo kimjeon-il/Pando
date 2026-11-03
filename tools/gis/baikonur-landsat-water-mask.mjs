@@ -40,12 +40,34 @@ const safeBlob=asset=>{
   try{const u=new URL(asset.href);return u.protocol==='https:'&&u.hostname.endsWith('.blob.core.windows.net')
     &&!u.search&&!u.hash&&/\.tif$/i.test(u.pathname);}catch{return false;}
 };
-export function usableScenes(features,window=null){
+export function sceneCoversBbox(scene,bbox){
+ if(!Array.isArray(bbox)||bbox.length!==4||!bbox.every(Number.isFinite))return false;
+ const geom=scene?.geometry;
+ if(!geom||!['Polygon','MultiPolygon'].includes(geom.type))return false;
+ const polys=geom.type==='Polygon'?[geom.coordinates]:geom.coordinates;
+ const pointInside=(point,ring)=>{
+   let inside=false;
+   for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+     const a=ring[i],b=ring[j];
+     if(!Array.isArray(a)||!Array.isArray(b))return false;
+     if((a[1]>point[1])!==(b[1]>point[1]) &&
+       point[0]<(b[0]-a[0])*(point[1]-a[1])/(b[1]-a[1])+a[0])
+       inside=!inside;
+   }
+   return inside;
+ };
+ const [w,s,e,n]=bbox;
+ const samples=[[w,s],[w,n],[e,s],[e,n],[(w+e)/2,(s+n)/2]];
+ return samples.every(pt=>polys.some(poly=>Array.isArray(poly)&&poly.length
+   &&pointInside(pt,poly[0])&&!poly.slice(1).some(ring=>pointInside(pt,ring))));
+}
+export function usableScenes(features,window=null,bbox=null){
   const [start,end]=window?window.split('/'):['0000','9999'];
   return (features||[]).filter(x=>x.collection==='landsat-c2-l2'
     &&typeof x.id==='string'&&/^LC0[89]_/.test(x.id)
     &&typeof x.properties?.datetime==='string'
     &&x.properties.datetime>=start&&x.properties.datetime<=end
+    &&(bbox===null||sceneCoversBbox(x,bbox))
     &&inSummer(x)&&Number.isFinite(x.properties?.['eo:cloud_cover'])
     &&x.properties['eo:cloud_cover']<=20
     &&['green','nir08','qa_pixel'].every(k=>safeBlob(x.assets?.[k])))
@@ -221,7 +243,7 @@ async function captureOne({bank,epoch,root,fetcher}){
     headers:{...options.headers,'Content-Type':'application/json'}}),
     timeoutMs:30000,limit:5_000_000,headers:{Accept:'application/geo+json,application/json'}});
   ensure(stac?.type==='FeatureCollection'&&Array.isArray(stac.features),'Invalid STAC imagery results');
-  const list=usableScenes(stac.features,epoch.window);
+  const list=usableScenes(stac.features,epoch.window,bank.bbox);
   let lastFailure='no-eligible-scene';
   for(const scene of list.slice(0,2)){
     const dir=join(root,bank.treatyPointPair.join('-')+'-'+epoch.key+'-'+scene.id.replace(/[^a-zA-Z0-9_-]/g,''));
@@ -230,6 +252,8 @@ async function captureOne({bank,epoch,root,fetcher}){
       const [g,n,q]=await Promise.all(['green','nir08','qa_pixel'].map((band)=>
         warpSigned(scene.assets[band],dir,band,bank.bbox,{fetcher})));
       const state=calculateWaterMask(g,n,q);
+      ensure(state.validCoverage>=.65,
+        'Selected Landsat scene has insufficient valid bank coverage: '+state.validCoverage.toFixed(4));
       const [from,to]=bank.treatyPointPair;
       const evaluation=analyzeBankMask(state,from,to);
       const key=bank.treatyPointPair.join('-')+'-'+epoch.key;
