@@ -7,6 +7,7 @@ on:
       - '.github/workflows/gis-p1-hydro-real-data.yml'
       - 'tools/gis/verify-p1-hydro-publication.mjs'
       - 'tools/gis/verify-p1-hydro-originals.mjs'
+      - 'tests/unit/p1-hydro-source-receipts.test.mjs'
       - 'tools/gis/hydro-selected-data.mjs'
       - 'tools/gis/hydro-pack-decoder.mjs'
   workflow_dispatch:
@@ -30,6 +31,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Check nine-region source SHA refusal contracts
+        run: node --test tests/unit/p1-hydro-source-receipts.test.mjs
       - name: Mount exact application-pinned external real data
         uses: ./.github/actions/library-data
       - name: Run whole Hydro actual asset validation
