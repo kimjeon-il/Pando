@@ -52,7 +52,7 @@ async function build(mode){
     'P6-3 built snapshot source/data mismatch');
   const {assets}=await developmentAssets({repository:sourceRoot,product:'viewer',prepared,snapshot});
   for(const [name,asset]of snapshot.assets)if(snapshot.viewerPaths.has(name))assets.set(name,{bytes:asset.bytes});
-  return {assets,sourceSha256:snapshot.sourceSha256,codeSha256:snapshot.workerAssets['assets/js/workers/country-shared-boundary-worker.js']?.sha256||{}};
+  return {assets,sourceSha256:snapshot.sourceSha256,codeSha256:snapshot.buildMeta?.workerAssets?.['assets/js/workers/country-shared-boundary-worker.js']?.sha256||{}};
 }
 const builds={A:await build('A'),B:await build('B')};
 let active=builds.A.assets;
