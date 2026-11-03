@@ -52,7 +52,7 @@ test('R4-E0 diagnoses retired tests separately from genuinely shipped runtime im
  assert.deepEqual(shipping,[],
    'R4-E0 requires the shipped Viewer/Windows frontend to remain independent of archived editor modules');
  assert.ok(audit.summary.referencedFiles>0);
- assert.ok(audit.summary.retiredReferences>0);
+ assert.equal(audit.summary.retiredReferences,0);
 });
 
 test('R4-E0 dependency graph produces unique complete deletion units',()=>{

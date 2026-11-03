@@ -1,7 +1,7 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [work/ui, work/r4e2-core-gis-test-fixtures-20261103, fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4e3-test-fixture-retirement-20261103, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
@@ -20,6 +20,9 @@ on:
       - tests/unit/r4e0-dependency-audit.test.mjs
       - tests/unit/r4e1-gis-interop-boundaries.test.mjs
       - tests/unit/r4e2-core-gis-boundaries.test.mjs
+      - tests/unit/r4e3-retirement-boundaries.test.mjs
+      - docs/development/r4e3-retired-test-manifest.json
+      - scripts/r4e3-retirement-inventory.mjs
       - tests/helpers/core-gis-compat/**
       - tests/helpers/core-command-services/**
       - tests/helpers/gis-core-fixture.mjs
@@ -82,6 +85,8 @@ jobs:
         run: node scripts/run-application-checks.mjs --list --base HEAD > /dev/null
       - name: Validate R4-D retired test and CI boundaries
         run: node scripts/r4d-check-retired-tests.mjs --check
+      - name: Validate R4-E3 retired editor test inventory
+        run: node scripts/r4e3-retirement-inventory.mjs --check --summary
       - name: Validate R4-E0 per-file dependency closure
         run: node scripts/r4e0-dependency-audit.mjs --check --output test-results/r4e0-dependency-map.json
       - name: Validate Viewer and Windows boundaries
@@ -104,6 +109,7 @@ jobs:
           tests/unit/r4e0-dependency-audit.test.mjs
           tests/unit/r4e1-gis-interop-boundaries.test.mjs
           tests/unit/r4e2-core-gis-boundaries.test.mjs
+          tests/unit/r4e3-retirement-boundaries.test.mjs
           tests/unit/territorial-service.test.mjs
           tests/unit/distribution-service.test.mjs
           tests/unit/core-territorial-service-wasm.test.mjs

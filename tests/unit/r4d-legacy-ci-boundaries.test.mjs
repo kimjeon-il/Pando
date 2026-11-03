@@ -25,7 +25,7 @@ test('R4-D executable audit preserves real GIS contracts and retires obsolete CI
  assert.equal(result.ok,true);
  assert.equal(result.remainingLegacySourceCount,103);
  assert.equal(result.removedWorkflowCount,11);
- assert.ok(result.retiredTestCount>0);
+ assert.equal(result.retiredTestCount,0);
 });
 test('R4-D does not mistake archive staging for application production',()=>{
  const pkg=JSON.parse(readFileSync(new URL('../../package.json',import.meta.url),'utf8'));

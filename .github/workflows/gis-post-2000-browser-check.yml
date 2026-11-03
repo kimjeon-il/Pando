@@ -5,7 +5,7 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/gis-post-2000-browser-check.yml'
-      - 'tests/browser/post-2000-world-timeline.spec.mjs'
+      - 'tests/browser/temporal-map-presentation.spec.mjs'
       - 'config/library-data.json'
   workflow_dispatch:
 
@@ -45,7 +45,7 @@ jobs:
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify year-specific new world in the actual editor
-        run: pnpm exec playwright test tests/browser/post-2000-world-timeline.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve actual rendered evidence
         if: always()
         uses: actions/upload-artifact@v4

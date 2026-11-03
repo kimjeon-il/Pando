@@ -123,28 +123,12 @@ function expressionValue(expression, context) {
 const templateValue = (template, context) => template.replace(/\$\{\{\s*([\s\S]*?)\s*\}\}/g,
   (_, expression) => String(expressionValue(expression, context)));
 
-test('manual capture jobs preserve bounded execution and immutable evidence without exact titles or historical SHA assertions', () => {
-  for (const id of MANUAL_SCOPES.filter(scope => scope.startsWith('boundary-'))) {
-    const job = workflow.jobs[id];
-    assert.equal(job.needs, 'changes');
-    assert.equal(job.strategy, undefined);
-    assert.equal(job['continue-on-error'], undefined);
-    const runs = job.steps.filter(step => step.run);
-    assert.equal(runs.filter(step => /playwright\s+test|node scripts\/run-boundary-/.test(step.run)).length, 1, id);
-    assert.ok(!runs.some(step => /pnpm check:|pnpm test:/.test(step.run)), id);
-    for (const artifact of job.steps.filter(step => step.uses?.startsWith('actions/upload-artifact@'))) {
-      assert.equal(artifact.if, 'always()');
-      assert.ok(artifact.with.path);
-    }
-  }
-  const capture = workflow.jobs['boundary-native-capture'].steps.find(step => /playwright\s+test/.test(step.run || ''));
-  assert.equal(capture.env.PANDOLAB_BOUNDARY_NATIVE_TRACE, '1');
-  assert.equal(capture.env.PANDOLAB_BOUNDARY_CAPTURE_SCREENSHOTS, 'false');
-  for (const option of ['--workers=1', '--retries=0', '--repeat-each=1']) assert.ok(capture.run.includes(option));
-  const checkouts = workflow.jobs['boundary-revision-comparison'].steps.filter(step => step.uses?.startsWith('actions/checkout@'));
-  assert.equal(checkouts.length, 2);
-  assert.equal(new Set(checkouts.map(step => step.with.path)).size, 2);
-  assert.equal(checkouts.filter(step => /^[0-9a-f]{40}$/.test(step.with.ref || '')).length, 1);
+test('R4-E3 manual application scopes offer Viewer checks without removed edit-only capture jobs',()=>{
+ assert.deepEqual(MANUAL_SCOPES,['default','map-rendering']);
+ assert.equal(workflow.jobs['boundary-capture-comparison'],undefined);
+ assert.equal(workflow.jobs['boundary-native-capture'],undefined);
+ assert.equal(workflow.jobs['boundary-revision-comparison'],undefined);
+ for(const path of catalog.manualScopes['map-rendering'])assert.ok(path.startsWith('tests/browser/viewer-'));
 });
 
 test('concurrency follows the current PR/ref while manual diagnostics and reruns remain independent', () => {
