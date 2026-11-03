@@ -55,3 +55,28 @@ jobs:
           path: test-results/r4e4-e5-dependency-map.json
           if-no-files-found: warn
           retention-days: 14
+
+  source-snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Export the immutable tracked source subset for migration (no runtime data)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=tar --prefix=Pando/ HEAD \
+            apps/editor apps/viewer tests/unit tests/helpers tests/browser \
+            scripts shared/frontend/js tools/gis docs/development \
+            .github/workflows .github/actions config package.json eslint.config.js \
+            | gzip -1 > "$RUNNER_TEMP/r4-source.tar.gz"
+          test -s "$RUNNER_TEMP/r4-source.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r4-e4-e5-source-snapshot-${{ github.sha }}
+          path: ${{ runner.temp }}/r4-source.tar.gz
+          if-no-files-found: error
+          retention-days: 2
