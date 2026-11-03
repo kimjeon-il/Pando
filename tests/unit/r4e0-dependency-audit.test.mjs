@@ -30,7 +30,7 @@ test('R4-E5 has no surviving editor runtime or source-level import cycle',()=>{
 test('R4-E5 retains detached canonical GIS, Core and GeoPackage evidence',()=>{
  for(const path of source.invariants)assert.equal(existsSync(new URL('../../'+path,import.meta.url)),true,path);
  const harness=readFileSync(new URL('./helpers/gis-worker-harness.mjs',import.meta.url),'utf8');
- assert.match(harness,/tools\\/gis\\/gis-geometry-worker\\.js/);
+ assert.ok(harness.includes('tools/gis/gis-geometry-worker.js'));
  const producer=readFileSync(new URL('../helpers/production-geopackage.mjs',import.meta.url),'utf8');
- assert.match(producer,/fixtures\\/geopackage\\/compat/);
+ assert.ok(producer.includes('fixtures/geopackage/compat'));
 });

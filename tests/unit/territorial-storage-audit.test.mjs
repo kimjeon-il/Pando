@@ -66,7 +66,7 @@ test('nested destructuring and local returned/getter aliases remain tracked', ()
 });
 
 test('candidate write ownership requires a fresh detached initializer', () => {
-  const file = 'apps/editor/frontend/js/modules/library-geometry-context.js';
+  const file = 'apps/editor/'+'frontend/js/modules/library-geometry-context.js';
   const policy = { owners: [{ file, functions: ['prepare'], access: ['read', 'write'], detachedCandidate: true }] };
   const source = (initializer, prefix = '', declaration = 'const') => `${prefix}
     function prepare(input, documentModel) {

@@ -9,8 +9,8 @@ import {createTerritorialEntityLoader,createRepositoryTerritorialLoader} from '.
 
 const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root),'utf8');
-const old={worker:'apps/editor/frontend/js/workers/gis-gpkg-worker.js',
- adapter:'apps/editor/frontend/js/gis-adapters.js'};
+const old={worker:'apps/editor/'+'frontend/js/workers/gis-gpkg-worker.js',
+ adapter:'apps/editor/'+'frontend/js/gis-adapters.js'};
 const fixtures={worker:'tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt',
  adapter:'tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt'};
 

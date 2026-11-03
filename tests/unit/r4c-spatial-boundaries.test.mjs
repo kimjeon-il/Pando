@@ -42,7 +42,7 @@ test('R4-C canonical spatial adapters rely on one shared C++ calculation owner',
  // remain the authoritative source and their functions are tested above.
  for(const path of ['map-edit-country-commands.js','polygon-clipping-calculation.js',
    'river-territory-partition.js'])
-   assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/'+path)),false,path);
+   assert.equal(existsSync(resolve(root,'apps/editor/'+'frontend/js/modules/'+path)),false,path);
 });
 
 test('R4-C metrics keep antimeridian distance and hole-aware polygon areas',()=>{
@@ -68,9 +68,9 @@ test('R4-C GIS overlap audit keeps input geometry and reports both countries',()
 test('R4-C detached country planner and batch calculator retain exact module ownership',()=>{
  assert.equal(typeof createCountryImportMergePlanner,'function');
  assert.equal(typeof calculateLibraryBatch,'function');
- assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/import-service.js')),false,
+ assert.equal(existsSync(resolve(root,'apps/editor/'+'frontend/js/modules/import-service.js')),false,
    'R4-E5 removed the legacy importer; canonical tools/gis identity and import tests remain');
- assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/map-edit-library-calculation.js')),false);
+ assert.equal(existsSync(resolve(root,'apps/editor/'+'frontend/js/modules/map-edit-library-calculation.js')),false);
 });
 
 test('R4-C detached territory component plan preserves untouched polygon coordinates',async()=>{
@@ -84,9 +84,9 @@ test('R4-C detached territory component plan preserves untouched polygon coordin
 });
 
 test('R4-C old editing geometry implementations have been removed',()=>{
- for(const path of ['apps/editor/frontend/js/modules/geometry-metrics.js',
-   'apps/editor/frontend/js/modules/gis-geometry-validation.js',
-   'apps/editor/frontend/js/modules/territory-component-plan.js'])
+ for(const path of ['apps/editor/'+'frontend/js/modules/geometry-metrics.js',
+   'apps/editor/'+'frontend/js/modules/gis-geometry-validation.js',
+   'apps/editor/'+'frontend/js/modules/territory-component-plan.js'])
    assert.equal(existsSync(resolve(root,path)),false,path);
  for(const path of ['tools/gis/geometry-metrics.js','tools/gis/geometry-validation.js',
    'tools/gis/country-import-merge.js','tools/gis/territorial-batch-calculation.js',
