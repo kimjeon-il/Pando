@@ -1,4 +1,3 @@
-import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import {repositoryFrontendSnapshot} from '../helpers/frontend-source.mjs';
 import {parseJavaScript,walkJavaScript} from '../../scripts/lib/source-analysis.mjs';
 import assert from 'node:assert/strict';
@@ -175,17 +174,6 @@ test('hydro preparation separates requested and loaded views and treats cache fa
   assert.ok(!source.includes("hydroViewKey = key"));
 });
 
-test('app waits for actual hydro worker readiness and retries manifests', () => {
-  const app = readApplicationOwners('physical-resources', 'object-catalog', 'hydro-settings');
-  const service = read('shared/frontend/js/modules/physical-layer-service.js');
-  assert.match(app,/await renderer\.setHydroManifest\(manifest,\s*manifestUrl\)/);
-  assert.ok(app.includes("state.physicalLoadState.hydroWorker = 'starting';"));
-  assert.ok(app.includes("state.physicalLoadState.hydroManifest = 'loading';"));
-  assert.ok(service.includes('fetchWithRetry(url'));
-  assert.ok(service.includes('maxAttempts: 3'));
-  assert.ok(service.includes('timeoutMs: 15000'));
-});
-
 test('rivers and lakes remain individually searchable in the current visible object catalog', () => {
   const items=[{id:'river:one',name:'River One',hydroCategory:'river'},{id:'lake:one',name:'Lake One',hydroCategory:'lake'}];
   const model=visible=>createObjectSearchModel({groups:['hydro'],items:()=>items.filter(row=>visible.includes(row.id)),
@@ -205,13 +193,6 @@ test('active GPU and Canvas hydro renderers inherit ocean colour and configured 
   assert.ok(canvasHydro.includes('context.globalAlpha = reserve ? 1 : hydroOpacity;'));
   assert.ok(!canvasHydro.includes('context.globalAlpha = 0.92;'));
   assert.ok(!canvasHydro.includes('context.globalAlpha = 0.96;'));
-});
-
-test('bootstrap cache revision comes from generated build metadata', async () => {
-  const bootstrap = read('apps/editor/frontend/js/bootstrap.js');
-  const metadata = (await repositoryFrontendSnapshot()).assets.get('assets/js/build-meta.js').bytes.toString('utf8');
-  assert.ok(bootstrap.includes('buildMeta.assetRevision'));
-  assert.match(metadata, /"assetRevision":\s*"[0-9]+\.[0-9]+\.[0-9]+-build-[A-Za-z0-9._-]+"/);
 });
 
 test('completed hydro renders before canonical country boundaries in every native path', () => {

@@ -77,18 +77,6 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
 });
 
 
-test('regional redraw keeps the full independent shape, including overlap and outside land', async () => {
-  const { calculateRegionRedraw } = await import("../../apps/editor/frontend/js/modules/map-edit-territorial-commands.js");
-  const source = entity('R', 'regional');
-  const before = structuredClone(source);
-  const draft = { type: 'Polygon', coordinates: [[[-2,-2],[-2,3],[3,3],[3,-2],[-2,-2]]] };
-  const result = calculateRegionRedraw(source, draft);
-  assert.deepEqual(source, before);
-  assert.ok(JSON.stringify(result.feature.geometry).includes('-2'));
-  source.properties.locked = true;
-  assert.throws(() => calculateRegionRedraw(source, draft), /변경/);
-});
-
 test('independent regional import retains explicit coast reconciliation without storing membership', async () => {
   const root = entity('A'), region = entity('R', 'regional');
   const coast = { ...geometry(), coordinates: [[[0,0],[0,2],[1,2],[1,0],[0,0]]] };

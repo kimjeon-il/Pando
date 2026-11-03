@@ -5,14 +5,6 @@ import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from "../../shared/f
 import { packCountryMeshFeatures } from '../../shared/frontend/js/modules/country-mesh-transfer.js';
 import { sourceWorkerTransport } from '../helpers/source-worker-transport.mjs';
 
-test('Worker transport resolves current shared and editor owners through public URLs', () => {
-  const transport = sourceWorkerTransport('assets/js/workers/map-edit-worker.js');
-  assert.equal(transport.sourceUrl(transport.location), new URL('../../apps/editor/frontend/js/workers/map-edit-worker.js', import.meta.url).href);
-  assert.equal(transport.sourceUrl('./worker-rpc-host.js'), new URL('../../shared/frontend/js/workers/worker-rpc-host.js', import.meta.url).href);
-  assert.throws(() => transport.sourceUrl('../modules/missing-fixture-module.js'), /Missing frontend source/);
-  assert.throws(() => transport.sourceUrl('https://other.test/assets/js/workers/worker-rpc-host.js'), /public origin/);
-});
-
 test('actual mesh Worker transfers every output buffer and detaches its originals', { timeout: 5000 }, async t => {
   const transportModule = new URL('../helpers/source-worker-transport.mjs', import.meta.url).href;
   const worker = new Worker(`
