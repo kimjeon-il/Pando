@@ -22,7 +22,8 @@ function encodedRows(prepared) {
 }
 
 /** One C++ crossing for all touched pairs, retaining patch/cached identities. */
-export function computeCountrySharedContacts(pairs = []) {
+export function computeCountrySharedContacts(pairs = [], profile) {
+  const trace = typeof profile === 'function' ? profile : null;
   const output=pairs.map(()=>[]);
   if (!pairs.length)return output;
   const features=[],identities=new Map(),active=[],positions=[];
@@ -47,8 +48,17 @@ export function computeCountrySharedContacts(pairs = []) {
     positions.push(index);
   });
   if (!active.length)return output;
-  const compiled=sharedCalculationCore.countryContactPairsBatch(features.map(encodedRows),active);
+  let started = trace ? performance.now() : 0;
+  const inputRows = features.map(encodedRows);
+  if (trace) trace('contact-encode', performance.now() - started,
+    {preparedFeatures: features.length, candidatePairs: active.length,
+      encodedEdges: inputRows.reduce((count, rows) => count + rows.length, 0)});
+  started = trace ? performance.now() : 0;
+  const compiled=sharedCalculationCore.countryContactPairsBatch(inputRows,active);
+  if (trace) trace('contact-native-bridge', performance.now() - started,
+    {preparedFeatures: features.length, candidatePairs: active.length});
   if (!Array.isArray(compiled)||compiled.length!==active.length)invalid('missing pair outputs');
+  started = trace ? performance.now() : 0;
   compiled.forEach((pairResult,index)=>{
     if (!Array.isArray(pairResult)||pairResult.length!==2||!Array.isArray(pairResult[1]))
       invalid('malformed pair output');
@@ -76,5 +86,8 @@ export function computeCountrySharedContacts(pairs = []) {
       return {start,end,ownerIds:[...ownerIds],refs};
     });
   });
+  if (trace) trace('contact-decode', performance.now() - started,
+    {candidatePairs: active.length,
+      sharedSegments: output.reduce((sum, rows) => sum + rows.length, 0)});
   return output;
 }
