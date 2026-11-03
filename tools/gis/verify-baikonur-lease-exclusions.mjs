@@ -38,9 +38,26 @@ const areaKm2=(ring)=>{
   return Math.abs(s)*r*r/2;
 };
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+// Treaty anchors are rounded to 8 decimal places, amended plots to 9.
+// Their common nodes can therefore be 0.3 mm apart; those are not crossings.
+// This 5 cm tolerance is for float serialization ONLY, never a legal survey tolerance.
+const distToSegmentMeters=(p,a,b)=>{
+  const cos=Math.cos((p[1]+a[1]+b[1])*Math.PI/540),
+    ax=a[0]*cos*111195,ay=a[1]*111195,
+    bx=b[0]*cos*111195,by=b[1]*111195,
+    px=p[0]*cos*111195,py=p[1]*111195,
+    dx=bx-ax,dy=by-ay,denom=dx*dx+dy*dy;
+  const t=denom?Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/denom)):0;
+  return Math.hypot(px-ax-t*dx,py-ay-t*dy);
+};
 const segCross=(a,b,c,d)=>{
   const u=cross(a,b,c),v=cross(a,b,d),w=cross(c,d,a),x=cross(c,d,b);
-  return u*v<0&&w*x<0;
+  if(!(u*v<0&&w*x<0))return false;
+  // Real crossing inside both segments persists, but digitized common edges
+  // must not be flagged solely due to 8-vs-9 digit coordinate rounding.
+  return !([distToSegmentMeters(a,c,d),distToSegmentMeters(b,c,d),
+    distToSegmentMeters(c,a,b),distToSegmentMeters(d,a,b)]
+    .some(distance=>distance<=0.05));
 };
 const same=(a,b)=>a[0]===b[0]&&a[1]===b[1];
 function testRing(ring,label){
