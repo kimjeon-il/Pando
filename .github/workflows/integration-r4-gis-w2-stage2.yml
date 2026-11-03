@@ -39,6 +39,7 @@ jobs:
           node --test --test-concurrency=1 --test-timeout=120000 \
             tests/unit/country-shared-boundary-state.test.mjs \
             tests/unit/country-boundary-geometry-transport.test.mjs \
+            tests/unit/w2-p6-3-delta-protocol.test.mjs \
             tests/unit/p3-remote-plan.test.mjs
 
   history-browser-profile:
@@ -55,8 +56,13 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Profile 1991/1992 real Viewer date changes, retain document hashes
-        run: pnpm exec playwright test tests/browser/viewer-p6-stage2-worker-profile.spec.mjs --workers=1 --retries=0 --trace=off
+      - name: Profile history and verify Viewer packet reuse, resync and rollback
+        run: |
+          pnpm exec playwright test \
+            tests/browser/viewer-p6-stage2-worker-profile.spec.mjs \
+            tests/browser/viewer-w2-p3-packet-reuse.spec.mjs \
+            tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs \
+            --workers=1 --retries=0 --trace=off
       - name: Capture actual profile and failures
         uses: actions/upload-artifact@v4
         if: always()
