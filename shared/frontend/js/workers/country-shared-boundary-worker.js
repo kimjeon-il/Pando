@@ -138,6 +138,13 @@ function postError(message, error) {
 
 async function prepareMessage(message) {
   let applied = false;
+  // Explicit opt-in for test and browser trace probes. Never send geometry
+  // or source coordinates in timing metadata.
+  const profiling = message.profilePacket === true;
+  const packetProfile = profiling ? [] : null;
+  const record = profiling ? (stage, ms, details = {}) => {
+    packetProfile.push({ stage, ms, ...details });
+  } : null;
   try {
     const [{ prepareCountrySharedBoundaryPacket, createCountrySharedBoundaryState },
       { changedCountryGeometryIds }, { polygonGeometryDigest }] = await modules;
@@ -152,6 +159,7 @@ async function prepareMessage(message) {
       return;
     }
     const source = hydrated?.rows || (message.features || []);
+    const digestStarted = profiling ? performance.now() : 0;
     const features = [];
     for (const [index, feature] of source.entries()) {
       if (deferUnapplied(message)) return;
@@ -165,6 +173,9 @@ async function prepareMessage(message) {
       if ((index & 31) === 31) await yieldToMessages();
     }
     if (deferUnapplied(message)) return;
+    if (profiling) record('digest', performance.now() - digestStarted,
+      {features: features.length, reused: hydrated?.reusedDigests.size || 0});
+    const stateStarted = profiling ? performance.now() : 0;
     let changed, cacheSeeded = false;
     if (message.type === 'replace') {
       let cached = message.cacheUrl === loadedCacheUrl && message.quality === loadedCacheQuality ? pendingCache : null;
@@ -199,28 +210,42 @@ async function prepareMessage(message) {
     // A changed source or an independently seeded cached topology invalidates
     // the retained stroke packet even if another generation will arrive soon.
     if (changed.size || cacheSeeded) retainedPacket = null;
+    if (profiling) record('state-update', performance.now() - stateStarted,
+      {changedIds: changed.size, cacheSeeded});
     applied = true;
     // Geometry/index preparation remains available to the next patch, but
     // queued date changes get a chance to supersede this packet before paint.
     await yieldToMessages();
     if (!isLatest(message)) return;
     const packetPreparationStarted = performance.now();
+    const identityStarted = profiling ? performance.now() : 0;
     const preparedFeatures = boundaryState.features();
     const key = packetIdentity(message, preparedFeatures);
     const packetCacheHit = retainedPacket?.key === key;
+    if (profiling) record('packet-identity', performance.now() - identityStarted,
+      {features: preparedFeatures.length, cacheHit: packetCacheHit});
     let packet;
     if (packetCacheHit) {
       // Transfer a new set of views. Retained arrays stay attached and can
       // serve another generation or a later identical replace/patch.
+      const started = profiling ? performance.now() : 0;
       packet = copyTransferredArrays(retainedPacket.packet);
+      if (profiling) record('packet-cache-copy', performance.now() - started);
     } else {
-      packet = prepareCountrySharedBoundaryPacket(boundaryState.segments(), preparedFeatures,
+      const segmentsStarted = profiling ? performance.now() : 0;
+      const segments = boundaryState.segments();
+      if (profiling) record('state-segments', performance.now() - segmentsStarted,
+        {segments: segments.length});
+      packet = prepareCountrySharedBoundaryPacket(segments, preparedFeatures,
         { preparedStore: boundaryState.preparedStore, maxEdgeDegrees: message.quality === 'preview' ? 2 : 0.499,
-          includeOutlines: message.includeOutlines !== false });
+          includeOutlines: message.includeOutlines !== false, profile: record || undefined });
       const residentBytes = packetResidentEstimate(packet);
+      const retainedStarted = profiling ? performance.now() : 0;
       retainedPacket = residentBytes <= PACKET_REUSE_BUDGET
         ? {key, packet: copyTransferredArrays(packet), residentBytes}
         : null;
+      if (profiling) record('packet-retain-copy', performance.now() - retainedStarted,
+        {residentBytes, retained: !!retainedPacket});
     }
     const packetPreparationMs = performance.now() - packetPreparationStarted;
     await yieldToMessages();
@@ -230,6 +255,7 @@ async function prepareMessage(message) {
       projectGeneration: message.projectGeneration, geometryRevision: message.geometryRevision,
       quality: message.quality, preparationStats: boundaryState.stats(),
       packetCacheHit, packetPreparationMs, baseToken,
+      ...(profiling ? {packetProfile} : {}),
       transportReusedGeometryCount: hydrated?.reusedDigests.size || 0,
       packetCacheResidentEstimate: retainedPacket?.residentBytes || 0, packet },
       transferBuffers(packet));
