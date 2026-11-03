@@ -76,3 +76,25 @@ node tools/verify-terrain-dem.mjs \
 4. 운영 재게시·기존 자료 핀 갱신·`main` 병합은 위 추가 작업과 별개의 명시적 승인 절차다.
 
 **결론:** 현행 실제 *게시 자료* Hydro/DEM 전수 무결성 검사와 DEM의 실제 NOAA 원본 표본·네이티브 전체 타일 규칙 검사는 **완료**. Hydro 원본 36개 실바이트 검증 및 두 파이프라인의 *원본부터 전 세계 전량 재생성 동등성*은 **미완료**로 구분한다.
+
+## 2026-11-03 P1 원본 재생성 재시도 — 추가 확정 증거
+
+이 절은 앞선 '미확보' 판단 이후 실제 CI로 신규 확보·검증한 원본을 기록한다. 과거 시점 표와 혼동하지 않는다.
+
+### Hydro 재생성 원본
+
+- [Hydro 원본 4종·공식 36개 구성원 감사](https://github.com/kimjeon-il/Pando/actions/runs/41560908725) **성공**: 고정된 당시 보관소에서 정확한 기준 원본은 하천 GeoJSON 1건과 비색인 호수 GeoJSON 블롭 1건, 합계 2/4종이다. 기존 archive index의 일반 `lakes_base.geojson`은 SHA가 달라 원본으로 대체하지 않았다.
+- [Natural Earth 수역 래스터 재확보](https://github.com/kimjeon-il/Pando/actions/runs/41561947417) **성공**: 공식 `HYP_HR_SR.zip`에서 `HYP_HR_SR.tif` 699,971,026바이트를 다시 추출, SHA-256 `7239fbf10d4b7abc3bb8233551e5e2fcf3f6ab40e8309716cb0560179256e0b2`로 고정 Hydro v0.13.4 입력과 **일치**. 따라서 두 CI의 *독립 증거를 합산한 정확한 기준 입력 원본 확보 수는 3/4종*으로 정정한다. 그러나 이 파일을 현재 운영 자료 저장소에 복사하거나 pin을 변경하지 않았다.
+- [HydroRIVERS 공식 아카이브 재요청](https://github.com/kimjeon-il/Pando/actions/runs/41561714702) **실패**: 공식 제품 페이지 Referer와 일반 식별 User-Agent로 요청을 바꿔도 아프리카 Shapefile ZIP에 HTTP **403**. 이는 원본 SHA 불일치나 GIS 알고리즘 오류가 아니라 원격 서버의 다운로드 거부다.
+- [공개 유럽 자료 미러 조사](https://github.com/kimjeon-il/Pando/actions/runs/41560030053) **원본 검증 불가**: 소스 보관 목록에는 `HydroRIVERS_v10_eu.geoparquet`만 있고 원본 `.shp/.shx/.dbf/.prj` 4개가 없다. 파생 GeoParquet를 동일한 원본 Shapefile이라고 취급하지 않는다.
+- 마지막 필수 기준 입력 `countries-ne-5.1.1.geojson`의 당시 SHA `6d29c349478cb2a7899573544ba580da70bd902c12ee86a4a93662ca6e94ad72`는 현재 보관소의 `52590ce1…` 판본과 다르다. 공식 HydroRIVERS 36개 멤버도 아직 0개가 확정 실바이트와 일치한다고 입증되지 않았다.
+- 현재 `tools/gis/verify-p1-hydro-source-inventory.mjs`, `tools/gis/verify-p1-hydro-originals.mjs`, `tools/gis/verify-p1-hydro-europe-mirror.mjs` 및 각 전용 CI로 원본 유무와 SHA, 누락 거부를 재현한다. **전 세계 9개 지역의 완전 재생성은 입력 차단 상태**다.
+
+### DEM tint 원본 대비 진단
+
+- [DEM tint 전체 픽셀 재생성](https://github.com/kimjeon-il/Pando/actions/runs/41561155873) **진단 성공**: 고정 SHA가 일치하는 HYP_HR ZIP과 빙하 GeoJSON을 실제로 다운로드하고, 다른 판본의 보존 국가 폴리곤 `52590ce1…`을 사용해 틴트 전체 **8,388,608개 픽셀**을 새로 생성해 검증했다.
+- 기존 `terrain/v0.13.3/tint.webp`와 복호화 후 **RGB/Alpha 차이 0픽셀**, 최대 RGB 차이 0. 다만 별도 WebP 인코더 결과의 **압축 바이트 SHA는 서로 다르다.**
+- 생성 당시 승인된 국가 마스크는 `7a70ea46df0511c30701863c2f9d30dea5b2731f4f46e0e0a5d236945d52b797`, 이번 대체 마스크는 `52590ce133a779fc678496844c844137aeaa0dca41ceca1621cd7c50169f5efb`이므로 **정확히 동일한 원본으로 재생성됐다고 주장하지 않는다**. 차이 0픽셀은 해당 대체 마스크를 사용한 현재 출력과의 픽셀 동등성 증거에 한한다.
+- [DEM ETOPO 기반 6 LOD/1,280개 전체 재생성 CI](https://github.com/kimjeon-il/Pando/actions/runs/41559594115)는 현재 별도 실행 결과로 판정하며, 이전 DEM 무결성 검사를 그 재생성 검사의 성공으로 간주하지 않는다.
+
+원본 보관·다운로드 경로는 검사에 사용하고 새로운 배포를 승인하지 않는다. 외부에서 정확한 HydroRIVERS 36개 원본과 국가 폴리곤 원본을 확보하기 전에는 출처가 다른 자료를 기존 패키지의 정본 입력으로 임의 대체하지 않는다.
