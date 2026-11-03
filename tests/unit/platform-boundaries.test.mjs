@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
+import { createTerritorialApplicationService } from "../helpers/core-command-services/territorial-service.mjs";
 import { createEditingDomain } from "../../apps/editor/frontend/js/modules/editing-domain.js";
 import { createProjectSession } from "../../shared/frontend/js/modules/project-session.js";
 import { normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";

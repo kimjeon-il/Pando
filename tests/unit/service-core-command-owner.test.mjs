@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createGenericFeatureService } from '../helpers/generic-feature-command-service.mjs';
-import { createDistributionService } from "../../apps/editor/frontend/js/modules/distribution-service.js";
+import { createDistributionService } from "../helpers/core-command-services/distribution-service.mjs";
 
 for (const create of [createGenericFeatureService, createDistributionService]) {
   test(`${create.name} requires the single Core command owner and read projection`, () => {

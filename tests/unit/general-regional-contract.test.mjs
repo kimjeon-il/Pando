@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { createTerritorialFeature, normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
+import { createTerritorialApplicationService } from "../helpers/core-command-services/territorial-service.mjs";
 
 const geometry = () => ({ type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] });
 const entity = (id, entityKind = 'general', parentId = '') => createTerritorialFeature({ id, entityKind, parentId, geometry: geometry() });
