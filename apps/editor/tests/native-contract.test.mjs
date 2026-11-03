@@ -62,7 +62,7 @@ test('R3 includes live Viewer, Windows staging tools, WASM bytes and exact sourc
    'apps/editor/document-transfer-contract.js',
    'apps/editor/world-data-plan.mjs',
    'apps/editor/fixture.mjs',
-   'tools/gis/project-serializer.js',
+   'shared/frontend/js/modules/project-baseline-fingerprint.js',
    'tests/helpers/core-startup.mjs',
    'scripts/lib/frontend-build.mjs',
    'scripts/build-ui-bundle.mjs',

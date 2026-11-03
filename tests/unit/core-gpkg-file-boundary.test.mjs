@@ -1,4 +1,4 @@
-import {normalizeGenericFeatureSemantics} from "../../tools/gis/generic-feature-service.js";
+import {normalizeGenericFeatureSemantics} from "../../shared/frontend/js/modules/generic-feature-normalization.js";
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';

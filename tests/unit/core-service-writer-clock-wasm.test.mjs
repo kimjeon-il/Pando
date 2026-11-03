@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { createGenericFeatureService } from "../../tools/gis/generic-feature-service.js";
-import { createDistributionService } from "../../apps/editor/frontend/js/modules/distribution-service.js";
+import { createGenericFeatureService } from '../helpers/generic-feature-command-service.mjs';
+import { createDistributionService } from "../helpers/core-command-services/distribution-service.mjs";
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { captureWebWriterClockContract } from '../helpers/web-writer-clock-contract.mjs';
 

@@ -6,7 +6,7 @@ importScripts('../modules/polygon-clipping-core.js', rpcHostUrl.href);
 let dependencies;
 const ready = () => dependencies ||= import("../../../../../shared/frontend/js/modules/temporal.js").then(async ({ sharedCalculationCore }) => {
   self.PandoLabSphericalCore = sharedCalculationCore;
-  return import('../modules/gis-geometry-validation.js');
+  return import('../../../../../tools/gis/geometry-validation.js');
 });
 self.PandoLabWorkerRpc.install({ handlers: {
   'gis.validate': async (payload, context) => {

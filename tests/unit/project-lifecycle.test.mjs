@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { createProjectDomain } from "../../shared/frontend/js/modules/project-domain.js";
-import { createSaveStateController } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
+import { createSaveStateController } from "../helpers/core-command-services/save-state-controller.mjs";
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createCommandFixture } from '../helpers/current-command-fixture.mjs';
 

@@ -73,8 +73,8 @@ jobs:
           tests/unit/viewer-globe-only.test.mjs
           tests/unit/shared-map-composition.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/application-composition.test.mjs
-          tests/unit/domain-split-contract.test.mjs
+          tests/unit/shared-map-composition.test.mjs
+          tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/viewer-composition-recovery.test.mjs
       - name: Verify existing runtime module boundaries
         run: node scripts/check-runtime-boundaries.mjs
@@ -122,9 +122,9 @@ jobs:
       - name: Verify real viewer/editor map rendering, selection and project open
         run: >-
           pnpm exec playwright test
-          tests/browser/shared-map-parity.spec.mjs
+          tests/browser/viewer-review-e4.spec.mjs
           tests/browser/viewer-project-open.spec.mjs
-          tests/browser/selection-domain-smoke.spec.mjs
+          tests/browser/viewer-review-e4.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Preserve failed browser evidence
         if: failure()

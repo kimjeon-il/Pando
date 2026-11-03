@@ -6,7 +6,7 @@ import {createGisCoreFixture} from '../helpers/gis-core-fixture.mjs';
 import {createTerritorialFeature,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
 import {createLibraryAssembly} from "../../apps/editor/frontend/js/modules/app-library-assembly.js";
 import {createTerritorialLibraryService} from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
-import {TERRITORIAL_LIBRARY_SCHEMA_VERSION,normalizeTerritorialLibraryEntity} from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import {TERRITORIAL_LIBRARY_SCHEMA_VERSION,normalizeTerritorialLibraryEntity} from "../../tools/gis/territorial-library.js";
 import {openTerritorialLibraryAccess} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
 import * as libraryOwnership from "../../apps/editor/frontend/js/modules/library-ownership.js";
 

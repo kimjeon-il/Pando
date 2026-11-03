@@ -1,6 +1,6 @@
 import {TERRITORIAL_SCHEMA_VERSION} from "../../shared/frontend/js/modules/territorial-units.js";
 import { mkdir, writeFile } from 'node:fs/promises';
-import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { projectForStorage } from '../helpers/timeline-project.mjs';
 import { productionGeoPackage,coreFileProjection } from '../helpers/production-geopackage.mjs';
 
@@ -53,7 +53,7 @@ export function exchangeProject(kind) {
     records.parentRelations = boundaries.map(([id, from, to]) => ({ ...record(`parent:${id}`, id, from, to),
       parentId: '', coverageMode: 'explicit' }));
   }
-  return createProjectSerializer({ appVersion:'0.34.0',baseDataset:'timeline-exchange', distributionModes:['territorial','geometry'],
+  return createProjectTemplateCompiler({ appVersion:'0.34.0',baseDataset:'timeline-exchange', distributionModes:['territorial','geometry'],
     terrainDataset:'terrain',hydroDataset:'hydro', readSnapshot:()=>snapshot,now:()=>new Date('2026-10-04T00:00:00Z') }).buildProject();
 }
 

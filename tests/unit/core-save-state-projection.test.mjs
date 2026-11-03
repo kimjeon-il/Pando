@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSaveStateController } from "../../apps/editor/frontend/js/modules/save-state-controller.js";
+import { createSaveStateController } from "../helpers/core-command-services/save-state-controller.mjs";
 
 test('save UI derives history/dirty tokens from Core and device acknowledgements cannot clean the document',() => {
   let core=null;const events=[];

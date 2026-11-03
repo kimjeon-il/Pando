@@ -28,5 +28,6 @@ test('active CI keeps common and WebView checks without installing or running Qt
         assert.ok(jobs[need], name + ':' + need);
   }
   assert.ok(parse(read('.github/workflows/remote-development-p1.yml')).jobs['native-core']);
-  assert.ok(exists('.github/workflows/integration-windows-web-shell-20261016.yml'));
+  assert.ok(exists('.github/workflows/e7-final-readonly-regression.yml'));
+  assert.equal(exists('.github/workflows/integration-windows-web-shell-20261016.yml'),false);
 });

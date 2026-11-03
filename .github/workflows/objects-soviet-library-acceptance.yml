@@ -4,8 +4,8 @@ on:
     branches: [work/objects]
     paths:
       - '.github/workflows/objects-soviet-library-acceptance.yml'
-      - 'assets/js/modules/gis-geometry-validation.js'
-      - 'assets/js/modules/map-edit-library-calculation.js'
+      - 'tools/gis/geometry-validation.js'
+      - 'tools/gis/territorial-batch-calculation.js'
       - 'assets/js/modules/app-library-assembly.js'
       - 'assets/js/modules/gis-import-transaction.js'
       - 'assets/js/modules/gis-workflow-controller.js'
@@ -13,7 +13,7 @@ on:
       - 'assets/js/workers/gis-geometry-worker.js'
       - 'tests/unit/gis-geometry-worker.test.mjs'
       - 'tests/unit/library-import-atomic.test.mjs'
-      - 'tests/browser/temporal-editing.spec.mjs'
+      - 'tests/browser/temporal-map-presentation.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: write
@@ -40,7 +40,7 @@ jobs:
         run: >-
           node --test --test-concurrency=1
           tests/unit/gis-geometry-worker.test.mjs
-          tests/unit/map-edit-preparation-worker.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/library-import-atomic.test.mjs
       - name: Stage current code-matched immutable browser Worker runtime
         run: |
@@ -51,7 +51,7 @@ jobs:
       - name: Verify actual 1991 Soviet import, undo, redo, autosave and reopen
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/temporal-editing.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
       - name: Publish only verified source-matched runtime on work/objects
         shell: bash
         run: |

@@ -1,6 +1,2 @@
-import { sharedCalculationCore } from "../../../../../shared/frontend/js/modules/temporal.js";
-
-/** The shared kernel owns retry classification, precision and original errors. */
-export function clippingOperationWithPrecisionRetry(method, ...inputs) {
-  return sharedCalculationCore.polygonOperation(method, inputs, true);
-}
+// Retired Worker bridge: avoid duplicating the shared C++ clipping wrapper.
+export {clippingOperationWithPrecisionRetry} from '../../../../../tools/gis/polygon-clipping-calculation.js';

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import '../helpers/spherical-core.mjs';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
-import {calculateLibraryBatch} from "../../apps/editor/frontend/js/modules/map-edit-library-calculation.js";
+import {calculateLibraryBatch} from "../../tools/gis/territorial-batch-calculation.js";
 import {createTerritorialFeature} from "../../shared/frontend/js/modules/territorial-units.js";
 import "../../shared/frontend/js/workers/gpu-mesh-core.js";
 import {encodePolygonMesh,decodePolygonMesh} from "../../shared/frontend/js/modules/polygon-mesh-codec.js";

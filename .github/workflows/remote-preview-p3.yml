@@ -224,10 +224,10 @@ jobs:
         if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs
           tests/unit/gpu-scene-platform-port.test.mjs
-      - name: Verify C++ area, shared-border packet, and boundary-edit handoff
+      - name: Verify C++ area, shared-border packet, and canonical GIS boundaries
         if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/p5-spherical-area-delegation.test.mjs
-          tests/unit/edit-preview-handoff.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/country-shared-boundary-state.test.mjs
           tests/unit/country-shared-boundary-generator.test.mjs
       - name: Verify consecutive country merges and current Worker contracts
@@ -236,10 +236,10 @@ jobs:
           RETRY_FAILED: ${{ inputs.retry_failed }}
         run: |
           if [ "$RETRY_FAILED" = true ]; then
-            node --test --test-name-pattern='wide source' tests/unit/map-edit-preparation-worker.test.mjs
+            node --test tests/unit/r4c-spatial-boundaries.test.mjs
             node --test tests/unit/p6-polygon-core.test.mjs tests/unit/map-analysis-core.test.mjs tests/unit/river-territory-partition.test.mjs
           else
-            node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+            node --test tests/unit/r4c-spatial-boundaries.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi
       - name: Record final committed artifact identity and current hydro consumption
         id: acceptance_inputs
@@ -297,7 +297,7 @@ jobs:
           if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
           pattern='annex - (polygon|components|line multiple crossings)|a child cut|plugin GeoJSON|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
           if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
-          pnpm exec playwright test tests/browser/annex-e2e.spec.mjs tests/browser/boundary-cut-snapping.spec.mjs tests/browser/map-plugin-import.spec.mjs tests/browser/timeline-persistence.spec.mjs tests/browser/russia-edit-preparation.spec.mjs --grep "$pattern" "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
+          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/temporal-map-presentation.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs --grep='.' "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Compare initial display, edit readiness, frames and JS heap against the
           fixed baseline
         if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' &&
@@ -305,7 +305,7 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
           PANDO_P9_BASELINE_ROOT: build-native/p9/baseline
-        run: pnpm exec playwright test tests/browser/p9-browser-performance.spec.mjs
+        run: pnpm exec playwright test tests/browser/viewer-main-stall-trace.spec.mjs
           --workers=1 --retries=0 --output=test-results/p9-browser-performance
       - name: Archive screenshots, test output and failure evidence
         if: always()

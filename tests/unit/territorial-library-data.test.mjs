@@ -3,7 +3,7 @@ import test from 'node:test';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {readTerritorialSources} from '../../tools/territorial-entity-sources.mjs';
-import {LIBRARY_ENTITY_TYPES} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {LIBRARY_ENTITY_TYPES} from '../../tools/gis/territorial-library.js';
 const historicalData={entities:readTerritorialSources().filter(e=>e.sourceInfo.importProvenance)};
 test('East Prussia r3 library preserves the reviewed geometry and reports its limitations', () => {
   const entity = historicalData.entities.find(item => item.entityId === 'state:east-prussia');

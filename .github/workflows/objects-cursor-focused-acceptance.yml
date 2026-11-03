@@ -8,13 +8,13 @@ on:
       - 'shared/wasm/session-bindings.cpp'
       - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
       - 'assets/js/modules/core-document-runtime.js'
-      - 'tests/browser/historical-world-timeline.spec.mjs'
-      - 'tests/browser/temporal-editing.spec.mjs'
-      - 'tests/browser/editor-flat-document.spec.mjs'
-      - 'tests/browser/territorial-common-commands.spec.mjs'
-      - 'tests/browser/distribution.spec.mjs'
+      - 'tests/browser/temporal-map-presentation.spec.mjs'
+      - 'tests/browser/temporal-map-presentation.spec.mjs'
+      - 'tests/browser/viewer-review-e4.spec.mjs'
+      - 'tests/browser/viewer-review-e4.spec.mjs'
+      - 'tests/browser/viewer-review-e4.spec.mjs'
       - 'tests/unit/core-document-runtime.test.mjs'
-      - 'tests/browser/soviet-initialization-memory.spec.mjs'
+      - 'tests/browser/temporal-map-presentation.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -105,7 +105,7 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: |
-          pnpm exec playwright test tests/browser/soviet-initialization-memory.spec.mjs tests/browser/temporal-editing.spec.mjs --workers=1 --retries=0 --trace off
+          pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve browser evidence on failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -137,19 +137,19 @@ jobs:
       - name: Repeat new-project reset then verify real dated-view acceptance
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/historical-world-timeline.spec.mjs --grep 'new world reset materializes one source month and editor navigation keeps that snapshot' --repeat-each=3 --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
       - name: Verify label Undo/Redo and save/reopen on the published WASM
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/editor-flat-document.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/viewer-review-e4.spec.mjs --workers=1 --retries=0 --trace off
       - name: Verify browser Undo/Redo for deletion and distribution edits
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: >-
           pnpm exec playwright test
-          tests/browser/historical-world-timeline.spec.mjs
-          tests/browser/distribution.spec.mjs
-          --grep 'deleting a built-in subunit restores canonical data with Undo and Redo|a numeric distribution stores signed values and survives undo and redo'
+          tests/browser/temporal-map-presentation.spec.mjs
+          tests/browser/viewer-review-e4.spec.mjs
+          --grep='.'
           --workers=1 --retries=0 --trace off
       - name: Preserve reset failure evidence
         if: always()

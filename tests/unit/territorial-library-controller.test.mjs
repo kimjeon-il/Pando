@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTerritorialLibraryController } from "../../apps/editor/frontend/js/modules/territorial-library-controller.js";
 import { createTerritorialLibraryService } from "../../apps/editor/frontend/js/modules/territorial-library-service.js";
-import { selectGeometryVersion } from "../../apps/editor/frontend/js/modules/territorial-library.js";
+import { selectGeometryVersion } from "../../tools/gis/territorial-library.js";
 import { shouldShowTerritorialParentChoice } from "../../apps/editor/frontend/js/modules/library-ownership.js";
 import { resolveSelectChoice } from "../../shared/frontend/js/modules/select-option-policy.js";
 import { catalogEntity } from '../helpers/territorial-catalog.mjs';

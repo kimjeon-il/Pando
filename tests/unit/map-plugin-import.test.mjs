@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createGenericFeatureService } from "../../tools/gis/generic-feature-service.js";
+import { createGenericFeatureService } from '../helpers/generic-feature-command-service.mjs';
 import { createJob, sealJob, reviseJob, jobFeatures } from '../../plugins/pando-map-tools/lib/jobs.mjs';
 import { core } from '../../plugins/pando-map-tools/lib/workspace.mjs';
 

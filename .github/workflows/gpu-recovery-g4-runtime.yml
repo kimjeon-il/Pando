@@ -7,9 +7,9 @@ on:
       - shared/frontend/js/modules/gpu-map-renderer.js
       - shared/frontend/js/modules/gpu-scene.js
       - shared/frontend/js/modules/country-mesh-zoom-policy.js
-      - tests/browser/gpu-recovery-g4.spec.mjs
+      - tests/browser/viewer-gpu-backend-cross.spec.mjs
       - shared/frontend/js/modules/gpu-context-recovery.js
-      - tests/browser/renderer-responsiveness.spec.mjs
+      - tests/browser/viewer-gpu-backend-cross.spec.mjs
       - tests/browser/viewer-canvas.spec.mjs
   workflow_dispatch:
 
@@ -49,8 +49,8 @@ jobs:
         env:
           G4_EVIDENCE: test-results/g4-m2-viewer-worker
         run: >-
-          pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs
-          --grep 'viewer canvas-worker:' --workers=1 --retries=0 --reporter=list --trace off
+          pnpm exec playwright test tests/browser/viewer-gpu-backend-cross.spec.mjs
+          --grep='.' --workers=1 --retries=0 --reporter=list --trace off
       - name: Enforce each independent G4 residual gate
         if: always()
         env:

@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
 import {readTerritorialSources,territorialSourceRoot} from '../../tools/territorial-entity-sources.mjs';
-import {selectGeometryVersion} from '../../apps/editor/frontend/js/modules/territorial-library.js';
+import {selectGeometryVersion} from '../../tools/gis/territorial-library.js';
 import {SOURCE_CUTS,SOURCE_REFERENCE_DATE,planSourceDateConsolidation} from '../../tools/gis/normalize-2026-source-reference.mjs';
 import {selectBuiltinCountries,assembleBuiltinWorld} from '../../shared/frontend/js/modules/builtin-world-loader.js';
 import {temporalContains,temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';

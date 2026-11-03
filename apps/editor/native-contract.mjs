@@ -9,7 +9,7 @@ export const nativeHash=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 // Offline and verification builds package the *Viewer* product, not the archived
 // graphical editor. This audited list includes the actual staging tools and
-// the pure serializer extracted to tools/gis (required by the tiny verification fixture).
+// the canonical baseline fingerprint now owned by shared/frontend (fixture dependency).
 // Do not add apps/editor/frontend/**, apps/editor/templates/** or apps/editor/*.js
 // globs here. The test fixture imports the extracted serializer without the editor source tree.
 export const nativePackagedInputPaths=Object.freeze([
@@ -20,7 +20,6 @@ export const nativePackagedInputPaths=Object.freeze([
   'apps/editor/fixture.mjs',
   'apps/editor/network-guard.js',
   'apps/editor/document-transfer-contract.js',
-  'tools/gis/project-serializer.js',
   'tests/helpers/core-startup.mjs',
   'tests/helpers/core-project.mjs',
   'tests/helpers/core-session.mjs',

@@ -6,9 +6,9 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 import * as boundary from "../../shared/frontend/js/modules/geographic-boundary.js";
-import { distanceKm, geometryAreaKm2, lineDistanceKm } from "../../apps/editor/frontend/js/modules/geometry-metrics.js";
+import { distanceKm, geometryAreaKm2, lineDistanceKm } from "../../tools/gis/geometry-metrics.js";
 import * as partitions from "../../tools/gis/river-territory-partition.js";
-import { validateCollection } from "../../apps/editor/frontend/js/modules/gis-geometry-validation.js";
+import { validateCollection } from "../../tools/gis/geometry-validation.js";
 import { createGisWorkerHarness } from './helpers/gis-worker-harness.mjs';
 import { sphericalCore } from '../helpers/spherical-core.mjs';
 
@@ -226,7 +226,7 @@ test('river partition browser contract is deterministic and non-mutating', () =>
 test('GIS contract test sources stay worker-safe and do not revive removed paths', () => {
   const workerSources = [
     read('shared/frontend/js/workers/geographic-boundary-core.js'),
-    read('apps/editor/frontend/js/workers/gis-geometry-worker.js'),
+    read('tools/gis/gis-geometry-worker.js'),
     read('shared/frontend/js/workers/gpu-mesh-core.js'),
   ].join('\n');
   assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);

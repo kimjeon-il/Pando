@@ -1,5 +1,5 @@
 import { editingContextPresentation, shouldShowTaskInputInstruction, taskStagePresentation, taskTargetRefs, taskWorkflowPresentation } from './app-task-stage-model.js';
-import { lineDistancesKm } from './geometry-metrics.js';
+import { lineDistancesKm } from '../../../../../tools/gis/geometry-metrics.js';
 import { timelineMonthLabel } from "../../../../../shared/frontend/js/modules/timeline-controls.js";
 
 /** Task surface presentation. Territory selection is rendered from one shared model. */

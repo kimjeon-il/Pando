@@ -15,10 +15,10 @@ export { SQL as productionSql };
 const snapshot=await repositoryFrontendSnapshot();
 // Fixture production uses the retained encoder source, never a shipped Viewer asset.
 // The Viewer only reads packages; its public dependency closure must stay read-only.
-const encoderSource=new URL('../../apps/editor/frontend/js/workers/gis-gpkg-worker.js',import.meta.url);
+const encoderSource=new URL('../fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt',import.meta.url);
 const fixtureScripts=new Map([
   ['assets/js/workers/gis-gpkg-worker.js',readFileSync(encoderSource,'utf8')],
-  ['assets/js/gis-adapters.js',readFileSync(new URL('../../apps/editor/frontend/js/gis-adapters.js',import.meta.url),'utf8')],
+  ['assets/js/gis-adapters.js',readFileSync(new URL('../fixtures/geopackage/compat/worker/gis-adapters.source.txt',import.meta.url),'utf8')],
 ]);
 const workerUrl=new URL('https://fixture.invalid/assets/js/workers/gis-gpkg-worker.js');
 const worker=vm.createContext({URL,console,TextEncoder,TextDecoder,structuredClone,Uint8Array,DataView,atob,btoa,initSqlJs:async()=>SQL,location:{href:workerUrl.href}});worker.self=worker;

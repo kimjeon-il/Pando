@@ -4,7 +4,7 @@ import test from 'node:test';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import { createTerritorialApplicationService } from "../../apps/editor/frontend/js/modules/territorial-service.js";
+import { createTerritorialApplicationService } from "../helpers/core-command-services/territorial-service.mjs";
 
 test('territorial service adapts actual C++ metadata, locks and retained parent candidates without Web model/history writes',async () => {
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));

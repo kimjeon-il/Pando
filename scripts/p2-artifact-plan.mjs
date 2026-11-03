@@ -107,7 +107,7 @@ function validationOrPresentationOnly(changes,graph) {
     '.github/workflows/viewer-functional-p6-1.yml',
     '.github/workflows/viewer-functional-p6-2.yml',
     '.github/workflows/integration-read-model-p6.yml',
-    '.github/workflows/p6-preflight.yml',
+    '.github/workflows/e7-final-readonly-regression.yml',
     '.github/workflows/web-pages.yml',
     '.github/workflows/shared-core.yml',
     'eslint.config.js',
@@ -125,7 +125,7 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'shared/frontend/js/modules/map-input-presentation.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
-    'apps/editor/frontend/js/modules/editing-domain.js'
+    'scripts/r4d-check-retired-tests.mjs'
   ]);
   const inputMatches=(selector,path)=>typeof selector==='string'
     ?selector.endsWith('/')?path.startsWith(selector):path===selector

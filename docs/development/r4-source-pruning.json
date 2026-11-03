@@ -1,12 +1,13 @@
 {
   "schema": "pandolab-r4-source-pruning-v1",
   "baselineCandidates": 153,
-  "removedSourceCount": 45,
-  "removedTestCount": 10,
-  "remainingSourceCount": 108,
-  "extractedGisModules": 11,
+  "removedSourceCount": 50,
+  "removedTestCount": 183,
+  "remainingSourceCount": 103,
+  "extractedGisModules": 16,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
+    "apps/editor/frontend/js/app.js",
     "apps/editor/frontend/js/bootstrap.js",
     "apps/editor/frontend/js/gis-io.js",
     "apps/editor/frontend/js/modules/annex-geometry.js",
@@ -32,7 +33,9 @@
     "apps/editor/frontend/js/modules/edit-preview-controller.js",
     "apps/editor/frontend/js/modules/editor-workspace-presentation.js",
     "apps/editor/frontend/js/modules/generic-feature-service.js",
+    "apps/editor/frontend/js/modules/geometry-metrics.js",
     "apps/editor/frontend/js/modules/gis-domain.js",
+    "apps/editor/frontend/js/modules/gis-geometry-validation.js",
     "apps/editor/frontend/js/modules/gis-import-wizard-controller.js",
     "apps/editor/frontend/js/modules/gis-workflow-controller.js",
     "apps/editor/frontend/js/modules/map-debug-controller.js",
@@ -48,21 +51,491 @@
     "apps/editor/frontend/js/modules/spatial-edit-registration.js",
     "apps/editor/frontend/js/modules/surface-tabs-controller.js",
     "apps/editor/frontend/js/modules/territorial-geometry.js",
+    "apps/editor/frontend/js/modules/territory-component-plan.js",
     "apps/editor/frontend/js/modules/timeline-edit.js",
     "apps/editor/frontend/js/modules/tool-controller.js",
     "apps/editor/frontend/js/workers/core-session-worker.js",
-    "apps/editor/frontend/js/workers/geometry-validation-worker.js"
+    "apps/editor/frontend/js/workers/geometry-validation-worker.js",
+    "apps/editor/templates/index.html"
   ],
   "removedTests": [
-    "tests/unit/color-picker-async-command.test.mjs",
+    "tests/browser/annex-drawn-selection.spec.mjs",
+    "tests/browser/annex-e2e.spec.mjs",
+    "tests/browser/boundary-cut-snapping.spec.mjs",
+    "tests/browser/builtin-subunits.spec.mjs",
+    "tests/browser/canonical-country-packet-memory.spec.mjs",
+    "tests/browser/child-coast-boundary.spec.mjs",
+    "tests/browser/color-swatch-layout.spec.mjs",
+    "tests/browser/country-add-scene-preservation.spec.mjs",
+    "tests/browser/country-hover-entry.spec.mjs",
+    "tests/browser/country-label-flags.spec.mjs",
+    "tests/browser/country-map-substrate.spec.mjs",
+    "tests/browser/country-shared-boundary.spec.mjs",
+    "tests/browser/country-zoom-quality.spec.mjs",
+    "tests/browser/date-line-outline.spec.mjs",
+    "tests/browser/distribution.spec.mjs",
+    "tests/browser/draft-freehand.spec.mjs",
+    "tests/browser/edit-preview-handoff.spec.mjs",
+    "tests/browser/editable-library-ui.spec.mjs",
+    "tests/browser/editing-state-recovery.spec.mjs",
+    "tests/browser/editing-vertex-packet.spec.mjs",
+    "tests/browser/editor-color-reload.spec.mjs",
+    "tests/browser/editor-flag-menu.spec.mjs",
+    "tests/browser/editor-flat-document.spec.mjs",
+    "tests/browser/editor-focus-storage.spec.mjs",
+    "tests/browser/editor-status-timeline.spec.mjs",
+    "tests/browser/editor-theme-responsive-p8.spec.mjs",
+    "tests/browser/editor-workspace.spec.mjs",
+    "tests/browser/feature-pruning-ui.spec.mjs",
+    "tests/browser/feedback-accessibility.spec.mjs",
+    "tests/browser/file-menu-layering.spec.mjs",
+    "tests/browser/flag-thumbnail-quiet.spec.mjs",
+    "tests/browser/general-view-menu.spec.mjs",
+    "tests/browser/generic-feature-independent-geometry.spec.mjs",
+    "tests/browser/gis-2000-2026-additional-attributes.spec.mjs",
+    "tests/browser/gis-2000-2026-attribute-history.spec.mjs",
+    "tests/browser/gis-coast-cancellation.spec.mjs",
+    "tests/browser/gis-interchange.spec.mjs",
+    "tests/browser/gis-math-contract.spec.mjs",
+    "tests/browser/gpu-recovery-g4.spec.mjs",
+    "tests/browser/historical-library.spec.mjs",
+    "tests/browser/historical-world-lifetime.spec.mjs",
+    "tests/browser/historical-world-timeline.spec.mjs",
+    "tests/browser/hydro-metadata-edit.spec.mjs",
+    "tests/browser/hydro-property-refresh.spec.mjs",
+    "tests/browser/info-tab-v9.spec.mjs",
+    "tests/browser/interaction-clarity.spec.mjs",
+    "tests/browser/interaction-unification.spec.mjs",
+    "tests/browser/label-metadata-edit.spec.mjs",
+    "tests/browser/map-editing-foundation.spec.mjs",
+    "tests/browser/map-loading-continuity.spec.mjs",
+    "tests/browser/map-plugin-import.spec.mjs",
+    "tests/browser/map-surface-quality.spec.mjs",
+    "tests/browser/map-workspace-polish.spec.mjs",
+    "tests/browser/mobile-native-selection.spec.mjs",
+    "tests/browser/mobile-sheet-controller-cross-realm.spec.mjs",
+    "tests/browser/mobile-vertex-ui.spec.mjs",
+    "tests/browser/p9-browser-performance.spec.mjs",
+    "tests/browser/performance-observability.spec.mjs",
+    "tests/browser/phase1-ui-cleanup.spec.mjs",
+    "tests/browser/phone-landscape-editor.spec.mjs",
+    "tests/browser/place-runtime.spec.mjs",
+    "tests/browser/post-2000-world-timeline.spec.mjs",
+    "tests/browser/prepared-overlay-mesh.spec.mjs",
+    "tests/browser/product-pruning.spec.mjs",
+    "tests/browser/project-bounds-picker.spec.mjs",
+    "tests/browser/project-creation-storage.spec.mjs",
+    "tests/browser/project-setup-ui.spec.mjs",
+    "tests/browser/qgis-pando-exchange.spec.mjs",
+    "tests/browser/radio-row-consistency.spec.mjs",
+    "tests/browser/renderer-migration-gaps.spec.mjs",
+    "tests/browser/renderer-responsiveness.spec.mjs",
+    "tests/browser/runtime.spec.mjs",
+    "tests/browser/russia-edit-preparation.spec.mjs",
+    "tests/browser/search-stable-surface.spec.mjs",
+    "tests/browser/selection-domain-smoke.spec.mjs",
+    "tests/browser/selection-interaction-style.spec.mjs",
+    "tests/browser/selection-pass-baseline.spec.mjs",
+    "tests/browser/selection-presenter-reconcile.spec.mjs",
+    "tests/browser/shared-map-composition.spec.mjs",
+    "tests/browser/shared-map-parity.spec.mjs",
+    "tests/browser/shared-view-policy.spec.mjs",
+    "tests/browser/shell-file-save.spec.mjs",
+    "tests/browser/single-context-selection.spec.mjs",
+    "tests/browser/soviet-1991-import-profile.spec.mjs",
+    "tests/browser/soviet-boundary-index-packed-memory.spec.mjs",
+    "tests/browser/soviet-contact-wire-reencode.spec.mjs",
+    "tests/browser/soviet-core-candidate-cpp.spec.mjs",
+    "tests/browser/soviet-core-candidate-stages.spec.mjs",
+    "tests/browser/soviet-edit-entry-profile.spec.mjs",
+    "tests/browser/soviet-initialization-cpu.spec.mjs",
+    "tests/browser/soviet-initialization-memory.spec.mjs",
+    "tests/browser/soviet-lightweight-timeline.spec.mjs",
+    "tests/browser/soviet-main-long-cycle.spec.mjs",
+    "tests/browser/soviet-memory-attribution.spec.mjs",
+    "tests/browser/soviet-memory-cycle.spec.mjs",
+    "tests/browser/soviet-prepared-source-owners.spec.mjs",
+    "tests/browser/soviet-real-edit-commit-cancel.spec.mjs",
+    "tests/browser/soviet-retained-owners-breakdown.spec.mjs",
+    "tests/browser/soviet-shared-border-heap-owners.spec.mjs",
+    "tests/browser/soviet-transition-periods.spec.mjs",
+    "tests/browser/soviet-visible-edit-vertices.spec.mjs",
+    "tests/browser/soviet-web-render-profile.spec.mjs",
+    "tests/browser/soviet-worker-move-source.spec.mjs",
+    "tests/browser/startup-interaction-gate.spec.mjs",
+    "tests/browser/startup-performance.spec.mjs",
+    "tests/browser/startup-preview-webgl.spec.mjs",
+    "tests/browser/startup-restored-country.spec.mjs",
+    "tests/browser/statusbar-selection-width.spec.mjs",
+    "tests/browser/storage-protection.spec.mjs",
+    "tests/browser/style-label-cleanup.spec.mjs",
+    "tests/browser/subunit-export-ui.spec.mjs",
+    "tests/browser/temporal-editing.spec.mjs",
+    "tests/browser/terrain-dem-benchmark.spec.mjs",
+    "tests/browser/terrain-dem.spec.mjs",
+    "tests/browser/terrain-lod-independence.spec.mjs",
+    "tests/browser/territorial-boundary-continuity.spec.mjs",
+    "tests/browser/territorial-boundary-migration.spec.mjs",
+    "tests/browser/territorial-child-fill-comparison.spec.mjs",
+    "tests/browser/territorial-common-commands.spec.mjs",
+    "tests/browser/territorial-display-selection.spec.mjs",
+    "tests/browser/territorial-gis-synthetic.spec.mjs",
+    "tests/browser/territorial-hierarchy.spec.mjs",
+    "tests/browser/territorial-names.spec.mjs",
+    "tests/browser/territorial-parent-edit.spec.mjs",
+    "tests/browser/territorial-processing-api.spec.mjs",
+    "tests/browser/territorial-selection.spec.mjs",
+    "tests/browser/territory-components-responsive.spec.mjs",
+    "tests/browser/timeline-persistence.spec.mjs",
+    "tests/browser/topbar-accent-controls.spec.mjs",
+    "tests/browser/ui-components.spec.mjs",
+    "tests/browser/ui-convergence-p1.spec.mjs",
+    "tests/browser/ui-entrypoint-cleanup.spec.mjs",
+    "tests/browser/unified-object-display.spec.mjs",
+    "tests/browser/unified-objects.spec.mjs",
+    "tests/browser/ussr-1922-caspian.spec.mjs",
+    "tests/browser/view-focus-actions.spec.mjs",
+    "tests/browser/viewer-country-mesh-p3-2.spec.mjs",
+    "tests/browser/viewer-display-regression.spec.mjs",
+    "tests/browser/visual-frame-sync.spec.mjs",
+    "tests/browser/workflow-v17.spec.mjs",
+    "tests/browser/workspace-surfaces.spec.mjs",
+    "tests/unit/app-geometry-preview.test.mjs",
     "tests/unit/app-map-audit.test.mjs",
-    "tests/unit/selection-ui-reset-regression.test.mjs",
-    "tests/unit/geometry-rpc-consumers.test.mjs",
-    "tests/unit/custom-color-control.test.mjs",
+    "tests/unit/app-ui-boundaries.test.mjs",
+    "tests/unit/application-composition.test.mjs",
     "tests/unit/autosave-recovery-ui.test.mjs",
+    "tests/unit/boundary-capture-comparison.test.mjs",
+    "tests/unit/boundary-revision-comparison.test.mjs",
+    "tests/unit/boundary-revision-timings.test.mjs",
+    "tests/unit/capability-ports-contract.test.mjs",
+    "tests/unit/color-picker-async-command.test.mjs",
+    "tests/unit/custom-color-control.test.mjs",
+    "tests/unit/domain-split-contract.test.mjs",
+    "tests/unit/draft-stroke.test.mjs",
+    "tests/unit/draft-toolbar.test.mjs",
+    "tests/unit/edit-preview-controller.test.mjs",
+    "tests/unit/edit-preview-handoff.test.mjs",
+    "tests/unit/edit-preview-presentation.test.mjs",
+    "tests/unit/editing-cancellation-boundaries.test.mjs",
+    "tests/unit/editing-interaction-events.test.mjs",
+    "tests/unit/editing-render-packet.test.mjs",
+    "tests/unit/editing-vertex-transaction.test.mjs",
+    "tests/unit/editor-flat-view.test.mjs",
+    "tests/unit/editor-map-merge-picking.test.mjs",
+    "tests/unit/editor-resource-capabilities.test.mjs",
+    "tests/unit/editor-test-entry.test.mjs",
+    "tests/unit/editor-workspace-presentation.test.mjs",
+    "tests/unit/geometry-rpc-consumers.test.mjs",
+    "tests/unit/map-edit-preparation-worker.test.mjs",
+    "tests/unit/map-edit-worker-client.test.mjs",
+    "tests/unit/map-edit-worker-lifecycle.test.mjs",
     "tests/unit/project-ui-async-history.test.mjs",
+    "tests/unit/property-editor-async-boundary.test.mjs",
     "tests/unit/selection-ui-focus.test.mjs",
+    "tests/unit/selection-ui-reset-regression.test.mjs",
+    "tests/unit/startup-performance-contract.test.mjs",
     "tests/unit/surface-tabs-controller.test.mjs",
+    "tests/unit/territorial-editor-entry.test.mjs",
+    "tests/unit/territorial-editor-lifecycle.test.mjs",
+    "tests/unit/territorial-gis-export.test.mjs",
+    "tests/unit/territorial-property-controller.test.mjs",
+    "tests/unit/territory-selection-workflow.test.mjs",
     "tests/unit/tool-controller.test.mjs"
-  ]
+  ],
+  "r4bDataSeparation": {
+    "version": 1,
+    "canonicalGenericFeatureNormalization": "shared/frontend/js/modules/generic-feature-normalization.js",
+    "historicalCommandAdapter": "tests/helpers/generic-feature-command-service.mjs",
+    "retiredMixedModule": "tools/gis/generic-feature-service.js",
+    "canonicalProjectTemplateCompiler": "tools/gis/project-template-compiler.js",
+    "canonicalBaselineFingerprint": "shared/frontend/js/modules/project-baseline-fingerprint.js",
+    "retiredAutosaveAdapter": "tests/helpers/legacy-project-autosave.mjs",
+    "removedLegacyGisSerializer": "tools/gis/project-serializer.js",
+    "territorialLibraryOwner": "tools/gis/territorial-library.js"
+  },
+  "r4cSpatialSeparation": {
+    "schema": "pandolab-r4c-spatial-boundaries-v1",
+    "canonical": [
+      "tools/gis/geometry-metrics.js",
+      "tools/gis/geometry-validation.js",
+      "tools/gis/country-import-merge.js",
+      "tools/gis/territorial-batch-calculation.js",
+      "tools/gis/territory-component-plan.js",
+      "tools/gis/country-geometry-calculator.js"
+    ],
+    "removedArchivedModules": [
+      "apps/editor/frontend/js/modules/geometry-metrics.js",
+      "apps/editor/frontend/js/modules/gis-geometry-validation.js",
+      "apps/editor/frontend/js/modules/territory-component-plan.js"
+    ],
+    "retainedWorkerAdapter": "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
+    "decision": "Preserve C++/WASM spatial numerical kernel and relevant GIS tests; leave obsolete editor UI/Worker orchestration for R4-D/E",
+    "workerBridges": [
+      "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
+      "apps/editor/frontend/js/modules/map-edit-country-commands.js",
+      "apps/editor/frontend/js/modules/polygon-clipping-calculation.js",
+      "apps/editor/frontend/js/modules/river-territory-partition.js"
+    ]
+  },
+  "r4dTestCiSeparation": {
+    "schema": "pandolab-r4d-retired-tests-ci-v1",
+    "archivedEditorSourcesRetained": 103,
+    "retiredWorkflowCount": 11,
+    "legacyTestsAreNotExecutables": true,
+    "canonicalCoverage": [
+      "tools/gis",
+      "shared/frontend/js/modules",
+      "shared/core",
+      "shared/wasm",
+      "apps/viewer",
+      "apps/editor/src-tauri"
+    ],
+    "note": "R4-D retires historical editor CI contracts; the 103 archived sources are deleted only in R4-E after dependency closure."
+  },
+  "r4e1GisInterop": {
+    "schema": "pandolab-r4e1-gis-interop-v1",
+    "baselineLegacyFiles": 103,
+    "canonicalGisSources": [
+      "tools/gis/country-import-identity.js",
+      "tools/gis/gis-import-plan.js",
+      "tools/gis/import-plan.js",
+      "tools/gis/gis-geometry-validator.js",
+      "tools/gis/territorial-entity-loader.js",
+      "tools/gis/gis-geometry-worker.js"
+    ],
+    "frozenTestFixtures": [
+      "tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt",
+      "tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt"
+    ],
+    "retainedOldSourcesUntilE2ToE5": true,
+    "gisDataAndWasmUnchanged": true,
+    "coverage": [
+      {
+        "old": "apps/editor/frontend/js/gis-adapters.js",
+        "status": "test-fixture",
+        "next": "tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt",
+        "note": "Classic GIS rows/columns retained only for frozen GeoPackage compatibility and old adapter tests."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/country-import-identity.js",
+        "status": "canonical",
+        "next": "tools/gis/country-import-identity.js",
+        "note": "Pure trusted country identity and mapping."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/gis-import-plan.js",
+        "status": "canonical",
+        "next": "tools/gis/gis-import-plan.js",
+        "note": "Immutable GIS import plan and stale-generation guard."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/gis-import-transaction.js",
+        "status": "defer-to-e2",
+        "next": null,
+        "note": "Legacy editor document mutation/commit; Core test assertions may migrate in E2, not a tools/gis production owner."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/import-plan.js",
+        "status": "canonical",
+        "next": "tools/gis/import-plan.js",
+        "note": "Structured import format/target mapping using canonical exchange registry."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/import-service.js",
+        "status": "partially-canonical",
+        "next": "tools/gis/gis-geometry-validator.js",
+        "note": "Actual GIS Worker RPC and timeout behavior moved; retired openImportWizard remains for E2/E3."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/library-geometry-context.js",
+        "status": "defer-to-e4",
+        "next": null,
+        "note": "Geometry editing workspace and native editor launch, not readonly Viewer data access."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/library-ownership.js",
+        "status": "defer-to-e3",
+        "next": null,
+        "note": "Old parent-choice UI and import command selection; preserve valuable hierarchy invariants in Core tests."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/native-library-repository.js",
+        "status": "defer-to-e4",
+        "next": null,
+        "note": "Obsolete native library_commit / sync editing bridge, forbidden in Windows read-only reviewer."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/territorial-entity-loader.js",
+        "status": "partially-canonical",
+        "next": "tools/gis/territorial-entity-loader.js",
+        "note": "Verified read-only catalog and repository loading moved; old native sync composition remains separately retired."
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/territorial-library-service.js",
+        "status": "defer-to-e2",
+        "next": "tools/gis/territorial-library.js",
+        "note": "Reader/date semantics already owned by canonical territorial library; old editor search/service facade to be retired after tests."
+      },
+      {
+        "old": "apps/editor/frontend/js/workers/gis-geometry-worker.js",
+        "status": "canonical",
+        "next": "tools/gis/gis-geometry-worker.js",
+        "note": "Actual RPC handler now tested using GIS-only Worker entry and shared C++/WASM core."
+      },
+      {
+        "old": "apps/editor/frontend/js/workers/gis-gpkg-worker.js",
+        "status": "test-fixture",
+        "next": "tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt",
+        "note": "Frozen encoder for original GeoPackage interoperability; never shipped in Viewer/Windows reviewer."
+      }
+    ]
+  },
+  "r4e2CoreGisTestMigration": {
+    "schema": "pandolab-r4e2-core-gis-test-migration-v1",
+    "countInvariant": {
+      "baselineCandidates": 153,
+      "removed": 50,
+      "remaining": 103
+    },
+    "testOwnedSources": [
+      "tests/helpers/core-command-services/territorial-service.mjs",
+      "tests/helpers/core-command-services/distribution-service.mjs",
+      "tests/helpers/core-command-services/save-state-controller.mjs",
+      "tests/helpers/core-gis-compat/gis-import-transaction.mjs",
+      "tests/helpers/core-gis-compat/land-relations.mjs",
+      "tests/helpers/core-gis-compat/import-service.mjs"
+    ],
+    "directCoreTestChanges": [
+      "tests/unit/core-direct-object-writers-wasm.test.mjs",
+      "tests/unit/core-delete-selection-wasm.test.mjs",
+      "tests/unit/core-generic-conversion-wasm.test.mjs",
+      "tests/unit/core-label-gesture-wasm.test.mjs"
+    ],
+    "testOnlySourcesNotShipped": true,
+    "knownActiveUiTestsDeferred": [
+      "tests/unit/platform-boundaries.test.mjs",
+      "tests/unit/general-regional-contract.test.mjs",
+      "tests/unit/territorial-command-storage.test.mjs",
+      "tests/unit/territorial-metadata-command.test.mjs",
+      "tests/unit/core-document-draft-wasm.test.mjs"
+    ],
+    "note": "Core semantic regression imports moved to test-owned adapters or direct ProjectDomain/C++ commands. Legacy UI-facade tests remain active for R4-E3 triage; no old 103 source has been deleted in E2.",
+    "statuses": [
+      {
+        "old": "apps/editor/frontend/js/modules/app-country-commits.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-cut-geometry.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-generic-commands.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-history-assembly.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-land-relations.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-gis-compat/land-relations.mjs"
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-library-assembly.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-object-commands.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-object-deletion.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-object-metadata.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-project-restore.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-project-snapshots.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-river-candidates.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-territorial-conversion.js",
+        "status": "migrated-high-value-core-tests; remaining UI tests E3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/app-territory-components.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/distribution-service.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-command-services/distribution-service.mjs"
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/map-edit-territorial-commands.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/persistence-service.js",
+        "status": "defer-ui-orchestrator-to-e3",
+        "target": null
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/save-state-controller.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-command-services/save-state-controller.mjs"
+      },
+      {
+        "old": "apps/editor/frontend/js/modules/territorial-service.js",
+        "status": "test-owned-copy",
+        "target": "tests/helpers/core-command-services/territorial-service.mjs"
+      }
+    ]
+  },
+  "r4e3EditorTestRetirement": {
+    "schema": "pandolab-r4e3-retired-tests-v1",
+    "retiredBrowser": 141,
+    "retiredUnit": 29,
+    "retiredAdditionalComparisonUnit": 3,
+    "removedTests": 173,
+    "removedOldWorkflows": 38,
+    "removedLegacyHelpersAndComparisonScripts": 11,
+    "preservedPreviousSourceCount": 103,
+    "retainedProductionGIS": [
+      "tools/gis",
+      "shared/core",
+      "shared/wasm",
+      "apps/viewer",
+      "apps/editor/src-tauri"
+    ],
+    "preservedGeoPackageOracles": true,
+    "note": "Historical archived browser, obsolete editor CI and test-only comparison utilities removed; all 103 retired editor frontend sources remain until E4/E5."
+  }
 }

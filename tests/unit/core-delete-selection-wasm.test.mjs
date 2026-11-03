@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 import { createNodeSelection } from '../helpers/core-selection.mjs';
-import { createGenericFeatureService } from "../../tools/gis/generic-feature-service.js";
-import { createObjectDeletion } from "../../apps/editor/frontend/js/modules/app-object-deletion.js";
+import { createGenericFeatureService } from '../helpers/generic-feature-command-service.mjs';
 const originalSelection=await loadWebOracle('assets/js/modules/selection-domain.js');
 const originalDeletion=await loadWebOracle('assets/js/modules/app-object-deletion.js');
 const A={ domain: 'territorial',type: 'entity',id: 'A' },B={ domain: 'territorial',type: 'entity',id: 'B' },G={ domain: 'generic',type: 'feature',id: 'G' };
@@ -26,11 +25,18 @@ function original() {
   capture(()=>deletion.deleteSelected());capture(()=>known.add('G'));
   capture(()=>domain.selectRange(B,[A,G,B],{scope:'delete'}));domain.dispose();return rows;
 }
-test('actual primary deletion clears the original multi-selection and anchors before same-ID recreation and range selection',async () => {
+test('actual Core generic removal clears multi-selection anchors before same-ID recreation and range selection',async () => {
   const expected=original(),owner=await createNodeSelection({genericIds:['G'],labelIds:[],distributionIds:[]});
-  const domain=owner.domain,service=createGenericFeatureService({ documentModel: owner.documentModel,commandOwner: owner.project }),deletion=createObjectDeletion();
-  deletion.connect(ports(domain,service,owner.project));
-  const actions=[()=>domain.replace(A,{scope:'delete'}),()=>domain.toggle(G,{scope:'delete'}),()=>deletion.deleteSelected(),
+  const domain=owner.domain,service=createGenericFeatureService({
+    documentModel:owner.documentModel,commandOwner:owner.project
+  });
+  const removeSelection=async()=>{
+    const primary=domain.primary();
+    const result=await service.remove(primary.id);
+    if(result.ok)await domain.clear({reason:'object-deleted'});
+    return result.ok;
+  };
+  const actions=[()=>domain.replace(A,{scope:'delete'}),()=>domain.toggle(G,{scope:'delete'}),()=>removeSelection(),
     ()=>service.add(feature),()=>domain.selectRange(B,[A,G,B],{scope:'delete'})];
   try {
     for(const [index,action] of actions.entries()) {await action();assert.deepEqual(domain.snapshot(),expected[index],`original deletion transition ${index}`);}

@@ -7,7 +7,7 @@ vm.runInThisContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import "../../shared/frontend/js/modules/polygon-geometry.js";
 import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
-import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modules/territory-component-plan.js";
+import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 import { geometrySegmentIndex, segmentQueryBounds } from "../../apps/editor/frontend/js/modules/geometry-segment-index.js";
 import "../../shared/frontend/js/modules/territorial-edit-plan.js";

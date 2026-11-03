@@ -1,0 +1,55 @@
+name: W2-P6 pinned country Worker input census
+on:
+  push:
+    branches: [work/ui]
+    paths:
+      - tools/w2-p6-1-country-payload-census.mjs
+      - .github/workflows/w2-p6-baseline-payload-census.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: w2-p6-census-ui
+  cancel-in-progress: true
+jobs:
+  census:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout exact W2-P4/P5 Windows measurement source read only
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/Pando
+          ref: fe8282ba32761ab9586348d1712e11cc1f4e7882
+          path: .w2-p6-fixed
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Validate static source/data contract and diagnostic syntax
+        run: |
+          test "$(git -C .w2-p6-fixed rev-parse HEAD)" = "fe8282ba32761ab9586348d1712e11cc1f4e7882"
+          node --check tools/w2-p6-1-country-payload-census.mjs
+          pnpm exec eslint tools/w2-p6-1-country-payload-census.mjs
+      - name: P6-0 pinned C++/Worker country-boundary correctness regression
+        run: node --test --test-concurrency=1 --test-timeout=60000 .w2-p6-fixed/tests/unit/country-shared-boundary-state.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Census canonical 254-country Worker payload off the timed transition path
+        env:
+          PANDOLAB_P6_PINNED_SOURCE: .w2-p6-fixed
+          PANDOLAB_P6_OUTPUT: test-results/w2-p6-1
+        run: node --max-old-space-size=6144 tools/w2-p6-1-country-payload-census.mjs
+      - name: Preserve source-pinned census including all country rows
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w2-p6-1-pinned-254-country-census
+          path: test-results/w2-p6-1/
+          if-no-files-found: warn
+          retention-days: 14

@@ -5,10 +5,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertCurrentProjectSchema, PROJECT_SCHEMA_VERSION } from "../../shared/frontend/js/modules/project-state.js";
 import { validateProjectReferenceIntegrity } from "../../shared/frontend/js/modules/project-invariants.js";
-import { createProjectSerializer } from "../../tools/gis/project-serializer.js";
+import { createProjectTemplateCompiler } from "../../tools/gis/project-template-compiler.js";
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 import { DISTRIBUTION_MODEL_SCHEMA_VERSION, LAYER_PRESENTATION_SCHEMA_VERSION, TERRITORIAL_MODEL_SCHEMA_VERSION } from "../../shared/frontend/js/modules/version-contract.js";
-import { createGisImportTransactionCommitter } from "../../apps/editor/frontend/js/modules/gis-import-transaction.js";
+import { createGisImportTransactionCommitter } from "../helpers/core-gis-compat/gis-import-transaction.mjs";
 
 const uuid = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 
@@ -108,7 +108,7 @@ test('invalid Generic Feature v2 provenance is rejected by schema and runtime in
 });
 
 test('serializer publishes Generic Feature as lossless fallback with provenance contract', () => {
-  const serializer = createProjectSerializer({
+  const serializer = createProjectTemplateCompiler({
     schemaVersion: PROJECT_SCHEMA_VERSION,
     appVersion: '0.30.0',
     baseDataset: 'base',

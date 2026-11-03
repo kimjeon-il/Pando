@@ -1,18 +1,71 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4e3-test-fixture-retirement-20261103, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
       - apps/editor/frontend/**
       - tools/gis/**
+      - shared/frontend/js/modules/generic-feature-normalization.js
+      - shared/frontend/js/modules/project-baseline-fingerprint.js
+      - tests/helpers/legacy-project-autosave.mjs
+      - tests/helpers/generic-feature-command-service.mjs
+      - tests/unit/r4b-data-module-boundaries.test.mjs
+      - tests/unit/r4c-spatial-boundaries.test.mjs
+      - tests/unit/r4d-legacy-ci-boundaries.test.mjs
+      - scripts/r4d-check-retired-tests.mjs
+      - scripts/r4e0-dependency-audit.mjs
+      - docs/development/r4e0-source-dispositions.json
+      - tests/unit/r4e0-dependency-audit.test.mjs
+      - tests/unit/r4e1-gis-interop-boundaries.test.mjs
+      - tests/unit/r4e2-core-gis-boundaries.test.mjs
+      - tests/unit/r4e3-retirement-boundaries.test.mjs
+      - docs/development/r4e3-retired-test-manifest.json
+      - scripts/r4e3-retirement-inventory.mjs
+      - tests/helpers/core-gis-compat/**
+      - tests/helpers/core-command-services/**
+      - tests/helpers/gis-core-fixture.mjs
+      - tests/helpers/current-command-fixture.mjs
+      - tests/helpers/web-full-document-fixture.mjs
+      - tests/unit/core-*-wasm.test.mjs
+      - tests/unit/core-generic-conversion-wasm.test.mjs
+      - tests/unit/core-label-gesture-wasm.test.mjs
+      - tests/unit/territorial-service.test.mjs
+      - tests/unit/distribution-service.test.mjs
+      - tests/unit/import-service.test.mjs
+      - tests/unit/generic-provenance.test.mjs
+      - tests/unit/land-relations-presentation.test.mjs
+      - tests/unit/country-import-identity.test.mjs
+      - tests/unit/import-plan.test.mjs
+      - tests/unit/gis-adapters.test.mjs
+      - tests/unit/territorial-entity-loader.test.mjs
+      - tests/unit/core-gpkg-file-boundary.test.mjs
+      - tests/helpers/production-geopackage.mjs
+      - tests/fixtures/geopackage/compat/**
+      - scripts/run-active-tests.mjs
+      - tests/unit/gis-math-contract.test.mjs
+      - tests/unit/gis-geometry-worker.test.mjs
+      - tests/unit/library-shared-border-precision.test.mjs
+      - tests/unit/annex-slivers.test.mjs
+      - tests/unit/river-territory-partition-serbia.test.mjs
+      - tests/unit/shared-geometry-calculations.test.mjs
+      - tests/unit/*territorial*.test.mjs
+      - tests/unit/*soviet*.test.mjs
+      - tests/unit/ussr-1922-selection.test.mjs
+      - tests/unit/library-import-atomic.test.mjs
+      - tests/unit/source-date-cut-normalization.test.mjs
+      - tests/unit/sudan-ukraine-transition.test.mjs
+      - tools/builtin-world-compiler.mjs
+      - package.json
       - scripts/contracts/application-checks.json
       - scripts/contracts/territorial-storage-access.json
       - scripts/check-generic-provenance.mjs
       - scripts/check-object-registry.mjs
       - scripts/check-renderer-v2.mjs
       - tests/unit/r4-editor-source-retirement.test.mjs
+      - docs/development/r4c-spatial-calculation-boundaries.md
+      - apps/editor/frontend/js/workers/gis-geometry-worker.js
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,10 +83,17 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verify all registered tests after old source deletion
         run: node scripts/run-application-checks.mjs --list --base HEAD > /dev/null
+      - name: Validate R4-D retired test and CI boundaries
+        run: node scripts/r4d-check-retired-tests.mjs --check
+      - name: Validate R4-E3 retired editor test inventory
+        run: node scripts/r4e3-retirement-inventory.mjs --check --summary
+      - name: Validate R4-E0 per-file dependency closure
+        run: node scripts/r4e0-dependency-audit.mjs --check --output test-results/r4e0-dependency-map.json
       - name: Validate Viewer and Windows boundaries
         run: node scripts/check-runtime-boundaries.mjs
       - name: Validate territorial storage, provenance and version ownership
         run: |
+          node scripts/check-command-architecture.mjs
           node scripts/check-territorial-storage.mjs
           node scripts/check-generic-provenance.mjs
           node scripts/check-version-architecture.mjs
@@ -43,6 +103,40 @@ jobs:
         run: >-
           node --test --test-concurrency=2
           tests/unit/r4-editor-source-retirement.test.mjs
+          tests/unit/r4b-data-module-boundaries.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
+          tests/unit/r4d-legacy-ci-boundaries.test.mjs
+          tests/unit/r4e0-dependency-audit.test.mjs
+          tests/unit/r4e1-gis-interop-boundaries.test.mjs
+          tests/unit/r4e2-core-gis-boundaries.test.mjs
+          tests/unit/r4e3-retirement-boundaries.test.mjs
+          tests/unit/territorial-service.test.mjs
+          tests/unit/distribution-service.test.mjs
+          tests/unit/core-territorial-service-wasm.test.mjs
+          tests/unit/core-service-writer-clock-wasm.test.mjs
+          tests/unit/service-core-command-owner.test.mjs
+          tests/unit/core-direct-object-writers-wasm.test.mjs
+          tests/unit/core-delete-selection-wasm.test.mjs
+          tests/unit/core-generic-conversion-wasm.test.mjs
+          tests/unit/core-label-gesture-wasm.test.mjs
+          tests/unit/generic-provenance.test.mjs
+          tests/unit/land-relations-presentation.test.mjs
+          tests/unit/import-service.test.mjs
+          tests/unit/country-import-identity.test.mjs
+          tests/unit/import-plan.test.mjs
+          tests/unit/gis-adapters.test.mjs
+          tests/unit/territorial-entity-loader.test.mjs
+          tests/unit/core-gpkg-file-boundary.test.mjs
+          tests/unit/gis-math-contract.test.mjs
+          tests/unit/gis-geometry-worker.test.mjs
+          tests/unit/library-shared-border-precision.test.mjs
+          tests/unit/annex-slivers.test.mjs
+          tests/unit/river-territory-partition-serbia.test.mjs
+          tests/unit/shared-geometry-calculations.test.mjs
+          tests/unit/builtin-world-catalog.test.mjs
+          tests/unit/period-only-world.test.mjs
+          tests/unit/historical-world-timeline.test.mjs
+          tests/unit/versioning-source-schema.test.mjs
           apps/editor/tests/native-contract.test.mjs
           tests/unit/territorial-library.test.mjs
           tests/unit/territorial-library-data.test.mjs
@@ -53,3 +147,11 @@ jobs:
           tests/unit/library-auto-inputs.test.mjs
           tests/unit/library-auto-executor.test.mjs
           tests/unit/korean-boundary-data.test.mjs
+          tests/unit/territorial-snapshots.test.mjs
+          tests/unit/ussr-1922-selection.test.mjs
+          tests/unit/source-date-cut-normalization.test.mjs
+          tests/unit/sudan-ukraine-transition.test.mjs
+          tests/unit/soviet-republic-transitions.test.mjs
+          tests/unit/library-import-atomic.test.mjs
+          tests/unit/territorial-source-parity.test.mjs
+          tests/unit/territorial-library-service.test.mjs

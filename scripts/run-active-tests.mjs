@@ -1,0 +1,31 @@
+// Run registered, supported application tests only. Archived editor and manual
+// performance/probe suites are deliberately not part of the default product test.
+import {spawnSync} from 'node:child_process';
+import {loadRepository} from './plan-application-checks.mjs';
+
+const kind=process.argv[2];
+if(!['unit','browser'].includes(kind)){
+  console.error('Usage: node scripts/run-active-tests.mjs unit|browser [--list|test flags]');
+  process.exitCode=2;
+}else{
+  const repository=loadRepository(new URL('../',import.meta.url));
+  const files=repository.tests.filter(file=>file.startsWith('tests/'+kind+'/')
+    && !['retired','manual'].includes(repository.owners.get(file)?.mode)).sort();
+  if(process.argv.includes('--list'))console.log(files.join('\n'));
+  else{
+    // Keep Windows command lines well below the 32 KiB process limit.
+    // Browser specs remain one Playwright invocation to preserve fixtures.
+    const groupSize=kind==='unit'?120:files.length||1;
+    let failed=false;
+    for(let at=0;at<files.length;at+=groupSize){
+      const batch=files.slice(at,at+groupSize);
+      const args=kind==='unit'?
+        ['--test','--test-concurrency=2',...batch,...process.argv.slice(3)]:
+        ['node_modules/@playwright/test/cli.js','test',...batch,'--workers=1',...process.argv.slice(3)];
+      const result=spawnSync(process.execPath,args,{cwd:repository.root,stdio:'inherit'});
+      if(result.error)throw result.error;
+      if(result.status!==0)failed=true;
+    }
+    process.exitCode=failed?1:0;
+  }
+}

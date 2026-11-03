@@ -5,7 +5,7 @@ import { gunzipSync } from 'node:zlib';
 import '../helpers/spherical-core.mjs';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import "../../shared/frontend/js/modules/polygon-geometry.js";
-import { createTerritoryComponentPlan } from "../../apps/editor/frontend/js/modules/territory-component-plan.js";
+import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
 import { createTerritoryComponents } from "../../apps/editor/frontend/js/modules/app-territory-components.js";
 import { composeRiverBoundaryTerritoryComponents } from "../../tools/gis/river-territory-partition.js";
 import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";

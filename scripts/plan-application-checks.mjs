@@ -84,20 +84,11 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   for (const specs of Object.values(catalog.manualScopes || {})) for (const spec of specs)
     if (!exists(spec)) throw Error('Missing focused browser spec: ' + spec);
   const frontendIndex = buildFrontendIndex(root);
-  const retiredUnitTests = new Set([
-    'tests/unit/application-composition.test.mjs',
-    'tests/unit/capability-ports-contract.test.mjs',
-    'tests/unit/territorial-gis-export.test.mjs',
-    'tests/unit/territorial-property-controller.test.mjs',
-    'tests/unit/startup-performance-contract.test.mjs',
-  ]);
   const owners = new Map(), retiredTests = new Map();
   for (const file of tests) {
     const group = catalog.groups.find(group => matches(file, group.testPatterns));
     if (!group) throw Error('Unregistered test: ' + file);
-    const reason = retiredUnitTests.has(file)
-      ? 'tests the removed graphical-editor application rather than current Viewer/Windows'
-      : retiredEditorBrowserReason(file, read(file));
+    const reason = retiredEditorBrowserReason(file, read(file)) || (group.mode === 'retired' ? group.reason : null);
     if (reason) {
       retiredTests.set(file, reason);
       owners.set(file, { ...group, mode: 'retired', reason });
