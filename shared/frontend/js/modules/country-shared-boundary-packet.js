@@ -152,7 +152,15 @@ const boundaryGeometryCache = new WeakMap();
 // row is independent, so chunking preserves the source order and exact pieces.
 const OUTLINE_BATCH_EDGES = 16_384;
 const OUTLINE_BATCH_CANDIDATES = 1_000_000;
-export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES, includeOutlines = true } = {}) {
+export function prepareCountrySharedBoundaryPacket(segments = [], features = [], { preparedStore, maxEdgeDegrees = MAX_BOUNDARY_EDGE_DEGREES, includeOutlines = true, profile } = {}) {
+  // Optional, non-mutating diagnostic spans. The ordinary viewer does not
+  // allocate timing entries or call performance.now() for each source edge.
+  const measure = (name, operation, details) => {
+    if (typeof profile !== 'function') return operation();
+    const started = performance.now();
+    try { return operation(); }
+    finally { profile(name, performance.now() - started, details); }
+  };
   const store = preparedStore || createPreparedBoundaryStore();
   if (!preparedStore) store.replace(features);
   const byId = new Map(features.map(feature => [String(feature.id), feature]));
@@ -168,18 +176,22 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
     const internal = [];
     // The common land-contact topology owns child boundaries. These flattened
     // presentation references do not change the canonical document hierarchy.
-    for (const root of roots) {
-      const members = children.filter(feature => rootOf(feature.id) === String(root.id))
-        .map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general', parentId: String(root.id) } }));
-      for (const segment of buildTerritorialInternalBoundarySegments([root], members)) internal.push({
-        start: segment.a, end: segment.b, ownerIds: [...new Set([String(root.id), ...segment.unitOwners.map(owner => owner.id)])].sort(),
-      });
-    }
-    const hierarchyContacts = segments.filter(segment => sameHierarchy(segment) && childIds(segment.ownerIds).length);
-    const opposing = hierarchyContacts.length ? sharedCalculationCore.boundaryOpposingInteriorsBatch(hierarchyContacts.map(segment => boundaryInteriorComparison(segment, segment.ownerIds))) : [];
-    if (!Array.isArray(opposing) || opposing.length !== hierarchyContacts.length || opposing.some(value => typeof value !== 'boolean'))
-      throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'), { code: 'PL-BOUNDARY-INTERIOR' });
-    const coasts = hierarchyContacts.filter((_, index) => !opposing[index]);
+    measure('hierarchy-internal', () => {
+      for (const root of roots) {
+        const members = children.filter(feature => rootOf(feature.id) === String(root.id))
+          .map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general', parentId: String(root.id) } }));
+        for (const segment of buildTerritorialInternalBoundarySegments([root], members)) internal.push({
+          start: segment.a, end: segment.b, ownerIds: [...new Set([String(root.id), ...segment.unitOwners.map(owner => owner.id)])].sort(),
+        });
+      }
+    }, {roots: roots.length, children: children.length});
+    const coasts = measure('hierarchy-classification', () => {
+      const hierarchyContacts = segments.filter(segment => sameHierarchy(segment) && childIds(segment.ownerIds).length);
+      const opposing = hierarchyContacts.length ? sharedCalculationCore.boundaryOpposingInteriorsBatch(hierarchyContacts.map(segment => boundaryInteriorComparison(segment, segment.ownerIds))) : [];
+      if (!Array.isArray(opposing) || opposing.length !== hierarchyContacts.length || opposing.some(value => typeof value !== 'boolean'))
+        throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'), { code: 'PL-BOUNDARY-INTERIOR' });
+      return hierarchyContacts.filter((_, index) => !opposing[index]);
+    });
     cached = { key, internal, coasts, outlines: null };
     boundaryGeometryCache.set(store, cached);
   }
@@ -192,15 +204,19 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   }
   if (includeOutlines && !cached.outlines) {
     const excluded = createBoundarySpatialIndex();
-    [...segments, ...cached.internal].forEach((segment, index) => {
-      const row = { a: segment.start, b: segment.end, ownerIds: segment.ownerIds };
-      excluded.insert(index, row, segmentBounds(row));
-    });
+    measure('outline-index', () => {
+      [...segments, ...cached.internal].forEach((segment, index) => {
+        const row = { a: segment.start, b: segment.end, ownerIds: segment.ownerIds };
+        excluded.insert(index, row, segmentBounds(row));
+      });
+    }, {segments: segments.length + cached.internal.length});
     const pending = [], outlines = [];
     let candidateCount = 0;
     function flushOutlines() {
       if (!pending.length) return;
-      const clipped = sharedCalculationCore.boundarySubtractOverlapsBatch(pending.map(({ start, end, blocked }) => [[start, end], blocked]));
+      const clipped = measure('outline-wasm-subtract', () =>
+        sharedCalculationCore.boundarySubtractOverlapsBatch(pending.map(({ start, end, blocked }) => [[start, end], blocked])),
+      {sourceEdges: pending.length, candidates: candidateCount});
       if (!Array.isArray(clipped) || clipped.length !== pending.length || clipped.some(pieces => !Array.isArray(pieces)))
         throw Object.assign(new Error('Incomplete compiled outline overlap subtraction.'), { code: 'PL-BOUNDARY-OVERLAP' });
       pending.forEach(({ id }, index) => {
@@ -209,22 +225,24 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
       pending.length = 0;
       candidateCount = 0;
     }
-    for (const feature of features) {
-      const id = String(feature.id);
-      forEachRenderableBoundarySegment(store.get(id).geometry, ([start, end]) => {
-        const bounds = segmentBounds({ a: start, b: end }).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
-        const blocked = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id)).map(edge => [edge.a, edge.b]);
-        if (pending.length >= OUTLINE_BATCH_EDGES
-          || (pending.length && candidateCount + blocked.length > OUTLINE_BATCH_CANDIDATES)) flushOutlines();
-        pending.push({ id, start, end, blocked });
-        candidateCount += blocked.length;
-      });
-    }
-    flushOutlines();
+    measure('outline-scan-including-wasm', () => {
+      for (const feature of features) {
+        const id = String(feature.id);
+        forEachRenderableBoundarySegment(store.get(id).geometry, ([start, end]) => {
+          const bounds = segmentBounds({ a: start, b: end }).map((value, index) => value + (index < 2 ? -1e-7 : 1e-7));
+          const blocked = excluded.query(bounds).filter(edge => edge.ownerIds.includes(id)).map(edge => [edge.a, edge.b]);
+          if (pending.length >= OUTLINE_BATCH_EDGES
+            || (pending.length && candidateCount + blocked.length > OUTLINE_BATCH_CANDIDATES)) flushOutlines();
+          pending.push({ id, start, end, blocked });
+          candidateCount += blocked.length;
+        });
+      }
+      flushOutlines();
+    }, {features: features.length});
     cached.outlines = [...outlines, ...cached.coasts];
   }
-  const packet = prepareStrokePacket(visible, maxEdgeDegrees);
-  const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees);
+  const packet = prepareStrokePacket(visible, maxEdgeDegrees, measure, 'contact-stroke');
+  const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees, measure, 'outline-stroke');
   outlineOverrides.internalOwners = Object.fromEntries([
     ...features.filter(feature => rootOf(feature.id) !== String(feature.id)).map(feature => [String(feature.id), [String(feature.id)]]),
     ...cached.coasts.map(segment => [segment.ownerIds.join('|'), childIds(segment.ownerIds)]),
@@ -233,18 +251,21 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
     outlineOwnerIds: [...byId.keys()].sort() };
 }
 
-function prepareStrokePacket(segments, maxEdgeDegrees) {
+function prepareStrokePacket(segments, maxEdgeDegrees, measure = (_, operation) => operation(), label = 'stroke') {
   // The browser owns only locale-sensitive input ordering and GPU allocation.
   // Country grouping, junction walks, seam splitting, subdivision, phases and
   // owner ranges are calculated in the same native C++ source used by Qt.
-  const source = [...segments].sort((left, right) =>
+  const source = measure(label + '-sort', () => [...segments].sort((left, right) =>
     left.ownerIds.join('|').localeCompare(right.ownerIds.join('|')))
-    .map(segment => [segment.start, segment.end, segment.ownerIds]);
+    .map(segment => [segment.start, segment.end, segment.ownerIds]), {segments: segments.length});
   if (typeof sharedCalculationCore.boundaryAssembleStrokePacket !== 'function') {
     throw Object.assign(new Error('Compiled shared-border packet builder unavailable.'),
       { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  const packet = sharedCalculationCore.boundaryAssembleStrokePacket(source, maxEdgeDegrees);
+  // Native execution and JS/WASM conversion are a single bridge span; this
+  // diagnostic does not attribute their individual CPU costs.
+  const packet = measure(label + '-wasm-bridge', () =>
+    sharedCalculationCore.boundaryAssembleStrokePacket(source, maxEdgeDegrees), {segments: source.length});
   if (!packet || !Array.isArray(packet.segments) || !Array.isArray(packet.ownerIds)
     || !(packet.startsEnds instanceof Float32Array)
     || !(packet.chainPhase instanceof Float32Array)
@@ -254,6 +275,7 @@ function prepareStrokePacket(segments, maxEdgeDegrees) {
     throw Object.assign(new Error('Incomplete compiled shared-border render packet.'),
       { code: 'PL-BOUNDARY-PACKET' });
   }
-  return { ...packet, preparedGeometry: buildGpuStrokeInstances(
-    packet.startsEnds, packet.chainPhase, packet.ownerRanges) };
+  return { ...packet, preparedGeometry: measure(label + '-gpu-instances', () =>
+    buildGpuStrokeInstances(packet.startsEnds, packet.chainPhase, packet.ownerRanges),
+  {segments: packet.segments.length}) };
 }
