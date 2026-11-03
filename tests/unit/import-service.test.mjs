@@ -10,7 +10,7 @@ import {
   applyImportedPackageAssets,
   createGisGeometryValidator,
   createImportService,
-} from "../../apps/editor/frontend/js/modules/import-service.js";
+} from "../helpers/core-gis-compat/import-service.mjs";
 import {createCountryImportMergePlanner} from "../../tools/gis/country-import-merge.js";
 
 test('shared GIS country merge resolves ordered identities and rejects invalid imports', () => {

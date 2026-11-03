@@ -2,7 +2,7 @@ import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
-import {createLandRelations} from "../../apps/editor/frontend/js/modules/app-land-relations.js";
+import {createLandRelations} from "../helpers/core-gis-compat/land-relations.mjs";
 import {createCountryCommandCalculator} from "../../tools/gis/country-geometry-calculator.js";
 import {createTerritorialFeature,territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
 import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";

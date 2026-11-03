@@ -1,10 +1,10 @@
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import {initializeTestTerritorialState,testCoreProject} from './timeline-project.mjs';
-import {createGisImportTransactionCommitter} from "../../apps/editor/frontend/js/modules/gis-import-transaction.js";
-import {createLandRelations} from "../../apps/editor/frontend/js/modules/app-land-relations.js";
+import {createGisImportTransactionCommitter} from "./core-gis-compat/gis-import-transaction.mjs";
+import {createLandRelations} from "./core-gis-compat/land-relations.mjs";
 import {territorialRootId,TERRITORIAL_COVERAGE_MODES} from "../../shared/frontend/js/modules/territorial-units.js";
 import {DISTRIBUTION_MODES} from "../../shared/frontend/js/modules/distribution-model.js";
-import {applyImportedPackageAssets} from "../../apps/editor/frontend/js/modules/import-service.js";
+import {applyImportedPackageAssets} from "../../shared/frontend/js/modules/project-package-assets.js";
 import {createGenericFeatureService} from './generic-feature-command-service.mjs';
 import {normalizeGenericFeatureSemantics,GENERIC_FEATURE_SCHEMA_VERSION} from '../../shared/frontend/js/modules/generic-feature-normalization.js';
 
