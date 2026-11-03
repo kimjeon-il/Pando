@@ -8,6 +8,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 import {ANCHORS,UNRESOLVED_BANKS,decimalDegrees} from './baikonur-official-reference.mjs';
+import {verifyBaikonurLeaseExclusionSource,EFFECTIVE_DATE} from './verify-baikonur-lease-exclusions.mjs';
 const error=(msg)=>{throw Error(msg);};
 const check=(v,msg)=>{if(!v)error(msg);};
 const sha=v=>createHash('sha256').update(v).digest('hex');
@@ -47,7 +48,7 @@ const requireSource=(s,label)=>{
     label+' must have an immutable content SHA-256');
 };
 export function validateBaikonurBankCandidate(candidate,{
-  endpointToleranceMeters=30,exclusionPolygons=[],referenceDate='1994-12-10'
+  endpointToleranceMeters=30,exclusionPolygons=verifyBaikonurLeaseExclusionSource().features,referenceDate=EFFECTIVE_DATE
 }={}){
   check(candidate?.type==='FeatureCollection'&&Array.isArray(candidate.features),
     'Candidate must be GeoJSON FeatureCollection');
@@ -61,10 +62,20 @@ export function validateBaikonurBankCandidate(candidate,{
     'Treaty specifies right bank; orientation must be independently confirmed');
   check(candidate.properties?.referenceDate===referenceDate,
     'Candidate historic legal validity date mismatch');
+  check(referenceDate>=EFFECTIVE_DATE,
+    'The 2020-amended lease exclusions cannot be used for an earlier legal epoch');
+  const requiredExclusions=['1-1','1-2','1-3','1-4','tyuratam','akay'];
+  const actualExclusions=exclusionPolygons.map(row=>String(row.properties?.plot||''));
+  check(exclusionPolygons.length===requiredExclusions.length
+    &&new Set(actualExclusions).size===requiredExclusions.length
+    &&requiredExclusions.every(label=>actualExclusions.includes(label)),
+    'All six official lease exclusions must be geometrically supplied');
   check(candidate.properties?.amendment2019ExclusionsApplied===true,
     'All effective exclusions and shared border topology must be accounted for');
   check(candidate.properties?.topologyWithKazakhstanVerified===true,
     'Kazakhstan and leased polygon must share one exact edge');
+  check(candidate.properties?.roadAndRailExclusionsVerified===true,
+    'The unbounded road and rail lease exclusions are not yet verified');
   check(candidate.properties?.riverFlowDirectionVerified===true,
     'Flow direction must be checked independently');
   check(Array.isArray(candidate.properties?.sourceEvidence)&&
@@ -105,9 +116,13 @@ export function validateBaikonurBankCandidate(candidate,{
       check(Array.isArray(ring)&&ring.length>=4&&ring.every(parsePoint),
         'Invalid independently verified exclusion polygon');
       for(let i=0;i<coords.length-1;i++){
-        const mid=[(coords[i][0]+coords[i+1][0])/2,
-          (coords[i][1]+coords[i+1][1])/2];
-        check(!contains(mid,ring),'Bank enters an excluded 2019 plot: '+pair);
+        const a=coords[i],b=coords[i+1],
+          mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+        check(!contains(a,ring)&&!contains(mid,ring)&&!contains(b,ring),
+          'Bank enters a leased-out exclusion: '+pair);
+        for(let j=0;j<ring.length-1;j++)
+          check(!crosses(a,b,ring[j],ring[j+1]),
+            'Bank crosses a leased-out exclusion boundary: '+pair);
       }
     }
     metrics.push({pair,points:coords.length,lengthMeters:Math.round(length),
@@ -117,11 +132,11 @@ export function validateBaikonurBankCandidate(candidate,{
   const bytes=Buffer.from(JSON.stringify(candidate));
   return {
     schema:'pando-baikonur-independent-bank-review-v1',
-    status:'GEOMETRY_CANDIDATE_VALIDATED_NOT_PUBLISHED',
+    status:'STRUCTURAL_REVIEW_ONLY_NOT_LEGAL_GEOMETRY',
     geometrySha256:sha(bytes),bankCount:2,treatyAnchorCount:31,
     osmDataUsed:false,referenceDate,metrics,
     publicationAuthorized:false,
-    warning:'This validator checks geometric/provenance declarations, not the authenticity of external source bytes, cadastral datum, historic bank interpretation or actual shared-border topology.',
+    warning:'Structural checks alone cannot certify source authenticity, legal epoch shoreline, geodetic datum, transport corridor exclusions or Kazakhstan shared-border topology. Never publish or remove OSM credit from this receipt.',
   };
 }
 export function main(argv=process.argv.slice(2)){
