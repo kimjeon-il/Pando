@@ -19,6 +19,8 @@ test('exact treaty years and local geographic boxes only',()=>{
     assert.equal(u.hostname,'planetarycomputer.microsoft.com');
     assert.equal(u.searchParams.get('datetime'),
       year+'-01-01T00:00:00Z/'+year+'-12-31T23:59:59Z');
+    assert.equal(u.pathname,'/api/stac/v1/search');
+    assert.equal(u.searchParams.get('collections'),'landsat-c2-l2');
     assert.equal(u.searchParams.get('limit'),'100');
   }
   assert.throws(()=>sceneYearQuery([63,45,64,46],1996),/Unreviewed/);
