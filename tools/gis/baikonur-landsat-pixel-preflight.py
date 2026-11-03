@@ -85,7 +85,9 @@ def search_scenes(bbox, year):
 
 def sign_asset(url):
     global _TOKEN_CACHE
-    if not url.startswith("https://landsatplanetary.blob.core.windows.net/landsat/"):
+    from urllib.parse import urlsplit
+    source = urlsplit(url)
+    if source.scheme != "https" or not source.hostname.endswith(".blob.core.windows.net"):
         raise ValueError("Untrusted Landsat container")
     if _TOKEN_CACHE is None:
         resp = requests.get(TOKEN, timeout=25)
@@ -184,6 +186,14 @@ def run(areas, years=(1994, 2020), attempts=3):
                         # Never log an exception containing Azure signed URL/SAS.
                         item["errors"].append({
                             "sceneId": scene["id"], "class": type(ex).__name__,
+                            "httpStatus": getattr(getattr(ex, "response", None), "status_code", None),
+                            "safeReason": str(ex) if isinstance(ex, ValueError) and
+                              str(ex) in (
+                                "Untrusted Landsat container",
+                                "Missing container-scoped ephemeral signature",
+                                "Less than half the local treaty window has valid pixels",
+                                "Source spectral and QA grids are not co-registered"
+                              ) else "Unavailable",
                             "reason": "COG_WINDOWS_OR_SAS_UNAVAILABLE_NO_GEOMETRY_ASSUMED"})
                 item["status"] = "SPECTRAL_PIXELS_OBSERVED" if item["examined"] else "NO_VALID_PIXEL_WINDOW"
             except Exception as ex:
