@@ -68,7 +68,7 @@ test('R4-C GIS overlap audit keeps input geometry and reports both countries',()
 test('R4-C detached country planner and batch calculator retain exact module ownership',()=>{
  assert.equal(typeof createCountryImportMergePlanner,'function');
  assert.equal(typeof calculateLibraryBatch,'function');
- assert.doesNotMatch(read('apps/editor/frontend/js/modules/import-service.js'),/createCountryImportMergePlanner/);
+ assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/import-service.js')),false);
  assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/map-edit-library-calculation.js')),false);
 });
 

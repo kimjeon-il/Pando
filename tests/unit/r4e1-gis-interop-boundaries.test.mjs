@@ -6,8 +6,6 @@ import {createGisImportPlan,assertCurrentGisImportPlan} from '../../tools/gis/gi
 import {normalizeImportPlan} from '../../tools/gis/import-plan.js';
 import {createGisGeometryValidator} from '../../tools/gis/gis-geometry-validator.js';
 import {createTerritorialEntityLoader,createRepositoryTerritorialLoader} from '../../tools/gis/territorial-entity-loader.js';
-import * as previousLoader from '../../apps/editor/frontend/js/modules/territorial-entity-loader.js';
-import * as previousService from '../../apps/editor/frontend/js/modules/import-service.js';
 
 const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root),'utf8');
@@ -22,9 +20,9 @@ test('R4-E1 canonical GIS identity and import plans work without retired adapter
  assert.equal(typeof createGisImportPlan,'function');
  assert.equal(typeof assertCurrentGisImportPlan,'function');
  assert.equal(typeof normalizeImportPlan,'function');
- assert.equal(previousService.createGisGeometryValidator,createGisGeometryValidator);
- assert.equal(previousLoader.createTerritorialEntityLoader,createTerritorialEntityLoader);
- assert.equal(previousLoader.createRepositoryTerritorialLoader,createRepositoryTerritorialLoader);
+ assert.equal(typeof createGisGeometryValidator,'function');
+ assert.equal(typeof createTerritorialEntityLoader,'function');
+ assert.equal(typeof createRepositoryTerritorialLoader,'function');
  const source={type:'Feature',id:'DEU',properties:{name:'Germany'},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]},
    importIdentity:{sourceNamespace:'natural-earth',sourceIdField:'ADM0_A3',sourceId:'DEU'}};
  const row=resolveCountryIdentities([source],[{...source,properties:{name:'독일'}}])[0];
