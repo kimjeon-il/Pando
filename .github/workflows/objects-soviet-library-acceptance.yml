@@ -40,7 +40,7 @@ jobs:
         run: >-
           node --test --test-concurrency=1
           tests/unit/gis-geometry-worker.test.mjs
-          tests/unit/map-edit-preparation-worker.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/library-import-atomic.test.mjs
       - name: Stage current code-matched immutable browser Worker runtime
         run: |

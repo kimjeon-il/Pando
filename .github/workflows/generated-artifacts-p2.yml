@@ -209,7 +209,7 @@ jobs:
         run: >-
           node --test tests/unit/p6-polygon-core.test.mjs
           tests/unit/map-analysis-core.test.mjs
-          tests/unit/edit-preparation.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/map-analysis-georef.test.mjs
           tests/unit/map-analysis-live-wire.test.mjs tests/unit/map-analysis-line-refiner.test.mjs
           tests/unit/river-territory-partition.test.mjs

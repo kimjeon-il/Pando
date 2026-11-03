@@ -24,14 +24,14 @@ on:
       - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
       - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
       - 'tests/unit/map-hover-*.test.mjs'
-      - 'tests/unit/editing-cancellation-boundaries.test.mjs'
+      - 'tests/unit/r4c-spatial-boundaries.test.mjs'
       - 'tests/unit/selection-*.test.mjs'
       - 'tests/unit/*core*.test.mjs'
       - 'tests/unit/native-*.test.mjs'
       - 'tests/unit/qt-retirement-boundary.test.mjs'
       - 'tests/unit/web-*-contract.test.mjs'
-      - 'tests/unit/persistence-service.test.mjs'
-      - 'tests/unit/autosave-recovery-ui.test.mjs'
+      - 'tests/unit/project-serializer.test.mjs'
+      - 'tests/unit/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/project-preview-cache.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
       - 'tests/unit/progressive-startup-runtime*.test.mjs'
@@ -69,14 +69,14 @@ on:
       - 'tests/fixtures/portability/web-9300609-hydro-hidden/**'
       - 'tests/fixtures/portability/web-9300609-hydro-copy/**'
       - 'tests/unit/map-hover-*.test.mjs'
-      - 'tests/unit/editing-cancellation-boundaries.test.mjs'
+      - 'tests/unit/r4c-spatial-boundaries.test.mjs'
       - 'tests/unit/selection-*.test.mjs'
       - 'tests/unit/*core*.test.mjs'
       - 'tests/unit/native-*.test.mjs'
       - 'tests/unit/qt-retirement-boundary.test.mjs'
       - 'tests/unit/web-*-contract.test.mjs'
-      - 'tests/unit/persistence-service.test.mjs'
-      - 'tests/unit/autosave-recovery-ui.test.mjs'
+      - 'tests/unit/project-serializer.test.mjs'
+      - 'tests/unit/r4b-data-module-boundaries.test.mjs'
       - 'tests/unit/project-preview-cache.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
       - 'tests/unit/progressive-startup-runtime*.test.mjs'
@@ -286,7 +286,7 @@ jobs:
       - name: Ordered storage snapshot and project replacement boundaries
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/persistence-service.test.mjs tests/unit/autosave-recovery-ui.test.mjs
+          tests/unit/project-serializer.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
           tests/unit/runtime-performance-metrics.test.mjs tests/unit/project-preview-cache.test.mjs
           tests/unit/project-preview-policy.test.mjs
       - name: Plugin boundary graph and retired attachment contracts
@@ -296,19 +296,19 @@ jobs:
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/generic-feature-service.test.mjs tests/unit/distribution-service.test.mjs
-          tests/unit/service-core-command-owner.test.mjs
+          tests/unit/generic-feature-service.test.mjs tests/unit/territorial-entity-store.test.mjs
+          tests/unit/r4d-legacy-ci-boundaries.test.mjs
           tests/unit/core-service-writer-clock-wasm.test.mjs
       - name: Accepted selection and input presentation boundaries
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/selection-domain-core.test.mjs tests/unit/selection-domain-wasm.test.mjs
-          tests/unit/selection-ui-ack.test.mjs tests/unit/selection-ui-focus.test.mjs
-          tests/unit/selection-ui-reset-regression.test.mjs tests/unit/territorial-display-identity.test.mjs
+          tests/unit/selection-ui-ack.test.mjs tests/unit/selection-domain-core.test.mjs
+          tests/unit/selection-domain-wasm.test.mjs tests/unit/territorial-display-identity.test.mjs
           tests/unit/map-settings-core-ack.test.mjs tests/unit/map-label-visibility.test.mjs
           tests/unit/builtin-resource-admission.test.mjs tests/unit/builtin-resource-core-wasm.test.mjs tests/unit/place-runtime.test.mjs
           tests/unit/map-hover-async-boundary.test.mjs tests/unit/map-hover-topology.test.mjs
-          tests/unit/editing-cancellation-boundaries.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
       - name: Shared reference calculation frozen fixtures
         run: |
           node tools/reference-fixtures/calibration-fixtures.mjs

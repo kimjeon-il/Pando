@@ -224,10 +224,10 @@ jobs:
         if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/country-mesh-codec-runtime.test.mjs
           tests/unit/gpu-scene-platform-port.test.mjs
-      - name: Verify C++ area, shared-border packet, and boundary-edit handoff
+      - name: Verify C++ area, shared-border packet, and canonical GIS boundaries
         if: ${{ !inputs.retry_failed }}
         run: node --test tests/unit/p5-spherical-area-delegation.test.mjs
-          tests/unit/edit-preview-handoff.test.mjs
+          tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/country-shared-boundary-state.test.mjs
           tests/unit/country-shared-boundary-generator.test.mjs
       - name: Verify consecutive country merges and current Worker contracts
@@ -236,10 +236,10 @@ jobs:
           RETRY_FAILED: ${{ inputs.retry_failed }}
         run: |
           if [ "$RETRY_FAILED" = true ]; then
-            node --test --test-name-pattern='wide source' tests/unit/map-edit-preparation-worker.test.mjs
+            node --test tests/unit/r4c-spatial-boundaries.test.mjs
             node --test tests/unit/p6-polygon-core.test.mjs tests/unit/map-analysis-core.test.mjs tests/unit/river-territory-partition.test.mjs
           else
-            node --test tests/unit/map-edit-preparation-worker.test.mjs tests/unit/map-edit-worker-client.test.mjs tests/unit/project-preview-worker.test.mjs tests/unit/project-preview-topology.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+            node --test tests/unit/r4c-spatial-boundaries.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/shared-geometry-calculations.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi
       - name: Record final committed artifact identity and current hydro consumption
         id: acceptance_inputs

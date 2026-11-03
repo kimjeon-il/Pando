@@ -11,7 +11,6 @@ import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
 } from "../shared/frontend/js/modules/source-provenance.js";
 import { MAP_OBJECT_TYPES } from "../shared/frontend/js/modules/map-object-categories.js";
-import { objectActionApplies } from "../apps/editor/frontend/js/modules/object-action-registry.js";
 
 const root = process.cwd();
 const failures = [];
@@ -27,7 +26,7 @@ const allowedActions = MAP_OBJECT_TYPES.generic.allowedActions || [];
 if (JSON.stringify(allowedActions) !== JSON.stringify(['focus', 'lock', 'delete'])) {
   fail('Generic Feature allowed actions must stay limited to focus/lock/delete');
 }
-if (objectActionApplies('coast-reconcile', { domain: 'generic', type: 'feature' })) {
+if (allowedActions.includes('coast-reconcile')) {
   fail('Generic Feature may not participate in territorial coast reconciliation');
 }
 

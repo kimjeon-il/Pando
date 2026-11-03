@@ -122,11 +122,11 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
 const integrationPresentationChanges=[
   'shared/frontend/js/modules/map-input-presentation.js',
   'shared/frontend/js/modules/gpu-map-renderer.js',
-  'apps/editor/frontend/js/modules/editing-domain.js',
+  'scripts/r4d-check-retired-tests.mjs',
   'tests/unit/map-input-controller.test.mjs',
   '.github/workflows/viewer-functional-p6-2.yml',
   '.github/workflows/integration-read-model-p6.yml',
-  '.github/workflows/p6-preflight.yml',
+  '.github/workflows/e7-final-readonly-regression.yml',
   '.github/workflows/web-pages.yml',
   '.github/workflows/shared-core.yml',
   'eslint.config.js',
