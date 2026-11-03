@@ -29,7 +29,7 @@ export async function inspectHydroEuropeanMirror({manifest,directory}={}){
     const name='HydroRIVERS_v10_eu.'+type,entry=region.files.find(f=>f.file===name);
     assert(entry&&SHA.test(entry.sha256),'Pinned EU source receipt missing');
     const selected=tree.filter(x=>x?.type==='file'&&basename(x.path||'')===name);
-    assert(selected.length===1,'Unambiguous EU mirror source required: '+name);
+    assert(selected.length===1,'Unambiguous EU mirror source required: '+name+'; observed '+JSON.stringify(tree.slice(0,60).map(x=>({path:x.path,type:x.type}))).slice(0,6000));
     source.push({filename:name,path:selected[0].path,sha256:entry.sha256,mirrorUrl:'https://huggingface.co/datasets/cassini-team-todo/hydro-rivers-europe/resolve/main/'+selected[0].path+'?download=true'});
   }
   const list={schema:'pando-p1-eu-source-mirror-list-v1',files:source};
