@@ -39,6 +39,10 @@ export function hydroSourceReceiptFiles(manifest){
   return kinds.flatMap(key=>{
     const value=manifest.sources?.[key];
     if(!value) return [];
+    if(value.file==null){
+      if(value.replacedSystems>0)throw Error('Nonzero independent count without receipt: '+key);
+      return [];
+    }
     if(typeof value.file!=='string'||!/^[\w.-]+\.json$/.test(value.file)
       ||!/^[0-9a-f]{64}$/.test(value.sha256||''))
       throw Error('Invalid independent source receipt: '+key);
