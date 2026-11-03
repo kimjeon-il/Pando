@@ -1,19 +1,19 @@
 # P4 — 원본 GIS 도구를 앱·웹 개발에서 격리
 
-> **2026-11-02 현행 상태:** 아래는 이행 당시 기록이다. 프로젝트 소유 Python 실행기는 제거됐고, 현재 GIS 실행기 검사는 `.github/workflows/gis-source-p4.yml`이 담당한다. 역사 C++ 검사는 해당 workflow의 수동 `historical` 범위에서 실행한다. 원본 GIS 작업은 Node/C++ 실행기와 명시적으로 준비한 원본·SDK를 사용하며 Python 환경 설치나 `test:gis-python` 실행은 필요하지 않다.
+> **2026-11-03 현행 상태:** 프로젝트에서 추적하는 `.py`·`.pyw`·`.pyi`·`.ipynb`와 프로젝트 소유 Python 실행 경로는 0개다. 원본 GIS 처리는 Node.js/C++를 사용한다. `.github/workflows/gis-source-p4.yml`은 Python 재도입 방지와 소스 검사를 담당하고, 수동 `historical` 범위에서 C++ 역사 형상을 검증한다. 아래 2026-10-25 기록의 Python 호출·설치·보존 설명은 과거 진행 상황으로서 현행 실행 지침이 아니다.
 
-기준 브랜치: `work/objects` (2026-10-14). 역사 국경, 지역별 연구 지도, 좌표계, 지형 DEM, 수계·호수, 지명 후보 가공은 **선택적 오프라인 연구 작업**이다. 일반 웹 개발·검증, Pages 배포, C++ core/WASM, WebView 앱의 기본 `BUILD_TESTING=ON`에는 Python이 필요하지 않다.
+최초 P4 설계 기준: `work/objects` (2026-10-14). 역사 국경, 지역별 연구 지도, 좌표계, 지형 DEM, 수계·호수, 지명 후보 가공은 **선택적 오프라인 연구 작업**이다. 일반 웹 개발·검증, Pages 배포, C++ core/WASM, WebView 앱의 기본 `BUILD_TESTING=ON`에는 Python이 필요하지 않다.
 
 ## 원본·제품 경계
 
 - **일반 제품 경로:** `pnpm test`, `pnpm check:architecture`, `pnpm check:versioning`, `cmake --preset pando-core`, `ctest --preset pando-core`. GIS **생성물 읽기**는 가능하지만 원본을 새로 변환하지 않는다. 앱은 동일한 웹 산출물을 사용한다.
-- **GIS Python 경로:** `.github/workflows/gis-python-p4.yml`은 `work/gis`, `work/objects`의 **Python 소스·의존성·전용 워크플로 변경**에서만 가벼운 문법·GIS launcher 단위검사를 수행한다. `workflow_dispatch`에서 `contracts`를 지정할 때만 GDAL 계열 Python 라이브러리(현행 Shapely/pyproj, rasterio/numpy 등)를 설치하고 root/terrain Python 테스트를 수행한다.
+- **GIS Node/C++ 경로:** `.github/workflows/gis-source-p4.yml`은 `main` 및 기존 작업 브랜치의 관련 소스 변경에서 Python 파일·실행 경로 재도입, GIS Node CLI 및 격리 계약을 검사한다. `workflow_dispatch`의 `historical` 또는 `all`은 기존 C++/GEOS/PROJ 역사 형상 검사를 명시적으로 실행하며 Python 패키지를 설치하지 않는다.
 - **역사 경계 C++ 교차검증:** 별도 GIS 워크플로의 `historical` 수동 실행으로 기존 conda-forge GEOS/PROJ 버전과 C++ recipe / 브라우저 JSON 증거 계약을 검사한다. 일반 Application Architecture 검사에서는 이 heavy job을 실행하지 않는다.
 - **실제 데이터 가공:** CI 기본 경로에서는 **절대로** 실행하지 않는다. 대용량 ETOPO, HydroRIVERS, 역사 지도·GeoTIFF 원본은 외부 저장소 또는 별도 사용자가 제공한 파일로 유지하고, 개별 검증 후 정본 반영은 P7 승인 범위에서 한다. 선택적 실행은 아래와 같다.
 
 ## 명시적 GIS 작업 실행
 
-Python 3.12 환경에서 필요한 경우에만 개별 도구의 원본 의존 라이브러리를 준비한다. 테스트만 하는 경우 앱·웹에는 rasterio, GDAL, pyproj, Shapely를 설치하지 않는다.
+GIS 생성기는 Node.js 24와 소스가 일치하는 C++ 실행 파일을 사용한다. 대상 작업에 따라 GDAL·GEOS·PROJ 같은 네이티브 라이브러리와 검증된 외부 원본이 필요할 수 있으나, 프로젝트 도구 실행을 위해 `numpy`, `rasterio`, `Shapely` 등의 Python 패키지를 설치하지 않는다.
 
 ```bash
 # 대상 작업과 전달 인수만 표시. 아무 것도 생성하거나 다운로드하지 않음.
@@ -28,8 +28,8 @@ node scripts/gis/run-source.mjs --task terrain-dem --execute -- \
   --glaciated-areas /external/ice.geojson \
   --countries assets/data/countries-ne-5.1.1.geojson --output /external/dem-output
 
-# 특정 수계/역사/지명 도구 목록 확인
-node scripts/gis/run-source.mjs --help
+# 수계 생성 작업의 실행 계획만 출력(실제 생성 안 함)
+node scripts/gis/run-source.mjs --task hydro-tiles
 ```
 
 호출 가능한 작업: `historical-border`, `historical-coast`, `terrain-dem`, `terrain-preview`, `hydro-tiles`, `hydro-packfile`, `hydro-connectivity`, `physical-data`, `place-candidates`. 지정된 원본 파이프라인은 인수·해시·원본 추적 정책을 기존 도구에서 처리하므로 래퍼가 파일 내용을 임의 변경하지 않는다. `--execute` 없이는 호출 계획만 표시한다. 이들 중 간척·해안선 가공은 **역사 타임라인 자동 조사에서 제외**된 별개 연구 작업이다.
@@ -38,9 +38,11 @@ node scripts/gis/run-source.mjs --help
 
 `world-dataset-stage3-gate.yml`의 JS·지도 번들 데이터 계약은 Python 인터프리터가 필요 없어 `setup-python` 단계를 제거했다. 과거 `pando-pretransfer-cleanup-gate.yml`의 고정 파일 수 감사를 일반 `work/gis` 변경과 분리해 수동 실행으로 유지한다.
 
-`p4-immutable-mesh-assets.yml`, `build-hydro-packfile.yml` 및 일부 북슐레스비히 연구 워크플로는 독립된 데이터 생성·역사 연구 소스에 연결된 **전문 GIS 생성 작업**이므로 지우지 않았다. 특히 `p4-immutable-mesh-assets.yml`은 GPU 메쉬 알고리즘 자체가 바뀔 때만 Shapely를 설치하여 메시 생성물을 갱신한다. 이는 일반 UI 변경·웹 배포 경로의 Python 의존성이 아니라 **생성기 소스 자체가 바뀌는 작업**이다. 모든 GIS 생성기를 단일 체계로 통합하는 작업은 P7이다.
+`p4-immutable-mesh-assets.yml`, `build-hydro-packfile.yml` 및 북슐레스비히 연구 워크플로는 선택적 GIS 데이터 생성·검증 작업으로 구분된다. 현행 실행 코드는 Node.js/C++ 기반이며 해당 워크플로에서 Shapely 등 Python 설치를 전제로 하지 않는다. 전체 원본 재생성 및 실자료 동등성 검증은 별도 작업이다.
 
 ## 2026-10-25 시아첸 일회성 조사 코드 정리
+
+> **이하 이행 당시 기록:** `현재`, `남은 Python`, `test:gis-python` 같은 표현은 2026-10-25 전후의 당시 상태를 가리킨다. 2026-11-03 현행 실행 안내는 위 절을 따른다.
 
 시아첸 연구용 Python 스크립트 8개와 전용 GitHub Actions 8개, 공통 GIS 수동 실행기의 `historical-topography-probe` 작업은 종료했다. 당시 보관한 상세 연구자료도 2026-10-28의 1:10M 범위 정리에서 폐기했다. 현재는 [핵심 조사 기록과 Natural Earth 1:10M 분쟁지역 참조](https://github.com/kimjeon-il/PandoLab-library-data/tree/main/reports/borders/reconstruction/siachen)만 유지한다. 과거 Git 이력, 앱·웹 런타임과 공통 GIS 생성기는 유지한다.
 
@@ -65,6 +67,16 @@ node scripts/gis/run-source.mjs --help
 `scripts/gis/run-source.mjs`가 기존 GIS 실행기의 default dry-run 및 명시적 `--execute`를 소유한다. Node로 이식된 명령(`hydro-packfile`, `place-candidates`)은 Node 프로세스로 실행하고, 아직 미이식 GIS 원본은 독립 Python CLI를 호출한다. `scripts/summarize-boundary-capture-evidence.mjs`가 기존 trace·diagnostics 계약을 Node에서 수행한다. `report-paths.mjs`에는 Python의 `report_argument` 동작과 같은 `reportArgument`가 추가되었다.
 
 A2에서 Python 실행기와 중복 Python 테스트 6개를 제거했다. 후속 정리에서 잠금 동기화 Python 회귀 검사를 Node로 이전해 추가 1개를 삭제하고, 수계 Python 테스트의 `tests.application_source` 의존성을 직접 파일 읽기로 제거했다. 다만 `library_data.py`, `report_paths.py`, `tests/application_source.py`는 나머지 GIS·AI 생성기/검사의 호출자가 제거되지 않았으므로 후속 B/C/E 전환 시 해당 호출처와 동시에 정리한다. 영구적으로 남기는 항목은 아니다.
+
+## 2026-11-03 현재 권장 검사
+
+```bash
+git ls-files '*.py' '*.pyw' '*.pyi' '*.ipynb'
+node --test tests/unit/python-bridge-retirement.test.mjs tests/unit/gis-source-isolation.test.mjs
+pnpm test:gis-node
+```
+
+위 검사는 정적 코드·실행 계약을 확인한다. 공식 HydroRIVERS/ETOPO 전체 원본 재현, 외부 SDK 설치 상태, 실제 GPU·Windows 기기 성능까지 증명하지는 않는다.
 
 ## 남겨둔 테스트와 안전 규칙
 

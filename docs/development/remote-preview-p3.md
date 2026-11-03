@@ -9,7 +9,13 @@
 1. `p3-web-work-objects-<SHA>` 같은 브랜치/커밋 식별 정적 사이트 묶음. 원본 커밋·파일별 SHA·파일 크기를 `preview-manifest.json`에 기록한다. `index.html`, `.nojekyll`, 정적 `assets/`만 포함하며 네이티브 C++·원본 연구 스크립트·보고서는 제외한다.
 2. `p3-browser-work-objects-<SHA>` 같은 Playwright 브라우저 검증 보고서·데스크톱(1280×800)과 모바일 에뮬레이션(390×844) 화면 캡처·실패 로그. 실제 브라우저로 URL 로드, 지도 영역 노출, 런타임 오류, 기본 performance telemetry를 확인한다.
 
-GitHub 저장소 **Actions → P3 Remote preview and browser verification → 해당 브랜치 실행 → Artifacts**에서 두 파일을 받을 수 있다. 정적 사이트 묶음을 내려받고 압축 해제한 디렉터리에서 `python -m http.server 8080`을 실행하거나 같은 동작의 정적 HTTP 서버를 사용하면 테스트할 수 있다. 단, `file://` 직접 실행은 Worker/fetch 정책 때문에 지원하지 않는다.
+GitHub 저장소 **Actions → P3 Remote preview and browser verification → 해당 브랜치 실행 → Artifacts**에서 두 파일을 받을 수 있다. 정적 사이트 ZIP을 내려받아 압축을 해제한 뒤, **Pando 저장소 루트**에서 아래 Node.js 내장 HTTP 미리보기 서버를 실행할 수 있다. `createP3PreviewServer`는 전달한 ZIP 해제 디렉터리의 `index.html`과 `assets/`만 서비스한다. Python 설치는 필요하지 않다.
+
+```bash
+node --input-type=module -e "import { createP3PreviewServer } from './scripts/p3-preview-server.mjs'; createP3PreviewServer(process.argv[1]).listen(8080, '127.0.0.1')" "/absolute/path/to/unpacked-p3-web"
+```
+
+이후 `http://127.0.0.1:8080/`을 연다. 압축 해제 경로는 실제 경로로 바꿔야 한다. `file://` 직접 실행은 Worker/fetch 정책 때문에 지원하지 않는다.
 
 **이것은 다운로드 가능한 브랜치별 미리보기이지 자동 공개 URL이 아니다.** GitHub Pages의 사이트는 배포 대상 1개이므로 브랜치별 `deploy-pages`를 병렬 실행하면 운영 사이트를 덮어쓸 수 있다. 독립 도메인/별도 정적 호스팅을 연결하지 않는 한, P3에서 공개 웹 미리보기 URL이 생겼다고 주장하지 않는다.
 

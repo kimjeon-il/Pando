@@ -30,7 +30,7 @@ DEM 데이터는 앱 저장소가 아닌 [별도 공개 저장소](https://githu
 
 원본은 [NOAA ETOPO 2022 30 arc-second Ice Surface GeoTIFF](https://www.ncei.noaa.gov/products/etopo-global-relief-model)와 음영을 포함하지 않은 [Natural Earth Cross-blended Hypso HYP_HR](https://www.naturalearthdata.com/downloads/10m-raster-data/10m-cross-blend-hypso/)다. ETOPO의 좌표계는 WGS84 경위도와 EGM2008 높이의 결합 좌표계 EPSG:9518이다. 타일의 위치는 EPSG:4326 경위도로 표현하고 높이값은 EGM2008 m를 보존한다.
 
-필요한 Python 패키지는 `numpy`, `Pillow`, `rasterio`이며 최근접 색 채우기는 GDAL 3.9 이상을 요구한다. 저장소 밖의 넉넉한 디스크에 원본을 둔 뒤 다음 명령을 실행한다.
+현재 DEM 생성·검증 경로는 Node.js와 소스가 확인된 C++/GDAL 네이티브 도구를 사용한다. `numpy`, `Pillow`, `rasterio` 같은 Python 패키지는 필요하지 않다. 최근접 색 채우기에는 GDAL 3.9 이상의 네이티브 라이브러리가 필요하며, 원본은 충분한 용량의 저장소 외부 디렉터리에 보관한 뒤 다음 명령을 실행한다.
 
 서비스 기본 자료와 현재 생성기 산출 버전은 모두 `0.13.3`다. 육지 색상 tint는 원본에서 4096×2048로 생성해 이전 2048×1024보다 픽셀 수를 4배 늘린다. `0.13.1`은 순백색만 제외했기 때문에 흰 배경이 약간 착색된 해안 주변 픽셀을 유효 색상으로 받아들였다. 이 색을 보간한 일부 작은 섬은 여전히 지나치게 옅게 보였다. `0.13.2`부터 앱의 canonical 국가 형상을 색상 원본의 육지 마스크로 사용해 바다 픽셀을 제외한다. 축소는 육지 안의 유효 색상만 평균하고, 누락된 칸은 가장 가까운 유효 tint 색으로 채운다. 날짜변경선은 연결해서 처리한다. 이 색은 원본에서 확인된 섬 색상이 아닌 표시용 보완색이다. 바다색은 별도 셰이더가 결정하므로 tint의 바다 배경은 표시되지 않는다. 고도·음영 타일과 국가 형상은 바꾸지 않는다.
 
