@@ -4,7 +4,7 @@ import { geometryRevisionKey } from './geometry-versions.js';
 // A verified Worker acknowledgement is the only usable base. A JS geometry
 // identity/revision is NOT proof of equivalent coordinates across documents.
 // Only the exact same deeply frozen GeometryVersionStore object may omit bytes.
-export function createCountryBoundaryGeometryTransport() {
+export function createCountryBoundaryGeometryTransport({ onDecision } = {}) {
   let accepted = null;
   let pending = null;
 
@@ -32,6 +32,11 @@ export function createCountryBoundaryGeometryTransport() {
 
     let message = full();
     let reusedGeometryCount = 0;
+    const acceptedBefore = accepted, pendingBefore = pending;
+    let reason = !validOrder ? 'invalid-feature-order'
+      : !accepted ? 'no-acknowledged-base'
+        : pending ? 'pending-unacknowledged-request' : 'no-certified-geometry-reuse';
+    let orderCompatible = null, firstOrderMismatchIndex = -1;
     if (validOrder && accepted && !pending) {
       const nextIds = new Set(order);
       // Existing prepared-store Map order is stable for deletion and append.
@@ -40,8 +45,14 @@ export function createCountryBoundaryGeometryTransport() {
         ...accepted.order.filter(id => nextIds.has(id)),
         ...order.filter(id => !accepted.byId.has(id)),
       ];
-      if (expectedOrder.length === order.length
-        && expectedOrder.every((id, index) => id === order[index])) {
+      orderCompatible = expectedOrder.length === order.length
+        && expectedOrder.every((id, index) => id === order[index]);
+      if (!orderCompatible) {
+        reason = 'order-incompatible';
+        firstOrderMismatchIndex = expectedOrder.findIndex((id, index) => id !== order[index]);
+        if (firstOrderMismatchIndex < 0) firstOrderMismatchIndex = Math.min(expectedOrder.length, order.length);
+      }
+      if (orderCompatible) {
         const deltaFeatures = features.map((feature, index) => {
           const current = snapshots[index], previous = accepted.byId.get(current.id);
           const same = current.reference && previous?.reference
@@ -60,6 +71,7 @@ export function createCountryBoundaryGeometryTransport() {
             features: deltaFeatures,
             removedIds: accepted.order.filter(id => !nextIds.has(id)),
           };
+          reason = 'certified-geometry-reuse';
         }
       }
     }
@@ -67,6 +79,20 @@ export function createCountryBoundaryGeometryTransport() {
     // The next message must be full until this request has actually been
     // acknowledged; Worker coalescing may skip any in-flight preparation.
     pending = { order, snapshots, mode: message.type, reusedGeometryCount };
+    // Only explicit browser/test diagnostics receive the decision; no IDs,
+    // coordinates or full geometry are copied, and production calls remain
+    // on the same message protocol.
+    if (typeof onDecision === 'function') {
+      const incoming = new Set(order);
+      const addedIds = order.filter(id => !acceptedBefore?.byId.has(id)).length;
+      const removedIds = acceptedBefore?.order.filter(id => !incoming.has(id)).length || 0;
+      try {
+        onDecision({mode: message.type, reason, acknowledgedBase: !!acceptedBefore,
+          pendingMode: pendingBefore?.mode || null, validOrder, orderCompatible,
+          firstOrderMismatchIndex, totalIds: order.length, addedIds, removedIds,
+          certifiedReuseCount: reusedGeometryCount});
+      } catch { /* Diagnostics must never change the map's safety protocol. */ }
+    }
     return message;
   }
 

@@ -375,7 +375,8 @@ test('W2-P3 immutable boundary stroke packet survives transferred buffers and pr
   assert.equal(hiddenOutlines.packetCacheHit, false, 'changing exterior visibility is a different render packet');
   assert.equal(hiddenOutlines.packet.outlineOverrides.segments.length, 0);
   const visibleAgain = await request({type:'replace', features:hierarchy, includeOutlines:true});
-  assert.equal(visibleAgain.packetCacheHit, false, 'single-entry cache must not resurrect the alternate quality packet');
+  assert.equal(visibleAgain.packetCacheHit, true,
+    'two-entry bounded cache reuses only the exact previously verified outline variant');
   assert.deepEqual(visibleAgain.packet, reassigned.packet);
 
   const moved = structuredClone(hierarchy);
@@ -583,4 +584,72 @@ test('P6-3 real Worker rejects malformed deletion and unknown omitted geometry w
     baseToken: initial.baseToken, features: omitted, removedIds: [] });
   assert.equal(valid.type, 'prepared');
   assert.deepEqual(valid.packet, initial.packet);
+});
+
+test('P6 stage-2 opt-in phase profile measures real Worker preparation without changing packets', async t => {
+  const request = countryWorker(t, undefined, 'canonical');
+  const rows = [rectangle('ROOT', 0, 0, 4, 4), rectangle('CHILD', 0, 0, 2, 4, 'ROOT'),
+    rectangle('FAR', 30, 0, 31, 1)];
+  const measured = await request({ type: 'replace', features: rows, profilePacket: true });
+  assert.equal(measured.type, 'prepared');
+  const stages = measured.packetProfile.map(row => row.stage);
+  for (const stage of ['digest', 'state-update', 'prepare-store-replace',
+    'contact-remove', 'contact-neighbor-search', 'contact-encode',
+    'contact-native-bridge', 'contact-decode', 'contact-merge',
+    'packet-identity', 'state-segments',
+    'hierarchy-internal', 'hierarchy-classification', 'outline-index',
+    'outline-scan-including-wasm', 'contact-stroke-sort', 'contact-stroke-wasm-bridge',
+    'contact-stroke-gpu-instances', 'outline-stroke-sort', 'outline-stroke-wasm-bridge',
+    'outline-stroke-gpu-instances', 'packet-retain-copy']) {
+    assert.ok(stages.includes(stage), 'missing profile stage: ' + stage);
+  }
+  for (const row of measured.packetProfile) {
+    assert.ok(Number.isFinite(row.ms) && row.ms >= 0, row.stage);
+    assert.equal(Object.hasOwn(row, 'geometry'), false, 'profile must not return geometry');
+  }
+  const same = await request({ type: 'replace', features: structuredClone(rows), profilePacket: true });
+  assert.equal(same.packetCacheHit, true);
+  assert.ok(same.packetProfile.some(row => row.stage === 'packet-cache-copy'));
+  assert.equal(same.packetProfile.some(row => row.stage === 'outline-index'), false);
+  assert.deepEqual(same.packet, measured.packet);
+  const changed = structuredClone(rows);
+  changed[2] = rectangle('FAR', 40, 0, 41, 1);
+  const changedResponse = await request({ type: 'replace', features: changed, profilePacket: true });
+  assert.equal(changedResponse.packetCacheHit, false);
+  const full = countryWorker(t, undefined, 'canonical');
+  const fresh = await full({ type: 'replace', features: changed });
+  assert.equal(Object.hasOwn(fresh, 'packetProfile'), false, 'normal traffic has no diagnostic metadata');
+  assert.deepEqual(changedResponse.packet, fresh.packet);
+});
+
+test('P6 stage-2 two-date LRU is content-addressed, byte-identical and bounded', async t => {
+  const request = countryWorker(t, undefined, 'canonical');
+  const original = [rectangle('ROOT', 0, 0, 4, 4), rectangle('CHILD', 0, 0, 2, 4, 'ROOT'),
+    rectangle('FAR', 30, 0, 31, 1)];
+  const first = await request({type:'replace', features:original, profilePacket:true});
+  assert.equal(first.packetCacheHit, false);
+  const moved = structuredClone(original);
+  moved[2] = rectangle('FAR', 40, 0, 41, 1);
+  const second = await request({type:'replace', features:moved, profilePacket:true});
+  assert.equal(second.packetCacheHit, false, 'a changed immutable digest must not reuse old packet');
+  assert.equal(second.packetCacheEntries, 2);
+  assert.ok(second.packetCacheTotalResidentEstimate <= 96 * 1024 * 1024);
+  const back = await request({type:'replace', features:structuredClone(original), profilePacket:true});
+  assert.equal(back.packetCacheHit, true, 'the older exact date should survive the newer packet');
+  assert.equal(back.packetCacheEntries, 2);
+  assert.ok(back.packetProfile.some(row => row.stage === 'packet-cache-copy'));
+  assert.equal(back.packetProfile.some(row => row.stage === 'contact-stroke-wasm-bridge'), false);
+  assert.deepEqual(back.packet, first.packet, 'cached prior date must preserve all owner ranges, segment order and GPU bytes');
+  const forward = await request({type:'replace', features:structuredClone(moved), profilePacket:true});
+  assert.equal(forward.packetCacheHit, true);
+  assert.deepEqual(forward.packet, second.packet);
+  const third = structuredClone(original);
+  third[2] = rectangle('FAR', 50, 0, 51, 1);
+  const thirdPacket = await request({type:'replace', features:third, profilePacket:true});
+  assert.equal(thirdPacket.packetCacheHit, false);
+  assert.equal(thirdPacket.packetCacheEntries, 2, 'never retain more than two complete packets');
+  assert.ok(thirdPacket.packetCacheTotalResidentEstimate <= 96 * 1024 * 1024);
+  const evicted = await request({type:'replace', features:original, profilePacket:true});
+  assert.equal(evicted.packetCacheHit, false, 'oldest source date must be evicted after a third distinct packet');
+  assert.deepEqual(evicted.packet, first.packet);
 });
