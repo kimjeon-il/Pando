@@ -10,7 +10,7 @@ on:
       - 'assets/js/modules/core-document-runtime.js'
       - 'tests/browser/historical-world-timeline.spec.mjs'
       - 'tests/browser/temporal-editing.spec.mjs'
-      - 'tests/browser/editor-flat-document.spec.mjs'
+      - 'tests/browser/viewer-review-e4.spec.mjs'
       - 'tests/browser/territorial-common-commands.spec.mjs'
       - 'tests/browser/distribution.spec.mjs'
       - 'tests/unit/core-document-runtime.test.mjs'
@@ -141,7 +141,7 @@ jobs:
       - name: Verify label Undo/Redo and save/reopen on the published WASM
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/editor-flat-document.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/viewer-review-e4.spec.mjs --workers=1 --retries=0 --trace off
       - name: Verify browser Undo/Redo for deletion and distribution edits
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium

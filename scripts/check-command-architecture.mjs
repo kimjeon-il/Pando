@@ -17,15 +17,13 @@ for(const entry of [...index.keys()].filter(p=>p.startsWith('assets/js/modules/'
   const source=read(`assets/js/modules/${entry.name}`);
   for(const file of retired)if(source.includes(`from './${file}'`))failures.push(`${entry.name} imports retired owner ${file}`);
 }
-// These legacy command adapters are test-only; the published Viewer uses C++ read-only ports.
-for(const file of ['apps/editor/frontend/js/modules/territorial-service.js',
-                   'tests/helpers/generic-feature-command-service.mjs',
-                   'apps/editor/frontend/js/modules/distribution-service.js']) {
-  const source=read(file);
-  if(!source.includes('commandOwner')||!source.includes('executeCommand'))failures.push(`${file} lacks the accepted C++ command boundary`);
-  for(const forbidden of ['createDocumentMutationRunner','commandPipeline','recordHistory(','queueAutosave(','restoreSnapshot('])
-    if(source.includes(forbidden))failures.push(`${file} owns an obsolete mutation/history side effect: ${forbidden}`);
-}
+// The archived graphical editor's writers are not runtime command owners.
+// The single supported compatibility adapter is test-owned and obeys Core ACKs.
+const testAdapter=read('tests/helpers/generic-feature-command-service.mjs');
+for(const required of ['commandOwner','executeCommand'])
+  if(!testAdapter.includes(required))failures.push('Generic test adapter lacks '+required);
+for(const forbidden of ['createDocumentMutationRunner','commandPipeline','recordHistory(','queueAutosave(','restoreSnapshot('])
+  if(testAdapter.includes(forbidden))failures.push('Generic test adapter includes archived mutation logic: '+forbidden);
 const project=read('shared/frontend/js/modules/project-domain.js');
 for(const contract of ['commandQueue','commandOwner.execute(envelope)','publishCommand','expectedGeneration',
   'captureReplacement','rollbackReplacement','releaseReplacement','commandOwner[direction]()','validateImport'])
