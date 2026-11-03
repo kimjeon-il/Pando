@@ -5,6 +5,7 @@ import { createGpuContextRecovery } from './gpu-context-recovery.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
 import { createGpuResourceLifecycle, createGpuResourceLease, createGpuUploadScope } from './gpu-resource-lifecycle.js';
 import { createGpuWorkerChannels } from './gpu-worker-channels.js';
+import { createCountryBoundaryGeometryTransport } from './country-boundary-geometry-transport.js';
 import { terrainDemFragmentSource } from './terrain-dem-shaders.js';
 import { resolveMapInteractionStyle } from './map-interaction-style.js';
 import { decodeCountryMesh } from './country-mesh-codec.js';
@@ -681,6 +682,7 @@ export function createGpuMapRenderer(deps) {
     let meshCountryIds = [];
     let countryMeshDependencies = null;
     let countryBoundaryWorker = null;
+    const countryBoundaryGeometryTransport = createCountryBoundaryGeometryTransport();
     let countryBoundaryRequestId = 0;
     let countryBoundaryIncludesOutlines = null;
     let countrySharedBoundary = null;
@@ -702,6 +704,7 @@ export function createGpuMapRenderer(deps) {
       }
       if (terminate) {
         countryBoundaryWorker?.terminate(); countryBoundaryWorker = null;
+        countryBoundaryGeometryTransport.reset();
         countryBoundaryIncludesOutlines = null;
       }
     }
@@ -770,6 +773,15 @@ export function createGpuMapRenderer(deps) {
             || Number(data?.projectGeneration) !== projectGeneration
             || Number(data?.geometryRevision) !== geometryRevisionTracker.committedRevision()
             || data?.quality !== activeMeshQuality) return;
+          if (data.type === 'resync') {
+            // A missing/evicted Worker base is recoverable, not a failed date
+            // transition. Force the complete current authoritative snapshot.
+            countryBoundaryGeometryTransport.reset();
+            countryBoundaryDependencies = null;
+            countryBoundaryTask = null;
+            prepareCountrySharedBoundary({ replace: true, baselineCache: false });
+            return;
+          }
           if (data.type === 'error') {
             failTemporalPresentation(new Error(data.message));
             reportOperationError(Object.assign(new Error(data.message), { operation: 'country-boundary-prepare' }), '객체 경계를 준비하지 못했습니다.', 'PL-COUNTRY-BOUNDARY-001', 4200);
@@ -778,7 +790,10 @@ export function createGpuMapRenderer(deps) {
             resetCountrySharedBoundary({ terminate: true, preservePresented: true });
             return;
           }
-          if (data.type !== 'prepared') return;
+          if (data.type !== 'prepared' || !countryBoundaryTask) return;
+          if (countryBoundaryTask.transportMode !== 'patch') {
+            countryBoundaryGeometryTransport.acknowledge(data.baseToken);
+          }
           countryBoundaryDependencies = countryBoundaryTask.dependencies;
           countryBoundaryTask = null;
           const revision = `${projectGeneration}:${data.requestId}`;
@@ -805,18 +820,47 @@ export function createGpuMapRenderer(deps) {
       // still invalidate the precomputed boundary cache's geometry contract.
       baselineCache = baselineCache && boundaryFeatures.every(feature => feature.properties.parentId
         ? feature.boundaryPristine === true : meshCountryIds.includes(String(feature.id)));
+      // A partial edit must not be based on a superseded, in-flight delta.
+      // Reconstruct the authoritative current frame plus its explicit edit
+      // before submitting an unconditional full replace in that narrow race.
+      if (!replace && countryBoundaryGeometryTransport.pendingMode() === 'delta') {
+        const edits = new Map(source.map(feature => [String(feature.id), feature]));
+        const removed = new Set(removedIds.map(String));
+        source = boundaryFeatures.filter(feature => !removed.has(String(feature.id)))
+          .map(feature => edits.get(String(feature.id)) || feature);
+        for (const [id, feature] of edits) {
+          if (!removed.has(id) && !boundaryById.has(id)) source.push(feature);
+        }
+        replace = true;
+        baselineCache = false;
+      }
       resetCountrySharedBoundary();
       countryBoundaryIncludesOutlines = !shouldShowSharedCountryBorders(state.physicalSettings);
       performanceMetrics.countryBoundaryPrepareCount = (performanceMetrics.countryBoundaryPrepareCount || 0) + 1;
-      countryBoundaryTask = {dependencies:nextDependencies,projectGeneration,geometryRevision:geometryRevisionTracker.committedRevision()};
-      countryBoundaryWorker.postMessage({ type: replace ? 'replace' : 'patch',
+      const transportMessage = replace
+        ? countryBoundaryGeometryTransport.planReplace(source)
+        : { type: 'patch', features: source.map(feature => ({
+            ...feature, boundaryGeometryRevision: geometryRevisionKey(feature.geometry),
+          })), removedIds };
+      if (!replace) countryBoundaryGeometryTransport.reset();
+      if (transportMessage.type === 'delta') {
+        performanceMetrics.countryBoundaryDeltaCount = (performanceMetrics.countryBoundaryDeltaCount || 0) + 1;
+        performanceMetrics.countryBoundaryReusedGeometryCount =
+          (performanceMetrics.countryBoundaryReusedGeometryCount || 0)
+          + countryBoundaryGeometryTransport.pendingReusedGeometryCount();
+      }
+      countryBoundaryTask = { dependencies: nextDependencies, projectGeneration,
+        geometryRevision: geometryRevisionTracker.committedRevision(),
+        transportMode: transportMessage.type };
+      countryBoundaryWorker.postMessage({
+        ...transportMessage,
         requestId: countryBoundaryRequestId, projectGeneration,
         includeOutlines: countryBoundaryIncludesOutlines,
         geometryRevision: geometryRevisionTracker.committedRevision(), quality: activeMeshQuality,
-        cacheUrl: replace && sharedBoundaryCacheUrls?.[activeMeshQuality]
+        cacheUrl: transportMessage.type === 'replace' && sharedBoundaryCacheUrls?.[activeMeshQuality]
           ? new URL(sharedBoundaryCacheUrls[activeMeshQuality], PHYSICAL_DATA_BASE_URL).href : null,
-        skipCacheReconcile: baselineCache,
-        features: source.map(feature => ({ ...feature, boundaryGeometryRevision: geometryRevisionKey(feature.geometry) })), removedIds });
+        skipCacheReconcile: transportMessage.type === 'replace' && baselineCache,
+      });
     }
     function syncCountryBoundaryScene() {
       prepareCountrySharedBoundary({ replace: true, baselineCache: false });

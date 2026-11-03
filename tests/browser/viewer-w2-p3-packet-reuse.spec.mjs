@@ -7,6 +7,26 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{globalThis.__W2P3_PACKETS__=[];});
+  await page.addInitScript(()=>{
+    globalThis.__W2P6_TRANSPORT__=[];
+    const NativeWorker=globalThis.Worker;
+    globalThis.Worker=class BoundaryTransportObservedWorker extends NativeWorker {
+      constructor(url,options){
+        super(url,options);
+        this.__boundary=options?.name==='pandolab-country-shared-boundary';
+      }
+      postMessage(data,transfer){
+        if(this.__boundary && ['replace','delta'].includes(data?.type)){
+          const total=data.features?.length||0;
+          const included=(data.features||[]).filter(row=>Object.hasOwn(row,'geometry')).length;
+          globalThis.__W2P6_TRANSPORT__.push({type:data.type,requestId:data.requestId,
+            generation:data.projectGeneration,quality:data.quality,total,included,omitted:total-included,
+            removed:(data.removedIds||[]).length,hasBaseToken:typeof data.baseToken==='string'});
+        }
+        return super.postMessage(data,transfer);
+      }
+    };
+  });
   await page.route('**/modules/gpu-map-renderer.js*',async route=>{
     const response=await route.fetch();let src=await response.text();
     const marker='if (Number(data?.requestId) !== countryBoundaryRequestId';
@@ -88,6 +108,16 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     const forced=final.packets.find(p=>p.kind==='prepared'&&p.requestId===forcedId);
     expect(forced).toMatchObject({packetCacheHit:true,projectGeneration:currentGeneration,
       segments:expectedSegments});
+    const transport=await page.evaluate(()=>globalThis.__W2P6_TRANSPORT__.map(row=>({...row})));
+    const forcedInput=transport.find(row=>row.requestId===forcedId);
+    expect(forcedInput?.type,'a certified Worker base must permit a changed-only resend').toBe('delta');
+    expect(forcedInput?.hasBaseToken).toBe(true);
+    expect(forcedInput?.omitted,'same immutable dated geometry should avoid cloning its coordinates').toBeGreaterThan(0);
+    expect(forcedInput.total).toBe(forcedInput.included+forcedInput.omitted);
+    expect(final.stats.countryBoundaryDeltaCount).toBeGreaterThanOrEqual(1);
+    console.log('W2_P6_3_REAL_VIEWER_TRANSPORT '+JSON.stringify({forcedInput,transport,
+      deltaCount:final.stats.countryBoundaryDeltaCount,
+      reusedGeometry:final.stats.countryBoundaryReusedGeometryCount}));
     expect(forced.packetCacheResidentEstimate).toBeGreaterThan(0);
     const firstFull=all.find(p=>p.packetCacheHit===false&&p.segments===expectedSegments);
     expect(firstFull,'at least one actual full-world packet computation is required').toBeTruthy();
