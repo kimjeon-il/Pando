@@ -1,9 +1,10 @@
 name: R4 archived editor source references audit
 on:
   push:
-    branches: [work/ui, work/r4e2-core-gis-test-fixtures-20261103]
+    branches: [work/ui, work/r4e3-retired-test-fixture-pruning-20261103]
     paths:
       - scripts/r4-editor-source-audit.mjs
+      - scripts/r4e3-retired-test-audit.mjs
       - scripts/r4e0-dependency-audit.mjs
       - docs/development/r4e0-source-dispositions.json
       - tests/unit/r4e0-dependency-audit.test.mjs
@@ -37,6 +38,15 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: node scripts/r4-editor-source-audit.mjs
       - run: node scripts/r4d-check-retired-tests.mjs --check
+      - name: Inventory obsolete tests and helper usage
+        run: node scripts/r4e3-retired-test-audit.mjs --output test-results/r4e3-retired-test-inventory.json
+      - name: Attach R4-E3 inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r4e3-retirement-${{ github.run_id }}
+          path: test-results/r4e3-retired-test-inventory.json
+          if-no-files-found: warn
       - name: Build complete R4-E0 dependency map
         run: node scripts/r4e0-dependency-audit.mjs --check --output test-results/r4e0-dependency-map.json
       - name: Validate R4-E0 disposition and canonical constraints
