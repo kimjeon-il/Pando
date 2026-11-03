@@ -2,6 +2,8 @@ name: Integration R4 GIS W2 - Stage 2 country loading profile
 on:
   push:
     branches: [integration/r4-gis-w2-20261103]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
