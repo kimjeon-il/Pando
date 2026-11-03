@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TERRITORIAL_SCHEMA_VERSION, normalizeTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
-await import("../../apps/editor/frontend/js/gis-adapters.js");
+// The classic production-compat encoder is a frozen, test-only source fixture.
+// Evaluate in this realm so deep-equality compares ordinary Node objects.
+const {readFileSync}=await import('node:fs');
+const vm=await import('node:vm');
+vm.runInThisContext(readFileSync(new URL('../fixtures/geopackage/compat/worker/gis-adapters.source.txt',import.meta.url),'utf8'));
+
 const adapters = globalThis.PandoLabGisAdapters;
 
 const polygon = (left = 0, right = 2) => ({

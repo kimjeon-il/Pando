@@ -5,7 +5,7 @@ import {
   countryImportIdentityKey,
   materializeResolvedCountries,
   resolveCountryIdentities,
-} from "../../apps/editor/frontend/js/modules/country-import-identity.js";
+} from "../../tools/gis/country-import-identity.js";
 
 function country(id, name = id, properties = {}) {
   return {

@@ -1,8 +1,8 @@
 import { Worker } from 'node:worker_threads';
-import { createGisGeometryValidator } from "../../../apps/editor/frontend/js/modules/import-service.js";
+import { createGisGeometryValidator } from "../../../tools/gis/gis-geometry-validator.js";
 
 export function createGisWorkerHarness(t) {
-  const script = new URL("../../../apps/editor/frontend/js/workers/gis-geometry-worker.js", import.meta.url).href;
+  const script = new URL("../../../tools/gis/gis-geometry-worker.js", import.meta.url).href;
   const clipping = new URL("../../../shared/frontend/js/modules/polygon-clipping-core.js", import.meta.url).href;
   const rpcHost = new URL("../../../shared/frontend/js/workers/worker-rpc-host.js", import.meta.url).href;
   const worker = new Worker(`

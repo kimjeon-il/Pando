@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {createNativeLibraryRepository} from "../../apps/editor/frontend/js/modules/native-library-repository.js";
-import {createRepositoryTerritorialLoader} from "../../apps/editor/frontend/js/modules/territorial-entity-loader.js";
+import {createRepositoryTerritorialLoader} from "../../tools/gis/territorial-entity-loader.js";
 import {encodeTerritorialIndexEntry,territorialIndexEntry} from "../../tools/gis/territorial-index-entry.js";
 const fixtureSource={schemaVersion:2,entityId:'state:fixture',entityKind:'general',lineageId:'fixture',names:{ko:'합성 정치체',en:'Synthetic'},alternateNames:[],
  lifetime:{validFrom:null,validTo:null},parentEntityId:'',instantiation:{mode:'independent',countryUpdates:{}},metadata:{},sourceInfo:{sourceId:'fixture',title:'Synthetic',license:'test'},
@@ -68,7 +68,7 @@ test('remote index/source metadata disagreement cannot advance the active source
 });
 
 test('library access uses the injected native repository and retains local data when synchronization fails',async()=>{
- const {openTerritorialLibraryAccess}=await import('../../apps/editor/frontend/js/modules/territorial-entity-loader.js');
+ const {openTerritorialLibraryAccess}=await import('../../tools/gis/territorial-entity-loader.js');
  assert.equal(typeof openTerritorialLibraryAccess,'function');
  const events=[];
  const repository=createNativeLibraryRepository({invoke:async command=>{
@@ -85,7 +85,7 @@ test('library access uses the injected native repository and retains local data 
 });
 
 test('HTTP and native library ports expose the same selected synthetic source',async()=>{
- const {openTerritorialLibraryAccess}=await import('../../apps/editor/frontend/js/modules/territorial-entity-loader.js');
+ const {openTerritorialLibraryAccess}=await import('../../tools/gis/territorial-entity-loader.js');
  assert.equal(typeof openTerritorialLibraryAccess,'function');
  const indexBytes=Buffer.from(JSON.stringify(index));
  const http=await openTerritorialLibraryAccess({source:{indexUrl:'https://fixture.test/index.json',indexSpec:{sha256:hash(indexBytes),decodedBytes:indexBytes.length},dataRevision:'fixture',cacheStorage:null,
