@@ -108,6 +108,9 @@ jobs:
           test -z "$(git -C "$data" status --porcelain)" || {
             echo 'BLOCKED: existing library worktree edits are protected'; exit 1;
           }
+          # A depth-one work/gis checkout and an isolated pinned-SHA fetch are
+          # shallow roots. Deepen history before proving true ancestry.
+          git -C "$data" fetch --no-tags --filter=blob:none --deepen=16 origin refs/heads/work/gis
           git -C "$data" fetch --no-tags --filter=blob:none origin "$PINNED_BASELINE"
           git -C "$data" merge-base --is-ancestor "$PINNED_BASELINE" HEAD
           git -C "$data" show "$PINNED_BASELINE:archive/index.json" > "$RUNNER_TEMP/hydro-pinned-index.json"
