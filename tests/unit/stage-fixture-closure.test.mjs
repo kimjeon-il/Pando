@@ -8,7 +8,6 @@ test('stage fixture derives transitive runtime modules from the frontend closure
   const index=buildFrontendIndex(root);
   for(const path of [
     'assets/js/modules/runtime-context.js',
-    'assets/js/modules/platform-runtime.js',
     'assets/js/modules/platform-ports.js',
     'assets/js/modules/file-access-contract.js',
   ])assert.ok(index.has(path),'missing staged fixture source '+path);

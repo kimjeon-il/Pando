@@ -263,8 +263,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
   const isRetiredHelper = file => /^tests\/browser\/helpers\/.*\.mjs$/.test(file)
-    && (file === 'tests/browser/helpers/korean-boundary-workflow.mjs' ||
-      retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs', repo.read(file)));
+    && retiredEditorBrowserReason('tests/browser/archive-probe.spec.mjs', repo.read(file));
   const skipArchived = file => retiredFrontend(file) || isRetiredTest(file) || isRetiredHelper(file);
   const queue = [...repo.tests,
     ...repo.catalog.groups.flatMap(inputsFor),
