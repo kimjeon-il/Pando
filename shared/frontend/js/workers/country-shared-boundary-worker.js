@@ -232,14 +232,14 @@ async function prepareMessage(message) {
       if (deferUnapplied(message)) return;
       cacheSeeded = !!cached;
       changed = boundaryState.replace(features, cached ? { cachedSegments: cached.segments,
-        changedIds: message.skipCacheReconcile ? new Set() : changedCountryGeometryIds(features, cached.signatures) } : {});
+        changedIds: message.skipCacheReconcile ? new Set() : changedCountryGeometryIds(features, cached.signatures), profile: record } : {profile: record});
       if (cached === pendingCache) pendingCache = null;
     } else if (message.type === 'delta') {
       // The complete current metadata/ID list is authoritative. The existing
       // prepared topology is still incrementally updated from changed digests.
-      changed = boundaryState.replace(features);
+      changed = boundaryState.replace(features, {profile: record});
     } else if (message.type === 'patch') {
-      changed = boundaryState.patch(features, message.removedIds || []);
+      changed = boundaryState.patch(features, message.removedIds || [], {profile: record});
     } else return;
     // The packet key includes the independently rehashed geometry and every
     // hierarchy/quality input. Changed geometry may match an older dated key
