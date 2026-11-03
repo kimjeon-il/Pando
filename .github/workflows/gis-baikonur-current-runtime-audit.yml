@@ -4,6 +4,7 @@ on:
     branches: [work/gis]
     paths:
       - 'tools/gis/audit-baikonur-current-runtime.mjs'
+      - 'tools/gis/audit-baikonur-runtime-geometry.mjs'
       - 'tools/gis/verify-baikonur-lease-exclusions.mjs'
       - 'tools/gis/validate-baikonur-independent-banks.mjs'
       - 'tests/unit/gis-baikonur-independent-bank-validator.test.mjs'
@@ -55,6 +56,26 @@ jobs:
             }));
           }
           JS
+      - name: Compare actual compressed KAB and KAZ polygon edges with treaty anchors
+        run: |
+          node tools/gis/audit-baikonur-runtime-geometry.mjs             --data-root assets/data/territorial-entities/generated/v2             > "$RUNNER_TEMP/baikonur-released-geometry-diagnostics.json"
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const result=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+            '/baikonur-released-geometry-diagnostics.json','utf8')
+            .replace(/^BAIKONUR_RELEASED_GEOMETRY=/,''));
+          assert.equal(result.kabRings,4);
+          assert.equal(result.treatyPointDeviation.pointCount,31);
+          assert.equal(result.meta.revisedGeometryPublished,false);
+          console.log('BAIKONUR_RELEASED_COORDINATE_QA='+JSON.stringify({
+            kabRingVertexCounts:result.kabRingVertexCounts,
+            kazRingCount:result.kazRingCount,
+            pairedCountryEdges:result.pairedCountryEdges,
+            unpairedCountryEdges:result.unpairedCountryEdges,
+            treatyPointDeviation:result.treatyPointDeviation
+          }));
+          JS
       - name: Read exact original KAB/KAZ version records, no geometry writes
         run: |
           node tools/gis/audit-baikonur-current-runtime.mjs             --index .baikonur-original-runtime/assets/data/territorial-entities/generated/v2/index.json             > "$RUNNER_TEMP/baikonur-kab-kaz-current-source-audit.json"
@@ -79,5 +100,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: baikonur-kab-kaz-readonly-runtime-validation
-          path: ${{ runner.temp }}/baikonur-kab-kaz-current-source-audit.json
+          path: |
+            ${{ runner.temp }}/baikonur-kab-kaz-current-source-audit.json
+            ${{ runner.temp }}/baikonur-released-geometry-diagnostics.json
           retention-days: 30
