@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {countryImportIdentityKey,resolveCountryIdentities,materializeResolvedCountries} from '../../tools/gis/country-import-identity.js';
 import {createGisImportPlan,assertCurrentGisImportPlan} from '../../tools/gis/gis-import-plan.js';
 import {normalizeImportPlan} from '../../tools/gis/import-plan.js';
@@ -51,8 +51,10 @@ test('R4-E1 canonical GIS sources do not depend on the archived editor or native
 });
 
 test('R4-E1 freezes unshipped GeoPackage writer and GIS adapters as byte-identical compatibility fixtures',()=>{
- assert.equal(read(old.worker),read(fixtures.worker));
- assert.equal(read(old.adapter),read(fixtures.adapter));
+ // The immutable original binary/text oracles are retained under tests/fixtures,
+ // while the obsolete editor-bound producer and adapter are deleted.
+ for(const archived of [old.worker,old.adapter])assert.equal(existsSync(new URL(archived,root)),false,archived);
+ for(const path of [fixtures.worker,fixtures.adapter])assert.ok(read(path).length>100,path);
  const consumer=read('tests/helpers/production-geopackage.mjs');
  assert.doesNotMatch(consumer,/apps\/editor\/frontend/);
  assert.match(consumer,/fixtures\/geopackage\/compat/);

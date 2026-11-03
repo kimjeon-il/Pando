@@ -69,7 +69,7 @@ on:
       - scripts/check-renderer-v2.mjs
       - tests/unit/r4-editor-source-retirement.test.mjs
       - docs/development/r4c-spatial-calculation-boundaries.md
-      - apps/editor/frontend/js/workers/gis-geometry-worker.js
+      - tools/gis/gis-geometry-worker.js
       - docs/development/r4e3-retired-tests.json
       - scripts/r4e3-retired-test-audit.mjs
       - tests/unit/r4e3-retired-editor-closure.test.mjs

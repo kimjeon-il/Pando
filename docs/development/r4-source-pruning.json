@@ -1,14 +1,15 @@
 {
   "schema": "pandolab-r4-source-pruning-v1",
   "baselineCandidates": 153,
-  "removedSourceCount": 72,
+  "removedSourceCount": 76,
   "removedTestCount": 183,
-  "remainingSourceCount": 81,
+  "remainingSourceCount": 77,
   "extractedGisModules": 16,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
     "apps/editor/frontend/js/app.js",
     "apps/editor/frontend/js/bootstrap.js",
+    "apps/editor/frontend/js/gis-adapters.js",
     "apps/editor/frontend/js/gis-io.js",
     "apps/editor/frontend/js/modules/annex-geometry.js",
     "apps/editor/frontend/js/modules/app-capability-port-utils.js",
@@ -48,6 +49,7 @@
     "apps/editor/frontend/js/modules/gis-domain.js",
     "apps/editor/frontend/js/modules/gis-geometry-validation.js",
     "apps/editor/frontend/js/modules/gis-import-plan.js",
+    "apps/editor/frontend/js/modules/gis-import-transaction.js",
     "apps/editor/frontend/js/modules/gis-import-wizard-controller.js",
     "apps/editor/frontend/js/modules/gis-workflow-controller.js",
     "apps/editor/frontend/js/modules/import-plan.js",
@@ -78,6 +80,8 @@
     "apps/editor/frontend/js/modules/tool-controller.js",
     "apps/editor/frontend/js/workers/core-session-worker.js",
     "apps/editor/frontend/js/workers/geometry-validation-worker.js",
+    "apps/editor/frontend/js/workers/gis-geometry-worker.js",
+    "apps/editor/frontend/js/workers/gis-gpkg-worker.js",
     "apps/editor/templates/index.html"
   ],
   "removedTests": [
@@ -617,5 +621,16 @@
       "apps/editor/frontend/js/modules/gis-import-plan.js",
       "apps/editor/frontend/js/modules/import-plan.js"
     ]
+  },
+  "r4e5FrozenGisSourceRetirement": {
+    "originalsRemoved": [
+      "apps/editor/frontend/js/gis-adapters.js",
+      "apps/editor/frontend/js/workers/gis-gpkg-worker.js",
+      "apps/editor/frontend/js/workers/gis-geometry-worker.js",
+      "apps/editor/frontend/js/modules/gis-import-transaction.js"
+    ],
+    "sourceRetained": "tests/fixtures/geopackage/compat/worker",
+    "canonicalWorker": "tools/gis/gis-geometry-worker.js",
+    "removedPolicyEntries": 5
   }
 }
