@@ -16,6 +16,8 @@ function sample(){
   put('assets/data/hydro/v0.13.1/manifest.json',150);
   put('assets/data/hydro/v0.13.2/manifest.json',150);
   put('assets/data/hydro/v0.13.2/hydro.bin',400);
+  put('assets/data/hydro/v0.13.4/manifest.json',150);
+  put('assets/data/hydro/v0.13.4/hydro.bin',400);
   put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',100);
   put('assets/data/terrain-preview/v0.13.3-p2/0/0-0.webp',150);
   put('assets/data/territorial-entities/generated/v2/index.json',200);

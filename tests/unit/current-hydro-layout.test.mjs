@@ -35,8 +35,11 @@ function makeFixture(shardCount=4){
   };
   const manifestBytes=Buffer.from(JSON.stringify(manifest)+'\n');
   write(main+manifest.container.url,blob);write(CURRENT_MANIFEST,manifestBytes);
-  const independent=manifest.sources?.independentHydronymReplacements;
-  if(independent)write(main+independent.file,readFileSync(new URL('../../'+main+independent.file,import.meta.url)));
+  for(const kind of ['independentHydronymReplacements','independentHydronymFollowup',
+    'independentHydronymBulk']){
+    const receipt=manifest.sources?.[kind];
+    if(receipt?.file)write(main+receipt.file,readFileSync(new URL('../../'+main+receipt.file,import.meta.url)));
+  }
   for(const file of ['hydro-shard-store.js','hydro-tile-worker.js'])write('shared/frontend/js/workers/'+file,
     readFileSync(new URL('../../shared/frontend/js/workers/'+file,import.meta.url)));
   return {root,manifest,blob,manifestBytes,write};
@@ -55,7 +58,8 @@ test('current Web package and real Worker validate exact bytes without an app mi
   const result=await auditLayout(f.root);
   assert.equal(result.passed,true);
   assert.equal(result.manifestPath,main+'manifest.json');
-  assert.equal(result.activeFiles, f.manifest.sources?.independentHydronymReplacements ? 3 : 2);
+  assert.equal(result.activeFiles,2+['independentHydronymReplacements','independentHydronymFollowup',
+    'independentHydronymBulk'].filter(kind=>f.manifest.sources?.[kind]?.file).length);
   assert.equal(result.previousFileCount,0);
   assert.equal(result.roles.length,f.manifest.shards.length+3);
   assert.equal(result.runtime.range.ready,true);

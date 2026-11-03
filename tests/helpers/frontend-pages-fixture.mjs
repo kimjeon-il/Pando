@@ -36,8 +36,8 @@ export async function pagesRepositoryFixture(t) {
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
-  put(root, 'assets/data/hydro/v0.13.2/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
-  put(root, 'assets/data/hydro/v0.13.2/hydro.bin', 'fixture packfile');
+  put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');
+  put(root, 'assets/data/hydro/v0.13.4/hydro.bin', 'fixture packfile');
   put(root, 'reports/a.md', 'report');
   put(root, 'native/CMakeLists.txt', 'project(native)');
   put(root, 'shared/core/CMakeLists.txt', 'project(shared)');

@@ -162,8 +162,8 @@ test('hydro shared failure clears pending state and permits a later explicit ret
 test('hydro admission joins the replacement renderer generation after its old Worker is retired',async()=>{
  let generation=1,calls=0,release;const errors=[],gate=new Promise(resolve=>{release=resolve;});
  const state={physicalLoadState:{}},resources=createPhysicalResources();
- resources.connect({projectState:{state},physicalConfig:{HYDRO_DATA_VERSION:'0.13.2',PHYSICAL_DATA_BASE_URL:new URL('https://example.test/'),DATA_REVISION:'test'},
-  physicalServices:{createHydroService,createTerrainService:()=>({load:async()=>true}),fetchWithRetry:async()=>response({version:'0.13.2',schema:'pandolab-water-shards-v5'})},
+ resources.connect({projectState:{state},physicalConfig:{HYDRO_DATA_VERSION:'0.13.4',PHYSICAL_DATA_BASE_URL:new URL('https://example.test/'),DATA_REVISION:'test'},
+  physicalServices:{createHydroService,createTerrainService:()=>({load:async()=>true}),fetchWithRetry:async()=>response({version:'0.13.4',schema:'pandolab-water-shards-v5'})},
   layerPresentation:{invalidateObjectPresentation(){}},operationFeedback:{reliabilityDiagnostic:{push(){}}},
   hydroPresentation:{allBuiltInHydroFeatures:()=>[]},domains:{projectDomain:{admitSelectionCatalog:async()=>true},renderingDomain:{invalidateOverlayGeometry(){}}},
   rendering:{gpuMapRenderer:{getProjectGeneration:()=>generation,setHydroManifest:async()=>{if(++calls===1){await gate;return false;}return true;}}},

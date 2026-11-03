@@ -88,9 +88,9 @@ test('GIS and user-assigned names are literal even when they resemble retired di
 });
 
 test('built-in Korean hydronyms use compact names in every render fragment', () => {
-  const bundleManifest = JSON.parse(fs.readFileSync(new URL('hydro/v0.13.2/manifest.json', data)));
+  const bundleManifest = JSON.parse(fs.readFileSync(new URL('hydro/v0.13.4/manifest.json', data)));
   const spec = bundleManifest.metadata.core;
-  const combined = fs.readFileSync(new URL('hydro/v0.13.2/hydro.bin', data));
+  const combined = fs.readFileSync(new URL('hydro/v0.13.4/hydro.bin', data));
   const core = JSON.parse(gunzipSync(combined.subarray(spec.offset, spec.offset + spec.bytes)));
   for (const feature of core.features) {
     for (const key of ['name', 'mainstemNameKo']) {

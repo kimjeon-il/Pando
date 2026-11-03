@@ -8,7 +8,7 @@ import { gunzipSync } from 'node:zlib';
 const base = new URL('../../shared/frontend/js/workers/', import.meta.url);
 const storeSource = readFileSync(new URL('hydro-shard-store.js', base), 'utf8');
 const workerSource = readFileSync(new URL('hydro-tile-worker.js', base), 'utf8');
-const manifestPath = 'assets/data/hydro/v0.13.2/manifest.json';
+const manifestPath = 'assets/data/hydro/v0.13.4/manifest.json';
 const manifestUrl = new URL('../../' + manifestPath, import.meta.url);
 const manifest = JSON.parse(readFileSync(manifestUrl, 'utf8'));
 const bundle = new Uint8Array(readFileSync(new URL(manifest.container.url, manifestUrl)));
