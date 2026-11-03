@@ -1,0 +1,80 @@
+name: R4 E5 final source migration (isolated branch only)
+on:
+  push:
+    branches: [integration/r4e4-e5-final-20261103]
+    paths:
+      - 'scripts/r4e5-finalize-source.b64'
+      - '.github/workflows/integration-r4e5-migrate.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: r4e5-one-shot-migration
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: github.ref == 'refs/heads/integration/r4e4-e5-final-20261103'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Expand the exact recorded one-shot migration source
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          const encoded=readFileSync('scripts/r4e5-finalize-source.b64','utf8').trim();
+          const source=gunzipSync(Buffer.from(encoded,'base64'));
+          if(!source.toString('utf8').startsWith('// Archived-editor closure'))
+            throw Error('Unexpected R4E5 migration source');
+          writeFileSync('scripts/r4e5-finalize.mjs',source,{flag:'wx'});
+          NODE
+          node --check scripts/r4e5-finalize.mjs
+      - name: Migrate active tests, retire 74 archived sources and close inventory
+        run: node scripts/r4e5-finalize.mjs
+      - name: Re-audit all E0/E5 paths
+        run: |
+          node scripts/r4e0-dependency-audit.mjs --check
+          node --test --test-concurrency=1 --test-timeout=90000 \
+            tests/unit/r4-editor-source-retirement.test.mjs \
+            tests/unit/r4e0-dependency-audit.test.mjs \
+            tests/unit/r4e1-gis-interop-boundaries.test.mjs \
+            tests/unit/r4e2-core-gis-boundaries.test.mjs \
+            tests/unit/r4e3-retired-editor-closure.test.mjs
+      - name: Commit only the migration to the isolated branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- apps/editor/frontend apps/editor/templates tests/unit scripts/contracts \
+            scripts/r4e5-finalize.mjs docs/development/r4-source-pruning.json \
+            docs/development/r4e5-final-migration.json .github/workflows
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git commit -m 'refactor(r4-e5): complete archived editor removal and retain canonical tests'
+          git push origin HEAD:refs/heads/integration/r4e4-e5-final-20261103
+      - name: Record exact migration evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p test-results
+          git status --short > test-results/r4e5-git-status.txt
+          if [ -f docs/development/r4e5-final-migration.json ]; then
+            cp docs/development/r4e5-final-migration.json test-results/r4e5-final-migration.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r4e5-final-migration-${{ github.run_id }}
+          path: test-results/r4e5-*.json
+          if-no-files-found: warn
+          retention-days: 14
