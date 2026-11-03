@@ -62,7 +62,6 @@ jobs:
           retention-days: 14
 
   official-nine-region-originals:
-    if: github.event_name == 'workflow_dispatch'
     name: Validate SHA-256 for all 36 official HydroRIVERS shapefile members
     runs-on: ubuntu-24.04
     timeout-minutes: 55
@@ -92,7 +91,9 @@ jobs:
             destination="$RUNNER_TEMP/p1-hydro-originals/$code"
             mkdir -p "$destination"
             curl --proto '=https' --tlsv1.2 --fail --location --retry 3 \
-              --connect-timeout 30 --max-time 900 --max-filesize 150000000 \
+              --user-agent 'Mozilla/5.0 (compatible; PandoLabGIS-verification/1.0)' \
+              --referer 'https://www.hydrosheds.org/products/hydrorivers' \
+              --connect-timeout 30 --max-time 900 --max-filesize 160000000 \
               "https://data.hydrosheds.org/file/HydroRIVERS/HydroRIVERS_v10_$code"_shp.zip \
               --output "$archive"
             unzip -tqq "$archive"
