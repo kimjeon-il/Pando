@@ -62,16 +62,8 @@ test('readonly picking selects through common rules without an editor service',a
   feedback:{reportOperationError:error=>errors.push(error)}});
  await picking.handleMapClick([5,5],{territorialLabelId:'A'});
  assert.deepEqual(errors,[]);assert.equal(intents.length,1);assert.deepEqual(intents[0].value,ref);
- assert.equal(intents[0].options.openEditor,false);
+ assert.equal(intents[0].options.scope,'map');
  state.itemVisibility.objects.A=false;
  await picking.handleMapClick([5,5],{territorialLabelId:'A'});
  assert.deepEqual(errors,[]);assert.equal(intents.length,1,'hidden objects must be rejected by the same shared query');
-});
-
-test('registered editor picking still commits vertex placement before ordinary selection',async()=>{
- const interactions=[],errors=[],picking=createObjectPicking({handleEditingClick:()=>assert.fail('placement must commit first')});
- picking.connect({projectState:{state:{tool:'select'}},domains:{editingDomain:{snapshot:()=>({vertexPlacement:true,projectGeneration:9}),
-  handleInteraction:async intent=>interactions.push(intent)}},feedback:{reportOperationError:error=>errors.push(error)}});
- await picking.handleMapClick([5,5]);
- assert.deepEqual(errors,[]);assert.deepEqual(interactions,[{type:'vertex-placement-commit',projectGeneration:9,screenPoint:[5,5],pointerType:'touch'}]);
 });

@@ -3,7 +3,7 @@ import { setDialogReturnFocus } from './dialog-accessibility-controller.js';
 
 /** Shared appearance dialog; the host owns current preferences and repainting. */
 export function createPreferencesDialog({ document, productMode, getPreferences, applyPreferences, beforeOpen = () => {}, returnFocus = null }) {
-  if (!['viewer', 'editor'].includes(productMode)) throw new TypeError('Preference product mode is required.');
+  if (productMode !== 'viewer') throw new TypeError('Preference dialog requires viewer product mode.');
   const get = id => document.getElementById(id);
   const modal = get('preferencesModal');
   let origin = null, trigger = null;
@@ -14,7 +14,6 @@ export function createPreferencesDialog({ document, productMode, getPreferences,
       button.setAttribute('aria-pressed', String(button.dataset.preferenceTheme === appearance.theme));
     for (const button of modal.querySelectorAll('[data-preference-accent]'))
       button.setAttribute('aria-pressed', String(button.dataset.preferenceAccent === appearance.accentPreset));
-    if (productMode === 'editor') get('preferencesStatusBarVisibleInput').checked = appearance.statusBarVisible;
     get('preferencesSmoothLinesInput').checked = appearance.smoothLines;
   };
   const preview = appearance => { applyPreferences({ ...getPreferences(), appearance }); sync(); };
@@ -40,7 +39,7 @@ export function createPreferencesDialog({ document, productMode, getPreferences,
     button.addEventListener('click', () => preview({ ...getPreferences().appearance, theme: button.dataset.preferenceTheme }));
   for (const button of modal.querySelectorAll('[data-preference-accent]'))
     button.addEventListener('click', () => preview({ ...getPreferences().appearance, accentPreset: button.dataset.preferenceAccent }));
-  for (const [id, key] of [...(productMode === 'editor' ? [['preferencesStatusBarVisibleInput','statusBarVisible']] : []),['preferencesSmoothLinesInput','smoothLines']])
+  for (const [id, key] of [['preferencesSmoothLinesInput','smoothLines']])
     get(id).addEventListener('change', () => preview({ ...getPreferences().appearance, [key]: get(id).checked }));
   modal.addEventListener('keydown', event => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close({ revert: true }); }

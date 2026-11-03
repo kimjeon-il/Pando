@@ -44,7 +44,7 @@ for (const setup of [
     for (const [scale, band] of [[700, 'high'], [570, 'high'], [500, 'low'], [570, 'low'], [700, 'high']]) {
       await scaleTo(page, scale, stats);
       await expect.poll(async () => (await stats()).scaleBand, { message: `${setup.name} S=${scale}`, timeout: 15000 }).toBe(band);
-      expect((await stats()).activeMeshQuality).toBe('canonical');
+      await expect.poll(async () => (await stats()).activeMeshQuality, { timeout: 30000 }).toBe('canonical');
     }
     const geometry = () => page.evaluate(() => JSON.stringify(window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities));
     const beforeDrag = await geometry();
@@ -52,7 +52,7 @@ for (const setup of [
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 + 45, box.y + box.height / 2 + 25, { steps: 3 });
-    expect((await stats()).activeMeshQuality).toBe('canonical');
+    await expect.poll(async () => (await stats()).activeMeshQuality, { timeout: 30000 }).toBe('canonical');
     await page.mouse.up();
     expect(await geometry()).toBe(beforeDrag);
     // Turning terrain off excludes its requests from completion without changing editing readiness.

@@ -63,16 +63,15 @@ test('diagnose actual first Canvas Worker frame gate without altering runtime be
         scenePhysical:(renderScene?.polygons||[]).filter(x=>x.role?.startsWith('physical')).map(x=>({role:x.role,revision:x.geometryRevision})),
         projectGeneration,viewRevision:visualFrame.viewRevision});
   `);
-  const stale='             onStale: () => { performanceMetrics.canvasWorkerStaleFrameCount += 1; },';
-  replace(stale,`             onStale: message => {
+  const stale='            onStale: message => {\n              performanceMetrics.canvasWorkerStaleFrameCount += 1;';
+  replace(stale,`            onStale: message => {\n              performanceMetrics.canvasWorkerStaleFrameCount += 1;
                globalThis.__workerGateProbe?.stale?.push({at:performance.now(),frameId:message.frameId,
                  styleRevision:message.styleRevision,currentStyleRevision:canvasStyleRevision,
                  geometryRevision:message.geometryRevision,currentGeometry:geometryRevisionTracker.committedRevision(),
                  requestId:message.renderRequestId,requestedRevision:message.revision,
                  messageGeneration:message.projectGeneration,projectGeneration,
                  currentFrameId:lastVisualFrame?.frameId,
-                 expectedKeyMatches:message.presentationKey===mapTargetKey(lastVisualFrame,{terrainTargetKey:''})});
-               performanceMetrics.canvasWorkerStaleFrameCount += 1; },`);
+               expectedKeyMatches:message.presentationKey===mapTargetKey(lastVisualFrame,{terrainTargetKey:''})});`);
   const receive='    function receiveCanvasWorkerMessage(event) {\n      const message = event.data || {};';
   replace(receive,receive+`
       const physical=getPhysicalContextState(),p=globalThis.__workerGateProbe;

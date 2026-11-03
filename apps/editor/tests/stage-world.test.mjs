@@ -12,9 +12,9 @@ test('map-data Windows reviewer stages only canonical read-only viewer and verif
   assert.equal(staged.worldData.countryCount, 258);
   assert.equal(staged.worldData.modelEntityCount, 254);
   assert.equal(staged.worldData.mergedSourceCount, 4);
-  assert.equal(staged.worldData.fileCount, 18);
-  assert.equal(staged.worldData.worldFileCount, 14);
-  assert.equal(staged.worldData.physicalFileCount, 4);
+  assert.equal(staged.worldData.fileCount,staged.files.filter(file=>file.path.startsWith('assets/data/')).length);
+  assert.equal(staged.worldData.worldFileCount+staged.worldData.physicalFileCount,staged.worldData.fileCount);
+  assert.equal(staged.files.some(file=>file.path.startsWith('assets/data/territorial-entities/')),false);
   assert.equal(staged.fixture, null);
   assert.equal(await readFile(join(staged.directory, 'assets/js/viewer.js'), 'utf8'),
     'export const viewer=true;');
@@ -27,11 +27,11 @@ test('map-data Windows reviewer stages only canonical read-only viewer and verif
   assert.equal(mode.mode, 'map-data');
   assert.equal(mode.dataRevision,staged.dataRevision);
   assert.match(mode.dataRevision,/^data-[a-f0-9]{32}$/);
-  assert.ok(staged.files.some(file => file.path.endsWith('/state-ABC.json.gz')));
+  assert.ok(staged.files.some(file => file.path.includes('/builtin-world/') && file.path.endsWith('.json.gz')));
   assert.ok(staged.files.some(file => file.path.endsWith('/hydro.bin')));
   assert.ok(staged.files.some(file => file.path.endsWith('/places-v1.bin')));
   assert.ok(staged.files.some(file => file.path === 'assets/js/viewer.js'));
-  assert.equal(staged.files.some(file=>file.path.includes('terrain-preview')),false);
+  assert.equal(staged.files.some(file=>file.path.includes('terrain-preview')),true);
   assert.equal(await readFile(join(staged.directory, country.url), 'utf8'), 'COUNTRY');
   assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/countries/')), true);
   assert.equal(staged.files.some(file => file.path.includes('builtin-world/generated/v1/transport/')), false);

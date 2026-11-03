@@ -38,16 +38,18 @@ test('one catalog owns canonical, modal and audit UI stylesheet inputs', async (
   }
 });
 
-test('UI tools import the canonical catalog independently of aliases and formatting', () => {
+test('UI bundle and review contract share the canonical source catalog', () => {
   for (const script of [
     'scripts/build-ui-bundle.mjs',
-    'scripts/check-ui-layering.mjs',
-    'scripts/check-ui-components.mjs',
-    'scripts/check-ui-information-architecture.mjs',
+    'scripts/lib/reviewer-ui-contracts.mjs',
   ]) {
     const ast = parseJavaScript(read(script), { filePath: script }).ast;
     assert.ok(ast.body.some(node => node.type === 'ImportDeclaration'
       && node.source.value.endsWith('/ui-source-catalog.mjs')), `${script} bypasses the shared catalog`);
   }
+  for(const [script,mode] of [['scripts/check-ui-layering.mjs','layering'],
+    ['scripts/check-ui-components.mjs','components'],
+    ['scripts/check-ui-information-architecture.mjs','information']])
+    assert.ok(read(script).includes(`validateReviewUi('${mode}')`),`${script} bypasses review contracts`);
 
 });

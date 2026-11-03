@@ -159,15 +159,10 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       const selected = t.selectionHas?.(t.normalizeObjectRef?.({
         domain: 'territorial', type: 'entity', id: feature.id,
       }));
-      const editing = state.territorialUnitMergeSourceId === String(feature.id)
-        || (state.territorialUnitMergeTargetIds || []).includes(String(feature.id))
-        || state.territorialUnitSplitSourceId === String(feature.id)
-        || state.territorialUnitRedrawSourceId === String(feature.id);
       return state.layerVisibility?.[group] !== false && t.isLayerItemVisible?.(group, feature.id)
-        && (selected || editing || (visibleIds.has(String(feature.id)) && t.geometryMayIntersectViewport?.(feature.geometry)));
+        && (selected || (visibleIds.has(String(feature.id)) && t.geometryMayIntersectViewport?.(feature.geometry)));
     });
     if (t.viewportCullingMetrics?.lastByDomain?.territorial) t.viewportCullingMetrics.lastByDomain.territorial.finalVisibleCount = data.length;
-    t.territorialOperationLayer?.selectAll('path.territorial-unit-operation-outline').remove();
     const polygons = [];
     const strokes = [];
     for (const feature of data) {
@@ -235,9 +230,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         .style('stroke-opacity', style.boundaryVisible ? style.opacity : 0)
         .style('stroke-width', style.boundaryWidth)
         .style('mix-blend-mode', style.blendMode)
-        .attr('data-presentation-group', 'genericFeatures')
-        .classed('generic-feature-merge-source', d => state.tool === 'merge-generic-feature' && state.genericFeatureMergeSourceId === String(d.id))
-        .classed('generic-feature-merge-target', d => state.tool === 'merge-generic-feature' && (state.genericFeatureMergeTargetIds || []).includes(String(d.id)));
+        .attr('data-presentation-group', 'genericFeatures');
       selection?.exit().remove();
       g.genericFeatureLayer?.selectAll('path.generic-feature-boundary').remove();
     }

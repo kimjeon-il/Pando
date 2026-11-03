@@ -503,7 +503,7 @@ export function createRenderingDomain({
     if (!gpuMapRenderer?.setCountryEmphasis) return false;
     const selectionState = selectionDomain?.snapshot?.() || { selection: { items: [], primaryKey: null }, hover: null };
     const state = selection.getState?.() || {};
-    const entries = mapInteractionEntries(selectionState, state, {
+    const entries = mapInteractionEntries(selectionState, {
       
       visible: ref => selection.objectRefVisible?.(ref) !== false,
       territorialEntityById: selection.territorialEntityById,
@@ -665,7 +665,7 @@ export function createRenderingDomain({
       }
       interaction.syncGpuInteractionLayer?.(domain, layer);
     }
-    const emphasisEntries = selectionEntries(selectionState, state, {
+    const emphasisEntries = selectionEntries(selectionState, {
       territorialEntityById: selection.territorialEntityById,
       visible: ref => selection.objectRefVisible?.(ref) !== false }, toolEntries);
     const selectionChannels = { candidate: [], hover: [], primary: [], secondary: [] };

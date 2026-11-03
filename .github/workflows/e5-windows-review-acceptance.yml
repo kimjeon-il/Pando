@@ -72,7 +72,6 @@ jobs:
           tests/unit/viewer-globe-only.test.mjs
           tests/unit/core-product-mode.test.mjs
           tests/unit/project-product-surface.test.mjs
-          tests/unit/shared-map-composition.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/review-inspection.test.mjs
           apps/editor/tests/native-contract.test.mjs

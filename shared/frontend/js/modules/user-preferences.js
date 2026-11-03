@@ -9,7 +9,7 @@ const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 const DEFAULTS = Object.freeze({
   version: 2,
-  appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', statusBarVisible: true, smoothLines: true }),
+  appearance: Object.freeze({ theme: 'system', accentPreset: 'blue', smoothLines: true }),
   labels: Object.freeze({
     country: Object.freeze({ font: 'default', color: null }),
     place: Object.freeze({ font: 'default', color: null, pointColor: null, languages: DEFAULT_PLACE_LANGUAGES }),
@@ -34,9 +34,9 @@ function normalizeLabelFont(value, fallback) {
 
 export function defaultUserPreferences() {
   return {
-    backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',graticule:true,globeShadow:true},editor:{}},
+    backgrounds:{viewer:{terrainVisible:true,terrainStyle:'physical',graticule:true,globeShadow:true}},
     version: DEFAULTS.version,
-    appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, statusBarVisible: DEFAULTS.appearance.statusBarVisible, smoothLines: DEFAULTS.appearance.smoothLines },
+    appearance: { theme: DEFAULTS.appearance.theme, accentPreset: DEFAULTS.appearance.accentPreset, smoothLines: DEFAULTS.appearance.smoothLines },
     labels: {
       country: { font: DEFAULTS.labels.country.font, color: DEFAULTS.labels.country.color },
       place: {
@@ -61,14 +61,13 @@ export function normalizeUserPreferences(value) {
   const fillStrength = normalizeFillStrength(source.selection?.fillStrength, defaults.selection.fillStrength);
   const outlineVisible = source.selection?.outlineVisible !== false;
   return {
-    backgrounds:Object.fromEntries(['viewer','editor'].map(mode=>[mode,Object.fromEntries(Object.entries(defaults.backgrounds[mode]).map(([key,value])=>[key,key==='terrainStyle'?(['political','physical'].includes(source.backgrounds?.[mode]?.[key])?source.backgrounds[mode][key]:value):typeof source.backgrounds?.[mode]?.[key]==='boolean'?source.backgrounds[mode][key]:value]))])),
+    backgrounds:{viewer:Object.fromEntries(Object.entries(defaults.backgrounds.viewer).map(([key,value])=>[key,key==='terrainStyle'?(['political','physical'].includes(source.backgrounds?.viewer?.[key])?source.backgrounds.viewer[key]:value):typeof source.backgrounds?.viewer?.[key]==='boolean'?source.backgrounds.viewer[key]:value]))},
     version: DEFAULTS.version,
     appearance: {
       theme,
       accentPreset: ACCENT_PRESET_IDS.includes(source.appearance?.accentPreset)
         ? source.appearance.accentPreset
         : accentPresetForColor(source.appearance?.accentColor) || defaults.appearance.accentPreset,
-      statusBarVisible: source.appearance?.statusBarVisible !== false,
       smoothLines: source.appearance?.smoothLines !== false,
     },
     labels: {

@@ -58,16 +58,11 @@ select directly and suppress a later synthetic click through the existing input
 controller. Map settings own accepted
 layer-visibility source preparation through the existing hydro/place loaders.
 
-`platform-ports.js` owns the explicit browser/native execution contract: resource capabilities, storage namespace, file access, optional library access and builtin source loader. `native-platform-adapter.js` is the only frontend runtime reader of raw Tauri/shell globals and installs the accepted native contract into module-scoped `platform-runtime.js`; browser execution resolves an explicit browser contract from the same registry boundary. `runtime-context.js` validates that immutable platform contract together with the generated build receipt and owns versioned asset URL construction. Composition passes those validated values to builtin and physical resource owners. Module-relative imports use their versioned module URL. The immutable Worker resolver remains the asset-manifest boundary.
+`platform-ports.js` validates the explicit Viewer browser/native execution contract: resource capabilities, storage namespace, file access, optional library access and builtin source loader. `native-platform-adapter.js` is the only frontend runtime reader of raw Tauri/shell globals and returns validated ports to the Windows review shell. Browser Viewer composition creates its ports directly. `runtime-context.js` validates the immutable ports together with the generated build receipt and owns versioned asset URL construction. Composition passes those values to builtin and physical resource owners. The immutable Worker resolver remains the asset-manifest boundary.
 
-`file-access-contract.js` is the canonical browser/native file-access contract. It owns required methods by product mode and validates project/GIS selections, prepared save destinations and write receipts. `platform-ports.js` and `file-controller.js` both consume that one contract instead of duplicating method lists. Browser and native transports still own their own dialogs, paths/URIs and bytes.
+`file-access-contract.js` validates the Viewer project-open port and selected file. `platform-ports.js` and `file-controller.js` consume that contract. Browser and native transports own their dialogs and file bytes.
 
-`file-controller.js` owns file workflow and ProjectDomain commands. The controller consumes the validated file-access port; optional transport `bind`/`dispose` hooks remain part of the shared contract.
-`prepareProjectSave()` runs before encoding and returns a `write`/`abort`
-destination. The browser picker opens during preparation to retain user
-activation. Native transport retains its existing `finish_document_write`
-dialog timing and chunk protocol. `document-transfer-contract.js` names the JavaScript side of that protocol, while a source-level contract test checks the Rust limits, kinds, commands and Tauri registration against it. Persistence receives its resolved preview Worker URL; it does not
-read platform globals or resolve deployment paths itself.
+`file-controller.js` opens a selected project through the current ProjectDomain transaction. The validated transport owns its picker and optional `bind`/`dispose` hooks. The Windows review shell retains its separate diagnostic transfer protocol; `document-transfer-contract.js` names its JavaScript side and source-level contract tests check the Rust limits and Tauri registration.
 
 Library composition injects the existing loader contract and a separate optional
 editing repository. Only the native entry interprets native capability globals.

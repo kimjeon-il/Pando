@@ -30,14 +30,11 @@ test('public territorial model and object registry contain only the current kind
 
 
 
-test('the canonical hierarchy rejects regional parents and cycles and protects a locked descendant root', () => {
+test('the canonical hierarchy rejects regional parents and cycles', () => {
   const roots = ['DNK', 'SWE'].map(id => createTerritorialFeature({ id, entityKind: 'general', geometry: geometry() }));
   const parent = unit('p'), child = unit('c', 'p', { locked: true });
-  const before = [...roots, parent, child];
   assert.throws(() => normalizeTerritorialEntities([...roots, { ...parent, properties: { ...parent.properties, entityKind: 'regional', parentId: '' } }, child]), /상위|일반/);
   assert.throws(() => normalizeTerritorialEntities([...roots, { ...parent, properties: { ...parent.properties, parentId: 'c' } }, child]), /순환/);
-  const kernel = globalThis.PandoLabTerritorialEdit.createKernel(engine);
-  assert.throws(() => kernel.validate([...roots, { ...parent, properties: { ...parent.properties, parentId: 'SWE' } }, child], before, ['p']), /잠/);
 });
 
 test('rank is discarded while nested general objects and cycle checks remain available', () => {

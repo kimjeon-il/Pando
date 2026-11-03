@@ -10,14 +10,10 @@ function fakeLayer(){
   return layer;
 }
 
-test('flat review renders map and selection layers but no drawing handles',()=>{
-  const read=createMapOverlayLayers({map:fakeLayer(),svg:fakeLayer(),productMode:'editor',readOnly:true});
+test('flat review renders map and selection layers without drawing handles',()=>{
+  const read=createMapOverlayLayers({map:fakeLayer(),svg:fakeLayer()});
   for(const key of ['selectionLayer','hoverLayer','countryLayer','territorialBoundaryLayer','territorialLabelLayer'])assert.ok(read[key],key);
-  for(const key of ['boundaryEditLayer','previewLayer','validationLayer','vertexLayer','draftLayer','snapLayer','territorialOperationLayer'])assert.equal(read[key],null,key);
-  const writable=createMapOverlayLayers({map:fakeLayer(),svg:fakeLayer(),productMode:'editor'});
-  assert.ok(writable.boundaryEditLayer);
-  assert.ok(writable.vertexLayer);
-  assert.ok(writable.draftLayer);
+  for(const key of ['boundaryEditLayer','previewLayer','validationLayer','vertexLayer','draftLayer','snapLayer','territorialOperationLayer'])assert.equal(key in read,false,key);
 });
 
 test('read-only renderer rejects injected editing overlays but keeps ordinary render service',()=>{

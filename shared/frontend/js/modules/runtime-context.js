@@ -13,7 +13,7 @@ export function versionedAssetUrl(relative,assetBaseUrl,assetRevision){
 }
 
 export function createRuntimeContext({productMode,meta,assetBaseUrl,platform}={}){
-  if(!['viewer','editor'].includes(productMode))throw new TypeError('Explicit runtime product mode is required.');
+  if(productMode!=='viewer')throw new TypeError('Runtime requires viewer product mode.');
   const receipt=validateBuildMetadata(meta);
   const base=new URL(assetBaseUrl).href;
   const platformPorts=assertPlatformPorts(platform,{productMode});

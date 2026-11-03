@@ -32,10 +32,10 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
           longestGapMs:Math.max(...ends.slice(1).map((v,i)=>v-ends[i]))});
       }
     };
-    try{new PerformanceObserver(list=>{
+    try{new globalThis.PerformanceObserver(list=>{
       for(const event of list.getEntries())probe.longTasks.push({at:event.startTime,ms:event.duration});
     }).observe({type:'longtask',buffered:true});}catch(_){/* optional */}
-    try{new PerformanceObserver(list=>{
+    try{new globalThis.PerformanceObserver(list=>{
       for(const event of list.getEntries())if(event.duration>100)
         probe.longFrames.push({at:event.startTime,ms:event.duration,blockingMs:event.blockingDuration,
           scripts:(event.scripts||[]).map(s=>({source:s.sourceURL,fn:s.sourceFunctionName,
@@ -64,8 +64,8 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
   await page.route('**/modules/viewer-composition.js*',async route=>{
     const response=await route.fetch();let source=await response.text();
     source=replaceOnce(source,
-      "onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
-      "onPresented:()=>{window.__MAIN_STALL_PROBE__.mark('presentation');commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
+      "onPresented:()=>{commit();}",
+      "onPresented:()=>{window.__MAIN_STALL_PROBE__.mark('presentation');commit();}");
     source=replaceOnce(source,"status.dataset.ready='true';",
       "status.dataset.ready='true';window.__MAIN_STALL_PROBE__.mark('ready');");
     await route.fulfill({response,body:source});
@@ -94,7 +94,7 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
       unmaskedRenderer:info?gl.getParameter(info.UNMASKED_RENDERER_WEBGL):null,
       unmaskedVendor:info?gl.getParameter(info.UNMASKED_VENDOR_WEBGL):null,
       attributes:gl?.getContextAttributes?.()??null,
-      canvasSize:[canvas.width,canvas.height],dpr:devicePixelRatio
+      canvasSize:[canvas.width,canvas.height],dpr:globalThis.devicePixelRatio
     };
   });
   console.log('PANDO_GL_BACKEND '+JSON.stringify(glDetails));
@@ -161,7 +161,9 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
       longTaskChildren:take(children),
       namedEvents:events.filter(e=>(/TimeStamp|PANDO_RELEASE/i).test(e.name||'')).slice(0,20).map(e=>({name:e.name,ts:e.ts,thread:label(e),args:e.args}))
     };
-    expect(obs.longTasks.some(t=>t.ms>900),'Baseline 2s stall should reproduce under tracing').toBeTruthy();
+    expect(obs.marks.some(mark=>mark.name==='release-request'),'Transition release must be observed').toBe(true);
+    expect(obs.marks.some(mark=>mark.name==='release-ack'),'Worker acknowledgement must be observed').toBe(true);
+    expect(summary.trace.eventCount,'Chromium trace must contain renderer events').toBeGreaterThan(0);
     expect(errors,'No page crashes').toEqual([]);
     console.log('PANDO_MAIN_TRACE '+JSON.stringify({
       observation:{marks:obs.marks,largeTasks:obs.longTasks.filter(t=>t.ms>=300),longFrames:obs.longFrames.filter(f=>f.ms>=300),
@@ -171,7 +173,7 @@ test('Trace Chromium renderer thread during accepted year frame and delayed Work
     summary.outcome='passed';
   }catch(error){summary.outcome='failed';summary.failure=String(error.stack||error);throw error;}
   finally{
-    if(traceLive){try{await cdp.send('Tracing.end');}catch(_){}}
+    if(traceLive){try{await cdp.send('Tracing.end');}catch(_){/* trace may already be stopped */}}
     await mkdir('test-results/viewer-main-stall',{recursive:true});
     const filename='test-results/viewer-main-stall/summary.json';
     await writeFile(filename,JSON.stringify(summary,null,2));
@@ -197,9 +199,9 @@ test('Compare native compositor stall with the SVG and GPU canvas selectively hi
       clearInterval(this.heartbeat.timer);
       this.heartbeat.end=performance.now();
     }};
-    try{new PerformanceObserver(list=>{
+    try{new globalThis.PerformanceObserver(list=>{
       for(const entry of list.getEntries())p.longTasks.push({at:entry.startTime,ms:entry.duration});
-    }).observe({type:'longtask',buffered:true});}catch(_){}
+    }).observe({type:'longtask',buffered:true});}catch(_){/* optional browser diagnostic */}
   });
   await page.route('**/modules/core-document-client.js*',async route=>{
     const response=await route.fetch();let source=await response.text();

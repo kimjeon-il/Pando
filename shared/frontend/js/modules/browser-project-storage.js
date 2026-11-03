@@ -1,17 +1,12 @@
 export function createBrowserProjectStorage({
-  productMode='editor',
+  productMode,
   indexedDB,
-  localStorage,
   databaseName,
   storeName,
-  projectKey,
   viewKey,
-  fallbackKey,
-  previewKey = `${projectKey}:preview`,
   databaseVersion = 2,
-  fallbackLimit = 4_500_000,
 }) {
-  if(!['viewer','editor'].includes(productMode))throw new TypeError('Project storage requires a known product mode.');
+  if(productMode!=='viewer')throw new TypeError('Project storage requires viewer product mode.');
   let databasePromise = null;
 
   function openDatabase() {
@@ -51,60 +46,8 @@ export function createBrowserProjectStorage({
     });
   }
 
-  async function deleteRecords() {
-    const database = await openDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, 'readwrite');
-      const store = transaction.objectStore(storeName);
-      store.delete(projectKey);
-      store.delete(viewKey);
-      store.delete(previewKey);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error || new Error('자동저장 삭제 실패'));
-    });
-  }
-
-  async function deletePreview() {
-    const database = await openDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = database.transaction(storeName, 'readwrite');
-      transaction.objectStore(storeName).delete(previewKey);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error || new Error('지도 미리보기 삭제 실패'));
-    });
-  }
-
-  function readFallback() {
-    const raw = localStorage.getItem(fallbackKey);
-    return raw === null ? null : JSON.parse(raw);
-  }
-
-  function writeFallback(project) {
-    const serialized = JSON.stringify(project);
-    if (serialized.length > fallbackLimit) throw new Error('고해상도 프로젝트가 localStorage 용량을 초과합니다.');
-    localStorage.setItem(fallbackKey, serialized);
-  }
-
-  function removeFallback() {
-    try {
-      localStorage.removeItem(fallbackKey);
-    } catch (_) {}
-  }
-
   return Object.freeze({
     readView: documentId => readRecord(`${viewKey}:${documentId}`,  '보기 위치 읽기 실패'),
     writeView: view => {if(typeof view.documentId!=='string'||!view.documentId)throw new TypeError('Workspace documentId is required.');return writeRecord(`${viewKey}:${view.documentId}`, view, '보기 위치 저장 실패');},
-    ...(productMode==='editor'?{
-    readProject: () => readRecord(projectKey, '자동저장 읽기 실패'),
-    readPreview: () => readRecord(previewKey, '지도 미리보기 읽기 실패'),
-    writeProject: project => writeRecord(projectKey, project, '자동저장 쓰기 실패'),
-    writeRecovery: record => writeRecord(`${projectKey}:recovery:${globalThis.crypto.randomUUID()}`, record, '저장본 복구 기록 쓰기 실패'),
-    writePreview: preview => writeRecord(previewKey, preview, '지도 미리보기 저장 실패'),
-    deletePreview,
-    deleteRecords,
-    readFallback,
-    writeFallback,
-    removeFallback,
-    }:{}),
   });
 }

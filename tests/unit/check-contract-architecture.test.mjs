@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { auditWorkerArchitecture } from '../../scripts/check-worker-architecture.mjs';
 import { auditSchemaOwners, auditVersionDisplays } from '../../scripts/check-version-architecture.mjs';
-import { assertProjectLifecycleFacade } from '../../scripts/lib/application-source.mjs';
+import { assertProjectLifecycleFacade } from '../helpers/source-functions.mjs';
 import { readFileSync } from 'node:fs';
 
 const rpc = 'assets/js/modules/worker-rpc.js';

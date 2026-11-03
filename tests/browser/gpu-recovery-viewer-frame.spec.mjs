@@ -49,12 +49,12 @@ async function observe(page){
   const entry='export function createGpuMapRenderer(';
   expect(source.split(entry).length).toBe(2);
   source=source.replace(entry,'function observedGpuMapRenderer(');
-  const anchor='    function recordMapPresentation(frame, resourcesDrawn = true) {';
+  const anchor='    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false } = {}) {';
   expect(source.split(anchor).length).toBe(2);source=source.replace(anchor,traceSource+'\n'+anchor);
   const rejected='      if (result.strokePresentationFailed) return false;';expect(source.split(rejected).length).toBe(2);
   source=source.replace(rejected,"      traceViewerRecovery('base-result',{failed:result.strokePresentationFailed,missing:result.overlayMissingKeys,failures:result.overlayFailures,countryStroke:result.countryStrokeResult});\n"+rejected);
   for(const [before,extra] of [
-   ['    function recordMapPresentation(frame, resourcesDrawn = true) {','{resourcesDrawn}'],
+   ['    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false } = {}) {','{resourcesDrawn,committedWorkerBitmap}'],
    ['    function recordGpuRecoveryFrame(frame, resourcesDrawn) {','{resourcesDrawn}'],
    ['    function commitGpuRecoveryFrame(frame) {','{}'],
    ['    function finishRecoveryResources(ticket) {','{}'],

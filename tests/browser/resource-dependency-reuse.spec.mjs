@@ -3,11 +3,13 @@ import {test,expect} from '@playwright/test';
 const stats=page=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
 async function month(page,value){
   const [year,month]=value.split('-');
-  await page.locator('#timelineDateButton').click();await page.locator('#timelineViewUnit').selectOption('month');
+  if (!await page.locator('#timelineViewUnit').isVisible()) await page.locator('#timelineDateButton').click();
+  await page.locator('#timelineViewUnit').selectOption('month');
   await page.locator('#timelineYearInput').fill(year);
   await page.locator('#timelineMonthInput').selectOption(String(Number(month)));
   await page.locator('#timelineGoBtn').click();
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),{timeout:60000}).toBe(value);
+  await expect(page.locator('#timelineDateButton')).toHaveAttribute('aria-expanded', 'false', { timeout: 60000 });
   await expect.poll(async()=>{const s=await stats(page);return s.countriesPublishedGeneration===s.projectGeneration;}).toBe(true);
 }
 
@@ -32,7 +34,10 @@ for(const renderer of ['webgl2','canvas'])test(`${renderer}: unchanged date quer
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
   await page.evaluate(()=>{const h=window.__PANDOLAB_MAP_HOST__;h.setViewState({projection:'globe',view:{...h.getViewState(),globeRotation:[-24.6,-38.5,0],globeZoom:5}});h.requestRepaint('dependency-regression');});
   await expect.poll(async()=>(await stats(page)).hydroPacksLoaded,{timeout:30000}).toBeGreaterThan(0);
-  await month(page,'2026-09');
+  const currentMonth = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().timelineCursor);
+  const [year, monthNumber] = currentMonth.split('-').map(Number);
+  const previousMonth = `${monthNumber === 1 ? year - 1 : year}-${String(monthNumber === 1 ? 12 : monthNumber - 1).padStart(2, '0')}`;
+  await month(page,previousMonth);
   await expect.poll(async()=>(await stats(page)).countrySharedBoundaryReady,{timeout:30000}).toBe(true);
   if(renderer==='webgl2'){
     await expect.poll(async()=>(await stats(page)).terrainTilesLoading).toBe(0);
@@ -41,8 +46,8 @@ for(const renderer of ['webgl2','canvas'])test(`${renderer}: unchanged date quer
   }
   const before=await stats(page),requestCount=requests.length,workerCount=workers.length;
   const uploads=await page.evaluate(()=>window.__resourceLargeBufferUploads);
-  await month(page,'2026-10');
-  await month(page,'2026-09');
+  await month(page,currentMonth);
+  await month(page,previousMonth);
   const after=await stats(page);
   expect(after.renderer).toBe(renderer==='canvas'?'canvas-worker':renderer);
   expect(after.countryMeshRebuildCount).toBe(before.countryMeshRebuildCount);
@@ -64,7 +69,7 @@ for(const renderer of ['webgl2','canvas'])test(`${renderer}: unchanged date quer
     await expect.poll(async()=>(await stats(page)).hydroPendingUploadCount).toBe(0);
     const restoredUploads=await page.evaluate(()=>window.__resourceLargeBufferUploads);
     expect(restoredUploads).toBeGreaterThan(uploads);
-    await month(page,'2026-10');
+    await month(page,currentMonth);
     expect(await page.evaluate(()=>window.__resourceLargeBufferUploads)).toBe(restoredUploads);
   }
   expect(errors).toEqual([]);

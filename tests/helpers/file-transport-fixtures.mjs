@@ -3,14 +3,10 @@ import {createNativeStorage} from '../../apps/editor/native-storage.js';
 import {DOCUMENT_TRANSFER_COMMANDS,DOCUMENT_TRANSFER_LIMITS} from '../../apps/editor/document-transfer-contract.js';
 
 export const fixtureProjectFile=()=>new File([new Uint8Array([0,1,2,255])],'project.gpkg',{type:'application/geopackage+sqlite3'});
-export const fixtureGisFiles=()=>[new File(['shape'],'map.shp'),new File(['dbf'],'map.dbf')];
-
-export function createBrowserFileAccessFixture({productMode='editor',autoPick=true,projectFiles=()=>[fixtureProjectFile()],gisFiles=fixtureGisFiles}={}){
-  const selections={project:'cancel',gis:'cancel'},events=[],writes=[],downloads=[];
-  let saveMode='success';
+export function createBrowserFileAccessFixture({productMode='viewer',autoPick=true,projectFiles=()=>[fixtureProjectFile()]}={}){
+  const selections={project:'cancel'},events=[];
   const inputs={};
-  const defaultFiles=kind=>kind==='project'?projectFiles():gisFiles();
-  const fire=(kind,mode=selections[kind],files=defaultFiles(kind))=>{
+  const fire=(kind,mode=selections[kind],files=projectFiles())=>{
     const input=inputs[kind];
     if(!input)throw new Error('Unknown browser file input: '+kind);
     if(mode==='cancel'){input.listeners.cancel?.();return;}
@@ -23,29 +19,10 @@ export function createBrowserFileAccessFixture({productMode='editor',autoPick=tr
     click(){events.push('picker');if(autoPick)queueMicrotask(()=>fire(kind));},
   };
   const elements={projectInput:makeInput('project'),projectOpen:{id:'openProjectBtn',focus(){events.push('focus');}}};
-  if(productMode==='editor')elements.input=makeInput('gis');
-  const window={
-    async showSaveFilePicker(){
-      events.push('picker');
-      if(saveMode==='cancel')throw Object.assign(new Error('cancel'),{name:'AbortError'});
-      return {createWritable:async()=>({
-        async write(blob){writes.push(blob);events.push('write');},
-        async close(){events.push('close');},
-        async abort(){events.push('abort');},
-      })};
-    },
-    URL:{createObjectURL(){return 'blob:test';},revokeObjectURL(){}},
-    setTimeout(fn){fn();},
-  };
-  const document={
-    createElement(){return {click(){downloads.push(this.download);},remove(){}};},
-    body:{appendChild(){}},
-  };
-  const access=createBrowserFileAccess({productMode,elements,window,document});
+  const access=createBrowserFileAccess({productMode,elements});
   return Object.freeze({
-    access,elements,window,document,events,writes,downloads,
+    access,elements,events,
     set(kind,mode){if(!Object.hasOwn(selections,kind))throw new Error('Unknown browser file selection: '+kind);selections[kind]=mode;},
-    setSaveMode(mode){if(!['success','cancel'].includes(mode))throw new Error('Unknown browser save mode: '+mode);saveMode=mode;},
     fire,
   });
 }

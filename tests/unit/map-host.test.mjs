@@ -1,4 +1,4 @@
-import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
+import {readFrontendSources} from '../helpers/read-frontend-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
@@ -15,11 +15,10 @@ test('MapHost surface drag contract preserves the user input direction', () => {
 });
 
 test('flat projection remains equirectangular and is not constrained by Mercator latitude', async () => {
-  const app = readApplicationOwners('environment', 'map-projection');
+  const app = readFrontendSources('map-projection','map-workspace-host');
   const gpuRenderer = await readFile(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
   const polygonPass = await readFile(new URL("../../shared/frontend/js/modules/gpu-polygon-overlay-pass.js", import.meta.url), 'utf8');
   const strokeRenderer = await readFile(new URL("../../shared/frontend/js/modules/gpu-stroke-renderer.js", import.meta.url), 'utf8');
-  assert.match(app, /FLAT_PROJECTION_KIND = 'equirectangular'/);
   assert.match(app, /d3\.geo\.equirectangular\(\)/);
   assert.doesNotMatch(app, /clamp\([^\n]*-85,\s*85\)/);
   for (const source of [gpuRenderer, polygonPass, strokeRenderer]) {

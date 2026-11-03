@@ -12,15 +12,10 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
   let shadowLayer;
   let oceanLayer;
   let countryLayer;
-  let previewLayer;
   let hoverLayer;
   let selectionLayer;
-  let validationLayer;
-  let snapLayer;
-  let boundaryEditLayer;
   let overlayStackLayer;
   let territorialBoundaryLayer;
-  let territorialOperationLayer;
   let territorialUnitLayer;
   let distributionLayer;
   let genericFeatureLayer;
@@ -29,8 +24,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
   let hydroEditLayer;
   let territorialLabelLayer;
   let labelLayer;
-  let vertexLayer;
-  let draftLayer;
   let mapInteractionLayer;
   let mapResizeObserver;
   let mapResizeFrame;
@@ -274,7 +267,7 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     mapEl.appendChild(gpuCanvas);
     svg = map.append('svg').attr('class', 'map-svg map-overlay-svg');
     attachMapOutput({overlaySvg:svg,gpuCanvas});
-    ({interactionSvg,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer}=createMapOverlayLayers({map,svg,productMode,readOnly}));
+    ({interactionSvg,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,territorialLabelLayer,labelLayer}=createMapOverlayLayers({map,svg}));
 
     dependencies.mapHostCommands.installMapInputController(dependencies.lifecycleUi.mapInputPresentation.bindSvg(svg));
   }
@@ -353,10 +346,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
 
   }
 
-  function initializeValidationLayer() {
-
-  }
-
   function initializeMapResizeObserver() {
     (mapResizeObserver = null);
 
@@ -389,15 +378,12 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     connect,attachMapOutput,stopMapResizeObserver,
     prepareVisualFrame,
     initializeSvg,
-    initializeValidationLayer,
     initializeMapResizeObserver,
     initializeResolutionQuery,
     initializeMapHostBindings,
-    get boundaryEditLayer() { return boundaryEditLayer; },
     get territorialLabelLayer() { return territorialLabelLayer; },
     get countryLayer() { return countryLayer; },
     get distributionLayer() { return distributionLayer; },
-    get draftLayer() { return draftLayer; },
     get genericFeatureLayer() { return genericFeatureLayer; },
     get handleRenderFrameComplete() { return handleRenderFrameComplete; },
     get hoverLayer() { return hoverLayer; },
@@ -414,30 +400,24 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     get mapResizeObserver() { return mapResizeObserver; },
     get oceanLayer() { return oceanLayer; },
     get overlayStackLayer() { return overlayStackLayer; },
-    get previewLayer() { return previewLayer; },
     get projectionViewSnapshot() { return projectionViewSnapshot; },
     get queueMapResize() { return queueMapResize; },
     get resizeMap() { return resizeMap; },
     get selectionLayer() { return selectionLayer; },
     get shadowLayer() { return shadowLayer; },
-    get snapLayer() { return snapLayer; },
     get startMapResizeObserver() { return startMapResizeObserver; },
     get svg() { return svg; },
     get syncMapHostFromState() { return syncMapHostFromState; },
     get syncViewRevision() { return syncViewRevision; },
     get territorialBoundaryLayer() { return territorialBoundaryLayer; },
-    get territorialOperationLayer() { return territorialOperationLayer; },
     get territorialUnitLayer() { return territorialUnitLayer; },
-    get validationLayer() { return validationLayer; },
-    get vertexLayer() { return vertexLayer; },
     get viewRevision() { return viewRevision; },
     get visualProjectionForSnapshot() { return visualProjectionForSnapshot; },
     get visualProjectionRevision() { return visualProjectionRevision; },
   });
 }
 
-export function createMapOverlayLayers({map,svg,productMode='editor',readOnly=productMode==='viewer'}){
-    const editOverlays=productMode==='editor'&&!readOnly;
+export function createMapOverlayLayers({map,svg}){
     const interactionSvg = map.append('svg').attr('class', 'map-interaction-svg');
     const interactionRoot = interactionSvg.append('g').attr('class', 'map-interaction-root');
     const root = svg.append('g').attr('class', 'map-root');
@@ -446,7 +426,6 @@ export function createMapOverlayLayers({map,svg,productMode='editor',readOnly=pr
     const hydroLakeLayer = root.append('g').attr('class', 'hydro-lakes-layer');
     const hydroRiverLayer = root.append('g').attr('class', 'hydro-rivers-layer');
     const hydroEditLayer = root.append('g').attr('class', 'hydro-edit-layer');
-    const boundaryEditLayer = editOverlays?root.append('g').attr('class', 'boundary-edit-layer'):null;
     const overlayStackLayer = root.append('g').attr('class', 'overlay-stack-layer');
     const territorialBoundaryLayer = root.append('g').attr('class', 'territorial-boundary-layer');
     const territorialUnitLayer = overlayStackLayer;
@@ -454,20 +433,13 @@ export function createMapOverlayLayers({map,svg,productMode='editor',readOnly=pr
     const genericFeatureLayer = overlayStackLayer;
     const hoverLayer = root.append('g').attr('class', 'hover-overlay-layer');
     const selectionLayer = root.append('g').attr('class', 'selection-overlay-layer');
-    const previewLayer = editOverlays?root.append('g').attr('class', 'geometry-preview-layer'):null;
-    const validationLayer = editOverlays?root.append('g').attr('class', 'validation-overlay-layer'):null;
-    const vertexLayer = editOverlays?root.append('g').attr('class', 'vertices-layer'):null;
-    const draftLayer = editOverlays?root.append('g').attr('class', 'draft-layer'):null;
-    const snapLayer = editOverlays?root.append('g').attr('class', 'snap-indicator-layer'):null;
-    const territorialOperationLayer = editOverlays?interactionRoot.append('g').attr('class', 'territorial-operation-layer'):null;
     const territorialLabelLayer = root.append('g').attr('class', 'territorial-label-layer');
     const labelLayer = root.append('g').attr('class', 'labels-layer');
-    const interactionLayers = [[territorialOperationLayer, 'edit-preview'], [hoverLayer, 'hover'],
-      [selectionLayer, 'primary'], [previewLayer, 'edit-preview'], [validationLayer, 'validation'],
-      [vertexLayer, 'edit-handles'], [draftLayer, 'draft'], [snapLayer, 'snap'],
+    const interactionLayers = [[hoverLayer, 'hover'],
+      [selectionLayer, 'primary'],
       [territorialLabelLayer, 'territorial-labels'], [labelLayer, 'labels']];
     interactionLayers.filter(([layer])=>layer).sort((a, b) => mapVisualRank(a[1]) - mapVisualRank(b[1]))
       .forEach(([layer]) => interactionRoot.node().appendChild(layer.node()));
 
-    return {interactionSvg,root,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,boundaryEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,previewLayer,validationLayer,vertexLayer,draftLayer,snapLayer,territorialOperationLayer,territorialLabelLayer,labelLayer};
+    return {interactionSvg,root,mapInteractionLayer,countryLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,overlayStackLayer,territorialBoundaryLayer,territorialUnitLayer,distributionLayer,genericFeatureLayer,hoverLayer,selectionLayer,territorialLabelLayer,labelLayer};
 }

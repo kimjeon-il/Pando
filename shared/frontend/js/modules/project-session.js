@@ -105,32 +105,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       objectSearch: '',
       tool: 'select',
       labelPlacementMode: false,
-      coastEditCountryId: null,
-      coastEditScopeGenericFeatureId: null,
-      coastEditReturnSelection: null,
-      boundaryEditEntityIds: [],
-      boundaryEditPhase: null,
-      boundaryEditInitialSelection: null,
-      boundaryEditSeedEntityId: null,
-      mergeSourceCountryId: null,
-      mergeTargetCountryIds: [],
-      genericFeatureMergeSourceId: null,
-      genericFeatureMergeTargetIds: [],
-      genericFeatureSplitSourceId: null,
-      distributionDraft: null,
-      territorialUnitMergeSourceId: null,
-      territorialUnitMergeTargetIds: [],
-      territorialUnitSplitSourceId: null,
-      territorialUnitSplitVirtualSource: null,
-      territorialUnitRedrawSourceId: null,
-      // One non-persistent selection workflow is shared by annexation and all
-      // polity creation tools. Only the final operation result is persisted.
-      territorySelectionSession: null,
-      // Ephemeral composition state for a single user-created object.  It is
-      // deliberately outside the project document: only the final geometry is
-      // persisted, and cancelling a tool must leave no partial object behind.
-      multiDraft: null,
-      boundaryPreparation: null,
       spatialIndex: [],
       mapMoving: false,
       historyDirtyEntityIds: readonlyIds(Object.freeze([])),
@@ -253,7 +227,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
     return ()=>{viewingPresentation=capturedPresentation;for(const [key,value] of Object.entries(saved))state[key]=value;state.projectReplacing=true;
       // Prepared candidates have been released by Core replacement. Keep their inputs and recalculate.
       if(state.geometryPreview?.session)state.geometryPreview={...state.geometryPreview,session:null};
-      if(state.territorySelectionSession?.stage==='review')state.territorySelectionSession={...state.territorySelectionSession,stage:'selection',previewPending:false,prepared:null};
     };
   }
   function installDocumentProjection({ documentModel,commandOwner,entityStore }) {

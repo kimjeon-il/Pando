@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { parse } from 'yaml';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 import { loadRepository, planApplicationChecks, matchesPattern } from '../../scripts/plan-application-checks.mjs';
 
@@ -13,6 +14,30 @@ test('every current browser workflow can be assigned before CI dependency planni
   const unregistered = readdirSync(new URL('../browser/', import.meta.url)).filter(name => name.endsWith('.spec.mjs'))
     .map(name => 'tests/browser/' + name).filter(file => !groups.some(group => group.testPatterns.some(pattern => matchesPattern(file, pattern))));
   assert.deepEqual(unregistered, []);
+});
+
+test('Viewer, Windows and shared checks reference existing named test files', () => {
+  const root = fileURLToPath(new URL('../..', import.meta.url));
+  const workflows = ['e1-map-readonly-acceptance', 'e5-windows-review-acceptance',
+    'remote-preview-p3', 'shared-core', 'viewer-initial-p1',
+    'viewer-temporal-cross-acceptance', 'viewer-temporal-performance'];
+  const missing = [];
+  for (const name of workflows) {
+    const file = `.github/workflows/${name}.yml`;
+    const source = readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
+    for (const match of source.matchAll(/tests\/(?:browser|unit|integration)\/[\w./-]+\.(?:spec|test)\.mjs/g))
+      if (!existsSync(resolve(root, match[0]))) missing.push(`${file}: ${match[0]}`);
+  }
+  assert.deepEqual([...new Set(missing)], []);
+});
+
+test('controlled Viewer diagnostics stay manual while the P2-4 behavior check remains automatic', () => {
+  const repository = loadRepository(fileURLToPath(new URL('../..', import.meta.url)));
+  for (const file of ['tests/browser/viewer-main-stall-trace.spec.mjs',
+    'tests/browser/viewer-transition-dedup-diagnostic.spec.mjs',
+    'tests/browser/gpu-worker-background-diagnostic.spec.mjs'])
+    assert.equal(repository.owners.get(file)?.mode, 'manual', file);
+  assert.notEqual(repository.owners.get('tests/browser/viewer-transition-dedup-p2-4.spec.mjs')?.mode, 'manual');
 });
 
 function fixture() {

@@ -548,20 +548,13 @@ function canvasFallbackWorkerMain() {
       const drawSpecs = [...(baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
       const sourceLevel = demLevel || targetLevel;
       const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr)) * 1.12;
-      return { targetLevel, targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs,
+      return { targetLevel, targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs,
         resolutionLimited: sourceLevel.width < desiredWidth };
     }
 
     function renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
       if (!plan) return true;
-      // A 'pending' country surface cannot be admitted even after expensive
-      // DEM/raster reprojection. Paint its current physical substrate first,
-      // acknowledge that real Worker bitmap, then let the renderer submit the
-      // latest canonical frame through 'background-presented'.
-      // Otherwise a single optional globe terrain pass holds the Worker busy
-      // and prevents both the first country frame and newer views from running.
-      if (message.surfacePresentation?.quality === 'pending') return false;
-      const { targetSpecs, baseLevel, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs } = plan;
+      const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs } = plan;
       terrainProtectedKeys.clear();
       for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
       for (const spec of demSpecs) terrainProtectedKeys.add(`dem:${spec.key}`);
@@ -588,6 +581,9 @@ function canvasFallbackWorkerMain() {
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
       for (const spec of demNeighbours) requestDemTile(spec, 120);
+      // Keep preparing while countries are pending. Once the world base is
+      // ready, its physical background can be presented before country meshes.
+      if (message.surfacePresentation?.quality === 'pending' && !baseReady) return false;
       // A temporal transition keeps the previous complete bitmap on screen.
       // Reprojecting partial terrain cannot produce an admissible successor and
       // blocks this Worker from finishing the remaining tile requests.

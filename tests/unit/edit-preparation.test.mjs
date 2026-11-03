@@ -9,7 +9,6 @@ import "../../shared/frontend/js/modules/polygon-geometry.js";
 import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
 import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
-import "../../shared/frontend/js/modules/territorial-edit-plan.js";
 import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
 import { createGeometrySnapshotPool, touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
@@ -17,11 +16,9 @@ import { createTerritorialFeature } from "../../shared/frontend/js/modules/terri
 const square = { type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]] };
 
 test('shared adjacency keeps the original collinearity precision and raw date-line semantics', () => {
-  const kernel = globalThis.PandoLabTerritorialEdit.createKernel(globalThis.polygonClipping);
   for (const [shift, expected] of [[10,true], [10.00000005,true], [10.0000002,false], [20,false], [-350,false]]) {
     const other = { type: 'Polygon', coordinates: square.coordinates.map(ring => ring.map(([x, y]) => [x + shift, y])) };
     assert.equal(globalThis.PandoLabSphericalCore.territorialGeometriesAdjacent([square.coordinates],[other.coordinates]), expected);
-    assert.equal(kernel.adjacent(square, other), expected);
   }
 });
 

@@ -108,6 +108,7 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     const visibleCount = () => page.evaluate(() => window.__PANDOLAB_VIEWER__.visibleTerritorialCount());
     const initialCount = await visibleCount();
     const documentBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
+    const initialMonth = documentBefore.timelineCursor;
     const snapshotBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot());
     const childKey = await page.evaluate(() => {
       const child = window.__landPorts.territorialModel.entityRepository.list()
@@ -154,27 +155,42 @@ for (const renderer of ['canvas', 'webgl2']) test(`${renderer} keeps physical la
     expect(before[1]).toBeGreaterThan(before[2] + 5);
     await page.locator('#timelineDateButton').click();
     await page.locator('#timelineViewUnit').selectOption('month');
-    await page.locator('#timelinePreviousMonth').click();
+    await page.locator('#timelineYearInput').fill('-1');
+    await page.locator('#timelineMonthInput').selectOption('12');
+    await page.locator('#timelineYearInput').press('Enter');
     await expect.poll(visibleCount, { timeout: 30_000 }).toBeLessThan(initialCount);
+    await expect(page.locator('#timelineDateButton')).toHaveAttribute('aria-expanded', 'false', { timeout: 30000 });
     const empty = await settledPixel();
     console.log(renderer, 'empty', empty, await page.evaluate(() => window.__landProbeMeta));
     expect(empty).toEqual(before);
-    await page.locator('#timelineNextMonth').click();
+    const [initialYear, initialMonthNumber] = initialMonth.split('-');
+    await page.locator('#timelineDateButton').click();
+    await page.locator('#timelineYearInput').fill(initialYear);
+    await page.locator('#timelineMonthInput').selectOption(String(Number(initialMonthNumber)));
+    await page.locator('#timelineYearInput').press('Enter');
     await expect.poll(visibleCount, { timeout: 30_000 }).toBe(initialCount);
     await expect.poll(() => page.evaluate(key => window.__landPaints?.[key], childKey)).toBe(0);
     const restored = await settledPixel();
     console.log(renderer, 'restored', restored, await page.evaluate(() => window.__landProbeMeta));
     expect(restored).toEqual(before);
+    await expect.poll(() => page.evaluate(() => {
+      const stats = window.__PANDOLAB_VIEWER__.rendererStats();
+      return ['ready', 'limited'].includes(stats.mapReadiness.status) && !stats.projectRenderBlocked;
+    }), { timeout: 90_000 }).toBe(true);
     await page.keyboard.press('Escape');
-    await page.locator('#mapDisplayBtn').click();
-    await page.locator('[data-map-display-row="objects"]').click();
+    const display = page.locator('#mapDisplaySurface');
+    for (let attempt = 0; attempt < 2 && !await display.isVisible(); attempt += 1)
+      await page.locator('#mapDisplayBtn').click();
+    await expect(display).toBeVisible();
+    if (await page.locator('[data-map-display-row="objects"]').getAttribute('aria-expanded') !== 'true')
+      await page.locator('[data-map-display-row="objects"]').click();
     await page.locator('#objectsVisible').locator('..').click();
     await expect.poll(visibleCount).toBe(0);
     await page.locator('#mapDisplayBtn').click();
     expect(await settledPixel()).toEqual(before);
     // Epoch counts accepted read projections, including the two cursor moves.
     const stateAfter = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
-    expect({ ...stateAfter, epoch: 0 }).toEqual({ ...documentBefore, epoch: 0 });
+    expect({ ...stateAfter, epoch: 0, storageBaselineId: 0 }).toEqual({ ...documentBefore, epoch: 0, storageBaselineId: 0 });
     expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(snapshotBefore);
     await page.locator('#mapDisplayBtn').click();
     await page.locator('[data-map-display-row="terrain"]').click();

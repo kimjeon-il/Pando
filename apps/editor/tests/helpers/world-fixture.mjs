@@ -63,12 +63,6 @@ export async function worldFixture(t) {
   const historicPath='assets/data/builtin-world/generated/v1/index.json';
   const historicSpec=await pinned(historicPath,Buffer.from(JSON.stringify({schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{},
     entities:[{...country,entityId:'state:ABC',encoding:'gzip',file:country.url.split('/v1/')[1],coverage:[{validFrom:null,validTo:null}]}]})));
-  const libPath = 'assets/data/territorial-entities/generated/v2/';
-  const libraryChunk = await pinned(libPath + 'state-ABC.json.gz');
-  const indexSpec = await pinned(libPath + 'index.json', Buffer.from(JSON.stringify({
-    schemaVersion: 2, entities: [{ file: 'state-ABC.json.gz',
-      sha256: libraryChunk.sha256, compressedBytes: libraryChunk.compressedBytes }],
-  })));
   const prepPath = 'assets/data/prepared-polygons/generated/v2/';
   const data = Buffer.from('PREPARED');
   const mesh = await pinned(prepPath + 'polygon-mesh-sha256-' + sha(data) + '.bin.gz', data);
@@ -101,7 +95,7 @@ export async function worldFixture(t) {
     },
   }));
   const meta = { appVersion: '0.36.0', assetRevision: 'test-full-world', dataRevision: 'data-' + 'b'.repeat(32),
-    builtinWorld: historicSpec, territorialIndex: indexSpec, preparedPolygonMeshes: prepSpec };
+    builtinWorld: historicSpec, preparedPolygonMeshes: prepSpec };
   await put('assets/js/build-meta.js', 'globalThis.PANDOLAB_BUILD_META = Object.freeze(' + JSON.stringify(meta) + ');\n');
   await put('apps/viewer/js/viewer.js','export const viewer=true;');
   await put('apps/editor/src-tauri/tauri.conf.json',JSON.stringify({app:{security:{csp:"script-src 'self'"}}}));
@@ -109,7 +103,6 @@ export async function worldFixture(t) {
   await put('shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
   for(const entry of frontendSourceClosure(sourceRoot,[
     'assets/js/modules/runtime-context.js',
-    'assets/js/modules/platform-runtime.js',
   ],{runtimeDependencies}))await put(entry.sourcePath,readFileSync(join(sourceRoot,entry.sourcePath)));
   for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};

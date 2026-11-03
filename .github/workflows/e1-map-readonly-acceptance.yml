@@ -19,7 +19,6 @@ on:
       - tests/browser/viewer-project-open.spec.mjs
       - tests/unit/core-product-mode.test.mjs
       - tests/unit/map-readonly-flat-boundary.test.mjs
-      - tests/unit/shared-map-composition.test.mjs
       - tests/unit/project-product-surface.test.mjs
       - tests/unit/viewer-globe-only.test.mjs
   workflow_dispatch:
@@ -62,7 +61,6 @@ jobs:
           apps/viewer/js/modules/viewer-map.js
           tests/unit/core-product-mode.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/shared-map-composition.test.mjs
           tests/unit/project-product-surface.test.mjs
           tests/unit/viewer-globe-only.test.mjs
       - name: Verify Core read access, project ownership and editing isolation
@@ -71,9 +69,6 @@ jobs:
           tests/unit/core-product-mode.test.mjs
           tests/unit/project-product-surface.test.mjs
           tests/unit/viewer-globe-only.test.mjs
-          tests/unit/shared-map-composition.test.mjs
-          tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/shared-map-composition.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/viewer-composition-recovery.test.mjs
       - name: Verify existing runtime module boundaries
@@ -99,7 +94,6 @@ jobs:
           node --test --test-concurrency=2
           tests/unit/viewer-globe-only.test.mjs
           tests/unit/project-product-surface.test.mjs
-          tests/unit/shared-map-composition.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/file-access-contract.test.mjs
           tests/unit/native-document-transfer-contract.test.mjs

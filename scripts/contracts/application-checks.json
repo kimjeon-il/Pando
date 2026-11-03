@@ -77,7 +77,10 @@
         "tests/browser/map-transition-p5-6.spec.mjs",
         "tests/browser/p6-5-resource-check.spec.mjs",
         "tests/browser/p6-6-desktop-performance.spec.mjs",
-        "tests/browser/p6-7-narrow-performance.spec.mjs"
+        "tests/browser/p6-7-narrow-performance.spec.mjs",
+        "tests/browser/viewer-main-stall-trace.spec.mjs",
+        "tests/browser/viewer-transition-dedup-diagnostic.spec.mjs",
+        "tests/browser/gpu-worker-background-diagnostic.spec.mjs"
       ],
       "inputs": []
     },
@@ -293,25 +296,6 @@
         "apps/viewer/js/modules/object-search-*.js",
         "shared/frontend/js/modules/place-name-display.js",
         "shared/frontend/js/modules/layer-presentation.js"
-      ],
-      "requires": [
-        "generated",
-        "core"
-      ]
-    },
-    {
-      "id": "library",
-      "kind": "browser",
-      "testPatterns": [
-        "tests/browser/east-prussia-library.spec.mjs",
-        "tests/browser/library-*.spec.mjs",
-        "tests/browser/historical-world-*.spec.mjs"
-      ],
-      "inputs": [
-        "shared/frontend/js/modules/*library*.js",
-        "apps/viewer/js/modules/*library*.js",
-        "assets/data/historical-world/**",
-        "assets/data/territorial-entities/**"
       ],
       "requires": [
         "generated",
@@ -1253,7 +1237,6 @@
     "apps/editor/frontend/**",
     "apps/editor/templates/**",
     "apps/editor/tests/**",
-    "apps/editor/startup.js",
     "apps/editor/verification.js",
     "apps/editor/native-platform-adapter.js",
     "apps/editor/native-storage.js",
@@ -1467,7 +1450,6 @@
         "objects",
         "projects",
         "viewer",
-        "library",
         "hydro-gis",
         "map-plugin-import",
         "ui",

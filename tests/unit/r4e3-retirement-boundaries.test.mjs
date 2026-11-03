@@ -23,7 +23,7 @@ test('R4-E3 removes 170 archived editor tests plus three obsolete comparison-onl
 });
 
 test('R4-E3 removes obsolete workflows and keeps Viewer, GIS and Core acceptance',()=>{
- assert.equal(manifest.retireWorkflows.length,38);
+ assert.equal(manifest.retireWorkflows.length,39);
  for(const p of manifest.retireWorkflows)assert.equal(exists(p),false,p);
  for(const p of manifest.migrateWorkflows.filter(p=>!manifest.retireWorkflows.includes(p)))
    assert.equal(exists(p),true,p);

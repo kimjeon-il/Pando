@@ -9,10 +9,10 @@ import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/ma
 import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
 
-const mapInteractionEntries = (snapshot, state, options = {}) => {
-  const entities = options.entities || state.territorialEntities || [];
+const mapInteractionEntries = (snapshot, options = {}) => {
+  const entities = options.entities || [];
   const repository = createTerritorialEntityRepository({ getEntities: () => entities });
-  return interactionEntries(snapshot, state, { ...options, territorialEntityById: repository.get });
+  return interactionEntries(snapshot, { ...options, territorialEntityById: repository.get });
 };
 
 test('all object domains share role priority and style, including zero fill and disabled outlines', () => {
@@ -32,24 +32,22 @@ test('all object domains share role priority and style, including zero fill and 
   }
 });
 
-test('tool role overrides selection without altering canonical selection or geometry', () => {
+test('selection and hover share one entry without altering canonical selection', () => {
   const ref = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'RUS' });
   const snapshot = { selection: { primaryKey: ref.key, items: [ref] }, hover: ref };
   const before = JSON.stringify(snapshot);
-  const entries = mapInteractionEntries(snapshot, { tool: 'country-coast', coastEditCountryId: 'RUS' });
+  const entries = mapInteractionEntries(snapshot);
   assert.equal(entries.length, 1);
-  assert.equal(entries[0].role, 'edit-target');
-  assert.deepEqual(new Set(entries[0].roles), new Set(['primary', 'hover', 'edit-target']));
+  assert.equal(entries[0].role, 'primary');
+  assert.deepEqual(new Set(entries[0].roles), new Set(['primary', 'hover']));
   assert.equal(JSON.stringify(snapshot), before);
 });
 
-test('country border keeps the selected countries primary and secondary while the boundary is edited', () => {
+test('selected countries retain their primary and secondary roles', () => {
   const rou = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'ROU' });
   const mda = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'MDA' });
   const snapshot = { selection: { primaryKey: mda.key, items: [rou, mda] }, hover: null };
-  const entries = mapInteractionEntries(snapshot, {
-    tool: 'territorial-border', boundaryEditPhase: 'editing', boundaryEditEntityIds: ['ROU', 'MDA'],
-  });
+  const entries = mapInteractionEntries(snapshot);
   assert.equal(entries.find(entry => entry.ref.id === 'MDA').role, 'primary');
   assert.equal(entries.find(entry => entry.ref.id === 'ROU').role, 'secondary');
   assert.equal(entries.some(entry => entry.role === 'edit-target'), false);
@@ -113,33 +111,16 @@ test('boundary presentation uses explicit geometry and rejects missing owners',a
  await assert.rejects(preparation.prepare({kind:'highlight',feature,occluders:[{feature:null}]},[],[]),/원본/);
 });
 
-test('tool receivers, donors and nested parents keep their semantic roles independent of selection order', () => {
+test('nested territorial selections retain their hierarchy depth', () => {
   const units = [{ id: 'parent', properties: { entityKind: 'general', parentId: 'RUS' } }, { id: 'child', properties: { entityKind: 'general', parentId: 'parent' } }];
   const refs = units.map(unit => normalizeObjectRef({ domain: 'territorial', type: 'entity', id: unit.id }));
   const snapshot = { selection: { items: refs, primaryKey: refs[1].key } };
   const rows = mapInteractionEntries(snapshot, {
-    tool: 'merge-territorial-unit', territorialUnitMergeSourceId: 'parent', territorialUnitMergeTargetIds: ['child'],
-  }, {
     entities: [...units, { id: 'RUS', properties: { entityKind: 'general', parentId: '' } }],
   });
-  assert.equal(rows[0].ref.id, 'parent'); assert.equal(rows[0].role, 'edit-target');
-  assert.equal(rows[1].role, 'primary'); assert.ok(rows[1].roles.includes('selected-provider'));
-  assert.equal(rows[1].depth, 2);
-});
-
-test('country creation sources use the same secondary selection emphasis as annex donors', () => {
-  const snapshot = { selection: { items: [], primaryKey: null }, hover: null };
-  const session = (kind, sourceHighlightRole) => ({ tool: kind === 'annex' ? 'annex-territory' : 'new-country', kind, sourceCountryIds: ['DEU', 'POL'], sourceHighlightRole });
-  for (const [kind, role] of [['new-country', 'selected-provider'], ['annex', 'selected-provider']]) {
-    const rows = mapInteractionEntries(snapshot, { tool: session(kind, role).tool, territorySelectionSession: session(kind, role) });
-    assert.equal(rows.length, 2);
-    assert.ok(rows.every(row => row.role === 'selected-provider'));
-    assert.ok(rows.every(row => row.priority === 3));
-  }
-  const style = resolveMapInteractionStyle({ theme: 'light', fillStrength: 0.35 });
-  const selected = resolveMapStrokeStyle(style, 'selected-provider');
-  assert.ok(selected.fillAlpha > 0);
-  assert.ok(selected.width > resolveMapStrokeStyle(style, 'reference').width);
+  assert.equal(rows[0].ref.id, 'child'); assert.equal(rows[0].role, 'primary');
+  assert.equal(rows[1].role, 'secondary');
+  assert.equal(rows[0].depth, 2);
 });
 
 test('Canvas metadata updates share immutable coordinate reconstruction', () => {

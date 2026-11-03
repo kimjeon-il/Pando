@@ -1,7 +1,7 @@
 // One dependency contract for the common owners; no project state is stored here.
 export const MAP_OWNER_PORTS=Object.freeze({
   builtinSession:Object.freeze(["domains","platformConfigurationA","objectModelB","applicationServicesA","applicationServicesB","countries","countryRecords","geometryMutation","layerPresentation","objectDefinitions","platform","projectState","rendering","territorialModel"]),
-  workspaceSurfaces:Object.freeze(["colorPicker","countryEditingA","domainControllers","mapHostViewB","mapNavigation","platform","platformConfigurationB","projectServices","projectState","taskPresentation","uiFactoriesA","uiFactoriesB","domains"]),
+  workspaceSurfaces:Object.freeze(["colorPicker","mapHostViewB","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
   projectSession:Object.freeze(["domains","applicationConstantsA","applicationFactories","lifecycleUi","modelValidation","physicalConfig","platformConfigurationA","platformConfigurationB","readiness","uiFactoriesA","uiFactoriesB","mapNavigation"]),
   renderQuality:Object.freeze(["feedback","countries","domains","gpuRenderingA","hydroModel","mapView","platformConfigurationB","preferences","projectState","rendering","selectionServices","spatialQuery","surfaces","uiFactoriesA"]),
   pointerTargets:Object.freeze(["countries","domains","draftPresentation","feedback","hydroPresentation","landRelations","layerPresentation","lifecycleUi","mapLayout","mapView","objectOperationsA","objectPicking","physicalResources","physicalServices","platform","projectState","rendering","spatialQuery","surfaces","territorialModel","selectionServices"]),
@@ -21,7 +21,7 @@ export const MAP_OWNER_PORTS=Object.freeze({
 
 export const MAP_OWNER_REQUIRED_PORTS=Object.freeze({
   builtinSession:Object.freeze(["domains","platformConfigurationA","objectModelB","applicationServicesB","layerPresentation","objectDefinitions","projectState","rendering","territorialModel"]),
-  workspaceSurfaces:Object.freeze(["mapHostViewB","mapNavigation","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
+  workspaceSurfaces:Object.freeze(["mapHostViewB","platform","platformConfigurationB","projectState","uiFactoriesB","domains"]),
   projectSession:Object.freeze(["domains","applicationConstantsA","modelValidation","physicalConfig","readiness","uiFactoriesA","mapNavigation"]),
   renderQuality:Object.freeze(["feedback","countries","domains","gpuRenderingA","hydroModel","mapView","preferences","projectState","rendering","selectionServices","surfaces","uiFactoriesA"]),
   pointerTargets:Object.freeze(["domains","feedback","hydroPresentation","landRelations","layerPresentation","mapLayout","mapView","objectPicking","physicalResources","physicalServices","platform","projectState","rendering","surfaces"]),

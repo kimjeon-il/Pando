@@ -4,7 +4,7 @@ import { layerObjectRank, territorialPaintRole } from './layer-presentation.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createObjectPicking({handleEditingClick=null,onBackgroundClear=null,openEditor=false,performanceRecorder=null,closeActiveOverlay=null}={}) {
+export function createObjectPicking({performanceRecorder=null,closeActiveOverlay=null}={}) {
   let dependencies;
   let objectPickRevision = 0;
   let objectChooserPresentationRevision = 0;
@@ -194,7 +194,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
     if(chooserSelection){const choose=chooserSelection;closeObjectChooser();return await choose(ref);}
     if (!objectRefSelectable(ref)) return false;
     const mode = toggle || objectChooserIntentMode === 'toggle' ? 'toggle' : 'replace';
-    await dependencies.domains.selectionUiController.applyIntent(ref, { mode, scope: 'map',openEditor });
+    await dependencies.domains.selectionUiController.applyIntent(ref, { mode, scope: 'map' });
     return true;
   }
 
@@ -217,7 +217,6 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
       closeObjectChooser();
       await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
       if(projectGeneration!==dependencies.domains.projectDomain.getGeneration())return false;
-      if(onBackgroundClear)onBackgroundClear();
       return false;
     }
     const candidates = (await selectableObjectsAt(screenPoint, coord, { seedRefs: [normalizedHit] })).filter(objectRefSelectable);
@@ -229,7 +228,6 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
       closeObjectChooser({ cancelPending: false });
       await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
       if(projectGeneration!==dependencies.domains.projectDomain.getGeneration())return false;
-      if(onBackgroundClear)onBackgroundClear();
       return false;
     }
     if (candidates.length > 1) {
@@ -237,7 +235,7 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
       return true;
     }
     const target = candidates[0];
-    await dependencies.domains.selectionUiController.applyIntent(target, { mode: intentMode, scope: 'map',openEditor });
+    await dependencies.domains.selectionUiController.applyIntent(target, { mode: intentMode, scope: 'map' });
     if(projectGeneration!==dependencies.domains.projectDomain.getGeneration() || pickViewRevision!==dependencies.mapLayout.viewRevision)return false;
     dependencies.rendering.selectionPerformanceMetrics.handlerMs = performance.now() - inputStartedAt;
     if(performanceRecorder)requestAnimationFrame(()=>performanceRecorder.publish(inputStartedAt,performanceBefore,`map:${target.key}`));
@@ -255,7 +253,6 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
   async function handleMapClick(screenPoint, { territorialLabelId = '' } = {}) {
     try {
     if (dependencies.projectState.state.spacePanActive || dependencies.projectState.state.tool === 'move') return;
-    if(handleEditingClick){const editing=dependencies.domains.editingDomain;if(editing.snapshot().vertexPlacement)return await editing.handleInteraction({type:'vertex-placement-commit',projectGeneration:editing.snapshot().projectGeneration,screenPoint,pointerType:'touch'});}
     // A label names an explicit object even when its text is over another
     // territory or outside the globe. Other tools retain coordinate dispatch.
     if (territorialLabelId && dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) {
@@ -266,11 +263,10 @@ export function createObjectPicking({handleEditingClick=null,onBackgroundClear=n
       const event = dependencies.platform.d3.event;
       const source = event?.sourceEvent || event || {};
       return await dependencies.domains.selectionUiController.applyIntent(ref, {
-        mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',openEditor,
+        mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',
       });
     }
     if(dependencies.projectState.state.tool==='select'&&!dependencies.projectState.state.labelPlacementMode)return await handleObjectSelectionAt(screenPoint);
-    if(handleEditingClick)return await handleEditingClick(screenPoint);
     } catch (error) {
       dependencies.feedback.reportOperationError(error, '지도 작업을 적용하지 못했습니다.', 'PL-MAP-CLICK-001', 4200);
       return false;

@@ -25,15 +25,15 @@ test('current preferences retain only label and composable selection settings', 
   });
   assert.deepEqual(preferences, {
     backgrounds:defaultUserPreferences().backgrounds,version: 2,
-    appearance: { theme: 'dark', accentPreset: 'blue', statusBarVisible: true, smoothLines: true },
+    appearance: { theme: 'dark', accentPreset: 'blue', smoothLines: true },
     labels: { country: { font: 'serif', color: '#aa11bb' }, place: { font: 'gothic', color: '#123456', pointColor: '#abcdef', languages: { ko: true, en: false, native: false } } },
     selection: { color: '#0f1e2d', outlineVisible: false, fillStrength: 0.6 },
   });
 });
 
-test('status bar visibility defaults to visible and persists an explicit opt-out', () => {
-  assert.equal(defaultUserPreferences().appearance.statusBarVisible, true);
-  assert.equal(normalizeUserPreferences({ version: 2, appearance: { statusBarVisible: false } }).appearance.statusBarVisible, false);
+test('retired editor status bar setting is omitted from Viewer preferences', () => {
+  assert.equal(Object.hasOwn(defaultUserPreferences().appearance,'statusBarVisible'),false);
+  assert.equal(Object.hasOwn(normalizeUserPreferences({version:2,appearance:{statusBarVisible:false}}).appearance,'statusBarVisible'),false);
 });
 
 test('invisible selection combinations restore an outline and old schema values are ignored', () => {

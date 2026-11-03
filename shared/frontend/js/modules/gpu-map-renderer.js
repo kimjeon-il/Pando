@@ -1,6 +1,10 @@
 import { geometryReferenceFor } from './geometry-version-store.js';
 import { mapVisualOrder } from './layer-presentation.js';
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
+import { createCanvasScenePackets } from './gpu-canvas-scene-packets.js';
+import { createCountryMeshVariants } from './gpu-country-mesh-variants.js';
+import { createCountryGeometryRevisionTracker } from './gpu-country-geometry-revisions.js';
+import { createCountryPatchPresentation } from './gpu-country-patch-presentation.js';
 import { createGpuContextRecovery } from './gpu-context-recovery.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
 import { createGpuResourceLifecycle, createGpuResourceLease, createGpuUploadScope } from './gpu-resource-lifecycle.js';
@@ -121,67 +125,6 @@ export function visibleFlatWorldOffsets({
 export function canvasCountryGeometrySignature(features) {
   return resourceKey(features.map(feature => [String(feature.id),
     geometryRevisionKey(feature.geometry), feature.boundaryRootId || '', feature.boundaryPristine !== false]));
-}
-
-export function createCountryGeometryRevisionTracker() {
-  let committedRevision = 0;
-  let displayedRevision = 0;
-  let taskToken = 0;
-  const pendingRevisions = new Map();
-
-  const normalizedIds = ids => [...new Set([...(ids || [])].map(String).filter(Boolean))];
-
-  function beginCommit(ids) {
-    committedRevision += 1;
-    taskToken += 1;
-    const normalized = normalizedIds(ids);
-    for (const id of normalized) pendingRevisions.set(id, committedRevision);
-    return { ids: normalized, revision: committedRevision, token: taskToken };
-  }
-
-  function beginTask(revision = committedRevision) {
-    taskToken += 1;
-    return { revision: Number(revision || 0), token: taskToken };
-  }
-
-  function isCurrent(token, revision) {
-    return Number(token) === taskToken && Number(revision) === committedRevision;
-  }
-
-  function markDisplayed(ids, revision) {
-    const numericRevision = Number(revision || 0);
-    if (numericRevision < committedRevision) return [];
-    const cleared = [];
-    for (const id of normalizedIds(ids)) {
-      const pendingRevision = pendingRevisions.get(id);
-      if (pendingRevision === undefined || pendingRevision > numericRevision) continue;
-      pendingRevisions.delete(id);
-      cleared.push(id);
-    }
-    displayedRevision = Math.max(displayedRevision, numericRevision);
-    return cleared;
-  }
-
-  function reset() {
-    taskToken += 1;
-    pendingRevisions.clear();
-    committedRevision += 1;
-    return committedRevision;
-  }
-
-  return Object.freeze({
-    beginCommit,
-    beginTask,
-    isCurrent,
-    markDisplayed,
-    reset,
-    committedRevision: () => committedRevision,
-    displayedRevision: () => displayedRevision,
-    taskToken: () => taskToken,
-    pendingIds: () => [...pendingRevisions.keys()],
-    pendingRevision: id => pendingRevisions.get(String(id)),
-    isPending: id => pendingRevisions.has(String(id)),
-  });
 }
 
 export function createGpuMapRenderer(deps) {
@@ -621,7 +564,7 @@ export function createGpuMapRenderer(deps) {
     const deferredCountryPatchIds = new Set();
     const overrideFeatureSnapshots = new Map();
     const geometryRevisionTracker = createCountryGeometryRevisionTracker();
-    let countryPatchPresentation = null;
+    const countryPatchPresentation = createCountryPatchPresentation();
     let pendingOldMeshVisibleCount = 0;
     const patchJobScheduler = createGpuMeshWorkerJobs({
       createWorker: () => workerChannels.create(runtimeAssetUrl('workers/gpu-mesh-worker.js'), { name: 'pandolab-country-patch-mesh' }),
@@ -636,7 +579,6 @@ export function createGpuMapRenderer(deps) {
     let terrainFallbackReason = null;
     let terrainFallbackPending = false;
     let canvasTerrainStats = {};
-    let canvasTerrainEverReady = false;
     const terrainPreparation = state.resourceCapabilities?.terrain===false ? null : createGpuTerrainPreparation({
       isMobile, invalidate: invalidatePhysicalScene, geoDistance: (...args) => d3.geo.distance(...args),
       tileUrl: spec => {
@@ -875,7 +817,7 @@ export function createGpuMapRenderer(deps) {
     let meshQuality = 'preview';
     let activeMeshQuality = 'preview';
     let canonicalMeshReady = false;
-    const meshVariants = new Map();
+    const meshVariants = createCountryMeshVariants(disposeMeshEntry);
     let pickCount = 0;
     let pickReadPixelsMs = 0;
     let pickLastReadPixelsMs = 0;
@@ -1053,33 +995,31 @@ export function createGpuMapRenderer(deps) {
     }
 
     function countryPatchPresentationCanDrawOverride(id) {
-      return countryPatchPresentation?.phase === 'staging'
-        && countryPatchPresentation.ids.has(String(id));
+      return countryPatchPresentation.canDrawOverride(id);
     }
 
     const terrainTargetsHaveSettled = () => (terrainPreparation?.settled() ?? true);
 
     function shouldHoldCountryPatchScene(viewSignature) {
-      const presentation = countryPatchPresentation;
-      if (!presentation || presentation.phase !== 'staging') return false;
-      if (presentation.preserveAllowed === false) return false;
-      if (presentation.geometryRevision !== geometryRevisionTracker.committedRevision()) return false;
-      if (!sceneColorCache.canCompositePreserved?.(viewSignature, projectGeneration)) return false;
-      if (!state.physicalSettings.terrainVisible || !terrainManifest?.levels?.length || !terrainProgram) return false;
+      if (countryPatchPresentation.phase() !== 'staging') return false;
       const { terrainTargetTileCount, terrainTargetTilesLoaded } = (terrainPreparation?.stats() || {});
-      return terrainTargetTileCount > 0
-        && terrainTargetTilesLoaded < terrainTargetTileCount
-        && !terrainTargetsHaveSettled();
+      return countryPatchPresentation.shouldHold({
+        geometryRevision: geometryRevisionTracker.committedRevision(),
+        canComposite: !!sceneColorCache.canCompositePreserved?.(viewSignature, projectGeneration),
+        terrainAvailable: !!(state.physicalSettings.terrainVisible && terrainManifest?.levels?.length && terrainProgram),
+        targetTileCount: terrainTargetTileCount, loadedTileCount: terrainTargetTilesLoaded,
+        terrainSettled: terrainTargetsHaveSettled(),
+      });
     }
 
     function completePreservedCountryPatchPresentation() {
-      const presentation = countryPatchPresentation;
+      const presentation = countryPatchPresentation.current();
       if (!presentation || presentation.phase !== 'staging') return false;
       if (!geometryRevisionTracker.isCurrent(presentation.token, presentation.geometryRevision)) {
-        countryPatchPresentation = null;
+        countryPatchPresentation.clear();
         return false;
       }
-      presentation.phase = 'promoted';
+      countryPatchPresentation.promote(presentation.token, presentation.geometryRevision);
       completeGeometryDisplay(presentation.ids, presentation.geometryRevision, { renderFrame: false });
       return true;
     }
@@ -1818,7 +1758,7 @@ export function createGpuMapRenderer(deps) {
       return Object.freeze({ canvas, gl, context: renderDeviceContextRevision, project: projectGeneration,
         inputRevision: gpuRecoveryInputRevision, geometryRevision: geometryRevisionTracker.committedRevision(),
         mesh, quality: activeMeshQuality, override: overrideMesh,
-        entries: Object.freeze([...meshVariants].map(([quality, entry]) => Object.freeze({ quality, entry, mesh: entry.mesh }))) });
+        entries: Object.freeze([...meshVariants.entries()].map(([quality, entry]) => Object.freeze({ quality, entry, mesh: entry.mesh }))) });
     }
 
     function recoveryIdentityCurrent(identity) {
@@ -2356,23 +2296,16 @@ export function createGpuMapRenderer(deps) {
         return false;
       }
       invalidateGpuRecoveryInputs('base-mesh-replaced');
-      if (!preserveOtherVariants) {
-        for (const entry of meshVariants.values()) disposeMeshEntry(entry);
-        meshVariants.clear();
-      } else if (meshVariants.has(variantQuality)) {
-        disposeMeshEntry(meshVariants.get(variantQuality));
-      }
       nextMesh.metadataCountryIds = [...countryIds];
       nextMesh.triangleRangesByCountryId = createCountryTriangleRangeMap(nextMesh, countryIds);
-      const entry = {
+      const entry = meshVariants.replace(variantQuality, () => ({
         quality: variantQuality,
         mesh: nextMesh,
         dependencies: null,
         countryIds: [...countryIds],
         boundaryCacheKind,
         resources: stagedResources || uploadMeshResources(nextMesh),
-      };
-      meshVariants.set(variantQuality, entry);
+      }), { preserveOtherVariants });
       if (builtinMeshBaseline?.mesh === nextMesh) builtinMeshBaseline.resources = entry.resources;
       if (activate) activateMeshVariant(variantQuality, { renderFrame });
       prewarmCountryStrokeResources();
@@ -2549,20 +2482,12 @@ export function createGpuMapRenderer(deps) {
       }
       mapWorkScheduler.cancel('country-mesh-compaction');
       const commit = geometryRevisionTracker.beginCommit(ids);
-      countryPatchPresentation = presentation === 'preserve-existing-scene'
-        && !removedIds.length
-        && isWebGlRenderer()
-        && sceneColorCache.hasActiveProject?.(projectGeneration)
-        ? {
-          mode: 'preserve-existing-scene',
-          phase: 'waiting-mesh',
-          ids: new Set(ids),
-          token: commit.token,
-          geometryRevision: commit.revision,
-          previousBaseResult: lastBaseSceneResult,
-          heldFrameCount: 0,
-        }
-        : null;
+      countryPatchPresentation.begin({
+        eligible: presentation === 'preserve-existing-scene' && !removedIds.length
+          && isWebGlRenderer() && !!sceneColorCache.hasActiveProject?.(projectGeneration),
+        ids, token: commit.token, geometryRevision: commit.revision,
+        previousBaseResult: lastBaseSceneResult,
+      });
       lastGeometryCommitTimings = {
         geometryRevision: commit.revision,
         editCommitAt: performance.now(),
@@ -2608,13 +2533,13 @@ export function createGpuMapRenderer(deps) {
       }
       updatePalette();
       renderViewFrame();
-      if (!countryPatchPresentation) lastGeometryCommitTimings.baseHiddenAt = performance.now();
+      if (!countryPatchPresentation.current()) lastGeometryCommitTimings.baseHiddenAt = performance.now();
       const patchFeatures = [...overrideFeatureSnapshots.values()].map(deepClone);
       const snapshotIds = [...countryOverrideIds];
       const token = commit.token;
       // The worker result contains earlier queued patches too. Promote their
       // pending IDs together so a rapid second addition cannot leave a preview.
-      if (countryPatchPresentation?.token === token) countryPatchPresentation.ids = new Set(snapshotIds);
+      countryPatchPresentation.setIds(token, snapshotIds);
       return lifecycle.nextFrame().then(() => {
         if (!geometryRevisionTracker.isCurrent(token, commit.revision)) return false;
         lastGeometryCommitTimings.patchWorkerRequestedAt = performance.now();
@@ -2627,18 +2552,16 @@ export function createGpuMapRenderer(deps) {
         });
         return ticket.promise.then(async next => {
           if (!next || !geometryRevisionTracker.isCurrent(token, commit.revision)) {
-            if (countryPatchPresentation?.token === token) countryPatchPresentation = null;
+            countryPatchPresentation.clearIfToken(token);
             return false;
           }
           performanceMetrics.lastMeshPreparation = next.preparation;
           const remapped = remapOverrideMesh(next, next.countryIds || []);
           const stagedResources = await stageMeshResources(remapped);
           if (!geometryRevisionTracker.isCurrent(token, commit.revision)) { disposeMeshResources(stagedResources); return false; }
-          if (countryPatchPresentation?.token === token && countryPatchPresentation.geometryRevision === commit.revision) {
-            countryPatchPresentation.phase = 'staging';
-          }
+          countryPatchPresentation.stage(token, commit.revision);
           setOverrideMesh(remapped, { renderFrame: false, stagedResources });
-          if (countryPatchPresentation?.token === token && countryPatchPresentation.geometryRevision === commit.revision) {
+          if (countryPatchPresentation.matches(token, commit.revision)) {
             renderLatestVisualFrame();
           } else {
             completeGeometryDisplay(snapshotIds, commit.revision);
@@ -2651,7 +2574,7 @@ export function createGpuMapRenderer(deps) {
       }).catch(error => {
         if (disposed || error?.name === 'AbortError') return false;
         if (!geometryRevisionTracker.isCurrent(token, commit.revision)) return false;
-        if (countryPatchPresentation?.token === token) countryPatchPresentation = null;
+        countryPatchPresentation.clearIfToken(token);
         console.error('[PL-GPU-PATCH-002]', error);
         scheduleGpuMeshRebuild(0);
         return false;
@@ -2680,7 +2603,7 @@ export function createGpuMapRenderer(deps) {
       resetCountrySharedBoundary({ preservePresented: true });
       mapWorkScheduler.cancel('country-mesh-compaction');
       geometryRevisionTracker.reset();
-      countryPatchPresentation = null;
+      countryPatchPresentation.clear();
       stopPatchWorkerJobs('geometry-reset');
       countryOverrideIds.clear();
       deferredCountryPatchIds.clear();
@@ -4161,10 +4084,8 @@ export function createGpuMapRenderer(deps) {
           } else {
             const holdPreservedScene = shouldHoldCountryPatchScene(viewSignature);
             if (holdPreservedScene && sceneColorCache.composite(pixelWidth, pixelHeight, { clearTarget: true })) {
-              const presentation = countryPatchPresentation;
-              presentation.heldFrameCount += 1;
               performanceMetrics.countryPatchSceneHoldCount += 1;
-              lastBaseSceneResult = presentation.previousBaseResult || previousBaseResult;
+              lastBaseSceneResult = countryPatchPresentation.heldBaseResult() || previousBaseResult;
               baseResult = lastBaseSceneResult;
             } else {
               // finishScene() only promotes the staging texture and restores
@@ -4184,7 +4105,7 @@ export function createGpuMapRenderer(deps) {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 baseResult = submitBaseScene();
               }
-              preservedCountryPatchPromoted = countryPatchPresentation?.phase === 'staging';
+              preservedCountryPatchPromoted = countryPatchPresentation.phase() === 'staging';
             }
           }
         } else {
@@ -4197,7 +4118,7 @@ export function createGpuMapRenderer(deps) {
           // A failed staging allocation must not clear the only visible
           // scene. Keep the last scene when it belongs to this exact view;
           // direct redraw is only safe before the first scene exists.
-          if (countryPatchPresentation?.phase === 'staging') {
+          if (countryPatchPresentation.phase() === 'staging') {
             gl.bindFramebuffer(gl.FRAMEBUFFER, null);
             baseResult = submitBaseScene();
             preservedCountryPatchPromoted = baseResult !== false;
@@ -4570,49 +4491,11 @@ export function createGpuMapRenderer(deps) {
       return { succeeded: true, frameId: frame.frameId, viewRevision: frame.viewRevision };
     }
 
-    function canvasInteractionPolygons() {
-      return [...(renderInteractionState.previewPackets || []), ...(renderInteractionState.draftPackets || [])]
-        .filter(item => item.kind === 'polygon').map(item => item.packet);
-    }
-
-    function canvasScenePolygons() {
-      return surfaceScenePolygons().filter(packet => packet.ringCoordinates).map(packet => ({
-        key: packet.key, sourceKey: packet.sourceKey, ringCoordinates: packet.ringCoordinates, ringOffsets: packet.ringOffsets, polygonOffsets: packet.polygonOffsets,
-        role: packet.role, geometryRevision: packet.geometryRevision, territoryDepth: packet.territoryDepth,
-        order: packet.order, style: packet.style, blendMode: packet.blendMode,
-      }));
-    }
-
-    function canvasSceneStrokes() {
-      return (renderScene?.strokes || []).map(packet => ({
-        key: packet.key, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
-        order: packet.order, style: packet.style, blendMode: packet.blendMode,
-      }));
-    }
-
-    function canvasCountryBoundaryPacket() {
-      if (!countrySharedBoundary) return null;
-      const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision, sourceQuality } = countrySharedBoundary;
-      return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, geometryRevision, sourceQuality,
-        outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
-          ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
-    }
-
-    const canvasSentGeometry = new Map();
-    function canvasPacketDelta(packets, channel) {
-      const next = new Set();
-      const result = packets.map(packet => {
-        const key = `${channel}:${packet.key}`;
-        next.add(key);
-        const previous = canvasSentGeometry.get(key);
-        canvasSentGeometry.set(key, packet.ringCoordinates || packet.startsEnds);
-        if (previous !== (packet.ringCoordinates || packet.startsEnds)) return packet;
-        const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, startsEnds: _segments, ...metadata } = packet;
-        return metadata;
-      });
-      for (const key of canvasSentGeometry.keys()) if (key.startsWith(`${channel}:`) && !next.has(key)) canvasSentGeometry.delete(key);
-      return result;
-    }
+    const canvasScenePackets = createCanvasScenePackets();
+    const canvasInteractionPolygons = () => canvasScenePackets.interactionPolygons(renderInteractionState);
+    const canvasScenePolygons = () => canvasScenePackets.scenePolygons(surfaceScenePolygons());
+    const canvasSceneStrokes = () => canvasScenePackets.sceneStrokes(renderScene);
+    const canvasCountryBoundaryPacket = () => canvasScenePackets.countryBoundary(countrySharedBoundary);
 
     function canvasCountryFills(features) {
       const fills = {};
@@ -4636,10 +4519,10 @@ export function createGpuMapRenderer(deps) {
         fills,
         countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
         visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
-        scenePolygons: canvasPacketDelta(canvasScenePolygons(), 'scene'),
-        sceneStrokes: canvasPacketDelta(canvasSceneStrokes(), 'strokes'),
+        scenePolygons: canvasScenePackets.delta(canvasScenePolygons(), 'scene'),
+        sceneStrokes: canvasScenePackets.delta(canvasSceneStrokes(), 'strokes'),
         interactionFillItems: renderInteractionState.genericFillItems || [],
-        interactionPolygons: canvasPacketDelta(canvasInteractionPolygons(), 'interaction'),
+        interactionPolygons: canvasScenePackets.delta(canvasInteractionPolygons(), 'interaction'),
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           primaryIds: [...countryEmphasis.primaryIds],
@@ -4679,9 +4562,9 @@ export function createGpuMapRenderer(deps) {
       const view = frame.viewState;
       return {
         type: 'view', width: frame.cssViewport[0], height: frame.cssViewport[1], dpr: frame.dpr,
-        // The initial physical background can remain visible while the first
-        // complete terrain loads. Later view changes keep progressive terrain.
-        deferIncompleteTerrain: temporalPending() || !canvasTerrainEverReady,
+        // A dated transition retains its previous complete physical frame.
+        // Startup and camera moves can present prepared fallback terrain.
+        deferIncompleteTerrain: temporalPending() && countriesPublishedGeneration >= 0,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),
         projection: frame.projection,
@@ -4696,7 +4579,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasWorkerInitMessage() {
-      canvasSentGeometry.clear();
+      canvasScenePackets.clear();
       const message = {
         ...(lastVisualFrame ? canvasWorkerViewMessage() : { projectGeneration }),
         ...canvasWorkerStyleMessage(),
@@ -4938,7 +4821,6 @@ export function createGpuMapRenderer(deps) {
         }
         canvasDisplayedStyleRevision = Number(message.styleRevision || 0);
         canvasTerrainStats = message.terrainStats || {};
-        if (canvasTerrainStats.terrainReady) canvasTerrainEverReady = true;
         Object.assign(window.__PANDOLAB_GPU_METRICS__ ||= {}, canvasTerrainStats);
         displayedRenderRevision = revision;
         // Actual Worker bitmap provenance, not the renderer's newest scene,
@@ -4974,8 +4856,7 @@ export function createGpuMapRenderer(deps) {
       cancelGpuRecoveryPresentation();
       cancelSharedGpuInitialization('canvas-fallback');
       canvasWorkerNeedsRestart = false;
-      canvasTerrainEverReady = false;
-      canvasSentGeometry.clear();
+      canvasScenePackets.clear();
       canvasLastCountryDependencies = null;
       const rawReason = String(reason || '');
       if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[PL-GPU-005]', rawReason);
@@ -5535,10 +5416,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function shouldPreserveSceneAcrossCountryPatch(previousScene, nextScene) {
-      const presentation = countryPatchPresentation;
-      if (!presentation || !['waiting-mesh', 'staging', 'promoted'].includes(presentation.phase)) return false;
-      if (presentation.preserveAllowed === false) return false;
-      return nonCountrySceneSignature(previousScene) === nonCountrySceneSignature(nextScene);
+      return countryPatchPresentation.preservesScene(() =>
+        nonCountrySceneSignature(previousScene) === nonCountrySceneSignature(nextScene));
     }
 
     function setRenderScene(nextScene) {
@@ -5574,11 +5453,11 @@ export function createGpuMapRenderer(deps) {
           // Invalidating the cache alone still leaves its active texture
           // available to canCompositePreserved(). Do not hold that stale scene
           // after a non-country change while waiting for terrain tiles.
-          if (countryPatchPresentation) countryPatchPresentation.preserveAllowed = false;
+          countryPatchPresentation.disablePreservation();
           lastBaseSceneResult = null;
           sceneColorCache.invalidate('render-scene');
         }
-        if (countryPatchPresentation?.phase === 'promoted') countryPatchPresentation = null;
+        countryPatchPresentation.retirePromoted();
       }
       return true;
     }
@@ -5683,12 +5562,7 @@ export function createGpuMapRenderer(deps) {
       target.countryCullingFallbackCount = performanceMetrics.countryCullingFallbackCount;
       target.pendingCountryCount = geometryRevisionTracker.pendingIds().length;
       target.pendingOldMeshVisibleCount = pendingOldMeshVisibleCount;
-      target.countryPatchPresentation = countryPatchPresentation ? {
-        mode: countryPatchPresentation.mode,
-        phase: countryPatchPresentation.phase,
-        geometryRevision: countryPatchPresentation.geometryRevision,
-        heldFrameCount: countryPatchPresentation.heldFrameCount,
-      } : null;
+      target.countryPatchPresentation = countryPatchPresentation.snapshot();
       target.activeWebGlContextCount = renderDevice && isWebGlRenderer() ? 1 : 0;
       target.sceneCacheValid = sceneColorCache.isValid();
       target.projectGeneration = projectGeneration;
@@ -5845,12 +5719,7 @@ export function createGpuMapRenderer(deps) {
         displayedGeometryRevision: geometryRevisionTracker.displayedRevision(),
         pendingCountryCount: geometryRevisionTracker.pendingIds().length,
         pendingOldMeshVisibleCount,
-        countryPatchPresentation: countryPatchPresentation ? {
-          mode: countryPatchPresentation.mode,
-          phase: countryPatchPresentation.phase,
-          geometryRevision: countryPatchPresentation.geometryRevision,
-          heldFrameCount: countryPatchPresentation.heldFrameCount,
-        } : null,
+        countryPatchPresentation: countryPatchPresentation.snapshot(),
         geometryRenderTaskToken: geometryRevisionTracker.taskToken(),
         patchWorkerJobs: patchJobScheduler.stats(),
         patchWorkerOutputBytes: patchJobScheduler.outputBytes(),
@@ -5918,7 +5787,7 @@ export function createGpuMapRenderer(deps) {
       lifecycle.dispose();
       if (canvasWorkerUrl) URL.revokeObjectURL(canvasWorkerUrl);
       canvasWorkerUrl = null; canvasWorkerBitmapContext = null; canvasWorker2dContext = null;
-      meshVariants.clear();
+      meshVariants.forget();
       mesh = null; overrideMesh = null; builtinMeshBaseline = null;
       renderDevice = null; gl = null; ctx2d = null; canvasFillSubstrate = null;
       rendererMode = 'disposed'; framePresentationListener = null;
