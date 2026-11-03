@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {surfaceReflectance,classifyLandsatWater,usableScenes,
-  calculateWaterMask,waterPathConnected} from '../../tools/gis/baikonur-landsat-water-mask.mjs';
+  calculateWaterMask,waterPathConnected,sceneCoversBbox} from '../../tools/gis/baikonur-landsat-water-mask.mjs';
 
 const scene=(id,cloud,date='2025-07-10T00:00:00Z',collection='landsat-c2-l2')=>({
   id,collection,properties:{datetime:date,'eo:cloud_cover':cloud},
@@ -30,6 +30,20 @@ test('scene discovery excludes non-public signed assets, winter and clouds befor
  assert.deepEqual(usableScenes([cloud,ok,external,winter]).map(x=>x.id),['LC09_STAC_OK']);
  assert.deepEqual(usableScenes([scene('LC09_OLD',1,'2019-08-01T00:00:00Z'),ok],
   '2025-05-01T00:00:00Z/2025-09-30T23:59:59Z').map(x=>x.id),['LC09_STAC_OK']);
+});
+test('WRS scene footprint must cover both legal endpoints and the whole bank box',()=>{
+ const box=[62.97,45.55,63.76,45.80];
+ const complete=scene('LC08_FULL_2019',1,'2019-08-01T00:00:00Z');
+ complete.geometry={type:'Polygon',coordinates:[[[62.7,45.3],[64,45.3],
+   [64,46.1],[62.7,46.1],[62.7,45.3]]]};
+ const sliver=scene('LC08_SLIVER_2019',.5,'2019-08-01T00:00:00Z');
+ sliver.geometry={type:'Polygon',coordinates:[[[62.7,45.3],[63.1,45.3],
+   [63.1,46.1],[62.7,46.1],[62.7,45.3]]]};
+ assert.equal(sceneCoversBbox(complete,box),true);
+ assert.equal(sceneCoversBbox(sliver,box),false);
+ assert.deepEqual(usableScenes([sliver,complete],
+   '2019-05-01T00:00:00Z/2019-09-30T23:59:59Z',box).map(x=>x.id),
+   ['LC08_FULL_2019']);
 });
 test('three prealigned GDAL UTM rasters produce honest water/valid counts',()=>{
  const pack=values=>{const raw=Buffer.alloc(values.length*2);values.forEach((v,i)=>raw.writeUInt16LE(v,i*2));
