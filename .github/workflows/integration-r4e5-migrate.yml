@@ -67,11 +67,13 @@ jobs:
           node --input-type=module <<'NODE'
           import {execFileSync} from 'node:child_process';
           import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+          const lf=String.fromCharCode(10);
           const changed=execFileSync('git',['diff','--name-only','--diff-filter=AM','-z']);
-          for(const file of changed.toString('utf8').split('\\0').filter(Boolean)){
-            if(!/\\.(?:mjs|js|ya?ml|json)$/.test(file)||!existsSync(file))continue;
+          for(const file of changed.toString('utf8').split(String.fromCharCode(0)).filter(Boolean)){
+            if(!['.mjs','.js','.yml','.yaml','.json'].some(ext=>file.endsWith(ext))||!existsSync(file))continue;
             const old=readFileSync(file,'utf8');
-            const clean=old.replace(/[ \\t]+$/gm,'').replace(/\\n{3,}$/,'\\n');
+            let clean=old.split(lf).map(line=>line.trimEnd()).join(lf);
+            while(clean.endsWith(lf+lf))clean=clean.slice(0,-1);
             if(clean!==old)writeFileSync(file,clean);
           }
           NODE
