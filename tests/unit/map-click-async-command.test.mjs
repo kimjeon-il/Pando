@@ -3,7 +3,7 @@ import test from 'node:test';
 import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 import { handleEditorMapClick } from '../../apps/editor/frontend/js/modules/editor-map-click.js';
-import { editorNode } from './helpers/editor-dom-fixture.mjs';
+import { editorNode } from './helpers/dom-node-fixture.mjs';
 
 function setup(tool) {
   let resolve, reject, generation = 1;

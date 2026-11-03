@@ -7,7 +7,7 @@ import {createNodeSelection} from '../helpers/core-selection.mjs';
 import {handleEditorMapClick} from "../../apps/editor/frontend/js/modules/editor-map-click.js";
 import { createSelectionUiController } from "../../shared/frontend/js/modules/selection-ui-controller.js";
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
-import { editorNode } from './helpers/editor-dom-fixture.mjs';
+import { editorNode } from './helpers/dom-node-fixture.mjs';
 
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 const countryLabels = () => {
