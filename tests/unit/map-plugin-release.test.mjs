@@ -151,3 +151,87 @@ test('a failed verify invocation cannot leave an older passing completion receip
     const failed=JSON.parse(await readFile(output,'utf8'));assert.equal(failed.status,'failed');assert.equal(failed.checks[0].exitCode,1);
   }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('archive decoders reject duplicate normalized names and links before building byte maps',async()=>{
+  const {readPrivateReleaseArchive}=await import('../../tools/reference-analysis/release-private-plugin.mjs');
+  assert.equal(typeof readPrivateReleaseArchive,'function','strict archive decoder must exist');
+  const dir=await mkdtemp(join(tmpdir(),'map-release-structure-'));
+  const run=promisify(execFile);
+  try{
+    await writeFile(join(dir,'plugin.json'),'{}');await writeFile(join(dir,'payload'),'original');
+    const inventory=[{path:'plugin.json',size_bytes:2},{path:'payload',size_bytes:8}];
+    const archive=join(dir,'duplicate.tar.gz');await run('tar',['-czf',archive,'-C',dir,'plugin.json','payload','payload']);
+    await assert.rejects(readPrivateReleaseArchive(archive,inventory),/duplicate/i);
+    const {symlink,link}=await import('node:fs/promises');
+    for(const [name,make]of [['symlink',symlink],['hardlink',link]]){
+      const file=join(dir,name);await make(join(dir,'payload'),file);
+      const archive=join(dir,name+'.tar.gz');await run('tar',['-czf',archive,'-C',dir,'plugin.json','payload',name]);
+      await assert.rejects(readPrivateReleaseArchive(archive,[...inventory,{path:name,size_bytes:8}]),/type|regular|link/i);
+    }
+    const {ZipFile}=await import('yazl');
+    for(const kind of ['duplicate','symlink','control']){
+      const zip=new ZipFile(),archive=join(dir,kind+'.zip');zip.addBuffer(Buffer.from('{}'),'plugin.json');
+      zip.addBuffer(Buffer.from('original'),'payload');
+      if(kind==='duplicate')zip.addBuffer(Buffer.from('original'),'payload');
+      if(kind==='symlink')zip.addBuffer(Buffer.from('payload'),'link',{mode:0o120777});
+      if(kind==='control')zip.addBuffer(Buffer.from('x'),'bad\nname');
+      const chunks=[];zip.outputStream.on('data',x=>chunks.push(x));const done=new Promise((resolve,reject)=>{zip.outputStream.on('end',resolve);zip.outputStream.on('error',reject);});zip.end();await done;await writeFile(archive,Buffer.concat(chunks));
+      await assert.rejects(readPrivateReleaseArchive(archive,inventory),/duplicate|type|regular|path/i);
+    }
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('legacy preservation retains every configuration field and literal escape except version',async()=>{
+  const producer=await import('../../tools/reference-analysis/package-private-plugin.mjs');
+  assert.equal(typeof producer.compatibilityManifest,'function','producer compatibility projection must be testable');
+  const legacy={name:'map-toolkit',version:'0.6.9',description:'unchanged',interface:{defaultPrompt:['literal \\uc73c']},mcpServers:{bound:{id:'existing'}}};
+  const outer={name:'map-toolkit',version:'0.6.10',description:'current',extensions:{'com.openai':{interface:{defaultPrompt:['actual 으']}}}};
+  assert.deepEqual(producer.compatibilityManifest(legacy,outer,{preserve:true}),{...legacy,version:'0.6.10'});
+  assert.equal(producer.compatibilityManifest(legacy,outer).description,'current');
+});
+
+test('baseline preparation requires both explicit archive path and exact release identity',async()=>{
+  const {preparePrivateRelease}=await import('../../tools/reference-analysis/release-private-plugin.mjs');
+  await assert.rejects(preparePrivateRelease({rebaselineArchive:'/unused'}),/supplied together/i);
+  await assert.rejects(preparePrivateRelease({archiveReleaseId:'release_fixture'}),/supplied together/i);
+});
+
+test('tar members with offsetting size changes cannot fabricate the inventoried payloads',async()=>{
+  const {readPrivateReleaseArchive}=await import('../../tools/reference-analysis/release-private-plugin.mjs');
+  const dir=await mkdtemp(join(tmpdir(),'map-release-tar-size-')),archive=dir+'.tar.gz';
+  try{
+    await writeFile(join(dir,'plugin.json'),'{}o');await writeFile(join(dir,'payload'),'riginal');
+    await promisify(execFile)('tar',['-czf',archive,'-C',dir,'plugin.json','payload']);
+    await assert.rejects(readPrivateReleaseArchive(archive,[{path:'plugin.json',size_bytes:2},{path:'payload',size_bytes:8}]),/member size/i);
+  }finally{await rm(archive,{force:true});await rm(dir,{recursive:true,force:true});}
+});
+
+test('ZIP local header path and flags must agree with the central inventory',async()=>{
+  const {readPrivateReleaseArchive}=await import('../../tools/reference-analysis/release-private-plugin.mjs');
+  const dir=await mkdtemp(join(tmpdir(),'map-release-local-zip-'));
+  try{
+    await writeFile(join(dir,'plugin.json'),'{}');await writeFile(join(dir,'payload'),'original');const {archive}=await archiveDirectory(dir);
+    try{
+      const original=await readFile(archive),inventory=[{path:'plugin.json',size_bytes:2},{path:'payload',size_bytes:8}];
+      let at=0;while(at<original.length){if(original.readUInt32LE(at)===0x04034b50&&original.toString('utf8',at+30,at+37)==='payload')break;at++;}
+      assert(at<original.length-30,'payload local header exists');
+      const path=Buffer.from(original);path.write('../evil',at+30);await writeFile(archive,path);await assert.rejects(readPrivateReleaseArchive(archive,inventory),/local.*name|local.*path/i);
+      const flags=Buffer.from(original);flags.writeUInt16LE(flags.readUInt16LE(at+6)^1,at+6);await writeFile(archive,flags);await assert.rejects(readPrivateReleaseArchive(archive,inventory),/local.*flag|local.*header/i);
+    }finally{await rm(archive,{force:true});}
+  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('pending plan cannot substitute saved upload identity, destination or metadata',async()=>{
+  const {restorePreparedPlan}=await import('../../tools/reference-analysis/release-private-plugin.mjs');
+  assert.equal(typeof restorePreparedPlan,'function','pending plan reconstruction gate must exist');
+  const plan={pluginId:'plugins_fixture',expectedReleaseId:'release_before',codeRevision:revision,version:'0.6.10',contentSha256:sha,verificationSha256:'f'.repeat(64),deletePaths:[]};
+  const current={plan,archive:'/tmp/fixed-candidate.zip',archiveBytes:7,archiveSha256:'e'.repeat(64),files:[{path:'plugin.json',bytes:2,sha256:sha}],manifests:{'plugin.json':{name:'map-toolkit',version:plan.version}}};
+  const pending={...plan,...current,upload:{plugin_id:plan.pluginId,expected_release_id:plan.expectedReleaseId,archive:current.archive,delete_paths:[]}};delete pending.plan;
+  assert.equal(restorePreparedPlan({...current,pending}).upload.expected_release_id,'release_before');
+  for(const [key,value]of Object.entries({plugin_id:'other',expected_release_id:'stale',archive:'/tmp/other.zip',delete_paths:['plugin.json']})){
+    assert.throws(()=>restorePreparedPlan({...current,pending:{...pending,upload:{...pending.upload,[key]:value}}}),/pending/i);
+  }
+  for(const [key,value]of Object.entries({pluginId:'other',version:'0.6.99',codeRevision:'9'.repeat(40),archiveBytes:99,archiveSha256:'9'.repeat(64),manifests:{},files:[]})){
+    assert.throws(()=>restorePreparedPlan({...current,pending:{...pending,[key]:value}}),/pending/i);
+  }
+});

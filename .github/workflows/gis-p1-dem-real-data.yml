@@ -1,0 +1,100 @@
+name: P1 DEM full actual data and official ETOPO verification (no deployment)
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-p1-dem-real-data.yml'
+      - 'tools/gis/verify-p1-dem-publication.mjs'
+      - 'tools/verify-terrain-dem.mjs'
+      - 'tools/gis/terrain-dem-check.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gis-p1-dem-real-work-gis
+  cancel-in-progress: true
+
+jobs:
+  full-dem:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact library revision for immutable published v0.13.3
+        run: |
+          node -e "const x=require('./config/library-data.json'); if(x.revision!=='91c127ddbae902405de6e35b38940a59a8c0d021')throw Error('Unexpected paired DEM library revision')"
+      - name: Checkout only full actual published DEM directory from pinned release
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: 91c127ddbae902405de6e35b38940a59a8c0d021
+          path: .pando-p1-dem
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: terrain/v0.13.3
+      - name: Verify all 1,280 actual published tile bytes and asset identities
+        run: |
+          set -euo pipefail
+          mkdir -p p1-reports
+          node --check tools/gis/verify-p1-dem-publication.mjs
+          node tools/gis/verify-p1-dem-publication.mjs \
+            --directory .pando-p1-dem/terrain/v0.13.3 \
+            --output p1-reports/p1-dem-full-publication.json
+      - name: Require disk headroom before acquiring the 1.59 GB official ETOPO original
+        run: |
+          set -euo pipefail
+          available=$(df -PB1 "$RUNNER_TEMP" | awk 'NR==2{print $4}')
+          test "$available" -gt 8589934592 || { echo 'Need 3 GiB source/tool space plus 5 GiB preserved headroom' >&2; exit 1; }
+      - name: Install native prerequisites for full pixel, seam and GDAL checks
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake ninja-build gdal-bin libgdal-dev
+          cmake -S tools/cpp -B build-native/p1-map-image -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON
+          cmake --build build-native/p1-map-image --target pando-map-image --parallel 2
+          node tools/map-image/package-native.mjs \
+            --binary build-native/p1-map-image/pando-map-image \
+            --directory build-native/p1-map-image/artifact
+          cmake -S tools/cpp/terrain-dem-check -B build-native/p1-dem-check -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-native/p1-dem-check --target pando-terrain-dem-check --parallel 2
+          node tools/gis/package-terrain-dem-check.mjs \
+            --binary build-native/p1-dem-check/pando-terrain-dem-check \
+            --directory build-native/p1-dem-check/artifact
+      - name: Download NOAA official original and enforce its published SHA-256
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 --fail --location --retry 3 \
+            --connect-timeout 30 --max-time 1800 --max-filesize 1700000000 \
+            'https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO2022/data/30s/30s_surface_elev_gtif/ETOPO_2022_v1_30s_N90W180_surface.tif' \
+            --output "$RUNNER_TEMP/ETOPO_2022_v1_30s_N90W180_surface.tif"
+          actual=$(sha256sum "$RUNNER_TEMP/ETOPO_2022_v1_30s_N90W180_surface.tif" | awk '{print $1}')
+          test "$actual" = 8630abc401cc6bdd30b507a68d3eb9eda5b65f5636f7199e4b1eefd476b5a9e2 || {
+            echo 'NOAA ETOPO original SHA-256 differs from pinned real-data manifest' >&2; exit 1;
+          }
+          stat -c 'ETOPO original bytes: %s' "$RUNNER_TEMP/ETOPO_2022_v1_30s_N90W180_surface.tif"
+      - name: Native-check every tile and gutter with real NOAA original elevation samples
+        env:
+          PANDO_TERRAIN_DEM_CHECK_DIRECTORY: build-native/p1-dem-check/artifact
+          PANDO_MAP_IMAGE_ARTIFACT: build-native/p1-map-image/artifact
+          PANDO_GDAL_LOCATIONINFO: gdallocationinfo
+        run: |
+          set -euo pipefail
+          node tools/verify-terrain-dem.mjs \
+            --etopo "$RUNNER_TEMP/ETOPO_2022_v1_30s_N90W180_surface.tif" \
+            --output .pando-p1-dem/terrain/v0.13.3 \
+            | tee p1-reports/p1-dem-original-native-result.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-dem-entire-release-and-etopo-proof
+          path: p1-reports/*.json
+          if-no-files-found: warn
+          retention-days: 14

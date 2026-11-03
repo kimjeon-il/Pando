@@ -1,0 +1,106 @@
+name: GIS Baikonur current KAB and KAZ boundary audit
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - 'tools/gis/audit-baikonur-current-runtime.mjs'
+      - 'tools/gis/audit-baikonur-runtime-geometry.mjs'
+      - 'tools/gis/verify-baikonur-lease-exclusions.mjs'
+      - 'tools/gis/validate-baikonur-independent-banks.mjs'
+      - 'tests/unit/gis-baikonur-independent-bank-validator.test.mjs'
+      - '.github/workflows/gis-baikonur-current-runtime-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-1995-to-2026-kab-kaz-source-integrity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check precise current public Pando data pin
+        id: data
+        run: |
+          echo "sha=$(node -p "require('./config/library-data.json').revision")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ steps.data.outputs.sha }}
+          path: .baikonur-original-runtime
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /assets/data/territorial-entities/generated/v2/index.json
+      - name: Hydrate original published KAB/KAZ runtime geometry without modification
+        run: node tools/library-data.mjs
+      - name: Summarize the real compressed GIS geometry input schemas
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          for(const id of ['KAB','KAZ']){
+            const path='assets/data/territorial-entities/generated/v2/state-'+id+'.json.gz';
+            const doc=JSON.parse(gunzipSync(readFileSync(path)));
+            const versions=doc.geometryVersions||doc.entity?.geometryVersions||[];
+            console.log('BAIKONUR_RUNTIME_GEOMETRY_SCHEMA='+JSON.stringify({
+              id,keys:Object.keys(doc).slice(0,20),versionCount:versions.length,
+              geometryShapes:versions.map(x=>({id:x.versionId||x.id,
+                shape:x.geometry?.type||x.data?.geometry?.type||null,
+                rings:x.geometry?.coordinates?.length||null})),
+            }));
+          }
+          JS
+      - name: Compare actual compressed KAB and KAZ polygon edges with treaty anchors
+        run: |
+          node tools/gis/audit-baikonur-runtime-geometry.mjs             --data-root assets/data/territorial-entities/generated/v2             > "$RUNNER_TEMP/baikonur-released-geometry-diagnostics.json"
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const result=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+            '/baikonur-released-geometry-diagnostics.json','utf8')
+            .replace(/^BAIKONUR_RELEASED_GEOMETRY=/,''));
+          assert.equal(result.kabRings,4);
+          assert.equal(result.treatyPointDeviation.pointCount,31);
+          assert.equal(result.meta.revisedGeometryPublished,false);
+          console.log('BAIKONUR_RELEASED_COORDINATE_QA='+JSON.stringify({
+            kabRingVertexCounts:result.kabRingVertexCounts,
+            kazRingCount:result.kazRingCount,
+            pairedCountryEdges:result.pairedCountryEdges,
+            unpairedCountryEdges:result.unpairedCountryEdges,
+            treatyPointDeviation:result.treatyPointDeviation
+          }));
+          JS
+      - name: Read exact original KAB/KAZ version records, no geometry writes
+        run: |
+          node tools/gis/audit-baikonur-current-runtime.mjs             --index .baikonur-original-runtime/assets/data/territorial-entities/generated/v2/index.json             > "$RUNNER_TEMP/baikonur-kab-kaz-current-source-audit.json"
+      - name: Assert official legal-date review and OSM source credit remain blocked
+        run: |
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const p=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
+            '/baikonur-kab-kaz-current-source-audit.json','utf8').replace(/^BAIKONUR_CURRENT_RUNTIME_AUDIT=/,''));
+          assert.equal(p.readyForNonOsmMapReplacement,false);
+          assert.equal(p.retainOsmCredit,true);
+          assert.equal(p.changesApplied,false);
+          assert.equal(p.observedMetadata.originalApproximateDisplayToleranceMeters,1000);
+          assert(p.observedMetadata.displayExclusionAreaOverageSqKm>7);
+          assert(p.observedMetadata.omittedSettlementHolesSqKm>2.8);
+          assert.equal(p.observedMetadata.officialTreatyAnchors,31);
+          assert.equal(p.observedMetadata.kazPairedOsmVersions>=2,true);
+          assert.equal(p.observedMetadata.officialFourReturnParcelsEffectiveDate,'2020-01-22');
+          console.log('BAIKONUR_OBSERVED_RUNTIME_RISK='+JSON.stringify(p.observedMetadata));
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: baikonur-kab-kaz-readonly-runtime-validation
+          path: |
+            ${{ runner.temp }}/baikonur-kab-kaz-current-source-audit.json
+            ${{ runner.temp }}/baikonur-released-geometry-diagnostics.json
+          retention-days: 30

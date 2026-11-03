@@ -33,7 +33,7 @@ test('GIS source work uses the dedicated workflow and opt-in CLI',()=>{
   assert.match(wf,/gis-source:/);
   assert.match(wf,/historical-geometry:/);
   const events=wf.split('  workflow_dispatch:')[0];
-  for(const extension of ['py','pyi','ipynb'])
+  for(const extension of ['py','pyw','pyi','ipynb'])
     assert.equal(events.split(`'**/*.${extension}'`).length-1,2,`push and pull request must guard ${extension}`);
   assert.doesNotMatch(wf,/setup-python|python -m/);
   assert.doesNotMatch(wf,/^\s+schedule:/m);

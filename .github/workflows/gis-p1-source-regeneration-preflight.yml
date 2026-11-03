@@ -1,0 +1,61 @@
+name: P1 source-to-output regeneration prerequisites (read-only)
+
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-p1-source-regeneration-preflight.yml'
+      - 'tools/gis/build-hydro.mjs'
+      - 'tools/gis/terrain-dem-build.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-availability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Mount pinned external source and release directories
+        uses: ./.github/actions/library-data
+      - name: Audit exact original source prerequisites without generating outputs
+        run: |
+          set -euo pipefail
+          mkdir -p p1-reports
+          node --input-type=module <<'NODE'
+          import {readFileSync,existsSync,writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {resolve} from 'node:path';
+          const hydro=JSON.parse(readFileSync('assets/data/hydro/v0.13.4/manifest.json','utf8'));
+          const dem=JSON.parse(readFileSync('contracts/terrain/preview-dem-source.json','utf8'));
+          const paths=[
+            ...hydro.sources.hydroRivers.flatMap(region=>region.files.map(file=>({type:'hydrorivers',region:region.datasetCode,name:file.file,sha256:file.sha256,path:'assets/data/hydro/originals/'+region.datasetCode+'/'+file.file}))),
+            ...hydro.sources.naturalEarthNameReference.map(file=>({type:'hydro-natural-earth',name:file.file,sha256:file.sha256,path:file.file==='countries-ne-5.1.1.geojson'?'assets/data/'+file.file:'assets/data/hydro/'+file.file})),
+            {type:'hydro-raster',name:'HYP_HR_SR.tif',sha256:hydro.sources.drainageFreeWaterMask.sha256,path:'assets/data/physical-land/HYP_HR_SR.tif'},
+            ...dem.sources.filter(s=>s.sha256).map(s=>({type:'dem-original',name:s.path||s.url.split('/').at(-1),sha256:s.sha256,path:s.path==='countries-ne-5.1.1.geojson'?'assets/data/'+s.path:'originals/dem/'+(s.url?.split('/').at(-1)||'unknown')})),
+          ];
+          const results=paths.map(item=>({...item,present:existsSync(resolve(item.path))}));
+          const missing=results.filter(item=>!item.present);
+          const result={schema:'pando-p1-original-regeneration-prerequisites-v1',
+            sourceRepositoryRevision:JSON.parse(readFileSync('config/library-data.json','utf8')).revision,
+            expected:results.length,present:results.length-missing.length,missing:missing.length,
+            prerequisites:results,hydroCanRegenerate:results.filter(x=>x.type!=='dem-original').every(x=>x.present),
+            demCanRegenerate:results.filter(x=>x.type==='dem-original').every(x=>x.present),
+            executedRegeneration:false,reason:'Missing originals are not replaced with downloaded substitutes or current outputs'};
+          writeFileSync('p1-reports/p1-original-source-preflight.json',JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+          console.log(JSON.stringify({expected:result.expected,present:result.present,missing:result.missing,hydroCanRegenerate:result.hydroCanRegenerate,demCanRegenerate:result.demCanRegenerate}));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-original-source-regeneration-preflight
+          path: p1-reports/p1-original-source-preflight.json
+          if-no-files-found: error
+          retention-days: 14

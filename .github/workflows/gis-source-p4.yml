@@ -1,7 +1,7 @@
 name: P4 Isolated GIS source checks
 on:
   push:
-    branches: [work/ui, work/objects, work/gis, work/places]
+    branches: [main, work/ui, work/objects, work/gis, work/places]
     paths:
       - '.github/workflows/gis-source-p4.yml'
       - 'scripts/gis/run-source.mjs'
@@ -9,9 +9,24 @@ on:
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
       - 'tests/unit/python-bridge-retirement.test.mjs'
+      - 'tests/unit/gis-source-isolation.test.mjs'
       - '**/*.py'
+      - '**/*.pyw'
       - '**/*.pyi'
       - '**/*.ipynb'
+      - '**/*.mjs'
+      - '**/*.js'
+      - '**/*.ps1'
+      - '**/*.psm1'
+      - '**/*.sh'
+      - '**/*.bat'
+      - '**/*.cmd'
+      - '**/*.cmake'
+      - '**/CMakeLists.txt'
+      - 'CMakeLists.txt'
+      - '.github/actions/**'
+      - '.github/workflows/**'
+      - 'package.json'
   pull_request:
     branches: [main]
     paths:
@@ -21,9 +36,24 @@ on:
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
       - 'tests/unit/python-bridge-retirement.test.mjs'
+      - 'tests/unit/gis-source-isolation.test.mjs'
       - '**/*.py'
+      - '**/*.pyw'
       - '**/*.pyi'
       - '**/*.ipynb'
+      - '**/*.mjs'
+      - '**/*.js'
+      - '**/*.ps1'
+      - '**/*.psm1'
+      - '**/*.sh'
+      - '**/*.bat'
+      - '**/*.cmd'
+      - '**/*.cmake'
+      - '**/CMakeLists.txt'
+      - 'CMakeLists.txt'
+      - '.github/actions/**'
+      - '.github/workflows/**'
+      - 'package.json'
   workflow_dispatch:
     inputs:
       scope:
@@ -52,7 +82,7 @@ jobs:
         with:
           node-version: '24'
       - name: Verify the GIS dispatcher and retired interpreter guard
-        run: node --test tests/unit/gis-source-launcher.test.mjs tests/unit/python-bridge-retirement.test.mjs
+        run: node --test tests/unit/gis-source-launcher.test.mjs tests/unit/python-bridge-retirement.test.mjs tests/unit/gis-source-isolation.test.mjs
 
   historical-geometry:
     if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'historical' || inputs.scope == 'all')

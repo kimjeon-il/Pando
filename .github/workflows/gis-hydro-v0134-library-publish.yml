@@ -1,0 +1,188 @@
+name: GIS publish Hydro v0.13.4 immutable library edition
+# Single-purpose user-approved publication. This updates ONLY the library
+# work/gis branch, never Pando main/Pages, other data families or OSM credits.
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-hydro-v0134-library-publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gis-hydro-v0134-library-publication
+  cancel-in-progress: false
+
+jobs:
+  publish-verified-edition:
+    if: github.repository == 'kimjeon-il/Pando' && github.ref == 'refs/heads/work/gis'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PANDOLAB_LIBRARY_WRITE_TOKEN: ${{ secrets.PANDOLAB_LIBRARY_WRITE_TOKEN }}
+      PINNED_BASELINE: 5eb7be55208efaafe39bd5a65ec2f111d70b9053
+      CANDIDATE_SHA256: 82cd70c2c0434ecfbc6e8be53843527c2dc0318ecdf814731a8c7441295230e2
+    steps:
+      - name: Check out the exact reviewed Pando GIS source
+        uses: actions/checkout@v4
+        with:
+          ref: work/gis
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify source pin, source review, and publication credential before writing
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$PANDOLAB_LIBRARY_WRITE_TOKEN" || {
+            echo 'BLOCKED: scoped external library write credential is missing'
+            exit 1
+          }
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(node -p "require('./config/library-data.json').revision")" = "$PINNED_BASELINE"
+          node --test tests/unit/gis-hydro-bulk-all29.test.mjs \
+            tests/unit/gis-hydro-followup-independent.test.mjs \
+            tests/unit/gis-osm-source-inventory.test.mjs
+      - name: Check out only the immutable baseline Hydro source
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ env.PINNED_BASELINE }}
+          path: .pando-hydro-original
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: assets/data/hydro/v0.13.2
+      - name: Recreate the exact already-validated zero-OSM packed edition
+        shell: bash
+        run: |
+          set -euo pipefail
+          input=.pando-hydro-original/assets/data/hydro/v0.13.2
+          node tools/gis/stage-hydro-all-nonosm.mjs \
+            --manifest "$input/manifest.json" \
+            --bundle "$input/hydro.bin" \
+            --baseline-review "$input/hydro-independent-name-replacements.json" \
+            --followup-review tools/gis/hydro-followup-independent-name-replacements.json \
+            --remaining-review tools/gis/hydro-bulk-independent-remaining29.json \
+            --inventory tools/gis/osm-independent-river-source-inventory.json \
+            --output-dir "$RUNNER_TEMP/hydro-v0.13.4"
+          echo "$CANDIDATE_SHA256  $RUNNER_TEMP/hydro-v0.13.4/hydro.bin" | sha256sum --check
+      - name: Confirm full candidate and existing viewer Worker before external storage
+        shell: bash
+        run: |
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {auditHydroOsm} from './tools/gis/audit-osm-credit-removal.mjs';
+          import {verifyWorker} from './tools/check-current-hydro-layout.mjs';
+          const root=process.env.RUNNER_TEMP+'/hydro-v0.13.4/';
+          const m=JSON.parse(readFileSync(root+'manifest.json','utf8'));
+          const b=readFileSync(root+'hydro.bin');
+          const audit=auditHydroOsm(m,b);
+          assert.equal(audit.remainingCount,0);
+          assert.equal(audit.staleManifestOsmSource,false);
+          assert.equal((await verifyWorker('.',m,b,{supportsRange:true})).ready,true);
+          assert.equal((await verifyWorker('.',m,b,{supportsRange:false})).ready,true);
+          console.log('ZERO_OSM_SOURCE_VERIFIED='+m.container.sha256);
+          JS
+      - name: Check out ONLY the data repository work/gis publication branch
+        uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: work/gis
+          path: .pando-hydro-library-writer
+          persist-credentials: false
+          filter: blob:none
+          fetch-depth: 1
+          sparse-checkout: |
+            archive/index.json
+            assets/data/hydro
+          sparse-checkout-cone-mode: false
+      - name: Check archive ancestry and preserve all other pinned runtime and report data
+        shell: bash
+        run: |
+          set -euo pipefail
+          data=.pando-hydro-library-writer
+          test -z "$(git -C "$data" status --porcelain)" || {
+            echo 'BLOCKED: existing library worktree edits are protected'; exit 1;
+          }
+          # A depth-one work/gis checkout and an isolated pinned-SHA fetch are
+          # shallow roots. Deepen history before proving true ancestry.
+          git -C "$data" fetch --no-tags --filter=blob:none --deepen=16 origin refs/heads/work/gis
+          git -C "$data" fetch --no-tags --filter=blob:none origin "$PINNED_BASELINE"
+          git -C "$data" merge-base --is-ancestor "$PINNED_BASELINE" HEAD
+          git -C "$data" show "$PINNED_BASELINE:archive/index.json" > "$RUNNER_TEMP/hydro-pinned-index.json"
+          cp "$data/archive/index.json" "$RUNNER_TEMP/hydro-library-before-index.json"
+          # Current baseline edition must remain unmodified, including all bytes.
+          cmp "$data/assets/data/hydro/v0.13.2/manifest.json" \
+            ".pando-hydro-original/assets/data/hydro/v0.13.2/manifest.json"
+          test ! -e "$data/assets/data/hydro/v0.13.4"
+          echo "LIBRARY_BEFORE_HYDRO=$(git -C "$data" rev-parse HEAD)"
+      - name: Prepare ONLY the five new immutable Hydro files and one archive index update
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/gis/publish-hydro-v0134-library.mjs \
+            --candidate-dir "$RUNNER_TEMP/hydro-v0.13.4" \
+            --library-checkout .pando-hydro-library-writer \
+            --pinned-index "$RUNNER_TEMP/hydro-pinned-index.json" \
+            --current-index "$RUNNER_TEMP/hydro-library-before-index.json" \
+            --source-revision "$GITHUB_SHA"
+          git -C .pando-hydro-library-writer add -- archive/index.json assets/data/hydro/v0.13.4
+          git -C .pando-hydro-library-writer diff --cached --check
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          const root='.pando-hydro-library-writer';
+          const changes=execFileSync('git',['-C',root,'diff','--cached','--name-only'],
+            {encoding:'utf8'}).trim().split('\n').sort();
+          const expected=['archive/index.json',...[
+            'hydro.bin','manifest.json','hydro-independent-name-replacements.json',
+            'hydro-followup-independent-name-replacements.json',
+            'hydro-bulk-independent-remaining29.json',
+          ].map(name=>'assets/data/hydro/v0.13.4/'+name)].sort();
+          assert.deepEqual(changes,expected);
+          console.log('ONLY_NEW_HYDRO_LIBRARY_PATHS='+JSON.stringify(changes));
+          JS
+      - name: Publish to storage work/gis without force, verify remote SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C .pando-hydro-library-writer \
+            -c user.name='Pando library publisher' \
+            -c user.email='library-publisher@users.noreply.github.com' \
+            commit -m 'data(gis): store SHA-verified Hydro v0.13.4 with zero OSM hydronym dependencies'
+          node --input-type=module - <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import assert from 'node:assert/strict';
+          import {writeFileSync} from 'node:fs';
+          const root='.pando-hydro-library-writer';
+          const local=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
+          const token=process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
+          assert(token,'Missing scoped library write secret');
+          const env={...process.env,
+            GIT_CONFIG_COUNT:'2',
+            GIT_CONFIG_KEY_0:'http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0:'',
+            GIT_CONFIG_KEY_1:'http.https://github.com/.extraheader',
+            GIT_CONFIG_VALUE_1:'AUTHORIZATION: basic '+Buffer.from('x-access-token:'+token).toString('base64'),
+          };
+          execFileSync('git',['-C',root,'push','origin','HEAD:refs/heads/work/gis'],
+            {env,stdio:['ignore','pipe','pipe'],timeout:240000});
+          const remote=execFileSync('git',['-C',root,'ls-remote','--exit-code','origin','refs/heads/work/gis'],
+            {env,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim().split(/\s+/)[0];
+          assert.equal(remote,local,'Remote library must contain the exact submitted release commit');
+          writeFileSync(process.env.RUNNER_TEMP+'/hydro-v0134-library-revision.txt',local+'\n',{flag:'wx'});
+          console.log('HYDRO_V0134_PUBLISHED_DATA_SHA='+local);
+          JS
+      - name: Preserve proof and new external data commit for pinned integration
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hydro-v0134-library-publish-proof
+          path: |
+            ${{ runner.temp }}/hydro-v0.13.4.proof.json
+            ${{ runner.temp }}/hydro-v0134-library-revision.txt
+          if-no-files-found: warn
+          retention-days: 30
