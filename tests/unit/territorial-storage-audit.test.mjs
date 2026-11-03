@@ -65,65 +65,6 @@ test('nested destructuring and local returned/getter aliases remain tracked', ()
   }`).length, 3);
 });
 
-test('candidate write ownership requires a fresh detached initializer', () => {
-  const file = 'apps/editor/frontend/js/modules/library-geometry-context.js';
-  const policy = { owners: [{ file, functions: ['prepare'], access: ['read', 'write'], detachedCandidate: true }] };
-  const source = (initializer, prefix = '', declaration = 'const') => `${prefix}
-    function prepare(input, documentModel) {
-      ${declaration} project = ${initializer};
-      project.territorialEntities.push({});
-      return project;
-    }`;
-  const check = value => {
-    const entries = auditTerritorialStorage(value, file);
-    assert.equal(entries.length, 2, 'both the raw access and mutation stay in the inventory');
-    return unclassifiedTerritorialAccesses(entries, policy);
-  };
-  assert.deepEqual(check(source('structuredClone(input)')), []);
-  assert.deepEqual(check(source('createInitialDocument({appVersion:"test"})',
-    'import {createInitialDocument} from "../../../../../shared/frontend/js/modules/initial-document.js";')), []);
-  for (const value of [
-    source('input'),
-    source('input.project'),
-    source('documentModel.snapshot()'),
-    source('structuredClone(input)', 'function structuredClone(value) { return value; }'),
-    source('createInitialDocument(input)', 'import {createInitialDocument} from "./untrusted-document.js";'),
-    source('structuredClone(input)', '', 'let'),
-    'const project = structuredClone({}); function prepare() { project.territorialEntities.push({}); }',
-    'function factory(input) { const project = structuredClone(input); return function prepare() { project.territorialEntities.push({}); }; }',
-    'function prepare(input) { const project = structuredClone(input); return () => project.territorialEntities.push({}); }',
-  ]) {
-    assert.deepEqual(check(value).map(entry => entry.access).sort(), ['read', 'write']);
-  }
-});
+
 
 const currentPolicy = JSON.parse(fs.readFileSync(new URL('../../scripts/contracts/territorial-storage-access.json', import.meta.url), 'utf8'));
-const currentOwners = [
-  ['shared/frontend/js/modules/app-map-settings.js', 'mapDisplayAvailability', false],
-  ['shared/frontend/js/modules/project-session.js', 'pruneViewingItems', false],
-  ['shared/frontend/js/modules/timeline-records.js', 'timelineObjectCatalog', false],
-  ['shared/frontend/js/modules/builtin-world-loader.js', 'assembleBuiltinWorld', true],
-  ['apps/editor/frontend/js/modules/library-geometry-context.js', 'prepareLibraryGeometryWorkspace', true],
-];
-
-test('current projection readers and detached source builders have explicit storage owners', () => {
-  const entries = currentOwners.flatMap(([file, name]) => auditTerritorialStorage(
-    fs.readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8'), file)
-    .filter(entry => entry.function === name));
-  assert.equal(entries.length, 9);
-  assert.equal(entries.filter(entry => entry.access === 'write').length, 3);
-  assert.deepEqual(unclassifiedTerritorialAccesses(entries, currentPolicy), []);
-});
-
-test('current reader permissions and detached builders cannot authorize active document mutations', () => {
-  for (const [file, name, candidate] of currentOwners) {
-    const entries = auditTerritorialStorage(`function ${name}(project) {
-      const rows = project.territorialEntities;
-      rows.push({});
-    }`, file);
-    const failures = unclassifiedTerritorialAccesses(entries, currentPolicy);
-    assert.deepEqual(failures.map(entry => entry.access).sort(), candidate ? ['read', 'write'] : ['write']);
-    const neighbour = auditTerritorialStorage('function unrelated(input) { const project = structuredClone(input); project.territorialEntities.push({}); }', file);
-    assert.equal(unclassifiedTerritorialAccesses(neighbour, currentPolicy).length, 2);
-  }
-});

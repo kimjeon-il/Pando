@@ -2,52 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createObjectPicking } from "../../shared/frontend/js/modules/object-picking.js";
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
-import { handleEditorMapClick } from '../../apps/editor/frontend/js/modules/editor-map-click.js';
+
 import { editorNode } from './helpers/dom-node-fixture.mjs';
 
-function setup(tool) {
-  let resolve, reject, generation = 1;
-  const acknowledgement = new Promise((accept, fail) => { resolve = accept; reject = fail; });
-  const state = { tool, layerVisibility: {} }, events = [], errors = [];
-  let ports;
-  const owner = createObjectPicking({ openEditor: true, handleEditingClick: point => handleEditorMapClick(point, ports) });
-  ports = { projectState: { state }, platform: { d3: { event: {} } },
-    mapView: { screenToGeo: () => [1,2] },
-    territorySelectionB: { territorySelectionCountryPickingActive: () => false },
-    surfaces: { isGenericFeatureDraftTool: value => value === 'polygon', uid: () => 'G' },
-    colorModel: { DEFAULT_GENERIC_FEATURE_COLOR: '#8c68d8' }, applicationConstantsA: { GENERIC_FEATURE_SCHEMA_VERSION: 2 },
-    draftPresentation: { editingDraftSnapshot: () => ({ inputPhase: 'draw' }) },
-    objectModelA: { genericFeatureService: { add: () => acknowledgement } },
-    propertyEditingA: { applyGenericSelectionIntent: id => events.push(['select',id]) },
-    feedback: { reportOperationError: (...args) => errors.push(args), setActionStatus: (...args) => events.push(['status',...args]) },
-    domains: { projectDomain: { getGeneration: () => generation },
-      editingDomain: { snapshot: () => ({ vertexPlacement: false }),
-        appendDraftScreenPoint: () => acknowledgement, setTool: value => events.push(['tool',value]) } } };
-  owner.connect(ports);
-  return { owner, resolve, reject, events, errors, replace: () => { generation += 1; } };
-}
 
-test('map draft append waits for Core and contains the original Worker error at the map operation boundary', async () => {
-  const f = setup('polygon'), pending = f.owner.handleMapClick([1,2]);
-  assert.deepEqual(f.errors,[]);
-  const error = Object.assign(new Error('Draft worker failed'), { code: 'PL-CORE-LOAD' });
-  f.reject(error); assert.equal(await pending,false);
-  assert.equal(f.errors.length,1); assert.equal(f.errors[0][0],error); assert.equal(f.errors[0][2],'PL-MAP-CLICK-001');
-});
 
-test('point creation waits for Core acknowledgement before switching tool and selecting its object', async () => {
-  const f = setup('point'), pending = f.owner.handleMapClick([1,2]);
-  assert.deepEqual(f.events,[]);
-  f.resolve({ id: 'G' }); await pending;
-  assert.deepEqual(f.events.slice(0,2),[['tool','select'],['select','G']]);
-  assert.deepEqual(f.errors,[]);
-});
 
-test('point creation from a replaced project cannot select an old object or reset the new tool', async () => {
-  const f = setup('point'), pending = f.owner.handleMapClick([1,2]);
-  f.replace(); f.resolve({ id: 'G' }); assert.equal(await pending,false);
-  assert.deepEqual(f.events,[]); assert.deepEqual(f.errors,[]);
-});
+
+
+
+
 
 async function chooser(t) {
   const previousDocument=globalThis.document,previousFrame=globalThis.requestAnimationFrame;

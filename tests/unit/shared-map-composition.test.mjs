@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMapOwners} from "../../shared/frontend/js/modules/map-owner-composition.js";
 import {createRenderQuality} from "../../shared/frontend/js/modules/render-quality.js";
-import {createReadinessNotifications} from "../../apps/editor/frontend/js/modules/app-readiness-notifications.js";
+
 
 test('both products connect the real picking owner with the canonical scope and live ports',async()=>{
  const {connectMapOwner}=await import('../../shared/frontend/js/modules/map-owner-ports.js');
@@ -67,11 +67,7 @@ test('canonical mesh completion ignores a superseded document generation',async(
  assert.equal(await pending,false);assert.deepEqual(events,[]);
 });
 
-test('notification output resolves initialized platform ports when used',()=>{
- const owner=createReadinessNotifications(),platform={};
- owner.connect({platform,surfaces:{isMobile:()=>false}});
- platform.$=()=>null;assert.doesNotThrow(()=>owner.setActionStatus('준비','working',0));
-});
+
 
 test('common read ports preserve canonical scope and current sources across product project replacement',async()=>{
  const {createMapReadPorts,mergeCapabilityPorts,connectMapOwner}=await import('../../shared/frontend/js/modules/map-owner-ports.js');

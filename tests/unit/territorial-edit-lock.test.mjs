@@ -3,7 +3,7 @@ import test from 'node:test';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import { createTerritorialFeature, territorialRootId } from "../../shared/frontend/js/modules/territorial-units.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
-import { calculateTerritorialEdit } from "../../apps/editor/frontend/js/modules/map-edit-territorial-commands.js";
+
 
 const square = (x0, y0, x1, y1) => normalizePolygonGeometry({ type: 'Polygon',
   coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]] });
@@ -24,33 +24,7 @@ function requestFor(operation, units) {
     : { operation, targetId: 'parent', newCountry: entity('parent', 'general', units[0].geometry) };
 }
 
-for (const operation of ['transfer', 'promote']) {
-  for (const lockedId of ['child', 'grandchild']) {
-    test(`${operation} rejects a country change inherited by locked ${lockedId} without changing inputs`, () => {
-      const { countries, units } = fixture();
-      units.find(feature => feature.id === lockedId).properties.locked = true;
-      const request = requestFor(operation, units);
-      const before = structuredClone({ request, countries, units });
-      assert.throws(() => calculateTerritorialEdit(request, [...countries, ...units], globalThis.polygonClipping),
-        error => error.message.includes(lockedId) && error.message.includes('잠긴'));
-      assert.deepEqual({ request, countries, units }, before);
-    });
-  }
-  test(`${operation} allows unlocked descendants and derives their new country from unchanged child fields`, () => {
-    const { countries, units } = fixture();
-    const before = structuredClone({ countries, units });
-    const result = calculateTerritorialEdit(requestFor(operation, units), [...countries, ...units], globalThis.polygonClipping);
-    const removed = new Set(result.removedIds);
-    const after = new Map([...countries, ...units].filter(feature => !removed.has(feature.id)).map(feature => [feature.id, feature]));
-    for (const feature of result.features) after.set(feature.id, feature);
-    for (const childId of ['child', 'grandchild']) {
-      assert.equal(territorialRootId(after.get(childId), id => after.get(id)), operation === 'transfer' ? 'B' : 'parent');
-      assert.deepEqual(after.get(childId), units.find(feature => feature.id === childId));
-      assert.equal(Object.hasOwn(after.get(childId).properties, 'sovereignId'), false);
-    }
-    assert.deepEqual({ countries, units }, before);
-  });
-}
+
 
 test('the final commit guard rejects a locked descendant country change even outside the affected ID list', () => {
   const { countries, units } = fixture();

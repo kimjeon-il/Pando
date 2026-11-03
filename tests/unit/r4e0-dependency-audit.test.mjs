@@ -51,26 +51,13 @@ test('R4-E0 diagnoses retired tests separately from genuinely shipped runtime im
  const shipping=audit.records.flatMap(x=>x.blocking.filter(y=>runtime.has(y.owner)&&executable.has(y.kind)));
  assert.deepEqual(shipping,[],
    'R4-E0 requires the shipped Viewer/Windows frontend to remain independent of archived editor modules');
- assert.ok(audit.summary.referencedFiles>0);
+ assert.equal(audit.records.filter(r=>r.present&&r.blocking.length).length,0);
  assert.equal(audit.summary.retiredReferences,0);
 });
 
-test('R4-E0 dependency graph produces unique complete deletion units',()=>{
- const candidates=new Set(audit.records.filter(x=>x.present).map(x=>x.path));
- for(const row of audit.records.filter(row=>row.present)){
-   for(const path of row.internalOutgoing)assert.ok(candidates.has(path),path);
-   for(const path of row.atomicDeletionGroup)assert.ok(candidates.has(path),path);
- }
- const composition=audit.records.find(x=>x.path==='apps/editor/frontend/js/modules/app-composition.js');
- assert.ok(composition.internalOutgoing.includes(
-   'apps/editor/frontend/js/modules/app-runtime-dependencies.js'),
-   'versioned URL dynamic import must be resolved to its static module filename');
- const runtime=audit.records.find(x=>x.path==='apps/editor/frontend/js/modules/app-runtime-dependencies.js');
- assert.ok(runtime.internalOutgoing.includes(
-   'apps/editor/frontend/js/modules/territorial-service.js'),
-   'versionedModuleUrl helper must resolve relative to the retired app entrypoint');
- for(const cycle of audit.cycles){
-   assert.ok(cycle.length>1);
-   for(const path of cycle)assert.deepEqual(audit.records.find(x=>x.path===path).atomicDeletionGroup,cycle);
- }
+test('R4-E5 closes the archived source dependency graph',()=>{
+ assert.equal(audit.summary.present,0);
+ assert.equal(audit.summary.removed,103);
+ assert.equal(audit.records.filter(r=>r.present&&r.blocking.length).length,0);
+ assert.deepEqual(audit.errors,[]);
 });

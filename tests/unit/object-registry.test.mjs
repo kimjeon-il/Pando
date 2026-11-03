@@ -10,12 +10,8 @@ import {
   objectTypeLabel,
   presentationGroupForObjectType,
 } from "../../shared/frontend/js/modules/map-object-categories.js";
-import {
-  OBJECT_ACTIONS,
-  objectActionApplies,
-  resolveObjectAction,
-} from "../../apps/editor/frontend/js/modules/object-action-registry.js";
-import { ACTION_UI_BINDINGS } from "../../apps/editor/frontend/js/modules/object-registry-presenter.js";
+
+
 
 test('object registry exposes canonical domain/category/editor metadata', () => {
   assert.equal(MAP_OBJECT_TYPES.entity.domain, 'territorial');
@@ -40,23 +36,4 @@ test('object refs resolve through one registry key and presentation mapping', ()
   assert.equal(layerGroupForObjectType('distribution'), 'distributions');
   assert.equal(presentationGroupForObjectType('river'), 'rivers');
   assert.equal(categoryForLayerGroup('genericFeatures'), 'features');
-});
-
-test('action registry resolves dynamic lock metadata and applicability', () => {
-  assert.equal(resolveObjectAction('lock', { locked: false }).label, '잠금');
-  assert.equal(resolveObjectAction('lock', { locked: true }).label, '잠금 해제');
-  assert.equal(resolveObjectAction('lock', { locked: true }).icon, 'icon-lock-closed');
-  assert.equal(resolveObjectAction('delete').danger, true);
-  assert.equal(objectActionApplies('copy-region', { domain: 'territorial', type: 'entity' }), true);
-  assert.equal(objectActionApplies('copy-region', { domain: 'hydro', type: 'river' }), false);
-  assert.equal(objectActionApplies('border-edit', { domain: 'generic', type: 'feature' }), false);
-  assert.equal(objectActionApplies('border-edit', { domain: 'territorial', type: 'entity' }), true);
-  assert.ok(OBJECT_ACTIONS['coast-reconcile']);
-});
-
-test('shared layer menu and editor endpoints bind to the same action ids', () => {
-  assert.deepEqual(ACTION_UI_BINDINGS.lock.map(binding => binding.elementId), ['objectLockBtn']);
-  assert.deepEqual(ACTION_UI_BINDINGS.delete.map(binding => binding.elementId), ['objectDeleteBtn']);
-  assert.ok(ACTION_UI_BINDINGS['copy-region'].some(binding => binding.elementId === 'copyEntityRegionBtn'));
-  assert.ok(ACTION_UI_BINDINGS['coast-reconcile'].some(binding => binding.elementId === 'reconcileEntityCoastBtn'));
 });

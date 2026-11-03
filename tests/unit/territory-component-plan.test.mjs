@@ -6,9 +6,9 @@ import '../helpers/spherical-core.mjs';
 import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
 import "../../shared/frontend/js/modules/polygon-geometry.js";
 import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
-import { createTerritoryComponents } from "../../apps/editor/frontend/js/modules/app-territory-components.js";
+
 import { composeRiverBoundaryTerritoryComponents } from "../../tools/gis/river-territory-partition.js";
-import { createEditingRenderPacket } from "../../apps/editor/frontend/js/modules/editing-render-packet.js";
+
 import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 import { validateWorldBundle } from "../../shared/frontend/js/modules/world-bundle-manifest.js";
 
@@ -77,45 +77,7 @@ test('holes, islands and polygons on either side of the dateline retain all coor
   assert.deepEqual(result.items.map(item => item.geometry.coordinates), geometry.coordinates);
 });
 
-test('component cache and render packets reuse geometry across hover, selection and river toggles', async t => {
-  let areas = 0;
-  const calculate = sharedCalculationCore.riverPartitionCalculate;
-  t.mock.method(sharedCalculationCore, 'riverPartitionCalculate', (operation, input) => {
-    if (operation === 'area') areas += 1;
-    return calculate.call(sharedCalculationCore, operation, input);
-  });
-  const source = feature(square(0, 0, 10, 10));
-  const current = { stage: 'selection', activePhase: 'components', baseSourceFeatures: [source],
-    selectedComponentKeys: [], componentFeatures: [source], useRiverBoundaries: false };
-  const api = createTerritoryComponents();
-  api.connect({
-    projectState: { state: { territorySelectionSession: current } },
-    objectPresentation: { territorialEntityName: () => '기준' },
-    territorialModel: { composeRiverBoundaryTerritoryComponents },
-  });
-  api.installComponentIndex(current, await plan.prepare({ features: [source] }), 'source:1');
-  const initial = api.territoryComponentItems()[0];
-  assert.ok(Number.isFinite(initial.areaKm2) && initial.areaKm2 > 0);
-  for (let i = 0; i < 20; i++) {
-    current.selectedComponentKeys = i % 2 ? [initial.key] : [];
-    const items = api.territoryComponentItems();
-    const packet = createEditingRenderPacket({ territoryOperation: { components: items } });
-    assert.equal(items[0].geometry, initial.geometry);
-    assert.equal(items[0].areaKm2, initial.areaKm2);
-    assert.equal(packet.territoryOperation.components[0].geometry, initial.geometry);
-  }
-  assert.equal(areas, 1);
-  current.useRiverBoundaries = true;
-  current.riverPartitionStatus = 'ready';
-  current.riverPartitionCandidates = [];
-  current.riverPartitionDonorResults = [];
-  api.installRiverComponentIndex(current, api.riverBoundaryComposition(), current.riverPartitionCandidates, current.riverPartitionDonorResults);
-  assert.equal(api.territoryComponentItems()[0].sourcePolygonIndex, 0);
-  current.useRiverBoundaries = false;
-  assert.equal(api.territoryComponentItems()[0].geometry, initial.geometry);
-  current.stage = 'review';
-  assert.deepEqual(api.territoryComponentItems(), []);
-});
+
 
 test('cooperative cancellation stops before preparing the rest of a source', async () => {
   let checkpoints = 0;

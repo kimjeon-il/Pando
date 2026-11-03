@@ -1,15 +1,15 @@
 import {testCoreProject,snapshotTestTerritorialState,initializeTestTerritorialState,executeTestCommand,executeTerritorialTestCommand,staticAutosaveProject} from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subunitSelectionPolicy, boundaryTouchesGeometry } from "../../apps/editor/frontend/js/modules/territorial-interaction-policy.js";
-import * as interactionPolicy from "../../apps/editor/frontend/js/modules/territorial-interaction-policy.js";
+
+
 import {readFileSync} from 'node:fs';
 import {normalizeLayerPresentation} from "../../shared/frontend/js/modules/layer-presentation.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import { BUILTIN_SUBUNITS,territorialSceneDisplayId } from "../../shared/frontend/js/modules/builtin-subunits.js";
 import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
-import { createTerritorialDrafts } from "../../apps/editor/frontend/js/modules/app-territorial-drafts.js";
+
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
 const country = (id, notes = '') => createTerritorialFeature({ id, entityKind: 'general', notes, geometry });
@@ -31,59 +31,11 @@ const executeRemoval=async(state,ids)=>{
 };
 const locked=(state,id,value)=>executeTerritorialTestCommand(state,'territorial.lock',{ids:[id],locked:value});
 
-test('territorial deletion requires the canonical store before touching project state', () => {
-  const state = { territorialEntities: [] };
-  const before = structuredClone(state);
-  assert.equal('removeTerritorialEntities' in interactionPolicy,false,'retired JS mutable document helper is removed');
-  assert.throws(()=>createTerritorialEntityStore({getState:()=>state}),/C\+\+ territorial projection/);
-  assert.deepEqual(state, before);
-});
 
-test('multiple subunits require one parent, unlocked objects and a connected selection', () => {
-  const units = [unit('a'), unit('b'), unit('c')];
-  units.forEach((row,index) => { row.geometry = { type:'Polygon',coordinates:[[[index,0],[index,1],[index+1,1],[index+1,0],[index,0]]] }; });
-  assert.equal(subunitSelectionPolicy(units).valid, true);
-  const reordered = [units[0], units[2], units[1]];
-  const decision = sharedCalculationCore.subunitSelectionDecision(
-    reordered.map(row => row.properties.entityKind), reordered.map(row => row.properties.parentId),
-    reordered.map(row => row.properties.locked), reordered.map(row => [row.geometry.coordinates]), false,
-  );
-  assert.deepEqual(decision, { status:'valid', order:[0,2,1] });
-  assert.match(subunitSelectionPolicy([units[0], units[2]]).message, /공유 경계/);
-  assert.equal(subunitSelectionPolicy([units[0], units[2]], { deferConnectivity: true }).valid, true);
-  assert.match(subunitSelectionPolicy([units[0]]).message, /2개 이상/);
-  const pointOnly=unit('point');pointOnly.geometry={type:'Polygon',coordinates:[[[1,1],[1,2],[2,2],[2,1],[1,1]]]};
-  assert.match(subunitSelectionPolicy([units[0],pointOnly]).message, /공유 경계/);
-  units[1].properties.parentId = 'other';
-  assert.match(subunitSelectionPolicy(units).message, /같은 소속/);
-  units[1].properties.parentId = 'KR'; units[1].properties.locked = true;
-  assert.match(subunitSelectionPolicy(units).message, /잠금/);
-});
 
-test('the pending subunit merge checks the current lock, parent and geometry again before apply', async () => {
-  const a=unit('a'), b=unit('b');
-  b.geometry={ type:'Polygon',coordinates:[[[1,0],[1,1],[2,1],[2,0],[1,0]]] };
-  const rows=[a,b], repository={ list:()=>rows, get:id=>rows.find(row=>row.id===id), has:id=>rows.some(row=>row.id===id) };
-  const state={ stateRevision:1,tool:'select',selected:{id:'a'},distributionEntries:[] };
-  let captured,sourceCurrent=true;
-  const result={ impacts:[],features:rows,countryIds:[],removedIds:[],ownershipChanges:[],affectedIds:['a','b'],preparationId:'prepared' };
-  const drafts=createTerritorialDrafts();
-  drafts.connect({
-    projectState:{state},territorialModel:{entityRepository:repository},
-    domains:{projectDomain:{state:()=>({epoch:1}),prepareCommand:async()=>({ok:true,changed:true})}},
-    feedback:{setActionStatus(){},reportOperationError(error){throw error;}},
-    spatialQuery:{mapEditClient:{execute:async operation=>operation==='territorial-edit'
-      ? {requestId:1,sourceRevision:1,result}:{result:{valid:true}}, discard(){},sourcesCurrent:()=>sourceCurrent}},
-    geometryOperations:{beginLocalGeometryPreview:options=>{captured=options;return true;}},
-  });
-  assert.equal(await drafts.previewTerritorialEdit({operation:'merge',targetId:'a',parentId:'KR',sourceIds:['b']}),true);
-  assert.equal(await captured.validatePrepared(),true);
-  b.properties.locked=true;assert.equal(await captured.validatePrepared(),false);b.properties.locked=false;
-  b.properties.parentId='OTHER';assert.equal(await captured.validatePrepared(),false);b.properties.parentId='KR';
-  b.geometry={type:'Polygon',coordinates:[[[4,0],[4,1],[5,1],[5,0],[4,0]]]};
-  assert.equal(await captured.validatePrepared(),false);
-  sourceCurrent=false;assert.equal(await captured.validatePrepared(),false);
-});
+
+
+
 test('single and batch deletion never expands into descendants and rechecks changed locks', async () => {
   const a = unit('a'), b = unit('b');
   const state = {territorialEntities:[country('KR'),a,b],distributionLayers:seed.distributionLayers,
@@ -192,10 +144,4 @@ test('country deletion rejects current administrative children before changing s
   const before = snapshotTestTerritorialState(state);
   await assert.rejects(()=>executeRemoval(state,['A']));
   assert.deepEqual(snapshotTestTerritorialState(state), before);
-});
-
-test('locked boundary checks include interior points of differently segmented edges', () => {
-  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] };
-  assert.equal(boundaryTouchesGeometry(geometry, [1, 0]), true);
-  assert.equal(boundaryTouchesGeometry(geometry, [3, 0]), false);
 });

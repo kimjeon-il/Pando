@@ -6,7 +6,7 @@ import * as projectState from "../../shared/frontend/js/modules/project-state.js
 import * as serializerModule from "../helpers/legacy-project-autosave.mjs";
 import { projectForStorage, staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
-import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";
+
 import { projectPreviewGeometryRows } from "../../shared/frontend/js/modules/project-preview-policy.js";
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
 
@@ -90,18 +90,7 @@ test('delta validates actual baseline fingerprint before reconstructing omitted 
   assert.throws(() => serializer({ ...snapshot, baseDatasetFingerprint: undefined }).buildAutosave(), { code: 'PL-SCHEMA-BASE' });
 });
 
-test('autosave waits for asynchronous candidate rejection before promoting a stored save', async () => {
-  let writes = 0;
-  const service = createPersistenceService({ storage: {
-    readView: async () => null, readProject: async () => ({ savedAt: '2026-10-04T00:00:00Z' }),
-    readFallback: () => null, writeProject: async () => { writes++; },
-  }, scheduler: { cancel() {}, scheduleIdle() {} }, onWarning() {},
-  validateProject: async () => { throw Object.assign(new Error('baseline mismatch'), { code: 'PL-SCHEMA-BASE' }); } });
-  const result = await service.restore();
-  assert.equal(result.project, null);
-  assert.equal(result.error.code, 'PL-SCHEMA-BASE');
-  assert.equal(writes, 0);
-});
+
 
 
 test('delta autosave rejects unsupported project fields before persisting them', () => {

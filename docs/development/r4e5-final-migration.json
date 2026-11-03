@@ -1,0 +1,544 @@
+{
+  "schema": "pando-r4-e5-closure-v1",
+  "retired": [
+    "apps/editor/frontend/js/modules/app-capability-ports-lifecycle-ui.js",
+    "apps/editor/frontend/js/modules/app-capability-ports-map-interaction.js",
+    "apps/editor/frontend/js/modules/app-capability-ports.js",
+    "apps/editor/frontend/js/modules/app-composition.js",
+    "apps/editor/frontend/js/modules/app-country-commits.js",
+    "apps/editor/frontend/js/modules/app-cut-geometry.js",
+    "apps/editor/frontend/js/modules/app-environment.js",
+    "apps/editor/frontend/js/modules/app-file-bindings.js",
+    "apps/editor/frontend/js/modules/app-generic-commands.js",
+    "apps/editor/frontend/js/modules/app-geometry-preview.js",
+    "apps/editor/frontend/js/modules/app-global-input-bindings.js",
+    "apps/editor/frontend/js/modules/app-history-assembly.js",
+    "apps/editor/frontend/js/modules/app-interaction-packets.js",
+    "apps/editor/frontend/js/modules/app-library-assembly.js",
+    "apps/editor/frontend/js/modules/app-lifecycle-assembly.js",
+    "apps/editor/frontend/js/modules/app-object-commands.js",
+    "apps/editor/frontend/js/modules/app-object-deletion.js",
+    "apps/editor/frontend/js/modules/app-object-metadata.js",
+    "apps/editor/frontend/js/modules/app-progressive-startup.js",
+    "apps/editor/frontend/js/modules/app-project-restore.js",
+    "apps/editor/frontend/js/modules/app-project-snapshots.js",
+    "apps/editor/frontend/js/modules/app-property-selection.js",
+    "apps/editor/frontend/js/modules/app-readiness-notifications.js",
+    "apps/editor/frontend/js/modules/app-river-candidates.js",
+    "apps/editor/frontend/js/modules/app-runtime-dependencies.js",
+    "apps/editor/frontend/js/modules/app-service-assembly.js",
+    "apps/editor/frontend/js/modules/app-task-presentation.js",
+    "apps/editor/frontend/js/modules/app-task-stage-model.js",
+    "apps/editor/frontend/js/modules/app-territorial-conversion.js",
+    "apps/editor/frontend/js/modules/app-territorial-drafts.js",
+    "apps/editor/frontend/js/modules/app-territory-components.js",
+    "apps/editor/frontend/js/modules/app-tool-bindings.js",
+    "apps/editor/frontend/js/modules/boundary-display.js",
+    "apps/editor/frontend/js/modules/boundary-preparation.js",
+    "apps/editor/frontend/js/modules/coast-reconciliation-controller.js",
+    "apps/editor/frontend/js/modules/coast-reconciliation.js",
+    "apps/editor/frontend/js/modules/confirm-modal-controller.js",
+    "apps/editor/frontend/js/modules/country-display.js",
+    "apps/editor/frontend/js/modules/edit-source-tracker.js",
+    "apps/editor/frontend/js/modules/editing-domain.js",
+    "apps/editor/frontend/js/modules/editing-presentation.js",
+    "apps/editor/frontend/js/modules/editing-render-packet.js",
+    "apps/editor/frontend/js/modules/editor-map-click.js",
+    "apps/editor/frontend/js/modules/editor-map-presentation-policy.js",
+    "apps/editor/frontend/js/modules/geometry-preview.js",
+    "apps/editor/frontend/js/modules/geometry-segment-index.js",
+    "apps/editor/frontend/js/modules/geometry-snap.js",
+    "apps/editor/frontend/js/modules/import-service.js",
+    "apps/editor/frontend/js/modules/library-geometry-context.js",
+    "apps/editor/frontend/js/modules/library-ownership.js",
+    "apps/editor/frontend/js/modules/map-edit-territorial-commands.js",
+    "apps/editor/frontend/js/modules/map-edit-worker-client.js",
+    "apps/editor/frontend/js/modules/native-library-repository.js",
+    "apps/editor/frontend/js/modules/object-action-registry.js",
+    "apps/editor/frontend/js/modules/object-property-controller.js",
+    "apps/editor/frontend/js/modules/object-property-presentation.js",
+    "apps/editor/frontend/js/modules/object-registry-presenter.js",
+    "apps/editor/frontend/js/modules/overlay-scrollbars.js",
+    "apps/editor/frontend/js/modules/persistence-service.js",
+    "apps/editor/frontend/js/modules/project-preview-cache.js",
+    "apps/editor/frontend/js/modules/selection-performance-baseline.js",
+    "apps/editor/frontend/js/modules/surface-metrics.js",
+    "apps/editor/frontend/js/modules/territorial-entity-loader.js",
+    "apps/editor/frontend/js/modules/territorial-interaction-policy.js",
+    "apps/editor/frontend/js/modules/territorial-library-controller.js",
+    "apps/editor/frontend/js/modules/territorial-library-editing-ui.js",
+    "apps/editor/frontend/js/modules/territorial-library-editor.js",
+    "apps/editor/frontend/js/modules/territorial-library-service.js",
+    "apps/editor/frontend/js/modules/territorial-property-controller.js",
+    "apps/editor/frontend/js/modules/territorial-service.js",
+    "apps/editor/frontend/js/modules/timeline-static-view.js",
+    "apps/editor/frontend/js/modules/ui-runtime.js",
+    "apps/editor/frontend/js/workers/map-edit-worker.js",
+    "apps/editor/frontend/js/workers/river-territory-partition-worker.js"
+  ],
+  "retiredFiles": [
+    "tests/unit/annex-drawn-selection.test.mjs",
+    "tests/unit/boundary-preparation-session.test.mjs",
+    "tests/unit/coast-reconciliation-controller.test.mjs",
+    "tests/unit/coast-reconciliation.test.mjs",
+    "tests/unit/country-flag-binding-contract.test.mjs",
+    "tests/unit/distribution-selection.test.mjs",
+    "tests/unit/edit-source-tracker.test.mjs",
+    "tests/unit/editable-library.test.mjs",
+    "tests/unit/gpu-scene-platform-port.test.mjs",
+    "tests/unit/hydro-library-history.test.mjs",
+    "tests/unit/hydro-metadata-edit.test.mjs",
+    "tests/unit/hydro-source-notes.test.mjs",
+    "tests/unit/label-metadata-edit.test.mjs",
+    "tests/unit/library-geometry-context.test.mjs",
+    "tests/unit/library-map-preview.test.mjs",
+    "tests/unit/library-ownership.test.mjs",
+    "tests/unit/library-source-form.test.mjs",
+    "tests/unit/lightweight-timeline-history.test.mjs",
+    "tests/unit/map-label-visibility.test.mjs",
+    "tests/unit/native-library-repository.test.mjs",
+    "tests/unit/object-action-availability.test.mjs",
+    "tests/unit/object-deletion-async-command.test.mjs",
+    "tests/unit/object-property-controller.test.mjs",
+    "tests/unit/object-visibility-command.test.mjs",
+    "tests/unit/overlay-scrollbars.test.mjs",
+    "tests/unit/progressive-startup-runtime-contract.test.mjs",
+    "tests/unit/progressive-startup-runtime.test.mjs",
+    "tests/unit/project-preview-cache.test.mjs",
+    "tests/unit/project-workspace-identity.test.mjs",
+    "tests/unit/property-selection-async-command.test.mjs",
+    "tests/unit/renderable-outline.test.mjs",
+    "tests/unit/river-partition-request.test.mjs",
+    "tests/unit/river-territory-partition-source.test.mjs",
+    "tests/unit/selection-performance-baseline.test.mjs",
+    "tests/unit/surface-metrics.test.mjs",
+    "tests/unit/task-stage-model.test.mjs",
+    "tests/unit/task-stage-presentation.test.mjs",
+    "tests/unit/territorial-command-storage.test.mjs",
+    "tests/unit/territorial-create-period.test.mjs",
+    "tests/unit/territorial-info-period.test.mjs",
+    "tests/unit/territorial-library-controller.test.mjs",
+    "tests/unit/territorial-library-service.test.mjs",
+    "tests/unit/territorial-metadata-command.test.mjs",
+    "tests/unit/territory-selection-ports.test.mjs",
+    "tests/unit/view-focus-contract.test.mjs",
+    "tests/unit/viewer-presentation-observer.test.mjs",
+    "tests/unit/workflow-layout.test.mjs"
+  ],
+  "preserved": [
+    {
+      "file": "tests/unit/boundary-preparation.test.mjs",
+      "retired": 18,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/core-document-draft-wasm.test.mjs",
+      "retired": 1,
+      "retained": 3
+    },
+    {
+      "file": "tests/unit/country-display.test.mjs",
+      "retired": 3,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/country-label-input-contract.test.mjs",
+      "retired": 2,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/file-menu-routes.test.mjs",
+      "retired": 1,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/historical-world-reset.test.mjs",
+      "retired": 1,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/layer-lock-sync.test.mjs",
+      "retired": 1,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/library-import-atomic.test.mjs",
+      "retired": 6,
+      "retained": 7
+    },
+    {
+      "file": "tests/unit/map-click-async-command.test.mjs",
+      "retired": 3,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/object-registry.test.mjs",
+      "retired": 2,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/persistence-service.test.mjs",
+      "retired": 27,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/place-label-workflow.test.mjs",
+      "retired": 2,
+      "retained": 6
+    },
+    {
+      "file": "tests/unit/platform-boundaries.test.mjs",
+      "retired": 2,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/product-map-presentation-policy.test.mjs",
+      "retired": 2,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/project-autosave-receipt.test.mjs",
+      "retired": 2,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/project-session-viewing.test.mjs",
+      "retired": 1,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/render-channel-ownership.test.mjs",
+      "retired": 1,
+      "retained": 4
+    },
+    {
+      "file": "tests/unit/renderer-responsiveness-source.test.mjs",
+      "retired": 2,
+      "retained": 8
+    },
+    {
+      "file": "tests/unit/runtime-performance-contract.test.mjs",
+      "retired": 2,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/runtime-performance-metrics.test.mjs",
+      "retired": 1,
+      "retained": 3
+    },
+    {
+      "file": "tests/unit/shared-geometry-calculations.test.mjs",
+      "retired": 1,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/shared-map-composition.test.mjs",
+      "retired": 1,
+      "retained": 11
+    },
+    {
+      "file": "tests/unit/territorial-display-identity.test.mjs",
+      "retired": 2,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/territorial-edit-lock.test.mjs",
+      "retired": 0,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/territorial-interaction-policy.test.mjs",
+      "retired": 4,
+      "retained": 5
+    },
+    {
+      "file": "tests/unit/territorial-storage-audit.test.mjs",
+      "retired": 3,
+      "retained": 5
+    },
+    {
+      "file": "tests/unit/territorial-world-view.test.mjs",
+      "retired": 1,
+      "retained": 1
+    },
+    {
+      "file": "tests/unit/territory-component-plan.test.mjs",
+      "retired": 1,
+      "retained": 5
+    },
+    {
+      "file": "tests/unit/timeline-persistence-integration.test.mjs",
+      "retired": 1,
+      "retained": 8
+    },
+    {
+      "file": "tests/unit/ui-controllers.test.mjs",
+      "retired": 4,
+      "retained": 2
+    },
+    {
+      "file": "tests/unit/visual-frame-consumers.test.mjs",
+      "retired": 1,
+      "retained": 6
+    }
+  ],
+  "removedCases": [
+    {
+      "file": "tests/unit/annex-drawn-selection.test.mjs",
+      "retired": 9,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/boundary-preparation-session.test.mjs",
+      "retired": 5,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/coast-reconciliation-controller.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/coast-reconciliation.test.mjs",
+      "retired": 6,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/country-flag-binding-contract.test.mjs",
+      "retired": 1,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/distribution-selection.test.mjs",
+      "retired": 1,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/edit-source-tracker.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/editable-library.test.mjs",
+      "retired": 5,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/gpu-scene-platform-port.test.mjs",
+      "retired": 1,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/hydro-library-history.test.mjs",
+      "retired": 0,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/hydro-metadata-edit.test.mjs",
+      "retired": 7,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/hydro-source-notes.test.mjs",
+      "retired": 5,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/label-metadata-edit.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/library-geometry-context.test.mjs",
+      "retired": 14,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/library-map-preview.test.mjs",
+      "retired": 1,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/library-ownership.test.mjs",
+      "retired": 8,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/library-source-form.test.mjs",
+      "retired": 1,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/lightweight-timeline-history.test.mjs",
+      "retired": 4,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/map-label-visibility.test.mjs",
+      "retired": 6,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/native-library-repository.test.mjs",
+      "retired": 6,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/object-action-availability.test.mjs",
+      "retired": 1,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/object-deletion-async-command.test.mjs",
+      "retired": 3,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/object-property-controller.test.mjs",
+      "retired": 4,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/object-visibility-command.test.mjs",
+      "retired": 5,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/overlay-scrollbars.test.mjs",
+      "retired": 3,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/progressive-startup-runtime-contract.test.mjs",
+      "retired": 7,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/progressive-startup-runtime.test.mjs",
+      "retired": 6,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/project-preview-cache.test.mjs",
+      "retired": 12,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/project-workspace-identity.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/property-selection-async-command.test.mjs",
+      "retired": 3,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/renderable-outline.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/river-partition-request.test.mjs",
+      "retired": 4,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/river-territory-partition-source.test.mjs",
+      "retired": 4,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/selection-performance-baseline.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/surface-metrics.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/task-stage-model.test.mjs",
+      "retired": 12,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/task-stage-presentation.test.mjs",
+      "retired": 35,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territorial-command-storage.test.mjs",
+      "retired": 5,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territorial-create-period.test.mjs",
+      "retired": 0,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territorial-info-period.test.mjs",
+      "retired": 2,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territorial-library-controller.test.mjs",
+      "retired": 20,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territorial-library-service.test.mjs",
+      "retired": 17,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territorial-metadata-command.test.mjs",
+      "retired": 8,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/territory-selection-ports.test.mjs",
+      "retired": 5,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/view-focus-contract.test.mjs",
+      "retired": 4,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/viewer-presentation-observer.test.mjs",
+      "retired": 6,
+      "retained": 0
+    },
+    {
+      "file": "tests/unit/workflow-layout.test.mjs",
+      "retired": 10,
+      "retained": 0
+    }
+  ],
+  "canonicalTests": {
+    "gis-interop": [
+      "tests/unit/gis-geometry-worker.test.mjs",
+      "tests/unit/gis-adapters.test.mjs",
+      "tests/unit/core-gpkg-file-boundary.test.mjs"
+    ],
+    "core-fixture": [
+      "tests/unit/core-territorial-service-wasm.test.mjs",
+      "tests/unit/core-service-writer-clock-wasm.test.mjs",
+      "tests/unit/core-direct-object-writers-wasm.test.mjs",
+      "tests/unit/core-label-gesture-wasm.test.mjs"
+    ],
+    "retired-ui": [
+      "tests/browser/viewer-review-e4.spec.mjs",
+      "tests/browser/viewer-gpu-backend-cross.spec.mjs",
+      "tests/browser/windows-review-e5.spec.mjs"
+    ],
+    "retired-worker": [
+      "tests/unit/country-shared-boundary-state.test.mjs",
+      "tests/unit/gis-geometry-worker.test.mjs"
+    ]
+  }
+}

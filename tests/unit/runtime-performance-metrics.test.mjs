@@ -7,9 +7,9 @@ import {
   createRuntimePerformanceMetrics,
   installRuntimePerformanceMetrics,
 } from "../../shared/frontend/js/modules/runtime-performance-metrics.js";
-import {createGeometryPreview} from "../../apps/editor/frontend/js/modules/app-geometry-preview.js";
+
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
-import { createPersistenceService } from "../../apps/editor/frontend/js/modules/persistence-service.js";
+
 
 class FakePerformanceObserver {
   static instances = [];
@@ -133,62 +133,4 @@ test('installs one global report API and reuses it idempotently', () => {
   assert.equal(typeof globalObject.__PANDOLAB_PERFORMANCE_REPORT__, 'function');
   assert.equal(globalObject.__PANDOLAB_PERFORMANCE_REPORT__().version, 1);
   first.dispose();
-});
-
-test('canonical command, transaction and persistence paths publish operation timings', async t => {
-  const samples = [];
-  globalThis.__PANDOLAB_PERFORMANCE__ = {
-    version: 1,
-    record: (name, durationMs, detail) => samples.push({ name, durationMs, detail }),
-  };
-  try {
-    const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
-    const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());
-    assert.equal((await owner.project.executeCommand({commandId:'territorial.field',targets:[{domain:'territorial',id:'A'}],
-      payload:{id:'A',field:'name',value:'Ordinary command'}})).ok,true);
-    const calls=[],preview=createGeometryPreview();
-    preview.connect({domains:{projectDomain:owner.project},spatialQuery:{mapEditClient:{
-      execute:async()=>({requestId:17,geometryRevision:9,result:{name:'Prepared transaction'}}),
-      commit:(id,revision)=>calls.push(['commit',id,revision]),discard:id=>calls.push(['discard',id]),rebase:()=>calls.push(['rebase']),
-    }}});
-    const transaction=await preview.transactMapEdit({operation:'geometry-test',payload:{},
-      prepareResult:(result,{expectedEpoch})=>owner.project.prepareCommand({commandId:'territorial.field',
-        targets:[{domain:'territorial',id:'A'}],expectedEpoch,payload:{id:'A',field:'name',value:result.name}}),
-      onSuccess:()=>calls.push(['success']),onError:error=>{throw error;}});
-    assert.equal(transaction,true);assert.deepEqual(calls,[['commit',17,9],['success']]);
-    assert.equal(owner.documentModel.territorialViews()[0].properties.name,'Prepared transaction');
-
-    const tasks = new Map();
-    const persistence = createPersistenceService({
-      storage: {
-        writeProject: async () => {},
-        writeView: async () => {},
-        readProject: async () => null,
-        readView: async () => null,
-        readFallback: () => null,
-        writeFallback: () => {},
-        removeFallback: () => {},
-        deleteRecords: async () => {},
-      },
-      scheduler: {
-        scheduleIdle: (key, task) => tasks.set(key, task),
-        cancel: key => tasks.delete(key),
-      },
-      canPersist: () => true,
-      buildAutosave: () => ({ project: { format: 'pandolab-autosave-delta' }, checkpoint: null }),
-      readView: () => ({}),
-      onDirty: () => {},
-      onAutosaveState: () => {},
-      onSaved: () => {},
-      onFailure: () => {},
-    });
-    await persistence.persist();
-
-    assert.equal(samples.some(sample => sample.name === PERFORMANCE_METRIC_NAMES.COMMAND), true);
-    assert.equal(samples.some(sample => sample.name === PERFORMANCE_METRIC_NAMES.TRANSACTION), true);
-    assert.ok(samples.find(sample=>sample.name===PERFORMANCE_METRIC_NAMES.TRANSACTION).detail.stages);
-    assert.equal(samples.some(sample => sample.name === PERFORMANCE_METRIC_NAMES.AUTOSAVE), true);
-  } finally {
-    delete globalThis.__PANDOLAB_PERFORMANCE__;
-  }
 });

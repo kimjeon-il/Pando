@@ -25,7 +25,7 @@ test('R4-E3 preserves actual C++/WASM, GIS, GeoPackage and Viewer acceptance ora
   'tests/browser/viewer-review-e4.spec.mjs','tests/browser/windows-review-e5.spec.mjs',
   'tests/browser/viewer-boundary-p4-5.spec.mjs'])
   assert.equal(exists(file),true,file);
- assert.equal(exists('apps/editor/frontend/js/modules/editing-domain.js'),true,
+ assert.equal(exists('apps/editor/frontend/js/modules/editing-domain.js'),false,
   'R4-E3 must not start the 103-file application source removal planned for E4');
 });
 test('R4-E3 catalogs only active and manual tests with no dead editor entries',()=>{

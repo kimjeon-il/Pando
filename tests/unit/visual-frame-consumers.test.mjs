@@ -1,4 +1,4 @@
-import {createEditingPresentation} from "../../apps/editor/frontend/js/modules/editing-presentation.js";
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
@@ -119,22 +119,4 @@ test('projected SVG paths require a frame instead of reading a live path fallbac
   domain.invalidateView(); queued.shift()();
   assert.ok(values.length > 0);
   assert.ok(values.every(value => value === 'snapshot-path'));
-});
-
-test('editing coordinates never evaluate live projection even when a frame is present', t => {
-  const coordinate = [0, 0];
-  const element = { parentNode: null, style: {}, tagName: 'circle', removeAttribute() {},
-    setAttribute(name, value) { this[name] = value; } };
-  const chain = {};
-  for (const method of ['data', 'exit', 'remove', 'enter', 'append', 'attr']) chain[method] = () => chain;
-  const layer = { node: () => null, selectAll: selector => ({ ...chain, each(callback) {
-    if (selector.startsWith('g,')) callback.call(element, { coordinate });
-  } }) };
-  const queued = [];
-  const domain = createRenderingDomain({ requestFrame: callback => queued.push(callback), prepareView: frame,
-    createEditingPresentation,getEditingRenderPacket: () => ({ snap: { coordinate } }), interactionResources: { snapLayer: layer,
-    activeProjection: () => { throw new Error('live projection evaluated'); } } });
-  t.after(() => domain.dispose());
-  domain.invalidateEditingOverlays(); queued.shift()();
-  assert.deepEqual([element.cx, element.cy], frame().projectVisibleCoordinate(coordinate));
 });

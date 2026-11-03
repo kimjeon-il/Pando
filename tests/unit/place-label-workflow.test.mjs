@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { normalizeCountryFeature } from "../../shared/frontend/js/modules/country-feature.js";
 import { normalizePlace } from "../../shared/frontend/js/modules/place-contract.js";
-import { createObjectCommands } from "../../apps/editor/frontend/js/modules/app-object-commands.js";
-import { createGenericCommands } from "../../apps/editor/frontend/js/modules/app-generic-commands.js";
+
+
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 import { readFileSync } from 'node:fs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
@@ -130,31 +130,4 @@ for(const removedId of ['removed','__proto__'])test(`Core history restores ${rem
   assert.equal(f.state.itemVisibility.objects[removedId],false,'document history does not own workspace overrides');
   assert.equal(Object.hasOwn(f.state.layerPresentation.objectStyles,styleKey),false);
   assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:kept'],survivor);
-});
-test('canonical object lookup resolves builtin labels in the existing domain with readonly capabilities',()=>{
-  const owner=createObjectCommands();owner.connect({selectionServices:{normalizeObjectRef},projectState:{state:{labels:[]}},preferences:{userPreferences:defaultUserPreferences()},propertyEditingA:{distributionLayerById:()=>null},labelPresentation:{labelById:id=>id===source.id?source:null}});
-  const ref=owner.layerItemObjectRef('labels',source.id);
-  assert.equal(ref.domain,'label');assert.equal(ref.type,'capital');assert.equal(owner.objectRefExists(ref),true);assert.ok(Object.isFrozen(source));
-  assert.equal(owner.objectDisplayInfo(ref).name,'서울');
-});
-test('copy creates an independent immutable user label and linked pinned settings in one C++ history entry',async ()=>{
-  const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
-  seed.labels=[];seed.labelSettings={};
-  const core=await createNodeCoreProject(seed),id='22000000-0000-4000-8000-000000000012',events=[];
-  const state={selected:{domain:'label',id:source.id}};
-  const owner=createGenericCommands();owner.connect({projectState:{state},labelPresentation:{labelById:()=>source},surfaces:{uid:()=>id},
-    domains:{projectDomain:core.project,renderingDomain:{invalidateLabels:()=>events.push('render')}},
-    objectDisplay:{invalidateObjectPresentation:()=>events.push('tree')},propertyEditingA:{applyLabelSelectionIntent:async ()=>events.push('select')},feedback:{setActionStatus:()=>{}}});
-  try {
-    const copy=await owner.copySelectedPlaceForEditing();assert.equal(copy.id,id);assert.equal(copy.sourcePlaceId,source.id);assert.deepEqual(copy.coordinates,source.coordinates);
-    assert.throws(()=>{copy.coordinates[0]=128;},TypeError);assert.equal(source.coordinates[0],127);assert.equal(source.name,'서울');
-    assert.equal(core.documentModel.list('label').length,1);
-    const settings=core.documentModel.snapshot().labelSettings[`label:${id}`];
-    assert.deepEqual(settings,{ priority: 90,minZoom: 0,maxZoom: Infinity,manualPosition: source.coordinates,pinned: true,collisionGroup: 'place' });
-    assert.equal(core.client.state().stateRevision,0);assert.equal(core.client.state().presentationDirty,false);
-    assert.ok(events.includes('select'));assert.equal(await core.project.undo(),true);assert.deepEqual(JSON.parse(await core.client.storageSnapshot()),seed);
-    assert.equal(core.client.state().canUndo,false);assert.equal(await core.project.redo(),true);
-    assert.equal(core.documentModel.list('label')[0].sourcePlaceId,source.id);
-    assert.equal(core.documentModel.snapshot().labelSettings[`label:${id}`].maxZoom,Infinity);
-  } finally { core.dispose(); }
 });
