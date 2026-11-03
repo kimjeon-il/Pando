@@ -1,10 +1,16 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [work/ui, work/r4e2-core-gis-test-fixtures-20261103, fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4e3-retired-test-fixture-pruning-20261103, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
+      - docs/development/r4e3-retired-tests.json
+      - scripts/r4e3-retired-test-audit.mjs
+      - tests/unit/r4e3-retired-editor-closure.test.mjs
+      - tests/unit/r1-retired-editor-inventory.test.mjs
+      - tests/unit/map-hover-topology.test.mjs
+      - tests/unit/helpers/dom-node-fixture.mjs
       - apps/editor/frontend/**
       - tools/gis/**
       - shared/frontend/js/modules/generic-feature-normalization.js
@@ -84,6 +90,8 @@ jobs:
         run: node scripts/r4d-check-retired-tests.mjs --check
       - name: Validate R4-E0 per-file dependency closure
         run: node scripts/r4e0-dependency-audit.mjs --check --output test-results/r4e0-dependency-map.json
+      - name: Confirm all 170 retired editor tests are gone
+        run: node scripts/r4e3-retired-test-audit.mjs --check --output test-results/r4e3-retired-test-inventory.json
       - name: Validate Viewer and Windows boundaries
         run: node scripts/check-runtime-boundaries.mjs
       - name: Validate territorial storage, provenance and version ownership
@@ -104,6 +112,10 @@ jobs:
           tests/unit/r4e0-dependency-audit.test.mjs
           tests/unit/r4e1-gis-interop-boundaries.test.mjs
           tests/unit/r4e2-core-gis-boundaries.test.mjs
+          tests/unit/r4e3-retired-editor-closure.test.mjs
+          tests/unit/r1-retired-editor-inventory.test.mjs
+          tests/unit/map-hover-topology.test.mjs
+          tests/unit/current-browser-contracts.test.mjs
           tests/unit/territorial-service.test.mjs
           tests/unit/distribution-service.test.mjs
           tests/unit/core-territorial-service-wasm.test.mjs

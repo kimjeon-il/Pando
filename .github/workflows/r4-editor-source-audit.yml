@@ -5,6 +5,8 @@ on:
     paths:
       - scripts/r4-editor-source-audit.mjs
       - scripts/r4e3-retired-test-audit.mjs
+      - docs/development/r4e3-retired-tests.json
+      - tests/unit/r4e3-retired-editor-closure.test.mjs
       - scripts/r4e0-dependency-audit.mjs
       - docs/development/r4e0-source-dispositions.json
       - tests/unit/r4e0-dependency-audit.test.mjs
@@ -39,7 +41,7 @@ jobs:
       - run: node scripts/r4-editor-source-audit.mjs
       - run: node scripts/r4d-check-retired-tests.mjs --check
       - name: Inventory obsolete tests and helper usage
-        run: node scripts/r4e3-retired-test-audit.mjs --output test-results/r4e3-retired-test-inventory.json
+        run: node scripts/r4e3-retired-test-audit.mjs --check --output test-results/r4e3-retired-test-inventory.json
       - name: Attach R4-E3 inventory
         if: always()
         uses: actions/upload-artifact@v4
