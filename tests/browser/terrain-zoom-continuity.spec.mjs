@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import {routeSyntheticDem} from './helpers/synthetic-dem-terrain.mjs';
 
 test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
   launchOptions: { args: process.platform === 'win32' ? ['--use-angle=d3d11']
@@ -178,11 +179,12 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
   const gate = new Promise(resolve => { release = resolve; });
   page.on('worker', worker => workers.push(worker));
   page.on('pageerror', error => errors.push(error.message));
+  await routeSyntheticDem(page.context());
   await page.context().route('**/terrain/v*/**/*.webp*', async route => {
     if (held && /\/[1-9]\d*\/\d+-\d+\.webp/.test(new URL(route.request().url()).pathname)) {
       heldRequests.push(route.request().url()); await gate;
     }
-    if (!page.isClosed()) await route.continue();
+    if (!page.isClosed()) await route.fallback();
   });
   await page.route('**/workers/canvas-render-worker.js*', async route => {
     const response = await route.fetch(), source = await response.text();
@@ -250,8 +252,8 @@ test(`Canvas keeps land and ocean terrain through ${phase} zoom while new detail
       host.requestRepaint('canvas-zoom-before-countries');
     });
     else await page.mouse.wheel(0,-750);
-    await expect.poll(()=>heldRequests.length,{timeout:30000}).toBeGreaterThan(0);
     await expect.poll(()=>worker.evaluate(before=>globalThis.__terrainLast.scale>before*1.3 && !globalThis.__terrainLast.ready,scale),{timeout:60000}).toBe(true);
+    await expect.poll(()=>heldRequests.length,{timeout:30000}).toBeGreaterThan(0);
     const frames = await worker.evaluate(()=>globalThis.__terrainFrames);
     expect(frames.length).toBeGreaterThan(0);
     for(const frame of frames) {

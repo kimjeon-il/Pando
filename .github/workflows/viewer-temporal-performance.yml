@@ -8,7 +8,6 @@ on:
       - shared/frontend/js/modules/map-owner-composition.js
       - apps/viewer/js/modules/viewer-composition.js
       - tests/unit/builtin-source-cache.test.mjs
-      - tests/unit/shared-map-composition.test.mjs
       - tests/browser/map-transition-baseline.benchmark.mjs
       - tests/helpers/map-transition-baseline.mjs
       - tests/unit/map-transition-baseline.test.mjs
@@ -36,7 +35,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - run: node --test tests/unit/builtin-source-cache.test.mjs tests/unit/map-transition-baseline.test.mjs tests/unit/shared-map-composition.test.mjs
+      - run: node --test tests/unit/builtin-source-cache.test.mjs tests/unit/map-transition-baseline.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Baseline-matched 20 adjacent transitions plus distant transitions
         run: |

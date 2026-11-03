@@ -3,8 +3,10 @@ import { test, expect } from '@playwright/test';
 test('Canvas lake picking matches drawn holes, dateline parts, polar caps, and visibility', async ({ page }) => {
   await page.route('**/canvas-hydro-fixture', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Canvas hydro fixture</title>' }));
   await page.goto('/canvas-hydro-fixture');
+  await page.addScriptTag({url:'/assets/js/build-meta.js'});
   const result = await page.evaluate(async () => {
-    const worker = new Worker('/assets/js/workers/canvas-render-worker.js?v=hydro-regression');
+    const {workerAssetUrl}=await import('/assets/js/modules/worker-asset-url.js');
+    const worker = new Worker(workerAssetUrl(new URL('/assets/js/workers/canvas-render-worker.js',location.href)));
     const wait = type => new Promise((resolve, reject) => {
       const error = event => reject(new Error(event.message));
       worker.addEventListener('error', error, { once: true });

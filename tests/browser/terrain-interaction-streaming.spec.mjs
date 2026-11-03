@@ -1,6 +1,6 @@
 import {expect,test} from '@playwright/test';
-import {deflateSync} from 'node:zlib';
 import {terrainDemFragmentSource} from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
+import {routeSyntheticDem} from './helpers/synthetic-dem-terrain.mjs';
 
 test.use({viewport:{width:1440,height:900},launchOptions:{args:process.platform==='win32'?['--use-angle=d3d11']:[]},trace:'off'});
 
@@ -25,27 +25,10 @@ for (const version of [1,2]) test(`WebGL${version} prepared elevation keeps deta
   expect(rgba).toEqual([148,148,148,255]);
 });
 
-function png(width,height){
-  const crc=buffer=>{let crc=0xffffffff;for(const b of buffer){crc^=b;for(let i=0;i<8;i++)crc=crc>>>1^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;};
-  const chunk=(type,data)=>{const name=Buffer.from(type),size=Buffer.alloc(4),checksum=Buffer.alloc(4);size.writeUInt32BE(data.length);checksum.writeUInt32BE(crc(Buffer.concat([name,data])));return Buffer.concat([size,name,data,checksum]);};
-  const header=Buffer.alloc(13);header.writeUInt32BE(width);header.writeUInt32BE(height,4);header[8]=8;header[9]=6;
-  const raw=Buffer.alloc((width*4+1)*height);for(let y=0;y<height;y++)for(let x=0;x<width;x++)raw.set([46,224,128,255],y*(width*4+1)+1+x*4);
-  return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(raw)),chunk('IEND',Buffer.alloc(0))]);
-}
-
 for(const viewport of [{width:1440,height:900,dpr:1},{width:390,height:844,dpr:2}]) test.describe(`${viewport.width}px terrain streaming`,()=>{
 test.use({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:viewport.dpr,hasTouch:viewport.dpr===2});
 test('current-view detail reaches an actual WebGL frame while the pointer remains held',async({page})=>{
-  const manifest={version:'0.13.3',representation:'dem-relief-v1',crs:'EPSG:4326',extent:[-180,-90,180,90],gutter:1,tileFormat:'lossless WebP RGBA',registration:'cell-center',sourceGridOrigin:[-180,90],sourceResolutionDegrees:[1/120,1/120],elevation:{decode:'R*256+G-12000',biasMeters:12000,spacingMeters:1,validEncodedRange:[0,65535]},channels:{r:'encoded elevation high byte',g:'encoded elevation low byte',b:'precomputed hillshade',a:'255'},shade:{azimuthDegrees:315,altitudeDegrees:45,ambient:.42,diffuse:.58,polarFallbackDegrees:89.5},tint:{url:'terrain/v0.13.3/tint.webp',width:4,height:2},assetsSha256:'a'.repeat(64),sources:[],urlTemplate:'terrain/v0.13.3/{level}/{column}-{row}.webp',levels:Array.from({length:6},(_,id)=>({id,width:1350*2**id,height:675*2**id,tileSize:1024,columns:Math.ceil(1350*2**id/1024),rows:Math.ceil(675*2**id/1024)}))};
-  const images=new Map();
-  await page.route('https://kimjeon-il.github.io/PandoLab-library-data/**',async route=>{
-    const path=new URL(route.request().url()).pathname;
-    if(path.endsWith('manifest.json'))return route.fulfill({json:manifest});
-    let width=4,height=2;const match=path.match(/\/(\d+)\/(\d+)-(\d+)\.webp$/);
-    if(match){const level=manifest.levels[+match[1]];width=Math.min(1024,level.width-Number(match[2])*1024)+2;height=Math.min(1024,level.height-Number(match[3])*1024)+2;}
-    const key=`${width}x${height}`;if(!images.has(key))images.set(key,png(width,height));
-    await route.fulfill({contentType:'image/png',body:images.get(key)});
-  });
+  const manifest=await routeSyntheticDem(page);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
     window.__detailedTerrainDraws=[];
@@ -73,7 +56,7 @@ test('current-view detail reaches an actual WebGL frame while the pointer remain
     await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.screenScale>615&&s.screenScale<625&&s.mapReadiness.status==='ready';})).toBe(true);
     await page.evaluate(()=>{window.__detailedTerrainDraws=[];window.__captureTerrainDraws=true;});
     await zoom(650);
-    await expect.poll(()=>page.evaluate(()=>window.__detailedTerrainDraws.includes(5400)),{timeout:3000}).toBe(true);
+    await expect.poll(()=>page.evaluate(width=>window.__detailedTerrainDraws.includes(width),manifest.levels[2].width),{timeout:3000}).toBe(true);
     await zoom(3000);
     await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.terrainTargetLevel===4&&s.mapReadiness.status==='ready';})).toBe(true);
     await page.mouse.down();

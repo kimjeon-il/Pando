@@ -23,7 +23,10 @@ test('Web publishes sharp ocean and land before countries, then reuses prepared 
     expect((await stats()).terrainRenderedLevel).toBe(-1);
     release();
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
-    await expect.poll(async()=>(await stats()).countriesPublishedGeneration).toBe((await stats()).projectGeneration);
+    await expect.poll(async() => {
+      const state = await stats();
+      return state.countriesPublishedGeneration === state.projectGeneration;
+    }, { timeout: 60000 }).toBe(true);
     const cold=await stats();
     expect(cold.firstBackgroundFrameMs).toBeLessThan(cold.firstCountryPublishedMs);
     expect(cold.terrainReady).toBe(true);

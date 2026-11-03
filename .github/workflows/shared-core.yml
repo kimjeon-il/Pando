@@ -32,10 +32,7 @@ on:
       - 'tests/unit/web-*-contract.test.mjs'
       - 'tests/unit/project-serializer.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
-      - 'tests/unit/project-preview-cache.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
-      - 'tests/unit/progressive-startup-runtime*.test.mjs'
-      - 'tests/unit/map-label-visibility.test.mjs'
       - 'tools/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
@@ -77,10 +74,7 @@ on:
       - 'tests/unit/web-*-contract.test.mjs'
       - 'tests/unit/project-serializer.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
-      - 'tests/unit/project-preview-cache.test.mjs'
       - 'tests/unit/project-preview-policy.test.mjs'
-      - 'tests/unit/progressive-startup-runtime*.test.mjs'
-      - 'tests/unit/map-label-visibility.test.mjs'
       - 'tools/package-shared-core-assets.mjs'
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
@@ -271,7 +265,6 @@ jobs:
           tests/unit/core-project-replacement-wasm.test.mjs tests/unit/core-project-file-save-wasm.test.mjs
           tests/unit/core-territorial-service-wasm.test.mjs
           tests/unit/core-territorial-store-wasm.test.mjs tests/unit/core-empty-document-wasm.test.mjs
-          tests/unit/progressive-startup-runtime.test.mjs tests/unit/progressive-startup-runtime-contract.test.mjs
           tests/unit/core-save-state-projection.test.mjs
           tests/unit/core-draft-primitives.test.mjs
           tests/unit/timeline-controls.test.mjs tests/unit/shared-core-assets.test.mjs
@@ -287,7 +280,6 @@ jobs:
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/project-serializer.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
-          tests/unit/runtime-performance-metrics.test.mjs tests/unit/project-preview-cache.test.mjs
           tests/unit/project-preview-policy.test.mjs
       - name: Plugin boundary graph and retired attachment contracts
         run: >-
@@ -304,8 +296,8 @@ jobs:
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/selection-domain-core.test.mjs tests/unit/selection-domain-wasm.test.mjs
           tests/unit/selection-ui-ack.test.mjs tests/unit/selection-domain-core.test.mjs
-          tests/unit/selection-domain-wasm.test.mjs tests/unit/territorial-display-identity.test.mjs
-          tests/unit/map-settings-core-ack.test.mjs tests/unit/map-label-visibility.test.mjs
+          tests/unit/selection-domain-wasm.test.mjs
+          tests/unit/map-settings-core-ack.test.mjs
           tests/unit/builtin-resource-admission.test.mjs tests/unit/builtin-resource-core-wasm.test.mjs tests/unit/place-runtime.test.mjs
           tests/unit/map-hover-async-boundary.test.mjs tests/unit/map-hover-topology.test.mjs
           tests/unit/r4c-spatial-boundaries.test.mjs

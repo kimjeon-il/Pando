@@ -297,7 +297,7 @@ test('physical terrain reuses its projected base when only the land mask changes
   assert.ok(h.drawn.length > 0, 'camera changes must invalidate the projected base');
 });
 
-test('Canvas acknowledges the physical substrate before resuming terrain in the canonical submission', async () => {
+test('Canvas paints prepared physical terrain while country geometry is pending', async () => {
   const h = canvasTerrainRuntime(); await settle();
   h.render({terrainDpr: 1, renderProjection: {scale: 100, translate: [500, 300]}});
   await h.deliver(h.find('/0/0-0.webp'));
@@ -306,7 +306,7 @@ test('Canvas acknowledges the physical substrate before resuming terrain in the 
     const view = { terrainDpr: 1, renderProjection: {scale, translate: [500, 300]} };
     h.drawn.length = 0; h.paths.length = 0;
     h.render({...view, surfacePresentation: {quality: 'pending', targetQuality: 'canonical'}});
-    assert.equal(h.drawn.length, 0, 'the provisional bitmap must acknowledge before expensive terrain reprojection');
+    assert.ok(h.drawn.length > 0, 'prepared physical terrain remains visible while country geometry is pending');
     assert.equal(h.messages.at(-1).surfaceQuality, 'pending');
     assert.equal(h.messages.at(-1).physicalLandCount, 1);
     assert.ok(h.messages.at(-1).bitmap);
@@ -344,6 +344,21 @@ test('Canvas cannot acknowledge raster coverage while requested DEM and tint are
   for (const request of h.requests.filter(request => /\/0\//.test(request.url))) await h.deliver(request);
   h.render({ terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } });
   assert.equal(h.messages.at(-1).terrainStats.terrainReady, false);
+});
+
+test('Canvas starts terrain requests while the country surface is pending', async () => {
+  const h = canvasTerrainRuntime();
+  await settle();
+  h.render({ surfacePresentation: { quality: 'pending', targetQuality: 'canonical' },
+    terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } });
+  assert.ok(h.requests.some(request => /\/0\/\d+-\d+\.webp$/.test(request.url)),
+    'background preparation must not wait for the country mesh');
+  assert.equal(h.drawn.length, 0, 'the pending surface is not painted before admission');
+  for (const request of h.requests.filter(request => /\/0\//.test(request.url))) await h.deliver(request);
+  h.drawn.length = 0;
+  h.render({ surfacePresentation: { quality: 'pending', targetQuality: 'canonical' },
+    terrainDpr: 1, renderProjection: { scale: 100, translate: [500, 300] } });
+  assert.ok(h.drawn.length > 0, 'a ready physical base paints before country admission');
 });
 
 test('Canvas keeps world coverage and the physical mask independently of political geometry and visibility', async () => {

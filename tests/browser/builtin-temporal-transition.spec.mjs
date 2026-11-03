@@ -28,7 +28,10 @@ async function start(page,renderer){
       .replace(debug,'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),'+debug)
       .replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}')});
   });
-  await page.goto('/?debug=1'+(renderer==='webgl'?'':'&renderer=canvas'));
+  // This suite verifies document and frame admission. Full DEM streaming is
+  // covered by the dedicated terrain scenarios.
+  await page.goto('/?debug=1'+(renderer==='webgl'?'':'&renderer=canvas')
+    +(renderer==='canvas-worker'?'&demTerrain=raster':''));
   await ready(page,'2026-10');
 }
 async function ready(page,month){
