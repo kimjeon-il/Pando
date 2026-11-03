@@ -1,7 +1,7 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [work/ui, work/r4d-editor-test-ci, fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4e0-dependency-audit-20261103, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
@@ -15,6 +15,9 @@ on:
       - tests/unit/r4c-spatial-boundaries.test.mjs
       - tests/unit/r4d-legacy-ci-boundaries.test.mjs
       - scripts/r4d-check-retired-tests.mjs
+      - scripts/r4e0-dependency-audit.mjs
+      - docs/development/r4e0-source-dispositions.json
+      - tests/unit/r4e0-dependency-audit.test.mjs
       - scripts/run-active-tests.mjs
       - tests/unit/gis-math-contract.test.mjs
       - tests/unit/gis-geometry-worker.test.mjs
@@ -57,6 +60,8 @@ jobs:
         run: node scripts/run-application-checks.mjs --list --base HEAD > /dev/null
       - name: Validate R4-D retired test and CI boundaries
         run: node scripts/r4d-check-retired-tests.mjs --check
+      - name: Validate R4-E0 per-file dependency closure
+        run: node scripts/r4e0-dependency-audit.mjs --check --output test-results/r4e0-dependency-map.json
       - name: Validate Viewer and Windows boundaries
         run: node scripts/check-runtime-boundaries.mjs
       - name: Validate territorial storage, provenance and version ownership
@@ -74,6 +79,7 @@ jobs:
           tests/unit/r4b-data-module-boundaries.test.mjs
           tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/r4d-legacy-ci-boundaries.test.mjs
+          tests/unit/r4e0-dependency-audit.test.mjs
           tests/unit/gis-math-contract.test.mjs
           tests/unit/gis-geometry-worker.test.mjs
           tests/unit/library-shared-border-precision.test.mjs
