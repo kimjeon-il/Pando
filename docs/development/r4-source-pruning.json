@@ -1,9 +1,9 @@
 {
   "schema": "pandolab-r4-source-pruning-v1",
   "baselineCandidates": 153,
-  "removedSourceCount": 69,
+  "removedSourceCount": 72,
   "removedTestCount": 183,
-  "remainingSourceCount": 84,
+  "remainingSourceCount": 81,
   "extractedGisModules": 16,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
@@ -33,6 +33,7 @@
     "apps/editor/frontend/js/modules/app-territory-component-ui.js",
     "apps/editor/frontend/js/modules/app-territory-selection-workflow.js",
     "apps/editor/frontend/js/modules/boundary-ghosting-guard.js",
+    "apps/editor/frontend/js/modules/country-import-identity.js",
     "apps/editor/frontend/js/modules/custom-color-control.js",
     "apps/editor/frontend/js/modules/cut-preparation-cache.js",
     "apps/editor/frontend/js/modules/cut-worker-preparation.js",
@@ -46,8 +47,10 @@
     "apps/editor/frontend/js/modules/geometry-metrics.js",
     "apps/editor/frontend/js/modules/gis-domain.js",
     "apps/editor/frontend/js/modules/gis-geometry-validation.js",
+    "apps/editor/frontend/js/modules/gis-import-plan.js",
     "apps/editor/frontend/js/modules/gis-import-wizard-controller.js",
     "apps/editor/frontend/js/modules/gis-workflow-controller.js",
+    "apps/editor/frontend/js/modules/import-plan.js",
     "apps/editor/frontend/js/modules/map-debug-controller.js",
     "apps/editor/frontend/js/modules/map-edit-country-commands.js",
     "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
@@ -602,5 +605,17 @@
     "phase": "R4-E5",
     "canonicalOwner": "tools/gis",
     "note": "All eight historic editor forwarding shims now absent; R4-C retains direct canonical numeric/GIS tests."
+  },
+  "r4e5CanonicalGisIdentityShimsRetired": {
+    "canonical": [
+      "tools/gis/country-import-identity.js",
+      "tools/gis/gis-import-plan.js",
+      "tools/gis/import-plan.js"
+    ],
+    "sourceFilesRemoved": [
+      "apps/editor/frontend/js/modules/country-import-identity.js",
+      "apps/editor/frontend/js/modules/gis-import-plan.js",
+      "apps/editor/frontend/js/modules/import-plan.js"
+    ]
   }
 }

@@ -6,9 +6,6 @@ import {createGisImportPlan,assertCurrentGisImportPlan} from '../../tools/gis/gi
 import {normalizeImportPlan} from '../../tools/gis/import-plan.js';
 import {createGisGeometryValidator} from '../../tools/gis/gis-geometry-validator.js';
 import {createTerritorialEntityLoader,createRepositoryTerritorialLoader} from '../../tools/gis/territorial-entity-loader.js';
-import * as previousIdentity from '../../apps/editor/frontend/js/modules/country-import-identity.js';
-import * as previousPlan from '../../apps/editor/frontend/js/modules/gis-import-plan.js';
-import * as previousImport from '../../apps/editor/frontend/js/modules/import-plan.js';
 import * as previousLoader from '../../apps/editor/frontend/js/modules/territorial-entity-loader.js';
 import * as previousService from '../../apps/editor/frontend/js/modules/import-service.js';
 
@@ -19,12 +16,12 @@ const old={worker:'apps/editor/frontend/js/workers/gis-gpkg-worker.js',
 const fixtures={worker:'tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt',
  adapter:'tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt'};
 
-test('R4-E1 canonical GIS identity and import plans preserve the historical adapter API',()=>{
- assert.equal(previousIdentity.resolveCountryIdentities,resolveCountryIdentities);
- assert.equal(previousIdentity.materializeResolvedCountries,materializeResolvedCountries);
- assert.equal(previousPlan.createGisImportPlan,createGisImportPlan);
- assert.equal(previousPlan.assertCurrentGisImportPlan,assertCurrentGisImportPlan);
- assert.equal(previousImport.normalizeImportPlan,normalizeImportPlan);
+test('R4-E1 canonical GIS identity and import plans work without retired adapter shims',()=>{
+ assert.equal(typeof resolveCountryIdentities,'function');
+ assert.equal(typeof materializeResolvedCountries,'function');
+ assert.equal(typeof createGisImportPlan,'function');
+ assert.equal(typeof assertCurrentGisImportPlan,'function');
+ assert.equal(typeof normalizeImportPlan,'function');
  assert.equal(previousService.createGisGeometryValidator,createGisGeometryValidator);
  assert.equal(previousLoader.createTerritorialEntityLoader,createTerritorialEntityLoader);
  assert.equal(previousLoader.createRepositoryTerritorialLoader,createRepositoryTerritorialLoader);
