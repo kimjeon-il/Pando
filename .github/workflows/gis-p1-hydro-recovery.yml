@@ -39,12 +39,27 @@ jobs:
           node --input-type=module <<'JS'
           import {readFileSync,writeFileSync} from 'node:fs';
           const a=JSON.parse(readFileSync('p1-evidence/eu-source-list.json','utf8'));
-          const l=a.files.map(x=>x.mirrorUrl+'\n  output='+process.env.RUNNER_TEMP+'/eu-hydro/'+x.filename).join('\n');
-          writeFileSync('p1-evidence/mirror-links.txt',l);
+          const l=a.files.map(x=>x.mirrorUrl+'\t'+x.filename).join('\n')+'\n';
+          writeFileSync('p1-evidence/mirror-links.tsv',l);
           JS
-          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 \
-            --connect-timeout 30 --max-time 900 --max-filesize 500000000 \
-            --config p1-evidence/mirror-links.txt
+          while IFS=
+          node tools/gis/verify-p1-hydro-europe-mirror.mjs \
+            --manifest assets/data/hydro/v0.13.4/manifest.json \
+            --directory "$RUNNER_TEMP/eu-hydro" \
+            --output p1-evidence/eu-original-member-sha-proof.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-hydro-eu-original-source-verification
+          path: p1-evidence/*.json
+          if-no-files-found: warn
+          retention-days: 14
+\t' read -r url filename; do
+            test -n "$url" && test -n "$filename"
+            curl --proto '=https' --tlsv1.2 --fail --location --retry 2 \
+              --connect-timeout 30 --max-time 900 --max-filesize 500000000 \
+              "$url" --output "$RUNNER_TEMP/eu-hydro/$filename"
+          done < p1-evidence/mirror-links.tsv
           node tools/gis/verify-p1-hydro-europe-mirror.mjs \
             --manifest assets/data/hydro/v0.13.4/manifest.json \
             --directory "$RUNNER_TEMP/eu-hydro" \
