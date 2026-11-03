@@ -7,7 +7,7 @@ import {createViewerInitialPresentation} from '../../apps/viewer/js/modules/view
 import {createViewerPostPresentation} from '../../apps/viewer/js/modules/viewer-post-presentation.js';
 
 const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url), 'utf8')
-  .replace(/^import .*\n/gm, '').replace('export async function ', 'async function ')
+  .replace(/^import [^\n]*\r?\n/gm, '').replace('export async function ', 'async function ')
   .replaceAll('import.meta.url', JSON.stringify(import.meta.url));
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const noop = () => {};

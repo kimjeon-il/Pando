@@ -147,27 +147,12 @@ export function objectTypeDescriptor(value) {
   return key ? MAP_OBJECT_TYPES[key] : null;
 }
 
-export function objectTypeLabel(value, fallback = '') {
-  return objectTypeDescriptor(value)?.label || fallback;
-}
-
 export function categoryForCreateItem(type) {
   return MAP_OBJECT_TYPES[type]?.category || '';
-}
-
-export function categoryForLayerGroup(group) {
-  return MAP_OBJECT_CATEGORY_ORDER.find(category => MAP_OBJECT_CATEGORIES[category].layerGroups.includes(group)) || '';
 }
 
 export function layerGroupForObjectType(value) {
   const descriptor = objectTypeDescriptor(value);
   if (!descriptor) return '';
   return descriptor.layerGroup || '';
-}
-
-export function presentationGroupForObjectType(value) {
-  const descriptor = objectTypeDescriptor(value);
-  if (!descriptor) return '';
-  if (descriptor.key === 'distribution') return layerGroupForObjectType(descriptor.key);
-  return descriptor.presentationGroup || '';
 }

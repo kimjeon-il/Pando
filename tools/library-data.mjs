@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { chmodSync, closeSync, copyFileSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, rmdirSync, statfsSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync, gzipSync } from 'node:zlib';
 import { decodeLibraryArchiveBytes } from './library-archive.mjs';
@@ -74,14 +74,14 @@ export function libraryStagingContent({root=defaultRoot,sha256,bytes}) {
 const reportDigest = bytes => createHash('sha256').update(bytes).digest('hex');
 export function libraryOwnerId(root) {
   const control=resolve(root,'.git');if(!existsSync(control))return 'main';
-  let directory=control;
-  if(lstatSync(control).isFile()){
-    const match=/^gitdir: (.+)\r?\n?$/.exec(readFileSync(control,'utf8'));if(!match)throw Error('Invalid permanent worktree Git directory');
-    directory=resolve(root,match[1]);
-  }
-  const head=readFileSync(resolve(directory,'HEAD'),'utf8').trim();
-  const branch=/^ref: refs\/heads\/(.+)$/.exec(head)?.[1]||'';
-  return branch.startsWith('work/') ? branch.slice(5).replaceAll('/', '-') : 'main';
+  if(!lstatSync(control).isFile())return 'main';
+  const match=/^gitdir: (.+)\r?\n?$/.exec(readFileSync(control,'utf8'));
+  if(!match)throw Error('Invalid permanent worktree Git directory');
+  const directory=resolve(root,match[1]);
+  const owner=basename(directory);
+  if(basename(dirname(directory))!=='worktrees'||!['ui','objects','gis','places'].includes(owner))
+    throw Error('Unknown permanent worktree owner');
+  return owner;
 }
 function reportRegistry(root) {
   const path = resolve(libraryReportRoot(root), '.owners.json');

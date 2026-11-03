@@ -13,7 +13,6 @@ export function normalizeProjectSetup(input) {
 export function requireProjectMonth(setup,month) {
  const range=setup?.timelineRange;if(range&&(compareTemporal(month,range.start)<0||compareTemporal(month,range.end)>0))throw new Error('탐색 기간 밖입니다. 선택한 시점이 탐색 기간 밖입니다.');
 }
-export function boundsFromCorners(a,b){if(!a||!b)throw new Error('지도 안에서 범위를 지정하세요.');return {west:a[0],east:b[0],south:Math.min(a[1],b[1]),north:Math.max(a[1],b[1])};}
 export function initialBoundsView(bounds,layout={contentWidth:900,contentHeight:624,flatBaseScale:900/(2*Math.PI),globeBaseScale:624*.455},projection='flat'){
  if(!['globe','flat'].includes(projection))throw new TypeError('Initial camera requires a supported projection.');
  if(!bounds)return {projection,view:{globeRotation:[-15,-25,0],globeZoom:1,flatCenter:[0,20],flatZoom:1}};

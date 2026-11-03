@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createGpuUploadScheduler} from '../../shared/frontend/js/modules/gpu-upload-scheduler.js';
 import {createGpuContextRecovery} from '../../shared/frontend/js/modules/gpu-context-recovery.js';
+import {createCanvasScenePackets} from '../../shared/frontend/js/modules/gpu-canvas-scene-packets.js';
 
 export const tick = () => new Promise(resolve => setImmediate(resolve));
 export const makeMesh = name => ({name, positions:new Int32Array([0,0,1,0,0,1]),
@@ -100,7 +101,7 @@ export async function fixture({override=false, version=2, shared=false, holdStro
   if(realFallback){
     c.hydroPreparation.dispose=()=>{};
     Object.assign(c,{
-      Worker:undefined,OffscreenCanvas:undefined,URL,canvasSentGeometry:new Map(),canvasLastCountryDependencies:null,
+      Worker:undefined,OffscreenCanvas:undefined,URL,canvasScenePackets:createCanvasScenePackets(),canvasLastCountryDependencies:null,
       canvasWorkerUrl:null,canvasWorkerNeedsRestart:false,fallbackReason:'',
       isSafeKoreanErrorMessage:()=>true,countryBoundaryWorker:{terminate(){}},countrySharedBoundary:null,
       stopPatchWorkerJobs(){},patchJobScheduler:{cancelRebuild(){}},builtinMeshResourceLoader:{dispose(){}},

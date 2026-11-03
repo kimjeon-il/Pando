@@ -15,10 +15,8 @@ test('file transport fixture ownership stays centralized',()=>{
   assert.match(helper,/DOCUMENT_TRANSFER_LIMITS/);
   assert.doesNotMatch(helper,/\b(?:encodeBytes|decodeBytes)\b/,'Native fixture must not reuse production byte codecs');
   const consumers=[
-    'tests/unit/file-access-contract.test.mjs',
     'apps/editor/tests/native-storage.test.mjs',
     'tests/unit/file-controller-mode.test.mjs',
-    'tests/unit/file-menu-routes.test.mjs',
   ];
   for(const path of consumers){
     const source=read(path);

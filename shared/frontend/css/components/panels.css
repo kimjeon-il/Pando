@@ -310,11 +310,6 @@ body.file-menu-open .mobile-backdrop {
 }
 
 .map-command-toolbar .map-command-divider {
-  margin-inline: var(--ui-space-0-5);
-  background: color-mix(in srgb, var(--ui-control-border) 60%, transparent);
-}
-
-.map-command-toolbar .map-command-divider {
   margin-inline: var(--ui-space-1);
   background: var(--ui-control-border);
 }

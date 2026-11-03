@@ -8,7 +8,7 @@ import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
 import {finalizeBuiltinWorldFiles} from '../../tools/builtin-country-bytes.mjs';
 import { tinyFixture } from './fixture.mjs';
 import { guardWorkerSource } from './network-guard.js';
-import { loadFullWorldAssetPlan } from './world-data-plan.mjs';
+import {summarizeViewerWorldData} from './world-data-plan.mjs';
 import { previewFileIdentity } from '../../scripts/p3-preview-server.mjs';
 import { writeStagedContent, removeStagedDirectory, storageSettings, editorStageRoot } from '../../tools/worktree-storage.mjs';
 
@@ -122,10 +122,6 @@ async function stageOwnedPrototype({ root, profile, verification, windowsReview 
     let bytes=entry.bytes;
     await emit(path,bytes,entry.sourcePath);
   }
-  if(buildMeta.physicalLand){
-    const paths=new Set(['assets/data/physical-land/v1/manifest.json',buildMeta.physicalLand.url,...(buildMeta.physicalWaterObjects?.geometries||[]).flatMap(row=>[row.land.url,row.asset.url])]);
-    for(const path of paths){if(!path.startsWith('assets/data/physical-land/')||path.split('/').includes('..'))throw Error('Invalid physical background path');await emit(path,await readFile(join(root,path)),path);}
-  }
   // E6: only the reviewed Web product is published into Windows. The legacy
   // editor bootstrap, mutation handlers and modal/vertex assets are excluded.
   if(profile!=='map-data'&&!verification)
@@ -165,33 +161,25 @@ async function stageOwnedPrototype({ root, profile, verification, windowsReview 
     const builtinWorld={url:'./fixture-world.json',encoding:'identity',sha256:hash(world),compressedBytes:world.length,decodedBytes:world.length};
     await emit('shell/stage-profile.json',JSON.stringify({mode:profile,verification,builtinWorld,countriesUrl:'./fixture-countries.json'}));
   } else {
-     const {plan,meta}=await loadFullWorldAssetPlan(path=>snapshot.assets.has(path)?Promise.resolve(snapshot.assets.get(path).bytes.toString('utf8')):readFile(join(root,path),'utf8'));
-   const dataRoot = await realpath(resolve(root, 'assets/data'));
-    let packagedBytes = 0;
-    for (const item of plan.entries) {
-      const actual = await realpath(resolve(root, item.path));
-      if (!actual.startsWith(dataRoot + sep) || !(await lstat(actual)).isFile()) {
-        throw new Error(`Bundled world resource escapes the repository: ${item.path}`);
-      }
-      const bytes = await readFile(actual);
-      if ((item.bytes != null && bytes.length !== item.bytes)
-          || (item.sha256 != null && hash(bytes) !== item.sha256)) {
-        throw new Error(`Pinned world resource mismatch: ${item.path}`);
-      }
-      await emit(item.path, bytes, item.path);
-      packagedBytes += bytes.length;
+    const dataPaths=[...snapshot.viewerPaths].filter(path=>path.startsWith('assets/data/')).sort();
+    const dataRoot = await realpath(resolve(root, 'assets/data'));
+    let packagedBytes=0;
+    for(const path of dataPaths){
+      if(snapshot.assets.has(path)){packagedBytes+=snapshot.assets.get(path).bytes.length;continue;}
+      const actual=await realpath(resolve(root,path));
+      if(!actual.startsWith(dataRoot+sep)||!(await lstat(actual)).isFile())throw Error(`Bundled world resource escapes the repository: ${path}`);
+      const bytes=await readFile(actual),pinned=snapshot.readPinnedRuntimeAsset(path);
+      if(!bytes.equals(pinned))throw Error(`Pinned world resource mismatch: ${path}`);
+      await emit(path,bytes,path);packagedBytes+=bytes.length;
     }
-    worldData = { countryCount: plan.countryCount, worldFileCount: plan.worldFileCount,
-      physicalFileCount: plan.physicalFileCount, rootCount: plan.rootCount,
-      unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
-      mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256,
-      fileCount: plan.entries.length, bytes: packagedBytes, dataRevision: meta.dataRevision };
+    const world=JSON.parse(snapshot.readPinnedRuntimeAsset('assets/data/world/current.json'));
+    worldData=summarizeViewerWorldData({world,paths:dataPaths,bytes:packagedBytes,dataRevision:snapshot.dataRevision});
     await emit('shell/stage-profile.json', JSON.stringify({
-      mode: profile, verification, assetRevision: meta.assetRevision, dataRevision: meta.dataRevision,
-      world: { countryCount: plan.countryCount, rootCount: plan.rootCount,
-        worldFileCount: plan.worldFileCount, physicalFileCount: plan.physicalFileCount,
-        unitCount: plan.unitCount, modelEntityCount: plan.modelEntityCount,
-        mergedSourceCount: plan.mergedSourceCount, sourceSha256: plan.sourceSha256 },
+      mode: profile, verification, assetRevision: buildMeta.assetRevision, dataRevision: buildMeta.dataRevision,
+      world: { countryCount: worldData.countryCount, rootCount: worldData.rootCount,
+        worldFileCount: worldData.worldFileCount, physicalFileCount: worldData.physicalFileCount,
+        unitCount: worldData.unitCount, modelEntityCount: worldData.modelEntityCount,
+        mergedSourceCount: worldData.mergedSourceCount, sourceSha256: worldData.sourceSha256 },
     }));
   }
   let commit = 'unavailable', trackedDiffSha256 = null;

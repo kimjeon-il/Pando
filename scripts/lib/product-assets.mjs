@@ -79,7 +79,6 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
   const manifests=[
     'assets/data/world/current.json',
     'assets/data/builtin-world/generated/v1/index.json',
-    'assets/data/territorial-entities/generated/v2/index.json',
     'assets/data/prepared-polygons/generated/v2/manifest.json',
     'assets/data/hydro/v0.13.4/manifest.json',
     'assets/data/places/manifest.json',
@@ -100,9 +99,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     }else if(path.includes('/builtin-world/')){
       for(const item of builtinCountryAssets(manifest))dataAsset(item.file,base);
     }
-    else if(path.includes('/territorial-entities/')){
-      for(const item of manifest.entities)dataAsset(item.file,base);
-    }else if(path.includes('/prepared-polygons/')){
+    else if(path.includes('/prepared-polygons/')){
       for(const item of Object.values(manifest.meshes))dataAsset(item.url,base);
     }else if(path.includes('/hydro/')){
       dataAsset(manifest.container.url,base);

@@ -1,13 +1,14 @@
-import { readApplicationOwners, applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
+import { applicationFunctionSource } from '../helpers/source-functions.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFrontendSources} from '../helpers/read-frontend-source.mjs';
 
 import {
   createMapLayoutMetricsSnapshot,
   equirectangularCenterForAnchor,
 } from "../../shared/frontend/js/modules/map-layout-metrics.js";
 
-const appSource = readApplicationOwners('map-projection', 'camera-navigation', 'map-host', 'workspace-surfaces', 'global-input-bindings');
+const appSource = readFrontendSources('map-projection','camera-navigation','map-workspace-host','workspace-surfaces');
 
 const functionSource = name => applicationFunctionSource(appSource, name);
 
