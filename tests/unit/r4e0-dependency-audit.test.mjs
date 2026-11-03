@@ -58,6 +58,10 @@ test('R4-E0 dependency graph produces unique complete deletion units',()=>{
  assert.ok(composition.internalOutgoing.includes(
    'apps/editor/frontend/js/modules/app-runtime-dependencies.js'),
    'versioned URL dynamic import must be resolved to its static module filename');
+ const runtime=audit.records.find(x=>x.path==='apps/editor/frontend/js/modules/app-runtime-dependencies.js');
+ assert.ok(runtime.internalOutgoing.includes(
+   'apps/editor/frontend/js/modules/territorial-service.js'),
+   'versionedModuleUrl helper must resolve relative to the retired app entrypoint');
  for(const cycle of audit.cycles){
    assert.ok(cycle.length>1);
    for(const path of cycle)assert.deepEqual(audit.records.find(x=>x.path===path).atomicDeletionGroup,cycle);

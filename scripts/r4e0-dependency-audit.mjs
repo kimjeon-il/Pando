@@ -79,8 +79,16 @@ function references(file,body,known){
      if(node.type==='ImportExpression'){
        const valueNode=node.source?.type==='NewExpression'&&calleeName(node.source.callee)==='URL'
          ?node.source.arguments?.[0]:node.source;
-       const literal=simpleLiteral(valueNode);
-       if(literal)emit(literal,'dynamic-import',row);
+       const versioned=node.source?.type==='CallExpression'
+         &&calleeName(node.source.callee)==='versionedModuleUrl';
+       const literal=simpleLiteral(versioned?node.source.arguments?.[0]:valueNode);
+       // The retired app helper resolves './modules/x.js' against ../app.js,
+       // not against app-runtime-dependencies.js within modules/.
+       if(versioned&&literal){
+         const appPath=posix.normalize(posix.join(posix.dirname(file),'../app.js'));
+         const target=resolveLiteral(appPath,literal);
+         if(known.has(target))list.push({target,kind:'dynamic-import',line:row});
+       }else if(literal)emit(literal,'dynamic-import',row);
        else if(isLegacy(file)||body.includes(PREFIX))unresolved.push({file,line:row,kind:'dynamic-import-expression'});
      }
      if(node.type==='NewExpression'&&calleeName(node.callee)==='URL'){
