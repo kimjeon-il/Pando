@@ -69,7 +69,7 @@ function listFiles(dir,root=dir) {
   }
   return rows.sort();
 }
-async function verifyWorker(root,manifest,packed,{supportsRange}) {
+export async function verifyWorker(root,manifest,packed,{supportsRange}) {
   const requests=[],messages=[],baseUrl='https://hydro-audit.invalid/current/';
   const scope={self:{fflate:{gunzipSync:bytes=>new Uint8Array(gunzipSync(bytes))}},
     crypto:webcrypto,TextDecoder,Uint8Array,Response,URL,Map,setTimeout,clearTimeout,onmessage:null,
