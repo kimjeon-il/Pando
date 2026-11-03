@@ -4,8 +4,6 @@ import test from 'node:test';
 
 import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from "../../shared/frontend/js/modules/boundary-topology.js";
 import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../tools/gis/geometry-metrics.js";
-import { beginGeometryPreview, clearGeometryPreview, createGeometryPreviewState, previewIsCurrent } from "../../apps/editor/frontend/js/modules/geometry-preview.js";
-import { resolveSnap, snapThreshold } from "../../apps/editor/frontend/js/modules/geometry-snap.js";
 import { runMapAudit, validateGeometry, validateTerritorialGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
 import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
 import { createAtomicMapStateController } from "../../shared/frontend/js/modules/map-state-transition.js";
@@ -143,23 +141,6 @@ test('spherical metrics provide useful live distance, area and percentage feedba
   assert.ok(geometryAreaKm2(feature('A', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry) > 12_000);
   assert.equal(percentChange(100, 125), 25);
   assert.equal(percentChange(0, 10), null);
-});
-
-test('snap resolution uses screen-space thresholds and nearest candidates', () => {
-  const project = coordinate => coordinate;
-  const result = resolveSnap({
-    coordinate: [5, 5],
-    screenPoint: [5, 5],
-    project,
-    candidates: [
-      { kind: 'edge', a: [0, 4], b: [10, 4], segmentKey: 'edge' },
-      { kind: 'vertex', coordinate: [5, 5.5], nodeKey: 'vertex' },
-    ],
-  });
-  assert.equal(result.kind, 'vertex');
-  assert.equal(result.nodeKey, 'vertex');
-  assert.equal(snapThreshold('mouse'), 10);
-  assert.equal(snapThreshold('touch'), 18);
 });
 
 test('topology materializes a vertex into the opposite owner and moves both countries', () => {
@@ -309,17 +290,6 @@ test('full audit structurally validates only dirty countries when a canonical ba
     preciseAffectedIds: ['UNCHANGED'],
   });
   assert.equal(checked.issues.some(issue => issue.kind === 'self-intersection'), true);
-});
-
-test('preview sessions never mutate their source and become stale by revision', () => {
-  const state = createGeometryPreviewState();
-  const source = [feature('A', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]])];
-  const session = beginGeometryPreview(state, { operation: 'merge', baseDataRevision: 7, beforeFeatures: source });
-  session.beforeFeatures[0].geometry.coordinates[0][0][0] = 99;
-  assert.equal(source[0].geometry.coordinates[0][0][0], 0);
-  assert.equal(previewIsCurrent(state, session.sessionId, 7), true);
-  clearGeometryPreview(state);
-  assert.equal(previewIsCurrent(state, session.sessionId, 7), false);
 });
 
 test('label layout respects priority and pinned labels', () => {

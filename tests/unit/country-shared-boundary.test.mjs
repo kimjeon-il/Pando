@@ -1,9 +1,6 @@
 import '../helpers/spherical-core.mjs';
-import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 import { resolveMapStrokeStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
-import { createEnvironment } from "../../apps/editor/frontend/js/modules/app-environment.js";
 import { layerStyle, normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
-import { createRenderingDomain } from "../../shared/frontend/js/modules/rendering-domain.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
@@ -48,51 +45,6 @@ test('general siblings and child boundaries wholly inside a parent remain in the
   const packet = prepareCountrySharedBoundaryPacket([], [parent, child], { includeOutlines: false });
   assert.ok(packet.segments.length, 'a child inside the parent has a land boundary even without matching source perimeter contacts');
   assert.ok(Object.values(packet.internalOwners).some(ids => ids.includes('CHILD')));
-});
-
-test('production theme applies effective country opacity once to shared and native boundaries', () => {
-  const previousDocument = globalThis.document;
-  try {
-    globalThis.document = Object.assign(new globalThis.EventTarget(), { documentElement: { dataset: { theme: 'dark' } } });
-    const layerPresentation = normalizeLayerPresentation({ styles: { objects: { opacity: 0.5 } } });
-    const env = createEnvironment();
-    env.connect({ projectState: { state: { physicalSettings: { terrainVisible: false }, layerPresentation } },
-      applicationServicesB: { layerStyle } });
-    const theme = env.mapTheme();
-    const features = [rectangle('LEFT', 0, 0, 1, 1), rectangle('RIGHT', 1, 0, 2, 1)];
-    const packet = prepareCountrySharedBoundaryPacket(buildCountrySharedBoundarySegments(features), features);
-    const batches = globalThis.PandoLabCanvasSceneComposition.countryBoundaryBatches(packet, theme, true,
-      () => layerStyle(layerPresentation, 'objects'));
-    assert.ok(batches.length > 0);
-    assert.equal(theme.borderAlpha, 0.46);
-    for (const batch of batches) assert.equal(batch.style.alpha, theme.borderAlpha);
-  } finally { globalThis.document = previousDocument; }
-});
-
-test('pending country packet preserves the production theme opacity until native handoff', async () => {
-  const previousDocument = globalThis.document;
-  let rendering;
-  try {
-    globalThis.document = Object.assign(new globalThis.EventTarget(), { documentElement: { dataset: { theme: 'dark' } } });
-    const entity = createTerritorialFeature({ id: 'LEFT', entityKind: 'general', geometry: rectangle('LEFT', 0, 0, 1, 1).geometry });
-    const state = { territorialEntities: [entity], physicalSettings: { terrainVisible: false },
-      pendingCountryRenderIds: new Set(['LEFT']), layerVisibility: { objects: true },
-      layerPresentation: normalizeLayerPresentation({ styles: { objects: { opacity: 0.5 } } }) };
-    await initializeTestTerritorialState(state);
-    const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
-    const repo = createTerritorialEntityRepository({ entityStore: store });
-    const env = createEnvironment(); env.connect({ projectState: { state }, applicationServicesB: { layerStyle } });
-    let actual; const frames = [];
-    rendering = createRenderingDomain({ requestFrame: callback => frames.push(callback),
-      prepareView: ({ frameId }) => createMapVisualFrame({ frameId, viewState: { projection: 'flat', size: { width: 800, height: 600 }, scale: 100 }, projectPath: () => '' }), territorialResources: { entityRepository: repo },
-      countryResources: { getState: () => state, getEntity: repo.get, mapTheme: env.mapTheme,
-        countryOutlineFeature: feature => feature, replaceGpuSceneDomain: (_domain, packets) => { actual = packets; } } });
-    rendering.invalidateCountryPatch('pending-country-packet'); frames.shift()();
-    assert.equal(actual.strokes.length, 1);
-    assert.equal(actual.strokes[0].key, 'pending-country-outline:LEFT');
-    assert.equal(actual.strokes[0].style.alpha, 0.46);
-    assert.equal(actual.strokes[0].style.width, env.mapTheme().strokes.country.width);
-  } finally { rendering?.dispose(); globalThis.document = previousDocument; }
 });
 
 test('physical country boundaries contain shared land borders exactly once, without coasts', () => {

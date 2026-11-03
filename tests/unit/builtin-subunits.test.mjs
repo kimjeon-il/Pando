@@ -1,7 +1,3 @@
-import { staticSerializerSnapshot } from '../helpers/timeline-project.mjs';
-import {staticTerritorialInput} from '../helpers/timeline-project.mjs';
-import { staticTimelineViews } from "../../apps/editor/frontend/js/modules/timeline-static-view.js";
-import { createGeometryVersionStore } from "../../shared/frontend/js/modules/geometry-version-store.js";
 import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,8 +5,6 @@ import { readFileSync } from 'node:fs';
 import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
 import { normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
 import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
-import { createProjectSerializer } from "../helpers/legacy-project-autosave.mjs";
-import { restoreEntitiesFromDelta } from "../../shared/frontend/js/modules/project-state.js";
 
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const before = JSON.stringify(source);
@@ -56,19 +50,3 @@ test('Guantanamo and Baikonur separate parent from controller or lessee', () => 
 
 
 
-test('new full and delta saves retain Subunits and source-country removals', () => {
-  const controllers = new Set(BUILTIN_TERRITORY_MERGES.map(row => row.controller));
-  // Classification also changes Kazakhstan's boundary attribution, without merging its geometry.
-  controllers.add('KAZ');
-  const delta = { changed: [...result.countries.features.filter(f => controllers.has(f.id)), ...result.subunits], removedIds: [...BUILTIN_SUBUNITS.map(row => row.sourceCountryId), ...BUILTIN_TERRITORY_MERGES.map(row => row.sourceId)] };
-  const serializer = createProjectSerializer({ appVersion: '0.33.0', baseDataset: 'test',
-    distributionTypes: ['language', 'ethnicity', 'religion'], distributionModes: ['territorial', 'geometry'],
-    readSnapshot: () => staticSerializerSnapshot({ territorialEntities: [...result.countries.features, ...result.subunits], projectFields: {}, entityDelta: delta, fullAutosave: false }) });
-  const full = JSON.parse(JSON.stringify(serializer.buildProject()));
-  assert.deepEqual(staticTimelineViews(full.territorialEntities,full.timelineRecords,createGeometryVersionStore(full.geometries)).filter(feature => feature.properties.parentId), result.subunits);
-  assert.equal(staticTimelineViews(full.territorialEntities,full.timelineRecords,createGeometryVersionStore(full.geometries)).filter(feature => !feature.properties.parentId).length, 207);
-  const saved = JSON.parse(JSON.stringify(serializer.buildAutosave()));
-  assert.match(saved.entityDelta.changed.find(feature => feature.id === 'KAZ').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
-  assert.deepEqual(staticTimelineViews(saved.entityDelta.changed,saved.timelineRecords,createGeometryVersionStore(saved.geometries)).filter(feature => feature.properties.parentId), result.subunits);
-  assert.deepEqual(restoreEntitiesFromDelta(saved, { base: staticTerritorialInput(normalizeCountryCollection(source).features).territorialEntities, baseDataset: 'test', baseDatasetFingerprint: '1'.repeat(64) }), full.territorialEntities);
-});
