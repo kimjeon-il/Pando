@@ -47,7 +47,7 @@ async function originalTrace(seed) {
     propertyEditingA: { applyLabelSelectionIntent() {} },feedback: { setActionStatus() {},reportOperationError: error => { throw error; } },
     domains: { projectDomain: { recordHistory: history.record,queueAutosave() {} },renderingDomain: noRender } });
   const capture=() => observe({ ...f.owner.snapshotEditable(),labelSettings: f.state.labelSettings },{ ...f.saveState.snapshot(),stateRevision: f.state.stateRevision },history);
-  const rows=[capture()];assert.equal(await convert(),true);rows.push(capture());
+  const rows=[capture()];assert.equal(await commands.convertSelectedGenericFeature({target:'label'}),true);rows.push(capture());
   const serializer=original.createProjectSerializer({ appVersion: seed.version,baseDataset: seed.baseDataset,
     distributionModes: seed.distributionModel.sourceModes,terrainDataset: 'fixture-terrain',hydroDataset: 'fixture-hydro',
     now: () => new Date(seed.savedAt),readSnapshot: () => ({ territorialEntities: f.entityStore.identities(),projectFields: original.pickProjectFields(f.state),
