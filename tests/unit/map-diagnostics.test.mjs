@@ -260,7 +260,7 @@ test('instrumented Canvas transport preserves coalescing, stale cleanup and shut
 });
 
 test('whole-case color failure emits cached stage/errors/sample even when its page read fails', async () => {
-  const source = readFileSync(new URL('../browser/country-map-substrate.spec.mjs', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../fixtures/retired-browser-oracles/country-map-substrate.source.txt', import.meta.url), 'utf8');
   const lines = [];
   let afterEach;
   const browserTest = () => {};
@@ -445,7 +445,7 @@ test('real instrumented stroke owner exposes live progress, completion, replacem
 });
 
 test('the original child-existence query is called once and its boolean/error survives timestamp observation', () => {
-  const source = readFileSync(new URL('../browser/interaction-unification.spec.mjs', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../fixtures/retired-browser-oracles/interaction-unification.source.txt', import.meta.url), 'utf8');
   const match = source.match(/const result = await page\.evaluate\((name => \{[\s\S]*?\n {8}\}), name\);/);
   assert.ok(match, 'timestamped original child predicate exists');
   let rows = [{ properties: { name: 'expected', parentId: 'RUS' } }], calls = 0, time = 0, failure = null;
@@ -470,7 +470,7 @@ test('the original child-existence query is called once and its boolean/error su
 });
 
 test('Canvas custom radio setup clicks its visible associated label and asserts the input state', () => {
-  const source = readFileSync(new URL('../browser/interaction-unification.spec.mjs', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../fixtures/retired-browser-oracles/interaction-unification.source.txt', import.meta.url), 'utf8');
   const start = source.indexOf("  if (renderer === 'canvas') {");
   const setup = source.slice(start, source.indexOf('\n  }', start));
   assert.match(setup, /locator\('#mapDisplayBtn'\)\.click\(\)/);
@@ -671,7 +671,7 @@ test('real Russia gate keeps its 90000 ms secondary predicate and modifier click
   const actions = [], pollOptions = [];
   f.page.locator = selector => ({ click: async options => actions.push({ selector, options }) });
   const expect = { poll: (read, options) => { pollOptions.push(options); return { toBe: async value => assert.equal(await read(), value) }; } };
-  const { source, scope } = specScope('../browser/interaction-unification.spec.mjs', { page: f.page, renderer: 'webgl1', expect });
+  const { source, scope } = specScope('../fixtures/retired-browser-oracles/interaction-unification.source.txt', { page: f.page, renderer: 'webgl1', expect });
   scope.test.info = () => f.info;
   const begin = source.indexOf("  await page.locator('[data-object-search-select=\"countries\"][data-item-id=\"RUS\"]').click({ modifiers: ['Control'] });");
   const end = source.indexOf('  const overlap = await pixels();', begin);
@@ -696,7 +696,7 @@ test('real preview-entry path keeps full snapshot work, six native move steps an
     f.scope.document = { querySelector: () => null };
     f.page.mouse = { move: async (...args) => actions.push(['move', ...args]), down: async () => actions.push(['down']) };
     const expect = { poll: (read, ...options) => { pollOptions.push(options); return { toBe: async value => assert.equal(await read(), value) }; } };
-    const { source, scope } = specScope('../browser/edit-preview-handoff.spec.mjs', { page: f.page, renderer: 'canvas', kind, outlineVisible: false, box: { x: 0, y: 0, width: 10, height: 10 }, expect });
+    const { source, scope } = specScope('../fixtures/retired-browser-oracles/edit-preview-handoff.source.txt', { page: f.page, renderer: 'canvas', kind, outlineVisible: false, box: { x: 0, y: 0, width: 10, height: 10 }, expect });
     scope.test.info = () => f.info;
     const snapshotStart = source.indexOf('\nconst snapshot =');
     const snapshotEnd = source.indexOf('\n\nasync function loadProjectFile', snapshotStart);

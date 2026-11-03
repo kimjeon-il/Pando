@@ -2,62 +2,6 @@
   "schema": "pando-application-checks-v1",
   "groups": [
     {
-      "id": "retired-editor-browser",
-      "kind": "browser",
-      "mode": "retired",
-      "reason": "Archived graphical-editor browser checks, excluded from Viewer/Windows execution.",
-      "testPatterns": [
-        "tests/browser/editor-*.spec.mjs",
-        "tests/browser/draft-*.spec.mjs",
-        "tests/browser/editing-*.spec.mjs",
-        "tests/browser/map-editing-*.spec.mjs",
-        "tests/browser/edit-preview-handoff.spec.mjs",
-        "tests/browser/prepared-overlay-mesh.spec.mjs",
-        "tests/browser/phone-landscape-editor.spec.mjs",
-        "tests/browser/mobile-vertex-ui.spec.mjs",
-        "tests/browser/mobile-native-selection.spec.mjs",
-        "tests/browser/radio-row-consistency.spec.mjs",
-        "tests/browser/file-menu-layering.spec.mjs",
-        "tests/browser/workflow-v17.spec.mjs",
-        "tests/browser/editable-library-ui.spec.mjs",
-        "tests/browser/map-plugin-import.spec.mjs",
-        "tests/browser/qgis-pando-exchange.spec.mjs",
-        "tests/browser/territorial-parent-edit.spec.mjs",
-        "tests/browser/shell-file-save.spec.mjs",
-        "tests/browser/project-setup-ui.spec.mjs",
-        "tests/browser/project-creation-storage.spec.mjs",
-        "tests/browser/label-metadata-edit.spec.mjs",
-        "tests/browser/hydro-metadata-edit.spec.mjs",
-        "tests/browser/temporal-editing.spec.mjs"
-      ],
-      "inputs": []
-    },
-    {
-      "id": "retired-editor-unit",
-      "kind": "unit",
-      "mode": "retired",
-      "reason": "Historical graphical-editor-only tests are held outside shipped Viewer/Windows and canonical GIS regression gates; R4-E will remove their source fixtures.",
-      "testPatterns": [
-        "tests/unit/application-composition.test.mjs",
-        "tests/unit/capability-ports-contract.test.mjs",
-        "tests/unit/territorial-gis-export.test.mjs",
-        "tests/unit/territorial-property-controller.test.mjs",
-        "tests/unit/startup-performance-contract.test.mjs",
-        "tests/unit/domain-split-contract.test.mjs",
-        "tests/unit/editor-*.test.mjs",
-        "tests/unit/edit-preview-*.test.mjs",
-        "tests/unit/editing-*.test.mjs",
-        "tests/unit/draft-*.test.mjs",
-        "tests/unit/map-edit-*.test.mjs",
-        "tests/unit/app-geometry-preview.test.mjs",
-        "tests/unit/app-ui-boundaries.test.mjs",
-        "tests/unit/property-editor-*.test.mjs",
-        "tests/unit/territorial-editor-*.test.mjs",
-        "tests/unit/territory-selection-workflow.test.mjs"
-      ],
-      "inputs": []
-    },
-    {
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
@@ -135,8 +79,6 @@
         "tests/browser/performance-*.spec.mjs",
         "tests/browser/canvas-globe-performance.spec.mjs",
         "tests/browser/p3-remote-preview.spec.mjs",
-        "tests/browser/p9-browser-performance.spec.mjs",
-        "tests/browser/russia-edit-preparation.spec.mjs",
         "tests/browser/m2-gpu-worker-frame-probe.spec.mjs",
         "tests/browser/map-transition-p5-6.spec.mjs",
         "tests/browser/p6-5-resource-check.spec.mjs",
@@ -207,8 +149,7 @@
       "kind": "browser",
       "testPatterns": [
         "tests/browser/terrain-*.spec.mjs",
-        "tests/browser/physical-land-time.spec.mjs",
-        "tests/browser/country-map-substrate.spec.mjs"
+        "tests/browser/physical-land-time.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/terrain-*.js",
@@ -239,12 +180,7 @@
       "testPatterns": [
         "tests/browser/korean-boundaries.spec.mjs",
         "tests/browser/boundary-*.spec.mjs",
-        "tests/browser/child-coast-boundary.spec.mjs",
-        "tests/browser/country-shared-boundary.spec.mjs",
-        "tests/browser/date-line-outline.spec.mjs",
-        "tests/browser/territorial-boundary-*.spec.mjs",
-        "tests/browser/territorial-child-fill-comparison.spec.mjs",
-        "tests/browser/ussr-1922-caspian.spec.mjs"
+        "tests/browser/territorial-boundary-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/*boundary*.js",
@@ -268,11 +204,7 @@
         "tests/browser/country-*.spec.mjs",
         "tests/browser/renderer-*.spec.mjs",
         "tests/browser/map-display-worker.spec.mjs",
-        "tests/browser/map-loading-continuity.spec.mjs",
-        "tests/browser/map-scale-readiness.spec.mjs",
-        "tests/browser/selection-pass-baseline.spec.mjs",
-        "tests/browser/single-context-selection.spec.mjs",
-        "tests/browser/visual-frame-sync.spec.mjs"
+        "tests/browser/map-scale-readiness.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/gpu-*.js",
@@ -296,8 +228,6 @@
       "kind": "browser",
       "testPatterns": [
         "tests/browser/annex-*.spec.mjs",
-        "tests/browser/builtin-subunits.spec.mjs",
-        "tests/browser/distribution.spec.mjs",
         "tests/browser/generic-*.spec.mjs",
         "tests/browser/territorial-*.spec.mjs",
         "tests/browser/territory-*.spec.mjs",
@@ -329,9 +259,7 @@
       "id": "projects",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/project-*.spec.mjs",
-        "tests/browser/storage-protection.spec.mjs",
-        "tests/browser/startup-restored-country.spec.mjs"
+        "tests/browser/project-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/project-*.js",
@@ -360,10 +288,7 @@
         "tests/browser/web-viewer.spec.mjs",
         "tests/browser/shared-map-*.spec.mjs",
         "tests/browser/shared-view*.spec.mjs",
-        "tests/browser/view-focus-actions.spec.mjs",
-        "tests/browser/unified-objects.spec.mjs",
         "tests/browser/map-startup-publication.spec.mjs",
-        "tests/browser/map-surface-quality.spec.mjs",
         "tests/browser/resource-dependency-reuse.spec.mjs",
         "tests/browser/windows-review-e5.spec.mjs"
       ],
@@ -385,10 +310,8 @@
       "kind": "browser",
       "testPatterns": [
         "tests/browser/east-prussia-library.spec.mjs",
-        "tests/browser/historical-library.spec.mjs",
         "tests/browser/library-*.spec.mjs",
-        "tests/browser/historical-world-*.spec.mjs",
-        "tests/browser/post-2000-world-timeline.spec.mjs"
+        "tests/browser/historical-world-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/*library*.js",
@@ -423,42 +346,18 @@
       ]
     },
     {
-      "id": "map-plugin-import",
-      "kind": "browser",
-      "testPatterns": [],
-      "inputs": [
-        "plugins/pando-map-tools/**"
-      ],
-      "requires": [
-        "generated",
-        "core"
-      ]
-    },
-    {
       "id": "ui",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/color-swatch-layout.spec.mjs",
-        "tests/browser/feedback-accessibility.spec.mjs",
-        "tests/browser/feature-pruning-ui.spec.mjs",
-        "tests/browser/flag-thumbnail-quiet.spec.mjs",
-        "tests/browser/general-view-menu.spec.mjs",
         "tests/browser/interaction-*.spec.mjs",
-        "tests/browser/map-workspace-polish.spec.mjs",
         "tests/browser/mobile-*.spec.mjs",
         "tests/browser/module-cache-version.spec.mjs",
-        "tests/browser/phase1-ui-cleanup.spec.mjs",
         "tests/browser/phone-landscape-surface-contract.spec.mjs",
-        "tests/browser/product-pruning.spec.mjs",
-        "tests/browser/runtime.spec.mjs",
         "tests/browser/startup-*.spec.mjs",
         "tests/browser/statusbar-*.spec.mjs",
-        "tests/browser/style-label-cleanup.spec.mjs",
         "tests/browser/toggle-proportions.spec.mjs",
         "tests/browser/topbar-*.spec.mjs",
-        "tests/browser/search-stable-surface.spec.mjs",
         "tests/browser/ui-*.spec.mjs",
-        "tests/browser/workspace-surfaces.spec.mjs",
         "tests/browser/info-*.spec.mjs",
         "tests/browser/button-consistency.spec.mjs"
       ],
@@ -689,23 +588,6 @@
       ],
       "requires": [
         "app-world-stage"
-      ]
-    },
-    {
-      "id": "places",
-      "kind": "browser",
-      "testPatterns": [
-        "tests/browser/place-runtime.spec.mjs"
-      ],
-      "inputs": [
-        "shared/frontend/js/modules/place-*.js",
-        "apps/viewer/js/modules/place-*.js",
-        "shared/frontend/js/modules/territorial-labels.js",
-        "assets/data/places/**"
-      ],
-      "requires": [
-        "generated",
-        "core"
       ]
     },
     {
@@ -1420,8 +1302,6 @@
     },
     {
       "tests": [
-        "tests/browser/ui-components.spec.mjs",
-        "tests/browser/storage-protection.spec.mjs",
         "tests/browser/web-viewer.spec.mjs"
       ],
       "inputs": [
@@ -1482,9 +1362,7 @@
     },
     {
       "tests": [
-        "tests/browser/ui-components.spec.mjs",
-        "tests/browser/web-viewer.spec.mjs",
-        "tests/browser/storage-protection.spec.mjs"
+        "tests/browser/web-viewer.spec.mjs"
       ],
       "inputs": [
         "package.json",
@@ -1501,8 +1379,8 @@
   },
   "manualScopes": {
     "map-rendering": [
-      "tests/browser/country-map-substrate.spec.mjs",
-      "tests/browser/interaction-unification.spec.mjs"
+      "tests/browser/viewer-canvas.spec.mjs",
+      "tests/browser/viewer-gpu-backend-cross.spec.mjs"
     ]
   },
   "externalChecks": [
