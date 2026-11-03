@@ -42,6 +42,17 @@ jobs:
           node --check scripts/r4e5-finalize.mjs
       - name: Migrate active tests, retire 74 archived sources and close inventory
         run: node scripts/r4e5-finalize.mjs
+      - name: Verify closure instead of requiring historical references to disappear
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const file='tests/unit/r4e0-dependency-audit.test.mjs';
+          const source=readFileSync(file,'utf8');
+          const actual='assert.equal(audit.summary.referencedFiles,0);';
+          const corrected='assert.equal(audit.records.filter(r=>r.present&&r.blocking.length).length,0);';
+          if(source.split(actual).length!==3)throw Error('Unexpected R4E0 post-migration contract');
+          writeFileSync(file,source.replaceAll(actual,corrected));
+          NODE
       - name: Re-audit all E0/E5 paths
         run: |
           node scripts/r4e0-dependency-audit.mjs --check
