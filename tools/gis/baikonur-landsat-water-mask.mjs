@@ -54,9 +54,9 @@ function run(command,args,{input=null,env={},timeoutMs=180000}={}){
     maxBuffer:4_000_000,timeout:timeoutMs});
   // Don't ever log signed Azure URLs via stdout/stderr/arguments.
   if(result.error||result.status!==0){
-    const cleaned=String(result.stderr||'').split(/\r?\n/)
-      .filter(line=>/ERROR|WARNING|Failed|unable|cannot|unsupported|Invalid|HTTP|TIFF|COG/i.test(line))
-      .slice(0,5).map(line=>line
+    const cleaned=(String(result.stdout||'')+'\n'+String(result.stderr||''))
+      .split(/\r?\n/).filter(Boolean).slice(0,8)
+      .map(line=>line
         .replace(/https?:\/\/\S+/g,'[REDACTED_REMOTE_ASSET_URL]')
         .replace(/(?:sig|sv|se|sp|st)=\S+/gi,'[REDACTED_SAS_PARAMETER]'))
       .join(' | ').slice(0,440);
