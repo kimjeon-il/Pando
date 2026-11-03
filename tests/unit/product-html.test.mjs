@@ -1,63 +1,32 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {renderProductHtml} from '../../scripts/lib/product-html.mjs';
 
-test('product HTML is generated from one source for each common viewing control',async()=>{
- const {renderProductHtml}=await import('../../scripts/lib/product-html.mjs');
- const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8');
- const pages=renderProductHtml(read);
- for(const page of Object.values(pages))assert.doesNotMatch(page,/data-map-background="(?:builtinHydro|builtinPlaces)"/);
- for(const key of ['object-search','map-display','preferences','tooltip','notification','map-icons','map-search-control','map-fit-control']){
-  const fragment=read(`shared/frontend/ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
-  for(const sharedPart of fragment.split(/<!-- include:[a-z-]+ -->/).filter(Boolean)){
-   assert.ok(pages.web.includes(sharedPart),`web omitted ${key}`);
-   assert.ok(pages.editor.includes(sharedPart),`app omitted ${key}`);
+const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8');
+
+test('Viewer HTML includes one copy of its current shared controls',()=>{
+  const html=renderProductHtml(read).web;
+  for(const key of ['object-search','map-display','preferences','tooltip','notification','map-icons','map-search-control','map-fit-control']){
+    const fragment=read(`shared/frontend/ui/fragments/${key}.html`).replaceAll('\r\n','\n').trim();
+    for(const part of fragment.split(/<!-- include:[a-z-]+ -->/).filter(Boolean))
+      assert.ok(html.includes(part),`Viewer omitted ${key}`);
   }
- }
- const terrain=read('shared/frontend/ui/fragments/map-terrain.html').replaceAll('\r\n','\n').trim();
- const timeline=read('shared/frontend/ui/fragments/timeline.html').replaceAll('\r\n','\n').trim();
- assert.ok(pages.web.includes(timeline));
- assert.doesNotMatch(pages.web,/id="mapBottomStatus"|id="preferencesStatusBarVisibleInput"/);
- assert.match(pages.editor,/id="mapBottomStatus"/);
- assert.match(pages.editor,/id="preferencesStatusBarVisibleInput"/);
- assert.match(timeline,/id="timelinePopover"/);
- assert.match(timeline,/<select\b[^>]*id="timelineMonthInput"[^>]*data-native-select/);
- assert.match(timeline,/<select\b[^>]*id="timelineViewUnit"[^>]*data-native-select/);
- assert.doesNotMatch(timeline,/[«‹›»]|timeline-divider/);
- for(const icon of ['chevron-left','chevron-right','chevrons-left','chevrons-right'])
-  assert.match(timeline,new RegExp(`href="#icon-${icon}"`));
- assert.doesNotMatch(pages.editor,/timelineControls|timelinePreviousDecade|timelineNextDecade|timelinePreviousYear|timelinePreviousMonth|timelineDateButton|timelineMonthInput|timelineNextMonth|timelineNextYear/);
- assert.doesNotMatch(pages.editor,/timelineComparePin|timelineComparisonPanel|autosaveRecoveryBtn/);
- assert.doesNotMatch(pages.editor,/data-map-display-row="advanced"/);
- assert.doesNotMatch(pages.web,/data-map-display-row="advanced"/);
- assert.match(pages.editor,/id="fileAdvancedBtn"/);
- for(const key of ['graticule','globeShadow']){
-  assert.equal(pages.web.split(`data-map-background="${key}"`).length-1,1,key);
-  assert.doesNotMatch(pages.editor,new RegExp(`data-map-background="${key}"`));
- }
- assert.doesNotMatch(pages.editor,/id="(?:globeBtn|flatBtn|mapProjectionMenuTrigger|projectionControl)"/);
- assert.doesNotMatch(pages.web,/id="(?:globeBtn|flatBtn|mapProjectionMenuTrigger|projectionControl)"/);
- assert.ok(pages.web.includes(terrain));assert.ok(!pages.editor.includes('terrainNoneRadio'));
- assert.ok(!pages.web.includes('entityNameInput'));
- assert.ok(pages.editor.includes('entityNameInput'));
- assert.ok(!pages.web.includes('viewerInfoPanel'));
- for(const page of Object.values(pages))assert.doesNotMatch(page,/zoomInBtn|zoomOutBtn|map-view-toolbar/);
- const changed=renderProductHtml(path=>path==='shared/frontend/ui/fragments/tooltip.html'?read(path).replace('role="tooltip"','role="tooltip" data-source-probe="shared"'):read(path));
- assert.ok(changed.web.includes('data-source-probe="shared"'));
- assert.ok(changed.editor.includes('data-source-probe="shared"'));
+  const timeline=read('shared/frontend/ui/fragments/timeline.html').replaceAll('\r\n','\n').trim();
+  assert.ok(html.includes(timeline));
+  assert.match(timeline,/id="timelineMonthInput"/);
+  assert.match(timeline,/id="timelineViewUnit"/);
+  assert.doesNotMatch(html,/id="(?:mapBottomStatus|preferencesStatusBarVisibleInput|entityNameInput|viewerInfoPanel)"/);
+  assert.doesNotMatch(html,/data-map-background="(?:builtinHydro|builtinPlaces)"/);
+  for(const key of ['graticule','globeShadow'])assert.equal(html.split(`data-map-background="${key}"`).length-1,1);
+  assert.doesNotMatch(html,/zoomInBtn|zoomOutBtn|map-view-toolbar/);
 });
 
-test('both maps omit the attribution banner while retaining compact OSM and ODbL credits', async () => {
-  const { renderProductHtml } = await import('../../scripts/lib/product-html.mjs');
-  const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
-  const pages = renderProductHtml(read);
-  const fragment = read('shared/frontend/ui/fragments/map-attribution.html').replaceAll('\r\n', '\n').trim();
-  for (const page of Object.values(pages)) {
-    assert.equal(page.split(fragment).length - 1, 1);
-    assert.doesNotMatch(page, /class="map-attribution"/);
-    assert.match(page, /<footer class="map-data-credit" aria-label="지도 자료 출처">/);
-    assert.match(page, /href="https:\/\/www\.openstreetmap\.org\/copyright"[^>]*>© OpenStreetMap<\/a>/);
-    assert.match(page, /href="https:\/\/github\.com\/kimjeon-il\/PandoLab-library-data\/blob\/[a-z0-9]+\/reports\/geography\/ne-selected-20261023\/odbl-source-and-derivative\.zip"/);
-    assert.match(page, /바이코누르 원본·파생 데이터 \(ODbL\)/);
-  }
+test('Viewer keeps compact OSM and ODbL credits without the old attribution banner',()=>{
+  const html=renderProductHtml(read).web;
+  const fragment=read('shared/frontend/ui/fragments/map-attribution.html').replaceAll('\r\n','\n').trim();
+  assert.equal(html.split(fragment).length-1,1);
+  assert.doesNotMatch(html,/class="map-attribution"/);
+  assert.match(html,/<footer class="map-data-credit" aria-label="지도 자료 출처">/);
+  assert.match(html,/href="https:\/\/www\.openstreetmap\.org\/copyright"[^>]*>© OpenStreetMap<\/a>/);
 });

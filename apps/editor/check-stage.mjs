@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {loadFullWorldAssetPlan} from './world-data-plan.mjs';
+import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
+import {summarizeViewerWorldData} from './world-data-plan.mjs';
 
 /** Verify the current product contract, independently of a historical file count. */
 export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.meta.url)),'../..')){
@@ -38,11 +39,14 @@ export async function checkShellStage(root=resolve(dirname(fileURLToPath(import.
    'shell/startup.js','shell/native-storage.js','shell/document-transfer-contract.js'])
    assert.ok(!evidence.files.some(file=>file.path===banned), 'Legacy editor asset staged: '+banned);
  if(profile.mode==='map-data'){
-   const {plan}=await loadFullWorldAssetPlan(path=>path==='assets/js/build-meta.js'?Promise.resolve(metadataSource):readFile(resolve(root,path),'utf8'));
-   for(const key of ['worldFileCount','physicalFileCount','countryCount','rootCount','unitCount','modelEntityCount','mergedSourceCount','sourceSha256'])assert.equal(evidence.worldData[key],plan[key],key);
-   assert.equal(evidence.worldData.fileCount,plan.entries.length);
+   const snapshot=await buildFrontendSnapshot({root,resourceProfile:'map-data'});
+   const dataPaths=[...snapshot.viewerPaths].filter(path=>path.startsWith('assets/data/'));
+   const world=JSON.parse(snapshot.readPinnedRuntimeAsset('assets/data/world/current.json'));
+   const bytes=evidence.files.filter(file=>file.path.startsWith('assets/data/')).reduce((n,file)=>n+file.bytes,0);
+   assert.deepEqual(evidence.worldData,summarizeViewerWorldData({world,paths:dataPaths,bytes,dataRevision:snapshot.dataRevision}));
    const staged=new Set(evidence.files.map(file=>file.path));
-   for(const entry of plan.entries)assert.ok(staged.has(entry.path),`Missing pinned app data: ${entry.path}`);
+   for(const path of dataPaths)assert.ok(staged.has(path),`Missing pinned app data: ${path}`);
+   assert.ok(!staged.has('assets/data/territorial-entities/generated/v2/index.json'),'Source library entered Windows review output');
  }
  console.log(`Windows review stage verified: ${profile.mode}, ${evidence.files.length} files.`);return evidence;
 }

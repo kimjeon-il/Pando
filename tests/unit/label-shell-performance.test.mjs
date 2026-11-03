@@ -1,9 +1,10 @@
-import { readApplicationOwners, applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
+import { applicationFunctionSource } from '../helpers/source-functions.mjs';
+import {readFrontendSources} from '../helpers/read-frontend-source.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const app = readApplicationOwners('map-projection', 'gpu-scene', 'map-host', 'territorial-labels');
+const app = readFrontendSources('map-projection', 'gpu-scene', 'map-workspace-host', 'territorial-labels');
 const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
 const content = await readFile(new URL("../../shared/frontend/js/modules/map-content-presentation.js", import.meta.url), 'utf8');
 const labels = await readFile(new URL("../../shared/frontend/js/modules/label-presentation.js", import.meta.url), 'utf8');
@@ -11,7 +12,7 @@ const labels = await readFile(new URL("../../shared/frontend/js/modules/label-pr
 const functionSource = applicationFunctionSource;
 
 test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere path', () => {
-  const shell = functionSource(readApplicationOwners('map-projection'), 'updatePandoGlobeShell', 'featureFromGeometry');
+  const shell = functionSource(readFrontendSources('map-projection'), 'updatePandoGlobeShell', 'featureFromGeometry');
   assert.match(shell, /frameContext\.cssTranslate/);
   assert.match(shell, /frameContext\.cssScale/);
   assert.match(shell, /\.attr\('cx', translate\[0\]\)/);

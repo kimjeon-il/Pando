@@ -7,17 +7,12 @@ import { createSearchToolbarPresentation } from './search-toolbar-presentation.j
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createWorkspaceSurfaces({productMode='editor'}={}) {
-  if(!['viewer','editor'].includes(productMode))throw new TypeError('Workspace surfaces require immutable product mode.');
-  const registeredSurfaces=productMode==='editor'?['create','search','display','editor']:['search','display'];
+export function createWorkspaceSurfaces() {
+  const registeredSurfaces=['search','display'];
   const listeners=[];
   const listen=(target,type,listener)=>{target.addEventListener(type,listener);listeners.push(()=>target.removeEventListener(type,listener));};
   let fileMenuOpen=false;
-  let fileMenuPage='main';
   let dependencies, mobileSheets;
-  let isPolygonDraftTool;
-  let isGenericFeatureDraftTool;
-  let uid;
   let detectLayoutMode;
   let layoutMode;
   let isMobile;
@@ -26,16 +21,12 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   let pendingLayoutChange = false;
   let surfaceController;
   let surfaceState;
-  let editorWorkspacePresentation;
-  let editorSurfaceTabs;
   let MOBILE_SHEET_IDS;
   let MOBILE_SHEET_HISTORY_KEY;
   let ignoreNextMobileSheetPopstate;
   let mobileViewportHeight;
   let menuPositionScheduler;
   let searchToolbarPresentation;
-  let navigationObserver;
-  let mobileNavigation;
   let searchFocusFrame = 0;
   let searchComposing = false;
   function connect(ports) {
@@ -78,7 +69,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   function refreshMapSheetMetrics() {
     const panels = Object.values(MOBILE_SHEET_IDS).map(id => (0, dependencies.platform.$)(id)).filter(Boolean);
     syncVisibleViewport();
-    syncMobileNavigationHeight();
     if (layoutMode !== 'mobile') {
       panels.forEach(panel => {
         panel.style.removeProperty('--sheet-height');
@@ -92,32 +82,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     });
   }
 
-  function syncMobileNavigationHeight() {
-    if (productMode !== 'editor') return false;
-    const app = (0, dependencies.platform.$)('app');
-    const height = layoutMode === 'mobile' ? Math.ceil(mobileNavigation.getBoundingClientRect().height) : 0;
-    const value = height > 0 ? `${height}px` : '';
-    if (app.style.getPropertyValue('--mobile-nav-height') === value) return false;
-    if (value) app.style.setProperty('--mobile-nav-height', value);
-    else app.style.removeProperty('--mobile-nav-height');
-    return true;
-  }
-
-  function syncEditorPanelControls() {
-    const headerToggle = (0, dependencies.platform.$)('mobileCloseRightBtn');
-    if (!headerToggle) return;
-    const label = layoutMode === 'wide' ? '편집창 접기' : '편집창 닫기';
-    headerToggle.setAttribute('aria-label', label);
-    headerToggle.dataset.tooltip = label;
-  }
-
-  function syncEditingSurfaces(){
-    if(productMode!=='editor')return;
-    editorWorkspacePresentation.sync();
-    dependencies.domains.renderingDomain?.setCountryPropertyEditingActive?.(surfaceController.isOpen('editor')&&!!dependencies.projectState.state.selected);
-    dependencies.domainControllers.syncTerritorialEditorInteraction();
-    syncEditorPanelControls();requestAnimationFrame(dependencies.taskPresentation.syncMapHudBounds);syncCreateSurface();
-  }
   function applyLayoutMode({ initial = false } = {}) {
     const nextLayout = detectLayoutMode();
     if (nextLayout !== layoutMode && (mobileSheets.activeDrag || mobileSheets.settling || searchComposing)) {
@@ -144,7 +108,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     if (app) app.dataset.layout = layoutMode;
     document.body.dataset.layout = layoutMode;
     searchToolbarPresentation.sync();
-    syncEditingSurfaces();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
     refreshMapSheetMetrics();
     menuPositionScheduler.schedule();
@@ -165,7 +128,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
       dependencies.domains.objectSearchController?.render(true);
     }
     searchToolbarPresentation.sync();
-    syncEditingSurfaces();
     refreshMapSheetMetrics();
     menuPositionScheduler.schedule();
     if (fileOpen) requestAnimationFrame(syncFileMenuNotificationOffset);
@@ -177,7 +139,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   function syncFileMenuNotificationOffset() {
     const app = (0, dependencies.platform.$)('app');
     const menu = document.querySelector('.top-actions.mobile-open');
-    if (!app || productMode === 'editor' || layoutMode !== 'mobile' || !menu) {
+    if (!app || layoutMode !== 'mobile' || !menu) {
       app?.style.removeProperty('--file-menu-notification-top');
       return;
     }
@@ -190,7 +152,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     const trigger = fileMenuTrigger;
     fileMenuTrigger = null;
     fileMenuOpen=false;
-    setFileMenuPage('main',{focus:false});
     syncOverlayState();
     if (restoreFocus) {
       const focusTarget = isMobile()
@@ -200,17 +161,11 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     }
   }
 
-  function activeCreateMenuItems() {
-    const panel = (0, dependencies.platform.$)('createMenu');
-    return panel ? [...panel.querySelectorAll('.ui-menu-item:not([disabled])')]
-      .filter(item => !item.closest('.hidden, [hidden]') && item.getClientRects().length > 0) : [];
-  }
-
   function focusSurfaceTrigger(surface) {
     const ids = isMobile()
-      ? { create: 'mobileCreateBtn', search: 'mobileSearchBtn', display: 'mobileDisplayBtn', editor: 'mobileEditBtn' }
-      : { create: 'createMenuBtn', search: 'objectSearchBtn', display: 'mapDisplayBtn' };
-    const panelId = { create: 'createMenu', search: 'objectSearchSurface', display: 'mapDisplaySurface', editor: 'editorSurface' }[surface];
+      ? { search: 'mobileSearchBtn', display: 'mobileDisplayBtn' }
+      : { search: 'objectSearchBtn', display: 'mapDisplayBtn' };
+    const panelId = { search: 'objectSearchSurface', display: 'mapDisplaySurface' }[surface];
     const rememberedTrigger = lastOverlayTrigger?.isConnected
       && lastOverlayTrigger.getClientRects().length > 0
       && lastOverlayTrigger.getAttribute('aria-controls') === panelId
@@ -222,47 +177,23 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     trigger?.focus({ preventScroll: true });
   }
 
-  function syncCreateSurface() {
-    const panel = (0, dependencies.platform.$)('createMenu');
-    if (!panel) return;
-    const mobile = isMobile();
-    panel.classList.toggle('ui-menu-surface', !mobile);
-    panel.classList.toggle('ui-command-menu', !mobile);
-    for (const button of panel.querySelectorAll('.ui-menu-item')) {
-      button.tabIndex = mobile ? 0 : -1;
-      if (mobile) button.removeAttribute('role');
-      else button.setAttribute('role', 'menuitem');
-    }
-    (0, dependencies.platform.$)('createMenuBtn')?.setAttribute('aria-haspopup', 'menu');
-    (0, dependencies.platform.$)('mobileCreateBtn')?.setAttribute('aria-haspopup', 'dialog');
-    if (mobile) {
-      clearMenuPosition(panel);
-    } else if (surfaceController.isOpen('create')) {
-      menuPositionScheduler.schedule();
-    }
-  }
 
   function positionWorkspaceMenus() {
     searchToolbarPresentation.position();
     const fileMenu = document.querySelector('.top-actions');
-    const createMenu = (0, dependencies.platform.$)('createMenu');
     if (isMobile()) {
       clearMenuPosition(fileMenu);
-      clearMenuPosition(createMenu);
       return;
     }
     if(fileMenuOpen){
       positionRootMenu({ menu: fileMenu, trigger: (0, dependencies.platform.$)('mobileFileBtn') });
-    }
-    if (surfaceController.isOpen('create')) {
-      positionRootMenu({ menu: createMenu, trigger: (0, dependencies.platform.$)('createMenuBtn') });
     }
   }
 
   function closeActiveMobileSheet({ restoreFocus = false, syncHistory = true } = {}) {
     if (!isMobile() || !surfaceController.activeMobileSheet) return;
     const kind = surfaceController.activeMobileSheet;
-    const surface = { create: 'create', search: 'search', display: 'display', edit: 'editor' }[kind];
+    const surface = { search: 'search', display: 'display' }[kind];
     const panel = mobileSheets.mobileSheetPanel(kind);
     surfaceController.close(surface);
     mobileSheets.resetMobileSheetSession(panel);
@@ -274,7 +205,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
 
   function closeMobileSheets(except = null, { restoreFocus = false } = {}) {
     if (isMobile()) {
-      const exceptKind = { create: 'create', search: 'search', display: 'display', editor: 'edit' }[except] || null;
+      const exceptKind = { search: 'search', display: 'display' }[except] || null;
       if (surfaceController.activeMobileSheet && surfaceController.activeMobileSheet !== exceptKind) closeActiveMobileSheet({ restoreFocus });
       return;
     }
@@ -284,47 +215,13 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
-  function setFileMenuPage(page,{focus=true}={}){
-    if(!['main','advanced'].includes(page)||(page==='advanced'&&productMode!=='editor'))throw new TypeError('Unsupported file menu page.');
-    fileMenuPage=page;
-    for(const panel of document.querySelectorAll('[data-file-menu-page]'))panel.hidden=panel.dataset.fileMenuPage!==page;
-    dependencies.platform.$('fileAdvancedBtn')?.setAttribute('aria-expanded',String(page==='advanced'));
-    if(focus){
-      const target=page==='main'?dependencies.platform.$('fileAdvancedBtn'):dependencies.platform.$('fileAdvancedBackBtn');
-      target.focus({preventScroll:true});
-    }
-    menuPositionScheduler.schedule();
-  }
-
   function openFileMenu({trigger=null}={}){
     if(!document.querySelector('.top-actions'))return false;
-    closeSurface('create');fileMenuOpen=true;fileMenuTrigger=trigger||dependencies.platform.$('mobileFileBtn');
-    setFileMenuPage('main',{focus:false});
+    fileMenuOpen=true;fileMenuTrigger=trigger||dependencies.platform.$('mobileFileBtn');
     syncOverlayState();requestAnimationFrame(()=>document.querySelector('.top-actions [role="menuitem"]:not(:disabled)')?.focus({preventScroll:true}));return true;
   }
   function toggleFileMenu(){if(fileMenuOpen){closeFileMenu();return false;}return openFileMenu();}
 
-  function openSelectionEditor({ explicit = false, trigger = null, focus = false } = {}) {
-    if(productMode!=='editor')return false;
-    const panel = (0, dependencies.platform.$)('editorSurface');
-    if (!panel) return false;
-    let opened = surfaceController.isOpen('editor');
-    if (!opened && explicit) opened = openSurface('editor', { trigger, automatic: false });
-    else if (!opened && (layoutMode !== 'wide' || !surfaceState.editorManuallyCollapsed)) {
-      opened = openSurface('editor', { automatic: true });
-    }
-    if (!opened) return false;
-    if (panel.classList.contains('mobile-open')) (0, dependencies.platform.$)('editorScrollBody')?.scrollTo?.({ top: 0, behavior: 'instant' });
-    if (focus) requestAnimationFrame(() => {
-      if (!surfaceController.isOpen('editor')) return;
-      const visible = element => element.getClientRects().length > 0 && !element.closest('[hidden], .hidden');
-      const target = [...panel.querySelectorAll('[role="tab"][aria-selected="true"]:not([aria-disabled="true"])')].find(visible)
-        || [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled)')].find(visible);
-      target?.focus({ preventScroll: true });
-    });
-    dependencies.domainControllers.syncTerritorialEditorInteraction();
-    return true;
-  }
 
   function openSurface(surface, { trigger = null, automatic = false } = {}) {
     if(!registeredSurfaces.includes(surface))return false;
@@ -334,7 +231,7 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     if (!surfaceController.open(surface, { automatic })) return false;
     if (activeTrigger) lastOverlayTrigger = activeTrigger;
     if (isMobile()) {
-      const kind = { create: 'create', search: 'search', display: 'display', editor: 'edit' }[surface];
+      const kind = { search: 'search', display: 'display' }[surface];
       const panel = mobileSheets.mobileSheetPanel(kind);
       mobileSheets.resetMobileSheetSession(panel);
       trackMobileSheetHistory(kind);
@@ -350,71 +247,30 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
         }
       });
     }
-    if (surface === 'create' && !isMobile()) {
-      requestAnimationFrame(() => {
-        if (surfaceController.isOpen('create') && !isMobile()) activeCreateMenuItems()[0]?.focus({ preventScroll: true });
-      });
-    }
     return true;
   }
 
   function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
     if(!registeredSurfaces.includes(surface))return false;
-    if (surface === 'editor' && editorWorkspacePresentation.isDocked() && layoutMode !== 'phone-landscape') return;
-    const mobileKind = isMobile() ? { create: 'create', search: 'search', display: 'display', editor: 'edit' }[surface] : null;
+    const mobileKind = isMobile() ? { search: 'search', display: 'display' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheets.mobileSheetPanel(mobileKind) : null;
     if (!surfaceController.close(surface, { manual, selected: !!dependencies.projectState.state?.selected })) return;
     if (mobilePanel) mobileSheets.resetMobileSheetSession(mobilePanel);
-    if (surface === 'editor') (0, dependencies.colorPicker.closeAllColorPickers)();
     syncOverlayState();
     if (mobilePanel && syncHistory) releaseMobileSheetHistory();
     if (restoreFocus) focusSurfaceTrigger(surface);
     if (restoreFocus) lastOverlayTrigger = null;
   }
 
-  function completeToolStart(started, { destination = 'map' } = {}) {
-    if (!started) return false;
-    if (destination === 'editor') {
-      openSurface('editor');
-      requestAnimationFrame(() => {
-        if (!surfaceController.isOpen('editor')) return;
-        const panel = (0, dependencies.platform.$)('editorSurface');
-        const input = [...panel.querySelectorAll('input:not([type="hidden"]):not(:disabled), select:not(:disabled), textarea:not(:disabled)')]
-          .find(element => element.getClientRects().length > 0 && !element.closest('[hidden], .hidden'));
-        input?.focus({ preventScroll: true });
-      });
-    } else if (isMobile()) {
-      if (editorWorkspacePresentation.isDocked() && layoutMode !== 'phone-landscape') openSurface('editor');
-      else closeMobileSheets();
-      requestAnimationFrame(() => (0, dependencies.platform.$)('map')?.focus({ preventScroll: true }));
-    } else {
-      closeSurface('create');
-    }
-    return true;
-  }
-
   function toggleSurface(surface, trigger = null) {
     if (surfaceController.isOpen(surface)) {
-      closeSurface(surface, { manual: surface === 'editor', restoreFocus: true });
+      closeSurface(surface, { restoreFocus: true });
     } else {
       openSurface(surface, { trigger });
     }
   }
 
   function initializeWorkspaceSurfaces() {
-    if(productMode==='editor'){
-      mobileNavigation = document.querySelector('.mobile-workspace-controls');
-      if (!mobileNavigation) throw new Error('Editor workspace navigation is missing');
-      navigationObserver = new ResizeObserver(() => {
-        if (!syncMobileNavigationHeight()) return;
-        refreshMapSheetMetrics();
-        dependencies.mapHostViewB.queueMapResize('navigation-height');
-      });
-      navigationObserver.observe(mobileNavigation);
-      isPolygonDraftTool=tool=>dependencies.countryEditingA.draftToolConfig(tool)?.shape==='polygon';
-      isGenericFeatureDraftTool=tool=>!!dependencies.countryEditingA.draftToolConfig(tool);
-      uid=()=>dependencies.projectServices.createProjectObjectId();
-    }
     const detect = createWorkspaceLayoutDetector();
     const coarsePointer = window.matchMedia('(pointer: coarse)');
     detectLayoutMode = () => detect({
@@ -438,18 +294,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
 
     (surfaceState = surfaceController.state);
 
-    if(productMode==='editor')(editorWorkspacePresentation = (0, dependencies.uiFactoriesA.createEditorWorkspacePresentation)({
-      document,
-      panel: (0, dependencies.platform.$)('editorSurface'), task: (0, dependencies.platform.$)('modeEditingContext'),
-      dockSlot: (0, dependencies.platform.$)('editorTaskSlot'),
-      isEditorOpen: () => surfaceController.isOpen('editor'),
-      openEditor: () => {
-        if (!surfaceController.isOpen('create')) openSurface('editor');
-      },
-      onLayoutChange: () => (0, dependencies.mapHostViewB.queueMapResize)('editor-task-layout'),
-    }));
-
-    (editorSurfaceTabs = null);
 
 
 
@@ -465,11 +309,11 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
 
 
 
-    (MOBILE_SHEET_IDS = Object.freeze(productMode==='editor'?{create:'createMenu',search:'objectSearchSurface',display:'mapDisplaySurface',edit:'editorSurface'}:{search:'objectSearchSurface',display:'mapDisplaySurface'}));
+    (MOBILE_SHEET_IDS = Object.freeze({search:'objectSearchSurface',display:'mapDisplaySurface'}));
     mobileSheets=createMobileSheetPresentation({document,window,getElement:dependencies.platform.$,getLayout:()=>layoutMode,panelIds:MOBILE_SHEET_IDS,
       onSync:syncOverlayState,onClose:closeActiveMobileSheet,
       onResumeLayout:()=>{if(pendingLayoutChange){pendingLayoutChange=false;applyLayoutMode();}},
-      onLayoutChange:()=>{syncEditingSurfaces();dependencies.mapHostViewB.queueMapResize('panel-layout');},
+      onLayoutChange:()=>dependencies.mapHostViewB.queueMapResize('panel-layout'),
     });
 
 
@@ -520,7 +364,6 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     if(window.visualViewport)listen(window.visualViewport,'resize', () => {
       refreshMapSheetMetrics();
       menuPositionScheduler.schedule();
-      if(productMode==='editor')dependencies.mapHostViewB.queueMapResize('visual-viewport');
     });
     if(window.visualViewport)listen(window.visualViewport,'scroll', () => { syncVisibleViewport(); menuPositionScheduler.schedule(); });
   }
@@ -528,29 +371,19 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
   return Object.freeze({
     connect,
     initializeWorkspaceSurfaces,openFileMenu,
-    dispose(){listeners.forEach(remove=>remove());if(navigationObserver)navigationObserver.disconnect();if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();if(searchToolbarPresentation)searchToolbarPresentation.dispose();cancelAnimationFrame(searchFocusFrame);},
+    dispose(){listeners.forEach(remove=>remove());if(mobileSheets)mobileSheets.dispose();if(menuPositionScheduler)menuPositionScheduler.cancel();if(searchToolbarPresentation)searchToolbarPresentation.dispose();cancelAnimationFrame(searchFocusFrame);},
     get MOBILE_SHEET_IDS() { return MOBILE_SHEET_IDS; },
-    get activeCreateMenuItems() { return activeCreateMenuItems; },
     get applyLayoutMode() { return applyLayoutMode; },
     get bindMobileSheetSurface() { return mobileSheets.bindMobileSheetSurface; },
     get closeActiveMobileSheet() { return closeActiveMobileSheet; },
     get closeFileMenu() { return closeFileMenu; },
     get closeMobileSheets() { return closeMobileSheets; },
     get closeSurface() { return closeSurface; },
-    get editorSurfaceTabs() { return editorSurfaceTabs; },
-    set editorSurfaceTabs(value) { editorSurfaceTabs = value; },
-    get editorWorkspacePresentation() { return editorWorkspacePresentation; },
-    get isGenericFeatureDraftTool() { return isGenericFeatureDraftTool; },
     get isMobile() { return isMobile; },
     get isFileMenuOpen(){return fileMenuOpen;},
-    get fileMenuPage(){return fileMenuPage;},
-    setFileMenuPage,
-    get isPolygonDraftTool() { return isPolygonDraftTool; },
     get layoutMode() { return layoutMode; },
-    get openSelectionEditor() { return openSelectionEditor; },
     get openSurface() { return openSurface; },
     get refreshMapSheetMetrics() { return refreshMapSheetMetrics; },
-    get completeToolStart() { return completeToolStart; },
     get focusSurfaceTrigger() { return focusSurfaceTrigger; },
     get setMobileSheetHeight() { return mobileSheets.setMobileSheetHeight; },
     get surfaceController() { return surfaceController; },
@@ -559,6 +392,5 @@ export function createWorkspaceSurfaces({productMode='editor'}={}) {
     get toggleFileMenu() { return toggleFileMenu; },
     get toggleSurface() { return toggleSurface; },
     get trackMobileSheetHistory() { return trackMobileSheetHistory; },
-    get uid() { return uid; },
   });
 }

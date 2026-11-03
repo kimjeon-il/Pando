@@ -30,7 +30,7 @@ export function createNativePlatformAdapter({
     }
   }
 
-  async function preparePlatform({ profile, meta, versionedAsset, install = false } = {}) {
+  async function preparePlatform({ profile, meta, versionedAsset } = {}) {
     if (!profile?.platform || !meta?.appVersion || typeof versionedAsset !== 'function') {
       throw new TypeError('Native platform preparation requires profile, metadata and a versioned asset resolver.');
     }
@@ -68,10 +68,6 @@ export function createNativePlatformAdapter({
       files: { access: storage },
       library: { getRepository: getLibraryRepository, geometryContext },
     });
-    if (install) {
-      const { installRuntimePlatform } = await loadModule(versionedAsset('./modules/platform-runtime.js').href);
-      installRuntimePlatform(platform, { productMode: 'editor' });
-    }
     return platform;
   }
 

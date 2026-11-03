@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applicationFunctionSource } from '../../scripts/lib/application-source.mjs';
+import { applicationFunctionSource } from '../helpers/source-functions.mjs';
 
 test('Node application source parser preserves a multiline owner and nested body',()=>{
   const source = `export async function operation({

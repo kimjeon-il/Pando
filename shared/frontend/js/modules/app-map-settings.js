@@ -3,6 +3,7 @@ import { MAP_DISPLAY_TARGETS } from './map-display-catalog.js';
 import { PLACE_LANGUAGES, togglePlaceLanguage } from './place-contract.js';
 import { distributionValueRange } from './distribution-model.js';
 import { clearMenuPosition, createMenuPositionScheduler, exitMenuOnTab, positionRootMenu, positionSubmenu } from './menu-presentation.js';
+import {createMapDisplayMenuState} from './map-display-menu-state.js';
 
 const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
 
@@ -16,15 +17,8 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   }
   let dependencies;
   let LAYER_STYLE_TARGETS;
-  let desktopViewMenuPath = [];
-  let desktopViewMenuOpenTimer = null;
-  let desktopViewMenuCloseTimer = null;
-  let displayMenuLayout = null;
-  let displayMenuGesture = null;
-  let pendingDisplayMenuLayout = false;
-  let focusedMenuControl = null;
+  const menuState=createMapDisplayMenuState();
   let desktopViewMenuPositioner;
-  const displayMenuPresentation = new Map();
   function connect(ports) {
     if (dependencies) throw new Error('map-settings already connected');
     if (typeof ports?.feedback?.reportOperationError !== 'function') throw new TypeError('Map settings require their operation error reporter.');
@@ -248,15 +242,12 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   }
 
   function cancelDesktopMenuTimers() {
-    clearTimeout(desktopViewMenuOpenTimer);
-    clearTimeout(desktopViewMenuCloseTimer);
-    desktopViewMenuOpenTimer = null;
-    desktopViewMenuCloseTimer = null;
+    menuState.cancelTimers();
   }
 
   function setMenuPresentation(element, desktop, classes) {
     if (!element) return;
-    let original = displayMenuPresentation.get(element);
+    let original = menuState.originals.get(element);
     if (!original) {
       original = {
         classes: ['ui-toggle', 'ui-radio-toggle', 'ui-segment-option', 'ui-segmented',
@@ -266,7 +257,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
         role: element.getAttribute('role'),
         tabIndex: element.getAttribute('tabindex'),
       };
-      displayMenuPresentation.set(element, original);
+      menuState.originals.set(element, original);
     }
     for (const name of original.classes) element.classList.toggle(name, !desktop);
     for (const name of classes) element.classList.toggle(name, desktop);
@@ -305,9 +296,9 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   function syncDesktopMenuLayout(desktop) {
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return false;
-    if (displayMenuLayout === desktop) return true;
-    if (displayMenuGesture !== null || surface.classList.contains('is-sheet-dragging')) {
-      pendingDisplayMenuLayout = true;
+    if (menuState.layout === desktop) return true;
+    if (menuState.gesture !== null || surface.classList.contains('is-sheet-dragging')) {
+      menuState.setPendingLayout(true);
       return false;
     }
     cancelDesktopMenuTimers();
@@ -345,9 +336,9 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     for (const leading of surface.querySelectorAll('.view-menu-leading')) leading.classList.toggle('ui-menu-leading', desktop);
     for (const chevron of surface.querySelectorAll('.view-menu-chevron')) chevron.classList.toggle('ui-menu-chevron', desktop);
     syncMenuChoices(surface, desktop);
-    if (!desktop) desktopViewMenuPath = [];
-    displayMenuLayout = desktop;
-    pendingDisplayMenuLayout = false;
+    if (!desktop) menuState.setPath([]);
+    menuState.setLayout(desktop);
+    menuState.setPendingLayout(false);
     if (focusedControl?.getClientRects().length) focusedControl.focus({ preventScroll: true });
     return true;
   }
@@ -364,7 +355,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     if (!desktopMenuOpen()) return;
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     positionRootMenu({ menu: surface, trigger: (0, dependencies.platform.$)('mapDisplayBtn') });
-    for (const group of desktopViewMenuPath) positionDesktopViewMenuGroup(group);
+    for (const group of menuState.path) positionDesktopViewMenuGroup(group);
   }
 
   function positionDesktopViewMenuGroup(group) {
@@ -378,10 +369,10 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   function setDesktopViewMenuGroup(group, { toggle = false } = {}) {
     if (!desktopMenuOpen() || !group || !mapDisplayAvailability()[group]) return false;
     cancelDesktopMenuTimers();
-    const index = desktopViewMenuPath.indexOf(group);
+    const index = menuState.path.indexOf(group);
     const parent = desktopMenuTrigger(group)?.dataset.mapDisplayParent;
-    desktopViewMenuPath = toggle && index !== -1 ? desktopViewMenuPath.slice(0, index)
-      : parent ? [parent, group] : [group];
+    menuState.setPath(toggle && index !== -1 ? menuState.path.slice(0, index)
+      : parent ? [parent, group] : [group]);
     syncMapDisplayDisclosures();
     desktopViewMenuPositioner.schedule();
     return true;
@@ -389,9 +380,9 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
 
   function closeDesktopViewMenuGroup({ focusParent = false } = {}) {
     cancelDesktopMenuTimers();
-    if (!desktopViewMenuPath.length) return false;
-    const parent = desktopMenuTrigger(desktopViewMenuPath[0]);
-    desktopViewMenuPath = [];
+    if (!menuState.path.length) return false;
+    const parent = desktopMenuTrigger(menuState.path[0]);
+    menuState.setPath([]);
     syncMapDisplayDisclosures();
     if (focusParent) parent?.focus({ preventScroll: true });
     return true;
@@ -400,8 +391,8 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   function collapseDesktopViewMenuLevel({ focusParent = false } = {}) {
     if (!isDesktopViewMenu()) return false;
     cancelDesktopMenuTimers();
-    if (desktopViewMenuPath.length) {
-      const trigger = desktopMenuTrigger(desktopViewMenuPath.pop());
+    if (menuState.path.length) {
+      const trigger = desktopMenuTrigger(menuState.popPath());
       syncMapDisplayDisclosures();
       if (focusParent) trigger?.focus({ preventScroll: true });
       return true;
@@ -411,21 +402,20 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
 
   function scheduleDesktopViewMenuGroup(group) {
     cancelDesktopMenuTimers();
-    if (desktopViewMenuPath.includes(group)) return;
-    desktopViewMenuOpenTimer = setTimeout(() => {
-      desktopViewMenuOpenTimer = null;
+    if (menuState.path.includes(group)) return;
+    menuState.scheduleOpen(() => {
       if (desktopMenuOpen()) setDesktopViewMenuGroup(group);
     }, 150);
   }
 
   function scheduleDesktopViewMenuClose() {
     cancelDesktopMenuTimers();
-    desktopViewMenuCloseTimer = setTimeout(() => closeDesktopViewMenuGroup(), 200);
+    menuState.scheduleClose(() => closeDesktopViewMenuGroup(), 200);
   }
 
   function syncMapDisplayDisclosures() {
     const requestedDesktop = isDesktopViewMenu();
-    const desktop = displayMenuLayout ?? requestedDesktop;
+    const desktop = menuState.layout ?? requestedDesktop;
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     document.querySelectorAll('[data-layer-style-panel]').forEach(panel => {
       const group = panel.dataset.layerStylePanel;
@@ -454,7 +444,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       const visible = mapDisplayVisible(group);
       if (!menuDesktop && !visible) dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
       const expanded = menuDesktop
-        ? desktopViewMenuPath.includes(group)
+        ? menuState.path.includes(group)
         : visible && dependencies.objectModelA.expandedMapDisplayGroups.has(group);
       const panel = mapDisplayPanel(group);
       const popup = displayPanelForDesktopGroup(group);
@@ -478,7 +468,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       }
     });
     const distributionSettings = (0, dependencies.platform.$)('distributionViewSettings');
-    const distributionExpanded = menuDesktop && desktopViewMenuPath.includes('distribution');
+    const distributionExpanded = menuDesktop && menuState.path.includes('distribution');
     if (distributionSettings) distributionSettings.hidden = menuDesktop && !distributionExpanded;
     (0, dependencies.platform.$)('distributionMenuTrigger')?.setAttribute('aria-expanded', String(distributionExpanded));
     surface?.classList.toggle('view-menu-desktop', menuDesktop);
@@ -527,7 +517,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     // Core pending guards can blur a disabled menu input before this refresh.
     const focusedControl = document.activeElement === document.body
       && (surface?.classList.contains('surface-open') || surface?.classList.contains('mobile-open'))
-      ? focusedMenuControl : document.activeElement;
+      ? menuState.focusedControl : document.activeElement;
     let closeGroup = false, restoreFocus = false;
     for (const [group, available] of Object.entries(mapDisplayAvailability())) {
       const container = group === 'distribution' ? (0, dependencies.platform.$)('distributionMenuGroup')
@@ -535,7 +525,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       if (!available) {
         if (container && !container.classList.contains('hidden')) cancelDesktopMenuTimers();
         restoreFocus ||= !!container?.contains(focusedControl);
-        closeGroup ||= desktopViewMenuPath.includes(group);
+        closeGroup ||= menuState.path.includes(group);
         dependencies.objectModelA.expandedMapDisplayGroups.delete(group);
       }
       container?.classList.toggle('hidden', !available);
@@ -552,8 +542,8 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
-    surface.addEventListener('focusin', event => { focusedMenuControl = event.target; });
-    document.addEventListener('focusin', event => { if (!surface.contains(event.target)) focusedMenuControl = null; });
+    surface.addEventListener('focusin', event => { menuState.rememberFocus(event.target); });
+    document.addEventListener('focusin', event => { if (!surface.contains(event.target)) menuState.rememberFocus(null); });
     window.addEventListener('pandolab:project-changed', renderMapDisplaySettings);
     const state=dependencies.projectState.state;
     for(const input of surface.querySelectorAll('[data-map-background]')) {
@@ -609,34 +599,32 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     });
     surface.addEventListener('pointerdown', event => {
       if (event.target.closest('input[type="range"], .sheet-drag-handle, .surface-header')) {
-        displayMenuGesture = event.pointerId;
-        cancelDesktopMenuTimers();
+        menuState.beginGesture(event.pointerId);
       }
     }, true);
     const finishMenuGesture = event => {
-      if (displayMenuGesture !== event.pointerId) return;
-      displayMenuGesture = null;
+      if (!menuState.endGesture(event.pointerId)) return;
       requestAnimationFrame(() => {
-        if (pendingDisplayMenuLayout) syncMapDisplayDisclosures();
+        if (menuState.pendingLayout) syncMapDisplayDisclosures();
       });
     };
     document.addEventListener('pointerup', finishMenuGesture);
     document.addEventListener('pointercancel', finishMenuGesture);
     surface.addEventListener('lostpointercapture', finishMenuGesture);
     surface.addEventListener('pointerover', event => {
-      if (!desktopMenuOpen() || event.pointerType !== 'mouse' || displayMenuGesture !== null) return;
+      if (!desktopMenuOpen() || event.pointerType !== 'mouse' || menuState.gesture !== null) return;
       const row = event.target.closest('.ui-menu-item');
       const previousRow = event.relatedTarget instanceof globalThis.Element ? event.relatedTarget.closest('.ui-menu-item') : null;
       if (row === previousRow && row) return;
-      clearTimeout(desktopViewMenuCloseTimer);
+      menuState.cancelCloseTimer();
       if (!row) {
-        clearTimeout(desktopViewMenuOpenTimer);
+        menuState.cancelOpenTimer();
         return;
       }
       const group = displayGroupForTrigger(row);
       if (group) {
         // Returning across the open parent must not collapse its child.
-        if (desktopViewMenuPath.includes(group)) cancelDesktopMenuTimers();
+        if (menuState.path.includes(group)) cancelDesktopMenuTimers();
         else scheduleDesktopViewMenuGroup(group);
         return;
       }
@@ -645,11 +633,11 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       if (menu?.classList.contains('view-menu-root')) closeDesktopViewMenuGroup();
     });
     surface.addEventListener('pointerout', event => {
-      if (!desktopMenuOpen() || event.pointerType !== 'mouse' || displayMenuGesture !== null) return;
+      if (!desktopMenuOpen() || event.pointerType !== 'mouse' || menuState.gesture !== null) return;
       if (event.relatedTarget instanceof globalThis.Node && surface.contains(event.relatedTarget)) return;
       scheduleDesktopViewMenuClose();
     });
-    surface.addEventListener('pointerenter', () => clearTimeout(desktopViewMenuCloseTimer));
+    surface.addEventListener('pointerenter', () => menuState.cancelCloseTimer());
     const menuActions = menu => [...(menu?.querySelectorAll('.ui-menu-item, input[type="range"], select') || [])]
       .filter(item => item.closest('[role="menu"]') === menu && !item.closest('[hidden], .hidden, [inert]') && item.getClientRects().length)
       .map(item => item.matches('button, input, select') ? item : item.querySelector('input, button'))

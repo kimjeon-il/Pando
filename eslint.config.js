@@ -34,7 +34,7 @@ export default [
     'tests/fixtures/shared-core/web-m97/lifecycle-source/**'] },
   js.configs.recommended,
   {
-    files: ['shared/frontend/js/**/*.js', 'apps/editor/frontend/js/**/*.js', 'apps/viewer/js/**/*.js', 'apps/editor/*.js'],
+    files: ['shared/frontend/js/**/*.js', 'apps/viewer/js/**/*.js', 'apps/editor/*.js'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...browserGlobals, console: 'readonly' } },
     rules: {
       'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none', ignoreRestSiblings: true }],
@@ -51,7 +51,7 @@ export default [
     },
   },
   {
-    files: ['shared/frontend/js/workers/**/*.js', 'apps/editor/frontend/js/workers/**/*.js'],
+    files: ['shared/frontend/js/workers/**/*.js'],
     languageOptions: {
       sourceType: 'script',
       globals: {
@@ -66,8 +66,6 @@ export default [
       'shared/frontend/js/workers/data-loader-worker.js',
       'shared/frontend/js/workers/place-worker.js',
       'shared/frontend/js/workers/map-display-worker.js',
-      'apps/editor/frontend/js/workers/river-territory-partition-worker.js',
-      'apps/editor/frontend/js/workers/core-session-worker.js',
       'shared/frontend/js/workers/core-viewer-session-worker.js',
       'shared/frontend/js/workers/gpkg-read-core.js',
     ],

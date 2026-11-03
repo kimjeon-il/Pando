@@ -1,6 +1,9 @@
 import { geometryReferenceFor } from './geometry-version-store.js';
 import { mapVisualOrder } from './layer-presentation.js';
 import { createGpuCanvasWorker } from './gpu-canvas-worker.js';
+import { createCanvasScenePackets } from './gpu-canvas-scene-packets.js';
+import { createCountryMeshVariants } from './gpu-country-mesh-variants.js';
+import { createCountryGeometryRevisionTracker } from './gpu-country-geometry-revisions.js';
 import { createGpuContextRecovery } from './gpu-context-recovery.js';
 import { drawGpuInteractionPass } from './gpu-interaction-pass.js';
 import { createGpuResourceLifecycle, createGpuResourceLease, createGpuUploadScope } from './gpu-resource-lifecycle.js';
@@ -121,67 +124,6 @@ export function visibleFlatWorldOffsets({
 export function canvasCountryGeometrySignature(features) {
   return resourceKey(features.map(feature => [String(feature.id),
     geometryRevisionKey(feature.geometry), feature.boundaryRootId || '', feature.boundaryPristine !== false]));
-}
-
-export function createCountryGeometryRevisionTracker() {
-  let committedRevision = 0;
-  let displayedRevision = 0;
-  let taskToken = 0;
-  const pendingRevisions = new Map();
-
-  const normalizedIds = ids => [...new Set([...(ids || [])].map(String).filter(Boolean))];
-
-  function beginCommit(ids) {
-    committedRevision += 1;
-    taskToken += 1;
-    const normalized = normalizedIds(ids);
-    for (const id of normalized) pendingRevisions.set(id, committedRevision);
-    return { ids: normalized, revision: committedRevision, token: taskToken };
-  }
-
-  function beginTask(revision = committedRevision) {
-    taskToken += 1;
-    return { revision: Number(revision || 0), token: taskToken };
-  }
-
-  function isCurrent(token, revision) {
-    return Number(token) === taskToken && Number(revision) === committedRevision;
-  }
-
-  function markDisplayed(ids, revision) {
-    const numericRevision = Number(revision || 0);
-    if (numericRevision < committedRevision) return [];
-    const cleared = [];
-    for (const id of normalizedIds(ids)) {
-      const pendingRevision = pendingRevisions.get(id);
-      if (pendingRevision === undefined || pendingRevision > numericRevision) continue;
-      pendingRevisions.delete(id);
-      cleared.push(id);
-    }
-    displayedRevision = Math.max(displayedRevision, numericRevision);
-    return cleared;
-  }
-
-  function reset() {
-    taskToken += 1;
-    pendingRevisions.clear();
-    committedRevision += 1;
-    return committedRevision;
-  }
-
-  return Object.freeze({
-    beginCommit,
-    beginTask,
-    isCurrent,
-    markDisplayed,
-    reset,
-    committedRevision: () => committedRevision,
-    displayedRevision: () => displayedRevision,
-    taskToken: () => taskToken,
-    pendingIds: () => [...pendingRevisions.keys()],
-    pendingRevision: id => pendingRevisions.get(String(id)),
-    isPending: id => pendingRevisions.has(String(id)),
-  });
 }
 
 export function createGpuMapRenderer(deps) {
@@ -875,7 +817,7 @@ export function createGpuMapRenderer(deps) {
     let meshQuality = 'preview';
     let activeMeshQuality = 'preview';
     let canonicalMeshReady = false;
-    const meshVariants = new Map();
+    const meshVariants = createCountryMeshVariants(disposeMeshEntry);
     let pickCount = 0;
     let pickReadPixelsMs = 0;
     let pickLastReadPixelsMs = 0;
@@ -2356,23 +2298,16 @@ export function createGpuMapRenderer(deps) {
         return false;
       }
       invalidateGpuRecoveryInputs('base-mesh-replaced');
-      if (!preserveOtherVariants) {
-        for (const entry of meshVariants.values()) disposeMeshEntry(entry);
-        meshVariants.clear();
-      } else if (meshVariants.has(variantQuality)) {
-        disposeMeshEntry(meshVariants.get(variantQuality));
-      }
       nextMesh.metadataCountryIds = [...countryIds];
       nextMesh.triangleRangesByCountryId = createCountryTriangleRangeMap(nextMesh, countryIds);
-      const entry = {
+      const entry = meshVariants.replace(variantQuality, () => ({
         quality: variantQuality,
         mesh: nextMesh,
         dependencies: null,
         countryIds: [...countryIds],
         boundaryCacheKind,
         resources: stagedResources || uploadMeshResources(nextMesh),
-      };
-      meshVariants.set(variantQuality, entry);
+      }), { preserveOtherVariants });
       if (builtinMeshBaseline?.mesh === nextMesh) builtinMeshBaseline.resources = entry.resources;
       if (activate) activateMeshVariant(variantQuality, { renderFrame });
       prewarmCountryStrokeResources();
@@ -4570,49 +4505,11 @@ export function createGpuMapRenderer(deps) {
       return { succeeded: true, frameId: frame.frameId, viewRevision: frame.viewRevision };
     }
 
-    function canvasInteractionPolygons() {
-      return [...(renderInteractionState.previewPackets || []), ...(renderInteractionState.draftPackets || [])]
-        .filter(item => item.kind === 'polygon').map(item => item.packet);
-    }
-
-    function canvasScenePolygons() {
-      return surfaceScenePolygons().filter(packet => packet.ringCoordinates).map(packet => ({
-        key: packet.key, sourceKey: packet.sourceKey, ringCoordinates: packet.ringCoordinates, ringOffsets: packet.ringOffsets, polygonOffsets: packet.polygonOffsets,
-        role: packet.role, geometryRevision: packet.geometryRevision, territoryDepth: packet.territoryDepth,
-        order: packet.order, style: packet.style, blendMode: packet.blendMode,
-      }));
-    }
-
-    function canvasSceneStrokes() {
-      return (renderScene?.strokes || []).map(packet => ({
-        key: packet.key, startsEnds: packet.startsEnds, ownerRanges: packet.ownerRanges, ownerIds: packet.ownerIds,
-        order: packet.order, style: packet.style, blendMode: packet.blendMode,
-      }));
-    }
-
-    function canvasCountryBoundaryPacket() {
-      if (!countrySharedBoundary) return null;
-      const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision, sourceQuality } = countrySharedBoundary;
-      return { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, geometryRevision, sourceQuality,
-        outlineOverrides: { startsEnds: outlineOverrides.startsEnds, ownerRanges: outlineOverrides.ownerRanges,
-          ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
-    }
-
-    const canvasSentGeometry = new Map();
-    function canvasPacketDelta(packets, channel) {
-      const next = new Set();
-      const result = packets.map(packet => {
-        const key = `${channel}:${packet.key}`;
-        next.add(key);
-        const previous = canvasSentGeometry.get(key);
-        canvasSentGeometry.set(key, packet.ringCoordinates || packet.startsEnds);
-        if (previous !== (packet.ringCoordinates || packet.startsEnds)) return packet;
-        const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, startsEnds: _segments, ...metadata } = packet;
-        return metadata;
-      });
-      for (const key of canvasSentGeometry.keys()) if (key.startsWith(`${channel}:`) && !next.has(key)) canvasSentGeometry.delete(key);
-      return result;
-    }
+    const canvasScenePackets = createCanvasScenePackets();
+    const canvasInteractionPolygons = () => canvasScenePackets.interactionPolygons(renderInteractionState);
+    const canvasScenePolygons = () => canvasScenePackets.scenePolygons(surfaceScenePolygons());
+    const canvasSceneStrokes = () => canvasScenePackets.sceneStrokes(renderScene);
+    const canvasCountryBoundaryPacket = () => canvasScenePackets.countryBoundary(countrySharedBoundary);
 
     function canvasCountryFills(features) {
       const fills = {};
@@ -4636,10 +4533,10 @@ export function createGpuMapRenderer(deps) {
         fills,
         countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
         visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
-        scenePolygons: canvasPacketDelta(canvasScenePolygons(), 'scene'),
-        sceneStrokes: canvasPacketDelta(canvasSceneStrokes(), 'strokes'),
+        scenePolygons: canvasScenePackets.delta(canvasScenePolygons(), 'scene'),
+        sceneStrokes: canvasScenePackets.delta(canvasSceneStrokes(), 'strokes'),
         interactionFillItems: renderInteractionState.genericFillItems || [],
-        interactionPolygons: canvasPacketDelta(canvasInteractionPolygons(), 'interaction'),
+        interactionPolygons: canvasScenePackets.delta(canvasInteractionPolygons(), 'interaction'),
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           primaryIds: [...countryEmphasis.primaryIds],
@@ -4696,7 +4593,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasWorkerInitMessage() {
-      canvasSentGeometry.clear();
+      canvasScenePackets.clear();
       const message = {
         ...(lastVisualFrame ? canvasWorkerViewMessage() : { projectGeneration }),
         ...canvasWorkerStyleMessage(),
@@ -4975,7 +4872,7 @@ export function createGpuMapRenderer(deps) {
       cancelSharedGpuInitialization('canvas-fallback');
       canvasWorkerNeedsRestart = false;
       canvasTerrainEverReady = false;
-      canvasSentGeometry.clear();
+      canvasScenePackets.clear();
       canvasLastCountryDependencies = null;
       const rawReason = String(reason || '');
       if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[PL-GPU-005]', rawReason);
@@ -5918,7 +5815,7 @@ export function createGpuMapRenderer(deps) {
       lifecycle.dispose();
       if (canvasWorkerUrl) URL.revokeObjectURL(canvasWorkerUrl);
       canvasWorkerUrl = null; canvasWorkerBitmapContext = null; canvasWorker2dContext = null;
-      meshVariants.clear();
+      meshVariants.forget();
       mesh = null; overrideMesh = null; builtinMeshBaseline = null;
       renderDevice = null; gl = null; ctx2d = null; canvasFillSubstrate = null;
       rendererMode = 'disposed'; framePresentationListener = null;

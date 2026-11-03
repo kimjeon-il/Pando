@@ -19,16 +19,6 @@ export function setInteractionStyle(nextStyle) {
   return interactionStyle;
 }
 
-export function setSelectionColor(color) {
-  const value = String(color || '').trim();
-  if (/^#[0-9a-f]{6}$/i.test(value)) setInteractionStyle(resolveMapInteractionStyle({
-    theme: interactionStyle.theme, selectionColor: value,
-    outlineVisible: interactionStyle.selection.outlineVisible, fillStrength: interactionStyle.selection.fillStrength,
-    tokens: {},
-  }));
-  return SELECTION_STYLE.color;
-}
-
 export function getInteractionStyle() {
   return interactionStyle;
 }

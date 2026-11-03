@@ -1,4 +1,4 @@
-import {buildFrontendSnapshot,readFrontendInput,hasFrontendInput} from './lib/frontend-build.mjs';
+import {buildFrontendSnapshot,readFrontendInput} from './lib/frontend-build.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -7,7 +7,6 @@ import { UI_AUDIT_STYLE_SOURCES } from './lib/ui-source-catalog.mjs';
 const root = process.cwd();
 const frontend=await buildFrontendSnapshot({root});
 const readInput=(file,encoding)=>readFrontendInput(frontend,file,encoding);
-const inputExists=file=>hasFrontendInput(frontend,file);
 const jsRoot = path.join(root, 'shared/frontend/js');
 const cssSource = UI_AUDIT_STYLE_SOURCES
   .map(source => readInput(path.join(root, source), 'utf8'))
@@ -162,7 +161,7 @@ for (const rule of rules) {
   }
 }
 
-for (const file of [...walkJavaScript(jsRoot),...walkJavaScript(path.join(root,'apps/editor/frontend/js')),...walkJavaScript(path.join(root,'apps/viewer/js'))]) {
+for (const file of [...walkJavaScript(jsRoot),...walkJavaScript(path.join(root,'apps/viewer/js'))]) {
   const source = readInput(file, 'utf8');
   if (/style\.cssText\s*=\s*['"`][\s\S]*?(?:padding|margin|gap|top|right|bottom|left)\s*:/i.test(source)) {
     failures.push(`inline spacing cssText found in ${path.relative(root, file)}`);

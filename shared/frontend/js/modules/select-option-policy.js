@@ -31,11 +31,3 @@ export function resolveSelectChoice(options = [], selectedValue = '', { autoSele
     value,
   });
 }
-
-export function markPlaceholderOption(option) {
-  if (!option) return option;
-  option.disabled = true;
-  option.hidden = true;
-  option.dataset.placeholder = 'true';
-  return option;
-}

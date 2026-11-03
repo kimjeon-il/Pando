@@ -71,7 +71,7 @@ export function assertPlatformPorts(platform, { productMode } = {}) {
   rejectUnknown(platform, new Set(['schema', 'kind', 'resources', 'storage', 'files', 'library', 'world']), 'Runtime platform ports');
   if (platform.schema !== PLATFORM_PORTS_SCHEMA) throw new TypeError('Runtime platform ports use an unsupported schema.');
   if (!PLATFORM_KINDS.has(platform.kind)) throw new TypeError('Runtime platform kind is invalid.');
-  if (!['viewer', 'editor'].includes(productMode)) throw new TypeError('Platform validation requires product mode.');
+  if (productMode !== 'viewer') throw new TypeError('Platform validation requires viewer product mode.');
   requireRecord(platform.resources, 'Runtime platform resources');
   requireRecord(platform.storage, 'Runtime platform storage');
   requireRecord(platform.files, 'Runtime platform files');
@@ -80,15 +80,10 @@ export function assertPlatformPorts(platform, { productMode } = {}) {
   if (typeof platform.resources.builtinHydro !== 'boolean' || typeof platform.resources.builtinPlaces !== 'boolean'
       || !STARTUP_MESHES.has(platform.resources.startupMesh)) throw new TypeError('Runtime platform resource ports are invalid.');
   if (platform.storage.namespace !== null && (typeof platform.storage.namespace !== 'string' || !platform.storage.namespace.trim())) throw new TypeError('Runtime platform storage namespace is invalid.');
-  const access = platform.files.access === null ? null : assertFileAccessPort(platform.files.access, { productMode });
-  const repository = optionalFunction(platform.library.getRepository, 'Runtime platform library repository provider');
+  if (platform.files.access !== null) assertFileAccessPort(platform.files.access, { productMode });
+  optionalFunction(platform.library.getRepository, 'Runtime platform library repository provider');
   const geometryContext = validateGeometryContext(platform.library.geometryContext);
   validateBuiltinLoader(platform.world.builtinLoader);
-  if (platform.kind === 'native' && productMode === 'editor') {
-    if (!access) throw new TypeError('Native editor platform requires file access.');
-    if (!platform.storage.namespace) throw new TypeError('Native editor platform requires a storage namespace.');
-  }
-  if (geometryContext && productMode !== 'editor') throw new TypeError('Library geometry context is editor-only.');
-  if (geometryContext && !repository) throw new TypeError('Library geometry context requires a repository provider.');
+  if (geometryContext) throw new TypeError('Viewer platform cannot install a library geometry context.');
   return platform;
 }

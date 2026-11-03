@@ -43,7 +43,7 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   // Core document or retained GPU mesh; the editor keeps its original budget.
   const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta,
     sourceCacheLimits:productMode==='viewer'?{maxEntries:3,maxBytes:32*1024*1024}:null});
-  const workspaceSurfaces=createWorkspaceSurfaces({productMode});
+  const workspaceSurfaces=createWorkspaceSurfaces();
   const projectSession=createProjectSession({productMode,readOnly,projection,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});
   const pointerTargets=createPointerTargets({isDraggingDraft:editing?.isDraggingDraft});

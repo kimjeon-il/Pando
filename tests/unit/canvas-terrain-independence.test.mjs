@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as resourcePolicy from '../../shared/frontend/js/modules/resource-update-policy.js';
 import {canvasWorkerFrameMatchesPhysical} from '../../shared/frontend/js/modules/country-mesh-zoom-policy.js';
+import {createCanvasScenePackets} from '../../shared/frontend/js/modules/gpu-canvas-scene-packets.js';
 
 const workerSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-render-worker.js", import.meta.url), 'utf8');
 const terrainCoreSource = readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8');
@@ -138,23 +139,17 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
 }
 
 test('Canvas Worker echoes the revisions of the physical packets it actually paints', async () => {
-  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
-  const start=source.indexOf('    function canvasScenePolygons() {');
-  const end=source.indexOf('\n    function canvasSceneStrokes()',start);
-  assert.ok(start>=0&&end>start,'renderer packet producer must exist');
   const packet=(role,revision)=>({key:role,role,geometryRevision:revision,sourceKey:`source:${role}:${revision}`,
     ringCoordinates:new Float64Array([0,0,1,0,1,1,0,0]),ringOffsets:new Uint32Array([0,4]),
     polygonOffsets:new Uint32Array([0,1]),style:{color:'#fff',fillAlpha:1}});
   const scene=[packet('physical-land','land-v2'),packet('physical-water','water-v3')];
-  const project=new Function('surfaceScenePolygons',source.slice(start,end)+'\nreturn canvasScenePolygons();');
-  const deltaStart=source.indexOf('    const canvasSentGeometry = new Map();');
-  const deltaEnd=source.indexOf('\n    function canvasCountryFills(',deltaStart);
-  assert.ok(deltaStart>=0&&deltaEnd>deltaStart,'renderer packet delta owner must exist');
-  const delta=new Function(source.slice(deltaStart,deltaEnd)+'\nreturn canvasPacketDelta;')();
+  const packetOwner=createCanvasScenePackets();
+  const project=rows=>packetOwner.scenePolygons(rows);
+  const delta=(rows,channel)=>packetOwner.delta(rows,channel);
   const h=canvasTerrainRuntime();await settle();
   let firstCoordinates;
   for(let i=0;i<2;i++){
-    const sent=delta(project(()=>scene),'scene');
+    const sent=delta(project(scene),'scene');
     assert.equal(sent[0].sourceKey,scene[0].sourceKey,'source identity reaches the Worker');
     if(i===1)assert.equal(Object.hasOwn(sent[0],'ringCoordinates'),false,'unchanged geometry is reused');
     h.render({scenePolygons:sent,physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
@@ -165,15 +160,15 @@ test('Canvas Worker echoes the revisions of the physical packets it actually pai
     else assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates);
   }
   const copied=scene.map(value=>({...value,ringCoordinates:new Float64Array(value.ringCoordinates)}));
-  h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  h.render({scenePolygons:delta(project(copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
   assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,'unchanged source retains its Worker geometry');
   h.render({scenePolygons:delta([],'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
-  h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  h.render({scenePolygons:delta(project(copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
   assert.equal(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,
     'a temporarily absent physical scene does not discard unchanged land geometry');
   copied[0]={...copied[0],sourceKey:'source:physical-land:land-v3',geometryRevision:'land-v3',
     ringCoordinates:new Float64Array([0,0,2,0,2,1,0,0])};
-  h.render({scenePolygons:delta(project(()=>copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+  h.render({scenePolygons:delta(project(copied),'scene'),physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
   assert.notEqual(h.currentRenderState().scenePolygons[0].ringCoordinates,firstCoordinates,'changed source replaces Worker geometry');
   assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).physicalLandRevision,'land-v3');
 });
