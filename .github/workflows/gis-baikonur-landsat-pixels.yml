@@ -54,7 +54,7 @@ jobs:
           const doc=JSON.parse(readFileSync(process.env.RUNNER_TEMP+
             '/baikonur-satellite-pixel-preflight.json','utf8'));
           assert.equal(doc.schema,'pando-baikonur-independent-historic-spectral-preflight-v1');
-          assert.equal(doc.areas.length,4);
+          assert.equal(doc.areas.length,6);
           assert.equal(doc.osmDataUsed,false);
           assert.equal(doc.riverRightBankDigitized,false);
           assert.equal(doc.legalBoundaryVerified,false);
@@ -62,7 +62,7 @@ jobs:
           assert.equal(doc.publishedGeometryModified,false);
           for(const row of doc.areas){
             assert.equal(row.pair.length,2);
-            assert([1994,2020].includes(row.year));
+            assert([1994,1995,2020].includes(row.year));
             assert(row.examined.every(e=>e.status==='PIXEL_OBSERVATION_ONLY_NOT_LEGAL_BOUNDARY'));
           }
           console.log('BAIKONUR_INDEPENDENT_PIXEL_EVIDENCE='+JSON.stringify(doc.areas.map(x=>({
