@@ -53,7 +53,7 @@ test('matching boundary Worker protocol error rolls back the dated Core document
         const probe=globalThis.__W5Rollback;
         if(this.__w5Boundary && Number.isInteger(probe?.targetGeneration)
            && data?.projectGeneration===probe.targetGeneration
-           && (data.type==='replace'||data.type==='patch') && data.features?.length>0){
+           && (['replace','patch','delta'].includes(data.type)) && data.features?.length>0){
           // The original latest-request metadata is used unchanged. Refuse
           // to deliver a real prepared packet for the deliberately failed
           // generation, and send exactly one matching Worker error.
