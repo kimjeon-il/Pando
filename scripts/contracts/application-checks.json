@@ -300,25 +300,6 @@
       ]
     },
     {
-      "id": "library",
-      "kind": "browser",
-      "testPatterns": [
-        "tests/browser/east-prussia-library.spec.mjs",
-        "tests/browser/library-*.spec.mjs",
-        "tests/browser/historical-world-*.spec.mjs"
-      ],
-      "inputs": [
-        "shared/frontend/js/modules/*library*.js",
-        "apps/viewer/js/modules/*library*.js",
-        "assets/data/historical-world/**",
-        "assets/data/territorial-entities/**"
-      ],
-      "requires": [
-        "generated",
-        "core"
-      ]
-    },
-    {
       "id": "hydro-gis",
       "kind": "browser",
       "testPatterns": [
@@ -1466,7 +1447,6 @@
         "objects",
         "projects",
         "viewer",
-        "library",
         "hydro-gis",
         "map-plugin-import",
         "ui",
