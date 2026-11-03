@@ -29,6 +29,23 @@ export const dynamicExpressions = Object.freeze({
 });
 const editorOnly = /^(?:assets\/js\/(?:app|bootstrap|gis-io|gis-adapters)\.js|assets\/js\/modules\/(?:app-(?:composition|runtime-dependencies|domain-assembly|lifecycle-assembly|project-restore|project-snapshots|country-commits|generic-commands|object-commands|global-input-bindings|file-bindings|tool-bindings|editor-bindings|territorial-drafts|territory-selection-workflow|geometry-preview|history-assembly|gis-assembly|library-assembly)|editing-|editor-map-click|spatial-edit-registration|project-setup-dialog|project-file-service|import-service|export-service)|assets\/js\/workers\/(?:core-session-worker|map-edit-worker|gis-gpkg-worker|gis-geometry-worker|geometry-validation-worker|river-territory-partition-worker)\.js)/;
 const slash = path => path.replaceAll('\\', '/');
+
+/** All independently source-verified name receipts that belong with a Hydro release.
+ * Prehistoric/old production manifests may only have the 42-system receipt.
+ */
+export function hydroSourceReceiptFiles(manifest){
+  const kinds=['independentHydronymReplacements','independentHydronymFollowup',
+    'independentHydronymBulk'];
+  return kinds.flatMap(key=>{
+    const value=manifest.sources?.[key];
+    if(!value) return [];
+    if(typeof value.file!=='string'||!/^[\w.-]+\.json$/.test(value.file)
+      ||!/^[0-9a-f]{64}$/.test(value.sha256||''))
+      throw Error('Invalid independent source receipt: '+key);
+    return [value.file];
+  });
+}
+
 const stripQuery = path => path.split(/[?#]/, 1)[0];
 
 // Processing remnants must never become public viewer assets.
@@ -86,8 +103,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     }else if(path.includes('/hydro/')){
       dataAsset(manifest.container.url,base);
       for(const item of [manifest.index,manifest.metadata?.core,manifest.metadata?.detail,...manifest.shards])if(item?.url)dataAsset(item.url,base);
-      if(manifest.sources?.independentHydronymReplacements?.file)
-        dataAsset(manifest.sources.independentHydronymReplacements.file,base);
+      for(const receipt of hydroSourceReceiptFiles(manifest))dataAsset(receipt,base);
     }else if(path.includes('/places/')){
       for(const item of Object.values(manifest.shards))dataAsset(item.url,base);
     }else if(path.includes('/physical-land/')){
