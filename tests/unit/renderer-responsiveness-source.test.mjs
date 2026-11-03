@@ -129,34 +129,3 @@ test('large-data overlays use domain caches and multi-tier culling', () => {
   assert.ok(index.includes("? 'coarse' : 'global'"));
   assert.ok(index.includes('querySphericalCap'));
 });
-
-test('interactive vertex drags use a session GPU preview without geometry Worker work', () => {
-  const editing = read('apps/editor/frontend/js/modules/editing-domain.js');
-  const rendering = read('shared/frontend/js/modules/rendering-domain.js');
-  const presentation = read('apps/editor/frontend/js/modules/editing-presentation.js');
-  const gestureMove = editing.slice(editing.indexOf('const applyGestureMove ='), editing.indexOf('const flushPendingMove ='));
-  assert.ok(gestureMove.includes('geometry.previewObjectGesture?.('));
-  assert.ok(gestureMove.includes('geometry.moveBoundaryGesture?.('));
-  assert.ok(!gestureMove.includes('mapEditClient.execute('));
-  assert.ok(rendering.includes('createEditingPresentation({'));
-  assert.ok(presentation.includes("type: `${kind}-drag-move`"));
-  assert.ok(presentation.includes('publishEditingInteraction({'));
-  assert.ok(!presentation.includes('gpuMapRenderer.render('));
-  assert.ok(!presentation.includes('renderAll('));
-  assert.ok(!rendering.includes('gpuMapRenderer.render('));
-  assert.ok(!rendering.includes('renderAll('));
-});
-
-test('expensive edit workers use revisioned latest-wins scheduling', () => {
-  const client = read('apps/editor/frontend/js/modules/map-edit-worker-client.js');
-  const renderer = read('shared/frontend/js/modules/gpu-map-renderer.js');
-  const worker = read('apps/editor/frontend/js/workers/map-edit-worker.js');
-  assert.ok(client.includes('createLatestWorkerJobScheduler'));
-  assert.ok(client.includes('geometryRevision'));
-  assert.ok(client.includes('targetRevision'));
-  assert.ok(renderer.includes("jobKey: 'mesh:country-overrides'"));
-  assert.ok(renderer.includes('stopPatchWorkerJobs(reason)'));
-  assert.ok(!renderer.includes('settleStalePatchRequests'));
-  assert.ok(worker.includes('currentDataRevision'));
-  assert.ok(worker.includes('message.targetRevision'));
-});

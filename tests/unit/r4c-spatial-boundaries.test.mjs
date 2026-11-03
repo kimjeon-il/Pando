@@ -68,8 +68,8 @@ test('R4-C GIS overlap audit keeps input geometry and reports both countries',()
 test('R4-C detached country planner and batch calculator retain exact module ownership',()=>{
  assert.equal(typeof createCountryImportMergePlanner,'function');
  assert.equal(typeof calculateLibraryBatch,'function');
- assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/import-service.js')),true,
-   'Still referenced by active tests; E5 must migrate or retire those consumers before deleting it');
+ assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/import-service.js')),false,
+   'R4-E5 removed the legacy importer; canonical tools/gis identity and import tests remain');
  assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/map-edit-library-calculation.js')),false);
 });
 

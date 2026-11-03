@@ -96,8 +96,8 @@ export function instrumentMapBaselineSource(source, name) {
   const around = (anchor, label) => { next = replaceExactlyOnce(next, anchor, `${mark(label + ':start')}${anchor}${mark(label + ':end')}`); };
   if (name === 'viewer-composition.js') {
     next = replaceExactlyOnce(next, 'setMonth:async month=>{', 'setMonth:async month=>{globalThis.__PANDO_P0__.begin(month);');
-    next = replaceExactlyOnce(next, "onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
-      "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
+    next = replaceExactlyOnce(next, "onPresented:()=>{commit();}",
+      "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);}");
     // Search is now after map readiness. Record its own optional phase without
     // changing the meaning of the original renderer onPresented callback.
     around('await searchController.completeHydration({isCurrent});', 'search-hydration');

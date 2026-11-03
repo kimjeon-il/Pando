@@ -107,26 +107,6 @@ test('a pending owned boundary does not poison its ready geometry cache', () => 
   assert.equal(pass.stats().channels.secondary.rebuildCount, 2);
 });
 
-test('common role contracts reject tool colors and keep boundary preparation out of render callbacks', async () => {
-  const read = name => readFile(repositoryFrontendUrl(`assets/js/${name}`), 'utf8');
-  const [packets, rendering, pass, worker] = await Promise.all([
-    read('modules/app-interaction-packets.js'), read('modules/rendering-domain.js'),
-    read('modules/selection-pass.js'), read('workers/canvas-render-worker.js'),
-  ]);
-  assert.doesNotMatch(packets, /getComputedStyle|gpuInteractionColor/);
-  assert.match(packets, /resolveMapStrokeStyle/);
-  assert.doesNotMatch(rendering, /buildTerritorialInternalBoundarySegments|mixWithWhite/);
-  assert.doesNotMatch(rendering, /if \(pendingChanged[^\n]+syncGpuRenderScene/);
-  assert.match(rendering, /lastInteractionFillOwner/);
-  assert.doesNotMatch(pass, /innerCutout: resolvedStyle.width|phase === 'casing'/);
-  assert.match(pass, /CHANNELS = SELECTION_PAINT_ORDER/);
-  const frameStart = worker.indexOf("self.postMessage({\n        type: 'frame',");
-  assert.ok(frameStart >= 0);
-  const frame = worker.slice(frameStart, worker.indexOf('});', frameStart));
-  assert.match(frame, /\n\s+styleRevision,/);
-  assert.match(frame, /\n\s+renderRequestId,/);
-});
-
 test('boundary presentation uses explicit geometry and rejects missing owners',async()=>{
  const feature={type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[0,0],[2,0],[2,2],[0,2],[0,0]]]}};
  const preparation=createMapDisplayPreparation();

@@ -89,10 +89,10 @@ test('Architecture executes one non-browser phase and a bounded isolated browser
     } else assert.equal(job.steps.some(step => step.run?.includes('playwright install')), false);
   }
   assert.deepEqual(jobs.checks.needs, ['changes', 'non-browser', 'browser']);
-  assert.equal(jobs.checks.if, "always() && (github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-'))");
+  assert.equal(jobs.checks.if, 'always()');
   assert.equal(jobs.checks.steps.some(step => step.run?.includes('run-application-checks.mjs')), false);
   assert.equal(jobs.changes.steps.find(step => step.id === 'plan').if,
-    "github.event_name != 'workflow_dispatch' || !startsWith(inputs.browser_scope, 'boundary-')");
+    undefined);
 });
 
 test('Architecture aggregate rejects missing failed or cancelled work and accepts only selected success or explicit empty phases', () => {

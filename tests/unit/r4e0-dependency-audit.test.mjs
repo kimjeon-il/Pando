@@ -1,76 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {existsSync,readFileSync} from 'node:fs';
 import {buildR4E0Map} from '../../scripts/r4e0-dependency-audit.mjs';
 
-const manifest=JSON.parse(readFileSync(new URL('../../docs/development/r4e0-source-dispositions.json',import.meta.url),'utf8'));
+const source=JSON.parse(readFileSync(new URL('../../docs/development/r4e0-source-dispositions.json',import.meta.url),'utf8'));
+const receipt=JSON.parse(readFileSync(new URL('../../docs/development/r4-source-pruning.json',import.meta.url),'utf8'));
 const audit=buildR4E0Map();
-
-test('R4-E0 assigns each of the 103 historic editor files exactly one disposition',()=>{
- assert.equal(manifest.baselineCandidateCount,103);
- assert.equal(manifest.decisions.length,103);
- assert.equal(new Set(manifest.decisions.map(x=>x.path)).size,103);
+test('R4-E5 preserves one historical classification for every archived source',()=>{
+ assert.equal(source.baselineCandidateCount,103);
+ assert.equal(source.decisions.length,103);
+ assert.equal(new Set(source.decisions.map(x=>x.path)).size,103);
  assert.equal(audit.summary.tracked,103);
- assert.equal(audit.summary.present+audit.summary.removed,103);
  assert.deepEqual(audit.errors,[]);
+ assert.equal(receipt.remainingSourceCount,0);
+ assert.equal(receipt.removedSourceCount,receipt.baselineCandidates);
+ assert.equal(receipt.removedSources.length,receipt.baselineCandidates);
+});
+test('R4-E5 has no surviving editor runtime or source-level import cycle',()=>{
+ assert.equal(audit.summary.present,0);
+ assert.equal(audit.summary.internalEdges,0);
+ assert.equal(audit.summary.stronglyConnectedGroups,0);
+ assert.deepEqual(audit.cycles,[]);
  for(const row of audit.records){
-   assert.ok(row.phase.startsWith('R4-E'),row.path);
-   assert.ok(row.disposition&&row.target&&row.blockingGate,row.path);
-   assert.ok(row.atomicDeletionGroup.includes(row.path),row.path);
+  assert.equal(row.present,false,row.path);
+  assert.ok(row.disposition && row.blockingGate,row.path);
+  for(const ref of row.blocking)assert.ok(!['viewer-runtime','shared-runtime','windows-runtime','gis-or-build-tool'].includes(ref.owner),ref.from);
  }
 });
-
-test('R4-E0 keeps canonical GIS, C++/WASM, and actual Worker/GeoPackage parity guards',()=>{
- for(const name of [
-  'apps/editor/frontend/js/workers/gis-geometry-worker.js',
-  'apps/editor/frontend/js/workers/gis-gpkg-worker.js',
-  'apps/editor/frontend/js/gis-adapters.js',
-  'apps/editor/frontend/js/modules/import-service.js']){
-   const row=audit.records.find(x=>x.path===name);
-   assert.ok(row,name);
-   assert.equal(row.category,'gis-interop');
-   assert.equal(row.phase,'R4-E1');
- }
- const gis=audit.records.find(x=>x.path.endsWith('/gis-geometry-worker.js'));
- // R4-E1 migrates these two consumers to canonical GIS and frozen test fixtures;
- // the E0 inventory continues to audit every archived source without requiring
- // a stale consumer to remain attached to the old editor file.
- assert.ok(!gis.blocking.some(x=>x.from==='tests/unit/helpers/gis-worker-harness.mjs'));
+test('R4-E5 retains detached canonical GIS, Core and GeoPackage evidence',()=>{
+ for(const path of source.invariants)assert.equal(existsSync(new URL('../../'+path,import.meta.url)),true,path);
  const harness=readFileSync(new URL('./helpers/gis-worker-harness.mjs',import.meta.url),'utf8');
- assert.match(harness,/tools\/gis\/gis-geometry-worker\.js/);
- const gpkg=audit.records.find(x=>x.path.endsWith('/gis-gpkg-worker.js'));
- assert.ok(!gpkg.blocking.some(x=>x.from==='tests/helpers/production-geopackage.mjs'));
+ assert.match(harness,/tools\\/gis\\/gis-geometry-worker\\.js/);
  const producer=readFileSync(new URL('../helpers/production-geopackage.mjs',import.meta.url),'utf8');
- assert.match(producer,/fixtures\/geopackage\/compat/);
- for(const path of manifest.invariants)assert.ok(typeof path==='string'&&path.length>0);
-});
-
-test('R4-E0 diagnoses retired tests separately from genuinely shipped runtime imports',()=>{
- const runtime=new Set(['viewer-runtime','shared-runtime']);
- const executable=new Set(['static-import','dynamic-import','worker-url','worker-import']);
- const shipping=audit.records.flatMap(x=>x.blocking.filter(y=>runtime.has(y.owner)&&executable.has(y.kind)));
- assert.deepEqual(shipping,[],
-   'R4-E0 requires the shipped Viewer/Windows frontend to remain independent of archived editor modules');
- assert.ok(audit.summary.referencedFiles>0);
- assert.equal(audit.summary.retiredReferences,0);
-});
-
-test('R4-E0 dependency graph produces unique complete deletion units',()=>{
- const candidates=new Set(audit.records.filter(x=>x.present).map(x=>x.path));
- for(const row of audit.records.filter(row=>row.present)){
-   for(const path of row.internalOutgoing)assert.ok(candidates.has(path),path);
-   for(const path of row.atomicDeletionGroup)assert.ok(candidates.has(path),path);
- }
- const composition=audit.records.find(x=>x.path==='apps/editor/frontend/js/modules/app-composition.js');
- assert.ok(composition.internalOutgoing.includes(
-   'apps/editor/frontend/js/modules/app-runtime-dependencies.js'),
-   'versioned URL dynamic import must be resolved to its static module filename');
- const runtime=audit.records.find(x=>x.path==='apps/editor/frontend/js/modules/app-runtime-dependencies.js');
- assert.ok(runtime.internalOutgoing.includes(
-   'apps/editor/frontend/js/modules/territorial-service.js'),
-   'versionedModuleUrl helper must resolve relative to the retired app entrypoint');
- for(const cycle of audit.cycles){
-   assert.ok(cycle.length>1);
-   for(const path of cycle)assert.deepEqual(audit.records.find(x=>x.path===path).atomicDeletionGroup,cycle);
- }
+ assert.match(producer,/fixtures\\/geopackage\\/compat/);
 });

@@ -1,36 +1,20 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
-
-const read = relativePath => readFileSync(new URL(`../../${relativePath}`, import.meta.url), 'utf8');
-const uiRuntime = read('apps/editor/frontend/js/modules/ui-runtime.js');
-const persistence = read('apps/editor/frontend/js/modules/persistence-service.js');
-const transaction = read('apps/editor/frontend/js/modules/app-geometry-preview.js');
-const projectDomain = read('shared/frontend/js/modules/project-domain.js');
-const metrics = read('shared/frontend/js/modules/runtime-performance-metrics.js');
-
-test('runtime performance collector is installed once from the canonical UI runtime', () => {
-  assert.match(uiRuntime, /installRuntimePerformanceMetrics/);
-  assert.match(uiRuntime, /installRuntimePerformanceMetrics\(\{ globalObject: window, documentRef \}\)/);
-  assert.match(metrics, /__PANDOLAB_PERFORMANCE_REPORT__/);
-  assert.match(metrics, /PerformanceObserverCtor/);
-  assert.match(metrics, /type, buffered: true/);
+const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
+const metrics=read('shared/frontend/js/modules/runtime-performance-metrics.js');
+const projectDomain=read('shared/frontend/js/modules/project-domain.js');
+test('current shared performance collector exposes diagnostic data without retired UI bootstrap',()=>{
+ assert.match(metrics,/installRuntimePerformanceMetrics/);
+ assert.match(metrics,/__PANDOLAB_PERFORMANCE_REPORT__/);
+ assert.match(metrics,/PerformanceObserverCtor/);
+ assert.match(metrics,/type, buffered: true/);
 });
-
-test('performance report covers startup long tasks, mobile sheet cadence and commit-to-paint', () => {
-  assert.match(metrics, /firstLoadWindowMs/);
-  assert.match(metrics, /MOBILE_SHEET_DRAG: 'mobile-sheet\.drag'/);
-  assert.match(metrics, /COMMIT_TO_PAINT: 'ui\.commit-to-paint'/);
-  assert.match(metrics, /estimatedMissedFrames/);
-  assert.match(metrics, /usedJSHeapSize/);
+test('startup, frame cadence and paint telemetry keep bounded diagnostic fields',()=>{
+ for(const name of ['firstLoadWindowMs','MOBILE_SHEET_DRAG','COMMIT_TO_PAINT','estimatedMissedFrames','usedJSHeapSize'])
+  assert.ok(metrics.includes(name),name);
 });
-
-test('edit transactions, ordinary project commands and autosave publish timings without owning domain state', () => {
-  assert.match(transaction, /PERFORMANCE_METRIC_NAMES\.TRANSACTION/);
-  assert.match(transaction, /stageDurations/);
-  assert.match(projectDomain,/PERFORMANCE_METRIC_NAMES\.COMMAND/);
-  assert.match(persistence, /PERFORMANCE_METRIC_NAMES\.AUTOSAVE/);
-  assert.match(persistence, /buildMs/);
-  assert.match(persistence, /indexedDbMs/);
-  assert.match(persistence, /fallbackMs/);
+test('canonical project command instrumentation does not use the retired editor persistence owner',()=>{
+ assert.match(projectDomain,/PERFORMANCE_METRIC_NAMES\\.COMMAND/);
+ assert.doesNotMatch(projectDomain,/apps\\/editor\\/frontend/);
 });
