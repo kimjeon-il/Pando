@@ -33,6 +33,10 @@ async function start(page,renderer){
   await page.goto('/?debug=1'+(renderer==='webgl'?'':'&renderer=canvas')
     +(renderer==='canvas-worker'?'&demTerrain=raster':''));
   await ready(page,'2026-10');
+  if (renderer !== 'canvas-worker') await expect.poll(() => page.evaluate(() => {
+    const state = window.__PANDOLAB_VIEWER__.rendererStats();
+    return ['ready', 'limited'].includes(state.mapReadiness.status) && !state.canvasWorkerBusy;
+  }), { timeout: 90000 }).toBe(true);
 }
 async function ready(page,month){
   await expect.poll(()=>page.evaluate(()=>({month:window.__PANDOLAB_VIEWER__?.builtinMonth().month,
