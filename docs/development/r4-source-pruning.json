@@ -1,9 +1,9 @@
 {
   "schema": "pandolab-r4-source-pruning-v1",
   "baselineCandidates": 153,
-  "removedSourceCount": 65,
+  "removedSourceCount": 69,
   "removedTestCount": 183,
-  "remainingSourceCount": 88,
+  "remainingSourceCount": 84,
   "extractedGisModules": 16,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
@@ -49,16 +49,20 @@
     "apps/editor/frontend/js/modules/gis-import-wizard-controller.js",
     "apps/editor/frontend/js/modules/gis-workflow-controller.js",
     "apps/editor/frontend/js/modules/map-debug-controller.js",
+    "apps/editor/frontend/js/modules/map-edit-country-commands.js",
+    "apps/editor/frontend/js/modules/map-edit-library-calculation.js",
     "apps/editor/frontend/js/modules/map-edit-preparation-operations.js",
     "apps/editor/frontend/js/modules/map-edit-preview-calculations.js",
     "apps/editor/frontend/js/modules/map-edit-query-calculations.js",
     "apps/editor/frontend/js/modules/map-edit-snap-calculation.js",
     "apps/editor/frontend/js/modules/mobile-sheet-controller.js",
     "apps/editor/frontend/js/modules/planar-graph-faces.js",
+    "apps/editor/frontend/js/modules/polygon-clipping-calculation.js",
     "apps/editor/frontend/js/modules/project-serializer.js",
     "apps/editor/frontend/js/modules/project-setup-dialog.js",
     "apps/editor/frontend/js/modules/project-ui-bridge.js",
     "apps/editor/frontend/js/modules/property-editor-bindings.js",
+    "apps/editor/frontend/js/modules/river-territory-partition.js",
     "apps/editor/frontend/js/modules/save-state-controller.js",
     "apps/editor/frontend/js/modules/spatial-edit-registration.js",
     "apps/editor/frontend/js/modules/surface-tabs-controller.js",
@@ -592,5 +596,11 @@
     "removedBatch": 15,
     "remainingEditorSources": 88,
     "note": "Only previously zero-external-blocker archived modules; all archived external test blockers remain for explicit migration before further deletion."
+  },
+  "r4e5CanonicalForwardersRetired": {
+    "removedCount": 8,
+    "phase": "R4-E5",
+    "canonicalOwner": "tools/gis",
+    "note": "All eight historic editor forwarding shims now absent; R4-C retains direct canonical numeric/GIS tests."
   }
 }

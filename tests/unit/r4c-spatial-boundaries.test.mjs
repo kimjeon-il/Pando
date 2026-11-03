@@ -38,12 +38,11 @@ test('R4-C canonical spatial adapters rely on one shared C++ calculation owner',
  assert.match(calculator,/from '.\/polygon-clipping-calculation\.js'/);
  assert.doesNotMatch(calculator,/apps\/editor\/frontend|window\.|document\.|commandOwner/);
  assert.equal(typeof createCountryCommandCalculator,'function');
- assert.match(read('apps/editor/frontend/js/modules/map-edit-country-commands.js'),
-   /export \{createCountryCommandCalculator\} from/);
- assert.match(read('apps/editor/frontend/js/modules/polygon-clipping-calculation.js'),
-   /export \{clippingOperationWithPrecisionRetry\} from/);
- assert.match(read('apps/editor/frontend/js/modules/river-territory-partition.js'),
-   /export \* from/);
+ // Source-level forwarding shims are retired; canonical C++-owned modules
+ // remain the authoritative source and their functions are tested above.
+ for(const path of ['map-edit-country-commands.js','polygon-clipping-calculation.js',
+   'river-territory-partition.js'])
+   assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/'+path)),false,path);
 });
 
 test('R4-C metrics keep antimeridian distance and hole-aware polygon areas',()=>{
@@ -70,8 +69,7 @@ test('R4-C detached country planner and batch calculator retain exact module own
  assert.equal(typeof createCountryImportMergePlanner,'function');
  assert.equal(typeof calculateLibraryBatch,'function');
  assert.doesNotMatch(read('apps/editor/frontend/js/modules/import-service.js'),/createCountryImportMergePlanner/);
- assert.match(read('apps/editor/frontend/js/modules/map-edit-library-calculation.js'),
-   /export \{calculateLibraryBatch\} from/);
+ assert.equal(existsSync(resolve(root,'apps/editor/frontend/js/modules/map-edit-library-calculation.js')),false);
 });
 
 test('R4-C detached territory component plan preserves untouched polygon coordinates',async()=>{
