@@ -1,61 +1,6 @@
 {
   "owners": [
     {
-      "file": "apps/editor/frontend/js/modules/app-library-assembly.js",
-      "functions": [
-        "instantiateTerritorialLibraryEntities"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "instantiateTerritorialLibraryEntities",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/app-library-assembly.js",
-      "functions": [
-        "assertCurrent"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "assertCurrent",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/app-progressive-startup.js",
-      "functions": [
-        "completeGeometryInitialization"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "completeGeometryInitialization",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/app-progressive-startup.js",
-      "functions": [
-        "init"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "init",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/app-project-restore.js",
-      "functions": [
-        "applyAtlasState"
-      ],
-      "access": [
-        "read"
-      ],
-      "owner": "applyAtlasState",
-      "reason": "Read current unified Features or a detached project snapshot; no split storage reconstruction."
-    },
-    {
       "file": "shared/frontend/js/modules/gpu-map-renderer.js",
       "functions": [
         "markPreviewFramePresented"
@@ -278,19 +223,6 @@
       "detachedCandidate": true,
       "owner": "Builtin source candidate construction",
       "reason": "Build selected source identities in a structuredClone of the catalog template. The source receipt still requires C++ validation and admission; no active document is writable here."
-    },
-    {
-      "file": "apps/editor/frontend/js/modules/library-geometry-context.js",
-      "functions": [
-        "prepareLibraryGeometryWorkspace"
-      ],
-      "access": [
-        "read",
-        "write"
-      ],
-      "detachedCandidate": true,
-      "owner": "Library geometry candidate construction",
-      "reason": "Append library identities only to a new createInitialDocument candidate. Startup passes it through ProjectDomain.prepareImport/admit before editing the accepted C++ document."
     },
     {
       "file": "shared/frontend/js/modules/review-inspection.js",

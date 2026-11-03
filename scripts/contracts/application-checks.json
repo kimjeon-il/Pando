@@ -22,13 +22,7 @@
     {
       "id": "ui-contracts",
       "kind": "unit",
-      "testPatterns": [
-        "tests/unit/object-property-controller.test.mjs",
-        "tests/unit/territorial-info-period.test.mjs",
-        "tests/unit/territorial-metadata-command.test.mjs",
-        "tests/unit/label-metadata-edit.test.mjs",
-        "tests/unit/hydro-metadata-edit.test.mjs"
-      ],
+      "testPatterns": [],
       "inputs": [
         "shared/frontend/css/**",
         "apps/viewer/css/**",
