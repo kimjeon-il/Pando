@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
 import { normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
-import { BUILTIN_TERRITORY_MERGES, mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
+import { mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
 
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const before = JSON.stringify(source);

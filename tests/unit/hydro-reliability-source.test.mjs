@@ -1,4 +1,3 @@
-import {repositoryFrontendSnapshot} from '../helpers/frontend-source.mjs';
 import {parseJavaScript,walkJavaScript} from '../../scripts/lib/source-analysis.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

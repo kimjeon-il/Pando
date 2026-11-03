@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync,existsSync,readdirSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {loadRepository} from '../../scripts/plan-application-checks.mjs';
 const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root),'utf8');

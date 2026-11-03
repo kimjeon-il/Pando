@@ -1,6 +1,4 @@
-import {repositoryFrontendUrl} from '../helpers/frontend-source.mjs';
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveMapInteractionStyle, resolveInteractionEntries, resolveMapStrokeStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";

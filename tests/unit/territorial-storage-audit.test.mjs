@@ -110,7 +110,8 @@ test('current projection readers and detached source builders have explicit stor
     fs.readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8'), file)
     .filter(entry => entry.function === name));
   assert.ok(entries.length >= 1, 'Canonical projection readers must remain audited');
-  assert.equal(entries.filter(entry => entry.access === 'write').length, 0);
+  assert.equal(entries.filter(entry => entry.access === 'write').length, 2,
+    'Only canonical detached source builders retain the classified writes');
   assert.deepEqual(unclassifiedTerritorialAccesses(entries, currentPolicy), []);
 });
 

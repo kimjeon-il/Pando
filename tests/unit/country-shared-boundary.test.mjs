@@ -1,10 +1,5 @@
 import '../helpers/spherical-core.mjs';
 import { resolveMapStrokeStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
-import { layerStyle, normalizeLayerPresentation } from "../../shared/frontend/js/modules/layer-presentation.js";
-import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
-import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
-import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildCountrySharedBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";

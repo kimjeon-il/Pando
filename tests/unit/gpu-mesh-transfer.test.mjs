@@ -3,7 +3,6 @@ import test from 'node:test';
 import { Worker } from 'node:worker_threads';
 import { WORKER_RPC_PROTOCOL, WORKER_RPC_PROTOCOL_VERSION } from "../../shared/frontend/js/modules/worker-rpc.js";
 import { packCountryMeshFeatures } from '../../shared/frontend/js/modules/country-mesh-transfer.js';
-import { sourceWorkerTransport } from '../helpers/source-worker-transport.mjs';
 
 test('actual mesh Worker transfers every output buffer and detaches its originals', { timeout: 5000 }, async t => {
   const transportModule = new URL('../helpers/source-worker-transport.mjs', import.meta.url).href;

@@ -41,8 +41,6 @@ const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets
 const previewMeshHeader = meshHeader(previewMeshBytes);
 const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data', manifest.assets.canonicalMesh.url)));
 const canonicalMeshHeader = meshHeader(canonicalMeshBytes);
-const workerSource = fs.readFileSync(path.join(root, 'shared/frontend/js/workers/data-loader-worker.js'), 'utf8');
-const storedAssetSource = fs.readFileSync(path.join(root, 'shared/frontend/js/modules/stored-asset-loader.js'), 'utf8');
 
 function countCoordinates(value) {
   if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;
