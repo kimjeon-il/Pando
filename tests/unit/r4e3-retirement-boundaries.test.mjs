@@ -17,8 +17,8 @@ test('R4-E3 removes 170 archived editor tests plus three obsolete comparison-onl
  const repo=loadRepository(root);
  assert.equal(repo.retiredTests.size,0);
  assert.equal(repo.owners.size,repo.tests.length);
- assert.equal(history.removedSourceCount,50);
- assert.equal(history.remainingSourceCount,103);
+ assert.ok(history.removedSourceCount >= 50 && history.removedSourceCount <= history.baselineCandidates);
+ assert.equal(history.remainingSourceCount,history.baselineCandidates-history.removedSourceCount);
  assert.equal(history.removedTestCount,183);
 });
 

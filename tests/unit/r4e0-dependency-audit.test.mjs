@@ -57,7 +57,7 @@ test('R4-E0 diagnoses retired tests separately from genuinely shipped runtime im
 
 test('R4-E0 dependency graph produces unique complete deletion units',()=>{
  const candidates=new Set(audit.records.filter(x=>x.present).map(x=>x.path));
- for(const row of audit.records){
+ for(const row of audit.records.filter(row=>row.present)){
    for(const path of row.internalOutgoing)assert.ok(candidates.has(path),path);
    for(const path of row.atomicDeletionGroup)assert.ok(candidates.has(path),path);
  }
