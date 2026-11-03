@@ -1,4 +1,4 @@
-name: P1 Hydro real-origin availability and pinned EU mirror verification
+name: P1 Hydro original source availability and EU mirrored source verification
 on:
   push:
     branches: [work/gis]
@@ -20,41 +20,24 @@ jobs:
         with:
           node-version: '24'
       - uses: ./.github/actions/library-data
-      - name: Identify exact four EU source files from an independent public mirror
+      - name: Identify exactly four EU original source members on an independent mirror
         run: |
           set -euo pipefail
           mkdir -p p1-evidence "$RUNNER_TEMP/eu-hydro"
           node tools/gis/verify-p1-hydro-europe-mirror.mjs \
             --manifest assets/data/hydro/v0.13.4/manifest.json \
             --output p1-evidence/eu-source-list.json
-          node --input-type=module <<'JS'
-          import {readFileSync,appendFileSync} from 'node:fs';
-          const j=JSON.parse(readFileSync('p1-evidence/eu-source-list.json','utf8'));
-          if(j.files.length!==4)throw Error('Required four EU original source components');
-          appendFileSync(process.env.GITHUB_ENV,'PANDO_EU_SOURCE_ROWS='+Buffer.from(JSON.stringify(j.files)).toString('base64')+'\n');
-          JS
-      - name: Fetch four original component files and verify each SHA
+      - name: Fetch each selected EU original member and verify its pinned SHA-256
         run: |
           set -euo pipefail
           node --input-type=module <<'JS'
           import {readFileSync,writeFileSync} from 'node:fs';
           const a=JSON.parse(readFileSync('p1-evidence/eu-source-list.json','utf8'));
+          if(a.files.length!==4)throw Error('Four original sources required');
           const l=a.files.map(x=>x.mirrorUrl+'\t'+x.filename).join('\n')+'\n';
           writeFileSync('p1-evidence/mirror-links.tsv',l);
           JS
-          while IFS=
-          node tools/gis/verify-p1-hydro-europe-mirror.mjs \
-            --manifest assets/data/hydro/v0.13.4/manifest.json \
-            --directory "$RUNNER_TEMP/eu-hydro" \
-            --output p1-evidence/eu-original-member-sha-proof.json
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: p1-hydro-eu-original-source-verification
-          path: p1-evidence/*.json
-          if-no-files-found: warn
-          retention-days: 14
-\t' read -r url filename; do
+          while IFS=$'\t' read -r url filename; do
             test -n "$url" && test -n "$filename"
             curl --proto '=https' --tlsv1.2 --fail --location --retry 2 \
               --connect-timeout 30 --max-time 900 --max-filesize 500000000 \
