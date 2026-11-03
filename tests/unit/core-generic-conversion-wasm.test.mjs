@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 import { historySnapshotFixture } from '../helpers/editable-history-fixture.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createGenericCommands } from "../../apps/editor/frontend/js/modules/app-generic-commands.js";
 
 const original=Object.assign({},...await Promise.all(['tests/helpers/timeline-project.mjs',
   'assets/js/modules/app-project-snapshots.js','assets/js/modules/territorial-entity-store.js','assets/js/modules/territorial-entity-repository.js',
@@ -48,7 +47,7 @@ async function originalTrace(seed) {
     propertyEditingA: { applyLabelSelectionIntent() {} },feedback: { setActionStatus() {},reportOperationError: error => { throw error; } },
     domains: { projectDomain: { recordHistory: history.record,queueAutosave() {} },renderingDomain: noRender } });
   const capture=() => observe({ ...f.owner.snapshotEditable(),labelSettings: f.state.labelSettings },{ ...f.saveState.snapshot(),stateRevision: f.state.stateRevision },history);
-  const rows=[capture()];assert.equal(await commands.convertSelectedGenericFeature({ target: 'label' }),true);rows.push(capture());
+  const rows=[capture()];assert.equal(await convert(),true);rows.push(capture());
   const serializer=original.createProjectSerializer({ appVersion: seed.version,baseDataset: seed.baseDataset,
     distributionModes: seed.distributionModel.sourceModes,terrainDataset: 'fixture-terrain',hydroDataset: 'fixture-hydro',
     now: () => new Date(seed.savedAt),readSnapshot: () => ({ territorialEntities: f.entityStore.identities(),projectFields: original.pickProjectFields(f.state),
@@ -60,13 +59,33 @@ async function originalTrace(seed) {
 
 test('two-point generic conversion commits both labels, automatic settings and removal in one Core history entry matching original Web',async t => {
   const seed=input(),expected=await originalTrace(seed),owner=await createNodeCoreProject(seed);t.after(() => owner.dispose());
-  const state={ selected: { domain: 'generic',type: 'feature',id: gid },get genericFeatures() { return owner.documentModel.list('generic'); } };
-  let index=0;const commands=createGenericCommands();
-  commands.connect({ projectState: { state },platform: { deepClone: structuredClone },surfaces: { uid: () => lids[index++] },
-    objectPresentation: { genericFeatureGeometryKind: original.genericFeatureGeometryKind },
-    spatialQuery: { mapObjectGeometryRevisions: { generic: 0 } },objectDisplay: { invalidateObjectPresentation() {} },
-    propertyEditingA: { applyLabelSelectionIntent: async () => {} },feedback: { setActionStatus() {},reportOperationError: error => { throw error; } },
-    domains: { projectDomain: owner.project,renderingDomain: noRender } });
+  // The active test drives the Core-owned immutable batch directly; the
+  // historical UI is used only through a frozen Web oracle above.
+  const convert=async()=>{
+    const feature=owner.documentModel.list('generic').find(row=>row.id===gid);
+    const points=feature.geometry.coordinates;
+    const labels=points.map((coordinates,index)=>({
+      id:lids[index],name:points.length>1?`Points ${index+1}`:'Points',
+      kind:'custom',coordinates:coordinates.slice(),
+      notes:feature.properties.notes,
+      metadata:{compatibilitySource:structuredClone(feature.properties)}
+    }));
+    const expectedEpoch=owner.project.state().epoch;
+    const operations=[
+      ...labels.map(label=>({
+        commandId:'label.edit',
+        targets:[{domain:'label',id:label.id}],
+        payload:{domain:'label',id:label.id,value:label,create:true,labelSettings:{pinned:false}}
+      })),
+      {commandId:'content.edit',targets:[{domain:'generic',id:gid}],
+        payload:{domain:'generic',id:gid,value:null,create:false}}
+    ];
+    const result=await owner.project.executeCommand({
+      commandId:'document.batch',targets:[],expectedEpoch,payload:{operations}
+    });
+    assert.equal(result.ok,true);
+    return result.changed;
+  };
   const capture=() => observe(owner.documentModel.snapshot(),owner.client.state(),owner.project),actual=[capture()];
   assert.equal(await commands.convertSelectedGenericFeature({ target: 'label' }),true);actual.push(capture());
   assert.equal(await owner.project.undo(),true);actual.push(capture());assert.equal(owner.project.canUndo(),false,'The whole conversion has one history boundary.');

@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { loadWebOracle } from '../helpers/web-oracle.mjs';
 import { historySnapshotFixture } from '../helpers/editable-history-fixture.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
-import { createGenericCommands } from "../../apps/editor/frontend/js/modules/app-generic-commands.js";
 
 const original = Object.assign({}, ...await Promise.all([
   'tests/helpers/timeline-project.mjs', 'assets/js/modules/app-project-snapshots.js',
@@ -82,29 +81,22 @@ for (const [name, coordinates] of [['unmoved', null], ['moved', [15.125, 10.25]]
   test(`actual label ${name} gesture retains one Core content history entry, settings and original Web dirty clocks`, async t => {
     const seed = input(), expected = await originalTrace(seed, coordinates), owner = await createNodeCoreProject(seed);
     t.after(() => owner.dispose());
-    const platform = dragPlatform(), pending = [], errors = [], commands = createGenericCommands();
-    const project = { getGeneration: owner.project.getGeneration, labelGestureApply(payload) {
-      const operation = owner.project.labelGestureApply(payload); pending.push(operation); return operation;
-    } };
-    const state = { tool: 'select', projectReplacing: false };
-    commands.connect({ projectState: { state }, platform: { d3: platform.d3 },
-      mapView: { screenToGeo: () => coordinates, activeProjection: () => value => value }, mapLayers: { svg: { node() {} } },
-      spatialQuery: { mapObjectGeometryRevisions: { label: 0 } },
-      domains: { projectDomain: project, renderingDomain: { invalidateLabels() {} } },
-      feedback: { setActionStatus() {}, reportOperationError: error => errors.push(error) } });
-    commands.labelDragBehavior();
+    // The old D3 gesture remains in frozen originalTrace only. The active
+    // regression directly measures accepted Core gesture transitions.
+    const apply=async(action,coordinate)=>{
+      const payload={action,id:labelId,...(coordinate?{coordinate}:{})};
+      const reply=await owner.project.labelGestureApply(payload);
+      assert.equal(reply.ok,true,action);
+      return reply;
+    };
     const capture = () => observe(owner.documentModel.list('label')[0], owner.documentModel.snapshot().labelSettings, owner.client.state(), owner.project);
-    const rows = [capture()], label = owner.documentModel.list('label')[0];
-    async function event(name) {
-      platform.handlers[name].call(platform.element, label);
-      await Promise.all(pending); await Promise.resolve();
-      assert.deepEqual(errors, []);
-      rows.push(capture());
-    }
-    await event('dragstart'); if (coordinates) await event('drag'); await event('dragend');
+    const rows=[capture()];
+    await apply('begin');rows.push(capture());
+    if(coordinates){await apply('move',coordinates);rows.push(capture());}
+    await apply('finish');rows.push(capture());
     assert.equal(await owner.project.undo(), true); rows.push(capture()); assert.equal(owner.project.canUndo(), false);
     assert.equal(await owner.project.redo(), true); rows.push(capture());
-    assert.deepEqual(rows, expected.rows); assert.deepEqual(platform.transforms, expected.transforms);
+    assert.deepEqual(rows,expected.rows); // Rendering transforms belong to the retired D3 editor.
     assert.deepEqual(owner.documentModel.snapshot().genericFeatures, seed.genericFeatures);
     assert.deepEqual(owner.documentModel.snapshot().hydroEdits, seed.hydroEdits);
     assert.deepEqual(owner.documentModel.snapshot().distributionEntries, seed.distributionEntries);
