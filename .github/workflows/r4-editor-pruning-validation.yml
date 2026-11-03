@@ -1,7 +1,7 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [work/ui, fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4d-editor-test-ci, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json

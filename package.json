@@ -47,7 +47,7 @@
     "test:unit": "node scripts/run-active-tests.mjs unit",
     "check:core-prerequisite": "node scripts/check-core-prerequisite.mjs",
     "test:browser": "node scripts/run-active-tests.mjs browser",
-    "test": "pnpm lint && pnpm check:js && pnpm check:version && pnpm check:architecture && pnpm check:country-schema && pnpm check:territorial-library && pnpm check:ui && node --test \"tests/unit/*.test.mjs\" && playwright test",
+    "test": "pnpm lint && pnpm check:js && pnpm check:version && pnpm check:architecture && pnpm check:country-schema && pnpm check:territorial-library && pnpm check:ui && pnpm test:unit && pnpm test:browser",
     "build:territorial-geometry": "node tools/build-territorial-geometry.mjs",
     "build:territorial-library": "node tools/build-territorial-entity-chunks.mjs",
     "build:current-world": "node tools/build-territorial-current-world.mjs",
