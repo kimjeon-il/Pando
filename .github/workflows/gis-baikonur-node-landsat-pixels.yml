@@ -54,6 +54,9 @@ jobs:
             pair:x.pair.join('-'),year:x.year,n:x.samples.length,
             distances:x.samples.map(s=>s.nearestWaterToTreatyAnchorsMeters),
             clouds:x.samples.map(s=>s.cleanPercent),
+            continuousWater:x.samples.map(s=>s.anchorsOnOneConnectedWaterMask),
+            connectedWaterComponents:x.samples.map(s=>s.waterComponentCount),
+            largestComponentPixels:x.samples.map(s=>s.largestConnectedWaterPixelCount),
             failureCount:x.unavailable.length
           }))));
           JS
