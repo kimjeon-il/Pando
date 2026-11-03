@@ -107,6 +107,28 @@ jobs:
             candidateSha256:proof.candidateSha256
           }));
           JS
+      - name: Verify actual Viewer Hydro Worker reads both byte ranges and a full candidate pack
+        shell: bash
+        run: |
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {verifyWorker} from './tools/check-current-hydro-layout.mjs';
+          const path=process.env.RUNNER_TEMP+'/hydro-v0.13.4-nonosm/';
+          const manifest=JSON.parse(readFileSync(path+'manifest.json','utf8'));
+          const bundle=readFileSync(path+'hydro.bin');
+          const ranged=await verifyWorker('.',manifest,bundle,{supportsRange:true});
+          const full=await verifyWorker('.',manifest,bundle,{supportsRange:false});
+          assert.equal(ranged.ready,true);
+          assert.equal(full.ready,true);
+          assert(ranged.requests.length>=3);
+          assert.equal(full.requests.length,1);
+          console.log('ZERO_OSM_HYDRO_WORKER_PARITY='+JSON.stringify({
+            viewerWorkerReady:true,rangeRequests:ranged.requests.length,
+            fullFileRequests:full.requests.length,
+            candidateVersion:manifest.version,
+          }));
+          JS
       - name: Decode the complete new packed Hydro Worker input, not only the manifest
         shell: bash
         run: |
