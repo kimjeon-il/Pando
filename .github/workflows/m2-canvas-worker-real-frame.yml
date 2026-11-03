@@ -8,7 +8,7 @@ on:
       - shared/frontend/js/modules/gpu-map-renderer.js
       - shared/frontend/js/modules/country-mesh-zoom-policy.js
       - shared/frontend/js/modules/gpu-canvas-worker.js
-      - tests/browser/gpu-recovery-g4.spec.mjs
+      - tests/browser/viewer-gpu-backend-cross.spec.mjs
 permissions:
   contents: read
 concurrency:
@@ -37,8 +37,8 @@ jobs:
         env:
           G4_EVIDENCE: test-results/m2-canvas-worker-evidence
         run: >-
-          pnpm exec playwright test tests/browser/gpu-recovery-g4.spec.mjs
-          --grep 'viewer canvas-worker:'
+          pnpm exec playwright test tests/browser/viewer-gpu-backend-cross.spec.mjs
+          --grep='.'
           --workers=1 --retries=0 --reporter=list --trace off
       - uses: actions/upload-artifact@v4
         if: always()

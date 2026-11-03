@@ -106,7 +106,7 @@ jobs:
       - name: Install the test Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Check actual year-end geographic display in the editor
-        run: pnpm exec playwright test tests/browser/post-2000-world-timeline.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
       - name: Publish the reviewed work/gis data pin without touching main
         shell: bash
         run: |

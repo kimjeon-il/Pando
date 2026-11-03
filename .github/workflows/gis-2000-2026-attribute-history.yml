@@ -72,7 +72,7 @@ jobs:
       - name: Install focused browser runtime
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify historical flags and names in the actual editor
-        run: pnpm exec playwright test tests/browser/gis-2000-2026-attribute-history.spec.mjs tests/browser/gis-2000-2026-additional-attributes.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
       - name: Pin verified data on work/gis only; never merge main
         shell: bash
         run: |
