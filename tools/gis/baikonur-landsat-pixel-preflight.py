@@ -21,6 +21,8 @@ from rasterio.warp import transform, transform_bounds
 
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
 SIGN = "https://planetarycomputer.microsoft.com/api/sas/v1/sign"
+TOKEN = "https://planetarycomputer.microsoft.com/api/sas/v1/token/landsat-c2-l2"
+_TOKEN_CACHE = None
 BAD_QA_BITS = sum(1 << bit for bit in (0, 1, 2, 3, 4, 5))
 SCALE = 2.75e-5
 OFFSET = -0.2
@@ -74,6 +76,7 @@ def search_scenes(bbox, year):
             continue
         choices.append(scene)
     choices.sort(key=lambda s: (
+        0 if year < 2000 or s.get("id", "").startswith(("LC08_", "LC09_")) else 1,
         s["properties"].get("eo:cloud_cover", 100),
         s["properties"].get("datetime", ""),
     ))
@@ -81,14 +84,17 @@ def search_scenes(bbox, year):
 
 
 def sign_asset(url):
-    response = requests.get(SIGN, params={"href": url}, timeout=20)
-    response.raise_for_status()
-    signed = response.json().get("href", "")
-    if not signed.startswith(url + "?"):
-        raise ValueError("Signed asset URL is not scoped to selected Landsat file")
-    if ".blob.core.windows.net" not in signed.split("?")[0]:
-        raise ValueError("Unsigned/untrusted raster source")
-    return signed
+    global _TOKEN_CACHE
+    if not url.startswith("https://landsatplanetary.blob.core.windows.net/landsat/"):
+        raise ValueError("Untrusted Landsat container")
+    if _TOKEN_CACHE is None:
+        resp = requests.get(TOKEN, timeout=25)
+        resp.raise_for_status()
+        token = resp.json().get("token", "")
+        if not token or "sig=" not in token:
+            raise ValueError("Missing container-scoped ephemeral signature")
+        _TOKEN_CACHE = token
+    return url + "?" + _TOKEN_CACHE
 
 
 def raster_window(url, bbox):
@@ -124,6 +130,8 @@ def inspect_scene(scene, area):
     water, clean, ndwi = screen_water(first, nir, qa)
     water_count = int(np.count_nonzero(water))
     clean_fraction = float(np.count_nonzero(clean)) / clean.size
+    if clean_fraction < 0.50:
+        raise ValueError("Less than half the local treaty window has valid pixels")
     if water_count:
         yy, xx = np.where(water)
         xw = tx.c + (xx + 0.5) * tx.a
