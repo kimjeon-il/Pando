@@ -126,7 +126,7 @@ const integrationPresentationChanges=[
   'tests/unit/map-input-controller.test.mjs',
   '.github/workflows/viewer-functional-p6-2.yml',
   '.github/workflows/integration-read-model-p6.yml',
-  '.github/workflows/p6-preflight.yml',
+  '.github/workflows/e7-final-readonly-regression.yml',
   '.github/workflows/web-pages.yml',
   '.github/workflows/shared-core.yml',
   'eslint.config.js',

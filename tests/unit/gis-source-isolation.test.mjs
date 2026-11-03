@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync,existsSync } from 'node:fs';
 import test from 'node:test';
 import { classifyPaths } from '../../scripts/p1-plan-remote-checks.mjs';
 
 const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
-test('the fixed historical P6 inventory is manual while current product gates remain active',()=>{
-  const historical=read('.github/workflows/p6-preflight.yml');
-  assert.match(historical,/workflow_dispatch:/);
-  assert.doesNotMatch(historical,/^ {2}(?:push|pull_request):/m);
+test('the historical P6 inventory is retired while current product gates remain active',()=>{
+  assert.equal(existsSync(new URL('../../.github/workflows/p6-preflight.yml',import.meta.url)),false);
   assert.match(read('.github/workflows/shared-core.yml'),/core-gpkg-file-boundary\.test\.mjs/);
   assert.match(read('.github/workflows/e7-final-readonly-regression.yml'),/push:/);
 });
