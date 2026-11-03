@@ -184,6 +184,7 @@
     ".github/workflows/obj098-coast-vertex-inventory.yml",
     ".github/workflows/obj098-envelope-local-wasm.yml",
     ".github/workflows/obj098-valid-coast-acceptance.yml",
+    ".github/workflows/performance-baseline-audit.yml",
     ".github/workflows/soviet-1991-import-profile.yml",
     ".github/workflows/soviet-contact-wire-long-cycle.yml",
     ".github/workflows/soviet-contact-wire-paired.yml",
@@ -231,7 +232,16 @@
     ".github/workflows/world-dataset-stage3-gate.yml"
   ],
   "retireFixtures": [
+    "playwright.boundary-capture.config.mjs",
+    "playwright.boundary-revision.config.mjs",
+    "scripts/run-boundary-capture-comparison.mjs",
+    "scripts/run-boundary-revision-comparison.mjs",
+    "tests/browser/helpers/editing-state-recovery.mjs",
+    "tests/browser/helpers/editor-entry.mjs",
     "tests/browser/helpers/mobile-vertex-ui.mjs",
+    "tests/browser/helpers/p9-edit-workload.mjs",
+    "tests/browser/helpers/project-setup-ui.mjs",
+    "tests/browser/helpers/verify-webview-editing.mjs",
     "tests/fixtures/editable-library-ui.html"
   ],
   "protectedHistoricalFixtures": [
@@ -425,5 +435,18 @@
       "obsoleteConsumers": [],
       "excludedHistoricalOracle": false
     }
-  ]
+  ],
+  "additionalRetiredUnitTests": [
+    "tests/unit/boundary-capture-comparison.test.mjs",
+    "tests/unit/boundary-revision-comparison.test.mjs",
+    "tests/unit/boundary-revision-timings.test.mjs"
+  ],
+  "completedFromBaseline": {
+    "browser": 141,
+    "unit": 29,
+    "comparisonUnit": 3,
+    "retiredWorkflows": 38,
+    "retiredOtherPaths": 11
+  },
+  "status": "removed-and-regression-pending"
 }
