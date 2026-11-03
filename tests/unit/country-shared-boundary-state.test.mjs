@@ -617,3 +617,35 @@ test('P6 stage-2 opt-in phase profile measures real Worker preparation without c
   assert.equal(Object.hasOwn(fresh, 'packetProfile'), false, 'normal traffic has no diagnostic metadata');
   assert.deepEqual(changedResponse.packet, fresh.packet);
 });
+
+test('P6 stage-2 two-date LRU is content-addressed, byte-identical and bounded', async t => {
+  const request = countryWorker(t, undefined, 'canonical');
+  const original = [rectangle('ROOT', 0, 0, 4, 4), rectangle('CHILD', 0, 0, 2, 4, 'ROOT'),
+    rectangle('FAR', 30, 0, 31, 1)];
+  const first = await request({type:'replace', features:original, profilePacket:true});
+  assert.equal(first.packetCacheHit, false);
+  const moved = structuredClone(original);
+  moved[2] = rectangle('FAR', 40, 0, 41, 1);
+  const second = await request({type:'replace', features:moved, profilePacket:true});
+  assert.equal(second.packetCacheHit, false, 'a changed immutable digest must not reuse old packet');
+  assert.equal(second.packetCacheEntries, 2);
+  assert.ok(second.packetCacheTotalResidentEstimate <= 96 * 1024 * 1024);
+  const back = await request({type:'replace', features:structuredClone(original), profilePacket:true});
+  assert.equal(back.packetCacheHit, true, 'the older exact date should survive the newer packet');
+  assert.equal(back.packetCacheEntries, 2);
+  assert.ok(back.packetProfile.some(row => row.stage === 'packet-cache-copy'));
+  assert.equal(back.packetProfile.some(row => row.stage === 'contact-stroke-wasm-bridge'), false);
+  assert.deepEqual(back.packet, first.packet, 'cached prior date must preserve all owner ranges, segment order and GPU bytes');
+  const forward = await request({type:'replace', features:structuredClone(moved), profilePacket:true});
+  assert.equal(forward.packetCacheHit, true);
+  assert.deepEqual(forward.packet, second.packet);
+  const third = structuredClone(original);
+  third[2] = rectangle('FAR', 50, 0, 51, 1);
+  const thirdPacket = await request({type:'replace', features:third, profilePacket:true});
+  assert.equal(thirdPacket.packetCacheHit, false);
+  assert.equal(thirdPacket.packetCacheEntries, 2, 'never retain more than two complete packets');
+  assert.ok(thirdPacket.packetCacheTotalResidentEstimate <= 96 * 1024 * 1024);
+  const evicted = await request({type:'replace', features:original, profilePacket:true});
+  assert.equal(evicted.packetCacheHit, false, 'oldest source date must be evicted after a third distinct packet');
+  assert.deepEqual(evicted.packet, first.packet);
+});
