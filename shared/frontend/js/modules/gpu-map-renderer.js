@@ -1759,7 +1759,7 @@ export function createGpuMapRenderer(deps) {
       return Object.freeze({ canvas, gl, context: renderDeviceContextRevision, project: projectGeneration,
         inputRevision: gpuRecoveryInputRevision, geometryRevision: geometryRevisionTracker.committedRevision(),
         mesh, quality: activeMeshQuality, override: overrideMesh,
-        entries: Object.freeze([...meshVariants].map(([quality, entry]) => Object.freeze({ quality, entry, mesh: entry.mesh }))) });
+        entries: Object.freeze([...meshVariants.entries()].map(([quality, entry]) => Object.freeze({ quality, entry, mesh: entry.mesh }))) });
     }
 
     function recoveryIdentityCurrent(identity) {
