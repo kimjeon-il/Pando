@@ -5,6 +5,7 @@ import { createBoundarySpatialIndex, segmentBounds } from './boundary-spatial-in
 import { MAX_BOUNDARY_EDGE_DEGREES, forEachRenderableBoundarySegment } from './geographic-boundary.js';
 import { sharedCalculationCore } from './temporal.js';
 import { computeCountrySharedContacts } from './country-contact-core.js';
+import { assembleStrokeWithGroupReuse } from './country-stroke-group-reuse.js';
 
 export function shouldShowSharedCountryBorders(settings) {
   return settings?.terrainVisible === true && settings?.terrainStyle === 'physical';
@@ -165,6 +166,9 @@ export function createCountrySharedBoundaryState() {
 // Keep each owner set contiguous so the GPU can apply the same per-country
 // visibility rule as Canvas without rebuilding geometry when visibility flips.
 const boundaryGeometryCache = new WeakMap();
+// One previous per-owner compiled stroke set per live prepared-store; all group
+// fragments together obey an independent 24MiB budget (see helper).
+const compiledStrokeGroupCaches = new WeakMap();
 // Keep each WASM transfer below its source/candidate limits. Each subtraction
 // row is independent, so chunking preserves the source order and exact pieces.
 const OUTLINE_BATCH_EDGES = 16_384;
@@ -280,8 +284,12 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
     }, {features: features.length});
     cached.outlines = [...outlines, ...cached.coasts];
   }
-  const packet = prepareStrokePacket(visible, maxEdgeDegrees, measure, 'contact-stroke');
-  const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees, measure, 'outline-stroke');
+  const groupCaches = preparedStore
+    ? compiledStrokeGroupCaches.get(store) || {} : null;
+  const packet = prepareStrokePacket(visible, maxEdgeDegrees, measure, 'contact-stroke',groupCaches,profile);
+  const outlineOverrides = prepareStrokePacket(includeOutlines ? cached.outlines : [], maxEdgeDegrees,
+    measure, 'outline-stroke',groupCaches,profile);
+  if (groupCaches) compiledStrokeGroupCaches.set(store,groupCaches);
   outlineOverrides.internalOwners = Object.fromEntries([
     ...features.filter(feature => rootOf(feature.id) !== String(feature.id)).map(feature => [String(feature.id), [String(feature.id)]]),
     ...cached.coasts.map(segment => [segment.ownerIds.join('|'), childIds(segment.ownerIds)]),
@@ -290,21 +298,36 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
     outlineOwnerIds: [...byId.keys()].sort() };
 }
 
-function prepareStrokePacket(segments, maxEdgeDegrees, measure = (_, operation) => operation(), label = 'stroke') {
+function prepareStrokePacket(segments, maxEdgeDegrees, measure = (_, operation) => operation(),
+  label = 'stroke', groupCaches = null, profile = null) {
   // The browser owns only locale-sensitive input ordering and GPU allocation.
   // Country grouping, junction walks, seam splitting, subdivision, phases and
   // owner ranges are calculated in the same native C++ source used by Qt.
-  const source = measure(label + '-sort', () => [...segments].sort((left, right) =>
-    left.ownerIds.join('|').localeCompare(right.ownerIds.join('|')))
-    .map(segment => [segment.start, segment.end, segment.ownerIds]), {segments: segments.length});
+  const ordered = measure(label + '-sort', () => [...segments].sort((left, right) =>
+    left.ownerIds.join('|').localeCompare(right.ownerIds.join('|'))),
+  {segments:segments.length});
   if (typeof sharedCalculationCore.boundaryAssembleStrokePacket !== 'function') {
     throw Object.assign(new Error('Compiled shared-border packet builder unavailable.'),
       { code: 'PL-CORE-WASM-CAPABILITY' });
   }
-  // Native execution and JS/WASM conversion are a single bridge span; this
-  // diagnostic does not attribute their individual CPU costs.
-  const packet = measure(label + '-wasm-bridge', () =>
-    sharedCalculationCore.boundaryAssembleStrokePacket(source, maxEdgeDegrees), {segments: source.length});
+  // The production C++ kernel remains authoritative. When a prepared-store
+  // survives into the next date, only changed owner groups cross the WASM
+  // bridge; unchanged output is validated against exact numeric source bytes.
+  // Unprepared standalone calls retain the original single native crossing.
+  let packet;
+  if (groupCaches) {
+    const result = assembleStrokeWithGroupReuse(ordered, maxEdgeDegrees,
+      (source,quality) => sharedCalculationCore.boundaryAssembleStrokePacket(source,quality),
+      groupCaches[label], typeof profile === 'function'
+        ? (name,ms,details) => profile(label+'-'+name,ms,details) : null);
+    packet = result.packet;
+    groupCaches[label] = result.cache;
+  } else {
+    const source=ordered.map(segment=>[segment.start,segment.end,segment.ownerIds]);
+    packet=measure(label+'-wasm-bridge',()=>
+      sharedCalculationCore.boundaryAssembleStrokePacket(source,maxEdgeDegrees),
+    {segments:source.length});
+  }
   if (!packet || !Array.isArray(packet.segments) || !Array.isArray(packet.ownerIds)
     || !(packet.startsEnds instanceof Float32Array)
     || !(packet.chainPhase instanceof Float32Array)
