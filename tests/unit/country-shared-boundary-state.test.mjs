@@ -584,3 +584,36 @@ test('P6-3 real Worker rejects malformed deletion and unknown omitted geometry w
   assert.equal(valid.type, 'prepared');
   assert.deepEqual(valid.packet, initial.packet);
 });
+
+test('P6 stage-2 opt-in phase profile measures real Worker preparation without changing packets', async t => {
+  const request = countryWorker(t, undefined, 'canonical');
+  const rows = [rectangle('ROOT', 0, 0, 4, 4), rectangle('CHILD', 0, 0, 2, 4, 'ROOT'),
+    rectangle('FAR', 30, 0, 31, 1)];
+  const measured = await request({ type: 'replace', features: rows, profilePacket: true });
+  assert.equal(measured.type, 'prepared');
+  const stages = measured.packetProfile.map(row => row.stage);
+  for (const stage of ['digest', 'state-update', 'packet-identity', 'state-segments',
+    'hierarchy-internal', 'hierarchy-classification', 'outline-index',
+    'outline-scan-including-wasm', 'contact-stroke-sort', 'contact-stroke-wasm-bridge',
+    'contact-stroke-gpu-instances', 'outline-stroke-sort', 'outline-stroke-wasm-bridge',
+    'outline-stroke-gpu-instances', 'packet-retain-copy']) {
+    assert.ok(stages.includes(stage), 'missing profile stage: ' + stage);
+  }
+  for (const row of measured.packetProfile) {
+    assert.ok(Number.isFinite(row.ms) && row.ms >= 0, row.stage);
+    assert.equal(Object.hasOwn(row, 'geometry'), false, 'profile must not return geometry');
+  }
+  const same = await request({ type: 'replace', features: structuredClone(rows), profilePacket: true });
+  assert.equal(same.packetCacheHit, true);
+  assert.ok(same.packetProfile.some(row => row.stage === 'packet-cache-copy'));
+  assert.equal(same.packetProfile.some(row => row.stage === 'outline-index'), false);
+  assert.deepEqual(same.packet, measured.packet);
+  const changed = structuredClone(rows);
+  changed[2] = rectangle('FAR', 40, 0, 41, 1);
+  const changedResponse = await request({ type: 'replace', features: changed, profilePacket: true });
+  assert.equal(changedResponse.packetCacheHit, false);
+  const full = countryWorker(t, undefined, 'canonical');
+  const fresh = await full({ type: 'replace', features: changed });
+  assert.equal(Object.hasOwn(fresh, 'packetProfile'), false, 'normal traffic has no diagnostic metadata');
+  assert.deepEqual(changedResponse.packet, fresh.packet);
+});
