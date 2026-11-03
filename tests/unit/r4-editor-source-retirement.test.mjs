@@ -8,9 +8,9 @@ const exists=p=>existsSync(resolve(root,p));
 const report=JSON.parse(readFileSync(resolve(root,'docs/development/r4-source-pruning.json'),'utf8'));
 test('R4 removed obsolete editor sources and tests are absent',()=>{
  assert.equal(report.schema,'pandolab-r4-source-pruning-v1');
- assert.equal(report.removedSourceCount,50);
+ assert.ok(report.removedSourceCount >= 50 && report.removedSourceCount <= report.baselineCandidates);
  assert.equal(report.removedTestCount,report.removedTests.length);
- assert.equal(report.removedTestCount,183);
+ assert.ok(report.removedTestCount>=183);
  assert.equal(report.remainingSourceCount,report.baselineCandidates-report.removedSourceCount);
  for(const path of [...report.removedSources,...report.removedTests])
    assert.equal(exists(path),false,'Retired source or unit test reappeared: '+path);

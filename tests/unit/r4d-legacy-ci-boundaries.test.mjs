@@ -23,7 +23,8 @@ test('R4-D does not schedule archived editor-only suites as current product test
 test('R4-D executable audit preserves real GIS contracts and retires obsolete CI',()=>{
  const result=JSON.parse(run('scripts/r4d-check-retired-tests.mjs','--check'));
  assert.equal(result.ok,true);
- assert.equal(result.remainingLegacySourceCount,103);
+ assert.equal(result.remainingLegacySourceCount,0,
+  'E5 must retire every legacy source while retaining canonical GIS regression');
  assert.equal(result.removedWorkflowCount,11);
  assert.equal(result.retiredTestCount,0);
 });

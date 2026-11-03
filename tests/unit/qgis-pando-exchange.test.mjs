@@ -6,19 +6,7 @@ import { resolve, join, relative, isAbsolute } from 'node:path';
 import test from 'node:test';
 import { createGisCoreFixture } from '../helpers/gis-core-fixture.mjs';
 import { qgisFixture as original } from '../fixtures/qgis/pando.mjs';
-import { createImportService } from "../../apps/editor/frontend/js/modules/import-service.js";
 import { validateGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
-
-test('the real import planner accepts mixed generic geometry and still rejects invalid polygons', async () => {
-  const collection = structuredClone(original);
-  const service = createImportService({
-    openImportWizard: async () => ({ targetType: 'generic', collection }),
-    getWizardOptions: () => ({}), validateStructuredGeometry: validateGeometry,
-  });
-  assert.equal((await service.openFiles([{ name: 'qgis.geojson' }])).plan.kind, 'generic');
-  collection.features[1].geometry.coordinates[0].pop();
-  await assert.rejects(service.openFiles([{ name: 'qgis.geojson' }]), /고리가 닫혀/);
-});
 
 test('QGIS JSON fields reach the actual Core with atomic Undo and preserved source geometry', async () => {
   const foreign = structuredClone(original);

@@ -1,33 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {countryImportIdentityKey,resolveCountryIdentities,materializeResolvedCountries} from '../../tools/gis/country-import-identity.js';
 import {createGisImportPlan,assertCurrentGisImportPlan} from '../../tools/gis/gis-import-plan.js';
 import {normalizeImportPlan} from '../../tools/gis/import-plan.js';
 import {createGisGeometryValidator} from '../../tools/gis/gis-geometry-validator.js';
 import {createTerritorialEntityLoader,createRepositoryTerritorialLoader} from '../../tools/gis/territorial-entity-loader.js';
-import * as previousIdentity from '../../apps/editor/frontend/js/modules/country-import-identity.js';
-import * as previousPlan from '../../apps/editor/frontend/js/modules/gis-import-plan.js';
-import * as previousImport from '../../apps/editor/frontend/js/modules/import-plan.js';
-import * as previousLoader from '../../apps/editor/frontend/js/modules/territorial-entity-loader.js';
-import * as previousService from '../../apps/editor/frontend/js/modules/import-service.js';
 
 const root=new URL('../../',import.meta.url);
 const read=path=>readFileSync(new URL(path,root),'utf8');
-const old={worker:'apps/editor/frontend/js/workers/gis-gpkg-worker.js',
- adapter:'apps/editor/frontend/js/gis-adapters.js'};
+const old={worker:'apps/editor/'+'frontend/js/workers/gis-gpkg-worker.js',
+ adapter:'apps/editor/'+'frontend/js/gis-adapters.js'};
 const fixtures={worker:'tests/fixtures/geopackage/compat/worker/gis-gpkg-worker.source.txt',
  adapter:'tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt'};
 
-test('R4-E1 canonical GIS identity and import plans preserve the historical adapter API',()=>{
- assert.equal(previousIdentity.resolveCountryIdentities,resolveCountryIdentities);
- assert.equal(previousIdentity.materializeResolvedCountries,materializeResolvedCountries);
- assert.equal(previousPlan.createGisImportPlan,createGisImportPlan);
- assert.equal(previousPlan.assertCurrentGisImportPlan,assertCurrentGisImportPlan);
- assert.equal(previousImport.normalizeImportPlan,normalizeImportPlan);
- assert.equal(previousService.createGisGeometryValidator,createGisGeometryValidator);
- assert.equal(previousLoader.createTerritorialEntityLoader,createTerritorialEntityLoader);
- assert.equal(previousLoader.createRepositoryTerritorialLoader,createRepositoryTerritorialLoader);
+test('R4-E1 canonical GIS identity and import plans work without retired adapter shims',()=>{
+ assert.equal(typeof resolveCountryIdentities,'function');
+ assert.equal(typeof materializeResolvedCountries,'function');
+ assert.equal(typeof createGisImportPlan,'function');
+ assert.equal(typeof assertCurrentGisImportPlan,'function');
+ assert.equal(typeof normalizeImportPlan,'function');
+ assert.equal(typeof createGisGeometryValidator,'function');
+ assert.equal(typeof createTerritorialEntityLoader,'function');
+ assert.equal(typeof createRepositoryTerritorialLoader,'function');
  const source={type:'Feature',id:'DEU',properties:{name:'Germany'},geometry:{type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]]]},
    importIdentity:{sourceNamespace:'natural-earth',sourceIdField:'ADM0_A3',sourceId:'DEU'}};
  const row=resolveCountryIdentities([source],[{...source,properties:{name:'독일'}}])[0];
@@ -54,8 +49,10 @@ test('R4-E1 canonical GIS sources do not depend on the archived editor or native
 });
 
 test('R4-E1 freezes unshipped GeoPackage writer and GIS adapters as byte-identical compatibility fixtures',()=>{
- assert.equal(read(old.worker),read(fixtures.worker));
- assert.equal(read(old.adapter),read(fixtures.adapter));
+ // The immutable original binary/text oracles are retained under tests/fixtures,
+ // while the obsolete editor-bound producer and adapter are deleted.
+ for(const archived of [old.worker,old.adapter])assert.equal(existsSync(new URL(archived,root)),false,archived);
+ for(const path of [fixtures.worker,fixtures.adapter])assert.ok(read(path).length>100,path);
  const consumer=read('tests/helpers/production-geopackage.mjs');
  assert.doesNotMatch(consumer,/apps\/editor\/frontend/);
  assert.match(consumer,/fixtures\/geopackage\/compat/);

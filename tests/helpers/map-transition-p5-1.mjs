@@ -7,8 +7,8 @@ export function instrumentP5Source(source,name) {
   if(name==='viewer-composition.js'){
     replace('applyMonth:async(month,{isCurrent,commit})=>{',
       'applyMonth:async(month,{isCurrent,commit})=>{globalThis.__PANDO_P0__.begin(month);');
-    replace("onPresented:()=>{commit();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}",
-      "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);window.dispatchEvent(new CustomEvent('pandolab:project-changed'));}");
+    replace("onPresented:()=>{commit();}",
+      "onPresented:()=>{commit();globalThis.__PANDO_P0__.presented(month);}");
     replace("status.dataset.ready='true';","status.dataset.ready='true';globalThis.__PANDO_P0__.settled();");
     replace('productMode,documentState:',
       'p5CameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),p5BuildMeta:()=>runtimeContext.meta,productMode,documentState:');

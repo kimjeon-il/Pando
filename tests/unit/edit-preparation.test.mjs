@@ -9,7 +9,6 @@ import "../../shared/frontend/js/modules/polygon-geometry.js";
 import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
 import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
-import { geometrySegmentIndex, segmentQueryBounds } from "../../apps/editor/frontend/js/modules/geometry-segment-index.js";
 import "../../shared/frontend/js/modules/territorial-edit-plan.js";
 import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
 import { createGeometrySnapshotPool, touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
@@ -98,14 +97,6 @@ test('history shares immutable versions but never live editing arrays', () => {
   assert.notEqual(restored.geometry, first.geometry);
   restored.geometry.coordinates[0][0][0] = 7;
   assert.equal(first.geometry.coordinates[0][0][0], 0);
-});
-
-test('indexed segments retain date-line and long crossing edges, and reuse the same index', () => {
-  const geometry = { type: 'Polygon', coordinates: [[[179, 0], [-179, 0], [-179, 3], [179, 3], [179, 0]]] };
-  const index = geometrySegmentIndex(geometry);
-  assert.equal(geometrySegmentIndex(geometry), index);
-  assert.ok(index.query([-180, -1, -179.5, 1]).some(edge => edge.segmentIndex === 0));
-  assert.ok(index.query(segmentQueryBounds([180, -1], [180, 1])).some(edge => edge.segmentIndex === 0));
 });
 
 test('worker cut assessment and split share the exact validated cut and preserve source coordinates', () => {

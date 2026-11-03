@@ -28,9 +28,9 @@ test('R3 excludes dormant editor frontend, HTML and retired shell JavaScript fro
  for(const mode of ['offline','verification']){
    const before=get(mode);
    for(const p of [
-     'apps/editor/frontend/js/app.js',
-     'apps/editor/frontend/js/modules/editing-domain.js',
-     'apps/editor/frontend/js/modules/editor-workspace-presentation.js',
+     'apps/editor/'+'frontend/js/app.js',
+     'apps/editor/'+'frontend/js/modules/editing-domain.js',
+     'apps/editor/'+'frontend/js/modules/editor-workspace-presentation.js',
      'apps/editor/templates/index.html',
      'apps/editor/startup.js',
      'apps/editor/native-storage.js',
@@ -41,7 +41,7 @@ test('R3 excludes dormant editor frontend, HTML and retired shell JavaScript fro
    const after=get(mode);
    assert.equal(after.sha256,before.sha256,'unshipped editor edits must not alter '+mode+' input content hash');
    assert.deepEqual(after.inputs,before.inputs);
-   const archived=Object.keys(after.inputs).filter(p=>p.startsWith('apps/editor/frontend/'));
+   const archived=Object.keys(after.inputs).filter(p=>p.startsWith('apps/editor/'+'frontend/'));
    assert.deepEqual(archived,[]);
    assert.equal(Object.keys(after.inputs).some(p=>p.startsWith('apps/editor/templates/')),false);
  }

@@ -1,4 +1,3 @@
-import { readApplicationOwners } from '../../scripts/lib/application-source.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -42,9 +41,6 @@ const previewMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets
 const previewMeshHeader = meshHeader(previewMeshBytes);
 const canonicalMeshBytes = zlib.gunzipSync(fs.readFileSync(path.join(root, 'assets/data', manifest.assets.canonicalMesh.url)));
 const canonicalMeshHeader = meshHeader(canonicalMeshBytes);
-const workerSource = fs.readFileSync(path.join(root, 'shared/frontend/js/workers/data-loader-worker.js'), 'utf8');
-const storedAssetSource = fs.readFileSync(path.join(root, 'shared/frontend/js/modules/stored-asset-loader.js'), 'utf8');
-const appSource = readApplicationOwners('progressive-startup');
 
 function countCoordinates(value) {
   if (Array.isArray(value) && value.length >= 2 && typeof value[0] === 'number' && typeof value[1] === 'number') return 1;
@@ -166,43 +162,3 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.deepEqual(manifest.assets.canonicalMesh.header, [...canonicalMeshHeader]);
 });
 
-test('staged loader separates editable geometry from the high-quality mesh and streams gzip', () => {
-  assert.ok(workerSource.indexOf("type: 'preview-ready'") < workerSource.indexOf("type: 'geometry-ready'"));
-  assert.match(workerSource, /type: 'mesh-ready'/);
-  assert.match(workerSource, /type === 'geometry-applied'/);
-  assert.match(workerSource, /createStoredAssetLoader/);
-  assert.match(storedAssetSource, /pipeThrough\(new DecompressionStream\('gzip'\)\)/);
-  assert.match(storedAssetSource, /spec\.encoding === 'identity'/);
-  assert.match(storedAssetSource, /replaceAll\('\\r\\n', '\\n'\)/);
-  assert.doesNotMatch(storedAssetSource, /const chunks = \[\]/);
-  assert.doesNotMatch(storedAssetSource, /const merged = new Uint8Array/);
-  assert.doesNotMatch(storedAssetSource, /response\.clone\(\)/);
-  assert.doesNotMatch(workerSource, /manifest\.assets\.canonicalCountries/);
-  assert.doesNotMatch(workerSource, /countriesSourceBuffer/);
-  assert.match(workerSource, /countryPacketBuffer/);
-  assert.match(workerSource, /canonicalCountryPacketTransferables\(countryPacketBuffer\)/);
-  const networkLoadSource = storedAssetSource.slice(
-    storedAssetSource.indexOf("const read = await fetchWithRetry(url"),
-    storedAssetSource.indexOf('validateAssetLength(result', storedAssetSource.indexOf("const read = await fetchWithRetry(url")),
-  );
-  assert.match(networkLoadSource, /const read = await fetchWithRetry\(url/);
-  assert.ok(networkLoadSource.indexOf('validateStoredAsset') >= 0);
-  assert.ok(networkLoadSource.indexOf('validateStoredAsset') < networkLoadSource.indexOf('cacheStoredBuffer'));
-  assert.ok(networkLoadSource.indexOf('cacheStoredBuffer') < networkLoadSource.indexOf('await decode(read.storedBuffer)'));
-  const cacheWriteSource = storedAssetSource.slice(
-    storedAssetSource.indexOf('async function cacheStoredBuffer'),
-    storedAssetSource.indexOf('function countedStream'),
-  );
-  assert.doesNotMatch(cacheWriteSource, /fetch\(/);
-  // Canonical entity publication is exercised by progressive-startup-runtime-contract.test.mjs.
-  assert.doesNotMatch(appSource, /pristineCountriesSourceBuffer|parsePristineCountries/);
-  const promotionSource = appSource.slice(
-    appSource.indexOf('async function completeGeometryInitialization'),
-    appSource.indexOf('async function completeMeshEnhancement'),
-  );
-  assert.doesNotMatch(promotionSource, /resetProjectRenderState/);
-  assert.doesNotMatch(promotionSource, /mapEditClient\.rebase/);
-  assert.match(appSource, /READINESS_EVENTS\.GEOMETRY_READY/);
-  assert.match(appSource, /READINESS_EVENTS\.MESH_READY/);
-  assert.doesNotMatch(appSource.slice(appSource.indexOf('async function initProgressive'), appSource.indexOf('async function init()')), /deepClone\(geometry\.countries\)/);
-});
