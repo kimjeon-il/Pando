@@ -39,7 +39,6 @@ test('E6 Windows map-data package contains the viewer, review shell and no retir
   assert.equal(stage.nativeEntry,'review.html');
   assert.ok(names.has('review.html')&&names.has('index.html'));
   assert.ok(names.has('assets/js/viewer.js'));
-  assert.ok(names.has('assets/js/modules/platform-runtime.js')||names.has('assets/js/viewer.js'));
   assert.ok(names.has('assets/wasm/pandoeditor-core.wasm'));
   for(const old of legacy)assert.equal(names.has(old),false,old);
   assert.equal(stage.worldData.countryCount,258);
