@@ -1,0 +1,70 @@
+name: GIS Baikonur current shared-edge source snapshot (read-only)
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-baikonur-runtime-shape-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-current-lease-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Pin original modern GIS source and load only two territorial object shards
+        id: lib
+        run: |
+          echo "sha=$(node -p "require('./config/library-data.json').revision")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: ${{ steps.lib.outputs.sha }}
+          path: .pando-baikonur-shape-source
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout: assets/data/territorial-entities/generated/v2
+      - name: Inspect original Kazakh lease and shared edge without copying vertices into a replacement
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {gunzipSync} from 'node:zlib';
+          const root='.pando-baikonur-shape-source/assets/data/territorial-entities/generated/v2/';
+          const collect=feature=>{
+            if(!feature)return [];
+            const walk=(x,out)=>{
+              if(Array.isArray(x)&&x.length>=2&&x.length<=4&&x.every(Number.isFinite)){
+                if(Math.abs(x[0])<=180&&Math.abs(x[1])<=90)out.push(x);return;
+              }
+              if(Array.isArray(x))for(const row of x)walk(row,out);
+            };
+            const out=[];walk(feature.coordinates,out);return out;
+          };
+          for(const code of ['KAB','KAZ']){
+            const file=root+'state-'+code+'.json.gz';
+            const obj=JSON.parse(gunzipSync(readFileSync(file)));
+            const versions=obj.geometryVersions||obj.versions||[];
+            const summaries=versions.map(v=>{
+              const points=collect(v.geometry);
+              const lon=points.map(p=>p[0]),lat=points.map(p=>p[1]);
+              return {
+                versionId:v.versionId||null,validFrom:v.validFrom||null,validTo:v.validTo||null,
+                sourceId:v.sourceId||null,certainty:v.certainty||null,
+                geometryType:v.geometry?.type||null,pointCount:points.length,
+                bbox:points.length?[
+                  Math.min(...lon),Math.min(...lat),Math.max(...lon),Math.max(...lat)
+                ]:null,
+              };
+            });
+            console.log('BAIKONUR_BASELINE_'+code+'='+JSON.stringify({
+              keys:Object.keys(obj),entityId:obj.entityId,versions:summaries,
+              totalVersions:versions.length,rootGeometry:obj.geometry?.type||null,
+            }));
+          }
+          JS
