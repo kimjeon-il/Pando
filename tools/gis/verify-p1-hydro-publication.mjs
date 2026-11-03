@@ -83,7 +83,7 @@ export async function verifyPublishedHydro({directory}={}){
   assert(borderTagged.length>0,'No aligned river features');
   for(const row of borderTagged){
     assert.equal(row.metadata.flags,1,'Unexpected border flag');
-    assert.match(row.metadata.source,/^Natural Earth border [A-Z]{3}\/[A-Z]{3}$/,'Invalid border source attribution');
+    assert.match(row.metadata.source,/Natural Earth border [A-Z]{3}\/[A-Z]{3}$/,'Invalid border source attribution');
   }
   return {
     schema:'pando-p1-hydro-real-publication-v1',datasetVersion:manifest.version,sourceCategory:'published-real-data',

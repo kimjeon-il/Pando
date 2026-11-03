@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import {readFile,readdir,stat,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {parseArgs} from 'node:util';
 import {summarizeTerrainAssets} from './terrain-dem-assets.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function verifyPublishedDem({directory}={}){

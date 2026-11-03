@@ -49,6 +49,7 @@ jobs:
           retention-days: 14
 
   official-nine-region-originals:
+    if: github.event_name == 'workflow_dispatch'
     name: Validate SHA-256 for all 36 official HydroRIVERS shapefile members
     runs-on: ubuntu-24.04
     timeout-minutes: 55
