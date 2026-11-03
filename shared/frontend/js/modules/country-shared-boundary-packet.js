@@ -88,9 +88,13 @@ export function createCountrySharedBoundaryState() {
       updateEdge(edgeKey);
     }
   }
-  function reconcile(changed) {
+  function reconcile(changed, profile) {
+    const trace = typeof profile === 'function' ? profile : null;
+    let started = trace ? performance.now() : 0;
     const obsolete = new Set([...changed].flatMap(id => [...(contactsByOwner.get(id) || [])]));
     for (const key of obsolete) removeContact(key);
+    if (trace) trace('contact-remove', performance.now() - started, {changedIds: changed.size, removedPairs: obsolete.size});
+    started = trace ? performance.now() : 0;
     const visited = new Set(), pairs = [], owners = [];
     for (const id of changed) {
       const left = preparedStore.get(id);
@@ -104,13 +108,19 @@ export function createCountrySharedBoundaryState() {
         owners.push(ids);
       }
     }
-    const contacts = computeCountrySharedContacts(pairs);
-    contacts.forEach((segments, index) => {
+    if (trace) trace('contact-neighbor-search', performance.now() - started,
+      {changedIds: changed.size, candidatePairs: pairs.length});
+    const computed = computeCountrySharedContacts(pairs, trace);
+    started = trace ? performance.now() : 0;
+    computed.forEach((segments, index) => {
       contactComputationCount++;
       addContact(owners[index], segments);
     });
+    if (trace) trace('contact-merge', performance.now() - started,
+      {candidatePairs: pairs.length, computedSegments: computed.reduce((sum, rows) => sum + rows.length, 0)});
+
   }
-  function seed(segments, changed) {
+  function seed(segments, changed, profile) {
     contacts.clear(); contactsByOwner.clear(); edges.clear();
     const pairs = new Map();
     for (const source of segments) {
@@ -126,17 +136,24 @@ export function createCountrySharedBoundaryState() {
       }
     }
     for (const pair of pairs.values()) addContact(pair.ids, pair.segments);
-    reconcile(changed);
+    reconcile(changed, profile);
   }
-  function replace(features, { cachedSegments, changedIds } = {}) {
+  function replace(features, { cachedSegments, changedIds, profile } = {}) {
+    const started = typeof profile === 'function' ? performance.now() : 0;
     const changed = preparedStore.replace(features);
-    if (cachedSegments) seed(cachedSegments, changedIds === undefined ? changed : new Set([...changedIds].map(String)));
-    else reconcile(changed);
+    if (typeof profile === 'function') profile('prepare-store-replace', performance.now() - started,
+      {changedIds: changed.size, totalFeatures: features.length});
+    if (cachedSegments) seed(cachedSegments,
+      changedIds === undefined ? changed : new Set([...changedIds].map(String)), profile);
+    else reconcile(changed, profile);
     return changed;
   }
-  function patch(features = [], removedIds = []) {
+  function patch(features = [], removedIds = [], {profile} = {}) {
+    const started = typeof profile === 'function' ? performance.now() : 0;
     const changed = preparedStore.patch(features, removedIds);
-    reconcile(changed);
+    if (typeof profile === 'function') profile('prepare-store-patch', performance.now() - started,
+      {changedIds: changed.size, suppliedFeatures: features.length, removedIds: removedIds.length});
+    reconcile(changed, profile);
     return changed;
   }
   return { preparedStore, replace, patch,
