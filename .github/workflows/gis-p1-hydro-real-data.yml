@@ -96,6 +96,7 @@ jobs:
               --connect-timeout 30 --max-time 900 --max-filesize 160000000 \
               "https://data.hydrosheds.org/file/HydroRIVERS/HydroRIVERS_v10_$code"_shp.zip \
               --output "$archive"
+            echo "Downloaded official HydroRIVERS $code archive; verifying ZIP structure"
             unzip -tqq "$archive"
             for extension in shp shx dbf prj; do
               member="HydroRIVERS_v10_$code.$extension"
