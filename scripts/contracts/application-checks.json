@@ -2,62 +2,6 @@
   "schema": "pando-application-checks-v1",
   "groups": [
     {
-      "id": "retired-editor-browser",
-      "kind": "browser",
-      "mode": "retired",
-      "reason": "Archived graphical-editor browser checks, excluded from Viewer/Windows execution.",
-      "testPatterns": [
-        "tests/browser/editor-*.spec.mjs",
-        "tests/browser/draft-*.spec.mjs",
-        "tests/browser/editing-*.spec.mjs",
-        "tests/browser/map-editing-*.spec.mjs",
-        "tests/browser/edit-preview-handoff.spec.mjs",
-        "tests/browser/prepared-overlay-mesh.spec.mjs",
-        "tests/browser/phone-landscape-editor.spec.mjs",
-        "tests/browser/mobile-vertex-ui.spec.mjs",
-        "tests/browser/mobile-native-selection.spec.mjs",
-        "tests/browser/radio-row-consistency.spec.mjs",
-        "tests/browser/file-menu-layering.spec.mjs",
-        "tests/browser/workflow-v17.spec.mjs",
-        "tests/browser/editable-library-ui.spec.mjs",
-        "tests/browser/map-plugin-import.spec.mjs",
-        "tests/browser/qgis-pando-exchange.spec.mjs",
-        "tests/browser/territorial-parent-edit.spec.mjs",
-        "tests/browser/shell-file-save.spec.mjs",
-        "tests/browser/project-setup-ui.spec.mjs",
-        "tests/browser/project-creation-storage.spec.mjs",
-        "tests/browser/label-metadata-edit.spec.mjs",
-        "tests/browser/hydro-metadata-edit.spec.mjs",
-        "tests/browser/temporal-editing.spec.mjs"
-      ],
-      "inputs": []
-    },
-    {
-      "id": "retired-editor-unit",
-      "kind": "unit",
-      "mode": "retired",
-      "reason": "Historical graphical-editor-only tests are held outside shipped Viewer/Windows and canonical GIS regression gates; R4-E will remove their source fixtures.",
-      "testPatterns": [
-        "tests/unit/application-composition.test.mjs",
-        "tests/unit/capability-ports-contract.test.mjs",
-        "tests/unit/territorial-gis-export.test.mjs",
-        "tests/unit/territorial-property-controller.test.mjs",
-        "tests/unit/startup-performance-contract.test.mjs",
-        "tests/unit/domain-split-contract.test.mjs",
-        "tests/unit/editor-*.test.mjs",
-        "tests/unit/edit-preview-*.test.mjs",
-        "tests/unit/editing-*.test.mjs",
-        "tests/unit/draft-*.test.mjs",
-        "tests/unit/map-edit-*.test.mjs",
-        "tests/unit/app-geometry-preview.test.mjs",
-        "tests/unit/app-ui-boundaries.test.mjs",
-        "tests/unit/property-editor-*.test.mjs",
-        "tests/unit/territorial-editor-*.test.mjs",
-        "tests/unit/territory-selection-workflow.test.mjs"
-      ],
-      "inputs": []
-    },
-    {
       "id": "frontend-layout",
       "kind": "unit",
       "testPatterns": [
