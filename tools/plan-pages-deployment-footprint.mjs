@@ -74,7 +74,7 @@ function staticCategory(p){
 function generatedCategory(p){
   if(p.startsWith('assets/data/territorial-entities/generated/'))return 'historical-catalog-and-source';
   if(p.startsWith('assets/data/terrain-preview/v0.13.3-p2/'))return 'current-terrain-preview';
-  if(/^assets\/data\/hydro\/v0\.13\.[012]\//.test(p))return 'current-hydro';
+  if(/^assets\/data\/hydro\/v0\.13\.(?:[012]|4)\//.test(p))return 'current-hydro';
   if(p.startsWith('assets/data/world/'))return 'content-hash-world-bridge';
   if(p.startsWith('assets/data/places/'))return 'places';
   return null;
