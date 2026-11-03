@@ -161,12 +161,24 @@ test('archive decoders reject duplicate normalized names and links before buildi
     await writeFile(join(dir,'plugin.json'),'{}');await writeFile(join(dir,'payload'),'original');
     const inventory=[{path:'plugin.json',size_bytes:2},{path:'payload',size_bytes:8}];
     const archive=join(dir,'duplicate.tar.gz');await run('tar',['-czf',archive,'-C',dir,'plugin.json','payload','payload']);
-    await assert.rejects(readPrivateReleaseArchive(archive,inventory),/duplicate/i);
-    const {symlink,link}=await import('node:fs/promises');
-    for(const [name,make]of [['symlink',symlink],['hardlink',link]]){
-      const file=join(dir,name);await make(join(dir,'payload'),file);
-      const archive=join(dir,name+'.tar.gz');await run('tar',['-czf',archive,'-C',dir,'plugin.json','payload',name]);
-      await assert.rejects(readPrivateReleaseArchive(archive,[...inventory,{path:name,size_bytes:8}]),/type|regular|link/i);
+    await assert.rejects(readPrivateReleaseArchive(archive,inventory),{code:'ERR_ASSERTION',message:/Duplicate account archive path/});
+    // Construct real USTAR link entries without requiring Windows symlink
+    // privileges. The archive decoder must reject both link type flags.
+    const {gzipSync}=await import('node:zlib');
+    const member=(name,body,type='0',link='')=>{
+      const header=Buffer.alloc(512),bytes=Buffer.from(body);
+      header.write(name,0,100);header.write('0000644\0',100,8);
+      header.write('0000000\0',108,8);header.write('0000000\0',116,8);
+      header.write(bytes.length.toString(8).padStart(11,'0')+'\0',124,12);
+      header.write('00000000000\0',136,12);header.fill(32,148,156);
+      header.write(type,156,1);header.write(link,157,100);header.write('ustar\0',257,6);header.write('00',263,2);
+      header.write([...header].reduce((sum,byte)=>sum+byte,0).toString(8).padStart(6,'0')+'\0 ',148,8);
+      return Buffer.concat([header,bytes,Buffer.alloc((512-bytes.length%512)%512)]);
+    };
+    for(const [name,type]of [['symlink','2'],['hardlink','1']]){
+      const archive=join(dir,name+'.tar.gz');
+      await writeFile(archive,gzipSync(Buffer.concat([member('plugin.json','{}'),member('payload','original'),member(name,'',type,'payload'),Buffer.alloc(1024)])));
+      await assert.rejects(readPrivateReleaseArchive(archive,[...inventory,{path:name,size_bytes:8}]),{code:'ERR_ASSERTION',message:/Archive entry must be a regular file or directory/});
     }
     const {ZipFile}=await import('yazl');
     for(const kind of ['duplicate','symlink','control']){
@@ -202,7 +214,7 @@ test('tar members with offsetting size changes cannot fabricate the inventoried 
   try{
     await writeFile(join(dir,'plugin.json'),'{}o');await writeFile(join(dir,'payload'),'riginal');
     await promisify(execFile)('tar',['-czf',archive,'-C',dir,'plugin.json','payload']);
-    await assert.rejects(readPrivateReleaseArchive(archive,[{path:'plugin.json',size_bytes:2},{path:'payload',size_bytes:8}]),/member size/i);
+    await assert.rejects(readPrivateReleaseArchive(archive,[{path:'plugin.json',size_bytes:2},{path:'payload',size_bytes:8}]),{code:'ERR_ASSERTION',message:/member size/i});
   }finally{await rm(archive,{force:true});await rm(dir,{recursive:true,force:true});}
 });
 

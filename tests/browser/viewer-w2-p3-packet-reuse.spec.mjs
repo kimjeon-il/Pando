@@ -1,4 +1,6 @@
 import {test,expect} from '@playwright/test';
+import {writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
 
 test.use({viewport:{width:1280,height:800},trace:'off'});
 
@@ -6,7 +8,7 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
   test.setTimeout(240000);
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
-  await page.addInitScript(()=>{globalThis.__W2P3_PACKETS__=[];});
+  await page.addInitScript(()=>{globalThis.__W2P3_PACKETS__=[];globalThis.__W2P6_ACCEPTED__=[];});
   await page.addInitScript(()=>{
     globalThis.__W2P6_TRANSPORT__=[];
     const NativeWorker=globalThis.Worker;
@@ -16,6 +18,10 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
         this.__boundary=options?.name==='pandolab-country-shared-boundary';
       }
       postMessage(data,transfer){
+        if(this.__boundary && data?.type==='delta' && globalThis.__W2P6_CORRUPT_NEXT__){
+          globalThis.__W2P6_CORRUPT_NEXT__=false;
+          data={...data,baseToken:'integration-deliberately-invalid-base'};
+        }
         if(this.__boundary && ['replace','delta'].includes(data?.type)){
           const total=data.features?.length||0;
           const included=(data.features||[]).filter(row=>Object.hasOwn(row,'geometry')).length;
@@ -41,12 +47,16 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
       '});',
       marker
     ].join('\n          '));
+    const acceptedPort="          if (data.type !== 'prepared' || !countryBoundaryTask) return;";
+    if(src.split(acceptedPort).length!==2)throw Error('Boundary acceptance port changed');
+    src=src.replace(acceptedPort,acceptedPort+'\n          globalThis.__W2P6_ACCEPTED__.push(data.requestId);');
     const diagnosticPort='    function syncCountryBoundaryScene() {\n      prepareCountrySharedBoundary({ replace: true, baselineCache: false });\n    }';
     if(src.split(diagnosticPort).length!==2)throw Error('Boundary diagnostic port changed');
     src=src.replace(diagnosticPort,diagnosticPort+
       '\n    // Test-only: demand the same exact authoritative full input without altering it.\n'+
       '    globalThis.__W2P3_REPREPARE__ = () => {\n'+
       '      countryBoundaryDependencies = null;\n'+
+      '      countryBoundaryTask = null;\n'+
       '      prepareCountrySharedBoundary({ replace: true });\n'+
       '      return countryBoundaryRequestId;\n'+
       '    };');
@@ -133,7 +143,48 @@ test('W2-P3 real Viewer reuses attached Worker packet copies for identical dated
     console.log('W2_P3_REAL_REPREPARE '+JSON.stringify({
       initial,previous,forced,baseline:all,finalSegments:final.stats.countrySharedBoundarySegmentCount
     }).slice(0,13000));
+    const semantic=()=>page.evaluate(async()=>{
+      const d=globalThis.__PANDOLAB_VIEWER__.documentSnapshot();
+      const bytes=new TextEncoder().encode(JSON.stringify({entities:d.territorialEntities,
+        geometries:d.geometries,timeline:d.timelineRecords}));
+      return [...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
+        .map(x=>x.toString(16).padStart(2,'0')).join('');
+    });
+    const beforeResync={hash:await semantic(),pixels:await page.locator('#viewerCanvas').screenshot()};
+    const invalidId=await page.evaluate(()=>{
+      globalThis.__W2P6_CORRUPT_NEXT__=true;
+      return globalThis.__W2P3_REPREPARE__();
+    });
+    await expect.poll(()=>page.evaluate(id=>globalThis.__W2P3_PACKETS__
+      .filter(p=>p.kind==='resync'&&p.requestId===id).length,invalidId),{timeout:60000}).toBe(1);
+    await expect.poll(()=>page.evaluate(id=>globalThis.__W2P3_PACKETS__
+      .some(p=>p.kind==='prepared'&&p.requestId>id),invalidId),{timeout:60000}).toBe(true);
+    await ready(initial);
+    const recovery=await page.evaluate(id=>globalThis.__W2P6_TRANSPORT__.filter(p=>p.requestId>=id),invalidId);
+    expect(recovery[0].type).toBe('delta');
+    expect(recovery.some(p=>p.requestId>invalidId&&p.type==='replace'&&p.omitted===0)).toBe(true);
+    const burst=await page.evaluate(()=>Array.from({length:3},()=>globalThis.__W2P3_REPREPARE__()));
+    expect(burst[1]).toBeGreaterThan(burst[0]);
+    expect(burst[2]).toBeGreaterThan(burst[1]);
+    const latest=burst.at(-1);
+    await expect.poll(()=>page.evaluate(id=>globalThis.__W2P3_PACKETS__
+      .some(p=>p.kind==='prepared'&&p.requestId===id),latest),{timeout:60000}).toBe(true);
+    await ready(initial);
+    await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+    const accepted=await page.evaluate(()=>globalThis.__W2P6_ACCEPTED__);
+    expect(accepted).toContain(latest);
+    expect(accepted).not.toContain(burst[0]);
+    expect(accepted).not.toContain(burst[1]);
+    expect(await semantic()).toBe(beforeResync.hash);
+    expect((await page.locator('#viewerCanvas').screenshot()).equals(beforeResync.pixels)).toBe(true);
+    expect(errors).toEqual([]);
+    records.push({kind:'resync-supersession',invalidId,burst,latest,accepted,recovery,
+      semanticUnchanged:true,pixelsUnchanged:true});
+    console.log('W2_P6_3_REAL_RESYNC_SUPERSESSION '+JSON.stringify({invalidId,burst,latest,accepted,recovery,semanticUnchanged:true,pixelsUnchanged:true}));
   }finally{
     await info.attach('w2-p3-real-boundary-cache',{body:JSON.stringify({initial,previous,records,errors},null,2),contentType:'application/json'});
+    if(process.env.PANDOLAB_W3_EVIDENCE)await writeFile(
+      join(process.env.PANDOLAB_W3_EVIDENCE,`viewer-resync-supersession-${Date.now()}.json`),
+      JSON.stringify({initial,previous,records,errors},null,2),{flag:'wx'});
   }
 });

@@ -267,10 +267,18 @@ async function isGzipArchive(path){
   const file=await open(path,'r');try{const magic=Buffer.alloc(2);await file.read(magic,0,2,0);return magic[0]===0x1f&&magic[1]===0x8b;}finally{await file.close();}
 }
 async function readTarFiles(path,inventory,{complete=false}={}){
-  // The host returns tar.gz even for a ZIP upload. Use the existing system tar
-  // as a read-only decoder; -O never extracts paths into the filesystem.
-  const listing=await exec('tar',['--quoting-style=literal','-tf',path],{encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
-  const details=await exec('tar',['--numeric-owner','--quoting-style=literal','-tvf',path],{encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
+  // Literal, numeric-owner listings require GNU tar. Git for Windows supplies
+  // it; the Windows system bsdtar does not implement this contract. -O never
+  // extracts account archive paths into the filesystem.
+  const tar=process.platform==='win32'
+    ? resolve((await exec('git',['--exec-path'],{encoding:'utf8',windowsHide:true})).stdout.trim(),'../../../usr/bin/tar.exe')
+    : 'tar';
+  const env=process.platform==='win32'?Object.fromEntries([
+    ...Object.entries(process.env).filter(([key])=>key.toLowerCase()!=='path'),
+    ['PATH',dirname(tar)+';'+(process.env.PATH||process.env.Path||'')],
+  ]):process.env;
+  const listing=await exec(tar,['--force-local','--quoting-style=literal','-tf',path],{env,encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
+  const details=await exec(tar,['--force-local','--numeric-owner','--quoting-style=literal','-tvf',path],{env,encoding:'utf8',windowsHide:true,maxBuffer:4*1024*1024});
   const headers=details.stdout.trimEnd().split('\n'),types=headers.map(line=>line[0]);
   const names=listing.stdout.split(/\r?\n/).filter(Boolean),prefix=names.includes('plugin.json')?'':
     names.filter(name=>name.split('/').length===2&&name.endsWith('/plugin.json')).map(name=>name.slice(0,-11))[0];
@@ -292,7 +300,7 @@ async function readTarFiles(path,inventory,{complete=false}={}){
   if(complete)assert.deepEqual(regular.sort(),[...sizes.keys()].sort(),'Complete account archive inventory mismatch');
   let total=0;for(const name of selected){const bytes=actualSizes.get(name);check(Number.isSafeInteger(bytes)&&bytes>=0&&bytes<=64*1024*1024,'Invalid account archive file size');total+=bytes;}
   check(total<=128*1024*1024,'Account archive exceeds bounded verification size');
-  const {stdout}=await exec('tar',['-xOf',path,'--',...selected],{encoding:null,windowsHide:true,maxBuffer:total+1024*1024});
+  const {stdout}=await exec(tar,['--force-local','-xOf',path,'--',...selected],{env,encoding:null,windowsHide:true,maxBuffer:total+1024*1024});
   check(stdout.length===total,'Account archive size mismatch');
   const result=new Map();let at=0;for(const name of selected){const bytes=actualSizes.get(name);result.set(name.slice(prefix.length),stdout.subarray(at,at+bytes));at+=bytes;}
   return result;

@@ -9,7 +9,7 @@
 
 - `country-boundary-geometry-transport.js`: 메인은 처음에는 전량 `replace`, 확인된 Worker `baseToken`이 있을 때만 `delta`를 생성한다. 델타는 현재 전체 국가 ID/메타데이터, 변경·검증 불가 형상, 삭제 ID를 포함한다. 기존 검증된 좌표를 생략해도 국명·상하 소유관계 등 메타데이터는 유지한다.
 - 메인에서 좌표 생략은 **동일한 불변 `GeometryVersionStore` 객체**, 동일 `geometryReferenceFor` ID/버전, 동일 `geometryRevisionKey`, Worker 완료 확인이 모두 충족될 때에만 허용한다. 일반 WeakMap 객체 키, mutable revision 또는 새로운 프로젝트 세대만으로는 좌표 동일성을 인정하지 않는다. 새 객체에 복제된 동일 좌표라도 보수적으로 전송한다. UI 스레드에서 13MB 전체에 대한 별도 JSON 직렬화·깊은 복제·SHA-256을 추가하지 않는다.
-- `country-shared-boundary-worker.js`: 처음 받은 전체 좌표는 종전처럼 Worker 내부 SHA-256으로 검증한다. 마지막으로 정상 `prepared` 응답을 전송한 Worker의 검증된 geometry/digest만 다음 델타 기초로 인증한다. 좌표가 포함된 변경 형상은 Worker에서 새로 해시하고, 생략한 형상은 이전에 검증된 좌표와 digest를 사용한다. 순서·ID·삭제/잔존 집합·토큰 불일치는 `resync`로 거절한다.
+- `country-shared-boundary-worker.js`: 처음 받은 전체 좌표는 종전처럼 Worker 내부 SHA-256으로 검증한다. 마지막으로 정상 `prepared` 응답을 전송한 Worker의 검증된 geometry/digest만 다음 델타 기초로 인증한다. 좌표가 포함된 변경 형상은 Worker에서 새로 해시하고, 생략한 형상은 이전에 검증된 좌표와 digest를 사용한다. Worker는 중복·누락 ID, 삭제·잔존 집합 및 토큰 불일치를 `resync`로 거절한다. ID 재정렬·중간 삽입은 sender가 순서 호환성을 확인해 full `replace`로 전송한다.
 - `gpu-map-renderer.js`: 종전 `requestId`, `projectGeneration`, `geometryRevision`, `quality`로 현재 응답인지 먼저 확인한다. `resync`를 받으면 현재 권위 있는 전체 입력으로 재시도한다. Worker terminate, 오류, patch 경로에서는 전송 기초를 초기화한다. 동시에 수행 중인 요청을 임의로 안전한 base로 간주하지 않는다. 종전 `preparedStore`, `retainedPacket`, 96MiB 보존 상한, temporalFrameReady 및 이미 표시한 지도 유지 동작은 보존한다.
 
 ## 검증 실적

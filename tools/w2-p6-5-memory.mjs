@@ -1,10 +1,10 @@
+/* global PANDOLAB_BUILD_META, PerformanceObserver, TextEncoder, __PANDOLAB_VIEWER__, __W3_FORCE, __w2Readiness, __w2ReplayStale, __w3Long:writable, crypto, devicePixelRatio, document, requestAnimationFrame -- evaluated inside the Playwright browser context */
 import {chromium,expect} from '@playwright/test';
 import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {gzipSync} from 'node:zlib';
 import {createWorkerMemoryProbe} from '../tests/browser/helpers/soviet-memory-attribution.mjs';
 const base=process.env.PANDOLAB_W3_EVIDENCE;if(!base)throw Error('Specify evidence directory');mkdirSync(base,{recursive:true});
-const sourceA='ee6efddb7335a6665647cc69951e40103830c3e8',sourceB='0af8b63d2efbeb19e9b677ec23d5f3fb92abfb83';
 function nativeMemory(info){const ids=info.map(p=>Number(p.id)).filter(Number.isInteger);if(!ids.length)return[];return JSON.parse(execFileSync('powershell.exe',['-NoProfile','-Command','@(Get-Process -Id '+ids.join(',')+' -ErrorAction SilentlyContinue | Select-Object Id,WorkingSet64,PrivateMemorySize64) | ConvertTo-Json -Compress'],{encoding:'utf8',windowsHide:true})||'[]');}
 async function cacheState(cdp){
  const target=(await cdp.send('Target.getTargets')).targetInfos.find(t=>t.type==='worker'&&t.url.includes('country-shared-boundary-worker.js'));if(!target)return{available:false,reason:'No boundary target'};
@@ -36,7 +36,7 @@ async function run(name,{port,expected,transitions=2,memory=false,forced=false,f
   const page=await context.newPage();page.on('pageerror',e=>report.errors.push(String(e)));page.on('console',m=>{if(['warning','error'].includes(m.type()))report.warnings.push({type:m.type(),text:m.text()});});
   await page.goto('http://127.0.0.1:'+port+'/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded',timeout:90000});await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:150000});
   report.identity=await page.evaluate(()=>{const c=document.querySelector('#viewerCanvas'),g=c.getContext('webgl2'),e=g.getExtension('WEBGL_debug_renderer_info');return{renderer:g.getParameter(e.UNMASKED_RENDERER_WEBGL),version:g.getParameter(g.VERSION),width:c.width,height:c.height,dpr:devicePixelRatio,build:PANDOLAB_BUILD_META,month:__PANDOLAB_VIEWER__.builtinMonth().month};});
-  const id=report.identity;if(report.browserVersion!=='151.0.7922.34'||!report.system.devices.some(d=>d.deviceString==='NVIDIA GeForce GTX 1650'&&d.driverVersion==='32.0.16.1088')||!/NVIDIA.*Direct3D11/.test(id.renderer)||report.system.featureStatus.gpu_compositing!=='enabled'||id.width!==1280||id.height!==752||id.dpr!==1||!id.version.includes('WebGL 2.0')||id.build.sourceCommit!==expected||id.build.dataRevision!=='data-f50b7f480c812df6f5ea0c40f5461ab0'||id.month!=='2026-11')throw Error('Hardware/source/data identity mismatch');
+  const id=report.identity;if(report.browserVersion!=='151.0.7922.34'||!report.system.devices.some(d=>d.deviceString==='NVIDIA GeForce GTX 1650'&&d.driverVersion==='32.0.16.1088')||!/NVIDIA.*Direct3D11/.test(id.renderer)||report.system.featureStatus.gpu_compositing!=='enabled'||id.width!==1280||id.height!==752||id.dpr!==1||!id.version.includes('WebGL 2.0')||id.build.sourceCommit!==expected||id.build.dataRevision!==(process.env.W65_DATA_ID||'data-f50b7f480c812df6f5ea0c40f5461ab0')||id.month!=='2026-11')throw Error('Hardware/source/data identity mismatch');
   if(process.argv[2]==='initial'){report.initialReadiness=await page.evaluate(()=>__w2Readiness());report.initialSemantic=await snapshot(page);await page.screenshot({path:base+'/'+name+'-initial.png'});}
   if(memory){await expect.poll(()=>page.evaluate(()=>__PANDOLAB_VIEWER__.rendererStats().countrySharedBoundaryReady),{timeout:120000}).toBe(true);main=await context.newCDPSession(page);workers=await createWorkerMemoryProbe(cdp,{origin:'http://127.0.0.1:'+port});report.checkpoints.push(await checkpoint(cdp,main,workers,0));}
   for(let i=0;i<transitions;i++){
@@ -60,4 +60,7 @@ async function run(name,{port,expected,transitions=2,memory=false,forced=false,f
 
 
 
-const arm=process.env.W65_ARM, port=Number(process.env.W65_PORT), expected=process.env.W65_SOURCE;if(!['A','B','A2'].includes(arm))throw Error('Invalid arm');await run('w65-'+arm+'-memory',{port,expected,memory:true,trace:false,transitions:60});
+const arm=process.env.W65_ARM, port=Number(process.env.W65_PORT), expected=process.env.W65_SOURCE;
+const transitions=Number(process.env.W65_TRANSITIONS||60);
+if(!['A','B','A2'].includes(arm)||!Number.isInteger(transitions)||transitions<1||transitions>160)throw Error('Invalid arm or transition count');
+await run('w65-'+arm+'-memory',{port,expected,memory:true,trace:false,transitions});
