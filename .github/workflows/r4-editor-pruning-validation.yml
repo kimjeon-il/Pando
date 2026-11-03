@@ -1,7 +1,7 @@
 name: R4 editor source pruning and GIS preservation
 on:
   push:
-    branches: [work/ui, work/r4e0-dependency-audit-20261103, fix/r4-editor-source-retirement-20261102]
+    branches: [work/ui, work/r4e1-gis-interop-20261103, fix/r4-editor-source-retirement-20261102]
     paths:
       - .github/workflows/r4-editor-pruning-validation.yml
       - docs/development/r4-source-pruning.json
@@ -18,6 +18,14 @@ on:
       - scripts/r4e0-dependency-audit.mjs
       - docs/development/r4e0-source-dispositions.json
       - tests/unit/r4e0-dependency-audit.test.mjs
+      - tests/unit/r4e1-gis-interop-boundaries.test.mjs
+      - tests/unit/country-import-identity.test.mjs
+      - tests/unit/import-plan.test.mjs
+      - tests/unit/gis-adapters.test.mjs
+      - tests/unit/territorial-entity-loader.test.mjs
+      - tests/unit/core-gpkg-file-boundary.test.mjs
+      - tests/helpers/production-geopackage.mjs
+      - tests/fixtures/geopackage/compat/**
       - scripts/run-active-tests.mjs
       - tests/unit/gis-math-contract.test.mjs
       - tests/unit/gis-geometry-worker.test.mjs
@@ -80,6 +88,12 @@ jobs:
           tests/unit/r4c-spatial-boundaries.test.mjs
           tests/unit/r4d-legacy-ci-boundaries.test.mjs
           tests/unit/r4e0-dependency-audit.test.mjs
+          tests/unit/r4e1-gis-interop-boundaries.test.mjs
+          tests/unit/country-import-identity.test.mjs
+          tests/unit/import-plan.test.mjs
+          tests/unit/gis-adapters.test.mjs
+          tests/unit/territorial-entity-loader.test.mjs
+          tests/unit/core-gpkg-file-boundary.test.mjs
           tests/unit/gis-math-contract.test.mjs
           tests/unit/gis-geometry-worker.test.mjs
           tests/unit/library-shared-border-precision.test.mjs

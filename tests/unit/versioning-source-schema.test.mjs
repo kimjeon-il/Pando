@@ -14,7 +14,7 @@ const autosave=file('tests/helpers/legacy-project-autosave.mjs');
 const version=file('assets/js/modules/version-contract.js');
 const territorial=file('assets/js/modules/territorial-units.js');
 const distribution=file('assets/js/modules/distribution-model.js');
-const gis=file('apps/editor/frontend/js/gis-adapters.js');
+const gis=file('tests/fixtures/geopackage/compat/worker/gis-adapters.source.txt');
 
 test('project data follows its C++-compatible schema and UUID identity policy',()=>{
   assert.match(serializer,/schemaVersion = PROJECT_SCHEMA_VERSION/);

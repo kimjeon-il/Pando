@@ -32,9 +32,16 @@ test('R4-E0 keeps canonical GIS, C++/WASM, and actual Worker/GeoPackage parity g
    assert.equal(row.phase,'R4-E1');
  }
  const gis=audit.records.find(x=>x.path.endsWith('/gis-geometry-worker.js'));
- assert.ok(gis.blocking.some(x=>x.from==='tests/unit/helpers/gis-worker-harness.mjs'));
+ // R4-E1 migrates these two consumers to canonical GIS and frozen test fixtures;
+ // the E0 inventory continues to audit every archived source without requiring
+ // a stale consumer to remain attached to the old editor file.
+ assert.ok(!gis.blocking.some(x=>x.from==='tests/unit/helpers/gis-worker-harness.mjs'));
+ const harness=readFileSync(new URL('./helpers/gis-worker-harness.mjs',import.meta.url),'utf8');
+ assert.match(harness,/tools\/gis\/gis-geometry-worker\.js/);
  const gpkg=audit.records.find(x=>x.path.endsWith('/gis-gpkg-worker.js'));
- assert.ok(gpkg.blocking.some(x=>x.from==='tests/helpers/production-geopackage.mjs'));
+ assert.ok(!gpkg.blocking.some(x=>x.from==='tests/helpers/production-geopackage.mjs'));
+ const producer=readFileSync(new URL('../helpers/production-geopackage.mjs',import.meta.url),'utf8');
+ assert.match(producer,/fixtures\/geopackage\/compat/);
  for(const path of manifest.invariants)assert.ok(typeof path==='string'&&path.length>0);
 });
 

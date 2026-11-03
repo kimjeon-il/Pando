@@ -226,7 +226,7 @@ test('river partition browser contract is deterministic and non-mutating', () =>
 test('GIS contract test sources stay worker-safe and do not revive removed paths', () => {
   const workerSources = [
     read('shared/frontend/js/workers/geographic-boundary-core.js'),
-    read('apps/editor/frontend/js/workers/gis-geometry-worker.js'),
+    read('tools/gis/gis-geometry-worker.js'),
     read('shared/frontend/js/workers/gpu-mesh-core.js'),
   ].join('\n');
   assert.doesNotMatch(workerSources, /document\.|window\.|getContext\(|activeProjection\(|state\.view/);
