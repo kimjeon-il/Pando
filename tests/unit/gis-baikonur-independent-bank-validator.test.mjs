@@ -31,3 +31,45 @@ test('original bank chords are not to be mistaken for the independently surveyed
   assert(length(start31,end1)>0.15);
   assert.equal(verifyBaikonurLeaseExclusionSource().properties.rightBankSegmentsIndependentlySurveyed,false);
 });
+
+function incompleteCandidate(overrides={}){
+  return {
+    type:'FeatureCollection',
+    features:[],
+    properties:{
+      openStreetMapDataUsed:false,
+      originalDatumVerified:true,
+      historicBankInterpretationVerified:true,
+      bankSide:'right',
+      referenceDate:'2020-01-22',
+      amendment2019ExclusionsApplied:true,
+      topologyWithKazakhstanVerified:true,
+      roadAndRailExclusionsVerified:true,
+      riverFlowDirectionVerified:true,
+      sourceEvidence:[
+        {kind:'official-treaty',url:'https://old.adilet.zan.kz/rus/docs/Z1900000282',sha256:'a'.repeat(64)},
+        {kind:'public-domain-satellite',url:'https://science.nasa.gov/',sha256:'b'.repeat(64)},
+      ],
+      ...overrides,
+    },
+  };
+}
+test('pre-2020 lease version cannot falsely apply exclusions that took effect in 2020',()=>{
+  const c=incompleteCandidate({referenceDate:'1994-12-10'});
+  assert.throws(()=>validateBaikonurBankCandidate(c,{referenceDate:'1994-12-10'}),
+    /cannot be used for an earlier legal epoch/);
+});
+test('missing road or rail corridor qualification rejects purported legal geometry',()=>{
+  const c=incompleteCandidate({roadAndRailExclusionsVerified:false});
+  assert.throws(()=>validateBaikonurBankCandidate(c),/road and rail/);
+});
+test('all six independently transcribed exclusion regions must be present',()=>{
+  const c=incompleteCandidate();
+  assert.throws(()=>validateBaikonurBankCandidate(c,{exclusionPolygons:[]}),
+    /All six official lease exclusions/);
+});
+test('a declaration alone is never accepted without both independent riverbank lines',()=>{
+  const c=incompleteCandidate();
+  assert.throws(()=>validateBaikonurBankCandidate(c),
+    /Both independently surveyed Syr Darya bank reaches/);
+});
