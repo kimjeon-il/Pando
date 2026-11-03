@@ -81,7 +81,7 @@ export async function collectViewerAssets({ root, availablePaths, readSource = p
     'assets/data/builtin-world/generated/v1/index.json',
     'assets/data/territorial-entities/generated/v2/index.json',
     'assets/data/prepared-polygons/generated/v2/manifest.json',
-    'assets/data/hydro/v0.13.2/manifest.json',
+    'assets/data/hydro/v0.13.4/manifest.json',
     'assets/data/places/manifest.json',
     'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
     'assets/data/physical-land/v1/manifest.json',

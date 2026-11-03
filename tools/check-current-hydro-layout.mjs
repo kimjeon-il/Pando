@@ -10,7 +10,7 @@ import {gunzipSync} from 'node:zlib';
 import vm from 'node:vm';
 
 const DATA='assets/data/hydro';
-export const CURRENT_MANIFEST=DATA+'/v0.13.2/manifest.json';
+export const CURRENT_MANIFEST=DATA+'/v0.13.4/manifest.json';
 // These releases were explicitly retired from the deployed runtime. This list
 // is a retirement policy, not a declaration of the current release or shard count.
 const RETIRED=['v0.13.0','v0.13.1'];

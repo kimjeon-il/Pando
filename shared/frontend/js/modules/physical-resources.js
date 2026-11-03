@@ -3,7 +3,7 @@ import '../vendor/polygon-clipping.min.js';
 import { createStoredAssetLoader } from './stored-asset-loader.js';
 import { sharedCalculationCore } from './temporal.js';
 import { timelineObjectKey } from './timeline-records.js';
-// Hydro v0.13.2 keeps its published 6.0/6.7/7.0/7.5 stage metadata.
+// Hydro v0.13.4 preserves its published 6.0/6.7/7.0/7.5 stage metadata.
 // Gate those existing stages by actual map zoom; no geometry, names, or basin
 // selection data need to be rewritten.
 const HYDRO_DISPLAY_ZOOM_GATES = Object.freeze([

@@ -11,7 +11,7 @@ const LIMIT_BYTES = 1_000_000_000;
 const REQUIRED = [
   'index.html', '.nojekyll',
   'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
-  'assets/data/hydro/v0.13.2/manifest.json'
+  'assets/data/hydro/v0.13.4/manifest.json'
 ];
 const hash = (algorithm, bytes) => createHash(algorithm).update(bytes).digest('hex');
 const blobHash = bytes => hash('sha1', Buffer.concat([Buffer.from(`blob ${bytes.length}\0`), bytes]));

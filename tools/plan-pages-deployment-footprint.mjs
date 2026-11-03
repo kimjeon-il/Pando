@@ -97,8 +97,8 @@ export function buildPublicationProfile(tree,lock,required,{profile='main-legacy
   for(const path of required)include(path,'verified-world-pin',{required:true});
   // These are functional contracts, not discretionary trim targets.
   for(const path of ['assets/js/gis-io.js',GDAL_WASM,GDAL_DATA,
-      'assets/data/hydro/v0.13.2/manifest.json',
-      'assets/data/hydro/v0.13.2/hydro.bin',
+      'assets/data/hydro/v0.13.4/manifest.json',
+      'assets/data/hydro/v0.13.4/hydro.bin',
       'assets/data/terrain-preview/v0.13.3-p2/manifest.json',
       'assets/data/territorial-entities/generated/v2/index.json']){
     fail(chosen.has(path),'Mandatory Web runtime asset missing: '+path);
