@@ -30,15 +30,20 @@ jobs:
       - name: Source syntax and lint
         run: |
           node --check shared/frontend/js/modules/country-shared-boundary-packet.js
+          node --check shared/frontend/js/modules/country-stroke-group-reuse.js
+          node --check shared/frontend/js/modules/country-contact-row-pruning.js
+          node --check shared/frontend/js/modules/country-contact-core.js
           node --check shared/frontend/js/workers/country-shared-boundary-worker.js
           node --check shared/frontend/js/modules/country-boundary-geometry-transport.js
           node --check tests/browser/viewer-p6-stage2-worker-profile.spec.mjs
-          pnpm exec eslint shared/frontend/js/modules/country-shared-boundary-packet.js shared/frontend/js/workers/country-shared-boundary-worker.js shared/frontend/js/modules/country-boundary-geometry-transport.js tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-boundary-geometry-transport.test.mjs tests/browser/viewer-p6-stage2-worker-profile.spec.mjs scripts/p3-plan-remote.mjs tests/unit/p3-remote-plan.test.mjs
+          pnpm exec eslint shared/frontend/js/modules/country-shared-boundary-packet.js shared/frontend/js/modules/country-stroke-group-reuse.js shared/frontend/js/modules/country-contact-row-pruning.js shared/frontend/js/modules/country-contact-core.js tests/unit/country-contact-core.test.mjs shared/frontend/js/workers/country-shared-boundary-worker.js shared/frontend/js/modules/country-boundary-geometry-transport.js tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-boundary-geometry-transport.test.mjs tests/browser/viewer-p6-stage2-worker-profile.spec.mjs scripts/p3-plan-remote.mjs tests/unit/p3-remote-plan.test.mjs
       - name: Real C++ Worker full/delta and per-phase diagnostic contracts
         run: |
           node --test --test-concurrency=1 --test-timeout=120000 \
             tests/unit/country-shared-boundary-state.test.mjs \
             tests/unit/country-boundary-geometry-transport.test.mjs \
+            tests/unit/country-contact-core.test.mjs \
+            tests/unit/country-contact-legacy-parity.test.mjs \
             tests/unit/w2-p6-3-delta-protocol.test.mjs \
             tests/unit/p3-remote-plan.test.mjs
 
