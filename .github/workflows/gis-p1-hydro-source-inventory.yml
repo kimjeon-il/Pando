@@ -1,0 +1,49 @@
+name: P1 Hydro original-source reconstruction prerequisites (read-only)
+on:
+  push:
+    branches: [work/gis]
+    paths:
+      - '.github/workflows/gis-p1-hydro-source-inventory.yml'
+      - 'tools/gis/verify-p1-hydro-source-inventory.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pinned-source-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/checkout@v4
+        with:
+          repository: kimjeon-il/PandoLab-library-data
+          ref: 91c127ddbae902405de6e35b38940a59a8c0d021
+          path: .pando-p1-inputs
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /archive/index.json
+            /archive/blobs/c848770c5c2177c1e1fe170e1d85faa6c804aad53fb8e8bcfc9b75f14a6a7a5c.gz
+            /assets/data/hydro/v0.13.4/manifest.json
+      - name: Verify exactly pinned source inventory without regenerating unavailable raw data
+        run: |
+          set -euo pipefail
+          mkdir -p p1-source-proof
+          node tools/gis/verify-p1-hydro-source-inventory.mjs \
+            --manifest .pando-p1-inputs/assets/data/hydro/v0.13.4/manifest.json \
+            --archive .pando-p1-inputs/archive/index.json \
+            --archive-root .pando-p1-inputs/archive/blobs \
+            --output p1-source-proof/originals-inventory.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p1-hydro-original-reconstruction-input-availability
+          path: p1-source-proof/*.json
+          if-no-files-found: warn
+          retention-days: 21
