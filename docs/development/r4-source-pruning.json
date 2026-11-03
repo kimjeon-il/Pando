@@ -1,9 +1,9 @@
 {
   "schema": "pandolab-r4-source-pruning-v1",
   "baselineCandidates": 153,
-  "removedSourceCount": 76,
-  "removedTestCount": 183,
-  "remainingSourceCount": 77,
+  "removedSourceCount": 79,
+  "removedTestCount": 186,
+  "remainingSourceCount": 74,
   "extractedGisModules": 16,
   "referencePolicy": "keep Core/GIS and nonretired test dependency closure; remove editor UI without active role",
   "removedSources": [
@@ -47,6 +47,7 @@
     "apps/editor/frontend/js/modules/generic-feature-service.js",
     "apps/editor/frontend/js/modules/geometry-metrics.js",
     "apps/editor/frontend/js/modules/gis-domain.js",
+    "apps/editor/frontend/js/modules/gis-export-controller.js",
     "apps/editor/frontend/js/modules/gis-geometry-validation.js",
     "apps/editor/frontend/js/modules/gis-import-plan.js",
     "apps/editor/frontend/js/modules/gis-import-transaction.js",
@@ -70,6 +71,7 @@
     "apps/editor/frontend/js/modules/river-territory-partition.js",
     "apps/editor/frontend/js/modules/save-state-controller.js",
     "apps/editor/frontend/js/modules/spatial-edit-registration.js",
+    "apps/editor/frontend/js/modules/startup-task-gate.js",
     "apps/editor/frontend/js/modules/surface-tabs-controller.js",
     "apps/editor/frontend/js/modules/territorial-geometry.js",
     "apps/editor/frontend/js/modules/territorial-index-entry.js",
@@ -82,6 +84,7 @@
     "apps/editor/frontend/js/workers/geometry-validation-worker.js",
     "apps/editor/frontend/js/workers/gis-geometry-worker.js",
     "apps/editor/frontend/js/workers/gis-gpkg-worker.js",
+    "apps/editor/frontend/js/workers/project-preview-worker.js",
     "apps/editor/templates/index.html"
   ],
   "removedTests": [
@@ -253,14 +256,17 @@
     "tests/unit/editor-test-entry.test.mjs",
     "tests/unit/editor-workspace-presentation.test.mjs",
     "tests/unit/geometry-rpc-consumers.test.mjs",
+    "tests/unit/gis-export-controller.test.mjs",
     "tests/unit/map-edit-preparation-worker.test.mjs",
     "tests/unit/map-edit-worker-client.test.mjs",
     "tests/unit/map-edit-worker-lifecycle.test.mjs",
+    "tests/unit/project-preview-worker.test.mjs",
     "tests/unit/project-ui-async-history.test.mjs",
     "tests/unit/property-editor-async-boundary.test.mjs",
     "tests/unit/selection-ui-focus.test.mjs",
     "tests/unit/selection-ui-reset-regression.test.mjs",
     "tests/unit/startup-performance-contract.test.mjs",
+    "tests/unit/startup-task-gate.test.mjs",
     "tests/unit/surface-tabs-controller.test.mjs",
     "tests/unit/territorial-editor-entry.test.mjs",
     "tests/unit/territorial-editor-lifecycle.test.mjs",
@@ -632,5 +638,19 @@
     "sourceRetained": "tests/fixtures/geopackage/compat/worker",
     "canonicalWorker": "tools/gis/gis-geometry-worker.js",
     "removedPolicyEntries": 5
+  },
+  "r4e4RetiredIsolatedUiWorkers": {
+    "stage": "R4-E4",
+    "removedSources": [
+      "apps/editor/frontend/js/modules/gis-export-controller.js",
+      "apps/editor/frontend/js/modules/startup-task-gate.js",
+      "apps/editor/frontend/js/workers/project-preview-worker.js"
+    ],
+    "retiredLegacyUiOnlyTests": [
+      "tests/unit/gis-export-controller.test.mjs",
+      "tests/unit/startup-task-gate.test.mjs",
+      "tests/unit/project-preview-worker.test.mjs"
+    ],
+    "why": "Editor-only GIS dialog/startup gate and project-preview Worker no longer ship; current Viewer/Reviewer and canonical Core/geometry tests are separate."
   }
 }
