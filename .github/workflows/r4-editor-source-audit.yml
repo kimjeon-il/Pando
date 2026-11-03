@@ -1,7 +1,10 @@
 name: R4 archived editor source references audit
 on:
   push:
-    branches: [work/ui, work/r4e3-test-fixture-retirement-20261103]
+    branches:
+      - work/ui
+      - work/r4e3-test-fixture-retirement-20261103
+      - work/r4e3-retired-test-fixture-pruning-20261103
     paths:
       - scripts/r4-editor-source-audit.mjs
       - scripts/r4e3-retirement-inventory.mjs
@@ -24,7 +27,10 @@ on:
       - tests/browser/**
       - .github/workflows/r4-editor-pruning-validation.yml
       - .github/workflows/r4-editor-source-audit.yml
-  workflow_dispatch:
+      - scripts/r4e3-retired-test-audit.mjs
+      - docs/development/r4e3-retired-tests.json
+      - tests/unit/r4e3-retired-editor-closure.test.mjs
+  workflow_dispatch: null
 permissions:
   contents: read
 jobs:
@@ -59,4 +65,13 @@ jobs:
         with:
           name: r4e0-dependency-map-${{ github.run_id }}
           path: test-results/r4e0-dependency-map.json
+          if-no-files-found: warn
+      - name: Inventory obsolete tests and helper usage
+        run: node scripts/r4e3-retired-test-audit.mjs --check --output test-results/r4e3-retired-test-inventory.json
+      - name: Attach R4-E3 inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r4e3-retirement-${{ github.run_id }}
+          path: test-results/r4e3-retired-test-inventory.json
           if-no-files-found: warn

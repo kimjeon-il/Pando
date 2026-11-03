@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createTooltipController } from "../../shared/frontend/js/modules/tooltip-controller.js";
-import { editorNode } from './helpers/editor-dom-fixture.mjs';
+import { editorNode } from './helpers/dom-node-fixture.mjs';
 
 function fixture() {
   const tooltip = editorNode(); tooltip.id = 'uiTooltip';

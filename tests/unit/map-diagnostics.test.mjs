@@ -115,7 +115,7 @@ test('diagnostic deadlines clear timers after successful and rejected reads', as
 });
 
 
-const canvasTransportSource = readFileSync(new URL("../../shared/frontend/js/modules/gpu-canvas-worker.js", import.meta.url), 'utf8');
+const canvasTransportSource = readFileSync(new URL("../../shared/frontend/js/modules/gpu-canvas-worker.js", import.meta.url), 'utf8').replaceAll('\r\n', '\n');
 function observedCanvasTransport() {
   const scope = { window: {}, performance: { now: () => 123 }, setTimeout, clearTimeout };
   vm.runInNewContext(`(${installCanvasTransportDiagnostics.toString()})()`, scope);
@@ -293,8 +293,8 @@ test('whole-case color failure emits cached stage/errors/sample even when its pa
 });
 
 
-const selectionPassSource = readFileSync(new URL("../../shared/frontend/js/modules/selection-pass.js", import.meta.url), 'utf8');
-const strokeRendererSource = readFileSync(new URL("../../shared/frontend/js/modules/gpu-stroke-renderer.js", import.meta.url), 'utf8');
+const selectionPassSource = readFileSync(new URL("../../shared/frontend/js/modules/selection-pass.js", import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+const strokeRendererSource = readFileSync(new URL("../../shared/frontend/js/modules/gpu-stroke-renderer.js", import.meta.url), 'utf8').replaceAll('\r\n', '\n');
 
 test('stroke queue summaries identify signature, per-job progress and bytes ahead without retaining geometry', () => {
   const job = (part, offset, signature) => ({ part, offset, signature, geometry: { instances: new Uint8Array(100), nodes: new Uint8Array(60) }, buffers: [{ forbidden: true }] });

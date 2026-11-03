@@ -7,8 +7,7 @@ import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-sele
 import { createMapInputPresentation } from "../../shared/frontend/js/modules/map-input-presentation.js";
 import { createTooltipController } from "../../shared/frontend/js/modules/tooltip-controller.js";
 import {createNodeSelection} from '../helpers/core-selection.mjs';
-import { createTestEditingDomain as createEditingDomain } from '../helpers/editing-domain.mjs';
-import { editorNode } from './helpers/editor-dom-fixture.mjs';
+import { editorNode } from './helpers/dom-node-fixture.mjs';
 
 const sandbox = {};
 vm.runInNewContext(readFileSync(new URL("../../shared/frontend/js/vendor/d3.min.js", import.meta.url), 'utf8'), sandbox);
@@ -203,90 +202,4 @@ for (const peerKind of ['city', 'label']) for (const moveWithinLabel of [false, 
   assert.equal(f.executedPicks(), 1);
   assert.equal((await f.hover(f.label)).tooltip, 'country');
   assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
-});
-
-async function draftFixture(t, tool) {
-  const pendingInteractions=[];
-  const editing = createEditingDomain({ draftServices: {
-    getToolConfig: () => ({ shape: 'line' }), projectCoordinate: point => point, screenToCoordinate: point => point,
-  } });
-  await editing.setTool(tool);
-  await editing.replaceDraftCoordinates([[0, 0], [100, 0]], { inputPhase: 'refine' });
-  const f = await fixture(t,{ editing: { ...editing,clearDraftHover(reason) {
-    const operation=editing.clearDraftHover(reason);pendingInteractions.push(operation);return operation;
-  } } }); f.state.tool = tool;
-  const root = node('draft-layer', f.interaction);
-  const segment = node('draft-segment', root), handle = node('draft-insert', root), vertex = node('draft-vertex', root);
-  for (const item of [segment, handle, vertex]) item.parentNode = root;
-  segment.__data__ = handle.__data__ = { segmentIndex: 0 };
-  vertex.__data__ = { index: 1 };
-  const handleHit = node('handle-hit', handle), vertexHit = node('vertex-hit', vertex);
-  const events = [];
-  const source = readFileSync(new URL("../../apps/editor/frontend/js/modules/editing-presentation.js", import.meta.url), 'utf8');
-  const context = {
-    d3, segment, handle, vertex, interaction: { d3 }, layer: { node: () => root }, isMobile: () => false,
-    getPacket:()=>editing.createRenderPacket(),
-    localEditingPoint: () => d3.mouse(f.overlay),
-    stop: () => { d3.event.preventDefault(); d3.event.stopPropagation(); },
-    publishEditingInteraction: event => {
-      events.push(event.type);
-      const packet = editing.createRenderPacket();
-      const operation=editing.handleInteraction({ ...event, projectGeneration: packet.projectGeneration, packetRevision: packet.revision });
-      pendingInteractions.push(operation);return operation;
-    },
-  };
-  // Use the renderer's actual control handlers with real D3 registration and
-  // propagation through the sibling interaction SVG into the common map.
-  let start = source.indexOf("      .on('mousemove', d =>", source.indexOf("joinEditingNodes(layer, 'path.draft-segment-hit'"));
-  let end = source.indexOf('    const vertices =', start);
-  vm.runInNewContext('d3.select(segment)' + source.slice(start, end), context);
-  start = source.indexOf("      .on('click', function()", source.indexOf('  const renderDraftInsertionHandle ='));
-  end = source.indexOf('    return true;', start);
-  vm.runInNewContext('d3.select(handle)' + source.slice(start, end), context);
-  start = source.indexOf("      .on('click', d =>", source.indexOf('    const vertices =', end));
-  end = source.indexOf('    vertices.each', start);
-  vm.runInNewContext('d3.select(vertex)' + source.slice(start, end), context);
-  t.after(() => { f.input.dispose(); editing.dispose(); });
-  const settle=() => Promise.all(pendingInteractions.splice(0));
-  return { ...f, editing, segment, handle, handleHit, vertexHit, events,
-    async hover(target) { const result=await f.hover(target);await settle();return result; },
-    async dispatch(...args) { const event=f.dispatch(...args);await f.settle();await settle();return event; } };
-}
-
-for (const tool of ['draw-territorial-unit', 'river']) test(`shared map preserves ${tool} segment, insertion and vertex control ownership`, async t => {
-  const f = await draftFixture(t, tool);
-  const before = f.editing.snapshot().draft;
-  await f.hover(f.segment);
-  const target = { segmentIndex: 0, coordinate: [60, 0] };
-  assert.deepEqual(f.editing.snapshot().draft.insertTarget, target);
-  await f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
-  await f.hover(f.handleHit);
-  assert.deepEqual(f.editing.snapshot().draft.insertTarget, target, 'bubbling movement must preserve the handle target');
-  assert.deepEqual(f.events, ['draft-segment-hover']);
-  const click = await f.dispatch(f.handleHit, 'click');
-  assert.equal(click.defaultPrevented, true); assert.equal(click.cancelBubble, true);
-  assert.deepEqual(f.editing.snapshot().draft.coords, [[0, 0], [60, 0], [100, 0]]);
-  assert.equal(f.editing.snapshot().draft.historyCount, before.historyCount + 1);
-  await f.hover(f.vertexHit); await f.dispatch(f.vertexHit, 'click');
-  assert.equal(f.editing.snapshot().draft.selectedVertexIndex, 1);
-  assert.deepEqual(f.events, ['draft-segment-hover', 'draft-insert-request', 'draft-vertex-select']);
-  assert.equal(f.editing.snapshot().draft.historyCount, before.historyCount + 1);
-  assert.deepEqual(f.clicks, []); assert.deepEqual(f.draftEvents, []);
-  assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
-  assert.equal(await f.editing.performDraftUndo(), true);
-  assert.deepEqual(f.editing.snapshot().draft.coords, before.coords);
-});
-
-test('draft controls retain leave cleanup and the map still clears insertion during panning', async t => {
-  const f = await draftFixture(t, 'draw-territorial-unit');
-  await f.hover(f.segment);
-  assert.notEqual(f.editing.snapshot().draft.insertTarget, null);
-  await f.dispatch(f.segment, 'mouseout', { relatedTarget: f.handleHit });
-  await f.dispatch(f.handle, 'mouseout', { relatedTarget: f.hit });
-  assert.equal(f.editing.snapshot().draft.insertTarget, null);
-  await f.hover(f.segment);
-  assert.notEqual(f.editing.snapshot().draft.insertTarget, null);
-  f.setPanning(true); await f.hover(f.hit);
-  assert.equal(f.editing.snapshot().draft.insertTarget, null);
-  assert.deepEqual(f.editing.snapshot().draft.coords, [[0, 0], [100, 0]]);
 });

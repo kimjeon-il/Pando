@@ -537,5 +537,21 @@
     ],
     "preservedGeoPackageOracles": true,
     "note": "Historical archived browser, obsolete editor CI and test-only comparison utilities removed; all 103 retired editor frontend sources remain until E4/E5."
+  },
+  "r4e3RetiredTests": {
+    "schema": "pandolab-r4e3-retirement-v1",
+    "retiredBrowser": 141,
+    "retiredUnit": 29,
+    "obsoleteBoundaryDiagnostics": 3,
+    "removedEditorBrowserHelpers": [
+      "tests/browser/helpers/editor-entry.mjs",
+      "tests/browser/helpers/mobile-vertex-ui.mjs"
+    ],
+    "removedEditorUnitHelpers": [
+      "tests/helpers/editing-domain.mjs",
+      "tests/unit/helpers/editor-dom-fixture.mjs"
+    ],
+    "remainingEditorSources": 103,
+    "keepPinnedCxxOracle": true
   }
 }

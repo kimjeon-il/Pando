@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createLabelPresentation } from "../../shared/frontend/js/modules/label-presentation.js";
 import { automaticLabelSettings } from "../../shared/frontend/js/modules/label-layout.js";
-import { editorNode } from './helpers/editor-dom-fixture.mjs';
+import { editorNode } from './helpers/dom-node-fixture.mjs';
 
 function fixture({ pinned = true } = {}) {
   const node = editorNode('g');
