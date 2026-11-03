@@ -192,8 +192,8 @@ def run(areas, years=(1994, 2020), attempts=3):
 
 def test_spectral_logic():
     # Water must be high-green / low NIR after the USGS scale and offset.
-    g = np.array([[15000, 7000, 15000, 15000]], dtype=np.uint16)
-    n = np.array([[7000, 15000, 7000, 7000]], dtype=np.uint16)
+    g = np.array([[16000, 9000, 16000, 16000]], dtype=np.uint16)
+    n = np.array([[9000, 16000, 9000, 9000]], dtype=np.uint16)
     q = np.array([[0, 0, 1 << 3, 0]], dtype=np.uint16)
     w, v, _ = screen_water(g, n, q)
     assert v.shape == w.shape
