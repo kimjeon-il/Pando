@@ -54,14 +54,16 @@ function run(command,args,{input=null,env={},timeoutMs=180000}={}){
     maxBuffer:4_000_000,timeout:timeoutMs});
   // Don't ever log signed Azure URLs via stdout/stderr/arguments.
   if(result.error||result.status!==0){
-    const cleaned=(String(result.stdout||'')+'\n'+String(result.stderr||''))
-      .split(/\r?\n/).filter(Boolean).slice(0,8)
+    const out=String(result.stdout||''),err=String(result.stderr||'');
+    const lines=(out+'\n'+err).split(/\r?\n/).filter(Boolean);
+    const cleaned=[...lines.slice(0,4),...lines.slice(-8)]
       .map(line=>line
         .replace(/https?:\/\/\S+/g,'[REDACTED_REMOTE_ASSET_URL]')
         .replace(/(?:sig|sv|se|sp|st)=\S+/gi,'[REDACTED_SAS_PARAMETER]'))
-      .join(' | ').slice(0,440);
-    throw Error(command+' failed, code='+String(result.status)
-      +' errorClass='+String(result.error?.code||'none')+' diagnostic='+cleaned);
+      .join(' | ').slice(0,1400);
+    throw Error(command+' failed, code='+String(result.status)+' signal='+String(result.signal)
+      +' errorClass='+String(result.error?.code||'none')
+      +' outBytes='+out.length+' errBytes='+err.length+' diagnostic='+cleaned);
   }
   return result.stdout;
 }
@@ -113,6 +115,12 @@ function warpSigned(asset,dir,filename,bbox,{fetcher}){
     ensure(head.status>=200&&head.status<300,
       'SAS signed blob inaccessible by HEAD: HTTP '+head.status);
     await head.body?.cancel();
+    const sample=await fetch(signedUrl,{headers:{Range:'bytes=0-1023'},redirect:'manual',
+      signal:AbortSignal.timeout(15000)});
+    const rangeSupported=sample.status===206&&
+      /^bytes 0-1023\//.test(sample.headers.get('content-range')||'');
+    await sample.body?.cancel();
+    ensure(rangeSupported,'SAS Blob byte-range reading failed: HTTP '+sample.status);
     const dest=join(dir,filename+'.bin'),u='/vsicurl/'+signedUrl;
     run('gdalwarp',[
       '-of','ENVI','-ot','UInt16','-r','near',
