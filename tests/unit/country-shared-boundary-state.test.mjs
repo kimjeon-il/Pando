@@ -375,7 +375,8 @@ test('W2-P3 immutable boundary stroke packet survives transferred buffers and pr
   assert.equal(hiddenOutlines.packetCacheHit, false, 'changing exterior visibility is a different render packet');
   assert.equal(hiddenOutlines.packet.outlineOverrides.segments.length, 0);
   const visibleAgain = await request({type:'replace', features:hierarchy, includeOutlines:true});
-  assert.equal(visibleAgain.packetCacheHit, false, 'single-entry cache must not resurrect the alternate quality packet');
+  assert.equal(visibleAgain.packetCacheHit, true,
+    'two-entry bounded cache reuses only the exact previously verified outline variant');
   assert.deepEqual(visibleAgain.packet, reassigned.packet);
 
   const moved = structuredClone(hierarchy);
