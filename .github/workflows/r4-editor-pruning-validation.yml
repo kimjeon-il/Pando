@@ -26,6 +26,8 @@ on:
       - tests/helpers/current-command-fixture.mjs
       - tests/helpers/web-full-document-fixture.mjs
       - tests/unit/core-*-wasm.test.mjs
+      - tests/unit/core-generic-conversion-wasm.test.mjs
+      - tests/unit/core-label-gesture-wasm.test.mjs
       - tests/unit/territorial-service.test.mjs
       - tests/unit/distribution-service.test.mjs
       - tests/unit/import-service.test.mjs
@@ -109,6 +111,8 @@ jobs:
           tests/unit/service-core-command-owner.test.mjs
           tests/unit/core-direct-object-writers-wasm.test.mjs
           tests/unit/core-delete-selection-wasm.test.mjs
+          tests/unit/core-generic-conversion-wasm.test.mjs
+          tests/unit/core-label-gesture-wasm.test.mjs
           tests/unit/generic-provenance.test.mjs
           tests/unit/land-relations-presentation.test.mjs
           tests/unit/import-service.test.mjs

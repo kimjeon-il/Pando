@@ -14,6 +14,8 @@ const paths=[
  'tests/unit/service-core-command-owner.test.mjs',
  'tests/unit/core-direct-object-writers-wasm.test.mjs',
  'tests/unit/core-delete-selection-wasm.test.mjs',
+ 'tests/unit/core-generic-conversion-wasm.test.mjs',
+ 'tests/unit/core-label-gesture-wasm.test.mjs',
  'tests/unit/generic-provenance.test.mjs',
  'tests/unit/land-relations-presentation.test.mjs',
  'tests/unit/import-service.test.mjs',
@@ -55,6 +57,8 @@ test('R4-E2 C++ Core semantic tests still assert provenance, persistence and sta
   ['tests/unit/core-service-writer-clock-wasm.test.mjs',['createNodeCoreProject','stateRevision','canUndo']],
   ['tests/unit/core-direct-object-writers-wasm.test.mjs',['hydro.metadata','label.edit','storageSnapshot','undo()']],
   ['tests/unit/core-delete-selection-wasm.test.mjs',['createNodeSelection','service.remove','domain.clear','domain.snapshot']],
+  ['tests/unit/core-generic-conversion-wasm.test.mjs',['document.batch','content.edit','label.edit','undo()','redo()']],
+  ['tests/unit/core-label-gesture-wasm.test.mjs',['labelGestureApply','undo()','redo()']],
   ['tests/unit/generic-provenance.test.mjs',['normalizeSourceProvenance','importGeoJson','undo()','redo()']]
  ];
  for(const [path,terms] of cases){
