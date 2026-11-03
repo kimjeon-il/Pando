@@ -40,6 +40,29 @@ R4-D's conservative audit identified 93 directly mentioned sources, 119 active t
 
 **E6:** Run GIS geometry/Worker/GeoPackage regression, Core/WASM and E6/E7 Windows/WebView2/Chromium gates. Verify `apps/editor/frontend` and `apps/editor/templates` no longer contain tracked files; verify Viewer build and Windows reviewer retain their external source revision and permissions.
 
+
+## Reproduced audit evidence (R4-E0 CI)
+
+The updated AST/Worker inspection passed in GitHub Actions run [41555182668](https://github.com/kimjeon-il/Pando/actions/runs/41555182668), with the complete JSON evidence attached as `r4e0-dependency-map-41555182668`.
+
+| Field | Observed |
+| --- | ---: |
+| Baseline editor files / current files | 103 / 103 |
+| Files with active non-documentation incoming references | 90 |
+| Classified active incoming references (not unique source files) | 207 |
+| Archived-test references | 46 |
+| Resolved inter-editor-file edges | 104 |
+| Resolved strongly connected multi-file groups | 0 |
+| Broad path/glob references requiring final cleanup | 28 |
+| Unresolved dynamic import expressions needing review | 14 |
+| E0 inventory assertion tests | 4 passed, 0 failed |
+
+**Interpretation:** the 90 sources are blocked by active tests, helpers or repository contracts, **not** by the deployed Viewer itself. The active reference count includes source-inspection strings and policy mentions; it is not evidence of 207 live runtime imports. The zero-SCC result applies to the currently resolved graph only and must be rechecked after each migration.
+
+The 14 still-dynamic expressions occur in the old `ui-runtime.js`, edit/river Workers, the `tests/helpers/editing-domain.mjs` fixture, and retired composition/capability-port tests. Do not assume those paths are safe without inspecting their runtime expressions. Broad path references also include audit/CI globs and are explicitly addressed in E5.
+
+The planned dispositions remain fixed at 13 GIS interop, 19 Core/test fixtures, 8 canonical forwarders, 3 retired Workers and 60 editor UI modules. **No one of these classifications authorizes deletion until its dependent tests and source-read contracts are migrated.**
+
 ## Modification boundaries
 
 Do not touch `main`, `work/gis`, external GIS library pins, country/terrain/hydro source data, original GIS reports, compiled C++/WASM, Windows app identifiers/permissions or the concurrent P6-3 performance protocol in R4-E0.
