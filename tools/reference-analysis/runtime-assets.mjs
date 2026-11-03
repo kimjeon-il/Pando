@@ -13,6 +13,9 @@ import { pipeline } from 'node:stream/promises';
 import yazl from 'yazl';
 import { bundlePath, regularResourcePath } from '../../plugins/pando-map-tools/lib/runtime.mjs';
 import {libraryCheckout,decodeArchiveEntry} from '../library-data.mjs';
+import {mapImageSourceFiles} from '../map-image/native-resample.mjs';
+import {mapPdfSourceFiles} from '../map-image/native-pdf.mjs';
+import {mapPreviewSourceFiles} from '../map-image/native-preview.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const unix=path=>path.split(sep).join('/');
 const git=promisify(execFile);
@@ -112,15 +115,8 @@ export async function collectSourceFiles(workspace=root,{diagnostics=false,revis
     'shared/frontend/js/modules/core-wasm-loader.js','shared/frontend/js/modules/source-provenance.js','shared/frontend/js/modules/version-contract.js',
     'shared/frontend/js/modules/worker-rpc.js','shared/frontend/js/workers/worker-rpc-host.js','shared/third_party/proj-robinson-LICENSE',
     'tools/load-node-core.mjs','tools/package-shared-core-assets.mjs','tools/library-archive.mjs',
-    'tools/map-image/native-resample.mjs','tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/native-tool.mjs','tools/cpp/CMakeLists.txt',
-    'tools/cpp/map-preview/CMakeLists.txt','tools/cpp/map-preview/preview.cpp','tools/cpp/map-image/raster-draw.h','tools/cpp/map-preview/aileron-subset.ttf',
-    'tools/cpp/map-preview/PILLOW-LICENSE','tools/cpp/map-preview/FREETYPE-LICENSE',
-    'tools/cpp/map-pdf/CMakeLists.txt','tools/cpp/map-pdf/pdf-read.c','tools/cpp/map-pdf/MUPDF-COPYING','tools/cpp/map-pdf/MUPDF-AGPL-3.0',
-    'tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h',
-    'tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/png-read.c','tools/cpp/map-image/image-read.h',
-    'tools/cpp/map-image/jpeg-read.c','tools/cpp/map-image/webp-read.c','tools/cpp/map-image/image-input.cpp','tools/cpp/map-image/image-input.h','tools/cpp/map-image/zlib-LICENSE',
-    'tools/cpp/map-image/libpng-LICENSE','tools/cpp/map-image/libjpeg-turbo-LICENSE.md','tools/cpp/map-image/libjpeg-turbo-README.ijg',
-    'tools/cpp/map-image/libwebp-COPYING','tools/cpp/map-image/libwebp-PATENTS'];
+    'tools/map-image/native-resample.mjs','tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/native-tool.mjs',
+    'tools/cpp/map-preview/aileron-subset.ttf',...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles];
   if(diagnostics)seeds.push('tools/reference-analysis/verify-trained-onnx.mjs','tools/reference-analysis/cloud-probe.mjs',
     'tests/fixtures/map-image/ocr-probe.png','tests/fixtures/map-image/pdf-read/single.pdf');
   if(revision) {

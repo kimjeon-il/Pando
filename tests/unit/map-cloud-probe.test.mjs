@@ -9,6 +9,11 @@ import { validateEnvironment, verifyBundle, runProbe } from '../../tools/referen
 import { nodeManifest, collectSourceFiles } from '../../tools/reference-analysis/runtime-assets.mjs';
 import * as probe from '../../tools/reference-analysis/cloud-probe.mjs';
 import {prepareRuntime} from '../../plugins/pando-map-tools/lib/runtime.mjs';
+import {mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
+import {mapPdfSourceFiles} from '../../tools/map-image/native-pdf.mjs';
+import {mapPreviewSourceFiles} from '../../tools/map-image/native-preview.mjs';
+
+const nativeSourceFiles=[...new Set([...mapImageSourceFiles,...mapPdfSourceFiles,...mapPreviewSourceFiles])];
 
 test('map runtime exposes only its current runtime dependencies',async()=>{
   const result=await prepareRuntime({workspace:process.cwd()});assert.equal(result.workspace,process.cwd());assert.equal(Object.hasOwn(result,'python'),false);
@@ -39,7 +44,7 @@ test('bundle verification rejects changed bytes, traversal, and missing files',a
 test('diagnostic source closure includes dynamic numerical owners but excludes product build outputs',async()=>{
   const files=await collectSourceFiles(undefined,{diagnostics:true});
   for(const name of ['plugins/pando-map-tools/lib/engine.mjs','shared/frontend/js/modules/temporal.js','scripts/lib/frontend-layout.mjs','tools/load-node-core.mjs','tools/reference-analysis/verify-trained-onnx.mjs'])assert(files.includes(name),name);
-  for(const name of ['tools/map-image/native-resample.mjs','tools/native-tool.mjs','tools/cpp/CMakeLists.txt','tools/cpp/map-image/main.cpp','tools/cpp/map-image/resample.cpp','tools/cpp/map-image/resample.h','tools/cpp/map-image/png.cpp','tools/cpp/map-image/png.h','tools/cpp/map-image/zlib-LICENSE'])assert(files.includes(name),name);
+  for(const name of ['tools/map-image/native-resample.mjs','tools/native-tool.mjs',...nativeSourceFiles])assert(files.includes(name),name);
   assert(files.some(name=>name.startsWith('shared/core/src/')));
   assert(!files.some(name=>name.startsWith('build-native/')||name.startsWith('.git/')||name.startsWith('node_modules/')));
   assert.equal(files.length,new Set(files).size);
@@ -55,16 +60,17 @@ test('generated runtime dependencies are exact versions from the installed produ
 
 test('product source closure excludes diagnostic runners, training and Python sources',async()=>{
   const files=await collectSourceFiles(undefined,{diagnostics:false});
+  for(const path of nativeSourceFiles)assert(files.includes(path),path);
   assert(!files.includes('tools/reference-analysis/cloud-probe.mjs'));
   assert(!files.includes('tools/reference-analysis/verify-trained-onnx.mjs'));
   assert(!files.some(path=>path.includes('__pycache__')||path.endsWith('.pyc')||path.endsWith('.py')||path.includes('skills/pando-map-training/')));
   assert(!files.some(path=>path.startsWith('assets/js/')||path.startsWith('assets/wasm/')));
 });
 
-test('committed runtime source closure includes the native owners and excludes Python modules',async()=>{
+test('committed runtime source closure includes every native fingerprint input and excludes Python modules',async()=>{
   const revision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
   const files=await collectSourceFiles(undefined,{revision});
-  for(const path of ['tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/cpp/map-preview/aileron-subset.ttf'])assert(files.includes(path),path);
+  for(const path of ['tools/map-image/native-pdf.mjs','tools/map-image/native-preview.mjs','tools/cpp/map-preview/aileron-subset.ttf',...nativeSourceFiles])assert(files.includes(path),path);
   assert(!files.some(path=>path.startsWith('plugins/pando-map-tools/')&&path.endsWith('.py')));
 });
 

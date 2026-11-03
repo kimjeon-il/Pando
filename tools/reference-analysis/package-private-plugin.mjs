@@ -18,7 +18,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>Buffer.from(JSON.stringify(value,null,2)+'\n');
 const prefix='plugins/pando-map-tools/',skill='skills/pando-map-analysis/';
 
-export async function privatePluginEntries({revision,modelPath,workspace=root,version,release,legacyManifest}) {
+export async function privatePluginEntries({revision,modelPath,workspace=root,version,release,legacyManifest,preserveLegacyManifest=false}) {
   if(!/^[a-f0-9]{40}$/.test(revision||''))throw Error('A full source commit is required');
   const read=name=>readPinnedSource(workspace,revision,name);
   const dataset=await analysisAssetCatalog(workspace,{revision});
@@ -59,9 +59,15 @@ export async function privatePluginEntries({revision,modelPath,workspace=root,ve
   outer.description='Find or attach maps, review georeferencing and boundary candidates, and download GeoJSON in private Work.';
   const ui=outer.extensions['com.openai'].interface;ui.composerIcon='./'+skill+'assets/map-toolkit.svg';ui.logo=ui.composerIcon;
   add('plugin.json',json(outer));
-  if(legacyManifest)add('.codex-plugin/plugin.json',json({...legacyManifest,name:outer.name,version:outer.version,description:outer.description,interface:{...legacyManifest.interface,...ui}}));
+  if(legacyManifest)add('.codex-plugin/plugin.json',json(compatibilityManifest(legacyManifest,outer,{preserve:preserveLegacyManifest})));
   if(release)add('release.json',json({...release,version:outer.version}));
   return {entries,version:outer.version,codeRevision:revision,dataRevision:config.revision,modelSha256:model.model.sha256};
+}
+
+export function compatibilityManifest(legacy,outer,{preserve=false}={}){
+  if(preserve)return {...legacy,version:outer.version};
+  return {...legacy,name:outer.name,version:outer.version,description:outer.description,
+    interface:{...legacy.interface,...outer.extensions['com.openai'].interface}};
 }
 
 export function privatePluginFingerprint(entries) {
@@ -78,11 +84,11 @@ export async function assertPushedPluginRevision(workspace,revision,{branch='wor
   if(!/^[a-f0-9]{40}$/.test(revision)||!['work/ui','work/gis'].includes(branch))throw Error('Full revision and supported plugin source branch required');
   await run('git',['merge-base','--is-ancestor',revision,'refs/remotes/origin/'+branch],{cwd:workspace});
 }
-export async function packagePrivatePlugin({revision,directory,modelPath,workspace=root,version,release,legacyManifest,branch}) {
+export async function packagePrivatePlugin({revision,directory,modelPath,workspace=root,version,release,legacyManifest,preserveLegacyManifest=false,branch}) {
   await assertPushedPluginRevision(workspace,revision,{branch});
   directory=resolve(directory);const rel=relative(workspace,directory);
   if(!rel||(!rel.startsWith('..')&&!isAbsolute(rel)))throw Error('Private package must be outside application Git');
-  const candidate=await privatePluginEntries({revision,modelPath,workspace,version,release,legacyManifest}),{entries}=candidate;
+  const candidate=await privatePluginEntries({revision,modelPath,workspace,version,release,legacyManifest,preserveLegacyManifest}),{entries}=candidate;
   const total=entries.reduce((sum,row)=>sum+row.data.length,0);
   await mkdir(dirname(directory),{recursive:true});const free=await statfs(dirname(directory));
   if(free.bavail*free.bsize<total*3+5*1024**3)throw Error('Private package requires peak size plus 5GiB headroom');

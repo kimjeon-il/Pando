@@ -83,6 +83,34 @@ remote snapshots and command lists, and reuse one external candidate path.
    revision before preparing, so the update retains prior packaged work. The
    default remains `work/ui`; neither mode integrates or pushes another branch.
 
+### Explicit native-source baseline transition
+
+Ordinary releases retain the ancestor requirement. If repository history has
+been rewritten and the user explicitly authorizes preservation/reconciliation,
+the six-file native-source omission has one narrow transition path. Download
+the authenticated current release's entire archive and inventory. Add
+`--branch work/gis --rebaseline-archive <current-archive> --archive-release
+<exact-current-release-ID>` to `prepare`; the two archive arguments are mandatory
+together. Never change refs to manufacture ancestry or substitute a saved proof.
+
+Preparation reconstructs both immutable candidates and checks every existing
+payload byte, the complete account inventory, both manifests and the old receipt.
+Only the six fixed native source files and matching runtime catalogue rows may
+be added. The generated dependency manifest, lock, model, data, native artifacts,
+WASM and nested plugin metadata must stay identical. Source package scripts may
+already be projected away by the normal producer, but no new exclusions apply.
+Compatibility configuration is preserved exactly except its version.
+
+The derived transition receipt binds the exact account release, source commits,
+producer, full inventory and candidate. Archive decoding rejects duplicate paths,
+links and special entries before indexing files. The producer's final archive is
+compared to the preproved candidate before upload; retries derive the proof again.
+`update_plugin` still requires `expected_release_id`. Confirmation verifies the
+complete resulting inventory and retained extras, and recomputes content bindings
+from the exact-release archive. Subsequent ordinary releases require ancestry
+from the new receipt's source commit. A transition cannot replay on a different
+current release or conceal an unrelated payload/configuration change.
+
 3. Call Plugin Creator `update_plugin` with the plan's upload arguments. The
    upload overlays files: omit unchanged files only when their identity is
    known; remove retired owned files explicitly. On success, save its normalized
