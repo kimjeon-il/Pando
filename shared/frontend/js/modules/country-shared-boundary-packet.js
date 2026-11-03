@@ -89,7 +89,7 @@ export function createCountrySharedBoundaryState() {
       updateEdge(edgeKey);
     }
   }
-  function reconcile(changed, profile) {
+  function reconcile(changed, profile, verifyContactParity = false) {
     const trace = typeof profile === 'function' ? profile : null;
     let started = trace ? performance.now() : 0;
     const obsolete = new Set([...changed].flatMap(id => [...(contactsByOwner.get(id) || [])]));
@@ -111,7 +111,7 @@ export function createCountrySharedBoundaryState() {
     }
     if (trace) trace('contact-neighbor-search', performance.now() - started,
       {changedIds: changed.size, candidatePairs: pairs.length});
-    const computed = computeCountrySharedContacts(pairs, trace);
+    const computed = computeCountrySharedContacts(pairs, trace, {verifyParity: verifyContactParity});
     started = trace ? performance.now() : 0;
     computed.forEach((segments, index) => {
       contactComputationCount++;
@@ -121,7 +121,7 @@ export function createCountrySharedBoundaryState() {
       {candidatePairs: pairs.length, computedSegments: computed.reduce((sum, rows) => sum + rows.length, 0)});
 
   }
-  function seed(segments, changed, profile) {
+  function seed(segments, changed, profile, verifyContactParity) {
     contacts.clear(); contactsByOwner.clear(); edges.clear();
     const pairs = new Map();
     for (const source of segments) {
@@ -137,24 +137,24 @@ export function createCountrySharedBoundaryState() {
       }
     }
     for (const pair of pairs.values()) addContact(pair.ids, pair.segments);
-    reconcile(changed, profile);
+    reconcile(changed, profile, verifyContactParity);
   }
-  function replace(features, { cachedSegments, changedIds, profile } = {}) {
+  function replace(features, { cachedSegments, changedIds, profile, verifyContactParity = false } = {}) {
     const started = typeof profile === 'function' ? performance.now() : 0;
     const changed = preparedStore.replace(features);
     if (typeof profile === 'function') profile('prepare-store-replace', performance.now() - started,
       {changedIds: changed.size, totalFeatures: features.length});
     if (cachedSegments) seed(cachedSegments,
-      changedIds === undefined ? changed : new Set([...changedIds].map(String)), profile);
-    else reconcile(changed, profile);
+      changedIds === undefined ? changed : new Set([...changedIds].map(String)), profile, verifyContactParity);
+    else reconcile(changed, profile, verifyContactParity);
     return changed;
   }
-  function patch(features = [], removedIds = [], {profile} = {}) {
+  function patch(features = [], removedIds = [], {profile, verifyContactParity = false} = {}) {
     const started = typeof profile === 'function' ? performance.now() : 0;
     const changed = preparedStore.patch(features, removedIds);
     if (typeof profile === 'function') profile('prepare-store-patch', performance.now() - started,
       {changedIds: changed.size, suppliedFeatures: features.length, removedIds: removedIds.length});
-    reconcile(changed, profile);
+    reconcile(changed, profile, verifyContactParity);
     return changed;
   }
   return { preparedStore, replace, patch,
