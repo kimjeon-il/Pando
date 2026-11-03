@@ -107,9 +107,15 @@ function warpSigned(asset,dir,filename,bbox,{fetcher}){
     ensure(signedUrl.startsWith(href+'?')
       &&new URL(signedUrl).hostname===new URL(href).hostname,
       'Public Landsat SAS was not scoped to selected asset');
+    // Check blob byte-range access before invoking native GDAL; never log SAS.
+    const head=await fetch(signedUrl,{method:'HEAD',redirect:'manual',
+      signal:AbortSignal.timeout(12000)});
+    ensure(head.status>=200&&head.status<300,
+      'SAS signed blob inaccessible by HEAD: HTTP '+head.status);
+    await head.body?.cancel();
     const dest=join(dir,filename+'.bin'),u='/vsicurl/'+signedUrl;
     run('gdalwarp',[
-      '-q','-of','ENVI','-ot','UInt16','-r','near',
+      '-of','ENVI','-ot','UInt16','-r','near',
       '-overwrite','-t_srs','EPSG:32641','-te_srs','EPSG:4326',
       '-te',...bbox.map(x=>String(x)),'-tr','30','30',
       '-srcnodata','0','-dstnodata','0','-co','INTERLEAVE=BSQ',
