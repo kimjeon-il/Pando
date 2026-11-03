@@ -36,7 +36,9 @@ jobs:
           if(!source.toString('utf8').startsWith('// Archived-editor closure'))
             throw Error('Unexpected R4E5 migration source');
           writeFileSync('scripts/r4e5-finalize.mjs',source,{flag:'wx'});
+          // Normalize map callback: path.basename has an optional second parameter.
           NODE
+          sed -i 's/remaining.map(posix.basename)/remaining.map(p=>posix.basename(p))/' scripts/r4e5-finalize.mjs
           node --check scripts/r4e5-finalize.mjs
       - name: Migrate active tests, retire 74 archived sources and close inventory
         run: node scripts/r4e5-finalize.mjs
