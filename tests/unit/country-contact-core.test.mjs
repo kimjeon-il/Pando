@@ -53,3 +53,40 @@ test('prepared geographic lookup excludes Greenwich false contacts and finds shi
   }
   assert.equal(prepared.stats().preparationCount,before);
 });
+
+test('P6 sparse C++ source preserves full pair results and current source refs',()=>{
+  const local=[[0,0],[1,0],[1,2],[0,2],[0,0]];
+  const far=Array.from({length:1001},(_,index)=>{
+    const theta=index/1000*Math.PI*2;
+    return [110+Math.cos(theta),45+Math.sin(theta)];
+  });
+  const a={id:'A',geometry:{type:'MultiPolygon',coordinates:[[local],[far]]}};
+  const b=feature('B',1,0,2,2);
+  const prepared=createPreparedBoundaryStore();
+  prepared.replace([a,b]);
+  const left=prepared.get('A'),right=prepared.get('B'),profile=[];
+  const sparse=computeCountrySharedContacts([[left,right]],(stage,ms,details)=>
+    profile.push({stage,ms,...details}),{verifyParity:true});
+  const full=computeCountrySharedContacts([[left,right]],null,{unpruned:true});
+  assert.deepEqual(sparse,full);
+  const pruned=profile.find(row=>row.stage==='contact-select-source');
+  assert.ok(pruned.selectedEdges<pruned.sourceEdges/2,
+    'irrelevant distant coastline must not enter the contact native index');
+  assert.equal(profile.find(row=>row.stage==='contact-parity-full').matched,true);
+  for(const ref of sparse[0][0].refs){
+    const source=prepared.get(ref.featureId).segments.find(row=>
+      row.polygonIndex===ref.polygonIndex&&row.ringIndex===ref.ringIndex
+      &&row.segmentIndex===ref.segmentIndex);
+    assert.strictEqual(ref.a,source.a);
+    assert.strictEqual(ref.b,source.b);
+  }
+});
+test('P6 sparse indexing matches full C++ native contacts at the shifted dateline',()=>{
+  const prepared=createPreparedBoundaryStore();
+  const a=feature('A',179,0,-179,1),b=feature('B',539,1,541,2);
+  prepared.replace([a,b]);
+  const pair=[[prepared.get('A'),prepared.get('B')]];
+  const baseline=computeCountrySharedContacts(pair,null,{unpruned:true});
+  const sparse=computeCountrySharedContacts(pair,null,{verifyParity:true});
+  assert.deepEqual(sparse,baseline);
+});
