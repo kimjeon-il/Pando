@@ -63,6 +63,37 @@ export function screenSpectralDN(green,nir,qa){
   }
   return {water,valid,clean,waterN};
 }
+/** 8-connected spectral-water blobs, *not* legally delineated river geometry. */
+export function measureSpectralConnectivity(water,width,height,sourcePixels=[]){
+  assert(width*height===water.length,'Invalid spectral-mask dimensions');
+  const labels=new Uint32Array(water.length),counts=[0];
+  let componentCount=0,maxComponentSize=0;
+  const offsets=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+  for(let i=0;i<water.length;i++){
+    if(!water[i]||labels[i])continue;
+    const label=++componentCount;
+    const stack=[i];labels[i]=label;
+    let count=0;
+    while(stack.length){
+      const cur=stack.pop(),col=cur%width,row=Math.floor(cur/width);
+      count++;
+      for(const [dx,dy] of offsets){
+        const x=col+dx,y=row+dy;
+        if(x<0||y<0||x>=width||y>=height)continue;
+        const next=y*width+x;
+        if(water[next]&&!labels[next]){labels[next]=label;stack.push(next);}
+      }
+    }
+    counts[label]=count;
+    maxComponentSize=Math.max(maxComponentSize,count);
+  }
+  const componentIds=sourcePixels.map(index=>
+    Number.isInteger(index)&&index>=0&&index<labels.length ? labels[index] : 0);
+  return {componentCount,maxComponentSize,
+    anchorComponentIds:componentIds,
+    bothAnchorsOnSameWaterComponent:componentIds.length===2&&componentIds[0]!==0
+      &&componentIds[0]===componentIds[1]};
+}
 function scientificModules(){
   const dir=process.env.PANDO_RASTER_DEPS_DIR;
   assert(dir&&resolve(dir)!==process.cwd(),'Explicit isolated research dependencies required');
@@ -116,24 +147,31 @@ const pixelMetric=({green,nir,qa},area)=>{
   const {valid,water,clean,waterN}=screenSpectralDN(green.data,nir.data,qa.data);
   const cleanPercent=Math.round(10000*clean/valid.length)/100;
   assert(cleanPercent>=50,'No representative cloud-free pixels in treaty reach');
-  const nearest=[];
+  assert(waterN>0,'No independent spectral river water in inspected scene');
+  const nearest=[],nearestSourcePixels=[];
   const [ox,oy]=green.origin,[dx,dy]=green.resolution,
     [left,top]=green.window,w=green.width;
   for(const p of [area.start,area.end]){
     const [e,n]=green.projection.project(p);
-    let best=Infinity;
+    let best=Infinity,bestIndex=-1;
     for(let i=0;i<water.length;i++)if(water[i]){
       const col=i%w,row=Math.floor(i/w);
       const x=ox+(left+col+.5)*dx,y=oy+(top+row+.5)*dy;
       const dist=Math.hypot(x-e,y-n);
-      if(dist<best)best=dist;
+      if(dist<best){best=dist;bestIndex=i;}
     }
     nearest.push(Number.isFinite(best)?Math.round(best*10)/10:null);
+    nearestSourcePixels.push(bestIndex);
   }
+  const componentCheck=measureSpectralConnectivity(water,green.width,green.height,
+    nearestSourcePixels);
   return {gridCRS:green.crs,width:green.width,height:green.height,
     pixelSizeMeters:[Math.abs(dx),Math.abs(dy)],
     cleanPercent,waterCount:waterN,
     nearestWaterToTreatyAnchorsMeters:nearest,
+    waterComponentCount:componentCheck.componentCount,
+    largestConnectedWaterPixelCount:componentCheck.maxComponentSize,
+    anchorsOnOneConnectedWaterMask:componentCheck.bothAnchorsOnSameWaterComponent,
     sourceMetricOnly:true};
 };
 export async function verifyLandsatPixels({years=YEARS,limitScenes=8}={}){
