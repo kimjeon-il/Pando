@@ -170,21 +170,43 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
   const key = JSON.stringify(features.map(feature => [String(feature.id), rootOf(feature.id), store.get(feature.id).geometryKey]));
   let cached = boundaryGeometryCache.get(store);
   if (cached?.key !== key) {
+    const previous = cached;
     const roots = features.filter(feature => rootOf(feature.id) === String(feature.id))
       .map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general', parentId: '' } }));
     const children = features.filter(feature => rootOf(feature.id) !== String(feature.id));
-    const internal = [];
-    // The common land-contact topology owns child boundaries. These flattened
-    // presentation references do not change the canonical document hierarchy.
+    const internal = [], rootCache = new Map();
+    // A changed sovereign must not force unrelated countries to repeat their
+    // C++ union/topology work. Each cache key includes the exact root and
+    // ordered child geometry revisions; structural edits invalidate only that
+    // root. Retain *one* previous set per Worker, not unbounded time history.
+    const membersByRoot = new Map(roots.map(root => [String(root.id), []]));
+    for (const child of children) membersByRoot.get(rootOf(child.id))?.push(child);
+    const hierarchyStats = {roots: roots.length, children: children.length,
+      reusedRoots: 0, recomputedRoots: 0};
     measure('hierarchy-internal', () => {
       for (const root of roots) {
-        const members = children.filter(feature => rootOf(feature.id) === String(root.id))
-          .map(feature => ({ ...feature, properties: { ...feature.properties, entityKind: 'general', parentId: String(root.id) } }));
-        for (const segment of buildTerritorialInternalBoundarySegments([root], members)) internal.push({
-          start: segment.a, end: segment.b, ownerIds: [...new Set([String(root.id), ...segment.unitOwners.map(owner => owner.id)])].sort(),
-        });
+        const id = String(root.id), rawMembers = membersByRoot.get(id) || [];
+        const groupKey = JSON.stringify([[id, store.get(id).geometryKey],
+          ...rawMembers.map(child => [String(child.id), store.get(child.id).geometryKey])]);
+        let group = previous?.rootCache?.get(id);
+        if (group?.key === groupKey) hierarchyStats.reusedRoots++;
+        else {
+          hierarchyStats.recomputedRoots++;
+          const groupStarted = typeof profile === 'function' && rawMembers.length ? performance.now() : 0;
+          const members = rawMembers.map(feature => ({ ...feature,
+            properties: { ...feature.properties, entityKind: 'general', parentId: id } }));
+          const segments = buildTerritorialInternalBoundarySegments([root], members).map(segment => ({
+            start: segment.a, end: segment.b,
+            ownerIds: [...new Set([id, ...segment.unitOwners.map(owner => owner.id)])].sort(),
+          }));
+          group = {key: groupKey, segments};
+          if (groupStarted) profile('hierarchy-root', performance.now() - groupStarted,
+            {rootId: id, children: members.length, segments: segments.length});
+        }
+        rootCache.set(id, group);
+        internal.push(...group.segments);
       }
-    }, {roots: roots.length, children: children.length});
+    }, hierarchyStats);
     const coasts = measure('hierarchy-classification', () => {
       const hierarchyContacts = segments.filter(segment => sameHierarchy(segment) && childIds(segment.ownerIds).length);
       const opposing = hierarchyContacts.length ? sharedCalculationCore.boundaryOpposingInteriorsBatch(hierarchyContacts.map(segment => boundaryInteriorComparison(segment, segment.ownerIds))) : [];
@@ -192,7 +214,7 @@ export function prepareCountrySharedBoundaryPacket(segments = [], features = [],
         throw Object.assign(new Error('Incomplete compiled country boundary interior classifications.'), { code: 'PL-BOUNDARY-INTERIOR' });
       return hierarchyContacts.filter((_, index) => !opposing[index]);
     });
-    cached = { key, internal, coasts, outlines: null };
+    cached = { key, internal, coasts, outlines: null, rootCache };
     boundaryGeometryCache.set(store, cached);
   }
   const internalOwners = {};
