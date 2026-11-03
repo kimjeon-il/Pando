@@ -103,7 +103,7 @@ async function reusableSasForAsset(asset,{fetcher}){
 }
 function warpSigned(asset,dir,filename,bbox,{fetcher}){
   const href=asset.href;
-  return reusableSasForAsset(asset,{fetcher}).then(signedUrl=>{
+  return reusableSasForAsset(asset,{fetcher}).then(async signedUrl=>{
     ensure(signedUrl.startsWith(href+'?')
       &&new URL(signedUrl).hostname===new URL(href).hostname,
       'Public Landsat SAS was not scoped to selected asset');
