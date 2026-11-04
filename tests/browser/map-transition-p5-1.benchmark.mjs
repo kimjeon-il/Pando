@@ -8,7 +8,7 @@ import {installMapBaselineCollector,semanticSnapshot,summarizeLatency,observeWit
 test.use({timezoneId:'Asia/Seoul',locale:'ko-KR',viewport:{width:1280,height:800},trace:'off'});
 const digest=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-test('P5-1 actual Core source, storage admission and replacement timing',async({page,browser},info)=>{
+test('P5-1 actual Core temporal candidate preparation and adoption timing',async({page,browser},info)=>{
   test.setTimeout(220000);
   await page.clock.setFixedTime(new Date('2026-10-31T00:00:00+09:00'));
   await page.addInitScript(installMapBaselineCollector);
@@ -67,8 +67,11 @@ test('P5-1 actual Core source, storage admission and replacement timing',async({
     const ms=presented[0].at-started[0].inputAt;
     const readyMs=settled[0].at-started[0].inputAt;
     expect(ms).toBeGreaterThanOrEqual(0);expect(readyMs).toBeGreaterThanOrEqual(ms);
+    const stages=p5Stages(events);
+    for(const phase of ['candidate-prepare','candidate-adopt'])
+      expect(stages.phases[phase],phase+' was measured').toBeGreaterThanOrEqual(0);
     samples.push({month,classification,outcome:'success',ms,readyMs,
-      ...p5Stages(events),resource:await resourceSnapshot(),semantic:await snapshot(month)});
+      ...stages,resource:await resourceSnapshot(),semantic:await snapshot(month)});
   };
   try{
     await page.goto('/?debug=1');

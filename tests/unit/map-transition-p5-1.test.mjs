@@ -18,9 +18,9 @@ for(const [file,path] of [
  });
 }
 test('P5-1 stage sample preserves absence and rejects invalid duration',()=>{
- const events=[{kind:'p5:cache:hit',at:1},{kind:'p5:baseline-admit:start',at:2},
-  {kind:'p5:baseline-admit:end',at:9},{kind:'p5:core-load:start',at:11},
-  {kind:'p5:core-load:end',at:19}];
- assert.deepEqual(p5Stages(events),{cache:['hit'],phases:{'baseline-admit':7,'core-load':8}});
- assert.throws(()=>p5Stages([{kind:'p5:core-load:start',at:1}]),/lacks end/);
+ const events=[{kind:'p5:cache:hit',at:1},{kind:'p5:candidate-prepare:start',at:2},
+  {kind:'p5:candidate-prepare:end',at:9},{kind:'p5:candidate-adopt:start',at:11},
+  {kind:'p5:candidate-adopt:end',at:19}];
+ assert.deepEqual(p5Stages(events),{cache:['hit'],phases:{'candidate-prepare':7,'candidate-adopt':8}});
+ assert.throws(()=>p5Stages([{kind:'p5:candidate-adopt:start',at:1}]),/lacks end/);
 });
