@@ -22,7 +22,7 @@ for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor',
     const session=createProjectSession({productMode:mode});
     session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
       modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
-      applicationFactories:{createGeometryPreviewState:()=>({})},uiFactoriesA:{createAtomicMapStateController},uiFactoriesB:{createSaveStateController:()=>({})},mapNavigation:navigation});
+      uiFactoriesA:{createAtomicMapStateController},mapNavigation:navigation});
     session.initializeMapWorkScheduler();
     const view={...session.state.view,flatCenter:[175,25],flatZoom:3,globeRotation:[-175,-25,0],globeZoom:3};
     const camera=session.atomicMapStateController;
@@ -65,11 +65,10 @@ test('flat review keeps editor projection but never creates edit-draft or save s
  const session=createProjectSession({productMode:'editor',readOnly:true});
  session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
   modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
-  applicationFactories:{createGeometryPreviewState:()=>assert.fail('read-only must not allocate editing state')},
-  uiFactoriesA:{createAtomicMapStateController},uiFactoriesB:{createSaveStateController:()=>assert.fail('read-only must not allocate a save state')},
+  uiFactoriesA:{createAtomicMapStateController},
   mapNavigation:{clampViewZooms:view=>view,reprojectView:view=>view}});
  session.initializeMapWorkScheduler();
- assert.equal(session.state.projection,'flat');assert.equal(session.state.geometryPreview,null);
+ assert.equal(session.state.projection,'flat');assert.equal(Object.hasOwn(session.state,'geometryPreview'),false);
  assert.equal(session.saveState,undefined);
  assert.throws(()=>createProductModePolicy('viewer',{readOnly:false}),TypeError);
  assert.throws(()=>createProductModePolicy('editor',{readOnly:'true'}),TypeError);

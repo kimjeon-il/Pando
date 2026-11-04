@@ -3,8 +3,8 @@
 export const MAP_SURFACE_LOW_SCALE = 504;
 export const MAP_SURFACE_HIGH_SCALE = 642;
 export const MAP_SURFACE_MAX_ERROR_PX = 0.5;
-export function resolveCountryMeshQuality({ cssScale, previous = null, focus = false, editing = false, selected = false }) {
-  if (focus || editing || selected || !Number.isFinite(cssScale) || cssScale <= 0) return 'canonical';
+export function resolveCountryMeshQuality({ cssScale, previous = null, focus = false, selected = false }) {
+  if (focus || selected || !Number.isFinite(cssScale) || cssScale <= 0) return 'canonical';
   if (cssScale <= MAP_SURFACE_LOW_SCALE) return 'preview';
   if (cssScale >= MAP_SURFACE_HIGH_SCALE) return 'canonical';
   return previous === 'preview' ? 'preview' : 'canonical';

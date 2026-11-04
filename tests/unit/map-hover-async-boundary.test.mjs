@@ -25,18 +25,18 @@ function acknowledgements() {
 function pointers(t, { selectableObjectsAt } = {}) {
   const queue = acknowledgements(), errors = [], timers = new Map();
   let generation = 1, picked = hit('A'), pickingFailure;
-  const state = { tool: 'select', mapMoving: false }, layout = { viewRevision: 1 }, draft = { dragging: false };
+  const state = { tool: 'select', mapMoving: false }, layout = { viewRevision: 1 };
   t.mock.method(globalThis,'setTimeout',(callback,delay) => { assert.equal(delay,50);const token={};timers.set(token,callback);return token; });
   t.mock.method(globalThis,'clearTimeout',token => timers.delete(token));
-  const owner = createPointerTargets({isDraggingDraft:()=>draft.dragging});
+  const owner = createPointerTargets();
   owner.connect({ domains: { selectionDomain: queue, projectDomain: { getGeneration: () => generation } },
-    projectState: { state }, mapLayout: layout, draftPresentation: { editingDraftSnapshot: () => draft },
+    projectState: { state }, mapLayout: layout,
     objectPicking: { selectableObjectsAt: selectableObjectsAt || (async () => {
       if(pickingFailure)throw pickingFailure;return picked ? [picked.ref] : [];
     }) },
     feedback: { reportOperationError: (...args) => errors.push(args) } });
   owner.initializeHoverPickFrame();
-  return { owner, queue, errors, state, layout, draft, timers,
+  return { owner, queue, errors, state, layout, timers,
     pick(value) { picked=value; }, failPick(error) { pickingFailure=error; }, generation(value) { generation=value; },
     fire() { const [token,callback]=timers.entries().next().value;timers.delete(token);return callback(); } };
 }

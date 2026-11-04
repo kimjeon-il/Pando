@@ -1,12 +1,10 @@
 import {hydroLineParts} from './physical-settings.js';
-import { geometryRevision } from './geometry-versions.js';
 /** PointerTargets: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createPointerTargets({isDraggingDraft=null}={}) {
+export function createPointerTargets() {
   let dependencies;
-  let editInteractionRevision;
   let hoverPickFrame;
   let pendingHoverPick;
   let lastHoverPickPoint;
@@ -14,10 +12,6 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
   let lastHoverHit;
   let hoverPickSequence = 0;
   let pendingHoverRequests = 0;
-  let snapCandidateCache;
-  const snapSources = new WeakMap();
-  let snapSequence = 0;
-  let confirmedSnapSource = null;
   function connect(ports) {
     if (dependencies) throw new Error('pointer-targets already connected');
     dependencies = ports;
@@ -56,13 +50,12 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
       const nextRef = hit?.ref || null;
       const isCurrent = () => sequence === hoverPickSequence && generation === dependencies.domains.projectDomain.getGeneration()
         && (clear || (viewRevision === dependencies.mapLayout.viewRevision && !dependencies.projectState.state.mapMoving
-          && !dependencies.projectState.state.projectReplacing && dependencies.projectState.state.tool === 'select'
-          && !(isDraggingDraft ? isDraggingDraft() : false)));
+          && !dependencies.projectState.state.projectReplacing && dependencies.projectState.state.tool === 'select'));
       const accepted = await dependencies.domains.selectionDomain.setHover(nextRef, { ...(clear ? {} : { source: 'map' }), isCurrent });
       if (!accepted || !Object.hasOwn(accepted,'hover')) throw new TypeError('An accepted Core hover snapshot is required.');
       if (sequence !== hoverPickSequence || generation !== dependencies.domains.projectDomain.getGeneration()
         || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving
-          || dependencies.projectState.state.tool !== 'select' || (isDraggingDraft ? isDraggingDraft():false)))) return false;
+          || dependencies.projectState.state.tool !== 'select'))) return false;
       const key = nextRef?.key || null;
       if ((accepted.hover?.key || null) !== key || (dependencies.domains.selectionDomain.snapshot().hover?.key || null) !== key) return false;
       lastHoverHit = hit;
@@ -93,7 +86,7 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
   }
 
   function queueCountryHoverPick(screenPoint, coord) {
-    if (!screenPoint || !coord || dependencies.projectState.state.mapMoving || (isDraggingDraft ? isDraggingDraft():false) || dependencies.projectState.state.tool !== 'select') return;
+    if (!screenPoint || !coord || dependencies.projectState.state.mapMoving || dependencies.projectState.state.tool !== 'select') return;
     if (lastHoverPickPoint && Math.hypot(screenPoint[0] - lastHoverPickPoint[0], screenPoint[1] - lastHoverPickPoint[1]) < 3) return;
     pendingHoverPick = { screenPoint: [...screenPoint], coord: [...coord], sequence: ++hoverPickSequence };
     if (hoverPickFrame) return;
@@ -102,7 +95,7 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
       const pending = pendingHoverPick;
       pendingHoverPick = null;
       try {
-        if (!pending || dependencies.projectState.state.mapMoving || (isDraggingDraft ? isDraggingDraft():false) || dependencies.projectState.state.tool !== 'select') return false;
+        if (!pending || dependencies.projectState.state.mapMoving || dependencies.projectState.state.tool !== 'select') return false;
         lastHoverPickPoint = pending.screenPoint;
         lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
         const generation = dependencies.domains.projectDomain.getGeneration();
@@ -166,37 +159,6 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
       && ['select', 'move'].includes(dependencies.projectState.state.tool);
   }
 
-  function activeSnapOwnerIds() {
-    if (dependencies.projectState.state.selected?.domain === 'territorial') return [String(dependencies.projectState.state.selected.id)];
-    if (dependencies.projectState.state.selected?.domain === 'generic') return [String(dependencies.projectState.state.selected.id)];
-    if (dependencies.projectState.state.selected?.domain === 'hydro' && (0, dependencies.hydroPresentation.hydroEditById)(dependencies.projectState.state.selected.id)) return [String(dependencies.projectState.state.selected.id)];
-    return [];
-  }
-
-  function localSnapCandidates(coordinate) {
-    if (!coordinate) return [];
-    const projectionScale = Math.max(1, (0, dependencies.mapView.activeProjection)().scale());
-    const margin = (0, dependencies.platform.clamp)(26 * 180 / (Math.PI * projectionScale), 0.03, 4);
-    const source = (0, dependencies.draftPresentation.activeCutDraftSourceGeometry)();
-    if (source && !snapSources.has(source)) snapSources.set(source, `snap:${++snapSequence}`);
-    const sourceKey = source ? `${snapSources.get(source)}:${geometryRevision(source)}` : '';
-    const workerStats = dependencies.spatialQuery.mapEditClient.stats();
-    const key = [dependencies.projectState.state.stateRevision, dependencies.countries.countryLandRevision, dependencies.projectState.state.tool,
-      ...activeSnapOwnerIds(), sourceKey, margin, Math.floor(coordinate[0] / margin), Math.floor(coordinate[1] / margin)].join(':');
-    if (snapCandidateCache.key === key) return snapCandidateCache.candidates;
-    const entry = { key, candidates: [] };
-    snapCandidateCache = entry;
-    dependencies.spatialQuery.mapEditClient.execute('territorial-snap', { payload: {
-      coordinate, margin: margin * 2, activeOwnerIds: activeSnapOwnerIds(), sourceKey,
-      source: source && (confirmedSnapSource?.key !== sourceKey || confirmedSnapSource.revision !== workerStats.dataRevision || !workerStats.ready) ? source : undefined,
-    } }, { jobKey: 'territorial-snap', priority: 50 }).then(response => {
-      if (snapCandidateCache !== entry) return;
-      entry.candidates = response.result.candidates;
-      if (source) confirmedSnapSource = { key: sourceKey, revision: response.geometryRevision };
-    }).catch(() => { if (snapCandidateCache === entry) { snapCandidateCache = { key: '', candidates: [] }; confirmedSnapSource = null; } });
-    return entry.candidates;
-  }
-
   function mapClickBlocked(event = dependencies.platform.d3.event) {
     if (dependencies.projectState.state.projectReplacing) {
       event?.preventDefault?.();
@@ -232,17 +194,6 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
     }, timeout);
   }
 
-  function invalidateEditInteraction() {
-    editInteractionRevision += 1;
-    dependencies.lifecycleUi.mapInputController?.cancel();
-    dependencies.projectState.state.mapMoving = false;
-    (0, dependencies.platform.$)('map')?.classList.remove('dragging');
-  }
-
-  function initializeEditInteractionRevision() {
-    (editInteractionRevision = 0);
-  }
-
   function initializeHoverPickFrame() {
     hoverPickSequence += 1;
     (hoverPickFrame = 0);
@@ -256,25 +207,16 @@ export function createPointerTargets({isDraggingDraft=null}={}) {
     (lastHoverHit = null);
   }
 
-  function initializeSnapCandidateCache() {
-    (snapCandidateCache = { key: '', candidates: [] });
-  }
-
   return Object.freeze({
     connect,
-    initializeEditInteractionRevision,
     initializeHoverPickFrame,
-    initializeSnapCandidateCache,
     get cancelCountryHoverPick() { return cancelCountryHoverPick; },
     get countryAtScreenPoint() { return countryAtScreenPoint; },
-    get editInteractionRevision() { return editInteractionRevision; },
     get hydroAtScreenPoint() { return hydroAtScreenPoint; },
-    get invalidateEditInteraction() { return invalidateEditInteraction; },
     get lastHoverHit() { return lastHoverHit; },
     set lastHoverHit(value) { lastHoverHit = value; },
     get lastHoverPickPoint() { return lastHoverPickPoint; },
     get lastHoverPickViewRevision() { return lastHoverPickViewRevision; },
-    get localSnapCandidates() { return localSnapCandidates; },
     get mapClickBlocked() { return mapClickBlocked; },
     get mapNavigationEnabled() { return mapNavigationEnabled; },
     get queueCountryHoverPick() { return queueCountryHoverPick; },

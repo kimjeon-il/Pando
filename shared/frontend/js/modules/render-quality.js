@@ -2,7 +2,7 @@
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createRenderQuality({beforeMeshRebuild=null}={}) {
+export function createRenderQuality() {
   let dependencies;
   let renderQualityController;
   let currentRenderQuality;
@@ -98,7 +98,6 @@ export function createRenderQuality({beforeMeshRebuild=null}={}) {
       if (Number.isFinite(requestedGeneration)
           && dependencies.rendering.gpuMapRenderer.getProjectGeneration?.() !== requestedGeneration) return;
       Promise.resolve().then(async()=>{
-        if(beforeMeshRebuild)await beforeMeshRebuild();
         await prepareCanonicalMesh({projectGeneration:requestedGeneration});
       }).catch(error=>dependencies.feedback.reportOperationError(error,'지도 형상을 다시 준비하지 못했습니다.','PL-MAP-MESH-001',4200));
     }, delay);

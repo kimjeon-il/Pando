@@ -291,8 +291,6 @@ export function createGpuMapRenderer(deps) {
     let firstBackgroundFrameMs = null;
     let firstCountryPublishedMs = null;
     let countryFocusPending = false;
-    let countryEditingActive = false;
-    let countryPropertyEditingActive = false;
     let countryFocusProjection = null;
     let previewActivationCount = 0;
     let previewActivationAfterCanonical = 0;
@@ -306,14 +304,6 @@ export function createGpuMapRenderer(deps) {
     function cancelCountryFocus() {
       countryFocusPending = false;
       countryFocusProjection = null;
-    }
-    function setCountryEditingActive(active) {
-      countryEditingActive = active === true;
-    }
-    function setCountryPropertyEditingActive(active) {
-      const changed = countryPropertyEditingActive !== (active === true);
-      countryPropertyEditingActive = active === true;
-      return changed;
     }
     function syncCountryMeshQuality({ cssScale = lastVisualFrame?.cssScale, projection = state.projection } = {}) {
       if (countryFocusPending && countryFocusProjection !== state.projection) countryFocusPending = false;
@@ -353,7 +343,6 @@ export function createGpuMapRenderer(deps) {
         cssScale,
         previous: historyValid ? surfacePresentation.quality : null,
         focus: countryFocusPending,
-        editing: countryEditingActive || countryPropertyEditingActive,
         selected: !!state.selected || !!countryEmphasis.primaryId || countryEmphasis.selectedIds.size > 0,
         canonicalReady: canonicalMeshReady,
         previewReady: previewAllowed && (isWebGlRenderer() ? meshVariants.has('preview') : !!previewSurfaceFeatures?.length),
@@ -2653,8 +2642,6 @@ export function createGpuMapRenderer(deps) {
       countryDisplayHistoryValid = false;
       countryFocusPending = false;
       countryFocusProjection = null;
-      countryEditingActive = false;
-      countryPropertyEditingActive = false;
       // Old-project display data is never eligible for the replacement project.
       previewAllowed = false;
       state.auditPreviewCountries = null;
@@ -5804,8 +5791,7 @@ export function createGpuMapRenderer(deps) {
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
       setHydroEdits,
       setHydroInteractionActive, setRenderQuality,
-      requestCountryFocus, cancelCountryFocus, setCountryEditingActive, syncCountryMeshQuality,
-      setCountryPropertyEditingActive,
+      requestCountryFocus, cancelCountryFocus, syncCountryMeshQuality,
       invalidateHydroVisibility, invalidatePhysicalStyle, resetCountryGeometryVisualState,
       resetProjectRenderState, ensureBuiltinMeshBaseline, activateBuiltinMeshBaseline, invalidateCountryPreview,
       hasBuiltinMeshBaseline: () => !!builtinMeshBaseline?.mesh,

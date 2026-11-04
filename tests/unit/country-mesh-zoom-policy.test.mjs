@@ -26,8 +26,8 @@ test('projection, DPR, device and dragging cannot change the same CSS scale deci
   }
 });
 
-test('focus, selection and editing protect precise geometry at low scale', () => {
-  for (const forced of [{ focus: true }, { editing: true }, { selected: true }]) {
+test('focus and selection protect precise geometry at low scale', () => {
+  for (const forced of [{ focus: true }, { selected: true }]) {
     assert.equal(resolveCountryMeshQuality({ cssScale: 100, ...forced }), 'canonical');
   }
 });
@@ -52,7 +52,7 @@ test('a verified low-scale surface can return to simplified display after precis
 });
 
 test('selection and missing or invalid derivatives cannot silently admit a simplified surface', () => {
-  for (const flags of [{ selected: true }, { editing: true }, { focus: true }]) {
+  for (const flags of [{ selected: true }, { focus: true }]) {
     assert.deepEqual(surfacePolicy.resolveMapSurfacePresentation?.({ cssScale: 100,
       canonicalReady: false, previewReady: true, previewVerified: true, ...flags }),
     { targetQuality: 'canonical', geometryQuality: 'pending', quality: 'pending' });
