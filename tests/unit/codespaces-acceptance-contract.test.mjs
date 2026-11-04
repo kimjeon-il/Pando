@@ -31,6 +31,13 @@ test('Codespaces test checks real viewer, navigation, reloading and protects tra
   const spec=read('tests/browser/codespaces-live.spec.mjs');
   for(const key of ['__shell/health','executionMode','pandoeditor-core.wasm','visibleTerritorialCount','timelinePreviousYear','framenavigated','revision','unlink(probe)','finally','config/library-data.json'])
     assert.ok(spec.includes(key),key);
+  assert.match(spec,/waitForPresentedMap\(page,'initial map'\)/);
+  assert.match(spec,/waitForPresentedMap\(page,'year navigation'/);
+  assert.match(spec,/waitForPresentedMap\(page,'auto reload'/);
+  assert.match(spec,/demTerrain=raster/);
+  assert.match(spec,/PANDO_CODESPACES_MAP_NOT_PRESENTED/);
+  assert.match(spec,/!\['ready','limited'\]\.includes\(state\.status\)/);
+  assert.doesNotMatch(spec,/expect\(\['ready','limited'\]\)\.toContain\(before\.readiness\)/);
   assert.match(spec,/sourceCreated:created,sourceEdited:edited/);
   assert.match(spec,/Codespaces source editing acceptance: B/);
   assert.match(spec,/revisionAfter\)\.toBeGreaterThan\(created\.revisionAfter\)/);
