@@ -26,6 +26,15 @@ test('publisher and macro PDF checks prepare the source-bound publisher reader',
   assert.ok(prerequisite.requires.includes('native-map-image'));
 });
 
+test('Hydro calibration and shared-boundary checks select their native tools', () => {
+  const repository = loadRepository(new URL('../../', import.meta.url));
+  for(const file of ['hydro-calibration-metrics','hydro-calibration-native'])
+    assert.ok(repository.unitRequirements.get(`tests/unit/${file}.test.mjs`).has('native-hydro-calibration'),file);
+  assert.ok(repository.unitRequirements.get('tests/unit/hydro-shared-boundary.test.mjs').has('native-hydro-point-screen'));
+  assert.equal(repository.catalog.prerequisites['native-hydro-point-screen'].env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+    '{root}/build-native/hydro-point-screen/artifact');
+});
+
 test('current discovered tests each have one owner; diagnostic purposes and commands remain explicit', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   assert.equal(repository.owners.size, repository.tests.length);

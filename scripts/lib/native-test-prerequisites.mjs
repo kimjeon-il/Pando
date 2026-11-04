@@ -8,6 +8,14 @@ const native=(target,directory,sourceModule,sourceExport,packageScript,commands,
 });
 
 export const nativeTestRecipes=Object.freeze({
+  'hydro-calibration':native('hydro-calibration','build-native/hydro-calibration/artifact','tools/gis/hydro-calibration-native.mjs','hydroCalibrationSources','tools/gis/package-hydro-calibration.mjs',[
+    configure('tools/cpp/hydro-calibration','build-native/hydro-calibration/native','-DCMAKE_BUILD_TYPE=Release'),
+    build('build-native/hydro-calibration/native',['pando-hydro-calibration']),
+  ]),
+  'hydro-point-screen':native('hydro-point-screen','build-native/hydro-point-screen/artifact','tools/gis/hydro-point-screen-native.mjs','hydroPointScreenSources','tools/gis/package-hydro-point-screen.mjs',[
+    configure('tools/cpp','build-native/hydro-point-screen','-DCMAKE_BUILD_TYPE=Release','-DPANDO_BUILD_COUNTRY_VALIDATOR=OFF','-DPANDO_BUILD_HYDRO_POINT_SCREEN=ON'),
+    build('build-native/hydro-point-screen',['pando-hydro-point-screen']),
+  ]),
   'map-image':native('map-image','build-native/map-image/artifact','tools/map-image/native-resample.mjs','mapImageSourceFiles','tools/map-image/package-native.mjs',[
     configure('tools/cpp','build-native/map-image','-DPANDO_BUILD_COUNTRY_VALIDATOR=OFF','-DPANDO_BUILD_MAP_IMAGE=ON'),
     build('build-native/map-image',['pando-map-image']),

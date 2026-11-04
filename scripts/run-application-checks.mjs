@@ -3,6 +3,7 @@ import { appendFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
+import { requiresUnitIsolation } from './lib/unit-test-isolation.mjs';
 import { collectChanges } from './lib/check-changes.mjs';
 import { loadRepository, planApplicationChecks } from './plan-application-checks.mjs';
 
@@ -42,7 +43,8 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   return {
     checks: nonBrowser || count > 0, non_browser: nonBrowser, browser: count > 0, browser_count: count,
     browser_matrix: { include: Array.from({ length: total }, (_, i) => ({ current: i + 1, total })) },
-    gis_native: phase !== 'browser' && plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative),
+    gis_native: phase !== 'browser' && (required.has('native-hydro-point-screen') ||
+      plan.commands.some(id => repository.catalog.groups.find(group => group.id === id)?.gisNative)),
     native_requirements: [...required].filter(id => id.startsWith('native-')).map(id => id.slice(7)).sort(),
   };
 }
@@ -105,7 +107,7 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, run
   if (phase !== 'browser' && plan.unitTests.length) {
     if (states.get('core') === false) results.push({ id: 'unit', status: 'blocked', reason: 'core prerequisite failed' });
     else {
-      const batches = new Map();
+      const batches = new Map(), isolated = [];
       for (const file of plan.unitTests) {
         const required = plan.unitTestPrerequisites?.[file] || [];
         const failed = required.filter(id => !prerequisite(id));
@@ -113,12 +115,15 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, run
           results.push({ id: 'unit', files: [file], status: 'blocked', reason: 'prerequisite failed', prerequisites: failed });
           continue;
         }
+        if (requiresUnitIsolation(file)) { isolated.push({required, file}); continue; }
         const key = JSON.stringify(required);
         if (!batches.has(key)) batches.set(key, { required, files: [] });
         batches.get(key).files.push(file);
       }
       for (const { required, files } of batches.values()) for (let at = 0; at < files.length; at += 30)
         command('unit', ['node', '--test', '--test-concurrency=2', ...files.slice(at, at + 30)], required, environment(required));
+      for (const {required, file} of isolated)
+        command('unit', ['node', '--test', '--test-concurrency=2', file], required, environment(required));
     }
   }
   if (phase !== 'non-browser' && plan.browserSpecs.length) {

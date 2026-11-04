@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectChanges } from '../../scripts/lib/check-changes.mjs';
-import { executePlan, selectionRequest } from '../../scripts/run-application-checks.mjs';
+import { executePlan, executionOutputs, selectionRequest } from '../../scripts/run-application-checks.mjs';
 import * as runner from '../../scripts/run-application-checks.mjs';
 
 test('local comparison includes commits, index, working tree, untracked and both rename paths', t => {
@@ -44,6 +44,26 @@ test('missing tools and test process failures are failures, never skipped passes
   const plan = { prerequisites: [], commands: [], unitTests: ['tests/unit/fails.test.mjs'], browserSpecs: [], reasons: {} };
   assert.equal(executePlan(plan, { repository, run: () => ({ status: 1 }) }).ok, false);
   assert.equal(executePlan(plan, { repository, run: () => { throw Error('ENOENT'); } }).ok, false);
+});
+
+test('shared report and cleanup fixtures run separately after other unit tests', () => {
+  const repository = { root: '/fixture', catalog: { prerequisites: {}, groups: [] } };
+  const files = ['tests/unit/place-publication.test.mjs','tests/unit/other.test.mjs',
+    'tests/unit/place-sync-contract.test.mjs','tests/unit/reference-cache-cleanup.test.mjs'];
+  const calls=[];
+  const result=executePlan({prerequisites:[],commands:[],unitTests:files,browserSpecs:[]},
+    {repository,phase:'non-browser',run:argv=>{calls.push(argv);return {status:0};}});
+  assert.equal(result.ok,true);
+  assert.deepEqual(calls.map(args=>args.filter(arg=>arg.startsWith('tests/unit/'))),[
+    ['tests/unit/other.test.mjs'],['tests/unit/place-publication.test.mjs'],
+    ['tests/unit/place-sync-contract.test.mjs'],['tests/unit/reference-cache-cleanup.test.mjs'],
+  ]);
+});
+
+test('a selected Hydro point-screen prerequisite installs its GIS build dependencies', () => {
+  const repository={catalog:{prerequisites:{'native-hydro-point-screen':{argv:['node','prepare.mjs']}},groups:[]}};
+  const plan={prerequisites:['native-hydro-point-screen'],commands:[],unitTests:['tests/unit/hydro-shared-boundary.test.mjs'],browserSpecs:[]};
+  assert.equal(executionOutputs(plan,{repository,phase:'non-browser'}).gis_native,true);
 });
 
 test('a verifier runs again after a different profile replaces its staged input', () => {
