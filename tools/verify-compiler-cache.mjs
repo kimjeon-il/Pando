@@ -6,7 +6,11 @@ import { join, resolve } from 'node:path';
 import { compilerCacheEnvironment, storageSettings } from './worktree-storage.mjs';
 import { atomicStorageJSON, contentHash, containedPath } from './library-content.mjs';
 import { randomUUID } from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import {assertRemoteOnlyNativeAllowed} from '../scripts/lib/remote-only-native-policy.mjs';
 
+// Block before probing any hardcoded local compiler, cache server or SDK.
+assertRemoteOnlyNativeAllowed({root:fileURLToPath(new URL('../',import.meta.url)),operation:'legacy compiler-cache verification'});
 const roots=['D:/dev/worktrees/objects','D:/dev/worktrees/places'];
 const settings=storageSettings(roots[0]),env=compilerCacheEnvironment({root:roots[0]});
 env.COMPILER_PATH='C:/Users/taeeu/Qt/Tools/mingw1310_64/bin';

@@ -1,0 +1,263 @@
+name: Remote-only development contract
+
+on:
+  push:
+    branches: [work/remote-only]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: remote-only-contract
+  cancel-in-progress: true
+
+jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      run_heavy: ${{ steps.plan.outputs.run_heavy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Plan source-aware acceptance without installing toolchains
+        id: plan
+        env:
+          PANDO_REMOTE_ONLY_BASE_SHA: ${{ github.event.before || '' }}
+        run: node scripts/remote-only-ci-scope.mjs --github-output
+
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Verify browser-only developer setup and remote CI routing
+        run: node --test tests/unit/remote-only-contract.test.mjs tests/unit/codespaces-acceptance-contract.test.mjs tests/unit/remote-only-native-policy.test.mjs tests/unit/remote-only-artifact-cache.test.mjs
+
+  wasm-compile-and-smoke:
+    needs: scope
+    if: needs.scope.outputs.run_heavy == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      EMCC_CORES: "1"
+      BINARYEN_CORES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.6'
+      - name: Install CI-only native build prerequisites
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Compile and test native GIS spherical polygon on the same source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/remote-only-integration
+          cmake --preset pando-gis-tools
+          cmake --build --preset pando-gis-tools
+          ctest --preset pando-gis-tools --output-junit "$GITHUB_WORKSPACE/build-native/remote-only-integration/native-gis.xml" --output-on-failure
+      - name: Compute source and toolchain digest for the WASM reuse cache
+        id: wasm-identity
+        run: node scripts/remote-only-wasm-cache.mjs --identity --github-output
+      - name: Restore only the matching immutable WASM output
+        id: wasm-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build-native/remote-only-wasm-cache
+          key: ${{ steps.wasm-identity.outputs.cache_key }}
+      - name: Verify and restore ABI/source-hashed cache without recompiling
+        if: steps.wasm-cache.outputs.cache-hit == 'true'
+        run: node scripts/remote-only-wasm-cache.mjs --restore
+      - uses: actions/checkout@v4
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Compile actual shared C++ WASM in GitHub Actions
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          build-native/emsdk/emsdk install 6.0.3
+          build-native/emsdk/emsdk activate 6.0.3
+          source build-native/emsdk/emsdk_env.sh
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+          test -s build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
+          test -s build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+      - uses: pnpm/action-setup@v4
+      - name: Install locked Node integration test dependencies on runner
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify compiled C++ WASM through GIS adapters and frozen geometry fixtures
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/unit/p6-polygon-core.test.mjs tests/unit/gis-math-contract.test.mjs tests/unit/r4c-spatial-boundaries.test.mjs | tee build-native/remote-only-integration/wasm-gis.tap
+      - name: Record verified input-specific WASM cache after passing GIS tests
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
+        run: node scripts/remote-only-wasm-cache.mjs --record
+      - name: Save validated WASM bytes once per exact source/toolchain identity
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build-native/remote-only-wasm-cache
+          key: ${{ steps.wasm-identity.outputs.cache_key }}
+      - name: Archive native GIS and fresh WASM integration receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-gis-wasm-integration-${{ github.sha }}
+          path: build-native/remote-only-integration/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload compiled WASM evidence without committing generated output
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-wasm-${{ github.sha }}
+          path: |
+            build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
+            build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+          if-no-files-found: error
+          retention-days: 7
+
+  viewer-map-integration:
+    needs: wasm-compile-and-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare browser runner only
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: remote-only-wasm-${{ github.sha }}
+          path: ${{ runner.temp }}/pando-remote-only-wasm
+      - name: Install compiled, source-bound WASM in temporary CI checkout
+        run: node tools/package-shared-core-assets.mjs --build-dir "${{ runner.temp }}/pando-remote-only-wasm"
+      - name: Run browser against the rebuilt WASM and pinned GIS runtime data
+        env:
+          PANDO_P3_BRANCH: work/remote-only
+        run: pnpm exec playwright test tests/browser/p3-remote-preview.spec.mjs --workers=1 --retries=0 --reporter=list
+      - name: Preserve actual Viewer screenshots and browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-viewer-gis-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  windows-real-webview2:
+    needs: scope
+    if: needs.scope.outputs.run_heavy == 'true'
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Preserve exact source line endings
+        shell: pwsh
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Fingerprint exact Windows source and embedded commit
+        id: win-identity
+        run: node scripts/remote-only-windows-cache.mjs --identity --github-output
+      - name: Restore only the exact source-pinned Windows artifact
+        id: win-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build-native/native-artifacts/windows/verification
+          key: pando-remote-only-windows-v1-${{ steps.win-identity.outputs.cache_key }}
+      - name: Verify cached Windows binary SHA, manifest and embedded build identity
+        if: steps.win-cache.outputs.cache-hit == 'true'
+        run: node scripts/remote-only-windows-cache.mjs --verify
+      - uses: dtolnay/rust-toolchain@master
+        if: steps.win-cache.outputs.cache-hit != 'true'
+        with:
+          toolchain: '1.99.1'
+          targets: x86_64-pc-windows-msvc
+      - name: Check Windows native build headroom
+        if: steps.win-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          node -e "const s=require('node:fs').statfsSync('.');const free=s.bavail*s.bsize/2**30;console.log({freeGiB:free});if(free<17)throw Error('Insufficient Windows CI disk headroom')"
+      - uses: ./.github/actions/library-data
+      - name: Install locked Windows CI dependencies
+        shell: pwsh
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm --dir apps/editor install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile actual source-pinned verification reviewer
+        if: steps.win-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          node apps/editor/packaged-artifacts.mjs --ci-build --platform=windows --mode=verification --test-native
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test real Windows WebView2 review UI and readonly boundary
+        shell: pwsh
+        run: |
+          ./apps/editor/verify-review-windows.ps1 -BinaryPath 'build-native/native-artifacts/windows/verification/pandolab-web-shell.exe' -OutputDirectory 'build-native/remote-only-windows'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $r = Get-Content 'build-native/remote-only-windows/windows-review-probe.json' -Raw | ConvertFrom-Json
+          $a = Get-Content 'build-native/native-artifacts/windows/verification/native-artifact.json' -Raw | ConvertFrom-Json
+          if ($a.sourceCommit -ne $env:GITHUB_SHA -or $a.mode -ne 'verification' -or $a.platform -ne 'windows') { throw 'Native build source differs from CI commit' }
+          if ($r.embeddedBuild.sourceCommit -ne $env:GITHUB_SHA -or -not $r.ok -or $r.phase -ne 'read-only-map-ready') { throw 'WebView2 runtime identity/readiness mismatch' }
+          if ($r.observed.projection -ne 'flat' -or -not $r.observed.readOnly -or -not $r.observed.mutationBlocked -or $r.observed.canUndo -ne $false) { throw 'Windows readonly review contract mismatch' }
+          Write-Output ('PANDO_REMOTE_ONLY_WINDOWS_WEBVIEW2_PASS: ' + $env:GITHUB_SHA)
+      - name: Preserve verified Windows binary for a source-identical retry
+        if: steps.win-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build-native/native-artifacts/windows/verification
+          key: pando-remote-only-windows-v1-${{ steps.win-identity.outputs.cache_key }}
+      - name: Archive GUI probe and immutable Windows build identity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-windows-${{ github.sha }}
+          path: |
+            build-native/remote-only-windows/windows-review-probe.json
+            build-native/remote-only-windows/windows-review-stderr.txt
+            build-native/remote-only-windows/windows-review-stdout.txt
+            build-native/native-artifacts/windows/verification/native-artifact.json
+          if-no-files-found: warn
+          retention-days: 14

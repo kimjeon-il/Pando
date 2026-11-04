@@ -1,0 +1,7 @@
+{
+  "schema": "pando-remote-only-policy-v1",
+  "nativeBuildLocation": "github-actions",
+  "localSdkInstallation": false,
+  "localNativeCompilation": false,
+  "localNativeArtifactInstallation": false
+}
