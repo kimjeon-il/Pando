@@ -57,9 +57,9 @@ test('preflight is read-only and distinguishes local from cloud readiness',()=>{
 
 test('AI map-analysis and training remain plugin-owned, outside required app acceptance',()=>{
   const workflow=read('.github/workflows/remote-only-gate.yml');
-  assert.doesNotMatch(workflow, /ai-node-analysis-smoke|reference-training-|reference-onnx-|map-analysis-core\\.test\\.mjs|libtorch|cuda/i);
+  assert.doesNotMatch(workflow, /ai-node-analysis-smoke|reference-training-|reference-onnx-|map-analysis-core\.test\.mjs|libtorch|cuda/i);
   const plugin=read('docs/reference-map-plugin.md');
-  assert.match(plugin,/plugins\\/pando-map-tools/);
+  assert.ok(plugin.includes('plugins/pando-map-tools'));
   const remoteDocs=read('docs/development/remote-only-development.md');
   assert.match(remoteDocs,/Independent Map Toolkit plugin boundary/);
 });
