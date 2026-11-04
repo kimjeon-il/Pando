@@ -15,9 +15,7 @@ function emptySession() {
   session.connect({ readiness: { DATA_READINESS: { PREVIEW: 'preview' } },
     applicationConstantsA: { DISTRIBUTION_RENDER_MODES: { OVERLAP: 'overlap' } },
     modelValidation: { normalizeLayerPresentation },physicalConfig: { PHYSICAL_DATASET: 'fixture' },domains: {},
-    applicationFactories: { createGeometryPreviewState: () => ({}) },
     uiFactoriesA: { createAtomicMapStateController: () => ({}) },
-    uiFactoriesB: { createSaveStateController: () => ({}) },
     platformConfigurationA: { APP_VERSION: '0.34.0',BASE_DATASET: 'fixture',HYDRO_DATASET: 'fixture-hydro' },
     platformConfigurationB: { TERRAIN_DATASET: 'fixture-terrain' } });
   session.initializeMapWorkScheduler();
