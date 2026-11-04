@@ -134,9 +134,7 @@ export function createHydroSettings() {
   }
 
   function allBuiltInHydroFeatures() {
-    const tiled = dependencies.projectState.state.hydroFeatureCache instanceof Map ? [...dependencies.projectState.state.hydroFeatureCache.values()] : [];
-    const legacy = Object.values(dependencies.projectState.state.hydroCollections || {}).flatMap(collection => collection?.features || []);
-    return [...tiled, ...legacy];
+    return dependencies.projectState.state.hydroFeatureCache instanceof Map ? [...dependencies.projectState.state.hydroFeatureCache.values()] : [];
   }
 
   function builtInHydroFeatureById(id) {

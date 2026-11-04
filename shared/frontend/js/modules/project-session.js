@@ -86,7 +86,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
         },
         dataset: dependencies.physicalConfig.PHYSICAL_DATASET,
       },
-      hydroCollections: {},
       hydroFeatureCache: new Map(),
       hydroFeatureByFid: new Map(),
       hydroFragmentsByLogicalId: new Map(),

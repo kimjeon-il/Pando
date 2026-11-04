@@ -30,3 +30,13 @@ test('current terrain settings preserve an explicit grayscale choice', () => {
     terrainStyleVersion: 1,
   }).terrainStyle, 'political');
 });
+
+test('built-in hydro lookup uses tiled features by cache key and logical ID', () => {
+  const feature = { id: 'fragment', properties: { pandolab_id: 'river-1' } };
+  const settings = createHydroSettings();
+  settings.connect({ projectState: { state: { hydroFeatureCache: new Map([['fragment', feature]]) } } });
+  assert.deepEqual(settings.allBuiltInHydroFeatures(), [feature]);
+  assert.equal(settings.builtInHydroFeatureById('fragment'), feature);
+  assert.equal(settings.builtInHydroFeatureById('river-1'), feature);
+  assert.equal(settings.builtInHydroFeatureById('missing'), null);
+});

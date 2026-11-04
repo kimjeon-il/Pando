@@ -439,7 +439,6 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
       }),
       acceptManifest: async (manifest, manifestUrl) => {
         dependencies.projectState.state.hydroManifest = manifest;
-        dependencies.projectState.state.hydroCollections = {};
         dependencies.projectState.state.hydroFeatureCache = new Map();
         dependencies.projectState.state.hydroFeatureByFid = new Map();
         dependencies.projectState.state.hydroFragmentsByLogicalId = new Map();
