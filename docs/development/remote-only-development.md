@@ -113,6 +113,38 @@ is required to prove native geometry, compiled runtime and map consumption
 agree. This does not claim physical GPU equivalence or cover all historic
 countries and time periods.
 
+## Local build prohibition and immutable output retirement
+
+The branch uses `scripts/lib/remote-only-native-policy.mjs` as the single
+fail-closed gate on Pando-owned **local** native test preparation (including
+capacity probes), compiler cache SDK activation / wrapper invocation, selected
+application native prerequisites and native Windows binary downloads. On this
+branch a missing source-pinned artifact does not trigger an SDK fallback:
+explicit GitHub Actions is required. This cannot prohibit a developer from
+manually running arbitrary OS compiler commands outside project tooling.
+
+Codespaces prepares only locked Node development packages and a test browser.
+SDK/compiler installations and native builds are exclusively on remote runners;
+a Windows verification executable is run by Windows GitHub Actions, not
+downloaded onto a developer PC.
+
+Legacy PC artifact views are never automatically deleted. The existing
+storage owner offers a **preview** of unreferenced, immutable, source-hashed
+native views and an explicit, journaled operation:
+
+```powershell
+node tools/worktree-storage.mjs --retire-native
+node tools/worktree-storage.mjs --retire-native --apply
+node tools/worktree-storage.mjs --prune-blobs
+node tools/worktree-storage.mjs --prune-blobs --apply
+```
+
+Only a user/local operator with access to the storage may opt into applying
+these commands. They reject active applications, referenced versions, unknown
+files and pending journals; shared blobs are freed only after all hard links
+are removed and their own hashes are verified. No cleanup was executed by the
+branch migration or on the developer PC.
+
 ## Acceptance boundaries
 
 The branch's initial contract gate proves source configuration and safety

@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { requiresUnitIsolation } from './lib/unit-test-isolation.mjs';
 import { collectChanges } from './lib/check-changes.mjs';
 import { loadRepository, planApplicationChecks } from './plan-application-checks.mjs';
+import {assertRemoteOnlyNativeAllowed} from './lib/remote-only-native-policy.mjs';
 
 function executionOptions({ phase = 'all', shard = null } = {}) {
   if (!['all', 'non-browser', 'browser'].includes(phase)) throw Error('Invalid execution phase: ' + phase);
@@ -49,7 +50,7 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   };
 }
 
-export function executePlan(plan, { repository, phase = 'all', shard = null, run = (argv, options) => spawnSync(
+export function executePlan(plan, { repository, phase = 'all', shard = null, environment = process.env, run = (argv, options) => spawnSync(
   argv[0] === 'node' ? process.execPath : argv[0], argv.slice(1), { ...options, stdio: 'inherit', shell: false }) } = {}) {
   const execution = executionOptions({ phase, shard });
   const prerequisites = phasePrerequisites(plan, phase);
@@ -76,7 +77,10 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, run
     if (completed.has(key)) return completed.get(key);
     let result;
     try {
-      const response = run(argv, { cwd: repository.root, env: { ...process.env, ...env } });
+      const definitionForCheck=definition(id);
+      if(id.startsWith('native-')||definitionForCheck?.gisNative)
+        assertRemoteOnlyNativeAllowed({root:repository.root,environment,operation:'application native prerequisite '+id});
+      const response = run(argv, { cwd: repository.root, env: { ...environment, ...env } });
       result = { id, argv, status: response.status === 0 && !response.error ? 'passed' : 'failed',
         exitCode: response.status, error: response.error?.message };
     } catch (error) { result = { id, argv, status: 'failed', error: error.message }; }

@@ -5,6 +5,7 @@ import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {nativeTestRecipe} from './lib/native-test-prerequisites.mjs';
 import {verifyNativeTool} from '../tools/native-tool.mjs';
+import {assertRemoteOnlyNativeAllowed} from './lib/remote-only-native-policy.mjs';
 
 const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
 function regular(path) {if(!lstatSync(path).isFile())throw Error('Native prerequisite must be a regular file: '+path);}
@@ -61,6 +62,7 @@ async function preservePinnedNativeInput(root,path,expectedSha,destination) {
 export async function nativeTestCapacity(ids,{root=process.cwd(),platform=process.platform,architecture=process.arch,probe=argv=>spawnSync(argv[0],argv.slice(1),
   {cwd:root,encoding:'utf8',timeout:10000})}={}) {
   if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'))throw Error('Registered native prerequisite IDs must be an array');
+  if(ids.length)assertRemoteOnlyNativePreparation({root});
   ids=[...new Set(ids)];for(const id of ids)nativeTestRecipe(id,{platform,architecture});
   let additionalBytes=0,recipeEnvironment=false;
   if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch',{platform,architecture}).sdk))additionalBytes+=4*1024**3;
@@ -78,18 +80,9 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),platform=proces
   return {tools:ids.length>0,recipeEnvironment,gdalEnvironment,additionalBytes};
 }
 
-// The remote-only branch never silently rebuilds or downloads native SDKs in
-// Codespaces or on a developer PC. GitHub Actions remains the explicit owner.
-export function assertRemoteOnlyNativePreparation({
-  environment=process.env,
-  branch,
-  root=process.cwd(),
-  probe=directory=>spawnSync('git',['-C',directory,'symbolic-ref','--quiet','--short','HEAD'],
-    {encoding:'utf8',timeout:2000,windowsHide:true}).stdout?.trim()||''
-}={}) {
-  const currentBranch=branch??probe(root);
-  if((environment.PANDO_REMOTE_ONLY==='1'||currentBranch==='work/remote-only')&&environment.GITHUB_ACTIONS!=='true')
-    throw Error('PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED: use the source-pinned GitHub Actions native/GIS/WASM workflows; local SDK setup is forbidden.');
+// Retain the historical named guard for callers; all owners share one policy.
+export function assertRemoteOnlyNativePreparation(options={}) {
+  return assertRemoteOnlyNativeAllowed({...options,operation:'native test preparation'});
 }
 
 export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{

@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { validateShellProfile } from './stage.mjs';
 import { storageSettings,installNativeArtifactView } from '../../tools/worktree-storage.mjs';
+import {assertRemoteOnlyNativeAllowed} from '../../scripts/lib/remote-only-native-policy.mjs';
 import {containedPath,atomicStorageJSON,contentFiles} from '../../tools/library-content.mjs';
 import {nativeInputIdentity,verifyNativeBundle} from './native-contract.mjs';
 
@@ -26,6 +27,7 @@ export function selectNativeRun(runs,{head,workflowId,repository,title,artifactN
     &&(run.display_title===title||(run.event==='push'&&run.status==='completed'&&artifactName&&artifactsByRun?.get(run.id)?.some(a=>a.name===artifactName&&!a.expired))))||null;
 }
 export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform='windows',mode='development',testNative=false,pollMs=5000,timeoutMs=65*60*1000,github}={}){
+  assertRemoteOnlyNativeAllowed({root,operation:'local Windows artifact download or installation'});
   const identity=nativeInputIdentity(root,{platform,mode}),settings=storageSettings(root);
   if(!settings)throw Error('Application shared storage activation is required');
   const pin=JSON.parse(await readFile(resolve(root,'config/native-artifacts.json'),'utf8'));
