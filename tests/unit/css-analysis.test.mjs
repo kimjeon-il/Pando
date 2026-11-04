@@ -28,5 +28,4 @@ test('bundle generation preserves source order and content without a copied sour
   assert.match(output, /source-count: 2/);
   assert.ok(output.endsWith('\n\n'));
   assert.equal(output.includes('\r'), false);
-  assert.match(renderUiBundle(['first.css'], file => contents.get(file), { modal: true }), /modal-source: first\.css/);
 });

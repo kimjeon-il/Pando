@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {renderProductHtml} from './product-html.mjs';
 import {buildFrontendIndex,frontendAsset,frontendRoots} from './frontend-layout.mjs';
 import {buildUiBundles} from '../build-ui-bundle.mjs';
-import {UI_VIEWER_SOURCES,UI_BUNDLE_SOURCES} from './ui-source-catalog.mjs';
+import {UI_VIEWER_SOURCES} from './ui-source-catalog.mjs';
 import {collectCssRules} from './css-analysis.mjs';
 import {isEditorOnlyAsset} from './product-assets.mjs';
 
@@ -169,8 +169,6 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
      if(!isEditorOnlyAsset(resource))fail('Retired source guard was removed: '+resource);
    // Keep the existing public viewer product graph and the optional Windows
    // flat projection separate; these files must not become duplicate UI owners.
-   if(UI_BUNDLE_SOURCES.length<UI_VIEWER_SOURCES.length)
-     fail('Viewer sources cannot exceed the canonical source catalog');
  }
  return [...new Set(errors)];
 }

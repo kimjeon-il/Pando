@@ -5,7 +5,7 @@ import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
+import {UI_VIEWER_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 import { buildWorkerAsset } from '../../scripts/lib/worker-assets.mjs';
 
 export const put = (root, path, value) => {
@@ -33,7 +33,7 @@ export async function pagesRepositoryFixture(t) {
   put(root,'package.json','{"version":"1.0.0"}');
   put(root,'apps/editor/templates/index.html','<h1>Editor</h1><script type="module" src="assets/js/app.js"></script>');
   put(root,'shared/frontend/js/modules/resource-update-policy.js','export const policy=true;');
-  for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
+  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(root,path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   put(root, '.nojekyll', '');
   put(root, 'assets/data/terrain-preview/v0.13.3-p2/manifest.json', '{"tiles":{}}');
   put(root, 'assets/data/hydro/v0.13.4/manifest.json', '{"container":{"url":"hydro.bin"},"shards":[]}');

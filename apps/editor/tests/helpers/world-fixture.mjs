@@ -1,6 +1,6 @@
 import {readFileSync,readdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../../../scripts/lib/ui-source-catalog.mjs';
+import {UI_VIEWER_SOURCES} from '../../../../scripts/lib/ui-source-catalog.mjs';
 import {frontendSourceClosure} from '../../../../scripts/lib/frontend-layout.mjs';
 import {runtimeDependencies} from '../../../../scripts/lib/product-assets.mjs';
 import { createHash } from 'node:crypto';
@@ -104,7 +104,7 @@ export async function worldFixture(t) {
   for(const entry of frontendSourceClosure(sourceRoot,[
     'assets/js/modules/runtime-context.js',
   ],{runtimeDependencies}))await put(entry.sourcePath,readFileSync(join(sourceRoot,entry.sourcePath)));
-  for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
+  for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))await put(path.replace('assets/css/','shared/frontend/css/'),'.fixture { color:red; }');
   terrain.sourceDem={landMaskSha256:'fixture-land'};
   await put('assets/data/terrain-preview/v0.13.3-p2/manifest.json',JSON.stringify(terrain));
   const landGeometry=Buffer.from(JSON.stringify({type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,1],[1,0],[0,0]]]]}));

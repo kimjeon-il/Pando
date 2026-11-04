@@ -5,11 +5,9 @@ const sourceEntries = Object.freeze([
   Object.freeze({ role: 'tokens', path: 'assets/css/tokens/design-tokens.css' }),
   Object.freeze({ role: 'controls', path: 'assets/css/primitives/controls.css' }),
   Object.freeze({ role: 'select', path: 'assets/css/primitives/select.css' }),
-  Object.freeze({ role: 'color-picker', path: 'assets/css/primitives/color-picker.css' }),
   Object.freeze({ role: 'surface', path: 'assets/css/components/surface.css' }),
   Object.freeze({ role: 'content', path: 'assets/css/components/content.css' }),
   Object.freeze({ role: 'command-row', path: 'assets/css/components/command-row.css' }),
-  Object.freeze({ role: 'workflows', path: 'assets/css/components/workflows.css' }),
   Object.freeze({ role: 'dialogs', path: 'assets/css/components/dialogs.css' }),
   Object.freeze({ role: 'surface-layout', path: 'assets/css/layout/surfaces.css' }),
   Object.freeze({ role: 'topbar', path: 'assets/css/components/topbar.css' }),
@@ -27,25 +25,11 @@ const sourceEntries = Object.freeze([
   Object.freeze({ role: 'map-rendering', path: 'assets/css/features/map-rendering.css' }),
 ]);
 
-const modalEntries = Object.freeze([
-  Object.freeze({ role: 'modals', path: 'assets/css/components/modals.css' }),
-]);
-
-const sourceByRole = new Map([...sourceEntries, ...modalEntries].map(entry => [entry.role, entry.path]));
-
-export const UI_BUNDLE_SOURCES = Object.freeze(sourceEntries.map(entry => entry.path));
-// Both products consume the same style owners. The viewer omits only unused
-// edit forms; shared drawer/search/display rules remain visually identical.
-const viewerRoles = new Set(['application-tokens', 'component-tokens', 'tokens', 'controls', 'select',
-  'surface', 'content', 'command-row', 'dialogs', 'surface-layout', 'topbar', 'editor-shell', 'panels', 'menus',
-  'view-menu', 'mobile-sheets', 'feedback', 'statusbar', 'map-display', 'map-search', 'map-viewport',
-  'accessibility', 'map-rendering']);
-export const UI_VIEWER_SOURCES = Object.freeze(sourceEntries.filter(entry => viewerRoles.has(entry.role)).map(entry => entry.path));
-export const UI_MODAL_SOURCES = Object.freeze(modalEntries.map(entry => entry.path));
+const sourceByRole = new Map(sourceEntries.map(entry => [entry.role, entry.path]));
+export const UI_VIEWER_SOURCES = Object.freeze(sourceEntries.map(entry => entry.path));
 export const UI_AUDIT_STYLE_SOURCES = Object.freeze([
   'assets/css/app.css',
-  ...UI_BUNDLE_SOURCES,
-  ...UI_MODAL_SOURCES,
+  ...UI_VIEWER_SOURCES,
 ]);
 
 export function uiSourcePath(role) {
