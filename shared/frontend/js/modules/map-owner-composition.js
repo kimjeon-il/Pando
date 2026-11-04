@@ -31,11 +31,10 @@ export function initializeMapReadOwners(owners,phase){
   for(const [owner,method]of stages)owners[owner][method]();
 }
 
-/** One owner graph; only the editor may register mutation and persistence hooks. */
+/** One read-only owner graph for the Web Viewer and Windows reviewer. */
 export function createMapOwners({productMode,readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat',platform=null,buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
   if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
-  if(typeof readOnly!=='boolean'||(productMode==='viewer'&&!readOnly))throw new TypeError('Read-only map mode must be explicit.');
-  if(readOnly&&editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
+  if(readOnly!==true||editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform,{projection});
   // A normal month source is ~13 MiB. The Viewer's previous 24 MiB budget
   // could not retain two adjacent months, forcing repeated JSON/SHA work even
@@ -45,9 +44,9 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
     sourceCacheLimits:productMode==='viewer'?{maxEntries:3,maxBytes:32*1024*1024}:null});
   const workspaceSurfaces=createWorkspaceSurfaces();
   const projectSession=createProjectSession({productMode,readOnly,projection,capabilities,resolveVisibilityGroup,onViewingChange});
-  const renderQuality=createRenderQuality({beforeMeshRebuild:editing?.beforeMeshRebuild});
-  const pointerTargets=createPointerTargets({isDraggingDraft:editing?.isDraggingDraft});
-  const cameraNavigation=createCameraNavigation({persistView:editing?.persistView});
+  const renderQuality=createRenderQuality();
+  const pointerTargets=createPointerTargets();
+  const cameraNavigation=createCameraNavigation();
   const countryIndex=createCountryIndex();
   const spatialIndex=createSpatialIndex();
   const mapProjection=createMapProjection({capabilities});
@@ -58,6 +57,6 @@ export function createMapOwners({productMode,readOnly=productMode==='viewer',pro
   const physicalResources=createPhysicalResources({capabilities,buildMeta});
   const gpuScene=createGpuScene({getPhysicalLand:()=>physicalResources.physicalLand});
   const mapHost=createMapHost({productMode,readOnly,projection});
-  const objectPicking=createObjectPicking({performanceRecorder:editing?.performanceRecorder,closeActiveOverlay});
+  const objectPicking=createObjectPicking({closeActiveOverlay});
   return Object.freeze({capabilities,builtinSession,workspaceSurfaces,projectSession,renderQuality,pointerTargets,cameraNavigation,countryIndex,spatialIndex,mapProjection,objectPresentation,hydroSettings,objectCatalog,territorialLabels,physicalResources,gpuScene,mapHost,objectPicking});
 }
