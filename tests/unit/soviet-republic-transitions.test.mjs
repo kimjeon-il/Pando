@@ -68,11 +68,10 @@ test('published intervals and month-end selection preserve all fifteen political
 
 test('existing Russian and Kazakh outlines bridge only the researched display transitions',()=>{
  const sources=new Map();
- // The pinned library splits both outlines again at the approved 2006 treaty
- // date. Only the earlier reuse window must equal the 1991 republic geometry.
+ // The small 2006 exchanges are retired; retain the 1995 lease and 2014 Crimea transitions.
  for(const [code,suffix,reusedThrough,representativeFrom] of [
-  ['RUS','russian-sfsr','2006-01-11','2014-03-18'],
-  ['KAZ','kazakh-ssr','1995-09-24','2006-01-12'],
+  ['RUS','russian-sfsr','2014-03-17','2014-03-18'],
+  ['KAZ','kazakh-ssr','1995-09-24','1995-09-25'],
  ]){
   const source=read('state:'+code),republic=read('state:soviet-union-'+suffix);
   sources.set(code,source);
@@ -80,13 +79,12 @@ test('existing Russian and Kazakh outlines bridge only the researched display tr
   assert.equal(reused.versionId,'state:'+code+':post-soviet-existing-coordinates');
   assert.deepEqual(reused.geometry,republic.geometryVersions.find(row=>row.versionId.endsWith(':1991-r1')).geometry);
   assert.equal(selectGeometryVersion(source,representativeFrom).versionId,source.metadata.representativeGeometryVersionId);
-  assert.equal(selectGeometryVersion(source,'2006-01-12').historicalProvenance.rusKazTreaty2006ABC.effective,'2006-01-12');
+  assert.equal(selectGeometryVersion(source,'2006-01-12').versionId,selectGeometryVersion(source,'2006-01-11').versionId);
+  assert.equal(selectGeometryVersion(source,'2006-01-12').historicalProvenance.rusKazTreaty2006ABC,undefined);
  }
  for(const [code,event,beforeId,afterId] of [
-  ['RUS','2006-01-12','state:RUS:post-soviet-existing-coordinates','state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1'],
-  ['RUS','2014-03-18','state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1','state:RUS:natural-earth-5.1.1'],
-  ['KAZ','1995-09-25','state:KAZ:post-soviet-existing-coordinates','state:KAZ:natural-earth-5.1.1:pre-2006-treaty-r1'],
-  ['KAZ','2006-01-12','state:KAZ:natural-earth-5.1.1:pre-2006-treaty-r1','state:KAZ:natural-earth-5.1.1'],
+  ['RUS','2014-03-18','state:RUS:post-soviet-existing-coordinates','state:RUS:natural-earth-5.1.1'],
+  ['KAZ','1995-09-25','state:KAZ:post-soviet-existing-coordinates','state:KAZ:natural-earth-5.1.1'],
  ]){
   const source=sources.get(code);
   const previous=new Date(event+'T00:00:00Z');previous.setUTCDate(previous.getUTCDate()-1);

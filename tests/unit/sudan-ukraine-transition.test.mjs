@@ -31,7 +31,7 @@ test('monthly end and exact day selection keep Sudan, South Sudan and Ukraine as
  assert.equal(selectGeometryVersion(ukr,'2014-03')?.versionId,'state:UKR:2014-03-18-post-crimea-r1');
  const rus=entries.get('state:RUS');
  assert.equal(selectGeometryVersion(rus,'2014-03-17')?.versionId,
-  'state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1');
+  'state:RUS:post-soviet-existing-coordinates');
  assert.equal(selectGeometryVersion(rus,'2014-03-18')?.versionId,'state:RUS:natural-earth-5.1.1');
  for(const [entity,continuousId] of [[sdn,'state:SDN:2011-07-09-post-secession-r1'],
   [sds,'state:SDS:2011-07-09-independence-r1'],[ukr,'state:UKR:2014-03-18-post-crimea-r1']]){
@@ -80,7 +80,7 @@ test('built Web/native historical-project input has the same post-transition geo
  // as UKR, without asking assertion formatting to dump a whole country shape.
  const beforeRus=at('2014-02','RUS'),afterRus=at('2014-03','RUS');
  assert.equal(beforeRus?.properties?.sourceGeometryVersion,
-  'state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1');
+  'state:RUS:post-soviet-existing-coordinates');
  assert.equal(afterRus?.properties?.sourceGeometryVersion,'state:RUS:natural-earth-5.1.1');
  assert.equal(covers(beforeRus?.geometry,crimea),false);
  assert.equal(covers(afterRus?.geometry,crimea),true);
