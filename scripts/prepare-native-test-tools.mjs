@@ -78,11 +78,26 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),platform=proces
   return {tools:ids.length>0,recipeEnvironment,gdalEnvironment,additionalBytes};
 }
 
+// The remote-only branch never silently rebuilds or downloads native SDKs in
+// Codespaces or on a developer PC. GitHub Actions remains the explicit owner.
+export function assertRemoteOnlyNativePreparation({
+  environment=process.env,
+  branch,
+  root=process.cwd(),
+  probe=directory=>spawnSync('git',['-C',directory,'symbolic-ref','--quiet','--short','HEAD'],
+    {encoding:'utf8',timeout:2000,windowsHide:true}).stdout?.trim()||''
+}={}) {
+  const currentBranch=branch??probe(root);
+  if((environment.PANDO_REMOTE_ONLY==='1'||currentBranch==='work/remote-only')&&environment.GITHUB_ACTIONS!=='true')
+    throw Error('PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED: use the source-pinned GitHub Actions native/GIS/WASM workflows; local SDK setup is forbidden.');
+}
+
 export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
   const result=spawnSync(argv[0]==='node'?process.execPath:argv[0],argv.slice(1),{cwd:root,env:process.env,stdio:'inherit',shell:false});
   if(result.status!==0||result.error)throw Error('Native prerequisite command failed: '+argv.join(' '),{cause:result.error});
 },platform=process.platform,architecture=process.arch}={}) {
   root=resolve(root);
+  assertRemoteOnlyNativePreparation({root});
   const recipe=nativeTestRecipe(id,{platform,architecture});
   const invoke=argv=>run(argv.map(arg=>arg.replaceAll('{root}',root)));
   const checkRuntime=runtime=>checkedRuntime(root,runtime);

@@ -17,6 +17,15 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 
 공개 웹은 main의 `config/library-data.json`에 고정한 자료만 사용합니다. 완료한 자료의 보관·푸시·원격 확인 후 해당 핀을 main에 반영하면 웹 배포와 실제 응답 확인까지 자동으로 이어집니다. 작업 중 저장·동기화와 보고서 보관은 공개 게시를 발생시키지 않습니다. 자세한 절차는 [외부 라이브러리 자료](docs/library-data.md)를 참고하세요.
 
+## 브라우저만 사용하는 원격 개발
+
+전용 [`work/remote-only`](https://github.com/kimjeon-il/Pando/tree/work/remote-only) 브랜치에서는
+[GitHub Codespaces](https://codespaces.new/kimjeon-il/Pando/tree/work/remote-only?quickstart=1)로
+소스 수정과 비공개 웹 미리보기를 원격에서 수행하고, C++·WASM·GIS·Windows 빌드는 GitHub Actions로 처리합니다.
+사용자 PC에 Node.js나 빌드 SDK를 설치할 필요가 없습니다.
+자세한 제약과 검증 기준은 [완전 원격 개발 운영](docs/development/remote-only-development.md)을 참고하세요.
+이 브랜치는 아직 `main`에 병합되거나 공개 웹에 배포되지 않았습니다.
+
 ## 로컬 실행
 
 먼저 `pnpm.cmd deps:prepare`로 공용 의존성을 준비합니다.
