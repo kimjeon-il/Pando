@@ -40,6 +40,13 @@ export const nativeTestRecipes=Object.freeze({
     ],['--sdk','build-native/map-pdf/sdk/pymupdf']),
     runtime:{path:'build-native/map-pdf/artifact/libmupdf.so.26.11',sha256:'2802c2bfedc5b2f4381d93dc2367c9987fa307fabc45c7a041d819c950cc5791'},
   },
+  'publisher-pdf':{
+    ...native('publisher-pdf','build-native/map-pdf/publisher-artifact','tools/reference-analysis/native-publisher-pdf.mjs','publisherPdfSourceFiles','tools/reference-analysis/package-native-publisher-pdf.mjs',[
+      configure('tools/cpp/map-pdf/publisher','build-native/map-pdf/publisher-native','-DPANDO_MUPDF_SDK_ROOT={root}/build-native/map-pdf/sdk/pymupdf','-DCMAKE_BUILD_TYPE=Release'),
+      build('build-native/map-pdf/publisher-native',['pando-publisher-pdf']),
+    ],['--sdk','build-native/map-pdf/sdk/pymupdf']),
+    runtime:{path:'build-native/map-pdf/publisher-artifact/libmupdf.so.26.11',sha256:'2802c2bfedc5b2f4381d93dc2367c9987fa307fabc45c7a041d819c950cc5791'},
+  },
   'mupdf':{sdk:{
     url:'https://files.pythonhosted.org/packages/4f/bf/6e02e3d84b32c137c71a0a3dcdba8f2f6e9950619a3bc272245c7c06a051/pymupdf-1.26.6-cp310-abi3-manylinux_2_28_x86_64.whl',
     sha256:'7777d0b7124c2ebc94849536b6a1fb85d158df3b9d873935e63036559391534c',

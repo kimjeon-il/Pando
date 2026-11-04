@@ -1016,6 +1016,28 @@
         ".github/actions/native-test-prerequisites/action.yml"
       ]
     },
+    "native-publisher-pdf": {
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "publisher-pdf"
+      ],
+      "requires": [
+        "native-map-image",
+        "native-mupdf"
+      ],
+      "env": {
+        "PANDO_PUBLISHER_PDF_ARTIFACT": "{root}/build-native/map-pdf/publisher-artifact"
+      },
+      "inputs": [
+        "tools/cpp/map-pdf/publisher/**",
+        "tools/cpp/map-pdf/MUPDF-COPYING",
+        "tools/cpp/map-pdf/MUPDF-AGPL-3.0",
+        "tools/reference-analysis/native-publisher-pdf.mjs",
+        "tools/reference-analysis/package-native-publisher-pdf.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
+    },
     "native-map-evaluation": {
       "argv": [
         "node",
@@ -1526,6 +1548,17 @@
     },
     {
       "tests": [
+        "tests/unit/reference-macro-generator.test.mjs",
+        "tests/unit/reference-macro-validation.test.mjs",
+        "tests/unit/reference-publisher-generator.test.mjs",
+        "tests/unit/reference-publisher-pdf.test.mjs"
+      ],
+      "requires": [
+        "native-publisher-pdf"
+      ]
+    },
+    {
+      "tests": [
         "tests/unit/map-plugin-native-pdf-read.test.mjs"
       ],
       "requires": [
@@ -1534,6 +1567,7 @@
     },
     {
       "tests": [
+        "tests/unit/reference-diagnostic-tile.test.mjs",
         "tests/unit/reference-native-diagnostic.test.mjs",
         "tests/unit/reference-native-evaluation.test.mjs",
         "tests/unit/reference-training-lineage.test.mjs"

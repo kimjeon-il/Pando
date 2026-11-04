@@ -10,6 +10,22 @@ const workflows = ['application-architecture', 'ui-architecture', 'place-runtime
 const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url), 'utf8'));
 const MANUAL_SCOPES = workflow.on.workflow_dispatch.inputs.browser_scope.options;
 
+test('diagnostic tile checks prepare both the preview and evaluation native tools', () => {
+  const repository = loadRepository(new URL('../../', import.meta.url));
+  const required = repository.unitRequirements.get('tests/unit/reference-diagnostic-tile.test.mjs');
+  assert.ok(required.has('native-map-preview'));
+  assert.ok(required.has('native-map-evaluation'));
+});
+
+test('publisher and macro PDF checks prepare the source-bound publisher reader', () => {
+  const repository = loadRepository(new URL('../../', import.meta.url));
+  for(const file of ['reference-macro-generator','reference-macro-validation','reference-publisher-generator','reference-publisher-pdf'])
+    assert.ok(repository.unitRequirements.get(`tests/unit/${file}.test.mjs`).has('native-publisher-pdf'),file);
+  const prerequisite=repository.catalog.prerequisites['native-publisher-pdf'];
+  assert.ok(prerequisite.requires.includes('native-mupdf'));
+  assert.ok(prerequisite.requires.includes('native-map-image'));
+});
+
 test('current discovered tests each have one owner; diagnostic purposes and commands remain explicit', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   assert.equal(repository.owners.size, repository.tests.length);
