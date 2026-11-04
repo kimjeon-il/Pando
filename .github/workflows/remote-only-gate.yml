@@ -13,6 +13,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      run_heavy: ${{ steps.plan.outputs.run_heavy }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Plan source-aware acceptance without installing toolchains
+        id: plan
+        env:
+          PANDO_REMOTE_ONLY_BASE_SHA: ${{ github.event.before || '' }}
+        run: node scripts/remote-only-ci-scope.mjs --github-output
+
   contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -24,9 +43,11 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Verify browser-only developer setup and remote CI routing
-        run: node --test tests/unit/remote-only-contract.test.mjs tests/unit/codespaces-acceptance-contract.test.mjs
+        run: node --test tests/unit/remote-only-contract.test.mjs tests/unit/codespaces-acceptance-contract.test.mjs tests/unit/remote-only-native-policy.test.mjs tests/unit/remote-only-artifact-cache.test.mjs
 
   wasm-compile-and-smoke:
+    needs: scope
+    if: needs.scope.outputs.run_heavy == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
@@ -52,13 +73,27 @@ jobs:
           cmake --preset pando-gis-tools
           cmake --build --preset pando-gis-tools
           ctest --preset pando-gis-tools --output-junit "$GITHUB_WORKSPACE/build-native/remote-only-integration/native-gis.xml" --output-on-failure
+      - name: Compute source and toolchain digest for the WASM reuse cache
+        id: wasm-identity
+        run: node scripts/remote-only-wasm-cache.mjs --identity --github-output
+      - name: Restore only the matching immutable WASM output
+        id: wasm-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build-native/remote-only-wasm-cache
+          key: ${{ steps.wasm-identity.outputs.cache_key }}
+      - name: Verify and restore ABI/source-hashed cache without recompiling
+        if: steps.wasm-cache.outputs.cache-hit == 'true'
+        run: node scripts/remote-only-wasm-cache.mjs --restore
       - uses: actions/checkout@v4
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
         with:
           repository: emscripten-core/emsdk
           ref: db04e88298d9916fc51fcd3743045ca3eb695127
           path: build-native/emsdk
           persist-credentials: false
       - name: Compile actual shared C++ WASM in GitHub Actions
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -79,6 +114,15 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/unit/p6-polygon-core.test.mjs tests/unit/gis-math-contract.test.mjs tests/unit/r4c-spatial-boundaries.test.mjs | tee build-native/remote-only-integration/wasm-gis.tap
+      - name: Record verified input-specific WASM cache after passing GIS tests
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
+        run: node scripts/remote-only-wasm-cache.mjs --record
+      - name: Save validated WASM bytes once per exact source/toolchain identity
+        if: steps.wasm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build-native/remote-only-wasm-cache
+          key: ${{ steps.wasm-identity.outputs.cache_key }}
       - name: Archive native GIS and fresh WASM integration receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -134,6 +178,8 @@ jobs:
           retention-days: 14
 
   windows-real-webview2:
+    needs: scope
+    if: needs.scope.outputs.run_heavy == 'true'
     runs-on: windows-2022
     timeout-minutes: 90
     env:
@@ -150,11 +196,25 @@ jobs:
         with:
           node-version-file: .nvmrc
       - uses: pnpm/action-setup@v4
+      - name: Fingerprint exact Windows source and embedded commit
+        id: win-identity
+        run: node scripts/remote-only-windows-cache.mjs --identity --github-output
+      - name: Restore only the exact source-pinned Windows artifact
+        id: win-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build-native/native-artifacts/windows/verification
+          key: pando-remote-only-windows-v1-${{ steps.win-identity.outputs.cache_key }}
+      - name: Verify cached Windows binary SHA, manifest and embedded build identity
+        if: steps.win-cache.outputs.cache-hit == 'true'
+        run: node scripts/remote-only-windows-cache.mjs --verify
       - uses: dtolnay/rust-toolchain@master
+        if: steps.win-cache.outputs.cache-hit != 'true'
         with:
           toolchain: '1.99.1'
           targets: x86_64-pc-windows-msvc
       - name: Check Windows native build headroom
+        if: steps.win-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           node -e "const s=require('node:fs').statfsSync('.');const free=s.bavail*s.bsize/2**30;console.log({freeGiB:free});if(free<17)throw Error('Insufficient Windows CI disk headroom')"
@@ -167,6 +227,7 @@ jobs:
           pnpm --dir apps/editor install --frozen-lockfile
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compile actual source-pinned verification reviewer
+        if: steps.win-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           node apps/editor/packaged-artifacts.mjs --ci-build --platform=windows --mode=verification --test-native
@@ -182,6 +243,12 @@ jobs:
           if ($r.embeddedBuild.sourceCommit -ne $env:GITHUB_SHA -or -not $r.ok -or $r.phase -ne 'read-only-map-ready') { throw 'WebView2 runtime identity/readiness mismatch' }
           if ($r.observed.projection -ne 'flat' -or -not $r.observed.readOnly -or -not $r.observed.mutationBlocked -or $r.observed.canUndo -ne $false) { throw 'Windows readonly review contract mismatch' }
           Write-Output ('PANDO_REMOTE_ONLY_WINDOWS_WEBVIEW2_PASS: ' + $env:GITHUB_SHA)
+      - name: Preserve verified Windows binary for a source-identical retry
+        if: steps.win-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build-native/native-artifacts/windows/verification
+          key: pando-remote-only-windows-v1-${{ steps.win-identity.outputs.cache_key }}
       - name: Archive GUI probe and immutable Windows build identity
         if: always()
         uses: actions/upload-artifact@v4

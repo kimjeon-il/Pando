@@ -145,6 +145,37 @@ files and pending journals; shared blobs are freed only after all hard links
 are removed and their own hashes are verified. No cleanup was executed by the
 branch migration or on the developer PC.
 
+## Remote output reuse and retention (bounded)
+
+The CI gate now plans changes before heavy work. Documentation-only pushes
+run contract checks without C++, Emscripten, SDK or Windows compilation.
+Explicit `workflow_dispatch` selects full acceptance even when source input
+files are unchanged. Unknown baselines are treated as needing full validation.
+
+WASM cache key = SHA-256 of the canonical shared C++ source manifest,
+root CMake inputs, pinned Emscripten and source-bound workflow/packaging
+inputs. A cache hit is accepted only after digest, compiler version,
+C++ core ABI/source identity and WebAssembly byte checks. The same cached
+pair is then tested through the GIS adapters and sent to the browser test.
+Cache misses compile on GitHub Actions, run geometry checks, **then** publish
+the cache. No compiler SDK or build tree is stored in the reusable cache.
+
+Windows verification cache key = the exact source-pinned native input SHA,
+including the Git commit embedded in its executable. It is hash checked
+against the manifest, source commit and binary `--build-info`. A cache
+hit skips Rust compilation, but **never** skips the actual Windows WebView2
+GUI acceptance; a miss saves its binary only after GUI acceptance succeeds.
+A different Git SHA is not silently treated as a matching Windows build.
+
+Per-run browser/GIS/Windows evidence uses GitHub Actions artifacts with
+7-day WASM or 14-day diagnostic retention; disposable CI runner directories
+are ephemeral. GitHub's managed cache eviction handles unreferenced cache
+entries, so the system never requires developers to download/stage large
+artifacts on their PCs. These are bounded reuse caches, not permanent
+backups: original GIS/AI evidence and release-critical binaries must remain
+with their canonical source owner. No historic cache, report or local
+SDK was deleted during this migration.
+
 ## Acceptance boundaries
 
 The branch's initial contract gate proves source configuration and safety
