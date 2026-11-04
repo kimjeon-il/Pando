@@ -111,7 +111,7 @@ test('P5-6 new C++ native adoption replaces the readonly model only after an acc
   assert.notStrictEqual(model.snapshot(),existing);
   assert.equal(existing.territorialEntities[0].properties.name,old.territorialEntities[0].properties.name);
 });
-test('P5-6 unpaired WASM fallback remains exclusive to missing source export',async()=>{
+test('missing temporal WASM capability fails instead of admitting a legacy baseline',async()=>{
   const buildMeta={dataRevision:'revision',builtinWorld:{sha256:'a'.repeat(64)}};
   let loads=0,admissions=0,baselineId=0;
   const domain={
@@ -128,10 +128,8 @@ test('P5-6 unpaired WASM fallback remains exclusive to missing source export',as
   }}});
   session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixture'}});
   const setup={initialMonth:'2025-12',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
-  const before=await session.prepareProjectCandidate('2025-12',{setup});
-  assert.equal(before.baselineId,2);assert.equal(admissions,1);
-  const newCandidate=await session.prepareProjectCandidate('2025-12',{setup});
-  assert.equal(newCandidate.baselineId,2);assert.equal(loads,1);
+  await assert.rejects(session.prepareProjectCandidate('2025-12',{setup}),{code:'PL-CORE-DOCUMENT-ABI'});
+  assert.equal(admissions,0);assert.equal(loads,1);
   session.dispose();
 });
 
