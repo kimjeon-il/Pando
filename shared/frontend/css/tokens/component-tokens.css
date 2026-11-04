@@ -4,7 +4,6 @@
   --territorial-library-source-flag-max-width: 72px;
   --territorial-library-source-flag-max-height: 48px;
   --ui-phone-landscape-panel-max-width: 320px;
-  --ui-editing-magnifier-filter: drop-shadow(0 3px 6px #0008);
   --action-status-min-width: 112px;
   --action-status-max-width: 460px;
   --status-dot-width: 7px;
@@ -26,7 +25,6 @@
   --fatal-noscript-border: 1px solid #8a4f4f;
   --fatal-noscript-background: #3b2525;
   --fatal-noscript-color: #ffd1d1;
-  --mode-editing-context-width: min(100%, 420px);
   --mode-task-window-body-max-height: min(38dvh, 280px);
   --bootstrap-loading-card-width: min(350px, calc(100vw - var(--ui-space-8)));
   --file-menu-btn-color: #dbe8f8;

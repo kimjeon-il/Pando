@@ -127,10 +127,6 @@
   pointer-events: none;
 }
 
-.validation-overlay-layer {
-  pointer-events: none;
-}
-
 .map-hover-shape {
   vector-effect: non-scaling-stroke;
   pointer-events: none;
