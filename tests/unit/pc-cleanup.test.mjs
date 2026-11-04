@@ -20,6 +20,7 @@ test('profile classification separates generated outputs, originals and keys',()
  assert.equal(classifyEditorChild('unexpected/new-source'),'preserve');
  assert.ok(cacheDirectories('C:/profile').every(p=>!/Cookies|IndexedDB|Local Storage|ms-playwright|codex-runtimes/.test(p)));
  assert.ok(cacheDirectories('C:/profile').some(p=>p.replaceAll('\\','/').endsWith('pandolab-release-20261021/native-profile-packaged/EBWebView/Default/Cache')));
+ assert.ok(cacheDirectories('C:/profile').some(p=>p.replaceAll('\\','/').endsWith('Packages/OpenAI.Codex_2p2nqsd0c76g0/LocalCache/Roaming/Codex/Cache')));
 });
 test('offline guard rejects live Codex and Edge without stopping them',()=>{
  for(const Name of ['Codex.exe','codex.exe','msedge.exe'])assert.throws(()=>assertOffline([{Name,ProcessId:123}]),/Close/);
