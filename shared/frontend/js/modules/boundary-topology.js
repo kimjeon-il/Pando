@@ -1,4 +1,4 @@
-import { createRenderableBoundarySegmentView, buildRefinedBoundarySegments } from './geographic-boundary.js';
+import { buildRefinedBoundarySegments } from './geographic-boundary.js';
 import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
@@ -102,8 +102,7 @@ export function prepareBoundaryFeature(feature) {
   // Source segments belong to this immutable geometry revision. Bulk-loading
   // removes per-edge JS Map/Set/key retention while preserving ordered source refs.
   spatialIndex.loadPacked(segments, boxes);
-  return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex,
-    renderableSegments: createRenderableBoundarySegmentView(feature.geometry) };
+  return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex };
 }
 
 /** The Worker owns this derived index; only a changed geometry is prepared. */

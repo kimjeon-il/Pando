@@ -118,26 +118,6 @@ export function forEachRenderableBoundarySegment(value, visit) {
   } else appendGeometry(sink, value?.type === 'Feature' ? value.geometry : value);
 }
 
-/** Backwards-compatible small prepared-feature view. Iteration/length are
- * available on demand; neither builds a retained per-country array. */
-export function createRenderableBoundarySegmentView(geometry) {
-  let count = null;
-  return {
-    get length() {
-      if (count === null) {
-        count = 0;
-        forEachRenderableBoundarySegment(geometry, () => { count++; });
-      }
-      return count;
-    },
-    [Symbol.iterator]() {
-      // Legacy consumers can still iterate, but only packet preparation uses
-      // the allocation-free visitor above. Do not keep this temporary array.
-      return buildRenderableBoundarySegments(geometry)[Symbol.iterator]();
-    },
-  };
-}
-
 export function buildRenderableBoundarySegments(value) {
   const lines = [];
   forEachRenderableBoundarySegment(value, segment => lines.push(segment));

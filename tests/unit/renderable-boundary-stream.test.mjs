@@ -3,7 +3,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildRenderableBoundarySegments, forEachRenderableBoundarySegment,
-  createRenderableBoundarySegmentView,
 } from "../../shared/frontend/js/modules/geographic-boundary.js";
 import { prepareBoundaryFeature } from "../../shared/frontend/js/modules/boundary-topology.js";
 
@@ -56,13 +55,8 @@ test('prepared source geometry retains no eager expanded display-segment array',
     const feature = { id: name, geometry };
     const prepared = prepareBoundaryFeature(feature);
     assert.strictEqual(prepared.geometry, geometry);
-    assert.ok(!Array.isArray(prepared.renderableSegments), 'eager nested array retained: ' + name);
-    const expected = buildRenderableBoundarySegments(geometry);
-    assert.equal(prepared.renderableSegments.length, expected.length, 'lazy segment count: ' + name);
-    assert.deepEqual([...prepared.renderableSegments], expected, 'legacy iterable parity: ' + name);
-    assert.deepEqual([...prepared.renderableSegments], expected, 'repeatable lazy view: ' + name);
-    assert.strictEqual(prepared.renderableSegments, prepared.renderableSegments,
-      'view identity must survive reuse of one geometry revision');
+    assert.equal(Object.hasOwn(prepared, 'renderableSegments'), false, 'display segments should not be retained: ' + name);
+    assert.ok(prepared.segments.length > 0, 'source segments must be indexed: ' + name);
   }
 });
 
@@ -77,8 +71,4 @@ test('stream visit covers collections and supports early visitor rejection witho
   assert.throws(() => forEachRenderableBoundarySegment(collection, null), TypeError);
   assert.throws(() => forEachRenderableBoundarySegment(collection, () => { throw new Error('cancelled'); }),
     /cancelled/);
-  const view = createRenderableBoundarySegmentView(collection);
-  assert.deepEqual([...view], results);
-  assert.equal(view.length, results.length);
-  assert.equal(view.length, results.length);
 });
