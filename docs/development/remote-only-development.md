@@ -120,6 +120,16 @@ Evidence and screenshots are saved under `test-results/codespaces-acceptance`.
 Record the Codespace name, commit SHA and result. A GitHub Actions job is not
 a genuine Codespaces run and cannot be substituted.
 
+The Viewer can expose `#viewerStatus[data-ready=true]` while
+`rendererStats().mapReadiness.status` remains `terrain` (canonical country
+geometry is ready, but physical terrain tiles are still being prepared).
+`terrain`, `boundaries` and `presenting` are intermediate states, not
+acceptance success. The live test now waits until `ready` or `limited`
+**and** the actual country and Canvas frame revisions are acknowledged,
+initially, after year navigation, and after each source change. On a genuine
+timeout the last readiness, terrain and renderer diagnostics are printed.
+The verified startup query matches the P3 Canvas/raster terrain contract.
+
 The real Codespaces test may take longer than the fast CI contract suite
 because it waits for complete canonical map presentation after both reloads.
 The fixture captures proof and the screenshot **before** removing the

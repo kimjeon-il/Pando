@@ -16,8 +16,69 @@ function codespaceIdentity(){
   const sha=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   return {codespace:process.env.CODESPACE_NAME,branch,sha,node:process.version};
 }
+
+async function currentPresentation(page) {
+  return page.evaluate(()=>{
+    const viewer=globalThis.__PANDOLAB_VIEWER__,s=viewer?.rendererStats?.();
+    if(!s)return {status:'renderer-unavailable'};
+    return {
+      status:s.mapReadiness?.status??'unknown',
+      renderer:s.renderer,
+      canonicalMeshReady:s.canonicalMeshReady,
+      surfaceQuality:s.surfacePresentation?.quality,
+      canonicalPromotionError:s.canonicalPromotionError,
+      projectRenderBlocked:s.projectRenderBlocked,
+      projectGeneration:s.projectGeneration,
+      countriesPublishedGeneration:s.countriesPublishedGeneration,
+      displayedRevision:s.displayedRevision,
+      requestedRevision:s.requestedRevision,
+      displayedGeometryRevision:s.displayedGeometryRevision,
+      committedGeometryRevision:s.committedGeometryRevision,
+      pendingCountryCount:s.pendingCountryCount,
+      countries:viewer.visibleTerritorialCount(),
+      canvasWorkerBusy:s.canvasWorkerBusy,
+      canvasStyleRevision:s.canvasStyleRevision,
+      canvasDisplayedStyleRevision:s.canvasDisplayedStyleRevision,
+      terrainReady:s.terrainReady,
+      terrainTargetLevel:s.terrainTargetLevel,
+      terrainRenderedLevel:s.terrainRenderedLevel
+    };
+  });
+}
+function presentationGate(state) {
+  // "terrain" is an intermediate state, not proof that the map was presented.
+  if(!['ready','limited'].includes(state.status))return 'readiness:'+state.status;
+  if(state.canonicalMeshReady!==true||state.surfaceQuality!=='canonical'||state.canonicalPromotionError)
+    return 'canonical-geometry-not-presented';
+  if(state.projectRenderBlocked!==false)return 'map-render-blocked';
+  if(!(state.countries>0)||state.pendingCountryCount!==0)return 'countries-pending';
+  if(state.projectGeneration!==state.countriesPublishedGeneration)return 'country-publication-stale';
+  if(!Number.isSafeInteger(state.displayedRevision)||state.displayedRevision<=0
+    ||state.displayedRevision!==state.requestedRevision
+    ||state.displayedGeometryRevision!==state.committedGeometryRevision)
+    return 'current-frame-unacknowledged';
+  if(!['canvas-worker','canvas2d'].includes(state.renderer))return 'wrong-canvas-renderer';
+  if(state.renderer==='canvas-worker'&&(state.canvasWorkerBusy===true
+    ||state.canvasDisplayedStyleRevision!==state.canvasStyleRevision))
+    return 'canvas-bitmap-stale';
+  return 'presented';
+}
+async function waitForPresentedMap(page,stage,{timeout=125000}={}) {
+  let last=null;
+  try{
+    await expect.poll(async()=>{
+      last=await currentPresentation(page);
+      return presentationGate(last);
+    },{timeout,message:'Codespaces '+stage+': real canonical country and terrain frame must be displayed'}).toBe('presented');
+  }catch(error){
+    console.error('PANDO_CODESPACES_MAP_NOT_PRESENTED '+JSON.stringify({stage,last}));
+    throw error;
+  }
+  return last;
+}
+
 test('actual Codespace map, date navigation and source-watch auto-reload',async({page,request},info)=>{
-  test.setTimeout(480000);
+  test.setTimeout(600000);
   const proof={schema:'pando-codespaces-live-v1',...codespaceIdentity(),startedAt:new Date().toISOString()};
   const response=await request.get(origin+'/__shell/health',{timeout:5000}).catch(error=>{
     throw Error('Codespaces development server unavailable on 4173; inspect /tmp/pando-remote-only-preview.log',{cause:error});
@@ -32,23 +93,22 @@ test('actual Codespace map, date navigation and source-watch auto-reload',async(
   expect(Buffer.from(await wasm.body()).subarray(0,4)).toEqual(Buffer.from([0,97,115,109]));
   proof.preview={revision:health.revision,wasmBytes:(await wasm.body()).length};
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('/?debug=1&renderer=canvas',{waitUntil:'domcontentloaded',timeout:30000});
+  await page.goto('/?debug=1&renderer=canvas&demTerrain=raster&perf=1',{waitUntil:'domcontentloaded',timeout:30000});
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
   await expect(page.locator('#map')).toBeVisible();
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.visibleTerritorialCount?.()||0),
     {timeout:50000}).toBeGreaterThan(0);
-  const before=await page.evaluate(()=>{
-    const v=window.__PANDOLAB_VIEWER__,s=v.rendererStats();
-    return {month:v.builtinMonth().month,countries:v.visibleTerritorialCount(),
-      renderer:s.renderer,readiness:s.mapReadiness?.status,canonicalMeshReady:s.canonicalMeshReady};
-  });
-  expect(before.canonicalMeshReady).toBe(true);
-  expect(['ready','limited']).toContain(before.readiness);
+  // Application startup readiness is distinct from a fully presented map frame.
+  const firstFrame=await waitForPresentedMap(page,'initial map');
+  const before={month:await page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),
+    countries:firstFrame.countries,renderer:firstFrame.renderer,readiness:firstFrame.status,
+    canonicalMeshReady:firstFrame.canonicalMeshReady};
   await page.locator('#timelinePreviousYear').click();
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.builtinMonth?.().month),
     {timeout:50000}).not.toBe(before.month);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:50000});
-  proof.map={before,after:await page.evaluate(()=>({
+  const datedFrame=await waitForPresentedMap(page,'year navigation',{timeout:110000});
+  proof.map={before,datedFrame,after:await page.evaluate(()=>({
     month:window.__PANDOLAB_VIEWER__.builtinMonth().month,
     countries:window.__PANDOLAB_VIEWER__.visibleTerritorialCount()
   }))};
@@ -70,7 +130,8 @@ test('actual Codespace map, date navigation and source-watch auto-reload',async(
     await expect.poll(healthRevision,{timeout:70000}).toBeGreaterThan(revision);
     await expect.poll(()=>navigations,{timeout:70000}).toBeGreaterThan(navigationCount);
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
-    return {revisionBefore:revision,revisionAfter:await healthRevision(),
+    const presented=await waitForPresentedMap(page,'auto reload',{timeout:120000});
+    return {presented,revisionBefore:revision,revisionAfter:await healthRevision(),
       navigations:navigations-navigationCount};
   };
   try {
