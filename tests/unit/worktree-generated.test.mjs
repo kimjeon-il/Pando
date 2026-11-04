@@ -10,6 +10,15 @@ function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-generated-'));t.
 function put(root,path,text='generated'){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
 function options(root){return {roots:[root],requests:[{root,path:'build-native/p9/retired/output.exe',reason:'retired reproducible native test',action:'delete'}],consumers:[],protectedPaths:[]};}
 
+test('CI-only compiler retirement permits exact versions and excludes live runtime libraries',t=>{
+ const root=fixture(t);for(const p of ['emsdk-6.0.3/upstream/clang.exe','llvm-mingw-20261020/bin/clang.exe','micromamba/root/pkgs/download.conda','build-native/reference-analysis/libtorch.zip','build-native/reference-analysis/libtorch/include/torch.h','build-native/reference-analysis/libtorch/lib/torch.lib','build-native/reference-analysis/libtorch/lib/torch_cpu.dll','micromamba/root/envs/live/gdal.dll'])put(root,p);
+ const request=path=>({root,path,action:'delete',reason:'CI replaces this compiler-only input; no active consumer'}),compilerScopes=[{root,kind:'ci-toolchain'},{root,kind:'ci-build-input'}];
+ const o={roots:[root],compilerScopes,requests:['emsdk-6.0.3','llvm-mingw-20261020','micromamba/root/pkgs','build-native/reference-analysis/libtorch.zip','build-native/reference-analysis/libtorch/include','build-native/reference-analysis/libtorch/lib/torch.lib'].map(request)};
+ const manifest=previewGeneratedCleanup(o);assert.equal(manifest.entries.length,6);applyGeneratedCleanup({...o,manifest});
+ assert.ok(existsSync(join(root,'build-native/reference-analysis/libtorch/lib/torch_cpu.dll')));assert.ok(existsSync(join(root,'micromamba/root/envs/live/gdal.dll')));
+ for(const path of ['emsdk-7.0.0','micromamba/root/envs','build-native/reference-analysis/libtorch/lib/torch_cpu.dll'])assert.throws(()=>previewGeneratedCleanup({...o,requests:[request(path)]}),/scope|evidence/i);
+});
+
 test('retired Emscripten runtime scope excludes SDK source and other toolchains',t=>{
  const root=fixture(t);put(root,'emsdk-6.0.3/upstream/bin/clang.exe');put(root,'emsdk-6.0.3/emsdk.py','source');put(root,'emsdk-7.0.0/upstream/bin/clang.exe');
  const o={roots:[root],compilerScopes:[{root,kind:'toolchains'}],requests:[{root,path:'emsdk-6.0.3/upstream',action:'delete',reason:'disabled local compiler, verified no consumers'}]};const m=previewGeneratedCleanup(o);assert.equal(m.entries.length,1);assert.throws(()=>applyGeneratedCleanup({...o,manifest:m,consumers:[{Name:'clang.exe',ExecutablePath:join(root,'emsdk-6.0.3/upstream/bin/clang.exe')}]}),/consumer/i);assert.equal(applyGeneratedCleanup({...o,manifest:m}).deletedBytes,9);assert.ok(existsSync(join(root,'emsdk-6.0.3/emsdk.py')));

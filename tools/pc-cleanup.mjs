@@ -33,6 +33,11 @@ export function cacheDirectories(home){
    else for(const cache of ['Cache','Code Cache','GPUCache','DawnGraphiteCache','DawnWebGPUCache'])paths.push(join(profile,cache));
   }
  }
+ // The Store edition keeps Electron/WebView profiles in its package LocalCache.
+ // Only reproducible cache leaves are eligible; installed runtimes and browser
+ // persistence (cookies, IndexedDB, Local Storage) stay outside this list.
+ const packaged=join(local,'Packages/OpenAI.Codex_2p2nqsd0c76g0/LocalCache/Roaming/Codex');
+ for(const profile of [join(roaming,'Codex'),packaged,join(packaged,'web/Codex/Default')])for(const cache of ['Cache','Code Cache','GPUCache','DawnGraphiteCache','DawnWebGPUCache'])paths.push(join(profile,cache));
  return paths;
 }
 export function pcProcesses(){

@@ -13,7 +13,7 @@ const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
 const stageMarker='.pandolab-web-shell-stage';
 const nativeWriter=p=>Boolean(p.globalBuild)||/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|clang(?:\+\+)?|emcc|em\+\+)\.exe$/i.test(p.Name||'')||/stage\.mjs|tools[\\/]build-[\w-]+\.mjs|tauri.*(dev|build)/i.test(p.CommandLine||'');
-const usesDirectory=(p,directory)=>[p.ExecutablePath,p.CommandLine].some(value=>String(value||'').replaceAll('\\','/').toLowerCase().includes(directory.replaceAll('\\','/').toLowerCase()+'/'));
+const usesDirectory=(p,directory)=>{const normalize=value=>String(value||'').replaceAll('\\','/').replace(/\/+/g,'/').toLowerCase(),target=normalize(directory);return [p.ExecutablePath,p.CommandLine].some(value=>{const text=normalize(value);return text.endsWith(target)||['/','"',"'",' '].some(suffix=>text.includes(target+suffix));});};
 export function workspaceOutputRoot(root,settings=storageSettings(root)){
   return settings?containedPath(settings.cacheRoot,'workspaces/'+contentHash(Buffer.from(resolve(root).toLowerCase())).slice(0,16)):resolve(root,'.library-data/output');
 }
@@ -67,20 +67,27 @@ export function installFrontendSnapshot({root,snapshot,settings=storageSettings(
 function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers(),refreshProcesses=()=>processes,afterFile=()=>{}}={}){
   const native=kind==='native',markerName=native?'native-artifact.json':'frontend-manifest.json',retirementSchema='pando-'+kind+'-retirement-v1';
   if(!settings)throw Error('Application storage is not activated');
+  const libraryStore=!native&&existsSync(resolve(root,'config/library-data.json'))?{root:librarySharedCheckout(root),blobDirectory:'.pando-store/blobs'}:null;
   const operation=()=>{
-    if(native?processes.some(nativeWriter):processes.length)throw Error('Active consumers block artifact retirement');
+    if(processes.some(nativeWriter))throw Error('Active consumers block artifact retirement');
+    // Frontend views contain thousands of tiny files. References/leases remain
+    // checked per unlink under the owner lock; bound expensive Windows process
+    // inventory to once per second. Native executable inventories stay fresh.
+    let processCheckedAt=0,currentProcesses=processes;
+    const latestProcesses=()=>{if(native||Date.now()-processCheckedAt>=1000){currentProcesses=refreshProcesses();processCheckedAt=Date.now();}return currentProcesses;};
     const base=containedPath(settings.cacheRoot,kind),journal=containedPath(settings.cacheRoot,kind+'-retirement.pending.json');
     for(const name of ['frontend-install.pending.json','native-install.pending.json','generated-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error('Pending installation blocks frontend retirement');
     const referenced=new Set();
-    const leaseReferences=()=>{const refs=new Set();if(native)for(const lease of contentFiles(containedPath(settings.cacheRoot,'native-leases'))){const record=JSON.parse(readFileSync(lease.path));if(!Number.isInteger(record.pid)||record.pid<=0)throw Error('Invalid native lease owner');let alive=true;try{process.kill(record.pid,0);}catch(e){if(e.code==='ESRCH')alive=false;else if(e.code!=='EPERM')throw e;}if(alive)refs.add(containedPath(base,record.directory));}return refs;};
+    const leaseReferences=()=>{const refs=new Set();for(const lease of contentFiles(containedPath(settings.cacheRoot,kind+'-leases'))){const record=JSON.parse(readFileSync(lease.path));if(!Number.isInteger(record.pid)||record.pid<=0)throw Error('Invalid artifact lease owner');let alive=true;try{process.kill(record.pid,0);}catch(e){if(e.code==='ESRCH')alive=false;else if(e.code!=='EPERM')throw e;}if(alive)refs.add(containedPath(base,record.directory));}return refs;};
     for(const ref of leaseReferences())referenced.add(ref);
 
     for(const app of roots){const pointer=resolve(app,'.library-data/'+kind+'-artifacts.json');if(existsSync(pointer))for(const ref of Object.values(JSON.parse(readFileSync(pointer))))referenced.add(containedPath(base,ref.directory));}
     let state=existsSync(journal)?JSON.parse(readFileSync(journal)):null;
     if(state&&(state.schema!==retirementSchema||containedPath(base,state.directory)!==state.directory||referenced.has(state.directory)||!Number.isInteger(state.completedCount)||state.completedCount<0||state.completedCount>state.manifest.files.length))throw Error('Pending retirement scope changed');
+    if(state?.batch){const batch=state.batch,expected=state.manifest.files.slice(state.completedCount,batch.end);if(!Number.isInteger(batch.end)||batch.end<=state.completedCount||batch.end>state.manifest.files.length||!Array.isArray(batch.files)||batch.files.length!==expected.length||batch.files.some((f,i)=>f.path!==expected[i].path||!Number.isSafeInteger(f.physicalBytes)||f.physicalBytes<0||f.physicalBytes>expected[i].bytes))throw Error('Pending artifact retirement batch changed');}
     const entries=[];let deletedBytes=state?.deletedBytes||0,payloadBytesUnlinked=state?.payloadBytesUnlinked||0;
     const directories=existsSync(base)?readdirSync(base).filter(name=>/^[a-f0-9]{64}$/.test(name)).map(name=>containedPath(base,name)):[];
-    if(native)for(const directory of directories)if(processes.some(p=>usesDirectory(p,directory)))referenced.add(directory);
+    for(const directory of directories)if(processes.some(p=>usesDirectory(p,directory)))referenced.add(directory);
     if(state&&!directories.includes(state.directory)){
       if(!apply||!state.markerRetirement||state.completedCount!==state.manifest.files.length)throw Error('Pending frontend directory is missing');
       deletedBytes+=state.markerRetirement.bytes;payloadBytesUnlinked+=state.markerRetirement.bytes;unlinkSync(journal);state=null;
@@ -97,7 +104,7 @@ function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(
       for(const file of contentFiles(directory))if(!expected.has(file.logical))throw Error('Unlisted frontend file must be preserved: '+file.path);
       for(const file of manifest.files.slice(completed)){
         const target=containedPath(directory,file.path);
-        if(!existsSync(target)){if(resumed&&state.pending?.path===file.path)continue;throw Error('Frontend file is missing');}
+        if(!existsSync(target)){if(resumed&&(state.pending?.path===file.path||state.batch?.files.some(f=>f.path===file.path)))continue;throw Error('Frontend file is missing');}
         const s=lstatSync(target);if(!/^[a-f0-9]{64}$/.test(file.sha256)||s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256||((s.mode&0o200)&&(!native||s.nlink!==1)))throw Error('Modified artifact output must be preserved');
       }
       const markerBytes=existsSync(marker)?lstatSync(marker).size:state.markerRetirement.bytes;
@@ -107,16 +114,24 @@ function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(
       atomicStorageJSON(journal,state);
       while(state.completedCount<manifest.files.length){
         if(leaseReferences().has(directory))throw Error('Artifact acquired a live verification lease during retirement');
-        const currentProcesses=refreshProcesses();if(native?currentProcesses.some(p=>nativeWriter(p)||usesDirectory(p,directory)):currentProcesses.length)throw Error('Active consumer appeared during artifact retirement');
+        const observed=latestProcesses(),busy=observed.filter(p=>nativeWriter(p)||usesDirectory(p,directory));if(busy.length)throw Error('Active consumer appeared during artifact retirement: '+busy.map(p=>p.ProcessId+':'+p.Name+':'+p.CommandLine).join('; '));
         for(const app of roots){const pointer=resolve(app,'.library-data/'+kind+'-artifacts.json');if(existsSync(pointer)&&Object.values(JSON.parse(readFileSync(pointer))).some(ref=>containedPath(base,ref.directory)===directory))throw Error('Artifact acquired a worktree reference during retirement');}
         const file=manifest.files[state.completedCount],target=containedPath(directory,file.path);
+        if(!state.batch){
+          const end=Math.min(state.completedCount+64,manifest.files.length);
+          state.batch={end,files:manifest.files.slice(state.completedCount,end).map(f=>{const p=containedPath(directory,f.path);return{path:f.path,physicalBytes:existsSync(p)?(lstatSync(p).nlink===1?f.bytes:0):state.pending?.path===f.path?state.pending.physicalBytes:0};})};
+          atomicStorageJSON(journal,state);
+        }
+        const planned=state.batch.files.find(f=>f.path===file.path);if(!planned)throw Error('Invalid artifact retirement batch');
         if(existsSync(target)){
           const s=lstatSync(target);if(s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256)throw Error('Frontend changed before retirement');
-          state.pending={path:file.path,physicalBytes:s.nlink===1?file.bytes:0};atomicStorageJSON(journal,state);
-          const shared=!native&&existsSync(resolve(root,'config/library-data.json'))?libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes}):null;
+          state.pending={path:file.path,physicalBytes:s.nlink===1?file.bytes:0};
+          const candidate=libraryStore?contentPath(libraryStore,file.sha256):null;
+          const shared=candidate&&existsSync(candidate)&&statSync(candidate,{bigint:true}).ino===statSync(target,{bigint:true}).ino?libraryStore:null;
           removeContentView(shared||{root:settings.cacheRoot,blobDirectory:'blobs'},target,{viewRoot:directory,marker:markerName});
-        }else if(state.pending?.path!==file.path)throw Error('Missing unjournaled frontend file');
-        state.deletedBytes+=file.bytes;state.payloadBytesUnlinked+=state.pending.physicalBytes;state.pending=null;state.completedCount++;atomicStorageJSON(journal,state);afterFile(file);
+        }
+        state.deletedBytes+=file.bytes;state.payloadBytesUnlinked+=state.pending?.physicalBytes??planned.physicalBytes;state.pending=null;state.completedCount++;
+        if(state.completedCount===state.batch.end){state.batch=null;atomicStorageJSON(journal,state);}afterFile(file);
       }
       state.markerRetirement={bytes:markerBytes};atomicStorageJSON(journal,state);
       if(existsSync(marker))unlinkSync(marker);state.deletedBytes+=markerBytes;state.payloadBytesUnlinked+=markerBytes;
@@ -137,8 +152,8 @@ export function finishArtifactMaintenance({root=repository,roots=permanentWorktr
   if(processes.some(nativeWriter))return {status:'deferred',reason:'active build or stage writer'};
   const options={root,roots,settings,processes,refreshProcesses:runningStorageConsumers,apply:true};
   try{
-    const native=retireNativeSnapshots(options),frontend=processes.length?{status:'deferred',reason:'active frontend consumer'}:retireFrontendSnapshots(options),blobs=pruneApplicationBlobs(options);
-    if(!processes.length)unlinkSync(marker);return {status:processes.length?'frontend-deferred':'completed',native,frontend,blobs};
+    const native=retireNativeSnapshots(options),frontend=retireFrontendSnapshots(options),blobs=pruneApplicationBlobs(options);
+    unlinkSync(marker);return {status:'completed',native,frontend,blobs};
   }catch(error){
     const result={status:'blocked',code:'PL-STORAGE-MAINTENANCE',message:error.message};
     atomicStorageJSON(marker,{...result,root,diagnostic:error.stack});process.stderr.write(result.code+': '+result.message+'\n');return result;

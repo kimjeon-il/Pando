@@ -41,6 +41,9 @@ const scopePattern=/^(?:apps\/editor\/(?:src-tauri\/(?:target|gen\/android\/(?:a
 const dependencyPattern=/^(?:(?:apps\/editor\/)?node_modules\/\.pnpm|apps\/web-shell\/node_modules(?:\.before-[^/]+)?)(?:\/|$)/;
 const evidencePattern=/^build-native\/(?:reference-analysis(?:\/|$)|reference-release(?:\/|$)|ui-main-sync-20261021(?:\/|$)|(?:editable-library-|polygon-quality-|resource-update-)[^/]+\.(?:log|png|md|txt)$|macro-source-preview\.png$|library-merge-paths\.txt$)/;
 const compilerPatterns={
+ 'ci-toolchain':/^(?:emsdk-6\.0\.3|llvm-mingw-20261020|micromamba\/root\/pkgs)(?:\/|$)/,
+ 'ci-transfer-cache':/^(?:pandolab-cargo-[a-f0-9]{32}(?:\/|$)|gh-artifact\.\d+\.zip$)/,
+ 'ci-build-input':/^build-native\/reference-analysis\/libtorch(?:\.zip$|\/(?:include(?:\/|$)|lib\/[^/]+\.(?:lib|a|pdb|exp)$))/i,
  'retired-cargo':/^(?:main|gis|objects)-cargo-gnu(?:\/|$)/,
  'pc-cache':/^[^/]+(?:\/|$)/,
  'pc-evidence':/^[^/]+(?:\/|$)/,
@@ -54,6 +57,7 @@ const compilerPatterns={
  'compiler-cache':/^sccache(?:\/|$)/,
  worktree:/^build-native\/(?:emsdk|p1)(?:\/|$)/,
 };
+const ciBuildInput=(root,path,scopes)=>scopes.some(s=>resolve(s.root)===resolve(root)&&s.kind==='ci-build-input')&&compilerPatterns['ci-build-input'].test(relative(root,path).replaceAll('\\','/'));
 function retirementPath(root,path){
  const base=resolve(root),target=resolve(base,path),rel=relative(base,target);
  if(!rel||rel==='..'||rel.startsWith('..'+sep)||isAbsolute(rel))throw Error('Generated target escaped its scope');
@@ -93,7 +97,7 @@ export function previewGeneratedCleanup({roots,requests,consumers=[],protectedPa
  for(const request of requests){
   if(!['delete','relocate'].includes(request.action)||!request.reason?.trim())throw Error('Explicit action and recovery/producer reason required');
   const evidence=evidencePattern.test(relative(request.root,resolve(request.root,request.path)).replaceAll('\\','/'));
-  if(evidence&&request.action!=='relocate'&&!request.duplicateOf)throw Error('Unique retired evidence must be relocated');
+  if(evidence&&request.action!=='relocate'&&!request.duplicateOf&&!ciBuildInput(request.root,resolve(request.root,request.path),compilerScopes))throw Error('Unique retired evidence must be relocated');
   const target=validate(request.root,request.path,roots,protectedPaths,compilerScopes,request.action);if(!existsSync(target))continue;
   const directory=lstatSync(target).isDirectory();let files;
   if(request.duplicateOf&&(request.action!=='delete'||directory||!/^build-native\/reference-analysis\/.*\.f32$/i.test(relative(request.root,target).replaceAll('\\','/'))))throw Error('Duplicate proof only applies to individual retired analysis tensors');
@@ -119,7 +123,7 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
  const normalizedPath=p=>process.platform==='win32'?resolve(p).toLowerCase():resolve(p),selected=new Set(manifest.entries.map(e=>normalizedPath(resolve(e.root,e.path))));
  for(const e of manifest.entries){
   const target=validate(e.root,e.path,roots,protectedPaths,compilerScopes,e.action),relativeTarget=relative(e.root,target).replaceAll('\\','/');
-  if(evidencePattern.test(relativeTarget)&&e.action==='delete'&&!e.duplicateOf)throw Error('Unique retired evidence must be relocated');
+  if(evidencePattern.test(relativeTarget)&&e.action==='delete'&&!e.duplicateOf&&!ciBuildInput(e.root,target,compilerScopes))throw Error('Unique retired evidence must be relocated');
   if(e.duplicateOf){const keeper=containedPath(e.root,e.duplicateOf),rel=relative(e.root,keeper).replaceAll('\\','/');if(e.action!=='delete'||!/^build-native\/reference-analysis\/.*\.f32$/i.test(relativeTarget)||!/^build-native\/reference-analysis\/.*\.f32$/i.test(rel)||selected.has(normalizedPath(keeper)))throw Error('Duplicate source is also selected or outside the tensor scope');}
  }
  const targets=compilerScopes.length?[...new Map(manifest.entries.map(e=>[e.root+'|'+e.scope,e])).values()].map(e=>containedPath(e.root,e.scope)):roots;
@@ -208,7 +212,10 @@ export function applyGeneratedCleanup({roots,manifest,consumers=[],refreshConsum
     if(!(s.mode&0o200)){
      if(s.nlink>1){
       if(!preserveReadonlyShared)throw Error('Readonly shared output requires its content-store owner');
-      (state.preservedShared??=[]).push({path:p,bytes:e.bytes,sha256:e.sha256,links:s.nlink});finish(index,e,false);save();continue;
+      // Retaining an unchanged link has no filesystem side effect. Persist its
+      // cursor with the existing write-ahead batch, not the growing full list
+      // once per retained file. A crash simply rechecks the retained link.
+      (state.preservedShared??=[]).push({path:p,bytes:e.bytes,sha256:e.sha256,links:s.nlink});finish(index,e,false);continue;
      }
      chmodSync(p,0o600);
     }
