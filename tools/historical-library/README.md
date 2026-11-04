@@ -257,3 +257,21 @@ sampling are performed by the native GEOS engine. Node owns orchestration
 and report assembly, and refuses to overwrite an existing output or failure
 diagnostic. A screen-distance comparison does not establish historical ownership
 or approve a boundary.
+
+## Scoped current-border detail measurements
+
+Use `node tools/gis/measure-border-detail.mjs <samples.json> <metrics.json>`
+with explicitly selected chains in documented local metre projections. The input
+schema is `pando-border-detail-samples-v1`; each sample records its window,
+metric CRS, source/version and projected chains. This tool never scans a catalog,
+changes geometry or selects a simplification tolerance. It separates native
+vertex statistics, common physical-window turns, and uniform arc-length
+bidirectional distances. Maximum distances are sampled, not continuous bounds.
+
+The measured LSIB 11.4 comparison is archived under
+`reports/borders/validation/current-border-detail-lsib-2026-11-04` in the data
+repository. Current NE-based chains and exact-LSIB Paektu reuse have different
+detail. The existing 0.0004-degree LSIB rule does not reproduce those NE chains;
+source offsets or density ratios must not become a universal historical
+simplification parameter. Preserve master geometry and review shared-arc display
+derivatives only for named, comparable historical boundaries.
