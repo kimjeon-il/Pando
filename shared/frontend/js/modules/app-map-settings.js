@@ -29,10 +29,6 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
     dependencies = ports;
   }
 
-  async function executePresentation(payload) {
-    return viewPresentation.applyPresentation(payload);
-  }
-
   async function runViewAction(operation) {
     try { await operation(); }
     catch (error) {
@@ -42,7 +38,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   }
 
   async function setLayerVisibility(key, visible) {
-    if (!await executePresentation({ action: 'visibility', key, visible })) return false;
+    if (!await viewPresentation.applyPresentation({ action: 'visibility', key, visible })) return false;
     if (!isDesktopViewMenu() && !SYMBOL_VISIBILITY_KEYS.has(key) && key !== 'labels') {
       if (visible) dependencies.objectModelA.expandedMapDisplayGroups.add(key);
       else dependencies.objectModelA.expandedMapDisplayGroups.delete(key);
@@ -86,7 +82,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   async function updateLayerPresentationStyle(group, patch) {
     const target = LAYER_STYLE_TARGETS[group];
     if (!target) return false;
-    if (!await executePresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
+    if (!await viewPresentation.applyPresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
     syncMapDisplayDisclosures();
     if (target.presentationGroup === 'objects') {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
@@ -100,7 +96,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
 
   async function setTerrainMode(mode) {
     const physicalSettings = dependencies.hydroModel.terrainModeSettings(mode);
-    if (!await executePresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
+    if (!await viewPresentation.applyPresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
     const current=dependencies.preferences.userPreferences,viewer={...current.backgrounds.viewer,terrainVisible:physicalSettings.terrainVisible,terrainStyle:physicalSettings.terrainStyle};
     dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer}}));
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
@@ -112,7 +108,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
   }
 
   async function setDistributionControl(action, value, reason) {
-    if (!await executePresentation({ action, value })) return false;
+    if (!await viewPresentation.applyPresentation({ action, value })) return false;
     if (action === 'distributionActiveLayer') dependencies.distributionPresentation.bumpVisibilityRevision();
     syncDistributionPresentationControls();
     dependencies.domains.renderingDomain.invalidateOverlayStyle(reason);
@@ -534,8 +530,7 @@ export function createMapSettings({ capabilities,viewPresentation } = {}) {
       input.addEventListener('change',()=>runViewAction(async()=>{
         state.backgroundSettings[key]=input.checked;
         const current=dependencies.preferences.userPreferences;
-        const mode='viewer';
-        dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,[mode]:{...current.backgrounds[mode],[key]:input.checked}}}));
+        dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer:{...current.backgrounds.viewer,[key]:input.checked}}}));
         dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
         dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');
         dependencies.domains.renderingDomain.invalidateLabels('background-preference');
