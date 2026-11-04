@@ -19,18 +19,23 @@ export function validatePerformanceManifest(manifest, { rootDir = root, checkPat
   assert.equal(manifest.measurementPolicy?.missingData, 'null, never zero');
   assert.ok(Array.isArray(manifest.scope?.viewport) && manifest.scope.viewport.length === 2);
   assert.equal(manifest.scope?.sovietMonth, '1989-06');
-  assert.ok(Array.isArray(manifest.suites) && manifest.suites.length >= 7);
-  const seen = new Set();
-  for (const suite of manifest.suites) {
-    assert.ok(typeof suite.id === 'string' && !seen.has(suite.id), 'Duplicate or missing suite ID');
-    seen.add(suite.id);
-    assert.ok(Array.isArray(suite.tests) && suite.tests.length);
-    if (checkPaths) for (const file of [suite.workflow, ...suite.tests]) {
-      assert.ok(!file.includes('..') && !file.startsWith('/'), 'Invalid test asset path: ' + file);
-      assert.ok(existsSync(resolve(rootDir, file)), 'Missing active test asset: ' + file);
+  assert.equal(manifest.historicalProvenance, 'unverified', 'Historical provenance must remain unverified until independently established');
+  assert.ok(Array.isArray(manifest.activeSuites) && manifest.activeSuites.length > 0);
+  assert.ok(Array.isArray(manifest.historicalSuites) && manifest.historicalSuites.length > 0);
+  for (const [suites, active] of [[manifest.activeSuites, true], [manifest.historicalSuites, false]]) {
+    const seen = new Set();
+    for (const suite of suites) {
+      assert.ok(typeof suite.id === 'string' && suite.id && !seen.has(suite.id), 'Duplicate or missing suite ID');
+      seen.add(suite.id);
+      assert.ok(Array.isArray(suite.tests) && suite.tests.length);
+      for (const file of [suite.workflow, ...suite.tests]) {
+        assert.ok(typeof file === 'string' && file && !file.includes('..') && !file.startsWith('/') && !file.includes('\\') && !/^[A-Za-z]:/.test(file), 'Invalid test asset path: ' + file);
+        if (active && checkPaths) assert.ok(existsSync(resolve(rootDir, file)), 'Missing active test asset: ' + file);
+      }
     }
   }
-  return { suiteCount: seen.size, measurementBudgetApproved: false, frozenCommit: manifest.source.frozenProductCommit };
+  return { activeSuiteCount: manifest.activeSuites.length, historicalSuiteCount: manifest.historicalSuites.length,
+    historicalProvenance: manifest.historicalProvenance, measurementBudgetApproved: false, frozenCommit: manifest.source.frozenProductCommit };
 }
 
 export function assemblePerformanceEvidence({ manifest, packed = null, longCycle = null, sourceCommit = null }) {
@@ -43,6 +48,7 @@ export function assemblePerformanceEvidence({ manifest, packed = null, longCycle
     schema: 'pando-performance-evidence-v1',
     sourceCommit,
     referenceCommit: manifest.source.frozenProductCommit,
+    referenceProvenance: manifest.historicalProvenance,
     scenario: {
       sovietMonth: manifest.scope.sovietMonth, modernMonth: manifest.scope.modernMonth,
       viewport: manifest.scope.viewport, platform: manifest.scope.platform,
