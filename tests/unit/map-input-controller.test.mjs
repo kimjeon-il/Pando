@@ -84,7 +84,7 @@ function createPresentationFixture() {
     navigator: {},
     getRevision: () => 1,
     mapInteractionGate: {
-      setForcedPan: noop, setNavigationEnabled: noop, setDraftInputActive: noop, isPandoTarget: () => false,
+      setForcedPan: noop, setNavigationEnabled: noop, isPandoTarget: () => false,
     },
     ports: {
       platform: {

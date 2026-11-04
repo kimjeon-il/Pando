@@ -80,7 +80,7 @@ const MAP_READ_PORT_SPECS=Object.freeze({
   renderQuality:Object.freeze([["prepareCanonicalMesh","renderQuality","prepareCanonicalMesh"],["applyAdaptiveRenderQuality","renderQuality","applyAdaptiveRenderQuality"],["cancelGpuMeshRebuild","renderQuality","cancelGpuMeshRebuild"],["queueAdaptiveRenderQualityRefresh","renderQuality","queueAdaptiveRenderQualityRefresh"],["renderQualityController","renderQuality","renderQualityController"],["scheduleGpuMeshRebuild","renderQuality","scheduleGpuMeshRebuild"]]),
   renderScene:Object.freeze([["currentRenderQuality","renderQuality","currentRenderQuality"],["featureFromGeometry","gpuScene","featureFromGeometry"],["selectionGeometryRevision","gpuScene","selectionGeometryRevision"],["syncGpuInteractionState","gpuScene","syncGpuInteractionState"]]),
   spatialQuery:Object.freeze([["geometryBounds","spatialIndex","geometryBounds"],["mapObjectGeometryRevisions","spatialIndex","mapObjectGeometryRevisions"],["rebuildSpatialIndex","spatialIndex","rebuildSpatialIndex"],["spatialFeatures","spatialIndex","spatialFeatures"],["viewportCullingMetrics","spatialIndex","viewportCullingMetrics"],["visibleMapObjectCandidates","spatialIndex","visibleMapObjectCandidates"]]),
-  surfaces:Object.freeze([["isGenericFeatureDraftTool","workspaceSurfaces","isGenericFeatureDraftTool"],["isMobile","workspaceSurfaces","isMobile"],["isPolygonDraftTool","workspaceSurfaces","isPolygonDraftTool"],["layoutMode","workspaceSurfaces","layoutMode"],["uid","workspaceSurfaces","uid"]]),
+  surfaces:Object.freeze([["isMobile","workspaceSurfaces","isMobile"],["layoutMode","workspaceSurfaces","layoutMode"],["uid","workspaceSurfaces","uid"]]),
 });
 
 export function createMapReadPorts(owners){return createReadPorts(owners,MAP_READ_PORT_SPECS);}
