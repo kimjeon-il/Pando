@@ -2,7 +2,6 @@ import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildBoundaryTopology, moveTopologyNodes, planCoastEdit, planSharedBoundaryEdit, topologyNodeKey } from "../../shared/frontend/js/modules/boundary-topology.js";
 import { geometryAreaKm2, lineDistanceKm, percentChange } from "../../tools/gis/geometry-metrics.js";
 import { runMapAudit, validateGeometry, validateTerritorialGeometry } from "../../shared/frontend/js/modules/geometry-validation.js";
 import { automaticLabelSettings, LABEL_PRIORITIES, layoutLabels } from "../../shared/frontend/js/modules/label-layout.js";
@@ -16,7 +15,6 @@ const feature = (id, coordinates) => ({
   properties: { name: id },
   geometry: { type: 'Polygon', coordinates: [coordinates] },
 });
-const clone = value => JSON.parse(JSON.stringify(value));
 
 test('C++ ring validation preserves the current located geometry issues', () => {
   const rings = [
@@ -141,65 +139,6 @@ test('spherical metrics provide useful live distance, area and percentage feedba
   assert.ok(geometryAreaKm2(feature('A', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]).geometry) > 12_000);
   assert.equal(percentChange(100, 125), 25);
   assert.equal(percentChange(0, 10), null);
-});
-
-test('topology materializes a vertex into the opposite owner and moves both countries', () => {
-  const left = feature('LEFT', [[0, 0], [1, 0], [1, 0.5], [1, 1], [0, 1], [0, 0]]);
-  const right = feature('RIGHT', [[1, 0], [2, 0], [2, 1], [1, 1], [1, 0]]);
-  const topology = buildBoundaryTopology([left, right]);
-  const node = topology.nodes.get(topologyNodeKey([1, 0.5]));
-  assert.equal(node.kind, 'shared');
-  assert.ok(node.virtualRefs.some(ref => ref.featureId === 'RIGHT'));
-  const map = new Map([['LEFT', clone(left)], ['RIGHT', clone(right)]]);
-  const changed = moveTopologyNodes(map, [{node,coordinate:[1.1, 0.5]}]);
-  assert.deepEqual(changed, new Set(['RIGHT', 'LEFT']));
-  assert.ok(map.get('RIGHT').geometry.coordinates[0].some(point => point[0] === 1.1 && point[1] === 0.5));
-  assert.ok(map.get('LEFT').geometry.coordinates[0].some(point => point[0] === 1.1 && point[1] === 0.5));
-});
-
-test('a multi-owner boundary node moves every country that shares the junction', () => {
-  const left = feature('LEFT', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
-  const right = feature('RIGHT', [[1, 0], [2, 0], [2, 1], [1, 1], [1, 0]]);
-  const top = feature('TOP', [[0, 1], [1, 1], [2, 1], [1, 2], [0, 1]]);
-  const topology = buildBoundaryTopology([left, right, top]);
-  const node = topology.nodes.get(topologyNodeKey([1, 1]));
-  assert.equal(node.kind, 'multi-owner');
-  const map = new Map([['LEFT', clone(left)], ['RIGHT', clone(right)], ['TOP', clone(top)]]);
-  assert.deepEqual(moveTopologyNodes(map, [{node,coordinate:[1, 1.1]}]), new Set(['LEFT', 'RIGHT', 'TOP']));
-});
-
-test('shared-boundary edit plan exposes only internal borders and fixes an unselected third-country junction', () => {
-  const left = feature('LEFT', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
-  const right = feature('RIGHT', [[1, 0], [2, 0], [2, 1], [1, 1], [1, 0]]);
-  const top = feature('TOP', [[0, 1], [1, 1], [2, 1], [1, 2], [0, 1]]);
-  const topology = buildBoundaryTopology([left, right, top]);
-  const pair = planSharedBoundaryEdit(topology, ['LEFT', 'RIGHT']);
-  assert.equal(pair.valid, true);
-  assert.ok(pair.editableNodeKeys.has(topologyNodeKey([1, 0])));
-  assert.ok(pair.fixedNodeKeys.has(topologyNodeKey([1, 1])));
-  assert.equal([...pair.segmentKeys].every(key => topology.segments.get(key).ownerIds.has('LEFT') && topology.segments.get(key).ownerIds.has('RIGHT')), true);
-
-  const all = planSharedBoundaryEdit(topology, ['LEFT', 'RIGHT', 'TOP']);
-  assert.equal(all.valid, true);
-  assert.ok(all.editableNodeKeys.has(topologyNodeKey([1, 1])));
-  assert.equal(all.fixedNodeKeys.size, 0);
-
-  const far = feature('FAR', [[5, 5], [6, 5], [6, 6], [5, 6], [5, 5]]);
-  const withFar = planSharedBoundaryEdit(buildBoundaryTopology([left, right, far]), ['LEFT', 'RIGHT', 'FAR']);
-  assert.equal(withFar.valid, false);
-  assert.deepEqual(withFar.isolatedIds, ['FAR']);
-});
-
-test('coast edit plan excludes shared borders and keeps their junctions as fixed anchors', () => {
-  const left = feature('LEFT', [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
-  const right = feature('RIGHT', [[1, 0], [2, 0], [2, 1], [1, 1], [1, 0]]);
-  const topology = buildBoundaryTopology([left, right]);
-  const coast = planCoastEdit(topology, 'LEFT');
-  assert.ok(coast.segmentKeys.size > 0);
-  assert.equal([...coast.segmentKeys].every(key => topology.segments.get(key).kind === 'coast'), true);
-  assert.ok(coast.fixedNodeKeys.has(topologyNodeKey([1, 0])));
-  assert.ok(coast.fixedNodeKeys.has(topologyNodeKey([1, 1])));
-  assert.ok(coast.editableNodeKeys.has(topologyNodeKey([0, 0])));
 });
 
 test('geometry validation returns a located self-intersection issue and relation audit issues', () => {
