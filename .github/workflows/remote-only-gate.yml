@@ -25,3 +25,73 @@ jobs:
           node-version-file: .nvmrc
       - name: Verify browser-only developer setup and remote CI routing
         run: node --test tests/unit/remote-only-contract.test.mjs
+
+  wasm-compile-and-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      EMCC_CORES: "1"
+      BINARYEN_CORES: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.6'
+      - name: Install CI-only native build prerequisites
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Compile actual shared C++ WASM in GitHub Actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          build-native/emsdk/emsdk install 6.0.3
+          build-native/emsdk/emsdk activate 6.0.3
+          source build-native/emsdk/emsdk_env.sh
+          emcmake cmake --preset pando-wasm
+          cmake --build --preset pando-wasm
+          test -s build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
+          test -s build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+      - name: Upload compiled WASM evidence without committing generated output
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-wasm-${{ github.sha }}
+          path: |
+            build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
+            build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+          if-no-files-found: error
+          retention-days: 7
+
+  ai-node-analysis-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare only locked Node runtime (no local SDK)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Run real map-analysis, reference geometry and training-management tests
+        run: |
+          node --test \
+            tests/unit/map-analysis-core.test.mjs \
+            tests/unit/reference-training-order.test.mjs \
+            tests/unit/reference-training-tiles.test.mjs \
+            tests/unit/reference-training-sequence.test.mjs \
+            tests/unit/reference-training-lineage.test.mjs \
+            tests/unit/reference-onnx-export-refusal.test.mjs
+      - name: Explain untested native/GPU boundary
+        run: echo "Node model-pipeline smoke is not LibTorch training or CUDA inference acceptance."
