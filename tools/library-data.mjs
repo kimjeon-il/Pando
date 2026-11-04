@@ -8,6 +8,8 @@ import { decodeLibraryArchiveBytes } from './library-archive.mjs';
 import { REPORT_SUBJECTS, organizedReportPath, reportDocumentDetails, reportSubjectReadmes, rewriteReportArtifact } from './library-report-layout.mjs';
 import { atomicStorageJSON, containedPath, contentFiles, contentHash, contentPath, linkContent, makePrivate, publishContent, recoverContentPermissions, removeContentLink, replaceLibraryFile, shareContentFile } from './library-content.mjs';
 import {compactDuplicatePacks} from './library-git.mjs';
+import {assertHistoricalStorageChanges} from './gis/historical-display-storage.mjs';
+import {readBuiltinCountryStoredBytes} from './builtin-country-bytes.mjs';
 import {runtimeArchiveIndex} from './library-runtime-index.mjs';
 
 export const defaultRoot = fileURLToPath(new URL('../', import.meta.url));
@@ -1486,6 +1488,15 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, 
     const previousIndex=previousLibrary.indexHash?JSON.parse(git(data.checkout,['show',`${runtimeRevision}:objects/${previousLibrary.indexHash}.json`],{allowFetch:true})):{entities:[]};
     if(prefixes)assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex);
     nativeStore={indexBytes,libraryIndex,previousLibrary,previousIndex};
+  }
+  const reviewScopes=['assets/data/territorial-entities','assets/data/builtin-world'];
+  if(prefixes.some(p=>reviewScopes.some(s=>p===s||p.startsWith(s+'/')||s.startsWith(p+'/')))){
+    const revision=libraryConfig(root).revision,archived=JSON.parse(git(data.checkout,['show',revision+':archive/index.json'],{allowFetch:true})),oldBytes=p=>decodeArchiveEntry(data.checkout,archived.files[p],revision,{fetch:true}),newBytes=p=>readFileSync(resolve(data.materialized,p));
+    const sourceBase='assets/data/territorial-entities/generated/v2/',countryBase='assets/data/builtin-world/generated/v1/';
+    const sourceIndex=JSON.parse(newBytes(sourceBase+'index.json')),previousSourceIndex=JSON.parse(oldBytes(sourceBase+'index.json')),builtinIndex=JSON.parse(newBytes(countryBase+'index.json')),previousBuiltinIndex=JSON.parse(oldBytes(countryBase+'index.json'));
+    const source=(entry,read)=>{const bytes=read(sourceBase+entry.file);if(contentHash(bytes)!==entry.sha256)throw Error('Historical source chunk hash mismatch: '+entry.entityId);const entity=JSON.parse(gunzipSync(bytes));if(entity.entityId!==entry.entityId)throw Error('Historical source identity mismatch');return entity;};
+    const country=(entry,read)=>{const value=JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>read(countryBase+file))));if(value.entityId!==entry.entityId)throw Error('Historical country identity mismatch');return value;};
+    assertHistoricalStorageChanges({prefixes,sourceIndex,previousSourceIndex,builtinIndex,previousBuiltinIndex,readSource:e=>source(e,newBytes),readPreviousSource:e=>source(e,oldBytes),readCountry:e=>country(e,newBytes),readPreviousCountry:e=>country(e,oldBytes),sourceFileChanged:e=>{const p='assets/data/territorial-entities/source/countries/'+e.entityId.replace(':','-')+'.json';return prefixes.some(prefix=>p===prefix||p.startsWith(prefix+'/'))&&contentHash(newBytes(p))!==archived.files[p]?.sha256;},readRawSource:e=>JSON.parse(newBytes('assets/data/territorial-entities/source/countries/'+e.entityId.replace(':','-')+'.json')),countryFileChanged:e=>(e.parts||[e]).some(spec=>{const p=countryBase+spec.file;return prefixes.some(prefix=>p===prefix||p.startsWith(prefix+'/'))&&contentHash(newBytes(p))!==archived.files[p]?.sha256;})});
   }
   const indexPath = resolve(data.checkout, 'archive/index.json');
   // A runtime pin owns all unselected data inputs, independently of the

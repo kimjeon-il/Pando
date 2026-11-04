@@ -65,7 +65,10 @@ test('partial geometry publication never reads or rewrites unrelated country pay
  for(const entry of index.entities)assert.deepEqual(files.get(entry.file)||before.get(entry.file),expected.get(entry.file));
  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'builtin-country-delta-'));
  t.after(()=>fs.rmSync(folder,{recursive:true,force:true}));
- publication.writeBuiltinWorldPublication(before,folder);
+ assert.throws(()=>publication.writeBuiltinWorldPublication(before,folder),/Historical display review required/);
+ assert.equal(fs.existsSync(path.join(folder,'index.json')),false,'review failure precedes every output write');
+ // Seed an immutable already-published synthetic baseline; legacy read is allowed.
+ for(const [file,bytes]of before){const target=path.join(folder,file);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);}
  const target=path.join(folder,untouched.file),stamp=new Date('2000-01-01T00:00:00Z');
  fs.utimesSync(target,stamp,stamp);
  const mtime=fs.statSync(target).mtimeMs;

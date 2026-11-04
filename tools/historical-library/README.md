@@ -283,3 +283,55 @@ They do not generate or modify geometry. Full current-date audit evidence and
 reproduction scripts are archived at
 `reports/borders/validation/current-lsib-coordinate-audit-2026-11-04`.
 This global read is an explicitly scoped audit, not an automatic catalog check.
+
+## Historical display detail inventory and write gate
+
+Run `node tools/gis/historical-detail-inventory.mjs OUTPUT.json` for the complete
+source/version to compiled-interval metadata inventory. It includes past dates,
+merged contributors and inactive candidates; it does not regenerate geometry or
+validate the world. Classification names describe source provenance, rather than
+automatically approving visual detail. Keep unresolved rows unresolved.
+
+For a scoped historical geometry edit, prepare a version-specific
+`historicalProvenance.displayDetailReview` receipt and run:
+
+```sh
+node tools/gis/historical-display-review.mjs --before BEFORE.json --candidate CANDIDATE.json
+```
+
+The same validator runs before `updateTerritorialSource`, recipe application,
+compiled country publication and source/compiled storage. Unchanged geometry versions, including name/date-only metadata changes, retain
+their previous detail admissibility; existing period/identity checks still apply. New
+or changed dated geometry needs a passed receipt bound to entity, version, dates
+and actual display geometry SHA256. Reusing the same geometry in another period
+needs explicit coverage. Compiled derivatives have their own exact geometry and
+interval receipts in the source review's `compiledDerivatives` array (forwarded
+by the existing compiler with version provenance); a source receipt
+does not authorize a different clipped derivative. Editing invalidates inherited
+approval. Source reads/normalization and unrelated report publication stay open.
+
+The receipt records preserved master/source hashes and references, comparison
+arc hash, geographic extent, projection execution evidence and 1:10M scale,
+method/parameters/reason, counterpart versions and fixed anchors, visual evidence,
+and topology/date evidence. Each evidence reference has a content SHA256.
+Methods distinguish measured detail matching, a reviewed display derivative,
+unchanged modern-source reuse and a straight partition. They do not imply a
+universal tolerance. Receipts document reviewed evidence; the schema validator
+does not independently establish historical correctness or re-run GIS checks.
+The focused synthetic fixtures in `historical-display-review.test.mjs` show the
+contract. Original master checks, including the approved USSR ZIP, remain intact.
+
+Whole territorial storage and builtin-only publication use the same preflight;
+a changed raw source cannot hide behind an unchanged paired chunk. Only changed
+inputs are opened for geometry review. Existing unreviewed shapes remain visible
+in the inventory and are not silently declared reviewed by the unchanged-input
+storage exception. Monaco remains excluded from this task's detail matching.
+
+Recipe candidates may carry `recipe.displayDetailReview`; it is attached only to
+the candidate version and checked before a write, preserving the source master.
+
+Review `geometrySha256` uses the canonical prepared-polygon payload
+`JSON.stringify([geometry.type, geometry.coordinates])`. Object key order and
+regenerated IDs are not new border geometry. Compiled derivative receipts bind
+the project entity ID and exact binding period, even when the source identity
+differs (for example source state:CHN versus compiled CHN).

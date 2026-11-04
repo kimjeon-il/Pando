@@ -24,3 +24,5 @@ test('the file workflow requires metre CRS metadata and keeps input chains immut
  assert.equal(result.schema,'pando-border-detail-metrics-v1');assert.equal(result.samples[0].comparison50m.pooled.median,10);assert.deepEqual(input,before);
  input.samples[0].metricCrs='EPSG:4326';assert.throws(()=>measureSamples(input),/metre projection/);
 });
+
+test('closed outlines have no chord ratio and short lines have no 1km turn statistic',()=>{const closed=detailMetrics([[0,0],[1000,0],[1000,1000],[0,0]]);assert.equal(closed.lengthToChordRatio,null);assert.equal(closed.lengthToChordApplicability,'not-applicable-closed-chain');assert.equal(detailMetrics([[0,0],[10,0]]).turnDegrees,null);});

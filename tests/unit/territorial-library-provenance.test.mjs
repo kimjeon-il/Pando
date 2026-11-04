@@ -46,3 +46,5 @@ test('period edits and new versions are provisional while unchanged versions sta
       && row.historicalProvenance.editMethod==='user-library-editor'));
   assert.equal(edited.geometryVersions.find(row=>row.versionId==='v3').historicalProvenance.evidenceStatus,'verified');
 });
+
+test('editing invalidates an inherited detail approval without discarding its evidence',()=>{const previous=entity();previous.geometryVersions[0].historicalProvenance.displayDetailReview={status:'passed',geometrySha256:'original',master:{reference:'preserved-master'}};const draft=structuredClone(previous);draft.geometryVersions[0].geometry=polygon(2);const result=markEditedLibrarySource(draft,previous);assert.equal(result.geometryVersions[0].historicalProvenance.displayDetailReview.status,'stale');assert.equal(result.geometryVersions[0].historicalProvenance.displayDetailReview.geometrySha256,'original');assert.deepEqual(result.geometryVersions[0].historicalProvenance.displayDetailReview.master,{reference:'preserved-master'});assert.equal(previous.geometryVersions[0].historicalProvenance.displayDetailReview.status,'passed');});

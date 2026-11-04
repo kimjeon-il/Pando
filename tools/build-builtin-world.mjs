@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {assertHistoricalCompiledChanges} from './gis/historical-display-review.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -155,6 +156,11 @@ export function writeBuiltinWorldPublication(files,directory=output,{check=false
   changed.push({target,bytes});
  }
  if(check||!changed.length)return;
+ if(!files.has('index.json')&&[...files.keys()].some(file=>file.startsWith('countries/')||file.startsWith('country-parts/')))throw Error('Historical country publication requires its paired index');
+ if(files.has('index.json')){
+  const next=JSON.parse(files.get('index.json')),priorPath=path.join(directory,'index.json'),prior=fs.existsSync(priorPath)?JSON.parse(fs.readFileSync(priorPath)):{entities:[]},old=new Map(prior.entities.map(e=>[e.entityId,e]));
+  for(const entry of next.entities){const before=old.get(entry.entityId);if(before?.sha256===entry.sha256)continue;const read=entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>files.get(file)||fs.readFileSync(path.join(directory,file))))),readOld=entry=>JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(path.join(directory,file)))));assertHistoricalCompiledChanges(read(entry),before?readOld(before):null);}
+ }
  return withLibraryOutputs({paths:changed.map(({target})=>target)},()=>{
   for(const {target,bytes} of changed){fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,bytes);}
  });

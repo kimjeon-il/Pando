@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {assertHistoricalDisplayChanges} from './gis/historical-display-review.mjs';
 import {writeLibraryOutput} from './library-data.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -60,6 +61,7 @@ export function updateTerritorialSource(entityId,update,root=territorialSourceRo
   if(!byId.has(entityId))throw new Error(`Missing source entity: ${entityId}`);
   const replacement=update(structuredClone(byId.get(entityId)));
   if(replacement.entityId!==entityId)throw new Error('Source update changed identity');
+  assertHistoricalDisplayChanges(replacement,byId.get(entityId));
   const validated=normalizeTerritorialLibraryEntity(replacement);byId.set(entityId,validated);
   validateMembership(readTerritorialLineages(root),byId);
   writeLibraryOutput(path.join(root,'countries',entityFileName(entityId)),`${JSON.stringify(replacement,null,2)}\n`);

@@ -1,5 +1,5 @@
 // Extracted calculation/data contract; not part of the shipped Viewer runtime.
-const same=(left,right)=>JSON.stringify(left)===JSON.stringify(right);
+const same=(left,right)=>left.type===right.type&&JSON.stringify(left.coordinates)===JSON.stringify(right.coordinates);
 
 function retainOriginalGeometryHash(record){
   if(!record||!Object.hasOwn(record,'geometrySha256'))return;
@@ -12,7 +12,7 @@ export function markEditedLibrarySource(raw,previous,editMethod='user-library-ed
   if(!raw||!Array.isArray(raw.geometryVersions)||!editMethod)
     throw new TypeError('A library entity with geometry versions and edit method is required');
   const priorVersions=new Map((previous?.geometryVersions||[]).map(row=>[row.versionId,row]));
-  const draft=structuredClone(raw);
+  const draft=globalThis.structuredClone(raw);
   let changed=false;
   draft.geometryVersions=draft.geometryVersions.map(version=>{
     const before=priorVersions.get(version.versionId);
@@ -21,7 +21,8 @@ export function markEditedLibrarySource(raw,previous,editMethod='user-library-ed
     changed=true;
     return {...version,historicalProvenance:{...version.historicalProvenance,
       evidenceStatus:'provisional',verifiedHistoricalGeometry:false,
-      independentPeriodScreenDeltaChecked:false,editMethod}};
+      independentPeriodScreenDeltaChecked:false,editMethod,
+      ...(version.historicalProvenance?.displayDetailReview?{displayDetailReview:{...version.historicalProvenance.displayDetailReview,status:'stale'}}:{})}};
   });
   if(changed){
     retainOriginalGeometryHash(draft.metadata);

@@ -21,3 +21,8 @@ test('ordered retained anchors survive inserted target points without becoming a
  assert.equal(r.chains.some(c=>c.kind==='consecutive-original-chain'),false);
  assert.equal(r.chains[0].kind,'retained-original-subsequence');assert.equal(r.chains[0].retainedOriginalVertices,3);assert.equal(r.chains[0].vertices,5);assert.equal(r.chains[0].insertedOrDifferentVertices,2);
 });
+
+test('ring rotation and reversal cannot split a three-vertex original chain at the closing seam',()=>{
+ const open=[[0,0],[1,0],[2,0],[4,3],[0,3]];let expected;
+ for(let n=0;n<open.length;n++)for(const reverse of[false,true]){let p=[...open.slice(n),...open.slice(0,n)];if(reverse)p.reverse();const r=audit({type:'Polygon',coordinates:[[...p,p[0]]]});assert.equal(r.chains.length,1);assert.equal(r.chains[0].vertices,3);expected??=r.chains[0].coordinateHash;assert.equal(r.chains[0].coordinateHash,expected);}
+});

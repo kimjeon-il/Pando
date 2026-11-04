@@ -39,6 +39,15 @@
         "data": "30ce140bdd55b45cbe40d75346719a4b140e1342",
         "scope": "Restore only direct Paektu and Korean land-MDL LSIB replacements; keep source/version identities, names, dates, islands and other countries unchanged.",
         "verification": "Scoped runtime country hashes, shared baseline chains, exact inverse patch, GEOS validity, zero union change/overlap, and Monaco/France byte identity."
+      },
+      {
+        "entities": [
+          "CHN"
+        ],
+        "month": "2026-10",
+        "data": "a548d5fa6612a97f998b7bdb326a27eb8b8d9717",
+        "scope": "Preserve canonical publisher follow-up. Only GeoJSON key order and corresponding geometry ID changed; canonical type/coordinate payload is identical to 30ce140b. Native source, source index and all other compiled country descriptors are unchanged.",
+        "verification": "historical-detail-followup.json; exact canonical prepared digests, dates, source receipts and Monaco/France prepared identity verified."
       }
     ]
   },
@@ -427,7 +436,7 @@
           "parentId": "",
           "rootId": "CHN",
           "geometryRef": {
-            "id": "historical-world:aa1dbb60074551d1b081bf4bbb15bcc42f7a71fdb85bd7b01201423d633ac209",
+            "id": "historical-world:ee33ce752445acf29534dded47e3c93ecac1f8d226d71f6f651ca9d87098c004",
             "version": 1
           }
         },

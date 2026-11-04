@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { writeLibraryOutput } from './library-data.mjs';
+import {assertHistoricalDisplayChanges} from './gis/historical-display-review.mjs';
 // Individual source object boundary for the native historical geometry recipe engine.
 // All coordinate construction, topology, projection and winding live in C++.
 import assert from 'node:assert/strict';
@@ -40,6 +41,7 @@ export function replaceRecipeGeometry(entity, recipe, geometry) {
     geometryVersions: entity.geometryVersions.map((version) => version.versionId !== recipe.id ? version : {
       ...version,
       geometry,
+      ...(recipe.displayDetailReview?{historicalProvenance:{...version.historicalProvenance,displayDetailReview:recipe.displayDetailReview}}:{}),
       ...(provenance ? { sourceId: provenance.id, notes: provenance.notes,
         boundarySupplement: recipe.boundarySupplement } : {}),
     }),
@@ -106,6 +108,7 @@ export function run(argv = process.argv.slice(2)) {
     const comparable = replaceRecipeGeometry(candidate, recipe, stored);
     assert.deepEqual(comparable, original, `Historical library metadata is stale: ${recipe.output}`);
   } else {
+    assertHistoricalDisplayChanges(candidate,original);
     writeLibraryOutput(outputPath, `${JSON.stringify(candidate, null, 2)}\n`);
   }
   process.stdout.write(JSON.stringify({ geometryVersion: recipe.id,

@@ -80,3 +80,5 @@ test('native recipe launcher preserves identity and curated fields while recordi
   version.geometry = before.geometryVersions.find((item) => item.versionId === recipe.id).geometry;
   assert.deepEqual(result, before, 'all curated identities, metadata, other versions and relations must survive');
 });
+
+test('a recipe can attach its reviewed derivative receipt without altering the preserved source master',()=>{const geometry={type:'MultiPolygon',coordinates:[[[[0,0],[0,1],[1,0],[0,0]]]]},review={schemaVersion:1,status:'passed',geometrySha256:'fixture-output-digest'},withReceipt={...recipe,displayDetailReview:review},before=structuredClone(lineage),candidate=replaceRecipeGeometry(lineage,withReceipt,geometry);assert.deepEqual(candidate.geometryVersions.find(v=>v.versionId===recipe.id).historicalProvenance.displayDetailReview,review);assert.deepEqual(lineage,before);assert.deepEqual(candidate.sourceInfo,lineage.sourceInfo);});
