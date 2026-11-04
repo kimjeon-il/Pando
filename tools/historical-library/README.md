@@ -275,3 +275,11 @@ detail. The existing 0.0004-degree LSIB rule does not reproduce those NE chains;
 source offsets or density ratios must not become a universal historical
 simplification parameter. Preserve master geometry and review shared-arc display
 derivatives only for named, comparable historical boundaries.
+
+For the explicitly requested current-coordinate audit, the pure helpers in
+`tools/gis/lsib-coordinate-audit.mjs` distinguish numeric consecutive LSIB chains,
+retained subsequences, isolated contacts and separate six-decimal correspondence.
+They do not generate or modify geometry. Full current-date audit evidence and
+reproduction scripts are archived at
+`reports/borders/validation/current-lsib-coordinate-audit-2026-11-04`.
+This global read is an explicitly scoped audit, not an automatic catalog check.

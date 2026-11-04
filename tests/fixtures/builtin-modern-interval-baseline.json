@@ -28,6 +28,17 @@
         "verification": "Focused source hashes and actual selected runtime are checked by sub500-territorial-retirement.test.mjs.",
         "data": "deb5576939de1a7e9d70c00fd68b98c1e2e2e883",
         "generatedData": "5500b6a035d29844c7de93a709db3557bfc9c12c"
+      },
+      {
+        "entities": [
+          "KOR",
+          "PRK",
+          "CHN"
+        ],
+        "month": "2026-10",
+        "data": "30ce140bdd55b45cbe40d75346719a4b140e1342",
+        "scope": "Restore only direct Paektu and Korean land-MDL LSIB replacements; keep source/version identities, names, dates, islands and other countries unchanged.",
+        "verification": "Scoped runtime country hashes, shared baseline chains, exact inverse patch, GEOS validity, zero union change/overlap, and Monaco/France byte identity."
       }
     ]
   },
@@ -416,7 +427,7 @@
           "parentId": "",
           "rootId": "CHN",
           "geometryRef": {
-            "id": "historical-world:e1058f7e39d9f713a1df76474c3f8d5e39ff2aea3e364109710091111708fffe",
+            "id": "historical-world:aa1dbb60074551d1b081bf4bbb15bcc42f7a71fdb85bd7b01201423d633ac209",
             "version": 1
           }
         },
@@ -1648,7 +1659,7 @@
           "parentId": "",
           "rootId": "KOR",
           "geometryRef": {
-            "id": "historical-world:ebe9dc7e91b0f4c5f7136601915a0a14c14e9cd57a3e87b8e8be03285c3099e3",
+            "id": "historical-world:1fa7a8e687064ab79727c8d9b8e4dee1ec3602fb219aeff9ccbfead0d539a500",
             "version": 1
           }
         },
@@ -2198,7 +2209,7 @@
           "parentId": "",
           "rootId": "PRK",
           "geometryRef": {
-            "id": "historical-world:ac466bbdc2db1b1e4a7977cc2db4276ad13b7d9de5f1edd0d467eee8064b5615",
+            "id": "historical-world:4a5c2b88280c5087c4ccf7892454faf548bee046206ba78a2025edcea31520f0",
             "version": 1
           }
         },

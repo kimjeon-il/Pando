@@ -45,7 +45,7 @@ const addedVersions=[
   ['state:IDN','state:IDN:1963-1975-before-east-timor-r1','1963-05-01','1975-12-06','natural-earth-5.1.1-post-west-new-guinea-temporal-proxy'],
   ['state:KOR','state:KOR:38th-parallel-1948','1948-08-15','1953-07-26','korean-38th-parallel'],
   ['state:PRK','state:PRK:38th-parallel-1948','1948-09-09','1953-07-26','korean-38th-parallel'],
-  ['state:PRK','state:PRK:armistice-1953','1953-07-27','1964-03-19','dos-lsib-11.4'],
+  ['state:PRK','state:PRK:armistice-1953','1953-07-27','1964-03-19','natural-earth-5.1.1-armistice-display-baseline'],
   ['state:RUS','state:RUS:post-soviet-existing-coordinates','1991-12-25','2014-03-17','natural-earth-5.1.1-late-soviet-adjustment'],
   ['state:KAZ','state:KAZ:post-soviet-existing-coordinates','1991-12-16','1995-09-24','natural-earth-5.1.1-late-soviet-adjustment'],
   ['state:yugoslavia','state:serbia-montenegro:2003-2006-r1','2003-02-04','2006-06-02','natural-earth-5.1.1-historical-successor-union'],
@@ -144,7 +144,9 @@ test('all 258 Natural Earth originals retain frozen coordinates, identity and pr
       assert.equal(current.versionId,modernUpdates.get(feature.id));
       assert.notEqual(sha(current.geometry),baseline.countryGeometry[feature.id],feature.id);
       if(['KOR','PRK','CHN'].includes(feature.id)){
-        assert.ok(current.historicalProvenance.sourceIds.includes('dos-lsib-11.4'));
+        assert.equal(current.historicalProvenance.sourceIds.includes('dos-lsib-11.4'),false);
+        assert.ok(current.historicalProvenance.retiredModernSourceIds.includes('dos-lsib-11.4'));
+        assert.equal(current.historicalProvenance.displayBaselineSha256,'985c34f55ace12be51580f420c6b691d03f48bf73c84a88aed65b7ae6cfc5d01');
         assert.equal(sha(current.geometry),e.sourceInfo.geometrySha256);
       }else if(feature.id==='KAZ'){
         assert.equal(current.historicalProvenance.rusKazTreaty2006ABC,undefined);
