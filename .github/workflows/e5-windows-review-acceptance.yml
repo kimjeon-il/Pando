@@ -8,7 +8,7 @@ on:
       - apps/editor/stage.mjs
       - apps/editor/native-producer.mjs
       - apps/editor/native-contract.mjs
-      - apps/editor/tests/native-platform-adapter.test.mjs
+      - apps/editor/tests/stage.test.mjs
       - apps/editor/review-probe.js
       - apps/editor/verify-review-windows.ps1
       - apps/editor/src-tauri/**
