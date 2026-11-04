@@ -16,9 +16,10 @@ if(!['unit','browser'].includes(kind)){
     // Keep Windows command lines well below the 32 KiB process limit.
     // Browser specs remain one Playwright invocation to preserve fixtures.
     const groupSize=kind==='unit'?120:files.length||1;
-    // These tests hydrate the same worktree report view. Keep them outside
-    // parallel batches so neither can collide with another library reader.
-    const exclusive=new Set(['tests/unit/place-publication.test.mjs','tests/unit/place-sync-contract.test.mjs']);
+    // Report hydration tests share a worktree view. The cleanup fixture also
+    // requires system-wide Git idleness, so do not overlap it with Git tests.
+    const exclusive=new Set(['tests/unit/place-publication.test.mjs','tests/unit/place-sync-contract.test.mjs',
+      'tests/unit/reference-cache-cleanup.test.mjs']);
     const ordinary=kind==='unit'?files.filter(file=>!exclusive.has(file)):files;
     const batches=[];
     for(let at=0;at<ordinary.length;at+=groupSize)batches.push(ordinary.slice(at,at+groupSize));

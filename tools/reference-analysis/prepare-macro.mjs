@@ -1,8 +1,7 @@
 // Materialize weak macro supervision only in external, source-bound storage.
 import {createHash} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
 import {existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathSync,unlinkSync,writeFileSync} from 'node:fs';
-import {basename,dirname,extname,isAbsolute,join,relative,resolve,sep} from 'node:path';
+import {dirname,extname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {encodeNativeGrayPng} from '../map-image/native-resample.mjs';
@@ -13,13 +12,12 @@ import {encodePublisherRgbJpeg} from './native-publisher-pdf.mjs';
 import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {validateMacroSheet} from './validate-macro.mjs';
 import {validateCorpusMetadata} from './reviewed-corpus.mjs';
+import {registeredWorktreeRoots,withinWorktree} from './protected-worktrees.mjs';
 
 // Windows runners may expose the temporary root via an 8.3 alias. The native
 // resolver expands both roots and children to the same final path spelling.
 const realpath=realpathSync.native;
 const projectRoot=realpath(fileURLToPath(new URL('../../',import.meta.url))),script=fileURLToPath(import.meta.url);
-const worktrees=execFileSync('git',['-c','core.quotepath=false','worktree','list','--porcelain'],{cwd:projectRoot,encoding:'utf8'})
-  .split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>realpath(line.slice(9)));
 const sha=value=>createHash('sha256').update(value).digest('hex'),sourceHash=()=>sha(Buffer.from(readFileSync(script,'utf8').replaceAll('\r\n','\n')));
 const channels=['international','administrative','coast','hydro','transport','text','frame'];
 const within=(root,path)=>{const r=relative(root,path);return !isAbsolute(r)&&r!=='..'&&!r.startsWith('..'+sep);};
@@ -37,7 +35,7 @@ function sheetFrom(metadata,imageKey,key,imageSha){return {id:key,familyId:metad
 export async function prepareMacroSheet({source,root,maximumDimension=2560,metadataPath,signal},{workspace=projectRoot,pdfDirectory,imageDirectory}={}){
   signal?.throwIfAborted();if(typeof source!=='string'||!source||typeof root!=='string'||!root)throw Error('Explicit macro source and corpus required');
   const base=realpath(resolve(root)),pdf=realpath(resolve(source));
-  if(worktrees.some(path=>within(path,base)))throw Error('Macro materials belong in external library storage');
+  if(withinWorktree(base,registeredWorktreeRoots(projectRoot)))throw Error('Macro materials belong in external library storage');
   if(!within(base,pdf)||extname(pdf).toLowerCase()!=='.pdf')throw Error('Contained macro source PDF required');
   const sourcePdf=normal(relative(base,pdf)),originalName=sourcePdf.slice(0,-4)+'.source.json';
   const originalPath=realpath(await resolveCorpusPath(base,originalName)),actualMetadata=metadataPath?realpath(resolve(metadataPath)):originalPath;
@@ -86,7 +84,7 @@ export async function prepareMacroCorpus({sources,maximumDimension=2560,manifest
   signal?.throwIfAborted();if(typeof sources!=='string'||!sources||typeof manifestName!=='string'||manifestName.includes('..')||!/^[a-z0-9][a-z0-9.-]*\.json$/.test(manifestName))
     throw Error('Explicit sources and safe macro manifest filename required');
   const sourceRoot=realpath(resolve(sources)),base=realpath(dirname(sourceRoot));
-  if(worktrees.some(path=>within(path,base)))throw Error('Macro materials belong in external library storage');
+  if(withinWorktree(base,registeredWorktreeRoots(projectRoot)))throw Error('Macro materials belong in external library storage');
   const files=readdirSync(sourceRoot,{withFileTypes:true}).filter(entry=>entry.isFile()&&entry.name.endsWith('.pdf')&&existsSync(join(sourceRoot,entry.name.slice(0,-4)+'.source.json'))).map(entry=>entry.name).sort();
   if(!files.length)throw Error('Verified macro sources required');
   const alternates=new Map();if(metadataDirectory!==undefined){const dir=realpath(resolve(metadataDirectory));

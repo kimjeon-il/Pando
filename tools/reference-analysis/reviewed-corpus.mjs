@@ -17,7 +17,11 @@ const SHA=/^[a-f0-9]{64}$/;
 // Existing source-derived evidence keeps this identity after the script retires.
 const HISTORICAL_PUBLISHER_GENERATORS=new Set(['53fb78609a1c834f725bb942fa122e8af65872369b025340d6c4fafc2c1f71db',
   '65a08b347a886e7d18d3f84e07594ab56f822afb22f7e14d6d2febe27d2b2a07']);
-const NATIVE_PUBLISHER_GENERATOR_SHA256='97f5465dd0ce8b32e8d374b67252c25250ac814290318609f04609fb0cf9b11e';
+// Retain the identities of already-produced evidence alongside the current source.
+const NATIVE_PUBLISHER_GENERATORS=new Set(['97f5465dd0ce8b32e8d374b67252c25250ac814290318609f04609fb0cf9b11e',
+  'fed85262aaf33133bc18ad83f48b0a47b0ad4d6b6a1eabb6b7acf617d583ea7b']);
+const NATIVE_MACRO_GENERATORS=new Set(['ebb69547d81059f9a94152b3caef936b30da600f544aabe3e80d3411bb600f7e',
+  '4de03484d1a05efb347964a8e10e0a6b5ce82883a7b053bae7059f05068c7fcf']);
 async function hashFile(path,signal){const hash=createHash('sha256');for await(const chunk of createReadStream(path,{signal}))hash.update(chunk);return hash.digest('hex');}
 async function verifyOriginalImage(sheet,root,signal){
   const image=await resolveCorpusPath(root,sheet.image);
@@ -36,10 +40,11 @@ export async function validatePublisherProvenance(annotation,sheet,root,{rendere
   signal?.throwIfAborted();
   if(annotation?.reviewed!==false||annotation.schemaVersion!==1)throw Error('Publisher-derived training labels cannot claim human review');
   const producer=annotation.producer,historical={script:'tools/reference-analysis/publisher.py',renderer:'PyMuPDF',rendererVersion};
-  const native={script:'tools/reference-analysis/prepare-publisher.mjs',sha256:NATIVE_PUBLISHER_GENERATOR_SHA256,renderer:'MuPDF',rendererVersion:'1.26.11'};
+  const native={script:'tools/reference-analysis/prepare-publisher.mjs',renderer:'MuPDF',rendererVersion:'1.26.11'};
   const matches=expected=>Object.keys(expected).every(key=>producer?.[key]===expected[key]);
   if(!producer||typeof producer!=='object'||Array.isArray(producer)||Object.keys(producer).length!==4||
-    !((typeof rendererVersion==='string'&&rendererVersion&&matches(historical)&&HISTORICAL_PUBLISHER_GENERATORS.has(producer.sha256))||matches(native)))
+    !((typeof rendererVersion==='string'&&rendererVersion&&matches(historical)&&HISTORICAL_PUBLISHER_GENERATORS.has(producer.sha256))||
+      (matches(native)&&NATIVE_PUBLISHER_GENERATORS.has(producer.sha256))))
     throw Error('Publisher label generator identity differs');
   const metadata=await trainingProvenanceInputs(annotation,root,'Publisher',signal);
   const license=metadata.license,hasLicense=!!license&&(!Array.isArray(license)||license.length>0)&&
@@ -52,7 +57,7 @@ export async function validateMacroProvenance(annotation,sheet,root,{rendererVer
   const historical=producer?.script==='tools/reference-analysis/macro.py'&&producer.renderer==='PyMuPDF'&&
     typeof rendererVersion==='string'&&!!rendererVersion&&producer.rendererVersion===rendererVersion;
   const native=producer?.script==='tools/reference-analysis/prepare-macro.mjs'&&producer.renderer==='MuPDF'&&producer.rendererVersion==='1.26.11'&&
-    producer.sha256==='ebb69547d81059f9a94152b3caef936b30da600f544aabe3e80d3411bb600f7e';
+    NATIVE_MACRO_GENERATORS.has(producer.sha256);
   if(annotation?.schemaVersion!==1||annotation.reviewed!==false||annotation.supervisionQuality!=='source-derived-weak'||
     typeof producer?.sha256!=='string'||!SHA.test(producer.sha256)||!(historical||native))
     throw Error('Explicit source-derived macro provenance required');

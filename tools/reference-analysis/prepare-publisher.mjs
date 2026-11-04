@@ -1,9 +1,8 @@
 // Materialize publisher-derived training inputs in the external library only.
 // This does not create reviewed truth or approve a model.
 import {createHash} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
 import {existsSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathSync,unlinkSync,writeFileSync} from 'node:fs';
-import {basename,dirname,extname,isAbsolute,join,relative,resolve,sep} from 'node:path';
+import {dirname,extname,isAbsolute,join,relative,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual,parseArgs} from 'node:util';
 import {reportArgument} from '../report-paths.mjs';
@@ -12,10 +11,9 @@ import {derivePublisherPdfTrainingLayers,encodePublisherRgbJpeg} from './native-
 import {validatePublisherTrainingSource} from './training-tiles.mjs';
 import {readTrainingBounded,trainingFileIdentity} from './training-evidence.mjs';
 import {resolveCorpusPath} from './corpus-path.mjs';
+import {registeredWorktreeRoots,withinWorktree} from './protected-worktrees.mjs';
 
 const projectRoot=realpathSync(fileURLToPath(new URL('../../',import.meta.url)));
-const worktreeRoots=execFileSync('git',['-c','core.quotepath=false','worktree','list','--porcelain'],{cwd:projectRoot,encoding:'utf8'})
-  .split(/\r?\n/).filter(line=>line.startsWith('worktree ')).map(line=>realpathSync(line.slice(9)));
 const producerPath=fileURLToPath(import.meta.url),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const channels=Object.freeze(['international','administrative','coast','hydro','transport','text','frame']);
 const within=(root,path)=>{const part=relative(root,path);return part===''||(!isAbsolute(part)&&part!=='..'&&!part.startsWith('..'+sep));};
@@ -38,7 +36,7 @@ export async function preparePublisherSheet({source,root,maximumDimension=2560,s
   signal?.throwIfAborted();
   if(typeof root!=='string'||!root||typeof source!=='string'||!source||!Number.isSafeInteger(maximumDimension)||maximumDimension<32||maximumDimension>4096)
     throw Error('Explicit publisher source, corpus root and bounded dimension required');
-  const base=realpathSync(resolve(root));if(worktreeRoots.some(worktree=>within(worktree,base)))throw Error('Publisher materials belong in external library storage');
+  const base=realpathSync(resolve(root));if(withinWorktree(base,registeredWorktreeRoots(projectRoot)))throw Error('Publisher materials belong in external library storage');
   const pdf=realpathSync(resolve(source));if(!within(base,pdf)||extname(pdf).toLowerCase()!=='.pdf')throw Error('Publisher PDF must remain inside corpus root');
   const sourcePdf=relative(base,pdf).split(sep).join('/'),sourceMetadata=sourcePdf.slice(0,-4)+'.source.json';
   const metadataPath=await resolveCorpusPath(base,sourceMetadata),metadataBytes=readTrainingBounded(metadataPath,8*1024*1024),metadata=JSON.parse(metadataBytes);
@@ -97,7 +95,7 @@ export async function preparePublisherSheet({source,root,maximumDimension=2560,s
 export async function preparePublisherCorpus({sources,maximumDimension=2560,signal},options={}){
   signal?.throwIfAborted();if(typeof sources!=='string'||!sources)throw Error('Explicit publisher sources directory required');
   const sourceRoot=realpathSync(resolve(sources)),base=realpathSync(dirname(sourceRoot));
-  if(worktreeRoots.some(worktree=>within(worktree,base)))throw Error('Publisher materials belong in external library storage');
+  if(withinWorktree(base,registeredWorktreeRoots(projectRoot)))throw Error('Publisher materials belong in external library storage');
   const files=readdirSync(sourceRoot,{withFileTypes:true}).filter(entry=>entry.isFile()&&entry.name.toLowerCase().endsWith('.pdf')).map(entry=>entry.name).sort();
   if(!files.length)throw Error('Acquired publisher PDFs required');
   const sheets=[];for(const name of files)sheets.push(await preparePublisherSheet({source:join(sourceRoot,name),root:base,maximumDimension,signal},options));

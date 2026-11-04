@@ -23,6 +23,7 @@ test('macro training provenance binds source, scope, edition and renderer',async
     producer:{script:'tools/reference-analysis/macro.py',sha256:'a'.repeat(64),renderer:'PyMuPDF',rendererVersion:'fixture'}};
   const check=(changes={})=>validateMacroProvenance({...annotation,...changes},sheet,root,{rendererVersion:'fixture'});
   await check();
+  await check({producer:{script:'tools/reference-analysis/prepare-macro.mjs',sha256:'ebb69547d81059f9a94152b3caef936b30da600f544aabe3e80d3411bb600f7e',renderer:'MuPDF',rendererVersion:'1.26.11'}});
   assertMacroMetadata(metadata,annotation,sheet,{requireTraining:true});
   assert.throws(()=>assertMacroMetadata({...metadata,rightsReviewed:false},annotation,sheet,{requireTraining:true}),/provenance/i);
   assert.throws(()=>assertMacroMetadata({...metadata,materialKind:'other'},annotation,sheet,{requireTraining:true}),/provenance/i);
