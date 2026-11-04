@@ -115,6 +115,9 @@ countries and time periods.
 
 ## Local build prohibition and immutable output retirement
 
+The branch ships a tracked `config/remote-only-policy.json` marker, so detached
+HEAD copies of this candidate also reject Pando-owned local SDK work.
+
 The branch uses `scripts/lib/remote-only-native-policy.mjs` as the single
 fail-closed gate on Pando-owned **local** native test preparation (including
 capacity probes), compiler cache SDK activation / wrapper invocation, selected

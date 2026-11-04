@@ -113,3 +113,18 @@ test('on remote-only branch, compiler environment/config commands never reactiva
   assert.match(source,/compilerValues=\(\)=>remoteOnlyBranch\(\{root\}\)/);
   assert.match(source,/active:!remoteOnlyBranch\(\{root\}\)/);
 });
+
+test('checked-in policy marker blocks detached-HEAD native setup without probing Git',t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-detached-remote-'));
+  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  mkdirSync(join(root,'config'));
+  const marker=join(root,'config/remote-only-policy.json');
+  writeFileSync(marker,JSON.stringify({schema:'pando-remote-only-policy-v1',
+    nativeBuildLocation:'github-actions',localSdkInstallation:false}));
+  const never=()=>{throw Error('git probe cannot be used when marker establishes scope');};
+  assert.equal(remoteOnlyBranch({root,environment:{},probe:never}),true);
+  assert.throws(()=>assertRemoteOnlyNativeAllowed({root,environment:{},probe:never}),
+    {code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'});
+  writeFileSync(marker,JSON.stringify({schema:'unknown'}));
+  assert.throws(()=>remoteOnlyBranch({root,environment:{},probe:never}),/Unknown remote-only policy marker/);
+});
