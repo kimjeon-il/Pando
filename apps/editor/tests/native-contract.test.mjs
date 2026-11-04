@@ -59,7 +59,6 @@ test('R3 includes live Viewer, Windows staging tools, WASM bytes and exact sourc
    'shared/frontend/static/wasm/pandoeditor-core.wasm',
    'apps/editor/stage.mjs',
    'apps/editor/network-guard.js',
-   'apps/editor/document-transfer-contract.js',
    'apps/editor/world-data-plan.mjs',
    'apps/editor/fixture.mjs',
    'shared/frontend/js/modules/project-baseline-fingerprint.js',

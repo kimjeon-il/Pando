@@ -3,13 +3,13 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {join,dirname} from 'node:path';
-import {UI_BUNDLE_SOURCES,UI_MODAL_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
+import {UI_VIEWER_SOURCES} from '../../scripts/lib/ui-source-catalog.mjs';
 
 export function frontendFixture(t){
  const root=mkdtempSync(join(tmpdir(),'pando-frontend-build-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
  const put=(path,text)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);};
  put('package.json',JSON.stringify({version:'1.0.0'}));
- for(const path of new Set([...UI_BUNDLE_SOURCES,...UI_MODAL_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','shared/frontend/css/'),'.x { color: red; }');
+ for(const path of new Set([...UI_VIEWER_SOURCES,'assets/css/app.css','assets/css/viewer.css']))put(path.replace('assets/css/','shared/frontend/css/'),'.x { color: red; }');
  put('shared/frontend/js/modules/resource-update-policy.js','export const value=1;');
  put('apps/viewer/js/viewer.js','export const viewer=true;');
  const html=entry=>'<html data-app-version="1.0.0"><link rel="stylesheet" href="assets/css/ui-viewer.bundle.css"><script src="assets/js/build-meta.js"></script><script type="module" src="assets/js/'+entry+'"></script></html>';

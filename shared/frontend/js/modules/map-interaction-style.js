@@ -84,7 +84,7 @@ const BASE_STROKES = Object.freeze({
 
 // All widths and dash lengths returned here are CSS pixels. The current layer
 // model still fixes its width multiplier to one; this adds no width preference.
-export function resolveMapStrokeStyle(style, role = 'candidate', { directManipulation = false, boundaryKind = '' } = {}) {
+export function resolveMapStrokeStyle(style, role = 'candidate') {
   if (Object.hasOwn(BASE_STROKES, role)) {
     const theme = style.theme || {};
     const layer = style.layerStyle || {};
@@ -105,11 +105,10 @@ export function resolveMapStrokeStyle(style, role = 'candidate', { directManipul
   if (priority === 2) return Object.freeze({ ...STROKE_SHAPE, ...style.hover, coverage: 'union', scaleWithView: true, antiAlias });
   const source = priority >= 4 ? selection.primary : selection.secondary;
   return Object.freeze({ ...STROKE_SHAPE, color: selection.color,
-    width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
-    alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
+    width: source.innerWidth,
+    alpha: source.innerAlpha,
     fillAlpha: source.fillAlpha,
     coverage: role === 'primary' || role === 'secondary' ? 'union' : 'normal',
-    dash: boundaryKind === 'shared' ? Object.freeze([6, 3]) : STROKE_SHAPE.dash,
     scaleWithView: true,
     antiAlias });
 }
@@ -142,20 +141,6 @@ export function applyInteractionCssProperties(style, root = globalThis.document?
     root.style.setProperty(property, value);
   }
   return true;
-}
-
-/** Existing packet roles win; class names are only adapters for older tool views. */
-export function interactionNodeRole(node, domain = 'draft') {
-  const explicit = node.getAttribute?.('data-interaction-role');
-  if (Object.hasOwn(INTERACTION_ROLE_PRIORITY, explicit)) return explicit;
-  const has = name => node.classList?.contains(name);
-  if (has('geometry-preview-old-boundary') || has('geometry-preview-remove')) return 'reference';
-  if (has('selected-candidate')) return 'chosen-result';
-  if (has('selected-component')) return 'selected-component';
-  if (has('hovered-component')) return 'hover';
-  if (has('territory-candidate') || has('draft-split-preview')) return 'unchosen-result';
-  if (has('territory-component')) return 'candidate';
-  return domain === 'preview' ? 'chosen-result' : 'edit-target';
 }
 
 export function resolveMapInteractionStyle({

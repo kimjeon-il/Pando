@@ -4,8 +4,6 @@ mod runtime_options;
 mod review_correction;
 
 use serde::Serialize;
-#[cfg(feature = "verification")]
-use sha2::{Digest, Sha256};
 use std::{
     path::PathBuf,
     sync::Mutex,
@@ -34,18 +32,6 @@ fn shell_initialization() -> String {
     )
 }
 
-#[cfg(feature = "verification")]
-#[derive(Serialize)]
-struct WrittenFile {
-    path: String,
-    sha256: String,
-}
-#[cfg(feature = "verification")]
-#[derive(Serialize)]
-struct ReadFile {
-    contents: String,
-    path: String,
-}
 #[derive(Serialize)]
 struct ReportFile {
     path: String,
@@ -62,37 +48,6 @@ fn validate_size(contents: &[u8]) -> Result<(), String> {
         return Err("Prototype file exceeds the 1 MiB limit".into());
     }
     Ok(())
-}
-
-#[cfg(feature = "verification")]
-#[tauri::command]
-async fn write_probe_file(app: tauri::AppHandle, contents: String) -> Result<WrittenFile, String> {
-    validate_size(contents.as_bytes())?;
-    let options = app.state::<RuntimeState>();
-    let _guard = options
-        .write_lock
-        .lock()
-        .map_err(|error| error.to_string())?;
-    let path = profile_dir(&app)?.join("test-fixture.json");
-    storage::atomic_write(&path, contents.as_bytes()).map_err(|error| error.to_string())?;
-    Ok(WrittenFile {
-        path: path.display().to_string(),
-        sha256: Sha256::digest(contents.as_bytes())
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect(),
-    })
-}
-
-#[cfg(feature = "verification")]
-#[tauri::command]
-async fn read_probe_file(app: tauri::AppHandle) -> Result<ReadFile, String> {
-    let path = profile_dir(&app)?.join("test-fixture.json");
-    let contents = storage::read_bounded(&path).map_err(|error| error.to_string())?;
-    Ok(ReadFile {
-        contents,
-        path: path.display().to_string(),
-    })
 }
 
 #[cfg(feature = "development")]
@@ -264,8 +219,6 @@ pub fn run() {
         })
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
-            #[cfg(feature = "verification")] write_probe_file,
-            #[cfg(feature = "verification")] read_probe_file,
             #[cfg(feature = "verification")] finish_probe,
             write_diagnostic_report,
             #[cfg(windows)] review_correction::save_review_correction])

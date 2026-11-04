@@ -7,14 +7,11 @@ on:
       - 'shared/core/**'
       - 'shared/wasm/session-bindings.cpp'
       - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
-      - 'assets/js/modules/core-document-runtime.js'
+      - 'shared/frontend/js/modules/core-document-runtime.js'
       - 'tests/browser/temporal-map-presentation.spec.mjs'
-      - 'tests/browser/temporal-map-presentation.spec.mjs'
-      - 'tests/browser/viewer-review-e4.spec.mjs'
-      - 'tests/browser/viewer-review-e4.spec.mjs'
       - 'tests/browser/viewer-review-e4.spec.mjs'
       - 'tests/unit/core-document-runtime.test.mjs'
-      - 'tests/browser/temporal-map-presentation.spec.mjs'
+      - 'tests/unit/core-document-client.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -105,7 +102,7 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: |
-          pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
+          pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve browser evidence on failures
         if: always()
         uses: actions/upload-artifact@v4

@@ -174,33 +174,30 @@ test('selection preparation attributes resource build and upload metrics without
   assert.equal(pass.stats().bufferUploadBytes, 128);
 });
 
-test('interaction pass submits prepared priorities and ranges then composites before selection and strokes', () => {
+test('interaction pass submits prepared priorities and ranges then composites before selection strokes', () => {
   const calls = [];
   const gl = new Proxy(glFixture(), { get: (target, key) => key in target ? target[key] : () => {} });
-  const polygonOverlayPass = { hasResource: () => true, hasPreparedResource: () => true,
+  const polygonOverlayPass = { hasResource: () => true,
     ensureResource: () => assert.fail('draw started preparation'),
-    drawPackets: (packets, _frame, options) => { assert.equal(options.preparedOnly, true); calls.push(...packets.map(packet => packet.key)); return { succeeded: true, renderedKeys: packets.map(packet => packet.key) }; },
     drawResourceItems: items => { calls.push(...items.map(item => item.key)); return { succeeded: true, renderedKeys: items.map(item => item.key) }; } };
   const plan = prepareGpuInteractionPlan({
-    interaction: { previewPackets: [{ kind: 'polygon', packet: { key: 'preview' } }, { kind: 'stroke', packet: { key: 'preview-outline' } }], draftPackets: [],
-      genericFillItems: [{ key: 'hover', priority: 2 }, { key: 'primary', priority: 4 }] },
+    interaction: { genericFillItems: [{ key: 'hover', priority: 2 }, { key: 'primary', priority: 4 }] },
     emphasis: { selectedIds: new Set(['A']), primaryId: 'A', primaryIds: new Set(['A']), hoverId: '', priorities: {} },
     mesh: { triangleRangesByCountryId: new Map([['A', [{ first: 2, count: 3 }]]]) }, overrideIds: new Set(), countriesVisible: true, isPending: () => false, isVisible: () => true,
   }, polygonOverlayPass);
   const dependencies = { polygonOverlayPass,
-    strokeRenderer: { drawBatches: packets => { calls.push(...packets.map(packet => packet.key)); return { succeeded: true }; } },
     selectionPass: { draw: () => { calls.push('selection'); return {}; } },
     drawHydro: category => calls.push(category), drawPhysicalWaterMask:()=>calls.push('physical-water-mask'), drawCountryRanges: ranges => { if (ranges.base.length) { assert.deepEqual(ranges.base, [{ first: 2, count: 3 }]); calls.push('country'); } },
     fillCache: { finishScene: () => calls.push('finish'), composite: () => { calls.push('composite'); return true; } } };
   const result = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: plan }, dependencies);
   assert.equal(result.fillOwner, 'gpu');
-  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'preview', 'country', 'primary', 'hover', 'finish', 'composite', 'selection', 'preview-outline']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'country', 'primary', 'hover', 'finish', 'composite', 'selection']);
   calls.length = 0;
   const fallback = drawGpuInteractionPass({ gl, frame, viewport: {}, fillTargetReady: true, prepared: { ...plan, fillReady: false } }, dependencies);
   assert.equal(fallback.fillOwner, 'svg');
   assert.deepEqual(fallback.genericFillResult.renderedKeys, []);
-  assert.deepEqual(fallback.previewResults[0].missingKeys, ['preview']);
-  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'finish', 'selection', 'preview-outline']);
+  assert.deepEqual(fallback.genericFillResult.missingKeys, ['hover', 'primary']);
+  assert.deepEqual(calls, ['lake', 'lake-boundary', 'river', 'border-river', 'physical-water-mask', 'finish', 'selection']);
 });
 
 test('interaction pass skips unneeded water/border masks when no GPU fill is requested', () => {
@@ -208,7 +205,7 @@ test('interaction pass skips unneeded water/border masks when no GPU fill is req
   const gl = new Proxy(glFixture(), { get: (target, key) => key in target ? target[key] : () => {} });
   const polygonOverlayPass = { hasResource: () => true, hasPreparedResource: () => true };
   const plan = prepareGpuInteractionPlan({
-    interaction: { genericFillItems: [], previewPackets: [], draftPackets: [] },
+    interaction: { genericFillItems: [] },
     emphasis: { selectedIds: new Set(), primaryId: '', primaryIds: new Set(), hoverId: '', priorities: {} },
     mesh: { triangleRangesByCountryId: new Map() }, overrideIds: new Set(),
     countriesVisible: true, isPending: () => false, isVisible: () => true,

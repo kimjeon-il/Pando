@@ -96,37 +96,6 @@ button:disabled {
   min-width: 0;
 }
 
-.vertex-handle {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-  stroke-width: 1.5px;
-  cursor: move;
-}
-
-.draft-shape {
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha);
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
-  pointer-events: none;
-  vector-effect: non-scaling-stroke;
-}
-
-.draft-vertex-dot {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-  stroke-width: 1.4px;
-  vector-effect: non-scaling-stroke;
-}
-
-.vertex-handle.country-vertex {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-  stroke-width: 2px;
-  cursor: grab;
-  vector-effect: non-scaling-stroke;
-}
-
 @media (prefers-color-scheme: light) {
   .field-group input[readonly] {
     color: var(--field-group-color-media-prefers-color-scheme-light-2);
@@ -151,35 +120,6 @@ button:disabled {
   .field-group select:focus {
     border-color: var(--accent);
     box-shadow: var(--field-group-box-shadow);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .vertex-handle {
-    fill: var(--surface-elevated);
-    stroke: var(--map-selection-halo);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .vertex-handle.country-vertex {
-    fill: var(--surface-elevated);
-    stroke: var(--map-selection-halo);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .draft-shape {
-    fill: var(--map-selection-halo);
-    fill-opacity: var(--map-primary-fill-alpha);
-    stroke: var(--map-selection-halo);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .draft-vertex-dot {
-    fill: var(--surface-elevated);
-    stroke: var(--map-selection-halo);
   }
 }
 
@@ -1331,12 +1271,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
   color: var(--ui-control-text);
 }
 
-.mode-draft-action-btn.danger {
-  border-color: transparent;
-  background: var(--ui-button-subtle);
-  color: var(--ui-control-text);
-}
-
 .danger-btn:hover:not(:disabled) {
   border-color: transparent;
   background: color-mix(in srgb, var(--danger) 8%, var(--panel));
@@ -1349,12 +1283,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
   color: var(--danger-text);
 }
 
-.mode-draft-action-btn.danger:hover:not(:disabled) {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--danger) 8%, var(--panel));
-  color: var(--danger-text);
-}
-
 .danger-btn:active:not(:disabled) {
   border-color: transparent;
   background: color-mix(in srgb, var(--danger) 14%, var(--panel));
@@ -1362,12 +1290,6 @@ html[data-theme="dark"] .preferences-accent-chip[data-preference-accent="pink"] 
 }
 
 .danger-ghost:active:not(:disabled) {
-  border-color: transparent;
-  background: color-mix(in srgb, var(--danger) 14%, var(--panel));
-  color: var(--danger-text);
-}
-
-.mode-draft-action-btn.danger:active:not(:disabled) {
   border-color: transparent;
   background: color-mix(in srgb, var(--danger) 14%, var(--panel));
   color: var(--danger-text);

@@ -1,6 +1,6 @@
 use std::{
-    fs::{self, File, OpenOptions},
-    io::{self, Read, Write},
+    fs::{self, OpenOptions},
+    io::{self, Write},
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
 };
@@ -66,18 +66,4 @@ pub fn atomic_write(path: &Path, contents: &[u8]) -> io::Result<()> {
     // Both replace files on the same volume without first deleting the target.
     fs::rename(&pending.0, path)?;
     Ok(())
-}
-
-pub fn read_bounded(path: &Path) -> io::Result<String> {
-    let file = File::open(path)?;
-    let mut bytes = Vec::new();
-    file.take(MAX_FILE_BYTES as u64 + 1)
-        .read_to_end(&mut bytes)?;
-    if bytes.len() > MAX_FILE_BYTES {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "Prototype file exceeds the 1 MiB limit",
-        ));
-    }
-    String::from_utf8(bytes).map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))
 }

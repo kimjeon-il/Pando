@@ -10,7 +10,6 @@ import {
 import {
   SOURCE_PROVENANCE_SCHEMA_VERSION,
 } from "../shared/frontend/js/modules/source-provenance.js";
-import { MAP_OBJECT_TYPES } from "../shared/frontend/js/modules/map-object-categories.js";
 
 const root = process.cwd();
 const failures = [];
@@ -19,17 +18,6 @@ const read = relativePath => fs.readFileSync(path.join(root, relativePath), 'utf
 
 if (GENERIC_FEATURE_SCHEMA_VERSION !== 2) fail('Generic Feature canonical schema must be v2');
 if (SOURCE_PROVENANCE_SCHEMA_VERSION !== 1) fail('Source provenance canonical schema must be v1');
-if (MAP_OBJECT_TYPES.generic.creatable !== false || MAP_OBJECT_TYPES.generic.fallbackOnly !== true) {
-  fail('Generic Feature must remain non-creatable and fallbackOnly');
-}
-const allowedActions = MAP_OBJECT_TYPES.generic.allowedActions || [];
-if (JSON.stringify(allowedActions) !== JSON.stringify(['focus', 'lock', 'delete'])) {
-  fail('Generic Feature allowed actions must stay limited to focus/lock/delete');
-}
-if (allowedActions.includes('coast-reconcile')) {
-  fail('Generic Feature may not participate in territorial coast reconciliation');
-}
-
 const current = {
   type: 'Feature', id: 'current-generic', geometry: { type: 'Point', coordinates: [0, 0] },
   properties: { schemaVersion: 2, name: 'current', source: {

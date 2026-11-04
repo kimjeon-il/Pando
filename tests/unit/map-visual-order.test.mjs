@@ -11,9 +11,9 @@ test('one policy orders paint, claim, selection and SVG roles without changing o
   assert.ok(paint.indexOf('country-boundary') < paint.indexOf('independent-overlay'));
   assert.deepEqual(mapVisualOrder('base', 'gpu').filter(role => role.endsWith('-fill')), ['territorial-fill', 'country-fill']);
   assert.deepEqual(SELECTION_PAINT_ORDER, ['candidate', 'hover', 'secondary', 'primary']);
-  assert.equal(INTERACTION_ROLE_PRIORITY['chosen-result'], 5);
-  assert.ok(mapVisualRank('primary') < mapVisualRank('edit-preview'));
-  assert.ok(mapVisualRank('edit-preview') < mapVisualRank('labels'));
+  assert.equal(INTERACTION_ROLE_PRIORITY.primary, 4);
+  assert.ok(mapVisualRank('primary') < mapVisualRank('territorial-labels'));
+  assert.ok(mapVisualRank('territorial-labels') < mapVisualRank('labels'));
   const presentation = { overlayOrder: ['distributions', 'objects', 'genericFeatures'], objectOrder: ['generic:a', 'generic:b'] };
   assert.ok(overlayVisualOrder(presentation, 'objects', 'boundary') < overlayVisualOrder(presentation, 'genericFeatures', 'fill'));
   assert.ok(overlayVisualOrder(presentation, 'genericFeatures', 'fill', 'generic:a') < overlayVisualOrder(presentation, 'genericFeatures', 'fill', 'generic:b'));

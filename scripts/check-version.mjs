@@ -8,7 +8,7 @@ import { isEditorOnlyAsset } from './lib/product-assets.mjs';
 const scriptsDirectory = resolve(fileURLToPath(new URL('.', import.meta.url)));
 const projectRoot = resolve(scriptsDirectory, '..');
 const snapshot=await buildFrontendSnapshot({root:projectRoot});
-const read=path=>path==='apps/editor/editor.html'?snapshot.html.editor:snapshot.assets.has(path)?snapshot.assets.get(path).bytes.toString('utf8'):readFileSync(resolve(projectRoot,path),'utf8');
+const read=path=>snapshot.assets.has(path)?snapshot.assets.get(path).bytes.toString('utf8'):readFileSync(resolve(projectRoot,path),'utf8');
 const failures = [];
 const expect = (condition, message) => { if (!condition) failures.push(message); };
 
@@ -16,7 +16,6 @@ const packageJson = JSON.parse(read('package.json'));
 const appVersion = String(packageJson.version || '').trim();
 const productEntries = [
   { path: 'index.html', mode: 'viewer', entry: 'assets/js/viewer.js' },
-  { path: 'apps/editor/editor.html', mode: 'editor', entry: 'assets/js/bootstrap.js' },
 ];
 const buildMetaSource = read('assets/js/build-meta.js');
 const metaMatch = buildMetaSource.match(/PANDOLAB_BUILD_META\s*=\s*Object\.freeze\((\{[\s\S]*?\})\);/);
@@ -30,7 +29,6 @@ expect(buildMeta && /^[0-9]+\.[0-9]+\.[0-9]+-build-[A-Za-z0-9._-]+$/.test(buildM
 expect(buildMeta && /^data-[a-f0-9]{32}$/.test(buildMeta.dataRevision || ''), 'dataRevision 형식이 올바르지 않습니다.');
 for (const product of productEntries) {
 const index = read(product.path);
-if (product.mode === 'editor') expect(index.includes(`data-app-version="${appVersion}"`), `${product.path}의 data-app-version이 package.json과 다릅니다.`);
 expect(index.includes(`${product.entry}?v=${buildMeta?.assetRevision || ''}`), `${product.path}이 현재 제품 진입점을 사용하지 않습니다.`);
 expect(index.includes(`assets/js/build-meta.js?v=${buildMeta?.assetRevision || ''}`), `${product.path}이 현재 build-meta revision을 사용하지 않습니다.`);
 
@@ -99,16 +97,8 @@ if (existsSync(resolve(projectRoot, preparedPath))) {
   }
 }
 
-const productionFiles = [
-  'assets/js/viewer.js',
-  'assets/js/workers/core-viewer-session-worker.js',
-  'assets/js/bootstrap.js',
-  'assets/js/app.js',
-  'assets/js/gis-io.js',
-  'assets/js/workers/data-loader-worker.js',
-  'assets/js/workers/gis-gpkg-worker.js',
-  'assets/js/workers/gpu-mesh-worker.js',
-];
+const productionFiles = [...snapshot.viewerPaths].filter(path =>
+  path.startsWith('assets/js/') && path.endsWith('.js') && snapshot.assets.has(path));
 for (const relativePath of productionFiles) {
   const source = read(relativePath);
   expect(!/0\.\d+\.\d+-r\d+/.test(source), `${relativePath}에 수동 rN asset revision이 남아 있습니다.`);

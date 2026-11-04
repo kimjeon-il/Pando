@@ -33,15 +33,15 @@ export function initializeMapReadOwners(owners,phase){
 
 /** One read-only owner graph for the Web Viewer and Windows reviewer. */
 export function createMapOwners({productMode,readOnly=productMode==='viewer',projection=productMode==='viewer'?'globe':'flat',platform=null,buildMeta,editing=null,isObjectVisible,resolveVisibilityGroup,closeActiveOverlay=null,onViewingChange=null}){
-  if(!['viewer','editor'].includes(productMode))throw new TypeError('Map composition requires immutable product mode.');
+  if(productMode!=='viewer')throw new TypeError('Map composition requires viewer product mode.');
   if(readOnly!==true||editing)throw new TypeError('Read-only map composition cannot register editing hooks.');
   const capabilities=resourceCapabilities(productMode,platform,{projection});
   // A normal month source is ~13 MiB. The Viewer's previous 24 MiB budget
   // could not retain two adjacent months, forcing repeated JSON/SHA work even
   // for A-B-A navigation. This is immutable source bytes only, not a second
-  // Core document or retained GPU mesh; the editor keeps its original budget.
+  // Core document or retained GPU mesh.
   const builtinSession=createBuiltinSession({builtinWorldLoader:platform?.world?.builtinLoader,buildMeta,
-    sourceCacheLimits:productMode==='viewer'?{maxEntries:3,maxBytes:32*1024*1024}:null});
+    sourceCacheLimits:{maxEntries:3,maxBytes:32*1024*1024}});
   const workspaceSurfaces=createWorkspaceSurfaces();
   const projectSession=createProjectSession({productMode,readOnly,projection,capabilities,resolveVisibilityGroup,onViewingChange});
   const renderQuality=createRenderQuality();

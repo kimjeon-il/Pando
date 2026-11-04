@@ -47,7 +47,7 @@ export function auditTerrainPreview(root = resolve(import.meta.dirname, '..')) {
   for (const path of ['assets/data/terrain/v0.12.6', 'assets/data/terrain/v0.12.0'])
     if (existsSync(resolve(root, path))) result.errors.push(`Retired raster remains: ${path}`);
   const active = [...buildFrontendIndex(root).values()].filter(asset => asset.sourcePath.endsWith('.js')).map(asset => resolve(root, asset.sourcePath));
-  active.push(...['tools/stage-monorepo-pages.mjs', 'tools/prepare-pages-release-bundle.mjs', 'tools/plan-pages-deployment-footprint.mjs', 'scripts/generate-build-metadata.mjs'].map(path => resolve(root, path)));
+  active.push(...['tools/stage-monorepo-pages.mjs', 'scripts/generate-build-metadata.mjs'].map(path => resolve(root, path)));
   for (const path of active) if (/terrain\/v0\.12\.6\//.test(readFileSync(path, 'utf8'))) result.errors.push(`Active old raster reference: ${path}`);
   return { schema: 'pando-terrain-preview-audit', version: 1, ...result,
     sourceManifest: DEM_SOURCE, head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),

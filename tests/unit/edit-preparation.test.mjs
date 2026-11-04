@@ -10,7 +10,8 @@ import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
 import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
-import { createGeometrySnapshotPool, touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
+import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
+import { createGeometrySnapshotPool } from "../helpers/legacy-project-autosave.mjs";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]] };

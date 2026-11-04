@@ -19,7 +19,6 @@ export const nativePackagedInputPaths=Object.freeze([
   'apps/editor/world-data-plan.mjs',
   'apps/editor/fixture.mjs',
   'apps/editor/network-guard.js',
-  'apps/editor/document-transfer-contract.js',
   'tests/helpers/core-startup.mjs',
   'tests/helpers/core-project.mjs',
   'tests/helpers/core-session.mjs',

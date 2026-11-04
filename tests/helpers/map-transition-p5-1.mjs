@@ -2,6 +2,7 @@ import {replaceExactlyOnce} from './map-transition-baseline.mjs';
 
 // Test-only response instrumentation; no application or C++ files changed.
 export function instrumentP5Source(source,name) {
+  source=source.replaceAll('\r\n','\n');
   const mark=(phase,edge)=>`if(!background)globalThis.__PANDO_P0__.mark(${JSON.stringify('p5:'+phase+':'+edge)});`;
   const replace=(oldText,newText)=>{source=replaceExactlyOnce(source,oldText,newText);};
   if(name==='viewer-composition.js'){
@@ -23,13 +24,20 @@ export function instrumentP5Source(source,name) {
     const hash=`const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
         .map(value=>value.toString(16).padStart(2,'0')).join('');`;
     replace(hash,mark('hash','start')+hash+mark('hash','end'));
-    const admit='const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});';
-    replace(admit,"globalThis.__PANDO_P0__.mark('p5:baseline-admit:start');"+admit+
-      "globalThis.__PANDO_P0__.mark('p5:baseline-admit:end');");
+    const prepare=`const candidate=await domain.prepareTemporalBuiltin(facts,setup,{
+        dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
+        expectedGeneration:prepared.expectedGeneration,isCurrent,transition});`;
+    replace(prepare,"globalThis.__PANDO_P0__.mark('p5:candidate-prepare:start');"+prepare+
+      "globalThis.__PANDO_P0__.mark('p5:candidate-prepare:end');");
   } else if(name==='project-domain.js'){
-    const load='await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);';
-    replace(load,"globalThis.__PANDO_P0__.mark('p5:core-load:start');"+load+
-      "globalThis.__PANDO_P0__.mark('p5:core-load:end');");
+    const adopt=`await commandOwner.temporalCandidateAdopt({
+          candidateId:prepared.candidateId,sourceId:prepared.sourceId,
+          targetMonth:prepared.targetMonth,sourceFingerprint:prepared.sourceFingerprint,
+          worldSha256:prepared.worldSha256,replacementId:checkpoint.replacementId,
+          expectedEpoch:prepared.expectedEpoch,
+        });`;
+    replace(adopt,"globalThis.__PANDO_P0__.mark('p5:candidate-adopt:start');"+adopt+
+      "globalThis.__PANDO_P0__.mark('p5:candidate-adopt:end');");
     const restore=`const result = await replaceSnapshot(reason === 'new' ? null : documentModel.snapshot(), {
         reason, generation: nextGeneration, skipRenderReset: true,
         ...(reason === 'new' ? {

@@ -199,14 +199,13 @@ test('shell Node tools and nested tests keep source-relative paths', () => {
   assert.deepEqual(repo.dependencies('apps/editor/tests/probe.test.mjs'), ['apps/editor/fixture.mjs']);
 });
 
-test('active Windows shell follows the network guard transfer contract', () => {
+test('active Windows shell follows the network guard dependency', () => {
   const f = fixture();
   f.put('apps/editor/stage.mjs', "import './network-guard.js';");
-  f.put('apps/editor/network-guard.js', "import './document-transfer-contract.js';");
-  f.put('apps/editor/document-transfer-contract.js', 'export const commands = {};');
+  f.put('apps/editor/network-guard.js', 'export const commands = {};');
   f.put('tests/unit/shell-probe.test.mjs', "import '../../apps/editor/stage.mjs';");
   const plan = planApplicationChecks({
-    changedFiles: ['apps/editor/document-transfer-contract.js'], repository: f.repository(),
+    changedFiles: ['apps/editor/network-guard.js'], repository: f.repository(),
   });
   assert.ok(plan.unitTests.includes('tests/unit/shell-probe.test.mjs'));
 });
@@ -214,7 +213,7 @@ test('active Windows shell follows the network guard transfer contract', () => {
 test('verification startup resolves versioned fixture modules at the declared runtime base', () => {
   const f = fixture();
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
-  f.catalog.runtimeBases = catalog.runtimeBases;
+  f.catalog.runtimeBases = { 'apps/editor/verification.js': 'assets/js' };
   f.catalog.relocatedSources = catalog.relocatedSources;
   f.put('apps/editor/verification.js', "export function startFixture({ versionedAsset }) { return import(versionedAsset('./modules/leaf.js').href); }");
   f.put('tests/unit/verification.test.mjs', "import '../../apps/editor/verification.js';");

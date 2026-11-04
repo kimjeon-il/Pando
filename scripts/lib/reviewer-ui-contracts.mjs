@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {renderProductHtml} from './product-html.mjs';
 import {buildFrontendIndex,frontendAsset,frontendRoots} from './frontend-layout.mjs';
 import {buildUiBundles} from '../build-ui-bundle.mjs';
-import {UI_VIEWER_SOURCES,UI_BUNDLE_SOURCES} from './ui-source-catalog.mjs';
+import {UI_VIEWER_SOURCES} from './ui-source-catalog.mjs';
 import {collectCssRules} from './css-analysis.mjs';
 import {isEditorOnlyAsset} from './product-assets.mjs';
 
@@ -89,9 +89,10 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
      ['Core read-only document',source,/createDocumentSession\(\{productMode,readOnly:true/],
      ['Project read-only surface',project,/readOnly\s*=\s*productMode\s*===\s*'viewer'/],
      ['Map edit hook exclusion',map,/if\s*\(readOnly!==true\|\|editing\)throw/],
-     ['Render edit resource exclusion',renderer,/Read-only rendering cannot install editor/],
      ['Windows source closure',stage,/entry\.product==='editor'\|\|!snapshot\.viewerPaths\.has\(path\)/],
    ])if(!pattern.test(text))fail(name+' lost its read-only isolation contract');
+   for(const hook of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
+     if(renderer.includes(hook))fail('Retired rendering edit hook returned: '+hook);
    errors.push(...auditReviewCss('viewer.css',viewerCss),
      ...auditReviewCss('layout/surfaces.css',read('shared/frontend/css/layout/surfaces.css')));
    if(statSync(resolve(root,'apps/viewer/css/viewer.css')).size>12288)
@@ -169,8 +170,6 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
      if(!isEditorOnlyAsset(resource))fail('Retired source guard was removed: '+resource);
    // Keep the existing public viewer product graph and the optional Windows
    // flat projection separate; these files must not become duplicate UI owners.
-   if(UI_BUNDLE_SOURCES.length<UI_VIEWER_SOURCES.length)
-     fail('Viewer sources cannot exceed the canonical source catalog');
  }
  return [...new Set(errors)];
 }

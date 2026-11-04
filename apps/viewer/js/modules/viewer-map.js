@@ -46,7 +46,7 @@ import { coordinateBounds } from "../../../../shared/frontend/js/modules/coordin
 import { createRingHitTester } from "../../../../shared/frontend/js/modules/ring-hit-test.js";
 import { layoutTerritorialFlags } from "../../../../shared/frontend/js/modules/territorial-label-flags.js";
 
-/** Viewer presentation adapter to the same GPU/Canvas renderer used by the editor. */
+/** Presentation adapter shared by the Viewer and Windows reviewer. */
 export function createViewerMap({ runtimeContext,owners,element, canvas, labelLayer, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile,diagnostics,getInteractionStyle,onMapPreparationStatus=null,isInitialPresentation }) {
   const meta=runtimeContext.meta;
   const d3 = globalThis.d3;
@@ -196,7 +196,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     rendering:{gpuMapRenderer:renderer},mapLayers:{svg:d3.select(labelLayer)},mapHostViewB:{interactionSvg},interactionPresentation:packets,
     interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},setHoverHit:hit=>{state.hoverHit=hit;}},
     domains:{projectDomain,get selectionDomain(){return documentSession.selectionDomain;},get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},feedback:{reportOperationError:onError},
-    selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},presentation:objectPresentation,
+    selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},
     hydroModel:{hydroFeatureById:hydroById},territorialModel:{DISTRIBUTION_MODES},distributionServices:readPorts.distributionServices}));
   gpuScene.initializeSelectionPass();gpuScene.initializeRenderSceneBuilder();gpuScene.initializeGpuSceneDomains();gpuScene.initializeGpuSceneResourceObjectKeys();
   mapHost.attachMapOutput({overlaySvg:svg,gpuCanvas:canvas});
@@ -211,7 +211,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     onError:error=>diagnostics.push({category:'initial-preview',errorCode:'PL-MAP-INITIAL-PREVIEW',
       technicalMessage:error.message||String(error),stack:error.stack||''})});
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
-  renderingDomain=createRenderingDomain({readOnly:true,gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
+  renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     ...createMapRenderingResources({session:{selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},ports:mergeCapabilityPorts(commonPorts,readPorts,{
@@ -220,11 +220,10 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     gpuRenderingA:gpuScene,gpuRenderingB:gpuScene,spatialRecords:spatialIndex,objectOperationsA:objectQuery,
     preferences:{mapTheme:theme,get resolvedInteractionStyle(){return getInteractionStyle();}},
     objectModelA:{get distributionVisibilityRevision(){return objectPresentation.distributionVisibilityRevision;}},
-    rendering:{gpuMapRenderer:renderer},presentation:objectPresentation,
+    rendering:{gpuMapRenderer:renderer},
     interactionStateCommands:{setSelectionPacket:packet=>{gpuScene.currentSelectionPacket=packet;}}
   }),layers:{svg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer},readStateRevision:()=>state.objectPresentationRevision}),
 
-    interactionResources:{applyGpuInteractionCoverage:gpuScene.applyGpuInteractionCoverage},
     prepareView:options=>{
       state.size={width:Math.max(1,element.clientWidth),height:Math.max(1,element.clientHeight)};
       lastFrame=mapHost.prepareVisualFrame(options);

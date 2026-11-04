@@ -1,9 +1,11 @@
 import test from 'node:test';
+import fs from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
 import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,unlinkSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {withLibraryLock} from '../../tools/library-data.mjs';
+import {discardDeadLibraryLock,withLibraryLock} from '../../tools/library-data.mjs';
 import {prepareLibraryWhenAvailable} from '../../scripts/lib/library-preparation-wait.mjs';
 
 function activeOwner(t){
@@ -47,4 +49,37 @@ test('frontend preparation immediately propagates non-lock failures',async()=>{
   await assert.rejects(prepareLibraryWhenAvailable(()=>{attempts++;throw failure;}),error=>error===failure);
   assert.equal(attempts,1);
  }
+});
+
+test('a lock released between existence and stat can be acquired without touching another owner',t=>{
+ const {root,lock}=activeOwner(t);
+ const original=fs.lstatSync;let simulatedRelease=false;
+ fs.lstatSync=function(path,...args){
+  if(path===lock&&!simulatedRelease){simulatedRelease=true;unlinkSync(lock);}
+  return original.call(this,path,...args);
+ };
+ syncBuiltinESMExports();
+ try{
+  assert.equal(withLibraryLock(root,()=> 'prepared'),'prepared');
+  assert.equal(simulatedRelease,true);
+  assert.equal(existsSync(lock),false);
+ }finally{fs.lstatSync=original;syncBuiltinESMExports();}
+});
+
+test('lock inspection tolerates release during reinspection and preserves other errors',t=>{
+ const {root,lock}=activeOwner(t);
+ const originalStat=fs.lstatSync,originalKill=process.kill;let inspections=0;
+ process.kill=()=>{throw Object.assign(new Error('gone'),{code:'ESRCH'});};
+ fs.lstatSync=function(path,...args){
+  if(path===lock&&++inspections===2)unlinkSync(lock);
+  return originalStat.call(this,path,...args);
+ };
+ syncBuiltinESMExports();
+ try{
+  assert.equal(discardDeadLibraryLock(lock),false);
+  assert.equal(withLibraryLock(root,()=> 'prepared'),'prepared');
+  fs.lstatSync=()=>{throw Object.assign(new Error('denied'),{code:'EACCES'});};
+  syncBuiltinESMExports();
+  assert.throws(()=>discardDeadLibraryLock(lock),{code:'EACCES'});
+ }finally{fs.lstatSync=originalStat;process.kill=originalKill;syncBuiltinESMExports();}
 });

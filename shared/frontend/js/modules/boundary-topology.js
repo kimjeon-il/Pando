@@ -1,4 +1,4 @@
-import { createRenderableBoundarySegmentView, buildRefinedBoundarySegments } from './geographic-boundary.js';
+import { buildRefinedBoundarySegments } from './geographic-boundary.js';
 import './polygon-geometry.js';
 import { createBoundarySpatialIndex, segmentBounds, padBoundaryBounds } from './boundary-spatial-index.js';
 import { countryGeometrySignature } from './country-shared-boundary-cache.js';
@@ -65,7 +65,7 @@ export function boundarySourceSegments(feature, fallbackId = 0, { compactPrepare
       // The long-lived shared-boundary Worker only needs one copy of the
       // country/ring/winding metadata. Keep immutable per-edge identities and
       // original coordinate ARRAY references in ordinary JS objects.
-      // Editing-domain callers still receive their original complete records.
+      // Internal boundary topology uses complete source records.
       // Keep inherited fields visible through property reads; consumers that
       // persist a contact ref must snapshot those fields into own properties.
       const shared = compactPrepared
@@ -102,8 +102,7 @@ export function prepareBoundaryFeature(feature) {
   // Source segments belong to this immutable geometry revision. Bulk-loading
   // removes per-edge JS Map/Set/key retention while preserving ordered source refs.
   spatialIndex.loadPacked(segments, boxes);
-  return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex,
-    renderableSegments: createRenderableBoundarySegmentView(feature.geometry) };
+  return { id: String(feature.id), feature, geometry: feature.geometry, segments, bounds, spatialIndex };
 }
 
 /** The Worker owns this derived index; only a changed geometry is prepared. */
@@ -295,106 +294,6 @@ export function buildBoundaryTopologyFromSegments(rawSegments, { precision = 7, 
   for (const node of nodes.values()) node.kind = node.ownerIds.size >= 3 ? 'multi-owner' : node.ownerIds.size === 2 ? 'shared' : 'coast';
   for (const segment of segments.values()) segment.kind = segment.ownerIds.size >= 2 ? 'shared' : 'coast';
   return { precision, epsilon, nodes, segments };
-}
-
-function ringForRef(feature, ref) {
-  if (feature?.geometry?.type === 'Polygon') return feature.geometry.coordinates?.[ref.ringIndex] || null;
-  return feature?.geometry?.coordinates?.[ref.polygonIndex]?.[ref.ringIndex] || null;
-}
-
-export function moveTopologyNodes(featureMap, moves, { precision = 7 } = {}) {
-  const replacements = new Map(moves.map(({node,coordinate}) => [topologyNodeKey(node.coordinate,precision),coordinate]));
-  const virtualByRing = new Map();
-  for (const {node} of moves) for (const ref of node.virtualRefs || []) {
-    const key = JSON.stringify([ref.featureId,ref.polygonIndex,ref.ringIndex]);
-    if (!virtualByRing.has(key)) virtualByRing.set(key,[]);
-    virtualByRing.get(key).push({...ref,coordinate:node.coordinate});
-  }
-  for (const refs of virtualByRing.values()) {
-    refs.sort((a,b)=>b.segmentIndex-a.segmentIndex || b.t-a.t);
-    const ring=ringForRef(featureMap.get(String(refs[0].featureId)),refs[0]);
-    if (!ring) throw new Error('Missing boundary owner ring');
-    const existing=new Set(ring.map(p=>topologyNodeKey(p,precision)));
-    for(const ref of refs) {
-      const key=topologyNodeKey(ref.coordinate,precision);
-      if(!existing.has(key)){ring.splice(ref.segmentIndex+1,0,cloneCoordinate(ref.coordinate));existing.add(key);}
-    }
-  }
-  const changed=new Set();
-  for(const [id,feature] of featureMap) for(const polygon of polygonRings(feature)) for(const ring of polygon.rings || []) {
-    for(let i=0;i<ring.length;i++) {
-      const next=replacements.get(topologyNodeKey(ring[i],precision));
-      if(next){ring[i]=cloneCoordinate(next);changed.add(id);}
-    }
-  }
-  return changed;
-}
-
-function selectedTopologySegmentKeys(topology, predicate) {
-  const keys = new Set();
-  for (const segment of topology?.segments?.values?.() || []) {
-    if (predicate(segment)) keys.add(segment.key);
-  }
-  return keys;
-}
-
-function endpointNodeKeys(topology, segmentKeys) {
-  const keys = new Set();
-  for (const key of segmentKeys) {
-    const segment = topology?.segments?.get?.(key);
-    if (!segment) continue;
-    keys.add(topologyNodeKey(segment.a, topology.precision));
-    keys.add(topologyNodeKey(segment.b, topology.precision));
-  }
-  return keys;
-}
-
-export function planSharedBoundaryEdit(topology, selectedCountryIds = []) {
-  const selectedIds = [...new Set(selectedCountryIds.map(String).filter(Boolean))];
-  const selected = new Set(selectedIds);
-  const segmentKeys = selectedTopologySegmentKeys(topology, segment => segment.kind === 'shared'
-    && segment.ownerIds.size >= 2
-    && [...segment.ownerIds].every(ownerId => selected.has(String(ownerId))));
-  const nodeKeys = endpointNodeKeys(topology, segmentKeys);
-  const editableNodeKeys = new Set();
-  const fixedNodeKeys = new Set();
-  const participantIds = new Set();
-
-  for (const key of segmentKeys) {
-    for (const ownerId of topology.segments.get(key)?.ownerIds || []) participantIds.add(String(ownerId));
-  }
-  for (const key of nodeKeys) {
-    const node = topology?.nodes?.get?.(key);
-    const editable = node?.ownerIds?.size >= 2 && [...node.ownerIds].every(ownerId => selected.has(String(ownerId)));
-    (editable ? editableNodeKeys : fixedNodeKeys).add(key);
-  }
-
-  const isolatedIds = selectedIds.filter(id => !participantIds.has(id));
-  return {
-    selectedIds,
-    segmentKeys,
-    editableNodeKeys,
-    fixedNodeKeys,
-    participantIds,
-    isolatedIds,
-    valid: selectedIds.length >= 2 && segmentKeys.size > 0 && isolatedIds.length === 0,
-  };
-}
-
-export function planCoastEdit(topology, countryId) {
-  const ownerId = String(countryId || '');
-  const segmentKeys = selectedTopologySegmentKeys(topology, segment => segment.kind === 'coast'
-    && segment.ownerIds.size === 1
-    && segment.ownerIds.has(ownerId));
-  const nodeKeys = endpointNodeKeys(topology, segmentKeys);
-  const editableNodeKeys = new Set();
-  const fixedNodeKeys = new Set();
-  for (const key of nodeKeys) {
-    const node = topology?.nodes?.get?.(key);
-    const editable = node?.kind === 'coast' && node.ownerIds.size === 1 && node.ownerIds.has(ownerId);
-    (editable ? editableNodeKeys : fixedNodeKeys).add(key);
-  }
-  return { countryId: ownerId, segmentKeys, editableNodeKeys, fixedNodeKeys };
 }
 
 function topologyFeature(feature, prefix, index) {

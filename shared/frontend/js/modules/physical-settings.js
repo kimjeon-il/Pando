@@ -9,7 +9,6 @@ export function hydroLineParts(geometry) {
  */
 export function createHydroSettings() {
   let dependencies;
-  const TERRAIN_STYLE_VERSION = 1;
 
   function connect(ports) {
     if (dependencies) throw new Error('hydro-settings already connected');
@@ -21,27 +20,6 @@ export function createHydroSettings() {
     return Math.min((0, dependencies.surfaces.isMobile)() ? 2 : 3, devicePixelRatio);
   }
 
-
-  function normalizePhysicalSettings(value) {
-    const previousLayers = value?.hydroLayers || {};
-    const mergeVisibility = ids => {
-      const defined = ids.filter(id => typeof previousLayers[id] === 'boolean');
-      return defined.length ? defined.some(id => previousLayers[id] !== false) : true;
-    };
-    const hydroLayers = {
-      rivers_hydro: mergeVisibility(['rivers_hydro']),
-      lakes_natural_earth: mergeVisibility(['lakes_natural_earth']),
-    };
-    return {
-      terrainVisible: value?.terrainVisible !== false,
-      terrainStyle: value?.terrainStyleVersion === TERRAIN_STYLE_VERSION && value?.terrainStyle === 'political'
-        ? 'political' : 'physical',
-      terrainStyleVersion: TERRAIN_STYLE_VERSION,
-      hydroLayers,
-      userFeaturesVisible: value?.userFeaturesVisible !== false,
-      dataset: dependencies.physicalConfig.PHYSICAL_DATASET,
-    };
-  }
 
   function syncRangeProgress(input) {
     if (!input) return;
@@ -70,44 +48,6 @@ export function createHydroSettings() {
     return gpu ? theme.oceanGpu : theme.ocean;
   }
 
-  function normalizeHydroEdit(feature) {
-    if (!feature?.geometry || !Array.isArray(feature.geometry.coordinates) || !feature.geometry.coordinates.length) return null;
-    feature.properties ||= {};
-    const geometryKind = (0, dependencies.objectPresentation.genericFeatureGeometryKind)(feature);
-    const category = feature.properties.category === 'lake' && geometryKind === 'polygon' ? 'lake'
-      : feature.properties.category === 'river' && geometryKind === 'line' ? 'river'
-        : geometryKind === 'polygon' ? 'lake'
-          : geometryKind === 'line' ? 'river' : '';
-    if (!category) return null;
-    feature.id = String(feature.id || '').trim();
-    if (!feature.id) throw new Error('편집 강/호수 ID가 비어 있습니다.');
-    feature.properties = {
-      ...feature.properties,
-      category,
-      pandolab_domain: 'hydro',
-      pandolab_schema_version: 1,
-      pandolab_id: feature.id,
-      name: String(feature.properties.name || ''),
-      notes: String(feature.properties.notes || ''),
-      editorColor: (0, dependencies.colorModel.normalizeEditorColor)(feature.properties.editorColor, dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[category].color),
-    };
-    delete feature.properties.visible;
-    return feature;
-  }
-
-  function normalizeHydroEditCollection(value) {
-    const output = [];
-    const seen = new Set();
-    for (const feature of Array.isArray(value) ? value : []) {
-      const normalized = normalizeHydroEdit(feature);
-      if (!normalized) throw new Error('편집 강/호수 형식이 올바르지 않습니다.');
-      if (seen.has(normalized.id)) throw new Error(`편집 강/호수 ID가 중복되었습니다: ${normalized.id}`);
-      seen.add(normalized.id);
-      output.push(normalized);
-    }
-    return output;
-  }
-
   function hydroEditById(id) {
     const key = String(id);
     return dependencies.projectState.state.hydroEdits.find(feature => String(feature.id) === key) || null;
@@ -134,9 +74,7 @@ export function createHydroSettings() {
   }
 
   function allBuiltInHydroFeatures() {
-    const tiled = dependencies.projectState.state.hydroFeatureCache instanceof Map ? [...dependencies.projectState.state.hydroFeatureCache.values()] : [];
-    const legacy = Object.values(dependencies.projectState.state.hydroCollections || {}).flatMap(collection => collection?.features || []);
-    return [...tiled, ...legacy];
+    return dependencies.projectState.state.hydroFeatureCache instanceof Map ? [...dependencies.projectState.state.hydroFeatureCache.values()] : [];
   }
 
   function builtInHydroFeatureById(id) {
@@ -167,9 +105,6 @@ export function createHydroSettings() {
     get hydroLayerVisible() { return hydroLayerVisible; },
     get isHydroEditFeature() { return isHydroEditFeature; },
     get isHydroFeatureVisible() { return isHydroFeatureVisible; },
-    get normalizeHydroEdit() { return normalizeHydroEdit; },
-    get normalizeHydroEditCollection() { return normalizeHydroEditCollection; },
-    get normalizePhysicalSettings() { return normalizePhysicalSettings; },
     get syncPhysicalControls() { return syncPhysicalControls; },
     terrainModeSettings,
     get syncRangeProgress() { return syncRangeProgress; },

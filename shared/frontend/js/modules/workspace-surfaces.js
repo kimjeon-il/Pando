@@ -20,7 +20,6 @@ export function createWorkspaceSurfaces() {
   let fileMenuTrigger;
   let pendingLayoutChange = false;
   let surfaceController;
-  let surfaceState;
   let MOBILE_SHEET_IDS;
   let MOBILE_SHEET_HISTORY_KEY;
   let ignoreNextMobileSheetPopstate;
@@ -223,12 +222,12 @@ export function createWorkspaceSurfaces() {
   function toggleFileMenu(){if(fileMenuOpen){closeFileMenu();return false;}return openFileMenu();}
 
 
-  function openSurface(surface, { trigger = null, automatic = false } = {}) {
+  function openSurface(surface, { trigger = null } = {}) {
     if(!registeredSurfaces.includes(surface))return false;
     if (dependencies.projectState.state.projectReplacing) return false;
     closeFileMenu();
     const activeTrigger = trigger instanceof HTMLElement ? trigger : document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (!surfaceController.open(surface, { automatic })) return false;
+    if (!surfaceController.open(surface)) return false;
     if (activeTrigger) lastOverlayTrigger = activeTrigger;
     if (isMobile()) {
       const kind = { search: 'search', display: 'display' }[surface];
@@ -250,11 +249,11 @@ export function createWorkspaceSurfaces() {
     return true;
   }
 
-  function closeSurface(surface, { manual = false, restoreFocus = false, syncHistory = true } = {}) {
+  function closeSurface(surface, { restoreFocus = false, syncHistory = true } = {}) {
     if(!registeredSurfaces.includes(surface))return false;
     const mobileKind = isMobile() ? { search: 'search', display: 'display' }[surface] : null;
     const mobilePanel = mobileKind ? mobileSheets.mobileSheetPanel(mobileKind) : null;
-    if (!surfaceController.close(surface, { manual, selected: !!dependencies.projectState.state?.selected })) return;
+    if (!surfaceController.close(surface)) return;
     if (mobilePanel) mobileSheets.resetMobileSheetSession(mobilePanel);
     syncOverlayState();
     if (mobilePanel && syncHistory) releaseMobileSheetHistory();
@@ -292,7 +291,6 @@ export function createWorkspaceSurfaces() {
 
     (surfaceController = (0, dependencies.uiFactoriesB.createSurfaceController)({ getElement: dependencies.platform.$, getLayout: () => layoutMode, document }));
 
-    (surfaceState = surfaceController.state);
 
 
 
@@ -387,7 +385,6 @@ export function createWorkspaceSurfaces() {
     get focusSurfaceTrigger() { return focusSurfaceTrigger; },
     get setMobileSheetHeight() { return mobileSheets.setMobileSheetHeight; },
     get surfaceController() { return surfaceController; },
-    get surfaceState() { return surfaceState; },
     get syncOverlayState() { return syncOverlayState; },
     get toggleFileMenu() { return toggleFileMenu; },
     get toggleSurface() { return toggleSurface; },

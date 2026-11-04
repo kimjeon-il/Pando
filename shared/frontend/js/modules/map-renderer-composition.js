@@ -81,12 +81,12 @@ export function createMapRenderer(dependencies, { presentMapPreparation, onMapPr
   }
 
 /** Shared frame resource wiring. Document and geometry ownership stay in their existing domains. */
-export function createMapRenderingResources({ports,layers,session,editing=null,readStateRevision=()=>ports.projectState.state.stateRevision,document=globalThis.document}){
+export function createMapRenderingResources({ports,layers,session,readStateRevision=()=>ports.projectState.state.stateRevision,document=globalThis.document}){
   if(!session?.selectionDomain)throw new TypeError('Map rendering resources require the canonical selection session.');
   const resources=Object.create(null);let lastFrame;
   function snapshot(name,values,live){
-    const resource={...values},extension=editing?.[name];
-    const refresh=()=>{for(const [key,read]of Object.entries(live))resource[key]=read();if(extension)Object.assign(resource,extension);};
+    const resource={...values};
+    const refresh=()=>{for(const [key,read]of Object.entries(live))resource[key]=read();};
     resources[name]={resource,refresh};refresh();return resource;
   }
   const common={
@@ -143,7 +143,6 @@ export function createMapRenderingResources({ports,layers,session,editing=null,r
       syncGpuRenderScene: ports.gpuRenderingB.syncGpuRenderScene,
       gpuMapRenderer: ports.rendering.gpuMapRenderer,
       applyGpuSceneCoverage: ports.gpuRenderingA.applyGpuSceneCoverage,
-      applyGpuInteractionCoverage: ports.gpuRenderingA.applyGpuInteractionCoverage
     }, {
       countryLayer: () => layers.countryLayer
     }),
@@ -180,7 +179,6 @@ export function createMapRenderingResources({ports,layers,session,editing=null,r
     }),
     genericResources:snapshot("genericResources", {
       ...common,
-      genericFeatureDisplayFeature: ports.presentation.genericFeatureDisplayFeature,
       genericFeatureColor: ports.colorModel.genericFeatureColor,
       isLayerItemVisible: ports.layerPresentation.isLayerItemVisible,
       selectionSnapshot: () => session.selectionDomain.snapshot().selection,
@@ -265,7 +263,6 @@ export function createMapRenderingResources({ports,layers,session,editing=null,r
       selectionPass: () => ports.gpuRenderingA.selectionPass
     })
   };
-  for(const name of Object.keys(editing||{}))if(!Object.hasOwn(result,name))result[name]=snapshot(name,{},{});
   return {...result,refreshRenderResources(frameId){
       if(frameId!=null&&frameId===lastFrame)return lastFrame;
       for(const {refresh}of Object.values(resources))refresh();lastFrame=frameId;return lastFrame;

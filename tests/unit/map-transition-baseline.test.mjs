@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
+import {readFileSync} from 'node:fs';
 import { semanticSnapshot, summarizeLatency, resourceDelta, replaceExactlyOnce, installMapBaselineCollector, instrumentMapBaselineSource } from '../helpers/map-transition-baseline.mjs';
 
 const document = () => ({
@@ -91,10 +92,15 @@ test('collector distinguishes a handler-only start from a captured DOM input', (
   const {probe} = collector(); probe.begin('1950-12');
   assert.equal(probe.snapshot().events[0].origin, 'timeline-handler');
 });
-test('instrumentation preserves Core admission statement and refuses unsupported modules', () => {
-  const statement = 'await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);';
+test('instrumentation preserves Core temporal adoption statement and refuses unsupported modules', () => {
+  const statement = `await commandOwner.temporalCandidateAdopt({
+          candidateId:prepared.candidateId,sourceId:prepared.sourceId,
+          targetMonth:prepared.targetMonth,sourceFingerprint:prepared.sourceFingerprint,
+          worldSha256:prepared.worldSha256,replacementId:checkpoint.replacementId,
+          expectedEpoch:prepared.expectedEpoch,
+        });`;
   const output = instrumentMapBaselineSource(statement, 'project-domain.js');
-  assert.ok(output.includes(statement)); assert.ok(output.includes('core-load:start')); assert.ok(output.includes('core-load:end'));
+  assert.ok(output.includes(statement)); assert.ok(output.includes('candidate-adopt:start')); assert.ok(output.includes('candidate-adopt:end'));
   assert.throws(() => instrumentMapBaselineSource('', 'unknown.js'), /Unknown probe/);
 });
 
@@ -109,4 +115,18 @@ test('diagnostic observation distinguishes a real null, thrown error and data', 
   assert.deepEqual(await observeWithDeadline(() => ({count: 4})), {status: 'ok', value: {count: 4}});
   const failed = await observeWithDeadline(() => {throw new Error('closed page');});
   assert.equal(failed.status, 'failed'); assert.match(failed.error, /closed page/);
+});
+
+test('temporal probes instrument the active production sources on LF and CRLF checkouts',()=>{
+ for(const [name,path] of [
+  ['viewer-composition.js','apps/viewer/js/modules/viewer-composition.js'],
+  ['builtin-session.js','shared/frontend/js/modules/builtin-session.js'],
+  ['project-domain.js','shared/frontend/js/modules/project-domain.js'],
+ ]){
+  const source=readFileSync(new URL('../../'+path,import.meta.url),'utf8').replaceAll('\r\n','\n');
+  const instrumented=instrumentMapBaselineSource(source,name);
+  assert.equal(instrumentMapBaselineSource(source.replaceAll('\n','\r\n'),name),instrumented);
+  if(name==='builtin-session.js')assert.match(instrumented,/candidate-prepare:start/);
+  if(name==='project-domain.js')assert.match(instrumented,/candidate-adopt:start/);
+ }
 });

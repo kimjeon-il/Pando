@@ -129,7 +129,7 @@ test('hover suppression and disabled outlines remove ineligible hierarchy owners
   const active = plans.selectionDisplayPlan(options);
   assert.equal(active.hoverActive, true);
   assert.deepEqual(active.boundaryOwnersByKey.get('candidate').map(entry => entry.key), ['selected', 'hover', 'tool']);
-  for (const suppress of [{ mobile: true }, { mapMoving: true }, { draftDragging: true }, { hoverHasGeometry: false }, { hoverKey: 'selected' }]) {
+  for (const suppress of [{ mobile: true }, { mapMoving: true }, { hoverHasGeometry: false }, { hoverKey: 'selected' }]) {
     const plan = plans.selectionDisplayPlan({ ...options, ...suppress, outlineVisible: false });
     assert.equal(plan.hoverActive, false);
     assert.deepEqual([...plan.boundaryOwnersByKey.keys()], ['tool', 'candidate']);
@@ -138,21 +138,21 @@ test('hover suppression and disabled outlines remove ineligible hierarchy owners
   }
 });
 
-test('fill masks order tool roles before selection, parent depth before descendants and stable peer keys', () => {
+test('fill masks order selection before hover, parent depth before descendants and stable peer keys', () => {
   const entries = [
     { key: 'region', role: 'secondary', priority: 3, depth: 2, ref: { domain: 'territorial' } },
-    { key: 'z-country', role: 'selected-provider', priority: 3, depth: 0, ref: { domain: 'territorial' } },
+    { key: 'z-country', role: 'secondary', priority: 3, depth: 0, ref: { domain: 'territorial' } },
     { key: 'a-country', role: 'secondary', priority: 3, depth: 0, ref: { domain: 'territorial' } },
-    { key: 'draft', role: 'edit-target', priority: 5, ref: { domain: 'interaction' } },
-    { key: 'reference', role: 'reference', priority: 1, ref: { domain: 'generic' } },
+    { key: 'selected', role: 'primary', priority: 4, ref: { domain: 'territorial' } },
+    { key: 'reference', role: 'candidate', priority: 1, ref: { domain: 'generic' } },
   ];
   const before = structuredClone(entries);
   const plan = plans.selectionDisplayPlan({ entries, style: resolveMapInteractionStyle() });
   const masks = plans.orderSelectionFillMasks(plan.fillMasks);
-  assert.deepEqual(masks.map(item => item.key), ['draft', 'a-country', 'z-country', 'region', 'reference']);
+  assert.deepEqual(masks.map(item => item.key), ['selected', 'a-country', 'z-country', 'region', 'reference']);
   assert.equal(masks[0].fillAlpha, 0.105);
   assert.equal(masks[4].fillAlpha, 0);
-  assert.deepEqual(plan.fillMasks.map(item => item.key), ['region', 'z-country', 'a-country', 'draft', 'reference']);
+  assert.deepEqual(plan.fillMasks.map(item => item.key), ['region', 'z-country', 'a-country', 'selected', 'reference']);
   assert.deepEqual(entries, before);
 });
 test('view-only reuse requires a successful frame with unchanged fill ownership', () => {

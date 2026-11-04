@@ -16,7 +16,7 @@ on:
       - apps/viewer/js/modules/viewer-initial-presentation.js
       - tests/unit/viewer-initial-presentation.test.mjs
       - shared/frontend/js/modules/map-owner-composition.js
-      - apps/editor/native-platform-adapter.js
+      - apps/editor/stage.mjs
   workflow_dispatch:
 permissions:
   contents: read

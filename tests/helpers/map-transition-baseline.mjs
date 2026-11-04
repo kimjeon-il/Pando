@@ -91,7 +91,7 @@ export function installMapBaselineCollector() {
 }
 
 export function instrumentMapBaselineSource(source, name) {
-  let next = source;
+  let next = source.replaceAll('\r\n', '\n');
   const mark = label => `globalThis.__PANDO_P0__.mark(${JSON.stringify(label)});`;
   const around = (anchor, label) => { next = replaceExactlyOnce(next, anchor, `${mark(label + ':start')}${anchor}${mark(label + ':end')}`); };
   if (name === 'viewer-composition.js') {
@@ -111,9 +111,16 @@ export function instrumentMapBaselineSource(source, name) {
     around('const bytes=new TextEncoder().encode(JSON.stringify(project));', 'serialize');
     around(`const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))]
         .map(value=>value.toString(16).padStart(2,'0')).join('');`, 'source-hash');
-    around('const accepted=await domain.admitStorageBaseline(facts,{expectedGeneration});', 'core-baseline');
+    around(`const candidate=await domain.prepareTemporalBuiltin(facts,setup,{
+        dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
+        expectedGeneration:prepared.expectedGeneration,isCurrent,transition});`, 'candidate-prepare');
   } else if (name === 'project-domain.js') {
-    around('await commandOwner.loadBaseline(prepared.baselineId,prepared.setup);', 'core-load');
+    around(`await commandOwner.temporalCandidateAdopt({
+          candidateId:prepared.candidateId,sourceId:prepared.sourceId,
+          targetMonth:prepared.targetMonth,sourceFingerprint:prepared.sourceFingerprint,
+          worldSha256:prepared.worldSha256,replacementId:checkpoint.replacementId,
+          expectedEpoch:prepared.expectedEpoch,
+        });`, 'candidate-adopt');
   } else throw new TypeError(`Unknown probe source: ${name}`);
   return next;
 }

@@ -8,6 +8,7 @@ import { createDistributionLayer, createDistributionEntry } from "../../shared/f
 
 test('map settings require the existing resource capabilities', () => {
   assert.throws(() => createMapSettings(), /capabilities/i);
+  assert.throws(() => createMapSettings({ capabilities: resourceCapabilities('viewer') }), /viewing presentation/i);
 });
 
 test('display menus follow registered data and available sources without changing the project', t => {
@@ -34,7 +35,7 @@ test('display menus follow registered data and available sources without changin
     const state = { ...createInitialDocument({ appVersion: '0.36.0' }), ...data, layerVisibility: { objects: false, rivers: false, lakes: false, labels: false, distributions: false },
       distributionSettings: { renderMode: 'overlap', activeLayerId: '', boundaryVisible: true }, hydroManifest: null };
     const before = structuredClone(state);
-    const settings = createMapSettings({ capabilities: resourceCapabilities(productMode, createPlatformPorts({ kind: 'browser', resources: { builtinHydro: builtin, builtinPlaces: builtin } })) });
+    const settings = createMapSettings({ capabilities: resourceCapabilities(productMode, createPlatformPorts({ kind: 'browser', resources: { builtinHydro: builtin, builtinPlaces: builtin } })), viewPresentation: { applyPresentation: () => ({ ok: true, changed: true }) } });
     settings.connect({ layerResources:{loadHydroData:async()=>{},preparePlaces:async()=>{}},projectState: { state }, platform: { $: id => id === 'distributionMenuGroup' ? groups.distribution : null },
       feedback: { reportOperationError: error => assert.fail(error.stack) }, objectModelA: { expandedMapDisplayGroups: new Set() },
       preferences: { userPreferences: { labels: { place: { languages: {} } } } }, hydroModel: { syncPhysicalControls() {} } });
@@ -45,42 +46,39 @@ test('display menus follow registered data and available sources without changin
   }
 });
 
-function fixture(t,{ projectReady=true,layerResources={loadHydroData:async()=>{},preparePlaces:async()=>{}} }={}) {
+function fixture(t,{ layerResources={loadHydroData:async()=>{},preparePlaces:async()=>{}} }={}) {
   const original=Object.getOwnPropertyDescriptor(globalThis,'document');
   Object.defineProperty(globalThis,'document',{ configurable: true,value: { querySelectorAll: () => [],querySelector: () => null } });
   t.after(() => { if(original)Object.defineProperty(globalThis,'document',original);else delete globalThis.document; });
-  let resolve,reject,generation=1,visibility=Object.freeze({ objects: true });
+  let resolve,reject,visibility=Object.freeze({ objects: true });
   const events=[],calls=[],state=Object.freeze({ get layerVisibility() { return visibility; },layerPresentation: Object.freeze({}) });
-  const project={ getGeneration: () => generation,executeCommand: envelope => {
-    calls.push(envelope);return new Promise((yes,no) => { resolve=yes;reject=no; });
-  } };
-  const settings=createMapSettings({capabilities:resourceCapabilities('editor')});
+  const settings=createMapSettings({capabilities:resourceCapabilities('viewer'),viewPresentation:{applyPresentation:payload=>{
+    calls.push(payload);return new Promise((yes,no) => { resolve=yes;reject=no; });
+  }}});
   settings.connect({ layerResources,projectState: { state },platform: { $: () => null },feedback: { reportOperationError: error => { throw error; } },
     objectModelA: { expandedMapDisplayGroups: new Set() },preferences: { userPreferences: { labels: { place: { languages: { ko: true } } } } },
     objectDisplay: { invalidateObjectPresentation: () => events.push('tree') },
     rendering: { gpuMapRenderer: { invalidateCountryPalette: () => events.push('palette'),invalidateHydroVisibility:()=>events.push('hydro') } },
-    domains: { get projectDomain() { return projectReady ? project : null; },
+    domains: {
       renderingDomain: { invalidateBaseScene: () => events.push('base'),invalidateLabels: () => events.push('labels') } } });
-  return { settings,state,events,calls,complete(ack={ ok: true,changed: true }) { visibility=Object.freeze({ objects: false });resolve(ack); },
-    fail: error=>reject(error),switchProject() { generation+=1; },connectProject() { projectReady=true; } };
+  return { settings,state,events,calls,complete(ack={ ok: true,changed: true }) { if(ack)visibility=Object.freeze({ objects: false });resolve(ack); },
+    fail: error=>reject(error) };
 }
 
-test('map settings prepare static targets before Core admission and require its owner when binding input',t => {
-  const f=fixture(t,{ projectReady: false });
+test('map settings bind through the required viewing owner',t => {
+  const f=fixture(t);
   assert.doesNotThrow(() => f.settings.initializeLAYER_STYLE_TARGETS());
-  assert.throws(() => f.settings.bindMapDisplayUI(),/Core project command owner/);
-  f.connectProject();
   assert.doesNotThrow(() => f.settings.bindMapDisplayUI());
 });
-test('map visibility dispatches one typed intent and updates presentation only after its accepted Core ACK',async t => {
+test('map visibility dispatches one typed intent and updates presentation only after the viewing owner accepts it',async t => {
   const f=fixture(t),pending=f.settings.setLayerVisibility('objects',false);
   assert.equal(f.state.layerVisibility.objects,true);assert.deepEqual(f.events,[]);
-  assert.deepEqual(f.calls,[{ commandId: 'presentation.apply',targets: [],payload: { action: 'visibility',key: 'objects',visible: false } }]);
+  assert.deepEqual(f.calls,[{ action: 'visibility',key: 'objects',visible: false }]);
   await f.complete();await pending;
   assert.equal(f.state.layerVisibility.objects,false);assert.deepEqual(f.events,['tree','palette','base','labels']);
 });
-test('old map visibility ACK cannot publish effects after a project replacement',async t => {
-  const f=fixture(t),pending=f.settings.setLayerVisibility('objects',false);f.switchProject();f.complete();
+test('a declined viewing intent cannot publish effects',async t => {
+  const f=fixture(t),pending=f.settings.setLayerVisibility('objects',false);f.complete(null);
   assert.equal(await pending,false);assert.deepEqual(f.events,[]);
 });
 test('failed map intent does not write immutable state or hide its technical error',async t => {
@@ -100,8 +98,8 @@ test('accepted layer visibility prepares the shared source only when enabled and
   assert.deepEqual(requests,[['hydro',true],['hydro',true],['places',{force:true}]]);
 });
 
-test('a superseded layer acknowledgement cannot start a source request',async t=>{
+test('a declined layer intent cannot start a source request',async t=>{
   const f=fixture(t,{layerResources:{loadHydroData:()=>assert.fail('stale hydro request'),preparePlaces:()=>assert.fail('stale place request')}});
-  const pending=f.settings.setLayerVisibility('rivers',true);f.switchProject();f.complete();
+  const pending=f.settings.setLayerVisibility('rivers',true);f.complete(null);
   assert.equal(await pending,false);
 });

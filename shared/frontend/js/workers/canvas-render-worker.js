@@ -114,7 +114,7 @@ function canvasFallbackWorkerMain() {
 
     function mergeRenderState(message) {
       const updated = { ...message };
-      for (const channel of ['scenePolygons', 'interactionPolygons', 'sceneStrokes']) {
+      for (const channel of ['scenePolygons', 'sceneStrokes']) {
         if (!Array.isArray(message[channel])) continue;
         const previous = new Map((lastRenderMessage?.[channel] || []).map(packet => [packet.key, packet]));
         updated[channel] = message[channel].map(packet => {
@@ -1086,8 +1086,6 @@ function canvasFallbackWorkerMain() {
         }
         const polygonByKey = new Map((message.scenePolygons || []).map(packet => [packet.key, packet]));
         for (const item of message.interactionFillItems || []) if (polygonByKey.has(item.key)) emphasisEntries.push({ ...item, packet: polygonByKey.get(item.key) });
-        for (const packet of message.interactionPolygons || []) emphasisEntries.push({ key: packet.key, packet,
-          priority: packet.interactionPriority || 5, style: packet.style });
         self.PandoLabCanvasSceneComposition.drawEmphasis(context, geoPath, emphasisEntries, dpr, protection);
         context.globalAlpha = 1;
         updateTerrainFrameStats(terrainPlan);
@@ -1166,7 +1164,7 @@ function canvasFallbackWorkerMain() {
         if (incomingGeneration > projectGeneration) {
           geometryRevision = 0; countrySharedBoundary = null;
           hydroEditFeatures = []; hydroEditRevision = -1;
-          lastRenderMessage = { ...lastRenderMessage, interactionPolygons: [], interactionFillItems: [], countryEmphasis: {} };
+          lastRenderMessage = { ...lastRenderMessage, interactionFillItems: [], countryEmphasis: {} };
         }
         if (incomingGeometryRevision < geometryRevision) {
           self.postMessage({

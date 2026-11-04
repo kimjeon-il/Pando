@@ -37,7 +37,7 @@ jobs:
           node scripts/generate-build-metadata.mjs --check
       - name: Check Hydro provenance and published package identity
         run: |
-          node --test tests/unit/hydro-source-notes.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
+          node --test tests/unit/gis-osm-credit-retirement.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out "$RUNNER_TEMP/hydro-release-proof.json"
       - name: Commit only regenerated Viewer and App source-matched metadata
         shell: bash

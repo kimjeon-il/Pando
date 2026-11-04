@@ -222,8 +222,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
     const candidates = (await selectableObjectsAt(screenPoint, coord, { seedRefs: [normalizedHit] })).filter(objectRefSelectable);
     if (requestRevision !== objectPickRevision
       || projectGeneration !== (dependencies.domains.projectDomain?.getGeneration?.() ?? 0)
-      || pickViewRevision !== dependencies.mapLayout.viewRevision
-      || dependencies.projectState.state.tool !== 'select' || dependencies.projectState.state.labelPlacementMode) return false;
+      || pickViewRevision !== dependencies.mapLayout.viewRevision) return false;
     if (!candidates.length) {
       closeObjectChooser({ cancelPending: false });
       await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
@@ -252,11 +251,11 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
 
   async function handleMapClick(screenPoint, { territorialLabelId = '' } = {}) {
     try {
-    if (dependencies.projectState.state.spacePanActive || dependencies.projectState.state.tool === 'move') return;
+    if (dependencies.projectState.state.spacePanActive) return;
     // A label names an explicit object even when its text is over another
     // territory or outside the globe. Other tools retain coordinate dispatch.
-    if (territorialLabelId && dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) {
-      if (dependencies.projectState.state.projectReplacing || dependencies.projectState.state.modeProcessing) return false;
+    if (territorialLabelId) {
+      if (dependencies.projectState.state.projectReplacing) return false;
       const ref = getTerritorialLabelRef(territorialLabelId);
       if (!objectRefSelectable(ref)) return false;
       closeObjectChooser();
@@ -266,7 +265,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
         mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',
       });
     }
-    if(dependencies.projectState.state.tool==='select'&&!dependencies.projectState.state.labelPlacementMode)return await handleObjectSelectionAt(screenPoint);
+    return await handleObjectSelectionAt(screenPoint);
     } catch (error) {
       dependencies.feedback.reportOperationError(error, '지도 작업을 적용하지 못했습니다.', 'PL-MAP-CLICK-001', 4200);
       return false;

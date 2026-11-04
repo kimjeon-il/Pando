@@ -74,7 +74,7 @@ function sources(){
   if(verifiedSources)return verifiedSources;
   const config=JSON.parse(fs.readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8'));
   assert.equal(config.repository,pinned.provenance.repository);
-  assert.equal(config.revision,pinned.provenance.revision,'Source parity requires the reviewed data pin');
+  assert.equal(config.revision,pinned.provenance.reviewedRuntimeRevision,'Source parity requires the reviewed data pin');
   const entities=readTerritorialSources();
   assert.deepEqual(entities.map(e=>e.entityId).sort(),Object.keys(pinned.countries).sort());
   for(const entity of entities){

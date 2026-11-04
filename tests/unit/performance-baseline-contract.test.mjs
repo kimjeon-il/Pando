@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { parse } from 'yaml';
 import { validatePerformanceManifest, assemblePerformanceEvidence } from '../../scripts/assemble-performance-evidence.mjs';
 
 const manifest = JSON.parse(readFileSync(new URL('../../config/performance-baseline-v1.json', import.meta.url), 'utf8'));
@@ -31,25 +32,48 @@ function twelveCycles() {
     } };
 }
 
-test('all retained performance suites and historical references exist, budgets remain UNSET', () => {
+test('active suites exist while historical suite paths retain explicitly unverified provenance', () => {
   const result = validatePerformanceManifest(manifest);
   assert.equal(result.frozenCommit, '2279b94f0713f08070a0c5e146be5566de35fc45');
   assert.equal(result.measurementBudgetApproved, false);
   const actualBudget = JSON.parse(readFileSync(new URL('../../config/performance-budget.json', import.meta.url), 'utf8'));
   assert.equal(actualBudget.status, 'UNSET');
   assert.equal(actualBudget.thresholds, null);
-  assert.ok(result.suiteCount >= 9);
+  assert.equal(result.activeSuiteCount, 2);
+  assert.equal(result.historicalSuiteCount, 9);
+  assert.equal(result.historicalProvenance, 'unverified');
   assert.equal(manifest.observations.packedPair.runId, 39025083891);
   assert.equal(manifest.observations.packedLongCycle.runId, 39025645298);
-  assert.ok(manifest.suites.some(row => row.id === 'cursor-core-wasm'));
-  assert.ok(manifest.suites.some(row => row.id === 'boundary-heap-owner-release'
+  assert.ok(manifest.activeSuites.some(row => row.id === 'cursor-core-wasm'));
+  assert.ok(manifest.historicalSuites.some(row => row.id === 'boundary-heap-owner-release'
     && row.level === 'destructive-isolated-diagnostic'));
+});
+
+test('missing active assets and unsafe historical paths are rejected', () => {
+  const missing = structuredClone(manifest);
+  missing.activeSuites[0].tests.push('tests/browser/nonexistent.spec.mjs');
+  assert.throws(() => validatePerformanceManifest(missing), /Missing active test asset/);
+  const unsafe = structuredClone(manifest);
+  unsafe.historicalSuites[0].tests.push('../outside');
+  assert.throws(() => validatePerformanceManifest(unsafe), /Invalid test asset path/);
+  const unsupported = structuredClone(manifest);
+  unsupported.historicalProvenance = 'verified';
+  assert.throws(() => validatePerformanceManifest(unsupported), /historical provenance/i);
+});
+
+test('active performance suites name the checks actually invoked by their workflow', () => {
+  for (const suite of manifest.activeSuites) {
+    const workflow = parse(readFileSync(new URL('../../' + suite.workflow, import.meta.url), 'utf8'));
+    const commands = Object.values(workflow.jobs).flatMap(job => job.steps || []).map(step => step.run || '').join('\n');
+    for (const file of suite.tests) assert.ok(commands.includes(file), `${suite.id} does not invoke ${file}`);
+  }
 });
 
 test('one-return and long-cycle metrics have distinct units and sampling intervals', () => {
   const result = assemblePerformanceEvidence({ manifest, packed: packed(), longCycle: twelveCycles(), sourceCommit });
   assert.equal(result.schema, 'pando-performance-evidence-v1');
   assert.equal(result.status, 'complete');
+  assert.equal(result.referenceProvenance, 'unverified');
   assert.equal(result.oneReturn.borderWorkerJsMiB, 194.68);
   assert.equal(result.oneReturn.chromiumPssMiB, 1841.82);
   assert.equal(result.oneReturn.borderWorkerWasmLinearMiB, 57.63);
@@ -101,6 +125,6 @@ test('no accepted hardware performance budgets can be invented by changing a fix
   modified.measurementPolicy.thresholdsApproved = true;
   assert.throws(() => validatePerformanceManifest(modified, { checkPaths: false }), /No performance budget/);
   modified.measurementPolicy.thresholdsApproved = false;
-  modified.suites.push({ ...modified.suites[0] });
+  modified.activeSuites.push({ ...modified.activeSuites[0] });
   assert.throws(() => validatePerformanceManifest(modified, { checkPaths: false }), /Duplicate or missing suite ID/);
 });

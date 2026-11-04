@@ -42,33 +42,6 @@ export function createMapProjection({capabilities=resourceCapabilities('viewer')
     };
   }
 
-  function readObjectFitInsets(mapRect, safe) {
-    const insets = { ...safe };
-    if (!mapRect?.width || !mapRect?.height) return insets;
-    const panel = (0, dependencies.platform.$)('editorSurface');
-    const panelOpen = panel?.classList.contains('mobile-open') && getComputedStyle(panel).visibility !== 'hidden';
-    if (!panelOpen) return insets;
-    const panelRect = panel.getBoundingClientRect();
-    const edge = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-map-edge')) || 12;
-    const overlapLeft = Math.max(mapRect.left, panelRect.left);
-    const overlapRight = Math.min(mapRect.right, panelRect.right);
-    const overlapTop = Math.max(mapRect.top, panelRect.top);
-    const overlapBottom = Math.min(mapRect.bottom, panelRect.bottom);
-    if (overlapRight <= overlapLeft || overlapBottom <= overlapTop) return insets;
-    if (dependencies.surfaces.layoutMode === 'mobile') {
-      insets.bottom = Math.max(insets.bottom, mapRect.bottom - panelRect.top + edge);
-    } else if (panelRect.left >= mapRect.left + mapRect.width / 2) {
-      insets.right = Math.max(insets.right, mapRect.right - panelRect.left + edge);
-    } else {
-      insets.left = Math.max(insets.left, panelRect.right - mapRect.left + edge);
-    }
-    insets.left = (0, dependencies.platform.clamp)(insets.left, 0, mapRect.width - 96);
-    insets.right = (0, dependencies.platform.clamp)(insets.right, 0, mapRect.width - insets.left - 96);
-    insets.top = (0, dependencies.platform.clamp)(insets.top, 0, mapRect.height - 96);
-    insets.bottom = (0, dependencies.platform.clamp)(insets.bottom, 0, mapRect.height - insets.top - 96);
-    return insets;
-  }
-
   function refreshMapLayoutMetrics(reason = 'layout') {
     const mapElement = (0, dependencies.platform.$)('map');
     const bounds = mapElement?.getBoundingClientRect?.();
@@ -81,7 +54,6 @@ export function createMapProjection({capabilities=resourceCapabilities('viewer')
       height,
       dpr: Math.max(1, Number(window.devicePixelRatio || 1)),
       safeInsets: safe,
-      fitInsets: readObjectFitInsets(bounds, safe),
       mobile: (0, dependencies.surfaces.isMobile)(),
       revision: mapLayoutMetricsRefreshCount,
       reason,

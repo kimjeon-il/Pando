@@ -46,8 +46,8 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
   const committedLibrary=JSON.parse(git(['show','HEAD:config/library-data.json'])),localLibrary=JSON.parse(await readFile(resolve(root,'config/library-data.json'),'utf8'));
   if(dirty.length||committedLibrary.repository!==localLibrary.repository)throw Error('Commit and push native/build inputs before requesting CI: '+dirty.join(', '));
   const head=git(['rev-parse','HEAD']),branch=git(['branch','--show-current']);
-  if(!/^(main|work\/[\w-]+)$/.test(branch)||git(['ls-remote','origin','refs/heads/'+branch]).split(/\s/)[0]!==head)throw Error('Current native source commit must exist on the matching remote branch');
-  const gh=github||((args)=>execFileSync('gh',args,{encoding:'utf8',windowsHide:true,maxBuffer:16*1024**2,timeout:60000}));
+  if(!/^(main|(?:work|codex)\/[\w-]+)$/.test(branch)||git(['ls-remote','origin','refs/heads/'+branch]).split(/\s/)[0]!==head)throw Error('Current native source commit must exist on the matching remote branch');
+  const gh=github||((args,{timeout=60000}={})=>execFileSync('gh',args,{encoding:'utf8',windowsHide:true,maxBuffer:16*1024**2,timeout}));
   const api=endpoint=>{
     for(let attempt=0;;attempt++)try{return JSON.parse(gh(['api','--hostname','github.com','--method','GET',endpoint]));}
     catch(error){if(attempt>=2||!(['UNKNOWN','EAGAIN','ETIMEDOUT'].includes(error.code)||/HTTP (?:429|502|503)|connection.*reset/i.test(String(error.stderr||''))))throw error;Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,100*(attempt+1));}
@@ -98,7 +98,7 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
     else if(previous.phase==='downloading'){
       // This phase owns only a disposable incomplete transfer, never an installed view.
       if(await exists(download)){contentFiles(download);await rm(download,{recursive:true});}
-      await mkdir(download,{recursive:true});gh(['run','download',String(run.id),'--repo',pin.repository,'--name',artifactName,'--dir',download]);
+      await mkdir(download,{recursive:true});gh(['run','download',String(run.id),'--repo',pin.repository,'--name',artifactName,'--dir',download],{timeout:15*60_000});
       manifest=verifyNativeBundle(download,identity,pin);atomicStorageJSON(owner,{...previous,phase:'verified'});
     }else throw Error('Unknown native download phase must be preserved');
     if(manifest.sourceCommit!==head)throw Error('Downloaded artifact provenance differs from its trusted CI run');

@@ -12,7 +12,7 @@ on:
       - 'assets/js/modules/import-service.js'
       - 'assets/js/workers/gis-geometry-worker.js'
       - 'tests/unit/gis-geometry-worker.test.mjs'
-      - 'tests/unit/library-import-atomic.test.mjs'
+      - 'tests/unit/territorial-entity-store.test.mjs'
       - 'tests/browser/temporal-map-presentation.spec.mjs'
   workflow_dispatch:
 permissions:
@@ -41,7 +41,7 @@ jobs:
           node --test --test-concurrency=1
           tests/unit/gis-geometry-worker.test.mjs
           tests/unit/r4c-spatial-boundaries.test.mjs
-          tests/unit/library-import-atomic.test.mjs
+          tests/unit/territorial-entity-store.test.mjs
       - name: Stage current code-matched immutable browser Worker runtime
         run: |
           node scripts/generate-build-metadata.mjs

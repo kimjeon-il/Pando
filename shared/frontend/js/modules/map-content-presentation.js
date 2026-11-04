@@ -51,7 +51,6 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       : gpuResult;
     if (!presentationOnly && frameResult?.deferred) commitViewAttachedLayers(renderViewState, frameResult);
     countries.applyGpuSceneCoverage?.(frameResult);
-    countries.applyGpuInteractionCoverage?.(frameResult);
     return frameResult;
   };
   const renderHydro = frameContext => {
@@ -106,13 +105,12 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const selection = hydro.hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
     selection.enter().append('path')
       .attr('class', 'hydro-edit-shape')
-      .on('mouseenter.hover', feature => hydro.setMapHover?.('hydro', feature.id, feature, {
+      .on('mouseenter.hover', feature => hydro.setMapHover?.(feature, {
         domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id,
       }))
-      .on('mouseleave.hover', feature => hydro.setMapHover?.('', '', null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
+      .on('mouseleave.hover', feature => hydro.setMapHover?.(null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
       .on('click', function(feature) {
-        const stateNow = hydro.getState?.() || {};
-        if (hydro.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
+        if (hydro.mapClickBlocked?.()) return;
         hydro.d3?.event?.stopPropagation?.();
         hydro.handleObjectSelectionAt?.(hydro.d3?.mouse?.(hydro.svg), {
           sourceEvent: hydro.d3?.event,
@@ -196,7 +194,6 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       : new Set();
     const data = state.layerVisibility?.genericFeatures !== false
       ? (state.genericFeatures || []).filter(feature => g.isLayerItemVisible?.('genericFeatures', feature.id))
-        .map(feature => g.genericFeatureDisplayFeature?.(feature) || feature)
         .filter(feature => feature.geometry && ((visibleIds.has(String(feature.id)) && g.geometryMayIntersectViewport?.(feature.geometry))
           || g.selectionHas?.(g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: feature.id }))))
       : [];
@@ -205,17 +202,10 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     if (canPresentFrame(frameContext)) {
       const selection = g.genericFeatureLayer?.selectAll('path.generic-feature-shape').data(data.filter(d => ['Point', 'MultiPoint'].includes(d.geometry?.type)), d => String(d.id));
       selection?.enter().append('path').attr('class', 'generic-feature-shape')
-        .on('mouseenter.hover', d => g.setMapHover?.('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
-        .on('mouseleave.hover', feature => g.setMapHover?.('', '', null, { domain: 'generic', type: 'feature', id: feature.id }))
+        .on('mouseenter.hover', d => g.setMapHover?.(d, { domain: 'generic', type: 'feature', id: d.id }))
+        .on('mouseleave.hover', feature => g.setMapHover?.(null, { domain: 'generic', type: 'feature', id: feature.id }))
         .on('click', function(d) {
-          const stateNow = g.getState?.() || {};
           if (g.mapClickBlocked?.()) return;
-          if (stateNow.tool === 'merge-generic-feature') {
-            g.d3?.event?.stopPropagation?.();
-            g.toggleGenericFeatureMergeTarget?.(String(d.id));
-            return;
-          }
-          if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
           g.d3?.event?.stopPropagation?.();
           g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
         });

@@ -27,13 +27,13 @@ test('flat projection remains equirectangular and is not constrained by Mercator
   }
 });
 
-test('MapInteractionGate keeps edit handles in Pando and Space pan in the host', () => {
+test('MapInteractionGate keeps labels in Pando and Space pan in the host', () => {
   const gate = createMapInteractionGate();
-  const handle = { closest: selector => selector.includes('.vertex-handle') ? {} : null };
+  const handle = { closest: selector => selector.includes('.user-label') ? {} : null };
   const background = { closest: () => null };
   assert.equal(gate.ownerForEvent(handle), 'pando');
   assert.equal(gate.ownerForEvent(background), 'host');
-  gate.setDraftInputActive(true);
+  gate.setNavigationEnabled(false);
   assert.equal(gate.ownerForEvent(background), 'pando');
   gate.setForcedPan(true);
   assert.equal(gate.ownerForEvent(handle), 'host');

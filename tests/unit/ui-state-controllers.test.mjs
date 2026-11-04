@@ -6,7 +6,7 @@ import { createNodeSelection } from '../helpers/core-selection.mjs';
 import { createNodeCoreProject } from '../helpers/core-project.mjs';
 import { startupDocument } from '../helpers/core-startup.mjs';
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
-import { moveOverlayGroup, normalizeLayerPresentation, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
+import { normalizeLayerPresentation, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
 import { AUTOSAVE_STATES, createSaveStateController, FILE_SAVE_STATES } from "../helpers/core-command-services/save-state-controller.mjs";
 
 const country = id => ({ domain: 'territorial', type: 'entity', id });
@@ -51,7 +51,6 @@ test('layer presentation applies the current object-group runtime policy', () =>
   assert.deepEqual(normalized.overlayOrder, OVERLAY_GROUPS);
   assert.equal(normalized.styles.objects.boundaryWidth, 1);
   assert.equal(normalized.styles.objects.opacity, 0.4);
-  assert.deepEqual(moveOverlayGroup(normalized, 'objects', 'down'), normalized);
 });
 
 test('Core object selection emits only when ordered keys or the primary item change', async t => {
@@ -73,13 +72,12 @@ test('Core object selection emits only when ordered keys or the primary item cha
   assert.deepEqual(reasons, ['set-many', 'replace', 'clear']);
 });
 
-test('v2 hydro presentation input normalizes to canonical river and lake styles', () => {
+test('current river and lake presentation styles remain independent', () => {
   const normalized = normalizeLayerPresentation({
-    schemaVersion: 2,
-    styles: { hydro: { opacity: 0.65, boundaryVisible: false } },
+    schemaVersion: 5,
+    styles: { rivers: { opacity: 0.25 }, lakes: { opacity: 0.65, boundaryVisible: false } },
   });
-  assert.equal('hydro' in normalized.styles, false);
-  assert.equal(normalized.styles.rivers.opacity, 0);
+  assert.equal(normalized.styles.rivers.opacity, 0.25);
   assert.equal(normalized.styles.rivers.boundaryVisible, true);
   assert.equal(normalized.styles.lakes.opacity, 0.65);
   assert.equal(normalized.styles.lakes.boundaryVisible, false);

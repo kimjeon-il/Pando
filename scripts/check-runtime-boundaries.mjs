@@ -104,12 +104,12 @@ mustContain('assets/js/modules/product-mode-policy.js',/PL-PRODUCT-READONLY/,
   'Core product mode must reject mutation operations');
 mustContain('assets/js/modules/core-document-client.js',/policy\.assertOperation\(operation\)/,
   'Core document client must check the product policy');
-mustContain('assets/js/modules/rendering-domain.js',/if\s*\(\s*readOnly\s*&&\s*\(editPreviewController/,
-  'Read-only renderer must reject edit/preview hooks');
-mustContain('assets/js/modules/map-owner-composition.js',/if\s*\(\s*readOnly\s*&&\s*editing\s*\)/,
+for(const token of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
+  if(source('assets/js/modules/rendering-domain.js').includes(token))fail('Renderer retains retired editor hook: '+token);
+mustContain('assets/js/modules/map-owner-composition.js',/if\s*\(\s*readOnly\s*!==\s*true\s*\|\|\s*editing\s*\)/,
   'Read-only map owner must reject editing hooks');
-mustContain('assets/js/modules/map-workspace-host.js',/const editOverlays=productMode==='editor'&&!readOnly/,
-  'Read-only map host must exclude editable overlays');
+for(const token of ['boundaryEditLayer','previewLayer','vertexLayer','draftLayer','snapLayer'])
+  if(source('assets/js/modules/map-workspace-host.js').includes(token))fail('Map host retains retired editing layer: '+token);
 mustContain('assets/js/modules/rendering-domain.js',/createMapRenderCoordinator\(\{/,
   'RenderingDomain must own the canonical render coordinator');
 for(const [asset,body] of sources)

@@ -3,12 +3,8 @@ const FIRST_LOAD_WINDOW_MS = 5_000;
 const EVENT_DURATION_FLOOR_MS = 16;
 
 export const PERFORMANCE_METRIC_NAMES = Object.freeze({
-  AUTOSAVE: 'autosave.persist',
   COMMAND: 'project.command',
-  TRANSACTION: 'project.transaction',
   MOBILE_SHEET_DRAG: 'mobile-sheet.drag',
-  COMMIT_TO_PAINT: 'ui.commit-to-paint',
-  MAP_RESIZE: 'map.resize',
 });
 
 const PERFORMANCE_DIAGNOSTIC_THRESHOLDS = Object.freeze({
@@ -16,8 +12,6 @@ const PERFORMANCE_DIAGNOSTIC_THRESHOLDS = Object.freeze({
   longTaskMs: 50,
   interactionFrameBudgetMs: 16.7,
   slowInteractionFrameMs: 33.4,
-  commitToPaintMs: 100,
-  autosaveMs: 750,
 });
 
 const finite = value => Number.isFinite(Number(value));
@@ -404,48 +398,6 @@ function installMobileSheetProbe(documentRef, globalObject, metrics) {
   };
 }
 
-function installCommitToPaintProbe(documentRef, globalObject, metrics) {
-  if (!documentRef?.addEventListener || typeof globalObject.requestAnimationFrame !== 'function') return () => {};
-  const clickSelectors = [
-    '#modePrimaryBtn',
-    '#confirmModalConfirmBtn',
-    '#coastReconciliationCountryBtn',
-    '#coastReconciliationAdminBtn',
-    '#coastReconciliationIndependentBtn',
-    '#gisImportConfirmBtn',
-    '#gisExportConfirmBtn',
-    '#saveProjectBtn',
-    '.editor-action-row',
-  ].join(',');
-  const changeSelectors = [
-    '#editorSurface input',
-    '#editorSurface select',
-    '#editorSurface textarea',
-  ].join(',');
-
-  const schedule = event => {
-    const selector = event.type === 'change' ? changeSelectors : clickSelectors;
-    const target = event.target?.closest?.(selector);
-    if (!target) return;
-    const startedAt = nowFrom(globalObject.performance);
-    globalObject.requestAnimationFrame(() => {
-      globalObject.requestAnimationFrame(() => {
-        metrics.record(PERFORMANCE_METRIC_NAMES.COMMIT_TO_PAINT, nowFrom(globalObject.performance) - startedAt, {
-          event: event.type,
-          target: targetName(target),
-        });
-      });
-    });
-  };
-
-  documentRef.addEventListener('click', schedule, true);
-  documentRef.addEventListener('change', schedule, true);
-  return () => {
-    documentRef.removeEventListener('click', schedule, true);
-    documentRef.removeEventListener('change', schedule, true);
-  };
-}
-
 export function installRuntimePerformanceMetrics({
   globalObject = globalThis,
   documentRef = globalObject.document,
@@ -459,7 +411,6 @@ export function installRuntimePerformanceMetrics({
   core.sampleMemory('runtime-monitor-installed');
 
   const removeSheetProbe = installMobileSheetProbe(documentRef, globalObject, core);
-  const removeCommitProbe = installCommitToPaintProbe(documentRef, globalObject, core);
   const milestoneEvents = ['pandolab:editable', 'pandolab:ready'];
   const listeners = milestoneEvents.map(type => {
     const listener = () => {
@@ -474,7 +425,6 @@ export function installRuntimePerformanceMetrics({
     ...core,
     dispose: () => {
       removeSheetProbe();
-      removeCommitProbe();
       for (const [type, listener] of listeners) globalObject.removeEventListener?.(type, listener);
       core.dispose();
     },

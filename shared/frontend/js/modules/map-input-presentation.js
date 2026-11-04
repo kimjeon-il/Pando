@@ -20,8 +20,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
   const getInputSnapshot=()=>{
     const state=ports.projectState.state;
     return {moving:state.mapMoving,projectReplacing:state.projectReplacing===true,spacePanActive:state.spacePanActive,
-      tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom,
-      labelPlacementMode:state.labelPlacementMode};
+      projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom};
   };
   const setHover = async (ref,options) => {
     try { return await selectionDomain.setHover(ref,options); }
@@ -86,7 +85,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
         if (target?.closest?.('.map-overlay-layer')) return true;
         if (event?.button === 1) return false;
         mapInteractionGate.setForcedPan(getInputSnapshot().spacePanActive);
-        return getInputSnapshot().tool !== 'move' && !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);
+        return !getInputSnapshot().spacePanActive && mapInteractionGate.isPandoTarget(target);
       },
       canNavigate: () => {
         const enabled = mapNavigationEnabled();
@@ -101,15 +100,13 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       getZoom: () => getInputSnapshot().projection === 'globe' ? getInputSnapshot().globeZoom : getInputSnapshot().flatZoom,
       transformView: transformMapView,
       zoomBy: factor => {
-        zoomBy(factor, false);
+        zoomBy(factor);
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
-      canDirectTap: () => !getInputSnapshot().projectReplacing && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
+      canDirectTap: () => !getInputSnapshot().projectReplacing,
       directTap: handleMapClick,
-      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
+      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile(),
       suppressClick: suppressNextMapClick,
-      canDrawStroke: () => false,
-      cancelStroke: async () => false,
     });
 
     svg.on('click', function() {
@@ -121,7 +118,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     // map surface; ground clicks keep their SVG owner.
     const hoverSurface = d3.select($('map'));
     const preservePeerLabelHover = () => {
-      if (getInputSnapshot().tool !== 'select' || !d3.event.target?.closest?.('.user-label')) return false;
+      if (!d3.event.target?.closest?.('.user-label')) return false;
       // Cancel on entry too: the pointer can stop before another mousemove.
       cancelCountryHoverPick();
       return true;
@@ -133,7 +130,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       // User/place labels already publish their own explicit hover ref.
       if (preservePeerLabelHover()) return;
       const label = d3.event.target?.closest?.('.territorial-label-item[data-label-id]');
-      if (label && getInputSnapshot().tool === 'select' && !isMobile()) {
+      if (label && !isMobile()) {
         cancelCountryHoverPick();
         setHover(getTerritorialLabelRef(label.dataset.labelId), { source: 'map' });
         return;
@@ -141,7 +138,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       const screenPoint = d3.mouse(this);
       const coord = screenToGeo(screenPoint);
       if (coord) {
-        if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape')) {
+        if (!isMobile() && !d3.event.target?.closest?.('.generic-feature-shape')) {
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {

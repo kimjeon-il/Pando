@@ -62,7 +62,8 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   assert.equal(existsSync(worker(ids[0])), false);
   for (const id of ids.slice(1)) assert.ok(existsSync(worker(id)), 'current, tracked, unrecognized and staged Workers must remain');
   assert.deepEqual(readFileSync(join(data, storedPath)), bytes);
-  const reports = join(data, 'reports/.edits/main/reference-analysis');
+  const reportOwner = execFileSync(process.execPath, [fileURLToPath(new URL('../../tools/library-data.mjs', import.meta.url)), '--report-edit-root', root], { encoding: 'utf8' }).trim();
+  const reports = join(reportOwner, 'development/storage');
   const reportFiles = readdirSync(reports).filter(name => name.endsWith('.json'));
   const saved = reportFiles.map(name => JSON.parse(readFileSync(join(reports, name), 'utf8').replace(/^\uFEFF/, ''))).find(row => row.apply);
   assert.equal(saved.entries.filter(row => row.status === 'removed').length, 2);
@@ -70,7 +71,7 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   assert.equal(typeof saved.freeBytesBefore, 'number');
   assert.equal(typeof saved.freeBytesAfter, 'number');
   run('-Apply'); // Repeating an approved cleanup does not affect protected paths.
-  const rerun = readdirSync(join(data, 'reports/.edits/main/reference-analysis')).map(name => JSON.parse(readFileSync(join(data, 'reports/.edits/main/reference-analysis', name), 'utf8').replace(/^\uFEFF/, ''))).at(-1);
+  const rerun = readdirSync(reports).map(name => JSON.parse(readFileSync(join(reports, name), 'utf8').replace(/^\uFEFF/, ''))).at(-1);
   assert.equal(rerun.deletedBytes, 0);
   assert.ok(existsSync(join(materialized, revisions[0])));
 
@@ -127,8 +128,8 @@ test('PowerShell cleanup previews safely and deletes only unused verified synthe
   const previousDataRoot = process.env.PANDOLAB_LIBRARY_DATA_ROOT;
   try {
     process.env.PANDOLAB_LIBRARY_DATA_ROOT = partial;
-    run('-Apply', ...packArgs);
-    assert.equal(existsSync(partialPack), false, 'legitimate partial-clone omissions do not retain disposable packs');
+    const partialResult = run('-Apply', ...packArgs);
+    assert.equal(existsSync(partialPack), false, 'legitimate partial-clone omissions do not retain disposable packs: ' + partialResult);
     assert.throws(() => execFileSync('git', ['-C', partial, 'cat-file', '-e', blob], {env:{...process.env,GIT_NO_LAZY_FETCH:'1'},stdio:'pipe'}), 'cleanup never hydrates promised objects');
   } finally { if(previousDataRoot===undefined)delete process.env.PANDOLAB_LIBRARY_DATA_ROOT;else process.env.PANDOLAB_LIBRARY_DATA_ROOT=previousDataRoot; }
 });

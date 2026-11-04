@@ -58,12 +58,12 @@ async function preservePinnedNativeInput(root,path,expectedSha,destination) {
   mkdirSync(dirname(destination),{recursive:true});writeFileSync(destination,source.bytes,{flag:'wx'});
   return {revision:source.revision,sha256:source.sha256,bytes:source.decodedBytes};
 }
-export async function nativeTestCapacity(ids,{root=process.cwd(),probe=argv=>spawnSync(argv[0],argv.slice(1),
+export async function nativeTestCapacity(ids,{root=process.cwd(),platform=process.platform,architecture=process.arch,probe=argv=>spawnSync(argv[0],argv.slice(1),
   {cwd:root,encoding:'utf8',timeout:10000})}={}) {
   if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'))throw Error('Registered native prerequisite IDs must be an array');
-  ids=[...new Set(ids)];for(const id of ids)nativeTestRecipe(id);
+  ids=[...new Set(ids)];for(const id of ids)nativeTestRecipe(id,{platform,architecture});
   let additionalBytes=0,recipeEnvironment=false;
-  if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch').sdk))additionalBytes+=4*1024**3;
+  if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch',{platform,architecture}).sdk))additionalBytes+=4*1024**3;
   if(ids.includes('territorial-recipe')) {
     const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-territorial-recipe','pkg-config','--modversion','geos','proj']);
     recipeEnvironment=result.status!==0||Boolean(result.error)||result.stdout.trim()!=='3.13.1\n9.5.1';

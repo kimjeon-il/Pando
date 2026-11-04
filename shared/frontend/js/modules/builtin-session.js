@@ -237,19 +237,9 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
         decodedBytes:prepared.decodedBytes,sourceMonth:prepared.sourceMonth,
         baseDataset:prepared.baseDataset,fingerprint:prepared.fingerprint};
       if(!isCurrent())throw staleBuiltin();
-      let candidate;
-      try {
-        candidate=await domain.prepareTemporalBuiltin(facts,setup,{
-          dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
-          expectedGeneration:prepared.expectedGeneration,isCurrent,transition});
-      } catch(error) {
-        // Old published WASM pairs may not yet expose P5-5. Retain the
-        // established baseline path until an exactly matching pair is staged.
-        // All other Core validation failures remain fatal, never soft-fail.
-        if(error?.code!=='PL-CORE-DOCUMENT-ABI'
-          ||!String(error.message).includes('temporalSourcePrepare'))throw error;
-        return {...await admitPreparedProjectSource(prepared,{isCurrent}),setup};
-      }
+      const candidate=await domain.prepareTemporalBuiltin(facts,setup,{
+        dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
+        expectedGeneration:prepared.expectedGeneration,isCurrent,transition});
       if(!candidate||!isCurrent()) {
         if(candidate?.kind==='temporal-candidate')
           await domain.discardTemporalBuiltin(candidate);

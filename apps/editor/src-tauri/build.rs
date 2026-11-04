@@ -53,8 +53,6 @@ fn main() {
     }
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
         tauri_build::AppManifest::new().commands(&[
-            "write_probe_file",
-            "read_probe_file",
             "write_diagnostic_report",
             "finish_probe",
             "save_review_correction",

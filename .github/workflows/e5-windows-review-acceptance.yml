@@ -8,7 +8,7 @@ on:
       - apps/editor/stage.mjs
       - apps/editor/native-producer.mjs
       - apps/editor/native-contract.mjs
-      - apps/editor/tests/native-platform-adapter.test.mjs
+      - apps/editor/tests/stage.test.mjs
       - apps/editor/review-probe.js
       - apps/editor/verify-review-windows.ps1
       - apps/editor/src-tauri/**
@@ -61,7 +61,7 @@ jobs:
           apps/editor/native-producer.mjs
           apps/editor/native-contract.mjs
           apps/editor/review-probe.js
-          apps/editor/tests/native-platform-adapter.test.mjs
+          apps/editor/tests/stage.test.mjs
           tests/unit/e5-windows-review.test.mjs
           tests/browser/windows-review-e5.spec.mjs
           tests/browser/server.mjs
@@ -76,7 +76,7 @@ jobs:
           tests/unit/review-inspection.test.mjs
           apps/editor/tests/native-contract.test.mjs
           apps/editor/tests/native-build.test.mjs
-          apps/editor/tests/native-platform-adapter.test.mjs
+          apps/editor/tests/stage.test.mjs
       - run: node scripts/check-runtime-boundaries.mjs
 
   e5-browser:

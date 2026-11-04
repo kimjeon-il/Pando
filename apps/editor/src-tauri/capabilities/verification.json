@@ -1,6 +1,6 @@
 {
   "identifier": "verification",
-  "description": "Explicit verification builds only: fixed probe storage and test completion.",
+  "description": "Explicit verification builds only: test completion.",
   "windows": ["main"],
-  "permissions": ["allow-write-probe-file", "allow-read-probe-file", "allow-finish-probe"]
+  "permissions": ["allow-finish-probe"]
 }

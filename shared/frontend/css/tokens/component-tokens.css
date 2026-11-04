@@ -4,8 +4,6 @@
   --territorial-library-source-flag-max-width: 72px;
   --territorial-library-source-flag-max-height: 48px;
   --ui-phone-landscape-panel-max-width: 320px;
-  --ui-touch-vertex-selected-stroke: #b0dbff;
-  --ui-editing-magnifier-filter: drop-shadow(0 3px 6px #0008);
   --action-status-min-width: 112px;
   --action-status-max-width: 460px;
   --status-dot-width: 7px;
@@ -24,14 +22,10 @@
     (var(--ui-space-1-5) * 2) +
     (var(--ui-border-width) * 2)
   );
-  --draft-issue-marker-stroke: #d45656;
   --fatal-noscript-border: 1px solid #8a4f4f;
   --fatal-noscript-background: #3b2525;
   --fatal-noscript-color: #ffd1d1;
-  --mode-editing-context-width: min(100%, 420px);
   --mode-task-window-body-max-height: min(38dvh, 280px);
-  --vertex-handle-fill: var(--surface-muted, #d8dde5);
-  --vertex-handle-stroke: var(--text-muted, #6b7280);
   --bootstrap-loading-card-width: min(350px, calc(100vw - var(--ui-space-8)));
   --file-menu-btn-color: #dbe8f8;
   --object-search-background: #ffffff;

@@ -85,16 +85,15 @@ jobs:
           tests/unit/territorial-source-parity.test.mjs
           tests/unit/territorial-chunks.test.mjs
           tests/unit/territorial-canonical-parity.test.mjs
-          tests/unit/territorial-library-service.test.mjs
           tests/unit/territorial-entity-loader.test.mjs
           tests/unit/territorial-timeline-storage.test.mjs
           tests/unit/territorial-snapshots.test.mjs
           tests/unit/country-lineage.test.mjs
           tests/unit/country-lineage-preservation.test.mjs
-          tests/unit/library-ownership.test.mjs
-          tests/unit/library-import-atomic.test.mjs
-          tests/unit/library-map-preview.test.mjs
-          tests/unit/territorial-library-controller.test.mjs
+          tests/unit/territorial-entity-store.test.mjs
+          tests/unit/gis-geometry-worker.test.mjs
+          tests/unit/gpu-mesh-country-strokes.test.mjs
+          tests/unit/territorial-library-provenance.test.mjs
           tests/unit/territorial-source-provenance.test.mjs
 
   exact-cpp-recipe:

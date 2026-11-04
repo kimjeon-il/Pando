@@ -14,8 +14,8 @@ test('production object controls share one Core policy and preserve object overr
   const original=Object.getOwnPropertyDescriptor(globalThis,'document');
   Object.defineProperty(globalThis,'document',{ configurable: true,value: { querySelectorAll: () => [],querySelector: () => null } });
   t.after(() => { if(original)Object.defineProperty(globalThis,'document',original);else delete globalThis.document; });
-  const settings=createMapSettings({capabilities:resourceCapabilities('editor'),viewPresentation:{applyPresentation:viewing.session.applyViewingPresentation},authoredStyles:true}),state={ get layerVisibility() { return viewing.session.state.layerVisibility; },
-    get layerPresentation() { return owner.documentModel.snapshot().layerPresentation; } };
+  const settings=createMapSettings({capabilities:resourceCapabilities('viewer'),viewPresentation:{applyPresentation:viewing.session.applyViewingPresentation}}),state={ get layerVisibility() { return viewing.session.state.layerVisibility; },
+    get layerPresentation() { return viewing.session.state.layerPresentation; } };
   settings.connect({ layerResources:{loadHydroData:async()=>{},preparePlaces:async()=>{}},projectState: { state },platform: { $: () => null },feedback: { reportOperationError: error => assert.fail(error.stack) },
     objectModelA: { expandedMapDisplayGroups: new Set() },preferences: { userPreferences: { labels: { place: { languages: { ko: true } } } } },
     objectDisplay: { invalidateObjectPresentation() {} },rendering: { gpuMapRenderer: { invalidateCountryPalette() {} } },
@@ -29,6 +29,11 @@ test('production object controls share one Core policy and preserve object overr
   await settings.setLayerVisibility('objects',false);
   assert.equal(state.layerVisibility.objects,false);assert.equal(state.layerVisibility.objectNames,false);assert.equal(state.layerVisibility.objectFlags,false);
   await settings.updateLayerPresentationStyle('objects',{opacity:.25,boundaryVisible:false});
+  assert.equal(viewing.session.state.layerPresentation.styles.objects.opacity,.25);
+  assert.equal(viewing.session.state.layerPresentation.styles.objects.boundaryVisible,false);
+  assert.deepEqual(owner.documentModel.snapshot(),before);
+  const result=await owner.project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'groupStyle',group:'objects',patch:{opacity:.25,boundaryVisible:false}}});
+  assert.equal(result.ok,true);
   const actual=owner.documentModel.snapshot();
   assert.equal(actual.layerPresentation.styles.objects.opacity,.25);assert.equal(actual.layerPresentation.styles.objects.boundaryVisible,false);
   assert.equal(actual.layerPresentation.objectStyles['territorial:entity:B'].opacity,.75,'global controls must not rewrite a child override');

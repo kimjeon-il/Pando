@@ -20,9 +20,9 @@ test('all object domains share role priority and style, including zero fill and 
     const style = resolveMapInteractionStyle({ theme, fillStrength, selectionColor: '#123456', outlineVisible: false });
     for (const domain of ['territorial', 'generic', 'distribution', 'hydro', 'label']) {
       const key = `${domain}:test:one`;
-      const entries = resolveInteractionEntries([{ key, role: 'hover' }, { key, role: 'primary' }, { key, role: 'edit-target' }]);
+      const entries = resolveInteractionEntries([{ key, role: 'hover' }, { key, role: 'primary' }, { key, role: 'secondary' }]);
       assert.equal(entries.length, 1);
-      assert.equal(entries[0].role, 'edit-target');
+      assert.equal(entries[0].role, 'primary');
       assert.equal(resolveMapStrokeStyle(style, entries[0].role).color, '#123456');
       assert.equal(resolveMapStrokeStyle(style, entries[0].role).width, 0);
       assert.equal(resolveMapStrokeStyle(style, 'candidate').fillAlpha, 0);
@@ -50,14 +50,13 @@ test('selected countries retain their primary and secondary roles', () => {
   const entries = mapInteractionEntries(snapshot);
   assert.equal(entries.find(entry => entry.ref.id === 'MDA').role, 'primary');
   assert.equal(entries.find(entry => entry.ref.id === 'ROU').role, 'secondary');
-  assert.equal(entries.some(entry => entry.role === 'edit-target'), false);
 });
 
 test('ownership order is stable under input reordering and prioritizes stronger roles before ancestry', () => {
   const entries = [{ key: 'b', role: 'primary', depth: 1, ancestorKeys: ['parent'] }, { key: 'a', role: 'primary', depth: 1, ancestorKeys: ['parent'] },
-    { key: 'parent', role: 'primary', depth: 0 }, { key: 'child', role: 'edit-target', depth: 2 }];
+    { key: 'parent', role: 'primary', depth: 0 }, { key: 'child', role: 'secondary', depth: 2 }];
   const keys = rows => resolveInteractionEntries(rows).map(row => row.key);
-  assert.deepEqual(keys(entries), ['child', 'parent', 'a', 'b']);
+  assert.deepEqual(keys(entries), ['parent', 'a', 'b', 'child']);
   assert.deepEqual(keys([...entries].reverse()), keys(entries));
 });
 

@@ -58,7 +58,7 @@ select directly and suppress a later synthetic click through the existing input
 controller. Map settings own accepted
 layer-visibility source preparation through the existing hydro/place loaders.
 
-`platform-ports.js` validates the explicit Viewer browser/native execution contract: resource capabilities, storage namespace, file access, optional library access and builtin source loader. `native-platform-adapter.js` is the only frontend runtime reader of raw Tauri/shell globals and returns validated ports to the Windows review shell. Browser Viewer composition creates its ports directly. `runtime-context.js` validates the immutable ports together with the generated build receipt and owns versioned asset URL construction. Composition passes those values to builtin and physical resource owners. The immutable Worker resolver remains the asset-manifest boundary.
+`platform-ports.js` validates Viewer resource capabilities, storage namespace, file access, optional library access and builtin source loader. The Windows reviewer stages the Viewer entrypoint and invokes its native correction-save command at the review panel boundary. `runtime-context.js` validates the immutable ports together with the generated build receipt and owns versioned asset URL construction. Composition passes those values to builtin and physical resource owners. The immutable Worker resolver remains the asset-manifest boundary.
 
 `file-access-contract.js` validates the Viewer project-open port and selected file. `platform-ports.js` and `file-controller.js` consume that contract. Browser and native transports own their dialogs and file bytes.
 

@@ -11,10 +11,11 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ capabilities,viewPresentation = null,authoredStyles=false } = {}) {
+export function createMapSettings({ capabilities,viewPresentation } = {}) {
   if (!capabilities || ['builtinHydro', 'builtinPlaces', 'terrain'].some(key => typeof capabilities[key] !== 'boolean')) {
     throw new TypeError('Map settings require resource capabilities.');
   }
+  if (typeof viewPresentation?.applyPresentation !== 'function') throw new TypeError('Map settings require viewing presentation.');
   let dependencies;
   let LAYER_STYLE_TARGETS;
   const menuState=createMapDisplayMenuState();
@@ -28,28 +29,6 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     dependencies = ports;
   }
 
-  function requireProjectOwner() {
-    const project = dependencies.domains.projectDomain;
-    if (typeof project?.executeCommand !== 'function' || typeof project.getGeneration !== 'function') {
-      throw new TypeError('Map settings require the Core project command owner.');
-    }
-    return project;
-  }
-
-  async function executePresentation(payload) {
-    if (viewPresentation && (!authoredStyles || !['groupStyle','objectStyle','labelSettings','layerOrder'].includes(payload.action))) {
-      const result=viewPresentation.applyPresentation(payload);
-      if(authoredStyles)dependencies.domains.projectDomain.queueViewAutosave();
-      return result;
-    }
-    const project = requireProjectOwner();
-    const generation = project.getGeneration();
-    const result = await project.executeCommand({ commandId: 'presentation.apply', targets: [], payload: structuredClone(payload) });
-    if (typeof result?.ok !== 'boolean' || typeof result.changed !== 'boolean') throw Object.assign(new Error('A complete presentation acknowledgement is required.'), { code: 'PL-CORE-RESPONSE' });
-    if (!result.ok) throw Object.assign(new Error(result.error.message), result.error);
-    return project.getGeneration() === generation ? result : null;
-  }
-
   async function runViewAction(operation) {
     try { await operation(); }
     catch (error) {
@@ -59,7 +38,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   }
 
   async function setLayerVisibility(key, visible) {
-    if (!await executePresentation({ action: 'visibility', key, visible })) return false;
+    if (!await viewPresentation.applyPresentation({ action: 'visibility', key, visible })) return false;
     if (!isDesktopViewMenu() && !SYMBOL_VISIBILITY_KEYS.has(key) && key !== 'labels') {
       if (visible) dependencies.objectModelA.expandedMapDisplayGroups.add(key);
       else dependencies.objectModelA.expandedMapDisplayGroups.delete(key);
@@ -103,7 +82,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   async function updateLayerPresentationStyle(group, patch) {
     const target = LAYER_STYLE_TARGETS[group];
     if (!target) return false;
-    if (!await executePresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
+    if (!await viewPresentation.applyPresentation({ action: 'groupStyle', group: target.presentationGroup, patch })) return false;
     syncMapDisplayDisclosures();
     if (target.presentationGroup === 'objects') {
       dependencies.rendering.gpuMapRenderer.invalidateCountryPalette({ base: true, emphasis: true }, 'country-presentation');
@@ -117,7 +96,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
 
   async function setTerrainMode(mode) {
     const physicalSettings = dependencies.hydroModel.terrainModeSettings(mode);
-    if (!await executePresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
+    if (!await viewPresentation.applyPresentation({ action: 'terrainMode', mode, physicalSettings })) return false;
     const current=dependencies.preferences.userPreferences,viewer={...current.backgrounds.viewer,terrainVisible:physicalSettings.terrainVisible,terrainStyle:physicalSettings.terrainStyle};
     dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer}}));
     dependencies.rendering.gpuMapRenderer.invalidatePhysicalStyle('terrain-mode');
@@ -129,7 +108,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   }
 
   async function setDistributionControl(action, value, reason) {
-    if (!await executePresentation({ action, value })) return false;
+    if (!await viewPresentation.applyPresentation({ action, value })) return false;
     if (action === 'distributionActiveLayer') dependencies.distributionPresentation.bumpVisibilityRevision();
     syncDistributionPresentationControls();
     dependencies.domains.renderingDomain.invalidateOverlayStyle(reason);
@@ -539,7 +518,6 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   }
 
   function bindMapDisplayUI() {
-    if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
     surface.addEventListener('focusin', event => { menuState.rememberFocus(event.target); });
@@ -552,8 +530,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       input.addEventListener('change',()=>runViewAction(async()=>{
         state.backgroundSettings[key]=input.checked;
         const current=dependencies.preferences.userPreferences;
-        const mode=authoredStyles?'editor':'viewer';
-        dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,[mode]:{...current.backgrounds[mode],[key]:input.checked}}}));
+        dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,viewer:{...current.backgrounds.viewer,[key]:input.checked}}}));
         dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
         dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');
         dependencies.domains.renderingDomain.invalidateLabels('background-preference');

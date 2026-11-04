@@ -80,6 +80,6 @@ test('hover and selection request union coverage while preserving their ink and 
       assert.equal(style.antiAlias, antiAlias, role);
     }
     assert.notEqual(resolveMapStrokeStyle(interaction, 'candidate').coverage, 'union');
-    assert.notEqual(resolveMapStrokeStyle(interaction, 'edit-target').coverage, 'union');
+    assert.throws(() => resolveMapStrokeStyle(interaction, 'edit-target'), /Unknown stroke role/);
   }
 });

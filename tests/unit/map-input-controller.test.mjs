@@ -68,7 +68,7 @@ function createController(surface, overrides = {}) {
 }
 
 function createPresentationFixture() {
-  const surface = new PointerSurface(), errors = [], transforms = [], cancellations = [];
+  const surface = new PointerSurface(), errors = [], transforms = [];
   const noop = () => {};
   surface.classList = { add: noop, remove: noop };
   const svg = { on() { return this; } };
@@ -76,7 +76,6 @@ function createPresentationFixture() {
   const state = {
     mapMoving: false, projectReplacing: false, spacePanActive: false, tool: 'select',
     projection: 'globe', view: { globeZoom: 1, flatZoom: 1 },
-    labelPlacementMode: false,
   };
   const presentation = createMapInputPresentation({
     reservedTargetSelector: 'button,input,select,textarea,a,[contenteditable="true"]',
@@ -84,7 +83,7 @@ function createPresentationFixture() {
     navigator: {},
     getRevision: () => 1,
     mapInteractionGate: {
-      setForcedPan: noop, setNavigationEnabled: noop, setDraftInputActive: noop, isPandoTarget: () => false,
+      setForcedPan: noop, setNavigationEnabled: noop, isPandoTarget: () => false,
     },
     ports: {
       platform: {
@@ -115,17 +114,10 @@ function createPresentationFixture() {
       mapView: { screenToGeo: () => [0, 0] },
       interactionStateCommands: { setHoverHit: noop },
     },
-    createMapInputController: options => createMapInputController({
-      ...options,
-      cancelStroke: reason => {
-        const pending = options.cancelStroke(reason);
-        cancellations.push(pending);
-        return pending;
-      },
-    }),
+    createMapInputController,
   });
   const controller = presentation.bindSvg(svg);
-  return { surface, errors, transforms, cancellations, controller, presentation };
+  return { surface, errors, transforms, controller, presentation };
 }
 
 function startPinch(surface) {
@@ -159,70 +151,21 @@ test('project replacement blocks wheel, pinch and an already started drag until 
   controller.destroy();
 });
 
-test('image placement owns the gesture before map drawing or navigation starts', () => {
-  const surface = new PointerSurface();
-  const events = [];
-  const controller = createController(surface, {
-    beginExternalGesture: () => ({ kind: 'exclusive', move: () => events.push('image-move'), end: () => events.push('image-end') }),
-    canDrawStroke: () => true, beginStroke: () => events.push('draw'),
-    dragBy: () => events.push('map'),
-  });
-  surface.dispatchEvent(pointerEvent('pointerdown'));
-  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 80 }));
-  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 80 }));
-  assert.deepEqual(events, ['image-move', 'image-end']);
-  controller.destroy();
-});
-
-test('image point taps commit on release, while a drag pans without committing a point', () => {
-  const surface = new PointerSurface(); const events = [];
-  const controller = createController(surface, {
-    beginExternalGesture: () => ({ kind: 'tap', end: () => events.push('point'), cancel: () => events.push('cancel') }),
-    dragBy: () => events.push('pan'),
-  });
-  surface.dispatchEvent(pointerEvent('pointerdown'));
-  assert.deepEqual(events, []);
-  surface.dispatchEvent(pointerEvent('pointerup'));
-  assert.deepEqual(events, ['point']);
-  events.length = 0;
-  surface.dispatchEvent(pointerEvent('pointerdown'));
-  surface.dispatchEvent(pointerEvent('pointermove', { clientX: 80 }));
-  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 80 }));
-  assert.deepEqual(events, ['pan', 'cancel']);
-  controller.destroy();
-});
-
-test('second touch and pointercancel roll back image input rather than committing it', () => {
-  const surface = new PointerSurface(); const events = [];
-  const controller = createController(surface, {
-    beginExternalGesture: () => ({ kind: 'exclusive', end: () => events.push('commit'), cancel: () => events.push('rollback') }),
-    beginMovement: () => events.push('pinch'),
-  });
-  surface.dispatchEvent(pointerEvent('pointerdown'));
-  surface.dispatchEvent(pointerEvent('pointercancel'));
-  assert.deepEqual(events, ['rollback']);
-  events.length = 0;
-  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 1 }));
-  surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 2 }));
-  assert.deepEqual(events, ['rollback', 'pinch']);
-  controller.destroy();
-});
-
-test('middle button navigates without starting the active drawing tool', () => {
-  const surface = new PointerSurface(); let draws = 0, moves = 0;
-  const controller = createController(surface, { canNavigate: () => false, canDrawStroke: () => true, beginStroke: () => { draws++; }, dragBy: () => { moves++; } });
+test('middle button navigates when ordinary navigation is disabled', () => {
+  const surface = new PointerSurface(); let moves = 0;
+  const controller = createController(surface, { canNavigate: () => false, dragBy: () => { moves++; } });
   surface.dispatchEvent(pointerEvent('pointerdown', { button: 1 }));
   surface.dispatchEvent(pointerEvent('pointermove', { button: 1, clientX: 80 }));
   surface.dispatchEvent(pointerEvent('pointerup', { button: 1, clientX: 80 }));
-  assert.equal(draws, 0); assert.ok(moves > 0); controller.destroy();
+  assert.ok(moves > 0); controller.destroy();
 });
 
-test('second touch cancels the editing gesture before starting pinch', () => {
+test('a second touch on an interactive target starts pinch', () => {
   const surface = new PointerSurface(), events = [];
-  const controller = createController(surface, { interactiveTarget: () => true, cancelStroke: () => events.push('cancel'), beginMovement: () => events.push('move') });
+  const controller = createController(surface, { interactiveTarget: () => true, beginMovement: () => events.push('move') });
   surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 1 }));
   surface.dispatchEvent(pointerEvent('pointerdown', { pointerType: 'touch', pointerId: 2 }));
-  assert.deepEqual(events, ['cancel', 'move']); controller.destroy();
+  assert.deepEqual(events, ['move']); controller.destroy();
 });
 
 test('a simple pointer click keeps its original overlay target', () => {
@@ -283,12 +226,12 @@ test('pointer drag forwards left and upward surface deltas without sign conversi
   controller.destroy();
 });
 
-test('interactive draft handles do not begin map panning', () => {
+test('interactive labels do not begin map panning', () => {
   const surface = new PointerSurface();
-  surface.isDraftHandle = true;
+  surface.isLabel = true;
   const pans = [];
   const controller = createController(surface, {
-    interactiveTarget: target => target.isDraftHandle === true,
+    interactiveTarget: target => target.isLabel === true,
     dragBy: (dx, dy) => pans.push([dx, dy]),
   });
 
@@ -298,64 +241,6 @@ test('interactive draft handles do not begin map panning', () => {
 
   assert.deepEqual(surface.captured, []);
   assert.deepEqual(pans, []);
-  controller.destroy();
-});
-
-test('genericFeature owns a drag, emits local coalesced samples, and does not pan', () => {
-  const surface = new PointerSurface();
-  const events = [];
-  const pans = [];
-  const controller = createController(surface, {
-    canDrawStroke: () => true,
-    beginStroke: (point, event) => { events.push(['begin', point, event.pointerType]); return true; },
-    moveStroke: points => events.push(['move', points]),
-    endStroke: point => events.push(['end', point]),
-    dragBy: (dx, dy) => pans.push([dx, dy]),
-  });
-
-  surface.dispatchEvent(pointerEvent('pointerdown', { clientX: 20, clientY: 30 }));
-  surface.dispatchEvent(pointerEvent('pointermove', {
-    clientX: 35,
-    clientY: 45,
-    getCoalescedEvents: () => [
-      { clientX: 28, clientY: 38 },
-      { clientX: 35, clientY: 45 },
-    ],
-  }));
-  surface.dispatchEvent(pointerEvent('pointerup', { clientX: 40, clientY: 50 }));
-
-  assert.deepEqual(surface.captured, [7]);
-  assert.deepEqual(events, [
-    ['begin', [15, 20], 'mouse'],
-    ['move', [[23, 28], [30, 35]]],
-    ['end', [35, 40]],
-  ]);
-  assert.deepEqual(pans, []);
-  controller.destroy();
-});
-
-test('a second touch cancels an unfinished stroke and starts centroid pan and pinch', () => {
-  const surface = new PointerSurface();
-  let cancelled = 0;
-  const transforms = [];
-  const controller = createController(surface, {
-    canDrawStroke: () => true,
-    beginStroke: () => true,
-    cancelStroke: () => { cancelled += 1; },
-    transformView: value => transforms.push(value),
-  });
-
-  surface.dispatchEvent(pointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', clientX: 10, clientY: 20 }));
-  surface.dispatchEvent(pointerEvent('pointermove', { pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 20 }));
-  surface.dispatchEvent(pointerEvent('pointerdown', { pointerId: 2, pointerType: 'touch', clientX: 40, clientY: 20 }));
-  surface.dispatchEvent(pointerEvent('pointermove', { pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 30 }));
-
-  assert.equal(cancelled, 1);
-  assert.equal(transforms.length, 1);
-  assert.deepEqual(transforms[0].fromPoint, [25, 10]);
-  assert.deepEqual(transforms[0].toPoint, [30, 15]);
-  assert.equal(transforms[0].source, 'pinch');
-  assert.ok(transforms[0].zoom > 1);
   controller.destroy();
 });
 
@@ -379,7 +264,7 @@ test('wheel zoom uses the pointer as a stable focal point', () => {
   controller.destroy();
 });
 
-test('viewer pinch navigates without a draft cancellation error', async t => {
+test('viewer pinch navigates through the real presentation', t => {
   const fixture = createPresentationFixture();
   t.after(() => fixture.presentation.dispose());
   startPinch(fixture.surface);
@@ -387,8 +272,6 @@ test('viewer pinch navigates without a draft cancellation error', async t => {
     pointerId: 2, pointerType: 'touch', clientX: 50, clientY: 30,
   }));
 
-  assert.equal(fixture.cancellations.length, 1);
-  assert.equal(await fixture.cancellations[0], false);
   assert.deepEqual(fixture.errors, []);
   assert.equal(fixture.controller.isPanning(), true);
   assert.equal(fixture.transforms.length, 1);

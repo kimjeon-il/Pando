@@ -9,35 +9,11 @@ export function createPointerTargets() {
   let pendingHoverPick;
   let lastHoverPickPoint;
   let lastHoverPickViewRevision;
-  let lastHoverHit;
   let hoverPickSequence = 0;
   let pendingHoverRequests = 0;
   function connect(ports) {
     if (dependencies) throw new Error('pointer-targets already connected');
     dependencies = ports;
-  }
-
-  function cpuCountryAtCoordinate(coord) {
-    if (!coord) return null;
-    const candidates = dependencies.projectState.state.spatialIndex || [];
-    for (let i = candidates.length - 1; i >= 0; i -= 1) {
-      const item = candidates[i];
-      const b = item.bounds;
-      if (coord[0] < b[0] || coord[0] > b[2] || coord[1] < b[1] || coord[1] > b[3]) continue;
-      const feature = item.feature;
-      if (!(0, dependencies.layerPresentation.isLayerItemVisible)('objects', feature?.id || '')) continue;
-      if ((0, dependencies.landRelations.pointInCountryFeature)(coord, feature)) return feature;
-    }
-    return null;
-  }
-
-  function countryAtScreenPoint(screenPoint, coord, { verify = true } = {}) {
-    // Bounds from the spatial index already narrow the CPU test. Rebuilding a
-    // full-resolution GPU ID framebuffer after every camera change made the
-    // first hover/click stall while still requiring CPU geometry verification.
-    void screenPoint;
-    void verify;
-    return cpuCountryAtCoordinate(coord);
   }
 
   const obsoleteHoverError = error => error.cancelled || error.name === 'AbortError'
@@ -50,15 +26,13 @@ export function createPointerTargets() {
       const nextRef = hit?.ref || null;
       const isCurrent = () => sequence === hoverPickSequence && generation === dependencies.domains.projectDomain.getGeneration()
         && (clear || (viewRevision === dependencies.mapLayout.viewRevision && !dependencies.projectState.state.mapMoving
-          && !dependencies.projectState.state.projectReplacing && dependencies.projectState.state.tool === 'select'));
+          && !dependencies.projectState.state.projectReplacing));
       const accepted = await dependencies.domains.selectionDomain.setHover(nextRef, { ...(clear ? {} : { source: 'map' }), isCurrent });
       if (!accepted || !Object.hasOwn(accepted,'hover')) throw new TypeError('An accepted Core hover snapshot is required.');
       if (sequence !== hoverPickSequence || generation !== dependencies.domains.projectDomain.getGeneration()
-        || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving
-          || dependencies.projectState.state.tool !== 'select'))) return false;
+        || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving))) return false;
       const key = nextRef?.key || null;
       if ((accepted.hover?.key || null) !== key || (dependencies.domains.selectionDomain.snapshot().hover?.key || null) !== key) return false;
-      lastHoverHit = hit;
       return true;
     } catch (error) {
       if (!obsoleteHoverError(error)) dependencies.feedback.reportOperationError(error,'지도 hover를 갱신하지 못했습니다.','PL-MAP-HOVER-001',4200);
@@ -86,7 +60,7 @@ export function createPointerTargets() {
   }
 
   function queueCountryHoverPick(screenPoint, coord) {
-    if (!screenPoint || !coord || dependencies.projectState.state.mapMoving || dependencies.projectState.state.tool !== 'select') return;
+    if (!screenPoint || !coord || dependencies.projectState.state.mapMoving) return;
     if (lastHoverPickPoint && Math.hypot(screenPoint[0] - lastHoverPickPoint[0], screenPoint[1] - lastHoverPickPoint[1]) < 3) return;
     pendingHoverPick = { screenPoint: [...screenPoint], coord: [...coord], sequence: ++hoverPickSequence };
     if (hoverPickFrame) return;
@@ -95,7 +69,7 @@ export function createPointerTargets() {
       const pending = pendingHoverPick;
       pendingHoverPick = null;
       try {
-        if (!pending || dependencies.projectState.state.mapMoving || dependencies.projectState.state.tool !== 'select') return false;
+        if (!pending || dependencies.projectState.state.mapMoving) return false;
         lastHoverPickPoint = pending.screenPoint;
         lastHoverPickViewRevision = dependencies.mapLayout.viewRevision;
         const generation = dependencies.domains.projectDomain.getGeneration();
@@ -103,7 +77,7 @@ export function createPointerTargets() {
           { includeLabels: false, includeHydro: false });
         if (pending.sequence !== hoverPickSequence || dependencies.projectState.state.projectReplacing
           || generation !== dependencies.domains.projectDomain.getGeneration()
-          || dependencies.projectState.state.mapMoving || dependencies.projectState.state.tool !== 'select'
+          || dependencies.projectState.state.mapMoving
           || lastHoverPickViewRevision !== dependencies.mapLayout.viewRevision) return false;
         return await applyCountryHover(refs[0] ? { ref: refs[0] } : null,pending.sequence);
       } catch (error) {
@@ -117,7 +91,7 @@ export function createPointerTargets() {
 
   async function hydroAtScreenPoint(screenPoint, coord) {
     const hydroCategoryVisible = dependencies.projectState.state.layerVisibility.rivers || dependencies.projectState.state.layerVisibility.lakes;
-    if (!hydroCategoryVisible || dependencies.projectState.state.tool !== 'select') return null;
+    if (!hydroCategoryVisible) return null;
     for (const feature of [...dependencies.projectState.state.hydroEdits].reverse()) {
       if (!(0, dependencies.physicalServices.isHydroFeatureVisible)(feature) || !(0, dependencies.objectPicking.geometryHitsScreenPoint)(feature.geometry, coord, screenPoint, (0, dependencies.surfaces.isMobile)() ? 14 : 8)) continue;
       return feature;
@@ -152,11 +126,6 @@ export function createPointerTargets() {
       }
     }
     return nearest?.feature || null;
-  }
-
-  function mapNavigationEnabled() {
-    return !dependencies.projectState.state.labelPlacementMode
-      && ['select', 'move'].includes(dependencies.projectState.state.tool);
   }
 
   function mapClickBlocked(event = dependencies.platform.d3.event) {
@@ -203,22 +172,16 @@ export function createPointerTargets() {
     (lastHoverPickPoint = null);
 
     (lastHoverPickViewRevision = -1);
-
-    (lastHoverHit = null);
   }
 
   return Object.freeze({
     connect,
     initializeHoverPickFrame,
     get cancelCountryHoverPick() { return cancelCountryHoverPick; },
-    get countryAtScreenPoint() { return countryAtScreenPoint; },
     get hydroAtScreenPoint() { return hydroAtScreenPoint; },
-    get lastHoverHit() { return lastHoverHit; },
-    set lastHoverHit(value) { lastHoverHit = value; },
     get lastHoverPickPoint() { return lastHoverPickPoint; },
     get lastHoverPickViewRevision() { return lastHoverPickViewRevision; },
     get mapClickBlocked() { return mapClickBlocked; },
-    get mapNavigationEnabled() { return mapNavigationEnabled; },
     get queueCountryHoverPick() { return queueCountryHoverPick; },
     get suppressNextMapClick() { return suppressNextMapClick; },
   });
