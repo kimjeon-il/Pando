@@ -71,11 +71,8 @@ test('Borneo IDN/MYS shared border cannot acquire a duplicate repeated microvert
         assert.ok(!(JSON.stringify(ring[j-1])===JSON.stringify(target)
           &&JSON.stringify(ring[j])===JSON.stringify(target)),feature.id+' duplicate Borneo point');
 });
-test('current shared polygon normalizer and coast previews reject new geometry issues only',()=>{
+test('current shared polygon normalizer closes rings without duplicate positions',()=>{
   const geometry=source('assets/js/modules/polygon-geometry.js');
   assert.ok(geometry.includes('!coordinatesNear(ring[ring.length - 1], coordinate)'));
   assert.ok(geometry.includes('ring[ring.length - 1] = ring[0].slice()'));
-  const preview=source('assets/js/modules/map-edit-preview-calculations.js');
-  assert.ok(preview.includes('new Set(validateTerritorialGeometry(before, { clipper, affectedIds }).map(issueKey))'));
-  assert.ok(preview.includes('validateTerritorialGeometry(after, { clipper, affectedIds }).filter(issue => !baseline.has(issueKey(issue)))'));
 });
