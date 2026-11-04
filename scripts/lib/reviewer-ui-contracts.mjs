@@ -89,9 +89,10 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
      ['Core read-only document',source,/createDocumentSession\(\{productMode,readOnly:true/],
      ['Project read-only surface',project,/readOnly\s*=\s*productMode\s*===\s*'viewer'/],
      ['Map edit hook exclusion',map,/if\s*\(readOnly!==true\|\|editing\)throw/],
-     ['Render edit resource exclusion',renderer,/Read-only rendering cannot install editor/],
      ['Windows source closure',stage,/entry\.product==='editor'\|\|!snapshot\.viewerPaths\.has\(path\)/],
    ])if(!pattern.test(text))fail(name+' lost its read-only isolation contract');
+   for(const hook of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
+     if(renderer.includes(hook))fail('Retired rendering edit hook returned: '+hook);
    errors.push(...auditReviewCss('viewer.css',viewerCss),
      ...auditReviewCss('layout/surfaces.css',read('shared/frontend/css/layout/surfaces.css')));
    if(statSync(resolve(root,'apps/viewer/css/viewer.css')).size>12288)
