@@ -40,7 +40,7 @@ function node(name, parent = null) {
   return n;
 }
 
-async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = null } = {}) {
+async function fixture(t,{ queuedPicks = false, peerKind = 'city' } = {}) {
   const document = node('document');
   document.documentElement = editorNode();
   document.createElement = editorNode;
@@ -61,7 +61,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
   tip.bind();
   const ref = normalizeObjectRef({ domain: 'territorial', type: 'entity', id: 'DEU' });
   let published = 0, areaPicks = 0;
-  const points = [], clicks = [], draftEvents = [];
+  const points = [], clicks = [];
   const state = { tool: 'select', view: { globeZoom: 1, flatZoom: 1 } };
   const draft = {};
   let panning = false;
@@ -95,11 +95,9 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
     labels: { isMobile: () => false }, labelState: () => state, selectionDomain: domain,
     reportDiagnostic:entry=>{throw entry.error;},
     labelRef: value => normalizeObjectRef({ domain: 'label', type: value.kind, id: value.id }) });
-  const input = createMapInputPresentation({ productMode: 'editor', window, navigator: {}, getRevision: () => 1,
+  const input = createMapInputPresentation({ window, navigator: {}, getRevision: () => 1,
     createMapInputController: () => ({ destroy() {}, isPanning: () => panning }),
-    mapInteractionGate: {}, editing: { getDraftSnapshot: () => editing ? editing.snapshot().draft : draft,
-      domain: editing || { clearDraftHover: async () => false,cancelActiveGesture: async () => false },
-      isGenericFeatureDraftTool: () => false, dispatchInteraction: (...args) => draftEvents.push(args) },
+    mapInteractionGate: {},
     ports: { platform: { d3, $: id => id === 'map' ? map : null }, rendering: { gpuMapRenderer: {} },
       projectState: { state, mapWorkScheduler: {} }, domains: { selectionDomain: domain, projectDomain: owner.project },
       renderQuality: {}, pointerInteractionB: {}, navigation: {}, surfaces: { isMobile: () => false },
@@ -135,7 +133,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city', editing = nul
     };
   };
   t.after(async()=>{await pointers.cancelCountryHoverPick();input.dispose();await settle();owner.dispose();});
-  return { hover,settle,runQueuedPicks,label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, draft, draftEvents, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
+  return { hover,settle,runQueuedPicks,label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, draft, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
 }
 
 // Reflect app-map-host's actual sibling SVG topology. Real D3 listeners see
