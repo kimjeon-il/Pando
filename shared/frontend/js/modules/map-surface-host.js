@@ -1,4 +1,4 @@
-import { MAP_HOST_KINDS, createMapHostEventHub, normalizeMapProjectionKind } from './map-host.js';
+import { MAP_HOST_KINDS, normalizeMapProjectionKind } from './map-host.js';
 
 export function createMapSurfaceHost({
   getProjectionKind,
@@ -16,7 +16,6 @@ export function createMapSurfaceHost({
   focusCoordinate = null,
   getDebugState = null,
 } = {}) {
-  const events = createMapHostEventHub();
   let container = null;
   let initialized = false;
 
@@ -27,14 +26,12 @@ export function createMapSurfaceHost({
 
   async function initialize() {
     initialized = true;
-    events.emit('ready', { host: api });
     return true;
   }
 
   function destroy() {
     initialized = false;
     container = null;
-    events.clear();
   }
 
   const api = Object.freeze({
@@ -56,11 +53,6 @@ export function createMapSurfaceHost({
     zoomAround: options => zoomAround?.(options) ?? false,
     fitGeometry: (geometry, options) => fitGeometry?.(geometry, options) ?? false,
     focusCoordinate: (coordinate, options) => focusCoordinate?.(coordinate, options) ?? false,
-    setNavigationEnabled: () => false,
-    setForcedPan: () => false,
-    getRenderDevice: () => null,
-    on: events.on,
-    off: events.off,
     getDebugState: () => ({
       kind: MAP_HOST_KINDS.LEGACY,
       ready: initialized,
