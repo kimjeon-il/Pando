@@ -67,7 +67,7 @@ function createController(surface, overrides = {}) {
   });
 }
 
-function createPresentationFixture(productMode, editing = null) {
+function createPresentationFixture() {
   const surface = new PointerSurface(), errors = [], transforms = [], cancellations = [];
   const noop = () => {};
   surface.classList = { add: noop, remove: noop };
@@ -79,10 +79,7 @@ function createPresentationFixture(productMode, editing = null) {
     labelPlacementMode: false,
   };
   const presentation = createMapInputPresentation({
-    editing,
-    reservedTargetSelector: productMode==='editor'
-      ? 'button,input,select,textarea,a,[contenteditable="true"],.editor-drawer,.project-bounds-picker'
-      : 'button,input,select,textarea,a,[contenteditable="true"]',
+    reservedTargetSelector: 'button,input,select,textarea,a,[contenteditable="true"]',
     window: { CustomEvent: globalThis.CustomEvent, dispatchEvent: event => windowEvents.dispatchEvent(event) },
     navigator: {},
     getRevision: () => 1,
@@ -129,15 +126,6 @@ function createPresentationFixture(productMode, editing = null) {
   });
   const controller = presentation.bindSvg(svg);
   return { surface, errors, transforms, cancellations, controller, presentation };
-}
-
-function createEditingHooks({ cancelActiveGesture, dispatchInteraction }) {
-  return {
-    domain: { draftInputActive: () => false, clearDraftHover: async () => false, cancelActiveGesture },
-    getDraftSnapshot: () => ({ inputPhase: 'draw', strokeActive: false, dragging: false, coords: [] }),
-    isGenericFeatureDraftTool: () => false,
-    dispatchInteraction,
-  };
 }
 
 function startPinch(surface) {
@@ -391,8 +379,8 @@ test('wheel zoom uses the pointer as a stable focal point', () => {
   controller.destroy();
 });
 
-test('viewer pinch navigates without reporting an editing cancellation error', async t => {
-  const fixture = createPresentationFixture('viewer');
+test('viewer pinch navigates without a draft cancellation error', async t => {
+  const fixture = createPresentationFixture();
   t.after(() => fixture.presentation.dispose());
   startPinch(fixture.surface);
   fixture.surface.dispatchEvent(pointerEvent('pointermove', {
@@ -409,56 +397,3 @@ test('viewer pinch navigates without reporting an editing cancellation error', a
   assert.deepEqual(fixture.transforms[0].toPoint, [25, 15]);
   assert.ok(fixture.transforms[0].zoom > 1);
 });
-
-test('editor pinch awaits gesture cancellation before dispatch and awaits its acknowledgement', async t => {
-  const gesture = Promise.withResolvers(), stroke = Promise.withResolvers(), events = [];
-  const fixture = createPresentationFixture('editor', createEditingHooks({
-    cancelActiveGesture: reason => { events.push(['gesture', reason]); return gesture.promise; },
-    dispatchInteraction: (operation, payload) => { events.push(['stroke', operation, payload]); return stroke.promise; },
-  }));
-  t.after(() => {
-    gesture.resolve(true);
-    stroke.resolve(true);
-    fixture.presentation.dispose();
-  });
-  startPinch(fixture.surface);
-
-  assert.equal(fixture.cancellations.length, 1);
-  let settled = false;
-  const completion = fixture.cancellations[0].then(result => { settled = true; return result; });
-  assert.deepEqual(events, [['gesture', 'pinch-or-cancel']]);
-  assert.equal(settled, false);
-  gesture.resolve(true);
-  await Promise.resolve();
-  assert.deepEqual(events, [
-    ['gesture', 'pinch-or-cancel'],
-    ['stroke', 'draft-stroke-cancel', { reason: 'pinch' }],
-  ]);
-  assert.equal(settled, false);
-  stroke.resolve(true);
-  assert.equal(await completion, true);
-  assert.deepEqual(fixture.errors, []);
-});
-
-for (const stage of ['gesture', 'stroke']) {
-  test(`editor pinch reports ${stage} cancellation failures through its operation error boundary`, async t => {
-    const failure = new Error(`${stage} cancellation failed`);
-    let dispatches = 0;
-    const fixture = createPresentationFixture('editor', createEditingHooks({
-      cancelActiveGesture: async () => {
-        if (stage === 'gesture') throw failure;
-        return true;
-      },
-      dispatchInteraction: async () => { dispatches += 1; throw failure; },
-    }));
-    t.after(() => fixture.presentation.dispose());
-    startPinch(fixture.surface);
-
-    assert.equal(fixture.cancellations.length, 1);
-    assert.equal(await fixture.cancellations[0], false);
-    assert.equal(fixture.errors.length, 1);
-    assert.equal(fixture.errors[0].error, failure);
-    assert.equal(fixture.errors[0].code, 'PL-DRAFT-CANCEL-001');
-    assert.equal(dispatches, stage === 'gesture' ? 0 : 1);
-  });
-}

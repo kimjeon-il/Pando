@@ -1,13 +1,12 @@
-/** Product-neutral input routing; product composition supplies reserved DOM targets and optional editing capability. */
-export function createMapInputPresentation({ports,window,navigator,createMapInputController,getRevision,mapInteractionGate,editing:editingHooks=null,reservedTargetSelector=''} = {}) {
-  const editing=editingHooks!==null;
+/** Viewer input routing for the shared map surface. */
+export function createMapInputPresentation({ports,window,navigator,createMapInputController,getRevision,mapInteractionGate,reservedTargetSelector=''} = {}) {
   if(typeof reservedTargetSelector!=='string')throw new TypeError('Map input reserved target selector must be a string.');
   if(typeof ports?.feedback?.reportOperationError!=='function')throw new TypeError('Map input requires its operation error reporter.');
   const reportOperationError=(error,code)=>ports.feedback.reportOperationError(error,'지도 입력을 적용하지 못했습니다.',code,4200);
   const {$,d3}=ports.platform;
   const {gpuMapRenderer}=ports.rendering;
   const {mapWorkScheduler}=ports.projectState;
-  const {renderingDomain,selectionDomain,projectDomain}=ports.domains;
+  const {renderingDomain,selectionDomain}=ports.domains;
   const {renderQualityController,applyAdaptiveRenderQuality,queueAdaptiveRenderQualityRefresh}=ports.renderQuality;
   const {cancelCountryHoverPick,mapNavigationEnabled,mapClickBlocked,queueCountryHoverPick}=ports.pointerInteractionA;
   const {suppressNextMapClick}=ports.pointerInteractionB;
@@ -15,8 +14,6 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
   const {isMobile}=ports.surfaces;
   const {handleMapClick,getTerritorialLabelRef}=ports.objectPicking;
   const {screenToGeo}=ports.mapView;
-  const editingDomain=editingHooks?.domain,getDraftSnapshot=editingHooks?.getDraftSnapshot;
-  const isGenericFeatureDraftTool=editingHooks?.isGenericFeatureDraftTool,dispatchEditingInteraction=editingHooks?.dispatchInteraction;
   const setMoving=value=>{ports.projectState.state.mapMoving=value;};
   const clearHoverHit=()=>ports.interactionStateCommands.setHoverHit(null);
   const getQualityTier=()=>ports.renderScene.currentRenderQuality.tier;
@@ -25,11 +22,6 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     return {moving:state.mapMoving,projectReplacing:state.projectReplacing===true,spacePanActive:state.spacePanActive,
       tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom,
       labelPlacementMode:state.labelPlacementMode};
-  };
-  const clearDraftHover = async reason => {
-    if(!editing)return false;
-    try { return await editingDomain.clearDraftHover(reason); }
-    catch (error) { reportOperationError(error,'PL-DRAFT-HOVER-001');return false; }
   };
   const setHover = async (ref,options) => {
     try { return await selectionDomain.setHover(ref,options); }
@@ -62,7 +54,6 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     gpuMapRenderer.setHydroInteractionActive(true);
     cancelCountryHoverPick({ clear: true });
     $('map')?.classList.add('dragging');
-    clearDraftHover('map-movement-start');
   }
 
   function finishMapMovement(point = null) {
@@ -81,7 +72,6 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     if (point) suppressNextMapClick(point);
     renderingDomain?.endInteraction?.('viewport-culling-settle');
     gpuMapRenderer.prioritizeLatest();
-    if(editing)projectDomain.queueViewAutosave();
   }
 
   function bindMapInputPresentation(svg) {
@@ -114,40 +104,12 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
         zoomBy(factor, false);
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
-      canDirectTap: () => {
-        const input = getInputSnapshot();
-        if (input.projectReplacing) return false;
-        if(input.tool==='select'&&!input.labelPlacementMode)return true;
-        if(!editing)return false;
-        if (input.tool === 'move') return false;
-        const draftTap = isGenericFeatureDraftTool(input.tool) && getDraftSnapshot().inputPhase === 'draw';
-        return input.labelPlacementMode || draftTap || input.tool === 'point'
-          || input.tool === 'merge-territorial-unit' || input.tool === 'merge-generic-feature';
-      },
+      canDirectTap: () => !getInputSnapshot().projectReplacing && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
       directTap: handleMapClick,
       canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
-      canDrawStroke: () => {
-        if(!editing)return false;
-        if (getInputSnapshot().projectReplacing) return false;
-        const active = editingDomain?.draftInputActive?.() && getDraftSnapshot().inputPhase === 'draw' && !getInputSnapshot().spacePanActive;
-        mapInteractionGate.setDraftInputActive(active);
-        return active;
-      },
-      beginStroke: (screenPoint, event) => dispatchEditingInteraction('draft-stroke-start', {
-        screenPoint,
-        pointerId: event?.pointerId,
-        pointerType: event?.pointerType || 'mouse',
-      }),
-      moveStroke: screenPoints => dispatchEditingInteraction('draft-stroke-move', { screenPoints }),
-      endStroke: screenPoint => dispatchEditingInteraction('draft-stroke-end', { screenPoint }),
-      cancelStroke: async reason => {
-        if(!editing)return false;
-        try {
-          await editingDomain.cancelActiveGesture('pinch-or-cancel');
-          return await dispatchEditingInteraction('draft-stroke-cancel',{ reason: typeof reason==='string' ? reason : 'pointer-cancel' });
-        } catch (error) { reportOperationError(error,'PL-DRAFT-CANCEL-001');return false; }
-      },
+      canDrawStroke: () => false,
+      cancelStroke: async () => false,
     });
 
     svg.on('click', function() {
@@ -155,8 +117,8 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       handleMapClick(d3.mouse(this));
     });
 
-    // Labels and editing overlays live in a sibling interaction SVG. Hover
-    // belongs to their common map surface; ground clicks keep their SVG owner.
+    // Labels live in a sibling interaction SVG. Hover belongs to their common
+    // map surface; ground clicks keep their SVG owner.
     const hoverSurface = d3.select($('map'));
     const preservePeerLabelHover = () => {
       if (getInputSnapshot().tool !== 'select' || !d3.event.target?.closest?.('.user-label')) return false;
@@ -167,19 +129,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
     hoverSurface.on('mouseover.map-input', preservePeerLabelHover);
     hoverSurface.on('mousemove.map-input', function() {
       if (getInputSnapshot().projectReplacing) return;
-      const draft = editing?getDraftSnapshot():null;
-      if (draft?.strokeActive) return;
-      // Draft controls own segment/vertex/insert hover, including its cleanup.
-      // Their bubbling events must not erase the target they just published.
-      if (d3.event.target?.closest?.('.draft-interactive')) return;
-      if (draft?.dragging) {
-        clearDraftHover('draft-interactive-hover');
-        return;
-      }
-      if (mapInputController?.isPanning()) {
-        clearDraftHover('map-panning');
-        return;
-      }
+      if (mapInputController?.isPanning()) return;
       // User/place labels already publish their own explicit hover ref.
       if (preservePeerLabelHover()) return;
       const label = d3.event.target?.closest?.('.territorial-label-item[data-label-id]');
@@ -191,15 +141,10 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       const screenPoint = d3.mouse(this);
       const coord = screenToGeo(screenPoint);
       if (coord) {
-        const input = getInputSnapshot();
-        if (editing && isGenericFeatureDraftTool(input.tool) && draft.inputPhase === 'draw' && draft.coords.length) {
-          dispatchEditingInteraction('draft-hover-move', { screenPoint, pointerType: 'mouse' });
-        }
         if (getInputSnapshot().tool === 'select' && !isMobile() && !d3.event.target?.closest?.('.generic-feature-shape')) {
           queueCountryHoverPick(screenPoint, coord);
         }
       } else {
-        if(editing)dispatchEditingInteraction('draft-hover-clear');
         cancelCountryHoverPick({ clear: true });
         clearHoverHit();
         setHover(null, { source: 'map' });
@@ -208,7 +153,6 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
 
     hoverSurface.on('mouseleave.map-input', function() {
       cancelCountryHoverPick();
-      if(editing)dispatchEditingInteraction('draft-hover-clear');
       clearHoverHit();
       setHover(null, { source: 'map' });
     });
