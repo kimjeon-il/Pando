@@ -26,8 +26,8 @@ export function selectNativeRun(runs,{head,workflowId,repository,title,artifactN
   return runs.find(run=>run.head_sha===head&&run.workflow_id===workflowId&&run.head_repository?.full_name===repository
     &&(run.display_title===title||(run.event==='push'&&run.status==='completed'&&artifactName&&artifactsByRun?.get(run.id)?.some(a=>a.name===artifactName&&!a.expired))))||null;
 }
-export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform='windows',mode='development',testNative=false,pollMs=5000,timeoutMs=65*60*1000,github}={}){
-  assertRemoteOnlyNativeAllowed({root,operation:'local Windows artifact download or installation'});
+export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform='windows',mode='development',testNative=false,pollMs=5000,timeoutMs=65*60*1000,github,environment=process.env,branch}={}){
+  assertRemoteOnlyNativeAllowed({root,environment,branch,operation:'local Windows artifact download or installation'});
   const identity=nativeInputIdentity(root,{platform,mode}),settings=storageSettings(root);
   if(!settings)throw Error('Application shared storage activation is required');
   const pin=JSON.parse(await readFile(resolve(root,'config/native-artifacts.json'),'utf8'));

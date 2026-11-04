@@ -75,3 +75,41 @@ test('interrupted immutable native view cleanup is journaled and resumable',t=>{
   assert.equal(existsSync(journal),false);
   assert.equal(existsSync(f.directory),false);
 });
+
+test('actual entrypoints reject SDK cache activation and Windows artifact downloads before disk I/O',async t=>{
+  const {activateCompilerCache}=await import('../../tools/worktree-storage.mjs');
+  const {fetchNativeArtifact}=await import('../../apps/editor/packaged-artifacts.mjs');
+  const root=mkdtempSync(join(tmpdir(),'pando-entrypoint-guard-'));
+  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const environment={PANDO_REMOTE_ONLY:'1'};
+  await assert.rejects(activateCompilerCache(root,{environment}),{
+    code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'
+  });
+  await assert.rejects(fetchNativeArtifact({root,environment}),{
+    code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'
+  });
+  assert.equal(existsSync(join(root,'build-native')),false);
+  assert.equal(existsSync(join(root,'cache')),false);
+});
+test('application test runner rejects declared native work before invoking a local subprocess',async()=>{
+  const {executePlan}=await import('../../scripts/run-application-checks.mjs');
+  const directory=mkdtempSync(join(tmpdir(),'pando-app-run-guard-'));
+  try{
+    const repository={root:directory,catalog:{
+      prerequisites:{'native-map-image':{argv:['node','scripts/prepare-native-test-tools.mjs','map-image']}},
+      groups:[]
+    }};
+    const plan={prerequisites:['native-map-image'],commands:[],unitTests:[],browserSpecs:[]};
+    let invoked=0;
+    const result=executePlan(plan,{repository,phase:'non-browser',
+      environment:{PANDO_REMOTE_ONLY:'1'},run:()=>{invoked++;return{status:0};}});
+    assert.equal(result.ok,false);
+    assert.equal(invoked,0);
+    assert.match(result.results[0].error,/PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED/);
+  }finally{rmSync(directory,{recursive:true,force:true});}
+});
+test('on remote-only branch, compiler environment/config commands never reactivate old cache settings',()=>{
+  const source=readFileSync(new URL('../../tools/worktree-storage.mjs',import.meta.url),'utf8');
+  assert.match(source,/compilerValues=\(\)=>remoteOnlyBranch\(\{root\}\)/);
+  assert.match(source,/active:!remoteOnlyBranch\(\{root\}\)/);
+});

@@ -7,7 +7,7 @@ import { atomicStorageJSON, containedPath, contentHash, contentFiles, contentPat
 import { libraryStagingContent, librarySharedCheckout, withLibraryLock, discardDeadLibraryLock } from './library-data.mjs';
 import { previewGeneratedCleanup, applyGeneratedCleanup } from './worktree-generated.mjs';
 import { snapshotGitStorage, repackLocalObjects } from './library-git.mjs';
-import {assertRemoteOnlyNativeAllowed} from '../scripts/lib/remote-only-native-policy.mjs';
+import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from '../scripts/lib/remote-only-native-policy.mjs';
 
 const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';
@@ -589,8 +589,8 @@ export function deactivateCompilerCache({root=repository,settings=storageSetting
   if(processes.some(p=>/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle)\.exe$/i.test(p.Name||'')||/^java(w)?\.exe$/i.test(p.Name||'')&&/gradle/i.test(p.CommandLine||'')))throw Error('An active native build blocks compiler deactivation');
   return withStorageLock(root,settings,()=>{if(settings.compilerEnabled!==false)stopServer(settings);const next={...settings,compilerEnabled:false};atomicStorageJSON(join(commonGit(root),'pando-storage.json'),next);return{compilerActive:false,applicationStorageActive:true,cacheRoot:settings.cacheRoot};});
 }
-export async function activateCompilerCache(root=repository){
-  assertRemoteOnlyNativeAllowed({root,operation:'compiler-cache SDK activation'});
+export async function activateCompilerCache(root=repository,{environment=process.env,branch}={}){
+  assertRemoteOnlyNativeAllowed({root,environment,branch,operation:'compiler-cache SDK activation'});
   const versions=JSON.parse(readFileSync(join(root,'config/toolchain-versions.json'),'utf8')).sccache;
   const toolDirectory=`D:/build/toolchains/sccache/${versions.version}`,tool=join(toolDirectory,'sccache.exe');
   const cacheRoot='D:/build/cache/pandolab';
@@ -672,8 +672,8 @@ async function main(){
   if(args.includes('--retire-native')){console.log(JSON.stringify(retireUnusedNativeViews({root,apply:args.includes('--apply')})));return;}
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
   if(args.includes('--disable-local-compiler')){console.log(JSON.stringify(deactivateCompilerCache({root})));return;}
-  const compilerValues=()=>storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
-  if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!!settings&&settings.compilerEnabled!==false,env:settings?compilerValues():{}}));return;}
+  const compilerValues=()=>remoteOnlyBranch({root})||storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
+  if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!remoteOnlyBranch({root})&&!!settings&&settings.compilerEnabled!==false,env:settings?compilerValues():{}}));return;}
   if(args.includes('--compiler-env')){console.log(JSON.stringify(storageSettings(root)?compilerValues():{}));return;}
   if(args.includes('--with-compiler-cache')){
     assertRemoteOnlyNativeAllowed({root,operation:'local compiler wrapper execution'});
