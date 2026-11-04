@@ -11,7 +11,7 @@ on:
       - 'shared/frontend/js/workers/gpu-mesh-core.js'
       - 'shared/frontend/js/modules/physical-layer-service.js'
       - 'shared/frontend/js/modules/terrain-manifest.js'
-      - 'tests/unit/renderable-outline.test.mjs'
+      - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
       - 'tests/unit/mesh-geometry-assets.test.mjs'
       - 'tests/unit/world-archive-retirement-integrity.test.mjs'
       - '.github/workflows/world-archive-retirement-integrity.yml'
@@ -26,7 +26,7 @@ on:
       - 'shared/frontend/js/workers/gpu-mesh-core.js'
       - 'shared/frontend/js/modules/physical-layer-service.js'
       - 'shared/frontend/js/modules/terrain-manifest.js'
-      - 'tests/unit/renderable-outline.test.mjs'
+      - 'tests/unit/gpu-mesh-country-strokes.test.mjs'
       - 'tests/unit/mesh-geometry-assets.test.mjs'
       - 'tests/unit/world-archive-retirement-integrity.test.mjs'
       - '.github/workflows/world-archive-retirement-integrity.yml'
@@ -114,4 +114,4 @@ jobs:
             worldAssets:result.validatedAssets,retiredVersionGroupsAbsent:4}));
           NODE
       - name: Verify original current preview geometry and mesh assertions
-        run: node --test tests/unit/renderable-outline.test.mjs tests/unit/mesh-geometry-assets.test.mjs
+        run: node --test tests/unit/gpu-mesh-country-strokes.test.mjs tests/unit/mesh-geometry-assets.test.mjs
