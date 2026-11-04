@@ -226,12 +226,12 @@ test('pointer drag forwards left and upward surface deltas without sign conversi
   controller.destroy();
 });
 
-test('interactive draft handles do not begin map panning', () => {
+test('interactive labels do not begin map panning', () => {
   const surface = new PointerSurface();
-  surface.isDraftHandle = true;
+  surface.isLabel = true;
   const pans = [];
   const controller = createController(surface, {
-    interactiveTarget: target => target.isDraftHandle === true,
+    interactiveTarget: target => target.isLabel === true,
     dragBy: (dx, dy) => pans.push([dx, dy]),
   });
 

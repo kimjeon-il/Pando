@@ -1,8 +1,4 @@
-const DEFAULT_PANDO_SELECTOR = [
-  '.user-label',
-  '.map-validation-marker',
-  '[data-pando-map-input]',
-].join(',');
+const DEFAULT_PANDO_SELECTOR = '.user-label';
 
 export function createMapInteractionGate({ selector = DEFAULT_PANDO_SELECTOR } = {}) {
   let forcedPan = false;

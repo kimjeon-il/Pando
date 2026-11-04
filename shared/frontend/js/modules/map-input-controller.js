@@ -61,7 +61,7 @@ export function createMapInputController({
     const isTouch = event.pointerType === 'touch';
     const isInteractive = interactiveTarget(event.target, event);
     // Keep touch pointers visible to the controller even when the first
-    // finger lands on an editing handle.  A second finger must be able to
+    // finger lands on an interactive label. A second finger must be able to
     // promote that gesture to map pinch; otherwise the browser can claim it
     // as page zoom before our pinch handler gets a chance to cancel it.
     if (!isTouch && isInteractive) return;

@@ -163,64 +163,6 @@
   fill: none;
 }
 
-.map-validation-issue {
-  fill-opacity: .22;
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
-
-.map-validation-fill {
-  fill: none;
-  stroke: none;
-}
-
-.map-validation-outline {
-  fill: none;
-  fill-opacity: 0;
-}
-
-.map-validation-issue.issue-overlap {
-  fill: var(--map-error-overlap);
-  stroke: var(--map-error-overlap);
-}
-
-.map-validation-issue.issue-gap {
-  fill: var(--map-error-gap);
-  stroke: var(--map-error-gap);
-}
-
-.map-validation-issue.issue-invalid {
-  fill: var(--map-error-invalid);
-  stroke: var(--map-error-invalid);
-}
-
-.map-validation-issue.issue-relation {
-  fill: var(--map-error-relation);
-  stroke: var(--map-error-relation);
-}
-
-.map-validation-marker {
-  stroke: var(--surface-elevated);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
-
-.map-validation-marker.issue-overlap {
-  fill: var(--map-error-overlap);
-}
-
-.map-validation-marker.issue-gap {
-  fill: var(--map-error-gap);
-}
-
-.map-validation-marker.issue-invalid {
-  fill: var(--map-error-invalid);
-}
-
-.map-validation-marker.issue-relation {
-  fill: var(--map-error-relation);
-}
-
 .map-ocean {
   fill: var(--map-ocean);
   stroke: none;
