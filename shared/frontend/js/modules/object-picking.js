@@ -255,7 +255,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
     // A label names an explicit object even when its text is over another
     // territory or outside the globe. Other tools retain coordinate dispatch.
     if (territorialLabelId) {
-      if (dependencies.projectState.state.projectReplacing || dependencies.projectState.state.modeProcessing) return false;
+      if (dependencies.projectState.state.projectReplacing) return false;
       const ref = getTerritorialLabelRef(territorialLabelId);
       if (!objectRefSelectable(ref)) return false;
       closeObjectChooser();
