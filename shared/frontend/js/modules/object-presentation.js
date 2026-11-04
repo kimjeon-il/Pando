@@ -14,9 +14,6 @@ export function createObjectPresentation() {
   let territorialScope;
   let distributionVisibilityRevision;
   let distributionRenderRowCache;
-  let territorialApplicationService;
-  let distributionService;
-  let genericFeatureService;
   let LAYER_GROUP_KEYS;
   let LAYER_SEARCH_GROUP_KEYS;
   let layerGroupNames;
@@ -37,10 +34,6 @@ export function createObjectPresentation() {
 
   function genericFeatureRoleLabel() {
     return '기타 객체';
-  }
-
-  function genericFeatureRoleHelp(feature) {
-    return '기타 객체는 독립된 형상을 가지며 다른 객체 종류로 전환할 수 있습니다.';
   }
 
   function genericFeatureDisplayFeature(feature) {
@@ -93,35 +86,6 @@ export function createObjectPresentation() {
 
   function hydroFallbackName(value) {
     return `이름 없는 ${hydroCategoryLabel(value)}`;
-  }
-
-  function hydroAccusativeLabel(value) {
-    return hydroCategoryKey(value) === 'lake' ? '호수를' : '강을';
-  }
-
-  function syncMapObjectCategoryLabels() {
-    const buildContent = (0, dependencies.platform.$)('createBuildPanel');
-    if (buildContent) {
-      dependencies.objectDefinitions.MAP_OBJECT_CATEGORY_ORDER.forEach(categoryKey => {
-        const categoryNode = buildContent.querySelector(`.ui-menu-group[data-map-category="${categoryKey}"]`);
-        const category = dependencies.objectDefinitions.MAP_OBJECT_CATEGORIES[categoryKey];
-        if (!categoryNode || !category) return;
-        categoryNode.setAttribute('role', 'group');
-        categoryNode.setAttribute('aria-label', category.label);
-        category.createItems.forEach(type => {
-          const item = categoryNode.querySelector(`[data-map-object-type="${type}"]`);
-          if (!item) return;
-          const metadata = dependencies.objectDefinitions.MAP_OBJECT_TYPES[type];
-          const label = item.querySelector('span');
-          const icon = item.querySelector('.ui-icon use');
-          if (metadata) {
-            if (label) label.textContent = metadata.label;
-            if (icon) icon.setAttribute('href', `#${metadata.icon}`);
-          }
-          categoryNode.appendChild(item);
-        });
-      });
-    }
   }
 
   function initializeTerritorialScope() {
@@ -183,28 +147,19 @@ export function createObjectPresentation() {
     get defaultGenericFeatureColor() { return defaultGenericFeatureColor; },
     get distributionColor() { return distributionColor; },
     get distributionRenderRowCache() { return distributionRenderRowCache; },
-    get distributionService() { return distributionService; },
-    set distributionService(value) { distributionService = value; },
     get distributionVisibilityRevision() { return distributionVisibilityRevision; },
     set distributionVisibilityRevision(value) { distributionVisibilityRevision = value; },
     get expandedMapDisplayGroups() { return expandedMapDisplayGroups; },
     get genericFeatureColor() { return genericFeatureColor; },
     get genericFeatureDisplayFeature() { return genericFeatureDisplayFeature; },
     get genericFeatureName() { return genericFeatureName; },
-    get genericFeatureRoleHelp() { return genericFeatureRoleHelp; },
     get genericFeatureRoleLabel() { return genericFeatureRoleLabel; },
-    get genericFeatureService() { return genericFeatureService; },
-    set genericFeatureService(value) { genericFeatureService = value; },
-    get hydroAccusativeLabel() { return hydroAccusativeLabel; },
     get hydroCategoryKey() { return hydroCategoryKey; },
     get hydroCategoryLabel() { return hydroCategoryLabel; },
     get hydroFallbackName() { return hydroFallbackName; },
     get layerGroupNames() { return layerGroupNames; },
     get layerNameCollator() { return layerNameCollator; },
 
-    get syncMapObjectCategoryLabels() { return syncMapObjectCategoryLabels; },
-    get territorialApplicationService() { return territorialApplicationService; },
-    set territorialApplicationService(value) { territorialApplicationService = value; },
     get territorialScope() { return territorialScope; },
     get territorialStyleColor() { return territorialStyleColor; },
 

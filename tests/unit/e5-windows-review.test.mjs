@@ -30,6 +30,7 @@ test('E5 viewer retains its read-only Core while Windows selects only flat and w
   assert.equal(typeof owners.mapHost.projectionViewSnapshot,'function');
   assert.throws(()=>createMapOwners({productMode:'viewer',projection:'flat',readOnly:true,
     editing:{persistView(){}}}),/cannot register editing hooks/);
+  assert.throws(()=>createMapOwners({productMode:'editor',projection:'flat',readOnly:true}),/viewer product mode/i);
   owners.builtinSession.dispose();
 });
 
