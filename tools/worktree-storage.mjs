@@ -552,7 +552,20 @@ export function assertCompilerCacheServer(settings,server){
   if(server.version!==settings.version||server.max_cache_size!==cacheLimit||!location||normalize(location)!==normalize(join(settings.cacheRoot,'sccache'))||server.basedirs?.length)throw Error('Activated compiler cache server ownership/configuration mismatch');
 }
 export function compilerCacheEnvironment({root=repository,env=process.env,settings=storageSettings(root)}={}){
-  const result={...env};if(!settings)return result;
+  const result={...env};
+  // Detached candidate checkouts and Codespaces never reuse a retired local
+  // compiler wrapper, even when a previous worktree left storage activated.
+  if(remoteOnlyBranch({root,environment:env})&&env.GITHUB_ACTIONS!=='true'){
+    if(settings){
+      for(const key of ['RUSTC_WRAPPER','CMAKE_C_COMPILER_LAUNCHER',
+        'CMAKE_CXX_COMPILER_LAUNCHER','EM_COMPILER_WRAPPER'])
+        if(result[key]===settings.tool)delete result[key];
+      if(result.SCCACHE_DIR&&resolve(result.SCCACHE_DIR)===resolve(settings.cacheRoot,'sccache'))
+        for(const key of Object.keys(result))if(key.startsWith('SCCACHE_'))delete result[key];
+    }
+    return result;
+  }
+  if(!settings)return result;
   if(settings.schema!==schema)throw Error('Invalid compiler cache configuration');
   if(settings.compilerEnabled===false){
     for(const key of ['RUSTC_WRAPPER','CMAKE_C_COMPILER_LAUNCHER','CMAKE_CXX_COMPILER_LAUNCHER','EM_COMPILER_WRAPPER'])if(result[key]===settings.tool)delete result[key];

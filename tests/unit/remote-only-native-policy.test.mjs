@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from '../../scripts/lib/remote-only-native-policy.mjs';
 import {assertRemoteOnlyNativePreparation} from '../../scripts/prepare-native-test-tools.mjs';
-import {retireUnusedNativeViews,installNativeArtifactView,pruneApplicationBlobs} from '../../tools/worktree-storage.mjs';
+import {retireUnusedNativeViews,installNativeArtifactView,pruneApplicationBlobs,compilerCacheEnvironment} from '../../tools/worktree-storage.mjs';
 import {nativeHash} from '../../apps/editor/native-contract.mjs';
 
 test('Pando-owned native installation and compiler gates fail before side effects outside Actions',()=>{
@@ -115,4 +115,23 @@ test('checked-in policy marker blocks detached-HEAD native setup without probing
     {code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'});
   writeFileSync(marker,JSON.stringify({schema:'unknown'}));
   assert.throws(()=>remoteOnlyBranch({root,environment:{},probe:never}),/Unknown remote-only policy marker/);
+});
+
+test('existing compiler cache wrappers are stripped without launching their executable',t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-disabled-compiler-'));
+  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const settings={cacheRoot:join(root,'cache'),tool:join(root,'missing-sccache.exe')};
+  const source={PANDO_REMOTE_ONLY:'1',RUSTC_WRAPPER:settings.tool,
+    CMAKE_CXX_COMPILER_LAUNCHER:settings.tool,SCCACHE_DIR:join(settings.cacheRoot,'sccache'),
+    SCCACHE_CACHE_SIZE:'2147483648',PATH:'unrelated'};
+  const result=compilerCacheEnvironment({root,settings,env:source});
+  for(const key of ['RUSTC_WRAPPER','CMAKE_CXX_COMPILER_LAUNCHER','SCCACHE_DIR','SCCACHE_CACHE_SIZE'])
+    assert.equal(result[key],undefined,key);
+  assert.equal(result.PATH,'unrelated');
+  assert.equal(existsSync(settings.cacheRoot),false);
+});
+test('legacy direct compiler-cache probe requires Actions before hardcoded toolchains',()=>{
+  const script=readFileSync(new URL('../../tools/verify-compiler-cache.mjs',import.meta.url),'utf8');
+  assert.match(script,/assertRemoteOnlyNativeAllowed/);
+  assert.ok(script.indexOf('assertRemoteOnlyNativeAllowed')<script.indexOf("const roots=['D:/dev/worktrees"));
 });
