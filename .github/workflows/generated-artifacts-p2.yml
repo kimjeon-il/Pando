@@ -186,7 +186,7 @@ jobs:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
         run: >-
           node --test shared/tests/temporal-editing.test.mjs
-          tests/unit/place-names.test.mjs tests/unit/territorial-library-service.test.mjs
+          tests/unit/place-names.test.mjs tests/unit/territorial-entity-loader.test.mjs
       - uses: actions/upload-artifact@v4
         if: always() && inputs.verification == 'temporal'
         with:
