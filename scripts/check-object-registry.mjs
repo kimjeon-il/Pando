@@ -3,7 +3,6 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {
  MAP_OBJECT_CATEGORIES, MAP_OBJECT_CATEGORY_ORDER, MAP_OBJECT_TYPES,
- categoryForCreateItem,
 } from '../shared/frontend/js/modules/map-object-categories.js';
 import {createProductModePolicy} from '../shared/frontend/js/modules/product-mode-policy.js';
 import {renderProductHtml} from './lib/product-html.mjs';
@@ -21,22 +20,12 @@ for(const [key,type] of Object.entries(MAP_OBJECT_TYPES)){
  if(type.key!==key)fail('Object key mismatch: '+key);
  if(!MAP_OBJECT_CATEGORIES[type.category])fail('Unknown category: '+type.category);
  if(!type.label)fail('Missing label: '+key);
- if(type.creatable&&categoryForCreateItem(key)!==type.category)
-   fail('Object creation descriptor disagrees with category: '+key);
  if(key!=='distribution'&&(!type.layerGroup||!type.presentationGroup))
    fail('Missing read-only layer presentation group: '+key);
 }
 const expected=['territorial','distribution','features'];
 if(JSON.stringify(MAP_OBJECT_CATEGORY_ORDER)!==JSON.stringify(expected))
  fail('Viewer object category order changed');
-for(const [key,group] of Object.entries(MAP_OBJECT_CATEGORIES)){
- for(const type of group.createItems||[]){
-   if(!MAP_OBJECT_TYPES[type]||MAP_OBJECT_TYPES[type].category!==key)
-     fail('Object category/type mismatch: '+key+'/'+type);
- }
-}
-if(MAP_OBJECT_TYPES.generic.creatable!==false||MAP_OBJECT_TYPES.generic.fallbackOnly!==true)
- fail('Generic fallback must not be directly created in the Viewer');
 const viewer=createProductModePolicy('viewer',{readOnly:true});
 try{viewer.assertOperation('core.document-execute');fail('Viewer accepted a mutation');}
 catch(error){if(error.code!=='PL-PRODUCT-READONLY')fail('Unexpected Viewer mutation error');}

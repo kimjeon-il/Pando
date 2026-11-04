@@ -3,11 +3,8 @@ const FIRST_LOAD_WINDOW_MS = 5_000;
 const EVENT_DURATION_FLOOR_MS = 16;
 
 export const PERFORMANCE_METRIC_NAMES = Object.freeze({
-  AUTOSAVE: 'autosave.persist',
   COMMAND: 'project.command',
-  TRANSACTION: 'project.transaction',
   MOBILE_SHEET_DRAG: 'mobile-sheet.drag',
-  MAP_RESIZE: 'map.resize',
 });
 
 const PERFORMANCE_DIAGNOSTIC_THRESHOLDS = Object.freeze({
@@ -15,7 +12,6 @@ const PERFORMANCE_DIAGNOSTIC_THRESHOLDS = Object.freeze({
   longTaskMs: 50,
   interactionFrameBudgetMs: 16.7,
   slowInteractionFrameMs: 33.4,
-  autosaveMs: 750,
 });
 
 const finite = value => Number.isFinite(Number(value));
