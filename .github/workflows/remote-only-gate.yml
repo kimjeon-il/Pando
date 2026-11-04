@@ -95,3 +95,65 @@ jobs:
             tests/unit/reference-onnx-export-refusal.test.mjs
       - name: Explain untested native/GPU boundary
         run: echo "Node model-pipeline smoke is not LibTorch training or CUDA inference acceptance."
+
+  windows-real-webview2:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Preserve exact source line endings
+        shell: pwsh
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.99.1'
+          targets: x86_64-pc-windows-msvc
+      - name: Check Windows native build headroom
+        shell: pwsh
+        run: |
+          node -e "const s=require('node:fs').statfsSync('.');const free=s.bavail*s.bsize/2**30;console.log({freeGiB:free});if(free<17)throw Error('Insufficient Windows CI disk headroom')"
+      - uses: ./.github/actions/library-data
+      - name: Install locked Windows CI dependencies
+        shell: pwsh
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm --dir apps/editor install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile actual source-pinned verification reviewer
+        shell: pwsh
+        run: |
+          node apps/editor/packaged-artifacts.mjs --ci-build --platform=windows --mode=verification --test-native
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test real Windows WebView2 review UI and readonly boundary
+        shell: pwsh
+        run: |
+          ./apps/editor/verify-review-windows.ps1 -BinaryPath 'build-native/native-artifacts/windows/verification/pandolab-web-shell.exe' -OutputDirectory 'build-native/remote-only-windows'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $r = Get-Content 'build-native/remote-only-windows/windows-review-probe.json' -Raw | ConvertFrom-Json
+          $a = Get-Content 'build-native/native-artifacts/windows/verification/native-artifact.json' -Raw | ConvertFrom-Json
+          if ($a.sourceCommit -ne $env:GITHUB_SHA -or $a.mode -ne 'verification' -or $a.platform -ne 'windows') { throw 'Native build source differs from CI commit' }
+          if ($r.embeddedBuild.sourceCommit -ne $env:GITHUB_SHA -or -not $r.ok -or $r.phase -ne 'read-only-map-ready') { throw 'WebView2 runtime identity/readiness mismatch' }
+          if ($r.observed.projection -ne 'flat' -or -not $r.observed.readOnly -or -not $r.observed.mutationBlocked -or $r.observed.canUndo -ne $false) { throw 'Windows readonly review contract mismatch' }
+          Write-Output ('PANDO_REMOTE_ONLY_WINDOWS_WEBVIEW2_PASS: ' + $env:GITHUB_SHA)
+      - name: Archive GUI probe and immutable Windows build identity
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-windows-${{ github.sha }}
+          path: |
+            build-native/remote-only-windows/windows-review-probe.json
+            build-native/remote-only-windows/windows-review-stderr.txt
+            build-native/remote-only-windows/windows-review-stdout.txt
+            build-native/native-artifacts/windows/verification/native-artifact.json
+          if-no-files-found: warn
+          retention-days: 14
