@@ -1,5 +1,6 @@
 #include <pandoeditor/document.h>
 #include <pandoeditor/losslessjson.h>
+#include <pandoeditor/projectcodec.h>
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
@@ -120,8 +121,32 @@ void GeometryProvenanceCodecAccess::sealVerifiedOpaqueBaseline(ProjectDocument& 
     auto& provenance=document.geometryProvenance;
     provenance.cleanEvidence_.reset();
     if(provenance.opaqueUncertain)return;
-    provenance.cleanEvidence_=std::make_shared<const GeometryProvenance::OpaqueBaselineEvidence>(
-        provenance.opaqueBaseline,geometryProvenanceOpaqueSlots(document));
+    sealVerifiedOpaqueSlots(document,geometryProvenanceOpaqueSlots(document));
+}
+void GeometryProvenanceCodecAccess::sealVerifiedOpaqueSlots(ProjectDocument& document,std::map<std::string,std::string> slots) {
+    auto& provenance=document.geometryProvenance;
+    provenance.cleanEvidence_.reset();
+    if(provenance.opaqueUncertain)return;
+    provenance.cleanEvidence_=std::make_shared<const GeometryProvenance::OpaqueBaselineEvidence>(provenance.opaqueBaseline,std::move(slots));
+}
+void GeometryProvenanceCodecAccess::setProjectSetupMetadata(ProjectDocument& document,const codecjson::Value& setup) {
+    const auto original=document.exchangeMetadata;
+    auto header=codecjson::parse(original);
+    header.object["projectSetup"]=setup;
+    document.exchangeMetadata=header.encode();
+    auto& provenance=document.geometryProvenance;
+    if(provenance.opaqueUncertain)return;
+    auto previous=codecjson::parse(original),next=codecjson::parse(document.exchangeMetadata);
+    previous.object.erase("projectSetup");next.object.erase("projectSetup");
+    codecjson::require(previous.encode()==next.encode(),"INVALID_GEOMETRY_PROVENANCE: unrelated project header changed");
+    // No other document field was changed, so only the header slot can differ.
+    // Enumerate all slots once to retain validation and construct the same seal.
+    auto slots=geometryProvenanceOpaqueSlots(document);
+    codecjson::require(nonemptyPayload(original)==nonemptyPayload(document.exchangeMetadata),
+        "INVALID_GEOMETRY_PROVENANCE: project dependencies changed");
+    provenance.opaqueUncertain=false;
+    provenance.opaqueBaseline["/exchangeMetadata"]=projectcodec::sha256Bytes(codecjson::parse(document.exchangeMetadata).encode());
+    sealVerifiedOpaqueSlots(document,std::move(slots));
 }
 void validateGeometryProvenance(const ProjectDocument& document) {
     const auto& provenance=document.geometryProvenance;

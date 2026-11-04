@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { writeFile, readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-import { semanticSnapshot, summarizeLatency, installMapBaselineCollector, instrumentMapBaselineSource, observeWithDeadline } from '../helpers/map-transition-baseline.mjs';
+import { semanticSnapshot, summarizeLatency, installMapBaselineCollector, instrumentMapBaselineSource, instrumentTemporalWorkerSource, observeWithDeadline } from '../helpers/map-transition-baseline.mjs';
 
 test.use({ timezoneId: 'Asia/Seoul', locale: 'ko-KR', trace: 'off' });
 const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -15,7 +15,13 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
     await page.clock.setFixedTime(new Date('2026-10-31T00:00:00+09:00'));
     await page.addInitScript(installMapBaselineCollector);
     const pageErrors = [], sourceHashes = {}, samples = [], snapshots = {}, resourceSamples = [];
+    const workerTimingEnabled = process.env.PANDOLAB_P0_WORKER_TIMING === '1';
     page.on('pageerror', error => pageErrors.push(String(error)));
+    if (workerTimingEnabled) await page.context().route('**/modules/core-document-runtime.js*', async route => {
+      const response = await route.fetch(), source = await response.text();
+      sourceHashes['core-document-runtime.js'] = createHash('sha256').update(source).digest('hex');
+      await route.fulfill({response, body: instrumentTemporalWorkerSource(source)});
+    });
     for (const name of ['viewer-composition.js', 'builtin-session.js', 'project-domain.js']) {
       await page.route(`**/modules/${name}*`, async route => {
         const response = await route.fetch(), source = await response.text();
@@ -102,6 +108,19 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
     finally {
       const observation = await observeWithDeadline(() => page.evaluate(() => globalThis.__PANDO_P0__?.snapshot() ?? null));
       const probe = observation.status === 'ok' ? observation.value : null;
+      const workerObservation = workerTimingEnabled ? await observeWithDeadline(() => Promise.all(page.workers().map(async worker => ({
+        url: worker.url(),
+        measures: await worker.evaluate(() => performance.getEntriesByType('measure')
+          .filter(entry => entry.name.startsWith('pando-worker:'))
+          .map(entry => ({name: entry.name, startEpochMs: performance.timeOrigin + entry.startTime, durationMs: entry.duration, detail: entry.detail}))),
+      })))) : {status: 'disabled', value: null};
+      if (workerTimingEnabled && !failure) {
+        const measures = workerObservation.value?.flatMap(worker => worker.measures) ?? [];
+        if (workerObservation.status !== 'ok' || !sourceHashes['core-document-runtime.js']
+          || !['temporalSourcePrepare','temporalCandidatePrepare'].every(name =>
+            measures.some(entry => entry.name === 'pando-worker:' + name)))
+          failure = 'Core Worker timing observation was unavailable or incomplete.';
+      }
       if (observation.status !== 'ok' && !failure) failure = 'Final diagnostic observation ' + observation.status;
       const cdpDetach = await observeWithDeadline(() => cdp.detach());
       if (failure && probe?.active && !samples.some(row => row.id === probe.active.id)) {
@@ -118,7 +137,7 @@ for (const profile of [{name: 'desktop', width: 1280, height: 800}, {name: 'narr
         limitations: ['Semantic snapshots and resource reads occur outside intervals but may affect subsequent GC.',
           'CDP JS heap is not total process, WASM or GPU memory.', 'Narrow viewport is not a physical mobile device.',
           'Initial ready observation is not first-map presentation latency.', 'No performance threshold is enforced at P0.'],
-        startup, initialCamera, initialState, snapshots, samples, resourceSamples, pageErrors, probe,
+        startup, initialCamera, initialState, snapshots, samples, resourceSamples, pageErrors, probe, workerObservation,
         diagnosticObservation: {status: observation.status, error: observation.error ?? null},
         cdpDetach: {status: cdpDetach.status, error: cdpDetach.error ?? null},
         summary: {all: summarizeLatency(samples), repeatPairs: summarizeLatency(samples.filter(row => row.classification === 'repeat-pair'))}};

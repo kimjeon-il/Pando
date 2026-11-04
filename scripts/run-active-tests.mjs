@@ -13,12 +13,18 @@ if(!['unit','browser'].includes(kind)){
     && !['retired','manual'].includes(repository.owners.get(file)?.mode)).sort();
   if(process.argv.includes('--list'))console.log(files.join('\n'));
   else{
+    // pnpm can forward its argument separator literally. Passing it through
+    // would make Playwright interpret later options (including --output) as
+    // positional test filters and use its default output directory instead.
+    const forwarded=process.argv.slice(3);
+    if(forwarded[0]==='--')forwarded.shift();
     // Keep Windows command lines well below the 32 KiB process limit.
     // Browser specs remain one Playwright invocation to preserve fixtures.
     const groupSize=kind==='unit'?120:files.length||1;
-    // These tests hydrate the same worktree report view. Keep them outside
-    // parallel batches so neither can collide with another library reader.
-    const exclusive=new Set(['tests/unit/place-publication.test.mjs','tests/unit/place-sync-contract.test.mjs']);
+    // Report hydration tests share a worktree view. The cleanup fixture also
+    // requires system-wide Git idleness, so do not overlap it with Git tests.
+    const exclusive=new Set(['tests/unit/place-publication.test.mjs','tests/unit/place-sync-contract.test.mjs',
+      'tests/unit/reference-cache-cleanup.test.mjs']);
     const ordinary=kind==='unit'?files.filter(file=>!exclusive.has(file)):files;
     const batches=[];
     for(let at=0;at<ordinary.length;at+=groupSize)batches.push(ordinary.slice(at,at+groupSize));
@@ -26,8 +32,8 @@ if(!['unit','browser'].includes(kind)){
     let failed=false;
     for(const batch of batches){
       const args=kind==='unit'?
-        ['--test','--test-concurrency=2',...batch,...process.argv.slice(3)]:
-        ['node_modules/@playwright/test/cli.js','test',...batch,'--workers=1',...process.argv.slice(3)];
+        ['--test','--test-concurrency=2',...batch,...forwarded]:
+        ['node_modules/@playwright/test/cli.js','test',...batch,'--workers=1',...forwarded];
       const result=spawnSync(process.execPath,args,{cwd:repository.root,stdio:'inherit'});
       if(result.error)throw result.error;
       if(result.status!==0)failed=true;

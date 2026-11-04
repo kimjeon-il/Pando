@@ -1,7 +1,7 @@
 {
   "schema": "pandoeditor-core-wasm",
   "abiVersion": 1,
-  "sourceSha256": "9225ebc3704f4b7cdf2a3119609e3a7170fffaedc7369dceed61eeb76a32eff6",
+  "sourceSha256": "a2f262d8d168969a11953ba5185f4f4731cd25b4a376106118ac032aabd2c15c",
   "compiler": {
     "name": "emscripten",
     "version": "6.0.3"
@@ -77,7 +77,7 @@
     },
     {
       "path": "shared/core/include/pandoeditor/geometryprovenance.h",
-      "sha256": "c94f7419eeda4b429c5dbdf9759097dca3498a02cc10efcf4f64112a3ac9b7a3"
+      "sha256": "6b3e2ab4d109f80c85f36cae743de8bca7405686525f5bbbab45ddc7a6614b0a"
     },
     {
       "path": "shared/core/include/pandoeditor/geopackagegeometry.h",
@@ -289,7 +289,7 @@
     },
     {
       "path": "shared/core/src/document-session.cpp",
-      "sha256": "140697f06fad78f8f5103de6c0209bff401a38e3887cc2358435702a80532af5"
+      "sha256": "53e5249397de8f7a0427695c9b9b0f6680ef21d1a04efe5b8fceb202ff4f82a9"
     },
     {
       "path": "shared/core/src/document.cpp",
@@ -309,7 +309,7 @@
     },
     {
       "path": "shared/core/src/geometryprovenance.cpp",
-      "sha256": "bf52ad801ca1d5bfcc4abd99d74f98b459417cba2fbf78a072eee493c7fdae9b"
+      "sha256": "edefc26ba9715bcc03ad8d429c9cb1e85bf7c18590b52d527bd01d611ca4f5e1"
     },
     {
       "path": "shared/core/src/geopackagegeometry.cpp",
@@ -549,7 +549,7 @@
     },
     {
       "path": "shared/tests/temporal-adopt-tests.cpp",
-      "sha256": "64c7f3349041e054e202e576e2a919e1299183af8ff2f2d07b4360b73e770d61"
+      "sha256": "dcfadc47bee0a8fa2944c96b7bbe44aa5f742938907e78b44157c41cdc3084d9"
     },
     {
       "path": "shared/tests/temporal-candidate-tests.cpp",
@@ -639,7 +639,7 @@
     },
     "wasm": {
       "file": "pandoeditor-core.wasm",
-      "sha256": "d1a22762fdeb8cfb03163da22ba3cb4850a0fd9c93291f50fde6d5f3b839e135"
+      "sha256": "61b8e6addc8e6cf3195fa4deea0417ed784564c507ecd38140e644e1dd8326a1"
     }
   }
 }

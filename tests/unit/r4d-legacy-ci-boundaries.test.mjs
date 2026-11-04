@@ -33,3 +33,16 @@ test('R4-D does not mistake archive staging for application production',()=>{
  assert.match(pkg.scripts['test:unit'],/run-active-tests\.mjs unit/);
  assert.match(pkg.scripts['test:browser'],/run-active-tests\.mjs browser/);
 });
+test('test runner forwards options past the package-manager separator',()=>{
+ const preload=`import child from 'node:child_process';
+import {syncBuiltinESMExports} from 'node:module';
+child.spawnSync=(_command,args)=>{process.stdout.write(JSON.stringify(args)+'\\n');return {status:0};};
+syncBuiltinESMExports();`;
+ const output=execFileSync(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(preload),
+  'scripts/run-active-tests.mjs','browser','--','--output=D:/safe-browser-output','--grep=viewer'],
+ {cwd:root,encoding:'utf8'});
+ const args=JSON.parse(output.trim());
+ assert.ok(args.includes('--output=D:/safe-browser-output'));
+ assert.ok(args.includes('--grep=viewer'));
+ assert.ok(!args.includes('--'),'the separator must not turn Playwright options into positional arguments');
+});

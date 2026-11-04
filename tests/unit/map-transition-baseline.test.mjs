@@ -99,9 +99,30 @@ test('instrumentation preserves Core temporal adoption statement and refuses uns
           worldSha256:prepared.worldSha256,replacementId:checkpoint.replacementId,
           expectedEpoch:prepared.expectedEpoch,
         });`;
-  const output = instrumentMapBaselineSource(statement, 'project-domain.js');
+  const source = readFileSync(new URL('../../shared/frontend/js/modules/project-domain.js', import.meta.url), 'utf8');
+  const output = instrumentMapBaselineSource(source, 'project-domain.js');
   assert.ok(output.includes(statement)); assert.ok(output.includes('candidate-adopt:start')); assert.ok(output.includes('candidate-adopt:end'));
   assert.throws(() => instrumentMapBaselineSource('', 'unknown.js'), /Unknown probe/);
+});
+
+test('Worker timing probe preserves return values and errors and measures only temporal preparation', async () => {
+  const {instrumentTemporalWorkerSource} = await import('../helpers/map-transition-baseline.mjs');
+  const original = "return projectResult(core[method](...(typeof args === 'function' ? args() : args)),core);";
+  const source = instrumentTemporalWorkerSource(original);
+  const measures = [];
+  let tick = 0;
+  const invoke = runInNewContext(`({core,method,args,projectResult}) => {${source}}`, {
+    performance: {now: () => ++tick, measure: (name, options) => measures.push({name, ...options})},
+  });
+  const core = {temporalCandidatePrepare: value => value + 1, state: () => 7,
+    temporalSourcePrepare: () => {throw new Error('source failure');}};
+  assert.equal(invoke({core, method:'temporalCandidatePrepare', args:[2], projectResult: value => value}), 3);
+  assert.equal(invoke({core, method:'state', args:[], projectResult: value => value}), 7);
+  assert.throws(() => invoke({core, method:'temporalSourcePrepare', args:[], projectResult: value => value}), /source failure/);
+  assert.deepEqual(measures.map(row => row.name), ['pando-worker:temporalCandidatePrepare','pando-worker:temporalSourcePrepare']);
+  assert.throws(() => instrumentTemporalWorkerSource(''), /exactly one/);
+  const runtime = readFileSync(new URL('../../shared/frontend/js/modules/core-document-runtime.js', import.meta.url), 'utf8');
+  assert.match(instrumentTemporalWorkerSource(runtime), /pando-worker:/);
 });
 
 test('diagnostic observation has a deadline when a browser stops replying', async () => {
@@ -127,6 +148,11 @@ test('temporal probes instrument the active production sources on LF and CRLF ch
   const instrumented=instrumentMapBaselineSource(source,name);
   assert.equal(instrumentMapBaselineSource(source.replaceAll('\n','\r\n'),name),instrumented);
   if(name==='builtin-session.js')assert.match(instrumented,/candidate-prepare:start/);
-  if(name==='project-domain.js')assert.match(instrumented,/candidate-adopt:start/);
+  if(name==='project-domain.js'){
+   for(const phase of ['candidate-adopt','candidate-queue','temporal-source','temporal-candidate']){
+    assert.match(instrumented,new RegExp(phase+':start'));
+    assert.match(instrumented,new RegExp(phase+':end'));
+   }
+  }
  }
 });
