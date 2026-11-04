@@ -42,7 +42,7 @@ export function replaceBoundaryChain(geometry,start,end,replacement,through) {
   const originalStart=ring[0],retainedStart=next.findIndex(p=>same(p,originalStart));
   if(retainedStart>0){if(same(next[0],next.at(-1)))next.pop();next=[...next.slice(retainedStart),...next.slice(0,retainedStart)];}
   if(!same(next[0],next.at(-1)))next.push([...next[0]]);
-  ring.splice(0,ring.length,...next);return normalize(result);
+  ring.splice(0,ring.length,...next);return result;
 }
 
 function lineBetween(points,start,end) {
@@ -98,7 +98,7 @@ function atBaseline(geometry,chain) {
   return chain.baseline.slice(1).every((p,i)=>edges.has(edge(chain.baseline[i],p)));
 }
 function restoreChain(geometry,chain) {
-  return atBaseline(geometry,chain)?geometry:replaceBoundaryChain(geometry,chain.start,chain.end,chain.baseline,chain.retiredWitness);
+  return atBaseline(geometry,chain)?geometry:normalize(replaceBoundaryChain(geometry,chain.start,chain.end,chain.baseline,chain.retiredWitness));
 }
 function provenance(previous,scope) {
   return {...previous,sourceIds:[...new Set(['natural-earth-5.1.1',...(previous?.sourceIds||[]).filter(id=>id!=='dos-lsib-11.4')])],
