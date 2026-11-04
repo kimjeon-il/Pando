@@ -3,16 +3,29 @@
   "provenance": {
     "repository": "kimjeon-il/PandoLab-library-data",
     "revision": "5eb7be55208efaafe39bd5a65ec2f111d70b9053",
-    "reviewedRuntimeRevision": "0388abf78dff4ea4835e36b01de67d10703ac596",
+    "reviewedRuntimeRevision": "deb5576939de1a7e9d70c00fd68b98c1e2e2e883",
     "archiveIndexPath": "archive/index.json",
-    "archiveIndexBlob": "771135a880965fc17314ec6d9506583edbc7d282",
+    "archiveIndexBlob": "3bd3c55150c811fba23d6c3ac88a82528db289f1",
     "archiveSourceRevision": "74b6616c83e12d64a73838cf7d8a786817554e75",
-    "generatedIndexSha256": "ca00edc7ba8727ae9efa1b8fa0788dd9d54804bc694d13af85bb59cda1adb1ee"
+    "generatedIndexSha256": "f736a487ae7dc87d6dd9838dc3c00eb29f4373bacd3445e4550233c3fc2f86df",
+    "acceptedSourceUpdate": {
+      "scope": [
+        "state:RUS",
+        "state:KAZ",
+        "state:CHN",
+        "state:soviet-union",
+        "state:soviet-union-russian-sfsr",
+        "state:IRN"
+      ],
+      "reason": "Retire sub-500 A–C and paired Sarakhs shapes; remove three native-only G registrations; preserve all unrelated source receipts.",
+      "runtime": "deb5576939de1a7e9d70c00fd68b98c1e2e2e883",
+      "generatedData": "5500b6a035d29844c7de93a709db3557bfc9c12c"
+    }
   },
   "counts": {
     "entities": 286,
     "lineages": 265,
-    "geometryVersions": 315
+    "geometryVersions": 313
   },
   "countries": {
     "state:ABW": {
@@ -468,8 +481,8 @@
       "bytes": 207238
     },
     "state:IRN": {
-      "sha256": "b268551441f9755547757de5860e108649f7621d0595166906b149bd559f590a",
-      "bytes": 317743
+      "sha256": "bfedee51d65a95be3cc5665d045ed620250c043d55445746c5352e5434b9b792",
+      "bytes": 1215271
     },
     "state:IRQ": {
       "sha256": "59c94ea3927d712899a24fc23fbbb8e5b3fc6d2e74949fb209e1e3e5b490cbab",
@@ -512,8 +525,8 @@
       "bytes": 4067
     },
     "state:KAZ": {
-      "sha256": "87386588e632923811346efad49e7e1c19cad807658b52ddb3d7467357dbbfee",
-      "bytes": 291850
+      "sha256": "889df3556d0c60c1d3b2fd61d00b134510a62b0b99d3ab047ac98380e820b35c",
+      "bytes": 722602
     },
     "state:KEN": {
       "sha256": "cdf2b863e0deed8b106c818da06dc6f2bbd1b4219d60a4f3bf90209a00e1ef6a",
@@ -808,8 +821,8 @@
       "bytes": 95131
     },
     "state:RUS": {
-      "sha256": "4a6ad266ffb573fcca4b79ef2e7ed8feac04ec988fdb1c4cf04914aa886bcbee",
-      "bytes": 2464697
+      "sha256": "f7377e3c30b06bc5759c4e1a4abb2cee62ab9398ba044321e95849500d43c4a8",
+      "bytes": 6329397
     },
     "state:RWA": {
       "sha256": "bc5509587204823988dd7040b7fe7079a3bb932e11c47a98f18b19e5612dcd22",
@@ -920,8 +933,8 @@
       "bytes": 63964
     },
     "state:soviet-union-russian-sfsr": {
-      "sha256": "e85558028498ee60f401ee6a427736a6aa22103b69de93fb38cf067dc6cfba51",
-      "bytes": 1979061
+      "sha256": "c0cb7999a6c8701f247c45f97e0f3e49d71cce7f68af6b490121064d4f69c5e0",
+      "bytes": 7058544
     },
     "state:soviet-union-tajik-ssr": {
       "sha256": "a935265b40fc99eb198294f66b70c036804a316f0a4e897687e0a44a3d90a7b6",
@@ -944,8 +957,8 @@
       "bytes": 151329
     },
     "state:soviet-union": {
-      "sha256": "ab0fadc0400cc7c36650a5af781d26e9590e7f6fae3c7ba9081dca47df5f54f5",
-      "bytes": 11433479
+      "sha256": "87ecdb29d9c91f0779ac9282ff1c7b8aed104feffda2708feb01e404efe523d0",
+      "bytes": 11431814
     },
     "state:SPI": {
       "sha256": "3e88a9fb74488039d678e2f1b13b3d5762cf4131227243dedd8374d2f748531d",

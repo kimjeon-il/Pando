@@ -33,7 +33,7 @@ const documentedHistoricalGeometryCorrections=new Map([
 const modernUpdates=new Map([
   ['CHN','state:CHN:paektu-lsib-11.4'],['KOR','state:KOR:armistice-1953'],
   ['PRK','state:PRK:sino-korean-protocol-1964'],
-  ...['FRA','MCO','KAB','KAZ','RUS'].map(code=>[code,'state:'+code+':natural-earth-5.1.1']),
+  ...['FRA','MCO','KAB','KAZ'].map(code=>[code,'state:'+code+':natural-earth-5.1.1']),
 ]);
 // These are additional admitted source periods, not new geometry hashes or
 // claims of historical accuracy. Their complete bytes use the existing 5eb pin
@@ -46,10 +46,8 @@ const addedVersions=[
   ['state:KOR','state:KOR:38th-parallel-1948','1948-08-15','1953-07-26','korean-38th-parallel'],
   ['state:PRK','state:PRK:38th-parallel-1948','1948-09-09','1953-07-26','korean-38th-parallel'],
   ['state:PRK','state:PRK:armistice-1953','1953-07-27','1964-03-19','dos-lsib-11.4'],
-  ['state:RUS','state:RUS:post-soviet-existing-coordinates','1991-12-25','2006-01-11','natural-earth-5.1.1-late-soviet-adjustment'],
-  ['state:RUS','state:RUS:post-soviet-existing-coordinates:rus-kaz-treaty-2006-01-12-abc-r1','2006-01-12','2014-03-17','natural-earth-5.1.1-late-soviet-adjustment'],
+  ['state:RUS','state:RUS:post-soviet-existing-coordinates','1991-12-25','2014-03-17','natural-earth-5.1.1-late-soviet-adjustment'],
   ['state:KAZ','state:KAZ:post-soviet-existing-coordinates','1991-12-16','1995-09-24','natural-earth-5.1.1-late-soviet-adjustment'],
-  ['state:KAZ','state:KAZ:natural-earth-5.1.1:pre-2006-treaty-r1','1995-09-25','2006-01-11','natural-earth-5.1.1+baikonur-treaty-osm-remade-1km-20261023'],
   ['state:yugoslavia','state:serbia-montenegro:2003-2006-r1','2003-02-04','2006-06-02','natural-earth-5.1.1-historical-successor-union'],
   ['state:unmik-kosovo','state:unmik-kosovo:existing-outline-proxy','1999-06-10','2008-02-16','existing-natural-earth-outline-temporal-proxy'],
   ['state:untaet-east-timor','state:untaet-east-timor:existing-outline-proxy','1999-10-25','2002-05-19','existing-natural-earth-outline-temporal-proxy'],
@@ -110,7 +108,7 @@ function assertAddedVersion(entity,version,byId){
     assert.equal(entity.sourceInfo.approved1922.displaySha256,MEMBER_HASHES[DISPLAY]);
     assert.equal(version.sourceProperties.snapshot_date,'1922-12-30');
   }
-  if(provenance?.sourceEntityId&&provenance.sourceGeometryVersionId&&!provenance.rusKazTreaty2006ABC){
+  if(provenance?.sourceEntityId&&provenance.sourceGeometryVersionId){
     const original=byId.get(provenance.sourceEntityId)?.geometryVersions.find(v=>v.versionId===provenance.sourceGeometryVersionId);
     assert.ok(original,'Missing reused source: '+version.versionId);
     assert.deepEqual(version.geometry,original.geometry,'Recorded exact coordinate reuse changed: '+version.versionId);
@@ -143,15 +141,10 @@ test('all 258 Natural Earth originals retain frozen coordinates, identity and pr
       if(['KOR','PRK','CHN'].includes(feature.id)){
         assert.ok(current.historicalProvenance.sourceIds.includes('dos-lsib-11.4'));
         assert.equal(sha(current.geometry),e.sourceInfo.geometrySha256);
-      }else if(['RUS','KAZ'].includes(feature.id)){
-        const treaty=current.historicalProvenance.rusKazTreaty2006ABC;
-        assert.equal(treaty.effective,'2006-01-12');
-        assert.equal(treaty.wholeCountryHistoricallyVerified,false);
-        // SourceInfo retains the earlier source receipt; it is not the hash of
-        // every later treaty version of this country.
-        const earlier=feature.id==='KAZ'?selectGeometryVersion(e,'2006-01-11'):null;
-        assert.equal(e.sourceInfo.geometrySha256,earlier?sha(earlier.geometry):baseline.countryGeometry.RUS);
-        assert.notEqual(sha(current.geometry),e.sourceInfo.geometrySha256);
+      }else if(feature.id==='KAZ'){
+        assert.equal(current.historicalProvenance.rusKazTreaty2006ABC,undefined);
+        assert.equal(current.modernBoundarySupplement.status,'approved-display-candidate');
+        assert.equal(sha(current.geometry),e.sourceInfo.geometrySha256);
       }else{
         assert.equal(current.modernBoundarySupplement.status,'approved-display-candidate');
         assert.equal(sha(current.geometry),e.sourceInfo.geometrySha256);
@@ -198,7 +191,7 @@ test('all 29 frozen historical geometries remain comparable, including 26 origin
   assert.equal(selectGeometryVersion(yugo,'1943'),null);
 });
 
-test('all 315 pinned versions are classified; 28 additions retain explicit provenance, periods and recorded coordinate reuse', () => {
+test('all 313 pinned versions are classified; 26 additions retain explicit provenance, periods and recorded coordinate reuse', () => {
   const entities=sources(),byId=new Map(entities.map(entity=>[entity.entityId,entity]));
   const known=new Set(legacyVersions(entities).map(({entity,version})=>versionKey(entity.entityId,version.versionId)));
   for(const entity of entities.filter(e=>e.sourceInfo.featureId)){
@@ -213,7 +206,7 @@ test('all 315 pinned versions are classified; 28 additions retain explicit prove
     assert.ok(!known.has(versionKey(entityId,versionId)),'Added version overlaps the frozen/current classification');
     known.add(versionKey(entityId,versionId));
   }
-  assert.equal(addedVersions.length,28);
+  assert.equal(addedVersions.length,26);
   assert.equal(known.size,pinned.counts.geometryVersions);
   assert.deepEqual(entities.flatMap(entity=>entity.geometryVersions.map(version=>versionKey(entity.entityId,version.versionId))).sort(),[...known].sort());
 });

@@ -17,6 +17,17 @@
         "generatedData": "e0efdf973508d9ba4fe1621b6157c772ab2f42de",
         "scope": "Only KAZ/RUS geometry references adopt the approved border data and its verified compiler output; identities, source versions, parent/root attribution, all other entities and point assertions remain unchanged.",
         "verification": "Reassembled country payload hashes and current bindings verified. Compared with c46890a681721633cdc948fde4ae1bfed14dd196: source hashes unchanged; Hausdorff distance KAZ 7.105427357601002e-15 degrees, RUS 0 degrees; symmetric-difference area KAZ 1.0620858312127338e-16 square degrees, RUS 1.739074115126591e-17 square degrees."
+      },
+      {
+        "entities": [
+          "KAZ",
+          "RUS"
+        ],
+        "month": "2026-10",
+        "scope": "Retire sub-500 km² A–C exchanges and restore c73d3f562d35f92d749458c9890bec02875ff605 coordinate baseline; preserve Baikonur and Crimea transitions, identities, names, flags and all other expectations.",
+        "verification": "Focused source hashes and actual selected runtime are checked by sub500-territorial-retirement.test.mjs.",
+        "data": "deb5576939de1a7e9d70c00fd68b98c1e2e2e883",
+        "generatedData": "5500b6a035d29844c7de93a709db3557bfc9c12c"
       }
     ]
   },
@@ -1571,7 +1582,7 @@
           "parentId": "",
           "rootId": "KAZ",
           "geometryRef": {
-            "id": "historical-world:2c16ffda27144c332102e7610d5a6cc10edab3bd24c1b3351dcf60255e67066f",
+            "id": "historical-world:02ce3308bce584ea00619ed51051e1a8d090c67ee33127101ff9aa7b709da853",
             "version": 1
           }
         },
@@ -2253,7 +2264,7 @@
           "parentId": "",
           "rootId": "RUS",
           "geometryRef": {
-            "id": "historical-world:e6fa9b950db8df26fe0b015c54d4cf2b4e77d8a8825cec3596eff7e2d91aad93",
+            "id": "historical-world:ec4a51711dd7b654e21e4529fd60fbfae9ded094e95edcdbb7f69128472cad13",
             "version": 1
           }
         },
