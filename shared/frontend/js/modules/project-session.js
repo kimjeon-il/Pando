@@ -56,10 +56,8 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       geometryProgress: 0,
       meshProgress: 0,
       ...createEmptyTerritorialState(),
-      auditPreviewCountries: null,
       countryVisualPhase: 'preview',
-      auditPreviewTerritorialUnits: null,
-      auditPreviewGeometryReferences: null,
+
       countryIndex: new Map(),
       sourceInfo: null,
       labels: [],

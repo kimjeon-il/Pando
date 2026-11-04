@@ -14,9 +14,7 @@ test('territorial hits use the displayed geometry and withhold pending surfaces'
   const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0, 10) });
   const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', coverageMode: 'explicit', geometry: square(0, 10) });
   const R = createTerritorialFeature({ id: 'R', entityKind: 'regional', geometry: square(0, 10) });
-  const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview',
-    auditPreviewCountries: { features: [{ ...A, geometry: square(20, 10) }] },
-    auditPreviewTerritorialUnits: [B, R], layerPresentation: normalizeLayerPresentation({ overlayOrder: ['objects'] }) };
+  const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview', layerPresentation: normalizeLayerPresentation({ overlayOrder: ['objects'] }) };
   await initializeTestTerritorialState(state);
 const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
   const entityRepository = createTerritorialEntityRepository({ entityStore: store });
@@ -40,12 +38,12 @@ const store = createTerritorialEntityStore({ documentModel:testCoreProject(state
   });
   const records = ['A', 'B', 'R'].map(id => ({ domain: 'territorial', id }));
   const hits = () => picking.territorialObjectsAt([5, 5], [5, 5], records);
-  assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B']);
+  assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B', 'territorial:entity:A']);
   await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
     payload:{ action:'visibility',key:'objects',visible:false } });
   assert.deepEqual(hits().map(item => item.ref.id), []);
   await testCoreProject(state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'objects',visible:true}});
-  assert.deepEqual(picking.territorialObjectsAt([25, 5], [25, 5], records).map(item=>item.ref.id), ['A']);
+  assert.deepEqual(picking.territorialObjectsAt([25, 5], [25, 5], records).map(item=>item.ref.id), []);
   state.countryVisualPhase = 'pending';
   assert.deepEqual(hits(), []);
   state.countryVisualPhase = 'canonical';

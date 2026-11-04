@@ -105,10 +105,10 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     const selection = hydro.hydroEditLayer.selectAll('path.hydro-edit-shape').data(data, feature => String(feature.id));
     selection.enter().append('path')
       .attr('class', 'hydro-edit-shape')
-      .on('mouseenter.hover', feature => hydro.setMapHover?.('hydro', feature.id, feature, {
+      .on('mouseenter.hover', feature => hydro.setMapHover?.(feature, {
         domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id,
       }))
-      .on('mouseleave.hover', feature => hydro.setMapHover?.('', '', null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
+      .on('mouseleave.hover', feature => hydro.setMapHover?.(null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
       .on('click', function(feature) {
         if (hydro.mapClickBlocked?.()) return;
         hydro.d3?.event?.stopPropagation?.();
@@ -203,8 +203,8 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
     if (canPresentFrame(frameContext)) {
       const selection = g.genericFeatureLayer?.selectAll('path.generic-feature-shape').data(data.filter(d => ['Point', 'MultiPoint'].includes(d.geometry?.type)), d => String(d.id));
       selection?.enter().append('path').attr('class', 'generic-feature-shape')
-        .on('mouseenter.hover', d => g.setMapHover?.('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
-        .on('mouseleave.hover', feature => g.setMapHover?.('', '', null, { domain: 'generic', type: 'feature', id: feature.id }))
+        .on('mouseenter.hover', d => g.setMapHover?.(d, { domain: 'generic', type: 'feature', id: d.id }))
+        .on('mouseleave.hover', feature => g.setMapHover?.(null, { domain: 'generic', type: 'feature', id: feature.id }))
         .on('click', function(d) {
           if (g.mapClickBlocked?.()) return;
           g.d3?.event?.stopPropagation?.();

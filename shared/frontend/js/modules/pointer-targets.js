@@ -9,35 +9,11 @@ export function createPointerTargets() {
   let pendingHoverPick;
   let lastHoverPickPoint;
   let lastHoverPickViewRevision;
-  let lastHoverHit;
   let hoverPickSequence = 0;
   let pendingHoverRequests = 0;
   function connect(ports) {
     if (dependencies) throw new Error('pointer-targets already connected');
     dependencies = ports;
-  }
-
-  function cpuCountryAtCoordinate(coord) {
-    if (!coord) return null;
-    const candidates = dependencies.projectState.state.spatialIndex || [];
-    for (let i = candidates.length - 1; i >= 0; i -= 1) {
-      const item = candidates[i];
-      const b = item.bounds;
-      if (coord[0] < b[0] || coord[0] > b[2] || coord[1] < b[1] || coord[1] > b[3]) continue;
-      const feature = item.feature;
-      if (!(0, dependencies.layerPresentation.isLayerItemVisible)('objects', feature?.id || '')) continue;
-      if ((0, dependencies.landRelations.pointInCountryFeature)(coord, feature)) return feature;
-    }
-    return null;
-  }
-
-  function countryAtScreenPoint(screenPoint, coord, { verify = true } = {}) {
-    // Bounds from the spatial index already narrow the CPU test. Rebuilding a
-    // full-resolution GPU ID framebuffer after every camera change made the
-    // first hover/click stall while still requiring CPU geometry verification.
-    void screenPoint;
-    void verify;
-    return cpuCountryAtCoordinate(coord);
   }
 
   const obsoleteHoverError = error => error.cancelled || error.name === 'AbortError'
@@ -57,7 +33,6 @@ export function createPointerTargets() {
         || (!clear && (viewRevision !== dependencies.mapLayout.viewRevision || dependencies.projectState.state.mapMoving))) return false;
       const key = nextRef?.key || null;
       if ((accepted.hover?.key || null) !== key || (dependencies.domains.selectionDomain.snapshot().hover?.key || null) !== key) return false;
-      lastHoverHit = hit;
       return true;
     } catch (error) {
       if (!obsoleteHoverError(error)) dependencies.feedback.reportOperationError(error,'지도 hover를 갱신하지 못했습니다.','PL-MAP-HOVER-001',4200);
@@ -197,18 +172,13 @@ export function createPointerTargets() {
     (lastHoverPickPoint = null);
 
     (lastHoverPickViewRevision = -1);
-
-    (lastHoverHit = null);
   }
 
   return Object.freeze({
     connect,
     initializeHoverPickFrame,
     get cancelCountryHoverPick() { return cancelCountryHoverPick; },
-    get countryAtScreenPoint() { return countryAtScreenPoint; },
     get hydroAtScreenPoint() { return hydroAtScreenPoint; },
-    get lastHoverHit() { return lastHoverHit; },
-    set lastHoverHit(value) { lastHoverHit = value; },
     get lastHoverPickPoint() { return lastHoverPickPoint; },
     get lastHoverPickViewRevision() { return lastHoverPickViewRevision; },
     get mapClickBlocked() { return mapClickBlocked; },

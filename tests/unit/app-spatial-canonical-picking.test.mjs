@@ -1,4 +1,4 @@
-import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
+import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createSpatialIndex } from "../../shared/frontend/js/modules/spatial-index.js";
@@ -10,11 +10,10 @@ import { createTerritorialScopeResolver } from "../../shared/frontend/js/modules
 
 const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 10], [x + 10, 10], [x + 10, 0], [x, 0]]] });
 
-test('territorial spatial candidates follow canonical store hydration while preview remains displayed', async () => {
+test('territorial spatial candidates and display follow canonical store hydration', async () => {
   const preview = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(20) });
   const canonical = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0) });
   const state = { territorialEntities: [preview], countryVisualPhase: 'preview',
-    auditPreviewCountries: { features: [preview] }, auditPreviewTerritorialUnits: [],
     labels: [], genericFeatures: [], hydroEdits: [] };
   await initializeTestTerritorialState(state);
 const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
@@ -38,7 +37,7 @@ const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject
 
   await testCoreProject(state).project.admit(testCoreProject(state).project.snapshot(),{ features:[canonical],preserveCursor:true });
   spatial.rebuildMapObjectSpatialIndex();
-  assert.deepEqual(territorialScope.displayFeature('A').geometry, preview.geometry);
+  assert.deepEqual(territorialScope.displayFeature('A').geometry, canonical.geometry);
   assert.deepEqual(candidates(0), ['A']);
   assert.deepEqual(candidates(20), []);
   state.countryVisualPhase = 'canonical';

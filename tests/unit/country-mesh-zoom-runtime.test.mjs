@@ -83,7 +83,6 @@ test('focus retains precise geometry until explicitly released', async t => {
 
 test('project replacement and projection changes reset the transition band to precise', async t => {
   const { state, renderer } = fixture(t);
-  state.auditPreviewCountries = { features: [{ id: 'A' }] };
   renderer.syncCountryMeshQuality({ cssScale: 300 });
   renderer.syncCountryMeshQuality({ cssScale: 570 });
   assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical', 'an unpresented preview cannot establish transition-band history');

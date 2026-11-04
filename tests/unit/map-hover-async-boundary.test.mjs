@@ -18,10 +18,19 @@ function acknowledgements() {
       calls.push({ value, options, resolve, reject });
       return promise;
     },
-    accept(index, hover = calls[index].value) { current = { hover }; calls[index].resolve(current); },
+    accept(index, hover = calls[index].value) {
+      if (!calls[index].options?.isCurrent || calls[index].options.isCurrent()) current = { hover };
+      calls[index].resolve({ hover });
+    },
     packet(index, hover) { calls[index].resolve({ hover }); },
   };
 }
+
+test('retired country lookup and duplicate hover state are not exposed', () => {
+  const owner = createPointerTargets();
+  assert.equal('countryAtScreenPoint' in owner, false);
+  assert.equal('lastHoverHit' in owner, false);
+});
 function pointers(t, { selectableObjectsAt } = {}) {
   const queue = acknowledgements(), errors = [], timers = new Map();
   let generation = 1, picked = hit('A'), pickingFailure;
@@ -73,17 +82,17 @@ function gpu() {
 test('ground hover keeps the 50 ms pick and publishes its hit only after Core acknowledges',async t => {
   const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);
   assert.equal(f.queue.calls.length,0);assert.equal(f.timers.size,1);
-  const pending=f.fire();await Promise.resolve();assert.equal(f.queue.calls.length,1);assert.equal(f.owner.lastHoverHit,null);
+  const pending=f.fire();await Promise.resolve();assert.equal(f.queue.calls.length,1);assert.equal(f.queue.snapshot().hover,null);
   assert.equal(f.queue.calls[0].options.source,'map');assert.equal(f.queue.calls[0].options.isCurrent(),true);
-  f.queue.accept(0);assert.equal(await pending,true);assert.equal(f.owner.lastHoverHit.ref.id,'A');
+  f.queue.accept(0);assert.equal(await pending,true);assert.equal(f.queue.snapshot().hover.id,'A');
   f.owner.queueCountryHoverPick([11,10],[0,0]);assert.equal(f.timers.size,0,'Retain the original three-pixel threshold.');
 });
 
 test('ground cancellation clears an in-flight enter even before the first accepted hover',async t => {
   const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);const enter=f.fire();await Promise.resolve();
   const leave=f.owner.cancelCountryHoverPick({ clear: true });assert.equal(f.queue.calls.length,2);
-  f.queue.accept(0);assert.equal(await enter,false);assert.equal(f.owner.lastHoverHit,null);
-  f.queue.accept(1,null);assert.equal(await leave,true);assert.equal(f.owner.lastHoverHit,null);
+  f.queue.accept(0);assert.equal(await enter,false);assert.equal(f.queue.snapshot().hover,null);
+  f.queue.accept(1,null);assert.equal(await leave,true);assert.equal(f.queue.snapshot().hover,null);
   assert.equal(f.owner.lastHoverPickPoint,null);assert.equal(f.owner.lastHoverPickViewRevision,-1);
 });
 
@@ -91,18 +100,18 @@ test('newer ground picks, cancellation, camera and project changes discard delay
   const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);const first=f.fire();await Promise.resolve();
   f.pick(hit('B'));f.owner.queueCountryHoverPick([20,10],[0,0]);const second=f.fire();await Promise.resolve();
   assert.equal(f.queue.calls[0].options.isCurrent(),false);
-  f.queue.accept(0);assert.equal(await first,false);assert.equal(f.owner.lastHoverHit,null);
-  f.queue.accept(1);assert.equal(await second,true);assert.equal(f.owner.lastHoverHit.ref.id,'B');
+  f.queue.accept(0);assert.equal(await first,false);assert.equal(f.queue.snapshot().hover,null);
+  f.queue.accept(1);assert.equal(await second,true);assert.equal(f.queue.snapshot().hover.id,'B');
   for (const invalidate of [() => f.owner.cancelCountryHoverPick(),() => { f.layout.viewRevision++; },() => f.generation(2)]) {
     f.owner.queueCountryHoverPick([30+f.queue.calls.length*10,10],[0,0]);const pending=f.fire();await Promise.resolve();const index=f.queue.calls.length-1;
-    invalidate();f.queue.accept(index);assert.equal(await pending,false);assert.equal(f.owner.lastHoverHit.ref.id,'B');
+    invalidate();f.queue.accept(index);assert.equal(await pending,false);assert.equal(f.queue.snapshot().hover.id,'B');
   }
 });
 
 test('ground stale rejections are contained and unexpected picking or Core errors retain diagnostics',async t => {
   const f=pointers(t);f.owner.queueCountryHoverPick([10,10],[0,0]);let pending=f.fire();await Promise.resolve();
   f.queue.calls[0].reject(Object.assign(new Error('old epoch'),{ code: 'STALE_REVISION' }));
-  assert.equal(await pending,false);assert.deepEqual(f.errors,[]);assert.equal(f.owner.lastHoverHit,null);
+  assert.equal(await pending,false);assert.deepEqual(f.errors,[]);assert.equal(f.queue.snapshot().hover,null);
   f.owner.queueCountryHoverPick([20,10],[0,0]);pending=f.fire();await Promise.resolve();
   const failure=new Error('Core transport failed');f.queue.calls[1].reject(failure);
   assert.equal(await pending,false);assert.equal(f.errors[0][0],failure);assert.equal(f.errors[0][2],'PL-MAP-HOVER-001');
@@ -112,41 +121,41 @@ test('ground stale rejections are contained and unexpected picking or Core error
 });
 
 test('GPU object hover publishes accepted geometry only after the Core acknowledgement',async () => {
-  const f=gpu(), value=hit('A');const pending=f.owner.setMapHover('territorialUnit','A',value.feature,value.ref);
+  const f=gpu(), value=hit('A');const pending=f.owner.setMapHover(value.feature,value.ref);
   assert.deepEqual(f.publications,[]);f.queue.accept(0);assert.equal(await pending,true);
   assert.equal(f.publications[0].feature,value.feature);assert.equal(f.publications[0].ref.key,value.ref.key);
 });
 
 test('GPU stale leave preserves another hover and uses the original public expected key',async () => {
   const f=gpu(), a=hit('A'), b=hit('B');
-  const enter=f.owner.setMapHover('territorialUnit','B',b.feature,b.ref);f.queue.accept(0);await enter;
-  const leave=f.owner.setMapHover('','',null,a.ref);assert.equal(f.queue.calls[1].options.expectedKey,a.ref.key);
+  const enter=f.owner.setMapHover(b.feature,b.ref);f.queue.accept(0);await enter;
+  const leave=f.owner.setMapHover(null,a.ref);assert.equal(f.queue.calls[1].options.expectedKey,a.ref.key);
   f.queue.accept(1,b.ref);assert.equal(await leave,false);assert.equal(f.publications.length,1);
-  const clear=f.owner.setMapHover('','',null,b.ref);f.queue.accept(2,null);assert.equal(await clear,true);
+  const clear=f.owner.setMapHover(null,b.ref);f.queue.accept(2,null);assert.equal(await clear,true);
   assert.equal(f.publications.at(-1),null);
 });
 
 test('GPU delayed hover results cannot replace newer display ownership or cross project and movement boundaries',async () => {
   const f=gpu(), a=hit('A'), b=hit('B');
-  const first=f.owner.setMapHover('territorialUnit','A',a.feature,a.ref),second=f.owner.setMapHover('territorialUnit','B',b.feature,b.ref);
+  const first=f.owner.setMapHover(a.feature,a.ref),second=f.owner.setMapHover(b.feature,b.ref);
   f.queue.accept(1);assert.equal(await second,true);f.queue.packet(0,a.ref);assert.equal(await first,false);
   assert.equal(f.publications.length,1);assert.equal(f.publications[0].ref.id,'B');
-  const replaced=f.owner.setMapHover('territorialUnit','A',a.feature,a.ref);f.generation(2);f.queue.accept(2);assert.equal(await replaced,false);
-  const moving=f.owner.setMapHover('territorialUnit','A',a.feature,a.ref);f.state.mapMoving=true;f.queue.accept(3);assert.equal(await moving,false);
+  const replaced=f.owner.setMapHover(a.feature,a.ref);f.generation(2);f.queue.accept(2);assert.equal(await replaced,false);
+  const moving=f.owner.setMapHover(a.feature,a.ref);f.state.mapMoving=true;f.queue.accept(3);assert.equal(await moving,false);
   assert.equal(f.publications.length,1);
 });
 
 test('GPU obsolete hover failures are contained and unexpected failures reach the operation reporter',async () => {
-  const f=gpu(), a=hit('A');let pending=f.owner.setMapHover('territorialUnit','A',a.feature,a.ref);
+  const f=gpu(), a=hit('A');let pending=f.owner.setMapHover(a.feature,a.ref);
   f.queue.calls[0].reject(Object.assign(new Error('cancelled'),{ cancelled: true }));assert.equal(await pending,false);assert.deepEqual(f.errors,[]);
-  pending=f.owner.setMapHover('territorialUnit','A',a.feature,a.ref);const failure=new Error('unavailable owner');
+  pending=f.owner.setMapHover(a.feature,a.ref);const failure=new Error('unavailable owner');
   f.queue.calls[1].reject(failure);assert.equal(await pending,false);assert.equal(f.errors[0][0],failure);assert.equal(f.errors[0][2],'PL-MAP-HOVER-001');
   assert.deepEqual(f.publications,[]);
 });
 
 test('missing Core hover dependencies fail through the responsible operation and do not publish display ownership',async () => {
   const f=gpu(),a=hit('A');f.queue.setHover=undefined;
-  assert.equal(await f.owner.setMapHover('territorialUnit','A',a.feature,a.ref),false);
+  assert.equal(await f.owner.setMapHover(a.feature,a.ref),false);
   assert.ok(f.errors[0][0] instanceof TypeError);assert.equal(f.errors[0][2],'PL-MAP-HOVER-001');
   assert.deepEqual(f.publications,[]);
 });

@@ -11,10 +11,11 @@ const SYMBOL_VISIBILITY_KEYS = new Set(Object.values(TERRITORIAL_SYMBOL_KEYS));
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createMapSettings({ capabilities,viewPresentation = null,authoredStyles=false } = {}) {
+export function createMapSettings({ capabilities,viewPresentation } = {}) {
   if (!capabilities || ['builtinHydro', 'builtinPlaces', 'terrain'].some(key => typeof capabilities[key] !== 'boolean')) {
     throw new TypeError('Map settings require resource capabilities.');
   }
+  if (typeof viewPresentation?.applyPresentation !== 'function') throw new TypeError('Map settings require viewing presentation.');
   let dependencies;
   let LAYER_STYLE_TARGETS;
   const menuState=createMapDisplayMenuState();
@@ -28,26 +29,8 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
     dependencies = ports;
   }
 
-  function requireProjectOwner() {
-    const project = dependencies.domains.projectDomain;
-    if (typeof project?.executeCommand !== 'function' || typeof project.getGeneration !== 'function') {
-      throw new TypeError('Map settings require the Core project command owner.');
-    }
-    return project;
-  }
-
   async function executePresentation(payload) {
-    if (viewPresentation && (!authoredStyles || !['groupStyle','objectStyle','labelSettings','layerOrder'].includes(payload.action))) {
-      const result=viewPresentation.applyPresentation(payload);
-      if(authoredStyles)dependencies.domains.projectDomain.queueViewAutosave();
-      return result;
-    }
-    const project = requireProjectOwner();
-    const generation = project.getGeneration();
-    const result = await project.executeCommand({ commandId: 'presentation.apply', targets: [], payload: structuredClone(payload) });
-    if (typeof result?.ok !== 'boolean' || typeof result.changed !== 'boolean') throw Object.assign(new Error('A complete presentation acknowledgement is required.'), { code: 'PL-CORE-RESPONSE' });
-    if (!result.ok) throw Object.assign(new Error(result.error.message), result.error);
-    return project.getGeneration() === generation ? result : null;
+    return viewPresentation.applyPresentation(payload);
   }
 
   async function runViewAction(operation) {
@@ -539,7 +522,6 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
   }
 
   function bindMapDisplayUI() {
-    if(!viewPresentation)requireProjectOwner();
     const surface = (0, dependencies.platform.$)('mapDisplaySurface');
     if (!surface) return;
     surface.addEventListener('focusin', event => { menuState.rememberFocus(event.target); });
@@ -552,7 +534,7 @@ export function createMapSettings({ capabilities,viewPresentation = null,authore
       input.addEventListener('change',()=>runViewAction(async()=>{
         state.backgroundSettings[key]=input.checked;
         const current=dependencies.preferences.userPreferences;
-        const mode=authoredStyles?'editor':'viewer';
+        const mode='viewer';
         dependencies.preferences.setUserPreferences(dependencies.preferences.saveUserPreferences({...current,backgrounds:{...current.backgrounds,[mode]:{...current.backgrounds[mode],[key]:input.checked}}}));
         dependencies.rendering.gpuMapRenderer.invalidateHydroVisibility();
         dependencies.domains.renderingDomain.invalidateBaseScene('background-preference');

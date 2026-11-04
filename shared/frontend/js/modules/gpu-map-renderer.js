@@ -2616,9 +2616,8 @@ export function createGpuMapRenderer(deps) {
     function invalidateCountryPreview() {
       previewAllowed = false;
       previewSurfaceFeatures = null; previewDisplayCertificate = null; previewCertificateRevision = ''; previewLandPackets.clear();
-      state.auditPreviewCountries = null;
-      state.auditPreviewTerritorialUnits = null;
-      state.auditPreviewGeometryReferences = null;
+
+
       activeMeshQuality = 'canonical';
       meshQuality = 'canonical';
       state.countryVisualPhase = 'canonical';
@@ -2642,9 +2641,8 @@ export function createGpuMapRenderer(deps) {
       countryFocusProjection = null;
       // Old-project display data is never eligible for the replacement project.
       previewAllowed = false;
-      state.auditPreviewCountries = null;
-      state.auditPreviewTerritorialUnits = null;
-      state.auditPreviewGeometryReferences = null;
+
+
       previewFramePresented = false;
       for (const resolve of previewFrameWaiters) resolve(false);
       previewFrameWaiters.clear();
@@ -5064,8 +5062,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     async function initialize({ allowPreview = true, preview = null } = {}) {
-      previewSurfaceFeatures = preview?.collection?.features || state.auditPreviewCountries?.features
-        || renderCountryFeatures?.() || [];
+      previewSurfaceFeatures = preview?.collection?.features || renderCountryFeatures?.() || [];
       previewDisplayCertificate = null; previewCertificateRevision = '';
       if (disposed) return false;
       if (!allowPreview) {

@@ -286,10 +286,8 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     });
   }
 
-  async function setMapHover(type, id, feature, ref = null) {
+  async function setMapHover(feature, ref = null) {
     const sequence = ++hoverRequestSequence;
-    void type;
-    void id;
     try {
       if ((0, dependencies.surfaces.isMobile)() || dependencies.projectState.state.mapMoving) return false;
       const generation = dependencies.domains.projectDomain.getGeneration(), viewRevision = dependencies.mapLayout.viewRevision;

@@ -129,7 +129,6 @@ export function createObjectPresentation() {
     (territorialScope = createTerritorialScopeResolver({
       entityRepository: dependencies.territorialModel.entityRepository,
       clipper: () => dependencies.platform.polygonClipping,
-      getState: () => dependencies.projectState.state,
     }));
 
     (distributionVisibilityRevision = 0);
