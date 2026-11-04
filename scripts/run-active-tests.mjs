@@ -13,6 +13,11 @@ if(!['unit','browser'].includes(kind)){
     && !['retired','manual'].includes(repository.owners.get(file)?.mode)).sort();
   if(process.argv.includes('--list'))console.log(files.join('\n'));
   else{
+    // pnpm can forward its argument separator literally. Passing it through
+    // would make Playwright interpret later options (including --output) as
+    // positional test filters and use its default output directory instead.
+    const forwarded=process.argv.slice(3);
+    if(forwarded[0]==='--')forwarded.shift();
     // Keep Windows command lines well below the 32 KiB process limit.
     // Browser specs remain one Playwright invocation to preserve fixtures.
     const groupSize=kind==='unit'?120:files.length||1;
@@ -27,8 +32,8 @@ if(!['unit','browser'].includes(kind)){
     let failed=false;
     for(const batch of batches){
       const args=kind==='unit'?
-        ['--test','--test-concurrency=2',...batch,...process.argv.slice(3)]:
-        ['node_modules/@playwright/test/cli.js','test',...batch,'--workers=1',...process.argv.slice(3)];
+        ['--test','--test-concurrency=2',...batch,...forwarded]:
+        ['node_modules/@playwright/test/cli.js','test',...batch,'--workers=1',...forwarded];
       const result=spawnSync(process.execPath,args,{cwd:repository.root,stdio:'inherit'});
       if(result.error)throw result.error;
       if(result.status!==0)failed=true;
