@@ -33,10 +33,7 @@ fn roundtrip_replaces_existing_utf8_contents() {
     let path = dir.0.join("profile/test-fixture.json");
     storage::atomic_write(&path, "이전 내용".as_bytes()).unwrap();
     storage::atomic_write(&path, "{\"label\":\"서울\"}".as_bytes()).unwrap();
-    assert_eq!(
-        storage::read_bounded(&path).unwrap(),
-        "{\"label\":\"서울\"}"
-    );
+    assert_eq!(fs::read_to_string(&path).unwrap(), "{\"label\":\"서울\"}");
     assert_eq!(fs::read_dir(path.parent().unwrap()).unwrap().count(), 1);
 }
 
@@ -64,23 +61,13 @@ fn rename_failure_preserves_destination_and_cleans_temporary_file() {
 }
 
 #[test]
-fn read_rejects_oversized_and_invalid_utf8_files() {
-    let dir = TestDir::new();
-    let path = dir.0.join("input");
-    fs::write(&path, vec![b'x'; storage::MAX_FILE_BYTES + 1]).unwrap();
-    assert!(storage::read_bounded(&path).is_err());
-    fs::write(&path, [0xff]).unwrap();
-    assert!(storage::read_bounded(&path).is_err());
-}
-
-#[test]
 fn exactly_one_mebibyte_is_accepted() {
     let dir = TestDir::new();
     let path = dir.0.join("boundary");
     let contents = vec![b'x'; storage::MAX_FILE_BYTES];
     storage::atomic_write(&path, &contents).unwrap();
     assert_eq!(
-        storage::read_bounded(&path).unwrap().len(),
+        fs::read(&path).unwrap().len(),
         storage::MAX_FILE_BYTES
     );
 }

@@ -1,4 +1,4 @@
-const SHELL_IPC_COMMAND_NAMES=Object.freeze(['write_probe_file','read_probe_file','write_diagnostic_report','finish_probe']);
+const SHELL_IPC_COMMAND_NAMES=Object.freeze(['write_diagnostic_report','finish_probe']);
 /** Serialized before Worker closure hashing so URLs identify the actual bytes. */
 export function guardWorkerSource(source,{allowBundledData=false}={}){
   const guard='/* Native request boundary. */\n('+installNetworkGuard.toString()+')(globalThis,{allowBundledData:'+String(allowBundledData)+',ipcCommandNames:'+JSON.stringify(SHELL_IPC_COMMAND_NAMES)+'});\n';
