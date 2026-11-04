@@ -34,3 +34,12 @@ test('R1 runtime checker executes against the shipped Viewer and Windows reviewe
 test('R1 generated build metadata remains owned by the canonical frontend builder',()=>{
   assert.equal(frontendGeneratedOwners['assets/js/build-meta.js'],'scripts/lib/frontend-build.mjs');
 });
+
+test('retired Windows verification script changes select current reviewer checks',()=>{
+  const repository=loadRepository();
+  for(const path of ['apps/editor/verify-windows.ps1','apps/editor/verify-world-windows.ps1']) {
+    const plan=planApplicationChecks({changedFiles:[path],repository});
+    assert.ok(plan.commands.includes('app-small-stage'),path);
+  }
+  assert.throws(()=>planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository}),/Unclassified product change/);
+});
