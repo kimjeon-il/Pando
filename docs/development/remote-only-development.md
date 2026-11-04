@@ -92,6 +92,27 @@ a genuine Codespaces run and cannot be substituted.
 If the Codespace has not been launched or its terminal is unavailable,
 report **BLOCKED**, not passed.
 
+## Source-matched C++ / WASM / GIS integration
+
+The `remote-only-gate.yml` acceptance now builds native GIS polygon tests and
+the shared C++/WASM core on the same Linux runner from the exact branch commit.
+It runs the established GIS numerical contract tests against **the freshly
+compiled WASM**, using `PANDOEDITOR_WASM_MODULE` (not a prebuilt binary or JS
+replacement). The job uploads a CTest XML and Node TAP receipt with the same
+commit-linked evidence.
+
+The dependent `viewer-map-integration` job downloads the exact WASM from the
+preceding job and packages it into an **ephemeral CI checkout**, mounts the
+library-data revision pinned to the source commit and runs the existing
+desktop WebGL and mobile Canvas Playwright map-readiness checks. Only after
+successful actual rendering and runtime assertions is that acceptance marked
+passed. The checkout changes are never pushed or deployed.
+
+The standalone C++ and WASM jobs are insufficient alone: this integrated gate
+is required to prove native geometry, compiled runtime and map consumption
+agree. This does not claim physical GPU equivalence or cover all historic
+countries and time periods.
+
 ## Acceptance boundaries
 
 The branch's initial contract gate proves source configuration and safety

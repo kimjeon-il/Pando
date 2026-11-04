@@ -19,3 +19,10 @@ test('Codespaces test checks real viewer, navigation, reloading and protects tra
     assert.ok(spec.includes(key),key);
   assert.doesNotMatch(spec,/git\s+(?:reset|clean|checkout)/);
 });
+
+test('live Codespaces spec is owned by the manual-only test catalog group',()=>{
+  const catalog=JSON.parse(read('scripts/contracts/application-checks.json'));
+  const groups=catalog.groups.filter(g=>(g.testPatterns||[]).includes('tests/browser/codespaces-live.spec.mjs'));
+  assert.equal(groups.length,1);
+  assert.equal(groups[0].mode,'manual');
+});

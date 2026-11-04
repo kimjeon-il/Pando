@@ -73,6 +73,7 @@
         "tests/browser/performance-*.spec.mjs",
         "tests/browser/canvas-globe-performance.spec.mjs",
         "tests/browser/p3-remote-preview.spec.mjs",
+        "tests/browser/codespaces-live.spec.mjs",
         "tests/browser/m2-gpu-worker-frame-probe.spec.mjs",
         "tests/browser/map-transition-p5-6.spec.mjs",
         "tests/browser/p6-5-resource-check.spec.mjs",

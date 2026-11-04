@@ -44,6 +44,14 @@ jobs:
           cmake-version: '3.31.6'
       - name: Install CI-only native build prerequisites
         run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Compile and test native GIS spherical polygon on the same source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build-native/remote-only-integration
+          cmake --preset pando-gis-tools
+          cmake --build --preset pando-gis-tools
+          ctest --preset pando-gis-tools --output-junit "$GITHUB_WORKSPACE/build-native/remote-only-integration/native-gis.xml" --output-on-failure
       - uses: actions/checkout@v4
         with:
           repository: emscripten-core/emsdk
@@ -61,6 +69,24 @@ jobs:
           cmake --build --preset pando-wasm
           test -s build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
           test -s build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+      - uses: pnpm/action-setup@v4
+      - name: Install locked Node integration test dependencies on runner
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify compiled C++ WASM through GIS adapters and frozen geometry fixtures
+        env:
+          PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/unit/p6-polygon-core.test.mjs tests/unit/gis-math-contract.test.mjs tests/unit/r4c-spatial-boundaries.test.mjs | tee build-native/remote-only-integration/wasm-gis.tap
+      - name: Archive native GIS and fresh WASM integration receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-gis-wasm-integration-${{ github.sha }}
+          path: build-native/remote-only-integration/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload compiled WASM evidence without committing generated output
         uses: actions/upload-artifact@v4
         with:
@@ -70,6 +96,42 @@ jobs:
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.js
           if-no-files-found: error
           retention-days: 7
+
+  viewer-map-integration:
+    needs: wasm-compile-and-smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare browser runner only
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: remote-only-wasm-${{ github.sha }}
+          path: ${{ runner.temp }}/pando-remote-only-wasm
+      - name: Install compiled, source-bound WASM in temporary CI checkout
+        run: node tools/package-shared-core-assets.mjs --build-dir "${{ runner.temp }}/pando-remote-only-wasm"
+      - name: Run browser against the rebuilt WASM and pinned GIS runtime data
+        env:
+          PANDO_P3_BRANCH: work/remote-only
+        run: pnpm exec playwright test tests/browser/p3-remote-preview.spec.mjs --workers=1 --retries=0 --reporter=list
+      - name: Preserve actual Viewer screenshots and browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-viewer-gis-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
 
   windows-real-webview2:
     runs-on: windows-2022
