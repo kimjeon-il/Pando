@@ -92,6 +92,14 @@ on `work/remote-only` run:
 bash .devcontainer/acceptance.sh
 ```
 
+The acceptance script now starts the actual Pando development preview if
+it is missing, then waits for the live `/__shell/health` contract on
+`127.0.0.1:4173` **before** installing Chromium or running Playwright.
+`ECONNREFUSED` indicates no listening server; if startup fails, inspect
+`/tmp/pando-remote-only-preview.log`. Startup errors are printed by the
+script and are not misreported as map or auto-reload failures. The test
+still rejects fixture-only servers.
+
 This installs a browser **only in Codespaces** and runs
 `tests/browser/codespaces-live.spec.mjs` against the existing, private port
 4173 development server (no test-server fallback). Acceptance verifies

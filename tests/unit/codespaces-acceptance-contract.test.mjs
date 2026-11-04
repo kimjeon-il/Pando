@@ -9,6 +9,17 @@ test('acceptance requires real Codespaces and no test server fallback',()=>{
   const shell=read('.devcontainer/acceptance.sh');
   assert.match(shell,/CODESPACES/);assert.match(shell,/CODESPACE_NAME/);
   assert.match(shell,/remote-only-doctor/);
+  assert.match(shell,/bash \.devcontainer\/start-preview\.sh/);
+  assert.match(shell,/__shell\/health/);
+  assert.match(shell,/PANDO_CODESPACES_PREVIEW_READY/);
+  assert.match(shell,/PANDO_CODESPACES_PREVIEW_EXITED/);
+  assert.match(shell,/PANDO_CODESPACES_PREVIEW_NOT_READY/);
+  assert.ok(shell.indexOf('bash .devcontainer/start-preview.sh') <
+    shell.indexOf('playwright install --with-deps chromium'),
+    'do not install Chromium before proving a live development server');
+  const previewScript=read('.devcontainer/start-preview.sh');
+  assert.match(previewScript,/__shell\/health/);
+  assert.doesNotMatch(previewScript,/__p3_health/);
   assert.match(shell,/source \.devcontainer\/ensure-node\.sh/);
   const config=read('playwright.codespaces.config.js');
   assert.doesNotMatch(config,/webServer\s*:/);
