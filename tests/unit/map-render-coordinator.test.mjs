@@ -79,10 +79,10 @@ function fixture() {
   const viewFrameResult = Object.freeze({ succeeded: true, selection: { succeeded: true } });
   const names = [
     'view',
-    'base', 'countries', 'hydro', 'hydroEdits', 'boundaryEdit',
-    'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'geometryPreview',
-    'selectionData', 'selectionView', 'selectionStyle', 'validation', 'territorialLabelPositions', 'userLabelPositions',
-    'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'vertices', 'draft', 'snapIndicator', 'debug', 'objectSearch',
+    'base', 'countries', 'hydro', 'hydroEdits',
+    'territorialUnits', 'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays',
+    'selectionData', 'selectionView', 'selectionStyle', 'territorialLabelPositions', 'userLabelPositions',
+    'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'debug', 'objectSearch',
   ];
   const renderers = Object.fromEntries(names.map(name => [name, (...args) => {
     calls.push([name, ...args]);
@@ -107,8 +107,8 @@ test('full render preserves canonical layer order and revision', () => {
   assert.equal(coordinator.getStats().renderRevision, 1);
   assert.deepEqual(calls.map(call => call[0]), [
     'prepare', 'base', 'hydro', 'hydroEdits', 'territorialUnits',
-    'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries', 'geometryPreview', 'validation',
-    'boundaryEdit', 'vertices', 'draft', 'snapIndicator', 'selectionData', 'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'objectSearch', 'debug',
+    'distributions', 'genericFeatures', 'stackOverlays', 'projectedOverlays', 'countries',
+    'selectionData', 'labelLayout', 'territorialLabels', 'userLabels', 'viewPresentation', 'objectSearch', 'debug',
   ]);
   assert.equal(calls.find(call => call[0] === 'countries')[1], viewState);
   assert.equal(calls.filter(call => !['prepare', 'labelLayout', 'territorialLabels', 'userLabels', 'debug', 'objectSearch'].includes(call[0])).every(call => call[1] === viewState), true);
@@ -136,15 +136,6 @@ test('view render refreshes projection-dependent layers with the shared view sta
   assert.equal(calls.some(call => call[0] === 'countries'), false);
   assert.equal(calls.some(call => call[0] === 'territorialLabelPositions'), false);
   assert.equal(calls.some(call => call[0] === 'viewPresentation'), true);
-});
-
-test('ending an edit clears geometry preview before committing selection and GPU ownership', () => {
-  const { calls, frames, coordinator } = fixture();
-  coordinator.invalidate(MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.COUNTRY_PATCH, 'edit-ended');
-  frames.shift()();
-  const names = calls.map(call => call[0]);
-  assert.ok(names.includes('geometryPreview'));
-  assert.ok(names.indexOf('geometryPreview') < names.indexOf('selectionData'));
 });
 
 test('scheduled view and full renders merge into one full frame', () => {
@@ -231,25 +222,22 @@ test('domain geometry patches do not rebuild unrelated overlay domains', () => {
   assert.equal(calls.some(call => call[0] === 'genericFeatures'), false);
 });
 
-test('domain edit commits refresh only their own persistent edit overlay', () => {
+test('domain patches refresh only their affected persistent overlay', () => {
   const { calls, frames, coordinator } = fixture();
-  coordinator.invalidate(MAP_RENDER_DIRTY.GENERIC_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS, 'generic-edit');
+  coordinator.invalidate(MAP_RENDER_DIRTY.GENERIC_PATCH, 'generic-patch');
   frames.shift()();
   assert.equal(calls.filter(call => call[0] === 'genericFeatures').length, 1);
-  assert.equal(calls.filter(call => call[0] === 'vertices').length, 1);
   assert.equal(calls.some(call => call[0] === 'hydroEdits'), false);
-  assert.equal(calls.some(call => call[0] === 'boundaryEdit'), false);
 
   calls.length = 0;
-  coordinator.invalidate(MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS, 'hydro-edit');
+  coordinator.invalidate(MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH, 'hydro-patch');
   frames.shift()();
   assert.equal(calls.filter(call => call[0] === 'hydroEdits').length, 1);
-  assert.equal(calls.some(call => call[0] === 'boundaryEdit'), false);
 
   calls.length = 0;
-  coordinator.invalidate(MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.EDITING_OVERLAYS, 'country-edit');
+  coordinator.invalidate(MAP_RENDER_DIRTY.COUNTRY_PATCH, 'country-patch');
   frames.shift()();
-  assert.equal(calls.filter(call => call[0] === 'boundaryEdit').length, 1);
+  assert.equal(calls.filter(call => call[0] === 'countries').length, 1);
   assert.equal(calls.some(call => call[0] === 'hydroEdits'), false);
 });
 
