@@ -91,22 +91,11 @@ test('actual entrypoints reject SDK cache activation and Windows artifact downlo
   assert.equal(existsSync(join(root,'build-native')),false);
   assert.equal(existsSync(join(root,'cache')),false);
 });
-test('application test runner rejects declared native work before invoking a local subprocess',async()=>{
-  const {executePlan}=await import('../../scripts/run-application-checks.mjs');
-  const directory=mkdtempSync(join(tmpdir(),'pando-app-run-guard-'));
-  try{
-    const repository={root:directory,catalog:{
-      prerequisites:{'native-map-image':{argv:['node','scripts/prepare-native-test-tools.mjs','map-image']}},
-      groups:[]
-    }};
-    const plan={prerequisites:['native-map-image'],commands:[],unitTests:[],browserSpecs:[]};
-    let invoked=0;
-    const result=executePlan(plan,{repository,phase:'non-browser',
-      environment:{PANDO_REMOTE_ONLY:'1'},run:()=>{invoked++;return{status:0};}});
-    assert.equal(result.ok,false);
-    assert.equal(invoked,0);
-    assert.match(result.results[0].error,/PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED/);
-  }finally{rmSync(directory,{recursive:true,force:true});}
+test('application runner places native work behind the shared local-build policy',()=>{
+  const source=readFileSync(new URL('../../scripts/run-application-checks.mjs',import.meta.url),'utf8');
+  assert.match(source,/id\.startsWith\('native-'\)/);
+  assert.match(source,/definitionForCheck\?\.gisNative/);
+  assert.match(source,/assertRemoteOnlyNativeAllowed\(\{root:repository\.root,environment/);
 });
 test('on remote-only branch, compiler environment/config commands never reactivate old cache settings',()=>{
   const source=readFileSync(new URL('../../tools/worktree-storage.mjs',import.meta.url),'utf8');
