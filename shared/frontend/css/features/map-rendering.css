@@ -128,10 +128,6 @@
   fill: none;
 }
 
-.geometry-preview-layer {
-  pointer-events: none;
-}
-
 .hover-overlay-layer {
   pointer-events: none;
 }
@@ -142,48 +138,6 @@
 
 .validation-overlay-layer {
   pointer-events: none;
-}
-
-.snap-indicator-layer {
-  pointer-events: none;
-}
-
-.geometry-preview-remove {
-  fill: var(--map-preview-remove-fill);
-  stroke: var(--map-preview-remove);
-  stroke-width: 1.5px;
-  stroke-dasharray: 5 3;
-  vector-effect: non-scaling-stroke;
-}
-
-.geometry-preview-add {
-  fill: var(--map-preview-add-fill);
-  stroke: var(--map-preview-add);
-  stroke-width: 1.5px;
-  vector-effect: non-scaling-stroke;
-}
-
-.geometry-preview-old-boundary {
-  fill: none;
-  stroke: var(--map-preview-old-boundary);
-  stroke-width: 1px;
-  stroke-dasharray: 4 4;
-  vector-effect: non-scaling-stroke;
-}
-
-.geometry-preview-new-boundary {
-  fill: none;
-  stroke: var(--map-preview-new-boundary);
-  stroke-width: 3px;
-  vector-effect: non-scaling-stroke;
-}
-
-.geometry-preview-fill {
-  stroke: none;
-}
-
-.geometry-preview-outline {
-  fill: none;
 }
 
 .map-hover-shape {
@@ -274,27 +228,6 @@
 
 .map-validation-marker.issue-relation {
   fill: var(--map-error-relation);
-}
-
-.snap-indicator-point {
-  fill: var(--surface-elevated);
-  stroke: var(--map-snap);
-  stroke-width: 2.5px;
-  vector-effect: non-scaling-stroke;
-}
-
-.snap-indicator-segment {
-  fill: none;
-  stroke: var(--map-snap);
-  stroke-width: 3px;
-  vector-effect: non-scaling-stroke;
-}
-
-.snap-indicator-cross {
-  fill: none;
-  stroke: var(--map-snap);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
 }
 
 .map-ocean {
@@ -389,125 +322,6 @@
   cursor: pointer;
 }
 
-.vertex-handle:hover {
-  r: 6px;
-}
-
-.draft-shape.draft-raw-stroke {
-  fill: none;
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
-  stroke-dasharray: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.draft-auto-close-preview {
-  fill: none;
-  stroke: var(--map-selection-halo);
-  stroke-width: 1.8px;
-  stroke-dasharray: 4 4;
-  opacity: .72;
-  pointer-events: none;
-  vector-effect: non-scaling-stroke;
-}
-
-.river-partition-emphasis {
-  fill: none;
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
-  stroke-opacity: 1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  pointer-events: none;
-  vector-effect: non-scaling-stroke;
-}
-
-.map-stage.draft-stroke-active {
-  cursor: crosshair;
-  touch-action: none;
-}
-
-.draft-interactive {
-  pointer-events: all;
-}
-
-.draft-vertex {
-  cursor: move;
-}
-
-.draft-vertex-hit {
-  fill: transparent;
-  stroke: none;
-}
-
-.draft-vertex.selected .draft-vertex-dot {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
-}
-
-.draft-segment-hit {
-  fill: none;
-  stroke: transparent;
-  stroke-width: 18px;
-  vector-effect: non-scaling-stroke;
-  cursor: copy;
-}
-
-.draft-insert-handle {
-  cursor: copy;
-}
-
-.draft-insert-hit {
-  fill: transparent;
-  stroke: none;
-}
-
-.draft-insert-dot {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
-
-.draft-insert-plus {
-  fill: none;
-  stroke: var(--map-selection-halo);
-  stroke-width: 1.8px;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.draft-split-preview {
-  pointer-events: none;
-}
-
-.draft-issue-marker {
-  pointer-events: none;
-}
-
-.draft-issue-marker circle {
-  fill: var(--surface-elevated);
-  stroke: var(--draft-issue-marker-stroke);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
-
-.draft-issue-marker path {
-  fill: none;
-  stroke: var(--draft-issue-marker-stroke);
-  stroke-width: 2px;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.space-pan-active .draft-interactive {
-  pointer-events: none;
-}
-
 .globe-shadow {
   fill: none;
   stroke: var(--globe-shadow);
@@ -515,48 +329,6 @@
   stroke-width: 1px;
   filter: none;
   pointer-events: none;
-}
-
-.vertex-handle.country-vertex:active {
-  cursor: grabbing;
-}
-
-.territory-candidate {
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.territory-component {
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.boundary-edit-layer {
-  pointer-events: none;
-}
-
-.boundary-edit-segment {
-  fill: none;
-  pointer-events: none;
-  vector-effect: non-scaling-stroke;
-}
-
-.vertex-handle.country-vertex.coast-vertex {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-}
-
-.vertex-handle.country-vertex.shared-boundary-vertex {
-  fill: var(--surface-elevated);
-  stroke: var(--map-snap);
-}
-
-.vertex-handle.country-vertex.fixed-boundary-vertex {
-  fill: var(--vertex-handle-fill);
-  stroke: var(--vertex-handle-stroke);
-  stroke-dasharray: 2 1;
-  cursor: not-allowed;
-  opacity: .9;
 }
 
 .hydro-lakes-layer {
@@ -612,83 +384,6 @@
   font-size: .85em;
   font-weight: 400;
   opacity: .78;
-}
-
-.draft-shape.cut-pending {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha, 0.084);
-}
-
-.draft-shape.cut-valid {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha, 0.084);
-}
-
-.draft-shape.cut-invalid {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha, 0.084);
-}
-
-.draft-shape.draft-invalid {
-  stroke: var(--map-selection-halo);
-  fill: var(--map-selection-halo);
-  fill-opacity: var(--map-primary-fill-alpha, 0.084);
-}
-
-.draft-snap-point {
-  fill: var(--surface-elevated);
-  stroke: var(--map-selection-halo);
-  stroke-width: 2.5px;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
-.territory-component {
-  fill: var(--map-selection-halo);
-  fill-opacity: 0;
-  stroke: var(--map-selection-halo);
-  stroke-opacity: var(--map-candidate-stroke-alpha);
-  stroke-width: var(--map-candidate-stroke-width);
-  vector-effect: non-scaling-stroke;
-}
-
-.territory-candidate {
-  fill: var(--map-selection-halo);
-  fill-opacity: 0;
-  stroke: var(--map-selection-halo);
-  stroke-opacity: var(--map-candidate-stroke-alpha);
-  stroke-width: var(--map-candidate-stroke-width);
-  vector-effect: non-scaling-stroke;
-}
-
-.draft-split-preview {
-  fill: var(--map-selection-halo);
-  fill-opacity: 0;
-  stroke: var(--map-selection-halo);
-  stroke-opacity: var(--map-candidate-stroke-alpha);
-  stroke-width: var(--map-candidate-stroke-width);
-  vector-effect: non-scaling-stroke;
-}
-
-.territory-component.selected-component {
-  fill-opacity: var(--map-secondary-fill-alpha);
-  stroke-opacity: var(--map-secondary-stroke-alpha);
-  stroke-width: var(--map-secondary-stroke-width);
-}
-
-.territory-component.hovered-component:not(.selected-component) {
-  fill-opacity: var(--map-hover-fill-alpha);
-  stroke-opacity: var(--map-hover-stroke-alpha);
-  stroke-width: var(--map-hover-stroke-width);
-}
-
-.territory-candidate.selected-candidate {
-  fill-opacity: var(--map-primary-fill-alpha, 0.084);
-  stroke-opacity: var(--map-primary-stroke-alpha, 1);
-  stroke-width: var(--map-primary-stroke-width, 2.5px);
 }
 
 .canvas-interaction-fill-proxy {

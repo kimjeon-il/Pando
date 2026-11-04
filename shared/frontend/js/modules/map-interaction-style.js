@@ -144,20 +144,6 @@ export function applyInteractionCssProperties(style, root = globalThis.document?
   return true;
 }
 
-/** Existing packet roles win; class names are only adapters for older tool views. */
-export function interactionNodeRole(node, domain = 'draft') {
-  const explicit = node.getAttribute?.('data-interaction-role');
-  if (Object.hasOwn(INTERACTION_ROLE_PRIORITY, explicit)) return explicit;
-  const has = name => node.classList?.contains(name);
-  if (has('geometry-preview-old-boundary') || has('geometry-preview-remove')) return 'reference';
-  if (has('selected-candidate')) return 'chosen-result';
-  if (has('selected-component')) return 'selected-component';
-  if (has('hovered-component')) return 'hover';
-  if (has('territory-candidate') || has('draft-split-preview')) return 'unchosen-result';
-  if (has('territory-component')) return 'candidate';
-  return domain === 'preview' ? 'chosen-result' : 'edit-target';
-}
-
 export function resolveMapInteractionStyle({
   theme = 'dark',
   selectionColor = null,
