@@ -8,9 +8,9 @@ export function selectionEntries(snapshot, options) {
 
 /** Plan ownership from the already resolved priority/hierarchy order, without resolving geometry. */
 export function selectionDisplayPlan({ entries, hoverKey, hoverHasGeometry = false, mobile = false,
-  mapMoving = false, draftDragging = false, outlineVisible = true, style }) {
+  mapMoving = false, outlineVisible = true, style }) {
   const entryByKey = new Map(entries.map(entry => [entry.key, entry]));
-  const hoverActive = !mobile && !!hoverHasGeometry && !mapMoving && !draftDragging
+  const hoverActive = !mobile && !!hoverHasGeometry && !mapMoving
     && entryByKey.get(hoverKey)?.role === 'hover';
   const items = entries.filter(entry => entry.role !== 'hover' || entry.ref.domain === 'interaction').map(entry => {
     const channel = interactionChannel(entry);

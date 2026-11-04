@@ -84,7 +84,7 @@ const BASE_STROKES = Object.freeze({
 
 // All widths and dash lengths returned here are CSS pixels. The current layer
 // model still fixes its width multiplier to one; this adds no width preference.
-export function resolveMapStrokeStyle(style, role = 'candidate', { directManipulation = false, boundaryKind = '' } = {}) {
+export function resolveMapStrokeStyle(style, role = 'candidate') {
   if (Object.hasOwn(BASE_STROKES, role)) {
     const theme = style.theme || {};
     const layer = style.layerStyle || {};
@@ -105,11 +105,10 @@ export function resolveMapStrokeStyle(style, role = 'candidate', { directManipul
   if (priority === 2) return Object.freeze({ ...STROKE_SHAPE, ...style.hover, coverage: 'union', scaleWithView: true, antiAlias });
   const source = priority >= 4 ? selection.primary : selection.secondary;
   return Object.freeze({ ...STROKE_SHAPE, color: selection.color,
-    width: directManipulation ? (priority >= 4 ? 2.5 : 1.5) : source.innerWidth,
-    alpha: directManipulation ? (priority >= 4 ? 1 : 0.72) : source.innerAlpha,
+    width: source.innerWidth,
+    alpha: source.innerAlpha,
     fillAlpha: source.fillAlpha,
     coverage: role === 'primary' || role === 'secondary' ? 'union' : 'normal',
-    dash: boundaryKind === 'shared' ? Object.freeze([6, 3]) : STROKE_SHAPE.dash,
     scaleWithView: true,
     antiAlias });
 }

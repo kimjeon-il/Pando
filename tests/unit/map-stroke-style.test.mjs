@@ -25,8 +25,8 @@ test('country and hydro roles are immutable CSS styles, converted only at the GP
   assert.equal(country.width, 1.44); assert.equal(country.alpha, 0.8);
   const lake = policy.resolveMapStrokeStyle({ theme, color: '#ffffff' }, 'hydro-boundary');
   assert.equal(lake.width, 3); assert.equal(lake.alpha, 0.5);
-  const selected = policy.resolveMapStrokeStyle(policy.resolveMapInteractionStyle({ outlineVisible: false }), 'edit-target', { directManipulation: true });
-  assert.equal(selected.width, 2.5, 'direct editing remains visible with ordinary selection outlines disabled');
+  const selected = policy.resolveMapStrokeStyle(policy.resolveMapInteractionStyle({ outlineVisible: false }), 'primary');
+  assert.equal(selected.width, 0, 'disabled selection outlines stay hidden');
   const css = policy.scaleInteractionStroke({ ...country, casing: { width: 3 }, dash: [3, 2] }, frame(2));
   const gpu = policy.gpuStrokeStyle(css, frame(2));
   assert.equal(gpu.width, 2 * css.width); assert.equal(gpu.casing.width, 6); assert.deepEqual(gpu.dash, [6, 4]);
