@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, statSync, writeFileSync, symlinkSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
@@ -68,4 +68,13 @@ test('Codespaces preview serves a real branch snapshot but no source or Git meta
   assert.equal((await globalThis.fetch(url+'/assets/outside/secret.txt')).status,403);
   assert.equal((await globalThis.fetch(url+'/assets/../.git/config')).status,404);
   assert.equal((await globalThis.fetch(url+'/assets/js/test.js',{method:'POST'})).status,405);
+});
+
+test('P3 CLI does not await a circular import during module evaluation',()=>{
+  const source=readFileSync(new URL('../../scripts/p3-preview-server.mjs',import.meta.url),'utf8');
+  const entry=source.slice(source.indexOf("if(process.argv[1] && resolve(process.argv[1])"));
+  assert.ok(entry.startsWith("if(process.argv[1]"));
+  assert.match(entry,/setImmediate\(async\(\)=>\{/);
+  assert.match(entry,/await import\('\.\/frontend-dev-server\.mjs'\)/);
+  assert.match(entry,/PANDO_P3_PREVIEW_BOOTSTRAP_FAILED/);
 });

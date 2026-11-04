@@ -7,13 +7,14 @@ import { atomicStorageJSON, containedPath, contentHash, contentFiles, contentPat
 import { libraryStagingContent, librarySharedCheckout, withLibraryLock, discardDeadLibraryLock } from './library-data.mjs';
 import { previewGeneratedCleanup, applyGeneratedCleanup } from './worktree-generated.mjs';
 import { snapshotGitStorage, repackLocalObjects } from './library-git.mjs';
+import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from '../scripts/lib/remote-only-native-policy.mjs';
 
 const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
 const stageMarker='.pandolab-web-shell-stage';
 const nativeWriter=p=>Boolean(p.globalBuild)||/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|clang(?:\+\+)?|emcc|em\+\+)\.exe$/i.test(p.Name||'')||/stage\.mjs|tools[\\/]build-[\w-]+\.mjs|tauri.*(dev|build)/i.test(p.CommandLine||'');
-const usesDirectory=(p,directory)=>[p.ExecutablePath,p.CommandLine].some(value=>String(value||'').replaceAll('\\','/').toLowerCase().includes(directory.replaceAll('\\','/').toLowerCase()+'/'));
+const usesDirectory=(p,directory)=>{const normalize=value=>String(value||'').replaceAll('\\','/').replace(/\/+/g,'/').toLowerCase(),target=normalize(directory);return [p.ExecutablePath,p.CommandLine].some(value=>{const text=normalize(value);return text.endsWith(target)||['/','"',"'",' '].some(suffix=>text.includes(target+suffix));});};
 export function workspaceOutputRoot(root,settings=storageSettings(root)){
   return settings?containedPath(settings.cacheRoot,'workspaces/'+contentHash(Buffer.from(resolve(root).toLowerCase())).slice(0,16)):resolve(root,'.library-data/output');
 }
@@ -67,20 +68,27 @@ export function installFrontendSnapshot({root,snapshot,settings=storageSettings(
 function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers(),refreshProcesses=()=>processes,afterFile=()=>{}}={}){
   const native=kind==='native',markerName=native?'native-artifact.json':'frontend-manifest.json',retirementSchema='pando-'+kind+'-retirement-v1';
   if(!settings)throw Error('Application storage is not activated');
+  const libraryStore=!native&&existsSync(resolve(root,'config/library-data.json'))?{root:librarySharedCheckout(root),blobDirectory:'.pando-store/blobs'}:null;
   const operation=()=>{
-    if(native?processes.some(nativeWriter):processes.length)throw Error('Active consumers block artifact retirement');
+    if(processes.some(nativeWriter))throw Error('Active consumers block artifact retirement');
+    // Frontend views contain thousands of tiny files. References/leases remain
+    // checked per unlink under the owner lock; bound expensive Windows process
+    // inventory to once per second. Native executable inventories stay fresh.
+    let processCheckedAt=0,currentProcesses=processes;
+    const latestProcesses=()=>{if(native||Date.now()-processCheckedAt>=1000){currentProcesses=refreshProcesses();processCheckedAt=Date.now();}return currentProcesses;};
     const base=containedPath(settings.cacheRoot,kind),journal=containedPath(settings.cacheRoot,kind+'-retirement.pending.json');
     for(const name of ['frontend-install.pending.json','native-install.pending.json','generated-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error('Pending installation blocks frontend retirement');
     const referenced=new Set();
-    const leaseReferences=()=>{const refs=new Set();if(native)for(const lease of contentFiles(containedPath(settings.cacheRoot,'native-leases'))){const record=JSON.parse(readFileSync(lease.path));if(!Number.isInteger(record.pid)||record.pid<=0)throw Error('Invalid native lease owner');let alive=true;try{process.kill(record.pid,0);}catch(e){if(e.code==='ESRCH')alive=false;else if(e.code!=='EPERM')throw e;}if(alive)refs.add(containedPath(base,record.directory));}return refs;};
+    const leaseReferences=()=>{const refs=new Set();for(const lease of contentFiles(containedPath(settings.cacheRoot,kind+'-leases'))){const record=JSON.parse(readFileSync(lease.path));if(!Number.isInteger(record.pid)||record.pid<=0)throw Error('Invalid artifact lease owner');let alive=true;try{process.kill(record.pid,0);}catch(e){if(e.code==='ESRCH')alive=false;else if(e.code!=='EPERM')throw e;}if(alive)refs.add(containedPath(base,record.directory));}return refs;};
     for(const ref of leaseReferences())referenced.add(ref);
 
     for(const app of roots){const pointer=resolve(app,'.library-data/'+kind+'-artifacts.json');if(existsSync(pointer))for(const ref of Object.values(JSON.parse(readFileSync(pointer))))referenced.add(containedPath(base,ref.directory));}
     let state=existsSync(journal)?JSON.parse(readFileSync(journal)):null;
     if(state&&(state.schema!==retirementSchema||containedPath(base,state.directory)!==state.directory||referenced.has(state.directory)||!Number.isInteger(state.completedCount)||state.completedCount<0||state.completedCount>state.manifest.files.length))throw Error('Pending retirement scope changed');
+    if(state?.batch){const batch=state.batch,expected=state.manifest.files.slice(state.completedCount,batch.end);if(!Number.isInteger(batch.end)||batch.end<=state.completedCount||batch.end>state.manifest.files.length||!Array.isArray(batch.files)||batch.files.length!==expected.length||batch.files.some((f,i)=>f.path!==expected[i].path||!Number.isSafeInteger(f.physicalBytes)||f.physicalBytes<0||f.physicalBytes>expected[i].bytes))throw Error('Pending artifact retirement batch changed');}
     const entries=[];let deletedBytes=state?.deletedBytes||0,payloadBytesUnlinked=state?.payloadBytesUnlinked||0;
     const directories=existsSync(base)?readdirSync(base).filter(name=>/^[a-f0-9]{64}$/.test(name)).map(name=>containedPath(base,name)):[];
-    if(native)for(const directory of directories)if(processes.some(p=>usesDirectory(p,directory)))referenced.add(directory);
+    for(const directory of directories)if(processes.some(p=>usesDirectory(p,directory)))referenced.add(directory);
     if(state&&!directories.includes(state.directory)){
       if(!apply||!state.markerRetirement||state.completedCount!==state.manifest.files.length)throw Error('Pending frontend directory is missing');
       deletedBytes+=state.markerRetirement.bytes;payloadBytesUnlinked+=state.markerRetirement.bytes;unlinkSync(journal);state=null;
@@ -97,7 +105,7 @@ function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(
       for(const file of contentFiles(directory))if(!expected.has(file.logical))throw Error('Unlisted frontend file must be preserved: '+file.path);
       for(const file of manifest.files.slice(completed)){
         const target=containedPath(directory,file.path);
-        if(!existsSync(target)){if(resumed&&state.pending?.path===file.path)continue;throw Error('Frontend file is missing');}
+        if(!existsSync(target)){if(resumed&&(state.pending?.path===file.path||state.batch?.files.some(f=>f.path===file.path)))continue;throw Error('Frontend file is missing');}
         const s=lstatSync(target);if(!/^[a-f0-9]{64}$/.test(file.sha256)||s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256||((s.mode&0o200)&&(!native||s.nlink!==1)))throw Error('Modified artifact output must be preserved');
       }
       const markerBytes=existsSync(marker)?lstatSync(marker).size:state.markerRetirement.bytes;
@@ -107,16 +115,24 @@ function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(
       atomicStorageJSON(journal,state);
       while(state.completedCount<manifest.files.length){
         if(leaseReferences().has(directory))throw Error('Artifact acquired a live verification lease during retirement');
-        const currentProcesses=refreshProcesses();if(native?currentProcesses.some(p=>nativeWriter(p)||usesDirectory(p,directory)):currentProcesses.length)throw Error('Active consumer appeared during artifact retirement');
+        const observed=latestProcesses(),busy=observed.filter(p=>nativeWriter(p)||usesDirectory(p,directory));if(busy.length)throw Error('Active consumer appeared during artifact retirement: '+busy.map(p=>p.ProcessId+':'+p.Name+':'+p.CommandLine).join('; '));
         for(const app of roots){const pointer=resolve(app,'.library-data/'+kind+'-artifacts.json');if(existsSync(pointer)&&Object.values(JSON.parse(readFileSync(pointer))).some(ref=>containedPath(base,ref.directory)===directory))throw Error('Artifact acquired a worktree reference during retirement');}
         const file=manifest.files[state.completedCount],target=containedPath(directory,file.path);
+        if(!state.batch){
+          const end=Math.min(state.completedCount+64,manifest.files.length);
+          state.batch={end,files:manifest.files.slice(state.completedCount,end).map(f=>{const p=containedPath(directory,f.path);return{path:f.path,physicalBytes:existsSync(p)?(lstatSync(p).nlink===1?f.bytes:0):state.pending?.path===f.path?state.pending.physicalBytes:0};})};
+          atomicStorageJSON(journal,state);
+        }
+        const planned=state.batch.files.find(f=>f.path===file.path);if(!planned)throw Error('Invalid artifact retirement batch');
         if(existsSync(target)){
           const s=lstatSync(target);if(s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256)throw Error('Frontend changed before retirement');
-          state.pending={path:file.path,physicalBytes:s.nlink===1?file.bytes:0};atomicStorageJSON(journal,state);
-          const shared=!native&&existsSync(resolve(root,'config/library-data.json'))?libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes}):null;
+          state.pending={path:file.path,physicalBytes:s.nlink===1?file.bytes:0};
+          const candidate=libraryStore?contentPath(libraryStore,file.sha256):null;
+          const shared=candidate&&existsSync(candidate)&&statSync(candidate,{bigint:true}).ino===statSync(target,{bigint:true}).ino?libraryStore:null;
           removeContentView(shared||{root:settings.cacheRoot,blobDirectory:'blobs'},target,{viewRoot:directory,marker:markerName});
-        }else if(state.pending?.path!==file.path)throw Error('Missing unjournaled frontend file');
-        state.deletedBytes+=file.bytes;state.payloadBytesUnlinked+=state.pending.physicalBytes;state.pending=null;state.completedCount++;atomicStorageJSON(journal,state);afterFile(file);
+        }
+        state.deletedBytes+=file.bytes;state.payloadBytesUnlinked+=state.pending?.physicalBytes??planned.physicalBytes;state.pending=null;state.completedCount++;
+        if(state.completedCount===state.batch.end){state.batch=null;atomicStorageJSON(journal,state);}afterFile(file);
       }
       state.markerRetirement={bytes:markerBytes};atomicStorageJSON(journal,state);
       if(existsSync(marker))unlinkSync(marker);state.deletedBytes+=markerBytes;state.payloadBytesUnlinked+=markerBytes;
@@ -137,8 +153,8 @@ export function finishArtifactMaintenance({root=repository,roots=permanentWorktr
   if(processes.some(nativeWriter))return {status:'deferred',reason:'active build or stage writer'};
   const options={root,roots,settings,processes,refreshProcesses:runningStorageConsumers,apply:true};
   try{
-    const native=retireNativeSnapshots(options),frontend=processes.length?{status:'deferred',reason:'active frontend consumer'}:retireFrontendSnapshots(options),blobs=pruneApplicationBlobs(options);
-    if(!processes.length)unlinkSync(marker);return {status:processes.length?'frontend-deferred':'completed',native,frontend,blobs};
+    const native=retireNativeSnapshots(options),frontend=retireFrontendSnapshots(options),blobs=pruneApplicationBlobs(options);
+    unlinkSync(marker);return {status:'completed',native,frontend,blobs};
   }catch(error){
     const result={status:'blocked',code:'PL-STORAGE-MAINTENANCE',message:error.message};
     atomicStorageJSON(marker,{...result,root,diagnostic:error.stack});process.stderr.write(result.code+': '+result.message+'\n');return result;
@@ -343,7 +359,7 @@ export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(
   if(!settings)throw Error('Worktree storage is not activated');
   const operation=()=>{
     for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json','native-install.pending.json','frontend-install.pending.json','frontend-retirement.pending.json','native-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
-    const busy=roots.map(app=>stageBusy(app,processes.filter(nativeWriter),settings)).find(Boolean);if(busy)throw Error(busy);
+    const busy=roots.map(app=>stageBusy(app,processes,settings)).find(Boolean);if(busy)throw Error(busy);
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'blobs'),entries=[];
     const before=statfsSync(settings.cacheRoot);
     for(const file of contentFiles(directory)){
@@ -363,6 +379,125 @@ export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(
   };
   return apply?withStorageLock(root,settings,operation):operation();
 }
+// Retire only verified unreferenced immutable Windows native artifact views.
+// Artifact transport uses a hash-keyed shared pool; this never deletes originals,
+// staged user work, SDKs, source files or pinned/actively used executable views.
+export function retireUnusedNativeViews({root=repository,roots=permanentWorktrees(root),
+  settings=storageSettings(root),processes=runningStorageConsumers(),apply=false,afterFile=()=>{}}={}) {
+  if(!settings)throw Error('Application storage is not activated');
+  const operation=()=>{
+    if(processes.length||roots.some(app=>stageBusy(app,processes,settings)))
+      throw Error('Active native/App consumer or stage writer blocks native retirement');
+    for(const name of ['native-install.pending.json','frontend-install.pending.json',
+      'generated-retirement.pending.json','migration.pending.json','runtime-migration.pending.json',
+      'app-git-compaction.pending.json'])
+      if(existsSync(containedPath(settings.cacheRoot,name)))throw Error('Pending storage operation blocks native retirement: '+name);
+    const base=containedPath(settings.cacheRoot,'native'),
+      journal=containedPath(settings.cacheRoot,'native-retirement.pending.json');
+    const referenced=new Set();
+    for(const app of roots) {
+      const pointer=resolve(app,'.library-data/native-artifacts.json');
+      if(!existsSync(pointer))continue;
+      if(!lstatSync(pointer).isFile())throw Error('Invalid native artifact pointer');
+      for(const value of Object.values(JSON.parse(readFileSync(pointer,'utf8')))) {
+        if(typeof value?.directory!=='string'||!/^[a-f0-9]{64}$/.test(value.nativeInputSha256))
+          throw Error('Unknown native artifact pointer; preserve installed views');
+        const target=containedPath(base,value.directory);
+        if(target!==containedPath(base,value.nativeInputSha256))
+          throw Error('Native pointer identity mismatch');
+        referenced.add(target);
+      }
+    }
+    let state=existsSync(journal)?JSON.parse(readFileSync(journal,'utf8')):null;
+    if(state&&(state.schema!=='pando-native-retirement-v1'||
+      state.directory!==containedPath(base,state.directory)||referenced.has(state.directory)||
+      !Number.isInteger(state.completedCount)||state.completedCount<0||
+      state.completedCount>state.manifest?.files?.length))
+      throw Error('Pending native retirement scope changed');
+    const names=existsSync(base)?readdirSync(base):[];
+    const directories=names.filter(name=>/^[a-f0-9]{64}$/.test(name)).map(name=>containedPath(base,name));
+    const entries=[];let deletedBytes=state?.deletedBytes||0,payloadBytesUnlinked=state?.payloadBytesUnlinked||0;
+    if(state&&!directories.includes(state.directory)) {
+      if(!apply||state.completedCount!==state.manifest.files.length||!state.markerRetirement)
+        throw Error('Pending native directory missing or incomplete');
+      deletedBytes+=state.markerRetirement.bytes;payloadBytesUnlinked+=state.markerRetirement.bytes;
+      if(apply)unlinkSync(journal);
+      state=null;
+    }
+    if(state)directories.sort((a,b)=>Number(b===state.directory)-Number(a===state.directory));
+    for(const directory of directories) {
+      if(referenced.has(directory)){entries.push({directory,status:'referenced'});continue;}
+      const marker=containedPath(directory,'native-artifact.json'),
+        manifest=existsSync(marker)?JSON.parse(readFileSync(marker,'utf8')):
+          state?.directory===directory&&state.markerRetirement?state.manifest:null;
+      if(!manifest||manifest.schema!==1||manifest.platform!=='windows'||
+        !['development','offline','verification'].includes(manifest.mode)||
+        directory!==containedPath(base,manifest.nativeInputSha256)||
+        !/^[a-f0-9]{40}$/.test(manifest.sourceCommit||'')||
+        !Array.isArray(manifest.files)||!manifest.files.length)
+        throw Error('Unrecognized native artifact ownership; preserve it');
+      const allowed=new Set(['pandolab-web-shell.exe','WebView2Loader.dll',
+        ...(manifest.mode==='offline'?['PandoLab-setup.exe']:[])]);
+      if(new Set(manifest.files.map(f=>f.path)).size!==manifest.files.length||
+        !manifest.files.some(f=>f.path==='pandolab-web-shell.exe')||
+        (manifest.mode==='offline'&&!manifest.files.some(f=>f.path==='PandoLab-setup.exe'))||
+        manifest.files.some(f=>!allowed.has(f.path)||!Number.isSafeInteger(f.bytes)||f.bytes<=0||
+          !/^[a-f0-9]{64}$/.test(f.sha256)))
+        throw Error('Unexpected native artifact manifest; preserve it');
+      const resumed=state?.directory===directory;
+      if(resumed&&JSON.stringify(state.manifest)!==JSON.stringify(manifest))
+        throw Error('Pending native artifact manifest changed');
+      const completed=resumed?state.completedCount:0,
+        expected=new Set(['native-artifact.json',...manifest.files.slice(completed).map(f=>f.path)]);
+      for(const file of contentFiles(directory))
+        if(!expected.has(file.logical))throw Error('Unlisted native artifact file must be preserved: '+file.path);
+      for(const file of manifest.files.slice(completed)){
+        const target=containedPath(directory,file.path);
+        if(!existsSync(target)){
+          if(resumed&&state.pending?.path===file.path)continue;
+          throw Error('Native artifact missing without journal');
+        }
+        const s=lstatSync(target);
+        if(!s.isFile()||s.size!==file.bytes||(s.mode&0o200)||
+          contentHash(readFileSync(target))!==file.sha256)
+          throw Error('Changed native artifact must be preserved');
+      }
+      const markerBytes=existsSync(marker)?lstatSync(marker).size:state.markerRetirement.bytes,
+        row={directory,status:'eligible',logicalBytes:manifest.files.reduce((n,f)=>n+f.bytes,0)+markerBytes};
+      entries.push(row);
+      if(!apply)continue;
+      state=resumed?state:{schema:'pando-native-retirement-v1',directory,manifest,completedCount:0,
+        pending:null,deletedBytes,payloadBytesUnlinked};
+      atomicStorageJSON(journal,state);
+      while(state.completedCount<manifest.files.length) {
+        const file=manifest.files[state.completedCount],target=containedPath(directory,file.path);
+        if(existsSync(target)){
+          const s=lstatSync(target);
+          if(s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256)
+            throw Error('Native artifact changed before removal');
+          state.pending={path:file.path,physicalBytes:s.nlink===1?file.bytes:0};
+          atomicStorageJSON(journal,state);
+          removeContentView({root:settings.cacheRoot,blobDirectory:'blobs'},target,
+            {viewRoot:directory,marker:'native-artifact.json'});
+        }else if(state.pending?.path!==file.path)throw Error('Unjournaled native artifact absence');
+        state.deletedBytes+=file.bytes;
+        state.payloadBytesUnlinked+=state.pending?.physicalBytes||0;
+        state.pending=null;state.completedCount++;
+        atomicStorageJSON(journal,state);afterFile(file);
+      }
+      state.markerRetirement={bytes:markerBytes};
+      atomicStorageJSON(journal,state);
+      if(existsSync(marker)){unlinkSync(marker);state.deletedBytes+=markerBytes;state.payloadBytesUnlinked+=markerBytes;}
+      rmdirSync(directory);
+      deletedBytes=state.deletedBytes;payloadBytesUnlinked=state.payloadBytesUnlinked;
+      unlinkSync(journal);state=null;row.status='removed';
+    }
+    return {schema:'pando-native-retirement-v1',apply,entries,deletedBytes,payloadBytesUnlinked,
+      note:'Physical space of shared blobs is recovered by the existing --prune-blobs operation'};
+  };
+  return apply?withStorageLock(root,settings,operation):operation();
+}
+
 const retiredQtRuns=['qt-pair-70789caf-failed','qt-pair-4418b791','qt-pair-9bd078c7','qt-pair-ad3ba73b-baseline','qt-pair-ad3ba73b-candidate','qt-pair-b81c6173-baseline','qt-pair-b81c6173-candidate'];
 export function shareRetiredQtRuntimes({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers(),retire=false}={}){
   if(!settings)throw Error('Worktree storage is not activated');
@@ -460,7 +595,20 @@ export function assertCompilerCacheServer(settings,server){
   if(server.version!==settings.version||server.max_cache_size!==cacheLimit||!location||normalize(location)!==normalize(join(settings.cacheRoot,'sccache'))||server.basedirs?.length)throw Error('Activated compiler cache server ownership/configuration mismatch');
 }
 export function compilerCacheEnvironment({root=repository,env=process.env,settings=storageSettings(root)}={}){
-  const result={...env};if(!settings)return result;
+  const result={...env};
+  // Detached candidate checkouts and Codespaces never reuse a retired local
+  // compiler wrapper, even when a previous worktree left storage activated.
+  if(remoteOnlyBranch({root,environment:env})&&env.GITHUB_ACTIONS!=='true'){
+    if(settings){
+      for(const key of ['RUSTC_WRAPPER','CMAKE_C_COMPILER_LAUNCHER',
+        'CMAKE_CXX_COMPILER_LAUNCHER','EM_COMPILER_WRAPPER'])
+        if(result[key]===settings.tool)delete result[key];
+      if(result.SCCACHE_DIR&&resolve(result.SCCACHE_DIR)===resolve(settings.cacheRoot,'sccache'))
+        for(const key of Object.keys(result))if(key.startsWith('SCCACHE_'))delete result[key];
+    }
+    return result;
+  }
+  if(!settings)return result;
   if(settings.schema!==schema)throw Error('Invalid compiler cache configuration');
   if(settings.compilerEnabled===false){
     for(const key of ['RUSTC_WRAPPER','CMAKE_C_COMPILER_LAUNCHER','CMAKE_CXX_COMPILER_LAUNCHER','EM_COMPILER_WRAPPER'])if(result[key]===settings.tool)delete result[key];
@@ -497,7 +645,8 @@ export function deactivateCompilerCache({root=repository,settings=storageSetting
   if(processes.some(p=>/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle)\.exe$/i.test(p.Name||'')||/^java(w)?\.exe$/i.test(p.Name||'')&&/gradle/i.test(p.CommandLine||'')))throw Error('An active native build blocks compiler deactivation');
   return withStorageLock(root,settings,()=>{if(settings.compilerEnabled!==false)stopServer(settings);const next={...settings,compilerEnabled:false};atomicStorageJSON(join(commonGit(root),'pando-storage.json'),next);return{compilerActive:false,applicationStorageActive:true,cacheRoot:settings.cacheRoot};});
 }
-export async function activateCompilerCache(root=repository){
+export async function activateCompilerCache(root=repository,{environment=process.env,branch}={}){
+  assertRemoteOnlyNativeAllowed({root,environment,branch,operation:'compiler-cache SDK activation'});
   const versions=JSON.parse(readFileSync(join(root,'config/toolchain-versions.json'),'utf8')).sccache;
   const toolDirectory=`D:/build/toolchains/sccache/${versions.version}`,tool=join(toolDirectory,'sccache.exe');
   const cacheRoot='D:/build/cache/pandolab';
@@ -579,12 +728,14 @@ async function main(){
   if(args.includes('--prepare-dependencies')){console.log(JSON.stringify(prepareDependencies(root)));return;}
   if(args.includes('--retire-native')){console.log(JSON.stringify(retireNativeSnapshots({root,apply:args.includes('--apply'),refreshProcesses:runningStorageConsumers})));return;}
   if(args.includes('--retire-frontend')){console.log(JSON.stringify(retireFrontendSnapshots({root,apply:args.includes('--apply')})));return;}
+  if(args.includes('--retire-native')){console.log(JSON.stringify(retireUnusedNativeViews({root,apply:args.includes('--apply')})));return;}
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
   if(args.includes('--disable-local-compiler')){console.log(JSON.stringify(deactivateCompilerCache({root})));return;}
-  const compilerValues=()=>storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
-  if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!!settings&&settings.compilerEnabled!==false,env:settings?compilerValues():{}}));return;}
+  const compilerValues=()=>remoteOnlyBranch({root})||storageSettings(root)?.compilerEnabled===false?{}:Object.fromEntries(Object.entries(compilerCacheEnvironment({root})).filter(([key])=>/^(RUSTC_WRAPPER|CMAKE_C_COMPILER_LAUNCHER|CMAKE_CXX_COMPILER_LAUNCHER|EM_COMPILER_WRAPPER|SCCACHE_\w+)$/.test(key)));
+  if(args.includes('--compiler-config')){const settings=storageSettings(root);console.log(JSON.stringify({active:!remoteOnlyBranch({root})&&!!settings&&settings.compilerEnabled!==false,env:settings?compilerValues():{}}));return;}
   if(args.includes('--compiler-env')){console.log(JSON.stringify(storageSettings(root)?compilerValues():{}));return;}
   if(args.includes('--with-compiler-cache')){
+    assertRemoteOnlyNativeAllowed({root,operation:'local compiler wrapper execution'});
     const index=args.indexOf('--'),command=args.slice(index+1);
     if(index<0||!command.length)throw Error('Expected --with-compiler-cache -- command arguments');
     const result=spawnSync(command[0],command.slice(1),{cwd:process.cwd(),env:compilerCacheEnvironment({root}),stdio:'inherit',windowsHide:true});

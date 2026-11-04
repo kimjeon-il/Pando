@@ -5,6 +5,7 @@ import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {nativeTestRecipe,nativeTestRecipes} from './lib/native-test-prerequisites.mjs';
 import {verifyNativeTool} from '../tools/native-tool.mjs';
+import {assertRemoteOnlyNativeAllowed} from './lib/remote-only-native-policy.mjs';
 
 const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
 function regular(path) {if(!lstatSync(path).isFile())throw Error('Native prerequisite must be a regular file: '+path);}
@@ -18,10 +19,6 @@ async function sdkReady(root,sdk) {
   regular(archive);if(hash(archive)!==sdk.sha256)throw Error('Native SDK archive SHA-256 mismatch: '+sdk.archive);
   if(!existsSync(resolve(root,sdk.extracted||sdk.runtime.path)))return false;
   if(sdk.runtime)checkedRuntime(root,sdk.runtime);
-  if(sdk.runtimeVersion) {
-    const {matchingTorchLibrary}=await import('../tools/reference-analysis/native-infer.mjs');
-    matchingTorchLibrary(join(root,sdk.extracted,'lib'),{runtimeVersion:sdk.runtimeVersion});
-  }
   return true;
 }
 function requireCapacity(root,additionalBytes) {
@@ -63,9 +60,9 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),environment=pro
   if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'))throw Error('Registered native prerequisite IDs must be an array');
   ids=[...new Set(ids)];for(const id of ids)if(!nativeTestRecipes[id])throw Error('Unknown native prerequisite: '+id);
   if(ids.length&&environment.GITHUB_ACTIONS!=='true')throw Error('Local native SDK installation is disabled. Run the selected checks through scripts/run-application-checks.mjs on a committed and pushed revision. Required tools: '+ids.join(','));
+  if(ids.length)assertRemoteOnlyNativePreparation({root,environment});
   for(const id of ids)nativeTestRecipe(id,{platform,architecture});
   let additionalBytes=0,recipeEnvironment=false;
-  if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch',{platform,architecture}).sdk))additionalBytes+=4*1024**3;
   if(ids.includes('territorial-recipe')) {
     const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-territorial-recipe','pkg-config','--modversion','geos','proj']);
     recipeEnvironment=result.status!==0||Boolean(result.error)||result.stdout.trim()!=='3.13.1\n9.5.1';
@@ -80,6 +77,11 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),environment=pro
   return {tools:ids.length>0,recipeEnvironment,gdalEnvironment,additionalBytes};
 }
 
+// Retain the historical named guard for callers; all owners share one policy.
+export function assertRemoteOnlyNativePreparation(options={}) {
+  return assertRemoteOnlyNativeAllowed({...options,operation:'native test preparation'});
+}
+
 export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
   const result=spawnSync(argv[0]==='node'?process.execPath:argv[0],argv.slice(1),{cwd:root,env:process.env,stdio:'inherit',shell:false});
   if(result.status!==0||result.error)throw Error('Native prerequisite command failed: '+argv.join(' '),{cause:result.error});
@@ -91,6 +93,7 @@ export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
     const {dispatchSelectedChecks}=await import('./run-application-checks.mjs');
     return (remote||dispatchSelectedChecks)({repository:loadRepository(root),selection:{unitTests:[],browserSpecs:[],commands:[],prerequisites:['native-'+id]}});
   }
+  assertRemoteOnlyNativePreparation({root,environment});
   const recipe=nativeTestRecipe(id,{platform,architecture});
   const invoke=argv=>run(argv.map(arg=>arg.replaceAll('{root}',root)));
   const checkRuntime=runtime=>checkedRuntime(root,runtime);

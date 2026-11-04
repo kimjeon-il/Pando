@@ -10,6 +10,13 @@ import * as runner from '../../scripts/run-application-checks.mjs';
 
 const executePlan=(plan,options)=>executeCiPlan(plan,{...options,environment:{GITHUB_ACTIONS:'true'}});
 
+test('check commands retain the supplied process environment and prerequisite overrides',()=>{
+ const repository={root:'/fixture',catalog:{prerequisites:{sample:{argv:['node','sample.mjs'],env:{INHERITED:'override',EXTRA:'{root}/input'}}},groups:[]}};
+ const plan={prerequisites:['sample'],commands:[],unitTests:[],browserSpecs:[],unitTestPrerequisites:{},reasons:{}};
+ let received;const result=executeCiPlan(plan,{repository,environment:{INHERITED:'original',OTHER:'preserved'},run:(_argv,options)=>{received=options.env;return {status:0};}});
+ assert.equal(result.ok,true);assert.deepEqual(received,{INHERITED:'override',OTHER:'preserved',EXTRA:'/fixture/input'});
+});
+
 test('local native selection routes only selected checks to CI without local commands',()=>{
  const plan={prerequisites:['native-image'],commands:[],unitTests:['tests/unit/image.test.mjs'],browserSpecs:[],unitTestPrerequisites:{},reasons:{}};
  const repository={root:'/fixture',catalog:{prerequisites:{'native-image':{argv:['cmake']}},groups:[]}},requests=[];

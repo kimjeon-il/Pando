@@ -8,8 +8,8 @@ import os from 'node:os';
 import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 const arg = name => { const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1]; };
-const selected=(arg('--operations')||'cut,polygon,river,reference').split(',');
-assert.ok(selected.length&&selected.every(name=>['cut','polygon','river','reference'].includes(name)),'Unknown performance operation');
+const selected=(arg('--operations')||'cut,polygon,river').split(',');
+assert.ok(selected.length&&selected.every(name=>['cut','polygon','river'].includes(name)),'Unknown performance operation');
 const baselineSha = 'd57e235cc4b8c7f94a603d4352556f11b28bc735';
 const git = (root,...args) => execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 if(process.argv.includes('--sample-root')) {
@@ -31,17 +31,14 @@ if(process.argv.includes('--sample-root')) {
   const cutCases=JSON.parse(read('tests/fixtures/shared-core/web-m97/cut-corpus.json')).map(row=>row.payload);
   const river=await load('tools/gis/river-territory-partition.js');
   const riverCases=JSON.parse(read('tests/fixtures/shared-core/web-m972-river/synthetic-cases.json'));
-  const reference=await load('plugins/pando-map-tools/lib/analysis/georef.mjs');
-  const refCases=JSON.parse(read('tests/fixtures/shared-core/reference-calibration.json'));
   const operations={
     cut(){for(const input of cutCases){const result=cut.prepareCutInWorker(input,globalThis.PandoLabPolygonGeometry,globalThis.d3,globalThis.polygonClipping);assert.equal(typeof result.valid,'boolean');}},
     polygon(){for(const [method,operands] of polygonCases)assert.ok(Array.isArray(globalThis.polygonClipping[method](...operands)));},
     river(){for(const row of riverCases){const result=river.buildRiverTerritoryPartitions({...row.request,clipper:globalThis.polygonClipping});assert.ok(result.diagnostics);}},
-    reference(){for(let n=0;n<10;n++)for(const row of refCases){const warp=reference.buildReferenceImageCalibrationWarp(row.input);if(warp.ok){assert.ok(warp.project([.5,.5]));reference.buildReferenceImageMesh(warp);}}}
   };
   const sample={};
   for(const name of selected){const run=operations[name];run();const start=performance.now();run();sample[name]=performance.now()-start;}
-  if(selected.length===4){sample.maxRssKb=process.resourceUsage().maxRSS;sample.heapUsedBytes=process.memoryUsage().heapUsed;}
+  if(selected.length===3){sample.maxRssKb=process.resourceUsage().maxRSS;sample.heapUsedBytes=process.memoryUsage().heapUsed;}
   console.log(JSON.stringify(sample));
 } else {
   const baseline=resolve(arg('--baseline')),candidate=resolve(arg('--candidate')||'.');
