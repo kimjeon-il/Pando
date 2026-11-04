@@ -196,11 +196,7 @@ TemporalCandidateReceipt DocumentSession::temporalCandidatePrepare(
     auto document=*source.sourceDocument();
     if(setup) {
         document.dirtyTerritorialIds.clear();
-        const auto before=document;
-        auto header=codecjson::parse(document.exchangeMetadata);
-        header.object["projectSetup"]=verifiedSetup;
-        document.exchangeMetadata=header.encode();
-        GeometryProvenanceCodecAccess::admitProjectSetupMetadata(before,document);
+        GeometryProvenanceCodecAccess::setProjectSetupMetadata(document,verifiedSetup);
         document.documentId=documentId;
     }
     staged->project.replace(std::move(document));

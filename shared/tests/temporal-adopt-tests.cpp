@@ -34,6 +34,36 @@ V setup(const std::string& month) {
     value.object["initialMonth"]=V::str(month);
     return value;
 }
+void controlledSetupMatchesExistingAdmission(const std::string& seed) {
+    DocumentSession owner(ports);owner.documentLoad(seed,"2026-10");
+    const auto check=[](ProjectDocument original) {
+        auto expected=original,actual=original;
+        std::string expectedError,actualError;
+        try {
+            const auto before=expected;
+            auto header=codecjson::parse(expected.exchangeMetadata);
+            header.object["projectSetup"]=setup("2025-12");
+            expected.exchangeMetadata=header.encode();
+            GeometryProvenanceCodecAccess::admitProjectSetupMetadata(before,expected);
+        } catch(const std::exception& error) { expectedError=error.what(); }
+        try { GeometryProvenanceCodecAccess::setProjectSetupMetadata(actual,setup("2025-12")); }
+        catch(const std::exception& error) { actualError=error.what(); }
+        assert(expectedError==actualError);
+        assert(expected.exchangeMetadata==actual.exchangeMetadata);
+        assert(expected.geometryProvenance==actual.geometryProvenance);
+        if(expectedError.empty()) {
+            assert(geometryProvenanceOpaqueSlots(expected)==geometryProvenanceOpaqueSlots(actual));
+            try { validateGeometryProvenance(expected); } catch(const std::exception& error) { expectedError=error.what(); }
+            try { validateGeometryProvenance(actual); } catch(const std::exception& error) { actualError=error.what(); }
+            assert(expectedError==actualError);
+        }
+    };
+    auto original=owner.project().document();
+    original.geometryProvenance.opaqueUncertain=false;check(original);
+    auto uncertain=original;uncertain.geometryProvenance.opaqueUncertain=true;check(uncertain);
+    auto emptyHeader=original;emptyHeader.exchangeMetadata="{}";check(emptyHeader);
+    assert(!original.units.empty());original.units.front().metadata="{";check(original);
+}
 template<class Fn>void rejects(Fn fn,const std::string& code) {
     try {fn();assert(false);}
     catch(const TimelineError& error){assert(error.code==code);}
@@ -263,6 +293,7 @@ void builtinDeltaMatchesFullLoadAndPreservesGeometry(const std::string& seed) {
 }
 int main(){
     const auto seed=readSeed();
+    controlledSetupMatchesExistingAdmission(seed);
     sameIdentityCannotTurnUserWorkIntoBuiltinTransition(seed);
     builtinDeltaMatchesFullLoadAndPreservesGeometry(seed);
     capsuleRollbackAndInvalidRequests(seed);

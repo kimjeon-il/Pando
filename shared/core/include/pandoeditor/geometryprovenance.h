@@ -8,6 +8,7 @@
 #include <vector>
 
 namespace pandoeditor {
+namespace codecjson { struct Value; }
 struct ProjectDocument;
 struct InlineGeometryAllocation {
     ObjectRef createdFor;
@@ -47,7 +48,11 @@ public:
     // Only the four physical view controls may change during a trusted rebase.
     static void admitPhysicalViewMetadata(const ProjectDocument& before,ProjectDocument& candidate);
     static void admitProjectSetupMetadata(const ProjectDocument& before,ProjectDocument& candidate);
+    // Own the single setup-field mutation so unchanged opaque slots need not be enumerated twice.
+    static void setProjectSetupMetadata(ProjectDocument& candidate,const codecjson::Value& setup);
     static void admitSourceInfoMetadata(const ProjectDocument& before,ProjectDocument& candidate);
+private:
+    static void sealVerifiedOpaqueSlots(ProjectDocument& document,std::map<std::string,std::string> slots);
 };
 // One owner-keyed inventory shared by core transitions and codec hashing.
 std::map<std::string,std::string> geometryProvenanceOpaqueSlots(const ProjectDocument&);

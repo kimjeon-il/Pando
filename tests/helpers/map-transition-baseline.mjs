@@ -45,6 +45,17 @@ export function replaceExactlyOnce(source, anchor, replacement) {
   return source.replace(anchor, () => replacement);
 }
 
+// This test-only instrumentation records the synchronous ABI call inside the
+// Worker; it does not change the operation payload or the product runtime.
+export function instrumentTemporalWorkerSource(source) {
+  const anchor = "return projectResult(core[method](...(typeof args === 'function' ? args() : args)),core);";
+  return replaceExactlyOnce(source, anchor,
+    `if (method !== 'temporalSourcePrepare' && method !== 'temporalCandidatePrepare') { ${anchor} }
+      const probeStart=performance.now(); let probeResult;
+      try { probeResult=projectResult(core[method](...(typeof args === 'function' ? args() : args)),core); return probeResult; }
+      finally { performance.measure('pando-worker:'+method,{start:probeStart,end:performance.now(),detail:{reused:probeResult?.reused ?? null}}); }`);
+}
+
 // Runs in the page before application startup. No request, timer, date, Core, GPU,
 // Worker, or application-state APIs are replaced by the collector.
 export function installMapBaselineCollector() {
@@ -115,6 +126,15 @@ export function instrumentMapBaselineSource(source, name) {
         dataRevision:buildMeta.dataRevision,manifestSha256:buildMeta.builtinWorld.sha256,
         expectedGeneration:prepared.expectedGeneration,isCurrent,transition});`, 'candidate-prepare');
   } else if (name === 'project-domain.js') {
+    next = replaceExactlyOnce(next, `expectedGeneration = generation,isCurrent = () => true} = {}) => {
+    const operation=commandQueue.then(async()=>{`,
+    `expectedGeneration = generation,isCurrent = () => true} = {}) => {
+    ${mark('candidate-queue:start')}const operation=commandQueue.then(async()=>{${mark('candidate-queue:end')}`);
+    around('source=await commandOwner.temporalSourcePrepare(facts,{dataRevision,manifestSha256,isCurrent:current});', 'temporal-source');
+    around(`const candidate=await commandOwner.temporalCandidatePrepare({
+          sourceId:source.sourceId,targetMonth:facts.sourceMonth,
+          sourceFingerprint:source.fingerprint,setup,documentId,
+        },{isCurrent:current});`, 'temporal-candidate');
     around(`await commandOwner.temporalCandidateAdopt({
           candidateId:prepared.candidateId,sourceId:prepared.sourceId,
           targetMonth:prepared.targetMonth,sourceFingerprint:prepared.sourceFingerprint,
