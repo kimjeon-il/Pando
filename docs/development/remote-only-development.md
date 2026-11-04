@@ -41,8 +41,9 @@ from a Windows checkout.
   work-branch fast-forward, not to main. Do not use `all` casually.
 - P3 `.github/workflows/remote-preview-p3.yml`: browser evidence and
   downloadable branch snapshots; this is not a permanent public preview URL.
-- `.github/workflows/remote-only-gate.yml`: Node-only regression tests of
-  this configuration, branch CI routing and the native fallback guard.
+- `.github/workflows/remote-only-gate.yml`: branch configuration contracts,
+  actual shared WASM compilation and Windows WebView2 acceptance. It does not
+  install or validate AI models, OCR or model training.
 - The published Viewer remains owned by main's `web-pages.yml`.
   Source writes, artifact publication to this branch and main deployment
   are distinct operations.
@@ -54,6 +55,20 @@ and are not the sole long-term storage for unique outputs. Preserve branch
 data pins and SHA-256 source identity. Keep current and actively referenced
 Windows binaries; retire only verified unused reproducible cache outputs.
 
+## Independent Map Toolkit plugin boundary
+
+History-map image analysis, OCR, ONNX/LibTorch inference and model training
+belong to the independent Map Toolkit plugin (`plugins/pando-map-tools/`,
+with its shared implementation in `tools/reference-analysis/`). The public
+Viewer and Windows reviewer do not require its model-training environment.
+The `work/remote-only` application's mandatory acceptance workflow must
+not run these plugin-only tests or download LibTorch/CUDA/AI model assets.
+Plugin acceptance belongs to a separate, explicitly selected plugin release
+or training workflow and is not a blocker for remote-only application
+development. This change does not remove the plugin or alter its artifacts,
+training lineage, model approval gates or existing plugin release policy.
+See [Independent map analysis](../reference-map-plugin.md).
+
 ## Acceptance boundaries
 
 The branch's initial contract gate proves source configuration and safety
@@ -61,10 +76,9 @@ contracts, **not** full end-to-end correctness. Before claiming 100% remote
 development, run and retain evidence for: a real Codespaces startup and
 Viewer interaction, source-changed WASM build and browser parity, GIS source
 rebuild on both supported runners, source-bound Windows reviewer build and
-WebView display, and actual map-analysis / GPU training on a suitable remote
-GPU runner if required. Standard Ubuntu Actions do not guarantee a GPU.
-Windows hardware GPU and local driver behavior cannot be certified by
-software-rendered Linux browser tests.
+WebView display, and real Windows WebView display. These checks do not qualify AI/OCR/model
+  training or GPU inference. Windows hardware GPU and local driver behavior
+  cannot be certified by software-rendered Linux browser tests.
 
 Codespaces and GitHub Actions depend on network availability, service quotas,
 retention settings, permissions and runner capacity. If any is missing, fail

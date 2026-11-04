@@ -71,31 +71,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  ai-node-analysis-smoke:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: pnpm/action-setup@v4
-      - name: Prepare only locked Node runtime (no local SDK)
-        run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Run real map-analysis, reference geometry and training-management tests
-        run: |
-          node --test \
-            tests/unit/map-analysis-core.test.mjs \
-            tests/unit/reference-training-order.test.mjs \
-            tests/unit/reference-training-tiles.test.mjs \
-            tests/unit/reference-training-sequence.test.mjs \
-            tests/unit/reference-training-lineage.test.mjs \
-            tests/unit/reference-onnx-export-refusal.test.mjs
-      - name: Explain untested native/GPU boundary
-        run: echo "Node model-pipeline smoke is not LibTorch training or CUDA inference acceptance."
-
   windows-real-webview2:
     runs-on: windows-2022
     timeout-minutes: 90
