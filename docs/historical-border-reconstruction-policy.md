@@ -34,6 +34,14 @@
 
 화면 조건의 코드 근거: [공개 웹 투영 선택](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/apps/viewer/js/modules/viewer-composition.js), [줌 상한](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/shared/frontend/js/modules/camera-navigation.js), [투영 크기](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/shared/frontend/js/modules/map-layout-metrics.js), [국경선 두께](https://github.com/kimjeon-il/Pando/blob/7cabf3cde8a9f046002c60d51e9b0145798264dc/shared/frontend/js/modules/map-interaction-style.js).
 
+## 0.2 기존 소규모 연구의 종료 — 2026-11-04 추가 지시
+
+사용자의 별도 폐기 지시에 따라 **기존에 조사한 항목 중 변경 면적이 500km² 미만으로 확인되는 상세 연구는 활성 조사·정밀 복원 대기에서 종료**한다. 이 기존 연구 정리에서는 과거 작은 사건의 중요성·예외 선정만으로 작업을 계속하지 않는다. 더 큰 사건의 분리 불가능한 일부, 국가 존재 자체의 면적, 면적·범위 미확정 항목은 작은 변경량으로 임의 분류하지 않는다.
+
+- [라이브러리의 폐기 목록과 적용 범위](https://github.com/kimjeon-il/PandoLab-library-data/blob/work/gis/reports/borders/history/sub500-research-retirement-2026-11-04.md)를 따른다. 해당 항목의 옛 추가조사·hold 해소 권고는 현행 작업 지시가 아니다.
+- 연구 종료는 실제 채택 지오메트리·원도·혼합 원자료의 삭제나 역사적 사건의 부정을 뜻하지 않는다. 사실·출처·종전 검증은 되돌릴 수 있는 감사 이력으로 보존하고, 작은 사건의 정밀 복원 때문에 더 큰 작업을 멈추지 않는다.
+- 전체 보관 자료를 새로 측량·벡터화하여 면적을 확정하는 재조사를 요구하지 않는다. 확인된 범위와 미확정·접근하지 못한 범위를 구분하고, 보고서 정리만으로 main·런타임·자료 핀을 변경하지 않는다.
+
 ## 1. 외부 벡터와 역사 사료 선정
 
 - §0에 따라 조사할 사건을 먼저 고른 뒤 기존 공간 데이터(SHP ZIP, GeoPackage, GeoJSON 및 공식 GIS 서비스)를 우선 탐색한다. 벡터가 없거나 부정확한 구간만 고지도 중첩·지오리퍼런싱·수작업 복원으로 보완한다.
