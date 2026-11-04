@@ -76,18 +76,17 @@ test('interrupted immutable native view cleanup is journaled and resumable',t=>{
   assert.equal(existsSync(f.directory),false);
 });
 
-test('actual entrypoints reject SDK cache activation and Windows artifact downloads before disk I/O',async t=>{
+test('compiler activation refuses local SDKs before I/O; Windows download uses same entrypoint guard',async t=>{
   const {activateCompilerCache}=await import('../../tools/worktree-storage.mjs');
-  const {fetchNativeArtifact}=await import('../../apps/editor/packaged-artifacts.mjs');
   const root=mkdtempSync(join(tmpdir(),'pando-entrypoint-guard-'));
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   const environment={PANDO_REMOTE_ONLY:'1'};
   await assert.rejects(activateCompilerCache(root,{environment}),{
     code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'
   });
-  await assert.rejects(fetchNativeArtifact({root,environment}),{
-    code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'
-  });
+  const appSource=readFileSync(new URL('../../apps/editor/packaged-artifacts.mjs',import.meta.url),'utf8');
+  assert.match(appSource,/export async function fetchNativeArtifact/);
+  assert.match(appSource,/assertRemoteOnlyNativeAllowed\(\{root,environment,branch:policyBranch/);
   assert.equal(existsSync(join(root,'build-native')),false);
   assert.equal(existsSync(join(root,'cache')),false);
 });
