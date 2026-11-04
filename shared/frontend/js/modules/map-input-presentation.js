@@ -108,8 +108,6 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       directTap: handleMapClick,
       canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
       suppressClick: suppressNextMapClick,
-      canDrawStroke: () => false,
-      cancelStroke: async () => false,
     });
 
     svg.on('click', function() {
