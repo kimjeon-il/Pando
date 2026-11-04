@@ -53,11 +53,11 @@ on:
       - tests/unit/library-shared-border-precision.test.mjs
       - tests/unit/annex-slivers.test.mjs
       - tests/unit/river-territory-partition-serbia.test.mjs
-      - tests/unit/shared-geometry-calculations.test.mjs
+      - tests/unit/r4c-spatial-boundaries.test.mjs
       - tests/unit/*territorial*.test.mjs
       - tests/unit/*soviet*.test.mjs
       - tests/unit/ussr-1922-selection.test.mjs
-      - tests/unit/library-import-atomic.test.mjs
+      - tests/unit/territorial-entity-store.test.mjs
       - tests/unit/source-date-cut-normalization.test.mjs
       - tests/unit/sudan-ukraine-transition.test.mjs
       - tools/builtin-world-compiler.mjs
