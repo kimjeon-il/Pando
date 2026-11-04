@@ -67,12 +67,17 @@ function assertPinnedBytes(bytes,receipt,label){
   assert.equal(bytes.length,receipt.bytes,'Pinned source byte length changed: '+label);
   assert.equal(byteSha(bytes),receipt.sha256,'Pinned source contents changed: '+label);
 }
+// Other data families can advance the library pin; exact source bytes remain
+// authoritative and are checked below for every source selected by this test.
+function assertSourceReceiptContext(config,provenance){
+  assert.equal(config.repository,provenance.repository,'Source receipt repository mismatch');
+  assert.match(config.revision,/^[a-f0-9]{40}$/,'Invalid runtime data revision');
+}
 let verifiedSources;
 function sources(){
   if(verifiedSources)return verifiedSources;
   const config=JSON.parse(fs.readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8'));
-  assert.equal(config.repository,pinned.provenance.repository);
-  assert.equal(config.revision,pinned.provenance.reviewedRuntimeRevision,'Source parity requires the reviewed data pin');
+  assertSourceReceiptContext(config,pinned.provenance);
   const entities=readTerritorialSources();
   assert.deepEqual(entities.map(e=>e.entityId).sort(),Object.keys(pinned.countries).sort());
   for(const entity of entities){
@@ -213,6 +218,10 @@ test('all 313 pinned versions are classified; 26 additions retain explicit prove
 
 test('source parity rejects modified pinned bytes and an unclassified new version', () => {
   const bytes=Buffer.from('approved source\n'),receipt={bytes:bytes.length,sha256:byteSha(bytes)};
+  const provenance={repository:'owner/library',reviewedRuntimeRevision:'b'.repeat(40)};
+  assertSourceReceiptContext({repository:provenance.repository,revision:'a'.repeat(40)},provenance);
+  assert.throws(()=>assertSourceReceiptContext({repository:'other/library',revision:'a'.repeat(40)},provenance),/Source receipt repository mismatch/);
+  assert.throws(()=>assertSourceReceiptContext({repository:provenance.repository,revision:'invalid'},provenance),/Invalid runtime data revision/);
   assertPinnedBytes(bytes,receipt,'synthetic');
   assert.throws(()=>assertPinnedBytes(Buffer.from('modified source\n'),receipt,'synthetic'),/Pinned source contents changed/);
   assert.throws(()=>assertPinnedBytes(bytes,undefined,'synthetic'),/Missing pinned source receipt/);
