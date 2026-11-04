@@ -31,6 +31,15 @@ test('Viewer, Windows and shared checks reference existing named test files', ()
   assert.deepEqual([...new Set(missing)], []);
 });
 
+test('generated adapter gate invokes node once with every retained test argument',()=>{
+  const workflow=parse(readFileSync(new URL('../../.github/workflows/generated-artifacts-p2.yml',import.meta.url),'utf8'));
+  const steps=Object.values(workflow.jobs).flatMap(job=>job.steps||[]);
+  const gate=steps.find(step=>step.name==='Verify P6 product calculation adapters');
+  assert.ok(gate);
+  assert.equal(gate.run.trim().split('\n').length,1,'a folded YAML break must not execute a test path as a shell command');
+  for(const name of ['p6-polygon-core','r4c-spatial-boundaries','river-territory-partition'])assert(gate.run.includes('tests/unit/'+name+'.test.mjs'));
+});
+
 test('controlled Viewer diagnostics stay manual while the P2-4 behavior check remains automatic', () => {
   const repository = loadRepository(fileURLToPath(new URL('../..', import.meta.url)));
   for (const file of ['tests/browser/viewer-main-stall-trace.spec.mjs',
@@ -58,14 +67,14 @@ function fixture() {
   return { root, put, catalog, repository: () => loadRepository(root, { catalog }) };
 }
 
-test('reference-analysis command documentation is a passive CI input', t => {
+test('shared tooling documentation is a passive CI input', t => {
   const f = fixture();
   t.after(() => rmSync(f.root, { recursive: true, force: true }));
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
   f.catalog.productRoots = catalog.productRoots;
   f.catalog.passiveInputs = catalog.passiveInputs;
-  f.put('tools/reference-analysis/README.md', 'Use PANDOLAB_SHELL_PROFILE=map-data.');
-  const plan = planApplicationChecks({ changedFiles: ['tools/reference-analysis/README.md'], repository: f.repository() });
+  f.put('docs/reference-map-plugin.md', 'Map Toolkit owns analysis in its private repository.');
+  const plan = planApplicationChecks({ changedFiles: ['docs/reference-map-plugin.md'], repository: f.repository() });
   assert.deepEqual(plan.unitTests, []);
   assert.deepEqual(plan.browserSpecs, []);
 });

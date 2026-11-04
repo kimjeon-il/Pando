@@ -236,7 +236,7 @@ jobs:
         run: |
           if [ "$RETRY_FAILED" = true ]; then
             node --test tests/unit/r4c-spatial-boundaries.test.mjs
-            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/map-analysis-core.test.mjs tests/unit/river-territory-partition.test.mjs
+            node --test tests/unit/p6-polygon-core.test.mjs tests/unit/river-territory-partition.test.mjs
           else
             node --test tests/unit/r4c-spatial-boundaries.test.mjs tests/unit/gis-geometry-worker.test.mjs tests/unit/current-hydro-layout.test.mjs tests/unit/hydro-packfile.test.mjs
           fi

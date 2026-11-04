@@ -37,7 +37,6 @@ on:
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
       - 'tools/stage-monorepo-pages.mjs'
-      - 'plugins/pando-map-tools/lib/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -79,7 +78,6 @@ on:
       - 'tools/reference-fixtures/**'
       - 'tools/lib/checkout-identity.mjs'
       - 'tools/stage-monorepo-pages.mjs'
-      - 'plugins/pando-map-tools/lib/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -281,10 +279,10 @@ jobs:
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/project-serializer.test.mjs tests/unit/r4b-data-module-boundaries.test.mjs
           tests/unit/project-preview-policy.test.mjs
-      - name: Plugin boundary graph and retired attachment contracts
+      - name: Retired attachment contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
-          tests/unit/map-analysis-graph.test.mjs tests/unit/map-plugin-cutover.test.mjs
+          tests/unit/map-plugin-cutover.test.mjs
       - name: Core-owned generic and distribution service contracts
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
@@ -301,12 +299,6 @@ jobs:
           tests/unit/builtin-resource-admission.test.mjs tests/unit/builtin-resource-core-wasm.test.mjs tests/unit/place-runtime.test.mjs
           tests/unit/map-hover-async-boundary.test.mjs tests/unit/map-hover-topology.test.mjs
           tests/unit/r4c-spatial-boundaries.test.mjs
-      - name: Shared reference calculation frozen fixtures
-        run: |
-          node tools/reference-fixtures/calibration-fixtures.mjs
-          node tools/reference-fixtures/trace-fixtures.mjs
-          node tools/reference-fixtures/refine-fixtures.mjs
-          node --test tests/unit/map-analysis-core.test.mjs
       - name: Pages source exclusion and complete required runtime
         run: node --test tests/unit/monorepo-pages-staging.test.mjs
       - name: Record the bounded native and WASM source evidence

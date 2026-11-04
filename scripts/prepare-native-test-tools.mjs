@@ -18,10 +18,6 @@ async function sdkReady(root,sdk) {
   regular(archive);if(hash(archive)!==sdk.sha256)throw Error('Native SDK archive SHA-256 mismatch: '+sdk.archive);
   if(!existsSync(resolve(root,sdk.extracted||sdk.runtime.path)))return false;
   if(sdk.runtime)checkedRuntime(root,sdk.runtime);
-  if(sdk.runtimeVersion) {
-    const {matchingTorchLibrary}=await import('../tools/reference-analysis/native-infer.mjs');
-    matchingTorchLibrary(join(root,sdk.extracted,'lib'),{runtimeVersion:sdk.runtimeVersion});
-  }
   return true;
 }
 function requireCapacity(root,additionalBytes) {
@@ -65,7 +61,6 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),environment=pro
   if(ids.length&&environment.GITHUB_ACTIONS!=='true')throw Error('Local native SDK installation is disabled. Run the selected checks through scripts/run-application-checks.mjs on a committed and pushed revision. Required tools: '+ids.join(','));
   for(const id of ids)nativeTestRecipe(id,{platform,architecture});
   let additionalBytes=0,recipeEnvironment=false;
-  if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch',{platform,architecture}).sdk))additionalBytes+=4*1024**3;
   if(ids.includes('territorial-recipe')) {
     const result=probe([process.env.MAMBA_EXE||'micromamba','run','-n','pando-territorial-recipe','pkg-config','--modversion','geos','proj']);
     recipeEnvironment=result.status!==0||Boolean(result.error)||result.stdout.trim()!=='3.13.1\n9.5.1';

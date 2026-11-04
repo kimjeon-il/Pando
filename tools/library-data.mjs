@@ -73,6 +73,14 @@ export function libraryStagingContent({root=defaultRoot,sha256,bytes}) {
 }
 const reportDigest = bytes => createHash('sha256').update(bytes).digest('hex');
 export function libraryOwnerId(root) {
+  const configPath=resolve(root,'config/library-data.json');
+  if(existsSync(configPath)){
+    const {reportOwner}=JSON.parse(readFileSync(configPath,'utf8'));
+    if(reportOwner!==undefined){
+      if(reportOwner!=='map-toolkit')throw Error('Unknown independent report owner');
+      return reportOwner;
+    }
+  }
   const control=resolve(root,'.git');if(!existsSync(control))return 'main';
   if(!lstatSync(control).isFile())return 'main';
   const match=/^gitdir: (.+)\r?\n?$/.exec(readFileSync(control,'utf8'));

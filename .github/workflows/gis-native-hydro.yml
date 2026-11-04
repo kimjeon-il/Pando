@@ -17,7 +17,7 @@ on:
       target:
         description: Standalone native tool to build and verify
         type: choice
-        options: [hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, reference-loss, reference-windows, reference-onnx-contracts, reference-onnx-linux, reference-sampling-linux, reference-transfer, reference-step, reference-ordered, reference-sequence, reference-sequence-contracts, qgis-windows, map-image, map-macro, map-training-overview, map-pdf, publisher-pdf, map-preview, map-review, map-review-validation, map-evaluation, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
+        options: [hydro, hydro-chains, hydro-outlets, hydro-encoding, hydro-encoding-integrated, hydro-point-screen, hydro-shared-boundary, hydro-batch01, hydro-batch02, hydro-batch03, hydro-yarra, hydro-point-windows, physical-hydro, physical-raster, physical-raster-integrated, pc-allocation, qgis-windows, map-image, map-pdf, map-preview, terrain-preview, terrain-preview-integrated, terrain-dem-check, terrain-dem-check-integrated, terrain-dem-raster, terrain-dem-path, terrain-dem-gutters, terrain-dem-gutters-integrated, terrain-dem-tint, terrain-dem-encode, terrain-dem-fill-windows]
         default: hydro
 
 permissions:
@@ -109,135 +109,6 @@ jobs:
           path: build-native/hydro/artifact/
           if-no-files-found: error
           retention-days: 7
-  reference-transfer:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-transfer'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-2022, ubuntu-24.04]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Prepare fixed LibTorch SDK
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need 4 GiB build space and 5 GiB headroom' }
-            $url='https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip'
-            $expected='28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7'
-          } else {
-            if (([int64](((df -PB1 . | Select-Object -Last 1).Trim() -split '\s+')[3])) -lt 9663676416) { throw 'Need 4 GiB build space and 5 GiB headroom' }
-            $url='https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip'
-            $expected='63D572598C8D532128A335018913E795C1BBB32602CE378896DC8CFBB5590976'
-          }
-          New-Item -ItemType Directory -Path build-native/reference-analysis -Force | Out-Null
-          $curl = if ($IsWindows) { 'curl.exe' } else { 'curl' }
-          & $curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 $url --output build-native/reference-analysis/libtorch.zip
-          if ($LASTEXITCODE -ne 0 -or (Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne $expected) { throw 'LibTorch download or SHA-256 failed' }
-          if ($IsWindows) { Expand-Archive build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis }
-          else { unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis; if ($LASTEXITCODE -ne 0) { throw 'LibTorch extraction failed' } }
-          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
-      - name: Build and verify checkpoint weights transfer
-        shell: pwsh
-        run: |
-          $torch="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
-          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
-          if ($LASTEXITCODE -ne 0) { throw 'Configure failed' }
-          cmake --build build-native/reference-analysis/step-test --config Release --target pando-reference-training-batch reference-training-infer-fixture --parallel 1
-          if ($LASTEXITCODE -ne 0) { throw 'Training tool build failed' }
-          if ($IsWindows) { $build='build-native/reference-analysis/step-test/Release'; $ext='.exe' }
-          else { $build='build-native/reference-analysis/step-test'; $ext=''; $env:LD_LIBRARY_PATH="$torch/lib" }
-          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary "$build/pando-reference-training-batch$ext" --directory build-native/reference-analysis/artifact-batch
-          if ($LASTEXITCODE -ne 0) { throw 'Training tool packaging failed' }
-          $env:PANDO_REFERENCE_INFER_FIXTURE="$env:GITHUB_WORKSPACE/$build/reference-training-infer-fixture$ext"
-          $env:PANDO_REFERENCE_BATCH_DIRECTORY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/artifact-batch"
-          $env:PANDO_REFERENCE_TORCH_LIBRARY="$torch/lib"
-          node --test tests/unit/reference-training-checkpoint-infer.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Checkpoint weights transfer differs' }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: reference-transfer-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/reference-analysis/artifact-batch/
-          if-no-files-found: error
-          retention-days: 7
-  reference-sampling-linux:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sampling-linux'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Prepare fixed CPU LibTorch
-        run: |
-          set -euo pipefail
-          available=$(df -PB1 . | awk 'NR==2 {print $4}')
-          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
-          mkdir -p build-native/reference-analysis
-          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
-            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
-            --output build-native/reference-analysis/libtorch.zip
-          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
-          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
-      - name: Build and package only the native sampling owner
-        run: |
-          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch"
-          cmake --build build-native/reference-analysis/step-test --target pando-reference-training-batch --parallel 1
-          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary build-native/reference-analysis/step-test/pando-reference-training-batch --directory build-native/reference-analysis/artifact-batch
-      - name: Check native balanced and uniform orders
-        env:
-          PANDO_REFERENCE_TORCH_LIBRARY: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
-          PANDO_REFERENCE_BATCH_DIRECTORY: ${{ github.workspace }}/build-native/reference-analysis/artifact-batch
-        run: node --test tests/unit/reference-training-order.test.mjs
-  reference-onnx-linux:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-linux'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - uses: pnpm/action-setup@v4
-      - name: Prepare locked ONNX runtime and fixed CPU LibTorch
-        run: |
-          set -euo pipefail
-          available=$(df -PB1 . | awk 'NR==2 {print $4}')
-          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
-          pnpm install --frozen-lockfile --ignore-scripts
-          mkdir -p build-native/reference-analysis
-          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
-            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
-            --output build-native/reference-analysis/libtorch.zip
-          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
-          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
-      - name: Build and package only ONNX export and parity tools
-        run: |
-          cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
-            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-onnx-tests pando-reference-onnx-export --parallel 1
-          node tools/reference-analysis/package-native-reference.mjs --kind onnx-export --binary build-native/reference-analysis/native/pando-reference-onnx-export --directory build-native/reference-analysis/onnx-export
-      - name: Verify Linux export, overwrite protection and ONNX numerical parity
-        env:
-          LD_LIBRARY_PATH: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
-          PANDO_REFERENCE_TORCH_LIBRARY: ${{ github.workspace }}/build-native/reference-analysis/libtorch/lib
-          PANDO_REFERENCE_ONNX_EXPORT_DIRECTORY: ${{ github.workspace }}/build-native/reference-analysis/onnx-export
-          PANDO_REFERENCE_ONNX_EXPORT_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-export
-          PANDO_REFERENCE_ONNX_TEST_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-tests
-        run: node --test tests/unit/reference-onnx-export-refusal.test.mjs tests/unit/reference-onnx-export.test.mjs
   hydro-shared-boundary:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'hydro-shared-boundary'
     runs-on: ubuntu-24.04
@@ -267,114 +138,6 @@ jobs:
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro-point-screen/connectivity-artifact
           PANDO_HYDRO_CALIBRATION_ARTIFACT: ${{ github.workspace }}/build-native/hydro-point-screen/calibration-artifact
         run: node --test tests/unit/hydro-shared-boundary.test.mjs tests/unit/hydro-point-screen-native.test.mjs tests/unit/hydro-reference-guides.test.mjs tests/unit/hydro-canonical-chains.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-osm-waterway.test.mjs tests/unit/hydro-system-names.test.mjs tests/unit/hydro-calibration-preparation.test.mjs tests/unit/hydro-calibration-input.test.mjs tests/unit/hydro-data-validation.test.mjs tests/unit/hydro-pack-layout.test.mjs tests/unit/hydro-river-groups.test.mjs
-  publisher-pdf:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'publisher-pdf'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Obtain the pinned MuPDF SDK
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path build-native/map-pdf/sdk | Out-Null
-          if ($IsWindows) {
-            $url = 'https://files.pythonhosted.org/packages/f9/e8/989f4eaa369c7166dc24f0eaa3023f13788c40ff1b96701f7047421554a8/pymupdf-1.26.6-cp310-abi3-win_amd64.whl'
-            $expected = 'ce02ca96ed0d1acfd00331a4d41a34c98584d034155b06fd4ec0f051718de7ba'
-          } else {
-            $url = 'https://files.pythonhosted.org/packages/4f/bf/6e02e3d84b32c137c71a0a3dcdba8f2f6e9950619a3bc272245c7c06a051/pymupdf-1.26.6-cp310-abi3-manylinux_2_28_x86_64.whl'
-            $expected = '7777d0b7124c2ebc94849536b6a1fb85d158df3b9d873935e63036559391534c'
-          }
-          $wheel = 'build-native/map-pdf/publisher-sdk.zip'
-          Invoke-WebRequest -Uri $url -OutFile $wheel
-          if ((Get-FileHash -Algorithm SHA256 -LiteralPath $wheel).Hash.ToLowerInvariant() -ne $expected) { throw 'MuPDF SDK hash mismatch' }
-          Expand-Archive -LiteralPath $wheel -DestinationPath build-native/map-pdf/sdk
-      - name: Build the publisher PDF layer reader
-        shell: pwsh
-        run: |
-          $sdk = "$env:GITHUB_WORKSPACE/build-native/map-pdf/sdk/pymupdf"
-          cmake -S tools/cpp/map-pdf/publisher -B build-native/map-pdf/publisher-native "-DPANDO_MUPDF_SDK_ROOT=$sdk" -DCMAKE_BUILD_TYPE=Release
-          if ($LASTEXITCODE -ne 0) { throw 'Publisher configure failed' }
-          cmake --build build-native/map-pdf/publisher-native --config Release --target pando-publisher-pdf --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Publisher build failed' }
-          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON -DCMAKE_BUILD_TYPE=Release
-          if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
-          cmake --build build-native/map-image --config Release --target pando-map-image --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
-          if ($IsWindows) { $binary = 'build-native/map-pdf/publisher-native/Release/pando-publisher-pdf.exe'; $image = 'build-native/map-image/Release/pando-map-image.exe' }
-          else { $binary = 'build-native/map-pdf/publisher-native/pando-publisher-pdf'; $image = 'build-native/map-image/pando-map-image' }
-          node tools/reference-analysis/package-native-publisher-pdf.mjs --binary $binary --directory build-native/map-pdf/publisher-artifact --sdk $sdk
-          if ($LASTEXITCODE -ne 0) { throw 'Publisher packaging failed' }
-          node tools/map-image/package-native.mjs --binary $image --directory build-native/map-image/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
-      - name: Compare publisher layer rasters with frozen source pixels
-        shell: pwsh
-        run: |
-          $env:PANDO_PUBLISHER_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/publisher-artifact"
-          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/reference-publisher-pdf.test.mjs tests/unit/reference-publisher-generator.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-publisher-training-source.test.mjs tests/unit/reference-macro-validation.test.mjs tests/unit/reference-macro-generator.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Publisher layer pixels differ' }
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: publisher-pdf-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/map-pdf/publisher-artifact/
-          if-no-files-found: ignore
-          retention-days: 7
-  reference-sequence-contracts:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence-contracts'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Build reviewed-mask tool for validation scope contracts
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp/map-review -B build-native/map-review/native
-          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
-          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
-          if ($IsWindows) { $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
-          else { $review = 'build-native/map-review/native/pando-map-review' }
-          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
-      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-order.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-encoder-identity.test.mjs tests/unit/reference-training-validation.test.mjs tests/unit/reference-evaluate-source.test.mjs
-      - run: node --test tests/unit/python-bridge-retirement.test.mjs tests/unit/reference-corpus-metadata.test.mjs tests/unit/reference-reviewed-corpus.test.mjs
-      - run: node --test --test-name-pattern='transferred weights diagnostics|diagnostics expose recorded native progress|transferred diagnostics retain|corpus diagnostics skip reviewed' tests/unit/reference-diagnostic-tile.test.mjs
-      - run: node --test --test-name-pattern='native inference reports a child rejection|native training exchange streams|checkpoint comparison rejects a mismatched' tests/unit/reference-training-checkpoint-infer.test.mjs
-  reference-onnx-contracts:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-onnx-contracts'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: node --test tests/unit/reference-onnx-export-refusal.test.mjs
   terrain-dem-path:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'terrain-dem-path'
     runs-on: windows-2022
@@ -605,22 +368,6 @@ jobs:
           path: build-native/terrain-dem-raster/artifact/
           if-no-files-found: error
           retention-days: 7
-  reference-sequence:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-sequence'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: node --test tests/unit/reference-training-sequence.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs
   physical-hydro:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'physical-hydro'
     strategy:
@@ -1060,233 +807,6 @@ jobs:
           name: terrain-image-codec-${{ matrix.os }}-${{ github.sha }}
           path: build-native/map-image/artifact/
           retention-days: 7
-  reference-step:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'reference-step' || inputs.target == 'reference-ordered')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Prepare reviewed-mask dependency for training contract tests
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp/map-review -B build-native/map-review/native
-          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
-          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
-          if ($IsWindows) { $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
-          else { $review = 'build-native/map-review/native/pando-map-review' }
-          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
-      - name: Acquire fixed Windows LibTorch SDK
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom' }
-          New-Item -ItemType Directory -Path build-native/reference-analysis -ErrorAction SilentlyContinue | Out-Null
-          curl.exe --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 'https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip' --output build-native/reference-analysis/libtorch.zip
-          if ($LASTEXITCODE -ne 0) { throw 'LibTorch SDK download failed' }
-          if ((Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne '28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7') { throw 'LibTorch SDK SHA-256 mismatch' }
-          Expand-Archive -Path build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis
-          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
-      - name: Acquire fixed Linux LibTorch SDK
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          available=$(df -PB1 . | awk 'NR==2 {print $4}')
-          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
-          mkdir -p build-native/reference-analysis
-          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' --output build-native/reference-analysis/libtorch.zip
-          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
-          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
-      - name: Build and compare the affected training step
-        shell: pwsh
-        run: |
-          $torch = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch"
-          cmake -S tools/cpp/reference-analysis/training-step-test -B build-native/reference-analysis/step-test -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$torch"
-          if ($LASTEXITCODE -ne 0) { throw 'Training step configure failed' }
-          cmake --build build-native/reference-analysis/step-test --config Release --target reference-training-step-test reference-training-ordered-test reference-training-amp-test pando-reference-training-batch reference-training-infer-fixture --parallel 1
-          if ($LASTEXITCODE -ne 0) { throw 'Training step build failed' }
-          if ($IsWindows) { $binary = 'build-native/reference-analysis/step-test/Release/reference-training-step-test.exe' }
-          else { $binary = 'build-native/reference-analysis/step-test/reference-training-step-test' }
-          & $binary
-          if ($LASTEXITCODE -ne 0) { throw 'Training step differs from original' }
-          if ($IsWindows) { $ordered = 'build-native/reference-analysis/step-test/Release/reference-training-ordered-test.exe' }
-          else { $ordered = 'build-native/reference-analysis/step-test/reference-training-ordered-test' }
-          & $ordered
-          if ($LASTEXITCODE -ne 0) { throw 'Ordered checkpoint resume differs' }
-          if ($IsWindows) { $amp = 'build-native/reference-analysis/step-test/Release/reference-training-amp-test.exe' }
-          else { $amp = 'build-native/reference-analysis/step-test/reference-training-amp-test' }
-          & $amp
-          if ($LASTEXITCODE -ne 0) { throw 'Training AMP scaling differs' }
-          if ($IsWindows) { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe" }
-          else { $env:PANDO_REFERENCE_BATCH_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/pando-reference-training-batch" }
-          node --test tests/unit/reference-training-batch-refusal.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-training-progress.test.mjs tests/unit/reference-training-validation.test.mjs tests/unit/reference-training-sequence.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Training batch refusal check failed' }
-      - name: Package the training batch engine
-        shell: pwsh
-        run: |
-          if ($IsWindows) { $batch = 'build-native/reference-analysis/step-test/Release/pando-reference-training-batch.exe' }
-          else { $batch = 'build-native/reference-analysis/step-test/pando-reference-training-batch' }
-          node tools/reference-analysis/package-native-reference.mjs --kind training-batch --binary $batch --directory build-native/reference-analysis/artifact-batch
-          if ($LASTEXITCODE -ne 0) { throw 'Training batch packaging failed' }
-          $env:PANDO_REFERENCE_BATCH_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/artifact-batch"
-          $env:PANDO_REFERENCE_TORCH_LIBRARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
-          node --test tests/unit/reference-training-order.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Source-bound balanced training order failed' }
-          if ($IsWindows) { $env:PANDO_REFERENCE_INFER_FIXTURE = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/Release/reference-training-infer-fixture.exe" }
-          else { $env:PANDO_REFERENCE_INFER_FIXTURE = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/step-test/reference-training-infer-fixture" }
-          node --test tests/unit/reference-training-checkpoint-infer.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Native checkpoint inference differs' }
-          if (-not $IsWindows) {
-            node --input-type=module -e "import {matchingTorchLibrary} from './tools/reference-analysis/native-infer.mjs'; matchingTorchLibrary(process.env.GITHUB_WORKSPACE+'/build-native/reference-analysis/libtorch/lib',{runtimeVersion:'2.7.1'})"
-            if ($LASTEXITCODE -ne 0) { throw 'Linux LibTorch runtime identity failed' }
-          }
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: native-reference-training-batch-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/reference-analysis/artifact-batch/
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Build and package the existing Windows resume proof
-        if: runner.os == 'Windows' && inputs.target == 'reference-step'
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          if ($LASTEXITCODE -ne 0) { throw 'Reference proof configure failed' }
-          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-training-proof --parallel 1
-          if ($LASTEXITCODE -ne 0) { throw 'Reference proof build failed' }
-          node tools/reference-analysis/package-native-reference.mjs --kind training-proof --binary build-native/reference-analysis/native/Release/pando-reference-training-proof.exe --directory build-native/reference-analysis/artifact-proof
-          if ($LASTEXITCODE -ne 0) { throw 'Reference proof packaging failed' }
-          $env:PANDO_REFERENCE_TRAINING_PROOF_BINARY = "$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-training-proof.exe"
-          node --test tests/unit/reference-training-proof.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Reference proof refusal check failed' }
-      - uses: actions/upload-artifact@v4
-        if: runner.os == 'Windows' && inputs.target == 'reference-step' && always()
-        with:
-          name: native-reference-training-proof-${{ github.sha }}
-          path: build-native/reference-analysis/artifact-proof/
-          if-no-files-found: ignore
-          retention-days: 7
-  map-evaluation:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-evaluation'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Build evaluation and reviewed-mask tools
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp/map-review -B build-native/map-review/native
-          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
-          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
-          cmake -S tools/cpp/map-evaluation -B build-native/map-evaluation/native
-          if ($LASTEXITCODE -ne 0) { throw 'Evaluation configure failed' }
-          cmake --build build-native/map-evaluation/native --config Release --target pando-map-evaluation --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Evaluation build failed' }
-      - name: Compare evaluation with the original Python results
-        shell: pwsh
-        run: |
-          if ($IsWindows) {
-            $review = 'build-native/map-review/native/Release/pando-map-review.exe'
-            $evaluation = 'build-native/map-evaluation/native/Release/pando-map-evaluation.exe'
-          } else {
-            $review = 'build-native/map-review/native/pando-map-review'
-            $evaluation = 'build-native/map-evaluation/native/pando-map-evaluation'
-          }
-          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
-          node tools/reference-analysis/package-native-evaluation.mjs --binary $evaluation --directory build-native/map-evaluation/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Evaluation packaging failed' }
-          $env:PANDO_MAP_EVALUATION_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-evaluation/artifact"
-          node --test tests/unit/reference-native-evaluation.test.mjs tests/unit/reference-native-diagnostic.test.mjs tests/unit/reference-training-lineage.test.mjs tests/unit/reference-evaluation-blend.test.mjs tests/unit/reference-evaluate-source.test.mjs tests/unit/reference-diagnostic-onnx-scope.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Evaluation differs from original' }
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: native-map-evaluation-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/map-evaluation/artifact/
-          if-no-files-found: ignore
-          retention-days: 7
-  map-review:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'map-review' || inputs.target == 'map-review-validation')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Build the reviewed-mask rasterizer
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp/map-review -B build-native/map-review/native
-          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
-          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
-      - name: Verify original training scan-condition sampling
-        if: inputs.target == 'map-review'
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp/reference-analysis/conditions-test -B build-native/reference-analysis/conditions-test
-          if ($LASTEXITCODE -ne 0) { throw 'Training conditions configure failed' }
-          cmake --build build-native/reference-analysis/conditions-test --config Release --target reference-conditions-test reference-photometry-test reference-sampling-test --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Training conditions build failed' }
-          if ($IsWindows) { $conditions = 'build-native/reference-analysis/conditions-test/Release/reference-conditions-test.exe' }
-          else { $conditions = 'build-native/reference-analysis/conditions-test/reference-conditions-test' }
-          & $conditions
-          if ($LASTEXITCODE -ne 0) { throw 'Training conditions differ from original' }
-          if ($IsWindows) { $photometry = 'build-native/reference-analysis/conditions-test/Release/reference-photometry-test.exe' }
-          else { $photometry = 'build-native/reference-analysis/conditions-test/reference-photometry-test' }
-          & $photometry tests/fixtures/reference-training-photometry
-          if ($LASTEXITCODE -ne 0) { throw 'Training photometry differs from original' }
-          if ($IsWindows) { $sampling = 'build-native/reference-analysis/conditions-test/Release/reference-sampling-test.exe' }
-          else { $sampling = 'build-native/reference-analysis/conditions-test/reference-sampling-test' }
-          & $sampling
-          if ($LASTEXITCODE -ne 0) { throw 'Balanced training order differs from original' }
-      - name: Compare reviewed masks and invalid-input behavior
-        shell: pwsh
-        run: |
-          if ($IsWindows) { $binary = 'build-native/map-review/native/Release/pando-map-review.exe' }
-          else { $binary = 'build-native/map-review/native/pando-map-review' }
-          node tools/reference-analysis/package-native-review.mjs --binary $binary --directory build-native/map-review/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
-          $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          node --test tests/unit/reference-review-mask.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-corpus-metadata.test.mjs tests/unit/reference-publisher-provenance.test.mjs tests/unit/reference-macro-provenance.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Reviewed masks differ from original' }
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: native-map-review-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/map-review/artifact/
-          if-no-files-found: ignore
-          retention-days: 7
   map-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-preview'
     strategy:
@@ -1329,11 +849,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Image packaging failed' }
           $env:PANDO_MAP_PREVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-preview/artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/map-plugin-native-preview.test.mjs tests/unit/reference-diagnostic-jpeg.test.mjs
+          node --test tests/unit/map-native-preview.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Native preview differs from original' }
-          node --test --test-name-pattern='macro diagnostics refuse|reviewed diagnostics refuse|corpus diagnostics reject' tests/unit/reference-diagnostic-tile.test.mjs
+          node --test --test-name-pattern='macro diagnostics refuse|reviewed diagnostics refuse|corpus diagnostics reject'
           if ($LASTEXITCODE -ne 0) { throw 'Diagnostic scope refusal failed' }
-          node --test --test-name-pattern='signed map review renders' tests/unit/map-plugin.test.mjs
+
           if ($LASTEXITCODE -ne 0) { throw 'Map review workflow failed' }
       - uses: actions/upload-artifact@v4
         if: always()
@@ -1400,63 +920,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Image resize packaging failed' }
           $env:PANDO_MAP_PDF_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-pdf/artifact"
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          node --test tests/unit/map-plugin-native-pdf-read.test.mjs
+          node --test tests/unit/map-native-pdf.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Native PDF input differs from original' }
       - uses: actions/upload-artifact@v4
         with:
           name: native-map-pdf-${{ matrix.os }}-${{ github.sha }}
           path: build-native/map-pdf/artifact/
           if-no-files-found: error
-          retention-days: 7
-  map-training-overview:
-    if: github.event_name == 'workflow_dispatch' && (inputs.target == 'map-training-overview' || inputs.target == 'map-macro')
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, windows-2022]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Build only the image and reviewed-mask tools
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp -B build-native/map-image -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_MAP_IMAGE=ON -DCMAKE_BUILD_TYPE=Release
-          if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
-          cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests pando-map-image --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
-          cmake -S tools/cpp/map-review -B build-native/map-review/native -DCMAKE_BUILD_TYPE=Release
-          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
-          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
-      - name: Check streaming overview and affected training tiles
-        shell: pwsh
-        run: |
-          if ($IsWindows) { $test = 'build-native/map-image/Release/pando-map-image-resample-tests.exe'; $binary = 'build-native/map-image/Release/pando-map-image.exe'; $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
-          else { $test = 'build-native/map-image/pando-map-image-resample-tests'; $binary = 'build-native/map-image/pando-map-image'; $review = 'build-native/map-review/native/pando-map-review' }
-          & $test tests/fixtures/map-image
-          if ($LASTEXITCODE -ne 0) { throw 'Streaming overview differs from pixel contracts' }
-          node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
-          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
-          $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          if ('${{ inputs.target }}' -eq 'map-macro') {
-            node --test tests/unit/reference-native-macro.test.mjs
-          } else {
-            node --test tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-jpeg-overview.test.mjs tests/unit/reference-training-large-jpeg.test.mjs tests/unit/reference-training-png-overview.test.mjs tests/unit/reference-training-webp-overview.test.mjs tests/unit/reference-training-mask-window.test.mjs tests/unit/reference-training-mask-audit.test.mjs tests/unit/reference-diagnostic-selection.test.mjs tests/unit/reference-diagnostic-overlay.test.mjs
-          }
-          if ($LASTEXITCODE -ne 0) { throw 'Training image or tile pixels differ' }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-map-training-overview-${{ matrix.os }}-${{ github.sha }}
-          path: build-native/map-image/artifact/
           retention-days: 7
   map-image:
     if: github.event_name == 'workflow_dispatch' && inputs.target == 'map-image'
@@ -1480,10 +950,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Map image configure failed' }
           cmake --build build-native/map-image --config Release --target pando-map-image-resample-tests pando-map-image --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Map image build failed' }
-          cmake -S tools/cpp/map-review -B build-native/map-review/native
-          if ($LASTEXITCODE -ne 0) { throw 'Review configure failed' }
-          cmake --build build-native/map-review/native --config Release --target pando-map-review --parallel 2
-          if ($LASTEXITCODE -ne 0) { throw 'Review build failed' }
+
+
+
+
       - name: Compare small fixed pixel oracles
         shell: pwsh
         run: |
@@ -1498,15 +968,15 @@ jobs:
           else { $binary = 'build-native/map-image/pando-map-image' }
           node tools/map-image/package-native.mjs --binary $binary --directory build-native/map-image/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Map image packaging failed' }
-          if ($IsWindows) { $review = 'build-native/map-review/native/Release/pando-map-review.exe' }
-          else { $review = 'build-native/map-review/native/pando-map-review' }
-          node tools/reference-analysis/package-native-review.mjs --binary $review --directory build-native/map-review/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Review packaging failed' }
+
+
+
+
           $env:PANDO_MAP_IMAGE_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-image/artifact"
-          $env:PANDO_MAP_REVIEW_ARTIFACT = "$env:GITHUB_WORKSPACE/build-native/map-review/artifact"
-          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-plugin-native-resize.test.mjs tests/unit/map-plugin-native-png-read.test.mjs tests/unit/map-plugin-native-jpeg-read.test.mjs tests/unit/map-plugin-native-webp-read.test.mjs tests/unit/map-native-webp-encode.test.mjs tests/unit/map-native-jpeg-encode.test.mjs tests/unit/reference-analysis-derivative.test.mjs tests/unit/reference-image-header.test.mjs tests/unit/reference-corpus-preparation.test.mjs tests/unit/reference-reviewed-corpus.test.mjs tests/unit/reference-training-image.test.mjs tests/unit/reference-training-tiles.test.mjs tests/unit/reference-training-sample-maker.test.mjs tests/unit/reference-corpus-fingerprint.test.mjs tests/unit/reference-training-order.test.mjs tests/unit/reference-training-batch-manager.test.mjs tests/unit/reference-semap-labels.test.mjs tests/unit/reference-semap-ranges.test.mjs tests/unit/reference-semap-import.test.mjs
+
+          node --test tests/unit/map-native-resize.test.mjs tests/unit/map-native-packaging.test.mjs tests/unit/map-native-webp-encode.test.mjs tests/unit/map-native-jpeg-encode.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Map image native integration failed' }
-          node --test --test-name-pattern='native rotation works|Live-Wire preserves' tests/unit/map-plugin.test.mjs
+
           if ($LASTEXITCODE -ne 0) { throw 'Map image workflow failed' }
       - uses: actions/upload-artifact@v4
         if: always()
@@ -1779,166 +1249,6 @@ jobs:
           path: build-native/qgis/artifact/
           if-no-files-found: error
           retention-days: 7
-  reference-windows:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-windows'
-    runs-on: windows-2022
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Check space and acquire the matching Windows LibTorch SDK
-        shell: pwsh
-        run: |
-          if ((Get-PSDrive -Name C).Free -lt 9GB) { throw 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom' }
-          New-Item -ItemType Directory -Force -Path build-native/reference-analysis | Out-Null
-          curl.exe --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 220000000 'https://download.pytorch.org/libtorch/cpu/libtorch-win-shared-with-deps-2.14.1%2Bcpu.zip' --output build-native/reference-analysis/libtorch.zip
-          if ($LASTEXITCODE -ne 0) { throw 'LibTorch SDK download failed' }
-          Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256
-          if ((Get-FileHash build-native/reference-analysis/libtorch.zip -Algorithm SHA256).Hash -ne '28FFDDE0A7FF3B431139709B4A91B8B6D59FDE3BE67B76FD88D0C913EF8973F7') { throw 'LibTorch SDK SHA-256 mismatch' }
-          Expand-Archive -Path build-native/reference-analysis/libtorch.zip -DestinationPath build-native/reference-analysis
-          Add-Content -Path $env:GITHUB_PATH -Value "$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch/lib"
-      - name: Build the optional reference inference tools
-        shell: pwsh
-        run: |
-          cmake -S tools/cpp -B build-native/reference-analysis/native -A x64 -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/build-native/reference-analysis/libtorch" -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed' }
-          cmake --build build-native/reference-analysis/native --config Release --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer pando-reference-training-proof pando-reference-onnx-tests pando-reference-onnx-export --parallel 1
-          if ($LASTEXITCODE -ne 0) { throw 'Native reference build failed' }
-      - name: Verify Windows loss behavior
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          & build-native/reference-analysis/native/Release/pando-reference-loss-tests.exe
-          if ($LASTEXITCODE -ne 0) { throw 'Loss test failed' }
-      - name: Verify Windows model inference against every original output
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32 --inference-only
-          if ($LASTEXITCODE -ne 0) { throw 'Model test failed' }
-      - name: Verify Windows Safetensors behavior
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          & build-native/reference-analysis/native/Release/pando-safetensors-tests.exe
-          if ($LASTEXITCODE -ne 0) { throw 'Safetensors test failed' }
-      - name: Verify Windows inference rejects invalid requests
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          $env:PANDO_REFERENCE_INFER_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-infer.exe"
-          node --test tests/unit/reference-infer-cli.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Inference CLI test failed' }
-      - name: Verify Windows checkpoint preserves optimizer, RNG and sampling
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          & build-native/reference-analysis/native/Release/pando-training-checkpoint-tests.exe
-          if ($LASTEXITCODE -ne 0) { throw 'Checkpoint resume test failed' }
-      - name: Verify real-input proof rejects unsafe requests
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          $env:PANDO_REFERENCE_TRAINING_PROOF_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-training-proof.exe"
-          node --test tests/unit/reference-training-proof.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Training proof refusal test failed' }
-      - name: Verify ONNX export rejects unsafe requests
-        timeout-minutes: 3
-        shell: pwsh
-        run: |
-          $env:PANDO_REFERENCE_ONNX_EXPORT_BINARY="$env:GITHUB_WORKSPACE/build-native/reference-analysis/native/Release/pando-reference-onnx-export.exe"
-          node --test tests/unit/reference-onnx-export-refusal.test.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'ONNX export refusal test failed' }
-      - name: Verify a frozen encoder AdamW update separately
-        timeout-minutes: 2
-        shell: pwsh
-        run: |
-          & build-native/reference-analysis/native/Release/pando-reference-model-tests.exe tests/fixtures/reference-model-synthetic-logits.f32
-          if ($LASTEXITCODE -ne 0) { throw 'Frozen encoder training test failed' }
-      - name: Package only the source-bound native executable
-        shell: pwsh
-        run: |
-          node tools/reference-analysis/package-native-reference.mjs --binary build-native/reference-analysis/native/Release/pando-reference-infer.exe --directory build-native/reference-analysis/artifact
-          if ($LASTEXITCODE -ne 0) { throw 'Artifact packaging failed' }
-          Copy-Item build-native/reference-analysis/native/Release/pando-reference-model-tests.exe build-native/reference-analysis/artifact/pando-reference-model-tests.exe
-          node tools/reference-analysis/package-native-reference.mjs --kind training-proof --binary build-native/reference-analysis/native/Release/pando-reference-training-proof.exe --directory build-native/reference-analysis/artifact-proof
-          if ($LASTEXITCODE -ne 0) { throw 'Training proof artifact packaging failed' }
-          node tools/reference-analysis/package-native-reference.mjs --kind onnx-test --binary build-native/reference-analysis/native/Release/pando-reference-onnx-tests.exe --directory build-native/reference-analysis/artifact-onnx-test
-          if ($LASTEXITCODE -ne 0) { throw 'ONNX test artifact packaging failed' }
-          node tools/reference-analysis/package-native-reference.mjs --kind onnx-export --binary build-native/reference-analysis/native/Release/pando-reference-onnx-export.exe --directory build-native/reference-analysis/artifact-onnx-export
-          if ($LASTEXITCODE -ne 0) { throw 'ONNX export artifact packaging failed' }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-reference-windows-x64-${{ github.sha }}
-          path: build-native/reference-analysis/artifact/
-          if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-reference-training-proof-windows-x64-${{ github.sha }}
-          path: build-native/reference-analysis/artifact-proof/
-          if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-reference-onnx-test-windows-x64-${{ github.sha }}
-          path: build-native/reference-analysis/artifact-onnx-test/
-          if-no-files-found: error
-          retention-days: 7
-      - uses: actions/upload-artifact@v4
-        with:
-          name: native-reference-onnx-export-windows-x64-${{ github.sha }}
-          path: build-native/reference-analysis/artifact-onnx-export/
-          if-no-files-found: error
-          retention-days: 7
-  reference-loss:
-    if: github.event_name == 'workflow_dispatch' && inputs.target == 'reference-loss'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Check space and acquire the fixed LibTorch CPU SDK
-        run: |
-          set -euo pipefail
-          available=$(df -PB1 . | awk 'NR==2 {print $4}')
-          if [ "$available" -lt 9663676416 ]; then echo 'Need estimated 4 GiB SDK/build space plus 5 GiB headroom'; exit 1; fi
-          mkdir -p build-native/reference-analysis
-          curl --proto '=https' --tlsv1.2 --fail --location --retry 2 --max-time 180 --max-filesize 200000000 \
-            'https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.7.1%2Bcpu.zip' \
-            --output build-native/reference-analysis/libtorch.zip
-          sha256sum build-native/reference-analysis/libtorch.zip
-          echo '63d572598c8d532128a335018913e795c1bbb32602ce378896dc8cfbb5590976  build-native/reference-analysis/libtorch.zip' | sha256sum -c -
-          unzip -q build-native/reference-analysis/libtorch.zip -d build-native/reference-analysis
-      - name: Build the native boundary loss and model tests
-        run: |
-          cmake -S tools/cpp -B build-native/reference-analysis/native -G Ninja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH="$PWD/build-native/reference-analysis/libtorch" \
-            -DPANDO_BUILD_COUNTRY_VALIDATOR=OFF -DPANDO_BUILD_REFERENCE_MODEL=ON
-          cmake --build build-native/reference-analysis/native --target pando-reference-loss-tests pando-reference-model-tests pando-safetensors-tests pando-training-checkpoint-tests pando-reference-infer pando-reference-training-proof pando-reference-onnx-tests pando-reference-onnx-export --parallel 1
-      - name: Compare original loss, model fixtures and Safetensors validation
-        run: |
-          build-native/reference-analysis/native/pando-reference-loss-tests
-          build-native/reference-analysis/native/pando-reference-model-tests tests/fixtures/reference-model-synthetic-logits.f32
-          build-native/reference-analysis/native/pando-safetensors-tests
-          build-native/reference-analysis/native/pando-training-checkpoint-tests
-      - name: Verify native inference command rejects invalid requests
-        env:
-          PANDO_REFERENCE_INFER_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-infer
-        run: node --test tests/unit/reference-infer-cli.test.mjs
-      - name: Verify real-input proof rejects unsafe requests
-        env:
-          PANDO_REFERENCE_TRAINING_PROOF_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-training-proof
-        run: node --test tests/unit/reference-training-proof.test.mjs
-      - name: Verify ONNX export rejects unsafe requests
-        env:
-          PANDO_REFERENCE_ONNX_EXPORT_BINARY: ${{ github.workspace }}/build-native/reference-analysis/native/pando-reference-onnx-export
-        run: node --test tests/unit/reference-onnx-export-refusal.test.mjs
   native-hydro:
     if: github.event_name != 'workflow_dispatch' || inputs.target == 'hydro'
     runs-on: ubuntu-24.04

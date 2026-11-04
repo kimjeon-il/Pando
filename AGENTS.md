@@ -132,14 +132,22 @@ preparation/storage and publish only explicitly completed report scopes.
 
 ## Map Toolkit release completion (mandatory)
 
+- Map Toolkit analysis, training and release source is owned by the PRIVATE
+  `kimjeon-il/map-toolkit` repository at `D:/dev/Map Toolkit`. Follow its
+  AGENTS.md and `docs/reference-map-plugin.md` for plugin work. Pando owns
+  only common computation/storage tooling, current GeoPackage reading and E3
+  review. The current Viewer/Windows reviewer has no general GeoJSON editing UI;
+  retained editor/Core regression adapters are not production import workflows.
 - For a completed Map Toolkit change that affects its packaged source, WASM or
   pinned analysis resources, finish focused checks, commit/push the reviewed
   work, then update and verify the existing PRIVATE personal plugin without
   asking again. This completion workflow has standing user authorization.
-- Follow `docs/reference-map-plugin.md#automatic-release-on-codex-completion`.
-  Use `tools/reference-analysis/release-private-plugin.mjs` and the existing
+  Use that repository's `tools/reference-analysis/release-private-plugin.mjs` and the existing
   package producer. Upload through authenticated Plugin Creator tools only.
   Never create a replacement plugin or publish unfinished work/model candidates.
+- A Pando common-tool change requires a new verified immutable shared artifact
+  and an explicit reviewed dependency-pin update in Map Toolkit before release;
+  do not restore plugin-only code or dependencies in this repository.
 - A file save, unrelated commit or ordinary Git push is not a release trigger.
   Skip identical content. Preserve plugin identity, audience and account settings;
   keep account IDs outside app Git. Do not merge main or deploy the website as
