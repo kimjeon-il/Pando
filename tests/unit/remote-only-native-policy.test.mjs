@@ -94,7 +94,7 @@ test('application runner places native work behind the shared local-build policy
   const source=readFileSync(new URL('../../scripts/run-application-checks.mjs',import.meta.url),'utf8');
   assert.match(source,/id\.startsWith\('native-'\)/);
   assert.match(source,/definitionForCheck\?\.gisNative/);
-  assert.match(source,/assertRemoteOnlyNativeAllowed\(\{root:repository\.root,environment/);
+  assert.match(source,/assertRemoteOnlyNativeAllowed\(\{root:repository\.root,environment:processEnvironment/);
 });
 test('on remote-only branch, compiler environment/config commands never reactivate old cache settings',()=>{
   const source=readFileSync(new URL('../../tools/worktree-storage.mjs',import.meta.url),'utf8');

@@ -50,7 +50,7 @@ export function executionOutputs(plan, { repository, ...options } = {}) {
   };
 }
 
-export function executePlan(plan, { repository, phase = 'all', shard = null, environment = process.env, run = (argv, options) => spawnSync(
+export function executePlan(plan, { repository, phase = 'all', shard = null, processEnvironment = process.env, run = (argv, options) => spawnSync(
   argv[0] === 'node' ? process.execPath : argv[0], argv.slice(1), { ...options, stdio: 'inherit', shell: false }) } = {}) {
   const execution = executionOptions({ phase, shard });
   const prerequisites = phasePrerequisites(plan, phase);
@@ -79,8 +79,8 @@ export function executePlan(plan, { repository, phase = 'all', shard = null, env
     try {
       const definitionForCheck=definition(id);
       if(id.startsWith('native-')||definitionForCheck?.gisNative)
-        assertRemoteOnlyNativeAllowed({root:repository.root,environment,operation:'application native prerequisite '+id});
-      const response = run(argv, { cwd: repository.root, env: { ...environment, ...env } });
+        assertRemoteOnlyNativeAllowed({root:repository.root,environment:processEnvironment,operation:'application native prerequisite '+id});
+      const response = run(argv, { cwd: repository.root, env: { ...processEnvironment, ...env } });
       result = { id, argv, status: response.status === 0 && !response.error ? 'passed' : 'failed',
         exitCode: response.status, error: response.error?.message };
     } catch (error) { result = { id, argv, status: 'failed', error: error.message }; }

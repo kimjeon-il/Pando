@@ -43,3 +43,28 @@ test('retired Windows verification script changes select current reviewer checks
   }
   assert.throws(()=>planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository}),/Unclassified product change/);
 });
+
+test('P3 application runner preserves caller environment while enforcing native prerequisite policy',async()=>{
+  const {executePlan}=await import('../../scripts/run-application-checks.mjs');
+  const repo={root:fileURLToPath(new URL('../../',import.meta.url)),catalog:{
+    prerequisites:{},groups:[
+      {id:'probe',kind:'command',argv:['node','dummy-probe'],requires:[]},
+      {id:'native-probe',kind:'command',argv:['node','dummy-native'],requires:[],gisNative:true}
+    ]
+  }};
+  const plan={prerequisites:[],commands:['probe'],unitTests:[],browserSpecs:[],changedFiles:[]};
+  const calls=[];
+  executePlan(plan,{repository:repo,phase:'non-browser',
+    processEnvironment:{PATH:'pinned-runner-path',GITHUB_ACTIONS:'true',PANDO_REMOTE_ONLY:'1'},
+    run:(argv,options)=>{calls.push({argv,options});return {status:0};}});
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].options.env.PATH,'pinned-runner-path');
+  assert.equal(calls[0].options.env.GITHUB_ACTIONS,'true');
+  assert.equal(calls[0].options.env.PANDO_REMOTE_ONLY,'1');
+  let invoked=0;
+  const nativePlan={...plan,commands:['native-probe']};
+  executePlan(nativePlan,{repository:repo,phase:'non-browser',
+    processEnvironment:{PANDO_REMOTE_ONLY:'1'},
+    run:()=>{invoked++;return {status:0};}});
+  assert.equal(invoked,0,'native work is blocked before subprocess execution');
+});
