@@ -5,10 +5,15 @@ Map Toolkit analysis, training, tests and private releases are owned by the
 Its permanent local checkout is `D:/dev/Map Toolkit`. Pando does not contain
 an analysis panel, OCR/model runtime, training environment or plugin release runner.
 
-Pando imports ordinary reviewed GeoJSON through its existing generic feature
-owner. Import, geometry editing, Undo/Redo and GeoPackage persistence remain
-application responsibilities. Unsupported retired reference-image attachments
-are rejected explicitly; no old-job or attachment compatibility path is added.
+Pando 0.36.0 is a read-only Viewer and Windows reviewer. Its current file UI
+reads GeoPackage projects and E3 review evidence; it does not expose general
+GeoJSON object import, editing, Undo/Redo or project saving. Android native was
+retired. The retained Core import/edit/persistence tests are regression-only
+and do not establish that those UI features exist. Map Toolkit returns ordinary
+GeoJSON independently; direct application in Pando needs a separately agreed
+current product path. Unsupported retired reference-image attachments remain
+explicitly rejected. Do not restore obsolete editor UI or compatibility readers
+as a side effect of the plugin separation.
 
 ## Shared dependency contract
 

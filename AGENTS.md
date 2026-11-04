@@ -135,7 +135,9 @@ preparation/storage and publish only explicitly completed report scopes.
 - Map Toolkit analysis, training and release source is owned by the PRIVATE
   `kimjeon-il/map-toolkit` repository at `D:/dev/Map Toolkit`. Follow its
   AGENTS.md and `docs/reference-map-plugin.md` for plugin work. Pando owns
-  only the common computation/storage tooling and ordinary GIS file import.
+  only common computation/storage tooling, current GeoPackage reading and E3
+  review. The current Viewer/Windows reviewer has no general GeoJSON editing UI;
+  retained editor/Core regression adapters are not production import workflows.
 - For a completed Map Toolkit change that affects its packaged source, WASM or
   pinned analysis resources, finish focused checks, commit/push the reviewed
   work, then update and verify the existing PRIVATE personal plugin without
