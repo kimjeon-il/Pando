@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {appendFileSync,existsSync,lstatSync,mkdirSync,readFileSync,statfsSync,writeFileSync} from 'node:fs';
 import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {nativeTestRecipe} from './lib/native-test-prerequisites.mjs';
+import {nativeTestRecipe,nativeTestRecipes} from './lib/native-test-prerequisites.mjs';
 import {verifyNativeTool} from '../tools/native-tool.mjs';
 
 const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -58,10 +58,12 @@ async function preservePinnedNativeInput(root,path,expectedSha,destination) {
   mkdirSync(dirname(destination),{recursive:true});writeFileSync(destination,source.bytes,{flag:'wx'});
   return {revision:source.revision,sha256:source.sha256,bytes:source.decodedBytes};
 }
-export async function nativeTestCapacity(ids,{root=process.cwd(),platform=process.platform,architecture=process.arch,probe=argv=>spawnSync(argv[0],argv.slice(1),
+export async function nativeTestCapacity(ids,{root=process.cwd(),environment=process.env,platform=process.platform,architecture=process.arch,probe=argv=>spawnSync(argv[0],argv.slice(1),
   {cwd:root,encoding:'utf8',timeout:10000})}={}) {
   if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'))throw Error('Registered native prerequisite IDs must be an array');
-  ids=[...new Set(ids)];for(const id of ids)nativeTestRecipe(id,{platform,architecture});
+  ids=[...new Set(ids)];for(const id of ids)if(!nativeTestRecipes[id])throw Error('Unknown native prerequisite: '+id);
+  if(ids.length&&environment.GITHUB_ACTIONS!=='true')throw Error('Local native SDK installation is disabled. Run the selected checks through scripts/run-application-checks.mjs on a committed and pushed revision. Required tools: '+ids.join(','));
+  for(const id of ids)nativeTestRecipe(id,{platform,architecture});
   let additionalBytes=0,recipeEnvironment=false;
   if(ids.includes('torch')&&!await sdkReady(root,nativeTestRecipe('torch',{platform,architecture}).sdk))additionalBytes+=4*1024**3;
   if(ids.includes('territorial-recipe')) {
@@ -81,8 +83,14 @@ export async function nativeTestCapacity(ids,{root=process.cwd(),platform=proces
 export async function prepareNativeTestTool(id,{root=process.cwd(),run=(argv)=>{
   const result=spawnSync(argv[0]==='node'?process.execPath:argv[0],argv.slice(1),{cwd:root,env:process.env,stdio:'inherit',shell:false});
   if(result.status!==0||result.error)throw Error('Native prerequisite command failed: '+argv.join(' '),{cause:result.error});
-},platform=process.platform,architecture=process.arch}={}) {
+},environment=process.env,remote,platform=process.platform,architecture=process.arch}={}) {
   root=resolve(root);
+  if(!nativeTestRecipes[id])throw Error('Unknown native prerequisite: '+id);
+  if(environment.GITHUB_ACTIONS!=='true'){
+    const {loadRepository}=await import('./plan-application-checks.mjs');
+    const {dispatchSelectedChecks}=await import('./run-application-checks.mjs');
+    return (remote||dispatchSelectedChecks)({repository:loadRepository(root),selection:{unitTests:[],browserSpecs:[],commands:[],prerequisites:['native-'+id]}});
+  }
   const recipe=nativeTestRecipe(id,{platform,architecture});
   const invoke=argv=>run(argv.map(arg=>arg.replaceAll('{root}',root)));
   const checkRuntime=runtime=>checkedRuntime(root,runtime);

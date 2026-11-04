@@ -5,8 +5,26 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectChanges } from '../../scripts/lib/check-changes.mjs';
-import { executePlan, executionOutputs, selectionRequest } from '../../scripts/run-application-checks.mjs';
+import { executePlan as executeCiPlan, executionOutputs, selectionRequest } from '../../scripts/run-application-checks.mjs';
 import * as runner from '../../scripts/run-application-checks.mjs';
+
+const executePlan=(plan,options)=>executeCiPlan(plan,{...options,environment:{GITHUB_ACTIONS:'true'}});
+
+test('local native selection routes only selected checks to CI without local commands',()=>{
+ const plan={prerequisites:['native-image'],commands:[],unitTests:['tests/unit/image.test.mjs'],browserSpecs:[],unitTestPrerequisites:{},reasons:{}};
+ const repository={root:'/fixture',catalog:{prerequisites:{'native-image':{argv:['cmake']}},groups:[]}},requests=[];
+ const result=executeCiPlan(plan,{repository,environment:{},run:()=>assert.fail('local native command'),remote:r=>{requests.push(r.selection);return {ok:true,results:[]};}});
+ assert.equal(result.ok,true);assert.deepEqual(requests,[{unitTests:plan.unitTests,browserSpecs:[],commands:[],prerequisites:[]}]);
+});
+
+test('explicit native-only requests produce a non-browser CI job and execute the requested tool',()=>{
+ const repository={root:'/fixture',catalog:{prerequisites:{'native-image':{argv:['node','prepare.mjs','image']}},groups:[]}};
+ const plan={prerequisites:['native-image'],explicitPrerequisites:['native-image'],commands:[],unitTests:[],browserSpecs:[],reasons:{}};
+ const outputs=executionOutputs(plan,{repository,phase:'non-browser'});assert.equal(outputs.checks,true);assert.equal(outputs.non_browser,true);assert.deepEqual(outputs.native_requirements,['image']);
+ const calls=[];const result=executePlan(plan,{repository,phase:'non-browser',run:argv=>{calls.push(argv);return{status:0}}});
+ assert.equal(result.ok,true);assert.deepEqual(calls,[['node','prepare.mjs','image']]);
+ let routed;executeCiPlan(plan,{repository,phase:'non-browser',environment:{},run:()=>assert.fail('local preparation'),remote:r=>{routed=r.selection;return{ok:true,results:[]};}});assert.deepEqual(routed.prerequisites,['native-image']);
+});
 
 test('local comparison includes commits, index, working tree, untracked and both rename paths', t => {
   const root = mkdtempSync(join(tmpdir(), 'pando-check-diff-'));

@@ -2,6 +2,7 @@ import {watch,readFileSync,statSync,realpathSync,existsSync} from 'node:fs';
 import {mkdir,writeFile,unlink} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {finishArtifactMaintenance,runningStorageConsumers,storageSettings} from '../tools/worktree-storage.mjs';
 import {createHash} from 'node:crypto';
 import {createP3PreviewServer,previewFileIdentity} from './p3-preview-server.mjs';
 import {buildFrontendSnapshot} from './lib/frontend-build.mjs';
@@ -46,7 +47,7 @@ export async function startDevelopmentServer({repository=root,product='editor',p
   const paths=new Map(frontendRoots.map(e=>[e.sourcePath,!e.shallow]));for(const path of Object.values(frontendTemplates))paths.set(path.slice(0,path.lastIndexOf('/')),true);paths.set(frontendFragmentRoot,true);paths.set('config',false);
   for(const [path,recursive]of paths)if(existsSync(resolve(repository,path)))watchers.push(watch(resolve(repository,path),{recursive},changed));
  }
- return{server,refresh,get evidence(){return current.evidence;},async close(){clearTimeout(timer);for(const watcher of watchers)watcher.close();if(pending)await pending;await new Promise(yes=>server.close(yes));if(observe)await unlink(lease);}};
+ return{server,refresh,get evidence(){return current.evidence;},async close(){clearTimeout(timer);for(const watcher of watchers)watcher.close();if(pending)await pending;await new Promise(yes=>server.close(yes));if(observe)await unlink(lease);if(process.platform==='win32'&&storageSettings(repository))finishArtifactMaintenance({root:repository,processes:runningStorageConsumers().filter(p=>p.ProcessId!==process.pid)});}};
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

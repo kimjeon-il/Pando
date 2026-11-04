@@ -38,6 +38,14 @@ local worktree. Web source lives in `apps/viewer/`, shared frontend source in `s
 
 ## Storage and generated-file cleanup (mandatory)
 
+- Local development uses CI-built native artifacts. Do not install or restore
+  local compilers, Emscripten, native SDKs, or native test build environments
+  to satisfy a check. Run only the selected registered checks in CI through
+  `scripts/run-application-checks.mjs`. Missing tools must not trigger manual
+  installation as a workaround. Preserve required existing GIS runtimes,
+  GPU Python/CUDA, ADB and other projects' shared tools. Compiler/SDK setup
+  belongs to CI; ordinary JS/browser development remains local.
+
 - Cleanup is part of task completion. Before finishing, remove task-owned
   temporary files, failed downloads, verification copies and reproducible
   outputs whose use has ended. Report the size and concrete reason for each

@@ -6,7 +6,7 @@ import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { validateShellProfile } from './stage.mjs';
-import { storageSettings,installNativeArtifactView } from '../../tools/worktree-storage.mjs';
+import { storageSettings,installNativeArtifactView,finishArtifactMaintenance } from '../../tools/worktree-storage.mjs';
 import {containedPath,atomicStorageJSON,contentFiles} from '../../tools/library-content.mjs';
 import {nativeInputIdentity,verifyNativeBundle} from './native-contract.mjs';
 
@@ -33,12 +33,12 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
   const pointer=resolve(root,'.library-data/native-artifacts.json');
   if(!testNative&&await exists(pointer)){
     const binding=JSON.parse(await readFile(pointer,'utf8'))[platform+'-'+mode];
-    if(binding?.nativeInputSha256===identity.sha256){const manifest=verifyNativeBundle(binding.directory,identity,pin);return{directory:binding.directory,manifest,cached:true};}
+    if(binding?.nativeInputSha256===identity.sha256){const manifest=verifyNativeBundle(binding.directory,identity,pin);return{directory:binding.directory,manifest,cached:true,maintenance:finishArtifactMaintenance({root,settings})};}
   }
   const sharedDirectory=containedPath(settings.cacheRoot,'native/'+identity.sha256);
   if(!testNative&&await exists(join(sharedDirectory,'native-artifact.json'))){
     const manifest=verifyNativeBundle(sharedDirectory,identity,pin);
-    const directory=installNativeArtifactView({root,source:sharedDirectory,manifest,settings});return{directory,manifest,cached:true};
+    const directory=installNativeArtifactView({root,source:sharedDirectory,manifest,settings});return{directory,manifest,cached:true,maintenance:finishArtifactMaintenance({root,settings})};
   }
   const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true,maxBuffer:16*1024**2}).trim();
   const owned=new Set([...Object.keys(identity.inputs),'apps/editor/native-contract.mjs','apps/editor/packaged-artifacts.mjs','apps/editor/package.json','.github/workflows/remote-development-p1.yml']);
@@ -105,7 +105,7 @@ export async function fetchNativeArtifact({root=resolve(shell,'../..'),platform=
     const directory=installNativeArtifactView({root,source:download,manifest,settings});
     verifyNativeBundle(directory,identity,pin);contentFiles(download);
     await rm(download,{recursive:true});await unlink(owner);
-    return{directory,manifest:verifyNativeBundle(directory,identity,pin),runUrl:run.html_url,cached:false};
+    return{directory,manifest:verifyNativeBundle(directory,identity,pin),runUrl:run.html_url,cached:false,maintenance:finishArtifactMaintenance({root,settings})};
   }finally{closeSync(fd);await unlink(lock);}
 }
 async function statfsForDownload(path){const {statfs}=await import('node:fs/promises');const s=await statfs(path);return s.bavail*s.bsize;}

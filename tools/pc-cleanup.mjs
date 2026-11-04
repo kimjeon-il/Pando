@@ -190,11 +190,11 @@ async function withPcLock(directory,operation){
  const fd=openSync(lock,'wx');writeFileSync(fd,JSON.stringify({pid:process.pid}));
  try{return await operation();}finally{closeSync(fd);unlinkSync(lock);}
 }
-export async function cleanupCDrive({mode,root,settings,library}){
+export async function cleanupCDrive({mode,root,settings,library,cacheOnly=false}){
  if(process.platform!=='win32'||settings?.compilerEnabled!==false)throw Error('C cleanup requires Windows and disabled local compilers');
- const home=homedir(),directory=join(settings.cacheRoot,task);mkdirSync(directory,{recursive:true});
+ const home=homedir(),directory=join(settings.cacheRoot,cacheOnly?'cache-lifecycle-cleanup-20261104':task);mkdirSync(directory,{recursive:true});
  if(/[\r\n%&]/.test(root+process.execPath))throw Error('Unsupported external command path');
- writeFileSync(join(directory,'run-offline.cmd'),`@echo off\r\n"${process.execPath}" "${join(root,'tools/worktree-storage.mjs')}" "--root=${root}" --cleanup-c-drive=offline\r\nif errorlevel 1 (echo Maintenance stopped safely. Keep receipts and backups. & pause & exit /b 1)\r\necho Reopen Codex and verify projects, chats and login before removing backups.\r\npause\r\n`);
+ writeFileSync(join(directory,'run-offline.cmd'),`@echo off\r\n"${process.execPath}" "${join(root,'tools/worktree-storage.mjs')}" "--root=${root}" --cleanup-${cacheOnly?'caches':'c-drive'}=offline\r\nif errorlevel 1 (echo Maintenance stopped safely. Keep receipts. & pause & exit /b 1)\r\necho Maintenance finished.\r\npause\r\n`);
  const processGuard=()=>assertOffline(pcProcesses());
  if(mode==='offline')processGuard();
  return withPcLock(directory,async()=>{
@@ -202,6 +202,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
   if(mode==='preview'||mode==='apply'||offline){
    const getConsumers=()=>pcProcesses().filter(p=>p.ProcessId!==process.pid),snapshot=getConsumers();
    const policy=mode==='apply'&&existsSync(join(directory,prefix+'.policy.json'))?JSON.parse(readFileSync(join(directory,prefix+'.policy.json'),'utf8')):discoverProfile({home,library,offline,processes:snapshot});
+   if(cacheOnly)policy.requests=policy.requests.filter(r=>r.action==='delete'&&policy.compilerScopes.some(s=>s.root===r.root&&['pc-cache','pc-temp'].includes(s.kind)));
    const options={...policy,consumers:checkedConsumers({policy,offline,processes:snapshot}),refreshConsumers:()=>checkedConsumers({policy,offline,processes:getConsumers()}),progress:message=>console.error('C cleanup: '+message)};
    if(mode==='preview'){
     const startedAtNs=String(BigInt(Date.now())*1000000n),manifest=previewGeneratedCleanup(options);
@@ -232,7 +233,7 @@ export async function cleanupCDrive({mode,root,settings,library}){
     const result=JSON.parse(readFileSync(resultPath,'utf8')),journal=JSON.parse(readFileSync(completedJournal,'utf8'));
     if(journal.digest!==result.digest||journal.completedCount!==result.completedCount||journal.deletedBytes!==result.deletedBytes||journal.relocatedBytes!==result.relocatedBytes)throw Error('Completed cleanup result/journal mismatch');unlinkSync(completedJournal);
    }
-   if(!offline){console.log(readFileSync(resultPath,'utf8'));return;}
+   if(!offline||cacheOnly){console.log(readFileSync(resultPath,'utf8'));return;}
    for(const name of databaseNames){
     processGuard();const path=containedPath(home,'.codex/'+name);if(!existsSync(path))continue;
     await compactDatabase({path,recovery:containedPath(directory,'db-backups/'+name),receipt:join(directory,name+'.receipt.json'),guard:processGuard});

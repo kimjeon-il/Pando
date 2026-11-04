@@ -1,10 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,statSync,rmSync,existsSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,statSync,rmSync,existsSync,unlinkSync,chmodSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {nativeHash} from "../../apps/editor/native-contract.mjs";
-import {installNativeArtifactView} from '../../tools/worktree-storage.mjs';
+import {installNativeArtifactView,retireNativeSnapshots,finishArtifactMaintenance} from '../../tools/worktree-storage.mjs';
+
+test('native retirement preserves other worktree references and resumes after interruption',t=>{
+ const base=mkdtempSync(join(tmpdir(),'pando-native-retire-'));t.after(()=>rmSync(base,{recursive:true,force:true}));
+ const a=join(base,'a'),b=join(base,'b'),source=join(base,'download'),settings={cacheRoot:join(base,'cache')};for(const dir of [a,b,source])mkdirSync(dir);
+ const install=(root,key,text)=>{const bytes=Buffer.from(text);writeFileSync(join(source,'pandolab-web-shell.exe'),bytes);return installNativeArtifactView({root,source,settings,manifest:{schema:1,platform:'windows',mode:'development',nativeInputSha256:key.repeat(64),files:[{path:'pandolab-web-shell.exe',bytes:bytes.length,sha256:nativeHash(bytes)}]}});};
+ const old=install(a,'a','first'),other=install(b,'a','first');install(a,'b','current');
+ assert.equal(old,other);assert.equal(retireNativeSnapshots({root:a,roots:[a,b],settings,processes:[],apply:true}).entries.find(x=>x.directory===old).status,'referenced');
+ install(b,'b','current');
+ const options={root:a,roots:[a,b],settings,processes:[]};
+ assert.equal(retireNativeSnapshots({...options,processes:[{Name:'pandolab.exe',ExecutablePath:join(old,'pandolab-web-shell.exe')}]}).entries.find(x=>x.directory===old).status,'referenced');
+ const leases=join(settings.cacheRoot,'native-leases');mkdirSync(leases);const lease=join(leases,'verification.json');writeFileSync(lease,JSON.stringify({pid:process.pid,directory:old}));
+ assert.equal(retireNativeSnapshots(options).entries.find(x=>x.directory===old).status,'referenced');unlinkSync(lease);
+ assert.throws(()=>retireNativeSnapshots({...options,apply:true,afterFile:()=>{throw Error('interrupted')}}),/interrupted/);
+ retireNativeSnapshots({root:a,roots:[a,b],settings,processes:[],apply:true});assert.equal(existsSync(old),false);
+ assert.equal(readFileSync(join(settings.cacheRoot,'native','b'.repeat(64),'pandolab-web-shell.exe'),'utf8'),'current');
+ const current=join(settings.cacheRoot,'native','b'.repeat(64));install(a,'c','latest');install(b,'c','latest');
+ chmodSync(join(current,'pandolab-web-shell.exe'),0o600);writeFileSync(join(current,'pandolab-web-shell.exe'),'tampered');
+ assert.throws(()=>retireNativeSnapshots({...options,apply:true}),/Modified artifact/);
+ assert.equal(finishArtifactMaintenance(options).status,'blocked');assert.equal(existsSync(join(settings.cacheRoot,'native','c'.repeat(64),'pandolab-web-shell.exe')),true);
+});
 test('native artifact installation resumes and shares immutable bytes across worktrees',t=>{
  const base=mkdtempSync(join(tmpdir(),'pando-native-store-'));t.after(()=>rmSync(base,{recursive:true,force:true}));const a=join(base,'a'),b=join(base,'b'),source=join(base,'download'),settings={cacheRoot:join(base,'cache')};for(const dir of [a,b,source])mkdirSync(dir);const bytes=Buffer.from('native executable'),manifest={schema:1,platform:'windows',mode:'development',nativeInputSha256:'a'.repeat(64),files:[{path:'pandolab-web-shell.exe',bytes:bytes.length,sha256:nativeHash(bytes)}]};writeFileSync(join(source,'pandolab-web-shell.exe'),bytes);writeFileSync(join(source,'native-artifact.json'),JSON.stringify(manifest));
  assert.throws(()=>installNativeArtifactView({root:a,source,manifest,settings,afterFile:()=>{throw Error('interrupted');}}),/interrupted/);
