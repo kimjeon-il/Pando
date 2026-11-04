@@ -90,34 +90,18 @@ test('polygon and stroke packet builders reject degenerate coordinates and prese
   assert.equal([...strokePacket.startsEnds].every(Number.isFinite), true);
 });
 
-test('preview and draft interaction packets remain typed renderer data', () => {
+test('selection interaction data remains attached to the render scene', () => {
   const builder = createRenderSceneBuilder();
-  const previewScene = builder.build({
-    revision: 1,
-    polygons: [{
-      key: 'interaction:preview:0:fill',
-      geometryRevision: 'preview-1',
-      geometry: polygon('#ff0000').geometry,
-      style: { color: '#ff0000', fillAlpha: 0.2 },
-    }],
-    strokes: [{
-      key: 'interaction:draft:0:stroke',
-      geometryRevision: 'draft-1',
-      geometry: { type: 'LineString', coordinates: [[0, 0], [1, 1]] },
-      style: { color: '#ffffff', alpha: 1, width: 2 },
-    }],
-  });
+  const selectionPacket = { revision: 2 };
   const scene = builder.build({
     revision: 2,
     interaction: {
-      previewPackets: [{ kind: 'polygon', packet: previewScene.polygons[0] }],
-      draftPackets: [{ kind: 'stroke', packet: previewScene.strokes[0] }],
+      selectionPacket,
+      genericFillItems: [{ key: 'feature:1', priority: 4 }],
     },
   });
-  assert.equal(scene.interaction.previewPackets[0].packet.positions instanceof Float32Array, true);
-  assert.equal(scene.interaction.draftPackets[0].packet.startsEnds instanceof Float32Array, true);
-  assert.equal('geometry' in scene.interaction.previewPackets[0].packet, false);
-  assert.equal('properties' in scene.interaction.draftPackets[0].packet, false);
+  assert.equal(scene.interaction.selectionPacket, selectionPacket);
+  assert.deepEqual(scene.interaction.genericFillItems, [{ key: 'feature:1', priority: 4 }]);
 });
 
 test('RenderScene patch replaces only affected packets and reuses the rest', () => {

@@ -61,7 +61,7 @@ export function hydroEditResourceDependencies(features,baseFid,displayColor) {
 import '../workers/canvas-terrain-dem-core.js';
 
 const rendererAssetRevision = new URL(import.meta.url).searchParams.get('v') || '';
-const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteraction, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
+const [{ drawGpuBaseScene }, { prepareGpuBaseScene, prepareGpuInteractionPlan, sceneStrokeResourcePacket, commitGpuStrokeDomains }, { createGpuStrokeRenderer }, { createGpuTerrainPreparation },
   { TERRAIN_DEM_FORMAT, TERRAIN_RASTER_DATASET, TERRAIN_RASTER_FORMAT, TERRAIN_RASTER_VERSION, terrainAssetUrl, validateTerrainManifest }] = await Promise.all([
   import(`./gpu-base-scene-pass.js?v=${encodeURIComponent(rendererAssetRevision)}`),
   import(`./gpu-scene-preparation.js?v=${encodeURIComponent(rendererAssetRevision)}`),
@@ -241,8 +241,6 @@ export function createGpuMapRenderer(deps) {
     let renderInteractionState = Object.freeze({
       selectionPacket: null,
       genericFillItems: Object.freeze([]),
-      previewPackets: Object.freeze([]),
-      draftPackets: Object.freeze([]),
     });
     let selectionPass = null;
     let lastSelectionRenderResult = null;
@@ -2678,8 +2676,6 @@ export function createGpuMapRenderer(deps) {
       renderInteractionState = Object.freeze({
         selectionPacket: null,
         genericFillItems: Object.freeze([]),
-        previewPackets: Object.freeze([]),
-        draftPackets: Object.freeze([]),
       });
       lastSelectionRenderResult = null;
       lastBaseSceneResult = null;
@@ -4046,7 +4042,7 @@ export function createGpuMapRenderer(deps) {
       // Preparation completes before any base/interaction submission or fallback redraw.
       flushPaletteUpdates();
       updateHydroVisibility();
-      prepareGpuInteraction(renderInteractionState, { polygonOverlayPass, strokeRenderer, selectionPass });
+      selectionPass?.prepare?.();
       // Even a cache hit may require a direct redraw when compositing fails.
       if (needsBaseScene || !preparedBaseScene) prepareForSubmission();
       if (needsBaseScene) {
@@ -4465,8 +4461,6 @@ export function createGpuMapRenderer(deps) {
       for (const item of renderInteractionState.genericFillItems || []) if (packets.has(item.key)) {
         emphasisEntries.push({ ...item, packet: packets.get(item.key) });
       }
-      for (const packet of canvasInteractionPolygons()) emphasisEntries.push({ key: packet.key, packet,
-        priority: packet.interactionPriority || 5, style: packet.style });
       globalThis.PandoLabCanvasSceneComposition.drawEmphasis(ctx2d, canvasPath, emphasisEntries, dpr, protection);
       ctx2d.globalAlpha = 1;
       displayedRenderRevision = currentRenderRevision;
@@ -4479,7 +4473,6 @@ export function createGpuMapRenderer(deps) {
     }
 
     const canvasScenePackets = createCanvasScenePackets();
-    const canvasInteractionPolygons = () => canvasScenePackets.interactionPolygons(renderInteractionState);
     const canvasScenePolygons = () => canvasScenePackets.scenePolygons(surfaceScenePolygons());
     const canvasSceneStrokes = () => canvasScenePackets.sceneStrokes(renderScene);
     const canvasCountryBoundaryPacket = () => canvasScenePackets.countryBoundary(countrySharedBoundary);
@@ -4509,7 +4502,6 @@ export function createGpuMapRenderer(deps) {
         scenePolygons: canvasScenePackets.delta(canvasScenePolygons(), 'scene'),
         sceneStrokes: canvasScenePackets.delta(canvasSceneStrokes(), 'strokes'),
         interactionFillItems: renderInteractionState.genericFillItems || [],
-        interactionPolygons: canvasScenePackets.delta(canvasInteractionPolygons(), 'interaction'),
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           primaryIds: [...countryEmphasis.primaryIds],
@@ -5345,10 +5337,6 @@ export function createGpuMapRenderer(deps) {
     }
 
     function retainSceneResources() {
-      const interactionPackets = [
-        ...(renderInteractionState.previewPackets || []),
-        ...(renderInteractionState.draftPackets || []),
-      ].map(item => item?.packet).filter(Boolean);
       const borderPacketKeys = [countrySharedBoundary, pendingCountrySharedBoundary]
         .flatMap(packet => packet ? [packet.key, packet.outlineOverrides?.key] : []).filter(Boolean);
       const protectedKeys = new Set([
@@ -5360,14 +5348,12 @@ export function createGpuMapRenderer(deps) {
       polygonOverlayPass.retain([
         ...(renderScene?.polygons || []).map(packet => packet.key),
         ...[...previewLandPackets.values()].map(packet => packet.key),
-        ...interactionPackets.filter(packet => packet.positions instanceof Float32Array).map(packet => packet.key),
       ], { protectedKeys });
       const countryStrokeKeys = Object.values(currentCountryStrokeResources())
         .map(resource => resource?.packet?.key).filter(Boolean);
       strokeRenderer.retain([
         ...(renderScene?.strokes || []).map(packet => sceneStrokeResourcePacket(packet, projectGeneration).key),
         ...[...presentedStrokeDomains.values()].flatMap(items => items.map(item => item.resourcePacket.key)),
-        ...interactionPackets.filter(packet => packet.startsEnds instanceof Float32Array).map(packet => packet.key),
         ...countryStrokeKeys,
         ...borderPacketKeys,
         ...(selectionPass?.resourceKeys?.() || []),
@@ -5452,15 +5438,12 @@ export function createGpuMapRenderer(deps) {
     let canvasInteractionSignature = '';
     function setInteractionState(nextInteraction = {}) {
       const signature = JSON.stringify([nextInteraction.selectionPacket?.revision, nextInteraction.selectionPacket?.hoverRevision,
-        nextInteraction.selectionPacket?.styleRevision, nextInteraction.genericFillItems,
-        [...(nextInteraction.previewPackets || []), ...(nextInteraction.draftPackets || [])].map(item => [item.packet?.key, item.packet?.geometryRevision, item.packet?.style])]);
+        nextInteraction.selectionPacket?.styleRevision, nextInteraction.genericFillItems]);
       if (signature !== canvasInteractionSignature) { canvasInteractionSignature = signature; canvasLastStyleSignature = ''; }
       renderInteractionState = Object.freeze({
         selectionPacket: nextInteraction.selectionPacket || null,
         genericFillKeys: Object.freeze([...(nextInteraction.genericFillKeys || [])].map(String)),
         genericFillItems: Object.freeze([...(nextInteraction.genericFillItems || [])]),
-        previewPackets: Object.freeze([...(nextInteraction.previewPackets || [])]),
-        draftPackets: Object.freeze([...(nextInteraction.draftPackets || [])]),
       });
       retainSceneResources();
       return true;

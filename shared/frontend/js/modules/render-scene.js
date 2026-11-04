@@ -284,8 +284,6 @@ export function createRenderSceneBuilder({
         selectionPacket: input.interaction?.selectionPacket || null,
         genericFillKeys: Object.freeze([...(input.interaction?.genericFillKeys || [])].map(String)),
         genericFillItems: Object.freeze([...(input.interaction?.genericFillItems || [])]),
-        previewPackets: Object.freeze([...(input.interaction?.previewPackets || [])]),
-        draftPackets: Object.freeze([...(input.interaction?.draftPackets || [])]),
       }),
     });
   }
@@ -324,8 +322,6 @@ export function createRenderSceneBuilder({
         selectionPacket: interactionInput?.selectionPacket || null,
         genericFillKeys: Object.freeze([...(interactionInput?.genericFillKeys || [])].map(String)),
         genericFillItems: Object.freeze([...(interactionInput?.genericFillItems || [])]),
-        previewPackets: Object.freeze([...(interactionInput?.previewPackets || [])]),
-        draftPackets: Object.freeze([...(interactionInput?.draftPackets || [])]),
       }),
     });
   }

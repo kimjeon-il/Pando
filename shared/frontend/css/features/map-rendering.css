@@ -69,15 +69,6 @@
   mix-blend-mode: normal;
 }
 
-.map-interaction-svg .gpu-interaction-hit-proxy {
-  fill: transparent;
-  fill-opacity: 0;
-  stroke: transparent;
-  stroke-opacity: 0;
-  filter: none;
-  mix-blend-mode: normal;
-}
-
 .territorial-label-layer {
   user-select: none;
   -webkit-user-select: none;
@@ -384,18 +375,6 @@
   font-size: .85em;
   font-weight: 400;
   opacity: .78;
-}
-
-.canvas-interaction-fill-proxy {
-  fill: none;
-}
-
-.gpu-interaction-fill-proxy {
-  fill: none;
-}
-
-.gpu-interaction-stroke-proxy {
-  stroke: none;
 }
 
 .common-interaction-outline {

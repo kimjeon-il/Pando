@@ -143,7 +143,6 @@ export function createMapRenderingResources({ports,layers,session,editing=null,r
       syncGpuRenderScene: ports.gpuRenderingB.syncGpuRenderScene,
       gpuMapRenderer: ports.rendering.gpuMapRenderer,
       applyGpuSceneCoverage: ports.gpuRenderingA.applyGpuSceneCoverage,
-      applyGpuInteractionCoverage: ports.gpuRenderingA.applyGpuInteractionCoverage
     }, {
       countryLayer: () => layers.countryLayer
     }),

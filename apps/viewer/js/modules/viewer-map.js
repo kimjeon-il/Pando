@@ -224,7 +224,6 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     interactionStateCommands:{setSelectionPacket:packet=>{gpuScene.currentSelectionPacket=packet;}}
   }),layers:{svg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer},readStateRevision:()=>state.objectPresentationRevision}),
 
-    interactionResources:{applyGpuInteractionCoverage:gpuScene.applyGpuInteractionCoverage},
     prepareView:options=>{
       state.size={width:Math.max(1,element.clientWidth),height:Math.max(1,element.clientHeight)};
       lastFrame=mapHost.prepareVisualFrame(options);

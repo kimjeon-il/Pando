@@ -1,7 +1,7 @@
 import { overlayVisualOrder } from './layer-presentation.js';
 import { geometryRevisionKey } from './geometry-versions.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
-import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channel-ownership.js';
+import { makeSvgSceneProxy } from './render-channel-ownership.js';
 /** GpuScene: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -148,8 +148,6 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
       interaction: {
         selectionPacket: currentSelectionPacket,
         genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
-        previewPackets: [],
-        draftPackets: [],
       },
     };
     const requiredPolygons = [...gpuSceneDomains].flatMap(([name, domain]) =>
@@ -245,8 +243,6 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     dependencies.rendering.gpuMapRenderer.setInteractionState?.({
       selectionPacket: currentSelectionPacket,
       genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
-      previewPackets: [],
-      draftPackets: [],
     });
   }
 
@@ -288,32 +284,6 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
       // target, including while a WebGL upload is late or Canvas owns the frame.
       if (ownedSceneKeys.has(key) || (webGlReady && rendered.has(key) && !missing.has(key))) makeSvgSceneProxy(this);
     });
-  }
-
-  function applyGpuInteractionCoverage(frameResult) {
-    const runtime = dependencies.rendering.gpuMapRenderer.getRuntimeState();
-    const canvasFills = ['canvas-worker', 'canvas2d'].includes(runtime.renderer);
-    const webGlReady = ['webgl2', 'webgl1'].includes(runtime.renderer);
-    // A presentation-only update carries no new GPU frame and cannot revoke
-    // channels already painted. Context loss still returns those channels to SVG.
-    if (webGlReady && !frameResult?.interactionResult) return;
-    const results = [
-      ...(frameResult?.interactionResult?.previewResults || []),
-      ...(frameResult?.interactionResult?.draftResults || []),
-    ];
-    const rendered = new Set(results.flatMap(result => result?.renderedKeys || []));
-    const missing = new Set(results.flatMap(result => result?.missingKeys || []));
-    const covered = (node, channel) => {
-      const keys = String(node.getAttribute(`data-gpu-interaction-${channel}-keys`) || '').split(/\s+/).filter(Boolean);
-      return webGlReady && keys.length > 0 && keys.every(key => rendered.has(key) && !missing.has(key));
-    };
-    dependencies.mapHostViewB.interactionSvg?.selectAll?.('[data-gpu-interaction-keys]')
-      ?.each(function() {
-        applySvgInteractionOwnership(this, {
-          fillOwner: covered(this, 'fill') ? 'gpu' : canvasFills && this.hasAttribute('data-gpu-interaction-fill-keys') ? 'canvas' : 'svg',
-          strokeOwner: covered(this, 'stroke') ? 'gpu' : 'svg',
-        });
-      });
   }
 
   async function setMapHover(type, id, feature, ref = null) {
@@ -388,7 +358,6 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     initializeRenderSceneBuilder,
     initializeGpuSceneDomains,
     initializeGpuSceneResourceObjectKeys,
-    get applyGpuInteractionCoverage() { return applyGpuInteractionCoverage; },
     get applyGpuSceneCoverage() { return applyGpuSceneCoverage; },
     get buildGpuInteractionFillItems() { return buildGpuInteractionFillItems; },
     get currentSelectionPacket() { return currentSelectionPacket; },

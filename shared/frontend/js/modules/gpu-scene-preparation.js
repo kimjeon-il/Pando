@@ -116,25 +116,13 @@ export function prepareGpuBaseScene({ mesh, overrideMesh, frame, scene, budgetBy
   };
 }
 
-export function prepareGpuInteraction({ previewPackets = [], draftPackets = [] }, { polygonOverlayPass, strokeRenderer, selectionPass }) {
-  for (const item of [...previewPackets, ...draftPackets]) {
-    const pass = item.kind === 'polygon' ? polygonOverlayPass : strokeRenderer;
-    pass.ensureResource(item.packet);
-  }
-  selectionPass?.prepare?.();
-}
-
 export function prepareGpuInteractionPlan({ interaction, emphasis, mesh, overrideMesh, overrideIds, countriesVisible, blocked, isPending, isVisible }, polygonOverlayPass) {
-  const preview = (interaction.previewPackets || []).filter(item => item.kind === 'polygon').map(item => item.packet);
-  const draft = (interaction.draftPackets || []).filter(item => item.kind === 'polygon').map(item => item.packet);
   const generic = interaction.genericFillItems || [];
   const emphasizedIds = [...new Set([...emphasis.selectedIds, emphasis.primaryId, emphasis.hoverId].map(String).filter(Boolean))];
   const priorities = [...new Set(Object.values(INTERACTION_ROLE_PRIORITY))].filter(priority => priority > 1).sort((a, b) => b - a).map(priority => {
     const ids = countriesVisible && !blocked ? emphasizedIds.filter(id => Number(emphasis.priorities[id] || (emphasis.primaryIds.has(id) ? 4 : emphasis.selectedIds.has(id) ? 3 : 2)) === priority && !isPending(id) && isVisible(id)) : [];
     return {
       priority,
-      preview: preview.filter(packet => Number(packet.interactionPriority || 5) === priority),
-      draft: draft.filter(packet => Number(packet.interactionPriority || 5) === priority),
       generic: generic.filter(item => Number(item.priority || 2) === priority)
         .sort((a, b) => Number(a.depth || 0) - Number(b.depth || 0) || String(a.objectKey || a.key).localeCompare(String(b.objectKey || b.key))),
       country: {
@@ -145,14 +133,10 @@ export function prepareGpuInteractionPlan({ interaction, emphasis, mesh, overrid
   });
   // A camera frame with no interaction fills needs neither water/border
   // stencil masking nor a full-viewport fill framebuffer.
-  const hasFillItems = priorities.some(group => group.preview.length || group.draft.length
-    || group.generic.length || group.country.base.length || group.country.override.length);
+  const hasFillItems = priorities.some(group => group.generic.length || group.country.base.length || group.country.override.length);
   return {
-    priorities, hasFillItems, genericKeys: generic.map(item => item.key), previewFillKeys: preview.map(packet => packet.key), draftFillKeys: draft.map(packet => packet.key),
-    previewStrokes: (interaction.previewPackets || []).filter(item => item.kind !== 'polygon').map(item => item.packet),
-    draftStrokes: (interaction.draftPackets || []).filter(item => item.kind !== 'polygon').map(item => item.packet),
+    priorities, hasFillItems, genericKeys: generic.map(item => item.key),
     fillReady: generic.every(item => polygonOverlayPass.hasResource(item.key))
-      && [...preview, ...draft].every(packet => polygonOverlayPass.hasPreparedResource?.(packet) ?? polygonOverlayPass.hasResource(packet.key))
       && emphasizedIds.every(id => !isPending(id)),
   };
 }

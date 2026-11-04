@@ -34,7 +34,6 @@ export function createRenderingDomain({
   territorialBoundaryResources = null,
   baseResources = null,
   projectedOverlayResources = null,
-  interactionResources = null,
   selectionResources = null,
   refreshRenderResources = null,
   renderers = {},
@@ -104,7 +103,6 @@ export function createRenderingDomain({
   const territorialBoundary = territorialBoundaryResources || {};
   const base = baseResources || {};
   const projected = projectedOverlayResources || {};
-  const interaction = interactionResources || {};
   const selection = selectionResources || {};
   const rootGeneralSelection = ref => {
     if (ref?.domain !== 'territorial') return false;
@@ -819,7 +817,6 @@ export function createRenderingDomain({
     active();
     const result = gpuMapRenderer?.renderInteraction?.(viewState) || null;
     if (result?.deferred) commitViewAttachedLayers(viewState, result);
-    interaction.applyGpuInteractionCoverage?.(result);
     return result;
   };
   const resetProjectGeneration = (generation, presentation = {}) => {

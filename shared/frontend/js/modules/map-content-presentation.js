@@ -51,7 +51,6 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       : gpuResult;
     if (!presentationOnly && frameResult?.deferred) commitViewAttachedLayers(renderViewState, frameResult);
     countries.applyGpuSceneCoverage?.(frameResult);
-    countries.applyGpuInteractionCoverage?.(frameResult);
     return frameResult;
   };
   const renderHydro = frameContext => {

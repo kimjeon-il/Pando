@@ -110,7 +110,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     theme: { baseLandAlpha: 1, defaultLand: '#dddddd', strokes: { country: { width: 1 } } },
     fills: { VISIBLE: { fillAlpha: 1, color: '#ffffff' }, HIDDEN: { fillAlpha: 1, color: '#ffffff' } },
     visible: true, hiddenCountryIds: ['HIDDEN'], scenePolygons: [land], sceneStrokes: [],
-    interactionPolygons: [], interactionFillItems: [], countryEmphasis: {},
+    interactionFillItems: [], countryEmphasis: {},
     visualOrder: { base: ['substrate', 'terrain', 'country-fill'], hydro: [] },
     projectGeneration: 1, geometryRevision: 0, viewRevision: 1, revision: 1,
     styleRevision: 1, physicalStyleRevision: 1,

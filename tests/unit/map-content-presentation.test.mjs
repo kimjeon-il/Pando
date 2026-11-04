@@ -30,7 +30,7 @@ function setup() {
     replaceGpuSceneDomain:()=>updates.push('replace-scene'),
     syncGpuRenderScene:()=>updates.push('sync-scene'),
     gpuMapRenderer:{renderFrame:()=>({succeeded:true})},
-    applyGpuSceneCoverage:()=>{},applyGpuInteractionCoverage:()=>{},
+    applyGpuSceneCoverage:()=>{},
   };
   const owner=createMapContentPresentation({countries,active:()=>{},requireFrame:value=>value,isDisposed:()=>false});
   return{owner,updates,frame:{__mapVisualFrame:true,frameId:17}};

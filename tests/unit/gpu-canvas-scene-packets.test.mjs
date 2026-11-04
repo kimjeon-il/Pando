@@ -14,13 +14,12 @@ test('Canvas packets keep geometry on the Worker until its source changes or the
   assert.equal(packets.delta([first], 'scene')[0].ringCoordinates, geometry);
 });
 
-test('Canvas packet projections include current polygon, stroke, interaction and boundary fields', () => {
+test('Canvas packet projections include current polygon, stroke and boundary fields', () => {
   const packets = createCanvasScenePackets();
   const polygon = { key: 'land', ringCoordinates: new Float64Array([0, 0]), role: 'physical-land', discarded: 1 };
   assert.equal(packets.scenePolygons([polygon])[0].ringCoordinates, polygon.ringCoordinates);
   assert.equal(Object.hasOwn(packets.scenePolygons([polygon])[0], 'discarded'), false);
   assert.deepEqual(packets.scenePolygons([{ key: 'empty' }]), []);
-  assert.deepEqual(packets.interactionPolygons({ previewPackets: [{ kind: 'polygon', packet: polygon }, { kind: 'line' }] }), [polygon]);
   assert.deepEqual(packets.sceneStrokes({ strokes: [{ key: 'coast', startsEnds: [0, 1], discarded: 1 }] }).map(row => row.key), ['coast']);
   assert.equal(packets.countryBoundary(null), null);
   assert.deepEqual(packets.countryBoundary({ segments: [1], outlineOverrides: { startsEnds: [2], ownerRanges: [], ownerIds: [], internalOwners: [] } }).segments, [1]);

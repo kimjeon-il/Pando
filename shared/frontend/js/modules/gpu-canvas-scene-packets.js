@@ -33,11 +33,6 @@ export function createCanvasScenePackets() {
     }));
   }
 
-  function interactionPolygons(interactionState) {
-    return [...(interactionState.previewPackets || []), ...(interactionState.draftPackets || [])]
-      .filter(item => item.kind === 'polygon').map(item => item.packet);
-  }
-
   function countryBoundary(boundary) {
     if (!boundary) return null;
     const { segments, startsEnds, ownerRanges, internalOwners, outlineOwnerIds, outlineOverrides, geometryRevision, sourceQuality } = boundary;
@@ -46,6 +41,6 @@ export function createCanvasScenePackets() {
         ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
   }
 
-  return Object.freeze({ delta, scenePolygons, sceneStrokes, interactionPolygons, countryBoundary,
+  return Object.freeze({ delta, scenePolygons, sceneStrokes, countryBoundary,
     clear: () => sentGeometry.clear() });
 }
