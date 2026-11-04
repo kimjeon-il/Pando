@@ -196,7 +196,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     rendering:{gpuMapRenderer:renderer},mapLayers:{svg:d3.select(labelLayer)},mapHostViewB:{interactionSvg},interactionPresentation:packets,
     interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},setHoverHit:hit=>{state.hoverHit=hit;}},
     domains:{projectDomain,get selectionDomain(){return documentSession.selectionDomain;},get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},feedback:{reportOperationError:onError},
-    selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},presentation:objectPresentation,
+    selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},
     hydroModel:{hydroFeatureById:hydroById},territorialModel:{DISTRIBUTION_MODES},distributionServices:readPorts.distributionServices}));
   gpuScene.initializeSelectionPass();gpuScene.initializeRenderSceneBuilder();gpuScene.initializeGpuSceneDomains();gpuScene.initializeGpuSceneResourceObjectKeys();
   mapHost.attachMapOutput({overlaySvg:svg,gpuCanvas:canvas});
@@ -220,7 +220,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     gpuRenderingA:gpuScene,gpuRenderingB:gpuScene,spatialRecords:spatialIndex,objectOperationsA:objectQuery,
     preferences:{mapTheme:theme,get resolvedInteractionStyle(){return getInteractionStyle();}},
     objectModelA:{get distributionVisibilityRevision(){return objectPresentation.distributionVisibilityRevision;}},
-    rendering:{gpuMapRenderer:renderer},presentation:objectPresentation,
+    rendering:{gpuMapRenderer:renderer},
     interactionStateCommands:{setSelectionPacket:packet=>{gpuScene.currentSelectionPacket=packet;}}
   }),layers:{svg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer},readStateRevision:()=>state.objectPresentationRevision}),
 

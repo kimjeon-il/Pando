@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createObjectPresentation } from "../../shared/frontend/js/modules/object-presentation.js";
+import { createGpuScene } from "../../shared/frontend/js/modules/gpu-scene.js";
+import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 import { normalizeGenericFeatureSemantics } from "../../shared/frontend/js/modules/generic-feature-normalization.js";
 
 test('generic display preserves canonical geometry independently of country revisions and source attributes', () => {
@@ -13,11 +14,11 @@ test('generic display preserves canonical geometry independently of country revi
     } },
   });
   const before = structuredClone(feature);
-  const countries = { countryLandRevision: 1 };
-  const presentation = createObjectPresentation();
-  presentation.connect({ countries });
-  assert.strictEqual(presentation.genericFeatureDisplayFeature(feature), feature);
-  countries.countryLandRevision += 1;
-  assert.strictEqual(presentation.genericFeatureDisplayFeature(feature), feature);
+  const state = { genericFeatures: [feature] };
+  const scene = createGpuScene();
+  scene.connect({ projectState: { state }, selectionServices: { normalizeObjectRef } });
+  const ref = { domain: 'generic', type: 'feature', id: feature.id };
+  assert.strictEqual(scene.mapFeatureForObjectRef(ref), feature);
+  assert.equal(scene.mapFeatureForObjectRef({ ...ref, id: 'missing' }), null);
   assert.deepEqual(feature, before);
 });

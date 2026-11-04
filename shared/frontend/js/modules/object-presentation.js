@@ -36,10 +36,6 @@ export function createObjectPresentation() {
     return '기타 객체';
   }
 
-  function genericFeatureDisplayFeature(feature) {
-    return feature;
-  }
-
   function genericFeatureName(feature) {
     return feature.properties?.name || `이름 없는 ${genericFeatureRoleLabel(feature)} ${String(feature.id || '').slice(0, 8)}`;
   }
@@ -151,7 +147,6 @@ export function createObjectPresentation() {
     set distributionVisibilityRevision(value) { distributionVisibilityRevision = value; },
     get expandedMapDisplayGroups() { return expandedMapDisplayGroups; },
     get genericFeatureColor() { return genericFeatureColor; },
-    get genericFeatureDisplayFeature() { return genericFeatureDisplayFeature; },
     get genericFeatureName() { return genericFeatureName; },
     get genericFeatureRoleLabel() { return genericFeatureRoleLabel; },
     get hydroCategoryKey() { return hydroCategoryKey; },

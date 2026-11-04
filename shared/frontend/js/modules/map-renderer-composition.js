@@ -179,7 +179,6 @@ export function createMapRenderingResources({ports,layers,session,readStateRevis
     }),
     genericResources:snapshot("genericResources", {
       ...common,
-      genericFeatureDisplayFeature: ports.presentation.genericFeatureDisplayFeature,
       genericFeatureColor: ports.colorModel.genericFeatureColor,
       isLayerItemVisible: ports.layerPresentation.isLayerItemVisible,
       selectionSnapshot: () => session.selectionDomain.snapshot().selection,

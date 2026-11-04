@@ -36,8 +36,7 @@ export function createGpuScene({getPhysicalLand=()=>null}={}) {
     if (!ref) return null;
     if (ref.domain === 'territorial') return dependencies.objectModelB.territorialScope.displayFeature(ref.id);
     if (ref.domain === 'generic') {
-      const genericFeature = dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === ref.id) || null;
-      return genericFeature ? (0, dependencies.presentation.genericFeatureDisplayFeature)(genericFeature) : null;
+      return dependencies.projectState.state.genericFeatures.find(feature => String(feature.id) === ref.id) || null;
     }
     if (ref.domain === 'hydro') return (0, dependencies.hydroModel.hydroFeatureById)(ref.id);
     if (ref.domain === 'distribution') {

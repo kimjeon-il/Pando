@@ -194,7 +194,6 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       : new Set();
     const data = state.layerVisibility?.genericFeatures !== false
       ? (state.genericFeatures || []).filter(feature => g.isLayerItemVisible?.('genericFeatures', feature.id))
-        .map(feature => g.genericFeatureDisplayFeature?.(feature) || feature)
         .filter(feature => feature.geometry && ((visibleIds.has(String(feature.id)) && g.geometryMayIntersectViewport?.(feature.geometry))
           || g.selectionHas?.(g.normalizeObjectRef?.({ domain: 'generic', type: 'feature', id: feature.id }))))
       : [];
