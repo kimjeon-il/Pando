@@ -142,7 +142,8 @@ IDs and applies the selected objects in one Core command with Undo/Redo. It does
 not change country/library ownership. Reimport currently creates new objects;
 there is no implicit live synchronization or in-place merge with existing IDs.
 
-Existing reference-map tools remain canonical in `tools/reference-analysis/`.
+Reference-map analysis and training are owned by the independent private
+`kimjeon-il/map-toolkit` repository (`D:/dev/Map Toolkit`).
 QGIS MCP provides GIS
 processing/review, not an automatic approval of pending boundary weights or
 historical attribution. Original maps, models and reports stay in the external

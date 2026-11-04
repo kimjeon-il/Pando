@@ -4,6 +4,9 @@ import {createHash} from 'node:crypto';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {readFile,mkdir,writeFile,lstat,open,unlink} from 'node:fs/promises';
 import {join,dirname,resolve,isAbsolute} from 'node:path';
+import {existsSync} from 'node:fs';
+import {readdir} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const json=value=>JSON.stringify(value,null,2)+'\n';
@@ -84,5 +87,40 @@ export async function installSharedToolkit({root,bytes,pin}){
     }
     await writeFile(join(root,'.shared-toolkit.json'),json({pin,files:artifact.files.map(({data,...row})=>row)}),{flag:'wx'});
     await verifySharedToolkit(root,pin);return {cacheHit:false,pin};
+  }finally{await lock.close();await unlink(lockPath);}
+}
+
+// Explicit retirement of a consumer's previously pinned generated dependency.
+// The caller supplies the old pin from committed source, never from the marker.
+// Missing files are allowed only to resume an interrupted verified retirement.
+export async function retireSharedToolkit({root,pin}){
+  root=resolve(root);contract(pin);await noLinks(root);
+  const lockPath=join(root,'.shared-toolkit.lock'),lock=await open(lockPath,'wx');
+  try{
+    const marker=JSON.parse(await readFile(join(root,'.shared-toolkit.json'),'utf8'));
+    if(JSON.stringify(marker.pin)!==JSON.stringify(pin)||!Array.isArray(marker.files)||hash(JSON.stringify(marker.files))!==pin.inventorySha256)
+      throw Error('Previous shared toolkit pin/inventory identity mismatch');
+    const leases=join(root,'.shared-toolkit-leases');await noLinks(root,'.shared-toolkit-leases');
+    if(existsSync(leases))for(const name of await readdir(leases)){
+      if(!/^[1-9]\d*-[a-f0-9-]+\.json$/.test(name))throw Error('Unknown shared runtime lease');
+      await noLinks(root,'.shared-toolkit-leases/'+name);
+      const path=join(leases,name),lease=JSON.parse(await readFile(path,'utf8'));
+      if(!Number.isSafeInteger(lease.pid)||lease.pid<1||!name.startsWith(lease.pid+'-'))throw Error('Invalid shared runtime lease');
+      try{process.kill(lease.pid,0);throw Error('Shared toolkit is in use by process '+lease.pid);}
+      catch(error){if(error.code!=='ESRCH')throw error;}
+      await unlink(path);
+    }
+    if(existsSync(join(root,'.git'))){
+      const tracked=execFileSync('git',['ls-files','--',...marker.files.map(row=>row.path)],{cwd:root,encoding:'utf8',maxBuffer:1024**2});
+      if(tracked.trim())throw Error('Shared retirement would remove tracked source: '+tracked.trim());
+    }
+    let logicalBytes=0;
+    for(const row of marker.files){
+      checkedPath(root,row.path);await noLinks(root,row.path);
+      try{const data=await readFile(join(root,row.path));if(data.length!==row.bytes||hash(data)!==row.sha256)throw Error('Shared retirement found a modified file: '+row.path);logicalBytes+=data.length;}
+      catch(error){if(error.code!=='ENOENT')throw error;}
+    }
+    for(const row of marker.files)try{await unlink(join(root,row.path));}catch(error){if(error.code!=='ENOENT')throw error;}
+    await unlink(join(root,'.shared-toolkit.json'));return {retired:true,files:marker.files.length,logicalBytes};
   }finally{await lock.close();await unlink(lockPath);}
 }

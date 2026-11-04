@@ -103,7 +103,7 @@ test('merged required native consumers receive their catalogued preparation and 
       'tests/unit/gis-lsib-union-native.test.mjs','tests/unit/gis-lsib-untargeted.test.mjs',
     ]},
     'native-map-image':{env:'PANDO_MAP_IMAGE_ARTIFACT',path:'build-native/map-image/artifact',tests:[
-      'tests/unit/reference-training-mask-audit.test.mjs','tests/unit/terrain-dem-webp.test.mjs',
+      'tests/unit/map-native-resize.test.mjs','tests/unit/terrain-dem-webp.test.mjs',
     ]},
   };
   const f=fixture(t),consumers=Object.values(required).flatMap(row=>row.tests);
