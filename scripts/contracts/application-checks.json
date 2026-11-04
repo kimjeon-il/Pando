@@ -454,6 +454,7 @@
       "kind": "command",
       "inputs": [
         "apps/editor/stage.mjs",
+        "apps/editor/verify-*.ps1",
         "apps/editor/check-stage.mjs",
         "apps/editor/src-tauri/**",
         "apps/editor/native-contract.mjs",

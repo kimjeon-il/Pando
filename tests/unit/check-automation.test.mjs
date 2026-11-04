@@ -354,3 +354,13 @@ test('classic generated metadata resolves to its source owner without a root out
  assert.ok(repo.dependencies(worker).includes(owner));
  assert.ok(planApplicationChecks({changedFiles:[owner],repository:repo}).browserSpecs.includes('tests/browser/terrain-time.spec.mjs'));
 });
+
+test('Hydro metadata workflow verifies the generated snapshot without committing generated paths',()=>{
+ const source=readFileSync(new URL('../../.github/workflows/gis-hydro-metadata-refresh.yml',import.meta.url),'utf8');
+ const workflow=parse(source),steps=workflow.jobs['targeted-metadata-refresh'].steps;
+ assert.equal(workflow.permissions.contents,'read');
+ assert.ok(steps.some(step=>step.run?.includes('node scripts/generate-build-metadata.mjs --check')));
+ assert.ok(steps.some(step=>step.run?.includes('node tools/check-current-hydro-layout.mjs')));
+ assert.ok(steps.some(step=>step.uses==='actions/upload-artifact@v4'));
+ for(const step of steps)assert.doesNotMatch(step.run||'',/git (?:add|commit|push)\b/);
+});
