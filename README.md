@@ -263,10 +263,9 @@ QGS/QGZ는 데이터 자체를 항상 포함하지 않으므로, 프로젝트가
 - [HydroRIVERS 1.0](https://www.hydrosheds.org/products/hydrorivers) (HydroSHEDS 라이선스 및 인용 조건 적용)
 - [Natural Earth raster 3.2.0 Gray Earth / Cross-blended Hypsometric Tints, 21,600×10,800](https://www.naturalearthdata.com/downloads/10m-raster-data/) (퍼블릭 도메인)
 - 258개 국가·속령·분쟁 단위, 원본 좌표 548,471개
-- gdal3.js 2.8.1 / GDAL 3.8.4 (LGPL-2.1-or-later)
 - sql.js 1.14.2 (MIT)
 - fflate 0.8.3 (MIT)
 
 Natural Earth 자료는 [이용 조건](https://www.naturalearthdata.com/about/terms-of-use/)에 따라 퍼블릭 도메인으로 제공됩니다.
 
-각 라이선스 원문은 `assets/js/vendor`의 해당 폴더에 포함되어 있습니다. GIS 런타임은 파일을 열거나 저장할 때만 지연 로딩됩니다.
+각 라이선스 원문은 `shared/frontend/js/vendor`의 해당 폴더에 포함되어 있습니다. 프로젝트 파일을 읽는 데 필요한 SQL 런타임은 파일을 열 때 지연 로딩됩니다.

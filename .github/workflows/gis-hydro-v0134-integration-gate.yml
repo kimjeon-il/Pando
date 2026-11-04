@@ -7,7 +7,7 @@ on:
       - '.github/workflows/gis-hydro-v0134-integration-gate.yml'
       - 'scripts/lib/product-assets.mjs'
       - 'scripts/lib/frontend-build.mjs'
-      - 'tools/plan-pages-deployment-footprint.mjs'
+      - 'tools/stage-monorepo-pages.mjs'
       - 'tests/unit/pages-deployment-footprint.test.mjs'
       - 'tools/check-current-hydro-layout.mjs'
       - 'apps/editor/world-data-plan.mjs'
