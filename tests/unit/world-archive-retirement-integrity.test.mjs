@@ -12,7 +12,7 @@ import { HYDRO_DATA_VERSION } from '../../shared/frontend/js/modules/physical-la
 import { TERRAIN_RASTER_VERSION } from '../../shared/frontend/js/modules/terrain-manifest.js';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
-const workflow = readFileSync(new URL('../../.github/workflows/world-archive-retirement-integrity.yml', import.meta.url), 'utf8');
+const workflow = readFileSync(new URL('../../.github/workflows/world-archive-retirement-integrity.yml', import.meta.url), 'utf8').replaceAll('\r\n','\n');
 // Execute the exact CI gate with real pinned Git objects; no duplicated verifier.
 const script = workflow.match(/node --input-type=module <<'NODE'\n([\s\S]*?)\n {10}NODE/)?.[1].replace(/^ {10}/gm, '');
 assert.ok(script, 'World archive workflow must expose its executable integrity gate');

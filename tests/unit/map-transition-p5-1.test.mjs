@@ -11,7 +11,9 @@ for(const [file,path] of [
  test('P5-1 injects exactly one set of read-only probes: '+file,()=>{
    const source=readFileSync(new URL('../../'+path,import.meta.url),'utf8');
    const injected=instrumentP5Source(source,file);
-   assert.ok(injected.length>source.length);
+   const normalized=source.replaceAll('\r\n','\n');
+   assert.ok(injected.length>normalized.length);
+   assert.equal(instrumentP5Source(normalized.replaceAll('\n','\r\n'),file),injected);
    assert.equal(source.includes('__PANDO_P0__'),false);
  });
 }

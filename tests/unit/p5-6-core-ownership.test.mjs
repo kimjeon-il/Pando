@@ -27,7 +27,7 @@ test('reintroducing a JavaScript spherical integral is rejected',()=>{
 test('replacing the compiled contact gateway with JS fails the ownership audit',()=>{
   assert.throws(()=>inspectOwnership(path=>
     path==='shared/frontend/js/modules/country-contact-core.js'
-      ? read(path).replace('sharedCalculationCore.countryContactPairsBatch(',
+      ? read(path).replaceAll('sharedCalculationCore.countryContactPairsBatch(',
         'calculatePairsInJavaScript(') : read(path)),
   /P5_WEB_COMPILED_DELEGATION_MISSING: country\/contact/);
 });
@@ -35,7 +35,7 @@ test('replacing the compiled contact gateway with JS fails the ownership audit',
 test('compiled grouping remains mandatory after Worker source-ref merge cleanup',()=>{
   assert.throws(()=>inspectOwnership(path=>
     path==='shared/frontend/js/modules/country-shared-boundary-packet.js'
-      ? read(path).replace('sharedCalculationCore.boundaryAssembleStrokePacket(',
+      ? read(path).replaceAll('sharedCalculationCore.boundaryAssembleStrokePacket(',
         'calculateStrokePacketInJavaScript(') : read(path)),
   /P5_WEB_COMPILED_DELEGATION_MISSING: boundary\/packet/);
 });

@@ -2,6 +2,7 @@ import {replaceExactlyOnce} from './map-transition-baseline.mjs';
 
 // Test-only response instrumentation; no application or C++ files changed.
 export function instrumentP5Source(source,name) {
+  source=source.replaceAll('\r\n','\n');
   const mark=(phase,edge)=>`if(!background)globalThis.__PANDO_P0__.mark(${JSON.stringify('p5:'+phase+':'+edge)});`;
   const replace=(oldText,newText)=>{source=replaceExactlyOnce(source,oldText,newText);};
   if(name==='viewer-composition.js'){
