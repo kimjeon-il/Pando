@@ -101,7 +101,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
       getZoom: () => getInputSnapshot().projection === 'globe' ? getInputSnapshot().globeZoom : getInputSnapshot().flatZoom,
       transformView: transformMapView,
       zoomBy: factor => {
-        zoomBy(factor, false);
+        zoomBy(factor);
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
       canDirectTap: () => !getInputSnapshot().projectReplacing && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,

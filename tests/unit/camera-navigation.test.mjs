@@ -4,9 +4,9 @@ import { createCameraNavigation } from "../../shared/frontend/js/modules/camera-
 import { normalizeMapSurfaceDragDelta } from "../../shared/frontend/js/modules/map-host.js";
 import { equirectangularCenterForAnchor } from "../../shared/frontend/js/modules/map-layout-metrics.js";
 
-test('continuous zoom can defer Worker settle and view persistence until the gesture ends', () => {
+test('continuous zoom can defer Worker settle until the gesture ends', () => {
   const events = [];
-  const owner = createCameraNavigation({ persistView: () => events.push(['persist']) });
+  const owner = createCameraNavigation();
   owner.connect({
     projectState: { state: { projection: 'flat', view: { flatZoom: 1, globeZoom: 1 } } },
     rendering: { gpuMapRenderer: { cancelCountryFocus: () => events.push(['cancel']) } },
@@ -22,27 +22,26 @@ test('continuous zoom can defer Worker settle and view persistence until the ges
         endInteraction: reason => events.push(['settle', reason]),
         invalidateView: reason => events.push(['view', reason]),
       },
-      projectDomain: { queueViewAutosave: () => events.push(['persist']) },
     },
   });
 
-  assert.equal(owner.zoomBy(1.1, false, { settle: false, persist: false }), true);
+  assert.equal(owner.zoomBy(1.1, { settle: false }), true);
   assert.deepEqual(events, [['cancel'], ['view', 'zoom-control-interaction']]);
   assert.equal(owner.zoomBy(1.1, false), true);
-  assert.deepEqual(events, [['cancel'], ['view', 'zoom-control-interaction'], ['cancel'], ['settle', 'zoom-control-settle'], ['persist']]);
+  assert.deepEqual(events, [['cancel'], ['view', 'zoom-control-interaction'], ['cancel'], ['settle', 'zoom-control-settle']]);
 });
 
 test('world reset cancels an outstanding focus before settling the current view', () => {
   const events = [];
   const state = { projection: 'globe', view: { globeZoom: 5 } };
-  const owner = createCameraNavigation({ persistView: () => events.push('persist') });
+  const owner = createCameraNavigation();
   owner.connect({ projectState: { state },
     rendering: { gpuMapRenderer: { cancelCountryFocus: () => events.push('cancel') } },
     mapView: { syncMapHostFromState: () => events.push(state.view.globeZoom) },
     domains: { renderingDomain: { endInteraction: () => events.push('settle') } },
   });
   owner.resetView();
-  assert.deepEqual(events, ['cancel', 1, 'settle', 'persist']);
+  assert.deepEqual(events, ['cancel', 1, 'settle']);
 });
 
 function focusNavigationFixture({ host = false } = {}) {

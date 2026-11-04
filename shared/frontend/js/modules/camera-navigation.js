@@ -5,7 +5,7 @@ import { panCameraView } from './camera-pan.js';
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createCameraNavigation({ persistView = null } = {}) {
+export function createCameraNavigation() {
   let dependencies;
 
   function connect(ports) {
@@ -128,14 +128,13 @@ export function createCameraNavigation({ persistView = null } = {}) {
     return changed;
   }
 
-  function zoomBy(factor, announce = true, { settle = true, persist = true } = {}) {
+  function zoomBy(factor, { settle = true } = {}) {
     const current = dependencies.projectState.state.projection === 'globe' ? dependencies.projectState.state.view.globeZoom : dependencies.projectState.state.view.flatZoom;
     const next = current * factor;
     if (!setMapZoomValue(next)) return false;
     dependencies.rendering.gpuMapRenderer.cancelCountryFocus();
     if (settle) dependencies.domains.renderingDomain?.endInteraction?.('zoom-control-settle');
     else dependencies.domains.renderingDomain?.invalidateView?.('zoom-control-interaction');
-    if (persist) if (persistView) persistView();
     return true;
   }
 
@@ -190,7 +189,6 @@ export function createCameraNavigation({ persistView = null } = {}) {
     alignGeographicAnchor(anchor, viewportCenter);
     (0, dependencies.mapView.syncMapHostFromState)();
     dependencies.domains.renderingDomain?.invalidateView?.('focus-country');
-    if (persistView) persistView();
   }
 
   function focusCoordinate(coord, zoom = null) {
@@ -205,7 +203,6 @@ export function createCameraNavigation({ persistView = null } = {}) {
     }
     (0, dependencies.mapView.syncMapHostFromState)();
     dependencies.domains.renderingDomain?.invalidateView?.('focus-coordinate');
-    if (persistView) persistView();
   }
 
   function selectObjectSearchItem(group, id, { mode = 'replace', range = false, orderedRefs = [] } = {}) {
@@ -238,7 +235,6 @@ export function createCameraNavigation({ persistView = null } = {}) {
     }
     (0, dependencies.mapView.syncMapHostFromState)();
     dependencies.domains.renderingDomain?.endInteraction?.('world-view-settle');
-    if (persistView) persistView();
   }
 
   return Object.freeze({
