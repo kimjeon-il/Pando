@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {countryMeshContentKey} from '../../shared/frontend/js/modules/country-mesh-content-key.js';
 import {resourceUpdate} from '../../shared/frontend/js/modules/resource-update-policy.js';
+import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
 
 const square=(x=0)=>({type:'Polygon',coordinates:[[[x,0],[x+2,0],[x+2,2],[x,2],[x,0]]]});
 const country=(id,geometry)=>({id,geometry,properties:{color:'#123456',name:id}});
@@ -43,4 +44,29 @@ test('P3-2 GPU context changes still require upload even if prepared geometry ma
  assert.equal(resourceUpdate(previous,otherGpu).prepare,false);
  assert.equal(resourceUpdate(previous,otherGpu).upload,true);
  assert.equal(resourceUpdate(previous,newPrep).prepare,true);
+});
+
+test('verified immutable country geometries reuse their digest while mutable inputs are rechecked',async t=>{
+ const store=createGeometryVersionStore([{id:'geom',version:1,geojson:square()}]);
+ const immutable=store.get({id:'geom',version:1}),mutable=square(4);
+ const subtle=globalThis.crypto.subtle,previous=Object.getOwnPropertyDescriptor(subtle,'digest'),digest=subtle.digest.bind(subtle);let calls=0;
+ Object.defineProperty(subtle,'digest',{configurable:true,value:(...args)=>{calls++;return digest(...args);}});
+ t.after(()=>{if(previous)Object.defineProperty(subtle,'digest',previous);else delete subtle.digest;});
+ const first=await key([country('A',immutable),country('B',mutable)]);
+ assert.equal(await key([country('A',immutable),country('B',mutable)]),first);
+ assert.equal(calls,3,'only the structurally validated immutable geometry can skip a second hash');
+ mutable.coordinates[0][1][0]+=0.125;
+ assert.notEqual(await key([country('A',immutable),country('B',mutable)]),first);
+ assert.equal(calls,4);
+});
+
+test('immutable digest failures are retried and stale requests cannot admit a key',async t=>{
+ const store=createGeometryVersionStore([{id:'retry-geometry',version:1,geojson:square(9)}]);
+ const immutable=store.get({id:'retry-geometry',version:1}),rows=[country('A',immutable)];
+ const subtle=globalThis.crypto.subtle,previous=Object.getOwnPropertyDescriptor(subtle,'digest'),digest=subtle.digest.bind(subtle);let calls=0;
+ Object.defineProperty(subtle,'digest',{configurable:true,value:(...args)=>{calls++;return calls===1?Promise.reject(Error('digest failed')):digest(...args);}});
+ t.after(()=>{if(previous)Object.defineProperty(subtle,'digest',previous);else delete subtle.digest;});
+ await assert.rejects(key(rows),/digest failed/);
+ let checks=0;assert.equal(await countryMeshContentKey(rows,{isCurrent:()=>++checks<2}),null);
+ assert.equal(typeof await key(rows),'string');assert.equal(calls,2);
 });
