@@ -24,7 +24,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Verify browser-only developer setup and remote CI routing
-        run: node --test tests/unit/remote-only-contract.test.mjs
+        run: node --test tests/unit/remote-only-contract.test.mjs tests/unit/codespaces-acceptance-contract.test.mjs
 
   wasm-compile-and-smoke:
     runs-on: ubuntu-24.04

@@ -69,6 +69,29 @@ development. This change does not remove the plugin or alter its artifacts,
 training lineage, model approval gates or existing plugin release policy.
 See [Independent map analysis](../reference-map-plugin.md).
 
+## Real Codespaces live acceptance
+
+Only a running, user-created Codespace can satisfy this gate. In its terminal
+on `work/remote-only` run:
+
+```bash
+bash .devcontainer/acceptance.sh
+```
+
+This installs a browser **only in Codespaces** and runs
+`tests/browser/codespaces-live.spec.mjs` against the existing, private port
+4173 development server (no test-server fallback). Acceptance verifies
+real Viewer map readiness and country presentation, year navigation,
+source file watcher → revision increment → browser automatic reload,
+WASM bytes and private-source access denial. A unique temporary, untracked
+CSS probe is removed after testing; no tracked file or user WIP is changed.
+Evidence and screenshots are saved under `test-results/codespaces-acceptance`.
+Record the Codespace name, commit SHA and result. A GitHub Actions job is not
+a genuine Codespaces run and cannot be substituted.
+
+If the Codespace has not been launched or its terminal is unavailable,
+report **BLOCKED**, not passed.
+
 ## Acceptance boundaries
 
 The branch's initial contract gate proves source configuration and safety

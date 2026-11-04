@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
+import test from 'node:test';
+const root=fileURLToPath(new URL('../../',import.meta.url)),read=p=>readFileSync(resolve(root,p),'utf8');
+
+test('acceptance requires real Codespaces and no test server fallback',()=>{
+  const shell=read('.devcontainer/acceptance.sh');
+  assert.match(shell,/CODESPACES/);assert.match(shell,/CODESPACE_NAME/);
+  assert.match(shell,/remote-only-doctor/);
+  const config=read('playwright.codespaces.config.js');
+  assert.doesNotMatch(config,/webServer\s*:/);
+  assert.match(config,/127\.0\.0\.1:4173/);
+});
+test('Codespaces test checks real viewer, navigation, reloading and protects tracked sources',()=>{
+  const spec=read('tests/browser/codespaces-live.spec.mjs');
+  for(const key of ['__shell/health','executionMode','pandoeditor-core.wasm','visibleTerritorialCount','timelinePreviousYear','framenavigated','revision','unlink(probe)','finally','config/library-data.json'])
+    assert.ok(spec.includes(key),key);
+  assert.doesNotMatch(spec,/git\s+(?:reset|clean|checkout)/);
+});
