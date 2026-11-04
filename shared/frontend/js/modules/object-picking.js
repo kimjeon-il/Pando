@@ -223,7 +223,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
     if (requestRevision !== objectPickRevision
       || projectGeneration !== (dependencies.domains.projectDomain?.getGeneration?.() ?? 0)
       || pickViewRevision !== dependencies.mapLayout.viewRevision
-      || dependencies.projectState.state.tool !== 'select' || dependencies.projectState.state.labelPlacementMode) return false;
+      || dependencies.projectState.state.tool !== 'select') return false;
     if (!candidates.length) {
       closeObjectChooser({ cancelPending: false });
       await dependencies.domains.selectionUiController.clear({ reason: 'map-background-selection-clear' });
@@ -255,7 +255,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
     if (dependencies.projectState.state.spacePanActive || dependencies.projectState.state.tool === 'move') return;
     // A label names an explicit object even when its text is over another
     // territory or outside the globe. Other tools retain coordinate dispatch.
-    if (territorialLabelId && dependencies.projectState.state.tool === 'select' && !dependencies.projectState.state.labelPlacementMode) {
+    if (territorialLabelId && dependencies.projectState.state.tool === 'select') {
       if (dependencies.projectState.state.projectReplacing || dependencies.projectState.state.modeProcessing) return false;
       const ref = getTerritorialLabelRef(territorialLabelId);
       if (!objectRefSelectable(ref)) return false;
@@ -266,7 +266,7 @@ export function createObjectPicking({performanceRecorder=null,closeActiveOverlay
         mode: source.ctrlKey || source.metaKey ? 'toggle' : 'replace', scope: 'map',
       });
     }
-    if(dependencies.projectState.state.tool==='select'&&!dependencies.projectState.state.labelPlacementMode)return await handleObjectSelectionAt(screenPoint);
+    if(dependencies.projectState.state.tool==='select')return await handleObjectSelectionAt(screenPoint);
     } catch (error) {
       dependencies.feedback.reportOperationError(error, '지도 작업을 적용하지 못했습니다.', 'PL-MAP-CLICK-001', 4200);
       return false;

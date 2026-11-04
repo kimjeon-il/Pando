@@ -76,7 +76,6 @@ function createPresentationFixture() {
   const state = {
     mapMoving: false, projectReplacing: false, spacePanActive: false, tool: 'select',
     projection: 'globe', view: { globeZoom: 1, flatZoom: 1 },
-    labelPlacementMode: false,
   };
   const presentation = createMapInputPresentation({
     reservedTargetSelector: 'button,input,select,textarea,a,[contenteditable="true"]',

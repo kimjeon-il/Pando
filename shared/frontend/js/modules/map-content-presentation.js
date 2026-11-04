@@ -112,7 +112,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       .on('mouseleave.hover', feature => hydro.setMapHover?.('', '', null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
       .on('click', function(feature) {
         const stateNow = hydro.getState?.() || {};
-        if (hydro.mapClickBlocked?.() || stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
+        if (hydro.mapClickBlocked?.() || stateNow.tool !== 'select') return;
         hydro.d3?.event?.stopPropagation?.();
         hydro.handleObjectSelectionAt?.(hydro.d3?.mouse?.(hydro.svg), {
           sourceEvent: hydro.d3?.event,
@@ -210,12 +210,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         .on('click', function(d) {
           const stateNow = g.getState?.() || {};
           if (g.mapClickBlocked?.()) return;
-          if (stateNow.tool === 'merge-generic-feature') {
-            g.d3?.event?.stopPropagation?.();
-            g.toggleGenericFeatureMergeTarget?.(String(d.id));
-            return;
-          }
-          if (stateNow.tool !== 'select' || stateNow.labelPlacementMode) return;
+          if (stateNow.tool !== 'select') return;
           g.d3?.event?.stopPropagation?.();
           g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
         });

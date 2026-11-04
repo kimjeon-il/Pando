@@ -103,7 +103,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       },
       objectSearch: '',
       tool: 'select',
-      labelPlacementMode: false,
       spatialIndex: [],
       mapMoving: false,
       historyDirtyEntityIds: readonlyIds(Object.freeze([])),

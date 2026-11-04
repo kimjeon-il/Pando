@@ -20,8 +20,7 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
   const getInputSnapshot=()=>{
     const state=ports.projectState.state;
     return {moving:state.mapMoving,projectReplacing:state.projectReplacing===true,spacePanActive:state.spacePanActive,
-      tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom,
-      labelPlacementMode:state.labelPlacementMode};
+      tool:state.tool,projection:state.projection,globeZoom:state.view.globeZoom,flatZoom:state.view.flatZoom};
   };
   const setHover = async (ref,options) => {
     try { return await selectionDomain.setHover(ref,options); }
@@ -104,9 +103,9 @@ export function createMapInputPresentation({ports,window,navigator,createMapInpu
         zoomBy(factor);
         if (navigator.vibrate && isMobile()) navigator.vibrate(8);
       },
-      canDirectTap: () => !getInputSnapshot().projectReplacing && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
+      canDirectTap: () => !getInputSnapshot().projectReplacing && getInputSnapshot().tool === 'select',
       directTap: handleMapClick,
-      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool === 'select' && !getInputSnapshot().labelPlacementMode,
+      canDoubleTap: () => !getInputSnapshot().projectReplacing && isMobile() && getInputSnapshot().tool === 'select',
       suppressClick: suppressNextMapClick,
     });
 

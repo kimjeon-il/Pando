@@ -1,5 +1,4 @@
 import { renderLabelText } from './label-text-presentation.js';
-import { isBuiltinPlaceId } from './place-contract.js';
 
 export function createLabelPresentation({ labels,selectionDomain,reportDiagnostic,projectLabelCoordinate,active,stats }) {
   let territorialLabelPositionBindings=[],userLabelPositionBindings=[];
@@ -81,7 +80,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     const data = state.layerVisibility?.labels ? resolvedLayout.userLabels || [] : [];
     const selection = layer.selectAll('g.user-label').data(data, d => d.id);
     const enter = selection.enter().append('g').attr('class', 'user-label').on('click', function(d) {
-      if (labels.mapClickBlocked?.() || state.tool !== 'select' || state.labelPlacementMode) return;
+      if (labels.mapClickBlocked?.() || state.tool !== 'select') return;
       labels.d3?.event?.stopPropagation?.();
       const point = labels.d3?.mouse?.(labels.svg.node());
       labels.handleObjectSelectionAt?.(point, { sourceEvent: labels.d3?.event, hitRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
@@ -128,8 +127,6 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
       const rows = resolvedLayout.userLabelRows?.get(String(label.id)) || [{ language: 'ko', text: label.name }];
       renderLabelText(labels.d3.select(this),rows);
     });
-    selection.on('.drag', null);
-    if (state.tool === 'select' && !state.labelPlacementMode && typeof labels.labelDragBehavior==='function') selection.filter(label => !isBuiltinPlaceId(label.id)).call(labels.labelDragBehavior?.());
     selection.exit().remove();
     userLabelPositionBindings = [];
     layer.selectAll('g.user-label').each(function(label) {

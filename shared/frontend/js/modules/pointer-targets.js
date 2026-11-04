@@ -155,8 +155,7 @@ export function createPointerTargets() {
   }
 
   function mapNavigationEnabled() {
-    return !dependencies.projectState.state.labelPlacementMode
-      && ['select', 'move'].includes(dependencies.projectState.state.tool);
+    return ['select', 'move'].includes(dependencies.projectState.state.tool);
   }
 
   function mapClickBlocked(event = dependencies.platform.d3.event) {
