@@ -17,7 +17,6 @@ import { commitSelectionFallbackCoverage } from './selection-fallback-coverage.j
 import { isMapVisualFrame } from './map-visual-frame.js';
 
 export function createRenderingDomain({
-  readOnly = false,
   prepareMapDisplay = null,
   onMapDisplayReady = () => {},
   gpuMapRenderer = null,
@@ -25,7 +24,6 @@ export function createRenderingDomain({
   mapHost = null,
   selectionDomain = null,
   projectDomain = null,
-  editPreviewController = null,
   domLayers = null,
   labelResources = null,
   countryResources = null,
@@ -36,26 +34,17 @@ export function createRenderingDomain({
   territorialBoundaryResources = null,
   baseResources = null,
   projectedOverlayResources = null,
-  editingRenderResources = null,
   interactionResources = null,
   selectionResources = null,
   refreshRenderResources = null,
-  getEditingRenderPacket = null,
-  emitEditingInteraction = null,
-  reportEditingOperationError = null,
   renderers = {},
   requestFrame = callback => globalThis.requestAnimationFrame?.(callback) ?? globalThis.setTimeout(callback, 0),
   prepareView = () => null,
   onFrameComplete = null,
   invalidMaskMode = 'throw',
-  createEditingPresentation = null,
   reportDiagnostic = () => {},
   disposeMapDisplay = null,
 } = {}) {
-  if (readOnly && (editPreviewController || editingRenderResources || getEditingRenderPacket || emitEditingInteraction || createEditingPresentation))
-    throw new TypeError('Read-only rendering cannot install editor interaction or preview resources.');
-  if (typeof emitEditingInteraction==='function' && typeof reportEditingOperationError!=='function')
-    throw new TypeError('Editing interaction dispatch requires its operation error reporter.');
   let disposed = false;
   const uploadScheduler = createGpuUploadScheduler({ requestFrame, getByteBudget: () => gpuMapRenderer?.getUploadByteBudget?.() || 2 * 1024 * 1024 });
   gpuMapRenderer?.setUploadScheduler?.(uploadScheduler);

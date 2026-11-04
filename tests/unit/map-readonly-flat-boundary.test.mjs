@@ -16,12 +16,11 @@ test('flat review renders map and selection layers without drawing handles',()=>
   for(const key of ['boundaryEditLayer','previewLayer','validationLayer','vertexLayer','draftLayer','snapLayer','territorialOperationLayer'])assert.equal(key in read,false,key);
 });
 
-test('read-only renderer rejects injected editing overlays but keeps ordinary render service',()=>{
-  assert.throws(()=>createRenderingDomain({readOnly:true,createEditingPresentation:()=>({})}),/Read-only rendering/);
-  assert.throws(()=>createRenderingDomain({readOnly:true,getEditingRenderPacket:()=>({})}),/Read-only rendering/);
-  const reader=createRenderingDomain({readOnly:true});
+test('read-only renderer exposes selection and project invalidation without editing APIs',()=>{
+  const reader=createRenderingDomain();
   assert.equal(typeof reader.invalidateSelection,'function');
   assert.equal(typeof reader.invalidateProject,'function');
+  for(const key of ['createEditingPresentation','getEditingRenderPacket','editPreviewController'])assert.equal(key in reader,false,key);
   reader.dispose();
 });
 

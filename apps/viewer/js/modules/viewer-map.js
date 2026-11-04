@@ -211,7 +211,7 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     onError:error=>diagnostics.push({category:'initial-preview',errorCode:'PL-MAP-INITIAL-PREVIEW',
       technicalMessage:error.message||String(error),stack:error.stack||''})});
   const mapDisplay=createMapDisplayClient({getEntities:territorialScope.displayEntities,getRevision:()=>spatialIndex.mapObjectGeometryRevisions.territorial});
-  renderingDomain=createRenderingDomain({readOnly:true,gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
+  renderingDomain=createRenderingDomain({gpuMapRenderer:renderer,sceneBuilder:gpuScene.renderSceneBuilder,projectDomain,selectionDomain:selectionDomain,
     mapHost:()=>mapHost.mapHost,
     domLayers:()=>({svg:labelLayer,interactionSvg,gpuCanvas:canvas}),prepareMapDisplay:mapDisplay.prepare,disposeMapDisplay:mapDisplay.dispose,
     ...createMapRenderingResources({session:{selectionDomain,get renderingDomain(){return renderingDomain;},objectSearchController:{cancelSearch:()=>onPlacesSettled('cancel')}},ports:mergeCapabilityPorts(commonPorts,readPorts,{
