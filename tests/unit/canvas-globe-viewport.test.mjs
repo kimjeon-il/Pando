@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import * as resourceUpdatePolicy from '../../shared/frontend/js/modules/resource-update-policy.js';
 
@@ -14,9 +15,30 @@ function runtime() {
   const source = readFileSync(new URL('workers/canvas-render-worker.js', root), 'utf8');
   const anchor = 'self.onmessage = event => {';
   assert.ok(source.includes(anchor));
-  vm.runInContext(source.replace(anchor, "self.setHydroForTest = features => { hydroEditFeatures = features; }; self.hydroPassForTest = renderHydroPass; self.projectionForTest = createProjection; self.cachedPathForTest = typeof createCanvasPath === 'function' ? createCanvasPath : undefined; " + anchor), scope);
+  vm.runInContext(source.replace(anchor, `self.setHydroForTest = features => { hydroEditFeatures = features; };
+    self.hydroPassForTest = renderHydroPass; self.projectionForTest = createProjection;
+    self.cachedPathForTest = typeof createCanvasPath === 'function' ? createCanvasPath : undefined;
+    self.traceTerrainGrid = (spec,projection,message) => {
+      const previousDraw=drawTexturedTriangle,previousManifest=terrainManifest,triangles=[];
+      terrainManifest={gutter:1};
+      drawTexturedTriangle=(_image,source,destination)=>triangles.push([source,destination]);
+      try { drawGlobeTerrainTile(spec,{},projection,message,1,false); return triangles; }
+      finally { drawTexturedTriangle=previousDraw; terrainManifest=previousManifest; }
+    }; ` + anchor), scope);
   return scope;
 }
+
+test('Canvas terrain preserves exact horizon triangles with real globe projection across repeated calls', () => {
+  const scope=runtime(),spec={bounds:[78.75,11.25,101.25,-11.25],pixelWidth:1024,pixelHeight:1024};
+  const projection=scope.d3.geo.orthographic().rotate([0,0,0]).scale(6000).translate([640,400]);
+  const message={view:{globeZoom:16,globeRotation:[0,0,0]}};
+  for(let i=0;i<2;i++) {
+    const triangles=scope.traceTerrainGrid(spec,projection,message);
+    assert.equal(triangles.length,8460);
+    assert.equal(createHash('sha256').update(JSON.stringify(triangles)).digest('hex'),
+      '34278a0134e2b3ed66fbcfdbaa47b1ff6ee36295703fe6261ee26361aee3bbf4');
+  }
+});
 
 test('zoomed Canvas globe clips projected land and mask paths to the frame without losing viewport crossings', () => {
   const scope = runtime(), width = 1280, height = 752;
