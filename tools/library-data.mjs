@@ -585,15 +585,18 @@ function withCheckoutLock(checkout, operation, maintenance = false, organizing =
   finally { closeSync(handle); unlinkSync(path); }
 }
 export function discardDeadLibraryLock(path) {
-  if(!existsSync(path))return false;
-  const before=lstatSync(path,{bigint:true});
-  if(!before.isFile()||before.isSymbolicLink())return false;
+  const inspect=()=>{
+    try{return lstatSync(path,{bigint:true});}
+    catch(error){if(error.code==='ENOENT')return null;throw error;}
+  };
+  const before=inspect();
+  if(!before||!before.isFile()||before.isSymbolicLink())return false;
   let owner;
   try{owner=JSON.parse(readFileSync(path,'utf8'));}catch{return false;}
   if(!Number.isInteger(owner.pid)||owner.pid<=0||!(typeof owner.root==='string'||typeof owner.checkout==='string'))return false;
   try{process.kill(owner.pid,0);return false;}catch(error){if(error.code!=='ESRCH')return false;}
-  const after=lstatSync(path,{bigint:true});
-  if(before.ino!==after.ino||before.mtimeNs!==after.mtimeNs||before.size!==after.size)return false;
+  const after=inspect();
+  if(!after||before.ino!==after.ino||before.mtimeNs!==after.mtimeNs||before.size!==after.size)return false;
   unlinkSync(path);return true;
 }
 
