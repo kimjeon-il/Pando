@@ -5,7 +5,7 @@ import { guardWorkerSource,installNetworkGuard } from '../network-guard.js';
 import {DOCUMENT_TRANSFER_COMMANDS} from '../document-transfer-contract.js';
 
 test('serialized Worker guard receives the canonical IPC command perimeter',async()=>{
-  const source=guardWorkerSource("'use strict';\\nglobalThis.__workerGuardSmoke=true;",{allowBundledData:true});
+  const source=guardWorkerSource("'use strict';\nglobalThis.__workerGuardSmoke=true;",{allowBundledData:true});
   for(const command of Object.values(DOCUMENT_TRANSFER_COMMANDS))assert.match(source,new RegExp(command));
   const fetched=[];
   const context={URL,location:new URL('https://tauri.localhost/'),fetch:async input=>{fetched.push(String(input));return {ok:true};}};
