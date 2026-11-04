@@ -3,8 +3,6 @@ const DIRTY_BITS = {
   GPU_FRAME: 1 << 1,
   BASE: 1 << 2,
   PROJECTED_OVERLAYS: 1 << 3,
-  INTERACTION_OVERLAYS: 1 << 4,
-  EDITING_OVERLAYS: 1 << 5,
   LABEL_POSITIONS: 1 << 6,
   LABEL_LAYOUT: 1 << 7,
   LAYER_TREE: 1 << 8,
@@ -51,8 +49,6 @@ const SETTLE_MASK = MAP_RENDER_DIRTY.OVERLAY_GEOMETRY
 const REPROJECT_MASK = MAP_RENDER_DIRTY.VIEW
   | MAP_RENDER_DIRTY.BASE
   | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
-  | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS
-  | MAP_RENDER_DIRTY.EDITING_OVERLAYS
   | MAP_RENDER_DIRTY.OVERLAY_GEOMETRY
   | MAP_RENDER_DIRTY.LABEL_LAYOUT
   | MAP_RENDER_DIRTY.HUD
@@ -87,9 +83,6 @@ function validatedMask(value, reason = '') {
 
 function expandedMask(requestedMask) {
   let mask = requestedMask & WORK_DIRTY_MASK;
-  // Editing transitions also change the preview lifetime. Clear/update its SVG
-  // and GPU packets before the same frame submits interaction and selection.
-  if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) mask |= MAP_RENDER_DIRTY.INTERACTION_OVERLAYS;
   if (requestedMask & (MAP_RENDER_DIRTY.RESIZE | MAP_RENDER_DIRTY.PROJECTION)) mask |= REPROJECT_MASK;
   if (requestedMask & MAP_RENDER_DIRTY.PROJECT) mask |= WORK_DIRTY_MASK;
   return mask;
@@ -149,8 +142,7 @@ export function createMapRenderCoordinator({
   const presentationMask = MAP_RENDER_DIRTY.LABEL_LAYOUT | MAP_RENDER_DIRTY.VIEW_PRESENTATION
     | MAP_RENDER_DIRTY.LABEL_POSITIONS | MAP_RENDER_DIRTY.PROJECTED_OVERLAYS
     | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW
-    | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD
-    | MAP_RENDER_DIRTY.EDITING_OVERLAYS | MAP_RENDER_DIRTY.INTERACTION_OVERLAYS;
+    | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD;
 
   function render({ dirtyMask, reasons = [] }) {
     // A replacement owns no display frame until its renderer commits one.
@@ -226,26 +218,7 @@ export function createMapRenderCoordinator({
       }
       deferredPresentationMask = 0;
 
-      if (mask & MAP_RENDER_DIRTY.INTERACTION_OVERLAYS) {
-        callRenderer('geometryPreview', rendererTimes, viewState);
-        callRenderer('validation', rendererTimes, viewState);
-      }
-
-      if (mask & MAP_RENDER_DIRTY.EDITING_OVERLAYS) {
-        const domainPatch = mask & (MAP_RENDER_DIRTY.COUNTRY_PATCH | MAP_RENDER_DIRTY.GENERIC_PATCH
-          | MAP_RENDER_DIRTY.HYDRO_EDIT_PATCH | MAP_RENDER_DIRTY.TERRITORIAL_PATCH);
-        if (!(mask & MAP_RENDER_DIRTY.OVERLAY_DATA) && !domainPatch) {
-          callRenderer('hydroEdits', rendererTimes, viewState);
-        }
-        if (!domainPatch || (mask & MAP_RENDER_DIRTY.COUNTRY_PATCH)) {
-          callRenderer('boundaryEdit', rendererTimes, viewState);
-        }
-        callRenderer('vertices', rendererTimes, viewState);
-        callRenderer('draft', rendererTimes, viewState);
-        callRenderer('snapIndicator', rendererTimes, viewState);
-      }
-
-      if (mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.EDITING_OVERLAYS)) {
+      if (mask & MAP_RENDER_DIRTY.SELECTION_DATA) {
         callRenderer('selectionData', rendererTimes, viewState);
       } else if (mask & MAP_RENDER_DIRTY.SELECTION_STYLE) {
         callRenderer('selectionStyle', rendererTimes, viewState);
@@ -265,7 +238,7 @@ export function createMapRenderCoordinator({
         });
       }
       if ((mask & MAP_RENDER_DIRTY.GPU_INTERACTION)
-        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW | MAP_RENDER_DIRTY.EDITING_OVERLAYS))) {
+        && !(mask & (MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW))) {
         const interactionResult = callRenderer('gpuInteraction', rendererTimes, viewState);
         // A stroke upload can complete without a selection or camera change.
         // Commit its coverage to the temporary SVG layer in this same frame.
