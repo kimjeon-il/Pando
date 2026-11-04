@@ -454,6 +454,12 @@ jobs:
           path: build-native/terrain-dem-tint/artifact/
           if-no-files-found: error
           retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terrain-dem-fill-conda-${{ matrix.os }}-${{ github.sha }}
+          path: build-native/terrain-dem-encode/fill-artifact/
+          if-no-files-found: error
+          retention-days: 7
   terrain-dem-gutters:
     if: github.event_name == 'workflow_dispatch' && (inputs.target == 'terrain-dem-gutters' || inputs.target == 'terrain-dem-gutters-integrated')
     strategy:
