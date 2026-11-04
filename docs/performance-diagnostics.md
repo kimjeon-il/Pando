@@ -21,10 +21,7 @@ window.__PANDOLAB_STARTUP_METRICS__
 - `layoutShifts`: 최근 사용자 입력과 무관한 layout shift
 - `memory`: Chromium에서 제공되는 경우의 JS heap 표본
 - `operations.mobile-sheet.drag`: 모바일 시트 드래그 시간, 평균/최대 프레임 간격, 느린 프레임과 추정 누락 프레임
-- `operations.ui.commit-to-paint`: 주요 편집 확정 명령부터 다음 페인트까지의 시간
-- `operations.project.transaction`: geometry/worker 기반 편집 transaction의 총 시간과 단계별 시간
 - `operations.project.command`: 일반 동기 문서·보기 명령의 총 시간
-- `operations.autosave.persist`: autosave build, IndexedDB, fallback 저장 시간
 
 ## 해석 기준
 
@@ -36,9 +33,7 @@ window.__PANDOLAB_STARTUP_METRICS__
 1. 강력 새로고침 후 첫 실행 보고서를 저장한다.
 2. 같은 페이지를 다시 열어 warm-cache 보고서를 저장한다.
 3. 모바일 시트를 2~3초간 드래그한다.
-4. 대표 편집 작업을 한 번 확정한다.
-5. autosave 완료 후 보고서를 다시 저장한다.
-6. 최적화 전후의 `count`, `p95Ms`, `maxMs`, `firstLoadTotalMs`를 비교한다.
+4. 보고서를 다시 저장하고 최적화 전후의 `count`, `p95Ms`, `maxMs`, `firstLoadTotalMs`를 비교한다.
 
 보고서는 최근 표본 120개만 유지한다. 프로젝트 데이터나 사용자 입력값 전체를 저장하거나 외부로 전송하지 않는다.
 

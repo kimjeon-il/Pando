@@ -11,7 +11,7 @@ test('current shared performance collector exposes diagnostic data without retir
  assert.match(metrics,/type, buffered: true/);
 });
 test('startup, frame cadence and paint telemetry keep bounded diagnostic fields',()=>{
- for(const name of ['firstLoadWindowMs','MOBILE_SHEET_DRAG','COMMIT_TO_PAINT','estimatedMissedFrames','usedJSHeapSize'])
+ for(const name of ['firstLoadWindowMs','MOBILE_SHEET_DRAG','estimatedMissedFrames','usedJSHeapSize'])
   assert.ok(metrics.includes(name),name);
 });
 test('canonical project command instrumentation does not use the retired editor persistence owner',()=>{
