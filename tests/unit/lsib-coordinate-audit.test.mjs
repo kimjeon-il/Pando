@@ -26,3 +26,5 @@ test('ring rotation and reversal cannot split a three-vertex original chain at t
  const open=[[0,0],[1,0],[2,0],[4,3],[0,3]];let expected;
  for(let n=0;n<open.length;n++)for(const reverse of[false,true]){let p=[...open.slice(n),...open.slice(0,n)];if(reverse)p.reverse();const r=audit({type:'Polygon',coordinates:[[...p,p[0]]]});assert.equal(r.chains.length,1);assert.equal(r.chains[0].vertices,3);expected??=r.chains[0].coordinateHash;assert.equal(r.chains[0].coordinateHash,expected);}
 });
+
+test('an inserted nonmatching pivot cannot split a cyclic retained subsequence',()=>{const open=[[0,0],[-1,-.1],[1,0],[2,0],[4,3],[0,3]];for(let n=0;n<open.length;n++)for(const reverse of[false,true]){let p=[...open.slice(n),...open.slice(0,n)];if(reverse)p.reverse();const r=audit({type:'Polygon',coordinates:[[...p,p[0]]]});const chain=r.chains.find(c=>c.kind==='retained-original-subsequence');assert.ok(chain);assert.equal(chain.retainedOriginalVertices,3);assert.equal(chain.vertices,4);assert.equal(chain.insertedOrDifferentVertices,1);assert.deepEqual([...chain.referenceIndices].sort((a,b)=>a-b),[0,1,2]);}});

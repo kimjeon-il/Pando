@@ -15,7 +15,15 @@ export function indexLsibCoordinates(features,targetKeys,{digits=null,excludeCou
  coordinates.forEach((p,index)=>{const k=key(p,digits);if(!targetKeys.has(k))return;if(!vertices.has(k))vertices.set(k,[]);vertices.get(k).push({id,index});});});
  }return {vertices,parts,digits,sourceVertices,excluded};
 }
-function consecutiveRuns(matches,stepTest){const runs=[];let run=[];for(const m of matches){if(run.length&&!stepTest(run.at(-1),m,run)){if(run.length>=3)runs.push(run);run=[];}run.push(m);}if(run.length>=3)runs.push(run);return runs;}
+function consecutiveRuns(matches,stepTest,period){
+ if(matches.length<3)return [];
+ const n=matches.length,shift=(m,offset)=>({...m,targetIndex:m.targetIndex+offset});
+ let cut=0;
+ for(let i=0;i<n;i++){const a=matches[i],prev=shift(matches[(i+n-1)%n],i===0?-period:0),b=shift(matches[(i+1)%n],i===n-1?period:0);if(!stepTest(prev,a,[prev])||!stepTest(a,b,[prev,a])){cut=i;break;}}
+ const ordered=Array.from({length:n+1},(_,i)=>shift(matches[(cut+i)%n],cut+i>=n?period:0)),runs=[];let run=[ordered[0]];
+ for(const m of ordered.slice(1)){const prev=run.at(-1);if(!stepTest(prev,m,run)){if(run.length>=3)runs.push(run);run=stepTest(prev,m,[prev])?[prev]:[];}run.push(m);}
+ if(run.length>=3)runs.push(run);return runs;
+}
 export function auditLsibGeometry(geometry,index){
  const chains=[],contacts=[];let ambiguousVertices=0;
  for(const originalRing of polygonRings(geometry)){
@@ -30,13 +38,13 @@ export function auditLsibGeometry(geometry,index){
    ordered.forEach((p,targetIndex)=>{const found=(index.vertices.get(key(p,index.digits))||[]).filter(m=>m.id===id).map(m=>m.index);if(found.length)positions.set(targetIndex,found);});
    const originalTarget=i=>(i+cut)%open.length;
    const ref=index.parts.get(id),last=ref.coordinates.length-1,closed=key(ref.coordinates[0],index.digits)===key(ref.coordinates[last],index.digits),count=closed?last:last+1;
-   const matches=[];for(const[targetIndex,raw]of positions){const options=[...new Set(raw.map(x=>closed&&x===last?0:x))];if(options.length!==1){ambiguousVertices++;continue;}matches.push({targetIndex,referenceIndex:options[0]});}matches.sort((a,b)=>a.targetIndex-b.targetIndex);
+   const matches=[];for(const[targetIndex,raw]of positions){if(targetIndex===open.length)continue;const options=[...new Set(raw.map(x=>closed&&x===last?0:x))];if(options.length!==1){ambiguousVertices++;continue;}matches.push({targetIndex,referenceIndex:options[0]});}matches.sort((a,b)=>a.targetIndex-b.targetIndex);
    const delta=(a,b)=>{const d=b.referenceIndex-a.referenceIndex;if(closed&&d===count-1)return -1;if(closed&&d===1-count)return 1;return d;};
-   const emit=(run,kind)=>{const retainedCoordinates=run.map(m=>ring.coordinates[m.targetIndex]),coordinates=ring.coordinates.slice(run[0].targetIndex,run.at(-1).targetIndex+1),referenceCoordinates=run.map(m=>ref.coordinates[m.referenceIndex]),exactNumeric=retainedCoordinates.every((p,n)=>p[0]===referenceCoordinates[n][0]&&p[1]===referenceCoordinates[n][1]);
+   const emit=(run,kind)=>{const retainedCoordinates=run.map(m=>ring.coordinates[m.targetIndex%open.length]),coordinates=Array.from({length:run.at(-1).targetIndex-run[0].targetIndex+1},(_,i)=>ring.coordinates[(run[0].targetIndex+i)%open.length]),referenceCoordinates=run.map(m=>ref.coordinates[m.referenceIndex]),exactNumeric=retainedCoordinates.every((p,n)=>p[0]===referenceCoordinates[n][0]&&p[1]===referenceCoordinates[n][1]);
     if(index.digits!=null&&exactNumeric)return;
     chains.push({featureId:ref.featureId,part:ref.part,countries:ref.countries,status:ref.status,notes:ref.notes,kind,normalization:index.digits==null?'strict-numeric':`decimal-${index.digits}`,exactNumeric,polygonIndex:ring.polygonIndex,ringIndex:ring.ringIndex,targetStart:originalTarget(run[0].targetIndex),targetEnd:originalTarget(run.at(-1).targetIndex),ringRotation:cut,vertices:coordinates.length,retainedOriginalVertices:run.length,insertedOrDifferentVertices:coordinates.length-run.length,targetMatchedIndices:run.map(m=>originalTarget(m.targetIndex)),referenceIndices:run.map(m=>m.referenceIndex),referencePartVertices:ref.coordinates.length,coordinateHash:coordinateChainHash(coordinates),referenceRetainedCoordinateHash:coordinateChainHash(referenceCoordinates),referencePartCoordinateHash:ref.sourceCoordinateHash,coordinates,referenceCoordinates});};
-   const raw=consecutiveRuns(matches,(a,b,run)=>b.targetIndex===a.targetIndex+1&&Math.abs(delta(a,b))===1&&(run.length<2||Math.sign(delta(run.at(-2),a))===Math.sign(delta(a,b))));for(const run of raw)emit(run,'consecutive-original-chain');
-   const subset=consecutiveRuns(matches,(a,b,run)=>delta(a,b)!==0&&(run.length<2||Math.sign(delta(run.at(-2),a))===Math.sign(delta(a,b))));for(const run of subset)if(run.slice(1).some((m,n)=>Math.abs(delta(run[n],m))>1||m.targetIndex!==run[n].targetIndex+1))emit(run,'retained-original-subsequence');
+   const raw=consecutiveRuns(matches,(a,b,run)=>b.targetIndex===a.targetIndex+1&&Math.abs(delta(a,b))===1&&(run.length<2||Math.sign(delta(run.at(-2),a))===Math.sign(delta(a,b))),open.length);for(const run of raw)emit(run,'consecutive-original-chain');
+   const subset=consecutiveRuns(matches,(a,b,run)=>delta(a,b)!==0&&(run.length<2||Math.sign(delta(run.at(-2),a))===Math.sign(delta(a,b))),open.length);for(const run of subset)if(run.slice(1).some((m,n)=>Math.abs(delta(run[n],m))>1||m.targetIndex!==run[n].targetIndex+1))emit(run,'retained-original-subsequence');
    if(!raw.length&&!subset.length&&matches.length)contacts.push({featureId:ref.featureId,part:ref.part,countries:ref.countries,matchedVertices:matches.length,interpretation:'isolated points / two-point edges / interrupted or ambiguous order; not counted as an original-detail chain'});
   }
  }
