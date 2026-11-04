@@ -97,7 +97,7 @@ jobs:
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/file-access-contract.test.mjs
           tests/unit/native-document-transfer-contract.test.mjs
-          apps/editor/tests/native-platform-adapter.test.mjs
+          apps/editor/tests/stage.test.mjs
 
   web-editor-regression:
     runs-on: ubuntu-24.04
