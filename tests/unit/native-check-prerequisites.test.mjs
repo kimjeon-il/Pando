@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,readdirSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {dirname,join,posix} from 'node:path';
+import {dirname,join,posix,resolve} from 'node:path';
 import {loadRepository,matchesPattern,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
 import {executePlan} from '../../scripts/run-application-checks.mjs';
 import {nativeTestCapacity,prepareNativeTestTool} from '../../scripts/prepare-native-test-tools.mjs';
@@ -104,7 +104,7 @@ test('merged required native consumers receive their catalogued preparation and 
     assert.equal(result.ok,true,file);
     const execution=calls.find(row=>row.argv.includes(file));
     assert.ok(execution,file);
-    assert.equal(execution.env[expected.env],join(f.root,expected.path),file);
+    assert.equal(resolve(execution.env[expected.env]),join(f.root,expected.path),file);
   }
 });
 
@@ -132,12 +132,12 @@ test('required DEM checks prepare their native tools and inherit only the tint f
   assert.equal(calls.filter(row=>row.argv.at(-1)==='terrain-dem-fill').length,1);
   const expectedFill=join(f.root,'build-native/terrain-dem-encode/fill-artifact'),expectedSdk=join(f.root,'build-native/terrain-dem-gdal/sdk/lib');
   for(const execution of [calls[tintAt],calls.find(row=>row.argv.includes(tint))]){
-    assert.equal(execution.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY,expectedFill);
-    assert.equal(execution.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY,join(f.root,'build-native/terrain-dem-tint/artifact'));
-    assert.equal(execution.env.LD_LIBRARY_PATH,expectedSdk);
+    assert.equal(resolve(execution.env.PANDO_TERRAIN_DEM_FILL_DIRECTORY),expectedFill);
+    assert.equal(resolve(execution.env.PANDO_TERRAIN_DEM_TINT_DIRECTORY),join(f.root,'build-native/terrain-dem-tint/artifact'));
+    assert.equal(resolve(execution.env.LD_LIBRARY_PATH),expectedSdk);
   }
   const gutterExecution=calls.find(row=>row.argv.includes(gutters));
-  assert.equal(gutterExecution.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY,join(f.root,'build-native/terrain-dem-gutters/artifact'));
+  assert.equal(resolve(gutterExecution.env.PANDO_TERRAIN_DEM_GUTTERS_DIRECTORY),join(f.root,'build-native/terrain-dem-gutters/artifact'));
   assert.equal(gutterExecution.env.PANDO_MAP_IMAGE_ARTIFACT,process.env.PANDO_MAP_IMAGE_ARTIFACT);
   for(const file of [gutters,optionalFill,plain]){
     const execution=calls.find(row=>row.argv.includes(file));
@@ -156,9 +156,9 @@ test('DEM GDAL setup retains the canonical pin and is requested only for its con
   assert.equal(setup.with['create-args'],'libgdal-core=3.13.3');
   assert.equal(setup.with['init-shell'],'none');
   const f=fixture(t),calls=[],probe=argv=>{calls.push(argv);return{status:0,stdout:'3.13.3\n'};};
-  const gutters=await nativeTestCapacity(['terrain-dem-gutters'],{root:f.root,probe});
+  const gutters=await nativeTestCapacity(['terrain-dem-gutters'],{root:f.root,probe,platform:'linux',architecture:'x64'});
   assert.equal(gutters.gdalEnvironment,false);assert.deepEqual(calls,[]);
-  const tint=await nativeTestCapacity(['terrain-dem-tint','terrain-dem-fill'],{root:f.root,probe});
+  const tint=await nativeTestCapacity(['terrain-dem-tint','terrain-dem-fill'],{root:f.root,probe,platform:'linux',architecture:'x64'});
   assert.equal(tint.gdalEnvironment,true);assert.equal(tint.additionalBytes,0);
   assert.equal(calls.length,1);assert.deepEqual(calls[0].slice(1),['run','-n','pando-dem-gdal','gdal-config','--version']);
 });
@@ -274,6 +274,6 @@ test('each compiled territorial source and recursive project header selects its 
 test('an incorrect prepared pinned source fails before download or replacement',async t=>{
   const f=fixture(t),path='assets/data/countries-ne-5.1.1.geojson';
   f.put(path,'different source');
-  await assert.rejects(prepareNativeTestTool('german-natural-earth',{root:f.root}),/Prepared native test source differs/);
+  await assert.rejects(prepareNativeTestTool('german-natural-earth',{root:f.root,platform:'linux',architecture:'x64'}),/Prepared native test source differs/);
   assert.equal(readFileSync(join(f.root,path),'utf8'),'different source');
 });

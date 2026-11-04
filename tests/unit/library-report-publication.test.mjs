@@ -12,11 +12,13 @@ const put = (root, file, text) => { mkdirSync(dirname(join(root, file)), { recur
 function fixture(t) {
   const base = mkdtempSync(join(tmpdir(), 'pando-report-publish-'));
   t.after(() => rmSync(base, { recursive: true, force: true }));
-  const shared = join(base, 'library'), root = join(base, 'app'), remote = join(base, 'remote.git'), data = join(shared, '.pando-worktrees/ui');
-  for (const folder of [shared, root]) {
-    mkdirSync(folder); git(folder, 'init', '-q', '-b', folder === root ? 'work/ui' : 'main');
+  const shared = join(base, 'library'), app = join(base, 'app'), root = join(base, 'worktrees', 'ui'), remote = join(base, 'remote.git'), data = join(shared, '.pando-worktrees/ui');
+  for (const folder of [shared, app]) {
+    mkdirSync(folder); git(folder, 'init', '-q', '-b', 'main');
     git(folder, 'config', 'user.name', 'Fixture'); git(folder, 'config', 'user.email', 'fixture@example.invalid');
   }
+  git(app, 'commit', '--allow-empty', '-qm', 'app baseline');
+  git(app, 'worktree', 'add', '-qb', 'work/ui', root);
   git(base, 'init', '--bare', '-q', remote);
   put(shared, '.gitignore', '.pando-worktrees/\n.pando-store/\nreports/.*\n');
   put(shared, '.gitattributes', '* -text\n'); put(shared, 'assets/data/current.bin', 'published runtime');

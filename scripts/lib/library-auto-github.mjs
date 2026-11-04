@@ -59,7 +59,11 @@ export async function verifyArtifactLive({run,expected,api,token,fetch=globalThi
  const chunks=[];let bytes=0;for await(const chunk of response.body){bytes+=chunk.length;if(bytes>16*1024*1024)fail('ARTIFACT_TOO_LARGE');chunks.push(Buffer.from(chunk));}
  const dir=mkdtempSync(join(tmpdir(),'pando-auto-evidence-'));
  let evidence;
- try{const path=join(dir,'evidence.zip');writeFileSync(path,Buffer.concat(chunks));evidence=JSON.parse(execFileSync('unzip',['-p',path,'pages-evidence.json'],{maxBuffer:4*1024*1024,stdio:['ignore','pipe','pipe']}));}finally{rmSync(dir,{recursive:true,force:true});}
+ try{const path=join(dir,'evidence.zip');writeFileSync(path,Buffer.concat(chunks));
+  const windows=process.platform==='win32',executable=windows?join(process.env.SystemRoot,'System32','tar.exe'):'unzip';
+  const args=windows?['-xOf',path,'pages-evidence.json']:['-p',path,'pages-evidence.json'];
+  evidence=JSON.parse(execFileSync(executable,args,{maxBuffer:4*1024*1024,stdio:['ignore','pipe','pipe']}));
+ }finally{rmSync(dir,{recursive:true,force:true});}
  if(evidence.sourceCommit!==run.head_sha||evidence.dataCommit!==expected.dataSha)fail('ARTIFACT_IDENTITY_MISMATCH');
  const verified=await verifyPagesDeployment({baseUrl:'https://kimjeon-il.github.io/Pando/',evidence,fetchFn:(url,options)=>{const u=new URL(url);if(u.origin!=='https://kimjeon-il.github.io'||!u.pathname.startsWith('/Pando/'))fail('INVALID_LIVE_URL');return fetch(u,{...options,redirect:'error',signal:AbortSignal.timeout(30000)});}});
  return {verified:true,...verified,artifactId:item.id};

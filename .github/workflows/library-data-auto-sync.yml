@@ -71,7 +71,8 @@ jobs:
             let revision = process.env.DATA_REVISION || '';
             if (context.eventName === 'push') {
               const {execFileSync} = require('node:child_process');
-              const {resolveWorkGisRequest, REQUEST_PATH} = await import(process.cwd() + '/scripts/lib/library-auto-request.mjs');
+              const {pathToFileURL} = require('node:url');
+              const {resolveWorkGisRequest, REQUEST_PATH} = await import(pathToFileURL(process.cwd() + '/scripts/lib/library-auto-request.mjs').href);
               const before = context.payload.before, after = context.sha;
               if (!/^(?!0{40}$)[a-f0-9]{40}$/.test(before || '') || !/^(?!0{40}$)[a-f0-9]{40}$/.test(after || '')) throw new Error('Invalid request push SHA');
               const git = args => execFileSync('git', args, {encoding:'utf8'});

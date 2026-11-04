@@ -30,11 +30,13 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 function fixture(t) {
   const base = mkdtempSync(join(tmpdir(), 'pando-report-layout-'));
   t.after(() => rmSync(base, { recursive: true, force: true }));
-  const root = join(base, 'app'), shared = join(base, 'data'), remote = join(base, 'remote.git');
-  for (const folder of [root, shared]) {
-    mkdirSync(folder); git(folder, 'init', '-qb', folder === root ? 'work/ui' : 'main');
+  const app = join(base, 'app'), root = join(base, 'worktrees', 'ui'), shared = join(base, 'data'), remote = join(base, 'remote.git');
+  for (const folder of [app, shared]) {
+    mkdirSync(folder); git(folder, 'init', '-qb', 'main');
     git(folder, 'config', 'user.name', 'Fixture'); git(folder, 'config', 'user.email', 'fixture@example.invalid');
   }
+  git(app, 'commit', '--allow-empty', '-qm', 'app baseline');
+  git(app, 'worktree', 'add', '-qb', 'work/ui', root);
   git(base, 'init', '--bare', '-q', remote);
   put(shared, '.gitignore', '/reports/.*\n/.pando-worktrees/\n/.pando-store/\n');
   const originals = {
@@ -110,7 +112,7 @@ test('preview is non-mutating and apply organizes originals, private editions an
   // Fresh clones may be detached at an old runtime pin while main already
   // carries the organized report metadata. New owners must use library main.
   git(f.shared, 'update-ref', '--no-deref', 'HEAD', f.published);
-  const fresh = join(dirname(f.root), 'fresh-app');
+  const fresh = join(dirname(f.root), 'objects');
   git(f.root, 'worktree', 'add', '-b', 'work/objects', fresh);
   mkdirSync(join(fresh, '.library-data')); symlinkSync(f.data, join(fresh, '.library-data/repository'), process.platform === 'win32' ? 'junction' : 'dir');
   unlinkSync(join(f.shared, 'reports/.owners.json'));

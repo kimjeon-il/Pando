@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import {resolve} from 'node:path';
 const appPath=new URL('../../.github/workflows/library-data-auto-sync.yml',import.meta.url);
 const repoRoot=fileURLToPath(new URL('../..',import.meta.url));
@@ -24,7 +24,7 @@ async function gate({event='workflow_dispatch',branch='main',ref=`refs/heads/${b
  const s=source(appPath),script=s.split('          script: |\n')[1].split('\n  sync:')[0].split('\n').map(l=>l.slice(12)).join('\n');
  const outputs={},commands=[],[owner,name]=repo.split('/');
  const fn=new (Object.getPrototypeOf(async function(){}).constructor)('require','process','context','core',script);
- await fn(name=>name==='node:fs'?{readFileSync:()=>JSON.stringify({productionEnabled:enabled})}:{execFileSync:(exe,args)=>{assert.equal(exe,'git');commands.push(args);if(args[0]==='diff')return changed?'config/library-auto-work-gis-request.json\n':'';if(args[0]==='show')return JSON.stringify(request);throw Error('unexpected git');}}, {env:{DATA_BRANCH:branch,DATA_REVISION:sha},cwd:()=>repoRoot}, {eventName:event,ref,sha,repo:{owner,repo:name},payload:{before,workflow_run:{head_branch:head}}}, {setOutput:(k,v)=>outputs[k]=v});
+ await fn(name=>name==='node:fs'?{readFileSync:()=>JSON.stringify({productionEnabled:enabled})}:name==='node:url'?{pathToFileURL}:{execFileSync:(exe,args)=>{assert.equal(exe,'git');commands.push(args);if(args[0]==='diff')return changed?'config/library-auto-work-gis-request.json\n':'';if(args[0]==='show')return JSON.stringify(request);throw Error('unexpected git');}}, {env:{DATA_BRANCH:branch,DATA_REVISION:sha},cwd:()=>repoRoot}, {eventName:event,ref,sha,repo:{owner,repo:name},payload:{before,workflow_run:{head_branch:head}}}, {setOutput:(k,v)=>outputs[k]=v});
  return {outputs,commands};
 }
 test('actual receiver gate rejects mismatched refs and disabled main, permits explicit work branch',async()=>{
