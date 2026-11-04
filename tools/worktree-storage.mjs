@@ -12,6 +12,8 @@ const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const schema='pando-worktree-storage-v1';
 export const cacheLimit=2*1024**3;
 const stageMarker='.pandolab-web-shell-stage';
+const nativeWriter=p=>Boolean(p.globalBuild)||/^(cargo|rustc|rust-lld|cmake|ninja|msbuild|gradle|clang(?:\+\+)?|emcc|em\+\+)\.exe$/i.test(p.Name||'')||/stage\.mjs|tools[\\/]build-[\w-]+\.mjs|tauri.*(dev|build)/i.test(p.CommandLine||'');
+const usesDirectory=(p,directory)=>[p.ExecutablePath,p.CommandLine].some(value=>String(value||'').replaceAll('\\','/').toLowerCase().includes(directory.replaceAll('\\','/').toLowerCase()+'/'));
 export function workspaceOutputRoot(root,settings=storageSettings(root)){
   return settings?containedPath(settings.cacheRoot,'workspaces/'+contentHash(Buffer.from(resolve(root).toLowerCase())).slice(0,16)):resolve(root,'.library-data/output');
 }
@@ -62,18 +64,23 @@ export function installFrontendSnapshot({root,snapshot,settings=storageSettings(
     return existsSync(resolve(root,'config/library-data.json'))?withLibraryLock(root,install):install();
   });
 }
-export function retireFrontendSnapshots({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers(),afterFile=()=>{}}={}){
+function retireArtifactSnapshots(kind,{root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers(),refreshProcesses=()=>processes,afterFile=()=>{}}={}){
+  const native=kind==='native',markerName=native?'native-artifact.json':'frontend-manifest.json',retirementSchema='pando-'+kind+'-retirement-v1';
   if(!settings)throw Error('Application storage is not activated');
   const operation=()=>{
-    if(processes.length)throw Error('Active consumers block frontend retirement');
-    const base=containedPath(settings.cacheRoot,'frontend'),journal=containedPath(settings.cacheRoot,'frontend-retirement.pending.json');
+    if(native?processes.some(nativeWriter):processes.length)throw Error('Active consumers block artifact retirement');
+    const base=containedPath(settings.cacheRoot,kind),journal=containedPath(settings.cacheRoot,kind+'-retirement.pending.json');
     for(const name of ['frontend-install.pending.json','native-install.pending.json','generated-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error('Pending installation blocks frontend retirement');
     const referenced=new Set();
-    for(const app of roots){const pointer=resolve(app,'.library-data/frontend-artifacts.json');if(existsSync(pointer))for(const ref of Object.values(JSON.parse(readFileSync(pointer))))referenced.add(containedPath(base,ref.directory));}
+    const leaseReferences=()=>{const refs=new Set();if(native)for(const lease of contentFiles(containedPath(settings.cacheRoot,'native-leases'))){const record=JSON.parse(readFileSync(lease.path));if(!Number.isInteger(record.pid)||record.pid<=0)throw Error('Invalid native lease owner');let alive=true;try{process.kill(record.pid,0);}catch(e){if(e.code==='ESRCH')alive=false;else if(e.code!=='EPERM')throw e;}if(alive)refs.add(containedPath(base,record.directory));}return refs;};
+    for(const ref of leaseReferences())referenced.add(ref);
+
+    for(const app of roots){const pointer=resolve(app,'.library-data/'+kind+'-artifacts.json');if(existsSync(pointer))for(const ref of Object.values(JSON.parse(readFileSync(pointer))))referenced.add(containedPath(base,ref.directory));}
     let state=existsSync(journal)?JSON.parse(readFileSync(journal)):null;
-    if(state&&(state.schema!=='pando-frontend-retirement-v1'||containedPath(base,state.directory)!==state.directory||referenced.has(state.directory)||!Number.isInteger(state.completedCount)||state.completedCount<0||state.completedCount>state.manifest.files.length))throw Error('Pending retirement scope changed');
+    if(state&&(state.schema!==retirementSchema||containedPath(base,state.directory)!==state.directory||referenced.has(state.directory)||!Number.isInteger(state.completedCount)||state.completedCount<0||state.completedCount>state.manifest.files.length))throw Error('Pending retirement scope changed');
     const entries=[];let deletedBytes=state?.deletedBytes||0,payloadBytesUnlinked=state?.payloadBytesUnlinked||0;
     const directories=existsSync(base)?readdirSync(base).filter(name=>/^[a-f0-9]{64}$/.test(name)).map(name=>containedPath(base,name)):[];
+    if(native)for(const directory of directories)if(processes.some(p=>usesDirectory(p,directory)))referenced.add(directory);
     if(state&&!directories.includes(state.directory)){
       if(!apply||!state.markerRetirement||state.completedCount!==state.manifest.files.length)throw Error('Pending frontend directory is missing');
       deletedBytes+=state.markerRetirement.bytes;payloadBytesUnlinked+=state.markerRetirement.bytes;unlinkSync(journal);state=null;
@@ -81,30 +88,33 @@ export function retireFrontendSnapshots({root=repository,roots=permanentWorktree
     if(state)directories.sort((a,b)=>Number(b===state.directory)-Number(a===state.directory));
     for(const directory of directories){
       if(referenced.has(directory)){entries.push({directory,status:'referenced'});continue;}
-      const marker=containedPath(directory,'frontend-manifest.json'),manifest=existsSync(marker)?JSON.parse(readFileSync(marker)):state?.directory===directory&&state.markerRetirement?state.manifest:null;
+      const marker=containedPath(directory,markerName),manifest=existsSync(marker)?JSON.parse(readFileSync(marker)):state?.directory===directory&&state.markerRetirement?state.manifest:null;
       if(!manifest)throw Error('Frontend ownership marker is missing');
-      if(manifest.schema!=='pando-frontend-v1'||directory!==containedPath(base,manifest.sourceSha256)||!Array.isArray(manifest.files)||new Set(manifest.files.map(f=>f.path)).size!==manifest.files.length||manifest.files.some(f=>f.path==='frontend-manifest.json'))throw Error('Unknown frontend ownership');
+      if(manifest.schema!==(native?1:'pando-frontend-v1')||directory!==containedPath(base,(native?manifest.nativeInputSha256:manifest.sourceSha256))||!Array.isArray(manifest.files)||new Set(manifest.files.map(f=>f.path)).size!==manifest.files.length||manifest.files.some(f=>f.path===markerName))throw Error('Unknown frontend ownership');
       const resumed=state?.directory===directory;
       if(resumed&&JSON.stringify(state.manifest)!==JSON.stringify(manifest))throw Error('Pending frontend manifest changed');
-      const completed=resumed?state.completedCount:0,expected=new Set(['frontend-manifest.json',...manifest.files.slice(completed).map(file=>file.path)]);
+      const completed=resumed?state.completedCount:0,expected=new Set([markerName,...manifest.files.slice(completed).map(file=>file.path)]);
       for(const file of contentFiles(directory))if(!expected.has(file.logical))throw Error('Unlisted frontend file must be preserved: '+file.path);
       for(const file of manifest.files.slice(completed)){
         const target=containedPath(directory,file.path);
         if(!existsSync(target)){if(resumed&&state.pending?.path===file.path)continue;throw Error('Frontend file is missing');}
-        const s=lstatSync(target);if(!/^[a-f0-9]{64}$/.test(file.sha256)||s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256||(s.mode&0o200))throw Error('Modified frontend output must be preserved');
+        const s=lstatSync(target);if(!/^[a-f0-9]{64}$/.test(file.sha256)||s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256||((s.mode&0o200)&&(!native||s.nlink!==1)))throw Error('Modified artifact output must be preserved');
       }
       const markerBytes=existsSync(marker)?lstatSync(marker).size:state.markerRetirement.bytes;
       const row={directory,status:'eligible',bytes:manifest.files.reduce((n,f)=>n+f.bytes,0)+markerBytes};entries.push(row);
       if(!apply)continue;
-      state=resumed?state:{schema:'pando-frontend-retirement-v1',directory,manifest,completedCount:0,pending:null,deletedBytes,payloadBytesUnlinked};
+      state=resumed?state:{schema:retirementSchema,directory,manifest,completedCount:0,pending:null,deletedBytes,payloadBytesUnlinked};
       atomicStorageJSON(journal,state);
       while(state.completedCount<manifest.files.length){
+        if(leaseReferences().has(directory))throw Error('Artifact acquired a live verification lease during retirement');
+        const currentProcesses=refreshProcesses();if(native?currentProcesses.some(p=>nativeWriter(p)||usesDirectory(p,directory)):currentProcesses.length)throw Error('Active consumer appeared during artifact retirement');
+        for(const app of roots){const pointer=resolve(app,'.library-data/'+kind+'-artifacts.json');if(existsSync(pointer)&&Object.values(JSON.parse(readFileSync(pointer))).some(ref=>containedPath(base,ref.directory)===directory))throw Error('Artifact acquired a worktree reference during retirement');}
         const file=manifest.files[state.completedCount],target=containedPath(directory,file.path);
         if(existsSync(target)){
           const s=lstatSync(target);if(s.size!==file.bytes||contentHash(readFileSync(target))!==file.sha256)throw Error('Frontend changed before retirement');
           state.pending={path:file.path,physicalBytes:s.nlink===1?file.bytes:0};atomicStorageJSON(journal,state);
-          const shared=existsSync(resolve(root,'config/library-data.json'))?libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes}):null;
-          removeContentView(shared||{root:settings.cacheRoot,blobDirectory:'blobs'},target,{viewRoot:directory,marker:'frontend-manifest.json'});
+          const shared=!native&&existsSync(resolve(root,'config/library-data.json'))?libraryStagingContent({root,sha256:file.sha256,bytes:file.bytes}):null;
+          removeContentView(shared||{root:settings.cacheRoot,blobDirectory:'blobs'},target,{viewRoot:directory,marker:markerName});
         }else if(state.pending?.path!==file.path)throw Error('Missing unjournaled frontend file');
         state.deletedBytes+=file.bytes;state.payloadBytesUnlinked+=state.pending.physicalBytes;state.pending=null;state.completedCount++;atomicStorageJSON(journal,state);afterFile(file);
       }
@@ -116,8 +126,25 @@ export function retireFrontendSnapshots({root=repository,roots=permanentWorktree
     return{apply,entries,deletedBytes,payloadBytesUnlinked};
   };
   if(!apply)return operation();
-  return withStorageLock(root,settings,()=>existsSync(resolve(root,'config/library-data.json'))?withLibraryLock(root,operation):operation());
+  return withStorageLock(root,settings,()=>existsSync(resolve(root,'config/library-data.json'))?withLibraryLock(root,operation,{compact:false}):operation());
 }
+export const retireFrontendSnapshots=options=>retireArtifactSnapshots('frontend',options);
+export const retireNativeSnapshots=options=>retireArtifactSnapshots('native',options);
+
+export function finishArtifactMaintenance({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),processes=runningStorageConsumers()}={}){
+  const marker=containedPath(settings.cacheRoot,'artifact-maintenance.requested.json');
+  atomicStorageJSON(marker,{root,requestedAt:new Date().toISOString()});
+  if(processes.some(nativeWriter))return {status:'deferred',reason:'active build or stage writer'};
+  const options={root,roots,settings,processes,refreshProcesses:runningStorageConsumers,apply:true};
+  try{
+    const native=retireNativeSnapshots(options),frontend=processes.length?{status:'deferred',reason:'active frontend consumer'}:retireFrontendSnapshots(options),blobs=pruneApplicationBlobs(options);
+    if(!processes.length)unlinkSync(marker);return {status:processes.length?'frontend-deferred':'completed',native,frontend,blobs};
+  }catch(error){
+    const result={status:'blocked',code:'PL-STORAGE-MAINTENANCE',message:error.message};
+    atomicStorageJSON(marker,{...result,root,diagnostic:error.stack});process.stderr.write(result.code+': '+result.message+'\n');return result;
+  }
+}
+
 function ownedStage(root,directory,settings=storageSettings(root)){
   const allowed=['dist','.dist-pending','.dist-previous'].map(name=>resolve(editorStageRoot(root,settings),name));
   if(!allowed.includes(resolve(directory)))throw Error('Not an owned App stage destination');
@@ -315,12 +342,13 @@ export function applyWorktreeStorage(options={}){
 export function pruneApplicationBlobs({root=repository,roots=permanentWorktrees(root),settings=storageSettings(root),apply=false,processes=runningStorageConsumers()}={}){
   if(!settings)throw Error('Worktree storage is not activated');
   const operation=()=>{
-    for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json','native-install.pending.json','frontend-install.pending.json','frontend-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
-    const busy=roots.map(app=>stageBusy(app,processes,settings)).find(Boolean);if(busy)throw Error(busy);
+    for(const name of ['migration.pending.json','runtime-migration.pending.json','generated-retirement.pending.json','app-git-compaction.pending.json','native-install.pending.json','frontend-install.pending.json','frontend-retirement.pending.json','native-retirement.pending.json'])if(existsSync(containedPath(settings.cacheRoot,name)))throw Error(`Pending recovery journal blocks blob pruning: ${name}`);
+    const busy=roots.map(app=>stageBusy(app,processes.filter(nativeWriter),settings)).find(Boolean);if(busy)throw Error(busy);
     const store={root:settings.cacheRoot,blobDirectory:'blobs'},directory=containedPath(settings.cacheRoot,'blobs'),entries=[];
     const before=statfsSync(settings.cacheRoot);
     for(const file of contentFiles(directory)){
       const s=lstatSync(file.path);if(s.nlink!==1)continue;
+      if(processes.some(p=>String(p.ExecutablePath||'').replaceAll('\\','/').toLowerCase()===file.path.replaceAll('\\','/').toLowerCase()))continue;
       const row={path:file.path,bytes:s.size,status:'protected'};entries.push(row);
       if(!/^[a-f0-9]{64}$/.test(file.logical)||contentHash(readFileSync(file.path))!==file.logical){row.reason='Unknown or modified pool object';continue;}
       const identity=fileIdentity(file.path);row.status='unused-blob';
@@ -511,6 +539,8 @@ export async function activateCompilerCache(root=repository){
 
 async function main(){
   const args=process.argv.slice(2),root=resolve(args.find(x=>x.startsWith('--root='))?.slice(7)||repository);
+  const cacheMode=args.find(x=>x.startsWith('--cleanup-caches='))?.split('=')[1];
+  if(cacheMode){const {cleanupCDrive}=await import('./pc-cleanup.mjs');return cleanupCDrive({mode:cacheMode,root,settings:storageSettings(root),library:librarySharedCheckout(root),cacheOnly:true});}
   const pcMode=args.find(x=>x.startsWith('--cleanup-c-drive='))?.split('=')[1];
   if(pcMode){const {cleanupCDrive}=await import('./pc-cleanup.mjs');return cleanupCDrive({mode:pcMode,root,settings:storageSettings(root),library:librarySharedCheckout(root)});}
   if(args.includes('--compact-git')){
@@ -547,6 +577,7 @@ async function main(){
     console.log(JSON.stringify({entries:result.entries?.length,deletedBytes:result.deletedBytes,relocatedBytes:result.relocatedBytes,payloadBytesUnlinked:result.payloadBytesUnlinked,output}));return;
   }
   if(args.includes('--prepare-dependencies')){console.log(JSON.stringify(prepareDependencies(root)));return;}
+  if(args.includes('--retire-native')){console.log(JSON.stringify(retireNativeSnapshots({root,apply:args.includes('--apply'),refreshProcesses:runningStorageConsumers})));return;}
   if(args.includes('--retire-frontend')){console.log(JSON.stringify(retireFrontendSnapshots({root,apply:args.includes('--apply')})));return;}
   if(args.includes('--activate-compiler-cache'))return activateCompilerCache(root);
   if(args.includes('--disable-local-compiler')){console.log(JSON.stringify(deactivateCompilerCache({root})));return;}

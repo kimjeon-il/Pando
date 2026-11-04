@@ -1,7 +1,16 @@
 name: Application Architecture
+run-name: Application checks ${{ inputs.request_id || github.sha }}
 on:
   workflow_dispatch:
     inputs:
+      check_selection:
+        description: Exact registered tests, commands and native requirements as JSON
+        required: false
+        type: string
+      request_id:
+        description: Caller request identity
+        required: false
+        type: string
       browser_scope:
         description: Browser validation scope; default preserves existing checks
         required: false
@@ -59,6 +68,7 @@ jobs:
             'origin/main' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
+          CHECK_SELECTION: ${{ inputs.check_selection || '' }}
           PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
         run: node scripts/run-application-checks.mjs --list --github-output
   non-browser:

@@ -41,6 +41,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   function filesIn(directory) {
     if (!exists(directory)) return [];
     return readdirSync(resolve(root, directory), { withFileTypes: true }).flatMap(entry => {
+      if(entry.name.startsWith('.'))return [];
       const file = `${directory}/${entry.name}`;
       if (entry.isDirectory()) return /^(?:node_modules|target|dist|gen|worker-runtime|vendor|\.superpowers)$/.test(entry.name) ? [] : filesIn(file);
       return [file];
@@ -225,13 +226,13 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   return { root: resolve(root), catalog, files, tests, owners, retiredTests, frontendIndex, exists, read, dependencies, unitRequirements };
 }
 
-export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [] }) {
+export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
   const repo = repository || loadRepository();
   const changed = [...new Set(changedFiles.map(slash))].sort();
   // A no-op diff has no affected consumers. The inventory was already validated
   // by loadRepository(), but retired, archived editor tests need not be parsed
   // as runnable production dependency graphs for a no-change plan.
-  if (!changed.length && !requestedGroups.length) return {
+  if (!changed.length && !requestedGroups.length&&!exactSelection) return {
     schema:'pando-application-check-plan-v1',changedFiles:[],
     unitTests:[],unitTestPrerequisites:{},browserSpecs:[],browserPrerequisites:[],
     externalChecks:[],commands:[],prerequisites:[],reasons:{},
@@ -334,6 +335,12 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     if (!requestedGroups.length && matches(file, repo.catalog.productRoots) && !matchedProduct.has(file) && !infrastructure
       && !matches(file, repo.catalog.passiveInputs || []) && !repo.owners.has(file)) throw Error('Unclassified product change: ' + file);
   }
+  if(exactSelection){
+    selected.clear();commands.length=0;prerequisites.clear();
+    for(const file of [...exactSelection.unitTests,...exactSelection.browserSpecs]){selected.add(file);(repo.owners.get(file).requires||[]).forEach(id=>prerequisites.add(id));}
+    commands.push(...exactSelection.commands);for(const id of commands)(repo.catalog.groups.find(g=>g.id===id).requires||[]).forEach(id=>prerequisites.add(id));
+    exactSelection.prerequisites.forEach(id=>prerequisites.add(id));
+  }
   const unitTests = [...selected].filter(file => file.includes('/unit/')).sort();
   const unitTestPrerequisites = Object.fromEntries(unitTests.map(file => [file,
     [...(repo.unitRequirements?.get(file) || [])].sort()]).filter(([, ids]) => ids.length));
@@ -347,7 +354,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     if (seen.has(dependency)) return false; seen.add(dependency);
     return [...(parents.get(dependency) || [])].some(parent => isConsumer(target, parent, seen));
   }
-  return { schema: 'pando-application-check-plan-v1', changedFiles: changed, unitTests, unitTestPrerequisites, browserSpecs, browserPrerequisites,
+  return { schema: 'pando-application-check-plan-v1', changedFiles: changed, unitTests, unitTestPrerequisites, browserSpecs, browserPrerequisites,explicitPrerequisites:exactSelection?.prerequisites||[],
     externalChecks, commands: commands.sort(), prerequisites: [...prerequisites].sort(), reasons,
     manualTests: [...repo.owners].filter(([, group]) => group.mode === 'manual').map(([file]) => file).sort(),
     inventory: { unit: repo.tests.filter(file => file.includes('/unit/')).length, browser: repo.tests.filter(file => file.includes('/browser/')).length } };

@@ -4,11 +4,14 @@ import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,readdirSync,rmSync} fro
 import {tmpdir} from 'node:os';
 import {dirname,join,posix,resolve} from 'node:path';
 import {loadRepository,matchesPattern,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
-import {executePlan} from '../../scripts/run-application-checks.mjs';
+import {executePlan as executeCiPlan,exactCheckPlan} from '../../scripts/run-application-checks.mjs';
 import {nativeTestCapacity,prepareNativeTestTool} from '../../scripts/prepare-native-test-tools.mjs';
 import {nativeTestRecipes} from '../../scripts/lib/native-test-prerequisites.mjs';
 import {packageNativeTool} from '../../tools/native-tool.mjs';
 import YAML from 'yaml';
+
+const ciNativeTestCapacity=(ids,options)=>nativeTestCapacity(ids,{...options,environment:{GITHUB_ACTIONS:'true'}});
+const ciPrepareNativeTestTool=(id,options)=>prepareNativeTestTool(id,{...options,environment:{GITHUB_ACTIONS:'true'}});
 
 function fixture(t) {
   const root=mkdtempSync(join(tmpdir(),'pando-native-checks-'));
@@ -20,6 +23,22 @@ function fixture(t) {
     unitPrerequisites:[{tests:['tests/unit/image.test.mjs'],requires:['image']}],productRoots:['tests/**','scripts/**']};
   return {root,put,catalog,repository:()=>loadRepository(root,{catalog})};
 }
+
+const executePlan=(plan,options)=>executeCiPlan(plan,{...options,environment:{GITHUB_ACTIONS:'true'}});
+
+test('Windows local native preparation requests CI without invoking installer or compiler',async t=>{
+ const f=fixture(t),calls=[];
+ f.put('scripts/contracts/application-checks.json',JSON.stringify(f.catalog));
+ const result=await prepareNativeTestTool('map-image',{root:f.root,platform:'win32',environment:{},run:()=>assert.fail('local compilation'),remote:request=>{calls.push(request.selection);return {ok:true};}});
+ assert.equal(result.ok,true);assert.deepEqual(calls,[{unitTests:[],browserSpecs:[],commands:[],prerequisites:['native-map-image']}]);
+ await assert.rejects(nativeTestCapacity(['map-image'],{root:f.root,platform:'win32',environment:{},probe:()=>assert.fail('local tool probe')}),/Local native SDK installation is disabled/);
+});
+
+test('exact remote checks retain canonical core preparation and ignore hidden unfinished tests',t=>{
+ const f=fixture(t);f.put('tests/unit/core-document-world-wasm.test.mjs');f.put('tests/unit/.unfinished.test.mjs');f.catalog.prerequisites.core={argv:['node','core.mjs']};
+ const repository=f.repository(),plan=exactCheckPlan(repository,{unitTests:['tests/unit/core-document-world-wasm.test.mjs','tests/unit/image.test.mjs'],browserSpecs:[],commands:[],prerequisites:[]});
+ assert.deepEqual(plan.unitTests,['tests/unit/core-document-world-wasm.test.mjs','tests/unit/image.test.mjs']);assert.ok(plan.prerequisites.includes('core'));assert.ok(plan.prerequisites.includes('image'));assert.equal(repository.tests.includes('tests/unit/.unfinished.test.mjs'),false);
+});
 
 test('selected native tests retain their files and require only their declared tool',t=>{
   const f=fixture(t),repository=f.repository();
@@ -156,9 +175,9 @@ test('DEM GDAL setup retains the canonical pin and is requested only for its con
   assert.equal(setup.with['create-args'],'libgdal-core=3.13.3');
   assert.equal(setup.with['init-shell'],'none');
   const f=fixture(t),calls=[],probe=argv=>{calls.push(argv);return{status:0,stdout:'3.13.3\n'};};
-  const gutters=await nativeTestCapacity(['terrain-dem-gutters'],{root:f.root,probe,platform:'linux',architecture:'x64'});
+  const gutters=await ciNativeTestCapacity(['terrain-dem-gutters'],{root:f.root,probe,platform:'linux',architecture:'x64'});
   assert.equal(gutters.gdalEnvironment,false);assert.deepEqual(calls,[]);
-  const tint=await nativeTestCapacity(['terrain-dem-tint','terrain-dem-fill'],{root:f.root,probe,platform:'linux',architecture:'x64'});
+  const tint=await ciNativeTestCapacity(['terrain-dem-tint','terrain-dem-fill'],{root:f.root,probe,platform:'linux',architecture:'x64'});
   assert.equal(tint.gdalEnvironment,true);assert.equal(tint.additionalBytes,0);
   assert.equal(calls.length,1);assert.deepEqual(calls[0].slice(1),['run','-n','pando-dem-gdal','gdal-config','--version']);
 });
@@ -190,27 +209,27 @@ function packagedFixture(t) {
 
 test('an existing exact-source native artifact is reused without rebuilding or downloading',async t=>{
   const f=packagedFixture(t),calls=[];
-  const result=await prepareNativeTestTool('map-image',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)});
+  const result=await ciPrepareNativeTestTool('map-image',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)});
   assert.equal(result.status,'reused');assert.deepEqual(calls,[]);
 });
 
 test('changed native source or binary bytes fail closed without replacing the existing artifact',async t=>{
   const f=packagedFixture(t),calls=[];
   f.put('source.cpp','int changed=2;\n');
-  await assert.rejects(prepareNativeTestTool('map-image',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)}),/Native tool source mismatch/);
+  await assert.rejects(ciPrepareNativeTestTool('map-image',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)}),/Native tool source mismatch/);
   f.put('source.cpp','int original=1;\n');writeFileSync(join(f.directory,'pando-map-image'),'changed binary');
-  await assert.rejects(prepareNativeTestTool('map-image',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)}),/Native tool binary hash\/size mismatch/);
+  await assert.rejects(ciPrepareNativeTestTool('map-image',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)}),/Native tool binary hash\/size mismatch/);
   assert.deepEqual(calls,[]);
 });
 
 test('a changed pinned SDK archive is rejected before extraction or compilation',async t=>{
   const f=fixture(t),calls=[];f.put('build-native/map-pdf/mupdf-sdk.zip','wrong archive');
-  await assert.rejects(prepareNativeTestTool('mupdf',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)}),/Native SDK archive SHA-256 mismatch/);
+  await assert.rejects(ciPrepareNativeTestTool('mupdf',{root:f.root,platform:'linux',architecture:'x64',run:argv=>calls.push(argv)}),/Native SDK archive SHA-256 mismatch/);
   assert.deepEqual(calls,[]);
 });
 
 test('no selected native preparation does not require SDK capacity or a filesystem probe',async()=>{
-  assert.deepEqual(await nativeTestCapacity([],{root:'/nonexistent-unselected-native-root'}),
+  assert.deepEqual(await ciNativeTestCapacity([],{root:'/nonexistent-unselected-native-root'}),
     {tools:false,recipeEnvironment:false,gdalEnvironment:false,additionalBytes:0});
 });
 
@@ -274,6 +293,6 @@ test('each compiled territorial source and recursive project header selects its 
 test('an incorrect prepared pinned source fails before download or replacement',async t=>{
   const f=fixture(t),path='assets/data/countries-ne-5.1.1.geojson';
   f.put(path,'different source');
-  await assert.rejects(prepareNativeTestTool('german-natural-earth',{root:f.root,platform:'linux',architecture:'x64'}),/Prepared native test source differs/);
+  await assert.rejects(ciPrepareNativeTestTool('german-natural-earth',{root:f.root,platform:'linux',architecture:'x64'}),/Prepared native test source differs/);
   assert.equal(readFileSync(join(f.root,path),'utf8'),'different source');
 });
