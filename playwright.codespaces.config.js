@@ -1,4 +1,4 @@
-// No webServer: do not silently launch the fixture server instead of Codespaces preview.
+// Requires the existing private Codespaces preview; never start a substitute fixture server.
 import {defineConfig} from '@playwright/test';
 export default defineConfig({
   testDir:'./tests/browser',testMatch:['codespaces-live.spec.mjs'],
