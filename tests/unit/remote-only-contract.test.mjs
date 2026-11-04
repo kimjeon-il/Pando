@@ -31,7 +31,7 @@ test('Codespaces installs only pinned remote Node dependencies and opens a priva
   const pnpm=read('.devcontainer/pnpm.sh');
   assert.match(pnpm,/packageManager/);
   assert.match(pnpm,/npm exec --yes --package=/);
-  assert.match(read('.devcontainer/start-preview.sh'),/scripts\/p3-preview-server\.mjs/);
+  assert.match(read('.devcontainer/start-preview.sh'),/scripts\/frontend-dev-server\.mjs --product=viewer/);
 });
 
 test('the remote-only branch runs P1, P2, P3 and a dedicated Node contract in CI',()=>{
