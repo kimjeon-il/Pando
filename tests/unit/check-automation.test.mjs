@@ -214,7 +214,7 @@ test('active Windows shell follows the network guard transfer contract', () => {
 test('verification startup resolves versioned fixture modules at the declared runtime base', () => {
   const f = fixture();
   const catalog = JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json', import.meta.url)));
-  f.catalog.runtimeBases = catalog.runtimeBases;
+  f.catalog.runtimeBases = { 'apps/editor/verification.js': 'assets/js' };
   f.catalog.relocatedSources = catalog.relocatedSources;
   f.put('apps/editor/verification.js', "export function startFixture({ versionedAsset }) { return import(versionedAsset('./modules/leaf.js').href); }");
   f.put('tests/unit/verification.test.mjs', "import '../../apps/editor/verification.js';");

@@ -41,7 +41,7 @@ test('raw native globals occur only in the native platform adapter runtime', () 
   for(const token of retired)assert.equal(adapter.includes(token),false,'retired adapter input: '+token);
   const shell=readFileSync(new URL('apps/editor/src-tauri/src/lib.rs',root),'utf8');
   for(const token of retired)assert.equal(shell.includes(token),false,'retired shell injection: '+token);
-  for(const path of ['apps/editor/native-storage.js','apps/editor/probe-storage.js','apps/editor/full-world-probe.js','apps/editor/verification.js','apps/editor/diagnostics.js']){
+  for(const path of ['apps/editor/native-storage.js','apps/editor/probe-storage.js']){
     const source=readFileSync(new URL(path,root),'utf8');
     for(const token of raw)assert.equal(source.includes(token),false,path+' bypasses native-platform-adapter: '+token);
     assert.equal(source.includes('__PANDOLAB_SHELL_PLATFORM__'),false,path+' retains global platform handoff');

@@ -1237,7 +1237,6 @@
     "apps/editor/frontend/**",
     "apps/editor/templates/**",
     "apps/editor/tests/**",
-    "apps/editor/verification.js",
     "apps/editor/native-platform-adapter.js",
     "apps/editor/native-storage.js",
     "apps/editor/document-transfer-contract.js"
@@ -1348,9 +1347,7 @@
       ]
     }
   ],
-  "runtimeBases": {
-    "apps/editor/verification.js": "assets/js"
-  },
+  "runtimeBases": {},
   "runtimeHelperBases": {
     "versionedModuleUrl": "assets/js"
   },
