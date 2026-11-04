@@ -926,6 +926,19 @@
         "core"
       ]
     }
+,
+    {
+      "id": "shared-toolkit",
+      "kind": "unit",
+      "testPatterns": [
+        "tests/unit/shared-toolkit.test.mjs",
+        "tests/unit/library-toolkit-owner.test.mjs"
+      ],
+      "inputs": [
+        "tools/shared-toolkit.mjs",
+        "tools/package-shared-toolkit.mjs"
+      ]
+    }
   ],
   "prerequisites": {
     "native-hydro-calibration": {
