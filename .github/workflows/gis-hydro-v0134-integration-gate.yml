@@ -8,7 +8,7 @@ on:
       - 'scripts/lib/product-assets.mjs'
       - 'scripts/lib/frontend-build.mjs'
       - 'tools/stage-monorepo-pages.mjs'
-      - 'tests/unit/pages-deployment-footprint.test.mjs'
+      - 'tests/unit/monorepo-pages-staging.test.mjs'
       - 'tools/check-current-hydro-layout.mjs'
       - 'apps/editor/world-data-plan.mjs'
       - 'config/library-data.json'
@@ -82,8 +82,6 @@ jobs:
             tests/unit/geographic-name-spacing.test.mjs \
             tests/unit/frontend-product-output.test.mjs \
             apps/editor/tests/world-data-plan.test.mjs \
-            tests/unit/pages-release-staging.test.mjs \
-            tests/unit/pages-deployment-footprint.test.mjs \
             tests/unit/product-assets.test.mjs \
             tests/unit/monorepo-pages-staging.test.mjs
       - name: Build the complete current public Viewer dependency closure without deploying
