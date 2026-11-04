@@ -2,7 +2,7 @@
 import {defineConfig} from '@playwright/test';
 export default defineConfig({
   testDir:'./tests/browser',testMatch:['codespaces-live.spec.mjs'],
-  workers:1,retries:0,timeout:180000,expect:{timeout:10000},
+  workers:1,retries:0,timeout:480000,expect:{timeout:10000},
   reporter:[['list']],outputDir:'test-results/codespaces-acceptance',
   use:{
     baseURL:'http://127.0.0.1:4173',browserName:'chromium',

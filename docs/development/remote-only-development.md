@@ -82,12 +82,19 @@ This installs a browser **only in Codespaces** and runs
 `tests/browser/codespaces-live.spec.mjs` against the existing, private port
 4173 development server (no test-server fallback). Acceptance verifies
 real Viewer map readiness and country presentation, year navigation,
-source file watcher → revision increment → browser automatic reload,
-WASM bytes and private-source access denial. A unique temporary, untracked
+source watcher on both a newly created CSS file and a subsequent edit to
+that same file, two independent revision increments and automatic browser
+reloads, WASM bytes and private-source access denial. A unique temporary, untracked
 CSS probe is removed after testing; no tracked file or user WIP is changed.
 Evidence and screenshots are saved under `test-results/codespaces-acceptance`.
 Record the Codespace name, commit SHA and result. A GitHub Actions job is not
 a genuine Codespaces run and cannot be substituted.
+
+The real Codespaces test may take longer than the fast CI contract suite
+because it waits for complete canonical map presentation after both reloads.
+The fixture captures proof and the screenshot **before** removing the
+untracked CSS probe; its cleanup is `finally`-guarded. No tracked source is
+overwritten.
 
 If the Codespace has not been launched or its terminal is unavailable,
 report **BLOCKED**, not passed.

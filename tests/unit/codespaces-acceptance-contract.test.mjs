@@ -17,6 +17,10 @@ test('Codespaces test checks real viewer, navigation, reloading and protects tra
   const spec=read('tests/browser/codespaces-live.spec.mjs');
   for(const key of ['__shell/health','executionMode','pandoeditor-core.wasm','visibleTerritorialCount','timelinePreviousYear','framenavigated','revision','unlink(probe)','finally','config/library-data.json'])
     assert.ok(spec.includes(key),key);
+  assert.match(spec,/sourceCreated:created,sourceEdited:edited/);
+  assert.match(spec,/Codespaces source editing acceptance: B/);
+  assert.match(spec,/revisionAfter\)\.toBeGreaterThan\(created\.revisionAfter\)/);
+  assert.match(spec,/await page\.screenshot/);
   assert.doesNotMatch(spec,/git\s+(?:reset|clean|checkout)/);
 });
 
