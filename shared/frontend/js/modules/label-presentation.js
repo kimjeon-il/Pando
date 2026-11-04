@@ -13,7 +13,7 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     const data = resolvedLayout?.territorialLabels || [];
     const selection = layer.selectAll('g.territorial-label-item').data(data, d => d.id);
     selection.exit().remove();
-    // Preserve label identity for selection; the common input owner still dispatches editing tools by ground coordinates.
+    // Preserve label identity when dispatching selection from the map.
     const enter = selection.enter().append('g')
       .attr('class', 'territorial-label-item')
       .on('click', function(feature) {
@@ -80,14 +80,14 @@ export function createLabelPresentation({ labels,selectionDomain,reportDiagnosti
     const data = state.layerVisibility?.labels ? resolvedLayout.userLabels || [] : [];
     const selection = layer.selectAll('g.user-label').data(data, d => d.id);
     const enter = selection.enter().append('g').attr('class', 'user-label').on('click', function(d) {
-      if (labels.mapClickBlocked?.() || state.tool !== 'select') return;
+      if (labels.mapClickBlocked?.()) return;
       labels.d3?.event?.stopPropagation?.();
       const point = labels.d3?.mouse?.(labels.svg.node());
       labels.handleObjectSelectionAt?.(point, { sourceEvent: labels.d3?.event, hitRef: { domain: 'label', type: d.kind || 'label', id: d.id } });
     });
     enter.on('mouseenter.hover', async d => {
       try {
-        if (!labels.isMobile() && labelState().tool === 'select' && !labelState().mapMoving) {
+        if (!labels.isMobile() && !labelState().mapMoving) {
           const ref = labelRef(d);
           if (!ref) throw new TypeError('An explicit normalized label hover reference is required.');
           await selectionDomain.setHover(ref, { source: 'map' });

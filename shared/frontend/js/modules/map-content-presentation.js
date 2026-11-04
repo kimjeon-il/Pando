@@ -111,8 +111,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
       }))
       .on('mouseleave.hover', feature => hydro.setMapHover?.('', '', null, { domain: 'hydro', type: feature.properties?.category || 'river', id: feature.id }))
       .on('click', function(feature) {
-        const stateNow = hydro.getState?.() || {};
-        if (hydro.mapClickBlocked?.() || stateNow.tool !== 'select') return;
+        if (hydro.mapClickBlocked?.()) return;
         hydro.d3?.event?.stopPropagation?.();
         hydro.handleObjectSelectionAt?.(hydro.d3?.mouse?.(hydro.svg), {
           sourceEvent: hydro.d3?.event,
@@ -208,9 +207,7 @@ export function createMapContentPresentation({countries={},hydro={},territorial=
         .on('mouseenter.hover', d => g.setMapHover?.('generic', d.id, d, { domain: 'generic', type: 'feature', id: d.id }))
         .on('mouseleave.hover', feature => g.setMapHover?.('', '', null, { domain: 'generic', type: 'feature', id: feature.id }))
         .on('click', function(d) {
-          const stateNow = g.getState?.() || {};
           if (g.mapClickBlocked?.()) return;
-          if (stateNow.tool !== 'select') return;
           g.d3?.event?.stopPropagation?.();
           g.handleObjectSelectionAt?.(g.d3?.mouse?.(g.svg), { sourceEvent: g.d3?.event, hitRef: { domain: 'generic', type: 'feature', id: d.id } });
         });

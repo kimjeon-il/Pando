@@ -385,7 +385,7 @@ export function createAppObjectSearchController(runtime = {}) {
     commands: {
       clearSearchHover: () => selectionDomain.setHover(null, { source: 'list' }).catch(handleHoverError),
       hoverItem: (group, id, entered) => {
-        if (state.tool !== 'select' || state.mapMoving) return;
+        if (state.mapMoving) return;
         const ref = layerItemObjectRef(group, id);
         return selectionDomain.setHover(entered ? ref : null, { source: 'list', expectedKey: entered ? '' : ref?.key }).catch(handleHoverError);
       },

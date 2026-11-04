@@ -102,7 +102,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
         objectLabels: {},
       },
       objectSearch: '',
-      tool: 'select',
       spatialIndex: [],
       mapMoving: false,
       historyDirtyEntityIds: readonlyIds(Object.freeze([])),

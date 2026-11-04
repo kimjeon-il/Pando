@@ -46,7 +46,7 @@ import { coordinateBounds } from "../../../../shared/frontend/js/modules/coordin
 import { createRingHitTester } from "../../../../shared/frontend/js/modules/ring-hit-test.js";
 import { layoutTerritorialFlags } from "../../../../shared/frontend/js/modules/territorial-label-flags.js";
 
-/** Viewer presentation adapter to the same GPU/Canvas renderer used by the editor. */
+/** Presentation adapter shared by the Viewer and Windows reviewer. */
 export function createViewerMap({ runtimeContext,owners,element, canvas, labelLayer, projectDomain, documentSession, getPreferences, onError, onPlacesSettled, onStatus,isSafeKoreanErrorMessage,isMobile,diagnostics,getInteractionStyle,onMapPreparationStatus=null,isInitialPresentation }) {
   const meta=runtimeContext.meta;
   const d3 = globalThis.d3;
