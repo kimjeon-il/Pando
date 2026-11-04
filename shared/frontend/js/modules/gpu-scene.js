@@ -6,7 +6,7 @@ import { applySvgInteractionOwnership, makeSvgSceneProxy } from './render-channe
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
  */
-export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}) {
+export function createGpuScene({getPhysicalLand=()=>null}={}) {
   let dependencies;
   let selectionPass;
   let renderSceneBuilder;
@@ -130,7 +130,6 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
         overlayOrder: renderSceneOrderRevision,
         countryState: `${dependencies.countries.countryLandRevision}:${dependencies.projectState.state.pendingCountryRenderIds?.size || 0}`,
         selection: currentSelectionPacket?.revision || 0,
-        editPreview: dependencies.projectState.state.geometryPreview?.revision || 0,
         view: dependencies.mapLayout.viewRevision,
       },
       country: {
@@ -149,8 +148,8 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
       interaction: {
         selectionPacket: currentSelectionPacket,
         genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
-        previewPackets: [...dependencies.interactionPresentation.currentGpuPreviewPackets, ...dependencies.interactionPresentation.currentGpuEditPreviewPackets],
-        draftPackets: dependencies.interactionPresentation.currentGpuDraftPackets,
+        previewPackets: [],
+        draftPackets: [],
       },
     };
     const requiredPolygons = [...gpuSceneDomains].flatMap(([name, domain]) =>
@@ -243,43 +242,12 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
   function syncGpuInteractionState({ selectionPacket = currentSelectionPacket, interactionFillItems = dependencies.interactionPresentation.currentGpuInteractionFillItems } = {}) {
     currentSelectionPacket = selectionPacket || null;
     dependencies.interactionStateCommands.replaceGpuInteractionFillItems(interactionFillItems || []);
-    const activePreview = getEditPreview ? getEditPreview() : null;
-    dependencies.interactionStateCommands.replaceGpuEditPreviewPackets(activePreview ? [activePreview] : []);
     dependencies.rendering.gpuMapRenderer.setInteractionState?.({
       selectionPacket: currentSelectionPacket,
       genericFillItems: dependencies.interactionPresentation.currentGpuInteractionFillItems,
-      previewPackets: [...dependencies.interactionPresentation.currentGpuPreviewPackets, ...dependencies.interactionPresentation.currentGpuEditPreviewPackets],
-      draftPackets: dependencies.interactionPresentation.currentGpuDraftPackets,
+      previewPackets: [],
+      draftPackets: [],
     });
-  }
-
-  function syncActiveEditPreview(reason = 'edit-preview') {
-    const packet = dependencies.geometryOperations.editPreviewController.packet();
-    dependencies.interactionStateCommands.replaceGpuEditPreviewPackets(packet ? [packet] : []);
-    syncGpuInteractionState();
-    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(reason);
-  }
-
-  function beginActiveEditPreview({ key, segments, gestureId = '', targetRefs = [] }) {
-    const id = dependencies.geometryOperations.editPreviewController.begin({ key, segments, order: 25_000, gestureId, targetRefs,
-      projectGeneration: dependencies.domains.projectDomain.getGeneration(), tool: dependencies.projectState.state.tool });
-    syncActiveEditPreview('edit-preview-start');
-    return id;
-  }
-
-  function updateActiveEditPreview(segments) {
-    if (!dependencies.geometryOperations.editPreviewController.update(segments)) return false;
-    syncActiveEditPreview('edit-preview-move');
-    return true;
-  }
-
-  function clearActiveEditPreview(reason = 'edit-preview-clear', expectedId = null) {
-    if (expectedId !== null && dependencies.geometryOperations.editPreviewController.snapshot().id !== expectedId) return false;
-    if (!dependencies.geometryOperations.editPreviewController.clear() && !dependencies.interactionPresentation.currentGpuEditPreviewPackets.length) return false;
-    dependencies.interactionStateCommands.replaceGpuEditPreviewPackets([]);
-    syncGpuInteractionState();
-    dependencies.domains.renderingDomain?.invalidateGpuInteraction?.(reason);
-    return true;
   }
 
   function gpuPolygonResourceKeysForObject(objectKey) {
@@ -422,9 +390,7 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
     initializeGpuSceneResourceObjectKeys,
     get applyGpuInteractionCoverage() { return applyGpuInteractionCoverage; },
     get applyGpuSceneCoverage() { return applyGpuSceneCoverage; },
-    get beginActiveEditPreview() { return beginActiveEditPreview; },
     get buildGpuInteractionFillItems() { return buildGpuInteractionFillItems; },
-    get clearActiveEditPreview() { return clearActiveEditPreview; },
     get currentSelectionPacket() { return currentSelectionPacket; },
     set currentSelectionPacket(value) { currentSelectionPacket = value; },
     get featureFromGeometry() { return featureFromGeometry; },
@@ -438,6 +404,5 @@ export function createGpuScene({getEditPreview=null,getPhysicalLand=()=>null}={}
     get setMapHover() { return setMapHover; },
     get syncGpuInteractionState() { return syncGpuInteractionState; },
     get syncGpuRenderScene() { return syncGpuRenderScene; },
-    get updateActiveEditPreview() { return updateActiveEditPreview; },
   });
 }

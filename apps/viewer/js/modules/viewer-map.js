@@ -189,12 +189,12 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   const svg=d3.select(labelLayer).attr('class','map-svg map-overlay-svg');
   const {interactionSvg,territorialLabelLayer,labelLayer:userLabelLayer,hydroLakeLayer,hydroRiverLayer,hydroEditLayer,territorialUnitLayer,genericFeatureLayer,distributionLayer,territorialBoundaryLayer,selectionLayer,hoverLayer}=createMapOverlayLayers({map:d3.select(element),svg,productMode:'viewer'});
 
-  const packets={currentGpuInteractionFillItems:[],currentGpuPreviewPackets:[],currentGpuEditPreviewPackets:[],currentGpuDraftPackets:[]};
+  const packets={currentGpuInteractionFillItems:[]};
 
   connectMapOwner('gpuScene',gpuScene,mergeCapabilityPorts(commonPorts,{renderScene:{createRenderSceneBuilder,OVERLAY_GROUPS,},
     platform:{runtimeAssetUrl},
     rendering:{gpuMapRenderer:renderer},mapLayers:{svg:d3.select(labelLayer)},mapHostViewB:{interactionSvg},interactionPresentation:packets,
-    interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},replaceGpuEditPreviewPackets:items=>{packets.currentGpuEditPreviewPackets=items;},setHoverHit:hit=>{state.hoverHit=hit;}},
+    interactionStateCommands:{replaceGpuInteractionFillItems:items=>{packets.currentGpuInteractionFillItems=items;},setHoverHit:hit=>{state.hoverHit=hit;}},
     domains:{projectDomain,get selectionDomain(){return documentSession.selectionDomain;},get renderingDomain(){return renderingDomain;}},surfaces:{isMobile},feedback:{reportOperationError:onError},
     selectionServices:{normalizeObjectRef},objectModelB:{territorialScope},presentation:objectPresentation,
     hydroModel:{hydroFeatureById:hydroById},territorialModel:{DISTRIBUTION_MODES},distributionServices:readPorts.distributionServices}));
