@@ -18,7 +18,7 @@ if [ -f "$pid_file" ] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
   echo "Existing Pando preview may still be preparing assets (PID $(cat "$pid_file")). Acceptance will verify port 4173. Log: $log"
   exit 0
 fi
-nohup node scripts/p3-preview-server.mjs >"$log" 2>&1 </dev/null &
+nohup node scripts/frontend-dev-server.mjs --product=viewer >"$log" 2>&1 </dev/null &
 pid="$!"
 printf '%s\n' "$pid" > "$pid_file"
 for attempt in $(seq 1 15); do

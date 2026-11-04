@@ -20,6 +20,8 @@ test('acceptance requires real Codespaces and no test server fallback',()=>{
   const previewScript=read('.devcontainer/start-preview.sh');
   assert.match(previewScript,/__shell\/health/);
   assert.doesNotMatch(previewScript,/__p3_health/);
+  assert.match(previewScript,/node scripts\/frontend-dev-server\.mjs --product=viewer/);
+  assert.doesNotMatch(previewScript,/nohup node scripts\/p3-preview-server\.mjs/);
   assert.match(shell,/source \.devcontainer\/ensure-node\.sh/);
   const config=read('playwright.codespaces.config.js');
   assert.doesNotMatch(config,/webServer\s*:/);

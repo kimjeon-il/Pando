@@ -92,6 +92,14 @@ on `work/remote-only` run:
 bash .devcontainer/acceptance.sh
 ```
 
+The Codespaces startup command invokes
+`node scripts/frontend-dev-server.mjs --product=viewer` directly. The former
+`p3-preview-server.mjs` CLI attempted a top-level dynamic import of
+`frontend-dev-server.mjs`, which statically imports its HTTP server module:
+Node could terminate with `Detected unsettled top-level await` before
+opening port 4173. The original CLI remains available with its import deferred
+until module evaluation is complete. Neither fix changes native SDK policy.
+
 The acceptance script now starts the actual Pando development preview if
 it is missing, then waits for the live `/__shell/health` contract on
 `127.0.0.1:4173` **before** installing Chromium or running Playwright.
