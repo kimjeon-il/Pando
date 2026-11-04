@@ -199,14 +199,13 @@ test('shell Node tools and nested tests keep source-relative paths', () => {
   assert.deepEqual(repo.dependencies('apps/editor/tests/probe.test.mjs'), ['apps/editor/fixture.mjs']);
 });
 
-test('active Windows shell follows the network guard transfer contract', () => {
+test('active Windows shell follows the network guard dependency', () => {
   const f = fixture();
   f.put('apps/editor/stage.mjs', "import './network-guard.js';");
-  f.put('apps/editor/network-guard.js', "import './document-transfer-contract.js';");
-  f.put('apps/editor/document-transfer-contract.js', 'export const commands = {};');
+  f.put('apps/editor/network-guard.js', 'export const commands = {};');
   f.put('tests/unit/shell-probe.test.mjs', "import '../../apps/editor/stage.mjs';");
   const plan = planApplicationChecks({
-    changedFiles: ['apps/editor/document-transfer-contract.js'], repository: f.repository(),
+    changedFiles: ['apps/editor/network-guard.js'], repository: f.repository(),
   });
   assert.ok(plan.unitTests.includes('tests/unit/shell-probe.test.mjs'));
 });

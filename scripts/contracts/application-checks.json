@@ -1236,8 +1236,7 @@
     "assets/flags/**",
     "apps/editor/frontend/**",
     "apps/editor/templates/**",
-    "apps/editor/tests/**",
-    "apps/editor/document-transfer-contract.js"
+    "apps/editor/tests/**"
   ],
   "infrastructure": [
     "pnpm-lock.yaml",

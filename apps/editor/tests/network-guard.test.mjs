@@ -2,16 +2,16 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {runInNewContext} from 'node:vm';
 import { guardWorkerSource,installNetworkGuard } from '../network-guard.js';
-import {DOCUMENT_TRANSFER_COMMANDS} from '../document-transfer-contract.js';
 
 test('serialized Worker guard receives the canonical IPC command perimeter',async()=>{
   const source=guardWorkerSource("'use strict';\nglobalThis.__workerGuardSmoke=true;",{allowBundledData:true});
-  for(const command of Object.values(DOCUMENT_TRANSFER_COMMANDS))assert.match(source,new RegExp(command));
+  for(const command of ['write_probe_file','read_probe_file','write_diagnostic_report','finish_probe'])assert.match(source,new RegExp(command));
   const fetched=[];
   const context={URL,location:new URL('https://tauri.localhost/'),fetch:async input=>{fetched.push(String(input));return {ok:true};}};
   runInNewContext(source,context);
   assert.equal(context.__workerGuardSmoke,true);
-  await context.fetch('http://ipc.localhost/'+DOCUMENT_TRANSFER_COMMANDS.beginRead);
+  await context.fetch('http://ipc.localhost/write_diagnostic_report');
+  await assert.rejects(context.fetch('http://ipc.localhost/begin_document_read'),/blocked/i);
   await assert.rejects(context.fetch('http://ipc.localhost/arbitrary_file_access'),/blocked/i);
   assert.equal(fetched.length,1);
 });
@@ -51,11 +51,13 @@ test('allows only native IPC commands at the exact internal origin', async () =>
   const scope = { location: new URL('http://tauri.localhost/'), fetch: async () => new Response('native') };
   const result = installNetworkGuard(scope);
   await scope.fetch('http://ipc.localhost/write_probe_file');
-  await scope.fetch('http://ipc.localhost/'+DOCUMENT_TRANSFER_COMMANDS.beginRead);
-  await scope.fetch('http://ipc.localhost/'+DOCUMENT_TRANSFER_COMMANDS.appendWrite);
+  await scope.fetch('http://ipc.localhost/write_diagnostic_report');
+  await scope.fetch('http://ipc.localhost/finish_probe');
+  await assert.rejects(scope.fetch('http://ipc.localhost/begin_document_read'), /blocked/i);
+  await assert.rejects(scope.fetch('http://ipc.localhost/append_document_chunk'), /blocked/i);
   await assert.rejects(scope.fetch('http://ipc.localhost/arbitrary_file_access'), /blocked/i);
   await assert.rejects(scope.fetch('http://ipc.localhost.evil.test/write_probe_file'), /blocked/i);
-  assert.equal(result.blocked.length, 2);
+  assert.equal(result.blocked.length, 4);
 });
 
 test('small projects permit only the pinned physical substrate in addition to engine assets', async () => {

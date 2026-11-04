@@ -255,7 +255,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     'apps/editor/stage.mjs','apps/editor/check-stage.mjs','apps/editor/dev.mjs',
     'apps/editor/native-contract.mjs','apps/editor/native-producer.mjs',
     'apps/editor/packaged-artifacts.mjs','apps/editor/review-probe.js',
-    'apps/editor/network-guard.js','apps/editor/document-transfer-contract.js',
+    'apps/editor/network-guard.js',
     'apps/editor/world-data-plan.mjs','apps/editor/fixture.mjs',
     'apps/editor/fixture-limits.js','apps/editor/write-evidence.mjs',
   ]);
