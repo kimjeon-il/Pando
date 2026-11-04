@@ -47,18 +47,16 @@
       ]
     },
     {
-      "id": "generic-file-import",
+      "id": "project-file-contracts",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/map-plugin-import.test.mjs",
         "tests/unit/map-plugin-cutover.test.mjs",
         "tests/unit/map-plugin-hydro-history.test.mjs",
         "tests/unit/qgis-pando-exchange.test.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/generic-feature-*.js",
-        "shared/frontend/js/modules/project-domain.js",
-        "tests/fixtures/map-toolkit/**"
+        "shared/frontend/js/modules/project-domain.js"
       ]
     },
     {
@@ -1389,7 +1387,7 @@
       "acceptance": [
         "ui-contracts",
         "place-contracts",
-        "generic-file-import",
+        "project-file-contracts",
         "object-contracts",
         "gis-contracts"
       ],
@@ -1401,7 +1399,6 @@
         "projects",
         "viewer",
         "hydro-gis",
-        "map-plugin-import",
         "ui",
         "places"
       ]

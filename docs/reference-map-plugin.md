@@ -9,9 +9,10 @@ Pando 0.36.0 is a read-only Viewer and Windows reviewer. Its current file UI
 reads GeoPackage projects and E3 review evidence; it does not expose general
 GeoJSON object import, editing, Undo/Redo or project saving. Android native was
 retired. The retained Core import/edit/persistence tests are regression-only
-and do not establish that those UI features exist. Map Toolkit returns ordinary
-GeoJSON independently; direct application in Pando needs a separately agreed
-current product path. Unsupported retired reference-image attachments remain
+and do not establish that those UI features exist. Map Toolkit is used entirely
+inside Codex and GPT for analysis, review and file export. The Pando web Viewer
+only displays completed projects; plugin-specific import, editing and application
+acceptance are outside its product scope. Unsupported retired reference-image attachments remain
 explicitly rejected. Do not restore obsolete editor UI or compatibility readers
 as a side effect of the plugin separation.
 
