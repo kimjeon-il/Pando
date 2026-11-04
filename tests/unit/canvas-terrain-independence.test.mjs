@@ -93,7 +93,15 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
     'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
-      'self.drawTerrainTriangle = drawTexturedTriangle; self.currentRenderState = () => lastRenderMessage; self.onmessage = event => {'))(
+      `self.drawTerrainTriangle = drawTexturedTriangle;
+      self.traceTerrainGrid = (spec, projection, message) => {
+        const oldDraw = drawTexturedTriangle, oldManifest = terrainManifest, triangles = [];
+        terrainManifest = { gutter: 0 };
+        drawTexturedTriangle = (_image, source, destination) => triangles.push({ source, destination });
+        try { drawGlobeTerrainTile(spec, {}, projection, message, 1, false); return triangles; }
+        finally { drawTexturedTriangle = oldDraw; terrainManifest = oldManifest; }
+      };
+      self.currentRenderState = () => lastRenderMessage; self.onmessage = event => {`))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
     { now: () => 1 }, () => 0);
@@ -125,6 +133,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   return {
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
     currentRenderState: () => scope.currentRenderState(),
+    traceGrid: (...args) => scope.traceTerrainGrid(...args),
     drawTriangle: points => scope.drawTerrainTriangle({ probeTriangle: true }, [[0, 0], [1, 0], [0, 1]], points, 1),
     render: extra => send({ ...frame, ...extra, type: 'view' }),
     levels: () => requests.map(request => Number(request.url.match(/\/(\d+)\/\d+-\d+\.webp$/)?.[1])),
@@ -137,6 +146,18 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     find: suffix => requests.find(request => !request.completed && request.url.endsWith(suffix)),
   };
 }
+
+test('Canvas globe terrain reuses shared grid vertices while preserving exact triangles', () => {
+  const h=canvasTerrainRuntime(), spec={bounds:[0,4,4,0],pixelWidth:4,pixelHeight:4};
+  let projections=0;const projection=point=>{projections++;return [point[0],point[1]];};
+  const triangles=h.traceGrid(spec,projection,{view:{globeZoom:2,globeRotation:[0,0,0]}});
+  const sources=[[[0,0],[2,0],[0,2]],[[2,0],[2,2],[0,2]],
+    [[2,0],[4,0],[2,2]],[[4,0],[4,2],[2,2]],
+    [[0,2],[2,2],[0,4]],[[2,2],[2,4],[0,4]],
+    [[2,2],[4,2],[2,4]],[[4,2],[4,4],[2,4]]];
+  assert.deepEqual(triangles,sources.map(source=>({source,destination:source.map(([x,y])=>[x,4-y])})));
+  assert.equal(projections,9,'each of the nine shared grid vertices is projected once');
+});
 
 test('Canvas Worker echoes the revisions of the physical packets it actually paints', async () => {
   const packet=(role,revision)=>({key:role,role,geometryRevision:revision,sourceKey:`source:${role}:${revision}`,

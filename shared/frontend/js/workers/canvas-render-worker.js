@@ -492,20 +492,27 @@ function canvasFallbackWorkerMain() {
       const stepsY = Math.max(1, Math.ceil((north - south) / step));
       const center = [-Number(message.view?.globeRotation?.[0] || 0), -Number(message.view?.globeRotation?.[1] || 0)];
       const front = coordinate => self.d3.geo.distance(center, coordinate) <= Math.PI / 2 + 0.012;
+      // Neighbouring cells share their four corners. Keep only two rows so
+      // visibility and projection are evaluated once per shared vertex.
+      const row = y => {
+        const lat = north + (south - north) * (y / stepsY);
+        return Array.from({ length: stepsX + 1 }, (_, x) => {
+          const coordinate = [west + (east - west) * (x / stepsX), lat];
+          return { coordinate, visible: front(coordinate), destination: null };
+        });
+      };
+      let upper = row(0);
       for (let y = 0; y < stepsY; y += 1) {
         const v0 = y / stepsY;
         const v1 = (y + 1) / stepsY;
-        const lat0 = north + (south - north) * v0;
-        const lat1 = north + (south - north) * v1;
+        const lower = row(y + 1);
         for (let x = 0; x < stepsX; x += 1) {
           const u0 = x / stepsX;
           const u1 = (x + 1) / stepsX;
-          const lon0 = west + (east - west) * u0;
-          const lon1 = west + (east - west) * u1;
-          const coordinates = [[lon0, lat0], [lon1, lat0], [lon0, lat1], [lon1, lat1]];
-          const visible = coordinates.map(front);
+          const vertices = [upper[x], upper[x + 1], lower[x], lower[x + 1]];
+          const visible = vertices.map(vertex => vertex.visible);
           if (!visible.some(Boolean)) continue;
-          const destination = coordinates.map(projection);
+          const destination = vertices.map(vertex => vertex.destination ??= projection(vertex.coordinate));
           const source = [
             [gutter + u0 * spec.pixelWidth, gutter + v0 * spec.pixelHeight],
             [gutter + u1 * spec.pixelWidth, gutter + v0 * spec.pixelHeight],
@@ -515,6 +522,7 @@ function canvasFallbackWorkerMain() {
           if (visible[0] && visible[1] && visible[2]) drawTexturedTriangle(image, [source[0], source[1], source[2]], [destination[0], destination[1], destination[2]], dpr);
           if (visible[1] && visible[3] && visible[2]) drawTexturedTriangle(image, [source[1], source[3], source[2]], [destination[1], destination[3], destination[2]], dpr);
         }
+        upper = lower;
       }
     }
 
