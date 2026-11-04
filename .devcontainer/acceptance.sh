@@ -2,6 +2,9 @@
 # Run only inside the actual Codespaces container, never on the PC.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Select installed Node 24 in this non-login Codespaces shell.
+# shellcheck source=.devcontainer/ensure-node.sh
+source .devcontainer/ensure-node.sh
 if [ "$(printenv CODESPACES || true)" != "true" ] || [ -z "$(printenv CODESPACE_NAME || true)" ]; then
   echo "PANDO_CODESPACES_REQUIRED: open work/remote-only in a real Codespace." >&2
   exit 1

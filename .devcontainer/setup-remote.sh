@@ -2,6 +2,9 @@
 # This runs only inside a user-created GitHub Codespace, never on the host PC.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Select installed Node 24 in this non-login Codespaces shell.
+# shellcheck source=.devcontainer/ensure-node.sh
+source .devcontainer/ensure-node.sh
 if [ "$(printenv CODESPACES || true)" != "true" ]; then
   echo "PANDO_REMOTE_ONLY_CODESPACES_REQUIRED: open the branch in GitHub Codespaces." >&2
   exit 1

@@ -13,6 +13,20 @@ the pinned pnpm dependencies into the Codespace only. Its command is not
 `pnpm deps:prepare`: that command intentionally expects a separately
 activated Windows shared cache.
 
+The Codespaces image is the published Node 24 Bookworm variant
+`mcr.microsoft.com/devcontainers/javascript-node:24-bookworm`. Every
+lifecycle script sources `.devcontainer/ensure-node.sh` to restore an
+existing nvm-selected Node 24 PATH in non-login shells. The helper never
+downloads runtimes or compilers.
+
+If setup reports `PANDO_CODESPACES_NODE_MISSING` (or the previous
+`node: command not found`), select **Codespaces: Rebuild Container** from
+the VS Code command palette (`Ctrl+Shift+P`) to apply the Node 24 image.
+Verify `node --version` prints `v24.x` before running acceptance.
+The repository in `/workspaces` persists across a Codespace rebuild;
+container files outside `/workspaces` may be reset. Recovery-mode failures
+require inspecting the Codespaces creation log. Do not install Node or
+native compilers onto the Windows host as a workaround.
 The startup script runs the Viewer on private forwarded port 4173, using the
 current branch and its pinned library-data revision. Geographic materialization
 can delay readiness; view `/tmp/pando-remote-only-preview.log` if necessary.

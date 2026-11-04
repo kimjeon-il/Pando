@@ -9,6 +9,7 @@ test('acceptance requires real Codespaces and no test server fallback',()=>{
   const shell=read('.devcontainer/acceptance.sh');
   assert.match(shell,/CODESPACES/);assert.match(shell,/CODESPACE_NAME/);
   assert.match(shell,/remote-only-doctor/);
+  assert.match(shell,/source \.devcontainer\/ensure-node\.sh/);
   const config=read('playwright.codespaces.config.js');
   assert.doesNotMatch(config,/webServer\s*:/);
   assert.match(config,/127\.0\.0\.1:4173/);

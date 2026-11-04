@@ -11,11 +11,19 @@ const read=path=>readFileSync(resolve(root,path),'utf8');
 
 test('Codespaces installs only pinned remote Node dependencies and opens a private live preview',()=>{
   const dev=JSON.parse(read('.devcontainer/devcontainer.json'));
-  assert.match(dev.image,/javascript-node:1-24-bookworm/);
+  assert.match(dev.image,/javascript-node:24-bookworm/);
   assert.equal(dev.remoteEnv.PANDO_REMOTE_ONLY,'1');
   assert.equal(dev.postCreateCommand,'bash .devcontainer/setup-remote.sh');
   assert.equal(dev.postStartCommand,'bash .devcontainer/start-preview.sh');
   assert.equal(dev.portsAttributes['4173'].visibility,'private');
+  for(const name of ['.devcontainer/setup-remote.sh','.devcontainer/start-preview.sh',
+    '.devcontainer/acceptance.sh','.devcontainer/pnpm.sh'])
+    assert.match(read(name),/source \.devcontainer\/ensure-node\.sh/,name);
+  const bootstrap=read('.devcontainer/ensure-node.sh');
+  assert.match(bootstrap,/PANDO_CODESPACES_NODE_MISSING/);
+  assert.match(bootstrap,/Codespaces: Rebuild Container/);
+  assert.match(bootstrap,/nvm use --silent/);
+  assert.doesNotMatch(bootstrap,/nvm install|apt-get install|npm install/);
   const setup=read('.devcontainer/setup-remote.sh');
   assert.match(setup,/CODESPACES/);
   assert.match(setup,/pnpm.sh install --frozen-lockfile --ignore-scripts/);

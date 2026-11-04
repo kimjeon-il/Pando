@@ -2,6 +2,9 @@
 # Start the read-only private web preview in Codespaces. Never deploy Pages.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# Select installed Node 24 in this non-login Codespaces shell.
+# shellcheck source=.devcontainer/ensure-node.sh
+source .devcontainer/ensure-node.sh
 health="http://127.0.0.1:4173/__p3_health"
 if curl --silent --fail --max-time 2 "$health" | grep -Fq '"preview":"pando-p3"'; then
   echo "Pando remote preview already listening on private port 4173."
