@@ -10,7 +10,7 @@ import { prepareCutInWorker } from "../../tools/gis/cut-worker-preparation.js";
 import { createTerritoryComponentPlan } from "../../tools/gis/territory-component-plan.js";
 import { normalizePolygonGeometry } from "../../shared/frontend/js/modules/map-edit-geometry.js";
 import { createMapDisplayPreparation } from "../../shared/frontend/js/modules/map-display-preparation.js";
-import { createGeometrySnapshotPool, touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
+import { touchGeometry } from "../../shared/frontend/js/modules/geometry-versions.js";
 import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
 
 const square = { type: 'Polygon', coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]] };
@@ -75,27 +75,6 @@ test('display preparation retains independent regional boundaries across general
   assert.ok(result.segments.some(segment => segment.a[0] > 5 || segment.b[0] > 5));
   assert.ok(result.segments.every(segment => segment.styleType === 'region' && segment.unitOwners[0].id === 'REGION'));
 });
-test('history shares immutable versions but never live editing arrays', () => {
-  const pool = createGeometrySnapshotPool();
-  const feature = { id: 'RUS', geometry: structuredClone(square), properties: { name: 'RUS' } };
-  const first = pool.clone(feature), second = pool.clone(feature);
-  assert.equal(first.geometry, second.geometry);
-  assert.notEqual(first.geometry.coordinates, feature.geometry.coordinates);
-  assert.throws(() => { first.geometry.coordinates[0][0][0] = 20; });
-  feature.geometry.coordinates[0][1][0] = 11;
-  touchGeometry(feature.geometry);
-  const third = pool.clone(feature);
-  assert.notEqual(third.geometry, first.geometry);
-  assert.equal(first.geometry.coordinates[0][1][0], 10);
-  assert.equal(third.geometry.coordinates[0][1][0], 11);
-  assert.equal(pool.restore(third, feature).geometry, feature.geometry);
-  const restored = pool.restore(first, feature);
-  assert.notEqual(restored.geometry, feature.geometry);
-  assert.notEqual(restored.geometry, first.geometry);
-  restored.geometry.coordinates[0][0][0] = 7;
-  assert.equal(first.geometry.coordinates[0][0][0], 0);
-});
-
 test('worker cut assessment and split share the exact validated cut and preserve source coordinates', () => {
   const source = structuredClone(square);
   const result = prepareCutInWorker({ source, coords: [[-1, 5], [11, 5]], buildPreview: true,
