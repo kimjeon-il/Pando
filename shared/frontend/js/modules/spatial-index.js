@@ -1,4 +1,3 @@
-import { touchGeometry } from './geometry-versions.js';
 /** SpatialIndex: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -11,8 +10,6 @@ export function createSpatialIndex() {
   let mapObjectSpatialIndexSources;
   let mapObjectGeometryRevisions;
   let viewportCullingMetrics;
-  let applyingMapEditWorkerResult;
-  let mapEditClient;
   function connect(ports) {
     if (dependencies) throw new Error('spatial-index already connected');
     dependencies = ports;
@@ -211,53 +208,6 @@ export function createSpatialIndex() {
       .map(item => item.feature);
   }
 
-  function invalidateGeometryCaches(ids = []) {
-    const wanted = new Set([...ids].map(String));
-    for (const feature of dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })) {
-      if (!wanted.size || wanted.has(String(feature?.id || ''))) {
-        touchGeometry(feature.geometry);
-        geometryBoundsCache.delete(feature.geometry);
-        dependencies.territoryGeometry.ringHitTester.invalidate(feature.geometry);
-        dependencies.labels.countryOutlineCache.delete(feature.geometry);
-      }
-    }
-    if (!wanted.size) rebuildSpatialIndex();
-    else for (const item of dependencies.projectState.state.spatialIndex || []) {
-      if (!wanted.has(item.id)) continue;
-      const feature = dependencies.territorialModel.entityRepository.get(item.id);
-      if (feature) { item.feature = feature; item.bounds = geometryBounds(feature.geometry); }
-    }
-  }
-
-  function markCountryGeometriesChanged(ids = [], { presentation = 'replace-scene' } = {}) {
-    const changed = new Set();
-    for (const rawId of ids) {
-      const id = String(rawId || '');
-      if (!id) continue;
-      changed.add(id);
-      dependencies.projectState.state.pendingCountryRenderIds.add(id);
-    }
-    const currentFeatures = new Map((dependencies.territorialModel.entityRepository.list({ kind: 'general', parentId: '' })).map(feature => [
-      String(feature?.id || ''),
-      feature,
-    ]));
-    const features = [];
-    const removedIds = [];
-    for (const id of changed) {
-      const feature = currentFeatures.get(id);
-      if (feature) features.push(feature);
-      else removedIds.push(id);
-    }
-    invalidateGeometryCaches(changed);
-    (0, dependencies.countryCommands.bumpLandRevision)();
-    dependencies.geometryPreview.boundarySelectionAnalysisCache.clear();
-    dependencies.rendering.gpuMapRenderer.applyCountryPatch(
-      { ids: [...changed], features, removedIds },
-      { presentation },
-    );
-    if (!applyingMapEditWorkerResult) mapEditClient.syncPatch(changed);
-  }
-
   function initializeGeometryBoundsCache() {
     (geometryBoundsCache = new WeakMap());
   }
@@ -283,29 +233,18 @@ export function createSpatialIndex() {
     });
   }
 
-  function installMapEditClient(client) {
-    if(mapEditClient)throw new Error('The map editing client is already registered.');
-    if(!client||typeof client.execute!=='function')throw new TypeError('A map editing client is required.');
-    applyingMapEditWorkerResult=false;mapEditClient=client;
-  }
-
   return Object.freeze({
     connect,
     initializeGeometryBoundsCache,
     initializeMapObjectSpatialIndex,
     initializeViewportCullingMetrics,
-    installMapEditClient,
-    get applyingMapEditWorkerResult() { return applyingMapEditWorkerResult; },
-    set applyingMapEditWorkerResult(value) { applyingMapEditWorkerResult = value; },
     get geometryBounds() { return geometryBounds; },
     get geometryBoundsCache() { return geometryBoundsCache; },
     get geometryMayIntersectViewport() { return geometryMayIntersectViewport; },
     get indexedDistributionRow() { return indexedDistributionRow; },
     get indexedMapObjectCandidates() { return indexedMapObjectCandidates; },
-    get mapEditClient() { return mapEditClient; },
     get mapObjectGeometryRevisions() { return mapObjectGeometryRevisions; },
     get mapObjectSpatialIndex() { return mapObjectSpatialIndex; },
-    get markCountryGeometriesChanged() { return markCountryGeometriesChanged; },
     get rebuildMapObjectSpatialIndex() { return rebuildMapObjectSpatialIndex; },
     get retainTerritorialSpatialIndex() { return retainTerritorialSpatialIndex; },
     get rebuildSpatialIndex() { return rebuildSpatialIndex; },

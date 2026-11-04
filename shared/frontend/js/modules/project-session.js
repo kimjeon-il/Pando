@@ -21,7 +21,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
   let DEFAULT_LAYER_VISIBILITY;
   let state;
   let atomicMapStateController;
-  let saveState;
   let projectionInstalled=false;
   function connect(ports) {
     if (dependencies) throw new Error('project-session already connected');
@@ -110,7 +109,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
       historyDirtyEntityIds: readonlyIds(Object.freeze([])),
       pendingCountryRenderIds: new Set(),
       autosaveMode: 'delta',
-      geometryPreview: !readOnly?(0, dependencies.applicationFactories.createGeometryPreviewState)():null,
       modeProcessing: false,
       modeTaskMinimized: false,
       audit: { status: 'idle', revision: 0, report: null, selectedIssueId: null },
@@ -140,10 +138,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
         state.transitionRevision = Number(snapshot.stateRevision || state.transitionRevision || 0);
       },
     }));
-
-    if(!readOnly)(saveState = (0, dependencies.uiFactoriesB.createSaveStateController)({
-      getDocumentState: () => dependencies.domains.commandOwner?.state() ?? null,
-      onChange: (...args) => dependencies.lifecycleUi.projectUi.syncSaveStatus(...args) }));
 
   }
 
@@ -226,7 +220,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
     const saved=Object.fromEntries(Object.entries(Object.getOwnPropertyDescriptors(state)).filter(([,descriptor])=>descriptor.writable).map(([key,{value}])=>[key,value instanceof Map?new Map(value):value instanceof Set?new Set(value):Array.isArray(value)?value.slice():value&&Object.getPrototypeOf(value)===Object.prototype?{...value}:value]));
     return ()=>{viewingPresentation=capturedPresentation;for(const [key,value] of Object.entries(saved))state[key]=value;state.projectReplacing=true;
       // Prepared candidates have been released by Core replacement. Keep their inputs and recalculate.
-      if(state.geometryPreview?.session)state.geometryPreview={...state.geometryPreview,session:null};
     };
   }
   function installDocumentProjection({ documentModel,commandOwner,entityStore }) {
@@ -274,7 +267,6 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
     get atomicMapStateController() { return atomicMapStateController; },
     get mapWorkScheduler() { return mapWorkScheduler; },
     get normalizeLayerVisibility() { return normalizeLayerVisibility; },
-    get saveState() { return saveState; },
     get state() { return state; },
   });
 }

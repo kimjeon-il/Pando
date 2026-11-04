@@ -88,7 +88,7 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
      ['Viewer owner',source,/createMapOwners\(\{productMode,readOnly:true/],
      ['Core read-only document',source,/createDocumentSession\(\{productMode,readOnly:true/],
      ['Project read-only surface',project,/readOnly\s*=\s*productMode\s*===\s*'viewer'/],
-     ['Map edit hook exclusion',map,/if\s*\(readOnly&&editing\)throw/],
+     ['Map edit hook exclusion',map,/if\s*\(readOnly!==true\|\|editing\)throw/],
      ['Render edit resource exclusion',renderer,/Read-only rendering cannot install editor/],
      ['Windows source closure',stage,/entry\.product==='editor'\|\|!snapshot\.viewerPaths\.has\(path\)/],
    ])if(!pattern.test(text))fail(name+' lost its read-only isolation contract');

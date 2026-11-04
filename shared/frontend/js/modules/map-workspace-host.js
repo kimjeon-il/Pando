@@ -318,7 +318,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     const { width, height } = layout;
     const signature = layout.projectionSignature;
     if (signature === mapResizeSignature) {
-      if (productMode === 'editor') (0, dependencies.taskPresentation.syncMapHudBounds)();
       return false;
     }
     mapResizeSignature = signature;
@@ -337,7 +336,6 @@ export function createMapHost({productMode='editor',readOnly=productMode==='view
     mapHost?.resize?.();
     dependencies.rendering.gpuMapRenderer.resize();
     dependencies.domains.renderingDomain?.invalidateViewport?.('resize');
-    if (productMode === 'editor') (0, dependencies.taskPresentation.syncMapHudBounds)();
     requestAnimationFrame(() => dependencies.rendering.gpuMapRenderer.verifyLayout());
     return true;
   }

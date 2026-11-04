@@ -63,7 +63,6 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city' } = {}) {
   let published = 0, areaPicks = 0;
   const points = [], clicks = [];
   const state = { tool: 'select', view: { globeZoom: 1, flatZoom: 1 } };
-  const draft = {};
   let panning = false;
   const owner=await createNodeSelection({territorialIds:['DEU'],genericIds:[],labelIds:['PLACE'],distributionIds:[],onHoverChanged: s => {
     published++;
@@ -78,10 +77,10 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city' } = {}) {
   const settle=async()=>{await owner.client.selectionSnapshot();};
   const runQueuedPicks=async()=>{for(const[token,callback]of hoverTimers){hoverTimers.delete(token);await callback();}await settle();};
   let executedPicks = 0;
-  const pointers = createPointerTargets({isDraggingDraft:()=>draft.dragging});
+  const pointers = createPointerTargets();
   pointers.connect({ domains: { selectionDomain: domain,projectDomain:owner.project }, projectState: { state },
     feedback:{reportOperationError:error=>{throw error;}},
-    draftPresentation: { editingDraftSnapshot: () => draft }, mapLayout: { viewRevision: 1 },
+    mapLayout: { viewRevision: 1 },
     objectPicking: { selectableObjectsAt: async () => { executedPicks++; return [ref]; } } });
   pointers.initializeHoverPickFrame();
   const peer = node('user-label', interaction), peerText = node('peer-text', peer);
@@ -133,7 +132,7 @@ async function fixture(t,{ queuedPicks = false, peerKind = 'city' } = {}) {
     };
   };
   t.after(async()=>{await pointers.cancelCountryHoverPick();input.dispose();await settle();owner.dispose();});
-  return { hover,settle,runQueuedPicks,label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, draft, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
+  return { hover,settle,runQueuedPicks,label: text, peer: peerText, hit, map, overlay, interaction, dispatch, points, clicks, input, domain, state, pointers, executedPicks: () => executedPicks, setPanning: value => { panning = value; } };
 }
 
 // Reflect app-map-host's actual sibling SVG topology. Real D3 listeners see

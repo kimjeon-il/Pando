@@ -67,7 +67,7 @@ test('reusing a completed mesh invalidates an older rebuild delivery token', asy
   assert.ok(renderer.getStats().geometryRenderTaskToken>older);
 });
 
-test('focus and property editing retain precise geometry until explicitly released', async t => {
+test('focus retains precise geometry until explicitly released', async t => {
   const { renderer } = fixture(t);
   renderer.requestCountryFocus();
   await renderer.rebuildFromCountries([]);
@@ -76,10 +76,6 @@ test('focus and property editing retain precise geometry until explicitly releas
   assert.equal(renderer.getRuntimeState().countryFocusPending, true);
   assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical');
   renderer.cancelCountryFocus();
-  renderer.setCountryPropertyEditingActive(true);
-  renderer.syncCountryMeshQuality({ cssScale: 300 });
-  assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'canonical');
-  renderer.setCountryPropertyEditingActive(false);
   renderer.syncCountryMeshQuality({ cssScale: 300 });
   assert.equal(renderer.getRuntimeState().desiredCountryMeshQuality, 'preview');
   assert.equal(renderer.getRuntimeState().surfacePresentation.geometryQuality, 'canonical', 'uncertified startup mesh is never readmitted');
