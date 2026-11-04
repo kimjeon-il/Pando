@@ -3,11 +3,11 @@
   "provenance": {
     "repository": "kimjeon-il/PandoLab-library-data",
     "revision": "5eb7be55208efaafe39bd5a65ec2f111d70b9053",
-    "reviewedRuntimeRevision": "deb5576939de1a7e9d70c00fd68b98c1e2e2e883",
+    "reviewedRuntimeRevision": "30ce140bdd55b45cbe40d75346719a4b140e1342",
     "archiveIndexPath": "archive/index.json",
-    "archiveIndexBlob": "3bd3c55150c811fba23d6c3ac88a82528db289f1",
-    "archiveSourceRevision": "74b6616c83e12d64a73838cf7d8a786817554e75",
-    "generatedIndexSha256": "f736a487ae7dc87d6dd9838dc3c00eb29f4373bacd3445e4550233c3fc2f86df",
+    "archiveIndexBlob": "4ef57ab2c1c87b2ecf0b1aef37c6420a44473c70",
+    "archiveSourceRevision": "8bdccdd5b1e20305e0069ec856d0f2086637ecdb",
+    "generatedIndexSha256": "1a29ee3079ca9f82fd68ae2856c61e5b17d62c78fa8dd372667153a566b1a9b2",
     "acceptedSourceUpdate": {
       "scope": [
         "state:RUS",
@@ -20,6 +20,15 @@
       "reason": "Retire sub-500 A–C and paired Sarakhs shapes; remove three native-only G registrations; preserve all unrelated source receipts.",
       "runtime": "deb5576939de1a7e9d70c00fd68b98c1e2e2e883",
       "generatedData": "5500b6a035d29844c7de93a709db3557bfc9c12c"
+    },
+    "acceptedKoreanBaselineRollback": {
+      "scope": [
+        "state:KOR",
+        "state:PRK",
+        "state:CHN"
+      ],
+      "runtime": "30ce140bdd55b45cbe40d75346719a4b140e1342",
+      "reason": "Restore only direct Paektu/MDL LSIB replacements to the verified pre-LSIB NE baseline; preserve phase dates, all other source receipts, Monaco, and earlier retirements."
     }
   },
   "counts": {
@@ -205,8 +214,8 @@
       "bytes": 1519194
     },
     "state:CHN": {
-      "sha256": "36146a8a13e99318806d05b7f0f77e28b4c78474ac6d29b35dfc54ea4ec48527",
-      "bytes": 1426061
+      "sha256": "427695448432ff973055e7481e4bb69b2b1f41013eadcc77b69138b1b3c3641a",
+      "bytes": 1228839
     },
     "state:CIV": {
       "sha256": "66cb5fc8ff35c82ecfeab5edce087210a8fe15a569c1b4ba16efc499b4a07294",
@@ -549,8 +558,8 @@
       "bytes": 5059
     },
     "state:KOR": {
-      "sha256": "5af999398fbbbfe7998d83d7a37f8084bba530393b5328adecfb99ef342aab1d",
-      "bytes": 1014585
+      "sha256": "b810da35e17086f0edb2825684b688df03bdf2a87c07df6317853d55fffd3de3",
+      "bytes": 561927
     },
     "state:KOS": {
       "sha256": "2f06e05107242828032a4bc2c59c2ee2d2beb924186b344125530ee78534b9f4",
@@ -793,8 +802,8 @@
       "bytes": 29156
     },
     "state:PRK": {
-      "sha256": "236ef497feacd7b1a4c571d70d66cb98a48a3b431f47fd1d32e06575de10206b",
-      "bytes": 1945350
+      "sha256": "43c96657779858512ff47f598ba9314e06d68e9aa8f1cf957ee22930081cc8ee",
+      "bytes": 445316
     },
     "state:PRT": {
       "sha256": "62da286ccaa2313757d527de91bae089333a38bd9b01aef14ba7e0e93bc5bb2e",

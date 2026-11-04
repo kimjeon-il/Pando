@@ -31,9 +31,9 @@ test('LSIB updates the open display version, independently of an undated histori
 
 // Closed historical geometry must fail before source-chain processing.
 test('Korean refinement rejects a closed explicitly selected version',async()=>{
- const {refineChinesePaektuSource}=await import('../../tools/build-korean-boundaries.mjs');
+ const {restoreChinesePaektuSource}=await import('../../tools/build-korean-boundaries.mjs');
  const entity={geometryVersions:[{versionId:'closed',validTo:'1950'}]};
  const before=structuredClone(entity);
- assert.throws(()=>refineChinesePaektuSource(entity,{features:[]},'test','closed'),/Missing open Chinese display geometry/);
+ assert.throws(()=>restoreChinesePaektuSource(entity,{features:[]},{features:[]},'closed'),/Missing open Chinese display geometry/);
  assert.deepEqual(entity,before);
 });

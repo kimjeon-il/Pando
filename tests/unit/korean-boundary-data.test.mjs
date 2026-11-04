@@ -4,10 +4,10 @@ import fs from 'node:fs';
 import {normalizeTerritorialLibraryEntity,selectGeometryVersion} from "../../tools/gis/territorial-library.js";
 import {createRingHitTester} from "../../shared/frontend/js/modules/ring-hit-test.js";
 import {clippingOperationWithPrecisionRetry} from "../../tools/gis/polygon-clipping-calculation.js";
-import {builtinProject} from '../helpers/builtin-world.mjs';
+import {scopedBuiltinProject} from '../helpers/builtin-world.mjs';
 import {createGeometryVersionStore} from "../../shared/frontend/js/modules/geometry-version-store.js";
 import {resolveWorld} from "../../shared/frontend/js/modules/timeline-resolver.js";
-import {refineChinesePaektuSource} from '../../tools/build-korean-boundaries.mjs';
+import {restoreChinesePaektuSource,readBoundaryChain,buildKoreanBoundaryGeometry} from '../../tools/build-korean-boundaries.mjs';
 
 const readCountry=id=>normalizeTerritorialLibraryEntity(JSON.parse(fs.readFileSync(new URL(`../../assets/data/territorial-entities/source/countries/state-${id}.json`,import.meta.url))));
 const korea=readCountry('KOR'),north=readCountry('PRK');
@@ -96,36 +96,35 @@ test('the paired Korean/Chinese changes preserve the Korean land union and produ
   assert.deepEqual(clippingOperationWithPrecisionRetry('intersection',current[1],current[2]),[]);
   assert.equal(china.geometryVersions.length,1,'A local counterpart correction must not invent Chinese historical coverage');
   assert.equal(Object.hasOwn(china.geometryVersions[0],'datePrecision'),false);
-  assert.equal(contains(north,'1964-03-20',[128.045,42.016]),false,'northwest Cheonji belongs to China');
-  assert.equal(contains(china,'2026-10-06',[128.045,42.016]),true);
-  assert.equal(contains(north,'1964-03-20',[128.07,42.006]),true,'southeast Cheonji belongs to North Korea');
-  assert.equal(contains(china,'2026-10-06',[128.07,42.006]),false);
+  const start=[128.14425,41.754713],end=[128.597556,42.027126],witness=[128.054643,41.998316];
+  const expected=readBoundaryChain(original.features.find(f=>f.id==='PRK').geometry,start,end,witness);
+  assert.deepEqual(readBoundaryChain(selectGeometryVersion(north,'1964-03-20').geometry,start,end,witness),expected);
+  assert.deepEqual(readBoundaryChain(selectGeometryVersion(china,'2026-10-06').geometry,start,end,witness),expected);
+  for(const point of [[128.045,42.016],[128.07,42.006]])for(const [id,entity]of [['PRK',north],['CHN',china]]){
+    const g=original.features.find(f=>f.id===id).geometry;
+    const expectedOwner=coordinates(g).some(p=>rings.contains(point,p[0])&&!p.slice(1).some(h=>rings.contains(point,h)));
+    assert.equal(contains(entity,'2026-10-06',point),expectedOwner,'Display attribution follows the pre-LSIB NE baseline, not a newly claimed treaty reconstruction');
+  }
 });
 
-test('Korean reconstruction preserves the supplemented Chinese counterpart byte for byte',()=>{
-  const china=readCountry('CHN');
-  const lines=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',import.meta.url)));
-  const version=china.geometryVersions.find(row=>row.versionId===china.metadata.representativeGeometryVersionId);
-  assert.equal(version.sourceId,'natural-earth-5.1.1+dos-lsib-11.4');
-  assert.deepEqual(version.historicalProvenance,{
-    evidenceStatus:'provisional',sourceIds:['natural-earth-5.1.1','dos-lsib-11.4'],
-    reconstructionScope:'Paektu shared boundary only; no extension of Chinese historical coverage',
-    sourceFile:'tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',
-  });
-  const original=JSON.stringify(china);
-  const refined=refineChinesePaektuSource(china,lines,'unused-on-unchanged-chain',version.versionId);
-  assert.deepEqual(refined,china);
-  assert.equal(JSON.stringify(refined),original);
-  assert.equal(JSON.stringify(china),original);
+test('Korean baseline generation keeps the Chinese counterpart idempotent and does not reinsert LSIB',()=>{
+  const china=readCountry('CHN'),lines=JSON.parse(fs.readFileSync(new URL('../../tools/historical-library/sources/korea/lsib-11.4-korean-boundaries.geojson',import.meta.url)));
+  const original=JSON.parse(fs.readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson',import.meta.url))),version=china.geometryVersions.find(v=>v.versionId===china.metadata.representativeGeometryVersionId);
+  assert.equal(version.sourceId.split('+').includes('dos-lsib-11.4'),false);
+  assert.ok(version.historicalProvenance.retiredModernSourceIds.includes('dos-lsib-11.4'));
+  const before=JSON.stringify(china),restored=restoreChinesePaektuSource(china,original,lines,version.versionId);
+  assert.deepEqual(restored,china);assert.equal(JSON.stringify(china),before);
+  const rebuilt=buildKoreanBoundaryGeometry(original),start=[128.14425,41.754713],end=[128.597556,42.027126],witness=[128.054643,41.998316];
+  assert.deepEqual(readBoundaryChain(rebuilt.northMdl,start,end,witness),readBoundaryChain(rebuilt.china,start,end,witness));
 });
 
-test('the actual published timeline retains Korean creation dates and the June/July 1953 geometry change',()=>{
-  const view=month=>{const project=builtinProject(month);return resolveWorld(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month).entities;};
-  assert.equal(view('1948-07').some(e=>e.id==='KOR'||e.id==='PRK'),false);
-  assert.equal(view('1948-08').some(e=>e.id==='KOR'),true);
-  assert.equal(view('1948-08').some(e=>e.id==='PRK'),false);
-  assert.equal(view('1948-09').some(e=>e.id==='PRK'),true);
-  const before=view('1953-06'),after=view('1953-07');
+test('the actual published timeline retains Korean creation dates and the June/July 1953 geometry change',async()=>{
+  const view=async month=>{const project=await scopedBuiltinProject(month,['KOR','PRK','CHN']);return resolveWorld(project.territorialEntities,project.timelineRecords,createGeometryVersionStore(project.geometries),month).entities;};
+  assert.equal((await view('1948-07')).some(e=>e.id==='KOR'||e.id==='PRK'),false);
+  assert.equal((await view('1948-08')).some(e=>e.id==='KOR'),true);
+  assert.equal((await view('1948-08')).some(e=>e.id==='PRK'),false);
+  assert.equal((await view('1948-09')).some(e=>e.id==='PRK'),true);
+  const before=await view('1953-06'),after=await view('1953-07');
   const owns=(rows,id,point)=>{
     const g=rows.find(e=>e.id===id).geometry;
     return (g.type==='Polygon'?[g.coordinates]:g.coordinates).some(p=>rings.contains(point,p[0])&&!p.slice(1).some(h=>rings.contains(point,h)));
@@ -134,5 +133,5 @@ test('the actual published timeline retains Korean creation dates and the June/J
   assert.equal(owns(after,'PRK',[126.554,37.971]),true);
   assert.equal(owns(before,'PRK',[128.59,38.2]),true);
   assert.equal(owns(after,'KOR',[128.59,38.2]),true);
-  assert.ok(view('2026-11').some(e=>e.id==='KOR'));
+  assert.ok((await view('2026-11')).some(e=>e.id==='KOR'));
 });
