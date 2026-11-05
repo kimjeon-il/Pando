@@ -45,18 +45,31 @@ installation. `scripts/prepare-native-test-tools.mjs` rejects those native
 preparations on this branch outside GitHub Actions, including when invoked
 from a Windows checkout.
 
+## Windows native reviewer retirement (work/remote-only)
+
+The integrated Web Viewer inspection panel replaces the standalone
+Windows Tauri/WebView2 reviewer in this branch. The P1 workflow no longer
+accepts `native` or `native-tests` dispatch requests and the remote-only
+acceptance has no Windows build or GUI job. Root `dev:windows` and
+`build:windows` package scripts and `@tauri-apps/cli` dependency are
+retired. The source-bound C++ Core, WASM, GIS and browser acceptance
+still run in GitHub Actions, not on the Windows PC.
+
+Archived Windows source and storage cleanup code must not be mistaken
+for a supported executable. Preserve existing user's binaries and
+references; this migration does not delete PC files.
+
 ## Builds and verification are owned by CI
 
 - P1 `.github/workflows/remote-development-p1.yml`: source-aware UI,
-  C++, GIS, WASM and Windows reviewer jobs. This branch is a push target.
-  Explicit Windows `native` or `native-tests` runs use the Actions workflow.
+  C++, GIS and WASM runner jobs only. This branch is a push target.
 - P2 `.github/workflows/generated-artifacts-p2.yml`: regenerate only
   changed source-bound WASM/data families and publish with a guarded
   work-branch fast-forward, not to main. Do not use `all` casually.
 - P3 `.github/workflows/remote-preview-p3.yml`: browser evidence and
   downloadable branch snapshots; this is not a permanent public preview URL.
 - `.github/workflows/remote-only-gate.yml`: branch configuration contracts,
-  actual shared WASM compilation and Windows WebView2 acceptance. It does not
+  actual shared WASM compilation and GIS/Viewer browser acceptance. It does not
   install or validate AI models, OCR or model training.
 - The published Viewer remains owned by main's `web-pages.yml`.
   Source writes, artifact publication to this branch and main deployment

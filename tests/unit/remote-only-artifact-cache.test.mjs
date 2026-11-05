@@ -2,11 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {join,dirname} from 'node:path';
-import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import {wasmCacheIdentity,recordWasmCache,verifyWasmCache,restoreWasmCache} from '../../scripts/remote-only-wasm-cache.mjs';
 import {remoteOnlyAcceptanceScope} from '../../scripts/remote-only-ci-scope.mjs';
-import {verifyWindowsCache} from '../../scripts/remote-only-windows-cache.mjs';
 
 test('CI source planning skips documentation-only pushes and forces explicit acceptance',()=>{
   assert.equal(remoteOnlyAcceptanceScope(['docs/something.md','README.md']).runHeavy,false);
@@ -58,28 +56,4 @@ test('cache cannot reuse tampered WASM bytes even with a retained manifest',asyn
   await recordWasmCache({repository:f.repository,build:join(f.repository,'temporary-build'),directory,instantiate});
   writeFileSync(join(directory,'pandoeditor-core.wasm'),Buffer.from([0,97,115,109,1,0,0,1]));
   await assert.rejects(verifyWasmCache({repository:f.repository,directory,instantiate}),/byte hash/);
-});
-test('Windows remote cache requires a pinned input, exact embedded SHA and verification mode',()=>{
-  const identity={platform:'windows',target:'x86_64-pc-windows-msvc',mode:'verification',
-    toolchainVersion:'1.99.1',sha256:'b'.repeat(64)};
-  const marker={schema:1,sourceCommit:'c'.repeat(40),
-    nativeInputSha256:identity.sha256,platform:'windows',target:identity.target,
-    mode:identity.mode,toolchainVersion:identity.toolchainVersion,
-    files:[{path:'pandolab-web-shell.exe',bytes:3,sha256:'a'.repeat(64)}]};
-  const root=mkdtempSync(join(tmpdir(),'pando-win-cache-'));
-  try{
-    writeFileSync(join(root,'native-artifact.json'),JSON.stringify(marker));
-    // Source-matched manifest validation always precedes any executable inspection.
-    assert.throws(()=>verifyWindowsCache({repository:root,directory:root,identity,
-      sourceCommit:marker.sourceCommit,inspect:()=>({})}),/ENOENT|artifact bytes/);
-    writeFileSync(join(root,'pandolab-web-shell.exe'),'abc');
-    marker.files[0].sha256=createHash('sha256').update('abc').digest('hex');
-    writeFileSync(join(root,'native-artifact.json'),JSON.stringify(marker));
-    assert.throws(()=>verifyWindowsCache({repository:root,directory:root,identity,
-      sourceCommit:marker.sourceCommit,inspect:()=>({nativeInputSha256:identity.sha256,
-        executionMode:'development',sourceCommit:marker.sourceCommit})}),/execution mode/);
-    assert.equal(verifyWindowsCache({repository:root,directory:root,identity,
-      sourceCommit:marker.sourceCommit,inspect:()=>({nativeInputSha256:identity.sha256,
-        executionMode:'verification',sourceCommit:marker.sourceCommit})}).sha256,identity.sha256);
-  }finally{rmSync(root,{recursive:true,force:true});}
 });

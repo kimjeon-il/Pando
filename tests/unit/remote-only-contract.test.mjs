@@ -44,6 +44,22 @@ test('the remote-only branch runs P1, P2, P3 and a dedicated Node contract in CI
   assert.match(deploy,/github\.ref == 'refs\/heads\/main'/);
 });
 
+test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',()=>{
+  const gate=read('.github/workflows/remote-only-gate.yml');
+  const p1=read('.github/workflows/remote-development-p1.yml');
+  const scripts=JSON.parse(read('package.json')).scripts;
+  const shell=JSON.parse(read('apps/editor/package.json'));
+  for(const body of [gate,p1])for(const forbidden of [
+    'windows-real-webview2:', 'windows-2022', 'dtolnay/rust-toolchain@',
+    'native-artifact:', 'apps/editor/packaged-artifacts.mjs --ci-build'])
+    assert.equal(body.includes(forbidden),false,forbidden);
+  assert.equal(Object.hasOwn(scripts,'dev:windows'),false);
+  assert.equal(Object.hasOwn(scripts,'build:windows'),false);
+  assert.equal(Object.hasOwn(shell.devDependencies||{},'@tauri-apps/cli'),false);
+  for(const name of ['build:windows','test:native','dev:windows','build:verification:windows'])
+    assert.equal(Object.hasOwn(shell.scripts,name),false,name);
+});
+
 test('native prerequisite preparation is rejected outside Actions on the new branch',()=>{
   for(const environment of [{PANDO_REMOTE_ONLY:'1'},{GITHUB_ACTIONS:'false'}])
     assert.throws(()=>assertRemoteOnlyNativePreparation({environment,branch:'work/remote-only'}),
