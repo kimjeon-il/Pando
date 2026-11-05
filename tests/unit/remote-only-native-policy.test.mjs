@@ -6,7 +6,8 @@ import {tmpdir} from 'node:os';
 import {assertRemoteOnlyNativeAllowed,remoteOnlyBranch} from '../../scripts/lib/remote-only-native-policy.mjs';
 import {assertRemoteOnlyNativePreparation} from '../../scripts/prepare-native-test-tools.mjs';
 import {retireUnusedNativeViews,installNativeArtifactView,pruneApplicationBlobs,compilerCacheEnvironment} from '../../tools/worktree-storage.mjs';
-import {nativeHash} from '../../apps/editor/native-contract.mjs';
+import {createHash} from 'node:crypto';
+const nativeHash=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 test('Pando-owned native installation and compiler gates fail before side effects outside Actions',()=>{
   const never=()=>{throw Error('git probe should not be called when env opt-in is present')};
@@ -84,9 +85,8 @@ test('compiler activation refuses local SDKs before I/O; Windows download uses s
   await assert.rejects(activateCompilerCache(root,{environment}),{
     code:'PANDO_REMOTE_ONLY_NATIVE_CI_REQUIRED'
   });
-  const appSource=readFileSync(new URL('../../apps/editor/packaged-artifacts.mjs',import.meta.url),'utf8');
-  assert.match(appSource,/export async function fetchNativeArtifact/);
-  assert.match(appSource,/assertRemoteOnlyNativeAllowed\(\{root,environment,branch:policyBranch/);
+  assert.equal(existsSync(new URL('../../apps/editor/packaged-artifacts.mjs',import.meta.url)),false);
+  assert.equal(existsSync(new URL('../../apps/editor/native-producer.mjs',import.meta.url)),false);
   assert.equal(existsSync(join(root,'build-native')),false);
   assert.equal(existsSync(join(root,'cache')),false);
 });

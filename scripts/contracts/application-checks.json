@@ -455,12 +455,7 @@
       "kind": "command",
       "inputs": [
         "apps/editor/stage.mjs",
-        "apps/editor/verify-*.ps1",
         "apps/editor/check-stage.mjs",
-        "apps/editor/src-tauri/**",
-        "apps/editor/native-contract.mjs",
-        "apps/editor/native-producer.mjs",
-        "apps/editor/packaged-artifacts.mjs",
         "apps/editor/review-probe.js",
         "apps/editor/world-data-plan.mjs",
         "scripts/lib/product-assets.mjs",
@@ -488,10 +483,6 @@
       "inputs": [
         "apps/editor/stage.mjs",
         "apps/editor/check-stage.mjs",
-        "apps/editor/src-tauri/**",
-        "apps/editor/native-contract.mjs",
-        "apps/editor/native-producer.mjs",
-        "apps/editor/packaged-artifacts.mjs",
         "apps/editor/review-probe.js",
         "apps/editor/world-data-plan.mjs",
         "scripts/lib/product-assets.mjs",
@@ -517,10 +508,6 @@
       "inputs": [
         "apps/editor/stage.mjs",
         "apps/editor/check-stage.mjs",
-        "apps/editor/src-tauri/**",
-        "apps/editor/native-contract.mjs",
-        "apps/editor/native-producer.mjs",
-        "apps/editor/packaged-artifacts.mjs",
         "apps/editor/review-probe.js",
         "apps/editor/world-data-plan.mjs",
         "scripts/lib/product-assets.mjs",
@@ -547,10 +534,6 @@
       "inputs": [
         "apps/editor/stage.mjs",
         "apps/editor/check-stage.mjs",
-        "apps/editor/src-tauri/**",
-        "apps/editor/native-contract.mjs",
-        "apps/editor/native-producer.mjs",
-        "apps/editor/packaged-artifacts.mjs",
         "apps/editor/review-probe.js",
         "apps/editor/world-data-plan.mjs",
         "scripts/lib/product-assets.mjs",
@@ -930,17 +913,43 @@
   ],
   "prerequisites": {
     "native-hydro-calibration": {
-      "argv": ["node", "scripts/prepare-native-test-tools.mjs", "hydro-calibration"],
-      "env": {"PANDO_HYDRO_CALIBRATION_ARTIFACT": "{root}/build-native/hydro-calibration/artifact"},
-      "inputs": ["tools/cpp/hydro-calibration/**", "tools/cpp/hydro/calibration.cpp", "shared/core/include/pandoeditor/losslessjson.h", "shared/core/src/losslessjson.cpp", "tools/gis/package-hydro-calibration.mjs", ".github/actions/native-test-prerequisites/action.yml"]
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "hydro-calibration"
+      ],
+      "env": {
+        "PANDO_HYDRO_CALIBRATION_ARTIFACT": "{root}/build-native/hydro-calibration/artifact"
+      },
+      "inputs": [
+        "tools/cpp/hydro-calibration/**",
+        "tools/cpp/hydro/calibration.cpp",
+        "shared/core/include/pandoeditor/losslessjson.h",
+        "shared/core/src/losslessjson.cpp",
+        "tools/gis/package-hydro-calibration.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
     },
     "native-hydro-point-screen": {
-      "argv": ["node", "scripts/prepare-native-test-tools.mjs", "hydro-point-screen"],
+      "argv": [
+        "node",
+        "scripts/prepare-native-test-tools.mjs",
+        "hydro-point-screen"
+      ],
       "env": {
         "PANDO_HYDRO_POINT_SCREEN_BINARY": "{root}/build-native/hydro-point-screen/artifact/pando-hydro-point-screen",
         "PANDO_HYDRO_POINT_SCREEN_DIRECTORY": "{root}/build-native/hydro-point-screen/artifact"
       },
-      "inputs": ["tools/cpp/CMakeLists.txt", "tools/cpp/hydro/point-screen.cpp", "tools/cpp/map-image/raster-draw.h", "tools/cpp/map-preview/PILLOW-LICENSE", "shared/core/include/pandoeditor/losslessjson.h", "shared/core/src/losslessjson.cpp", "tools/gis/package-hydro-point-screen.mjs", ".github/actions/native-test-prerequisites/action.yml"]
+      "inputs": [
+        "tools/cpp/CMakeLists.txt",
+        "tools/cpp/hydro/point-screen.cpp",
+        "tools/cpp/map-image/raster-draw.h",
+        "tools/cpp/map-preview/PILLOW-LICENSE",
+        "shared/core/include/pandoeditor/losslessjson.h",
+        "shared/core/src/losslessjson.cpp",
+        "tools/gis/package-hydro-point-screen.mjs",
+        ".github/actions/native-test-prerequisites/action.yml"
+      ]
     },
     "generated": {
       "argv": [
@@ -1561,12 +1570,21 @@
       ]
     },
     {
-      "tests": ["tests/unit/hydro-calibration-metrics.test.mjs", "tests/unit/hydro-calibration-native.test.mjs"],
-      "requires": ["native-hydro-calibration"]
+      "tests": [
+        "tests/unit/hydro-calibration-metrics.test.mjs",
+        "tests/unit/hydro-calibration-native.test.mjs"
+      ],
+      "requires": [
+        "native-hydro-calibration"
+      ]
     },
     {
-      "tests": ["tests/unit/hydro-shared-boundary.test.mjs"],
-      "requires": ["native-hydro-point-screen"]
+      "tests": [
+        "tests/unit/hydro-shared-boundary.test.mjs"
+      ],
+      "requires": [
+        "native-hydro-point-screen"
+      ]
     },
     {
       "tests": [

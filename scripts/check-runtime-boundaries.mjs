@@ -1,6 +1,6 @@
 // R1: only the shipped Viewer and Windows read-only reviewer are runtime contracts.
 // The retired graphical-editor source tree is not a required application domain.
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {posix,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildFrontendIndex,frontendGeneratedOwners,frontendModuleReferences,frontendRoots} from './lib/frontend-layout.mjs';
@@ -117,19 +117,8 @@ for(const [asset,body] of sources)
     &&/createMapRenderCoordinator\(\{/.test(body))
     fail('Duplicate render coordinator: '+asset);
 
-// Windows retains only reviewed diagnostic and user-selected correction writes.
-const rust=read('apps/editor/src-tauri/src/lib.rs');
-const handler=rust.match(/\.invoke_handler\(tauri::generate_handler!\[([\s\S]*?)\]\)/)?.[1];
-if(!handler||!handler.includes('review_correction::save_review_correction')
-  ||!handler.includes('write_diagnostic_report'))
-  fail('Windows review command handler is missing');
-if(/\b(?:begin_document_write|append_document_chunk|finish_document_write|begin_document_read|read_document_chunk|abort_document_transfer|save_project|commit_import)\b/.test(handler))
-  fail('Retired editor write command is registered in the Windows reviewer');
-if(!rust.includes('let entry = "review.html";'))
-  fail('Windows shell must start at review.html');
-const capability=JSON.parse(read('apps/editor/src-tauri/capabilities/prototype-review.json'));
-const allowed=['allow-save-review-correction','allow-write-diagnostic-report'];
-if(JSON.stringify([...capability.permissions].sort())!==JSON.stringify(allowed))
-  fail('Windows reviewer capability exceeds allowed writes');
-
-console.log('Viewer/Windows runtime boundaries passed ('+visited.size+' reachable modules).');
+// Windows native shell was retired. All active Viewer code remains read-only.
+for(const path of ['apps/editor/src-tauri/Cargo.toml','apps/editor/src-tauri/src/main.rs',
+  'apps/editor/native-producer.mjs','apps/editor/packaged-artifacts.mjs'])
+  if(existsSync(resolve(root,path)))fail('Windows native producer returned: '+path);
+console.log('Viewer runtime boundaries passed ('+visited.size+' reachable modules).');
