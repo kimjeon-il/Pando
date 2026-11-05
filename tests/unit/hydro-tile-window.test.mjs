@@ -153,3 +153,46 @@ test('gpu hydro request cache no longer includes raw view revision', () => {
   assert.ok(requestSource.includes('createHydroTileWindow'));
   assert.doesNotMatch(requestSource, /viewState\?\.revision|currentRenderRevision/);
 });
+
+test('hydro tile range enumeration matches exhaustive longitude and latitude scans', () => {
+  // Reference is the exhaustive pre-optimization rule, including seam handling,
+  // epsilon and ascending tile order; do not relax it to set equality.
+  const normalize = value => ((value + 180) % 360 + 360) % 360 - 180;
+  const exhaustive = (columns, rows, lon, lat, halfLon, halfLat) => {
+    const xIndices = [];
+    const dx = 360 / columns, dy = 180 / rows;
+    for (let x = 0; x < columns; x++) {
+      const tileCenter = -180 + (x + 0.5) * dx;
+      if (Math.abs(normalize(tileCenter - normalize(lon))) <= halfLon + dx / 2 + 1e-9)
+        xIndices.push(x);
+    }
+    let yStart = rows, yEnd = -1;
+    for (let y = 0; y < rows; y++) {
+      const tileCenter = 90 - (y + 0.5) * dy;
+      if (Math.abs(tileCenter - Math.max(-90, Math.min(90, lat))) <= halfLat + dy / 2 + 1e-9) {
+        yStart = Math.min(yStart, y); yEnd = Math.max(yEnd, y);
+      }
+    }
+    return {xIndices, yStart:yEnd >= yStart ? yStart : 0, yEnd};
+  };
+  let seed = 0x4b1d;
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 0x100000000; };
+  const columnSizes = [1,2,3,8,16,64,512,1024];
+  const rowSizes = [1,2,3,8,64,256,512];
+  for (let i = 0; i < 2200; i++) {
+    const columns = columnSizes[i % columnSizes.length];
+    const rows = rowSizes[i % rowSizes.length];
+    const lon = i % 7 === 0 ? 180 : i % 11 === 0 ? -180 : random() * 1800 - 900;
+    const lat = i % 13 === 0 ? 90 : i % 17 === 0 ? -90 : random() * 200 - 100;
+    const width = 1 + random() * 1200, height = 1 + random() * 900, scale = 1 + random() * 25000;
+    const halfLon = width / scale * 90 / Math.PI + 2;
+    const halfLat = height / scale * 90 / Math.PI + 2;
+    const actual = createHydroTileWindow({
+      manifest:{stages:[{id:1,minZoom:0,columns,rows}]},
+      projection:'flat',threshold:1,width,height,scale,flatCenter:[lon,lat],
+    }).windows[0];
+    const expected = exhaustive(columns,rows,lon,lat,halfLon,halfLat);
+    assert.deepEqual({xIndices:actual.xIndices,yStart:actual.yStart,yEnd:actual.yEnd},
+      expected,`tile window ${i}, ${columns}x${rows}`);
+  }
+});

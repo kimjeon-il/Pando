@@ -38,3 +38,26 @@ test('queries a conservative globe cap without adding every coarse object', () =
   assert.equal(ids.has('horizon'), true);
   assert.equal(ids.has('back'), false);
 });
+
+test('map object diagnostics and incremental domain clearing retain exact tier counts', () => {
+  const index = createMapObjectSpatialIndex({cellSize:5,maxCellsPerEntry:4,coarseCellSize:20,maxCoarseCellsPerEntry:5});
+  const objects = [];
+  for (let i = 0; i < 180; i++) {
+    const key = 'item:' + i, domain = i % 3 === 0 ? 'retired' : 'active';
+    const size = i % 5 === 0 ? 180 : i % 4 === 0 ? 25 : 0.1;
+    const entry = {key,domain,id:key,bounds:[-90,0,-90+size,Math.min(90,size)]};
+    assert.equal(index.upsert(entry),true);
+    objects.push(entry);
+  }
+  const before = index.stats();
+  assert.equal(before.entryCount,objects.length);
+  assert.equal(before.fineEntryCount + before.coarseEntryCount + before.globalEntryCount,objects.length);
+  assert.equal(before.largeEntryCount,before.coarseEntryCount + before.globalEntryCount);
+  assert.equal(index.clearDomain('retired'),60);
+  const after = index.stats();
+  assert.equal(after.entryCount,120);
+  assert.equal(after.fineEntryCount + after.coarseEntryCount + after.globalEntryCount,120);
+  assert.equal(after.largeEntryCount,after.coarseEntryCount + after.globalEntryCount);
+  assert.ok(index.query([-180,-90,180,90]).every(row=>row.domain==='active'));
+  assert.equal(index.clearDomain('retired'),0);
+});

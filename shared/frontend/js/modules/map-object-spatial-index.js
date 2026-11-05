@@ -124,8 +124,9 @@ export function createMapObjectSpatialIndex({
         for (let x = range.minX; x <= range.maxX; x += 1) {
           for (let y = range.minY; y <= range.maxY; y += 1) {
             const cell = bucketKey(x, y);
-            if (!targetBuckets.has(cell)) targetBuckets.set(cell, new Set());
-            targetBuckets.get(cell).add(key);
+            let bucket = targetBuckets.get(cell);
+            if (!bucket) { bucket = new Set(); targetBuckets.set(cell, bucket); }
+            bucket.add(key);
             bucketKeys.push(cell);
           }
         }
@@ -139,7 +140,8 @@ export function createMapObjectSpatialIndex({
   function clearDomain(domain) {
     const wanted = String(domain || '');
     let removed = 0;
-    for (const record of [...entries.values()]) {
+    // Map iteration tolerates removal of the current entry; no snapshot needed.
+    for (const record of entries.values()) {
       if (record.domain !== wanted) continue;
       if (remove(record.key)) removed += 1;
     }
@@ -205,15 +207,21 @@ export function createMapObjectSpatialIndex({
   }
 
   function stats() {
+    let fineEntryCount = 0;
+    let coarseEntryCount = 0;
+    for (const record of entries.values()) {
+      if (record.tier === 'fine') fineEntryCount++;
+      else if (record.tier === 'coarse') coarseEntryCount++;
+    }
     return {
       entryCount: entries.size,
       bucketCount: fineBuckets.size + coarseBuckets.size,
       fineBucketCount: fineBuckets.size,
       coarseBucketCount: coarseBuckets.size,
-      fineEntryCount: [...entries.values()].filter(record => record.tier === 'fine').length,
-      coarseEntryCount: [...entries.values()].filter(record => record.tier === 'coarse').length,
+      fineEntryCount,
+      coarseEntryCount,
       globalEntryCount: globalEntries.size,
-      largeEntryCount: [...entries.values()].filter(record => record.tier !== 'fine').length,
+      largeEntryCount: entries.size - fineEntryCount,
       lastCandidateCount,
       lastRawCandidateCount,
       lastQueryMs,
