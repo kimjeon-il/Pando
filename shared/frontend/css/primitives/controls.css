@@ -124,9 +124,6 @@ button:disabled {
 }
 
 @media (prefers-color-scheme: light) {
-  .country-shape.new-country-source {
-    stroke: var(--accent);
-  }
 }
 
 html {
@@ -803,10 +800,6 @@ input[type="range"].ui-range-progress::-moz-range-progress {
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   opacity: 0;
-}
-
-.app-root[data-layout="wide"] .editor-surface-close {
-  display: none;
 }
 
 .ui-color-popover:not(.is-custom) > .ui-custom-color {

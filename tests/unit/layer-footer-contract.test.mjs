@@ -24,7 +24,7 @@ test('file and mobile navigation remain outside the map canvas hierarchy',()=>{
   }
 });
 test('desktop shell retains the shared design tokens without retired layer geometry',()=>{
-  const shell=read('shared/frontend/css/components/editor-shell.css');
+  const shell=read('shared/frontend/css/components/topbar.css');
   const tokens=read('shared/frontend/css/tokens/design-tokens.css');
   assert.doesNotMatch(shell,/\[data-layout="wide"\] \.adaptive-nav/);
   assert.doesNotMatch(tokens+shell,/--ui-(?:v2|shell)-workspace-(?:rail|nav|active)-/);

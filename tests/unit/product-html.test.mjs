@@ -5,6 +5,13 @@ import {renderProductHtml} from '../../scripts/lib/product-html.mjs';
 
 const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8');
 
+test('a missing included fragment fails visibly instead of being silently omitted',()=>{
+  assert.throws(()=>renderProductHtml(path=>{
+    if(path==='apps/viewer/templates/index.html')return '<!-- include:preferences-statusbar -->';
+    throw new Error('Missing required fragment: '+path);
+  }),/Missing required fragment: .*preferences-statusbar\.html/);
+});
+
 test('Viewer HTML includes one copy of its current shared controls',()=>{
   const html=renderProductHtml(read).web;
   for(const key of ['object-search','map-display','preferences','tooltip','notification','map-icons','map-search-control','map-fit-control']){
