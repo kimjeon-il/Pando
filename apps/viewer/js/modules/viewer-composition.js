@@ -39,12 +39,10 @@ import { createPreferencesDialog } from "../../../../shared/frontend/js/modules/
 import {createBuiltinMonthClock} from "../../../../shared/frontend/js/modules/builtin-month-clock.js";
 import {territorialMembershipDelta} from "../../../../shared/frontend/js/modules/territorial-entity-store.js";
 
-export async function composeViewer({ productMode, meta, nativeReview = false }) {
+export async function composeViewer({ productMode, meta }) {
   const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url),platform:createPlatformPorts({kind:'browser'})});
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
-  if(nativeReview!==false && (nativeReview!==true || globalThis.PANDOLAB_NATIVE_REVIEW!==true))
-    throw new TypeError('Windows review mode requires the native read-only shell.');
-  const projection=nativeReview?'flat':'globe';
+  const projection='globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
   const inspectParams=new URLSearchParams(window.location.search);
@@ -62,24 +60,6 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile(),protectErrorNotices:true});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,readOnly:true,initialProject:createInitialDocument({appVersion:meta.appVersion})});
-  // Available only to a signed verification build, never to ordinary users.
-  // This probes the actual viewer Core command admission rather than DOM button visibility.
-  if(nativeReview && globalThis.PANDOLAB_SHELL_VERIFICATION===true)
-    Object.defineProperty(globalThis,'__PANDOLAB_NATIVE_REVIEW_VERIFICATION__',{value:Object.freeze({
-      async capture(){
-        let mutationBlocked=false;
-        try{await documentSession.commandOwner.execute({});}
-        catch(error){mutationBlocked=error?.code==='PL-PRODUCT-READONLY';}
-        return Object.freeze({readOnly:documentSession.readOnly,
-          projection:map?.viewState?.projection??null,
-          dataReady:status.dataset.ready==='true',
-          panelOpen:get('reviewPanel')?.hidden===false,
-          hasReviewLoad:get('reviewEvidenceInput')?.type==='file',
-          editorDomAbsent:get('editorSurface')===null,
-          canUndo:documentSession.commandOwner.state()?.canUndo,
-          mutationBlocked});
-      },
-    }),configurable:false});
   const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
@@ -131,7 +111,6 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
     document,window,readOnly:documentSession.readOnly,
     inspectRequested:inspectParams.get('inspect')==='1',
     debugEnabled:inspectParams.get('debug')==='1',
-    nativeReview,
     closeMobileSheets:()=>surfaces.closeMobileSheets(),
     createPanel:async()=>{
       const {createViewerReviewPanel}=await import('./viewer-review-panel.js');

@@ -8,7 +8,7 @@
  */
 export function createViewerInspectorController({
   document,window,readOnly,createPanel,closeMobileSheets=()=>{},
-  inspectRequested=false,debugEnabled=false,nativeReview=false,onError=()=>{},
+  inspectRequested=false,debugEnabled=false,onError=()=>{},
 }={}) {
   if(!document||!window||readOnly!==true||typeof createPanel!=='function')
     throw new TypeError('Viewer inspector requires a read-only document and a lazy review-panel factory.');
@@ -28,7 +28,7 @@ export function createViewerInspectorController({
     primary.hidden=false;
     if(mobile)mobile.hidden=false;
   };
-  if(inspectRequested||debugEnabled||nativeReview)reveal();
+  if(inspectRequested||debugEnabled)reveal();
 
   function ensurePanel() {
     if(panel)return Promise.resolve(panel);
@@ -82,15 +82,9 @@ export function createViewerInspectorController({
   for(const button of [primary,mobile])if(button)listen(button,'click',()=>{
     void handled(open(button),'검수 화면을 열지 못했습니다.','PL-E4-REVIEW-START');
   });
-  // Retired native review shells can still exercise compatibility fixtures.
-  // This hook does not grant a native command capability to the Web Viewer.
-  if(nativeReview)listen(window,'pandolab:ready',()=>{
-    void handled(open(primary),'검수 화면을 열지 못했습니다.','PL-E5-REVIEW-START');
-  },{once:true});
-
   return Object.freeze({
     open,close,reveal,
-    openAfterStartup:()=>inspectRequested&&!nativeReview
+    openAfterStartup:()=>inspectRequested
       ?handled(open(primary,{tab:'map'}),'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START')
       :Promise.resolve(false),
     syncMapSelection:snapshot=>{if(!disposed)panel?.syncMapSelection(snapshot);},

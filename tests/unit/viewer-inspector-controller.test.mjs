@@ -23,7 +23,6 @@ function harness(options={}) {
     document,window,readOnly:options.readOnly??true,
     inspectRequested:options.inspectRequested??false,
     debugEnabled:options.debugEnabled??false,
-    nativeReview:options.nativeReview??false,
     createPanel:()=>{
       calls.factory++;
       return options.createPanel?.({panel,deferredFactory})??panel();
@@ -146,20 +145,6 @@ test('P5 mobile/desktop, single import, selection updates and focus origin retai
  f.controller.dispose();
  f.controller.syncMapSelection({selection:{primaryKey:'B'}});
  assert.equal(f.calls.selections.length,1);
-});
-
-test('P5 legacy native review event retains a single lazy compatibility bridge without granting mutations',async()=>{
- const f=harness({nativeReview:true});
- assert.equal(f.elements.get('reviewPanelBtn').hidden,false);
- assert.equal(await f.controller.openAfterStartup(),false);
- assert.equal(f.calls.factory,0);
- f.window.dispatchEvent(new Event('pandolab:ready'));
- await flush();
- assert.deepEqual(f.calls.opens,[{id:'reviewPanelBtn',tab:'changes'}]);
- f.window.dispatchEvent(new Event('pandolab:ready'));
- await flush();
- assert.equal(f.calls.opens.length,1,'once-only compatibility event');
- f.controller.dispose();
 });
 
 test('P5 failed review module import reports the error and permits an explicit retry',async()=>{

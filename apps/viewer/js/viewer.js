@@ -41,8 +41,7 @@ function start() {
     importing = false;
     handedOff = true;
     detach();
-    const nativeReview = globalThis.PANDOLAB_NATIVE_REVIEW === true;
-    await composeViewer({ productMode: 'viewer', meta: globalThis.PANDOLAB_BUILD_META, nativeReview });
+    await composeViewer({ productMode: 'viewer', meta: globalThis.PANDOLAB_BUILD_META });
   }).catch(error => {
     if (controller.signal.aborted) return;
     console.error('[PL-VIEWER-START]', error);
