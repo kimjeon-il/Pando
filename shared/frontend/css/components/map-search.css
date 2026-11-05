@@ -247,7 +247,7 @@
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .map-command-toolbar :is(.create-menu-command, .map-command-search, .map-display-command, .map-command-divider) {
+  .app-root[data-layout="mobile"] .map-command-toolbar :is(.map-command-search, .map-display-command, .map-command-divider) {
     display: none;
   }
 }

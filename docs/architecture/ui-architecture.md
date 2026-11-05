@@ -86,7 +86,7 @@
 - Layout: position, inset, width/height, transform, responsive visibility
 - Feature: 도메인 고유 geometry/media 표현과 콘텐츠 배치
 
-특수 미디어 preview 같은 예외는 **적용 조건 + 담당 컴포넌트 + 이유 + 검증 항목**을 컴포넌트 문서에 기록한다. 구현 시 `check-ui-architecture.mjs`의 명시적 예외에 파일·selector·property·reason을 연결한다. 넓은 selector나 feature 전체를 예외 처리하지 않는다. 기존 override가 있다는 이유만으로 예외를 인정하지 않는다.
+특수 미디어 preview 같은 예외는 **적용 조건 + 담당 컴포넌트 + 이유 + 검증 항목**을 컴포넌트 문서에 기록한다. 구현 시 `scripts/lib/reviewer-ui-contracts.mjs`의 관련 검사에 파일·selector·property·reason을 연결한다. 넓은 selector나 feature 전체를 예외 처리하지 않는다. 기존 override가 있다는 이유만으로 예외를 인정하지 않는다.
 
 ## 3. Selector와 값 규칙
 

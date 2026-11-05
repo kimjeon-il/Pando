@@ -1,24 +1,7 @@
 /* Canonical layout / surfaces. */
 
-[data-layout="wide"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
+[data-layout="wide"] .workspace-surface:not(.view-menu-desktop, .surface-search) {
   bottom: var(--ui-shell-statusbar-height);
-}
-
-[data-layout="compact"] .map-bottom-status {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-[data-layout="wide"] .map-bottom-status .status-inner {
-  left: 0;
-  right: 0;
-}
-
-[data-layout="compact"] .map-bottom-status .status-inner {
-  left: 0;
-  right: 0;
 }
 
 [data-layout="wide"] .workspace-surface:not(.view-menu-desktop, .search-toolbar-desktop) > .surface-header {
@@ -31,7 +14,7 @@
   min-height: var(--design-surface-header-height-desktop);
 }
 
-[data-layout="compact"] .workspace-surface:not(.surface-create, .view-menu-desktop, .surface-search) {
+[data-layout="compact"] .workspace-surface:not(.view-menu-desktop, .surface-search) {
   position: fixed;
   z-index: 36;
   top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
@@ -50,19 +33,6 @@
   --ui-surface-radius-bottom-right: var(--ui-radius-panel);
   --ui-surface-radius-bottom-left: var(--ui-radius-panel);
   --ui-surface-shadow: var(--control-shadow);
-}
-
-[data-layout="compact"] .surface-editor {
-  right: auto;
-  left: var(--ui-shell-compact-inset);
-  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
-}
-
-[data-layout="compact"] .surface-editor.mobile-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
 }
 
 [data-layout="mobile"] .workspace-surface {
@@ -130,25 +100,12 @@
   display: grid;
 }
 
-.surface-create {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-
 .surface-search {
   display: flex;
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
   transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-
-.surface-create > .surface-body {
-  min-height: 0;
-  flex: 1 1 auto;
 }
 
 .surface-search > .surface-body {
@@ -166,7 +123,7 @@
   pointer-events: none;
 }
 
-[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display) {
+[data-layout="mobile"] :is(.surface-search, .surface-display) {
   position: fixed;
   z-index: 100;
   right: 0;
@@ -182,45 +139,16 @@
   transform: translateY(calc(100% + var(--ui-surface-mobile-hidden-offset)));
 }
 
-[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open {
+[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: none;
 }
 
-[data-layout="mobile"] :is(.surface-create, .surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
+[data-layout="mobile"] :is(.surface-search, .surface-display).mobile-open:is(.is-sheet-dragging, .is-sheet-settling) {
   height: var(--sheet-drag-height, var(--sheet-height));
   transform: translate3d(0, var(--sheet-drag-offset, 0px), 0);
-}
-
-[data-layout]:not([data-layout="mobile"]) .surface-create {
---ui-surface-radius-top-left: var(--ui-radius-panel);
---ui-surface-radius-top-right: var(--ui-radius-panel);
---ui-surface-radius-bottom-right: var(--ui-radius-panel);
---ui-surface-radius-bottom-left: var(--ui-radius-panel);
-  position: fixed;
-  top: var(--ui-menu-position-top, var(--ui-shell-topbar-height));
-  left: var(--ui-menu-position-left, var(--ui-shell-compact-inset));
-  max-height: var(--ui-menu-position-max-height, 80dvh);
-  z-index: var(--ui-layer-create-z);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-[data-layout]:not([data-layout="mobile"]) .surface-create.surface-open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-[data-layout]:not([data-layout="mobile"]) .surface-create > .surface-header {
-  display: none;
-}
-
-.surface-create > .surface-body {
-  overflow: auto;
 }
 
 /* A short touch landscape viewport uses the same surfaces in a side dock. */
@@ -231,10 +159,6 @@
   --ui-shell-topbar-height: 0px;
   --mobile-nav-height: 0px;
   grid-template-rows: minmax(0, 1fr);
-}
-
-.app-root:not(.viewer-root)[data-layout="phone-landscape"] {
-  --phone-dock-width: calc(var(--phone-nav-width) + env(safe-area-inset-right));
 }
 
 .app-root[data-layout="phone-landscape"] .topbar { display: none; }
@@ -248,7 +172,7 @@
 .app-root.viewer-root[data-layout="phone-landscape"] .workspace {
   --projection-safe-left: var(--phone-nav-width);
 }
-.app-root[data-layout="phone-landscape"] .workspace:is(.editor-drawer-open, .search-drawer-open, .display-drawer-open, .create-drawer-open, .reference-drawer-open) {
+.app-root[data-layout="phone-landscape"] .workspace:is(.search-drawer-open, .display-drawer-open) {
   --projection-safe-right: calc(var(--phone-dock-width) + var(--phone-panel-width));
 }
 
@@ -296,7 +220,6 @@
   touch-action: pan-y;
 }
 .app-root[data-layout="phone-landscape"] .workspace-surface :is(button:not(.icon-btn, .ui-icon-button, .sheet-close-btn), input, select, .ui-menu-item) { min-height: var(--ui-touch-height); }
-.app-root[data-layout="phone-landscape"] .editor-field-grid { grid-template-columns: minmax(0, 1fr); }
 
 .app-root[data-layout="phone-landscape"] .mobile-workspace-controls {
   position: fixed;
@@ -355,9 +278,8 @@ body .app-root[data-layout="phone-landscape"] .mobile-global-menu { display: gri
   right: auto;
   transform: none;
 }
-.app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.create-menu-command, .map-command-search) { display: none; }
+.app-root[data-layout="phone-landscape"] .map-command-toolbar :is(.map-command-search) { display: none; }
 .app-root[data-layout="phone-landscape"] .map-top-context-slot { left: calc(var(--map-safe-left) + var(--ui-space-2)); right: calc(var(--map-safe-right) + var(--ui-space-2)); }
-.app-root[data-layout="phone-landscape"] .status-inner { left: var(--map-safe-left); right: var(--map-safe-right); }
 .app-root[data-layout="phone-landscape"] :is(.status-view, .status-primary, .project-save-status-text) { display: none; }
 
 

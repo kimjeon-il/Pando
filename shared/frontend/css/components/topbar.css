@@ -27,11 +27,6 @@
   pointer-events: auto;
 }
 
-.new-project-command {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
 @media (prefers-color-scheme: light) {
   .file-menu-btn::after {
     color: var(--file-menu-btn-color);
@@ -274,4 +269,23 @@ body.file-menu-open .app-root .topbar {
     padding-inline: var(--ui-space-3);
     background: transparent;
   }
+}
+
+/* Canonical components / editor-shell. */
+
+.top-actions {
+  position: fixed;
+  z-index: 2000;
+  top: calc(var(--ui-topbar-height) + var(--ui-space-2));
+  right: var(--ui-map-edge);
+  width: var(--top-actions-width);
+  max-height: calc(100dvh - var(--ui-topbar-height) - var(--ui-space-5));
+  overflow-y: auto;
+  border-radius: var(--ui-radius-panel);
+}
+
+[data-layout="wide"] .workspace {
+  --projection-safe-left: 0px;
+  --map-safe-left: 0px;
+  --map-safe-right: 0px;
 }

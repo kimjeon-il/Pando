@@ -40,24 +40,6 @@
   color: var(--selection-soft-fg);
 }
 
-.ui-row-button:hover {
-  border-color: transparent;
-  background: var(--ui-button-subtle-hover);
-  color: var(--text-strong);
-}
-
-.ui-row-button.active {
-  border-color: transparent;
-  background: var(--ui-button-selected);
-  color: var(--text-strong);
-}
-
-.ui-row-button[aria-pressed="true"] {
-  border-color: transparent;
-  background: var(--ui-button-selected);
-  color: var(--text-strong);
-}
-
 .ui-choice-row {
   display: flex;
   align-items: center;
@@ -112,7 +94,7 @@
   padding: var(--ui-space-5) var(--ui-space-3);
 }
 
-:where(.ui-content-section, .editor-section) {
+:where(.ui-content-section) {
   min-width: 0;
 }
 
@@ -121,29 +103,20 @@
   gap: var(--ui-field-gap);
 }
 
-.surface-content .editor-section {
-  display: grid;
-  gap: var(--ui-field-gap);
-  padding: var(--ui-space-4) 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-:where(.ui-content-field, .editor-field) {
+:where(.ui-content-field) {
   min-width: 0;
   display: grid;
   gap: var(--ui-field-label-gap);
 }
 
-:where(.ui-action-list, .editor-action-list) {
+:where(.ui-action-list) {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--ui-space-2);
 }
 
-:where(.ui-property-list, .ui-info-list.editor-info-list) {
+:where(.ui-property-list) {
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -158,7 +131,7 @@
   box-shadow: none;
 }
 
-:is(.gis-import-status, .ui-callout, .ui-alert, .editor-help):empty {
+:is(.ui-callout, .ui-alert):empty {
   display: none;
   min-height: 0;
 }
@@ -167,11 +140,11 @@
   box-shadow: none;
 }
 
-:where(.ui-helper-text, .editor-help) {
+:where(.ui-helper-text) {
   margin-block: var(--ui-space-1);
 }
 
-:where(.ui-object-context, .editor-object-header[data-editor-context]) {
+:where(.ui-object-context) {
   width: 100%;
   min-width: 0;
   flex: 0 0 auto;
@@ -182,19 +155,19 @@
   padding: 0 0 var(--ui-space-4);
 }
 
-:where(.ui-object-context-main, .editor-object-context-main) {
+:where(.ui-object-context-main) {
   min-width: 0;
   flex: 1 1 auto;
 }
 
-:where(.ui-object-context-heading, .editor-object-heading) {
+:where(.ui-object-context-heading) {
   min-width: 0;
   display: grid;
   gap: var(--ui-space-1);
   overflow: hidden;
 }
 
-:where(.ui-object-context-heading, .editor-object-heading) h2 {
+:where(.ui-object-context-heading) h2 {
   min-width: 0;
   margin: 0;
   overflow: hidden;
@@ -209,14 +182,14 @@
   line-height: var(--design-line-title);
 }
 
-:where(.ui-object-context-meta, .editor-object-meta) {
+:where(.ui-object-context-meta) {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--ui-space-1-5);
 }
 
-:where(.ui-object-context-meta, .editor-object-meta) > span {
+:where(.ui-object-context-meta) > span {
   min-width: 0;
   color: var(--muted);
   font-size: var(--design-font-xs);

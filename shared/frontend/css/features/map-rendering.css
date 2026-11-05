@@ -24,10 +24,6 @@
   pointer-events: auto;
 }
 
-.map-overlay-layer > .map-bottom-status {
-  pointer-events: none;
-}
-
 .map-base-svg {
   position: absolute;
   inset: 0;
