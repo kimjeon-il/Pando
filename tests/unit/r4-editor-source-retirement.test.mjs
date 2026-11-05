@@ -34,6 +34,6 @@ test('R4 preserves GIS and C++ serializer contracts outside the legacy editor',(
    'The old GIS data+editor-command mixed service must not remain');
  const pkg=JSON.parse(readFileSync(resolve(root,'package.json'),'utf8'));
  assert.doesNotMatch(pkg.scripts['check:domains'],/apps\/editor\/frontend/);
- const source=readFileSync(resolve(root,'apps/editor/native-contract.mjs'),'utf8');
- assert.doesNotMatch(source,/['"]apps\/editor\/frontend\/js\/modules\/project-serializer\.js['"]/);
+ assert.equal(exists('apps/editor/native-contract.mjs'),false,
+   'retired Windows native input contract must not be active');
 });

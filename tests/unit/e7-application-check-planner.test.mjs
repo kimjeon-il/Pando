@@ -23,11 +23,11 @@ test('E7 validates all test registrations without reparsing retired editor impor
   assert.ok(planned.inventory.unit>0);
 });
 
-test('R1 runtime checker executes against the shipped Viewer and Windows reviewer',()=>{
+test('R1 runtime checker executes against the shipped Web Viewer only',()=>{
   const output=execFileSync(process.execPath,['scripts/check-runtime-boundaries.mjs'],{
     cwd:fileURLToPath(new URL('../../',import.meta.url)),encoding:'utf8',timeout:120000,
   });
-  assert.match(output,/Viewer\/Windows runtime boundaries passed/);
+  assert.match(output,/Viewer runtime boundaries passed/);
   assert.match(output,/reachable modules/);
 });
 
@@ -35,15 +35,13 @@ test('R1 generated build metadata remains owned by the canonical frontend builde
   assert.equal(frontendGeneratedOwners['assets/js/build-meta.js'],'scripts/lib/frontend-build.mjs');
 });
 
-test('retired Windows verification script changes select current reviewer checks',()=>{
+test('removed Windows entrypoints are not selected as active application builds',()=>{
   const repository=loadRepository();
-  for(const path of ['apps/editor/verify-windows.ps1','apps/editor/verify-world-windows.ps1']) {
-    const plan=planApplicationChecks({changedFiles:[path],repository});
-    assert.ok(plan.commands.includes('app-small-stage'),path);
-  }
-  assert.throws(()=>planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository}),/Unclassified product change/);
+  assert.equal(repository.owners.has('tests/unit/r2-native-platform-retirement.test.mjs'),true);
+  assert.equal(repository.owners.has('tests/browser/viewer-inspector.spec.mjs'),true);
+  assert.throws(()=>planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository}),
+    /Unclassified product change/);
 });
-
 test('P3 application runner preserves caller environment while enforcing native prerequisite policy',async()=>{
   const {executePlan}=await import('../../scripts/run-application-checks.mjs');
   const repo={root:fileURLToPath(new URL('../../',import.meta.url)),catalog:{

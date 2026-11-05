@@ -287,3 +287,14 @@ domain regardless of entry method. The separate Tauri Windows reviewer
 pipeline remains untouched during this UI migration; remove it only after
 separate approval of the browser inspector's acceptance and migration.
 No `main` merge or Pages publication occurs on this branch.
+
+## Deleted Windows package and Rust build sources
+
+Windows Tauri Cargo manifests, Rust executable code, native producer,
+artifact fetch scripts, CLI, and Windows-only CI jobs were removed on this
+branch. Common C++/WASM and GIS tools remain on GitHub Actions. Read-only
+Viewer inspection is available through `?inspect=1` or `Ctrl+Shift+.`.
+
+Only legacy test fixture staging, old verified artifact cleanup and a small
+number of inert brand/config files are retained; they cannot build a Tauri
+application. No existing user PC file is automatically deleted.
