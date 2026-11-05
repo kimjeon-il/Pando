@@ -22,7 +22,7 @@ test('R4-E3 preserves actual C++/WASM, GIS, GeoPackage and Viewer acceptance ora
  for(const file of ledger.preserved)assert.equal(exists(file),true,file);
  for(const file of ['tests/unit/territorial-entity-store.test.mjs','tests/unit/river-territory-partition-serbia.test.mjs',
   'tests/unit/land-relations-presentation.test.mjs','tests/unit/map-hover-topology.test.mjs',
-  'tests/browser/viewer-review-e4.spec.mjs','tests/browser/windows-review-e5.spec.mjs',
+  'tests/browser/viewer-review-e4.spec.mjs','tests/browser/viewer-inspector.spec.mjs',
   'tests/browser/viewer-boundary-p4-5.spec.mjs'])
   assert.equal(exists(file),true,file);
  assert.equal(exists(['apps/editor','frontend','js','modules','editing-domain.js'].join('/')),false,
@@ -43,6 +43,5 @@ test('retired manual boundary CI cannot accidentally dispatch the deleted editor
  for(const needle of ['boundary-capture-comparison:','boundary-native-capture:',
   'boundary-revision-comparison:','tests/browser/boundary-cut-snapping.spec.mjs'])
   assert.equal(workflow.includes(needle),false,needle);
- const current=read('.github/workflows/r4-editor-pruning-validation.yml');
- assert.ok(current.includes('tests/unit/r4e3-retired-editor-closure.test.mjs'));
+ assert.equal(exists('.github/workflows/r4-editor-pruning-validation.yml'),false);
 });

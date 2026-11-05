@@ -45,7 +45,7 @@ export function buildFrontendIndex(root){
 export function frontendAsset(root,publicPath,{index=buildFrontendIndex(root),product='viewer'}={}){
  validPublicPath(publicPath);const entry=index.get(publicPath);
  if(!entry)throw Error('Missing frontend source: '+publicPath);
- if(product!=='viewer')throw Error('Only the Viewer/Windows reviewer frontend is distributed');
+ if(product!=='viewer')throw Error('Only the Viewer frontend is distributed');
  return {...entry,bytes:readFileSync(resolve(root,entry.sourcePath))};
 }
 

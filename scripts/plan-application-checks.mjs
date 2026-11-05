@@ -47,7 +47,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       return [file];
     });
   }
-  const files = ['assets', 'apps/editor', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
+  const files = ['assets', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -253,12 +253,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
   const parents = new Map(), visited = new Set();
   const liveShellSources = new Set([
-    'apps/editor/stage.mjs','apps/editor/check-stage.mjs',
-    'apps/editor/review-probe.js',
-    'apps/editor/network-guard.js',
-    'apps/editor/world-data-plan.mjs','apps/editor/fixture.mjs',
-    'apps/editor/fixture-limits.js','apps/editor/write-evidence.mjs',
-  ]);
+    'apps/editor/stage.mjs',            'apps/editor/world-data-plan.mjs',    'apps/editor/fixture-limits.js',  ]);
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';

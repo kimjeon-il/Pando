@@ -10,9 +10,9 @@ test('R4-E3 physically removes all 170 retired graphical-editor tests',()=>{
  assert.equal(ledger.retired.length,170);
  for(const path of ledger.retired)assert.equal(existsSync(new URL('../../'+path,import.meta.url)),false,path);
 });
-test('Viewer, Windows and canonical GIS tests remain selectable',()=>{
+test('Viewer and canonical GIS tests remain selectable',()=>{
  for(const file of ['tests/browser/button-consistency.spec.mjs','tests/browser/viewer-review-e4.spec.mjs',
-  'tests/browser/windows-review-e5.spec.mjs','tests/browser/module-cache-version.spec.mjs',
+  'tests/browser/viewer-inspector.spec.mjs','tests/browser/module-cache-version.spec.mjs',
   'tests/browser/korean-boundaries.spec.mjs','tests/unit/core-document-draft-wasm.test.mjs',
   'tests/unit/gis-math-contract.test.mjs'])
   assert.ok(repo.owners.has(file)&&repo.owners.get(file)?.mode!=='retired',file);

@@ -29,11 +29,9 @@ export function prepareDependencies(root=repository){
   const pnpm=execFileSync(process.execPath,[executable,'--version'],{encoding:'utf8'}).trim();if(version!=='pnpm@'+pnpm)throw Error('Use the pinned pnpm version: '+version);
   const store=containedPath(settings.cacheRoot,'pnpm/store');
   atomicStorageJSON(resolve(root,'.library-data/dependencies.json'),{schema:'pando-dependency-store-v1',store});
-  for(const project of [root,resolve(root,'apps/editor')]){
-    const args=dependencyPreparationArguments({root:project,store});
-    execFileSync(process.execPath,[executable,...args],{cwd:root,stdio:'inherit',windowsHide:true});
-  }
-  return {pnpm,store,projects:[root,resolve(root,'apps/editor')]};
+  const args=dependencyPreparationArguments({root,store});
+  execFileSync(process.execPath,[executable,...args],{cwd:root,stdio:'inherit',windowsHide:true});
+  return {pnpm,store,projects:[root]};
 }
 export function installFrontendSnapshot({root,snapshot,settings=storageSettings(root)||{cacheRoot:resolve(root,'.library-data/cache')},afterFile=()=>{}}){
   if(!/^[a-f0-9]{64}$/.test(snapshot.sourceSha256))throw Error('Invalid frontend input identity');

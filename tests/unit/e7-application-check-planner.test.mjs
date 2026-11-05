@@ -7,7 +7,7 @@ import {loadRepository,planApplicationChecks} from '../../scripts/plan-applicati
 
 test('E7 validates all test registrations without reparsing retired editor imports on a no-change commit',()=>{
   const repository=loadRepository();
-  assert.equal(repository.owners.get('tests/browser/windows-review-e5.spec.mjs')?.id,'viewer');
+  assert.equal(repository.owners.get('tests/browser/viewer-inspector.spec.mjs')?.id,'viewer');
   for(const name of ['p6-5-resource-check','p6-6-desktop-performance','p6-7-narrow-performance']){
     assert.equal(repository.owners.get('tests/browser/'+name+'.spec.mjs')?.mode,'manual');
   }
