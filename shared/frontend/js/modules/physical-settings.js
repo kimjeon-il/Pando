@@ -61,12 +61,12 @@ export function createHydroSettings() {
   }
 
   function hydroEditById(id) {
-    const key = String(id);
-    return dependencies.projectState.state.hydroEdits.find(feature => String(feature.id) === key) || null;
+    return projectHydroResources().findById(id);
   }
 
   function isHydroEditFeature(feature) {
-    return !!feature && (feature.properties?.pandolab_domain === 'hydro' || dependencies.projectState.state.hydroEdits.includes(feature));
+    return !!feature && (feature.properties?.pandolab_domain === 'hydro'
+      || projectHydroResources().findById(feature.id) === feature);
   }
 
   function hydroLayerVisible(layerId) {

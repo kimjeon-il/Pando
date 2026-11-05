@@ -25,3 +25,10 @@
 ### 첫 변경의 정적 근거
 
 `viewer-map-presentation-policy.js`에 있던 선택자 상수와 프레젠터 함수 본문을 그대로 `viewer-map.js`로 옮겼다. 인라인 이전·이후 함수 코드는 동일하며, 프로젝트 데이터·C++·WASM·렌더링 파이프라인·수계·지명·자료 핀은 수정하지 않는다. 새 `tests/unit/p7-viewer-presentation.test.mjs`은 실제 인라인 구현의 ready/error/retry 상태 변화를 검사한다.
+
+## P7 후속 — 불변 수계 조회 재사용
+
+- `project-session.js`의 `state.itemVisibility`는 매 getter 호출마다 `projectResourceOverlay('hydro', …)`를 생성했다. 지금은 수용된 C++ `documentModel.list('hydro')` 배열 정체성이 바뀔 때에만 원본 대체 마스크를 재구성한다. 설정된 프로젝트별 가시성은 매번 최신 값을 사용하며 원본 ID를 지우지 않는다.
+- `physical-settings.js`의 선형 `hydroEditById` 검색과 `isHydroEditFeature`의 배열 `includes` 검사는 이미 존재하던 `projectHydroResources()`의 작성 객체 ID 색인으로 통합한다. C++ 불변 목록의 갱신·이전 원본 복원 시 기존 캐시 무효화 규칙을 유지한다.
+- `tests/unit/p7-hydro-lookup-cache.test.mjs`에서 원본 마스크의 반복 계산 생략, 프로젝트/날짜 목록 교체, 명시적 표시 설정 유지, 작성 객체 조회와 식별자 분리를 집중 검증한다.
+- 계측 전 성능 향상 수치는 주장하지 않는다. 기존 CI/브라우저 검증 게이트는 그대로 남는다.
