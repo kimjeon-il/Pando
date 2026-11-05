@@ -1,5 +1,10 @@
 import {parseTemporal,compareTemporal} from './temporal.js';
 import {ZOOM_LIMITS} from './camera-navigation.js';
+/** One canonical shape for a dated builtin map admitted as a project.
+ * Date validity is checked by the source selector and the C++ document owner. */
+export function createBuiltinProjectSetup(initialMonth) {
+ return {initialMonth,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
+}
 export function normalizeProjectSetup(input) {
  if(!input||typeof input!=='object')throw new Error('시작 설정을 입력하세요.');
  const month=value=>{const point=parseTemporal(value,{nullable:false});if(point.precision!=='month')throw new Error('연·월을 입력하세요.');return point.canonical;};

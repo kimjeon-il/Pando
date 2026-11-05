@@ -12,6 +12,8 @@ import {
   pickProjectFields,
 } from "../../shared/frontend/js/modules/project-state.js";
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import { timelineObjectCatalog } from '../../shared/frontend/js/modules/timeline-records.js';
 
 const state = {projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
@@ -221,4 +223,19 @@ test('project storage rejects session cursor and reference-library runtime cache
     candidate[field] = field === 'timelineCursor' ? '1914-07' : {};
     assert.throws(() => assertCurrentProjectSchema(candidate), new RegExp('지원하지 않는 필드 ' + field));
   }
+});
+
+test('P0 reproducible static baseline reports checked-out Git files without inventing runtime timings',()=>{
+ const output=execFileSync(process.execPath,['scripts/check-runtime-boundaries.mjs','--baseline-json'],{
+  cwd:fileURLToPath(new URL('../../',import.meta.url)),encoding:'utf8',maxBuffer:4*1024*1024,
+ });
+ const data=JSON.parse(output);
+ assert.equal(data.schema,'pando-static-runtime-baseline-v1');
+ assert.match(data.sourceCommit,/^[a-f0-9]{40}$/);
+ assert.match(data.externalDataRevision,/^[a-f0-9]{40}$/);
+ assert.equal(data.runtimeMetricsMeasured,false);
+ assert.ok(data.trackedFiles>=2993);
+ assert.ok(data.indexedFrontendAssets>0&&data.boundaryCheckedModules>0);
+ assert.equal(Object.values(data.areas).reduce((sum,row)=>sum+row.files,0),data.trackedFiles);
+ assert.equal(data.areas['apps/viewer'].files,13);
 });

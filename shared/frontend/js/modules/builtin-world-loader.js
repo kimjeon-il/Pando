@@ -2,6 +2,8 @@ import {createStoredAssetLoader} from './stored-asset-loader.js';
 import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval} from './temporal.js';
 import {projectTimelineIdentity} from './timeline-resolver.js';
 import {builtinCountryAssets,builtinCountryFileSpecs} from './builtin-country-files.js';
+import {createBuiltinProjectSetup} from './project-setup.js';
+import {PROJECT_SCHEMA_VERSION} from './version-contract.js';
 
 const contains=(rows,month)=>rows.some(row=>temporalContains(row,temporalMonthEnd(month)));
 export function selectBuiltinCountries(index,month){
@@ -12,6 +14,10 @@ export function selectBuiltinCountries(index,month){
 export function assembleBuiltinWorld(index,countries,month){
  const expected=selectBuiltinCountries(index,month),byId=new Map(countries.map(row=>[row.entityId,row]));
  if(byId.size!==countries.length||expected.length!==countries.length)throw new Error('Incomplete builtin country selection');
+ if(index.template?.schemaVersion!==PROJECT_SCHEMA_VERSION
+   ||index.template?.format!=='pandolab-project-state'
+   ||Object.hasOwn(index.template,'projectSetup'))
+   throw new Error('Invalid builtin project template');
  const project=structuredClone(index.template),geometries=new Map();
  project.territorialEntities=[];project.geometries=[];
  project.timelineRecords={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
@@ -59,7 +65,7 @@ export function assembleBuiltinWorld(index,countries,month){
  }
  const used=new Set(project.timelineRecords.geometryBindings.map(row=>JSON.stringify([row.geometryRef.id,row.geometryRef.version])));
  project.geometries=[...geometries].filter(([key])=>used.has(key)).map(([,value])=>value);
- project.projectSetup={initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
+ project.projectSetup=createBuiltinProjectSetup(month);
  return project;
 }
 export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,fetchFn=globalThis.fetch,cacheStorage=globalThis.caches}){

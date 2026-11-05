@@ -105,3 +105,19 @@ test('P2-1 a detached dated builtin source never mutates an actual C++ Core docu
  assert.deepEqual(owner.documentModel.snapshot(),beforeDoc,
    'Explicit Core source admission is not document activation.');
 });
+
+test('a dated builtin map is also a regular read-only C++ project file',async t=>{
+ const {project}=await fixture().loader.loadProject('2014-02');
+ const original=JSON.stringify(project);
+ const owner=await createNodeCoreProject(project,{productMode:'viewer',replaceSnapshot:async()=>true});
+ t.after(()=>owner.dispose());
+ const before=structuredClone(owner.documentModel.snapshot());
+ assert.equal(before.projectSetup.sourceMode,'builtin');
+ assert.equal(before.projectSetup.initialMonth,'2014-02');
+ assert.equal(await owner.project.open(async()=>structuredClone(project),{source:'project'}),true);
+ assert.deepEqual(owner.documentModel.snapshot().territorialEntities,before.territorialEntities);
+ assert.equal(owner.client.state().canUndo,false);
+ assert.equal(owner.client.state().documentDirty,false);
+ await owner.project.resolveWorld('2014-02');
+ assert.equal(JSON.stringify(project),original,'ordinary file load/query must not mutate external source bytes');
+});

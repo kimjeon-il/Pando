@@ -302,11 +302,10 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
     cancelSearch:()=>places.cancelSearch(),update,features:entityStore.snapshot,searchPlaces:query=>places.search(query),renderer,
     loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,viewState:state,objectPresentation,searchActive:()=>places.isSearchOpen(),
     prepareBuiltinProject:async(month,options)=>{
-      const setup={initialMonth:month,timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
       // Parallel country/physical preparation must not orphan a native
       // candidate when only the physical half fails or is superseded.
       const [candidate,physical]=await Promise.allSettled([
-        builtinSession.prepareProjectCandidate(month,{...options,setup}),
+        builtinSession.prepareProjectCandidate(month,options),
         physicalResources.preparePhysicalContext(month,options),
       ]);
       if(candidate.status==='fulfilled'&&physical.status==='rejected')
