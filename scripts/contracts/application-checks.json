@@ -407,11 +407,12 @@
         "shared/frontend/js/modules/ui-*.js",
         "apps/viewer/js/modules/ui-*.js",
         "apps/viewer/templates/index.html",
-        "scripts/check-ui-*.mjs"
+        "scripts/check-ui*.mjs"
       ],
       "argv": [
         "node",
-        "scripts/check-ui-architecture.mjs"
+        "scripts/check-ui.mjs",
+        "architecture"
       ],
       "requires": []
     },
@@ -670,7 +671,8 @@
       ],
       "argv": [
         "node",
-        "scripts/check-ui-components.mjs"
+        "scripts/check-ui.mjs",
+        "components"
       ]
     },
     {
@@ -684,7 +686,8 @@
       ],
       "argv": [
         "node",
-        "scripts/check-ui-layering.mjs"
+        "scripts/check-ui.mjs",
+        "layering"
       ]
     },
     {
@@ -699,7 +702,8 @@
       ],
       "argv": [
         "node",
-        "scripts/check-ui-information-architecture.mjs"
+        "scripts/check-ui.mjs",
+        "information"
       ]
     },
     {

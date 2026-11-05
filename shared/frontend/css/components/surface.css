@@ -61,7 +61,6 @@
 }
 
 .workspace {
-  --editor-drawer-width: var(--ui-editor-width);
   --projection-safe-left: 0px;
   --projection-safe-right: 0px;
   --projection-safe-top: 0px;
@@ -75,17 +74,6 @@
   overflow: hidden;
 }
 
-.editor-drawer.collapsed {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  z-index: 36;
-  min-width: 0;
-  overscroll-behavior: contain;
-  background: var(--surface-elevated);
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-
 .surface-header {
   border-color: var(--overlay-border);
 }
@@ -94,154 +82,8 @@
   display: none;
 }
 
-.editor-drawer.collapsed {
-  overflow: hidden;
-}
-
-.app-root[data-layout="wide"] .editor-drawer {
-  top: 0;
-  right: auto;
-  left: 0;
-  width: var(--ui-shell-editor-width);
-  border: 0;
-  border-right: 1px solid var(--border);
-  border-radius: 0;
-  box-shadow: none;
-  transform: translateX(-100%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.app-root[data-layout="wide"] .editor-drawer.collapsed {
-  top: 0;
-  right: auto;
-  left: 0;
-  width: var(--ui-shell-editor-width);
-  border: 0;
-  border-right: 1px solid var(--border);
-  border-radius: 0;
-  box-shadow: none;
-  transform: translateX(-100%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.app-root[data-layout="wide"] .editor-drawer.mobile-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.app-root[data-layout="wide"] .editor-drawer.collapsed.mobile-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
 .app-root[data-layout="compact"] .workspace {
   --compact-drawer-width: var(--ui-shell-compact-drawer-width);
-}
-
-.app-root[data-layout="compact"] .editor-drawer {
-  top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
-  width: var(--compact-drawer-width);
-  max-height: none;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-panel);
-  box-shadow: var(--control-shadow);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.app-root[data-layout="compact"] .editor-drawer.collapsed {
-  top: calc(var(--ui-shell-topbar-height) + var(--ui-shell-compact-inset));
-  width: var(--compact-drawer-width);
-  max-height: none;
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-panel);
-  box-shadow: var(--control-shadow);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.app-root[data-layout="compact"] .editor-drawer {
-  right: auto;
-  left: var(--ui-shell-compact-inset);
-  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
-}
-
-.app-root[data-layout="compact"] .editor-drawer.collapsed {
-  right: auto;
-  left: var(--ui-shell-compact-inset);
-  transform: translateX(calc(-100% - var(--ui-surface-offscreen-gap)));
-}
-
-.app-root[data-layout="compact"] .editor-drawer.mobile-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.app-root[data-layout="compact"] .editor-drawer.collapsed.mobile-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.app-root[data-layout="mobile"] .editor-drawer {
-  display: flex;
-  position: fixed;
-  z-index: 100;
-  top: auto;
-  right: 0;
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
-  left: 0;
-  width: 100%;
-  max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-topbar-height) - var(--mobile-nav-height));
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
-  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
-  box-shadow: var(--control-shadow);
-  transform: translateY(calc(100% + 2px));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
-}
-
-.app-root[data-layout="mobile"] .editor-drawer.collapsed {
-  display: flex;
-  position: fixed;
-  z-index: 100;
-  top: auto;
-  right: 0;
-  bottom: calc(var(--mobile-nav-height) + var(--workspace-bottom-offset, var(--ui-space-0)));
-  left: 0;
-  width: 100%;
-  max-height: calc(var(--workspace-visible-height, 100dvh) - var(--ui-topbar-height) - var(--mobile-nav-height));
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
-  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
-  box-shadow: var(--control-shadow);
-  transform: translateY(calc(100% + 2px));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: transform 170ms ease, opacity 170ms ease, visibility 170ms;
 }
 
 body.map-sheet-dragging {
@@ -256,14 +98,6 @@ body.map-sheet-dragging {
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: auto;
-}
-
-.app-root[data-layout="mobile"] .editor-drawer {
-  height: var(--sheet-height, var(--design-sheet-snap-half));
-}
-
-.app-root[data-layout="mobile"] .editor-drawer.collapsed {
-  height: var(--sheet-height, var(--design-sheet-snap-half));
 }
 
 .icon-btn {
@@ -348,10 +182,6 @@ body.map-sheet-dragging {
   }
 }
 
-.app-root[data-layout="mobile"] :is(.editor-drawer, .editor-drawer.collapsed) {
-  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
-}
-
 .app-root[data-layout="compact"] .workspace {
   --projection-safe-left: 0px;
   --map-safe-left: 0px;
@@ -379,33 +209,13 @@ body.map-sheet-dragging {
   overflow: hidden;
 }
 
-.app-root[data-layout="wide"] .editor-drawer.surface-open {
-  transform: translateX(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+@media (max-width: 799px) {
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .surface-editor .surface-header {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
 }
 
 @media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .surface-editor .surface-header-actions {
-    display: flex;
-    grid-column: 2;
-    grid-row: 1;
-    align-items: center;
-    gap: var(--ui-space-1);
-  }
-}
-
-@media (max-width: 799px) {
-  .app-root[data-layout="mobile"] .surface-editor .sheet-close-btn {
-    display: none;
-  }
 }
 
 .ui-native-scroll.ui-scroll-surface {
@@ -414,21 +224,6 @@ body.map-sheet-dragging {
 }
 
 .ui-native-scroll.surface-body {
-  scrollbar-width: none;
-  scrollbar-gutter: auto;
-}
-
-.ui-native-scroll.gis-import-content-rail {
-  scrollbar-width: none;
-  scrollbar-gutter: auto;
-}
-
-.ui-native-scroll.territorial-library-results {
-  scrollbar-width: none;
-  scrollbar-gutter: auto;
-}
-
-.ui-native-scroll.territorial-library-preview {
   scrollbar-width: none;
   scrollbar-gutter: auto;
 }
@@ -533,24 +328,6 @@ body.map-sheet-dragging {
   min-width: 0;
 }
 
-.surface-content-editor {
-  padding-inline-end: var(--ui-surface-content-rail-x);
-  padding-inline-start: var(--ui-surface-content-rail-x);
-  padding-top: var(--ui-space-3);
-  padding-bottom: var(--ui-surface-content-padding-bottom);
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.surface-content-editor > :is(.editor-view, .editor-empty) {
-  padding-inline: 0;
-}
-
-.surface-content-editor > .editor-view {
-  padding-bottom: 0;
-}
-
 .surface-content-map {
   flex: 1 1 auto;
   min-height: 0;
@@ -579,5 +356,3 @@ body.map-sheet-dragging {
   border-bottom: 0;
   padding-block: 0;
 }
-
-.surface-create > .surface-body { padding: 0; }

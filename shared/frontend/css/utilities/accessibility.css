@@ -47,17 +47,6 @@
   pointer-events: none;
 }
 
-.map-bottom-status {
-  position: absolute;
-  z-index: 6;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  pointer-events: none;
-  font-size: var(--ui-font-sm);
-  line-height: var(--ui-line-normal);
-}
-
 .ui-callout {
   font-size: var(--ui-font-sm);
 }
@@ -137,37 +126,11 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   }
 }
 
-.editor-scroll-body {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-}
-
-.project-save-status {
-  min-width: 0;
-  color: var(--muted);
-  pointer-events: none;
-}
-
-.project-save-status[data-save-state="error"] {
-  color: var(--danger-text);
-}
-
 .project-save-status-dot {
   background: var(--accent-2);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-bottom-status {
-    transition-duration: 0.01ms;
-  }
 }
 
 :where(.ui-button) {
@@ -245,37 +208,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   justify-content: center;
 }
 
-.workflow-dialog-card {
-  display: grid;
-  grid-template-columns: var(--ui-icon-size) minmax(0, 1fr);
-  column-gap: var(--ui-space-2);
-  row-gap: var(--ui-space-2);
-  padding: var(--ui-dialog-padding);
-}
-
 @media (max-width: 799px) {
-  .workflow-dialog-card {
-    width: calc(100vw - var(--ui-space-4));
-    max-height: calc(100dvh - var(--ui-space-4));
-    padding: var(--ui-dialog-padding-compact);
-    overflow: auto;
-  }
-}
-
-.map-bottom-status {
-  padding: 0;
-  border-top: 1px solid var(--status-border);
-  border-radius: 0;
-  background: var(--status-bg);
-  color: var(--status-text);
-  box-shadow: none;
-}
-
-.project-save-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-  white-space: nowrap;
 }
 
 .project-save-status-dot {
@@ -286,24 +219,12 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (max-width: 799px) {
-  .map-bottom-status {
-    height: auto;
-    min-height: var(--ui-shell-statusbar-height);
-  }
 }
 
 @media (max-width: 799px) {
-  .territorial-library-results {
-    border-right: 0;
-    padding-right: 0;
-  }
 }
 
 @media (max-width: 799px) {
-  .surface-editor .editor-view-tabs .ui-tab {
-    justify-content: center;
-    font-size: var(--ui-font-md);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -318,16 +239,12 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   color: var(--text-soft);
 }
 
-:is( .editor-object-heading h2, .workflow-dialog-card h2, .territorial-library-preview, .territorial-library-result, .editor-action-row, .file-menu-item, .ui-callout, .ui-alert, .ui-empty-state, .action-status strong ) {
+:is( .file-menu-item, .ui-callout, .ui-alert, .ui-empty-state, .action-status strong ) {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-:is(.editor-action-row, .file-menu-item) > span {
-  min-width: 0;
-}
-
-.editor-action-row > :is(div, span) {
+:is(.file-menu-item) > span {
   min-width: 0;
 }
 
@@ -339,15 +256,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   flex-wrap: wrap;
 }
 
-.workflow-dialog-actions {
-  flex-wrap: wrap;
-}
-
 .ui-dialog-card {
-  max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
-}
-
-.workflow-dialog-card {
   max-width: calc(100vw - (var(--ui-dialog-edge) * 2));
 }
 
@@ -358,11 +267,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 .action-status {
   height: auto;
   min-height: var(--design-control-lg);
-}
-
-.map-bottom-status {
-  height: auto;
-  min-height: var(--ui-shell-statusbar-height);
 }
 
 [role="option"]:focus-visible {
@@ -390,15 +294,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   outline-offset: var(--design-focus-offset);
 }
 
-.territorial-library-results {
-  scroll-padding: var(--ui-space-2);
-}
-
 .layer-list {
-  scroll-padding: var(--ui-space-2);
-}
-
-.editor-scroll-body {
   scroll-padding: var(--ui-space-2);
 }
 
@@ -406,14 +302,7 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
   scroll-padding: var(--ui-space-2);
 }
 
-.territorial-library-result[aria-selected="true"] {
-  box-shadow: inset 0 -2px color-mix(in srgb, var(--accent) 68%, transparent);
-}
-
 @media (max-width: 799px) {
-  .surface-editor .editor-view-tabs .ui-tab {
-    min-height: var(--ui-touch-height);
-  }
 }
 
 @media (max-width: 799px) {
@@ -429,9 +318,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (max-width: 799px) {
-  .workflow-dialog-card {
-    max-width: calc(100vw - var(--ui-space-2));
-  }
 }
 
 @media (max-width: 799px) {
@@ -447,9 +333,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (max-width: 799px) {
-  .workflow-dialog-actions > .btn {
-    min-height: var(--ui-touch-height);
-  }
 }
 
 @media (forced-colors: active) {
@@ -526,9 +409,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (forced-colors: active) {
-  .project-save-status {
-    border-color: CanvasText;
-  }
 }
 
 @media (forced-colors: active) {
@@ -544,9 +424,6 @@ html.keyboard-navigation :is(.ui-selectable-row.is-selected:not(.is-multi-select
 }
 
 @media (forced-colors: active) {
-  .project-save-status[data-save-state="error"] {
-    border-color: Mark;
-  }
 }
 
 @media (forced-colors: active) {
