@@ -15,9 +15,28 @@ import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
   RECEIPT_PATH,artifactGraph } from '../../scripts/lib/p2-artifact-graph.mjs';
 import * as artifactOwners from '../../scripts/lib/p2-artifact-graph.mjs';
-import { publishGeneratedArtifacts,archiveGeneratedLibraryOutputs } from '../../scripts/p2-publish-artifacts.mjs';
+import { publishGeneratedArtifacts,archiveGeneratedLibraryOutputs,assertP2LibraryPublicationBase } from '../../scripts/p2-publish-artifacts.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('P2 isolates the generated work branch from a newer source-library work/gis branch',()=>{
+  const pin='2fc08b781d9dc6a7709b6ac75c5a05ff3d935bff',gis='8beb97cca9992ae2099ab0ce19dca4d62f10961a';
+  const proposed=assertP2LibraryPublicationBase({pinnedRevision:pin,
+    checkoutHead:pin,targetBranch:'work/remote-only',targetRemote:null});
+  assert.deepEqual(proposed,{branch:'work/remote-only',base:pin,creatingTarget:true});
+  // Only target-branch movement matters. A newer work/gis source (gis) must
+  // never be overwritten or silently imported when P2 creates its branch.
+  assert.notEqual(gis,pin);
+  assert.equal(assertP2LibraryPublicationBase({pinnedRevision:pin,
+    checkoutHead:pin,targetBranch:'work/remote-only',targetRemote:pin}).creatingTarget,false);
+  for(const options of [
+    {pinnedRevision:pin,checkoutHead:gis,targetBranch:'work/remote-only',targetRemote:null},
+    {pinnedRevision:pin,checkoutHead:pin,targetBranch:'work/remote-only',targetRemote:gis},
+    {pinnedRevision:pin,checkoutHead:pin,targetBranch:'work/gis',targetRemote:gis},
+  ]) assert.throws(()=>assertP2LibraryPublicationBase(options),/P2_LIBRARY_BASE_NOT_PINNED|P2_LIBRARY_TARGET_ADVANCED/);
+  assert.throws(()=>assertP2LibraryPublicationBase({pinnedRevision:pin,
+    checkoutHead:pin,targetBranch:'main',targetRemote:null}),/P2_LIBRARY_TARGET_BRANCH_INVALID/);
+});
+
 test('builtin country family replaces the retired aggregate throughout the artifact graph',()=>{
  const root=fileURLToPath(new URL('../../',import.meta.url)),graph=artifactGraph(root);
  const family=graph.find(row=>row.id==='builtin-world');

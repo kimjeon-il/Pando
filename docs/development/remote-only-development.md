@@ -298,3 +298,21 @@ Viewer inspection is available through `?inspect=1` or `Ctrl+Shift+.`.
 Only legacy test fixture staging, old verified artifact cleanup and a small
 number of inert brand/config files are retained; they cannot build a Tauri
 application. No existing user PC file is automatically deleted.
+
+
+## P2 isolated library publication after Windows retirement
+
+P2 generated artifacts belong to the current Pando work branch, **not**
+automatically to the `index.branch` of the input library edition.
+For example, `work/remote-only` can start from the pinned work/gis edition
+without advancing or rewriting the library's shared `work/gis` history.
+The P2 archive preflight now requires the checkout's `HEAD` to equal the
+exact configured library revision and requires the *target* branch to be
+absent or still at that same revision. P2 never force-pushes. A concurrent
+target-branch advance still aborts publication.
+
+Do not silently change `config/library-data.json` to the newest
+`work/gis` branch: doing so could activate unapproved historical
+geography changes. P2 first verifies and publishes source-bound outputs in
+the isolated branch, then advances the application revision pin only after
+the library push succeeds. Another worktree's GIS edits remain untouched.
