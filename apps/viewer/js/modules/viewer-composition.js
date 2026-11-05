@@ -46,6 +46,7 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   const projection=nativeReview?'flat':'globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
+  let openInspectorAfterStartup=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
   get('viewer').dataset.initialLoading='true';
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
@@ -131,6 +132,9 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
     if(get('mobileReviewBtn'))get('mobileReviewBtn').hidden=false;
   };
   if(inspectorEnabled)revealInspectorActions();
+  if(inspectParams.get('inspect')==='1'&&!nativeReview)
+    openInspectorAfterStartup=()=>showReview(get('reviewPanelBtn'),{tab:'map'})
+      .catch(error=>report(error,'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START'));
   const showReview=async (sourceButton,{tab='changes'}={})=>{
     if(!reviewPanelLoading)reviewPanelLoading=import('./viewer-review-panel.js').then(module=>{
       reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,isBuiltinMap:()=>builtinActive,
@@ -368,9 +372,5 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
     },
     onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
-  if(inspectParams.get('inspect')==='1'&&!nativeReview){
-    revealInspectorActions();
-    await showReview(get('reviewPanelBtn'),{tab:'map'})
-      .catch(error=>report(error,'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START'));
-  }
+  if(openInspectorAfterStartup)await openInspectorAfterStartup();
 }
