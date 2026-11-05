@@ -18,7 +18,8 @@ test('Codespaces never auto-installs packages or opens the on-demand private Vie
   assert.equal(Object.hasOwn(dev,'postStartCommand'),false);
   assert.equal(Object.hasOwn(dev,'forwardPorts'),false);
   assert.equal(dev.portsAttributes['4173'].visibility,'private');
-  assert.equal(dev.portsAttributes['4173'].onAutoForward,'silent');
+  assert.equal(dev.portsAttributes['4173'].onAutoForward,'ignore');
+  assert.equal(dev.otherPortsAttributes.onAutoForward,'ignore');
   for(const name of ['.devcontainer/setup-remote.sh','.devcontainer/start-preview.sh',
     '.devcontainer/acceptance.sh','.devcontainer/pnpm.sh'])
     assert.match(read(name),/source \.devcontainer\/ensure-node\.sh/,name);

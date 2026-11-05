@@ -4,11 +4,14 @@
   "portsAttributes": {
     "4173": {
       "label": "Private Pando Viewer preview (on demand)",
-      "onAutoForward": "silent",
+      "onAutoForward": "ignore",
       "visibility": "private"
     }
   },
   "remoteEnv": {
     "PANDO_REMOTE_ONLY": "1"
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
   }
 }
