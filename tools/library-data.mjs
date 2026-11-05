@@ -1364,6 +1364,13 @@ function validateExpectedLibraryRevision(expectedRevision) {
 function validateExpectedBranch(expectedBranch) {
   if (expectedBranch !== undefined && !['main', 'work/gis'].includes(expectedBranch)) throw Error('Expected library branch must be main or work/gis.');
 }
+export function libraryPublicationRef(branch) {
+  // A new work branch must use a fully qualified refs/heads destination.
+  // Refuse unexpected names rather than relying on Git's destination guessing.
+  if (typeof branch !== 'string' || !/^(?:main|work\/[a-z0-9][a-z0-9-]{0,63})$/.test(branch))
+    throw Error('P2_LIBRARY_PUBLISH_BRANCH_INVALID: '+String(branch));
+  return 'refs/heads/'+branch;
+}
 export function assertExpectedLibraryRevision({ expectedRevision, expectedBranch, branch, head, remote }) {
   validateExpectedBranch(expectedBranch);
   if (expectedBranch !== undefined && branch !== expectedBranch) throw Error('Library checkout branch differs from expected branch.');
@@ -1599,7 +1606,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, 
   if (push) {
     const token = process.env.PANDOLAB_LIBRARY_WRITE_TOKEN;
     const env = libraryWriteGitEnvironment(token);
-    execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${publicationBranch}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    execFileSync('git', [...gitOptions, 'push', 'origin', `HEAD:${libraryPublicationRef(publicationBranch)}`], { cwd: data.checkout, env, stdio: ['ignore', 'pipe', 'pipe'] });
     const branch = publicationBranch;
     const remote = execFileSync('git', [...gitOptions, 'ls-remote', '--exit-code', 'origin', `refs/heads/${branch}`], { cwd: data.checkout, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim().split(/\s+/)[0];
     if (remote !== revision) throw Error('Library remote revision changed after push; preserve the stored commit and retry before advancing the pin.');

@@ -23,6 +23,7 @@ test('P2 isolates the generated work branch from a newer source-library work/gis
   const proposed=assertP2LibraryPublicationBase({pinnedRevision:pin,
     checkoutHead:pin,targetBranch:'work/remote-only',targetRemote:null});
   assert.deepEqual(proposed,{branch:'work/remote-only',base:pin,creatingTarget:true});
+  assert.equal(proposed.creatingTarget,true,'explicit creation requires full refs/heads destination');
   // Only target-branch movement matters. A newer work/gis source (gis) must
   // never be overwritten or silently imported when P2 creates its branch.
   assert.notEqual(gis,pin);

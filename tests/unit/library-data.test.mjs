@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import { compactLibraryCheckout, decodeArchiveEntry, prepareLibraryData, libraryReportRoot, libraryReportEditRoot, libraryMaterializedRoot, withLibraryWrite, hydrateReports, safeChild, storeLibraryData } from '../../tools/library-data.mjs';
+import { compactLibraryCheckout, decodeArchiveEntry, prepareLibraryData, libraryReportRoot, libraryReportEditRoot, libraryMaterializedRoot, withLibraryWrite, hydrateReports, safeChild, storeLibraryData, libraryPublicationRef } from '../../tools/library-data.mjs';
 import { reportPath } from '../../tools/report-paths.mjs';
 
 test('scoped native storage requires every changed source chunk and shared index together',async()=>{
@@ -312,4 +312,36 @@ test('runtime storage targets the app branch and keeps the pinned unselected inp
  assert.equal(git(data,'ls-remote','origin','refs/heads/work/objects').split(/\s+/)[0],revision);
  const stored=JSON.parse(git(data,'show',revision+':archive/index.json'));
  assert.equal(stored.branch,'work/objects');assert.deepEqual(stored.files[other],spec(other,'pinned'));
+});
+
+
+test('library publisher uses a fully qualified ref for newly created work branches',t=>{
+  const dir=mkdtempSync(join(tmpdir(),'pando-library-ref-'));
+  t.after(()=>rmSync(dir,{recursive:true,force:true}));
+  const bare=join(dir,'remote.git'),work=join(dir,'checkout');
+  mkdirSync(work);
+  const exec=(cwd,...args)=>execFileSync('git',args,{cwd,encoding:'utf8'}).trim();
+  exec(dir,'init','--bare','-q',bare);
+  exec(work,'init','-q');
+  exec(work,'config','user.name','Pando test');
+  exec(work,'config','user.email','test@example.invalid');
+  writeFileSync(join(work,'readme.txt'),'immutable library fixture\n');
+  exec(work,'add','readme.txt');
+  exec(work,'commit','-qm','fixture');
+  exec(work,'remote','add','origin',bare);
+  const sha=exec(work,'rev-parse','HEAD');
+  assert.equal(libraryPublicationRef('work/remote-only'),'refs/heads/work/remote-only');
+  assert.equal(libraryPublicationRef('main'),'refs/heads/main');
+  for(const branch of ['work/../main','refs/heads/main','other','',null]) {
+    assert.throws(()=>libraryPublicationRef(branch),/P2_LIBRARY_PUBLISH_BRANCH_INVALID/);
+  }
+  assert.equal(exec(work,'ls-remote','origin','refs/heads/work/remote-only'),'');
+  exec(work,'push','-q','origin','HEAD:'+libraryPublicationRef('work/remote-only'));
+  assert.equal(exec(work,'ls-remote','origin','refs/heads/work/remote-only').split(/\s/)[0],sha);
+  assert.equal(exec(work,'ls-remote','origin','refs/heads/main'),'');
+  // This is a normal, non-force publication and cannot erase a concurrent edit.
+  const next=exec(work,'commit-tree',exec(work,'rev-parse','HEAD^{tree}'),'-p',sha,'-m','another writer');
+  exec(work,'push','-q','origin',next+':'+libraryPublicationRef('work/remote-only'));
+  assert.throws(()=>exec(work,'push','-q','origin','HEAD:'+libraryPublicationRef('work/remote-only')));
+  assert.equal(exec(work,'ls-remote','origin','refs/heads/work/remote-only').split(/\s/)[0],next);
 });

@@ -316,3 +316,12 @@ Do not silently change `config/library-data.json` to the newest
 geography changes. P2 first verifies and publishes source-bound outputs in
 the isolated branch, then advances the application revision pin only after
 the library push succeeds. Another worktree's GIS edits remain untouched.
+
+
+P2 storage publication now pushes `HEAD:refs/heads/work/remote-only`
+rather than the ambiguous `HEAD:work/remote-only`. The fully qualified
+target is needed on the first push of an absent library branch. A focused
+bare-Git regression fixture verifies creation from the exact source pin,
+an unrelated `main` branch staying untouched, and non-force rejection of
+a concurrent target update. The storage writer still verifies the remote
+SHA and advances the application pin only after the remote push succeeds.
