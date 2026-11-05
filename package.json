@@ -65,9 +65,7 @@
     "test:gis-node": "node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs tests/unit/python-bridge-retirement.test.mjs",
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
     "dev:editor": "node scripts/frontend-dev-server.mjs --product=editor",
-    "dev:windows": "node apps/editor/dev.mjs --native=windows",
     "build:web": "node scripts/generate-build-metadata.mjs --product=viewer",
-    "build:windows": "node apps/editor/packaged-artifacts.mjs --fetch --platform=windows --mode=offline",
     "deps:prepare": "node tools/worktree-storage.mjs --prepare-dependencies"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ import {
   reviewEvidenceUrl, reviewEvidenceForObject, correctionRequest,
 } from '../../../../shared/frontend/js/modules/review-inspection.js';
 import {readReviewEvidenceFiles} from '../../../../shared/frontend/js/modules/review-evidence-files.js';
+import {collectViewerInspection} from './viewer-inspector-state.js';
 
 const SHA=/^[0-9a-f]{64}$/;
 const safeName=id=>id.replace(/[^A-Za-z0-9_.-]/g,'-').slice(0,100);
@@ -149,7 +150,8 @@ function renderGeometryPair(document,geometries){
 }
 
 /** Overlay-only UI owner; does not own the map, Core document, or Git write access. */
-export function createViewerReviewPanel({document,window,map,documentSession,isBuiltinMap,meta={},onError=()=>{}}={}){
+export function createViewerReviewPanel({document,window,map,documentSession,isBuiltinMap,meta={},onError=()=>{},
+  readDiagnostics=()=>[],readPerformance=()=>null,readMonth=()=>''}={}){
   if(!document||!window||!map||!documentSession||typeof isBuiltinMap!=='function')
     throw new TypeError('Review presentation requires the current read-only map and document session.');
   const get=id=>document.getElementById(id);
@@ -161,12 +163,97 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
   const feedback=(id,message,tone)=>{const node=get(id);text(node,message);if(node)node.dataset.tone=tone||'';};
   let current=null,chosenEntity=null,chosenChange=null,activeFetch=null,requestSerial=0;
   let trigger=null,disposed=false,rawObjectBytes=new Map(),loadSerial=0;
-  function open(sourceButton=button){
+  const tabKeys=['changes','map','performance','errors'];
+  const tabs=new Map(tabKeys.map((key,i)=>[key,{
+    button:get(['reviewTabChanges','reviewTabMap','reviewTabPerformance','reviewTabErrors'][i]),
+    pane:get(['reviewChangePane','reviewMapPane','reviewPerformancePane','reviewErrorsPane'][i])
+  }]));
+  let activeTab='changes';
+  const metricText=value=>value===null||value===undefined||value===''?'미수집':
+    typeof value==='boolean'?(value?'예':'아니요'):String(value);
+  function metrics(id,rows){
+    const list=get(id);list.replaceChildren();
+    for(const [label,value] of rows){
+      list.append(element(document,'dt','',label),element(document,'dd','',metricText(value)));
+    }
+  }
+  function inspection(){
+    return collectViewerInspection({
+      rendererStats:map.renderer.getStats(),
+      documentSnapshot:documentSession.documentModel.snapshot(),
+      month:readMonth(),meta,readOnly:documentSession.readOnly,
+      territorialCount:map.objectQuery.visibleTerritorialCount(),
+      evidenceLoaded:!!current,performanceReport:readPerformance(),
+      diagnosticEvents:readDiagnostics()
+    });
+  }
+  function refreshInspection(){
+    if(disposed||panel.hidden||activeTab==='changes')return;
+    const result=inspection();
+    if(activeTab==='map'){
+      metrics('reviewMapMetrics',[
+        ['렌더러',result.map.renderer],['지도 준비 상태',result.map.presentation],
+        ['정본 국가 메시',result.map.canonicalMeshReady],['지형 준비',result.map.terrainReady],
+        ['표시 품질',result.map.surfaceQuality],['현재 프레임 반영',result.map.frameAcknowledged],
+        ['표시 리비전',result.map.displayedRevision],['요청 리비전',result.map.requestedRevision],
+        ['국가 게시 세대',result.map.publishedGeneration],
+        ['현재 프로젝트 세대',result.map.projectGeneration],
+        ['렌더링 차단',result.map.projectRenderBlocked]
+      ]);
+      metrics('reviewDataMetrics',[
+        ['지도 시점',result.data.month],['자료 리비전',result.data.sourceRevision],
+        ['현재 표시 국가·영토 수',result.data.documentEntities],['프로젝트 ID',result.data.projectId],
+        ['읽기 전용',result.data.readOnly],['변경 검수 증거',result.data.reviewEvidence],
+        ['GIS 위상 검증',result.data.topologyValidation]
+      ]);
+    }else if(activeTab==='performance'){
+      metrics('reviewPerformanceMetrics',[
+        ['성능 계측',result.performance.available?'활성':'미활성 · ?perf=1 필요'],
+        ['DOM 상호작용 가능(ms)',result.performance.domInteractiveMs],
+        ['첫 콘텐츠 표시(ms)',result.performance.contentfulPaintMs],
+        ['긴 작업 수',result.performance.longTaskCount],
+        ['긴 작업 합계(ms)',result.performance.longTaskTotalMs],
+        ['레이아웃 이동 점수',result.performance.layoutShiftScore],
+        ['메모리 샘플 수',result.performance.memorySamples]
+      ]);
+    }else if(activeTab==='errors'){
+      const list=get('reviewErrorList');list.replaceChildren();
+      if(!result.errors.length)list.append(element(document,'li','','현재 기록된 진단 이벤트가 없습니다.'));
+      for(const row of result.errors)
+        list.append(element(document,'li','',row.category+' · '+row.errorCode+' · '+row.message));
+    }
+  }
+  function selectTab(key,{focus=false}={}){
+    if(!tabs.has(key))key='changes';
+    activeTab=key;
+    for(const [name,entry] of tabs){
+      entry.pane.hidden=name!==key;
+      entry.button.setAttribute('aria-selected',String(name===key));
+      entry.button.tabIndex=name===key?0:-1;
+    }
+    if(key!=='changes')refreshInspection();
+    if(focus)tabs.get(key).button.focus();
+  }
+  function saveDiagnostics(){
+    const payload=inspection();
+    const blob=new Blob([JSON.stringify(payload,null,2)+'\n'],{type:'application/json'});
+    const url=window.URL.createObjectURL(blob);
+    try{
+      const link=element(document,'a');link.href=url;
+      link.download='pando-viewer-inspection-'+Date.now()+'.json';
+      document.body.appendChild(link);link.click();link.remove();
+      feedback('reviewExportStatus','진단 결과를 로컬 JSON으로 저장했습니다. 외부로 전송하지 않았습니다.');
+    }finally{window.URL.revokeObjectURL(url);}
+  }
+  function open(sourceButton=button,{tab='changes'}={}){
     if(disposed)return;
     trigger=sourceButton;panel.hidden=false;
     button.setAttribute('aria-expanded','true');mobileButton?.setAttribute('aria-expanded','true');
     if(current){updateMapRevision();updateFocus();}
-    if(current)get('reviewSearch').focus();else get('reviewLoadBtn').focus();
+    selectTab(tab);
+    if(tab==='changes'){
+      if(current)get('reviewSearch').focus();else get('reviewLoadBtn').focus();
+    }else tabs.get(activeTab).button.focus();
   }
   function close(){
     if(disposed)return;
@@ -384,6 +471,19 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
     const source=feature?.properties?.sourceEntityId||feature?.id;
     if(source&&source!==chosenEntity&&current.entities.some(x=>x.sourceEntityId===source))selectEntity(source);
   }
+  for(const [key,entry] of tabs){
+    listen(entry.button,'click',()=>selectTab(key,{focus:true}));
+  }
+  listen(get('reviewInspectorTabs'),'keydown',event=>{
+    if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const index=tabKeys.indexOf(activeTab);
+    const next=event.key==='Home'?0:event.key==='End'?tabKeys.length-1:
+      (index+(event.key==='ArrowRight'?1:-1)+tabKeys.length)%tabKeys.length;
+    selectTab(tabKeys[next],{focus:true});
+  });
+  listen(get('reviewRefreshBtn'),'click',refreshInspection);
+  listen(get('reviewExportDiagnostics'),'click',saveDiagnostics);
   listen(get('reviewCloseBtn'),'click',close);
   listen(get('reviewLoadBtn'),'click',()=>get('reviewEvidenceInput').click());
   listen(get('reviewEvidenceInput'),'change',event=>{if(event.target.files?.length)loadEvidence(event.target.files);});

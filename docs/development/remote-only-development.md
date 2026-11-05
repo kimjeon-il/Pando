@@ -4,59 +4,91 @@ Baseline: main commit `5b636f814f397cd0d8b2a64c8e7ddfab1c02c51e` (2026-11-04).
 This branch is an isolated migration candidate. Do not merge into main or deploy
 GitHub Pages without the user's separate approval.
 
-## Open without installing developer tools on Windows
+## Optional Codespaces, no automatic startup
 
-Open [work/remote-only in GitHub Codespaces](https://codespaces.new/kimjeon-il/Pando/tree/work/remote-only?quickstart=1).
-This creates a remote Linux container, not a local folder. The initial
-`.devcontainer/setup-remote.sh` checks the pinned Node major and installs
-the pinned pnpm dependencies into the Codespace only. Its command is not
-`pnpm deps:prepare`: that command intentionally expects a separately
-activated Windows shared cache.
+Codespaces is no longer required for normal Viewer/inspector development;
+GitHub Actions owns the WASM/GIS builds, automated browser tests and Web
+screenshots. The optional [work/remote-only Codespace](https://codespaces.new/kimjeon-il/Pando/tree/work/remote-only?quickstart=1)
+uses the Node 24 Bookworm image. **Container creation and restart do not
+install packages, start the preview server, forward port 4173 automatically
+or launch a browser tab.** No Windows native SDK is installed.
 
-The Codespaces image is the published Node 24 Bookworm variant
-`mcr.microsoft.com/devcontainers/javascript-node:24-bookworm`. Every
-lifecycle script sources `.devcontainer/ensure-node.sh` to restore an
-existing nvm-selected Node 24 PATH in non-login shells. The helper never
-downloads runtimes or compilers.
+Only if you need to inspect the live source manually, open a Codespaces
+terminal and run:
 
-If setup reports `PANDO_CODESPACES_NODE_MISSING` (or the previous
-`node: command not found`), select **Codespaces: Rebuild Container** from
-the VS Code command palette (`Ctrl+Shift+P`) to apply the Node 24 image.
-Verify `node --version` prints `v24.x` before running acceptance.
-The repository in `/workspaces` persists across a Codespace rebuild;
-container files outside `/workspaces` may be reset. Recovery-mode failures
-require inspecting the Codespaces creation log. Do not install Node or
-native compilers onto the Windows host as a workaround.
-The startup script runs the Viewer on private forwarded port 4173, using the
-current branch and its pinned library-data revision. Geographic materialization
-can delay readiness; view `/tmp/pando-remote-only-preview.log` if necessary.
-Do not change the forwarded port's visibility to public.
+```bash
+bash .devcontainer/start-preview.sh
+```
 
-Use the Codespaces terminal for source edits and small JavaScript checks:
+The first manual invocation installs locked pnpm frontend packages if they
+are not present, then starts the Viewer on `127.0.0.1:4173`. Subsequent
+invocations reuse the live server. In the Codespaces **Ports** panel, manually
+forward port **4173** as **private** and open the preview. Do not make this
+port public. You can also run `bash .devcontainer/setup-remote.sh` manually
+to prepare packages without starting the server.
+
+Use the smallest practical Codespaces machine (**2 cores / 8 GB**), and
+prefer **15 minutes idle timeout** and **7 days stopped retention**.
+These are GitHub user/Codespace account settings, **not enforceable by
+`.devcontainer/devcontainer.json`**; select the machine size at creation
+or change it from the Codespaces UI, and set timeout and retention under
+GitHub **Settings → Codespaces**. The settings apply to new Codespaces and
+do not retroactively resize or stop a running existing Codespace.
+Check `https://github.com/codespaces` to stop or delete unused sessions.
+Never rely on a repository commit to stop an already-running billable session.
+
+The small optional smoke check, with no Chromium installation:
+
+```bash
+bash .devcontainer/acceptance.sh
+```
+
+This checks the actual development server, pinned WASM header, world
+manifest and private configuration boundary. If a full local live-browser
+acceptance is specifically needed, run
+`bash .devcontainer/acceptance.sh --browser`. That **explicit** mode
+installs Playwright Chromium into Codespaces and runs the original map,
+time-navigation and source-watcher test. Ordinary regression must run in
+GitHub Actions instead. Neither mode is a prerequisite for GitHub CI.
+
+For read-only local prerequisite diagnostics after package installation:
 
 ```bash
 node scripts/remote-only-doctor.mjs
-bash .devcontainer/pnpm.sh lint
-node --test tests/unit/remote-only-contract.test.mjs
 ```
 
-Do not run local native preparation, CMake, Emscripten, LibTorch or GIS SDK
-installation. `scripts/prepare-native-test-tools.mjs` rejects those native
-preparations on this branch outside GitHub Actions, including when invoked
-from a Windows checkout.
+Do not run `pnpm deps:prepare` or any local CMake, Emscripten, Rust,
+LibTorch or native GIS SDK preparation in Codespaces.
+If Node 24 is missing, select **Codespaces: Rebuild Container**. This
+retains files in `/workspaces` but resets container-level state. On
+older existing Codespaces the previous lifecycle configuration can remain
+active until their development container is rebuilt.
+
+## Windows native reviewer retirement (work/remote-only)
+
+The integrated Web Viewer inspection panel replaces the standalone
+Windows Tauri/WebView2 reviewer in this branch. The P1 workflow no longer
+accepts `native` or `native-tests` dispatch requests and the remote-only
+acceptance has no Windows build or GUI job. Root `dev:windows` and
+`build:windows` package scripts and `@tauri-apps/cli` dependency are
+retired. The source-bound C++ Core, WASM, GIS and browser acceptance
+still run in GitHub Actions, not on the Windows PC.
+
+Archived Windows source and storage cleanup code must not be mistaken
+for a supported executable. Preserve existing user's binaries and
+references; this migration does not delete PC files.
 
 ## Builds and verification are owned by CI
 
 - P1 `.github/workflows/remote-development-p1.yml`: source-aware UI,
-  C++, GIS, WASM and Windows reviewer jobs. This branch is a push target.
-  Explicit Windows `native` or `native-tests` runs use the Actions workflow.
+  C++, GIS and WASM runner jobs only. This branch is a push target.
 - P2 `.github/workflows/generated-artifacts-p2.yml`: regenerate only
   changed source-bound WASM/data families and publish with a guarded
   work-branch fast-forward, not to main. Do not use `all` casually.
 - P3 `.github/workflows/remote-preview-p3.yml`: browser evidence and
   downloadable branch snapshots; this is not a permanent public preview URL.
 - `.github/workflows/remote-only-gate.yml`: branch configuration contracts,
-  actual shared WASM compilation and Windows WebView2 acceptance. It does not
+  actual shared WASM compilation and GIS/Viewer browser acceptance. It does not
   install or validate AI models, OCR or model training.
 - The published Viewer remains owned by main's `web-pages.yml`.
   Source writes, artifact publication to this branch and main deployment
@@ -83,61 +115,20 @@ development. This boundary does not alter the plugin's artifacts,
 training lineage, model approval gates or existing plugin release policy.
 See [Independent map analysis](../reference-map-plugin.md).
 
-## Real Codespaces live acceptance
+## Optional live Codespaces acceptance
 
-Only a running, user-created Codespace can satisfy this gate. In its terminal
-on `work/remote-only` run:
+Codespaces is an opt-in **manual preview**, not a required development
+or full acceptance environment. No packages, preview, browser or auto-open
+are started by the container lifecycle. `bash .devcontainer/acceptance.sh`
+runs an inexpensive real-server HTTP smoke. The heavy original
+`tests/browser/codespaces-live.spec.mjs` is retained solely for a
+deliberate `--browser` invocation. It tests actual canonical map frame
+readiness, year navigation, two source-watch reloads and file isolation.
 
-```bash
-bash .devcontainer/acceptance.sh
-```
-
-The Codespaces startup command invokes
-`node scripts/frontend-dev-server.mjs --product=viewer` directly. The former
-`p3-preview-server.mjs` CLI attempted a top-level dynamic import of
-`frontend-dev-server.mjs`, which statically imports its HTTP server module:
-Node could terminate with `Detected unsettled top-level await` before
-opening port 4173. The original CLI remains available with its import deferred
-until module evaluation is complete. Neither fix changes native SDK policy.
-
-The acceptance script now starts the actual Pando development preview if
-it is missing, then waits for the live `/__shell/health` contract on
-`127.0.0.1:4173` **before** installing Chromium or running Playwright.
-`ECONNREFUSED` indicates no listening server; if startup fails, inspect
-`/tmp/pando-remote-only-preview.log`. Startup errors are printed by the
-script and are not misreported as map or auto-reload failures. The test
-still rejects fixture-only servers.
-
-This installs a browser **only in Codespaces** and runs
-`tests/browser/codespaces-live.spec.mjs` against the existing, private port
-4173 development server (no test-server fallback). Acceptance verifies
-real Viewer map readiness and country presentation, year navigation,
-source watcher on both a newly created CSS file and a subsequent edit to
-that same file, two independent revision increments and automatic browser
-reloads, WASM bytes and private-source access denial. A unique temporary, untracked
-CSS probe is removed after testing; no tracked file or user WIP is changed.
-Evidence and screenshots are saved under `test-results/codespaces-acceptance`.
-Record the Codespace name, commit SHA and result. A GitHub Actions job is not
-a genuine Codespaces run and cannot be substituted.
-
-The Viewer can expose `#viewerStatus[data-ready=true]` while
-`rendererStats().mapReadiness.status` remains `terrain` (canonical country
-geometry is ready, but physical terrain tiles are still being prepared).
-`terrain`, `boundaries` and `presenting` are intermediate states, not
-acceptance success. The live test now waits until `ready` or `limited`
-**and** the actual country and Canvas frame revisions are acknowledged,
-initially, after year navigation, and after each source change. On a genuine
-timeout the last readiness, terrain and renderer diagnostics are printed.
-The verified startup query matches the P3 Canvas/raster terrain contract.
-
-The real Codespaces test may take longer than the fast CI contract suite
-because it waits for complete canonical map presentation after both reloads.
-The fixture captures proof and the screenshot **before** removing the
-untracked CSS probe; its cleanup is `finally`-guarded. No tracked source is
-overwritten.
-
-If the Codespace has not been launched or its terminal is unavailable,
-report **BLOCKED**, not passed.
+The existing P3 GitHub Actions tests provide the normal Web/Canvas and
+mobile/desktop browser verification without requiring any Codespace.
+A passing CI contract test is not proof that a personal Codespace
+session was opened. `main` deployment is still separately controlled.
 
 ## Source-matched C++ / WASM / GIS integration
 
@@ -173,7 +164,7 @@ branch a missing source-pinned artifact does not trigger an SDK fallback:
 explicit GitHub Actions is required. This cannot prohibit a developer from
 manually running arbitrary OS compiler commands outside project tooling.
 
-Codespaces prepares only locked Node development packages and a test browser.
+Codespaces installs frontend dependencies only on deliberate preview, and a test browser only on deliberate --browser acceptance.
 SDK/compiler installations and native builds are exclusively on remote runners;
 a Windows verification executable is run by Windows GitHub Actions, not
 downloaded onto a developer PC.
@@ -241,3 +232,94 @@ Codespaces and GitHub Actions depend on network availability, service quotas,
 retention settings, permissions and runner capacity. If any is missing, fail
 with an explicit blocked state. Never fall back to downloading multi-gigabyte
 SDKs onto the developer's PC.
+
+
+## Integrated hidden Viewer inspection panel
+
+The Web Viewer itself provides the inspection interface. On an ordinary
+`/` navigation both desktop `reviewPanelBtn` and mobile `mobileReviewBtn`
+remain **hidden**, and `viewer-review-panel.js` is not imported.
+
+To deliberately enter inspection mode, use either `?inspect=1` in the
+Viewer URL or the `Ctrl+Shift+.` keyboard shortcut (`Cmd+Shift+.` on
+macOS). The URL opens the read-only map diagnostics tab; the shortcut toggles
+the panel. The existing `?debug=1` development entry continues to reveal
+the legacy button for browser regression tools, but does not open the panel
+automatically. After activation the inspector button stays visible for the
+current page session; browser navigation resets it.
+
+The lazily loaded panel contains four tabs:
+- **Change review:** E3 revision evidence JSON, SHA verification, side-by-side
+  geometry comparison and a user-initiated local correction-request file.
+- **Map and data:** current canonical mesh/terrain readiness, renderer,
+  source revision and document status. This is not a GIS topology certification.
+- **Performance:** captured browser metrics when `?perf=1` is enabled;
+  absent samples are explicitly shown as unavailable.
+- **Errors:** bounded diagnostic events and an explicit local JSON export.
+  No event is automatically sent to GitHub or to an external endpoint.
+
+The panel is not an authorization boundary. Hiding it does not protect
+private data and does not grant edit, source-publish, or GitHub credentials.
+Existing Viewer Core/project mutations remain blocked by the read-only
+domain regardless of entry method. The separate Tauri Windows reviewer
+pipeline remains untouched during this UI migration; remove it only after
+separate approval of the browser inspector's acceptance and migration.
+No `main` merge or Pages publication occurs on this branch.
+
+## Deleted Windows package and Rust build sources
+
+Windows Tauri Cargo manifests, Rust executable code, native producer,
+artifact fetch scripts, CLI, and Windows-only CI jobs were removed on this
+branch. Common C++/WASM and GIS tools remain on GitHub Actions. Read-only
+Viewer inspection is available through `?inspect=1` or `Ctrl+Shift+.`.
+
+Only legacy test fixture staging, old verified artifact cleanup and a small
+number of inert brand/config files are retained; they cannot build a Tauri
+application. No existing user PC file is automatically deleted.
+
+
+## P2 isolated library publication after Windows retirement
+
+P2 generated artifacts belong to the current Pando work branch, **not**
+automatically to the `index.branch` of the input library edition.
+For example, `work/remote-only` can start from the pinned work/gis edition
+without advancing or rewriting the library's shared `work/gis` history.
+The P2 archive preflight now requires the checkout's `HEAD` to equal the
+exact configured library revision and requires the *target* branch to be
+absent or still at that same revision. P2 never force-pushes. A concurrent
+target-branch advance still aborts publication.
+
+Do not silently change `config/library-data.json` to the newest
+`work/gis` branch: doing so could activate unapproved historical
+geography changes. P2 first verifies and publishes source-bound outputs in
+the isolated branch, then advances the application revision pin only after
+the library push succeeds. Another worktree's GIS edits remain untouched.
+
+
+P2 storage publication now pushes `HEAD:refs/heads/work/remote-only`
+rather than the ambiguous `HEAD:work/remote-only`. The fully qualified
+target is needed on the first push of an absent library branch. A focused
+bare-Git regression fixture verifies creation from the exact source pin,
+an unrelated `main` branch staying untouched, and non-force rejection of
+a concurrent target update. The storage writer still verifies the remote
+SHA and advances the application pin only after the remote push succeeds.
+
+
+## Post-Windows web regression after repository replacement
+
+The `post-windows-web-regression` Linux Actions job tests the complete
+source-only Web inspection integration: bounded diagnostics, hidden
+activation, E3 change comparison, map and mobile interaction, and local
+correction/evidence exports. Its P2 library storage fixture verifies
+that creating a previously nonexistent `work/remote-only` branch uses
+`HEAD:refs/heads/work/remote-only`, while a concurrent update refuses a
+non-fast-forward push. The job rejects retired Cargo/Rust, native
+Windows producer, and Windows-only CI paths without installing any Windows
+SDK. The separate `wasm-compile-and-smoke` and
+`viewer-map-integration` jobs remain responsible for actual shared
+C++/WASM/GIS/map rendering, not mock results.
+
+This branch is not deployed to GitHub Pages and `main` is not changed
+by the acceptance. No independent Map Toolkit training or model artifacts
+are installed for the review. The actual P2 publication must report a
+successful source-pinned library branch push before it is accepted.

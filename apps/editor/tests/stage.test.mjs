@@ -1,12 +1,10 @@
 import {editorStageRoot} from '../../../tools/worktree-storage.mjs';
-import {nativeBuildArguments} from '../native-producer.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
 import {createDevelopmentAssets,stagePrototype,validateShellProfile} from '../stage.mjs';
-import {assertOrdinaryBuild,assertVerificationBuild} from '../packaged-artifacts.mjs';
 import {worldFixture} from './helpers/world-fixture.mjs';
 
 const files=stage=>new Set(stage.files.map(row=>row.path));
@@ -20,10 +18,6 @@ test('E6 keeps map-data and an explicit verification-only fixture; no graphical 
   assert.doesNotThrow(()=>validateShellProfile('test-fixture',true));
   assert.throws(()=>validateShellProfile('test-fixture',false),/verification/i);
   assert.throws(()=>validateShellProfile('graphical-editor',true),/Unknown/);
-  assert.throws(()=>nativeBuildArguments('android','development'),/platform/i);
-  assert.doesNotThrow(()=>assertOrdinaryBuild({verification:false,profile:'map-data'}));
-  assert.throws(()=>assertOrdinaryBuild({verification:true}),/verification/);
-  assert.doesNotThrow(()=>assertVerificationBuild({verification:true,profile:'test-fixture'}));
 });
 test('E6 ordinary startup rejects the fixture before writing assets',async t=>{
   const root=await mkdtemp(join(tmpdir(),'pandolab-e6-reject-'));

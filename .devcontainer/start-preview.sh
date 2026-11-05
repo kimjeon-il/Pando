@@ -18,6 +18,12 @@ if [ -f "$pid_file" ] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
   echo "Existing Pando preview may still be preparing assets (PID $(cat "$pid_file")). Acceptance will verify port 4173. Log: $log"
   exit 0
 fi
+# Only a deliberate preview command may install frontend packages. Container
+# creation/start never runs this script or installs a browser.
+if [ ! -d node_modules/esbuild ]; then
+  echo "PANDO_CODESPACES_PREVIEW_BOOTSTRAP: installing locked frontend packages on demand."
+  bash .devcontainer/setup-remote.sh
+fi
 nohup node scripts/frontend-dev-server.mjs --product=viewer >"$log" 2>&1 </dev/null &
 pid="$!"
 printf '%s\n' "$pid" > "$pid_file"

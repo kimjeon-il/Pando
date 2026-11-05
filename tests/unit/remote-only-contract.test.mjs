@@ -5,17 +5,21 @@ import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import {assertRemoteOnlyNativePreparation} from '../../scripts/prepare-native-test-tools.mjs';
 import {remoteOnlyStatus} from '../../scripts/remote-only-doctor.mjs';
+import {remoteOnlyAcceptanceScope} from '../../scripts/remote-only-ci-scope.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(resolve(root,path),'utf8');
 
-test('Codespaces installs only pinned remote Node dependencies and opens a private live preview',()=>{
+test('Codespaces never auto-installs packages or opens the on-demand private Viewer preview',()=>{
   const dev=JSON.parse(read('.devcontainer/devcontainer.json'));
   assert.match(dev.image,/javascript-node:24-bookworm/);
   assert.equal(dev.remoteEnv.PANDO_REMOTE_ONLY,'1');
-  assert.equal(dev.postCreateCommand,'bash .devcontainer/setup-remote.sh');
-  assert.equal(dev.postStartCommand,'bash .devcontainer/start-preview.sh');
+  assert.equal(Object.hasOwn(dev,'postCreateCommand'),false);
+  assert.equal(Object.hasOwn(dev,'postStartCommand'),false);
+  assert.equal(Object.hasOwn(dev,'forwardPorts'),false);
   assert.equal(dev.portsAttributes['4173'].visibility,'private');
+  assert.equal(dev.portsAttributes['4173'].onAutoForward,'ignore');
+  assert.equal(dev.otherPortsAttributes.onAutoForward,'ignore');
   for(const name of ['.devcontainer/setup-remote.sh','.devcontainer/start-preview.sh',
     '.devcontainer/acceptance.sh','.devcontainer/pnpm.sh'])
     assert.match(read(name),/source \.devcontainer\/ensure-node\.sh/,name);
@@ -31,7 +35,11 @@ test('Codespaces installs only pinned remote Node dependencies and opens a priva
   const pnpm=read('.devcontainer/pnpm.sh');
   assert.match(pnpm,/packageManager/);
   assert.match(pnpm,/npm exec --yes --package=/);
-  assert.match(read('.devcontainer/start-preview.sh'),/scripts\/frontend-dev-server\.mjs --product=viewer/);
+  const preview=read('.devcontainer/start-preview.sh');
+  assert.match(preview,/scripts\/frontend-dev-server\.mjs --product=viewer/);
+  assert.match(preview,/if \[ ! -d node_modules\/esbuild \]/);
+  assert.match(preview,/bash \.devcontainer\/setup-remote\.sh/);
+  assert.doesNotMatch(preview,/playwright install|install --with-deps chromium/);
 });
 
 test('the remote-only branch runs P1, P2, P3 and a dedicated Node contract in CI',()=>{
@@ -42,6 +50,26 @@ test('the remote-only branch runs P1, P2, P3 and a dedicated Node contract in CI
   const deploy=read('.github/workflows/web-pages.yml');
   assert.match(deploy,/branches:\s*\[main\]/);
   assert.match(deploy,/github\.ref == 'refs\/heads\/main'/);
+});
+
+test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',()=>{
+  const gate=read('.github/workflows/remote-only-gate.yml');
+  const p1=read('.github/workflows/remote-development-p1.yml');
+  const scripts=JSON.parse(read('package.json')).scripts;
+  const shell=JSON.parse(read('apps/editor/package.json'));
+  // Match executable workflow fields only. The post-retirement verifier
+  // deliberately *mentions* rejected job names in its own assertions.
+  for(const body of [gate,p1]) {
+    assert.doesNotMatch(body,/^  (?:windows-real-webview2|native-artifact):\s*$/m);
+    assert.doesNotMatch(body,/^\s*runs-on:\s*windows-2022\s*$/m);
+    assert.doesNotMatch(body,/^\s*- uses:\s*dtolnay\/rust-toolchain@/m);
+    assert.doesNotMatch(body,/^\s*(?:run:\s*)?node apps\/editor\/packaged-artifacts\.mjs --ci-build/m);
+  }
+  assert.equal(Object.hasOwn(scripts,'dev:windows'),false);
+  assert.equal(Object.hasOwn(scripts,'build:windows'),false);
+  assert.equal(Object.hasOwn(shell.devDependencies||{},'@tauri-apps/cli'),false);
+  for(const name of ['build:windows','test:native','dev:windows','build:verification:windows'])
+    assert.equal(Object.hasOwn(shell.scripts,name),false,name);
 });
 
 test('native prerequisite preparation is rejected outside Actions on the new branch',()=>{
@@ -71,4 +99,17 @@ test('AI map-analysis and training remain plugin-owned, outside required app acc
   assert.match(plugin,/analysis, training, tests and private releases are owned by/);
   const remoteDocs=read('docs/development/remote-only-development.md');
   assert.match(remoteDocs,/Independent Map Toolkit plugin boundary/);
+});
+
+test('on-demand Codespaces changes do not schedule costly WASM/GIS CI rebuilds',()=>{
+  const changes=['.devcontainer/devcontainer.json','.devcontainer/start-preview.sh',
+    '.devcontainer/setup-remote.sh','.devcontainer/acceptance.sh',
+    'tests/unit/codespaces-acceptance-contract.test.mjs',
+    'scripts/remote-only-ci-scope.mjs'];
+  const result=remoteOnlyAcceptanceScope(changes,{event:'push'});
+  assert.equal(result.runHeavy,false);
+  assert.equal(remoteOnlyAcceptanceScope([...changes,'shared/core/src/geometry.cpp']).runHeavy,true);
+  assert.equal(remoteOnlyAcceptanceScope([...changes,'scripts/p2-artifact-plan.mjs',
+    'tests/unit/p2-artifact-plan.test.mjs']).runHeavy,false);
+  assert.equal(remoteOnlyAcceptanceScope([],{event:'workflow_dispatch'}).runHeavy,true);
 });

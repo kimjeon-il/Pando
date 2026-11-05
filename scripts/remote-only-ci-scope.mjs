@@ -9,9 +9,20 @@ export function remoteOnlyAcceptanceScope(paths,{event='push',baselineKnown=true
   if(!Array.isArray(paths)||paths.some(p=>typeof p!=='string'))throw Error('Invalid remote-only source change list');
   if(event==='workflow_dispatch'||!baselineKnown||!paths.length)
     return {runHeavy:true,reason:'Explicit acceptance or unavailable source baseline'};
-  const nonDocument=paths.filter(path=>!(path==='README.md'||path.endsWith('.md')));
-  return {runHeavy:nonDocument.length>0,
-    reason:nonDocument.length?'Changed build, test or runtime inputs':'Documentation-only change'};
+  // A Codespaces-only configuration/contract change never changes the
+  // C++/WASM/GIS source. The dedicated contract job still runs on every push.
+  const previewOnly=new Set([
+    'playwright.codespaces.config.js','scripts/remote-only-doctor.mjs',
+    'scripts/remote-only-ci-scope.mjs','tests/browser/codespaces-live.spec.mjs',
+    'tests/unit/remote-only-contract.test.mjs',
+    'tests/unit/codespaces-acceptance-contract.test.mjs',
+    // These files plan and verify publication but never change WASM/GIS inputs.
+    'scripts/p2-artifact-plan.mjs','tests/unit/p2-artifact-plan.test.mjs'
+  ]);
+  const runtime=paths.filter(path=>!(path==='README.md'||path.endsWith('.md')
+    ||path.startsWith('.devcontainer/')||previewOnly.has(path)));
+  return {runHeavy:runtime.length>0,
+    reason:runtime.length?'Changed build, test or runtime inputs':'Docs or on-demand preview configuration only'};
 }
 const validSha=s=>/^[a-f0-9]{40}$/.test(s||'')&&!/^0+$/.test(s);
 export function gitRemoteOnlyScope({rootPath=root,env=process.env,

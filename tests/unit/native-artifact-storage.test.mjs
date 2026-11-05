@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,statSync,rmSync,existsSync,unlinkSync,chmodSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {nativeHash} from "../../apps/editor/native-contract.mjs";
+import {createHash} from "node:crypto";
+const nativeHash=bytes=>createHash("sha256").update(bytes).digest("hex");
 import {installNativeArtifactView,retireNativeSnapshots,finishArtifactMaintenance} from '../../tools/worktree-storage.mjs';
 
 test('native retirement preserves other worktree references and resumes after interruption',t=>{

@@ -7,7 +7,8 @@ const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
 test('the historical P6 inventory is retired while current product gates remain active',()=>{
   assert.equal(existsSync(new URL('../../.github/workflows/p6-preflight.yml',import.meta.url)),false);
   assert.match(read('.github/workflows/shared-core.yml'),/core-gpkg-file-boundary\.test\.mjs/);
-  assert.match(read('.github/workflows/e7-final-readonly-regression.yml'),/push:/);
+  assert.equal(existsSync(new URL('../../.github/workflows/e7-final-readonly-regression.yml',import.meta.url)),false);
+  assert.match(read('.github/workflows/remote-only-gate.yml'),/wasm-compile-and-smoke:/);
 });
 test('general Web tests and versioning use only Node',()=>{
   const scripts=JSON.parse(read('package.json')).scripts;

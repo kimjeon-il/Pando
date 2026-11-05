@@ -1,5 +1,7 @@
 name: P2 Source-matched generated artifacts
 # Source-matched generation is allowed only on dedicated work/* branches, never on main.
+# First publication to a new work branch uses a complete refs/heads destination;
+# all runtime inputs stay pinned, and remote updates remain non-forced.
 on:
   push:
     branches: ['work/**']
@@ -68,7 +70,7 @@ jobs:
           node-version-file: '.nvmrc'
       - name: Test source fingerprint, rebuild selection, publication guard
         if: github.event_name == 'push' || inputs.verification == 'full'
-        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs tests/unit/p2-publication-paths.test.mjs
+        run: node --test tests/unit/p2-artifact-plan.test.mjs tests/unit/shared-core-assets.test.mjs tests/unit/p2-publication-paths.test.mjs tests/unit/library-data.test.mjs
       - name: Read the declared place-report generation inputs
         run: node tools/report-paths.mjs reports/places read
       - name: Select only stale source-derived assets

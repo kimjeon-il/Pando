@@ -15,6 +15,10 @@ const read=path=>readFileSync(resolve(root,path),'utf8');
 const idTag=(html,id)=>html.match(new RegExp('<[a-z][^>]*\\bid=["\\x27]'+id+'["\\x27][^>]*>','i'))?.[0]||'';
 const countId=(html,id)=>[...html.matchAll(new RegExp('\\bid=["\\x27]'+id+'["\\x27]','g'))].length;
 const requiredIds=['viewer','map','viewerCanvas','reviewPanel','reviewPanelBtn','mobileReviewBtn',
+  'reviewInspectorTabs','reviewTabChanges','reviewTabMap','reviewTabPerformance','reviewTabErrors',
+  'reviewChangePane','reviewMapPane','reviewMapMetrics','reviewDataMetrics',
+  'reviewPerformancePane','reviewPerformanceMetrics','reviewErrorsPane','reviewErrorList',
+  'reviewRefreshBtn','reviewExportDiagnostics',
  'reviewPanelTitle','reviewCloseBtn','reviewLoadBtn','reviewEvidenceInput','reviewLoadStatus',
  'reviewSummary','reviewChecks','reviewBrowse','reviewSearch','reviewKindFilter','reviewObjectList',
  'reviewDetail','reviewSelectedObject','reviewChangeList','reviewCompareSection',
@@ -74,6 +78,8 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
    fail('Review panel must use the labelled shared reviewer surface');
  if(!/\bhidden\b/.test(idTag(html,'reviewPanel')))
    fail('Review panel must be closed until requested');
+  for(const id of ['reviewPanelBtn','mobileReviewBtn'])
+    if(!/\bhidden\b/.test(idTag(html,id)))fail('Inspector trigger must be hidden: #'+id);
  if(/assets\/js\/(?:app|bootstrap)\.js|__editor\/index\.html/.test(html))
    fail('Retired editor entry must not enter the Web/Windows product');
  if(!/assets\/js\/viewer\.js/.test(html) || !/assets\/css\/ui-viewer\.bundle\.css/.test(html))

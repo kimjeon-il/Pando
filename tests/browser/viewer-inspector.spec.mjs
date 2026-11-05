@@ -1,0 +1,48 @@
+import {test,expect} from '@playwright/test';
+
+test('inspector is absent from ordinary UI until the keyboard shortcut activates lazy review',async({page})=>{
+  test.setTimeout(150000);
+  const errors=[],reviewRequests=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('request',req=>{if(req.url().includes('viewer-review-panel.js'))reviewRequests.push(req.url());});
+  await page.goto('/?renderer=canvas',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
+  await expect(page.locator('#reviewPanelBtn')).toBeHidden();
+  await expect(page.locator('#mobileReviewBtn')).toBeHidden();
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  expect(reviewRequests).toHaveLength(0);
+  await page.keyboard.press('Control+Shift+Period');
+  await expect(page.locator('#reviewPanel')).toBeVisible({timeout:20000});
+  await expect(page.locator('#reviewTabMap')).toHaveAttribute('aria-selected','true');
+  await expect(page.locator('#reviewMapMetrics')).toContainText('렌더러');
+  await expect(page.locator('#reviewDataMetrics')).toContainText('읽기 전용');
+  await expect(page.locator('#reviewDataMetrics')).toContainText('예');
+  expect(reviewRequests.length).toBeGreaterThan(0);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  await page.keyboard.press('Control+Shift+Period');
+  await expect(page.locator('#reviewPanel')).toBeVisible();
+  await page.locator('#reviewTabChanges').click();
+  await expect(page.locator('#reviewLoadBtn')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+test('explicit inspection URL opens read-only diagnostics, tab navigation and local export',async({page})=>{
+  test.setTimeout(150000);
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('/?inspect=1&renderer=canvas',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#reviewPanel')).toBeVisible({timeout:110000});
+  await expect(page.locator('#reviewTabMap')).toHaveAttribute('aria-selected','true');
+  await expect(page.locator('#reviewPanelBtn')).toBeVisible();
+  await page.locator('#reviewTabPerformance').click();
+  await expect(page.locator('#reviewPerformanceMetrics')).toContainText('성능 계측');
+  await page.locator('#reviewTabErrors').click();
+  await expect(page.locator('#reviewErrorList')).toBeVisible();
+  const downloadPending=page.waitForEvent('download');
+  await page.locator('#reviewExportDiagnostics').click();
+  const download=await downloadPending;
+  expect(download.suggestedFilename()).toMatch(/^pando-viewer-inspection-/);
+  await expect(page.locator('#reviewExportStatus')).toContainText('로컬 JSON');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  expect(errors).toEqual([]);
+});

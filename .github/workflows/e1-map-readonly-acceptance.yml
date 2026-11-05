@@ -74,31 +74,6 @@ jobs:
       - name: Verify existing runtime module boundaries
         run: node scripts/check-runtime-boundaries.mjs
 
-  windows-shared-contract:
-    runs-on: windows-2022
-    timeout-minutes: 15
-    steps:
-      - name: Preserve checked-in source line identities
-        shell: pwsh
-        run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-      - uses: pnpm/action-setup@v4
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Verify Windows flat read-only projection, selection and file transports
-        run: >-
-          node --test --test-concurrency=2
-          tests/unit/viewer-globe-only.test.mjs
-          tests/unit/project-product-surface.test.mjs
-          tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/file-access-contract.test.mjs
-          tests/unit/native-document-transfer-contract.test.mjs
-          apps/editor/tests/stage.test.mjs
-
   web-editor-regression:
     runs-on: ubuntu-24.04
     timeout-minutes: 25

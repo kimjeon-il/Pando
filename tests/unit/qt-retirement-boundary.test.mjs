@@ -13,8 +13,10 @@ test('retired app tree and build variants are absent', () => {
   for (const name of ['pando-core', 'pando-wasm', 'pando-gis-tools'])
     assert.ok(presets.configurePresets.some(p => p.name === name), name);
 });
-test('current WebView application, common algorithms and required fixtures remain', () => {
-  for (const path of ['apps/editor/src-tauri/src/main.rs', 'shared/core/src/geometrypredicates.cpp',
+test('common algorithms and fixtures remain without a Windows executable', () => {
+  assert.equal(exists('apps/editor/src-tauri/src/main.rs'),false);
+  assert.equal(exists('apps/editor/src-tauri/Cargo.toml'),false);
+  for (const path of ['shared/core/src/geometrypredicates.cpp',
     'assets/data/hydro/v0.13.4/manifest.json', 'tests/fixtures/shared-core/reference-calibration.json',
     'tests/fixtures/shared-core/web-m97/cut-corpus.json', 'contracts/terrain/preview-dem-source.json'])
     assert.ok(exists(path), path);
@@ -28,6 +30,6 @@ test('active CI keeps common and WebView checks without installing or running Qt
         assert.ok(jobs[need], name + ':' + need);
   }
   assert.ok(parse(read('.github/workflows/remote-development-p1.yml')).jobs['native-core']);
-  assert.ok(exists('.github/workflows/e7-final-readonly-regression.yml'));
+  assert.equal(exists('.github/workflows/e7-final-readonly-regression.yml'),false);
   assert.equal(exists('.github/workflows/integration-windows-web-shell-20261016.yml'),false);
 });

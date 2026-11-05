@@ -125,7 +125,9 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'shared/frontend/js/modules/map-input-presentation.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
-    'scripts/r4d-check-retired-tests.mjs'
+    'scripts/r4d-check-retired-tests.mjs',
+    'scripts/remote-only-doctor.mjs','scripts/remote-only-ci-scope.mjs',
+    'playwright.codespaces.config.js'
   ]);
   const inputMatches=(selector,path)=>typeof selector==='string'
     ?selector.endsWith('/')?path.startsWith(selector):path===selector
@@ -136,7 +138,7 @@ function validationOrPresentationOnly(changes,graph) {
     if(graph.some(f=>f.inputs.some(input=>inputMatches(input,path))||f.sources.includes(path)||
       ownsPath(f,path)||(f.externalSources||[]).some(source=>source.path===path)))return false;
     return !path.split('/').some(part=>part==='.'||part==='..')&&
-      (path.startsWith('tests/')||validationPaths.has(path));
+      (path.startsWith('tests/')||path.startsWith('.devcontainer/')||validationPaths.has(path));
   });
 }
 
