@@ -93,6 +93,16 @@
 .viewer-review-geometry-pair path { fill: var(--ui-color-accent, #668abc); stroke: var(--ui-color-text, #222); stroke-width: .8; vector-effect: non-scaling-stroke; fill-rule: evenodd; }
 .viewer-review-geometry-pair path[hidden] { display: none; }
 .viewer-review-correction { border-top: 1px solid var(--ui-border-color, rgba(128,128,128,.25)); margin-top: var(--ui-space-3); padding-top: var(--ui-space-2); }
+
+/* Inspector entry is absent from the ordinary Viewer layout. */
+.viewer-root #reviewPanelBtn[hidden], .viewer-root #mobileReviewBtn[hidden] { display: none !important; }
+.viewer-inspector-header-actions { display: flex; align-items: center; gap: var(--ui-space-2); }
+.viewer-inspector-tabs { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--ui-space-1); margin-top: var(--ui-space-3); }
+.viewer-inspector-tab { min-width: 0; min-height: 2.5rem; padding: var(--ui-space-1); white-space: normal; font-size: .77rem; }
+.viewer-inspector-tab[aria-selected="true"] { outline: 2px solid var(--ui-color-accent, #5987c5); outline-offset: -2px; font-weight: 700; }
+.viewer-inspector-tab:focus-visible { outline: 3px solid var(--ui-color-accent, #5987c5); outline-offset: 1px; }
+.viewer-review-panel [role="tabpanel"] > h3 + .viewer-review-kv { margin: var(--ui-space-2) 0 var(--ui-space-3); }
+
 @media(max-width: 700px) {
   .viewer-root .viewer-review-panel { inset: max(0.5rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right)) max(0.5rem, env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left)); width: auto; max-width: none; }
 }
