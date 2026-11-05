@@ -173,6 +173,21 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     definitions.set(entity.entityId, { identity: identity(feature), currentSnapshot: false, windows,nameSource:entity });
     sourceIdentities.push({ projectEntityId: entity.entityId, sourceEntityIds: [entity.entityId], sourceFeatureIds: [] });
   }
+  // Dated administrative ownership belongs to the compiled baseline. It must
+  // resolve before parent gaps and peer-overlap classification, without
+  // rewriting library source parents, coordinates or source validity.
+  if (policy.parentRelations !== undefined && !Array.isArray(policy.parentRelations)) throw new Error('Invalid dated parent relations');
+  const parentRelations = (policy.parentRelations || []).map(rule => {
+    const entityId = sourceToProject.get(rule.entityId) || rule.entityId;
+    const parentId = sourceToProject.get(rule.parentEntityId) || rule.parentEntityId;
+    if (!definitions.has(entityId) || !definitions.has(parentId) || entityId === parentId
+        || !rule.validFrom || !rule.validTo) throw new Error('Invalid dated parent relation');
+    return {entityId, parentId, ...bounds(rule)};
+  });
+  for (let i = 0; i < parentRelations.length; i++) for (let j = i + 1; j < parentRelations.length; j++) {
+    if (parentRelations[i].entityId === parentRelations[j].entityId && intersection(parentRelations[i], parentRelations[j]))
+      throw new Error('Overlapping dated parent relations: ' + parentRelations[i].entityId);
+  }
   const archive = createGeometryVersionStore(), byGeometry = new Map();
   const adjustments = [];
   const refByObject=new WeakMap();
@@ -188,7 +203,7 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
     if(window.start)events.set(date(window.start),window.start);
     if(window.end){const next=shiftDay(window.end,1);events.set(date(next),next);}
   }
-  for(const rule of policy.replacements){const interval=bounds(rule);
+  for(const rule of [...policy.replacements,...(policy.parentRelations || [])]){const interval=bounds(rule);
     if(interval.start)events.set(date(interval.start),interval.start);
     if(interval.end){const next=shiftDay(interval.end,1);events.set(date(next),next);}
   }
@@ -203,6 +218,10 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
       if (active.length > 1) throw new Error(`Overlapping geometry intervals: ${id}`);
       if (active.length) candidates.push({ ...active[0], entityId: id, currentSnapshot: active[0].currentSnapshot ?? definition.currentSnapshot,
         validFrom: start && date(start), validTo: end && date(end) });
+    }
+    for (const row of candidates) {
+      const relation = parentRelations.find(rule => rule.entityId === row.entityId && covers(rule, start));
+      if (relation) row.parentId = relation.parentId;
     }
     // A parent gap hides descendants transitively; cycles are a source error.
     const all = new Map(candidates.map(row => [row.entityId, row]));

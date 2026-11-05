@@ -70,3 +70,19 @@ change against the pinned original.
 Fixture oracle changes for this revision are limited to the new schema numbers
 and provenance contract. Geometry coordinates, archive identity, temporal
 precision and inclusive bounds are not regenerated from codec output.
+
+## Dated parent relations in the builtin baseline
+
+`historical-world/policy.json` may contain bounded `parentRelations` entries:
+`{entityId, parentEntityId, validFrom, validTo, basis}`. Both IDs are source
+identities; the compiler maps them to builtin IDs and emits the existing
+`timelineRecords.parentRelations` records. The rule is applied before parent
+availability and peer-overlap calculations. Missing endpoints, self-links,
+unbounded intervals, overlapping rules and cycles are rejected.
+
+Use this for an evidenced administrative relationship in a selected baseline
+interval. It does not change the source entity's static parent, lineage,
+coordinates, geometry validity or lifetime. Outside the specified interval the
+original source parent remains effective. Lineage successor relations are not
+administrative parent relations. Partial publication includes dated parent
+endpoints in its dependency graph and compiles only each component's rules.
