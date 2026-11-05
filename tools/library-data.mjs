@@ -1437,24 +1437,47 @@ export function storeNativeLibraryObjects({libraryIndex,previousLibrary,previous
   }
   return entities;
 }
-export function assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex) {
+export function assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage}={}) {
   const base='assets/data/territorial-entities',included=path=>prefixes.some(prefix=>path===prefix||path.startsWith(prefix+'/'));
   if(included(base))return;
   if(!included(base+'/generated/v2/index.json'))throw Error('Scoped territorial storage requires the paired index');
-  const previous=new Map(previousIndex.entities.map(row=>[row.entityId,row]));
-  if(previous.size!==libraryIndex.entities.length||libraryIndex.entities.some(row=>!previous.has(row.entityId)))throw Error('Scoped territorial storage cannot change catalog membership');
-  for(const entry of libraryIndex.entities)if(previous.get(entry.entityId).sha256!==entry.sha256) {
-    if(!included(`${base}/generated/v2/${entry.file}`)||!included(`${base}/source/countries/${entry.entityId.replace(':','-')}.json`))
-      throw Error(`Scoped territorial storage requires source, chunk and index together: ${entry.entityId}`);
+  const previous=new Map(previousIndex.entities.map(row=>[row.entityId,row])),next=new Map(libraryIndex.entities.map(row=>[row.entityId,row]));
+  if(next.size!==libraryIndex.entities.length||[...previous.keys()].some(id=>!next.has(id)))throw Error('Scoped territorial storage cannot remove or duplicate catalog membership');
+  const additions=libraryIndex.entities.filter(row=>!previous.has(row.entityId));
+  for(const entry of libraryIndex.entities)if(previous.get(entry.entityId)?.sha256!==entry.sha256) {
+    if(!included(base+'/generated/v2/'+entry.file)||!included(base+'/source/countries/'+entry.entityId.replace(':','-')+'.json'))
+      throw Error('Scoped territorial storage requires source, chunk and index together: '+entry.entityId);
   }
+  const oldLineages=new Map((previousIndex.lineages||[]).map(row=>[row.lineageId,row])),lineages=new Map((libraryIndex.lineages||[]).map(row=>[row.lineageId,row]));
+  const lineageChanged=JSON.stringify(libraryIndex.lineages||[])!==JSON.stringify(previousIndex.lineages||[]);
+  if(additions.length||lineageChanged){
+    if(lineages.size!==(libraryIndex.lineages||[]).length||[...oldLineages.keys()].some(id=>!lineages.has(id)))throw Error('Scoped registration cannot remove or duplicate a lineage');
+    const members=new Set();
+    for(const lineage of lineages.values()){
+      if(!Array.isArray(lineage.entityRefs)||!lineage.entityRefs.length)throw Error('Scoped registration requires lineage membership');
+      for(const id of lineage.entityRefs){if(members.has(id)||next.get(id)?.lineageId!==lineage.lineageId)throw Error('Invalid scoped lineage membership: '+id);members.add(id);}
+      const old=oldLineages.get(lineage.lineageId);
+      if(old&&(old.entityRefs.some(id=>!lineage.entityRefs.includes(id))||JSON.stringify({...old,entityRefs:[]})!==JSON.stringify({...lineage,entityRefs:[]})))throw Error('Scoped registration must preserve existing lineage metadata and members');
+      if(JSON.stringify(old)!==JSON.stringify(lineage)){
+        if(!included(base+'/source/lineages/'+lineage.lineageId+'.json')||typeof readLineage!=='function'||JSON.stringify(readLineage(lineage.lineageId))!==JSON.stringify(lineage))throw Error('Scoped registration requires the exact paired lineage source: '+lineage.lineageId);
+      }
+    }
+    if(members.size!==next.size)throw Error('Scoped registration has orphan lineage members');
+  }
+  if(JSON.stringify(libraryIndex.snapshots||[])!==JSON.stringify(previousIndex.snapshots||[]))throw Error('Scoped registration cannot change reference snapshots');
   if(JSON.stringify(libraryIndex.views||[])!==JSON.stringify(previousIndex.views||[])&&!included(base+'/source/views/world.json'))throw Error('Scoped territorial storage requires paired world view source');
   for(const prefix of prefixes.filter(path=>path.startsWith(base+'/source/'))) {
     if(prefix===base+'/source/views/world.json'){
       if(!Array.isArray(libraryIndex.views)||libraryIndex.views.length!==1||libraryIndex.views[0].id!=='world:catalog')throw Error('Scoped territorial storage requires a supported world view');
       continue;
     }
-    const entry=libraryIndex.entities.find(row=>prefix===`${base}/source/countries/${row.entityId.replace(':','-')}.json`);
-    if(!entry||!included(`${base}/generated/v2/${entry.file}`))throw Error('Scoped territorial storage requires explicit paired source files');
+    if(prefix.startsWith(base+'/source/lineages/')){
+      const lineage=[...lineages.values()].find(row=>prefix===base+'/source/lineages/'+row.lineageId+'.json');
+      if(!lineage||typeof readLineage!=='function'||JSON.stringify(readLineage(lineage.lineageId))!==JSON.stringify(lineage))throw Error('Scoped registration requires an exact lineage source');
+      continue;
+    }
+    const entry=libraryIndex.entities.find(row=>prefix===base+'/source/countries/'+row.entityId.replace(':','-')+'.json');
+    if(!entry||!included(base+'/generated/v2/'+entry.file))throw Error('Scoped territorial storage requires explicit paired source files');
   }
 }
 // Git extraHeader is multi-valued: reset inherited checkout headers before
@@ -1501,7 +1524,7 @@ function storeOwnedLibraryData({ root, push, prefixes, removePaths, reportData, 
     const runtimeRevision=libraryConfig(root).revision;
     const libraryIndex=JSON.parse(indexBytes),previousLibrary=JSON.parse(git(data.checkout,['show',`${runtimeRevision}:library.json`],{allowFetch:true}));
     const previousIndex=previousLibrary.indexHash?JSON.parse(git(data.checkout,['show',`${runtimeRevision}:objects/${previousLibrary.indexHash}.json`],{allowFetch:true})):{entities:[]};
-    if(prefixes)assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex);
+    if(prefixes)assertTerritorialStorageScope(prefixes,libraryIndex,previousIndex,{readLineage:id=>JSON.parse(readFileSync(resolve(data.materialized,'assets/data/territorial-entities/source/lineages',id+'.json'),'utf8'))});
     nativeStore={indexBytes,libraryIndex,previousLibrary,previousIndex};
   }
   const reviewScopes=['assets/data/territorial-entities','assets/data/builtin-world'];
