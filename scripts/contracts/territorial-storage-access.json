@@ -134,6 +134,17 @@
       "reason": "Private detached candidate normalization shared by storage and activation; no live document writes."
     },
     {
+      "file": "shared/frontend/js/modules/project-state.js",
+      "functions": [
+        "prepareProjectForActivation"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Canonical activation",
+      "reason": "Read immutable, previously validated detached territorial identities for C++ temporal world projection; no live document write."
+    },
+    {
       "file": "shared/frontend/js/modules/project-session.js",
       "functions": [
         "installDocumentProjection"
