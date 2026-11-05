@@ -1,7 +1,0 @@
-{
-  "app": {
-    "security": {
-      "capabilities": ["prototype-review", "verification"]
-    }
-  }
-}

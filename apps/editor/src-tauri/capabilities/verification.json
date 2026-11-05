@@ -1,6 +1,0 @@
-{
-  "identifier": "verification",
-  "description": "Explicit verification builds only: test completion.",
-  "windows": ["main"],
-  "permissions": ["allow-finish-probe"]
-}
