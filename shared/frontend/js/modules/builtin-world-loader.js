@@ -5,14 +5,26 @@ import {builtinCountryAssets,builtinCountryFileSpecs} from './builtin-country-fi
 import {createBuiltinProjectSetup} from './project-setup.js';
 import {PROJECT_SCHEMA_VERSION} from './version-contract.js';
 
-const contains=(rows,month)=>rows.some(row=>temporalContains(row,temporalMonthEnd(month)));
-export function selectBuiltinCountries(index,month){
+// A dated scene has one month-end boundary. Every coverage and binding query
+// uses that same compiled C++ calendar result instead of recalculating it.
+const contains=(rows,date)=>rows.some(row=>temporalContains(row,date));
+function validateBuiltinCatalog(index){
  if(index?.schema!=='pandolab-builtin-world'||index.schemaVersion!==2||!Array.isArray(index.entities))throw new Error('Invalid builtin country catalog');
- if(parseTemporal(month,{nullable:false}).precision!=='month')throw new Error('A query month is required');
- return index.entities.filter(entry=>contains(entry.coverage,month));
+}
+function queryMonthEnd(month){
+ const value=parseTemporal(month,{nullable:false});
+ if(value.precision!=='month')throw new Error('A query month is required');
+ return temporalMonthEnd(value);
+}
+const countriesAt=(index,date)=>index.entities.filter(entry=>contains(entry.coverage,date));
+export function selectBuiltinCountries(index,month){
+ validateBuiltinCatalog(index);
+ return countriesAt(index,queryMonthEnd(month));
 }
 export function assembleBuiltinWorld(index,countries,month){
- const expected=selectBuiltinCountries(index,month),byId=new Map(countries.map(row=>[row.entityId,row]));
+ validateBuiltinCatalog(index);
+ const date=queryMonthEnd(month),expected=countriesAt(index,date);
+ const byId=new Map(countries.map(row=>[row.entityId,row]));
  if(byId.size!==countries.length||expected.length!==countries.length)throw new Error('Incomplete builtin country selection');
  if(index.template?.schemaVersion!==PROJECT_SCHEMA_VERSION
    ||index.template?.format!=='pandolab-project-state'
@@ -27,17 +39,17 @@ export function assembleBuiltinWorld(index,countries,month){
   let identity=structuredClone(country.identity);
   const bindings=country.sourceBindings;
   if(identity.properties.metadata?.historicalTimeline)identity.properties.metadata.historicalTimeline.geometryBindings=bindings;
-  identity.properties.sourceGeometryVersion=bindings.find(row=>temporalContains(row,temporalMonthEnd(month)))?.sourceVersionId||'';
+  identity.properties.sourceGeometryVersion=bindings.find(row=>temporalContains(row,date))?.sourceVersionId||'';
   // This loader materializes a single dated country snapshot. Apply the
   // selected name edition to its initial identity as well as retaining the
   // existing timeline binding, so the editor's static first frame uses the
   // correct historical name before explicit month-edit mode is activated.
   const names=country.timelineRecords.propertyBindings.filter(row=>row.property==='name'
-   && temporalContains(row,temporalMonthEnd(month)));
+   && temporalContains(row,date));
   if(names.length>1)throw new Error('Conflicting dated country names: '+entry.entityId);
   if(names.length)identity=projectTimelineIdentity(identity,{name:names[0].value});
   const flags=country.timelineRecords.propertyBindings.filter(row=>row.property==='flag'
-   && temporalContains(row,temporalMonthEnd(month)));
+   && temporalContains(row,date));
   if(flags.length>1)throw new Error('Conflicting dated country flags: '+entry.entityId);
   if(flags.length) {
    const {policy,embeddedDataUrl}=flags[0].value;
@@ -55,7 +67,7 @@ export function assembleBuiltinWorld(index,countries,month){
   // A loaded scene contains the selected interval only. Other historical
   // intervals may refer to countries intentionally not downloaded this query.
   for(const name of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])
-   project.timelineRecords[name].push(...country.timelineRecords[name].filter(row=>temporalContains(row,temporalMonthEnd(month)))
+   project.timelineRecords[name].push(...country.timelineRecords[name].filter(row=>temporalContains(row,date))
     .map(row=>({...row,validFrom:null,validTo:null})));
   for(const geometry of country.geometries){
    const key=JSON.stringify([geometry.id,geometry.version]),existing=geometries.get(key);

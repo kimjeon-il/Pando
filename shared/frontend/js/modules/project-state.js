@@ -108,8 +108,9 @@ function prepareProjectForValidation(project) {
   return project;
 }
 
-/** Prepare a detached candidate before the current editor/session is touched. */
-export function prepareProjectForStorage(input, { baseEntities = null, baseDataset = null, baseDatasetFingerprint = null } = {}) {
+/** Validate and prepare one detached timeline store for both storage and activation.
+ * Its immutable C++-validated records and geometry allocations need no second restoration. */
+function prepareProjectWithTimelineStorage(input, { baseEntities = null, baseDataset = null, baseDatasetFingerprint = null } = {}) {
   assertCurrentProjectSchema(input, { baseEntities, baseDataset, baseDatasetFingerprint });
   const project = structuredClone(input);
   if (project.format === 'pandolab-autosave-delta') {
@@ -124,13 +125,16 @@ export function prepareProjectForStorage(input, { baseEntities = null, baseDatas
   assertProjectReferenceIntegrity({ ...project, storageOnly: true });
   project.timelineRecords = storage.records;
   project.geometries = storage.geometries.snapshot();
-  return project;
+  return { project, storage };
+}
+
+/** Prepare a detached candidate before the current document/session is touched. */
+export function prepareProjectForStorage(input, options = {}) {
+  return prepareProjectWithTimelineStorage(input, options).project;
 }
 
 export function prepareProjectForActivation(input, options = {}) {
-  const project = prepareProjectForStorage(input, options);
-  const storage = restoreTimelineStorage({ schemaVersion: 1, records: project.timelineRecords,
-    geometries: project.geometries }, timelineObjectCatalog(project));
+  const { project, storage } = prepareProjectWithTimelineStorage(input, options);
   const month = initialTimelineMonth(storage.records, new Date().toISOString().slice(0, 7));
   const views = resolvedTimelineViews(project.territorialEntities, storage.records, storage.geometries, month);
   assertProjectReferenceIntegrity({ ...project, territorialEntities: views, timelineRecords: null });
