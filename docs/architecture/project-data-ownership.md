@@ -70,3 +70,14 @@
 P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 `tests/unit/app-hydro-settings.test.mjs`,
 `tests/unit/core-hydro-copy-history-wasm.test.mjs` 및 기존 Viewer 브라우저의 프로젝트 열기·읽기 전용 검사.
+
+## P5: 단일 웹 Viewer · 통합 검수기 컨트롤러
+
+- 유일한 사용자 제품은 웹 Viewer(모바일 브라우저 포함)다. 검수기는 웹 Viewer와 **동일한** 프로젝트 문서·선택·렌더링 상태를 읽는 **지연 로딩 패널**이며 별도 GIS 문서나 관리자 앱이 아니다. `composeViewer`는 `createViewerInspectorController` 한 개만 소유한다.
+- 일반 URL은 검수 패널 코드를 로딩하지 않는다. `?debug=1`은 버튼과 진단 API를 노출하지만 패널을 자동 생성하지 않는다. `?inspect=1`은 Viewer 시작 후 지도 진단 탭을 열고, `Ctrl+Shift+.`는 일반 URL에서도 검수기를 열고 닫는다. 모바일 버튼은 같은 패널 인스턴스를 사용한다.
+- 컨트롤러가 모듈 import, 버튼·키보드·URL 진입, 패널 열기/닫기, 종료를 통합 관리한다. import 중 연속 단축키나 종료가 발생해도 **이전 비동기 요청이 뒤늦게 패널을 열 수 없다**. 로딩 실패는 보고 후 다음 명시적 사용자 요청에서 재시도한다.
+- 검수 패널 생성에는 `documentSession.readOnly===true`가 필요하다. 원본 JSON의 SHA-256·형상 SHA-256 검증, 크기 제한 및 원본 ID·날짜 비교는 기존 검증기가 그대로 수행한다. 새 컨트롤러는 원본에 쓰거나 지리 자료를 수정하거나 검수 코드를 선제적으로 실행하지 않는다.
+- 지도 객체 선택·초점 이동은 허용하되 **프로젝트 편집 명령, 저장, GitHub 반영, 검수 결과의 자동 승인**은 허용하지 않는다. 진단/수정 요청 JSON은 로컬로만 내보내며 GIS 위상 검증을 실행했다고 주장하지 않는다.
+- 퇴역 Windows 검수기 호환 테스트용 `nativeReview` 진입은 추후 레거시 제거 단계 전까지 기존 회귀검사 용도로만 유지한다. 별도 제품으로 확장하거나 웹에 네이티브 쓰기 권한을 제공하지 않는다.
+
+회귀검사: `tests/unit/viewer-inspector-controller.test.mjs`, `tests/unit/viewer-inspector.test.mjs`, `tests/browser/viewer-inspector.spec.mjs`, `tests/browser/viewer-review-e4.spec.mjs`, `tests/browser/viewer-project-open.spec.mjs`. 기존 브라우저 초기 국가 메시 게시 지연은 별도 미해결 문제로 추적한다.

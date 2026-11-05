@@ -152,7 +152,7 @@ function renderGeometryPair(document,geometries){
 /** Overlay-only UI owner; does not own the map, Core document, or Git write access. */
 export function createViewerReviewPanel({document,window,map,documentSession,isBuiltinMap,meta={},onError=()=>{},
   readDiagnostics=()=>[],readPerformance=()=>null,readMonth=()=>''}={}){
-  if(!document||!window||!map||!documentSession||typeof isBuiltinMap!=='function')
+  if(!document||!window||!map||!documentSession||documentSession.readOnly!==true||typeof isBuiltinMap!=='function')
     throw new TypeError('Review presentation requires the current read-only map and document session.');
   const get=id=>document.getElementById(id);
   const panel=get('reviewPanel'),button=get('reviewPanelBtn'),mobileButton=get('mobileReviewBtn');
