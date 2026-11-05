@@ -27,8 +27,10 @@ test('R4-E5 has no surviving editor runtime or source-level import cycle',()=>{
   for(const ref of row.blocking)assert.ok(!['viewer-runtime','shared-runtime','windows-runtime','gis-or-build-tool'].includes(ref.owner),ref.from);
  }
 });
-test('R4-E5 retains detached canonical GIS, Core and GeoPackage evidence',()=>{
+test('R4-E5 retains current Viewer inspection, canonical GIS, Core and GeoPackage evidence',()=>{
  for(const path of source.invariants)assert.equal(existsSync(new URL('../../'+path,import.meta.url)),true,path);
+ assert.equal(existsSync(new URL('../../apps/editor/src-tauri/src/lib.rs',import.meta.url)),false,
+  'retired Windows reviewer must not be revived as an active invariant');
  const harness=readFileSync(new URL('./helpers/gis-worker-harness.mjs',import.meta.url),'utf8');
  assert.ok(harness.includes('tools/gis/gis-geometry-worker.js'));
  const producer=readFileSync(new URL('../helpers/production-geopackage.mjs',import.meta.url),'utf8');

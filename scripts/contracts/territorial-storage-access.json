@@ -124,15 +124,14 @@
     {
       "file": "shared/frontend/js/modules/project-state.js",
       "functions": [
-        "prepareProjectForStorage",
-        "prepareProjectForActivation"
+        "prepareProjectWithTimelineStorage"
       ],
       "access": [
         "read",
         "write"
       ],
       "owner": "Detached candidate boundary",
-      "reason": "Only writes detached candidates; validates storage separately from static UI activation."
+      "reason": "Private detached candidate normalization shared by storage and activation; no live document writes."
     },
     {
       "file": "shared/frontend/js/modules/project-session.js",

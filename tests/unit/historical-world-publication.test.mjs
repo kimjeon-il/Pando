@@ -16,7 +16,18 @@ test('country publication is deterministic, has no aggregate project and detects
  for(const row of index.entities)assert.equal(first.get(row.file)[9],3);
  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'builtin-country-publication-'));
  t.after(()=>fs.rmSync(folder,{recursive:true,force:true}));
- writeBuiltinWorldPublication(first,folder);writeBuiltinWorldPublication(second,folder,{check:true});
+ // These synthetic dated geometries have no preserved review receipt.
+ // The publication writer must refuse their first admission before any output.
+ assert.throws(()=>writeBuiltinWorldPublication(first,folder),/Historical display review required/);
+ assert.equal(fs.existsSync(path.join(folder,'index.json')),false);
+ // Inspect --check against bytes staged directly in a disposable test folder;
+ // this is not a reviewed publication or a bypass of the production write gate.
+ for(const [filename,bytes] of first){
+  const target=path.join(folder,filename);
+  fs.mkdirSync(path.dirname(target),{recursive:true});
+  fs.writeFileSync(target,bytes);
+ }
+ writeBuiltinWorldPublication(second,folder,{check:true});
  fs.appendFileSync(path.join(folder,'index.json'),'stale');
  assert.throws(()=>writeBuiltinWorldPublication(first,folder,{check:true}),/stale/i);
 });
