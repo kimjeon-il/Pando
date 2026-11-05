@@ -15,7 +15,9 @@ export function remoteOnlyAcceptanceScope(paths,{event='push',baselineKnown=true
     'playwright.codespaces.config.js','scripts/remote-only-doctor.mjs',
     'scripts/remote-only-ci-scope.mjs','tests/browser/codespaces-live.spec.mjs',
     'tests/unit/remote-only-contract.test.mjs',
-    'tests/unit/codespaces-acceptance-contract.test.mjs'
+    'tests/unit/codespaces-acceptance-contract.test.mjs',
+    // These files plan and verify publication but never change WASM/GIS inputs.
+    'scripts/p2-artifact-plan.mjs','tests/unit/p2-artifact-plan.test.mjs'
   ]);
   const runtime=paths.filter(path=>!(path==='README.md'||path.endsWith('.md')
     ||path.startsWith('.devcontainer/')||previewOnly.has(path)));

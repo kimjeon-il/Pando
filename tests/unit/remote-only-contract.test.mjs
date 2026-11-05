@@ -107,5 +107,7 @@ test('on-demand Codespaces changes do not schedule costly WASM/GIS CI rebuilds',
   const result=remoteOnlyAcceptanceScope(changes,{event:'push'});
   assert.equal(result.runHeavy,false);
   assert.equal(remoteOnlyAcceptanceScope([...changes,'shared/core/src/geometry.cpp']).runHeavy,true);
+  assert.equal(remoteOnlyAcceptanceScope([...changes,'scripts/p2-artifact-plan.mjs',
+    'tests/unit/p2-artifact-plan.test.mjs']).runHeavy,false);
   assert.equal(remoteOnlyAcceptanceScope([],{event:'workflow_dispatch'}).runHeavy,true);
 });

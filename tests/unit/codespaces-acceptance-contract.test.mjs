@@ -17,7 +17,7 @@ test('acceptance requires real Codespaces and no test server fallback',()=>{
   assert.ok(shell.indexOf('bash .devcontainer/start-preview.sh') <
     shell.indexOf('playwright install --with-deps chromium'),
     'never install Chromium before proving a live development server');
-  assert.match(shell,/mode="\\\$\\\{1:---smoke\\\}"/);
+  assert.ok(shell.includes('mode="${1:---smoke}"'));
   assert.match(shell,/if \[\[ "\$mode" == "--browser" \]\]/);
   assert.match(shell,/PANDO_CODESPACES_SMOKE_PASS/);
   assert.match(shell,/\/assets\/data\/world\/current.json/);
