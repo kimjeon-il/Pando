@@ -79,11 +79,12 @@ test('P7 built-in hydro fragment lookup keeps exact IDs and logical aliases with
   const cache=new Map();
   for(let i=0;i<1024;i++){
     const feature={id:'fragment:'+i,properties:{pandolab_id:'logical:'+i,category:'river'}};
-    cache.set('logical:'+i,feature);
+    // Use fragment keys to exercise the real fallback, which compares pandolab_id.
+    cache.set('fragment:'+i,feature);
   }
   const settings=createHydroSettings();settings.connect({projectState:{state:{hydroEdits:[],hydroFeatureCache:cache}}});
-  assert.strictEqual(settings.builtInHydroFeatureById('logical:512'),cache.get('logical:512'));
-  assert.strictEqual(settings.builtInHydroFeatureById('fragment:512'),cache.get('logical:512'));
+  assert.strictEqual(settings.builtInHydroFeatureById('fragment:512'),cache.get('fragment:512'));
+  assert.strictEqual(settings.builtInHydroFeatureById('logical:512'),cache.get('fragment:512'));
   assert.equal(settings.builtInHydroFeatureById('nonexistent'),null);
   assert.equal(settings.allBuiltInHydroFeatures().length,1024,'public enumeration still returns a detached array');
 });
