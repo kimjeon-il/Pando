@@ -52,16 +52,11 @@ P2에서도 `정보 / 편집 / 관계` 구조와 기능 위치를 유지한다. 
 
 ## CI 계약
 
-`scripts/check-ui-information-architecture.mjs`가 다음을 검사한다.
+`node scripts/check-ui.mjs information`이 현재 Viewer·Windows 검수기의 정보 구조를 검사한다.
 
-- `추가`의 `만들기 / 라이브러리` 경로 유지
-- `만들기`의 대분류 명칭·순서와 주요 객체 타입
-- Generic Feature 직접 생성 금지
-- 편집 Surface Header는 shell chrome만 소유하고 객체별 정보는 침범하지 않음
-- `header → ObjectContext → tabs → body` 위계 유지
-- ObjectContext의 이름/유형/상태와 지도에서 보기/overflow 계약
-- 표시/숨김과 잠금이 ObjectContext의 객체 메뉴에만 존재하는지
-- 삭제가 최종 danger section에만 존재하는지
-- 객체명 두 줄 표시 계약
+- 검수 패널 버튼과 요청 내보내기가 폼을 제출하지 않는지
+- 검수 자료 다중 파일 선택과 읽기 전용 프로젝트 파일 선택을 유지하는지
+- 검증 전 검수 요약·목록·상세·비교 영역이 숨겨져 있는지
+- 검수 콘텐츠의 표시 순서, 독립 사이드바와 모바일 메뉴 접근성 이름을 유지하는지
 
 UI 정보구조를 바꿀 필요가 생기면 검사 예외를 추가하기보다 이 문서의 제품 구조부터 갱신한 뒤 계약을 함께 수정한다.

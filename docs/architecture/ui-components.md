@@ -26,8 +26,6 @@
 - `assets/css/primitives/controls.css`: Button/Field/Icon의 외형과 상태
 - `assets/css/components/surface.css`: Surface/Header/Tabs/Body/Content
 - `assets/css/components/content.css`: Section/Field/ActionList/PropertyList/ObjectContext 호환 계약
-- `assets/css/components/command-row.css`: 작업 행의 아이콘·제목·설명·chevron 배열
-- `assets/css/components/editor-shell.css`: 편집 컨텍스트·toolbar·작업 HUD의 조합
 - `assets/css/components/selection-toolbar.css`: 단일 선택 객체의 상단 기본 정보 toolbar
 - `assets/css/components/topbar.css`: 상단 문서 명령의 배치·반응형 표현과 파일 메뉴 위치
 - `assets/css/components/panels.css`: 지도·추가·Library/GIS 패널 표현

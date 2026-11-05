@@ -3,8 +3,7 @@ import {frontendTemplates,frontendFragmentRoot} from './frontend-layout.mjs';
 export function renderProductHtml(readSource) {
   return Object.fromEntries(['web'].map(mode => {
     const template=readSource(frontendTemplates[mode]).replaceAll('\r\n','\n');
-    const omitted=new Set(['preferences-statusbar']);
-    const expand=source=>source.replace(/<!-- include:([a-z-]+) -->/g,(_match,name)=>omitted.has(name)?'':expand(readSource(`${frontendFragmentRoot}/${name}.html`).replaceAll('\r\n','\n').trim()));
+    const expand=source=>source.replace(/<!-- include:([a-z-]+) -->/g,(_match,name)=>expand(readSource(`${frontendFragmentRoot}/${name}.html`).replaceAll('\r\n','\n').trim()));
     // Resolve the shared brand at build time, before asset closure and revisioning.
     const html=expand(template.replace(/<link rel="icon" href="data:,"\s*\/?>/g,'<!-- include:brand-icons -->'));
     if (/<!-- include:/.test(html)) throw new Error('Unresolved UI fragment');

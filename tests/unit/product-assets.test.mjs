@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { collectViewerAssets, isEditorOnlyAsset } from '../../scripts/lib/product-assets.mjs';
 import {buildFrontendSnapshot} from '../../scripts/lib/frontend-build.mjs';
+import {effectiveTerritorialFlagUrl} from '../../shared/frontend/js/modules/country-flags.js';
 
 test('version checks and staging share the distinction between common viewing and editor assets',()=>{
   for(const name of ['app-accent','app-map-settings'])assert.equal(isEditorOnlyAsset(`assets/js/modules/${name}.js`),false);
@@ -50,6 +51,15 @@ test('viewer publication excludes offline reference OCR and AI runtime assets', 
   assert.equal(paths.has('assets/vendor/common.js'), true);
   assert.equal(paths.has('assets/vendor/reference-analysis/tesseract.mjs'), false);
   assert.equal(paths.has('assets/vendor/reference-analysis/core/tesseract-core.wasm'), false);
+});
+
+test('custom project flag URLs retain access to bundled 4:3 icons', async () => {
+  const f = fixture();
+  const custom = 'assets/vendor/flag-icons/7.5.0/flags/4x3/kr.svg';
+  f.put(custom, '<svg/>');
+  const flag = effectiveTerritorialFlagUrl({properties:{metadata:{flagDataUrl:custom}}});
+  assert.equal(flag, custom);
+  assert.ok((await f.collect()).has(flag));
 });
 
 test('viewer data closure follows current manifest references and excludes source, old versions and orphan assets',async()=>{
