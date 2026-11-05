@@ -1190,7 +1190,9 @@
     {
       "tests": [
         "tests/unit/prepared-polygon-mesh.test.mjs",
-        "tests/browser/physical-land-time.spec.mjs"
+        "tests/browser/physical-land-time.spec.mjs",
+        "tests/unit/prepared-country-scope.test.mjs",
+        "tests/unit/prepared-physical-scope.test.mjs"
       ],
       "inputs": [
         "assets/data/physical-land/**",
