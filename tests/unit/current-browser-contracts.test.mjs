@@ -60,14 +60,22 @@ test('application CI calls the shared selector and runner; automatic test lists 
   for (const name of MANUAL_SCOPES.filter(scope => scope !== 'default' && !scope.startsWith('boundary-'))) assert.ok(catalog.manualScopes[name]);
 });
 
-test('P1/P3 retain native and artifact owners while Web checks share the same runner', () => {
+test('P1/P3 preserve source-selected app contracts while P3 shards all selected browser cases', () => {
   for (const name of ['remote-development-p1', 'remote-preview-p3']) {
     const document = parseYaml(readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8'));
     assert.equal(document.on.push.paths, undefined);
     assert.equal(document.jobs.plan.steps.find(step => step.uses?.startsWith('actions/checkout@')).with['fetch-depth'], 0);
     const job = document.jobs[name.includes('p1') ? 'web-smoke' : 'web-contracts'];
-    assert.ok(job.steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --output')));
+    assert.ok(job.steps.some(step => step.run?.startsWith('node scripts/run-application-checks.mjs --output')
+      ||step.run?.startsWith('node scripts/run-application-checks.mjs --phase non-browser --output')));
     assert.equal(job.steps.some(step => /node --test|playwright test/.test(step.run || '')), false);
+    if(name==='remote-preview-p3'){
+      const shards=document.jobs['web-contracts-browser'];
+      assert.ok(shards);
+      assert.deepEqual(shards.strategy.matrix.include.map(row=>row.shard),['1/4','2/4','3/4','4/4']);
+      assert.ok(shards.steps.some(step=>step.run?.includes('--phase browser --shard')));
+      assert.equal(shards.steps.some(step=>/node --test|pnpm exec playwright test/.test(step.run||'')),false);
+    }
   }
 });
 
