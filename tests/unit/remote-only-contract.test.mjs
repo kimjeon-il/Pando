@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
@@ -66,6 +66,14 @@ test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',(
     assert.doesNotMatch(body,/^\s*(?:run:\s*)?node apps\/editor\/packaged-artifacts\.mjs --ci-build/m);
   }
   assert.equal(Object.hasOwn(scripts,'dev:windows'),false);
+  assert.equal(Object.hasOwn(scripts,'dev:editor'),false);
+  assert.equal(Object.hasOwn(shell.scripts,'dev:server'),false);
+  const server = read('scripts/frontend-dev-server.mjs');
+  assert.doesNotMatch(server,/src-tauri|product==='editor'|--product=viewer\|editor/);
+  for (const file of ['apps/editor/src-tauri/tauri.conf.json',
+    'apps/editor/src-tauri/icons/icon.ico','apps/editor/src-tauri/icons/icon.png',
+    'apps/editor/tests/preflight.mjs'])
+    assert.equal(existsSync(resolve(root,file)),false,'Retired native shell file: '+file);
   assert.equal(Object.hasOwn(scripts,'build:windows'),false);
   assert.equal(Object.hasOwn(shell.devDependencies||{},'@tauri-apps/cli'),false);
   for(const name of ['build:windows','test:native','dev:windows','build:verification:windows'])

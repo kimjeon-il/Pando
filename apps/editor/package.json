@@ -7,7 +7,6 @@
   "scripts": {
     "stage": "node stage.mjs",
     "stage:map-data": "node stage.mjs --profile=map-data",
-    "dev:server": "node ../../scripts/frontend-dev-server.mjs --product=editor",
     "stage:verification": "node stage.mjs --verification"
   }
 }
