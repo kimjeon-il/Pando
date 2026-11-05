@@ -130,8 +130,8 @@ if (process.argv.includes('--baseline-json')) {
     'shared/wasm/', 'tools/', 'scripts/', 'tests/', '.github/workflows/'];
   const areas = new Map();
   let trackedFiles = 0, trackedBytes = 0;
-  for (const item of raw.split('\\0').filter(Boolean)) {
-    const match = /^[0-7]{6} blob [0-9a-f]{40} +([0-9]+)\\t(.+)$/u.exec(item);
+  for (const item of raw.split('\0').filter(Boolean)) {
+    const match = /^[0-7]{6} blob [0-9a-f]{40} +([0-9]+)\t(.+)$/u.exec(item);
     if (!match) throw new Error('Unsupported tracked tree entry');
     const bytes = Number(match[1]), path = match[2];
     const area = prefixes.find(prefix => path.startsWith(prefix))?.slice(0, -1) || 'other';
