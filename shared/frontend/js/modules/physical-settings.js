@@ -92,10 +92,13 @@ export function createHydroSettings() {
   }
 
   function builtInHydroFeatureById(id) {
-    const key = String(id);
-    if (dependencies.projectState.state.hydroFeatureCache instanceof Map && dependencies.projectState.state.hydroFeatureCache.has(key)) return dependencies.projectState.state.hydroFeatureCache.get(key);
-    for (const feature of allBuiltInHydroFeatures()) {
-      if (String(feature.properties?.pandolab_id || feature.id || '') === key) return feature;
+    const key=String(id),cache=dependencies.projectState.state.hydroFeatureCache;
+    if(!(cache instanceof Map))return null;
+    if(cache.has(key))return cache.get(key);
+    // Scan directly without allocating an array of every loaded river/lake
+    // just to resolve a fragment-id alias on a cache miss.
+    for(const feature of cache.values()){
+      if(String(feature.properties?.pandolab_id || feature.id || '')===key)return feature;
     }
     return null;
   }

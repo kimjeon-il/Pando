@@ -32,3 +32,8 @@
 - `physical-settings.js`의 선형 `hydroEditById` 검색과 `isHydroEditFeature`의 배열 `includes` 검사는 이미 존재하던 `projectHydroResources()`의 작성 객체 ID 색인으로 통합한다. C++ 불변 목록의 갱신·이전 원본 복원 시 기존 캐시 무효화 규칙을 유지한다.
 - `tests/unit/p7-hydro-lookup-cache.test.mjs`에서 원본 마스크의 반복 계산 생략, 프로젝트/날짜 목록 교체, 명시적 표시 설정 유지, 작성 객체 조회와 식별자 분리를 집중 검증한다.
 - 계측 전 성능 향상 수치는 주장하지 않는다. 기존 CI/브라우저 검증 게이트는 그대로 남는다.
+
+## P7 메모리 할당 감소 — 기본 수계 별칭 조회
+
+- `builtInHydroFeatureById`의 캐시 미스 경로는 매번 `[...hydroFeatureCache.values()]`로 전체 하천·호수 배열을 생성한 뒤 순회했다. 내부 조회를 `Map.values()` 반복으로 바꿔 동일한 첫 매치 규칙·반환값을 유지하고 임시 배열 할당을 제거했다.
+- 공개 `allBuiltInHydroFeatures()`의 배열 반환 계약은 그대로 두었다. 집중 테스트는 1,024개 합성 수계의 직접 ID, 원본 fragment ID 별칭, 미존재 조회와 전체 열거 계약을 확인한다.

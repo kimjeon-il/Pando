@@ -74,3 +74,16 @@ test('P7 hydro edit and visible-source lookups use the same immutable authored i
   assert.equal(physical.hydroEditById('authored:B')?.id,'authored:B');
   assert.equal(probe.accessCount,2,'a different authored list triggers a rebuild');
 });
+
+test('P7 built-in hydro fragment lookup keeps exact IDs and logical aliases without a transient array',()=>{
+  const cache=new Map();
+  for(let i=0;i<1024;i++){
+    const feature={id:'fragment:'+i,properties:{pandolab_id:'logical:'+i,category:'river'}};
+    cache.set('logical:'+i,feature);
+  }
+  const settings=createHydroSettings();settings.connect({projectState:{state:{hydroEdits:[],hydroFeatureCache:cache}}});
+  assert.strictEqual(settings.builtInHydroFeatureById('logical:512'),cache.get('logical:512'));
+  assert.strictEqual(settings.builtInHydroFeatureById('fragment:512'),cache.get('logical:512'));
+  assert.equal(settings.builtInHydroFeatureById('nonexistent'),null);
+  assert.equal(settings.allBuiltInHydroFeatures().length,1024,'public enumeration still returns a detached array');
+});
