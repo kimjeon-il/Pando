@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {collectViewerInspection} from '../../apps/viewer/js/modules/viewer-inspector-state.js';
+import {readFileSync} from 'node:fs';
 
 test('viewer diagnostics are bounded and preserve actual renderer pending states',()=>{
   const evidence=collectViewerInspection({
@@ -10,7 +11,7 @@ test('viewer diagnostics are bounded and preserve actual renderer pending states
       requestedRevision:9,displayedRevision:8,
       committedGeometryRevision:6,displayedGeometryRevision:5,
       projectRenderBlocked:false},
-    documentSnapshot:{documentId:'pando-fixture',territorialEntities:[{},{}]},
+    documentSnapshot:{documentId:'pando-fixture',territorialEntities:[{},{}]},territorialCount:2,
     meta:{dataRevision:'a'.repeat(40)},month:'2026-10',readOnly:true,
     capturedAt:'2026-11-05T00:00:00Z'
   });
@@ -20,6 +21,7 @@ test('viewer diagnostics are bounded and preserve actual renderer pending states
   assert.equal(evidence.map.frameAcknowledged,false);
   assert.equal(evidence.map.countryCount,253);
   assert.equal(evidence.data.documentEntities,2);
+  assert.doesNotMatch(readFileSync(new URL('../../apps/viewer/js/modules/viewer-inspector-state.js',import.meta.url),'utf8'),/\.territorialEntities/);
   assert.equal(evidence.data.readOnly,true);
   assert.match(evidence.data.topologyValidation,/미실행/);
   assert.equal(evidence.performance.available,false);

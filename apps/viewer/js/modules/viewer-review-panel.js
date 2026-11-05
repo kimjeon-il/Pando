@@ -182,6 +182,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
       rendererStats:map.renderer.getStats(),
       documentSnapshot:documentSession.documentModel.snapshot(),
       month:readMonth(),meta,readOnly:documentSession.readOnly,
+      territorialCount:map.objectQuery.visibleTerritorialCount(),
       evidenceLoaded:!!current,performanceReport:readPerformance(),
       diagnosticEvents:readDiagnostics()
     });
@@ -201,7 +202,7 @@ export function createViewerReviewPanel({document,window,map,documentSession,isB
       ]);
       metrics('reviewDataMetrics',[
         ['지도 시점',result.data.month],['자료 리비전',result.data.sourceRevision],
-        ['국가·영토 객체 수',result.data.documentEntities],['프로젝트 ID',result.data.projectId],
+        ['현재 표시 국가·영토 수',result.data.documentEntities],['프로젝트 ID',result.data.projectId],
         ['읽기 전용',result.data.readOnly],['변경 검수 증거',result.data.reviewEvidence],
         ['GIS 위상 검증',result.data.topologyValidation]
       ]);

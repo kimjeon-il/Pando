@@ -2,7 +2,7 @@
 const brief=(v,max=180)=>String(v??'').slice(0,max);
 const number=v=>Number.isSafeInteger(v)&&v>=0?v:null;
 export function collectViewerInspection({rendererStats={},documentSnapshot={},month='',meta={},
-  readOnly=true,evidenceLoaded=false,performanceReport=null,diagnosticEvents=[],
+  readOnly=true,territorialCount=null,evidenceLoaded=false,performanceReport=null,diagnosticEvents=[],
   capturedAt=new Date().toISOString()}={}){
   const gpu=rendererStats||{},doc=documentSnapshot||{};
   const report=performanceReport&&typeof performanceReport==='object'?performanceReport:null;
@@ -26,7 +26,7 @@ export function collectViewerInspection({rendererStats={},documentSnapshot={},mo
     data:{month:brief(month||'미확인',40),
       sourceRevision:brief(meta.dataRevision||meta.assetRevision||'빌드 정보 없음',80),
       projectId:brief(doc.documentId||'미확인',120),
-      documentEntities:Array.isArray(doc.territorialEntities)?doc.territorialEntities.length:null,
+      documentEntities:number(territorialCount),
       readOnly:readOnly===true,
       reviewEvidence:evidenceLoaded?'선택된 검수 증거 있음':'변경 검수 증거 미제공',
       topologyValidation:'미실행 · 원격 검사 결과 별도 확인'},
