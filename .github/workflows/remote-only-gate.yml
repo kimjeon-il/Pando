@@ -222,9 +222,14 @@ jobs:
           for(const file of ['.github/workflows/remote-only-gate.yml',
             '.github/workflows/remote-development-p1.yml']) {
             const source=readFileSync(file,'utf8');
-            for(const old of ['windows-real-webview2:','windows-2022',
-              'dtolnay/rust-toolchain@','apps/editor/packaged-artifacts.mjs --ci-build'])
-              assert.equal(source.includes(old),false,file+' retains '+old);
+            // Audit executable YAML fields rather than references in this
+            // same regression job's read-only assertion source.
+            for(const [pattern,reason] of [
+              [/^  (?:windows-real-webview2|native-artifact):\s*$/m,'Windows job'],
+              [/^\s*runs-on:\s*windows-2022\s*$/m,'Windows runner'],
+              [/^\s*- uses:\s*dtolnay\/rust-toolchain@/m,'Rust toolchain'],
+              [/^\s*(?:run:\s*)?node apps\/editor\/packaged-artifacts\.mjs --ci-build/m,'Native producer'],
+            ])assert.doesNotMatch(source,pattern,file+' contains '+reason);
           }
           const pkg=JSON.parse(readFileSync('apps/editor/package.json','utf8'));
           assert.equal(Object.hasOwn(pkg.devDependencies||{},'@tauri-apps/cli'),false);
