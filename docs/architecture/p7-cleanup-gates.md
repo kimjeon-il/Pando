@@ -53,3 +53,18 @@
 - 권장 영향 범위 검증: `node --test tests/unit/p7-viewer-presentation.test.mjs tests/unit/p7-hydro-lookup-cache.test.mjs tests/unit/p6-project-persistence.test.mjs tests/unit/app-hydro-settings.test.mjs tests/unit/project-resource-overlay.test.mjs tests/unit/viewer-initial-composition.test.mjs`; 변경 파일 ESLint, Viewer 프로젝트 열기/맵 준비/Inspector에 대한 선택적 브라우저 회귀. WASM 도구 또는 원본 데이터가 없는 환경에서 전체 검사를 강행하거나 CI 준비를 위해 SDK를 설치하지 않는다.
 
 **차단 게이트:** 최신 작업 커밋에는 `[skip ci]`가 지정되어 GitHub Actions 검사 결과가 없다. 최종 P7 완료 판정은 미실시된 선택적 Node/브라우저/C++ 검사와 동일 환경 성능 비교 결과를 확보한 뒤 수행해야 한다.
+
+## P7 Windows 소스 제거 승인 적용 — 2026-11-06
+
+사용자의 명시적 삭제 지시에 따라 `apps/editor/**` 잔여 Windows 스테이징/아이콘/시험파일,
+`design/brand/windows*.svg`, Windows 전용 테스트와 R4 편집기 소스 전용 CI 워크플로를
+삭제했다. 이 자료는 Git 이력에 남는다. **기존 사용자의 설치본·프로필·캐시와 원본 지도는 삭제하지 않았다.**
+개발 서버는 Viewer만 허용하고, 기본 패키지 관리자 준비는 루트 한 번만 수행한다.
+Viewer의 검수기 활성화는 `?inspect=1`·`?debug=1`·단축키 경로만 유지한다.
+기존 스테이지 캐시 정리 함수는 사용자 로컬의 현재 상태를 검증하고 보호하기 위해
+별도 마이그레이션 승인 전 유지한다.
+
+새 `tests/unit/p7-retirement-closure.test.mjs`는 실제 원본·테스트/CI 잔여 파일의 부재와
+읽기 전용 Viewer/Inspector 계약을 검사한다. 기존 CI에서 실패한 4개 브라우저 그룹에는
+실패 시 정본 C++ 시점·GPU 준비 상태·LOD·진단 코드를 출력하는 관측 코드를 추가했다.
+이 관측은 테스트의 통과 기준을 완화하지 않는다. CI 최신 SHA 확인 전 통합 통과를 주장하지 않는다.

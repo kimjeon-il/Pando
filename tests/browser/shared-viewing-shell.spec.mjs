@@ -30,3 +30,25 @@ test('web uses the canonical compact workspace breakpoint',async({page})=>{
   await page.setViewportSize({width:1300,height:800}); await page.goto('/?debug=1');
   await expect(page.locator('#viewer')).toHaveAttribute('data-layout','compact');
 });
+
+
+// Failures print the accepted C++ document and renderer state. Do not replace
+// real readiness, date, GPU or terrain assertions with this diagnostic.
+test.afterEach(async({page},info)=>{
+  if(info.status===info.expectedStatus)return;
+  const state=await page.evaluate(()=>{
+    const api=window.__PANDOLAB_VIEWER__,stats=api?.rendererStats?.()||{};
+    const fields=['renderer','mapReadiness','projectGeneration','countriesPublishedGeneration',
+      'canonicalMeshReady','projectRenderBlocked','surfacePresentation','terrainReady',
+      'terrainTargetLevel','terrainRenderedLevel','terrainTargetTilesLoaded','terrainTargetTileCount',
+      'terrainTilesLoading','terrainPendingDecodedBytes','screenScale','hydroPendingUploadCount',
+      'webglContextLost','temporalPresentationPending','requestedRevision','displayedRevision',
+      'firstBackgroundFrameMs','firstCountryPublishedMs','lastMeshPreparation'];
+    return {documentState:api?.documentState?.()||null,
+      builtinMonth:api?.builtinMonth?.()||null,
+      map:Object.fromEntries(fields.map(k=>[k,stats[k]??null])),
+      diagnostics:api?.diagnostics?.().slice(-12)||[],
+      status:document.getElementById('viewerStatus')?.dataset.ready};
+  }).catch(error=>({unavailable:String(error)}));
+  console.error('P7_FAILED_MAP_STATE '+JSON.stringify({test:info.title,state}).slice(0,14000));
+});

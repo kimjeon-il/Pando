@@ -1,5 +1,4 @@
-// R1: only the shipped Viewer and Windows read-only reviewer are runtime contracts.
-// The retired graphical-editor source tree is not a required application domain.
+// P7: the Web Viewer is the only shipped runtime; retired editor/Windows files are absent.
 import {readFileSync,existsSync} from 'node:fs';
 import {posix,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -128,10 +127,13 @@ for(const [asset,body] of sources)
     &&/createMapRenderCoordinator\(\{/.test(body))
     fail('Duplicate render coordinator: '+asset);
 
-// Windows native shell was retired. All active Viewer code remains read-only.
-for(const path of ['apps/editor/src-tauri/Cargo.toml','apps/editor/src-tauri/src/main.rs',
-  'apps/editor/native-producer.mjs','apps/editor/packaged-artifacts.mjs'])
-  if(existsSync(resolve(root,path)))fail('Windows native producer returned: '+path);
+// The retired shell and its staging graph are physically absent, not just unshipped.
+if(existsSync(resolve(root,'apps/editor')))
+  fail('Retired editor application root returned');
+for(const asset of ['assets/js/viewer.js','assets/js/modules/viewer-composition.js',
+  'assets/js/modules/viewer-inspector-controller.js'])
+  if(/PANDOLAB_NATIVE_REVIEW|PANDOLAB_SHELL_VERIFICATION|nativeReview/.test(source(asset)))
+    fail('Retired Windows review mode reentered Viewer: '+asset);
 // Optional static baseline for the checked-out commit. No browser timings are inferred.
 if (process.argv.includes('--baseline-json')) {
   const {execFileSync} = await import('node:child_process');
