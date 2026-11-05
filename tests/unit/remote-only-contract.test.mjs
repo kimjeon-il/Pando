@@ -49,10 +49,14 @@ test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',(
   const p1=read('.github/workflows/remote-development-p1.yml');
   const scripts=JSON.parse(read('package.json')).scripts;
   const shell=JSON.parse(read('apps/editor/package.json'));
-  for(const body of [gate,p1])for(const forbidden of [
-    'windows-real-webview2:', 'windows-2022', 'dtolnay/rust-toolchain@',
-    'native-artifact:', 'apps/editor/packaged-artifacts.mjs --ci-build'])
-    assert.equal(body.includes(forbidden),false,forbidden);
+  // Match executable workflow fields only. The post-retirement verifier
+  // deliberately *mentions* rejected job names in its own assertions.
+  for(const body of [gate,p1]) {
+    assert.doesNotMatch(body,/^  (?:windows-real-webview2|native-artifact):\s*$/m);
+    assert.doesNotMatch(body,/^\s*runs-on:\s*windows-2022\s*$/m);
+    assert.doesNotMatch(body,/^\s*- uses:\s*dtolnay\/rust-toolchain@/m);
+    assert.doesNotMatch(body,/^\s*(?:run:\s*)?node apps\/editor\/packaged-artifacts\.mjs --ci-build/m);
+  }
   assert.equal(Object.hasOwn(scripts,'dev:windows'),false);
   assert.equal(Object.hasOwn(scripts,'build:windows'),false);
   assert.equal(Object.hasOwn(shell.devDependencies||{},'@tauri-apps/cli'),false);
