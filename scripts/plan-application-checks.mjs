@@ -252,8 +252,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   }
   const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
   const parents = new Map(), visited = new Set();
-  const liveShellSources = new Set([
-    'apps/editor/stage.mjs',            'apps/editor/world-data-plan.mjs',    'apps/editor/fixture-limits.js',  ]);
+  const liveShellSources = new Set([  ]);
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';
