@@ -37,3 +37,19 @@
 
 - `builtInHydroFeatureById`의 캐시 미스 경로는 매번 `[...hydroFeatureCache.values()]`로 전체 하천·호수 배열을 생성한 뒤 순회했다. 내부 조회를 `Map.values()` 반복으로 바꿔 동일한 첫 매치 규칙·반환값을 유지하고 임시 배열 할당을 제거했다.
 - 공개 `allBuiltInHydroFeatures()`의 배열 반환 계약은 그대로 두었다. 집중 테스트는 1,024개 합성 수계의 직접 ID, 원본 fragment ID 별칭, 미존재 조회와 전체 열거 계약을 확인한다.
+
+## 미삭제 항목의 실제 소비자 조사
+
+- `apps/editor/src-tauri/icons/icon.ico`와 `icon.png`는 `tests/unit/brand-platforms.test.mjs`의 실제 Windows 아이콘 픽셀/투명도 검사에서 읽고 있다. Windows 네이티브 제품이 퇴역했다는 이유만으로 원본을 삭제하지 않는다.
+- `apps/editor/stage.mjs` 및 `check-stage.mjs`는 여전히 Web Viewer 스테이징·레거시 asset 제외 확인에 사용된다. 실제 실행 소비자가 있으므로 유지한다.
+- `tests/native/temporal-parity-p5-7.test.mjs` 등은 이름이 native라도 C++/WASM 정합성 증거가 있으므로 Windows 앱 코드로 오분류하여 제거하지 않는다.
+- `apps/editor/AGENTS.md`와 README에는 예전 Windows 검수기 운영 정책과 퇴역 이후 설명이 공존한다. 현 브랜치에는 Cargo 빌드 입력이 없지만, 이 사실만으로 기존 플랫폼 파일을 일괄 제거하거나 기록을 다시 쓰지 않는다.
+
+## 최신 검증 장부
+
+- `tests/unit/p7-viewer-presentation.test.mjs`, `tests/unit/p7-hydro-lookup-cache.test.mjs`는 `scripts/contracts/application-checks.json`의 활성 `units` 그룹 범위에 포함된다. 신규 테스트 파일을 등록되지 않은 상태로 남기지 않는다.
+- 수정된 P7 실제 함수에 대해 독립 실행한 합성 검증: 프로젝트 수계 캐시·원본 대체 마스크 **11개 검사 통과**, 하천 1,024개 직접/논리 ID 조회 **4가지 검증 통과**. 첫 작성 테스트에서 캐시 키 가정을 잘못 적용한 것은 `499a0b34`에서 바로잡고 재검증했다. 전용 Node 전체 테스트 실행, 프로덕션 WASM, 실제 브라우저 수용을 대체하지 않는다.
+- P5 이전 Application checks(`42046742980`)의 Unit 실패에는 새 점검기 팩터리 주입이 누락된 구성 테스트 11개가 있었다(P6에서 코드 보정, 최신 재실행 미확인). Browser 실패는 초기 국가 게시 세대 미일치(`map-startup-publication`), WebGL 날짜 전환 정체(`resource-dependency-reuse`), 외부 GPKG 열기 후 viewer readiness 정체(`shared-viewing-shell`), 지형 인터랙션/LOD 타임아웃이었다. 테스트 대기시간만 늘려 통과로 위장하지 않는다.
+- 권장 영향 범위 검증: `node --test tests/unit/p7-viewer-presentation.test.mjs tests/unit/p7-hydro-lookup-cache.test.mjs tests/unit/p6-project-persistence.test.mjs tests/unit/app-hydro-settings.test.mjs tests/unit/project-resource-overlay.test.mjs tests/unit/viewer-initial-composition.test.mjs`; 변경 파일 ESLint, Viewer 프로젝트 열기/맵 준비/Inspector에 대한 선택적 브라우저 회귀. WASM 도구 또는 원본 데이터가 없는 환경에서 전체 검사를 강행하거나 CI 준비를 위해 SDK를 설치하지 않는다.
+
+**차단 게이트:** 최신 작업 커밋에는 `[skip ci]`가 지정되어 GitHub Actions 검사 결과가 없다. 최종 P7 완료 판정은 미실시된 선택적 Node/브라우저/C++ 검사와 동일 환경 성능 비교 결과를 확보한 뒤 수행해야 한다.
