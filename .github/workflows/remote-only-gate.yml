@@ -176,3 +176,77 @@ jobs:
           path: test-results/
           if-no-files-found: warn
           retention-days: 14
+
+  # Actual browser-only replacement acceptance after Tauri/Rust retirement.
+  # GIS and shared C++/WASM compilation remain separate and source-pinned.
+  post-windows-web-regression:
+    needs: scope
+    if: needs.scope.outputs.run_heavy == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/library-data
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Install locked Web-only test dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify P2 branch publication, retired Windows code, UI and source ownership
+        run: >-
+          node --test
+          tests/unit/library-data.test.mjs
+          tests/unit/p2-artifact-plan.test.mjs
+          tests/unit/remote-only-contract.test.mjs
+          tests/unit/e5-windows-review.test.mjs
+          tests/unit/viewer-inspector.test.mjs
+          tests/unit/reviewer-ui-contracts.test.mjs
+      - name: Verify no Windows-only compilation or packaging entrypoint remains
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {existsSync,readFileSync} from 'node:fs';
+          for(const name of [
+            'apps/editor/src-tauri/Cargo.toml',
+            'apps/editor/src-tauri/src/lib.rs',
+            'apps/editor/native-producer.mjs',
+            'apps/editor/packaged-artifacts.mjs',
+            'scripts/remote-only-windows-cache.mjs',
+            '.github/workflows/e5-windows-review-acceptance.yml',
+            '.github/workflows/e6-retirement-acceptance.yml',
+            '.github/workflows/e7-final-readonly-regression.yml',
+          ])assert.equal(existsSync(name),false,'Retired Windows build path returned: '+name);
+          for(const file of ['.github/workflows/remote-only-gate.yml',
+            '.github/workflows/remote-development-p1.yml']) {
+            const source=readFileSync(file,'utf8');
+            for(const old of ['windows-real-webview2:','windows-2022',
+              'dtolnay/rust-toolchain@','apps/editor/packaged-artifacts.mjs --ci-build'])
+              assert.equal(source.includes(old),false,file+' retains '+old);
+          }
+          const pkg=JSON.parse(readFileSync('apps/editor/package.json','utf8'));
+          assert.equal(Object.hasOwn(pkg.devDependencies||{},'@tauri-apps/cli'),false);
+          NODE
+      - name: Install Chromium only for real Web browser acceptance
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify hidden inspector, change review, desktop/mobile Viewer and controls
+        env:
+          PANDO_P3_BRANCH: work/remote-only
+        run: >-
+          pnpm exec playwright test
+          tests/browser/viewer-inspector.spec.mjs
+          tests/browser/viewer-review-e4.spec.mjs
+          tests/browser/web-viewer.spec.mjs
+          tests/browser/viewer-layout.spec.mjs
+          tests/browser/button-consistency.spec.mjs
+          --workers=1 --retries=0 --reporter=list
+      - name: Archive post-retirement Web test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-only-post-windows-web-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14

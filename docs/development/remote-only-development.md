@@ -325,3 +325,23 @@ bare-Git regression fixture verifies creation from the exact source pin,
 an unrelated `main` branch staying untouched, and non-force rejection of
 a concurrent target update. The storage writer still verifies the remote
 SHA and advances the application pin only after the remote push succeeds.
+
+
+## Post-Windows web regression after repository replacement
+
+The `post-windows-web-regression` Linux Actions job tests the complete
+source-only Web inspection integration: bounded diagnostics, hidden
+activation, E3 change comparison, map and mobile interaction, and local
+correction/evidence exports. Its P2 library storage fixture verifies
+that creating a previously nonexistent `work/remote-only` branch uses
+`HEAD:refs/heads/work/remote-only`, while a concurrent update refuses a
+non-fast-forward push. The job rejects retired Cargo/Rust, native
+Windows producer, and Windows-only CI paths without installing any Windows
+SDK. The separate `wasm-compile-and-smoke` and
+`viewer-map-integration` jobs remain responsible for actual shared
+C++/WASM/GIS/map rendering, not mock results.
+
+This branch is not deployed to GitHub Pages and `main` is not changed
+by the acceptance. No independent Map Toolkit training or model artifacts
+are installed for the review. The actual P2 publication must report a
+successful source-pinned library branch push before it is accepted.
