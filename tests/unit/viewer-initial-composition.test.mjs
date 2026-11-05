@@ -45,6 +45,8 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
     prepareBuiltinProject: async () => ({}), refreshAppearance: noop};
   const context = {presentViewerLoadStatus, document, window, URL, URLSearchParams, structuredClone, console,
     createViewerPostPresentation,
+    // Startup tests isolate the map; inspector lifecycle behavior has its own focused tests.
+    createViewerInspectorController: () => ({syncMapSelection: noop, openAfterStartup: async () => false, dispose: noop}),
     createViewerAdjacentPrefetch: () => ({afterPresented: noop,interrupt: noop,dispose: noop}),
     CustomEvent: class {constructor(type) { this.type = type; }}, createViewerInitialPresentation,
     createPlatformPorts: () => ({}), createRuntimeContext: ({meta}) => ({meta, platform: {}}),

@@ -8,6 +8,10 @@ export function createBrowserProjectStorage({
 }) {
   if(productMode!=='viewer')throw new TypeError('Project storage requires viewer product mode.');
   let databasePromise = null;
+  const documentKey = id => {
+    if(typeof id!=='string'||!id.trim())throw new TypeError('Workspace documentId is required.');
+    return `${viewKey}:${id}`;
+  };
 
   function openDatabase() {
     if (!indexedDB) return Promise.reject(new Error('IndexedDB를 지원하지 않는 브라우저입니다.'));
@@ -47,7 +51,11 @@ export function createBrowserProjectStorage({
   }
 
   return Object.freeze({
-    readView: documentId => readRecord(`${viewKey}:${documentId}`,  '보기 위치 읽기 실패'),
-    writeView: view => {if(typeof view.documentId!=='string'||!view.documentId)throw new TypeError('Workspace documentId is required.');return writeRecord(`${viewKey}:${view.documentId}`, view, '보기 위치 저장 실패');},
+    readView: async documentId => {
+      const record = await readRecord(documentKey(documentId), '보기 위치 읽기 실패');
+      // A damaged or stale key must not install another project's viewing state.
+      return record && typeof record === 'object' && record.documentId === documentId ? record : null;
+    },
+    writeView: view => writeRecord(documentKey(view?.documentId), view, '보기 위치 저장 실패'),
   });
 }

@@ -1,5 +1,5 @@
 // @worker-transport dedicated: one transferable GeoPackage read, terminated after its reply
-import { applyImportedPackageAssets } from './project-package-assets.js';
+import { applyImportedPackageAssets, validateImportedProjectPackage } from './project-package-assets.js';
 import {workerAssetUrl} from './worker-asset-url.js';
 
 export async function readProjectFile(file) {
@@ -7,15 +7,26 @@ export async function readProjectFile(file) {
   const buffer = await file.arrayBuffer();
   return new Promise((resolve, reject) => {
     const worker = new Worker(workerAssetUrl(new URL('../workers/project-read-worker.js', import.meta.url)));
-    const finish = (error, value) => { worker.terminate(); error ? reject(error) : resolve(value); };
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      worker.terminate();
+      error ? reject(error) : resolve(value);
+    };
     worker.onerror = event => finish(new Error(event.message || '프로젝트 읽기에 실패했습니다.'));
+    worker.onmessageerror = () => finish(new Error('프로젝트 응답을 읽지 못했습니다.'));
     worker.onmessage = ({ data }) => {
-      if (!data.ok) { finish(new Error(data.error)); return; }
+      if (settled) return;
       try {
-        const project = data.metadata.projectState;
-        finish(null, { ...project, territorialEntities: applyImportedPackageAssets(data.metadata, project.territorialEntities) });
+        if (!data?.ok) throw new Error(data?.error || '프로젝트 읽기에 실패했습니다.');
+        const project = validateImportedProjectPackage(data.metadata);
+        const territorialEntities = applyImportedPackageAssets(data.metadata, project.territorialEntities);
+        finish(null, territorialEntities === project.territorialEntities
+          ? project : { ...project, territorialEntities });
       } catch (error) { finish(error); }
     };
-    worker.postMessage({ action: 'read', buffer }, [buffer]);
+    try { worker.postMessage({ action: 'read', buffer }, [buffer]); }
+    catch (error) { finish(error); }
   });
 }
