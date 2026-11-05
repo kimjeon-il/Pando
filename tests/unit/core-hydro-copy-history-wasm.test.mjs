@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createNodeCoreProject} from '../helpers/core-project.mjs';
 import {createProjectSession} from "../../shared/frontend/js/modules/project-session.js";
+import {projectResourceOverlay} from '../../shared/frontend/js/modules/project-resource-overlay.js';
 const id='33000000-0000-4000-8000-000000000037',sourceId='river:original';
 test('hydro copy, delete and Undo/Redo derive source suppression without saving temporary background settings',async t=>{
   const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url)));
@@ -21,11 +22,18 @@ test('hydro copy, delete and Undo/Redo derive source suppression without saving 
   assert.deepEqual(copied.geometry,{type:'LineString',coordinates:[[1,2],[3,4]]});
   assert.equal(copied.properties.name,'Copied river');
   assert.equal(copied.properties.sourceFeatureId,sourceId);
+  const sourceFeature={id:sourceId,properties:{pandolab_id:sourceId,category:'river'}};
+  const effective=projectResourceOverlay('hydro',state.hydroEdits,[sourceFeature]);
+  assert.equal(effective.sourceReplacement(sourceId),copied);
+  assert.deepEqual(effective.library,[]);
+  assert.equal(effective.ownerOf(copied.id),'project');
   assert.deepEqual(owner.documentModel.snapshot().projectSetup,defaults);
   session.applyViewingPresentation({action:'distributionLayerVisibility',id:'another-layer',visible:false});
   assert.equal(session.captureViewingPresentation().itemVisibility.hydro[sourceId],undefined);
   assert.equal(await owner.project.undo(),true);assert.notEqual(state.itemVisibility.hydro[sourceId],false);
+  assert.equal(projectResourceOverlay('hydro',state.hydroEdits).isSourceReplaced(sourceId),false);
   assert.equal(await owner.project.redo(),true);assert.equal(state.itemVisibility.hydro[sourceId],false);
+  assert.equal(projectResourceOverlay('hydro',state.hydroEdits).isSourceReplaced(sourceId),true);
   const deleted=await owner.project.executeCommand({commandId:'hydro.edit',targets:[{domain:'hydro',id}],payload:{domain:'hydro',id,value:null,create:false}});
   assert.equal(deleted.ok,true,JSON.stringify(deleted.error));assert.notEqual(state.itemVisibility.hydro[sourceId],false);
   assert.equal(await owner.project.undo(),true);assert.equal(state.itemVisibility.hydro[sourceId],false);

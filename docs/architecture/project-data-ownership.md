@@ -55,3 +55,18 @@
 - Git tree 기준 추적 파일 **2,993개**, `shared/frontend` 767, `shared/core` 117, `shared/wasm` 10, `apps/viewer` 13, `apps/editor` 23, `tools` 423, `scripts` 76, `tests` 1,156, `.github/workflows` 137, 기타 271개.
 - 재측정: `node scripts/check-runtime-boundaries.mjs --baseline-json`은 체크아웃된 커밋의 Git tree 파일 수·크기와 실제 Viewer 경계 검사에서 순회한 정적 모듈 수를 JSON으로 출력한다. 일반 실행은 기존 검증과 출력이 그대로다.
 - 브라우저 초기 로딩·날짜 전환 지연·프레임 시간·GPU·WASM/JS 메모리·전송량은 **이 정적 검사로 측정할 수 없다**. 2026-10-17의 `config/performance-baseline-v1.json` 수치는 다른 커밋의 역사적 증거이며 최신 `main` 성능 기준선이 아니다. 동일 장비·환경·데이터 핀에 대한 런타임 실측은 별도로 필요하다.
+
+## P4: 참조 자료와 프로젝트 작성 객체의 공통 조회 오버레이
+
+- `projectResourceOverlay(domain, authored, references)`는 **읽기 전용 투영**이다. 이 함수는 객체를 새로 저장하거나 원본 GIS/지명 데이터를 수정하거나 변경 기록을 생성하지 않는다. 입력 객체와 형상 버퍼는 그대로 재사용한다.
+- 영역 객체(`territorial`)는 **현재 C++ 문서에서 수용한 유효 시점의 객체**만 조회한다. 별도의 브라우저 국가 객체 저장소를 허용하지 않는다. 현재 시점의 선택·형상·상하위 관계는 기존 C++/WASM 소유다.
+- 작성 지명(`label`)은 프로젝트의 `labels`가 소유한다. `sourcePlaceId`가 참조하는 외부 `builtin:place:...` 지명은 해당 프로젝트에서 **표시·선택 시에만 대체**된다. 지명 워커·원본 명칭 이력(`nameTimeline`)은 외부 자료로 남으며, 복사한 지명은 자기 `id`를 유지한다.
+- 작성 강·호수(`hydro`)는 프로젝트의 C++ 유효 시점 `hydroEdits` 및 공통 `timelineRecords`/형상 저장소에 속한다. `sourceFeatureId`는 참조 수계의 논리 ID를 표시상 대체하며 원본 하천·호수 객체/타일/FID를 파괴하지 않는다. 소스 참조 자체는 원본 조회 경로에서 계속 확인할 수 있다.
+- 공통 API는 `project`, `library`, `records`, `replacedSourceIds`, `findById`, `ownerOf`, `isSourceReplaced`, `sourceReplacement`로 제한된다. 프로젝트 ID와 외부 참조 ID는 각 도메인 안에서도 구별되며, `territorial`, `label`, `hydro`는 서로 다른 ID 공간이다.
+- 동일 원본에서 작성된 복수의 기록은 모두 보존한다. 물리 수계 마스크 교체에서 복수 기록이 충돌하면 기존과 동일하게 **가장 먼저 등록된 작성 기록**을 선택한다.
+- 뷰의 원본 교체·숨김은 문서 내용의 변경이 아니다. `itemVisibility`를 저장하지 않으며, 기존 `sourceMode`, 프로젝트 14 및 타임라인 3 계약을 그대로 유지한다. 날짜 전환 시 C++ 유효 객체 집합을 다시 읽으므로 소멸한 작성 수계가 뒤 시점의 외부 수계를 영구적으로 숨기지 않는다.
+- 기본 자료 전체를 프로젝트 안으로 복제하지 않는다. 지명은 현재 워커 조회·유지 레코드, 수계는 로딩된 타일·현재 선택된 물리 수역만 필요할 때 합성한다. 전 세계 전체 원본의 사전 로딩/재해시는 금지한다.
+
+P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
+`tests/unit/app-hydro-settings.test.mjs`,
+`tests/unit/core-hydro-copy-history-wasm.test.mjs` 및 기존 Viewer 브라우저의 프로젝트 열기·읽기 전용 검사.

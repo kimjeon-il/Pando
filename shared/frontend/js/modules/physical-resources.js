@@ -3,6 +3,7 @@ import '../vendor/polygon-clipping.min.js';
 import { createStoredAssetLoader } from './stored-asset-loader.js';
 import { sharedCalculationCore } from './temporal.js';
 import { timelineObjectKey } from './timeline-records.js';
+import {projectResourceOverlay} from './project-resource-overlay.js';
 // Hydro v0.13.4 preserves its published 6.0/6.7/7.0/7.5 stage metadata.
 // Gate those existing stages by actual map zoom; no geometry, names, or basin
 // selection data need to be rewritten.
@@ -161,8 +162,9 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     // Core catalog admission can be queued behind the current project
     // replacement. Immutable mask readiness cannot wait for that queue.
     if(entry.status!=='ready')return physicalLand;
+    const edits=projectResourceOverlay('hydro',state.hydroEdits||[]);
     const presentations=entry.value.waters.map(value=>{
-      const id=value.row.objectRef.id,replacement=(state.hydroEdits||[]).find(feature=>feature.properties.sourceFeatureId===id);
+      const id=value.row.objectRef.id,replacement=edits.sourceReplacement(id);
       const feature=state.hydroFeatureCache?.get(id);
       const descriptor=feature||{id,properties:{pandolab_id:id,category:value.row.identity.entityKind,layer_id:value.row.identity.layerId}};
       const visible=capabilities.builtinHydro||feature?dependencies.physicalServices.isHydroFeatureVisible(descriptor):true;

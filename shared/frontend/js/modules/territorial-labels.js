@@ -1,6 +1,7 @@
 import { createMapVisualFrame, isMapVisualFrame } from './map-visual-frame.js';
 import { placeLabelDimensions } from './label-layout.js';
 import { createPlaceRuntime } from './place-runtime.js';
+import {projectResourceOverlay} from './project-resource-overlay.js';
 import { isBuiltinPlaceId } from './place-contract.js';
 import { placeLabelRowsAtMonth } from './place-name-display.js';
 import { temporalMonthEnd } from './temporal.js';
@@ -49,8 +50,12 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
   }
 
   function labelById(id) {
-    const user = dependencies.projectState.state.labels.find(item => String(item.id) === String(id));
-    if (user) return user;
+    const resources=projectResourceOverlay('label',dependencies.projectState.state.labels);
+    const user=resources.findById(id);
+    if(user)return user;
+    // An authored copy hides its source from selection, but does not delete it
+    // from the immutable reference library or the pinned place worker store.
+    if(resources.isSourceReplaced(id))return null;
     const builtin = builtinPlaces.resolve(id);
     if (builtin) builtinPlaces.retain(builtin);
     return builtin;
@@ -200,11 +205,12 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
         selected,
       });
     }
-    const copiedIds = new Set(dependencies.projectState.state.labels.map(label => label.sourcePlaceId).filter(Boolean));
     const selectedIds = new Set(dependencies.domains.selectionDomain.snapshot().selection.items.filter(ref => ref.domain === 'label').map(ref => String(ref.id)));
-    const builtinLabels = [...new Map([...builtinPlaces.snapshot().records, ...[...selectedIds].map(id => builtinPlaces.resolve(id)).filter(Boolean)].map(label => [label.id, label])).values()].filter(label => !copiedIds.has(label.id));
-    const builtinIds = new Set(builtinLabels.map(label => label.id));
-    const labelSources = [...dependencies.projectState.state.labels, ...builtinLabels];
+    const loadedReferences=[...new Map([...builtinPlaces.snapshot().records,
+      ...[...selectedIds].map(id=>builtinPlaces.resolve(id)).filter(Boolean)].map(label=>[label.id,label])).values()];
+    const resources=projectResourceOverlay('label',dependencies.projectState.state.labels,loadedReferences);
+    const builtinIds = new Set(resources.library.map(label => label.id));
+    const labelSources = resources.records;
     const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;
     if (dependencies.projectState.state.layerVisibility.labels) for (const label of labelSources) {
       const selected = selectedIds.has(String(label.id));

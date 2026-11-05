@@ -1,4 +1,5 @@
 import {coreSelectionRefToWeb} from './core-object-ref.js';
+import {projectResourceOverlay} from './project-resource-overlay.js';
 import {loadUserPreferences} from './user-preferences.js';
 import { createMapWorkScheduler } from './map-work-scheduler.js';
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
@@ -234,7 +235,7 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
     setViewingPresentation({}, {reset:true});
     // Source replacement follows authored hydro edits, independent of temporary visibility.
     const effectiveItemVisibility=()=>{
-      const replaced=documentModel.list('hydro').map(feature=>feature.properties.sourceFeatureId).filter(Boolean);
+      const replaced=projectResourceOverlay('hydro',documentModel.list('hydro')).replacedSourceIds;
       return replaced.length?{...viewingPresentation.itemVisibility,hydro:{...viewingPresentation.itemVisibility.hydro,...Object.fromEntries(replaced.map(id=>[id,false]))}}:viewingPresentation.itemVisibility;
     };
     const properties=Object.fromEntries(['documentId','projectSetup','sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
