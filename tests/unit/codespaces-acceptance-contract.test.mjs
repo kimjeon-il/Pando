@@ -16,7 +16,16 @@ test('acceptance requires real Codespaces and no test server fallback',()=>{
   assert.match(shell,/PANDO_CODESPACES_PREVIEW_NOT_READY/);
   assert.ok(shell.indexOf('bash .devcontainer/start-preview.sh') <
     shell.indexOf('playwright install --with-deps chromium'),
-    'do not install Chromium before proving a live development server');
+    'never install Chromium before proving a live development server');
+  assert.match(shell,/mode="\\\$\\\{1:---smoke\\\}"/);
+  assert.match(shell,/if \[\[ "\$mode" == "--browser" \]\]/);
+  assert.match(shell,/PANDO_CODESPACES_SMOKE_PASS/);
+  assert.match(shell,/\/assets\/data\/world\/current.json/);
+  assert.match(shell,/\/config\/library-data.json/);
+  assert.match(shell,/node --input-type=module/);
+  assert.ok(shell.indexOf('PANDO_CODESPACES_SMOKE_PASS') <
+    shell.indexOf('playwright install --with-deps chromium'),
+    'browser installation must be explicitly after the smoke check');
   const previewScript=read('.devcontainer/start-preview.sh');
   assert.match(previewScript,/__shell\/health/);
   assert.doesNotMatch(previewScript,/__p3_health/);

@@ -1,26 +1,14 @@
 {
-  "name": "Pando remote-only development (Codespaces, Node 24)",
+  "name": "Pando optional private preview (Node 24)",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
-  "forwardPorts": [
-    4173
-  ],
   "portsAttributes": {
     "4173": {
-      "label": "Private Pando remote-only branch preview",
-      "onAutoForward": "openPreview",
+      "label": "Private Pando Viewer preview (on demand)",
+      "onAutoForward": "silent",
       "visibility": "private"
-    }
-  },
-  "postStartCommand": "bash .devcontainer/start-preview.sh",
-  "customizations": {
-    "codespaces": {
-      "openFiles": [
-        "docs/development/remote-only-development.md"
-      ]
     }
   },
   "remoteEnv": {
     "PANDO_REMOTE_ONLY": "1"
-  },
-  "postCreateCommand": "bash .devcontainer/setup-remote.sh"
+  }
 }

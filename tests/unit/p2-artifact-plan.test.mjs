@@ -176,6 +176,15 @@ const nativeValidationChanges=[
   '.github/workflows/ui-architecture.yml',
   '.github/workflows/place-runtime.yml',
   '.github/workflows/remote-development-p1.yml',
+  '.devcontainer/devcontainer.json',
+  '.devcontainer/setup-remote.sh',
+  '.devcontainer/start-preview.sh',
+  '.devcontainer/acceptance.sh',
+  'scripts/remote-only-doctor.mjs',
+  'scripts/remote-only-ci-scope.mjs',
+  'playwright.codespaces.config.js',
+  'tests/unit/remote-only-contract.test.mjs',
+  'tests/unit/codespaces-acceptance-contract.test.mjs',
 ];
 function nativeValidationFixture(t) {
   const f=fixture(t);

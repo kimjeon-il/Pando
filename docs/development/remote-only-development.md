@@ -4,46 +4,65 @@ Baseline: main commit `5b636f814f397cd0d8b2a64c8e7ddfab1c02c51e` (2026-11-04).
 This branch is an isolated migration candidate. Do not merge into main or deploy
 GitHub Pages without the user's separate approval.
 
-## Open without installing developer tools on Windows
+## Optional Codespaces, no automatic startup
 
-Open [work/remote-only in GitHub Codespaces](https://codespaces.new/kimjeon-il/Pando/tree/work/remote-only?quickstart=1).
-This creates a remote Linux container, not a local folder. The initial
-`.devcontainer/setup-remote.sh` checks the pinned Node major and installs
-the pinned pnpm dependencies into the Codespace only. Its command is not
-`pnpm deps:prepare`: that command intentionally expects a separately
-activated Windows shared cache.
+Codespaces is no longer required for normal Viewer/inspector development;
+GitHub Actions owns the WASM/GIS builds, automated browser tests and Web
+screenshots. The optional [work/remote-only Codespace](https://codespaces.new/kimjeon-il/Pando/tree/work/remote-only?quickstart=1)
+uses the Node 24 Bookworm image. **Container creation and restart do not
+install packages, start the preview server, forward port 4173 automatically
+or launch a browser tab.** No Windows native SDK is installed.
 
-The Codespaces image is the published Node 24 Bookworm variant
-`mcr.microsoft.com/devcontainers/javascript-node:24-bookworm`. Every
-lifecycle script sources `.devcontainer/ensure-node.sh` to restore an
-existing nvm-selected Node 24 PATH in non-login shells. The helper never
-downloads runtimes or compilers.
+Only if you need to inspect the live source manually, open a Codespaces
+terminal and run:
 
-If setup reports `PANDO_CODESPACES_NODE_MISSING` (or the previous
-`node: command not found`), select **Codespaces: Rebuild Container** from
-the VS Code command palette (`Ctrl+Shift+P`) to apply the Node 24 image.
-Verify `node --version` prints `v24.x` before running acceptance.
-The repository in `/workspaces` persists across a Codespace rebuild;
-container files outside `/workspaces` may be reset. Recovery-mode failures
-require inspecting the Codespaces creation log. Do not install Node or
-native compilers onto the Windows host as a workaround.
-The startup script runs the Viewer on private forwarded port 4173, using the
-current branch and its pinned library-data revision. Geographic materialization
-can delay readiness; view `/tmp/pando-remote-only-preview.log` if necessary.
-Do not change the forwarded port's visibility to public.
+```bash
+bash .devcontainer/start-preview.sh
+```
 
-Use the Codespaces terminal for source edits and small JavaScript checks:
+The first manual invocation installs locked pnpm frontend packages if they
+are not present, then starts the Viewer on `127.0.0.1:4173`. Subsequent
+invocations reuse the live server. In the Codespaces **Ports** panel, manually
+forward port **4173** as **private** and open the preview. Do not make this
+port public. You can also run `bash .devcontainer/setup-remote.sh` manually
+to prepare packages without starting the server.
+
+Use the smallest practical Codespaces machine (**2 cores / 8 GB**), and
+prefer **15 minutes idle timeout** and **7 days stopped retention**.
+These are GitHub user/Codespace account settings, **not enforceable by
+`.devcontainer/devcontainer.json`**; select the machine size at creation
+or change it from the Codespaces UI, and set timeout and retention under
+GitHub **Settings → Codespaces**. The settings apply to new Codespaces and
+do not retroactively resize or stop a running existing Codespace.
+Check `https://github.com/codespaces` to stop or delete unused sessions.
+Never rely on a repository commit to stop an already-running billable session.
+
+The small optional smoke check, with no Chromium installation:
+
+```bash
+bash .devcontainer/acceptance.sh
+```
+
+This checks the actual development server, pinned WASM header, world
+manifest and private configuration boundary. If a full local live-browser
+acceptance is specifically needed, run
+`bash .devcontainer/acceptance.sh --browser`. That **explicit** mode
+installs Playwright Chromium into Codespaces and runs the original map,
+time-navigation and source-watcher test. Ordinary regression must run in
+GitHub Actions instead. Neither mode is a prerequisite for GitHub CI.
+
+For read-only local prerequisite diagnostics after package installation:
 
 ```bash
 node scripts/remote-only-doctor.mjs
-bash .devcontainer/pnpm.sh lint
-node --test tests/unit/remote-only-contract.test.mjs
 ```
 
-Do not run local native preparation, CMake, Emscripten, LibTorch or GIS SDK
-installation. `scripts/prepare-native-test-tools.mjs` rejects those native
-preparations on this branch outside GitHub Actions, including when invoked
-from a Windows checkout.
+Do not run `pnpm deps:prepare` or any local CMake, Emscripten, Rust,
+LibTorch or native GIS SDK preparation in Codespaces.
+If Node 24 is missing, select **Codespaces: Rebuild Container**. This
+retains files in `/workspaces` but resets container-level state. On
+older existing Codespaces the previous lifecycle configuration can remain
+active until their development container is rebuilt.
 
 ## Windows native reviewer retirement (work/remote-only)
 
@@ -96,61 +115,20 @@ development. This change does not remove the plugin or alter its artifacts,
 training lineage, model approval gates or existing plugin release policy.
 See [Independent map analysis](../reference-map-plugin.md).
 
-## Real Codespaces live acceptance
+## Optional live Codespaces acceptance
 
-Only a running, user-created Codespace can satisfy this gate. In its terminal
-on `work/remote-only` run:
+Codespaces is an opt-in **manual preview**, not a required development
+or full acceptance environment. No packages, preview, browser or auto-open
+are started by the container lifecycle. `bash .devcontainer/acceptance.sh`
+runs an inexpensive real-server HTTP smoke. The heavy original
+`tests/browser/codespaces-live.spec.mjs` is retained solely for a
+deliberate `--browser` invocation. It tests actual canonical map frame
+readiness, year navigation, two source-watch reloads and file isolation.
 
-```bash
-bash .devcontainer/acceptance.sh
-```
-
-The Codespaces startup command invokes
-`node scripts/frontend-dev-server.mjs --product=viewer` directly. The former
-`p3-preview-server.mjs` CLI attempted a top-level dynamic import of
-`frontend-dev-server.mjs`, which statically imports its HTTP server module:
-Node could terminate with `Detected unsettled top-level await` before
-opening port 4173. The original CLI remains available with its import deferred
-until module evaluation is complete. Neither fix changes native SDK policy.
-
-The acceptance script now starts the actual Pando development preview if
-it is missing, then waits for the live `/__shell/health` contract on
-`127.0.0.1:4173` **before** installing Chromium or running Playwright.
-`ECONNREFUSED` indicates no listening server; if startup fails, inspect
-`/tmp/pando-remote-only-preview.log`. Startup errors are printed by the
-script and are not misreported as map or auto-reload failures. The test
-still rejects fixture-only servers.
-
-This installs a browser **only in Codespaces** and runs
-`tests/browser/codespaces-live.spec.mjs` against the existing, private port
-4173 development server (no test-server fallback). Acceptance verifies
-real Viewer map readiness and country presentation, year navigation,
-source watcher on both a newly created CSS file and a subsequent edit to
-that same file, two independent revision increments and automatic browser
-reloads, WASM bytes and private-source access denial. A unique temporary, untracked
-CSS probe is removed after testing; no tracked file or user WIP is changed.
-Evidence and screenshots are saved under `test-results/codespaces-acceptance`.
-Record the Codespace name, commit SHA and result. A GitHub Actions job is not
-a genuine Codespaces run and cannot be substituted.
-
-The Viewer can expose `#viewerStatus[data-ready=true]` while
-`rendererStats().mapReadiness.status` remains `terrain` (canonical country
-geometry is ready, but physical terrain tiles are still being prepared).
-`terrain`, `boundaries` and `presenting` are intermediate states, not
-acceptance success. The live test now waits until `ready` or `limited`
-**and** the actual country and Canvas frame revisions are acknowledged,
-initially, after year navigation, and after each source change. On a genuine
-timeout the last readiness, terrain and renderer diagnostics are printed.
-The verified startup query matches the P3 Canvas/raster terrain contract.
-
-The real Codespaces test may take longer than the fast CI contract suite
-because it waits for complete canonical map presentation after both reloads.
-The fixture captures proof and the screenshot **before** removing the
-untracked CSS probe; its cleanup is `finally`-guarded. No tracked source is
-overwritten.
-
-If the Codespace has not been launched or its terminal is unavailable,
-report **BLOCKED**, not passed.
+The existing P3 GitHub Actions tests provide the normal Web/Canvas and
+mobile/desktop browser verification without requiring any Codespace.
+A passing CI contract test is not proof that a personal Codespace
+session was opened. `main` deployment is still separately controlled.
 
 ## Source-matched C++ / WASM / GIS integration
 
@@ -186,7 +164,7 @@ branch a missing source-pinned artifact does not trigger an SDK fallback:
 explicit GitHub Actions is required. This cannot prohibit a developer from
 manually running arbitrary OS compiler commands outside project tooling.
 
-Codespaces prepares only locked Node development packages and a test browser.
+Codespaces installs frontend dependencies only on deliberate preview, and a test browser only on deliberate --browser acceptance.
 SDK/compiler installations and native builds are exclusively on remote runners;
 a Windows verification executable is run by Windows GitHub Actions, not
 downloaded onto a developer PC.

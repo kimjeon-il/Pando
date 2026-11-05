@@ -5,17 +5,20 @@ import {fileURLToPath} from 'node:url';
 import test from 'node:test';
 import {assertRemoteOnlyNativePreparation} from '../../scripts/prepare-native-test-tools.mjs';
 import {remoteOnlyStatus} from '../../scripts/remote-only-doctor.mjs';
+import {remoteOnlyAcceptanceScope} from '../../scripts/remote-only-ci-scope.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const read=path=>readFileSync(resolve(root,path),'utf8');
 
-test('Codespaces installs only pinned remote Node dependencies and opens a private live preview',()=>{
+test('Codespaces never auto-installs packages or opens the on-demand private Viewer preview',()=>{
   const dev=JSON.parse(read('.devcontainer/devcontainer.json'));
   assert.match(dev.image,/javascript-node:24-bookworm/);
   assert.equal(dev.remoteEnv.PANDO_REMOTE_ONLY,'1');
-  assert.equal(dev.postCreateCommand,'bash .devcontainer/setup-remote.sh');
-  assert.equal(dev.postStartCommand,'bash .devcontainer/start-preview.sh');
+  assert.equal(Object.hasOwn(dev,'postCreateCommand'),false);
+  assert.equal(Object.hasOwn(dev,'postStartCommand'),false);
+  assert.equal(Object.hasOwn(dev,'forwardPorts'),false);
   assert.equal(dev.portsAttributes['4173'].visibility,'private');
+  assert.equal(dev.portsAttributes['4173'].onAutoForward,'silent');
   for(const name of ['.devcontainer/setup-remote.sh','.devcontainer/start-preview.sh',
     '.devcontainer/acceptance.sh','.devcontainer/pnpm.sh'])
     assert.match(read(name),/source \.devcontainer\/ensure-node\.sh/,name);
@@ -31,7 +34,11 @@ test('Codespaces installs only pinned remote Node dependencies and opens a priva
   const pnpm=read('.devcontainer/pnpm.sh');
   assert.match(pnpm,/packageManager/);
   assert.match(pnpm,/npm exec --yes --package=/);
-  assert.match(read('.devcontainer/start-preview.sh'),/scripts\/frontend-dev-server\.mjs --product=viewer/);
+  const preview=read('.devcontainer/start-preview.sh');
+  assert.match(preview,/scripts\/frontend-dev-server\.mjs --product=viewer/);
+  assert.match(preview,/if \[ ! -d node_modules\/esbuild \]/);
+  assert.match(preview,/bash \.devcontainer\/setup-remote\.sh/);
+  assert.doesNotMatch(preview,/playwright install|install --with-deps chromium/);
 });
 
 test('the remote-only branch runs P1, P2, P3 and a dedicated Node contract in CI',()=>{
@@ -90,4 +97,15 @@ test('AI map-analysis and training remain plugin-owned, outside required app acc
   assert.ok(plugin.includes('plugins/pando-map-tools'));
   const remoteDocs=read('docs/development/remote-only-development.md');
   assert.match(remoteDocs,/Independent Map Toolkit plugin boundary/);
+});
+
+test('on-demand Codespaces changes do not schedule costly WASM/GIS CI rebuilds',()=>{
+  const changes=['.devcontainer/devcontainer.json','.devcontainer/start-preview.sh',
+    '.devcontainer/setup-remote.sh','.devcontainer/acceptance.sh',
+    'tests/unit/codespaces-acceptance-contract.test.mjs',
+    'scripts/remote-only-ci-scope.mjs'];
+  const result=remoteOnlyAcceptanceScope(changes,{event:'push'});
+  assert.equal(result.runHeavy,false);
+  assert.equal(remoteOnlyAcceptanceScope([...changes,'shared/core/src/geometry.cpp']).runHeavy,true);
+  assert.equal(remoteOnlyAcceptanceScope([],{event:'workflow_dispatch'}).runHeavy,true);
 });

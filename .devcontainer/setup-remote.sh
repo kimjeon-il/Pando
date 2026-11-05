@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# This runs only inside a user-created GitHub Codespace, never on the host PC.
+# Manually invoked only for on-demand preview, never postCreate/postStart.
+# Runs only inside a user-created GitHub Codespace, never on the host PC.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # Select installed Node 24 in this non-login Codespaces shell.
