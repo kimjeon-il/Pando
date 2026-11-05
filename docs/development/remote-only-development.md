@@ -241,3 +241,36 @@ Codespaces and GitHub Actions depend on network availability, service quotas,
 retention settings, permissions and runner capacity. If any is missing, fail
 with an explicit blocked state. Never fall back to downloading multi-gigabyte
 SDKs onto the developer's PC.
+
+
+## Integrated hidden Viewer inspection panel
+
+The Web Viewer itself provides the inspection interface. On an ordinary
+`/` navigation both desktop `reviewPanelBtn` and mobile `mobileReviewBtn`
+remain **hidden**, and `viewer-review-panel.js` is not imported.
+
+To deliberately enter inspection mode, use either `?inspect=1` in the
+Viewer URL or the `Ctrl+Shift+.` keyboard shortcut (`Cmd+Shift+.` on
+macOS). The URL opens the read-only map diagnostics tab; the shortcut toggles
+the panel. The existing `?debug=1` development entry continues to reveal
+the legacy button for browser regression tools, but does not open the panel
+automatically. After activation the inspector button stays visible for the
+current page session; browser navigation resets it.
+
+The lazily loaded panel contains four tabs:
+- **Change review:** E3 revision evidence JSON, SHA verification, side-by-side
+  geometry comparison and a user-initiated local correction-request file.
+- **Map and data:** current canonical mesh/terrain readiness, renderer,
+  source revision and document status. This is not a GIS topology certification.
+- **Performance:** captured browser metrics when `?perf=1` is enabled;
+  absent samples are explicitly shown as unavailable.
+- **Errors:** bounded diagnostic events and an explicit local JSON export.
+  No event is automatically sent to GitHub or to an external endpoint.
+
+The panel is not an authorization boundary. Hiding it does not protect
+private data and does not grant edit, source-publish, or GitHub credentials.
+Existing Viewer Core/project mutations remain blocked by the read-only
+domain regardless of entry method. The separate Tauri Windows reviewer
+pipeline remains untouched during this UI migration; remove it only after
+separate approval of the browser inspector's acceptance and migration.
+No `main` merge or Pages publication occurs on this branch.
