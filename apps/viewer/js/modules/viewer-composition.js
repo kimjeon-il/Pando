@@ -124,18 +124,39 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   disposables.push(map);
   // The review UI loads only on deliberate opening. It reads E2/E3 sidecars
   // and immutable Git object bytes, never registers an editor mutation hook.
-  const showReview=async sourceButton=>{
+  const inspectParams=new URLSearchParams(window.location.search);
+  const inspectorEnabled=nativeReview||inspectParams.get('inspect')==='1'||inspectParams.get('debug')==='1';
+  const revealInspectorActions=()=>{
+    get('reviewPanelBtn').hidden=false;
+    if(get('mobileReviewBtn'))get('mobileReviewBtn').hidden=false;
+  };
+  if(inspectorEnabled)revealInspectorActions();
+  const showReview=async (sourceButton,{tab='changes'}={})=>{
     if(!reviewPanelLoading)reviewPanelLoading=import('./viewer-review-panel.js').then(module=>{
       reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,isBuiltinMap:()=>builtinActive,
-        meta:runtimeContext.meta,onError:error=>diagnostics.push({category:'e4-review-data',
+        meta:runtimeContext.meta,readMonth:()=>builtinClock?.month()||'',
+        readDiagnostics:()=>diagnostics.snapshot(),
+        readPerformance:()=>typeof window.__PANDOLAB_PERFORMANCE_REPORT__==='function'
+          ?window.__PANDOLAB_PERFORMANCE_REPORT__():null,
+        onError:error=>diagnostics.push({category:'e4-review-data',
           errorCode:error?.code||'PL-E4-REVIEW',technicalMessage:error?.message||String(error)})});
       disposables.push(reviewPanel);
       return reviewPanel;
     }).catch(error=>{reviewPanelLoading=null;throw error;});
     const inspector=await reviewPanelLoading;
-    inspector.open(sourceButton);
+    inspector.open(sourceButton,{tab});
     if(sourceButton?.id==='mobileReviewBtn')surfaces.closeMobileSheets();
   };
+  const shortcut=event=>{
+    if(event.repeat||!(event.ctrlKey||event.metaKey)||!event.shiftKey||event.code!=='Period')return;
+    event.preventDefault();
+    revealInspectorActions();
+    if(reviewPanel&&!get('reviewPanel').hidden)reviewPanel.close();
+    else showReview(get('reviewPanelBtn'),{tab:'map'})
+      .catch(error=>report(error,'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START'));
+  };
+  document.addEventListener('keydown',shortcut);
+  disposables.push({dispose:()=>document.removeEventListener('keydown',shortcut)});
   if(nativeReview){
     const reveal=()=>showReview(get('reviewPanelBtn')).catch(error=>report(error,'검수 화면을 열지 못했습니다.','PL-E5-REVIEW-START'));
     window.addEventListener('pandolab:ready',reveal,{once:true});
@@ -347,4 +368,9 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
     },
     onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
+  if(inspectParams.get('inspect')==='1'&&!nativeReview){
+    revealInspectorActions();
+    await showReview(get('reviewPanelBtn'),{tab:'map'})
+      .catch(error=>report(error,'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START'));
+  }
 }
