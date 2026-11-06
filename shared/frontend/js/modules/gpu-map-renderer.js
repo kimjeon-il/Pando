@@ -4551,6 +4551,7 @@ export function createGpuMapRenderer(deps) {
       const backgroundOnly = surfacePresentation.quality === 'pending';
       return {
         type: 'style',
+        backgroundPresentationKey: currentCanvasBackgroundKey(lastVisualFrame),
         surfacePresentation,
         styleRevision: ++canvasStyleRevision,
         visible: !backgroundOnly && !!state.layerVisibility.objects,
@@ -4589,6 +4590,7 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerPhysicalStyleMessage() {
       return {
         type: 'physical-style',
+        backgroundPresentationKey: currentCanvasBackgroundKey(lastVisualFrame),
         physicalStyleRevision: ++canvasPhysicalStyleRevision,
         riversVisible: !!state.layerVisibility.rivers,
         lakesVisible: !!state.layerVisibility.lakes,

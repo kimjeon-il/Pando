@@ -183,6 +183,14 @@ test('background picture identity ignores coordinator churn but rejects changed 
     assert.notEqual(policy.canvasWorkerBackgroundPresentationKey(frame,{...input,...change}),id);
 });
 
+test('style and physical-style refresh the exact Canvas background certificate',()=>{
+  const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  for(const start of ['function canvasWorkerStyleMessage()', 'function canvasWorkerPhysicalStyleMessage()']) {
+    const body=src.slice(src.indexOf(start),src.indexOf('\n    }',src.indexOf(start)));
+    assert.match(body,/backgroundPresentationKey: currentCanvasBackgroundKey\(lastVisualFrame\)/);
+  }
+});
+
 test('pending Canvas background requires no country overlays or temporal shortcut',()=>{
   const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
   const start=src.indexOf('    function canvasWorkerStyleMessage() {'),end=src.indexOf('    function canvasWorkerPhysicalStyleMessage()',start);
