@@ -118,7 +118,26 @@ test('Canvas user-file opening retains full document admission after a builtin d
     mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset),
     {timeout:60000}).toBe(fixture.project.baseDataset);
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  try {
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  } catch(error) {
+    const diagnostic=await page.evaluate(()=>{
+      const api=window.__PANDOLAB_VIEWER__,s=api?.rendererStats?.()||{},m=window.__PANDOLAB_GPU_METRICS__||{};
+      const keys=['renderer','mapReadiness','projectGeneration','countriesPublishedGeneration',
+        'canonicalMeshReady','projectRenderBlocked','surfacePresentation','terrainReady','terrainFailed',
+        'canvasWorkerBusy','canvasWorkerHasPendingFrame','canvasWorkerStaleFrameCount',
+        'canvasStyleRevision','canvasDisplayedStyleRevision','canvasWorkerMessagesByType',
+        'requestedRevision','displayedRevision','pendingCountryCount','committedGeometryRevision',
+        'displayedGeometryRevision','firstBackgroundFrameMs','firstCountryPublishedMs',
+        'gpuRecovery','mapHost'];
+      return {status:document.querySelector('#viewerStatus')?.dataset.ready,
+        map:Object.fromEntries(keys.map(key=>[key,s[key]??m[key]??null])),
+        document:api?.documentState?.(),
+        diagnostics:api?.diagnostics?.()?.slice(-10)};
+    });
+    console.error('CANVAS_DATE_GPKG_FRAME_DIAGNOSTIC '+JSON.stringify(diagnostic).slice(0,15000));
+    throw error;
+  }
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.mapReady)).toBe(true);
   const loaded=await page.evaluate(()=>({id:window.__PANDOLAB_VIEWER__.documentSnapshot().documentId,
     packet:window.__temporalPackets.at(-1)}));
