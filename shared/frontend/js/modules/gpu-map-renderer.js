@@ -4735,15 +4735,17 @@ export function createGpuMapRenderer(deps) {
     function canRenderBlockedCanvasBackground() {
       return !disposed && rendererMode === 'canvas-worker' && projectRenderBlocked
         && !temporalPending() && canvasDisplayedStyleRevision === 0
-        && surfacePresentation.quality === 'pending' && canvasWorker?.ready
-        && (!lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration)
-        && canvasPhysicalReady();
+        && surfacePresentation.quality === 'pending'
+        && (!lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration);
     }
 
     function renderBlockedCanvasBackground(frame) {
-      if (!canRenderBlockedCanvasBackground() || !isMapVisualFrame(frame)) return false;
+      if (!canRenderBlockedCanvasBackground() || !isMapVisualFrame(frame)
+        || Number(frame.projectGeneration) !== projectGeneration) return false;
+      // Stage the new camera identity before physical data/Worker readiness.
+      // The only eventual paint is still the source-certified physical frame.
       lastVisualFrame = frame;
-      renderCanvasWorker(frame);
+      if (canvasWorker?.ready && canvasPhysicalReady()) renderCanvasWorker(frame);
       return true;
     }
 
