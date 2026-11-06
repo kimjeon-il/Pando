@@ -398,3 +398,31 @@ test('rejected unsolicited Canvas paint reports staleness without acknowledging 
   assert.equal(accepted.length,1,'current accepted bitmap can still be presented');
   channel.terminate();
 });
+
+
+test('only a renderer-authorized current physical background can bypass an older requested view revision',()=>{
+  const sent=[],accepted=[],rejected=[];let revoked=0;
+  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({
+    worker,generation:1,
+    acceptFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
+    allowOlderBackgroundFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
+    onStale:message=>rejected.push(message),
+  });
+  channel.onmessage=event=>{if(event.data.type==='frame')accepted.push(event.data)};
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',frameId:5,revision:1,projectGeneration:1});
+  channel.queueFrame({type:'view',frameId:6,revision:2,projectGeneration:1});
+  worker.onmessage({data:{type:'frame',projectGeneration:1,revision:1,frameId:5,
+    renderRequestId:sent[0].renderRequestId,backgroundOnly:true,
+    backgroundPresentationKey:'same-picture',bitmap:{close(){revoked++}}}});
+  assert.equal(accepted.length,1,'a matching source/camera background can be shown before the next submission');
+  assert.deepEqual(sent.map(message=>message.frameId),[5,6]);
+  worker.onmessage({data:{type:'frame',projectGeneration:1,revision:2,
+    renderRequestId:sent[1].renderRequestId,backgroundOnly:true,
+    backgroundPresentationKey:'old-picture',bitmap:{close(){revoked++}}}});
+  assert.equal(accepted.length,1,'a different camera/physical picture must be discarded');
+  assert.equal(rejected.length,1);
+  assert.equal(revoked,1);
+  channel.terminate();
+});

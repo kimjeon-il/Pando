@@ -164,3 +164,31 @@ test('Canvas admits only a pinned initial physical preview and never replaces au
     actual,state:{...authoritative,landRevision:'f'.repeat(64)},preview,sourceRevision,
   }).context.ready,false,'invalid authoritative physical source must not silently fallback to preview');
 });
+
+test('background picture identity ignores coordinator churn but rejects changed physical view',()=>{
+  const frame={frameId:6,viewRevision:8,projectGeneration:1,projection:'globe',dpr:1,
+    cssViewport:[960,720],cssScale:300,cssTranslate:[480,360],safeInset:{top:0,bottom:0,left:0,right:0},
+    viewState:{rotation:[-20,-15,0],flatCenter:[0,20],globeZoom:1,flatZoom:1}};
+  const input={projectGeneration:1,contextRevision:1,physicalStyleRevision:2,
+    terrainVisible:true,terrainStyle:'physical',darkTheme:false,
+    theme:{baseLandAlpha:1,defaultLand:'#eeeeee',ocean:'#6688aa'}};
+  const id=policy.canvasWorkerBackgroundPresentationKey(frame,input);
+  assert.equal(policy.canvasWorkerBackgroundPresentationKey({...frame,frameId:9,viewRevision:10},input),id);
+  for(const change of [
+    {cssScale:301}, {projection:'flat'}, {cssTranslate:[481,360]},
+    {viewState:{...frame.viewState,rotation:[-21,-15,0]}},
+  ])assert.notEqual(policy.canvasWorkerBackgroundPresentationKey({...frame,...change},input),id);
+  for(const change of [{projectGeneration:2},{physicalStyleRevision:3},{terrainStyle:'political'},
+    {darkTheme:true},{theme:{...input.theme,ocean:'#114477'}}])
+    assert.notEqual(policy.canvasWorkerBackgroundPresentationKey(frame,{...input,...change}),id);
+});
+
+test('pending Canvas background requires no country overlays or temporal shortcut',()=>{
+  const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=src.indexOf('    function canvasWorkerStyleMessage() {'),end=src.indexOf('    function canvasWorkerPhysicalStyleMessage()',start);
+  const style=src.slice(start,end);
+  assert.match(style,/backgroundOnly = surfacePresentation\.quality === 'pending'/);
+  assert.match(style,/backgroundOnly \? \[\] : canvasSceneStrokes\(\)/);
+  assert.match(style,/backgroundOnly \? \[\] : renderInteractionState\.genericFillItems/);
+  assert.match(src,/message\.backgroundOnly === true[\s\S]*?!temporalPending\(\)/);
+});
