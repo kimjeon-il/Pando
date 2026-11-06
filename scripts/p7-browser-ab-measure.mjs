@@ -17,6 +17,14 @@ const format=value=>Number.isFinite(value)?Math.round(value*10)/10:null;
 const mapSummary=stats=>{
   const s=stats||{};
   return {
+    p95CpuSubmitMs:s.p95CpuSubmitMs??null,
+    p99CpuSubmitMs:s.p99CpuSubmitMs??null,
+    gpuDrawCalls:s.webGlLastFrameSceneDrawCalls??null,
+    gpuFirstBackgroundDrawCalls:s.webGlFirstBackgroundSceneDrawCalls??null,
+    gpuFirstCountryDrawCalls:s.webGlFirstCountrySceneDrawCalls??null,
+    gpuTrackedBuffersBytes:Object.values(s.meshVariantBytes||{}).reduce((n,v)=>n+(Number(v)||0),0)
+      +(Number(s.stroke?.activeBufferBytes)||0)+(Number(s.polygonOverlay?.activeBufferBytes)||0),
+    gpuSceneCacheDraws:s.sceneCacheFullDrawCount??null,
     renderer:s.renderer,projectGeneration:s.projectGeneration,countriesPublishedGeneration:s.countriesPublishedGeneration,
     canonicalMeshReady:s.canonicalMeshReady,firstBackgroundFrameMs:s.firstBackgroundFrameMs,
     firstCountryPublishedMs:s.firstCountryPublishedMs,
@@ -34,7 +42,10 @@ const mapSummary=stats=>{
 const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
   scenario:'Chromium SwiftShader; 1280x800; light UI; 2026-11-06 clock; 1 fresh browser per revision; same runner',
   viewport:[1280,800],cachePolicy:'separate fresh browser instances; browser default cache; same-page date-return reuse',
-  memoryPolicy:'main page V8 used heap via CDP after GC; excludes Worker, WASM and GPU VRAM. GPU counters are app-tracked, not total VRAM.'});
+  memoryPolicy:'main page V8 used heap via CDP after GC; excludes Worker, WASM and GPU VRAM. GPU counters are app-tracked, not total VRAM.',
+  cpuPolicy:'CDP TaskDuration and ScriptDuration are renderer task/script time (not system-wide CPU percent).',
+  framePolicy:'requestAnimationFrame pacing is a scheduling FPS proxy, not measured GPU presentation rate.',
+  gpuPolicy:'GPU draw-call and buffer counts from renderer; actual VRAM/utilization/kernel timing not measured.'});
 async function serve(){
   const child=spawn(process.execPath,['tests/browser/server.mjs'],{cwd:process.cwd(),
     env:{...process.env,PANDOLAB_TEST_PORT:'4173'},stdio:['ignore','pipe','pipe']});
@@ -57,7 +68,8 @@ async function serve(){
 async function sample(){
   const report={schema:'pando-p7-browser-ab-v1',identity:identity(),label:options.label,
     status:'running',startedAt:new Date().toISOString(),phases:[],pageErrors:[],error:null};
-  let server=null,browser=null,page=null,cdp=null;
+  let server=null,browser=null,page=null,cdp=null,previousPerf=null;
+  const performanceCounters=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
   const snapshot=async(phase,elapsedMs)=>{
     const view=await page.evaluate(()=>{
       const api=globalThis.__PANDOLAB_VIEWER__,document=api?.documentSnapshot();
@@ -66,10 +78,16 @@ async function sample(){
         entities:document?.territorialEntities?.length,geometries:document?.geometries?.length,
         status:globalThis.document.getElementById('viewerStatus')?.dataset.ready};
     });
+    const raf=await page.evaluate(()=>globalThis.__pandoAbFps?.finish()||null);
     await cdp.send('HeapProfiler.collectGarbage').catch(()=>{});
-    const metrics=await cdp.send('Performance.getMetrics');
-    const byName=Object.fromEntries(metrics.metrics.map(row=>[row.name,row.value]));
+    const byName=await performanceCounters();
+    const cpuMs=Object.fromEntries(['TaskDuration','ScriptDuration','LayoutDuration','RecalcStyleDuration'].map(name=>{
+      const before=previousPerf?.[name],after=byName[name];
+      return [name,Number.isFinite(before)&&Number.isFinite(after)?format((after-before)*1000):null];
+    }));
+    previousPerf=byName;
     report.phases.push({phase,elapsedMs:format(elapsedMs),month:view.month,cursor:view.cursor,
+      cpuMs,raf,
       entities:view.entities,geometries:view.geometries,documentReady:view.status,
       jsHeapUsedBytes:byName.JSHeapUsedSize??null,jsHeapTotalBytes:byName.JSHeapTotalSize??null,
       domNodes:byName.Nodes??null,jsListeners:byName.JSEventListeners??null,
@@ -91,17 +109,43 @@ async function sample(){
       '--enable-unsafe-swiftshader','--disable-gpu-sandbox']});
     page=await browser.newPage({viewport:{width:1280,height:800},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     page.on('pageerror',error=>report.pageErrors.push(String(error)));
+    await page.addInitScript(()=>{
+      const meter=globalThis.__pandoAbFps={
+        started:performance.now(),active:true,last:null,gaps:[],
+        start(){this.started=performance.now();this.active=true;this.last=null;this.gaps=[];},
+        finish(){
+          this.active=false;
+          const duration=Math.max(1,performance.now()-this.started);
+          const gaps=[...this.gaps].sort((a,b)=>a-b);
+          return {rafFps:Math.round(gaps.length*10000/duration)/10,
+            maxFrameGapMs:gaps.length?Math.round(gaps.at(-1)*10)/10:null,
+            p95FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.95)]*10)/10:null,
+            rafFrames:gaps.length,durationMs:Math.round(duration)};
+        },
+      };
+      const tick=now=>{if(meter.active){if(meter.last!==null)meter.gaps.push(now-meter.last);meter.last=now;}requestAnimationFrame(tick);};
+      requestAnimationFrame(tick);
+    });
     await page.clock.setFixedTime(new Date('2026-11-06T03:00:00+09:00'));
     await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
     cdp=await page.context().newCDPSession(page);await cdp.send('Performance.enable');
+    previousPerf=await performanceCounters();
     let started=Date.now();
     await page.goto('http://127.0.0.1:4173/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded',timeout:120000});
     await ready('2026-11');
     await snapshot('cold-current',Date.now()-started);
+    report.gpuBackend=await page.evaluate(()=>{
+      const gl=document.querySelector('#viewerCanvas')?.getContext('webgl2');
+      const ext=gl?.getExtension('WEBGL_debug_renderer_info');
+      return {version:gl?.getParameter(gl.VERSION)??null,
+        renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl?.getParameter(gl.RENDERER)??null};
+    });
+    await page.evaluate(()=>globalThis.__pandoAbFps.start());
     started=Date.now();
     await page.locator('#timelinePreviousYear').click({timeout:10000});
     await ready('2025-12');
     await snapshot('previous-year',Date.now()-started);
+    await page.evaluate(()=>globalThis.__pandoAbFps.start());
     started=Date.now();
     await page.locator('#timelineNextYear').click({timeout:10000});
     await ready('2026-11');
@@ -135,11 +179,24 @@ async function sample(){
 function compare(){
   const main=readJson(options.main),candidate=readJson(options.candidate);
   const comparable=main.identity?.pin===candidate.identity?.pin&&main.identity?.scenario===candidate.identity?.scenario
-    &&main.browserVersion===candidate.browserVersion&&main.status==='passed'&&candidate.status==='passed';
+    &&main.browserVersion===candidate.browserVersion
+    &&main.gpuBackend?.renderer===candidate.gpuBackend?.renderer
+    &&main.status==='passed'&&candidate.status==='passed'
+    &&main.phases.length===candidate.phases.length
+    &&main.phases.every((row,i)=>row.phase===candidate.phases[i]?.phase&&row.month===candidate.phases[i]?.month
+      &&row.cursor===candidate.phases[i]?.cursor&&row.entities===candidate.phases[i]?.entities);
   const rows=main.phases.map((row,i)=>{
     const next=candidate.phases[i];
     const diff=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)?format(b-a):null;
+    const rate=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&a>0?format((b-a)/a*100):null;
     return {phase:row.phase,mainMs:row.elapsedMs,p7Ms:next?.elapsedMs??null,
+      elapsedDeltaPercent:rate(row.elapsedMs,next?.elapsedMs),
+      baseCpuTaskMs:row.cpuMs?.TaskDuration??null,candidateCpuTaskMs:next?.cpuMs?.TaskDuration??null,
+      baseCpuScriptMs:row.cpuMs?.ScriptDuration??null,candidateCpuScriptMs:next?.cpuMs?.ScriptDuration??null,
+      baseRafFps:row.raf?.rafFps??null,candidateRafFps:next?.raf?.rafFps??null,
+      baseMaxFrameGapMs:row.raf?.maxFrameGapMs??null,candidateMaxFrameGapMs:next?.raf?.maxFrameGapMs??null,
+      baseGpuDrawCalls:row.renderer?.gpuDrawCalls?.total??null,candidateGpuDrawCalls:next?.renderer?.gpuDrawCalls?.total??null,
+      baseGpuBuffers:row.renderer?.gpuTrackedBuffersBytes??null,candidateGpuBuffers:next?.renderer?.gpuTrackedBuffersBytes??null,
       deltaMs:diff(row.elapsedMs,next?.elapsedMs),
       mainJsHeapBytes:row.jsHeapUsedBytes,p7JsHeapBytes:next?.jsHeapUsedBytes??null,
       heapDeltaBytes:diff(row.jsHeapUsedBytes,next?.jsHeapUsedBytes),
@@ -148,9 +205,10 @@ function compare(){
   });
   const result={schema:'pando-p7-browser-ab-comparison-v1',comparable,
     status:comparable?'paired':'incomplete',reference:main.identity,candidate:candidate.identity,
-    browserVersion:main.browserVersion,rows,
+    browserVersion:main.browserVersion,gpuBackend:main.gpuBackend,rows,
     limitations:['Only one sample per revision, no robust confidence interval',
-      'GPU memory is app-tracked, not actual VRAM',
+      'requestAnimationFrame is not the actual presented GPU frame rate',
+      'GPU draw calls/buffers are app-tracked; GPU utilization and actual VRAM are unavailable',
       'Chromium main-thread heap excludes WASM and Worker heaps',
       'No performance improvement threshold approved; failures are not zero'],
     errors:[main.error,candidate.error].filter(Boolean)};
@@ -159,10 +217,11 @@ function compare(){
   if(process.env.GITHUB_STEP_SUMMARY){
     const lines=['### P7 same-run browser A/B','Baseline: '+main.identity.commit,
       'Candidate: '+candidate.identity.commit,'Comparable: '+comparable,
-      '| Phase | main ms | P7 ms | difference ms | main JS heap | P7 JS heap |',
-      '|---|---:|---:|---:|---:|---:|',
-      ...rows.map(r=>'| '+r.phase+' | '+r.mainMs+' | '+r.p7Ms+' | '+r.deltaMs+
-        ' | '+r.mainJsHeapBytes+' | '+r.p7JsHeapBytes+' |')];
+      '| Phase | main ms | optimized ms | delta % | CPU task ms main/optimized | rAF FPS main/optimized | JS heap MiB main/optimized |',
+      '|---|---:|---:|---:|---|---|---|',
+      ...rows.map(r=>'| '+r.phase+' | '+r.mainMs+' | '+r.p7Ms+' | '+r.elapsedDeltaPercent+
+        ' | '+r.baseCpuTaskMs+'/'+r.candidateCpuTaskMs+' | '+r.baseRafFps+'/'+r.candidateRafFps+
+        ' | '+format(r.mainJsHeapBytes/1048576)+'/'+format(r.p7JsHeapBytes/1048576)+' |')];
     writeFileSync(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n',{flag:'a'});
   }
   if(!comparable)process.exitCode=1;

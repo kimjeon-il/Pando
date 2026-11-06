@@ -1,8 +1,8 @@
-name: P7 same-run Viewer startup and heap A/B
+name: Optimization same-run Viewer CPU/GPU/FPS/memory A/B
 
 on:
   push:
-    branches: [work/objects]
+    branches: [work/optimization]
     paths:
       - scripts/p7-browser-ab-measure.mjs
       - shared/frontend/js/modules/gpu-map-renderer.js
@@ -22,7 +22,7 @@ concurrency:
 jobs:
   paired-browser:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,7 +39,7 @@ jobs:
       - name: Measure main and candidate sequentially on one Chromium runner
         shell: bash
         env:
-          BASE_SHA: 7cd224bd198c014d2215e35a93452702227d8314
+          BASE_SHA: 30a8402ac82a3e8a24f943f777a7aaedec211279
           HEAD_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
