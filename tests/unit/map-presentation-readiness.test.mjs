@@ -41,6 +41,26 @@ test('resolution limits have an explicit terminal state and low/high labels', ()
 });
 
 
+test('Canvas Worker settles file-open waiters from an actually transferred current bitmap',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('    function settleMapPresentationWaiters() {');
+  const end=source.indexOf('    function waitForMapPresentation(',start);
+  assert.ok(start>0&&end>start);
+  const waiters=new Set(),resolved=[];
+  const context={projectGeneration:3,mapPresentationWaiters:waiters,
+    mapReadiness:()=>({mapReady:true})};
+  const settle=new Function(...Object.keys(context),source.slice(start,end)+';return settleMapPresentationWaiters;')(...Object.values(context));
+  waiters.add({generation:2,resolve:()=>assert.fail('stale project must not settle')});
+  waiters.add({generation:3,resolve:()=>resolved.push(3)});
+  assert.equal(settle(),true);
+  assert.deepEqual(resolved,[3]);
+  assert.equal(waiters.size,1);
+  const transfer=source.slice(source.indexOf('    function receiveCanvasWorkerMessage(event) {'),
+    source.indexOf('    function activateCanvasFallback(',source.indexOf('    function receiveCanvasWorkerMessage(event) {')));
+  assert.match(transfer,/transferFromImageBitmap\(message\.bitmap\)[\s\S]*?recordMapPresentation\(presentedVisualFrame,[\s\S]*?settleMapPresentationWaiters\(\)/);
+  assert.match(transfer,/message\.surfaceQuality !== 'pending'\)\s*settleMapPresentationWaiters\(\)/);
+});
+
 test('pending map-open resource updates reach the current visual-frame commit',()=>{
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
   const start=source.indexOf("    function invalidateGpuFrame(reason = 'gpu-frame') {");

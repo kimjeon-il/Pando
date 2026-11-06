@@ -198,6 +198,16 @@ export function createGpuMapRenderer(deps) {
       for (const waiter of mapPresentationWaiters) waiter.reject(error);
       mapPresentationWaiters.clear();
     }
+    function settleMapPresentationWaiters() {
+      if (!mapReadiness().mapReady) return false;
+      committedMapGeneration = projectGeneration;
+      for (const waiter of mapPresentationWaiters) {
+        if (waiter.generation !== projectGeneration) continue;
+        mapPresentationWaiters.delete(waiter);
+        waiter.resolve(true);
+      }
+      return true;
+    }
     function waitForMapPresentation(generation) {
       if (disposed || Number(generation) !== projectGeneration)
         return Promise.reject(staleMapPresentation('Project map presentation was superseded.'));
@@ -4976,6 +4986,11 @@ export function createGpuMapRenderer(deps) {
         recordMapPresentation(presentedVisualFrame,
           fullSceneReady && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
           { committedWorkerBitmap: true });
+        // The bitmap was transferred to the visible Canvas above. This is
+        // Canvas's real presentation commit; the coordinator may not emit
+        // another visual commit when a GPU-only update finishes the picture.
+        if (fullSceneReady && message.surfaceQuality !== 'pending')
+          settleMapPresentationWaiters();
         canvasWorkerResubmitAttempts = 0;
         canvasWorkerResubmitKey = '';
         if (fullSceneReady && message.surfaceQuality !== 'pending') {
@@ -6027,14 +6042,7 @@ export function createGpuMapRenderer(deps) {
       },
       commitVisualFrame: frame => {
         if (!canPresentVisualFrame(frame)) return;
-        if (frame?.projectGeneration === projectGeneration && mapReadiness().mapReady) {
-          committedMapGeneration = projectGeneration;
-          for (const waiter of mapPresentationWaiters) {
-            if (waiter.generation !== projectGeneration) continue;
-            mapPresentationWaiters.delete(waiter);
-            waiter.resolve(true);
-          }
-        }
+        if (frame?.projectGeneration === projectGeneration) settleMapPresentationWaiters();
         if (temporalPending()) {
           temporalPresentation.presented = true;
           temporalCanvas = null;
