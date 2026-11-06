@@ -48,26 +48,42 @@ jobs:
           node -e 'const fs=require("fs"),cp=require("child_process");const old=JSON.parse(cp.execFileSync("git",["show",process.env.BASE_SHA+":config/library-data.json"]));const next=JSON.parse(fs.readFileSync("config/library-data.json"));if(old.revision!==next.revision)throw Error("P7 A/B requires the exact same immutable library revision");'
           cp scripts/p7-browser-ab-measure.mjs scripts/.p7-ab-harness.tmp.mjs
           trap 'rm -f scripts/.p7-ab-harness.tmp.mjs' EXIT
-          git switch --detach "$BASE_SHA"
-          set +e
-          node scripts/.p7-ab-harness.tmp.mjs --label=main --out="$RUNNER_TEMP/p7-main.json"
-          base_status=$?
-          set -e
+          # Interleave the revisions on one runner to reduce monotonic host
+          # drift. Each invocation creates a fresh browser and test server.
+          failed=0
+          for slot in main-1 p7-1 p7-2 main-2 main-3 p7-3; do
+            label="${slot%-*}"
+            if [ "$label" = main ]; then target="$BASE_SHA"; else target="$HEAD_SHA"; fi
+            git switch --detach "$target"
+            if ! node scripts/.p7-ab-harness.tmp.mjs --label="$label" --out="$RUNNER_TEMP/p7-$slot.json"; then
+              failed=1
+            fi
+          done
           git switch --detach "$HEAD_SHA"
           set +e
-          node scripts/p7-browser-ab-measure.mjs --label=p7 --out="$RUNNER_TEMP/p7-work.json"
+          node scripts/.p7-ab-harness.tmp.mjs --mode=aggregate \
+            --samples="$RUNNER_TEMP/p7-main-1.json,$RUNNER_TEMP/p7-main-2.json,$RUNNER_TEMP/p7-main-3.json" \
+            --out="$RUNNER_TEMP/p7-main.json"
+          base_status=$?
+          node scripts/.p7-ab-harness.tmp.mjs --mode=aggregate \
+            --samples="$RUNNER_TEMP/p7-p7-1.json,$RUNNER_TEMP/p7-p7-2.json,$RUNNER_TEMP/p7-p7-3.json" \
+            --out="$RUNNER_TEMP/p7-work.json"
           candidate_status=$?
-          node scripts/p7-browser-ab-measure.mjs --mode=compare --main="$RUNNER_TEMP/p7-main.json" --candidate="$RUNNER_TEMP/p7-work.json" --out="$RUNNER_TEMP/p7-comparison.json"
+          node scripts/.p7-ab-harness.tmp.mjs --mode=compare \
+            --main="$RUNNER_TEMP/p7-main.json" --candidate="$RUNNER_TEMP/p7-work.json" \
+            --out="$RUNNER_TEMP/p7-comparison.json"
           compare_status=$?
           set -e
-          echo "Main run: $base_status; P7 run: $candidate_status; matched comparison: $compare_status"
-          test "$base_status" = 0 && test "$candidate_status" = 0 && test "$compare_status" = 0
+          echo "Raw sample failures: $failed; main aggregate: $base_status; candidate aggregate: $candidate_status; A/B comparison: $compare_status"
+          test "$failed" = 0 && test "$base_status" = 0 && test "$candidate_status" = 0 && test "$compare_status" = 0
       - name: Retain both original measurements and comparison, including failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: p7-runtime-ab-${{ github.sha }}
           path: |
+            ${{ runner.temp }}/p7-main-*.json
+            ${{ runner.temp }}/p7-p7-*.json
             ${{ runner.temp }}/p7-main.json
             ${{ runner.temp }}/p7-work.json
             ${{ runner.temp }}/p7-comparison.json
