@@ -18,9 +18,18 @@ test('Web publishes sharp ocean and land before countries, then reuses prepared 
   try {
     await page.goto('/?debug=1',{waitUntil:'domcontentloaded'});
     await expect.poll(async()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.rendererStats().canonicalMeshReady),{timeout:60000}).toBe(true);
-    await expect.poll(async()=>(await stats()).surfacePresentation.quality).toBe('pending');
-    expect((await stats()).surfaceDraw?.countryIndexCount || 0).toBe(0);
-    expect((await stats()).terrainRenderedLevel).toBe(-1);
+    // The first physical WebGL country frame is allowed before optional DEM
+    // tiles resolve. Readiness is distinct from successful base publication.
+    await expect.poll(async() => {
+      const state = await stats();
+      return state.countriesPublishedGeneration === state.projectGeneration
+        && state.firstCountryPublishedMs !== null
+        && (state.surfaceDraw?.countryIndexCount || 0) > 0;
+    }, { timeout: 30000 }).toBe(true);
+    const early = await stats();
+    expect(early.surfacePresentation.quality).toBe('canonical');
+    expect(early.terrainReady).toBe(false);
+    expect(early.mapReadiness.status).not.toBe('ready');
     release();
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
     await expect.poll(async() => {

@@ -5711,6 +5711,11 @@ export function createGpuMapRenderer(deps) {
         previewAdmission: 'validated-scale-bound', surfacePresentation, previewDisplayCertificate,
         surfaceDraw: lastBaseSceneResult?.surface || null,
         renderer: rendererMode,
+        // Expose the exact picture certificate only in the explicit debug
+        // metrics path. This does not affect frame admission or readiness.
+        ...(rendererMode === 'canvas-worker' && window.location.search.includes('debug=1')
+          ? { canvasExpectedBackgroundKey: currentCanvasBackgroundKey(),
+              canvasExpectedPhysicalContext: currentCanvasPhysical().context } : {}),
         mapHost: 'legacy',
         assetRevision: ASSET_REVISION,
         dataRevision: DATA_REVISION,
