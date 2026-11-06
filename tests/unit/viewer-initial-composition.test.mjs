@@ -32,7 +32,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
         await reader();
         if (failNext) { failNext = false; throw new Error('source unavailable'); }
         generation++;
-        await ports.map.update();
+        await map.update();
         if (autoReady) ports.map.onMapPreparationStatus({status: 'ready',mapReady:true,label: '준비됨'}, generation);
         if (options?.presentation === 'temporal') options.onPresented();
         return true;
