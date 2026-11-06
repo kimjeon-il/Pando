@@ -13,6 +13,18 @@ test('completion requires matching actual presentation, boundaries and visible t
   assert.equal(mapPresentationReadiness({ ...ready, terrain: { terrainReady: false } }).status, 'terrain');
 });
 
+test('an actually presented map remains independently ready while optional DEM is pending', () => {
+  const pending = mapPresentationReadiness({
+    ...ready, mapPresented: true, terrain: {terrainReady: false},
+  });
+  assert.equal(pending.status, 'terrain');
+  assert.equal(pending.mapReady, true);
+  assert.equal(pending.terrainReady, false);
+  assert.equal(mapPresentationReadiness({...ready, mapPresented:false}).mapReady, false);
+  assert.equal(mapPresentationReadiness({...ready, presentedKey:'old'}).mapReady, false);
+  assert.equal(mapPresentationReadiness({...ready, terrainVisible:false, terrain:{}}).terrainReady, true);
+});
+
 test('hidden terrain is excluded; exhausted failures never count as ready', () => {
   assert.equal(mapPresentationReadiness({ ...ready, terrainVisible: false, terrain: {} }).status, 'ready');
   const failure = mapPresentationReadiness({ ...ready, terrain: { terrainReady: false, terrainFailed: true, terrainTargetTilesSettled: true } });

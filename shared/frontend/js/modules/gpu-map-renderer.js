@@ -436,6 +436,7 @@ export function createGpuMapRenderer(deps) {
       const terrain = currentTerrainReadiness();
       return mapPresentationReadiness({ boundaryReady: canonicalMeshReady && !projectRenderBlocked && !webglContextLost
           && !geometryRevisionTracker.pendingIds().length,
+        mapPresented: countriesPublishedGeneration === projectGeneration && surfacePresentation.quality !== 'pending',
         boundaryFailed: !!canonicalPromotionError,
         terrainVisible: !!terrainPreparation && !!state.physicalSettings.terrainVisible,
         terrain, targetKey: mapTargetKey(lastVisualFrame, terrain), presentedKey: presentedMapKey,
@@ -471,12 +472,19 @@ export function createGpuMapRenderer(deps) {
         if (surfacePresentation.quality !== 'pending') {
           countriesPublishedGeneration = projectGeneration;
           firstCountryPublishedMs ??= Math.max(0, performance.now() - rendererStartedAt);
+          if (submittedWebGlBaseFrame)
+            performanceMetrics.webGlFirstCountrySceneDrawCalls ??= performanceMetrics.webGlLastFrameSceneDrawCalls;
         }
         const key = backgroundTargetKey(frame, terrain);
         if (backgroundPresentedKey !== key) {
           backgroundPresentedKey = key;
           firstBackgroundFrameMs ??= Math.max(0, performance.now() - rendererStartedAt);
-          if (countriesPublishedGeneration !== projectGeneration) invalidateGpuFrame('background-presented');
+          if (submittedWebGlBaseFrame)
+            performanceMetrics.webGlFirstBackgroundSceneDrawCalls ??= performanceMetrics.webGlLastFrameSceneDrawCalls;
+          // An unfinished mesh cannot be promoted by redrawing the same base.
+          // The actual mesh-ready path invalidates its own current scene.
+          if (countriesPublishedGeneration !== projectGeneration && canonicalMeshReady)
+            invalidateGpuFrame('background-presented');
         }
       }
       publishMapReadiness();
@@ -933,6 +941,11 @@ export function createGpuMapRenderer(deps) {
       canvasWorkerStateMessageCount: 0,
       canvasWorkerMessagesByType: {},
       baseSceneDrawCount: 0,
+      webGlDirectDrawCallCount: 0,
+      webGlLastFrameSceneDrawCalls: null,
+      webGlFirstBackgroundSceneDrawCalls: null,
+      webGlFirstCountrySceneDrawCalls: null,
+      webGlLastBaseSubmitMs: 0,
       interactionFrameCount: 0,
       selectionOnlyFrameCount: 0,
       selectionOnlyGeometryUploadBytes: 0,
@@ -3239,7 +3252,10 @@ export function createGpuMapRenderer(deps) {
         setViewUniforms(program, worldOffset, frameContext);
         for (const range of ranges) {
           const count = Math.max(0, Number(range?.count || 0));
-          if (count) gl.drawElements(primitive, count, gl.UNSIGNED_INT, Math.max(0, Number(range?.first || 0)) * Uint32Array.BYTES_PER_ELEMENT);
+          if (count) {
+            gl.drawElements(primitive, count, gl.UNSIGNED_INT, Math.max(0, Number(range?.first || 0)) * Uint32Array.BYTES_PER_ELEMENT);
+            performanceMetrics.webGlDirectDrawCallCount++;
+          }
         }
       }
       if (glVersion === 2) gl.bindVertexArray(null);
@@ -3489,6 +3505,7 @@ export function createGpuMapRenderer(deps) {
         if (category === 'lake') gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_INT, 0);
         else if (glVersion === 2) gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
         else instancedExtension.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP, 0, 4, count);
+        performanceMetrics.webGlDirectDrawCallCount++;
       }
       if (category !== 'lake') for (const location of locations.slice(1)) setInstanceDivisor(location, 0);
       for (const location of locations) gl.disableVertexAttribArray(location);
@@ -3824,6 +3841,7 @@ export function createGpuMapRenderer(deps) {
       for (const offset of frameContext.worldOffsets) {
         setViewUniforms(program, offset, frameContext);
         gl.drawElements(gl.TRIANGLES, grid.indexCount, gl.UNSIGNED_INT, 0);
+        performanceMetrics.webGlDirectDrawCallCount++;
       }
       gl.disableVertexAttribArray(gridLocation);
       return true;
@@ -3926,6 +3944,7 @@ export function createGpuMapRenderer(deps) {
       setViewUniforms(oceanSubstrateProgram, 0, activeFrameContext);
       gl.uniform3fv(cachedUniformLocation(oceanSubstrateProgram, 'uOceanColor'), mapTheme().oceanGpu);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      performanceMetrics.webGlDirectDrawCallCount++;
       gl.disableVertexAttribArray(position);
     }
     function prepareBaseScene() {
@@ -3953,6 +3972,7 @@ export function createGpuMapRenderer(deps) {
       if (!mesh && (!preparedBaseScene.physicalLandItems.length || preparedBaseScene.physicalLandItems.some(({ packet }) =>
         preparedBaseScene.deferredOverlayKeys.has(packet.key) || preparedBaseScene.failedOverlayKeys.has(packet.key)))) return false;
       const theme = mapTheme();
+      const baseSubmittedAt = performance.now();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         surfacePresentation,
         terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
@@ -3964,6 +3984,7 @@ export function createGpuMapRenderer(deps) {
         prepared: preparedBaseScene,
       }, { drawProgram, drawOceanSubstrate, renderTerrain, drawHydro, drawCountryBoundaryStrokes, polygonOverlayPass, strokeRenderer });
       performanceMetrics.baseSceneDrawCount += 1;
+      performanceMetrics.webGlLastBaseSubmitMs = performance.now() - baseSubmittedAt;
       sceneCacheFullDrawCount += 1;
       if (result.strokePresentationFailed) return false;
       lastBaseSceneResult = result;
@@ -4036,6 +4057,14 @@ export function createGpuMapRenderer(deps) {
       };
     }
 
+    function webGlSceneDrawCallSnapshot() {
+      return {
+        direct: performanceMetrics.webGlDirectDrawCallCount,
+        polygons: polygonOverlayPass.drawCallCount,
+        strokes: strokeRenderer.drawCallCount,
+      };
+    }
+
     function renderWebGl(visualFrame, { interactionOnly = false } = {}) {
       if (!gl) return null;
       if (projectRenderBlocked && !renderScene) return renderPreservedProjectFrame();
@@ -4046,6 +4075,7 @@ export function createGpuMapRenderer(deps) {
       performanceMetrics.visualFrameConsumeCount += 1;
       const viewState = visualFrame.viewState;
       const started = performance.now();
+      const drawCallsBefore = webGlSceneDrawCallSnapshot();
       let sceneCacheHit = false;
       let baseResult = null;
       let baseSubmissionFailed = false;
@@ -4205,6 +4235,13 @@ export function createGpuMapRenderer(deps) {
       sceneCacheInteractionDrawCount += 1;
       performanceMetrics.interactionFrameCount += 1;
       gl.flush();
+      const drawCallsAfter = webGlSceneDrawCallSnapshot();
+      const direct = drawCallsAfter.direct - drawCallsBefore.direct;
+      const polygons = drawCallsAfter.polygons - drawCallsBefore.polygons;
+      const strokes = drawCallsAfter.strokes - drawCallsBefore.strokes;
+      performanceMetrics.webGlLastFrameSceneDrawCalls = {
+        direct, polygons, strokes, total: direct + polygons + strokes,
+      };
       displayedRenderRevision = currentRenderRevision;
       if (mesh && baseResult && !baseSubmissionFailed) markPreviewFramePresented();
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
@@ -5666,6 +5703,10 @@ export function createGpuMapRenderer(deps) {
       target.paletteUploadCount = performanceMetrics.paletteUploadCount;
       target.paletteUploadBytes = performanceMetrics.paletteUploadBytes;
       Object.assign(target, hydroPreparation.metrics());
+      target.webGlLastFrameSceneDrawCalls = performanceMetrics.webGlLastFrameSceneDrawCalls;
+      target.webGlFirstBackgroundSceneDrawCalls = performanceMetrics.webGlFirstBackgroundSceneDrawCalls;
+      target.webGlFirstCountrySceneDrawCalls = performanceMetrics.webGlFirstCountrySceneDrawCalls;
+      target.webGlLastBaseSubmitMs = performanceMetrics.webGlLastBaseSubmitMs;
       target.canvasWorkerMessageCount = performanceMetrics.canvasWorkerMessageCount;
       target.canvasWorkerMessageBytes = performanceMetrics.canvasWorkerMessageBytes;
       target.countryBaseIndexCount = performanceMetrics.countryBaseIndexCount;

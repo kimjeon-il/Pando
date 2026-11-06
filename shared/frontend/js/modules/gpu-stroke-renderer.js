@@ -929,6 +929,7 @@ export function createGpuStrokeRenderer({ onError = null, onResourceReady = null
     hasPreparedResource: packet => resources.get(String(packet?.key || ''))?.signature === resourceSignature(packet),
     resourceByteLength: key => Number(resources.get(String(key || ''))?.byteLength || 0),
     isAvailable: () => !!gl && !!programs && !contextLost && gpuHealth === 'healthy' && selfTestPassed,
+    get drawCallCount() { return drawCallCount; },
     stats: () => Object.freeze({
       resourceCount: resources.size,
       uploadBytes,

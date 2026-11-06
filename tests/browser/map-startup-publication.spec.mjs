@@ -100,7 +100,20 @@ test('WebGL publishes an actual physical country frame before optional terrain d
     }),{timeout:30000}).toBe(true);
     const stats=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
     expect(stats.terrainReady).toBe(false);
+    expect(stats.mapReadiness.terrainReady).toBe(false);
+    expect(stats.webGlFirstBackgroundSceneDrawCalls?.total).toBeGreaterThan(0);
+    expect(stats.webGlFirstCountrySceneDrawCalls?.total).toBeGreaterThan(0);
+    expect(stats.webGlFirstCountrySceneDrawCalls.total).toBeGreaterThanOrEqual(
+      stats.webGlFirstCountrySceneDrawCalls.direct);
     expect(stats.mapReadiness.status).not.toBe('ready');
+    console.log('WEBGL_INITIAL_POSTING '+JSON.stringify({
+      firstBackgroundMs:stats.firstBackgroundFrameMs,
+      firstCountryMs:stats.firstCountryPublishedMs,
+      firstBackgroundDrawCalls:stats.webGlFirstBackgroundSceneDrawCalls,
+      firstCountryDrawCalls:stats.webGlFirstCountrySceneDrawCalls,
+      baseSubmitMs:stats.webGlLastBaseSubmitMs,
+      terrainReady:stats.mapReadiness.terrainReady,
+    }));
     expect(errors).toEqual([]);
   }finally{release();}
 });

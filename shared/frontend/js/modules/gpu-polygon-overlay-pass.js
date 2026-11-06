@@ -353,6 +353,7 @@ export function createGpuPolygonOverlayPass({ onError = null, onResourceReady = 
     hasResource: key => resources.has(String(key || '')),
     hasPreparedResource: packet => resources.get(String(packet?.key || ''))?.signature === signature(packet),
     isAvailable: () => !!gl && !!programInfo && !contextLost,
+    get drawCallCount() { return drawCallCount; },
     stats: () => Object.freeze({
       resourceCount: resources.size,
       uploadBytes,
