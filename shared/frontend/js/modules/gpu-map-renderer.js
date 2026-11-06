@@ -4855,7 +4855,9 @@ export function createGpuMapRenderer(deps) {
           canvasWorker = createGpuCanvasWorker({
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
-            acceptFrame: message => Number(message.geometryRevision || 0) >= geometryRevisionTracker.committedRevision()
+            acceptFrame: message => Number(message.frameId) === Number(lastVisualFrame?.frameId)
+              && message.presentationKey === mapTargetKey(lastVisualFrame, {terrainTargetKey: ''})
+              && Number(message.geometryRevision) === geometryRevisionTracker.committedRevision()
               && Number(message.styleRevision || 0) === canvasStyleRevision
               && message.surfaceQuality === surfacePresentation.quality
               && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
@@ -4865,11 +4867,15 @@ export function createGpuMapRenderer(deps) {
               // newer physical packets were prepared. The bitmap is discarded
               // by the transport; requeue only the current scene/view, never
               // acknowledge old pixels or submit into a retired generation.
-              if (disposed || rendererMode !== 'canvas-worker' || message.renderRequestId == null
+              // A spontaneous terrain/hydro bitmap has no renderRequestId.
+              // Do not acknowledge its old style/view, but recover by issuing
+              // a bounded new explicit submission of the current visual frame.
+              if (disposed || rendererMode !== 'canvas-worker'
                 || Number(message.projectGeneration) !== projectGeneration
                 || !lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration
                 || !physicalSceneMatchesContext(renderScene, getPhysicalContextState())
-                || canvasWorkerResubmitScheduled || canvasWorker?.hasPendingFrame) return;
+                || canvasWorkerResubmitScheduled || canvasWorker?.hasPendingFrame
+                || (message.renderRequestId == null && canvasWorker?.busy)) return;
               const key = [projectGeneration, lastVisualFrame.frameId, canvasStyleRevision,
                 geometryRevisionTracker.committedRevision()].join(':');
               if (key !== canvasWorkerResubmitKey) {
