@@ -317,7 +317,7 @@ test('real Canvas Worker generation reset retires old physical packets before ne
     polygonOffsets: new Uint32Array([0, 1]),
   });
   const pending = { surfacePresentation: { targetQuality: 'canonical', quality: 'pending' },
-    visible: false, sceneStrokes: [], visualOrder: { base: [], hydro: [] } };
+    visible: false, sceneStrokes: [], visualOrder: { base: ['substrate', 'physical-water'], hydro: [] } };
   send({ type: 'view', projectGeneration: 2, revision: 2, viewRevision: 2,
     ...pending, scenePolygons: [packet('physical-land', 'old-land')] });
   assert.equal(replies.at(-1).message.physicalLandRevision, 'old-land');
@@ -342,6 +342,14 @@ test('real Canvas Worker generation reset retires old physical packets before ne
   assert.equal(frame.physicalLandRevision, 'land-v3');
   assert.equal(frame.physicalWaterCount, 1);
   assert.equal(frame.physicalWaterRevision, 'water-v3');
+  // Source packets still exist, but the next bitmap draws neither physical pass.
+  send({ ...currentView, viewRevision: 2, revision: 2,
+    visualOrder: { base: [], hydro: [] },
+    scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
+  const unpainted = replies.at(-1).message;
+  assert.equal(unpainted.type, 'frame');
+  assert.equal(unpainted.physicalLandCount, 0);
+  assert.equal(unpainted.physicalWaterCount, 0);
 });
 
 test('Canvas data acknowledgements identify their project and obsolete data cannot acknowledge a new project', () => {

@@ -1120,8 +1120,13 @@ function canvasFallbackWorkerMain() {
       // A frame can be rendered while a newer scene is already staged on the
       // main thread. Echo the exact physical packets and country quality that
       // were painted; no main-thread snapshot may substitute for this evidence.
-      const landPainted = (message.scenePolygons || []).filter(packet => packet.role === 'physical-land');
-      const waterPainted = (message.scenePolygons || []).filter(packet => packet.role === 'physical-water');
+      // Packet presence is not proof of painted pixels: certify only passes
+      // included in this bitmap's actual visual order.
+      const paintedRoles = message.visualOrder?.base || [];
+      const landPainted = paintedRoles.includes('substrate')
+        ? (message.scenePolygons || []).filter(packet => packet.role === 'physical-land') : [];
+      const waterPainted = paintedRoles.includes('physical-water')
+        ? (message.scenePolygons || []).filter(packet => packet.role === 'physical-water') : [];
       const bitmap = canvas.transferToImageBitmap();
       self.postMessage({
         type: 'frame',
