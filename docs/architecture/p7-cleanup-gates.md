@@ -12,7 +12,7 @@
 ## 제거 의사결정
 
 1. **안전한 1차 통합:** `viewer-map-presentation-policy.js`는 `viewer-map.js`의 단일 입력/표시 어댑터이며 다른 저장·정본 소유권이 없다. 내장된 기존 구현을 한 글자도 바꾸지 않고 소유자인 Viewer Map으로 이동, 분리 파일을 제거한다. UI의 error/ready/retry·입력 제외 선택자를 집중 단위 검사한다. 동일성 근거는 이전 구현과 인라인 본문의 텍스트 동등성이다.
-2. **검증 전 보류:** `apps/editor/src-tauri`, Android/Windows 네이티브 호환 및 관련 CI/fixture, P5 Inspector, P6 GPKG 파일/보조표, C++ 타임라인/기하 구현, 외부 라이브러리·데이터 핀은 대체 소유자와 회귀 검증이 확인되기 전 **삭제하지 않는다**. 테스트 이름에 native/legacy가 포함된 것만으로 폐기 판정하지 않는다.
+2. **레거시 정리:** 사용자 승인을 받아 `apps/editor/**`의 퇴역 Windows 검수기/스테이징, 아이콘·설정 및 관련 전용 CI·테스트를 제거했다. Web Viewer의 읽기 전용 Inspector, C++/WASM 정본과 무관한 네이티브 명칭의 GIS/계산 테스트는 삭제 대상이 아니다. P6 GPKG, 역사 자료·원본 데이터 핀은 그대로 유지한다.
 3. **중복 모델·불필요한 파일:** 실제 실행 경로·테스트·문서/배포 참조를 근거로 단일 소유자가 입증될 때만 합친다. C++ 타임라인을 JS의 두 번째 저장 정본으로 바꾸지 않는다. 큰 파일로 무조건 합치는 것도 최적화가 아니므로 책임 경계를 유지한다.
 
 ## 남은 P7 검증 게이트
@@ -38,12 +38,12 @@
 - `builtInHydroFeatureById`의 캐시 미스 경로는 매번 `[...hydroFeatureCache.values()]`로 전체 하천·호수 배열을 생성한 뒤 순회했다. 내부 조회를 `Map.values()` 반복으로 바꿔 동일한 첫 매치 규칙·반환값을 유지하고 임시 배열 할당을 제거했다.
 - 공개 `allBuiltInHydroFeatures()`의 배열 반환 계약은 그대로 두었다. 집중 테스트는 1,024개 합성 수계의 직접 ID, 원본 fragment ID 별칭, 미존재 조회와 전체 열거 계약을 확인한다.
 
-## 미삭제 항목의 실제 소비자 조사
+## 레거시 소비자 제거 및 유지 판정
 
-- `apps/editor/src-tauri/icons/icon.ico`와 `icon.png`는 `tests/unit/brand-platforms.test.mjs`의 실제 Windows 아이콘 픽셀/투명도 검사에서 읽고 있다. Windows 네이티브 제품이 퇴역했다는 이유만으로 원본을 삭제하지 않는다.
-- `apps/editor/stage.mjs` 및 `check-stage.mjs`는 여전히 Web Viewer 스테이징·레거시 asset 제외 확인에 사용된다. 실제 실행 소비자가 있으므로 유지한다.
-- `tests/native/temporal-parity-p5-7.test.mjs` 등은 이름이 native라도 C++/WASM 정합성 증거가 있으므로 Windows 앱 코드로 오분류하여 제거하지 않는다.
-- `apps/editor/AGENTS.md`와 README에는 예전 Windows 검수기 운영 정책과 퇴역 이후 설명이 공존한다. 현 브랜치에는 Cargo 빌드 입력이 없지만, 이 사실만으로 기존 플랫폼 파일을 일괄 제거하거나 기록을 다시 쓰지 않는다.
+- 퇴역 Windows 아이콘(`apps/editor/src-tauri/icons/*`)과 `design/brand/windows*.svg`, 전용 `brand-platforms.test.mjs` 및 Windows 실행·스테이징 코드(`apps/editor/**`)가 삭제됐다. 과거 판단/검증 파일은 Git 이력으로 추적한다.
+- 앱 삭제 후 남았던 스테이징 파일 참조를 `scripts/lib/reviewer-ui-contracts.mjs`, `scripts/r4d-check-retired-tests.mjs` 및 `tests/unit/viewing-ui-contract.test.mjs`에서 정리했다. 이제 Web Viewer 자체의 읽기 전용 계약을 직접 확인한다.
+- `tests/native/temporal-parity-p5-7.test.mjs` 등 C++/WASM·GIS 계산 검증은 앱 설치물과 무관한 독립적인 정본 회귀 증거이므로 유지한다.
+- 외부 라이브러리 자료, C++ 코어, WASM, GeoPackage 포맷·검수기는 레거시 제거 대상이 아니며 그대로 둔다.
 
 ## 최신 검증 장부
 
@@ -52,7 +52,7 @@
 - P5 이전 Application checks(`42046742980`)의 Unit 실패에는 새 점검기 팩터리 주입이 누락된 구성 테스트 11개가 있었다(P6에서 코드 보정, 최신 재실행 미확인). Browser 실패는 초기 국가 게시 세대 미일치(`map-startup-publication`), WebGL 날짜 전환 정체(`resource-dependency-reuse`), 외부 GPKG 열기 후 viewer readiness 정체(`shared-viewing-shell`), 지형 인터랙션/LOD 타임아웃이었다. 테스트 대기시간만 늘려 통과로 위장하지 않는다.
 - 권장 영향 범위 검증: `node --test tests/unit/p7-viewer-presentation.test.mjs tests/unit/p7-hydro-lookup-cache.test.mjs tests/unit/p6-project-persistence.test.mjs tests/unit/app-hydro-settings.test.mjs tests/unit/project-resource-overlay.test.mjs tests/unit/viewer-initial-composition.test.mjs`; 변경 파일 ESLint, Viewer 프로젝트 열기/맵 준비/Inspector에 대한 선택적 브라우저 회귀. WASM 도구 또는 원본 데이터가 없는 환경에서 전체 검사를 강행하거나 CI 준비를 위해 SDK를 설치하지 않는다.
 
-**차단 게이트:** 최신 작업 커밋에는 `[skip ci]`가 지정되어 GitHub Actions 검사 결과가 없다. 최종 P7 완료 판정은 미실시된 선택적 Node/브라우저/C++ 검사와 동일 환경 성능 비교 결과를 확보한 뒤 수행해야 한다.
+**차단 게이트:** P7 재검증용 GitHub Actions는 실제로 실행 중이다. P1·P2·P3·P4·Core·지명 동기화 등은 확인된 실행에서 일부 또는 전부 통과했으나, 최신 코드의 전체 Application checks·DEM Gate와 실제 브라우저 성능 측정은 모두 최종 수용 전 확인해야 한다. 앞선 실패나 현재 진행 중인 검사를 통과로 바꾸어 표시하지 않는다.
 
 ## P7 Windows 소스 제거 승인 적용 — 2026-11-06
 
@@ -68,3 +68,9 @@ Viewer의 검수기 활성화는 `?inspect=1`·`?debug=1`·단축키 경로만 �
 읽기 전용 Viewer/Inspector 계약을 검사한다. 기존 CI에서 실패한 4개 브라우저 그룹에는
 실패 시 정본 C++ 시점·GPU 준비 상태·LOD·진단 코드를 출력하는 관측 코드를 추가했다.
 이 관측은 테스트의 통과 기준을 완화하지 않는다. CI 최신 SHA 확인 전 통합 통과를 주장하지 않는다.
+
+## P7 후속 2026-11-06 — 업로드 기아 방지 및 직접 성능 계측
+
+- `gpu-upload-scheduler.js`: `isInputPending()===true`이면 전체 업로드를 중단하던 조기 반환을 제거했다. `allowDuringInteraction` 작업만 기존 **2ms CPU 제출 / 256KiB 계획 예산**으로 진행하며, 일반 작업은 500ms 입력 휴지 기간 동안 계속 대기한다. `gpu-upload-staging.test.mjs`에 실제 스케줄러의 입력 중·휴지 중·해제 후 검증을 추가했다. 새 코드의 격리 실행은 3가지 동작 모두 통과. 실제 GPU 타일의 완성·속도는 브라우저 CI가 증명해야 한다.
+- 동일 V8 실행 인스턴스의 합성 불변 수계 4,000개, ID 조회 10,000회×5회에서 `main` 정본(`physical-settings.js@c584226d`) 중앙값 1,364ms, P7(`physical-settings.js@b1630464`) 2ms를 측정했다. 이는 **해당 조회 연산에만** 해당하며 실제 브라우저의 초기 지도 표시 시간/날짜 이동/프레임 속도/GPU 메모리 개선률이 아니다.
+- 마지막 실행 소스 SHA: `c517e6c5ddf40ea58575c359f1bead04f4839549`. 지도 게시·GPKG 재열기·WebGL/Canvas DEM 및 LOD의 실제 수용 시험과 동등 조건 브라우저 성능 비교는 아직 P7 완료 차단 요인이다.
