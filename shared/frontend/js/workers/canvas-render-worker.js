@@ -589,6 +589,12 @@ function canvasFallbackWorkerMain() {
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
       for (const spec of demNeighbours) requestDemTile(spec, 120);
+      // The main-thread physical certificate necessarily rejects a bitmap
+      // without a land packet. Keep downloading tiles, but do not spend CPU
+      // tessellating an unpresentable early bitmap while the verified land
+      // geometry is still being prepared. The subsequent real scene/style
+      // message will paint these already-requested resources.
+      if (!(message.scenePolygons || []).some(packet => packet.role === 'physical-land')) return false;
       // Keep preparing while countries are pending. Once the world base is
       // ready, its physical background can be presented before country meshes.
       if (message.surfacePresentation?.quality === 'pending' && !baseReady) return false;

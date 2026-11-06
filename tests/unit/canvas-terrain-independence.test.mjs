@@ -147,6 +147,24 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
   };
 }
 
+test('Canvas prepares raster tiles without tessellating an uncertified zero-land frame',async()=>{
+  const h=canvasTerrainRuntime();await settle();
+  const noLand={scenePolygons:[],surfacePresentation:{targetQuality:'canonical',quality:'pending'},
+    physicalSettings:{terrainVisible:true,terrainStyle:'physical'}};
+  h.render(noLand);await settle();
+  assert.ok(h.requests.length>0,'tile fetching still progresses while physical source is pending');
+  for(const request of [...h.requests])if(!request.completed)await h.deliver(request);
+  const prior=h.drawn.length;
+  h.render(noLand);
+  const pending=h.messages.filter(message=>message.type==='frame').at(-1);
+  assert.equal(pending.physicalLandCount,0);
+  assert.equal(pending.terrainComplete,false,'an uncertified bitmap cannot claim a completed terrain paint');
+  assert.equal(h.drawn.length,prior,'do not rasterize expensive terrain behind an unpresentable bitmap');
+  h.render({...noLand,scenePolygons:[h.land]});
+  assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).physicalLandCount,1,
+    'a later physical scene restores the actual rendering path');
+});
+
 test('Canvas globe terrain reuses shared grid vertices while preserving exact triangles', () => {
   const h=canvasTerrainRuntime(), spec={bounds:[0,4,4,0],pixelWidth:4,pixelHeight:4};
   let projections=0;const projection=point=>{projections++;return [point[0],point[1]];};

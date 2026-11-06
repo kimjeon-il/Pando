@@ -141,6 +141,7 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
 
 const integrationPresentationChanges=[
   'shared/frontend/js/modules/country-mesh-zoom-policy.js',
+  'shared/frontend/js/workers/canvas-render-worker.js',
   'shared/frontend/js/modules/map-input-presentation.js',
   'shared/frontend/js/modules/gpu-map-renderer.js',
   'scripts/r4d-check-retired-tests.mjs',
@@ -168,6 +169,7 @@ const staleDataFamilyIds=['territorial','current-world','builtin-world','world-m
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
 const nativeValidationChanges=[
   'shared/frontend/js/modules/country-mesh-zoom-policy.js',
+  'shared/frontend/js/workers/canvas-render-worker.js',
   'scripts/p2-publish-artifacts.mjs',
   '.github/workflows/generated-artifacts-p2.yml',
   'docs/architecture/p7-ci-nonbrowser-recovery.md',

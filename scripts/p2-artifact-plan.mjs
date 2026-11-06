@@ -127,6 +127,7 @@ function validationOrPresentationOnly(changes,graph) {
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'shared/frontend/js/modules/map-input-presentation.js',
     'shared/frontend/js/modules/country-mesh-zoom-policy.js',
+    'shared/frontend/js/workers/canvas-render-worker.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
     'scripts/r4d-check-retired-tests.mjs',
     'scripts/remote-only-doctor.mjs','scripts/remote-only-ci-scope.mjs',
