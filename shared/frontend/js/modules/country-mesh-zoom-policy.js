@@ -19,6 +19,31 @@ export function resolveMapSurfacePresentation({ canonicalReady = false, previewR
   return Object.freeze({ targetQuality, geometryQuality, quality: backgroundPresented ? geometryQuality : 'pending' });
 }
 
+
+/**
+ * A Canvas resource-completion invalidation creates a new coordinator frameId
+ * without necessarily changing what the Worker is painting. Bind the bitmap
+ * to its full visual dependencies, not that transient scheduling number.
+ * The caller also checks actual physical packet provenance and style revision.
+ */
+export function canvasWorkerPresentationKey(frame, {
+  projectGeneration, contextRevision, geometryRevision, paletteRevision,
+  physicalStyleRevision, terrainVisible, surfaceQuality,
+  surfaceGeometryQuality, surfaceTargetQuality,
+} = {}) {
+  if (!frame) return '';
+  const view = frame.viewState || {};
+  return JSON.stringify([
+    projectGeneration, contextRevision, geometryRevision,
+    frame.viewRevision, frame.projectionRevision, frame.projection,
+    frame.cssViewport, frame.dpr, frame.cssScale, frame.cssTranslate,
+    view.rotation, view.projectionCenter, view.flatCenter,
+    view.flatZoom, view.globeZoom, frame.safeInset,
+    paletteRevision, physicalStyleRevision, !!terrainVisible,
+    surfaceQuality, surfaceGeometryQuality, surfaceTargetQuality,
+  ]);
+}
+
 /** Only a transferred, current Worker bitmap may unblock initial country paint
  * before optional terrain data completes. Temporal replacement remains strict. */
 export function canAdmitCanvasWorkerPartialBackground({ rendererMode, committedBitmap, physicalSceneMatched, temporalPending } = {}) {

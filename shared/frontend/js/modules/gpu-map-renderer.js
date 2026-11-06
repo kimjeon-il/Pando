@@ -29,7 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -391,6 +391,21 @@ export function createGpuMapRenderer(deps) {
       return { ...canvasTerrainStats, terrainReady: canvasPreviewAdequate(lastVisualFrame),
         terrainFailed: !!canvasPreviewError,
         terrainResolutionLimited: !!canvasPreviewAtlas && canvasPreviewAtlas.physical.width < 2 * Math.PI * (lastVisualFrame?.cssScale || 1) * Math.min(isMobile() ? 2 : 3, window.devicePixelRatio || 1) * 1.12 };
+    }
+
+    // Stable picture identity: Worker paints can finish after GPU-only
+    // invalidations advance frameId without changing the viewed scene.
+    function currentCanvasPresentationKey(frame = lastVisualFrame) {
+      return canvasWorkerPresentationKey(frame, {
+        projectGeneration, contextRevision: renderDeviceContextRevision,
+        geometryRevision: geometryRevisionTracker.committedRevision(),
+        paletteRevision: countryPaletteRevision,
+        physicalStyleRevision: physicalStyleStateRevision,
+        terrainVisible: state.physicalSettings.terrainVisible,
+        surfaceQuality: surfacePresentation.quality,
+        surfaceGeometryQuality: surfacePresentation.geometryQuality,
+        surfaceTargetQuality: surfacePresentation.targetQuality,
+      });
     }
 
     function mapTargetKey(frame = lastVisualFrame, terrain = currentTerrainReadiness()) {
@@ -4549,7 +4564,7 @@ export function createGpuMapRenderer(deps) {
         // Startup and camera moves can present prepared fallback terrain.
         deferIncompleteTerrain: temporalPending() && countriesPublishedGeneration >= 0,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
-        presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),
+        presentationKey: currentCanvasPresentationKey(frame),
         projection: frame.projection,
         view: { flatCenter: view.projectionCenter || view.flatCenter, globeRotation: view.rotation,
           flatZoom: view.flatZoom, globeZoom: view.globeZoom },
@@ -4780,15 +4795,18 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (message.type !== 'frame') return;
+      // Every view/style/physical input must match, but a GPU-only scheduling
+      // frameId is not part of the painted picture. The transport also enforces
+      // generation, submitted revision and the full style/physical certificate.
       if (Number(message.projectGeneration) !== projectGeneration
-          || Number(message.frameId) !== Number(lastVisualFrame?.frameId)
-          || message.presentationKey !== mapTargetKey(lastVisualFrame, { terrainTargetKey: '' })
+          || message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)
           || Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) {
         message.bitmap?.close?.();
         return;
       }
       const revision = Number(message.revision || 0);
       const geometryRevision = Number(message.geometryRevision || 0);
+      const presentedVisualFrame = lastVisualFrame;
       if (message.bitmap) {
         const temporalCommit = temporalPending();
         if (temporalCommit && (!temporalFrameReady(message.terrainComplete !== false, message.terrainStats || {})
@@ -4812,16 +4830,18 @@ export function createGpuMapRenderer(deps) {
         displayedRenderRevision = revision;
         // Actual Worker bitmap provenance, not the renderer's newest scene,
         // is the resource certificate for a displayed frame.
-        recordMapPresentation(lastVisualFrame, canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+        recordMapPresentation(presentedVisualFrame, canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
           { committedWorkerBitmap: true });
         canvasWorkerResubmitAttempts = 0;
         canvasWorkerResubmitKey = '';
         markPreviewFramePresented();
+        // Commit the DOM/label shell against the *current* coordinator frame
+        // that has exactly the certified picture, not a superseded frameId.
         framePresentationListener?.({
-          frameId: Number(message.frameId || revision || 0),
-          viewRevision: Number(message.viewRevision || revision || 0),
-          projectionRevision: Number(message.projectionRevision || 0),
-          projectGeneration: Number(message.projectGeneration || projectGeneration),
+          frameId: Number(presentedVisualFrame.frameId),
+          viewRevision: Number(presentedVisualFrame.viewRevision),
+          projectionRevision: Number(presentedVisualFrame.projectionRevision),
+          projectGeneration: Number(presentedVisualFrame.projectGeneration),
           renderer: 'canvas-worker',
           temporalCommit,
         });
@@ -4865,8 +4885,7 @@ export function createGpuMapRenderer(deps) {
           // One acceptance predicate also supplies bounded rejection diagnostics.
           // Neither the renderer nor tests may call an old bitmap "presented".
           const canvasFrameRejectionReason = message => {
-            if (Number(message.frameId) !== Number(lastVisualFrame?.frameId)) return 'frame';
-            if (message.presentationKey !== mapTargetKey(lastVisualFrame, {terrainTargetKey: ''})) return 'presentation';
+            if (message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)) return 'presentation';
             if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
             if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
             if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
