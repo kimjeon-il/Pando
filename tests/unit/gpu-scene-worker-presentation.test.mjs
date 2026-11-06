@@ -36,15 +36,19 @@ test('Canvas Worker submits the latest view when a drag finishes',()=>{
   const latestEnd=source.indexOf('\n    function ',latestStart+1);
   assert.ok(renderStart>=0&&renderEnd>renderStart&&latestStart>=0&&latestEnd>latestStart);
   const create=new Function(`
-    let interactionActive=false, rendererMode='canvas-worker', lastVisualFrame=null;
+    let interactionActive=false, rendererMode='canvas-worker', lastVisualFrame=null, projectGeneration=1;
     const sent=[], canvasWorker={queueFrame:frame=>sent.push(frame)};
     const resize=()=>{}, syncCanvasWorkerState=()=>{}, canvasWorkerViewMessage=frame=>frame||lastVisualFrame;
     ${source.slice(renderStart,renderEnd)}
     ${source.slice(latestStart,latestEnd)}
     return {sent, move:frame=>{lastVisualFrame=frame;renderCanvasWorker(frame);},
+      setGeneration:value=>{projectGeneration=value;},
       begin:()=>{interactionActive=true;}, finish:()=>{interactionActive=false;prioritizeLatest();}};
   `);
-  const h=create();h.move({id:0});h.begin();h.move({id:1});h.move({id:2});h.finish();
+  const h=create();h.setGeneration(0);h.move({id:'pre-document'});
+  h.begin();h.finish();
+  assert.deepEqual(h.sent,[],'pre-document work cannot block the current project');
+  h.setGeneration(1);h.move({id:0});h.begin();h.move({id:1});h.move({id:2});h.finish();
   assert.deepEqual(h.sent.map(frame=>frame.id),[0,2]);
 });
 

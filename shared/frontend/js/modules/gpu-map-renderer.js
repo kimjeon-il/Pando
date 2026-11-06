@@ -4712,7 +4712,9 @@ export function createGpuMapRenderer(deps) {
       // A synchronous terrain paint cannot be interrupted by newer Worker
       // messages. Keep the current bitmap during a drag and let the existing
       // movement-end handoff submit the latest camera, not an intermediate one.
-      if (!canvasWorker || interactionActive) return;
+      // Generation zero is pre-document startup. Do not commit CPU-intensive
+      // provisional terrain frames that the first project reset will discard.
+      if (!canvasWorker || interactionActive || projectGeneration === 0) return;
       resize(visualFrame);
       syncCanvasWorkerState();
       canvasWorker.queueFrame(canvasWorkerViewMessage(visualFrame));
@@ -4788,7 +4790,7 @@ export function createGpuMapRenderer(deps) {
     }
 
     function prioritizeLatest() {
-      if (rendererMode !== 'canvas-worker' || !canvasWorker) return;
+      if (rendererMode !== 'canvas-worker' || !canvasWorker || projectGeneration === 0) return;
       syncCanvasWorkerState();
       if (lastVisualFrame) canvasWorker.queueFrame(canvasWorkerViewMessage());
     }
