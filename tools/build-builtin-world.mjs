@@ -97,6 +97,10 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
   const overlap=a.bbox[0]<=b.bbox[2]&&b.bbox[0]<=a.bbox[2]&&a.bbox[1]<=b.bbox[3]&&b.bbox[1]<=a.bbox[3];
   if(a.parents.has(b.projectEntityId)||b.parents.has(a.projectEntityId)||[...a.parents].some(parent=>b.parents.has(parent))&&(a.historical||b.historical)&&overlap)connect(a.projectEntityId,b.projectEntityId);
  }
+ for (const row of policy.parentRelations || []) {
+  const child=mapping.get(row.entityId)||row.entityId,parent=mapping.get(row.parentEntityId)||row.parentEntityId;
+  if(edges.has(child)&&edges.has(parent))connect(child,parent);
+ }
  for(const row of [...policy.replacements,...previousCoverage.adjustments]){
   const a=mapping.get(row.targetEntityId)||row.entityId||row.targetEntityId;
   for(const raw of row.relatedIds||[row.priorityEntityId]){const b=mapping.get(raw)||raw;if(edges.has(a)&&edges.has(b))connect(a,b);}
@@ -126,7 +130,8 @@ export function buildBuiltinWorldPartialPublication({entityIds,sourceIndex,previ
   const ids=new Set(nodes.filter(row=>component.has(row.projectEntityId)).flatMap(row=>row.sourceEntityIds));
   const entities=[...ids].map(id=>readSource(id));
   const scopedView={...view,selections:view.selections.filter(row=>ids.has(row.entityId))};
-  const scopedPolicy={...policy,replacements:policy.replacements.filter(row=>ids.has(row.targetEntityId)&&ids.has(row.priorityEntityId))};
+  const scopedPolicy={...policy,replacements:policy.replacements.filter(row=>ids.has(row.targetEntityId)&&ids.has(row.priorityEntityId)),
+   ...(policy.parentRelations ? {parentRelations:policy.parentRelations.filter(row=>ids.has(row.entityId)&&ids.has(row.parentEntityId))} : {})};
   const world=currentWorld?{...currentWorld,features:currentWorld.features.filter(row=>entities.some(e=>e.sourceInfo?.featureId===row.id))}:buildCurrentWorld({entities,view:scopedView});
   const compiled=compileBuiltinWorldCatalog({entities,view:scopedView,currentWorld:world,policy:scopedPolicy,availableSourceIds});
   for(const [file,bytes] of encodeCountries(compiled.index,compiled.countries))files.set(file,bytes);
