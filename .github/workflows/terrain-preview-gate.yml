@@ -65,9 +65,10 @@ jobs:
       - name: Check actual WebGL and Canvas display paths with fixed terrain responses
         run: |
           pnpm install --frozen-lockfile
-          node --test tests/unit/gpu-canvas-worker.test.mjs
+          node --test tests/unit/gpu-canvas-worker.test.mjs tests/unit/gpu-base-scene-order.test.mjs tests/unit/map-presentation-readiness.test.mjs
           pnpm exec playwright install --with-deps chromium
           pnpm exec playwright test tests/browser/terrain-preview.spec.mjs --output=terrain-preview-browser
+          pnpm exec playwright test tests/browser/map-startup-publication.spec.mjs --grep 'WebGL publishes an actual physical country frame before optional terrain detail resolves' --output=webgl-initial-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -75,3 +76,4 @@ jobs:
           path: |
             terrain-preview-evidence.json
             terrain-preview-browser
+            webgl-initial-browser
