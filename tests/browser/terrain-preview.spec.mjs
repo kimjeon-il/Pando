@@ -45,9 +45,12 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
   const errors = [];
   await page.addInitScript(() => {
     window.__terrainFrames = [];
+    window.__terrainWorkerEvents = [];
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
       constructor(...args) { super(...args); this.addEventListener('message', ({ data }) => {
+        if (data.type === 'terrain-ready' || data.type === 'terrain-warning')
+          window.__terrainWorkerEvents.push({ kind: data.type, key: data.key, message: data.message });
         if (data.type === 'frame') window.__terrainFrames.push({
           stats: data.terrainStats, revision: data.revision, style: data.styleRevision,
           complete: data.terrainComplete, frameId: data.frameId, renderRequestId: data.renderRequestId,
@@ -58,7 +61,26 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
           physicalWaterCount: data.physicalWaterCount, physicalLandRevision: data.physicalLandRevision,
         });
       }); }
+      postMessage(message, ...args) {
+        if (message?.type === 'init')
+          window.__terrainWorkerEvents.push({ kind: 'init', enabled: message.terrainEnabled,
+            raster: message.terrainManifestUrl, dem: message.terrainDemManifestUrl });
+        return super.postMessage(message, ...args);
+      }
     };
+  });
+  const requests = [];
+  context.on('request', request => {
+    if (request.url().includes('/terrain/v0.13.3/'))
+      requests.push({ kind: 'request', url: request.url().split('?')[0] });
+  });
+  context.on('response', response => {
+    if (response.url().includes('/terrain/v0.13.3/'))
+      requests.push({ kind: 'response', status: response.status(), url: response.url().split('?')[0] });
+  });
+  context.on('requestfailed', request => {
+    if (request.url().includes('/terrain/v0.13.3/'))
+      requests.push({ kind: 'failed', error: request.failure()?.errorText, url: request.url().split('?')[0] });
   });
   page.on('pageerror', error => errors.push(error.message));
   let releaseDem;
@@ -109,8 +131,9 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     expect(errors).toEqual([]);
   } catch (error) {
     if (!page.isClosed()) {
-      const diagnostics = await page.evaluate(() => ({ metrics: window.__PANDOLAB_GPU_METRICS__, frames: window.__terrainFrames.slice(-5) })).catch(() => null);
-      console.log(JSON.stringify(diagnostics));
+      const diagnostics = await page.evaluate(() => ({ metrics: window.__PANDOLAB_GPU_METRICS__,
+        frames: window.__terrainFrames.slice(-5), events: window.__terrainWorkerEvents.slice(-40) })).catch(() => null);
+      console.log('CANVAS_DEM_DIAGNOSTIC '+JSON.stringify({ ...diagnostics, requests: requests.slice(-60) }));
     }
     throw error;
   } finally { releaseDem(); }
