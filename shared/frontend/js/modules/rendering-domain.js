@@ -823,6 +823,8 @@ export function createRenderingDomain({
     active();
     resetTerritorialBoundaryCache();
     gpuMapRenderer?.resetProjectRenderState?.({ generation,...presentation });
+    // Do not wait for a blocked RAF to obtain this project's frame identity.
+    coordinator?.stageBlockedBackground?.();
     return generation;
   };
   const getStats = () => Object.freeze({
