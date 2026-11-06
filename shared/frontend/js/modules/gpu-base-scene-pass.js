@@ -112,6 +112,8 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       }
         },
         'territorial-fill': () => {
+      // No territory means no ownership stencil and no full-screen clear.
+      if (!surfaceReady || !territoryItems.length) return;
       // Front-to-back ownership: each sample receives exactly one territorial
       // fill, regardless of nesting, alpha, or the number of overlapping units.
       gl.stencilMask(0xff);
@@ -120,7 +122,7 @@ function submitGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, 
       gl.enable(gl.STENCIL_TEST);
       gl.stencilFunc(gl.EQUAL, 0, 0xff);
       gl.stencilOp(gl.KEEP, gl.KEEP, gl.INCR);
-      if (surfaceReady) for (const item of territoryItems) drawOverlay(item);
+      for (const item of territoryItems) drawOverlay(item);
         },
         'country-fill': () => {
       resetGpuNormalBlend(gl);

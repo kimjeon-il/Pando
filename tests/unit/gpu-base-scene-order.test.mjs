@@ -103,6 +103,32 @@ test('WebGL never submits a second physical-land mask when raster/DEM tiles are 
   assert.equal(terrainDraws,0,'no terrain tile means no GPU terrain submission');
 });
 
+test('empty or unpublished territorial ownership never clears another full-viewport stencil', () => {
+  const paint=(quality, items)=>{
+    let clears=0, territories=0;
+    const gl=new Proxy({clear(){clears++}}, {get:(target,key)=>target[key] ?? (/^[A-Z_]+$/.test(key)?key:()=>{})});
+    const polygonOverlayPass={
+      hasResource:()=>true,
+      drawPackets:packets=>{
+        if(packets[0].role==='territorial-fill')territories++;
+        return {renderedKeys:packets.map(row=>row.key),missingKeys:[]};
+      },
+    };
+    drawGpuBaseScene({gl,frame:{},width:200,height:100,terrainVisible:false,
+      surfacePresentation:{quality},countriesVisible:false,countries:{},
+      prepared:{baseTriangleDraw:{ranges:[]},overrideTriangleDraw:{ranges:[]},
+        territoryItems:items,independentItems:[],physicalWaterItems:[],physicalLandItems:[],
+        deferredOverlayKeys:new Set(),failedOverlayKeys:new Set()}},
+    {drawOceanSubstrate(){},renderTerrain(){},drawHydro(){},drawProgram(){},
+      drawCountryBoundaryStrokes(){},polygonOverlayPass,strokeRenderer:{}});
+    return {clears,territories};
+  };
+  const region=[{kind:'polygon',packet:{key:'zone',role:'territorial-fill'}}];
+  assert.deepEqual(paint('canonical',[]),{clears:2,territories:0});
+  assert.deepEqual(paint('pending',region),{clears:2,territories:0});
+  assert.deepEqual(paint('canonical',region),{clears:3,territories:1});
+});
+
 test('WebGL mixes overlays by order and protects base water and borders from fills', () => {
   const events = [], state = { stencil: false, color: true };
   const gl = new Proxy({ STENCIL_TEST: 'stencil', enable: key => { if (key === 'stencil') state.stencil = true; },

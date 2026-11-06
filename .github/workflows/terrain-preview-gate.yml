@@ -10,10 +10,15 @@ on:
       - 'tools/*terrain-preview*'
       - 'tests/**/terrain-preview*'
       - 'shared/frontend/js/modules/gpu-map-renderer.js'
+      - 'shared/frontend/js/modules/gpu-base-scene-pass.js'
+      - 'shared/frontend/js/modules/startup-readiness.js'
       - 'shared/frontend/js/workers/canvas-render-worker.js'
       - 'shared/frontend/js/workers/canvas-terrain-dem-core.js'
       - 'tests/unit/canvas-terrain-dem-core.test.mjs'
       - 'tests/unit/canvas-terrain-independence.test.mjs'
+      - 'tests/unit/gpu-base-scene-order.test.mjs'
+      - 'tests/unit/map-presentation-readiness.test.mjs'
+      - 'tests/browser/map-startup-publication.spec.mjs'
       - '.github/workflows/terrain-preview-gate.yml'
   pull_request:
     paths:
@@ -22,10 +27,15 @@ on:
       - 'tools/*terrain-preview*'
       - 'tests/**/terrain-preview*'
       - 'shared/frontend/js/modules/gpu-map-renderer.js'
+      - 'shared/frontend/js/modules/gpu-base-scene-pass.js'
+      - 'shared/frontend/js/modules/startup-readiness.js'
       - 'shared/frontend/js/workers/canvas-render-worker.js'
       - 'shared/frontend/js/workers/canvas-terrain-dem-core.js'
       - 'tests/unit/canvas-terrain-dem-core.test.mjs'
       - 'tests/unit/canvas-terrain-independence.test.mjs'
+      - 'tests/unit/gpu-base-scene-order.test.mjs'
+      - 'tests/unit/map-presentation-readiness.test.mjs'
+      - 'tests/browser/map-startup-publication.spec.mjs'
   workflow_dispatch:
 
 permissions:
