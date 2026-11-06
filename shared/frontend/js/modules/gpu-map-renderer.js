@@ -2696,6 +2696,8 @@ export function createGpuMapRenderer(deps) {
       projectRenderBlocked = true;
       if (canvasWorker) {
         canvasWorker.resetGeneration(projectGeneration);
+        canvasScenePackets.clear();
+        canvasLastCountryDependencies = null;
         canvasLastSentGeometryRevision = -1;
         canvasLastStyleSignature = ''; canvasLastPhysicalStyleSignature = '';
       }
@@ -5022,11 +5024,13 @@ export function createGpuMapRenderer(deps) {
           postCanvasWorkerMessage(initMessage);
           // A source-verified smaller physical mask can paint the initial
           // Canvas terrain before the authoritative source is available.
-          void Promise.resolve().then(() => prepareCanvasPhysicalPreview()).then(() => {
-            if (disposed || rendererMode !== 'canvas-worker' || canvasWorker !== sourceWorker) return;
-            canvasLastStyleSignature = '';
-            if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-preview-physical-ready');
-          }).catch(error => { console.warn('Canvas physical preview unavailable', error); });
+          if (typeof prepareCanvasPhysicalPreview === 'function') {
+            void Promise.resolve().then(() => prepareCanvasPhysicalPreview()).then(() => {
+              if (disposed || rendererMode !== 'canvas-worker' || canvasWorker !== sourceWorker) return;
+              canvasLastStyleSignature = '';
+              if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-preview-physical-ready');
+            }).catch(error => { console.warn('Canvas physical preview unavailable', error); });
+          }
           if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
           else connectHydroCanvasWorkers();
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
@@ -5715,7 +5719,7 @@ export function createGpuMapRenderer(deps) {
         renderer: rendererMode,
         // Expose the exact picture certificate only in the explicit debug
         // metrics path. This does not affect frame admission or readiness.
-        ...(rendererMode === 'canvas-worker' && window.location.search.includes('debug=1')
+        ...(rendererMode === 'canvas-worker' && window.location?.search?.includes('debug=1')
           ? { canvasExpectedBackgroundKey: currentCanvasBackgroundKey(),
               canvasExpectedPhysicalContext: currentCanvasPhysical().context } : {}),
         mapHost: 'legacy',
