@@ -10,7 +10,7 @@ test('water preparation cannot migrate or regenerate all builtin countries as a 
 });
 
 test('active builtin generation, loading and packaging have no aggregate transport execution path',()=>{
- for(const path of ['tools/build-builtin-world.mjs','shared/frontend/js/modules/builtin-world-loader.js','scripts/lib/product-assets.mjs','apps/editor/world-data-plan.mjs','apps/editor/stage.mjs']){
+ for(const path of ['tools/build-builtin-world.mjs','shared/frontend/js/modules/builtin-world-loader.js','scripts/lib/product-assets.mjs','apps/viewer/js/modules/viewer-map.js','tools/stage-monorepo-pages.mjs']){
   assert.doesNotMatch(source(path),/\bloadTransport\s*\(|\btransportPromise\b|\.transport\s*\.\s*url|transport\/countries-sha256-/,path);
  }
 });

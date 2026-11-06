@@ -1,6 +1,6 @@
 # 브랜치 및 상설 워크트리 운영 정책
 
-`kimjeon-il/Pando`는 `apps/viewer/` 웹 Viewer, `shared/` 공통 코드와 웹 검증 보조 도구를 보관한다. 독립 Windows 검수기·Android 앱·그래픽 편집기는 폐기되었으며, `apps/editor/`에는 현재 Viewer를 위한 테스트·스테이징 보조 도구만 남아 있다. 실제 배포·개발 진입점은 Viewer를 기준으로 검증한다. 이전 `kimjeon-il/PandoEditor` 저장소는 복구용 원본으로 보존하며 자동 동기화하지 않는다.
+`kimjeon-il/Pando`는 `apps/viewer/` 웹 Viewer, `shared/` 공통 코드와 웹 검증 보조 도구를 보관한다. 독립 Windows 검수기·Android 앱·그래픽 편집기는 폐기되었으며 `apps/editor/` 디렉터리도 삭제됐다. Viewer의 테스트·스테이징 도구는 `tests/`, `tools/`, `scripts/`에 있다. 실제 배포·개발 진입점은 Viewer를 기준으로 검증한다. 이전 `kimjeon-il/PandoEditor` 저장소는 복구용 원본으로 보존하며 자동 동기화하지 않는다.
 
 ## 유지할 브랜치
 
@@ -20,7 +20,7 @@
 1. `git worktree list --porcelain`로 해당 브랜치의 상설 워크트리를 찾는다. 그곳에서 `git status --short --branch`와 미추적 파일을 확인한다.
 2. `git fetch origin` 후 로컬·원격 브랜치의 앞뒤 관계를 확인한다.
 3. 작업 브랜치가 뒤처졌다면 미완성 작업을 보존하면서 `main → work/*` 방향으로 병합한다. 충돌을 임의로 한쪽만 선택해 해결하지 않는다.
-4. 해당 워크트리에서 `apps/viewer/`·`shared/`·현재 쓰는 `apps/editor/` 보조 도구의 변경을 함께 검토하고, 필요한 범위만 검사·커밋·푸시한다.
+4. 해당 워크트리에서 `apps/viewer/`·`shared/`·`tests/`·`tools/`·`scripts/`의 변경을 함께 검토하고, 필요한 범위만 검사·커밋·푸시한다.
 
 `work/* → main` 통합, `main` 직접 수정, Pages 배포는 사용자의 명시적 지시가 있을 때만 한다. 범주 사이에서 변경을 옮길 때에도 목적과 미완성 작업의 혼입 여부를 확인한다. 현재 통합 작업의 승인은 해당 작업 범위에 적용된다.
 

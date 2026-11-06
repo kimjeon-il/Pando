@@ -1,8 +1,8 @@
 # 판도연구소 v0.36.0
 
-1801년 이후의 세계 역사 지도와 국가·영토 속성을 탐색하는 웹 열람기이며, Windows에서는 같은 지도 엔진을 이용한 읽기 전용 검수기를 제공합니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용합니다.
+1801년 이후의 세계 역사 지도와 국가·영토 속성을 탐색하는 PC·모바일 웹 열람기입니다. 검수 기능은 웹 Viewer에 통합되어 있습니다. Natural Earth 5.1.1의 1:10m 국가 데이터와 지형 음영, HydroRIVERS 강·Natural Earth 호수를 사용합니다.
 
-이 저장소는 PC·모바일 웹 열람기, [Windows 검수기](apps/editor/README.md), [공통 C++ 코어](shared/README.md), [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)를 함께 관리합니다. `apps/viewer`가 공개 웹과 Windows 검수기의 공통 UI 정본입니다. Android 네이티브 앱은 폐기되었고 모바일 브라우저는 계속 지원합니다.
+이 저장소는 PC·모바일 웹 Viewer(`apps/viewer`), [공통 C++ 코어](shared/README.md)와 배포·검수 도구를 관리합니다. 원본 GIS 자료 및 [조사·검증 보고서](https://github.com/kimjeon-il/PandoLab-library-data/blob/f4ae4d70579b8c799fba2e507e1a948b7e1e42c2/reports/README.md)는 외부 라이브러리에 보관합니다. 독립 Windows 검수기와 Android 네이티브 앱은 폐기됐습니다.
 
 v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·단위·숫자값으로 관리합니다. 소수·0·음수를 저장할 수 있고, 분포별 자동 또는 직접 지정한 값 범위로 색 농도를 정합니다. 보기 메뉴에서는 모든 분포를 겹쳐 보거나 한 분포만 표시할 수 있습니다.
 
@@ -33,10 +33,7 @@ v0.34.0부터 분포는 고정된 언어·민족·종교 분류 대신 이름·�
 | 명령 | 용도 |
 | --- | --- |
 | `pnpm.cmd dev:web` | PC·모바일 웹, localhost:4173 |
-| `pnpm.cmd dev:editor` | Windows 검수기용 개발 서버(내부 호환 명칭), localhost:4175 |
-| `pnpm.cmd dev:windows` | CI Windows 실행기와 개발 서버 |
 | `pnpm.cmd build:web` | viewer 전용 정적 산출물 |
-| `pnpm.cmd build:windows` | Windows 전용 CI 오프라인 설치 파일 요청·검증 |
 
 소스와 생성물의 위치는 [폴더·생성물 운영](docs/workspace-layout.md)을 참고하세요. 생성 HTML을 직접 열지 말고 개발 서버를 사용합니다. Rust·Emscripten은 CI에서 준비하며, Android SDK/NDK는 더 이상 앱 빌드에 사용하지 않습니다.
 
@@ -62,11 +59,11 @@ GIS 생성기와 관련 검사는 Node.js와 기능별 네이티브 도구를 �
 
 ## 반응형 작업공간
 
-웹 Viewer와 Windows 검수기는 같은 지도·검색·보기·검수 화면을 사용합니다. 좁은 화면에서는 메뉴와 보기 설정이 모바일 화면에 맞게 배치됩니다. 지도 이동, 확대, 객체 선택과 검수 자료 확인은 읽기 전용으로 동작합니다.
+웹 Viewer가 지도·검색·보기·검수 화면을 통합 제공합니다. 좁은 화면에서는 메뉴와 보기 설정이 모바일 화면에 맞게 배치됩니다. 지도 이동, 확대, 객체 선택과 검수 자료 확인은 읽기 전용으로 동작합니다.
 
 ## 변경 이력
 
-아래는 과거 버전의 변경 기록입니다. 편집기 기능은 현재 Viewer와 Windows 검수기에서 제공하지 않습니다.
+아래는 과거 버전의 변경 기록이며, 폐기된 편집기·네이티브 앱 기능은 현재 웹 Viewer에 포함되지 않습니다.
 
 v0.31.0에서는 지도·레이어·추가·편집 패널을 공통 Surface 셸과 탭 구조로 정리하고, 편집창에 정보·편집·관계 탭을 도입했습니다. 추가창은 만들기·라이브러리 경로를 유지하면서 공통 객체 분류와 Command Row 표현을 사용하며, build metadata로 앱·자산 버전을 일치시킵니다.
 
@@ -232,7 +229,7 @@ node tools/gis/build-hydro.mjs `
 
 Viewer의 파일 메뉴에서 현재 지원하는 판도연구소 GeoPackage 프로젝트를 읽기 전용으로 불러올 수 있습니다. 검수 패널에서는 검수 JSON과 원본 형상 자료를 선택해 비교하고 수정 요청서를 내보낼 수 있습니다.
 
-GIS 원본 자료의 조사와 생성은 저장소의 GIS 도구가 담당합니다. Viewer와 Windows 검수기는 국경·수계 형상을 편집하거나 프로젝트 GeoPackage를 저장하지 않습니다.
+GIS 원본 자료의 조사와 생성은 저장소의 GIS 도구가 담당합니다. 웹 Viewer는 국경·수계 형상을 편집하거나 프로젝트 GeoPackage를 저장하지 않습니다.
 
 ## 지도 데이터와 라이선스
 
