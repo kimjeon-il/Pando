@@ -29,7 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, selectCanvasPhysicalSource } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -149,6 +149,9 @@ export function createGpuMapRenderer(deps) {
     hydroVisibilityThreshold,
     getPhysicalContextState,
     getPhysicalLand,
+    getInitialLandPreview,
+    getPhysicalLandSourceRevision,
+    prepareCanvasPhysicalPreview,
     isCountryVisibleById,
     countryBoundaryStyleById,
     isHydroFeatureVisible,
@@ -4496,17 +4499,19 @@ export function createGpuMapRenderer(deps) {
     }
 
     const canvasScenePackets = createCanvasScenePackets();
+    function currentCanvasPhysical() {
+      return selectCanvasPhysicalSource({
+        actual:getPhysicalLand(),state:getPhysicalContextState(),
+        preview:getInitialLandPreview(),sourceRevision:getPhysicalLandSourceRevision(),
+        temporalPending:temporalPending(),
+      });
+    }
     const canvasScenePolygons = () => [
       ...canvasScenePackets.scenePolygons(surfaceScenePolygons())
         .filter(packet => packet.role !== 'physical-land' && packet.role !== 'physical-water'),
-      ...canvasScenePackets.physicalPolygons(getPhysicalLand()),
+      ...canvasScenePackets.physicalPolygons(currentCanvasPhysical().source),
     ];
-    function canvasPhysicalReady() {
-      const physical = getPhysicalLand(), context = getPhysicalContextState();
-      return !!context.ready && !!physical && physical.revision === context.landRevision
-        && (context.waterRevision == null
-          ? !physical.water : !!physical.water && physical.waterRevision === context.waterRevision);
-    }
+    const canvasPhysicalReady = () => currentCanvasPhysical().context.ready === true;
     const canvasSceneStrokes = () => canvasScenePackets.sceneStrokes(renderScene);
     const canvasCountryBoundaryPacket = () => canvasScenePackets.countryBoundary(countrySharedBoundary);
 
@@ -4650,8 +4655,8 @@ export function createGpuMapRenderer(deps) {
         if (countriesChanged) prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
         canvasLastStyleSignature = '';
       }
-      const physical = getPhysicalContextState();
-      const styleSignature = [physical.ready, physical.landRevision, physical.waterRevision,
+      const physical = currentCanvasPhysical().context;
+      const styleSignature = [physical.ready, physical.preview === true, physical.landRevision, physical.waterRevision,
         countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.objects, getSystemTheme(),
         // Country paint is suppressed on an unpresented background. Once the
         // first actual physical bitmap is admitted, this quality transition
@@ -4912,7 +4917,7 @@ export function createGpuMapRenderer(deps) {
             if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
             if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
             if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
-            if (!canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState())) return 'physical';
+            if (!canvasWorkerFrameMatchesPhysical(message, currentCanvasPhysical().context)) return 'physical';
             return '';
           };
           canvasWorker = createGpuCanvasWorker({
@@ -4974,6 +4979,13 @@ export function createGpuMapRenderer(deps) {
             if (!disposed && canvasWorker === sourceWorker) failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
           };
           postCanvasWorkerMessage(initMessage);
+          // A source-verified smaller physical mask can paint the initial
+          // Canvas terrain before the authoritative source is available.
+          void Promise.resolve().then(() => prepareCanvasPhysicalPreview()).then(() => {
+            if (disposed || rendererMode !== 'canvas-worker' || canvasWorker !== sourceWorker) return;
+            canvasLastStyleSignature = '';
+            if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-preview-physical-ready');
+          }).catch(error => { console.warn('Canvas physical preview unavailable', error); });
           if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
           else connectHydroCanvasWorkers();
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);

@@ -44,6 +44,26 @@ export function canvasWorkerPresentationKey(frame, {
   ]);
 }
 
+/** Source-matched initial Canvas land preview is a background only.
+ * It cannot certify country geometry or a temporal replacement. */
+export function selectCanvasPhysicalSource({ actual, state, preview, sourceRevision, temporalPending = false } = {}) {
+  const unavailable = {source:null,context:{ready:false},preview:false};
+  if (state?.ready) {
+    if (actual?.geometry && actual.revision === state.landRevision
+      && (state.waterRevision == null ? !actual.water
+        : !!actual.water && actual.waterRevision === state.waterRevision))
+      return {source:actual,context:state,preview:false};
+    return unavailable;
+  }
+  if (!temporalPending && preview?.certified === true && preview?.geometry
+    && typeof sourceRevision === 'string' && /^[a-f0-9]{64}$/.test(sourceRevision)
+    && preview.sourceRevision === sourceRevision
+    && typeof preview.revision === 'string' && /^[a-f0-9]{64}$/.test(preview.revision))
+    return {source:preview,
+      context:{ready:true,landRevision:preview.revision,waterRevision:null,preview:true},preview:true};
+  return unavailable;
+}
+
 /** Only a transferred, current Worker bitmap may unblock initial country paint
  * before optional terrain data completes. Temporal replacement remains strict. */
 export function canAdmitCanvasWorkerPartialBackground({ rendererMode, committedBitmap, physicalSceneMatched, temporalPending } = {}) {

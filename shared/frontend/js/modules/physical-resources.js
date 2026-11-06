@@ -84,7 +84,7 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
   let terrainService;
   let hydroService;
   let physicalLand = null, landLoading = null,physicalAssetLoader=null;
-  let initialPreviewLoading=null;
+  let initialPreviewLoading=null, initialPreview=null;
   function storedPhysicalAssets() {
     if(!physicalAssetLoader)physicalAssetLoader=createStoredAssetLoader({dataRevision:buildMeta.dataRevision,
       resolveUrl:spec=>new URL(spec.url.replace(/^assets\/data\//,''),dependencies.physicalConfig.PHYSICAL_DATA_BASE_URL).href});
@@ -239,7 +239,11 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
         if(geometry?.type!=='MultiPolygon'||!Array.isArray(geometry.coordinates)
           ||geometry.coordinates.length!==spec.polygonCount)throw new Error('Invalid initial land preview geometry.');
         return geometry;
-      }).then(result=>Object.freeze({geometry:result.value,revision:spec.sha256}));
+      }).then(result=>{
+        initialPreview=Object.freeze({geometry:result.value,revision:spec.sha256,
+          sourceRevision:spec.sourceSha256,certified:true});
+        return initialPreview;
+      });
       initialPreviewLoading=initialPreviewLoading.catch(error=>{initialPreviewLoading=null;throw error;});
     }
     return initialPreviewLoading;
@@ -482,6 +486,8 @@ export function createPhysicalResources({ buildMeta,capabilities = {terrain:true
     loadInitialLandPreview,
     preparePhysicalContext,
     get physicalLand() { return currentPhysicalContext(); },
+    get initialLandPreview() { return initialPreview; },
+    get physicalLandSourceRevision() { return buildMeta.physicalLand?.sha256 || null; },
     get physicalContextState() {
       const context=currentPhysicalContext(),selection=selectedPhysicalWater(),entry=waterContexts.get(selection.key);
       const ready=selection.rows.length?entry?.status==='ready':!!physicalLand;
