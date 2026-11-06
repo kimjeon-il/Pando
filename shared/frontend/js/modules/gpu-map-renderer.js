@@ -4723,11 +4723,27 @@ export function createGpuMapRenderer(deps) {
     // animation frame while optional terrain is loading; do not treat that
     // scheduled frame as an admitted bitmap or block the Worker handoff.
     function requestPreparedCanvasFrame() {
-      if (disposed || rendererMode !== 'canvas-worker' || projectRenderBlocked
+      if (disposed || rendererMode !== 'canvas-worker'
+        || (projectRenderBlocked && (temporalPending() || canvasDisplayedStyleRevision !== 0))
         || !canvasWorker?.ready || !lastVisualFrame
         || Number(lastVisualFrame.projectGeneration) !== projectGeneration
         || (!physicalSceneMatchesContext(renderScene, getPhysicalContextState()) && !canvasPhysicalReady())) return false;
       renderCanvasWorker(lastVisualFrame);
+      return true;
+    }
+
+    function canRenderBlockedCanvasBackground() {
+      return !disposed && rendererMode === 'canvas-worker' && projectRenderBlocked
+        && !temporalPending() && canvasDisplayedStyleRevision === 0
+        && surfacePresentation.quality === 'pending' && canvasWorker?.ready
+        && (!lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration)
+        && canvasPhysicalReady();
+    }
+
+    function renderBlockedCanvasBackground(frame) {
+      if (!canRenderBlockedCanvasBackground() || !isMapVisualFrame(frame)) return false;
+      lastVisualFrame = frame;
+      renderCanvasWorker(frame);
       return true;
     }
 
@@ -4816,7 +4832,7 @@ export function createGpuMapRenderer(deps) {
         // A Worker can finish bootstrapping after the first canonical physical
         // scene has already been prepared. Explicitly submit that current
         // frame instead of waiting for another user/camera invalidation.
-        requestPreparedCanvasFrame();
+        if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-worker-ready');
         return;
       }
       if (message.type === 'terrain-ready') {
@@ -5896,7 +5912,8 @@ export function createGpuMapRenderer(deps) {
       mapReadiness, retryMapPreparation,
       failMapPreparation: error => { canonicalPromotionError = String(error?.message || error);
         failTemporalPresentation(error instanceof Error ? error : new Error(canonicalPromotionError)); publishMapReadiness(); },
-      initialize, replaceBuiltInMesh, renderFrame, requestPreparedCanvasFrame, renderInteraction, renderPreservedProjectFrame,
+      initialize, replaceBuiltInMesh, renderFrame, requestPreparedCanvasFrame,
+      canRenderBlockedCanvasBackground, renderBlockedCanvasBackground, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,
