@@ -67,6 +67,8 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
       pendingFrame = null; inFlightRenderRequestId = null;
       requestedRevision = 0; displayedRevision = 0;
       for (const id of picks.keys()) settlePick(id, null);
+      // Reset the actual Worker before any new-generation state or view is sent.
+      postMessage({ type: 'reset-generation', projectGeneration: generation });
     },
     queueFrame(message) {
       if (!live || Number(message.projectGeneration) !== generation) return;
