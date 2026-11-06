@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import { prepareGpuBaseScene } from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
 import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
@@ -58,6 +59,49 @@ for (const style of ['political', 'physical']) {
       assert.equal(state.mask, 0xff);
     });
 }
+
+test('WebGL never submits a second physical-land mask when raster/DEM tiles are not drawable', () => {
+  const source = readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js', import.meta.url),'utf8');
+  const begin = source.indexOf('    function hasRenderableTerrain() {');
+  const end = source.indexOf('    function renderTerrain(', begin);
+  assert.ok(begin > 0 && end > begin);
+  const functionBody = source.slice(begin,end)+';return hasRenderableTerrain();';
+  const canDraw = (tiles, representation, style, tintReady) =>
+    new Function('preparedTerrain','terrainManifest','state','terrainPreparation','TERRAIN_DEM_FORMAT',functionBody)(
+      tiles, {representation}, {physicalSettings:{terrainStyle:style}},
+      {stats:()=>({terrainTintReady:tintReady})},'dem-relief-v1');
+  assert.equal(canDraw([], 'dem-relief-v1', 'physical', true), false);
+  assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', false), false);
+  assert.equal(canDraw([{}], 'dem-relief-v1', 'physical', true), true);
+  assert.equal(canDraw([{}], 'dem-relief-v1', 'political', false), true);
+  assert.equal(canDraw([{}], 'raster-rgba-v1', 'physical', false), true);
+
+  let landDraws=0, terrainDraws=0, invisibleMaskDraws=0, colorEnabled=true;
+  const gl = new Proxy({colorMask:value=>{colorEnabled=value;}},
+    {get:(target,key)=>target[key] ?? (/^[A-Z_]+$/.test(key)?key:()=>{})});
+  const polygonOverlayPass = {
+    hasResource:()=>true,
+    drawPackets:packets=>{
+      for(const packet of packets)if(packet.role==='physical-land'){
+        landDraws++;
+        if(!colorEnabled) invisibleMaskDraws++;
+      }
+      return {renderedKeys:packets.map(row=>row.key),missingKeys:[]};
+    },
+  };
+  drawGpuBaseScene({gl,frame:{},width:100,height:100,terrainVisible:canDraw([],'dem-relief-v1','physical',true),
+    surfacePresentation:{quality:'pending'}, countriesVisible:false,
+    prepared:{baseTriangleDraw:{ranges:[]}, overrideTriangleDraw:{ranges:[]},
+      territoryItems:[],independentItems:[],physicalWaterItems:[],
+      physicalLandItems:[{kind:'polygon',packet:{key:'land',role:'physical-land'}}],
+      deferredOverlayKeys:new Set(),failedOverlayKeys:new Set()},
+    countries:{}},
+  {drawProgram(){},drawOceanSubstrate(){},renderTerrain:()=>{terrainDraws++},
+    drawHydro(){},drawCountryBoundaryStrokes(){},polygonOverlayPass,strokeRenderer:{}});
+  assert.equal(landDraws,1,'first background needs exactly one physical land submission');
+  assert.equal(invisibleMaskDraws,0,'unavailable DEM cannot add an empty stencil draw');
+  assert.equal(terrainDraws,0,'no terrain tile means no GPU terrain submission');
+});
 
 test('WebGL mixes overlays by order and protects base water and borders from fills', () => {
   const events = [], state = { stencil: false, color: true };

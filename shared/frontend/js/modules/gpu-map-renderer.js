@@ -643,11 +643,13 @@ export function createGpuMapRenderer(deps) {
         cacheBudgetBytes: renderQuality.terrainCacheBudgetBytes,
       });
     }
+    function hasRenderableTerrain() {
+      // A missing DEM/tint is not a GPU draw. Do not rasterize the same
+      // physical-land polygon again just to mask an empty terrain pass.
+      return preparedTerrain.length > 0 && (terrainManifest?.representation !== TERRAIN_DEM_FORMAT
+        || state.physicalSettings.terrainStyle !== 'physical' || terrainPreparation.stats().terrainTintReady);
+    }
     function renderTerrain(pass = 'land') {
-      // Keep the complete flat-colored substrate until DEM color and shade
-      // can replace ocean and land together; never flash a gray tint texture.
-      if (terrainManifest?.representation === TERRAIN_DEM_FORMAT && state.physicalSettings.terrainStyle === 'physical'
-        && !terrainPreparation.stats().terrainTintReady) return;
       for (const tile of preparedTerrain) drawTerrainTile(tile, pass);
     }
     let mesh = null;
@@ -3975,7 +3977,9 @@ export function createGpuMapRenderer(deps) {
       const baseSubmittedAt = performance.now();
       const result = drawGpuBaseScene({ gl, frame: activeFrameContext, width: pixelWidth, height: pixelHeight,
         surfacePresentation,
-        terrainVisible: state.physicalSettings.terrainVisible && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
+        terrainVisible: state.physicalSettings.terrainVisible && hasRenderableTerrain()
+          && preparedBaseScene.physicalLandItems.length > 0
+          && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet)),
         terrainStyle: state.physicalSettings.terrainStyle,
         countriesVisible: state.layerVisibility.objects,
         mapSubstrate: { color: theme.defaultLand, fillAlpha: theme.baseLandAlpha },
