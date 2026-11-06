@@ -5025,7 +5025,7 @@ export function createGpuMapRenderer(deps) {
               });
             },
           });
-          if (lastVisualFrame) canvasWorker.queueFrame(canvasWorkerViewMessage());
+          // Worker readiness schedules the current project; no speculative pre-init frame.
           canvasWorkerBitmapContext = canvas.getContext('bitmaprenderer');
           if (!canvasWorkerBitmapContext) canvasWorker2dContext = canvas.getContext('2d', { alpha: true });
           if (!canvasWorkerBitmapContext && !canvasWorker2dContext) throw new Error('Canvas 표시 컨텍스트를 만들 수 없습니다.');
