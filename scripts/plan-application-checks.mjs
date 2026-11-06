@@ -229,6 +229,12 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
   const repo = repository || loadRepository();
   const changed = [...new Set(changedFiles.map(slash))].sort();
+  // Unknown active Viewer file types must not be silently claimed by a broad
+  // directory-level test group. Deleted/added known source extensions remain
+  // eligible for their normal dependency and retirement checks.
+  for (const file of changed) if (/^apps\/viewer\//.test(file) && !repo.exists(file)
+      && !/\.(?:[cm]?js|mjs|json|css|html|svg|png|webp|ico|md|woff2?|ttf|map)$/.test(file))
+    throw Error('Unclassified product change: ' + file);
   // A no-op diff has no affected consumers. The inventory was already validated
   // by loadRepository(), but retired, archived editor tests need not be parsed
   // as runnable production dependency graphs for a no-change plan.

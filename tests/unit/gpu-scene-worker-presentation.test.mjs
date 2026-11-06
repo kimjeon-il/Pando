@@ -60,7 +60,7 @@ test('Canvas acceptance rejects stale frame identity before transport acknowledg
     'message.styleRevision','canvasStyleRevision','message.surfaceQuality',
     'canvasWorkerFrameMatchesPhysical'])
     assert.ok(accepted.includes(marker),'Canvas transport must reject mismatched '+marker);
-  assert.match(source.slice(end,end+300),/acceptFrame: message => canvasFrameRejectionReason\(message\) === ''/);
+  assert.match(source.slice(end,source.indexOf('onStale:',end)),/acceptFrame: message => canvasFrameRejectionReason\(message\) === ''/);
   const retry=source.slice(end,source.indexOf('\n          });',end));
   assert.ok(!retry.includes("message.renderRequestId == null\n"),
     'spontaneous resource frames must not be silently ignored');

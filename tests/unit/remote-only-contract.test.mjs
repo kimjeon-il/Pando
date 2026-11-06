@@ -59,7 +59,7 @@ test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',(
   // Match executable workflow fields only. The post-retirement verifier
   // deliberately *mentions* rejected job names in its own assertions.
   for(const body of [gate,p1]) {
-    assert.doesNotMatch(body,/^  (?:windows-real-webview2|native-artifact):\s*$/m);
+    assert.doesNotMatch(body,/^ {2}(?:windows-real-webview2|native-artifact):\s*$/m);
     assert.doesNotMatch(body,/^\s*runs-on:\s*windows-2022\s*$/m);
     assert.doesNotMatch(body,/^\s*- uses:\s*dtolnay\/rust-toolchain@/m);
     assert.doesNotMatch(body,/^\s*(?:run:\s*)?node apps\/editor\/packaged-artifacts\.mjs --ci-build/m);

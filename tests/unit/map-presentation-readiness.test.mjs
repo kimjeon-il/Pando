@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import { mapPresentationReadiness } from "../../shared/frontend/js/modules/startup-readiness.js";
 
 const ready = { boundaryReady: true, terrainVisible: true,

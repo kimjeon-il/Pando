@@ -48,7 +48,7 @@ async function serve(){
     try{
       const response=await fetch('http://127.0.0.1:4173/',{signal:AbortSignal.timeout(3000)});
       if(response.ok)return child;
-    }catch{}
+    }catch { /* server is still starting */ }
     await delay(350);
   }
   child.kill('SIGTERM');
@@ -118,8 +118,8 @@ async function sample(){
   }finally{
     report.finishedAt=new Date().toISOString();
     if(options.out)write(options.out,report);
-    try{await cdp?.detach();}catch{}
-    try{await browser?.close();}catch{}
+    try{await cdp?.detach();}catch { /* page may already be closed */ }
+    try{await browser?.close();}catch { /* browser may already be closed */ }
     if(server){
       server.kill('SIGTERM');
       await Promise.race([new Promise(resolve=>server.once('exit',resolve)),delay(5000)]);
