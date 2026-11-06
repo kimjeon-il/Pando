@@ -133,7 +133,12 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
   try {
     await page.goto('/?renderer=canvas&debug=1', { waitUntil: 'domcontentloaded' });
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.renderer)).toBe('canvas-worker');
-    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource), { timeout: 30000 }).toBe('dem-preview');
+    // Do not judge a renderer-default metric before a physical bitmap has
+    // actually been admitted. DEM remains gated during this first-frame check.
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.firstBackgroundFrameMs || 0),
+      { timeout: 75000 }).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainSource),
+      { timeout: 30000 }).toBe('dem-preview');
     await terrainStyle(page, 'physical');
     await page.screenshot({ path: testInfo.outputPath('canvas-dem-delayed-preview.png') });
     releaseDem();

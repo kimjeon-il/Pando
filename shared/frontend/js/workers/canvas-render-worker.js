@@ -229,9 +229,10 @@ function canvasFallbackWorkerMain() {
       // Large tint WebP decoding can stall createImageBitmap inside a classic
       // Canvas Worker. WebCodecs exposes its packed pixels without a GPU
       // bitmap round trip; keep the original path for browsers without it.
-      if (preferImageDecoder && typeof ImageDecoder === 'function'
-          && await ImageDecoder.isTypeSupported(blob.type || 'image/webp')) {
-        const decoder = new ImageDecoder({ type: blob.type || 'image/webp',
+      const Decoder = globalThis.ImageDecoder;
+      if (preferImageDecoder && typeof Decoder === 'function'
+          && await Decoder.isTypeSupported(blob.type || 'image/webp')) {
+        const decoder = new Decoder({ type: blob.type || 'image/webp',
           data: await blob.arrayBuffer(), colorSpaceConversion: 'none' });
         try {
           const { image } = await decoder.decode();
@@ -651,7 +652,7 @@ function canvasFallbackWorkerMain() {
 
     function* renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
       if (!plan) return true;
-      const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, drawSpecs } = plan;
+      const { baseLevel, baseReady, terrainComplete, demLevel, demSpecs, drawSpecs } = plan;
       // The main-thread physical certificate necessarily rejects a bitmap
       // without a land packet. Keep downloading tiles, but do not spend CPU
       // tessellating an unpresentable early bitmap while the verified land
