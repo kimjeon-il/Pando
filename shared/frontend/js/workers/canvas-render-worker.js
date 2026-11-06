@@ -61,6 +61,7 @@ function canvasFallbackWorkerMain() {
     let hydroActivePackIds = new Set();
     let hydroPort = null;
     let lastRenderMessage = null;
+    let hasRenderedView = false;
     let viewRevision = 0;
     let styleRevision = 0;
     let physicalStyleRevision = 0;
@@ -915,7 +916,7 @@ function canvasFallbackWorkerMain() {
     }
 
     function scheduleHydroRender() {
-      if (!lastRenderMessage || hydroRenderTimer) return;
+      if (!hasRenderedView || !lastRenderMessage || hydroRenderTimer) return;
       // A hydro/terrain-adjacent update must not monopolize this worker with
       // another full globe redraw immediately before a newer camera frame.
       // Coalesce resource notifications for one animation-frame interval.
@@ -1172,6 +1173,7 @@ function canvasFallbackWorkerMain() {
       const message = event.data || {};
       if (message.projectGeneration != null && Number(message.projectGeneration) < projectGeneration) return;
       if (message.type === 'init') {
+        hasRenderedView = false;
         features = replaceCountryFeatures(message.features || []);
         geometryRevision = Number(message.geometryRevision || 0);
         projectGeneration = Number(message.projectGeneration || 0);
@@ -1190,7 +1192,7 @@ function canvasFallbackWorkerMain() {
         // Country, scene and physical packets belong to the old project.
         // Terrain tile caches remain reusable across generations.
         projectGeneration = nextGeneration;
-        geometryRevision = 0; viewRevision = 0;
+        geometryRevision = 0; viewRevision = 0; hasRenderedView = false;
         features = []; countrySharedBoundary = null;
         lastRenderMessage = null; retainedPhysicalLandPacket = null;
         hydroEditFeatures = []; hydroEditRevision = -1;
@@ -1221,6 +1223,7 @@ function canvasFallbackWorkerMain() {
         const incomingGeneration = Number(message.projectGeneration ?? projectGeneration);
         if (incomingGeneration < projectGeneration) return;
         if (incomingGeneration > projectGeneration) {
+          hasRenderedView = false;
           geometryRevision = 0; countrySharedBoundary = null;
           hydroEditFeatures = []; hydroEditRevision = -1;
           lastRenderMessage = { ...lastRenderMessage, interactionFillItems: [], countryEmphasis: {} };
@@ -1325,6 +1328,7 @@ function canvasFallbackWorkerMain() {
           viewRevision = incomingRevision;
           pumpTerrainFetchQueue();
           render(mergeRenderState(message), message.renderRequestId);
+          hasRenderedView = true;
         } catch (error) {
           self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
         }

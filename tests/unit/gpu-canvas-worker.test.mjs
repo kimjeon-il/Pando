@@ -283,7 +283,8 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
     surfacePresentation: { targetQuality: 'canonical', quality: 'canonical' },
     width: 20, height: 20, theme, features, visible: true, visualOrder,
     fills: Object.fromEntries(features.map(row=>[row.id,{color:'#ffffff',fillAlpha:1}])) });
-  return { replies, send, runTimer: () => timers.shift()(), pathBuildCount: () => pathBuildCount };
+  return { replies, send, runTimer: () => timers.shift()(), pendingTimers: () => timers.length,
+    pathBuildCount: () => pathBuildCount };
 }
 
 test('the real Canvas Worker reuses unchanged projected country geometry across replace-data', () => {
@@ -472,4 +473,20 @@ test('only a renderer-authorized current physical background can bypass an older
   assert.equal(rejected.length,1);
   assert.equal(revoked,1);
   channel.terminate();
+});
+
+test('Worker coalesces resource redraw only after a project view has been rendered', () => {
+  const { send, replies, pendingTimers } = canvasRuntime();
+  send({type:'style',styleRevision:2});
+  send({type:'physical-style',physicalStyleRevision:2});
+  send({type:'hydro-edits',revision:3,features:[]});
+  assert.equal(pendingTimers(),0,'init and staged styles cannot paint an obsolete pre-view scene');
+  send({type:'view',projectGeneration:2,frameId:3,revision:3,viewRevision:3,renderRequestId:4});
+  assert.equal(replies.at(-1).message.type,'frame');
+  send({type:'style',styleRevision:3});
+  assert.equal(pendingTimers(),1,'accepted view retains normal coalesced style repaint');
+  send({type:'reset-generation',projectGeneration:3});
+  assert.equal(pendingTimers(),1,'generation reset cannot enqueue a retired redraw');
+  send({type:'style',projectGeneration:3,styleRevision:4});
+  assert.equal(pendingTimers(),1,'new generation styles cannot render before a new view');
 });
