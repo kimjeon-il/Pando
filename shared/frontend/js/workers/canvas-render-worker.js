@@ -303,6 +303,7 @@ function canvasFallbackWorkerMain() {
             demCacheBytes += tile.bytes;
             pruneDemTiles();
             self.postMessage({ type: 'terrain-ready', count: demTiles.size, key: `dem:${spec.key}` });
+            if (wantedDemKeys.has(spec.key)) scheduleHydroRender();
           })
           .catch(error => {
             if (controller.signal.aborted || error?.name === 'AbortError') return;
@@ -341,7 +342,9 @@ function canvasFallbackWorkerMain() {
         if (tint.width !== manifest.tint.width || tint.height !== manifest.tint.height) throw new Error('DEM tint 크기가 올바르지 않습니다.');
         terrainTint = tint;
         terrainDemManifest = manifest;
+        requestLatestTerrainDemand();
         self.postMessage({ type: 'terrain-ready', count: 0, key: 'dem-manifest' });
+        scheduleHydroRender();
       } catch (error) {
         demManifestAttempts += 1;
         if (demManifestAttempts <= 3) setTimeout(() => loadDemManifest(url), Math.min(4000, 400 * 2 ** (demManifestAttempts - 1)));
@@ -417,6 +420,7 @@ function canvasFallbackWorkerMain() {
         terrainManifest = await response.json();
         const base = terrainManifest.levels?.[0];
         if (!base) throw new Error('지형 타일 단계가 없습니다.');
+        requestLatestTerrainDemand();
         self.postMessage({ type: 'terrain-ready', count: 0, key: 'manifest' });
       } catch (error) {
         terrainManifestFailure = true;
@@ -598,9 +602,11 @@ function canvasFallbackWorkerMain() {
         resolutionLimited: demBudget.limited || sourceLevel.width < desiredWidth };
     }
 
-    function renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
-      if (!plan) return true;
-      const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, drawSpecs } = plan;
+    // Demand is owned by the active Worker camera, not by raster painting.
+    // This also runs when the delayed DEM manifest/tint finishes loading.
+    function scheduleTerrainDemand(plan) {
+      if (!plan) return;
+      const { targetSpecs, baseSpecs, terrainComplete, neighbours, fallbackSpecs, demSpecs } = plan;
       terrainProtectedKeys.clear();
       for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
       for (const spec of demSpecs) terrainProtectedKeys.add(`dem:${spec.key}`);
@@ -628,6 +634,21 @@ function canvasFallbackWorkerMain() {
         demQueue.splice(index, 1);
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
+    }
+
+    function requestLatestTerrainDemand() {
+      if (!hasRenderedView || !lastRenderMessage || !terrainManifest?.levels?.length) return;
+      const message = lastRenderMessage;
+      const width = Math.max(1, Number(message.width || 1));
+      const height = Math.max(1, Number(message.height || 1));
+      const dpr = Math.max(1, Number(message.dpr || 1));
+      const projection = createProjection(message, width, height);
+      scheduleTerrainDemand(terrainRenderPlan(message, projection, width, height, dpr));
+    }
+
+    function renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
+      if (!plan) return true;
+      const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, drawSpecs } = plan;
       // The main-thread physical certificate necessarily rejects a bitmap
       // without a land packet. Keep downloading tiles, but do not spend CPU
       // tessellating an unpresentable early bitmap while the verified land
@@ -1045,6 +1066,7 @@ function canvasFallbackWorkerMain() {
         const visibleLand = message.visible && message.surfacePresentation.quality !== 'pending' ? features.filter((feature, index) => !hiddenCountryIds.has(countryId(feature, index))) : [];
         const landShapes = self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || []);
         const terrainPlan = terrainRenderPlan(message, projection, width, height, dpr);
+        scheduleTerrainDemand(terrainPlan);
         const substrateKey = JSON.stringify([projectedPathDependencies.preparation, pixelWidth, pixelHeight, dpr, message.terrainDpr,
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
           theme.baseLandAlpha, theme.defaultLand, terrainManifest?.version, terrainDemManifest?.version,

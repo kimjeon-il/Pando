@@ -101,7 +101,14 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
         try { drawGlobeTerrainTile(spec, {}, projection, message, 1, false); return triangles; }
         finally { drawTexturedTriangle = oldDraw; terrainManifest = oldManifest; }
       };
-      self.currentRenderState = () => lastRenderMessage; self.onmessage = event => {`))(
+      self.currentRenderState = () => lastRenderMessage;
+      self.stageDemForTest = manifest => {
+        terrainDemManifest = manifest;
+        terrainDemManifestUrl = 'https://example.test/dem/manifest.json';
+        terrainTint = {width:1,height:1,data:new Uint8ClampedArray(4)};
+        requestLatestTerrainDemand();
+      };
+      self.onmessage = event => {`))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
     { now: () => 1 }, timerPorts?.setTimeout || (() => 0), timerPorts?.clearTimeout || (() => {}));
@@ -133,6 +140,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
   return {
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
     currentRenderState: () => scope.currentRenderState(),
+    stageDem: manifest => scope.stageDemForTest(manifest),
     traceGrid: (...args) => scope.traceTerrainGrid(...args),
     drawTriangle: points => scope.drawTerrainTriangle({ probeTriangle: true }, [[0, 0], [1, 0], [0, 1]], points, 1),
     render: extra => send({ ...frame, ...extra, type: 'view' }),
@@ -146,6 +154,18 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
     find: suffix => requests.find(request => !request.completed && request.url.endsWith(suffix)),
   };
 }
+
+test('DEM manifest completion schedules visible detail immediately without another view paint', async () => {
+  const h = canvasTerrainRuntime(); await settle();
+  h.render({ terrainDpr: 1, renderProjection: {scale: 100, translate: [500,300]} });
+  const before = h.messages.filter(message => message.type === 'frame').length;
+  const dem = { ...manifest, version:'0.13.3', urlTemplate:'https://example.test/dem/{level}/{column}-{row}.webp' };
+  h.stageDem(dem);
+  assert.ok(h.requests.some(request => request.url.includes('/dem/0/')),
+    'DEM detail must be requested when tint/manifest becomes ready, not on the next paint');
+  assert.equal(h.messages.filter(message => message.type === 'frame').length, before,
+    'resource scheduling cannot certify an unpainted bitmap');
+});
 
 test('Canvas prepares raster tiles without tessellating an uncertified zero-land frame',async()=>{
   const h=canvasTerrainRuntime();await settle();
