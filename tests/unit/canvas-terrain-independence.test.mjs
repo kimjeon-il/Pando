@@ -191,7 +191,8 @@ test('Canvas Worker echoes the revisions of the physical packets it actually pai
     const sent=delta(project(scene),'scene');
     assert.equal(sent[0].sourceKey,scene[0].sourceKey,'source identity reaches the Worker');
     if(i===1)assert.equal(Object.hasOwn(sent[0],'ringCoordinates'),false,'unchanged geometry is reused');
-    h.render({scenePolygons:sent,physicalSettings:{terrainVisible:false,terrainStyle:'political'}});
+    h.render({scenePolygons:sent,physicalSettings:{terrainVisible:false,terrainStyle:'political'},
+      visualOrder:{base:['substrate','physical-water'],hydro:[]}});
     const frame=h.messages.filter(message=>message.type==='frame').at(-1);
     assert.equal(frame.physicalLandRevision,'land-v2');assert.equal(frame.physicalWaterRevision,'water-v3');
     assert.equal(canvasWorkerFrameMatchesPhysical(frame,{ready:true,landRevision:'land-v2',waterRevision:'water-v3'}),true);
