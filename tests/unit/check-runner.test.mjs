@@ -114,6 +114,11 @@ test('explicit manual coverage stays explicit while artifact auto dispatch stays
   assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_PROFILE: 'p1', CHECK_SCOPE: 'ui' }).groups, ['browser']);
   assert.equal(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', CHECK_PROFILE: 'p3', CHECK_SCOPE: 'auto' }).diff, true);
   assert.equal(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'push', BROWSER_SCOPE: 'focused' }).diff, true);
+  assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'push', CHECK_SCOPE: 'all' }).groups, ['units', 'browser']);
+  assert.equal(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'push', CHECK_SCOPE: 'auto' }).diff, true);
+  assert.deepEqual(selectionRequest(catalog, { GITHUB_EVENT_NAME: 'push', CHECK_SCOPE: 'all',
+    CHECK_SELECTION: JSON.stringify({unitTests:[],browserSpecs:[],commands:[],prerequisites:[]}) }).exact,
+  {unitTests:[],browserSpecs:[],commands:[],prerequisites:[]});
   assert.throws(() => selectionRequest(catalog, { GITHUB_EVENT_NAME: 'workflow_dispatch', BROWSER_SCOPE: 'unknown' }), /Unsupported/);
 });
 

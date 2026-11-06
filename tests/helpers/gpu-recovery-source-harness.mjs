@@ -36,7 +36,10 @@ export async function fixture({override=false, version=2, shared=false, holdStro
     mesh:base,meshVariants:new Map([['canonical',{quality:'canonical',mesh:base,countryIds:['a'],resources:null,dependencies:{context:[gl,10]}}]]),
     activeMeshQuality:'canonical',overrideMesh:override?makeMesh('old-override'):null,builtinMeshBaseline:null,
     positionBuffer:null,countryBuffer:null,fillIndexBuffer:null,fillVao:null,
-    pendingCanonicalCommit:null,previewLandPackets:new Map(),previewFrameWaiters:new Set(),state:{pendingCountryRenderIds:new Set(),physicalSettings:{terrainVisible:false},layerVisibility:{objects:true}},
+    pendingCanonicalCommit:null,previewLandPackets:new Map(),previewFrameWaiters:new Set(),
+    mapPresentationWaiters:new Set(),committedMapGeneration:-1,
+    staleMapPresentation:reason=>Object.assign(new Error(reason),{name:'AbortError',cancelled:true}),
+    state:{pendingCountryRenderIds:new Set(),physicalSettings:{terrainVisible:false},layerVisibility:{objects:true}},
     canvasWorker:null,canvasDataReplacementResolver:null,hydroUploadScheduler:null,temporalPresentation:null,
     presentedStrokeDomains:new Map(),selectionPass:{clear(){}},strokeRenderer:{cancelPendingUploads(){}},
     sceneColorCache:{reset(){},invalidate(){}},hydroPreparation:{replaceEdits(){},setContext(){}},countryEmphasisRevision:0,
@@ -73,6 +76,7 @@ export async function fixture({override=false, version=2, shared=false, holdStro
     physicalSceneMatchesContext:()=>true,
     mapTargetKey:frame=>JSON.stringify([c.projectGeneration,c.renderDeviceContextRevision,c.renderScene?.revision,c.countryPaletteRevision,c.physicalStyleStateRevision,frame.frameId]),
     backgroundTargetKey:()=>'',publishMapReadiness(){},promoteCanonicalMesh(){},
+    mapReadiness:()=>({mapReady:c.countriesPublishedGeneration===c.projectGeneration && !c.projectRenderBlocked}),
     canonicalCountryFeatures:()=>c.mesh?[{id:'a'}]:[],
     prepareCountrySharedBoundary:()=>events.push(['prepare-boundary']),
     rebuildFromCountries:async()=>{events.push(['rebuild-route',c.rendererMode]);return true;},
@@ -130,7 +134,8 @@ export async function fixture({override=false, version=2, shared=false, holdStro
   const stateEnd = source.indexOf('    // End G1 recovery state.');
   if (stateStart < 0 || stateEnd < stateStart) throw new Error('Missing recovery state in actual source');
   const state = source.slice(stateStart, stateEnd + '    // End G1 recovery state.'.length);
-  const names=['recordGpuRecoveryFrame','commitGpuRecoveryFrame','cancelGpuRecoveryPresentation','recoveryIdentity','recoveryIdentityCurrent','discardRecoveryResources','prepareRecoveryResources',
+  const names=['rejectMapPresentationWaiters','settleMapPresentationWaiters',
+    'recordGpuRecoveryFrame','commitGpuRecoveryFrame','cancelGpuRecoveryPresentation','recoveryIdentity','recoveryIdentityCurrent','discardRecoveryResources','prepareRecoveryResources',
     'bindOverrideGpuResources','commitRecoveryResources','finishRecoveryResources','requestGpuRecovery','invalidateGpuRecoveryInputs',
     'handleWebGlContextLost','handleWebGlContextRestored','disposeMeshResources','stageMeshResources','resetProjectRenderState',
     'setMesh','isWebGlRenderer','setOverrideMesh','canPresentVisualFrame','recordMapPresentation','activateBuiltinMeshBaseline','waitForGpuDevice'];

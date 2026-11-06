@@ -69,6 +69,9 @@ jobs:
             'origin/main' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
+          # P3 remains affected-only. This explicit optimization CI runs every
+          # active, non-manual application contract and browser specification.
+          CHECK_SCOPE: ${{ github.ref == 'refs/heads/work/optimization' && 'all' || 'auto' }}
           CHECK_SELECTION: ${{ inputs.check_selection || '' }}
           PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
         run: node scripts/run-application-checks.mjs --list --github-output

@@ -17,7 +17,7 @@ function fixture({active=false,fallback=false,disposed=false,succeeded=true}={})
    gpuInteraction:frame=>{draws.push({frame,result:{succeeded}});},
    viewPresentation:(frame,result)=>presented.push({frame,result})},
  });
- const context=vm.createContext({disposed,
+ const context=vm.createContext({disposed,mapPresentationWaiters:new Set(),
   gpuRecovery:{snapshot:()=>({active}),fallbackTicket:()=>fallback?{}:null},
   scheduleGpuFrame:reason=>coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME,reason),
   scheduleGpuInteractionFrame:reason=>coordinator.invalidate(MAP_RENDER_DIRTY.GPU_INTERACTION,reason),
@@ -36,6 +36,13 @@ test('recovery interaction completion also enters shared frame approval',()=>{
  const f=fixture({active:true});f.context.invalidateGpuInteraction('selection-ready');f.flush();
  assert.equal(f.draws.length,1);assert.equal(f.presented.length,1);assert.equal(f.presented[0].frame,f.draws[0].frame);
 });
+test('a pending file-open bitmap uses the canonical visual commit rather than a GPU-only redraw',()=>{
+ const f=fixture();f.context.mapPresentationWaiters.add({generation:2});
+ f.context.invalidateGpuFrame('current-project-bitmap');f.flush();
+ assert.equal(f.draws.length,1);
+ assert.equal(f.presented.length,1);
+});
+
 for(const method of ['invalidateGpuFrame','invalidateGpuInteraction'])test(`ordinary ${method} retains its lightweight work mask`,()=>{
  const f=fixture();f.context[method]('ordinary');f.flush();assert.equal(f.draws.length,1);assert.equal(f.presented.length,0);
 });
