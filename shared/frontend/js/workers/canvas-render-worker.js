@@ -225,15 +225,33 @@ function canvasFallbackWorkerMain() {
       return { physical: physical.transferToImageBitmap(), political: political.transferToImageBitmap() };
     }
 
-    async function readRgba(blob) {
+    async function readRgba(blob, preferImageDecoder = false) {
+      // Large tint WebP decoding can stall createImageBitmap inside a classic
+      // Canvas Worker. WebCodecs exposes its packed pixels without a GPU
+      // bitmap round trip; keep the original path for browsers without it.
+      if (preferImageDecoder && typeof ImageDecoder === 'function'
+          && await ImageDecoder.isTypeSupported(blob.type || 'image/webp')) {
+        const decoder = new ImageDecoder({ type: blob.type || 'image/webp',
+          data: await blob.arrayBuffer(), colorSpaceConversion: 'none' });
+        try {
+          const { image } = await decoder.decode();
+          try {
+            const width = image.displayWidth, height = image.displayHeight;
+            const data = new Uint8ClampedArray(width * height * 4);
+            await image.copyTo(data, { format: 'RGBA', layout: [{ offset: 0, stride: width * 4 }] });
+            return { data, width, height };
+          } finally { image.close(); }
+        } finally { decoder.close(); }
+      }
       let bitmap;
       try { bitmap = await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); }
       catch (_) { bitmap = await createImageBitmap(blob); }
       const source = new OffscreenCanvas(bitmap.width, bitmap.height);
       const read = source.getContext('2d', { willReadFrequently: true });
-      read.drawImage(bitmap, 0, 0);
-      bitmap.close?.();
-      return read.getImageData(0, 0, source.width, source.height);
+      try {
+        read.drawImage(bitmap, 0, 0);
+        return read.getImageData(0, 0, source.width, source.height);
+      } finally { bitmap.close?.(); }
     }
 
     async function prepareDemBitmap(blob, spec) {
@@ -319,7 +337,7 @@ function canvasFallbackWorkerMain() {
         const tintUrl = new URL(manifest.tint.url, new URL('../../', url));
         const tintResponse = await fetch(tintUrl);
         if (!tintResponse.ok) throw new Error(`DEM tint HTTP ${tintResponse.status}`);
-        const tint = await readRgba(await tintResponse.blob());
+        const tint = await readRgba(await tintResponse.blob(), true);
         if (tint.width !== manifest.tint.width || tint.height !== manifest.tint.height) throw new Error('DEM tint 크기가 올바르지 않습니다.');
         terrainTint = tint;
         terrainDemManifest = manifest;
