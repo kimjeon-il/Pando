@@ -3261,6 +3261,9 @@ export function createGpuMapRenderer(deps) {
     }
 
     function drawProgram(program, vao, indexBuffer, indexCount, primitive, resources = null, palette = paletteTexture, lineColor = null, lineWidth = null, drawRanges = null, baseLand = false) {
+      // A culled or empty country pass owns no GPU state. Do not bind
+      // programs, textures or attributes when there are zero index submissions.
+      if (!(Number(indexCount) > 0) || (Array.isArray(drawRanges) && !drawRanges.some(range => Number(range?.count) > 0))) return null;
       gl.useProgram(program);
       if (program === fillProgram) {
         const theme = mapTheme();

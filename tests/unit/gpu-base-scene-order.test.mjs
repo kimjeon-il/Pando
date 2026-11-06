@@ -9,6 +9,17 @@ import { createObjectPicking } from "../../shared/frontend/js/modules/object-pic
 import { normalizeObjectRef } from "../../shared/frontend/js/modules/object-selection-controller.js";
 import { layerObjectRank, OVERLAY_GROUPS } from "../../shared/frontend/js/modules/layer-presentation.js";
 
+test('culled or empty indexed country passes issue no redundant GL state changes', () => {
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('    function drawProgram('),end=source.indexOf('    function hydroLineParts(',start);
+  assert.ok(start>0&&end>start);
+  const gl=new Proxy({}, {get(){throw Error('empty index submission touched GL state')}});
+  const draw=new Function('gl','paletteTexture',source.slice(start,end)+';return drawProgram;')(gl,null);
+  assert.equal(draw('fill',null,null,0,0,null,null,null,null,null),null);
+  assert.equal(draw('fill',null,null,30,0,null,null,null,null,[]),null);
+  assert.equal(draw('fill',null,null,30,0,null,null,null,null,[{first:0,count:0}]),null);
+});
+
 for (const style of ['political', 'physical']) {
     test(`${style} prepares the common land mask before its terrain passes`, () => {
       const events = [], state = { stencil: false, color: true, func: null, mask: null };

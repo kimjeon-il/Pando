@@ -25,6 +25,9 @@ const mapSummary=stats=>{
     gpuTrackedBuffersBytes:Object.values(s.meshVariantBytes||{}).reduce((n,v)=>n+(Number(v)||0),0)
       +(Number(s.stroke?.activeBufferBytes)||0)+(Number(s.polygonOverlay?.activeBufferBytes)||0),
     gpuSceneCacheDraws:s.sceneCacheFullDrawCount??null,
+    countryMeshPreparationMs:s.lastMeshPreparation?.totalMs??null,
+    countryTriangulationMs:s.lastMeshPreparation?.triangulationMs??null,
+    countryStrokePreparationMs:s.lastMeshPreparation?.strokeMs??null,
     renderer:s.renderer,projectGeneration:s.projectGeneration,countriesPublishedGeneration:s.countriesPublishedGeneration,
     canonicalMeshReady:s.canonicalMeshReady,firstBackgroundFrameMs:s.firstBackgroundFrameMs,
     firstCountryPublishedMs:s.firstCountryPublishedMs,
@@ -112,7 +115,8 @@ async function sample(){
     await page.addInitScript(()=>{
       const meter=globalThis.__pandoAbFps={
         started:performance.now(),active:true,last:null,gaps:[],
-        start(){this.started=performance.now();this.active=true;this.last=null;this.gaps=[];},
+        glCalls:0,
+        start(){this.started=performance.now();this.active=true;this.last=null;this.gaps=[];this.glCalls=0;},
         finish(){
           this.active=false;
           const duration=Math.max(1,performance.now()-this.started);
@@ -120,11 +124,24 @@ async function sample(){
           return {rafFps:Math.round(gaps.length*10000/duration)/10,
             maxFrameGapMs:gaps.length?Math.round(gaps.at(-1)*10)/10:null,
             p95FrameGapMs:gaps.length?Math.round(gaps[Math.floor((gaps.length-1)*0.95)]*10)/10:null,
-            rafFrames:gaps.length,durationMs:Math.round(duration)};
+            rafFrames:gaps.length,durationMs:Math.round(duration),glDrawCalls:this.glCalls};
         },
       };
       const tick=now=>{if(meter.active){if(meter.last!==null)meter.gaps.push(now-meter.last);meter.last=now;}requestAnimationFrame(tick);};
       requestAnimationFrame(tick);
+      // Instrument the exact WebGL entry points in both revisions. The same
+      // lightweight wrapper is installed before any app shader draws.
+      for(const Ctor of [globalThis.WebGLRenderingContext,globalThis.WebGL2RenderingContext]){
+        if(!Ctor?.prototype)continue;
+        for(const name of ['drawElements','drawArrays','drawArraysInstanced','drawElementsInstanced']){
+          const desc=Object.getOwnPropertyDescriptor(Ctor.prototype,name);
+          if(!desc?.configurable||typeof desc.value!=='function')continue;
+          Object.defineProperty(Ctor.prototype,name,{...desc,value:function(...args){
+            if(meter.active)meter.glCalls++;
+            return desc.value.apply(this,args);
+          }});
+        }
+      }
     });
     await page.clock.setFixedTime(new Date('2026-11-06T03:00:00+09:00'));
     await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
@@ -195,7 +212,9 @@ function compare(){
       baseCpuScriptMs:row.cpuMs?.ScriptDuration??null,candidateCpuScriptMs:next?.cpuMs?.ScriptDuration??null,
       baseRafFps:row.raf?.rafFps??null,candidateRafFps:next?.raf?.rafFps??null,
       baseMaxFrameGapMs:row.raf?.maxFrameGapMs??null,candidateMaxFrameGapMs:next?.raf?.maxFrameGapMs??null,
-      baseGpuDrawCalls:row.renderer?.gpuDrawCalls?.total??null,candidateGpuDrawCalls:next?.renderer?.gpuDrawCalls?.total??null,
+      baseGpuDrawCalls:row.raf?.glDrawCalls??null,candidateGpuDrawCalls:next?.raf?.glDrawCalls??null,
+      baseCountryPreparationMs:row.renderer?.countryMeshPreparationMs??null,
+      candidateCountryPreparationMs:next?.renderer?.countryMeshPreparationMs??null,
       baseGpuBuffers:row.renderer?.gpuTrackedBuffersBytes??null,candidateGpuBuffers:next?.renderer?.gpuTrackedBuffersBytes??null,
       deltaMs:diff(row.elapsedMs,next?.elapsedMs),
       mainJsHeapBytes:row.jsHeapUsedBytes,p7JsHeapBytes:next?.jsHeapUsedBytes??null,
