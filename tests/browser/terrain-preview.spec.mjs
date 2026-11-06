@@ -49,8 +49,9 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
       constructor(...args) { super(...args); this.addEventListener('message', ({ data }) => {
-        if (data.type === 'terrain-ready' || data.type === 'terrain-warning')
-          window.__terrainWorkerEvents.push({ kind: data.type, key: data.key, message: data.message });
+        if (data.type === 'terrain-ready' || data.type === 'terrain-warning' || data.type === 'dem-diagnostic')
+          window.__terrainWorkerEvents.push({ kind: data.type, key: data.key, message: data.message,
+            stage: data.stage, bytes: data.bytes, at: performance.now() });
         if (data.type === 'frame') window.__terrainFrames.push({
           stats: data.terrainStats, revision: data.revision, style: data.styleRevision,
           complete: data.terrainComplete, frameId: data.frameId, renderRequestId: data.renderRequestId,
@@ -68,6 +69,26 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
         return super.postMessage(message, ...args);
       }
     };
+  });
+  // The classic Worker is instrumented only in this browser regression; no
+  // production debug hooks or duplicate loaders are introduced.
+  await page.route(/\/workers\/canvas-render-worker\.js(?:\?|$)/, async route => {
+    const response = await route.fetch();
+    let source = await response.text();
+    const anchor = (before, after) => {
+      if (source.split(before).length !== 2) throw new Error('DEM diagnostic anchor changed: ' + before.slice(0, 60));
+      source = source.replace(before, after);
+    };
+    const mark = stage => `self.postMessage({type:'dem-diagnostic',stage:${JSON.stringify(stage)},at:performance.now()});`;
+    anchor('    async function loadDemManifest(url) {',
+      '    async function loadDemManifest(url) {\n      ' + mark('manifest-enter'));
+    anchor('        const tint = await readRgba(await tintResponse.blob());',
+      '        ' + mark('tint-response') + '\n        const tint = await readRgba(await tintResponse.blob());\n        ' + mark('tint-decoded'));
+    anchor('    async function readRgba(blob) {',
+      '    async function readRgba(blob) {\n      ' + `self.postMessage({type:'dem-diagnostic',stage:'read-rgba-enter',bytes:blob.size,at:performance.now()});`);
+    anchor('      const source = new OffscreenCanvas(bitmap.width, bitmap.height);\n      const read = source.getContext',
+      '      ' + mark('bitmap-decoded') + '\n      const source = new OffscreenCanvas(bitmap.width, bitmap.height);\n      const read = source.getContext');
+    await route.fulfill({ response, body: source });
   });
   const requests = [];
   context.on('request', request => {
