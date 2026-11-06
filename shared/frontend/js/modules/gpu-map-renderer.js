@@ -398,6 +398,7 @@ export function createGpuMapRenderer(deps) {
       return JSON.stringify([projectGeneration, renderDeviceContextRevision, geometryRevisionTracker.committedRevision(),
         frame.frameId, frame.viewRevision, frame.projectionRevision, frame.cssScale, frame.cssTranslate,
         countryPaletteRevision, physicalStyleStateRevision, !!state.physicalSettings.terrainVisible,
+        surfacePresentation.quality, surfacePresentation.geometryQuality,
         terrainPreparation && state.physicalSettings.terrainVisible ? terrain.terrainTargetKey : null]);
     }
 
