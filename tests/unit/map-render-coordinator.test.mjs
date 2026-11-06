@@ -72,6 +72,32 @@ test('project preparation invalidated while replacement is blocked is replayed b
   assert.deepEqual(calls, ['base', 'countries', 'labels', 'present']);
 });
 
+test('blocked Canvas startup submits only a physical background frame, keeping country presentation deferred', () => {
+  const frames = [], calls = [];
+  let blocked = true, backgroundReady = true;
+  const coordinator = createMapRenderCoordinator({
+    requestFrame: callback => frames.push(callback),
+    prepareView: ({frameId}) => ({frameId, projectGeneration:3}),
+    isPresentationBlocked: () => blocked,
+    renderers: {
+      preservedFrame: () => calls.push('preserved'),
+      canRenderBlockedBackground: () => backgroundReady,
+      blockedBackground: frame => calls.push(`background:${frame.projectGeneration}:${frame.frameId}`),
+      countries: () => { calls.push('countries'); return {succeeded:true}; },
+      viewPresentation: () => calls.push('present'),
+    },
+  });
+  coordinator.invalidate(MAP_RENDER_MASKS.PROJECT); frames.shift()();
+  assert.deepEqual(calls, ['preserved', 'background:3:1']);
+  backgroundReady = false;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME); frames.shift()();
+  assert.deepEqual(calls, ['preserved', 'background:3:1', 'preserved']);
+  blocked = false;
+  coordinator.invalidate(MAP_RENDER_DIRTY.GPU_FRAME); frames.shift()();
+  assert.ok(calls.includes('countries'));
+  assert.ok(calls.includes('present'));
+});
+
 function fixture() {
   const calls = [];
   const frames = [];
