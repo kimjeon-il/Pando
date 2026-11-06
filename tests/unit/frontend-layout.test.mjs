@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync,readFileSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {buildFrontendIndex,frontendAsset,emitFrontendModule,frontendSourceClosure} from '../../scripts/lib/frontend-layout.mjs';
@@ -77,8 +77,4 @@ test('runtime closure rejects private retired editor dependencies',t=>{
  assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{
    runtimeDependencies:{'assets/js/modules/common.js':['apps/editor/frontend/js/private.js']},
  }),/missing/i);
-});
-test('world fixture uses real dependency closure instead of ad-hoc copies',()=>{
- const source=readFileSync(new URL('../../apps/editor/tests/helpers/world-fixture.mjs',import.meta.url),'utf8');
- assert.match(source,/frontendSourceClosure/);assert.match(source,/runtimeDependencies/);
 });

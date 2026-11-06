@@ -12,7 +12,7 @@ function fixture(){
   sourceBindings:[],geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}};
  const decoded=Buffer.from(JSON.stringify(value)),bytes=gzipSync(decoded),digest=hash(bytes);
  const entry={entityId:value.entityId,file:`countries/state-big-sha256-${digest}.json.gz`,encoding:'gzip',sha256:digest,compressedBytes:bytes.length,decodedBytes:decoded.length,coverage:[{validFrom:null,validTo:null}]};
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{},entities:[entry]};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{format:'pandolab-project-state',schemaVersion:14},entities:[entry]};
  return {index,entry,bytes,value};
 }
 function split(f){

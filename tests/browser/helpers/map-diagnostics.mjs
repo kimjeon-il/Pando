@@ -190,7 +190,9 @@ function observePollPageRead({ key, id, valueField }, read, args) {
 export function instrumentCanvasTransportSource(source) {
   const send = 'worker.postMessage(...args); return true;';
   const accept = 'const current = Number(message.projectGeneration ?? generation) === generation\n'
-    + '      && revision >= requestedRevision && revision >= displayedRevision && acceptFrame(message);';
+    + '      && revision >= displayedRevision\n'
+    + '      && (revision >= requestedRevision || allowOlderBackgroundFrame(message))\n'
+    + '      && acceptFrame(message);';
   for (const marker of [send, accept]) {
     if (source.split(marker).length !== 2) throw new Error('Canvas diagnostic source anchor must occur exactly once');
   }

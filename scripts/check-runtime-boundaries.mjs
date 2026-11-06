@@ -1,5 +1,4 @@
-// R1: only the shipped Viewer and Windows read-only reviewer are runtime contracts.
-// The retired graphical-editor source tree is not a required application domain.
+// P7: the Web Viewer is the only shipped runtime; retired editor/Windows files are absent.
 import {readFileSync,existsSync} from 'node:fs';
 import {posix,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -22,6 +21,7 @@ const required=[
   'assets/js/viewer.js',
   'assets/js/modules/viewer-composition.js',
   'assets/js/modules/viewer-review-panel.js',
+  'assets/js/modules/viewer-inspector-controller.js',
   'assets/js/modules/core-document-client.js',
   'assets/js/modules/project-domain.js',
   'assets/js/modules/selection-domain.js',
@@ -102,6 +102,16 @@ mustContain('assets/js/modules/viewer-composition.js',/createProjectDomain\(\{pr
   'Viewer must create a read-only project domain');
 mustContain('assets/js/modules/product-mode-policy.js',/PL-PRODUCT-READONLY/,
   'Core product mode must reject mutation operations');
+mustContain('assets/js/modules/viewer-composition.js',/await import\('\.\/viewer-review-panel\.js'\)/,
+  'Viewer review panel must remain a lazy dynamic import');
+mustContain('assets/js/modules/viewer-inspector-controller.js',/readOnly!==true/,
+  'Viewer inspector controller must fail closed for mutable document sessions');
+mustContain('assets/js/modules/viewer-inspector-controller.js',/requestRevision/,
+  'Inspector async opens must use one cancellation sequence');
+mustContain('assets/js/modules/viewer-review-panel.js',/documentSession\.readOnly!==true/,
+  'Review panel must independently enforce a read-only document');
+if(/^import\s+[^\n]*from\s+['"]\.\/viewer-review-panel\.js['"]/m.test(source('assets/js/modules/viewer-composition.js')))
+  fail('The review module must not be eagerly imported at Viewer boot');
 mustContain('assets/js/modules/core-document-client.js',/policy\.assertOperation\(operation\)/,
   'Core document client must check the product policy');
 for(const token of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
@@ -117,8 +127,44 @@ for(const [asset,body] of sources)
     &&/createMapRenderCoordinator\(\{/.test(body))
     fail('Duplicate render coordinator: '+asset);
 
-// Windows native shell was retired. All active Viewer code remains read-only.
-for(const path of ['apps/editor/src-tauri/Cargo.toml','apps/editor/src-tauri/src/main.rs',
-  'apps/editor/native-producer.mjs','apps/editor/packaged-artifacts.mjs'])
-  if(existsSync(resolve(root,path)))fail('Windows native producer returned: '+path);
-console.log('Viewer runtime boundaries passed ('+visited.size+' reachable modules).');
+// The retired shell and its staging graph are physically absent, not just unshipped.
+if(existsSync(resolve(root,'apps/editor')))
+  fail('Retired editor application root returned');
+for(const asset of ['assets/js/viewer.js','assets/js/modules/viewer-composition.js',
+  'assets/js/modules/viewer-inspector-controller.js'])
+  if(/PANDOLAB_NATIVE_REVIEW|PANDOLAB_SHELL_VERIFICATION|nativeReview/.test(source(asset)))
+    fail('Retired Windows review mode reentered Viewer: '+asset);
+// Optional static baseline for the checked-out commit. No browser timings are inferred.
+if (process.argv.includes('--baseline-json')) {
+  const {execFileSync} = await import('node:child_process');
+  const raw = execFileSync('git', ['ls-tree', '-r', '-l', '-z', 'HEAD'],
+    {cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024});
+  const prefixes = ['apps/viewer/', 'apps/editor/', 'shared/frontend/', 'shared/core/',
+    'shared/wasm/', 'tools/', 'scripts/', 'tests/', '.github/workflows/'];
+  const areas = new Map();
+  let trackedFiles = 0, trackedBytes = 0;
+  for (const item of raw.split('\0').filter(Boolean)) {
+    const match = /^[0-7]{6} blob [0-9a-f]{40} +([0-9]+)\t(.+)$/u.exec(item);
+    if (!match) throw new Error('Unsupported tracked tree entry');
+    const bytes = Number(match[1]), path = match[2];
+    const area = prefixes.find(prefix => path.startsWith(prefix))?.slice(0, -1) || 'other';
+    const row = areas.get(area) || {files: 0, bytes: 0};
+    row.files++; row.bytes += bytes; areas.set(area, row);
+    trackedFiles++; trackedBytes += bytes;
+  }
+  const git = args => execFileSync('git', args, {cwd: root, encoding: 'utf8'}).trim();
+  const dataPin = JSON.parse(read('config/library-data.json'));
+  console.log(JSON.stringify({
+    schema: 'pando-static-runtime-baseline-v1',
+    sourceCommit: git(['rev-parse', 'HEAD']),
+    externalDataRevision: dataPin.revision,
+    trackedFiles, trackedBytes,
+    areas: Object.fromEntries([...areas].sort(([a], [b]) => a.localeCompare(b))),
+    indexedFrontendAssets: index.size,
+    boundaryCheckedModules: visited.size,
+    runtimeMetricsMeasured: false,
+    note: 'Git-tree sizes and static Viewer boundary closure, not load/CPU/GPU/memory measurements',
+  }, null, 2));
+} else {
+  console.log('Viewer runtime boundaries passed ('+visited.size+' reachable modules).');
+}

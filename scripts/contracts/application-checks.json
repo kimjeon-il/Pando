@@ -29,8 +29,7 @@
         "shared/frontend/js/modules/ui-*.js",
         "apps/viewer/js/modules/ui-*.js",
         "shared/frontend/js/modules/surface-*.js",
-        "apps/viewer/js/modules/surface-*.js",
-        "apps/editor/network-guard.js"
+        "apps/viewer/js/modules/surface-*.js"
       ]
     },
     {
@@ -285,8 +284,7 @@
         "tests/browser/shared-map-*.spec.mjs",
         "tests/browser/shared-view*.spec.mjs",
         "tests/browser/map-startup-publication.spec.mjs",
-        "tests/browser/resource-dependency-reuse.spec.mjs",
-        "tests/browser/windows-review-e5.spec.mjs"
+        "tests/browser/resource-dependency-reuse.spec.mjs"
       ],
       "inputs": [
         "apps/viewer/js/viewer.js",
@@ -344,8 +342,7 @@
         "shared/frontend/js/modules/ui-*.js",
         "apps/viewer/js/modules/ui-*.js",
         "shared/frontend/js/modules/surface-*.js",
-        "apps/viewer/js/modules/surface-*.js",
-        "apps/editor/network-guard.js"
+        "apps/viewer/js/modules/surface-*.js"
       ],
       "requires": [
         "generated",
@@ -450,109 +447,6 @@
       "requires": []
     },
     {
-      "id": "app-small-stage",
-      "kind": "command",
-      "inputs": [
-        "apps/editor/stage.mjs",
-        "apps/editor/check-stage.mjs",
-        "apps/editor/review-probe.js",
-        "apps/editor/world-data-plan.mjs",
-        "scripts/lib/product-assets.mjs",
-        "scripts/lib/worker-assets.mjs",
-        "shared/frontend/js/modules/worker-asset-url.js",
-        "shared/frontend/js/**",
-        "apps/viewer/js/**",
-        "shared/frontend/css/**",
-        "apps/viewer/css/**",
-        "assets/data/physical-land/**"
-      ],
-      "argv": [
-        "node",
-        "apps/editor/stage.mjs",
-        "--profile=test-fixture",
-        "--verification"
-      ],
-      "requires": [
-        "generated"
-      ]
-    },
-    {
-      "id": "app-small-verify",
-      "kind": "command",
-      "inputs": [
-        "apps/editor/stage.mjs",
-        "apps/editor/check-stage.mjs",
-        "apps/editor/review-probe.js",
-        "apps/editor/world-data-plan.mjs",
-        "scripts/lib/product-assets.mjs",
-        "scripts/lib/worker-assets.mjs",
-        "shared/frontend/js/modules/worker-asset-url.js",
-        "shared/frontend/js/**",
-        "apps/viewer/js/**",
-        "shared/frontend/css/**",
-        "apps/viewer/css/**",
-        "assets/data/physical-land/**"
-      ],
-      "argv": [
-        "node",
-        "apps/editor/check-stage.mjs"
-      ],
-      "requires": [
-        "app-small-stage"
-      ]
-    },
-    {
-      "id": "app-world-stage",
-      "kind": "command",
-      "inputs": [
-        "apps/editor/stage.mjs",
-        "apps/editor/check-stage.mjs",
-        "apps/editor/review-probe.js",
-        "apps/editor/world-data-plan.mjs",
-        "scripts/lib/product-assets.mjs",
-        "scripts/lib/worker-assets.mjs",
-        "shared/frontend/js/modules/worker-asset-url.js",
-        "shared/frontend/js/**",
-        "apps/viewer/js/**",
-        "shared/frontend/css/**",
-        "apps/viewer/css/**",
-        "assets/data/physical-land/**"
-      ],
-      "argv": [
-        "node",
-        "apps/editor/stage.mjs",
-        "--profile=map-data"
-      ],
-      "requires": [
-        "app-small-verify"
-      ]
-    },
-    {
-      "id": "app-world-verify",
-      "kind": "command",
-      "inputs": [
-        "apps/editor/stage.mjs",
-        "apps/editor/check-stage.mjs",
-        "apps/editor/review-probe.js",
-        "apps/editor/world-data-plan.mjs",
-        "scripts/lib/product-assets.mjs",
-        "scripts/lib/worker-assets.mjs",
-        "shared/frontend/js/modules/worker-asset-url.js",
-        "shared/frontend/js/**",
-        "apps/viewer/js/**",
-        "shared/frontend/css/**",
-        "apps/viewer/css/**",
-        "assets/data/physical-land/**"
-      ],
-      "argv": [
-        "node",
-        "apps/editor/check-stage.mjs"
-      ],
-      "requires": [
-        "app-world-stage"
-      ]
-    },
-    {
       "id": "lint",
       "kind": "command",
       "inputs": [
@@ -560,9 +454,7 @@
         "apps/viewer/js/**",
         "scripts/**",
         "tests/**",
-        "tools/*.mjs",
-        "apps/editor/*.js",
-        "apps/editor/*.mjs"
+        "tools/*.mjs"
       ],
       "argv": [
         "node",
@@ -1160,7 +1052,6 @@
   },
   "productRoots": [
     "assets/**",
-    "apps/editor/**",
     "shared/**",
     "scripts/**",
     "tools/**",
@@ -1170,15 +1061,11 @@
   ],
   "passiveInputs": [
     "shared/frontend/js/vendor/**",
-    "apps/editor/frontend/js/vendor/**",
     "apps/viewer/js/vendor/**",
     "shared/frontend/static/vendor/**",
     "shared/frontend/static/fonts/**",
     "assets/icons/**",
-    "assets/flags/**",
-    "apps/editor/frontend/**",
-    "apps/editor/templates/**",
-    "apps/editor/tests/**"
+    "assets/flags/**"
   ],
   "infrastructure": [
     "pnpm-lock.yaml",

@@ -823,6 +823,8 @@ export function createRenderingDomain({
     active();
     resetTerritorialBoundaryCache();
     gpuMapRenderer?.resetProjectRenderState?.({ generation,...presentation });
+    // Do not wait for a blocked RAF to obtain this project's frame identity.
+    coordinator?.stageBlockedBackground?.();
     return generation;
   };
   const getStats = () => Object.freeze({
@@ -944,6 +946,8 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       preservedFrame: () => gpuMapRenderer.renderPreservedProjectFrame(),
+      canRenderBlockedBackground: () => gpuMapRenderer?.canRenderBlockedCanvasBackground?.() === true,
+      blockedBackground: frame => gpuMapRenderer.renderBlockedCanvasBackground(frame),
       beginFrame,
       view: frame => {
         const result = renderPass('view', frame);

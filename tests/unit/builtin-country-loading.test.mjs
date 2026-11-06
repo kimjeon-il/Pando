@@ -19,7 +19,7 @@ function publication(rows){
   const file=`countries/${id.replaceAll(':','-')}-sha256-${hash}.json.gz`;
   files.set(file,stored);entities.push({entityId:id,coverage,file,encoding:'gzip',sha256:hash,compressedBytes:stored.length,decodedBytes:decoded.length});
  }
- const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{},entities};
+ const index={schema:'pandolab-builtin-world',schemaVersion:2,storageLayout:'country-files-v1',template:{format:'pandolab-project-state',schemaVersion:14},entities};
  files.set('index.json',json(index));return {files,index};
 }
 function memoryCache(){

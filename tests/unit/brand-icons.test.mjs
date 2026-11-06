@@ -30,7 +30,7 @@ function icoSizes(buffer){
  return sizes.sort((a,b)=>a-b);
 }
 
-test('Viewer and Windows reviewer use the same canonical shared brand icons',()=>{
+test('Viewer uses the canonical shared brand icons',()=>{
  for(const [mode,page] of Object.entries(pages())){
   assert.doesNotMatch(page,/href="data:,"/);
   assert.equal((page.match(/rel="icon"/g)||[]).length,2);
@@ -41,15 +41,15 @@ test('Viewer and Windows reviewer use the same canonical shared brand icons',()=
  }
 });
 
-test('brand URLs resolve under the published Viewer and local Windows reviewer',()=>{
+test('brand URLs resolve under the published Viewer',()=>{
  const index=buildFrontendIndex(root),links=[...pages().web.matchAll(/href="(assets\/brand\/[^"?]+)[^"]*"/g)].map(m=>m[1]);
  assert.equal(links.length,3);
  for(const path of links){
   assert.equal(index.get(path)?.product,'shared',path);
   assert.equal(index.get(path)?.sourcePath,'shared/frontend/static/'+path.slice(7));
   assert.ok(bytes(index.get(path).sourcePath).length);
-  // Browser Pages uses a subpath; Windows review uses the local packaged app origin.
-  for(const [page,baseHref,prefix]of [['https://example.test/Pando/',null,'/Pando/'],['http://tauri.localhost/review.html',null,'/']]){
+  // Browser Pages uses a subpath; there is no native shell origin.
+  for(const [page,baseHref,prefix]of [['https://example.test/Pando/',null,'/Pando/']]){
    const base=baseHref?new URL(baseHref,page):new URL(page);
    assert.equal(new URL(path,base).pathname,prefix+path);
   }
@@ -57,16 +57,13 @@ test('brand URLs resolve under the published Viewer and local Windows reviewer',
  assert.doesNotMatch(text('shared/frontend/ui/fragments/brand-icons.html'),/rel="manifest"|https?:/);
 });
 
-test('Windows and favicon containers retain their reviewed optical-size PNG frames',()=>{
- assert.deepEqual(icoSizes(bytes('apps/editor/src-tauri/icons/icon.ico')),[16,24,32,48,64,128,256]);
+test('Viewer favicon containers retain their reviewed optical-size PNG frames',()=>{
+
  assert.deepEqual(icoSizes(bytes(brand+'favicon.ico')),[16,32,48]);
- const png=bytes('apps/editor/src-tauri/icons/icon.png');
- assert.equal(png.readUInt32BE(16),256);assert.equal(png.readUInt32BE(20),256);assert.equal(png[25],6);
  const apple=bytes(brand+'apple-touch-icon.png');assert.equal(apple.readUInt32BE(16),180);assert.equal(apple.readUInt32BE(20),180);
  const approved=JSON.parse(text('design/brand/asset-hashes.json'));
  for(const [path,sha]of Object.entries(approved)){
-  assert.doesNotMatch(path,/^(?:apps\/editor\/src-tauri\/(?:android|gen\/android)\/)/,
-    'retired Android native asset must not remain in the Windows/Web brand inventory');
+  assert.ok(path.startsWith('shared/frontend/static/brand/'),'Only Viewer brand assets may be approved');
   const raw=bytes(path),content=/\.(?:svg|xml)$/.test(path)?Buffer.from(raw.toString('utf8').replaceAll('\r\n','\n')):raw;
   assert.equal(createHash('sha256').update(content).digest('hex'),sha,path);
  }

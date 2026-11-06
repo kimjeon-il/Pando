@@ -16,9 +16,9 @@ test('every current browser workflow can be assigned before CI dependency planni
   assert.deepEqual(unregistered, []);
 });
 
-test('Viewer, Windows and shared checks reference existing named test files', () => {
+test('Viewer and shared checks reference existing named test files', () => {
   const root = fileURLToPath(new URL('../..', import.meta.url));
-  const workflows = ['e1-map-readonly-acceptance', 'e5-windows-review-acceptance',
+  const workflows = ['e1-map-readonly-acceptance',
     'remote-preview-p3', 'shared-core', 'viewer-initial-p1',
     'viewer-temporal-cross-acceptance', 'viewer-temporal-performance'];
   const missing = [];

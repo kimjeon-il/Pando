@@ -7,7 +7,7 @@ import {loadRepository,planApplicationChecks} from '../../scripts/plan-applicati
 
 test('E7 validates all test registrations without reparsing retired editor imports on a no-change commit',()=>{
   const repository=loadRepository();
-  assert.equal(repository.owners.get('tests/browser/windows-review-e5.spec.mjs')?.id,'viewer');
+  assert.equal(repository.owners.get('tests/browser/viewer-inspector.spec.mjs')?.id,'viewer');
   for(const name of ['p6-5-resource-check','p6-6-desktop-performance','p6-7-narrow-performance']){
     assert.equal(repository.owners.get('tests/browser/'+name+'.spec.mjs')?.mode,'manual');
   }
@@ -39,8 +39,12 @@ test('removed Windows entrypoints are not selected as active application builds'
   const repository=loadRepository();
   assert.equal(repository.owners.has('tests/unit/r2-native-platform-retirement.test.mjs'),true);
   assert.equal(repository.owners.has('tests/browser/viewer-inspector.spec.mjs'),true);
-  assert.throws(()=>planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository}),
-    /Unclassified product change/);
+  const retired=planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository});
+  assert.deepEqual(retired.unitTests,[]);
+  assert.deepEqual(retired.browserSpecs,[]);
+  assert.deepEqual(retired.commands,[],'removed Windows sources are no longer production inputs');
+  assert.throws(()=>planApplicationChecks({changedFiles:['apps/viewer/unknown-contract.xyz'],repository}),
+    /Unclassified product change/,'unknown active Viewer sources must still be rejected');
 });
 test('P3 application runner preserves caller environment while enforcing native prerequisite policy',async()=>{
   const {executePlan}=await import('../../scripts/run-application-checks.mjs');

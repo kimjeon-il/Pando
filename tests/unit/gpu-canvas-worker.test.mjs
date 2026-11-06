@@ -11,11 +11,12 @@ test('project replacement retains a ready worker and rejects old completion with
   channel.queueFrame({ type: 'view', revision: 9, projectGeneration: 2 });
   const old = sent[0];
   channel.resetGeneration(3);
+  assert.deepEqual(sent[1], { type: 'reset-generation', projectGeneration: 3 });
   channel.queueFrame({ type: 'view', revision: 1, projectGeneration: 3 });
   complete(old, { bitmap: { close() {} } });
   assert.equal(channel.busy, true);
   assert.equal(presented.length, 0);
-  complete(sent[1]);
+  complete(sent[2]);
   assert.equal(channel.busy, false);
   assert.equal(presented.length, 1);
   assert.equal(channel.ready, true);
@@ -306,6 +307,43 @@ test('the real Canvas Worker reuses unchanged projected country geometry across 
   paint(3); assert.equal(pathBuildCount(), 2, 'a new delivery generation cannot invalidate unchanged projected geometry');
 });
 
+
+test('real Canvas Worker generation reset retires old physical packets before new land and water', () => {
+  const { replies, send } = canvasRuntime();
+  const ring = new Float64Array([0, 0, 1, 0, 1, 1, 0, 0]);
+  const packet = (key, revision) => ({
+    key, role: key, sourceKey: revision, geometryRevision: revision,
+    ringCoordinates: ring, ringOffsets: new Uint32Array([0, 4]),
+    polygonOffsets: new Uint32Array([0, 1]),
+  });
+  const pending = { surfacePresentation: { targetQuality: 'canonical', quality: 'pending' },
+    visible: false, sceneStrokes: [], visualOrder: { base: [], hydro: [] } };
+  send({ type: 'view', projectGeneration: 2, revision: 2, viewRevision: 2,
+    ...pending, scenePolygons: [packet('physical-land', 'old-land')] });
+  assert.equal(replies.at(-1).message.physicalLandRevision, 'old-land');
+  const count = replies.length;
+  send({ type: 'reset-generation', projectGeneration: 3 });
+  send({ type: 'view', projectGeneration: 2, revision: 3, viewRevision: 3 });
+  assert.equal(replies.length, count, 'old generation views cannot reintroduce retired pixels');
+  // Production refreshes scene/style state before its first new-generation view.
+  send({ type: 'style', projectGeneration: 3, styleRevision: 2,
+    ...pending, theme: {}, physicalSettings: { terrainVisible: false }, fills: {}, scenePolygons: [] });
+  const currentView = { type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
+    width: 20, height: 20, projection: 'flat', view: { flatCenter: [0, 0] },
+    renderProjection: { scale: 20, translate: [10, 10] } };
+  send({ ...currentView, scenePolygons: [] });
+  assert.equal(replies.at(-1).message.projectGeneration, 3, replies.at(-1).message.message);
+  assert.equal(replies.at(-1).message.physicalLandCount, 0,
+    'the new project cannot inherit the old physical land packet');
+  send({ ...currentView, scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
+  const frame = replies.at(-1).message;
+  assert.equal(frame.projectGeneration, 3);
+  assert.equal(frame.physicalLandCount, 1);
+  assert.equal(frame.physicalLandRevision, 'land-v3');
+  assert.equal(frame.physicalWaterCount, 1);
+  assert.equal(frame.physicalWaterRevision, 'water-v3');
+});
+
 test('Canvas data acknowledgements identify their project and obsolete data cannot acknowledge a new project', () => {
   const { send, replies } = canvasRuntime();
   send({ type: 'replace-data', projectGeneration: 3, geometryRevision: 0, features: [] });
@@ -374,5 +412,55 @@ test('pick failures reject their own request and keep the Canvas worker alive', 
   let prevented = false; channel.onerror = () => {};
   native.onerror({ preventDefault() { prevented = true; } });
   assert.equal(prevented, true);
+  channel.terminate();
+});
+
+
+test('rejected unsolicited Canvas paint reports staleness without acknowledging obsolete pixels',()=>{
+  const sent=[],stale=[],accepted=[];
+  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:3,
+    acceptFrame:message=>message.frameId===9&&message.styleRevision===4,
+    onStale:message=>stale.push(message)});
+  channel.onmessage=event=>{if(event.data.type==='frame')accepted.push(event.data);};
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',projectGeneration:3,revision:5,frameId:9});
+  let closed=0;
+  worker.onmessage({data:{type:'frame',renderRequestId:null,projectGeneration:3,
+    revision:5,frameId:9,styleRevision:3,bitmap:{close:()=>closed++}}});
+  assert.equal(closed,1,'obsolete unsolicited bitmap must be released');
+  assert.equal(stale.length,1,'current presentation owner receives unsolicited stale frame');
+  assert.deepEqual(accepted,[],'no readiness acknowledgment for an old style');
+  worker.onmessage({data:{type:'frame',renderRequestId:sent[0].renderRequestId,
+    projectGeneration:3,revision:5,frameId:9,styleRevision:4,bitmap:{}}});
+  assert.equal(accepted.length,1,'current accepted bitmap can still be presented');
+  channel.terminate();
+});
+
+
+test('only a renderer-authorized current physical background can bypass an older requested view revision',()=>{
+  const sent=[],accepted=[],rejected=[];let revoked=0;
+  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({
+    worker,generation:1,
+    acceptFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
+    allowOlderBackgroundFrame:message=>message.backgroundOnly===true && message.backgroundPresentationKey==='same-picture',
+    onStale:message=>rejected.push(message),
+  });
+  channel.onmessage=event=>{if(event.data.type==='frame')accepted.push(event.data)};
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',frameId:5,revision:1,projectGeneration:1});
+  channel.queueFrame({type:'view',frameId:6,revision:2,projectGeneration:1});
+  worker.onmessage({data:{type:'frame',projectGeneration:1,revision:1,frameId:5,
+    renderRequestId:sent[0].renderRequestId,backgroundOnly:true,
+    backgroundPresentationKey:'same-picture',bitmap:{close(){revoked++}}}});
+  assert.equal(accepted.length,1,'a matching source/camera background can be shown before the next submission');
+  assert.deepEqual(sent.map(message=>message.frameId),[5,6]);
+  worker.onmessage({data:{type:'frame',projectGeneration:1,revision:2,
+    renderRequestId:sent[1].renderRequestId,backgroundOnly:true,
+    backgroundPresentationKey:'old-picture',bitmap:{close(){revoked++}}}});
+  assert.equal(accepted.length,1,'a different camera/physical picture must be discarded');
+  assert.equal(rejected.length,1);
+  assert.equal(revoked,1);
   channel.terminate();
 });

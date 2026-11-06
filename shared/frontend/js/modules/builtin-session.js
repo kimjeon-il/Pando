@@ -4,6 +4,7 @@ import { territorialSceneDisplayId } from './builtin-subunits.js';
 import { territorialRootId } from './territorial-units.js';
 import {createBuiltinWorldLoader} from './builtin-world-loader.js';
 import {deviceCurrentMonth} from './builtin-month-clock.js';
+import {createBuiltinProjectSetup} from './project-setup.js';
 /** BuiltinSession: extracted application responsibility.
  * Dependencies are explicitly wired once by the composition modules.
  * Mutable bindings stay local; exported accessors retain live identity.
@@ -227,7 +228,11 @@ export function createBuiltinSession({ builtinWorldLoader = null,buildMeta,sourc
     } finally { releasePending(); }
   }
 
-  async function prepareProjectCandidate(month=deviceCurrentMonth(),{isCurrent=()=>true,setup,transition=false}={}) {
+  async function prepareProjectCandidate(month=deviceCurrentMonth(),options={}) {
+    if(Object.hasOwn(options,'setup'))
+      throw new TypeError('Builtin project setup is derived from the requested month.');
+    const {isCurrent=()=>true,transition=false}=options;
+    const setup=createBuiltinProjectSetup(month);
     const releasePending=protectPendingSource(month);
     try {
       const domain=dependencies.domains.projectDomain;

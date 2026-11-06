@@ -3,7 +3,7 @@
   "provenance": {
     "repository": "kimjeon-il/PandoLab-library-data",
     "revision": "5eb7be55208efaafe39bd5a65ec2f111d70b9053",
-    "reviewedRuntimeRevision": "30ce140bdd55b45cbe40d75346719a4b140e1342",
+    "reviewedRuntimeRevision": "3673ce501c5c2479356414816b5c5daa0ca3e6c6",
     "archiveIndexPath": "archive/index.json",
     "archiveIndexBlob": "4ef57ab2c1c87b2ecf0b1aef37c6420a44473c70",
     "archiveSourceRevision": "8bdccdd5b1e20305e0069ec856d0f2086637ecdb",
@@ -29,6 +29,20 @@
       ],
       "runtime": "30ce140bdd55b45cbe40d75346719a4b140e1342",
       "reason": "Restore only direct Paektu/MDL LSIB replacements to the verified pre-LSIB NE baseline; preserve phase dates, all other source receipts, Monaco, and earlier retirements."
+    },
+    "runtimePinReview": {
+      "previousReviewedRevision": "30ce140bdd55b45cbe40d75346719a4b140e1342",
+      "reviewedRuntimeRevision": "3673ce501c5c2479356414816b5c5daa0ca3e6c6",
+      "previousArchiveSourceRevision": "8bdccdd5b1e20305e0069ec856d0f2086637ecdb",
+      "currentArchiveSourceRevision": "3b3339df9c8db7b89210510d1e157b893697ee91",
+      "comparedPrefix": "assets/data/territorial-entities/source/",
+      "matchedSourceIndexEntries": 554,
+      "matchedCountrySources": 286,
+      "matchedLineageSources": 265,
+      "matchedSourceReceipts": 551,
+      "changedSourceReceipts": 0,
+      "method": "Compared full archive/index.json entries (path, stored blob, encoding, sha256, bytes) at both library revisions; all 551 country and lineage receipts unchanged. Other generated assets may differ.",
+      "date": "2026-11-06"
     }
   },
   "counts": {

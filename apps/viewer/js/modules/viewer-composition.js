@@ -28,6 +28,7 @@ import { createViewerMap } from './viewer-map.js';
 import {createViewerInitialPresentation} from './viewer-initial-presentation.js';
 import {createViewerPostPresentation} from './viewer-post-presentation.js';
 import {createViewerAdjacentPrefetch} from './viewer-adjacent-prefetch.js';
+import {createViewerInspectorController} from './viewer-inspector-controller.js';
 import { createFileController } from "../../../../shared/frontend/js/modules/file-controller.js";
 import { readProjectFile } from "../../../../shared/frontend/js/modules/project-file-reader.js";
 import { createMapSettings } from "../../../../shared/frontend/js/modules/app-map-settings.js";
@@ -38,15 +39,14 @@ import { createPreferencesDialog } from "../../../../shared/frontend/js/modules/
 import {createBuiltinMonthClock} from "../../../../shared/frontend/js/modules/builtin-month-clock.js";
 import {territorialMembershipDelta} from "../../../../shared/frontend/js/modules/territorial-entity-store.js";
 
-export async function composeViewer({ productMode, meta, nativeReview = false }) {
+export async function composeViewer({ productMode, meta }) {
   const runtimeContext=createRuntimeContext({productMode,meta,assetBaseUrl:new URL('../',import.meta.url),platform:createPlatformPorts({kind:'browser'})});
   if(productMode!=='viewer')throw new Error('실행 설정이 올바르지 않습니다.');
-  if(nativeReview!==false && (nativeReview!==true || globalThis.PANDOLAB_NATIVE_REVIEW!==true))
-    throw new TypeError('Windows review mode requires the native read-only shell.');
-  const projection=nativeReview?'flat':'globe';
+  const projection='globe';
   const get=id=>document.getElementById(id),status=get('viewerStatus');
   let map,previousView,display,builtinClock,syncStatus,builtinActive=true;
-  let openInspectorAfterStartup=null;
+  const inspectParams=new URLSearchParams(window.location.search);
+  let inspectorController=null;
   const initialPresentation=createViewerInitialPresentation({onPresented:()=>{get('viewer').dataset.initialLoading='false';map.finishInitialPreview();}});
   get('viewer').dataset.initialLoading='true';
   const preferencePresentation=createPreferencePresentation({document,window,productMode,onChange:change=>{if(map)map.refreshAppearance(change);}});
@@ -60,28 +60,9 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   const notifications=createNotificationPresentation({document,getElement:get,isMobile:()=>surfaces.isMobile(),protectErrorNotices:true});
   const report=(error,message='작업을 완료하지 못했습니다.',code='PL-MAP-OPERATION')=>notifications.reportOperationError(error,message,code);
   const documentSession=createDocumentSession({productMode,readOnly:true,initialProject:createInitialDocument({appVersion:meta.appVersion})});
-  // Available only to a signed verification build, never to ordinary users.
-  // This probes the actual viewer Core command admission rather than DOM button visibility.
-  if(nativeReview && globalThis.PANDOLAB_SHELL_VERIFICATION===true)
-    Object.defineProperty(globalThis,'__PANDOLAB_NATIVE_REVIEW_VERIFICATION__',{value:Object.freeze({
-      async capture(){
-        let mutationBlocked=false;
-        try{await documentSession.commandOwner.execute({});}
-        catch(error){mutationBlocked=error?.code==='PL-PRODUCT-READONLY';}
-        return Object.freeze({readOnly:documentSession.readOnly,
-          projection:map?.viewState?.projection??null,
-          dataReady:status.dataset.ready==='true',
-          panelOpen:get('reviewPanel')?.hidden===false,
-          hasReviewLoad:get('reviewEvidenceInput')?.type==='file',
-          editorDomAbsent:get('editorSurface')===null,
-          canUndo:documentSession.commandOwner.state()?.canUndo,
-          mutationBlocked});
-      },
-    }),configurable:false});
   const disposables=[preferencePresentation,surfaces,notifications,documentSession.commandOwner,initialPresentation];
   async function composeMap() {
   let openingPreserved=null;
-  let reviewPanel=null,reviewPanelLoading=null;
   const projectDomain=createProjectDomain({productMode,readOnly:true,commandOwner:documentSession.commandOwner,documentModel:documentSession.documentModel,
     readBuiltinSelectionCatalogs:()=>map?[{domain:'placeBuiltin',refs:map.placeSelectionReferences()},{domain:'hydroBuiltin',refs:map.hydroSelectionReferences()}]:[],publishCommand:()=>map.refreshSelection(),
     onProjectReset:async event=>{postPresentation.invalidate();searchController.cancelSearch();previousView=map.capturePresentation();await selectionDomain.resetProject(event.generation);selectionUiController.resetProject();map.renderingDomain.resetProjectGeneration(event.generation,{presentation:event.presentation,isCurrent:event.isCurrent,onPresented:event.onPresented});},
@@ -104,7 +85,7 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   let selectionUiController;
   const selectionDomain=createSelectionDomain({commandOwner:documentSession.commandOwner,projectDomain,
     refAdapter:{fromCore:coreSelectionRefToWeb,toCore:ref=>webSelectionRefToCore(ref,{isStoredHydro:id=>documentSession.documentModel.get({domain:'hydro',id})!==null})},
-    onSelectionChanged:snapshot=>{selectionUiController.sync(snapshot);reviewPanel?.syncMapSelection(snapshot);},
+    onSelectionChanged:snapshot=>{selectionUiController.sync(snapshot);inspectorController?.syncMapSelection(snapshot);},
     onHoverChanged:snapshot=>tooltipController.setMapHover(snapshot.hover?map.objectQuery.objectDisplayInfo(snapshot.hover):null),
     requestRender:()=>map.refreshSelection()});
   disposables.push(selectionDomain);
@@ -123,56 +104,28 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   map=createViewerMap({owners,runtimeContext,element:get('map'),canvas:get('viewerCanvas'),labelLayer:get('viewerLabels'),projectDomain,documentSession:activeSession,isMobile:()=>surfaces.isMobile(),diagnostics,getInteractionStyle:()=>preferencePresentation.interactionStyle,onStatus:notifications.setActionStatus,isSafeKoreanErrorMessage:notifications.isSafeKoreanErrorMessage,getPreferences:()=>preferencePresentation.current,onPlacesSettled:action=>{if(action==='cancel')searchController.cancelSearch();else searchController.render();},onError:report,
     onMapPreparationStatus:initialPresentation.observe,isInitialPresentation:()=>!initialPresentation.hasPresented()});
   disposables.push(map);
-  // The review UI loads only on deliberate opening. It reads E2/E3 sidecars
-  // and immutable Git object bytes, never registers an editor mutation hook.
-  const inspectParams=new URLSearchParams(window.location.search);
-  const inspectorEnabled=nativeReview||inspectParams.get('inspect')==='1'||inspectParams.get('debug')==='1';
-  const revealInspectorActions=()=>{
-    get('reviewPanelBtn').hidden=false;
-    if(get('mobileReviewBtn'))get('mobileReviewBtn').hidden=false;
-  };
-  if(inspectorEnabled)revealInspectorActions();
-  if(inspectParams.get('inspect')==='1'&&!nativeReview)
-    openInspectorAfterStartup=()=>showReview(get('reviewPanelBtn'),{tab:'map'})
-      .catch(error=>report(error,'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START'));
-  const showReview=async (sourceButton,{tab='changes'}={})=>{
-    if(!reviewPanelLoading)reviewPanelLoading=import('./viewer-review-panel.js').then(module=>{
-      reviewPanel=module.createViewerReviewPanel({document,window,map,documentSession:activeSession,isBuiltinMap:()=>builtinActive,
-        meta:runtimeContext.meta,readMonth:()=>builtinClock?.month()||'',
+  // One read-only inspector lifecycle for desktop, mobile, URL and keyboard.
+  // The evidence UI remains an on-demand dynamic module, never a Viewer boot
+  // dependency or a second document/selection owner.
+  inspectorController=createViewerInspectorController({
+    document,window,readOnly:documentSession.readOnly,
+    inspectRequested:inspectParams.get('inspect')==='1',
+    debugEnabled:inspectParams.get('debug')==='1',
+    closeMobileSheets:()=>surfaces.closeMobileSheets(),
+    createPanel:async()=>{
+      const {createViewerReviewPanel}=await import('./viewer-review-panel.js');
+      return createViewerReviewPanel({document,window,map,documentSession:activeSession,
+        isBuiltinMap:()=>builtinActive,meta:runtimeContext.meta,
+        readMonth:()=>builtinClock?.month()||'',
         readDiagnostics:()=>diagnostics.snapshot(),
         readPerformance:()=>typeof window.__PANDOLAB_PERFORMANCE_REPORT__==='function'
           ?window.__PANDOLAB_PERFORMANCE_REPORT__():null,
         onError:error=>diagnostics.push({category:'e4-review-data',
           errorCode:error?.code||'PL-E4-REVIEW',technicalMessage:error?.message||String(error)})});
-      disposables.push(reviewPanel);
-      return reviewPanel;
-    }).catch(error=>{reviewPanelLoading=null;throw error;});
-    const inspector=await reviewPanelLoading;
-    inspector.open(sourceButton,{tab});
-    if(sourceButton?.id==='mobileReviewBtn')surfaces.closeMobileSheets();
-  };
-  const shortcut=event=>{
-    if(event.repeat||!(event.ctrlKey||event.metaKey)||!event.shiftKey||event.code!=='Period')return;
-    event.preventDefault();
-    revealInspectorActions();
-    if(reviewPanel&&!get('reviewPanel').hidden)reviewPanel.close();
-    else showReview(get('reviewPanelBtn'),{tab:'map'})
-      .catch(error=>report(error,'점검기를 열지 못했습니다.','PL-VIEWER-INSPECTOR-START'));
-  };
-  document.addEventListener('keydown',shortcut);
-  disposables.push({dispose:()=>document.removeEventListener('keydown',shortcut)});
-  if(nativeReview){
-    const reveal=()=>showReview(get('reviewPanelBtn')).catch(error=>report(error,'검수 화면을 열지 못했습니다.','PL-E5-REVIEW-START'));
-    window.addEventListener('pandolab:ready',reveal,{once:true});
-    disposables.push({dispose:()=>window.removeEventListener('pandolab:ready',reveal)});
-  }
-  for(const id of ['reviewPanelBtn','mobileReviewBtn']){
-    const button=get(id);
-    if(!button)continue;
-    const handler=()=>showReview(button).catch(error=>report(error,'검수 화면을 열지 못했습니다.','PL-E4-REVIEW-START'));
-    button.addEventListener('click',handler);
-    disposables.push({dispose:()=>button.removeEventListener('click',handler)});
-  }
+    },
+    onError:report,
+  });
+  disposables.push(inspectorController);
   const adjacentPrefetch=createViewerAdjacentPrefetch({
     prepareSource:(month,options)=>owners.builtinSession.prepareProjectSource(month,options),
     requestIdle:callback=>typeof window.requestIdleCallback==='function'
@@ -350,7 +303,7 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
   for(const id of ['openProjectBtn','builtinMapBtn'])get(id).addEventListener('click',()=>surfaces.closeFileMenu());
   createPreferencesDialog({document,productMode,returnFocus:()=>get(surfaces.isMobile()?'mobileMenuBtn':'preferencesBtn'),getPreferences:()=>preferencePresentation.current,
     applyPreferences:value=>preferencePresentation.apply(value,{persist:false}),beforeOpen:()=>surfaces.closeFileMenu()});
-  if(new URLSearchParams(window.location.search).get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
+  if(inspectParams.get('debug')==='1')globalThis.__PANDOLAB_VIEWER__=Object.freeze({initialMapPresented:initialPresentation.hasPresented,productMode,documentState:()=>activeSession?.commandOwner.state(),
     documentSnapshot:()=>activeSession?.documentModel.snapshot(),selectionSnapshot:()=>activeSession?.selectionDomain.snapshot().selection,
     diagnostics:diagnostics.snapshot,rendererStats:()=>map.renderer.getStats(),visibleTerritorialCount:()=>map.objectQuery.visibleTerritorialCount(),
     mapProjection:()=>map.viewState.projection,readOnly:documentSession.readOnly,
@@ -372,5 +325,5 @@ export async function composeViewer({ productMode, meta, nativeReview = false })
     },
     onError:error=>{presentViewerLoadStatus(status,'지도를 불러오지 못했습니다. 새로고침해 다시 시도하세요.',{error:true});report(error,'지도를 불러오지 못했습니다.','PL-MAP-START');},reportDisposeError:error=>console.error('[PL-DISPOSE]',error)});
   await lifecycle.start();
-  if(openInspectorAfterStartup)await openInspectorAfterStartup();
+  await inspectorController?.openAfterStartup();
 }

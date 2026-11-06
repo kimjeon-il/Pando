@@ -46,3 +46,28 @@ test('explicit inspection URL opens read-only diagnostics, tab navigation and lo
   await expect(page.locator('#reviewPanel')).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+test('debug URL exposes the single lazy read-only inspector without changing the active project',async({page})=>{
+  test.setTimeout(150000);
+  const errors=[],reviewRequests=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('request',request=>{if(request.url().includes('viewer-review-panel.js'))reviewRequests.push(request.url());});
+  await page.goto('/?debug=1&renderer=canvas',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
+  await expect(page.locator('#reviewPanelBtn')).toBeVisible();
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  expect(reviewRequests).toHaveLength(0,'debug diagnostics must not eagerly load the review UI');
+  const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+  await page.locator('#reviewPanelBtn').click();
+  await expect(page.locator('#reviewPanel')).toBeVisible({timeout:20000});
+  await page.locator('#reviewTabMap').click();
+  await expect(page.locator('#reviewDataMetrics')).toContainText('읽기 전용');
+  expect(reviewRequests).toHaveLength(1,'one inspector instance uses one lazy import');
+  await page.locator('#reviewCloseBtn').click();
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  await page.locator('#reviewPanelBtn').click();
+  await expect(page.locator('#reviewPanel')).toBeVisible();
+  expect(reviewRequests).toHaveLength(1,'reopening must reuse the existing panel');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
+  expect(errors).toEqual([]);
+});

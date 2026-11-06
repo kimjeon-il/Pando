@@ -48,7 +48,15 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     const NativeWorker = window.Worker;
     window.Worker = class extends NativeWorker {
       constructor(...args) { super(...args); this.addEventListener('message', ({ data }) => {
-        if (data.type === 'frame') window.__terrainFrames.push({ stats: data.terrainStats, revision: data.revision, style: data.styleRevision, complete: data.terrainComplete });
+        if (data.type === 'frame') window.__terrainFrames.push({
+          stats: data.terrainStats, revision: data.revision, style: data.styleRevision,
+          complete: data.terrainComplete, frameId: data.frameId, renderRequestId: data.renderRequestId,
+          presentationKey: data.presentationKey, backgroundPresentationKey: data.backgroundPresentationKey,
+          backgroundOnly: data.backgroundOnly, physicalStyleRevision: data.physicalStyleRevision,
+          projectGeneration: data.projectGeneration, surfaceQuality: data.surfaceQuality,
+          geometryRevision: data.geometryRevision, physicalLandCount: data.physicalLandCount,
+          physicalWaterCount: data.physicalWaterCount, physicalLandRevision: data.physicalLandRevision,
+        });
       }); }
     };
   });

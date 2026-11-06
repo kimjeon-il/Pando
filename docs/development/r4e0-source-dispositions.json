@@ -65,7 +65,7 @@
     "tests/unit/gis-geometry-worker.test.mjs",
     "tests/helpers/production-geopackage.mjs",
     "shared/frontend/js/modules/core-document-client.js",
-    "apps/editor/src-tauri/src/lib.rs"
+    "apps/viewer/js/modules/viewer-review-panel.js"
   ],
   "decisions": [
     {

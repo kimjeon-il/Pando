@@ -1,3 +1,4 @@
+import {projectResourceOverlay} from './project-resource-overlay.js';
 export function hydroLineParts(geometry) {
     if (geometry?.type === 'LineString') return [geometry.coordinates || []];
     if (geometry?.type === 'MultiLineString') return geometry.coordinates || [];
@@ -9,6 +10,17 @@ export function hydroLineParts(geometry) {
  */
 export function createHydroSettings() {
   let dependencies;
+  let authoredHydroRows=null,authoredHydroIndex=null;
+  // Accepted C++ hydro views are immutable. Rebuild the derived source
+  // reference index only on a new effective historical-document projection.
+  function projectHydroResources() {
+    const rows=dependencies.projectState.state.hydroEdits||[];
+    if(rows!==authoredHydroRows){
+      authoredHydroRows=rows;
+      authoredHydroIndex=projectResourceOverlay('hydro',rows);
+    }
+    return authoredHydroIndex;
+  }
 
   function connect(ports) {
     if (dependencies) throw new Error('hydro-settings already connected');
@@ -49,12 +61,12 @@ export function createHydroSettings() {
   }
 
   function hydroEditById(id) {
-    const key = String(id);
-    return dependencies.projectState.state.hydroEdits.find(feature => String(feature.id) === key) || null;
+    return projectHydroResources().findById(id);
   }
 
   function isHydroEditFeature(feature) {
-    return !!feature && (feature.properties?.pandolab_domain === 'hydro' || dependencies.projectState.state.hydroEdits.includes(feature));
+    return !!feature && (feature.properties?.pandolab_domain === 'hydro'
+      || projectHydroResources().findById(feature.id) === feature);
   }
 
   function hydroLayerVisible(layerId) {
@@ -70,6 +82,8 @@ export function createHydroSettings() {
       const category = (0, dependencies.hydroPresentation.hydroCategoryKey)(feature.properties?.category);
       return dependencies.projectState.state.layerVisibility[category === 'lake' ? 'lakes' : 'rivers'] !== false && (0, dependencies.layerPresentation.isLayerItemVisible)('hydro', id);
     }
+    if(projectHydroResources().isSourceReplaced(id))
+      return false;
     return hydroLayerVisible(feature?.properties?.layer_id) && dependencies.projectState.state.itemVisibility.hydro?.[id]!==false;
   }
 
@@ -78,16 +92,25 @@ export function createHydroSettings() {
   }
 
   function builtInHydroFeatureById(id) {
-    const key = String(id);
-    if (dependencies.projectState.state.hydroFeatureCache instanceof Map && dependencies.projectState.state.hydroFeatureCache.has(key)) return dependencies.projectState.state.hydroFeatureCache.get(key);
-    for (const feature of allBuiltInHydroFeatures()) {
-      if (String(feature.properties?.pandolab_id || feature.id || '') === key) return feature;
+    const key=String(id),cache=dependencies.projectState.state.hydroFeatureCache;
+    if(!(cache instanceof Map))return null;
+    if(cache.has(key))return cache.get(key);
+    // Scan directly without allocating an array of every loaded river/lake
+    // just to resolve a fragment-id alias on a cache miss.
+    for(const feature of cache.values()){
+      if(String(feature.properties?.pandolab_id || feature.id || '')===key)return feature;
     }
     return null;
   }
 
   function hydroFeatureById(id) {
-    return hydroEditById(id) || builtInHydroFeatureById(id);
+    const resources=projectHydroResources(),edited=resources.findById(id);
+    if(edited)return edited;
+    // Retain the source via builtInHydroFeatureById; only the effective
+    // presentation/selection is replaced, including raw fragment-key aliases.
+    const builtin=builtInHydroFeatureById(id);
+    const logicalId=String(builtin?.properties?.pandolab_id||builtin?.id||id);
+    return resources.isSourceReplaced(logicalId)?null:builtin;
   }
 
 

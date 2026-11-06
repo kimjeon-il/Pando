@@ -29,7 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canvasWorkerFrameMatchesPhysical } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, canvasWorkerBackgroundPresentationKey, selectCanvasPhysicalSource } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -148,6 +148,10 @@ export function createGpuMapRenderer(deps) {
     hydroFeatureById,
     hydroVisibilityThreshold,
     getPhysicalContextState,
+    getPhysicalLand,
+    getInitialLandPreview,
+    getPhysicalLandSourceRevision,
+    prepareCanvasPhysicalPreview,
     isCountryVisibleById,
     countryBoundaryStyleById,
     isHydroFeatureVisible,
@@ -373,7 +377,8 @@ export function createGpuMapRenderer(deps) {
     }
 
     function canvasCountryInputs() {
-      return surfacePresentation.geometryQuality === 'preview' ? previewSurfaceFeatures || [] : canonicalCountryFeatures();
+      return surfacePresentation.geometryQuality === 'pending' ? []
+        : surfacePresentation.geometryQuality === 'preview' ? previewSurfaceFeatures || [] : canonicalCountryFeatures();
     }
     function canvasCountryDependencies(features) {
       return {source:'canvas-countries',content:canvasCountryGeometrySignature(features),preparation:'geometry-v1',
@@ -393,11 +398,37 @@ export function createGpuMapRenderer(deps) {
         terrainResolutionLimited: !!canvasPreviewAtlas && canvasPreviewAtlas.physical.width < 2 * Math.PI * (lastVisualFrame?.cssScale || 1) * Math.min(isMobile() ? 2 : 3, window.devicePixelRatio || 1) * 1.12 };
     }
 
+    // Stable picture identity: Worker paints can finish after GPU-only
+    // invalidations advance frameId without changing the viewed scene.
+    function currentCanvasPresentationKey(frame = lastVisualFrame) {
+      return canvasWorkerPresentationKey(frame, {
+        projectGeneration, contextRevision: renderDeviceContextRevision,
+        geometryRevision: geometryRevisionTracker.committedRevision(),
+        paletteRevision: countryPaletteRevision,
+        physicalStyleRevision: physicalStyleStateRevision,
+        terrainVisible: state.physicalSettings.terrainVisible,
+        surfaceQuality: surfacePresentation.quality,
+        surfaceGeometryQuality: surfacePresentation.geometryQuality,
+        surfaceTargetQuality: surfacePresentation.targetQuality,
+      });
+    }
+
+    function currentCanvasBackgroundKey(frame = lastVisualFrame) {
+      return canvasWorkerBackgroundPresentationKey(frame, {
+        projectGeneration,contextRevision:renderDeviceContextRevision,
+        physicalStyleRevision:physicalStyleStateRevision,
+        terrainVisible:state.physicalSettings.terrainVisible,
+        terrainStyle:state.physicalSettings.terrainStyle,
+        darkTheme:getSystemTheme() === 'dark',theme:mapTheme(),
+      });
+    }
+
     function mapTargetKey(frame = lastVisualFrame, terrain = currentTerrainReadiness()) {
       if (!frame) return '';
       return JSON.stringify([projectGeneration, renderDeviceContextRevision, geometryRevisionTracker.committedRevision(),
         frame.frameId, frame.viewRevision, frame.projectionRevision, frame.cssScale, frame.cssTranslate,
         countryPaletteRevision, physicalStyleStateRevision, !!state.physicalSettings.terrainVisible,
+        surfacePresentation.quality, surfacePresentation.geometryQuality,
         terrainPreparation && state.physicalSettings.terrainVisible ? terrain.terrainTargetKey : null]);
     }
 
@@ -417,7 +448,7 @@ export function createGpuMapRenderer(deps) {
       return presentation;
     }
 
-    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false } = {}) {
+    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false, submittedWebGlBaseFrame = false } = {}) {
       const terrain = currentTerrainReadiness();
       resourcesDrawn = resourcesDrawn && physicalSceneMatchesContext(renderScene,getPhysicalContextState());
       recordGpuRecoveryFrame(frame, resourcesDrawn);
@@ -428,6 +459,10 @@ export function createGpuMapRenderer(deps) {
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady
         || canAdmitCanvasWorkerPartialBackground({
           rendererMode, committedBitmap: committedWorkerBitmap,
+          physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
+        })
+        || canAdmitWebGlPartialBackground({
+          rendererMode, submittedBaseFrame: submittedWebGlBaseFrame,
           physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
         });
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
@@ -828,6 +863,7 @@ export function createGpuMapRenderer(deps) {
     let canvasPhysicalStyleRevision = 0;
     let canvasLastStyleSignature = '';
     let canvasLastCountryDependencies = null;
+    let canvasLastSentGeometryRevision = -1;
     let canvasDisplayedStyleRevision = 0;
     let canvasLastPhysicalStyleSignature = '';
     let fallbackReason = '';
@@ -2660,6 +2696,9 @@ export function createGpuMapRenderer(deps) {
       projectRenderBlocked = true;
       if (canvasWorker) {
         canvasWorker.resetGeneration(projectGeneration);
+        canvasScenePackets.clear();
+        canvasLastCountryDependencies = null;
+        canvasLastSentGeometryRevision = -1;
         canvasLastStyleSignature = ''; canvasLastPhysicalStyleSignature = '';
       }
       canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
@@ -4171,7 +4210,8 @@ export function createGpuMapRenderer(deps) {
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
         (surfacePresentation.quality === 'pending' || baseResult.countryStrokeResult?.succeeded === true)
           && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
-          && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length);
+          && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length,
+        { submittedWebGlBaseFrame: true });
       frameTimes.push(performance.now() - started);
       if (!webglContextLost && !baseSubmissionFailed) commitGpuStrokeDomains(baseResult, visualFrame, presentedStrokeDomains, strokeRenderer);
       if (frameTimes.length > 240) frameTimes.shift();
@@ -4471,7 +4511,27 @@ export function createGpuMapRenderer(deps) {
     }
 
     const canvasScenePackets = createCanvasScenePackets();
-    const canvasScenePolygons = () => canvasScenePackets.scenePolygons(surfaceScenePolygons());
+    function canvasBackgroundEligible(message) {
+      return message?.backgroundOnly === true && message.surfaceQuality === 'pending'
+        && surfacePresentation.quality === 'pending' && !temporalPending();
+    }
+    function currentCanvasPhysical() {
+      // Recovery and standalone renderer fixtures may omit optional preview
+      // providers. Missing data cannot satisfy the physical certificate.
+      return selectCanvasPhysicalSource({
+        actual:typeof getPhysicalLand === 'function' ? getPhysicalLand() : null,
+        state:getPhysicalContextState(),
+        preview:typeof getInitialLandPreview === 'function' ? getInitialLandPreview() : null,
+        sourceRevision:typeof getPhysicalLandSourceRevision === 'function' ? getPhysicalLandSourceRevision() : null,
+        temporalPending:temporalPending(),
+      });
+    }
+    const canvasScenePolygons = () => [
+      ...canvasScenePackets.scenePolygons(surfaceScenePolygons())
+        .filter(packet => packet.role !== 'physical-land' && packet.role !== 'physical-water'),
+      ...canvasScenePackets.physicalPolygons(currentCanvasPhysical().source),
+    ];
+    const canvasPhysicalReady = () => currentCanvasPhysical().context.ready === true;
     const canvasSceneStrokes = () => canvasScenePackets.sceneStrokes(renderScene);
     const canvasCountryBoundaryPacket = () => canvasScenePackets.countryBoundary(countrySharedBoundary);
 
@@ -4487,19 +4547,28 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerStyleMessage() {
       const features = canvasCountryInputs();
       const fills = canvasCountryFills(features);
+      // A pending country surface paints only physical substrate/terrain.
+      // Unrelated overlays and country palettes must not prevent a valid
+      // source-certified physical preview from being shown.
+      const backgroundOnly = surfacePresentation.quality === 'pending';
       return {
         type: 'style',
+        backgroundPresentationKey: currentCanvasBackgroundKey(lastVisualFrame),
         surfacePresentation,
         styleRevision: ++canvasStyleRevision,
-        visible: !!state.layerVisibility.objects,
+        visible: !backgroundOnly && !!state.layerVisibility.objects,
         hiddenCountryIds: features.map(feature => String(feature.id)).filter(id => !isCountryVisibleById(id)),
         hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !countryBoundaryStyleById(id)),
         fills,
         countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
-        visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
-        scenePolygons: canvasScenePackets.delta(canvasScenePolygons(), 'scene'),
-        sceneStrokes: canvasScenePackets.delta(canvasSceneStrokes(), 'strokes'),
-        interactionFillItems: renderInteractionState.genericFillItems || [],
+        visualOrder: backgroundOnly
+          ? { base: ['substrate','terrain','physical-water'], hydro: [] }
+          : { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
+        scenePolygons: canvasScenePackets.delta(backgroundOnly
+          ? canvasScenePackets.physicalPolygons(currentCanvasPhysical().source)
+          : canvasScenePolygons(), 'scene'),
+        sceneStrokes: canvasScenePackets.delta(backgroundOnly ? [] : canvasSceneStrokes(), 'strokes'),
+        interactionFillItems: backgroundOnly ? [] : renderInteractionState.genericFillItems || [],
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           primaryIds: [...countryEmphasis.primaryIds],
@@ -4523,6 +4592,7 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerPhysicalStyleMessage() {
       return {
         type: 'physical-style',
+        backgroundPresentationKey: currentCanvasBackgroundKey(lastVisualFrame),
         physicalStyleRevision: ++canvasPhysicalStyleRevision,
         riversVisible: !!state.layerVisibility.rivers,
         lakesVisible: !!state.layerVisibility.lakes,
@@ -4543,7 +4613,8 @@ export function createGpuMapRenderer(deps) {
         // Startup and camera moves can present prepared fallback terrain.
         deferIncompleteTerrain: temporalPending() && countriesPublishedGeneration >= 0,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
-        presentationKey: mapTargetKey(frame, { terrainTargetKey: '' }),
+        presentationKey: currentCanvasPresentationKey(frame),
+        backgroundPresentationKey: currentCanvasBackgroundKey(frame),
         projection: frame.projection,
         view: { flatCenter: view.projectionCenter || view.flatCenter, globeRotation: view.rotation,
           flatZoom: view.flatZoom, globeZoom: view.globeZoom },
@@ -4599,6 +4670,8 @@ export function createGpuMapRenderer(deps) {
         }) };
       const sent = canvasWorker?.postMessage(message) || false;
       if (sent && next) canvasLastCountryDependencies = next;
+      if (sent && ['init', 'data', 'replace-data', 'patch'].includes(message.type))
+        canvasLastSentGeometryRevision = Number(message.geometryRevision || 0);
       if (sent && message.type==='patch') canvasLastCountryDependencies=canvasCountryDependencies(canvasCountryInputs());
       return sent;
     }
@@ -4606,13 +4679,16 @@ export function createGpuMapRenderer(deps) {
     function syncCanvasWorkerState() {
       if (!canvasWorker || !canvasWorker.ready) return;
       const features = canvasCountryInputs();
-      if (resourceUpdate(canvasLastCountryDependencies,canvasCountryDependencies(features)).present) {
+      const countriesChanged = resourceUpdate(canvasLastCountryDependencies,canvasCountryDependencies(features)).present;
+      if (countriesChanged || canvasLastSentGeometryRevision !== geometryRevisionTracker.committedRevision()) {
         postCanvasWorkerMessage({ type: 'replace-data', features, fills: canvasCountryFills(features), projectGeneration,
           revision: currentRenderRevision, geometryRevision: geometryRevisionTracker.committedRevision() });
-        prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
+        if (countriesChanged) prepareCountrySharedBoundary({ features, replace: true, baselineCache: false });
         canvasLastStyleSignature = '';
       }
-      const styleSignature = [countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.objects, getSystemTheme(),
+      const physical = currentCanvasPhysical().context;
+      const styleSignature = [physical.ready, physical.preview === true, physical.landRevision, physical.waterRevision,
+        countryPaletteRevision, countryEmphasisRevision, state.layerVisibility.objects, getSystemTheme(),
         // Country paint is suppressed on an unpresented background. Once the
         // first actual physical bitmap is admitted, this quality transition
         // must issue a new Worker style even when geometry IDs are unchanged.
@@ -4647,11 +4723,29 @@ export function createGpuMapRenderer(deps) {
     // animation frame while optional terrain is loading; do not treat that
     // scheduled frame as an admitted bitmap or block the Worker handoff.
     function requestPreparedCanvasFrame() {
-      if (disposed || rendererMode !== 'canvas-worker' || projectRenderBlocked
+      if (disposed || rendererMode !== 'canvas-worker'
+        || (projectRenderBlocked && (temporalPending() || canvasDisplayedStyleRevision !== 0))
         || !canvasWorker?.ready || !lastVisualFrame
         || Number(lastVisualFrame.projectGeneration) !== projectGeneration
-        || !physicalSceneMatchesContext(renderScene, getPhysicalContextState())) return false;
+        || (!physicalSceneMatchesContext(renderScene, getPhysicalContextState()) && !canvasPhysicalReady())) return false;
       renderCanvasWorker(lastVisualFrame);
+      return true;
+    }
+
+    function canRenderBlockedCanvasBackground() {
+      return !disposed && rendererMode === 'canvas-worker' && projectRenderBlocked
+        && !temporalPending() && canvasDisplayedStyleRevision === 0
+        && surfacePresentation.quality === 'pending'
+        && (!lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration);
+    }
+
+    function renderBlockedCanvasBackground(frame) {
+      if (!canRenderBlockedCanvasBackground() || !isMapVisualFrame(frame)
+        || Number(frame.projectGeneration) !== projectGeneration) return false;
+      // Stage the new camera identity before physical data/Worker readiness.
+      // The only eventual paint is still the source-certified physical frame.
+      lastVisualFrame = frame;
+      if (canvasWorker?.ready && canvasPhysicalReady()) renderCanvasWorker(frame);
       return true;
     }
 
@@ -4737,6 +4831,10 @@ export function createGpuMapRenderer(deps) {
         canvasLastStyleSignature = '';
         canvasLastPhysicalStyleSignature = '';
         syncCanvasWorkerState();
+        // A Worker can finish bootstrapping after the first canonical physical
+        // scene has already been prepared. Explicitly submit that current
+        // frame instead of waiting for another user/camera invalidation.
+        if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-worker-ready');
         return;
       }
       if (message.type === 'terrain-ready') {
@@ -4762,7 +4860,7 @@ export function createGpuMapRenderer(deps) {
         }
         canvasDataReplacementResolver?.();
         canvasDataReplacementResolver = null;
-        invalidateGpuFrame('canvas-data-ready');
+        if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-data-ready');
         return;
       }
       if (message.type === 'error') {
@@ -4770,15 +4868,21 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (message.type !== 'frame') return;
+      // An independently certified physical-only bitmap can be shown even if
+      // newer country-only revisions arrived meanwhile. It must never
+      // acknowledge the country scene, labels or a temporal replacement.
+      const backgroundOnly = canvasBackgroundEligible(message);
       if (Number(message.projectGeneration) !== projectGeneration
-          || Number(message.frameId) !== Number(lastVisualFrame?.frameId)
-          || message.presentationKey !== mapTargetKey(lastVisualFrame, { terrainTargetKey: '' })
-          || Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) {
+          || (backgroundOnly
+            ? message.backgroundPresentationKey !== currentCanvasBackgroundKey(lastVisualFrame)
+            : message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)
+              || Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision())) {
         message.bitmap?.close?.();
         return;
       }
       const revision = Number(message.revision || 0);
       const geometryRevision = Number(message.geometryRevision || 0);
+      const presentedVisualFrame = lastVisualFrame;
       if (message.bitmap) {
         const temporalCommit = temporalPending();
         if (temporalCommit && (!temporalFrameReady(message.terrainComplete !== false, message.terrainStats || {})
@@ -4800,22 +4904,27 @@ export function createGpuMapRenderer(deps) {
         canvasTerrainStats = message.terrainStats || {};
         Object.assign(window.__PANDOLAB_GPU_METRICS__ ||= {}, canvasTerrainStats);
         displayedRenderRevision = revision;
-        // Actual Worker bitmap provenance, not the renderer's newest scene,
-        // is the resource certificate for a displayed frame.
-        recordMapPresentation(lastVisualFrame, canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+        // Exact physical pixels may arrive before the triangulated RenderScene.
+        // Show that preview but never certify country geometry, retire document
+        // overlays or mark a geometry commit until the full scene is present.
+        const fullSceneReady = physicalSceneMatchesContext(renderScene, getPhysicalContextState());
+        recordMapPresentation(presentedVisualFrame,
+          fullSceneReady && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
           { committedWorkerBitmap: true });
         canvasWorkerResubmitAttempts = 0;
         canvasWorkerResubmitKey = '';
-        markPreviewFramePresented();
-        framePresentationListener?.({
-          frameId: Number(message.frameId || revision || 0),
-          viewRevision: Number(message.viewRevision || revision || 0),
-          projectionRevision: Number(message.projectionRevision || 0),
-          projectGeneration: Number(message.projectGeneration || projectGeneration),
-          renderer: 'canvas-worker',
-          temporalCommit,
-        });
-        completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
+        if (fullSceneReady && message.surfaceQuality !== 'pending') {
+          markPreviewFramePresented();
+          framePresentationListener?.({
+            frameId: Number(presentedVisualFrame.frameId),
+            viewRevision: Number(presentedVisualFrame.viewRevision),
+            projectionRevision: Number(presentedVisualFrame.projectionRevision),
+            projectGeneration: Number(presentedVisualFrame.projectGeneration),
+            renderer: 'canvas-worker',
+            temporalCommit,
+          });
+          completeGeometryDisplay(geometryRevisionTracker.pendingIds(), geometryRevision, { renderFrame: false });
+        }
         if (message.terrainComplete === false) performanceMetrics.terrainIncompleteFrameCount += 1;
       }
     }
@@ -4835,6 +4944,7 @@ export function createGpuMapRenderer(deps) {
       canvasWorkerNeedsRestart = false;
       canvasScenePackets.clear();
       canvasLastCountryDependencies = null;
+      canvasLastSentGeometryRevision = -1;
       const rawReason = String(reason || '');
       if (rawReason && !isSafeKoreanErrorMessage({ message: rawReason })) console.warn('[PL-GPU-005]', rawReason);
       fallbackReason = isSafeKoreanErrorMessage({ message: rawReason }) ? rawReason : 'GPU 렌더러를 사용할 수 없습니다.';
@@ -4852,24 +4962,49 @@ export function createGpuMapRenderer(deps) {
           resize();
           const canvasRuntimeUrl = runtimeAssetUrl('workers/canvas-render-worker.js');
           canvasRuntimeUrl.searchParams.set('physical', '1');
+          // One acceptance predicate also supplies bounded rejection diagnostics.
+          // Neither the renderer nor tests may call an old bitmap "presented".
+          const canvasFrameRejectionReason = message => {
+            if (canvasBackgroundEligible(message)) {
+              if (message.backgroundPresentationKey !== currentCanvasBackgroundKey(lastVisualFrame))
+                return 'background-presentation';
+              if (Number(message.physicalStyleRevision || 0) !== canvasPhysicalStyleRevision)
+                return 'physical-style';
+            } else {
+              if (message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)) return 'presentation';
+              if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
+              if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
+              if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
+            }
+            if (!canvasWorkerFrameMatchesPhysical(message, currentCanvasPhysical().context)) return 'physical';
+            return '';
+          };
           canvasWorker = createGpuCanvasWorker({
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
-            acceptFrame: message => Number(message.geometryRevision || 0) >= geometryRevisionTracker.committedRevision()
-              && Number(message.styleRevision || 0) === canvasStyleRevision
-              && message.surfaceQuality === surfacePresentation.quality
-              && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+            acceptFrame: message => canvasFrameRejectionReason(message) === '',
+            allowOlderBackgroundFrame: message => canvasBackgroundEligible(message)
+              && canvasFrameRejectionReason(message) === '',
             onStale: message => {
               performanceMetrics.canvasWorkerStaleFrameCount += 1;
+              const why=canvasFrameRejectionReason(message) || 'transport-revision';
+              performanceMetrics.canvasWorkerLastStaleReason=why;
+              performanceMetrics.canvasWorkerStaleReasonCounts ||= {};
+              performanceMetrics.canvasWorkerStaleReasonCounts[why] =
+                (performanceMetrics.canvasWorkerStaleReasonCounts[why] || 0) + 1;
               // A valid submission can finish with an old scene bitmap after
               // newer physical packets were prepared. The bitmap is discarded
               // by the transport; requeue only the current scene/view, never
               // acknowledge old pixels or submit into a retired generation.
-              if (disposed || rendererMode !== 'canvas-worker' || message.renderRequestId == null
+              // A spontaneous terrain/hydro bitmap has no renderRequestId.
+              // Do not acknowledge its old style/view, but recover by issuing
+              // a bounded new explicit submission of the current visual frame.
+              if (disposed || rendererMode !== 'canvas-worker'
                 || Number(message.projectGeneration) !== projectGeneration
                 || !lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration
-                || !physicalSceneMatchesContext(renderScene, getPhysicalContextState())
-                || canvasWorkerResubmitScheduled || canvasWorker?.hasPendingFrame) return;
+                || (!physicalSceneMatchesContext(renderScene, getPhysicalContextState()) && !canvasPhysicalReady())
+                || canvasWorkerResubmitScheduled || canvasWorker?.hasPendingFrame
+                || (message.renderRequestId == null && canvasWorker?.busy)) return;
               const key = [projectGeneration, lastVisualFrame.frameId, canvasStyleRevision,
                 geometryRevisionTracker.committedRevision()].join(':');
               if (key !== canvasWorkerResubmitKey) {
@@ -4885,7 +5020,7 @@ export function createGpuMapRenderer(deps) {
                 canvasWorkerResubmitScheduled = false;
                 if (!disposed && rendererMode === 'canvas-worker' && !projectRenderBlocked
                   && lastVisualFrame?.projectGeneration === projectGeneration
-                  && physicalSceneMatchesContext(renderScene, getPhysicalContextState()))
+                  && (physicalSceneMatchesContext(renderScene, getPhysicalContextState()) || canvasPhysicalReady()))
                   renderCanvasWorker(lastVisualFrame);
               });
             },
@@ -4905,6 +5040,15 @@ export function createGpuMapRenderer(deps) {
             if (!disposed && canvasWorker === sourceWorker) failCanvasWorker(event.message || 'Canvas Worker 실행 오류');
           };
           postCanvasWorkerMessage(initMessage);
+          // A source-verified smaller physical mask can paint the initial
+          // Canvas terrain before the authoritative source is available.
+          if (typeof prepareCanvasPhysicalPreview === 'function') {
+            void Promise.resolve().then(() => prepareCanvasPhysicalPreview()).then(() => {
+              if (disposed || rendererMode !== 'canvas-worker' || canvasWorker !== sourceWorker) return;
+              canvasLastStyleSignature = '';
+              if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-preview-physical-ready');
+            }).catch(error => { console.warn('Canvas physical preview unavailable', error); });
+          }
           if (hydroPreparation.manifest && hydroPreparation.sourceUrl) setHydroManifest(hydroPreparation.manifest, hydroPreparation.sourceUrl);
           else connectHydroCanvasWorkers();
           updateRendererStatus('Canvas Worker · 완성 프레임 즉시 표시', fallbackReason);
@@ -5591,6 +5735,11 @@ export function createGpuMapRenderer(deps) {
         previewAdmission: 'validated-scale-bound', surfacePresentation, previewDisplayCertificate,
         surfaceDraw: lastBaseSceneResult?.surface || null,
         renderer: rendererMode,
+        // Expose the exact picture certificate only in the explicit debug
+        // metrics path. This does not affect frame admission or readiness.
+        ...(rendererMode === 'canvas-worker' && window.location?.search?.includes('debug=1')
+          ? { canvasExpectedBackgroundKey: currentCanvasBackgroundKey(),
+              canvasExpectedPhysicalContext: currentCanvasPhysical().context } : {}),
         mapHost: 'legacy',
         assetRevision: ASSET_REVISION,
         dataRevision: DATA_REVISION,
@@ -5765,7 +5914,8 @@ export function createGpuMapRenderer(deps) {
       mapReadiness, retryMapPreparation,
       failMapPreparation: error => { canonicalPromotionError = String(error?.message || error);
         failTemporalPresentation(error instanceof Error ? error : new Error(canonicalPromotionError)); publishMapReadiness(); },
-      initialize, replaceBuiltInMesh, renderFrame, requestPreparedCanvasFrame, renderInteraction, renderPreservedProjectFrame,
+      initialize, replaceBuiltInMesh, renderFrame, requestPreparedCanvasFrame,
+      canRenderBlockedCanvasBackground, renderBlockedCanvasBackground, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
       rebuildFromCountries, applyCountryPatch, compactCountryOverrides, prioritizeLatest, getStats, getRuntimeState, getRenderPixelRatio: resolveRenderPixelRatio, setTerrainManifest, activeTerrainSourceInfo,
       setHydroManifest, loadHydroLogicalFeature, queryHydroLogicalFeatures, retryHydroCache,

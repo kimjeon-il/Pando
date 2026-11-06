@@ -56,20 +56,17 @@ test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',(
   const gate=read('.github/workflows/remote-only-gate.yml');
   const p1=read('.github/workflows/remote-development-p1.yml');
   const scripts=JSON.parse(read('package.json')).scripts;
-  const shell=JSON.parse(read('apps/editor/package.json'));
   // Match executable workflow fields only. The post-retirement verifier
   // deliberately *mentions* rejected job names in its own assertions.
   for(const body of [gate,p1]) {
-    assert.doesNotMatch(body,/^  (?:windows-real-webview2|native-artifact):\s*$/m);
+    assert.doesNotMatch(body,/^ {2}(?:windows-real-webview2|native-artifact):\s*$/m);
     assert.doesNotMatch(body,/^\s*runs-on:\s*windows-2022\s*$/m);
     assert.doesNotMatch(body,/^\s*- uses:\s*dtolnay\/rust-toolchain@/m);
     assert.doesNotMatch(body,/^\s*(?:run:\s*)?node apps\/editor\/packaged-artifacts\.mjs --ci-build/m);
   }
   assert.equal(Object.hasOwn(scripts,'dev:windows'),false);
   assert.equal(Object.hasOwn(scripts,'build:windows'),false);
-  assert.equal(Object.hasOwn(shell.devDependencies||{},'@tauri-apps/cli'),false);
-  for(const name of ['build:windows','test:native','dev:windows','build:verification:windows'])
-    assert.equal(Object.hasOwn(shell.scripts,name),false,name);
+  assert.equal(Object.hasOwn(scripts,'dev:editor'),false);
 });
 
 test('native prerequisite preparation is rejected outside Actions on the new branch',()=>{

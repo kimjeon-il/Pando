@@ -101,6 +101,8 @@ function validationOrPresentationOnly(changes,graph) {
   const validationPaths=new Set([
     '.github/actions/native-test-prerequisites/action.yml',
     '.github/workflows/application-architecture.yml',
+    '.github/workflows/generated-artifacts-p2.yml',
+    'scripts/p2-publish-artifacts.mjs',
     '.github/workflows/ui-architecture.yml',
     '.github/workflows/place-runtime.yml',
     '.github/workflows/remote-development-p1.yml',
@@ -124,6 +126,12 @@ function validationOrPresentationOnly(changes,graph) {
     'tools/cpp/validate-country-geometry.cpp','tools/cpp/country-properties.h',
     'scripts/contracts/application-checks.json','scripts/p2-artifact-plan.mjs',
     'shared/frontend/js/modules/map-input-presentation.js',
+    'shared/frontend/js/modules/country-mesh-zoom-policy.js',
+    'shared/frontend/js/workers/canvas-render-worker.js',
+    'shared/frontend/js/modules/gpu-canvas-scene-packets.js',
+    'shared/frontend/js/modules/gpu-canvas-worker.js',
+    'shared/frontend/js/modules/map-renderer-composition.js',
+    'shared/frontend/js/modules/physical-resources.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
     'scripts/r4d-check-retired-tests.mjs',
     'scripts/remote-only-doctor.mjs','scripts/remote-only-ci-scope.mjs',
@@ -138,7 +146,7 @@ function validationOrPresentationOnly(changes,graph) {
     if(graph.some(f=>f.inputs.some(input=>inputMatches(input,path))||f.sources.includes(path)||
       ownsPath(f,path)||(f.externalSources||[]).some(source=>source.path===path)))return false;
     return !path.split('/').some(part=>part==='.'||part==='..')&&
-      (path.startsWith('tests/')||path.startsWith('.devcontainer/')||validationPaths.has(path));
+      (path.startsWith('tests/')||path.startsWith('docs/')||path.startsWith('.devcontainer/')||validationPaths.has(path));
   });
 }
 

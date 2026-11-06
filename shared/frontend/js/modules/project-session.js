@@ -1,4 +1,5 @@
 import {coreSelectionRefToWeb} from './core-object-ref.js';
+import {projectResourceOverlay} from './project-resource-overlay.js';
 import {loadUserPreferences} from './user-preferences.js';
 import { createMapWorkScheduler } from './map-work-scheduler.js';
 import { createEmptyTerritorialState } from './territorial-entity-store.js';
@@ -232,10 +233,19 @@ export function createProjectSession({productMode='editor',readOnly=productMode=
     };
     documentProjection=documentModel;physicalSettings=structuredClone(state.physicalSettings);
     setViewingPresentation({}, {reset:true});
-    // Source replacement follows authored hydro edits, independent of temporary visibility.
+    // Accepted C++ hydro lists are immutable. Reuse the hidden-source mask
+    // across repeated visibility reads; invalidate only on a new list identity
+    // (date change, project adoption, editing or history).
+    let maskedHydroRows=null,maskedHydroSources=null;
     const effectiveItemVisibility=()=>{
-      const replaced=documentModel.list('hydro').map(feature=>feature.properties.sourceFeatureId).filter(Boolean);
-      return replaced.length?{...viewingPresentation.itemVisibility,hydro:{...viewingPresentation.itemVisibility.hydro,...Object.fromEntries(replaced.map(id=>[id,false]))}}:viewingPresentation.itemVisibility;
+      const rows=documentModel.list('hydro');
+      if(rows!==maskedHydroRows){
+        const replaced=projectResourceOverlay('hydro',rows).replacedSourceIds;
+        maskedHydroSources=replaced.length?Object.fromEntries(replaced.map(id=>[id,false])):null;
+        maskedHydroRows=rows;
+      }
+      return maskedHydroSources?{...viewingPresentation.itemVisibility,
+        hydro:{...viewingPresentation.itemVisibility.hydro,...maskedHydroSources}}:viewingPresentation.itemVisibility;
     };
     const properties=Object.fromEntries(['documentId','projectSetup','sourceInfo','labels','labelSettings','genericFeatures','hydroEdits','distributionLayers',
       'distributionEntries','distributionSettings','physicalSettings','layerVisibility','itemVisibility','layerPresentation','timelineRecords']

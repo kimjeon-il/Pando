@@ -30,7 +30,7 @@ if(editorSources.length!==manifest.remainingSourceCount)
   fail('R4-D expected '+manifest.remainingSourceCount+' archived sources, found '+editorSources.length);
 const expectedActive=[
  'tests/browser/button-consistency.spec.mjs','tests/browser/viewer-review-e4.spec.mjs',
- 'tests/browser/windows-review-e5.spec.mjs','tests/unit/r4c-spatial-boundaries.test.mjs',
+ 'tests/unit/r4c-spatial-boundaries.test.mjs',
  'tests/unit/r4b-data-module-boundaries.test.mjs','tests/unit/gis-math-contract.test.mjs'
 ];
 for(const test of expectedActive){
@@ -51,8 +51,8 @@ const oldTestNames=[
  'edit-preparation.test.mjs',
  'territorial-library-controller.test.mjs'
 ];
-for(const file of ['.github/workflows/r4-editor-pruning-validation.yml',
-  '.github/workflows/remote-preview-p3.yml','.github/workflows/generated-artifacts-p2.yml']){
+for(const file of ['.github/workflows/remote-preview-p3.yml','.github/workflows/generated-artifacts-p2.yml']){
+ if(!exists(file))continue;
  const content=read(file);
  for(const stale of oldTestNames)if(content.includes('tests/unit/'+stale))
    fail('Active workflow '+file+' still executes obsolete editor test '+stale);

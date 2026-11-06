@@ -127,8 +127,7 @@ test('missing temporal WASM capability fails instead of admitting a legacy basel
     loads++;return {project:{projectSetup:{initialMonth:month},territorialEntities:[]}};
   }}});
   session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixture'}});
-  const setup={initialMonth:'2025-12',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
-  await assert.rejects(session.prepareProjectCandidate('2025-12',{setup}),{code:'PL-CORE-DOCUMENT-ABI'});
+  await assert.rejects(session.prepareProjectCandidate('2025-12'),{code:'PL-CORE-DOCUMENT-ABI'});
   assert.equal(admissions,0);assert.equal(loads,1);
   session.dispose();
 });

@@ -64,6 +64,10 @@ for (const name of PROJECT_RENDERER_SEQUENCE) {
   expect(index > previousRendererIndex, `project renderer output order is missing or stale at ${name}`);
   if (index >= 0) previousRendererIndex = index;
 }
+for (const name of ['geometryPreview','validation','boundaryEdit','vertices','draft','snapIndicator']) {
+  expect(!coordinator.includes(`callRenderer('${name}'`),
+    `retired editor render stage must remain absent: ${name}`);
+}
 
 expect(meshWorker.includes("'geometry.mesh'"), 'country mesh compilation must remain a Worker RPC operation');
 expect(meshWorker.includes('transferResult(mesh, meshTransferables(mesh))'), 'mesh Worker must preserve transferable GPU packets');

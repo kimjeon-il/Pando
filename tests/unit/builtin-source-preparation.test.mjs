@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
+import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
 
 const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256:'a'.repeat(64)}},sourceCacheMaxBytes=undefined,sourceCacheMaxEntries=undefined}={})=>{
  const document={documentId:'active',projectSetup:{initialMonth:'2026-10'},territorialEntities:[{id:'active'}]};
@@ -24,7 +25,7 @@ const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256
   ? {maxBytes:sourceCacheMaxBytes??24*1024*1024,maxEntries:sourceCacheMaxEntries??2}:null;
  const session=createBuiltinSession({builtinWorldLoader:world,buildMeta,sourceCacheLimits});
  session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixed-source'}});
- return {session,core,document,calls,generation:()=>generation,advance:()=>{generation++;}};
+ return {session,domain,core,document,calls,generation:()=>generation,advance:()=>{generation++;}};
 };
 
 test('P2-1 preparing a dated world never admits Core, changes the timeline, document or history',async()=>{
@@ -191,4 +192,22 @@ test('P2-2 explicit cache release drops all retained bytes and forces regenerati
 
 test('P2-2 invalid zero entry limit is rejected before attempting any load',()=>{
  assert.throws(()=>setup({sourceCacheMaxEntries:0}),/cache|budget|limit/i);
+});
+
+test('builtin Core candidate derives its project setup from the source month, never a Viewer-owned copy',async()=>{
+ const f=setup();
+ let received=null;
+ f.domain.prepareTemporalBuiltin=async (facts,projectSetup,options)=>{
+  received={facts,projectSetup,options};
+  return {kind:'temporal-candidate',setup:projectSetup,targetMonth:facts.sourceMonth};
+ };
+ const candidate=await f.session.prepareProjectCandidate('1914-07',{transition:true});
+ assert.equal(received.facts.sourceMonth,'1914-07');
+ assert.deepEqual(received.projectSetup,createBuiltinProjectSetup('1914-07'));
+ assert.equal(received.options.transition,true);
+ assert.equal(candidate.targetMonth,'1914-07');
+ assert.equal(f.calls.length,0,'the candidate must not admit the active Core project');
+ await assert.rejects(f.session.prepareProjectCandidate('1914-07',{
+  setup:createBuiltinProjectSetup('1914-06'),
+ }),/derived from the requested month/);
 });

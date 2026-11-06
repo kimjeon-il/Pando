@@ -3,9 +3,12 @@ import assert from 'node:assert/strict';
 import {historicalWorldCases} from '../fixtures/historical-world-cases.mjs';
 import {compileBuiltinWorldCatalog,coalesceCoverageAdjustments} from '../../tools/builtin-world-compiler.mjs';
 import {assembleBuiltinWorld,selectBuiltinCountries} from "../../shared/frontend/js/modules/builtin-world-loader.js";
+import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
+import {PROJECT_SCHEMA_VERSION} from '../../shared/frontend/js/modules/version-contract.js';
 import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.mjs';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
+import {temporalContains,temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';
 
 let built;
 function fixture(){
@@ -97,4 +100,62 @@ test('coverage adjustments coalesce adjacent intervals without timeline object r
  assert.ok(result.some(row=>row.entityId==='state:test' && row.validFrom==='1922-01-01' && row.validTo==='1922-02-28'));
  assert.ok(result.some(row=>row.entityId==='state:test' && row.validFrom==='1922-03-02'));
  assert.ok(result.some(row=>row.entityId==='state:other'));
+});
+
+test('dated builtin world assembles ordinary schema-14 project documents without template mutation',()=>{
+ const {index,countries}=fixture();
+ const template=structuredClone(index.template);
+ assert.equal(Object.hasOwn(index.template,'projectSetup'),false);
+ const at=month=>assembleBuiltinWorld(index,
+  selectBuiltinCountries(index,month).map(row=>countries.find(c=>c.entityId===row.entityId)),month);
+ const historical=at('2014-02'),modern=at('2026-10');
+ for(const [project,month] of [[historical,'2014-02'],[modern,'2026-10']]) {
+  assert.equal(project.format,'pandolab-project-state');
+  assert.equal(project.schemaVersion,PROJECT_SCHEMA_VERSION);
+  assert.deepEqual(project.projectSetup,createBuiltinProjectSetup(month));
+  assert.equal(project.timelineRecords.schemaVersion,3);
+  assert.equal(Object.hasOwn(project,'timelineCursor'),false);
+  assert.ok(Array.isArray(project.labels)&&Array.isArray(project.hydroEdits));
+ }
+ assert.deepEqual(index.template,template,'dated assembly must never mutate immutable source template');
+ historical.labels.push({id:'local-only'});
+ assert.equal(modern.labels.length,0,'different project instances must not share authored arrays');
+ assert.deepEqual(index.template,template);
+ const missing=structuredClone(index);
+ missing.template.projectSetup=createBuiltinProjectSetup('2014-02');
+ assert.throws(()=>assembleBuiltinWorld(missing,
+  selectBuiltinCountries(index,'2014-02').map(row=>countries.find(c=>c.entityId===row.entityId)),
+  '2014-02'),/Invalid builtin project template/);
+});
+
+test('P3 selected countries match the independent per-record C++ month-end oracle',()=>{
+ const {index,countries}=fixture();
+ const source=structuredClone(index);
+ const months=['-0001-12','0001-01','1914-07','1989-04','2014-02','2015-10',
+  '2026-10','2026-11','2027-01','+10000-01'];
+ for(const month of months){
+  const expected=index.entities.filter(entry=>entry.coverage.some(interval=>
+   temporalContains(interval,temporalMonthEnd(month))));
+  const selected=selectBuiltinCountries(index,month);
+  assert.deepEqual(selected,expected,month);
+  const project=assembleBuiltinWorld(index,selected.map(row=>
+   countries.find(country=>country.entityId===row.entityId)),month);
+  assert.deepEqual(project.territorialEntities.map(row=>row.id),
+   expected.map(row=>row.entityId),month);
+  for(const country of expected){
+   const compiled=countries.find(row=>row.entityId===country.entityId);
+   const identity=project.territorialEntities.find(row=>row.id===country.entityId);
+   const edition=compiled.sourceBindings.find(row=>
+    temporalContains(row,temporalMonthEnd(month)));
+   assert.equal(identity.properties.sourceGeometryVersion,edition?.sourceVersionId||'',month);
+   for(const field of ['lifetimes','geometryBindings','parentRelations','propertyBindings']){
+    const expectedCount=compiled.timelineRecords[field].filter(row=>
+     temporalContains(row,temporalMonthEnd(month))).length;
+    assert.equal(project.timelineRecords[field].filter(row=>
+     row.objectRef.id===country.entityId).length,expectedCount,month+' '+field);
+   }
+  }
+ }
+ assert.deepEqual(index,source,'source catalog must be immutable across date queries');
+ assert.throws(()=>selectBuiltinCountries(index,'1914-07-01'),/query month/i);
 });

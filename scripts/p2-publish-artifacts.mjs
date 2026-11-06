@@ -14,6 +14,23 @@ const git=(cwd,args)=>execFileSync('git',args,{cwd,maxBuffer:32*1024*1024,stdio:
 const paths=(cwd,args)=>git(cwd,[...args,'-z']).split('\0').filter(Boolean);
 const validWorkBranch = branch => /^work\/[a-z0-9][a-z0-9-]{0,63}$/.test(branch);
 
+// Only a proven fast-forward makes a running CI attempt superseded. A rewritten
+// or missing remote branch still fails closed; never force-update application refs.
+export function classifySupersededP2Source(cwd,{expectedSourceSha,branch,remote='origin'}={}) {
+  assert.ok(validWorkBranch(branch),'P2_WORK_BRANCH_REQUIRED: '+branch);
+  assert.match(expectedSourceSha||'',/^[a-f0-9]{40}$/,'P2_SOURCE_SHA_REQUIRED');
+  const ref='refs/heads/'+branch;
+  const remoteHead=git(cwd,['ls-remote',remote,ref]).split(/\s/)[0];
+  assert.match(remoteHead||'',/^[a-f0-9]{40}$/,'P2_REMOTE_HEAD_MISSING');
+  if(remoteHead===expectedSourceSha)return null;
+  git(cwd,['fetch','--no-tags','--depth=100',remote,ref]);
+  assert.equal(git(cwd,['rev-parse','FETCH_HEAD']),remoteHead,
+    'P2_REMOTE_MOVED_DURING_SUPERSESSION_CHECK');
+  try {execFileSync('git',['merge-base','--is-ancestor',expectedSourceSha,remoteHead],{cwd,stdio:'ignore'});}
+  catch {throw Error('P2_REMOTE_BRANCH_CHANGED_NON_FAST_FORWARD: '+branch);}
+  return Object.freeze({sourceSha:expectedSourceSha,remoteHead,branch});
+}
+
 // The library checkout is pinned to the source revision, while a generated
 // result is published to the *application* work branch (not index.branch,
 // which records the previous author's source branch). Only a missing target
@@ -131,12 +148,28 @@ export async function publishGeneratedArtifacts(cwd=root,{
     verifiedScope:evidence.verifiedScope,evidenceFile};
 }
 
+// The normal publication function retains its strict remote guard. The CI
+// adapter distinguishes only a verified descendant from a dangerous rewrite.
+export async function publishP2FromWorkflow(cwd=root,options={}) {
+  try {return {...await publishGeneratedArtifacts(cwd,options),superseded:false};}
+  catch(error) {
+    if(error?.code!=='ERR_ASSERTION'||!String(error.message).startsWith('P2_REMOTE_BRANCH_CHANGED'))throw error;
+    const moved=classifySupersededP2Source(cwd,options);
+    if(!moved)throw error;
+    return {sourceSha:options.expectedSourceSha,resultSha:options.expectedSourceSha,
+      baseSha:options.baseSha||'',branch:options.branch,scope:options.scope||'auto',
+      pushed:false,commits:[],verifiedScope:[],evidenceFile:null,
+      superseded:true,supersededBy:moved.remoteHead};
+  }
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const result=await publishGeneratedArtifacts(root,{scope:process.env.PANDO_P2_SCOPE||'auto',
+  const result=await publishP2FromWorkflow(root,{scope:process.env.PANDO_P2_SCOPE||'auto',
     expectedSourceSha:process.env.GITHUB_SHA,branch:process.env.GITHUB_REF_NAME,
     wasmBuilt:process.env.PANDO_P2_WASM==='true',baseSha:process.env.PANDO_P2_BASE_SHA||''});
-  if(process.env.GITHUB_OUTPUT)appendFileSync(process.env.GITHUB_OUTPUT,'result_sha='+result.resultSha+'\nbase_sha='+result.baseSha+'\npushed='+result.pushed+'\n');
+  if(process.env.GITHUB_OUTPUT)appendFileSync(process.env.GITHUB_OUTPUT,'result_sha='+result.resultSha+'\nbase_sha='+result.baseSha+'\npushed='+result.pushed+'\nsuperseded='+result.superseded+'\n');
   if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+    result.superseded ? 'P2 superseded: '+result.sourceSha+' -> '+result.supersededBy+' (no publish / P3 dispatch).\n' :
     `P2 source: \`${result.sourceSha}\`\n\nVerified result: \`${result.resultSha}\`\n\n`+
     `Scope: ${result.verifiedScope.join(', ')}. Remote push: ${result.pushed}.\n`);
   console.log(JSON.stringify(result,null,2));

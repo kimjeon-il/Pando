@@ -47,7 +47,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
       return [file];
     });
   }
-  const files = ['assets', 'apps/editor', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
+  const files = ['assets', 'apps/viewer', 'scripts', 'tools', 'tests', 'shared', 'contracts', 'config', '.github/workflows', '.github/actions']
     .flatMap(filesIn).concat(['index.html', 'package.json', 'playwright.config.js', 'eslint.config.js'].filter(exists)).sort();
   const tests = files.filter(file => /\.(?:test|spec)\.mjs$/.test(file) && /^tests\/(?:unit|browser)\//.test(file));
   const ids = new Set();
@@ -229,6 +229,12 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
   const repo = repository || loadRepository();
   const changed = [...new Set(changedFiles.map(slash))].sort();
+  // Unknown active Viewer file types must not be silently claimed by a broad
+  // directory-level test group. Deleted/added known source extensions remain
+  // eligible for their normal dependency and retirement checks.
+  for (const file of changed) if (/^apps\/viewer\//.test(file) && !repo.exists(file)
+      && !/\.(?:[cm]?js|mjs|json|css|html|svg|png|webp|ico|md|woff2?|ttf|map)$/.test(file))
+    throw Error('Unclassified product change: ' + file);
   // A no-op diff has no affected consumers. The inventory was already validated
   // by loadRepository(), but retired, archived editor tests need not be parsed
   // as runnable production dependency graphs for a no-change plan.
@@ -252,13 +258,7 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   }
   const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
   const parents = new Map(), visited = new Set();
-  const liveShellSources = new Set([
-    'apps/editor/stage.mjs','apps/editor/check-stage.mjs',
-    'apps/editor/review-probe.js',
-    'apps/editor/network-guard.js',
-    'apps/editor/world-data-plan.mjs','apps/editor/fixture.mjs',
-    'apps/editor/fixture-limits.js','apps/editor/write-evidence.mjs',
-  ]);
+  const liveShellSources = new Set([  ]);
   const retiredFrontend = file => /^apps\/editor\/(?:frontend\/|templates\/|tests\/)/.test(file) ||
     /^apps\/editor\/[^/]+\.js$/.test(file) && !liveShellSources.has(file);
   const isRetiredTest = file => repo.owners.get(file)?.mode === 'retired';

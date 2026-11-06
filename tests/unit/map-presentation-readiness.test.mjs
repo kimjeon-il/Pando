@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {readFileSync} from 'node:fs';
 import { mapPresentationReadiness } from "../../shared/frontend/js/modules/startup-readiness.js";
 
 const ready = { boundaryReady: true, terrainVisible: true,
@@ -25,4 +26,30 @@ test('resolution limits have an explicit terminal state and low/high labels', ()
   assert.match(limited.label, /최고 해상도/);
   assert.match(mapPresentationReadiness(ready).label, /저배율/);
   assert.match(mapPresentationReadiness({ ...ready, band: 'high' }).label, /상세/);
+});
+
+
+test('a real background presentation key cannot certify an unpresented canonical country surface',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const begin=source.indexOf('    function mapTargetKey(');
+  const end=source.indexOf('    function mapReadiness()',begin);
+  assert.ok(begin>=0&&end>begin,'map target key must be supplied by the canonical renderer');
+  const frame={frameId:7,viewRevision:3,projectionRevision:1,cssScale:450,cssTranslate:[450,300]};
+  const surface={quality:'pending',geometryQuality:'canonical'};
+  const fields={
+    lastVisualFrame:frame, currentTerrainReadiness:()=>({terrainTargetKey:'same-base'}),
+    projectGeneration:3,renderDeviceContextRevision:2,
+    geometryRevisionTracker:{committedRevision:()=>5},
+    countryPaletteRevision:9,physicalStyleStateRevision:1,
+    state:{physicalSettings:{terrainVisible:true}},
+    terrainPreparation:{},surfacePresentation:surface,
+  };
+  const fn=new Function(...Object.keys(fields),source.slice(begin,end)+';return mapTargetKey;')(...Object.values(fields));
+  const backgroundOnly=fn(frame);
+  assert.equal(fn(frame),backgroundOnly,'identical input must be stable');
+  surface.quality='canonical';
+  const withCountries=fn(frame);
+  assert.notEqual(backgroundOnly,withCountries,'a real canonical frame needs its own presentation certificate');
+  surface.geometryQuality='preview';
+  assert.notEqual(withCountries,fn(frame),'different country geometry LOD must invalidate old presentation');
 });

@@ -1,0 +1,75 @@
+name: P7 same-run Viewer startup and heap A/B
+
+on:
+  push:
+    branches: [work/objects]
+    paths:
+      - scripts/p7-browser-ab-measure.mjs
+      - shared/frontend/js/modules/gpu-map-renderer.js
+      - shared/frontend/js/modules/country-mesh-zoom-policy.js
+      - shared/frontend/js/modules/gpu-canvas-worker.js
+      - shared/frontend/js/workers/canvas-render-worker.js
+      - .github/workflows/p7-runtime-ab.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p7-runtime-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - uses: pnpm/action-setup@v4
+      - name: Prepare exactly the pinned external library files
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Measure main and candidate sequentially on one Chromium runner
+        shell: bash
+        env:
+          BASE_SHA: 7cd224bd198c014d2215e35a93452702227d8314
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$HEAD_SHA"
+          git diff --exit-code
+          node -e 'const fs=require("fs"),cp=require("child_process");const old=JSON.parse(cp.execFileSync("git",["show",process.env.BASE_SHA+":config/library-data.json"]));const next=JSON.parse(fs.readFileSync("config/library-data.json"));if(old.revision!==next.revision)throw Error("P7 A/B requires the exact same immutable library revision");'
+          cp scripts/p7-browser-ab-measure.mjs scripts/.p7-ab-harness.tmp.mjs
+          trap 'rm -f scripts/.p7-ab-harness.tmp.mjs' EXIT
+          git switch --detach "$BASE_SHA"
+          set +e
+          node scripts/.p7-ab-harness.tmp.mjs --label=main --out="$RUNNER_TEMP/p7-main.json"
+          base_status=$?
+          set -e
+          git switch --detach "$HEAD_SHA"
+          set +e
+          node scripts/p7-browser-ab-measure.mjs --label=p7 --out="$RUNNER_TEMP/p7-work.json"
+          candidate_status=$?
+          node scripts/p7-browser-ab-measure.mjs --mode=compare --main="$RUNNER_TEMP/p7-main.json" --candidate="$RUNNER_TEMP/p7-work.json" --out="$RUNNER_TEMP/p7-comparison.json"
+          compare_status=$?
+          set -e
+          echo "Main run: $base_status; P7 run: $candidate_status; matched comparison: $compare_status"
+          test "$base_status" = 0 && test "$candidate_status" = 0 && test "$compare_status" = 0
+      - name: Retain both original measurements and comparison, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p7-runtime-ab-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/p7-main.json
+            ${{ runner.temp }}/p7-work.json
+            ${{ runner.temp }}/p7-comparison.json
+          if-no-files-found: warn
+          retention-days: 14

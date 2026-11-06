@@ -1,5 +1,5 @@
 import {frontendTemplates,frontendFragmentRoot} from './frontend-layout.mjs';
-// UI fragments are source; the Viewer/Windows reviewer share one HTML template.
+// UI fragments are source; the Viewer uses one HTML template.
 export function renderProductHtml(readSource) {
   return Object.fromEntries(['web'].map(mode => {
     const template=readSource(frontendTemplates[mode]).replaceAll('\r\n','\n');

@@ -589,6 +589,12 @@ function canvasFallbackWorkerMain() {
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
       for (const spec of demNeighbours) requestDemTile(spec, 120);
+      // The main-thread physical certificate necessarily rejects a bitmap
+      // without a land packet. Keep downloading tiles, but do not spend CPU
+      // tessellating an unpresentable early bitmap while the verified land
+      // geometry is still being prepared. The subsequent real scene/style
+      // message will paint these already-requested resources.
+      if (!(message.scenePolygons || []).some(packet => packet.role === 'physical-land')) return false;
       // Keep preparing while countries are pending. Once the world base is
       // ready, its physical background can be presented before country meshes.
       if (message.surfacePresentation?.quality === 'pending' && !baseReady) return false;
@@ -897,11 +903,14 @@ function canvasFallbackWorkerMain() {
 
     function scheduleHydroRender() {
       if (!lastRenderMessage || hydroRenderTimer) return;
+      // A hydro/terrain-adjacent update must not monopolize this worker with
+      // another full globe redraw immediately before a newer camera frame.
+      // Coalesce resource notifications for one animation-frame interval.
       hydroRenderTimer = setTimeout(() => {
         hydroRenderTimer = 0;
         try { render(lastRenderMessage); }
         catch (error) { self.postMessage({ type: 'error', message: error?.message || String(error) }); }
-      }, 0);
+      }, 16);
     }
 
     function connectHydroPort(port) {
@@ -1098,6 +1107,16 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
         updateTerrainFrameStats(terrainPlan);
       }
+      // A pending, physical-only draw is certifiably distinct from a
+      // document/country frame. An authoritative geometry revision cannot be
+      // acknowledged by this background presentation.
+      const backgroundOnly = message.surfacePresentation?.quality === 'pending'
+        && message.visible === false
+        && (message.scenePolygons || []).every(packet =>
+          packet.role === 'physical-land' || packet.role === 'physical-water')
+        && !(message.sceneStrokes || []).length
+        && !(message.interactionFillItems || []).length
+        && !(message.visualOrder?.hydro || []).length;
       // A frame can be rendered while a newer scene is already staged on the
       // main thread. Echo the exact physical packets and country quality that
       // were painted; no main-thread snapshot may substitute for this evidence.
@@ -1111,7 +1130,10 @@ function canvasFallbackWorkerMain() {
         physicalWaterCount: waterPainted.length,
         physicalWaterRevision: waterPainted.length === 1 ? waterPainted[0].geometryRevision : null,
         surfaceQuality: message.surfacePresentation?.quality || 'pending',
+        backgroundOnly,
         presentationKey: message.presentationKey,
+        backgroundPresentationKey: message.backgroundPresentationKey,
+        physicalStyleRevision,
         styleRevision,
         // Background redraws reuse visual state, but never acknowledge a submission.
         renderRequestId,
@@ -1143,6 +1165,17 @@ function canvasFallbackWorkerMain() {
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         if(message.terrainEnabled!==false){loadTerrainManifest(message.terrainManifestUrl);loadDemManifest(message.terrainDemManifestUrl);}
         self.postMessage({ type: 'ready' });
+      } else if (message.type === 'reset-generation') {
+        const nextGeneration = Number(message.projectGeneration);
+        if (!Number.isSafeInteger(nextGeneration) || nextGeneration <= projectGeneration) return;
+        if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
+        // Country, scene and physical packets belong to the old project.
+        // Terrain tile caches remain reusable across generations.
+        projectGeneration = nextGeneration;
+        geometryRevision = 0; viewRevision = 0;
+        features = []; countrySharedBoundary = null;
+        lastRenderMessage = null; retainedPhysicalLandPacket = null;
+        hydroEditFeatures = []; hydroEditRevision = -1;
       } else if (message.type === 'retry-terrain') {
         terrainFailures.clear(); demFailures.clear();
         terrainManifestFailure = false; demManifestAttempts = 0;
@@ -1248,6 +1281,10 @@ function canvasFallbackWorkerMain() {
         if (incomingRevision < styleRevision) return;
         styleRevision = incomingRevision;
         mergeRenderState(message);
+        // An already-rendered view may have been rejected while the latest
+        // palette/quality message was queued. Paint the accepted style, even
+        // if no camera movement follows; coalesce with resource notifications.
+        scheduleHydroRender();
       } else if (message.type === 'physical-style') {
         const incomingRevision = Number(message.physicalStyleRevision || 0);
         if (incomingRevision < physicalStyleRevision) return;
@@ -1255,6 +1292,7 @@ function canvasFallbackWorkerMain() {
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
         mergeRenderState(message);
         pumpTerrainFetchQueue();
+        scheduleHydroRender();
       } else if (message.type === 'view' || message.type === 'render') {
         try {
           const incomingRevision = Number(message.viewRevision || message.revision || 0);
@@ -1263,6 +1301,9 @@ function canvasFallbackWorkerMain() {
               projectGeneration: Number(message.projectGeneration || 0) });
             return;
           }
+          // Only an accepted current view supersedes the delayed background
+          // paint; a stale message must leave that pending resource refresh.
+          if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
           viewRevision = incomingRevision;
           pumpTerrainFetchQueue();
           render(mergeRenderState(message), message.renderRequestId);

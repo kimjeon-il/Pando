@@ -32,7 +32,7 @@ test('Canvas chooses software backing only when hardware acceleration is unavail
   assert.equal(evaluate(class {getContext(){throw Error('unavailable');}}),true);
 });
 
-function canvasTerrainRuntime({ expectDem = false } = {}) {
+function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
   const messages = [], requests = [], drawn = [], paths = [], substrates = [], triangleCopies = [];
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; this.ctx = null; }
@@ -92,7 +92,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   new Function('self', terrainCoreSource)(scope);
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
-    'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
+    'ImageData', 'performance', 'setTimeout', 'clearTimeout', workerSource.replace('self.onmessage = event => {',
       `self.drawTerrainTriangle = drawTexturedTriangle;
       self.traceTerrainGrid = (spec, projection, message) => {
         const oldDraw = drawTexturedTriangle, oldManifest = terrainManifest, triangles = [];
@@ -104,7 +104,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
       self.currentRenderState = () => lastRenderMessage; self.onmessage = event => {`))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
-    { now: () => 1 }, () => 0);
+    { now: () => 1 }, timerPorts?.setTimeout || (() => 0), timerPorts?.clearTimeout || (() => {}));
   const country = (id, east = 1) => ({ id, type: 'Feature', properties: {},
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
   const features = [country('VISIBLE'), country('HIDDEN')];
@@ -146,6 +146,24 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
     find: suffix => requests.find(request => !request.completed && request.url.endsWith(suffix)),
   };
 }
+
+test('Canvas prepares raster tiles without tessellating an uncertified zero-land frame',async()=>{
+  const h=canvasTerrainRuntime();await settle();
+  const noLand={scenePolygons:[],surfacePresentation:{targetQuality:'canonical',quality:'pending'},
+    physicalSettings:{terrainVisible:true,terrainStyle:'physical'}};
+  h.render(noLand);await settle();
+  assert.ok(h.requests.length>0,'tile fetching still progresses while physical source is pending');
+  for(const request of [...h.requests])if(!request.completed)await h.deliver(request);
+  const prior=h.drawn.length;
+  h.render(noLand);
+  const pending=h.messages.filter(message=>message.type==='frame').at(-1);
+  assert.equal(pending.physicalLandCount,0);
+  assert.equal(pending.terrainComplete,false,'an uncertified bitmap cannot claim a completed terrain paint');
+  assert.equal(h.drawn.length,prior,'do not rasterize expensive terrain behind an unpresentable bitmap');
+  h.render({...noLand,scenePolygons:[h.land]});
+  assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).physicalLandCount,1,
+    'a later physical scene restores the actual rendering path');
+});
 
 test('Canvas globe terrain reuses shared grid vertices while preserving exact triangles', () => {
   const h=canvasTerrainRuntime(), spec={bounds:[0,4,4,0],pixelWidth:4,pixelHeight:4};
@@ -454,4 +472,46 @@ test('Canvas neighbour prefetch does not redraw the ready viewport terrain', asy
   const neighbour=h.find('/2/0-0.webp');assert.ok(neighbour);
   await h.deliver(neighbour);h.drawn.length=0;h.render();
   assert.equal(h.drawn.length,0,'offscreen prefetch must not trigger a full terrain repaint');
+});
+
+test('P7 Canvas resource redraws coalesce and an explicit newer view cancels the obsolete scheduled paint',async()=>{
+  const timers=[],setTimeout=(fn,ms)=>{const token={fn,ms,cancelled:false};timers.push(token);return timers.length;};
+  const clearTimeout=id=>{timers[id-1].cancelled=true;};
+  const h=canvasTerrainRuntime({timerPorts:{setTimeout,clearTimeout}});await settle();h.render();
+  const original=h.messages.filter(message=>message.type==='frame').length;
+  h.send({type:'hydro-edits',revision:7,features:[]});
+  h.send({type:'hydro-edits',revision:8,features:[]});
+  assert.equal(timers.length,1,'several resource updates require one coalesced paint');
+  assert.equal(timers[0].ms,16,'a frame-sized window allows the next camera event to take priority');
+  h.render({revision:2,viewRevision:2});
+  assert.equal(timers[0].cancelled,true,'explicit view cancels the delayed duplicate redraw');
+  assert.equal(h.messages.filter(message=>message.type==='frame').length,original+1,
+    'a current view still renders exactly once and is never skipped');
+  h.send({type:'hydro-edits',revision:9,features:[]});
+  assert.equal(timers.length,2);
+  h.send({type:'view',projectGeneration:1,revision:1,viewRevision:1,renderRequestId:99});
+  assert.equal(timers[1].cancelled,false,
+    'a rejected old camera event cannot cancel the current resource repaint');
+  const afterStale=h.messages.filter(message=>message.bitmap).length;
+  timers[1].fn();
+  assert.ok(h.messages.filter(message=>message.bitmap).length>afterStale,
+    'the coalesced resource redraw remains executable after stale view rejection');
+});
+
+
+test('P7 accepted Canvas style and physical-style messages redraw the current Worker view', async()=>{
+  const timers=[],setTimeout=(fn,ms)=>{const ticket={fn,ms,cancelled:false};timers.push(ticket);return timers.length;};
+  const clearTimeout=id=>{timers[id-1].cancelled=true;};
+  const h=canvasTerrainRuntime({timerPorts:{setTimeout,clearTimeout}});await settle();h.render();
+  const old=h.messages.filter(row=>row.type==='frame').length;
+  h.send({type:'style',styleRevision:2});
+  h.send({type:'physical-style',physicalStyleRevision:2,terrainFetchConcurrency:2});
+  assert.equal(timers.length,1,'two accepted updates coalesce into one redraw');
+  assert.equal(timers[0].ms,16,'resource repaint yields once to the browser message loop');
+  timers[0].fn();
+  const frames=h.messages.filter(row=>row.type==='frame');
+  assert.equal(frames.length,old+1,'accepted current style produces an actual bitmap');
+  assert.equal(frames.at(-1).styleRevision,2);
+  h.send({type:'style',styleRevision:1});
+  assert.equal(timers.length,1,'obsolete style updates cannot rewind the presented frame');
 });

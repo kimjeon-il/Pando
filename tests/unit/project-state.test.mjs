@@ -12,6 +12,9 @@ import {
   pickProjectFields,
 } from "../../shared/frontend/js/modules/project-state.js";
 import { normalizeSourceProvenance } from "../../shared/frontend/js/modules/source-provenance.js";
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import { timelineObjectCatalog } from '../../shared/frontend/js/modules/timeline-records.js';
 
 const state = {projectSetup:{initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'},
   sourceInfo: null, labels: [{ id: 'label-1' }], genericFeatures: [], hydroEdits: [{ id: 'river-1' }],
@@ -176,4 +179,63 @@ test('session state and unsupported model fields are rejected from project files
   const unsupportedSettings = currentProject();
   unsupportedSettings.distributionSettings = { renderMode: 'overlap', unknownField: uuid(3) };
   assert.throws(() => assertCurrentProjectSchema(unsupportedSettings), /지원하지 않는 필드 unknownField/);
+});
+
+test('schema 14 keeps authored project fields separate from presentation and device session state', () => {
+  const namesFor = scope => PROJECT_STATE_FIELDS.filter(field => field.scope === scope).map(field => field.name);
+  assert.deepEqual(namesFor('document'), [
+    'projectSetup', 'sourceInfo', 'labels', 'genericFeatures', 'hydroEdits',
+    'timelineRecords', 'geometries', 'distributionLayers', 'distributionEntries',
+  ]);
+  assert.deepEqual(namesFor('presentation'), [
+    'labelSettings', 'distributionSettings', 'layerPresentation',
+  ]);
+  assert.deepEqual(namesFor('session'), [
+    'physicalSettings', 'layerVisibility', 'itemVisibility', 'projection', 'view', 'timelineCursor',
+  ]);
+});
+
+test('a project timeline owns territorial and authored hydro references, not builtin places or labels', () => {
+  const project = currentProject();
+  project.referencePlaces = [{ id: 'builtin:place:synthetic:1' }];
+  const catalog = timelineObjectCatalog(project);
+  assert.deepEqual(catalog.map(row => row.objectRef), [
+    ...project.territorialEntities.map(row => ({ domain: 'territorial', id: row.id })),
+    ...project.hydroEdits.map(row => ({ domain: 'hydro', id: row.id })),
+  ]);
+  assert.equal(catalog.some(row => project.labels.some(label => label.id === row.objectRef.id)), false);
+  assert.equal(catalog.some(row => row.objectRef.domain === 'place'), false);
+});
+
+test('detached project copies do not share mutable labels, water records or historical bindings', () => {
+  const first = pickProjectFields(state), second = pickProjectFields(state);
+  first.labels[0].id = 'edited-label';
+  first.hydroEdits[0].id = 'edited-river';
+  first.timelineRecords.lifetimes.push({ id: 'extra' });
+  assert.equal(second.labels[0].id, 'label-1');
+  assert.equal(second.hydroEdits[0].id, 'river-1');
+  assert.equal(second.timelineRecords.lifetimes.length, 0);
+});
+
+test('project storage rejects session cursor and reference-library runtime caches', () => {
+  for (const field of ['timelineCursor', 'hydroFeatureCache', 'referencePlaces', 'projectBaseline']) {
+    const candidate = currentProject();
+    candidate[field] = field === 'timelineCursor' ? '1914-07' : {};
+    assert.throws(() => assertCurrentProjectSchema(candidate), new RegExp('지원하지 않는 필드 ' + field));
+  }
+});
+
+test('P0 reproducible static baseline reports checked-out Git files without inventing runtime timings',()=>{
+ const output=execFileSync(process.execPath,['scripts/check-runtime-boundaries.mjs','--baseline-json'],{
+  cwd:fileURLToPath(new URL('../../',import.meta.url)),encoding:'utf8',maxBuffer:4*1024*1024,
+ });
+ const data=JSON.parse(output);
+ assert.equal(data.schema,'pando-static-runtime-baseline-v1');
+ assert.match(data.sourceCommit,/^[a-f0-9]{40}$/);
+ assert.match(data.externalDataRevision,/^[a-f0-9]{40}$/);
+ assert.equal(data.runtimeMetricsMeasured,false);
+ assert.ok(data.trackedFiles>0);
+ assert.ok(data.indexedFrontendAssets>0&&data.boundaryCheckedModules>0);
+ assert.equal(Object.values(data.areas).reduce((sum,row)=>sum+row.files,0),data.trackedFiles);
+ assert.ok(data.areas['apps/viewer'].files>0);
 });

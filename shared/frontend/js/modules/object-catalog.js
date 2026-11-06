@@ -1,5 +1,6 @@
 import { effectiveTerritorialFlagUrl } from './country-flags.js';
 import {BUILTIN_SUBUNITS} from './builtin-subunits.js';
+import {projectResourceOverlay} from './project-resource-overlay.js';
 const builtinSubunitSources=Object.freeze(Object.fromEntries(BUILTIN_SUBUNITS.map(row=>[row.id,row.sourceCountryId])));
 
 /** ObjectCatalog: extracted application responsibility.
@@ -37,7 +38,7 @@ export function createObjectCatalog({ isObjectVisible } = {}) {
 
   function listObjectCatalogItems(group) {
     if (group === 'objects' || group === 'objectLabels') {
-      return dependencies.territorialModel.entityRepository.list().map(feature=>{
+      return projectResourceOverlay('territorial',dependencies.territorialModel.entityRepository.list()).records.map(feature=>{
         const id=String(feature.id),root=dependencies.territorialModel.entityRepository.root(id);
         return {id,name:dependencies.objectPresentation.territorialEntityName(feature),
           color:dependencies.colorModel.territorialEntityColor(feature),
@@ -70,7 +71,7 @@ export function createObjectCatalog({ isObjectVisible } = {}) {
           isBuiltin: true,
           selected: false,
         }));
-      const userItems = dependencies.projectState.state.hydroEdits.map(feature => ({
+      const userItems = projectResourceOverlay('hydro',dependencies.projectState.state.hydroEdits).project.map(feature => ({
         id: String(feature.id),
         name: (0, dependencies.hydroPresentation.hydroEditorName)(feature.properties?.name, (0, dependencies.hydroPresentation.hydroFallbackName)(feature.properties?.category)),
         color: feature.properties?.editorColor || dependencies.hydroPresentation.HYDRO_TOOL_CONFIG[feature.properties?.category || 'river'].color,
@@ -93,7 +94,7 @@ export function createObjectCatalog({ isObjectVisible } = {}) {
         selected: dependencies.projectState.state.selected?.domain === 'generic' && dependencies.projectState.state.selected.id === String(feature.id),
       }));
     }
-    return dependencies.projectState.state.labels.map(label => ({
+    return projectResourceOverlay('label',dependencies.projectState.state.labels).project.map(label => ({
       id: String(label.id),
       name: label.name || '이름 없는 지명',
       icon: 'place',
