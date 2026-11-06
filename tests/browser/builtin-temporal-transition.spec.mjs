@@ -119,7 +119,13 @@ test('Canvas user-file opening retains full document admission after a builtin d
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset),
     {timeout:60000}).toBe(fixture.project.baseDataset);
   try {
-    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+    // Core admits the file before Canvas can paint its new generation. Require
+    // the actual new-country bitmap, rather than the old 8s status-only gate.
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=window.__PANDOLAB_VIEWER__.rendererStats();
+      return s.countriesPublishedGeneration===s.projectGeneration&&s.mapReadiness.mapReady;
+    }),{timeout:60000}).toBe(true);
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:15000});
   } catch(error) {
     const diagnostic=await page.evaluate(()=>{
       const api=window.__PANDOLAB_VIEWER__,s=api?.rendererStats?.()||{},m=window.__PANDOLAB_GPU_METRICS__||{};

@@ -441,13 +441,14 @@ export function createGpuMapRenderer(deps) {
       });
     }
 
-    function mapTargetKey(frame = lastVisualFrame, terrain = currentTerrainReadiness()) {
+    function mapTargetKey(frame = lastVisualFrame) {
       if (!frame) return '';
+      // A physical/country frame is still published when an optional DEM
+      // target changes. Terrain readiness is tracked independently.
       return JSON.stringify([projectGeneration, renderDeviceContextRevision, geometryRevisionTracker.committedRevision(),
         frame.frameId, frame.viewRevision, frame.projectionRevision, frame.cssScale, frame.cssTranslate,
         countryPaletteRevision, physicalStyleStateRevision, !!state.physicalSettings.terrainVisible,
-        surfacePresentation.quality, surfacePresentation.geometryQuality,
-        terrainPreparation && state.physicalSettings.terrainVisible ? terrain.terrainTargetKey : null]);
+        surfacePresentation.quality, surfacePresentation.geometryQuality]);
     }
 
     function mapReadiness() {
@@ -493,7 +494,7 @@ export function createGpuMapRenderer(deps) {
           if (submittedWebGlBaseFrame)
             performanceMetrics.webGlFirstCountrySceneDrawCalls ??= performanceMetrics.webGlLastFrameSceneDrawCalls;
         }
-        const key = backgroundTargetKey(frame, terrain);
+        const key = backgroundTargetKey(frame);
         if (backgroundPresentedKey !== key) {
           backgroundPresentedKey = key;
           firstBackgroundFrameMs ??= Math.max(0, performance.now() - rendererStartedAt);
@@ -508,12 +509,14 @@ export function createGpuMapRenderer(deps) {
       publishMapReadiness();
     }
 
-    function backgroundTargetKey(frame = lastVisualFrame, terrain = currentTerrainReadiness()) {
+    function backgroundTargetKey(frame = lastVisualFrame) {
       if (!frame || !renderScene) return '';
+      // A source-certified background remains current through independent DEM
+      // tile arrivals. Only its camera, physical source and style own the key.
       return JSON.stringify([projectGeneration, renderDeviceContextRevision,
         (renderScene.polygons || []).filter(packet => packet.role === 'physical-land').map(packet => packet.sourceKey),
         frame.cssViewport, frame.cssScale, frame.cssTranslate, frame.viewState?.rotation, frame.viewState?.projection,
-        physicalStyleStateRevision, !!state.physicalSettings.terrainVisible, terrain.terrainTargetKey]);
+        physicalStyleStateRevision, !!state.physicalSettings.terrainVisible]);
     }
 
     function retryMapPreparation() {

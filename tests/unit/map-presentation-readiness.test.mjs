@@ -60,6 +60,32 @@ test('pending map-open resource updates reach the current visual-frame commit',(
   assert.deepEqual(events,['gpu:tile-ready','visual:scene-ready','gpu:steady']);
 });
 
+test('accepted map and physical background keys are independent of optional DEM target changes',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('    function mapTargetKey(');
+  const middle=source.indexOf('    function mapReadiness()',start);
+  const bgStart=source.indexOf('    function backgroundTargetKey(');
+  const bgEnd=source.indexOf('    function retryMapPreparation()',bgStart);
+  assert.ok(start>0&&middle>start&&bgStart>middle&&bgEnd>bgStart);
+  const frame={frameId:9,viewRevision:2,projectionRevision:1,cssViewport:[900,600],
+    cssScale:420,cssTranslate:[450,300],viewState:{rotation:[0,0,0],projection:'globe'}};
+  const context={lastVisualFrame:frame,projectGeneration:3,renderDeviceContextRevision:2,
+    geometryRevisionTracker:{committedRevision:()=>4},countryPaletteRevision:2,physicalStyleStateRevision:1,
+    state:{physicalSettings:{terrainVisible:true}},surfacePresentation:{quality:'canonical',geometryQuality:'canonical'},
+    renderScene:{polygons:[{role:'physical-land',sourceKey:'land:4'}]}};
+  const params=Object.keys(context),values=Object.values(context);
+  const mapKey=new Function(...params,source.slice(start,middle)+';return mapTargetKey;')(...values);
+  const backgroundKey=new Function(...params,source.slice(bgStart,bgEnd)+';return backgroundTargetKey;')(...values);
+  const first=mapKey(frame),background=backgroundKey(frame);
+  const secondTerrain={terrainTargetKey:'next-lod'};
+  assert.equal(mapKey(frame,secondTerrain),first);
+  assert.equal(backgroundKey(frame,secondTerrain),background);
+  context.renderScene.polygons[0].sourceKey='land:5';
+  assert.notEqual(backgroundKey(frame),background,'a new physical source still requires a new background');
+  context.physicalStyleStateRevision=2;
+  assert.notEqual(mapKey(frame),first,'a changed physical style invalidates the map');
+});
+
 test('a real background presentation key cannot certify an unpresented canonical country surface',()=>{
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
   const begin=source.indexOf('    function mapTargetKey(');
