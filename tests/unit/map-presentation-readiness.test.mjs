@@ -49,7 +49,7 @@ test('Canvas Worker settles file-open waiters from an actually transferred curre
   const waiters=new Set(),resolved=[];
   const context={projectGeneration:3,mapPresentationWaiters:waiters,
     mapReadiness:()=>({mapReady:true})};
-  const settle=new Function(...Object.keys(context),source.slice(start,end)+';return settleMapPresentationWaiters;')(...Object.values(context));
+  const settle=new Function(...Object.keys(context),'let committedMapGeneration=-1;'+source.slice(start,end)+';return settleMapPresentationWaiters;')(...Object.values(context));
   waiters.add({generation:2,resolve:()=>assert.fail('stale project must not settle')});
   waiters.add({generation:3,resolve:()=>resolved.push(3)});
   assert.equal(settle(),true);
