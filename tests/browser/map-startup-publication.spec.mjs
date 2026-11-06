@@ -69,3 +69,29 @@ test.afterEach(async({page},info)=>{
   }).catch(error=>({unavailable:String(error)}));
   console.error('P7_FAILED_MAP_STATE '+JSON.stringify({test:info.title,state}).slice(0,14000));
 });
+
+test('WebGL publishes an actual physical country frame before optional terrain detail resolves',async({page})=>{
+  test.setTimeout(120000);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  let release;const gate=new Promise(resolve=>{release=resolve;});
+  await page.route(/\/terrain\/[^/]+\/(?:tint|\d+\/\d+-\d+)\.webp/,async route=>{
+    await gate;
+    if(!page.isClosed())await route.continue();
+  });
+  try{
+    await page.goto('/?renderer=webgl2&debug=1',{waitUntil:'domcontentloaded'});
+    await expect.poll(()=>page.evaluate(()=>{
+      const stats=window.__PANDOLAB_VIEWER__?.rendererStats();
+      return stats?.canonicalMeshReady===true&&stats?.projectRenderBlocked===false;
+    }),{timeout:90000}).toBe(true);
+    await expect.poll(()=>page.evaluate(()=>{
+      const stats=window.__PANDOLAB_VIEWER__.rendererStats();
+      return stats.countriesPublishedGeneration===stats.projectGeneration&&
+        stats.firstBackgroundFrameMs!==null&&stats.firstCountryPublishedMs!==null;
+    }),{timeout:30000}).toBe(true);
+    const stats=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+    expect(stats.terrainReady).toBe(false);
+    expect(stats.mapReadiness.status).not.toBe('ready');
+    expect(errors).toEqual([]);
+  }finally{release();}
+});
