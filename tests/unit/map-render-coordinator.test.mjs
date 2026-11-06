@@ -98,6 +98,27 @@ test('blocked Canvas startup submits only a physical background frame, keeping c
   assert.ok(calls.includes('present'));
 });
 
+test('generation reset stages one Canvas background frame before the blocked RAF', () => {
+  const callbacks = [], prepared = [], staged = [];
+  let needsStage = true;
+  const coordinator = createMapRenderCoordinator({
+    requestFrame: callback => callbacks.push(callback),
+    prepareView: ({frameId}) => { prepared.push(frameId); return {frameId, projectGeneration: 4}; },
+    isPresentationBlocked: () => true,
+    renderers: {
+      canRenderBlockedBackground: () => needsStage,
+      blockedBackground: frame => { staged.push(frame); needsStage = false; return true; },
+    },
+  });
+  assert.equal(coordinator.stageBlockedBackground(), true);
+  assert.deepEqual(prepared, [1]);
+  coordinator.invalidate(MAP_RENDER_MASKS.PROJECT);
+  callbacks.shift()();
+  assert.deepEqual(prepared, [1], 'deferred project work does not prepare a second camera');
+  assert.equal(staged[0].projectGeneration, 4);
+  assert.equal(coordinator.stageBlockedBackground(), false);
+});
+
 function fixture() {
   const calls = [];
   const frames = [];
