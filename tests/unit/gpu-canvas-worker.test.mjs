@@ -11,11 +11,12 @@ test('project replacement retains a ready worker and rejects old completion with
   channel.queueFrame({ type: 'view', revision: 9, projectGeneration: 2 });
   const old = sent[0];
   channel.resetGeneration(3);
+  assert.deepEqual(sent[1], { type: 'reset-generation', projectGeneration: 3 });
   channel.queueFrame({ type: 'view', revision: 1, projectGeneration: 3 });
   complete(old, { bitmap: { close() {} } });
   assert.equal(channel.busy, true);
   assert.equal(presented.length, 0);
-  complete(sent[1]);
+  complete(sent[2]);
   assert.equal(channel.busy, false);
   assert.equal(presented.length, 1);
   assert.equal(channel.ready, true);
@@ -304,6 +305,39 @@ test('the real Canvas Worker reuses unchanged projected country geometry across 
   send({ type: 'replace-data', geometryRevision: 1, projectGeneration: 3,
     features: [row('new-allocation:0', 2)] });
   paint(3); assert.equal(pathBuildCount(), 2, 'a new delivery generation cannot invalidate unchanged projected geometry');
+});
+
+
+test('real Canvas Worker generation reset retires old physical packets before new land and water', () => {
+  const { replies, send } = canvasRuntime();
+  const ring = new Float64Array([0, 0, 1, 0, 1, 1, 0, 0]);
+  const packet = (key, revision) => ({
+    key, role: key, sourceKey: revision, geometryRevision: revision,
+    ringCoordinates: ring, ringOffsets: new Uint32Array([0, 4]),
+    polygonOffsets: new Uint32Array([0, 1]),
+  });
+  const pending = { surfacePresentation: { targetQuality: 'canonical', quality: 'pending' },
+    visible: false, sceneStrokes: [], visualOrder: { base: [], hydro: [] } };
+  send({ type: 'view', projectGeneration: 2, revision: 2, viewRevision: 2,
+    ...pending, scenePolygons: [packet('physical-land', 'old-land')] });
+  assert.equal(replies.at(-1).message.physicalLandRevision, 'old-land');
+  const count = replies.length;
+  send({ type: 'reset-generation', projectGeneration: 3 });
+  send({ type: 'view', projectGeneration: 2, revision: 3, viewRevision: 3 });
+  assert.equal(replies.length, count, 'old generation views cannot reintroduce retired pixels');
+  send({ type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
+    ...pending, scenePolygons: [] });
+  assert.equal(replies.at(-1).message.projectGeneration, 3);
+  assert.equal(replies.at(-1).message.physicalLandCount, 0,
+    'the new project cannot inherit the old physical land packet');
+  send({ type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
+    ...pending, scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
+  const frame = replies.at(-1).message;
+  assert.equal(frame.projectGeneration, 3);
+  assert.equal(frame.physicalLandCount, 1);
+  assert.equal(frame.physicalLandRevision, 'land-v3');
+  assert.equal(frame.physicalWaterCount, 1);
+  assert.equal(frame.physicalWaterRevision, 'water-v3');
 });
 
 test('Canvas data acknowledgements identify their project and obsolete data cannot acknowledge a new project', () => {
