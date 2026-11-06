@@ -73,7 +73,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
       } } },
     PandoLabCanvasSceneComposition: {
       drawGeneralLand(_ctx, _path, polygons) { substrates.push(polygons.filter(packet => packet.role === 'physical-land').map(packet => packet.geometry)); },
-      drawTerritorialFills() {}, drawOverlays() {}, drawEmphasis() {},
+      drawTerritorialFills() {}, drawOverlays() {}, drawEmphasis() {}, drawPhysicalWater() {},
       countryBoundaryBatches: () => [], drawStrokes() {}, geometryFor: packet => packet.geometry,
       generalLandShapes: packets => packets.filter(packet => packet.role === 'physical-land').map(packet => packet.geometry),
     },
