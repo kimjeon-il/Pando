@@ -2660,6 +2660,8 @@ export function createGpuMapRenderer(deps) {
       projectRenderBlocked = true;
       if (canvasWorker) {
         canvasWorker.resetGeneration(projectGeneration);
+        // New projects resend complete geometry, even when the buffer is reused.
+        canvasScenePackets.clear();
         canvasLastStyleSignature = ''; canvasLastPhysicalStyleSignature = '';
       }
       canvasDataReplacementResolver?.(); canvasDataReplacementResolver = null;
@@ -4728,6 +4730,19 @@ export function createGpuMapRenderer(deps) {
       }
     }
 
+    // Transport and presentation share a single scene/frame admission contract.
+    function isCurrentCanvasWorkerFrame(message) {
+      return !!lastVisualFrame && Number(message.projectGeneration) === projectGeneration
+        && Number(message.frameId) === Number(lastVisualFrame.frameId)
+        && Number(message.viewRevision) === Number(lastVisualFrame.viewRevision)
+        && Number(message.projectionRevision) === Number(lastVisualFrame.projectionRevision)
+        && message.presentationKey === mapTargetKey(lastVisualFrame, { terrainTargetKey: '' })
+        && Number(message.geometryRevision) === geometryRevisionTracker.committedRevision()
+        && Number(message.styleRevision) === canvasStyleRevision
+        && message.surfaceQuality === surfacePresentation.quality
+        && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState());
+    }
+
     function receiveCanvasWorkerMessage(event) {
       const message = event.data || {};
       if (disposed || rendererMode !== 'canvas-worker') { message.bitmap?.close?.(); return; }
@@ -4770,10 +4785,7 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (message.type !== 'frame') return;
-      if (Number(message.projectGeneration) !== projectGeneration
-          || Number(message.frameId) !== Number(lastVisualFrame?.frameId)
-          || message.presentationKey !== mapTargetKey(lastVisualFrame, { terrainTargetKey: '' })
-          || Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) {
+      if (!isCurrentCanvasWorkerFrame(message)) {
         message.bitmap?.close?.();
         return;
       }
@@ -4855,10 +4867,7 @@ export function createGpuMapRenderer(deps) {
           canvasWorker = createGpuCanvasWorker({
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
-            acceptFrame: message => Number(message.geometryRevision || 0) >= geometryRevisionTracker.committedRevision()
-              && Number(message.styleRevision || 0) === canvasStyleRevision
-              && message.surfaceQuality === surfacePresentation.quality
-              && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+            acceptFrame: isCurrentCanvasWorkerFrame,
             onStale: message => {
               performanceMetrics.canvasWorkerStaleFrameCount += 1;
               // A valid submission can finish with an old scene bitmap after
@@ -4870,8 +4879,7 @@ export function createGpuMapRenderer(deps) {
                 || !lastVisualFrame || Number(lastVisualFrame.projectGeneration) !== projectGeneration
                 || !physicalSceneMatchesContext(renderScene, getPhysicalContextState())
                 || canvasWorkerResubmitScheduled || canvasWorker?.hasPendingFrame) return;
-              const key = [projectGeneration, lastVisualFrame.frameId, canvasStyleRevision,
-                geometryRevisionTracker.committedRevision()].join(':');
+              const key = `${mapTargetKey(lastVisualFrame, { terrainTargetKey: '' })}:${canvasStyleRevision}`;
               if (key !== canvasWorkerResubmitKey) {
                 canvasWorkerResubmitKey = key;
                 canvasWorkerResubmitAttempts = 0;

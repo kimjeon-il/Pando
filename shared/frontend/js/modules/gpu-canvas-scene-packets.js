@@ -8,8 +8,8 @@ export function createCanvasScenePackets() {
       next.add(key);
       const geometry = packet.ringCoordinates || packet.startsEnds;
       const previous = sentGeometry.get(key);
-      sentGeometry.set(key, geometry);
-      if (previous !== geometry) return packet;
+      sentGeometry.set(key, { geometry, sourceKey: packet.sourceKey });
+      if (!previous || previous.geometry !== geometry || previous.sourceKey !== packet.sourceKey) return packet;
       const { ringCoordinates: _coordinates, ringOffsets: _rings, polygonOffsets: _polygons, startsEnds: _segments, ...metadata } = packet;
       return metadata;
     });

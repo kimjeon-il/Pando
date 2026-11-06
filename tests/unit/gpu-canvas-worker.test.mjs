@@ -376,3 +376,35 @@ test('pick failures reject their own request and keep the Canvas worker alive', 
   assert.equal(prevented, true);
   channel.terminate();
 });
+
+test('new project can render a lower view revision and certify only painted physical packets', () => {
+  const theme = { baseLandAlpha: 1, defaultLand: '#ffffff', ocean: '#0000ff',
+    strokes: { country: { width: 1 } } };
+  const { replies, send } = canvasRuntime({
+    theme, visualOrder: { base: ['substrate', 'physical-water'], hydro: [] },
+  });
+  send({ type: 'view', frameId: 30, revision: 12, viewRevision: 12, projectGeneration: 2, renderRequestId: 1 });
+  assert.equal(replies.at(-1).message.type, 'frame');
+  send({ type: 'replace-data', projectGeneration: 3, geometryRevision: 0, features: [] });
+  const geometry = { ringCoordinates: new Float64Array([0, 0, 1, 0, 0, 1, 0, 0]),
+    ringOffsets: new Uint32Array([0, 4]), polygonOffsets: new Uint32Array([0, 1]),
+    style: { color: '#ffffff', fillAlpha: 1 } };
+  send({ type: 'style', projectGeneration: 3, styleRevision: 2,
+    scenePolygons: [
+      { ...geometry, key: 'land', sourceKey: 'land-v3', role: 'physical-land', geometryRevision: 'land-v3' },
+      { ...geometry, key: 'water', sourceKey: 'water-v3', role: 'physical-water', geometryRevision: 'water-v3' },
+    ] });
+  send({ type: 'view', frameId: 1, revision: 1, viewRevision: 1, projectGeneration: 3, renderRequestId: 2 });
+  const current = replies.at(-1).message;
+  assert.equal(current.type, 'frame');
+  assert.equal(current.frameId, 1);
+  assert.ok(current.bitmap, 'new project must not be rejected as a stale view');
+  assert.equal(current.physicalLandCount, 1);
+  assert.equal(current.physicalLandRevision, 'land-v3');
+  assert.equal(current.physicalWaterCount, 1);
+  assert.equal(current.physicalWaterRevision, 'water-v3');
+  send({ type: 'style', styleRevision: 3, projectGeneration: 3, visualOrder: { base: [], hydro: [] } });
+  send({ type: 'view', frameId: 2, revision: 2, viewRevision: 2, projectGeneration: 3, renderRequestId: 3 });
+  assert.equal(replies.at(-1).message.physicalLandCount, 0);
+  assert.equal(replies.at(-1).message.physicalWaterCount, 0);
+});
