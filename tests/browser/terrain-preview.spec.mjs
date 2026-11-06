@@ -84,8 +84,8 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
       '    async function loadDemManifest(url) {\n      ' + mark('manifest-enter'));
     anchor('        const tint = await readRgba(await tintResponse.blob(), true);',
       '        ' + mark('tint-response') + '\n        const tint = await readRgba(await tintResponse.blob(), true);\n        ' + mark('tint-decoded'));
-    anchor('    async function readRgba(blob) {',
-      '    async function readRgba(blob) {\n      ' + `self.postMessage({type:'dem-diagnostic',stage:'read-rgba-enter',bytes:blob.size,at:performance.now()});`);
+    anchor('    async function readRgba(blob, preferImageDecoder = false) {',
+      '    async function readRgba(blob, preferImageDecoder = false) {\n      ' + `self.postMessage({type:'dem-diagnostic',stage:'read-rgba-enter',bytes:blob.size,at:performance.now()});`);
     anchor('      const source = new OffscreenCanvas(bitmap.width, bitmap.height);\n      const read = source.getContext',
       '      ' + mark('bitmap-decoded') + '\n      const source = new OffscreenCanvas(bitmap.width, bitmap.height);\n      const read = source.getContext');
     await route.fulfill({ response, body: source });
