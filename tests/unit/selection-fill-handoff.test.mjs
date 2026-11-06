@@ -304,7 +304,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
       assert.equal(renderer.getRuntimeState().renderer, 'webgl2', 'scheduled shader and upload work must settle restoration');
       await restored;
     },
-    transition: async () => {
+    transition: async ({ deferCanvasFailure = false } = {}) => {
       const recovery = [...timers].find(([, timer]) => timer.delay === 5000);
       assert.ok(recovery);
       const [id, timer] = recovery;
@@ -323,7 +323,7 @@ async function directFallbackHarness(t, { canvasWorker = false, pendingGeometry 
           assert.equal(renderer.getStats().pendingCountryCount, 1);
           assert.equal(state.pendingCountryRenderIds.size, 1);
         }
-        worker.onerror({ message: 'test worker failure' });
+        if (!deferCanvasFailure) worker.onerror({ message: 'test worker failure' });
       }
     },
     verifyCanonical: () => { assert.strictEqual(selection.snapshot(), snapshot); assert.deepEqual(features, model);
@@ -406,15 +406,20 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
 
 for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
   const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
-  await h.transition();
-  // Visibility is observable only after the canonical source is admitted.
-  await h.prepareCountries();
+  await h.transition({ deferCanvasFailure: canvasWorker });
   if(canvasWorker){
     const worker=h.workers.find(worker=>worker.name==='pandolab-canvas-renderer');
-    const style=worker.messages.find(message=>message.type==='init'||message.type==='style');
+    // Init runs before readiness/canonical admission. Inspect the actual
+    // current style after Worker readiness, not the provisional init packet.
+    worker.onmessage({data:{type:'ready'}});
+    const style=worker.messages.filter(message=>message.type==='style').at(-1);
+    assert.ok(style,'ready Worker must receive a current style packet');
     assert.deepEqual(style.hiddenCountryIds,['HKG']);
     assert.equal(style.hiddenCountryIds.includes('unit-uuid'),false);
+    worker.onerror({message:'test worker failure'});
   }
+  // The fallback Canvas2D draw retains the same authoritative visibility.
+  await h.prepareCountries();
   // The background is accepted before the canonical country fill is published.
   for(let frame=0;frame<3&&h.queued.length;frame++)h.queued.shift()();
   assert.equal(h.renderer.getStats().surfacePresentation.quality,'canonical');
