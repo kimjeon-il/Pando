@@ -22,6 +22,29 @@ test('input holds uploads until 500ms after release', async () => {
   c.scheduler.noteInput(true); c.tick(1000); assert.equal(calls, 0);
   c.scheduler.noteInput(false); c.tick(499); assert.equal(calls, 0); c.tick(1); await done; assert.equal(calls, 1);
 });
+test('input-pending frames advance admitted current terrain while pausing optional GPU uploads', async () => {
+  let time=0,pendingInput=true;
+  const frames=[],calls=[];
+  const scheduler=createGpuUploadScheduler({
+    requestFrame:fn=>(frames.push(fn),frames.length),
+    cancelFrame:()=>{},now:()=>time,isHidden:()=>false,isInputPending:()=>pendingInput,
+  });
+  const optional=scheduler.enqueueUpload({key:'hydro',priority:40,step:()=>{calls.push('hydro');return {bytes:128,done:true};}});
+  const terrain=scheduler.enqueueUpload({key:'terrain',priority:40,allowDuringInteraction:true,
+    step:({byteBudget})=>{assert.ok(byteBudget<=256*1024);calls.push('terrain');return {bytes:128,done:true};}});
+  frames.shift()();
+  await terrain;
+  assert.deepEqual(calls,['terrain'],'pending input must not starve permitted visible terrain');
+  assert.equal(scheduler.getStats().pending,1,'deferred hydro remains queued');
+  pendingInput=false;time+=499;
+  frames.shift()();
+  assert.deepEqual(calls,['terrain'],'optional uploads stay paused during the interaction grace');
+  time+=1;frames.shift()();await optional;
+  assert.deepEqual(calls,['terrain','hydro']);
+  assert.equal(scheduler.getStats().pending,0);
+  scheduler.dispose();
+});
+
 test('shared time budget stops another consumer after an atomic overrun', async () => {
   const c = clock(), seen = [];
   const a = c.scheduler.enqueueUpload({ key: 'terrain', priority: 10, step: () => { seen.push('terrain'); c.advance(3); return { done: true, bytes: 100 }; } });

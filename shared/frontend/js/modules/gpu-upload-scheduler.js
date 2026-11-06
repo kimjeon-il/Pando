@@ -8,8 +8,12 @@ export function createGpuUploadScheduler({ requestFrame = callback => globalThis
     frame = 0;
     if (disposed) return;
     if (isHidden()) { schedule(); return; }
-    if (isInputPending()) { lastInput = now(); schedule(); return; }
-    const interaction = active || now() - lastInput < 500;
+    // Input-pending should pause optional GPU uploads, not starve explicitly
+    // admitted current-view terrain resources during a held drag or wheel.
+    // The existing per-frame time/byte budgets still constrain these jobs.
+    const pendingInput = isInputPending();
+    if (pendingInput) lastInput = now();
+    const interaction = active || pendingInput || now() - lastInput < 500;
     const start = now();
     let bytes = Math.min(interaction ? 256 * 1024 : 2 * 1024 * 1024, Math.max(4, getByteBudget()));
     const order = [...jobs.values()].sort((a, b) => b.priority - a.priority);
