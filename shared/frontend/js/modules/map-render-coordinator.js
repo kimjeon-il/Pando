@@ -144,18 +144,20 @@ export function createMapRenderCoordinator({
     | MAP_RENDER_DIRTY.SELECTION_DATA | MAP_RENDER_DIRTY.SELECTION_STYLE | MAP_RENDER_DIRTY.SELECTION_VIEW
     | MAP_RENDER_DIRTY.GPU_INTERACTION | MAP_RENDER_DIRTY.LAYER_TREE | MAP_RENDER_DIRTY.HUD;
 
+  function stageBlockedBackground() {
+    if (!isPresentationBlocked() || !renderers.canRenderBlockedBackground?.()) return false;
+    // Only the coordinator can assign a current-generation visual frame ID.
+    renderRevision += 1;
+    return renderers.blockedBackground?.(prepareView({ frameId: renderRevision })) === true;
+  }
+
   function render({ dirtyMask, reasons = [] }) {
     // A replacement owns no display frame until its renderer commits one.
     // Preserve the whole old presentation, including DOM labels and shell.
     if (isPresentationBlocked()) {
       deferredPresentationMask |= expandedMask(dirtyMask);
       renderers.preservedFrame?.();
-      // An initial Canvas physical-only frame can be prepared without
-      // publishing any country, label or selection from the blocked project.
-      if (renderers.canRenderBlockedBackground?.()) {
-        renderRevision += 1;
-        renderers.blockedBackground?.(prepareView({ frameId: renderRevision }));
-      }
+      stageBlockedBackground();
       return { deferred: true, renderRevision };
     }
     const requestedMask = dirtyMask;
@@ -364,6 +366,7 @@ export function createMapRenderCoordinator({
 
   return Object.freeze({
     invalidate,
+    stageBlockedBackground,
     beginInteraction,
     endInteraction,
     getStats: () => ({
