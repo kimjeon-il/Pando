@@ -15,7 +15,7 @@ import { wasmStatus, selectJobs, assertSafeGeneratedPaths,
 import { graphStatus, stageArtifacts, publishArtifacts, artifactEvidence, assertBranchState,
   RECEIPT_PATH,artifactGraph } from '../../scripts/lib/p2-artifact-graph.mjs';
 import * as artifactOwners from '../../scripts/lib/p2-artifact-graph.mjs';
-import { publishGeneratedArtifacts,archiveGeneratedLibraryOutputs,assertP2LibraryPublicationBase } from '../../scripts/p2-publish-artifacts.mjs';
+import { publishGeneratedArtifacts,publishP2FromWorkflow,archiveGeneratedLibraryOutputs,assertP2LibraryPublicationBase } from '../../scripts/p2-publish-artifacts.mjs';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 test('P2 isolates the generated work branch from a newer source-library work/gis branch',()=>{
@@ -166,6 +166,8 @@ const integrationPresentationChanges=[
 const staleDataFamilyIds=['territorial','current-world','builtin-world','world-mesh',
   'world-preview','world-bundle','shared-boundaries','prepared-mesh','places'];
 const nativeValidationChanges=[
+  'scripts/p2-publish-artifacts.mjs',
+  '.github/workflows/generated-artifacts-p2.yml',
   'scripts/check-territorial-library.mjs',
   'scripts/lib/late-soviet-check.mjs',
   '.github/actions/native-test-prerequisites/action.yml',
@@ -637,3 +639,41 @@ test('report fingerprints follow the owner read view when originals are stored o
  assert.deepEqual(status.inputs,{[logical]:digest(bytes)});
 });
 
+
+function workflowRemoteFixture(t) {
+  const f=graphFixture(t),remote=mkdtempSync(join(tmpdir(),'pando-p2-remote-'));
+  t.after(()=>rmSync(remote,{recursive:true,force:true}));
+  execFileSync('git',['init','--bare','-q',remote]);
+  f.git('branch','-M','work/objects');
+  f.git('remote','add','origin',remote);
+  f.git('push','-q','-u','origin','HEAD:refs/heads/work/objects');
+  return f;
+}
+
+test('P2 skips a superseded CI source only if the remote head is a fast-forward',async t=>{
+  const f=workflowRemoteFixture(t),source=f.git('rev-parse','HEAD');
+  f.git('commit','--allow-empty','-qm','newer source commit');
+  const advanced=f.git('rev-parse','HEAD');
+  f.git('push','-q','origin','HEAD:refs/heads/work/objects');
+  f.git('checkout','-q','--detach',source);
+  const result=await publishP2FromWorkflow(f.root,{scope:'auto',expectedSourceSha:source,branch:'work/objects'});
+  assert.equal(result.superseded,true);
+  assert.equal(result.pushed,false);
+  assert.equal(result.supersededBy,advanced);
+  assert.deepEqual(result.verifiedScope,[]);
+  assert.equal(f.git('rev-parse','HEAD'),source,'obsolete source must remain untouched');
+  assert.match(f.git('ls-remote','origin','refs/heads/work/objects'),new RegExp('^'+advanced));
+});
+
+test('P2 never disguises a remote history rewrite as superseded success',async t=>{
+  const f=workflowRemoteFixture(t),source=f.git('rev-parse','HEAD');
+  f.git('checkout','--orphan','unrelated');
+  f.git('commit','--allow-empty','-qm','unrelated history');
+  f.git('push','--force','-q','origin','HEAD:refs/heads/work/objects');
+  f.git('checkout','-q','--detach',source);
+  await assert.rejects(
+    ()=>publishP2FromWorkflow(f.root,{scope:'auto',expectedSourceSha:source,branch:'work/objects'}),
+    /P2_REMOTE_BRANCH_CHANGED_NON_FAST_FORWARD/
+  );
+  assert.equal(f.git('rev-parse','HEAD'),source);
+});

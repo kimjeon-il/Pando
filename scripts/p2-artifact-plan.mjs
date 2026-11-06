@@ -101,6 +101,8 @@ function validationOrPresentationOnly(changes,graph) {
   const validationPaths=new Set([
     '.github/actions/native-test-prerequisites/action.yml',
     '.github/workflows/application-architecture.yml',
+    '.github/workflows/generated-artifacts-p2.yml',
+    'scripts/p2-publish-artifacts.mjs',
     '.github/workflows/ui-architecture.yml',
     '.github/workflows/place-runtime.yml',
     '.github/workflows/remote-development-p1.yml',

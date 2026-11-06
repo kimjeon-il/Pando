@@ -224,7 +224,7 @@ jobs:
           node scripts/p2-publish-artifacts.mjs
       - name: Hand the exact verified result to P3
         # Verified unchanged artifacts still need their deferred P3 checks.
-        if: steps.publish.outcome == 'success'
+        if: steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT_SHA: ${{ steps.publish.outputs.result_sha }}
@@ -234,7 +234,7 @@ jobs:
           -f source_sha="$RESULT_SHA" -f base_sha="$BASE_SHA"
           -f original_source_sha="$GITHUB_SHA" -f scope=auto
       - uses: actions/upload-artifact@v4
-        if: always() && steps.publish.outcome == 'success'
+        if: always() && steps.publish.outcome == 'success' && steps.publish.outputs.superseded != 'true'
         with:
           name: p2-generated-${{ steps.publish.outputs.result_sha }}
           path: |

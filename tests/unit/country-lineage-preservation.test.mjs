@@ -15,9 +15,17 @@ function verifiedSource(path,expected){
  return JSON.parse(bytes);
 }
 
-test('current pinned catalog preserves all 286 identities, 265 lineages and 315 complete geometry versions',()=>{
+test('current pinned catalog preserves all 286 identities, 265 lineages and 313 complete geometry versions',()=>{
  const config=JSON.parse(fs.readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8'));
  assert.equal(config.repository,baseline.provenance.repository);
+ const review=baseline.provenance.runtimePinReview;
+ assert.equal(review.previousReviewedRevision,baseline.provenance.acceptedKoreanBaselineRollback.runtime,
+   'the source review must preserve the previously accepted revision');
+ assert.equal(review.reviewedRuntimeRevision,config.revision,
+   'the source review must match the active pinned revision');
+ assert.equal(review.matchedSourceReceipts,baseline.counts.entities+baseline.counts.lineages,
+   'the review must cover the complete country and lineage corpus');
+ assert.equal(review.changedSourceReceipts,0,'a changed source requires its own review');
  // The reviewed runtime pin retains every original oracle receipt; the older
  // revision and archive index remain the independent source of those receipts.
  assert.equal(config.revision,baseline.provenance.reviewedRuntimeRevision,'the source oracle must be reviewed with a new data pin');
