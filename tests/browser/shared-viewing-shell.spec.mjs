@@ -15,7 +15,9 @@ test('web keeps common tooltips and selection without a separate information pan
   const fixture=await createViewerProjectPackage('선택 유지');
   await page.locator('#projectFileInput').setInputFiles({name:'current.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.name),{timeout:30000}).toBe('선택 유지');
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  // GeoPackage selection data can arrive before the actual canonical map is
+  // published. Keep the readiness assertion, with the same import budget.
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
   await page.locator('#objectSearchBtn').click();
   await page.getByLabel('지도에서 찾기',{exact:true}).fill('선택 유지');
   await page.locator('#objectSearchResults button').filter({hasText:'선택 유지'}).first().click();

@@ -407,6 +407,9 @@ test('Worker failure acknowledges pending geometry only after its scheduled Canv
 for(const canvasWorker of [false,true])test(`native display IDs obey canonical individual visibility in Canvas worker=${canvasWorker}`,async t=>{
   const h=await directFallbackHarness(t,{canvasWorker,nativeVisibility:true});
   await h.transition({ deferCanvasFailure: canvasWorker });
+  // Prepare the canonical country inputs before Worker readiness. A pending
+  // preview legitimately contains no individually hidden country IDs.
+  if(canvasWorker) await h.prepareCountries();
   if(canvasWorker){
     const worker=h.workers.find(worker=>worker.name==='pandolab-canvas-renderer');
     // Init runs before readiness/canonical admission. Inspect the actual
@@ -419,7 +422,7 @@ for(const canvasWorker of [false,true])test(`native display IDs obey canonical i
     worker.onerror({message:'test worker failure'});
   }
   // The fallback Canvas2D draw retains the same authoritative visibility.
-  await h.prepareCountries();
+  if(!canvasWorker) await h.prepareCountries();
   // The background is accepted before the canonical country fill is published.
   for(let frame=0;frame<3&&h.queued.length;frame++)h.queued.shift()();
   assert.equal(h.renderer.getStats().surfacePresentation.quality,'canonical');
