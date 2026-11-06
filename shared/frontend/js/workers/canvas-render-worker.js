@@ -1080,7 +1080,8 @@ function canvasFallbackWorkerMain() {
         }
       } catch (error) {
         activePaint = null;
-        self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
+        self.postMessage({ type: 'error', message: task.requestId == null
+          ? error?.message || String(error) : error?.stack || error?.message || String(error) });
       }
     }
     function render(message, renderRequestId = null) {
