@@ -74,12 +74,12 @@ test('Canvas DEM uses the highest complete viewport LOD that fits its decoded 96
   assert.equal(convertedBytesPerPixel, 12);
   const levels = [{id:0},{id:1},{id:2},{id:3}];
   const spec = key => ({key, pixelWidth:1024, pixelHeight:1024});
-  const visible = level => Array.from({length: [2,4,8,16][level.id]},
+  const visible = level => Array.from({length: [2,4,7,16][level.id]},
     (_, index) => spec(`${level.id}/${index}`));
   const budget = 96 * 1024 * 1024;
   const fit = budgetedDemTiles(levels, levels[3], visible, budget);
   assert.equal(fit.level.id, 2, '16 fully decoded three-plane tiles cannot fit 96MiB');
-  assert.equal(fit.specs.length, 8);
+  assert.equal(fit.specs.length, 7);
   assert.equal(fit.limited, true);
   assert.ok(fit.specs.reduce((sum, tile) =>
     sum + (tile.pixelWidth + 2) * (tile.pixelHeight + 2) * convertedBytesPerPixel, 0) <= budget);
