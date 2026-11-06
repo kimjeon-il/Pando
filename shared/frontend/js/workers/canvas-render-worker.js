@@ -1251,6 +1251,10 @@ function canvasFallbackWorkerMain() {
         if (incomingRevision < styleRevision) return;
         styleRevision = incomingRevision;
         mergeRenderState(message);
+        // An already-rendered view may have been rejected while the latest
+        // palette/quality message was queued. Paint the accepted style, even
+        // if no camera movement follows; coalesce with resource notifications.
+        scheduleHydroRender();
       } else if (message.type === 'physical-style') {
         const incomingRevision = Number(message.physicalStyleRevision || 0);
         if (incomingRevision < physicalStyleRevision) return;
@@ -1258,6 +1262,7 @@ function canvasFallbackWorkerMain() {
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
         mergeRenderState(message);
         pumpTerrainFetchQueue();
+        scheduleHydroRender();
       } else if (message.type === 'view' || message.type === 'render') {
         try {
           const incomingRevision = Number(message.viewRevision || message.revision || 0);

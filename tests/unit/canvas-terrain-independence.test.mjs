@@ -479,3 +479,21 @@ test('P7 Canvas resource redraws coalesce and an explicit newer view cancels the
   assert.ok(h.messages.filter(message=>message.bitmap).length>afterStale,
     'the coalesced resource redraw remains executable after stale view rejection');
 });
+
+
+test('P7 accepted Canvas style and physical-style messages redraw the current Worker view', async()=>{
+  const timers=[],setTimeout=(fn,ms)=>{const ticket={fn,ms,cancelled:false};timers.push(ticket);return timers.length;};
+  const clearTimeout=id=>{timers[id-1].cancelled=true;};
+  const h=canvasTerrainRuntime({timerPorts:{setTimeout,clearTimeout}});await settle();h.render();
+  const old=h.messages.filter(row=>row.type==='frame').length;
+  h.send({type:'style',styleRevision:2});
+  h.send({type:'physical-style',physicalStyleRevision:2,terrainFetchConcurrency:2});
+  assert.equal(timers.length,1,'two accepted updates coalesce into one redraw');
+  assert.equal(timers[0].ms,16,'resource repaint yields once to the browser message loop');
+  timers[0].fn();
+  const frames=h.messages.filter(row=>row.type==='frame');
+  assert.equal(frames.length,old+1,'accepted current style produces an actual bitmap');
+  assert.equal(frames.at(-1).styleRevision,2);
+  h.send({type:'style',styleRevision:1});
+  assert.equal(timers.length,1,'obsolete style updates cannot rewind the presented frame');
+});
