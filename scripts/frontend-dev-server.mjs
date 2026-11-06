@@ -10,8 +10,9 @@ import {prepareLibraryData,libraryMaterializedRoot,libraryRuntimeLeasePath} from
 import {prepareLibraryWhenAvailable} from './lib/library-preparation-wait.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-export const developmentOrigin='http://127.0.0.1:4175';
+export const developmentOrigin='http://127.0.0.1:4173';
 export async function developmentAssets({repository,product,prepared,snapshot}){
+ if(product!=='viewer')throw Error('Only Viewer development assets are supported');
  snapshot??=await buildFrontendSnapshot({root:repository});const assets=new Map();
  for(const path of snapshot.viewerPaths){
   if(snapshot.assets.has(path)){assets.set(path,{bytes:snapshot.assets.get(path).bytes});continue;}
@@ -23,7 +24,7 @@ export async function developmentAssets({repository,product,prepared,snapshot}){
  return{assets,evidence:{sourceCommit:snapshot.sourceCommit,frontendInputSha256:snapshot.sourceSha256,dataCommit:prepared.revision,product}};
 }
 export async function startDevelopmentServer({repository=root,product='viewer',port=4173,profile='map-data',observe=true,prepareLibrary=prepareLibraryData,buildAssets=developmentAssets}={}){
- repository=resolve(repository);if(product!=='viewer')throw Error('Only the Viewer frontend is supported');
+ repository=resolve(repository);if(product!=='viewer')throw Error('Only the Viewer development server is supported');
  if(profile!=='map-data')throw Error('A development frontend cannot use verification fixtures');
  let preparedPin=null,prepared,current,revision=0,error=null,pending=null,dirty=false,timer;
  const watchers=[],lease=libraryRuntimeLeasePath(repository,product);

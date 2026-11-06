@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
@@ -67,6 +67,12 @@ test('remote-only branch has no Windows GUI build job or Tauri CLI dependency',(
   assert.equal(Object.hasOwn(scripts,'dev:windows'),false);
   assert.equal(Object.hasOwn(scripts,'build:windows'),false);
   assert.equal(Object.hasOwn(scripts,'dev:editor'),false);
+  const server=read('scripts/frontend-dev-server.mjs');
+  assert.doesNotMatch(server,/src-tauri|product==='editor'|--product=viewer\\|editor/);
+  for(const file of ['apps/editor/src-tauri/tauri.conf.json',
+    'apps/editor/src-tauri/icons/icon.ico','apps/editor/src-tauri/icons/icon.png',
+    'apps/editor/tests/preflight.mjs'])
+    assert.equal(existsSync(resolve(root,file)),false,'Retired native shell file: '+file);
 });
 
 test('native prerequisite preparation is rejected outside Actions on the new branch',()=>{

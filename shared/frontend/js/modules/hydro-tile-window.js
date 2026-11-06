@@ -36,27 +36,44 @@ function activeHydroStages(manifest, threshold) {
     }));
 }
 
+// Enumerate only longitude cells that could overlap the requested window.
+// Guard candidates by one cell for floating-point boundary parity, then apply
+// the original wrapped-distance predicate in ascending source-column order.
 function longitudeIndices(columns, centerLongitude, halfLongitude) {
   if (halfLongitude >= 180 - 1e-9) return Array.from({ length: columns }, (_, index) => index);
   const tileLongitude = 360 / columns;
   const center = normalizeLongitude(centerLongitude);
+  const limit = halfLongitude + tileLongitude / 2 + 1e-9;
+  if (limit >= 180) return Array.from({ length: columns }, (_, index) => index);
   const indices = [];
-  for (let x = 0; x < columns; x += 1) {
-    const tileCenter = -180 + (x + 0.5) * tileLongitude;
-    const delta = Math.abs(normalizeLongitude(tileCenter - center));
-    if (delta <= halfLongitude + tileLongitude / 2 + 1e-9) indices.push(x);
+  let previous = -1;
+  for (let wrap = -1; wrap <= 1; wrap += 1) {
+    const shifted = center + wrap * 360;
+    const start = Math.max(0, Math.ceil((shifted - limit + 180) / tileLongitude - 0.5) - 1);
+    const end = Math.min(columns - 1, Math.floor((shifted + limit + 180) / tileLongitude - 0.5) + 1);
+    for (let x = start; x <= end; x += 1) {
+      if (x <= previous) continue;
+      previous = x;
+      const tileCenter = -180 + (x + 0.5) * tileLongitude;
+      if (Math.abs(normalizeLongitude(tileCenter - center)) <= limit) indices.push(x);
+    }
   }
   return indices;
 }
 
+// As with longitude, preserve the original inclusion test but avoid scanning
+// rows that cannot intersect the latitude window.
 function latitudeRange(rows, centerLatitude, halfLatitude) {
   const tileLatitude = 180 / rows;
   const center = clamp(finiteNumber(centerLatitude), -90, 90);
+  const limit = halfLatitude + tileLatitude / 2 + 1e-9;
+  const candidateStart = Math.max(0, Math.ceil((90 - center - limit) / tileLatitude - 0.5) - 1);
+  const candidateEnd = Math.min(rows - 1, Math.floor((90 - center + limit) / tileLatitude - 0.5) + 1);
   let start = rows;
   let end = -1;
-  for (let y = 0; y < rows; y += 1) {
+  for (let y = candidateStart; y <= candidateEnd; y += 1) {
     const tileCenter = 90 - (y + 0.5) * tileLatitude;
-    if (Math.abs(tileCenter - center) <= halfLatitude + tileLatitude / 2 + 1e-9) {
+    if (Math.abs(tileCenter - center) <= limit) {
       start = Math.min(start, y);
       end = Math.max(end, y);
     }
