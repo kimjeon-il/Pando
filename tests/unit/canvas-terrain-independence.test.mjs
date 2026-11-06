@@ -469,4 +469,13 @@ test('P7 Canvas resource redraws coalesce and an explicit newer view cancels the
   assert.equal(timers[0].cancelled,true,'explicit view cancels the delayed duplicate redraw');
   assert.equal(h.messages.filter(message=>message.type==='frame').length,original+1,
     'a current view still renders exactly once and is never skipped');
+  h.send({type:'hydro-edits',revision:9,features:[]});
+  assert.equal(timers.length,2);
+  h.send({type:'view',projectGeneration:1,revision:1,viewRevision:1,renderRequestId:99});
+  assert.equal(timers[1].cancelled,false,
+    'a rejected old camera event cannot cancel the current resource repaint');
+  const afterStale=h.messages.filter(message=>message.bitmap).length;
+  timers[1].fn();
+  assert.ok(h.messages.filter(message=>message.bitmap).length>afterStale,
+    'the coalesced resource redraw remains executable after stale view rejection');
 });

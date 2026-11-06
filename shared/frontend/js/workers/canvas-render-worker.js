@@ -1260,15 +1260,15 @@ function canvasFallbackWorkerMain() {
         pumpTerrainFetchQueue();
       } else if (message.type === 'view' || message.type === 'render') {
         try {
-          // The explicit view already contains every admitted resource. Drop
-          // the redundant delayed background paint, not the newer view.
-          if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
           const incomingRevision = Number(message.viewRevision || message.revision || 0);
           if (incomingRevision < viewRevision) {
             self.postMessage({ type: 'frame', renderRequestId: message.renderRequestId,
               projectGeneration: Number(message.projectGeneration || 0) });
             return;
           }
+          // Only an accepted current view supersedes the delayed background
+          // paint; a stale message must leave that pending resource refresh.
+          if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
           viewRevision = incomingRevision;
           pumpTerrainFetchQueue();
           render(mergeRenderState(message), message.renderRequestId);
