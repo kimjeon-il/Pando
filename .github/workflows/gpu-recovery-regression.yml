@@ -15,6 +15,8 @@ on:
       - tests/unit/gpu-scene-presentation-ownership.test.mjs
       - shared/frontend/js/modules/gpu-context-recovery.js
       - tests/unit/gpu-shared-pass-initialization.test.mjs
+      - tests/helpers/gpu-recovery-source-harness.mjs
+      - tests/helpers/gpu-recovery-viewer-presentation.test.mjs
   workflow_dispatch:
 permissions:
   contents: read
