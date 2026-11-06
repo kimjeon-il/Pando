@@ -150,6 +150,12 @@ export function createMapRenderCoordinator({
     if (isPresentationBlocked()) {
       deferredPresentationMask |= expandedMask(dirtyMask);
       renderers.preservedFrame?.();
+      // An initial Canvas physical-only frame can be prepared without
+      // publishing any country, label or selection from the blocked project.
+      if (renderers.canRenderBlockedBackground?.()) {
+        renderRevision += 1;
+        renderers.blockedBackground?.(prepareView({ frameId: renderRevision }));
+      }
       return { deferred: true, renderRevision };
     }
     const requestedMask = dirtyMask;
