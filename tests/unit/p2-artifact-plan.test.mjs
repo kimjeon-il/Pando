@@ -140,6 +140,8 @@ async function publishFixture(f,stageDir='build-native/p2/initial') {
 }
 
 const integrationPresentationChanges=[
+  'shared/frontend/js/modules/gpu-canvas-scene-packets.js',
+  'shared/frontend/js/modules/map-renderer-composition.js',
   'shared/frontend/js/modules/country-mesh-zoom-policy.js',
   'shared/frontend/js/workers/canvas-render-worker.js',
   'shared/frontend/js/modules/map-input-presentation.js',

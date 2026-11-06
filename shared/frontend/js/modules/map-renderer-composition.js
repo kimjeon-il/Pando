@@ -40,6 +40,7 @@ export function createMapRenderer(dependencies, { presentMapPreparation, onMapPr
       hydroFeatureById: dependencies.hydroModel.hydroFeatureById,
       hydroVisibilityThreshold: dependencies.physicalResources.hydroVisibilityThreshold,
       getPhysicalContextState: () => dependencies.physicalResources.physicalContextState,
+      getPhysicalLand: () => dependencies.physicalResources.physicalLand,
       isCountryVisibleById: dependencies.builtinCountries.isRenderCountryVisible,
       renderCountryFeatures: () => dependencies.countries.builtinTerritorialScene().collection.features,
       renderCountryBoundaryFeatures: () => dependencies.countries.builtinTerritorialScene().boundaryCollection.features,

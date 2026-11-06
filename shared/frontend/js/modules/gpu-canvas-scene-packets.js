@@ -17,6 +17,56 @@ export function createCanvasScenePackets() {
     return result;
   }
 
+  // A Canvas path requires rings, not triangulated GPU meshes. Keep the
+  // canonical physical land/water geometry in its existing resource owner and
+  // pack only their original coordinates once per geometry object. This allows
+  // the Worker to paint a certified physical mask while the optional GPU mesh
+  // remains under preparation.
+  const physicalGeometryCache = new WeakMap();
+  function physicalGeometryPacket(geometry) {
+    if (!geometry || (geometry.type !== 'MultiPolygon' && geometry.type !== 'Polygon')) return null;
+    let cached = physicalGeometryCache.get(geometry);
+    if (cached) return cached;
+    const coordinates = [], ringOffsets = [0], polygonOffsets = [0];
+    const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+    for (const polygon of polygons) {
+      for (const ring of polygon) {
+        if (!Array.isArray(ring) || ring.length < 4) throw new TypeError('Canvas physical rings must have four points.');
+        for (const point of ring) {
+          if (!Array.isArray(point) || !Number.isFinite(point[0]) || !Number.isFinite(point[1]))
+            throw new TypeError('Canvas physical rings contain nonfinite coordinates.');
+          coordinates.push(point[0], point[1]);
+        }
+        ringOffsets.push(coordinates.length / 2);
+      }
+      polygonOffsets.push(ringOffsets.length - 1);
+    }
+    cached = Object.freeze({
+      ringCoordinates: Float64Array.from(coordinates),
+      ringOffsets: Uint32Array.from(ringOffsets),
+      polygonOffsets: Uint32Array.from(polygonOffsets),
+    });
+    physicalGeometryCache.set(geometry, cached);
+    return cached;
+  }
+  function physicalPolygons(context) {
+    if (!context?.geometry || !context.revision) return [];
+    const packets = [
+      { key: 'physical-land', role: 'physical-land', geometry: context.geometry,
+        revision: context.revision, order: -20000 },
+    ];
+    if (context.water && context.waterRevision) packets.push({
+      key: 'physical-water', role: 'physical-water', geometry: context.water,
+      revision: context.waterRevision, order: -19000,
+    });
+    return packets.map(({key,role,geometry,revision,order}) => ({
+      ...physicalGeometryPacket(geometry),
+      key, role, geometryRevision: revision,
+      sourceKey: 'canvas-physical:'+key+':'+revision,
+      order, style: {color:'#ffffff',fillAlpha:1}, blendMode:'normal',
+    }));
+  }
+
   function scenePolygons(polygons) {
     return polygons.filter(packet => packet.ringCoordinates).map(packet => ({
       key: packet.key, sourceKey: packet.sourceKey, ringCoordinates: packet.ringCoordinates,
@@ -41,6 +91,6 @@ export function createCanvasScenePackets() {
         ownerIds: outlineOverrides.ownerIds, internalOwners: outlineOverrides.internalOwners } };
   }
 
-  return Object.freeze({ delta, scenePolygons, sceneStrokes, countryBoundary,
+  return Object.freeze({ delta, scenePolygons, physicalPolygons, sceneStrokes, countryBoundary,
     clear: () => sentGeometry.clear() });
 }

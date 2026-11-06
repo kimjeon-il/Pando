@@ -55,8 +55,8 @@ test('Canvas acceptance rejects stale frame identity before transport acknowledg
   const end=source.indexOf('          canvasWorker = createGpuCanvasWorker(',start);
   assert.ok(start>=0&&end>start,'canonical Canvas frame predicate is required');
   const accepted=source.slice(start,end);
-  for(const marker of ['message.frameId','lastVisualFrame?.frameId','message.presentationKey',
-    'mapTargetKey(lastVisualFrame','message.geometryRevision','geometryRevisionTracker.committedRevision()',
+  for(const marker of ['message.presentationKey',
+    'currentCanvasPresentationKey(lastVisualFrame)','message.geometryRevision','geometryRevisionTracker.committedRevision()',
     'message.styleRevision','canvasStyleRevision','message.surfaceQuality',
     'canvasWorkerFrameMatchesPhysical'])
     assert.ok(accepted.includes(marker),'Canvas transport must reject mismatched '+marker);
@@ -78,13 +78,14 @@ test('Canvas rejection reasons classify stale style, physical scene and source i
   let style=3,geom=7,quality='canonical',physical=true;
   const initial={frameId:4,presentationKey:'current',geometryRevision:7,
     styleRevision:3,surfaceQuality:'canonical'};
-  const factory=new Function('lastVisualFrame','mapTargetKey','geometryRevisionTracker',
+  const factory=new Function('lastVisualFrame','currentCanvasPresentationKey','geometryRevisionTracker',
     'canvasStyleRevision','surfacePresentation','canvasWorkerFrameMatchesPhysical','getPhysicalContextState',
     source.slice(begin,end)+';return canvasFrameRejectionReason;');
   const make=()=>factory(map,()=> 'current',{committedRevision:()=>geom},style,
     {quality},()=>physical,()=>({}));
   assert.equal(make()(initial),'');
-  assert.equal(make()({...initial,frameId:3}),'frame');
+  assert.equal(make()({...initial,frameId:3}),'',
+    'a scheduling-only frameId must not discard an identical physical picture');
   assert.equal(make()({...initial,presentationKey:'old'}),'presentation');
   assert.equal(make()({...initial,geometryRevision:4}),'geometry');
   style=4;assert.equal(make()(initial),'style');style=3;
