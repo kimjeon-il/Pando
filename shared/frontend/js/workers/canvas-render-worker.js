@@ -485,7 +485,14 @@ function canvasFallbackWorkerMain() {
       context.closePath();
       context.clip();
       context.setTransform(dpr * transform[0], dpr * transform[1], dpr * transform[2], dpr * transform[3], dpr * transform[4], dpr * transform[5]);
-      context.drawImage(image, 0, 0);
+      // Drawing a full 1026px texture once per tiny globe triangle stalls
+      // the software Canvas and starves asynchronous DEM decoding. The same
+      // affine map applies to this tight source rectangle, with sampling bleed.
+      const xs = sourcePoints.map(point => point[0]), ys = sourcePoints.map(point => point[1]);
+      const x0 = Math.max(0, Math.floor(Math.min(...xs)) - 4);
+      const y0 = Math.max(0, Math.floor(Math.min(...ys)) - 4);
+      const x1 = Math.ceil(Math.max(...xs)) + 4, y1 = Math.ceil(Math.max(...ys)) + 4;
+      context.drawImage(image, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
       context.restore();
     }
 

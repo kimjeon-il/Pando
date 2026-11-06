@@ -231,6 +231,12 @@ test('Canvas terrain skips wholly offscreen triangles while keeping crossing and
   h.drawTriangle([[-100, 300], [1100, 300], [500, -100]]);
   h.drawTriangle([[-.5, 0], [-.2, 10], [-.5, 20]]);
   assert.equal(h.triangleCopies.length, 3, 'viewport crossings and the existing 0.75px clip overlap remain visible');
+  const cropped = h.triangleCopies.at(-1);
+  assert.equal(cropped.length, 9, 'each globe triangle copies only its source rectangle');
+  assert.ok(cropped[3] <= 10 && cropped[4] <= 10,
+    'the triangle cannot redraw a full terrain tile beneath its clip');
+  assert.equal(cropped[1], cropped[5]);
+  assert.equal(cropped[2], cropped[6]);
 });
 
 test('Canvas reuses immutable terrain images for repeated projection', async () => {
