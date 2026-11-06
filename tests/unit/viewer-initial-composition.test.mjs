@@ -12,7 +12,7 @@ const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composi
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const noop = () => {};
 function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
-  const nodes = new Map(), ports = {previewFinishes: 0,previewCancels: 0}, errors = [];
+  const nodes = new Map(), ports = {previewFinishes: 0,previewCancels: 0,mapUpdates:0,mapPublicationWaits:[]}, errors = [];
   const get = id => {
     if (!nodes.has(id)) nodes.set(id, {dataset: {}, hidden: false, textContent: '', addEventListener: noop, appendChild: noop, setAttribute(name, value) { this[name] = value; }});
     return nodes.get(id);
@@ -32,7 +32,8 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
         await reader();
         if (failNext) { failNext = false; throw new Error('source unavailable'); }
         generation++;
-        if (autoReady) ports.map.onMapPreparationStatus({status: 'ready', label: '준비됨'}, generation);
+        await ports.map.update();
+        if (autoReady) ports.map.onMapPreparationStatus({status: 'ready',mapReady:true,label: '준비됨'}, generation);
         if (options?.presentation === 'temporal') options.onPresented();
         return true;
       } finally { opening = false; }
@@ -41,7 +42,8 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
   const map = {finishInitialPreview: () => { ports.previewFinishes++; }, cancelInitialReveal: () => { ports.previewCancels++; }, viewState: {}, objectPresentation: {}, objectQuery: {},
     objectCatalog: {invalidateObjectPresentation: noop, pruneLayerItemVisibility: async () => {}},
     navigation: {}, capturePresentation: () => ({}), loadPhysicalResources: noop,
-    loadPhysicalLandMask: async () => {}, update: async () => {},
+    loadPhysicalLandMask: async () => {}, update: async () => {ports.mapUpdates++;},
+    renderer:{waitForMapPresentation:async generation=>{ports.mapPublicationWaits.push(generation);return true;}},
     prepareBuiltinProject: async () => ({}), refreshAppearance: noop};
   const context = {presentViewerLoadStatus, document, window, URL, URLSearchParams, structuredClone, console,
     createViewerPostPresentation,
@@ -89,7 +91,7 @@ function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
   runInNewContext(source, context);
   const started = context.composeViewer({productMode: 'viewer', meta: {appVersion: 'test'}});
   return {started, get, ports, errors, debug: () => context.__PANDOLAB_VIEWER__,
-    publish: status => ports.map.onMapPreparationStatus({status, label: status}, generation),
+    publish: status => ports.map.onMapPreparationStatus({status,mapReady:status==='ready'||status==='limited',label: status}, generation),
     failNext: () => { failNext = true; }};
 }
 
@@ -121,6 +123,16 @@ test('completed loading without a ready renderer frame remains initial', async (
   assert.equal(run.ports.map.isInitialPresentation(), true);
   run.publish('loading'); assert.equal(run.debug().initialMapPresented(), false);
   run.publish('ready'); assert.equal(run.debug().initialMapPresented(), true);
+});
+
+test('each accepted file/date opens one scene and waits once for its committed generation',async()=>{
+  const run=fixture();await run.started;
+  assert.equal(run.ports.mapUpdates,1,'startup has exactly one scene build');
+  assert.deepEqual(run.ports.mapPublicationWaits,[1]);
+  await run.ports.timeline.setMonth('2025-12');
+  assert.equal(run.ports.mapUpdates,2,'date replacement must not rebuild the same scene twice');
+  assert.deepEqual(run.ports.mapPublicationWaits,[1,2]);
+  assert.equal(run.get('viewerStatus').dataset.ready,'true');
 });
 
 test('normal year change and later source failure never restore initial mode', async () => {

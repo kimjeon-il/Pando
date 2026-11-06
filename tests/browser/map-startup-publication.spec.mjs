@@ -28,6 +28,7 @@ test('Web publishes sharp ocean and land before countries, then reuses prepared 
     }, { timeout: 30000 }).toBe(true);
     const early = await stats();
     expect(early.surfacePresentation.quality).toBe('canonical');
+    expect(early.mapReadiness.mapReady).toBe(true);
     expect(early.terrainReady).toBe(false);
     expect(early.mapReadiness.status).not.toBe('ready');
     release();

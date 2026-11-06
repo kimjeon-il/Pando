@@ -58,6 +58,9 @@ for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1
     await activate('timelinePreviousYear');await ready(page,'2025-12');
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
     await activate('timelineNextYear');await ready(page,'2026-10');
+    const returned=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+    expect(returned.mapReadiness.mapReady).toBe(true);
+    expect(returned.countriesPublishedGeneration).toBe(returned.projectGeneration);
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
     await expect(page.locator('#viewerInitialPreview')).toBeHidden();
     await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false');
@@ -116,6 +119,7 @@ test('Canvas user-file opening retains full document admission after a builtin d
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset),
     {timeout:60000}).toBe(fixture.project.baseDataset);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.mapReady)).toBe(true);
   const loaded=await page.evaluate(()=>({id:window.__PANDOLAB_VIEWER__.documentSnapshot().documentId,
     packet:window.__temporalPackets.at(-1)}));
   expect(loaded.id).not.toBe(previous);
