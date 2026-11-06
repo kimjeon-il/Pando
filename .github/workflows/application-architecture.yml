@@ -25,6 +25,7 @@ on:
   push:
     branches:
       - main
+      - work/optimization
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name != 'workflow_dispatch' &&
     github.run_attempt == 1 && format('{0}-{1}', github.event_name,

@@ -1,7 +1,7 @@
 name: Viewer GPU backend cross-check (actual driver verified)
 on:
   push:
-    branches: [work/ui]
+    branches: [work/ui, work/optimization]
     paths:
       - .github/workflows/viewer-gpu-backend-cross.yml
       - tests/browser/viewer-gpu-backend-cross.spec.mjs
