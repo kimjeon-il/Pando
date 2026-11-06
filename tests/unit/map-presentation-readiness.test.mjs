@@ -83,7 +83,8 @@ test('accepted map and physical background keys are independent of optional DEM 
   context.renderScene.polygons[0].sourceKey='land:5';
   assert.notEqual(backgroundKey(frame),background,'a new physical source still requires a new background');
   context.physicalStyleStateRevision=2;
-  assert.notEqual(mapKey(frame),first,'a changed physical style invalidates the map');
+  const styledMapKey=new Function(...params,source.slice(start,middle)+';return mapTargetKey;')(...Object.values(context));
+  assert.notEqual(styledMapKey(frame),first,'a changed physical style invalidates the map');
 });
 
 test('a real background presentation key cannot certify an unpresented canonical country surface',()=>{
