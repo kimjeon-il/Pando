@@ -376,3 +376,25 @@ test('pick failures reject their own request and keep the Canvas worker alive', 
   assert.equal(prevented, true);
   channel.terminate();
 });
+
+
+test('rejected unsolicited Canvas paint reports staleness without acknowledging obsolete pixels',()=>{
+  const sent=[],stale=[],accepted=[];
+  const worker={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({worker,generation:3,
+    acceptFrame:message=>message.frameId===9&&message.styleRevision===4,
+    onStale:message=>stale.push(message)});
+  channel.onmessage=event=>{if(event.data.type==='frame')accepted.push(event.data);};
+  worker.onmessage({data:{type:'ready'}});
+  channel.queueFrame({type:'view',projectGeneration:3,revision:5,frameId:9});
+  let closed=0;
+  worker.onmessage({data:{type:'frame',renderRequestId:null,projectGeneration:3,
+    revision:5,frameId:9,styleRevision:3,bitmap:{close:()=>closed++}}});
+  assert.equal(closed,1,'obsolete unsolicited bitmap must be released');
+  assert.equal(stale.length,1,'current presentation owner receives unsolicited stale frame');
+  assert.deepEqual(accepted,[],'no readiness acknowledgment for an old style');
+  worker.onmessage({data:{type:'frame',renderRequestId:sent[0].renderRequestId,
+    projectGeneration:3,revision:5,frameId:9,styleRevision:4,bitmap:{}}});
+  assert.equal(accepted.length,1,'current accepted bitmap can still be presented');
+  channel.terminate();
+});

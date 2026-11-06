@@ -47,3 +47,23 @@ test('Canvas Worker submits the latest view when a drag finishes',()=>{
   const h=create();h.move({id:0});h.begin();h.move({id:1});h.move({id:2});h.finish();
   assert.deepEqual(h.sent.map(frame=>frame.id),[0,2]);
 });
+
+
+test('Canvas acceptance rejects stale frame identity before transport acknowledges it',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('            acceptFrame: message =>');
+  const end=source.indexOf('            onStale: message =>',start);
+  assert.ok(start>=0&&end>start,'canonical Canvas acceptance port is required');
+  const accepted=source.slice(start,end);
+  for(const marker of ['message.frameId','lastVisualFrame?.frameId','message.presentationKey',
+    'mapTargetKey(lastVisualFrame','message.geometryRevision','geometryRevisionTracker.committedRevision()',
+    'message.styleRevision','canvasStyleRevision','message.surfaceQuality',
+    'canvasWorkerFrameMatchesPhysical'])
+    assert.ok(accepted.includes(marker),'Canvas transport must reject mismatched '+marker);
+  const retry=source.slice(end,source.indexOf('\n          });',end));
+  assert.ok(!retry.includes("message.renderRequestId == null\n"),
+    'spontaneous resource frames must not be silently ignored');
+  assert.ok(retry.includes('canvasWorker?.busy'),'in-flight current work must not be interrupted');
+  assert.ok(retry.includes('canvasWorkerResubmitAttempts > 4'),'retries remain bounded');
+  assert.ok(retry.includes('renderCanvasWorker(lastVisualFrame)'),'only current work is resubmitted');
+});
