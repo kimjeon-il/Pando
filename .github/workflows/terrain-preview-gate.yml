@@ -2,13 +2,17 @@ name: DEM Terrain Preview Gate
 
 on:
   push:
-    branches: [main, work/gis]
+    branches: [main, work/gis, work/optimization]
     paths:
       - 'assets/data/terrain-preview/**'
       - 'assets/js/**terrain**'
       - 'assets/js/modules/gpu-map-renderer.js'
       - 'tools/*terrain-preview*'
       - 'tests/**/terrain-preview*'
+      - 'shared/frontend/js/workers/canvas-render-worker.js'
+      - 'shared/frontend/js/workers/canvas-terrain-dem-core.js'
+      - 'tests/unit/canvas-terrain-dem-core.test.mjs'
+      - 'tests/unit/canvas-terrain-independence.test.mjs'
       - '.github/workflows/terrain-preview-gate.yml'
   pull_request:
     paths:
@@ -16,6 +20,10 @@ on:
       - 'assets/js/**terrain**'
       - 'tools/*terrain-preview*'
       - 'tests/**/terrain-preview*'
+      - 'shared/frontend/js/workers/canvas-render-worker.js'
+      - 'shared/frontend/js/workers/canvas-terrain-dem-core.js'
+      - 'tests/unit/canvas-terrain-dem-core.test.mjs'
+      - 'tests/unit/canvas-terrain-independence.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -51,6 +59,7 @@ jobs:
           node tools/check-terrain-preview.mjs --out terrain-preview-evidence.json
           node --test tests/unit/terrain-preview-native.test.mjs tests/unit/terrain-preview-sources.test.mjs tests/unit/terrain-preview-grid.test.mjs tests/unit/terrain-preview-builder.test.mjs tests/unit/terrain-preview-cli.test.mjs
           node --test tests/unit/terrain-preview-audit.test.mjs tests/unit/terrain-manifest.test.mjs tests/unit/canvas-terrain-dem-core.test.mjs tests/unit/physical-layer-service.test.mjs
+          node --test tests/unit/canvas-terrain-independence.test.mjs tests/unit/gpu-canvas-worker.test.mjs tests/unit/gpu-scene-worker-presentation.test.mjs
       - name: Check actual WebGL and Canvas display paths with fixed terrain responses
         run: |
           pnpm install --frozen-lockfile
