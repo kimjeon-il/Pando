@@ -32,7 +32,7 @@ test('Canvas chooses software backing only when hardware acceleration is unavail
   assert.equal(evaluate(class {getContext(){throw Error('unavailable');}}),true);
 });
 
-function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
+function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () => 1 } = {}) {
   const messages = [], requests = [], drawn = [], paths = [], substrates = [], triangleCopies = [];
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; this.ctx = null; }
@@ -98,7 +98,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
         const oldDraw = drawTexturedTriangle, oldManifest = terrainManifest, triangles = [];
         terrainManifest = { gutter: 0 };
         drawTexturedTriangle = (_image, source, destination) => triangles.push({ source, destination });
-        try { drawGlobeTerrainTile(spec, {}, projection, message, 1, false); return triangles; }
+        try { for (const _ of drawGlobeTerrainTile(spec, {}, projection, message, 1, false)) {} return triangles; }
         finally { drawTexturedTriangle = oldDraw; terrainManifest = oldManifest; }
       };
       self.currentRenderState = () => lastRenderMessage;
@@ -111,7 +111,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
       self.onmessage = event => {`))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
-    { now: () => 1 }, timerPorts?.setTimeout || (() => 0), timerPorts?.clearTimeout || (() => {}));
+    { now }, timerPorts?.setTimeout || (() => 0), timerPorts?.clearTimeout || (() => {}));
   const country = (id, east = 1) => ({ id, type: 'Feature', properties: {},
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
   const features = [country('VISIBLE'), country('HIDDEN')];
@@ -183,6 +183,39 @@ test('Canvas prepares raster tiles without tessellating an uncertified zero-land
   h.render({...noLand,scenePolygons:[h.land]});
   assert.equal(h.messages.filter(message=>message.type==='frame').at(-1).physicalLandCount,1,
     'a later physical scene restores the actual rendering path');
+});
+
+test('cooperative globe painting yields, cancels superseded views and publishes only the latest complete bitmap', async () => {
+  const timers = [];
+  const setTimeout = (fn, ms) => { const task = { fn, ms, cancelled:false }; timers.push(task); return timers.length; };
+  const clearTimeout = id => { if (timers[id - 1]) timers[id - 1].cancelled = true; };
+  let clock = 0;
+  const h = canvasTerrainRuntime({ timerPorts:{setTimeout,clearTimeout},now:() => clock += 15 });
+  await settle();
+  h.render({ terrainDpr:1, renderProjection:{scale:100,translate:[500,300]} });
+  await h.deliver(h.find('/0/0-0.webp'));
+  const globe = { projection:'globe', terrainDpr:1,
+    view:{globeZoom:1,globeRotation:[0,0,0]},
+    renderProjection:{scale:100,translate:[500,300]} };
+  const prior = h.messages.filter(message => message.bitmap).length;
+  h.render({ ...globe,revision:2,viewRevision:2,renderRequestId:10 });
+  assert.equal(h.messages.filter(message => message.bitmap).length,prior,
+    'a yielded partial globe cannot be transferred');
+  assert.ok(timers.some(timer => timer.ms === 0 && !timer.cancelled));
+  h.render({ ...globe,revision:3,viewRevision:3,renderRequestId:11,
+    view:{globeZoom:1,globeRotation:[20,0,0]} });
+  const cancelled = h.messages.find(message => message.type === 'frame' && message.renderRequestId === 10);
+  assert.ok(cancelled && !cancelled.bitmap, 'old render request must be released without stale pixels');
+  for (let count = 0;count < 800;count++) {
+    const task = timers.find(timer => !timer.cancelled && !timer.ran);
+    if (!task) break;
+    task.ran = true;
+    task.fn();
+    if (h.messages.some(message => message.renderRequestId === 11 && message.bitmap)) break;
+  }
+  assert.ok(h.messages.some(message => message.renderRequestId === 11 && message.bitmap),
+    'only the current view completes after cooperative paint slices');
+  assert.equal(h.messages.filter(message => message.renderRequestId === 10 && message.bitmap).length,0);
 });
 
 test('Canvas globe terrain reuses shared grid vertices while preserving exact triangles', () => {

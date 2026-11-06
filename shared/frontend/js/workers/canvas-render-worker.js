@@ -520,7 +520,7 @@ function canvasFallbackWorkerMain() {
       }
     }
 
-    function drawGlobeTerrainTile(spec, image, projection, message, dpr, isBase) {
+    function* drawGlobeTerrainTile(spec, image, projection, message, dpr, isBase) {
       const gutter = Number(terrainManifest.gutter || 0);
       const [west, north, east, south] = spec.bounds;
       const zoom = Math.max(1, Number(message.view?.globeZoom || 1));
@@ -560,6 +560,9 @@ function canvasFallbackWorkerMain() {
           if (visible[1] && visible[3] && visible[2]) drawTexturedTriangle(image, [source[1], source[3], source[2]], [destination[1], destination[3], destination[2]], dpr);
         }
         upper = lower;
+        // Cooperate with network/Worker messages between rows. No partial bitmap
+        // is published; the owning frame resumes or is cancelled as a whole.
+        yield;
       }
     }
 
@@ -646,7 +649,7 @@ function canvasFallbackWorkerMain() {
       scheduleTerrainDemand(terrainRenderPlan(message, projection, width, height, dpr));
     }
 
-    function renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
+    function* renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
       if (!plan) return true;
       const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, drawSpecs } = plan;
       // The main-thread physical certificate necessarily rejects a bitmap
@@ -681,22 +684,22 @@ function canvasFallbackWorkerMain() {
         for (const geometry of self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || [])) landPath(geometry);
         context.clip();
       };
-      const drawRaster = () => {
+      const drawRaster = function* () {
         for (const spec of drawSpecs) {
           const tile = terrainTiles.get(spec.key);
           if (!tile) continue;
           tile.lastUsed = performance.now();
           if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[style], projection, dpr);
-          else drawGlobeTerrainTile(spec, tile[style], projection, message, dpr, spec.level === baseLevel.id);
+          else yield* drawGlobeTerrainTile(spec, tile[style], projection, message, dpr, spec.level === baseLevel.id);
         }
       };
-      const drawDem = channel => {
+      const drawDem = function* (channel) {
         for (const spec of demSpecs) {
           const tile = demTiles.get(spec.key);
           if (!tile) continue;
           tile.lastUsed = performance.now();
           if (message.projection === 'flat') drawFlatTerrainTile(spec, tile[channel], projection, dpr);
-          else drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
+          else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
         }
       };
       const completeBase = style === 'physical' && terrainComplete
@@ -709,50 +712,55 @@ function canvasFallbackWorkerMain() {
           try {
             context = base.getContext('2d', { willReadFrequently: softwareCanvas });
             context.save();
-            context.globalAlpha = 1;
-            context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
-            clipGlobe();
-            drawRaster();
-            if (demLevel) drawDem('ocean');
-            context.restore();
+            try {
+              context.globalAlpha = 1;
+              context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+              clipGlobe();
+              yield* drawRaster();
+              if (demLevel) yield* drawDem('ocean');
+            } finally { context.restore(); }
           } finally { context = target; }
           terrainBase = base;
           terrainBaseKey = baseKey;
         }
         context.save();
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        context.globalAlpha = 1;
-        context.filter = 'none';
-        context.drawImage(terrainBase, 0, 0);
-        context.restore();
+        try {
+          context.setTransform(1, 0, 0, 1, 0, 0);
+          context.globalAlpha = 1;
+          context.filter = 'none';
+          context.drawImage(terrainBase, 0, 0);
+        } finally { context.restore(); }
         if (demLevel) {
           context.save();
-          context.globalAlpha = 1;
-          context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
-          clipGlobe();
-          clipLand();
-          drawDem('land');
-          context.restore();
+          try {
+            context.globalAlpha = 1;
+            context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+            clipGlobe();
+            clipLand();
+            yield* drawDem('land');
+          } finally { context.restore(); }
         }
         return true;
       }
       context.save();
-      context.globalAlpha = 1;
-      context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
-      if (style === 'political') clipLand();
-      clipGlobe();
-      drawRaster();
-      if (demLevel) {
-        if (style === 'political') drawDem('political');
-        else {
-          drawDem('ocean');
-          context.save();
-          clipLand();
-          drawDem('land');
-          context.restore();
+      try {
+        context.globalAlpha = 1;
+        context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
+        if (style === 'political') clipLand();
+        clipGlobe();
+        yield* drawRaster();
+        if (demLevel) {
+          if (style === 'political') yield* drawDem('political');
+          else {
+            yield* drawDem('ocean');
+            context.save();
+            try {
+              clipLand();
+              yield* drawDem('land');
+            } finally { context.restore(); }
+          }
         }
-      }
-      context.restore();
+      } finally { context.restore(); }
       return terrainComplete && demSpecs.every(spec => demTiles.has(spec.key));
     }
 
@@ -962,7 +970,9 @@ function canvasFallbackWorkerMain() {
     }
 
     function scheduleHydroRender() {
-      if (!hasRenderedView || !lastRenderMessage || hydroRenderTimer) return;
+      if (!hasRenderedView || !lastRenderMessage) return;
+      if (activePaint) { repaintAfterPaint = true; return; }
+      if (hydroRenderTimer) return;
       // A hydro/terrain-adjacent update must not monopolize this worker with
       // another full globe redraw immediately before a newer camera frame.
       // Coalesce resource notifications for one animation-frame interval.
@@ -1036,7 +1046,57 @@ function canvasFallbackWorkerMain() {
         reserve ? batches.map(packet => ({ ...packet, style: { ...packet.style, alpha: 1 } })) : batches);
       target.restore();
     }
+    // One cooperative paint owns the shared Canvas and context at a time.
+    // Only a completed bitmap is publishable. Superseding views acknowledge
+    // their old submission without transferring partially painted pixels.
+    let activePaint = null, repaintAfterPaint = false;
+    function cancelActivePaint() {
+      if (!activePaint) return;
+      const old = activePaint;
+      activePaint = null;
+      if (old.timer) clearTimeout(old.timer);
+      old.iterator.return();
+      if (old.requestId != null) self.postMessage({
+        type: 'frame', renderRequestId: old.requestId, projectGeneration: old.generation,
+      });
+    }
+    function advancePaint(task) {
+      if (activePaint !== task) return;
+      task.timer = 0;
+      const now = typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? () => performance.now() : null;
+      const started = now?.() ?? 0;
+      try {
+        for (let step = task.iterator.next(); !step.done; step = task.iterator.next()) {
+          if (now && now() - started >= 12) {
+            task.timer = setTimeout(() => advancePaint(task), 0);
+            return;
+          }
+        }
+        activePaint = null;
+        if (repaintAfterPaint) {
+          repaintAfterPaint = false;
+          scheduleHydroRender();
+        }
+      } catch (error) {
+        activePaint = null;
+        self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
+      }
+    }
     function render(message, renderRequestId = null) {
+      cancelActivePaint();
+      repaintAfterPaint = false;
+      lastRenderMessage = message;
+      const task = {
+        iterator: renderSteps(message, renderRequestId),
+        requestId: renderRequestId,
+        generation: Number(message.projectGeneration ?? projectGeneration),
+        timer: 0,
+      };
+      activePaint = task;
+      advancePaint(task);
+    }
+    function* renderSteps(message, renderRequestId = null) {
       lastRenderMessage = message;
       const width = Math.max(1, Number(message.width || 1));
       const height = Math.max(1, Number(message.height || 1));
@@ -1089,7 +1149,7 @@ function canvasFallbackWorkerMain() {
         self.PandoLabCanvasSceneComposition.drawGeneralLand(context, geoPath, message.scenePolygons || []);
         context.globalAlpha = 1;
           },
-          terrain: () => {
+          terrain: function* () {
         // A temporal frame with no physical land cannot pass the main-thread
         // provenance gate. Keep the last complete substrate for the matching
         // physical scene instead of replacing it with this provisional frame.
@@ -1097,7 +1157,7 @@ function canvasFallbackWorkerMain() {
           terrainComplete = false;
           return;
         }
-        terrainComplete = renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan, substrateKey);
+        terrainComplete = yield* renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan, substrateKey);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
         const substrateContext = substrate.getContext('2d', { willReadFrequently: softwareCanvas });
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
@@ -1146,7 +1206,8 @@ function canvasFallbackWorkerMain() {
           // A provisional bitmap has no terrain yet. Reuse its substrate,
           // but never mistake that incomplete terrain for a finished paint.
           if (reuseSubstrate && (role === 'substrate' || (role === 'terrain' && substrateState?.terrainPainted))) continue;
-          if (Object.hasOwn(paint, role)) paint[role]();
+          if (role === 'terrain') yield* paint.terrain();
+          else if (Object.hasOwn(paint, role)) paint[role]();
           else if (message.visualOrder.hydro.includes(role)) renderHydroPass(message, projection, dpr, role);
         }
         const emphasis = message.countryEmphasis || {};
@@ -1236,6 +1297,7 @@ function canvasFallbackWorkerMain() {
         const nextGeneration = Number(message.projectGeneration);
         if (!Number.isSafeInteger(nextGeneration) || nextGeneration <= projectGeneration) return;
         if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
+        cancelActivePaint();
         // Country, scene and physical packets belong to the old project.
         // Terrain tile caches remain reusable across generations.
         projectGeneration = nextGeneration;
@@ -1254,6 +1316,7 @@ function canvasFallbackWorkerMain() {
       } else if (message.type === 'hydro-edits') {
         const revision = Number(message.revision || 0);
         if (revision >= hydroEditRevision) {
+          cancelActivePaint();
           hydroEditRevision = revision;
           hydroEditFeatures = message.features || [];
           scheduleHydroRender();
@@ -1270,6 +1333,7 @@ function canvasFallbackWorkerMain() {
         const incomingGeneration = Number(message.projectGeneration ?? projectGeneration);
         if (incomingGeneration < projectGeneration) return;
         if (incomingGeneration > projectGeneration) {
+          cancelActivePaint();
           hasRenderedView = false;
           geometryRevision = 0; countrySharedBoundary = null;
           hydroEditFeatures = []; hydroEditRevision = -1;
@@ -1283,6 +1347,7 @@ function canvasFallbackWorkerMain() {
           });
           return;
         }
+        cancelActivePaint();
         features = replaceCountryFeatures(message.features || []);
         if (message.fills) mergeRenderState({ fills: message.fills });
         geometryRevision = incomingGeometryRevision;
@@ -1307,6 +1372,7 @@ function canvasFallbackWorkerMain() {
           });
           return;
         }
+        cancelActivePaint();
         const updates = new Map((message.features || []).map(feature => [countryId(feature), feature]));
         const removed = new Set((message.removedIds || []).map(String));
         const seen = new Set();
@@ -1340,6 +1406,7 @@ function canvasFallbackWorkerMain() {
       } else if (message.type === 'country-shared-boundary') {
         if (Number(message.geometryRevision) !== geometryRevision
           || Number(message.projectGeneration) !== projectGeneration) return;
+        cancelActivePaint();
         countrySharedBoundary = message.packet || null;
         if (countrySharedBoundary) mergeRenderState({ hiddenSharedCountryIds: message.hiddenSharedCountryIds || [],
           countryBoundaryStyles: message.countryBoundaryStyles });
@@ -1347,6 +1414,7 @@ function canvasFallbackWorkerMain() {
       } else if (message.type === 'style') {
         const incomingRevision = Number(message.styleRevision || 0);
         if (incomingRevision < styleRevision) return;
+        cancelActivePaint();
         styleRevision = incomingRevision;
         mergeRenderState(message);
         // An already-rendered view may have been rejected while the latest
@@ -1356,6 +1424,7 @@ function canvasFallbackWorkerMain() {
       } else if (message.type === 'physical-style') {
         const incomingRevision = Number(message.physicalStyleRevision || 0);
         if (incomingRevision < physicalStyleRevision) return;
+        cancelActivePaint();
         physicalStyleRevision = incomingRevision;
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || terrainFetchConcurrency)));
         mergeRenderState(message);

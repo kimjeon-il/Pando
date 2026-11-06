@@ -146,6 +146,10 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
       host.setViewState({projection:'globe',view:{...host.getViewState(),globeZoom:1,globeRotation:[0,0,0]}});
       host.requestRepaint('pinned-dem-fixture');
     });
+    await expect.poll(() => page.evaluate(() => window.__terrainWorkerEvents.some(event =>
+      event.kind === 'terrain-ready' && event.key === 'dem-manifest')), { timeout: 45000 }).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.__terrainWorkerEvents.some(event =>
+      event.kind === 'terrain-ready' && String(event.key).startsWith('dem:'))), { timeout: 45000 }).toBe(true);
     await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainDetailTileCount || 0), { timeout: 30000 }).toBeGreaterThan(0);
     const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__);
     expect(metrics.terrainSource).toBe('dem-derived-canvas');
