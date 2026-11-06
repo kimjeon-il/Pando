@@ -168,6 +168,7 @@ const staleDataFamilyIds=['territorial','current-world','builtin-world','world-m
 const nativeValidationChanges=[
   'scripts/p2-publish-artifacts.mjs',
   '.github/workflows/generated-artifacts-p2.yml',
+  'docs/architecture/p7-ci-nonbrowser-recovery.md',
   'scripts/check-territorial-library.mjs',
   'scripts/lib/late-soviet-check.mjs',
   '.github/actions/native-test-prerequisites/action.yml',

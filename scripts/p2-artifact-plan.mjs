@@ -140,7 +140,7 @@ function validationOrPresentationOnly(changes,graph) {
     if(graph.some(f=>f.inputs.some(input=>inputMatches(input,path))||f.sources.includes(path)||
       ownsPath(f,path)||(f.externalSources||[]).some(source=>source.path===path)))return false;
     return !path.split('/').some(part=>part==='.'||part==='..')&&
-      (path.startsWith('tests/')||path.startsWith('.devcontainer/')||validationPaths.has(path));
+      (path.startsWith('tests/')||path.startsWith('docs/')||path.startsWith('.devcontainer/')||validationPaths.has(path));
   });
 }
 
