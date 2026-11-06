@@ -41,6 +41,25 @@ test('resolution limits have an explicit terminal state and low/high labels', ()
 });
 
 
+test('pending map-open resource updates reach the current visual-frame commit',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf("    function invalidateGpuFrame(reason = 'gpu-frame') {");
+  const end=source.indexOf("    function invalidateGpuInteraction(",start);
+  assert.ok(start>0&&end>start);
+  const events=[];
+  const gate=new Set();
+  const invalidate=new Function('disposed','gpuRecovery','mapPresentationWaiters','renderViewFrame',
+    'scheduleGpuFrame',source.slice(start,end)+';return invalidateGpuFrame;')(
+      false,{snapshot:()=>({active:false}),fallbackTicket:()=>null},gate,
+      reason=>events.push('visual:'+reason),reason=>events.push('gpu:'+reason));
+  invalidate('tile-ready');
+  gate.add({generation:4});
+  invalidate('scene-ready');
+  gate.clear();
+  invalidate('steady');
+  assert.deepEqual(events,['gpu:tile-ready','visual:scene-ready','gpu:steady']);
+});
+
 test('a real background presentation key cannot certify an unpresented canonical country surface',()=>{
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
   const begin=source.indexOf('    function mapTargetKey(');

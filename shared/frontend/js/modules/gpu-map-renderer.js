@@ -1025,10 +1025,9 @@ export function createGpuMapRenderer(deps) {
 
     function invalidateGpuFrame(reason = 'gpu-frame') {
       if (disposed) return;
-      // A recovery redraw must be admitted by the coordinator's actual
-      // view-presentation path. GPU_FRAME alone never calls commitVisualFrame.
-      // Keep ordinary resource uploads on the cheaper GPU-only path.
-      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket())
+      // Recovery or a pending map open requires the coordinator's actual
+      // visual-frame commit. Steady-state resource updates remain GPU-only.
+      if ((gpuRecovery.snapshot().active || gpuRecovery.fallbackTicket() || mapPresentationWaiters.size)
         && typeof renderViewFrame === 'function') return renderViewFrame(reason);
       if (typeof scheduleGpuFrame === 'function') return scheduleGpuFrame(reason);
       return renderViewFrame?.(reason);
