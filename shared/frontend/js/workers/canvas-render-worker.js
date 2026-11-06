@@ -1327,8 +1327,8 @@ function canvasFallbackWorkerMain() {
           if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
           viewRevision = incomingRevision;
           pumpTerrainFetchQueue();
-          render(mergeRenderState(message), message.renderRequestId);
           hasRenderedView = true;
+          render(mergeRenderState(message), message.renderRequestId);
         } catch (error) {
           self.postMessage({ type: 'error', message: error?.stack || error?.message || String(error) });
         }
