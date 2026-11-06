@@ -82,6 +82,13 @@ test('Canvas Worker keeps preview while DEM is delayed and replaces it with deta
     const mark = stage => `self.postMessage({type:'dem-diagnostic',stage:${JSON.stringify(stage)},at:performance.now()});`;
     anchor('    async function loadDemManifest(url) {',
       '    async function loadDemManifest(url) {\n      ' + mark('manifest-enter'));
+    anchor('        const validationUrl = new URL(\'../modules/terrain-manifest.js\', self.location.href);',
+      '        ' + mark('manifest-response') + '\n        const validationUrl = new URL(\'../modules/terrain-manifest.js\', self.location.href);');
+    anchor('        const manifest = validateTerrainManifest(await response.json());',
+      '        ' + mark('validator-imported') + '\n        const manifest = validateTerrainManifest(await response.json());\n        ' + mark('manifest-validated'));
+    anchor('        const tintResponse = await fetch(tintUrl);',
+      '        ' + mark('tint-request') + '\n        const tintResponse = await fetch(tintUrl);');
+
     anchor('        const tint = await readRgba(await tintResponse.blob(), true);',
       '        ' + mark('tint-response') + '\n        const tint = await readRgba(await tintResponse.blob(), true);\n        ' + mark('tint-decoded'));
     anchor('    async function readRgba(blob, preferImageDecoder = false) {',
