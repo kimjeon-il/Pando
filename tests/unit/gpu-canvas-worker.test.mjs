@@ -259,6 +259,7 @@ function canvasRuntime({ renderError = null, features = [], theme = {}, visualOr
     }
   }
   const scope = vm.createContext({ URL, OffscreenCanvas: Canvas,
+    clearTimeout() {},
     setTimeout: callback => { timers.push(callback); return timers.length; },
     location: script, postMessage: (message, transfer) => replies.push({ message, transfer }) });
   scope.self = scope;

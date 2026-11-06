@@ -6,6 +6,21 @@
   const seaSurface = [0.42, 0.66, 0.82], seaDeep = [0.10, 0.24, 0.39];
   const heightColors = [[0.43,0.62,0.39],[0.68,0.72,0.44],[0.72,0.57,0.39],[0.72,0.68,0.62],[0.96,0.95,0.90]];
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+  // Three decoded RGBA planes (land, ocean, political), including DEM gutters.
+  const convertedBytesPerPixel = 12;
+  function budgetedDemTiles(levels, desiredLevel, visibleSpecs, byteBudget, gutter = 1) {
+    if (!desiredLevel) return { level: null, specs: [], limited: false };
+    const requestedIndex = levels.indexOf(desiredLevel);
+    for (let index = requestedIndex; index >= 0; index -= 1) {
+      const level = levels[index], specs = visibleSpecs(level);
+      const bytes = specs.reduce((sum, spec) =>
+        sum + (spec.pixelWidth + 2 * gutter) * (spec.pixelHeight + 2 * gutter) * convertedBytesPerPixel, 0);
+      if (bytes <= byteBudget) return { level, specs, limited: index !== requestedIndex };
+    }
+    // Valid manifests always fit their world overview; never silently certify
+    // an incomplete high-LOD working set if a foreign manifest violates that.
+    return { level: null, specs: [], limited: true };
+  }
   const byte = value => Math.round(clamp(value, 0, 1) * 255);
   function smoothHeight(height, low, high) {
     const t=clamp((height-low)/(high-low),0,1);
@@ -105,5 +120,6 @@
       return [point[0] + (previous[0] + next[0]) * distance, point[1] + (previous[1] + next[1]) * distance];
     });
   }
-  return Object.freeze({ convertTile, affineTransform, flatTileRectangle, triangleClip });
+  return Object.freeze({ convertTile, affineTransform, flatTileRectangle, triangleClip,
+    convertedBytesPerPixel, budgetedDemTiles });
 })();

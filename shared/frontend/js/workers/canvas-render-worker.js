@@ -29,6 +29,19 @@ function canvasFallbackWorkerMain() {
     let demActiveFetches = 0;
     let demCacheBytes = 0;
     const demCacheLimit = 96 * 1024 * 1024;
+    function pruneDemTiles() {
+      while (demCacheBytes > demCacheLimit) {
+        let oldest = null;
+        for (const entry of demTiles) {
+          if (terrainProtectedKeys.has(`dem:${entry[0]}`)) continue;
+          if (!oldest || entry[1].lastUsed < oldest[1].lastUsed) oldest = entry;
+        }
+        if (!oldest) break;
+        demCacheBytes -= oldest[1].bytes;
+        oldest[1].land.close(); oldest[1].ocean.close(); oldest[1].political.close();
+        demTiles.delete(oldest[0]);
+      }
+    }
     let demManifestLoading = false;
     let demManifestAttempts = 0;
     let terrainFrameStats = {};
@@ -237,7 +250,8 @@ function canvasFallbackWorkerMain() {
         canvas.getContext('2d').putImageData(new ImageData(data, pixels.width, pixels.height), 0, 0);
         return canvas.transferToImageBitmap();
       });
-      return { land: result[0], ocean: result[1], political: result[2], bytes: pixels.width * pixels.height * 12 };
+      return { land: result[0], ocean: result[1], political: result[2],
+        bytes: pixels.width * pixels.height * self.PandoLabCanvasTerrainDem.convertedBytesPerPixel };
     }
 
     function requestDemTile(spec, priority = 0) {
@@ -268,14 +282,7 @@ function canvasFallbackWorkerMain() {
             demFailures.delete(spec.key);
             demTiles.set(spec.key, { ...tile, lastUsed: performance.now() });
             demCacheBytes += tile.bytes;
-            while (demCacheBytes > demCacheLimit) {
-              const oldest = [...demTiles.entries()].filter(([key]) => key !== spec.key && !terrainProtectedKeys.has(`dem:${key}`))
-                .sort((a, b) => a[1].lastUsed - b[1].lastUsed)[0];
-              if (!oldest) break;
-              demCacheBytes -= oldest[1].bytes;
-              oldest[1].land.close(); oldest[1].ocean.close(); oldest[1].political.close();
-              demTiles.delete(oldest[0]);
-            }
+            pruneDemTiles();
             self.postMessage({ type: 'terrain-ready', count: demTiles.size, key: `dem:${spec.key}` });
           })
           .catch(error => {
@@ -548,25 +555,32 @@ function canvasFallbackWorkerMain() {
           .sort((a, b) => a.level - b.level)
         : [];
       // Canvas country geometry quality does not own DEM source resolution.
-      let demLevel = terrainDemManifest
+      // Keep the highest DEM level whose *complete visible* bitmap set fits
+      // the fixed 96MiB cache. The raster reserve still covers the view while
+      // that level loads, without thrashing or falsely reporting readiness.
+      const desiredDem = terrainDemManifest
         ? terrainLevelForView(projection, message.terrainDpr || dpr, terrainDemManifest) : null;
-      let demSpecs = demLevel ? visibleTerrainTileSpecs(demLevel, message, projection, width, height, false) : [];
-      // Cache pressure may evict unretained tiles, never lower camera source resolution.
-      const demNeighbours = demLevel ? terrainNeighbourSpecs(demLevel, demSpecs) : [];
+      const demBudget = self.PandoLabCanvasTerrainDem.budgetedDemTiles(
+        terrainDemManifest?.levels || [], desiredDem,
+        level => visibleTerrainTileSpecs(level, message, projection, width, height, false),
+        demCacheLimit, Number(terrainDemManifest?.gutter ?? 1));
+      const demLevel = demBudget.level, demSpecs = demBudget.specs;
       const drawSpecs = [...(baseReady ? baseSpecs : []), ...fallbackSpecs, ...targetSpecs];
       const sourceLevel = demLevel || targetLevel;
       const desiredWidth = 2 * Math.PI * projection.scale() * Math.max(1, Number(message.terrainDpr || dpr)) * 1.12;
-      return { targetLevel, targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs,
-        resolutionLimited: sourceLevel.width < desiredWidth };
+      return { targetLevel, targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, drawSpecs,
+        resolutionLimited: demBudget.limited || sourceLevel.width < desiredWidth };
     }
 
     function renderTerrain(message, projection, width, height, dpr, visibleLand, plan, baseKey) {
       if (!plan) return true;
-      const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, demNeighbours, drawSpecs } = plan;
+      const { targetSpecs, baseLevel, baseSpecs, baseReady, terrainComplete, neighbours, fallbackSpecs, demLevel, demSpecs, drawSpecs } = plan;
       terrainProtectedKeys.clear();
       for (const spec of [...baseSpecs, ...targetSpecs, ...neighbours, ...fallbackSpecs]) terrainProtectedKeys.add(spec.key);
       for (const spec of demSpecs) terrainProtectedKeys.add(`dem:${spec.key}`);
-      const wantedDem = new Set([...demSpecs, ...demNeighbours].map(spec => spec.key));
+      pruneDemTiles();
+      // Speculative neighbours cannot displace the admitted visible DEM set.
+      const wantedDem = new Set(demSpecs.map(spec => spec.key));
       wantedDemKeys = wantedDem;
       for (const [key, request] of demRequests) if (!wantedDem.has(key)) request.controller.abort();
       for (let index = terrainFetchQueue.length - 1; index >= 0; index -= 1) {
@@ -588,7 +602,6 @@ function canvasFallbackWorkerMain() {
         demQueue.splice(index, 1);
       }
       for (const spec of demSpecs) requestDemTile(spec, 10_000);
-      for (const spec of demNeighbours) requestDemTile(spec, 120);
       // The main-thread physical certificate necessarily rejects a bitmap
       // without a land packet. Keep downloading tiles, but do not spend CPU
       // tessellating an unpresentable early bitmap while the verified land

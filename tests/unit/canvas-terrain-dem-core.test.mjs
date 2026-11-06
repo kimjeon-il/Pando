@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const context = { self: {} };
 vm.runInNewContext(fs.readFileSync(new URL("../../shared/frontend/js/workers/canvas-terrain-dem-core.js", import.meta.url), 'utf8'), context);
-const { convertTile, affineTransform, flatTileRectangle, triangleClip } = context.self.PandoLabCanvasTerrainDem;
+const { convertTile, affineTransform, flatTileRectangle, triangleClip, budgetedDemTiles, convertedBytesPerPixel } = context.self.PandoLabCanvasTerrainDem;
 const presentation = JSON.parse(fs.readFileSync(new URL('../fixtures/terrain-presentation.json', import.meta.url)));
 const constantTile = height => {
   const dem = new Uint8ClampedArray(3 * 3 * 4), encoded = height + 12000;
@@ -68,4 +68,23 @@ test('triangle clips cover shared antialiased edges in either winding without mo
     assert.ok(clip[0][0] <= -0.5 && clip[0][1] <= -0.5);
     assert.deepEqual(points[0], [0, 0]);
   }
+});
+
+test('Canvas DEM uses the highest complete viewport LOD that fits its decoded 96MiB budget', () => {
+  assert.equal(convertedBytesPerPixel, 12);
+  const levels = [{id:0},{id:1},{id:2},{id:3}];
+  const spec = key => ({key, pixelWidth:1024, pixelHeight:1024});
+  const visible = level => Array.from({length: [2,4,8,16][level.id]},
+    (_, index) => spec(`${level.id}/${index}`));
+  const budget = 96 * 1024 * 1024;
+  const fit = budgetedDemTiles(levels, levels[3], visible, budget);
+  assert.equal(fit.level.id, 2, '16 fully decoded three-plane tiles cannot fit 96MiB');
+  assert.equal(fit.specs.length, 8);
+  assert.equal(fit.limited, true);
+  assert.ok(fit.specs.reduce((sum, tile) =>
+    sum + (tile.pixelWidth + 2) * (tile.pixelHeight + 2) * convertedBytesPerPixel, 0) <= budget);
+  const roomy = budgetedDemTiles(levels, levels[3], visible, 256 * 1024 * 1024);
+  assert.equal(roomy.level.id, 3);
+  assert.equal(roomy.limited, false);
+  assert.equal(budgetedDemTiles(levels, null, visible, budget).level, null);
 });

@@ -100,7 +100,7 @@ test('Canvas ready and data-ready reconnect the current physical scene without a
   const end=source.indexOf('    function activateCanvasFallback(',start);
   assert.ok(start>=0&&end>start);
   const dispatch=source.slice(start,end);
-  assert.match(dispatch,/if \(message\.type === 'ready'\) \{[\s\S]*?syncCanvasWorkerState\(\);[\s\S]*?requestPreparedCanvasFrame\(\);/);
+  assert.match(dispatch,/if \(message\.type === 'ready'\) \{[\s\S]*?syncCanvasWorkerState\(\);[\s\S]*?requestPreparedCanvasFrame\(\)/);
   assert.match(dispatch,/if \(message\.type === 'data-ready'\) \{[\s\S]*?if \(!requestPreparedCanvasFrame\(\)\) invalidateGpuFrame\('canvas-data-ready'\)/);
   const gate=source.slice(source.indexOf('    function requestPreparedCanvasFrame() {'),
     source.indexOf('    function renderLatestVisualFrame()',source.indexOf('    function requestPreparedCanvasFrame() {')));
