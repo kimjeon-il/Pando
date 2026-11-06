@@ -4853,17 +4853,28 @@ export function createGpuMapRenderer(deps) {
           resize();
           const canvasRuntimeUrl = runtimeAssetUrl('workers/canvas-render-worker.js');
           canvasRuntimeUrl.searchParams.set('physical', '1');
+          // One acceptance predicate also supplies bounded rejection diagnostics.
+          // Neither the renderer nor tests may call an old bitmap "presented".
+          const canvasFrameRejectionReason = message => {
+            if (Number(message.frameId) !== Number(lastVisualFrame?.frameId)) return 'frame';
+            if (message.presentationKey !== mapTargetKey(lastVisualFrame, {terrainTargetKey: ''})) return 'presentation';
+            if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
+            if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
+            if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
+            if (!canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState())) return 'physical';
+            return '';
+          };
           canvasWorker = createGpuCanvasWorker({
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
-            acceptFrame: message => Number(message.frameId) === Number(lastVisualFrame?.frameId)
-              && message.presentationKey === mapTargetKey(lastVisualFrame, {terrainTargetKey: ''})
-              && Number(message.geometryRevision) === geometryRevisionTracker.committedRevision()
-              && Number(message.styleRevision || 0) === canvasStyleRevision
-              && message.surfaceQuality === surfacePresentation.quality
-              && canvasWorkerFrameMatchesPhysical(message, getPhysicalContextState()),
+            acceptFrame: message => canvasFrameRejectionReason(message) === '',
             onStale: message => {
               performanceMetrics.canvasWorkerStaleFrameCount += 1;
+              const why=canvasFrameRejectionReason(message) || 'transport-revision';
+              performanceMetrics.canvasWorkerLastStaleReason=why;
+              performanceMetrics.canvasWorkerStaleReasonCounts ||= {};
+              performanceMetrics.canvasWorkerStaleReasonCounts[why] =
+                (performanceMetrics.canvasWorkerStaleReasonCounts[why] || 0) + 1;
               // A valid submission can finish with an old scene bitmap after
               // newer physical packets were prepared. The bitmap is discarded
               // by the transport; requeue only the current scene/view, never

@@ -51,19 +51,43 @@ test('Canvas Worker submits the latest view when a drag finishes',()=>{
 
 test('Canvas acceptance rejects stale frame identity before transport acknowledges it',()=>{
   const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
-  const start=source.indexOf('            acceptFrame: message =>');
-  const end=source.indexOf('            onStale: message =>',start);
-  assert.ok(start>=0&&end>start,'canonical Canvas acceptance port is required');
+  const start=source.indexOf('          const canvasFrameRejectionReason =');
+  const end=source.indexOf('          canvasWorker = createGpuCanvasWorker(',start);
+  assert.ok(start>=0&&end>start,'canonical Canvas frame predicate is required');
   const accepted=source.slice(start,end);
   for(const marker of ['message.frameId','lastVisualFrame?.frameId','message.presentationKey',
     'mapTargetKey(lastVisualFrame','message.geometryRevision','geometryRevisionTracker.committedRevision()',
     'message.styleRevision','canvasStyleRevision','message.surfaceQuality',
     'canvasWorkerFrameMatchesPhysical'])
     assert.ok(accepted.includes(marker),'Canvas transport must reject mismatched '+marker);
+  assert.match(source.slice(end,end+300),/acceptFrame: message => canvasFrameRejectionReason\(message\) === ''/);
   const retry=source.slice(end,source.indexOf('\n          });',end));
   assert.ok(!retry.includes("message.renderRequestId == null\n"),
     'spontaneous resource frames must not be silently ignored');
   assert.ok(retry.includes('canvasWorker?.busy'),'in-flight current work must not be interrupted');
   assert.ok(retry.includes('canvasWorkerResubmitAttempts > 4'),'retries remain bounded');
   assert.ok(retry.includes('renderCanvasWorker(lastVisualFrame)'),'only current work is resubmitted');
+});
+
+
+test('Canvas rejection reasons classify stale style, physical scene and source identities without accepting old pixels',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const begin=source.indexOf('          const canvasFrameRejectionReason =');
+  const end=source.indexOf('          canvasWorker = createGpuCanvasWorker(',begin);
+  const map={frameId:4};
+  let style=3,geom=7,quality='canonical',physical=true;
+  const initial={frameId:4,presentationKey:'current',geometryRevision:7,
+    styleRevision:3,surfaceQuality:'canonical'};
+  const factory=new Function('lastVisualFrame','mapTargetKey','geometryRevisionTracker',
+    'canvasStyleRevision','surfacePresentation','canvasWorkerFrameMatchesPhysical','getPhysicalContextState',
+    source.slice(begin,end)+';return canvasFrameRejectionReason;');
+  const make=()=>factory(map,()=> 'current',{committedRevision:()=>geom},style,
+    {quality},()=>physical,()=>({}));
+  assert.equal(make()(initial),'');
+  assert.equal(make()({...initial,frameId:3}),'frame');
+  assert.equal(make()({...initial,presentationKey:'old'}),'presentation');
+  assert.equal(make()({...initial,geometryRevision:4}),'geometry');
+  style=4;assert.equal(make()(initial),'style');style=3;
+  quality='pending';assert.equal(make()(initial),'quality');quality='canonical';
+  physical=false;assert.equal(make()(initial),'physical');
 });
