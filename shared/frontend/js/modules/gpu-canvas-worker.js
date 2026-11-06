@@ -1,6 +1,6 @@
 // Canvas transport owns readiness, latest-frame backpressure, stale delivery and
 // outstanding picks. The coordinator serializes scene state and presents accepted frames.
-export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale = () => {}, onSend = () => {} }) {
+export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOlderBackgroundFrame = () => false, onStale = () => {}, onSend = () => {} }) {
   let live = true, ready = false, pendingFrame = null;
   let inFlightRenderRequestId = null, renderRequestId = 0;
   let requestedRevision = 0, displayedRevision = 0, requestId = 0;
@@ -40,8 +40,13 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, onStale
     if (inFlightRenderRequestId !== null && message.renderRequestId === inFlightRenderRequestId
       && Number(message.projectGeneration) === generation) inFlightRenderRequestId = null;
     const revision = Number(message.revision || 0);
+    // The latest *picture*, not the latest unrelated coordinator revision,
+    // controls initial physical-only previews. The opt-in must independently
+    // validate camera, style, pin and source before accepting older revisions.
     const current = Number(message.projectGeneration ?? generation) === generation
-      && revision >= requestedRevision && revision >= displayedRevision && acceptFrame(message);
+      && revision >= displayedRevision
+      && (revision >= requestedRevision || allowOlderBackgroundFrame(message))
+      && acceptFrame(message);
     if (current && message.bitmap) {
       displayedRevision = revision;
       onmessage?.(event);

@@ -29,7 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, selectCanvasPhysicalSource } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical, canvasWorkerPresentationKey, canvasWorkerBackgroundPresentationKey, selectCanvasPhysicalSource } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -410,6 +410,16 @@ export function createGpuMapRenderer(deps) {
         surfaceQuality: surfacePresentation.quality,
         surfaceGeometryQuality: surfacePresentation.geometryQuality,
         surfaceTargetQuality: surfacePresentation.targetQuality,
+      });
+    }
+
+    function currentCanvasBackgroundKey(frame = lastVisualFrame) {
+      return canvasWorkerBackgroundPresentationKey(frame, {
+        projectGeneration,contextRevision:renderDeviceContextRevision,
+        physicalStyleRevision:physicalStyleStateRevision,
+        terrainVisible:state.physicalSettings.terrainVisible,
+        terrainStyle:state.physicalSettings.terrainStyle,
+        darkTheme:getSystemTheme() === 'dark',theme:mapTheme(),
       });
     }
 
@@ -4499,6 +4509,10 @@ export function createGpuMapRenderer(deps) {
     }
 
     const canvasScenePackets = createCanvasScenePackets();
+    function canvasBackgroundEligible(message) {
+      return message?.backgroundOnly === true && message.surfaceQuality === 'pending'
+        && surfacePresentation.quality === 'pending' && !temporalPending();
+    }
     function currentCanvasPhysical() {
       return selectCanvasPhysicalSource({
         actual:getPhysicalLand(),state:getPhysicalContextState(),
@@ -4527,19 +4541,27 @@ export function createGpuMapRenderer(deps) {
     function canvasWorkerStyleMessage() {
       const features = canvasCountryInputs();
       const fills = canvasCountryFills(features);
+      // A pending country surface paints only physical substrate/terrain.
+      // Unrelated overlays and country palettes must not prevent a valid
+      // source-certified physical preview from being shown.
+      const backgroundOnly = surfacePresentation.quality === 'pending';
       return {
         type: 'style',
         surfacePresentation,
         styleRevision: ++canvasStyleRevision,
-        visible: !!state.layerVisibility.objects,
+        visible: !backgroundOnly && !!state.layerVisibility.objects,
         hiddenCountryIds: features.map(feature => String(feature.id)).filter(id => !isCountryVisibleById(id)),
         hiddenSharedCountryIds: (countrySharedBoundary?.ownerIds || []).filter(id => !countryBoundaryStyleById(id)),
         fills,
         countryBoundaryStyles: Object.fromEntries((countrySharedBoundary?.ownerIds || []).map(id => [id, countryBoundaryStyleById(id)])),
-        visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
-        scenePolygons: canvasScenePackets.delta(canvasScenePolygons(), 'scene'),
-        sceneStrokes: canvasScenePackets.delta(canvasSceneStrokes(), 'strokes'),
-        interactionFillItems: renderInteractionState.genericFillItems || [],
+        visualOrder: backgroundOnly
+          ? { base: ['substrate','terrain','physical-water'], hydro: [] }
+          : { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') },
+        scenePolygons: canvasScenePackets.delta(backgroundOnly
+          ? canvasScenePackets.physicalPolygons(currentCanvasPhysical().source)
+          : canvasScenePolygons(), 'scene'),
+        sceneStrokes: canvasScenePackets.delta(backgroundOnly ? [] : canvasSceneStrokes(), 'strokes'),
+        interactionFillItems: backgroundOnly ? [] : renderInteractionState.genericFillItems || [],
         countryEmphasis: {
           primaryId: countryEmphasis.primaryId,
           primaryIds: [...countryEmphasis.primaryIds],
@@ -4584,6 +4606,7 @@ export function createGpuMapRenderer(deps) {
         deferIncompleteTerrain: temporalPending() && countriesPublishedGeneration >= 0,
         terrainDpr: Math.min(isMobile() ? 2 : 3, Math.max(1, Number(window.devicePixelRatio || 1))),
         presentationKey: currentCanvasPresentationKey(frame),
+        backgroundPresentationKey: currentCanvasBackgroundKey(frame),
         projection: frame.projection,
         view: { flatCenter: view.projectionCenter || view.flatCenter, globeRotation: view.rotation,
           flatZoom: view.flatZoom, globeZoom: view.globeZoom },
@@ -4819,12 +4842,15 @@ export function createGpuMapRenderer(deps) {
         return;
       }
       if (message.type !== 'frame') return;
-      // Every view/style/physical input must match, but a GPU-only scheduling
-      // frameId is not part of the painted picture. The transport also enforces
-      // generation, submitted revision and the full style/physical certificate.
+      // An independently certified physical-only bitmap can be shown even if
+      // newer country-only revisions arrived meanwhile. It must never
+      // acknowledge the country scene, labels or a temporal replacement.
+      const backgroundOnly = canvasBackgroundEligible(message);
       if (Number(message.projectGeneration) !== projectGeneration
-          || message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)
-          || Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) {
+          || (backgroundOnly
+            ? message.backgroundPresentationKey !== currentCanvasBackgroundKey(lastVisualFrame)
+            : message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)
+              || Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision())) {
         message.bitmap?.close?.();
         return;
       }
@@ -4913,10 +4939,17 @@ export function createGpuMapRenderer(deps) {
           // One acceptance predicate also supplies bounded rejection diagnostics.
           // Neither the renderer nor tests may call an old bitmap "presented".
           const canvasFrameRejectionReason = message => {
-            if (message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)) return 'presentation';
-            if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
-            if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
-            if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
+            if (canvasBackgroundEligible(message)) {
+              if (message.backgroundPresentationKey !== currentCanvasBackgroundKey(lastVisualFrame))
+                return 'background-presentation';
+              if (Number(message.physicalStyleRevision || 0) !== canvasPhysicalStyleRevision)
+                return 'physical-style';
+            } else {
+              if (message.presentationKey !== currentCanvasPresentationKey(lastVisualFrame)) return 'presentation';
+              if (Number(message.geometryRevision) !== geometryRevisionTracker.committedRevision()) return 'geometry';
+              if (Number(message.styleRevision || 0) !== canvasStyleRevision) return 'style';
+              if (message.surfaceQuality !== surfacePresentation.quality) return 'quality';
+            }
             if (!canvasWorkerFrameMatchesPhysical(message, currentCanvasPhysical().context)) return 'physical';
             return '';
           };
@@ -4924,6 +4957,8 @@ export function createGpuMapRenderer(deps) {
             worker: workerChannels.create(canvasRuntimeUrl, { name: 'pandolab-canvas-renderer' }),
             generation: projectGeneration, onSend: recordCanvasWorkerMessage,
             acceptFrame: message => canvasFrameRejectionReason(message) === '',
+            allowOlderBackgroundFrame: message => canvasBackgroundEligible(message)
+              && canvasFrameRejectionReason(message) === '',
             onStale: message => {
               performanceMetrics.canvasWorkerStaleFrameCount += 1;
               const why=canvasFrameRejectionReason(message) || 'transport-revision';

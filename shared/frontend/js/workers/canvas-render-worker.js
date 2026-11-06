@@ -1107,6 +1107,16 @@ function canvasFallbackWorkerMain() {
         context.globalAlpha = 1;
         updateTerrainFrameStats(terrainPlan);
       }
+      // A pending, physical-only draw is certifiably distinct from a
+      // document/country frame. An authoritative geometry revision cannot be
+      // acknowledged by this background presentation.
+      const backgroundOnly = message.surfacePresentation?.quality === 'pending'
+        && message.visible === false
+        && (message.scenePolygons || []).every(packet =>
+          packet.role === 'physical-land' || packet.role === 'physical-water')
+        && !(message.sceneStrokes || []).length
+        && !(message.interactionFillItems || []).length
+        && !(message.visualOrder?.hydro || []).length;
       // A frame can be rendered while a newer scene is already staged on the
       // main thread. Echo the exact physical packets and country quality that
       // were painted; no main-thread snapshot may substitute for this evidence.
@@ -1120,7 +1130,10 @@ function canvasFallbackWorkerMain() {
         physicalWaterCount: waterPainted.length,
         physicalWaterRevision: waterPainted.length === 1 ? waterPainted[0].geometryRevision : null,
         surfaceQuality: message.surfacePresentation?.quality || 'pending',
+        backgroundOnly,
         presentationKey: message.presentationKey,
+        backgroundPresentationKey: message.backgroundPresentationKey,
+        physicalStyleRevision,
         styleRevision,
         // Background redraws reuse visual state, but never acknowledge a submission.
         renderRequestId,

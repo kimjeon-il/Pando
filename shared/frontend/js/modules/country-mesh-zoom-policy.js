@@ -46,6 +46,23 @@ export function canvasWorkerPresentationKey(frame, {
 
 /** Source-matched initial Canvas land preview is a background only.
  * It cannot certify country geometry or a temporal replacement. */
+/** Stable for the same physical pixels even if coordinator frameId and
+ * country-only view/style revisions advance during asynchronous preparation. */
+export function canvasWorkerBackgroundPresentationKey(frame, {
+  projectGeneration,contextRevision,physicalStyleRevision,
+  terrainVisible,terrainStyle,darkTheme,theme,
+}={}) {
+  if (!frame) return '';
+  const view=frame.viewState||{};
+  return JSON.stringify([
+    projectGeneration,contextRevision,frame.projection,frame.cssViewport,frame.dpr,
+    frame.cssScale,frame.cssTranslate,view.rotation,view.projectionCenter,
+    view.flatCenter,view.flatZoom,view.globeZoom,frame.safeInset,
+    physicalStyleRevision,!!terrainVisible,terrainStyle,!!darkTheme,
+    theme?.baseLandAlpha,theme?.defaultLand,theme?.ocean,
+  ]);
+}
+
 export function selectCanvasPhysicalSource({ actual, state, preview, sourceRevision, temporalPending = false } = {}) {
   const unavailable = {source:null,context:{ready:false},preview:false};
   if (state?.ready) {
