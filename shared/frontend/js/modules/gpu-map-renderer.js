@@ -29,7 +29,7 @@ import { isRenderScene, buildPolygonGeometryPacket } from './render-scene.js';
 import { isMapVisualFrame } from './map-visual-frame.js';
 import { createGpuMeshWorkerJobs } from './gpu-mesh-worker-jobs.js';
 import { decideCountryPatchPresentation } from './country-mesh-quality-gate.js';
-import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canvasWorkerFrameMatchesPhysical } from './country-mesh-zoom-policy.js';
+import { resolveCountryMeshQuality, resolveMapSurfacePresentation, canAdmitCanvasWorkerPartialBackground, canAdmitWebGlPartialBackground, canvasWorkerFrameMatchesPhysical } from './country-mesh-zoom-policy.js';
 import { validateMapSurfacePreview } from './project-preview-policy.js';
 import { inspectTopologyPreviewFeatures } from './project-preview-topology.js';
 import { validateGeometry } from './geometry-validation.js';
@@ -418,7 +418,7 @@ export function createGpuMapRenderer(deps) {
       return presentation;
     }
 
-    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false } = {}) {
+    function recordMapPresentation(frame, resourcesDrawn = true, { committedWorkerBitmap = false, submittedWebGlBaseFrame = false } = {}) {
       const terrain = currentTerrainReadiness();
       resourcesDrawn = resourcesDrawn && physicalSceneMatchesContext(renderScene,getPhysicalContextState());
       recordGpuRecoveryFrame(frame, resourcesDrawn);
@@ -429,6 +429,10 @@ export function createGpuMapRenderer(deps) {
       const terrainDrawn = !terrainPreparation || !state.physicalSettings.terrainVisible || terrain.terrainReady
         || canAdmitCanvasWorkerPartialBackground({
           rendererMode, committedBitmap: committedWorkerBitmap,
+          physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
+        })
+        || canAdmitWebGlPartialBackground({
+          rendererMode, submittedBaseFrame: submittedWebGlBaseFrame,
           physicalSceneMatched: resourcesDrawn, temporalPending: temporalPending(),
         });
       presentedMapKey = resourcesDrawn && terrainDrawn ? mapTargetKey(frame, terrain) : '';
@@ -4172,7 +4176,8 @@ export function createGpuMapRenderer(deps) {
       if (!webglContextLost && baseResult && !baseSubmissionFailed) recordMapPresentation(visualFrame,
         (surfacePresentation.quality === 'pending' || baseResult.countryStrokeResult?.succeeded === true)
           && preparedBaseScene.physicalLandItems.length > 0 && preparedBaseScene.physicalLandItems.every(({ packet }) => polygonOverlayPass.hasPreparedResource(packet))
-          && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length);
+          && !baseResult.overlayMissingKeys?.length && !baseResult.overlayFailures?.length,
+        { submittedWebGlBaseFrame: true });
       frameTimes.push(performance.now() - started);
       if (!webglContextLost && !baseSubmissionFailed) commitGpuStrokeDomains(baseResult, visualFrame, presentedStrokeDomains, strokeRenderer);
       if (frameTimes.length > 240) frameTimes.shift();

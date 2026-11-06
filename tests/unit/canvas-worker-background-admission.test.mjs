@@ -41,3 +41,13 @@ test('only a bitmap containing current physical land and water may certify a Can
   assert.equal(policy.canvasWorkerFrameMatchesPhysical({physicalLandCount:1,physicalLandRevision:'land-v2',physicalWaterCount:0},
     {ready:true,landRevision:'land-v2',waterRevision:null}),true);
 });
+
+test('a submitted physical WebGL base frame publishes countries without certifying unfinished terrain LOD',()=>{
+  const eligible={rendererMode:'webgl2',submittedBaseFrame:true,physicalSceneMatched:true,temporalPending:false};
+  assert.equal(policy.canAdmitWebGlPartialBackground(eligible),true);
+  assert.equal(policy.canAdmitWebGlPartialBackground({...eligible,rendererMode:'webgl1'}),true);
+  for(const change of [{submittedBaseFrame:false},{physicalSceneMatched:false},{temporalPending:true},
+    {rendererMode:'canvas-worker'},{rendererMode:'canvas2d'}])
+    assert.equal(policy.canAdmitWebGlPartialBackground({...eligible,...change}),false);
+  assert.equal(policy.resolveMapSurfacePresentation({...surface,backgroundPresented:true}).quality,'canonical');
+});

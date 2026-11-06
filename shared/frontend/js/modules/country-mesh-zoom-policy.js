@@ -36,3 +36,11 @@ export function canvasWorkerFrameMatchesPhysical(frame, context) {
     ? Number(frame.physicalWaterCount) === 0
     : Number(frame.physicalWaterCount) === 1 && frame.physicalWaterRevision === context.waterRevision;
 }
+
+/** An actually submitted WebGL base pass can publish land/ocean and country
+ * geometry before optional detail tiles finish. This is not terrain readiness.
+ * Never admit temporal replacements or merely scheduled frames. */
+export function canAdmitWebGlPartialBackground({ rendererMode, submittedBaseFrame, physicalSceneMatched, temporalPending } = {}) {
+  return (rendererMode === 'webgl1' || rendererMode === 'webgl2')
+    && submittedBaseFrame === true && physicalSceneMatched === true && temporalPending === false;
+}
