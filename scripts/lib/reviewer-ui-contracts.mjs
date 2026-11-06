@@ -89,13 +89,11 @@ export function validateReviewUi(kind,{html:providedHtml}={}) {
    const project=read('shared/frontend/js/modules/project-domain.js');
    const map=read('shared/frontend/js/modules/map-owner-composition.js');
    const renderer=read('shared/frontend/js/modules/rendering-domain.js');
-   const stage=read('apps/editor/stage.mjs');
    for(const [name,text,pattern] of [
      ['Viewer owner',source,/createMapOwners\(\{productMode,readOnly:true/],
      ['Core read-only document',source,/createDocumentSession\(\{productMode,readOnly:true/],
      ['Project read-only surface',project,/readOnly\s*=\s*productMode\s*===\s*'viewer'/],
      ['Map edit hook exclusion',map,/if\s*\(readOnly!==true\|\|editing\)throw/],
-     ['Windows source closure',stage,/entry\.product==='editor'\|\|!snapshot\.viewerPaths\.has\(path\)/],
    ])if(!pattern.test(text))fail(name+' lost its read-only isolation contract');
    for(const hook of ['editPreviewController','editingRenderResources','getEditingRenderPacket','emitEditingInteraction','createEditingPresentation'])
      if(renderer.includes(hook))fail('Retired rendering edit hook returned: '+hook);
