@@ -91,3 +91,20 @@ test('Canvas rejection reasons classify stale style, physical scene and source i
   quality='pending';assert.equal(make()(initial),'quality');quality='canonical';
   physical=false;assert.equal(make()(initial),'physical');
 });
+
+test('Canvas ready and data-ready reconnect the current physical scene without admitting stale bitmaps',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('    function receiveCanvasWorkerMessage(event) {');
+  const end=source.indexOf('    function activateCanvasFallback(',start);
+  assert.ok(start>=0&&end>start);
+  const dispatch=source.slice(start,end);
+  assert.match(dispatch,/if \(message\.type === 'ready'\) \{[\s\S]*?syncCanvasWorkerState\(\);[\s\S]*?requestPreparedCanvasFrame\(\);/);
+  assert.match(dispatch,/if \(message\.type === 'data-ready'\) \{[\s\S]*?if \(!requestPreparedCanvasFrame\(\)\) invalidateGpuFrame\('canvas-data-ready'\)/);
+  const gate=source.slice(source.indexOf('    function requestPreparedCanvasFrame() {'),
+    source.indexOf('    function renderLatestVisualFrame()',source.indexOf('    function requestPreparedCanvasFrame() {')));
+  assert.match(gate,/projectRenderBlocked/);
+  assert.match(gate,/lastVisualFrame\.projectGeneration/);
+  assert.match(gate,/physicalSceneMatchesContext/);
+  assert.doesNotMatch(dispatch,/canvasTerrainStats = message\.terrainStats[^\n]*\n[^\n]*recordMapPresentation/,
+    'worker-local stats must not be mistaken for a committed bitmap');
+});

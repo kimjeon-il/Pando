@@ -4743,6 +4743,10 @@ export function createGpuMapRenderer(deps) {
         canvasLastStyleSignature = '';
         canvasLastPhysicalStyleSignature = '';
         syncCanvasWorkerState();
+        // A Worker can finish bootstrapping after the first canonical physical
+        // scene has already been prepared. Explicitly submit that current
+        // frame instead of waiting for another user/camera invalidation.
+        requestPreparedCanvasFrame();
         return;
       }
       if (message.type === 'terrain-ready') {
@@ -4768,7 +4772,7 @@ export function createGpuMapRenderer(deps) {
         }
         canvasDataReplacementResolver?.();
         canvasDataReplacementResolver = null;
-        invalidateGpuFrame('canvas-data-ready');
+        if (!requestPreparedCanvasFrame()) invalidateGpuFrame('canvas-data-ready');
         return;
       }
       if (message.type === 'error') {
