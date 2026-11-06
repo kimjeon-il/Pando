@@ -14,6 +14,35 @@ const pin=()=>readJson('config/library-data.json').revision;
 const sha=()=>execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 const write=(path,report)=>writeFileSync(path,JSON.stringify(report,null,2)+'\n');
 const format=value=>Number.isFinite(value)?Math.round(value*10)/10:null;
+const median=values=>{
+  const sorted=[...values].sort((a,b)=>a-b),middle=Math.floor(sorted.length/2);
+  return sorted.length%2?sorted[middle]:(sorted[middle-1]+sorted[middle])/2;
+};
+function medianObject(values) {
+  if(values.every(value=>typeof value==='number'&&Number.isFinite(value)))return median(values);
+  if(values.every(value=>value===null||value===undefined))return null;
+  if(values.every(value=>value&&typeof value==='object'&&!Array.isArray(value))){
+    const keys=Object.keys(values[0]);
+    if(values.every(value=>keys.length===Object.keys(value).length&&keys.every(key=>Object.hasOwn(value,key))))
+      return Object.fromEntries(keys.map(key=>[key,medianObject(values.map(value=>value[key]))]));
+  }
+  return values.every(value=>JSON.stringify(value)===JSON.stringify(values[0]))?values[0]:null;
+}
+async function chromiumProcessMemory(cdp) {
+  if(!cdp)return null;
+  try{
+    const {processInfo}=await cdp.send('SystemInfo.getProcessInfo');
+    const processes=processInfo.filter(p=>Number.isSafeInteger(p.id)&&p.id>0);
+    let bytes=0;
+    for(const process of processes){
+      const rollup=readFileSync('/proc/'+process.id+'/smaps_rollup','utf8');
+      const match=rollup.match(/^Pss:\s+(\d+)\s+kB$/m);
+      if(!match)return null;
+      bytes+=Number(match[1])*1024;
+    }
+    return {pssBytes:bytes,processes:processes.length};
+  }catch{return null;} // Never substitute zero for an unavailable process metric.
+}
 const mapSummary=stats=>{
   const s=stats||{};
   return {
@@ -45,7 +74,7 @@ const mapSummary=stats=>{
 const identity=()=>({commit:sha(),pin:pin(),platform:process.platform,node:process.version,
   scenario:'Chromium SwiftShader; 1280x800; light UI; 2026-11-06 clock; 1 fresh browser per revision; same runner',
   viewport:[1280,800],cachePolicy:'separate fresh browser instances; browser default cache; same-page date-return reuse',
-  memoryPolicy:'main page V8 used heap via CDP after GC; excludes Worker, WASM and GPU VRAM. GPU counters are app-tracked, not total VRAM.',
+  memoryPolicy:'V8 main page used heap via CDP after GC; Chromium process-family PSS via Linux procfs when available (includes workers/WASM in process memory, excludes GPU VRAM).',
   cpuPolicy:'CDP TaskDuration and ScriptDuration are renderer task/script time (not system-wide CPU percent).',
   framePolicy:'requestAnimationFrame pacing is a scheduling FPS proxy, not measured GPU presentation rate.',
   gpuPolicy:'GPU draw-call and buffer counts from renderer; actual VRAM/utilization/kernel timing not measured.'});
@@ -71,7 +100,7 @@ async function serve(){
 async function sample(){
   const report={schema:'pando-p7-browser-ab-v1',identity:identity(),label:options.label,
     status:'running',startedAt:new Date().toISOString(),phases:[],pageErrors:[],error:null};
-  let server=null,browser=null,page=null,cdp=null,previousPerf=null;
+  let server=null,browser=null,page=null,cdp=null,processCdp=null,previousPerf=null;
   const performanceCounters=async()=>Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
   const snapshot=async(phase,elapsedMs)=>{
     const view=await page.evaluate(()=>{
@@ -89,10 +118,12 @@ async function sample(){
       return [name,Number.isFinite(before)&&Number.isFinite(after)?format((after-before)*1000):null];
     }));
     previousPerf=byName;
+    const processMemory=await chromiumProcessMemory(processCdp);
     report.phases.push({phase,elapsedMs:format(elapsedMs),month:view.month,cursor:view.cursor,
       cpuMs,raf,
       entities:view.entities,geometries:view.geometries,documentReady:view.status,
       jsHeapUsedBytes:byName.JSHeapUsedSize??null,jsHeapTotalBytes:byName.JSHeapTotalSize??null,
+      chromiumProcessPssBytes:processMemory?.pssBytes??null,chromiumProcessCount:processMemory?.processes??null,
       domNodes:byName.Nodes??null,jsListeners:byName.JSEventListeners??null,
       webWorkers:page.workers().length,renderer:mapSummary(view.map)});
   };
@@ -146,6 +177,7 @@ async function sample(){
     await page.clock.setFixedTime(new Date('2026-11-06T03:00:00+09:00'));
     await page.emulateMedia({colorScheme:'light',reducedMotion:'reduce'});
     cdp=await page.context().newCDPSession(page);await cdp.send('Performance.enable');
+    processCdp=await browser.newBrowserCDPSession();
     previousPerf=await performanceCounters();
     let started=Date.now();
     await page.goto('http://127.0.0.1:4173/?debug=1&renderer=webgl2',{waitUntil:'domcontentloaded',timeout:120000});
@@ -180,6 +212,7 @@ async function sample(){
     report.finishedAt=new Date().toISOString();
     if(options.out)write(options.out,report);
     try{await cdp?.detach();}catch { /* page may already be closed */ }
+    try{await processCdp?.detach();}catch { /* browser may already be closed */ }
     try{await browser?.close();}catch { /* browser may already be closed */ }
     if(server){
       server.kill('SIGTERM');
@@ -189,9 +222,39 @@ async function sample(){
   }
   console.log('P7_AB_SAMPLE '+JSON.stringify({label:report.label,identity:report.identity,
     status:report.status,phases:report.phases.map(x=>({phase:x.phase,elapsedMs:x.elapsedMs,
-    jsHeapUsedBytes:x.jsHeapUsedBytes,firstCountryMs:x.renderer.firstCountryPublishedMs})),
+    jsHeapUsedBytes:x.jsHeapUsedBytes,chromiumProcessPssBytes:x.chromiumProcessPssBytes,
+    firstCountryMs:x.renderer.firstCountryPublishedMs})),
     error:report.error?.slice(0,700)}));
   if(report.status!=='passed')process.exitCode=1;
+}
+function aggregate(){
+  const paths=String(options.samples||'').split(',').filter(Boolean);
+  if(paths.length<3||!options.out)throw Error('At least 3 retained sample files and --out are required.');
+  const samples=paths.map(readJson),first=samples[0];
+  const same=samples.every(sample=>sample.status==='passed'&&sample.label===first.label
+    &&sample.identity?.commit===first.identity?.commit
+    &&JSON.stringify(sample.identity)===JSON.stringify(first.identity)
+    &&sample.browserVersion===first.browserVersion
+    &&JSON.stringify(sample.gpuBackend)===JSON.stringify(first.gpuBackend)
+    &&sample.phases.length===first.phases.length
+    &&sample.phases.every((phase,i)=>phase.phase===first.phases[i].phase
+      &&phase.month===first.phases[i].month&&phase.cursor===first.phases[i].cursor
+      &&phase.entities===first.phases[i].entities&&phase.geometries===first.phases[i].geometries));
+  const result={
+    schema:'pando-p7-browser-ab-aggregate-v1',label:first.label,identity:first.identity,
+    browserVersion:first.browserVersion,gpuBackend:first.gpuBackend,
+    sampleCount:samples.length,status:same?'passed':'failed',
+    phases:same?first.phases.map((phase,i)=>({
+      ...medianObject(samples.map(sample=>sample.phases[i])),
+      wallTimeRangeMs:[Math.min(...samples.map(sample=>sample.phases[i].elapsedMs)),
+        Math.max(...samples.map(sample=>sample.phases[i].elapsedMs))],
+    })):[],
+    error:same?null:'Unmatched or failed replicate; see each retained raw JSON file.',
+  };
+  write(options.out,result);
+  console.log('P7_AB_AGGREGATE '+JSON.stringify({label:result.label,status:result.status,
+    count:result.sampleCount,phases:result.phases.map(x=>({phase:x.phase,medianMs:x.elapsedMs,rangeMs:x.wallTimeRangeMs}))}));
+  if(!same)process.exitCode=1;
 }
 function compare(){
   const main=readJson(options.main),candidate=readJson(options.candidate);
@@ -199,6 +262,7 @@ function compare(){
     &&main.browserVersion===candidate.browserVersion
     &&main.gpuBackend?.renderer===candidate.gpuBackend?.renderer
     &&main.status==='passed'&&candidate.status==='passed'
+    &&main.sampleCount>=3&&main.sampleCount===candidate.sampleCount
     &&main.phases.length===candidate.phases.length
     &&main.phases.every((row,i)=>row.phase===candidate.phases[i]?.phase&&row.month===candidate.phases[i]?.month
       &&row.cursor===candidate.phases[i]?.cursor&&row.entities===candidate.phases[i]?.entities);
@@ -216,6 +280,11 @@ function compare(){
       baseCountryPreparationMs:row.renderer?.countryMeshPreparationMs??null,
       candidateCountryPreparationMs:next?.renderer?.countryMeshPreparationMs??null,
       baseGpuBuffers:row.renderer?.gpuTrackedBuffersBytes??null,candidateGpuBuffers:next?.renderer?.gpuTrackedBuffersBytes??null,
+      baseProcessPssBytes:row.chromiumProcessPssBytes??null,
+      candidateProcessPssBytes:next?.chromiumProcessPssBytes??null,
+      mainFirstBackgroundMs:row.renderer?.firstBackgroundFrameMs??null,
+      p7FirstBackgroundMs:next?.renderer?.firstBackgroundFrameMs??null,
+      baseWallRangeMs:row.wallTimeRangeMs,candidateWallRangeMs:next?.wallTimeRangeMs??null,
       deltaMs:diff(row.elapsedMs,next?.elapsedMs),
       mainJsHeapBytes:row.jsHeapUsedBytes,p7JsHeapBytes:next?.jsHeapUsedBytes??null,
       heapDeltaBytes:diff(row.jsHeapUsedBytes,next?.jsHeapUsedBytes),
@@ -224,11 +293,11 @@ function compare(){
   });
   const result={schema:'pando-p7-browser-ab-comparison-v1',comparable,
     status:comparable?'paired':'incomplete',reference:main.identity,candidate:candidate.identity,
-    browserVersion:main.browserVersion,gpuBackend:main.gpuBackend,rows,
-    limitations:['Only one sample per revision, no robust confidence interval',
+    browserVersion:main.browserVersion,gpuBackend:main.gpuBackend,sampleCount:main.sampleCount,rows,
+    limitations:['Three or more sequential samples per revision (median), not hardware-independent confidence intervals',
       'requestAnimationFrame is not the actual presented GPU frame rate',
       'GPU draw calls/buffers are app-tracked; GPU utilization and actual VRAM are unavailable',
-      'Chromium main-thread heap excludes WASM and Worker heaps',
+      'Chromium main-thread heap excludes WASM and Worker heaps; Linux PSS sums browser-process memory when supported',
       'No performance improvement threshold approved; failures are not zero'],
     errors:[main.error,candidate.error].filter(Boolean)};
   if(options.out)write(options.out,result);
@@ -246,4 +315,5 @@ function compare(){
   if(!comparable)process.exitCode=1;
 }
 if(options.mode==='compare')compare();
+else if(options.mode==='aggregate')aggregate();
 else await sample();
