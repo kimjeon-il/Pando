@@ -325,13 +325,17 @@ test('real Canvas Worker generation reset retires old physical packets before ne
   send({ type: 'reset-generation', projectGeneration: 3 });
   send({ type: 'view', projectGeneration: 2, revision: 3, viewRevision: 3 });
   assert.equal(replies.length, count, 'old generation views cannot reintroduce retired pixels');
-  send({ type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
-    ...pending, scenePolygons: [] });
-  assert.equal(replies.at(-1).message.projectGeneration, 3);
+  // Production refreshes scene/style state before its first new-generation view.
+  send({ type: 'style', projectGeneration: 3, styleRevision: 2,
+    ...pending, theme: {}, physicalSettings: { terrainVisible: false }, fills: {}, scenePolygons: [] });
+  const currentView = { type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
+    width: 20, height: 20, projection: 'flat', view: { flatCenter: [0, 0] },
+    renderProjection: { scale: 20, translate: [10, 10] } };
+  send({ ...currentView, scenePolygons: [] });
+  assert.equal(replies.at(-1).message.projectGeneration, 3, replies.at(-1).message.message);
   assert.equal(replies.at(-1).message.physicalLandCount, 0,
     'the new project cannot inherit the old physical land packet');
-  send({ type: 'view', projectGeneration: 3, revision: 1, viewRevision: 1,
-    ...pending, scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
+  send({ ...currentView, scenePolygons: [packet('physical-land', 'land-v3'), packet('physical-water', 'water-v3')] });
   const frame = replies.at(-1).message;
   assert.equal(frame.projectGeneration, 3);
   assert.equal(frame.physicalLandCount, 1);
