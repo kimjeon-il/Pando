@@ -139,3 +139,28 @@ test('renderer binds Canvas bitmap admission to its picture key and commits the 
   assert.match(source,/frameId: Number\(presentedVisualFrame\.frameId\)/);
   assert.doesNotMatch(source,/Number\(message\.frameId\) !== Number\(lastVisualFrame\?\.frameId\)/);
 });
+
+test('Canvas admits only a pinned initial physical preview and never replaces authoritative land or temporal frames',()=>{
+  const sourceRevision='b'.repeat(64),previewRevision='a'.repeat(64);
+  const preview={geometry:{type:'MultiPolygon',coordinates:[]},revision:previewRevision,
+    sourceRevision,certified:true};
+  const selected=policy.selectCanvasPhysicalSource({actual:null,state:{ready:false},preview,sourceRevision});
+  assert.equal(selected.preview,true);
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical({
+    physicalLandCount:1,physicalLandRevision:previewRevision,physicalWaterCount:0,
+  },selected.context),true);
+  for(const mutation of [
+    {sourceRevision:'c'.repeat(64)}, {temporalPending:true},
+    {preview:{...preview,certified:false}}, {preview:{...preview,sourceRevision:'d'.repeat(64)}},
+  ])assert.equal(policy.selectCanvasPhysicalSource({
+    actual:null,state:{ready:false},preview,sourceRevision,...mutation,
+  }).preview,false,'a preview cannot bypass exact pin or a pending temporal change');
+  const actual={geometry:{type:'MultiPolygon',coordinates:[]},revision:'e'.repeat(64)};
+  const authoritative={ready:true,landRevision:actual.revision,waterRevision:null};
+  const full=policy.selectCanvasPhysicalSource({actual,state:authoritative,preview,sourceRevision});
+  assert.equal(full.preview,false);
+  assert.equal(full.source,actual);
+  assert.equal(policy.selectCanvasPhysicalSource({
+    actual,state:{...authoritative,landRevision:'f'.repeat(64)},preview,sourceRevision,
+  }).context.ready,false,'invalid authoritative physical source must not silently fallback to preview');
+});

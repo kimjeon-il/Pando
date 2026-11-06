@@ -130,6 +130,7 @@ function validationOrPresentationOnly(changes,graph) {
     'shared/frontend/js/workers/canvas-render-worker.js',
     'shared/frontend/js/modules/gpu-canvas-scene-packets.js',
     'shared/frontend/js/modules/map-renderer-composition.js',
+    'shared/frontend/js/modules/physical-resources.js',
     'shared/frontend/js/modules/gpu-map-renderer.js',
     'scripts/r4d-check-retired-tests.mjs',
     'scripts/remote-only-doctor.mjs','scripts/remote-only-ci-scope.mjs',

@@ -80,9 +80,10 @@ test('Canvas rejection reasons classify stale style, physical scene and source i
     styleRevision:3,surfaceQuality:'canonical'};
   const factory=new Function('lastVisualFrame','currentCanvasPresentationKey','geometryRevisionTracker',
     'canvasStyleRevision','surfacePresentation','canvasWorkerFrameMatchesPhysical','getPhysicalContextState',
+    'currentCanvasPhysical',
     source.slice(begin,end)+';return canvasFrameRejectionReason;');
   const make=()=>factory(map,()=> 'current',{committedRevision:()=>geom},style,
-    {quality},()=>physical,()=>({}));
+    {quality},()=>physical,()=>({}),()=>({context:{ready:true}}));
   assert.equal(make()(initial),'');
   assert.equal(make()({...initial,frameId:3}),'',
     'a scheduling-only frameId must not discard an identical physical picture');

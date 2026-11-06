@@ -50,8 +50,8 @@ test('Canvas raw physical packets preserve every ring, hole, water revision and 
   assert.notEqual(revised[0].sourceKey,first[0].sourceKey);
   const changed=a.delta(revised,'scene');
   assert.equal(changed[0].geometryRevision,'land-v10');
-  assert.equal(changed[0].ringCoordinates,first[0].ringCoordinates,
-    'different physical revisions can still reuse immutable exact coordinate storage');
+  assert.equal(Object.hasOwn(changed[0],'ringCoordinates'),false,
+    'a revision-only metadata change reuses identical immutable geometry bytes');
   assert.deepEqual(a.physicalPolygons(null),[]);
 });
 test('malformed raw physical geometry cannot become an admitted Canvas packet',()=>{
