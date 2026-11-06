@@ -317,7 +317,14 @@ export function createViewerMap({ runtimeContext,owners,element, canvas, labelLa
   return Object.freeze({
     async setSession(next,{view=null,prepareView=null}={}){
       if(next!==documentSession)throw new Error('Map output requires its single document session.');
-      session=next;projectSession.setViewingPresentation(view||{},{reset:true});if(prepareView)await prepareView();await update();
+      session=next;
+      projectSession.setViewingPresentation(view||{},{reset:true});
+      if(prepareView)await prepareView();
+      // Validate the restored visibility against this admitted document before
+      // its one canonical scene build; Core catalog/selection pruning follows
+      // outside the replacement command transaction.
+      projectSession.pruneViewingItems(objectCatalog.presentationCatalog());
+      await update();
     },
     finishInitialPreview:initialPreview.finish,
     cancelInitialReveal:initialPreview.dispose,

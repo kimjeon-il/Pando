@@ -26,10 +26,9 @@ export function createViewerInitialPresentation({onPresented = () => {}} = {}) {
     },
     observe(presentation, generation) {
       if (!pending || disposed || presented) return false;
-      // 'limited' has the same fully presented, generation-matched map
-      // certificate as 'ready'; it only reports a physical raster resolution
-      // ceiling. Do not leave the neutral loading ornament over real countries.
-      const painted = presentation.status === 'ready' || presentation.status === 'limited';
+      // A committed country frame is the presentation certificate. Optional
+      // DEM availability and its combined status cannot hold the first map.
+      const painted = presentation.mapReady === true;
       pending.readyGeneration = painted
         && Number.isSafeInteger(generation) && generation > 0 ? generation : null;
       return publish(pending);

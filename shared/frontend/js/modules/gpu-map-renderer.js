@@ -189,6 +189,24 @@ export function createGpuMapRenderer(deps) {
     let hydroUploadScheduler = null;
     let stagingSequence = 0;
     let pendingCanonicalCommit = null;
+    // One generation-scoped map publication gate, resolved only by the existing
+    // rendering-domain's accepted visual-frame commit.
+    const mapPresentationWaiters = new Set();
+    let committedMapGeneration = -1;
+    const staleMapPresentation = reason => Object.assign(new Error(reason), { name:'AbortError',cancelled:true });
+    function rejectMapPresentationWaiters(error) {
+      for (const waiter of mapPresentationWaiters) waiter.reject(error);
+      mapPresentationWaiters.clear();
+    }
+    function waitForMapPresentation(generation) {
+      if (disposed || Number(generation) !== projectGeneration)
+        return Promise.reject(staleMapPresentation('Project map presentation was superseded.'));
+      if (committedMapGeneration === projectGeneration && mapReadiness().mapReady) return Promise.resolve(true);
+      return new Promise((resolve,reject) => {
+        mapPresentationWaiters.add({generation,resolve,reject});
+        invalidateGpuFrame('await-current-map-frame');
+      });
+    }
     let temporalPresentation = null;
     let temporalCanvas = null;
 
@@ -2699,6 +2717,8 @@ export function createGpuMapRenderer(deps) {
       previewFrameWaiters.clear();
       pendingCanonicalCommit?.reject(Object.assign(new Error('Project replaced during canonical commit'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
+      rejectMapPresentationWaiters(staleMapPresentation('Project replaced before its map was presented.'));
+      committedMapGeneration = -1;
       uploadScheduler?.cancelAll();
       const requested = Number(generation);
       projectGeneration = Number.isFinite(requested) && requested > projectGeneration
@@ -5933,6 +5953,8 @@ export function createGpuMapRenderer(deps) {
       temporalPresentation = null;
       pendingCanonicalCommit?.reject(Object.assign(new Error('Renderer disposed'), { name: 'AbortError' }));
       pendingCanonicalCommit = null;
+      rejectMapPresentationWaiters(staleMapPresentation('Renderer disposed before map publication.'));
+      committedMapGeneration = -1;
       // The rendering domain owns the scheduler; the renderer only cancels its jobs.
       uploadScheduler?.cancelAll();
       stopPatchWorkerJobs('renderer-disposed');
@@ -5960,7 +5982,10 @@ export function createGpuMapRenderer(deps) {
       dispose, attach,
       mapReadiness, retryMapPreparation,
       failMapPreparation: error => { canonicalPromotionError = String(error?.message || error);
-        failTemporalPresentation(error instanceof Error ? error : new Error(canonicalPromotionError)); publishMapReadiness(); },
+        const failure = error instanceof Error ? error : new Error(canonicalPromotionError);
+        failTemporalPresentation(failure);
+        rejectMapPresentationWaiters(failure);
+        publishMapReadiness(); },
       initialize, replaceBuiltInMesh, renderFrame, requestPreparedCanvasFrame,
       canRenderBlockedCanvasBackground, renderBlockedCanvasBackground, renderInteraction, renderPreservedProjectFrame,
       resize, verifyLayout, pick, pickHydro, pickHydroAsync,
@@ -5979,7 +6004,7 @@ export function createGpuMapRenderer(deps) {
       setInteractionStyle, getCountryInteractionBoundaryData,
       setSelectionPass, setRenderScene, setInteractionState, invalidateSceneCache,
       setFramePresentationListener,
-      waitForPreviewFrame, waitForTemporalPresentation,
+      waitForPreviewFrame, waitForTemporalPresentation, waitForMapPresentation,
       canPresentVisualFrame,
       getSelectionRenderResult: () => lastSelectionRenderResult,
       getRenderDevice: () => renderDevice,
@@ -6000,6 +6025,14 @@ export function createGpuMapRenderer(deps) {
       },
       commitVisualFrame: frame => {
         if (!canPresentVisualFrame(frame)) return;
+        if (frame?.projectGeneration === projectGeneration && mapReadiness().mapReady) {
+          committedMapGeneration = projectGeneration;
+          for (const waiter of mapPresentationWaiters) {
+            if (waiter.generation !== projectGeneration) continue;
+            mapPresentationWaiters.delete(waiter);
+            waiter.resolve(true);
+          }
+        }
         if (temporalPending()) {
           temporalPresentation.presented = true;
           temporalCanvas = null;

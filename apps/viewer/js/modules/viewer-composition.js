@@ -223,13 +223,17 @@ export async function composeViewer({ productMode, meta }) {
     if(request!==projectDomain.getOpenRevision()){firstMap.cancel();return false;}
     const presentedGeneration=projectDomain.getGeneration();
     firstMap.accept(presentedGeneration);
-    // replaceSnapshot.setSession already awaited the physical land asset.
+    // setSession already built the scene with the pruned viewing state.
+    // Admit remaining Core/selection catalogs after the replacement transaction.
     await map.objectCatalog.pruneLayerItemVisibility();
-    await map.update();
-    window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     if(request!==projectDomain.getOpenRevision()||(options?.isCurrent?.()===false)
       ||projectDomain.getGeneration()!==presentedGeneration)return false;
-    // This status reflects the accepted map, not search hydration or extras.
+    // Completion belongs to the actual current-generation bitmap/frame, not
+    // the decoded document, a queued repaint or optional DEM completion.
+    await map.renderer.waitForMapPresentation(presentedGeneration);
+    if(request!==projectDomain.getOpenRevision()||(options?.isCurrent?.()===false)
+      ||projectDomain.getGeneration()!==presentedGeneration)return false;
+    window.dispatchEvent(new CustomEvent('pandolab:project-changed'));
     status.dataset.ready='true';
     presentViewerLoadStatus(status,'지도 준비 완료.');
     postPresentation.schedule(()=>request===projectDomain.getOpenRevision()
