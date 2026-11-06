@@ -944,6 +944,8 @@ export function createRenderingDomain({
     onFrameComplete,
     renderers: {
       preservedFrame: () => gpuMapRenderer.renderPreservedProjectFrame(),
+      canRenderBlockedBackground: () => gpuMapRenderer?.canRenderBlockedCanvasBackground?.() === true,
+      blockedBackground: frame => gpuMapRenderer.renderBlockedCanvasBackground(frame),
       beginFrame,
       view: frame => {
         const result = renderPass('view', frame);
