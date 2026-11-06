@@ -897,11 +897,14 @@ function canvasFallbackWorkerMain() {
 
     function scheduleHydroRender() {
       if (!lastRenderMessage || hydroRenderTimer) return;
+      // A hydro/terrain-adjacent update must not monopolize this worker with
+      // another full globe redraw immediately before a newer camera frame.
+      // Coalesce resource notifications for one animation-frame interval.
       hydroRenderTimer = setTimeout(() => {
         hydroRenderTimer = 0;
         try { render(lastRenderMessage); }
         catch (error) { self.postMessage({ type: 'error', message: error?.message || String(error) }); }
-      }, 0);
+      }, 16);
     }
 
     function connectHydroPort(port) {
@@ -1257,6 +1260,9 @@ function canvasFallbackWorkerMain() {
         pumpTerrainFetchQueue();
       } else if (message.type === 'view' || message.type === 'render') {
         try {
+          // The explicit view already contains every admitted resource. Drop
+          // the redundant delayed background paint, not the newer view.
+          if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
           const incomingRevision = Number(message.viewRevision || message.revision || 0);
           if (incomingRevision < viewRevision) {
             self.postMessage({ type: 'frame', renderRequestId: message.renderRequestId,

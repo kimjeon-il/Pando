@@ -32,7 +32,7 @@ test('Canvas chooses software backing only when hardware acceleration is unavail
   assert.equal(evaluate(class {getContext(){throw Error('unavailable');}}),true);
 });
 
-function canvasTerrainRuntime({ expectDem = false } = {}) {
+function canvasTerrainRuntime({ expectDem = false, timerPorts = null } = {}) {
   const messages = [], requests = [], drawn = [], paths = [], substrates = [], triangleCopies = [];
   class Canvas {
     constructor(width, height) { this.width = width; this.height = height; this.ctx = null; }
@@ -92,7 +92,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
   new Function('self', terrainCoreSource)(scope);
   scope.PandoLabResourceUpdatePolicy = resourcePolicy;
   new Function('self', 'importScripts', 'OffscreenCanvas', 'fetch', 'createImageBitmap',
-    'ImageData', 'performance', 'setTimeout', workerSource.replace('self.onmessage = event => {',
+    'ImageData', 'performance', 'setTimeout', 'clearTimeout', workerSource.replace('self.onmessage = event => {',
       `self.drawTerrainTriangle = drawTexturedTriangle;
       self.traceTerrainGrid = (spec, projection, message) => {
         const oldDraw = drawTexturedTriangle, oldManifest = terrainManifest, triangles = [];
@@ -104,7 +104,7 @@ function canvasTerrainRuntime({ expectDem = false } = {}) {
       self.currentRenderState = () => lastRenderMessage; self.onmessage = event => {`))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
-    { now: () => 1 }, () => 0);
+    { now: () => 1 }, timerPorts?.setTimeout || (() => 0), timerPorts?.clearTimeout || (() => {}));
   const country = (id, east = 1) => ({ id, type: 'Feature', properties: {},
     geometry: { type: 'Polygon', coordinates: [[[0, 0], [east, 0], [east, 1], [0, 1], [0, 0]]] } });
   const features = [country('VISIBLE'), country('HIDDEN')];
@@ -454,4 +454,19 @@ test('Canvas neighbour prefetch does not redraw the ready viewport terrain', asy
   const neighbour=h.find('/2/0-0.webp');assert.ok(neighbour);
   await h.deliver(neighbour);h.drawn.length=0;h.render();
   assert.equal(h.drawn.length,0,'offscreen prefetch must not trigger a full terrain repaint');
+});
+
+test('P7 Canvas resource redraws coalesce and an explicit newer view cancels the obsolete scheduled paint',async()=>{
+  const timers=[],setTimeout=(fn,ms)=>{const token={fn,ms,cancelled:false};timers.push(token);return timers.length;};
+  const clearTimeout=id=>{timers[id-1].cancelled=true;};
+  const h=canvasTerrainRuntime({timerPorts:{setTimeout,clearTimeout}});await settle();h.render();
+  const original=h.messages.filter(message=>message.type==='frame').length;
+  h.send({type:'hydro-edits',revision:7,features:[]});
+  h.send({type:'hydro-edits',revision:8,features:[]});
+  assert.equal(timers.length,1,'several resource updates require one coalesced paint');
+  assert.equal(timers[0].ms,16,'a frame-sized window allows the next camera event to take priority');
+  h.render({revision:2,viewRevision:2});
+  assert.equal(timers[0].cancelled,true,'explicit view cancels the delayed duplicate redraw');
+  assert.equal(h.messages.filter(message=>message.type==='frame').length,original+1,
+    'a current view still renders exactly once and is never skipped');
 });
