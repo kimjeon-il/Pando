@@ -37,6 +37,9 @@ test('Web publishes sharp ocean and land before countries, then reuses prepared 
       const state = await stats();
       return state.countriesPublishedGeneration === state.projectGeneration;
     }, { timeout: 60000 }).toBe(true);
+    // User-visible map readiness is independent of optional DEM completion.
+    // Observe both milestones separately without weakening either invariant.
+    await expect.poll(async()=>(await stats()).terrainReady,{timeout:60000}).toBe(true);
     const cold=await stats();
     expect(cold.firstBackgroundFrameMs).toBeLessThan(cold.firstCountryPublishedMs);
     expect(cold.terrainReady).toBe(true);

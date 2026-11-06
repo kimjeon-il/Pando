@@ -34,7 +34,12 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
   const objectCatalog={...controller(),listObjectSearchItems:()=>[],invalidateObjectPresentation:noop,pruneLayerItemVisibility:async()=>{}};
   const objectQuery={layerItemObjectRef:noop,focusObjectRef:noop,objectRefExists:()=>true,objectDisplayInfo:()=>({name:'test'})};
   const map={finishInitialPreview:noop,cancelInitialReveal:noop,viewState:{},objectCatalog,objectQuery,objectPresentation:{LAYER_SEARCH_GROUP_KEYS:[]},navigation:{selectObjectSearchItem:noop},
-    renderer:{},refreshAppearance:noop,loadPhysicalResources:noop,capturePresentation:()=>({zoom:7}),refreshSelection:noop,
+    renderer:{waitForMapPresentation:async generation=>{
+      // The fake map acknowledges the current picture at the same boundary as
+      // the real renderer's visual commit, not when the document merely opens.
+      if(!suppressReadyCertificate)preparationObserver({mapReady:true,status:'ready'},generation);
+      return true;
+    }},refreshAppearance:noop,loadPhysicalResources:noop,capturePresentation:()=>({zoom:7}),refreshSelection:noop,
     prepareBuiltinProject:async()=>{reads++;if(mapFailure&&reads===1)throw network();return {};},loadPhysicalLandMask:async()=>{},
     update:async()=>{},dispose:()=>disposed++,cancelSearch:noop,searchPlaces:noop,closeObjectChooser:noop};
   const bindings={presentViewerLoadStatus,window,document,CustomEvent,URL,URLSearchParams,structuredClone,console:{warn:noop,error:noop},
@@ -52,7 +57,7 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     installTimelineControls:()=>noop,createAppObjectSearchController:()=>objectCatalog,createSemanticIcon:noop,createEmptyState:noop,
     createSelectionDomain:controller,coreSelectionRefToWeb:noop,webSelectionRefToCore:noop,createDocumentSession:()=>session,
     createProjectDomain:()=>({...controller(),getOpenRevision:()=>openRevision,getGeneration:()=>openRevision,isOpening:()=>false,
-      open:async reader=>{openRevision++;await reader();if(!suppressReadyCertificate)preparationObserver({status:'ready'},openRevision);return true;}}),
+      open:async reader=>{openRevision++;await reader();return true;}}),
     createInitialDocument:()=>snapshot,createViewerMap:options=>{maps++;preparationObserver=options.onMapPreparationStatus;return map;},createFileController:ports=>{openUserProject=ports.openProject;return controller();},readProjectFile:noop,
     createMapSettings:controller,layerStyle:noop,DISTRIBUTION_RENDER_MODES:{},createSurfaceController:noop,createPreferencesDialog:noop,
     createBuiltinMonthClock:options=>({...controller(),month:()=>null,suspend:()=>()=>true,isAutomatic:()=>!manual,
