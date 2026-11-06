@@ -1165,6 +1165,17 @@ function canvasFallbackWorkerMain() {
         terrainFetchConcurrency = Math.max(1, Math.min(4, Number(message.terrainFetchConcurrency || 2)));
         if(message.terrainEnabled!==false){loadTerrainManifest(message.terrainManifestUrl);loadDemManifest(message.terrainDemManifestUrl);}
         self.postMessage({ type: 'ready' });
+      } else if (message.type === 'reset-generation') {
+        const nextGeneration = Number(message.projectGeneration);
+        if (!Number.isSafeInteger(nextGeneration) || nextGeneration <= projectGeneration) return;
+        if (hydroRenderTimer) { clearTimeout(hydroRenderTimer); hydroRenderTimer = 0; }
+        // Country, scene and physical packets belong to the old project.
+        // Terrain tile caches remain reusable across generations.
+        projectGeneration = nextGeneration;
+        geometryRevision = 0; viewRevision = 0;
+        features = []; countrySharedBoundary = null;
+        lastRenderMessage = null; retainedPhysicalLandPacket = null;
+        hydroEditFeatures = []; hydroEditRevision = -1;
       } else if (message.type === 'retry-terrain') {
         terrainFailures.clear(); demFailures.clear();
         terrainManifestFailure = false; demManifestAttempts = 0;
