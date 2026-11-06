@@ -702,9 +702,7 @@ function canvasFallbackWorkerMain() {
           else yield* drawGlobeTerrainTile(spec, tile[channel], projection, message, dpr, demLevel.id === 0);
         }
       };
-      const completeBase = style === 'physical' && terrainComplete
-        && (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint)
-        && demSpecs.every(spec => demTiles.has(spec.key));
+      const completeBase = style === 'physical' && terrainComplete;
       if (completeBase) {
         if (!terrainBase || terrainBaseKey !== baseKey) {
           const target = context;
@@ -717,7 +715,6 @@ function canvasFallbackWorkerMain() {
               context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
               clipGlobe();
               yield* drawRaster();
-              if (demLevel) yield* drawDem('ocean');
             } finally { context.restore(); }
           } finally { context = target; }
           terrainBase = base;
@@ -736,11 +733,16 @@ function canvasFallbackWorkerMain() {
             context.globalAlpha = 1;
             context.filter = message.darkTheme ? 'brightness(0.84)' : 'none';
             clipGlobe();
-            clipLand();
-            yield* drawDem('land');
+            yield* drawDem('ocean');
+            context.save();
+            try {
+              clipLand();
+              yield* drawDem('land');
+            } finally { context.restore(); }
           } finally { context.restore(); }
         }
-        return true;
+        return terrainComplete && (!terrainDemManifestUrl || !!terrainDemManifest && !!terrainTint)
+          && demSpecs.every(spec => demTiles.has(spec.key));
       }
       context.save();
       try {
@@ -1128,10 +1130,14 @@ function canvasFallbackWorkerMain() {
         const landShapes = self.PandoLabCanvasSceneComposition.generalLandShapes(message.scenePolygons || []);
         const terrainPlan = terrainRenderPlan(message, projection, width, height, dpr);
         scheduleTerrainDemand(terrainPlan);
-        const substrateKey = JSON.stringify([projectedPathDependencies.preparation, pixelWidth, pixelHeight, dpr, message.terrainDpr,
+        // Raster projection depends only on the camera/raster source. A DEM
+        // tile arriving later must composite onto that raster without drawing
+        // the same globe triangles again.
+        const rasterBaseKey = JSON.stringify([projectedPathDependencies.preparation, pixelWidth, pixelHeight, dpr, message.terrainDpr,
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
-          theme.baseLandAlpha, theme.defaultLand, terrainManifest?.version, terrainDemManifest?.version,
-          terrainPlan?.drawSpecs.filter(spec => terrainTiles.has(spec.key)).map(spec => spec.key),
+          theme.baseLandAlpha, theme.defaultLand, terrainManifest?.version,
+          terrainPlan?.drawSpecs.filter(spec => terrainTiles.has(spec.key)).map(spec => spec.key)]);
+        const substrateKey = JSON.stringify([rasterBaseKey, terrainDemManifest?.version,
           terrainPlan?.demSpecs.filter(spec => demTiles.has(spec.key)).map(spec => spec.key)]);
         const reuseSubstrate = substrate && substrateState?.key === substrateKey
           && landShapes.length === substrateState.shapes.length
@@ -1158,7 +1164,7 @@ function canvasFallbackWorkerMain() {
           terrainComplete = false;
           return;
         }
-        terrainComplete = yield* renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan, substrateKey);
+        terrainComplete = yield* renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan, rasterBaseKey);
         if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
         const substrateContext = substrate.getContext('2d', { willReadFrequently: softwareCanvas });
         substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);

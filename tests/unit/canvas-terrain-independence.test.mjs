@@ -108,6 +108,11 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
         terrainTint = {width:1,height:1,data:new Uint8ClampedArray(4)};
         requestLatestTerrainDemand();
       };
+      self.stageDemTileForTest = key => {
+        const image = {bitmap:true,probeDem:true,width:1026,height:1026};
+        demTiles.set(key,{land:image,ocean:image,political:image,bytes:1026*1026*12,lastUsed:1});
+        demCacheBytes += 1026*1026*12;
+      };
       self.onmessage = event => {`))(
     scope, () => {}, Canvas, fetch, async () => ({ width: 3, height: 3, close() {} }),
     class ImageData { constructor(data, width, height) { Object.assign(this, { data, width, height }); } },
@@ -141,6 +146,7 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
     messages, requests, drawn, paths, substrates, features, land, send, triangleCopies,
     currentRenderState: () => scope.currentRenderState(),
     stageDem: manifest => scope.stageDemForTest(manifest),
+    stageDemTile: key => scope.stageDemTileForTest(key),
     traceGrid: (...args) => scope.traceTerrainGrid(...args),
     drawTriangle: points => scope.drawTerrainTriangle({ probeTriangle: true }, [[0, 0], [1, 0], [0, 1]], points, 1),
     render: extra => send({ ...frame, ...extra, type: 'view' }),
@@ -165,6 +171,26 @@ test('DEM manifest completion schedules visible detail immediately without anoth
     'DEM detail must be requested when tint/manifest becomes ready, not on the next paint');
   assert.equal(h.messages.filter(message => message.type === 'frame').length, before,
     'resource scheduling cannot certify an unpainted bitmap');
+});
+
+test('ready DEM tiles reuse a camera-stable raster substrate without repainting globe triangles', async () => {
+  const h=canvasTerrainRuntime(); await settle();
+  const view={terrainDpr:1,physicalSettings:{terrainVisible:true,terrainStyle:'physical'},
+    renderProjection:{scale:100,translate:[500,300]}};
+  h.render(view);
+  for (const request of [...h.requests]) if (!request.completed && /\/0\//.test(request.url)) await h.deliver(request);
+  h.render(view);
+  assert.equal(h.messages.at(-1).terrainComplete,true);
+  const dem={...manifest,version:'0.13.3',urlTemplate:'https://example.test/dem/{level}/{column}-{row}.webp'};
+  h.stageDem(dem);
+  h.stageDemTile('0/0-0');
+  h.drawn.length=0;
+  h.render(view);
+  assert.ok(h.drawn.length>0,'the detailed DEM is actually composited');
+  assert.ok(h.drawn.every(args=>args[0]?.probeDem),
+    'raster base copies must stay cached through DEM-only resource changes');
+  assert.equal(h.messages.at(-1).terrainComplete,false,
+    'one detailed tile cannot certify the complete DEM target');
 });
 
 test('Canvas prepares raster tiles without tessellating an uncertified zero-land frame',async()=>{
