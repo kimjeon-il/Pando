@@ -4514,9 +4514,13 @@ export function createGpuMapRenderer(deps) {
         && surfacePresentation.quality === 'pending' && !temporalPending();
     }
     function currentCanvasPhysical() {
+      // Recovery and standalone renderer fixtures may omit optional preview
+      // providers. Missing data cannot satisfy the physical certificate.
       return selectCanvasPhysicalSource({
-        actual:getPhysicalLand(),state:getPhysicalContextState(),
-        preview:getInitialLandPreview(),sourceRevision:getPhysicalLandSourceRevision(),
+        actual:typeof getPhysicalLand === 'function' ? getPhysicalLand() : null,
+        state:getPhysicalContextState(),
+        preview:typeof getInitialLandPreview === 'function' ? getInitialLandPreview() : null,
+        sourceRevision:typeof getPhysicalLandSourceRevision === 'function' ? getPhysicalLandSourceRevision() : null,
         temporalPending:temporalPending(),
       });
     }

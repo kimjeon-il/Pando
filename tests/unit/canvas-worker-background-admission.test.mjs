@@ -190,5 +190,6 @@ test('pending Canvas background requires no country overlays or temporal shortcu
   assert.match(style,/backgroundOnly = surfacePresentation\.quality === 'pending'/);
   assert.match(style,/backgroundOnly \? \[\] : canvasSceneStrokes\(\)/);
   assert.match(style,/backgroundOnly \? \[\] : renderInteractionState\.genericFillItems/);
-  assert.match(src,/message\.backgroundOnly === true[\s\S]*?!temporalPending\(\)/);
+  assert.match(src,/function canvasBackgroundEligible\(message\)[\s\S]*?message\?\.backgroundOnly === true[\s\S]*?!temporalPending\(\)/);
+  assert.match(src,/if \(canvasBackgroundEligible\(message\)\)/);
 });

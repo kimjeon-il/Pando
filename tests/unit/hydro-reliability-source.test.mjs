@@ -215,7 +215,8 @@ test('completed hydro renders before canonical country boundaries in every nativ
   assert.ok(canvas.includes("'country-boundary': () => renderCanvasCountryBoundaries(canvasPath, theme, countryFeatures)"));
   assert.ok(gpu.includes('canvasPath(countryOutlineFeature(feature))'));
   const workerRender = worker.slice(worker.search(/function render\(/), worker.indexOf('self.onmessage'));
-  assert.ok(gpu.includes("visualOrder: { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') }"));
+  assert.ok(gpu.includes(": { base: mapVisualOrder('base'), hydro: mapVisualOrder('hydro') }"),
+    'full Canvas country frames retain the canonical hydro/country order');
   assert.ok(workerRender.includes('message.visualOrder.base'));
   assert.ok(workerRender.includes('renderHydroPass(message, projection, dpr, role)'));
   assert.ok(workerRender.includes('renderCountryBoundaries(message, projection, dpr)'));
