@@ -21,6 +21,7 @@ function createAcceptedViewerSession(readRows) {
     applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
     modelValidation:{normalizeLayerPresentation:value=>value},
     uiFactoriesA:{createAtomicMapStateController:()=>({})},
+    physicalConfig:{PHYSICAL_DATASET:'synthetic-terrain'},
   });
   session.initializeMapWorkScheduler();
   const documentModel={

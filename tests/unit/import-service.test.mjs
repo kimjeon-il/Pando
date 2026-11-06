@@ -320,9 +320,9 @@ test('GIS imports ignore feature metadata while project packages preserve separa
   const collection = { type: 'FeatureCollection', features: [country('AAA', 'Alpha')] };
   const entities = normalizeCountryCollection(collection).features;
   const restored = applyImportedPackageAssets({
-    countryAssets: [{ countryId: 'AAA', mimeType: 'image/png', base64: 'abc' }],
+    countryAssets: [{ countryId: 'AAA', mimeType: 'image/png', base64: 'YWJj' }],
   }, [...entities, normalizeCountryCollection({ features: [country('BBB')] }).features[0]]);
-  assert.equal(restored.find(entity => entity.id === 'AAA').properties.metadata.flagDataUrl, 'data:image/png;base64,abc');
+  assert.equal(restored.find(entity => entity.id === 'AAA').properties.metadata.flagDataUrl, 'data:image/png;base64,YWJj');
   assert.equal(restored.find(entity => entity.id === 'BBB').properties.metadata.flagDataUrl, undefined);
   assert.deepEqual(appendImportedSourceInfo({ id: 'old' }, { id: 'new' }, () => 'now'), {
     mergedAt: 'now',

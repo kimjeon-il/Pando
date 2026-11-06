@@ -28,11 +28,16 @@ test('visible uploads make bounded progress during a held gesture without releas
   c.scheduler.noteInput(false);c.tick(499);assert.equal(background,0);c.tick(1);await later;c.scheduler.dispose();
 });
 
-test('visible uploads do not inherit the 500ms quiet delay and yield to pending input',async()=>{
-  const c=clock();let calls=0;
+test('visible uploads progress during pending input; optional uploads retain the quiet-period gate',async()=>{
+  const c=clock();let calls=0,background=0;
   c.scheduler.noteInput(false);c.pending(true);
   const done=c.scheduler.enqueueUpload({key:'visible',allowDuringInteraction:true,step:()=>({done:++calls>0})});
-  c.tick();assert.equal(calls,0);c.pending(false);c.tick();assert.equal(calls,1);await done;c.scheduler.dispose();
+  const deferred=c.scheduler.enqueueUpload({key:'optional',step:()=>({done:++background>0})});
+  c.tick();assert.equal(calls,1,'current-view tile uploads cannot starve during pending input');
+  assert.equal(background,0,'unrelated uploads still wait for an idle interval');
+  c.pending(false);c.tick(499);assert.equal(background,0);
+  c.tick(1);await Promise.all([done,deferred]);
+  assert.equal(background,1);c.scheduler.dispose();
 });
 
 test('hidden contexts and generation cancellation still prevent visible uploads',async()=>{

@@ -248,7 +248,8 @@ test('each application runner execution receives the same selected native setup 
     }
   }
   assert.deepEqual(consumers.sort(),['application-architecture.yml','application-architecture.yml','place-runtime.yml',
-    'remote-development-p1.yml','remote-preview-p3.yml','ui-architecture.yml']);
+    'remote-development-p1.yml','remote-preview-p3.yml','remote-preview-p3.yml','ui-architecture.yml'],
+    'both independent P3 browser and contract runners must prepare the current native inputs');
 });
 
 test('native source-manifest inputs also participate in consumer selection',async()=>{

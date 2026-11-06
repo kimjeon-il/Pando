@@ -178,6 +178,17 @@
       "reason": "Derive display rows from the accepted territorial projection; no canonical document writes."
     },
     {
+      "file": "shared/frontend/js/modules/project-package-assets.js",
+      "functions": [
+        "validateImportedProjectPackage"
+      ],
+      "access": [
+        "read"
+      ],
+      "owner": "Detached GeoPackage identity validation",
+      "reason": "Read the untrusted, detached imported territorialEntities array only to verify current project JSON shape before C++ admission; do not mutate or resolve territorial storage."
+    },
+    {
       "file": "shared/frontend/js/modules/project-file-reader.js",
       "functions": [
         "readProjectFile"
