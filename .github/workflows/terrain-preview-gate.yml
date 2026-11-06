@@ -10,6 +10,11 @@ on:
       - 'tools/*terrain-preview*'
       - 'tests/**/terrain-preview*'
       - 'shared/frontend/js/modules/gpu-map-renderer.js'
+      - 'apps/viewer/js/modules/viewer-map.js'
+      - 'apps/viewer/js/modules/viewer-composition.js'
+      - 'apps/viewer/js/modules/viewer-initial-presentation.js'
+      - 'tests/browser/viewer-project-open.spec.mjs'
+      - 'tests/browser/builtin-temporal-transition.spec.mjs'
       - 'shared/frontend/js/modules/gpu-base-scene-pass.js'
       - 'shared/frontend/js/modules/startup-readiness.js'
       - 'shared/frontend/js/workers/canvas-render-worker.js'
@@ -27,6 +32,11 @@ on:
       - 'tools/*terrain-preview*'
       - 'tests/**/terrain-preview*'
       - 'shared/frontend/js/modules/gpu-map-renderer.js'
+      - 'apps/viewer/js/modules/viewer-map.js'
+      - 'apps/viewer/js/modules/viewer-composition.js'
+      - 'apps/viewer/js/modules/viewer-initial-presentation.js'
+      - 'tests/browser/viewer-project-open.spec.mjs'
+      - 'tests/browser/builtin-temporal-transition.spec.mjs'
       - 'shared/frontend/js/modules/gpu-base-scene-pass.js'
       - 'shared/frontend/js/modules/startup-readiness.js'
       - 'shared/frontend/js/workers/canvas-render-worker.js'
@@ -79,6 +89,8 @@ jobs:
           pnpm exec playwright install --with-deps chromium
           pnpm exec playwright test tests/browser/terrain-preview.spec.mjs --output=terrain-preview-browser
           pnpm exec playwright test tests/browser/map-startup-publication.spec.mjs --grep 'WebGL publishes an actual physical country frame before optional terrain detail resolves' --output=webgl-initial-browser
+          pnpm exec playwright test tests/browser/builtin-temporal-transition.spec.mjs --grep 'webgl 1280px dedicated temporal path|Canvas user-file opening retains full document admission after a builtin delta transition' --workers=1 --output=viewer-date-browser
+          pnpm exec playwright test tests/browser/viewer-project-open.spec.mjs --grep 'viewer opens the real editor GeoPackage' --output=viewer-gpkg-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -87,3 +99,5 @@ jobs:
             terrain-preview-evidence.json
             terrain-preview-browser
             webgl-initial-browser
+            viewer-date-browser
+            viewer-gpkg-browser
