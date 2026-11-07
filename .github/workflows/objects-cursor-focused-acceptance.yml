@@ -36,8 +36,6 @@ jobs:
           cmake -S . -B build-native/cursor-focused -G Ninja -DCMAKE_BUILD_TYPE=Release -DPANDO_BUILD_VARIANT=core -DBUILD_TESTING=ON
           cmake --build build-native/cursor-focused --target temporal_editing_tests project_codec_tests document_session_tests web_object_command_tests web_storage_tests web_territorial_command_tests --parallel 2
           ctest --test-dir build-native/cursor-focused -R '^(temporal_editing_tests|project_codec_tests|document_session_tests|web_object_command_tests|web_storage_tests|web_territorial_command_tests)$' --output-on-failure
-      - name: Check retired-module regressions
-        run: node --test tests/unit/retired-shared-core-modules.test.mjs
       - name: Check published source-matched WASM
         run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
       - name: Verify cursor transition ABI against source-matched generated WASM

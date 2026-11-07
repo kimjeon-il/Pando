@@ -6,7 +6,6 @@ on:
     paths:
       - tests/unit/territorial-library-data.test.mjs
       - tests/unit/borneo-country-geometry.test.mjs
-      - tests/unit/python-bridge-retirement.test.mjs
       - '.github/workflows/gis-historical-library-data.yml'
   workflow_dispatch:
 

@@ -8,7 +8,7 @@ on:
       - 'tests/unit/builtin-country-deployment.test.mjs'
       - 'tests/unit/builtin-country-parts.test.mjs'
       - 'tests/integration/builtin-country-deployment.mjs'
-      - 'tests/browser/builtin-country-loading.spec.mjs'
+      - 'tests/browser/viewer-calendar.spec.mjs'
       - 'tools/builtin-country-storage.mjs'
       - 'tools/builtin-country-bytes.mjs'
       - 'shared/frontend/js/modules/builtin-country-files.js'
@@ -135,7 +135,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify current month, historical selection and no aggregate network request
         if: steps.reuse.outputs.verified != 'true'
-        run: pnpm exec playwright test tests/browser/builtin-country-loading.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep 'follows calendar rollover' --workers=1 --retries=0 --trace off
       - name: Publish only verified country files to the data work/gis branch
         if: inputs.activate == true || contains(github.event.head_commit.message, '[activate-country-files]')
         env:

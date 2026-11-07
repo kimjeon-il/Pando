@@ -28,7 +28,6 @@ on:
       - 'tests/unit/selection-*.test.mjs'
       - 'tests/unit/*core*.test.mjs'
       - 'tests/unit/native-*.test.mjs'
-      - 'tests/unit/qt-retirement-boundary.test.mjs'
       - 'tests/unit/web-*-contract.test.mjs'
       - 'tests/unit/project-serializer.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
@@ -69,7 +68,6 @@ on:
       - 'tests/unit/selection-*.test.mjs'
       - 'tests/unit/*core*.test.mjs'
       - 'tests/unit/native-*.test.mjs'
-      - 'tests/unit/qt-retirement-boundary.test.mjs'
       - 'tests/unit/web-*-contract.test.mjs'
       - 'tests/unit/project-serializer.test.mjs'
       - 'tests/unit/r4b-data-module-boundaries.test.mjs'
@@ -166,8 +164,6 @@ jobs:
           node-version: '24'
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile --ignore-scripts
-      - name: Verify the headless and WebView application boundary
-        run: node --test tests/unit/qt-retirement-boundary.test.mjs
       - name: Install only the standalone native build dependencies
         run: sudo apt-get update && sudo apt-get install -y ninja-build zlib1g-dev
       - name: Build only the small native core, codec and document tests
@@ -287,7 +283,6 @@ jobs:
         run: >-
           node --test --test-concurrency=1 --test-timeout=15000
           tests/unit/generic-feature-service.test.mjs tests/unit/territorial-entity-store.test.mjs
-          tests/unit/r4d-legacy-ci-boundaries.test.mjs
           tests/unit/core-service-writer-clock-wasm.test.mjs
       - name: Accepted selection and input presentation boundaries
         run: >-

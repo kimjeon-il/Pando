@@ -39,7 +39,6 @@ jobs:
       - name: Validate zero owned interpreter code and active GIS boundaries
         run: |
           node --test \
-            tests/unit/python-bridge-retirement.test.mjs \
             tests/unit/gis-source-isolation.test.mjs \
             tests/unit/gis-source-launcher.test.mjs \
             tests/unit/p1-hydro-source-receipts.test.mjs

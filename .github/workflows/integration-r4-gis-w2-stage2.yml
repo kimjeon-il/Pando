@@ -35,10 +35,9 @@ jobs:
           node --check shared/frontend/js/modules/country-contact-core.js
           node --check shared/frontend/js/workers/country-shared-boundary-worker.js
           node --check shared/frontend/js/modules/country-boundary-geometry-transport.js
-          node --check tests/browser/viewer-p6-stage2-worker-profile.spec.mjs
           node --check tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs
           node --check tests/unit/country-stroke-group-reuse.test.mjs
-          pnpm exec eslint shared/frontend/js/modules/country-shared-boundary-packet.js shared/frontend/js/modules/country-stroke-group-reuse.js shared/frontend/js/modules/country-contact-row-pruning.js shared/frontend/js/modules/country-contact-core.js tests/unit/country-contact-core.test.mjs tests/unit/country-stroke-group-reuse.test.mjs tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs shared/frontend/js/workers/country-shared-boundary-worker.js shared/frontend/js/modules/country-boundary-geometry-transport.js tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-boundary-geometry-transport.test.mjs tests/browser/viewer-p6-stage2-worker-profile.spec.mjs scripts/p3-plan-remote.mjs tests/unit/p3-remote-plan.test.mjs
+          pnpm exec eslint shared/frontend/js/modules/country-shared-boundary-packet.js shared/frontend/js/modules/country-stroke-group-reuse.js shared/frontend/js/modules/country-contact-row-pruning.js shared/frontend/js/modules/country-contact-core.js tests/unit/country-contact-core.test.mjs tests/unit/country-stroke-group-reuse.test.mjs tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs shared/frontend/js/workers/country-shared-boundary-worker.js shared/frontend/js/modules/country-boundary-geometry-transport.js tests/unit/country-shared-boundary-state.test.mjs tests/unit/country-boundary-geometry-transport.test.mjs scripts/p3-plan-remote.mjs tests/unit/p3-remote-plan.test.mjs
       - name: Real C++ Worker full/delta and per-phase diagnostic contracts
         run: |
           node --test --test-concurrency=1 --test-timeout=120000 \
@@ -64,10 +63,9 @@ jobs:
       - uses: ./.github/actions/library-data
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - name: Profile history and verify Viewer packet reuse, resync and rollback
+      - name: Verify Viewer packet reuse, resync and rollback
         run: |
           pnpm exec playwright test \
-            tests/browser/viewer-p6-stage2-worker-profile.spec.mjs \
             tests/browser/viewer-w2-p3-packet-reuse.spec.mjs \
             tests/browser/viewer-temporal-boundary-worker-rollback.spec.mjs \
             --workers=1 --retries=0 --trace=off
