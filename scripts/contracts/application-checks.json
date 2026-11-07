@@ -1191,7 +1191,7 @@
     },
     {
       "tests": [
-        "tests/unit/renderer-responsiveness-source.test.mjs",
+        "tests/unit/terrain-interaction-streaming.test.mjs",
         "tests/unit/map-presentation-readiness.test.mjs"
       ],
       "inputs": [
