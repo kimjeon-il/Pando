@@ -227,3 +227,23 @@ test('disjoint historical islands bypass the Boolean engine without any coordina
   for(const island of pieces.slice(1))assert.ok(multi.some(row=>JSON.stringify(row)===JSON.stringify(island)),
     'unrelated islands must remain exactly unchanged');
 });
+
+test('independent cutter islands stay separated through large historical differences',()=>{
+  const boxAt=(w,e,s,n)=>[[[w,s],[e,s],[e,n],[w,n],[w,s]]];
+  const subject={...candidate('subject',0,1),geometry:{type:'Polygon',coordinates:boxAt(0,80,0,10)}};
+  const cutters=Array.from({length:16},(_,i)=>boxAt(2+i*4.5,3+i*4.5,3,5));
+  const peer={...candidate('peer',0,1),geometry:{type:'MultiPolygon',coordinates:cutters}};
+  const rules={...policy,replacements:[{targetEntityId:'subject',priorityEntityId:'peer',
+    validFrom:'1991-01-01',validTo:'1992-01-01'}]};
+  const calls=[],clipper={...globalThis.polygonClipping,
+    difference:(...args)=>{calls.push(args.map(item=>item.length));return globalThis.polygonClipping.difference(...args);}};
+  const result=module.adjustHistoricalTerritories([subject,peer],rules,clipper);
+  const actual=result.candidates.find(row=>row.entityId==='subject').geometry;
+  const multi=geometry=>geometry?.type==='Polygon'?[geometry.coordinates]:geometry?.coordinates||[];
+  const expected=globalThis.polygonClipping.difference(multi(subject.geometry),multi(peer.geometry));
+  assert.deepEqual(globalThis.polygonClipping.xor(multi(actual),expected),[]);
+  assert.equal(calls.length,16,'independent cutter islands must be subtracted independently');
+  assert.ok(calls.every(args=>args.length===2&&args[0]===1&&args[1]===1),
+    'each sweep handles one subject and one spatially connected cutter group');
+  assert.deepEqual(module.adjustHistoricalTerritories([peer,subject],rules,clipper),result);
+});

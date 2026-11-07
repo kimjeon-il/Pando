@@ -123,21 +123,40 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   // Exact strict comparison avoids pointless Boolean sweeps on touching borders.
   const touches=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
   const componentDifference=(left,right)=>{
-    // Clip independent subject polygons against only the overlapping portion
-    // of the already-computed peer intersection union. This bounds each
-    // Boolean sweep without reprocessing unrelated original boundaries.
-    // Reuse cutter bounds across independent subject components. Distant
-    // islands stay byte-identical and never enter the Boolean sweep.
-    const cutters=right.map(polygon=>({polygon,bounds:envelope(polygon)})),pieces=[];
+    // A ∖ (B1 ∪ B2) = (A ∖ B1) ∖ B2. Partition independent cutters by
+    // overlapping bounds before entering the Boolean sweep. This avoids
+    // mixing remote Swiss/European enclaves in a single 11-piece sweep;
+    // connected cutters still enter as one coherent operation.
+    // No coordinates are rounded and all geometry remains source-owned.
+    const cutters=right.map(polygon=>({polygon,bounds:envelope(polygon)}));
+    const parents=cutters.map((_,index)=>index);
+    const root=index=>{
+      while(parents[index]!==index){parents[index]=parents[parents[index]];index=parents[index];}
+      return index;
+    };
+    for(let i=0;i<cutters.length;i++)for(let j=i+1;j<cutters.length;j++){
+      if(touches(cutters[i].bounds,cutters[j].bounds))parents[root(j)]=root(i);
+    }
+    const groups=new Map();
+    for(let i=0;i<cutters.length;i++){
+      const key=root(i),entry=cutters[i];
+      if(!groups.has(key))groups.set(key,[]);
+      groups.get(key).push(entry);
+    }
+    const pieces=[];
     for(const polygon of left){
-      const bounds=envelope(polygon);
-      let near=null;
-      for(const cutter of cutters)if(touches(bounds,cutter.bounds)){
-        if(!near)near=[];
-        near.push(cutter.polygon);
+      let remaining=[polygon];
+      for(const group of groups.values()){
+        if(!remaining.length)break;
+        const next=[];
+        for(const part of remaining){
+          const bounds=envelope(part),near=group.filter(cutter=>touches(bounds,cutter.bounds));
+          if(!near.length)next.push(part);
+          else next.push(...clipper.difference([part],near.map(cutter=>cutter.polygon)));
+        }
+        remaining=next;
       }
-      if(near)pieces.push(...clipper.difference([polygon],near));
-      else pieces.push(polygon);
+      pieces.push(...remaining);
     }
     return pieces;
   };
