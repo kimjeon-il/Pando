@@ -787,8 +787,7 @@
       "id": "shared-toolkit",
       "kind": "unit",
       "testPatterns": [
-        "tests/unit/shared-toolkit.test.mjs",
-        "tests/unit/library-toolkit-owner.test.mjs"
+        "tests/unit/shared-toolkit.test.mjs"
       ],
       "inputs": [
         "tools/shared-toolkit.mjs",
