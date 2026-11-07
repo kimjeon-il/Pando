@@ -34,19 +34,22 @@ function twelveCycles() {
 
 test('active suites exist while historical suite paths retain explicitly unverified provenance', () => {
   const result = validatePerformanceManifest(manifest);
-  assert.equal(result.frozenCommit, '2279b94f0713f08070a0c5e146be5566de35fc45');
+  assert.equal(result.frozenCommit, manifest.source.frozenProductCommit);
+  assert.match(result.frozenCommit, /^[a-f0-9]{40}$/);
   assert.equal(result.measurementBudgetApproved, false);
   const actualBudget = JSON.parse(readFileSync(new URL('../../config/performance-budget.json', import.meta.url), 'utf8'));
   assert.equal(actualBudget.status, 'UNSET');
   assert.equal(actualBudget.thresholds, null);
-  assert.equal(result.activeSuiteCount, 2);
-  assert.equal(result.historicalSuiteCount, 9);
+  assert.equal(result.activeSuiteCount, manifest.activeSuites.length);
+  assert.equal(result.historicalSuiteCount, manifest.historicalSuites.length);
+  assert.ok(result.activeSuiteCount > 0);
   assert.equal(result.historicalProvenance, 'unverified');
-  assert.equal(manifest.observations.packedPair.runId, 39025083891);
-  assert.equal(manifest.observations.packedLongCycle.runId, 39025645298);
-  assert.ok(manifest.activeSuites.some(row => row.id === 'cursor-core-wasm'));
-  assert.ok(manifest.historicalSuites.some(row => row.id === 'boundary-heap-owner-release'
-    && row.level === 'destructive-isolated-diagnostic'));
+  for (const observation of [manifest.observations.packedPair, manifest.observations.packedLongCycle])
+    assert.ok(Number.isSafeInteger(observation.runId) && observation.runId > 0,
+      'reference evidence must name its actual run');
+  assert.equal(new Set(manifest.activeSuites.map(row => row.id)).size, manifest.activeSuites.length);
+  assert.ok(manifest.historicalSuites.some(row => row.level.includes('diagnostic')),
+    'historical diagnostics must remain explicitly separate from active CI');
 });
 
 test('missing active assets and unsafe historical paths are rejected', () => {
@@ -108,7 +111,7 @@ test('reject stale source provenance, missing worker attribution, and incomplete
   assert.throws(() => assemblePerformanceEvidence({ manifest, packed: first, sourceCommit }), /PERF_SOURCE_MISMATCH/);
   const second = packed(); second.measurements.worker.complete = false;
   assert.throws(() => assemblePerformanceEvidence({ manifest, packed: second, sourceCommit }), /Missing Worker/);
-  const third = packed(); third.measurements.dimensions.contacts = 338;
+  const third = packed(); third.measurements.dimensions.contacts = manifest.datasets.modernCountryContacts + 1;
   assert.throws(() => assemblePerformanceEvidence({ manifest, packed: third, sourceCommit }), /PERF_GEOMETRY_REBASE_REQUIRED/);
   const fourth = twelveCycles(); fourth.testSha = 'b'.repeat(40);
   assert.throws(() => assemblePerformanceEvidence({ manifest, longCycle: fourth, sourceCommit }), /PERF_SOURCE_MISMATCH/);

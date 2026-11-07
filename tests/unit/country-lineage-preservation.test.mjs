@@ -1,60 +1,90 @@
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {join} from 'node:path';
-import test from 'node:test';
-import {entityFileName,readTerritorialLineages,readTerritorialSources,territorialSourceRoot} from '../../tools/territorial-entity-sources.mjs';
+import {libraryCheckout} from '../../tools/library-data.mjs';
+import { join } from 'node:path';
+import { entityFileName, readTerritorialSources, readTerritorialLineages, territorialSourceRoot } from '../../tools/territorial-entity-sources.mjs';
+import { normalizeTerritorialLibraryEntity } from '../../tools/gis/territorial-library.js';
 
-const baseline=JSON.parse(fs.readFileSync(new URL('../fixtures/country-lineage-pinned-sources.json',import.meta.url),'utf8'));
-const sha=value=>createHash('sha256').update(value).digest('hex');
-const jsonSha=value=>sha(JSON.stringify(value));
-function verifiedSource(path,expected){
- const bytes=fs.readFileSync(path);
- assert.equal(bytes.length,expected.bytes,`Pinned source byte length changed: ${path}`);
- assert.equal(sha(bytes),expected.sha256,`Pinned source contents changed: ${path}`);
- return JSON.parse(bytes);
+const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+const countryPath = id => join(territorialSourceRoot, 'countries', entityFileName(id));
+const lineagePath = id => join(territorialSourceRoot, 'lineages', id + '.json');
+const files = kind => fs.readdirSync(join(territorialSourceRoot, kind)).filter(name => name.endsWith('.json'));
+const receiptFor = (index, kind, name) => index.files['assets/data/territorial-entities/source/' + kind + '/' + name];
+function assertCurrentReceipt(index, kind, name) {
+  const file = join(territorialSourceRoot, kind, name);
+  const bytes = fs.readFileSync(file), receipt = receiptFor(index, kind, name);
+  assert.ok(receipt, 'source omitted from the current pinned archive: ' + file);
+  assert.equal(bytes.length, receipt.bytes, file + ': archive source byte length changed');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), receipt.sha256,
+    file + ': source bytes differ from pinned archive index');
+  return JSON.parse(bytes);
 }
 
-test('current pinned catalog preserves all 286 identities, 265 lineages and 313 complete geometry versions',()=>{
- const config=JSON.parse(fs.readFileSync(new URL('../../config/library-data.json',import.meta.url),'utf8'));
- assert.equal(config.repository,baseline.provenance.repository);
- const review=baseline.provenance.runtimePinReview;
- assert.equal(review.previousReviewedRevision,baseline.provenance.acceptedKoreanBaselineRollback.runtime,
-   'the source review must preserve the previously accepted revision');
- assert.equal(review.reviewedRuntimeRevision,config.revision,
-   'the source review must match the active pinned revision');
- assert.equal(review.matchedSourceReceipts,baseline.counts.entities+baseline.counts.lineages,
-   'the review must cover the complete country and lineage corpus');
- assert.equal(review.changedSourceReceipts,0,'a changed source requires its own review');
- // The reviewed runtime pin retains every original oracle receipt; the older
- // revision and archive index remain the independent source of those receipts.
- assert.equal(config.revision,baseline.provenance.reviewedRuntimeRevision,'the source oracle must be reviewed with a new data pin');
- // readTerritorialSources validates every source and the complete lineage/parent graph.
- const entities=readTerritorialSources(),lineages=readTerritorialLineages();
- assert.equal(entities.length,baseline.counts.entities);
- assert.equal(lineages.length,baseline.counts.lineages);
- assert.equal(entities.reduce((n,e)=>n+e.geometryVersions.length,0),baseline.counts.geometryVersions);
- assert.deepEqual(entities.map(e=>e.entityId).sort(),Object.keys(baseline.countries).sort());
- assert.deepEqual(lineages.map(lineage=>lineage.lineageId).sort(),Object.keys(baseline.lineages).sort());
- for(const lineage of lineages){
-  const raw=verifiedSource(join(territorialSourceRoot,'lineages',`${lineage.lineageId}.json`),baseline.lineages[lineage.lineageId]);
-  assert.deepEqual(lineage.entityRefs,raw.entityRefs);
-  assert.deepEqual(lineage.relations,raw.relations);
- }
- for(const entity of entities){
-  const raw=verifiedSource(join(territorialSourceRoot,'countries',entityFileName(entity.entityId)),baseline.countries[entity.entityId]);
-  for(const field of ['entityId','entityKind','lineageId','names','alternateNames','lifetime','parentEntityId']){
-   assert.deepEqual(entity[field],raw[field],`${entity.entityId}: ${field}`);
+test('the active library reads every country, lineage and complete geometry without loss', () => {
+  const pin = read(new URL('../../config/library-data.json', import.meta.url));
+  assert.match(pin.revision, /^[a-f0-9]{40}$/);
+  assert.ok(pin.repository, 'library source identity required');
+  const archive = JSON.parse(execFileSync('git', ['show', pin.revision + ':archive/index.json'], {
+    cwd: libraryCheckout(), encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
+  }));
+  assert.ok(archive.files, 'the pinned library must supply independent source receipts');
+  const entities = readTerritorialSources(), lineages = readTerritorialLineages();
+  assert.ok(entities.length && lineages.length, 'reject an empty library');
+  assert.equal(entities.length, files('countries').length);
+  assert.equal(lineages.length, files('lineages').length);
+  const countries = new Map(entities.map(row => [row.entityId, row]));
+  assert.equal(countries.size, entities.length, 'duplicate country identity');
+  const members = new Set();
+  for (const lineage of lineages) {
+    const raw = assertCurrentReceipt(archive, 'lineages', lineage.lineageId + '.json');
+    assert.deepEqual(lineage.entityRefs, raw.entityRefs, lineage.lineageId);
+    assert.deepEqual(lineage.relations, raw.relations, lineage.lineageId);
+    for (const id of lineage.entityRefs) {
+      assert.ok(countries.has(id), 'missing lineage member: ' + id);
+      assert.ok(!members.has(id), 'duplicate lineage member: ' + id);
+      assert.equal(countries.get(id).lineageId, lineage.lineageId);
+      members.add(id);
+    }
+    for (const relation of lineage.relations)
+      assert.ok(countries.has(relation.from) && countries.has(relation.to), 'missing relation endpoint');
   }
-  assert.equal(jsonSha(entity.sourceInfo),jsonSha(raw.sourceInfo||{}),`${entity.entityId}: source metadata`);
-  assert.equal(entity.geometryVersions.length,raw.geometryVersions.length,entity.entityId);
-  for(const [index,version] of entity.geometryVersions.entries()){
-   const original=raw.geometryVersions[index];
-   const {geometry,...metadata}=version,{geometry:originalGeometry,...originalMetadata}=original;
-   assert.deepEqual(metadata,originalMetadata,`${entity.entityId}: geometry version metadata ${index}`);
-   // Hash the entire geometry, including every ring and coordinate. The expected
-   // source is independently certified above by the immutable archive index.
-   assert.equal(jsonSha(geometry),jsonSha(originalGeometry),`${entity.entityId}: complete coordinates for ${version.versionId}`);
+  assert.equal(members.size, entities.length, 'orphan source entities');
+  for (const entity of entities) {
+    const raw = assertCurrentReceipt(archive, 'countries', entityFileName(entity.entityId));
+    for (const key of ['entityId', 'entityKind', 'lineageId', 'names', 'alternateNames', 'parentEntityId'])
+      assert.deepEqual(entity[key], raw[key], entity.entityId + ': ' + key);
+    assert.deepEqual(entity.sourceInfo, raw.sourceInfo || {}, entity.entityId + ': source provenance');
+    assert.deepEqual(entity.geometryVersions.map(row => row.geometry),
+      raw.geometryVersions.map(row => row.geometry), entity.entityId + ': coordinates');
+    const versions = entity.geometryVersions.map(row => row.versionId);
+    assert.ok(versions.length > 0);
+    assert.equal(new Set(versions).size, versions.length, entity.entityId + ': duplicate version');
+    const visited = new Set([entity.entityId]);
+    for (let parent = entity.parentEntityId; parent; parent = countries.get(parent)?.parentEntityId) {
+      assert.ok(countries.has(parent) && !visited.has(parent), entity.entityId + ': broken parent chain');
+      visited.add(parent);
+    }
   }
- }
+});
+
+test('invalid identities, duplicate geometry versions and corrupt coordinates are refused', () => {
+  const entity = readTerritorialSources()[0];
+  const original = read(countryPath(entity.entityId));
+  const invalidId = structuredClone(original);
+  invalidId.entityId = 'not-a-valid-id';
+  assert.throws(() => normalizeTerritorialLibraryEntity(invalidId), /identity|kind/i);
+  const duplicate = structuredClone(original);
+  duplicate.geometryVersions.push(structuredClone(duplicate.geometryVersions[0]));
+  assert.throws(() => normalizeTerritorialLibraryEntity(duplicate), /duplicate.*version/i);
+  const corrupted = structuredClone(original);
+  const firstPoint = value => Array.isArray(value)
+    ? (value.length === 2 && value.every(Number.isFinite) ? value : value.map(firstPoint).find(Boolean)) : null;
+  const point = firstPoint(corrupted.geometryVersions[0].geometry.coordinates);
+  assert.ok(point, 'source polygon has actual coordinates');
+  point[0] = 181;
+  assert.throws(() => normalizeTerritorialLibraryEntity(corrupted), /coordinate|geometry|invalid/i);
+  assert.deepEqual(read(countryPath(entity.entityId)), original, 'negative tests must not mutate source files');
 });

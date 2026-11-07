@@ -1,33 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {instrumentMapBaselineSource} from '../helpers/map-transition-baseline.mjs';
+import {createViewerInitialPresentation} from '../../apps/viewer/js/modules/viewer-initial-presentation.js';
+import {presentViewerLoadStatus} from '../../apps/viewer/js/modules/viewer-load-status.js';
+
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
 
-test('viewer template has a quiet live status and no central loading surface', () => {
+test('viewer status stays accessible without covering the displayed map', () => {
   const html = read('apps/viewer/templates/index.html');
-  assert.match(html, /id="viewerStatus" class="ui-visually-hidden" role="status" aria-live="polite" aria-atomic="true"/);
-  assert.doesNotMatch(html, /viewer-loading/);
-  assert.match(html, /class="viewer-map-notices"/);
-  assert.match(html, /id="mapPreparationRetry"/);
-  assert.doesNotMatch(read('apps/viewer/css/viewer.css'), /viewer-loading/);
-});
-test('P0 observes the actual presentation callback and successful completion, not status visibility', () => {
-  const source = read('apps/viewer/js/modules/viewer-composition.js');
-  // Visibility is not a readiness API. Removing it must not break the probe.
-  const independent = source.replaceAll('status.hidden=true;', '').replaceAll('status.hidden=false;', '');
-  const instrumented = instrumentMapBaselineSource(independent, 'viewer-composition.js');
-  assert.equal(instrumented.split('globalThis.__PANDO_P0__.presented(month);').length - 1, 1);
-  assert.equal(instrumented.split('globalThis.__PANDO_P0__.settled();').length - 1, 1);
-  assert.match(instrumented, /commit\(\);globalThis\.__PANDO_P0__\.presented\(month\);/);
-  assert.match(instrumented, /status\.dataset\.ready='true';globalThis\.__PANDO_P0__\.settled\(\);/);
-  assert.ok(instrumented.includes('search-hydration:start'));
-  assert.ok(instrumented.includes('await searchController.completeHydration({isCurrent});'));
-  // A search phase may finish after the accepted map is already ready.
+  const region = html.match(/<span\b[^>]*\bid="viewerStatus"[^>]*>/)?.[0];
+  assert.ok(region, 'Viewer must expose an accessible status region');
+  for (const [attribute, value] of [['class', 'ui-visually-hidden'], ['role', 'status'],
+    ['aria-live', 'polite'], ['aria-atomic', 'true']])
+    assert.match(region, new RegExp('\\b' + attribute + '="' + value + '"'));
+  assert.doesNotMatch(html, /\bid="viewer-loading"/);
+  assert.match(html, /\bid="mapPreparationRetry"/);
 });
 
-test('quiet completion stays accessible and does not invent readiness or retain retry controls', async () => {
-  const {presentViewerLoadStatus} = await import('../../apps/viewer/js/modules/viewer-load-status.js');
+test('first real map frame publishes once independently of status labels and optional terrain', () => {
+  let presented = 0;
+  const owner = createViewerInitialPresentation({onPresented: () => presented++});
+  const request = owner.track(() => true);
+  assert.equal(owner.hasPresented(), false);
+  assert.equal(request.accept(4), false, 'project acceptance is not paint confirmation');
+  assert.equal(owner.observe({status: 'ready', mapReady: false}, 4), false);
+  assert.equal(owner.observe({status: 'terrain', mapReady: true, terrainReady: false}, 3), false,
+    'a previously painted generation cannot complete this request');
+  assert.equal(owner.observe({status: 'terrain', mapReady: true, terrainReady: false}, 4), true);
+  assert.equal(owner.hasPresented(), true);
+  assert.equal(presented, 1);
+  assert.equal(owner.observe({status: 'ready', mapReady: true}, 4), false);
+  request.cancel();
+  owner.dispose();
+  assert.equal(presented, 1);
+});
+
+test('quiet completion preserves accessibility without declaring the renderer ready', () => {
   const element = {dataset: {ready: 'false'}, hidden: true, children: [],
     setAttribute(name, value) { this[name] = value; },
     set textContent(value) { this.text = value; this.children = []; }};

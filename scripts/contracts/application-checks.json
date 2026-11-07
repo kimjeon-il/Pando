@@ -1162,6 +1162,52 @@
         "playwright.config.js",
         "tests/browser/server.mjs"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/country-lineage-preservation.test.mjs",
+        "tests/unit/territorial-source-parity.test.mjs"
+      ],
+      "inputs": [
+        "config/library-data.json",
+        "assets/data/territorial-entities/source/**",
+        "assets/data/countries-ne-5.1.1.geojson",
+        "tools/territorial-entity-sources.mjs",
+        "tools/gis/territorial-library.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/builtin-world-baseline.test.mjs"
+      ],
+      "inputs": [
+        "config/library-data.json",
+        "assets/data/builtin-world/generated/v1/**",
+        "shared/frontend/js/modules/builtin-world-loader.js",
+        "shared/frontend/js/modules/builtin-month-clock.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/renderer-responsiveness-source.test.mjs",
+        "tests/unit/map-presentation-readiness.test.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/startup-readiness.js",
+        "shared/frontend/js/modules/map-visual-frame.js",
+        "shared/frontend/js/modules/scene-color-cache.js",
+        "shared/frontend/js/modules/gpu-upload-scheduler.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/unit/performance-baseline-contract.test.mjs"
+      ],
+      "inputs": [
+        "config/performance-baseline-v1.json",
+        "config/performance-budget.json",
+        "scripts/assemble-performance-evidence.mjs"
+      ]
     }
   ],
   "runtimeBases": {},

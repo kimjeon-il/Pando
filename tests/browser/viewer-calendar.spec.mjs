@@ -8,6 +8,20 @@ import { openReadyViewer, waitForCommittedMonth } from './helpers/viewer-accepta
 
 test.describe("Automatic current month", () => {
 test.use({viewport:{width:1440,height:900},trace:'off'});
+
+test('the first builtin map follows the actual device month without a pinned year', async ({page}) => {
+  await openReadyViewer(page,{url:'/?debug=1&demTerrain=raster'});
+  const actual=await page.evaluate(() => {
+    const now=new Date();
+    const expected=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    const api=window.__PANDOLAB_VIEWER__;
+    return {expected,shown:api.builtinMonth().month,cursor:api.documentState().timelineCursor,
+      automatic:api.builtinMonth().automatic};
+  });
+  expect(actual.automatic).toBe(true);
+  expect(actual.shown).toBe(actual.expected);
+  expect(actual.cursor).toBe(actual.expected);
+});
 test('builtin country loading follows calendar rollover, retains manual dates and never requests the retired project',async({page})=>{
  test.setTimeout(180000);
  const requests=[],errors=[];page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));
