@@ -70,6 +70,29 @@ test('one compilation reuses exact Boolean results across date cuts without free
 
 // Multiple disjoint components have exact set-difference semantics. In
 // particular, an unrelated distant island must not enter a mainland sweep.
+test('large component differences use single-cutter sweeps and preserve repeated overlap semantics',()=>{
+  const make=(w,e,s=0,n=4)=>[[[w,s],[e,s],[e,n],[w,n],[w,s]]];
+  const subject={entityId:'subject',parentId:'',geometry:{type:'MultiPolygon',
+    coordinates:Array.from({length:18},(_,i)=>make(i*10,i*10+7))},
+    validFrom:'1950-01-01',validTo:'1952-12-31',currentSnapshot:false};
+  const cutter={entityId:'cutter',parentId:'',geometry:{type:'MultiPolygon',
+    coordinates:[make(2,4),make(3,6),make(12,16),make(50,51),make(200,210)]},
+    validFrom:'1950-01-01',validTo:'1952-12-31',currentSnapshot:false};
+  const calls=[];
+  const clipper={...globalThis.polygonClipping,
+    difference:(...args)=>{calls.push(args.map(operand=>operand.length));return globalThis.polygonClipping.difference(...args);}};
+  const rules={...policy,replacements:[{targetEntityId:'subject',priorityEntityId:'cutter',
+    validFrom:'1950-01-01',validTo:'1952-12-31'}]};
+  const result=module.adjustHistoricalTerritories([subject,cutter],rules,clipper);
+  const actual=result.candidates.find(row=>row.entityId==='subject').geometry;
+  const baseline=globalThis.polygonClipping.difference(subject.geometry.coordinates,cutter.geometry.coordinates);
+  const asMulti=geometry=>geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
+  assert.deepEqual(globalThis.polygonClipping.xor(asMulti(actual),baseline),[]);
+  assert.ok(calls.length>=3,'each independent intersecting polygon should be clipped');
+  assert.ok(calls.every(args=>args.length===2&&args[0]===1&&args[1]===1),
+    'no Boolean sweep combines unrelated historical right-hand polygons');
+});
+
 test('large historical multi-polygon differences partition independent components without changing topology',()=>{
   const boxAt=(left,right,y=0)=>({type:'Polygon',coordinates:[[[left,y],[right,y],[right,y+2],[left,y+2],[left,y]]]});
   const root={entityId:'root',geometry:{type:'MultiPolygon',

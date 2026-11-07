@@ -75,9 +75,23 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   const componentDifference=(left,right)=>{
     const rightEnvelopes=right.map(envelope),pieces=[];
     for(const polygon of left){
-      const bounds=envelope(polygon),near=right.filter((candidate,index)=>touches(bounds,rightEnvelopes[index]));
-      if(!near.length)pieces.push(polygon);
-      else pieces.push(...clipper.difference([polygon],near));
+      const bounds=envelope(polygon);
+      let remaining=[polygon];
+      // Sequentially subtract one intersecting polygon at a time. Unlike a
+      // global Boolean sweep with hundreds of independent source boundaries,
+      // this keeps each operation bounded to one subject and one cutter.
+      // (A \\ B) \\ C equals A \\ (B union C): the same exact set contract.
+      for(let index=0;index<right.length&&remaining.length;index++){
+        const cutBounds=rightEnvelopes[index];
+        if(!touches(bounds,cutBounds))continue;
+        const clipped=[];
+        for(const part of remaining){
+          if(touches(envelope(part),cutBounds))clipped.push(...clipper.difference([part],[right[index]]));
+          else clipped.push(part);
+        }
+        remaining=clipped;
+      }
+      pieces.push(...remaining);
     }
     return pieces;
   };
