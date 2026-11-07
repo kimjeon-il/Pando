@@ -1503,6 +1503,15 @@
         "native-map-preview",
         "native-map-image"
       ]
+    },
+    {
+      "tests": [
+        "tests/unit/core-*.test.mjs",
+        "tests/unit/*-wasm.test.mjs"
+      ],
+      "requires": [
+        "core"
+      ]
     }
   ]
 }
