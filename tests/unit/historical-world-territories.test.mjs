@@ -204,3 +204,20 @@ test('native historical subtraction retains exact near-collinear source vertices
   assert.deepEqual(input,snapshot,'compilation must not perturb the exact source vertices');
   assert.deepEqual(result,module.adjustHistoricalTerritories([...input].reverse(),policy));
 });
+
+test('disjoint historical islands bypass the Boolean engine without any coordinate copy',()=>{
+  const boxAt=(west,east)=>[[[west,0],[east,0],[east,2],[west,2],[west,0]]];
+  const pieces=Array.from({length:20},(_,i)=>boxAt(i*10,i*10+5));
+  const subject={...candidate('subject',0,1),geometry:{type:'MultiPolygon',coordinates:pieces}};
+  const cutter={...candidate('cutter',0,1),geometry:{type:'Polygon',coordinates:boxAt(0.5,1.5)}};
+  const rules={...policy,replacements:[{targetEntityId:'subject',priorityEntityId:'cutter',
+    validFrom:'1991-01-01',validTo:'1992-01-01'}]};
+  let calls=0;
+  const clipper={...globalThis.polygonClipping,difference:(...args)=>{calls++;return globalThis.polygonClipping.difference(...args);}};
+  const result=module.adjustHistoricalTerritories([subject,cutter],rules,clipper);
+  const updated=result.candidates.find(row=>row.entityId==='subject').geometry;
+  const multi=updated.type==='Polygon'?[updated.coordinates]:updated.coordinates;
+  assert.equal(calls,1,'only the mainland intersection reaches the Boolean sweep');
+  for(const island of pieces.slice(1))assert.ok(multi.some(row=>JSON.stringify(row)===JSON.stringify(island)),
+    'unrelated islands must remain exactly unchanged');
+});

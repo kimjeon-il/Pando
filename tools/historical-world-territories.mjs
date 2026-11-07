@@ -126,12 +126,18 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     // Clip independent subject polygons against only the overlapping portion
     // of the already-computed peer intersection union. This bounds each
     // Boolean sweep without reprocessing unrelated original boundaries.
-    const rightEnvelopes=right.map(envelope),pieces=[];
+    // Reuse cutter bounds across independent subject components. Distant
+    // islands stay byte-identical and never enter the Boolean sweep.
+    const cutters=right.map(polygon=>({polygon,bounds:envelope(polygon)})),pieces=[];
     for(const polygon of left){
       const bounds=envelope(polygon);
-      const near=right.filter((candidate,index)=>touches(bounds,rightEnvelopes[index]));
-      if(!near.length)pieces.push(polygon);
-      else pieces.push(...clipper.difference([polygon],near));
+      let near=null;
+      for(const cutter of cutters)if(touches(bounds,cutter.bounds)){
+        if(!near)near=[];
+        near.push(cutter.polygon);
+      }
+      if(near)pieces.push(...clipper.difference([polygon],near));
+      else pieces.push(polygon);
     }
     return pieces;
   };
