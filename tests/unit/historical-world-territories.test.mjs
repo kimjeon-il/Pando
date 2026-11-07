@@ -67,6 +67,31 @@ test('one compilation reuses exact Boolean results across date cuts without free
  assert.ok(calls>initialCalls,'a different geometry must calculate its own result');
 });
 
+
+// Multiple disjoint components have exact set-difference semantics. In
+// particular, an unrelated distant island must not enter a mainland sweep.
+test('large historical multi-polygon differences partition independent components without changing topology',()=>{
+  const boxAt=(left,right,y=0)=>({type:'Polygon',coordinates:[[[left,y],[right,y],[right,y+2],[left,y+2],[left,y]]]});
+  const root={entityId:'root',geometry:{type:'MultiPolygon',
+    coordinates:Array.from({length:20},(_,i)=>boxAt(i*10,i*10+6).coordinates)},
+    parentId:'',validFrom:'1990-01-01',validTo:'1999-12-31',currentSnapshot:false};
+  const peer={...candidate('peer',5,12),validFrom:'1990-01-01',validTo:'1999-12-31'};
+  const wrap=(geometry)=>geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
+  const baseline=globalThis.polygonClipping.difference(wrap(root.geometry),wrap(peer.geometry));
+  const operations=[],clipper={
+    ...globalThis.polygonClipping,
+    difference:(left,right)=>{operations.push([left.length,right.length]);return globalThis.polygonClipping.difference(left,right);},
+  };
+  const rules={...policy,replacements:[{targetEntityId:'root',priorityEntityId:'peer',validFrom:'1990-01-01',validTo:'1999-12-31'}]};
+  const result=module.adjustHistoricalTerritories([root,peer],rules,clipper);
+  const rebuilt=result.candidates.find(row=>row.entityId==='root')?.geometry;
+  assert.ok(rebuilt,'the untouched components remain');
+  const areaOf=shape=>globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(shape,globalThis.polygonClipping);
+  const symmetric=globalThis.polygonClipping.xor(wrap(rebuilt),baseline);
+  assert.equal(symmetric.length,0,'component subtraction must produce the same exact geographical set');
+  assert.ok(operations.every(([left])=>left===1),'a large source is split into independent sweeps');
+});
+
 test('reused Boolean results replay precision evidence and retain each interval discard budget',()=>{
  const artifact=[[46.798053,39.097382],[46.803617228283514,39.10088708625098],
   [46.80361722811995,39.10088708614795],[46.798053,39.097382]];

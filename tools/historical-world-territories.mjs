@@ -58,11 +58,43 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       throw new Error(`HISTORICAL_CLIP_INVALID: ${operation}, components=${value.length}, shortRings=${JSON.stringify(failing.slice(0, 8))}: ${error.message}`, { cause: error });
     }
   };
+  // A large MultiPolygon Boolean must not combine unrelated distant pieces
+  // in one sweep-line. Disjoint source components can be subtracted exactly
+  // and independently: (A1 ∪ A2) \\ B = (A1 \\ B) ∪ (A2 \\ B).
+  // The clipping engine still owns all intersection geometry; no rounding,
+  // simplification, or invented boundaries are introduced.
+  const envelope=polygon=>{
+    let west=Infinity,south=Infinity,east=-Infinity,north=-Infinity;
+    for(const ring of polygon)for(const point of ring){
+      west=Math.min(west,point[0]);south=Math.min(south,point[1]);
+      east=Math.max(east,point[0]);north=Math.max(north,point[1]);
+    }
+    return [west,south,east,north];
+  };
+  const touches=(a,b)=>a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];
+  const componentDifference=(left,right)=>{
+    const rightEnvelopes=right.map(envelope),pieces=[];
+    for(const polygon of left){
+      const bounds=envelope(polygon),near=right.filter((candidate,index)=>touches(bounds,rightEnvelopes[index]));
+      if(!near.length)pieces.push(polygon);
+      else pieces.push(...clipper.difference([polygon],near));
+    }
+    return pieces;
+  };
   const evaluate=(name,geometries,operation)=>{
     const ids=geometries.map(geometry=>{if(!cache.keys.has(geometry))cache.keys.set(geometry,++cache.nextKey);return cache.keys.get(geometry);});
     const key=JSON.stringify([name,ids,operation]),previous=cache.operations.get(key);
     if(previous){for(const row of previous.precision)recordPrecision(row);return previous.geometry;}
-    const offset=adjustments.length,geometry=shape(clipper[name](...geometries.map(coordinates)),operation);
+    const offset=adjustments.length,inputs=geometries.map(coordinates);
+    let raw;
+    try {
+      const complexDifference=name==='difference' && geometries.length===2
+        && (inputs[0].length+inputs[1].length>16);
+      raw=complexDifference?componentDifference(inputs[0],inputs[1]):clipper[name](...inputs);
+    }catch(error){
+      throw new Error('HISTORICAL_CLIP_BOOLEAN_FAILED: '+operation+': '+error.message,{cause:error});
+    }
+    const geometry=shape(raw,operation);
     cache.operations.set(key,{geometry,precision:adjustments.slice(offset)});
     return geometry;
   };
