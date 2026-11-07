@@ -135,7 +135,12 @@ test('reused Boolean results replay precision evidence and retain each interval 
  assert.deepEqual(module.adjustHistoricalTerritories(rows,policy,clipper,cache),first);
  const many=Array.from({length:6},(_,index)=>candidate(`source${index}`,index*10,index*10+2));
  const budget=module.createHistoricalTerritoryCache(clipper);
- for(let run=0;run<2;run++)assert.throws(()=>module.adjustHistoricalTerritories(many,policy,clipper,budget),/HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED/);
+ for(let run=0;run<2;run++)assert.throws(()=>module.adjustHistoricalTerritories(many,policy,clipper,budget),error=>{
+   assert.equal(error.code,'HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
+   assert.match(error.message,/count=\d+, areaM2=/);
+   assert.doesNotMatch(error.message,/HISTORICAL_CLIP_INVALID/,'an audit limit is not malformed source geometry');
+   return true;
+ });
 });
 
 // Source geometry and immutable snapshots are necessary: subtracting the

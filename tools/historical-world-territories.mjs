@@ -35,7 +35,11 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
   let discardedPrecisionAreaM2 = 0, discardedPrecisionComponents = 0;
   const recordPrecision=row=>{
     discardedPrecisionAreaM2+=row.areaM2;discardedPrecisionComponents++;
-    if(discardedPrecisionComponents>10||discardedPrecisionAreaM2>0.5)throw new Error('HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED');
+    if(discardedPrecisionComponents>10||discardedPrecisionAreaM2>0.5){
+      const error=new Error(`HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED: count=${discardedPrecisionComponents}, areaM2=${discardedPrecisionAreaM2}, operation=${row.operation}`);
+      error.code='HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED';
+      throw error;
+    }
     adjustments.push({...row});
   };
   const shape = (value, operation) => {
@@ -55,6 +59,9 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       });
     }
     catch (error) {
+      // Precision-budget errors have a different owner than malformed rings.
+      // Keep their exact count/area instead of disguising them as bad shells.
+      if(error.code==='HISTORICAL_CLIP_PRECISION_BUDGET_EXCEEDED')throw error;
       // Clipper failures need source-level evidence. Do not silently discard
       // invalid output or round a historical coordinate to hide the fault.
       const failing = value.flatMap((polygon, pi) => polygon.map((ring, ri) => ({
@@ -109,7 +116,9 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     }
     return [west,south,east,north];
   };
-  const touches=(a,b)=>a[0]<=b[2]&&a[2]>=b[0]&&a[1]<=b[3]&&a[3]>=b[1];
+  // Contact along a zero-area bbox edge cannot change a land difference.
+  // Exact strict comparison avoids pointless Boolean sweeps on touching borders.
+  const touches=(a,b)=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1];
   const componentDifference=(left,right)=>{
     // Clip independent subject polygons against only the overlapping portion
     // of the already-computed peer intersection union. This bounds each
