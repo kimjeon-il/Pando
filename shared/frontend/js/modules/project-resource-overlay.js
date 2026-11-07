@@ -27,12 +27,14 @@ const sourceId=(row,domain)=>{
   return typeof value==='string'&&value?value:null;
 };
 
-export function projectResourceOverlay(domain,authored=[],references=[]) {
+export function projectResourceOverlay(domain,authored=[],references=[],{isReferenceActive=null}={}) {
   if(!Object.hasOwn(DOMAINS,domain))throw new TypeError('Unknown project resource domain.');
   if(!Array.isArray(authored)||!Array.isArray(references))
     throw new TypeError('Project and reference resources require explicit arrays.');
   if(domain==='territorial'&&references.length)
     throw new TypeError('Territorial identities are owned by the accepted C++ project, not a second source catalog.');
+  if(isReferenceActive!==null&&typeof isReferenceActive!=='function')
+    throw new TypeError('External source activity must be queried through its owning timeline');
 
   const byProject=new Map(),bySource=new Map();
   for(const record of authored){
@@ -46,7 +48,8 @@ export function projectResourceOverlay(domain,authored=[],references=[]) {
   const byReference=new Map();
   for(const record of references){
     const id=identity(record,domain,true);
-    if(!byProject.has(id)&&!bySource.has(id))byReference.set(id,record);
+    if(!byProject.has(id)&&!bySource.has(id)
+      &&(!isReferenceActive||isReferenceActive(record)))byReference.set(id,record);
   }
   const project=Object.freeze([...authored]),library=Object.freeze([...byReference.values()]);
   const records=Object.freeze([...project,...library]);

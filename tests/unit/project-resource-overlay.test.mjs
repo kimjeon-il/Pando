@@ -143,3 +143,18 @@ test('P4 accepted C++ world snapshots remain the sole territorial and water proj
  await owner.client.setTimelineCursor('2025-12');
  assert.deepEqual(owner.documentModel.snapshot(),original,'session month is not part of the stored project');
 });
+
+test('time-scoped source selection composes with immutable project resources without storing external lifetimes',()=>{
+ const river=sourceRiver,lake=sourceLake;
+ const allowed=new Set([river.properties.pandolab_id,lake.properties.pandolab_id]);
+ const view=()=>projectResourceOverlay('hydro',[],[river,lake],{
+   isReferenceActive:row=>allowed.has(row.properties.pandolab_id)
+ });
+ const first=view();assert.deepEqual(first.records,[river,lake]);
+ allowed.delete(river.properties.pandolab_id);
+ const later=view();assert.deepEqual(later.records,[lake]);
+ assert.equal(later.ownerOf(river.properties.pandolab_id),null);
+ assert.strictEqual(later.findById(lake.properties.pandolab_id),lake);
+ assert.deepEqual(first.records,[river,lake],'earlier projection is immutable');
+ assert.throws(()=>projectResourceOverlay('hydro',[],[river],{isReferenceActive:true}),/activity/);
+});

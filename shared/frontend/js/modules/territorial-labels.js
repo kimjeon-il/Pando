@@ -208,8 +208,9 @@ export function createTerritorialLabels({ capabilities = {builtinPlaces:true,eag
     const selectedIds = new Set(dependencies.domains.selectionDomain.snapshot().selection.items.filter(ref => ref.domain === 'label').map(ref => String(ref.id)));
     const loadedReferences=[...new Map([...builtinPlaces.snapshot().records,
       ...[...selectedIds].map(id=>builtinPlaces.resolve(id)).filter(Boolean)]
-      .filter(builtinPlaces.isActive).map(label=>[label.id,label])).values()];
-    const resources=projectResourceOverlay('label',dependencies.projectState.state.labels,loadedReferences);
+      .map(label=>[label.id,label])).values()];
+    const resources=projectResourceOverlay('label',dependencies.projectState.state.labels,loadedReferences,
+      {isReferenceActive:builtinPlaces.isActive});
     const builtinIds = new Set(resources.library.map(label => label.id));
     const labelSources = resources.records;
     const placeLanguages = dependencies.preferences.userPreferences.labels.place.languages;
