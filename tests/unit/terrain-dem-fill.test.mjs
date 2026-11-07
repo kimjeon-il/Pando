@@ -5,6 +5,10 @@ import * as __dem_dep2 from "node:test";
 import * as __dem_dep3 from "../../tools/gis/terrain-dem-source.mjs";
 import * as __dem_dep4 from "node:child_process";
 
+// The original Native oracle is module-scoped: Node test suites are synchronous.
+const __demFillNativeOracle = JSON.parse(await __dem_dep1.readFile(
+  new URL('../fixtures/terrain-dem-fill-oracle.json', import.meta.url), 'utf8'));
+
 // Original feature contract: terrain-dem-fill.test.mjs
 contractSuite("terrain-dem-fill", () => {
 const assert = __dem_dep0.default;
@@ -62,11 +66,10 @@ test('GDAL tint filling matches the frozen Python result for a mixed fractional 
 contractSuite("terrain-dem-fill-native", () => {
 const assert = __dem_dep0.default;
 const { spawnSync } = __dem_dep4;
-const { readFile } = __dem_dep1;
 const test = __dem_dep2.default;
 
 const binary=process.env.PANDO_TERRAIN_DEM_FILL_BINARY;
-const fixture=JSON.parse(await readFile(new URL('../fixtures/terrain-dem-fill-oracle.json',import.meta.url),'utf8'));
+const fixture=__demFillNativeOracle;
 function request({width=fixture.width,height=fixture.height,rgb=fixture.rgb,valid=fixture.valid}={}){
   const header=Buffer.alloc(16);header.write('PDTINT01');header.writeUInt32LE(width,8);header.writeUInt32LE(height,12);
   const colours=Buffer.alloc(rgb.length*4);

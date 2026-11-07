@@ -13,6 +13,13 @@ import * as __perf_dep10 from "../helpers/source-functions.mjs";
 import * as __perf_dep11 from "../helpers/read-frontend-source.mjs";
 import * as __perf_dep12 from "node:fs/promises";
 
+// Static source comparison must complete before registering synchronous suites.
+const [__labelRendering, __labelContent, __labelSource] = await Promise.all([
+  __perf_dep12.readFile(new URL('../../shared/frontend/js/modules/rendering-domain.js', import.meta.url), 'utf8'),
+  __perf_dep12.readFile(new URL('../../shared/frontend/js/modules/map-content-presentation.js', import.meta.url), 'utf8'),
+  __perf_dep12.readFile(new URL('../../shared/frontend/js/modules/label-presentation.js', import.meta.url), 'utf8'),
+]);
+
 // Original feature contract: startup-performance.test.mjs
 contractSuite("startup-performance", () => {
 const assert = __perf_dep0.default;
@@ -233,13 +240,12 @@ contractSuite("label-shell-performance", () => {
 const { applicationFunctionSource } = __perf_dep10;
 const { readFrontendSources } = __perf_dep11;
 const assert = __perf_dep0.default;
-const { readFile } = __perf_dep12;
 const test = __perf_dep3.default;
 
 const app = readFrontendSources('map-projection', 'gpu-scene', 'map-workspace-host', 'territorial-labels');
-const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
-const content = await readFile(new URL("../../shared/frontend/js/modules/map-content-presentation.js", import.meta.url), 'utf8');
-const labels = await readFile(new URL("../../shared/frontend/js/modules/label-presentation.js", import.meta.url), 'utf8');
+const rendering = __labelRendering;
+const content = __labelContent;
+const labels = __labelSource;
 
 const functionSource = applicationFunctionSource;
 
