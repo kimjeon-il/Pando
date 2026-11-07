@@ -23,6 +23,27 @@ test('project replacement retains a ready worker and rejects old completion with
   channel.terminate();
 });
 
+test('canceled same-generation Canvas paint resubmits the newest view after style/physical updates',()=>{
+  const {channel,sent,receive,complete,view,presented}=transport();
+  receive({type:'ready'});
+  channel.queueFrame(view(10,1));
+  complete(sent[0],{bitmap:null}); // A style packet canceled this paint.
+  assert.equal(sent.length,2,'explicit replacement must not depend on an unsolicited repaint');
+  assert.notEqual(sent[0].renderRequestId,sent[1].renderRequestId);
+  assert.equal(sent[1].frameId,10);
+  const older=sent[0];
+  complete(older,{bitmap:null}); // A duplicate cannot release the replacement.
+  assert.equal(sent.length,2);
+  assert.equal(channel.busy,true);
+  channel.queueFrame(view(11,2));
+  complete(sent[1],{bitmap:null});
+  assert.equal(sent[2].frameId,11,'only the latest requested scene may be replayed');
+  complete(sent[2]);
+  assert.equal(channel.busy,false);
+  assert.equal(presented.length,1);
+  channel.terminate();
+});
+
 test('Canvas owner coalesces busy frames and closes stale bitmaps before notifying the presenter', () => {
   const sent = [], presented = [], stale = [];
   const native = { postMessage: value => sent.push(value), terminate() {} };
