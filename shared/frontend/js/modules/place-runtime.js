@@ -3,14 +3,38 @@ import { createLatestWorkerJobScheduler, createWorkerCancellationError } from '.
 import { isBuiltinPlaceId, normalizePlace, PLACE_LIMITS } from './place-contract.js';
 import { resourceKey, resourceUpdate } from './resource-update-policy.js';
 import { placeLabelRowsAtMonth } from './place-name-display.js';
+import { indexPlaceUrbanLifetimes,placeUrbanLabelActiveAtMonth } from './place-lifetime-policy.js';
 const EMPTY = Object.freeze({ revision: 0, signature: 'empty', records: Object.freeze([]) });
 
 /** Canonical owner of the builtin label snapshot and Worker lifecycle. */
-export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences } = {}) {
+export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/manifest.json', import.meta.url).href, createWorker = null, rpc = null, onSnapshot = () => {}, onError = () => {}, onSettled = () => {}, getProtectedIds = () => [],getPresentation=()=>null,admitReferences,urbanLifetimes=null,loadUrbanLifetimes=null } = {}) {
   if (typeof manifestUrl !== 'string' || !manifestUrl) throw new TypeError('Place manifest URL must be a nonempty string');
   if(typeof admitReferences!=='function')throw new TypeError('Place publication requires its accepted identity admission boundary.');
   let snapshot=EMPTY, revision=0, moving=false, closed=false, desired=null, requestedDependencies=null, snapshotDependencies=null, referenceSequence=0;
   let admittedReferenceKey=null;
+  let lifetimeIndex=urbanLifetimes?indexPlaceUrbanLifetimes(urbanLifetimes):null;
+  let lifetimeTask=null;
+  const lifetimeUrl=new URL('../../data/places/urban-lifetimes-v1.json',import.meta.url).href;
+  async function ensureUrbanLifetimes(){
+    if(lifetimeIndex)return lifetimeIndex;
+    // Synthetic RPCs run without a mounted external library; tests injecting
+    // urbanLifetimes/loadUrbanLifetimes still exercise the exact product rules.
+    if(rpc&&!loadUrbanLifetimes)return null;
+    if(!lifetimeTask)lifetimeTask=(async()=>{
+      const value=loadUrbanLifetimes?await loadUrbanLifetimes():await(async()=>{
+        const response=await fetch(lifetimeUrl);
+        if(!response.ok)throw new Error('Place-lifetime library HTTP '+response.status);
+        const length=Number(response.headers.get('Content-Length')||0);
+        if(length>256*1024)throw new RangeError('Place-lifetime policy exceeds byte budget');
+        const body=await response.text();
+        if(body.length>256*1024)throw new RangeError('Place-lifetime policy exceeds byte budget');
+        return JSON.parse(body);
+      })();
+      lifetimeIndex=indexPlaceUrbanLifetimes(value);
+      return lifetimeIndex;
+    })();
+    return lifetimeTask;
+  }
   const retained=new Map();
   let publication=Promise.resolve();
   // A Worker can finish the next request while the previous C++ admission is
@@ -44,7 +68,8 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
   const sourceActive=(record,presentation=getPresentation())=>{
     if(!record)return false;
     const month=presentation?.month;
-    return !month||placeLabelRowsAtMonth(record,month,{ko:true,en:true,native:true}).length>0;
+    return !month||(placeUrbanLabelActiveAtMonth(record,month,lifetimeIndex)
+      &&placeLabelRowsAtMonth(record,month,{ko:true,en:true,native:true}).length>0);
   };
   function references(records=snapshot.records,cache=retained,presentation=getPresentation()) {
     return [...new Map([...cache.values(),...records].filter(record=>sourceActive(record,presentation)).map(record=>[record.id,
@@ -57,6 +82,8 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
     requestedDependencies=requested;
     const current=++revision;
     try {
+      await ensureUrbanLifetimes();
+      if(closed||moving||current!==revision)return false;
       const job=scheduler.enqueue({ jobKey: 'viewport', targetRevision: current, payload: { view }, metadata: { controller: new AbortController() } });
       const result=await job.promise;
       if (closed || moving || current !== revision) return false;
@@ -108,6 +135,8 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       if (!['display', 'reference'].includes(scope)) throw new TypeError('Unknown place search scope.');
       const reference = scope === 'reference';
       if (closed || (moving && !reference)) throw createWorkerCancellationError('지도 이동 중에는 지명 조회를 보류합니다.', 'interaction');
+      signal?.throwIfAborted();
+      await ensureUrbanLifetimes();
       signal?.throwIfAborted();
       const job=scheduler.enqueue({ jobKey: reference ? `reference:${++referenceSequence}` : 'search', signal,
         payload: { query, scope, mapDate, presentation:reference ? null : getPresentation() }, metadata: { controller: new AbortController() } });
