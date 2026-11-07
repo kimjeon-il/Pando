@@ -1,3 +1,4 @@
+import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "../../apps/viewer/js/modules/viewer-load-status.js";
@@ -34,7 +35,7 @@ const assert = __dep2.default;
 const { readFileSync } = __dep3;
 const vm = __dep4.default;
 const { isRecoverableLoadError } = __dep5;
-const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const tick = nextEventTurn;
 class Element extends EventTarget {
   constructor(){super();this.dataset={};this.children=[];this.hidden=false;}
   set textContent(value){this.text=value;this.children=[];}
@@ -121,7 +122,7 @@ const { createViewerInitialPresentation } = __dep6;
 const { createViewerPostPresentation } = __dep7;
 const { createApplicationLifecycle } = __dep8;
 const { isRecoverableLoadError } = __dep5;
-const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const tick = nextEventTurn;
 const noop=()=>{};
 const network=()=>Object.assign(new Error('network unavailable'),{code:'PL-NETWORK-001',retryable:true});
 class Element extends EventTarget {

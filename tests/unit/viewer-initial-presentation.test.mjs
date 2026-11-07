@@ -1,3 +1,4 @@
+import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
 import * as __merge_dep1 from "node:assert/strict";
@@ -194,7 +195,7 @@ const test = __dep0.default;
 const assert = __dep1.default;
 const { createViewerPostPresentation } = __dep3;
 
-const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const tick = nextEventTurn;
 test('post work starts after map open, never owns map readiness and waits only for search hydration',async()=>{
  let release,rendered=0,extras=0;
  const gate=new Promise(resolve=>{release=resolve;});

@@ -1,3 +1,4 @@
+import { nextEventTurn, deferredResult } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "../helpers/virtual-clock.mjs";
 import * as __merge_dep1 from "node:assert/strict";
@@ -381,7 +382,7 @@ featureDescribe("builtin-clock-recovery", () => {
   const { readFileSync } = __suiteDependency5;
   const vm = __suiteDependency6.default;
   const { createApplicationLifecycle } = __suiteDependency7;
-const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const tick = nextEventTurn;
 // Calendar correctness is covered by temporal tests. This fixture isolates the
 // clock's real async ownership from the unavailable compiled engine in Node.
 const context=vm.createContext({Date,parseTemporal:()=>({precision:'month'})});
@@ -418,7 +419,7 @@ featureDescribe("map-transition-clock-contract", () => {
   const test = __suiteDependency8.default;
   const assert = __suiteDependency9.default;
   const { createBuiltinMonthClock } = __suiteDependency10;
-const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => {resolve = yes; reject = no;}); return {promise, resolve, reject}; };
+const deferred = deferredResult;
 function fixture() {
   const requests = [], commits = [];
   const clock = createBuiltinMonthClock({now: () => new Date(2026, 9, 31, 12),

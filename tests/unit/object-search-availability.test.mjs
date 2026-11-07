@@ -1,3 +1,4 @@
+import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:test";
 import * as __dep1 from "node:assert/strict";
@@ -115,7 +116,7 @@ const { normalizeObjectRef } = __dep4;
 const { normalizePlace } = __dep14;
 const { createNodeSelection } = __dep15;
 
-const tick = () => new Promise(resolve => setImmediate(resolve));
+const tick = nextEventTurn;
 
 function trackSelection(domain) {
   const pending = [];

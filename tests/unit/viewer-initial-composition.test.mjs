@@ -1,3 +1,4 @@
+import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "../../apps/viewer/js/modules/viewer-load-status.js";
 import * as __dep1 from "node:test";
@@ -21,7 +22,7 @@ const { createViewerPostPresentation } = __dep6;
 const source = readFileSync(new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url), 'utf8')
   .replace(/^import [^\n]*\r?\n/gm, '').replace('export async function ', 'async function ')
   .replaceAll('import.meta.url', JSON.stringify(import.meta.url));
-const tick = () => new Promise(resolve => setImmediate(resolve));
+const tick = nextEventTurn;
 const noop = () => {};
 function fixture({hydration = Promise.resolve(), autoReady = true} = {}) {
   const nodes = new Map(), ports = {previewFinishes: 0,previewCancels: 0,mapUpdates:0,mapPublicationWaits:[]}, errors = [];
