@@ -58,6 +58,14 @@ test('viewer opens the real editor GeoPackage and keeps it through invalid files
   const initialGeneration=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().projectGeneration);
   await page.locator('#projectFileInput').setInputFiles({ name: 'editor-export.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: first.bytes });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().territorialEntities[0].properties.name),{timeout:45000}).toBe('파일 지도 A');
+  // A previous generation may still own the status element for one paint.
+  // Require the new project's accepted physical frame, not a stale DOM flag.
+  await expect.poll(()=>page.evaluate(initialGeneration=>{
+    const state=window.__PANDOLAB_VIEWER__.rendererStats();
+    return state.projectGeneration>initialGeneration
+      && state.mapReadiness.mapReady
+      && state.countriesPublishedGeneration===state.projectGeneration;
+  },initialGeneration),{timeout:120000}).toBe(true);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   const firstMap=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
   expect(firstMap.mapReadiness.mapReady).toBe(true);
@@ -105,6 +113,11 @@ test('viewer opens the real editor GeoPackage and keeps it through invalid files
   expect(final.project.territorialEntities[0].properties.name).toBe('마지막 파일 지도');
   expect(final.project.geometries).toEqual(latest.project.geometries);
   expect(final.state.canUndo).toBe(false);
+  await expect.poll(()=>page.evaluate(()=>{
+    const state=window.__PANDOLAB_VIEWER__.rendererStats();
+    return state.mapReadiness.mapReady
+      && state.countriesPublishedGeneration===state.projectGeneration;
+  }),{timeout:120000}).toBe(true);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   const lastMap=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
   expect(lastMap.mapReadiness.mapReady).toBe(true);
