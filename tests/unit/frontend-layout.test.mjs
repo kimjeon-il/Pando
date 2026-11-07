@@ -1,9 +1,23 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
-import {tmpdir} from 'node:os';
-import {join,dirname} from 'node:path';
-import {buildFrontendIndex,frontendAsset,emitFrontendModule,frontendSourceClosure} from '../../scripts/lib/frontend-layout.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:test";
+import * as __dep1 from "node:assert/strict";
+import * as __dep2 from "node:fs";
+import * as __dep3 from "node:os";
+import * as __dep4 from "node:path";
+import * as __dep5 from "../../scripts/lib/frontend-layout.mjs";
+import * as __dep6 from "../../tools/worktree-storage.mjs";
+import * as __dep7 from "../../.pnpmfile.mjs";
+import * as __dep8 from "node:child_process";
+import * as __dep9 from "../../tools/worktree-generated.mjs";
+
+// Original feature contract: frontend-layout.test.mjs
+contractSuite("frontend-layout", () => {
+const test=__dep0.default;
+const assert=__dep1.default;
+const { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync }=__dep2;
+const { tmpdir }=__dep3;
+const { join, dirname }=__dep4;
+const { buildFrontendIndex, frontendAsset, emitFrontendModule, frontendSourceClosure }=__dep5;
 function fixture(t){const root=mkdtempSync(join(tmpdir(),'pando-reviewer-layout-'));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
 function put(root,path,text='export const value=1;'){const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,text);return file;}
 test('E6 permits Viewer/shared code but retires native shell and editor product from frontend graph',t=>{
@@ -77,4 +91,50 @@ test('runtime closure rejects private retired editor dependencies',t=>{
  assert.throws(()=>frontendSourceClosure(root,['assets/js/modules/common.js'],{
    runtimeDependencies:{'assets/js/modules/common.js':['apps/editor/frontend/js/private.js']},
  }),/missing/i);
+});
+});
+
+// Original feature contract: dependency-preparation.test.mjs
+contractSuite("dependency-preparation", () => {
+const test=__dep0.default;
+const assert=__dep1.default;
+const { dependencyPreparationArguments }=__dep6;
+test('dependency preparation uses graph sharing while preserving separate project links',()=>{
+ const args=dependencyPreparationArguments({root:'D:/dev/worktrees/ui',store:'D:/build/cache/pandolab/pnpm/store'});
+ assert.ok(args.includes('--config.enableGlobalVirtualStore=true'));assert.ok(args.includes('--store-dir=D:/build/cache/pandolab/pnpm/store'));assert.ok(args.includes('--frozen-lockfile'));assert.equal(args.includes('--ignore-workspace'),false);
+});
+});
+
+// Original feature contract: dependency-store-hook.test.mjs
+contractSuite("dependency-store-hook", () => {
+const test=__dep0.default;
+const assert=__dep1.default;
+const { mkdtempSync, mkdirSync, writeFileSync, rmSync }=__dep2;
+const { tmpdir }=__dep3;
+const { join }=__dep4;
+const { preparedDependencyConfiguration }=__dep7;
+test('ordinary pnpm commands retain the prepared local graph store and CI stays independent',t=>{const root=mkdtempSync(join(tmpdir(),'pando-deps-'));t.after(()=>rmSync(root,{recursive:true,force:true}));mkdirSync(join(root,'.library-data'));const store=join(root,'shared-store');writeFileSync(join(root,'.library-data/dependencies.json'),JSON.stringify({schema:'pando-dependency-store-v1',store}));const cfg=preparedDependencyConfiguration({storeDir:'wrong'},{root,ci:false});assert.equal(cfg.enableGlobalVirtualStore,true);assert.equal(cfg.storeDir,store);assert.deepEqual(preparedDependencyConfiguration({storeDir:'ci'},{root,ci:true}),{storeDir:'ci'});});
+});
+
+// Original feature contract: worktree-cleanup-protection.test.mjs
+contractSuite("worktree-cleanup-protection", () => {
+const test=__dep0.default;
+const assert=__dep1.default;
+const { mkdtempSync, mkdirSync, writeFileSync, rmSync }=__dep2;
+const { join }=__dep4;
+const { tmpdir }=__dep3;
+const { execFileSync }=__dep8;
+const { protectedWorktreeFiles }=__dep6;
+const { previewGeneratedCleanup }=__dep9;
+test('cleanup protects every tracked and untracked source on a not-yet-migrated branch',t=>{
+ const root=mkdtempSync(join(tmpdir(),'pando-source-protection-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ const put=(p,text='protected')=>{mkdirSync(join(root,p,'..'),{recursive:true});writeFileSync(join(root,p),text);};
+ execFileSync('git',['init',root],{stdio:'pipe'});put('index.html');put('apps/web-shell/src-tauri/src/lib.rs');put('.gitignore','node_modules/\n');
+ execFileSync('git',['-C',root,'add','.'],{stdio:'pipe'});put('assets/worker-runtime/new-worker/source.js');put('node_modules/.pnpm/cache','reproducible');
+ const protectedPaths=protectedWorktreeFiles([root]);
+ for(const path of ['index.html','apps/web-shell/src-tauri/src/lib.rs','assets/worker-runtime/new-worker/source.js']){
+  assert.throws(()=>previewGeneratedCleanup({roots:[root],protectedPaths,requests:[{root,path,action:'delete',reason:'obsolete output'}]}),/Protected source or WIP/);
+ }
+ assert.equal(previewGeneratedCleanup({roots:[root],protectedPaths,requests:[{root,path:'node_modules/.pnpm',action:'delete',reason:'replaced dependency store'}]}).entries.length,1);
+});
 });

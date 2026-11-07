@@ -6,10 +6,7 @@
       "kind": "unit",
       "testPatterns": [
         "tests/unit/frontend-*.test.mjs",
-        "tests/unit/dependency-preparation.test.mjs",
-        "tests/unit/dependency-store-hook.test.mjs",
-        "tests/unit/library-runtime-prefetch.test.mjs",
-        "tests/unit/worktree-cleanup-protection.test.mjs"
+        "tests/unit/library-runtime-prefetch.test.mjs"
       ],
       "inputs": [
         "apps/viewer/**",
