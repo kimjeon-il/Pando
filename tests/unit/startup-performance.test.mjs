@@ -1,22 +1,30 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import test from 'node:test';
-import zlib from 'node:zlib';
-import { fileURLToPath } from 'node:url';
+import { describe as contractSuite } from 'node:test';
+import * as __perf_dep0 from "node:assert/strict";
+import * as __perf_dep1 from "node:fs";
+import * as __perf_dep2 from "node:path";
+import * as __perf_dep3 from "node:test";
+import * as __perf_dep4 from "node:zlib";
+import * as __perf_dep5 from "node:url";
+import * as __perf_dep6 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import * as __perf_dep7 from "../../shared/frontend/js/modules/startup-readiness.js";
+import * as __perf_dep8 from "../../shared/frontend/js/modules/canonical-country-packet.js";
+import * as __perf_dep9 from "../../shared/frontend/js/modules/adaptive-render-quality.js";
+import * as __perf_dep10 from "../helpers/source-functions.mjs";
+import * as __perf_dep11 from "../helpers/read-frontend-source.mjs";
+import * as __perf_dep12 from "node:fs/promises";
 
-import {
-  resolveRenderPixelRatioValue,
-  visibleFlatWorldOffsets,
-} from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import {
-  DATA_READINESS,
-  READINESS_EVENTS,
-  canMutateProject,
-  resolveStartupLoadPolicy,
-  transitionDataReadiness,
-} from "../../shared/frontend/js/modules/startup-readiness.js";
-import { inspectCanonicalCountryPacket } from "../../shared/frontend/js/modules/canonical-country-packet.js";
+// Original feature contract: startup-performance.test.mjs
+contractSuite("startup-performance", () => {
+const assert = __perf_dep0.default;
+const fs = __perf_dep1.default;
+const path = __perf_dep2.default;
+const test = __perf_dep3.default;
+const zlib = __perf_dep4.default;
+const { fileURLToPath } = __perf_dep5;
+const { resolveRenderPixelRatioValue, visibleFlatWorldOffsets } = __perf_dep6;
+const { DATA_READINESS, READINESS_EVENTS, canMutateProject, resolveStartupLoadPolicy, transitionDataReadiness } = __perf_dep7;
+const { inspectCanonicalCountryPacket } = __perf_dep8;
+
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const worldBundle = JSON.parse(fs.readFileSync(path.join(root, 'assets/data/world/current.json'), 'utf8'));
@@ -160,4 +168,106 @@ test('preview assets preserve country identity within the fixed size and geometr
   assert.deepEqual(manifest.assets.previewMesh.header, [...previewMeshHeader]);
   assert.deepEqual(manifest.assets.canonicalMesh.header, [...canonicalMeshHeader]);
 });
+});
 
+// Original feature contract: adaptive-render-quality.test.mjs
+contractSuite("adaptive-render-quality", () => {
+const assert = __perf_dep0.default;
+const test = __perf_dep3.default;
+const { createAdaptiveRenderQualityController, renderQualityProfile, resolveInitialRenderQuality } = __perf_dep9;
+
+
+test('device hints choose a conservative initial quality without relying on user agent strings', () => {
+  assert.equal(resolveInitialRenderQuality({ deviceMemory: 2, hardwareConcurrency: 8 }), 'coarse');
+  assert.equal(resolveInitialRenderQuality({ mobile: true, deviceMemory: 8, hardwareConcurrency: 8 }), 'medium');
+  assert.equal(resolveInitialRenderQuality({ deviceMemory: 16, hardwareConcurrency: 12 }), 'high');
+});
+
+test('interaction quality keeps canonical geometry while lowering only work budgets', () => {
+  const profile = renderQualityProfile('high', { phase: 'interaction' });
+  assert.equal(profile.countryMeshQuality, 'canonical');
+  assert.equal(profile.terrainResolutionScale, 1);
+  assert.equal(profile.backgroundLod, 'high');
+  assert.equal(profile.activeEditLod, 'high');
+  assert.equal(profile.selectedLod, 'high');
+  assert.ok(profile.uploadBudgetBytes < profile.settleUploadBudgetBytes);
+});
+
+test('measured expensive frames downgrade the runtime tier with hysteresis', () => {
+  let clock = 10_000;
+  const controller = createAdaptiveRenderQualityController({
+    deviceMemory: 16,
+    hardwareConcurrency: 12,
+    evaluationWindow: 4,
+    degradeWindows: 1,
+    changeCooldownMs: 0,
+    now: () => ++clock,
+  });
+  assert.equal(controller.profile().tier, 'high');
+  for (let index = 0; index < 4; index += 1) controller.recordFrame(60);
+  assert.equal(controller.profile().tier, 'medium');
+  assert.equal(controller.stats().qualityChangeCount, 1);
+});
+
+test('phase changes are explicit and revisioned', () => {
+  const controller = createAdaptiveRenderQualityController({ deviceMemory: 8, hardwareConcurrency: 8 });
+  const initial = controller.profile().revision;
+  assert.equal(controller.beginInteraction(), true);
+  assert.equal(controller.profile().phase, 'interaction');
+  assert.ok(controller.profile().revision > initial);
+  assert.equal(controller.endInteraction(), true);
+  assert.equal(controller.profile().phase, 'settle');
+});
+
+test('mobile sharpness uses DPR two at normal tiers while preserving a low-memory tier', () => {
+  assert.equal(renderQualityProfile('medium', { mobile: true }).dprCap, 2);
+  assert.equal(renderQualityProfile('high', { mobile: true }).dprCap, 2);
+  assert.equal(renderQualityProfile('coarse', { mobile: true }).dprCap, 1.5);
+  assert.equal(renderQualityProfile('medium', { mobile: false }).dprCap, 1.75);
+  assert.equal(renderQualityProfile('coarse', { mobile: false }).dprCap, 1.25);
+});
+});
+
+// Original feature contract: label-shell-performance.test.mjs
+contractSuite("label-shell-performance", () => {
+const { applicationFunctionSource } = __perf_dep10;
+const { readFrontendSources } = __perf_dep11;
+const assert = __perf_dep0.default;
+const { readFile } = __perf_dep12;
+const test = __perf_dep3.default;
+
+const app = readFrontendSources('map-projection', 'gpu-scene', 'map-workspace-host', 'territorial-labels');
+const rendering = await readFile(new URL("../../shared/frontend/js/modules/rendering-domain.js", import.meta.url), 'utf8');
+const content = await readFile(new URL("../../shared/frontend/js/modules/map-content-presentation.js", import.meta.url), 'utf8');
+const labels = await readFile(new URL("../../shared/frontend/js/modules/label-presentation.js", import.meta.url), 'utf8');
+
+const functionSource = applicationFunctionSource;
+
+test('globe shell uses frame-context circles instead of rebuilding a D3 Sphere path', () => {
+  const shell = functionSource(readFrontendSources('map-projection'), 'updatePandoGlobeShell', 'featureFromGeometry');
+  assert.match(shell, /frameContext\.cssTranslate/);
+  assert.match(shell, /frameContext\.cssScale/);
+  assert.match(shell, /\.attr\('cx', translate\[0\]\)/);
+  assert.match(shell, /\.attr\('r', radius\)/);
+  assert.doesNotMatch(shell, /Sphere|\.attr\('d'|\bpath\b/);
+  assert.match(app, /append\('circle'\)\.attr\('class', 'map-ocean map-ocean-globe'\)/);
+  assert.match(app, /append\('circle'\)\.attr\('class', 'globe-shadow'\)/);
+  assert.match(content, /const syncBaseView = \(viewState = null\) =>/);
+  assert.match(content, /replaceGpuSceneDomain\?\.\('base-graticule', \{ strokes:/);
+  assert.doesNotMatch(rendering, /graticuleLayer|gpuOwnsGraticule/);
+  assert.match(rendering, /viewPresentation: commitViewAttachedLayers/);
+});
+
+test('label positioning commits inside the shared visual frame without a private cadence', () => {
+  assert.doesNotMatch(rendering, /labelCadenceIntervalMs|scheduleLabelPositions|pendingLabelPositionFrameContext/);
+  assert.doesNotMatch(labels, /labelCadenceIntervalMs|scheduleLabelPositions|pendingLabelPositionFrameContext/);
+  assert.match(labels, /renderTerritorialLabelPositions = frameContext => \{/);
+  assert.match(labels, /renderUserLabelPositions = frameContext => applyUserLabelPositions\(frameContext\)/);
+  assert.match(rendering, /renderTerritorialLabelPositions\(frame\)/);
+  assert.match(rendering, /renderUserLabelPositions\(frame\)/);
+  assert.match(rendering, /frameProjectCoordinate\(coordinate, frameContext\)/);
+  assert.match(app, /territorialLabelPoints: new Map/);
+  assert.match(app, /userLabelPoints: new Map/);
+  assert.doesNotMatch(app, /if \(!isCoordVisible\(coordinate\)\) continue;\s*const point = activeProjection\(\)\(coordinate\)/);
+});
+});
