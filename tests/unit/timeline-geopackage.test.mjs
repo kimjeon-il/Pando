@@ -1,14 +1,31 @@
 import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "../helpers/production-geopackage.mjs";
-import * as __dep1 from "../fixtures/timeline-storage-cases.mjs";
-import * as __dep2 from "node:test";
-import * as __dep3 from "node:assert/strict";
-import * as __dep4 from "../../tools/gis/project-template-compiler.js";
-import * as __dep5 from "../../shared/frontend/js/modules/project-state.js";
-import * as __dep6 from "../helpers/timeline-project.mjs";
-import * as __dep7 from "../../shared/frontend/js/modules/territorial-units.js";
-import * as __dep8 from "node:fs/promises";
-import * as __dep9 from "../../shared/frontend/js/modules/timeline-storage.js";
+import * as __gpkg_dep0 from "node:test";
+import * as __gpkg_dep1 from "../helpers/production-geopackage.mjs";
+import * as __gpkg_dep2 from "../fixtures/timeline-storage-cases.mjs";
+import * as __gpkg_dep3 from "node:assert/strict";
+import * as __gpkg_dep4 from "../../tools/gis/project-template-compiler.js";
+import * as __gpkg_dep5 from "../../shared/frontend/js/modules/project-state.js";
+import * as __gpkg_dep6 from "../helpers/timeline-project.mjs";
+import * as __gpkg_dep7 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __gpkg_dep8 from "node:fs/promises";
+import * as __gpkg_dep9 from "../../shared/frontend/js/modules/timeline-storage.js";
+import * as __gpkg_dep10 from "../../shared/frontend/js/modules/generic-feature-normalization.js";
+import * as __gpkg_dep11 from "node:fs";
+import * as __gpkg_dep12 from "../helpers/core-project.mjs";
+
+// Original feature contract: timeline-geopackage.test.mjs
+contractSuite("timeline-geopackage", () => {
+const { describe : contractSuite } = __gpkg_dep0;
+const __dep0 = __gpkg_dep1;
+const __dep1 = __gpkg_dep2;
+const __dep2 = __gpkg_dep0;
+const __dep3 = __gpkg_dep3;
+const __dep4 = __gpkg_dep4;
+const __dep5 = __gpkg_dep5;
+const __dep6 = __gpkg_dep6;
+const __dep7 = __gpkg_dep7;
+const __dep8 = __gpkg_dep8;
+const __dep9 = __gpkg_dep9;
 
 // Original feature contract: timeline-geopackage.test.mjs
 contractSuite("timeline-geopackage", () => {
@@ -145,5 +162,43 @@ test('store and entity catalog are required dependencies', () => {
   const row=timelineStorageCases()[0];const current=restoreTimelineStorage(row.input,row.entities);
   assert.throws(()=>snapshotTimelineStorage(current.records,null,row.entities),{code:'TIMELINE_CONTEXT'});
   assert.throws(()=>restoreTimelineStorage(row.input,undefined),{code:'TIMELINE_CONTEXT'});
+});
+});
+});
+
+// Original feature contract: core-gpkg-file-boundary.test.mjs
+contractSuite("core-gpkg-file-boundary", () => {
+const { normalizeGenericFeatureSemantics } = __gpkg_dep10;
+const assert = __gpkg_dep3.default;
+const test = __gpkg_dep0.default;
+const { readFileSync } = __gpkg_dep11;
+const { createNodeCoreProject } = __gpkg_dep12;
+const { productionGeoPackage, spatialLayerCount, spatialColumns } = __gpkg_dep1;
+
+for(const name of ['static','complex'])test(`Core ${name} file export supplies same-epoch spatial facts to the byte encoder`,async t=>{
+  const seed=JSON.parse(readFileSync(new URL(`../fixtures/timeline-exchange/${name}.json`,import.meta.url),'utf8'));
+  if(name==='static') seed.genericFeatures.push(normalizeGenericFeatureSemantics({type:'Feature',id:'ac7332ab-e9e8-4f20-a14e-b7291ddf5f1d',
+    geometry:{type:'Point',coordinates:[0,0]},properties:{schemaVersion:2,name:'Point',source:{kind:'user'}}}));
+  const owner=await createNodeCoreProject(seed);t.after(()=>owner.dispose());const before=owner.client.state();
+  const result=await owner.client.exportSnapshot({format:'pandolab-project-state',version:seed.version,savedAt:seed.savedAt});
+  const body=JSON.parse(result.storageJson);
+  assert.deepEqual(owner.client.state(),before);assert.deepEqual(result.state,before);
+  assert.equal(result.spatialState===null,name==='complex');
+  const file=await productionGeoPackage('write',new ArrayBuffer(0),body,result.spatialState);
+  assert.equal(spatialLayerCount(file.buffer)>0,name==='static');
+  if(name==='static') for(const table of ['generic_features_point']) {
+    const columns=spatialColumns(file.buffer,table);
+    assert.ok(columns.includes('properties_json'));
+    for(const retired of ['role','owner_id','parent_id','topology_group','land_binding']) assert.equal(columns.includes(retired),false);
+  }
+  const accepted=await owner.client.validateImport(JSON.stringify((await productionGeoPackage('read',file.buffer)).metadata.projectState));
+  const reopened=await createNodeCoreProject(accepted);t.after(()=>reopened.dispose());
+  assert.deepEqual(JSON.parse(await reopened.client.storageSnapshot()),body);
+  assert.equal(Object.hasOwn(body,'spatialState'),false);assert.equal(Object.hasOwn(body,'checkpoint'),false);
+});
+
+test('the project byte encoder rejects a missing Core spatial receipt instead of resolving the model in JavaScript',async()=>{
+  const body=JSON.parse(readFileSync(new URL('../fixtures/timeline-exchange/static.json',import.meta.url),'utf8'));
+  await assert.rejects(productionGeoPackage('write',new ArrayBuffer(0),body),{code:'PL-GPKG-SPATIAL-PROJECTION'});
 });
 });
