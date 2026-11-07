@@ -1,7 +1,17 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { prepareGpuBaseScene, commitGpuStrokeDomains } from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
-import { drawGpuBaseScene } from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import { describe as contractSuite } from 'node:test';
+import * as __contract_dep0 from "node:assert/strict";
+import * as __contract_dep1 from "node:test";
+import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-scene-preparation.js";
+import * as __contract_dep3 from "../../shared/frontend/js/modules/gpu-base-scene-pass.js";
+import * as __contract_dep4 from "node:fs";
+import * as __contract_dep5 from "../../shared/frontend/js/modules/map-content-presentation.js";
+
+// Original feature contract: gpu-scene-staging.test.mjs
+contractSuite("gpu-scene-staging", () => {
+const assert = __contract_dep0.default;
+const test = __contract_dep1.default;
+const { prepareGpuBaseScene, commitGpuStrokeDomains } = __contract_dep2;
+const { drawGpuBaseScene } = __contract_dep3;
 
 const packet = (key, revision, domain = 'boundaries', objectKey = '') => ({
   key, domain, objectKey, sourceKey: `stroke:${key}:${revision}:high:flat`, geometryRevision: revision,
@@ -138,4 +148,192 @@ test('failure of both B and eligible A is a failed presentation with no promotio
   });
   assert.equal(result.strokePresentationFailed, true);
   assert.deepEqual(result.strokeDomainReplacements, []);
+});
+});
+
+// Original feature contract: gpu-scene-worker-presentation.test.mjs
+contractSuite("gpu-scene-worker-presentation", () => {
+const test = __contract_dep1.default;
+const assert = __contract_dep0.default;
+const { readFileSync } = __contract_dep4;
+
+test('after polygon preparation, Canvas Worker schedules a base redraw rather than interaction-only invalidation',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-scene.js',import.meta.url),'utf8');
+  assert.match(source,/builder\.preparePolygons\([\s\S]*?\.then\(\(\) => \{[\s\S]*?syncGpuRenderScene\(\);[\s\S]*?mode === 'canvas-worker'[\s\S]*?requestPreparedCanvasFrame\?\.\(\);[\s\S]*?invalidateBaseScene\('canvas-scene-ready'\)/);
+  assert.match(source,/else\s+dependencies\.domains\.renderingDomain\.invalidateGpuInteraction\('overlay-mesh-ready'\)/);
+});
+
+
+test('restored base country strokes invalidate the base scene rather than interaction only',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const begin=source.indexOf('    function overlayResourceReady(key) {');
+  const end=source.indexOf('    function buildCountryStrokeResource(',begin);
+  assert.ok(begin>=0 && end>begin);
+  const events=[];
+  const ready=new Function('sceneColorCache','invalidateGpuFrame','scheduleGpuInteractionFrame',
+    'renderScene','sceneStrokeResourcePacket','projectGeneration','promotePreparedCountryBoundary',
+    source.slice(begin,end)+'\nreturn overlayResourceReady;')(
+    {invalidate:reason=>events.push(['cache',reason])},
+    reason=>events.push(['base',reason]),reason=>events.push(['interaction',reason]),
+    {polygons:[],strokes:[]},()=>({key:''}),1,()=>events.push(['shared','promote'])
+  );
+  ready('country-boundary:canonical');
+  assert.ok(events.some(([kind])=>kind==='base'),'base country stroke upload must schedule a composited frame');
+  assert.equal(events.some(([kind])=>kind==='interaction'),false);
+  events.length=0;
+  ready('ui-selection-only');
+  assert.deepEqual(events,[['interaction','interaction-resource-ready']]);
+});
+
+test('Canvas first canonical country frame schedules optional terrain only after physical bitmap acceptance',()=>{
+  const renderer=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  assert.match(renderer,/presentBeforeTerrain:\s*!temporalPending\(\)\s*&&\s*countriesPublishedGeneration\s*!==\s*projectGeneration/);
+  assert.match(renderer,/message\.presentBeforeTerrain\s*&&\s*fullSceneReady/);
+  assert.match(renderer,/invalidateGpuFrame\('canvas-country-before-terrain'\)/);
+});
+
+test('Canvas Worker scene redraw is a base invalidation retaining document and geometry state owners',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-scene.js',import.meta.url),'utf8');
+  const prep=source.slice(source.indexOf('builder.preparePolygons('),source.indexOf('if (pendingPreparation) { pendingPreparation = null;'));
+  assert.doesNotMatch(prep,/documentLoad\(|setTimelineCursor\(|replaceSnapshot\(|resetProjectGeneration\(|dispose\(/);
+  assert.doesNotMatch(prep,/invalidateProject\(/);
+});
+
+test('prepared Canvas Worker frames are requested only for a live current project and physical scene',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const begin=source.indexOf('    function requestPreparedCanvasFrame() {');
+  const end=source.indexOf('    function renderLatestVisualFrame() {',begin);
+  assert.ok(begin>=0&&end>begin);
+  const handoff=source.slice(begin,end);
+  for(const contract of [/disposed/,/rendererMode !== 'canvas-worker'/,/projectRenderBlocked/,
+    /canvasWorker\?\.ready/,/lastVisualFrame/,/lastVisualFrame\.projectGeneration/,
+    /projectGeneration/,/physicalSceneMatchesContext\(renderScene, getPhysicalContextState\(\)\)/,
+    /renderCanvasWorker\(lastVisualFrame\)/])assert.match(handoff,contract);
+  assert.doesNotMatch(handoff,/commitVisualFrame\(|recordMapPresentation\(|countriesPublishedGeneration\s*=/);
+});
+
+test('Canvas Worker submits the latest view when a drag finishes',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8').replaceAll('\r\n','\n');
+  const renderStart=source.indexOf('    function renderCanvasWorker(visualFrame) {');
+  const renderEnd=source.indexOf('\n    // Reconnect an asynchronously prepared physical scene',renderStart);
+  const latestStart=source.indexOf('    function prioritizeLatest() {');
+  const latestEnd=source.indexOf('\n    function ',latestStart+1);
+  assert.ok(renderStart>=0&&renderEnd>renderStart&&latestStart>=0&&latestEnd>latestStart);
+  const create=new Function(`
+    let interactionActive=false, rendererMode='canvas-worker', lastVisualFrame=null, projectGeneration=1;
+    const sent=[], canvasWorker={queueFrame:frame=>sent.push(frame)};
+    const resize=()=>{}, syncCanvasWorkerState=()=>{}, canvasWorkerViewMessage=frame=>frame||lastVisualFrame;
+    ${source.slice(renderStart,renderEnd)}
+    ${source.slice(latestStart,latestEnd)}
+    return {sent, move:frame=>{lastVisualFrame=frame;renderCanvasWorker(frame);},
+      setGeneration:value=>{projectGeneration=value;},
+      begin:()=>{interactionActive=true;}, finish:()=>{interactionActive=false;prioritizeLatest();}};
+  `);
+  const h=create();h.setGeneration(0);h.move({id:'pre-document'});
+  h.begin();h.finish();
+  assert.deepEqual(h.sent,[],'pre-document work cannot block the current project');
+  h.setGeneration(1);h.move({id:0});h.begin();h.move({id:1});h.move({id:2});h.finish();
+  assert.deepEqual(h.sent.map(frame=>frame.id),[0,2]);
+});
+
+
+test('Canvas acceptance rejects stale frame identity before transport acknowledges it',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('          const canvasFrameRejectionReason =');
+  const end=source.indexOf('          canvasWorker = createGpuCanvasWorker(',start);
+  assert.ok(start>=0&&end>start,'canonical Canvas frame predicate is required');
+  const accepted=source.slice(start,end);
+  for(const marker of ['message.presentationKey',
+    'currentCanvasPresentationKey(lastVisualFrame)','message.geometryRevision','geometryRevisionTracker.committedRevision()',
+    'message.styleRevision','canvasStyleRevision','message.surfaceQuality',
+    'canvasWorkerFrameMatchesPhysical'])
+    assert.ok(accepted.includes(marker),'Canvas transport must reject mismatched '+marker);
+  assert.match(source.slice(end,source.indexOf('onStale:',end)),/acceptFrame: message => canvasFrameRejectionReason\(message\) === ''/);
+  const retry=source.slice(end,source.indexOf('\n          });',end));
+  assert.ok(!retry.includes("message.renderRequestId == null\n"),
+    'spontaneous resource frames must not be silently ignored');
+  assert.ok(retry.includes('canvasWorker?.busy'),'in-flight current work must not be interrupted');
+  assert.ok(retry.includes('canvasWorkerResubmitAttempts > 4'),'retries remain bounded');
+  assert.ok(retry.includes('renderCanvasWorker(lastVisualFrame)'),'only current work is resubmitted');
+});
+
+
+test('Canvas rejection reasons classify stale style, physical scene and source identities without accepting old pixels',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const begin=source.indexOf('          const canvasFrameRejectionReason =');
+  const end=source.indexOf('          canvasWorker = createGpuCanvasWorker(',begin);
+  const map={frameId:4};
+  let style=3,geom=7,quality='canonical',physical=true;
+  const initial={frameId:4,presentationKey:'current',geometryRevision:7,
+    styleRevision:3,surfaceQuality:'canonical'};
+  const factory=new Function('lastVisualFrame','currentCanvasPresentationKey','geometryRevisionTracker',
+    'canvasStyleRevision','surfacePresentation','canvasWorkerFrameMatchesPhysical','getPhysicalContextState',
+    'currentCanvasPhysical','canvasBackgroundEligible','currentCanvasBackgroundKey','canvasPhysicalStyleRevision',
+    source.slice(begin,end)+';return canvasFrameRejectionReason;');
+  const make=()=>factory(map,()=> 'current',{committedRevision:()=>geom},style,
+    {quality},()=>physical,()=>({}),()=>({context:{ready:true}}),()=>false,()=> 'background',3);
+  assert.equal(make()(initial),'');
+  assert.equal(make()({...initial,frameId:3}),'',
+    'a scheduling-only frameId must not discard an identical physical picture');
+  assert.equal(make()({...initial,presentationKey:'old'}),'presentation');
+  assert.equal(make()({...initial,geometryRevision:4}),'geometry');
+  style=4;assert.equal(make()(initial),'style');style=3;
+  quality='pending';assert.equal(make()(initial),'quality');quality='canonical';
+  physical=false;assert.equal(make()(initial),'physical');
+});
+
+test('Canvas ready and data-ready reconnect the current physical scene without admitting stale bitmaps',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=source.indexOf('    function receiveCanvasWorkerMessage(event) {');
+  const end=source.indexOf('    function activateCanvasFallback(',start);
+  assert.ok(start>=0&&end>start);
+  const dispatch=source.slice(start,end);
+  assert.match(dispatch,/if \(message\.type === 'ready'\) \{[\s\S]*?syncCanvasWorkerState\(\);[\s\S]*?requestPreparedCanvasFrame\(\)/);
+  assert.match(dispatch,/if \(message\.type === 'data-ready'\) \{[\s\S]*?if \(!requestPreparedCanvasFrame\(\)\) invalidateGpuFrame\('canvas-data-ready'\)/);
+  const gate=source.slice(source.indexOf('    function requestPreparedCanvasFrame() {'),
+    source.indexOf('    function renderLatestVisualFrame()',source.indexOf('    function requestPreparedCanvasFrame() {')));
+  assert.match(gate,/projectRenderBlocked/);
+  assert.match(gate,/lastVisualFrame\.projectGeneration/);
+  assert.match(gate,/physicalSceneMatchesContext/);
+  assert.doesNotMatch(dispatch,/canvasTerrainStats = message\.terrainStats[^\n]*\n[^\n]*recordMapPresentation/,
+    'worker-local stats must not be mistaken for a committed bitmap');
+});
+});
+
+// Original feature contract: gpu-scene-presentation-ownership.test.mjs
+contractSuite("gpu-scene-presentation-ownership", () => {
+const test = __contract_dep1.default;
+const assert = __contract_dep0.default;
+const { createMapContentPresentation } = __contract_dep5;
+
+function fixture() {
+  const actions={pending:0,replace:0,sync:0,draw:0,coverage:[]};
+  const countries={
+    getState:()=>({layerVisibility:{objects:true},pendingCountryRenderIds:new Set()}),
+    renderPendingCountryOverlays:()=>{actions.pending++;},
+    replaceGpuSceneDomain:()=>{actions.replace++;},
+    syncGpuRenderScene:()=>{actions.sync++;},
+    applyGpuSceneCoverage:value=>actions.coverage.push(value),
+    gpuMapRenderer:{renderFrame:()=>{actions.draw++;return{succeeded:true};}},
+  };
+  const content=createMapContentPresentation({countries,active:()=>{},requireFrame:value=>value});
+  return {actions,content,frame:{__mapVisualFrame:true,frameId:9}};
+}
+
+test('presentation-only country pass cannot replace scene after GPU draw but retains coverage',()=>{
+  const f=fixture(), result={succeeded:true,frameId:9};
+  const outcome=f.content.renderCountries(f.frame,{presentationOnly:true,gpuResult:result});
+  assert.equal(outcome,result);
+  assert.equal(f.actions.pending,1,'SVG pending-country outlines still update on the approved frame');
+  assert.equal(f.actions.replace,0,'presentation must not overwrite drawn GPU scene');
+  assert.equal(f.actions.sync,0,'presentation must not advance rendered scene identity');
+  assert.equal(f.actions.draw,0,'presentation must not draw a second GPU frame');
+  assert.deepEqual(f.actions.coverage,[result]);
+});
+
+test('normal country pass still synchronizes geometry and draws before presenting',()=>{
+  const f=fixture(),result=f.content.renderCountries(f.frame);
+  assert.deepEqual([f.actions.pending,f.actions.replace,f.actions.sync,f.actions.draw],[1,1,1,1]);
+  assert.deepEqual(f.actions.coverage,[result]);
+});
 });

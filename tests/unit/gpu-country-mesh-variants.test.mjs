@@ -1,16 +1,28 @@
-import { describe as featureDescribe } from 'node:test';
-import * as __suiteDependency0 from "node:test";
-import * as __suiteDependency1 from "node:assert/strict";
-import * as __suiteDependency2 from "../../shared/frontend/js/modules/gpu-country-mesh-variants.js";
-import * as __suiteDependency3 from "node:test";
-import * as __suiteDependency4 from "node:assert/strict";
-import * as __suiteDependency5 from "../../shared/frontend/js/modules/gpu-country-patch-presentation.js";
-import * as __suiteDependency6 from "node:assert/strict";
-import * as __suiteDependency7 from "node:fs";
-import * as __suiteDependency8 from "node:path";
-import * as __suiteDependency9 from "node:test";
-import * as __suiteDependency10 from "node:url";
-import * as __suiteDependency11 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import { describe as contractSuite } from 'node:test';
+import * as __contract_dep0 from "node:test";
+import * as __contract_dep1 from "node:assert/strict";
+import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-country-mesh-variants.js";
+import * as __contract_dep3 from "../../shared/frontend/js/modules/gpu-country-patch-presentation.js";
+import * as __contract_dep4 from "node:fs";
+import * as __contract_dep5 from "node:path";
+import * as __contract_dep6 from "node:url";
+import * as __contract_dep7 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+
+// Original feature contract: gpu-country-mesh-variants.test.mjs
+contractSuite("gpu-country-mesh-variants", () => {
+const { describe : featureDescribe } = __contract_dep0;
+const __suiteDependency0 = __contract_dep0;
+const __suiteDependency1 = __contract_dep1;
+const __suiteDependency2 = __contract_dep2;
+const __suiteDependency3 = __contract_dep0;
+const __suiteDependency4 = __contract_dep1;
+const __suiteDependency5 = __contract_dep3;
+const __suiteDependency6 = __contract_dep1;
+const __suiteDependency7 = __contract_dep4;
+const __suiteDependency8 = __contract_dep5;
+const __suiteDependency9 = __contract_dep0;
+const __suiteDependency10 = __contract_dep6;
+const __suiteDependency11 = __contract_dep7;
 
 // Original feature contract: gpu-country-mesh-variants.test.mjs
 featureDescribe("gpu-country-mesh-variants", () => {
@@ -206,5 +218,48 @@ test('selection interaction hot path performs only precomputed map lookups', () 
   const interactionSource = source.slice(start);
   assert.match(interactionSource, /triangleRangesByCountryId\?\.get\(id\)/);
   assert.doesNotMatch(interactionSource, /countryTriangleRanges|createCountryTriangleRangeMap|for\s*\(/);
+});
+});
+});
+
+// Original feature contract: gpu-country-pick-slot-guard.test.mjs
+contractSuite("gpu-country-pick-slot-guard", () => {
+const assert = __contract_dep1.default;
+const { readFileSync } = __contract_dep4;
+const test = __contract_dep0.default;
+
+// Exercise the renderer's private scene entrypoint without constructing a GL device.
+// The real function body is evaluated with only its GPU collaborators substituted.
+const source = readFileSync(new URL("../../shared/frontend/js/modules/gpu-map-renderer.js", import.meta.url), 'utf8');
+const start = source.indexOf('    function ensureCountryIdScene() {');
+const end = source.indexOf('    function pick(screenPoint)', start);
+assert.ok(start >= 0 && end > start);
+const ensureScene = new Function('isWebGlRenderer', 'gl', 'mesh', 'state', 'ensurePickTarget',
+  'meshVariants', 'surfacePresentation', 'meshCountryIds', 'countryIdSceneKey', 'pickSceneKey',
+  'pickFramebuffer', 'pixelWidth', 'pixelHeight', `${source.slice(start, end)}\nreturn ensureCountryIdScene();`);
+
+for (const [canonicalIds, activeIds, expected] of [
+  [['A', 'B'], ['B', 'A'], false],
+  [['A', 'B'], ['A'], false],
+  [['A'], ['A', 'B'], false],
+  [['A', 'B'], ['A', 'B'], true],
+]) {
+  test(`canonical picking eligibility for canonical ${canonicalIds} and active ${activeIds}`, () => {
+    let targetRequests = 0;
+    const entry = { mesh: { triangleIndices: [] }, countryIds: canonicalIds };
+    const gl = { bindFramebuffer() {}, viewport() {}, enable() {} };
+    const result = ensureScene(() => true, gl, {}, { layerVisibility: { objects: true } },
+      () => { targetRequests += 1; }, new Map([['canonical', entry]]), { quality: 'canonical', targetQuality: 'canonical' }, activeIds,
+      () => 'cached-scene', 'cached-scene', {}, 10, 10);
+    assert.equal(result, expected);
+    assert.equal(targetRequests, expected ? 1 : 0);
+  });
+}
+
+test('pending surfaces cannot allocate a country picking target', () => {
+  const result = ensureScene(() => true, {}, {}, { layerVisibility: { objects: true } },
+    () => assert.fail('pending surfaces must not prepare picking'), new Map(),
+    { quality: 'pending', targetQuality: 'canonical' }, [], () => 'cached-scene', 'cached-scene', {}, 10, 10);
+  assert.equal(result, false);
 });
 });

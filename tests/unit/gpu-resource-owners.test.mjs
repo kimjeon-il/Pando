@@ -1,16 +1,28 @@
-import { describe as featureDescribe } from 'node:test';
-import * as __suiteDependency0 from "node:test";
-import * as __suiteDependency1 from "node:assert/strict";
-import * as __suiteDependency2 from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
-import * as __suiteDependency3 from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
-import * as __suiteDependency4 from "../../shared/frontend/js/modules/gpu-worker-channels.js";
-import * as __suiteDependency5 from "node:assert/strict";
-import * as __suiteDependency6 from "node:test";
-import * as __suiteDependency7 from "../../shared/frontend/js/modules/gpu-resource-budget.js";
-import * as __suiteDependency8 from "node:test";
-import * as __suiteDependency9 from "node:assert/strict";
-import * as __suiteDependency10 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import * as __suiteDependency11 from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
+import { describe as contractSuite } from 'node:test';
+import * as __contract_dep0 from "node:test";
+import * as __contract_dep1 from "node:assert/strict";
+import * as __contract_dep2 from "../../shared/frontend/js/modules/gpu-resource-lifecycle.js";
+import * as __contract_dep3 from "../../shared/frontend/js/modules/gpu-upload-scheduler.js";
+import * as __contract_dep4 from "../../shared/frontend/js/modules/gpu-worker-channels.js";
+import * as __contract_dep5 from "../../shared/frontend/js/modules/gpu-resource-budget.js";
+import * as __contract_dep6 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import * as __contract_dep7 from "../../shared/frontend/js/modules/mesh-spatial-blocks.js";
+
+// Original feature contract: gpu-resource-owners.test.mjs
+contractSuite("gpu-resource-owners", () => {
+const { describe : featureDescribe } = __contract_dep0;
+const __suiteDependency0 = __contract_dep0;
+const __suiteDependency1 = __contract_dep1;
+const __suiteDependency2 = __contract_dep2;
+const __suiteDependency3 = __contract_dep3;
+const __suiteDependency4 = __contract_dep4;
+const __suiteDependency5 = __contract_dep1;
+const __suiteDependency6 = __contract_dep0;
+const __suiteDependency7 = __contract_dep5;
+const __suiteDependency8 = __contract_dep0;
+const __suiteDependency9 = __contract_dep1;
+const __suiteDependency10 = __contract_dep6;
+const __suiteDependency11 = __contract_dep2;
 
 // Original feature contract: gpu-resource-owners.test.mjs
 featureDescribe("gpu-resource-owners", () => {
@@ -218,5 +230,106 @@ test('temporal presentation wait is cancelled by a newer generation and rejects 
   renderer.resetProjectRenderState({generation:3,presentation:'temporal',isCurrent:()=>false});
   await assert.rejects(renderer.waitForTemporalPresentation(),{name:'AbortError',cancelled:true});
   renderer.dispose();
+});
+});
+});
+
+// Original feature contract: gpu-upload-staging.test.mjs
+contractSuite("gpu-upload-staging", () => {
+const test = __contract_dep0.default;
+const assert = __contract_dep1.default;
+const { createGpuUploadScheduler } = __contract_dep3;
+const { prepareMeshSpatialBlocks, visibleSpatialBlockRanges } = __contract_dep7;
+
+function clock() {
+  const frames = []; let time = 0;
+  const scheduler = createGpuUploadScheduler({ requestFrame: fn => (frames.push(fn), frames.length), cancelFrame: () => {}, now: () => time, isHidden: () => false, isInputPending: () => false });
+  return { scheduler, frames, tick(ms) { time += ms; frames.shift()?.(); }, advance(ms) { time += ms; } };
+}
+test('upload keys deduplicate and only complete after all chunks', async () => {
+  const c = clock(); let chunks = 0;
+  const job = { key: 'mesh', step: ({ byteBudget }) => { assert.ok(byteBudget <= 256 * 1024); return { bytes: byteBudget, done: ++chunks === 3 }; } };
+  const promise = c.scheduler.enqueueUpload(job);
+  assert.equal(c.scheduler.enqueueUpload(job), promise);
+  c.tick(16); assert.equal(chunks, 1); c.tick(16); c.tick(16); await promise;
+  assert.equal(c.scheduler.getStats().completed, 1);
+});
+test('input holds uploads until 500ms after release', async () => {
+  const c = clock(); let calls = 0;
+  const done = c.scheduler.enqueueUpload({ key: 'mesh', step: () => ({ done: ++calls > 0 }) });
+  c.scheduler.noteInput(true); c.tick(1000); assert.equal(calls, 0);
+  c.scheduler.noteInput(false); c.tick(499); assert.equal(calls, 0); c.tick(1); await done; assert.equal(calls, 1);
+});
+test('input-pending frames advance admitted current terrain while pausing optional GPU uploads', async () => {
+  let time=0,pendingInput=true;
+  const frames=[],calls=[];
+  const scheduler=createGpuUploadScheduler({
+    requestFrame:fn=>(frames.push(fn),frames.length),
+    cancelFrame:()=>{},now:()=>time,isHidden:()=>false,isInputPending:()=>pendingInput,
+  });
+  const optional=scheduler.enqueueUpload({key:'hydro',priority:40,step:()=>{calls.push('hydro');return {bytes:128,done:true};}});
+  const terrain=scheduler.enqueueUpload({key:'terrain',priority:40,allowDuringInteraction:true,
+    step:({byteBudget})=>{assert.ok(byteBudget<=256*1024);calls.push('terrain');return {bytes:128,done:true};}});
+  frames.shift()();
+  await terrain;
+  assert.deepEqual(calls,['terrain'],'pending input must not starve permitted visible terrain');
+  assert.equal(scheduler.getStats().pending,1,'deferred hydro remains queued');
+  pendingInput=false;time+=499;
+  frames.shift()();
+  assert.deepEqual(calls,['terrain'],'optional uploads stay paused during the interaction grace');
+  time+=1;frames.shift()();await optional;
+  assert.deepEqual(calls,['terrain','hydro']);
+  assert.equal(scheduler.getStats().pending,0);
+  scheduler.dispose();
+});
+
+test('shared time budget stops another consumer after an atomic overrun', async () => {
+  const c = clock(), seen = [];
+  const a = c.scheduler.enqueueUpload({ key: 'terrain', priority: 10, step: () => { seen.push('terrain'); c.advance(3); return { done: true, bytes: 100 }; } });
+  const b = c.scheduler.enqueueUpload({ key: 'hydro', step: () => { seen.push('hydro'); return { done: true }; } });
+  c.tick(16); assert.deepEqual(seen, ['terrain']); assert.equal(c.scheduler.getStats().overrunCount, 1);
+  c.tick(16); await Promise.all([a, b]); assert.deepEqual(seen, ['terrain', 'hydro']);
+});
+test('generation cancellation disposes staging and rejects rather than committing', async () => {
+  const c = clock(); let disposed = false;
+  const p = c.scheduler.enqueueUpload({ key: 'mesh', projectGeneration: 7, step: () => assert.fail('stale upload'), dispose: () => { disposed = true; } });
+  c.scheduler.cancelGeneration(7); await assert.rejects(p, { name: 'AbortError' }); assert.equal(disposed, true);
+});
+
+function mesh() {
+  return { positions: new Int32Array([0, 0, 1000000, 0, 0, 1000000, 179000000, 0, 180000000, 0, 179000000, 1000000]), triangleIndices: new Uint32Array([0, 1, 2, 3, 4, 5]), lineIndices: new Uint32Array([0, 1, 3, 4]), countryTriangleRanges: new Uint32Array([0, 3, 3, 3]), countryBoundaryRanges: new Uint32Array([0, 2, 2, 2]) };
+}
+test('spatial preparation preserves primitive winding, coordinates and country ranges', () => {
+  const m = mesh(), before = structuredClone(m); prepareMeshSpatialBlocks(m);
+  assert.deepEqual(m.positions, before.positions); assert.deepEqual(m.triangleIndices, before.triangleIndices);
+  assert.deepEqual(m.countryTriangleRanges, before.countryTriangleRanges);
+  assert.ok(m.spatialBlocks.triangle.bounds instanceof Float64Array);
+});
+test('spatial blocks reject rear hemisphere while retaining the front geometry', () => {
+  const m = prepareMeshSpatialBlocks(mesh());
+  const ranges = visibleSpatialBlockRanges(m, { mode: 0, cssViewport: [400, 400], cssTranslate: [200, 200], cssScale: 100, rowX: [0, 1, 0], rowY: [0, 0, -1], rowZ: [1, 0, 0] }, 'triangle', 0);
+  assert.deepEqual(ranges, [{ first: 0, count: 3 }]);
+});
+test('invalid block ranges fall back rather than submitting invalid indices', () => {
+  const m = prepareMeshSpatialBlocks(mesh()); m.spatialBlocks.triangle.ranges[1] = 100;
+  assert.equal(visibleSpatialBlockRanges(m, { mode: 0 }), null);
+});
+
+test('large spatial partitions preserve every oriented primitive and use bounded median selection', () => {
+  const count=18000,positions=new Int32Array(count*6),indices=new Uint32Array(count*3);
+  for(let i=0;i<count;i++){
+    const x=((i*7919)%36000-18000)*10000,y=((i*6271)%16000-8000)*10000;
+    positions.set([x,y,x+1000,y,x,y+1000],i*6);indices.set([i*3,i*3+1,i*3+2],i*3);
+  }
+  const m={positions,triangleIndices:indices,lineIndices:new Uint32Array(),countryTriangleRanges:new Uint32Array([0,indices.length]),countryBoundaryRanges:new Uint32Array([0,0])};
+  const original=structuredClone(m);prepareMeshSpatialBlocks(m);
+  assert.deepEqual(m.positions,original.positions);
+  assert.deepEqual(m.countryTriangleRanges,original.countryTriangleRanges);
+  const seen=new Set();
+  for(let i=0;i<m.triangleIndices.length;i+=3){const id=m.triangleIndices[i]/3;assert.equal(Number.isInteger(id),true);assert.equal(seen.has(id),false);seen.add(id);assert.deepEqual([...m.triangleIndices.subarray(i,i+3)],[id*3,id*3+1,id*3+2]);}
+  assert.equal(seen.size,count);
+  assert.ok(m.spatialPreparation?.partitionComparisons>0);
+  assert.ok(m.spatialPreparation.partitionComparisons<count*30,'median selection must not fully sort every recursive partition');
+  const repeat=structuredClone(original);prepareMeshSpatialBlocks(repeat);assert.deepEqual(repeat.triangleIndices,m.triangleIndices);
 });
 });
