@@ -8,7 +8,7 @@ on:
       - 'tools/gis/build-german-1914-base.mjs'
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
-      - 'tests/unit/gis-source-isolation.test.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
       - '**/*.py'
       - '**/*.pyw'
       - '**/*.pyi'
@@ -34,7 +34,7 @@ on:
       - 'tools/gis/build-german-1914-base.mjs'
       - 'tests/unit/gis-source-launcher.test.mjs'
       - 'tools/gis/build-hydro.mjs'
-      - 'tests/unit/gis-source-isolation.test.mjs'
+      - 'tests/unit/gis-source-launcher.test.mjs'
       - '**/*.py'
       - '**/*.pyw'
       - '**/*.pyi'
@@ -80,7 +80,7 @@ jobs:
         with:
           node-version: '24'
       - name: Verify GIS dispatcher and current source isolation
-        run: node --test tests/unit/gis-source-launcher.test.mjs tests/unit/gis-source-isolation.test.mjs
+        run: node --test tests/unit/gis-source-launcher.test.mjs
 
   historical-geometry:
     if: github.event_name == 'workflow_dispatch' && (inputs.scope == 'historical' || inputs.scope == 'all')

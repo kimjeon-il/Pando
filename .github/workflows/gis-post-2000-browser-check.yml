@@ -37,7 +37,7 @@ jobs:
             tests/unit/timeline-resolver.test.mjs \
             tests/unit/indonesia-territory-timeline.test.mjs \
             tests/unit/sudan-ukraine-transition.test.mjs \
-            tests/unit/builtin-world-baseline.test.mjs
+            tests/unit/builtin-world-catalog.test.mjs
       - name: Install Chromium for dated GIS visual evidence
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify historical country dates in the Viewer
