@@ -1138,11 +1138,23 @@ function canvasFallbackWorkerMain() {
           message.physicalSettings?.terrainVisible, message.physicalSettings?.terrainStyle, message.darkTheme,
           theme.baseLandAlpha, theme.defaultLand, terrainManifest?.version,
           terrainPlan?.drawSpecs.filter(spec => terrainTiles.has(spec.key)).map(spec => spec.key)]);
+        // An unchanged physical source can cross project generations as a
+        // freshly decoded geometry object. Object identity is not its resource
+        // identity: prefer the content-certified source/revision pair, but
+        // retain the identity check for unversioned test or user packets.
+        const landPackets = (message.scenePolygons || []).filter(packet => packet.role === 'physical-land');
+        const physicalIdentity = landPackets.length === landShapes.length
+          && landPackets.every(packet => typeof packet.sourceKey === 'string'
+            && packet.sourceKey.length > 0 && packet.geometryRevision != null)
+          ? JSON.stringify(landPackets.map(packet => [packet.sourceKey, packet.geometryRevision]))
+          : null;
         const substrateKey = JSON.stringify([rasterBaseKey, terrainDemManifest?.version,
-          terrainPlan?.demSpecs.filter(spec => demTiles.has(spec.key)).map(spec => spec.key)]);
+          terrainPlan?.demSpecs.filter(spec => demTiles.has(spec.key)).map(spec => spec.key),
+          physicalIdentity]);
         const reuseSubstrate = substrate && substrateState?.key === substrateKey
-          && landShapes.length === substrateState.shapes.length
-          && landShapes.every((shape, index) => shape === substrateState.shapes[index]);
+          && (physicalIdentity !== null
+            || (landShapes.length === substrateState.shapes.length
+              && landShapes.every((shape, index) => shape === substrateState.shapes[index])));
         if (reuseSubstrate) {
           context.setTransform(1, 0, 0, 1, 0, 0);
           context.drawImage(substrate, 0, 0);
