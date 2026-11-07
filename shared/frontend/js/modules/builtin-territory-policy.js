@@ -1,21 +1,14 @@
-// Default-map display policy only, not a determination of legal sovereignty.
-// Spatial records refer to the unchanged canonical source feature IDs.
-export const BUILTIN_TERRITORY_MERGES = Object.freeze([
-  Object.freeze({ sourceId: 'BRI', controller: 'BRA', claimants: ['BRA', 'URY'], disputed: true }),
-  Object.freeze({ sourceId: 'BJN', controller: 'COL', historicalClaimants: ['COL', 'USA', 'JAM', 'NIC'], disputed: true, adjudicatedAgainst: 'NIC', judgmentYear: 2012 }),
-  Object.freeze({ sourceId: 'SER', controller: 'COL', historicalClaimants: ['COL', 'USA', 'HND', 'NIC'], disputed: true, adjudicatedAgainst: 'NIC', judgmentYear: 2012 }),
-  Object.freeze({ sourceId: 'SCR', controller: 'CHN', claimants: ['CHN', 'TWN', 'PHL'], disputed: true }),
-]);
-
+// Pure geometry operation: the source-controlled policy arrives as validated
+// data from the build compiler. No country IDs or ownership rules live here.
 const polygons = geometry => geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
 
-/** These four source islands are disjoint from their destination's existing land. */
-export function mergeBuiltinTerritories(collection) {
+export function mergeBuiltinTerritories(collection, merges) {
+  if(!Array.isArray(merges))throw new TypeError('Explicit builtin territory policy is required');
   const byId = new Map(collection.features.map(feature => [String(feature.id), feature]));
   const removed = new Set();
-  for (const policy of BUILTIN_TERRITORY_MERGES) {
+  for (const policy of merges) {
     const source = byId.get(policy.sourceId);
-    if (!source) continue; // Idempotent and compatible with preview omission of tiny islands.
+    if (!source) continue;
     const destination = byId.get(policy.controller);
     if (!destination) throw new Error(`기본 영토 대상 누락: ${policy.sourceId} → ${policy.controller}`);
     byId.set(policy.controller, { ...destination, geometry: {

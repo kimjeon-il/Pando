@@ -1,0 +1,278 @@
+{
+  "schema": "pandolab-builtin-display-policy",
+  "schemaVersion": 1,
+  "revision": "builtin-subunits-2",
+  "source": "Current default map display interpretation; not a legal sovereignty determination.",
+  "subunits": [
+    {
+      "sourceCountryId": "MAF",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "SXM",
+      "parentId": "NLD",
+      "basis": "kingdom-constituent",
+      "note": "네덜란드 왕국 구성국."
+    },
+    {
+      "sourceCountryId": "GIB",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "HKG",
+      "parentId": "CHN"
+    },
+    {
+      "sourceCountryId": "GRL",
+      "parentId": "DNK"
+    },
+    {
+      "sourceCountryId": "NCL",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "CUW",
+      "parentId": "NLD",
+      "basis": "kingdom-constituent",
+      "note": "네덜란드 왕국 구성국."
+    },
+    {
+      "sourceCountryId": "ABW",
+      "parentId": "NLD",
+      "basis": "kingdom-constituent",
+      "note": "네덜란드 왕국 구성국."
+    },
+    {
+      "sourceCountryId": "TCA",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "SPM",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "PCN",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "PYF",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "ATF",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "UMI",
+      "parentId": "USA"
+    },
+    {
+      "sourceCountryId": "MSR",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "VIR",
+      "parentId": "USA"
+    },
+    {
+      "sourceCountryId": "BLM",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "PRI",
+      "parentId": "USA"
+    },
+    {
+      "sourceCountryId": "AIA",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "VGB",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "CYM",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "BMU",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "HMD",
+      "parentId": "AUS"
+    },
+    {
+      "sourceCountryId": "SHN",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "JEY",
+      "parentId": "GBR",
+      "basis": "crown-dependency",
+      "note": "왕실속령. 영국의 일반 행정구역과 구분합니다."
+    },
+    {
+      "sourceCountryId": "GGY",
+      "parentId": "GBR",
+      "basis": "crown-dependency",
+      "note": "왕실속령. 영국의 일반 행정구역과 구분합니다."
+    },
+    {
+      "sourceCountryId": "IMN",
+      "parentId": "GBR",
+      "basis": "crown-dependency",
+      "note": "왕실속령. 영국의 일반 행정구역과 구분합니다."
+    },
+    {
+      "sourceCountryId": "FRO",
+      "parentId": "DNK"
+    },
+    {
+      "sourceCountryId": "IOT",
+      "parentId": "GBR",
+      "basis": "source-snapshot",
+      "note": "기본 지도 기준 자료의 영국 소속을 유지합니다. 시점별 주권 관계는 별도 검토 대상입니다."
+    },
+    {
+      "sourceCountryId": "NFK",
+      "parentId": "AUS"
+    },
+    {
+      "sourceCountryId": "WLF",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "SGS",
+      "parentId": "GBR"
+    },
+    {
+      "sourceCountryId": "FLK",
+      "parentId": "GBR",
+      "basis": "source-control",
+      "note": "기본 지도 분류상 영국 아래에 표시합니다. 영유권 주장을 확정하는 표시는 아닙니다."
+    },
+    {
+      "sourceCountryId": "ASM",
+      "parentId": "USA"
+    },
+    {
+      "sourceCountryId": "GUM",
+      "parentId": "USA"
+    },
+    {
+      "sourceCountryId": "MNP",
+      "parentId": "USA"
+    },
+    {
+      "sourceCountryId": "MAC",
+      "parentId": "CHN"
+    },
+    {
+      "sourceCountryId": "ALD",
+      "parentId": "FIN"
+    },
+    {
+      "sourceCountryId": "IOA",
+      "parentId": "AUS"
+    },
+    {
+      "sourceCountryId": "CSI",
+      "parentId": "AUS"
+    },
+    {
+      "sourceCountryId": "CLP",
+      "parentId": "FRA"
+    },
+    {
+      "sourceCountryId": "ATC",
+      "parentId": "AUS"
+    },
+    {
+      "sourceCountryId": "ESB",
+      "parentId": "GBR",
+      "basis": "sovereign-base-area",
+      "note": "영국 주권기지구역."
+    },
+    {
+      "sourceCountryId": "WSB",
+      "parentId": "GBR",
+      "basis": "sovereign-base-area",
+      "note": "영국 주권기지구역."
+    },
+    {
+      "sourceCountryId": "USG",
+      "parentId": "CUB",
+      "basis": "legal-belonging",
+      "note": "쿠바 귀속. 미국의 통제·임차 관계는 법적 소속과 별도로 기록합니다.",
+      "controllerCountryId": "USA",
+      "lesseeCountryId": "USA"
+    },
+    {
+      "sourceCountryId": "KAB",
+      "parentId": "KAZ",
+      "basis": "legal-belonging",
+      "note": "카자흐스탄 귀속. 러시아의 임차 관계는 법적 소속과 별도로 기록합니다.\n경계 출처: 카자흐스탄·러시아 바이코누르 임대협정의 공식 좌표와 시르다리야강 우안에 사용된 OpenStreetMap 파생 자료.\n© OpenStreetMap contributors · ODbL 1.0 · https://www.openstreetmap.org/copyright\n원본·파생 데이터: https://github.com/kimjeon-il/PandoLab-library-data/blob/0b080946cda3c9150ac07693b6c5b03951313027/reports/geography/ne-selected-20261023/odbl-source-and-derivative.zip\n임대협정: https://old.adilet.zan.kz/rus/docs/U950002195_\n표시 경계는 약 1km 수준으로 일반화한 파생본이며, 법적 측량선으로 확정하지 않았습니다.",
+      "lesseeCountryId": "RUS"
+    },
+    {
+      "sourceCountryId": "PGA",
+      "parentId": "USA"
+    }
+  ],
+  "territoryMerges": [
+    {
+      "sourceId": "BRI",
+      "controller": "BRA",
+      "claimants": [
+        "BRA",
+        "URY"
+      ],
+      "disputed": true
+    },
+    {
+      "sourceId": "BJN",
+      "controller": "COL",
+      "historicalClaimants": [
+        "COL",
+        "USA",
+        "JAM",
+        "NIC"
+      ],
+      "disputed": true,
+      "adjudicatedAgainst": "NIC",
+      "judgmentYear": 2012
+    },
+    {
+      "sourceId": "SER",
+      "controller": "COL",
+      "historicalClaimants": [
+        "COL",
+        "USA",
+        "HND",
+        "NIC"
+      ],
+      "disputed": true,
+      "adjudicatedAgainst": "NIC",
+      "judgmentYear": 2012
+    },
+    {
+      "sourceId": "SCR",
+      "controller": "CHN",
+      "claimants": [
+        "CHN",
+        "TWN",
+        "PHL"
+      ],
+      "disputed": true
+    }
+  ],
+  "sourceAttributions": {
+    "KAZ": {
+      "scope": "바이코누르와 접하는 카자흐스탄 경계 일부: 공식 임대협정 좌표와 시르다리야강 우안 OpenStreetMap 파생 자료.",
+      "archive": "https://github.com/kimjeon-il/PandoLab-library-data/blob/0b080946cda3c9150ac07693b6c5b03951313027/reports/geography/ne-selected-20261023/odbl-source-and-derivative.zip",
+      "agreement": "https://old.adilet.zan.kz/rus/docs/U950002195_",
+      "precision": "약 1km 수준으로 일반화한 표시용 경계이며, 법적 측량선으로 확정하지 않았습니다."
+    }
+  }
+}

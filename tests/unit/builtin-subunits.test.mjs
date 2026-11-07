@@ -1,18 +1,20 @@
+import {loadBuiltinDisplayPolicy} from '../../tools/gis/builtin-display-policy.mjs';
 import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { BUILTIN_SUBUNITS, classifyBuiltinCountries, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
+import { classifyBuiltinCountries, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
 import { normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
 import { mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
 
+const displayPolicy=loadBuiltinDisplayPolicy();
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
 const before = JSON.stringify(source);
-const result = classifyBuiltinCountries(normalizeCountryCollection(source));
+const result = classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy});
 const ids = new Set(result.countries.features.map(f => f.id));
 
 test('47 agreed source objects become stable Subunits; 207 countries and exceptions remain', () => {
-  assert.equal(BUILTIN_SUBUNITS.length, 47);
+  assert.equal(displayPolicy.subunits.length, 47);
   assert.equal(new Set(result.subunits.map(f => f.id)).size, 47);
   assert.equal(ids.size, 207);
   for (const id of ['ATA', 'BRT', 'SAH', 'CNM', 'CYN', 'SOL', 'KAS', 'SPI']) assert.ok(ids.has(id));
@@ -29,12 +31,12 @@ test('all source geometries stay identical; normalization and classification do 
   assert.equal(normalized.length, 47);
   for (const feature of [...result.countries.features, ...normalized]) {
     const original = originals.get(builtinSubunitSourceId(feature) || feature.id);
-    const expected = mergeBuiltinTerritories(source).features.find(f => f.id === original.id);
+    const expected = mergeBuiltinTerritories(source,displayPolicy.territoryMerges).features.find(f => f.id === original.id);
     assert.deepEqual(feature.geometry, expected?.geometry || original.geometry);
     assert.equal(feature.properties.name, original.properties.name);
   }
   assert.equal(JSON.stringify(source), before);
-  assert.deepEqual(classifyBuiltinCountries(normalizeCountryCollection(source)), result);
+  assert.deepEqual(classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy}), result);
 });
 
 test('Guantanamo and Baikonur separate parent from controller or lessee', () => {
@@ -45,7 +47,7 @@ test('Guantanamo and Baikonur separate parent from controller or lessee', () => 
   assert.equal(unit('KAB').properties.metadata.builtinSubunit.lesseeCountryId, 'RUS');
   assert.match(unit('KAB').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
   assert.match(result.countries.features.find(feature => feature.id === 'KAZ').properties.notes, /OpenStreetMap.*(?:\n|.)*ODbL/u);
-  assert.throws(() => classifyBuiltinCountries({ ...source, features: source.features.filter(f => f.id !== 'CUB') }), /원본\/부모 누락/);
+  assert.throws(() => classifyBuiltinCountries({ ...source, features: source.features.filter(f => f.id !== 'CUB') },{displayPolicy}), /원본\/부모 누락/);
 });
 
 

@@ -11,7 +11,7 @@ export function historicalWorldCases() {
   // Full source reconstruction belongs to separate data publication checks.
   // The compiler's current-world ingress requires all default subunit endpoints.
   // Include those identities as the same tiny squares, without reading assets.
-  const ids = [...new Set(['RUS', 'KOR', 'PRK', ...BUILTIN_SUBUNITS.flatMap(row => [row.sourceCountryId, row.parentId])])];
+  const ids = [...new Set(['RUS', 'KOR', 'PRK', ...loadBuiltinDisplayPolicy().subunits.flatMap(row => [row.sourceCountryId, row.parentId])])];
   const sources = ids.map((id, index) => ({ ...entity(`current:${id}`, null, null,
     [{...version(`${id}:current`, null, null, index * 2 - 150),}]), sourceInfo: { featureId: id } }));
   const snapshot = { schemaVersion: 1, referenceDate: '2026-10-01', entityRefs: sources.map(row => row.entityId) };
@@ -30,4 +30,4 @@ export function historicalWorldCases() {
     policy: { schemaVersion: 1, unknownPeerOverlap: 'exclude-from-all', replacements: [] },
   };
 }
-import { BUILTIN_SUBUNITS } from "../../shared/frontend/js/modules/builtin-subunits.js";
+import {loadBuiltinDisplayPolicy} from "../../tools/gis/builtin-display-policy.mjs";

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { normalizeTemporalInterval, parseTemporal } from "../shared/frontend/js/modules/temporal.js";
 import { normalizeCountryCollection } from "../shared/frontend/js/modules/country-feature.js";
 import { classifyBuiltinCountries, builtinSubunitSourceId } from "../shared/frontend/js/modules/builtin-subunits.js";
-import { BUILTIN_TERRITORY_MERGES } from "../shared/frontend/js/modules/builtin-territory-policy.js";
+import {loadBuiltinDisplayPolicy} from "./gis/builtin-display-policy.mjs";
 import { createTerritorialFeature, normalizeTerritorialIdentities, TERRITORIAL_IDENTITY_FIELDS } from "../shared/frontend/js/modules/territorial-units.js";
 import { createGeometryVersionStore } from "../shared/frontend/js/modules/geometry-version-store.js";
 import { normalizeTimelineRecords } from "../shared/frontend/js/modules/timeline-records.js";
@@ -106,7 +106,7 @@ export function replaceBuiltinWorldCountryNames(country,entity) {
 }
 
 /** Build an ordinary editable project; library inputs and raw intervals stay immutable. */
-export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null }) {
+export function compileBuiltinWorldCatalog({ entities, view, currentWorld, policy, clipper = historicalWorldClipper, availableSourceIds = null,displayPolicy=loadBuiltinDisplayPolicy() }) {
   entities=entities.filter(entity=>['general','regional'].includes(entity.entityKind));
   if(view?.schemaVersion!==1 || !Array.isArray(view.selections) || Object.hasOwn(view,'referenceDate'))throw new Error('Invalid world view');
   if (!policy || policy.schemaVersion !== 1) throw new Error('Missing historical world policy');
@@ -116,11 +116,11 @@ export function compileBuiltinWorldCatalog({ entities, view, currentWorld, polic
   if (bySource.size !== entities.length) throw new Error('Duplicate source entity');
   const currentIds = new Set(selection.keys());
   for (const id of currentIds) if (!bySource.has(id)) throw new Error(`Missing current source: ${id}`);
-  const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld), { availableSourceIds });
+  const classified = classifyBuiltinCountries(normalizeCountryCollection(currentWorld), { availableSourceIds,displayPolicy });
   const definitions = new Map(), sourceToProject = new Map(), sourceIdentities = [];
   for (const feature of [...classified.countries.features, ...classified.subunits]) {
     const sourceFeature = builtinSubunitSourceId(feature) || feature.id;
-    const sourceFeatureIds = [sourceFeature, ...BUILTIN_TERRITORY_MERGES.filter(row => row.controller === sourceFeature).map(row => row.sourceId)].sort();
+    const sourceFeatureIds = [sourceFeature, ...displayPolicy.territoryMerges.filter(row => row.controller === sourceFeature).map(row => row.sourceId)].sort();
     const sources = entities.filter(entity => currentIds.has(entity.entityId) && sourceFeatureIds.includes(entity.sourceInfo?.featureId));
     if (!sources.length) throw new Error(`Missing current identity: ${feature.id}`);
     for (const source of sources) sourceToProject.set(source.entityId, feature.id);
