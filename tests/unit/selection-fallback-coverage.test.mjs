@@ -1,8 +1,22 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { commitSelectionFallbackCoverage } from "../../shared/frontend/js/modules/selection-fallback-coverage.js";
-import { createSelectionPass } from "../../shared/frontend/js/modules/selection-pass.js";
-import { createMapRenderCoordinator, MAP_RENDER_DIRTY } from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import { describe as contractSuite } from 'node:test';
+import * as __contract_dep0 from "node:test";
+import * as __contract_dep1 from "node:assert/strict";
+import * as __contract_dep2 from "../../shared/frontend/js/modules/selection-fallback-coverage.js";
+import * as __contract_dep3 from "../../shared/frontend/js/modules/selection-pass.js";
+import * as __contract_dep4 from "../../shared/frontend/js/modules/map-render-coordinator.js";
+import * as __contract_dep5 from "node:test";
+import * as __contract_dep6 from "node:assert/strict";
+import * as __contract_dep7 from "../../shared/frontend/js/modules/selection-packet.js";
+import * as __contract_dep8 from "../../shared/frontend/js/modules/selection-pass.js";
+import * as __contract_dep9 from "../../shared/frontend/js/modules/map-interaction-style.js";
+
+// Original feature contract: selection-fallback-coverage.test.mjs
+contractSuite("selection-fallback-coverage", () => {
+const test = __contract_dep0.default;
+const assert = __contract_dep1.default;
+const { commitSelectionFallbackCoverage } = __contract_dep2;
+const { createSelectionPass } = __contract_dep3;
+const { createMapRenderCoordinator, MAP_RENDER_DIRTY } = __contract_dep4;
 
 function fixture() {
   const nodes = [];
@@ -92,4 +106,61 @@ test('prepared library-country GPU resource transitions from upload pending to c
   // owns casing + inner-stroke expansion inside that batch.
   assert.equal(draws, 2);
   assert.equal(nodes.length, 2);
+});
+});
+
+
+// Original feature contract: selection-entity-channels.test.mjs
+contractSuite("selection-entity-channels", () => {
+const test = __contract_dep5.default;
+const assert = __contract_dep6.default;
+const { createSelectionPacket } = __contract_dep7;
+const { createSelectionPass } = __contract_dep8;
+const { resolveMapInteractionStyle } = __contract_dep9;
+
+test('common entity keys survive the static boundary optimization and geometry replacement', () => {
+  const key = 'territorial:entity:A';
+  const pass = createSelectionPass();
+  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+    isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
+    drawBatches: batches => ({ succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 }),
+  } });
+  pass.setCountryBoundaryResources({ revision: 'r1', visibleIds: ['asset-A'], strokeResources: {
+    selectionBase: { ownerIds: ['asset-A'], packet: { key: 'base', preparedGeometry: {} } },
+  } });
+  const packet = createSelectionPacket({ channels: { primary: [{ key, boundaryOwnerId: 'asset-A', geometryRevision: 'r1' }] } });
+  assert.equal(packet.channels.primary[0].key, key);
+  assert.equal(Object.hasOwn(packet, 'country'), false);
+  assert.equal(Object.hasOwn(packet, 'generic'), false);
+  pass.updateData(packet);
+  assert.deepEqual(pass.draw({}, {}, { frameContext: {} }).channels.primary.renderedKeys, [key]);
+  const geometry = { type: 'Feature', geometry: { type: 'LineString', coordinates: [[0,0],[1,1]] } };
+  pass.updateData(createSelectionPacket({ channels: { primary: [{ key, geometryRevision: 'r2', geometry }] } }));
+  assert.deepEqual(pass.draw({}, {}, { frameContext: {} }).channels.primary.renderedKeys, [key]);
+  pass.updateData(createSelectionPacket());
+  assert.deepEqual(pass.draw({}, {}, { frameContext: {} }).channels.primary.renderedKeys, []);
+});
+
+test('selection pass forwards union coverage for hover and both selection channels in paint order', () => {
+  const draws = [];
+  const pass = createSelectionPass();
+  pass.initialize({ gl: {}, version: 2, capabilities: {} }, { strokeRenderer: {
+    isAvailable: () => true, stats: () => ({ gpuHealth: 'healthy' }),
+    drawBatches: batches => {
+      draws.push(...batches);
+      return { succeeded: true, renderedKeys: batches.map(batch => batch.key), drawCallCount: 1 };
+    },
+  } });
+  const source = { ownerIds: ['asset-A'], packet: { key: 'base', preparedGeometry: {} } };
+  pass.setCountryBoundaryResources({ revision: 'r1', visibleIds: ['asset-A'], strokeResources: { base: source, selectionBase: source } });
+  pass.updateData(createSelectionPacket({
+    style: resolveMapInteractionStyle({ selectionColor: '#315e9d', antiAlias: true }),
+    channels: Object.fromEntries(['hover', 'secondary', 'primary'].map(role => [role, [{ key: `${role}:A`, boundaryOwnerId: 'asset-A' }]])),
+  }));
+  const result = pass.draw({}, {}, { frameContext: {} });
+  assert.equal(result.succeeded, true);
+  assert.deepEqual(draws.map(batch => [batch.style.width, batch.style.alpha, batch.style.coverage, batch.style.antiAlias]),
+    [[1.5, 0.85, 'union', true], [1.5, 0.72, 'union', true], [2.5, 1, 'union', true]]);
+  assert.ok(draws.every(batch => batch.style.color === '#315e9d'));
+});
 });
