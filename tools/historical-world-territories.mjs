@@ -2,15 +2,12 @@ import "../shared/frontend/js/vendor/polygon-clipping.min.js";
 import './load-spherical-core.mjs';
 import "../shared/frontend/js/modules/polygon-geometry.js";
 import {area as polygonArea} from '../shared/frontend/js/modules/map-edit-geometry.js';
-import { normalizeTemporalInterval, compareTemporal, sharedCalculationCore } from "../shared/frontend/js/modules/temporal.js";
+import { normalizeTemporalInterval, compareTemporal } from "../shared/frontend/js/modules/temporal.js";
 
-// Historical compilation shares the precision-preserving native Boolean owner
-// with the GIS engine. Never enable coordinate-rounding retries here: source
-// border coordinates and the explicit sub-metre precision budget are binding.
-export const historicalWorldClipper = Object.freeze(Object.fromEntries(
-  ['union','intersection','difference','xor'].map(method=>
-    [method,(...operands)=>sharedCalculationCore.polygonOperation(method,operands,false)]
-)));
+// The historical compiler retains the source-coordinate Boolean owner proven
+// by the P2 artifact build. Independent subject components are clipped below;
+// never round historical coordinates or switch owners on a Boolean failure.
+export const historicalWorldClipper = globalThis.polygonClipping;
 // Geometry versions are immutable; one compilation owns and releases this
 // in-memory cache. Dates, policy decisions and precision budgets remain local
 // to each adjustment call.
@@ -82,22 +79,12 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
     const rightEnvelopes=right.map(envelope),pieces=[];
     for(const polygon of left){
       const bounds=envelope(polygon);
-      let remaining=[polygon];
-      // Sequentially subtract one intersecting polygon at a time. Unlike a
-      // global Boolean sweep with hundreds of independent source boundaries,
-      // this keeps each operation bounded to one subject and one cutter.
-      // (A \\ B) \\ C equals A \\ (B union C): the same exact set contract.
-      for(let index=0;index<right.length&&remaining.length;index++){
-        const cutBounds=rightEnvelopes[index];
-        if(!touches(bounds,cutBounds))continue;
-        const clipped=[];
-        for(const part of remaining){
-          if(touches(envelope(part),cutBounds))clipped.push(...clipper.difference([part],[right[index]]));
-          else clipped.push(part);
-        }
-        remaining=clipped;
-      }
-      pieces.push(...remaining);
+      // Only one subject is swept at a time. Group every cutter that can
+      // intersect that subject, rather than creating intermediary split
+      // rings whose next sweep can break the exact shared-border ordering.
+      const near=right.filter((candidate,index)=>touches(bounds,rightEnvelopes[index]));
+      if(!near.length)pieces.push(polygon);
+      else pieces.push(...clipper.difference([polygon],near));
     }
     return pieces;
   };

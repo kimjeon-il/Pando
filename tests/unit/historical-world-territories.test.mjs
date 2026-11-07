@@ -17,15 +17,15 @@ function owns(result, id, x) {
   if (!row) return false;
   return globalThis.polygonClipping.intersection(row.geometry.type === 'Polygon' ? [row.geometry.coordinates] : row.geometry.coordinates, [box(x - .01, x + .01).coordinates]).length > 0;
 }
-test('historical production clipping uses exact native Core results without changing source coordinates',()=>{
+test('historical production clipping preserves source coordinates and prior verified owner',()=>{
   const rows=[candidate('east',0,6),candidate('west',4,10)];
   const before=JSON.stringify(rows);
   const native=module.adjustHistoricalTerritories(rows,policy);
   const baseline=module.adjustHistoricalTerritories(rows,policy,globalThis.polygonClipping);
   assert.deepEqual(native.candidates,baseline.candidates);
   assert.equal(JSON.stringify(rows),before,'native compilation cannot mutate source geometry');
-  assert.notEqual(module.historicalWorldClipper,globalThis.polygonClipping,
-    'historical compiler must not use the fragile JavaScript sweep-line owner');
+  assert.equal(module.historicalWorldClipper,globalThis.polygonClipping,
+    'historical compilation must use its verified single Boolean owner');
 });
 
 test('explicitReplacementClipsParentAndDescendants', () => {
@@ -81,7 +81,7 @@ test('one compilation reuses exact Boolean results across date cuts without free
 
 // Multiple disjoint components have exact set-difference semantics. In
 // particular, an unrelated distant island must not enter a mainland sweep.
-test('large component differences use single-cutter sweeps and preserve repeated overlap semantics',()=>{
+test('large component differences use disjoint-subject sweeps and preserve repeated overlap semantics',()=>{
   const make=(w,e,s=0,n=4)=>[[[w,s],[e,s],[e,n],[w,n],[w,s]]];
   const subject={entityId:'subject',parentId:'',geometry:{type:'MultiPolygon',
     coordinates:Array.from({length:18},(_,i)=>make(i*10,i*10+7))},
@@ -99,9 +99,9 @@ test('large component differences use single-cutter sweeps and preserve repeated
   const baseline=globalThis.polygonClipping.difference(subject.geometry.coordinates,cutter.geometry.coordinates);
   const asMulti=geometry=>geometry.type==='Polygon'?[geometry.coordinates]:geometry.coordinates;
   assert.deepEqual(globalThis.polygonClipping.xor(asMulti(actual),baseline),[]);
-  assert.ok(calls.length>=3,'each independent intersecting polygon should be clipped');
-  assert.ok(calls.every(args=>args.length===2&&args[0]===1&&args[1]===1),
-    'no Boolean sweep combines unrelated historical right-hand polygons');
+  assert.ok(calls.length>=2,'each intersecting subject polygon is independently clipped');
+  assert.ok(calls.every(args=>args.length===2&&args[0]===1&&args[1]>=1),
+    'no Boolean sweep combines multiple subject polygons');
 });
 
 test('large historical multi-polygon differences partition independent components without changing topology',()=>{
