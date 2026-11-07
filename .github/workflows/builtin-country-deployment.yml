@@ -13,8 +13,10 @@ on:
       - 'tools/builtin-country-bytes.mjs'
       - 'shared/frontend/js/modules/builtin-country-files.js'
       - 'scripts/lib/product-assets.mjs'
-      - 'apps/editor/world-data-plan.mjs'
-      - 'apps/editor/stage.mjs'
+      - 'apps/viewer/js/viewer.js'
+      - 'tools/stage-monorepo-pages.mjs'
+      - 'tests/unit/frontend-product-output.test.mjs'
+      - 'tests/unit/monorepo-pages-staging.test.mjs'
       - 'docs/development/builtin-country-deployment.md'
   workflow_dispatch:
     inputs:
@@ -62,7 +64,7 @@ jobs:
           const run=await get('actions/runs/'+requested);
           assert.equal(run.head_branch,'work/gis');assert.equal(run.path,'.github/workflows/builtin-country-deployment.yml');assert.equal(run.status,'completed');
           const jobs=await get('actions/runs/'+requested+'/jobs?per_page=100'),job=jobs.jobs.find(row=>row.name==='deployment');
-          for(const name of ['Verify affected generation, loader, deployment and App file contracts','Prepare independent files and a locally verified paired pin; preserve every country hash','Verify real Web/App closures, dated loading and preservation of unrelated archived data','Verify current month, historical selection and no aggregate network request'])assert.equal(job?.steps.find(step=>step.name===name)?.conclusion,'success',name);
+          for(const name of ['Verify affected generation, loader, deployment and Viewer publication contracts','Prepare independent files and a locally verified paired pin; preserve every country hash','Verify real Web/App closures, dated loading and preservation of unrelated archived data','Verify current month, historical selection and no aggregate network request'])assert.equal(job?.steps.find(step=>step.name===name)?.conclusion,'success',name);
           assert.match(run.head_sha,/^[a-f0-9]{40}$/);
           execFileSync('git',['fetch','--no-tags','--depth=1','origin',run.head_sha],{stdio:'pipe'});
           const changed=execFileSync('git',['diff','--name-only',run.head_sha,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
@@ -106,11 +108,10 @@ jobs:
           },{compact:false});
           JS
           node tools/library-data.mjs
-      - name: Verify affected generation, loader, deployment and App file contracts
+      - name: Verify affected generation, loader, deployment and Viewer publication contracts
         if: steps.reuse.outputs.verified != 'true'
         run: |
-          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs apps/editor/tests/world-data-plan.test.mjs apps/editor/tests/stage-world.test.mjs
-          node --test --test-timeout=30000 --test-name-pattern='stages the real frontend|verification assets are opt-in|the verification fixture loads' apps/editor/tests/stage.test.mjs
+          node --test --test-timeout=15000 tests/unit/builtin-country-publication.test.mjs tests/unit/historical-world-publication.test.mjs tests/unit/builtin-world-catalog.test.mjs tests/unit/builtin-world-loader.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/builtin-country-retry.test.mjs tests/unit/builtin-country-deployment.test.mjs tests/unit/builtin-country-parts.test.mjs tests/unit/frontend-product-output.test.mjs tests/unit/monorepo-pages-staging.test.mjs
       - name: Prepare independent files and a locally verified paired pin; preserve every country hash
         run: |
           node --input-type=module <<'JS'

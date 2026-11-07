@@ -10,7 +10,8 @@ on:
       - 'tools/stage-monorepo-pages.mjs'
       - 'tests/unit/monorepo-pages-staging.test.mjs'
       - 'tools/check-current-hydro-layout.mjs'
-      - 'apps/editor/world-data-plan.mjs'
+      - 'apps/viewer/js/viewer.js'
+      - 'tests/unit/frontend-product-output.test.mjs'
       - 'config/library-data.json'
   workflow_dispatch:
 
@@ -73,7 +74,7 @@ jobs:
             unchangedGeometryShards:true,
           }));
           JS
-      - name: Check scoped real-data and Web/Windows asset contracts
+      - name: Check scoped real-data and Viewer publication contracts
         run: |
           node --test \
             tests/unit/current-hydro-layout.test.mjs \
@@ -81,7 +82,6 @@ jobs:
             tests/unit/physical-layer-service.test.mjs \
             tests/unit/geographic-name-spacing.test.mjs \
             tests/unit/frontend-product-output.test.mjs \
-            apps/editor/tests/world-data-plan.test.mjs \
             tests/unit/product-assets.test.mjs \
             tests/unit/monorepo-pages-staging.test.mjs
       - name: Build the complete current public Viewer dependency closure without deploying
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hydro-v0134-pinned-Web-Windows-integration-proof
+          name: hydro-v0134-pinned-viewer-integration-proof
           path: |
             ${{ runner.temp }}/hydro-v0134-layout.json
             ${{ runner.temp }}/pando-hydro-0134-pages-evidence.json
