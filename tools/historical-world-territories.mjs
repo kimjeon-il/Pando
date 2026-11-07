@@ -152,7 +152,10 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
         && inputs[0].length+inputs[1].length>16;
       raw=complexDifference?componentDifference(inputs[0],inputs[1]):clipper[name](...inputs);
     }catch(error){
-      throw new Error('HISTORICAL_CLIP_BOOLEAN_FAILED: '+operation+': '+error.message,{cause:error});
+      // Input dimensions identify the minimal failing source pair without
+      // logging private geometry or converting a Boolean failure to an empty map.
+      throw new Error('HISTORICAL_CLIP_BOOLEAN_FAILED: '+operation+
+        ': operandComponents='+inputs.map(value=>value.length).join(',')+': '+error.message,{cause:error});
     }
     const geometry=shape(raw,operation);
     cache.operations.set(key,{geometry,precision:adjustments.slice(offset)});

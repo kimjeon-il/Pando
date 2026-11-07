@@ -59,7 +59,13 @@ test('emptyResultIsDifferentFromClippingFailure', () => {
   assert.equal(adjust([candidate('a', 0, 5), candidate('b', 0, 5)]).candidates.length, 0);
   assert.throws(() => adjust([candidate('a', 0, 5), candidate('b', 0, 5)], policy, {
     ...globalThis.polygonClipping, intersection() { throw new Error('clipping failure'); },
-  }), /clipping failure/);
+  }), error=>{
+    assert.match(error.message,/HISTORICAL_CLIP_BOOLEAN_FAILED/);
+    assert.match(error.message,/operandComponents=1,1/);
+    assert.match(error.message,/clipping failure/);
+    assert.match(error.cause.message,/clipping failure/);
+    return true;
+  });
 });
 test('currentSnapshotRetainsExplicitOverseasGeometry', () => {
   const rows = [candidate('overseas', 10, 12, 'parent'), candidate('parent', 0, 5)].map(row => ({ ...row, currentSnapshot: true }));
