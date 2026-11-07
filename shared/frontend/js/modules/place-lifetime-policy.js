@@ -39,11 +39,12 @@ export function validatePlaceUrbanLifetimes(value){
       ||!Array.isArray(entry.intervals)||entry.intervals.length>32)
       throw new TypeError('Invalid or duplicate external place-lifetime entry');
     seen.add(entry.sourceId);
-    let lastEnd=null;
+    let lastEnd=null,index=0;
     for(const interval of entry.intervals){
       if(!interval||typeof interval!=='object'||!validBoundary(interval))throw new TypeError('Invalid urban lifetime interval');
       const start=startOf(interval),end=endOf(interval);
-      if(lastEnd!==null&&(!start||start<lastEnd))throw new TypeError('Overlapping urban lifetime intervals');
+      if(index++>0&&(!lastEnd||!start||start<lastEnd))
+        throw new TypeError('Overlapping urban lifetime intervals');
       lastEnd=end;
     }
   }
@@ -58,7 +59,8 @@ export function indexPlaceUrbanLifetimes(value){
 export function placeUrbanLabelActiveAtMonth(place,month,index){
   if(typeof month!=='string'||!/^\d{4}-\d{2}$/.test(month))return !String(month||'').startsWith('-');
   const evidence=index?.get(place?.source+':'+place?.sourceId);
-  if(!evidence||!evidence.intervals.length)return true;
+  // Provisional editorial history is insufficient to assert a city absent.
+  if(!evidence||evidence.status==='provisional'||!evidence.intervals.length)return true;
   const date=temporalMonthEnd(month).canonical;
   return evidence.intervals.some(interval=>{
     const start=startOf(interval),end=endOf(interval);
