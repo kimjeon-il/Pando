@@ -311,8 +311,11 @@ struct Operation {
             if(prev){auto* p=intersection(prev,s);if(p){if(!s->endpoint(p->p))ps=p;if(!prev->endpoint(p->p))append(splitSafely(prev,p));}}
             if(next){auto* p=intersection(next,s);if(p){if(!s->endpoint(p->p))ns=p;if(!next->endpoint(p->p))append(splitSafely(next,p));}}
             if(ps||ns){auto* p=!ps?ns:!ns?ps:comparePoints(ps->p,ns->p)<=0?ps:ns;
+                // Unlink before split() mutates the segment endpoint used by
+                // the sweep-tree comparison; otherwise a stale key remains.
+                tree.remove(s);
                 queue.remove(s->right);added.push_back(s->right);append(split(s,p));}
-            if(!added.empty()){tree.remove(s);added.push_back(e);}
+            if(!added.empty()){if(!ps&&!ns)tree.remove(s);added.push_back(e);}
             else{processed.push_back(s);s->prev=prev;}
         }else{
             if(prev&&next){auto* p=intersection(prev,next);if(p){if(!prev->endpoint(p->p))append(splitSafely(prev,p));if(!next->endpoint(p->p))append(splitSafely(next,p));}}

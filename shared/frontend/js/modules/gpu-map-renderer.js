@@ -473,7 +473,7 @@ export function createGpuMapRenderer(deps) {
           && !geometryRevisionTracker.pendingIds().length,
         mapPresented: countriesPublishedGeneration === projectGeneration && surfacePresentation.quality !== 'pending',
         boundaryFailed: !!canonicalPromotionError,
-        terrainVisible: !!terrainPreparation && !!state.physicalSettings.terrainVisible,
+        terrainVisible: !!state.physicalSettings.terrainVisible,
         terrain, targetKey: mapTargetKey(lastVisualFrame, terrain), presentedKey: presentedMapKey,
         band: scaleQuality === 'preview' ? 'low' : 'high' });
     }

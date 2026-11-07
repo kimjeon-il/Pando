@@ -19,6 +19,14 @@ on:
         options:
           - default
           - map-rendering
+      check_scope:
+        description: Affected-only automatic checks or explicitly run the complete catalog
+        required: false
+        type: choice
+        default: auto
+        options:
+          - auto
+          - all
   pull_request:
     branches:
       - main
@@ -69,9 +77,8 @@ jobs:
             'origin/main' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BROWSER_SCOPE: ${{ inputs.browser_scope || 'default' }}
-          # P3 remains affected-only. This explicit optimization CI runs every
-          # active, non-manual application contract and browser specification.
-          CHECK_SCOPE: ${{ github.ref == 'refs/heads/work/optimization' && 'all' || 'auto' }}
+          # Run affected checks on branch pushes. Full suite on main PR or explicit dispatch.
+          CHECK_SCOPE: ${{ (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.check_scope == 'all')) && 'all' || 'auto' }}
           CHECK_SELECTION: ${{ inputs.check_selection || '' }}
           PLAYWRIGHT_LIST_PRINT_FAILURES_INLINE: '1'
         run: node scripts/run-application-checks.mjs --list --github-output
@@ -128,8 +135,18 @@ jobs:
         env: *a5
         run: node scripts/run-application-checks.mjs --list --github-output --phase browser
           --shard ${{ matrix.current }}/${{ matrix.total }}
-      - name: Install Chromium for selected browser checks
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Reuse pinned Playwright Chromium download
+        id: chromium-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pando-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Prepare Chromium dependencies and missing browser binary
+        run: |
+          pnpm exec playwright install-deps chromium
+          if [ "${{ steps.chromium-cache.outputs.cache-hit }}" != 'true' ]; then
+            pnpm exec playwright install chromium
+          fi
       - name: Prepare selected browser native prerequisites
         uses: ./.github/actions/native-test-prerequisites
         with:
@@ -178,7 +195,7 @@ jobs:
           const count = Number(env.BROWSER_COUNT);
           if (!/^(0|[1-9]\d*)$/.test(env.BROWSER_COUNT || '') || !Number.isSafeInteger(count) || browser !== (count > 0))
             throw Error('Missing or invalid browser count');
-          const matrix = JSON.parse(env.BROWSER_MATRIX), total = Math.min(8, count);
+          const matrix = JSON.parse(env.BROWSER_MATRIX), total = Math.min(8, Math.ceil(count / 4));
           if (!matrix || Object.keys(matrix).length !== 1 || !Array.isArray(matrix.include) || matrix.include.length !== total ||
               !matrix.include.every((row, index) => row && Object.keys(row).length === 2 && row.current === index + 1 && row.total === total))
             throw Error('Missing or invalid browser matrix');

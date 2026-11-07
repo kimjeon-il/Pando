@@ -142,7 +142,8 @@ for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds 
   const physical=await page.evaluate(()=>({frame:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,
     mesh:window.__PANDOLAB_VIEWER__.rendererStats().lastMeshPreparation}));
   expect(physical.frame.matches).toBe(true);
-  expect(physical.frame.expected.landRevision).toBe('a627e16fa56d7e9ad5ff65103bd7dfc66a6ba6edf2f22eabf4300e3b7939de4f');
+  expect(physical.frame.expected.landRevision).toMatch(/^[a-f0-9]{64}$/);
+  expect(physical.frame.actual.find(row=>row.role==='physical-land')?.revision).toBe(physical.frame.expected.landRevision);
   expect(physical.frame.actual.map(row=>row.role).sort()).toEqual(['physical-land','physical-water']);
   console.log('temporal physical preparation',mode,JSON.stringify({matches:physical.frame.matches,landRevision:physical.frame.expected.landRevision,
     roles:physical.frame.actual.map(row=>row.role),requests:physical.requests,

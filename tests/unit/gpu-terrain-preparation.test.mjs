@@ -23,7 +23,15 @@ function fixture(t, onUnusable = () => {}, { mobile = false, geoDistance = () =>
     geoDistance,
   });
   owner.setContext({ gl, ready: true, projectGeneration: 1, contextGeneration: 1,
-    scheduler: { enqueueUpload: job => { jobs.push(job); return Promise.resolve(); } } });
+    scheduler: { enqueueUpload: job => new Promise(resolve => {
+      // A scheduler job settles only after its final GPU upload step.
+      const step = job.step;
+      jobs.push({ ...job, step: (...args) => {
+        const result = step(...args);
+        if (result.done) resolve();
+        return result;
+      } });
+    }) } });
   return { owner, requests, jobs, deleted };
 }
 const settle = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
@@ -530,7 +538,15 @@ test('DEM tint upload is counted in the same budget and released on reset', asyn
   const gl = { createTexture: () => ({}), deleteTexture: value => deleted.push(value) };
   for (const name of ['bindTexture', 'pixelStorei', 'texParameteri', 'texImage2D']) gl[name] = () => {};
   renderer.setContext({ gl, ready: true, projectGeneration: 1, contextGeneration: 1,
-    scheduler: { enqueueUpload: job => { jobs.push(job); return Promise.resolve(); } } });
+    scheduler: { enqueueUpload: job => new Promise(resolve => {
+      // A scheduler job settles only after its final GPU upload step.
+      const step = job.step;
+      jobs.push({ ...job, step: (...args) => {
+        const result = step(...args);
+        if (result.done) resolve();
+        return result;
+      } });
+    }) } });
   renderer.setManifest({ representation: 'dem-relief-v1', levels: [{ id: 0 }], tint: { width: 2, height: 2 } });
   globalThis.createImageBitmap = async () => ({ width: 2, height: 2, close() {} });
   t.after(() => { delete globalThis.createImageBitmap; });

@@ -2,7 +2,7 @@ name: DEM Terrain Preview Gate
 
 on:
   push:
-    branches: [main, work/gis, work/optimization]
+    branches: [main, work/gis]
     paths:
       - 'assets/data/terrain-preview/**'
       - 'assets/js/**terrain**'

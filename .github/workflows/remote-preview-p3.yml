@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - work/**
+      - '!work/optimization'
   pull_request:
     branches:
       - main

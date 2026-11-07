@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import path from 'node:path';
-import test from 'node:test';
-import { chromium } from '@playwright/test';
+import { test } from '@playwright/test';
 
-test('country and interaction coverage stay uniform across dense joins and preserve GPU state and resources', { timeout: 60_000 }, async () => {
+test('country and interaction coverage stay uniform across dense joins and preserve GPU state and resources', async ({ page }) => {
+  test.setTimeout(60_000);
   const root = process.cwd();
   const server = createServer(async (request, response) => {
     try {
@@ -18,10 +18,7 @@ test('country and interaction coverage stay uniform across dense joins and prese
     } catch { response.writeHead(404); response.end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  let browser;
   try {
-    browser = await chromium.launch({ headless: true, args: ['--use-angle=d3d11'] });
-    const page = await browser.newPage();
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     const proof = await page.evaluate(async () => {
       const { createGpuStrokeRenderer } = await import('/shared/frontend/js/modules/gpu-stroke-renderer.js');
@@ -109,7 +106,6 @@ test('country and interaction coverage stay uniform across dense joins and prese
       assert.equal(row.afterDispose.textureDeletes, 1); assert.equal(row.afterDispose.framebufferDeletes, 1);
     }
   } finally {
-    if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));
   }
 });
