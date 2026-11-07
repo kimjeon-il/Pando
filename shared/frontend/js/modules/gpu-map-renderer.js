@@ -3885,7 +3885,13 @@ export function createGpuMapRenderer(deps) {
     }
 
     function overlayResourceReady(key) {
-      if (String(key).startsWith('country-shared-boundary:') || String(key).startsWith('country-outline-overrides:')) {
+      // The canonical and override country stroke packets are base-scene
+      // resources, not interaction overlays. After context restoration their
+      // last upload must request a real base frame, or recovery remains stuck
+      // awaiting a frame until its idle deadline.
+      if (String(key).startsWith('country-boundary:')
+        || String(key).startsWith('country-shared-boundary:')
+        || String(key).startsWith('country-outline-overrides:')) {
         promotePreparedCountryBoundary();
         sceneColorCache.invalidate('country-boundary-resource-ready');
         invalidateGpuFrame('country-boundary-resource-ready');

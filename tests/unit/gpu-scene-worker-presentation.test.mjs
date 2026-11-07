@@ -8,6 +8,28 @@ test('after polygon preparation, Canvas Worker schedules a base redraw rather th
   assert.match(source,/else\s+dependencies\.domains\.renderingDomain\.invalidateGpuInteraction\('overlay-mesh-ready'\)/);
 });
 
+
+test('restored base country strokes invalidate the base scene rather than interaction only',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const begin=source.indexOf('    function overlayResourceReady(key) {');
+  const end=source.indexOf('    function buildCountryStrokeResource(',begin);
+  assert.ok(begin>=0 && end>begin);
+  const events=[];
+  const ready=new Function('sceneColorCache','invalidateGpuFrame','scheduleGpuInteractionFrame',
+    'renderScene','sceneStrokeResourcePacket','projectGeneration','promotePreparedCountryBoundary',
+    source.slice(begin,end)+'\nreturn overlayResourceReady;')(
+    {invalidate:reason=>events.push(['cache',reason])},
+    reason=>events.push(['base',reason]),reason=>events.push(['interaction',reason]),
+    {polygons:[],strokes:[]},()=>({key:''}),1,()=>events.push(['shared','promote'])
+  );
+  ready('country-boundary:canonical');
+  assert.ok(events.some(([kind])=>kind==='base'),'base country stroke upload must schedule a composited frame');
+  assert.equal(events.some(([kind])=>kind==='interaction'),false);
+  events.length=0;
+  ready('ui-selection-only');
+  assert.deepEqual(events,[['interaction','interaction-resource-ready']]);
+});
+
 test('Canvas first canonical country frame schedules optional terrain only after physical bitmap acceptance',()=>{
   const renderer=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
   assert.match(renderer,/presentBeforeTerrain:\s*!temporalPending\(\)\s*&&\s*countriesPublishedGeneration\s*!==\s*projectGeneration/);
