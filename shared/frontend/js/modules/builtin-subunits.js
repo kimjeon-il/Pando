@@ -22,7 +22,7 @@ export function appendBuiltinSourceAttribution(notes, sourceId, displayPolicy) {
   const original=String(notes||'');
   const row=displayPolicy?.sourceAttributions?.[sourceId];
   if(!row||original.includes(row.archive))return original;
-  return [original,[row.scope,'© OpenStreetMap contributors · ODbL 1.0',
+  return [original,[row.scope,'© OpenStreetMap contributors · ODbL 1.0 · https://www.openstreetmap.org/copyright',
     '원본·파생 데이터: '+row.archive,'공식 협정: '+row.agreement,row.precision]
     .filter(Boolean).join('\n')].filter(Boolean).join('\n\n');
 }
