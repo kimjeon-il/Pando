@@ -111,7 +111,7 @@ jobs:
           tests/unit/project-product-surface.test.mjs
           tests/unit/viewer-globe-only.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
-          tests/unit/viewer-composition-recovery.test.mjs
+          tests/unit/viewer-bootstrap-recovery.test.mjs
       - name: Verify existing runtime module boundaries
         run: node scripts/check-runtime-boundaries.mjs
 
