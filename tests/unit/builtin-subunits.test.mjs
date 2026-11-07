@@ -39,6 +39,16 @@ test('all source geometries stay identical; normalization and classification do 
   assert.deepEqual(classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy}), result);
 });
 
+test('changing declarative parent data changes only generated project metadata',()=>{
+  const altered=structuredClone(displayPolicy);
+  altered.subunits.find(row=>row.sourceCountryId==='JEY').parentId='FRA';
+  const derived=classifyBuiltinCountries(normalizeCountryCollection(source),{displayPolicy:altered});
+  const find=sourceId=>derived.subunits.find(feature=>builtinSubunitSourceId(feature)===sourceId);
+  assert.equal(find('JEY').properties.parentId,'FRA');
+  assert.equal(result.subunits.find(feature=>builtinSubunitSourceId(feature)==='JEY').properties.parentId,'GBR');
+  assert.equal(JSON.stringify(source),before,'source geography is never edited by policy experiments');
+});
+
 test('Guantanamo and Baikonur separate parent from controller or lessee', () => {
   const unit = id => result.subunits.find(f => builtinSubunitSourceId(f) === id);
   assert.equal(unit('USG').properties.parentId, 'CUB');

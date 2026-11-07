@@ -60,5 +60,5 @@ export function classifyBuiltinCountries(collection,{availableSourceIds=null,dis
       },
     }));
   }
-  return {countries:mergeBuiltinTerritories({...collection,features:countries},displayPolicy.territoryMerges),subunits};
+  return {countries:mergeBuiltinTerritories({...collection,features:countries},displayPolicy.territoryMerges,{policyRevision:displayPolicy.revision}),subunits};
 }

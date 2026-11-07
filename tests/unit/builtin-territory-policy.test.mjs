@@ -25,6 +25,9 @@ test('four island merges are disjoint, input-preserving, idempotent and preserve
   const original = new Map(source.features.map(f => [f.id, f]));
   const destinations = new Set(merges.map(p => p.controller));
   for (const policy of merges) {
+    const controller=result.features.find(f=>f.id===policy.controller);
+    assert.ok(controller.properties.metadata.builtinTerritoryDisplay.mergedSources.some(entry=>
+      entry.sourceId===policy.sourceId),'the accepted project must retain the source exception');
     assert.equal(context.polygonClipping.intersection(polygons(original.get(policy.sourceId).geometry), polygons(original.get(policy.controller).geometry)).length, 0);
     assert.equal(result.features.some(f => f.id === policy.sourceId), false);
   }
@@ -36,6 +39,9 @@ test('four island merges are disjoint, input-preserving, idempotent and preserve
     ]);
   }
   assert.deepEqual(mergeBuiltinTerritories(result,merges), result);
+  for(const row of merges)assert.equal(
+    result.features.find(f=>f.id===row.controller).properties.metadata.builtinTerritoryDisplay
+      .mergedSources.find(item=>item.sourceId===row.sourceId).disputed,true);
   assert.equal(JSON.stringify(source), before);
 });
 
