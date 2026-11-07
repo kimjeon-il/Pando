@@ -86,7 +86,6 @@ test('large historical multi-polygon differences partition independent component
   const result=module.adjustHistoricalTerritories([root,peer],rules,clipper);
   const rebuilt=result.candidates.find(row=>row.entityId==='root')?.geometry;
   assert.ok(rebuilt,'the untouched components remain');
-  const areaOf=shape=>globalThis.PandoLabPolygonGeometry.wrapPolygonGeometry(shape,globalThis.polygonClipping);
   const symmetric=globalThis.polygonClipping.xor(wrap(rebuilt),baseline);
   assert.equal(symmetric.length,0,'component subtraction must produce the same exact geographical set');
   assert.ok(operations.every(([left])=>left===1),'a large source is split into independent sweeps');
