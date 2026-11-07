@@ -111,12 +111,11 @@ struct Segment {
     bool endpoint(Point p)const{return equal(p,left->point->p)||equal(p,right->point->p);}
     int comparePoint(Point p)const {
         if(endpoint(p))return 0;
-        const Point l=left->point->p,r=right->point->p,v=vector();
-        if(l.x==r.x)return p.x==l.x?0:p.x<l.x?1:-1;
-        const double yd=(p.y-l.y)/v.y,xf=l.x+yd*v.x;
-        if(p.x==xf)return 0;
-        const double xd=(p.x-l.x)/v.x,yf=l.y+xd*v.y;
-        return p.y==yf?0:p.y<yf?-1:1;
+        // Splay-tree order must not depend on rounded line interpolation:
+        // a 1e-13-degree border discrepancy can flip the approximate sign,
+        // lose a live segment and corrupt the sweep. Use the exact expansion
+        // determinant already owned by the polygon kernel for every axis.
+        return orientation(left->point->p,right->point->p,p);
     }
 };
 int compareSegments(Segment* a,Segment* b) {
