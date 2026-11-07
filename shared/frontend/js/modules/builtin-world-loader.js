@@ -1,12 +1,11 @@
 import {createStoredAssetLoader} from './stored-asset-loader.js';
 import {parseTemporal,temporalContains,temporalMonthEnd,normalizeTemporalInterval} from './temporal.js';
-import {projectTimelineIdentity} from './timeline-resolver.js';
 import {builtinCountryAssets,builtinCountryFileSpecs} from './builtin-country-files.js';
 import {createBuiltinProjectSetup} from './project-setup.js';
 import {PROJECT_SCHEMA_VERSION} from './version-contract.js';
 
-// A dated scene has one month-end boundary. Every coverage and binding query
-// uses that same compiled C++ calendar result instead of recalculating it.
+// The verified country catalog provides source coverage. The project retains
+// every original temporal interval; C++ owns month-end selection.
 const contains=(rows,date)=>rows.some(row=>temporalContains(row,date));
 function validateBuiltinCatalog(index){
  if(index?.schema!=='pandolab-builtin-world'||index.schemaVersion!==2||!Array.isArray(index.entities))throw new Error('Invalid builtin country catalog');
@@ -23,7 +22,8 @@ export function selectBuiltinCountries(index,month){
 }
 export function assembleBuiltinWorld(index,countries,month){
  validateBuiltinCatalog(index);
- const date=queryMonthEnd(month),expected=countriesAt(index,date);
+ queryMonthEnd(month);
+ const expected=index.entities;
  const byId=new Map(countries.map(row=>[row.entityId,row]));
  if(byId.size!==countries.length||expected.length!==countries.length)throw new Error('Incomplete builtin country selection');
  if(index.template?.schemaVersion!==PROJECT_SCHEMA_VERSION
@@ -36,39 +36,14 @@ export function assembleBuiltinWorld(index,countries,month){
  for(const entry of expected){
   const country=byId.get(entry.entityId);
   if(country?.schemaVersion!==2||country.identity?.id!==entry.entityId)throw new Error('Builtin country identity mismatch');
-  let identity=structuredClone(country.identity);
-  const bindings=country.sourceBindings;
-  if(identity.properties.metadata?.historicalTimeline)identity.properties.metadata.historicalTimeline.geometryBindings=bindings;
-  identity.properties.sourceGeometryVersion=bindings.find(row=>temporalContains(row,date))?.sourceVersionId||'';
-  // This loader materializes a single dated country snapshot. Apply the
-  // selected name edition to its initial identity as well as retaining the
-  // existing timeline binding, so the editor's static first frame uses the
-  // correct historical name before explicit month-edit mode is activated.
-  const names=country.timelineRecords.propertyBindings.filter(row=>row.property==='name'
-   && temporalContains(row,date));
-  if(names.length>1)throw new Error('Conflicting dated country names: '+entry.entityId);
-  if(names.length)identity=projectTimelineIdentity(identity,{name:names[0].value});
-  const flags=country.timelineRecords.propertyBindings.filter(row=>row.property==='flag'
-   && temporalContains(row,date));
-  if(flags.length>1)throw new Error('Conflicting dated country flags: '+entry.entityId);
-  if(flags.length) {
-   const {policy,embeddedDataUrl}=flags[0].value;
-   // The name projection may have frozen the identity and its nested metadata.
-   // Always materialize a fresh immutable historical flag edition instead
-   // of mutating an earlier C++ timeline projection.
-   const meta={...identity.properties.metadata};
-   if(policy==='embedded')meta.flagDataUrl=embeddedDataUrl;
-   else if(policy==='none')meta.flagDataUrl=null;
-   else if(meta.defaultFlagDataUrl)meta.flagDataUrl=meta.defaultFlagDataUrl;
-   else delete meta.flagDataUrl;
-   identity={...identity,properties:{...identity.properties,metadata:meta}};
-  }
+  const identity=structuredClone(country.identity);
+  if(identity.properties.metadata?.historicalTimeline)
+   identity.properties.metadata.historicalTimeline.geometryBindings=structuredClone(country.sourceBindings);
   project.territorialEntities.push(identity);
-  // A loaded scene contains the selected interval only. Other historical
-  // intervals may refer to countries intentionally not downloaded this query.
+  // Historical lifetimes, geometries, parents, names and flags remain dated.
+  // Only the canonical C++ cursor selects an effective month.
   for(const name of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])
-   project.timelineRecords[name].push(...country.timelineRecords[name].filter(row=>temporalContains(row,date))
-    .map(row=>({...row,validFrom:null,validTo:null})));
+   project.timelineRecords[name].push(...structuredClone(country.timelineRecords[name]));
   for(const geometry of country.geometries){
    const key=JSON.stringify([geometry.id,geometry.version]),existing=geometries.get(key);
    if(existing&&JSON.stringify(existing)!==JSON.stringify(geometry))throw new Error('Conflicting builtin geometry');
@@ -146,7 +121,9 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Builtin query superseded'),{name:'AbortError',cancelled:true});};
   assertCurrent();
   const index=await loadIndex();assertCurrent();
-  const selected=selectBuiltinCountries(index,month),loaded=new Array(selected.length);
+  // Fetch each immutable country file once for the lifetime of this project;
+  // inactive and future identities must remain available to its timeline.
+  const selected=index.entities,loaded=new Array(selected.length);
   let next=0,failed=false;
   const workers=Array.from({length:Math.min(concurrency,selected.length)},async()=>{
    try{
@@ -167,7 +144,7 @@ export function createBuiltinWorldLoader({manifestUrl,manifestSpec,dataRevision,
   }
   if(waitForIdle)await waitForIdle();
   assertCurrent();
-  return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:${month}`};
+  return {project:assembleBuiltinWorld(index,loaded,month),fingerprint:`${manifestSpec.sha256}:complete-timeline`};
  }
  return Object.freeze({loadIndex,loadProject});
 }
