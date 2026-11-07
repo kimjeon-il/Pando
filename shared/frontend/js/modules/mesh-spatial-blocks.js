@@ -84,6 +84,54 @@ export function spatialBlockTransferables(mesh) {
   return Object.values(mesh.spatialBlocks || {}).filter(value => value && typeof value === 'object').flatMap(tree => Object.values(tree).map(array => array.buffer));
 }
 
+// Preserve the historical minimum-gap merge decision, including the earliest
+// position on equal gaps, without rescanning and splicing O(n²) ranges each
+// frame. Adjacent edges are invalidated when their left node is merged.
+export function coalesceSpatialBlockRanges(ranges,maxRanges=96) {
+  const limit=Math.max(1,Math.floor(Number(maxRanges)||1));
+  if(ranges.length<=limit)return ranges;
+  const nodes=ranges.map((range,index)=>({range,index,prev:null,next:null,version:0,alive:true}));
+  for(let i=0;i<nodes.length;i++){
+    nodes[i].prev=nodes[i-1]||null;
+    nodes[i].next=nodes[i+1]||null;
+  }
+  const heap=[];
+  const precedes=(a,b)=>a.gap<b.gap||(a.gap===b.gap&&a.index<b.index);
+  const enqueue=left=>{
+    if(!left?.alive||!left.next)return;
+    const row={left,right:left.next,version:left.version,index:left.index,
+      gap:left.next.range.first-left.range.first-left.range.count};
+    heap.push(row);let index=heap.length-1;
+    while(index){const parent=(index-1)>>>1;if(!precedes(heap[index],heap[parent]))break;
+      [heap[index],heap[parent]]=[heap[parent],heap[index]];index=parent;}
+  };
+  const take=()=>{
+    const first=heap[0],last=heap.pop();
+    if(heap.length){heap[0]=last;let i=0;
+      while(i*2+1<heap.length){const left=i*2+1,right=left+1;
+        const child=right<heap.length&&precedes(heap[right],heap[left])?right:left;
+        if(!precedes(heap[child],heap[i]))break;
+        [heap[i],heap[child]]=[heap[child],heap[i]];i=child;}}
+    return first;
+  };
+  for(const node of nodes)enqueue(node);
+  let remaining=nodes.length;
+  while(remaining>limit){
+    const edge=take();
+    if(!edge)throw Error('Spatial range merge lost an adjacent edge');
+    const {left,right,version}=edge;
+    if(!left.alive||!right.alive||left.version!==version||left.next!==right)continue;
+    left.range.count=right.range.first+right.range.count-left.range.first;
+    left.next=right.next;
+    if(right.next)right.next.prev=left;
+    right.alive=false;left.version++;remaining--;
+    enqueue(left.prev);enqueue(left);
+  }
+  ranges.length=0;
+  for(let node=nodes[0];node;node=node.next)ranges.push(node.range);
+  return ranges;
+}
+
 const validation = new WeakMap();
 export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', padding = 64, maxRanges = 96) {
   const tree = mesh.spatialBlocks?.[kind];
@@ -123,9 +171,5 @@ export function visibleSpatialBlockRanges(mesh, frame, kind = 'triangle', paddin
     else { const first = tree.ranges[node * 2], count = tree.ranges[node * 2 + 1], previous = ranges.at(-1); if (previous && previous.first + previous.count === first) previous.count += count; else ranges.push({ first, count }); }
   };
   for (const root of tree.roots) visit(root);
-  while (ranges.length > maxRanges) {
-    let best = 0; for (let i = 1; i < ranges.length - 1; i++) if (ranges[i + 1].first - ranges[i].first - ranges[i].count < ranges[best + 1].first - ranges[best].first - ranges[best].count) best = i;
-    ranges[best].count = ranges[best + 1].first + ranges[best + 1].count - ranges[best].first; ranges.splice(best + 1, 1);
-  }
-  return ranges;
+  return coalesceSpatialBlockRanges(ranges,maxRanges);
 }

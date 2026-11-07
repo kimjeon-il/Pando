@@ -42,7 +42,7 @@ test('empty country slots retain their ranges and full-world bounds', async () =
   for (const key of ['countryTriangleRanges', 'countryBoundaryRanges', 'countryBounds', 'countryBoundsFlags']) assert.deepEqual(mesh[key], expected[key]);
 });
 
-import { prepareMeshSpatialBlocks, visibleSpatialBlockRanges } from '../../shared/frontend/js/modules/mesh-spatial-blocks.js';
+import { prepareMeshSpatialBlocks, visibleSpatialBlockRanges, coalesceSpatialBlockRanges } from '../../shared/frontend/js/modules/mesh-spatial-blocks.js';
 
 test('spatial BVH packs large country meshes without boxed intermediate arrays or lost primitives', () => {
   const positions = Int32Array.from([0,0, 1000000,0, 0,1000000, 12000000,0, 13000000,0, 12000000,1000000]);
@@ -65,4 +65,29 @@ test('spatial BVH packs large country meshes without boxed intermediate arrays o
     rowX:[1,0,0],rowY:[0,1,0],rowZ:[0,0,1]},'triangle');
   assert.ok(Array.isArray(visible));
   assert.ok(visible.every(range=>range.count>0&&range.first+range.count<=triangleIndices.length));
+});
+
+// Quadratic reference is a test oracle only; production uses the heap.
+test('spatial range coalescing retains the exact minimum-gap and earliest-tie semantics', () => {
+  const baseline=(input,limit)=>{
+    const ranges=input.map(range=>({...range}));
+    while(ranges.length>limit){
+      let best=0;
+      for(let i=1;i<ranges.length-1;i++)if(
+        ranges[i+1].first-ranges[i].first-ranges[i].count
+        <ranges[best+1].first-ranges[best].first-ranges[best].count)best=i;
+      ranges[best].count=ranges[best+1].first+ranges[best+1].count-ranges[best].first;
+      ranges.splice(best+1,1);
+    }
+    return ranges;
+  };
+  const inputs=[
+    Array.from({length:300},(_,i)=>({first:i*5,count:2})),
+    Array.from({length:300},(_,i)=>({first:i*9+(i%4===0?2:0),count:3})),
+    Array.from({length:300},(_,i)=>({first:i*19+(i%7),count:4})),
+  ];
+  for(const input of inputs)for(const limit of [1,2,17,96,120,300]){
+    const actual=coalesceSpatialBlockRanges(input.map(row=>({...row})),limit);
+    assert.deepEqual(actual,baseline(input,limit),`merge mismatch for limit ${limit}`);
+  }
 });
