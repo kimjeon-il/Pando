@@ -293,7 +293,11 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       const key = 'terrain:' + contextGeneration + ':' + uploadEpoch;
       uploadKeys.add(key);
       void uploadScheduler.enqueueUpload({
-        key, contextGeneration, priority: 40, allowDuringInteraction: true,
+        // Current-view DEM competes with many optional stroke/overlay uploads.
+        // Decode order already chooses requiredKeys first; advance that
+        // certified terrain before background overlay staging, without
+        // bypassing the common per-frame GPU upload budget.
+        key, contextGeneration, priority: 70, allowDuringInteraction: true,
         dispose: () => { if (uploadEpoch === epoch) discardUploads(queue); },
         step: () => {
           if (uploadEpoch !== epoch || disposed) throw Object.assign(new Error('Stale terrain upload'), { name: 'AbortError' });

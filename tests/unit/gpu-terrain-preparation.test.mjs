@@ -98,6 +98,22 @@ for (const representation of ['dem-relief-v1', 'raster-rgba-v1']) {
   });
 }
 
+test('visible DEM uploads take precedence over optional strokes without exceeding the shared upload scheduler',async t=>{
+  const {owner,requests,jobs}=fixture(t);
+  t.after(()=>owner.dispose());
+  globalThis.createImageBitmap=async()=>({width:1024,height:1024,close(){}});
+  t.after(()=>{delete globalThis.createImageBitmap;});
+  owner.setManifest(mobileManifest);
+  owner.prepare(mobileFrame(),mobileView());
+  requests[0].resolve({ok:true,blob:async()=>({})});await settle();
+  assert.equal(jobs.length,1);
+  assert.ok(jobs[0].priority>60,'a current-view DEM upload must not queue behind optional stroke staging');
+  assert.equal(jobs[0].allowDuringInteraction,true);
+  assert.equal(owner.stats().terrainPendingDecodedBytes,4*1024*1024);
+  jobs[0].step({byteBudget:256*1024});
+  assert.equal(owner.stats().terrainPendingDecodedBytes,0);
+});
+
 test('country preview cannot cap terrain detail requested by a high-DPR camera', async t => {
   const setup = fixture(t, () => {}, { mobile: true });
   const { owner, requests } = setup;
