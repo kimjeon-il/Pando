@@ -1,10 +1,27 @@
 import { describe as contractSuite } from 'node:test';
-import * as __unit_dep0 from "node:test";
-import * as __unit_dep1 from "node:assert/strict";
-import * as __unit_dep2 from "../../shared/frontend/js/modules/user-preferences.js";
-import * as __unit_dep3 from "../../shared/frontend/js/modules/app-accent.js";
-import * as __unit_dep4 from "../../shared/frontend/js/modules/accent-presets.js";
-import * as __unit_dep5 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __merge_dep0 from "node:test";
+import * as __merge_dep1 from "node:assert/strict";
+import * as __merge_dep2 from "../../shared/frontend/js/modules/user-preferences.js";
+import * as __merge_dep3 from "../../shared/frontend/js/modules/app-accent.js";
+import * as __merge_dep4 from "../../shared/frontend/js/modules/accent-presets.js";
+import * as __merge_dep5 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __merge_dep6 from "node:fs";
+import * as __merge_dep7 from "../../shared/frontend/js/modules/core-document-read-model.js";
+import * as __merge_dep8 from "../../shared/frontend/js/modules/map-workspace-host.js";
+import * as __merge_dep9 from "../../shared/frontend/js/modules/render-quality.js";
+import * as __merge_dep10 from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import * as __merge_dep11 from "../../shared/frontend/js/modules/geometry-version-store.js";
+import * as __merge_dep12 from "../../shared/frontend/js/modules/physical-settings.js";
+
+// Original feature contract: user-preferences.test.mjs
+contractSuite("user-preferences", () => {
+const { describe : contractSuite } = __merge_dep0;
+const __unit_dep0 = __merge_dep0;
+const __unit_dep1 = __merge_dep1;
+const __unit_dep2 = __merge_dep2;
+const __unit_dep3 = __merge_dep3;
+const __unit_dep4 = __merge_dep4;
+const __unit_dep5 = __merge_dep5;
 
 // Original feature contract: user-preferences.test.mjs
 contractSuite("user-preferences", () => {
@@ -102,5 +119,100 @@ test('accent tokens retain chosen hue and always use white button text', () => {
   assert.equal(accentTokens('#000000')['accent-text'], '#ffffff');
   assert.equal(accentTokens('#8b5cf6').accent, '#8b5cf6');
   assert.ok(!('danger' in accentTokens('#8b5cf6')));
+});
+});
+});
+
+// Original feature contract: shared-view-policy.test.mjs
+contractSuite("shared-view-policy", () => {
+const test = __merge_dep0.default;
+const { readFileSync } = __merge_dep6;
+const { createCoreDocumentReadModel } = __merge_dep7;
+const { createMapHost } = __merge_dep8;
+const assert = __merge_dep1.default;
+const { createRenderQuality } = __merge_dep9;
+const { createTerritorialEntityStore } = __merge_dep10;
+const { createGeometryVersionStore } = __merge_dep11;
+const { createHydroSettings } = __merge_dep12;
+
+test('terrain intents retain the last enabled mode and reject unknown modes',()=>{
+ const settings={terrainVisible:true,terrainStyle:'physical',hydroLayers:{rivers_hydro:false}};
+ const physical=createHydroSettings();physical.connect({projectState:{state:{physicalSettings:settings}}});
+ assert.deepEqual(physical.terrainModeSettings('none'),{...settings,terrainVisible:false});
+ assert.equal(physical.terrainModeSettings('political').terrainStyle,'political');
+ assert.throws(()=>physical.terrainModeSettings('unknown'),/Unknown terrain mode/);
+ assert.equal(settings.terrainVisible,true);assert.equal(settings.terrainStyle,'physical');
+});
+
+test('the render quality owner applies preference style to every render consumer',()=>{
+ const style={hover:{color:'#ff0088'},selection:{color:'#ff0088',outlineVisible:false,fillStrength:.8}};
+ const calls=[];
+ const quality=createRenderQuality();
+ quality.connect({preferences:{resolvedInteractionStyle:style},selectionServices:{setSelectionInteractionStyle:value=>calls.push(['shared',value])},
+  gpuRenderingA:{selectionPass:{updateStyle:value=>calls.push(['pass',value])}},
+  rendering:{gpuMapRenderer:{setInteractionStyle:value=>calls.push(['renderer',value]),invalidateCountryPalette:(...args)=>calls.push(['palette',...args]),invalidatePhysicalStyle:reason=>calls.push(['physical',reason])}},
+  domains:{renderingDomain:{invalidateSelectionStyle:reason=>calls.push(['selection',reason]),invalidateBaseScene:reason=>calls.push(['base',reason])}}});
+ quality.applyMapAppearanceChange({reason:'preferences',rerender:true});
+ assert.deepEqual(calls.slice(0,3),[['shared',style],['pass',style],['renderer',style]]);
+ assert.ok(calls.some(([key])=>key==='selection'));assert.ok(calls.some(([key])=>key==='base'));
+ calls.length=0;quality.applyMapAppearanceChange({reason:'preview',rerender:false});
+ assert.ok(calls.some(([key])=>key==='renderer'));assert.ok(!calls.some(([key])=>key==='selection'||key==='base'));
+});
+
+test('the entity projection reports actual root shape changes separately from metadata and child changes',()=>{
+ const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]};
+ const admittedGeometry=version=>createGeometryVersionStore([{id:'shape:A',version,geojson:geometry}]).get({id:'shape:A',version});
+ let rows=[{id:'A',geometry:admittedGeometry(1),properties:{entityKind:'general',parentId:'',name:'A'}}],transition;
+ const changes=[];
+ const store=createTerritorialEntityStore({documentModel:{territorialViews:()=>rows,list:()=>[],world:()=>({}),projectWorld:()=>({})},
+  commandOwner:{state:()=>({}),subscribeTransitions:listener=>{transition=listener;return ()=>{};},resolveWorld(){},setTimelineCursor(){}},
+  onEntitiesReplaced:(_rows,change)=>changes.push(change)});
+ rows=[{...rows[0],properties:{...rows[0].properties,name:'renamed'}}];transition();
+ assert.equal(changes.at(-1).rootGeometryChanged,false);
+ rows=[{...rows[0],geometry:admittedGeometry(1)}];transition();
+ assert.equal(changes.at(-1).rootGeometryChanged,false,'the same canonical geometry version must not rebuild because its allocation changed');
+ rows=[{...rows[0],geometry:admittedGeometry(2)}];transition();
+ assert.equal(changes.at(-1).rootGeometryChanged,true);
+ rows=[...rows,{id:'B',geometry,properties:{entityKind:'general',parentId:'A'}}];transition();
+ assert.equal(changes.at(-1).rootGeometryChanged,false);
+ rows=rows.map(row=>row.id==='B'?{...row,properties:{...row.properties,parentId:''}}:row);transition();
+ assert.equal(changes.at(-1).rootGeometryChanged,true);
+ store.dispose();
+});
+
+
+test('replacing a document invalidates roots even when archive-local geometry references collide',()=>{
+ const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+ const model=createCoreDocumentReadModel(seed),binding=seed.timelineRecords.geometryBindings.find(row=>row.objectRef.domain==='territorial'&&row.objectRef.id==='A');
+ const world={month:'2026-10',sourceEpoch:1,entities:[{objectRef:{domain:'territorial',id:'A'},geometryRef:binding.geometryRef,parentId:'',coverageMode:'explicit',validFrom:null,validTo:null,rootId:'A',ancestors:[],properties:seed.territorialEntities.find(row=>row.id==='A').properties}]};
+ model.acceptWorld(world,1);
+ let transition;const changes=[];
+ const store=createTerritorialEntityStore({documentModel:model,commandOwner:{state:()=>({}),subscribeTransitions:listener=>{transition=listener;return ()=>{};},resolveWorld(){},setTimelineCursor(){}},onEntitiesReplaced:(_rows,change)=>changes.push(change)});
+ const before=store.snapshot()[0].geometry;
+ let offset=30,epoch=1;
+ for(const operation of ['core.document-load','core.document-load-baseline','core.document-initialize','core.document-replacement-rollback']){
+  const next=structuredClone(seed);
+  // Every replacement has different bytes under the same archive-local ref.
+  next.geometries.find(row=>row.id===binding.geometryRef.id&&row.version===binding.geometryRef.version).geojson={type:'Polygon',coordinates:[[[offset,0],[offset,10],[offset+10,10],[offset+10,0],[offset,0]]]};
+  offset++;epoch++;
+  model.acceptLoadedProject(next);model.acceptWorld({...world,sourceEpoch:epoch},epoch);transition({},operation);
+  assert.equal(changes.at(-1).rootGeometryChanged,true,operation);
+ }
+ assert.notDeepEqual(store.snapshot()[0].geometry,before);store.dispose();
+});
+
+test('the shared resize owner unregisters viewport and DPR listeners before restart and disposal',()=>{
+ const viewport=new globalThis.EventTarget(),query=new globalThis.EventTarget();let refreshes=0,queued=0,disconnects=0,queries=0;
+ const saved=Object.fromEntries(['window','ResizeObserver','requestAnimationFrame','cancelAnimationFrame'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ Object.assign(globalThis,{window:{visualViewport:viewport,matchMedia:()=>{queries++;return query;},devicePixelRatio:1},ResizeObserver:class{observe(){}disconnect(){disconnects++;}},requestAnimationFrame:()=>++queued,cancelAnimationFrame:()=>{}});
+ try{
+  const host=createMapHost({productMode:'viewer'});host.connect({platform:{$:()=>({})},workspaceUiB:{refreshMapSheetMetrics:()=>refreshes++}});
+  host.initializeMapResizeObserver();host.initializeResolutionQuery();host.startMapResizeObserver();host.startMapResizeObserver();
+  viewport.dispatchEvent(new globalThis.Event('resize'));assert.equal(refreshes,1,'restart must not multiply callbacks');
+  query.dispatchEvent(new globalThis.Event('change'));assert.equal(queries,3,'DPR changes install the next resolution query');
+  host.stopMapResizeObserver();const before=queued;
+  viewport.dispatchEvent(new globalThis.Event('resize'));query.dispatchEvent(new globalThis.Event('change'));
+  assert.equal(refreshes,1);assert.equal(queued,before);assert.equal(queries,3);assert.ok(disconnects>=2);
+ }finally{for(const [key,descriptor]of Object.entries(saved)){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 });
 });

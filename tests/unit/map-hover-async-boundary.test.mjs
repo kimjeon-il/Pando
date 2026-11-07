@@ -1,15 +1,37 @@
 import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "node:assert/strict";
-import * as __dep1 from "node:fs";
-import * as __dep2 from "node:test";
-import * as __dep3 from "node:vm";
-import * as __dep4 from "../../shared/frontend/js/modules/pointer-targets.js";
-import * as __dep5 from "../../shared/frontend/js/modules/gpu-scene.js";
-import * as __dep6 from "../../shared/frontend/js/modules/object-selection-controller.js";
-import * as __dep7 from "../../shared/frontend/js/modules/map-input-presentation.js";
-import * as __dep8 from "../../shared/frontend/js/modules/tooltip-controller.js";
-import * as __dep9 from "../helpers/core-selection.mjs";
-import * as __dep10 from "./helpers/dom-node-fixture.mjs";
+import * as __merge_dep0 from "node:test";
+import * as __merge_dep1 from "node:assert/strict";
+import * as __merge_dep2 from "node:fs";
+import * as __merge_dep3 from "node:vm";
+import * as __merge_dep4 from "../../shared/frontend/js/modules/pointer-targets.js";
+import * as __merge_dep5 from "../../shared/frontend/js/modules/gpu-scene.js";
+import * as __merge_dep6 from "../../shared/frontend/js/modules/object-selection-controller.js";
+import * as __merge_dep7 from "../../shared/frontend/js/modules/map-input-presentation.js";
+import * as __merge_dep8 from "../../shared/frontend/js/modules/tooltip-controller.js";
+import * as __merge_dep9 from "../helpers/core-selection.mjs";
+import * as __merge_dep10 from "./helpers/dom-node-fixture.mjs";
+import * as __merge_dep11 from "../helpers/timeline-project.mjs";
+import * as __merge_dep12 from "../../shared/frontend/js/modules/spatial-index.js";
+import * as __merge_dep13 from "../../shared/frontend/js/modules/map-object-spatial-index.js";
+import * as __merge_dep14 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __merge_dep15 from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import * as __merge_dep16 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import * as __merge_dep17 from "../../shared/frontend/js/modules/territorial-scope.js";
+
+// Original feature contract: map-hover-async-boundary.test.mjs
+contractSuite("map-hover-async-boundary", () => {
+const { describe : contractSuite } = __merge_dep0;
+const __dep0 = __merge_dep1;
+const __dep1 = __merge_dep2;
+const __dep2 = __merge_dep0;
+const __dep3 = __merge_dep3;
+const __dep4 = __merge_dep4;
+const __dep5 = __merge_dep5;
+const __dep6 = __merge_dep6;
+const __dep7 = __merge_dep7;
+const __dep8 = __merge_dep8;
+const __dep9 = __merge_dep9;
+const __dep10 = __merge_dep10;
 
 // Original feature contract: map-hover-async-boundary.test.mjs
 contractSuite("map-hover-async-boundary", () => {
@@ -393,5 +415,61 @@ for (const peerKind of ['city', 'label']) for (const moveWithinLabel of [false, 
   assert.equal(f.executedPicks(), 1);
   assert.equal((await f.hover(f.label)).tooltip, 'country');
   assert.equal(f.domain.size(), 0); assert.equal(f.domain.snapshot().revision, 0);
+});
+});
+});
+
+// Original feature contract: app-spatial-canonical-picking.test.mjs
+contractSuite("app-spatial-canonical-picking", () => {
+const { testCoreProject, initializeTestTerritorialState } = __merge_dep11;
+const assert = __merge_dep1.default;
+const test = __merge_dep0.default;
+const { createSpatialIndex } = __merge_dep12;
+const { createMapObjectSpatialIndex } = __merge_dep13;
+const { createTerritorialFeature } = __merge_dep14;
+const { createTerritorialEntityStore } = __merge_dep15;
+const { createTerritorialEntityRepository } = __merge_dep16;
+const { createTerritorialScopeResolver } = __merge_dep17;
+
+const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 10], [x + 10, 10], [x + 10, 0], [x, 0]]] });
+
+test('territorial spatial candidates and display follow canonical store hydration', async () => {
+  const preview = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(20) });
+  const canonical = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0) });
+  const state = { territorialEntities: [preview], countryVisualPhase: 'preview',
+    labels: [], genericFeatures: [], hydroEdits: [] };
+  await initializeTestTerritorialState(state);
+const entityStore = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
+  const entityRepository = createTerritorialEntityRepository({ entityStore });
+  const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
+  const spatial = createSpatialIndex();
+  spatial.connect({ projectState: { state }, territorialModel: { entityRepository }, objectModelB: { territorialScope },
+    domains: { renderingDomain: { getDistributionRenderRows: () => [] } },
+    spatialFactories: { createMapObjectSpatialIndex }, cutGeometry: { coordinateBounds: coordinates => {
+      const points = coordinates.flat(2);
+      const xs = points.filter((_, index) => index % 2 === 0);
+      const ys = points.filter((_, index) => index % 2 === 1);
+      return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+    } } });
+  spatial.initializeGeometryBoundsCache();
+  spatial.initializeMapObjectSpatialIndex();
+  const candidates = x => spatial.mapObjectSpatialIndex.query([x + 4, 4, x + 6, 6], { domains: ['territorial'] }).map(row => row.id);
+  spatial.rebuildMapObjectSpatialIndex();
+  assert.deepEqual(candidates(20), ['A']);
+  assert.deepEqual(candidates(0), []);
+
+  await testCoreProject(state).project.admit(testCoreProject(state).project.snapshot(),{ features:[canonical],preserveCursor:true });
+  spatial.rebuildMapObjectSpatialIndex();
+  assert.deepEqual(territorialScope.displayFeature('A').geometry, canonical.geometry);
+  assert.deepEqual(candidates(0), ['A']);
+  assert.deepEqual(candidates(20), []);
+  state.countryVisualPhase = 'canonical';
+  spatial.rebuildMapObjectSpatialIndex();
+  assert.deepEqual(candidates(0), ['A']);
+  state.countryVisualPhase = 'preview';
+  spatial.rebuildMapObjectSpatialIndex();
+  assert.deepEqual(candidates(0), ['A']);
+  assert.deepEqual(candidates(20), []);
+  assert.deepEqual(entityRepository.get('A').geometry, canonical.geometry);
 });
 });
