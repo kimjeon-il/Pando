@@ -102,7 +102,14 @@
         "tests/unit/terrain-*.test.mjs",
         "tests/unit/physical-land*.test.mjs",
         "tests/unit/country-*.test.mjs",
-        "tests/unit/boundary-*.test.mjs"
+        "tests/unit/boundary-*.test.mjs",
+        "tests/unit/lsib-*.test.mjs",
+        "tests/unit/prepared-*.test.mjs",
+        "tests/unit/river-territory-*.test.mjs",
+        "tests/unit/map-geometry-validation.test.mjs",
+        "tests/unit/historical-german-*.test.mjs",
+        "tests/unit/historical-display-review.test.mjs",
+        "tests/unit/historical-source-*.test.mjs"
       ],
       "inputs": []
     },
