@@ -1,7 +1,22 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import {assembleHydroCalibrationResults,buildHydroCalibrationImageLayers,buildHydroCalibrationOptimization,calibrateHydroPreparedRegions,collectHydroCalibrationGeometry,markHydroCalibrationDuplicates,measureHydroCalibrationReferenceStages,prepareHydroCalibrationLakes,prepareHydroCalibrationReference,prepareHydroCalibrationStageReferences,selectHydroCalibrationReferences} from '../../tools/gis/hydro-calibration-preparation.mjs';
-import {readFileSync} from 'node:fs';
+import { describe as contractSuite } from 'node:test';
+import * as __hydro_dep0 from "node:assert/strict";
+import * as __hydro_dep1 from "node:test";
+import * as __hydro_dep2 from "../../tools/gis/hydro-calibration-preparation.mjs";
+import * as __hydro_dep3 from "node:fs";
+import * as __hydro_dep4 from "node:crypto";
+import * as __hydro_dep5 from "../../tools/gis/hydro-calibration-image.mjs";
+import * as __hydro_dep6 from "../../tools/map-image/native-resample.mjs";
+
+// Original feature contract: hydro-calibration-preparation.test.mjs
+contractSuite("hydro-calibration-preparation", () => {
+const assert = __hydro_dep0.default;
+const test = __hydro_dep1.default;
+const { assembleHydroCalibrationResults, buildHydroCalibrationImageLayers, buildHydroCalibrationOptimization, calibrateHydroPreparedRegions, collectHydroCalibrationGeometry, markHydroCalibrationDuplicates, measureHydroCalibrationReferenceStages, prepareHydroCalibrationLakes, prepareHydroCalibrationReference, prepareHydroCalibrationStageReferences, selectHydroCalibrationReferences } = __hydro_dep2;
+const { readFileSync } = __hydro_dep3;
+
+
+
+
 
 test('calibration geometry collection keeps lines and polygons and ignores empty or point parts',()=>{
   const line=[[0,0],[1,1]],polygon=[[[0,0],[1,0],[1,1],[0,0]]];
@@ -136,4 +151,40 @@ test('calibration results reuse verified regional metrics and retain explicit so
   assert.equal(result.regions.europe.riverCandidates,oracle.input.rivers.length);assert.deepEqual(result.sources,input.sources);
   assert.deepEqual(result.formula.rivers.thresholds,{'6.0':10,'6.7':9,'7.0':8,'7.5':7});
   assert.equal(result.searchSpace.riverWeights.length,48);assert.equal(result.searchSpace.lakeWeights.length,11);assert.deepEqual(input,before);
+});
+});
+
+// Original feature contract: hydro-calibration-image.test.mjs
+contractSuite("hydro-calibration-image", () => {
+const assert = __hydro_dep0.default;
+const { createHash } = __hydro_dep4;
+const { existsSync, readFileSync } = __hydro_dep3;
+const test = __hydro_dep1.default;
+const { renderHydroCalibrationComparison } = __hydro_dep5;
+const { decodeNativeImageBytes } = __hydro_dep6;
+
+
+
+
+
+
+
+test('native hydro comparison renders a labelled PNG while preserving source inputs',
+  {skip:!process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY||!process.env.PANDO_MAP_PREVIEW_ARTIFACT},async()=>{
+    const regular=process.platform==='win32'?'C:/Windows/Fonts/malgun.ttf':'/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
+    const bold=process.platform==='win32'?'C:/Windows/Fonts/malgunbd.ttf':'/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+    if(!existsSync(regular)||!existsSync(bold))throw Error('Comparison test fonts are missing');
+    const font=file=>({file,sha256:createHash('sha256').update(readFileSync(file)).digest('hex')});
+    const polygon={type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,1],[0,0]]]},line={type:'LineString',coordinates:[[0,0],[2,2]]};
+    const input={region:{id:'korea',label:'한반도',bbox:[0,0,2,2]},riverReference:{sameLayer:true,baseFeatures:[{geometry:line}]},
+      lakeReference:{sameLayer:true,baseFeatures:[{geometry:polygon}]},rivers:[{assignedStage:6,parts:[line.coordinates]}],
+      lakes:[{assignedStage:7,geometry:polygon}],fonts:{regular:font(regular),bold:font(bold)}};
+    const before=structuredClone(input),options={pointScreen:{directory:process.env.PANDO_HYDRO_POINT_SCREEN_DIRECTORY,
+      runtimeRoot:process.env.PANDO_HYDRO_RUNTIME_ROOT},preview:{directory:process.env.PANDO_MAP_PREVIEW_ARTIFACT}};
+    const result=await renderHydroCalibrationComparison(input,options);
+    const decoded=await decodeNativeImageBytes({bytes:result.data,format:'png',maxPixels:1000000});
+    assert.deepEqual([decoded.width,decoded.height],[1744,510]);assert.deepEqual(input,before);
+    const wrong=structuredClone(input);wrong.fonts.regular.sha256='0'.repeat(64);
+    await assert.rejects(renderHydroCalibrationComparison(wrong,options),/font.*hash/i);
+  });
 });
