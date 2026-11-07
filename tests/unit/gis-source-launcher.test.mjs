@@ -1,16 +1,47 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import {mkdtempSync,mkdirSync,symlinkSync,rmSync,writeFileSync} from 'node:fs';
-import {tmpdir} from 'node:os';
-import {basename,join} from 'node:path';
-import {buildCommand,parseArguments,runSource,ROOT,TASK_SOURCES} from '../../scripts/gis/run-source.mjs';
-import {packageNativeTool} from '../../tools/native-tool.mjs';
-import {terrainDemEncodeSources} from '../../tools/gis/terrain-dem-encode.mjs';
-import {terrainDemFillSources} from '../../tools/gis/terrain-dem-source.mjs';
-import {terrainDemRasterSources} from '../../tools/gis/terrain-dem-raster.mjs';
-import {terrainDemGutterSources} from '../../tools/gis/terrain-dem-gutters.mjs';
-import {terrainDemTintSources} from '../../tools/gis/terrain-dem-tint.mjs';
-import {mapImageSourceFiles} from '../../tools/map-image/native-resample.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __source_dep0 from "node:assert/strict";
+import * as __source_dep1 from "node:test";
+import * as __source_dep2 from "node:fs";
+import * as __source_dep3 from "node:os";
+import * as __source_dep4 from "node:path";
+import * as __source_dep5 from "../../scripts/gis/run-source.mjs";
+import * as __source_dep6 from "../../tools/native-tool.mjs";
+import * as __source_dep7 from "../../tools/gis/terrain-dem-encode.mjs";
+import * as __source_dep8 from "../../tools/gis/terrain-dem-source.mjs";
+import * as __source_dep9 from "../../tools/gis/terrain-dem-raster.mjs";
+import * as __source_dep10 from "../../tools/gis/terrain-dem-gutters.mjs";
+import * as __source_dep11 from "../../tools/gis/terrain-dem-tint.mjs";
+import * as __source_dep12 from "../../tools/map-image/native-resample.mjs";
+import * as __source_dep13 from "../../scripts/lib/check-changes.mjs";
+
+// Original feature contract: gis-source-launcher.test.mjs
+contractSuite("gis-source-launcher", () => {
+const assert = __source_dep0.default;
+const test = __source_dep1.default;
+const { mkdtempSync, mkdirSync, symlinkSync, rmSync, writeFileSync } = __source_dep2;
+const { tmpdir } = __source_dep3;
+const { basename, join } = __source_dep4;
+const { buildCommand, parseArguments, runSource, ROOT, TASK_SOURCES } = __source_dep5;
+const { packageNativeTool } = __source_dep6;
+const { terrainDemEncodeSources } = __source_dep7;
+const { terrainDemFillSources } = __source_dep8;
+const { terrainDemRasterSources } = __source_dep9;
+const { terrainDemGutterSources } = __source_dep10;
+const { terrainDemTintSources } = __source_dep11;
+const { mapImageSourceFiles } = __source_dep12;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 test('GIS launcher uses an allowlist and dry-run never launches source commands',()=>{
  const calls=[],logs=[];
@@ -151,4 +182,51 @@ test('historical-border dispatches the migrated Node recipe owner without restor
  assert.equal(calls.length,1);assert.equal(calls[0].exe,process.execPath);
  assert.equal(calls[0].argv[0],join(root,source));assert.deepEqual(calls[0].argv.slice(1),args);
  assert.equal(calls[0].settings.shell,false);assert.equal(logs[1].requiresExternalOriginals,true);
+});
+});
+
+// Original feature contract: gis-source-isolation.test.mjs
+contractSuite("gis-source-isolation", () => {
+const assert = __source_dep0.default;
+const { readFileSync, existsSync } = __source_dep2;
+const test = __source_dep1.default;
+const { selectNativeBuilds } = __source_dep13;
+
+
+
+
+
+const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
+const exists=path=>existsSync(new URL('../../'+path,import.meta.url));
+
+test('retired P1 and P3 workflows cannot be selected instead of the shared Core owner',()=>{
+ for(const path of ['remote-development-p1.yml','remote-preview-p3.yml','p6-preflight.yml'])
+  assert.equal(exists('.github/workflows/'+path),false,path);
+ const shared=read('.github/workflows/shared-core.yml');
+ assert.match(shared,/native-branch-core:/);
+ assert.match(shared,/native-branch-gis:/);
+ assert.match(shared,/ctest --preset pando-core/);
+ const checks=JSON.parse(read('scripts/contracts/application-checks.json'));
+ const native=checks.externalChecks.find(x=>x.id==='native-core');
+ assert.equal(native.workflow,'.github/workflows/shared-core.yml');
+ assert.equal(native.job,'native-branch-core');
+});
+
+test('unrelated GIS JavaScript edits do not trigger a native or WASM build',()=>{
+ for(const path of ['tools/gis/build-hydro.mjs','tools/gis/hydro-generation-manifest.mjs']){
+  assert.deepEqual(selectNativeBuilds([path]),{core:false,gis:false,wasm:false});
+ }
+ assert.deepEqual(selectNativeBuilds(['tools/cpp/hydro/point-screen.cpp']),{core:false,gis:true,wasm:false});
+ assert.deepEqual(selectNativeBuilds(['shared/core/src/project.cpp']),{core:true,gis:false,wasm:false});
+});
+
+test('application and native Core contracts do not install GIS Python test suites',()=>{
+ const scripts=JSON.parse(read('package.json')).scripts;
+ for(const name of ['test','check:versioning','check:architecture'])
+  assert.doesNotMatch(scripts[name],/\bpython(?:3)?\b|test:python|test:gis-python/);
+ for(const workflow of ['shared-core.yml','application-architecture.yml']){
+  const body=read('.github/workflows/'+workflow);
+  assert.doesNotMatch(body,/setup-python|python -m pip|python -m unittest|python -m compileall/);
+ }
+});
 });
