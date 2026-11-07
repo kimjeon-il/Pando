@@ -1,7 +1,7 @@
 // Canvas transport owns readiness, latest-frame backpressure, stale delivery and
 // outstanding picks. The coordinator serializes scene state and presents accepted frames.
 export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOlderBackgroundFrame = () => false, onStale = () => {}, onSend = () => {} }) {
-  let live = true, ready = false, pendingFrame = null;
+  let live = true, ready = false, pendingFrame = null, latestFrame = null;
   let inFlightRenderRequestId = null, renderRequestId = 0;
   let requestedRevision = 0, displayedRevision = 0, requestId = 0;
   let onmessage = null, onerror = null;
@@ -37,8 +37,17 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     if (message.type === 'hydro-pick') { settlePick(Number(message.requestId), message.fid, message.error); return; }
     if (message.type !== 'frame') { onmessage?.(event); return; }
     // Completion belongs to a submission, independently of bitmap freshness.
-    if (inFlightRenderRequestId !== null && message.renderRequestId === inFlightRenderRequestId
-      && Number(message.projectGeneration) === generation) inFlightRenderRequestId = null;
+    const acknowledged = inFlightRenderRequestId !== null && message.renderRequestId === inFlightRenderRequestId
+      && Number(message.projectGeneration) === generation;
+    if (acknowledged) {
+      inFlightRenderRequestId = null;
+      // Style, physical-packet and boundary messages can cancel an expensive
+      // Canvas paint. The Worker acknowledges without a bitmap; there is no
+      // pending view left in the transport because flush consumed it. Replay
+      // the latest exact visual request after those messages are applied.
+      if (!message.bitmap && !pendingFrame && latestFrame
+        && Number(latestFrame.projectGeneration) === generation) pendingFrame = latestFrame;
+    }
     const revision = Number(message.revision || 0);
     // The latest *picture*, not the latest unrelated coordinator revision,
     // controls initial physical-only previews. The opt-in must independently
@@ -64,7 +73,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     postMessage,
     resetGeneration(next) {
       generation = Number(next);
-      pendingFrame = null; inFlightRenderRequestId = null;
+      pendingFrame = null; latestFrame = null; inFlightRenderRequestId = null;
       requestedRevision = 0; displayedRevision = 0;
       for (const id of picks.keys()) settlePick(id, null);
       // Reset the actual Worker before any new-generation state or view is sent.
@@ -72,8 +81,10 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     },
     queueFrame(message) {
       if (!live || Number(message.projectGeneration) !== generation) return;
-      requestedRevision = Math.max(requestedRevision, Number(message.revision || 0));
-      if (!pendingFrame || Number(pendingFrame.revision || 0) <= Number(message.revision || 0)) pendingFrame = message;
+      const revision = Number(message.revision || 0);
+      if (revision >= requestedRevision) latestFrame = message;
+      requestedRevision = Math.max(requestedRevision, revision);
+      if (!pendingFrame || Number(pendingFrame.revision || 0) <= revision) pendingFrame = message;
       flush();
     },
     pick(point) {
@@ -87,7 +98,7 @@ export function createGpuCanvasWorker({ worker, generation, acceptFrame, allowOl
     },
     terminate() {
       if (!live) return;
-      live = false; ready = false; inFlightRenderRequestId = null; pendingFrame = null;
+      live = false; ready = false; inFlightRenderRequestId = null; pendingFrame = null; latestFrame = null;
       for (const id of picks.keys()) settlePick(id, null);
       worker.terminate(); onmessage = null; onerror = null;
     },
