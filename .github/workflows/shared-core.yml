@@ -337,7 +337,7 @@ jobs:
           tests/unit/core-hydro-create-wasm.test.mjs tests/unit/core-web-history-limit-wasm.test.mjs
            tests/unit/core-label-gesture-wasm.test.mjs
           tests/unit/timeline-geopackage.test.mjs
-           tests/unit/core-project-file-save-wasm.test.mjs
+          tests/unit/core-project-file-save-wasm.test.mjs
           tests/unit/core-territorial-service-wasm.test.mjs
           tests/unit/core-territorial-store-wasm.test.mjs
           tests/unit/core-save-state-projection.test.mjs

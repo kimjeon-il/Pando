@@ -47,3 +47,38 @@ through this unit-only migration.
 Unit/CI/native/Playwright execution is deferred until consolidation across
 all areas finishes, per user instruction. A committed source change is not a
 claim of passing checks.
+
+## P0–P7 applied migration (unit count 471 → 459)
+
+P0 recorded the domain ownership boundaries in this document. P1 kept
+project initialization and serialization in `project-creation-contract`.
+P2 moved Viewer read-only domain gates into `file-access-contract` and
+Core-assisted preview topology assertions into `project-preview-policy`.
+P3 consolidated project admission/replacement/save in
+`core-project-file-save-wasm`, original C++ content/draft contracts in
+`core-document-wasm`, and production GeoPackage byte and same-epoch Core
+projection assertions in `timeline-geopackage`. The generic-feature Web
+oracle still initializes at module scope before synchronous Node suites.
+P4 paired library source scope with expected remote revision checks in
+`library-data-scope`. P5 paired automation request/workflow policy with
+`library-auto-sync` and Toolkit report ownership with `shared-toolkit`.
+
+P6 introduced isolated fixture ports `portability-project-seed.mjs`
+(always returns a fresh detached project input) and
+`report-git-fixture.mjs` (local-only Git and report writes). Existing SQL,
+C++ Core, immutable archive and browser file ports were retained.
+
+P7 updated explicit `package.json`, workflow and check-catalog entries.
+The compiled Core/WASM check keeps its original prerequisite; its GPKG
+suite now runs through `timeline-geopackage`. The bounded library publisher
+job continues executing the same policy contracts through the current file
+without scheduling retired suite names. No published library bytes,
+repository data pins, Native tools or production application code changed.
+
+The 12 retired suite entrypoints remain listed as original contracts via
+`// Original feature contract:` markers in nine active owner files.
+The unit-file count was read from GitHub's actual unit-test tree, and
+explicit references in the 72 workflow files, 74 script files, package
+scripts and the application-check catalog were inspected. This was static
+review only: Node tests, lint, CI, browser and native validation were **not**
+executed under the user's deferred-validation instruction.
