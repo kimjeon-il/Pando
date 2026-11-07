@@ -1,7 +1,19 @@
-import assert from 'node:assert/strict';
-import {resolve} from 'node:path';
-import test from 'node:test';
-import {sampleGdalDem} from '../../tools/gis/terrain-dem-source.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __dem_dep0 from "node:assert/strict";
+import * as __dem_dep1 from "node:path";
+import * as __dem_dep2 from "node:test";
+import * as __dem_dep3 from "../../tools/gis/terrain-dem-source.mjs";
+import * as __dem_dep4 from "node:child_process";
+import * as __dem_dep5 from "node:fs";
+import * as __dem_dep6 from "node:os";
+import * as __dem_dep7 from "../../tools/gis/terrain-dem-raster.mjs";
+
+// Original feature contract: terrain-dem-source.test.mjs
+contractSuite("terrain-dem-source", () => {
+const assert = __dem_dep0.default;
+const { resolve } = __dem_dep1;
+const test = __dem_dep2.default;
+const { sampleGdalDem } = __dem_dep3;
 
 test('DEM source samples require explicit finite pixel coordinates',async()=>{
   await assert.rejects(sampleGdalDem({source:'fixture',x:-1,y:0}),/coordinate/i);
@@ -13,4 +25,67 @@ test('GDAL reads the selected source pixel without opening a QGIS window',{
   const source=resolve('tests/fixtures/terrain-dem/synthetic-elevation.tif');
   assert.equal(await sampleGdalDem({source,x:1,y:1}),2);
   await assert.rejects(sampleGdalDem({source,x:100,y:100}),/sample|outside|numeric/i);
+});
+});
+
+// Original feature contract: terrain-dem-raster-native.test.mjs
+contractSuite("terrain-dem-raster-native", () => {
+const assert = __dem_dep0.default;
+const { spawnSync } = __dem_dep4;
+const { mkdtempSync, readFileSync, rmSync, writeFileSync } = __dem_dep5;
+const { tmpdir } = __dem_dep6;
+const { join } = __dem_dep1;
+const test = __dem_dep2.default;
+const { createNativeDemWindowReader, readNativeDemWindow, inspectNativeDemSource } = __dem_dep7;
+
+const binary=process.env.PANDO_TERRAIN_DEM_RASTER_BINARY;
+const fixture=JSON.parse(readFileSync('tests/fixtures/terrain-dem-raster-oracle.json','utf8'));
+test('GDAL DEM windows preserve area averaging, wrap, polar clamp and NoData',{skip:!binary},t=>{
+  const root=mkdtempSync(join(tmpdir(),'pando-dem-raster-'));t.after(()=>rmSync(root,{recursive:true}));
+  for(const [name,base64] of Object.entries(fixture.sources))writeFileSync(join(root,name+'.tif'),Buffer.from(base64,'base64'));
+  for(const row of fixture.cases){
+    const path=join(root,row.source+'.tif'),before=readFileSync(path);
+    const result=spawnSync(binary,[path,String(row.width),String(row.height),...row.box.map(String)],{timeout:20000});
+    if(row.error){assert.notEqual(result.status,0,JSON.stringify(row));assert.equal(result.stdout.length,0);}
+    else{assert.equal(result.status,0,String(result.stderr));const expected=Buffer.from(row.expected,'base64');
+      assert.equal(result.stdout.length,expected.length);
+      for(let at=0;at<expected.length;at+=4)assert.ok(Math.abs(result.stdout.readFloatLE(at)-expected.readFloatLE(at))<1e-5,JSON.stringify(row));}
+    assert.deepEqual(readFileSync(path),before);
+  }
+  const strict=spawnSync(binary,[join(root,'valid.tif'),'4','2','0','0','2','1','--strict-etopo'],{timeout:20000});
+  assert.notEqual(strict.status,0);assert.equal(strict.stdout.length,0);
+  const expected=spawnSync(binary,['tests/fixtures/terrain-dem-etopo-sparse.tif','43200','21600','0','0','2','2','--strict-etopo'],{timeout:20000});
+  assert.equal(expected.status,0,String(expected.stderr));assert.equal(expected.stdout.length,16);
+  assert.deepEqual(Array.from({length:4},(_,index)=>expected.stdout.readFloatLE(index*4)),[100,-20,350,25]);
+});
+test('DEM window manager verifies the native artifact and requires explicit source bounds',
+  {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY},async t=>{
+    const root=mkdtempSync(join(tmpdir(),'pando-dem-window-'));t.after(()=>rmSync(root,{recursive:true}));
+    const source=join(root,'표고 원본.tif');writeFileSync(source,Buffer.from(fixture.sources.valid,'base64'));
+    const row=fixture.cases.find(value=>value.source==='valid'&&value.width===4);
+    const bytes=await readNativeDemWindow({source,width:row.width,height:row.height,box:row.box,strict:false});
+    const expected=Buffer.from(row.expected,'base64');assert.equal(bytes.length,expected.length);
+    for(let at=0;at<bytes.length;at+=4)assert.ok(Math.abs(bytes.readFloatLE(at)-expected.readFloatLE(at))<1e-5);
+    const reader=await createNativeDemWindowReader({source,width:row.width,height:row.height,strict:false});
+    try{for(let i=0;i<2;i++)assert.deepEqual(await reader.read(row.box),bytes);}finally{await reader.close();}
+    await assert.rejects(reader.read(row.box),/closed/i);
+    const strictBytes=await readNativeDemWindow({source:'tests/fixtures/terrain-dem-etopo-sparse.tif',width:43200,height:21600,box:[0,0,2,2]});
+    assert.deepEqual(Array.from({length:4},(_,index)=>strictBytes.readFloatLE(index*4)),[100,-20,350,25]);
+    await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box}),/EPSG|ETOPO/i);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(readNativeDemWindow({source,width:row.width,height:row.height,box:row.box},{signal:controller.signal}),{name:'AbortError'});
+  });
+
+test('native ETOPO inspection reports source metadata and rejects incompatible grids',
+  {skip:!process.env.PANDO_TERRAIN_DEM_RASTER_DIRECTORY},async t=>{
+    const root=mkdtempSync(join(tmpdir(),'dem-inspect-'));t.after(()=>rmSync(root,{recursive:true}));
+    const source=join(root,'synthetic.tif');writeFileSync(source,Buffer.from(fixture.sources.valid,'base64'));
+    assert.deepEqual(await inspectNativeDemSource({source,strict:false}),{width:8,height:4,nodata:-32768,dtype:'int16'});
+    assert.deepEqual(await inspectNativeDemSource({source:'tests/fixtures/terrain-dem-etopo-sparse.tif'}),
+      {width:43200,height:21600,nodata:-32768,dtype:'int16'});
+    await assert.rejects(inspectNativeDemSource({source}),/EPSG|ETOPO/i);
+    await assert.rejects(inspectNativeDemSource({source,strict:'yes'}),/explicit/i);
+    const controller=new AbortController();controller.abort();
+    await assert.rejects(inspectNativeDemSource({source},{signal:controller.signal}),{name:'AbortError'});
+  });
 });
