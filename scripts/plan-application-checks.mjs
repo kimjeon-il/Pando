@@ -1,6 +1,7 @@
 import {buildFrontendIndex,emitFrontendModule,frontendGeneratedOwners} from './lib/frontend-layout.mjs';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { posix, resolve } from 'node:path';
+import { createCheckImpactIndex } from './lib/check-impact.mjs';
 import { fileURLToPath } from 'node:url';
 import { parseJavaScript, walkJavaScript } from './lib/source-analysis.mjs';
 import { runtimeDependencies, dynamicExpressions } from './lib/product-assets.mjs';
@@ -205,7 +206,15 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (file === 'assets/js/build-meta.js') return [...found];
     return [...found];
   }
-  return { root: resolve(root), catalog, files, tests, owners, frontendIndex, exists, read, dependencies, unitRequirements };
+  let cachedImpact;
+  const impactIndex = () => cachedImpact ||= createCheckImpactIndex({
+    roots: [...tests, ...catalog.groups.flatMap(group => [
+      ...(group.argv || []).filter(value => /^(?:scripts|tools|apps|tests)\\/.*\\.[cm]?js$/.test(value)),
+      ...files.filter(file => matches(file, group.inputs || [])),
+    ]), ...(catalog.bindings || []).flatMap(binding => files.filter(file => matches(file, binding.inputs || [])))],
+    dependencies,
+  });
+  return { root: resolve(root), catalog, files, tests, owners, frontendIndex, exists, read, dependencies, unitRequirements, impactIndex };
 }
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
@@ -238,33 +247,17 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
     return [...argvFiles, ...(check.requires || []).flatMap(id => implementationInputs(entry(id), seen))];
   }
   const inputsFor = group => [...expand(group.inputs || []), ...implementationInputs(group)];
-  const parents = new Map(), visited = new Set();
-  const queue = [...repo.tests,
-    ...repo.catalog.groups.flatMap(inputsFor),
-    ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || []))]
-;
-  for (let at = 0; at < queue.length; at++) {
-    const file = queue[at];
-    if (visited.has(file)) continue;
-    visited.add(file);
-    for (const dependency of repo.dependencies(file)) {
-      if (!parents.has(dependency)) parents.set(dependency, new Set());
-      parents.get(dependency).add(file);
-      queue.push(dependency);
-    }
-  }
-  const affectedBy = new Map();
-  for (const change of changed) {
-    const consumers = [change], seen = new Set();
-    for (let dir = posix.dirname(change); dir !== '.'; dir = posix.dirname(dir)) consumers.push(dir);
-    for (let at = 0; at < consumers.length; at++) {
-      const file = consumers[at]; if (seen.has(file)) continue; seen.add(file);
-      if (!affectedBy.has(file)) affectedBy.set(file, []);
-      affectedBy.get(file).push(change);
-      consumers.push(...(parents.get(file) || []));
-    }
-  }
-  const affected = file => affectedBy.get(file) || [];
+  const impact = repo.impactIndex?.() || createCheckImpactIndex({
+    roots: [...repo.tests, ...repo.catalog.groups.flatMap(inputsFor),
+      ...(repo.catalog.bindings || []).flatMap(binding => expand(binding.inputs || []))],
+    dependencies: file => repo.dependencies(file),
+  });
+  const affectedBy = impact.affectedBy(changed);
+  const affected = file => [...(affectedBy.get(file) || [])];
+  // Exact consumers take precedence over broad catalog source globs.
+  const directConsumers = new Map(changed.map(file => [file, new Set()]));
+  for (const [testFile, owner] of repo.owners) for (const file of affected(testFile))
+    directConsumers.get(file)?.add(owner.id);
   const infrastructure = changed.some(file => matches(file, repo.catalog.infrastructure || []));
   const matchedProduct = new Set();
   const externalChecks = (repo.catalog.externalChecks || []).filter(check => changed.some(file => matches(file, check.inputs)));
@@ -272,9 +265,12 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   for (const group of repo.catalog.groups) {
     const members = [...repo.owners].filter(([,owner]) => owner.id === group.id).map(([file]) => file);
     const inputs = inputsFor(group);
-    const groupReasons = [...new Set(inputs.flatMap(file => affected(file)))];
-    // Deleted paths still match the input policy and select surviving consumers.
-    for (const file of changed) if (matches(file, group.inputs)) groupReasons.push(file);
+    const command = group.kind === 'command';
+    const groupReasons = [...new Set([
+      ...(command ? inputs.flatMap(file => affected(file)) : []),
+      ...changed.filter(file => matches(file, group.inputs) &&
+        (command || !/\\.[cm]?js$/.test(file) || !directConsumers.get(file)?.has(group.id))),
+    ])];
     if (requestedGroups.length && !requestedGroups.includes(group.id)) continue;
     if (group.mode === 'manual' && !requestedGroups.includes(group.id)) continue;
     if (group.kind === 'command') {
@@ -317,13 +313,8 @@ export function planApplicationChecks({ changedFiles = [], repository, groups: r
   Object.values(unitTestPrerequisites).flat().forEach(id => prerequisites.add(id));
   const browserSpecs = [...selected].filter(file => file.includes('/browser/')).sort();
   const browserPrerequisites = [...new Set(browserSpecs.flatMap(file => repo.owners.get(file).requires || []))].sort();
-  if (unitTests.some(file => file === 'tests/unit/core-document-world-wasm.test.mjs' ||
-    (parents.get('shared/frontend/js/modules/temporal.js') && isConsumer(file, 'shared/frontend/js/modules/temporal.js'))) && repo.catalog.prerequisites?.core) prerequisites.add('core');
-  function isConsumer(target, dependency, seen = new Set()) {
-    if (target === dependency) return true;
-    if (seen.has(dependency)) return false; seen.add(dependency);
-    return [...(parents.get(dependency) || [])].some(parent => isConsumer(target, parent, seen));
-  }
+  // Native dependencies follow the catalog's test prerequisite patterns,
+  // not a special-cased historic test or timeline module filename.
   return { schema: 'pando-application-check-plan-v1', changedFiles: changed, unitTests, unitTestPrerequisites, browserSpecs, browserPrerequisites,explicitPrerequisites:exactSelection?.prerequisites||[],
     externalChecks, commands: commands.sort(), prerequisites: [...prerequisites].sort(), reasons,
     manualTests: [...repo.owners].filter(([, group]) => group.mode === 'manual').map(([file]) => file).sort(),
