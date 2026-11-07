@@ -1,3 +1,4 @@
+import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
 import '../helpers/spherical-core.mjs';
 const verifiedNodeCoreUrl = new URL('../../tools/load-spherical-core.mjs', import.meta.url).href;
 import assert from 'node:assert/strict';
@@ -11,7 +12,7 @@ import { MAX_BOUNDARY_EDGE_DEGREES } from "../../shared/frontend/js/modules/geog
 import { sharedCalculationCore } from "../../shared/frontend/js/modules/temporal.js";
 
 const rectangle = (id, west, south, east, north, root = id) => {
-  const geometry = { type: 'Polygon', coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] };
+  const geometry = rectanglePolygon(west, south, east, north);
   return { type: 'Feature', id, properties: {}, geometry, boundaryRootId: root,
     boundaryGeometryRevision: geometryRevisionKey(geometry) };
 };

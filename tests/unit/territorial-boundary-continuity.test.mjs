@@ -1,3 +1,4 @@
+import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
 import '../helpers/spherical-core.mjs';
 import { createMapVisualFrame } from "../../shared/frontend/js/modules/map-visual-frame.js";
 import assert from 'node:assert/strict';
@@ -10,8 +11,7 @@ import { normalizeLayerPresentation, layerStyle } from "../../shared/frontend/js
 import { buildTerritorialInternalBoundarySegments } from "../../shared/frontend/js/modules/boundary-topology.js";
 import { testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
 
-const rectangle = (west, south, east, north) => ({ type: 'Polygon',
-  coordinates: [[[west, south], [east, south], [east, north], [west, north], [west, south]]] });
+const rectangle = rectanglePolygon;
 // General hierarchy boundaries have the shared country boundary owner. This
 // asynchronous overlay owner prepares independent regional boundaries.
 const features = (east = 2) => [

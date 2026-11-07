@@ -1,3 +1,4 @@
+import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
 import '../helpers/spherical-core.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -11,9 +12,7 @@ import { excludeAncestorHighlightBoundary } from "../../shared/frontend/js/modul
 const rectangle = (id, west, south, east, north, rootId = id) => ({
   type: 'Feature', id, boundaryRootId: rootId,
   properties: { entityKind: 'general', parentId: id === rootId ? '' : rootId },
-  geometry: { type: 'Polygon', coordinates: [[
-    [west, south], [east, south], [east, north], [west, north], [west, south],
-  ]] },
+  geometry: rectanglePolygon(west, south, east, north),
 });
 const length = segments => segments.reduce((sum, segment) =>
   sum + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);

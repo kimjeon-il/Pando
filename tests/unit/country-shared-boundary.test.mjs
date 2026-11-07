@@ -1,3 +1,4 @@
+import { rectanglePolygon } from '../helpers/gis-polygon-fixture.mjs';
 import '../helpers/spherical-core.mjs';
 import { resolveMapStrokeStyle } from "../../shared/frontend/js/modules/map-interaction-style.js";
 import test from 'node:test';
@@ -12,9 +13,7 @@ const displayLength = segments => segments.reduce((sum, segment) => sum
   + Math.hypot(segment.end[0] - segment.start[0], segment.end[1] - segment.start[1]), 0);
 
 const rectangle = (id, west, south, east, north) => ({
-  type: 'Feature', id, properties: {}, geometry: { type: 'Polygon', coordinates: [[
-    [west, south], [east, south], [east, north], [west, north], [west, south],
-  ]] },
+  type: 'Feature', id, properties: {}, geometry: rectanglePolygon(west, south, east, north),
 });
 
 test('one shared packet owns parent and child outlines with the same coast policy and distinct line shapes', () => {
