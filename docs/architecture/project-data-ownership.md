@@ -97,10 +97,9 @@ P4 관련 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 - `projectResourceOverlay`는 원본의 날짜별 활성 여부를 데이터 소유자의
   판정 함수로 전달받고, 프로젝트/라이브러리 정체성과 변경 불가능한 원본을 유지한다.
 
-**자료 한계:** 현행 지명 타일 v3의 `nameTimeline`은 명칭 변화 자료이며
-도시의 모든 역사적 존속 구간을 뜻하지 않는다. 명시적으로 검증되지 않은
-도시 생성·소멸 날짜는 임의로 만들지 않는다. 완전한 존속기간 조회는 별도
-역사 자료와 타일 포맷에 유효 구간이 수용된 뒤 적용할 수 있다.
+**외부 라이브러리 분리:** `assets/data/places/urban-lifetimes-v1.json`에는 검토된 지명 58건의 도시 라벨 유효 시기(55건은 일부 기간 확인, 3건 미확정)를 출처와 원래 연도·일자 정밀도 그대로 보존한다. `placeRuntime`은 표시용 타일·선택 카탈로그에서 유효한 도시 라벨만 채택하지만, 원본 명칭·검색 자료는 제거하지 않는다. 27건의 잠정 기록 등은 실제 취락 존속이나 법률상 도시 자격을 확정한 증거가 아니며, 미확인 기간은 추정하지 않는다. 정책 JSON은 `assets/data/builtin-world/display-policy-v1.json`으로 이전했으며 두 자료는 `config/library-data.json`의 외부 저장소 커밋으로 고정한다.
+
+**자료 한계:** `nameTimeline`은 명칭 변화 자료이며 실제 도시의 물리적 존속기간이 아니다. 새 유효 시기 파일은 별도의 도시 라벨 편집 규칙이다. 완전한 도시 존속기간이나 다중 존속 에피소드까지 검증 완료한 것은 아니다.
 
 회귀검사: `tests/unit/project-resource-overlay.test.mjs`,
 `tests/unit/place-runtime.test.mjs`,
