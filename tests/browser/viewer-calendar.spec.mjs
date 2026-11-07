@@ -1,7 +1,4 @@
 import { test as featureTest } from '@playwright/test';
-featureTest.use({launchOptions:{args:[
-  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
-]}});
 import * as __suiteDependency0 from "@playwright/test";
 import * as __suiteDependency1 from "../fixtures/viewer-project-package.mjs";
 import * as __suiteDependency2 from "../../shared/frontend/js/modules/timeline-controls.js";
@@ -11,6 +8,10 @@ import * as __suiteDependency5 from "../fixtures/viewer-project-package.mjs";
 import * as __suiteDependency6 from "./helpers/viewer-acceptance.mjs";
 import * as __suiteDependency7 from "@playwright/test";
 import * as __suiteDependency8 from "@playwright/test";
+featureTest.use({launchOptions:{args:[
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
+]}});
+
 
 // Preserved Viewer feature contract: viewer-calendar.spec.mjs
 featureTest.describe("viewer-calendar", () => {
