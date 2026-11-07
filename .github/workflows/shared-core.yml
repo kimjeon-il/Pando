@@ -85,7 +85,7 @@ on:
       scope:
         description: Focused shared calculation verification
         type: choice
-        options: [all, p6-polygon, p6-calculations, geometry, temporal]
+        options: [all, p6-polygon, p6-calculations, geometry, temporal, temporal-source, temporal-candidate, temporal-transport, temporal-parity]
         default: all
 
 permissions:
@@ -146,7 +146,7 @@ jobs:
         if: (success() || failure()) && steps.compile.outcome == 'success'
         run: ctest --test-dir build-native/p6-core -R '^reference_image_core_tests$' --output-on-failure
   contracts:
-    if: github.event_name != 'workflow_dispatch' || (inputs.scope != 'p6-polygon' && inputs.scope != 'p6-calculations' && inputs.scope != 'geometry' && inputs.scope != 'temporal')
+    if: github.event_name != 'workflow_dispatch' || inputs.scope == 'all'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -343,3 +343,113 @@ jobs:
             build-native/p1/pando-wasm/shared/wasm/pandoeditor-core.wasm
           if-no-files-found: error
 
+
+
+  native-source:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-source'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure only the native Core and tests
+        run: cmake -S shared -B build-native/p5-2 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - name: Compile immutable source and existing document admission tests
+        run: cmake --build build-native/p5-2 --target temporal_source_tests source_admission_tests document_session_tests --parallel 2
+      - name: Verify bounded registry and existing Core state contracts
+        run: ctest --test-dir build-native/p5-2 --output-on-failure -R '^(temporal_source_tests|source_admission_tests|document_session_tests)$'
+
+
+  native-candidate:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-candidate'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure existing native Core
+        run: cmake -S shared -B build-native/p5-3 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - name: Compile candidate, adoption, source and existing Core contracts
+        run: cmake --build build-native/p5-3 --target temporal_adopt_tests temporal_candidate_tests temporal_source_tests document_session_tests --parallel 2
+      - name: Verify P5-4 adoption and rollback
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_adopt_tests
+      - name: Verify P5-3 prepared candidate
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_candidate_tests
+      - name: Verify P5-2 source cache
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R temporal_source_tests
+      - name: Verify existing document session
+        run: ctest --test-dir build-native/p5-3 --output-on-failure -R document_session_tests
+
+
+  temporal-transport:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-transport'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      EMCC_CORES: '1'
+      BINARYEN_CORES: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Ordered Worker transport, late acknowledgement and existing client contracts
+        run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs tests/unit/core-document-client.test.mjs tests/unit/core-document-runtime.test.mjs tests/unit/core-worker-ownership.test.mjs
+      - name: Prepare exact pinned builtin-world comparison data
+        uses: ./.github/actions/library-data
+      - name: Checkout exact pinned Emscripten SDK
+        uses: actions/checkout@v4
+        with:
+          repository: emscripten-core/emsdk
+          ref: db04e88298d9916fc51fcd3743045ca3eb695127
+          path: build-native/emsdk
+          persist-credentials: false
+      - name: Build exact same C++ Core as WASM ABI
+        shell: bash
+        run: |
+          build-native/emsdk/emsdk install 6.0.3
+          build-native/emsdk/emsdk activate 6.0.3
+          source build-native/emsdk/emsdk_env.sh
+          emcmake cmake -S shared -B build-native/p5-5 -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/p5-5 --target pandoeditor_wasm --parallel 1
+      - name: Actual native-backed WASM source, candidate, discard, rollback and buffer isolation
+        env:
+          PANDOEDITOR_WASM_MODULE: build-native/p5-5/wasm/pandoeditor-core.js
+        run: node --test shared/tests/temporal-transport-p5-5.test.mjs
+
+
+  equivalence:
+    if: github.event_name == 'workflow_dispatch' && inputs.scope == 'temporal-parity'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compile only the native Core and parity probe
+        shell: bash
+        run: |
+          cmake -S shared -B build-native/core -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build-native/core --target pandoeditor_core --parallel 2
+          c++ -std=c++17 -O2 -Ishared/core/include tests/native/temporal-parity-probe.cpp build-native/core/core/libpandoeditor_core.a -lz -o build-native/core/temporal-parity-probe
+      - name: Verify committed JS and WASM against this exact C++ source
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Identical fixed inputs, actual native and WASM results, failure and rollback
+        run: node --test tests/native/temporal-parity-p5-7.test.mjs
+      - name: Focused Worker cancellation and late acknowledgement contracts
+        run: node --test tests/unit/core-temporal-transport-p5-5.test.mjs
+      - name: Retain bounded evidence even when a gate fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-temporal-p5-7-${{ github.sha }}
+          path: test-results/temporal-p5-7/
+          if-no-files-found: warn
+          retention-days: 14
