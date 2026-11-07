@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {existsSync, readFileSync} from 'node:fs';
 import { nextEventTurn } from '../helpers/async-test-ports.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __merge_dep0 from "node:test";
@@ -296,4 +299,14 @@ test('an asset-free platform suppresses automatic place preparation', async () =
   const labels = createTerritorialLabels({ capabilities: {builtinPlaces:false} });
   assert.equal(await labels.preparePlaces({ force: true }), false);
 });
+});
+
+// Original feature contract: viewer-adjacent-prefetch.test.mjs
+contractSuite('retired adjacent-month prefetch', () => {
+  test('the single-project Viewer has no obsolete neighbouring-month prefetch owner', () => {
+    const retired = new URL('../../apps/viewer/js/modules/viewer-adjacent-prefetch.js', import.meta.url);
+    const composition = new URL('../../apps/viewer/js/modules/viewer-composition.js', import.meta.url);
+    assert.equal(existsSync(retired), false);
+    assert.doesNotMatch(readFileSync(composition, 'utf8'), /viewer-adjacent-prefetch|createViewerAdjacentPrefetch|adjacentViewerYears/);
+  });
 });
