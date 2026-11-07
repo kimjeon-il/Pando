@@ -1,14 +1,25 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import {readFileSync} from 'node:fs';
-import {createHash,webcrypto} from 'node:crypto';
-import {
-  inspectReviewEvidence,reviewObjectMapRef,reviewValueText,reviewEvidenceUrl,
-  reviewChangeKey,correctionRequest,reviewEvidenceForObject,
-} from '../../shared/frontend/js/modules/review-inspection.js';
-import {readReviewEvidenceFiles} from '../../shared/frontend/js/modules/review-evidence-files.js';
-import {appendReviewEvent} from '../../shared/frontend/js/modules/review-change-records.js';
-import {buildReviewPreviewPaths} from '../../apps/viewer/js/modules/viewer-review-panel.js';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:assert/strict";
+import * as __dep1 from "node:test";
+import * as __dep2 from "node:fs";
+import * as __dep3 from "node:crypto";
+import * as __dep4 from "../../shared/frontend/js/modules/review-inspection.js";
+import * as __dep5 from "../../shared/frontend/js/modules/review-evidence-files.js";
+import * as __dep6 from "../../shared/frontend/js/modules/review-change-records.js";
+import * as __dep7 from "../../apps/viewer/js/modules/viewer-review-panel.js";
+import * as __dep8 from "../../scripts/lib/product-html.mjs";
+import * as __dep9 from "../../scripts/lib/reviewer-ui-contracts.mjs";
+
+// Original feature contract: review-inspection.test.mjs
+contractSuite("review-inspection", () => {
+const assert = __dep0.default;
+const test = __dep1.default;
+const { readFileSync } = __dep2;
+const { createHash, webcrypto } = __dep3;
+const { inspectReviewEvidence, reviewObjectMapRef, reviewValueText, reviewEvidenceUrl, reviewChangeKey, correctionRequest, reviewEvidenceForObject } = __dep4;
+const { readReviewEvidenceFiles } = __dep5;
+const { appendReviewEvent } = __dep6;
+const { buildReviewPreviewPaths } = __dep7;
 
 const source=()=>JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json',import.meta.url),'utf8'));
 const sha=value=>createHash('sha256').update(value).digest('hex');
@@ -184,4 +195,34 @@ test('E4 review owner uses only declared template controls, including correction
   assert.ok(refs.length>20,'E4 DOM integration check must cover the real panel');
   for(const id of new Set(refs))assert.ok(html.includes('id="'+id+'"'),'missing review control: '+id);
   assert.match(owner,/get\('reviewIssueKind'\)/);
+});
+});
+
+// Original feature contract: reviewer-ui-contracts.test.mjs
+contractSuite("reviewer-ui-contracts", () => {
+const assert = __dep0.default;
+const test = __dep1.default;
+const { renderProductHtml } = __dep8;
+const { readFileSync } = __dep2;
+const { validateReviewUi } = __dep9;
+
+const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
+const source=renderProductHtml(read).web;
+for(const kind of ['architecture','components','information','layering']) {
+ test('R1 '+kind+' targets the current Viewer/Windows reviewer',()=>{
+   assert.deepEqual(validateReviewUi(kind),[]);
+ });
+}
+test('R1 fails closed when the review panel or controls disappear',()=>{
+  assert.ok(validateReviewUi('information',{html:source.replace('id="reviewDetail"','id="retiredReviewDetail"')})
+    .some(reason=>reason.includes('reviewDetail')));
+  assert.ok(validateReviewUi('components',{html:source.replace('aria-controls="reviewPanel"','aria-controls="retiredEditor"')})
+    .some(reason=>reason.includes('reviewPanelBtn')));
+});
+test('R1 explicitly rejects a returned graphical-editor entrypoint',()=>{
+  const mutated=source.replace('id="viewerCanvas"','id="viewerCanvas" data-test="x"')+
+    '<button id="modeDraftInsertBtn">edit</button>';
+  assert.ok(validateReviewUi('architecture',{html:mutated})
+    .some(reason=>reason.includes('Retired editor control')));
+});
 });
