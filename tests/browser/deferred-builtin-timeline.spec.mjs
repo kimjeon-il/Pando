@@ -37,6 +37,7 @@ test('builtin date changes retain the camera across controls and automatic month
   test.setTimeout(180000);
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await observeBuiltinCamera(page);
+  const id=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
   for (const viewport of [{ width: 1280, height: 800 }, { width: 640, height: 480 }]) {
     await page.setViewportSize(viewport);
     const camera = await moveCamera(page);
@@ -44,6 +45,7 @@ test('builtin date changes retain the camera across controls and automatic month
     for (const [id, month] of [['timelinePreviousYear', '2025-12'], ['timelinePreviousDecade', '2015-12'], ['timelineNextDecade', '2025-12'], ['timelineNextYear', '2026-10']]) {
       await page.locator('#' + id).click(); await builtinMonthReady(page, month);
       expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
+      expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(id);
       expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().projectSetup.initialMonth)).toBe('2026-10');
     }
     await page.locator('#timelineDateButton').click(); await page.locator('#timelineViewUnit').selectOption('month'); await page.locator('#timelineYearInput').fill('1953');
@@ -59,6 +61,7 @@ test('builtin date changes retain the camera across controls and automatic month
   await page.clock.setFixedTime(new Date(2026, 10, 1, 12));
   await page.evaluate(() => window.dispatchEvent(new window.Event('focus'))); await builtinMonthReady(page, '2026-11');
   expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
+  expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(id);
   expect(errors).toEqual([]);
 });
 
