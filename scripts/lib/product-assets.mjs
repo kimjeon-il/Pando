@@ -9,7 +9,7 @@ import {builtinCountryAssets} from '../../shared/frontend/js/modules/builtin-cou
 export const runtimeDependencies = Object.freeze({
   'assets/js/modules/map-display-client.js':['assets/js/workers/map-display-worker.js'],
   'assets/js/modules/gpu-scene.js':['assets/js/workers/gpu-mesh-worker.js'],
-  'assets/js/modules/territorial-labels.js':['assets/data/places/manifest.json','assets/js/workers/place-worker.js'],
+  'assets/js/modules/territorial-labels.js':['assets/data/places/manifest.json','assets/data/places/urban-lifetimes-v1.json','assets/js/workers/place-worker.js'],
   'assets/js/modules/country-index.js':['assets/js/workers/label-anchor-worker.js'],
   'assets/js/modules/core-document-client.js': ['assets/js/workers/core-viewer-session-worker.js'],
   'assets/js/modules/core-wasm-loader.js': ['assets/wasm/pandoeditor-core.js', 'assets/wasm/pandoeditor-core.wasm', 'assets/wasm/pandoeditor-core.manifest.json'],
