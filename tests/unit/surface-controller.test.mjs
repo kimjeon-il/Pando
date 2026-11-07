@@ -1,6 +1,20 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createSurfaceController } from '../../shared/frontend/js/modules/surface-controller.js';
+import { describe as contractSuite } from 'node:test';
+import * as __unit_dep0 from "node:assert/strict";
+import * as __unit_dep1 from "node:test";
+import * as __unit_dep2 from "../../shared/frontend/js/modules/surface-controller.js";
+import * as __unit_dep3 from "node:fs";
+import * as __unit_dep4 from "../../scripts/lib/product-html.mjs";
+import * as __unit_dep5 from "../../shared/frontend/js/modules/resource-capabilities.js";
+import * as __unit_dep6 from "../../shared/frontend/js/modules/object-query.js";
+import * as __unit_dep7 from "../../shared/frontend/js/modules/object-selection-controller.js";
+import * as __unit_dep8 from "../../shared/frontend/js/modules/place-contract.js";
+import * as __unit_dep9 from "../../shared/frontend/js/modules/workspace-layout.js";
+
+// Original feature contract: surface-controller.test.mjs
+contractSuite("surface-controller", () => {
+const assert = __unit_dep0.default;
+const test = __unit_dep1.default;
+const { createSurfaceController } = __unit_dep2;
 
 function element(id = '') {
   const attributes = new Map(), classes = new Set();
@@ -71,4 +85,83 @@ test('the active search panel survives desktop, portrait and landscape transitio
     assert.equal(elements.objectSearchBtn.getAttribute('aria-expanded'), 'true', next);
     assert.equal(controller.activeMobileSheet, ['mobile','phone-landscape'].includes(next) ? 'search' : null, next);
   }
+});
+});
+
+// Original feature contract: viewing-ui-contract.test.mjs
+contractSuite("viewing-ui-contract", () => {
+const { test } = __unit_dep1;
+const assert = __unit_dep0.default;
+const { readFileSync } = __unit_dep3;
+const { renderProductHtml } = __unit_dep4;
+const { resourceCapabilities } = __unit_dep5;
+
+const read=path=>readFileSync(new URL(`../../${path}`,import.meta.url),'utf8').replaceAll('\r\n','\n');
+test('read-only Web Viewer owns current viewing controls and platform capabilities',()=>{
+ const {web}=renderProductHtml(read);
+ for(const id of ['mapDisplaySurface','objectSearchSurface','preferencesModal','preferencesApplyBtn','timelineControls'])
+  assert.match(web,new RegExp(`id="${id}"`));
+ assert.match(web,/data-map-display-group="terrain"/);
+ assert.match(web,/data-map-background="graticule"/);
+ assert.doesNotMatch(web,/src=["'][^"']*apps\/editor\//,'retired Windows stage must not enter Web Viewer');
+ assert.doesNotMatch(web,/id=["']editorSurface["']/,'retired editor DOM must remain absent');
+ assert.equal(resourceCapabilities('viewer',null,{projection:'flat'}).terrain,false);
+ assert.equal(resourceCapabilities('viewer',null,{projection:'globe'}).terrain,true);
+});
+});
+
+// Original feature contract: viewing-visibility.test.mjs
+contractSuite("viewing-visibility", () => {
+const test = __unit_dep1.default;
+const assert = __unit_dep0.default;
+const { createObjectQuery } = __unit_dep6;
+const { normalizeObjectRef } = __unit_dep7;
+const { normalizePlace } = __unit_dep8;
+test('one category visibility controls searchable objects regardless of their source',()=>{
+ const builtin=normalizePlace({source:'test',sourceId:'one',name:'Place',coordinates:[0,0]});
+ const labels=[builtin,{id:'authored-place',name:'Authored place',validFrom:null,validTo:null}];
+ const state={timelineCursor:'2026-10',genericFeatures:[{id:'A',properties:{validFrom:null,validTo:null}}],
+   layerVisibility:{genericFeatures:false,labels:true,rivers:true},itemVisibility:{hydro:{}},physicalSettings:{}};
+ const query=createObjectQuery({selectionServices:{normalizeObjectRef},projectState:{state},
+   layerPresentation:{isLayerItemVisible:()=>true},labelPresentation:{labelById:id=>labels.find(label=>label.id===id)||null},
+   hydroPresentation:{hydroEditById:()=>null},hydroModel:{hydroFeatureById:()=>({id:'river-a'})}});
+ assert.equal(query.objectRefVisible({domain:'generic',type:'feature',id:'A'}),false);
+ state.layerVisibility.genericFeatures=true;
+ assert.equal(query.objectRefVisible({domain:'generic',type:'feature',id:'A'}),true);
+ assert.equal(query.objectRefVisible({domain:'hydro',type:'river',id:'river-a'}),true);
+ state.layerVisibility.rivers=false;
+ assert.equal(query.objectRefVisible({domain:'hydro',type:'river',id:'river-a'}),false);
+ state.layerVisibility.rivers=true;
+ state.resourceCapabilities={builtinHydro:false};
+ assert.equal(query.objectRefVisible({domain:'hydro',type:'river',id:'river-a'}),false);
+ assert.equal(query.objectRefVisible({domain:'label',type:'label',id:'builtin:place:test:one'}),true);
+ state.resourceCapabilities.builtinPlaces=false;
+ assert.equal(query.objectRefVisible({domain:'label',type:'label',id:'builtin:place:test:one'}),false);
+ assert.equal(query.objectRefVisible({domain:'label',type:'label',id:'authored-place'}),true);
+});
+});
+
+// Original feature contract: workspace-layout.test.mjs
+contractSuite("workspace-layout", () => {
+const assert = __unit_dep0.default;
+const test = __unit_dep1.default;
+const { createWorkspaceLayoutDetector } = __unit_dep9;
+
+test('phone landscape requires coarse input, landscape and layout height below 600', () => {
+  const detect = createWorkspaceLayoutDetector();
+  assert.equal(detect({ width: 844, height: 390, coarse: true }), 'phone-landscape');
+  assert.equal(detect({ width: 844, height: 390, coarse: false }), 'compact');
+  assert.equal(detect({ width: 1024, height: 768, coarse: true }), 'compact');
+  assert.equal(detect({ width: 390, height: 844, coarse: true }), 'mobile');
+  assert.equal(detect({ width: 1440, height: 900, coarse: false }), 'wide');
+});
+
+test('keyboard height changes do not turn portrait or tablet editing into phone landscape', () => {
+  const detect = createWorkspaceLayoutDetector();
+  assert.equal(detect({ width: 390, height: 844, coarse: true }), 'mobile');
+  assert.equal(detect({ width: 390, height: 300, coarse: true, editingText: true }), 'mobile');
+  assert.equal(detect({ width: 844, height: 390, coarse: true, editingText: true }), 'phone-landscape');
+  assert.equal(detect({ width: 1024, height: 768, coarse: true }), 'compact');
+  assert.equal(detect({ width: 1024, height: 400, coarse: true, editingText: true }), 'compact');
+});
 });
