@@ -193,6 +193,26 @@ test('ready DEM tiles reuse a camera-stable raster substrate without repainting 
     'one detailed tile cannot certify the complete DEM target');
 });
 
+test('Canvas reuses terrain substrate across generations only for the same certified physical source',async()=>{
+  const h=canvasTerrainRuntime();await settle();
+  const first={...h.land,sourceKey:'physical-land:sha256:a',geometryRevision:'land-a'};
+  const view={scenePolygons:[first],terrainDpr:1,renderProjection:{scale:100,translate:[500,300]},
+    physicalSettings:{terrainVisible:true,terrainStyle:'physical'}};
+  h.render(view);
+  const firstPaints=h.substrates.length;
+  assert.ok(firstPaints>0);
+  h.send({type:'reset-generation',projectGeneration:2});
+  const same={...h.land,geometry:structuredClone(h.land.geometry),
+    sourceKey:first.sourceKey,geometryRevision:first.geometryRevision};
+  h.render({...view,projectGeneration:2,scenePolygons:[same]});
+  assert.equal(h.substrates.length,firstPaints,
+    'fresh copies of the same certified land must not force a full raster redraw');
+  h.send({type:'reset-generation',projectGeneration:3});
+  const updated={...same,sourceKey:'physical-land:sha256:b',geometryRevision:'land-b'};
+  h.render({...view,projectGeneration:3,scenePolygons:[updated]});
+  assert.ok(h.substrates.length>firstPaints,'changed physical provenance must invalidate cached pixels');
+});
+
 test('Canvas prepares raster tiles without tessellating an uncertified zero-land frame',async()=>{
   const h=canvasTerrainRuntime();await settle();
   const noLand={scenePolygons:[],surfacePresentation:{targetQuality:'canonical',quality:'pending'},
