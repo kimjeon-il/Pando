@@ -9,6 +9,8 @@ import {buildBuiltinWorldNamePublication} from '../../tools/build-builtin-world.
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {temporalContains,temporalMonthEnd} from '../../shared/frontend/js/modules/temporal.js';
+import {resolveWorld} from '../../shared/frontend/js/modules/timeline-resolver.js';
+import {createGeometryVersionStore} from '../../shared/frontend/js/modules/geometry-version-store.js';
 
 let built;
 function fixture(){
@@ -27,7 +29,7 @@ test('country catalog has no global project or observation month and selects onl
  for(const month of ['2026-10','2026-11','2027-01']){
   const selected=selectBuiltinCountries(index,month);
   assert.ok(selected.some(e=>e.entityId==='RUS'));
-  const project=assembleBuiltinWorld(index,selected.map(row=>countries.find(c=>c.entityId===row.entityId)),month);
+  const project=assembleBuiltinWorld(index,countries,month);
   assert.ok(project.territorialEntities.some(e=>e.id==='RUS'));
   assert.equal(project.projectSetup.initialMonth,month);
  }
@@ -59,11 +61,16 @@ test('explicit name-history gaps cannot inherit the latest country name or its d
  const view={schemaVersion:1,id:'world:gap',selections:input.currentSnapshot.entityRefs.map(entityId=>({entityId,
   geometryVersionId:input.entities.find(e=>e.entityId===entityId).geometryVersions[0].versionId}))};
  const {index,countries}=compileBuiltinWorldCatalog({...input,view});
- const project=assembleBuiltinWorld(index,selectBuiltinCountries(index,'2000-06').map(row=>countries.find(c=>c.entityId===row.entityId)),'2000-06');
+ const project=assembleBuiltinWorld(index,countries,'2000-06');
  const identity=project.territorialEntities.find(row=>row.id==='RUS');
  assert.equal(identity.properties.name,'');assert.equal(identity.properties.metadata.nameDetails,undefined);
  assert.equal(identity.properties.metadata.nameSource.baseName,'');
- assert.equal(project.timelineRecords.propertyBindings.some(row=>row.objectRef.id==='RUS'),false);
+ assert.equal(project.timelineRecords.propertyBindings.filter(row=>row.objectRef.id==='RUS').length,2,
+  'all name editions survive a cursor in their gap');
+ const archive=createGeometryVersionStore(project.geometries);
+ const nameAt=month=>resolveWorld(project.territorialEntities,project.timelineRecords,archive,month)
+  .byId.get('RUS')?.identity.properties.name;
+ assert.deepEqual(['1999-12','2000-06','2001-06'].map(nameAt),['Old','','New']);
 });
 
 test('name-only publication decodes only the selected country and rejects hidden non-name changes',()=>{
@@ -102,12 +109,11 @@ test('coverage adjustments coalesce adjacent intervals without timeline object r
  assert.ok(result.some(row=>row.entityId==='state:other'));
 });
 
-test('dated builtin world assembles ordinary schema-14 project documents without template mutation',()=>{
+test('complete builtin history assembles ordinary schema-14 projects without template mutation',()=>{
  const {index,countries}=fixture();
  const template=structuredClone(index.template);
  assert.equal(Object.hasOwn(index.template,'projectSetup'),false);
- const at=month=>assembleBuiltinWorld(index,
-  selectBuiltinCountries(index,month).map(row=>countries.find(c=>c.entityId===row.entityId)),month);
+ const at=month=>assembleBuiltinWorld(index,countries,month);
  const historical=at('2014-02'),modern=at('2026-10');
  for(const [project,month] of [[historical,'2014-02'],[modern,'2026-10']]) {
   assert.equal(project.format,'pandolab-project-state');
@@ -123,39 +129,32 @@ test('dated builtin world assembles ordinary schema-14 project documents without
  assert.deepEqual(index.template,template);
  const missing=structuredClone(index);
  missing.template.projectSetup=createBuiltinProjectSetup('2014-02');
- assert.throws(()=>assembleBuiltinWorld(missing,
-  selectBuiltinCountries(index,'2014-02').map(row=>countries.find(c=>c.entityId===row.entityId)),
-  '2014-02'),/Invalid builtin project template/);
+ assert.throws(()=>assembleBuiltinWorld(missing,countries,'2014-02'),/Invalid builtin project template/);
 });
 
-test('P3 selected countries match the independent per-record C++ month-end oracle',()=>{
- const {index,countries}=fixture();
- const source=structuredClone(index);
+test('one immutable project resolves every historical month through the native timeline oracle',()=>{
+ const {index,countries}=fixture(),source=structuredClone(index);
  const months=['-0001-12','0001-01','1914-07','1989-04','2014-02','2015-10',
   '2026-10','2026-11','2027-01','+10000-01'];
+ const project=assembleBuiltinWorld(index,countries,'2014-02');
+ const archive=createGeometryVersionStore(project.geometries);
+ assert.deepEqual(project.territorialEntities.map(row=>row.id),countries.map(row=>row.entityId));
  for(const month of months){
-  const expected=index.entities.filter(entry=>entry.coverage.some(interval=>
-   temporalContains(interval,temporalMonthEnd(month))));
-  const selected=selectBuiltinCountries(index,month);
-  assert.deepEqual(selected,expected,month);
-  const project=assembleBuiltinWorld(index,selected.map(row=>
-   countries.find(country=>country.entityId===row.entityId)),month);
-  assert.deepEqual(project.territorialEntities.map(row=>row.id),
-   expected.map(row=>row.entityId),month);
+  const expected=selectBuiltinCountries(index,month);
+  const world=resolveWorld(project.territorialEntities,project.timelineRecords,archive,month);
+  assert.deepEqual(world.entities.map(row=>row.id).sort(),
+   expected.map(row=>row.entityId).sort(),month);
   for(const country of expected){
-   const compiled=countries.find(row=>row.entityId===country.entityId);
-   const identity=project.territorialEntities.find(row=>row.id===country.entityId);
-   const edition=compiled.sourceBindings.find(row=>
-    temporalContains(row,temporalMonthEnd(month)));
-   assert.equal(identity.properties.sourceGeometryVersion,edition?.sourceVersionId||'',month);
-   for(const field of ['lifetimes','geometryBindings','parentRelations','propertyBindings']){
-    const expectedCount=compiled.timelineRecords[field].filter(row=>
-     temporalContains(row,temporalMonthEnd(month))).length;
-    assert.equal(project.timelineRecords[field].filter(row=>
-     row.objectRef.id===country.entityId).length,expectedCount,month+' '+field);
-   }
+   const sourceCountry=countries.find(row=>row.entityId===country.entityId);
+   const edition=sourceCountry.sourceBindings.find(row=>temporalContains(row,temporalMonthEnd(month)));
+   assert.deepEqual(world.byId.get(country.entityId)?.geometryRef,edition?.geometryRef,month);
   }
  }
- assert.deepEqual(index,source,'source catalog must be immutable across date queries');
+ for(const country of countries){
+  for(const name of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])
+   assert.deepEqual(project.timelineRecords[name].filter(row=>row.objectRef.id===country.entityId),
+     country.timelineRecords[name],country.entityId+' '+name);
+ }
+ assert.deepEqual(index,source,'source catalog must not be mutated');
  assert.throws(()=>selectBuiltinCountries(index,'1914-07-01'),/query month/i);
 });
