@@ -75,11 +75,11 @@ const read=path=>readFileSync(new URL(path,root),'utf8');
 test('file transport fixture ownership stays centralized',()=>{
   const helper=read('tests/helpers/file-transport-fixtures.mjs');
   assert.match(helper,/createBrowserFileAccess/);
-  const consumers=[
-    'tests/unit/file-controller-mode.test.mjs',
-  ];
+  // The file-controller contract now lives in this consolidated suite.
+  // Inspect the real current module rather than a retired test filename.
+  const consumers=[new URL(import.meta.url)];
   for(const path of consumers){
-    const source=read(path);
+    const source=readFileSync(path,'utf8');
     assert.match(source,/file-transport-fixtures\.mjs/,path+' must use the shared file transport fixture');
     assert.doesNotMatch(source,/function\s+(?:simulatedNative|browserFixture|nativeFixture)\b/,path+' recreates a transport fixture');
     assert.doesNotMatch(source,/const\s+input\s*=\s*\(\)\s*=>\s*\(\{listeners:/,path+' recreates browser input listeners');
