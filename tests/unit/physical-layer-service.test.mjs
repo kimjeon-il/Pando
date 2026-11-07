@@ -1,10 +1,25 @@
-import {createPhysicalResources} from "../../shared/frontend/js/modules/physical-resources.js";
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { setImmediate } from 'node:timers';
-import { readFileSync } from 'node:fs';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "../../shared/frontend/js/modules/physical-resources.js";
+import * as __dep1 from "node:assert/strict";
+import * as __dep2 from "node:test";
+import * as __dep3 from "node:timers";
+import * as __dep4 from "node:fs";
+import * as __dep5 from "../../shared/frontend/js/modules/physical-layer-service.js";
+import * as __dep6 from "../../tools/physical-water-catalog.mjs";
+import * as __dep7 from "node:crypto";
+import * as __dep8 from "node:zlib";
+import * as __dep9 from "node:module";
+import * as __dep10 from "../../tools/build-physical-land-mask.mjs";
 
-import { createHydroService, createTerrainService } from "../../shared/frontend/js/modules/physical-layer-service.js";
+// Original feature contract: physical-layer-service.test.mjs
+contractSuite("physical-layer-service", () => {
+const { createPhysicalResources } = __dep0;
+const assert = __dep1.default;
+const test = __dep2.default;
+const { setImmediate } = __dep3;
+const { readFileSync } = __dep4;
+const { createHydroService, createTerrainService } = __dep5;
+
 
 const rasterManifest = JSON.parse(readFileSync(new URL('../../assets/data/terrain-preview/v0.13.3-p2/manifest.json', import.meta.url)));
 
@@ -171,4 +186,233 @@ test('hydro admission joins the replacement renderer generation after its old Wo
  resources.initializeTerrainService();const pending=resources.loadHydroData();
  while(!calls)await new Promise(resolve=>setImmediate(resolve));generation=2;release();
  assert.equal(await pending,true);assert.equal(calls,2);assert.equal(state.physicalLoadState.hydro,'ready');assert.deepEqual(errors,[]);
+});
+});
+
+// Original feature contract: physical-water-catalog.test.mjs
+contractSuite("physical-water-catalog", () => {
+const test = __dep2.default;
+const assert = __dep1.default;
+const { compilePhysicalWaterCatalog } = __dep6;
+const { resolvePhysicalWaterObjects } = __dep0;
+
+const geometry={type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[0,0]]]};
+const source=id=>({schemaVersion:2,entityId:id,entityKind:'lake',lineageId:id.split(':')[1],names:{ko:id},alternateNames:[],
+ lifetime:{validFrom:null,validTo:null},parentEntityId:'',instantiation:{mode:'independent',countryUpdates:{}},metadata:{},sourceInfo:{},
+ geometryVersions:[{versionId:'reviewed',validFrom:'1922-01-01',validTo:'1929-12-31',certainty:'reviewed',geometry}]});
+test('physical source date lookup has one canonical C++ selector and keeps the catalog immutable',()=>{
+ const s=source('waterbody:date');
+ const a={sha256:'land'},asset={sha256:'water'};
+ const catalog=compilePhysicalWaterCatalog([s],[{entityId:s.entityId,versionId:'reviewed',
+  geometryRef:{id:'water:date',version:1},asset,land:a,replaces:[]}]);
+ const before=structuredClone(catalog);
+ assert.deepEqual(resolvePhysicalWaterObjects(catalog,'1921-12'),[]);
+ assert.equal(resolvePhysicalWaterObjects(catalog,'1922-01').length,1);
+ assert.deepEqual(resolvePhysicalWaterObjects(catalog,'1930-01'),[]);
+ assert.deepEqual(catalog,before);
+});
+
+test('physical catalog derives its dates only from independent lake library versions',()=>{
+ const sources=[source('waterbody:a'),source('waterbody:b')],before=structuredClone(sources),land={sha256:'same'};
+ const assignments=sources.map(entity=>({entityId:entity.entityId,versionId:'reviewed',geometryRef:{id:entity.entityId+':reviewed',version:1},asset:{sha256:entity.entityId},land,replaces:[]}));
+ const catalog=compilePhysicalWaterCatalog(sources,assignments);
+ assert.deepEqual(sources,before);assert.equal(catalog.identities.length,2);assert.equal(catalog.timelineRecords.schemaVersion,3);
+ assert.equal(resolvePhysicalWaterObjects(catalog,'1922').length,2);assert.equal(resolvePhysicalWaterObjects(catalog,'1930').length,0);
+ assert.deepEqual(catalog.timelineRecords.lifetimes.map(row=>[row.validFrom,row.validTo]),[[null,null],[null,null]]);
+ assert.throws(()=>compilePhysicalWaterCatalog(sources,assignments.slice(1)),/Missing.*asset/);
+ assert.throws(()=>compilePhysicalWaterCatalog(sources,[...assignments,assignments[0]]),/Duplicate/);
+});
+});
+
+// Original feature contract: physical-water-context-p4-5.test.mjs
+contractSuite("physical-water-context-p4-5", () => {
+const test = __dep2.default;
+const assert = __dep1.default;
+const { createHash } = __dep7;
+const { physicalWaterContextKey, createPhysicalResources } = __dep0;
+
+const ref={domain:'hydroBuiltin',id:'lake:historical'};
+const row=(land='land-v1',water='water-v1',name='Historical Lake')=>({
+  objectRef:ref,geometryRef:{id:'historical-lake-version',version:1},
+  identity:{objectRef:ref,entityKind:'lake',name,layerId:'lakes_base'},
+  assets:{land:{sha256:land},asset:{sha256:water}},
+});
+
+test('P4-5 physical context excludes political time but includes all actual land/water identities',()=>{
+  const first=physicalWaterContextKey([row()]);
+  assert.equal(physicalWaterContextKey([structuredClone(row())]),first);
+  assert.notEqual(physicalWaterContextKey([row('different-land')]),first);
+  assert.notEqual(physicalWaterContextKey([row('land-v1','different-water')]),first);
+  assert.notEqual(physicalWaterContextKey([row('land-v1','water-v1','New label')]),first);
+  assert.equal(physicalWaterContextKey([]),'[]');
+  assert.throws(()=>physicalWaterContextKey([{objectRef:ref,geometryRef:{id:'x',version:1}}]),/identities/);
+});
+
+test('P4-5 unchanged historical lake versions reuse the exact physical result while other country years change',async t=>{
+  const originalFetch=globalThis.fetch;
+  t.after(()=>{globalThis.fetch=originalFetch;});
+  const bytes=new Map(),requests=[];
+  const asset=(name,geometry)=>{
+    const body=Buffer.from(JSON.stringify(geometry));
+    bytes.set(name,body);
+    return {url:'assets/data/'+name,encoding:'identity',
+      sha256:createHash('sha256').update(body).digest('hex'),
+      compressedBytes:body.length,decodedBytes:body.length};
+  };
+  const box=x=>({type:'Polygon',coordinates:[[[x,0],[x+1,0],[x+1,1],[x,0]]]});
+  const modern=asset('modern',{type:'MultiPolygon',coordinates:[]});
+  const historicLand=asset('historic-land',{type:'MultiPolygon',coordinates:[box(0).coordinates]});
+  const lake=asset('historic-lake',box(5));
+  const catalog={identities:[{objectRef:ref,entityKind:'lake',name:'Historical Lake',layerId:'lakes_base'}],
+    geometries:[{geometryRef:{id:'historical-lake-version',version:1},land:historicLand,asset:lake}],
+    timelineRecords:{schemaVersion:3,
+      lifetimes:[{id:'lifetime',objectRef:ref,validFrom:'1920',validTo:'1930'}],
+      parentRelations:[],propertyBindings:[],
+      geometryBindings:[{id:'water',objectRef:ref,geometryRef:{id:'historical-lake-version',version:1},
+        validFrom:'1920',validTo:'1930'}]}};
+  globalThis.fetch=async url=>{
+    const name=new URL(url).pathname.split('/').at(-1);
+    requests.push(name);return new Response(bytes.get(name));
+  };
+  const state={timelineCursor:'2026-10',hydroFeatureCache:new Map(),hydroEdits:[]};
+  const resources=createPhysicalResources({
+    buildMeta:{dataRevision:'p4-5-fixture',physicalLand:modern,physicalWaterObjects:catalog},
+    capabilities:{terrain:false,builtinHydro:false}
+  });
+  resources.connect({
+    projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},
+    domains:{renderingDomain:{invalidateProject:()=>{}}},
+    feedback:{reportOperationError:err=>{throw err;}}
+  });
+  await resources.loadPhysicalLandMask();
+  await resources.preparePhysicalContext('1922-12');
+  state.timelineCursor='1922-12';
+  const first=resources.physicalLand;
+  assert.equal(first.revision,historicLand.sha256);
+  assert.equal(first.water.type,'Polygon');
+  const fetched=requests.length;
+  await resources.preparePhysicalContext('1925-12');
+  state.timelineCursor='1925-12';
+  assert.strictEqual(resources.physicalLand,first);
+  assert.equal(requests.length,fetched,'political-only year changes must not fetch unchanged physical objects');
+  await resources.preparePhysicalContext('2000-12');
+  state.timelineCursor='2000-12';
+  assert.equal(resources.physicalLand.revision,modern.sha256);
+  assert.equal(resources.physicalLand.water??null,null);
+  assert.equal(requests.length,fetched);
+  state.timelineCursor='1922-12';
+  assert.strictEqual(resources.physicalLand,first,'revisiting a matching source may reuse the physical mask');
+});
+});
+
+// Original feature contract: physical-water-admission-race.test.mjs
+contractSuite("physical-water-admission-race", () => {
+const test = __dep2.default;
+const assert = __dep1.default;
+const { createHash } = __dep7;
+const { createPhysicalResources } = __dep0;
+
+const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+
+for(const requestModern of [true,false])test(requestModern
+  ? 'leaving the historical window during first lake admission cannot overwrite the modern second lake'
+  : 'changing only the timeline cursor prevents stale second lake admission before the next frame', {timeout:5000},async t=>{
+  const previous=globalThis.fetch;t.after(()=>{globalThis.fetch=previous;});
+  const bytes=new Map();
+  const asset=(name,geometry)=>{
+    const body=Buffer.from(JSON.stringify(geometry));bytes.set(name,body);
+    return {url:'assets/data/'+name,encoding:'identity',sha256:createHash('sha256').update(body).digest('hex'),compressedBytes:body.length,decodedBytes:body.length};
+  };
+  const box=x=>({type:'Polygon',coordinates:[[[x,0],[x+1,0],[x+1,1],[x,0]]]});
+  const baseline=asset('baseline',{type:'MultiPolygon',coordinates:[]});
+  const historyLand=asset('historical-land',{type:'MultiPolygon',coordinates:[box(0).coordinates]});
+  const aral={domain:'hydroBuiltin',id:'waterbody:aral'},caspian={domain:'hydroBuiltin',id:'waterbody:caspian'};
+  const aralRef={id:'aral-history',version:1},oldRef={id:'caspian-history',version:1},modernRef={id:'caspian-modern',version:1};
+  const catalog={identities:[aral,caspian].map(objectRef=>({objectRef,entityKind:'lake',name:objectRef.id,layerId:'lakes_base'})),
+    geometries:[{geometryRef:aralRef,land:historyLand,asset:asset('aral-history',box(5))},
+      {geometryRef:oldRef,land:historyLand,asset:asset('caspian-history',box(2))},
+      {geometryRef:modernRef,land:baseline,asset:asset('caspian-modern',box(3))}],
+    timelineRecords:{schemaVersion:3,lifetimes:[aral,caspian].map(objectRef=>({id:'life:'+objectRef.id,objectRef,validFrom:null,validTo:null})),parentRelations:[],propertyBindings:[],geometryBindings:[
+      {id:'aral-old',objectRef:aral,validFrom:'1922-01-01',validTo:'1929-12-31',geometryRef:aralRef},
+      {id:'caspian-old',objectRef:caspian,validFrom:'1922-01-01',validTo:'1929-12-31',geometryRef:oldRef},
+      {id:'caspian-modern',objectRef:caspian,validFrom:'1930-01-01',validTo:null,geometryRef:modernRef}]}};
+  globalThis.fetch=async url=>new Response(bytes.get(new URL(url).pathname.split('/').at(-1)));
+  const firstAdmission=deferred(),releaseFirst=deferred(),modernReady=deferred(),lateReady=deferred();
+  t.after(()=>releaseFirst.resolve());
+  let admissions=0,ready=0;
+  const state={timelineCursor:'',hydroEdits:[],hydroFeatureCache:new Map()};
+  const resource=createPhysicalResources({buildMeta:{dataRevision:'admission-race',physicalLand:baseline,physicalWaterObjects:catalog},capabilities:{terrain:false,builtinHydro:true,eagerBuiltinHydro:false}});
+  resource.connect({projectState:{state},physicalConfig:{PHYSICAL_DATA_BASE_URL:'http://fixture/assets/data/'},
+    cutGeometry:{coordinateBounds:()=>[0,0,6,1]},platform:{d3:{geo:{centroid:()=>[0,0]}}},
+    hydroPresentation:{allBuiltInHydroFeatures:()=>[...state.hydroFeatureCache.values()],HYDRO_LAYER_META:{lakes_base:{category:'lake'}},hydroCategoryKey:value=>value},
+    physicalServices:{isHydroFeatureVisible:feature=>feature.id!==caspian.id},
+    domains:{projectDomain:{admitSelectionCatalog:async (_domain,references)=>{
+      references();admissions++;
+      if(admissions===1){firstAdmission.resolve();await releaseFirst.promise;}
+    }},renderingDomain:{invalidateProject:reason=>{
+      if(reason==='physical-water-ready'){ready++;(ready===1?modernReady:lateReady).resolve();}
+    }}},feedback:{reportOperationError:error=>{throw error;}}});
+  await resource.loadPhysicalData({includeHydro:false});
+  state.timelineCursor='1922';void resource.physicalLand;
+  await firstAdmission.promise;
+  assert.equal(state.hydroFeatureCache.has(aral.id),true,'the first historical lake is awaiting canonical admission');
+  assert.equal(resource.physicalContextState.ready,true,'immutable physical masks must not wait for Core admission queued after the temporal frame');
+  assert.equal(resource.physicalLand.revision,historyLand.sha256,'the prepared physical mask can render while identity admission is pending');
+  assert.deepEqual(resource.physicalLand.water,box(5),'a hidden second lake stays hidden before its canonical admission');
+  state.timelineCursor='1930';
+  if(requestModern){
+    void resource.physicalLand;await modernReady.promise;
+    assert.deepEqual(state.hydroFeatureCache.get(caspian.id).properties.geometryRef,modernRef);
+    releaseFirst.resolve();await lateReady.promise;
+    assert.deepEqual(state.hydroFeatureCache.get(caspian.id).properties.geometryRef,modernRef,
+      'late historical admission must not overwrite the current modern selection/copy resource');
+  }else{
+    releaseFirst.resolve();await modernReady.promise;
+    assert.equal(state.hydroFeatureCache.has(caspian.id),false,
+      'the actual date selection changes before a background getter updates its requested key');
+    assert.equal(admissions,1,'the second stale source must never cross the canonical admission boundary');
+  }
+});
+});
+
+// Original feature contract: physical-land-mask.test.mjs
+contractSuite("physical-land-mask", () => {
+const test = __dep2.default;
+const assert = __dep1.default;
+const zlib = __dep8.default;
+const { gunzipSync } = __dep8;
+const { syncBuiltinESMExports } = __dep9;
+const { buildPhysicalLandMask } = __dep10;
+
+test('physical mask preserves the pinned terrain source geometry and excludes political metadata', () => {
+  const geometry = { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] };
+  const source = { type: 'FeatureCollection', features: [{ id: 'country', properties: { validFrom: '2026-10-01', color: 'red' }, geometry }] };
+  const before = structuredClone(source);
+  const { manifest, bytes } = buildPhysicalLandMask(Buffer.from(JSON.stringify(source)));
+  const result = JSON.parse(gunzipSync(bytes));
+  assert.deepEqual(result, { type: 'MultiPolygon', coordinates: [geometry.coordinates] });
+  assert.equal(manifest.asset.compressedBytes, bytes.length);
+  assert.match(manifest.asset.sha256, /^[a-f0-9]{64}$/);
+  assert.deepEqual(source, before);
+});
+
+test('physical mask bytes and manifest are identical across gzip host OS headers', () => {
+  const source = Buffer.from(JSON.stringify({ features: [{ geometry: { type: 'Polygon', coordinates: [[[0,0],[1,0],[1,1],[0,0]]] } }] }));
+  const original = zlib.gzipSync;
+  const results = [];
+  try {
+    for (const os of [3, 10, 255]) {
+      zlib.gzipSync = (...args) => { const bytes = original(...args); bytes[9] = os; return bytes; };
+      syncBuiltinESMExports();
+      results.push(buildPhysicalLandMask(source));
+    }
+  } finally {
+    zlib.gzipSync = original;
+    syncBuiltinESMExports();
+  }
+  for (const result of results) {
+    assert.equal(result.bytes[9], 10, 'retain the committed physical-land gzip header on every host');
+    assert.deepEqual(result, results[0]);
+  }
+});
 });
