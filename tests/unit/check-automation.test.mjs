@@ -40,7 +40,9 @@ test('desktop and mobile release acceptance run on main PR using the current lib
   assert.ok(steps.some(step=>step.run?.includes('tests/integration/viewer-functional-${{ matrix.profile }}.config.mjs')));
   for(const name of ['p6-1','p6-2'])
     assert.ok(existsSync(new URL('../../tests/integration/viewer-functional-'+name+'.spec.mjs',import.meta.url)));
-  assert.doesNotMatch(JSON.stringify(workflow),/5eb7be55208efaafe39bd5a65ec2f111d70b9053|apps\\/editor\\/stage\\.mjs/);
+  const definition=JSON.stringify(workflow);
+  assert.ok(!definition.includes('5eb7be55208efaafe39bd5a65ec2f111d70b9053'));
+  assert.ok(!definition.includes('apps/editor/stage.mjs'));
 });
 
 test('generated adapter gate invokes node once with every retained test argument',()=>{
