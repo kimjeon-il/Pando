@@ -275,15 +275,11 @@ export async function composeViewer({ productMode, meta }) {
     // months do not create C++ candidates or replace the active document.
     return open(()=>map.prepareBuiltinProject(month,{isCurrent,transition:false}),{
       source:'builtin',isCurrent,presentation:'default'});
-  },onCommitted:month=>{owners.builtinSession.setPresentedSourceMonth(month);builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
+  },onCommitted:month=>{builtinActive=true;syncStatus();window.dispatchEvent(new CustomEvent('pandolab:project-changed'));},onError:report});
   disposables.push(builtinClock);
   const openUserProject=async(reader,options)=>{
     const previous=builtinActive,resume=builtinClock.suspend();builtinActive=false;
     try {const result=await open(reader,options);
-      if(result){
-        owners.builtinSession.setPresentedSourceMonth(null);
-        owners.builtinSession.clearPreparedSourceCache();
-      }
       if(!result&&resume())builtinActive=previous;return result;}
     catch(error){if(resume())builtinActive=previous;throw error;}
   };

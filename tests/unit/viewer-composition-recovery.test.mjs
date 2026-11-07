@@ -51,7 +51,7 @@ async function fixture({engineFailure=false,mapFailure=false,suppressReadyCertif
     createNotificationPresentation:()=>({...controller(),reportOperationError:noop}),createApplicationLifecycle,createViewerInitialPresentation,
     createPreferencePresentation:()=>({...controller(),current:{}}),
     createMapOwners:()=>({workspaceSurfaces:surfaces,mapHost:{queueMapResize:noop},physicalResources:{loadHydroData:noop},
-      territorialLabels:{preparePlaces:noop},builtinSession:{setPresentedSourceMonth:noop,clearPreparedSourceCache:noop}}),
+      territorialLabels:{preparePlaces:noop},builtinSession:{}}),
     saveUserPreferences:noop,createDiagnosticLog:()=>({snapshot:()=>[]}),isRecoverableLoadError,
     createNavigationBindings:controller,createSelectController:controller,createSelectionUiController:controller,createTooltipController:controller,
     installTimelineControls:()=>noop,createAppObjectSearchController:()=>objectCatalog,createSemanticIcon:noop,createEmptyState:noop,

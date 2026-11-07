@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createBuiltinSession} from '../../shared/frontend/js/modules/builtin-session.js';
 import {createBuiltinProjectSetup} from '../../shared/frontend/js/modules/project-setup.js';
 
-const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256:'a'.repeat(64)}},sourceCacheMaxBytes=undefined,sourceCacheMaxEntries=undefined}={})=>{
+const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256:'a'.repeat(64)}}}={})=>{
  const document={documentId:'active',projectSetup:{initialMonth:'2026-10'},territorialEntities:[{id:'active'}]};
  const core={timelineCursor:'2026-10',storageBaselineId:7,checkpoint:11,presentationCheckpoint:4,
   canUndo:true,canRedo:false,dirty:true,documentDirty:true,presentationDirty:false};
@@ -21,9 +21,7 @@ const setup=({loader=null,buildMeta={dataRevision:'fixture',builtinWorld:{sha256
   projectSetup:{initialMonth:month},territorialEntities:[{id:'dated',properties:{name:month}}],
   geometries:[],timelineRecords:{schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]}
  }})};
- const sourceCacheLimits=(sourceCacheMaxBytes!==undefined||sourceCacheMaxEntries!==undefined)
-  ? {maxBytes:sourceCacheMaxBytes??24*1024*1024,maxEntries:sourceCacheMaxEntries??2}:null;
- const session=createBuiltinSession({builtinWorldLoader:world,buildMeta,sourceCacheLimits});
+ const session=createBuiltinSession({builtinWorldLoader:world,buildMeta});
  session.connect({domains:{projectDomain:domain},platformConfigurationA:{BASE_DATASET:'fixed-source'}});
  return {session,domain,core,document,calls,generation:()=>generation,advance:()=>{generation++;}};
 };
@@ -92,108 +90,6 @@ test('P2-1 the original month switch still admits the baseline in its existing p
 });
 
 
-test('P2-2 identical prepared source reuses only private dated bytes, not mutable candidates or Core handles',async()=>{
- let loads=0;
- const f=setup({buildMeta:{dataRevision:'rev-one',builtinWorld:{sha256:'a'.repeat(64)}},
-  loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month},names:['X']}};}}});
- const coreBefore=structuredClone(f.core);
- const first=await f.session.prepareProjectSource('2025-12');
- const second=await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,1,'same revision and month must skip world reassembly and hashing');
- assert.notStrictEqual(first,second,'a cached byte buffer must never retain an old candidate generation');
- assert.equal(first.fingerprint,second.fingerprint);
- assert.deepEqual(first.sourceBytes,second.sourceBytes);
- first.sourceBytes.fill(0);
- assert.notEqual(second.sourceBytes[0],0,'returned source bytes must be separate copies');
- assert.deepEqual(f.core,coreBefore);
- assert.equal(f.calls.length,0);
- const stats=f.session.sourceCacheStats();
- assert.equal(stats.entries,1);assert.equal(stats.hits,1);assert.equal(stats.misses,1);
- assert.ok(stats.bytes>0&&stats.bytes<=stats.maxBytes);
- assert.equal(Object.hasOwn(stats,'baselineId'),false);
-});
-
-test('P2-2 same cached source creates a fresh generation-scoped candidate and a new Core admission',async()=>{
- let loads=0;
- const f=setup({loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
- const old=await f.session.prepareProjectSource('2025-12');
- f.advance();
- await assert.rejects(f.session.admitPreparedProjectSource(old),{code:'PL-CORE-STALE'});
- const fresh=await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,1);assert.equal(fresh.expectedGeneration,f.generation());
- const admitted=await f.session.admitPreparedProjectSource(fresh);
- assert.equal(admitted.baselineId,19);
- assert.equal(f.calls.length,1);
- assert.equal(f.calls[0].expectedGeneration,f.generation());
- assert.equal(f.calls[0].facts.sourceMonth,'2025-12');
-});
-
-test('P2-2 LRU evicts the least recently reused month within entry limit',async()=>{
- const months=[];
- const f=setup({sourceCacheMaxEntries:2,sourceCacheMaxBytes:20000,
-  loader:{loadProject:async month=>{months.push(month);return {project:{projectSetup:{initialMonth:month}}};}}});
- for(const month of ['2025-12','2024-12','2025-12','2023-12','2024-12'])
-   await f.session.prepareProjectSource(month);
- assert.deepEqual(months,['2025-12','2024-12','2023-12','2024-12']);
- const stats=f.session.sourceCacheStats();
- assert.equal(stats.entries,2);assert.equal(stats.evictions,2);
- assert.ok(stats.bytes<=stats.maxBytes);
-});
-
-test('P2-2 oversized worlds bypass cache without any unbounded retained bytes',async()=>{
- let loads=0;
- const f=setup({sourceCacheMaxBytes:1,sourceCacheMaxEntries:2,
-  loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
- await f.session.prepareProjectSource('2025-12');
- await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,2);
- const stats=f.session.sourceCacheStats();
- assert.equal(stats.entries,0);assert.equal(stats.bytes,0);assert.equal(stats.oversized,2);
-});
-
-test('P2-2 stale and failed source preparations never populate reusable entries',async()=>{
- let loads=0,release;
- const held=new Promise(resolve=>{release=resolve;});
- const f=setup({loader:{loadProject:async month=>{loads++;if(loads===1)await held;
-  if(loads===2)throw Error('unavailable');return {project:{projectSetup:{initialMonth:month}}};}}});
- let current=true;
- const early=f.session.prepareProjectSource('2025-12',{isCurrent:()=>current});
- current=false;release();
- await assert.rejects(early,{name:'AbortError',cancelled:true});
- await assert.rejects(f.session.prepareProjectSource('2025-12'),/unavailable/);
- assert.equal(f.session.sourceCacheStats().entries,0);
- await f.session.prepareProjectSource('2025-12');
- await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,3,'recovery can be reused after an actually successful completion');
-});
-
-test('P2-2 changed dataset identity cannot silently reuse a prior month or old loader',async()=>{
- let loads=0;
- const meta={dataRevision:'rev-one',builtinWorld:{sha256:'a'.repeat(64)}};
- const f=setup({buildMeta:meta,loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
- await f.session.prepareProjectSource('2025-12');
- meta.dataRevision='rev-two';
- await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,2);
-});
-
-test('P2-2 explicit cache release drops all retained bytes and forces regeneration',async()=>{
- let loads=0;
- const f=setup({loader:{loadProject:async month=>{loads++;return {project:{projectSetup:{initialMonth:month}}};}}});
- const first=await f.session.prepareProjectSource('2025-12');
- assert.equal(f.session.sourceCacheStats().entries,1);
- f.session.clearPreparedSourceCache();
- assert.equal(f.session.sourceCacheStats().entries,0);
- assert.equal(f.session.sourceCacheStats().bytes,0);
- assert.equal(first.sourceMonth,'2025-12','detached candidate is not invalidated by byte-cache eviction');
- await f.session.prepareProjectSource('2025-12');
- assert.equal(loads,2);
-});
-
-test('P2-2 invalid zero entry limit is rejected before attempting any load',()=>{
- assert.throws(()=>setup({sourceCacheMaxEntries:0}),/cache|budget|limit/i);
-});
-
 test('builtin Core candidate derives its project setup from the source month, never a Viewer-owned copy',async()=>{
  const f=setup();
  let received=null;
@@ -201,12 +97,14 @@ test('builtin Core candidate derives its project setup from the source month, ne
   received={facts,projectSetup,options};
   return {kind:'temporal-candidate',setup:projectSetup,targetMonth:facts.sourceMonth};
  };
- const candidate=await f.session.prepareProjectCandidate('1914-07',{transition:true});
+ const candidate=await f.session.prepareProjectCandidate('1914-07');
  assert.equal(received.facts.sourceMonth,'1914-07');
  assert.deepEqual(received.projectSetup,createBuiltinProjectSetup('1914-07'));
- assert.equal(received.options.transition,true);
+ assert.equal(received.options.transition,false);
  assert.equal(candidate.targetMonth,'1914-07');
  assert.equal(f.calls.length,0,'the candidate must not admit the active Core project');
+ await assert.rejects(f.session.prepareProjectCandidate('1914-07',{transition:true}),
+   /timeline cursor/i);
  await assert.rejects(f.session.prepareProjectCandidate('1914-07',{
   setup:createBuiltinProjectSetup('1914-06'),
  }),/derived from the requested month/);
