@@ -61,5 +61,5 @@ jobs:
             tests/unit/project-timeline-domain.test.mjs \
             tests/unit/timeline-resolver.test.mjs \
             tests/unit/territorial-library.test.mjs \
-            tests/unit/territorial-entity-loader.test.mjs \
+            tests/unit/territorial-entity-repository.test.mjs \
             tests/unit/territorial-timeline-storage.test.mjs

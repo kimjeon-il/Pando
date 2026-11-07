@@ -35,7 +35,7 @@ on:
       - 'tests/unit/boundary-display-refinement.test.mjs'
       - 'assets/js/modules/boundary-topology.js'
       - 'assets/js/modules/country-contact-core.js'
-      - 'tests/unit/country-contact-core.test.mjs'
+      - 'tests/unit/country-shared-boundary.test.mjs'
       - 'assets/js/modules/country-shared-boundary-packet.js'
       - 'tests/unit/p5-6-contribution-merge.test.mjs'
       - 'tests/unit/p5-6-core-ownership.test.mjs'
@@ -49,7 +49,7 @@ on:
       - 'tools/benchmark-shared-border-p5.mjs'
       - 'tests/unit/boundary-lines.test.mjs'
       - 'tests/unit/country-shared-boundary-generator.test.mjs'
-      - 'tests/unit/boundary-topology-split.test.mjs'
+      - 'tests/unit/boundary-lines.test.mjs'
       - 'CMakePresets.json'
   workflow_dispatch:
 permissions:
@@ -111,7 +111,7 @@ jobs:
       - name: Run Web chain and immutable shared-cache generator regression
         if: steps.core.outputs.ready == 'true'
         run: |
-          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-shared-boundary.test.mjs tests/unit/country-contact-core.test.mjs tests/unit/boundary-topology-split.test.mjs
+          node --test tests/unit/boundary-lines.test.mjs tests/unit/country-shared-boundary-generator.test.mjs tests/unit/p5-6-contribution-merge.test.mjs tests/unit/country-shared-boundary-state.test.mjs tests/unit/boundary-display-refinement.test.mjs tests/unit/country-shared-boundary.test.mjs
 
   performance:
     runs-on: ubuntu-24.04
