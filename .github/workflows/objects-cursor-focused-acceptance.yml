@@ -8,7 +8,7 @@ on:
       - 'shared/wasm/session-bindings.cpp'
       - 'shared/frontend/static/wasm/pandoeditor-core.manifest.json'
       - 'shared/frontend/js/modules/core-document-runtime.js'
-      - 'tests/browser/temporal-map-presentation.spec.mjs'
+      - 'tests/browser/viewer-calendar.spec.mjs'
       - 'tests/browser/viewer-review-e4.spec.mjs'
       - 'tests/unit/core-document-runtime.test.mjs'
       - 'tests/unit/core-document-client.test.mjs'
@@ -100,7 +100,7 @@ jobs:
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: |
-          pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
+          pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Preserve browser evidence on failures
         if: always()
         uses: actions/upload-artifact@v4
@@ -132,7 +132,7 @@ jobs:
       - name: Repeat new-project reset then verify real dated-view acceptance
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --grep='.' --repeat-each=3 --workers=1 --retries=0 --trace off
       - name: Verify label Undo/Redo and save/reopen on the published WASM
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
@@ -142,7 +142,7 @@ jobs:
           PANDOLAB_BROWSER_CHANNEL: chromium
         run: >-
           pnpm exec playwright test
-          tests/browser/temporal-map-presentation.spec.mjs
+          tests/browser/viewer-calendar.spec.mjs
           tests/browser/viewer-review-e4.spec.mjs
           --grep='.'
           --workers=1 --retries=0 --trace off

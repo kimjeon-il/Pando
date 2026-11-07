@@ -1,7 +1,14 @@
-import {test,expect} from '@playwright/test';
-import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
+import { test as featureTest } from '@playwright/test';
+import * as __suiteDependency0 from "@playwright/test";
+import * as __suiteDependency1 from "node:crypto";
+import * as __suiteDependency2 from "node:fs";
+import * as __suiteDependency3 from "@playwright/test";
 
+// Preserved Viewer feature contract: viewer-review-e4.spec.mjs
+featureTest.describe("viewer-review-e4", () => {
+  const { test,expect } = __suiteDependency0;
+  const { createHash } = __suiteDependency1;
+  const { readFileSync } = __suiteDependency2;
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const bundleTemplate=()=>JSON.parse(readFileSync(new URL('../fixtures/review/e2-synthetic-review.json',import.meta.url),'utf8'));
 const geo=width=>({type:'Polygon',coordinates:[[[70,30],[70+width,30],[70+width,36],[70,36],[70,30]]]});
@@ -178,4 +185,80 @@ test('E4 review remains a bounded responsive panel and never claims an unverifie
   await page.locator('#reviewCloseBtn').click();
   await expect(page.locator('#reviewPanel')).toBeHidden();
   expect(errors).toEqual([]);
+});
+});
+// Preserved Viewer feature contract: viewer-inspector.spec.mjs
+featureTest.describe("viewer-inspector", () => {
+  const { test,expect } = __suiteDependency3;
+test('inspector is absent from ordinary UI until the keyboard shortcut activates lazy review',async({page})=>{
+  test.setTimeout(150000);
+  const errors=[],reviewRequests=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('request',req=>{if(req.url().includes('viewer-review-panel.js'))reviewRequests.push(req.url());});
+  await page.goto('/?renderer=canvas',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
+  await expect(page.locator('#reviewPanelBtn')).toBeHidden();
+  await expect(page.locator('#mobileReviewBtn')).toBeHidden();
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  expect(reviewRequests).toHaveLength(0);
+  await page.keyboard.press('Control+Shift+Period');
+  await expect(page.locator('#reviewPanel')).toBeVisible({timeout:20000});
+  await expect(page.locator('#reviewTabMap')).toHaveAttribute('aria-selected','true');
+  await expect(page.locator('#reviewMapMetrics')).toContainText('렌더러');
+  await expect(page.locator('#reviewDataMetrics')).toContainText('읽기 전용');
+  await expect(page.locator('#reviewDataMetrics')).toContainText('예');
+  expect(reviewRequests.length).toBeGreaterThan(0);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  await page.keyboard.press('Control+Shift+Period');
+  await expect(page.locator('#reviewPanel')).toBeVisible();
+  await page.locator('#reviewTabChanges').click();
+  await expect(page.locator('#reviewLoadBtn')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+test('explicit inspection URL opens read-only diagnostics, tab navigation and local export',async({page})=>{
+  test.setTimeout(150000);
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('/?inspect=1&renderer=canvas',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#reviewPanel')).toBeVisible({timeout:110000});
+  await expect(page.locator('#reviewTabMap')).toHaveAttribute('aria-selected','true');
+  await expect(page.locator('#reviewPanelBtn')).toBeVisible();
+  await page.locator('#reviewTabPerformance').click();
+  await expect(page.locator('#reviewPerformanceMetrics')).toContainText('성능 계측');
+  await page.locator('#reviewTabErrors').click();
+  await expect(page.locator('#reviewErrorList')).toBeVisible();
+  const downloadPending=page.waitForEvent('download');
+  await page.locator('#reviewExportDiagnostics').click();
+  const download=await downloadPending;
+  expect(download.suggestedFilename()).toMatch(/^pando-viewer-inspection-/);
+  await expect(page.locator('#reviewExportStatus')).toContainText('로컬 JSON');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  expect(errors).toEqual([]);
+});
+
+test('debug URL exposes the single lazy read-only inspector without changing the active project',async({page})=>{
+  test.setTimeout(150000);
+  const errors=[],reviewRequests=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('request',request=>{if(request.url().includes('viewer-review-panel.js'))reviewRequests.push(request.url());});
+  await page.goto('/?debug=1&renderer=canvas',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:110000});
+  await expect(page.locator('#reviewPanelBtn')).toBeVisible();
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  expect(reviewRequests).toHaveLength(0,'debug diagnostics must not eagerly load the review UI');
+  const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+  await page.locator('#reviewPanelBtn').click();
+  await expect(page.locator('#reviewPanel')).toBeVisible({timeout:20000});
+  await page.locator('#reviewTabMap').click();
+  await expect(page.locator('#reviewDataMetrics')).toContainText('읽기 전용');
+  expect(reviewRequests).toHaveLength(1,'one inspector instance uses one lazy import');
+  await page.locator('#reviewCloseBtn').click();
+  await expect(page.locator('#reviewPanel')).toBeHidden();
+  await page.locator('#reviewPanelBtn').click();
+  await expect(page.locator('#reviewPanel')).toBeVisible();
+  expect(reviewRequests).toHaveLength(1,'reopening must reuse the existing panel');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot())).toEqual(before);
+  expect(errors).toEqual([]);
+});
 });

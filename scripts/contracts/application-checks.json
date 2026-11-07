@@ -122,8 +122,7 @@
       "id": "terrain",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/terrain-*.spec.mjs",
-        "tests/browser/physical-land-time.spec.mjs"
+        "tests/browser/terrain-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/terrain-*.js",
@@ -152,7 +151,6 @@
       "id": "boundaries",
       "kind": "browser",
       "testPatterns": [
-        "tests/browser/korean-boundaries.spec.mjs",
         "tests/browser/boundary-*.spec.mjs",
         "tests/browser/territorial-boundary-*.spec.mjs"
       ],
@@ -257,8 +255,7 @@
         "tests/browser/viewer-*.spec.mjs",
         "tests/browser/web-viewer.spec.mjs",
         "tests/browser/shared-map-*.spec.mjs",
-        "tests/browser/shared-view*.spec.mjs",
-        "tests/browser/resource-dependency-reuse.spec.mjs"
+        "tests/browser/shared-view*.spec.mjs"
       ],
       "inputs": [
         "apps/viewer/js/viewer.js",
@@ -300,7 +297,6 @@
       "testPatterns": [
         "tests/browser/interaction-*.spec.mjs",
         "tests/browser/mobile-*.spec.mjs",
-        "tests/browser/phone-landscape-surface-contract.spec.mjs",
         "tests/browser/startup-*.spec.mjs",
         "tests/browser/statusbar-*.spec.mjs",
         "tests/browser/topbar-*.spec.mjs",
@@ -332,7 +328,8 @@
         "node",
         "scripts/check-version.mjs"
       ],
-      "requires": []
+      "requires": [],
+      "testPatterns": []
     },
     {
       "id": "worker-contracts",
@@ -348,7 +345,8 @@
         "node",
         "scripts/check-worker-architecture.mjs"
       ],
-      "requires": []
+      "requires": [],
+      "testPatterns": []
     },
     {
       "id": "runtime-boundaries",
@@ -364,7 +362,8 @@
         "node",
         "scripts/check-runtime-boundaries.mjs"
       ],
-      "requires": []
+      "requires": [],
+      "testPatterns": []
     },
     {
       "id": "ui-architecture",
@@ -382,7 +381,8 @@
         "scripts/check-ui.mjs",
         "architecture"
       ],
-      "requires": []
+      "requires": [],
+      "testPatterns": []
     },
     {
       "id": "territorial-storage",
@@ -396,7 +396,8 @@
         "node",
         "scripts/check-territorial-storage.mjs"
       ],
-      "requires": []
+      "requires": [],
+      "testPatterns": []
     },
     {
       "id": "assets",
@@ -415,7 +416,8 @@
         "scripts/generate-build-metadata.mjs",
         "--check"
       ],
-      "requires": []
+      "requires": [],
+      "testPatterns": []
     },
     {
       "id": "lint",
@@ -431,7 +433,8 @@
         "node",
         "node_modules/eslint/bin/eslint.js"
       ],
-      "appendChanged": true
+      "appendChanged": true,
+      "testPatterns": []
     },
     {
       "id": "commands",
@@ -447,7 +450,8 @@
       "argv": [
         "node",
         "scripts/check-command-architecture.mjs"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "provenance",
@@ -462,7 +466,8 @@
       "argv": [
         "node",
         "scripts/check-generic-provenance.mjs"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "version-contract",
@@ -477,7 +482,8 @@
       "argv": [
         "node",
         "scripts/check-version-architecture.mjs"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "renderer-contract",
@@ -491,7 +497,8 @@
       "argv": [
         "node",
         "scripts/check-renderer-v2.mjs"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "ui-spacing",
@@ -503,7 +510,8 @@
       "argv": [
         "node",
         "scripts/check-ui-spacing.mjs"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "ui-components",
@@ -519,7 +527,8 @@
         "node",
         "scripts/check-ui.mjs",
         "components"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "ui-layering",
@@ -534,7 +543,8 @@
         "node",
         "scripts/check-ui.mjs",
         "layering"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "ui-ia",
@@ -550,7 +560,8 @@
         "node",
         "scripts/check-ui.mjs",
         "information"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "object-registry",
@@ -564,7 +575,8 @@
       "argv": [
         "node",
         "scripts/check-object-registry.mjs"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "current-world",
@@ -578,7 +590,8 @@
         "tools/build-territorial-current-world.mjs",
         "--check"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "country-colors",
@@ -591,7 +604,8 @@
         "tools/build-country-default-colors.mjs",
         "--check"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "country-boundaries",
@@ -604,7 +618,8 @@
         "tools/build-country-shared-boundaries.mjs",
         "--check"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "world-bundle",
@@ -617,7 +632,8 @@
         "tools/build-world-bundle.mjs",
         "--check"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "country-preview",
@@ -633,7 +649,8 @@
       "gisNative": true,
       "requires": [
         "country-validity-canonical"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "territorial-chunks",
@@ -646,7 +663,8 @@
         "tools/build-territorial-entity-chunks.mjs",
         "--check"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "places-runtime",
@@ -660,7 +678,8 @@
         "tools/build-place-runtime.mjs",
         "--check"
       ],
-      "gisNative": false
+      "gisNative": false,
+      "testPatterns": []
     },
     {
       "id": "web-stage",
@@ -686,7 +705,8 @@
       ],
       "requires": [
         "generated"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "country-selftest",
@@ -700,7 +720,8 @@
         "tools/run-country-validator.mjs",
         "--self-test"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "country-validity-canonical",
@@ -714,7 +735,8 @@
         "tools/run-country-validator.mjs",
         "--canonical-only"
       ],
-      "gisNative": true
+      "gisNative": true,
+      "testPatterns": []
     },
     {
       "id": "country-validity",
@@ -730,7 +752,8 @@
       "gisNative": true,
       "requires": [
         "country-preview"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "territorial-library-contract",
@@ -746,7 +769,8 @@
       "gisNative": false,
       "requires": [
         "core"
-      ]
+      ],
+      "testPatterns": []
     },
     {
       "id": "deferred-builtin-timeline",
@@ -1048,7 +1072,7 @@
     {
       "tests": [
         "tests/unit/prepared-polygon-mesh.test.mjs",
-        "tests/browser/physical-land-time.spec.mjs",
+        "tests/browser/viewer-startup-and-terrain.spec.mjs",
         "tests/unit/prepared-country-scope.test.mjs",
         "tests/unit/prepared-physical-scope.test.mjs"
       ],
@@ -1192,12 +1216,82 @@
     },
     {
       "tests": [
-        "tests/browser/viewer-layout.spec.mjs"
+        "tests/browser/web-viewer.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/css/**",
         "apps/viewer/css/**",
         "apps/viewer/templates/index.html"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/web-viewer.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "apps/viewer/templates/index.html"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-renderer-recovery.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/gpu-*.js",
+        "shared/frontend/js/workers/gpu-*.js",
+        "shared/frontend/js/modules/gpu-map-renderer.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-boundary-p4-5.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/*boundary*.js",
+        "shared/frontend/js/workers/*boundary*.js",
+        "shared/frontend/js/modules/country-contact-core.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-startup-and-terrain.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/physical-*.js",
+        "shared/frontend/js/workers/canvas-render-worker.js",
+        "assets/data/physical-land/**"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-calendar.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/builtin-month-clock.js",
+        "shared/frontend/js/modules/timeline-*.js",
+        "shared/frontend/js/modules/temporal.js",
+        "assets/data/builtin-world/**"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-review-e4.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/review-*.js",
+        "apps/viewer/js/modules/review-*.js"
+      ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-project-open.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/js/modules/project-*.js",
+        "apps/viewer/js/modules/project-*.js",
+        "shared/frontend/js/modules/gpkg-*.js"
       ]
     }
   ],
@@ -1207,7 +1301,7 @@
   },
   "manualScopes": {
     "map-rendering": [
-      "tests/browser/viewer-canvas.spec.mjs",
+      "tests/browser/viewer-project-open.spec.mjs",
       "tests/browser/viewer-gpu-backend-cross.spec.mjs"
     ]
   },

@@ -1,7 +1,22 @@
-import { expect, test } from '@playwright/test';
-import {routeSyntheticDem} from './helpers/synthetic-dem-terrain.mjs';
-import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
+import { test as featureTest } from '@playwright/test';
+import * as __suiteDependency0 from "@playwright/test";
+import * as __suiteDependency1 from "./helpers/synthetic-dem-terrain.mjs";
+import * as __suiteDependency2 from "../fixtures/viewer-project-package.mjs";
+import * as __suiteDependency3 from "@playwright/test";
+import * as __suiteDependency4 from "node:fs/promises";
+import * as __suiteDependency5 from "@playwright/test";
+import * as __suiteDependency6 from "node:path";
+import * as __suiteDependency7 from "node:fs/promises";
+import * as __suiteDependency8 from "@playwright/test";
+import * as __suiteDependency9 from "@playwright/test";
+import * as __suiteDependency10 from "../../shared/frontend/js/modules/terrain-dem-shaders.js";
+import * as __suiteDependency11 from "./helpers/synthetic-dem-terrain.mjs";
 
+// Preserved Viewer feature contract: terrain-zoom-continuity.spec.mjs
+featureTest.describe("terrain-zoom-continuity", () => {
+  const {  expect, test  } = __suiteDependency0;
+  const { routeSyntheticDem } = __suiteDependency1;
+  const {  createViewerProjectPackage  } = __suiteDependency2;
 test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
   launchOptions: { args: process.platform === 'win32' ? ['--use-angle=d3d11']
     : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
@@ -374,5 +389,382 @@ for (const setup of [
     await expect(page.locator('#mapPreparationNotice')).toBeHidden();
     expect(errors).toEqual([]);
   });
+});
+});
+});
+// Preserved Viewer feature contract: terrain-inheritance.spec.mjs
+featureTest.describe("terrain-inheritance", () => {
+  const {  test, expect  } = __suiteDependency3;
+  const {  writeFile  } = __suiteDependency4;
+test.use({ viewport: { width: 1280, height: 800 }, trace: 'off', screenshot: 'off',
+  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
+for (const renderer of ['webgl2', 'canvas']) for (const mode of ['political', 'physical']) {
+  test(`child land enters the viewport and survives paint toggles (${renderer}, ${mode})`, async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.addInitScript(({ renderer, mode }) => {
+      localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2,
+        backgrounds: { viewer: { terrainVisible: true, terrainStyle: mode } } }));
+      if (renderer === 'canvas') {
+        const original = window.HTMLCanvasElement.prototype.getContext;
+        window.HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+          return String(type).includes('webgl') ? null : original.call(this, type, ...args);
+        };
+      }
+    }, { renderer, mode });
+    await page.route('**/modules/map-renderer-composition.js*', async route => {
+      const response = await route.fetch(), source = await response.text();
+      const anchor = 'export function createMapRenderer(dependencies, { presentMapPreparation, onMapPreparationStatus = null } = {}) {';
+      expect(source).toContain(anchor);
+      await route.fulfill({ response, body: source.replace(anchor, anchor + '\nwindow.__terrainPorts = dependencies;') });
+    });
+    await page.route('**/modules/gpu-scene.js*', async route => {
+      const response = await route.fetch(), source = await response.text();
+      const anchor = 'function replaceGpuSceneDomain(domain, { polygons = [], strokes = [] } = {}) {';
+      expect(source).toContain(anchor);
+      await route.fulfill({ response, body: source.replace(anchor,
+        anchor + '\nif(domain === "territorial-units") window.__terrainPackets = polygons;') });
+    });
+    await page.goto(`/?debug=1&renderer=${renderer}`);
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 60_000 });
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().renderer))
+      .toBe(renderer === 'canvas' ? 'canvas-worker' : 'webgl2');
+    const documentBefore = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState());
+    const childId = await page.evaluate(() => window.__terrainPorts.territorialModel.entityRepository.list()
+      .find(entity => entity.properties.metadata?.builtinSubunit?.sourceCountryId === 'HKG').id);
+    const childKey = `territorial:entity:${childId}:fill`;
+    const hasChild = () => page.evaluate(key => window.__terrainPackets.some(packet => packet.key === key), childKey);
+    // Prepare a known offscreen set, then use real pointer navigation to enter it.
+    await page.evaluate(async () => {
+      const ports = window.__terrainPorts, state = ports.projectState.state;
+      window.__PANDOLAB_MAP_HOST__.setViewState({ projection: 'globe',
+        view: { ...state.view, globeRotation: [-101, -22.27, 0], globeZoom: 32 } });
+      ports.domains.renderingDomain.invalidateOverlayStyle('offscreen-test-fixture');
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
+    expect(await hasChild()).toBe(false);
+    const box = await page.locator('#map').boundingBox();
+    const drag=13.17/(.22/Math.sqrt(32)),start=box.x+box.width*.8;
+    await page.mouse.move(start, box.y + box.height * .5);
+    await page.mouse.down();
+    await page.mouse.move(start-drag, box.y + box.height * .5, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.locator('#map')).not.toHaveClass(/dragging/);
+    await expect.poll(hasChild, { timeout: 5000 }).toBe(true);
+    await page.locator('#mapDisplayBtn').click();
+    await page.locator('[data-map-display-row="objects"]').click();
+    const color = page.locator('[data-layer-style-color="objects"]');
+    await expect(color).toBeChecked();
+    const replacements = () => page.evaluate(() => window.__PANDOLAB_VIEWER__.rendererStats().canvasWorkerMessagesByType['replace-data'] || 0);
+    const replacementsBefore = await replacements();
+    const receipts = [];
+    for (const visible of [false, true]) {
+      await color.locator('..').click();
+      await expect(color).toBeChecked({ checked: visible });
+      await expect.poll(() => page.evaluate(key => window.__terrainPackets.find(packet => packet.key === key)?.style.fillAlpha,
+        childKey)).toBeCloseTo(visible ? mode === 'physical' ? .22 : .68 : 0);
+      const packet = await page.evaluate(key => {
+        const item = window.__terrainPackets.find(packet => packet.key === key);
+        return { key: item.key, role: item.role, style: item.style };
+      }, childKey);
+      expect(packet.role).toBe('territorial-fill');
+      expect(packet.style.color).toBe(visible ? '#cc3333' : '');
+      if (renderer === 'canvas') expect(await replacements(), 'paint toggles must not resend the world geometry').toBe(replacementsBefore);
+      receipts.push({ visible, packet, replacements: await replacements() });
+    }
+    expect(await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState())).toEqual(documentBefore);
+    expect(errors).toEqual([]);
+    await writeFile(testInfo.outputPath('child-land-and-transport.json'), JSON.stringify({ renderer, mode, receipts }, null, 2));
+  });
+}
+});
+// Preserved Viewer feature contract: terrain-progressive.spec.mjs
+featureTest.describe("terrain-progressive", () => {
+  const {  expect, test  } = __suiteDependency5;
+  const path = __suiteDependency6.default;
+  const {  readFile  } = __suiteDependency7;
+const DEM_ORIGIN = 'https://kimjeon-il.github.io/PandoLab-library-data';
+
+test.use({
+  viewport: { width: 390, height: 844 },
+  isMobile: true,
+  deviceScaleFactor: 2,
+  // Full trace snapshots compete with terrain uploads on SwiftShader.
+  // Keep failure metrics/screenshots without tracing every rendered frame.
+  trace: 'off',
+  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] },
+});
+test.skip(process.env.PANDOLAB_VERIFY_LIVE_DEM !== '1' && !process.env.PANDOLAB_DEM_OUTPUT_DIR,
+  'Opt in to hosted DEM network regression or provide generated DEM assets');
+
+test('slow mobile globe retains loaded DEM while requesting promoted detail directly', async ({ page }) => {
+  test.setTimeout(240_000);
+  const started = [];
+  let delayFine = false, initialLevel, manifest;
+  let releaseFine;
+  const fineGate = new Promise(resolve => { releaseFine = resolve; });
+  let releaseCanonical;
+  const canonicalGate = new Promise(resolve => { releaseCanonical = resolve; });
+  await page.route('**/countries-canonical-v*.pcg.gz*', async route => {
+    await canonicalGate;
+    if (!page.isClosed()) await route.continue();
+  });
+  await page.route(`${DEM_ORIGIN}/terrain/**`, async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    const output = process.env.PANDOLAB_DEM_OUTPUT_DIR;
+    if (pathname.endsWith('/manifest.json')) {
+      if (output) {
+        const file = path.join(output, pathname.match(/\/terrain\/v[^/]+\/(.*)$/)[1]);
+        manifest = JSON.parse(await readFile(file, 'utf8'));
+        await route.fulfill({ path: file, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' } });
+      } else {
+        const response = await route.fetch();
+        manifest = await response.json();
+        await route.fulfill({ response });
+      }
+      return;
+    }
+    const tile = pathname.match(/\/terrain\/v\d+\.\d+\.\d+\/(\d+)\/(\d+)-(\d+)\.webp$/);
+    if (tile) {
+      started.push({ level: Number(tile[1]), column: Number(tile[2]), row: Number(tile[3]) });
+      await new Promise(resolve => setTimeout(resolve, 150));
+      if (delayFine && Number(tile[1]) > initialLevel) await fineGate;
+    }
+    if (output) {
+      const relative = pathname.match(/\/terrain\/v[^/]+\/(.*)$/)[1];
+      await route.fulfill({ path: path.join(output, relative),
+        contentType: pathname.endsWith('.webp') ? 'image/webp' : 'application/json',
+        headers: { 'Access-Control-Allow-Origin': '*' } });
+    } else await route.continue().catch(error => {
+      if (!route.request().failure() && !page.isClosed()) throw error;
+    });
+  });
+
+  try {
+    await page.goto('/?renderer=webgl2&debug=1&demTerrain=preview', { waitUntil: 'domcontentloaded' });
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainRepresentation),
+      { timeout: 120_000 }).toBe('dem-relief-v1');
+    await expect.poll(() => started.length, { timeout: 60_000 }).toBeGreaterThanOrEqual(2);
+    expect(started.slice(0, 2).every(tile => tile.level === 0)).toBe(true);
+    // Camera requirement from CSS scale and DPR, independent of the
+    // renderer's selected level and country mesh quality.
+    initialLevel = await page.evaluate(levels => {
+      const view = window.__PANDOLAB_MAP_HOST__.getViewState();
+      const requiredWidth = 2 * Math.PI * view.scale * Math.min(2, window.devicePixelRatio) * 1.12;
+      return (levels.find(level => level.width >= requiredWidth) || levels.at(-1)).id;
+    }, manifest.levels);
+    await expect.poll(() => page.evaluate(() => {
+      const metrics = window.__PANDOLAB_GPU_METRICS__;
+      return { targetLevel: metrics?.terrainTargetLevel, renderedLevel: metrics?.terrainRenderedLevel,
+        complete: metrics?.terrainTargetTileCount > 0 && metrics.terrainTargetTilesLoaded === metrics.terrainTargetTileCount,
+        settled: metrics?.terrainTargetTilesSettled };
+    }), { timeout: 90_000 }).toEqual({ targetLevel: initialLevel, renderedLevel: initialLevel, complete: true, settled: true });
+    expect([...new Set(started.map(tile => tile.level))].sort()).toEqual([0, initialLevel]);
+    releaseCanonical();
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
+    delayFine = true;
+    await page.evaluate(() => {
+      const map = document.getElementById('map');
+      const rect = map.getBoundingClientRect();
+      const current = window.__PANDOLAB_MAP_HOST__.getViewState().zoom;
+      map.dispatchEvent(new window.WheelEvent('wheel', { bubbles: true, cancelable: true,
+        clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2,
+        deltaY: -Math.log(3 / current) / 0.0013 }));
+    });
+    await expect.poll(() => page.evaluate(level => {
+      const metrics = window.__PANDOLAB_GPU_METRICS__;
+      return metrics?.terrainTargetLevel > level && metrics.terrainRenderedLevel === level;
+    }, initialLevel), { timeout: 60_000 }).toBe(true);
+    const targetLevel = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__.terrainTargetLevel);
+    expect(started.filter(tile => tile.level > initialLevel).every(tile => tile.level === targetLevel)).toBe(true);
+
+    for (const longitude of [-90, 0, 90]) {
+      await page.evaluate(value => {
+        const host = window.__PANDOLAB_MAP_HOST__;
+        const view = host.getViewState();
+        host.setViewState({ projection: 'globe', view: { ...view, globeRotation: [value, 0] } });
+        host.requestRepaint('terrain-progressive-rotation');
+      }, longitude);
+      await page.waitForTimeout(90);
+    }
+    const priorRequests = started.length;
+    releaseFine();
+    await expect.poll(() => page.evaluate(() => {
+      const metrics = window.__PANDOLAB_GPU_METRICS__;
+      return { level: metrics?.terrainTargetLevel, rendered: metrics?.terrainRenderedLevel,
+        loaded: metrics?.terrainTargetTilesLoaded, target: metrics?.terrainTargetTileCount,
+        settled: metrics?.terrainTargetTilesSettled };
+    }), { timeout: 90_000 }).toMatchObject({ level: targetLevel, rendered: targetLevel, settled: true }).catch(async error => {
+      console.log(`TERRAIN_MOBILE_FAILURE ${JSON.stringify(await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__))}`);
+      throw error;
+    });
+    const complete = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__);
+    expect(complete.terrainTargetTilesLoaded).toBe(complete.terrainTargetTileCount);
+    expect(complete.terrainFailureCount).toBe(0);
+    console.log(`TERRAIN_MOBILE ${JSON.stringify({ initialLevel, targetLevel, loaded: complete.terrainTargetTilesLoaded })}`);
+    const afterRotation = started.slice(priorRequests).filter(tile => tile.level > 0);
+    expect(afterRotation.length).toBeGreaterThan(0);
+    const currentViewRequests = afterRotation.filter(tile => {
+      const width = 1350 * 2 ** tile.level;
+      const pixelWidth = Math.min(1024, width - tile.column * 1024);
+      const centerLongitude = -180 + (tile.column * 1024 + pixelWidth / 2) / width * 360;
+      const distanceFromFinalView = Math.abs((((centerLongitude + 90) + 540) % 360) - 180);
+      return distanceFromFinalView < 80;
+    });
+    expect(currentViewRequests.length).toBeGreaterThan(0);
+  } finally {
+    releaseCanonical();
+    releaseFine();
+    await page.close();
+  }
+});
+});
+// Preserved Viewer feature contract: terrain-request-priority.spec.mjs
+featureTest.describe("terrain-request-priority", () => {
+  const {  expect, test  } = __suiteDependency8;
+test.use({ viewport: { width: 1100, height: 760 }, trace: 'off',
+  launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
+test('rotating the globe loads the new viewport while obsolete responses remain stalled', async ({ page, baseURL }) => {
+  test.setTimeout(150_000);
+  let phase = 'startup', changedAt = 0;
+  let release;
+  const stalled = new Promise(resolve => { release = resolve; });
+  const oldRequests = new Set(), newRequests = [], cancelled = [], errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('requestfailed', request => { if (oldRequests.has(request.url())) cancelled.push(request.url()); });
+  await page.route('**/terrain/v*/**/*.webp*', async route => {
+    const match = new URL(route.request().url()).pathname.match(/\/terrain\/v[^/]+\/(\d+)\/\d+-\d+\.webp$/);
+    if (match && Number(match[1]) > 0) {
+      if (phase === 'old') { oldRequests.add(route.request().url()); await stalled; }
+      else if (phase === 'new') newRequests.push({ url: route.request().url(), delayMs: Date.now() - changedAt });
+    }
+    if (!page.isClosed()) await route.continue().catch(error => {
+      if (!route.request().failure() && !page.isClosed()) throw error;
+    });
+  });
+  const move = rotation => page.evaluate(value => {
+    const host = window.__PANDOLAB_MAP_HOST__;
+    host.setViewState({ projection: 'globe', view: {
+      flatCenter: [0, 0], flatZoom: 1, globeRotation: value, globeZoom: 3,
+    } });
+    host.requestRepaint('terrain-priority-rotation');
+  }, rotation);
+  try {
+    const site = process.env.PANDOLAB_TEST_SITE_URL || `${baseURL}/`;
+    await page.goto(new URL('?renderer=webgl2&debug=1', site).href, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90_000 });
+    phase = 'old';
+    await move([0, 0, 0]);
+    await expect.poll(() => oldRequests.size, { timeout: 15_000 }).toBe(6);
+    phase = 'new'; changedAt = Date.now();
+    await move([-160, 0, 0]);
+    await expect.poll(() => newRequests.length, { timeout: 3_000 }).toBeGreaterThan(0);
+    await expect.poll(() => cancelled.length, { timeout: 3_000 }).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => window.__PANDOLAB_GPU_METRICS__?.terrainTargetTilesLoaded || 0),
+      { timeout: 45_000 }).toBeGreaterThan(0);
+    const metrics = await page.evaluate(() => window.__PANDOLAB_GPU_METRICS__);
+    expect(metrics.terrainFailureCount).toBe(0);
+    expect(errors).toEqual([]);
+    console.log(JSON.stringify({ newViewportRequestDelayMs: newRequests[0].delayMs, cancelled: cancelled.length,
+      loadedCurrentTiles: metrics.terrainTargetTilesLoaded }));
+    await page.screenshot({ path: test.info().outputPath('current-globe-tiles.png') });
+  } finally { release(); }
+});
+});
+// Preserved Viewer feature contract: terrain-interaction-streaming.spec.mjs
+featureTest.describe("terrain-interaction-streaming", () => {
+  const { expect,test } = __suiteDependency9;
+  const { terrainDemFragmentSource } = __suiteDependency10;
+  const { routeSyntheticDem } = __suiteDependency11;
+test.use({viewport:{width:1440,height:900},launchOptions:{args:process.platform==='win32'?['--use-angle=d3d11']:[]},trace:'off'});
+
+// Flat encoded elevation with deliberately coarse precomputed shade. The
+// production shader must derive the same detailed light before/during input.
+for (const version of [1,2]) test(`WebGL${version} prepared elevation keeps detailed shading without a later settle transition`,async({page})=>{
+  await page.goto('about:blank');
+  const rgba=await page.evaluate(({fragment,version})=>{
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=1;
+    const gl=canvas.getContext(version===2?'webgl2':'webgl');if(!gl)throw new Error(`WebGL${version} required`);
+    const compile=(type,source)=>{const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(shader));return shader;};
+    const program=gl.createProgram();
+    gl.attachShader(program,compile(gl.VERTEX_SHADER,`${version===2?'#version 300 es\n':''}precision highp float;${version===2?'in':'attribute'} vec2 aPosition;${version===2?'out':'varying'} vec2 vUv;${version===2?'out':'varying'} vec2 vLonLat;${version===2?'out':'varying'} float vDepth;void main(){gl_Position=vec4(aPosition,0,1);vUv=vec2(0.5);vLonLat=vec2(0);vDepth=1.0;}`));
+    gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const position=gl.getAttribLocation(program,'aPosition');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
+    const texture=(unit,width,height,rgba)=>{gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,gl.createTexture());gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,width,height,0,gl.RGBA,gl.UNSIGNED_BYTE,rgba);};
+    const pixels=new Uint8Array(4*4*4);for(let i=0;i<pixels.length;i+=4)pixels.set([46,224,128,255],i);
+    texture(0,4,4,pixels);texture(1,1,1,new Uint8Array([200,100,50,255]));
+    const loc=name=>gl.getUniformLocation(program,name);gl.uniform1i(loc('uTerrain'),0);gl.uniform1i(loc('uTint'),1);gl.uniform1i(loc('uMode'),1);gl.uniform2f(loc('uTextureSize'),4,4);gl.uniform2f(loc('uLevelSize'),43200,21600);gl.uniform1f(loc('uPhysicalStyle'),0);gl.uniform1f(loc('uLandPass'),1);gl.uniform1f(loc('uDarkTheme'),0);
+    gl.drawArrays(gl.TRIANGLES,0,3);const result=new Uint8Array(4);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,result);return [...result];
+  },{fragment:terrainDemFragmentSource(version),version});
+  expect(rgba).toEqual([148,148,148,255]);
+});
+
+for(const viewport of [{width:1440,height:900,dpr:1},{width:390,height:844,dpr:2}]) test.describe(`${viewport.width}px terrain streaming`,()=>{
+test.use({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:viewport.dpr,hasTouch:viewport.dpr===2});
+test('current-view detail reaches an actual WebGL frame while the pointer remains held',async({page})=>{
+  const manifest=await routeSyntheticDem(page);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(()=>{
+    window.__detailedTerrainDraws=[];
+    const proto=window.WebGL2RenderingContext.prototype,getLocation=proto.getUniformLocation,draw=proto.drawElements;
+    const programs=new WeakMap();
+    proto.getUniformLocation=function(program,name){const value=getLocation.call(this,program,name);if(name==='uLevelSize')programs.set(program,value);return value;};
+    proto.drawElements=function(...args){const result=draw.apply(this,args);if(window.__captureTerrainDraws){const program=this.getParameter(this.CURRENT_PROGRAM),location=program&&programs.get(program);if(location)window.__detailedTerrainDraws.push(this.getUniform(program,location)[0]);}return result;};
+  });
+  await page.goto('/?debug=1',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status),{timeout:30000}).toBe('ready');
+  const box=await page.locator('#map').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+8,box.y+box.height/2);
+  try{
+    await page.locator('#map').evaluate(map=>{const r=map.getBoundingClientRect();map.dispatchEvent(new window.WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2,deltaY:-1800}));});
+    await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.screenScale>=642&&s.terrainTargetLevel===5&&s.terrainRenderedLevel===5&&s.terrainDetailedShade&&s.mapReadiness.status==='ready';}),{timeout:5000}).toBe(true);
+    expect(errors).toEqual([]);
+  }finally{await page.mouse.up();}
+  if(viewport.dpr===1){
+    // Globe camera scale drives terrain preparation independently of scene reprojection.
+    const zoom=async scale=>{
+      await page.locator('#map').evaluate((map,scale)=>{const r=map.getBoundingClientRect(),current=window.__PANDOLAB_VIEWER__.rendererStats().screenScale;map.dispatchEvent(new window.WheelEvent('wheel',{bubbles:true,cancelable:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2,deltaY:-Math.log(scale/current)/.0013}));},scale);
+      await expect.poll(()=>page.evaluate(scale=>Math.abs(window.__PANDOLAB_VIEWER__.rendererStats().screenScale-scale),scale)).toBeLessThan(1);
+    };
+    await zoom(450);await zoom(620);
+    await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.screenScale>615&&s.screenScale<625&&s.mapReadiness.status==='ready';})).toBe(true);
+    await page.evaluate(()=>{window.__detailedTerrainDraws=[];window.__captureTerrainDraws=true;});
+    await zoom(650);
+    await expect.poll(()=>page.evaluate(width=>window.__detailedTerrainDraws.includes(width),manifest.levels[2].width),{timeout:3000}).toBe(true);
+    await zoom(3000);
+    await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.terrainTargetLevel===4&&s.mapReadiness.status==='ready';})).toBe(true);
+    await page.mouse.down();
+    try{
+      await zoom(3200);
+      await expect.poll(()=>page.evaluate(()=>{const s=window.__PANDOLAB_VIEWER__.rendererStats();return s.terrainTargetLevel===5&&s.terrainRenderedLevel===5&&s.mapReadiness.status==='ready';}),{timeout:3000}).toBe(true);
+    }finally{await page.mouse.up();}
+    expect(errors).toEqual([]);
+  }
+});
+});
+
+
+// Failures print the accepted C++ document and renderer state. Do not replace
+// real readiness, date, GPU or terrain assertions with this diagnostic.
+test.afterEach(async({page},info)=>{
+  if(info.status===info.expectedStatus)return;
+  const state=await page.evaluate(()=>{
+    const api=window.__PANDOLAB_VIEWER__,stats=api?.rendererStats?.()||{};
+    const fields=['renderer','mapReadiness','projectGeneration','countriesPublishedGeneration',
+      'canonicalMeshReady','projectRenderBlocked','surfacePresentation','terrainReady',
+      'terrainTargetLevel','terrainRenderedLevel','terrainTargetTilesLoaded','terrainTargetTileCount',
+      'terrainTilesLoading','terrainPendingDecodedBytes','screenScale','hydroPendingUploadCount',
+      'webglContextLost','temporalPresentationPending','requestedRevision','displayedRevision',
+      'firstBackgroundFrameMs','firstCountryPublishedMs','lastMeshPreparation'];
+    return {documentState:api?.documentState?.()||null,
+      builtinMonth:api?.builtinMonth?.()||null,
+      map:Object.fromEntries(fields.map(k=>[k,stats[k]??null])),
+      diagnostics:api?.diagnostics?.().slice(-12)||[],
+      status:document.getElementById('viewerStatus')?.dataset.ready};
+  }).catch(error=>({unavailable:String(error)}));
+  console.error('P7_FAILED_MAP_STATE '+JSON.stringify({test:info.title,state}).slice(0,14000));
 });
 });

@@ -1,8 +1,20 @@
-import { test, expect } from '@playwright/test';
-import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
-import { shiftTimelineMonth, timelineMonthLabel } from '../../shared/frontend/js/modules/timeline-controls.js';
-import { openReadyViewer, waitForCommittedMonth } from './helpers/viewer-acceptance.mjs';
+import { test as featureTest } from '@playwright/test';
+import * as __suiteDependency0 from "@playwright/test";
+import * as __suiteDependency1 from "../fixtures/viewer-project-package.mjs";
+import * as __suiteDependency2 from "../../shared/frontend/js/modules/timeline-controls.js";
+import * as __suiteDependency3 from "./helpers/viewer-acceptance.mjs";
+import * as __suiteDependency4 from "@playwright/test";
+import * as __suiteDependency5 from "../fixtures/viewer-project-package.mjs";
+import * as __suiteDependency6 from "./helpers/viewer-acceptance.mjs";
+import * as __suiteDependency7 from "@playwright/test";
+import * as __suiteDependency8 from "@playwright/test";
 
+// Preserved Viewer feature contract: viewer-calendar.spec.mjs
+featureTest.describe("viewer-calendar", () => {
+  const {  test, expect  } = __suiteDependency0;
+  const {  createViewerProjectPackage  } = __suiteDependency1;
+  const {  shiftTimelineMonth, timelineMonthLabel  } = __suiteDependency2;
+  const {  openReadyViewer, waitForCommittedMonth  } = __suiteDependency3;
 // Keep renderer-specific fixtures and failure evidence scoped to each contract family.
 
 
@@ -300,4 +312,511 @@ test('P4-4 actual country birth and extinction refresh map selection and open se
   expect(errors).toEqual([]);
 });
 
+});
+});
+// Preserved Viewer feature contract: viewer-temporal-regressions.spec.mjs
+featureTest.describe("viewer-temporal-regressions", () => {
+  const {  test, expect  } = __suiteDependency4;
+  const {  createViewerProjectPackage  } = __suiteDependency5;
+  const {  waitForCommittedMonth  } = __suiteDependency6;
+// Keep renderer-specific fixtures and failure evidence scoped to each contract family.
+
+
+test.describe("Canonical dated document/frame admission", () => {
+// Worker-scoped launch settings belong at file scope. The Canvas cases still
+// select the supported Canvas renderer explicitly through the page query.
+test.use({trace:'off',actionTimeout:15000,launchOptions:{args:[
+  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--disable-gpu-sandbox',
+]}});
+
+async function start(page,renderer){
+  if(renderer==='canvas2d'){
+    await page.addInitScript(()=>Object.defineProperty(window,'OffscreenCanvas',
+      {configurable:true,value:undefined}));
+  }
+  await page.clock.setFixedTime(new Date(2026,9,24,12));
+  await page.route('**/modules/viewer-composition.js*',async route=>{
+    const source=await(await route.fetch()).text();
+    const boot='  const disposables=[',debug='productMode,documentState:',reader='()=>map.prepareBuiltinProject(month,{isCurrent,transition})';
+    for(const anchor of [boot,debug,reader])expect(source.includes(anchor),`Missing observation boundary: ${anchor}`).toBe(true);
+    await route.fulfill({contentType:'text/javascript',body:source
+      .replace(boot,`  window.__temporalPackets=[];
+  documentSession.commandOwner.subscribeTransitions((packet,operation)=>{
+    if(['core.document-load','core.document-load-baseline','core.document-temporal-candidate-adopt'].includes(operation))
+      window.__temporalPackets.push({operation,fullProject:Object.hasOwn(packet,'project'),
+        geometryCount:packet.delta?.geometries?.length??null,month:packet.state?.timelineCursor});
+  });
+  const disposables=[`)
+      .replace(debug,'cameraSnapshot:()=>structuredClone({projection:map.viewState.projection,view:map.viewState.view}),'+debug)
+      .replace(reader,'async()=>{if(window.__temporalRead)await window.__temporalRead(month);return map.prepareBuiltinProject(month,{isCurrent,transition});}')});
+  });
+  // This suite verifies document and frame admission. Full DEM streaming is
+  // covered by the dedicated terrain scenarios.
+  await page.goto('/?debug=1'+(renderer==='webgl'?'':'&renderer=canvas')
+    +(renderer==='canvas-worker'?'&demTerrain=raster':''));
+  await waitForCommittedMonth(page,'2026-10');
+  if (renderer !== 'canvas-worker') await expect.poll(() => page.evaluate(() => {
+    const state = window.__PANDOLAB_VIEWER__.rendererStats();
+    return ['ready', 'limited'].includes(state.mapReadiness.status) && !state.canvasWorkerBusy;
+  }), { timeout: 90000 }).toBe(true);
+}
+for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1280,390])test.describe(`${renderer} ${width}px`,()=>{
+  test.use({viewport:{width,height:844},hasTouch:width===390});
+  test('dedicated temporal path presents dated frames without another whole-document load',async({page},testInfo)=>{
+    test.setTimeout(210000);
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await start(page,renderer);
+    const backend=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().renderer);
+    if(renderer==='webgl')expect(backend).toMatch(/^webgl[12]$/);
+    else expect(backend,'Canvas Worker and Canvas2D must not silently substitute').toBe(renderer);
+    const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot());
+    const identity=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
+    const activate=async id=>{const control=page.locator('#'+id);if(width===390)await control.tap();else await control.click();};
+    await activate('timelinePreviousYear');await waitForCommittedMonth(page,'2025-12');
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
+    await activate('timelineNextYear');await waitForCommittedMonth(page,'2026-10');
+    const returned=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+    expect(returned.mapReadiness.mapReady).toBe(true);
+    expect(returned.countriesPublishedGeneration).toBe(returned.projectGeneration);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
+    await expect(page.locator('#viewerInitialPreview')).toBeHidden();
+    await expect(page.locator('#viewer')).toHaveAttribute('data-initial-loading','false');
+    // A newer Core cursor is not sufficient proof of a painted frame.
+    await expect.poll(()=>page.evaluate(()=>{
+      const stats=window.__PANDOLAB_VIEWER__.rendererStats();
+      return !!(['ready','limited'].includes(stats.mapReadiness?.status)
+        && !stats.projectRenderBlocked
+        && stats.countriesPublishedGeneration===stats.projectGeneration
+        && stats.canonicalMeshReady
+        && stats.displayedGeometryRevision===stats.committedGeometryRevision
+        && (stats.renderer!=='canvas-worker'||!stats.canvasWorkerBusy
+          && stats.canvasDisplayedStyleRevision===stats.canvasStyleRevision));
+    }),{timeout:45000,message:'Current dated frame must be presented by the selected renderer'}).toBe(true);
+    const packets=await page.evaluate(()=>window.__temporalPackets);
+    expect(packets.filter(row=>row.operation==='core.document-load-baseline')).toHaveLength(0);
+    const adoptions=packets.filter(row=>row.operation==='core.document-temporal-candidate-adopt');
+    expect(adoptions.filter(row=>row.fullProject)).toHaveLength(1);
+    const transitions=adoptions.filter(row=>!row.fullProject);
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId)).toBe(identity);
+    expect(transitions.map(row=>row.month)).toEqual(['2025-12','2026-10']);
+    expect(transitions.every(row=>row.fullProject===false&&Number.isInteger(row.geometryCount))).toBe(true);
+    expect(errors).toEqual([]);
+    await testInfo.attach('temporal-packets',{body:JSON.stringify({renderer,backend,width,packets,renderedVerified:true}),contentType:'application/json'});
+  });
+});
+
+test('temporal failures and superseded source reads preserve the last displayed date',async({page})=>{
+  test.setTimeout(150000);
+  await start(page,'canvas-worker');
+  const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot());
+  await page.evaluate(()=>{window.__temporalRead=async()=>{throw Error('temporal source unavailable');};});
+  await page.locator('#timelinePreviousYear').click();
+  await expect(page.locator('#timelineDateError')).toHaveText('temporal source unavailable');
+  await waitForCommittedMonth(page,'2026-10');await page.keyboard.press('Escape');
+  await page.evaluate(()=>{window.__temporalRead=month=>month==='2025-12'?new Promise(resolve=>{window.__releaseTemporal=resolve;}):Promise.resolve();});
+  await page.locator('#timelinePreviousYear').click();
+  await page.waitForFunction(()=>typeof window.__releaseTemporal==='function');
+  try{await page.locator('#timelinePreviousYear').click();}
+  finally{await page.evaluate(()=>window.__releaseTemporal());}
+  await waitForCommittedMonth(page,'2024-12');
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
+  const transitions=await page.evaluate(()=>window.__temporalPackets.filter(row=>row.operation==='core.document-temporal-candidate-adopt'&&!row.fullProject));
+  expect(transitions.map(row=>row.month)).toEqual(['2024-12']);
+});
+
+
+test('Canvas user-file opening retains full document admission after a builtin delta transition',async({page})=>{
+  test.setTimeout(150000);
+  await start(page,'canvas-worker');
+  await page.locator('#timelinePreviousYear').click();await waitForCommittedMonth(page,'2025-12');
+  const previous=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
+  const fixture=await createViewerProjectPackage('시점 전환 후 사용자 파일');
+  await page.locator('#projectFileInput').setInputFiles({name:'temporal-user-file.gpkg',
+    mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset),
+    {timeout:60000}).toBe(fixture.project.baseDataset);
+  try {
+    // Core admits the file before Canvas can paint its new generation. Require
+    // the actual new-country bitmap, rather than the old 8s status-only gate.
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=window.__PANDOLAB_VIEWER__.rendererStats();
+      return s.countriesPublishedGeneration===s.projectGeneration&&s.mapReadiness.mapReady;
+    }),{timeout:60000}).toBe(true);
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:15000});
+  } catch(error) {
+    const diagnostic=await page.evaluate(()=>{
+      const api=window.__PANDOLAB_VIEWER__,s=api?.rendererStats?.()||{},m=window.__PANDOLAB_GPU_METRICS__||{};
+      const keys=['renderer','mapReadiness','projectGeneration','countriesPublishedGeneration',
+        'canonicalMeshReady','projectRenderBlocked','surfacePresentation','terrainReady','terrainFailed',
+        'canvasWorkerBusy','canvasWorkerHasPendingFrame','canvasWorkerStaleFrameCount',
+        'canvasStyleRevision','canvasDisplayedStyleRevision','canvasWorkerMessagesByType',
+        'requestedRevision','displayedRevision','pendingCountryCount','committedGeometryRevision',
+        'displayedGeometryRevision','firstBackgroundFrameMs','firstCountryPublishedMs',
+        'gpuRecovery','mapHost'];
+      return {status:document.querySelector('#viewerStatus')?.dataset.ready,
+        map:Object.fromEntries(keys.map(key=>[key,s[key]??m[key]??null])),
+        document:api?.documentState?.(),
+        diagnostics:api?.diagnostics?.()?.slice(-10)};
+    });
+    console.error('CANVAS_DATE_GPKG_FRAME_DIAGNOSTIC '+JSON.stringify(diagnostic).slice(0,15000));
+    throw error;
+  }
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.mapReady)).toBe(true);
+  const loaded=await page.evaluate(()=>({id:window.__PANDOLAB_VIEWER__.documentSnapshot().documentId,
+    packet:window.__temporalPackets.at(-1)}));
+  expect(loaded.id).not.toBe(previous);
+  expect(loaded.packet.operation).toBe('core.document-load');
+  expect(loaded.packet.fullProject).toBe(true);
+});
+});
+
+
+test.describe("Unchanged resource reuse on date switch", () => {
+test.use({viewport:{width:1280,height:800},trace:'off'});
+
+test('P2-4 one accepted year switch loads physical resources once and preserves map/search state',async({page})=>{
+  test.setTimeout(145000);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.clock.setFixedTime(new Date(2026,9,31,12));
+  await page.addInitScript(()=>{
+    window.__P24_COUNTS__={land:0,physical:0,updates:0};
+  });
+  await page.route('**/modules/viewer-map.js*',async route=>{
+    const response=await route.fetch(),source=await response.text();
+    const publicPorts='loadPhysicalResources:physicalResources.loadPhysicalData,loadPhysicalLandMask:physicalResources.loadPhysicalLandMask,';
+    const update='async function update() {';
+    if(source.split(publicPorts).length!==2||source.split(update).length!==2)
+      throw Error('P2-4 viewer-map instrumentation port changed.');
+    await route.fulfill({response,body:source.replace(update,
+      update+'\n    window.__P24_COUNTS__.updates++;').replace(publicPorts,
+      "loadPhysicalResources:(...args)=>{window.__P24_COUNTS__.physical++;return physicalResources.loadPhysicalData(...args);},"+
+      "loadPhysicalLandMask:(...args)=>{window.__P24_COUNTS__.land++;return physicalResources.loadPhysicalLandMask(...args);},")});
+  });
+  await page.goto('/?debug=1');
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.visibleTerritorialCount())).toBeGreaterThan(0);
+  const initial=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+  const expected={land:1,physical:1,updates:2};
+  for(const month of ['2025-12','2026-10']){
+    await page.evaluate(()=>{window.__P24_COUNTS__={land:0,physical:0,updates:0};});
+    const button=month==='2025-12'?'#timelinePreviousYear':'#timelineNextYear';
+    await page.locator(button).click();
+    await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),
+      {timeout:80000}).toBe(month);
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+    await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.visibleTerritorialCount())).toBeGreaterThan(0);
+    // The post-presentation handler has had a chance to run. Do not sleep.
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const counts=await page.evaluate(()=>({...window.__P24_COUNTS__}));
+    console.log('P2_4_TRANSITION_COUNTS '+JSON.stringify({month,...counts}));
+    expect(counts,{message:'A completed map already fetched physical land and resources in setSession'}).toEqual(expected);
+    const cursor=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState().timelineCursor);
+    expect(cursor).toBe(month);
+  }
+  const restored=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
+  expect(restored.territorialEntities.map(x=>x.id).sort()).toEqual(initial.territorialEntities.map(x=>x.id).sort());
+  await page.locator('#objectSearchBtn').click();
+  await page.locator('#objectSearchInput').fill('대한민국');
+  await expect(page.locator('#objectSearchResults button').first()).toBeVisible({timeout:20000});
+  expect(errors).toEqual([]);
+});
+});
+});
+// Preserved Viewer feature contract: temporal-map-presentation.spec.mjs
+featureTest.describe("temporal-map-presentation", () => {
+  const { test,expect } = __suiteDependency7;
+test.use({viewport:{width:960,height:640},trace:'off'});
+
+for (const mode of ['webgl','canvas','canvas-worker']) test(`temporal map holds its last complete ${mode} frame until its successor is presented`,async({page})=>{
+  test.setTimeout(180000);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const consoleErrors=[];page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
+  // Keep this measured transition on one source snapshot when another local
+  // task refreshes the shared development server.
+  await page.route('**/__frontend/reload.js',route=>route.fulfill({contentType:'text/javascript',body:''}));
+  await page.addInitScript(mode=>{
+    const getContext=window.HTMLCanvasElement.prototype.getContext;
+    window.HTMLCanvasElement.prototype.getContext=function(type,...args){
+      if(String(type).includes('webgl') && mode.startsWith('canvas'))return null;
+      return getContext.call(this,type,...args);
+    };
+    if(mode==='canvas'){
+      const WorkerClass=window.Worker;
+      window.Worker=class extends WorkerClass{constructor(url,options){if(String(url).includes('canvas-render-worker'))throw new Error('Canvas2D test path');super(url,options);}};
+    }
+  },mode);
+  await page.route('**/modules/gpu-map-renderer.js*',async route=>{
+    const response=await route.fetch(),source=await response.text();
+    const marker="const nextDependencies = { source: 'country-mesh',";
+    expect(source).toContain(marker);
+    const proofMarker='const temporalPending =';
+    expect(source).toContain(proofMarker);
+    const instrumented=source.replace(proofMarker,`window.__physicalFrameProof=()=>({expected:getPhysicalContextState(),
+      actual:(renderScene?.polygons||[]).filter(packet=>['physical-land','physical-water'].includes(packet.role)).map(packet=>({role:packet.role,revision:packet.geometryRevision})),
+      matches:physicalSceneMatchesContext(renderScene,getPhysicalContextState()),at:performance.now()});\n`+proofMarker);
+    await route.fulfill({response,body:instrumented.replace(marker,`
+      window.__temporalWaterPresented=()=>preparedBaseScene?.physicalWaterItems.length>0
+        && preparedBaseScene.physicalWaterItems.every(({packet})=>polygonOverlayPass.hasPreparedResource(packet))
+        && lastBaseSceneResult?.overlayRenderedKeys.includes('physical-water');
+      if (window.__temporalGate) await window.__temporalGate();
+    `+marker)});
+  });
+  await page.route('**/modules/render-scene.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),marker='if (revision !== preparationRevision) return;';
+    expect(source).toContain(marker);
+    await route.fulfill({response,body:source.replace(marker,marker+`\n(window.__physicalBatches||=[]).push({at:performance.now(),keys:groups.map(value=>value.request.cacheKey),stats:result.stats});`)});
+  });
+  await page.route('**/modules/physical-resources.js*',async route=>{
+    const response=await route.fetch(),source=await response.text(),start='async function preparePhysicalContext(month,{isCurrent=()=>true}={}) {',done='assertCurrent();return result;';
+    expect(source).toContain(start);expect(source).toContain(done);
+    await route.fulfill({response,body:source.replace(start,start+`\n(window.__physicalRequests||=[]).push({month,phase:'start',at:performance.now()});`).replace(done,`(window.__physicalRequests||=[]).push({month,phase:'ready',at:performance.now()});`+done)});
+  });
+  await page.route('**/modules/country-index.js*',async route=>{
+    const response=await route.fetch(),source=await response.text();
+    const marker='function scheduleCountryLabelAnchors(ids = null, delay = 30) {';
+    expect(source).toContain(marker);
+    await route.fulfill({response,body:source.replace(marker,marker+'\nwindow.__pendingCountryAnchors = () => pendingCountryLabelAnchors.size;')});
+  });
+  await page.route('**/modules/rendering-domain.js*',async route=>{
+    const response=await route.fetch(),source=await response.text();
+    const marker='const canPresentFrame =';
+    expect(source).toContain(marker);
+    await route.fulfill({response,body:source.replace(marker,
+      "window.__temporalInvalidate = () => { invalidateLabels('country-label-anchor-ready'); invalidateSelection('selection-ready'); invalidateGpuInteraction('highlight-ready'); };\n"+marker)});
+  });
+  await page.goto('/?debug=1');
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+  try {
+    await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().mapReadiness.status),{timeout:90000}).toMatch(/ready|limited/);
+  } catch(error) {
+    console.log('startup errors',errors,consoleErrors);
+    console.log('initial readiness',await page.evaluate(()=>{const stats=window.__PANDOLAB_VIEWER__.rendererStats();
+      return {readiness:stats.mapReadiness,terrainReady:stats.terrainReady,terrainFailed:stats.terrainFailed,renderer:stats.renderer};}));throw error;
+  }
+  await expect.poll(()=>page.evaluate(()=>window.__pendingCountryAnchors?.()),{timeout:45000}).toBe(0);
+  const image=async()=>{
+    // Read WebGL through the compositor without changing its context options.
+    // Read Canvas directly: toggling visibility for a screenshot can
+    // retain its earlier compositor image even after a new bitmap is accepted.
+    const png=mode==='webgl'?await page.locator('.gpu-map-canvas').screenshot({style:
+      'body * {visibility:hidden!important} .gpu-map-canvas {visibility:visible!important}'}):null;
+    return page.evaluate(async encoded=>{
+    const bitmap=encoded?await createImageBitmap(await (await fetch('data:image/png;base64,'+encoded)).blob()):document.querySelector('.gpu-map-canvas');
+    const snapshot=document.createElement('canvas');snapshot.width=bitmap.width;snapshot.height=bitmap.height;
+    const context=snapshot.getContext('2d');context.drawImage(bitmap,0,0);bitmap.close?.();
+    const pixels=context.getImageData(0,0,snapshot.width,snapshot.height).data;
+    let hash=2166136261;for(let i=0;i<pixels.length;i++)hash=Math.imul(hash^pixels[i],16777619);
+    const previous=window.__temporalPixels;let different=0,maxDelta=0;
+    if(previous&&previous.length===pixels.length)for(let i=0;i<pixels.length;i++){if(previous[i]!==pixels[i])different++;maxDelta=Math.max(maxDelta,Math.abs(previous[i]-pixels[i]));}
+    if(!previous)window.__temporalPixels=pixels.slice();
+    return {hash:hash>>>0,width:snapshot.width,height:snapshot.height,different,maxDelta};
+    },png?.toString('base64'));
+  };
+  const date=await page.locator('#timelineDateButtonText').textContent();
+  const labelPositions=()=>page.locator('#map .territorial-label-item, #map .user-label').evaluateAll(nodes=>
+    nodes.map(node=>({text:node.textContent,transform:node.getAttribute('transform')})));
+  // General readiness precedes asynchronous borders and selected historical
+  // water. Compare retained frames only after those pixels have been submitted.
+  const waitForCompleteScene=async()=>{
+    if(mode!=='webgl')return;
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=window.__PANDOLAB_VIEWER__.rendererStats();
+      return window.__temporalWaterPresented() && s.countrySharedBoundaryReady
+        && !s.countrySharedBoundaryReplacementPending && s.surfacePresentation.quality==='canonical'
+        && s.sceneCache.valid && !s.sceneCache.dirty;
+    }),{timeout:45000}).toBe(true);
+  };
+  await page.evaluate(()=>{window.__temporalHeld=[];window.__temporalGate=()=>new Promise((resolve,reject)=>window.__temporalHeld.push({resolve,reject}));});
+  await page.locator('#timelineDateButton').click();
+  await page.locator('#timelineViewUnit').selectOption('month');
+  await page.locator('#timelineYearInput').fill('1922');
+  await page.locator('#timelineMonthInput').selectOption('12');
+  await waitForCompleteScene();
+  const before=await image(),labels=await page.locator('#map').innerText(),positions=await labelPositions();
+  expect(positions.length).toBeGreaterThan(0);
+  await page.screenshot({path:test.info().outputPath(`before-${mode}.png`)});
+  await page.locator('#timelineGoBtn').click();
+  await expect.poll(()=>page.evaluate(()=>window.__temporalHeld.length)).toBe(1);
+  await expect(page.locator('#viewerStatus')).toHaveText('다음 시점 준비 중…');
+  await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
+  await page.evaluate(()=>window.__temporalInvalidate());
+  const mapBox=await page.locator('#map').boundingBox();
+  const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().screenScale);
+  await page.mouse.move(mapBox.x+mapBox.width/2,mapBox.y+mapBox.height/2);
+  await page.mouse.down();await page.mouse.move(mapBox.x+mapBox.width/2+100,mapBox.y+mapBox.height/2,{steps:5});await page.mouse.up();
+  await page.mouse.wheel(0,-120);
+  expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats().screenScale)).toBe(camera);
+  expect(await page.locator('#timelineDateButtonText').textContent()).toBe(date);
+  const held=await image();console.log('temporal pixel comparison',JSON.stringify({before,held}));
+  // Canvas alpha round-trips may differ by one byte at antialiased edges.
+  // A partially replaced or cleared frame exceeds this bound immediately.
+  if(mode==='webgl')expect(held.hash).toBe(before.hash);
+  else expect(held.maxDelta).toBeLessThanOrEqual(1);
+  expect(await page.locator('#map').innerText()).toBe(labels);
+  expect(await labelPositions()).toEqual(positions);
+  await page.evaluate(()=>{window.__temporalGate=null;window.__temporalHeld.shift().resolve();});
+  try {
+    await expect(page.locator('#timelineDateButtonText')).toHaveText('1922년 12월',{timeout:60000});
+  } catch(error) {
+    console.log('transition errors',errors,consoleErrors);
+    console.log('transition readiness',await page.evaluate(()=>{const stats=window.__PANDOLAB_VIEWER__.rendererStats();return {readiness:stats.mapReadiness,generation:stats.projectGeneration,blocked:stats.projectRenderBlocked,terrain:stats.terrainReady,boundary:stats.countrySharedBoundaryReady,physical:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,mesh:stats.lastMeshPreparation};}));
+    throw error;
+  }
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+  await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
+  const physical=await page.evaluate(()=>({frame:window.__physicalFrameProof(),batches:window.__physicalBatches,requests:window.__physicalRequests,
+    mesh:window.__PANDOLAB_VIEWER__.rendererStats().lastMeshPreparation}));
+  expect(physical.frame.matches).toBe(true);
+  expect(physical.frame.expected.landRevision).toMatch(/^[a-f0-9]{64}$/);
+  expect(physical.frame.actual.find(row=>row.role==='physical-land')?.revision).toBe(physical.frame.expected.landRevision);
+  expect(physical.frame.actual.map(row=>row.role).sort()).toEqual(['physical-land','physical-water']);
+  console.log('temporal physical preparation',mode,JSON.stringify({matches:physical.frame.matches,landRevision:physical.frame.expected.landRevision,
+    roles:physical.frame.actual.map(row=>row.role),requests:physical.requests,
+    batches:physical.batches.map(row=>({at:row.at,count:row.keys.length,physicalKeys:row.keys.filter(key=>key.startsWith('polygon:physical-')).map(key=>key.split('::')[0]),stats:row.stats})),mesh:physical.mesh}));
+  expect((await image()).hash).not.toBe(before.hash);
+  if(mode==='webgl'){
+    await page.locator('#timelineDateButton').click();
+    await page.mouse.move(20,20);
+    await waitForCompleteScene();
+    const committed=await image();
+    await page.evaluate(()=>{window.__temporalGate=()=>{window.__temporalGate=null;return Promise.reject(new Error('controlled temporal preparation failure'));};});
+    await page.locator('#timelineNextMonth').click();
+    await expect(page.locator('#timelineDateError')).toContainText('controlled temporal preparation failure',{timeout:45000});
+    expect(await page.locator('#timelineDateButtonText').textContent()).toBe('1922년 12월');
+    expect((await image()).hash).toBe(committed.hash);
+    await page.locator('#timelineYearInput').fill('1922');
+    await page.locator('#timelineMonthInput').selectOption('12');
+    await page.evaluate(()=>{window.__temporalHeld=[];window.__temporalGate=()=>new Promise(resolve=>window.__temporalHeld.push({resolve}));});
+    await page.locator('#timelineNextMonth').click();
+    await expect.poll(()=>page.evaluate(()=>window.__temporalHeld.length)).toBe(1);
+    await page.locator('#timelineNextMonth').click();
+    await page.evaluate(()=>window.__temporalHeld.shift().resolve());
+    await expect.poll(()=>page.evaluate(()=>window.__temporalHeld.length),{timeout:45000}).toBe(1);
+    expect(await page.locator('#timelineDateButtonText').textContent()).toBe('1922년 12월');
+    expect((await image()).hash).toBe(committed.hash);
+    await page.evaluate(()=>{window.__temporalGate=null;window.__temporalHeld.shift().resolve();});
+    await expect(page.locator('#timelineDateButtonText')).toHaveText('1923년 2월',{timeout:45000});
+    expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month)).toBe('1923-02');
+    await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
+    await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
+    const preparation=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+    await page.locator('#timelineGoBtn').click();
+    await expect(page.locator('#timelinePopover')).toBeHidden({timeout:45000});
+    const reused=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+    expect(reused.countryMeshRebuildCount||0).toBe(preparation.countryMeshRebuildCount||0);
+    expect(reused.countryMeshReuseCount||0).toBeGreaterThan(preparation.countryMeshReuseCount||0);
+  }
+  const beforeDrag=await image(),positionsBeforeDrag=await labelPositions();
+  await page.mouse.move(mapBox.x+mapBox.width/2,mapBox.y+mapBox.height/2);
+  await page.mouse.down();await page.mouse.move(mapBox.x+mapBox.width/2+100,mapBox.y+mapBox.height/2,{steps:5});await page.mouse.up();
+  await expect.poll(labelPositions).not.toEqual(positionsBeforeDrag);
+  await expect.poll(async()=> (await image()).hash,{timeout:mode==='canvas-worker'?60000:15000}).not.toBe(beforeDrag.hash);
+  const committedFrames=await page.locator('#map [data-visual-frame-id]').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('data-visual-frame-id')));
+  expect(new Set(committedFrames).size).toBe(1);
+  expect((await image()).hash).not.toBe(beforeDrag.hash);
+  await page.screenshot({path:test.info().outputPath(`temporal-${mode}.png`)});
+  expect(errors).toEqual([]);
+});
+});
+// Preserved Viewer feature contract: resource-dependency-reuse.spec.mjs
+featureTest.describe("resource-dependency-reuse", () => {
+  const { test,expect } = __suiteDependency8;
+const stats=page=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
+async function month(page,value){
+  const [year,month]=value.split('-');
+  if (!await page.locator('#timelineViewUnit').isVisible()) await page.locator('#timelineDateButton').click();
+  await page.locator('#timelineViewUnit').selectOption('month');
+  await page.locator('#timelineYearInput').fill(year);
+  await page.locator('#timelineMonthInput').selectOption(String(Number(month)));
+  await page.locator('#timelineGoBtn').click();
+  await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.builtinMonth().month),{timeout:60000}).toBe(value);
+  await expect(page.locator('#timelineDateButton')).toHaveAttribute('aria-expanded', 'false', { timeout: 60000 });
+  await expect.poll(async()=>{const s=await stats(page);return s.countriesPublishedGeneration===s.projectGeneration;}).toBe(true);
+}
+
+for(const renderer of ['webgl2','canvas'])test(`${renderer}: unchanged date queries retain prepared resources`,async({page},info)=>{
+  test.setTimeout(120000);
+  const errors=[],workers=[],requests=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('worker',w=>workers.push(w.url()));
+  page.on('request',r=>{if(r.url().includes('/assets/data/'))requests.push(r.url());});
+  await page.addInitScript(()=>{
+    window.__resourceLargeBufferUploads=0;
+    for(const type of [window.WebGLRenderingContext,window.WebGL2RenderingContext]){
+      if(!type)continue;
+      const original=type.prototype.bufferData;
+      type.prototype.bufferData=function(target,data,...args){
+        if((typeof data==='number'?data:data?.byteLength)>=256*1024)window.__resourceLargeBufferUploads++;
+        return original.call(this,target,data,...args);
+      };
+    }
+  });
+  await page.goto(`/?debug=1&renderer=${renderer}`,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
+  await page.evaluate(()=>{const h=window.__PANDOLAB_MAP_HOST__;h.setViewState({projection:'globe',view:{...h.getViewState(),globeRotation:[-24.6,-38.5,0],globeZoom:5}});h.requestRepaint('dependency-regression');});
+  await expect.poll(async()=>(await stats(page)).hydroPacksLoaded,{timeout:30000}).toBeGreaterThan(0);
+  const currentMonth = await page.evaluate(() => window.__PANDOLAB_VIEWER__.documentState().timelineCursor);
+  const [year, monthNumber] = currentMonth.split('-').map(Number);
+  const previousMonth = `${monthNumber === 1 ? year - 1 : year}-${String(monthNumber === 1 ? 12 : monthNumber - 1).padStart(2, '0')}`;
+  await month(page,previousMonth);
+  await expect.poll(async()=>(await stats(page)).countrySharedBoundaryReady,{timeout:30000}).toBe(true);
+  if(renderer==='webgl2'){
+    await expect.poll(async()=>(await stats(page)).terrainTilesLoading).toBe(0);
+    await expect.poll(async()=>(await stats(page)).terrainPendingDecodedBytes).toBe(0);
+    await expect.poll(async()=>(await stats(page)).hydroPendingUploadCount).toBe(0);
+  }
+  const before=await stats(page),requestCount=requests.length,workerCount=workers.length;
+  const uploads=await page.evaluate(()=>window.__resourceLargeBufferUploads);
+  await month(page,currentMonth);
+  await month(page,previousMonth);
+  const after=await stats(page);
+  expect(after.renderer).toBe(renderer==='canvas'?'canvas-worker':renderer);
+  expect(after.countryMeshRebuildCount).toBe(before.countryMeshRebuildCount);
+  expect(after.countryBoundaryPrepareCount).toBe(before.countryBoundaryPrepareCount);
+  expect(after.hydroUploadBytes).toBe(before.hydroUploadBytes);
+  expect(after.hydroPacksLoaded).toBe(before.hydroPacksLoaded);
+  expect(after.terrainUploadCount).toBe(before.terrainUploadCount);
+  expect(workers.slice(workerCount)).toEqual([]);
+  expect(requests.slice(requestCount)).toEqual([]);
+  expect(await page.evaluate(()=>window.__resourceLargeBufferUploads)).toBe(uploads);
+  if(renderer==='webgl2'){
+    await page.evaluate(()=>{window.__resourceContext=document.querySelector('#viewerCanvas').getContext('webgl2').getExtension('WEBGL_lose_context');window.__resourceContext.loseContext();});
+    await expect.poll(async()=>(await stats(page)).webglContextLost).toBe(true);
+    await page.evaluate(()=>window.__resourceContext.restoreContext());
+    await expect.poll(async()=>(await stats(page)).webglContextLost,{timeout:30000}).toBe(false);
+    await expect.poll(async()=>{const s=await stats(page);return s.countriesPublishedGeneration===s.projectGeneration;},{timeout:30000}).toBe(true);
+    await expect.poll(async()=>(await stats(page)).terrainTilesLoading).toBe(0);
+    await expect.poll(async()=>(await stats(page)).terrainPendingDecodedBytes).toBe(0);
+    await expect.poll(async()=>(await stats(page)).hydroPendingUploadCount).toBe(0);
+    const restoredUploads=await page.evaluate(()=>window.__resourceLargeBufferUploads);
+    expect(restoredUploads).toBeGreaterThan(uploads);
+    await month(page,currentMonth);
+    expect(await page.evaluate(()=>window.__resourceLargeBufferUploads)).toBe(restoredUploads);
+  }
+  expect(errors).toEqual([]);
+  await page.screenshot({path:info.outputPath('date-reuse.png')});
+  console.log(JSON.stringify({renderer,before:{mesh:before.countryMeshRebuildCount,boundary:before.countryBoundaryPrepareCount,hydro:before.hydroUploadBytes,terrain:before.terrainUploadCount},after:{mesh:after.countryMeshRebuildCount,boundary:after.countryBoundaryPrepareCount,hydro:after.hydroUploadBytes,terrain:after.terrainUploadCount},additionalRequests:requests.length-requestCount,additionalWorkers:workers.length-workerCount}));
+});
+
+
+// Failures print the accepted C++ document and renderer state. Do not replace
+// real readiness, date, GPU or terrain assertions with this diagnostic.
+test.afterEach(async({page},info)=>{
+  if(info.status===info.expectedStatus)return;
+  const state=await page.evaluate(()=>{
+    const api=window.__PANDOLAB_VIEWER__,stats=api?.rendererStats?.()||{};
+    const fields=['renderer','mapReadiness','projectGeneration','countriesPublishedGeneration',
+      'canonicalMeshReady','projectRenderBlocked','surfacePresentation','terrainReady',
+      'terrainTargetLevel','terrainRenderedLevel','terrainTargetTilesLoaded','terrainTargetTileCount',
+      'terrainTilesLoading','terrainPendingDecodedBytes','screenScale','hydroPendingUploadCount',
+      'webglContextLost','temporalPresentationPending','requestedRevision','displayedRevision',
+      'firstBackgroundFrameMs','firstCountryPublishedMs','lastMeshPreparation'];
+    return {documentState:api?.documentState?.()||null,
+      builtinMonth:api?.builtinMonth?.()||null,
+      map:Object.fromEntries(fields.map(k=>[k,stats[k]??null])),
+      diagnostics:api?.diagnostics?.().slice(-12)||[],
+      status:document.getElementById('viewerStatus')?.dataset.ready};
+  }).catch(error=>({unavailable:String(error)}));
+  console.error('P7_FAILED_MAP_STATE '+JSON.stringify({test:info.title,state}).slice(0,14000));
+});
 });

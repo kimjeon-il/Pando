@@ -1,9 +1,24 @@
-import { test, expect } from '@playwright/test';
-import { waitForCanonicalMap } from './helpers/viewer-acceptance.mjs';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { createHash } from 'node:crypto';
+import { test as featureTest } from '@playwright/test';
+import * as __suiteDependency0 from "@playwright/test";
+import * as __suiteDependency1 from "./helpers/viewer-acceptance.mjs";
+import * as __suiteDependency2 from "node:fs";
+import * as __suiteDependency3 from "node:path";
+import * as __suiteDependency4 from "node:crypto";
+import * as __suiteDependency5 from "@playwright/test";
+import * as __suiteDependency6 from "node:fs/promises";
+import * as __suiteDependency7 from "node:assert/strict";
+import * as __suiteDependency8 from "node:fs/promises";
+import * as __suiteDependency9 from "node:http";
+import * as __suiteDependency10 from "node:path";
+import * as __suiteDependency11 from "@playwright/test";
 
+// Preserved Viewer feature contract: viewer-renderer-recovery.spec.mjs
+featureTest.describe("viewer-renderer-recovery", () => {
+  const {  test, expect  } = __suiteDependency0;
+  const {  waitForCanonicalMap  } = __suiteDependency1;
+  const {  mkdirSync, writeFileSync  } = __suiteDependency2;
+  const {  join, resolve  } = __suiteDependency3;
+  const {  createHash  } = __suiteDependency4;
 // Keep renderer-specific fixtures and failure evidence scoped to each contract family.
 
 
@@ -81,5 +96,224 @@ for(const backend of ['webgl2','webgl1'])test(`viewer acceptance ${backend}: rep
   result.errors=errors;try{const s=await state(page);delete s.document;result.final=s;await page.screenshot({path:join(dir,'final.png'),timeout:5000});}catch(error){result.captureError=String(error);}
   writeFileSync(join(dir,'result.json'),JSON.stringify(result,null,2));console.log('VIEWER_ACCEPTANCE '+JSON.stringify(result));
  }
+});
+});
+});
+// Preserved Viewer feature contract: gpu-scene-staging.spec.mjs
+featureTest.describe("gpu-scene-staging", () => {
+  const {  expect, test  } = __suiteDependency5;
+  const {  writeFile  } = __suiteDependency6;
+test.use({ launchOptions: { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-gpu-sandbox'] } });
+
+test('real WebGL strokes retain A through partial uploads and present all of B before releasing A', async ({ page }) => {
+  await page.route('**/m3-staging-fixture', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>M3 GPU frame evidence</title>' }));
+  await page.goto('/m3-staging-fixture');
+  const evidence = await page.evaluate(async () => {
+    const { createRenderSceneBuilder } = await import('/assets/js/modules/render-scene.js');
+    const { createGpuStrokeRenderer } = await import('/assets/js/modules/gpu-stroke-renderer.js');
+    const { createRenderDevice } = await import('/assets/js/modules/render-device.js');
+    const { createGpuUploadScheduler } = await import('/assets/js/modules/gpu-upload-scheduler.js');
+    const { createMapVisualFrame } = await import('/assets/js/modules/map-visual-frame.js');
+    const { prepareGpuBaseScene, commitGpuStrokeDomains } = await import('/assets/js/modules/gpu-scene-preparation.js');
+    const { drawGpuBaseScene } = await import('/assets/js/modules/gpu-base-scene-pass.js');
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128; document.body.append(canvas);
+    const gl = canvas.getContext('webgl2', { stencil: true, preserveDrawingBuffer: true });
+    const errors = [], ready = [], callbacks = [];
+    const strokeRenderer = createGpuStrokeRenderer({ onError: value => errors.push({ stage: value.stage, message: value.error?.message }),
+      onResourceReady: key => ready.push(key) });
+    if (!strokeRenderer.initialize(createRenderDevice({ gl, canvas }))) throw new Error('Real stroke initialization failed');
+    const scheduler = createGpuUploadScheduler({ requestFrame: callback => (callbacks.push(callback), callbacks.length), cancelFrame() {},
+      isHidden: () => false, isInputPending: () => false });
+    const presentedStrokeDomains = new Map(), builder = createRenderSceneBuilder();
+    const scene = (revision, sign) => builder.build({ strokes: [2, 4].map((latitude, index) => ({ key: `boundary:${index}`,
+      domain: 'territorial-boundaries', geometryRevision: revision, geometry: { type: 'LineString', coordinates: [[-3, sign * latitude], [3, sign * latitude]] },
+      style: { color: '#3366ff', width: 4, alpha: 1 } })) });
+    let id = 0;
+    const rows = [];
+    const draw = desired => {
+      const frame = createMapVisualFrame({ frameId: ++id, projectGeneration: 9, viewRevision: id,
+        viewState: { projection: 'flat', translate: [64, 64], scale: 500, dpr: 1, size: { width: 128, height: 128 }, flatCenter: [0, 0] } });
+      const prepared = prepareGpuBaseScene({ frame, scene: desired, presentedStrokeDomains }, { strokeRenderer });
+      const result = drawGpuBaseScene({ gl, frame, width: 128, height: 128, countriesVisible: false, terrainVisible: false,
+        surfacePresentation: { quality: 'pending' },
+        countries: {}, prepared }, { strokeRenderer, drawOceanSubstrate() {}, renderTerrain() {}, drawHydro() {}, drawCountryBoundaryStrokes() {} });
+      const pixels = sign => [2, 4].map(latitude => {
+        const point = frame.projectVisibleCoordinate([0, sign * latitude]);
+        const pixel = new Uint8Array(4);
+        gl.readPixels(Math.floor(point[0]), 127 - Math.floor(point[1]), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+        return [...pixel];
+      });
+      const before = strokeRenderer.stats().resourceCount;
+      commitGpuStrokeDomains(result, frame, presentedStrokeDomains, strokeRenderer);
+      rows.push({ frameId: id, revisions: prepared.overlayItems.map(item => item.packet.geometryRevision),
+        oldPixels: pixels(-1), newPixels: pixels(1), before, after: strokeRenderer.stats().resourceCount,
+        pending: [...prepared.deferredOverlayKeys], missing: result.overlayMissingKeys,
+        recovered: result.recoveredStrokeDomains, presentationFailed: result.strokePresentationFailed,
+        presentedRevisions: (presentedStrokeDomains.get('territorial-boundaries') || []).map(item => item.packet.geometryRevision) });
+      return prepared;
+    };
+    const a = scene(1, -1), b = scene(2, 1);
+    draw(a); strokeRenderer.setUploadScheduler(scheduler);
+    draw(b);
+    // Drain the real shared scheduler until only the first replacement has
+    // completed. No GPU resource, pixels or preparation result is mocked.
+    for (let count = 0; ready.length < 1 && count < 100; count++) callbacks.shift()?.();
+    draw(b);
+    for (let count = 0; ready.length < 2 && count < 100; count++) callbacks.shift()?.();
+    if (ready.length !== 2) throw new Error('Actual replacement uploads did not finish');
+    // Fail a real GL submission after successful upload. The production pass
+    // must redraw A in this same frame; it cannot publish a partial B.
+    const actualDraw = gl.drawArraysInstanced.bind(gl);
+    let failOnce = true;
+    gl.drawArraysInstanced = (...args) => { if (failOnce) { failOnce = false; throw new Error('M3 injected GPU draw failure'); } actualDraw(...args); };
+    draw(b);
+    gl.drawArraysInstanced = actualDraw;
+    const preparedB = draw(b);
+    const staleKey = preparedB.overlayItems[0].resourcePacket.key;
+    // Deletion clears the domain and releases its displayed resources too.
+    draw({ ...b, strokes: [] });
+    const deleted = !strokeRenderer.hasResource(staleKey);
+    const obsolete = { ...preparedB.overlayItems[0].resourcePacket, key: 'scene-stroke:9:obsolete-upload', geometryRevision: 3 };
+    strokeRenderer.ensureResource(obsolete);
+    callbacks.shift()?.(); // Allocate a real staging buffer before cancellation.
+    strokeRenderer.retain([]);
+    for (let count = 0; callbacks.length && count < 100; count++) callbacks.shift()();
+    const cancelledUpload = !strokeRenderer.hasResource(obsolete.key) && !ready.includes(obsolete.key);
+    const finalStats = strokeRenderer.stats();
+    scheduler.dispose(); strokeRenderer.dispose();
+    return { rows, ready, errors, deleted, cancelledUpload, finalStats };
+  });
+  expect(evidence.errors).toEqual([{ stage: 'gpu-stroke-draw', message: 'M3 injected GPU draw failure' }]);
+  expect(evidence.rows.map(row => row.revisions)).toEqual([[1, 1], [1, 1], [1, 1], [2, 2], [2, 2], []]);
+  for (const row of evidence.rows.slice(0, 4)) {
+    expect(row.oldPixels.every(pixel => pixel[2] > 150 && pixel[3] > 0)).toBe(true);
+    expect(row.newPixels.every(pixel => pixel[3] === 0)).toBe(true);
+    expect(row.missing).toEqual([]);
+  }
+  expect(evidence.rows[3].recovered).toEqual(['territorial-boundaries']);
+  expect(evidence.rows[3].presentedRevisions).toEqual([1, 1]);
+  expect(evidence.rows[3].before).toBe(4);
+  expect(evidence.rows[3].after).toBe(4);
+  expect(evidence.rows[4].newPixels.every(pixel => pixel[2] > 150 && pixel[3] > 0)).toBe(true);
+  expect(evidence.rows[4].oldPixels.every(pixel => pixel[3] === 0)).toBe(true);
+  expect(evidence.rows[4].before).toBe(4);
+  expect(evidence.rows[4].after).toBe(2);
+  expect(evidence.deleted).toBe(true);
+  expect(evidence.cancelledUpload).toBe(true);
+  expect(evidence.finalStats.resourceCount).toBe(0);
+  await writeFile(test.info().outputPath('gpu-domain-frames.json'), JSON.stringify(evidence, null, 2));
+});
+});
+// Preserved Viewer feature contract: country-border-coverage.spec.mjs
+featureTest.describe("country-border-coverage", () => {
+  const assert = __suiteDependency7.default;
+  const {  readFile  } = __suiteDependency8;
+  const {  createServer  } = __suiteDependency9;
+  const path = __suiteDependency10.default;
+  const {  test  } = __suiteDependency11;
+test('country and interaction coverage stay uniform across dense joins and preserve GPU state and resources', async ({ page }) => {
+  test.setTimeout(60_000);
+  const root = process.cwd();
+  const server = createServer(async (request, response) => {
+    try {
+      const pathname = new URL(request.url, 'http://localhost').pathname;
+      if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><body>'); return; }
+      const file = path.resolve(root, '.' + pathname);
+      if (!file.startsWith(root + path.sep)) throw new Error('Outside test root');
+      response.setHeader('Content-Type', 'text/javascript');
+      response.end(await readFile(file));
+    } catch { response.writeHead(404); response.end(); }
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    await page.goto(`http://127.0.0.1:${server.address().port}`);
+    const proof = await page.evaluate(async () => {
+      const { createGpuStrokeRenderer } = await import('/shared/frontend/js/modules/gpu-stroke-renderer.js');
+      const { createRenderDevice } = await import('/shared/frontend/js/modules/render-device.js');
+      const { resolveMapStrokeStyle, resolveMapInteractionStyle } = await import('/shared/frontend/js/modules/map-interaction-style.js');
+      const results = [];
+      for (const version of [2, 1]) for (const dpr of [1, 2]) for (const role of ['country', 'hover', 'secondary', 'primary']) {
+        const canvas = globalThis.document.createElement('canvas'); canvas.width = 256 * dpr; canvas.height = 64 * dpr;
+        const gl = canvas.getContext(version === 2 ? 'webgl2' : 'webgl', { alpha: true, antialias: false, preserveDrawingBuffer: true });
+        if (!gl) throw new Error(`WebGL${version} unavailable`);
+        const errors = [], renderer = createGpuStrokeRenderer({ onError: event => errors.push(event.error.message) });
+        if (!renderer.initialize(createRenderDevice({ gl, canvas, version }))) throw new Error('Stroke initialization failed');
+        const counts = { textures: 0, textureDeletes: 0, framebuffers: 0, framebufferDeletes: 0, storage: 0 };
+        for (const [method, counter] of [['createTexture', 'textures'], ['deleteTexture', 'textureDeletes'], ['createFramebuffer', 'framebuffers'], ['deleteFramebuffer', 'framebufferDeletes'], ['texImage2D', 'storage']]) {
+          const original = gl[method].bind(gl); gl[method] = (...args) => { counts[counter]++; return original(...args); };
+        }
+        const marker = gl.createTexture(); gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, marker);
+        const frame = { viewport: [canvas.width, canvas.height], translate: [0, 32.25 * dpr], scale: 180 / Math.PI * dpr,
+          dpr, rowX: [1, 0, 0], rowY: [0, 1, 0], rowZ: [0, 0, 1], flatCenter: [0, 0], mode: 1, worldOffsets: [0] };
+        const stroke = resolveMapStrokeStyle(role === 'country'
+          ? { theme: { border: '#ffffff', borderAlpha: 1 } }
+          : resolveMapInteractionStyle(), role);
+        function draw(key, step, alpha = 1, multiply = false, duplicate = false) {
+          const values = [];
+          for (let x = 32; x < 224; x += step) values.push(x, 0, Math.min(x + step, 224), 0);
+          const coords = duplicate ? [...values, ...values] : values;
+          gl.disable(gl.SCISSOR_TEST); gl.disable(gl.STENCIL_TEST); gl.colorMask(true, true, true, true);
+          gl.viewport(0, 0, ...frame.viewport); gl.clearColor(0.2, 0.3, 0.4, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.enable(gl.SCISSOR_TEST); gl.scissor(8 * dpr, 8 * dpr, 240 * dpr, 48 * dpr);
+          gl.enable(gl.STENCIL_TEST); gl.stencilFunc(gl.ALWAYS, 0, 0xff); gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+          const result = renderer.drawBatches([{ key, startsEnds: new Float32Array(coords),
+            style: { ...stroke, alpha, color: multiply ? '#447799' : '#ffffff', blendMode: multiply ? 'multiply' : 'normal' } }], frame);
+          const rgba = new Uint8Array(canvas.width * canvas.height * 4);
+          gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+          const interior = [];
+          for (let y = 28 * dpr; y < 37 * dpr; y++) for (let x = 48 * dpr; x < 208 * dpr; x++) interior.push(...rgba.slice((y * canvas.width + x) * 4, (y * canvas.width + x) * 4 + 4));
+          const state = { framebuffer: gl.getParameter(gl.FRAMEBUFFER_BINDING) === null,
+            texture: gl.getParameter(gl.ACTIVE_TEXTURE) === gl.TEXTURE3 && gl.getParameter(gl.TEXTURE_BINDING_2D) === marker,
+            viewport: Array.from(gl.getParameter(gl.VIEWPORT)), clear: Array.from(gl.getParameter(gl.COLOR_CLEAR_VALUE)),
+            scissor: gl.isEnabled(gl.SCISSOR_TEST), stencil: gl.isEnabled(gl.STENCIL_TEST),
+            equation: gl.getParameter(gl.BLEND_EQUATION_RGB), error: gl.getError() };
+          return { result, interior, state };
+        }
+        const sparse = draw('sparse', 192), dense = draw('dense', 1);
+        const transparent = draw('alpha', 1, 0.4), repeated = draw('repeat', 1, 0.4, false, true);
+        const multiply = draw('multiply', 192, 0.4, true), multiplyRepeated = draw('multiply-repeat', 1, 0.4, true, true);
+        const maxDiff = (a, b) => Math.max(...a.map((value, index) => Math.abs(value - b[index])));
+        const beforeResize = { ...counts };
+        canvas.width += 32 * dpr; frame.viewport[0] = canvas.width;
+        draw('resized', 192);
+        const afterResize = { ...counts };
+        renderer.dispose();
+        const afterDispose = { ...counts };
+        results.push({ version, dpr, role, coverage: stroke.coverage,
+          densityDifference: maxDiff(sparse.interior, dense.interior), duplicateDifference: maxDiff(transparent.interior, repeated.interior),
+          multiplyDifference: maxDiff(multiply.interior, multiplyRepeated.interior),
+          occupied: dense.interior.some((value, index) => index % 4 === 3 && value > 0),
+          intermediate: dense.interior.some((value, index) => index % 4 === 3 && value > 0 && value < 255),
+          states: [sparse, dense, transparent, repeated, multiply, multiplyRepeated].map(row => row.state),
+          succeeded: [sparse, dense, transparent, repeated, multiply, multiplyRepeated].every(row => row.result.succeeded),
+          beforeResize, afterResize, afterDispose, errors });
+        gl.deleteTexture(marker); gl.getExtension('WEBGL_lose_context')?.loseContext();
+      }
+      return results;
+    });
+    for (const row of proof) {
+      const label = `WebGL${row.version}/DPR${row.dpr}/${row.role}`;
+      assert.equal(row.coverage, 'union', label);
+      assert.ok(row.densityDifference <= 1, `${label}: density changed coverage by ${row.densityDifference}`);
+      assert.ok(row.duplicateDifference <= 1, `${label}: alpha was applied more than once`);
+      assert.ok(row.multiplyDifference <= 1, `${label}: multiply coverage accumulated`);
+      assert.ok(row.occupied && row.intermediate && row.succeeded, label);
+      assert.deepEqual(row.errors, [], label);
+      for (const state of row.states) {
+        assert.ok(state.framebuffer && state.texture && state.scissor && state.stencil, `${label}: GPU state leaked`);
+        assert.deepEqual(state.viewport, [0, 0, 256 * row.dpr, 64 * row.dpr]);
+        assert.equal(state.equation, 32774); assert.equal(state.error, 0);
+        assert.ok(Math.abs(state.clear[0] - 0.2) < 1e-6);
+      }
+      assert.equal(row.beforeResize.textures, 2, `${label}: one reusable mask plus marker`);
+      assert.equal(row.beforeResize.framebuffers, 1);
+      assert.equal(row.beforeResize.storage, 1);
+      assert.equal(row.afterResize.textures, row.beforeResize.textures);
+      assert.equal(row.afterResize.storage, 2);
+      assert.equal(row.afterDispose.textureDeletes, 1); assert.equal(row.afterDispose.framebufferDeletes, 1);
+    }
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
 });
 });

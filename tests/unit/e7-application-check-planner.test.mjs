@@ -9,7 +9,7 @@ import {loadRepository,planApplicationChecks} from '../../scripts/plan-applicati
 test('E7 validates all active test registrations without obsolete exception rules',()=>{
   const repository=loadRepository();
   assert.equal(repository.owners.get('tests/browser/viewer-inspector.spec.mjs')?.id,'viewer');
-  for(const name of ['viewer-startup-and-terrain','viewer-calendar','viewer-temporal-regressions','viewer-renderer-recovery']){
+  for(const name of ['viewer-startup-and-terrain','viewer-calendar','viewer-review-e4','viewer-renderer-recovery']){
     const owner=repository.owners.get('tests/browser/'+name+'.spec.mjs');
     assert.ok(owner && owner.mode!=='manual', name);
   }

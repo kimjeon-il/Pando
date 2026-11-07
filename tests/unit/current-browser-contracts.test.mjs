@@ -82,12 +82,12 @@ test('P1/P3 preserve source-selected app contracts while P3 shards all selected 
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
-  assert.ok(plan.browserSpecs.includes('tests/browser/viewer-layout.spec.mjs'));
+  assert.ok(plan.browserSpecs.includes('tests/browser/web-viewer.spec.mjs'));
   assert.ok(plan.commands.includes('ui-spacing'));
   assert.deepEqual(plan.externalChecks, []);
   assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);
   const worker = planApplicationChecks({ repository, changedFiles: ['shared/frontend/js/workers/canvas-render-worker.js'] });
-  assert.ok(worker.browserSpecs.includes('tests/browser/physical-land-time.spec.mjs'));
+  assert.ok(worker.browserSpecs.includes('tests/browser/viewer-startup-and-terrain.spec.mjs'));
   for (const id of ['country-selftest', 'country-validity-canonical', 'country-validity', 'territorial-library-contract'])
     assert.ok(catalog.groups.some(group => group.id === id && group.argv?.length));
 });
@@ -111,7 +111,7 @@ test('prepared asset changes retain the real fixed-land unit and browser regress
   const repository = loadRepository(new URL('../../', import.meta.url));
   const plan = planApplicationChecks({ repository, changedFiles: ['assets/data/prepared-polygons/generated/v2/manifest.json'] });
   assert.ok(plan.unitTests.includes('tests/unit/prepared-polygon-mesh.test.mjs'));
-  assert.ok(plan.browserSpecs.includes('tests/browser/physical-land-time.spec.mjs'));
+  assert.ok(plan.browserSpecs.includes('tests/browser/viewer-startup-and-terrain.spec.mjs'));
 });
 
 // Parse only the guard-expression subset, without executing YAML as JavaScript.

@@ -220,10 +220,10 @@ jobs:
           PANDO_P3_BRANCH: work/remote-only
         run: >-
           pnpm exec playwright test
-          tests/browser/viewer-inspector.spec.mjs
+          tests/browser/viewer-review-e4.spec.mjs
           tests/browser/viewer-review-e4.spec.mjs
           tests/browser/web-viewer.spec.mjs
-          tests/browser/viewer-layout.spec.mjs
+          tests/browser/web-viewer.spec.mjs
           tests/browser/button-consistency.spec.mjs
           --workers=1 --retries=0 --reporter=list
       - name: Archive post-retirement Web test evidence

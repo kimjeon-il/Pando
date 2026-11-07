@@ -13,7 +13,7 @@ on:
       - 'assets/js/workers/gis-geometry-worker.js'
       - 'tests/unit/gis-geometry-worker.test.mjs'
       - 'tests/unit/territorial-entity-store.test.mjs'
-      - 'tests/browser/temporal-map-presentation.spec.mjs'
+      - 'tests/browser/viewer-calendar.spec.mjs'
   workflow_dispatch:
 permissions:
   contents: write
@@ -51,7 +51,7 @@ jobs:
       - name: Verify actual 1991 Soviet import, undo, redo, autosave and reopen
         env:
           PANDOLAB_BROWSER_CHANNEL: chromium
-        run: pnpm exec playwright test tests/browser/temporal-map-presentation.spec.mjs --workers=1 --retries=0 --trace off
+        run: pnpm exec playwright test tests/browser/viewer-calendar.spec.mjs --workers=1 --retries=0 --trace off
       - name: Publish only verified source-matched runtime on work/objects
         shell: bash
         run: |

@@ -65,3 +65,18 @@ Source: `4f27dc9ac18fc2f6ca0163f8d33fea33e813d50f`. Inventory records every top-
 ## Scope boundaries
 
 Phase 1 is classification only; phases 2–4 implement the reviewed dispositions. This is intentionally more conservative than the aspirational 200–300 unit files because combining unrelated native tests would increase affected CI scope before the dependency planner is redesigned in phase 5.
+
+## Implementation results — phases 1–4
+
+| Category | Before | After | Files retired or absorbed |
+| --- | ---: | ---: | ---: |
+| Unit test entrypoints | 660 | 618 | 42 (13 deleted; 29 consolidated) |
+| Browser spec entrypoints | 38 | 16 | 22 (consolidated) |
+| Workflow files | 84 | 84 | Kept for phase 6: GIS, independent source research and publication are distinct operations |
+
+- Phase 1 inventory commit: `7dc86d02228ce2f5487f3056e71dad6dd7338be9`.
+- Phase 2 removal commit: `c7a762a3db509eac5a5fd552ad6185c01dc65c0f`.
+- Phase 3 unit consolidation commit: `34704ef69e7a1945e41e39533eade09bc2fad781`.
+- Phase 4 browser consolidation: 10 feature owners now contain the contents of the original 22 specs; `test.describe` is used to retain per-file fixture scoping while the separate entrypoints are removed.
+- The committed audit inventory is an original-source snapshot, not a runtime test allowlist. The current tree and dynamic scanner are authoritative for present files.
+- No unit/browser tests or CI were run, in accordance with the request; syntax, imports, runtime prerequisites and behavioral equivalence remain **unverified**. Release or `main` merge should require at least a focused follow-up check.
