@@ -116,11 +116,11 @@ test('place source name history follows the project month without copying or edi
   await runtime.prepare({presentation:{month}});
   assert.deepEqual(admissions.at(-1),[],'unsupported BCE references must not masquerade as current places');
   assert.equal(runtime.resolve(record.id),null);
-  assert.strictEqual(runtime.snapshot(),original,'date-only selection may not reconstruct source objects');
+  assert.deepEqual(runtime.snapshot().records,[],'inactive names must not reach the map snapshot');
   month='1920-01';
   await runtime.prepare({presentation:{month}});
   assert.deepEqual(admissions.at(-1),[record.id]);
-  assert.equal(runtime.resolve(record.id),original.records[0]);
+  assert.deepEqual(runtime.resolve(record.id),original.records[0],'the original place is restored on the valid date');
   assert.deepEqual(record,before,'source place and its name editions remain immutable');
  }finally{runtime.dispose();}
 });
@@ -142,10 +142,12 @@ test('externally reviewed urban lifetimes suppress anachronistic labels and pres
  try{
   await runtime.prepare({presentation:{month}});
   assert.deepEqual(admissions.at(-1),[pest.id]);
+  assert.deepEqual(runtime.snapshot().records.map(x=>x.id),[pest.id]);
   assert.equal(runtime.resolve(budapest.id),null);
   month='1873-11';
   await runtime.prepare({presentation:{month}});
   assert.deepEqual(admissions.at(-1),[budapest.id]);
+  assert.deepEqual(runtime.snapshot().records.map(x=>x.id),[budapest.id]);
   assert.equal(runtime.resolve(pest.id),null);
   const reference=await runtime.search('Pest',{scope:'reference'});
   assert.ok(reference.records.some(x=>x.id===pest.id),
