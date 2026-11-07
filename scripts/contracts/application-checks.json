@@ -1108,7 +1108,6 @@
       "tests": [
         "tests/unit/*staging*.test.mjs",
         "tests/unit/*assets.test.mjs",
-        "tests/unit/project-session-viewing.test.mjs",
         "tests/unit/object-search*.test.mjs"
       ],
       "inputs": [

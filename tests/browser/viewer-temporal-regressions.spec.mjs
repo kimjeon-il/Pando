@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
+import { waitForCommittedMonth } from './helpers/viewer-acceptance.mjs';
 
 // Keep renderer-specific fixtures and failure evidence scoped to each contract family.
 
@@ -36,16 +37,11 @@ async function start(page,renderer){
   // covered by the dedicated terrain scenarios.
   await page.goto('/?debug=1'+(renderer==='webgl'?'':'&renderer=canvas')
     +(renderer==='canvas-worker'?'&demTerrain=raster':''));
-  await ready(page,'2026-10');
+  await waitForCommittedMonth(page,'2026-10');
   if (renderer !== 'canvas-worker') await expect.poll(() => page.evaluate(() => {
     const state = window.__PANDOLAB_VIEWER__.rendererStats();
     return ['ready', 'limited'].includes(state.mapReadiness.status) && !state.canvasWorkerBusy;
   }), { timeout: 90000 }).toBe(true);
-}
-async function ready(page,month){
-  await expect.poll(()=>page.evaluate(()=>({month:window.__PANDOLAB_VIEWER__?.builtinMonth().month,
-    cursor:window.__PANDOLAB_VIEWER__?.documentState().timelineCursor,
-    ready:document.querySelector('#viewerStatus')?.dataset.ready})),{timeout:90000}).toEqual({month,cursor:month,ready:'true'});
 }
 for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1280,390])test.describe(`${renderer} ${width}px`,()=>{
   test.use({viewport:{width,height:844},hasTouch:width===390});
@@ -59,9 +55,9 @@ for(const renderer of ['webgl','canvas-worker','canvas2d'])for(const width of [1
     const camera=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot());
     const identity=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
     const activate=async id=>{const control=page.locator('#'+id);if(width===390)await control.tap();else await control.click();};
-    await activate('timelinePreviousYear');await ready(page,'2025-12');
+    await activate('timelinePreviousYear');await waitForCommittedMonth(page,'2025-12');
     expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
-    await activate('timelineNextYear');await ready(page,'2026-10');
+    await activate('timelineNextYear');await waitForCommittedMonth(page,'2026-10');
     const returned=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.rendererStats());
     expect(returned.mapReadiness.mapReady).toBe(true);
     expect(returned.countriesPublishedGeneration).toBe(returned.projectGeneration);
@@ -99,13 +95,13 @@ test('temporal failures and superseded source reads preserve the last displayed 
   await page.evaluate(()=>{window.__temporalRead=async()=>{throw Error('temporal source unavailable');};});
   await page.locator('#timelinePreviousYear').click();
   await expect(page.locator('#timelineDateError')).toHaveText('temporal source unavailable');
-  await ready(page,'2026-10');await page.keyboard.press('Escape');
+  await waitForCommittedMonth(page,'2026-10');await page.keyboard.press('Escape');
   await page.evaluate(()=>{window.__temporalRead=month=>month==='2025-12'?new Promise(resolve=>{window.__releaseTemporal=resolve;}):Promise.resolve();});
   await page.locator('#timelinePreviousYear').click();
   await page.waitForFunction(()=>typeof window.__releaseTemporal==='function');
   try{await page.locator('#timelinePreviousYear').click();}
   finally{await page.evaluate(()=>window.__releaseTemporal());}
-  await ready(page,'2024-12');
+  await waitForCommittedMonth(page,'2024-12');
   expect(await page.evaluate(()=>window.__PANDOLAB_VIEWER__.cameraSnapshot())).toEqual(camera);
   const transitions=await page.evaluate(()=>window.__temporalPackets.filter(row=>row.operation==='core.document-temporal-candidate-adopt'&&!row.fullProject));
   expect(transitions.map(row=>row.month)).toEqual(['2024-12']);
@@ -115,7 +111,7 @@ test('temporal failures and superseded source reads preserve the last displayed 
 test('Canvas user-file opening retains full document admission after a builtin delta transition',async({page})=>{
   test.setTimeout(150000);
   await start(page,'canvas-worker');
-  await page.locator('#timelinePreviousYear').click();await ready(page,'2025-12');
+  await page.locator('#timelinePreviousYear').click();await waitForCommittedMonth(page,'2025-12');
   const previous=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().documentId);
   const fixture=await createViewerProjectPackage('시점 전환 후 사용자 파일');
   await page.locator('#projectFileInput').setInputFiles({name:'temporal-user-file.gpkg',

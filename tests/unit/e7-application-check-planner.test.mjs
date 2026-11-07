@@ -2,15 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {readFileSync,existsSync} from 'node:fs';
 import {frontendGeneratedOwners} from '../../scripts/lib/frontend-layout.mjs';
 import {loadRepository,planApplicationChecks} from '../../scripts/plan-application-checks.mjs';
 
 test('E7 validates all test registrations without reparsing retired editor imports on a no-change commit',()=>{
   const repository=loadRepository();
   assert.equal(repository.owners.get('tests/browser/viewer-inspector.spec.mjs')?.id,'viewer');
-  for(const name of ['p6-5-resource-check','p6-6-desktop-performance','p6-7-narrow-performance']){
-    assert.equal(repository.owners.get('tests/browser/'+name+'.spec.mjs')?.mode,'manual');
+  for(const name of ['viewer-startup-and-terrain','viewer-calendar','viewer-temporal-regressions','viewer-renderer-recovery']){
+    const owner=repository.owners.get('tests/browser/'+name+'.spec.mjs');
+    assert.ok(owner && owner.mode!=='manual' && owner.mode!=='retired', name);
   }
+  for(const name of ['p6-5-resource-check','p6-6-desktop-performance','p6-7-narrow-performance'])
+    assert.equal(repository.owners.has('tests/browser/'+name+'.spec.mjs'),false,name);
   const planned=planApplicationChecks({changedFiles:[],repository});
   assert.equal(planned.schema,'pando-application-check-plan-v1');
   assert.deepEqual(planned.changedFiles,[]);
@@ -18,7 +22,7 @@ test('E7 validates all test registrations without reparsing retired editor impor
   assert.deepEqual(planned.unitTests,[]);
   assert.deepEqual(planned.commands,[]);
   assert.deepEqual(planned.prerequisites,[]);
-  assert.equal(planned.manualTests.includes('tests/browser/p6-5-resource-check.spec.mjs'),true);
+  assert.equal(planned.manualTests.includes('tests/browser/p6-5-resource-check.spec.mjs'),false);
   assert.ok(planned.inventory.browser>0);
   assert.ok(planned.inventory.unit>0);
 });
@@ -37,7 +41,7 @@ test('R1 generated build metadata remains owned by the canonical frontend builde
 
 test('removed Windows entrypoints are not selected as active application builds',()=>{
   const repository=loadRepository();
-  assert.equal(repository.owners.has('tests/unit/r2-native-platform-retirement.test.mjs'),true);
+  assert.equal(repository.owners.has('tests/unit/r2-native-platform-retirement.test.mjs'),false);
   assert.equal(repository.owners.has('tests/browser/viewer-inspector.spec.mjs'),true);
   const retired=planApplicationChecks({changedFiles:['apps/editor/unknown-contract.xyz'],repository});
   assert.deepEqual(retired.unitTests,[]);
@@ -71,4 +75,15 @@ test('P3 application runner preserves caller environment while enforcing native 
     run:()=>{invoked++;return {status:0};}});
   assert.equal(invoked,0,'native work is blocked before subprocess execution');
   assert.equal(dispatched,1,'native selection is routed to CI');
+});
+
+
+test('current CLI entrypoints and test inventory never reference removed regression files',()=>{
+  const pkg=JSON.parse(readFileSync(new URL('../../package.json',import.meta.url),'utf8'));
+  const catalog=JSON.parse(readFileSync(new URL('../../scripts/contracts/application-checks.json',import.meta.url),'utf8'));
+  for(const [name,command] of Object.entries(pkg.scripts))
+    for(const match of command.matchAll(/tests\/(?:unit|browser|integration)\/[\w./-]+\.(?:test|spec)\.mjs/g))
+      assert.ok(existsSync(new URL('../../'+match[0],import.meta.url)),name+': '+match[0]);
+  for(const binding of catalog.bindings||[])for(const file of binding.tests||[])
+    if(!file.includes('*'))assert.ok(existsSync(new URL('../../'+file,import.meta.url)),'missing catalog binding: '+file);
 });

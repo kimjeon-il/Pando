@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createViewerProjectPackage } from '../fixtures/viewer-project-package.mjs';
 import { shiftTimelineMonth, timelineMonthLabel } from '../../shared/frontend/js/modules/timeline-controls.js';
+import { openReadyViewer, waitForCommittedMonth } from './helpers/viewer-acceptance.mjs';
 
 // Keep renderer-specific fixtures and failure evidence scoped to each contract family.
 
@@ -11,8 +12,7 @@ test('builtin country loading follows calendar rollover, retains manual dates an
  test.setTimeout(180000);
  const requests=[],errors=[];page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));
  await page.clock.install({time:new Date(2026,9,31,23,59)});
- await page.goto('/?debug=1&demTerrain=raster');
- await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+ await openReadyViewer(page,{url:'/?debug=1&demTerrain=raster'});
  expect(await page.evaluate(()=>window.PANDOLAB_BUILD_META.builtinWorld?.url)).toContain('builtin-world/generated/v1/index.json');
  await expect(page.locator('#timelineDateButtonText')).toHaveText('2026년');
  expect(requests.some(url=>/\/builtin-world\/generated\/v1\/countries\/.*\.json\.gz/.test(url))).toBe(true);
@@ -37,8 +37,7 @@ test('file reading suspends automatic changes and an opened document survives ro
  test.setTimeout(150000);
  const fixture=await createViewerProjectPackage('사용자 파일 고정');
  await page.clock.install({time:new Date(2026,9,31,23,59)});
- await page.goto('/?debug=1&demTerrain=raster');
- await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:90000});
+ await openReadyViewer(page,{url:'/?debug=1&demTerrain=raster'});
  const failed=await page.evaluate(async()=>{
   try{await window.__PANDOLAB_VIEWER__.openFile({name:'invalid.txt'});return false;}catch{return true;}
  });
@@ -83,9 +82,8 @@ test('P3-1 rapid year inputs merge to the latest visible month and stale reads n
    'window.__P3_REQUESTS__.push(month);'+
    'if(window.__P3_GATE_MONTH__===month)await new Promise(resolve=>{window.__P3_RELEASE__=resolve;});')});
  });
- await page.goto('/?debug=1');
- await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:100000});
- await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__?.builtinMonth().month)).toBe('2026-10');
+ await openReadyViewer(page,{timeout:100000});
+ await waitForCommittedMonth(page,'2026-10');
  const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
  await page.evaluate(()=>{window.__P3_REQUESTS__=[];window.__P3_COMMITS__=[];});
  // Genuine timeline-control handlers, dispatched synchronously in one task.
@@ -144,14 +142,12 @@ test('floating date controls preserve navigation and document state across deskt
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => localStorage.setItem('pandolab-user-preferences', JSON.stringify({ version: 2, appearance: { statusBarVisible: false } })));
-  await page.goto('/?debug=1');
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true', { timeout: 90000 });
+  await openReadyViewer(page);
   const fixture = await createViewerProjectPackage('날짜 도구 검증');
   await page.locator('#projectFileInput').setInputFiles({ name: 'date-controls.gpkg', mimeType: 'application/geopackage+sqlite3', buffer: fixture.bytes });
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready', 'true');
   await expect(page.locator('#mapBottomStatus')).toHaveCount(0);
-  await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
   const button = page.locator('#timelineDateButton'), year = page.locator('#timelineYearInput');
   const month = page.locator('#timelineMonthInput'), popup = page.locator('#timelinePopover');

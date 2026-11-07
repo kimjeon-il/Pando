@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
+import { waitForCanonicalMap } from './helpers/viewer-acceptance.mjs';
 
 // Keep renderer-specific fixtures and failure evidence scoped to each contract family.
 
@@ -278,6 +279,7 @@ test('Web publishes sharp ocean and land before countries, then reuses prepared 
     await page.getByRole('button',{name:'파일 메뉴 열기'}).click();
     await page.locator('#builtinMapBtn').click();
     await expect.poll(async()=>(await stats()).projectGeneration,{timeout:60000}).toBeGreaterThan(cold.projectGeneration);
+    await waitForCanonicalMap(page,{timeout:60000});
     await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:60000});
     const warm=await stats();
     expect(warm.terrainUploadCount).toBe(beforeUploads);

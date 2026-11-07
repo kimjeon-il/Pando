@@ -1,0 +1,45 @@
+name: Viewer desktop and mobile functional acceptance
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: viewer-functional-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  functional:
+    name: Viewer ${{ matrix.profile }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [p6-1, p6-2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Mount current pinned library data
+        uses: ./.github/actions/library-data
+      - run: pnpm install --frozen-lockfile
+      - name: Confirm actual compiled Core source identity
+        run: node tools/package-shared-core-assets.mjs --build-dir shared/frontend/static/wasm --check
+      - name: Install Chromium and system dependencies
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Execute real desktop or mobile viewer acceptance
+        run: pnpm exec playwright test --config tests/integration/viewer-functional-${{ matrix.profile }}.config.mjs --workers=1 --retries=0
+      - name: Preserve functional screenshots and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewer-functional-${{ matrix.profile }}-${{ github.sha }}
+          path: test-results/viewer-functional-${{ matrix.profile }}/
+          if-no-files-found: warn
+          retention-days: 7

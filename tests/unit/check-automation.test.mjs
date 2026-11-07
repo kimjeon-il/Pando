@@ -18,9 +18,8 @@ test('every current browser workflow can be assigned before CI dependency planni
 
 test('Viewer and shared checks reference existing named test files', () => {
   const root = fileURLToPath(new URL('../..', import.meta.url));
-  const workflows = ['application-architecture', 'e1-map-readonly-acceptance',
-    'remote-preview-p3', 'shared-core', 'terrain-preview-gate',
-    'viewer-functional-p6-2'];
+  const workflows = readdirSync(new URL('../../.github/workflows/',import.meta.url))
+    .filter(name=>name.endsWith('.yml')).map(name=>name.slice(0,-4));
   const missing = [];
   for (const name of workflows) {
     const file = `.github/workflows/${name}.yml`;
@@ -29,6 +28,19 @@ test('Viewer and shared checks reference existing named test files', () => {
       if (!existsSync(resolve(root, match[0]))) missing.push(`${file}: ${match[0]}`);
   }
   assert.deepEqual([...new Set(missing)], []);
+});
+
+test('desktop and mobile release acceptance run on main PR using the current library revision',()=>{
+  const path=new URL('../../.github/workflows/viewer-functional-acceptance.yml',import.meta.url);
+  const workflow=parse(readFileSync(path,'utf8'));
+  assert.deepEqual(workflow.on.pull_request.branches,['main']);
+  assert.deepEqual(workflow.jobs.functional.strategy.matrix.profile,['p6-1','p6-2']);
+  const steps=workflow.jobs.functional.steps;
+  assert.ok(steps.some(step=>step.uses==='./.github/actions/library-data'));
+  assert.ok(steps.some(step=>step.run?.includes('tests/integration/viewer-functional-${{ matrix.profile }}.config.mjs')));
+  for(const name of ['p6-1','p6-2'])
+    assert.ok(existsSync(new URL('../../tests/integration/viewer-functional-'+name+'.spec.mjs',import.meta.url)));
+  assert.doesNotMatch(JSON.stringify(workflow),/5eb7be55208efaafe39bd5a65ec2f111d70b9053|apps\\/editor\\/stage\\.mjs/);
 });
 
 test('generated adapter gate invokes node once with every retained test argument',()=>{
@@ -124,7 +136,8 @@ test('Architecture executes one non-browser phase and a bounded isolated browser
       for (const step of [plan, execution]) assert.ok(step.run.includes('--shard ${{ matrix.current }}/${{ matrix.total }}'));
       assert.ok(upload.with.name.includes('${{ matrix.current }}-of-${{ matrix.total }}'));
       assert.ok(upload.with.path.includes('test-results/'));
-      assert.ok(job.steps.some(step => step.run === 'pnpm exec playwright install --with-deps chromium'));
+      assert.ok(job.steps.some(step => step.name==='Prepare Chromium dependencies and missing browser binary'
+        && step.run.includes('playwright install-deps chromium') && step.run.includes('playwright install chromium')));
     } else assert.equal(job.steps.some(step => step.run?.includes('playwright install')), false);
   }
   assert.deepEqual(jobs.checks.needs, ['changes', 'non-browser', 'browser']);
