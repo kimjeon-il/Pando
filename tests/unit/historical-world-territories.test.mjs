@@ -17,15 +17,20 @@ function owns(result, id, x) {
   if (!row) return false;
   return globalThis.polygonClipping.intersection(row.geometry.type === 'Polygon' ? [row.geometry.coordinates] : row.geometry.coordinates, [box(x - .01, x + .01).coordinates]).length > 0;
 }
-test('historical production clipping preserves source coordinates and prior verified owner',()=>{
+test('historical production clipping uses the shared native Core without coordinate rounding or JS fallback',()=>{
   const rows=[candidate('east',0,6),candidate('west',4,10)];
   const before=JSON.stringify(rows);
   const native=module.adjustHistoricalTerritories(rows,policy);
   const baseline=module.adjustHistoricalTerritories(rows,policy,globalThis.polygonClipping);
-  assert.deepEqual(native.candidates,baseline.candidates);
+  const multi=geometry=>geometry?.type==='Polygon'?[geometry.coordinates]:geometry?.coordinates||[];
+  assert.deepEqual(native.candidates.map(row=>row.entityId),baseline.candidates.map(row=>row.entityId));
+  for(const row of native.candidates){
+    const reference=baseline.candidates.find(item=>item.entityId===row.entityId);
+    assert.deepEqual(globalThis.polygonClipping.xor(multi(row.geometry),multi(reference.geometry)),[]);
+  }
   assert.equal(JSON.stringify(rows),before,'native compilation cannot mutate source geometry');
-  assert.equal(module.historicalWorldClipper,globalThis.polygonClipping,
-    'historical compilation must use its verified single Boolean owner');
+  assert.notEqual(module.historicalWorldClipper,globalThis.polygonClipping,
+    'production must not use the numerically unstable JavaScript sweep line');
 });
 
 test('explicitReplacementClipsParentAndDescendants', () => {
@@ -70,11 +75,11 @@ test('one compilation reuses exact Boolean results across date cuts without free
  const later=rows.map(row=>({...row,validFrom:'2000-01-01',validTo:'2001-12-31'}));
  const reused=module.adjustHistoricalTerritories(later,policy,clipper,cache);
  assert.equal(calls,initialCalls,'the same geometry operations are evaluated once');
- assert.deepEqual(reused,module.adjustHistoricalTerritories(later,policy));
+ assert.deepEqual(reused,module.adjustHistoricalTerritories(later,policy,clipper));
  assert.equal(reused.candidates[0].validFrom,'2000-01-01');
  assert.deepEqual(reused.adjustments,first.adjustments);
  const edited=[{...later[0],geometry:box(0,3)},later[1]];
- assert.deepEqual(module.adjustHistoricalTerritories(edited,policy,clipper,cache),module.adjustHistoricalTerritories(edited,policy));
+ assert.deepEqual(module.adjustHistoricalTerritories(edited,policy,clipper,cache),module.adjustHistoricalTerritories(edited,policy,clipper));
  assert.ok(calls>initialCalls,'a different geometry must calculate its own result');
 });
 
