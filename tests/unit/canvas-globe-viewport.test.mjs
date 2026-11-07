@@ -22,7 +22,7 @@ function runtime() {
       const previousDraw=drawTexturedTriangle,previousManifest=terrainManifest,triangles=[];
       terrainManifest={gutter:1};
       drawTexturedTriangle=(_image,source,destination)=>triangles.push([source,destination]);
-      try { drawGlobeTerrainTile(spec,{},projection,message,1,false); return triangles; }
+      try { for (const _ of drawGlobeTerrainTile(spec,{},projection,message,1,false)) { /* Drain cooperative terrain rows. */ } return triangles; }
       finally { drawTexturedTriangle=previousDraw; terrainManifest=previousManifest; }
     }; ` + anchor), scope);
   return scope;
