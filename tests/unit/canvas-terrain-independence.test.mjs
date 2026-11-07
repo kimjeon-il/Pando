@@ -73,7 +73,11 @@ function canvasTerrainRuntime({ expectDem = false, timerPorts = null, now = () =
       } } },
     PandoLabCanvasSceneComposition: {
       drawGeneralLand(_ctx, _path, polygons) { substrates.push(polygons.filter(packet => packet.role === 'physical-land').map(packet => packet.geometry)); },
-      drawTerritorialFills() {}, drawOverlays() {}, drawEmphasis() {}, drawPhysicalWater() {},
+      drawTerritorialFills(_ctx,_path,packets,substrate,_dpr,presentation) {
+        if (presentation?.quality !== 'pending' && packets.some(packet => packet.role === 'territorial-fill'))
+          assert.ok(substrate?.width > 0 && substrate?.height > 0,
+            'territorial clipping requires a physical background even before optional DEM');
+      }, drawOverlays() {}, drawEmphasis() {}, drawPhysicalWater() {},
       countryBoundaryBatches: () => [], drawStrokes() {}, geometryFor: packet => packet.geometry,
       generalLandShapes: packets => packets.filter(packet => packet.role === 'physical-land').map(packet => packet.geometry),
     },
@@ -177,10 +181,11 @@ test('actual country frame paints before optional Canvas DEM, then accepts full 
   const h=canvasTerrainRuntime();await settle();
   const view={terrainDpr:1,renderProjection:{scale:100,translate:[500,300]},
     physicalSettings:{terrainVisible:true,terrainStyle:'physical'}};
-  h.render(view);
-  for(const request of [...h.requests])if(!request.completed && /\/0\//.test(request.url))await h.deliver(request);
+  const territory={...h.land,key:'territory',role:'territorial-fill'};
+  const scenario={...view,scenePolygons:[h.land,territory],
+    visualOrder:{base:['substrate','terrain','country-fill','territorial-fill'],hydro:[]}};
   const before=h.drawn.length;
-  h.render({...view,presentBeforeTerrain:true});
+  h.render({...scenario,presentBeforeTerrain:true});
   const first=h.messages.filter(message=>message.type==='frame').at(-1);
   assert.equal(first.physicalLandCount,1);
   assert.equal(first.surfaceQuality,'canonical');
@@ -188,7 +193,8 @@ test('actual country frame paints before optional Canvas DEM, then accepts full 
   assert.equal(first.terrainComplete,false);
   assert.equal(first.terrainStats.terrainReady,false);
   assert.equal(h.drawn.length,before,'no optional DEM tessellation on first complete country bitmap');
-  h.render({...view,presentBeforeTerrain:false});
+  for(const request of [...h.requests])if(!request.completed && /\/0\//.test(request.url))await h.deliver(request);
+  h.render({...scenario,presentBeforeTerrain:false});
   const detailed=h.messages.filter(message=>message.type==='frame').at(-1);
   assert.equal(detailed.presentBeforeTerrain,false);
   assert.equal(detailed.terrainComplete,true);

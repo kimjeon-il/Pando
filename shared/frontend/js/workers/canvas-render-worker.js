@@ -1162,6 +1162,20 @@ function canvasFallbackWorkerMain() {
           context.lineJoin = 'round'; context.lineWidth = theme.strokes.country.width;
           terrainComplete = substrateState.complete;
         }
+        // Every territorial fill restores clipped background pixels from a
+        // matching substrate. A first country bitmap may defer optional DEM,
+        // but it must still snapshot the already painted physical land.
+        const captureSubstrate = terrainPainted => {
+          if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight)
+            substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
+          const substrateContext = substrate.getContext('2d', { willReadFrequently: softwareCanvas });
+          substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
+          substrateContext.drawImage(canvas, 0, 0);
+          substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete, terrainPainted };
+          context.setTransform(dpr, 0, 0, dpr, 0, 0);
+          context.lineJoin = 'round';
+          context.lineWidth = theme.strokes.country.width;
+        };
         const paint = {
           substrate: () => {
         context.globalAlpha = theme.baseLandAlpha;
@@ -1178,20 +1192,10 @@ function canvasFallbackWorkerMain() {
           return;
         }
         terrainComplete = yield* renderTerrain(message, projection, width, height, dpr, visibleLand, terrainPlan, rasterBaseKey);
-        if (!substrate || substrate.width !== pixelWidth || substrate.height !== pixelHeight) substrate = new OffscreenCanvas(pixelWidth, pixelHeight);
-        const substrateContext = substrate.getContext('2d', { willReadFrequently: softwareCanvas });
-        substrateContext.clearRect(0, 0, pixelWidth, pixelHeight);
-        substrateContext.drawImage(canvas, 0, 0);
-        substrateState = { key: substrateKey, shapes: landShapes, complete: terrainComplete,
-          // A provisional pending-country frame did not paint terrain at all.
-          // Once any real terrain pass has painted, reuse it until its ready-tile
-          // or view dependency key changes; an incomplete DEM is not a reason
-          // to redo the same expensive globe tessellation on every redraw.
-          terrainPainted: message.surfacePresentation?.quality !== 'pending'
-            && (!message.deferIncompleteTerrain || terrainComplete) };
-        context.setTransform(dpr, 0, 0, dpr, 0, 0);
-        context.lineJoin = 'round';
-        context.lineWidth = theme.strokes.country.width;
+        // A provisional pending-country frame did not paint terrain at all.
+        // Retain an actual painted substrate until its view/resource key changes.
+        captureSubstrate(message.surfacePresentation?.quality !== 'pending'
+          && (!message.deferIncompleteTerrain || terrainComplete));
           },
           'country-fill': () => {
         for (const feature of visibleLand) {
@@ -1231,6 +1235,7 @@ function canvasFallbackWorkerMain() {
           // bitmap while optional tiles are being tessellated.
           if (role === 'terrain' && message.presentBeforeTerrain) {
             terrainComplete = false;
+            captureSubstrate(false);
             continue;
           }
           if (role === 'terrain') yield* paint.terrain();
