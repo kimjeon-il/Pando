@@ -17,6 +17,17 @@ function owns(result, id, x) {
   if (!row) return false;
   return globalThis.polygonClipping.intersection(row.geometry.type === 'Polygon' ? [row.geometry.coordinates] : row.geometry.coordinates, [box(x - .01, x + .01).coordinates]).length > 0;
 }
+test('historical production clipping uses exact native Core results without changing source coordinates',()=>{
+  const rows=[candidate('east',0,6),candidate('west',4,10)];
+  const before=JSON.stringify(rows);
+  const native=module.adjustHistoricalTerritories(rows,policy);
+  const baseline=module.adjustHistoricalTerritories(rows,policy,globalThis.polygonClipping);
+  assert.deepEqual(native.candidates,baseline.candidates);
+  assert.equal(JSON.stringify(rows),before,'native compilation cannot mutate source geometry');
+  assert.notEqual(module.historicalWorldClipper,globalThis.polygonClipping,
+    'historical compiler must not use the fragile JavaScript sweep-line owner');
+});
+
 test('explicitReplacementClipsParentAndDescendants', () => {
   const rows = [candidate('soviet', 0, 10), candidate('child', 0, 10, 'soviet'), candidate('ukraine', 5, 10)];
   const rules = { ...policy, replacements: [{ targetEntityId: 'soviet', priorityEntityId: 'ukraine', validFrom: '1991-08-24', validTo: '2014-03-17' }] };

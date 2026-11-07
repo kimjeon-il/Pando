@@ -2,9 +2,15 @@ import "../shared/frontend/js/vendor/polygon-clipping.min.js";
 import './load-spherical-core.mjs';
 import "../shared/frontend/js/modules/polygon-geometry.js";
 import {area as polygonArea} from '../shared/frontend/js/modules/map-edit-geometry.js';
-import { normalizeTemporalInterval, compareTemporal } from "../shared/frontend/js/modules/temporal.js";
+import { normalizeTemporalInterval, compareTemporal, sharedCalculationCore } from "../shared/frontend/js/modules/temporal.js";
 
-export const historicalWorldClipper = globalThis.polygonClipping;
+// Historical compilation shares the precision-preserving native Boolean owner
+// with the GIS engine. Never enable coordinate-rounding retries here: source
+// border coordinates and the explicit sub-metre precision budget are binding.
+export const historicalWorldClipper = Object.freeze(Object.fromEntries(
+  ['union','intersection','difference','xor'].map(method=>
+    [method,(...operands)=>sharedCalculationCore.polygonOperation(method,operands,false])
+));
 // Geometry versions are immutable; one compilation owns and releases this
 // in-memory cache. Dates, policy decisions and precision budgets remain local
 // to each adjustment call.

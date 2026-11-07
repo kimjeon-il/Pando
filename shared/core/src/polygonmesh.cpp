@@ -128,11 +128,7 @@ std::vector<Triangle> refinePolygon(
             chain.vertices=std::move(nextVertices);chain.visible=std::move(nextVisible);
         }
         std::vector<Triangle> next;
-        // A triangle gains one child per split edge. Every interior edge
-        // belongs to at most two triangles, so N + 2*uniqueSplitEdges is a
-        // safe capacity bound without allocating 4*N on sparse final passes.
-        // The subdivision, vertex order and exact output remain unchanged.
-        next.reserve(triangles.size()+2*splitEdges.size());
+        next.reserve(triangles.size()*4);
         const auto add=[&](std::uint32_t a,std::uint32_t b,std::uint32_t c) {
             if(std::abs(triangleArea(parameter[a],parameter[b],parameter[c]))>AREA_EPSILON)
                 next.push_back({a,b,c});
