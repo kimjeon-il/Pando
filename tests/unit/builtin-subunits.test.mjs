@@ -1,11 +1,34 @@
-import {loadBuiltinDisplayPolicy,validateBuiltinDisplayPolicy} from '../../tools/gis/builtin-display-policy.mjs';
-import { normalizeCountryCollection } from "../../shared/frontend/js/modules/country-feature.js";
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { classifyBuiltinCountries, builtinSubunitSourceId } from "../../shared/frontend/js/modules/builtin-subunits.js";
-import { normalizeTerritorialEntities } from "../../shared/frontend/js/modules/territorial-units.js";
-import { mergeBuiltinTerritories } from "../../shared/frontend/js/modules/builtin-territory-policy.js";
+import { describe as contractSuite } from 'node:test';
+import * as __country_dep0 from "../../tools/gis/builtin-display-policy.mjs";
+import * as __country_dep1 from "../../shared/frontend/js/modules/country-feature.js";
+import * as __country_dep2 from "node:test";
+import * as __country_dep3 from "node:assert/strict";
+import * as __country_dep4 from "node:fs";
+import * as __country_dep5 from "../../shared/frontend/js/modules/builtin-subunits.js";
+import * as __country_dep6 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __country_dep7 from "../../shared/frontend/js/modules/builtin-territory-policy.js";
+import * as __country_dep8 from "../../shared/frontend/js/modules/builtin-session.js";
+import * as __country_dep9 from "../../shared/frontend/js/modules/geometry-versions.js";
+import * as __country_dep10 from "../../shared/frontend/js/modules/layer-presentation.js";
+
+// Original feature contract: builtin-subunits.test.mjs
+contractSuite("builtin-subunits", () => {
+const { loadBuiltinDisplayPolicy, validateBuiltinDisplayPolicy } = __country_dep0;
+const { normalizeCountryCollection } = __country_dep1;
+const test = __country_dep2.default;
+const assert = __country_dep3.default;
+const { readFileSync } = __country_dep4;
+const { classifyBuiltinCountries, builtinSubunitSourceId } = __country_dep5;
+const { normalizeTerritorialEntities } = __country_dep6;
+const { mergeBuiltinTerritories } = __country_dep7;
+
+
+
+
+
+
+
+
 
 const displayPolicy=loadBuiltinDisplayPolicy();
 const source = JSON.parse(readFileSync(new URL('../../assets/data/countries-ne-5.1.1.geojson', import.meta.url)));
@@ -73,4 +96,78 @@ test('declarative display policy rejects duplicate source IDs and invalid parent
  const merge=structuredClone(displayPolicy);
  merge.territoryMerges.push({...merge.territoryMerges[0]});
  assert.throws(()=>validateBuiltinDisplayPolicy(merge),/duplicate/);
+});
+});
+
+// Original feature contract: builtin-subunit-geometry-revision.test.mjs
+contractSuite("builtin-subunit-geometry-revision", () => {
+const assert = __country_dep3.default;
+const test = __country_dep2.default;
+const { createBuiltinSession } = __country_dep8;
+const { builtinSubunitId, builtinSubunitSourceId } = __country_dep5;
+const { createTerritorialFeature } = __country_dep6;
+const { geometryRevision, touchGeometry } = __country_dep9;
+const { layerStyle } = __country_dep10;
+
+
+
+
+
+
+
+
+const square = x => ({ type: 'Polygon', coordinates: [[[x, 0], [x, 1], [x + 1, 1], [x + 1, 0], [x, 0]]] });
+
+test('native built-in eligibility rejects in-place canonical edits even with unchanged preview coordinates', () => {
+  const geometry = square(0);
+  const unit = createTerritorialFeature({ id: builtinSubunitId('MAF'), entityKind: 'general', parentId: 'FRA',
+    geometry, metadata: { builtinSubunit: { sourceCountryId: 'MAF' } } });
+  const preview = { ...unit, geometry: square(20) };
+  const parent = createTerritorialFeature({ id: 'FRA', entityKind: 'general', geometry: square(-1) });
+  const display = [parent, preview];
+  const entities = [parent, unit];
+  const baseline = JSON.stringify(unit.geometry);
+  const owner = createBuiltinSession();
+  owner.connect({ projectState: { state: { layerPresentation: {} } },
+    objectModelB: { territorialScope: { displayEntities: () => display } },
+    territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
+    objectDefinitions: { builtinSubunitSourceId },
+    applicationServicesB: { layerStyle: () => ({ opacity: 1, blendMode: 'normal', boundaryVisible: true }) } });
+  owner.installCanonicalCountryStore({ ids: () => ['MAF'], materializeCollectionSync: () => ({ features: [] }),
+    materializeFeature: () => null, geometryEquals: (_id, value) => JSON.stringify(value) === baseline });
+  assert.equal(owner.isNativeBuiltinSubunit(unit), true);
+  assert.equal(owner.builtinTerritorialScene().byId.get('MAF').geometry, preview.geometry);
+  assert.equal(owner.builtinTerritorialScene().byId.get('MAF').boundaryRootId, 'FRA');
+  assert.equal(owner.builtinTerritorialScene().boundaryCollection.features.find(feature => feature.id === 'MAF').boundaryPristine, true);
+  touchGeometry(unit.geometry);
+  unit.geometry.coordinates[0][1][0] = 0.5;
+  assert.equal(geometryRevision(unit.geometry), 1);
+  assert.equal(owner.isNativeBuiltinSubunit(unit), false);
+  assert.equal(owner.builtinTerritorialScene().boundaryCollection.features.find(feature => feature.id === 'MAF').boundaryPristine, false);
+  assert.deepEqual(owner.builtinTerritorialScene().collection.features.map(feature => feature.id), ['FRA']);
+  assert.equal(owner.builtinTerritorialScene({ canonical: true }).nativeUnits.size, 0);
+  assert.deepEqual(preview.geometry, square(20));
+});
+
+test('boundary projection keeps non-native children and resolves independent settings through canonical IDs', () => {
+  const parent = createTerritorialFeature({ id: 'CHN', entityKind: 'general', geometry: square(0) });
+  const child = createTerritorialFeature({ id: builtinSubunitId('HKG'), entityKind: 'general', parentId: 'CHN',
+    geometry: square(1), metadata: { builtinSubunit: { sourceCountryId: 'HKG' } } });
+  const entities = [parent, child];
+  const state = { layerVisibility: { objects: true }, layerPresentation: { styles: { objects: { opacity: 0.4 } } } };
+  const owner = createBuiltinSession();
+  owner.connect({ projectState: { state },
+    objectModelB: { territorialScope: { displayEntities: () => entities } },
+    territorialModel: { entityRepository: { list: () => entities, get: id => entities.find(entity => entity.id === id) } },
+    objectDefinitions: { builtinSubunitSourceId }, applicationServicesB: { layerStyle },
+    layerPresentation: { isLayerItemVisible: (group, id) => group === 'objects' && id === child.id } });
+  owner.installCanonicalCountryStore({ ids: () => ['CHN', 'HKG'], materializeCollectionSync: () => ({ features: [] }),
+    materializeFeature: () => null, geometryEquals: () => true });
+  assert.equal(owner.isNativeBuiltinSubunit(child), false);
+  assert.deepEqual(owner.builtinTerritorialScene().boundaryCollection.features.map(feature => feature.id), ['CHN', 'HKG']);
+  assert.equal(owner.renderCountryBoundaryStyle('HKG').opacity, 0.4);
+  assert.equal(owner.renderCountryBoundaryStyle('CHN'), null);
+  state.layerPresentation = { styles: { objects: { opacity: 0.4, boundaryVisible: false } } };
+  assert.equal(owner.renderCountryBoundaryStyle('HKG'), null);
+});
 });
