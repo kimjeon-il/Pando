@@ -1,34 +1,14 @@
-import { describe as contractSuite } from 'node:test';
-import * as __dem_dep0 from "node:assert/strict";
-import * as __dem_dep1 from "node:crypto";
-import * as __dem_dep2 from "node:child_process";
-import * as __dem_dep3 from "node:fs/promises";
-import * as __dem_dep4 from "node:os";
-import * as __dem_dep5 from "node:path";
-import * as __dem_dep6 from "node:test";
-import * as __dem_dep7 from "../../tools/map-image/native-resample.mjs";
-import * as __dem_dep8 from "../../tools/gis/terrain-dem-webp.mjs";
-import * as __dem_dep9 from "../../tools/gis/terrain-dem-gutters.mjs";
-import * as __dem_dep10 from "../../tools/gis/terrain-dem-assets.mjs";
-import * as __dem_dep11 from "node:util";
-import * as __dem_dep12 from "../../tools/gis/terrain-preview-grid.mjs";
-import * as __dem_dep13 from "node:fs";
-import * as __dem_dep14 from "../../tools/gis/build-physical-hydro.mjs";
-import * as __dem_dep15 from "../../tools/gis/terrain-dem-build.mjs";
-
-// Original feature contract: terrain-dem-build.test.mjs
-contractSuite("terrain-dem-build", () => {
-const assert = __dem_dep0.default;
-const { createHash } = __dem_dep1;
-const { execFileSync } = __dem_dep2;
-const { mkdtemp, readFile, rm, symlink, writeFile } = __dem_dep3;
-const { tmpdir } = __dem_dep4;
-const { join } = __dem_dep5;
-const test = __dem_dep6.default;
-const { readNativeRawWebp } = __dem_dep7;
-const { encodeDemWebp } = __dem_dep8;
-const { restoreDemPolarGutterShade } = __dem_dep9;
-const { hashTerrainFile, summarizeTerrainAssets } = __dem_dep10;
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {mkdtemp,readFile,rm,symlink,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import test from 'node:test';
+import {readNativeRawWebp} from '../../tools/map-image/native-resample.mjs';
+import {encodeDemWebp} from '../../tools/gis/terrain-dem-webp.mjs';
+import {restoreDemPolarGutterShade} from '../../tools/gis/terrain-dem-gutters.mjs';
+import {hashTerrainFile,summarizeTerrainAssets} from '../../tools/gis/terrain-dem-assets.mjs';
 
 const expected=[
   '9fb8614b0d2037f720fea17cc998f5e5251e70a4b8f4d8abf5aff524ba310738',
@@ -158,73 +138,4 @@ test('high-resolution polar repair matches frozen Python shade rows',
       assert.equal(after.data[i],before.data[i]);
     assert.equal(await restoreDemPolarGutterShade({output:root,source,levels:[level],strict:false}),0);
   }finally{await rm(root,{recursive:true,force:true});}
-});
-});
-
-// Original feature contract: terrain-dem-cli.test.mjs
-contractSuite("terrain-dem-cli", () => {
-const assert = __dem_dep0.default;
-const { execFile } = __dem_dep2;
-const { createHash } = __dem_dep1;
-const { mkdir, mkdtemp, readFile, rm, writeFile } = __dem_dep3;
-const { tmpdir } = __dem_dep4;
-const { join, resolve } = __dem_dep5;
-const { promisify } = __dem_dep11;
-const test = __dem_dep6.default;
-const { extractTerrainPreviewTile } = __dem_dep12;
-const { encodeNativeWebpLossless } = __dem_dep7;
-
-const exec=promisify(execFile),sha=data=>createHash('sha256').update(data).digest();
-test('DEM verifier checks pinned synthetic source, tiles, reference and tint without writing them',{
-  skip:!process.env.PANDO_TERRAIN_DEM_CHECK_DIRECTORY||!process.env.PANDO_MAP_IMAGE_ARTIFACT||!process.env.PANDO_GDAL_LOCATIONINFO,
-},async t=>{
-  const root=await mkdtemp(join(tmpdir(),'terrain-dem-check-'));t.after(()=>rm(root,{recursive:true}));
-  const output=join(root,'dem');await mkdir(join(output,'5'),{recursive:true});
-  const level={id:5,width:3,height:3,columns:2,rows:2,tileSize:2},data=Buffer.alloc(36);
-  for(let i=0;i<9;i++)data.set([46,226,4,255],i*4);
-  const world={width:3,height:3,data},aggregate=createHash('sha256');
-  for(let row=0;row<2;row++)for(let column=0;column<2;column++){
-    const path=`5/${column}-${row}.webp`,tile=extractTerrainPreviewTile(world,level,column,row);
-    const bytes=(await encodeNativeWebpLossless(tile)).data;await writeFile(join(output,path),bytes);
-    aggregate.update(path).update(sha(bytes));
-  }
-  const tintData=Buffer.alloc(4096*2048*4,255),tint=(await encodeNativeWebpLossless({width:4096,height:2048,data:tintData})).data;
-  await writeFile(join(output,'tint.webp'),tint);aggregate.update(sha(tint));
-  const etopo=resolve('tests/fixtures/terrain-dem/synthetic-elevation.tif'),source=await readFile(etopo);
-  const manifest={version:'0.13.3',representation:'dem-relief-v1',shade:{quantizationStep:4},levels:[level],
-    sources:[{sha256:sha(source).toString('hex')}],tint:{sha256:sha(tint).toString('hex')},assetsSha256:aggregate.digest('hex')};
-  await writeFile(join(output,'manifest.json'),JSON.stringify(manifest));
-  const args=[resolve('tools/verify-terrain-dem.mjs'),'--etopo',etopo,'--output',output,'--reference-output',output];
-  const result=JSON.parse((await exec(process.execPath,args,{windowsHide:true,maxBuffer:1024*1024})).stdout);
-  assert.equal(result.verified,true);assert.equal(result.levels[0].tiles,4);
-  assert.deepEqual(await readFile(etopo),source);
-  manifest.sources[0].sha256='0'.repeat(64);await writeFile(join(output,'manifest.json'),JSON.stringify(manifest));
-  await assert.rejects(exec(process.execPath,args,{windowsHide:true}),/source checksum/i);
-});
-});
-
-// Original feature contract: terrain-dem-path.test.mjs
-contractSuite("terrain-dem-path", () => {
-const assert = __dem_dep0.default;
-const { mkdtemp, mkdir, realpath, rm, symlink } = __dem_dep3;
-const { realpathSync } = __dem_dep13;
-const { tmpdir } = __dem_dep4;
-const { join, relative } = __dem_dep5;
-const test = __dem_dep6.default;
-const { futureRealpath } = __dem_dep14;
-const { rebuildTerrainDemTint } = __dem_dep15;
-
-test('DEM reuse cannot write through a junction into its source directory',async t=>{
-  const root=await mkdtemp(join(tmpdir(),'pando-dem-path-'));t.after(()=>rm(root,{recursive:true,force:true}));
-  const source=join(root,'source'),alias=join(root,'alias');await mkdir(source);
-  await symlink(source,alias,process.platform==='win32'?'junction':'dir');
-  const destination=join(alias,'nested');
-  try{
-    await assert.rejects(rebuildTerrainDemTint({sourceOutput:source,output:destination,tintZip:'missing',ice:'missing',countries:'missing'}),/inside/i);
-  }catch(error){
-    console.error('DEM path diagnostics:',JSON.stringify({source,asyncRealpath:await realpath(source),nativeRealpath:realpathSync.native(source),
-      resolved:futureRealpath(destination),relative:relative(await realpath(source),futureRealpath(destination))}));
-    throw error;
-  }
-});
 });
