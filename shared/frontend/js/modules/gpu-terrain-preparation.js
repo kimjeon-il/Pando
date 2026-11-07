@@ -292,6 +292,9 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
       const queue = terrainUploadQueue;
       const key = 'terrain:' + contextGeneration + ':' + uploadEpoch;
       uploadKeys.add(key);
+      // Exactly one scheduler owner per context/epoch. New decodes join its
+      // queue; duplicate enqueue promises cannot accidentally dispose it.
+      if (uploadKeys.has(key)) return;
       void uploadScheduler.enqueueUpload({
         // Current-view DEM competes with many optional stroke/overlay uploads.
         // Decode order already chooses requiredKeys first; advance that
@@ -320,7 +323,12 @@ export function createGpuTerrainPreparation({ tileUrl, tintUrl, onUnusable, onTi
             onUnusable?.(String(error?.message || error));
           }
         }
-      }).finally(() => uploadKeys.delete(key));
+      }).finally(() => {
+        uploadKeys.delete(key);
+        // A decode can arrive after the final step but before settlement.
+        // Re-arm only after releasing the old key, so no tile is stranded.
+        if (!disposed && uploadEpoch === epoch && terrainUploadQueue.length) scheduleTerrainUpload();
+      });
     }
 
     function terrainGridMesh(spec, frameContext = activeFrameContext) {
