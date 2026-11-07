@@ -80,21 +80,21 @@ jobs:
       - name: Validate catalog geometry parity, lazy loading and timeline storage
         run: >-
           node --test tests/unit/territorial-library.test.mjs
-          tests/unit/territorial-library-data.test.mjs
-          tests/unit/territorial-source-files.test.mjs
+          tests/unit/territorial-library.test.mjs
+          tests/unit/territorial-source-parity.test.mjs
           tests/unit/territorial-source-parity.test.mjs
           tests/unit/territorial-chunks.test.mjs
           tests/unit/territorial-canonical-parity.test.mjs
-          tests/unit/territorial-entity-loader.test.mjs
+          tests/unit/territorial-entity-repository.test.mjs
           tests/unit/territorial-timeline-storage.test.mjs
-          tests/unit/territorial-snapshots.test.mjs
+          tests/unit/territorial-canonical-parity.test.mjs
           tests/unit/country-lineage.test.mjs
-          tests/unit/country-lineage-preservation.test.mjs
-          tests/unit/territorial-entity-store.test.mjs
+          tests/unit/country-lineage.test.mjs
+          tests/unit/territorial-entity-repository.test.mjs
           tests/unit/gis-geometry-worker.test.mjs
           tests/unit/gpu-mesh-country-strokes.test.mjs
-          tests/unit/territorial-library-provenance.test.mjs
-          tests/unit/territorial-source-provenance.test.mjs
+          tests/unit/territorial-library.test.mjs
+          tests/unit/territorial-source-parity.test.mjs
 
   exact-cpp-recipe:
     if: ${{ inputs.recipe_only }}

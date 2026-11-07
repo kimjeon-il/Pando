@@ -55,7 +55,7 @@ jobs:
       - name: Verify generated chunks and real dated world snapshot properties
         run: |
           node tools/build-territorial-entity-chunks.mjs --check
-          node --test tests/unit/gis-2000-2026-attribute-history.test.mjs tests/unit/gis-2000-2026-generated-attributes.test.mjs tests/unit/gis-2000-2026-additional-attributes.test.mjs
+          node --test tests/unit/gis-2000-2026-attribute-history.test.mjs
       - name: Store and push changed source, chunk and world bytes with the library owner
         run: |
           node tools/library-data.mjs --store-and-stage --push \

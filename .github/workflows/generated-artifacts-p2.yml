@@ -178,15 +178,15 @@ jobs:
         run: >-
           node --test shared/tests/p5-country-contact-wasm.test.mjs
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
-          tests/unit/country-contact-core.test.mjs
-          tests/unit/boundary-topology-split.test.mjs
+          tests/unit/country-shared-boundary.test.mjs
+          tests/unit/boundary-lines.test.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'
         env:
           PANDOEDITOR_WASM_MODULE: ${{ github.workspace }}/shared/frontend/static/wasm/pandoeditor-core.js
         run: >-
           node --test shared/tests/temporal-editing.test.mjs
-          tests/unit/place-names.test.mjs tests/unit/territorial-entity-loader.test.mjs
+          tests/unit/place-names.test.mjs tests/unit/territorial-entity-repository.test.mjs
       - uses: actions/upload-artifact@v4
         if: always() && inputs.verification == 'temporal'
         with:

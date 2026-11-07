@@ -4,9 +4,9 @@ on:
     branches: [work/gis]
     paths:
       - '.github/workflows/builtin-country-residuals.yml'
-      - 'tests/unit/builtin-country-residuals.test.mjs'
-      - 'tests/unit/builtin-country-materialization.test.mjs'
-      - 'tests/unit/prepared-input-verification.test.mjs'
+      - 'tests/unit/builtin-country-publication.test.mjs'
+      - 'tests/unit/builtin-country-loading.test.mjs'
+      - 'tests/unit/prepared-country-scope.test.mjs'
       - 'tools/gis/prepare-water-object-history.mjs'
       - 'tools/library-runtime-index.mjs'
       - 'tools/library-data.mjs'
@@ -33,4 +33,4 @@ jobs:
       - name: Verify residual architecture, archive preparation and prepared input reads without network data
         run: |
           node --check scripts/p2-validate-artifacts.mjs
-          node --test tests/unit/builtin-country-residuals.test.mjs tests/unit/builtin-country-materialization.test.mjs tests/unit/prepared-input-verification.test.mjs
+          node --test tests/unit/builtin-country-publication.test.mjs tests/unit/builtin-country-loading.test.mjs tests/unit/prepared-country-scope.test.mjs
