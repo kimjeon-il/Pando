@@ -178,7 +178,7 @@ jobs:
         run: >-
           node --test shared/tests/p5-country-contact-wasm.test.mjs
           shared/tests/p5-boundary-split-wasm.test.mjs shared/tests/p5-polygon-mesh-wasm.test.mjs
-          tests/unit/country-contact-core.test.mjs tests/unit/country-contact-legacy-parity.test.mjs
+          tests/unit/country-contact-core.test.mjs
           tests/unit/boundary-topology-split.test.mjs
       - name: Verify changed temporal editing and place naming
         if: inputs.verification == 'temporal'

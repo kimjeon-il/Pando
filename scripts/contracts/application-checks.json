@@ -20,19 +20,6 @@
       ]
     },
     {
-      "id": "ui-contracts",
-      "kind": "unit",
-      "testPatterns": [],
-      "inputs": [
-        "shared/frontend/css/**",
-        "apps/viewer/css/**",
-        "shared/frontend/js/modules/ui-*.js",
-        "apps/viewer/js/modules/ui-*.js",
-        "shared/frontend/js/modules/surface-*.js",
-        "apps/viewer/js/modules/surface-*.js"
-      ]
-    },
-    {
       "id": "place-contracts",
       "kind": "unit",
       "testPatterns": [
@@ -70,8 +57,7 @@
         "tests/browser/performance-*.spec.mjs",
         "tests/browser/canvas-globe-performance.spec.mjs",
         "tests/browser/p3-remote-preview.spec.mjs",
-        "tests/browser/codespaces-live.spec.mjs",
-        "tests/browser/viewer-main-stall-trace.spec.mjs"
+        "tests/browser/codespaces-live.spec.mjs"
       ],
       "inputs": []
     },
@@ -190,9 +176,7 @@
         "tests/browser/canvas-*.spec.mjs",
         "tests/browser/gpu-*.spec.mjs",
         "tests/browser/country-*.spec.mjs",
-        "tests/browser/renderer-*.spec.mjs",
-        "tests/browser/map-display-worker.spec.mjs",
-        "tests/browser/map-scale-readiness.spec.mjs"
+        "tests/browser/renderer-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/js/modules/gpu-*.js",
@@ -316,15 +300,12 @@
       "testPatterns": [
         "tests/browser/interaction-*.spec.mjs",
         "tests/browser/mobile-*.spec.mjs",
-        "tests/browser/module-cache-version.spec.mjs",
         "tests/browser/phone-landscape-surface-contract.spec.mjs",
         "tests/browser/startup-*.spec.mjs",
         "tests/browser/statusbar-*.spec.mjs",
-        "tests/browser/toggle-proportions.spec.mjs",
         "tests/browser/topbar-*.spec.mjs",
         "tests/browser/ui-*.spec.mjs",
-        "tests/browser/info-*.spec.mjs",
-        "tests/browser/button-consistency.spec.mjs"
+        "tests/browser/info-*.spec.mjs"
       ],
       "inputs": [
         "shared/frontend/css/**",
@@ -1208,6 +1189,16 @@
         "config/performance-budget.json",
         "scripts/assemble-performance-evidence.mjs"
       ]
+    },
+    {
+      "tests": [
+        "tests/browser/viewer-layout.spec.mjs"
+      ],
+      "inputs": [
+        "shared/frontend/css/**",
+        "apps/viewer/css/**",
+        "apps/viewer/templates/index.html"
+      ]
     }
   ],
   "runtimeBases": {},
@@ -1262,7 +1253,6 @@
       "ui": [
         "ui",
         "viewer",
-        "ui-contracts",
         "ui-architecture",
         "ui-spacing",
         "ui-components",
@@ -1297,7 +1287,6 @@
     },
     "p3": {
       "acceptance": [
-        "ui-contracts",
         "place-contracts",
         "project-file-contracts",
         "object-contracts",

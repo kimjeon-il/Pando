@@ -12,12 +12,20 @@ test('existing surfaces preserve project and selection across portrait, tablet a
   });
   await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
+  await page.locator('#timelinePreviousYear').hover();
+  await expect(page.locator('#uiTooltip')).toBeVisible();
   await page.locator('#projectFileInput').setInputFiles({name:'layout.gpkg',mimeType:'application/geopackage+sqlite3',buffer:fixture.bytes});
   await expect.poll(()=>page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot().baseDataset)).toBe(fixture.project.baseDataset);
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true');
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentSnapshot());
   for(const viewport of [{width:390,height:844},{width:768,height:1024},{width:1024,height:768},{width:844,height:390}]){
     await page.setViewportSize(viewport);
+    // Exercise the shipped controls, not frozen HTML button IDs or CSS pixels.
+    const visibleButtons=await page.locator('button.ui-button:visible').evaluateAll(nodes=>nodes.map(node=>{
+      const bounds=node.getBoundingClientRect();return {width:bounds.width,height:bounds.height};
+    }));
+    expect(visibleButtons.length).toBeGreaterThan(0);
+    for(const bounds of visibleButtons){expect(bounds.width).toBeGreaterThan(0);expect(bounds.height).toBeGreaterThan(0);}
     await page.locator('#objectSearchBtn').click();
     await page.locator('#objectSearchInput').fill('화면 검증 지도');
     await page.locator('#objectSearchResults button').filter({hasText:'화면 검증 지도'}).first().click();

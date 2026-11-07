@@ -64,8 +64,8 @@ export function classifyPaths(paths, capability = {}, manual = 'auto') {
       }
       if (/^shared\/(?:core|wasm|tests|third_party)\/|^shared\/CMakeLists\.txt$/.test(path)) { mark('core'); mark('wasm'); }
       if (/^tools\/cpp\//.test(path)) {mark('gis');mark('gisTools');}
-      if (/^(apps\/(?:editor|viewer)\/|shared\/frontend\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
-      if (/^((?:shared\/frontend\/js|apps\/editor\/frontend\/js)\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
+      if (/^(apps\/viewer\/|shared\/frontend\/|playwright\.|tests\/browser\/)/.test(path)) mark('ui');
+      if (/^(shared\/frontend\/js\/modules\/(project|object|timeline|temporal|territorial|editing|distribution|generic)|contracts\/objects\/|tests\/unit\/(project|object|timeline|temporal|territorial))/.test(path)) mark('objects');
       if (/^(assets\/data\/(territorial|hydro|terrain|historical|world)|tools\/(build-(world|terrain|country|territorial|historical|hydro)|.*(gis|hydro|terrain)))/.test(path)) mark('gis');
       if (/^(assets\/data\/places\/|contracts\/places\/|reports\/places\/|tools\/(build-place|place-)|tests\/unit\/place-)/.test(path)) mark('places');
       if (/^(tests\/unit\/|tests\/helpers\/|scripts\/check-|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$)/.test(path)) {

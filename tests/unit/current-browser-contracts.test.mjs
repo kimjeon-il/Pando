@@ -82,9 +82,7 @@ test('P1/P3 preserve source-selected app contracts while P3 shards all selected 
 test('CSS selects relevant UI checks without C++/GIS build or data generation commands', () => {
   const repository = loadRepository(new URL('../../', import.meta.url));
   const plan = planApplicationChecks({ repository, changedFiles: ['shared/frontend/css/features/map-rendering.css'] });
-  assert.ok(plan.browserSpecs.includes('tests/browser/button-consistency.spec.mjs'));
-  assert.equal(plan.browserSpecs.includes('tests/browser/ui-components.spec.mjs'),false,
-    'retired editor browser layout cannot run in the Viewer');
+  assert.ok(plan.browserSpecs.includes('tests/browser/viewer-layout.spec.mjs'));
   assert.ok(plan.commands.includes('ui-spacing'));
   assert.deepEqual(plan.externalChecks, []);
   assert.equal(plan.commands.some(id => catalog.groups.find(group => group.id === id)?.gisNative), false);

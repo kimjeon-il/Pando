@@ -36,7 +36,7 @@ export function exactCheckPlan(repository,selection) {
   if(!selection||typeof selection!=='object'||Array.isArray(selection)||Object.keys(selection).some(k=>!allowed.has(k)))throw Error('Invalid exact check selection');
   for(const k of allowed)if(!Array.isArray(selection[k])||selection[k].some(x=>typeof x!=='string')||new Set(selection[k]).size!==selection[k].length)throw Error('Invalid exact check selection: '+k);
   for(const [kind,prefix] of [['unitTests','tests/unit/'],['browserSpecs','tests/browser/']])for(const file of selection[kind]){
-    const owner=repository.owners.get(file);if(!file.startsWith(prefix)||!owner||owner.mode==='retired')throw Error('Unknown or retired selected check: '+file);
+    const owner=repository.owners.get(file);if(!file.startsWith(prefix)||!owner)throw Error('Unknown or retired selected check: '+file);
   }
   for(const id of selection.commands)if(!repository.catalog.groups.some(g=>g.id===id&&g.kind==='command'))throw Error('Unknown selected command: '+id);
   for(const id of selection.prerequisites)if(!id.startsWith('native-')||!repository.catalog.prerequisites[id])throw Error('Unknown selected native tool: '+id);

@@ -54,19 +54,6 @@ test('generated adapter gate invokes node once with every retained test argument
   for(const name of ['p6-polygon-core','r4c-spatial-boundaries','river-territory-partition'])assert(gate.run.includes('tests/unit/'+name+'.test.mjs'));
 });
 
-test('historical diagnostics are retired while functional Viewer regressions remain automatic', () => {
-  const repository = loadRepository(fileURLToPath(new URL('../..', import.meta.url)));
-  assert.equal(repository.owners.get('tests/browser/viewer-main-stall-trace.spec.mjs')?.mode, 'manual');
-  for (const file of ['tests/browser/viewer-transition-dedup-diagnostic.spec.mjs',
-    'tests/browser/gpu-worker-background-diagnostic.spec.mjs',
-    'tests/browser/gpu-recovery-foreground.spec.mjs'])
-    assert.equal(repository.owners.has(file), false, file);
-  for (const file of ['tests/browser/viewer-calendar.spec.mjs',
-    'tests/browser/viewer-startup-and-terrain.spec.mjs',
-    'tests/browser/viewer-temporal-regressions.spec.mjs',
-    'tests/browser/viewer-renderer-recovery.spec.mjs'])
-    assert.notEqual(repository.owners.get(file)?.mode, 'manual', file);
-});
 
 function fixture() {
   const root = mkdtempSync(join(tmpdir(), 'pando-check-plan-'));

@@ -25,8 +25,8 @@ test('core source triggers standalone C++ and WASM only when the source exists',
   const legacy=classifyPaths(['shared/core/src/document.cpp'],webOnly);
   assert.equal(legacy.core,false);assert.equal(legacy.wasm,false);
 });
-test('WebView shell changes select the current Web app checks', () => {
-  assert.equal(classifyPaths(['apps/editor/startup.js'],all).web,true);
+test('Viewer shell changes select the current Web app checks', () => {
+  assert.equal(classifyPaths(['apps/viewer/js/viewer.js'],all).web,true);
 });
 test('GIS source changes and city records select their own scopes', () => {
   const gis=classifyPaths(['tools/gis/build-hydro.mjs'],all);
@@ -57,6 +57,6 @@ test('manual scope can explicitly opt into full diagnostics', () => {
 
 
 test('app and shared documentation do not start compilation', () => {
-  const result=classifyPaths(['apps/editor/README.md','shared/README.md'],all);
+  const result=classifyPaths(['apps/viewer/README.md','shared/README.md'],all);
   for(const key of ['web','core','wasm','gisTools'])assert.equal(result[key],false,key);
 });

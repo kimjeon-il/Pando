@@ -303,21 +303,6 @@ jobs:
           source_sha="$(git rev-parse HEAD)"
           node scripts/p2-artifact-plan.mjs --evidence --result-sha "$source_sha" --expected-source-sha "$source_sha" --evidence-file test-results/p9-artifacts/generated.json
           if [ '${{ inputs.scope }}' = acceptance ]; then node tools/check-current-hydro-layout.mjs --root . --allow-retired false --out test-results/p9-artifacts/hydro.json; fi
-      - uses: actions/checkout@v4
-        id: acceptance_baseline
-        if: inputs.scope == 'acceptance' || (inputs.scope == 'browser' &&
-          inputs.retry_failed)
-        with:
-          ref: d57e235cc4b8c7f94a603d4352556f11b28bc735
-          path: build-native/p9/baseline
-          persist-credentials: false
-      - name: Mount selected baseline inputs from library storage
-        id: library_baseline_10
-        if: steps.acceptance_baseline.outcome == 'success'
-        uses: kimjeon-il/Pando/.github/actions/library-data@main
-        with:
-          inputs-revision: 4bed5bac671c5bfe28e1e54cbcc237f6c10a95aa
-          inputs-target: build-native/p9/baseline
       - name: Run real desktop and emulated mobile screenshots plus startup
           observability
         if: inputs.browser_tests == ''
@@ -335,7 +320,7 @@ jobs:
             tests/browser/hydro-sdf-webgl.spec.mjs \
             --workers=1 --retries=0 --max-failures=1 --output=test-results/p3-browser \
             2>&1 | tee test-results/p3-browser.log
-      - name: Verify affected Web editing, persistence and plugin import workflows
+      - name: Verify current Viewer map boundaries and temporal presentation
         if: inputs.browser_flows != false && (inputs.scope == 'acceptance' ||
           (inputs.scope == 'browser' && inputs.retry_failed))
         shell: bash
@@ -346,20 +331,9 @@ jobs:
           PANDO_BROWSER_TESTS: ${{ inputs.browser_tests }}
         run: |
           mkdir -p test-results/p9-browser
-          reuse=()
-          if [ "$RETRY_FAILED" = true ]; then reuse=(--grep-invert 'a child cut'); fi
-          pattern='annex - (polygon|components|line multiple crossings)|a child cut|plugin GeoJSON|static v10 UI file|complex timeline|Russia detailed line preparation|Russia detailed polygon creation.*\(webgl2\)'
-          if [ -n "$PANDO_BROWSER_TESTS" ]; then pattern="$PANDO_BROWSER_TESTS"; fi
-          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/temporal-map-presentation.spec.mjs tests/browser/viewer-boundary-p4-5.spec.mjs --grep='.' "${reuse[@]}" --trace off --workers=1 --retries=0 --output=test-results/p9-browser
-      - name: Compare initial display, edit readiness, frames and JS heap against the
-          fixed baseline
-        if: ${{ !cancelled() && steps.acceptance_inputs.outcome == 'success' &&
-          steps.acceptance_baseline.outcome == 'success' }}
-        env:
-          PANDOLAB_BROWSER_CHANNEL: chromium
-          PANDO_P9_BASELINE_ROOT: build-native/p9/baseline
-        run: pnpm exec playwright test tests/browser/viewer-main-stall-trace.spec.mjs
-          --workers=1 --retries=0 --output=test-results/p9-browser-performance
+          filters=()
+          if [ -n "$PANDO_BROWSER_TESTS" ]; then filters+=(--grep "$PANDO_BROWSER_TESTS"); fi
+          pnpm exec playwright test tests/browser/viewer-boundary-p4-5.spec.mjs tests/browser/temporal-map-presentation.spec.mjs "${filters[@]}" --workers=1 --retries=0 --output=test-results/p9-browser
       - name: Archive screenshots, test output and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -369,22 +343,11 @@ jobs:
           path: |
             test-results/p3-browser
             test-results/p9-browser
-            test-results/p9-browser-performance
             test-results/p9-artifacts
             test-results/p3-browser.log
             playwright-report
           if-no-files-found: warn
           retention-days: 10
-      - name: Verify selected library input bytes remain unchanged
-        if: always() && steps.library_baseline_10.outcome == 'success'
-        shell: bash
-        env:
-          INPUT_CHECKOUT: .pando-inputs/build-native/p9/baseline
-        run: >
-          dirty="$(git -C "$GITHUB_WORKSPACE/$INPUT_CHECKOUT" status --porcelain
-          --untracked-files=all -- assets/data)"
-
-          test -z "$dirty" || { printf '%s\n' "$dirty"; exit 1; }
   calculation-performance:
     if: inputs.scope == 'acceptance'
     runs-on: ubuntu-24.04

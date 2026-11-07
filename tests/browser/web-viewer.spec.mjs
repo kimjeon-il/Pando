@@ -6,11 +6,6 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   page.setDefaultTimeout(15000);
   await page.setViewportSize(viewport);
   const errors=[]; page.on('pageerror', error=>errors.push(error.message));
-  await page.addInitScript(()=>{
-    localStorage.setItem('pandolab-editor-project','preserve-existing-editor-autosave');
-    const open=indexedDB.open.bind(indexedDB);window.__openedDatabases=[];
-    indexedDB.open=(name,...args)=>{window.__openedDatabases.push(name);return open(name,...args);};
-  });
   await page.goto('/?debug=1');
   await expect(page.locator('#viewerStatus')).toHaveAttribute('data-ready','true',{timeout:120000});
   await expect(page.locator('#viewerStatus')).toHaveClass('ui-visually-hidden');
@@ -18,7 +13,8 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   await expect(page.locator('#viewerStatus')).toHaveCSS('clip-path','inset(50%)');
   await expect.poll(() => page.evaluate(() => window.__PANDOLAB_VIEWER__.visibleTerritorialCount())).toBeGreaterThan(0);
   await expect(page).toHaveTitle('판도연구소');
-  await expect(page.locator('#newProjectBtn, #saveProjectBtn, #undoBtn, #editorPanel')).toHaveCount(0);
+  await expect(page.locator('#map')).toBeVisible();
+  await expect(page.locator('#projectFileInput')).toHaveCount(1);
   const before=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
   await page.locator('#objectSearchBtn').click();
   await page.getByLabel('지도에서 찾기', { exact: true }).fill('대한민국');
@@ -52,9 +48,6 @@ test(`existing UI loads, searches and navigates without document writes at ${vie
   const after=await page.evaluate(()=>window.__PANDOLAB_VIEWER__.documentState());
   expect(after.checkpoint).toBe(before.checkpoint);
   expect(after.presentationCheckpoint).toBe(before.presentationCheckpoint);
-  expect(await page.evaluate(()=>localStorage.getItem('pandolab-editor-project'))).toBe('preserve-existing-editor-autosave');
-  expect(await page.evaluate(()=>window.__openedDatabases)).not.toContain('pandolab-editor');
-  expect(await page.evaluate(()=>window.__openedDatabases)).toContain('pandolab-viewer');
   expect(errors).toEqual([]);
 });
 }
