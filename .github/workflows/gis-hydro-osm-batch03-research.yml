@@ -12,7 +12,7 @@ on:
       - 'tools/cpp/hydro/point-screen.cpp'
       - 'tools/cpp/CMakeLists.txt'
       - 'tools/gis/hydro-independent-name-policy.mjs'
-      - 'tests/unit/hydro-independent-name-policy.test.mjs'
+      - 'tests/unit/hydro-independent-evidence.test.mjs'
       - '.github/workflows/gis-hydro-osm-batch03-research.yml'
   workflow_dispatch:
 
@@ -64,7 +64,7 @@ jobs:
           const data=JSON.parse(readFileSync('/tmp/osm-hydro-batch03-results.json','utf8'));
           for(const line of formatBatch03Receipts(data))console.log(line);
           JS
-          node --test tests/unit/hydro-independent-name-policy.test.mjs
+          node --test tests/unit/hydro-independent-evidence.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: gis-osm-hydro-batch03-independent-points
