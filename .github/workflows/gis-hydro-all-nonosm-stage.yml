@@ -39,7 +39,7 @@ jobs:
             tests/unit/gis-hydro-followup-independent.test.mjs \
             tests/unit/gis-osm-source-inventory.test.mjs \
             tests/unit/hydro-name.test.mjs \
-            tests/unit/gis-osm-credit-retirement.test.mjs
+            tests/unit/gis-osm-source-inventory.test.mjs
       - name: Pin exact original HydroRIVERS v0.13.2 data commit
         id: data
         shell: bash

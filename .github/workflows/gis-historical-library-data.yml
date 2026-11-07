@@ -4,7 +4,7 @@ on:
   push:
     branches: [work/gis]
     paths:
-      - tests/unit/territorial-library-data.test.mjs
+      - tests/unit/territorial-library.test.mjs
       - tests/unit/borneo-country-geometry.test.mjs
       - '.github/workflows/gis-historical-library-data.yml'
   workflow_dispatch:
@@ -56,4 +56,4 @@ jobs:
           }));
           JS
       - name: Verify immutable historical objects with current Node rules
-        run: node --test tests/unit/territorial-library-data.test.mjs tests/unit/borneo-country-geometry.test.mjs
+        run: node --test tests/unit/territorial-library.test.mjs tests/unit/borneo-country-geometry.test.mjs
