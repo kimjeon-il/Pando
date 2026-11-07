@@ -12,7 +12,9 @@ const scopedCountries=new Map();
 let scopedAssets;
 export function builtinProject(month){
  catalog ||= JSON.parse(fs.readFileSync(new URL('index.json',root)));
- const countries=selectBuiltinCountries(catalog,month).map(entry=>{
+ // Test the actual product contract: a project includes every country and
+ // the original validity intervals, even when inactive at the first month.
+ const countries=catalog.entities.map(entry=>{
   if(!cache.has(entry.entityId))cache.set(entry.entityId,JSON.parse(gunzipSync(readBuiltinCountryStoredBytes(entry,file=>fs.readFileSync(new URL(file,root))))));
   return cache.get(entry.entityId);
  });
@@ -51,7 +53,8 @@ export async function scopedBuiltinProject(month,entityIds){
    required.add(relation.parentId);
   }
  }
- const scopedCatalog={...catalog,entities:catalog.entities.filter(entry=>required.has(entry.entityId))};
+ const loadedIds=new Set(countries.map(row=>row.entityId));
+ const scopedCatalog={...catalog,entities:catalog.entities.filter(entry=>loadedIds.has(entry.entityId))};
  return assembleBuiltinWorld(scopedCatalog,countries,month);
 }
 export function withExplicitView(input){
@@ -60,17 +63,8 @@ export function withExplicitView(input){
   return {entityId,geometryVersionId:source.geometryVersions.at(-1).versionId};
  })}};
 }
-// Full interval projection is a test oracle only; product loading selects a scene.
+// The historical context oracle now follows the same full-history assembler
+// as production. No parallel world-construction implementation is necessary.
 export function contextProject(catalog){
- const countries=catalog.countries.filter(row=>row.timelineRecords.lifetimes.length),project=structuredClone(catalog.index.template);
- project.projectSetup={initialMonth:'2026-10',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'};
- project.territorialEntities=countries.map(row=>{
-  const identity=structuredClone(row.identity);
-  identity.properties.metadata.historicalTimeline.geometryBindings=row.sourceBindings;return identity;
- });
- project.timelineRecords={schemaVersion:3,lifetimes:[],geometryBindings:[],parentRelations:[],propertyBindings:[]};
- for(const key of ['lifetimes','geometryBindings','parentRelations','propertyBindings'])project.timelineRecords[key]=countries.flatMap(row=>row.timelineRecords[key]);
- project.geometries=[...new Map(countries.flatMap(row=>row.geometries).map(row=>[row.id+':'+row.version,row])).values()];
- return project;
+ return assembleBuiltinWorld(catalog.index,catalog.countries,'2026-10');
 }
-
