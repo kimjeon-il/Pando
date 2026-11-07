@@ -86,3 +86,12 @@ test('unit consolidation preserves independently addressable original contracts 
   assert.deepEqual(inventory.staleReferences, []);
   assert.ok(inventory.registeredContractCount >= inventory.originalContractCount);
 });
+
+
+test('append-changed lint checks do not traverse unrelated archived tool imports', () => {
+  const repository = loadRepository();
+  const path = repository.files.find(file => /^tools\/[^/]+\.mjs$/.test(file) && file !== 'tools/worktree-storage.mjs');
+  assert.ok(path, 'at least one tracked standalone tool must be available');
+  const plan = planApplicationChecks({changedFiles: [path], repository});
+  assert.ok(plan.commands.includes('lint'), path);
+});

@@ -210,7 +210,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
   const impactIndex = () => cachedImpact ||= createCheckImpactIndex({
     roots: [...tests, ...catalog.groups.flatMap(group => [
       ...(group.argv || []).filter(value => /^(?:scripts|tools|apps|tests)\/.*\.[cm]?js$/.test(value)),
-      ...files.filter(file => matches(file, group.inputs || [])),
+      ...(group.appendChanged ? [] : files.filter(file => matches(file, group.inputs || []))),
     ]), ...(catalog.bindings || []).flatMap(binding => files.filter(file => matches(file, binding.inputs || [])))],
     dependencies,
   });
