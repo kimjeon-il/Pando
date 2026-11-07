@@ -61,6 +61,7 @@
     "package:shared-core": "node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm",
     "check:shared-core-assets": "node tools/package-shared-core-assets.mjs --build-dir build-native/wasm/wasm --check",
     "check:geometry-runtime": "node --test tests/unit/p6-polygon-core.test.mjs tests/unit/r4c-spatial-boundaries.test.mjs",
+    "check:ci-inventory": "node --test tests/unit/e7-application-check-planner.test.mjs tests/unit/check-automation.test.mjs",
     "check:affected": "node scripts/run-application-checks.mjs",
     "test:gis-node": "node --test tests/unit/hydro-packfile-builder.test.mjs tests/unit/download-terrain-source.test.mjs tests/unit/place-batch-pipeline.test.mjs tests/unit/place-candidates.test.mjs tests/unit/gis-source-launcher.test.mjs tests/unit/report-paths.test.mjs tests/unit/boundary-capture-evidence.test.mjs tests/unit/font-assets.test.mjs",
     "dev:web": "node scripts/frontend-dev-server.mjs --product=viewer",
