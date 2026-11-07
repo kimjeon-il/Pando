@@ -1,15 +1,29 @@
-import { describe as featureDescribe } from 'node:test';
-import * as __suiteDependency0 from "node:test";
-import * as __suiteDependency1 from "node:assert/strict";
-import * as __suiteDependency2 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
-import * as __suiteDependency3 from "../../shared/frontend/js/modules/geometry-versions.js";
-import * as __suiteDependency4 from "node:assert/strict";
-import * as __suiteDependency5 from "node:fs";
-import * as __suiteDependency6 from "node:vm";
-import * as __suiteDependency7 from "node:test";
-import * as __suiteDependency8 from "node:assert/strict";
-import * as __suiteDependency9 from "node:test";
 import "../../shared/frontend/js/workers/canvas-scene-composition-core.js";
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:test";
+import * as __dep1 from "node:assert/strict";
+import * as __dep2 from "../../shared/frontend/js/modules/gpu-map-renderer.js";
+import * as __dep3 from "../../shared/frontend/js/modules/geometry-versions.js";
+import * as __dep4 from "node:fs";
+import * as __dep5 from "node:vm";
+import * as __dep6 from "node:crypto";
+import * as __dep7 from "../../shared/frontend/js/modules/resource-update-policy.js";
+import * as __dep8 from "../../shared/frontend/js/modules/country-mesh-zoom-policy.js";
+import * as __dep9 from "../../shared/frontend/js/modules/gpu-canvas-worker.js";
+
+// Original feature contract: canvas-country-geometry.test.mjs
+contractSuite("canvas-country-geometry", () => {
+const { describe : featureDescribe }=__dep0;
+const __suiteDependency0=__dep0;
+const __suiteDependency1=__dep1;
+const __suiteDependency2=__dep2;
+const __suiteDependency3=__dep3;
+const __suiteDependency4=__dep1;
+const __suiteDependency5=__dep4;
+const __suiteDependency6=__dep5;
+const __suiteDependency7=__dep0;
+const __suiteDependency8=__dep1;
+const __suiteDependency9=__dep0;
 
 // Original feature contract: canvas-country-geometry.test.mjs
 featureDescribe("canvas-country-geometry", () => {
@@ -105,5 +119,353 @@ test('Canvas invalidates prepared strokes on changed revision, buffer identity o
   assert.notStrictEqual(paints[1], paints[2]);
   paint({ ...packet, geometryRevision: 'shape:2', ownerIds: ['LEFT'], ownerRanges: { LEFT: { first: 1, count: 1 } } });
   assert.deepEqual(paints[3].coordinates, [[[1, 0], [3, 0]]]);
+});
+});
+});
+
+// Original feature contract: canvas-globe-viewport.test.mjs
+contractSuite("canvas-globe-viewport", () => {
+const test=__dep0.default;
+const assert=__dep1.default;
+const { readFileSync }=__dep4;
+const { createHash }=__dep6;
+const vm=__dep5.default;
+const resourceUpdatePolicy=__dep7;
+
+const root = new URL('../../shared/frontend/js/', import.meta.url);
+function runtime() {
+  const scope = { URL, location: { href: 'https://example.test/assets/js/workers/canvas-render-worker.js' }, importScripts() {} };
+  scope.self = scope;
+  scope.PandoLabResourceUpdatePolicy = resourceUpdatePolicy;
+  vm.createContext(scope);
+  vm.runInContext(readFileSync(new URL('vendor/d3.min.js', root), 'utf8'), scope);
+  const source = readFileSync(new URL('workers/canvas-render-worker.js', root), 'utf8');
+  const anchor = 'self.onmessage = event => {';
+  assert.ok(source.includes(anchor));
+  vm.runInContext(source.replace(anchor, `self.setHydroForTest = features => { hydroEditFeatures = features; };
+    self.hydroPassForTest = renderHydroPass; self.projectionForTest = createProjection;
+    self.cachedPathForTest = typeof createCanvasPath === 'function' ? createCanvasPath : undefined;
+    self.traceTerrainGrid = (spec,projection,message) => {
+      const previousDraw=drawTexturedTriangle,previousManifest=terrainManifest,triangles=[];
+      terrainManifest={gutter:1};
+      drawTexturedTriangle=(_image,source,destination)=>triangles.push([source,destination]);
+      try { for (const _ of drawGlobeTerrainTile(spec,{},projection,message,1,false)) { /* Drain cooperative terrain rows. */ } return triangles; }
+      finally { drawTexturedTriangle=previousDraw; terrainManifest=previousManifest; }
+    }; ` + anchor), scope);
+  return scope;
+}
+
+test('Canvas terrain preserves exact horizon triangles with real globe projection across repeated calls', () => {
+  const scope=runtime(),spec={bounds:[78.75,11.25,101.25,-11.25],pixelWidth:1024,pixelHeight:1024};
+  const projection=scope.d3.geo.orthographic().rotate([0,0,0]).scale(6000).translate([640,400]);
+  const message={view:{globeZoom:16,globeRotation:[0,0,0]}};
+  for(let i=0;i<2;i++) {
+    const triangles=scope.traceTerrainGrid(spec,projection,message);
+    assert.equal(triangles.length,8460);
+    assert.equal(createHash('sha256').update(JSON.stringify(triangles)).digest('hex'),
+      '34278a0134e2b3ed66fbcfdbaa47b1ff6ee36295703fe6261ee26361aee3bbf4');
+  }
+});
+
+test('zoomed Canvas globe clips projected land and mask paths to the frame without losing viewport crossings', () => {
+  const scope = runtime(), width = 1280, height = 752;
+  for (const zoom of [1, 16, 64]) {
+    const projection = scope.projectionForTest({ projection: 'globe', view: { globeZoom: zoom, globeRotation: [-114.17, -22.27, 0] } }, width, height);
+    const points = [];
+    const context = { moveTo: (x, y) => points.push([x, y]), lineTo: (x, y) => points.push([x, y]), closePath() {} };
+    scope.d3.geo.path().projection(projection).context(context)({ type: 'Sphere' });
+    assert.ok(points.length > 3, 'the visible globe must remain drawable');
+    assert.ok(points.every(([x,y]) => x >= -6 - 1e-6 && x <= width + 6 + 1e-6 && y >= -6 - 1e-6 && y <= height + 6 + 1e-6),
+      `zoom ${zoom}: offscreen globe paths must not reach Canvas rasterization`);
+    if (zoom > 1) {
+      assert.ok(points.some(([x]) => Math.abs(x + 6) < 1e-6));
+      assert.ok(points.some(([x]) => Math.abs(x - width - 6) < 1e-6));
+    }
+    assert.equal(projection.clipAngle(), 90, 'retain far hemisphere clipping');
+  }
+});
+
+test('Canvas reuses exact projected paths across land, terrain and paint-only frames, and invalidates view or geometry changes', () => {
+  const scope = runtime();
+  assert.equal(typeof scope.cachedPathForTest, 'function');
+  const geometry = { type: 'LineString', coordinates: [[113,22], [114,23], [115,22]] };
+  const frame = { projection:'globe', view:{globeZoom:16,globeRotation:[-114.17,-22.27,0]} };
+  const projection = scope.projectionForTest(frame,1280,752), points=[];
+  const target={moveTo:(x,y)=>points.push(['M',x,y]),lineTo:(x,y)=>points.push(['L',x,y]),closePath:()=>points.push(['Z']),arc:(...args)=>points.push(['A',...args])};
+  let traversals=0;
+  Object.defineProperty(geometry,'coordinates',{get(){traversals++;return [[113,22],[114,23],[115,22]];}});
+  const path=scope.cachedPathForTest(projection,target);
+  path(geometry);const first=structuredClone(points);points.length=0;
+  path({type:'Feature',geometry,properties:{color:'#123456'}});
+  assert.deepEqual(points,first);assert.equal(traversals,1);
+  const next=scope.cachedPathForTest(scope.projectionForTest(frame,1280,752),target);
+  next(geometry);assert.equal(traversals,1,'style-only frames reuse exact projected geometry');
+  scope.cachedPathForTest(scope.projectionForTest({...frame,view:{...frame.view,globeZoom:32}},1280,752),target)(geometry);
+  assert.equal(traversals,2,'camera changes invalidate paths');
+  const replacement={type:'LineString',coordinates:[[114,22],[115,22]]};
+  scope.cachedPathForTest(projection,target)(replacement);
+  points.length=0;
+  scope.cachedPathForTest(projection,target)(geometry);
+  assert.deepEqual(points,first);
+});
+
+
+
+test('Canvas river paints reuse projected segments without changing per-segment widths or water colors', () => {
+  const scope=runtime();
+  let coordinateReads=0; const coordinate=values=>new Proxy(values,{get(target,key){if(key==='0'||key==='1')coordinateReads++;return target[key];}});
+  const geometry={type:'LineString',coordinates:[[113,22],[114,22.5],[115,22]].map(coordinate)};
+  scope.setHydroForTest([{type:'Feature',geometry,properties:{category:'river',stroke_widths:[[1,3,5]]}}]);
+  const message={riversVisible:true,lakesVisible:true,theme:{ocean:'#123456',riverOpacity:.7,strokes:{river:{width:2}}}};
+  const frame={projection:'globe',view:{globeZoom:16,globeRotation:[-114.17,-22.27,0]}};
+  const projection=scope.projectionForTest(frame,1280,752), widths=[], colors=[], commands=[];
+  const target={save(){},restore(){},setTransform(){},beginPath(){},moveTo:(x,y)=>commands.push([x,y]),lineTo:(x,y)=>commands.push([x,y]),stroke(){widths.push(this.lineWidth);colors.push(this.strokeStyle);}};
+  let streams=0;const original=projection.stream;
+  projection.stream=function(...args){streams++;return original.apply(this,args);};
+  scope.hydroPassForTest(message,projection,1,'river',target);
+  const first=structuredClone(commands), readsAfterFirst=coordinateReads;commands.length=0;
+  scope.hydroPassForTest(message,projection,1,'river',target);
+  assert.deepEqual(commands,first);
+  assert.deepEqual(widths,[4,8,4,8]);assert.deepEqual(colors,Array(4).fill('#123456'));
+  assert.equal(streams,1,'one D3 stream compiles all segments in a paint');assert.equal(coordinateReads,readsAfterFirst,'unchanged segments must not be reprojected');
+});
+
+test('cached Canvas paths preserve D3 polygon holes, disjoint islands, globe clipping and point arcs exactly', () => {
+  const scope=runtime();
+  const ring=[[113,22],[113,23],[114,23],[114,22],[113,22]];
+  const hole=[[113.2,22.2],[113.8,22.2],[113.8,22.8],[113.2,22.8],[113.2,22.2]];
+  const shapes=[{type:'Polygon',coordinates:[ring,hole]},
+    {type:'MultiPolygon',coordinates:[[ring],[ring.map(([x,y])=>[x+1,y])]]},
+    {type:'Point',coordinates:[114,22]}, {type:'Sphere'}, {type:'Feature',geometry:null,properties:{}}];
+  for(const zoom of [1,16]) {
+    const projection=scope.projectionForTest({projection:'globe',view:{globeZoom:zoom,globeRotation:[-114,-22,0]}},1280,752);
+    const record=rows=>({moveTo:(x,y)=>rows.push(['M',x,y]),lineTo:(x,y)=>rows.push(['L',x,y]),closePath:()=>rows.push(['Z']),
+      arc:(x,y,r,start,end,reverse=false)=>rows.push(['A',x,y,r,start,end,Boolean(reverse)])});
+    for(const shape of shapes) {
+      const direct=[],cached=[];
+      scope.d3.geo.path().projection(projection).context(record(direct))(shape);
+      const path=scope.cachedPathForTest(projection,record(cached));path(shape);
+      assert.deepEqual(cached,direct);
+      cached.length=0;path(shape);assert.deepEqual(cached,direct);
+    }
+  }
+});
+
+test('Canvas globe retains strokes whose centers sit outside the viewport but whose ink overlaps its edge', () => {
+  const scope=runtime();
+  for(const [width,outside] of [[4,-1],[40,-15]]) {
+    const projection=scope.projectionForTest({projection:'globe',view:{globeZoom:16,globeRotation:[-114,-22,0]},theme:{strokes:{country:{width,join:'round',cap:'round'}}}},1280,752);
+    const points=[];
+    const geometry={type:'LineString',coordinates:[projection.invert([outside,340]),projection.invert([outside,410])]};
+    scope.d3.geo.path().projection(projection).context({moveTo:(x,y)=>points.push([x,y]),lineTo:(x,y)=>points.push([x,y])})(geometry);
+    assert.ok(points.length>=2,'visible stroke overlap must not disappear at the canvas edge');
+  }
+});
+});
+
+// Original feature contract: canvas-worker-background-admission.test.mjs
+contractSuite("canvas-worker-background-admission", () => {
+const test=__dep0.default;
+const assert=__dep1.default;
+const policy=__dep8;
+const { createGpuCanvasWorker }=__dep9;
+const { readFileSync }=__dep4;
+
+const input = Object.freeze({
+  rendererMode: 'canvas-worker',
+  committedBitmap: true,
+  physicalSceneMatched: true,
+  temporalPending: false,
+});
+const surface = Object.freeze({
+  cssScale: 700,
+  canonicalReady: true,
+  focus: true,
+});
+
+test('a genuine current Canvas Worker bitmap admits an initial canonical country surface even while terrain tiles continue', () => {
+  assert.equal(policy.resolveMapSurfacePresentation({...surface, backgroundPresented:false}).quality,'pending');
+  const accepted=policy.canAdmitCanvasWorkerPartialBackground?.(input);
+  assert.equal(accepted,true, 'a painted physical background must release the first country frame');
+  assert.equal(policy.resolveMapSurfacePresentation({...surface,backgroundPresented:accepted}).quality,'canonical');
+});
+test('unpainted, wrong-backend and temporal replacements never authorize partial background admission', () => {
+  for(const change of [
+    {committedBitmap:false},{physicalSceneMatched:false},{temporalPending:true},
+    {rendererMode:'webgl2'},{rendererMode:'webgl1'},{rendererMode:'canvas2d'},
+  ])assert.equal(policy.canAdmitCanvasWorkerPartialBackground?.({...input,...change}),false);
+});
+
+const physical = Object.freeze({ready:true,landRevision:'land-v2',waterRevision:'water-v3'});
+const painted = Object.freeze({physicalLandCount:1,physicalLandRevision:'land-v2',physicalWaterCount:1,physicalWaterRevision:'water-v3'});
+test('only a bitmap containing current physical land and water may certify a Canvas Worker country frame',()=>{
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical(painted,physical),true);
+  for(const input of [
+    {physicalLandCount:0},{physicalLandCount:2},{physicalLandRevision:'land-v1'},
+    {physicalWaterCount:0},{physicalWaterCount:2},{physicalWaterRevision:'water-v2'},
+  ])assert.equal(policy.canvasWorkerFrameMatchesPhysical({...painted,...input},physical),false);
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical(painted,{...physical,ready:false}),false);
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical({},physical),false);
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical(painted,{ready:true,landRevision:'land-v2',waterRevision:null}),false);
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical({physicalLandCount:1,physicalLandRevision:'land-v2',physicalWaterCount:0},
+    {ready:true,landRevision:'land-v2',waterRevision:null}),true);
+});
+
+test('a submitted physical WebGL base frame publishes countries without certifying unfinished terrain LOD',()=>{
+  const eligible={rendererMode:'webgl2',submittedBaseFrame:true,physicalSceneMatched:true,temporalPending:false};
+  assert.equal(policy.canAdmitWebGlPartialBackground(eligible),true);
+  assert.equal(policy.canAdmitWebGlPartialBackground({...eligible,rendererMode:'webgl1'}),true);
+  for(const change of [{submittedBaseFrame:false},{physicalSceneMatched:false},{temporalPending:true},
+    {rendererMode:'canvas-worker'},{rendererMode:'canvas2d'}])
+    assert.equal(policy.canAdmitWebGlPartialBackground({...eligible,...change}),false);
+  assert.equal(policy.resolveMapSurfacePresentation({...surface,backgroundPresented:true}).quality,'canonical');
+});
+
+
+const canvasFixture = Object.freeze({
+  frameId: 10, viewRevision: 3, projectionRevision: 2, projectGeneration: 1,
+  projection: 'globe', cssViewport: [960, 672], dpr: 1,
+  cssScale: 430, cssTranslate: [480, 336],
+  safeInset: {top: 0, right: 0, bottom: 26, left: 0},
+  viewState: {rotation: [-40, -20, 0], projectionCenter: null,
+    flatCenter: [0, 20], flatZoom: 1, globeZoom: 1.5},
+});
+const canvasIdentity = Object.freeze({
+  projectGeneration: 1, contextRevision: 2, geometryRevision: 1,
+  paletteRevision: 5, physicalStyleRevision: 7, terrainVisible: true,
+  surfaceQuality: 'canonical', surfaceGeometryQuality: 'canonical',
+  surfaceTargetQuality: 'canonical',
+});
+
+test('Canvas bitmap picture identity survives only GPU-only frameId churn',()=>{
+  const expected=policy.canvasWorkerPresentationKey(canvasFixture,canvasIdentity);
+  assert.equal(policy.canvasWorkerPresentationKey({...canvasFixture,frameId:11},canvasIdentity),expected);
+  for(const mutation of [
+    {viewRevision:4}, {projectionRevision:3}, {projection:'flat'}, {cssScale:431},
+    {cssViewport:[960,673]}, {cssTranslate:[481,336]}, {dpr:2},
+    {viewState:{...canvasFixture.viewState,rotation:[-41,-20,0]}},
+    {viewState:{...canvasFixture.viewState,flatCenter:[1,20]}},
+  ])assert.notEqual(policy.canvasWorkerPresentationKey({...canvasFixture,...mutation},canvasIdentity),expected,
+    'any distinct camera/viewport must reject the stale picture');
+  for(const mutation of [
+    {projectGeneration:2},{contextRevision:3},{geometryRevision:2},
+    {paletteRevision:6},{physicalStyleRevision:8},{terrainVisible:false},
+    {surfaceQuality:'pending'},{surfaceGeometryQuality:'preview'},
+    {surfaceTargetQuality:'preview'},
+  ])assert.notEqual(policy.canvasWorkerPresentationKey(canvasFixture,{...canvasIdentity,...mutation}),expected,
+    'project/scene/style/quality changes must invalidate Worker pictures');
+});
+
+test('transport accepts a visually identical older scheduled frame but rejects wrong physical data and rotations',()=>{
+  const sent=[],shown=[],rejected=[];let currentFrame=canvasFixture;
+  const physical={ready:true,landRevision:'land-v2',waterRevision:null};
+  const native={postMessage:message=>sent.push(message),terminate(){}};
+  const channel=createGpuCanvasWorker({
+    worker:native,generation:1,
+    acceptFrame:message=>message.presentationKey===policy.canvasWorkerPresentationKey(currentFrame,canvasIdentity)
+      && message.styleRevision===4
+      && message.geometryRevision===1
+      && message.surfaceQuality==='canonical'
+      && policy.canvasWorkerFrameMatchesPhysical(message,physical),
+    onStale:message=>rejected.push(message),
+  });
+  channel.onmessage=event=>{if(event.data.type==='frame')shown.push(event.data);};
+  const sourceKey=policy.canvasWorkerPresentationKey(canvasFixture,canvasIdentity);
+  channel.queueFrame({type:'view',frameId:10,revision:3,projectGeneration:1,presentationKey:sourceKey});
+  native.onmessage({data:{type:'ready'}});
+  assert.equal(sent.length,1);
+  currentFrame={...canvasFixture,frameId:11};
+  native.onmessage({data:{...sent[0],type:'frame',frameId:10,styleRevision:4,geometryRevision:1,
+    surfaceQuality:'canonical',physicalLandCount:1,physicalLandRevision:'land-v2',
+    physicalWaterCount:0,bitmap:{close(){assert.fail('current picture must not be closed');}}}});
+  assert.equal(shown.length,1,'same camera with a newer coordinator frameId is admissible');
+  assert.equal(rejected.length,0);
+  const moved={...canvasFixture,frameId:12,viewState:{...canvasFixture.viewState,rotation:[-41,-20,0]}};
+  currentFrame=moved;
+  let closed=0;
+  native.onmessage({data:{type:'frame',projectGeneration:1,revision:3,frameId:10,
+    presentationKey:sourceKey,styleRevision:4,geometryRevision:1,surfaceQuality:'canonical',
+    physicalLandCount:1,physicalLandRevision:'land-v2',physicalWaterCount:0,
+    bitmap:{close(){closed++;}}}});
+  assert.equal(closed,1);
+  assert.equal(rejected.length,1,'a changed camera cannot inherit an old picture');
+  currentFrame={...canvasFixture,frameId:13};
+  native.onmessage({data:{type:'frame',projectGeneration:1,revision:3,frameId:10,
+    presentationKey:sourceKey,styleRevision:4,geometryRevision:1,surfaceQuality:'canonical',
+    physicalLandCount:0,physicalWaterCount:0,bitmap:{close(){closed++;}}}});
+  assert.equal(closed,2);
+  assert.equal(rejected.length,2,'zero physical-land packets must still be rejected');
+  channel.terminate();
+});
+
+test('renderer binds Canvas bitmap admission to its picture key and commits the latest coordinator frame',()=>{
+  const source=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  assert.match(source,/presentationKey: currentCanvasPresentationKey\(frame\)/);
+  assert.match(source,/message\.presentationKey !== currentCanvasPresentationKey\(lastVisualFrame\)/);
+  assert.match(source,/canvasWorkerFrameMatchesPhysical\(message, getPhysicalContextState\(\)\)/);
+  assert.match(source,/frameId: Number\(presentedVisualFrame\.frameId\)/);
+  assert.doesNotMatch(source,/Number\(message\.frameId\) !== Number\(lastVisualFrame\?\.frameId\)/);
+});
+
+test('Canvas admits only a pinned initial physical preview and never replaces authoritative land or temporal frames',()=>{
+  const sourceRevision='b'.repeat(64),previewRevision='a'.repeat(64);
+  const preview={geometry:{type:'MultiPolygon',coordinates:[]},revision:previewRevision,
+    sourceRevision,certified:true};
+  const selected=policy.selectCanvasPhysicalSource({actual:null,state:{ready:false},preview,sourceRevision});
+  assert.equal(selected.preview,true);
+  assert.equal(policy.canvasWorkerFrameMatchesPhysical({
+    physicalLandCount:1,physicalLandRevision:previewRevision,physicalWaterCount:0,
+  },selected.context),true);
+  for(const mutation of [
+    {sourceRevision:'c'.repeat(64)}, {temporalPending:true},
+    {preview:{...preview,certified:false}}, {preview:{...preview,sourceRevision:'d'.repeat(64)}},
+  ])assert.equal(policy.selectCanvasPhysicalSource({
+    actual:null,state:{ready:false},preview,sourceRevision,...mutation,
+  }).preview,false,'a preview cannot bypass exact pin or a pending temporal change');
+  const actual={geometry:{type:'MultiPolygon',coordinates:[]},revision:'e'.repeat(64)};
+  const authoritative={ready:true,landRevision:actual.revision,waterRevision:null};
+  const full=policy.selectCanvasPhysicalSource({actual,state:authoritative,preview,sourceRevision});
+  assert.equal(full.preview,false);
+  assert.equal(full.source,actual);
+  assert.equal(policy.selectCanvasPhysicalSource({
+    actual,state:{...authoritative,landRevision:'f'.repeat(64)},preview,sourceRevision,
+  }).context.ready,false,'invalid authoritative physical source must not silently fallback to preview');
+});
+
+test('background picture identity ignores coordinator churn but rejects changed physical view',()=>{
+  const frame={frameId:6,viewRevision:8,projectGeneration:1,projection:'globe',dpr:1,
+    cssViewport:[960,720],cssScale:300,cssTranslate:[480,360],safeInset:{top:0,bottom:0,left:0,right:0},
+    viewState:{rotation:[-20,-15,0],flatCenter:[0,20],globeZoom:1,flatZoom:1}};
+  const input={projectGeneration:1,contextRevision:1,physicalStyleRevision:2,
+    terrainVisible:true,terrainStyle:'physical',darkTheme:false,
+    theme:{baseLandAlpha:1,defaultLand:'#eeeeee',ocean:'#6688aa'}};
+  const id=policy.canvasWorkerBackgroundPresentationKey(frame,input);
+  assert.equal(policy.canvasWorkerBackgroundPresentationKey({...frame,frameId:9,viewRevision:10},input),id);
+  for(const change of [
+    {cssScale:301}, {projection:'flat'}, {cssTranslate:[481,360]},
+    {viewState:{...frame.viewState,rotation:[-21,-15,0]}},
+  ])assert.notEqual(policy.canvasWorkerBackgroundPresentationKey({...frame,...change},input),id);
+  for(const change of [{projectGeneration:2},{physicalStyleRevision:3},{terrainStyle:'political'},
+    {darkTheme:true},{theme:{...input.theme,ocean:'#114477'}}])
+    assert.notEqual(policy.canvasWorkerBackgroundPresentationKey(frame,{...input,...change}),id);
+});
+
+test('style and physical-style refresh the exact Canvas background certificate',()=>{
+  const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  for(const start of ['function canvasWorkerStyleMessage()', 'function canvasWorkerPhysicalStyleMessage()']) {
+    const body=src.slice(src.indexOf(start),src.indexOf('\n    }',src.indexOf(start)));
+    assert.match(body,/backgroundPresentationKey: currentCanvasBackgroundKey\(lastVisualFrame\)/);
+  }
+});
+
+test('pending Canvas background requires no country overlays or temporal shortcut',()=>{
+  const src=readFileSync(new URL('../../shared/frontend/js/modules/gpu-map-renderer.js',import.meta.url),'utf8');
+  const start=src.indexOf('    function canvasWorkerStyleMessage() {'),end=src.indexOf('    function canvasWorkerPhysicalStyleMessage()',start);
+  const style=src.slice(start,end);
+  assert.match(style,/backgroundOnly = surfacePresentation\.quality === 'pending'/);
+  assert.match(style,/backgroundOnly \? \[\] : canvasSceneStrokes\(\)/);
+  assert.match(style,/backgroundOnly \? \[\] : renderInteractionState\.genericFillItems/);
+  assert.match(src,/function canvasBackgroundEligible\(message\)[\s\S]*?message\?\.backgroundOnly === true[\s\S]*?!temporalPending\(\)/);
+  assert.match(src,/if \(canvasBackgroundEligible\(message\)\)/);
 });
 });

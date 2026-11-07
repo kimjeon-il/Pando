@@ -1,13 +1,21 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "node:assert/strict";
+import * as __dep1 from "node:test";
+import * as __dep2 from "../../shared/frontend/js/modules/render-scene.js";
+import * as __dep3 from "../../shared/frontend/js/modules/map-interaction-style.js";
+import * as __dep4 from "../../shared/frontend/js/modules/render-lod.js";
+import * as __dep5 from "../../shared/frontend/js/modules/country-stroke-preparation.js";
+import * as __dep6 from "../../shared/frontend/js/modules/gpu-stroke-geometry.js";
+import * as __dep7 from "../../shared/frontend/js/modules/ring-hit-test.js";
+import * as __dep8 from "../../shared/frontend/js/modules/country-mesh-codec.js";
 
-import {
-  buildPolygonGeometryPacket,
-  buildStrokeGeometryPacket,
-  createRenderSceneBuilder,
-  isRenderScene,
-} from "../../shared/frontend/js/modules/render-scene.js";
-import { scaleInteractionStroke } from "../../shared/frontend/js/modules/map-interaction-style.js";
+// Original feature contract: render-scene.test.mjs
+contractSuite("render-scene", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { buildPolygonGeometryPacket, buildStrokeGeometryPacket, createRenderSceneBuilder, isRenderScene }=__dep2;
+const { scaleInteractionStroke }=__dep3;
+
 
 test('stroke packets preserve explicit view scaling and drawing controls', () => {
   const scene = createRenderSceneBuilder().build({ strokes: [{ key: 'draft', geometryRevision: 1,
@@ -169,4 +177,89 @@ test('polygon fill and outline share the refined boundary across styles and outl
   assert.strictEqual(recolored.strokes[0].startsEnds, first.strokes[0].startsEnds);
   const onlyOutline = createRenderSceneBuilder().build({ strokes: [outline] });
   assert.deepEqual(onlyOutline.strokes[0].startsEnds, first.strokes[0].startsEnds);
+});
+});
+
+// Original feature contract: render-lod.test.mjs
+contractSuite("render-lod", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { resolveRenderLod, simplifyRenderGeometry }=__dep4;
+
+
+const wavyLine = {
+  type: 'LineString',
+  coordinates: Array.from({ length: 101 }, (_value, index) => [index * 0.01, Math.sin(index / 6) * 0.002]),
+};
+
+test('render LOD never simplifies exact, selected, or editing geometry', () => {
+  assert.equal(resolveRenderLod({ requested: 'coarse', policy: 'exact' }), 'high');
+  assert.equal(resolveRenderLod({ requested: 'coarse', policy: 'independent', protected: true }), 'high');
+  assert.equal(simplifyRenderGeometry(wavyLine, { lod: 'coarse', policy: 'exact' }), wavyLine);
+});
+
+test('independent display geometry is simplified without mutating canonical coordinates', () => {
+  const before = JSON.parse(JSON.stringify(wavyLine));
+  const display = simplifyRenderGeometry(wavyLine, { lod: 'coarse', policy: 'independent' });
+  assert.ok(display.coordinates.length < wavyLine.coordinates.length);
+  assert.deepEqual(wavyLine, before);
+  assert.notEqual(display, wavyLine);
+});
+
+test('dateline chains stay unsimplified and globe LOD bounds long projected edges', () => {
+  const dateline = { type: 'LineString', coordinates: [[179, 0], [-179, 0], [-178, 0]] };
+  const preserved = simplifyRenderGeometry(dateline, { lod: 'coarse', policy: 'independent' });
+  assert.equal(preserved.coordinates.length, 3);
+  const globe = simplifyRenderGeometry({ type: 'LineString', coordinates: [[0, 0], [20, 0]] }, {
+    lod: 'coarse', policy: 'independent', projection: 'globe',
+  });
+  assert.ok(globe.coordinates.length >= 6);
+});
+});
+
+// Original feature contract: render-bottleneck-preparation.test.mjs
+contractSuite("render-bottleneck-preparation", () => {
+const assert=__dep0.default;
+const test=__dep1.default;
+const { prepareCountryStroke, countryStrokeTransferables }=__dep5;
+const { buildGpuStrokeInstances }=__dep6;
+const { createRingHitTester }=__dep7;
+const { decodeCountryMesh }=__dep8;
+
+test('Worker preparation preserves exact stroke instances and owner layout', () => {
+  const startsEnds = new Float32Array([0, 0, 1, 0, 1, 0, 1, 1, 10, 0, 11, 0]);
+  const ownerRanges = { A: { first: 0, count: 2 }, B: { first: 2, count: 1 } };
+  const expected = buildGpuStrokeInstances(startsEnds, null, ownerRanges);
+  const mesh = { positions: new Int32Array([0, 0, 1e6, 0, 1e6, 1e6, 10e6, 0, 11e6, 0]), countryIndices: new Uint16Array([0, 0, 0, 1, 1]), lineIndices: new Uint32Array([0, 1, 1, 2, 3, 4]) };
+  const actual = prepareCountryStroke(mesh, ['A', 'B']);
+  for (const key of Object.keys(expected)) assert.deepEqual(actual[key], expected[key], key);
+  assert.deepEqual(actual.startsEnds, startsEnds);
+  const transfers = countryStrokeTransferables(actual);
+  assert.equal(new Set(transfers).size, 3);
+  const clone = structuredClone(actual, { transfer: transfers });
+  assert.equal(actual.instances.byteLength, 0);
+  assert.deepEqual(clone.instances, expected.instances);
+});
+
+test('canonical hit testing reads rings without normalizing or copying', () => {
+  const ring = [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]];
+  const tester = createRingHitTester(() => { throw new Error('canonical ring must not normalize'); });
+  for (let i = 0; i < 1000; i += 1) assert.equal(tester.contains([1, 1], ring), true);
+  assert.equal(tester.contains([3, 1], ring), false);
+  assert.equal(tester.contains([0, 1], ring), true);
+  assert.equal(tester.stats().preparationCount, 1);
+  tester.invalidate({ coordinates: [ring] });
+  tester.contains([1, 1], ring);
+  assert.equal(tester.stats().preparationCount, 2);
+});
+
+test('open ring normalization is cached, not repeated for hover', () => {
+  let calls = 0;
+  const ring = [[0, 0], [2, 0], [0, 2]];
+  const tester = createRingHitTester(raw => { calls += 1; return [...raw.map(p => p.slice()), raw[0].slice()]; });
+  assert.equal(tester.contains([0.5, 0.5], ring), true);
+  assert.equal(tester.contains([0.6, 0.5], ring), true);
+  assert.equal(calls, 1);
+  assert.throws(() => decodeCountryMesh(new ArrayBuffer(4)), /Invalid country mesh/);
+});
 });
