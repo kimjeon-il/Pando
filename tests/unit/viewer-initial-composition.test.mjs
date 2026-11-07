@@ -150,7 +150,9 @@ test('each accepted file/date opens one scene and waits once for its committed g
 test('normal year change and later source failure never restore initial mode', async () => {
   const run = fixture(); await run.started;
   await run.ports.timeline.setMonth('2025-12');
-  assert.equal(run.get('viewerStatus').dataset.loadingKind, 'temporal');
+  // This isolated fixture exercises the project replacement path. In-place
+  // builtin cursor navigation is covered by the clock and temporal suites.
+  assert.equal(run.get('viewerStatus').dataset.loadingKind, 'project');
   assert.equal(run.get('viewerStatus').dataset.ready, 'true',
     'the accepted successor is ready only after its date navigation commits');
   assert.equal(run.get('viewerStatus').className, 'ui-visually-hidden');
