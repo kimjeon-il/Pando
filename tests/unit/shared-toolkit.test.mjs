@@ -1,9 +1,21 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import {mkdtemp, readFile, writeFile, rm} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {join} from 'node:path';
-import {encodeSharedToolkit, installSharedToolkit, verifySharedToolkit,retireSharedToolkit} from '../../tools/shared-toolkit.mjs';
+import { describe as contractSuite } from 'node:test';
+import * as __library_dep0 from "node:test";
+import * as __library_dep1 from "node:assert/strict";
+import * as __library_dep2 from "node:fs/promises";
+import * as __library_dep3 from "node:os";
+import * as __library_dep4 from "node:path";
+import * as __library_dep5 from "../../tools/shared-toolkit.mjs";
+import * as __library_dep6 from "node:fs";
+import * as __library_dep7 from "../../tools/library-data.mjs";
+
+// Original feature contract: shared-toolkit.test.mjs
+contractSuite("shared-toolkit", () => {
+const test = __library_dep0.default;
+const assert = __library_dep1.default;
+const { mkdtemp, readFile, writeFile, rm } = __library_dep2;
+const { tmpdir } = __library_dep3;
+const { join } = __library_dep4;
+const { encodeSharedToolkit, installSharedToolkit, verifySharedToolkit, retireSharedToolkit } = __library_dep5;
 
 const source={repository:'kimjeon-il/Pando',revision:'a'.repeat(40)};
 test('shared tooling installs a pinned immutable dependency and reuses verified bytes',async()=>{
@@ -52,4 +64,25 @@ test('shared tooling rejects tampering, path escape, duplicates and unsupported 
     await writeFile(join(root,'.shared-toolkit.lock'),'active');
     await assert.rejects(installSharedToolkit({root,bytes:artifact.bytes,pin:artifact.pin}),/EEXIST|lock/i);
   }finally{await rm(root,{recursive:true,force:true});}
+});
+});
+
+// Original feature contract: library-toolkit-owner.test.mjs
+contractSuite("library-toolkit-owner", () => {
+const test = __library_dep0.default;
+const assert = __library_dep1.default;
+const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = __library_dep6;
+const { join } = __library_dep4;
+const { tmpdir } = __library_dep3;
+const { libraryOwnerId } = __library_dep7;
+test('independent toolkit explicitly owns its reports without borrowing Pando main ownership',()=>{
+  const root=mkdtempSync(join(tmpdir(),'map-owner-'));
+  try{
+    mkdirSync(join(root,'config'));mkdirSync(join(root,'.git'));
+    writeFileSync(join(root,'config/library-data.json'),JSON.stringify({reportOwner:'map-toolkit'}));
+    assert.equal(libraryOwnerId(root),'map-toolkit');
+    writeFileSync(join(root,'config/library-data.json'),JSON.stringify({reportOwner:'../ui'}));
+    assert.throws(()=>libraryOwnerId(root),/owner/i);
+  }finally{rmSync(root,{recursive:true,force:true});}
+});
 });
