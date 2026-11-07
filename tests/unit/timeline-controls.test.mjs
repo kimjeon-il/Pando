@@ -1,3 +1,4 @@
+import {createVirtualClock} from '../helpers/virtual-clock.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { shiftTimelineMonth, timelineMonthLabel, installTimelineControls } from "../../shared/frontend/js/modules/timeline-controls.js";
@@ -21,6 +22,7 @@ test('timeline navigation handles months, years, BCE and extended years without 
 
 function controls(setMonth) {
   const nodes = new Map();
+  const clock = createVirtualClock(new Date(2026, 9, 26));
   const document = Object.assign(new globalThis.EventTarget(), { getElementById: id => nodes.get(id), activeElement: null });
   class Element extends globalThis.EventTarget {
     hidden = false;
@@ -39,7 +41,7 @@ function controls(setMonth) {
   const window = new globalThis.EventTarget();
   let month = '1914-06';
   const dispose = installTimelineControls({ document, window,
-    now: () => new Date(2026, 9, 26), getMonth: () => month, setMonth: requested => setMonth(requested, next => { month = next; }) });
+    now: clock.now, getMonth: () => month, setMonth: requested => setMonth(requested, next => { month = next; }) });
   return { nodes, document, dispose, click: id => nodes.get(id).dispatchEvent(new globalThis.Event('click')),
     submit: () => nodes.get('timelineDateForm').dispatchEvent(new globalThis.Event('submit', { cancelable: true })),
     key: key => nodes.get('timelineControls').dispatchEvent(Object.assign(new globalThis.Event('keydown', { cancelable: true }), { key })) };

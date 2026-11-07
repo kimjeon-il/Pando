@@ -1,3 +1,4 @@
+import {createVirtualClock} from '../helpers/virtual-clock.mjs';
 import { describe as featureDescribe } from 'node:test';
 import * as __suiteDependency0 from "node:test";
 import * as __suiteDependency1 from "node:assert/strict";
@@ -17,12 +18,12 @@ featureDescribe("builtin-month-clock", () => {
   const assert = __suiteDependency1.default;
   const { createBuiltinMonthClock } = __suiteDependency2;
 test('device month advances across years, manual mode stays put and builtin reset follows again',async()=>{
- let now=new Date(2026,9,31,23,59),calls=[];
- const clock=createBuiltinMonthClock({now:()=>now,applyMonth:async month=>{calls.push(month);return true;}});
+ const virtualClock=createVirtualClock(new Date(2026,9,31,23,59)),calls=[];
+ const clock=createBuiltinMonthClock({now:virtualClock.now,applyMonth:async month=>{calls.push(month);return true;}});
  await clock.followNow();assert.equal(clock.month(),'2026-10');
- now=new Date(2026,10,1);await clock.refresh();assert.equal(clock.month(),'2026-11');
- now=new Date(2027,0,1);await clock.refresh();assert.equal(clock.month(),'2027-01');
- await clock.selectMonth('1953-07');now=new Date(2027,1,1);await clock.refresh();assert.equal(clock.month(),'1953-07');
+ virtualClock.set(new Date(2026,10,1));await clock.refresh();assert.equal(clock.month(),'2026-11');
+ virtualClock.set(new Date(2027,0,1));await clock.refresh();assert.equal(clock.month(),'2027-01');
+ await clock.selectMonth('1953-07');virtualClock.set(new Date(2027,1,1));await clock.refresh();assert.equal(clock.month(),'1953-07');
  await clock.followNow();assert.equal(clock.month(),'2027-02');assert.equal(calls.length,5);
 });
 test('only the last successful request is committed; failure retains the previous month',async()=>{
@@ -37,10 +38,10 @@ test('only the last successful request is committed; failure retains the previou
 });
 
 test('opening a file suspends pending automatic changes and failure can restore the prior mode',async()=>{
- let now=new Date(2026,9,1),release;
- const clock=createBuiltinMonthClock({now:()=>now,applyMonth:()=>new Promise(resolve=>{release=resolve;})});
+ const virtualClock=createVirtualClock(new Date(2026,9,1));let release;
+ const clock=createBuiltinMonthClock({now:virtualClock.now,applyMonth:()=>new Promise(resolve=>{release=resolve;})});
  const pending=clock.followNow(),resume=clock.suspend();release(true);
- assert.equal(await pending,false);now=new Date(2026,10,1);
+ assert.equal(await pending,false);virtualClock.set(new Date(2026,10,1));
  assert.equal(await clock.refresh(),false);assert.equal(clock.month(),null);
  assert.equal(resume(),true);assert.equal(clock.isAutomatic(),true);
  const next=clock.refresh();release(true);await next;assert.equal(clock.month(),'2026-11');
