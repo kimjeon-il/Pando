@@ -50,9 +50,27 @@ export function prepareMeshSpatialBlocks(mesh) {
     for (let country = 0; country < ranges.length / 2; country++) {
       const first = ranges[country * 2], count = ranges[country * 2 + 1];
       if (!count) { roots.push(-1); continue; }
-      roots.push(partition(Uint32Array.from({ length: count / stride }, (_, i) => first / stride + i), first));
+      const order = new Uint32Array(count / stride);
+      for (let i = 0; i < order.length; i++) order[i] = first / stride + i;
+      roots.push(partition(order, first));
     }
-    return { indices: output, tree: { roots: Int32Array.from(roots), ranges: Uint32Array.from(nodes.flatMap(n => [n.first, n.count])), children: Int32Array.from(nodes.flatMap(n => [n.left, n.right])), bounds: Float64Array.from(nodes.flatMap(n => n.box)), geographicBounds: Float64Array.from(nodes.flatMap(n => n.geo)) } };
+    // Allocate each typed tree buffer once. Array#flatMap materializes millions
+    // of boxed numbers in large world meshes before converting them again.
+    const rangesArray = new Uint32Array(nodes.length * 2);
+    const childrenArray = new Int32Array(nodes.length * 2);
+    const boundsArray = new Float64Array(nodes.length * 6);
+    const geographicBoundsArray = new Float64Array(nodes.length * 4);
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      rangesArray[i * 2] = node.first;
+      rangesArray[i * 2 + 1] = node.count;
+      childrenArray[i * 2] = node.left;
+      childrenArray[i * 2 + 1] = node.right;
+      boundsArray.set(node.box, i * 6);
+      geographicBoundsArray.set(node.geo, i * 4);
+    }
+    return { indices: output, tree: { roots: Int32Array.from(roots), ranges: rangesArray,
+      children: childrenArray, bounds: boundsArray, geographicBounds: geographicBoundsArray } };
   };
   const triangles = build(mesh.triangleIndices, mesh.countryTriangleRanges, 3, 2048);
   const boundaries = build(mesh.lineIndices, mesh.countryBoundaryRanges, 2, 4096);

@@ -41,3 +41,28 @@ test('empty country slots retain their ranges and full-world bounds', async () =
   const expected = engine.buildGpuMeshFeatures(features);
   for (const key of ['countryTriangleRanges', 'countryBoundaryRanges', 'countryBounds', 'countryBoundsFlags']) assert.deepEqual(mesh[key], expected[key]);
 });
+
+import { prepareMeshSpatialBlocks, visibleSpatialBlockRanges } from '../../shared/frontend/js/modules/mesh-spatial-blocks.js';
+
+test('spatial BVH packs large country meshes without boxed intermediate arrays or lost primitives', () => {
+  const positions = Int32Array.from([0,0, 1000000,0, 0,1000000, 12000000,0, 13000000,0, 12000000,1000000]);
+  const triangleCount = 2300;
+  const triangleIndices = new Uint32Array(triangleCount * 3);
+  for (let i = 0; i < triangleCount; i++) triangleIndices.set(i % 2 ? [3,4,5] : [0,1,2], i * 3);
+  const make = () => ({ positions, triangleIndices:triangleIndices.slice(), lineIndices:Uint32Array.from([0,1,1,2,3,4,4,5]),
+    countryTriangleRanges:Uint32Array.from([0,triangleIndices.length]), countryBoundaryRanges:Uint32Array.from([0,8]) });
+  const first = prepareMeshSpatialBlocks(make()), second = prepareMeshSpatialBlocks(make());
+  assert.deepEqual(first.triangleIndices,second.triangleIndices,'partition order remains deterministic');
+  assert.deepEqual(first.spatialBlocks,second.spatialBlocks,'tree serialization remains deterministic');
+  const tree = first.spatialBlocks.triangle;
+  assert.ok(tree.ranges.length > 2,'large geometry must actually partition');
+  assert.equal(tree.children.length,tree.ranges.length);
+  assert.equal(tree.bounds.length,tree.ranges.length * 3);
+  assert.equal(tree.geographicBounds.length,tree.ranges.length * 2);
+  assert.equal(first.triangleIndices.length,triangleIndices.length);
+  assert.deepEqual([...first.triangleIndices].sort((a,b)=>a-b),[...triangleIndices].sort((a,b)=>a-b));
+  const visible = visibleSpatialBlockRanges(first,{mode:0,cssViewport:[1280,800],cssTranslate:[640,400],cssScale:500,
+    rowX:[1,0,0],rowY:[0,1,0],rowZ:[0,0,1]},'triangle');
+  assert.ok(Array.isArray(visible));
+  assert.ok(visible.every(range=>range.count>0&&range.first+range.count<=triangleIndices.length));
+});

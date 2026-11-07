@@ -9,6 +9,9 @@ on:
       - shared/frontend/js/modules/country-mesh-zoom-policy.js
       - shared/frontend/js/modules/gpu-canvas-worker.js
       - shared/frontend/js/workers/canvas-render-worker.js
+      - shared/frontend/js/modules/mesh-spatial-blocks.js
+      - shared/frontend/js/modules/country-mesh-preparation.js
+      - shared/frontend/js/workers/gpu-mesh-worker.js
       - .github/workflows/p7-runtime-ab.yml
   workflow_dispatch:
 
