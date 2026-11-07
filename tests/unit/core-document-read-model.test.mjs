@@ -1,10 +1,10 @@
+import { readPortabilityProjectSeed } from '../helpers/portability-project-seed.mjs';
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createCoreDocumentReadModel } from "../../shared/frontend/js/modules/core-document-read-model.js";
 
-const seed = () => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json', import.meta.url), 'utf8'));
+const seed = () => readPortabilityProjectSeed();
 const expectedSnapshot = project => {
   const expected = structuredClone(project);
   expected.geometries.sort((left, right) => Buffer.compare(Buffer.from(left.id, 'utf8'), Buffer.from(right.id, 'utf8'))

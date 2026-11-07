@@ -1,3 +1,4 @@
+import { readPortabilityProjectSeed } from '../helpers/portability-project-seed.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "../../shared/frontend/js/modules/territorial-entity-store.js";
 import * as __dep1 from "../helpers/timeline-project.mjs";
@@ -11,7 +12,6 @@ import * as __dep8 from "node:url";
 import * as __dep9 from "../../shared/frontend/js/modules/timeline-records.js";
 import * as __dep10 from "../../shared/frontend/js/modules/temporal.js";
 import * as __dep11 from "../../shared/frontend/js/modules/project-invariants.js";
-import * as __dep12 from "node:fs";
 import * as __dep13 from "../../shared/frontend/js/modules/project-resource-overlay.js";
 import * as __dep14 from "../helpers/core-project.mjs";
 import * as __dep15 from "../../shared/frontend/js/modules/territorial-labels.js";
@@ -366,7 +366,6 @@ test('invalid distribution value and free geometry are rejected', () => {
 contractSuite("project-resource-overlay", () => {
 const test=__dep4.default;
 const assert=__dep3.default;
-const { readFileSync }=__dep12;
 const { projectResourceOverlay }=__dep13;
 const { createNodeCoreProject }=__dep14;
 const { createTerritorialLabels }=__dep15;
@@ -494,7 +493,7 @@ test('P4 selected but copied builtin places cannot reappear through the label lo
 });
 
 test('P4 accepted C++ world snapshots remain the sole territorial and water project source',async t=>{
- const seed=JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url)));
+ const seed=readPortabilityProjectSeed();
  const owner=await createNodeCoreProject(seed,{productMode:'viewer'});
  t.after(()=>owner.dispose());
  const original=owner.documentModel.snapshot(),territory=owner.documentModel.territorialViews();

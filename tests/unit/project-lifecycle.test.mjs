@@ -1,7 +1,7 @@
+import { readPortabilityProjectSeed } from '../helpers/portability-project-seed.mjs';
 import { describe as contractSuite } from 'node:test';
 import * as __dep0 from "node:assert/strict";
 import * as __dep1 from "node:test";
-import * as __dep2 from "node:fs";
 import * as __dep3 from "node:zlib";
 import * as __dep4 from "node:crypto";
 import * as __dep5 from "../../shared/frontend/js/modules/project-domain.js";
@@ -14,7 +14,6 @@ import * as __dep9 from "../../shared/frontend/js/modules/initial-document.js";
 contractSuite("project-lifecycle", () => {
 const assert = __dep0.default;
 const test = __dep1.default;
-const { readFileSync } = __dep2;
 const { gzipSync } = __dep3;
 const { createHash } = __dep4;
 const { createProjectDomain } = __dep5;
@@ -22,7 +21,7 @@ const { createSaveStateController } = __dep6;
 const { createNodeCoreProject } = __dep7;
 const { createCommandFixture } = __dep8;
 
-const seed=() => JSON.parse(readFileSync(new URL('../fixtures/portability/web-document-seed.json',import.meta.url),'utf8'));
+const seed=() => readPortabilityProjectSeed();
 async function fixture(t,{ replaceSnapshot,recovery=null }={}) {
   const initial=seed(),events=[],decoded=Buffer.from(JSON.stringify(initial)),sourceBytes=gzipSync(decoded);
   const baseline={ kind: 'stored-asset',sourceBytes,encoding: 'gzip',compressedBytes: sourceBytes.byteLength,decodedBytes: decoded.byteLength,
