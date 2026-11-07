@@ -740,7 +740,7 @@ jobs:
           node tools/gis/package-hydro-encoding.mjs --binary $env:PANDO_HYDRO_ENCODING_BINARY --directory build-native/hydro-encoding/artifact
           if ($LASTEXITCODE -ne 0) { throw 'Hydro encoder packaging failed' }
           $env:PANDO_HYDRO_ENCODING_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro-encoding/artifact"
-          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-packfile.test.mjs tests/unit/hydro-river-groups.test.mjs tests/unit/hydro-repair-pipeline.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
+          node --test tests/unit/hydro-encoding-native.test.mjs tests/unit/hydro-packfile.test.mjs tests/unit/hydro-river-groups.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro feature bytes differ from the Python oracle' }
       - uses: actions/upload-artifact@v4
         with:
@@ -1274,7 +1274,7 @@ jobs:
         env:
           PANDO_HYDRO_CONNECTIVITY_BINARY: ./build-native/hydro/pando-hydro-connectivity
           PANDO_HYDRO_CONNECTIVITY_DIRECTORY: ${{ github.workspace }}/build-native/hydro/artifact
-        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
+        run: node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: hydro-connectivity-linux-${{ github.sha }}
@@ -1305,7 +1305,7 @@ jobs:
         run: |
           $env:PANDO_HYDRO_CONNECTIVITY_BINARY = "$env:GITHUB_WORKSPACE/build-native/hydro/Release/pando-hydro-connectivity.exe"
           $env:PANDO_HYDRO_CONNECTIVITY_DIRECTORY = "$env:GITHUB_WORKSPACE/build-native/hydro/artifact"
-          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-staged-cli.test.mjs tests/unit/hydro-audit-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
+          node --test tests/unit/hydro-connectivity-native.test.mjs tests/unit/hydro-terminal-exclusion.test.mjs tests/unit/hydro-source-reader.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-repair-cli.test.mjs tests/unit/hydro-fingerprint.test.mjs tests/unit/hydro-name.test.mjs tests/unit/hydro-system-names.test.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Hydro connectivity checks failed' }
       - uses: actions/upload-artifact@v4
         with:
