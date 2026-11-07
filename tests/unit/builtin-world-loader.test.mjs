@@ -122,3 +122,28 @@ test('a dated builtin map is also a regular read-only C++ project file',async t=
  await owner.project.resolveWorld('2014-02');
  assert.equal(JSON.stringify(project),original,'ordinary file load/query must not mutate external source bytes');
 });
+
+test('one Core project retains identity and historical records across month changes and gaps',async t=>{
+ const owner=await createNodeCoreProject(startupDocument([]),{appVersion:'fixture'});
+ t.after(()=>owner.dispose());
+ const session=createBuiltinSession({builtinWorldLoader:fixture().loader});
+ session.connect({platformConfigurationA:{BASE_DATASET:startupDocument([]).baseDataset},
+  domains:{projectDomain:{getGeneration:()=>0,state:()=>owner.client.state(),
+   admitStorageBaseline:async facts=>(await owner.client.storageBaselineLoad(facts)).state}}});
+ const prepared=await session.prepareProjectBaseline('2014-02');
+ await owner.client.loadBaseline(prepared.baselineId,
+  {initialMonth:'2014-02',timelineRange:null,initialMapBounds:null,sourceMode:'builtin'});
+ const project=owner.documentModel.snapshot(),documentId=project.documentId;
+ const fullRecords=JSON.stringify(project.timelineRecords);
+ const visible=()=>owner.documentModel.world().entities.some(row=>row.id==='state:test-ukraine');
+ assert.equal(visible(),true,'historical country must exist in its valid interval');
+ await owner.client.setTimelineCursor('2026-10');
+ assert.equal(visible(),false,'expired country must not borrow modern geometry');
+ assert.equal(owner.documentModel.snapshot(),project,'cursor change must not replace document');
+ assert.equal(owner.documentModel.snapshot().documentId,documentId);
+ assert.equal(JSON.stringify(owner.documentModel.snapshot().timelineRecords),fullRecords);
+ await owner.client.setTimelineCursor('2014-02');
+ assert.equal(visible(),true,'return must resolve original historical geometry');
+ assert.equal(owner.documentModel.snapshot().documentId,documentId);
+ assert.equal(owner.client.state().documentDirty,false,'navigation must not edit project content');
+});
