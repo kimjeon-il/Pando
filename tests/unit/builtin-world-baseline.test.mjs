@@ -16,7 +16,7 @@ const monthsToCheck = () => {
     deviceCurrentMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1))])];
 };
 
-test('the current and preceding builtin months match their selected country files and visible geometries', () => {
+test('the current and preceding months resolve from one complete historical world', () => {
   const index = catalog(), untouched = structuredClone(index);
   assert.ok(Array.isArray(index.entities) && index.entities.length > 0, 'missing country catalog');
   for (const month of monthsToCheck()) {
@@ -24,10 +24,10 @@ test('the current and preceding builtin months match their selected country file
     assert.ok(selected.length > 0, month + ': missing current country coverage');
     const project = builtinProject(month);
     assert.equal(project.projectSetup.initialMonth, month);
-    assert.deepEqual(project.territorialEntities.map(row => row.id), selected.map(row => row.entityId),
-      month + ': a country was lost or added during materialization');
+    assert.deepEqual(project.territorialEntities.map(row => row.id), index.entities.map(row => row.entityId),
+      month + ': a historical identity was lost from the project');
     const ids = new Set(project.territorialEntities.map(row => row.id));
-    assert.equal(ids.size, selected.length, month + ': duplicate country identity');
+    assert.equal(ids.size, index.entities.length, month + ': duplicate country identity');
     const geometries = new Map(project.geometries.map(row => [JSON.stringify([row.id, row.version]), row]));
     for (const binding of project.timelineRecords.geometryBindings) {
       assert.ok(ids.has(binding.objectRef.id), 'binding to a country absent from this query');
@@ -38,6 +38,8 @@ test('the current and preceding builtin months match their selected country file
       createGeometryVersionStore(project.geometries), month);
     assert.ok(visible.entities.length > 0, month + ': empty physical map');
     assert.equal(new Set(visible.entities.map(row => row.id)).size, visible.entities.length);
+    assert.deepEqual(visible.entities.map(row => row.id).sort(),selected.map(row => row.entityId).sort(),
+      month + ': C++ selected world differs from source coverage');
     for (const row of visible.entities) {
       assert.ok(ids.has(row.id), 'unloaded country appears in the displayed scene');
       const timeline = row.identity.properties.metadata.historicalTimeline;
@@ -45,8 +47,8 @@ test('the current and preceding builtin months match their selected country file
       const binding = timeline.geometryBindings.find(value =>
         temporalContains(value, temporalMonthEnd(month)));
       assert.ok(binding, row.id + ': no geometry edition for selected month');
-      assert.equal(row.identity.properties.sourceGeometryVersion, binding.sourceVersionId,
-        row.id + ': published source version differs from its selected interval');
+      assert.deepEqual(row.geometryRef,binding.geometryRef,
+        row.id + ': resolved source geometry differs from the historic interval');
       assert.ok(row.geometry && ['Polygon', 'MultiPolygon'].includes(row.geometry.type),
         row.id + ': expected an actual displayed country geometry');
     }
