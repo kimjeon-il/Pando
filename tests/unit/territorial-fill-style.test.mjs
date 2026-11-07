@@ -1,11 +1,32 @@
-import { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } from '../helpers/timeline-project.mjs';
-import { createTerritorialFeature } from "../../shared/frontend/js/modules/territorial-units.js";
-import { createTerritorialEntityStore } from "../../shared/frontend/js/modules/territorial-entity-store.js";
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createTerritorialFillResolver } from "../../shared/frontend/js/modules/territorial-fill-style.js";
-import { normalizeLayerPresentation, resolveLayerDisplayColor } from "../../shared/frontend/js/modules/layer-presentation.js";
-import { createTerritorialEntityRepository } from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import "../../shared/frontend/js/vendor/polygon-clipping.min.js";
+import { describe as contractSuite } from 'node:test';
+import * as __dep0 from "../helpers/timeline-project.mjs";
+import * as __dep1 from "../../shared/frontend/js/modules/territorial-units.js";
+import * as __dep2 from "../../shared/frontend/js/modules/territorial-entity-store.js";
+import * as __dep3 from "node:assert/strict";
+import * as __dep4 from "node:test";
+import * as __dep5 from "../../shared/frontend/js/modules/territorial-fill-style.js";
+import * as __dep6 from "../../shared/frontend/js/modules/layer-presentation.js";
+import * as __dep7 from "../../shared/frontend/js/modules/territorial-entity-repository.js";
+import * as __dep8 from "../../shared/frontend/js/modules/object-picking.js";
+import * as __dep9 from "../../shared/frontend/js/modules/object-selection-controller.js";
+import * as __dep10 from "../../shared/frontend/js/modules/territorial-scope.js";
+import * as __dep11 from "../../shared/frontend/js/modules/territorial-highlight-boundary.js";
+import * as __dep12 from "../../shared/frontend/js/modules/map-display-preparation.js";
+import * as __dep13 from "../helpers/core-gis-compat/land-relations.mjs";
+import * as __dep14 from "../../tools/gis/country-geometry-calculator.js";
+import * as __dep15 from "../../shared/frontend/js/modules/distribution-model.js";
+
+// Original feature contract: territorial-fill-style.test.mjs
+contractSuite("territorial-fill-style", () => {
+const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
+const { createTerritorialFeature } = __dep1;
+const { createTerritorialEntityStore } = __dep2;
+const assert = __dep3.default;
+const test = __dep4.default;
+const { createTerritorialFillResolver } = __dep5;
+const { normalizeLayerPresentation, resolveLayerDisplayColor } = __dep6;
+const { createTerritorialEntityRepository } = __dep7;
 
 const geometry = { type: 'Polygon', coordinates: [[[0,0],[0,1],[1,1],[1,0],[0,0]]] };
 const country = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry });
@@ -161,4 +182,272 @@ test('unassigned territories and new objects remain unpainted, while historical 
     assert.equal(resolve(entities[index]).fillAlpha, color ? 1 : 0);
     assert.deepEqual(entities[index].properties.style, {});
   });
+});
+});
+
+// Original feature contract: territorial-display-picking.test.mjs
+contractSuite("territorial-display-picking", () => {
+const { normalizeLayerPresentation } = __dep6;
+const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
+const assert = __dep3.default;
+const test = __dep4.default;
+const { createObjectPicking } = __dep8;
+const { normalizeObjectRef } = __dep9;
+const { createTerritorialFeature } = __dep1;
+const { createTerritorialEntityStore } = __dep2;
+const { createTerritorialEntityRepository } = __dep7;
+const { createTerritorialScopeResolver } = __dep10;
+
+const square = (x, size) => ({ type: 'Polygon', coordinates: [[[x, 0], [x, size], [x + size, size], [x + size, 0], [x, 0]]] });
+test('territorial hits use the displayed geometry and withhold pending surfaces', async () => {
+  const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(0, 10) });
+  const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', coverageMode: 'explicit', geometry: square(0, 10) });
+  const R = createTerritorialFeature({ id: 'R', entityKind: 'regional', geometry: square(0, 10) });
+  const state = { territorialEntities: [A, B, R], layerVisibility: {}, countryVisualPhase: 'preview', layerPresentation: normalizeLayerPresentation({ overlayOrder: ['objects'] }) };
+  await initializeTestTerritorialState(state);
+const store = createTerritorialEntityStore({ documentModel:testCoreProject(state).documentModel,commandOwner:testCoreProject(state).client });
+  const entityRepository = createTerritorialEntityRepository({ entityStore: store });
+  const territorialScope = createTerritorialScopeResolver({ entityRepository, getState: () => state, clipper: () => null });
+  const picking = createObjectPicking();
+  picking.connect({
+    projectState: { state }, territorialModel: { entityRepository }, objectModelB: { territorialScope },
+    selectionServices: { normalizeObjectRef }, objectLookup: { isObjectAvailable:()=>true,objectRefExists: ref => !!entityRepository.get(ref.id) },
+    objectOperationsA: { objectRefVisible: () => state.layerVisibility.objects !== false,
+      objectDisplayInfo: ref => ({name:ref.id}) },
+    layerPresentation: { isLayerItemVisible: () => true }, surfaces: { isMobile: () => false },
+    renderScene: { OVERLAY_GROUPS: [] }, rendering: { selectionPerformanceMetrics: {} },
+    spatialRecords: { geometryBoundsCache: new WeakMap() },
+    cutGeometry: { coordinateBounds: coordinates => {
+      const points = coordinates.flat(); return [Math.min(...points.map(p => p[0])), 0, Math.max(...points.map(p => p[0])), 10];
+    } }, labelPresentation: { currentMapZoom: () => 100 }, mapView: { activeProjection: () => point => point },
+    landRelations: { pointInCountryFeature: (point, feature) => {
+      const xs = feature.geometry.coordinates[0].map(p => p[0]);
+      return point[0] > Math.min(...xs) && point[0] < Math.max(...xs) && point[1] > 0 && point[1] < 10;
+    } }, platform: { clamp: (value, min, max) => Math.max(min, Math.min(max, value)) },
+  });
+  const records = ['A', 'B', 'R'].map(id => ({ domain: 'territorial', id }));
+  const hits = () => picking.territorialObjectsAt([5, 5], [5, 5], records);
+  assert.deepEqual(hits().map(item => item.ref.key), ['territorial:entity:R', 'territorial:entity:B', 'territorial:entity:A']);
+  await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
+    payload:{ action:'visibility',key:'objects',visible:false } });
+  assert.deepEqual(hits().map(item => item.ref.id), []);
+  await testCoreProject(state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'objects',visible:true}});
+  assert.deepEqual(picking.territorialObjectsAt([25, 5], [25, 5], records).map(item=>item.ref.id), []);
+  state.countryVisualPhase = 'pending';
+  assert.deepEqual(hits(), []);
+  state.countryVisualPhase = 'canonical';
+  assert.deepEqual(hits().map(item => item.ref.id), ['R', 'B', 'A']);
+  await testCoreProject(state).project.executeCommand({ commandId:'presentation.apply',targets:[],
+    payload:{ action:'visibility',key:'objects',visible:false } });
+  assert.deepEqual(hits().map(item => item.ref.id), []);
+  await executeTerritorialTestCommand(state,'territorial.parent',{ id:'B',parentId:'' });
+  assert.deepEqual(hits().map(item => item.ref.id), []);
+  await testCoreProject(state).project.executeCommand({commandId:'presentation.apply',targets:[],payload:{action:'visibility',key:'objects',visible:true}});
+  assert.deepEqual(new Set(hits().map(item => item.ref.id)), new Set(['R','A','B']));
+  assert.deepEqual(A.geometry, square(0, 10));
+});
+});
+
+// Original feature contract: territorial-display-projection.test.mjs
+contractSuite("territorial-display-projection", () => {
+const { executeTerritorialTestCommand, testCoreProject, initializeTestTerritorialState } = __dep0;
+const test = __dep4.default;
+const assert = __dep3.default;
+const { createTerritorialFeature } = __dep1;
+const { createTerritorialEntityStore } = __dep2;
+const { createTerritorialEntityRepository } = __dep7;
+const { createTerritorialScopeResolver } = __dep10;
+
+const square = size => ({ type: 'Polygon', coordinates: [[[0,0],[0,size],[size,size],[size,0],[0,0]]] });
+test('display projection follows canonical identity, metadata and geometry without mutation', async () => {
+  const A = createTerritorialFeature({ id: 'A', entityKind: 'general', geometry: square(10) });
+  const B = createTerritorialFeature({ id: 'B', entityKind: 'general', parentId: 'A', geometry: square(3) });
+  const state = { territorialEntities: [A, B], countryVisualPhase: 'preview' };
+  const before = structuredClone([A, B]);
+  await initializeTestTerritorialState(state);
+  const store = createTerritorialEntityStore({ documentModel: testCoreProject(state).documentModel, commandOwner: testCoreProject(state).client });
+  const repo = createTerritorialEntityRepository({ entityStore: store });
+  const display = createTerritorialScopeResolver({ entityRepository: repo, clipper: () => null });
+  const first = display.displayEntities();
+  assert.strictEqual(display.displayEntities(), first);
+  assert.strictEqual(display.displayFeature('A'), repo.get('A'));
+  state.countryVisualPhase = 'canonical';
+  assert.strictEqual(display.displayEntities(), first);
+  await executeTerritorialTestCommand(state, 'territorial.metadata', { id: 'B', field: 'color', value: '#123456', valuePresent: true });
+  assert.equal(display.displayFeature('B').properties.style.color, '#123456');
+  await executeTerritorialTestCommand(state, 'territorial.patch', { features: [{ ...repo.get('A'), geometry: square(7) }] });
+  assert.deepEqual(display.displayFeature('A').geometry, square(7));
+  await executeTerritorialTestCommand(state, 'territorial.remove', { ids: ['B'] });
+  assert.equal(display.displayFeature('B'), null);
+  assert.deepEqual([A, B], before);
+});
+});
+
+// Original feature contract: territorial-highlight-boundary.test.mjs
+contractSuite("territorial-highlight-boundary", () => {
+const test = __dep4.default;
+const assert = __dep3.default;
+const { excludeAncestorHighlightBoundary } = __dep11;
+const { createMapDisplayPreparation } = __dep12;
+
+const polygon = coordinates => ({ type: 'Polygon', coordinates: [coordinates] });
+const length = feature => feature.geometry.coordinates.reduce((total, line) => total + line.slice(1).reduce((sum, point, index) => sum + Math.hypot(point[0] - line[index][0], point[1] - line[index][1]), 0), 0);
+const parent = polygon([[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]]);
+const child = polygon([[0, 0], [2, 0], [2, 4], [0, 4], [0, 0]]);
+
+test('child keeps its internal edge while its highlighted country supplies the outer edge', () => {
+  const result = excludeAncestorHighlightBoundary(child, [parent]);
+  assert.equal(length(result), 4);
+  assert.ok(result.geometry.coordinates.every(line => line.every(point => point[0] === 2)));
+  assert.equal(length(excludeAncestorHighlightBoundary(child, [])), 12);
+});
+test('partial reversed and subdivided overlaps are removed without losing unrelated edges', () => {
+  const line = { type: 'LineString', coordinates: [[0, 0], [4, 0]] };
+  const ancestor = { type: 'MultiLineString', coordinates: [[[2, 0], [1, 0]], [[3, 0], [2, 0]]] };
+  const result = excludeAncestorHighlightBoundary(line, [ancestor]);
+  assert.equal(length(result), 2);
+  assert.equal(result.geometry.coordinates.length, 2);
+});
+test('near-coincident shared lines are suppressed but nearby distinct boundaries remain', () => {
+  const line = { type: 'LineString', coordinates: [[0, 0], [2, 0]] };
+  assert.equal(length(excludeAncestorHighlightBoundary(line, [{ type: 'LineString', coordinates: [[0, 0.00001], [2, 0.00001]] }])), 0);
+  assert.equal(length(excludeAncestorHighlightBoundary(line, [{ type: 'LineString', coordinates: [[0, 0.01], [2, 0.01]] }])), 2);
+});
+
+test('highlight preparation removes the same parent perimeter for wrapped and continuous dateline coordinates', async () => {
+  const child = polygon([[179, 0], [179, 1], [179.5, 1], [179.5, 0], [179, 0]]);
+  for (const east of [-179, 181]) {
+    const parent = { type: 'Feature', properties: {}, geometry: polygon([[179, 0], [179, 1], [east, 1], [east, 0], [179, 0]]) };
+    const before = structuredClone([child, parent]);
+    const { feature: result } = await createMapDisplayPreparation().prepare({
+      kind: 'highlight', feature: child, occluders: [{feature:parent}],
+    }, [], []);
+    assert.equal(length(result), 1, `parent east ${east}`);
+    assert.ok(result.geometry.coordinates.every(line => line.every(point => point[0] === 179.5)));
+    assert.deepEqual([child, parent], before);
+  }
+});
+
+test('partial overlaps across the dateline leave only two short non-overlapping segments', () => {
+  const line = { type: 'LineString', coordinates: [[179, 0], [-179, 0]] };
+  const ancestor = { type: 'MultiLineString', coordinates: [
+    [[-179.5, 0], [-180, 0]], [[180, 0], [179.5, 0]],
+  ] };
+  const result = excludeAncestorHighlightBoundary(line, [ancestor]);
+  assert.equal(length(result), 1);
+  assert.equal(result.geometry.coordinates.length, 2);
+  assert.deepEqual(result.geometry.coordinates.map(line => [line[0], line.at(-1)]),
+    [[[179, 0], [179.5, 0]], [[-179.5, 0], [-179, 0]]]);
+  assert.ok(result.geometry.coordinates.every(line => line.length > 2),
+    'the selected coastline must use refined fill-compatible intervals');
+});
+
+test('polar and seam closure edges never become selection highlight strokes', () => {
+  const cap = polygon([[-180, 80], [-90, 80], [0, 80], [90, 80], [180, 80], [180, 90], [-180, 90], [-180, 80]]);
+  const result = excludeAncestorHighlightBoundary(cap, []);
+  assert.equal(length(result), 360);
+  assert.ok(result.geometry.coordinates.every(line => line.every(point => point[1] === 80)));
+  assert.equal(length(excludeAncestorHighlightBoundary(cap, [cap])), 0);
+});
+});
+
+// Original feature contract: land-relations-presentation.test.mjs
+contractSuite("land-relations-presentation", () => {
+const { normalizeLayerPresentation } = __dep6;
+const test = __dep4.default;
+const assert = __dep3.default;
+const { createLandRelations } = __dep13;
+const { createCountryCommandCalculator } = __dep14;
+const { createTerritorialFeature, territorialRootId, TERRITORIAL_COVERAGE_MODES } = __dep1;
+const { DISTRIBUTION_MODES } = __dep15;
+const { testCoreProject, initializeTestTerritorialState } = __dep0;
+
+const square=(x0,y0,x1,y1)=>({type:'Polygon',coordinates:[[[x0,y0],[x0,y1],[x1,y1],[x1,y0],[x0,y0]]]});
+const feature=(id,geometry,parentId='')=>createTerritorialFeature({id,name:id,entityKind:'general',parentId,geometry});
+function landPlans() {
+  const owner=createLandRelations();
+  owner.connect({territorialModel:{territorialRootId,TERRITORIAL_COVERAGE_MODES,DISTRIBUTION_MODES}});
+  return owner;
+}
+async function fixture() {
+  const entities=[feature('source',square(0,0,10,10)),feature('other',square(20,0,30,10)),
+    feature('kept',square(1,1,2,2),'source'),feature('moved',square(1,7,2,8),'source'),
+    feature('moved-child',square(1.1,7.1,1.9,7.9),'moved'),feature('crossed',square(3,3,4,7),'source'),
+    feature('unrelated',square(21,1,22,2),'other')];
+  const state={territorialEntities:entities,
+    itemVisibility:{objects:{source:false,kept:false,moved:false,'moved-child':false,crossed:false,unrelated:false}},
+    layerPresentation:normalizeLayerPresentation({objectStyles:Object.fromEntries(['source','kept','moved','moved-child','crossed','unrelated']
+      .map((id,index)=>[`territorial:entity:${id}`,{opacity:(index+1)/10}]))})};
+  await initializeTestTerritorialState(state);
+  return {state,...testCoreProject(state)};
+}
+function splitPlan(views) {
+  const selected=square(0,5,10,10),next=feature('new',selected);
+  const {result}=createCountryCommandCalculator().calculate({operation:'new-country',sourceIds:['source'],
+    transferredGeometry:selected,newFeature:next},new Map(views.filter(row=>!row.properties.parentId).map(row=>[row.id,row])));
+  const updates=new Map(result.features.map(row=>[row.id,row]));
+  const proposed=[...views.map(row=>updates.get(row.id)||row),updates.get('new')];
+  const dependents=landPlans().planTransferLandDependents({territorialViews:proposed,transferredGeometry:selected,
+    sourceOwnerIds:['source'],targetOwnerId:'new'});
+  return {features:[...result.features,...dependents.features],removedIds:[...result.removedIds,...dependents.removedIds]};
+}
+
+test('dependent geometry planning reads immutable proposal views and preserves the existing split calculation',async()=>{
+  globalThis.window=globalThis;
+  const f=await fixture(),before=f.project.snapshot(),clock=f.client.state(),plan=splitPlan(f.entityStore.snapshot());
+  assert.deepEqual(plan.removedIds,['moved','moved-child']);
+  assert.equal(plan.features.some(row=>row.id==='kept'),true);assert.equal(plan.features.some(row=>row.id==='crossed'),true);
+  assert.equal(plan.features.some(row=>row.id==='unrelated'),true);
+  assert.equal(f.project.snapshot(),before);assert.deepEqual(f.client.state(),clock,'geometry planning never publishes or owns history');
+  const original=globalThis.polygonClipping;
+  try {
+    globalThis.polygonClipping={...original,difference(){throw new Error('dependent apply failed');}};
+    assert.throws(()=>splitPlan(f.entityStore.snapshot()),/dependent apply failed/);
+  } finally {globalThis.polygonClipping=original;}
+  assert.equal(f.project.snapshot(),before);assert.deepEqual(f.client.state(),clock);
+});
+
+test('one split candidate cleans authored child appearance and preserves independent viewing through Undo',async()=>{
+  globalThis.window=globalThis;
+  const f=await fixture(),before=f.project.snapshot(),clock=f.client.state(),plan=splitPlan(f.entityStore.snapshot());
+  const operation={commandId:'territorial.patch',targets:[...plan.features.map(row=>row.id),...plan.removedIds]
+    .map(id=>({domain:'territorial',id})),payload:plan};
+  const envelope={commandId:'territorial.new-country',targets:[],payload:{operations:[operation]}};
+  const cancelled=await f.project.prepareCommand(envelope);
+  assert.equal(cancelled.ok,true);assert.equal(f.project.snapshot(),before);assert.deepEqual(f.client.state(),clock);
+  assert.equal(cancelled.preview.territorialViews.some(row=>row.id==='moved'),false);
+  assert.equal(await f.project.cancelCandidate(cancelled.candidateId),true);
+  assert.equal(f.project.snapshot(),before);assert.deepEqual(f.client.state(),clock);
+  const prepared=await f.project.prepareCommand(envelope);
+  const committed=await f.project.confirmCandidate(prepared.candidateId,prepared.state.epoch);
+  assert.equal(committed.ok,true);assert.equal(f.client.state().stateRevision,clock.stateRevision+1);
+  const after=f.project.snapshot();
+  for(const id of ['moved','moved-child']) {
+    assert.equal(f.entityRepository.get(id),null);assert.equal(f.state.itemVisibility.objects[id],false);
+    assert.equal(Object.hasOwn(f.state.layerPresentation.objectStyles,`territorial:entity:${id}`),false);
+  }
+  for(const id of ['kept','crossed','unrelated']) {
+    assert.equal(f.state.itemVisibility.objects[id],false);
+    assert.deepEqual(f.state.layerPresentation.objectStyles[`territorial:entity:${id}`],before.layerPresentation.objectStyles[`territorial:entity:${id}`]);
+  }
+  assert.equal(f.state.itemVisibility.objects.source,false);
+  assert.deepEqual(f.state.layerPresentation.objectStyles['territorial:entity:source'],before.layerPresentation.objectStyles['territorial:entity:source']);
+  assert.equal(await f.project.undo(),true);assert.equal(f.client.state().canUndo,false);assert.deepEqual(f.project.snapshot(),before);
+  assert.equal(await f.project.redo(),true);assert.deepEqual(f.project.snapshot(),after);
+});
+
+test('reassignment calculates changed distribution references without mutating accepted rows or unrelated entries',()=>{
+  globalThis.window=globalThis;
+  const views=[feature('target',square(0,0,10,10)),feature('donor',square(0,0,10,10)),
+    feature('child',square(1,1,2,2),'donor'),feature('grandchild',square(1.1,1.1,1.9,1.9),'child')];
+  const entries=[{id:'moved-entry',mode:'territorial',territorialUnitId:'donor'},
+    {id:'kept-entry',mode:'territorial',territorialUnitId:'child'},{id:'geometry-entry',mode:'geometry',territorialUnitId:''}];
+  const freeze=value=>{if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
+  const before=structuredClone({views,entries});freeze(views);freeze(entries);
+  const plan=landPlans().planReassignLandDependents({territorialViews:views,distributionEntries:entries,removedOwnerIds:['donor'],targetOwnerId:'target'});
+  assert.equal(plan.features.find(row=>row.id==='child').properties.parentId,'target');
+  assert.equal(plan.features.find(row=>row.id==='grandchild').properties.parentId,'child');
+  assert.deepEqual(plan.distributionEntries,[{...entries[0],territorialUnitId:'target'}]);
+  assert.deepEqual({views,entries},before);assert.deepEqual(plan.removedIds,[]);
+});
 });
