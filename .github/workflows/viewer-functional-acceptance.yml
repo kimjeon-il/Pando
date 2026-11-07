@@ -103,13 +103,13 @@ jobs:
           tests/unit/core-product-mode.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/project-product-surface.test.mjs
-          tests/unit/viewer-globe-only.test.mjs
+          tests/unit/viewer-initial-presentation.test.mjs
       - name: Verify Core read access, project ownership and editing isolation
         run: >-
           node --test --test-concurrency=2
           tests/unit/core-product-mode.test.mjs
           tests/unit/project-product-surface.test.mjs
-          tests/unit/viewer-globe-only.test.mjs
+          tests/unit/viewer-initial-presentation.test.mjs
           tests/unit/map-readonly-flat-boundary.test.mjs
           tests/unit/viewer-bootstrap-recovery.test.mjs
       - name: Verify existing runtime module boundaries

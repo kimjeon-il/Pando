@@ -1,10 +1,26 @@
 import { describe as contractSuite } from 'node:test';
-import * as __dep0 from "node:test";
-import * as __dep1 from "node:assert/strict";
-import * as __dep2 from "../../apps/viewer/js/modules/viewer-initial-presentation.js";
-import * as __dep3 from "../../apps/viewer/js/modules/viewer-post-presentation.js";
-import * as __dep4 from "node:fs";
-import * as __dep5 from "../../apps/viewer/js/modules/viewer-load-status.js";
+import * as __merge_dep0 from "node:test";
+import * as __merge_dep1 from "node:assert/strict";
+import * as __merge_dep2 from "../../apps/viewer/js/modules/viewer-initial-presentation.js";
+import * as __merge_dep3 from "../../apps/viewer/js/modules/viewer-post-presentation.js";
+import * as __merge_dep4 from "node:fs";
+import * as __merge_dep5 from "../../apps/viewer/js/modules/viewer-load-status.js";
+import * as __merge_dep6 from "../../shared/frontend/js/modules/product-mode-policy.js";
+import * as __merge_dep7 from "../../shared/frontend/js/modules/project-session.js";
+import * as __merge_dep8 from "../../shared/frontend/js/modules/map-state-transition.js";
+import * as __merge_dep9 from "../../shared/frontend/js/modules/camera-navigation.js";
+import * as __merge_dep10 from "../../shared/frontend/js/modules/map-layout-metrics.js";
+import * as __merge_dep11 from "../../shared/frontend/js/modules/project-setup.js";
+
+// Original feature contract: viewer-initial-presentation.test.mjs
+contractSuite("viewer-initial-presentation", () => {
+const { describe : contractSuite } = __merge_dep0;
+const __dep0 = __merge_dep0;
+const __dep1 = __merge_dep1;
+const __dep2 = __merge_dep2;
+const __dep3 = __merge_dep3;
+const __dep4 = __merge_dep4;
+const __dep5 = __merge_dep5;
 
 // Original feature contract: viewer-initial-presentation.test.mjs
 contractSuite("viewer-initial-presentation", () => {
@@ -316,5 +332,85 @@ test('quiet completion preserves accessibility without declaring the renderer re
   assert.equal(element.className, 'ui-visually-hidden');
   assert.equal(element.dataset.ready, 'false');
   assert.deepEqual(element.children, []);
+});
+});
+});
+
+// Original feature contract: viewer-globe-only.test.mjs
+contractSuite("viewer-globe-only", () => {
+const test = __merge_dep0.default;
+const assert = __merge_dep1.default;
+const { createProductModePolicy } = __merge_dep6;
+const { createProjectSession } = __merge_dep7;
+const { createAtomicMapStateController } = __merge_dep8;
+const { createCameraNavigation } = __merge_dep9;
+const { createMapLayoutMetricsSnapshot } = __merge_dep10;
+const { initialBoundsView } = __merge_dep11;
+
+for (const [mode, projection, rejected] of [['viewer','globe','flat'],['editor','flat','globe']]) {
+  test(`${mode} admits its fixed projection and rejects an explicit switch`,()=>{
+    const policy=createProductModePolicy(mode);
+    assert.doesNotThrow(()=>policy.assertProjection(projection));
+    assert.throws(()=>policy.assertProjection(rejected),{code:'PL-PRODUCT-PROJECTION'});
+    assert.throws(()=>policy.assertProjection('unknown'),{code:'PL-PRODUCT-PROJECTION'});
+    assert.doesNotThrow(()=>policy.assertProjection(undefined)); // A camera-only host update.
+  });
+  test(`${mode} atomic camera restore keeps the product projection and geographic center`,()=>{
+    const layout=createMapLayoutMetricsSnapshot({width:900,height:624});
+    const navigation=createCameraNavigation();
+    navigation.connect({platform:{clamp:(value,min,max)=>Math.max(min,Math.min(max,value))},mapView:{projectionLayoutMetrics:()=>layout}});
+    const session=createProjectSession({productMode:mode});
+    session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
+      modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
+      uiFactoriesA:{createAtomicMapStateController},mapNavigation:navigation});
+    session.initializeMapWorkScheduler();
+    const view={...session.state.view,flatCenter:[175,25],flatZoom:3,globeRotation:[-175,-25,0],globeZoom:3};
+    const camera=session.atomicMapStateController;
+    camera.commit(camera.begin(),{projection:rejected,view});
+    assert.equal(session.state.projection,projection);
+    assert.deepEqual(projection==='globe'?session.state.view.globeRotation:session.state.view.flatCenter,projection==='globe'?[-175,-25,0]:[175,25]);
+    assert.deepEqual(view.flatCenter,[175,25]);
+  });
+}
+
+test('globe initial bounds fit across the dateline on desktop and mobile',()=>{
+  for(const size of [{width:1440,height:900},{width:390,height:844}]){
+    const layout=createMapLayoutMetricsSnapshot(size),bounds={west:170,east:-170,south:-10,north:10};
+    const initial=initialBoundsView(bounds,layout,'globe');
+    assert.equal(initial.projection,'globe');
+    assert.equal(Math.abs(initial.view.globeRotation[0]),180);
+    assert.equal(initial.view.globeRotation[1],0);
+    assert.ok(initial.view.globeZoom>1);
+    const angle=Math.acos(Math.cos(10*Math.PI/180)**2);
+    assert.ok(2*layout.globeBaseScale*initial.view.globeZoom*Math.sin(angle)<=Math.min(layout.contentWidth,layout.contentHeight));
+  }
+});
+
+test('world bounds keep a complete globe and editor bounds keep a flat fit',()=>{
+  const layout=createMapLayoutMetricsSnapshot({width:900,height:624});
+  const world=initialBoundsView({west:-180,east:180,south:-90,north:90},layout,'globe');
+  assert.equal(world.projection,'globe');assert.equal(world.view.globeZoom,1);
+  assert.equal(initialBoundsView(null,layout,'globe').projection,'globe');
+  const flat=initialBoundsView({west:170,east:-170,south:-10,north:10},layout,'flat');
+  assert.equal(flat.projection,'flat');assert.equal(Math.abs(flat.view.flatCenter[0]),180);
+});
+
+
+test('flat review keeps editor projection but never creates edit-draft or save state',()=>{
+ const policy=createProductModePolicy('editor',{readOnly:true});
+ assert.equal(policy.projection,'flat');assert.equal(policy.readOnly,true);
+ assert.throws(()=>policy.assertProjection('globe'),{code:'PL-PRODUCT-PROJECTION'});
+ assert.throws(()=>policy.assertOperation('core.document-execute'),{code:'PL-PRODUCT-READONLY'});
+ assert.doesNotThrow(()=>policy.assertOperation('core.document-selection-apply'));
+ const session=createProjectSession({productMode:'editor',readOnly:true});
+ session.connect({readiness:{DATA_READINESS:{PREVIEW:'preview'}},applicationConstantsA:{DISTRIBUTION_RENDER_MODES:{OVERLAP:'overlap'}},
+  modelValidation:{normalizeLayerPresentation:()=>({})},physicalConfig:{PHYSICAL_DATASET:'fixture'},domains:{},
+  uiFactoriesA:{createAtomicMapStateController},
+  mapNavigation:{clampViewZooms:view=>view,reprojectView:view=>view}});
+ session.initializeMapWorkScheduler();
+ assert.equal(session.state.projection,'flat');assert.equal(Object.hasOwn(session.state,'geometryPreview'),false);
+ assert.equal(session.saveState,undefined);
+ assert.throws(()=>createProductModePolicy('viewer',{readOnly:false}),TypeError);
+ assert.throws(()=>createProductModePolicy('editor',{readOnly:'true'}),TypeError);
 });
 });
