@@ -32,7 +32,7 @@ export function createPlaceRuntime({ manifestUrl = new URL('../../data/places/ma
       })();
       lifetimeIndex=indexPlaceUrbanLifetimes(value);
       return lifetimeIndex;
-    })();
+    })().catch(error=>{lifetimeTask=null;throw error;});
     return lifetimeTask;
   }
   const retained=new Map();
