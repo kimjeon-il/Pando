@@ -95,3 +95,13 @@ test('append-changed lint checks do not traverse unrelated archived tool imports
   const plan = planApplicationChecks({changedFiles: [path], repository});
   assert.ok(plan.commands.includes('lint'), path);
 });
+
+
+test('consolidated unit contracts resolve to one runnable suite and retain prerequisite ownership', () => {
+  const repository = loadRepository();
+  assert.equal(repository.contractOwners.get('tests/unit/project-invariants.test.mjs'), 'tests/unit/project-state.test.mjs');
+  assert.ok(repository.suiteContracts.get('tests/unit/project-state.test.mjs').has('tests/unit/project-invariants.test.mjs'));
+  const all = [...repository.suiteContracts.values()].flatMap(contracts => [...contracts]);
+  assert.equal(new Set(all).size, all.length, 'all contract identities must be unique');
+  assert.ok(repository.unitRequirements.get('tests/unit/core-document-wasm.test.mjs').has('core'));
+});

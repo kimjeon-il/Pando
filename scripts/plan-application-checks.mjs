@@ -78,18 +78,34 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     if (!group) throw Error('Unregistered test: ' + file);
     owners.set(file, group);
   }
+  // A consolidated file may own several historical feature contracts. Resolve
+  // every identity to one runnable suite without retaining removed entrypoints.
+  const contractOwners = new Map(), suiteContracts = new Map();
+  for (const file of tests.filter(file => file.startsWith('tests/unit/'))) {
+    const source = read(file);
+    const contracts = new Set([file, ...[...source.matchAll(
+      /^\s*\/\/ Original feature contract: ([\w.-]+\.test\.mjs)\s*$/gm,
+    )].map(match => 'tests/unit/' + match[1])]);
+    suiteContracts.set(file, contracts);
+    for (const identity of contracts) {
+      if (contractOwners.has(identity) && contractOwners.get(identity) !== file)
+        throw Error('Ambiguous unit contract: ' + identity);
+      contractOwners.set(identity, file);
+    }
+  }
   for (const group of catalog.groups) for (const pattern of group.testPatterns || []) {
-    if (!pattern.includes('*') && !owners.has(pattern)) throw Error('Missing registered test: ' + pattern);
+    if (!pattern.includes('*') && !owners.has(pattern) && !contractOwners.has(pattern))
+      throw Error('Missing registered test: ' + pattern);
   }
   const unitRequirements = new Map(tests.filter(file => file.startsWith('tests/unit/'))
     .map(file => [file, new Set(owners.get(file).requires || [])]));
   for (const binding of catalog.unitPrerequisites || []) {
     if (!Array.isArray(binding.tests) || !Array.isArray(binding.requires)) throw Error('Invalid unit prerequisite binding');
-    for (const pattern of binding.tests) if (!pattern.includes('*') && !unitRequirements.has(pattern))
+    for (const pattern of binding.tests) if (!pattern.includes('*') && !contractOwners.has(pattern))
       throw Error('Missing registered unit prerequisite test: ' + pattern);
     for (const id of binding.requires) if (!catalog.prerequisites?.[id]?.argv)
       throw Error('Missing prerequisite: ' + id);
-    for (const [file, required] of unitRequirements) if (matches(file, binding.tests))
+    for (const [file, required] of unitRequirements) if ([...suiteContracts.get(file)].some(identity => matches(identity, binding.tests)))
       binding.requires.forEach(id => required.add(id));
   }
   function prerequisiteInputs(id) {
@@ -214,7 +230,7 @@ export function loadRepository(root = process.cwd(), { catalog } = {}) {
     ]), ...(catalog.bindings || []).flatMap(binding => files.filter(file => matches(file, binding.inputs || [])))],
     dependencies,
   });
-  return { root: resolve(root), catalog, files, tests, owners, frontendIndex, exists, read, dependencies, unitRequirements, impactIndex };
+  return { root: resolve(root), catalog, files, tests, owners, contractOwners, suiteContracts, frontendIndex, exists, read, dependencies, unitRequirements, impactIndex };
 }
 
 export function planApplicationChecks({ changedFiles = [], repository, groups: requestedGroups = [],exactSelection=null }) {
