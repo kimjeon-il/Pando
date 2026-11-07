@@ -158,11 +158,12 @@ test('unknown peers are subtracted directly from the source without unioned inte
 test('invalid historical Boolean shells fail with bounded ring evidence instead of being silently omitted',()=>{
   const two=[candidate('a',0,6),candidate('b',4,10)];
   const clipper={...globalThis.polygonClipping,
-    difference:()=>[[[[0,0],[1,1],[2,2],[0,0]]]]};
+    difference:()=>[[[[0,0],[1,1],[2,2],[3,3],[0,0]]]]};
   assert.throws(()=>module.adjustHistoricalTerritories(two,policy,clipper),error=>{
     assert.match(error.message,/HISTORICAL_CLIP_INVALID/);
     assert.match(error.message,/ringDiagnostic=/);
     assert.match(error.message,/areaDegreesSquared/);
+    assert.match(error.message,/repeatedVertices/);
     assert.match(error.message,/degenerate shell or hole/);
     return true;
   });

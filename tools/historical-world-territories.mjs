@@ -62,17 +62,23 @@ export function adjustHistoricalTerritories(input, policy, clipper = historicalW
       }))).filter(part => part.vertices < 4);
       const diagnostic=value.slice(0,3).flatMap((polygon,pi)=>polygon.slice(0,2).map((ring,ri)=>{
         const first=ring[0]||[0,0],bounds=[Infinity,Infinity,-Infinity,-Infinity];
-        let twiceArea=0,minimumEdge=Infinity,zeroEdges=0;
+        let twiceArea=0,minimumEdge=Infinity,zeroEdges=0,nearAdjacent=0,repeatedVertices=0;
+        const seenVertices=new Set();
         for(let i=0;i<ring.length;i++){
           const point=ring[i],next=ring[(i+1)%ring.length]||point;
+          if(i+1<ring.length){const key=point.join(',');if(seenVertices.has(key))repeatedVertices++;else seenVertices.add(key);}
           bounds[0]=Math.min(bounds[0],point[0]);bounds[1]=Math.min(bounds[1],point[1]);
           bounds[2]=Math.max(bounds[2],point[0]);bounds[3]=Math.max(bounds[3],point[1]);
           twiceArea+=(point[0]-first[0])*(next[1]-first[1])-(next[0]-first[0])*(point[1]-first[1]);
           const edge=Math.hypot(next[0]-point[0],next[1]-point[1]);
-          minimumEdge=Math.min(minimumEdge,edge);if(edge===0)zeroEdges++;
+          if(i+1<ring.length){
+            minimumEdge=Math.min(minimumEdge,edge);
+            if(edge===0)zeroEdges++;
+            if(Math.abs(next[0]-point[0])<=1e-10&&Math.abs(next[1]-point[1])<=1e-10)nearAdjacent++;
+          }
         }
         return {polygon:pi,ring:ri,vertices:ring.length,bounds,
-          areaDegreesSquared:Math.abs(twiceArea)/2,minimumEdge,zeroEdges,
+          areaDegreesSquared:Math.abs(twiceArea)/2,minimumEdge,zeroEdges,nearAdjacent,repeatedVertices,
           first:ring.slice(0,3),last:ring.slice(-3)};
       }));
       throw new Error(`HISTORICAL_CLIP_INVALID: ${operation}, components=${value.length}, shortRings=${JSON.stringify(failing.slice(0,8))}, ringDiagnostic=${JSON.stringify(diagnostic)}: ${error.message}`,{cause:error});
